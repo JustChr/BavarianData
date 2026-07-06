@@ -67,6 +67,9 @@ class CardataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._poll_task: Optional[asyncio.Task] = None
         self._auth_error: Optional[str] = None
         self._requested_scope: str = DEFAULT_SCOPE
+        self._entry_data: Optional[Dict[str, Any]] = None
+        self._entry_title: str = ""
+        self._cluster_snippet: str = ""
 
     async def async_step_user(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         if user_input is None:
@@ -266,11 +269,65 @@ class CardataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             persistent_notification.async_dismiss(self.hass, notification_id)
             return self.async_abort(reason="reauth_successful")
 
-        friendly_title = (
+        self._entry_title = (
             "BavarianData: Connect Home Assistant to BMW CarData "
             f"({self._client_id[:8]})"
         )
-        return self.async_create_entry(title=friendly_title, data=entry_data)
+        # Authorization succeeded but BMW streams nothing until descriptors are
+        # ticked in the portal's Data Selection. Carry the token payload forward
+        # and route straight into the cluster picker so the user leaves setup with
+        # a ready-to-paste snippet instead of an empty stream.
+        self._entry_data = entry_data
+        return await self.async_step_select_clusters()
+
+    async def async_step_select_clusters(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Pick which data clusters to stream, right after authorization.
+
+        Mirrors the options-flow picker (:meth:`CardataOptionsFlowHandler.
+        async_step_action_select_clusters`) but runs inside initial setup so a
+        first-time user is handed a portal snippet without hunting through
+        Configure afterwards. BMW has no API to set the selection — it is done in
+        the portal — so this builds a browser-console snippet instead.
+        """
+
+        labels = section_labels()
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    "sections", default=default_sections()
+                ): cv.multi_select(labels),
+            }
+        )
+        if user_input is None:
+            return self.async_show_form(
+                step_id="select_clusters",
+                data_schema=schema,
+            )
+
+        # Preserve the catalogue's cluster order regardless of checkbox order.
+        chosen = [slug for slug in labels if slug in set(user_input.get("sections", []))]
+        assert self._entry_data is not None
+        self._entry_data[OPTION_STREAM_SECTIONS] = chosen
+        self._cluster_snippet = build_portal_snippet(chosen)
+        return await self.async_step_cluster_snippet()
+
+    async def async_step_cluster_snippet(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Show the generated Data Selection snippet, then create the entry."""
+
+        if user_input is None:
+            return self.async_show_form(
+                step_id="cluster_snippet",
+                data_schema=vol.Schema({}),
+                description_placeholders={"snippet": self._cluster_snippet},
+            )
+        assert self._entry_data is not None
+        return self.async_create_entry(
+            title=self._entry_title, data=self._entry_data
+        )
 
     async def async_step_reauth(self, entry_data: Dict[str, Any]) -> FlowResult:
         entry_id = entry_data.get("entry_id")

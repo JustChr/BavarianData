@@ -69,52 +69,12 @@ Open the vehicle overview and pick **CarData**:
    — and authorize it.
    *If the portal throws a scope error, reload, add one scope, wait ~30 s, then
    add the second.*
-4. Open **Data Selection** (`Datenauswahl ändern`) and choose which descriptors
-   to stream. Click **Load more** until the full list is shown, then tick what
-   you want. To tick everything currently listed, paste this into the browser
-   console:
 
-   ```js
-   (() => {
-     const labels = document.querySelectorAll('.css-k008qs label.chakra-checkbox');
-     let changed = 0;
-     labels.forEach(label => {
-       const input = label.querySelector('input.chakra-checkbox__input[type="checkbox"]');
-       if (!input || input.disabled || input.checked) return;
-       label.click();
-       if (!input.checked) {
-         const ctrl = label.querySelector('.chakra-checkbox__control');
-         if (ctrl) ctrl.click();
-       }
-       if (!input.checked) {
-         input.checked = true;
-         ['click', 'input', 'change'].forEach(type =>
-           input.dispatchEvent(new Event(type, { bubbles: true }))
-         );
-       }
-       if (input.checked) changed++;
-     });
-     console.log(`Checked ${changed} of ${labels.length} checkboxes.`);
-   })();
-   ```
-
-5. Save, and repeat for each vehicle you want in Home Assistant.
-
-> **Prefer to pick by cluster?** After the integration is installed,
-> **Configure → Choose streamed data** lets you select data by cluster
-> (Electric vehicle, Vehicle status, Tire data, …) and generates a console
-> snippet that ticks only those clusters. BMW has no API to set the stream
-> selection — it is portal-only, and requesting per-descriptor streaming scopes
-> is rejected (details in
-> [docs/reference/stream-scope-investigation.md](docs/reference/stream-scope-investigation.md)).
-> The full field-per-cluster breakdown lives in
-> [docs/reference/telematics-fields.md](docs/reference/telematics-fields.md).
-
-> **Extrapolated state-of-charge helpers** need these descriptors in the stream:
-> `vehicle.drivetrain.batteryManagement.header`,
-> `vehicle.drivetrain.batteryManagement.maxEnergy`,
-> `vehicle.powertrain.electric.battery.charging.power`, and
-> `vehicle.drivetrain.electricEngine.charging.status`.
+That's all you need here. **Don't tick anything under Data Selection yet** —
+which descriptors to stream is chosen from inside Home Assistant after install
+([Step 4](#step-4--choose-which-data-to-stream)), which generates a snippet
+tailored to the clusters you pick. The client ID is account-wide, so it covers
+every vehicle on the account.
 
 ## Step 2 — Install
 
@@ -132,12 +92,50 @@ Via [HACS](https://hacs.xyz/) as a custom repository:
    approve the device on BMW's site. The dialog waits and **continues on its own**
    the instant you approve — nothing to click in HA, no timing to get right. If
    it times out or is declined, press **Submit** for a fresh code and try again.
-4. Wait for the first data. Triggering something in the MyBMW app (lock/unlock)
-   usually nudges the car into sending an update right away.
+4. **Choose which data to stream.** The moment authorization succeeds, setup
+   moves straight to the cluster picker (see [Step 4](#step-4--choose-which-data-to-stream)) —
+   no separate trip to Configure. Until you finish it, no descriptors are
+   selected in the portal, so no MQTT data will arrive.
 
 If BMW later invalidates the token, run **Configure → Re-authorize with BMW**.
 Removing and re-adding the integration with the same client ID also works — the
 previous entry is cleaned up automatically.
+
+## Step 4 — Choose which data to stream
+
+BMW only streams the descriptors you tick under **Data Selection** in the portal,
+and it offers **no API** to set that selection — it is portal-only. Rather than
+hand-picking hundreds of technical fields, the integration builds the selection
+for you. These screens appear automatically at the end of Step 3:
+
+1. **Pick the clusters** you want (Electric vehicle, Vehicle status, Tire data,
+   …). The defaults are a sensible starting set; the choice is remembered and the
+   picker re-opens pre-filled next time.
+2. The next screen shows a **browser-console snippet** generated for exactly
+   those clusters. Copy it.
+3. In the portal, open **Data Selection** (`Datenauswahl ändern`) and click
+   **Load more** until every field is listed. Open the browser console
+   (F12 → Console), paste the snippet, and press Enter. It ticks only the
+   checkboxes belonging to your chosen clusters — leaving any other selections
+   untouched — and logs how many it matched.
+4. **Save** the selection in the portal, then press **Submit** in Home Assistant
+   to finish. Repeat the portal step for each vehicle.
+5. Trigger something in the MyBMW app (lock/unlock) to nudge the car into sending
+   its first update.
+
+Re-run this any time from **Configure → Choose streamed data** to widen or narrow
+the stream. Requesting per-descriptor streaming *scopes* instead of a portal
+selection is rejected by BMW — see
+[docs/reference/stream-scope-investigation.md](docs/reference/stream-scope-investigation.md).
+The full field-per-cluster breakdown lives in
+[docs/reference/telematics-fields.md](docs/reference/telematics-fields.md).
+
+> **Extrapolated state-of-charge helpers** need the **Electric vehicle** cluster
+> in the stream — specifically the descriptors
+> `vehicle.drivetrain.batteryManagement.header`,
+> `vehicle.drivetrain.batteryManagement.maxEnergy`,
+> `vehicle.powertrain.electric.battery.charging.power`, and
+> `vehicle.drivetrain.electricEngine.charging.status`.
 
 ## Entities
 
@@ -204,8 +202,10 @@ Each service is available in Developer Tools and as a button in the integration'
 - **Debug logging** is off by default. Turn it on in **Configure → options**
   (`debug_log`) and reload. It's verbose and can include vehicle data such as GPS
   and VIN, so leave it off unless you're chasing a problem.
-- **No data arriving?** Confirm the descriptors are ticked in the portal's Data
-  Selection, and trigger a lock/unlock in the MyBMW app to prompt an update.
+- **No data arriving?** Make sure you completed
+  [Step 4](#step-4--choose-which-data-to-stream) — descriptors must be ticked and
+  **saved** in the portal's Data Selection — then trigger a lock/unlock in the
+  MyBMW app to prompt an update.
 - **Only one stream per account (GCID)** — BMW allows a single concurrent
   streaming client, so no other tool can be connected at the same time.
 - **Read-only** — CarData cannot send commands, so this integration can't lock,

@@ -13,7 +13,7 @@
  * config is just `type: custom:bmw-cardata-card`.
  */
 
-const CARD_VERSION = "1.0.0";
+const CARD_VERSION = "1.0.1";
 
 const CLUSTER_LABELS = {
   electric: "Electric vehicle",
@@ -915,7 +915,16 @@ class BmwCardataCard extends HTMLElement {
   }
 }
 
-customElements.define("bmw-cardata-card", BmwCardataCard);
+// Guard against double-definition: the script can legitimately be evaluated more
+// than once (e.g. auto-registered by the integration *and* still present as a
+// leftover manual Lovelace resource from an earlier version). A bare
+// customElements.define() would throw "the name has already been used" on the
+// second run, aborting the rest of the module and leaving the card broken —
+// which shows up as a "config error" on placed cards and an endless spinner in
+// the card picker. Defining only when absent keeps a double-load harmless.
+if (!customElements.get("bmw-cardata-card")) {
+  customElements.define("bmw-cardata-card", BmwCardataCard);
+}
 
 /* ------------------------------------------------------------------------- *
  * Visual editor (config-changed via ha-form)                                *
@@ -1041,16 +1050,22 @@ class BmwCardataCardEditor extends HTMLElement {
   }
 }
 
-customElements.define("bmw-cardata-card-editor", BmwCardataCardEditor);
+if (!customElements.get("bmw-cardata-card-editor")) {
+  customElements.define("bmw-cardata-card-editor", BmwCardataCardEditor);
+}
 
 window.customCards = window.customCards || [];
-window.customCards.push({
-  type: "bmw-cardata-card",
-  name: "BMW CarData Card",
-  description: "Vehicle render, state of charge and per-cluster data for BMW CarData.",
-  preview: true,
-  documentationURL: "https://github.com/JustChr/BavarianData",
-});
+// Only advertise the card once — a second evaluation would otherwise add a
+// duplicate entry to the card picker.
+if (!window.customCards.some((c) => c.type === "bmw-cardata-card")) {
+  window.customCards.push({
+    type: "bmw-cardata-card",
+    name: "BMW CarData Card",
+    description: "Vehicle render, state of charge and per-cluster data for BMW CarData.",
+    preview: true,
+    documentationURL: "https://github.com/JustChr/BavarianData",
+  });
+}
 
 // eslint-disable-next-line no-console
 console.info(
