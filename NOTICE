@@ -1,0 +1,27 @@
+BavarianData: Connect Home Assistant to BMW CarData
+===================================================
+
+This project began as a continuation of:
+
+    bmw-cardata-ha (originally published as "BimmerData Streamline")
+    Author:  JjyKsi
+    Source:  https://github.com/JjyKsi/bmw-cardata-ha
+
+The original author released that work into the public domain, stating in the
+project README: "This project is released into the public domain. Do whatever
+you want with it ... No attribution required (though appreciated)."
+
+Because the original work carries no licensing restrictions, this project is
+distributed under the MIT License (see the LICENSE file). We nonetheless credit
+the original author here, as a matter of courtesy and respect for their work.
+
+This project has since been substantially rewritten and now ships as
+"BavarianData: Connect Home Assistant to BMW CarData" (domain `bavariandata`),
+with alignment to the published BMW CarData API specification, additional API
+endpoints, a bundled Lovelace card and vehicle image, a regenerated descriptor
+catalogue, and a security and code-quality review.
+
+Trademark note: "BMW", "Mini", "Rolls-Royce" and "CarData" are trademarks of
+their respective owners. This project is an independent, community-built Home
+Assistant integration and is not affiliated with, endorsed by, or sponsored by
+BMW Group.

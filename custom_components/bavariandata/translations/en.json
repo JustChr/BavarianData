@@ -1,0 +1,2520 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect BMW CarData",
+        "description": "This streams your BMW or Mini vehicle data into Home Assistant.\n\n**First, set up CarData in the BMW portal** (skip if you already have a Client ID):\n\n1. Open the [BMW CarData portal]({portal_url}) and sign in. If CarData isn't available in your country, sign in via the [UK]({portal_uk}) or [German]({portal_de}) portal — the Client ID works everywhere.\n2. Create a **CarData Client** and copy the **Client ID** it shows you.\n3. Subscribe the client to **both** services: **CarData API** and **CarData Streaming**.\n4. Open **Data Selection** and tick the data you want to receive.\n\nThen paste the **Client ID** below.",
+        "data": {
+          "client_id": "Client ID"
+        },
+        "data_description": {
+          "client_id": "The CarData Client ID from the BMW portal — a long string that looks like a UUID."
+        }
+      },
+      "authorize_failed": {
+        "title": "Authorization didn't finish",
+        "description": "We couldn't complete the device authorization.\n\n**Details**\n```\n{error}\n```\n\n**What to check**\n- **declined / access_denied (403):** BMW's server often reports a decline even after you approved — a known BMW-side issue. Retry in a **private/incognito window**: open the BMW CarData portal yourself (don't follow a link with a code in the URL), sign in, choose *Authenticate device* and **type the code by hand**. Also make sure the Client ID is subscribed to **both CarData API and CarData Streaming** before authorizing, and that you're the **primary** user for the vehicle.\n- **expired / timeout:** the code wasn't approved in time.\n\nPress **Submit** to get a fresh code and try again. If it keeps failing, delete the CarData client in the BMW portal, create a new one, and re-authorize with the new Client ID — or email BMW support (bmwcardata-b2c-support@bmwgroup.com) quoting the **BMW reference** above."
+      }
+    },
+    "progress": {
+      "wait_for_authorization": "**Approve Home Assistant on BMW's website**\n\n1. Open the **[authorization page]({verification_url})** and sign in with your BMW account.\n2. Type in this code when asked: **{user_code}**\n3. Confirm the device.\n\n**Enter the code by hand** — don't use a link with the code already in the URL, and make sure no old code is pre-filled. BMW's server often wrongly records a *decline* for pre-filled codes. If it fails anyway, retry in a private/incognito window.\n\nLeave this dialog open — it continues automatically the moment you approve. There's nothing to click here."
+    },
+    "error": {
+      "device_code_failed": "BMW rejected the device authorization request ({error}). Check that the Client ID is correct and subscribed to both CarData services, then try again."
+    },
+    "abort": {
+      "reauth_successful": "Re-authorization successful — BMW CarData is connected again.",
+      "reauth_device_code_failed": "BMW rejected the device authorization request ({error}). Update the Client ID under Configure → Re-authorize with BMW, or remove and re-add the integration.",
+      "reauth_missing_client_id": "Client ID is missing for this integration entry. Remove and re-add the integration to authorize again.",
+      "reauth_failed": "Re-authorization could not be started. Try again from the integration options."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "BavarianData options",
+        "description": "Pick an action. The token and authorization actions keep your connection alive; the data actions call BMW's REST API on demand (each counts against the daily 50-request API limit).",
+        "menu_options": {
+          "action_select_clusters": "Choose streamed data",
+          "action_refresh_tokens": "Refresh tokens now",
+          "action_reauth": "Re-authorize with BMW",
+          "action_reset_container": "Reset telemetry container",
+          "action_fetch_mappings": "Discover vehicles",
+          "action_fetch_basic": "Fetch basic vehicle info",
+          "action_fetch_telematic": "Fetch telematics data",
+          "action_fetch_charging_history": "Fetch charging history",
+          "action_fetch_tyre": "Fetch tyre diagnosis",
+          "action_fetch_location_charging": "Fetch charging settings",
+          "action_fetch_image": "Fetch vehicle image"
+        }
+      },
+      "action_select_clusters": {
+        "title": "Choose streamed data",
+        "description": "Pick which clusters of vehicle data you want to stream. BMW has no API to set this — it's done on the portal's Data Selection page — so the next screen gives you a browser snippet that ticks exactly these clusters there. Diagnostic/technical fields stay hidden by default once data arrives.",
+        "data": {
+          "sections": "Data clusters"
+        },
+        "data_description": {
+          "sections": "Leave the defaults for the recommended set, or tailor it to just the data you care about (e.g. only Electric vehicle and Vehicle status)."
+        }
+      },
+      "cluster_snippet": {
+        "title": "Portal data-selection snippet",
+        "description": "In the BMW portal, open **Data Selection** (`Datenauswahl ändern`) and click \"Load more\" until every field is listed. Open your browser console (F12 → Console) and paste this, then press Enter:\n\n```\n{snippet}\n```\n\nIt ticks only the checkboxes whose technical descriptor is in your chosen clusters (leaving any other selections as-is) and logs how many it matched. Save the selection in the portal, then press Submit here to finish."
+      },
+      "action_refresh_tokens": {
+        "title": "Refresh tokens now",
+        "description": "Renew the stored access and ID tokens without going through BMW's login again. Use this if data stopped updating. If problems persist, restart Home Assistant afterwards.\n\nPress Submit to continue."
+      },
+      "action_reauth": {
+        "title": "Re-authorize with BMW",
+        "description": "Run BMW's device authorization again — for example after the refresh token expired (every 2 weeks) or if you generated a new Client ID. You'll approve Home Assistant on BMW's website afterwards.",
+        "data": {
+          "client_id": "Client ID"
+        },
+        "data_description": {
+          "client_id": "Leave as-is to reuse the current Client ID, or paste a new one from the BMW portal."
+        }
+      },
+      "action_reset_container": {
+        "title": "Reset telemetry container",
+        "description": "Delete the CarData telemetry containers created by this integration and recreate a fresh one. Use this if the streamed data set looks wrong or after changing your Data Selection in the BMW portal.\n\nPress Submit to continue."
+      },
+      "action_fetch_mappings": {
+        "title": "Discover vehicles",
+        "description": "Ask BMW which vehicles (VINs) are mapped to your account and create their devices. Run this once after setup if your cars haven't appeared yet.\n\nPress Submit to continue."
+      },
+      "action_fetch_basic": {
+        "title": "Fetch basic vehicle info",
+        "description": "Fetch static details (model, colour, options) for every known vehicle.\n\nPress Submit to continue."
+      },
+      "action_fetch_telematic": {
+        "title": "Fetch telematics data",
+        "description": "Pull the latest telematics snapshot from BMW's REST API now instead of waiting for the next scheduled poll.\n\nPress Submit to continue."
+      },
+      "action_fetch_charging_history": {
+        "title": "Fetch charging history",
+        "description": "Fetch the most recent charging sessions for your vehicles.\n\nPress Submit to continue."
+      },
+      "action_fetch_tyre": {
+        "title": "Fetch tyre diagnosis",
+        "description": "Fetch the latest tyre-pressure diagnosis for your vehicles.\n\nPress Submit to continue."
+      },
+      "action_fetch_location_charging": {
+        "title": "Fetch charging settings",
+        "description": "Fetch the location-based charging settings for your vehicles.\n\nPress Submit to continue."
+      },
+      "action_fetch_image": {
+        "title": "Fetch vehicle image",
+        "description": "Fetch the current vehicle image for your vehicles.\n\nPress Submit to continue."
+      }
+    },
+    "error": {
+      "refresh_failed": "Token refresh failed: {error}",
+      "reset_failed": "Resetting the telemetry container failed: {error}",
+      "missing_token": "No valid access token is available. Try \"Refresh tokens now\" or re-authorize first.",
+      "runtime_missing": "The integration isn't ready yet. Try again once setup has finished.",
+      "no_vins": "No vehicles are known yet. Run \"Discover vehicles\" first, or wait for the stream to report one.",
+      "invalid_int": "Enter a positive whole number.",
+      "invalid_client_id": "Enter the BMW CarData Client ID."
+    },
+    "abort": {
+      "reauth_started": "Authorization restarted. Finish the new login from the notification that just appeared.",
+      "reauth_device_code_failed": "BMW rejected the device authorization request ({error}). Check the Client ID and try again.",
+      "reauth_missing_client_id": "Client ID is missing for this integration entry. Remove and re-add the integration to authorize again.",
+      "reauth_failed": "Re-authorization could not be started. Try again from the integration options."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "vehicle_body_chargingport_combinedstatus": {
+        "name": "Charging Port connection state",
+        "state": {
+          "disconnected": "Disconnected",
+          "connected": "Connected",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_body_chargingport_dcstatus": {
+        "name": "Charging Port plug (DC) state",
+        "state": {
+          "disconnected": "Disconnected",
+          "connected": "Connected",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_body_chargingport_ishospitalityactive": {
+        "name": "Charging Port plug post-charge lock state",
+        "state": {
+          "hospitality_inactive": "Hospitality inactive",
+          "hospitality_active": "Hospitality active",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_body_chargingport_isosessionid": {
+        "name": "Charging Port session ID"
+      },
+      "vehicle_body_chargingport_lockedstatus": {
+        "name": "Charging Port plug lock state",
+        "state": {
+          "charging_cable_not_locked": "Charging cable not locked",
+          "charging_cable_locked": "Charging cable locked",
+          "charging_cable_locking_error_detected": "Charging cable locking error detected",
+          "unknown": "Unknown"
+        }
+      },
+      "vehicle_body_chargingport_plugeventid": {
+        "name": "Charging Port plug event ID"
+      },
+      "vehicle_body_chargingport_status": {
+        "name": "Charging Port plug state",
+        "state": {
+          "connected": "Connected",
+          "disconnected": "Disconnected",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_body_chargingport_statuscleartext": {
+        "name": "Charging Port state text",
+        "state": {
+          "disconnected": "Disconnected",
+          "connected": "Connected"
+        }
+      },
+      "vehicle_body_flap_islocked": {
+        "name": "Charging Port flap lock",
+        "state": {
+          "flap_unlocked": "Flap unlocked",
+          "flap_locked": "Flap locked",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_body_flap_ispermanentlyunlocked": {
+        "name": "Charging Port flap permanent lock state",
+        "state": {
+          "no_action": "No action",
+          "flap_unlocked": "Flap unlocked",
+          "flap_locked": "Flap locked",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_body_hood_isopen": {
+        "name": "Hood state",
+        "state": {
+          "closed": "Closed",
+          "open": "Open",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_body_lights_isrunningon": {
+        "name": "Vehicle Lights state"
+      },
+      "vehicle_body_trunk_door_isopen": {
+        "name": "Tailgate door state"
+      },
+      "vehicle_body_trunk_islocked": {
+        "name": "Tailgate lock"
+      },
+      "vehicle_body_trunk_isopen": {
+        "name": "Tailgate state",
+        "state": {
+          "closed": "Closed",
+          "open": "Open",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_body_trunk_left_door_isopen": {
+        "name": "Tailgate door state (left)"
+      },
+      "vehicle_body_trunk_lower_door_isopen": {
+        "name": "Tailgate door state (lower)"
+      },
+      "vehicle_body_trunk_right_door_isopen": {
+        "name": "Tailgate door state (right)"
+      },
+      "vehicle_body_trunk_upper_door_isopen": {
+        "name": "Tailgate door state (upper)"
+      },
+      "vehicle_body_trunk_window_isopen": {
+        "name": "Tailgate rear window state",
+        "state": {
+          "closed": "Closed",
+          "open": "Open",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_action": {
+        "name": "Climate Timer Next-Only state",
+        "state": {
+          "activate": "Activate",
+          "deactivate": "Deactivate",
+          "no_action": "No action"
+        }
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_hour": {
+        "name": "Climate Timer Next-Only (hour)"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_minute": {
+        "name": "Climate Timer Next-Only (minute)"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_action": {
+        "name": "Climate Timer Weekly 1 state",
+        "state": {
+          "activate": "Activate",
+          "deactivate": "Deactivate",
+          "no_action": "No action"
+        }
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_hour": {
+        "name": "Climate Timer Weekly 1 (hour)"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_minute": {
+        "name": "Climate Timer Weekly 1 (minute)"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_action": {
+        "name": "Climate Timer Weekly 2 state",
+        "state": {
+          "activate": "Activate",
+          "deactivate": "Deactivate",
+          "no_action": "No action"
+        }
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_hour": {
+        "name": "Climate Timer Weekly 2 (hour)"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_minute": {
+        "name": "Climate Timer Weekly 2 (minute)"
+      },
+      "vehicle_cabin_convertible_roofretractablestatus": {
+        "name": "Convertible roof retractable state"
+      },
+      "vehicle_cabin_convertible_roofstatus": {
+        "name": "Convertible roof overall state",
+        "state": {
+          "closedsecured": "Closedsecured",
+          "opensecured": "Opensecured"
+        }
+      },
+      "vehicle_cabin_door_lock_status": {
+        "name": "Doors lock",
+        "state": {
+          "secured": "Secured",
+          "unlocked": "Unlocked",
+          "selective-locked": "Selective locked",
+          "locked": "Locked",
+          "invalid": "Invalid",
+          "unknown": "Unknown"
+        }
+      },
+      "vehicle_cabin_door_row1_driver_isopen": {
+        "name": "Door state (front driver)",
+        "state": {
+          "open": "Open",
+          "closed": "Closed",
+          "invalid": "Invalid",
+          "unknown": "Unknown"
+        }
+      },
+      "vehicle_cabin_door_row1_driver_position": {
+        "name": "Door position (front driver)"
+      },
+      "vehicle_cabin_door_row1_passenger_isopen": {
+        "name": "Door state (front passenger)",
+        "state": {
+          "open": "Open",
+          "closed": "Closed",
+          "invalid": "Invalid",
+          "unknown": "Unknown"
+        }
+      },
+      "vehicle_cabin_door_row1_passenger_position": {
+        "name": "Door position (front passenger)"
+      },
+      "vehicle_cabin_door_row2_driver_isopen": {
+        "name": "Door state (rear driver)",
+        "state": {
+          "open": "Open",
+          "closed": "Closed",
+          "invalid": "Invalid",
+          "unknown": "Unknown"
+        }
+      },
+      "vehicle_cabin_door_row2_driver_position": {
+        "name": "Door position (rear driver)"
+      },
+      "vehicle_cabin_door_row2_passenger_isopen": {
+        "name": "Door state (rear passenger)",
+        "state": {
+          "open": "Open",
+          "closed": "Closed",
+          "invalid": "Invalid",
+          "unknown": "Unknown"
+        }
+      },
+      "vehicle_cabin_door_row2_passenger_position": {
+        "name": "Door position (rear passenger)"
+      },
+      "vehicle_cabin_door_status": {
+        "name": "Doors overall state"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_cooling": {
+        "name": "Preconditioning Default Seat cooling (front driver)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_heating": {
+        "name": "Preconditioning Default Seat heating (front driver)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_cooling": {
+        "name": "Preconditioning Default Seat cooling (front passenger)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_heating": {
+        "name": "Preconditioning Default Seat heating (front passenger)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_cooling": {
+        "name": "Preconditioning Default Seat cooling (rear driver)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_heating": {
+        "name": "Preconditioning Default Seat heating (rear driver)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_cooling": {
+        "name": "Preconditioning Default Seat cooling (rear passenger)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_heating": {
+        "name": "Preconditioning Default Seat heating (rear passenger)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_cooling": {
+        "name": "Preconditioning Default Seat cooling (third row driver)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_heating": {
+        "name": "Preconditioning Default Seat heating (third row driver)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_cooling": {
+        "name": "Preconditioning Default Seat cooling (third row passenger)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_heating": {
+        "name": "Preconditioning Default Seat heating (third row passenger)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_steeringwheel_heating": {
+        "name": "Preconditioning Default Steering wheel heating",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_targettemperature": {
+        "name": "Preconditioning Default Target temperature"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_cooling": {
+        "name": "Preconditioning Direct Seat cooling (front driver)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_heating": {
+        "name": "Preconditioning Direct Seat heating (front driver)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_cooling": {
+        "name": "Preconditioning Direct Seat cooling (front passenger)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_heating": {
+        "name": "Preconditioning Direct Seat heating (front passenger)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_cooling": {
+        "name": "Preconditioning Direct Seat cooling (rear driver)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_heating": {
+        "name": "Preconditioning Direct Seat heating (rear driver)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_cooling": {
+        "name": "Preconditioning Direct Seat cooling (rear passenger)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_heating": {
+        "name": "Preconditioning Direct Seat heating (rear passenger)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_cooling": {
+        "name": "Preconditioning Direct Seat cooling (third row driver)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_heating": {
+        "name": "Preconditioning Direct Seat heating (third row driver)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_cooling": {
+        "name": "Preconditioning Direct Seat cooling (third row passenger)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_heating": {
+        "name": "Preconditioning Direct Seat heating (third row passenger)",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_steeringwheel_heating": {
+        "name": "Preconditioning Direct Steering wheel heating",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "automatic": "Automatic",
+          "no_change": "No change"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_targettemperature": {
+        "name": "Preconditioning Direct Target temperature"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_isremoteenginestartdisclaimer": {
+        "name": "Preconditioning Remote engine start disclaimer"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_comfortstate": {
+        "name": "Preconditioning  comfort state",
+        "state": {
+          "not_active": "Not active",
+          "comfort_heating": "Comfort heating",
+          "comfort_cooling": "Comfort cooling",
+          "comfort_ventilation": "Comfort ventilation",
+          "defrost": "Defrost",
+          "comfort_undefined": "Comfort undefined"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_status_isexteriormirrorheatingactive": {
+        "name": "Preconditioning  exterior mirror heating active"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_progress": {
+        "name": "Preconditioning  progress"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_reardefrostactive": {
+        "name": "Preconditioning  rear defrost active"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_remainingrunningtime": {
+        "name": "Preconditioning  remaining running time"
+      },
+      "vehicle_cabin_hvac_statusairpurification": {
+        "name": "Purification Air purification state",
+        "state": {
+          "unfiltered": "Unfiltered",
+          "purifying_ongoing": "Purifying ongoing",
+          "purified": "Purified",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_cabin_infotainment_displayunit_distance": {
+        "name": "Vehicle Info Display unit (distance)"
+      },
+      "vehicle_cabin_infotainment_hmi_distanceunit": {
+        "name": "Vehicle Info Distance unit",
+        "state": {
+          "miles": "Miles",
+          "kilometers": "Kilometres"
+        }
+      },
+      "vehicle_cabin_infotainment_ismobilephoneconnected": {
+        "name": "Vehicle Info Mobile phone connection state"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_altitude": {
+        "name": "GPS altitude"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_fixstatus": {
+        "name": "GPS navigation fix state",
+        "state": {
+          "no_fix": "No fix",
+          "gps_fix_2d": "Gps fix 2d",
+          "gps_fix_3d": "Gps fix 3d"
+        }
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_heading": {
+        "name": "GPS heading"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_latitude": {
+        "name": "GPS latitude"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_longitude": {
+        "name": "GPS longitude"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_numberofsatellites": {
+        "name": "GPS satellite count"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_arrivaltime": {
+        "name": "GPS arrival time"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_distance": {
+        "name": "GPS distance to destination"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_latitude": {
+        "name": "GPS destination latitude"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_longitude": {
+        "name": "GPS destination longitude"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_available": {
+        "name": "GPS available poi spaces"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_max": {
+        "name": "GPS max poi spaces"
+      },
+      "vehicle_cabin_infotainment_navigation_remainingrange": {
+        "name": "GPS remaining range"
+      },
+      "vehicle_cabin_seat_row1_driverside_cooling": {
+        "name": "Seat Cooling (front driver)"
+      },
+      "vehicle_cabin_seat_row1_driverside_heating": {
+        "name": "Seat Heating (front driver)"
+      },
+      "vehicle_cabin_seat_row1_passengerside_cooling": {
+        "name": "Seat Cooling (front passenger)"
+      },
+      "vehicle_cabin_seat_row1_passengerside_heating": {
+        "name": "Seat Heating (front passenger)"
+      },
+      "vehicle_cabin_seat_row2_driverside_cooling": {
+        "name": "Seat Cooling (rear driver)"
+      },
+      "vehicle_cabin_seat_row2_driverside_heating": {
+        "name": "Seat Heating (rear driver)"
+      },
+      "vehicle_cabin_seat_row2_passengerside_cooling": {
+        "name": "Seat Cooling (rear passenger)"
+      },
+      "vehicle_cabin_seat_row2_passengerside_heating": {
+        "name": "Seat Heating (rear passenger)"
+      },
+      "vehicle_cabin_seat_row3_driverside_cooling": {
+        "name": "Seat Cooling (third row driver)"
+      },
+      "vehicle_cabin_seat_row3_driverside_heating": {
+        "name": "Seat Heating (third row driver)"
+      },
+      "vehicle_cabin_seat_row3_passengerside_cooling": {
+        "name": "Seat Cooling (third row passenger)"
+      },
+      "vehicle_cabin_seat_row3_passengerside_heating": {
+        "name": "Seat Heating (third row passenger)"
+      },
+      "vehicle_cabin_steeringwheel_heating": {
+        "name": "Steering Wheel heating"
+      },
+      "vehicle_cabin_sunroof_overallstatus": {
+        "name": "Sunroof overall state",
+        "state": {
+          "invalid": "Invalid",
+          "open": "Open",
+          "open_tilt": "Open tilt",
+          "intermediate_tilt": "Intermediate tilt",
+          "closed": "Closed"
+        }
+      },
+      "vehicle_cabin_sunroof_relativeposition": {
+        "name": "Sunroof relative position"
+      },
+      "vehicle_cabin_sunroof_shade_position": {
+        "name": "Sunroof Sunshade position"
+      },
+      "vehicle_cabin_sunroof_status": {
+        "name": "Sunroof state",
+        "state": {
+          "closed": "Closed",
+          "intermediate": "Partially open",
+          "open": "Open",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_cabin_sunroof_tiltstatus": {
+        "name": "Sunroof tilt state",
+        "state": {
+          "closed": "Closed",
+          "intermediate": "Partially open",
+          "open": "Open",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_cabin_window_row1_driver_status": {
+        "name": "Window state (front driver)",
+        "state": {
+          "closed": "Closed",
+          "intermediate": "Partially open",
+          "open": "Open",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_cabin_window_row1_passenger_status": {
+        "name": "Window state (front passenger)",
+        "state": {
+          "closed": "Closed",
+          "intermediate": "Partially open",
+          "open": "Open",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_cabin_window_row2_driver_status": {
+        "name": "Window state (rear driver)",
+        "state": {
+          "closed": "Closed",
+          "intermediate": "Partially open",
+          "open": "Open",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_cabin_window_row2_passenger_status": {
+        "name": "Window state (rear passenger)",
+        "state": {
+          "closed": "Closed",
+          "intermediate": "Partially open",
+          "open": "Open",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
+        "name": "Vehicle Info OBFCM last transfer state",
+        "state": {
+          "ok": "Ok",
+          "ecu_communication_error": "Ecu communication error",
+          "vehicle_manipulation_detected": "Vehicle manipulation detected",
+          "manufacturer_excluded": "Manufacturer excluded"
+        }
+      },
+      "vehicle_channel_ngtp_timevehicle": {
+        "name": "Vehicle Info Time in vehicle"
+      },
+      "vehicle_channel_teleservice_lastautomaticservicecalltime": {
+        "name": "Teleservice Automatic service call time"
+      },
+      "vehicle_channel_teleservice_lastbreakdowncalltime": {
+        "name": "Teleservice Breakdown call time"
+      },
+      "vehicle_channel_teleservice_lastmanualcalltime": {
+        "name": "Teleservice Manual service call time"
+      },
+      "vehicle_channel_teleservice_lastteleservicereporttime": {
+        "name": "Teleservice report time"
+      },
+      "vehicle_channel_teleservice_status": {
+        "name": "Teleservice availability state",
+        "state": {
+          "pending": "Pending",
+          "idle": "Idle",
+          "successful": "Successful",
+          "error": "Error"
+        }
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressure": {
+        "name": "Tire pressure (front left)"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressuretarget": {
+        "name": "Tire pressure target (front left)"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_temperature": {
+        "name": "Tire temperature (front left)"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressure": {
+        "name": "Tire pressure (front right)"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressuretarget": {
+        "name": "Tire pressure target (front right)"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_temperature": {
+        "name": "Tire temperature (front right)"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressure": {
+        "name": "Tire pressure (rear left)"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressuretarget": {
+        "name": "Tire pressure target (rear left)"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_temperature": {
+        "name": "Tire temperature (rear left)"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressure": {
+        "name": "Tire pressure (rear right)"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressuretarget": {
+        "name": "Tire pressure target (rear right)"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_temperature": {
+        "name": "Tire temperature (rear right)"
+      },
+      "vehicle_chassis_axle_wheel_tire_diagnosis": {
+        "name": "Tire diagnostics"
+      },
+      "vehicle_drivetrain_avgelectricrangeconsumption": {
+        "name": "Range EV Average electric consumption"
+      },
+      "vehicle_drivetrain_batterymanagement_batterysizemax": {
+        "name": "Battery HV Max size"
+      },
+      "vehicle_drivetrain_batterymanagement_header": {
+        "name": "Battery HV State Of Charge"
+      },
+      "vehicle_drivetrain_batterymanagement_maxenergy": {
+        "name": "Battery HV Energy content"
+      },
+      "vehicle_drivetrain_electricengine_charging_acampere": {
+        "name": "Charging EV AC charging current"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_factor": {
+        "name": "Charging EV AC restriction factor",
+        "state": {
+          "maxcharging": "Maxcharging",
+          "reducedcharging": "Reducedcharging",
+          "mincharging": "Mincharging"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_ischosen": {
+        "name": "Charging EV AC restriction selection",
+        "state": {
+          "notchosen": "Notchosen",
+          "chosen": "Chosen",
+          "reducedcharging": "Reducedcharging",
+          "mincharging": "Mincharging",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_acvoltage": {
+        "name": "Charging EV AC charging voltage"
+      },
+      "vehicle_drivetrain_electricengine_charging_authentication_status": {
+        "name": "Charging EV Authentication state",
+        "state": {
+          "authorization_successful": "Authorization successful",
+          "transport_layer_error": "Transport layer error",
+          "high_level_communication_error": "High level communication error",
+          "contract_service_not_supported_error": "Contract service not supported error",
+          "authorization_error": "Authorization error",
+          "authorization_timeout": "Authorization timeout",
+          "nvm_read_certificate_error": "Nvm read certificate error",
+          "certificate_update_error": "Certificate update error",
+          "xml_security_error": "Xml security error"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_chargingmode": {
+        "name": "Charging EV Charging mode",
+        "state": {
+          "normal_prognose_based": "Normal prognose based",
+          "step_based": "Step based",
+          "plc_mode": "Plc mode"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_connectiontype": {
+        "name": "Charging EV Charging connection type",
+        "state": {
+          "conductive": "Conductive",
+          "inductive": "Inductive",
+          "signal_invalid": "Signal invalid"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_connectorstatus": {
+        "name": "Charging EV Connector state",
+        "state": {
+          "connected": "Connected",
+          "disconnected": "Disconnected",
+          "error": "Error"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_gridenergy": {
+        "name": "Charging EV Energy supplied (engine off)"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_referencedistance": {
+        "name": "Charging EV Reference distance (engine off)"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_gridenergy": {
+        "name": "Charging EV Energy supplied (engine on)"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_referencedistance": {
+        "name": "Charging EV Reference distance (engine on)"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_gridenergy": {
+        "name": "Charging EV Energy supplied total"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_referencedistance": {
+        "name": "Charging EV Reference distance total"
+      },
+      "vehicle_drivetrain_electricengine_charging_hvstatus": {
+        "name": "Charging EV HV system state",
+        "state": {
+          "invalid": "Invalid",
+          "charging": "Charging",
+          "error": "Error",
+          "not_charging": "Not charging",
+          "waiting_for_charging": "Waiting for charging",
+          "finished_fully_charged": "Finished fully charged",
+          "finished_not_full": "Finished not full"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_hvpmfinishreason": {
+        "name": "Charging EV Charging end reason",
+        "state": {
+          "unknown": "Unknown",
+          "charging_goal_reached": "Charging goal reached",
+          "end_requested_by_driver": "End requested by driver",
+          "connector_removed": "Connector removed",
+          "powergrid_failed": "Powergrid failed",
+          "hv_system_failure": "Hv system failure",
+          "charging_station_failure": "Charging station failure",
+          "parking_lock_failed": "Parking lock failed",
+          "no_parking_lock": "No parking lock",
+          "signal_invalid": "Signal invalid",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_isimmediatechargingsystemreason": {
+        "name": "Charging EV Immediate charging reason"
+      },
+      "vehicle_drivetrain_electricengine_charging_issingleimmediatecharging": {
+        "name": "Charging EV Instant charging state",
+        "state": {
+          "direct_chg_once_not_active": "Direct chg once not active",
+          "direct_chg_once_active": "Direct chg once active",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingreason": {
+        "name": "Charging EV Last charging reason",
+        "state": {
+          "charging_goal_reached": "Charging goal reached",
+          "end_requested_by_driver": "End requested by driver",
+          "connector_removed": "Connector removed",
+          "powergrid_failed": "Powergrid failed",
+          "hv_system_failure": "Hv system failure",
+          "charging_station_failure": "Charging station failure",
+          "parking_lock_failed": "Parking lock failed",
+          "no_parking_lock": "No parking lock",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingresult": {
+        "name": "Charging EV Last charging result",
+        "state": {
+          "success": "Success",
+          "failed": "Failed",
+          "unknown": "Unknown"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_level": {
+        "name": "Charging EV Predicted State Of Charge"
+      },
+      "vehicle_drivetrain_electricengine_charging_method": {
+        "name": "Charging EV Charging method",
+        "state": {
+          "ac_type1plug": "Ac type1plug",
+          "ac_type2plug": "Ac type2plug",
+          "nocharging": "Not charging"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_modedeviation": {
+        "name": "Charging EV Charging mode deviation",
+        "state": {
+          "no_deviation": "No deviation",
+          "dc_dynamic_malibu": "Dc dynamic malibu",
+          "dc_dynamic_min_soe_protection": "Dc dynamic min soe protection",
+          "immediate_charging_not_supported_by_evse": "Immediate charging not supported by evse",
+          "immediate_charging_wake_up_limit_reached": "Immediate charging wake up limit reached",
+          "immediate_charging": "Immediate charging",
+          "charging_timeslot": "Charging timeslot",
+          "charging_in_timeslot": "Charging in timeslot",
+          "smart_charging": "Smart charging",
+          "dc_dynamic": "Dc dynamic",
+          "bidirectional_charging": "Bidirectional charging",
+          "no_action": "No action",
+          "unknown": "Unknown"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_phasenumber": {
+        "name": "Charging EV Charging phases",
+        "state": {
+          "no_charging": "No charging",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_climatizationactive": {
+        "name": "Charging EV Climatization active"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_isrcpconfigcomplete": {
+        "name": "Charging EV RCP config complete"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_mode": {
+        "name": "Charging EV Charging profile"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_preference": {
+        "name": "Charging EV Charging preference",
+        "state": {
+          "charging_window": "Charging window",
+          "smart_charging": "Smart charging",
+          "no_preselection": "No preselection"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_departuretimerelevant": {
+        "name": "Charging EV Departure time relevant"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_dischargeallowed": {
+        "name": "Charging EV Discharge allowed"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_timertype": {
+        "name": "Charging EV Timer type"
+      },
+      "vehicle_drivetrain_electricengine_charging_reasonchargingend": {
+        "name": "Charging EV Charging end cause",
+        "state": {
+          "no_charging_end_since_ipf_wakeup": "No charging end since ipf wakeup",
+          "customer_interaction_hmi_unplug_cable_once": "Customer interaction hmi unplug cable once",
+          "customer_interaction_hmi_charging_target_reached": "Customer interaction hmi charging target reached",
+          "customer_interaction_app_unplug_cable_once": "Customer interaction app unplug cable once",
+          "customer_interaction_app_charging_target_reached": "Customer interaction app charging target reached",
+          "customer_interaction_charging_stop_via_charging_stop_button_socket": "Customer interaction charging stop via charging stop button socket",
+          "customer_interaction_ac_charging_stop_via_key": "Customer interaction ac charging stop via key",
+          "customer_interaction_ac_charging_stop_wallbox": "Customer interaction ac charging stop wallbox",
+          "customer_interaction_ac_charging_stop_latch": "Customer interaction ac charging stop latch",
+          "hv_battery_fully_charged": "Hv battery fully charged",
+          "infrastructure_physical_limits_reached_target_soe_not_reachable": "Infrastructure physical limits reached target soe not reachable",
+          "infrastructure_dc_ccs_evse_shutdown": "Infrastructure dc ccs evse shutdown",
+          "infrastructure_dc_gbt_cst_message": "Infrastructure dc gbt cst message",
+          "infrastructure_dc_ccs_static_pilot": "Infrastructure dc ccs static pilot",
+          "infrastructure_dc_ccs_communication_error_failed_response_code": "Infrastructure dc ccs communication error failed response code",
+          "infrastructure_dc_ccs_communication_error": "Infrastructure dc ccs communication error",
+          "infrastructure_no_energy_transfer": "Infrastructure no energy transfer",
+          "infrastructure_dc_ccs_precharge_error": "Infrastructure dc ccs precharge error",
+          "infrastructure_dc_ccs_evse_malfunction_emergency_shutdown": "Infrastructure dc ccs evse malfunction emergency shutdown",
+          "infrastructure_station_not_compatible": "Infrastructure station not compatible",
+          "infrastructure_charge_readiness_timeout": "Infrastructure charge readiness timeout",
+          "infrastructure_ac_maximum_grid_error_reached": "Infrastructure ac maximum grid error reached",
+          "infrastructure_dc_gbt_isolation_error_detected": "Infrastructure dc gbt isolation error detected",
+          "infrastructure_authentification_error": "Infrastructure authentification error",
+          "vehicle_hv_battery_error": "Vehicle hv battery error",
+          "vehicle_hv_battery_communication_error": "Vehicle hv battery communication error",
+          "vehicle_dcdc_error": "Vehicle dcdc error",
+          "vehicle_plc_bootup_error": "Vehicle plc bootup error",
+          "vehicle_hv_battery_maximal_current_overshoot": "Vehicle hv battery maximal current overshoot",
+          "vehicle_isolation_error": "Vehicle isolation error",
+          "vehicle_maximum_temperature_charging_socket_overshoot": "Vehicle maximum temperature charging socket overshoot",
+          "vehicle_lt3_overshoot": "Vehicle lt3 overshoot",
+          "vehicle_fusi_cable_lock_error": "Vehicle fusi cable lock error",
+          "vehicle_plc_communication_not_possible": "Vehicle plc communication not possible",
+          "flexcharger_grid_error": "Flexcharger grid error",
+          "flexcharger_grid_temperature_error": "Flexcharger grid temperature error",
+          "flexcharger_evse_temperature_error": "Flexcharger evse temperature error",
+          "flexcharger_evse_internal_error": "Flexcharger evse internal error",
+          "flexcharger_ac_dc_fault_current": "Flexcharger ac dc fault current",
+          "flexcharger_incorrect_reaction_time_pwm": "Flexcharger incorrect reaction time pwm",
+          "flexcharger_charging_current_too_high": "Flexcharger charging current too high",
+          "flexcharger_pe_fault": "Flexcharger pe fault",
+          "infrastructure_inefficient_charging_low_power": "Infrastructure inefficient charging low power",
+          "vehicle_cable_locking_error": "Vehicle cable locking error",
+          "vehicle_configuration_error_400v_800v": "Vehicle configuration error 400v 800v",
+          "infrastructure_no_ac_voltage": "Infrastructure no ac voltage",
+          "plug_and_charge_tls_error": "Plug and charge tls error",
+          "plug_and_charge_contract_error": "Plug and charge contract error",
+          "smart_charging_tariff_selection_invalid": "Smart charging tariff selection invalid",
+          "smart_charging_charging_profile_invalid": "Smart charging charging profile invalid",
+          "customer_interaction_ac_charging_stop_via_app": "Customer interaction ac charging stop via app",
+          "charging_paused": "Charging paused",
+          "discharge_not_possible_voltage_too_high": "Discharge not possible voltage too high",
+          "discharge_not_possible_soe_too_low": "Discharge not possible soe too low",
+          "discharge_not_possible_internal_error": "Discharge not possible internal error",
+          "discharge_not_possible_incompatible_adapter": "Discharge not possible incompatible adapter",
+          "discharge_not_possible_incompatible_consumer": "Discharge not possible incompatible consumer"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_routeoptimizedchargingstatus": {
+        "name": "Charging EV Route optimized charging state",
+        "state": {
+          "route_optimized_charging_in_progress": "Route optimized charging in progress",
+          "route_optimized_soc_target_reached": "Route optimized soc target reached"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_smeenergydeltafullycharged": {
+        "name": "Charging EV Energy to full charge"
+      },
+      "vehicle_drivetrain_electricengine_charging_status": {
+        "name": "Charging EV Charging state",
+        "state": {
+          "manual_selection": "Manual selection",
+          "automatic_selection": "Automatic selection",
+          "automatic_selection_20": "Automatic selection 20",
+          "unknown": "Unknown"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_timeremaining": {
+        "name": "Charging EV Remaining time estimate"
+      },
+      "vehicle_drivetrain_electricengine_charging_timetofullycharged": {
+        "name": "Charging EV Time to full charge"
+      },
+      "vehicle_drivetrain_electricengine_charging_windowselection": {
+        "name": "Charging EV Window selection",
+        "state": {
+          "chosen": "Chosen",
+          "notchosen": "Notchosen"
+        }
+      },
+      "vehicle_drivetrain_electricengine_hvsmaxenergyabsolute": {
+        "name": "Range EV Battery energy max"
+      },
+      "vehicle_drivetrain_electricengine_kombiremainingelectricrange": {
+        "name": "Range EV Remaining range"
+      },
+      "vehicle_drivetrain_electricengine_remainingelectricrange": {
+        "name": "Range EV Estimate during charging"
+      },
+      "vehicle_drivetrain_engine_isactive": {
+        "name": "Vehicle ignition state"
+      },
+      "vehicle_drivetrain_engine_isignitionon": {
+        "name": "Vehicle engine state"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_fuel": {
+        "name": "OBFCM PHEV Fuel consumption (engine off)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineoff": {
+        "name": "OBFCM PHEV Reference distance (engine off)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineon": {
+        "name": "OBFCM PHEV Reference distance (engine on)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_fuel": {
+        "name": "OBFCM PHEV Fuel consumption (charging mode)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_referencedistance": {
+        "name": "OBFCM Reference distance (charging mode)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_fuel": {
+        "name": "OBFCM Fuel consumption total"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_referencedistance": {
+        "name": "OBFCM Reference distance total"
+      },
+      "vehicle_drivetrain_fuelsystem_level": {
+        "name": "Range Tank level (%)"
+      },
+      "vehicle_drivetrain_fuelsystem_remainingfuel": {
+        "name": "Range Tank level"
+      },
+      "vehicle_drivetrain_internalcombustionengine_engine_ect": {
+        "name": "Vehicle Coolant temperature"
+      },
+      "vehicle_drivetrain_lastremainingrange": {
+        "name": "Range Total range (last sent)"
+      },
+      "vehicle_drivetrain_totalremainingrange": {
+        "name": "Range Estimate during charging"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_recharge": {
+        "name": "Battery recharge required"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_replace": {
+        "name": "Battery health state"
+      },
+      "vehicle_electricalsystem_battery_stateofcharge": {
+        "name": "Battery charge level (12V)"
+      },
+      "vehicle_electricalsystem_battery_stateofchargeplausibility": {
+        "name": "Battery charge level plausibility (12V)"
+      },
+      "vehicle_electricalsystem_battery_voltage": {
+        "name": "Battery voltage (12V)"
+      },
+      "vehicle_electricalsystem_battery48v_stateofhealth_displayed": {
+        "name": "Battery health state (48V)"
+      },
+      "vehicle_electroniccontrolunit_diagnostictroublecodes_raw": {
+        "name": "Vehicle Info Fault memory"
+      },
+      "vehicle_extras_optionalequipment_code": {
+        "name": "Vehicle Info Optional equipment list"
+      },
+      "vehicle_ismoving": {
+        "name": "Vehicle Motion state"
+      },
+      "vehicle_learningnavigation": {
+        "name": "GPS Learning navigation data"
+      },
+      "vehicle_look_image": {
+        "name": "Vehicle Info Image"
+      },
+      "vehicle_powertrain_electric_battery_bidirectionalcharging_availability": {
+        "name": "Battery EV Bidirectional charging capability",
+        "state": {
+          "available": "Available",
+          "not_available": "Not available",
+          "disabled_malibu": "Disabled malibu",
+          "disabled_hvs": "Disabled hvs",
+          "bpt_and_imo_disabled": "Bpt and imo disabled",
+          "bpt_only_for_emergency_power_supply": "Bpt only for emergency power supply",
+          "disabled_imo_possible": "Disabled imo possible",
+          "disabled_long_term": "Disabled long term"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_isactive": {
+        "name": "Battery EV Charging limit state",
+        "state": {
+          "ac_limit_inactive": "Ac limit inactive",
+          "ac_limit_active": "Ac limit active",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_max": {
+        "name": "Battery EV Maximum charging current"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_min": {
+        "name": "Battery EV Minimum charging current"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_selected": {
+        "name": "Battery EV Charging current limit"
+      },
+      "vehicle_powertrain_electric_battery_charging_acousticlimit": {
+        "name": "Battery EV Acoustic charging limit",
+        "state": {
+          "no_action": "No action",
+          "automatic": "Automatic",
+          "unlimited": "Unlimited",
+          "limited": "Limited"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_authenticationstatus": {
+        "name": "authenticationStatus",
+        "state": {
+          "not_started": "Not started",
+          "started_eim": "Started eim",
+          "started_pnc": "Started pnc",
+          "started_plc_eim": "Started plc eim",
+          "done_eim": "Done eim",
+          "done_plc_eim": "Done plc eim",
+          "done_pnc": "Done pnc",
+          "failed_plc_eim": "Failed plc eim",
+          "failed_pnc": "Failed pnc",
+          "unknown": "Unknown"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isactive": {
+        "name": "Battery EV Battery care mode active"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_ispreservingchargingmode": {
+        "name": "Battery EV Battery care charge mode"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isreducedtargetsoe": {
+        "name": "Battery EV Reduced target state of energy"
+      },
+      "vehicle_powertrain_electric_battery_charging_cablecheckvoltage": {
+        "name": "Battery EV Cable check voltage"
+      },
+      "vehicle_powertrain_electric_battery_charging_dcchargingmodeactive": {
+        "name": "Battery EV DC charging mode",
+        "state": {
+          "efficient": "Efficient",
+          "standard": "Standard",
+          "performance": "Performance"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_history_sessionslist": {
+        "name": "Battery EV Charging history"
+      },
+      "vehicle_powertrain_electric_battery_charging_power": {
+        "name": "Battery EV Charging power"
+      },
+      "vehicle_powertrain_electric_battery_charging_preferencesmartcharging": {
+        "name": "Battery EV Smart charging option",
+        "state": {
+          "price_optimized": "Price optimized",
+          "renewable_energey": "Renewable energey",
+          "co2_optimized": "Co2 optimized",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_settingslist": {
+        "name": "Battery EV Location-based charging settings"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_automaticmode_statusfeedback": {
+        "name": "Battery EV Automatic preconditioning state",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "temp_off": "Temp off",
+          "unknown": "Unknown"
+        }
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_manualmode_statusfeedback": {
+        "name": "Battery EV Manual preconditioning state",
+        "state": {
+          "off": "Off",
+          "on_charge": "On charge",
+          "on_drive": "On drive",
+          "unknown": "Unknown"
+        }
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_state": {
+        "name": "Battery EV Preconditioning state",
+        "state": {
+          "off": "Off",
+          "on_legacy": "On legacy",
+          "manual_on_charge": "Manual on charge",
+          "automatic_on": "Automatic on",
+          "remote_on_charge": "Remote on charge",
+          "remote_on_drive": "Remote on drive",
+          "remote_off": "Remote off",
+          "unknown": "Unknown"
+        }
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_displayed": {
+        "name": "displayed"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_target": {
+        "name": "Battery EV Target state of charge"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetmin": {
+        "name": "Battery EV Target state of charge (min)"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetsocforprofessionalmode": {
+        "name": "Battery EV Target state of charge (professional mode)"
+      },
+      "vehicle_powertrain_electric_battery_stateofhealth_displayed": {
+        "name": "Battery EV Battery health state (SOCE)"
+      },
+      "vehicle_powertrain_electric_chargingduration_displaycontrol": {
+        "name": "Charging EV Charging time display",
+        "state": {
+          "no_display_time_for_charging": "No display time for charging",
+          "display_charging_duration": "Display charging duration",
+          "no_display_charging_duration": "No display charging duration",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_powertrain_electric_departuretime_displaycontrol": {
+        "name": "Charging EV Departure time display",
+        "state": {
+          "dont_display": "Dont display",
+          "display_departure_time": "Display departure time",
+          "display_departure_time_with_v2xsoe": "Display departure time with v2xsoe",
+          "unknown": "Unknown"
+        }
+      },
+      "vehicle_powertrain_electric_range_displaycontrol": {
+        "name": "Range EV Display control"
+      },
+      "vehicle_powertrain_electric_range_target": {
+        "name": "Range EV Remaining (set target based)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isautomaticopenandcloseactive": {
+        "name": "Charging Port flap automatic open/close (any position)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isopen": {
+        "name": "Charging Port flap state (any position)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_isplugged": {
+        "name": "Charging Port plugged (any position)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isautomaticopenandcloseactive": {
+        "name": "Charging Port flap automatic open/close (front left)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isopen": {
+        "name": "Charging Port flap state (front left)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_isplugged": {
+        "name": "Charging Port plugged (front left)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Charging Port flap automatic open/close (front middle)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isopen": {
+        "name": "Charging Port flap state (front middle)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_isplugged": {
+        "name": "Charging Port plugged (front middle)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isautomaticopenandcloseactive": {
+        "name": "Charging Port flap automatic open/close (front right)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isopen": {
+        "name": "Charging Port flap state (front right)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_isplugged": {
+        "name": "Charging Port plugged (front right)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isautomaticopenandcloseactive": {
+        "name": "Charging Port flap automatic open/close (rear left)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isopen": {
+        "name": "Charging Port flap state (rear left)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_isplugged": {
+        "name": "Charging Port plugged (rear left)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Charging Port flap automatic open/close (rear middle)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isopen": {
+        "name": "Charging Port flap state (rear middle)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_isplugged": {
+        "name": "Charging Port plugged (rear middle)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isautomaticopenandcloseactive": {
+        "name": "Charging Port flap automatic open/close (rear right)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isopen": {
+        "name": "Charging Port flap state (rear right)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_isplugged": {
+        "name": "Charging Port plugged (rear right)"
+      },
+      "vehicle_privacysettings_datacollection_regulations_obfcm": {
+        "name": "Legal OBFCM data transfer consent"
+      },
+      "vehicle_servicedemand_defect_id": {
+        "name": "Service Live diagnostics"
+      },
+      "vehicle_sevice_preferredsevicepartner": {
+        "name": "Service Preferred service partner"
+      },
+      "vehicle_sim_status": {
+        "name": "Vehicle Info SIM activation state"
+      },
+      "vehicle_status_checkcontrolmessages": {
+        "name": "Service Check control messages"
+      },
+      "vehicle_status_conditionbasedservices": {
+        "name": "Service Condition based services"
+      },
+      "vehicle_status_conditionbasedservicesaveragedistanceperday": {
+        "name": "Service CBS average distance per day"
+      },
+      "vehicle_status_conditionbasedservicescount": {
+        "name": "Service CBS report count"
+      },
+      "vehicle_status_servicedistance_next": {
+        "name": "Service Distance to next service"
+      },
+      "vehicle_status_servicedistance_yellow": {
+        "name": "Service Next service distance threshold"
+      },
+      "vehicle_status_servicetime_huandauserviceyellow": {
+        "name": "Service Inspection time threshold"
+      },
+      "vehicle_status_servicetime_inspectiondatelegal": {
+        "name": "Service Next inspection date"
+      },
+      "vehicle_status_servicetime_yellow": {
+        "name": "Service Next service time threshold"
+      },
+      "vehicle_trip_segment_accumulated_acceleration_starsaverage": {
+        "name": "Trip Driving style acceleration"
+      },
+      "vehicle_trip_segment_accumulated_chassis_brake_starsaverage": {
+        "name": "Trip Driving style anticipation"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_energyconsumptioncomfort": {
+        "name": "Trip Energy consumption (comfort mode)"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_recuperationtotal": {
+        "name": "Energy recuperated during the last drive"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecopro": {
+        "name": "Trip ECO Pro mode share"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecoproplus": {
+        "name": "Trip ECO Pro Plus share"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveelectric": {
+        "name": "Trip Electric share"
+      },
+      "vehicle_trip_segment_end_drivetrain_batterymanagement_hvsoc": {
+        "name": "Trip Battery charge level at end of trip"
+      },
+      "vehicle_trip_segment_end_time": {
+        "name": "Trip Last trip time"
+      },
+      "vehicle_trip_segment_end_travelleddistance": {
+        "name": "Trip Last trip distance"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_activationtime": {
+        "name": "Alarm activation time"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_armstatus": {
+        "name": "Alarm arming state"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_ison": {
+        "name": "Alarm active"
+      },
+      "vehicle_vehicle_averageweeklydistancelongterm": {
+        "name": "Trip Average distance per week (long-term)"
+      },
+      "vehicle_vehicle_averageweeklydistanceshortterm": {
+        "name": "Trip Average distance per week"
+      },
+      "vehicle_vehicle_avgauxpower": {
+        "name": "Vehicle Auxiliary power"
+      },
+      "vehicle_vehicle_avgspeed": {
+        "name": "Speed average"
+      },
+      "vehicle_vehicle_deepsleepmodeactive": {
+        "name": "Vehicle deep sleep mode"
+      },
+      "vehicle_vehicle_preconditioning_activity": {
+        "name": "Preconditioning state"
+      },
+      "vehicle_vehicle_preconditioning_error": {
+        "name": "Preconditioning error reason",
+        "state": {
+          "ok": "Ok",
+          "invalid": "Invalid"
+        }
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginerunning": {
+        "name": "Preconditioning engine used"
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginestartallowed": {
+        "name": "Preconditioning engine use allowed"
+      },
+      "vehicle_vehicle_preconditioning_remainingtime": {
+        "name": "Preconditioning remaining  time"
+      },
+      "vehicle_vehicle_speedrange_lowerbound": {
+        "name": "Speed lower range"
+      },
+      "vehicle_vehicle_speedrange_upperbound": {
+        "name": "Speed upper range"
+      },
+      "vehicle_vehicle_timesetting": {
+        "name": "Vehicle Info Time zone setting"
+      },
+      "vehicle_vehicle_travelleddistance": {
+        "name": "Vehicle mileage"
+      },
+      "vehicle_vehicleidentification_basicvehicledata": {
+        "name": "Vehicle Info Basic vehicle data"
+      },
+      "vehicle_vehicleidentification_connecteddrivecontractlist": {
+        "name": "Legal Connected drive contracts"
+      }
+    },
+    "binary_sensor": {
+      "vehicle_body_chargingport_combinedstatus": {
+        "name": "Charging Port connection state"
+      },
+      "vehicle_body_chargingport_dcstatus": {
+        "name": "Charging Port plug (DC) state"
+      },
+      "vehicle_body_chargingport_ishospitalityactive": {
+        "name": "Charging Port plug post-charge lock state"
+      },
+      "vehicle_body_chargingport_isosessionid": {
+        "name": "Charging Port session ID"
+      },
+      "vehicle_body_chargingport_lockedstatus": {
+        "name": "Charging Port plug lock state"
+      },
+      "vehicle_body_chargingport_plugeventid": {
+        "name": "Charging Port plug event ID"
+      },
+      "vehicle_body_chargingport_status": {
+        "name": "Charging Port plug state"
+      },
+      "vehicle_body_chargingport_statuscleartext": {
+        "name": "Charging Port state text"
+      },
+      "vehicle_body_flap_islocked": {
+        "name": "Charging Port flap lock"
+      },
+      "vehicle_body_flap_ispermanentlyunlocked": {
+        "name": "Charging Port flap permanent lock state"
+      },
+      "vehicle_body_hood_isopen": {
+        "name": "Hood state"
+      },
+      "vehicle_body_lights_isrunningon": {
+        "name": "Vehicle Lights state"
+      },
+      "vehicle_body_trunk_door_isopen": {
+        "name": "Tailgate door state"
+      },
+      "vehicle_body_trunk_islocked": {
+        "name": "Tailgate lock"
+      },
+      "vehicle_body_trunk_isopen": {
+        "name": "Tailgate state"
+      },
+      "vehicle_body_trunk_left_door_isopen": {
+        "name": "Tailgate door state (left)"
+      },
+      "vehicle_body_trunk_lower_door_isopen": {
+        "name": "Tailgate door state (lower)"
+      },
+      "vehicle_body_trunk_right_door_isopen": {
+        "name": "Tailgate door state (right)"
+      },
+      "vehicle_body_trunk_upper_door_isopen": {
+        "name": "Tailgate door state (upper)"
+      },
+      "vehicle_body_trunk_window_isopen": {
+        "name": "Tailgate rear window state"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_action": {
+        "name": "Climate Timer Next-Only state"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_hour": {
+        "name": "Climate Timer Next-Only (hour)"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_minute": {
+        "name": "Climate Timer Next-Only (minute)"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_action": {
+        "name": "Climate Timer Weekly 1 state"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_hour": {
+        "name": "Climate Timer Weekly 1 (hour)"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_minute": {
+        "name": "Climate Timer Weekly 1 (minute)"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_action": {
+        "name": "Climate Timer Weekly 2 state"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_hour": {
+        "name": "Climate Timer Weekly 2 (hour)"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_minute": {
+        "name": "Climate Timer Weekly 2 (minute)"
+      },
+      "vehicle_cabin_convertible_roofretractablestatus": {
+        "name": "Convertible roof retractable state"
+      },
+      "vehicle_cabin_convertible_roofstatus": {
+        "name": "Convertible roof overall state"
+      },
+      "vehicle_cabin_door_lock_status": {
+        "name": "Doors lock"
+      },
+      "vehicle_cabin_door_row1_driver_isopen": {
+        "name": "Door state (front driver)"
+      },
+      "vehicle_cabin_door_row1_driver_position": {
+        "name": "Door position (front driver)"
+      },
+      "vehicle_cabin_door_row1_passenger_isopen": {
+        "name": "Door state (front passenger)"
+      },
+      "vehicle_cabin_door_row1_passenger_position": {
+        "name": "Door position (front passenger)"
+      },
+      "vehicle_cabin_door_row2_driver_isopen": {
+        "name": "Door state (rear driver)"
+      },
+      "vehicle_cabin_door_row2_driver_position": {
+        "name": "Door position (rear driver)"
+      },
+      "vehicle_cabin_door_row2_passenger_isopen": {
+        "name": "Door state (rear passenger)"
+      },
+      "vehicle_cabin_door_row2_passenger_position": {
+        "name": "Door position (rear passenger)"
+      },
+      "vehicle_cabin_door_status": {
+        "name": "Doors overall state"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_cooling": {
+        "name": "Preconditioning Default Seat cooling (front driver)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_heating": {
+        "name": "Preconditioning Default Seat heating (front driver)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_cooling": {
+        "name": "Preconditioning Default Seat cooling (front passenger)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_heating": {
+        "name": "Preconditioning Default Seat heating (front passenger)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_cooling": {
+        "name": "Preconditioning Default Seat cooling (rear driver)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_heating": {
+        "name": "Preconditioning Default Seat heating (rear driver)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_cooling": {
+        "name": "Preconditioning Default Seat cooling (rear passenger)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_heating": {
+        "name": "Preconditioning Default Seat heating (rear passenger)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_cooling": {
+        "name": "Preconditioning Default Seat cooling (third row driver)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_heating": {
+        "name": "Preconditioning Default Seat heating (third row driver)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_cooling": {
+        "name": "Preconditioning Default Seat cooling (third row passenger)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_heating": {
+        "name": "Preconditioning Default Seat heating (third row passenger)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_steeringwheel_heating": {
+        "name": "Preconditioning Default Steering wheel heating"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_targettemperature": {
+        "name": "Preconditioning Default Target temperature"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_cooling": {
+        "name": "Preconditioning Direct Seat cooling (front driver)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_heating": {
+        "name": "Preconditioning Direct Seat heating (front driver)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_cooling": {
+        "name": "Preconditioning Direct Seat cooling (front passenger)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_heating": {
+        "name": "Preconditioning Direct Seat heating (front passenger)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_cooling": {
+        "name": "Preconditioning Direct Seat cooling (rear driver)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_heating": {
+        "name": "Preconditioning Direct Seat heating (rear driver)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_cooling": {
+        "name": "Preconditioning Direct Seat cooling (rear passenger)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_heating": {
+        "name": "Preconditioning Direct Seat heating (rear passenger)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_cooling": {
+        "name": "Preconditioning Direct Seat cooling (third row driver)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_heating": {
+        "name": "Preconditioning Direct Seat heating (third row driver)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_cooling": {
+        "name": "Preconditioning Direct Seat cooling (third row passenger)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_heating": {
+        "name": "Preconditioning Direct Seat heating (third row passenger)"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_steeringwheel_heating": {
+        "name": "Preconditioning Direct Steering wheel heating"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_targettemperature": {
+        "name": "Preconditioning Direct Target temperature"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_isremoteenginestartdisclaimer": {
+        "name": "Preconditioning Remote engine start disclaimer"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_comfortstate": {
+        "name": "Preconditioning  comfort state"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_isexteriormirrorheatingactive": {
+        "name": "Preconditioning  exterior mirror heating active"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_progress": {
+        "name": "Preconditioning  progress"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_reardefrostactive": {
+        "name": "Preconditioning  rear defrost active"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_remainingrunningtime": {
+        "name": "Preconditioning  remaining running time"
+      },
+      "vehicle_cabin_hvac_statusairpurification": {
+        "name": "Purification Air purification state"
+      },
+      "vehicle_cabin_infotainment_displayunit_distance": {
+        "name": "Vehicle Info Display unit (distance)"
+      },
+      "vehicle_cabin_infotainment_hmi_distanceunit": {
+        "name": "Vehicle Info Distance unit"
+      },
+      "vehicle_cabin_infotainment_ismobilephoneconnected": {
+        "name": "Vehicle Info Mobile phone connection state"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_altitude": {
+        "name": "GPS altitude"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_fixstatus": {
+        "name": "GPS navigation fix state"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_heading": {
+        "name": "GPS heading"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_latitude": {
+        "name": "GPS latitude"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_longitude": {
+        "name": "GPS longitude"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_numberofsatellites": {
+        "name": "GPS satellite count"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_arrivaltime": {
+        "name": "GPS arrival time"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_distance": {
+        "name": "GPS distance to destination"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_latitude": {
+        "name": "GPS destination latitude"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_longitude": {
+        "name": "GPS destination longitude"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_available": {
+        "name": "GPS available poi spaces"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_max": {
+        "name": "GPS max poi spaces"
+      },
+      "vehicle_cabin_infotainment_navigation_remainingrange": {
+        "name": "GPS remaining range"
+      },
+      "vehicle_cabin_seat_row1_driverside_cooling": {
+        "name": "Seat Cooling (front driver)"
+      },
+      "vehicle_cabin_seat_row1_driverside_heating": {
+        "name": "Seat Heating (front driver)"
+      },
+      "vehicle_cabin_seat_row1_passengerside_cooling": {
+        "name": "Seat Cooling (front passenger)"
+      },
+      "vehicle_cabin_seat_row1_passengerside_heating": {
+        "name": "Seat Heating (front passenger)"
+      },
+      "vehicle_cabin_seat_row2_driverside_cooling": {
+        "name": "Seat Cooling (rear driver)"
+      },
+      "vehicle_cabin_seat_row2_driverside_heating": {
+        "name": "Seat Heating (rear driver)"
+      },
+      "vehicle_cabin_seat_row2_passengerside_cooling": {
+        "name": "Seat Cooling (rear passenger)"
+      },
+      "vehicle_cabin_seat_row2_passengerside_heating": {
+        "name": "Seat Heating (rear passenger)"
+      },
+      "vehicle_cabin_seat_row3_driverside_cooling": {
+        "name": "Seat Cooling (third row driver)"
+      },
+      "vehicle_cabin_seat_row3_driverside_heating": {
+        "name": "Seat Heating (third row driver)"
+      },
+      "vehicle_cabin_seat_row3_passengerside_cooling": {
+        "name": "Seat Cooling (third row passenger)"
+      },
+      "vehicle_cabin_seat_row3_passengerside_heating": {
+        "name": "Seat Heating (third row passenger)"
+      },
+      "vehicle_cabin_steeringwheel_heating": {
+        "name": "Steering Wheel heating"
+      },
+      "vehicle_cabin_sunroof_overallstatus": {
+        "name": "Sunroof overall state"
+      },
+      "vehicle_cabin_sunroof_relativeposition": {
+        "name": "Sunroof relative position"
+      },
+      "vehicle_cabin_sunroof_shade_position": {
+        "name": "Sunroof Sunshade position"
+      },
+      "vehicle_cabin_sunroof_status": {
+        "name": "Sunroof state"
+      },
+      "vehicle_cabin_sunroof_tiltstatus": {
+        "name": "Sunroof tilt state"
+      },
+      "vehicle_cabin_window_row1_driver_status": {
+        "name": "Window state (front driver)"
+      },
+      "vehicle_cabin_window_row1_passenger_status": {
+        "name": "Window state (front passenger)"
+      },
+      "vehicle_cabin_window_row2_driver_status": {
+        "name": "Window state (rear driver)"
+      },
+      "vehicle_cabin_window_row2_passenger_status": {
+        "name": "Window state (rear passenger)"
+      },
+      "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
+        "name": "Vehicle Info OBFCM last transfer state"
+      },
+      "vehicle_channel_ngtp_timevehicle": {
+        "name": "Vehicle Info Time in vehicle"
+      },
+      "vehicle_channel_teleservice_lastautomaticservicecalltime": {
+        "name": "Teleservice Automatic service call time"
+      },
+      "vehicle_channel_teleservice_lastbreakdowncalltime": {
+        "name": "Teleservice Breakdown call time"
+      },
+      "vehicle_channel_teleservice_lastmanualcalltime": {
+        "name": "Teleservice Manual service call time"
+      },
+      "vehicle_channel_teleservice_lastteleservicereporttime": {
+        "name": "Teleservice report time"
+      },
+      "vehicle_channel_teleservice_status": {
+        "name": "Teleservice availability state"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressure": {
+        "name": "Tire pressure (front left)"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressuretarget": {
+        "name": "Tire pressure target (front left)"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_temperature": {
+        "name": "Tire temperature (front left)"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressure": {
+        "name": "Tire pressure (front right)"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressuretarget": {
+        "name": "Tire pressure target (front right)"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_temperature": {
+        "name": "Tire temperature (front right)"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressure": {
+        "name": "Tire pressure (rear left)"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressuretarget": {
+        "name": "Tire pressure target (rear left)"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_temperature": {
+        "name": "Tire temperature (rear left)"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressure": {
+        "name": "Tire pressure (rear right)"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressuretarget": {
+        "name": "Tire pressure target (rear right)"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_temperature": {
+        "name": "Tire temperature (rear right)"
+      },
+      "vehicle_chassis_axle_wheel_tire_diagnosis": {
+        "name": "Tire diagnostics"
+      },
+      "vehicle_drivetrain_avgelectricrangeconsumption": {
+        "name": "Range EV Average electric consumption"
+      },
+      "vehicle_drivetrain_batterymanagement_batterysizemax": {
+        "name": "Battery HV Max size"
+      },
+      "vehicle_drivetrain_batterymanagement_header": {
+        "name": "Battery HV State Of Charge"
+      },
+      "vehicle_drivetrain_batterymanagement_maxenergy": {
+        "name": "Battery HV Energy content"
+      },
+      "vehicle_drivetrain_electricengine_charging_acampere": {
+        "name": "Charging EV AC charging current"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_factor": {
+        "name": "Charging EV AC restriction factor"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_ischosen": {
+        "name": "Charging EV AC restriction selection"
+      },
+      "vehicle_drivetrain_electricengine_charging_acvoltage": {
+        "name": "Charging EV AC charging voltage"
+      },
+      "vehicle_drivetrain_electricengine_charging_authentication_status": {
+        "name": "Charging EV Authentication state"
+      },
+      "vehicle_drivetrain_electricengine_charging_chargingmode": {
+        "name": "Charging EV Charging mode"
+      },
+      "vehicle_drivetrain_electricengine_charging_connectiontype": {
+        "name": "Charging EV Charging connection type"
+      },
+      "vehicle_drivetrain_electricengine_charging_connectorstatus": {
+        "name": "Charging EV Connector state"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_gridenergy": {
+        "name": "Charging EV Energy supplied (engine off)"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_referencedistance": {
+        "name": "Charging EV Reference distance (engine off)"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_gridenergy": {
+        "name": "Charging EV Energy supplied (engine on)"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_referencedistance": {
+        "name": "Charging EV Reference distance (engine on)"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_gridenergy": {
+        "name": "Charging EV Energy supplied total"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_referencedistance": {
+        "name": "Charging EV Reference distance total"
+      },
+      "vehicle_drivetrain_electricengine_charging_hvstatus": {
+        "name": "Charging EV HV system state"
+      },
+      "vehicle_drivetrain_electricengine_charging_hvpmfinishreason": {
+        "name": "Charging EV Charging end reason"
+      },
+      "vehicle_drivetrain_electricengine_charging_isimmediatechargingsystemreason": {
+        "name": "Charging EV Immediate charging reason"
+      },
+      "vehicle_drivetrain_electricengine_charging_issingleimmediatecharging": {
+        "name": "Charging EV Instant charging state"
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingreason": {
+        "name": "Charging EV Last charging reason"
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingresult": {
+        "name": "Charging EV Last charging result"
+      },
+      "vehicle_drivetrain_electricengine_charging_level": {
+        "name": "Charging EV Predicted State Of Charge"
+      },
+      "vehicle_drivetrain_electricengine_charging_method": {
+        "name": "Charging EV Charging method"
+      },
+      "vehicle_drivetrain_electricengine_charging_modedeviation": {
+        "name": "Charging EV Charging mode deviation"
+      },
+      "vehicle_drivetrain_electricengine_charging_phasenumber": {
+        "name": "Charging EV Charging phases"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_climatizationactive": {
+        "name": "Charging EV Climatization active"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_isrcpconfigcomplete": {
+        "name": "Charging EV RCP config complete"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_mode": {
+        "name": "Charging EV Charging profile"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_preference": {
+        "name": "Charging EV Charging preference"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_departuretimerelevant": {
+        "name": "Charging EV Departure time relevant"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_dischargeallowed": {
+        "name": "Charging EV Discharge allowed"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_timertype": {
+        "name": "Charging EV Timer type"
+      },
+      "vehicle_drivetrain_electricengine_charging_reasonchargingend": {
+        "name": "Charging EV Charging end cause"
+      },
+      "vehicle_drivetrain_electricengine_charging_routeoptimizedchargingstatus": {
+        "name": "Charging EV Route optimized charging state"
+      },
+      "vehicle_drivetrain_electricengine_charging_smeenergydeltafullycharged": {
+        "name": "Charging EV Energy to full charge"
+      },
+      "vehicle_drivetrain_electricengine_charging_status": {
+        "name": "Charging EV Charging state"
+      },
+      "vehicle_drivetrain_electricengine_charging_timeremaining": {
+        "name": "Charging EV Remaining time estimate"
+      },
+      "vehicle_drivetrain_electricengine_charging_timetofullycharged": {
+        "name": "Charging EV Time to full charge"
+      },
+      "vehicle_drivetrain_electricengine_charging_windowselection": {
+        "name": "Charging EV Window selection"
+      },
+      "vehicle_drivetrain_electricengine_hvsmaxenergyabsolute": {
+        "name": "Range EV Battery energy max"
+      },
+      "vehicle_drivetrain_electricengine_kombiremainingelectricrange": {
+        "name": "Range EV Remaining range"
+      },
+      "vehicle_drivetrain_electricengine_remainingelectricrange": {
+        "name": "Range EV Estimate during charging"
+      },
+      "vehicle_drivetrain_engine_isactive": {
+        "name": "Vehicle ignition state"
+      },
+      "vehicle_drivetrain_engine_isignitionon": {
+        "name": "Vehicle engine state"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_fuel": {
+        "name": "OBFCM PHEV Fuel consumption (engine off)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineoff": {
+        "name": "OBFCM PHEV Reference distance (engine off)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineon": {
+        "name": "OBFCM PHEV Reference distance (engine on)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_fuel": {
+        "name": "OBFCM PHEV Fuel consumption (charging mode)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_referencedistance": {
+        "name": "OBFCM Reference distance (charging mode)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_fuel": {
+        "name": "OBFCM Fuel consumption total"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_referencedistance": {
+        "name": "OBFCM Reference distance total"
+      },
+      "vehicle_drivetrain_fuelsystem_level": {
+        "name": "Range Tank level (%)"
+      },
+      "vehicle_drivetrain_fuelsystem_remainingfuel": {
+        "name": "Range Tank level"
+      },
+      "vehicle_drivetrain_internalcombustionengine_engine_ect": {
+        "name": "Vehicle Coolant temperature"
+      },
+      "vehicle_drivetrain_lastremainingrange": {
+        "name": "Range Total range (last sent)"
+      },
+      "vehicle_drivetrain_totalremainingrange": {
+        "name": "Range Estimate during charging"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_recharge": {
+        "name": "Battery recharge required"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_replace": {
+        "name": "Battery health state"
+      },
+      "vehicle_electricalsystem_battery_stateofcharge": {
+        "name": "Battery charge level (12V)"
+      },
+      "vehicle_electricalsystem_battery_stateofchargeplausibility": {
+        "name": "Battery charge level plausibility (12V)"
+      },
+      "vehicle_electricalsystem_battery_voltage": {
+        "name": "Battery voltage (12V)"
+      },
+      "vehicle_electricalsystem_battery48v_stateofhealth_displayed": {
+        "name": "Battery health state (48V)"
+      },
+      "vehicle_electroniccontrolunit_diagnostictroublecodes_raw": {
+        "name": "Vehicle Info Fault memory"
+      },
+      "vehicle_extras_optionalequipment_code": {
+        "name": "Vehicle Info Optional equipment list"
+      },
+      "vehicle_ismoving": {
+        "name": "Vehicle Motion state"
+      },
+      "vehicle_learningnavigation": {
+        "name": "GPS Learning navigation data"
+      },
+      "vehicle_look_image": {
+        "name": "Vehicle Info Image"
+      },
+      "vehicle_powertrain_electric_battery_bidirectionalcharging_availability": {
+        "name": "Battery EV Bidirectional charging capability"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_isactive": {
+        "name": "Battery EV Charging limit state"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_max": {
+        "name": "Battery EV Maximum charging current"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_min": {
+        "name": "Battery EV Minimum charging current"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_selected": {
+        "name": "Battery EV Charging current limit"
+      },
+      "vehicle_powertrain_electric_battery_charging_acousticlimit": {
+        "name": "Battery EV Acoustic charging limit"
+      },
+      "vehicle_powertrain_electric_battery_charging_authenticationstatus": {
+        "name": "authenticationStatus"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isactive": {
+        "name": "Battery EV Battery care mode active"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_ispreservingchargingmode": {
+        "name": "Battery EV Battery care charge mode"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isreducedtargetsoe": {
+        "name": "Battery EV Reduced target state of energy"
+      },
+      "vehicle_powertrain_electric_battery_charging_cablecheckvoltage": {
+        "name": "Battery EV Cable check voltage"
+      },
+      "vehicle_powertrain_electric_battery_charging_dcchargingmodeactive": {
+        "name": "Battery EV DC charging mode"
+      },
+      "vehicle_powertrain_electric_battery_charging_history_sessionslist": {
+        "name": "Battery EV Charging history"
+      },
+      "vehicle_powertrain_electric_battery_charging_power": {
+        "name": "Battery EV Charging power"
+      },
+      "vehicle_powertrain_electric_battery_charging_preferencesmartcharging": {
+        "name": "Battery EV Smart charging option"
+      },
+      "vehicle_powertrain_electric_battery_charging_settingslist": {
+        "name": "Battery EV Location-based charging settings"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_automaticmode_statusfeedback": {
+        "name": "Battery EV Automatic preconditioning state"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_manualmode_statusfeedback": {
+        "name": "Battery EV Manual preconditioning state"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_state": {
+        "name": "Battery EV Preconditioning state"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_displayed": {
+        "name": "displayed"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_target": {
+        "name": "Battery EV Target state of charge"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetmin": {
+        "name": "Battery EV Target state of charge (min)"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetsocforprofessionalmode": {
+        "name": "Battery EV Target state of charge (professional mode)"
+      },
+      "vehicle_powertrain_electric_battery_stateofhealth_displayed": {
+        "name": "Battery EV Battery health state (SOCE)"
+      },
+      "vehicle_powertrain_electric_chargingduration_displaycontrol": {
+        "name": "Charging EV Charging time display"
+      },
+      "vehicle_powertrain_electric_departuretime_displaycontrol": {
+        "name": "Charging EV Departure time display"
+      },
+      "vehicle_powertrain_electric_range_displaycontrol": {
+        "name": "Range EV Display control"
+      },
+      "vehicle_powertrain_electric_range_target": {
+        "name": "Range EV Remaining (set target based)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isautomaticopenandcloseactive": {
+        "name": "Charging Port flap automatic open/close (any position)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isopen": {
+        "name": "Charging Port flap state (any position)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_isplugged": {
+        "name": "Charging Port plugged (any position)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isautomaticopenandcloseactive": {
+        "name": "Charging Port flap automatic open/close (front left)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isopen": {
+        "name": "Charging Port flap state (front left)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_isplugged": {
+        "name": "Charging Port plugged (front left)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Charging Port flap automatic open/close (front middle)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isopen": {
+        "name": "Charging Port flap state (front middle)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_isplugged": {
+        "name": "Charging Port plugged (front middle)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isautomaticopenandcloseactive": {
+        "name": "Charging Port flap automatic open/close (front right)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isopen": {
+        "name": "Charging Port flap state (front right)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_isplugged": {
+        "name": "Charging Port plugged (front right)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isautomaticopenandcloseactive": {
+        "name": "Charging Port flap automatic open/close (rear left)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isopen": {
+        "name": "Charging Port flap state (rear left)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_isplugged": {
+        "name": "Charging Port plugged (rear left)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Charging Port flap automatic open/close (rear middle)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isopen": {
+        "name": "Charging Port flap state (rear middle)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_isplugged": {
+        "name": "Charging Port plugged (rear middle)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isautomaticopenandcloseactive": {
+        "name": "Charging Port flap automatic open/close (rear right)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isopen": {
+        "name": "Charging Port flap state (rear right)"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_isplugged": {
+        "name": "Charging Port plugged (rear right)"
+      },
+      "vehicle_privacysettings_datacollection_regulations_obfcm": {
+        "name": "Legal OBFCM data transfer consent"
+      },
+      "vehicle_servicedemand_defect_id": {
+        "name": "Service Live diagnostics"
+      },
+      "vehicle_sevice_preferredsevicepartner": {
+        "name": "Service Preferred service partner"
+      },
+      "vehicle_sim_status": {
+        "name": "Vehicle Info SIM activation state"
+      },
+      "vehicle_status_checkcontrolmessages": {
+        "name": "Service Check control messages"
+      },
+      "vehicle_status_conditionbasedservices": {
+        "name": "Service Condition based services"
+      },
+      "vehicle_status_conditionbasedservicesaveragedistanceperday": {
+        "name": "Service CBS average distance per day"
+      },
+      "vehicle_status_conditionbasedservicescount": {
+        "name": "Service CBS report count"
+      },
+      "vehicle_status_servicedistance_next": {
+        "name": "Service Distance to next service"
+      },
+      "vehicle_status_servicedistance_yellow": {
+        "name": "Service Next service distance threshold"
+      },
+      "vehicle_status_servicetime_huandauserviceyellow": {
+        "name": "Service Inspection time threshold"
+      },
+      "vehicle_status_servicetime_inspectiondatelegal": {
+        "name": "Service Next inspection date"
+      },
+      "vehicle_status_servicetime_yellow": {
+        "name": "Service Next service time threshold"
+      },
+      "vehicle_trip_segment_accumulated_acceleration_starsaverage": {
+        "name": "Trip Driving style acceleration"
+      },
+      "vehicle_trip_segment_accumulated_chassis_brake_starsaverage": {
+        "name": "Trip Driving style anticipation"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_energyconsumptioncomfort": {
+        "name": "Trip Energy consumption (comfort mode)"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_recuperationtotal": {
+        "name": "Energy recuperated during the last drive"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecopro": {
+        "name": "Trip ECO Pro mode share"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecoproplus": {
+        "name": "Trip ECO Pro Plus share"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveelectric": {
+        "name": "Trip Electric share"
+      },
+      "vehicle_trip_segment_end_drivetrain_batterymanagement_hvsoc": {
+        "name": "Trip Battery charge level at end of trip"
+      },
+      "vehicle_trip_segment_end_time": {
+        "name": "Trip Last trip time"
+      },
+      "vehicle_trip_segment_end_travelleddistance": {
+        "name": "Trip Last trip distance"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_activationtime": {
+        "name": "Alarm activation time"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_armstatus": {
+        "name": "Alarm arming state"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_ison": {
+        "name": "Alarm active"
+      },
+      "vehicle_vehicle_averageweeklydistancelongterm": {
+        "name": "Trip Average distance per week (long-term)"
+      },
+      "vehicle_vehicle_averageweeklydistanceshortterm": {
+        "name": "Trip Average distance per week"
+      },
+      "vehicle_vehicle_avgauxpower": {
+        "name": "Vehicle Auxiliary power"
+      },
+      "vehicle_vehicle_avgspeed": {
+        "name": "Speed average"
+      },
+      "vehicle_vehicle_deepsleepmodeactive": {
+        "name": "Vehicle deep sleep mode"
+      },
+      "vehicle_vehicle_preconditioning_activity": {
+        "name": "Preconditioning state"
+      },
+      "vehicle_vehicle_preconditioning_error": {
+        "name": "Preconditioning error reason"
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginerunning": {
+        "name": "Preconditioning engine used"
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginestartallowed": {
+        "name": "Preconditioning engine use allowed"
+      },
+      "vehicle_vehicle_preconditioning_remainingtime": {
+        "name": "Preconditioning remaining  time"
+      },
+      "vehicle_vehicle_speedrange_lowerbound": {
+        "name": "Speed lower range"
+      },
+      "vehicle_vehicle_speedrange_upperbound": {
+        "name": "Speed upper range"
+      },
+      "vehicle_vehicle_timesetting": {
+        "name": "Vehicle Info Time zone setting"
+      },
+      "vehicle_vehicle_travelleddistance": {
+        "name": "Vehicle mileage"
+      },
+      "vehicle_vehicleidentification_basicvehicledata": {
+        "name": "Vehicle Info Basic vehicle data"
+      },
+      "vehicle_vehicleidentification_connecteddrivecontractlist": {
+        "name": "Legal Connected drive contracts"
+      }
+    },
+    "device_tracker": {
+      "car": {
+        "name": "Location"
+      }
+    },
+    "image": {
+      "vehicle_image": {
+        "name": "Vehicle Image"
+      }
+    }
+  }
+}

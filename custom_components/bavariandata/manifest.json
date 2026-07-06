@@ -1,0 +1,23 @@
+{
+  "domain": "bavariandata",
+  "name": "BavarianData: Connect Home Assistant to BMW CarData",
+  "codeowners": [
+    "@JustChr"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "http",
+    "frontend"
+  ],
+  "documentation": "https://github.com/JustChr/BavarianData",
+  "integration_type": "device",
+  "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/JustChr/BavarianData/issues",
+  "loggers": [
+    "paho"
+  ],
+  "requirements": [
+    "paho-mqtt>=1.6.1"
+  ],
+  "version": "0.4.2"
+}

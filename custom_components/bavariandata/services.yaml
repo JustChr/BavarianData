@@ -1,0 +1,75 @@
+fetch_telematic_data:
+  name: Fetch Telematic Data
+  description: Fetch telematic data for a VIN using the stored container and log the response.
+  fields:
+    entry_id:
+      description: Optional config entry id to target. Required if multiple entries are configured.
+      example: 01K65NKFESKBQZ78PBW6V9BCCX
+    vin:
+      description: Optional VIN to query. Defaults to the first VIN seen on the stream.
+      example: WBY31AW090FP15359
+fetch_vehicle_mappings:
+  name: Fetch Vehicle Mappings
+  description: Fetch mapping information for the configured account and log the response.
+  fields:
+    entry_id:
+      description: Optional config entry id to target. Required if multiple entries are configured.
+      example: 01K65NKFESKBQZ78PBW6V9BCCX
+fetch_basic_data:
+  name: Fetch Basic Vehicle Data
+  description: Fetch static vehicle metadata (model name, series, etc.) for a VIN and log the response.
+  fields:
+    entry_id:
+      description: Optional config entry id to target. Required if multiple entries are configured.
+      example: 01K65NKFESKBQZ78PBW6V9BCCX
+    vin:
+      description: Optional VIN to query. Defaults to the VIN stored in the config entry.
+      example: WBY31AW090FP15359
+fetch_charging_history:
+  name: Fetch Charging History
+  description: >-
+    Fetch the charging session history for a VIN (paginated) and log the
+    response. Counts as one or more API calls against the 50/24h quota.
+  fields:
+    entry_id:
+      description: Optional config entry id to target. Required if multiple entries are configured.
+      example: 01K65NKFESKBQZ78PBW6V9BCCX
+    vin:
+      description: Optional VIN to query. Defaults to the first known VIN.
+      example: WBY31AW090FP15359
+    from:
+      description: Optional ISO 8601 start date/time to filter sessions.
+      example: "2025-01-01T00:00:00Z"
+    to:
+      description: Optional ISO 8601 end date/time to filter sessions.
+      example: "2025-02-01T00:00:00Z"
+fetch_tyre_diagnosis:
+  name: Fetch Smart Maintenance Tyre Diagnosis
+  description: Fetch the smart-maintenance tyre diagnosis for a VIN and log the response.
+  fields:
+    entry_id:
+      description: Optional config entry id to target. Required if multiple entries are configured.
+      example: 01K65NKFESKBQZ78PBW6V9BCCX
+    vin:
+      description: Optional VIN to query. Defaults to the first known VIN.
+      example: WBY31AW090FP15359
+fetch_location_charging_settings:
+  name: Fetch Location-Based Charging Settings
+  description: Fetch the location-based charging settings for a VIN (paginated) and log the response.
+  fields:
+    entry_id:
+      description: Optional config entry id to target. Required if multiple entries are configured.
+      example: 01K65NKFESKBQZ78PBW6V9BCCX
+    vin:
+      description: Optional VIN to query. Defaults to the first known VIN.
+      example: WBY31AW090FP15359
+fetch_vehicle_image:
+  name: Fetch Vehicle Image
+  description: Fetch the vehicle image for a VIN and log its size/content type.
+  fields:
+    entry_id:
+      description: Optional config entry id to target. Required if multiple entries are configured.
+      example: 01K65NKFESKBQZ78PBW6V9BCCX
+    vin:
+      description: Optional VIN to query. Defaults to the first known VIN.
+      example: WBY31AW090FP15359

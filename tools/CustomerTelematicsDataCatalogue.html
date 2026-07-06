@@ -1,0 +1,1829 @@
+<html>
+    <head>
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Customer Telematics Data Catalogue</title>
+        <style>
+                    @font-face {
+                    font-family: 'DTDC Light';
+                    src: url(https://bmwcardata.bmwgroup.com/fonts/BMWTypeNext-Light.ttf);
+                    font-style: normal;
+                    }
+
+                    @font-face {
+                    font-family: 'DTDC Regular';
+                    src: url(https://bmwcardata.bmwgroup.com/fonts/BMWTypeNext-Regular.ttf);
+                    font-weight: bold;
+                    font-style: normal;
+                    }
+
+                    @font-face {
+                    font-family: 'DTDC Thin';
+                    src: url(https://bmwcardata.bmwgroup.com/fonts/BMWTypeNext-Thin.ttf);
+                    font-weight: bold;
+                    font-style: normal;
+                    }
+
+                    @font-face {
+                    font-family: 'DTDC Bold';
+                    src: url(https://bmwcardata.bmwgroup.com/fonts/BMWTypeNext-Bold.ttf);
+                    font-weight: bold;
+                    font-style: normal;
+                    }
+
+                    body {
+                    margin-top: 50px;
+                    margin-left: 10%;
+                    margin-right: 10%;
+                    text-align: left;
+
+                    font-family: 'DTDC Thin', Arial, sans-serif;
+                    }
+
+                    h1 {
+                    font-family: 'DTDC Light', Arial, sans-serif;
+                    font-size: 64px;
+                    }
+
+                    h2 {
+                    font-family: 'DTDC Light', Arial, sans-serif;
+                    font-size: 32px;
+                    }
+
+                    h3 {
+                    font-family: 'DTDC Regular', Arial, sans-serif;
+                    padding-top: 40px;
+                    padding-bottom: 8px;
+                    }
+
+                    p {
+                    line-height: 24px;
+                    }
+
+                    table {
+                    border-collapse: collapse;
+                    border: 0;
+                    padding: 0;
+                    margin: 0;
+                    table-layout: auto;
+                    width: 100%;
+                    }
+
+                    th {
+                    text-align: left;
+                    vertical-align: middle;
+                    padding-left: 5px;
+                    padding-right: 10px;
+                    padding-top: 15px;
+                    padding-bottom: 15px;
+                    white-space: nowrap;
+                    font-size: smaller;
+                    }
+
+                    td {
+                    text-align: left;
+                    vertical-align: top;
+                    padding-left: 5px;
+                    padding-right: 10px;
+                    padding-top: 10px;
+                    padding-bottom: 10px;
+                    font-size: 16px;
+                    line-height: 24px;
+                    word-break: break-word;
+                    overflow-wrap: break-word;
+                    hyphens: none;
+                    }
+
+                    a:link, a:visited, a:active {
+                    color: black;
+                    }
+
+                    a:hover {
+                    color: black;
+                    background-color: #AACBE8;
+                    }
+
+                    .header-row {
+                    background-color: #F6F6F6;
+                    }
+
+                    .top-column {
+                    vertical-align: top;
+                    }
+
+                    .col1-emea {
+                    width: 20%;
+                    }
+
+                    .col1-us {
+                    width: 30%;
+                    }
+
+                    .col2-emea {
+                    width: 30%;
+                    }
+
+                    .col2-us {
+                    width: 60%;
+                    }
+
+                    .col3 {
+                    width: 20%;
+                    word-break: break-word;
+                    white-space: normal;
+                    }
+
+                    .col4 {
+                    width: 7%;
+                    }
+
+                    .col5 {
+                    width: 11%;
+                    word-break: break-all;
+                    white-space: normal;
+                    }
+
+                    .col6-emea {
+                    width: 7%;
+                    }
+
+                    .col6-us {
+                    width: 10%;
+                    }
+
+                    .col7 {
+                    width: 5%;
+                    }
+
+                    .true-tick {
+                    margin: auto;
+                    width: 24px;
+                    height: 24px;
+                    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAeElEQVRIie2SwQmAMBAELcOnLxGsJGGWtOXPsqxExAb8KgFFEBQR7yFmIN/Z3O1lWSLxH4AmPjO5pBlofyAPIRRAdUPePvo50EkarkJ4Ko8450qgB0ZJtcnOz0J4s9BjCBbXEntY+5jMTtHtk7wv3/De52byxPdZAAQtTejm9NIfAAAAAElFTkSuQmCC) no-repeat;
+                    }
+
+                    .false-tick {
+                    margin: auto;
+                    width: 24px;
+                    height: 24px;
+                    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAd0lEQVRIie2UMQ7AIAwDmfhL1Wd0s5LR//9KRUWlTii0GHXAE0N8RgkkpaVfimSWeUhmMzvcfY/CS23xhEMAbGbmkZCe2m4j3sIjAHyFt0AYBb9Vh3gBn+c0Uqi3lsDlAa5sEZRDlj5T6UeDclVwxrKjcl0vTdcJThVb9wK+hIAAAAAASUVORK5CYII=) no-repeat;
+                    }
+
+                    .icon {
+                    text-align: right;
+                    }
+
+                    .logo {
+                    float: right;
+                    width: 120px;
+                    height: 120px;
+                    }
+                </style>
+    </head>
+    <body>
+        <table>
+            <tr>
+                <td>
+                    <h1>BMW</h1>
+                </td><td class="icon"><img class="logo" alt="logo" src="https://bmwcardata.bmwgroup.com/images/logo.png"></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <h2>BMW CARDATA TELEMATIKDATENKATALOG.</h2>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <p>BMW CarData stellt relevante Telematikdaten zu Verf&uuml;gung, die Fahrzeuge durch Verwendung von BMW 
+ConnectedDrive-Diensten an die BMW Group senden und dort gespeichert werden.
+Dazu z&auml;hlen Werte wie beispielsweise der Kilometerstand.
+In diesem BMW CarData Telematikdaten Katalog werden alle grunds&auml;tzlich verf&uuml;gbaren, f&uuml;r die Nutzung von BMW 
+CarData relevanten Fahrzeugdaten erl&auml;utert &ndash; jeweils unterteilt in einzelne Kategorien.
+Anzahl und Art der Telematikdaten k&ouml;nnen je nach Fahrzeugtyp, Antriebsart, Modell, Baujahr und vorhandener 
+Sonderausstattung variieren.</p>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <p>
+                        F&uuml;r eine interaktive Version besuchen Sie bitte unseren Online <a href="https://www.bmw.de/de-de/mybmw/public/cardata-telematic-catalogue/">Telematikdatenkatalog.</a>
+                    </p>
+                </td>
+            </tr>
+        </table>
+        <h3>FAHRZEUGBASISDATEN</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData Element</th><th class="col2-emea">Beschreibung</th><th class="col3">Technischer Bezeichner</th><th class="col4">Datentyp </th><th class="col5">Typischer Wertebereich</th><th class="col6-emea">Einheit</th><th class="col7">Streamingf&auml;hig</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Aktivierungszustand der eingebauten SIM-Karte</td><td class="col2-emea">Dieser Wert gibt an, ob die im Fahrzeug eingebaute SIM-Karte aktiviert ist.&nbsp;</td><td class="col3">vehicle.​sim.​status</td><td class="col4">-</td><td class="col5">true, false</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Fahrzeugbasisdaten</td><td class="col2-emea">Dieser Wert zeigt eine Liste der grundlegenden Fahrzeugdaten an, z.B. Fahrzeugmarke und vollst&auml;ndige Modellbezeichnung.</td><td class="col3">vehicle.​vehicleIdentification.​basicVehicleData</td><td class="col4">-</td><td class="col5">Details sind in der entsprechenden Swagger-Dokumentation: ../basicData</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Fahrzeugbild</td><td class="col2-emea">Der Wert liefert ein Bild des Fahrzeugs als PNG-Datei.</td><td class="col3">vehicle.​look.​image</td><td class="col4">-</td><td class="col5">PNG-Datei</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gr&ouml;&szlig;e der Hochvoltbatterie</td><td class="col2-emea">Der Wert gibt die Gr&ouml;&szlig;e der verbauten Hochvoltbatterie an.</td><td class="col3">vehicle.​drivetrain.​batteryManagement.​batterySizeMax</td><td class="col4">float</td><td class="col5">0 - 300 kWh, INVALID</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Liste der Sonderausstattungen</td><td class="col2-emea">Dieser Wert zeigt eine Liste mit Informationen &uuml;ber die&nbsp;Sonderausstattungen&nbsp;des Fahrzeugs an.</td><td class="col3">vehicle.​extras.​optionalEquipment.​code</td><td class="col4">-</td><td class="col5">4-stellige, durch ein Komma voneinander getrennte Zahlen- und/oder Buchstabencode</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Maximaler Energieinhalt der Hochvoltbatterie</td><td class="col2-emea">Der Wert gibt den maximal kundennutzbaren Energieinhalt der Hochvoltbatterie an.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​hvsMaxEnergyAbsolute</td><td class="col4">-</td><td class="col5">0 - 300 kWh, INVALID</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>DATEN ZUM FAHRZEUGSTATUS</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData Element</th><th class="col2-emea">Beschreibung</th><th class="col3">Technischer Bezeichner</th><th class="col4">Datentyp </th><th class="col5">Typischer Wertebereich</th><th class="col6-emea">Einheit</th><th class="col7">Streamingf&auml;hig</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Aktivierungszeit der Diebstahlwarnanlage</td><td class="col2-emea">Zeitstempel mit der Uhrzeit der letzten Alarmausl&ouml;sung. Der Wert wird ohne Zeitzoneninformationen bereitgestellt.</td><td class="col3">vehicle.​vehicle.​antiTheftAlarmSystem.​alarm.​activationTime</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Anzahl der CBS-Meldungen</td><td class="col2-emea">Der Wert gibt an, wie viele Servicebedarfsmeldungen maximal vom Fahrzeug per Telematik an BMW &uuml;bertragen werden. Die tats&auml;chliche Menge &uuml;bertragener Servicebedarfsmeldungen (siehe separater Key CBS) variiert, je nachdem wie das Fahrzeug genutzt wird und ob Service relevante Schwellwerte erreicht wurden. Hinweis: Nicht alle Condition Based Service-Meldungen, die im Fahrzeug auftreten, werden auch &uuml;bertragen. </td><td class="col3">vehicle.​status.​conditionBasedServicesCount</td><td class="col4">uint16</td><td class="col5">0 bis 60
+Meldungen</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Anzahl freie Pl&auml;tze POI im Navigationssystem</td><td class="col2-emea">Der Wert gibt an, wie viele POIs (Points of Interest) im Navigationssystem noch frei sind. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​pointsOfInterests.​available</td><td class="col4">uint16</td><td class="col5">25</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Anzeigeeinheit der Instrumentenanzeige im Fahrzeug</td><td class="col2-emea">Der Wert gibt die Einheit (Kilometer oder Meilen) der gemessenen Distanzwerte in der Instrumentenanzeige des Fahrzeugs an. </td><td class="col3">vehicle.​cabin.​infotainment.​displayUnit.​distance</td><td class="col4">string</td><td class="col5">km, miles</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ausrichtung des Fahrzeugs</td><td class="col2-emea">Der Wert gibt die Ausrichtung des Fahrzeugs zum Zeitpunkt der Datenerfassung in Grad an. Betr&auml;gt der Wert 180, zeigte das Fahrzeug genau nach S&uuml;den. Betr&auml;gt der Wert 0 zeigte das Fahrzeug genau nach Norden. Demnach reichen die Werte von 0 bis 359. Die ermittelte Ausrichtung des Fahrzeugs kann aufgrund der Ungenauigkeit der GPS Ortung von der tats&auml;chlichen Ausrichtung abweichen. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​currentLocation.​heading</td><td class="col4">double</td><td class="col5">0 &deg; bis 359 &deg;</td><td class="col6-emea">degrees</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriespannung</td><td class="col2-emea">Der Wert gibt die zum Zeitpunkt der Datenerfassung aktuelle Batteriespannung im Bordnetz an. 
+Der Wert wird jeweils in Volt angegeben, beispielsweise 14,4 V. </td><td class="col3">vehicle.​electricalSystem.​battery.​voltage</td><td class="col4">float</td><td class="col5">5 V bis 20 V</td><td class="col6-emea">V</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bevorzugter Service Partner</td><td class="col2-emea">Gibt an, welchem Service Partner das Fahrzeug aktuell zugeordnet ist. </td><td class="col3">vehicle.​sevice.​preferredSevicePartner</td><td class="col4">-</td><td class="col5">string</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bewegungszustand des Fahrzeugs</td><td class="col2-emea">Der Wert gibt an, ob sich das Fahrzeug zum Zeitpunkt der Datenerfassung in Bewegung befand. </td><td class="col3">vehicle.​isMoving</td><td class="col4">boolean</td><td class="col5">ASN_isFalse, ASN_isTrue, ASN_isUnknown</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Datum der n&auml;chsten Inspektion</td><td class="col2-emea">Der Wert gibt an, wann die n&auml;chste Inspektion f&auml;llig ist. 
+Er wird jeweils als Datum dargestellt, beispielsweise 30.09.2018 23:00 UTC.</td><td class="col3">vehicle.​status.​serviceTime.​inspectionDateLegal</td><td class="col4">string</td><td class="col5">dd.mm.yyyy hh:mm UTC</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Datum und Uhrzeit im Fahrzeug</td><td class="col2-emea">Der Wert gibt die Uhrzeit an, die zum Zeitpunkt der Datenerfassung im Fahrzeug angezeigt wurden. </td><td class="col3">vehicle.​channel.​ngtp.​timeVehicle</td><td class="col4">string</td><td class="col5">00:00 Uhr bis
+23:59 Uhr</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Diebstahlwarnanlage ist eingeschaltet</td><td class="col2-emea">Die Diebstahlwarnanlage ist aktiv (das Fahrzeug hupt).</td><td class="col3">vehicle.​vehicle.​antiTheftAlarmSystem.​alarm.​isOn</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktheizung Beifahrerseite dritte Sitzreihe</td><td class="col2-emea">DirectStart-Einstellungen der Sitzheizung auf der Beifahrerseite dritte Sitzreihe f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row3.​passengerSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktheizung Beifahrerseite hinten</td><td class="col2-emea">DirectStart-Einstellungen der Sitzheizung auf der Beifahrerseite hinten f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row2.​passengerSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktheizung Beifahrerseite vorn</td><td class="col2-emea">DirectStart-Einstellungen der Sitzheizung auf der Beifahrerseite vorn f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row1.​passengerSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktheizung Fahrerseite dritte Sitzreihe</td><td class="col2-emea">DirectStart-Einstellungen der Sitzheizung auf der Fahrerseite dritte Sitzreihe f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row3.​driverSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktheizung Fahrerseite hinten</td><td class="col2-emea">DirectStart-Einstellungen der Sitzheizung auf der Fahrerseite hinten f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row2.​driverSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktheizung Lenkrad</td><td class="col2-emea">DirectStart-Einstellungen der Lenkradheizung f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​steeringWheel.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktheizung Sitz Fahrerseite vorn</td><td class="col2-emea">DirectStart-Einstellungen der Sitzheizung auf der Fahrerseite vorn f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row1.​driverSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktk&uuml;hlung Beifahrerseite dritte Sitzreihe</td><td class="col2-emea">DirectStart-Einstellungen der Sitzk&uuml;hlung/-bel&uuml;ftung auf der Beifahrerseite dritte Sitzreihe f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row3.​passengerSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktk&uuml;hlung Beifahrerseite hinten</td><td class="col2-emea">DirectStart-Einstellungen der Sitzk&uuml;hlung/-bel&uuml;ftung auf der Beifahrerseite hinten f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row2.​passengerSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktk&uuml;hlung Beifahrerseite vorn</td><td class="col2-emea">DirectStart-Einstellungen der Sitzk&uuml;hlung/-bel&uuml;ftung auf der Beifahrerseite vorn f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row1.​passengerSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktk&uuml;hlung Fahrerseite dritte Sitzreihe</td><td class="col2-emea">DirectStart-Einstellungen der Sitzk&uuml;hlung/-bel&uuml;ftung auf der Fahrerseite dritte Sitzreihe f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row3.​driverSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktk&uuml;hlung Fahrerseite hinten</td><td class="col2-emea">DirectStart-Einstellungen der Sitzk&uuml;hlung/-bel&uuml;ftung auf der Fahrerseite hinten f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row2.​driverSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktk&uuml;hlung Sitz Fahrerseite vorn</td><td class="col2-emea">DirectStart-Einstellungen der Sitzk&uuml;hlung/-bel&uuml;ftung auf der Fahrerseite vorn f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row1.​driverSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Disclaimer f&uuml;r Fernklimatisierung</td><td class="col2-emea">Wahr, wenn die Option Remote Engine Start gesetzt ist, andernfalls falsch.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​isRemoteEngineStartDisclaimer</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Distanz bis zum n&auml;chsten Service</td><td class="col2-emea">Der Wert gibt an, wie viele Kilometer zum Zeitpunkt der Datenerfassung noch zum n&auml;chsten Service verbleiben. 
+Hinweis: Dieser Wert wird aus den einzelnen CBS-Umf&auml;ngen berechnet und nicht bei jeder Daten&uuml;bertragung ermittelt.
+F&uuml;r mehr Details siehe "Condition Based Service".</td><td class="col3">vehicle.​status.​serviceDistance.​next</td><td class="col4">uint16</td><td class="col5">0 km bis 100.000 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Distanz Schwellwert f&uuml;r Service Information</td><td class="col2-emea">Der angegebene statische Wert ist im Fahrzeug hinterlegt und sagt aus, wann der Kunde das erste Mal einen Kilometer bezogenen Hinweis im Fahrzeug erh&auml;lt, dass ein Service in K&uuml;rze f&auml;llig wird. 
+Er wird in Kilometern (beispielsweise 2000) angegeben. </td><td class="col3">vehicle.​status.​serviceDistance.​yellow</td><td class="col4">uint16</td><td class="col5">2000 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Distanz zum Navigationsziel</td><td class="col2-emea">Der Wert gibt die zum Zeitpunkt der Datenerfassung gemessene Distanz zum aktiven Navigationsziel in Kilometern an. 
+Das Wertespektrum reicht von 0 bis 100000. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​destinationSet.​distance</td><td class="col4">uint16</td><td class="col5">0 km bis 100.000 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Entfrosten hinten aktiv</td><td class="col2-emea">Aktueller Status der Heckscheibenheizung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​status.​rearDefrostActive</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Entriegelung der Heckscheibe</td><td class="col2-emea">Der Wert gibt an, ob die Heckscheibe entriegelt (TRUE) oder geschlossen (FALSE) ist. </td><td class="col3">vehicle.​body.​trunk.​window.​isOpen</td><td class="col4">boolean</td><td class="col5">CLOSED, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Erlaubnis zur Nutzung des Motors zur Vorkonditionierung.</td><td class="col2-emea">Dieser Wert zeigt an, ob eine Motorennutzung zur Vorkonditionierung der Standklimatisierung zum Zeitpunkt der Datenerfassung genutzt werden darf. Dies wird vom Kunden festgelegt. </td><td class="col3">vehicle.​vehicle.​preConditioning.​isRemoteEngineStartAllowed</td><td class="col4">boolean</td><td class="col5">true, false, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Fehlerspeicher</td><td class="col2-emea">Der Fehlerspeicher gibt Auskunft &uuml;ber potenzielle St&ouml;rungen oder technische Defekte im Fahrzeug. Diese Informationen sind f&uuml;r Werkst&auml;tten gedacht. Kundenrelevante St&ouml;rungen, die dem Fahrer im Fahrzeug angezeigt werden, sind unter dem CarData Element &bdquo;Check Control Meldungen&ldquo; zu finden. Details hierzu sind in der Betriebsanleitung des Fahrzeugs dokumentiert.</td><td class="col3">vehicle.​electronicControlUnit.​diagnosticTroubleCodes.​raw</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Fortschritt der Vorklimatisierung</td><td class="col2-emea">Fortschritt der aktuell aktiven Vorklimatisierung in Prozent.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​status.​progress</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gesamtstatus Schiebedach</td><td class="col2-emea">Gesamtstatus des Schiebedachs des Fahrzeugs.</td><td class="col3">vehicle.​cabin.​sunroof.​overallStatus</td><td class="col4">string</td><td class="col5">INVALID, OPEN, OPEN_TILT, INTERMEDIATE_TILT, CLOSED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gesundheitszustand der Batterie</td><td class="col2-emea">Dieser Wert gibt den Gesundheitszustand der Batterie an.
+
+200 = Gesundheitszustand der Batterie ausreichend
+140 = Eingeschr&auml;nkt - Batterietausch empfohlen
+110 = Unzureichend - Batterietausch erforderlich
+80 = Degradiert - Batterietausch dringend erforderlich</td><td class="col3">vehicle.​electricalSystem.​battery.​serviceDemand.​replace</td><td class="col4">-</td><td class="col5">200
+140
+110
+80</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Grund f&uuml;r Nichtausf&uuml;hrung der Vorkonditionierung der Standklimatisierung</td><td class="col2-emea">Der Wert gibt den Grund f&uuml;r Nichtausf&uuml;hrung der Standklimatisierung zum Zeitpunkt der Datenerfassung an.&nbsp;</td><td class="col3">vehicle.​vehicle.​preConditioning.​error</td><td class="col4">string</td><td class="col5">LowFuel    
+LowBattery    
+QuotaExceeded    
+HeaterFailure    
+ComponentFailure    
+OpenOrUnlocked   
+OK   
+INVALID    </td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Kilometerstand</td><td class="col2-emea">Der Wert gibt den zum Zeitpunkt der Datenerfassung aktuellen Kilometerstand an. </td><td class="col3">vehicle.​vehicle.​travelledDistance</td><td class="col4">float</td><td class="col5">0 km bis 500000 km</td><td class="col6-emea">null</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Kippstatus des Schiebedachs</td><td class="col2-emea">Der Wert gibt an, ob das Schiebedach (sofern vorhanden) zum Zeitpunkt der Datenerfassung gekippt (OPEN), halb gekippt (INTERMEDIATE) oder geschlossen (CLOSED) war. </td><td class="col3">vehicle.​cabin.​sunroof.​tiltStatus</td><td class="col4">string</td><td class="col5">CLOSED, INTERMEDIATE, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Komfortzustand der Vorklimatisierung</td><td class="col2-emea">Status des Komfortzustands der Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​status.​comfortState</td><td class="col4">string</td><td class="col5">NOT_ACTIVE, COMFORT_HEATING, COMFORT_COOLING, COMFORT_VENTILATION, DEFROST, COMFORT_UNDEFINED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Kopplung Mobiltelefon</td><td class="col2-emea">Der Wert gibt an, ob zum Zeitpunkt der Datenerfassung ein Mobiltelefon mit dem Fahrzeug gekoppelt war oder der Kopplungsstatus unbekannt ist. </td><td class="col3">vehicle.​cabin.​infotainment.​isMobilePhoneConnected</td><td class="col4">boolean</td><td class="col5">ASN_isFalse, ASN_isTrue, ASN_isUnknown</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">K&uuml;hlmitteltemperatur</td><td class="col2-emea">Der Wert gibt die zum Zeitpunkt der Datenerfassung aktuelle K&uuml;hlmitteltemperatur in Grad Celsius an. </td><td class="col3">vehicle.​drivetrain.​internalCombustionEngine.​engine.​ect</td><td class="col4">int16</td><td class="col5">0 &deg;C bis 150 &deg;C</td><td class="col6-emea">Celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ladeprofil</td><td class="col2-emea">Das Ladeprofil informiert dar&uuml;ber, welcher Lademodus im Fahrzeug zuletzt ausgew&auml;hlt war. Gegebenenfalls wird dieses CarData-Element auch f&uuml;r Fahrzeuge ohne elektrischen Antrieb verwendet, um einzelne Attribute, wie z.B. die Einstellung der Vorklimatisierung, anzuzeigen.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​mode</td><td class="col4">string</td><td class="col5">kWh</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Lenkradheizung</td><td class="col2-emea">Istwert der Lenkradheizung in Prozent.</td><td class="col3">vehicle.​cabin.​steeringWheel.​heating</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Linke Kofferraumt&uuml;r ge&ouml;ffnet</td><td class="col2-emea">Zustand der linken Kofferraumt&uuml;r.</td><td class="col3">vehicle.​body.​trunk.​left.​door.​isOpen</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Maximale Anzahl Speicherung POIs im Navigationsger&auml;t</td><td class="col2-emea">Der Wert gibt an, wie viele POIs (Points of Interest) maximal im Navigationsger&auml;t gespeichert werden k&ouml;nnen. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​pointsOfInterests.​max</td><td class="col4">uint16</td><td class="col5">25</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Navigationsziel &ndash; geographische Breite</td><td class="col2-emea">Dieser Wert gibt die Koordinate des aktiven Navigationsziels an - Breitengrad zum Zeitpunkt der Datenerfassung in Milliardstelsekunden.</td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​destinationSet.​latitude</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Navigationsziel &ndash; geographische L&auml;nge</td><td class="col2-emea">Dieser Wert gibt die Koordinate des aktiven Navigationsziels an - L&auml;ngengrad zum Zeitpunkt der Datenerfassung in Milliardstelsekunden. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​destinationSet.​longitude</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Niedervoltbatterie</td><td class="col2-emea">Der Wert gibt den zum Zeitpunkt der Datenerfassung gemessenen Ladezustand der Niedervoltbatterie in Prozent an.</td><td class="col3">vehicle.​electricalSystem.​battery.​stateOfCharge</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">%</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Niedervoltbatterie Plausibilit&auml;t</td><td class="col2-emea">Dieser Wert gibt an, ob der gemessene Ladezustand der Niedervoltbatterie in Prozent plausibel ist.</td><td class="col3">vehicle.​electricalSystem.​battery.​stateOfChargePlausibility</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Notwendigkeit einer Batterienachladung</td><td class="col2-emea">Der Wert gibt an, ob eine Batterienachladung erforderlich ist.
+1 = Nachladung notwendig
+0 = Nachladung nicht notwendig</td><td class="col3">vehicle.​electricalSystem.​battery.​serviceDemand.​recharge</td><td class="col4">-</td><td class="col5">1
+0</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Nutzung des Motors zur Vorkonditionierung</td><td class="col2-emea">Dieser Wert gibt an, ob zum Zeitpunkt der Datenerfassung der Motor w&auml;hrend der Standklimatisierung aktiv war. Der Wert "Inactive" kann &uuml;bermittelt werden, wenn die Vorkonditionierung nicht gebucht ist oder auch &uuml;bermittelt werden, wenn die Vorkonditionierung zum Zeitpunkt der Datenerfassung nicht aktiv ist.</td><td class="col3">vehicle.​vehicle.​preConditioning.​isRemoteEngineRunning</td><td class="col4">boolean</td><td class="col5">true, false  </td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Obere Kofferraumt&uuml;r ge&ouml;ffnet</td><td class="col2-emea">Zustand der oberen Kofferraumt&uuml;r.</td><td class="col3">vehicle.​body.​trunk.​upper.​door.​isOpen</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Position des Fahrzeugs &ndash; geographische Breite</td><td class="col2-emea">Der Wert gibt die geographische Breite der Position an, auf der sich das Fahrzeug zum Zeitpunkt der Datenerfassung befunden hat. 
+Die Breite erreicht Werte in Grad von 0 (am &Auml;quator) bis maximal +90 auf der n&ouml;rdlichen respektive 
+-90 auf der s&uuml;dlichen Halbkugel. Die &Uuml;bertragung der GPS Position erfolgt unabh&auml;ngig von der Aktivierung oder Deaktivierung der GPS Ortung in ihrem Fahrzeug &uuml;ber das Einstellungsmen&uuml;. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​currentLocation.​latitude</td><td class="col4">double</td><td class="col5">-90.0000 bis +90.0000</td><td class="col6-emea">degrees</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Position des Fahrzeugs &ndash; geographische L&auml;nge</td><td class="col2-emea">Der Wert gibt die geographische L&auml;nge der Position an, auf der sich das Fahrzeug zum Zeitpunkt der Datenerfassung befunden hat. 
+Die L&auml;nge erreicht Werte in Grad von 0 (am Nullmeridian in Greenwich/Gro&szlig;britannien) bis maximal +180 &ouml;stlich respektive 
+-180 westlich des Nullmeridians. Die &Uuml;bertragung der GPS Position erfolgt unabh&auml;ngig von der Aktivierung oder Deaktivierung der GPS Ortung in ihrem Fahrzeug &uuml;ber das Einstellungsmen&uuml;. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​currentLocation.​longitude</td><td class="col4">double</td><td class="col5">-180.0000 bis +180.0000</td><td class="col6-emea">degrees</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Position des Fahrzeugs &uuml;ber Normalh&ouml;hennull</td><td class="col2-emea">Der Wert gibt die H&ouml;he in Metern &uuml;ber dem Meeresspiegel an, auf der sich das Fahrzeug zum Zeitpunkt der Datenerfassung befunden hat. 
+Das Wertespektrum reicht von -100 bis 6000. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​currentLocation.​altitude</td><td class="col4">double</td><td class="col5">-100 m bis 6000 m oder -NA-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Position des Sonnenschirms</td><td class="col2-emea">Position des Elements. 0 = Startposition, 100 = Endposition.</td><td class="col3">vehicle.​cabin.​sunroof.​shade.​position</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Rechte Kofferraumt&uuml;r ge&ouml;ffnet</td><td class="col2-emea">Zustand der rechten Kofferraumt&uuml;r.</td><td class="col3">vehicle.​body.​trunk.​right.​door.​isOpen</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Relative Position des Schiebedachs</td><td class="col2-emea">&Ouml;ffnungszustand des Schiebedachs in Prozent. -100 bedeutet vollst&auml;ndig gekippte Position. 0&nbsp;% entspricht vollst&auml;ndig geschlossen, 100&nbsp;% entspricht vollst&auml;ndig ge&ouml;ffnet.</td><td class="col3">vehicle.​cabin.​sunroof.​relativePosition</td><td class="col4">int8</td><td class="col5">-100% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Restreichweite</td><td class="col2-emea">Der Wert gibt die zum Zeitpunkt der Datenerfassung gemessene Restreichweite des Tankinhalts in Kilometer an. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​remainingRange</td><td class="col4">uint16</td><td class="col5">0 km bis 100.000 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Restzeit der Vorklimatisierung</td><td class="col2-emea">Verbleibende Laufzeit der Vorklimatisierung in Sekunden.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​status.​remainingRunningTime</td><td class="col4">uint32</td><td class="col5">0 - 10000000</td><td class="col6-emea">s</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Sch&auml;rfungsstatus der Diebstahlwarnanlage</td><td class="col2-emea">Diebstahlwarnanlage. Sch&auml;rfungsstatus.</td><td class="col3">vehicle.​vehicle.​antiTheftAlarmSystem.​alarm.​armStatus</td><td class="col4">string</td><td class="col5">unarmed, doorsOnly, doorsTiltCabin</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Sitzheizung Beifahrerseite dritte Sitzreihe</td><td class="col2-emea">Sitzheizung auf der Beifahrerseite in der dritten Sitzreihe. 0 = aus. +100 = max. Heizung.</td><td class="col3">vehicle.​cabin.​seat.​row3.​passengerSide.​heating</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Sitzheizung Beifahrerseite hinten</td><td class="col2-emea">Sitzheizung auf der Beifahrerseite hinten. 0 = aus. +100 = max. Heizung.</td><td class="col3">vehicle.​cabin.​seat.​row2.​passengerSide.​heating</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Sitzheizung Beifahrerseite vorn</td><td class="col2-emea">Sitzheizung auf der Beifahrerseite vorn. 0 = aus. +100 = max. Heizung.</td><td class="col3">vehicle.​cabin.​seat.​row1.​passengerSide.​heating</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Sitzheizung Fahrerseite dritte Sitzreihe</td><td class="col2-emea">Sitzheizung auf der Fahrerseite in der dritten Sitzreihe. 0 = aus. +100 = max. Heizung.</td><td class="col3">vehicle.​cabin.​seat.​row3.​driverSide.​heating</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Sitzheizung Fahrerseite hinten</td><td class="col2-emea">Sitzheizung auf der Fahrerseite hinten. 0 = aus. +100 = max. Heizung.</td><td class="col3">vehicle.​cabin.​seat.​row2.​driverSide.​heating</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Sitzheizung Fahrerseite vorn</td><td class="col2-emea">Sitzheizung auf der Fahrerseite vorn. 0 = aus. +100 = max. Heizung.</td><td class="col3">vehicle.​cabin.​seat.​row1.​driverSide.​heating</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Sitzk&uuml;hlung Beifahrerseite dritte Sitzreihe</td><td class="col2-emea">Sitzk&uuml;hlung auf der Beifahrerseite in der dritten Sitzreihe. 0 = aus. +100 = max. K&uuml;hlung.</td><td class="col3">vehicle.​cabin.​seat.​row3.​passengerSide.​cooling</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Sitzk&uuml;hlung Beifahrerseite hinten</td><td class="col2-emea">Sitzk&uuml;hlung auf der Beifahrerseite hinten. 0 = aus. +100 = max. K&uuml;hlung.</td><td class="col3">vehicle.​cabin.​seat.​row2.​passengerSide.​cooling</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Sitzk&uuml;hlung Beifahrerseite vorn</td><td class="col2-emea">Sitzk&uuml;hlung auf der Beifahrerseite vorn. 0 = aus. +100 = max. K&uuml;hlung.</td><td class="col3">vehicle.​cabin.​seat.​row1.​passengerSide.​cooling</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Sitzk&uuml;hlung Fahrerseite dritte Sitzreihe</td><td class="col2-emea">Sitzk&uuml;hlung auf der Fahrerseite in der dritten Sitzreihe. 0 = aus. +100 = max. K&uuml;hlung.</td><td class="col3">vehicle.​cabin.​seat.​row3.​driverSide.​cooling</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Sitzk&uuml;hlung Fahrerseite hinten</td><td class="col2-emea">Sitzk&uuml;hlung auf der Fahrerseite hinten. 0 = aus. +100 = max. K&uuml;hlung.</td><td class="col3">vehicle.​cabin.​seat.​row2.​driverSide.​cooling</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Sitzk&uuml;hlung Fahrerseite vorn</td><td class="col2-emea">Sitzk&uuml;hlung auf der Fahrerseite vorn. 0 = aus. +100 = max. K&uuml;hlung.</td><td class="col3">vehicle.​cabin.​seat.​row1.​driverSide.​cooling</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Smart Maintenance: Digitale Reifendiagnose</td><td class="col2-emea">Der Wert enth&auml;lt Informationen &uuml;ber den aktuellen und zuvor montierten Reifensatz des Fahrzeugs. Diese Daten werden durch das Fahrzeug ermittelt und nach festgelegten Zyklen automatisch gesendet.&nbsp;</td><td class="col3">vehicle.​chassis.​axle.​wheel.​tire.​diagnosis</td><td class="col4">-</td><td class="col5">Details sind in der entsprechenden Swagger-Dokumentation: ../smartMaintenanceTyreDiagnosis</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Smart Maintenance: Livediagnose</td><td class="col2-emea">Der Wert enth&auml;lt die Information, welche Servicebedarfe f&uuml;r das Fahrzeug auf Basis der Livediagnose ermittelt wurden. Diese setzt sich aus dem Titel, der Kategorie und dem aktuellen Status des Servicebedarfs zusammen. Das Fahrzeug sammelt f&uuml;r die Servicebedarfe Fehlerdaten und sendet diese nach festgelegten Zyklen automatisch.</td><td class="col3">vehicle.​serviceDemand.​defect.​id</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Solltemperatur</td><td class="col2-emea">Standardeinstellungen der Solltemperatur f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​targetTemperature</td><td class="col4">float</td><td class="col5">0&nbsp;&deg;C bis 50&nbsp;&deg;C</td><td class="col6-emea">celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Solltemp. f&uuml;r DirectStart</td><td class="col2-emea">DirectStart-Einstellungen der Solltemperatur f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​targetTemperature</td><td class="col4">float</td><td class="col5">0&nbsp;&deg;C bis 50&nbsp;&deg;C</td><td class="col6-emea">celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Spiegelheizung aktiv</td><td class="col2-emea">Aktueller Status der Spiegelheizung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​status.​isExteriorMirrorHeatingActive</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard f&uuml;r Lenkradheizung</td><td class="col2-emea">Standardeinstellungen der Lenkradheizung f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​steeringWheel.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard f&uuml;r Sitzheizung Beifahrerseite dritte Sitzreihe</td><td class="col2-emea">Standardeinstellungen der Sitzheizung auf der Beifahrerseite dritte Sitzreihe f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row3.​passengerSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard f&uuml;r Sitzheizung Beifahrerseite hinten</td><td class="col2-emea">Standardeinstellungen der Sitzheizung auf der Beifahrerseite hinten f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row2.​passengerSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard f&uuml;r Sitzheizung Beifahrerseite vorn</td><td class="col2-emea">Standardeinstellungen der Sitzheizung auf der Beifahrerseite vorn f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row1.​passengerSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard f&uuml;r Sitzheizung Fahrerseite dritte Sitzreihe</td><td class="col2-emea">Standardeinstellungen der Sitzheizung auf der Fahrerseite dritte Sitzreihe f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row3.​driverSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard f&uuml;r Sitzheizung Fahrerseite hinten</td><td class="col2-emea">Standardeinstellungen der Sitzheizung auf der Fahrerseite hinten f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row2.​driverSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard f&uuml;r Sitzheizung Fahrerseite vorn</td><td class="col2-emea">Standardeinstellungen der Sitzheizung auf der Fahrerseite vorn f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row1.​driverSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard f&uuml;r Sitzk&uuml;hlung Beifahrerseite dritte Sitzreihe</td><td class="col2-emea">Standardeinstellungen der Sitzk&uuml;hlung/-bel&uuml;ftung auf der Beifahrerseite dritte Sitzreihe f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row3.​passengerSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard f&uuml;r Sitzk&uuml;hlung Beifahrerseite hinten</td><td class="col2-emea">Standardeinstellungen der Sitzk&uuml;hlung/-bel&uuml;ftung auf der Beifahrerseite hinten f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row2.​passengerSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard f&uuml;r Sitzk&uuml;hlung Beifahrerseite vorn</td><td class="col2-emea">Standardeinstellungen der Sitzk&uuml;hlung/-bel&uuml;ftung auf der Beifahrerseite vorn f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row1.​passengerSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard f&uuml;r Sitzk&uuml;hlung Fahrerseite dritte Sitzreihe</td><td class="col2-emea">Standardeinstellungen der Sitzk&uuml;hlung/-bel&uuml;ftung auf der Fahrerseite dritte Sitzreihe f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row3.​driverSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard f&uuml;r Sitzk&uuml;hlung Fahrerseite hinten</td><td class="col2-emea">Standardeinstellungen der Sitzk&uuml;hlung/-bel&uuml;ftung auf der Fahrerseite hinten f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row2.​driverSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard f&uuml;r Sitzk&uuml;hlung Fahrerseite vorn</td><td class="col2-emea">Standardeinstellungen der Sitzk&uuml;hlung/-bel&uuml;ftung auf der Fahrerseite vorn f&uuml;r die Vorklimatisierung.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row1.​driverSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status der ge&ouml;ffneten Kofferraumt&uuml;r</td><td class="col2-emea">Zustand der Kofferraumt&uuml;r.</td><td class="col3">vehicle.​body.​trunk.​door.​isOpen</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status der HVAC-Luftreinigung</td><td class="col2-emea">Aktueller Status der Luftreinigung.</td><td class="col3">vehicle.​cabin.​hvac.​statusAirPurification</td><td class="col4">string</td><td class="col5">UNFILTERED, PURIFYING_ONGOING, PURIFIED, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status der Motorhaube</td><td class="col2-emea">Der Wert gibt an, ob die Motorhaube zum Zeitpunkt der Datenerfassung geschlossen (CLOSED) oder ge&ouml;ffnet (OPEN) war. </td><td class="col3">vehicle.​body.​hood.​isOpen</td><td class="col4">boolean</td><td class="col5">CLOSED, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status der T&uuml;ren</td><td class="col2-emea">Gibt an, ob die T&uuml;ren zum Zeitpunkt der Datenerfassung verschlossen (LOCKED) oder unverschlossen (UNLOCKED) waren. 
+Weitere m&ouml;glichen Werte lauten: 
+SELECTIVELOCKED = Fahrzeug bis auf die linke vordere T&uuml;r verriegelt (ergibt sich bei der ersten Ausf&uuml;hrung eines Remote Services Door Unlock) 
+SECURED = Fahrzeug ist gesichert = alle T&uuml;ren verriegelt und Alarmanlage gesch&auml;rft</td><td class="col3">vehicle.​cabin.​door.​lock.​status</td><td class="col4">-</td><td class="col5">SECURED, UNLOCKED, SELECTIVE-LOCKED, LOCKED, INVALID, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status der T&uuml;r hinten links</td><td class="col2-emea">Der Wert gibt an, ob die T&uuml;r hinten links zum Zeitpunkt der Datenerfassung geschlossen (CLOSED) oder ge&ouml;ffnet (OPEN) war. </td><td class="col3">vehicle.​cabin.​door.​row2.​driver.​isOpen</td><td class="col4">boolean</td><td class="col5">OPEN, CLOSED, INVALID, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status der T&uuml;r hinten rechts</td><td class="col2-emea">Der Wert gibt an, ob die T&uuml;r hinten rechts zum Zeitpunkt der Datenerfassung geschlossen (CLOSED) oder ge&ouml;ffnet (OPEN) war. </td><td class="col3">vehicle.​cabin.​door.​row2.​passenger.​isOpen</td><td class="col4">boolean</td><td class="col5">OPEN, CLOSED, INVALID, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status der T&uuml;r vorn links</td><td class="col2-emea">Der Wert gibt an, ob die linke T&uuml;r zum Zeitpunkt der Datenerfassung geschlossen (CLOSED) oder ge&ouml;ffnet (OPEN) war. </td><td class="col3">vehicle.​cabin.​door.​row1.​driver.​isOpen</td><td class="col4">boolean</td><td class="col5">OPEN, CLOSED, INVALID, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status der T&uuml;r vorn rechts</td><td class="col2-emea">Der Wert gibt an, ob die rechte T&uuml;r zum Zeitpunkt der Datenerfassung geschlossen (CLOSED) oder ge&ouml;ffnet (OPEN) war. </td><td class="col3">vehicle.​cabin.​door.​row1.​passenger.​isOpen</td><td class="col4">boolean</td><td class="col5">OPEN, CLOSED, INVALID, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status der Verriegelung des Kofferraums</td><td class="col2-emea">Gibt an, ob der Kofferraum verriegelt ist oder nicht.</td><td class="col3">vehicle.​body.​trunk.​isLocked</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status des Cabriodachs</td><td class="col2-emea">Zustand des einziehbaren Cabriodachs. Bei BMW Mini-Fahrzeugen besteht zus&auml;tzlich die M&ouml;glichkeit, nur das Faltdach zu &ouml;ffnen. Dieses Signal stellt den Zustand des Mini-Faltdachs dar. Es sollte zusammen mit dem Status des Cabriodachs ausgelesen werden, siehe Vehicle.Cabin.Convertible.RoofStatus.</td><td class="col3">vehicle.​cabin.​convertible.​roofRetractableStatus</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status des Cabriodachs</td><td class="col2-emea">Gibt den zum Zeitpunkt der Datenerfassung aktuellen Status des Cabriodachs an, also ob es beispielsweise geschlossen (CLOSED), ge&ouml;ffnet (OPEN) oder &ndash; im Notfall &ndash; verriegelt ist (EMERGENCYLOCKED). 
+Folgende weitere Statuswerte sind m&ouml;glich: 
+CLOSEDSECURED = Cabriodach geschlossen, Fahrzeug gesichert 
+OPENSECURED = Cabriodach offen, Fahrzeug gesichert 
+HARDTOPMOUNTED = Hardtop montiert und geschlossen (abnehmbares Hardtop) 
+INTERMEDIATEPOSITION = Cabrioverdeck in Zwischenstellung 
+LOADINGPOSITION = Verdeck befindet sich in einer Position, die das Beladen des Kofferraums erleichtert 
+LOADINGPOSITIONIMMEDIATE = Verdeck befindet sich in einer Position, die das Beladen des Kofferraums erleichtert</td><td class="col3">vehicle.​cabin.​convertible.​roofStatus</td><td class="col4">string</td><td class="col5">CLOSEDSECURED, OPENSECURED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status des Fensters hinten links</td><td class="col2-emea">Der Wert gibt an, ob das Fenster hinten links zum Zeitpunkt der Datenerfassung ge&ouml;ffnet (OPEN), halb ge&ouml;ffnet (INTERMEDIATE) oder geschlossen (CLOSED) war. </td><td class="col3">vehicle.​cabin.​window.​row2.​driver.​status</td><td class="col4">string</td><td class="col5">CLOSED, INTERMEDIATE, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status des Fensters hinten rechts</td><td class="col2-emea">Der Wert gibt an, ob das Fenster hinten rechts zum Zeitpunkt der Datenerfassung ge&ouml;ffnet (OPEN), halb ge&ouml;ffnet (INTERMEDIATE) oder geschlossen (CLOSED) war. </td><td class="col3">vehicle.​cabin.​window.​row2.​passenger.​status</td><td class="col4">string</td><td class="col5">CLOSED, INTERMEDIATE, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status des Fensters vorn links</td><td class="col2-emea">Der Wert gibt an, ob das Fenster der linken T&uuml;r zum Zeitpunkt der Datenerfassung ge&ouml;ffnet (OPEN), halb ge&ouml;ffnet (INTERMEDIATE) oder geschlossen (CLOSED) war. </td><td class="col3">vehicle.​cabin.​window.​row1.​driver.​status</td><td class="col4">string</td><td class="col5">CLOSED, INTERMEDIATE, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status des Fensters vorn rechts</td><td class="col2-emea">Der Wert gibt an, ob das Fenster der rechten T&uuml;r zum Zeitpunkt der Datenerfassung ge&ouml;ffnet (OPEN), halb ge&ouml;ffnet (INTERMEDIATE) oder geschlossen (CLOSED) war. </td><td class="col3">vehicle.​cabin.​window.​row1.​passenger.​status</td><td class="col4">string</td><td class="col5">CLOSED, INTERMEDIATE, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status des Kofferraum Deckel</td><td class="col2-emea">Der Wert gibt an, ob der Kofferraum Deckel zum Zeitpunkt der Datenerfassung ge&ouml;ffnet (OPEN), halb ge&ouml;ffnet (INTERMEDIATE) oder geschlossen (CLOSED) war. </td><td class="col3">vehicle.​body.​trunk.​isOpen</td><td class="col4">boolean</td><td class="col5">CLOSED, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status des Schiebedachs</td><td class="col2-emea">Der Wert gibt an, ob das Schiebedach (sofern vorhanden) zum Zeitpunkt der Datenerfassung ge&ouml;ffnet (OPEN), halb ge&ouml;ffnet (INTERMEDIATE) oder geschlossen (CLOSED) war. </td><td class="col3">vehicle.​cabin.​sunroof.​status</td><td class="col4">string</td><td class="col5">CLOSED, INTERMEDIATE, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Statusinformation &uuml;ber die letzte &Uuml;bertragung von OBFCM*-Werten&nbsp;</td><td class="col2-emea">Dieser Wert gibt die Statusinformation &uuml;ber die letzte &Uuml;bertragung von OBFCM*-Werten an, die in einer Werkstatt durchgef&uuml;hrt wurde (d.h. kabelgebunden). (OK f&uuml;r eine g&uuml;ltige &Uuml;bertragung, bei der die OBFCM-Werte aktualisiert wurden, ECU_COMMUNICATION_ERROR f&uuml;r Fehler beim Sammeln von Daten von den Steuerger&auml;ten, VEHICLE_MANIPULATION_DETECTED, wenn eine Manipulation des Fahrzeugs festgestellt wurde, und MANUFACTURER_EXCLUDED, wenn der Fahrzeughersteller von der OBFCM*-Sammlung ausgeschlossen ist (z.B. Alpina, Toyota Supra).</td><td class="col3">vehicle.​channel.​ista.​obfcm.​lastTransmissionStatus</td><td class="col4">string</td><td class="col5">OK, ECU_COMMUNICATION_ERROR, VEHICLE_MANIPULATION_DETECTED, MANUFACTURER_EXCLUDED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stellung der Beifahrert&uuml;r hinten</td><td class="col2-emea">&Ouml;ffnungsstellung der T&uuml;r hinten auf der Beifahrerseite in Prozent. 0&nbsp;% entspricht vollst&auml;ndig geschlossen, 100&nbsp;% entspricht vollst&auml;ndig ge&ouml;ffnet.</td><td class="col3">vehicle.​cabin.​door.​row2.​passenger.​position</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stellung der Beifahrert&uuml;r vorn</td><td class="col2-emea">&Ouml;ffnungsstellung der T&uuml;r vorn auf der Beifahrerseite in Prozent. 0&nbsp;% entspricht vollst&auml;ndig geschlossen, 100&nbsp;% entspricht vollst&auml;ndig ge&ouml;ffnet.</td><td class="col3">vehicle.​cabin.​door.​row1.​passenger.​position</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stellung der Fahrert&uuml;r hinten</td><td class="col2-emea">&Ouml;ffnungsstellung der T&uuml;r hinten auf der Fahrerseite in Prozent. 0&nbsp;% entspricht vollst&auml;ndig geschlossen, 100&nbsp;% entspricht vollst&auml;ndig ge&ouml;ffnet.</td><td class="col3">vehicle.​cabin.​door.​row2.​driver.​position</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stellung der Fahrert&uuml;r vorn</td><td class="col2-emea">&Ouml;ffnungsstellung der T&uuml;r vorn auf der Fahrerseite in Prozent. 0&nbsp;% entspricht vollst&auml;ndig geschlossen, 100&nbsp;% entspricht vollst&auml;ndig ge&ouml;ffnet.</td><td class="col3">vehicle.​cabin.​door.​row1.​driver.​position</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tankf&uuml;llstand in %</td><td class="col2-emea">Der Wert gibt den Tankinhalt in Prozent zum Zeitpunkt der Datenerfassung an. </td><td class="col3">vehicle.​drivetrain.​fuelSystem.​level</td><td class="col4">uint8</td><td class="col5">0-100 %,
+INVALID</td><td class="col6-emea">%</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tankinhalt</td><td class="col2-emea">Der Wert gibt den zum Zeitpunkt der Datenerfassung aktuellen Tankinhalt in Liter an. Abh&auml;ngig von der Position des Tankschwimmers k&ouml;nnen Abweichungen von bis zu 6 Liter zum angegebenen Wert auftreten. </td><td class="col3">vehicle.​drivetrain.​fuelSystem.​remainingFuel</td><td class="col4">float</td><td class="col5">0 l bis 100 l</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tiefschlafmodus (Deep Sleep Mode)</td><td class="col2-emea">Der Wert enth&auml;lt die Information, ob zum Zeitpunkt der Abfrage der Tiefschlafmodus (Deep Sleep Mode) aktiviert ("true") oder deaktiviert ("false") ist.
+Wenn der Kunde den Tiefschlafmodus (Deep Sleep Mode) aktiviert hat, kann er sein Fahrzeug l&auml;ngere Zeit parken, ohne die Batterie laden zu m&uuml;ssen. Die meisten Verbraucher sind in diesem Modus deaktiviert, um Energie zu sparen. Der Kunde kann den Tiefschlafmodus (Deep Sleep Mode) beenden, indem er ihn deaktiviert oder das Fahrzeug startet.</td><td class="col3">vehicle.​vehicle.​deepSleepModeActive</td><td class="col4">boolean</td><td class="col5">true, false</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Untere Kofferraumt&uuml;r ge&ouml;ffnet</td><td class="col2-emea">Zustand der unteren Kofferraumt&uuml;r.</td><td class="col3">vehicle.​body.​trunk.​lower.​door.​isOpen</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Verbleibende Dauer der Vorkonditionierung</td><td class="col2-emea">Der Wert gibt die verbleibende Dauer der Vorkonditionierung der Standklimatisierung zum Zeitpunkt der Datenerfassung in Minuten an. Der Wert kann auch &uuml;bermittelt werden, wenn die Vorkonditionierung nicht gebucht ist oder auch &uuml;bermittelt werden, wenn der Vorkonditionierungsstatus der Standklimatisierung zum Zeitpunkt der Datenerfassung nicht aktiv ("Inactive") ist.</td><td class="col3">vehicle.​vehicle.​preConditioning.​remainingTime</td><td class="col4">uint8</td><td class="col5">0-60 min,&nbsp; INVALID</td><td class="col6-emea">min</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Verf&uuml;gbarkeit von Teleservices</td><td class="col2-emea">Der Wert gibt an, ob Teleservices f&uuml;r dieses Fahrzeug verf&uuml;gbar sind. </td><td class="col3">vehicle.​channel.​teleservice.​status</td><td class="col4">string</td><td class="col5">PENDING, IDLE, SUCCESSFUL, ERROR</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Vorkonditionierungsstatus der Standklimatisierung</td><td class="col2-emea">Aktueller Status der Vorkonditionierung der Standklimatisierung vor Fahrtantritt zum Zeitpunkt der Datenerfassung. Der Wert "Inactive" kann &uuml;bermittelt werden, wenn die Vorkonditionierung nicht gebucht ist oder auch &uuml;bermittelt werden, wenn die Vorkonditionierung zum Zeitpunkt der Datenerfassung nicht aktiv ist.</td><td class="col3">vehicle.​vehicle.​preConditioning.​activity</td><td class="col4">string</td><td class="col5">standby    
+heating    
+cooling    
+ventilation  
+inactive     </td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Zeit bis zum Navigationsziel</td><td class="col2-emea">Der Wert gibt die Ankunftszeit bis zum Erreichen des Navigationsziels an und wird in Stunden und Minuten angegeben. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​destinationSet.​arrivalTime</td><td class="col4">string</td><td class="col5">hh:mm</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Zeitlicher Schwellwert f&uuml;r Haupt- und Abgasuntersuchung</td><td class="col2-emea">Der Schwellwert gibt an, wie viele Monate vor der F&auml;lligkeit des Haupt- und Abgasuntersuchungstermins ein Hinweis an den Serviceberater ausgegeben wird. </td><td class="col3">vehicle.​status.​serviceTime.​hUandAuServiceYellow</td><td class="col4">uint16</td><td class="col5">0 bis 10 Monate</td><td class="col6-emea">months</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Zeitlicher Schwellwert f&uuml;r Service Information</td><td class="col2-emea">Der angegebene statische Wert ist im Fahrzeug hinterlegt und sagt aus, wann der Kunde das erste Mal einen zeitbasierten Hinweis im Fahrzeug erh&auml;lt, dass ein Service in K&uuml;rze f&auml;llig wird. 
+Er wird in Wochen (beispielsweise 4) angegeben. </td><td class="col3">vehicle.​status.​serviceTime.​yellow</td><td class="col4">uint16</td><td class="col5">4 weeks</td><td class="col6-emea">weeks</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Zeitpunkt des letzten manuellen Teleservice-Anrufs</td><td class="col2-emea">Der Kunde l&ouml;st &uuml;ber die Fahrzeug-HMI (iDrive) einen manuellen Serviceanruf aus. Servicerelevante Daten werden vom Fahrzeug an das Teleservices-Backendsystem &uuml;bertragen. Ein neues Teleservice Ticket wird erstellt und dem bevorzugten Service Partner des Kunden zugewiesen. Das Teleservice Ticket wird an das System des Service Partners &uuml;bertragen, um es gem&auml;&szlig; dem jeweiligen Gesch&auml;ftsprozess zu bearbeiten.</td><td class="col3">vehicle.​channel.​teleservice.​lastManualCallTime</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Zeitpunkt des letzten Teleservice Breakdown Calls</td><td class="col2-emea">Automatischer Pannenruf. Der Pannenruf erm&ouml;glicht es dem Kunden, im Falle einer Panne einen Mitarbeiter des BMW Pannenhilfe-Callcenters (RSA CC) zu kontaktieren, der den Fahrer bei der Fehlersuche bzw. beim Abschleppen des Fahrzeugs unterst&uuml;tzt. Der Pannenruf erm&ouml;glicht es dem Kunden, im Falle einer Panne einen Mitarbeiter des BMW Pannenhilfe-Callcenters (RSA CC) zu kontaktieren, der den Fahrer bei der Fehlersuche bzw. beim Abschleppen des Fahrzeugs unterst&uuml;tzt. Der Service kann &uuml;ber das iDrive-Men&uuml; des Fahrzeugs gestartet werden und ist je nach Verf&uuml;gbarkeit und Markteinf&uuml;hrung in 3 Stufen verf&uuml;gbar.</td><td class="col3">vehicle.​channel.​teleservice.​lastBreakdownCallTime</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Zeitzoneneinstellung im Fahrzeug</td><td class="col2-emea">Der Wert gibt die aktuelle Einstellung zur Anzeige der Uhrzeit zum Zeitpunkt der Datenerfassung im Fahrzeug an. Dies kann zum Beispiel Winterzeit, Sommerzeit, UTC oder manual sein. </td><td class="col3">vehicle.​vehicle.​timeSetting</td><td class="col4">string</td><td class="col5">wintertime    
+summertime    
+utc    
+manual    
+INVALID    </td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Zustand der Lichter</td><td class="col2-emea">Der Wert gibt an, ob das Fahrzeuglicht zum Zeitpunkt der Datenerfassung aus oder an oder ob der Status unbekannt ist. </td><td class="col3">vehicle.​body.​lights.​isRunningOn</td><td class="col4">boolean</td><td class="col5">ASN_isFalse, ASN_isTrue, ASN_isUnknown</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Zustand der T&uuml;ren</td><td class="col2-emea">Dieser Wert gibt den Status der T&uuml;ren an, wird jedoch nur sporadisch geschrieben und &uuml;bermittelt. 
+Hinweis:  Es empfiehlt sich, statt diesem Wert nur den einzelnen T&uuml;rstatus zu verwenden. </td><td class="col3">vehicle.​cabin.​door.​status</td><td class="col4">string</td><td class="col5">oldDoorStatus: ASN_secured
+ASN_unlocked
+ASN_unknown
+ASN_selective-Locked
+
+newDoorStatus:
+ASN_locked
+ASN_unlocked
+ASN_selective-Locked
+ASN_unknown
+
+allDoorsLocked:
+ASN_isUnknown
+ASN_isTrue
+ASN_isFalse
+
+trunkLocked:
+ASN_isUnknown
+ASN_isTrue
+ASN_isFalse</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Zustand der Z&uuml;ndung</td><td class="col2-emea">Der Wert gibt an, ob die Z&uuml;ndung zum Zeitpunkt der Datenerfassung aus oder an war oder ob der Status unbekannt ist. </td><td class="col3">vehicle.​drivetrain.​engine.​isActive</td><td class="col4">boolean</td><td class="col5">ASN_isFalse, ASN_isTrue, ASN_isUnknown</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Zustand des Motors (an/aus)</td><td class="col2-emea">Der Wert gibt an, ob der Motor zum Zeitpunkt der Datenerfassung aus oder an war oder ob der Status unbekannt ist. </td><td class="col3">vehicle.​drivetrain.​engine.​isIgnitionOn</td><td class="col4">boolean</td><td class="col5">ASN_isFalse, ASN_isTrue, ASN_isUnknown</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>NUTZUNGSBASIERTE DATEN EINES FAHRZEUGS </h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData Element</th><th class="col2-emea">Beschreibung</th><th class="col3">Technischer Bezeichner</th><th class="col4">Datentyp </th><th class="col5">Typischer Wertebereich</th><th class="col6-emea">Einheit</th><th class="col7">Streamingf&auml;hig</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Check Control Meldungen</td><td class="col2-emea">Der Wert gibt die letzten relevanten Check-Control-Meldungen an, welche im Fahrzeug angezeigt und an BMW &uuml;bertragen wurden. Check-Control &uuml;berwacht Funktionen im Fahrzeug und meldet, wenn in &uuml;berwachten Systemen eine St&ouml;rung vorliegt. Eine Check-Control-Meldung wird als Kombination von Kontroll- oder Warnleuchten und Textmeldungen in der Instrumentenkombination und ggf. im Head-Up Display angezeigt. Hinweis: Nicht alle Check-Control-Meldungen, die im Fahrzeug angezeigt werden, werden an BMW &uuml;bertragen.</td><td class="col3">vehicle.​status.​checkControlMessages</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Condition Based Service</td><td class="col2-emea">Sensoren und spezielle Algorithmen ber&uuml;cksichtigen die Einsatzbedingungen des Fahrzeugs. CBS ermittelt damit den Wartungsbedarf. Das System erm&ouml;glicht somit den Wartungsumfang an das individuelle Nutzungsprofil anzupassen. </td><td class="col3">vehicle.​status.​conditionBasedServices</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Durchschnittliche Strecke pro Tag</td><td class="col2-emea">Condition Based Services. Sch&auml;tzung der t&auml;glich gefahrenen Strecke des Fahrzeugs, stark angepasst f&uuml;r die Nutzung im Kontext der Condition Based Services.</td><td class="col3">vehicle.​status.​conditionBasedServicesAverageDistancePerDay</td><td class="col4">int32</td><td class="col5">None</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Durchschnittliche Strecke pro Woche</td><td class="col2-emea">Gibt den Durchschnittswert der gefahrenen Strecke in Kilometer pro Woche an. </td><td class="col3">vehicle.​vehicle.​averageWeeklyDistanceShortTerm</td><td class="col4">float</td><td class="col5">1 km bis 3000 km </td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Durchschnittliche Strecke pro Woche (Langzeit)</td><td class="col2-emea">Der Wert gibt den Wochendurchschnitt der jeweils in einem Zeitraum von 2 Monaten gefahrenen Strecke in Kilometern an. </td><td class="col3">vehicle.​vehicle.​averageWeeklyDistanceLongTerm</td><td class="col4">float</td><td class="col5">1 km bis 3000 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gesamtkraftstoffverbrauch gem&auml;&szlig; gesetzlicher OBFCM*-Vorgaben&nbsp;</td><td class="col2-emea">Dieser Wert gibt die Menge des verbrauchten Kraftstoffs in Litern an,&nbsp; gemessen &uuml;ber die Referenzstrecke.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​overall.​fuel</td><td class="col4">float</td><td class="col5">0.00 l - 30000.00 l</td><td class="col6-emea">l</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Geschwindigkeitsbereich oben</td><td class="col2-emea">Obere Grenze des Geschwindigkeitsbereichs in km/h. Der Bereich schlie&szlig;t die obere Grenze aus. Aus Datenschutzgr&uuml;nden d&uuml;rfen einige Funktionen die aktuelle Fahrgeschwindigkeit nicht &uuml;bertragen und sollten das SpeedRange-Attribut verwenden.</td><td class="col3">vehicle.​vehicle.​speedRange.​upperBound</td><td class="col4">int16</td><td class="col5">-100 km/h - 500 km/h</td><td class="col6-emea">km/h</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Geschwindigkeitsbereich unten</td><td class="col2-emea">Untere Grenze des Geschwindigkeitsbereichs in km/h. Der Bereich umfasst die untere Grenze. Aus Datenschutzgr&uuml;nden d&uuml;rfen einige Funktionen die aktuelle Fahrgeschwindigkeit nicht &uuml;bertragen und sollten das SpeedRange-Attribut verwenden.</td><td class="col3">vehicle.​vehicle.​speedRange.​lowerBound</td><td class="col4">int16</td><td class="col5">-100 km/h - 500 km/h</td><td class="col6-emea">km/h</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-Gesamtkraftstoffverbrauch bei Ladebetrieb (nur PHEV)</td><td class="col2-emea">Dieser Wert beschreibt den verbrauchten Kraftstoff w&auml;hrend des Ladebetriebs, d.h. PHEV l&auml;dt die Hochvoltbatterie &uuml;ber den Verbrennungsmotor auf.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​inChargeIncreasing.​fuel</td><td class="col4">float</td><td class="col5">0.0 kWh bis 30000.0 kWh</td><td class="col6-emea">l</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-Gesamtkraftstoffverbrauch im Betrieb bei Entladung der Batterie (nur PHEV)</td><td class="col2-emea">Dieser Wert gibt die Menge des Kraftstoffverbrauchs an, wenn sich der Verbrennungsmotor trotz nicht leerer Batterie zuschaltet.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​inChargeDepleting.​fuel</td><td class="col4">float</td><td class="col5">0.00 l - 30000.00 l</td><td class="col6-emea">l</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-Referenzstrecke bei elektrischem Betrieb und aktivem Verbrennungsmotor (nur PHEV)</td><td class="col2-emea">Dieser Wert gibt die gefahrene Strecke bei elektrischem Betrieb und aktivem Verbrennungsmotor an.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​inChargeDepleting.​referenceDistanceEngineOn</td><td class="col4">float</td><td class="col5">0.0 km bis 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-Referenzstrecke bei elektrischem Betrieb und inaktivem Verbrennungsmotor (nur PHEV)</td><td class="col2-emea">Dieser Wert gibt die gefahrene Strecke bei elektrischem Betrieb und inaktivem Verbrennungsmotor an.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​inChargeDepleting.​referenceDistanceEngineOff</td><td class="col4">float</td><td class="col5">0.0 km - 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-Referenzstrecke f&uuml;r die Messung des Kraftstoffverbrauchs</td><td class="col2-emea">Dieser Wert gibt die Referenzstrecke f&uuml;r die Messung des Kraftstoffverbrauchs an.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​overall.​referenceDistance</td><td class="col4">float</td><td class="col5">0.0 km - 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-Referenzstrecke im Ladebetrieb</td><td class="col2-emea">Dieser Wert gibt die gefahrene Strecke im Ladebetrieb an, d. h. PHEV&nbsp;l&auml;dt die Hochvoltbatterie auf.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​inChargeIncreasing.​referenceDistance</td><td class="col4">float</td><td class="col5">100.000 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Zuletzt gesendete Restreichweite</td><td class="col2-emea">Zuletzt vom Fahrzeug gesendete Restreichweite Electric + Kraftstoff. Reichweite von Fahrzeug Kombi (f&uuml;r PHEV- und CE-Fahrzeuge abgefragt). Liefert die E-Reichweite + CE-Reichweite f&uuml;r PHEV. CE-Reichweite f&uuml;r CE-Fahrzeuge. Wahrscheinlich 0 f&uuml;r BEV-Fahrzeuge. Dieser Wert sollte nur f&uuml;r Fahrzeuge mit Verbrennungsmotor verwendet werden. Bei Elektrofahrzeugen sollte Vehicle.Drivetrain.ElectricEngine.KombiRemainingElectricRange angezeigt werden.</td><td class="col3">vehicle.​drivetrain.​lastRemainingRange</td><td class="col4">float</td><td class="col5">0-6500</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Zustimmung zur OBFCM*-Daten&uuml;bertragung an die EU</td><td class="col2-emea">Dieser Wert gibt an, ob der Kunde der &Uuml;bertragung der OBFCM*-Daten an die EU-Kommission zugestimmt hat.</td><td class="col3">vehicle.​privacySettings.​dataCollection.​regulations.​obfcm</td><td class="col4">boolean</td><td class="col5">True   
+False  </td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>DATEN ZU DEN EREIGNISSEN EINES FAHRZEUGS</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData Element</th><th class="col2-emea">Beschreibung</th><th class="col3">Technischer Bezeichner</th><th class="col4">Datentyp </th><th class="col5">Typischer Wertebereich</th><th class="col6-emea">Einheit</th><th class="col7">Streamingf&auml;hig</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Automatischer Teleservice Call</td><td class="col2-emea">Der Wert enth&auml;lt die Information, zu welchem Zeitpunkt ein Automatischer Service Call (ASC) vom Fahrzeug ausgel&ouml;st wurde.</td><td class="col3">vehicle.​channel.​teleservice.​lastAutomaticServiceCallTime</td><td class="col4">string</td><td class="col5">dd.mm.yyyy hh:mm UTC</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Teleservice Report</td><td class="col2-emea">Der Wert enth&auml;lt die Information, zu welchem Zeitpunkt der Teleservice Report Call im Fahrzeug ausgel&ouml;st wurde. Das Fahrzeug sammelt f&uuml;r den Teleservice Report Call Messwerte oder Fehlerdaten und sendet diese nach festgelegten Zyklen automatisch.</td><td class="col3">vehicle.​channel.​teleservice.​lastTeleserviceReportTime</td><td class="col4">string</td><td class="col5">dd.mm.yyyy hh:mm:ss UTC</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>DATEN ZU ELEKTRISCHEN FAHRZEUGEN</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData Element</th><th class="col2-emea">Beschreibung</th><th class="col3">Technischer Bezeichner</th><th class="col4">Datentyp </th><th class="col5">Typischer Wertebereich</th><th class="col6-emea">Einheit</th><th class="col7">Streamingf&auml;hig</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Abfahrtszeit relevant</td><td class="col2-emea">Informationen dar&uuml;ber, ob die bevorstehende Abfahrtszeit f&uuml;r den professionellen Modus (bidirektional/unidirektional) relevant ist und der Sollenergiezustand zu diesem Zeitpunkt erreicht werden muss.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​settings.​biDirectionalCharging.​departureTimeRelevant</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Abweichung von Ladebetriebsart</td><td class="col2-emea">Dieser Parameter enth&auml;lt Informationen &uuml;ber systembedingte Abweichungen von der vom Kunden ausgew&auml;hlten Ladebetriebsart.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​modeDeviation</td><td class="col4">string</td><td class="col5">NO_DEVIATION, DC_DYNAMIC_MALIBU, DC_DYNAMIC_MIN_SOE_PROTECTION, IMMEDIATE_CHARGING_NOT_SUPPORTED_BY_EVSE, IMMEDIATE_CHARGING_WAKE_UP_LIMIT_REACHED, IMMEDIATE_CHARGING, CHARGING_TIMESLOT, CHARGING_IN_TIMESLOT, SMART_CHARGING, DC_DYNAMIC, BIDIRECTIONAL_CHARGING, NO_ACTION, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">AC-Ladespannung</td><td class="col2-emea">Der Wert gibt die Ladespannung des letzten Ladevorgangs in Volt an (nur bei Laden mit Wechselstrom). 
+In der Regel pendelt sich der Wert bei 230 V ein. 
+Es k&ouml;nnen jedoch Ladespannungen von 0 bis 300 auftreten. </td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​acVoltage</td><td class="col4">float</td><td class="col5">0 V bis 300 V oder
+-NA-</td><td class="col6-emea">V</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">AC-Ladestrom</td><td class="col2-emea">Der Wert gibt den maximalen Ladestrom des letzten Ladevorgangs in Ampere (A) an (nur bei Laden mit Wechselstrom). 
+M&ouml;glich sind Werte zwischen 0 und 25. Sowohl Fahrzeug als auch Lades&auml;ule k&ouml;nnten individuell mit einem bestimmten maximalen Ladestrom laden. Der hier angezeigte Wert ist der gr&ouml;&szlig;ere dieser beiden Zahlen. </td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​acAmpere</td><td class="col4">uint8</td><td class="col5">0 A bis 25 A oder
+-NA-</td><td class="col6-emea">A</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">AC-Ladestrombegrenzung und -auswahl</td><td class="col2-emea">Der erste Wert gibt an, ob der Ladestrom, mit dem das Fahrzeug geladen wird, begrenzt wird.&nbsp;Der zweite Wert beschreibt die Art der Begrenzung (reduziert oder minimal)</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​acRestriction.​isChosen</td><td class="col4">boolean</td><td class="col5">NOTCHOSEN, CHOSEN, INVALID; MAXCHARGING, REDUCEDCHARGING, MINCHARGING, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Aktivierungsdauer ECO Modus der letzten Fahrt</td><td class="col2-emea">Gibt an, wie lange der ECO Modus w&auml;hrend der zum Zeitpunkt der Datenerfassung letzten Fahrt aktiviert war. 
+Der Wertebereich geht von 0 bis 100. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​drivetrain.​transmission.​setting.​fractionDriveEcoPro</td><td class="col4">float</td><td class="col5">0 % bis 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Aktivierungsdauer ECO PLUS Modus der letzten Fahrt</td><td class="col2-emea">Der Wert gibt an, wie lange der ECO PLUS Modus w&auml;hrend der zum Zeitpunkt der Datenerfassung letzten Fahrt aktiviert war. 
+Der Wertebereich geht von 0 bis 100. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​drivetrain.​transmission.​setting.​fractionDriveEcoProPlus</td><td class="col4">float</td><td class="col5">0 % bis 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Aktueller vorhergesagter Ladezustand</td><td class="col2-emea">Dieser Wert gibt den aktuellen vorhergesagten Ladezustand in Prozent an.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​level</td><td class="col4">float</td><td class="col5">0% bis 100%</td><td class="col6-emea">%</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Akustische Begrenzung des Ladevorgangs</td><td class="col2-emea">Der Wert gibt an, ob das Laden wegen der L&auml;rmemission begrenzt wird oder nicht.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​acousticLimit</td><td class="col4">string</td><td class="col5">NO_ACTION, AUTOMATIC, UNLIMITED,LIMITED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Anzeige der Abfahrtszeit</td><td class="col2-emea">Der Wert gibt an, ob die Abfahrtszeit im Fahrzeug angezeigt wird.</td><td class="col3">vehicle.​powertrain.​electric.​departureTime.​displayControl</td><td class="col4">string</td><td class="col5">DONT_DISPLAY, DISPLAY_DEPARTURE_TIME, DISPLAY_DEPARTURE_TIME_WITH_V2XSOE, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Anzeige der Ladedauer</td><td class="col2-emea">Der Wert gibt an, ob die Ladedauer im Fahrzeug angezeigt wird.</td><td class="col3">vehicle.​powertrain.​electric.​chargingDuration.​displayControl</td><td class="col4">string</td><td class="col5">NO_DISPLAY_TIME_FOR_CHARGING, DISPLAY_CHARGING_DURATION, NO_DISPLAY_CHARGING_DURATION, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Anzeige des Ladezustands</td><td class="col2-emea">Dieser Wert gibt den im Fahrzeug angezeigten Ladezustand an. </td><td class="col3">vehicle.​powertrain.​electric.​battery.​stateOfCharge.​displayed</td><td class="col4">float</td><td class="col5">0 - 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Auswahl des g&uuml;nstigsten Ladefensters (Charging Window Selection)</td><td class="col2-emea">Gibt ein zuvor definiertes Zeitfenster an, in dem die Hochvoltbatterie des Fahrzeugs geladen werden sollte. 
+Die m&ouml;glichen Werte lauten NOTCHOSEN und CHOSEN. </td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​windowSelection</td><td class="col4">string</td><td class="col5">CHOSEN, NOTCHOSEN, 
+-NA-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Automatische R&uuml;ckmeldung zum Status der Vorkonditionierung</td><td class="col2-emea">Aktueller Zustand des Kippschalters f&uuml;r die automatische Batterievorkonditionierung. ON bedeutet, dass der Automatikbetrieb (navigationsbasiert) des vorausschauenden W&auml;rmemanagements (vWM) aktiviert ist. OFF bedeutet, dass der Automatikbetrieb (navigationsbasiert) des vorausschauenden W&auml;rmemanagements (vWM) deaktiviert ist. TEMP\_OFF steht f&uuml;r die tempor&auml;re Deaktivierung des automatischen vorausschauenden W&auml;rmemanagements (vWM) f&uuml;r die aktuelle Fahrt.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​preconditioning.​automaticMode.​statusFeedback</td><td class="col4">string</td><td class="col5">OFF, ON, TEMP_OFF, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss an beliebiger Position angeschlossen</td><td class="col2-emea">Dieses Signal zeigt an, ob ein Ladekabel an den Ladeanschluss angeschlossen ist.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​anyPosition.​isPlugged</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss an beliebiger Position, Klappe automatisch ge&ouml;ffnet/geschlossen</td><td class="col2-emea">Dieses Feld zeigt an, ob die Kundeneinstellung zum &Ouml;ffnen der Klappe &uuml;ber die MyWay-Funktion (Schieberegler in der mobilen App) aktiv ist. Wenn ja, &ouml;ffnet sich die Klappe automatisch, wenn sich das Fahrzeug in der N&auml;he einer Ladestation mit dem Digital Key in der Tasche befindet, und schlie&szlig;t sich automatisch, nachdem das Kabel abgezogen wurde.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​anyPosition.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss an beliebiger Position, Klappe ge&ouml;ffnet</td><td class="col2-emea">Dieses Signal zeigt an, ob der Ladeanschluss im Fahrzeug ge&ouml;ffnet ist.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​anyPosition.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss hinten links angeschlossen</td><td class="col2-emea">Dieses Signal zeigt an, ob ein Ladekabel an den Ladeanschluss hinten links angeschlossen ist.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearLeft.​isPlugged</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss hinten links, Klappe automatisch ge&ouml;ffnet/geschlossen</td><td class="col2-emea">Dieses Feld zeigt an, ob die Kundeneinstellung zum &Ouml;ffnen der Klappe hinten links &uuml;ber die MyWay-Funktion (Schieberegler in der mobilen App) aktiv ist. Wenn ja, &ouml;ffnet sich die Klappe automatisch, wenn sich das Fahrzeug in der N&auml;he einer Ladestation mit dem Digital Key in der Tasche befindet, und schlie&szlig;t sich automatisch, nachdem das Kabel abgezogen wurde.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearLeft.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss hinten links, Klappe ge&ouml;ffnet</td><td class="col2-emea">Dieses Signal zeigt an, ob der Ladeanschluss hinten links im Fahrzeug ge&ouml;ffnet ist.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearLeft.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss hinten Mitte angeschlossen</td><td class="col2-emea">Dieses Signal zeigt an, ob ein Ladekabel an den Ladeanschluss hinten in der Mitte angeschlossen ist.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearMiddle.​isPlugged</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss hinten Mitte, Klappe automatisch ge&ouml;ffnet/geschlossen</td><td class="col2-emea">Dieses Feld zeigt an, ob die Kundeneinstellung zum &Ouml;ffnen der Klappe hinten in der Mitte &uuml;ber die MyWay-Funktion (Schieberegler in der mobilen App) aktiv ist. Wenn ja, &ouml;ffnet sich die Klappe automatisch, wenn sich das Fahrzeug in der N&auml;he einer Ladestation mit dem Digital Key in der Tasche befindet, und schlie&szlig;t sich automatisch, nachdem das Kabel abgezogen wurde.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearMiddle.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss hinten Mitte, Klappe ge&ouml;ffnet</td><td class="col2-emea">Dieses Signal zeigt an, ob der Ladeanschluss hinten in der Mitte im Fahrzeug ge&ouml;ffnet ist.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearMiddle.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss hinten rechts angeschlossen</td><td class="col2-emea">Dieses Signal zeigt an, ob ein Ladekabel an den Ladeanschluss hinten rechts angeschlossen ist.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearRight.​isPlugged</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss hinten rechts, Klappe automatisch ge&ouml;ffnet/geschlossen</td><td class="col2-emea">Dieses Feld zeigt an, ob die Kundeneinstellung zum &Ouml;ffnen der Klappe hinten rechts &uuml;ber die MyWay-Funktion (Schieberegler in der mobilen App) aktiv ist. Wenn ja, &ouml;ffnet sich die Klappe automatisch, wenn sich das Fahrzeug in der N&auml;he einer Ladestation mit dem Digital Key in der Tasche befindet, und schlie&szlig;t sich automatisch, nachdem das Kabel abgezogen wurde.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearRight.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss hinten rechts, Klappe ge&ouml;ffnet</td><td class="col2-emea">Dieses Signal zeigt an, ob der Ladeanschluss hinten rechts im Fahrzeug ge&ouml;ffnet ist.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearRight.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss vorn links angeschlossen</td><td class="col2-emea">Dieses Signal zeigt an, ob ein Ladekabel an den Ladeanschluss vorn links angeschlossen ist.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontLeft.​isPlugged</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss vorn links, Klappe automatisch ge&ouml;ffnet/geschlossen</td><td class="col2-emea">Dieses Feld zeigt an, ob die Kundeneinstellung zum &Ouml;ffnen der Klappe vorn links &uuml;ber die MyWay-Funktion (Schieberegler in der mobilen App) aktiv ist. Wenn ja, &ouml;ffnet sich die Klappe automatisch, wenn sich das Fahrzeug in der N&auml;he einer Ladestation mit dem Digital Key in der Tasche befindet, und schlie&szlig;t sich automatisch, nachdem das Kabel abgezogen wurde.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontLeft.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss vorn links, Klappe ge&ouml;ffnet</td><td class="col2-emea">Dieses Signal zeigt an, ob der Ladeanschluss vorn links im Fahrzeug ge&ouml;ffnet ist.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontLeft.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss vorn Mitte angeschlossen</td><td class="col2-emea">Dieses Signal zeigt an, ob ein Ladekabel an den Ladeanschluss vorn in der Mitte angeschlossen ist.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontMiddle.​isPlugged</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss vorn Mitte, Klappe automatisch ge&ouml;ffnet/geschlossen</td><td class="col2-emea">Dieses Feld zeigt an, ob die Kundeneinstellung zum &Ouml;ffnen der Klappe vorn in der Mitte &uuml;ber die MyWay-Funktion (Schieberegler in der mobilen App) aktiv ist. Wenn ja, &ouml;ffnet sich die Klappe automatisch, wenn sich das Fahrzeug in der N&auml;he einer Ladestation mit dem Digital Key in der Tasche befindet, und schlie&szlig;t sich automatisch, nachdem das Kabel abgezogen wurde.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontMiddle.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss vorn Mitte, Klappe ge&ouml;ffnet</td><td class="col2-emea">Dieses Signal zeigt an, ob der Ladeanschluss vorn in der Mitte im Fahrzeug ge&ouml;ffnet ist.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontMiddle.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss vorn rechts angeschlossen</td><td class="col2-emea">Dieses Signal zeigt an, ob ein Ladekabel an den Ladeanschluss vorn rechts angeschlossen ist.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontRight.​isPlugged</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss vorn rechts, Klappe automatisch ge&ouml;ffnet/geschlossen</td><td class="col2-emea">Dieses Feld zeigt an, ob die Kundeneinstellung zum &Ouml;ffnen der Klappe vorn rechts &uuml;ber die MyWay-Funktion (Schieberegler in der mobilen App) aktiv ist. Wenn ja, &ouml;ffnet sich die Klappe automatisch, wenn sich das Fahrzeug in der N&auml;he einer Ladestation mit dem Digital Key in der Tasche befindet, und schlie&szlig;t sich automatisch, nachdem das Kabel abgezogen wurde.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontRight.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterie-Ladeanschluss vorn rechts, Klappe ge&ouml;ffnet</td><td class="col2-emea">Dieses Signal zeigt an, ob der Ladeanschluss vorn rechts im Fahrzeug ge&ouml;ffnet ist.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontRight.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Battery Care-Lademodus</td><td class="col2-emea">Das Laden bis zur Abfahrtszeit beginnt so sp&auml;t wie m&ouml;glich, um die Zeit zu minimieren, in der das Fahrzeug einen hohen SoE (State of Energy) hat.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​batteryCarePersisted.​isPreservingChargingMode</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Battery Care-Modus aktiv</td><td class="col2-emea">Zeigt an, ob der Battery Care-Modus dauerhaft aktiv ist.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​batteryCarePersisted.​isActive</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Begrenzung des Ladestroms</td><td class="col2-emea">Der Wert gibt die eingestellte Begrenzung des Ladestroms in Ampere (A) an.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​acLimit.​selected</td><td class="col4">uint8</td><td class="col5">0-252 A, INVALID</td><td class="col6-emea">A</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ben&ouml;tigte Energie f&uuml;r die vollst&auml;ndige Restladung der Hochvoltbatterie</td><td class="col2-emea">Der Wert gibt die Energie an, die ben&ouml;tigt wird, um die Hochvoltbatterie vollst&auml;ndig aufzuladen.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​smeEnergyDeltaFullyCharged</td><td class="col4">float</td><td class="col5">0 - 300 kWh, INVALID</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Berechnete Restladedauer der Hochvoltbatterie</td><td class="col2-emea">Der Wert gibt die berechnete Dauer bis zur vollst&auml;ndigen Ladung der Hochvoltbatterie (in Minuten) an. Falls ein Navigationsziel gesetzt ist, wird die Restladedauer bis zur Erreichung dieses Ziels angezeigt.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​timeToFullyCharged</td><td class="col4">uint16</td><td class="col5">0 &ndash; 65500 Min, INVALID</td><td class="col6-emea">min</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Beschr&auml;nkungsfaktor f&uuml;r AC-Laden</td><td class="col2-emea">R&uuml;ckmeldung der AC-Beschr&auml;nkung.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​acRestriction.​factor</td><td class="col4">string</td><td class="col5">MAXCHARGING, REDUCEDCHARGING, MINCHARGING</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bidirektionale Ladef&auml;higkeit</td><td class="col2-emea">Enth&auml;lt die Information &uuml;ber die aktuelle Verf&uuml;gbarkeit der BPT-Funktion (Bidirectional Power Transfer).</td><td class="col3">vehicle.​powertrain.​electric.​battery.​biDirectionalCharging.​availability</td><td class="col4">string</td><td class="col5">AVAILABLE, NOT_AVAILABLE, DISABLED_MALIBU, DISABLED_HVS, BPT_AND_IMO_DISABLED, BPT_ONLY_FOR_EMERGENCY_POWER_SUPPLY, DISABLED_IMO_POSSIBLE, DISABLED_LONG_TERM</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">DC-Ladebetriebsart aktiv</td><td class="col2-emea">Aktive Gleichstrom-Ladebetriebsart (Performance vs. Efficient).</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​dcChargingModeActive</td><td class="col4">string</td><td class="col5">EFFICIENT, STANDARD, PERFORMANCE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Durchschnittlicher elektrischer Verbrauch</td><td class="col2-emea">Dieser Wert gibt den durchschnittlichen elektrischen Verbrauch in [kWh/100 km] zum Zeitpunkt der Datenerfassung an. 
+Hinweis: Nicht verf&uuml;gbar f&uuml;r die Modelle i3 und i8.</td><td class="col3">vehicle.​drivetrain.​avgElectricRangeConsumption</td><td class="col4">float</td><td class="col5">0 kWh/100 km - 100 kWh/100 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Durchschnittsgeschwindigkeit</td><td class="col2-emea">Der Wert gibt die zum Zeitpunkt der Datenerfassung durchschnittlich gefahrene Geschwindigkeit in km/h an. </td><td class="col3">vehicle.​vehicle.​avgSpeed</td><td class="col4">uint16</td><td class="col5">0-300 km/h,
+INVALID</td><td class="col6-emea">km/h</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Elektrisch gefahrener Streckenanteil der letzten Fahrt</td><td class="col2-emea">Der Wert gibt den mit elektrischer Energie zur&uuml;ckgelegten Streckenanteil der letzten erfassten Fahrt in Prozent an. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​drivetrain.​transmission.​setting.​fractionDriveElectric</td><td class="col4">float</td><td class="col5">0 % bis 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Energieinhalt der Hochvoltbatterie</td><td class="col2-emea"> Der Wert gibt den aktuellen Energieinhalt&nbsp;der Hochvoltbatterie an.</td><td class="col3">vehicle.​drivetrain.​batteryManagement.​maxEnergy</td><td class="col4">float</td><td class="col5">0 - 300 kWh, INVALID</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Entladen erlaubt</td><td class="col2-emea">Das Zulassen der Entladung im professionellen Modus f&uuml;r die bidirektionale Leistungs&uuml;bertragungsfunktion (BPT) kann vom Kunden ausgew&auml;hlt werden oder nicht (ON/OFF).</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​settings.​biDirectionalCharging.​dischargeAllowed</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ergebnis letztes Laden</td><td class="col2-emea">Ergebnis des letzten Ladevorgangs.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​lastChargingResult</td><td class="col4">string</td><td class="col5">SUCCESS, FAILED, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Fahrstilbewertung 'Beschleunigungs-verhalten'</td><td class="col2-emea">Der Wert gibt die Anzahl der Sterne an, mit der die Fahrstilanalyse zum Zeitpunkt der Datenerfassung das Beschleunigungsverhalten des Fahrers bewertet hat. 
+Das System vergibt daf&uuml;r 0 bis 5 Sterne. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​acceleration.​starsAverage</td><td class="col4">float</td><td class="col5">0 bis 5
+Sterne</td><td class="col6-emea">stars</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Fahrstilbewertung 'Vorausschauendes Fahren'</td><td class="col2-emea">Der Wert gibt die Anzahl der Sterne an, mit der die Fahrstilanalyse zum Zeitpunkt der Datenerfassung 'Vorausschauendes Fahren' bewertet hat. 
+Das System vergibt daf&uuml;r 0 bis 5 Sterne. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​chassis.​brake.​starsAverage</td><td class="col4">float</td><td class="col5">0 bis 5
+Sterne</td><td class="col6-emea">stars</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gesamte Netzenergie, die dem Fahrzeug zugef&uuml;hrt wurde (nur PHEV)</td><td class="col2-emea">Dieser Wert gibt die gesamte &uuml;ber Ladekabel zugef&uuml;hrte Energie an.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​consumptionOverLifeTime.​overall.​gridEnergy</td><td class="col4">float</td><td class="col5">0.0 kWh bis 30000.0 kWh</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gesamte Netzenergie die verbraucht wurde,&nbsp;w&auml;hrend der Verbrennungsmotor aktiv war</td><td class="col2-emea">Dieser Wert gibt die gesamte &uuml;ber Ladekabel zugef&uuml;hrte Energie an, w&auml;hrend der Verbrennungsmotor aktiv war (wird z.B. von OBFCM* verwendet).</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​consumptionOverLifeTime.​engineOn.​gridEnergy</td><td class="col4">float</td><td class="col5">kWh</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gesamte Netzenergie die verbraucht wurde,&nbsp;w&auml;hrend der Verbrennungsmotor nicht aktiv war</td><td class="col2-emea">Dieser Wert gibt die gesamte &uuml;ber Ladekabel zugef&uuml;hrte Energie an, w&auml;hrend der Verbrennungsmotor nicht aktiv war (wird z.B. von OBFCM* verwendet).</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​consumptionOverLifeTime.​engineOff.​gridEnergy</td><td class="col4">float</td><td class="col5">kWh</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gesundheitszustand der Hochvoltbatterie (SOCE)</td><td class="col2-emea">Dieser Wert gibt den Gesundheitszustand der Hochvoltbatterie an (SOCE, State of Certified Energy).</td><td class="col3">vehicle.​powertrain.​electric.​battery.​stateOfHealth.​displayed</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Grund f&uuml;r Ende des Ladens</td><td class="col2-emea">Grund f&uuml;r das Ende des Ladens ab SP25.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​reasonChargingEnd</td><td class="col4">string</td><td class="col5">NO_CHARGING_END_SINCE_IPF_WAKEUP, CUSTOMER_INTERACTION_HMI_UNPLUG_CABLE_ONCE, CUSTOMER_INTERACTION_HMI_CHARGING_TARGET_REACHED, CUSTOMER_INTERACTION_APP_UNPLUG_CABLE_ONCE, CUSTOMER_INTERACTION_APP_CHARGING_TARGET_REACHED, CUSTOMER_INTERACTION_CHARGING_STOP_VIA_CHARGING_STOP_BUTTON_SOCKET, CUSTOMER_INTERACTION_AC_CHARGING_STOP_VIA_KEY, CUSTOMER_INTERACTION_AC_CHARGING_STOP_WALLBOX, CUSTOMER_INTERACTION_AC_CHARGING_STOP_LATCH, HV_BATTERY_FULLY_CHARGED, INFRASTRUCTURE_PHYSICAL_LIMITS_REACHED_TARGET_SOE_NOT_REACHABLE, INFRASTRUCTURE_DC_CCS_EVSE_SHUTDOWN, INFRASTRUCTURE_DC_GBT_CST_MESSAGE, INFRASTRUCTURE_DC_CCS_STATIC_PILOT, INFRASTRUCTURE_DC_CCS_COMMUNICATION_ERROR_FAILED_RESPONSE_CODE, INFRASTRUCTURE_DC_CCS_COMMUNICATION_ERROR, INFRASTRUCTURE_NO_ENERGY_TRANSFER, INFRASTRUCTURE_DC_CCS_PRECHARGE_ERROR, INFRASTRUCTURE_DC_CCS_EVSE_MALFUNCTION_EMERGENCY_SHUTDOWN, INFRASTRUCTURE_STATION_NOT_COMPATIBLE, INFRASTRUCTURE_CHARGE_READINESS_TIMEOUT, INFRASTRUCTURE_AC_MAXIMUM_GRID_ERROR_REACHED, INFRASTRUCTURE_DC_GBT_ISOLATION_ERROR_DETECTED, INFRASTRUCTURE_AUTHENTIFICATION_ERROR, VEHICLE_HV_BATTERY_ERROR, VEHICLE_HV_BATTERY_COMMUNICATION_ERROR, VEHICLE_DCDC_ERROR, VEHICLE_PLC_BOOTUP_ERROR, VEHICLE_HV_BATTERY_MAXIMAL_CURRENT_OVERSHOOT, VEHICLE_ISOLATION_ERROR, VEHICLE_MAXIMUM_TEMPERATURE_CHARGING_SOCKET_OVERSHOOT, VEHICLE_LT3_OVERSHOOT, VEHICLE_FUSI_CABLE_LOCK_ERROR, VEHICLE_PLC_COMMUNICATION_NOT_POSSIBLE, FLEXCHARGER_GRID_ERROR, FLEXCHARGER_GRID_TEMPERATURE_ERROR, FLEXCHARGER_EVSE_TEMPERATURE_ERROR, FLEXCHARGER_EVSE_INTERNAL_ERROR, FLEXCHARGER_AC_DC_FAULT_CURRENT, FLEXCHARGER_INCORRECT_REACTION_TIME_PWM, FLEXCHARGER_CHARGING_CURRENT_TOO_HIGH, FLEXCHARGER_PE_FAULT, INFRASTRUCTURE_INEFFICIENT_CHARGING_LOW_POWER, VEHICLE_CABLE_LOCKING_ERROR, VEHICLE_CONFIGURATION_ERROR_400V_800V, INFRASTRUCTURE_NO_AC_VOLTAGE, PLUG_AND_CHARGE_TLS_ERROR, PLUG_AND_CHARGE_CONTRACT_ERROR, SMART_CHARGING_TARIFF_SELECTION_INVALID, SMART_CHARGING_CHARGING_PROFILE_INVALID, CUSTOMER_INTERACTION_AC_CHARGING_STOP_VIA_APP, CHARGING_PAUSED, DISCHARGE_NOT_POSSIBLE_VOLTAGE_TOO_HIGH, DISCHARGE_NOT_POSSIBLE_SOE_TOO_LOW, DISCHARGE_NOT_POSSIBLE_INTERNAL_ERROR, DISCHARGE_NOT_POSSIBLE_INCOMPATIBLE_ADAPTER, DISCHARGE_NOT_POSSIBLE_INCOMPATIBLE_CONSUMER</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Grund letztes Laden</td><td class="col2-emea">Grund des letzten Ladevorgangs.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​lastChargingReason</td><td class="col4">string</td><td class="col5">CHARGING_GOAL_REACHED, END_REQUESTED_BY_DRIVER, CONNECTOR_REMOVED, POWERGRID_FAILED, HV_SYSTEM_FAILURE, CHARGING_STATION_FAILURE, PARKING_LOCK_FAILED, NO_PARKING_LOCK, INVALID, -NA-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">ID des Einsteck-Ereignisses am Ladeanschluss</td><td class="col2-emea">Eindeutige Kennung, die bei jedem Einstecken des elektrifizierten Fahrzeugs durch den Kunden erh&ouml;ht wird (AUSGENOMMEN wenn der Zeitraum zwischen Ausstecken und erneutem Einstecken weniger als 90 Sekunden betr&auml;gt). Dieser Wert sollte f&uuml;r jede Ladesitzung eindeutig sein. Siehe ElectricEngine.Charging.PlugStatus.</td><td class="col3">vehicle.​body.​chargingPort.​plugEventId</td><td class="col4">uint32</td><td class="col5">0 - 131068</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Integrit&auml;tszustand der 48-V-Batterie</td><td class="col2-emea">SoH (State of Health) der 48-V-Batterie, der dem Kunden angezeigt wird. Entwickelt, um die EU-Batterieverordnung zu erf&uuml;llen.</td><td class="col3">vehicle.​electricalSystem.​battery48V.​stateOfHealth.​displayed</td><td class="col4">uint16</td><td class="col5">0&nbsp;% bis 250&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Kabelpr&uuml;fspannung</td><td class="col2-emea">Die bei der initialen Kabelpr&uuml;fung erreichte Spannung.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​cableCheckVoltage</td><td class="col4">uint16</td><td class="col5">None</td><td class="col6-emea">V</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Kilometerstand der letzten Fahrt</td><td class="col2-emea">Der Wert gibt den Gesamtkilometerstand nach der letzten erfassten Fahrt an. </td><td class="col3">vehicle.​trip.​segment.​end.​travelledDistance</td><td class="col4">float</td><td class="col5">0 km bis 
+999999 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Klimatisierung aktiv</td><td class="col2-emea">Klimatisierungsaktivierung des Fahrzeugs im Ladeprofil, der Fahrzeuginnenraum wird f&uuml;r die n&auml;chste Abfahrtszeit vorklimatisiert.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​climatizationActive</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ladeanschluss-Verbindungsstatus</td><td class="col2-emea">Aktueller Zustand des Ladesteckers in allen Ladebetriebsarten, der angibt, ob ein Stecker aktuell angeschlossen ist. Der Wert INVALID kann verschiedene Ursachen haben, z. B. kein Sensor, defekter Sensor, kein Wert, Decodierungsfehler etc. Kombiniert Vehicle.Body.ChargingPort.Status/.DcStatus.</td><td class="col3">vehicle.​body.​chargingPort.​combinedStatus</td><td class="col4">string</td><td class="col5">DISCONNECTED, CONNECTED, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ladebetriebsart</td><td class="col2-emea">Aktuelle Ladebetriebsart.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​chargingMode</td><td class="col4">string</td><td class="col5">NORMAL_PROGNOSE_BASED, STEP_BASED, PLC_MODE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ladehistorie</td><td class="col2-emea">Der Wert zeigt eine Liste der durchgef&uuml;hrten Ladevorg&auml;nge des Fahrzeugs an, welche im Rahmen des Dienstes "Ladehistorie" erfasst wurden.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​history.​sessionsList</td><td class="col4">-</td><td class="col5">Details sind in der entsprechenden Swagger-Dokumentation: ../chargingHistory</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ladeleistung</td><td class="col2-emea">Die aktuelle Ladeleistung in Watt. Dieser Wert sollte nur in Bezug auf den aktuellen Zeitstempel ber&uuml;cksichtigt werden.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​power</td><td class="col4">int32</td><td class="col5">20 W bis 80 W</td><td class="col6-emea">W</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Lademethode und Steckertyp</td><td class="col2-emea">Der Wert beschreibt, ob das Fahrzeug mit Gleichstrom (DC) oder Wechselstrom (AC) geladen wurde und welcher Ladestecker dabei verwendet wurde. Der angezeigte technische Wert AC_TYPE1PLUG beispielsweise gibt an, dass der Hochvolt-Speicher im Wechelstrommodus geladen wurde und dabei ein Ladestecker vom Typ 1 Plug zum Einsatz kam. </td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​method</td><td class="col4">string</td><td class="col5">AC_TYPE1PLUG, AC_TYPE2PLUG, NOCHARGING</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ladesitzungs-ID</td><td class="col2-emea">Dieses Feld enth&auml;lt den Wert der ISO-15118-SessionID im ASCII-Format.</td><td class="col3">vehicle.​body.​chargingPort.​isoSessionId</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ladestatus</td><td class="col2-emea">Dieser Wert gibt den zum Zeitpunkt der Datenerfassung aktuellen Ladestatus des Fahrzeugs an. 
+Der Wert NOCHARGING beispielsweise bedeutet, dass der Hochvolt-Speicher des Fahrzeugs derzeit nicht geladen wird. 
+INITIALIZATION meint, der Ladevorgang wird gerade vorbereitet, CHARGINGACTIVE hei&szlig;t, der Akku wird gerade aufgeladen. 
+Weitere m&ouml;gliche Werte sind: 
+CHARGINGPAUSED (Ladevorgang pausiert), 
+CHARGINGENDED (Ladevorgang beendet) und 
+CHARGINGERROR (Ladefehler). </td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​status</td><td class="col4">string</td><td class="col5">MANUAL_SELECTION, AUTOMATIC_SELECTION, AUTOMATIC_SELECTION_20, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ladestatus der Hochvoltbatterie</td><td class="col2-emea">Der Wert gibt den zum Zeitpunkt der Datenerfassung aktuellen Ladestatus der Hochvoltbatterie in Prozent an. </td><td class="col3">vehicle.​drivetrain.​batteryManagement.​header</td><td class="col4">float</td><td class="col5">0 % bis 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ladeverfahren der Hochvoltbatterie (induktiv/konduktiv)</td><td class="col2-emea">Der Wert gibt das Ladeverfahren (CONDUCTIVE, INDUCTIVE) an, mit dem das Fahrzeug zum Zeitpunkt der Datenerfassung geladen wird.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​connectionType</td><td class="col4">string</td><td class="col5">CONDUCTIVE, INDUCTIVE, SIGNAL_INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ladeverfahren der Hochvoltbatterie (Phasen)</td><td class="col2-emea">Der Wert gibt die Anzahl der Phasen an, mit denen die Hochvoltbatterie geladen wird.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​phaseNumber</td><td class="col4">string</td><td class="col5">NO_CHARGING, 1-PHASES, 2-PHASES, 3-PHASES, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ladezustand der Batterie</td><td class="col2-emea">Der Wert gibt den Ladezustand der Hochvoltbatterie zum Ende der letzten erfassten Fahrt an (in Prozent). </td><td class="col3">vehicle.​trip.​segment.​end.​drivetrain.​batteryManagement.​hvSoc</td><td class="col4">float</td><td class="col5">0 % bis 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Manuelle R&uuml;ckmeldung zum Status der Vorkonditionierung</td><td class="col2-emea">Aktueller Zustand des Tasters f&uuml;r die manuelle Batterievorkonditionierung. Entweder zum Laden oder f&uuml;r den Fahrbetrieb.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​preconditioning.​manualMode.​statusFeedback</td><td class="col4">string</td><td class="col5">OFF, ON_CHARGE, ON_DRIVE, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Maximale Ladestromst&auml;rke</td><td class="col2-emea">Der Wert gibt die maximal w&auml;hlbare Ladestromst&auml;rke in Abh&auml;ngigkeit von der Infrastruktur und des verwendeten Kabels an.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​acLimit.​max</td><td class="col4">uint8</td><td class="col5">0-250 A, INVALID</td><td class="col6-emea">A</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Minimale Ladestromst&auml;rke</td><td class="col2-emea">Der Wert gibt die minimal w&auml;hlbare Ladestromst&auml;rke&nbsp;in Abh&auml;ngigkeit von der Infrastruktur und des verwendeten Kabels an.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​acLimit.​min</td><td class="col4">uint8</td><td class="col5">0-250 A, INVALID</td><td class="col6-emea">A</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Minimaler Soll-Ladezustand</td><td class="col2-emea">Minimaler Soll-Ladezustand, der vom Kunden f&uuml;r intelligentes Laden und V2X angefordert wird.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​stateOfCharge.​targetMin</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Nebenverbraucherleistung (Leistungsverbrauch elektrischer Komponenten)</td><td class="col2-emea">Dieser Wert gibt die Nebenverbraucherleistung zum Zeitpunkt der Datenerfassung in kW an. Dies ist der Bordnetzverbrauch inklusive der Leistung f&uuml;r die Klimaanlage. </td><td class="col3">vehicle.​vehicle.​avgAuxPower</td><td class="col4">float</td><td class="col5">0   &ndash; 655.34,
+INVALID</td><td class="col6-emea">kW</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-Referenzstrecke f&uuml;r die Messung der zugef&uuml;hrten Netzenergie</td><td class="col2-emea">Dieser Wert gibt die Referenzstrecke f&uuml;r die Messung der &uuml;ber Ladekabel zugef&uuml;hrten Energie&nbsp;an.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​consumptionOverLifeTime.​overall.​referenceDistance</td><td class="col4">float</td><td class="col5">0.0 km bis 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Pr&auml;ferenz f&uuml;r das Ladeprofil</td><td class="col2-emea">Ladepr&auml;ferenz des aktuellen Ladeprofils. Dieser Wert h&auml;ngt von der Auswahl des Lademodus ab. Wenn Vehicle.ElectricEngine.Charging.Profile.Mode &bdquo;DELAYED_CHARGING&ldquo; ist, ist Vehicle.ElectricEngine.Charging.Profile.Preference entweder &bdquo;SMART_CHARGING&ldquo; oder &bdquo;CHARGING_WINDOW&ldquo;. Wenn Vehicle.ElectricEngine.Charging.Profile.Mode &bdquo;IMMEDIATE_CHARGING&ldquo; ist, ist Vehicle.ElectricEngine.Charging.Profile.Preference auf &bdquo;NO_PRESELECTION&ldquo; gesetzt.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​preference</td><td class="col4">string</td><td class="col5">CHARGING_WINDOW, SMART_CHARGING, NO_PRESELECTION</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Prognose der elektrischen Reichweite w&auml;hrend des Ladevorgangs</td><td class="col2-emea"> Dieser Wert gibt die w&auml;hrend des Ladevorgangs vorhergesagte elektrische Reichweite an.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​remainingElectricRange</td><td class="col4">float</td><td class="col5">0 - 1000 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Prognose der Gesamtreichweite w&auml;hrend des Ladevorgangs</td><td class="col2-emea">Dieser Wert gibt die w&auml;hrend des Ladevorgangs vorhergesagte Gesamtreichweite an (Summe aus elektrischer und verbrennungsmotorischer Reichweite).</td><td class="col3">vehicle.​drivetrain.​totalRemainingRange</td><td class="col4">float</td><td class="col5">0 - 2000 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Prognose der verbleibenden Ladezeit</td><td class="col2-emea">Dieser Wert gibt die prognostizierte verbleibende Ladezeit in Minuten an.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​timeRemaining</td><td class="col4">uint16</td><td class="col5">0 - 200 Min</td><td class="col6-emea">min</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">RCP-Konfiguration abgeschlossen</td><td class="col2-emea">Fahrzeuge mit einer vollst&auml;ndigen RCP-Konfiguration (Remote Charging Profile) senden explizit Werte f&uuml;r alle Ladeprofilattribute. F&uuml;r Fahrzeuge ohne vollst&auml;ndige RCP-Konfiguration werden Standardwerte angewendet.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​isRcpConfigComplete</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Reduzierter Zielwert f&uuml;r den State of Energy</td><td class="col2-emea">Reduziert den Ziel-SoE (State of Energy) auf einen definierten Wert, damit die Batterie keine hohen SoE-Werte erreicht und somit die Batteriealterung verringert wird.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​batteryCarePersisted.​isReducedTargetSoe</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Referenzstrecke f&uuml;r die Messung der zugef&uuml;hrten Netzenergie, w&auml;hrend der Verbrennungsmotor aktiv war</td><td class="col2-emea">Dieser Wert gibt die Referenzstrecke f&uuml;r die Messung der &uuml;ber Ladekabel zugef&uuml;hrten Energie an, w&auml;hrend der Verbrennungsmotor aktiv war (wird z.B. von OBFCM* verwendet).</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​consumptionOverLifeTime.​engineOn.​referenceDistance</td><td class="col4">float</td><td class="col5">0.0 km bis 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Referenzstrecke f&uuml;r die Messung der zugef&uuml;hrten Netzenergie, w&auml;hrend der Verbrennungsmotor nicht aktiv war</td><td class="col2-emea">Dieser Wert gibt die Referenzstrecke f&uuml;r die Messung der &uuml;ber Ladekabel zugef&uuml;hrten Energie an, w&auml;hrend der Verbrennungsmotor nicht aktiv war (wird z.B. von OBFCM* verwendet).</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​consumptionOverLifeTime.​engineOff.​referenceDistance</td><td class="col4">float</td><td class="col5">0.0 km bis 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Routenoptimierter Ladestatus</td><td class="col2-emea">Zeigt den Ladestatus in F&auml;llen an, in denen der Kunde das E-Route-Laden f&uuml;r seine Reise nutzt. E-Route-Ladesitzungen bestehen aus zwei verschiedenen Phasen. Routenoptimierte Ladesitzungen setzen den Soll-Ladezustand des Kunden vor&uuml;bergehend au&szlig;er Kraft.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​routeOptimizedChargingStatus</td><td class="col4">string</td><td class="col5">ROUTE_OPTIMIZED_CHARGING_IN_PROGRESS, ROUTE_OPTIMIZED_SOC_TARGET_REACHED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Schlie&szlig;zustand der Ladeklappe</td><td class="col2-emea">Der Wert gibt an, ob die Ladeklappe unabh&auml;ngig von der Zentralverriegelung&nbsp;zum Zeitpunkt der Datenerfassung verriegelt ist.</td><td class="col3">vehicle.​body.​flap.​isPermanentlyUnlocked</td><td class="col4">boolean</td><td class="col5">NO_ACTION, FLAP_UNLOCKED, FLAP_LOCKED, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">"Smart Charging" Ladeoption</td><td class="col2-emea">Der Wert gibt an, mit welcher "Smart Charging" Ladeoption geladen wird.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​preferenceSmartCharging</td><td class="col4">string</td><td class="col5">PRICE_OPTIMIZED, RENEWABLE_ENERGEY, CO2_OPTIMIZED, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Soll-Ladezustand f&uuml;r den professionellen Modus</td><td class="col2-emea">Enth&auml;lt den Soll-Ladezustand, der im professionellen Modus als Sollwert verwendet werden soll. Zumindest dieser Soll-Ladezustand wird bis zur Abfahrtszeit erreicht sein.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​stateOfCharge.​targetSoCForProfessionalMode</td><td class="col4">uint8</td><td class="col5">0&nbsp;% bis 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standortbezogene Ladeeinstellungen</td><td class="col2-emea">Der Wert zeigt eine Liste der aktuell gespeicherten standortbezogenen Ladeeinstellungen des Fahrzeugs an, welche im Rahmen des Dienstes "Standortbezogene Ladeeinstellungen" erfasst wurden.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​settingsList</td><td class="col4">-</td><td class="col5">Details sind in der entsprechenden Swagger-Dokumentation: ../locationBasedChargingSettings</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status der Authentifizierung zum Laden</td><td class="col2-emea">Autorisierungsstatus der Plug &amp; Charge-Funktion (automatische Bezahlung von Ladeservices) einer Ladesitzung. &bdquo;AUTHORIZATION_SUCCESSFUL&ldquo; - Authentifizierung mit PlugAndCharge erfolgreich, &bdquo;TRANSPORT_LAYER_ERROR&ldquo; - TLS-Verbindung zur EVSE nicht m&ouml;glich, &bdquo;HIGH_LEVEL_COMMUNICATION_ERROR&ldquo; - Fehler bei der High-Pegel-Kommunikation mit ISO15118, &bdquo;CONTRACT_SERVICE_NOT_SUPPORTED_ERROR&ldquo; - EVSE unterst&uuml;tzt keine Authentifizierung &uuml;ber PlugAndCharge, &bdquo;AUTHORIZATION_TIMEOUT&ldquo; - Autorisierung ist mit einem Fehler abgelaufen, &bdquo;AUTHORIZATION_TIMEOUT&ldquo; - Authentifizierung nach 120 s nicht abgeschlossen, &bdquo;NVM_READ_CERTIFICATE_ERROR&ldquo; - Zertifikate konnten nicht aus dem Speicher des Ladesteuerger&auml;ts gelesen werden, &bdquo;CERTIFICATE_UPDATE_ERROR&ldquo; - Aktualisierung des Vertrags &uuml;ber Powerline fehlgeschlagen, &bdquo;XML_SECURITY_ERROR&ldquo; - Schema-Validierungsfehler der &uuml;bertragenen Daten.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​authentication.​status</td><td class="col4">string</td><td class="col5">AUTHORIZATION_SUCCESSFUL, TRANSPORT_LAYER_ERROR, HIGH_LEVEL_COMMUNICATION_ERROR, CONTRACT_SERVICE_NOT_SUPPORTED_ERROR, AUTHORIZATION_ERROR, AUTHORIZATION_TIMEOUT, NVM_READ_CERTIFICATE_ERROR, CERTIFICATE_UPDATE_ERROR, XML_SECURITY_ERROR</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status der Authentifizierung zum Laden</td><td class="col2-emea">Dieses Feld zeigt den Status der Authentifizierung mit der Ladestation an.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​authenticationStatus</td><td class="col4">string</td><td class="col5">NOT_STARTED, STARTED_EIM, STARTED_PNC, STARTED_PLC_EIM, DONE_EIM, DONE_PLC_EIM, DONE_PNC, FAILED_PLC_EIM, FAILED_PNC, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status der Ladebegrenzung</td><td class="col2-emea">Der Wert gibt an, ob zum Zeitpunkt der Datenerfassung eine Ladestrombegrenzung aktiv war.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​acLimit.​isActive</td><td class="col4">boolean</td><td class="col5">AC_LIMIT_INACTIVE, AC_LIMIT_ACTIVE, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status der Ladesteckverbindung</td><td class="col2-emea">Der Wert gibt an, ob das Fahrzeug zum Zeitpunkt der Datenerfassung mit einem Ladestecker verbunden war (CONNECTED) oder nicht (DISCONNECTED). </td><td class="col3">vehicle.​body.​chargingPort.​status</td><td class="col4">string</td><td class="col5">CONNECTED, DISCONNECTED,  INVALID, -NA-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status der Ladesteckverbindung (nur DC)</td><td class="col2-emea">Der Wert gibt an, ob das Fahrzeug zum Zeitpunkt der Datenerfassung mit einem DC-Ladestecker verbunden war (CONNECTED) oder nicht (DISCONNECTED).</td><td class="col3">vehicle.​body.​chargingPort.​dcStatus</td><td class="col4">string</td><td class="col5">DISCONNECTED, CONNECTED, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status der Sofortladefunktion</td><td class="col2-emea">Der Wert gibt an, ob die Funktion "Sofortladen" aktiviert ist oder nicht.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​isSingleImmediateCharging</td><td class="col4">boolean</td><td class="col5">DIRECT_CHG_ONCE_NOT_ACTIVE, DIRECT_CHG_ONCE_ACTIVE, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status des HV-Ladesystems</td><td class="col2-emea">Status des Hochvolt-Ladens.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​hvStatus</td><td class="col4">string</td><td class="col5">INVALID, CHARGING, ERROR, NOT_CHARGING, WAITING_FOR_CHARGING, FINISHED_FULLY_CHARGED, FINISHED_NOT_FULL</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status des Ladesteckers</td><td class="col2-emea">Aktueller Zustand des Ladesteckers &uuml;ber alle Typen (induktiv, leitungsgebunden), Betriebsarten (AC, DC) und Servicepacks hinweg.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​connectorStatus</td><td class="col4">string</td><td class="col5">CONNECTED, DISCONNECTED, ERROR</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status-Text des Ladeanschlusses</td><td class="col2-emea">Erforderlich zusammen mit Vehicle.Body.ChargingPort.Status, um eine korrekte Handhabbarkeit der Ladesitzungen bei G08 BEV Fahrzeugen sicherzustellen.</td><td class="col3">vehicle.​body.​chargingPort.​statusClearText</td><td class="col4">string</td><td class="col5">DISCONNECTED, CONNECTED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Systemgrund f&uuml;r Sofortladen</td><td class="col2-emea">Dieser Parameter enth&auml;lt die Information, dass die vom Kunden gew&auml;hlte Ladebetriebsart aus Systemgr&uuml;nden &uuml;berschrieben wurde.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​isImmediateChargingSystemReason</td><td class="col4">boolean</td><td class="col5">wahr, falsch</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Typ des Ladetimers</td><td class="col2-emea">Timer-Typ des Ladeprofils (z. B. Wochentage oder TwoTimesTimer)</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​timerType</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ursache f&uuml;r das Beenden eines Ladevorgangs</td><td class="col2-emea">Der Wert gibt die Ursache f&uuml;r das Beenden eines Ladevorgangs an.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​hvpmFinishReason</td><td class="col4">string</td><td class="col5">UNKNOWN, CHARGING_GOAL_REACHED, END_REQUESTED_BY_DRIVER, CONNECTOR_REMOVED, POWERGRID_FAILED, HV_SYSTEM_FAILURE, CHARGING_STATION_FAILURE, PARKING_LOCK_FAILED, NO_PARKING_LOCK, SIGNAL_INVALID, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Verbleibende elektrische Reichweite in Abh&auml;ngigkeit vom Zielwert des Ladezustands</td><td class="col2-emea">Der Wert gibt die verbleibende elektrische Reichweite zum Zeitpunkt der Datenerfassung in Kilometer an. Diese ist abh&auml;ngig vom eingestellten Zielwert des Ladezustands.</td><td class="col3">vehicle.​powertrain.​electric.​range.​target</td><td class="col4">float</td><td class="col5">0-4000 KM oder MI, INVALID</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Verbleibende elektrische Reichweite in km</td><td class="col2-emea">Der Wert gibt die verbleibende elektrische Reichweite zum Zeitpunkt der Datenerfassung in Kilometer an. </td><td class="col3">vehicle.​drivetrain.​electricEngine.​kombiRemainingElectricRange</td><td class="col4">float</td><td class="col5">0-4000 km,
+INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Verbrauch elektrische Energie im COMFORT Modus der letzten Fahrt</td><td class="col2-emea">Gibt den zum Zeitpunkt der Datenerfassung gemessenen Verbrauch elektrischer Energie (kWh) im COMFORT Modus an. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​drivetrain.​electricEngine.​energyConsumptionComfort</td><td class="col4">double</td><td class="col5">0 kWh bis 10 kWh </td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Verriegelungszustand des Ladeanschlusses</td><td class="col2-emea">Dieses Signal zeigt an, ob der Ladestecker verriegelt, entriegelt, ein Fehler gesendet wurde oder keine Aktion erfolgt ist. Beim Verwenden dieses Wertes siehe auch Vehicle.Body.ChargingPort.PlugStatus.</td><td class="col3">vehicle.​body.​chargingPort.​lockedStatus</td><td class="col4">string</td><td class="col5">CHARGING_CABLE_NOT_LOCKED, CHARGING_CABLE_LOCKED, CHARGING_CABLE_LOCKING_ERROR_DETECTED, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Verriegelungszustand des Ladesteckers nach vollst&auml;ndiger Ladung</td><td class="col2-emea">Der Wert gibt an, ob der Ladestecker nach vollst&auml;ndiger Ladung automatisch entriegelt wird (HOSPITALITY_ACTIVE) oder verriegelt bleibt (HOSPITALITY_INACTIVE).</td><td class="col3">vehicle.​body.​chargingPort.​isHospitalityActive</td><td class="col4">boolean</td><td class="col5">HOSPITALITY_INACTIVE, HOSPITALITY_ACTIVE, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Zeitpunkt der letzten Fahrt</td><td class="col2-emea">Der Zeitstempel enth&auml;lt das Datum und die Ortszeit der letzten erfassten und &uuml;bermittelten Fahrt, beispielsweise 15.05.2017 15:51:00 UTC. </td><td class="col3">vehicle.​trip.​segment.​end.​time</td><td class="col4">int32</td><td class="col5">dd.mm.yyyy hh:mm:ss UTC</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Zielwert des Ladezustands der Hochvoltbatterie</td><td class="col2-emea">Der Wert gibt den eingestellten Zielwert des Ladezustandes der Hochvoltbatterie in Prozent an. Dieser wird in 10% Schritten angezeigt.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​stateOfCharge.​target</td><td class="col4">uint8</td><td class="col5">0-100 [10% Schritte], INVALID</td><td class="col6-emea">%</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Zur&uuml;ckgewonnene Energiemenge der letzten Fahrt</td><td class="col2-emea">Der Wert gibt die durchschnittlich je 100 Kilometer zur&uuml;ckgewonnene elektrische Energie in Kilowattstunden (kWh/100 km) der letzten erfassten Fahrt an. Das Wertespektrum reicht von 0 bis 254. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​drivetrain.​electricEngine.​recuperationTotal</td><td class="col4">float</td><td class="col5">0 kWh/100 km bis 170 kWh/100 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Zustand der Ladeklappe</td><td class="col2-emea">Der Wert gibt an, ob die Ladeklappe zum Zeitpunkt der Datenerfassung verriegelt ist.</td><td class="col3">vehicle.​body.​flap.​isLocked</td><td class="col4">boolean</td><td class="col5">FLAP_UNLOCKED, FLAP_LOCKED, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Zustand der Vorkonditionierung</td><td class="col2-emea">Status der Aktivit&auml;t zur Vorkonditionierung der Batterie. Ein Legacy-Wert, der nur f&uuml;r das Legacy-Projekt SP2021plus g&uuml;ltig ist.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​preconditioning.​state</td><td class="col4">string</td><td class="col5">OFF, ON_LEGACY, MANUAL_ON_CHARGE, AUTOMATIC_ON, REMOTE_ON_CHARGE, REMOTE_ON_DRIVE, REMOTE_OFF, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>METADATEN</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData Element</th><th class="col2-emea">Beschreibung</th><th class="col3">Technischer Bezeichner</th><th class="col4">Datentyp </th><th class="col5">Typischer Wertebereich</th><th class="col6-emea">Einheit</th><th class="col7">Streamingf&auml;hig</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Aktion f&uuml;r &Uuml;berschreiben der Klimazeitautomatik</td><td class="col2-emea">Status/Aktion der Zeitautomatik mit den Zust&auml;nden Activate (Ein), Deactivate (Aus) und NoAction (wird nur beim &Uuml;bermitteln der Zeitautomatik an das Fahrzeug verwendet).</td><td class="col3">vehicle.​cabin.​climate.​timers.​overwriteTimer.​action</td><td class="col4">string</td><td class="col5">ACTIVATE, DEACTIVATE, NO_ACTION</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Aktion f&uuml;r Zeitautomatik 1 an Wochentagen</td><td class="col2-emea">Status/Aktion der Zeitautomatik 1 mit den Zust&auml;nden Activate (Ein), Deactivate (Aus) und NoAction (wird nur beim &Uuml;bermitteln der Zeitautomatik 1 an das Fahrzeug verwendet).</td><td class="col3">vehicle.​cabin.​climate.​timers.​weekdaysTimer1.​action</td><td class="col4">string</td><td class="col5">ACTIVATE, DEACTIVATE, NO_ACTION</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Aktion f&uuml;r Zeitautomatik 2 an Wochentagen</td><td class="col2-emea">Status/Aktion der Zeitautomatik 2 mit den Zust&auml;nden Activate (Ein), Deactivate (Aus) und NoAction (wird nur beim &Uuml;bermitteln der Zeitautomatik 2 an das Fahrzeug verwendet).</td><td class="col3">vehicle.​cabin.​climate.​timers.​weekdaysTimer2.​action</td><td class="col4">string</td><td class="col5">ACTIVATE, DEACTIVATE, NO_ACTION</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Anzahl der Navigation-Satelliten</td><td class="col2-emea">Anzahl der f&uuml;r die Positionsbestimmung verwendeten GPS-Satelliten; beeinflusst die Zuverl&auml;ssigkeit der Positionsbestimmung.</td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​currentLocation.​numberOfSatellites</td><td class="col4">uint8</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Minute f&uuml;r &Uuml;berschreiben der Klimazeitautomatik</td><td class="col2-emea">Minuteneinstellung der Klimazeitautomatik entsprechend der im Fahrzeug konfigurierten Zeitzone.</td><td class="col3">vehicle.​cabin.​climate.​timers.​overwriteTimer.​minute</td><td class="col4">uint8</td><td class="col5">0 - 59</td><td class="col6-emea">min</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Minute f&uuml;r Zeitautomatik 1 an Wochentagen</td><td class="col2-emea">Minuteneinstellung der Klimazeitautomatik 1 entsprechend der im Fahrzeug konfigurierten Zeitzone.</td><td class="col3">vehicle.​cabin.​climate.​timers.​weekdaysTimer1.​minute</td><td class="col4">uint8</td><td class="col5">0 - 59</td><td class="col6-emea">min</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Minute f&uuml;r Zeitautomatik 2 an Wochentagen</td><td class="col2-emea">Minuteneinstellung der Klimazeitautomatik 2 entsprechend der im Fahrzeug konfigurierten Zeitzone.</td><td class="col3">vehicle.​cabin.​climate.​timers.​weekdaysTimer2.​minute</td><td class="col4">uint8</td><td class="col5">0 - 59</td><td class="col6-emea">min</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status der Navigations-Fixierung</td><td class="col2-emea">Status der GPS-Fixierung. &bdquo;NO_FIX&ldquo; bedeutet, dass weniger als 3 Satelliten gefunden wurden. &bdquo;2D_GPS_FIX&ldquo; wird ausgegeben, wenn mindestens 3 Satelliten gefunden wurden. &bdquo;3D_GPS_FIX&ldquo; wird ausgegeben, wenn mindestens 4 Satelliten gefunden wurden.</td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​currentLocation.​fixStatus</td><td class="col4">string</td><td class="col5">NO_FIX, GPS_FIX_2D, GPS_FIX_3D</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Steuerung der E-Reichweitenanzeige</td><td class="col2-emea">Zeigt an, ob und wie die elektrische Reichweite im Fahrzeug angezeigt werden soll.</td><td class="col3">vehicle.​powertrain.​electric.​range.​displayControl</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stunde f&uuml;r &Uuml;berschreiben der Klimazeitautomatik</td><td class="col2-emea">Stundeneinstellung der Klimazeitautomatik entsprechend der im Fahrzeug konfigurierten Zeitzone.</td><td class="col3">vehicle.​cabin.​climate.​timers.​overwriteTimer.​hour</td><td class="col4">uint8</td><td class="col5">0 - 23</td><td class="col6-emea">h</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stunde f&uuml;r Zeitautomatik 1 an Wochentagen</td><td class="col2-emea">Stundeneinstellung der Klimazeitautomatik 1 entsprechend der im Fahrzeug konfigurierten Zeitzone.</td><td class="col3">vehicle.​cabin.​climate.​timers.​weekdaysTimer1.​hour</td><td class="col4">uint8</td><td class="col5">0 - 23</td><td class="col6-emea">h</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stunde f&uuml;r Zeitautomatik 2 an Wochentagen</td><td class="col2-emea">Stundeneinstellung der Klimazeitautomatik 2 entsprechend der im Fahrzeug konfigurierten Zeitzone.</td><td class="col3">vehicle.​cabin.​climate.​timers.​weekdaysTimer2.​hour</td><td class="col4">uint8</td><td class="col5">0 - 23</td><td class="col6-emea">h</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Wegstreckeneinheit im Infotainment</td><td class="col2-emea">In der aktuellen HMI verwendete Wegstreckeneinheit</td><td class="col3">vehicle.​cabin.​infotainment.​hmi.​distanceUnit</td><td class="col4">string</td><td class="col5">MILES, KILOMETERS</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>REIFENDATEN</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData Element</th><th class="col2-emea">Beschreibung</th><th class="col3">Technischer Bezeichner</th><th class="col4">Datentyp </th><th class="col5">Typischer Wertebereich</th><th class="col6-emea">Einheit</th><th class="col7">Streamingf&auml;hig</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gemessener Reifendruck hinten links</td><td class="col2-emea">Der Wert gibt den gemessenen Reifendruck hinten links in kPa an.</td><td class="col3">vehicle.​chassis.​axle.​row2.​wheel.​left.​tire.​pressure</td><td class="col4">uint16</td><td class="col5">0-1000 kPa oder -NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gemessener Reifendruck hinten rechts</td><td class="col2-emea">Der Wert gibt den gemessenen Reifendruck hinten rechts in kPa an.</td><td class="col3">vehicle.​chassis.​axle.​row2.​wheel.​right.​tire.​pressure</td><td class="col4">uint16</td><td class="col5">0-1000 kPa oder -NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gemessener Reifendruck vorne links</td><td class="col2-emea">Dieser Wert gibt den gemessenen Reifendruck vorne links in kPa an</td><td class="col3">vehicle.​chassis.​axle.​row1.​wheel.​left.​tire.​pressure</td><td class="col4">uint16</td><td class="col5">0-1000 kPa oder -NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gemessener Reifendruck vorne rechts</td><td class="col2-emea">Der Wert gibt den gemessenen Reifendruck vorne rechts in kPa an.</td><td class="col3">vehicle.​chassis.​axle.​row1.​wheel.​right.​tire.​pressure</td><td class="col4">uint16</td><td class="col5">0-1000 kPa oder -NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Reifensolldruck hinten links</td><td class="col2-emea">Dieser Wert gibt Reifensolldruck hinten links in kPa an.</td><td class="col3">vehicle.​chassis.​axle.​row2.​wheel.​left.​tire.​pressureTarget</td><td class="col4">uint16</td><td class="col5">0-1000 kPa oder -NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Reifensolldruck hinten rechts</td><td class="col2-emea">Dieser Wert gibt den Reifensolldruck hinten rechts in kPa an.</td><td class="col3">vehicle.​chassis.​axle.​row2.​wheel.​right.​tire.​pressureTarget</td><td class="col4">uint16</td><td class="col5">0-1000 kPa oder -NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Reifensolldruck vorne links</td><td class="col2-emea">Dieser Wert gibt den Reifensolldruck vorne links in kPa an. </td><td class="col3">vehicle.​chassis.​axle.​row1.​wheel.​left.​tire.​pressureTarget</td><td class="col4">uint16</td><td class="col5">0-1000 kPa oder -NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Reifensolldruck vorne rechts</td><td class="col2-emea">Dieser Wert gibt den Reifensolldruck vorne rechts in kPa an.</td><td class="col3">vehicle.​chassis.​axle.​row1.​wheel.​right.​tire.​pressureTarget</td><td class="col4">uint16</td><td class="col5">0-1000 kPa oder -NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Reifentemperatur in Celsius, hinten links</td><td class="col2-emea">Reifentemperatur in Celsius hinten links.</td><td class="col3">vehicle.​chassis.​axle.​row2.​wheel.​left.​tire.​temperature</td><td class="col4">float</td><td class="col5">0 &deg;C bis 50 &deg;C</td><td class="col6-emea">Celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Reifentemperatur in Celsius, hinten rechts</td><td class="col2-emea">Reifentemperatur in Celsius hinten rechts.</td><td class="col3">vehicle.​chassis.​axle.​row2.​wheel.​right.​tire.​temperature</td><td class="col4">float</td><td class="col5">0 &deg;C bis 50 &deg;C</td><td class="col6-emea">Celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Reifentemperatur in Celsius, vorn links</td><td class="col2-emea">Reifentemperatur in Celsius vorn links.</td><td class="col3">vehicle.​chassis.​axle.​row1.​wheel.​left.​tire.​temperature</td><td class="col4">float</td><td class="col5">0 &deg;C bis 50 &deg;C</td><td class="col6-emea">Celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Reifentemperatur in Celsius, vorn rechts</td><td class="col2-emea">Reifentemperatur in Celsius vorn rechts.</td><td class="col3">vehicle.​chassis.​axle.​row1.​wheel.​right.​tire.​temperature</td><td class="col4">float</td><td class="col5">0 &deg;C bis 50 &deg;C</td><td class="col6-emea">Celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>INFORMATIONEN ZU DEN CONNECTEDDRIVE VERTRAGSDETAILS</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData Element</th><th class="col2-emea">Beschreibung</th><th class="col3">Technischer Bezeichner</th><th class="col4">Datentyp </th><th class="col5">Typischer Wertebereich</th><th class="col6-emea">Einheit</th><th class="col7">Streamingf&auml;hig</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Aktive ConnectedDrive Vertr&auml;ge</td><td class="col2-emea">Der Wert enth&auml;lt eine &Uuml;bersicht &uuml;ber alle aktiven ConnectedDrive-Vertr&auml;ge und das Ende der jeweiligen Vertragslaufzeit.</td><td class="col3">vehicle.​vehicleIdentification.​connectedDriveContractList</td><td class="col4">-</td><td class="col5">yyyy-mm-dd hh:mm:ss UTC</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>
