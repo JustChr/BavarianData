@@ -22,6 +22,10 @@ binary sensor with a proper device class, unit, and (where BMW provides one) a
 set of translated states. The integration also ships a Lovelace card and a cached
 vehicle image so a usable dashboard exists out of the box.
 
+<p align="center">
+  <img src="screenshots/wattfried-car.png" alt="Bundled Lovelace card showing a BMW i5 eDrive40 with charge level, range, charging status and odometer" width="360" />
+</p>
+
 > **Status — experimental.** This is a spare-time project, verified against a
 > limited number of vehicles and Home Assistant versions. Expect rough edges and
 > avoid wiring it into safety-critical automations. Track `main`; other branches
