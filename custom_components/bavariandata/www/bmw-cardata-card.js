@@ -13,19 +13,21 @@
  * config is just `type: custom:bmw-cardata-card`.
  */
 
-const CARD_VERSION = "1.0.1";
+const CARD_VERSION = "1.1.0";
 
-const CLUSTER_LABELS = {
-  electric: "Electric vehicle",
-  status: "Vehicle status",
-  metadata: "Metadata",
-  events: "Vehicle events",
-  tire: "Tire data",
-  basic: "Vehicle basic data",
-  usage: "Usage-based data",
-  other: "Other",
-  contract: "ConnectedDrive contract",
-};
+// Catalogue cluster slugs, in display order. Human labels are localized via the
+// translation table (keys `cl_<slug>`); icons are language-independent.
+const CLUSTER_SLUGS = [
+  "electric",
+  "status",
+  "metadata",
+  "events",
+  "tire",
+  "basic",
+  "usage",
+  "other",
+  "contract",
+];
 
 const CLUSTER_ICONS = {
   electric: "mdi:lightning-bolt",
@@ -41,6 +43,206 @@ const CLUSTER_ICONS = {
 
 const UNAVAILABLE = new Set(["unavailable", "unknown", "none", "", null, undefined]);
 
+// BMW reports these charging-status values when nothing is actively charging
+// (e.g. `invalid` when no cable is connected). Show a clean localized "not
+// charging" for them instead of the raw state translation ("Ungültig", …).
+const NOT_CHARGING_STATES = new Set([
+  "invalid",
+  "not_charging",
+  "notcharging",
+  "no_charging",
+  "default",
+]);
+
+/* ------------------------------------------------------------------------- *
+ * Localization                                                              *
+ *                                                                           *
+ * The card's own chrome (labels, headings, relative times, tire positions,  *
+ * editor fields) is translated here. Entity names and states keep coming    *
+ * from Home Assistant's own translations via hass.formatEntityState. Add a  *
+ * language by adding a block below; anything missing falls back to English. *
+ * ------------------------------------------------------------------------- */
+const TRANSLATIONS = {
+  en: {
+    // cluster labels
+    cl_electric: "Electric vehicle",
+    cl_status: "Vehicle status",
+    cl_metadata: "Metadata",
+    cl_events: "Vehicle events",
+    cl_tire: "Tire data",
+    cl_basic: "Vehicle basic data",
+    cl_usage: "Usage-based data",
+    cl_other: "Other",
+    cl_contract: "ConnectedDrive contract",
+    // overview
+    remaining_range: "remaining range",
+    charging_status: "charging status",
+    charge: "charge",
+    charging: "charging",
+    is_charging: "Charging",
+    not_charging: "Not charging",
+    target: "Target",
+    plug: "Plug",
+    time_to_full: "Time to full",
+    charge_time: "Charge time",
+    odometer: "Odometer",
+    last_update: "Last update",
+    just_now: "just now",
+    min_ago: "{n} min ago",
+    h_ago: "{n} h ago",
+    d_ago: "{n} d ago",
+    // cluster list
+    value: "value",
+    values: "values",
+    no_cluster_entities:
+      "No {label} entities for this vehicle. Enable the cluster in the integration options.",
+    // messages
+    no_vehicle_title: "No BMW CarData vehicle found",
+    no_vehicle_body:
+      "Add the integration, or set <code>device:</code> / <code>vin:</code> in the card config.",
+    // tire
+    front: "FRONT",
+    fl: "FL",
+    fr: "FR",
+    rl: "RL",
+    rr: "RR",
+    front_left: "Front left",
+    front_right: "Front right",
+    rear_left: "Rear left",
+    rear_right: "Rear right",
+    tire_pressure: "Tire pressure",
+    no_tire_data:
+      "No tire data for this vehicle yet. Enable the Tire data cluster and drive to populate readings.",
+    check_pressure: "Check pressure",
+    slightly_high: "Slightly high",
+    all_nominal: "All nominal",
+    of_four: "{n} of 4",
+    t_low: "Low",
+    t_high: "High",
+    t_ok: "OK",
+    t_nodata: "No data",
+    t_current: "Current",
+    // editor
+    ed_device: "Vehicle",
+    ed_cluster: "Mode",
+    ed_title: "Title (optional)",
+    ed_image: "Image entity",
+    ed_soc: "State of charge",
+    ed_range: "Range",
+    ed_charging: "Charging status",
+    ed_target_soc: "Charge target",
+    ed_time_to_full: "Time to full",
+    ed_odometer: "Odometer",
+    ed_plug: "Plug / connection",
+    ed_overview_option: "Overview (default)",
+    ed_overrides_title: "Entity overrides (optional — leave empty to auto-detect)",
+    edh_cluster:
+      "Overview shows the hero image and key metrics. A cluster shows every value of that group as a list.",
+    edh_title: "Overrides the vehicle name shown on the card.",
+  },
+  de: {
+    // cluster labels
+    cl_electric: "Elektrofahrzeug",
+    cl_status: "Fahrzeugstatus",
+    cl_metadata: "Metadaten",
+    cl_events: "Fahrzeugereignisse",
+    cl_tire: "Reifendaten",
+    cl_basic: "Fahrzeug-Basisdaten",
+    cl_usage: "Nutzungsdaten",
+    cl_other: "Sonstiges",
+    cl_contract: "ConnectedDrive-Vertrag",
+    // overview
+    remaining_range: "Reichweite",
+    charging_status: "Ladestatus",
+    charge: "Ladung",
+    charging: "lädt",
+    is_charging: "Lädt",
+    not_charging: "Lädt nicht",
+    target: "Ziel",
+    plug: "Stecker",
+    time_to_full: "Bis voll",
+    charge_time: "Ladezeit",
+    odometer: "Kilometerstand",
+    last_update: "Letzte Aktualisierung",
+    just_now: "gerade eben",
+    min_ago: "vor {n} Min.",
+    h_ago: "vor {n} Std.",
+    d_ago: "vor {n} T.",
+    // cluster list
+    value: "Wert",
+    values: "Werte",
+    no_cluster_entities:
+      "Keine {label}-Entitäten für dieses Fahrzeug. Aktiviere den Cluster in den Integrationsoptionen.",
+    // messages
+    no_vehicle_title: "Kein BMW-CarData-Fahrzeug gefunden",
+    no_vehicle_body:
+      "Füge die Integration hinzu oder setze <code>device:</code> / <code>vin:</code> in der Kartenkonfiguration.",
+    // tire
+    front: "VORNE",
+    fl: "VL",
+    fr: "VR",
+    rl: "HL",
+    rr: "HR",
+    front_left: "Vorne links",
+    front_right: "Vorne rechts",
+    rear_left: "Hinten links",
+    rear_right: "Hinten rechts",
+    tire_pressure: "Reifendruck",
+    no_tire_data:
+      "Noch keine Reifendaten für dieses Fahrzeug. Aktiviere den Cluster „Reifendaten“ und fahre, um Werte zu erfassen.",
+    check_pressure: "Druck prüfen",
+    slightly_high: "Etwas hoch",
+    all_nominal: "Alles normal",
+    of_four: "{n} von 4",
+    t_low: "Niedrig",
+    t_high: "Hoch",
+    t_ok: "OK",
+    t_nodata: "Keine Daten",
+    t_current: "Aktuell",
+    // editor
+    ed_device: "Fahrzeug",
+    ed_cluster: "Modus",
+    ed_title: "Titel (optional)",
+    ed_image: "Bild-Entität",
+    ed_soc: "Ladezustand",
+    ed_range: "Reichweite",
+    ed_charging: "Ladestatus",
+    ed_target_soc: "Ladeziel",
+    ed_time_to_full: "Bis voll",
+    ed_odometer: "Kilometerstand",
+    ed_plug: "Stecker / Verbindung",
+    ed_overview_option: "Übersicht (Standard)",
+    ed_overrides_title: "Entitäten überschreiben (optional — leer lassen für Auto-Erkennung)",
+    edh_cluster:
+      "Die Übersicht zeigt das Fahrzeugbild und Kennzahlen. Ein Cluster listet alle Werte dieser Gruppe auf.",
+    edh_title: "Überschreibt den auf der Karte angezeigten Fahrzeugnamen.",
+  },
+};
+
+function _lang(hass) {
+  const loc = hass && hass.locale;
+  return (loc && loc.language) || (hass && hass.language) || "en";
+}
+
+/** Translate `key` for the active hass language, filling `{name}` vars.
+ *  Falls back to English, then to `dflt` (or the key itself). */
+function t(hass, key, vars, dflt) {
+  const lang = _lang(hass);
+  const table =
+    TRANSLATIONS[lang] ||
+    TRANSLATIONS[String(lang).split("-")[0]] ||
+    TRANSLATIONS.en;
+  let s = table[key];
+  if (s === undefined) s = TRANSLATIONS.en[key];
+  if (s === undefined) s = dflt !== undefined ? dflt : key;
+  if (vars) {
+    Object.keys(vars).forEach((k) => {
+      s = s.split("{" + k + "}").join(vars[k]);
+    });
+  }
+  return s;
+}
+
 class BmwCardataCard extends HTMLElement {
   setConfig(config) {
     this._config = { ...config };
@@ -55,6 +257,11 @@ class BmwCardataCard extends HTMLElement {
 
   getCardSize() {
     return this._config && this._config.cluster ? 6 : 8;
+  }
+
+  /** Localized string for the active Home Assistant language. */
+  _t(key, vars, dflt) {
+    return t(this._hass, key, vars, dflt);
   }
 
   static getConfigElement() {
@@ -205,12 +412,12 @@ class BmwCardataCard extends HTMLElement {
     const then = new Date(iso).getTime();
     if (Number.isNaN(then)) return null;
     const s = Math.round((Date.now() - then) / 1000);
-    if (s < 60) return "just now";
+    if (s < 60) return this._t("just_now");
     const m = Math.round(s / 60);
-    if (m < 60) return `${m} min ago`;
+    if (m < 60) return this._t("min_ago", { n: m });
     const h = Math.round(m / 60);
-    if (h < 24) return `${h} h ago`;
-    return `${Math.round(h / 24)} d ago`;
+    if (h < 24) return this._t("h_ago", { n: h });
+    return this._t("d_ago", { n: Math.round(h / 24) });
   }
 
   _isCharging(chargingSt, socSt) {
@@ -234,10 +441,7 @@ class BmwCardataCard extends HTMLElement {
 
     const deviceId = this._resolveDeviceId();
     if (!deviceId) {
-      this._renderMessage(
-        "No BMW CarData vehicle found",
-        "Add the integration, or set <code>device:</code> / <code>vin:</code> in the card config."
-      );
+      this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
       return;
     }
     const entities = this._deviceEntities(deviceId);
@@ -274,14 +478,15 @@ class BmwCardataCard extends HTMLElement {
     const secondary = [
       // Range and charging status live in the lead band above; the grid carries
       // the rest of the at-a-glance metrics.
-      { key: "target", label: "Target", st: this._st(picks.target), icon: "mdi:target" },
-      { key: "plug", label: "Plug", st: this._st(picks.plug), icon: charging ? "mdi:power-plug" : "mdi:power-plug-off" },
-      { key: "ttf", label: charging ? "Time to full" : "Charge time", st: this._st(picks.timeToFull), icon: "mdi:timer-sand" },
-      { key: "odo", label: "Odometer", st: this._st(picks.odometer), icon: "mdi:counter" },
+      { key: "target", label: this._t("target"), st: this._st(picks.target), icon: "mdi:target" },
+      { key: "plug", label: this._t("plug"), st: this._st(picks.plug), icon: charging ? "mdi:power-plug" : "mdi:power-plug-off" },
+      { key: "ttf", label: charging ? this._t("time_to_full") : this._t("charge_time"), st: this._st(picks.timeToFull), icon: "mdi:timer-sand" },
+      { key: "odo", label: this._t("odometer"), st: this._st(picks.odometer), icon: "mdi:counter" },
     ].filter((m) => m.st);
 
     const sig = this._signature({
       m: "ov",
+      lang: _lang(this._hass),
       name,
       soc,
       charging,
@@ -314,7 +519,7 @@ class BmwCardataCard extends HTMLElement {
           <div class="hero__scrim"></div>
           <div class="hero__top">
             <div class="hero__name" title="${name}">${name}</div>
-            ${rel ? `<div class="pill" title="Last update"><span class="dot ${this._staleClass(freshest)}"></span>${rel}</div>` : ""}
+            ${rel ? `<div class="pill" title="${this._t("last_update")}"><span class="dot ${this._staleClass(freshest)}"></span>${rel}</div>` : ""}
           </div>
         </div>
 
@@ -323,7 +528,7 @@ class BmwCardataCard extends HTMLElement {
             <div class="gauge__ring" style="--pct:${pct};--ring:${ringColor}">
               <div class="gauge__hole">
                 <span class="gauge__val">${soc == null ? "—" : Math.round(soc)}<i>%</i></span>
-                <span class="gauge__cap">${charging ? "charging" : "charge"}</span>
+                <span class="gauge__cap">${charging ? this._t("charging") : this._t("charge")}</span>
               </div>
             </div>
             ${charging ? `<ha-icon class="gauge__bolt" icon="mdi:lightning-bolt"></ha-icon>` : ""}
@@ -333,12 +538,12 @@ class BmwCardataCard extends HTMLElement {
             <button class="lead__row" data-entity="${picks.range || ""}">
               <ha-icon icon="mdi:map-marker-distance"></ha-icon>
               <span class="lead__val">${this._fmt(rangeSt)}</span>
-              <span class="lead__lbl">remaining range</span>
+              <span class="lead__lbl">${this._t("remaining_range")}</span>
             </button>
             <button class="lead__row" data-entity="${picks.charging || ""}">
               <ha-icon icon="${charging ? "mdi:battery-charging" : "mdi:ev-station"}"></ha-icon>
               <span class="lead__val">${this._chargingLabel(chargingSt, charging)}</span>
-              <span class="lead__lbl">charging status</span>
+              <span class="lead__lbl">${this._t("charging_status")}</span>
             </button>
           </div>
         </div>
@@ -367,7 +572,10 @@ class BmwCardataCard extends HTMLElement {
   }
 
   _chargingLabel(st, charging) {
-    if (!st || UNAVAILABLE.has(st.state)) return charging ? "Charging" : "Not charging";
+    const raw = st && st.state != null ? String(st.state).toLowerCase() : "";
+    if (!st || UNAVAILABLE.has(st.state) || NOT_CHARGING_STATES.has(raw)) {
+      return this._t(charging ? "is_charging" : "not_charging");
+    }
     return this._fmt(st);
   }
 
@@ -394,12 +602,13 @@ class BmwCardataCard extends HTMLElement {
         )
       );
 
-    const label = this._config.title || CLUSTER_LABELS[slug] || slug;
+    const label = this._config.title || this._clusterLabel(slug);
     const icon = CLUSTER_ICONS[slug] || "mdi:car";
     const name = this._deviceName(deviceId);
 
     const sig = this._signature({
       m: "cl",
+      lang: _lang(this._hass),
       slug,
       rows: rows.map((s) => [s.entity_id, s.state]),
     });
@@ -413,7 +622,7 @@ class BmwCardataCard extends HTMLElement {
           <ha-icon icon="${icon}"></ha-icon>
           <div class="chead__text">
             <span class="chead__title">${label}</span>
-            <span class="chead__sub">${name} · ${rows.length} ${rows.length === 1 ? "value" : "values"}</span>
+            <span class="chead__sub">${name} · ${rows.length} ${this._t(rows.length === 1 ? "value" : "values")}</span>
           </div>
         </div>
         ${
@@ -429,11 +638,16 @@ class BmwCardataCard extends HTMLElement {
                   })
                   .join("")}
               </div>`
-            : `<div class="empty">No <b>${label}</b> entities for this vehicle. Enable the cluster in the integration options.</div>`
+            : `<div class="empty">${this._t("no_cluster_entities", { label: `<b>${label}</b>` })}</div>`
         }
       </ha-card>
     `;
     this._wireTaps();
+  }
+
+  /** Localized display label for a catalogue cluster slug. */
+  _clusterLabel(slug) {
+    return this._t("cl_" + slug, null, slug);
   }
 
   _shortName(st, deviceName) {
@@ -458,15 +672,16 @@ class BmwCardataCard extends HTMLElement {
 
     const name = this._deviceName(deviceId);
     const slots = [
-      { key: "row1_left", label: "FL", full: "Front left" },
-      { key: "row1_right", label: "FR", full: "Front right" },
-      { key: "row2_left", label: "RL", full: "Rear left" },
-      { key: "row2_right", label: "RR", full: "Rear right" },
+      { key: "row1_left", label: this._t("fl"), full: this._t("front_left") },
+      { key: "row1_right", label: this._t("fr"), full: this._t("front_right") },
+      { key: "row2_left", label: this._t("rl"), full: this._t("rear_left") },
+      { key: "row2_right", label: this._t("rr"), full: this._t("rear_right") },
     ];
     const present = slots.filter((s) => wheels[s.key]);
 
     const sig = this._signature({
       m: "tire",
+      lang: _lang(this._hass),
       w: Object.fromEntries(
         Object.entries(wheels).map(([k, m]) => [
           k,
@@ -482,7 +697,7 @@ class BmwCardataCard extends HTMLElement {
         ${this._styles()}
         <ha-card>
           ${this._tireHead(name, "—")}
-          <div class="empty">No <b>tire</b> data for this vehicle yet. Enable the Tire data cluster and drive to populate readings.</div>
+          <div class="empty">${this._t("no_tire_data")}</div>
         </ha-card>`;
       return;
     }
@@ -490,12 +705,12 @@ class BmwCardataCard extends HTMLElement {
     // Fleet-wide status summary for the header.
     const statuses = present.map((s) => this._tireStatus(wheels[s.key]).cls);
     const worst = statuses.includes("low")
-      ? { t: "Check pressure", c: "var(--bmw-low)" }
+      ? { t: this._t("check_pressure"), c: "var(--bmw-low)" }
       : statuses.includes("high")
-      ? { t: "Slightly high", c: "var(--bmw-mid)" }
+      ? { t: this._t("slightly_high"), c: "var(--bmw-mid)" }
       : statuses.every((c) => c === "ok")
-      ? { t: "All nominal", c: "var(--bmw-high)" }
-      : { t: `${present.length} of 4`, c: "var(--secondary-text-color)" };
+      ? { t: this._t("all_nominal"), c: "var(--bmw-high)" }
+      : { t: this._t("of_four", { n: present.length }), c: "var(--secondary-text-color)" };
 
     const colors = {
       fl: this._tireStatus(wheels.row1_left || {}).color,
@@ -509,7 +724,7 @@ class BmwCardataCard extends HTMLElement {
       <ha-card>
         ${this._tireHead(name, worst.t, worst.c)}
         <div class="tirecar">
-          <span class="tirecar__front">FRONT</span>
+          <span class="tirecar__front">${this._t("front")}</span>
           ${this._carSvg(colors)}
           ${this._wheelLabel(slots[0], wheels.row1_left, "fl")}
           ${this._wheelLabel(slots[1], wheels.row1_right, "fr")}
@@ -565,7 +780,7 @@ class BmwCardataCard extends HTMLElement {
       <div class="chead">
         <ha-icon icon="mdi:car-tire-alert"></ha-icon>
         <div class="chead__text">
-          <span class="chead__title">Tire pressure</span>
+          <span class="chead__title">${this._t("tire_pressure")}</span>
           <span class="chead__sub">${name}</span>
         </div>
         ${
@@ -579,13 +794,13 @@ class BmwCardataCard extends HTMLElement {
   _tireStatus(wheel) {
     const cur = this._num(wheel.pressure);
     const tgt = this._num(wheel.pressureTarget);
-    if (cur == null) return { cls: "na", label: "No data", color: "var(--divider-color)" };
-    if (tgt == null) return { cls: "na", label: "Current", color: "var(--divider-color)" };
+    if (cur == null) return { cls: "na", label: this._t("t_nodata"), color: "var(--divider-color)" };
+    if (tgt == null) return { cls: "na", label: this._t("t_current"), color: "var(--divider-color)" };
     const devPct = ((cur - tgt) / tgt) * 100;
     const tol = 4; // ±4% of target counts as nominal
-    if (devPct < -tol) return { cls: "low", label: "Low", color: "var(--bmw-low)" };
-    if (devPct > tol) return { cls: "high", label: "High", color: "var(--bmw-mid)" };
-    return { cls: "ok", label: "OK", color: "var(--bmw-high)" };
+    if (devPct < -tol) return { cls: "low", label: this._t("t_low"), color: "var(--bmw-low)" };
+    if (devPct > tol) return { cls: "high", label: this._t("t_high"), color: "var(--bmw-mid)" };
+    return { cls: "ok", label: this._t("t_ok"), color: "var(--bmw-high)" };
   }
 
   _splitValueUnit(st) {
@@ -933,26 +1148,6 @@ if (!customElements.get("bmw-cardata-card")) {
 // Sentinel for "no cluster" so the dropdown always has a concrete value.
 const OVERVIEW = "overview";
 
-const EDITOR_LABELS = {
-  device: "Vehicle",
-  cluster: "Mode",
-  title: "Title (optional)",
-  image: "Image entity",
-  soc: "State of charge",
-  range: "Range",
-  charging: "Charging status",
-  target_soc: "Charge target",
-  time_to_full: "Time to full",
-  odometer: "Odometer",
-  plug: "Plug / connection",
-};
-
-const EDITOR_HELPERS = {
-  cluster:
-    "Overview shows the hero image and key metrics. A cluster shows every value of that group as a list.",
-  title: "Overrides the vehicle name shown on the card.",
-};
-
 class BmwCardataCardEditor extends HTMLElement {
   setConfig(config) {
     this._config = { ...config };
@@ -966,10 +1161,10 @@ class BmwCardataCardEditor extends HTMLElement {
 
   _schema() {
     const clusterOptions = [
-      { value: OVERVIEW, label: "Overview (default)" },
-      ...Object.keys(CLUSTER_LABELS).map((slug) => ({
+      { value: OVERVIEW, label: t(this._hass, "ed_overview_option") },
+      ...CLUSTER_SLUGS.map((slug) => ({
         value: slug,
-        label: CLUSTER_LABELS[slug],
+        label: t(this._hass, "cl_" + slug, null, slug),
       })),
     ];
     const entitySel = (domain) => ({
@@ -987,7 +1182,7 @@ class BmwCardataCardEditor extends HTMLElement {
         name: "",
         type: "expandable",
         flatten: true,
-        title: "Entity overrides (optional — leave empty to auto-detect)",
+        title: t(this._hass, "ed_overrides_title"),
         icon: "mdi:tune-variant",
         schema: [
           { name: "image", selector: entitySel("image") },
@@ -1013,8 +1208,8 @@ class BmwCardataCardEditor extends HTMLElement {
     if (!this._hass || !this._config) return;
     if (!this._form) {
       this._form = document.createElement("ha-form");
-      this._form.computeLabel = (s) => EDITOR_LABELS[s.name] || s.name;
-      this._form.computeHelper = (s) => EDITOR_HELPERS[s.name] || "";
+      this._form.computeLabel = (s) => t(this._hass, "ed_" + s.name, null, s.name);
+      this._form.computeHelper = (s) => t(this._hass, "edh_" + s.name, null, "");
       this._form.addEventListener("value-changed", (ev) => this._valueChanged(ev));
       this.appendChild(this._form);
     }
