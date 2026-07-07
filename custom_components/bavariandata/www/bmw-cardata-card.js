@@ -13,7 +13,20 @@
  * config is just `type: custom:bmw-cardata-card`.
  */
 
-const CARD_VERSION = "1.2.0";
+const CARD_VERSION = "1.2.1";
+
+// Register a custom element idempotently: always attempt the define so a cold
+// load can never silently skip it, but swallow the benign "already defined"
+// error from a legitimate second evaluation. A real error (e.g. an invalid
+// class) still surfaces. Hoisted (function declaration) so the define() call
+// sites near the end of the module can use it.
+function defineCardElement(tag, cls) {
+  try {
+    customElements.define(tag, cls);
+  } catch (err) {
+    if (!customElements.get(tag)) throw err; // not a duplicate-definition race
+  }
+}
 
 // Catalogue cluster slugs, in display order. Human labels are localized via the
 // translation table (keys `cl_<slug>`); icons are language-independent.
@@ -1614,16 +1627,18 @@ class BmwCardataCard extends HTMLElement {
   }
 }
 
-// Guard against double-definition: the script can legitimately be evaluated more
-// than once (e.g. auto-registered by the integration *and* still present as a
-// leftover manual Lovelace resource from an earlier version). A bare
-// customElements.define() would throw "the name has already been used" on the
-// second run, aborting the rest of the module and leaving the card broken —
-// which shows up as a "config error" on placed cards and an endless spinner in
-// the card picker. Defining only when absent keeps a double-load harmless.
-if (!customElements.get("bmw-cardata-card")) {
-  customElements.define("bmw-cardata-card", BmwCardataCard);
-}
+// Register idempotently. The script can legitimately be evaluated more than once
+// in one session (e.g. the integration re-injects a fresh ?v= URL after an update
+// on top of the already-loaded copy). A bare customElements.define() would throw
+// "the name has already been used" on the second run and abort the module.
+//
+// The previous `if (!customElements.get(tag)) define(tag)` guard proved unsafe:
+// on cold loads the define was sometimes *skipped* while the element was never
+// actually registered, leaving every placed card stuck on "config error" (HA's
+// whenDefined->rebuild never fires because the tag never becomes defined) until a
+// hard refresh. Always attempt the define and swallow only the benign
+// already-defined error, so registration can never be silently missed.
+defineCardElement("bmw-cardata-card", BmwCardataCard);
 
 /* ------------------------------------------------------------------------- *
  * Visual editor (config-changed via ha-form)                                *
@@ -1730,9 +1745,7 @@ class BmwCardataCardEditor extends HTMLElement {
   }
 }
 
-if (!customElements.get("bmw-cardata-card-editor")) {
-  customElements.define("bmw-cardata-card-editor", BmwCardataCardEditor);
-}
+defineCardElement("bmw-cardata-card-editor", BmwCardataCardEditor);
 
 window.customCards = window.customCards || [];
 // Only advertise the card once — a second evaluation would otherwise add a
