@@ -184,6 +184,26 @@ type: custom:bmw-cardata-card
 cluster: electric   # electric · status · tire · usage · events · basic · contract · metadata · other
 ```
 
+**Tire pressures** — `cluster: tire` draws a top-down car with each tire coloured
+by pressure vs. its target (green OK, amber high, red low) and the readings beside
+each wheel:
+
+```yaml
+type: custom:bmw-cardata-card
+cluster: tire
+```
+
+**Security & closures** — `cluster: closures` shows doors, windows, hood, trunk,
+sunroof, the central lock and the anti-theft alarm on the same car. Open doors
+highlight red, open windows/sunroof amber, and a central padlock reflects the lock
+state; a badge summarises the worst-case status and every part taps through to the
+underlying entity. Parts the vehicle doesn't report are simply omitted:
+
+```yaml
+type: custom:bmw-cardata-card
+cluster: closures
+```
+
 If the card doesn't show up after an update, hard-refresh the browser.
 
 ## Services

@@ -13,7 +13,7 @@
  * config is just `type: custom:bmw-cardata-card`.
  */
 
-const CARD_VERSION = "1.1.0";
+const CARD_VERSION = "1.2.0";
 
 // Catalogue cluster slugs, in display order. Human labels are localized via the
 // translation table (keys `cl_<slug>`); icons are language-independent.
@@ -122,6 +122,31 @@ const TRANSLATIONS = {
     t_ok: "OK",
     t_nodata: "No data",
     t_current: "Current",
+    // closures / security
+    cl_closures: "Security & closures",
+    closures_none:
+      "No door, window or security data for this vehicle yet. Enable the Vehicle status cluster in the integration options.",
+    central_lock: "Central lock",
+    alarm_word: "Anti-theft alarm",
+    alarm_armed: "Armed",
+    alarm_disarmed: "Disarmed",
+    alarm_triggered: "Alarm triggered",
+    secured: "Secured",
+    locked: "Locked",
+    unlocked: "Unlocked",
+    partially_locked: "Partially locked",
+    all_closed: "All closed",
+    windows_open: "Windows open",
+    n_open: "{n} open",
+    state_open: "Open",
+    state_closed: "Closed",
+    state_tilted: "Tilted",
+    door_word: "Door",
+    window_word: "Window",
+    hood_word: "Hood",
+    trunk_word: "Trunk",
+    rear_window_word: "Rear window",
+    sunroof_word: "Sunroof",
     // editor
     ed_device: "Vehicle",
     ed_cluster: "Mode",
@@ -199,6 +224,31 @@ const TRANSLATIONS = {
     t_ok: "OK",
     t_nodata: "Keine Daten",
     t_current: "Aktuell",
+    // closures / security
+    cl_closures: "Sicherheit & Öffnungen",
+    closures_none:
+      "Noch keine Tür-, Fenster- oder Sicherheitsdaten für dieses Fahrzeug. Aktiviere den Cluster „Fahrzeugstatus“ in den Integrationsoptionen.",
+    central_lock: "Zentralverriegelung",
+    alarm_word: "Diebstahlwarnanlage",
+    alarm_armed: "Scharf",
+    alarm_disarmed: "Unscharf",
+    alarm_triggered: "Alarm ausgelöst",
+    secured: "Gesichert",
+    locked: "Verriegelt",
+    unlocked: "Entriegelt",
+    partially_locked: "Teilweise verriegelt",
+    all_closed: "Alles geschlossen",
+    windows_open: "Fenster offen",
+    n_open: "{n} offen",
+    state_open: "Offen",
+    state_closed: "Geschlossen",
+    state_tilted: "Gekippt",
+    door_word: "Tür",
+    window_word: "Fenster",
+    hood_word: "Motorhaube",
+    trunk_word: "Kofferraum",
+    rear_window_word: "Heckscheibe",
+    sunroof_word: "Schiebedach",
     // editor
     ed_device: "Fahrzeug",
     ed_cluster: "Modus",
@@ -447,6 +497,8 @@ class BmwCardataCard extends HTMLElement {
     const entities = this._deviceEntities(deviceId);
     if (this._config.cluster === "tire") {
       this._renderTires(deviceId, entities);
+    } else if (this._config.cluster === "closures") {
+      this._renderClosures(deviceId, entities);
     } else if (this._config.cluster) {
       this._renderCluster(deviceId, entities);
     } else {
@@ -736,22 +788,91 @@ class BmwCardataCard extends HTMLElement {
   }
 
   _carSvg(c) {
-    // Top-down symbolic car. Wheels are drawn first so the body overlaps their
-    // inner edge (looks mounted); each wheel is stroked in its status colour.
-    const wheel = (x, y, color) =>
-      `<rect x="${x}" y="${y}" width="16" height="38" rx="7" class="carsvg__wheel" style="stroke:${color}"/>`;
+    // Top-down BMW M-car with each wheel stroked in its tire-status colour.
     return `
       <svg class="carsvg" viewBox="0 0 140 214" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        ${wheel(15, 40, c.fl)}
-        ${wheel(109, 40, c.fr)}
-        ${wheel(15, 150, c.rl)}
-        ${wheel(109, 150, c.rr)}
-        <rect x="30" y="6" width="80" height="202" rx="30" class="carsvg__body"/>
-        <path d="M46 56 H94 L88 72 H52 Z" class="carsvg__glass"/>
-        <rect x="50" y="72" width="40" height="66" rx="9" class="carsvg__roof"/>
-        <path d="M52 138 H88 L94 156 H46 Z" class="carsvg__glass"/>
-        <path d="M70 16 L58 30 H82 Z" class="carsvg__hood"/>
+        ${this._carWheels(c)}
+        ${this._carBody()}
       </svg>`;
+  }
+
+  // Four wheels, each stroked in its colour (falls back to the neutral divider
+  // colour when a caller doesn't care about per-wheel status, e.g. closures).
+  _carWheels(c = {}) {
+    const n = "var(--divider-color)";
+    const wheel = (x, y, color) =>
+      `<rect x="${x}" y="${y}" width="12" height="38" rx="5" class="carsvg__wheel" style="stroke:${color || n}"/>`;
+    return `${wheel(16, 45, c.fl)}${wheel(112, 45, c.fr)}${wheel(16, 151, c.rl)}${wheel(112, 151, c.rr)}`;
+  }
+
+  // Static body art (mirrors, shell, grille, greenhouse, lights). Shared by the
+  // tire diagram and the closures diagram; the latter layers overlays on top.
+  _carBody() {
+    return `
+        <!-- side mirrors (protruding at cowl) -->
+        <path d="M31 74 L20 70 L18 77 L30 80 Z" class="carsvg__mirror"/>
+        <path d="M109 74 L120 70 L122 77 L110 80 Z" class="carsvg__mirror"/>
+
+        <!-- body: flared fenders + fuller cabin (softened M-car proportion) -->
+        <path d="M70 9
+                 C60 9 52 10 46 12
+                 C37 15 30 30 25 52
+                 C22 72 32 92 33 108
+                 C34 130 22 152 25 170
+                 C27 188 34 200 46 203
+                 C54 205 62 205 70 205
+                 C78 205 86 205 94 203
+                 C106 200 113 188 115 170
+                 C118 152 106 130 107 108
+                 C108 92 118 72 115 52
+                 C110 30 103 15 94 12
+                 C88 10 80 9 70 9 Z" class="carsvg__body"/>
+
+        <!-- front splitter line -->
+        <path d="M46 12 C58 10 82 10 94 12" class="carsvg__seam"/>
+
+        <!-- twin-kidney grille (prominent, low) -->
+        <path d="M59 17 C56 17 55 19 55 22 L55 39 C55 42 56 43 59 43 L67 43 L67 17 Z" class="carsvg__grille"/>
+        <path d="M81 17 C84 17 85 19 85 22 L85 39 C85 42 84 43 81 43 L73 43 L73 17 Z" class="carsvg__grille"/>
+        <path d="M60 20 V40 M63 20 V40 M77 20 V40 M80 20 V40" class="carsvg__grillebar"/>
+
+        <!-- swept headlights, inboard of the fender edge -->
+        <path d="M40 22 L54 18 L54 31 L42 33 Z" class="carsvg__light"/>
+        <path d="M100 22 L86 18 L86 31 L98 33 Z" class="carsvg__light"/>
+
+        <!-- hood scoop + shut lines -->
+        <path d="M60 50 H80 L77 70 H63 Z" class="carsvg__scoop"/>
+        <path d="M66 54 V66 M74 54 V66" class="carsvg__scoopslit"/>
+        <path d="M42 42 C39 54 39 64 44 72 M98 42 C101 54 101 64 96 72" class="carsvg__seam"/>
+
+        <!-- windshield -->
+        <path d="M49 72 H91 L94 90 H46 Z" class="carsvg__glass"/>
+
+        <!-- roof + sunroof -->
+        <path d="M50 90 H90 L88 142 H52 Z" class="carsvg__roof"/>
+        <path d="M57 96 H83 L82 118 H58 Z" class="carsvg__sunroof"/>
+
+        <!-- side door windows (front + rear, both sides) -->
+        <path d="M38 94 H49 V112 H39 Z" class="carsvg__glass"/>
+        <path d="M39 116 H49 V136 H41 Z" class="carsvg__glass"/>
+        <path d="M91 94 H102 V112 H101 Z" class="carsvg__glass"/>
+        <path d="M91 116 H101 V136 H99 Z" class="carsvg__glass"/>
+
+        <!-- door shut seams + handles (4 doors) -->
+        <path d="M33 92 H38 M34 114 H39 M36 138 H41 M107 92 H102 M106 114 H101 M104 138 H99" class="carsvg__seam"/>
+        <rect x="34" y="102" width="6" height="2" rx="1" class="carsvg__handle"/>
+        <rect x="35" y="126" width="6" height="2" rx="1" class="carsvg__handle"/>
+        <rect x="100" y="102" width="6" height="2" rx="1" class="carsvg__handle"/>
+        <rect x="99" y="126" width="6" height="2" rx="1" class="carsvg__handle"/>
+
+        <!-- rear window -->
+        <path d="M52 142 H88 L91 162 H49 Z" class="carsvg__glass"/>
+
+        <!-- rear deck: spoiler lip + tail lights (inboard) + diffuser -->
+        <path d="M44 176 C56 179 84 179 96 176" class="carsvg__seam"/>
+        <path d="M46 190 H65 L63 200 H47 Z" class="carsvg__tail"/>
+        <path d="M94 190 H75 L77 200 H93 Z" class="carsvg__tail"/>
+        <path d="M60 202 H80" class="carsvg__crease"/>`;
   }
 
   _wheelLabel(slot, wheel, pos) {
@@ -801,6 +922,346 @@ class BmwCardataCard extends HTMLElement {
     if (devPct < -tol) return { cls: "low", label: this._t("t_low"), color: "var(--bmw-low)" };
     if (devPct > tol) return { cls: "high", label: this._t("t_high"), color: "var(--bmw-mid)" };
     return { cls: "ok", label: this._t("t_ok"), color: "var(--bmw-high)" };
+  }
+
+  /* ---- closures / security diagram -------------------------------------- */
+
+  // Descriptor paths for every closure signal the card knows how to place.
+  static CLOSURE_PATHS = {
+    doorOpen: {
+      lf: "vehicle.cabin.door.row1.driver.isOpen",
+      rf: "vehicle.cabin.door.row1.passenger.isOpen",
+      lr: "vehicle.cabin.door.row2.driver.isOpen",
+      rr: "vehicle.cabin.door.row2.passenger.isOpen",
+    },
+    doorPos: {
+      lf: "vehicle.cabin.door.row1.driver.position",
+      rf: "vehicle.cabin.door.row1.passenger.position",
+      lr: "vehicle.cabin.door.row2.driver.position",
+      rr: "vehicle.cabin.door.row2.passenger.position",
+    },
+    window: {
+      lf: "vehicle.cabin.window.row1.driver.status",
+      rf: "vehicle.cabin.window.row1.passenger.status",
+      lr: "vehicle.cabin.window.row2.driver.status",
+      rr: "vehicle.cabin.window.row2.passenger.status",
+    },
+    hood: "vehicle.body.hood.isOpen",
+    trunk: "vehicle.body.trunk.isOpen",
+    rearWindow: "vehicle.body.trunk.window.isOpen",
+    sunroof: ["vehicle.cabin.sunroof.overallStatus", "vehicle.cabin.sunroof.status"],
+    lock: "vehicle.cabin.door.lock.status",
+    alarmArm: "vehicle.vehicle.antiTheftAlarmSystem.alarm.armStatus",
+    alarmOn: "vehicle.vehicle.antiTheftAlarmSystem.alarm.isOn",
+  };
+
+  _renderClosures(deviceId, entities) {
+    const P = BmwCardataCard.CLOSURE_PATHS;
+    const byDesc = {};
+    for (const id of entities) {
+      const st = this._st(id);
+      const d = st && st.attributes && st.attributes.descriptor;
+      if (d) byDesc[d] = id;
+    }
+    const find = (path) =>
+      Array.isArray(path) ? path.map((p) => byDesc[p]).find(Boolean) : byDesc[path];
+
+    const name = this._deviceName(deviceId);
+    const ALERT = "var(--bmw-low)";
+    const WARN = "var(--bmw-mid)";
+    const OK = "var(--bmw-high)";
+
+    // Per-slot doors (prefer isOpen; fall back to position sensor).
+    const doors = {};
+    for (const k of ["lf", "rf", "lr", "rr"]) {
+      const id = find(P.doorOpen[k]) || find(P.doorPos[k]);
+      if (!id) continue;
+      const st = this._st(id);
+      doors[k] = { id, open: this._openState(st) };
+    }
+    // Per-slot windows.
+    const windows = {};
+    for (const k of ["lf", "rf", "lr", "rr"]) {
+      const id = find(P.window[k]);
+      if (!id) continue;
+      const st = this._st(id);
+      windows[k] = { id, open: this._openState(st), partial: this._isPartialState(st) };
+    }
+    const single = (path) => {
+      const id = find(path);
+      if (!id) return null;
+      const st = this._st(id);
+      return { id, st, open: this._openState(st), partial: this._isPartialState(st) };
+    };
+    const hood = single(P.hood);
+    const trunk = single(P.trunk);
+    const rearWindow = single(P.rearWindow);
+    const sunroof = single(P.sunroof);
+
+    const lockId = find(P.lock);
+    const lock = this._lockInfo(lockId ? this._st(lockId) : null);
+    const armId = find(P.alarmArm);
+    const onId = find(P.alarmOn);
+    const alarm = this._alarmInfo(armId ? this._st(armId) : null, onId ? this._st(onId) : null);
+
+    const present =
+      Object.keys(doors).length +
+      Object.keys(windows).length +
+      [hood, trunk, rearWindow, sunroof].filter(Boolean).length +
+      (lockId ? 1 : 0) +
+      (alarm ? 1 : 0);
+
+    // Change-detection signature.
+    const stateOf = (id) => (id && this._st(id) ? this._st(id).state : null);
+    const sig = this._signature({
+      m: "clo",
+      lang: _lang(this._hass),
+      doors: Object.fromEntries(Object.entries(doors).map(([k, v]) => [k, stateOf(v.id)])),
+      wins: Object.fromEntries(Object.entries(windows).map(([k, v]) => [k, stateOf(v.id)])),
+      hood: hood && stateOf(hood.id),
+      trunk: trunk && stateOf(trunk.id),
+      rw: rearWindow && stateOf(rearWindow.id),
+      sr: sunroof && stateOf(sunroof.id),
+      lock: stateOf(lockId),
+      arm: stateOf(armId),
+      on: stateOf(onId),
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    if (!present) {
+      this.shadowRoot.innerHTML = `
+        ${this._styles()}
+        <ha-card>
+          ${this._closuresHead(name, null)}
+          <div class="empty">${this._t("closures_none")}</div>
+        </ha-card>`;
+      return;
+    }
+
+    // Build the itemised list: lock + alarm always shown; then each open part.
+    const openItems = [];
+    const slotLabel = { lf: "front_left", rf: "front_right", lr: "rear_left", rr: "rear_right" };
+    for (const k of ["lf", "rf", "lr", "rr"]) {
+      if (doors[k] && doors[k].open) {
+        openItems.push({
+          id: doors[k].id,
+          label: `${this._t(slotLabel[k])} · ${this._t("door_word")}`,
+          value: this._t("state_open"),
+          color: ALERT,
+        });
+      }
+    }
+    for (const k of ["lf", "rf", "lr", "rr"]) {
+      if (windows[k] && windows[k].open) {
+        openItems.push({
+          id: windows[k].id,
+          label: `${this._t(slotLabel[k])} · ${this._t("window_word")}`,
+          value: this._t(windows[k].partial ? "state_tilted" : "state_open"),
+          color: WARN,
+        });
+      }
+    }
+    const bodyPart = (part, key, color) => {
+      if (part && part.open) {
+        openItems.push({
+          id: part.id,
+          label: this._t(key),
+          value: this._t(part.partial ? "state_tilted" : "state_open"),
+          color,
+        });
+      }
+    };
+    bodyPart(hood, "hood_word", ALERT);
+    bodyPart(trunk, "trunk_word", ALERT);
+    bodyPart(rearWindow, "rear_window_word", WARN);
+    bodyPart(sunroof, "sunroof_word", WARN);
+
+    const anyBodyOpen =
+      (hood && hood.open) || (trunk && trunk.open) ||
+      Object.values(doors).some((d) => d.open);
+    const anyGlassOpen =
+      Object.values(windows).some((w) => w.open) ||
+      (sunroof && sunroof.open) || (rearWindow && rearWindow.open);
+    const overall = this._closuresOverall({ anyBodyOpen, anyGlassOpen, count: openItems.length, lock, alarm });
+
+    const rows = [];
+    if (lockId) {
+      rows.push({ id: lockId, label: this._t("central_lock"), value: lock.label, color: lock.color });
+    }
+    if (alarm) {
+      rows.push({ id: armId || onId, label: this._t("alarm_word"), value: alarm.label, color: alarm.color });
+    }
+    rows.push(...openItems);
+    if (!openItems.length) {
+      rows.push({ id: "", label: this._t("all_closed"), value: "✓", color: OK });
+    }
+
+    const diagram = this._carSvgClosures({
+      doors, windows, hood, trunk, rearWindow, sunroof, lock, lockId,
+      colors: { ALERT, WARN, OK },
+    });
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        ${this._closuresHead(name, overall)}
+        <div class="closcar">${diagram}</div>
+        <div class="list">
+          ${rows
+            .map(
+              (r) => `<button class="item" data-entity="${r.id}">
+                <span class="item__name" title="${r.label}"><span class="item__dot" style="background:${r.color}"></span>${r.label}</span>
+                <span class="item__val" style="color:${r.color}">${r.value}</span>
+              </button>`
+            )
+            .join("")}
+        </div>
+      </ha-card>`;
+    this._wireTaps();
+  }
+
+  _closuresHead(name, overall) {
+    return `
+      <div class="chead">
+        <ha-icon icon="mdi:car-door-lock"></ha-icon>
+        <div class="chead__text">
+          <span class="chead__title">${this._t("cl_closures")}</span>
+          <span class="chead__sub">${name}</span>
+        </div>
+        ${
+          overall
+            ? `<span class="tstat" style="--c:${overall.color}"><span class="tstat__dot"></span>${overall.label}</span>`
+            : ""
+        }
+      </div>`;
+  }
+
+  _closuresOverall({ anyBodyOpen, anyGlassOpen, count, lock, alarm }) {
+    if (alarm && alarm.key === "triggered") return { label: alarm.label, color: "var(--bmw-low)" };
+    if (anyBodyOpen) return { label: this._t("n_open", { n: count }), color: "var(--bmw-low)" };
+    if (anyGlassOpen) return { label: this._t("windows_open"), color: "var(--bmw-mid)" };
+    if (lock.key === "unlocked") return { label: this._t("unlocked"), color: "var(--bmw-low)" };
+    if (lock.key === "partial") return { label: this._t("partially_locked"), color: "var(--bmw-mid)" };
+    if (lock.key === "secured" || lock.key === "locked") return { label: lock.label, color: "var(--bmw-high)" };
+    return { label: this._t("all_closed"), color: "var(--bmw-high)" };
+  }
+
+  // Same top-down car as the tire view, with closure overlays layered on top:
+  // open doors sprout a coloured flap, open glass is tinted, hood/trunk shade,
+  // and a central padlock reflects the lock state. Every part is tappable.
+  _carSvgClosures(d) {
+    const { ALERT, WARN } = d.colors;
+    const doorGeo = {
+      lf: { flap: "M32 92 L15 87 L17 100 L33 106 Z", hit: "27 90 13 23" },
+      lr: { flap: "M33 116 L16 111 L18 124 L34 130 Z", hit: "27 114 14 24" },
+      rf: { flap: "M108 92 L125 87 L123 100 L107 106 Z", hit: "100 90 13 23" },
+      rr: { flap: "M107 116 L124 111 L122 124 L106 130 Z", hit: "99 114 14 24" },
+    };
+    const winGeo = {
+      lf: "M38 94 H49 V112 H39 Z",
+      lr: "M39 116 H49 V136 H41 Z",
+      rf: "M91 94 H102 V112 H101 Z",
+      rr: "M91 116 H101 V136 H99 Z",
+    };
+    const hit = (spec, id) => {
+      const [x, y, w, h] = spec.split(" ");
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}" class="cldiag__hit" data-entity="${id}"/>`;
+    };
+    const parts = [];
+
+    // Doors: flap when open, always a tap zone.
+    for (const k of ["lf", "rf", "lr", "rr"]) {
+      const door = d.doors[k];
+      if (!door) continue;
+      if (door.open) {
+        parts.push(`<path d="${doorGeo[k].flap}" class="cldiag__flap" style="fill:${ALERT};stroke:${ALERT}"/>`);
+      }
+      parts.push(hit(doorGeo[k].hit, door.id));
+    }
+    // Zones (hood / trunk) shaded when open.
+    const zone = (part, path) => {
+      if (!part) return;
+      if (part.open) parts.push(`<path d="${path}" class="cldiag__zone" style="fill:${ALERT}"/>`);
+      parts.push(`<path d="${path}" class="cldiag__hit" data-entity="${part.id}"/>`);
+    };
+    zone(d.hood, "M42 22 H98 L100 66 H40 Z");
+    zone(d.trunk, "M46 166 H94 L96 202 H44 Z");
+    // Glass (windows / sunroof / rear window) tinted amber when open.
+    const glass = (part, path) => {
+      if (!part) return;
+      if (part.open) parts.push(`<path d="${path}" class="cldiag__glass-open" style="fill:${WARN}"/>`);
+      parts.push(`<path d="${path}" class="cldiag__hit" data-entity="${part.id}"/>`);
+    };
+    for (const k of ["lf", "rf", "lr", "rr"]) {
+      const w = d.windows[k];
+      if (w) glass(w, winGeo[k]);
+    }
+    glass(d.sunroof, "M57 96 H83 L82 118 H58 Z");
+    glass(d.rearWindow, "M52 142 H88 L91 162 H49 Z");
+
+    // Central padlock (open shackle when unlocked/unknown).
+    const locked = d.lock.key === "locked" || d.lock.key === "secured";
+    const shackle = locked
+      ? "M66 121 V117 a4 4 0 0 1 8 0 V121"
+      : "M66 121 V117 a4 4 0 0 1 8 0";
+    const padlock = d.lockId
+      ? `<g class="cldiag__lock" data-entity="${d.lockId}" style="--c:${d.lock.color}">
+           <path d="${shackle}" class="cldiag__shackle"/>
+           <rect x="63" y="121" width="14" height="10" rx="1.8" class="cldiag__lockbody"/>
+         </g>`
+      : "";
+
+    return `
+      <svg class="carsvg" viewBox="0 0 140 214" xmlns="http://www.w3.org/2000/svg">
+        ${this._carWheels()}
+        ${this._carBody()}
+        ${parts.join("\n        ")}
+        ${padlock}
+      </svg>`;
+  }
+
+  // true = open, false = closed, null = unknown/unavailable. Understands the
+  // catalogue's OPEN/CLOSED/INTERMEDIATE/TILT vocabulary, boolean on/off/true/
+  // false, and numeric door-position percentages.
+  _openState(st) {
+    if (!st) return null;
+    const raw = String(st.state).trim().toLowerCase();
+    if (UNAVAILABLE.has(raw) || raw === "invalid") return null;
+    if (/^-?\d+(\.\d+)?$/.test(raw)) return Number(raw) > 0;
+    if (/\b(closed|secured|off|false)\b/.test(raw)) return false;
+    if (/(open|tilt|intermediate|ajar|unlocked|\btrue\b|\bon\b)/.test(raw)) return true;
+    if (raw === "locked") return false;
+    return null;
+  }
+
+  _isPartialState(st) {
+    if (!st) return false;
+    return /intermediate|tilt/.test(String(st.state).toLowerCase());
+  }
+
+  _lockInfo(st) {
+    const raw = st ? String(st.state).trim().toUpperCase() : "";
+    if (!st || UNAVAILABLE.has(raw.toLowerCase()) || raw === "INVALID" || raw === "")
+      return { key: "unknown", color: "var(--divider-color)", label: "—" };
+    if (raw.includes("SECURED")) return { key: "secured", color: "var(--bmw-high)", label: this._t("secured") };
+    if (raw.includes("SELECTIVE")) return { key: "partial", color: "var(--bmw-mid)", label: this._t("partially_locked") };
+    if (raw.includes("UNLOCK")) return { key: "unlocked", color: "var(--bmw-low)", label: this._t("unlocked") };
+    if (raw.includes("LOCK")) return { key: "locked", color: "var(--bmw-high)", label: this._t("locked") };
+    return { key: "unknown", color: "var(--divider-color)", label: this._fmt(st) };
+  }
+
+  _alarmInfo(armSt, onSt) {
+    if (!armSt && !onSt) return null;
+    const onRaw = onSt ? String(onSt.state).trim().toLowerCase() : "";
+    const honking = onSt && !UNAVAILABLE.has(onRaw) && /^(on|true)$/.test(onRaw);
+    if (honking) return { key: "triggered", color: "var(--bmw-low)", label: this._t("alarm_triggered") };
+    const armRaw = armSt ? String(armSt.state).trim().toLowerCase() : "";
+    const known = armSt && !UNAVAILABLE.has(armRaw) && armRaw !== "invalid";
+    if (!known) return { key: "unknown", color: "var(--divider-color)", label: "—" };
+    if (armRaw === "unarmed")
+      return { key: "disarmed", color: "var(--secondary-text-color)", label: this._t("alarm_disarmed") };
+    return { key: "armed", color: "var(--bmw-high)", label: this._t("alarm_armed") };
   }
 
   _splitValueUnit(st) {
@@ -1078,10 +1539,33 @@ class BmwCardataCard extends HTMLElement {
         overflow: visible;
       }
       .carsvg__body { fill: var(--secondary-background-color); stroke: var(--divider-color); stroke-width: 1.5; }
-      .carsvg__roof { fill: var(--card-background-color); }
+      .carsvg__crease { stroke: var(--secondary-text-color); stroke-width: 1; opacity: 0.28; fill: none; stroke-linecap: round; }
+      .carsvg__seam { stroke: var(--divider-color); stroke-width: 1.1; fill: none; stroke-linecap: round; }
+      .carsvg__roof { fill: var(--card-background-color); stroke: var(--divider-color); stroke-width: 1; }
+      .carsvg__sunroof { fill: var(--divider-color); opacity: 0.5; }
       .carsvg__glass { fill: var(--divider-color); opacity: 0.7; }
-      .carsvg__hood { fill: var(--secondary-text-color); opacity: 0.35; }
+      .carsvg__handle { fill: var(--secondary-text-color); opacity: 0.6; }
+      .carsvg__mirror { fill: var(--secondary-background-color); stroke: var(--divider-color); stroke-width: 1.2; }
+      .carsvg__grille { fill: #101318; stroke: var(--secondary-text-color); stroke-width: 0.6; }
+      .carsvg__grillebar { stroke: var(--secondary-text-color); stroke-width: 0.5; opacity: 0.5; }
+      .carsvg__light { fill: var(--secondary-text-color); opacity: 0.55; }
+      .carsvg__scoop { fill: var(--divider-color); opacity: 0.45; stroke: var(--secondary-text-color); stroke-width: 0.6; }
+      .carsvg__scoopslit { stroke: var(--secondary-text-color); stroke-width: 0.8; opacity: 0.5; }
+      .carsvg__tail { fill: #d0392b; opacity: 0.75; }
       .carsvg__wheel { fill: #15181d; stroke-width: 4; }
+
+      /* closures / security diagram */
+      .closcar { padding: 10px 12px 4px; display: flex; justify-content: center; }
+      .closcar .carsvg { width: 50%; min-width: 138px; max-width: 196px; margin: 0; }
+      .cldiag__hit { fill: transparent; cursor: pointer; }
+      .cldiag__hit:hover { fill: rgba(127, 127, 127, 0.14); }
+      .cldiag__flap { stroke-width: 1.2; opacity: 0.92; stroke-linejoin: round; }
+      .cldiag__zone { opacity: 0.42; pointer-events: none; }
+      .cldiag__glass-open { opacity: 0.7; pointer-events: none; }
+      .cldiag__lock { cursor: pointer; }
+      .cldiag__lockbody { fill: var(--c); }
+      .cldiag__shackle { fill: none; stroke: var(--c); stroke-width: 2.2; stroke-linecap: round; }
+      .item__dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
 
       .wlabel {
         position: absolute;
@@ -1162,6 +1646,7 @@ class BmwCardataCardEditor extends HTMLElement {
   _schema() {
     const clusterOptions = [
       { value: OVERVIEW, label: t(this._hass, "ed_overview_option") },
+      { value: "closures", label: t(this._hass, "cl_closures") },
       ...CLUSTER_SLUGS.map((slug) => ({
         value: slug,
         label: t(this._hass, "cl_" + slug, null, slug),
