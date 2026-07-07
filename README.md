@@ -26,6 +26,12 @@ vehicle image so a usable dashboard exists out of the box.
   <img src="screenshots/wattfried-car.png" alt="Bundled Lovelace card showing a BMW i5 eDrive40 with charge level, range, charging status and odometer" width="360" />
 </p>
 
+<p align="center">
+  <img src="screenshots/wattfried-security.png" alt="Security &amp; closures card with a top-down car diagram, anti-theft alarm armed and all closures closed" width="300" />
+  &nbsp;&nbsp;
+  <img src="screenshots/wattfried-tires.png" alt="Tyre pressure card showing all four tyres at 290 kPa on a top-down car diagram" width="300" />
+</p>
+
 > **Status — experimental.** This is a spare-time project, verified against a
 > limited number of vehicles and Home Assistant versions. Expect rough edges and
 > avoid wiring it into safety-critical automations. Track `main`; other branches
