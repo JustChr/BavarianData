@@ -76,17 +76,21 @@ class CardataEntity(RestoreEntity):
 
     @property
     def extra_state_attributes(self) -> dict:
-        state = self._coordinator.get_state(self._vin, self._descriptor)
-        if not state:
-            return {}
         attrs = {}
-        if state.timestamp:
-            attrs["timestamp"] = state.timestamp
+        # Static, state-independent metadata below — always exposed, even before
+        # the first live value arrives. Otherwise a rarely-changing entity that
+        # is only restored after a restart (e.g. a closed door) would carry no
+        # ``cluster``/``descriptor`` until BMW next reports it, so the Lovelace
+        # cards that group/auto-detect by those attributes would drop it.
+        #
         # Expose the raw descriptor path so the Lovelace card can auto-detect
         # entities language-independently: friendly names / entity_ids are
         # localized (e.g. German "Reichweite"), but the descriptor is always the
         # English BMW path, so keyword matching stays reliable in any HA locale.
         attrs["descriptor"] = self._descriptor
+        state = self._coordinator.get_state(self._vin, self._descriptor)
+        if state and state.timestamp:
+            attrs["timestamp"] = state.timestamp
         # Expose the descriptor's cluster so the Lovelace card can group entities
         # by cluster (e.g. render one card per cluster) without duplicating the
         # catalogue's descriptor->section mapping in the frontend.
