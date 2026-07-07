@@ -1,4 +1,6 @@
 {
   "name": "BavarianData: Connect Home Assistant to BMW CarData",
-  "homeassistant": "2024.6.0"
+  "homeassistant": "2024.6.0",
+  "zip_release": true,
+  "filename": "bavariandata.zip"
 }
