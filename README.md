@@ -99,11 +99,11 @@ Via [HACS](https://hacs.xyz/) as a custom repository:
 1. **Settings → Devices & Services → Add Integration → BavarianData: Connect Home Assistant to BMW CarData**.
 2. The first screen recaps the portal setup and asks for your **client ID**.
 3. Home Assistant shows a **link and a code**. Open the link, sign in, and
-   approve the device on BMW's site. The dialog waits and **continues on its own**
-   the instant you approve — nothing to click in HA, no timing to get right. If
-   it times out or is declined, press **Submit** for a fresh code and try again.
-   If it keeps failing with "access denied" even though your BMW login clearly
-   worked, see
+   approve the device on BMW's site. When BMW accepts the approval, the dialog
+   **continues on its own** — nothing to click in HA. If the code times out,
+   press **Submit** for a fresh one and try again. BMW's authorization backend is
+   sometimes flaky and can report "access denied" even though your login clearly
+   worked; if that happens, follow
    [Onboarding fails with "access denied"](#onboarding-access-denied) in
    Troubleshooting — it's a known BMW-side quirk with a reliable workaround.
 4. **Choose which data to stream.** The moment authorization succeeds, setup
