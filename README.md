@@ -102,6 +102,10 @@ Via [HACS](https://hacs.xyz/) as a custom repository:
    approve the device on BMW's site. The dialog waits and **continues on its own**
    the instant you approve — nothing to click in HA, no timing to get right. If
    it times out or is declined, press **Submit** for a fresh code and try again.
+   If it keeps failing with "access denied" even though your BMW login clearly
+   worked, see
+   [Onboarding fails with "access denied"](#onboarding-access-denied) in
+   Troubleshooting — it's a known BMW-side quirk with a reliable workaround.
 4. **Choose which data to stream.** The moment authorization succeeds, setup
    moves straight to the cluster picker (see [Step 4](#step-4--choose-which-data-to-stream)) —
    no separate trip to Configure. Until you finish it, no descriptors are
@@ -229,6 +233,27 @@ Each service is available in Developer Tools and as a button in the integration'
 
 ## Troubleshooting
 
+<a id="onboarding-access-denied"></a>
+
+- **Onboarding fails with "access denied" / "declined" even though BMW confirmed
+  your login?** This is flakiness in BMW's device-authorization backend, not the
+  integration — the flow can return `access_denied` ("The user has declined
+  authorization") even though you never saw a consent page and the login clearly
+  worked. It can take a few attempts; this sequence has worked reliably (multiple
+  times) for others:
+  1. Open a **fresh incognito/private browser window**.
+  2. Go to the My BMW / CarData portal **manually** — do **not** use the
+     pre-filled complete link, and strip any `?user_code=…` from the URL.
+  3. Sign in, open **Authenticate device** ("Gerät authentifizieren"), then
+     **type the user code by hand** (make sure no "incorrect code" banner
+     appears) and approve.
+  4. Back in Home Assistant, if the code timed out meanwhile, press **Submit**
+     for a fresh code and repeat.
+  5. Still failing after several tries? Delete the client in the BMW portal,
+     create a new one (tick **both** subscriptions), and redo auth with the new
+     client ID.
+
+  BMW support for persistent cases: bmwcardata-b2c-support@bmwgroup.com
 - **Debug logging** is off by default. Turn it on in **Configure → options**
   (`debug_log`) and reload. It's verbose and can include vehicle data such as GPS
   and VIN, so leave it off unless you're chasing a problem.
