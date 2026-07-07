@@ -170,6 +170,36 @@ def test_poll_access_denied_persists_then_fails(monkeypatch):
     assert "abc-123" in str(err)
 
 
+def test_poll_access_denied_after_500_flags_backend_bug(monkeypatch):
+    """A 500 followed by a terminal access_denied is called out as the BMW bug.
+
+    This is the tell-tale sequence users hit (issue #1): BMW 500s while
+    finalizing consent, then the poll returns access_denied. The error must not
+    read as a genuine decline, and must note the preceding server error.
+    """
+
+    monkeypatch.setattr(device_flow.asyncio, "sleep", _no_sleep)
+    monkeypatch.setattr(device_flow, "ACCESS_DENIED_GRACE", -1)
+    session = _PollSession(
+        [
+            _PollResponse(500, {"error": "internal_error"}),
+            _PollResponse(
+                403,
+                {
+                    "error": "access_denied",
+                    "error_description": "The user has declined authorization",
+                },
+            ),
+        ]
+    )
+    with pytest.raises(device_flow.CardataAuthError) as excinfo:
+        asyncio.run(_poll(session))
+    message = str(excinfo.value)
+    assert "known BMW-side backend issue" in message
+    assert "5xx" in message
+    assert excinfo.value.error_code == "access_denied"
+
+
 def test_poll_slow_down_raises_interval(monkeypatch):
     """slow_down permanently increases the polling interval (don't flood BMW)."""
 

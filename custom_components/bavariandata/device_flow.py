@@ -104,6 +104,34 @@ def _auth_error(status: int, data: Any, headers: Any = None) -> "CardataAuthErro
     )
 
 
+def _access_denied_error(
+    status: int, data: Any, headers: Any = None, *, saw_server_error: bool = False
+) -> "CardataAuthError":
+    """Build the terminal ``access_denied`` error with a clearer explanation.
+
+    By the time this is raised we have already polled through
+    ``ACCESS_DENIED_GRACE``, so a genuine just-approved grant would have
+    propagated. A persistent ``access_denied`` here is almost always BMW's
+    device-authorization backend failing to finalize consent — frequently right
+    after a 5xx while finalizing — rather than a decline the user actually made.
+    Say so, so people don't chase client-id / scope problems that aren't there.
+    """
+
+    hint = (
+        "BMW reported access_denied after approval — a known BMW-side backend "
+        "issue finalizing consent, not a decline you made"
+    )
+    if saw_server_error:
+        hint += "; a BMW server error (5xx) occurred earlier in this attempt"
+    return CardataAuthError(
+        f"{hint} ({_safe_error(status, data, headers=headers)})",
+        status=status,
+        error_code=data.get("error") if isinstance(data, dict) else None,
+        error_description=data.get("error_description") if isinstance(data, dict) else None,
+        correlation_id=_correlation_id(headers),
+    )
+
+
 async def request_device_code(
     session: aiohttp.ClientSession,
     *,
@@ -174,6 +202,9 @@ async def poll_for_tokens(
     max_consecutive_transient = 10
     # Timestamp of the first access_denied seen; used to bound the grace window.
     access_denied_since: Optional[float] = None
+    # Whether BMW returned a 5xx/429 at any point this attempt. A terminal
+    # access_denied that follows one is the tell-tale of the backend consent bug.
+    saw_server_error = False
 
     while True:
         if time.monotonic() - start > timeout:
@@ -207,10 +238,16 @@ async def poll_for_tokens(
                     if now - access_denied_since <= ACCESS_DENIED_GRACE:
                         await asyncio.sleep(interval)
                         continue
-                    raise _auth_error(resp.status, data, resp.headers)
+                    raise _access_denied_error(
+                        resp.status,
+                        data,
+                        resp.headers,
+                        saw_server_error=saw_server_error,
+                    )
 
                 # Transient server-side failure: retry rather than fail the flow.
                 if resp.status >= 500 or resp.status == 429:
+                    saw_server_error = True
                     consecutive_transient += 1
                     if consecutive_transient > max_consecutive_transient:
                         raise _auth_error(resp.status, data, resp.headers)
