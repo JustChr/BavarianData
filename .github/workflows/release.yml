@@ -1,0 +1,34 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to (re)build the asset for"
+        required: true
+
+jobs:
+  build-zip:
+    name: Build and attach HACS zip
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Build zip
+        # Zip from *inside* the integration folder so HACS extracts the
+        # contents straight into custom_components/bavariandata/.
+        run: |
+          cd custom_components/bavariandata
+          zip -r "$GITHUB_WORKSPACE/bavariandata.zip" .
+
+      - name: Upload asset to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.inputs.tag || github.event.release.tag_name }}
+        run: gh release upload "$TAG" bavariandata.zip --clobber
