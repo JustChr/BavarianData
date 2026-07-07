@@ -482,7 +482,11 @@
         }
       },
       "vehicle_cabin_infotainment_displayunit_distance": {
-        "name": "Anzeigeeinheit der Instrumentenanzeige im Fahrzeug"
+        "name": "Anzeigeeinheit der Instrumentenanzeige im Fahrzeug",
+        "state": {
+          "km": "Kilometer",
+          "miles": "Meilen"
+        }
       },
       "vehicle_cabin_infotainment_hmi_distanceunit": {
         "name": "Wegstreckeneinheit im Infotainment",
@@ -641,7 +645,10 @@
         }
       },
       "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
-        "name": "Statusinformation über die letzte Übertragung von OBFCM*-Werten"
+        "name": "Statusinformation über die letzte Übertragung von OBFCM*-Werten",
+        "state": {
+          "ok": "OK"
+        }
       },
       "vehicle_channel_ngtp_timevehicle": {
         "name": "Datum und Uhrzeit im Fahrzeug"
@@ -1198,7 +1205,12 @@
         "name": "Aktivierungszeit der Diebstahlwarnanlage"
       },
       "vehicle_vehicle_antitheftalarmsystem_alarm_armstatus": {
-        "name": "Schärfungsstatus der Diebstahlwarnanlage"
+        "name": "Schärfungsstatus der Diebstahlwarnanlage",
+        "state": {
+          "unarmed": "Unscharf",
+          "doorsonly": "Nur Türen",
+          "doorstiltcabin": "Türen, Neigung & Innenraum"
+        }
       },
       "vehicle_vehicle_antitheftalarmsystem_alarm_ison": {
         "name": "Diebstahlwarnanlage ist eingeschaltet"
@@ -1219,11 +1231,25 @@
         "name": "Tiefschlafmodus (Deep Sleep Mode)"
       },
       "vehicle_vehicle_preconditioning_activity": {
-        "name": "Vorkonditionierungsstatus der Standklimatisierung"
+        "name": "Vorkonditionierungsstatus der Standklimatisierung",
+        "state": {
+          "standby": "Bereitschaft",
+          "heating": "Heizen",
+          "cooling": "Kühlen",
+          "ventilation": "Lüften",
+          "inactive": "Inaktiv"
+        }
       },
       "vehicle_vehicle_preconditioning_error": {
         "name": "Grund für Nichtausführung der Vorkonditionierung der Standklimatisierung",
         "state": {
+          "lowfuel": "Niedriger Kraftstoffstand",
+          "lowbattery": "Niedriger Batteriestand",
+          "quotaexceeded": "Kontingent überschritten",
+          "heaterfailure": "Heizungsfehler",
+          "componentfailure": "Komponentenfehler",
+          "openorunlocked": "Offen oder entriegelt",
+          "ok": "OK",
           "invalid": "Ungültig"
         }
       },
@@ -1243,7 +1269,14 @@
         "name": "Geschwindigkeitsbereich oben"
       },
       "vehicle_vehicle_timesetting": {
-        "name": "Zeitzoneneinstellung im Fahrzeug"
+        "name": "Zeitzoneneinstellung im Fahrzeug",
+        "state": {
+          "wintertime": "Winterzeit",
+          "summertime": "Sommerzeit",
+          "utc": "UTC",
+          "manual": "Manuell",
+          "invalid": "Ungültig"
+        }
       },
       "vehicle_vehicle_travelleddistance": {
         "name": "Kilometerstand"

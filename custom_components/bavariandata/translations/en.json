@@ -647,7 +647,11 @@
         }
       },
       "vehicle_cabin_infotainment_displayunit_distance": {
-        "name": "Vehicle Info Display unit (distance)"
+        "name": "Vehicle Info Display unit (distance)",
+        "state": {
+          "km": "Kilometres",
+          "miles": "Miles"
+        }
       },
       "vehicle_cabin_infotainment_hmi_distanceunit": {
         "name": "Vehicle Info Distance unit",
@@ -666,8 +670,8 @@
         "name": "GPS navigation fix state",
         "state": {
           "no_fix": "No fix",
-          "gps_fix_2d": "Gps fix 2d",
-          "gps_fix_3d": "Gps fix 3d"
+          "gps_fix_2d": "Gps fix 2 d",
+          "gps_fix_3d": "Gps fix 3 d"
         }
       },
       "vehicle_cabin_infotainment_navigation_currentlocation_heading": {
@@ -815,7 +819,7 @@
       "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
         "name": "Vehicle Info OBFCM last transfer state",
         "state": {
-          "ok": "Ok",
+          "ok": "OK",
           "ecu_communication_error": "Ecu communication error",
           "vehicle_manipulation_detected": "Vehicle manipulation detected",
           "manufacturer_excluded": "Manufacturer excluded"
@@ -1043,8 +1047,8 @@
       "vehicle_drivetrain_electricengine_charging_method": {
         "name": "Charging EV Charging method",
         "state": {
-          "ac_type1plug": "Ac type1plug",
-          "ac_type2plug": "Ac type2plug",
+          "ac_type1plug": "Ac type1 plug",
+          "ac_type2plug": "Ac type2 plug",
           "nocharging": "Not charging"
         }
       },
@@ -1146,7 +1150,7 @@
           "flexcharger_pe_fault": "Flexcharger pe fault",
           "infrastructure_inefficient_charging_low_power": "Infrastructure inefficient charging low power",
           "vehicle_cable_locking_error": "Vehicle cable locking error",
-          "vehicle_configuration_error_400v_800v": "Vehicle configuration error 400v 800v",
+          "vehicle_configuration_error_400v_800v": "Vehicle configuration error 400 v 800 v",
           "infrastructure_no_ac_voltage": "Infrastructure no ac voltage",
           "plug_and_charge_tls_error": "Plug and charge tls error",
           "plug_and_charge_contract_error": "Plug and charge contract error",
@@ -1429,7 +1433,7 @@
         "state": {
           "dont_display": "Dont display",
           "display_departure_time": "Display departure time",
-          "display_departure_time_with_v2xsoe": "Display departure time with v2xsoe",
+          "display_departure_time_with_v2xsoe": "Display departure time with v2 xsoe",
           "unknown": "Unknown"
         }
       },
@@ -1575,7 +1579,12 @@
         "name": "Alarm activation time"
       },
       "vehicle_vehicle_antitheftalarmsystem_alarm_armstatus": {
-        "name": "Alarm arming state"
+        "name": "Alarm arming state",
+        "state": {
+          "unarmed": "Unarmed",
+          "doorsonly": "Doors only",
+          "doorstiltcabin": "Doors, tilt & interior"
+        }
       },
       "vehicle_vehicle_antitheftalarmsystem_alarm_ison": {
         "name": "Alarm active"
@@ -1596,12 +1605,25 @@
         "name": "Vehicle deep sleep mode"
       },
       "vehicle_vehicle_preconditioning_activity": {
-        "name": "Preconditioning state"
+        "name": "Preconditioning state",
+        "state": {
+          "standby": "Standby",
+          "heating": "Heating",
+          "cooling": "Cooling",
+          "ventilation": "Ventilation",
+          "inactive": "Inactive"
+        }
       },
       "vehicle_vehicle_preconditioning_error": {
         "name": "Preconditioning error reason",
         "state": {
-          "ok": "Ok",
+          "lowfuel": "Low fuel",
+          "lowbattery": "Low battery",
+          "quotaexceeded": "Quota exceeded",
+          "heaterfailure": "Heater failure",
+          "componentfailure": "Component failure",
+          "openorunlocked": "Open or unlocked",
+          "ok": "OK",
           "invalid": "Invalid"
         }
       },
@@ -1621,7 +1643,14 @@
         "name": "Speed upper range"
       },
       "vehicle_vehicle_timesetting": {
-        "name": "Vehicle Info Time zone setting"
+        "name": "Vehicle Info Time zone setting",
+        "state": {
+          "wintertime": "Winter time",
+          "summertime": "Summer time",
+          "utc": "UTC",
+          "manual": "Manual",
+          "invalid": "Invalid"
+        }
       },
       "vehicle_vehicle_travelleddistance": {
         "name": "Vehicle mileage"

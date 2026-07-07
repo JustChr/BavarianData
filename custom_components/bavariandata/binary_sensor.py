@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from typing import Dict, Tuple
 
-from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.binary_sensor import (
+    BinarySensorDeviceClass,
+    BinarySensorEntity,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -15,11 +18,42 @@ from .coordinator import CardataCoordinator
 from .entity import CardataEntity
 
 
+def _binary_device_class(
+    descriptor: str,
+) -> tuple[BinarySensorDeviceClass | None, bool]:
+    """Return ``(device_class, invert)`` for a boolean descriptor.
+
+    A binary sensor with no device class always renders as plain on/off. BMW
+    reports the raw boolean as ``True`` == the open / plugged / moving / locked
+    state, so most classes need no inversion. The exception is HA's ``LOCK``
+    class, whose polarity is inverted (``on`` == *unlocked*): lock booleans are
+    inverted here so the UI reads Locked / Unlocked correctly.
+    """
+
+    d = descriptor.lower()
+    if d.endswith(".islocked"):
+        return BinarySensorDeviceClass.LOCK, True
+    if d.endswith(".isplugged"):
+        return BinarySensorDeviceClass.PLUG, False
+    if d.endswith(".ismoving"):
+        return BinarySensorDeviceClass.MOVING, False
+    if d.endswith("engine.isactive") or d.endswith(".isignitionon"):
+        return BinarySensorDeviceClass.RUNNING, False
+    if d.endswith(".ismobilephoneconnected"):
+        return BinarySensorDeviceClass.CONNECTIVITY, False
+    if d.endswith(".isopen"):
+        if ".window." in d:
+            return BinarySensorDeviceClass.WINDOW, False
+        return BinarySensorDeviceClass.OPENING, False
+    return None, False
+
+
 class CardataBinarySensor(CardataEntity, BinarySensorEntity):
     def __init__(self, coordinator: CardataCoordinator, vin: str, descriptor: str) -> None:
         super().__init__(coordinator, vin, descriptor)
         self._attr_should_poll = False
         self._unsubscribe = None
+        self._attr_device_class, self._invert = _binary_device_class(descriptor)
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -46,7 +80,8 @@ class CardataBinarySensor(CardataEntity, BinarySensorEntity):
         state = self._coordinator.get_state(vin, descriptor)
         if not state or not isinstance(state.value, bool):
             return
-        self._attr_is_on = state.value
+        # LOCK is polarity-inverted (on == unlocked); see _binary_device_class.
+        self._attr_is_on = (not state.value) if self._invert else state.value
 
         self.schedule_update_ha_state()
 

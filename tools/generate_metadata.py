@@ -17,13 +17,27 @@ this file stays framework-agnostic and unit-testable.
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import re
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CATALOGUE_FILE = REPO_ROOT / "custom_components" / "bavariandata" / "catalogue.json"
-OUTPUT_FILE = REPO_ROOT / "custom_components" / "bavariandata" / "descriptor_metadata.py"
+PKG = REPO_ROOT / "custom_components" / "bavariandata"
+CATALOGUE_FILE = PKG / "catalogue.json"
+OUTPUT_FILE = PKG / "descriptor_metadata.py"
+
+
+def _load(name: str, path: Path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+# Shared with tools/generate_translations.py and the tests so metadata options
+# and translation state labels are derived identically (see catalogue_enums.py).
+enum_tokens = _load("catalogue_enums", PKG / "catalogue_enums.py").enum_tokens
 
 # Raw catalogue unit -> Home Assistant canonical unit string.
 UNIT_CANONICAL = {
@@ -96,21 +110,16 @@ def canonical_unit(raw: str) -> str | None:
     return UNIT_CANONICAL.get(raw, raw or None)
 
 
-def parse_options(value_range: str) -> tuple[str, ...]:
+def parse_options(value_range: str, data_type: str = "") -> tuple[str, ...]:
     """Return enum option slugs from a value-range string, else empty.
 
-    BMW documents enum values as ALL_CAPS tokens (e.g. ``INVALID``). Home
-    Assistant requires ``options`` / translation state keys to be lowercase
-    slugs, so the tokens are lower-cased here; the runtime lower-cases the
-    incoming value to match (see sensor.py).
+    Enum detection lives in :func:`catalogue_enums.enum_tokens` (shared with the
+    translation generator). Home Assistant requires ``options`` / translation
+    state keys to be lowercase slugs, so the tokens are lower-cased here; the
+    runtime lower-cases the incoming value to match (see sensor.py).
     """
 
-    tokens = [t.strip() for t in value_range.split(",")]
-    enums = [t for t in tokens if re.fullmatch(r"[A-Z][A-Z0-9_\-]+", t)]
-    # Require at least two enum-looking tokens to avoid misreading free text.
-    if len(enums) < 2:
-        return ()
-    return tuple(dict.fromkeys(t.lower() for t in enums))
+    return tuple(t.lower() for t in enum_tokens(value_range, data_type))
 
 
 def device_and_state_class(
@@ -157,7 +166,9 @@ def classify(entry: dict) -> dict:
     d = descriptor.lower()
     unit = canonical_unit(entry["unit"])
     data_type = entry["data_type"]
-    options = parse_options(entry["value_range_en"] or entry["value_range_de"])
+    options = parse_options(
+        entry["value_range_en"] or entry["value_range_de"], data_type
+    )
 
     if descriptor in _OVERRIDES:
         device_class, state_class, unit = _OVERRIDES[descriptor]

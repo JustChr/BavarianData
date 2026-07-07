@@ -33,6 +33,9 @@ def _load(module_name: str, filename: str):
     return mod
 
 translation_key = _load("keys", "keys.py").translation_key
+# Shared enum detection (see catalogue_enums.py) so translation state labels and
+# the metadata ``options`` are always derived from the same tokens.
+enum_tokens = _load("catalogue_enums", "catalogue_enums.py").enum_tokens
 
 # Curated bilingual labels for frequently occurring enum values. Anything not
 # listed is humanised from the raw token (English) and German falls back to it.
@@ -62,11 +65,40 @@ COMMON_STATES: dict[str, tuple[str, str]] = {
     "CHARGINGERROR": ("Charging error", "Ladefehler"),
     "NOCHARGING": ("Not charging", "Lädt nicht"),
     "INITIALIZATION": ("Initialising", "Initialisierung"),
+    "OK": ("OK", "OK"),
+    "utc": ("UTC", "UTC"),
+    # Anti-theft alarm arming state (vehicle.…antiTheftAlarmSystem.alarm.armStatus).
+    "unarmed": ("Unarmed", "Unscharf"),
+    "doorsOnly": ("Doors only", "Nur Türen"),
+    "doorsTiltCabin": ("Doors, tilt & interior", "Türen, Neigung & Innenraum"),
+    # Preconditioning activity (vehicle.vehicle.preConditioning.activity).
+    "standby": ("Standby", "Bereitschaft"),
+    "heating": ("Heating", "Heizen"),
+    "cooling": ("Cooling", "Kühlen"),
+    "ventilation": ("Ventilation", "Lüften"),
+    "inactive": ("Inactive", "Inaktiv"),
+    # Preconditioning error (vehicle.vehicle.preConditioning.error).
+    "LowFuel": ("Low fuel", "Niedriger Kraftstoffstand"),
+    "LowBattery": ("Low battery", "Niedriger Batteriestand"),
+    "QuotaExceeded": ("Quota exceeded", "Kontingent überschritten"),
+    "HeaterFailure": ("Heater failure", "Heizungsfehler"),
+    "ComponentFailure": ("Component failure", "Komponentenfehler"),
+    "OpenOrUnlocked": ("Open or unlocked", "Offen oder entriegelt"),
+    # Time setting (vehicle.vehicle.timeSetting).
+    "wintertime": ("Winter time", "Winterzeit"),
+    "summertime": ("Summer time", "Sommerzeit"),
+    "manual": ("Manual", "Manuell"),
+    # Display distance unit (vehicle.cabin.infotainment.displayUnit.distance).
+    "km": ("Kilometres", "Kilometer"),
+    "miles": ("Miles", "Meilen"),
 }
 
 
 def humanise(token: str) -> str:
-    text = token.replace("_", " ").replace("-", " ").strip()
+    # Split camelCase (doorsTiltCabin -> "doors Tilt Cabin") so uncurated
+    # mixed-case enum tokens still read as words, then normalise separators.
+    text = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", token)
+    text = text.replace("_", " ").replace("-", " ").strip()
     text = re.sub(r"\s+", " ", text)
     if not text:
         return token
@@ -122,14 +154,11 @@ def build() -> tuple[dict, dict]:
         binary_en[key] = {"name": name_en}
         binary_de[key] = {"name": name_de}
 
-        # Same enum detection as tools/generate_metadata.py: purely value-range
-        # based, because BMW's "boolean" data type is not reliable (some carry
-        # string enum values). Real booleans use lowercase true/false and are
-        # excluded by the ALL_CAPS token rule.
+        # Same enum detection as tools/generate_metadata.py (shared helper), so
+        # every metadata option gets a matching state label.
         value_range = entry.get("value_range_en") or entry.get("value_range_de") or ""
-        opts = [t.strip() for t in value_range.split(",") if re.fullmatch(r"[A-Z][A-Z0-9_\-]+", t.strip())]
-        opts = list(dict.fromkeys(opts))
-        if len(opts) >= 2:
+        opts = list(enum_tokens(value_range, entry.get("data_type", "")))
+        if opts:
             en_states, de_states = state_labels(opts)
             sensor_en[key]["state"] = en_states
             if de_states:
