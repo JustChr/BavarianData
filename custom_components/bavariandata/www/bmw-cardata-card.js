@@ -13,7 +13,7 @@
  * config is just `type: custom:bmw-cardata-card`.
  */
 
-const CARD_VERSION = "1.2.1";
+const CARD_VERSION = "1.3.0";
 
 // Register a custom element idempotently: always attempt the define so a cold
 // load can never silently skip it, but swallow the benign "already defined"
@@ -801,9 +801,9 @@ class BmwCardataCard extends HTMLElement {
   }
 
   _carSvg(c) {
-    // Top-down BMW M-car with each wheel stroked in its tire-status colour.
+    // Top-down BMW sedan with each wheel stroked in its tire-status colour.
     return `
-      <svg class="carsvg" viewBox="0 0 140 214" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <svg class="carsvg" viewBox="0 0 130 228" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         ${this._carWheels(c)}
         ${this._carBody()}
       </svg>`;
@@ -811,81 +811,94 @@ class BmwCardataCard extends HTMLElement {
 
   // Four wheels, each stroked in its colour (falls back to the neutral divider
   // colour when a caller doesn't care about per-wheel status, e.g. closures).
+  // Tucked under the flared arches so the tyre reads as a wheel, not a block.
   _carWheels(c = {}) {
     const n = "var(--divider-color)";
     const wheel = (x, y, color) =>
-      `<rect x="${x}" y="${y}" width="12" height="38" rx="5" class="carsvg__wheel" style="stroke:${color || n}"/>`;
-    return `${wheel(16, 45, c.fl)}${wheel(112, 45, c.fr)}${wheel(16, 151, c.rl)}${wheel(112, 151, c.rr)}`;
+      `<rect x="${x}" y="${y}" width="13" height="34" rx="6" class="carsvg__wheel" style="stroke:${color || n}"/>`;
+    return `${wheel(13, 40, c.fl)}${wheel(104, 40, c.fr)}${wheel(13, 160, c.rl)}${wheel(104, 160, c.rr)}`;
   }
 
-  // Static body art (mirrors, shell, grille, greenhouse, lights). Shared by the
-  // tire diagram and the closures diagram; the latter layers overlays on top.
+  // Static body art. Shared by the tire diagram and the closures diagram; the
+  // latter layers overlays on top. Design language: taut rectilinear silhouette,
+  // gradient-modelled sheet metal (no cartoon keyline), long-hood / cab-rearward
+  // stance, and correctly-scaled BMW cues (twin front-of-bumper kidneys, swept
+  // corner-wrapping lamps). viewBox 130x228, centreline x=65.
   _carBody() {
     return `
-        <!-- side mirrors (protruding at cowl) -->
-        <path d="M31 74 L20 70 L18 77 L30 80 Z" class="carsvg__mirror"/>
-        <path d="M109 74 L120 70 L122 77 L110 80 Z" class="carsvg__mirror"/>
+        <defs>
+          <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="var(--body-lo)"/>
+            <stop offset=".5" stop-color="var(--body-hi)"/>
+            <stop offset="1" stop-color="var(--body-lo)"/>
+          </linearGradient>
+          <linearGradient id="roofGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="var(--roof-lo)"/>
+            <stop offset=".5" stop-color="var(--roof-hi)"/>
+            <stop offset="1" stop-color="var(--roof-lo)"/>
+          </linearGradient>
+          <linearGradient id="glassGrad" x1="0" y1="0" x2=".35" y2="1">
+            <stop offset="0" stop-color="var(--glass-hi)"/>
+            <stop offset="1" stop-color="var(--glass-lo)"/>
+          </linearGradient>
+        </defs>
 
-        <!-- body: flared fenders + fuller cabin (softened M-car proportion) -->
-        <path d="M70 9
-                 C60 9 52 10 46 12
-                 C37 15 30 30 25 52
-                 C22 72 32 92 33 108
-                 C34 130 22 152 25 170
-                 C27 188 34 200 46 203
-                 C54 205 62 205 70 205
-                 C78 205 86 205 94 203
-                 C106 200 113 188 115 170
-                 C118 152 106 130 107 108
-                 C108 92 118 72 115 52
-                 C110 30 103 15 94 12
-                 C88 10 80 9 70 9 Z" class="carsvg__body"/>
+        <!-- fender flares over each wheel -->
+        <rect x="20" y="39" width="5" height="34" rx="2.5" class="carsvg__flare"/>
+        <rect x="105" y="39" width="5" height="34" rx="2.5" class="carsvg__flare"/>
+        <rect x="20" y="159" width="5" height="34" rx="2.5" class="carsvg__flare"/>
+        <rect x="105" y="159" width="5" height="34" rx="2.5" class="carsvg__flare"/>
 
-        <!-- front splitter line -->
-        <path d="M46 12 C58 10 82 10 94 12" class="carsvg__seam"/>
+        <!-- taut body: wider stance, squarer bumpers, straight flanks -->
+        <path d="M40 6 L90 6 C99 6 107 12 108 24 L108 198 C107 211 103 219 94 222 L36 222 C27 219 23 211 22 198 L22 24 C23 12 31 6 40 6 Z" class="carsvg__body"/>
 
-        <!-- twin-kidney grille (prominent, low) -->
-        <path d="M59 17 C56 17 55 19 55 22 L55 39 C55 42 56 43 59 43 L67 43 L67 17 Z" class="carsvg__grille"/>
-        <path d="M81 17 C84 17 85 19 85 22 L85 39 C85 42 84 43 81 43 L73 43 L73 17 Z" class="carsvg__grille"/>
-        <path d="M60 20 V40 M63 20 V40 M77 20 V40 M80 20 V40" class="carsvg__grillebar"/>
+        <!-- side mirrors at the cowl -->
+        <path d="M22 88 L14 84 L12 90 L21 94 Z" class="carsvg__mirror"/>
+        <path d="M108 88 L116 84 L118 90 L109 94 Z" class="carsvg__mirror"/>
 
-        <!-- swept headlights, inboard of the fender edge -->
-        <path d="M40 22 L54 18 L54 31 L42 33 Z" class="carsvg__light"/>
-        <path d="M100 22 L86 18 L86 31 L98 33 Z" class="carsvg__light"/>
+        <!-- bumper/hood seam + hood centreline + hood shut lines -->
+        <path d="M38 22 C52 20.5 78 20.5 92 22" class="carsvg__seam"/>
+        <path d="M65 24 L65 86" class="carsvg__crease"/>
+        <path d="M32 38 C29 55 29 74 34 88 M98 38 C101 55 101 74 96 88" class="carsvg__seam"/>
 
-        <!-- hood scoop + shut lines -->
-        <path d="M60 50 H80 L77 70 H63 Z" class="carsvg__scoop"/>
-        <path d="M66 54 V66 M74 54 V66" class="carsvg__scoopslit"/>
-        <path d="M42 42 C39 54 39 64 44 72 M98 42 C101 54 101 64 96 72" class="carsvg__seam"/>
+        <!-- twin kidneys at the very front of the bumper -->
+        <rect x="54" y="6.5" width="22" height="13" rx="2" class="carsvg__chrome"/>
+        <rect x="55" y="7.5" width="9.3" height="11" rx="1.5" class="carsvg__kidney"/>
+        <rect x="65.7" y="7.5" width="9.3" height="11" rx="1.5" class="carsvg__kidney"/>
+        <path d="M57 8.5 V17.5 M60 8.5 V17.5 M67.5 8.5 V17.5 M70.5 8.5 V17.5" class="carsvg__kbar"/>
+
+        <!-- headlights: fat at the outer bumper corner, tapering inward -->
+        <path d="M22.5 23 C21 11 29 6.5 40 6.5 L47 7 C50.5 8.5 50 10.5 47.5 11.5 C39 12.5 30 15.5 22.5 23 Z" class="carsvg__light"/>
+        <path d="M107.5 23 C109 11 101 6.5 90 6.5 L83 7 C79.5 8.5 80 10.5 82.5 11.5 C91 12.5 100 15.5 107.5 23 Z" class="carsvg__light"/>
 
         <!-- windshield -->
-        <path d="M49 72 H91 L94 90 H46 Z" class="carsvg__glass"/>
+        <path d="M31 88 L99 88 L87 112 L43 112 Z" class="carsvg__glass"/>
 
         <!-- roof + sunroof -->
-        <path d="M50 90 H90 L88 142 H52 Z" class="carsvg__roof"/>
-        <path d="M57 96 H83 L82 118 H58 Z" class="carsvg__sunroof"/>
+        <path d="M43 112 L87 112 L86 164 L44 164 Z" class="carsvg__roof"/>
+        <rect x="53" y="120" width="24" height="28" rx="2" class="carsvg__glassdk"/>
 
-        <!-- side door windows (front + rear, both sides) -->
-        <path d="M38 94 H49 V112 H39 Z" class="carsvg__glass"/>
-        <path d="M39 116 H49 V136 H41 Z" class="carsvg__glass"/>
-        <path d="M91 94 H102 V112 H101 Z" class="carsvg__glass"/>
-        <path d="M91 116 H101 V136 H99 Z" class="carsvg__glass"/>
+        <!-- side windows: front pair butts the windshield; rear pair matched in length -->
+        <path d="M33 98 L43 112 L43 136 L35 136 Z" class="carsvg__glass"/>
+        <path d="M35 140 L43 140 L43 162 L37 162 Z" class="carsvg__glass"/>
+        <path d="M97 98 L87 112 L87 136 L95 136 Z" class="carsvg__glass"/>
+        <path d="M95 140 L87 140 L87 162 L93 162 Z" class="carsvg__glass"/>
 
         <!-- door shut seams + handles (4 doors) -->
-        <path d="M33 92 H38 M34 114 H39 M36 138 H41 M107 92 H102 M106 114 H101 M104 138 H99" class="carsvg__seam"/>
-        <rect x="34" y="102" width="6" height="2" rx="1" class="carsvg__handle"/>
-        <rect x="35" y="126" width="6" height="2" rx="1" class="carsvg__handle"/>
-        <rect x="100" y="102" width="6" height="2" rx="1" class="carsvg__handle"/>
-        <rect x="99" y="126" width="6" height="2" rx="1" class="carsvg__handle"/>
+        <path d="M22 138 L43 138 M108 138 L87 138" class="carsvg__seam"/>
+        <rect x="26" y="122" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
+        <rect x="27" y="150" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
+        <rect x="98" y="122" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
+        <rect x="97" y="150" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
 
         <!-- rear window -->
-        <path d="M52 142 H88 L91 162 H49 Z" class="carsvg__glass"/>
+        <path d="M43 164 L87 164 L97 182 L33 182 Z" class="carsvg__glass"/>
 
-        <!-- rear deck: spoiler lip + tail lights (inboard) + diffuser -->
-        <path d="M44 176 C56 179 84 179 96 176" class="carsvg__seam"/>
-        <path d="M46 190 H65 L63 200 H47 Z" class="carsvg__tail"/>
-        <path d="M94 190 H75 L77 200 H93 Z" class="carsvg__tail"/>
-        <path d="M60 202 H80" class="carsvg__crease"/>`;
+        <!-- rear deck: trunk seam + corner-wrapping tail lights + diffuser -->
+        <path d="M33 187 C48 190 82 190 97 187" class="carsvg__seam"/>
+        <path d="M22.5 205 C21 217 29 221.5 40 221.5 L47 221 C49.5 219.5 49 218.5 47 217.8 C39 217 30 214.5 22.5 205 Z" class="carsvg__tail"/>
+        <path d="M107.5 205 C109 217 101 221.5 90 221.5 L83 221 C80.5 219.5 81 218.5 83 217.8 C91 217 100 214.5 107.5 205 Z" class="carsvg__tail"/>
+        <path d="M52 217 L78 217" class="carsvg__crease"/>`;
   }
 
   _wheelLabel(slot, wheel, pos) {
@@ -1166,16 +1179,16 @@ class BmwCardataCard extends HTMLElement {
   _carSvgClosures(d) {
     const { ALERT, WARN } = d.colors;
     const doorGeo = {
-      lf: { flap: "M32 92 L15 87 L17 100 L33 106 Z", hit: "27 90 13 23" },
-      lr: { flap: "M33 116 L16 111 L18 124 L34 130 Z", hit: "27 114 14 24" },
-      rf: { flap: "M108 92 L125 87 L123 100 L107 106 Z", hit: "100 90 13 23" },
-      rr: { flap: "M107 116 L124 111 L122 124 L106 130 Z", hit: "99 114 14 24" },
+      lf: { flap: "M22 116 L5 110 L7 128 L22 134 Z", hit: "22 112 21 27" },
+      lr: { flap: "M22 142 L5 136 L7 154 L22 160 Z", hit: "22 139 21 25" },
+      rf: { flap: "M108 116 L125 110 L123 128 L108 134 Z", hit: "87 112 21 27" },
+      rr: { flap: "M108 142 L125 136 L123 154 L108 160 Z", hit: "87 139 21 25" },
     };
     const winGeo = {
-      lf: "M38 94 H49 V112 H39 Z",
-      lr: "M39 116 H49 V136 H41 Z",
-      rf: "M91 94 H102 V112 H101 Z",
-      rr: "M91 116 H101 V136 H99 Z",
+      lf: "M33 98 L43 112 L43 136 L35 136 Z",
+      lr: "M35 140 L43 140 L43 162 L37 162 Z",
+      rf: "M97 98 L87 112 L87 136 L95 136 Z",
+      rr: "M95 140 L87 140 L87 162 L93 162 Z",
     };
     const hit = (spec, id) => {
       const [x, y, w, h] = spec.split(" ");
@@ -1198,8 +1211,8 @@ class BmwCardataCard extends HTMLElement {
       if (part.open) parts.push(`<path d="${path}" class="cldiag__zone" style="fill:${ALERT}"/>`);
       parts.push(`<path d="${path}" class="cldiag__hit" data-entity="${part.id}"/>`);
     };
-    zone(d.hood, "M42 22 H98 L100 66 H40 Z");
-    zone(d.trunk, "M46 166 H94 L96 202 H44 Z");
+    zone(d.hood, "M38 26 H92 L96 88 H34 Z");
+    zone(d.trunk, "M34 184 H96 L93 218 H37 Z");
     // Glass (windows / sunroof / rear window) tinted amber when open.
     const glass = (part, path) => {
       if (!part) return;
@@ -1210,23 +1223,23 @@ class BmwCardataCard extends HTMLElement {
       const w = d.windows[k];
       if (w) glass(w, winGeo[k]);
     }
-    glass(d.sunroof, "M57 96 H83 L82 118 H58 Z");
-    glass(d.rearWindow, "M52 142 H88 L91 162 H49 Z");
+    glass(d.sunroof, "M53 120 H77 V148 H53 Z");
+    glass(d.rearWindow, "M43 164 L87 164 L97 182 L33 182 Z");
 
     // Central padlock (open shackle when unlocked/unknown).
     const locked = d.lock.key === "locked" || d.lock.key === "secured";
     const shackle = locked
-      ? "M66 121 V117 a4 4 0 0 1 8 0 V121"
-      : "M66 121 V117 a4 4 0 0 1 8 0";
+      ? "M61 134 V130 a4 4 0 0 1 8 0 V134"
+      : "M61 134 V130 a4 4 0 0 1 8 0";
     const padlock = d.lockId
       ? `<g class="cldiag__lock" data-entity="${d.lockId}" style="--c:${d.lock.color}">
            <path d="${shackle}" class="cldiag__shackle"/>
-           <rect x="63" y="121" width="14" height="10" rx="1.8" class="cldiag__lockbody"/>
+           <rect x="58" y="134" width="14" height="10" rx="1.8" class="cldiag__lockbody"/>
          </g>`
       : "";
 
     return `
-      <svg class="carsvg" viewBox="0 0 140 214" xmlns="http://www.w3.org/2000/svg">
+      <svg class="carsvg" viewBox="0 0 130 228" xmlns="http://www.w3.org/2000/svg">
         ${this._carWheels()}
         ${this._carBody()}
         ${parts.join("\n        ")}
@@ -1544,28 +1557,40 @@ class BmwCardataCard extends HTMLElement {
       }
       .carsvg {
         display: block;
-        width: 42%;
-        min-width: 116px;
-        max-width: 168px;
+        width: 40%;
+        min-width: 112px;
+        max-width: 162px;
         height: auto;
         margin: 4px auto 0;
         overflow: visible;
+        /* Surface-modelling tokens derived from the active HA theme, so the
+           metal/glass sheen holds up in both light and dark. */
+        --body-hi: color-mix(in srgb, var(--secondary-background-color), white 20%);
+        --body-lo: color-mix(in srgb, var(--secondary-background-color), black 14%);
+        --roof-hi: color-mix(in srgb, var(--card-background-color), white 12%);
+        --roof-lo: color-mix(in srgb, var(--card-background-color), black 6%);
+        --glass-hi: color-mix(in srgb, var(--divider-color) 66%, #4c5c6e);
+        --glass-lo: color-mix(in srgb, var(--divider-color) 50%, #0e141b);
+        --chrome: color-mix(in srgb, var(--secondary-text-color), white 22%);
+        --edge: var(--divider-color);
+        --seam-c: var(--secondary-text-color);
+        --tire: #14171b;
       }
-      .carsvg__body { fill: var(--secondary-background-color); stroke: var(--divider-color); stroke-width: 1.5; }
-      .carsvg__crease { stroke: var(--secondary-text-color); stroke-width: 1; opacity: 0.28; fill: none; stroke-linecap: round; }
-      .carsvg__seam { stroke: var(--divider-color); stroke-width: 1.1; fill: none; stroke-linecap: round; }
-      .carsvg__roof { fill: var(--card-background-color); stroke: var(--divider-color); stroke-width: 1; }
-      .carsvg__sunroof { fill: var(--divider-color); opacity: 0.5; }
-      .carsvg__glass { fill: var(--divider-color); opacity: 0.7; }
-      .carsvg__handle { fill: var(--secondary-text-color); opacity: 0.6; }
-      .carsvg__mirror { fill: var(--secondary-background-color); stroke: var(--divider-color); stroke-width: 1.2; }
-      .carsvg__grille { fill: #101318; stroke: var(--secondary-text-color); stroke-width: 0.6; }
-      .carsvg__grillebar { stroke: var(--secondary-text-color); stroke-width: 0.5; opacity: 0.5; }
-      .carsvg__light { fill: var(--secondary-text-color); opacity: 0.55; }
-      .carsvg__scoop { fill: var(--divider-color); opacity: 0.45; stroke: var(--secondary-text-color); stroke-width: 0.6; }
-      .carsvg__scoopslit { stroke: var(--secondary-text-color); stroke-width: 0.8; opacity: 0.5; }
-      .carsvg__tail { fill: #d0392b; opacity: 0.75; }
-      .carsvg__wheel { fill: #15181d; stroke-width: 4; }
+      .carsvg__body { fill: url(#bodyGrad); stroke: var(--edge); stroke-width: 0.7; }
+      .carsvg__flare { fill: var(--secondary-text-color); opacity: 0.26; }
+      .carsvg__crease { stroke: var(--seam-c); stroke-width: 0.7; opacity: 0.35; fill: none; stroke-linecap: round; }
+      .carsvg__seam { stroke: var(--seam-c); stroke-width: 0.8; opacity: 0.55; fill: none; stroke-linecap: round; }
+      .carsvg__roof { fill: url(#roofGrad); }
+      .carsvg__glassdk { fill: var(--glass-lo); opacity: 0.85; }
+      .carsvg__glass { fill: url(#glassGrad); }
+      .carsvg__handle { fill: var(--seam-c); opacity: 0.55; }
+      .carsvg__mirror { fill: url(#bodyGrad); stroke: var(--edge); stroke-width: 0.6; }
+      .carsvg__chrome { fill: var(--chrome); }
+      .carsvg__kidney { fill: #0c0f13; }
+      .carsvg__kbar { stroke: var(--chrome); stroke-width: 0.5; opacity: 0.55; }
+      .carsvg__light { fill: var(--secondary-text-color); opacity: 0.7; }
+      .carsvg__tail { fill: #c0392b; opacity: 0.82; }
+      .carsvg__wheel { fill: var(--tire); stroke-width: 3.4; stroke-linejoin: round; }
 
       /* closures / security diagram */
       .closcar { padding: 10px 12px 4px; display: flex; justify-content: center; }
