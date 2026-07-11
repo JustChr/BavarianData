@@ -1,0 +1,78 @@
+blueprint:
+  name: "BavarianData: Stop charging at target %"
+  description: >
+    Departure-ready smart charging. Watches a BavarianData state-of-charge sensor
+    and switches OFF your wallbox / smart-plug the moment the battery reaches the
+    target you set — so the car never charges past what you need.
+
+    BMW CarData is read-only, so this blueprint controls an external switch you
+    already have (a smart plug, wallbox relay, or an `input_boolean` your charger
+    listens to). Because BavarianData streams the SoC in real time, the cut-off
+    reacts within seconds instead of the minutes a polling integration takes.
+  domain: automation
+  source_url: https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/stop_charge_at_target.yaml
+  input:
+    soc_sensor:
+      name: State-of-charge sensor
+      description: >
+        The battery percentage to watch. Use the live BMW SoC sensor, or the
+        "State Of Charge (Predicted on Integration side)" sensor for the fastest
+        reaction between BMW updates.
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+              device_class: battery
+    target_soc:
+      name: Target %
+      description: Stop charging once the battery reaches this level.
+      default: 80
+      selector:
+        number:
+          min: 30
+          max: 100
+          step: 1
+          unit_of_measurement: "%"
+          mode: slider
+    charge_switch:
+      name: Charging switch
+      description: The switch / input_boolean that controls your charger.
+      selector:
+        entity:
+          filter:
+            - domain: [switch, input_boolean]
+    notify_target:
+      name: Notification service (optional)
+      description: Notify service to ping when the target is reached, e.g. notify.mobile_app_phone.
+      default: ""
+      selector:
+        text:
+
+mode: single
+max_exceptions: 3
+
+trigger:
+  - platform: numeric_state
+    entity_id: !input soc_sensor
+    above: !input target_soc
+
+condition:
+  - condition: state
+    entity_id: !input charge_switch
+    state: "on"
+
+action:
+  - service: homeassistant.turn_off
+    target:
+      entity_id: !input charge_switch
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ notify_target | string | trim != '' }}"
+        sequence:
+          - service: "{{ notify_target }}"
+            data:
+              title: "Charging stopped"
+              message: >
+                {{ state_attr(trigger.entity_id, 'friendly_name') or 'The car' }}
+                reached {{ states(trigger.entity_id) }}% — charger switched off.

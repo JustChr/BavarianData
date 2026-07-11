@@ -19,7 +19,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
 from homeassistant.const import UnitOfLength
 
-from .const import DOMAIN
+from .const import DOMAIN, REQUEST_LIMIT
 from .coordinator import CardataCoordinator
 from .descriptor_metadata import DESCRIPTOR_META
 from .entity import CardataEntity
@@ -250,6 +250,70 @@ class CardataDiagnosticsSensor(SensorEntity, RestoreEntity):
         return self._attr_native_value
 
 
+class CardataQuotaSensor(SensorEntity):
+    """Surface the rolling 24 h REST quota as a first-class diagnostic sensor.
+
+    The value is the number of requests still available; ``used``, ``limit`` and
+    the next-reset time ride along as attributes so an automation can warn before
+    the integration runs out of calls.
+    """
+
+    _attr_should_poll = False
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = "requests"
+    _attr_icon = "mdi:api"
+
+    def __init__(self, coordinator: CardataCoordinator, entry_id: str, quota_manager) -> None:
+        self._coordinator = coordinator
+        self._entry_id = entry_id
+        self._quota = quota_manager
+        self._unsub = None
+        self._attr_name = "API Quota Remaining"
+        self._attr_unique_id = f"{entry_id}_diagnostics_api_quota_remaining"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        return {
+            "identifiers": {(DOMAIN, self._entry_id)},
+            "manufacturer": "BMW",
+            "name": "CarData Debug Device",
+        }
+
+    @property
+    def native_value(self):
+        return self._quota.remaining if self._quota else None
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        if not self._quota:
+            return {}
+        attrs: dict[str, Any] = {
+            "used": self._quota.used,
+            "remaining": self._quota.remaining,
+            "limit": REQUEST_LIMIT,
+        }
+        if next_reset := self._quota.next_reset_iso:
+            attrs["next_reset"] = next_reset
+        return attrs
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self._unsub = async_dispatcher_connect(
+            self.hass,
+            self._coordinator.signal_diagnostics,
+            self._handle_update,
+        )
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._unsub:
+            self._unsub()
+            self._unsub = None
+
+    def _handle_update(self) -> None:
+        self.schedule_update_ha_state()
+
+
 class CardataSocEstimateSensor(CardataEntity, SensorEntity):
     _attr_should_poll = False
     _attr_device_class = SensorDeviceClass.BATTERY
@@ -417,6 +481,115 @@ class CardataSocRateSensor(CardataEntity, SensorEntity):
         self.schedule_update_ha_state()
 
 
+class CardataChargedEnergySensor(CardataEntity, SensorEntity):
+    """Lifetime energy delivered to the battery, for the HA Energy dashboard.
+
+    ``TOTAL_INCREASING`` + ``ENERGY`` is exactly what the Energy dashboard needs
+    to track a device's consumption; the value is integrated from the streamed
+    charging power so it works even though BMW never sends a kWh counter.
+    """
+
+    _attr_should_poll = False
+    _attr_device_class = SensorDeviceClass.ENERGY
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_native_unit_of_measurement = "kWh"
+    _attr_icon = "mdi:lightning-bolt"
+
+    def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
+        super().__init__(coordinator, vin, "charged_energy_total")
+        self._attr_name = "Charged Energy (Total)"
+        self._unsubscribe = None
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if self._coordinator.get_lifetime_energy_kwh(self.vin) is None:
+            last_state = await self.async_get_last_state()
+            if last_state and last_state.state not in ("unknown", "unavailable"):
+                try:
+                    restored = float(last_state.state)
+                except (TypeError, ValueError):
+                    restored = None
+                if restored is not None:
+                    self._attr_native_value = restored
+                    self._coordinator.restore_lifetime_energy(self.vin, restored)
+        existing = self._coordinator.get_lifetime_energy_kwh(self.vin)
+        if existing is not None:
+            self._attr_native_value = existing
+        self._unsubscribe = async_dispatcher_connect(
+            self.hass,
+            self._coordinator.signal_energy,
+            self._handle_update,
+        )
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._unsubscribe:
+            self._unsubscribe()
+            self._unsubscribe = None
+
+    def _handle_update(self, vin: str) -> None:
+        if vin != self.vin:
+            return
+        value = self._coordinator.get_lifetime_energy_kwh(vin)
+        if value is not None:
+            self._attr_native_value = value
+            self.schedule_update_ha_state()
+
+
+class CardataSessionEnergySensor(CardataEntity, SensorEntity):
+    """Energy delivered during the current charging session (resets each plug-in)."""
+
+    _attr_should_poll = False
+    _attr_device_class = SensorDeviceClass.ENERGY
+    _attr_state_class = SensorStateClass.TOTAL
+    _attr_native_unit_of_measurement = "kWh"
+    _attr_icon = "mdi:ev-station"
+
+    def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
+        super().__init__(coordinator, vin, "charged_energy_session")
+        self._attr_name = "Charged Energy (Session)"
+        self._unsubscribe = None
+
+    @property
+    def last_reset(self):
+        return self._coordinator.get_session_start(self.vin)
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if self._coordinator.get_session_energy_kwh(self.vin) is None:
+            last_state = await self.async_get_last_state()
+            if last_state and last_state.state not in ("unknown", "unavailable"):
+                try:
+                    restored = float(last_state.state)
+                except (TypeError, ValueError):
+                    restored = None
+                if restored is not None:
+                    self._attr_native_value = restored
+                    start_iso = last_state.attributes.get("last_reset")
+                    start = dt_util.parse_datetime(start_iso) if start_iso else None
+                    self._coordinator.restore_session_energy(self.vin, restored, start)
+        existing = self._coordinator.get_session_energy_kwh(self.vin)
+        if existing is not None:
+            self._attr_native_value = existing
+        self._unsubscribe = async_dispatcher_connect(
+            self.hass,
+            self._coordinator.signal_energy,
+            self._handle_update,
+        )
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._unsubscribe:
+            self._unsubscribe()
+            self._unsubscribe = None
+
+    def _handle_update(self, vin: str) -> None:
+        if vin != self.vin:
+            return
+        value = self._coordinator.get_session_energy_kwh(vin)
+        if value is not None:
+            self._attr_native_value = value
+            self.schedule_update_ha_state()
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities
 ) -> None:
@@ -427,6 +600,8 @@ async def async_setup_entry(
     soc_estimate_entities: Dict[str, CardataSocEstimateSensor] = {}
     soc_estimate_testing_entities: Dict[str, CardataTestingSocEstimateSensor] = {}
     soc_rate_entities: Dict[str, CardataSocRateSensor] = {}
+    charged_energy_entities: Dict[str, CardataChargedEnergySensor] = {}
+    session_energy_entities: Dict[str, CardataSessionEnergySensor] = {}
 
     def ensure_soc_tracking_entities(vin: str) -> None:
         new_entities = []
@@ -442,6 +617,14 @@ async def async_setup_entry(
             rate = CardataSocRateSensor(coordinator, vin)
             soc_rate_entities[vin] = rate
             new_entities.append(rate)
+        if vin not in charged_energy_entities:
+            charged = CardataChargedEnergySensor(coordinator, vin)
+            charged_energy_entities[vin] = charged
+            new_entities.append(charged)
+        if vin not in session_energy_entities:
+            session = CardataSessionEnergySensor(coordinator, vin)
+            session_energy_entities[vin] = session
+            new_entities.append(session)
         if new_entities:
             async_add_entities(new_entities, True)
 
@@ -501,7 +684,13 @@ async def async_setup_entry(
         if unique_id.startswith(f"{entry.entry_id}_diagnostics_"):
             continue
         vin, descriptor = unique_id.split("_", 1)
-        if descriptor in {"soc_estimate", "soc_rate", "soc_estimate_testing"}:
+        if descriptor in {
+            "soc_estimate",
+            "soc_rate",
+            "soc_estimate_testing",
+            "charged_energy_total",
+            "charged_energy_session",
+        }:
             ensure_soc_tracking_entities(vin)
             continue
         ensure_entity(vin, descriptor, assume_sensor=True)
@@ -554,6 +743,23 @@ async def async_setup_entry(
                 runtime.quota_manager,
             )
         )
+
+    if runtime.quota_manager is not None:
+        quota_unique_id = f"{entry.entry_id}_diagnostics_api_quota_remaining"
+        quota_entity_id = entity_registry.async_get_entity_id(
+            "sensor", DOMAIN, quota_unique_id
+        )
+        add_quota = True
+        if quota_entity_id:
+            quota_entry = entity_registry.async_get(quota_entity_id)
+            if quota_entry and quota_entry.disabled_by is not None:
+                add_quota = False
+        if add_quota:
+            diagnostic_entities.append(
+                CardataQuotaSensor(
+                    coordinator, entry.entry_id, runtime.quota_manager
+                )
+            )
 
     if diagnostic_entities:
         async_add_entities(diagnostic_entities, True)

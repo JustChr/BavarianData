@@ -13,7 +13,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, DIAGNOSTIC_LOG_INTERVAL
+from .const import (
+    DOMAIN,
+    DIAGNOSTIC_LOG_INTERVAL,
+    EVENT_CHARGING_STARTED,
+    EVENT_CHARGING_STOPPED,
+    EVENT_CHARGING_COMPLETE,
+)
 from .debug import debug_enabled
 from .units import normalize_unit
 
@@ -173,6 +179,13 @@ class CardataCoordinator:
     _ac_voltage_v: Dict[str, float] = field(default_factory=dict, init=False)
     _ac_current_a: Dict[str, float] = field(default_factory=dict, init=False)
     _ac_phase_count: Dict[str, int] = field(default_factory=dict, init=False)
+    # Energy delivered, integrated from effective charging power over time.
+    # ``lifetime`` is monotonic (feeds the HA Energy dashboard); ``session``
+    # resets when a new charging session starts.
+    _energy_lifetime_wh: Dict[str, float] = field(default_factory=dict, init=False)
+    _energy_session_wh: Dict[str, float] = field(default_factory=dict, init=False)
+    _energy_session_start: Dict[str, datetime] = field(default_factory=dict, init=False)
+    _energy_last_time: Dict[str, datetime] = field(default_factory=dict, init=False)
 
     @property
     def signal_new_sensor(self) -> str:
@@ -197,6 +210,10 @@ class CardataCoordinator:
     @property
     def signal_telematic_api(self) -> str:
         return f"{DOMAIN}_{self.entry_id}_telematic_api"
+
+    @property
+    def signal_energy(self) -> str:
+        return f"{DOMAIN}_{self.entry_id}_energy"
 
     def _get_testing_tracking(self, vin: str) -> SocTracking:
         return self._testing_soc_tracking.setdefault(vin, SocTracking())
@@ -374,8 +391,10 @@ class CardataCoordinator:
                     self._set_direct_power(vin, power_w, parsed_ts)
             elif descriptor == "vehicle.drivetrain.electricEngine.charging.status":
                 if isinstance(value, str):
+                    was_charging = tracking.charging_active
                     tracking.update_status(value)
                     testing_tracking.update_status(value)
+                    self._fire_charging_event(vin, was_charging, tracking, value)
             elif descriptor == "vehicle.powertrain.electric.battery.stateOfCharge.target":
                 try:
                     target = float(value)
@@ -428,8 +447,100 @@ class CardataCoordinator:
             async_dispatcher_send(self.hass, self.signal_new_binary, vin, descriptor)
 
         self._apply_soc_estimate(vin, now)
+        if self._integrate_energy(vin, now):
+            async_dispatcher_send(self.hass, self.signal_energy, vin)
 
         async_dispatcher_send(self.hass, self.signal_diagnostics)
+
+    def _integrate_energy(self, vin: str, now: datetime) -> bool:
+        """Accumulate delivered energy from effective charging power.
+
+        Assumes the last-sampled power held constant since the previous tick (a
+        left Riemann sum); the stream samples often enough that the error stays
+        small. ``_energy_last_time`` is advanced every call — including while
+        idle — so a resumed session never integrates over a stale gap.
+        """
+        last = self._energy_last_time.get(vin)
+        self._energy_last_time[vin] = now
+        tracking = self._soc_tracking.get(vin)
+        power_w = self._charging_power_w.get(vin)
+        if last is None or tracking is None or not tracking.charging_active:
+            return False
+        if not power_w or power_w <= 0:
+            return False
+        delta_seconds = (now - last).total_seconds()
+        if delta_seconds <= 0:
+            return False
+        wh = power_w * (delta_seconds / 3600.0)
+        self._energy_lifetime_wh[vin] = self._energy_lifetime_wh.get(vin, 0.0) + wh
+        self._energy_session_wh[vin] = self._energy_session_wh.get(vin, 0.0) + wh
+        return True
+
+    def get_lifetime_energy_kwh(self, vin: str) -> Optional[float]:
+        value = self._energy_lifetime_wh.get(vin)
+        return None if value is None else round(value / 1000.0, 3)
+
+    def get_session_energy_kwh(self, vin: str) -> Optional[float]:
+        value = self._energy_session_wh.get(vin)
+        return None if value is None else round(value / 1000.0, 3)
+
+    def get_session_start(self, vin: str) -> Optional[datetime]:
+        return self._energy_session_start.get(vin)
+
+    def restore_lifetime_energy(self, vin: str, kwh: float) -> None:
+        """Seed the lifetime accumulator from a restored sensor state."""
+        if kwh is None:
+            return
+        self._energy_lifetime_wh.setdefault(vin, kwh * 1000.0)
+
+    def restore_session_energy(
+        self, vin: str, kwh: float, start: Optional[datetime] = None
+    ) -> None:
+        if kwh is not None:
+            self._energy_session_wh.setdefault(vin, kwh * 1000.0)
+        if start is not None:
+            self._energy_session_start.setdefault(vin, start)
+
+    def _fire_charging_event(
+        self,
+        vin: str,
+        was_charging: bool,
+        tracking: SocTracking,
+        status: str,
+    ) -> None:
+        """Fire a HA bus event when a charging session begins or ends.
+
+        A stopped session that reached (or exceeded) the configured target SoC
+        also fires a dedicated ``complete`` event so automations can distinguish
+        "finished as planned" from "unplugged early".
+        """
+        now_charging = tracking.charging_active
+        if was_charging == now_charging:
+            return
+        soc = (
+            tracking.estimated_percent
+            if tracking.estimated_percent is not None
+            else tracking.last_soc_percent
+        )
+        payload: Dict[str, Any] = {
+            "vin": vin,
+            "entry_id": self.entry_id,
+            "status": status,
+            "soc": None if soc is None else round(soc, 1),
+            "target_soc": tracking.target_soc_percent,
+        }
+        if now_charging:
+            # New session: zero the session accumulator and stamp its start so
+            # the session-energy sensor reports a fresh last_reset.
+            self._energy_session_wh[vin] = 0.0
+            self._energy_session_start[vin] = datetime.now(timezone.utc)
+            self.hass.bus.async_fire(EVENT_CHARGING_STARTED, payload)
+            return
+        # Session ended.
+        self.hass.bus.async_fire(EVENT_CHARGING_STOPPED, payload)
+        target = tracking.target_soc_percent
+        if target is not None and soc is not None and soc >= target - 1.0:
+            self.hass.bus.async_fire(EVENT_CHARGING_COMPLETE, payload)
 
     def get_state(self, vin: str, descriptor: str) -> Optional[DescriptorState]:
         return self.data.get(vin, {}).get(descriptor)
@@ -488,6 +599,9 @@ class CardataCoordinator:
                 updated_vins.append(vin)
         for vin in updated_vins:
             async_dispatcher_send(self.hass, self.signal_soc_estimate, vin)
+        for vin in list(self._soc_tracking.keys()):
+            if self._integrate_energy(vin, now):
+                async_dispatcher_send(self.hass, self.signal_energy, vin)
         async_dispatcher_send(self.hass, self.signal_diagnostics)
 
     def _apply_soc_estimate(self, vin: str, now: datetime, notify: bool = True) -> bool:

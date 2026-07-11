@@ -22,6 +22,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 
 from homeassistant.components import persistent_notification
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -143,15 +144,35 @@ class QuotaManager:
         while self._timestamps and self._timestamps[0] <= cutoff:
             self._timestamps.popleft()
 
+    @property
+    def _issue_id(self) -> str:
+        return f"api_quota_exhausted_{self._entry_id}"
+
     async def async_claim(self) -> None:
         async with self._lock:
             now = time.time()
             self._prune(now)
             if len(self._timestamps) >= REQUEST_LIMIT:
+                reset = self.next_reset_iso or "later today"
+                ir.async_create_issue(
+                    self._hass,
+                    DOMAIN,
+                    self._issue_id,
+                    is_fixable=False,
+                    severity=ir.IssueSeverity.WARNING,
+                    translation_key="api_quota_exhausted",
+                    translation_placeholders={
+                        "limit": str(REQUEST_LIMIT),
+                        "next_reset": reset,
+                    },
+                )
                 raise CardataQuotaError(
                     "BMW CarData API limit reached; try again after quota resets"
                 )
             self._timestamps.append(now)
+            # A successful claim means we're back under the limit; clear any
+            # exhaustion repair that a previous window raised.
+            ir.async_delete_issue(self._hass, DOMAIN, self._issue_id)
             await self._async_save_locked()
 
     @property

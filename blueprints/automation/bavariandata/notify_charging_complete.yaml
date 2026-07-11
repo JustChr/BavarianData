@@ -1,0 +1,53 @@
+blueprint:
+  name: "BavarianData: Notify when charging completes"
+  description: >
+    Sends a notification the moment a charging session ends. Triggers on the
+    `bavariandata_charging_complete` event (target SoC reached) and/or the
+    `bavariandata_charging_stopped` event (session ended for any reason), which
+    BavarianData fires from the live stream — no polling, no template sensors.
+  domain: automation
+  source_url: https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/notify_charging_complete.yaml
+  input:
+    notify_target:
+      name: Notification service
+      description: e.g. notify.mobile_app_phone
+      selector:
+        text:
+    only_on_complete:
+      name: Only when target reached?
+      description: >
+        On = notify only when the car reached its target SoC. Off = notify on any
+        session end (including unplugging early).
+      default: true
+      selector:
+        boolean:
+
+mode: queued
+max: 5
+
+trigger:
+  - platform: event
+    event_type: bavariandata_charging_complete
+    id: complete
+  - platform: event
+    event_type: bavariandata_charging_stopped
+    id: stopped
+
+condition:
+  - condition: template
+    value_template: >
+      {{ trigger.id == 'complete' or not only_on_complete }}
+    variables:
+      only_on_complete: !input only_on_complete
+
+action:
+  - service: "{{ notify_target }}"
+    data:
+      title: >
+        {{ 'Charging complete' if trigger.id == 'complete' else 'Charging stopped' }}
+      message: >
+        {% set soc = trigger.event.data.soc %}
+        {% set target = trigger.event.data.target_soc %}
+        Battery at {{ soc if soc is not none else '?' }}%{% if target is not none %} (target {{ target }}%){% endif %}.
+    variables:
+      notify_target: !input notify_target

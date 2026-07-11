@@ -216,6 +216,49 @@ cluster: closures
 
 If the card doesn't show up after an update, hard-refresh the browser.
 
+## Smart charging & automations
+
+Because BavarianData streams data in real time, it's built for automations that
+react the instant something changes rather than on a polling cycle.
+
+**Charged-energy sensors** — the integration integrates the live charging power
+over time into two sensors per vehicle:
+
+- **Charged Energy (Total)** — a monotonic `kWh` counter with
+  `device_class: energy` / `state_class: total_increasing`. Add it to Home
+  Assistant's **Energy dashboard** as an "individual device" to see (and cost)
+  your car's charging alongside the rest of the house.
+- **Charged Energy (Session)** — resets at the start of every charging session,
+  so you can see how much went in this plug-in.
+
+Both are derived on the integration side (BMW never sends a kWh counter), so they
+work on any vehicle that streams charging power.
+
+**Events** — meaningful charging transitions fire on the Home Assistant event
+bus, ready to use as automation triggers (Developer Tools → Events to watch them):
+
+| Event | Fires when | Data |
+| --- | --- | --- |
+| `bavariandata_charging_started` | a session begins | `vin`, `soc`, `target_soc`, `status` |
+| `bavariandata_charging_stopped` | a session ends (any reason) | `vin`, `soc`, `target_soc`, `status` |
+| `bavariandata_charging_complete` | a session ends at/above the target SoC | `vin`, `soc`, `target_soc`, `status` |
+
+**Blueprints** — two starter automations ship in
+[`blueprints/`](blueprints/automation/bavariandata). Import them via **Settings →
+Automations → Blueprints → Import Blueprint** with the raw GitHub URL:
+
+- **Stop charging at target %** — switches off a wallbox / smart-plug the moment a
+  SoC sensor reaches your target (CarData is read-only, so it drives an external
+  switch you already have).
+- **Notify when charging completes** — pings a notify service on the
+  charging-complete / -stopped events above.
+
+**API quota sensor** — an **API Quota Remaining** diagnostic sensor exposes how
+many of the 50 requests/24 h are left (with `used`, `limit` and `next_reset`
+attributes). If the quota is ever exhausted, a repair issue appears under
+**Settings → Repairs** telling you when it resets; streaming data keeps flowing
+throughout.
+
 ## Services
 
 Each service is available in Developer Tools and as a button in the integration's

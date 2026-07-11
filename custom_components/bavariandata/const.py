@@ -31,6 +31,13 @@ OPTION_STREAM_SECTIONS = "stream_sections"
 # Dispatcher signal fired when a vehicle render is (re)cached, carrying the VIN.
 SIGNAL_VEHICLE_IMAGE = f"{DOMAIN}_vehicle_image_updated"
 
+# Home Assistant bus events fired on meaningful charging transitions so
+# automations can trigger on a semantic moment rather than polling state. Each
+# carries {"vin", "entry_id", ...} in its data payload.
+EVENT_CHARGING_STARTED = f"{DOMAIN}_charging_started"
+EVENT_CHARGING_STOPPED = f"{DOMAIN}_charging_stopped"
+EVENT_CHARGING_COMPLETE = f"{DOMAIN}_charging_complete"
+
 # Bundled Lovelace card. The JS is served as a static path and auto-registered as
 # a frontend resource so users don't have to add it manually.
 LOVELACE_CARD_FILENAME = "bmw-cardata-card.js"
