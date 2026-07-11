@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" alt="BavarianData logo" width="240" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/logo.png" alt="BavarianData logo" width="240" />
 </p>
 
 <h1 align="center">BavarianData: Connect Home Assistant to BMW CarData</h1>
@@ -23,13 +23,13 @@ set of translated states. The integration also ships a Lovelace card and a cache
 vehicle image so a usable dashboard exists out of the box.
 
 <p align="center">
-  <img src="screenshots/wattfried-car.png" alt="Bundled Lovelace card showing a BMW i5 eDrive40 with charge level, range, charging status and odometer" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-car.png" alt="Bundled Lovelace card showing a BMW i5 eDrive40 with charge level, range, charging status and odometer" width="360" />
 </p>
 
 <p align="center">
-  <img src="screenshots/wattfried-security.png" alt="Security &amp; closures card with a top-down car diagram, anti-theft alarm armed and all closures closed" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-security.png" alt="Security &amp; closures card with a top-down car diagram, anti-theft alarm armed and all closures closed" width="300" />
   &nbsp;&nbsp;
-  <img src="screenshots/wattfried-tires.png" alt="Tyre pressure card showing all four tyres at 290 kPa on a top-down car diagram" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-tires.png" alt="Tyre pressure card showing all four tyres at 290 kPa on a top-down car diagram" width="300" />
 </p>
 
 > **Status — experimental.** This is a spare-time project, verified against a
