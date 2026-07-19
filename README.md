@@ -29,7 +29,7 @@ vehicle image so a usable dashboard exists out of the box.
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-security.png" alt="Security &amp; closures card with a top-down car diagram, anti-theft alarm armed and all closures closed" width="300" />
   &nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-tires.png" alt="Tyre pressure card showing all four tyres at 290 kPa on a top-down car diagram" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-tires.png" alt="Tyre pressure card flagging slightly high pressures on all four tyres on a top-down car diagram" width="300" />
 </p>
 
 > **Status — experimental.** This is a spare-time project, verified against a
