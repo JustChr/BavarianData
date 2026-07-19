@@ -54,7 +54,7 @@ vehicle image so a usable dashboard exists out of the box.
 - A BMW account with a vehicle that supports CarData.
 - **CarData API** and **CarData Streaming** subscribed in the BMW portal, and a
   **client ID** generated for this integration.
-- Home Assistant **2024.6** or newer.
+- Home Assistant **2026.3** or newer.
 
 It helps to skim
 [BMW's CarData documentation](https://bmw-cardata.bmwgroup.com/customer/public/api-documentation/Id-Introduction)

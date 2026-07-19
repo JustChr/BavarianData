@@ -81,7 +81,8 @@ zip asset).
 - Descriptor selection ("Data Selection") is portal-only; per-descriptor
   streaming scopes are rejected by BMW — see
   `docs/reference/stream-scope-investigation.md` before revisiting.
-- Minimum supported HA is **2024.6** (`hacs.json`) — don't use newer-only HA
+- Minimum supported HA is **2026.3** (`hacs.json`; needed for self-served brand
+  icons in `brand/`) — don't use newer-only HA
   APIs without bumping it deliberately.
 - Entities must keep exposing `cluster`/`category` attributes even when
   restored/unavailable — the Lovelace card's cluster views depend on them.

@@ -226,15 +226,11 @@ async def _async_register_frontend_card(hass: HomeAssistant) -> None:
         _LOGGER.warning("Cardata: bundled Lovelace card missing at %s", card_path)
         return
 
-    try:
-        from homeassistant.components.http import StaticPathConfig
+    from homeassistant.components.http import StaticPathConfig
 
-        await hass.http.async_register_static_paths(
-            [StaticPathConfig(LOVELACE_CARD_URL, card_path, cache_headers=False)]
-        )
-    except ImportError:
-        # Home Assistant < 2024.7 lacks StaticPathConfig / async_register_static_paths.
-        hass.http.register_static_path(LOVELACE_CARD_URL, card_path, cache_headers=False)
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(LOVELACE_CARD_URL, card_path, cache_headers=False)]
+    )
 
     try:
         from homeassistant.components.frontend import add_extra_js_url
