@@ -282,21 +282,36 @@ Each service is available in Developer Tools and as a button in the integration'
   your login?** This is flakiness in BMW's device-authorization backend, not the
   integration — the flow can return `access_denied` ("The user has declined
   authorization") even though you never saw a consent page and the login clearly
-  worked. It can take a few attempts; this sequence has worked reliably (multiple
-  times) for others:
+  worked. BMW support has confirmed (in response to a support ticket) that the
+  device-code flow is handled by an internal partner system that is currently
+  having "sync problems" on their end — there's nothing this integration can do
+  to fix it. It can take a few attempts; this sequence has worked reliably
+  (multiple times) for others:
   1. Open a **fresh incognito/private browser window**.
   2. Go to the My BMW / CarData portal **manually** — do **not** use the
      pre-filled complete link, and strip any `?user_code=…` from the URL.
   3. Sign in, open **Authenticate device** ("Gerät authentifizieren"), then
      **type the user code by hand** (make sure no "incorrect code" banner
-     appears) and approve.
+     appears) and approve. You'll typically land on a "Login successful" /
+     "continue in the car" screen — **you don't need to do anything in the
+     car**; that screen is just confirmation. Go straight back to Home
+     Assistant and press **Submit**.
   4. Back in Home Assistant, if the code timed out meanwhile, press **Submit**
      for a fresh code and repeat.
   5. Still failing after several tries? Delete the client in the BMW portal,
      create a new one (tick **both** subscriptions), and redo auth with the new
      client ID.
 
-  BMW support for persistent cases: bmwcardata-b2c-support@bmwgroup.com
+  If none of that helps, **stop retrying and wait** — this is genuinely a
+  lottery on BMW's side. Many users only got through after leaving it alone
+  for several hours to a couple of days (sometimes it starts working
+  overnight with no further action), and repeated rapid retries don't seem to
+  speed it up. There's no single trick that works for everyone — the
+  incognito/manual-code ritual above unblocks most people but not all; a
+  smaller group stays stuck regardless of client recreation, waiting, or
+  switching browsers/networks. For those cases the only lever left is BMW
+  support: bmwcardata-b2c-support@bmwgroup.com (include your reference ID
+  from the error, if BMW showed one).
 - **Debug logging** is off by default. Turn it on in **Configure → options**
   (`debug_log`) and reload. It's verbose and can include vehicle data such as GPS
   and VIN, so leave it off unless you're chasing a problem.
