@@ -254,13 +254,20 @@ class CardataStreamManager:
 
     def _handle_disconnect(self, client: mqtt.Client, userdata, rc) -> None:
         reason = {
+            0: "clean disconnect",
             1: "Unacceptable protocol version",
             2: "Identifier rejected",
             3: "Server unavailable",
             4: "Bad username or password",
             5: "Not authorized",
         }.get(rc, "Unknown")
-        _LOGGER.warning("BMW MQTT disconnected rc=%s (%s)", rc, reason)
+        # rc=0 is a clean, self-initiated disconnect (e.g. reconnect on credential
+        # refresh) — routine, so keep it at debug. Any other rc is unexpected.
+        if rc == 0:
+            if debug_enabled():
+                _LOGGER.debug("BMW MQTT disconnected rc=%s (%s)", rc, reason)
+        else:
+            _LOGGER.warning("BMW MQTT disconnected rc=%s (%s)", rc, reason)
         self._last_disconnect = time.monotonic()
         disconnect_future = self._disconnect_future
         if disconnect_future and not disconnect_future.done():
