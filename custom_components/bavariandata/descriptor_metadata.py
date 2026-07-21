@@ -1734,7 +1734,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "section": 'electric',
         "category": 'Charging EV',
         "device_class": 'energy',
-        "state_class": 'measurement',
+        "state_class": None,
         "unit": 'kWh',
         "options": [],
         "entity_category": 'diagnostic',

@@ -141,7 +141,9 @@ def device_and_state_class(
     if unit == "kWh":
         if "size" in d or "maxenergy" in d or "capacity" in d:
             return "energy_storage", "measurement"
-        return "energy", ("total_increasing" if lifetime else "measurement")
+        # HA forbids state_class "measurement" on the energy device class; a
+        # non-cumulative energy reading (e.g. delta-to-full) must be None.
+        return "energy", ("total_increasing" if lifetime else None)
     if unit == "kPa":
         return "pressure", "measurement"
     if unit == "km/h":
