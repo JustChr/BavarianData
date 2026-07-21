@@ -94,8 +94,13 @@ class CardataSensor(CardataEntity, SensorEntity):
                     # If unit is a length/distance type, enable conversion. The
                     # catalogue metadata already sets this for known descriptors;
                     # this covers restored, not-yet-classified sensors.
+                    # NB: read via getattr — HA's SensorEntity declares
+                    # _attr_device_class as a bare annotation with no default,
+                    # so a direct attribute access raises AttributeError for any
+                    # sensor whose __init__ never set a device class (e.g. GPS
+                    # altitude), which would abort adding the entity.
                     if (
-                        self._attr_device_class is None
+                        getattr(self, "_attr_device_class", None) is None
                         and unit in {u.value for u in UnitOfLength}
                     ):
                         self._attr_device_class = SensorDeviceClass.DISTANCE # Enables km/mi, m/ft, etc., conversion
