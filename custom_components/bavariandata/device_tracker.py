@@ -87,8 +87,6 @@ class CardataDeviceTracker(CardataEntity, TrackerEntity):
         super().__init__(coordinator, vin, "device_tracker")
         self._attr_unique_id = f"{vin}_tracker"
         self._unsubscribe = None
-        self._base_name = "Location"
-        self._update_name(write_state=False)
 
     async def async_added_to_hass(self) -> None:
         """Handle entity added to Home Assistant."""

@@ -236,7 +236,9 @@ async def _async_register_frontend_card(hass: HomeAssistant) -> None:
         from homeassistant.components.frontend import add_extra_js_url
 
         # Cache-bust on integration version so browsers pick up card updates.
-        add_extra_js_url(hass, f"{LOVELACE_CARD_URL}?v={_integration_version()}")
+        # Read the manifest off the event loop — open() is a blocking call.
+        version = await hass.async_add_executor_job(_integration_version)
+        add_extra_js_url(hass, f"{LOVELACE_CARD_URL}?v={version}")
     except ImportError:  # pragma: no cover - frontend always present in practice
         _LOGGER.debug("Cardata: frontend component unavailable; card not auto-loaded")
 
