@@ -24,11 +24,14 @@ from homeassistant.helpers import config_validation as cv
 from . import async_manual_refresh_tokens
 from .container import CardataContainerError
 from .const import (
+    DEBUG_LOG,
     DEFAULT_SCOPE,
     DOMAIN,
+    OPTION_DEBUG_LOG,
     OPTION_STREAM_SECTIONS,
     VEHICLE_METADATA,
 )
+from .debug import set_debug_enabled
 from .descriptors import build_portal_snippet, default_sections, section_labels
 from .device_flow import CardataAuthError, poll_for_tokens, request_device_code
 
@@ -387,6 +390,7 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
                 "action_fetch_tyre",
                 "action_fetch_location_charging",
                 "action_fetch_image",
+                "action_debug_logging",
             ],
         )
 
@@ -412,6 +416,12 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
     def _get_runtime(self):
         return self.hass.data.get(DOMAIN, {}).get(self._config_entry.entry_id)
 
+    def _finish(self) -> FlowResult:
+        # Finishing an options flow overwrites entry.options with this data, so
+        # carry the existing options forward (e.g. debug_log) instead of
+        # clearing them every time an action step runs.
+        return self.async_create_entry(title="", data=dict(self._config_entry.options))
+
     async def async_step_action_refresh_tokens(
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> FlowResult:
@@ -425,7 +435,7 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
                 errors={"base": "refresh_failed"},
                 placeholders={"error": str(err)},
             )
-        return self.async_create_entry(title="", data={})
+        return self._finish()
 
     async def async_step_action_reauth(
         self, user_input: Optional[Dict[str, Any]] = None
@@ -473,7 +483,7 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
             {"entry_id": self._config_entry.entry_id},
             blocking=True,
         )
-        return self.async_create_entry(title="", data={})
+        return self._finish()
 
     def _collect_vins(self) -> list[str]:
         runtime = self._get_runtime()
@@ -511,7 +521,7 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
                 {"entry_id": self._config_entry.entry_id, "vin": vin},
                 blocking=True,
             )
-        return self.async_create_entry(title="", data={})
+        return self._finish()
 
     async def async_step_action_fetch_telematic(
         self, user_input: Optional[Dict[str, Any]] = None
@@ -530,7 +540,7 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
             {"entry_id": self._config_entry.entry_id},
             blocking=True,
         )
-        return self.async_create_entry(title="", data={})
+        return self._finish()
 
     async def _run_simple_service(
         self, *, step_id: str, service: str, user_input: Optional[Dict[str, Any]]
@@ -548,7 +558,35 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
             {"entry_id": self._config_entry.entry_id},
             blocking=True,
         )
-        return self.async_create_entry(title="", data={})
+        return self._finish()
+
+    async def async_step_action_debug_logging(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Toggle the integration's verbose debug logging.
+
+        This gates the ``debug_enabled()`` calls throughout the integration; it
+        is separate from Home Assistant's generic per-integration log level.
+        """
+
+        current = bool(self._config_entry.options.get(OPTION_DEBUG_LOG, DEBUG_LOG))
+        schema = vol.Schema(
+            {
+                vol.Required(OPTION_DEBUG_LOG, default=current): bool,
+            }
+        )
+        if user_input is None:
+            return self.async_show_form(
+                step_id="action_debug_logging",
+                data_schema=schema,
+            )
+        enabled = bool(user_input.get(OPTION_DEBUG_LOG, False))
+        # Apply immediately: options changes don't trigger a reload, and
+        # set_debug_enabled() is otherwise only called from async_setup_entry.
+        set_debug_enabled(enabled)
+        options = dict(self._config_entry.options)
+        options[OPTION_DEBUG_LOG] = enabled
+        return self.async_create_entry(title="", data=options)
 
     async def async_step_action_fetch_charging_history(
         self, user_input: Optional[Dict[str, Any]] = None
@@ -640,7 +678,7 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
                 data_schema=vol.Schema({}),
                 description_placeholders={"snippet": self._cluster_snippet},
             )
-        return self.async_create_entry(title="", data={})
+        return self._finish()
 
     async def async_step_action_reset_container(
         self, user_input: Optional[Dict[str, Any]] = None
@@ -702,7 +740,7 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
             updated.pop("hv_descriptor_signature", None)
         self.hass.config_entries.async_update_entry(entry, data=updated)
 
-        return self.async_create_entry(title="", data={})
+        return self._finish()
 
     async def _handle_reauth(self) -> FlowResult:
         entry = self._config_entry

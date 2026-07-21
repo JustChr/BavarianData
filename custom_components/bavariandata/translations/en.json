@@ -59,7 +59,8 @@
           "action_fetch_charging_history": "Fetch charging history",
           "action_fetch_tyre": "Fetch tyre diagnosis",
           "action_fetch_location_charging": "Fetch charging settings",
-          "action_fetch_image": "Fetch vehicle image"
+          "action_fetch_image": "Fetch vehicle image",
+          "action_debug_logging": "Debug logging"
         }
       },
       "action_select_clusters": {
@@ -121,6 +122,16 @@
       "action_fetch_image": {
         "title": "Fetch vehicle image",
         "description": "Fetch the current vehicle image for your vehicles.\n\nPress Submit to continue."
+      },
+      "action_debug_logging": {
+        "title": "Debug logging",
+        "description": "Turn on verbose logging for this integration (MQTT connection, subscribed topics, and each incoming message). This is separate from Home Assistant's generic debug toggle — both the log level and this switch must be on to see the detailed lines. It's verbose and can include vehicle data such as GPS coordinates, so leave it off for normal use. The change applies immediately.",
+        "data": {
+          "debug_log": "Enable debug logging"
+        },
+        "data_description": {
+          "debug_log": "Stays on across restarts until you turn it off here."
+        }
       }
     },
     "error": {
