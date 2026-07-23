@@ -334,10 +334,10 @@ Ideas worth keeping but not scheduled:
 
 ## Where this stands (2026-07-23)
 
-Phases 0, 1 **and 2** are **built on `main`, not yet released** (HACS users only
-get tagged releases). Phase 0–1 commits: `e216b2b` translations, `febaf5e`
+Phases 0, 1 **and 2** are **committed on `main`, not yet released** (HACS users
+only get tagged releases). Phase 0–1 commits: `e216b2b` translations, `febaf5e`
 history foundation, `c66323d` ledger + cost, `bb55797` card view. Phase 2
-(battery health) is staged in the working tree, not yet committed.
+(battery health): `5389b80`. All local and unpushed.
 
 **Verified:** 80 unit tests pass (`history/` maths + summaries + pricing +
 battery-health), card JS `node --check` clean, ruff clean, en/de translation
