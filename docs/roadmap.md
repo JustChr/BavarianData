@@ -247,6 +247,24 @@ samples it reads "Learning (n/10)" and never a jumpy percentage. Card gauge plus
 a degradation trend. EV owners are obsessive about state of health and there is
 no BMW equivalent of the Tesla tooling.
 
+**Implementation sketch (for whoever picks this up):**
+
+- A new HA-free `history/health.py`: pure function `usable_capacity(sessions)`
+  → estimate + sample count + confidence, plus a degradation-vs-odometer series.
+  Test it in `tests/test_history.py` before wiring anything, same as Phase 1.
+- Each `ChargingSession` already carries `energy_kwh`, `soc_start`, `soc_end`
+  and `mileage_km` — the inputs are all there. Only trust wide-ΔSoC sessions
+  (e.g. ≥ 40 points) so noise and partial charges don't skew the estimate.
+- One `CardataBatteryHealthSensor` in `sensor.py`, created like the summary
+  sensors (translation key in `tools/derived_entities.json`; regenerate). State
+  reads "Learning (n/10)" until enough samples, then a rounded kWh/%; never a
+  jumpy value. Attributes: sample count, estimate date, vs-new percentage.
+- A `view: health` card view mirroring `view: charging` (gauge + trend line via
+  the same inline-SVG approach). Add a `health` sentinel to the editor dropdown.
+- **Cross-check, don't blindly trust our estimate.** BMW's own
+  `Battery HV Max size` / `stateOfHealth.displayed` are the sanity bound; if
+  ours diverges wildly, prefer showing "Learning" over a suspicious number.
+
 ## Phase 3 — Trips (Fahrtenbuch)
 
 The headline differentiator, done last on purpose: it needs the privacy design,
@@ -308,3 +326,22 @@ Ideas worth keeping but not scheduled:
   that doesn't quietly become an English-only surface.
 - **Timezone and DST** on monthly cost buckets.
 - **Spare-time scope.** Four phases is a lot. Ship each one whole.
+
+## Where this stands (2026-07-23)
+
+Phases 0 and 1 are **built and committed on `main`, not yet released** (HACS
+users only get tagged releases). Commits: `e216b2b` translations, `febaf5e`
+history foundation, `c66323d` ledger + cost, `bb55797` card view.
+
+**Verified:** 71 unit tests pass (`history/` maths + summaries + pricing), JS
+syntax and the card's pure helpers checked in isolation, ruff clean, en/de
+translation parity confirmed.
+
+**NOT verified — needs a live HA pass before release:** entity creation, the
+*Charging costs & history* options screen, the `get_charging_sessions` response
+service round-trip, zone resolution at a real charge, and the card's async
+fetch/paint. One real plug-in cycle on the user's i5 exercises almost all of it.
+Entity/flow/card code has no test harness in this repo by design.
+
+**Pick up next:** either that live-HA shakedown, or **Phase 2 (battery health)** —
+sketch above; it's cheap now that session records exist.
