@@ -1,11 +1,11 @@
 {
   "domain": "bavariandata",
   "name": "BavarianData: Connect Home Assistant to BMW CarData",
-  "codeowners": [
-    "@JustChr"
-  ],
   "after_dependencies": [
     "recorder"
+  ],
+  "codeowners": [
+    "@JustChr"
   ],
   "config_flow": true,
   "dependencies": [
