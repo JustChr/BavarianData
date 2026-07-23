@@ -24,6 +24,7 @@ from .const import (
 )
 from .debug import debug_enabled
 from .history.classify import classify_trip
+from .history.health import usable_capacity
 from .history.pricing import (
     MODE_FIXED,
     CostAccumulator,
@@ -663,6 +664,18 @@ class CardataCoordinator:
             location_assumed=location is None,
         )
         self._session_costs[vin] = CostAccumulator(currency=self.pricing.currency)
+        if debug_enabled():
+            _LOGGER.debug(
+                "[charge] %s OPEN at %s zone=%s soc=%s target=%s "
+                "pricing=%s price_now=%s",
+                vin,
+                started_at.isoformat(),
+                (location or {}).get("zone"),
+                tracking.last_soc_percent,
+                tracking.target_soc_percent,
+                self.pricing.mode if self.pricing.enabled else "disabled",
+                self._current_price(),
+            )
 
     def _close_session_record(self, vin: str, tracking: SocTracking, status: str):
         builder = self._session_builders.pop(vin, None)
@@ -679,13 +692,57 @@ class CardataCoordinator:
             reason=status,
         )
         session.mileage_km = self._odometer_km(vin)
+        if debug_enabled():
+            _LOGGER.debug(
+                "[charge] %s CLOSE(%s) energy=%s kWh soc=%s->%s zone=%s "
+                "assumed=%s odo=%s cost=%s priced/unpriced=%s/%s",
+                vin,
+                status,
+                session.energy_kwh,
+                session.soc_start,
+                session.soc_end,
+                (session.location or {}).get("zone"),
+                session.location_assumed,
+                session.mileage_km,
+                session.cost,
+                getattr(accumulator, "priced_kwh", None),
+                getattr(accumulator, "unpriced_kwh", None),
+            )
         try:
             self.history.add_session(session)
         except Exception:  # noqa: BLE001 - never let bookkeeping break the stream
             _LOGGER.exception("Could not record charging session for %s", vin)
             return None
         async_dispatcher_send(self.hass, self.signal_history, vin)
+        self._log_battery_health(vin)
         return session
+
+    def _log_battery_health(self, vin: str) -> None:
+        """Explain the battery-health estimate after each charge (debug only).
+
+        The sensor deliberately shows only "Learning (n/10)" until it is sure, so
+        without this there is no way to see *why* -- too few wide-SoC samples, or
+        an estimate that disagrees with BMW's own capacity figure.
+        """
+
+        if not debug_enabled() or self.history is None:
+            return
+        health = usable_capacity(
+            self.history.sessions(vin),
+            nominal_kwh=self.battery_nominal_kwh(vin),
+            sanity_kwh=self.battery_capacity_kwh(vin),
+        )
+        _LOGGER.debug(
+            "[health] %s samples=%s usable=%s confident=%s suspicious=%s "
+            "nominal=%s bmw_capacity=%s",
+            vin,
+            health.samples,
+            health.usable_kwh,
+            health.confident,
+            health.suspicious,
+            health.nominal_kwh,
+            self.battery_capacity_kwh(vin),
+        )
 
     def _odometer_km(self, vin: str) -> Optional[float]:
         """Odometer at the end of the session, for distance-based costing."""
@@ -791,10 +848,26 @@ class CardataCoordinator:
             return
         try:
             open_trip = vin in self._trip_builders
+            # Which of these BMW actually streams (and in what order) is the one
+            # thing no unit test here can answer, so record every observation
+            # under the opt-in debug flag. Tag it so a drive can be grepped out
+            # of an otherwise very chatty debug log.
+            if debug_enabled() and (
+                motion is not None or ignition is not None or segment_seen
+            ):
+                _LOGGER.debug(
+                    "[trip] %s signals moving=%s ignition=%s segment=%s open=%s",
+                    vin,
+                    motion,
+                    ignition,
+                    segment_seen,
+                    open_trip,
+                )
+
             # BMW's own completed-trip batch is the authoritative close and
             # carries the statistics, so it wins over the motion heuristics.
             if segment_seen and open_trip:
-                await self._close_trip(vin, now)
+                await self._close_trip(vin, now, reason="segment")
                 return
 
             started = motion is True or ignition is True
@@ -819,8 +892,20 @@ class CardataCoordinator:
             location_assumed=start_place is None
             or start_place.get("label") == "Unknown",
         )
+        if debug_enabled():
+            builder = self._trip_builders[vin]
+            _LOGGER.debug(
+                "[trip] %s OPEN at %s place=%s soc=%s odo=%s",
+                vin,
+                now.isoformat(),
+                (start_place or {}).get("label"),
+                builder.soc_start,
+                builder.mileage_start,
+            )
 
-    async def _close_trip(self, vin: str, now: datetime) -> None:
+    async def _close_trip(
+        self, vin: str, now: datetime, *, reason: str = "stationary"
+    ) -> None:
         builder = self._trip_builders.pop(vin, None)
         self._cancel_trip_close_timer(vin)
         if builder is None or self.history is None:
@@ -840,8 +925,30 @@ class CardataCoordinator:
             travelled_km=travelled_km,
             stats=stats,
         )
+        if debug_enabled():
+            _LOGGER.debug(
+                "[trip] %s CLOSE(%s) %s -> %s dist=%s (bmw=%s) soc=%s->%s "
+                "energy=%s stats=%s",
+                vin,
+                reason,
+                (trip.start_place or {}).get("label"),
+                (trip.end_place or {}).get("label"),
+                trip.distance_km,
+                travelled_km,
+                trip.soc_start,
+                trip.soc_end,
+                trip.energy_kwh,
+                stats,
+            )
         if is_noise_trip(trip):
             # A parking manoeuvre or a spurious blip, not a drive worth logging.
+            if debug_enabled():
+                _LOGGER.debug(
+                    "[trip] %s DROPPED as noise (dist=%s, duration=%ss)",
+                    vin,
+                    trip.distance_km,
+                    trip.duration_s,
+                )
             return
 
         classification = classify_trip(
@@ -853,6 +960,15 @@ class CardataCoordinator:
         if classification is not None:
             trip.classification = classification
             trip.classification_source = SOURCE_AUTO
+        if debug_enabled():
+            _LOGGER.debug(
+                "[trip] %s RECORDED id=%s class=%s (home=%s work=%s)",
+                vin,
+                trip.id,
+                classification,
+                self._home_zone_name(),
+                self._work_zone_name(),
+            )
 
         try:
             self.history.add_trip(trip)
@@ -868,7 +984,9 @@ class CardataCoordinator:
         def _fire(_now) -> None:
             self._trip_close_timers.pop(vin, None)
             self.hass.async_create_task(
-                self._close_trip(vin, datetime.now(timezone.utc))
+                self._close_trip(
+                    vin, datetime.now(timezone.utc), reason="stationary"
+                )
             )
 
         self._trip_close_timers[vin] = async_call_later(
@@ -893,7 +1011,9 @@ class CardataCoordinator:
         self._trip_close_timers.clear()
         for vin in list(self._trip_builders):
             with suppress(Exception):
-                await self._close_trip(vin, datetime.now(timezone.utc))
+                await self._close_trip(
+                    vin, datetime.now(timezone.utc), reason="unload"
+                )
 
     async def _resolve_place(self, vin: str) -> Optional[dict[str, Any]]:
         """A trip endpoint as a named place -- never coordinates.

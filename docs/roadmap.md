@@ -381,6 +381,21 @@ the odometer delta, commute auto-classification and the `set_trip_class` overrid
 the `driving_distance_month` sensor, and the `view: trips` review panel + list.
 Entity/flow/card code has no test harness in this repo by design.
 
+**How to shake it down (Phases 0–3 in one outing):** turn on **Configure → Debug
+logging**, then drive and charge. Every recorded event logs one tagged, greppable
+line — debug stays opt-in because these carry VIN, zone and place names.
+
+| Tag | Logged when | Answers |
+| --- | --- | --- |
+| `[history]` | at startup | did the store survive the restart, and how much of it |
+| `[trip] signals` | every batch carrying one | **which** of `moving`/`ignition`/`segment` this car streams, and in what order |
+| `[trip] OPEN` / `CLOSE(reason)` / `DROPPED` / `RECORDED` | per drive | place resolution, distance vs BMW's own, SoC, stats, why a close fired, the auto-classification and the home/work zones compared |
+| `[charge] OPEN` / `CLOSE(reason)` | per charge | zone + assumed flag, SoC, odometer, the resolved cost and how much energy went priced vs unpriced |
+| `[health]` | after each charge | sample count, estimate, and whether it's `confident`/`suspicious` — i.e. *why* the sensor still reads "Learning (n/10)" |
+
+Grep `\[trip\]`, `\[charge\]`, `\[health\]` or `\[history\]` to pull each phase's
+trace out of an otherwise very chatty debug log.
+
 **Pick up next:** the live-HA shakedown of Phase 3 (and the still-pending Phase
 0–2 real-drive/charge shakedown), then Phase 4 (statistics backfill + CSV/PDF
 export).

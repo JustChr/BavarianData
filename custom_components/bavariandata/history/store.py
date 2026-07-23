@@ -20,6 +20,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.storage import Store
 
 from ..const import DOMAIN
+from ..debug import debug_enabled
 from .models import SCHEMA_VERSION, ChargingSession, merge_session, prune_sessions
 from .trips import Trip, merge_trip, prune_trips
 
@@ -104,6 +105,17 @@ class HistoryStore:
             ]
             if restored_trips:
                 self._trips[vin] = self._prune_trips(restored_trips)
+
+        if debug_enabled():
+            # Confirms the store survived a restart, and how much of it did --
+            # the one thing a purely in-memory bug would look identical to.
+            _LOGGER.debug(
+                "[history] restored schema=%s sessions=%s trips=%s (retain=%s months)",
+                schema,
+                {vin: len(items) for vin, items in self._sessions.items()},
+                {vin: len(items) for vin, items in self._trips.items()},
+                self.retain_months,
+            )
 
     def _prune(self, sessions: list[ChargingSession]) -> list[ChargingSession]:
         return prune_sessions(
