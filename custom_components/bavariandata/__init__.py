@@ -24,6 +24,7 @@ from homeassistant.exceptions import ConfigEntryNotReady, ServiceValidationError
 from homeassistant.components import persistent_notification
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.storage import Store
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.util import dt as dt_util
@@ -49,6 +50,8 @@ from .const import (
     OPTION_DIAGNOSTIC_INTERVAL,
     OPTION_HISTORY_RETAIN_MONTHS,
     DEFAULT_HISTORY_RETAIN_MONTHS,
+    OPTION_TRIP_WORK_ZONE,
+    OPTION_TRIP_GEOCODE,
     DEBUG_LOG,
     LOVELACE_CARD_FILENAME,
     LOVELACE_CARD_URL,
@@ -64,8 +67,16 @@ from .api import (
     async_get_vehicle_mappings,
 )
 from .container import CardataContainerError, CardataContainerManager
+from .history.geocoding import ReverseGeocoder
 from .history.pricing import PricingConfig
 from .history.store import HistoryStore
+from .history.summary import (
+    driving_summary,
+    sessions_in_month,
+    summarise,
+    trips_in_month,
+)
+from .history.trips import CLASSIFICATIONS, SOURCE_USER
 from .stream import CardataStreamManager
 from .coordinator import CardataCoordinator
 from .debug import set_debug_enabled
@@ -309,6 +320,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     coordinator = CardataCoordinator(hass=hass, entry_id=entry.entry_id)
     coordinator.history = history_store
     coordinator.pricing = PricingConfig.from_options(options)
+    # Trips: the shared HA client session drives the (opt-in) reverse geocoder;
+    # the work zone drives commute classification. Both are refreshed on reload.
+    coordinator.geocoder = ReverseGeocoder(
+        async_get_clientsession(hass),
+        enabled=bool(options.get(OPTION_TRIP_GEOCODE)),
+    )
+    coordinator.work_zone_entity = options.get(OPTION_TRIP_WORK_ZONE) or None
     coordinator.diagnostic_interval = diagnostic_interval
     last_poll_ts = data.get("last_telematic_poll")
     if isinstance(last_poll_ts, (int, float)) and last_poll_ts > 0:
@@ -728,6 +746,124 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             )
             return {"sessions": [session.to_dict() for session in sessions]}
 
+        def _service_bound(call: Any, key: str) -> Optional[datetime]:
+            raw = call.data.get(key)
+            if not raw:
+                return None
+            parsed = dt_util.parse_datetime(raw) or dt_util.parse_date(raw)
+            if parsed is None:
+                raise ServiceValidationError(
+                    f"Could not read '{key}' as a date or date/time: {raw!r}"
+                )
+            if isinstance(parsed, datetime):
+                return dt_util.as_utc(parsed)
+            return dt_util.as_utc(datetime.combine(parsed, dt_time.min))
+
+        def _default_vin(runtime: CardataRuntimeData, vin: Optional[str]) -> Optional[str]:
+            if vin is not None:
+                return vin
+            data = runtime.coordinator.data
+            return next(iter(data)) if data else None
+
+        get_trips_schema = get_sessions_schema
+        get_driving_summary_schema = vol.Schema(
+            {
+                vol.Optional("entry_id"): str,
+                vol.Optional("vin"): str,
+                vol.Optional("month"): str,  # "YYYY-MM"; defaults to this month
+            }
+        )
+        set_trip_class_schema = vol.Schema(
+            {
+                vol.Optional("entry_id"): str,
+                vol.Optional("vin"): str,
+                vol.Required("trip_id"): str,
+                vol.Required("classification"): vol.In(list(CLASSIFICATIONS)),
+            }
+        )
+
+        async def async_handle_get_trips(call: Any) -> dict:
+            target = _resolve_target(call)
+            if target is None or target[2].history is None:
+                return {"trips": []}
+            _entry_id, _entry, runtime = target
+            trips = runtime.history.trips(
+                call.data.get("vin"),
+                start=_service_bound(call, "from"),
+                end=_service_bound(call, "to"),
+                limit=call.data.get("limit"),
+            )
+            return {"trips": [trip.to_dict() for trip in trips]}
+
+        async def async_handle_get_driving_summary(call: Any) -> dict:
+            target = _resolve_target(call)
+            if target is None or target[2].history is None:
+                return {"summary": {}, "month": None}
+            _entry_id, _entry, runtime = target
+            coordinator = runtime.coordinator
+            history = runtime.history
+            vin = _default_vin(runtime, call.data.get("vin"))
+
+            now_local = dt_util.now()
+            year, month = now_local.year, now_local.month
+            raw_month = call.data.get("month")
+            if raw_month:
+                try:
+                    year, month = (int(part) for part in raw_month.split("-", 1))
+                except (ValueError, TypeError):
+                    raise ServiceValidationError(
+                        f"'month' must be 'YYYY-MM', got {raw_month!r}"
+                    )
+            prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
+
+            all_trips = history.trips(vin)
+            month_trips = trips_in_month(
+                all_trips, year=year, month=month, localize=dt_util.as_local
+            )
+            prev_trips = trips_in_month(
+                all_trips, year=prev_year, month=prev_month, localize=dt_util.as_local
+            )
+
+            # The estimated driving cost reuses the charging ledger's own
+            # cost-per-100km for the same month -- trips × the charging record.
+            cost_per_100km = None
+            if coordinator.pricing.enabled:
+                ledger = summarise(
+                    sessions_in_month(
+                        history.sessions(vin),
+                        year=year,
+                        month=month,
+                        localize=dt_util.as_local,
+                    )
+                )
+                cost_per_100km = ledger.get("cost_per_100km")
+
+            summary = driving_summary(
+                month_trips,
+                prev_trips=prev_trips,
+                cost_per_100km=cost_per_100km,
+                currency=coordinator.pricing.currency,
+            )
+            return {"summary": summary, "month": f"{year:04d}-{month:02d}"}
+
+        async def async_handle_set_trip_class(call: Any) -> None:
+            target = _resolve_target(call)
+            if target is None or target[2].history is None:
+                raise ServiceValidationError("Trip history is not available")
+            _entry_id, _entry, runtime = target
+            coordinator = runtime.coordinator
+            vin = _default_vin(runtime, call.data.get("vin"))
+            trip_id = call.data["trip_id"]
+            trip = runtime.history.find_trip(vin, trip_id)
+            if trip is None:
+                raise ServiceValidationError(
+                    f"No trip {trip_id!r} found for vehicle {vin}"
+                )
+            trip.classification = call.data["classification"]
+            trip.classification_source = SOURCE_USER
+            runtime.history.add_trip(trip)
+            async_dispatcher_send(hass, coordinator.signal_trips, vin)
+
         hass.services.async_register(
             DOMAIN,
             "fetch_telematic_data",
@@ -780,6 +916,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             schema=get_sessions_schema,
             supports_response=SupportsResponse.ONLY,
         )
+        # Trips (roadmap Phase 3). Reads/writes the local store only -- no quota.
+        hass.services.async_register(
+            DOMAIN,
+            "get_trips",
+            async_handle_get_trips,
+            schema=get_trips_schema,
+            supports_response=SupportsResponse.ONLY,
+        )
+        hass.services.async_register(
+            DOMAIN,
+            "get_driving_summary",
+            async_handle_get_driving_summary,
+            schema=get_driving_summary_schema,
+            supports_response=SupportsResponse.ONLY,
+        )
+        hass.services.async_register(
+            DOMAIN,
+            "set_trip_class",
+            async_handle_set_trip_class,
+            schema=set_trip_class_schema,
+        )
         registered_services = domain_data.setdefault("_registered_services", set())
         registered_services.update(
             {
@@ -791,6 +948,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 "fetch_location_charging_settings",
                 "fetch_vehicle_image",
                 "get_charging_sessions",
+                "get_trips",
+                "get_driving_summary",
+                "set_trip_class",
             }
         )
         domain_data["_service_registered"] = True
@@ -815,6 +975,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         return True
     data: CardataRuntimeData = domain_data.pop(entry.entry_id)
     await data.coordinator.async_stop_watchdog()
+    # Close any in-progress trip before the debounced save below, so a reload
+    # mid-drive doesn't lose it.
+    await data.coordinator.async_flush_trips()
     await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     data.refresh_task.cancel()
     with suppress(asyncio.CancelledError):

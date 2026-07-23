@@ -5,12 +5,14 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, Optional
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.helpers.event import async_call_later
 from homeassistant.util import dt as dt_util
 
 from .const import (
@@ -21,6 +23,7 @@ from .const import (
     EVENT_CHARGING_COMPLETE,
 )
 from .debug import debug_enabled
+from .history.classify import classify_trip
 from .history.pricing import (
     MODE_FIXED,
     CostAccumulator,
@@ -29,7 +32,28 @@ from .history.pricing import (
     resolve_cost,
 )
 from .history.sessions import SessionBuilder
+from .history.trips import SOURCE_AUTO, place
+from .history.trip_builder import TripBuilder, is_noise_trip
 from .units import normalize_unit
+
+# Trip-detection descriptors (roadmap Phase 3). Motion is powertrain-agnostic and
+# the cleanest start signal; ignition corroborates it; BMW's own completed-segment
+# batch is the authoritative close and carries the per-trip statistics.
+DESC_MOVING = "vehicle.isMoving"
+DESC_IGNITION = "vehicle.drivetrain.engine.isIgnitionOn"
+DESC_SEG_PREFIX = "vehicle.trip.segment.end."
+DESC_SEG_DISTANCE = "vehicle.trip.segment.end.travelledDistance"
+DESC_SEG_RECUP = "vehicle.trip.segment.accumulated.drivetrain.electricEngine.recuperationTotal"
+DESC_SEG_CONSUMPTION = "vehicle.trip.segment.accumulated.drivetrain.electricEngine.energyConsumptionComfort"
+DESC_SEG_ACCEL_STARS = "vehicle.trip.segment.accumulated.acceleration.starsAverage"
+DESC_SEG_BRAKE_STARS = "vehicle.trip.segment.accumulated.chassis.brake.starsAverage"
+DESC_SEG_ECO = "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveEcoPro"
+DESC_SEG_ELECTRIC = "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveElectric"
+
+# Once the car has been at rest this long with no new segment batch, treat the
+# trip as ended. Long enough to ride out a traffic light, short enough that a
+# parked car's trip closes promptly.
+TRIP_CLOSE_DEBOUNCE_S = 300
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -199,12 +223,19 @@ class CardataCoordinator:
     # than breaking the stream -- history is a bonus, not a prerequisite.
     history: Optional[Any] = None
     pricing: PricingConfig = field(default_factory=PricingConfig)
+    # Trip recording (roadmap Phase 3). ``geocoder`` and ``work_zone_entity`` are
+    # injected/updated from options; both are optional and degrade quietly.
+    geocoder: Optional[Any] = None
+    work_zone_entity: Optional[str] = None
     _session_builders: Dict[str, SessionBuilder] = field(
         default_factory=dict, init=False
     )
     _session_costs: Dict[str, CostAccumulator] = field(
         default_factory=dict, init=False
     )
+    _trip_builders: Dict[str, TripBuilder] = field(default_factory=dict, init=False)
+    # Cancel callbacks for the per-VIN stationary-close debounce timers.
+    _trip_close_timers: Dict[str, Any] = field(default_factory=dict, init=False)
 
     @property
     def signal_new_sensor(self) -> str:
@@ -237,6 +268,10 @@ class CardataCoordinator:
     @property
     def signal_history(self) -> str:
         return f"{DOMAIN}_{self.entry_id}_history"
+
+    @property
+    def signal_trips(self) -> str:
+        return f"{DOMAIN}_{self.entry_id}_trips"
 
     def _get_testing_tracking(self, vin: str) -> SocTracking:
         return self._testing_soc_tracking.setdefault(vin, SocTracking())
@@ -357,6 +392,12 @@ class CardataCoordinator:
         testing_tracking = self._get_testing_tracking(vin)
         now = datetime.now(timezone.utc)
 
+        # Trip signals seen in this batch; acted on after the loop so opening or
+        # closing a trip (which may await a geocode) never re-enters mid-iteration.
+        motion_value: Optional[bool] = None
+        ignition_value: Optional[bool] = None
+        segment_seen = False
+
         for descriptor, descriptor_payload in data.items():
             if not isinstance(descriptor_payload, dict):
                 continue
@@ -461,6 +502,12 @@ class CardataCoordinator:
                     self._set_ac_current(vin, current_a, parsed_ts)
             elif descriptor == "vehicle.drivetrain.electricEngine.charging.phaseNumber":
                 self._set_ac_phase(vin, value, parsed_ts)
+            elif descriptor == DESC_MOVING and isinstance(value, bool):
+                motion_value = value
+            elif descriptor == DESC_IGNITION and isinstance(value, bool):
+                ignition_value = value
+            if descriptor.startswith(DESC_SEG_PREFIX):
+                segment_seen = True
 
             async_dispatcher_send(self.hass, self.signal_update, vin, descriptor)
 
@@ -472,6 +519,10 @@ class CardataCoordinator:
         self._apply_soc_estimate(vin, now)
         if self._integrate_energy(vin, now):
             async_dispatcher_send(self.hass, self.signal_energy, vin)
+
+        await self._process_trip_signals(
+            vin, now, motion_value, ignition_value, segment_seen
+        )
 
         async_dispatcher_send(self.hass, self.signal_diagnostics)
 
@@ -718,6 +769,224 @@ class CardataCoordinator:
         if found is None:
             return None
         return found.name or found.entity_id
+
+    # --- trips (roadmap Phase 3) -------------------------------------------
+
+    async def _process_trip_signals(
+        self,
+        vin: str,
+        now: datetime,
+        motion: Optional[bool],
+        ignition: Optional[bool],
+        segment_seen: bool,
+    ) -> None:
+        """React to this batch's motion / ignition / segment signals.
+
+        Kept off the per-descriptor path (called once per message) because
+        closing a trip may await a reverse geocode. All of it is guarded: trip
+        bookkeeping must never break the stream.
+        """
+
+        if self.history is None:
+            return
+        try:
+            open_trip = vin in self._trip_builders
+            # BMW's own completed-trip batch is the authoritative close and
+            # carries the statistics, so it wins over the motion heuristics.
+            if segment_seen and open_trip:
+                await self._close_trip(vin, now)
+                return
+
+            started = motion is True or ignition is True
+            if started and not open_trip:
+                await self._open_trip(vin, now)
+            if motion is True:
+                # Moving again: cancel any pending stationary-close.
+                self._cancel_trip_close_timer(vin)
+            elif motion is False and open_trip:
+                self._arm_trip_close_timer(vin)
+        except Exception:  # noqa: BLE001 - never let trip logic break the stream
+            _LOGGER.exception("Trip detection failed for %s", vin)
+
+    async def _open_trip(self, vin: str, now: datetime) -> None:
+        start_place = await self._resolve_place(vin)
+        self._trip_builders[vin] = TripBuilder(
+            vin,
+            now,
+            start_place=start_place,
+            soc_start=self._current_soc(vin),
+            mileage_start=self._odometer_km(vin),
+            location_assumed=start_place is None
+            or start_place.get("label") == "Unknown",
+        )
+
+    async def _close_trip(self, vin: str, now: datetime) -> None:
+        builder = self._trip_builders.pop(vin, None)
+        self._cancel_trip_close_timer(vin)
+        if builder is None or self.history is None:
+            return
+
+        end_place = await self._resolve_place(vin)
+        soc_end = self._current_soc(vin)
+        stats, travelled_km = self._read_trip_segment(vin)
+        energy_kwh = self._trip_energy_kwh(vin, builder.soc_start, soc_end)
+
+        trip = builder.close(
+            now,
+            end_place=end_place,
+            soc_end=soc_end,
+            mileage_end=self._odometer_km(vin),
+            energy_kwh=energy_kwh,
+            travelled_km=travelled_km,
+            stats=stats,
+        )
+        if is_noise_trip(trip):
+            # A parking manoeuvre or a spurious blip, not a drive worth logging.
+            return
+
+        classification = classify_trip(
+            trip.start_place,
+            trip.end_place,
+            home=self._home_zone_name(),
+            work=self._work_zone_name(),
+        )
+        if classification is not None:
+            trip.classification = classification
+            trip.classification_source = SOURCE_AUTO
+
+        try:
+            self.history.add_trip(trip)
+        except Exception:  # noqa: BLE001 - bookkeeping must not break the stream
+            _LOGGER.exception("Could not record trip for %s", vin)
+            return
+        async_dispatcher_send(self.hass, self.signal_trips, vin)
+
+    def _arm_trip_close_timer(self, vin: str) -> None:
+        if vin in self._trip_close_timers:
+            return
+
+        def _fire(_now) -> None:
+            self._trip_close_timers.pop(vin, None)
+            self.hass.async_create_task(
+                self._close_trip(vin, datetime.now(timezone.utc))
+            )
+
+        self._trip_close_timers[vin] = async_call_later(
+            self.hass, TRIP_CLOSE_DEBOUNCE_S, _fire
+        )
+
+    def _cancel_trip_close_timer(self, vin: str) -> None:
+        cancel = self._trip_close_timers.pop(vin, None)
+        if cancel is not None:
+            cancel()
+
+    async def async_flush_trips(self) -> None:
+        """Close and persist any in-progress trips (called on unload/reload).
+
+        A trip left open when Home Assistant restarts would otherwise be lost;
+        closing it here captures whatever end state we have. Timers are cancelled
+        first so a pending debounce can't fire against a stale builder.
+        """
+
+        for cancel in list(self._trip_close_timers.values()):
+            cancel()
+        self._trip_close_timers.clear()
+        for vin in list(self._trip_builders):
+            with suppress(Exception):
+                await self._close_trip(vin, datetime.now(timezone.utc))
+
+    async def _resolve_place(self, vin: str) -> Optional[dict[str, Any]]:
+        """A trip endpoint as a named place -- never coordinates.
+
+        Prefers the resolved HA zone (free, local, private). Only a point with no
+        matching zone is offered to the optional geocoder, and only the resulting
+        string is kept. ``None`` means no GPS was available at all.
+        """
+
+        latitude = self._coordinate(vin, "latitude")
+        longitude = self._coordinate(vin, "longitude")
+        if latitude is None or longitude is None:
+            return None
+        zone = self._zone_name(latitude, longitude)
+        if zone:
+            return place(zone=zone)
+        address = None
+        if self.geocoder is not None:
+            address = await self.geocoder.resolve(latitude, longitude)
+        return place(address=address) if address else place()
+
+    def _current_soc(self, vin: str) -> Optional[float]:
+        tracking = self._soc_tracking.get(vin)
+        if tracking is None:
+            return None
+        if tracking.estimated_percent is not None:
+            return round(tracking.estimated_percent, 1)
+        if tracking.last_soc_percent is not None:
+            return round(tracking.last_soc_percent, 1)
+        return None
+
+    def _trip_energy_kwh(
+        self, vin: str, soc_start: Optional[float], soc_end: Optional[float]
+    ) -> Optional[float]:
+        """Energy used on a trip, from the SoC drop and the pack capacity.
+
+        Battery-side by construction (SoC × capacity), which is what "energy the
+        drive consumed" should mean. Returns ``None`` when either the SoC delta
+        or the capacity is unknown rather than guessing.
+        """
+
+        if soc_start is None or soc_end is None:
+            return None
+        drop = soc_start - soc_end
+        if drop <= 0:
+            return None
+        capacity = self.battery_capacity_kwh(vin)
+        if not capacity:
+            return None
+        return round(drop / 100.0 * capacity, 3)
+
+    def _read_trip_segment(
+        self, vin: str
+    ) -> tuple[dict[str, Any], Optional[float]]:
+        """BMW's per-segment statistics and its own travelled distance.
+
+        The statistics ride the trip record (served via ``get_trips``) rather
+        than becoming entities; the distance is a fallback for when the odometer
+        didn't tick over the trip window.
+        """
+
+        def _num(descriptor: str) -> Optional[float]:
+            state = self.get_state(vin, descriptor)
+            if state is None or state.value is None:
+                return None
+            try:
+                return float(state.value)
+            except (TypeError, ValueError):
+                return None
+
+        stats: dict[str, Any] = {}
+        for key, descriptor in (
+            ("recuperation_kwh", DESC_SEG_RECUP),
+            ("accel_stars", DESC_SEG_ACCEL_STARS),
+            ("brake_stars", DESC_SEG_BRAKE_STARS),
+            ("eco_fraction", DESC_SEG_ECO),
+            ("electric_fraction", DESC_SEG_ELECTRIC),
+            ("bmw_consumption", DESC_SEG_CONSUMPTION),
+        ):
+            value = _num(descriptor)
+            if value is not None:
+                stats[key] = value
+        return stats, _num(DESC_SEG_DISTANCE)
+
+    def _home_zone_name(self) -> Optional[str]:
+        state = self.hass.states.get("zone.home")
+        return state.name if state is not None else "Home"
+
+    def _work_zone_name(self) -> Optional[str]:
+        if not self.work_zone_entity:
+            return None
+        state = self.hass.states.get(self.work_zone_entity)
+        return state.name if state is not None else None
 
     def _current_price(self) -> Optional[float]:
         """The price per kWh in force right now, or ``None`` if unknowable.

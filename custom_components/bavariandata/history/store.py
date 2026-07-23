@@ -21,6 +21,7 @@ from homeassistant.helpers.storage import Store
 
 from ..const import DOMAIN
 from .models import SCHEMA_VERSION, ChargingSession, merge_session, prune_sessions
+from .trips import Trip, merge_trip, prune_trips
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,6 +32,9 @@ SAVE_DELAY_S = 30
 DEFAULT_RETAIN_MONTHS: Optional[int] = 24
 # Backstop against unbounded growth even with retention set to "forever".
 MAX_SESSIONS_PER_VIN = 2000
+# Trips are far more frequent than charges (several a day vs a few a week), so
+# their cap is higher for the same "forever" retention to remain useful.
+MAX_TRIPS_PER_VIN = 5000
 
 
 class HistoryStore:
@@ -43,12 +47,15 @@ class HistoryStore:
         *,
         retain_months: Optional[int] = DEFAULT_RETAIN_MONTHS,
         max_sessions: int = MAX_SESSIONS_PER_VIN,
+        max_trips: int = MAX_TRIPS_PER_VIN,
     ) -> None:
         self.hass = hass
         self.retain_months = retain_months
         self.max_sessions = max_sessions
+        self.max_trips = max_trips
         self._store = Store(hass, STORE_VERSION, f"{DOMAIN}_{entry_id}_history")
         self._sessions: dict[str, list[ChargingSession]] = {}
+        self._trips: dict[str, list[Trip]] = {}
         self._loaded = False
 
     async def async_load(self) -> None:
@@ -87,12 +94,31 @@ class HistoryStore:
             if restored:
                 self._sessions[vin] = self._prune(restored)
 
+        # ``trips`` is absent in schema-1 stores; a plain ``.get`` handles the
+        # upgrade with no migration step.
+        for vin, raw_trips in (data.get("trips") or {}).items():
+            restored_trips = [
+                trip
+                for trip in (Trip.from_dict(item) for item in raw_trips or [])
+                if trip is not None
+            ]
+            if restored_trips:
+                self._trips[vin] = self._prune_trips(restored_trips)
+
     def _prune(self, sessions: list[ChargingSession]) -> list[ChargingSession]:
         return prune_sessions(
             sessions,
             now=datetime.now(timezone.utc),
             retain_months=self.retain_months,
             max_entries=self.max_sessions,
+        )
+
+    def _prune_trips(self, trips: list[Trip]) -> list[Trip]:
+        return prune_trips(
+            trips,
+            now=datetime.now(timezone.utc),
+            retain_months=self.retain_months,
+            max_entries=self.max_trips,
         )
 
     def sessions(
@@ -132,6 +158,51 @@ class HistoryStore:
         )
         self.async_schedule_save()
 
+    def trips(
+        self,
+        vin: Optional[str] = None,
+        *,
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
+        limit: Optional[int] = None,
+    ) -> list[Trip]:
+        """Recorded trips, newest first, optionally filtered by VIN / date range."""
+
+        if vin is not None:
+            found = list(self._trips.get(vin, []))
+        else:
+            found = [item for group in self._trips.values() for item in group]
+            found.sort(key=lambda item: item.start, reverse=True)
+
+        if start is not None:
+            found = [item for item in found if item.start >= start]
+        if end is not None:
+            found = [item for item in found if item.start <= end]
+        if limit is not None:
+            found = found[:limit]
+        return found
+
+    def find_trip(self, vin: str, trip_id: str) -> Optional[Trip]:
+        """A single stored trip by id, for the reclassification service."""
+
+        for trip in self._trips.get(vin, []):
+            if trip.id == trip_id:
+                return trip
+        return None
+
+    def add_trip(self, trip: Trip) -> None:
+        """Store a finished trip (replacing one with the same id) and save."""
+
+        existing = self._trips.get(trip.vin, [])
+        merged = merge_trip(existing, trip)
+        self._trips[trip.vin] = prune_trips(
+            merged,
+            now=trip.end or trip.start,
+            retain_months=self.retain_months,
+            max_entries=self.max_trips,
+        )
+        self.async_schedule_save()
+
     @callback
     def async_schedule_save(self) -> None:
         self._store.async_delay_save(self._data_to_save, SAVE_DELAY_S)
@@ -143,6 +214,10 @@ class HistoryStore:
             "sessions": {
                 vin: [session.to_dict() for session in sessions]
                 for vin, sessions in self._sessions.items()
+            },
+            "trips": {
+                vin: [trip.to_dict() for trip in trips]
+                for vin, trips in self._trips.items()
             },
         }
 
@@ -156,4 +231,5 @@ class HistoryStore:
         """Delete all stored history (the user-facing 'Delete all history')."""
 
         self._sessions = {}
+        self._trips = {}
         await self._store.async_remove()

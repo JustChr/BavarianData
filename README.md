@@ -185,8 +185,8 @@ type: custom:bmw-cardata-card
 Pin a specific vehicle with `device:` (device id) or `vin:`. Optional entity
 overrides: `title`, `image`, `soc`, `range`, `charging`, `target_soc`,
 `time_to_full`, `odometer`, `plug`. Set `view: charging` for the charging-history
-layout or `view: health` for battery health (both below), or `cluster:` for a
-single-cluster list.
+layout, `view: trips` for the trip journal, or `view: health` for battery health
+(all below), or `cluster:` for a single-cluster list.
 
 **Single cluster** — set `cluster:` to list every value in one catalogue cluster.
 Use one card per cluster:
@@ -222,6 +222,28 @@ are enough wide-range charges to be sure of the number, it shows *Learning
 type: custom:bmw-cardata-card
 view: health
 ```
+
+**Trips (driving journal)** — `view: trips` lists your recorded drives, newest
+first, each showing *from → to*, distance, duration and a business/private/commute
+badge; tap one for consumption, recuperation and the SoC used, and to reclassify
+it. Above the list a **month in review** sums the distance (with a vs-last-month
+delta), the business/private/commute split, average consumption, energy
+recuperated, a driving-style score and your top destinations — and, once a tariff
+is set, an estimated driving cost. It reads the `get_trips` and
+`get_driving_summary` services, so it spends no API quota:
+
+```yaml
+type: custom:bmw-cardata-card
+view: trips
+```
+
+Trips are reconstructed from the stream — no configuration needed. Endpoints are
+stored as **place names**, never coordinates: a point inside a Home Assistant zone
+shows that zone's name, and (only if you enable it under **Configure → Trips**) a
+point outside any zone is looked up via OpenStreetMap and stored as an address.
+Set a **work zone** there so home↔work drives are recognised as commutes. This is
+a trip journal and expense helper — **not a tax-office-compliant logbook**
+(*kein Finanzamt-konformes Fahrtenbuch*): it has no legal tamper-resistance.
 
 **Tire pressures** — `cluster: tire` draws a top-down car with each tire coloured
 by pressure vs. its target (green OK, amber high, red low) and the readings beside
@@ -303,6 +325,17 @@ trend as attributes). It reads `Learning (n/10)` until it has enough good sample
 **and** the estimate agrees with BMW's own capacity figure — a suspicious number
 is withheld rather than shown. No REST quota: it's all derived from the stream.
 
+**Trips (driving journal)** — every drive is reconstructed from the stream and
+kept: distance, duration, start/end places, SoC used, and BMW's own per-trip
+consumption, recuperation and driving-style figures. One **Driving Distance (This
+Month)** sensor per vehicle carries the monthly total and the
+business/private/commute split; the detail lives in the `get_trips` and
+`get_driving_summary` services (and the `view: trips` card) rather than a flood of
+entities. Drives between your home and work zones auto-classify as commutes, and
+`bavariandata.set_trip_class` (or the card) corrects any guess. Privacy is the
+default: places are stored as zone names, and reverse geocoding is opt-in and
+never persists coordinates. No REST quota. **Not a tax-office-compliant logbook.**
+
 **Events** — meaningful charging transitions fire on the Home Assistant event
 bus, ready to use as automation triggers (Developer Tools → Events to watch them):
 
@@ -343,8 +376,10 @@ Each service is available in Developer Tools and as a button in the integration'
 | `bavariandata.fetch_location_charging_settings` | Location-based charging settings (paginated). |
 | `bavariandata.fetch_vehicle_image` | Vehicle render (updates the image entity). |
 
-`bavariandata.get_charging_sessions` is the exception: it reads the
-integration's own recorded history and costs **no** quota.
+`bavariandata.get_charging_sessions`, `bavariandata.get_trips`,
+`bavariandata.get_driving_summary` and `bavariandata.set_trip_class` are the
+exceptions: they read (or write) the integration's own recorded history and cost
+**no** quota.
 
 ## Troubleshooting
 

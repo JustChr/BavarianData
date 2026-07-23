@@ -17,7 +17,8 @@ from typing import Any, Optional
 
 # Bumped whenever a record's on-disk shape changes incompatibly. ``store.py``
 # refuses to load data written by a newer schema than it understands.
-SCHEMA_VERSION = 1
+# v2 added the ``trips`` section alongside ``sessions`` (roadmap Phase 3).
+SCHEMA_VERSION = 2
 
 
 def _iso(value: Optional[datetime]) -> Optional[str]:

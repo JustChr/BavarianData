@@ -38,6 +38,8 @@ from .const import (
     OPTION_PRICE_FIXED,
     OPTION_PRICE_MODE,
     OPTION_STREAM_SECTIONS,
+    OPTION_TRIP_GEOCODE,
+    OPTION_TRIP_WORK_ZONE,
     VEHICLE_METADATA,
 )
 from .debug import set_debug_enabled
@@ -401,6 +403,7 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
                 "action_fetch_location_charging",
                 "action_fetch_image",
                 "action_charging_costs",
+                "action_trips",
                 "action_debug_logging",
             ],
         )
@@ -669,6 +672,53 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
             if runtime.history is not None:
                 months = int(user_input.get(OPTION_HISTORY_RETAIN_MONTHS, 0) or 0)
                 runtime.history.retain_months = months if months > 0 else None
+        return self.async_create_entry(title="", data=options)
+
+    async def async_step_action_trips(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Configure trip classification and address resolution.
+
+        The work zone drives commute classification (home <-> work). Address
+        resolution is off by default: turning it on sends the coordinates of
+        trip endpoints outside a known zone to OpenStreetMap's Nominatim -- the
+        resulting address string is stored, never the coordinates themselves.
+        """
+
+        options = dict(self._config_entry.options)
+        schema = vol.Schema(
+            {
+                vol.Optional(
+                    OPTION_TRIP_WORK_ZONE,
+                    description={
+                        "suggested_value": options.get(OPTION_TRIP_WORK_ZONE)
+                    },
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="zone")
+                ),
+                vol.Required(
+                    OPTION_TRIP_GEOCODE,
+                    default=options.get(OPTION_TRIP_GEOCODE, False),
+                ): selector.BooleanSelector(),
+            }
+        )
+
+        if user_input is None:
+            return self.async_show_form(step_id="action_trips", data_schema=schema)
+
+        options.update(user_input)
+        # Apply immediately rather than reloading (one concurrent stream per
+        # account means a reload risks racing the reconnect).
+        runtime = self.hass.data.get(DOMAIN, {}).get(self._config_entry.entry_id)
+        if runtime is not None:
+            coordinator = runtime.coordinator
+            coordinator.work_zone_entity = (
+                user_input.get(OPTION_TRIP_WORK_ZONE) or None
+            )
+            if coordinator.geocoder is not None:
+                coordinator.geocoder.enabled = bool(
+                    user_input.get(OPTION_TRIP_GEOCODE)
+                )
         return self.async_create_entry(title="", data=options)
 
     async def async_step_action_debug_logging(

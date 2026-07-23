@@ -194,6 +194,36 @@ const TRANSLATIONS = {
     bh_analysed: "Based on",
     bh_samples: "{n} charges",
     bh_trend_title: "Capacity vs mileage",
+    // trips
+    tr_title: "Trips",
+    tr_loading: "Loading trips…",
+    tr_empty:
+      "No trips recorded yet. Once the car is driven, trips appear here automatically.",
+    tr_error: "Couldn't load trips. Reload the page and try again.",
+    tr_trip_one: "1 trip",
+    tr_trip_many: "{n} trips",
+    tr_review: "This month",
+    tr_vs_last: "vs last month",
+    tr_business: "Business",
+    tr_private: "Private",
+    tr_commute: "Commute",
+    tr_unclassified: "Unclassified",
+    tr_consumption: "Avg consumption",
+    tr_recuperation: "Recuperated",
+    tr_style: "Driving style",
+    tr_style_trend: "Style over time",
+    tr_top_dest: "Top destinations",
+    tr_est_cost: "Est. cost",
+    tr_longest: "Longest trip",
+    tr_duration: "Duration",
+    tr_distance: "Distance",
+    tr_soc_used: "Battery used",
+    tr_visits: "{n}×",
+    tr_auto: "auto",
+    tr_classify: "Classify",
+    tr_best: "Best",
+    tr_worst: "Worst",
+    tr_unknown_place: "Unknown",
     // editor
     ed_device: "Vehicle",
     ed_cluster: "Mode",
@@ -209,7 +239,7 @@ const TRANSLATIONS = {
     ed_overview_option: "Overview (default)",
     ed_overrides_title: "Entity overrides (optional — leave empty to auto-detect)",
     edh_cluster:
-      "Overview shows the hero image and key metrics. Charging history lists recorded sessions with cost and power curve. Battery health shows learned usable capacity and its trend. A cluster shows every value of that group as a list.",
+      "Overview shows the hero image and key metrics. Charging history lists recorded sessions with cost and power curve. Trips lists recorded drives with a month-in-review summary. Battery health shows learned usable capacity and its trend. A cluster shows every value of that group as a list.",
     edh_title: "Overrides the vehicle name shown on the card.",
   },
   de: {
@@ -330,6 +360,36 @@ const TRANSLATIONS = {
     bh_analysed: "Basis",
     bh_samples: "{n} Ladevorgänge",
     bh_trend_title: "Kapazität nach Laufleistung",
+    // trips
+    tr_title: "Fahrten",
+    tr_loading: "Fahrten werden geladen…",
+    tr_empty:
+      "Noch keine Fahrten aufgezeichnet. Sobald das Fahrzeug bewegt wird, erscheinen Fahrten hier automatisch.",
+    tr_error: "Fahrten konnten nicht geladen werden. Seite neu laden und erneut versuchen.",
+    tr_trip_one: "1 Fahrt",
+    tr_trip_many: "{n} Fahrten",
+    tr_review: "Dieser Monat",
+    tr_vs_last: "ggü. Vormonat",
+    tr_business: "Geschäftlich",
+    tr_private: "Privat",
+    tr_commute: "Pendeln",
+    tr_unclassified: "Nicht zugeordnet",
+    tr_consumption: "Ø Verbrauch",
+    tr_recuperation: "Rekuperiert",
+    tr_style: "Fahrstil",
+    tr_style_trend: "Fahrstil über Zeit",
+    tr_top_dest: "Häufigste Ziele",
+    tr_est_cost: "Gesch. Kosten",
+    tr_longest: "Längste Fahrt",
+    tr_duration: "Dauer",
+    tr_distance: "Strecke",
+    tr_soc_used: "Batterie verbraucht",
+    tr_visits: "{n}×",
+    tr_auto: "auto",
+    tr_classify: "Zuordnen",
+    tr_best: "Beste",
+    tr_worst: "Schlechteste",
+    tr_unknown_place: "Unbekannt",
     // editor
     ed_device: "Fahrzeug",
     ed_cluster: "Modus",
@@ -345,7 +405,7 @@ const TRANSLATIONS = {
     ed_overview_option: "Übersicht (Standard)",
     ed_overrides_title: "Entitäten überschreiben (optional — leer lassen für Auto-Erkennung)",
     edh_cluster:
-      "Die Übersicht zeigt das Fahrzeugbild und Kennzahlen. Der Ladeverlauf listet aufgezeichnete Ladevorgänge mit Kosten und Ladekurve. Der Batteriezustand zeigt die gelernte nutzbare Kapazität und ihren Verlauf. Ein Cluster listet alle Werte dieser Gruppe auf.",
+      "Die Übersicht zeigt das Fahrzeugbild und Kennzahlen. Der Ladeverlauf listet aufgezeichnete Ladevorgänge mit Kosten und Ladekurve. Fahrten listet aufgezeichnete Fahrten mit einer Monatsübersicht. Der Batteriezustand zeigt die gelernte nutzbare Kapazität und ihren Verlauf. Ein Cluster listet alle Werte dieser Gruppe auf.",
     edh_title: "Überschreibt den auf der Karte angezeigten Fahrzeugnamen.",
   },
 };
@@ -388,6 +448,7 @@ class BmwCardataCard extends HTMLElement {
 
   getCardSize() {
     if (this._config && this._config.view === "charging") return 10;
+    if (this._config && this._config.view === "trips") return 11;
     if (this._config && this._config.view === "health") return 7;
     return this._config && this._config.cluster ? 6 : 8;
   }
@@ -580,6 +641,8 @@ class BmwCardataCard extends HTMLElement {
     const entities = this._deviceEntities(deviceId);
     if (this._config.view === "charging") {
       this._renderCharging(deviceId, entities);
+    } else if (this._config.view === "trips") {
+      this._renderTrips(deviceId, entities);
     } else if (this._config.view === "health") {
       this._renderHealth(deviceId, entities);
     } else if (this._config.cluster === "tire") {
@@ -1142,6 +1205,383 @@ class BmwCardataCard extends HTMLElement {
         this._sig = null; // force a repaint with the new expansion state
         const deviceId = this._resolveDeviceId();
         this._paintCharging(deviceId, this._deviceEntities(deviceId));
+      });
+    });
+  }
+
+  /* ---- trips (Fahrtenbuch) ---------------------------------------------- */
+
+  _renderTrips(deviceId, entities) {
+    const vin = this._deviceVin(deviceId);
+    if (!vin) {
+      this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
+      return;
+    }
+
+    // Like charging, trips come from services (a list + the month-in-review),
+    // not entity state. Gate the fetch on the monthly-distance sensor's
+    // last_changed so a plain hass tick never hits the services.
+    const trigSt = entities
+      .map((id) => this._st(id))
+      .find(
+        (st) =>
+          st &&
+          st.attributes &&
+          st.attributes.descriptor === "driving_distance_month"
+      );
+    const trigger = trigSt ? trigSt.last_changed : "";
+
+    const cache = this._trp;
+    const current = cache && cache.vin === vin && cache.trigger === trigger;
+    if (!current || (!cache.trips && !cache.loading)) {
+      this._trp = {
+        vin,
+        trigger,
+        trips: current && cache ? cache.trips : null,
+        summary: current && cache ? cache.summary : null,
+        loading: true,
+        error: false,
+      };
+      this._fetchTrips(vin);
+    }
+
+    this._paintTrips(deviceId, entities);
+  }
+
+  _fetchTrips(vin) {
+    const req = this._trp;
+    const call = (service, data) =>
+      this._hass.callService("bavariandata", service, data, undefined, false, true);
+    Promise.all([
+      call("get_trips", { vin, limit: 60 }),
+      call("get_driving_summary", { vin }),
+    ])
+      .then(([tripsRes, sumRes]) => {
+        if (!this._trp || this._trp.vin !== vin || this._trp.trigger !== req.trigger)
+          return;
+        const trips = (tripsRes && tripsRes.response && tripsRes.response.trips) || [];
+        const summary = (sumRes && sumRes.response && sumRes.response.summary) || null;
+        this._trp = { ...this._trp, trips, summary, loading: false, error: false };
+        this._render();
+      })
+      .catch(() => {
+        if (!this._trp || this._trp.vin !== vin || this._trp.trigger !== req.trigger)
+          return;
+        this._trp = { ...this._trp, loading: false, error: true };
+        this._render();
+      });
+  }
+
+  _paintTrips(deviceId, entities) {
+    const name = this._config.title || this._deviceName(deviceId);
+    const state = this._trp || {};
+    const trips = state.trips;
+    const summary = state.summary;
+    const expanded = this._trpExpanded || null;
+
+    const sig = this._signature({
+      m: "trp",
+      lang: _lang(this._hass),
+      name,
+      loading: state.loading && !trips,
+      error: state.error,
+      summary,
+      expanded,
+      rows: (trips || []).map((t) => [t.start, t.distance_km, t.classification]),
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    let body;
+    if (state.error) {
+      body = `<div class="empty">${this._t("tr_error")}</div>`;
+    } else if (!trips && state.loading) {
+      body = `<div class="empty">${this._t("tr_loading")}</div>`;
+    } else if (!trips || !trips.length) {
+      body = `<div class="empty">${this._t("tr_empty")}</div>`;
+    } else {
+      body = `${this._tripReview(summary)}<div class="chg__list">${trips
+        .map((t) => this._tripRow(t, expanded))
+        .join("")}</div>`;
+    }
+
+    const count = trips ? trips.length : 0;
+    const countLabel =
+      count === 1 ? this._t("tr_trip_one") : this._t("tr_trip_many", { n: count });
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <div class="chead">
+          <ha-icon icon="mdi:road-variant"></ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">${this._config.title || this._t("tr_title")}</span>
+            <span class="chead__sub">${name}${count ? " · " + countLabel : ""}</span>
+          </div>
+        </div>
+        ${body}
+      </ha-card>
+    `;
+    this._wireTripTaps();
+  }
+
+  /** The "month in review" panel, built entirely from get_driving_summary. */
+  _tripReview(summary) {
+    if (!summary || !summary.total_km) return "";
+    const km = (v) => (v == null ? "—" : `${this._round(v, 0)} km`);
+    const split = summary.split || {};
+
+    // Headline tiles: distance with a month-over-month arrow, and trip count.
+    const delta = summary.mom_delta_percent;
+    const arrow = delta == null ? "" : delta > 0 ? "▲" : delta < 0 ? "▼" : "→";
+    const deltaTxt =
+      delta == null
+        ? ""
+        : `<span class="tr__delta tr__delta--${delta >= 0 ? "up" : "down"}">${arrow} ${Math.abs(
+            this._round(delta, 0)
+          )}% ${this._t("tr_vs_last")}</span>`;
+
+    const tiles = [
+      `<div class="tr__tile"><span class="tr__tile-val">${this._round(
+        summary.total_km,
+        0
+      )} <i>km</i></span><span class="tr__tile-lbl">${this._t("tr_review")}</span>${deltaTxt}</div>`,
+    ];
+    if (summary.avg_consumption_kwh_per_100km != null) {
+      tiles.push(
+        `<div class="tr__tile"><span class="tr__tile-val">${this._round(
+          summary.avg_consumption_kwh_per_100km,
+          1
+        )} <i>kWh/100km</i></span><span class="tr__tile-lbl">${this._t(
+          "tr_consumption"
+        )}</span></div>`
+      );
+    }
+    if (summary.recuperation_kwh != null) {
+      tiles.push(
+        `<div class="tr__tile"><span class="tr__tile-val">${this._round(
+          summary.recuperation_kwh,
+          1
+        )} <i>kWh</i></span><span class="tr__tile-lbl">${this._t(
+          "tr_recuperation"
+        )}</span></div>`
+      );
+    }
+    if (summary.estimated_cost && summary.estimated_cost.amount != null) {
+      const c = summary.estimated_cost;
+      tiles.push(
+        `<div class="tr__tile"><span class="tr__tile-val">${this._round(c.amount, 2)} <i>${
+          c.currency || ""
+        }</i></span><span class="tr__tile-lbl">${this._t("tr_est_cost")}</span></div>`
+      );
+    }
+
+    // Business / private / commute split as one stacked bar with a legend.
+    const segs = [
+      ["business", split.business_km, "tr__seg--business"],
+      ["commute", split.commute_km, "tr__seg--commute"],
+      ["private", split.private_km, "tr__seg--private"],
+      ["unclassified", split.unclassified_km, "tr__seg--unc"],
+    ];
+    const total = summary.total_km || 1;
+    const barSegs = segs
+      .filter(([, v]) => v)
+      .map(
+        ([, v, cls]) => `<span class="tr__seg ${cls}" style="width:${(v / total) * 100}%"></span>`
+      )
+      .join("");
+    const legend = segs
+      .filter(([, v]) => v)
+      .map(
+        ([key, v, cls]) =>
+          `<span class="tr__leg"><i class="tr__dot ${cls}"></i>${this._t(
+            "tr_" + key
+          )} ${km(v)}</span>`
+      )
+      .join("");
+    const splitBlock = barSegs
+      ? `<div class="tr__split"><div class="tr__bar">${barSegs}</div><div class="tr__legend">${legend}</div></div>`
+      : "";
+
+    // Driving-style score (0–5) with a week-over-week trend sparkline.
+    let styleBlock = "";
+    if (summary.style_score != null) {
+      const trend = Array.isArray(summary.style_trend) ? summary.style_trend : [];
+      const points = trend.map((pt, i) => [i, pt.score]);
+      const chart = points.length >= 2 ? this._healthTrendSvg(points) : "";
+      styleBlock = `
+        <div class="tr__style">
+          <div class="tr__style-head">
+            <span class="tr__style-lbl">${this._t("tr_style")}</span>
+            <span class="tr__stars">${this._styleStars(summary.style_score)}</span>
+          </div>
+          ${chart ? `<div class="bh__trend"><span class="bh__trend-title">${this._t("tr_style_trend")}</span>${chart}</div>` : ""}
+        </div>`;
+    }
+
+    // Top destinations.
+    const dests = Array.isArray(summary.top_destinations) ? summary.top_destinations : [];
+    const destBlock = dests.length
+      ? `<div class="tr__dests"><span class="tr__dests-lbl">${this._t(
+          "tr_top_dest"
+        )}</span>${dests
+          .map(
+            (d) =>
+              `<span class="tr__dest"><span class="tr__dest-name">${this._esc(
+                d.label
+              )}</span><span class="tr__dest-n">${this._t("tr_visits", {
+                n: d.count,
+              })}</span></span>`
+          )
+          .join("")}</div>`
+      : "";
+
+    return `
+      <div class="tr__review">
+        <div class="tr__tiles">${tiles.join("")}</div>
+        ${splitBlock}
+        ${styleBlock}
+        ${destBlock}
+      </div>`;
+  }
+
+  /** Five glyphs filled to the nearest half for a 0–5 style score. */
+  _styleStars(score) {
+    const s = Math.max(0, Math.min(5, score));
+    let out = "";
+    for (let i = 1; i <= 5; i++) {
+      if (s >= i) out += "★";
+      else if (s >= i - 0.5) out += "⯪";
+      else out += "☆";
+    }
+    return out;
+  }
+
+  _tripRow(trip, expanded) {
+    const id = trip.start || "";
+    const isOpen = expanded === id;
+    const date = this._fmtSessionDate(trip.start);
+    const from = this._tripPlace(trip.start_place);
+    const to = this._tripPlace(trip.end_place);
+    const dist =
+      trip.distance_km != null ? `${this._round(trip.distance_km, 1)} km` : "—";
+    const cls = trip.classification
+      ? `<span class="tr__badge tr__badge--${trip.classification}">${this._t(
+          "tr_" + trip.classification
+        )}${
+          trip.classification_source === "auto"
+            ? ` <i class="tr__auto">${this._t("tr_auto")}</i>`
+            : ""
+        }</span>`
+      : "";
+    const dur = this._durationLabel(trip);
+
+    return `
+      <div class="chg__session${isOpen ? " is-open" : ""}">
+        <button class="chg__row" data-trip="${this._attr(id)}">
+          <span class="chg__row-main">
+            <span class="chg__date">${this._esc(from)} → ${this._esc(to)}</span>
+            <span class="chg__meta"><span class="chg__soc">${date}</span>${cls}</span>
+          </span>
+          <span class="chg__figures">
+            <span class="chg__energy">${dist}</span>
+            <span class="chg__cost">${dur || ""}</span>
+          </span>
+        </button>
+        ${isOpen ? this._tripDetail(trip) : ""}
+      </div>
+    `;
+  }
+
+  _tripDetail(trip) {
+    const facts = [];
+    const cons =
+      trip.energy_kwh != null && trip.distance_km
+        ? this._round((trip.energy_kwh / trip.distance_km) * 100, 1)
+        : null;
+    if (cons != null) facts.push([this._t("tr_consumption"), `${cons} kWh/100km`]);
+    const st = trip.stats || {};
+    if (st.recuperation_kwh != null) {
+      facts.push([this._t("tr_recuperation"), `${this._round(st.recuperation_kwh, 1)} kWh`]);
+    }
+    const soc = this._socArc(trip);
+
+    const factRow = facts
+      .map(
+        ([k, v]) =>
+          `<div class="chg__fact"><span class="chg__fact-lbl">${k}</span><span class="chg__fact-val">${v}</span></div>`
+      )
+      .join("");
+
+    // Reclassification controls: an auto guess is a guess the user can correct.
+    const buttons = ["business", "private", "commute"]
+      .map(
+        (c) =>
+          `<button class="tr__cls-btn tr__badge--${c}${
+            trip.classification === c ? " is-active" : ""
+          }" data-trip-class="${this._attr(trip.start || "")}" data-class="${c}">${this._t(
+            "tr_" + c
+          )}</button>`
+      )
+      .join("");
+
+    return `
+      <div class="chg__detail">
+        ${soc ? `<div class="chg__facts">${soc}</div>` : ""}
+        ${factRow ? `<div class="chg__facts">${factRow}</div>` : ""}
+        <div class="tr__classify">
+          <span class="tr__classify-lbl">${this._t("tr_classify")}</span>
+          <span class="tr__cls-btns">${buttons}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  _tripPlace(place) {
+    if (!place) return this._t("tr_unknown_place");
+    const label = place.label || place.zone || place.address;
+    if (!label || label === "Unknown") return this._t("tr_unknown_place");
+    return label;
+  }
+
+  _wireTripTaps() {
+    this.shadowRoot.querySelectorAll("[data-trip]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const id = el.getAttribute("data-trip");
+        this._trpExpanded = this._trpExpanded === id ? null : id;
+        this._sig = null; // force a repaint with the new expansion state
+        const deviceId = this._resolveDeviceId();
+        this._paintTrips(deviceId, this._deviceEntities(deviceId));
+      });
+    });
+    this.shadowRoot.querySelectorAll("[data-trip-class]").forEach((el) => {
+      el.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        const tripId = el.getAttribute("data-trip-class");
+        const cls = el.getAttribute("data-class");
+        const vin = this._trp && this._trp.vin;
+        if (!vin) return;
+        this._hass
+          .callService("bavariandata", "set_trip_class", {
+            vin,
+            trip_id: `${vin}-${tripId}`,
+            classification: cls,
+          })
+          .then(() => {
+            // Optimistically reflect the change; the service re-dispatches and
+            // the summary sensor's last_changed will trigger a real refetch.
+            if (this._trp && Array.isArray(this._trp.trips)) {
+              const hit = this._trp.trips.find((t) => t.start === tripId);
+              if (hit) {
+                hit.classification = cls;
+                hit.classification_source = "user";
+              }
+              this._sig = null;
+              const deviceId = this._resolveDeviceId();
+              this._paintTrips(deviceId, this._deviceEntities(deviceId));
+            }
+          })
+          .catch(() => {});
       });
     });
   }
@@ -2371,6 +2811,81 @@ class BmwCardataCard extends HTMLElement {
       }
       .bh__chart { width: 100%; height: 70px; display: block; }
 
+      /* trips */
+      .tr__review { padding: 8px 14px 4px; display: flex; flex-direction: column; gap: 12px; }
+      .tr__tiles { display: flex; gap: 8px; flex-wrap: wrap; }
+      .tr__tile {
+        flex: 1 1 40%; display: flex; flex-direction: column; gap: 2px;
+        padding: 8px 10px; border-radius: 12px;
+        background: var(--secondary-background-color);
+      }
+      .tr__tile-val { font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+      .tr__tile-val i { font-style: normal; font-size: 0.72rem; color: var(--secondary-text-color); }
+      .tr__tile-lbl {
+        font-size: 0.68rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .tr__delta { font-size: 0.7rem; font-variant-numeric: tabular-nums; }
+      .tr__delta--up { color: var(--bmw-charge, #34c759); }
+      .tr__delta--down { color: var(--error-color, #ff453a); }
+      .tr__split { display: flex; flex-direction: column; gap: 6px; }
+      .tr__bar {
+        display: flex; height: 12px; border-radius: 999px; overflow: hidden;
+        background: var(--secondary-background-color);
+      }
+      .tr__seg { display: block; height: 100%; }
+      .tr__seg--business, .tr__dot.tr__seg--business { background: #0066b1; }
+      .tr__seg--commute, .tr__dot.tr__seg--commute { background: #00a1e0; }
+      .tr__seg--private, .tr__dot.tr__seg--private { background: #7ac142; }
+      .tr__seg--unc, .tr__dot.tr__seg--unc { background: var(--disabled-text-color, #8a8a8a); }
+      .tr__legend { display: flex; flex-wrap: wrap; gap: 10px; }
+      .tr__leg {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: 0.72rem; color: var(--secondary-text-color);
+        font-variant-numeric: tabular-nums;
+      }
+      .tr__dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+      .tr__style { display: flex; flex-direction: column; gap: 6px; }
+      .tr__style-head { display: flex; align-items: center; justify-content: space-between; }
+      .tr__style-lbl {
+        font-size: 0.68rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .tr__stars { font-size: 0.95rem; color: #f5a623; letter-spacing: 1px; }
+      .tr__dests { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      .tr__dests-lbl {
+        font-size: 0.68rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em; width: 100%;
+      }
+      .tr__dest {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 4px 8px; border-radius: 999px;
+        background: var(--secondary-background-color); font-size: 0.78rem;
+      }
+      .tr__dest-n { color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
+      .tr__badge {
+        font-size: 0.66rem; padding: 1px 7px; border-radius: 999px;
+        color: #fff; text-transform: uppercase; letter-spacing: 0.03em;
+      }
+      .tr__badge--business { background: #0066b1; }
+      .tr__badge--commute { background: #00a1e0; }
+      .tr__badge--private { background: #7ac142; }
+      .tr__auto { font-style: normal; opacity: 0.75; text-transform: none; }
+      .tr__classify { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 2px 2px; }
+      .tr__classify-lbl {
+        font-size: 0.68rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .tr__cls-btns { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+      .tr__cls-btn {
+        border: 1px solid var(--divider-color); background: none; cursor: pointer;
+        font-size: 0.66rem; padding: 3px 9px; border-radius: 999px;
+        color: var(--primary-text-color); text-transform: uppercase; letter-spacing: 0.03em;
+        opacity: 0.6;
+      }
+      .tr__cls-btn:hover { opacity: 1; }
+      .tr__cls-btn.is-active { opacity: 1; color: #fff; border-color: transparent; }
+
       @media (prefers-reduced-motion: reduce) {
         .dot--live { animation: none; }
         .gauge__ring { transition: none; }
@@ -2408,8 +2923,10 @@ const OVERVIEW = "overview";
 const CHARGING_VIEW = "charging";
 // Same idea for battery health: a `view:`, not a cluster, sharing the dropdown.
 const HEALTH_VIEW = "health";
+// And trips (the Fahrtenbuch), also a `view:` sharing the one dropdown.
+const TRIPS_VIEW = "trips";
 // The `view:` values that are layouts in their own right rather than clusters.
-const VIEW_MODES = new Set([CHARGING_VIEW, HEALTH_VIEW]);
+const VIEW_MODES = new Set([CHARGING_VIEW, TRIPS_VIEW, HEALTH_VIEW]);
 
 class BmwCardataCardEditor extends HTMLElement {
   setConfig(config) {
@@ -2426,6 +2943,7 @@ class BmwCardataCardEditor extends HTMLElement {
     const clusterOptions = [
       { value: OVERVIEW, label: t(this._hass, "ed_overview_option") },
       { value: CHARGING_VIEW, label: t(this._hass, "ch_title") },
+      { value: TRIPS_VIEW, label: t(this._hass, "tr_title") },
       { value: HEALTH_VIEW, label: t(this._hass, "bh_title") },
       { value: "closures", label: t(this._hass, "cl_closures") },
       ...CLUSTER_SLUGS.map((slug) => ({

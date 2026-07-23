@@ -61,6 +61,7 @@
           "action_fetch_location_charging": "Ladeeinstellungen abrufen",
           "action_fetch_image": "Fahrzeugbild abrufen",
           "action_charging_costs": "Ladekosten & Verlauf",
+          "action_trips": "Fahrten",
           "action_debug_logging": "Debug-Protokollierung"
         }
       },
@@ -144,6 +145,18 @@
           "grid_energy_entity": "Optional. Ein gemessener Netzwert schlägt immer unsere batterieseitige Schätzung.",
           "charging_loss_percent": "Optional. Rechnet die batterieseitige Energie in Richtung Netzenergie hoch.",
           "history_retain_months": "0 behält alles. Ältere Ladevorgänge werden verworfen."
+        }
+      },
+      "action_trips": {
+        "title": "Fahrten (Fahrtenbuch)",
+        "description": "Rekonstruiert deine Fahrten aus dem Stream ohne API-Kosten — Strecke, die Aufteilung geschäftlich/privat/Pendeln, Verbrauch und eine Monatsübersicht.\n\nLege **Arbeitszone** fest, damit Pendelfahrten (Zuhause ↔ Arbeit) automatisch erkannt werden; du kannst eine Fahrt jederzeit nachträglich korrigieren. **Adressen auflösen** ist standardmäßig aus: Ist es an, wird ein Fahrt-Endpunkt außerhalb jeder Home-Assistant-Zone über OpenStreetMap nachgeschlagen und als Adresse gespeichert — die Koordinaten werden für die Abfrage gesendet, aber nie gespeichert.",
+        "data": {
+          "trip_work_zone": "Arbeitszone",
+          "trip_geocode": "Adressen auflösen"
+        },
+        "data_description": {
+          "trip_work_zone": "Optional. Eine Fahrt zwischen dieser Zone und Zuhause gilt als Pendelfahrt.",
+          "trip_geocode": "Optional. Sendet Endpunkte außerhalb von Zonen an OpenStreetMap; gespeichert wird nur die Adresse, nie die Koordinaten."
         }
       },
       "action_debug_logging": {
@@ -1513,6 +1526,9 @@
       },
       "battery_health": {
         "name": "Batteriezustand"
+      },
+      "driving_distance_month": {
+        "name": "Fahrstrecke (dieser Monat)"
       }
     },
     "binary_sensor": {

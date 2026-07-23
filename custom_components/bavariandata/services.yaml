@@ -94,3 +94,66 @@ get_charging_sessions:
     limit:
       description: Maximum number of sessions to return.
       example: 20
+get_trips:
+  name: Get Trips
+  description: >-
+    Return recorded trips, newest first. Reads the integration's own history, so
+    like get_charging_sessions it costs no BMW API quota. Endpoints are stored as
+    place names, never coordinates.
+  fields:
+    entry_id:
+      description: Optional config entry id to target. Required if multiple entries are configured.
+      example: 01K65NKFESKBQZ78PBW6V9BCCX
+    vin:
+      description: Optional VIN to filter by. Defaults to every known vehicle.
+      example: WBY31AW090FP15359
+    from:
+      description: Only trips that started on or after this date/time.
+      example: "2026-07-01"
+    to:
+      description: Only trips that started on or before this date/time.
+      example: "2026-07-31"
+    limit:
+      description: Maximum number of trips to return.
+      example: 50
+get_driving_summary:
+  name: Get Driving Summary
+  description: >-
+    Return the "month in review" aggregation for trips - distance, the
+    business/private/commute split, consumption, recuperation, driving-style
+    score, top destinations and (with a tariff) an estimated driving cost. Reads
+    the local store, so it costs no BMW API quota.
+  fields:
+    entry_id:
+      description: Optional config entry id to target. Required if multiple entries are configured.
+      example: 01K65NKFESKBQZ78PBW6V9BCCX
+    vin:
+      description: Optional VIN. Defaults to the single configured vehicle.
+      example: WBY31AW090FP15359
+    month:
+      description: Month to summarise as YYYY-MM. Defaults to the current month.
+      example: "2026-07"
+set_trip_class:
+  name: Set Trip Classification
+  description: >-
+    Override a trip's classification (business, private or commute). Use this to
+    correct the automatic zone-pair guess. Writes the local store only.
+  fields:
+    entry_id:
+      description: Optional config entry id to target. Required if multiple entries are configured.
+      example: 01K65NKFESKBQZ78PBW6V9BCCX
+    vin:
+      description: Optional VIN. Defaults to the single configured vehicle.
+      example: WBY31AW090FP15359
+    trip_id:
+      description: The trip's id, as returned by get_trips.
+      example: WBY31AW090FP15359-2026-07-06T08:00:00+00:00
+    classification:
+      description: One of business, private or commute.
+      example: business
+      selector:
+        select:
+          options:
+            - business
+            - private
+            - commute

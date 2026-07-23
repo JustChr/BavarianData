@@ -45,6 +45,11 @@ OPTION_CHARGING_LOSS_PERCENT = "charging_loss_percent"
 OPTION_HISTORY_RETAIN_MONTHS = "history_retain_months"
 DEFAULT_HISTORY_RETAIN_MONTHS = 24
 
+# Trips (roadmap Phase 3). The work zone drives commute classification; the
+# geocode toggle is off by default because it sends coordinates to OpenStreetMap.
+OPTION_TRIP_WORK_ZONE = "trip_work_zone"
+OPTION_TRIP_GEOCODE = "trip_geocode"
+
 # Dispatcher signal fired when a vehicle render is (re)cached, carrying the VIN.
 SIGNAL_VEHICLE_IMAGE = f"{DOMAIN}_vehicle_image_updated"
 

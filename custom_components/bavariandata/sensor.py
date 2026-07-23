@@ -25,7 +25,12 @@ from .coordinator import CardataCoordinator
 from .descriptor_metadata import DESCRIPTOR_META
 from .entity import CardataEntity
 from .history.health import MIN_SAMPLES, degradation_series, usable_capacity
-from .history.summary import sessions_in_month, summarise
+from .history.summary import (
+    driving_summary,
+    sessions_in_month,
+    summarise,
+    trips_in_month,
+)
 
 
 # String metadata values -> Home Assistant sensor enums.
@@ -883,6 +888,86 @@ class CardataBatteryHealthSensor(CardataEntity, SensorEntity):
             self.schedule_update_ha_state()
 
 
+class CardataDrivingDistanceMonthSensor(CardataEntity, SensorEntity):
+    """How far the car has been driven this calendar month, from trip records.
+
+    The single "how much am I driving" figure; the per-class split rides as
+    attributes and the full month-in-review (consumption, recuperation, top
+    destinations, cost) is served by ``get_driving_summary`` rather than spawning
+    an entity per number (roadmap rule 1). Recomputed on read and rewritten both
+    when a trip lands and just after midnight, so "this month" is never stale.
+    """
+
+    _attr_should_poll = False
+    _attr_device_class = SensorDeviceClass.DISTANCE
+    _attr_state_class = SensorStateClass.TOTAL
+    _attr_native_unit_of_measurement = "km"
+    _attr_icon = "mdi:road-variant"
+    _attr_translation_key = "driving_distance_month"
+
+    def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
+        super().__init__(coordinator, vin, "driving_distance_month")
+        self._unsubscribe = None
+        self._unsub_midnight = None
+
+    @property
+    def _summary(self) -> Dict[str, Any]:
+        history = self._coordinator.history
+        if history is None:
+            return {}
+        now = dt_util.now()
+        return driving_summary(
+            trips_in_month(
+                history.trips(self.vin),
+                year=now.year,
+                month=now.month,
+                localize=dt_util.as_local,
+            )
+        )
+
+    @property
+    def native_value(self):
+        return self._summary.get("total_km")
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        attrs = dict(super().extra_state_attributes)
+        summary = self._summary
+        split = summary.get("split") or {}
+        attrs["trip_count"] = summary.get("trip_count", 0)
+        attrs["business_km"] = split.get("business_km")
+        attrs["private_km"] = split.get("private_km")
+        attrs["commute_km"] = split.get("commute_km")
+        attrs["unclassified_km"] = split.get("unclassified_km")
+        return attrs
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self._unsubscribe = async_dispatcher_connect(
+            self.hass,
+            self._coordinator.signal_trips,
+            self._handle_update,
+        )
+        self._unsub_midnight = async_track_time_change(
+            self.hass, self._handle_rollover, hour=0, minute=0, second=10
+        )
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._unsubscribe:
+            self._unsubscribe()
+            self._unsubscribe = None
+        if self._unsub_midnight:
+            self._unsub_midnight()
+            self._unsub_midnight = None
+
+    def _handle_update(self, vin: str) -> None:
+        if vin == self.vin:
+            self.schedule_update_ha_state()
+
+    def _handle_rollover(self, _now) -> None:
+        self.schedule_update_ha_state()
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities
 ) -> None:
@@ -897,6 +982,32 @@ async def async_setup_entry(
     session_energy_entities: Dict[str, CardataSessionEnergySensor] = {}
     charging_summary_entities: Dict[str, list] = {}
     battery_health_entities: Dict[str, CardataBatteryHealthSensor] = {}
+    driving_entities: Dict[str, CardataDrivingDistanceMonthSensor] = {}
+
+    # A car that reports either of these can produce trips worth summarising; a
+    # device that streams neither (never driven, no odometer) gets no trip sensor
+    # rather than one stuck at 0 km.
+    _DRIVE_SIGNALS = ("vehicle.vehicle.mileage", "vehicle.isMoving")
+
+    def ensure_driving_entity(vin: str, *, force: bool = False) -> None:
+        """Create the monthly-distance sensor once the car looks drivable.
+
+        ``force`` re-creates one restored from the registry without re-checking
+        for a live signal, matching how battery health avoids the generic path
+        minting a bogus CardataSensor on its id.
+        """
+
+        if vin in driving_entities or coordinator.history is None:
+            return
+        drivable = any(
+            coordinator.get_state(vin, descriptor) is not None
+            for descriptor in _DRIVE_SIGNALS
+        )
+        if not (force or drivable):
+            return
+        entity = CardataDrivingDistanceMonthSensor(coordinator, vin)
+        driving_entities[vin] = entity
+        async_add_entities([entity], True)
 
     # Any of these streaming marks the car as having an HV battery worth tracking
     # health for; a pure-ICE car streams none of them.
@@ -980,6 +1091,7 @@ async def async_setup_entry(
         ensure_soc_tracking_entities(vin)
         ensure_charging_summary_entities(vin)
         ensure_battery_health_entity(vin)
+        ensure_driving_entity(vin)
         if (vin, descriptor) in entities:
             return
         
@@ -1048,6 +1160,9 @@ async def async_setup_entry(
             # letting the generic path mint a bogus CardataSensor on its id.
             ensure_battery_health_entity(vin, force=True)
             continue
+        if descriptor == "driving_distance_month":
+            ensure_driving_entity(vin, force=True)
+            continue
         ensure_entity(vin, descriptor, assume_sensor=True)
 
     for vin, descriptor in coordinator.iter_descriptors(binary=False):
@@ -1056,6 +1171,7 @@ async def async_setup_entry(
     for vin in list(coordinator.data.keys()):
         ensure_soc_tracking_entities(vin)
         ensure_battery_health_entity(vin)
+        ensure_driving_entity(vin)
 
     async def async_handle_new(vin: str, descriptor: str) -> None:
         ensure_entity(vin, descriptor)

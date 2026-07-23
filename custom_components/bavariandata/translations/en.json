@@ -61,6 +61,7 @@
           "action_fetch_location_charging": "Fetch charging settings",
           "action_fetch_image": "Fetch vehicle image",
           "action_charging_costs": "Charging costs & history",
+          "action_trips": "Trips",
           "action_debug_logging": "Debug logging"
         }
       },
@@ -144,6 +145,18 @@
           "grid_energy_entity": "Optional. A measured grid figure always beats our battery-side estimate.",
           "charging_loss_percent": "Optional. Grosses battery-side energy up towards grid energy.",
           "history_retain_months": "0 keeps everything. Sessions older than this are discarded."
+        }
+      },
+      "action_trips": {
+        "title": "Trips (driving journal)",
+        "description": "Reconstructs your drives from the stream at no API cost — distance, the business/private/commute split, consumption and a monthly review.\n\nSet **Work zone** so commutes (home ↔ work) are recognised automatically; you can always correct a trip afterwards. **Resolve addresses** is off by default: with it on, a trip endpoint outside any Home Assistant zone is looked up via OpenStreetMap and stored as an address — the coordinates are sent for the lookup but never saved.",
+        "data": {
+          "trip_work_zone": "Work zone",
+          "trip_geocode": "Resolve addresses"
+        },
+        "data_description": {
+          "trip_work_zone": "Optional. A drive between this zone and home is classified as a commute.",
+          "trip_geocode": "Optional. Sends non-zone endpoints to OpenStreetMap; only the resulting address is stored, never the coordinates."
         }
       },
       "action_debug_logging": {
@@ -1747,6 +1760,9 @@
       },
       "battery_health": {
         "name": "Battery Health"
+      },
+      "driving_distance_month": {
+        "name": "Driving Distance (This Month)"
       }
     },
     "binary_sensor": {

@@ -68,6 +68,10 @@
     "battery_health": {
       "en": "Battery Health",
       "de": "Batteriezustand"
+    },
+    "driving_distance_month": {
+      "en": "Driving Distance (This Month)",
+      "de": "Fahrstrecke (dieser Monat)"
     }
   },
   "device_tracker": {

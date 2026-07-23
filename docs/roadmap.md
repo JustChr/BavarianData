@@ -52,7 +52,7 @@ leaving scaffolding behind.
 | 0 | History store + derived-entity translations | done |
 | 1 | Charging ledger and real cost | done |
 | 2 | Battery health / degradation | done |
-| 3 | Trips (Fahrtenbuch) | sketched |
+| 3 | Trips (Fahrtenbuch) | done |
 | 4 | Statistics backfill + export | sketched |
 
 Charging goes first deliberately: it is the smallest delta from what already
@@ -287,6 +287,35 @@ Classification via an actionable notification ("Business / Private") or a
 > tamper-resistance and timeliness requirements we cannot guarantee. This is a
 > trip journal and expense helper. Say so in the docs, from day one.
 
+**As built:**
+
+- **HA-free, unit-tested** (`tests/test_trips.py`): `history/trips.py` (the
+  `Trip` record — endpoints are *places*, `{"zone", "address", "label"}`, never
+  lat/lon — plus `prune_trips`/`merge_trip`), `history/classify.py` (the zone-pair
+  rule: home↔work = commute, else private; never invents *business*),
+  `history/trip_builder.py` (`TripBuilder`, distance from the odometer delta with
+  BMW's `travelledDistance` as fallback, `is_noise_trip` to drop parking shuffles),
+  and `history/summary.py`'s `driving_summary` (the whole month-in-review object).
+- **Detection is powertrain-agnostic** (the i5 is a BEV): the coordinator opens a
+  trip on motion/ignition and closes it on BMW's own `trip.segment.end` batch — or
+  a stationary debounce as fallback — never on the combustion-oriented
+  `engine.isActive`. It enriches from `trip.segment.accumulated.*` (consumption,
+  recuperation, eco fractions, driving-style stars) and classifies at close.
+- **Privacy as chosen:** only the resolved HA zone name is stored; a point outside
+  any zone is reverse-geocoded to an **address string** via the *opt-in* Nominatim
+  geocoder (`history/geocoding.py`) — the coordinates are sent for the lookup but
+  never persisted (the dedupe cache is in-memory only).
+- **One sensor** (`driving_distance_month`, in `derived_entities.json`, restored via
+  its own registry branch to dodge the id-collision path). Detail rides the
+  services: `get_trips`, `get_driving_summary` (reuses the Phase-1
+  cost-per-100km for an estimated driving cost), and `set_trip_class` (the manual
+  override). All read/write the local store — **zero quota**.
+- **Options** *Trips*: work-zone picker + the address-resolution toggle (off by
+  default), bilingual. **Card** `view: trips`: a month-in-review panel (distance
+  with a MoM delta, the business/private/commute split bar, consumption,
+  recuperation, a driving-style score + trend, top destinations, estimated cost)
+  above a trip list whose class badge reclassifies via `set_trip_class`.
+
 ## Phase 4 — Statistics backfill and export
 
 Import charging history and trips into Home Assistant's long-term statistics via
@@ -334,21 +363,24 @@ Ideas worth keeping but not scheduled:
 
 ## Where this stands (2026-07-23)
 
-Phases 0, 1 **and 2** are **committed on `main`, not yet released** (HACS users
-only get tagged releases). Phase 0–1 commits: `e216b2b` translations, `febaf5e`
-history foundation, `c66323d` ledger + cost, `bb55797` card view. Phase 2
-(battery health): `5389b80`. All local and unpushed.
+Phases 0–2 are **released as a beta**. Phase 3 (Trips) is **built on `main`, not
+yet released** — the trip layer (`history/trips.py`, `classify.py`,
+`trip_builder.py`, `geocoding.py`, `driving_summary`), the coordinator detection,
+the `driving_distance_month` sensor, the `get_trips` / `get_driving_summary` /
+`set_trip_class` services, the *Trips* options step, and the `view: trips` card.
 
-**Verified:** 80 unit tests pass (`history/` maths + summaries + pricing +
-battery-health), card JS `node --check` clean, ruff clean, en/de translation
-parity confirmed (integration `entity` block + card `bh_*` strings).
+**Verified:** 105 unit tests pass (`history/` maths + summaries + pricing +
+battery-health + **trips**), card JS `node --check` clean, `test_catalogue`
+idempotence + no key collision, en/de translation parity (integration `entity`
+block + card `tr_*`/`bh_*` strings).
 
-**NOT verified — needs a live HA pass before release:** entity creation (now
-including `battery_health`), the *Charging costs & history* options screen, the
-`get_charging_sessions` response service round-trip, zone resolution at a real
-charge, the charging card's async fetch/paint, and the new `view: health` gauge
-and trend. Entity/flow/card code has no test harness in this repo by design; the
-battery-health estimate needs many wide-ΔSoC charges before it leaves "Learning".
+**NOT verified — needs a live HA pass before release:** trip detection on a real
+drive (which of `isMoving` / `isIgnitionOn` / `trip.segment.end` the i5 streams
+and in what order), place resolution (zone + one geocoded address), distance vs
+the odometer delta, commute auto-classification and the `set_trip_class` override,
+the `driving_distance_month` sensor, and the `view: trips` review panel + list.
+Entity/flow/card code has no test harness in this repo by design.
 
-**Pick up next:** the live-HA shakedown of Phases 0–2, then Phase 3 (Trips) —
-which first needs the privacy design (reverse geocoding, business/private UX).
+**Pick up next:** the live-HA shakedown of Phase 3 (and the still-pending Phase
+0–2 real-drive/charge shakedown), then Phase 4 (statistics backfill + CSV/PDF
+export).
