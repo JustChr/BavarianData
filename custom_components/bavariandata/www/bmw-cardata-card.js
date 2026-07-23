@@ -179,6 +179,21 @@ const TRANSLATIONS = {
     ch_duration: "Duration",
     ch_no_cost: "no price set",
     ch_ongoing: "charging…",
+    // battery health
+    bh_title: "Battery health",
+    bh_empty:
+      "No battery-health data yet. Once the car logs a few wide-range charges, its usable capacity appears here.",
+    bh_learning: "Learning ({n}/{total})",
+    bh_learning_hint:
+      "Estimating usable capacity from your charges. A few wide-range charges (e.g. 20 → 80%) teach it fastest.",
+    bh_suspicious:
+      "Cross-checking against BMW's own capacity figure before showing a number.",
+    bh_usable: "Usable capacity",
+    bh_of_new: "{p}% of original",
+    bh_nominal: "As new",
+    bh_analysed: "Based on",
+    bh_samples: "{n} charges",
+    bh_trend_title: "Capacity vs mileage",
     // editor
     ed_device: "Vehicle",
     ed_cluster: "Mode",
@@ -194,7 +209,7 @@ const TRANSLATIONS = {
     ed_overview_option: "Overview (default)",
     ed_overrides_title: "Entity overrides (optional — leave empty to auto-detect)",
     edh_cluster:
-      "Overview shows the hero image and key metrics. Charging history lists recorded sessions with cost and power curve. A cluster shows every value of that group as a list.",
+      "Overview shows the hero image and key metrics. Charging history lists recorded sessions with cost and power curve. Battery health shows learned usable capacity and its trend. A cluster shows every value of that group as a list.",
     edh_title: "Overrides the vehicle name shown on the card.",
   },
   de: {
@@ -300,6 +315,21 @@ const TRANSLATIONS = {
     ch_duration: "Dauer",
     ch_no_cost: "kein Preis gesetzt",
     ch_ongoing: "lädt…",
+    // battery health
+    bh_title: "Batteriezustand",
+    bh_empty:
+      "Noch keine Daten zum Batteriezustand. Sobald das Fahrzeug einige Ladevorgänge über einen weiten Bereich aufzeichnet, erscheint hier die nutzbare Kapazität.",
+    bh_learning: "Lernt ({n}/{total})",
+    bh_learning_hint:
+      "Die nutzbare Kapazität wird aus deinen Ladevorgängen geschätzt. Ein paar Ladungen über einen weiten Bereich (z. B. 20 → 80 %) beschleunigen das.",
+    bh_suspicious:
+      "Wird mit BMWs eigener Kapazitätsangabe abgeglichen, bevor ein Wert angezeigt wird.",
+    bh_usable: "Nutzbare Kapazität",
+    bh_of_new: "{p} % vom Original",
+    bh_nominal: "Neuwert",
+    bh_analysed: "Basis",
+    bh_samples: "{n} Ladevorgänge",
+    bh_trend_title: "Kapazität nach Laufleistung",
     // editor
     ed_device: "Fahrzeug",
     ed_cluster: "Modus",
@@ -315,7 +345,7 @@ const TRANSLATIONS = {
     ed_overview_option: "Übersicht (Standard)",
     ed_overrides_title: "Entitäten überschreiben (optional — leer lassen für Auto-Erkennung)",
     edh_cluster:
-      "Die Übersicht zeigt das Fahrzeugbild und Kennzahlen. Der Ladeverlauf listet aufgezeichnete Ladevorgänge mit Kosten und Ladekurve. Ein Cluster listet alle Werte dieser Gruppe auf.",
+      "Die Übersicht zeigt das Fahrzeugbild und Kennzahlen. Der Ladeverlauf listet aufgezeichnete Ladevorgänge mit Kosten und Ladekurve. Der Batteriezustand zeigt die gelernte nutzbare Kapazität und ihren Verlauf. Ein Cluster listet alle Werte dieser Gruppe auf.",
     edh_title: "Überschreibt den auf der Karte angezeigten Fahrzeugnamen.",
   },
 };
@@ -358,6 +388,7 @@ class BmwCardataCard extends HTMLElement {
 
   getCardSize() {
     if (this._config && this._config.view === "charging") return 10;
+    if (this._config && this._config.view === "health") return 7;
     return this._config && this._config.cluster ? 6 : 8;
   }
 
@@ -549,6 +580,8 @@ class BmwCardataCard extends HTMLElement {
     const entities = this._deviceEntities(deviceId);
     if (this._config.view === "charging") {
       this._renderCharging(deviceId, entities);
+    } else if (this._config.view === "health") {
+      this._renderHealth(deviceId, entities);
     } else if (this._config.cluster === "tire") {
       this._renderTires(deviceId, entities);
     } else if (this._config.cluster === "closures") {
@@ -1111,6 +1144,177 @@ class BmwCardataCard extends HTMLElement {
         this._paintCharging(deviceId, this._deviceEntities(deviceId));
       });
     });
+  }
+
+  /* ---- battery health --------------------------------------------------- */
+
+  _renderHealth(deviceId, entities) {
+    const name = this._config.title || this._deviceName(deviceId);
+    // Everything the view needs already lives on the battery_health sensor
+    // (state + attributes), so unlike the charging view there is no service to
+    // call -- the estimate and its trend paint straight from hass.
+    const st = entities
+      .map((id) => this._st(id))
+      .find(
+        (s) => s && s.attributes && s.attributes.descriptor === "battery_health"
+      );
+    const a = (st && st.attributes) || {};
+    const confident = !!a.confident;
+    const usable = a.usable_capacity_kwh;
+    const nominal = a.nominal_capacity_kwh;
+    const vsNew = a.vs_new_percent;
+    const samples = a.samples || 0;
+    const needed = a.samples_needed || 10;
+    const suspicious = !!a.suspicious;
+    const trend = Array.isArray(a.trend) ? a.trend : [];
+
+    const sig = this._signature({
+      m: "bh",
+      lang: _lang(this._hass),
+      name,
+      has: !!st,
+      confident,
+      usable,
+      nominal,
+      vsNew,
+      samples,
+      needed,
+      suspicious,
+      trend,
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    let body;
+    if (!st) {
+      body = `<div class="empty">${this._t("bh_empty")}</div>`;
+    } else if (confident) {
+      body = this._healthConfident(usable, nominal, vsNew, samples, trend);
+    } else {
+      body = this._healthLearning(samples, needed, suspicious);
+    }
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <div class="chead">
+          <ha-icon icon="mdi:battery-heart-variant"></ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">${this._config.title || this._t("bh_title")}</span>
+            <span class="chead__sub">${name}</span>
+          </div>
+        </div>
+        ${body}
+      </ha-card>
+    `;
+  }
+
+  _healthLearning(samples, needed, suspicious) {
+    const capped = Math.min(samples, needed);
+    const pct = needed ? Math.min(100, Math.round((capped / needed) * 100)) : 0;
+    // A suspicious estimate is a different message from "not enough data yet":
+    // say we're cross-checking rather than implying the car hasn't charged.
+    const hint = suspicious ? this._t("bh_suspicious") : this._t("bh_learning_hint");
+    return `
+      <div class="bh">
+        <div class="bh__learn">
+          <span class="bh__learn-val">${this._t("bh_learning", { n: capped, total: needed })}</span>
+          <div class="bh__bar"><div class="bh__bar-fill" style="width:${pct}%"></div></div>
+          <span class="bh__hint">${hint}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  _healthConfident(usable, nominal, vsNew, samples, trend) {
+    const facts = [];
+    if (nominal != null) {
+      facts.push([this._t("bh_nominal"), `${this._round(nominal, 1)} kWh`]);
+    }
+    facts.push([this._t("bh_analysed"), this._t("bh_samples", { n: samples })]);
+    const factRow = facts
+      .map(
+        ([k, v]) =>
+          `<div class="chg__fact"><span class="chg__fact-lbl">${k}</span><span class="chg__fact-val">${v}</span></div>`
+      )
+      .join("");
+    const chart = this._healthTrendSvg(trend);
+    return `
+      <div class="bh">
+        <div class="bh__hero">
+          ${this._healthRing(vsNew)}
+          <div class="bh__hero-text">
+            <span class="bh__usable">${this._round(usable, 1)} <i>kWh</i></span>
+            <span class="bh__usable-lbl">${this._t("bh_usable")}</span>
+            ${
+              vsNew != null
+                ? `<span class="bh__vsnew">${this._t("bh_of_new", { p: this._round(vsNew, 0) })}</span>`
+                : ""
+            }
+          </div>
+        </div>
+        ${
+          chart
+            ? `<div class="bh__trend"><span class="bh__trend-title">${this._t("bh_trend_title")}</span>${chart}</div>`
+            : ""
+        }
+        <div class="chg__facts">${factRow}</div>
+      </div>
+    `;
+  }
+
+  /** A compact donut showing capacity as a percentage of the as-new pack. */
+  _healthRing(pct) {
+    const r = 34;
+    const circ = 2 * Math.PI * r;
+    const p = pct == null ? null : Math.max(0, Math.min(100, pct));
+    const dash = p == null ? 0 : (p / 100) * circ;
+    const label = p == null ? "—" : `${this._round(p, 0)}%`;
+    return `
+      <svg class="bh__ring" viewBox="0 0 80 80" role="img">
+        <circle class="bh__ring-track" cx="40" cy="40" r="${r}"></circle>
+        <circle class="bh__ring-val" cx="40" cy="40" r="${r}"
+          stroke-dasharray="${this._round(dash, 1)} ${this._round(circ, 1)}"
+          transform="rotate(-90 40 40)"></circle>
+        <text x="40" y="45" class="bh__ring-text">${label}</text>
+      </svg>
+    `;
+  }
+
+  /** Inline SVG of the [odometer_km, usable_kwh] trend. Y is scaled to the data
+   * range, not zero-based: capacity fade is a few kWh and would be invisible on
+   * a 0-based axis. */
+  _healthTrendSvg(points) {
+    if (!Array.isArray(points) || points.length < 2) return "";
+    const W = 260;
+    const H = 70;
+    const pad = 6;
+    const xs = points.map((p) => p[0]);
+    const ys = points.map((p) => p[1]);
+    const xMin = Math.min(...xs);
+    const xMax = Math.max(...xs);
+    let yMin = Math.min(...ys);
+    let yMax = Math.max(...ys);
+    // Give a nearly-flat series some vertical room so it doesn't render as a
+    // jagged line amplifying sub-kWh noise into an alarming-looking drop.
+    if (yMax - yMin < 1) {
+      yMin -= 1;
+      yMax += 1;
+    }
+    const spanX = xMax - xMin || 1;
+    const spanY = yMax - yMin || 1;
+    const sx = (x) => pad + ((x - xMin) / spanX) * (W - 2 * pad);
+    const sy = (y) => H - pad - ((y - yMin) / spanY) * (H - 2 * pad);
+    const line = points
+      .map((p) => `${this._round(sx(p[0]), 1)},${this._round(sy(p[1]), 1)}`)
+      .join(" ");
+    return `
+      <svg class="bh__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
+        <polyline points="${line}" class="chg__chart-line"></polyline>
+        <text x="${pad}" y="10" class="chg__chart-max">${this._round(yMax, 1)} kWh</text>
+        <text x="${pad}" y="${H - 3}" class="chg__chart-max">${this._round(yMin, 1)} kWh</text>
+      </svg>
+    `;
   }
 
   _round(n, dp) {
@@ -2122,6 +2326,51 @@ class BmwCardataCard extends HTMLElement {
       .chg__fact-lbl { color: var(--secondary-text-color); font-size: 0.76rem; }
       .chg__fact-val { font-variant-numeric: tabular-nums; font-size: 0.82rem; }
 
+      /* ---- battery health ---- */
+      .bh { padding: 6px 14px 14px; display: flex; flex-direction: column; gap: 14px; }
+      .bh__hero { display: flex; align-items: center; gap: 16px; }
+      .bh__ring { width: 92px; height: 92px; flex: 0 0 auto; }
+      .bh__ring-track { fill: none; stroke: var(--divider-color); stroke-width: 7; }
+      .bh__ring-val {
+        fill: none; stroke: var(--bmw-high); stroke-width: 7; stroke-linecap: round;
+        transition: stroke-dasharray 0.6s ease;
+      }
+      .bh__ring-text {
+        fill: var(--primary-text-color); font-size: 17px; font-weight: 600;
+        text-anchor: middle; font-variant-numeric: tabular-nums;
+      }
+      .bh__hero-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+      .bh__usable {
+        font-size: 1.9rem; font-weight: 600; line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+      .bh__usable i { font-size: 0.9rem; font-weight: 500; font-style: normal;
+        color: var(--secondary-text-color); }
+      .bh__usable-lbl {
+        font-size: 0.7rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .bh__vsnew { font-size: 0.82rem; color: var(--bmw-high); font-weight: 500; }
+      .bh__learn { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; }
+      .bh__learn-val {
+        font-size: 1.35rem; font-weight: 600; font-variant-numeric: tabular-nums;
+      }
+      .bh__bar {
+        height: 7px; border-radius: 999px; background: var(--divider-color);
+        overflow: hidden;
+      }
+      .bh__bar-fill {
+        height: 100%; border-radius: 999px; background: var(--bmw-charge);
+        transition: width 0.6s ease;
+      }
+      .bh__hint { font-size: 0.78rem; color: var(--secondary-text-color); line-height: 1.35; }
+      .bh__trend { display: flex; flex-direction: column; gap: 4px; }
+      .bh__trend-title {
+        font-size: 0.68rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .bh__chart { width: 100%; height: 70px; display: block; }
+
       @media (prefers-reduced-motion: reduce) {
         .dot--live { animation: none; }
         .gauge__ring { transition: none; }
@@ -2157,6 +2406,10 @@ const OVERVIEW = "overview";
 // catalogue cluster -- it's stored as `view: charging`. This sentinel lets the
 // one dropdown offer it, mapped to/from `view` in _render and _valueChanged.
 const CHARGING_VIEW = "charging";
+// Same idea for battery health: a `view:`, not a cluster, sharing the dropdown.
+const HEALTH_VIEW = "health";
+// The `view:` values that are layouts in their own right rather than clusters.
+const VIEW_MODES = new Set([CHARGING_VIEW, HEALTH_VIEW]);
 
 class BmwCardataCardEditor extends HTMLElement {
   setConfig(config) {
@@ -2173,6 +2426,7 @@ class BmwCardataCardEditor extends HTMLElement {
     const clusterOptions = [
       { value: OVERVIEW, label: t(this._hass, "ed_overview_option") },
       { value: CHARGING_VIEW, label: t(this._hass, "ch_title") },
+      { value: HEALTH_VIEW, label: t(this._hass, "bh_title") },
       { value: "closures", label: t(this._hass, "cl_closures") },
       ...CLUSTER_SLUGS.map((slug) => ({
         value: slug,
@@ -2183,7 +2437,7 @@ class BmwCardataCardEditor extends HTMLElement {
       entity: { integration: "bavariandata", ...(domain ? { domain } : {}) },
     });
     const overview =
-      !this._config || (!this._config.cluster && this._config.view !== "charging");
+      !this._config || (!this._config.cluster && !VIEW_MODES.has(this._config.view));
     const schema = [
       { name: "device", selector: { device: { integration: "bavariandata" } } },
       { name: "cluster", selector: { select: { mode: "dropdown", options: clusterOptions } } },
@@ -2229,11 +2483,11 @@ class BmwCardataCardEditor extends HTMLElement {
     this._form.hass = this._hass;
     this._form.schema = this._schema();
     // Present a concrete value so the mode dropdown reflects the current layout.
-    // `view: charging` maps onto the shared dropdown's charging sentinel.
-    const mode =
-      this._config.view === "charging"
-        ? CHARGING_VIEW
-        : this._config.cluster || OVERVIEW;
+    // A `view:` layout maps onto its dropdown sentinel (its own value); a cluster
+    // onto the cluster; otherwise the overview sentinel.
+    const mode = VIEW_MODES.has(this._config.view)
+      ? this._config.view
+      : this._config.cluster || OVERVIEW;
     this._form.data = { ...this._config, cluster: mode };
   }
 
@@ -2243,8 +2497,8 @@ class BmwCardataCardEditor extends HTMLElement {
     const value = { ...ev.detail.value };
     // The mode dropdown feeds the `cluster` field; translate its special values
     // back into the real config keys.
-    if (value.cluster === CHARGING_VIEW) {
-      value.view = "charging";
+    if (VIEW_MODES.has(value.cluster)) {
+      value.view = value.cluster;
       delete value.cluster;
     } else {
       delete value.view;

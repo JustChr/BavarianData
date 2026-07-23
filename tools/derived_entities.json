@@ -64,6 +64,10 @@
     "charging_cost_per_100km": {
       "en": "Charging Cost per 100 km",
       "de": "Ladekosten pro 100 km"
+    },
+    "battery_health": {
+      "en": "Battery Health",
+      "de": "Batteriezustand"
     }
   },
   "device_tracker": {

@@ -1744,6 +1744,9 @@
       },
       "charging_cost_per_100km": {
         "name": "Charging Cost per 100 km"
+      },
+      "battery_health": {
+        "name": "Battery Health"
       }
     },
     "binary_sensor": {

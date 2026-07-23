@@ -647,6 +647,38 @@ class CardataCoordinator:
         except (TypeError, ValueError):
             return None
 
+    def _battery_kwh(self, vin: str, descriptor: str) -> Optional[float]:
+        state = self.get_state(vin, descriptor)
+        if state is None or state.value is None:
+            return None
+        try:
+            value = float(state.value)
+        except (TypeError, ValueError):
+            return None
+        # BMW streams a sentinel (0 / "INVALID") before the value is known; a
+        # zero capacity would poison both the vs-new ratio and the sanity check.
+        return value if value > 0 else None
+
+    def battery_nominal_kwh(self, vin: str) -> Optional[float]:
+        """As-new HV battery size in kWh, for the battery-health vs-new figure."""
+
+        return self._battery_kwh(
+            vin, "vehicle.drivetrain.batteryManagement.batterySizeMax"
+        )
+
+    def battery_capacity_kwh(self, vin: str) -> Optional[float]:
+        """BMW's own current full-pack capacity in kWh, used to sanity-check ours.
+
+        The SoC tracker already learns this from the ``maxEnergy`` stream (it
+        scales SoC into energy with it), so prefer that; fall back to the raw
+        descriptor for a car that streams it without an active SoC track yet.
+        """
+
+        tracking = self._soc_tracking.get(vin)
+        if tracking is not None and tracking.max_energy_kwh:
+            return tracking.max_energy_kwh
+        return self._battery_kwh(vin, "vehicle.drivetrain.batteryManagement.maxEnergy")
+
     def _charging_location(self, vin: str) -> Optional[Dict[str, Any]]:
         """Where the car is plugged in, as an HA zone name when we can tell.
 

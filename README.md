@@ -185,7 +185,8 @@ type: custom:bmw-cardata-card
 Pin a specific vehicle with `device:` (device id) or `vin:`. Optional entity
 overrides: `title`, `image`, `soc`, `range`, `charging`, `target_soc`,
 `time_to_full`, `odometer`, `plug`. Set `view: charging` for the charging-history
-layout (below), or `cluster:` for a single-cluster list.
+layout or `view: health` for battery health (both below), or `cluster:` for a
+single-cluster list.
 
 **Single cluster** — set `cluster:` to list every value in one catalogue cluster.
 Use one card per cluster:
@@ -210,6 +211,17 @@ Cost only appears once a price source is set under **Configure → Charging cost
 & history**; until then sessions still list with their energy. A session charged
 without GPS is badged *Home · assumed*, and one priced while the tariff was
 briefly unknown is tagged *partial price*.
+
+**Battery health** — `view: health` shows the learned usable battery capacity as
+a gauge (percentage of the as-new pack) with a capacity-vs-mileage trend below.
+It reads the **Battery Health** sensor, so it spends no API quota. Until there
+are enough wide-range charges to be sure of the number, it shows *Learning
+(n/10)* rather than a figure that would jump around:
+
+```yaml
+type: custom:bmw-cardata-card
+view: health
+```
 
 **Tire pressures** — `cluster: tire` draws a top-down car with each tire coloured
 by pressure vs. its target (green OK, amber high, red low) and the readings beside
@@ -281,6 +293,15 @@ is used instead; otherwise you can gross the value up by your charging losses,
 which stays at 0 % by default because an invented correction would look like a
 measurement. A session charged while the price was briefly unknown is flagged
 `partial` rather than silently understated.
+
+**Battery health** — from those same recorded sessions the integration learns the
+battery's usable capacity: a wide-range charge (say 20 → 80 %) that adds a known
+number of kWh implies the whole-pack capacity, and averaging across many such
+charges cancels the noise. This surfaces as a **Battery Health** sensor per EV
+(state in kWh, with vs-new percentage, sample count and a capacity-vs-mileage
+trend as attributes). It reads `Learning (n/10)` until it has enough good samples
+**and** the estimate agrees with BMW's own capacity figure — a suspicious number
+is withheld rather than shown. No REST quota: it's all derived from the stream.
 
 **Events** — meaningful charging transitions fire on the Home Assistant event
 bus, ready to use as automation triggers (Developer Tools → Events to watch them):

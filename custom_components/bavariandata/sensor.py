@@ -24,6 +24,7 @@ from .const import DOMAIN, REQUEST_LIMIT
 from .coordinator import CardataCoordinator
 from .descriptor_metadata import DESCRIPTOR_META
 from .entity import CardataEntity
+from .history.health import MIN_SAMPLES, degradation_series, usable_capacity
 from .history.summary import sessions_in_month, summarise
 
 
@@ -800,6 +801,88 @@ class CardataChargingCostPerDistanceSensor(CardataChargingSummarySensor):
         return attrs
 
 
+# How many trend points to publish in the sensor's attributes. Battery health
+# changes at most once per charge, so this attribute is rewritten rarely -- but
+# the series still has to stay small enough not to bloat the recorder row.
+_HEALTH_TREND_POINTS = 60
+
+
+class CardataBatteryHealthSensor(CardataEntity, SensorEntity):
+    """Usable HV-battery capacity, learned from wide-SoC charges.
+
+    The single state a user should read for "how healthy is my battery". It
+    refuses to show a figure until it has enough good samples *and* those samples
+    agree with BMW's own capacity number: until then the state is
+    ``Learning (n/10)`` rather than a value that would jump around as early,
+    noisy samples arrive. The degradation trend and the vs-new figure ride along
+    as attributes so the card can draw them without a second data source.
+    """
+
+    _attr_should_poll = False
+    _attr_icon = "mdi:battery-heart-variant"
+    _attr_translation_key = "battery_health"
+
+    def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
+        super().__init__(coordinator, vin, "battery_health")
+        self._unsubscribe = None
+
+    @property
+    def _health(self):
+        history = self._coordinator.history
+        sessions = [] if history is None else history.sessions(self.vin)
+        return usable_capacity(
+            sessions,
+            nominal_kwh=self._coordinator.battery_nominal_kwh(self.vin),
+            sanity_kwh=self._coordinator.battery_capacity_kwh(self.vin),
+        )
+
+    @property
+    def native_value(self):
+        health = self._health
+        # Never a number we aren't sure of: while learning, the state names the
+        # progress instead of a figure that would jump as samples trickle in.
+        if not health.confident:
+            return f"Learning ({min(health.samples, MIN_SAMPLES)}/{MIN_SAMPLES})"
+        return health.usable_kwh
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        attrs = dict(super().extra_state_attributes)
+        health = self._health
+        attrs["samples"] = health.samples
+        attrs["samples_needed"] = MIN_SAMPLES
+        attrs["confident"] = health.confident
+        attrs["usable_capacity_kwh"] = health.usable_kwh
+        attrs["nominal_capacity_kwh"] = health.nominal_kwh
+        attrs["vs_new_percent"] = health.vs_new_percent
+        # A capacity figure that disagrees with BMW's own is being withheld; say
+        # so rather than leaving the sensor stuck at "Learning" with no reason.
+        attrs["suspicious"] = health.suspicious
+        history = self._coordinator.history
+        if history is not None:
+            attrs["trend"] = degradation_series(
+                history.sessions(self.vin), limit=_HEALTH_TREND_POINTS
+            )
+        return attrs
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self._unsubscribe = async_dispatcher_connect(
+            self.hass,
+            self._coordinator.signal_history,
+            self._handle_update,
+        )
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._unsubscribe:
+            self._unsubscribe()
+            self._unsubscribe = None
+
+    def _handle_update(self, vin: str) -> None:
+        if vin == self.vin:
+            self.schedule_update_ha_state()
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities
 ) -> None:
@@ -813,6 +896,37 @@ async def async_setup_entry(
     charged_energy_entities: Dict[str, CardataChargedEnergySensor] = {}
     session_energy_entities: Dict[str, CardataSessionEnergySensor] = {}
     charging_summary_entities: Dict[str, list] = {}
+    battery_health_entities: Dict[str, CardataBatteryHealthSensor] = {}
+
+    # Any of these streaming marks the car as having an HV battery worth tracking
+    # health for; a pure-ICE car streams none of them.
+    _EV_SIGNALS = (
+        "vehicle.drivetrain.batteryManagement.batterySizeMax",
+        "vehicle.drivetrain.batteryManagement.maxEnergy",
+        "vehicle.drivetrain.batteryManagement.header",
+    )
+
+    def ensure_battery_health_entity(vin: str, *, force: bool = False) -> None:
+        """Create the battery-health sensor once the car looks like an EV.
+
+        It self-explains via "Learning (n/10)" until it has data, so it is made
+        as soon as any HV-battery signal appears -- but not for a pure-ICE car
+        that will never charge, where it would sit at "Learning (0/10)" forever.
+        ``force`` re-creates one that already existed (restored from the
+        registry) without re-checking for a live signal.
+        """
+
+        if vin in battery_health_entities or coordinator.history is None:
+            return
+        has_battery = any(
+            coordinator.get_state(vin, descriptor) is not None
+            for descriptor in _EV_SIGNALS
+        )
+        if not (force or has_battery):
+            return
+        entity = CardataBatteryHealthSensor(coordinator, vin)
+        battery_health_entities[vin] = entity
+        async_add_entities([entity], True)
 
     def ensure_charging_summary_entities(vin: str) -> None:
         """Create the ledger sensors, but only once they can say something true.
@@ -865,6 +979,7 @@ async def async_setup_entry(
     def ensure_entity(vin: str, descriptor: str, *, assume_sensor: bool = False) -> None:
         ensure_soc_tracking_entities(vin)
         ensure_charging_summary_entities(vin)
+        ensure_battery_health_entity(vin)
         if (vin, descriptor) in entities:
             return
         
@@ -928,6 +1043,11 @@ async def async_setup_entry(
         }:
             ensure_soc_tracking_entities(vin)
             continue
+        if descriptor == "battery_health":
+            # Re-create the one it had before live data arrives, rather than
+            # letting the generic path mint a bogus CardataSensor on its id.
+            ensure_battery_health_entity(vin, force=True)
+            continue
         ensure_entity(vin, descriptor, assume_sensor=True)
 
     for vin, descriptor in coordinator.iter_descriptors(binary=False):
@@ -935,6 +1055,7 @@ async def async_setup_entry(
 
     for vin in list(coordinator.data.keys()):
         ensure_soc_tracking_entities(vin)
+        ensure_battery_health_entity(vin)
 
     async def async_handle_new(vin: str, descriptor: str) -> None:
         ensure_entity(vin, descriptor)

@@ -1510,6 +1510,9 @@
       },
       "charging_cost_per_100km": {
         "name": "Ladekosten pro 100 km"
+      },
+      "battery_health": {
+        "name": "Batteriezustand"
       }
     },
     "binary_sensor": {

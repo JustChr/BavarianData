@@ -18,6 +18,7 @@ models = load_module("history.models")
 sessions = load_module("history.sessions")
 pricing = load_module("history.pricing")
 summary = load_module("history.summary")
+health = load_module("history.health")
 
 ChargingSession = models.ChargingSession
 SessionBuilder = sessions.SessionBuilder
@@ -377,3 +378,104 @@ def test_empty_summary_is_all_none_not_zero_cost():
     assert result["sessions"] == 0
     assert result["cost"] is None
     assert result["cost_per_100km"] is None
+
+
+# --- battery health --------------------------------------------------------
+
+
+def _charge(soc_from: float, soc_to: float, energy_kwh: float, **overrides):
+    """A charge that adds ``energy_kwh`` while raising SoC from -> to."""
+
+    data = {
+        "vin": "WBY1",
+        "start": START,
+        "end": START + timedelta(hours=2),
+        "soc_start": soc_from,
+        "soc_end": soc_to,
+        "energy_kwh": energy_kwh,
+    }
+    data.update(overrides)
+    return ChargingSession(**data)
+
+
+def test_capacity_from_a_wide_charge():
+    # 40 kWh added over 50 SoC points implies an 80 kWh usable pack.
+    result = health.usable_capacity([_charge(20.0, 70.0, 40.0)] * 10)
+    assert result.usable_kwh == 80.0
+    assert result.samples == 10
+    assert result.confident is True
+
+
+def test_narrow_charges_are_ignored_as_capacity_samples():
+    # A 10-point top-up says nothing reliable about capacity and must not count.
+    result = health.usable_capacity([_charge(60.0, 70.0, 8.0)] * 10)
+    assert result.samples == 0
+    assert result.usable_kwh is None
+    assert result.confident is False
+
+
+def test_stays_in_learning_until_enough_samples():
+    result = health.usable_capacity([_charge(20.0, 80.0, 48.0)] * 3)
+    assert result.samples == 3
+    # We have a number, but not enough confidence to present it.
+    assert result.usable_kwh == 80.0
+    assert result.confident is False
+
+
+def test_median_shrugs_off_one_bad_session():
+    good = [_charge(20.0, 80.0, 48.0)] * 10  # 80 kWh each
+    outlier = _charge(20.0, 80.0, 120.0)  # nonsense 200 kWh reading
+    result = health.usable_capacity(good + [outlier])
+    # The median ignores the single wild sample; a mean would be dragged up.
+    assert result.usable_kwh == 80.0
+    assert result.confident is True
+
+
+def test_vs_new_percentage_needs_a_nominal_size():
+    result = health.usable_capacity(
+        [_charge(10.0, 90.0, 60.0)] * 10, nominal_kwh=80.0
+    )
+    assert result.usable_kwh == 75.0
+    assert result.vs_new_percent == 93.8  # 75 / 80
+    assert health.usable_capacity([_charge(10.0, 90.0, 60.0)]).vs_new_percent is None
+
+
+def test_a_wild_divergence_from_bmws_figure_is_distrusted():
+    # BMW says the pack is ~80 kWh but our maths lands at 40: an input is wrong,
+    # so refuse to present the number even with plenty of samples.
+    result = health.usable_capacity(
+        [_charge(20.0, 80.0, 24.0)] * 12, sanity_kwh=80.0
+    )
+    assert result.usable_kwh == 40.0
+    assert result.suspicious is True
+    assert result.confident is False
+
+
+def test_a_close_match_to_bmws_figure_is_trusted():
+    result = health.usable_capacity(
+        [_charge(20.0, 80.0, 46.0)] * 12, sanity_kwh=78.0, nominal_kwh=80.0
+    )
+    assert result.suspicious is False
+    assert result.confident is True
+
+
+def test_degradation_series_is_capacity_against_mileage():
+    charges = [
+        _charge(20.0, 80.0, 48.0, mileage_km=30000.0),
+        _charge(20.0, 80.0, 46.0, mileage_km=10000.0),
+        _charge(20.0, 80.0, 44.0, mileage_km=50000.0),
+        _charge(60.0, 70.0, 8.0, mileage_km=40000.0),  # too narrow: excluded
+        _charge(20.0, 80.0, 45.0),  # no odometer: excluded
+    ]
+    series = health.degradation_series(charges)
+    # Oldest mileage first, narrow/odometer-less charges dropped.
+    assert series == [[10000.0, 76.7], [30000.0, 80.0], [50000.0, 73.3]]
+
+
+def test_degradation_series_keeps_only_the_most_recent_points():
+    charges = [
+        _charge(20.0, 80.0, 48.0, mileage_km=float(km))
+        for km in range(1000, 6000, 1000)
+    ]
+    series = health.degradation_series(charges, limit=2)
+    assert [point[0] for point in series] == [4000.0, 5000.0]
