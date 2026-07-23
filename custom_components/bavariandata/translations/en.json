@@ -1671,6 +1671,33 @@
       },
       "vehicle_vehicleidentification_connecteddrivecontractlist": {
         "name": "Legal Connected drive contracts"
+      },
+      "soc_estimate": {
+        "name": "State Of Charge (Predicted on Integration side)"
+      },
+      "soc_estimate_testing": {
+        "name": "New Extrapolation Testing sensor"
+      },
+      "soc_rate": {
+        "name": "Predicted charge speed"
+      },
+      "charged_energy_total": {
+        "name": "Charged Energy (Total)"
+      },
+      "charged_energy_session": {
+        "name": "Charged Energy (Session)"
+      },
+      "last_message": {
+        "name": "Last Message Received"
+      },
+      "last_telematic_api": {
+        "name": "Last Telematics API Call"
+      },
+      "connection_status": {
+        "name": "Stream Connection Status"
+      },
+      "api_quota_remaining": {
+        "name": "API Quota Remaining"
       }
     },
     "binary_sensor": {

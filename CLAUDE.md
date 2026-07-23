@@ -24,7 +24,8 @@ user's personal BMW client ID. Domain: `bavariandata`. Repo:
 ## Generated files — never hand-edit
 
 These are outputs of the `tools/` pipeline (inputs: BMW's catalogue exports +
-project-authored `tools/curated_titles.json`):
+the project-authored `tools/curated_titles.json` and
+`tools/derived_entities.json`):
 
 - `custom_components/bavariandata/catalogue.json`
 - `custom_components/bavariandata/descriptor_metadata.py`
@@ -32,6 +33,10 @@ project-authored `tools/curated_titles.json`):
   **only the `entity` block**; `config`/`options` sections are hand-maintained
   and preserved by the generator
 - `docs/reference/telematics-fields.md`
+
+Entities without a BMW descriptor (derived/diagnostic sensors, device tracker,
+vehicle image) are named from `tools/derived_entities.json` — never a hardcoded
+`_attr_name`, or German installs silently fall back to English.
 
 To change an entity name, edit `title_en` in `tools/curated_titles.json`, then
 re-run steps 1–4 from `tools/README.md` (`build_catalogue.py`,

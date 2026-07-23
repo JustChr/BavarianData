@@ -1,4 +1,155 @@
 {
+  "config": {
+    "step": {
+      "user": {
+        "title": "BMW CarData verbinden",
+        "description": "Damit werden die Daten deines BMW oder Mini nach Home Assistant gestreamt.\n\n**Zuerst CarData im BMW-Portal einrichten** (überspringen, wenn du bereits eine Client-ID hast):\n\n1. Öffne das [BMW CarData Portal]({portal_url}) und melde dich an. Falls CarData in deinem Land nicht angeboten wird, melde dich über das [britische]({portal_uk}) oder [deutsche]({portal_de}) Portal an — die Client-ID gilt kontoweit und funktioniert überall.\n2. Erstelle einen **CarData Client** und kopiere die angezeigte **Client-ID**.\n3. Schalte den Client für **beide** Dienste frei: **CarData API** und **CarData Streaming**.\n\nHake unter **Datenauswahl** noch nichts an — nach der Autorisierung wählst du auf den nächsten Seiten aus, welche Daten gestreamt werden, und bekommst dafür ein fertiges Snippet für das Portal.\n\nFüge dann unten die **Client-ID** ein.",
+        "data": {
+          "client_id": "Client-ID"
+        },
+        "data_description": {
+          "client_id": "Die CarData Client-ID aus dem BMW-Portal — eine lange Zeichenfolge im UUID-Format."
+        }
+      },
+      "authorize_failed": {
+        "title": "Autorisierung nicht abgeschlossen",
+        "description": "Die Geräteautorisierung konnte nicht abgeschlossen werden.\n\n**Details**\n```\n{error}\n```\n\n**Das solltest du prüfen**\n- **declined / access_denied (403):** BMWs Server meldet häufig eine Ablehnung, obwohl du zugestimmt hast — ein bekanntes Problem auf BMW-Seite. Versuche es erneut in einem privaten bzw. Inkognito-Fenster: Öffne das BMW CarData Portal selbst (nicht über einen Link, der den Code schon in der Adresse enthält), melde dich an, wähle *Gerät authentifizieren* und **tippe den Code von Hand ein**. Stelle außerdem sicher, dass die Client-ID **sowohl für CarData API als auch für CarData Streaming** freigeschaltet ist und dass du **Primärnutzer** des Fahrzeugs bist.\n- **expired / timeout:** Der Code wurde nicht rechtzeitig bestätigt.\n\nKlicke auf **Absenden**, um einen neuen Code zu erhalten, und versuche es noch einmal. Schlägt es weiterhin fehl: Lösche den CarData Client im BMW-Portal, erstelle einen neuen und autorisiere mit der neuen Client-ID — oder wende dich an den BMW-Support (bmwcardata-b2c-support@bmwgroup.com) und gib die oben genannte **BMW-Referenz** an.\n\nEine ausführliche Anleitung steht in der README der Integration unter *Troubleshooting → Onboarding fails with \"access denied\"*."
+      },
+      "select_clusters": {
+        "title": "Gestreamte Daten auswählen",
+        "description": "Die Verbindung steht. Wähle aus, welche Datengruppen des Fahrzeugs gestreamt werden sollen. BMW bietet dafür keine API — das wird auf der Seite „Datenauswahl“ im Portal eingestellt. Die nächste Seite liefert dir deshalb ein Browser-Snippet, das dort genau diese Datengruppen anhakt. Diagnose- und technische Felder bleiben standardmäßig ausgeblendet, sobald Daten eintreffen.\n\nDu kannst das jederzeit später unter **Konfigurieren → Gestreamte Daten auswählen** ändern.",
+        "data": {
+          "sections": "Datengruppen"
+        },
+        "data_description": {
+          "sections": "Belasse die Vorauswahl für den empfohlenen Satz, oder beschränke sie auf die Daten, die dich wirklich interessieren (z. B. nur Elektrofahrzeug und Fahrzeugstatus)."
+        }
+      },
+      "cluster_snippet": {
+        "title": "Snippet für die Datenauswahl im Portal",
+        "description": "Letzter Schritt. Öffne im BMW-Portal **Datenauswahl** (`Datenauswahl ändern`) und klicke so lange auf „Mehr laden“, bis alle Felder aufgelistet sind. Öffne die Browser-Konsole (F12 → Konsole), füge dies ein und drücke Enter:\n\n```\n{snippet}\n```\n\nEs hakt nur die Checkboxen an, deren technischer Deskriptor zu deinen gewählten Datengruppen gehört (alle anderen Auswahlen bleiben unverändert), und gibt aus, wie viele getroffen wurden. Speichere die Auswahl im Portal und klicke hier auf **Absenden**, um abzuschließen. Löse anschließend in der MyBMW App einmal Ver- oder Entriegeln aus, damit das Fahrzeug seine erste Aktualisierung sendet."
+      }
+    },
+    "progress": {
+      "wait_for_authorization": "**Home Assistant auf der BMW-Website bestätigen**\n\n1. Öffne die **[Autorisierungsseite]({verification_url})** und melde dich mit deinem BMW-Konto an.\n2. Gib bei der Abfrage diesen Code ein: **{user_code}**\n3. Bestätige das Gerät.\n\n**Tippe den Code von Hand ein** — verwende keinen Link, der den Code bereits in der Adresse enthält, und achte darauf, dass kein alter Code vorausgefüllt ist. BMWs Server verbucht bei vorausgefüllten Codes häufig fälschlich eine *Ablehnung*. Schlägt es trotzdem fehl, versuche es in einem privaten bzw. Inkognito-Fenster.\n\nLass diesen Dialog offen — er läuft automatisch weiter, sobald du bestätigt hast. Hier ist nichts anzuklicken."
+    },
+    "error": {
+      "device_code_failed": "BMW hat die Anfrage zur Geräteautorisierung abgelehnt ({error}). Prüfe, ob die Client-ID korrekt ist und für beide CarData-Dienste freigeschaltet wurde, und versuche es erneut."
+    },
+    "abort": {
+      "reauth_successful": "Neuautorisierung erfolgreich — BMW CarData ist wieder verbunden.",
+      "reauth_device_code_failed": "BMW hat die Anfrage zur Geräteautorisierung abgelehnt ({error}). Aktualisiere die Client-ID unter **Konfigurieren → Neu bei BMW autorisieren**, oder entferne die Integration und füge sie neu hinzu.",
+      "reauth_missing_client_id": "Für diesen Integrationseintrag fehlt die Client-ID. Entferne die Integration und füge sie neu hinzu, um erneut zu autorisieren.",
+      "reauth_failed": "Die Neuautorisierung konnte nicht gestartet werden. Versuche es erneut über die Optionen der Integration."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "BavarianData Optionen",
+        "description": "Wähle eine Aktion. Die Token- und Autorisierungsaktionen halten die Verbindung am Leben; die Datenaktionen rufen BMWs REST-API bei Bedarf ab (jede zählt gegen das tägliche Limit von 50 Anfragen).",
+        "menu_options": {
+          "action_select_clusters": "Gestreamte Daten auswählen",
+          "action_refresh_tokens": "Token jetzt erneuern",
+          "action_reauth": "Neu bei BMW autorisieren",
+          "action_reset_container": "Telemetrie-Container zurücksetzen",
+          "action_fetch_mappings": "Fahrzeuge suchen",
+          "action_fetch_basic": "Fahrzeug-Basisdaten abrufen",
+          "action_fetch_telematic": "Telematikdaten abrufen",
+          "action_fetch_charging_history": "Ladehistorie abrufen",
+          "action_fetch_tyre": "Reifendiagnose abrufen",
+          "action_fetch_location_charging": "Ladeeinstellungen abrufen",
+          "action_fetch_image": "Fahrzeugbild abrufen",
+          "action_debug_logging": "Debug-Protokollierung"
+        }
+      },
+      "action_select_clusters": {
+        "title": "Gestreamte Daten auswählen",
+        "description": "Wähle aus, welche Datengruppen des Fahrzeugs gestreamt werden sollen. BMW bietet dafür keine API — das wird auf der Seite „Datenauswahl“ im Portal eingestellt. Die nächste Seite liefert dir deshalb ein Browser-Snippet, das dort genau diese Datengruppen anhakt. Diagnose- und technische Felder bleiben standardmäßig ausgeblendet, sobald Daten eintreffen.",
+        "data": {
+          "sections": "Datengruppen"
+        },
+        "data_description": {
+          "sections": "Belasse die Vorauswahl für den empfohlenen Satz, oder beschränke sie auf die Daten, die dich wirklich interessieren (z. B. nur Elektrofahrzeug und Fahrzeugstatus)."
+        }
+      },
+      "cluster_snippet": {
+        "title": "Snippet für die Datenauswahl im Portal",
+        "description": "Öffne im BMW-Portal **Datenauswahl** (`Datenauswahl ändern`) und klicke so lange auf „Mehr laden“, bis alle Felder aufgelistet sind. Öffne die Browser-Konsole (F12 → Konsole), füge dies ein und drücke Enter:\n\n```\n{snippet}\n```\n\nEs hakt nur die Checkboxen an, deren technischer Deskriptor zu deinen gewählten Datengruppen gehört (alle anderen Auswahlen bleiben unverändert), und gibt aus, wie viele getroffen wurden. Speichere die Auswahl im Portal und klicke hier auf **Absenden**, um abzuschließen."
+      },
+      "action_refresh_tokens": {
+        "title": "Token jetzt erneuern",
+        "description": "Erneuert die gespeicherten Access- und ID-Token, ohne die BMW-Anmeldung erneut zu durchlaufen. Nutze das, wenn keine Daten mehr aktualisiert werden. Bleibt das Problem bestehen, starte Home Assistant anschließend neu.\n\nKlicke auf **Absenden**, um fortzufahren."
+      },
+      "action_reauth": {
+        "title": "Neu bei BMW autorisieren",
+        "description": "Führt BMWs Geräteautorisierung erneut aus — zum Beispiel, wenn das Refresh-Token abgelaufen ist (alle 2 Wochen) oder wenn du eine neue Client-ID erzeugt hast. Anschließend bestätigst du Home Assistant auf der BMW-Website.",
+        "data": {
+          "client_id": "Client-ID"
+        },
+        "data_description": {
+          "client_id": "Unverändert lassen, um die bisherige Client-ID weiter zu verwenden, oder eine neue aus dem BMW-Portal einfügen."
+        }
+      },
+      "action_reset_container": {
+        "title": "Telemetrie-Container zurücksetzen",
+        "description": "Löscht die von dieser Integration angelegten CarData-Telemetrie-Container und legt einen frischen an. Nutze das, wenn der gestreamte Datensatz nicht stimmt oder nachdem du die Datenauswahl im BMW-Portal geändert hast.\n\nKlicke auf **Absenden**, um fortzufahren."
+      },
+      "action_fetch_mappings": {
+        "title": "Fahrzeuge suchen",
+        "description": "Fragt bei BMW ab, welche Fahrzeuge (VINs) deinem Konto zugeordnet sind, und legt die zugehörigen Geräte an. Führe das einmal nach der Einrichtung aus, falls deine Fahrzeuge noch nicht aufgetaucht sind.\n\nKlicke auf **Absenden**, um fortzufahren."
+      },
+      "action_fetch_basic": {
+        "title": "Fahrzeug-Basisdaten abrufen",
+        "description": "Ruft statische Details (Modell, Farbe, Ausstattung) für alle bekannten Fahrzeuge ab.\n\nKlicke auf **Absenden**, um fortzufahren."
+      },
+      "action_fetch_telematic": {
+        "title": "Telematikdaten abrufen",
+        "description": "Holt den aktuellen Telematik-Snapshot sofort über BMWs REST-API, statt auf die nächste planmäßige Abfrage zu warten.\n\nKlicke auf **Absenden**, um fortzufahren."
+      },
+      "action_fetch_charging_history": {
+        "title": "Ladehistorie abrufen",
+        "description": "Ruft die letzten Ladevorgänge deiner Fahrzeuge ab.\n\nKlicke auf **Absenden**, um fortzufahren."
+      },
+      "action_fetch_tyre": {
+        "title": "Reifendiagnose abrufen",
+        "description": "Ruft die aktuelle Reifendruck-Diagnose deiner Fahrzeuge ab.\n\nKlicke auf **Absenden**, um fortzufahren."
+      },
+      "action_fetch_location_charging": {
+        "title": "Ladeeinstellungen abrufen",
+        "description": "Ruft die standortbasierten Ladeeinstellungen deiner Fahrzeuge ab.\n\nKlicke auf **Absenden**, um fortzufahren."
+      },
+      "action_fetch_image": {
+        "title": "Fahrzeugbild abrufen",
+        "description": "Ruft das aktuelle Fahrzeugbild deiner Fahrzeuge ab.\n\nKlicke auf **Absenden**, um fortzufahren."
+      },
+      "action_debug_logging": {
+        "title": "Debug-Protokollierung",
+        "description": "Schaltet die ausführliche Protokollierung dieser Integration ein (MQTT-Verbindung, abonnierte Topics und jede eingehende Nachricht). Das ist unabhängig von Home Assistants allgemeinem Debug-Schalter — es müssen sowohl der Log-Level als auch dieser Schalter aktiv sein, damit die detaillierten Zeilen erscheinen. Die Ausgabe ist umfangreich und kann Fahrzeugdaten wie GPS-Koordinaten enthalten; lass sie im Normalbetrieb also aus. Die Änderung wirkt sofort.",
+        "data": {
+          "debug_log": "Debug-Protokollierung aktivieren"
+        },
+        "data_description": {
+          "debug_log": "Bleibt über Neustarts hinweg aktiv, bis du sie hier wieder ausschaltest."
+        }
+      }
+    },
+    "error": {
+      "refresh_failed": "Token-Erneuerung fehlgeschlagen: {error}",
+      "reset_failed": "Zurücksetzen des Telemetrie-Containers fehlgeschlagen: {error}",
+      "missing_token": "Es ist kein gültiges Access-Token verfügbar. Versuche zuerst **Token jetzt erneuern** oder autorisiere neu.",
+      "runtime_missing": "Die Integration ist noch nicht bereit. Versuche es erneut, sobald die Einrichtung abgeschlossen ist.",
+      "no_vins": "Es sind noch keine Fahrzeuge bekannt. Führe zuerst **Fahrzeuge suchen** aus, oder warte, bis der Stream eines meldet.",
+      "invalid_int": "Gib eine positive ganze Zahl ein.",
+      "invalid_client_id": "Gib die BMW CarData Client-ID ein."
+    },
+    "abort": {
+      "reauth_started": "Autorisierung neu gestartet. Schließe die neue Anmeldung über die soeben erschienene Benachrichtigung ab.",
+      "reauth_device_code_failed": "BMW hat die Anfrage zur Geräteautorisierung abgelehnt ({error}). Prüfe die Client-ID und versuche es erneut.",
+      "reauth_missing_client_id": "Für diesen Integrationseintrag fehlt die Client-ID. Entferne die Integration und füge sie neu hinzu, um erneut zu autorisieren.",
+      "reauth_failed": "Die Neuautorisierung konnte nicht gestartet werden. Versuche es erneut über die Optionen der Integration."
+    }
+  },
   "entity": {
     "sensor": {
       "vehicle_body_chargingport_combinedstatus": {
@@ -1286,6 +1437,33 @@
       },
       "vehicle_vehicleidentification_connecteddrivecontractlist": {
         "name": "Aktive ConnectedDrive Verträge"
+      },
+      "soc_estimate": {
+        "name": "Ladezustand (integrationsseitig vorhergesagt)"
+      },
+      "soc_estimate_testing": {
+        "name": "Neuer Extrapolations-Testsensor"
+      },
+      "soc_rate": {
+        "name": "Vorhergesagte Ladegeschwindigkeit"
+      },
+      "charged_energy_total": {
+        "name": "Geladene Energie (gesamt)"
+      },
+      "charged_energy_session": {
+        "name": "Geladene Energie (Ladevorgang)"
+      },
+      "last_message": {
+        "name": "Letzte empfangene Nachricht"
+      },
+      "last_telematic_api": {
+        "name": "Letzter Telematik-API-Aufruf"
+      },
+      "connection_status": {
+        "name": "Stream-Verbindungsstatus"
+      },
+      "api_quota_remaining": {
+        "name": "Verbleibendes API-Kontingent"
       }
     },
     "binary_sensor": {

@@ -168,17 +168,20 @@ class CardataDiagnosticsSensor(SensorEntity, RestoreEntity):
         self._sensor_type = sensor_type
         self._quota = quota_manager
         self._unsub = None
+        # Known types are named from translations (tools/derived_entities.json);
+        # only the catch-all keeps a literal _attr_name, since an unforeseen
+        # sensor_type has no translation to resolve.
         if sensor_type == "last_message":
             suffix = "last_message"
-            self._attr_name = "Last Message Received"
+            self._attr_translation_key = suffix
             self._attr_device_class = SensorDeviceClass.TIMESTAMP
         elif sensor_type == "last_telematic_api":
             suffix = "last_telematic_api"
-            self._attr_name = "Last Telematics API Call"
+            self._attr_translation_key = suffix
             self._attr_device_class = SensorDeviceClass.TIMESTAMP
         elif sensor_type == "connection_status":
             suffix = "connection_status"
-            self._attr_name = "Stream Connection Status"
+            self._attr_translation_key = suffix
         else:
             suffix = sensor_type
             self._attr_name = sensor_type
@@ -268,13 +271,13 @@ class CardataQuotaSensor(SensorEntity):
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = "requests"
     _attr_icon = "mdi:api"
+    _attr_translation_key = "api_quota_remaining"
 
     def __init__(self, coordinator: CardataCoordinator, entry_id: str, quota_manager) -> None:
         self._coordinator = coordinator
         self._entry_id = entry_id
         self._quota = quota_manager
         self._unsub = None
-        self._attr_name = "API Quota Remaining"
         self._attr_unique_id = f"{entry_id}_diagnostics_api_quota_remaining"
 
     @property
@@ -325,10 +328,12 @@ class CardataSocEstimateSensor(CardataEntity, SensorEntity):
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = "%"
     _attr_icon = "mdi:battery-clock"
+    # Named from translations (tools/derived_entities.json) rather than a
+    # hardcoded _attr_name, so German installs don't fall back to English.
+    _attr_translation_key = "soc_estimate"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "soc_estimate")
-        self._attr_name = "State Of Charge (Predicted on Integration side)"
         self._unsubscribe = None
 
     async def async_added_to_hass(self) -> None:
@@ -381,10 +386,10 @@ class CardataTestingSocEstimateSensor(CardataEntity, SensorEntity):
     _attr_native_unit_of_measurement = "%"
     _attr_icon = "mdi:battery-clock"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "soc_estimate_testing"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "soc_estimate_testing")
-        self._attr_name = "New Extrapolation Testing sensor"
         self._unsubscribe = None
 
     async def async_added_to_hass(self) -> None:
@@ -436,10 +441,10 @@ class CardataSocRateSensor(CardataEntity, SensorEntity):
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = "%/h"
     _attr_icon = "mdi:battery-clock"
+    _attr_translation_key = "soc_rate"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "soc_rate")
-        self._attr_name = "Predicted charge speed"
         self._unsubscribe = None
 
     async def async_added_to_hass(self) -> None:
@@ -499,10 +504,10 @@ class CardataChargedEnergySensor(CardataEntity, SensorEntity):
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _attr_native_unit_of_measurement = "kWh"
     _attr_icon = "mdi:lightning-bolt"
+    _attr_translation_key = "charged_energy_total"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "charged_energy_total")
-        self._attr_name = "Charged Energy (Total)"
         self._unsubscribe = None
 
     async def async_added_to_hass(self) -> None:
@@ -548,10 +553,10 @@ class CardataSessionEnergySensor(CardataEntity, SensorEntity):
     _attr_state_class = SensorStateClass.TOTAL
     _attr_native_unit_of_measurement = "kWh"
     _attr_icon = "mdi:ev-station"
+    _attr_translation_key = "charged_energy_session"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "charged_energy_session")
-        self._attr_name = "Charged Energy (Session)"
         self._unsubscribe = None
 
     @property

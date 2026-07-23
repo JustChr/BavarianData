@@ -1,0 +1,65 @@
+{
+  "_comment": [
+    "Bilingual names for entities that have NO BMW catalogue descriptor: the",
+    "integration's own derived/diagnostic entities. Catalogue-backed entities get",
+    "their names from catalogue.json (title_en / name_de) instead.",
+    "",
+    "Keys must match the entity's translation_key at runtime, and must not",
+    "collide with any key derived from a descriptor (tests/test_catalogue.py",
+    "enforces both). Edit here, then re-run tools/generate_translations.py.",
+    "",
+    "English strings must stay byte-identical to the names these entities had",
+    "before they were moved into the translation pipeline, otherwise existing",
+    "installs would see their entities renamed."
+  ],
+  "sensor": {
+    "soc_estimate": {
+      "en": "State Of Charge (Predicted on Integration side)",
+      "de": "Ladezustand (integrationsseitig vorhergesagt)"
+    },
+    "soc_estimate_testing": {
+      "en": "New Extrapolation Testing sensor",
+      "de": "Neuer Extrapolations-Testsensor"
+    },
+    "soc_rate": {
+      "en": "Predicted charge speed",
+      "de": "Vorhergesagte Ladegeschwindigkeit"
+    },
+    "charged_energy_total": {
+      "en": "Charged Energy (Total)",
+      "de": "Geladene Energie (gesamt)"
+    },
+    "charged_energy_session": {
+      "en": "Charged Energy (Session)",
+      "de": "Geladene Energie (Ladevorgang)"
+    },
+    "last_message": {
+      "en": "Last Message Received",
+      "de": "Letzte empfangene Nachricht"
+    },
+    "last_telematic_api": {
+      "en": "Last Telematics API Call",
+      "de": "Letzter Telematik-API-Aufruf"
+    },
+    "connection_status": {
+      "en": "Stream Connection Status",
+      "de": "Stream-Verbindungsstatus"
+    },
+    "api_quota_remaining": {
+      "en": "API Quota Remaining",
+      "de": "Verbleibendes API-Kontingent"
+    }
+  },
+  "device_tracker": {
+    "car": {
+      "en": "Location",
+      "de": "Standort"
+    }
+  },
+  "image": {
+    "vehicle_image": {
+      "en": "Vehicle Image",
+      "de": "Fahrzeugbild"
+    }
+  }
+}

@@ -8,9 +8,10 @@ sensors also get per-state labels; a curated bilingual map covers the common
 control values and the long tail is humanised from the raw token (German falls
 back to English).
 
-Besides the catalogue-driven sensors/binary_sensors, the fixed ``device_tracker``
-and ``image`` entities (which have no catalogue descriptor) get their names here
-so a regeneration never drops them.
+Entities without a BMW catalogue descriptor — the integration's own derived and
+diagnostic sensors, plus the fixed ``device_tracker`` and ``image`` entities —
+are named from ``tools/derived_entities.json`` and merged into the same block, so
+a regeneration never drops them and they stay bilingual like everything else.
 """
 
 from __future__ import annotations
@@ -23,6 +24,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PKG = REPO_ROOT / "custom_components" / "bavariandata"
 CATALOGUE_FILE = PKG / "catalogue.json"
+DERIVED_FILE = Path(__file__).resolve().parent / "derived_entities.json"
 TRANS_DIR = PKG / "translations"
 
 
@@ -164,21 +166,43 @@ def build() -> tuple[dict, dict]:
             if de_states:
                 sensor_de[key]["state"] = de_states
 
-    # The device tracker and vehicle image have no catalogue descriptor; their
-    # names are fixed here so a regeneration never drops them.
-    en_entity = {
-        "sensor": sensor_en,
-        "binary_sensor": binary_en,
-        "device_tracker": {"car": {"name": "Location"}},
-        "image": {"vehicle_image": {"name": "Vehicle Image"}},
-    }
-    de_entity = {
-        "sensor": sensor_de,
-        "binary_sensor": binary_de,
-        "device_tracker": {"car": {"name": "Standort"}},
-        "image": {"vehicle_image": {"name": "Fahrzeugbild"}},
-    }
+    en_entity = {"sensor": sensor_en, "binary_sensor": binary_en}
+    de_entity = {"sensor": sensor_de, "binary_sensor": binary_de}
+    merge_derived(en_entity, de_entity)
     return en_entity, de_entity
+
+
+def load_derived() -> dict[str, dict[str, dict[str, str]]]:
+    data = json.loads(DERIVED_FILE.read_text(encoding="utf-8"))
+    return {
+        platform: entries
+        for platform, entries in data.items()
+        if not platform.startswith("_")
+    }
+
+
+def merge_derived(en_entity: dict, de_entity: dict) -> None:
+    """Fold the integration's own (non-catalogue) entity names into the block.
+
+    These have no BMW descriptor, so nothing in the catalogue can name them; a
+    hand-authored bilingual source is the only way they can appear in the
+    generated ``entity`` block instead of being hardcoded in Python (where German
+    users would only ever see English).
+    """
+
+    for platform, entries in load_derived().items():
+        target_en = en_entity.setdefault(platform, {})
+        target_de = de_entity.setdefault(platform, {})
+        for key, names in entries.items():
+            # A collision would mean a derived entity silently overwrites (or is
+            # overwritten by) a real descriptor's name -- fail loudly instead.
+            if key in target_en:
+                raise SystemExit(
+                    f"derived_entities.json: {platform}.{key} collides with a "
+                    "catalogue-derived translation key"
+                )
+            target_en[key] = {"name": names["en"]}
+            target_de[key] = {"name": names.get("de") or names["en"]}
 
 
 def write_language(filename: str, entity_block: dict, *, entity_only: bool) -> None:

@@ -8,11 +8,20 @@ export; each writes into `custom_components/bavariandata/`.
 | --- | --- | --- | --- |
 | 1. Canonical dataset | `python tools/build_catalogue.py` | `CustomerTelematicsDataCatalogue.html` (German export, provides BMW's sections + German text), `descriptor-list.csv` (English export, provides sub-category + English text + raw enum values) and `curated_titles.json` (our curated English display names) | `catalogue.json` |
 | 2. Metadata registry | `python tools/generate_metadata.py` | `catalogue.json` | `descriptor_metadata.py` (device/state class, unit, enum options, entity category, enabled-by-default) |
-| 3. Translations | `python tools/generate_translations.py` | `catalogue.json` | `translations/en.json`, `translations/de.json` (entity names + enum state labels) |
+| 3. Translations | `python tools/generate_translations.py` | `catalogue.json` + `derived_entities.json` | `translations/en.json`, `translations/de.json` (entity names + enum state labels) |
 | 4. Reference doc | `python tools/generate_reference_doc.py` | `catalogue.json` + `descriptor_metadata.py` | `docs/reference/telematics-fields.md` |
 
 To rename an entity, edit its `title_en` in `tools/curated_titles.json` and
 re-run steps 1–4. (`curated_titles.json` is project-authored, not a BMW export.)
+
+Entities with **no BMW descriptor** — the integration's own derived and
+diagnostic sensors, the device tracker, the vehicle image — are named from
+`tools/derived_entities.json` (also project-authored) and merged into the same
+generated `entity` block, so they stay bilingual instead of carrying a hardcoded
+English `_attr_name`. Add a key there whenever you add such an entity, keep its
+`_attr_translation_key` identical, and re-run step 3; `tests/test_catalogue.py`
+fails if a literal translation key has no entry, if a key collides with a
+descriptor's, or if a German name is missing.
 
 `keys.py` (shipped in the integration, not a tool) derives the Home Assistant
 `translation_key` from a descriptor and is shared by the generators and the
