@@ -49,8 +49,8 @@ leaving scaffolding behind.
 
 | Phase | Scope | Status |
 | --- | --- | --- |
-| 0 | History store + derived-entity translations | planned |
-| 1 | Charging ledger and real cost | planned |
+| 0 | History store + derived-entity translations | built; store not yet wired into setup |
+| 1 | Charging ledger and real cost | next |
 | 2 | Battery health / degradation | sketched |
 | 3 | Trips (Fahrtenbuch) | sketched |
 | 4 | Statistics backfill + export | sketched |
@@ -216,6 +216,12 @@ custom_components/bavariandata/history/
   pricing.py    # cost math                            — HA-free, tested
   store.py      # Store wrapper                        — HA imports live here
 ```
+
+This package exists as of Phase 0, with `tests/test_history.py` covering the
+three HA-free modules. What remains for Phase 1 is the wiring: instantiate
+`HistoryStore` during setup, drive a `SessionBuilder` from the transitions in
+`_fire_charging_event`, feed `CostAccumulator` from `_integrate_energy`, and
+surface the result as sensors, a service and a card view.
 
 Wrong numbers are the one thing that would destroy trust in this feature, and
 entity code isn't currently test-covered — so the maths goes where we *can* test

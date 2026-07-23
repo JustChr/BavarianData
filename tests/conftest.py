@@ -39,13 +39,27 @@ def _ensure_synthetic_package() -> None:
 
 
 def load_module(name: str):
-    """Load ``custom_components.bavariandata.<name>`` in isolation."""
+    """Load ``custom_components.bavariandata.<name>`` in isolation.
+
+    Dotted names address submodules of a subpackage (``history.models``); the
+    intervening packages are registered synthetically too, so their relative
+    imports resolve without running any real ``__init__``.
+    """
 
     _ensure_synthetic_package()
     full = f"{_PKG}.{name}"
     if full in sys.modules:
         return sys.modules[full]
-    spec = importlib.util.spec_from_file_location(full, _BASE / f"{name}.py")
+
+    parts = name.split(".")
+    for depth in range(1, len(parts)):
+        sub = f"{_PKG}.{'.'.join(parts[:depth])}"
+        if sub not in sys.modules:
+            mod = types.ModuleType(sub)
+            mod.__path__ = [str(_BASE.joinpath(*parts[:depth]))]
+            sys.modules[sub] = mod
+
+    spec = importlib.util.spec_from_file_location(full, _BASE.joinpath(*parts).with_suffix(".py"))
     module = importlib.util.module_from_spec(spec)
     sys.modules[full] = module
     spec.loader.exec_module(module)
