@@ -184,7 +184,8 @@ type: custom:bmw-cardata-card
 
 Pin a specific vehicle with `device:` (device id) or `vin:`. Optional entity
 overrides: `title`, `image`, `soc`, `range`, `charging`, `target_soc`,
-`time_to_full`, `odometer`, `plug`.
+`time_to_full`, `odometer`, `plug`. Set `view: charging` for the charging-history
+layout (below), or `cluster:` for a single-cluster list.
 
 **Single cluster** — set `cluster:` to list every value in one catalogue cluster.
 Use one card per cluster:
@@ -193,6 +194,22 @@ Use one card per cluster:
 type: custom:bmw-cardata-card
 cluster: electric   # electric · status · tire · usage · events · basic · contract · metadata · other
 ```
+
+**Charging history** — `view: charging` lists recorded charging sessions, newest
+first, each showing the date, energy, cost and a Home/Away badge. Tap a session
+to expand its **power curve**, peak and average power, duration, and grid energy.
+The "this month" totals ride along the top. It reads the integration's stored
+history via the `get_charging_sessions` service, so it spends no API quota:
+
+```yaml
+type: custom:bmw-cardata-card
+view: charging
+```
+
+Cost only appears once a price source is set under **Configure → Charging costs
+& history**; until then sessions still list with their energy. A session charged
+without GPS is badged *Home · assumed*, and one priced while the tariff was
+briefly unknown is tagged *partial price*.
 
 **Tire pressures** — `cluster: tire` draws a top-down car with each tire coloured
 by pressure vs. its target (green OK, amber high, red low) and the readings beside

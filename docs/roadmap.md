@@ -50,7 +50,7 @@ leaving scaffolding behind.
 | Phase | Scope | Status |
 | --- | --- | --- |
 | 0 | History store + derived-entity translations | done |
-| 1 | Charging ledger and real cost | done except the `view: charging` card |
+| 1 | Charging ledger and real cost | done |
 | 2 | Battery health / degradation | sketched |
 | 3 | Trips (Fahrtenbuch) | sketched |
 | 4 | Statistics backfill + export | sketched |
@@ -224,9 +224,11 @@ and tested). The wiring is in place: `HistoryStore` is created during setup, a
 result surfaces as the four sensors, `get_charging_sessions`, and the
 *Charging costs & history* options screen.
 
-**Still open from Phase 1:** the `view: charging` card view — session list, power
-curve, SoC arc. Until it exists the history is reachable through the service and
-the sensors, but not browsable, which is the part rule 3 cares about.
+The `view: charging` card view completes Phase 1: a session list with cost,
+Home/Away badge and an expandable power curve, fed by `get_charging_sessions`
+(re-fetched only when a summary sensor changes, never on a plain hass tick). It
+sits beside the existing `cluster:` key rather than overloading it, since
+charging isn't a catalogue cluster.
 
 Wrong numbers are the one thing that would destroy trust in this feature, and
 entity code isn't currently test-covered — so the maths goes where we *can* test

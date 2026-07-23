@@ -160,6 +160,25 @@ const TRANSLATIONS = {
     trunk_word: "Trunk",
     rear_window_word: "Rear window",
     sunroof_word: "Sunroof",
+    // charging history
+    ch_title: "Charging history",
+    ch_month: "This month",
+    ch_loading: "Loading charging history…",
+    ch_empty:
+      "No charging sessions recorded yet. Once the car charges, sessions appear here automatically.",
+    ch_error: "Couldn't load charging history. Reload the page and try again.",
+    ch_home: "Home",
+    ch_public: "Away",
+    ch_assumed: "assumed",
+    ch_partial: "partial price",
+    ch_session_one: "1 session",
+    ch_session_many: "{n} sessions",
+    ch_peak: "Peak",
+    ch_avg: "Avg",
+    ch_grid: "From grid",
+    ch_duration: "Duration",
+    ch_no_cost: "no price set",
+    ch_ongoing: "charging…",
     // editor
     ed_device: "Vehicle",
     ed_cluster: "Mode",
@@ -175,7 +194,7 @@ const TRANSLATIONS = {
     ed_overview_option: "Overview (default)",
     ed_overrides_title: "Entity overrides (optional — leave empty to auto-detect)",
     edh_cluster:
-      "Overview shows the hero image and key metrics. A cluster shows every value of that group as a list.",
+      "Overview shows the hero image and key metrics. Charging history lists recorded sessions with cost and power curve. A cluster shows every value of that group as a list.",
     edh_title: "Overrides the vehicle name shown on the card.",
   },
   de: {
@@ -262,6 +281,25 @@ const TRANSLATIONS = {
     trunk_word: "Kofferraum",
     rear_window_word: "Heckscheibe",
     sunroof_word: "Schiebedach",
+    // charging history
+    ch_title: "Ladeverlauf",
+    ch_month: "Dieser Monat",
+    ch_loading: "Ladeverlauf wird geladen…",
+    ch_empty:
+      "Noch keine Ladevorgänge aufgezeichnet. Sobald das Fahrzeug lädt, erscheinen sie hier automatisch.",
+    ch_error: "Ladeverlauf konnte nicht geladen werden. Lade die Seite neu und versuche es erneut.",
+    ch_home: "Zuhause",
+    ch_public: "Unterwegs",
+    ch_assumed: "angenommen",
+    ch_partial: "Teilpreis",
+    ch_session_one: "1 Ladevorgang",
+    ch_session_many: "{n} Ladevorgänge",
+    ch_peak: "Spitze",
+    ch_avg: "Ø",
+    ch_grid: "Aus dem Netz",
+    ch_duration: "Dauer",
+    ch_no_cost: "kein Preis gesetzt",
+    ch_ongoing: "lädt…",
     // editor
     ed_device: "Fahrzeug",
     ed_cluster: "Modus",
@@ -277,7 +315,7 @@ const TRANSLATIONS = {
     ed_overview_option: "Übersicht (Standard)",
     ed_overrides_title: "Entitäten überschreiben (optional — leer lassen für Auto-Erkennung)",
     edh_cluster:
-      "Die Übersicht zeigt das Fahrzeugbild und Kennzahlen. Ein Cluster listet alle Werte dieser Gruppe auf.",
+      "Die Übersicht zeigt das Fahrzeugbild und Kennzahlen. Der Ladeverlauf listet aufgezeichnete Ladevorgänge mit Kosten und Ladekurve. Ein Cluster listet alle Werte dieser Gruppe auf.",
     edh_title: "Überschreibt den auf der Karte angezeigten Fahrzeugnamen.",
   },
 };
@@ -319,6 +357,7 @@ class BmwCardataCard extends HTMLElement {
   }
 
   getCardSize() {
+    if (this._config && this._config.view === "charging") return 10;
     return this._config && this._config.cluster ? 6 : 8;
   }
 
@@ -508,7 +547,9 @@ class BmwCardataCard extends HTMLElement {
       return;
     }
     const entities = this._deviceEntities(deviceId);
-    if (this._config.cluster === "tire") {
+    if (this._config.view === "charging") {
+      this._renderCharging(deviceId, entities);
+    } else if (this._config.cluster === "tire") {
       this._renderTires(deviceId, entities);
     } else if (this._config.cluster === "closures") {
       this._renderClosures(deviceId, entities);
@@ -517,6 +558,16 @@ class BmwCardataCard extends HTMLElement {
     } else {
       this._renderOverview(deviceId, entities);
     }
+  }
+
+  /** VIN behind a device id, read from the integration's device identifier. */
+  _deviceVin(deviceId) {
+    const dev = this._hass.devices && this._hass.devices[deviceId];
+    const ids = (dev && dev.identifiers) || [];
+    for (const pair of ids) {
+      if (pair && pair[0] === "bavariandata") return pair[1];
+    }
+    return null;
   }
 
   _deviceName(deviceId) {
@@ -719,6 +770,362 @@ class BmwCardataCard extends HTMLElement {
     let n = st.attributes.friendly_name || st.entity_id;
     if (deviceName && n.startsWith(deviceName + " ")) n = n.slice(deviceName.length + 1);
     return n;
+  }
+
+  /* ---- charging history ------------------------------------------------- */
+
+  _renderCharging(deviceId, entities) {
+    const vin = this._deviceVin(deviceId);
+    if (!vin) {
+      this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
+      return;
+    }
+
+    // Sessions come from a service response, not entity state, so they can't be
+    // read synchronously off hass. Fetch once, then only re-fetch when a new
+    // session is likely: gate on the summary sensor's last_changed rather than
+    // polling, so a plain hass tick never hits the service.
+    const trigSt = entities
+      .map((id) => this._st(id))
+      .find(
+        (st) =>
+          st &&
+          st.attributes &&
+          (st.attributes.descriptor === "charging_cost_session" ||
+            st.attributes.descriptor === "charging_energy_month")
+      );
+    const trigger = trigSt ? trigSt.last_changed : "";
+
+    const cache = this._chg;
+    const current = cache && cache.vin === vin && cache.trigger === trigger;
+    if (!current || (!cache.data && !cache.loading)) {
+      this._chg = {
+        vin,
+        trigger,
+        data: current && cache ? cache.data : null,
+        loading: true,
+        error: false,
+      };
+      this._fetchCharging(vin);
+    }
+
+    this._paintCharging(deviceId, entities);
+  }
+
+  _fetchCharging(vin) {
+    const req = this._chg;
+    this._hass
+      .callService(
+        "bavariandata",
+        "get_charging_sessions",
+        { vin, limit: 40 },
+        undefined,
+        false,
+        true
+      )
+      .then((res) => {
+        // Ignore a response for a request we've already superseded.
+        if (!this._chg || this._chg.vin !== vin || this._chg.trigger !== req.trigger)
+          return;
+        const sessions = (res && res.response && res.response.sessions) || [];
+        this._chg = { ...this._chg, data: sessions, loading: false, error: false };
+        this._render();
+      })
+      .catch(() => {
+        if (!this._chg || this._chg.vin !== vin || this._chg.trigger !== req.trigger)
+          return;
+        this._chg = { ...this._chg, loading: false, error: true };
+        this._render();
+      });
+  }
+
+  _paintCharging(deviceId, entities) {
+    const name = this._config.title || this._deviceName(deviceId);
+    const state = this._chg || {};
+    const sessions = state.data;
+    const summary = this._chargingSummary(entities);
+    const expanded = this._chgExpanded || null;
+
+    const sig = this._signature({
+      m: "chg",
+      lang: _lang(this._hass),
+      name,
+      loading: state.loading && !sessions,
+      error: state.error,
+      summary,
+      expanded,
+      rows: (sessions || []).map((s) => [s.start, s.energy_kwh, s.cost && s.cost.amount]),
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    let body;
+    if (state.error) {
+      body = `<div class="empty">${this._t("ch_error")}</div>`;
+    } else if (!sessions && state.loading) {
+      body = `<div class="empty">${this._t("ch_loading")}</div>`;
+    } else if (!sessions || !sessions.length) {
+      body = `<div class="empty">${this._t("ch_empty")}</div>`;
+    } else {
+      body = `<div class="chg__list">${sessions
+        .map((s) => this._chargingRow(s, expanded))
+        .join("")}</div>`;
+    }
+
+    const count = sessions ? sessions.length : 0;
+    const countLabel =
+      count === 1
+        ? this._t("ch_session_one")
+        : this._t("ch_session_many", { n: count });
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <div class="chead">
+          <ha-icon icon="mdi:ev-station"></ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">${this._config.title || this._t("ch_title")}</span>
+            <span class="chead__sub">${name}${count ? " · " + countLabel : ""}</span>
+          </div>
+        </div>
+        ${summary ? this._chargingSummaryBand(summary) : ""}
+        ${body}
+      </ha-card>
+    `;
+    this._wireChargingTaps();
+  }
+
+  /** "This month" figures, read from the summary sensors when they exist. */
+  _chargingSummary(entities) {
+    let cost = null;
+    let energy = null;
+    for (const id of entities) {
+      const st = this._st(id);
+      const d = st && st.attributes && st.attributes.descriptor;
+      if (d === "charging_cost_month") cost = st;
+      else if (d === "charging_energy_month") energy = st;
+    }
+    if (!cost && !energy) return null;
+    return {
+      cost: cost ? this._fmt(cost) : null,
+      energy: energy ? this._fmt(energy) : null,
+    };
+  }
+
+  _chargingSummaryBand(summary) {
+    const cells = [];
+    if (summary.energy) {
+      cells.push(
+        `<div class="chg__stat"><span class="chg__stat-val">${summary.energy}</span><span class="chg__stat-lbl">${this._t("ch_month")}</span></div>`
+      );
+    }
+    if (summary.cost) {
+      cells.push(
+        `<div class="chg__stat"><span class="chg__stat-val">${summary.cost}</span><span class="chg__stat-lbl">${this._t("ch_month")}</span></div>`
+      );
+    }
+    if (!cells.length) return "";
+    return `<div class="chg__summary">${cells.join("")}</div>`;
+  }
+
+  _chargingRow(session, expanded) {
+    const id = session.start || "";
+    const isOpen = expanded === id;
+    const date = this._fmtSessionDate(session.start);
+    const energy =
+      session.energy_kwh != null ? `${this._round(session.energy_kwh, 1)} kWh` : "—";
+    const cost = this._fmtCost(session.cost);
+    const soc = this._socArc(session);
+    const badge = this._locationBadge(session);
+    const partial =
+      session.cost && session.cost.partial
+        ? `<span class="chg__tag chg__tag--warn">${this._t("ch_partial")}</span>`
+        : "";
+    const ongoing = session.end
+      ? ""
+      : `<span class="chg__tag">${this._t("ch_ongoing")}</span>`;
+
+    return `
+      <div class="chg__session${isOpen ? " is-open" : ""}">
+        <button class="chg__row" data-session="${this._attr(id)}">
+          <span class="chg__row-main">
+            <span class="chg__date">${date}</span>
+            <span class="chg__meta">${soc}${badge}${ongoing}${partial}</span>
+          </span>
+          <span class="chg__figures">
+            <span class="chg__energy">${energy}</span>
+            <span class="chg__cost">${cost}</span>
+          </span>
+        </button>
+        ${isOpen ? this._chargingDetail(session) : ""}
+      </div>
+    `;
+  }
+
+  _chargingDetail(session) {
+    const chart = this._powerCurveSvg(session.power_curve);
+    const facts = [];
+    if (session.peak_power_kw != null) {
+      facts.push([this._t("ch_peak"), `${this._round(session.peak_power_kw, 1)} kW`]);
+    }
+    const avg = this._avgPowerKw(session);
+    if (avg != null) facts.push([this._t("ch_avg"), `${avg} kW`]);
+    // duration_s isn't in the service payload; derive it from the timestamps.
+    const dur = this._durationLabel(session);
+    if (dur) facts.push([this._t("ch_duration"), dur]);
+    if (session.grid_kwh != null) {
+      facts.push([this._t("ch_grid"), `${this._round(session.grid_kwh, 1)} kWh`]);
+    }
+
+    const factRow = facts
+      .map(
+        ([k, v]) =>
+          `<div class="chg__fact"><span class="chg__fact-lbl">${k}</span><span class="chg__fact-val">${v}</span></div>`
+      )
+      .join("");
+
+    return `
+      <div class="chg__detail">
+        ${chart}
+        <div class="chg__facts">${factRow}</div>
+      </div>
+    `;
+  }
+
+  /** Inline SVG line chart of the [seconds, kW] power curve. No dependencies. */
+  _powerCurveSvg(curve) {
+    if (!Array.isArray(curve) || curve.length < 2) return "";
+    const W = 260;
+    const H = 64;
+    const pad = 4;
+    const xs = curve.map((p) => p[0]);
+    const ys = curve.map((p) => p[1]);
+    const xMin = Math.min(...xs);
+    const xMax = Math.max(...xs);
+    const yMax = Math.max(...ys, 0.1);
+    const spanX = xMax - xMin || 1;
+    const sx = (x) => pad + ((x - xMin) / spanX) * (W - 2 * pad);
+    const sy = (y) => H - pad - (y / yMax) * (H - 2 * pad);
+    const line = curve.map((p) => `${this._round(sx(p[0]), 1)},${this._round(sy(p[1]), 1)}`).join(" ");
+    const area = `${pad},${H - pad} ${line} ${W - pad},${H - pad}`;
+    return `
+      <svg class="chg__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
+        <polygon points="${area}" class="chg__chart-fill"></polygon>
+        <polyline points="${line}" class="chg__chart-line"></polyline>
+        <text x="${pad}" y="10" class="chg__chart-max">${this._round(yMax, 1)} kW</text>
+      </svg>
+    `;
+  }
+
+  _locationBadge(session) {
+    const loc = session.location || {};
+    const zone = loc.zone;
+    const assumed = session.location_assumed;
+    // A resolved non-home zone shows its own name; everything else is Home vs
+    // Away, with "assumed" spelled out when we had no GPS and fell back to home.
+    let label;
+    let cls = "chg__badge";
+    if (assumed) {
+      label = `${this._t("ch_home")} · ${this._t("ch_assumed")}`;
+      cls += " chg__badge--assumed";
+    } else if (zone && !/^home$/i.test(zone)) {
+      label = zone;
+      cls += " chg__badge--away";
+    } else if (zone) {
+      label = this._t("ch_home");
+      cls += " chg__badge--home";
+    } else {
+      label = this._t("ch_public");
+      cls += " chg__badge--away";
+    }
+    return `<span class="${cls}">${this._esc(label)}</span>`;
+  }
+
+  _socArc(session) {
+    const a = session.soc_start;
+    const b = session.soc_end;
+    if (a == null && b == null) return "";
+    const from = a == null ? "?" : Math.round(a);
+    const to = b == null ? "?" : Math.round(b);
+    return `<span class="chg__soc">${from}→${to}%</span>`;
+  }
+
+  _fmtCost(cost) {
+    if (!cost || cost.amount == null) {
+      return `<span class="chg__cost--none">${this._t("ch_no_cost")}</span>`;
+    }
+    const lang = _lang(this._hass);
+    try {
+      return new Intl.NumberFormat(lang, {
+        style: "currency",
+        currency: cost.currency || "EUR",
+        maximumFractionDigits: 2,
+      }).format(cost.amount);
+    } catch (e) {
+      return `${this._round(cost.amount, 2)} ${cost.currency || ""}`.trim();
+    }
+  }
+
+  _fmtSessionDate(iso) {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return this._esc(iso);
+    try {
+      return d.toLocaleString(_lang(this._hass), {
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (e) {
+      return d.toISOString().slice(0, 16).replace("T", " ");
+    }
+  }
+
+  _durationLabel(session) {
+    if (!session.start || !session.end) return null;
+    const ms = new Date(session.end).getTime() - new Date(session.start).getTime();
+    if (!(ms > 0)) return null;
+    const mins = Math.round(ms / 60000);
+    if (mins < 60) return `${mins} min`;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m ? `${h} h ${m} min` : `${h} h`;
+  }
+
+  _avgPowerKw(session) {
+    if (session.energy_kwh == null || !session.start || !session.end) return null;
+    const hours =
+      (new Date(session.end).getTime() - new Date(session.start).getTime()) / 3600000;
+    if (!(hours > 0)) return null;
+    return this._round(session.energy_kwh / hours, 1);
+  }
+
+  _wireChargingTaps() {
+    this.shadowRoot.querySelectorAll("[data-session]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const id = el.getAttribute("data-session");
+        this._chgExpanded = this._chgExpanded === id ? null : id;
+        this._sig = null; // force a repaint with the new expansion state
+        const deviceId = this._resolveDeviceId();
+        this._paintCharging(deviceId, this._deviceEntities(deviceId));
+      });
+    });
+  }
+
+  _round(n, dp) {
+    const f = Math.pow(10, dp);
+    return Math.round(n * f) / f;
+  }
+
+  _esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])
+    );
+  }
+
+  _attr(s) {
+    return this._esc(s).replace(/'/g, "&#39;");
   }
 
   /* ---- tire diagram ----------------------------------------------------- */
@@ -1640,6 +2047,81 @@ class BmwCardataCard extends HTMLElement {
         font-variant-numeric: tabular-nums; white-space: nowrap;
       }
 
+      /* ---- charging history ---- */
+      .chg__summary {
+        display: flex; gap: 8px; padding: 10px 14px 4px;
+      }
+      .chg__stat {
+        flex: 1; display: flex; flex-direction: column; gap: 2px;
+        padding: 8px 10px; border-radius: 12px;
+        background: var(--secondary-background-color);
+      }
+      .chg__stat-val {
+        font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums;
+      }
+      .chg__stat-lbl {
+        font-size: 0.68rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .chg__list { padding: 6px 6px 8px; }
+      .chg__session { border-radius: 12px; }
+      .chg__session.is-open { background: var(--secondary-background-color); }
+      .chg__row {
+        width: 100%; display: flex; align-items: center; justify-content: space-between;
+        gap: 10px; padding: 10px 10px; background: none; border: none;
+        color: inherit; text-align: left; cursor: pointer; border-radius: 12px;
+      }
+      .chg__row:hover { background: var(--secondary-background-color); }
+      .chg__session.is-open .chg__row:hover { background: transparent; }
+      .chg__row-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+      .chg__date { font-weight: 600; font-size: 0.92rem; }
+      .chg__meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+      .chg__soc {
+        font-size: 0.72rem; color: var(--secondary-text-color);
+        font-variant-numeric: tabular-nums;
+      }
+      .chg__figures {
+        display: flex; flex-direction: column; align-items: flex-end; gap: 3px;
+        white-space: nowrap;
+      }
+      .chg__energy { font-variant-numeric: tabular-nums; font-size: 0.86rem; }
+      .chg__cost {
+        font-weight: 600; font-variant-numeric: tabular-nums;
+      }
+      .chg__cost--none {
+        font-weight: 400; font-size: 0.72rem; color: var(--secondary-text-color);
+      }
+      .chg__badge, .chg__tag {
+        font-size: 0.66rem; padding: 1px 7px; border-radius: 999px;
+        border: 1px solid var(--divider-color); color: var(--secondary-text-color);
+        white-space: nowrap;
+      }
+      .chg__badge--home { border-color: var(--bmw-high); color: var(--bmw-high); }
+      .chg__badge--away { border-color: var(--bmw-charge); color: var(--bmw-charge); }
+      .chg__badge--assumed { border-style: dashed; }
+      .chg__tag--warn { border-color: var(--bmw-mid); color: var(--bmw-mid); }
+      .chg__detail { padding: 2px 12px 12px; }
+      .chg__chart {
+        width: 100%; height: 64px; display: block; margin-bottom: 8px;
+      }
+      .chg__chart-line {
+        fill: none; stroke: var(--bmw-charge); stroke-width: 2;
+        stroke-linejoin: round; stroke-linecap: round;
+        vector-effect: non-scaling-stroke;
+      }
+      .chg__chart-fill { fill: var(--bmw-charge); opacity: 0.12; stroke: none; }
+      .chg__chart-max {
+        fill: var(--secondary-text-color); font-size: 9px;
+      }
+      .chg__facts { display: flex; flex-wrap: wrap; gap: 6px; }
+      .chg__fact {
+        flex: 1 1 40%; display: flex; justify-content: space-between; gap: 8px;
+        padding: 6px 10px; border-radius: 10px;
+        background: var(--card-background-color);
+      }
+      .chg__fact-lbl { color: var(--secondary-text-color); font-size: 0.76rem; }
+      .chg__fact-val { font-variant-numeric: tabular-nums; font-size: 0.82rem; }
+
       @media (prefers-reduced-motion: reduce) {
         .dot--live { animation: none; }
         .gauge__ring { transition: none; }
@@ -1671,6 +2153,10 @@ defineCardElement("bmw-cardata-card", BmwCardataCard);
 
 // Sentinel for "no cluster" so the dropdown always has a concrete value.
 const OVERVIEW = "overview";
+// The mode dropdown is a single selector for every layout, but charging isn't a
+// catalogue cluster -- it's stored as `view: charging`. This sentinel lets the
+// one dropdown offer it, mapped to/from `view` in _render and _valueChanged.
+const CHARGING_VIEW = "charging";
 
 class BmwCardataCardEditor extends HTMLElement {
   setConfig(config) {
@@ -1686,6 +2172,7 @@ class BmwCardataCardEditor extends HTMLElement {
   _schema() {
     const clusterOptions = [
       { value: OVERVIEW, label: t(this._hass, "ed_overview_option") },
+      { value: CHARGING_VIEW, label: t(this._hass, "ch_title") },
       { value: "closures", label: t(this._hass, "cl_closures") },
       ...CLUSTER_SLUGS.map((slug) => ({
         value: slug,
@@ -1695,7 +2182,8 @@ class BmwCardataCardEditor extends HTMLElement {
     const entitySel = (domain) => ({
       entity: { integration: "bavariandata", ...(domain ? { domain } : {}) },
     });
-    const overview = !this._config || !this._config.cluster;
+    const overview =
+      !this._config || (!this._config.cluster && this._config.view !== "charging");
     const schema = [
       { name: "device", selector: { device: { integration: "bavariandata" } } },
       { name: "cluster", selector: { select: { mode: "dropdown", options: clusterOptions } } },
@@ -1740,15 +2228,28 @@ class BmwCardataCardEditor extends HTMLElement {
     }
     this._form.hass = this._hass;
     this._form.schema = this._schema();
-    // Present a concrete cluster value so the dropdown reflects the mode.
-    this._form.data = { cluster: OVERVIEW, ...this._config };
+    // Present a concrete value so the mode dropdown reflects the current layout.
+    // `view: charging` maps onto the shared dropdown's charging sentinel.
+    const mode =
+      this._config.view === "charging"
+        ? CHARGING_VIEW
+        : this._config.cluster || OVERVIEW;
+    this._form.data = { ...this._config, cluster: mode };
   }
 
   _valueChanged(ev) {
     ev.stopPropagation();
     if (!this._config) return;
     const value = { ...ev.detail.value };
-    if (value.cluster === OVERVIEW || !value.cluster) delete value.cluster;
+    // The mode dropdown feeds the `cluster` field; translate its special values
+    // back into the real config keys.
+    if (value.cluster === CHARGING_VIEW) {
+      value.view = "charging";
+      delete value.cluster;
+    } else {
+      delete value.view;
+      if (value.cluster === OVERVIEW || !value.cluster) delete value.cluster;
+    }
     // Drop empties so the stored config stays minimal.
     for (const key of Object.keys(value)) {
       if (value[key] === "" || value[key] === undefined || value[key] === null) {
