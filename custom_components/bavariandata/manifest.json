@@ -4,6 +4,9 @@
   "codeowners": [
     "@JustChr"
   ],
+  "after_dependencies": [
+    "recorder"
+  ],
   "config_flow": true,
   "dependencies": [
     "http",

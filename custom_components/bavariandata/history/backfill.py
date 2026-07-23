@@ -125,7 +125,13 @@ class StatisticsPublisher:
 
     @property
     def available(self) -> bool:
-        """False when the recorder isn't set up -- statistics are its feature."""
+        """False when the recorder isn't set up -- statistics are its feature.
+
+        The manifest lists ``recorder`` under ``after_dependencies``, not
+        ``dependencies``: it only has to be set up *before* us if it is being set
+        up at all. A user who has disabled the recorder should still get the rest
+        of the integration, so this is a check rather than a requirement.
+        """
 
         return "recorder" in self.hass.config.components
 
