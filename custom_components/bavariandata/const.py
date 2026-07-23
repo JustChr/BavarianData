@@ -28,6 +28,23 @@ OPTION_DIAGNOSTIC_INTERVAL = "diagnostic_log_interval"
 # scopes for those clusters instead of the coarse DEFAULT_SCOPE.
 OPTION_STREAM_SECTIONS = "stream_sections"
 
+# Charging-cost settings. Cost entities only exist once a mode other than
+# "none" is chosen -- showing a wrong price is worse than showing none.
+OPTION_PRICE_MODE = "price_mode"          # none | fixed | entity
+OPTION_PRICE_FIXED = "price_fixed"        # currency units per kWh
+OPTION_PRICE_ENTITY = "price_entity"      # a live price sensor (Tibber, Nordpool, ...)
+OPTION_PRICE_CURRENCY = "price_currency"
+# Optional wallbox energy sensor: a measured grid figure always beats the
+# battery-side energy we integrate from the stream.
+OPTION_GRID_ENERGY_ENTITY = "grid_energy_entity"
+# Gross up battery-side energy by the AC charging losses. Defaults to 0 so we
+# never dress an estimate up as a measurement.
+OPTION_CHARGING_LOSS_PERCENT = "charging_loss_percent"
+# How long recorded sessions are kept. 0 means "keep forever" (the hard
+# per-VIN cap in history/store.py still applies).
+OPTION_HISTORY_RETAIN_MONTHS = "history_retain_months"
+DEFAULT_HISTORY_RETAIN_MONTHS = 24
+
 # Dispatcher signal fired when a vehicle render is (re)cached, carrying the VIN.
 SIGNAL_VEHICLE_IMAGE = f"{DOMAIN}_vehicle_image_updated"
 

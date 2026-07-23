@@ -234,6 +234,37 @@ over time into two sensors per vehicle:
 Both are derived on the integration side (BMW never sends a kWh counter), so they
 work on any vehicle that streams charging power.
 
+**Charging history & cost** — every completed session is recorded and kept, in
+the integration's own store rather than the recorder (which purges after ten
+days). No REST quota is spent: it all comes from the stream.
+
+Set this up under **Configure → Charging costs & history**. Pick a **fixed price
+per kWh**, or point it at a **live price entity** (Tibber, Nordpool, aWATTar, …)
+— that one is sampled *while the car charges*, so a session spanning a price
+change is billed correctly rather than at whatever the price happened to be at
+the end. Until you choose a price source, **no cost entities are created at
+all**; a wrong number would be worse than none.
+
+You then get per vehicle:
+
+- **Charging Energy (This Month)** — always available.
+- **Charging Cost (This Month)** and **Charging Cost (Last Session)** — once a
+  price source is set.
+- **Charging Cost per 100 km** — additionally needs the odometer (Vehicle status
+  cluster) and two sessions to measure a distance between.
+
+`bavariandata.get_charging_sessions` returns the full history as service
+**response data** (optional `vin`, `from`, `to`, `limit`) — start/end SoC, energy,
+duration, peak power, the charging power curve, and cost. It reads the local
+store, so unlike the `fetch_*` services it spends **no** API quota.
+
+Energy is measured at the battery, so it's slightly below what the grid
+delivered. If you have a wallbox energy sensor, select it and that exact figure
+is used instead; otherwise you can gross the value up by your charging losses,
+which stays at 0 % by default because an invented correction would look like a
+measurement. A session charged while the price was briefly unknown is flagged
+`partial` rather than silently understated.
+
 **Events** — meaningful charging transitions fire on the Home Assistant event
 bus, ready to use as automation triggers (Developer Tools → Events to watch them):
 
@@ -273,6 +304,9 @@ Each service is available in Developer Tools and as a button in the integration'
 | `bavariandata.fetch_tyre_diagnosis` | Smart-maintenance tyre diagnosis. |
 | `bavariandata.fetch_location_charging_settings` | Location-based charging settings (paginated). |
 | `bavariandata.fetch_vehicle_image` | Vehicle render (updates the image entity). |
+
+`bavariandata.get_charging_sessions` is the exception: it reads the
+integration's own recorded history and costs **no** quota.
 
 ## Troubleshooting
 

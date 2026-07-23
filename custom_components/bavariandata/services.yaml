@@ -73,3 +73,24 @@ fetch_vehicle_image:
     vin:
       description: Optional VIN to query. Defaults to the first known VIN.
       example: WBY31AW090FP15359
+get_charging_sessions:
+  name: Get Charging Sessions
+  description: >-
+    Return recorded charging sessions, newest first. Reads the integration's own
+    history, so unlike the fetch_* services it costs no BMW API quota.
+  fields:
+    entry_id:
+      description: Optional config entry id to target. Required if multiple entries are configured.
+      example: 01K65NKFESKBQZ78PBW6V9BCCX
+    vin:
+      description: Optional VIN to filter by. Defaults to every known vehicle.
+      example: WBY31AW090FP15359
+    from:
+      description: Only sessions that started on or after this date/time.
+      example: "2026-07-01"
+    to:
+      description: Only sessions that started on or before this date/time.
+      example: "2026-07-31"
+    limit:
+      description: Maximum number of sessions to return.
+      example: 20

@@ -49,8 +49,8 @@ leaving scaffolding behind.
 
 | Phase | Scope | Status |
 | --- | --- | --- |
-| 0 | History store + derived-entity translations | built; store not yet wired into setup |
-| 1 | Charging ledger and real cost | next |
+| 0 | History store + derived-entity translations | done |
+| 1 | Charging ledger and real cost | done except the `view: charging` card |
 | 2 | Battery health / degradation | sketched |
 | 3 | Trips (Fahrtenbuch) | sketched |
 | 4 | Statistics backfill + export | sketched |
@@ -217,11 +217,16 @@ custom_components/bavariandata/history/
   store.py      # Store wrapper                        — HA imports live here
 ```
 
-This package exists as of Phase 0, with `tests/test_history.py` covering the
-three HA-free modules. What remains for Phase 1 is the wiring: instantiate
-`HistoryStore` during setup, drive a `SessionBuilder` from the transitions in
-`_fire_charging_event`, feed `CostAccumulator` from `_integrate_energy`, and
-surface the result as sensors, a service and a card view.
+`summary.py` joined them in Phase 1 (month bucketing and totals, also HA-free
+and tested). The wiring is in place: `HistoryStore` is created during setup, a
+`SessionBuilder` runs off the transitions in `_fire_charging_event`, the
+`CostAccumulator` is fed from the same delta as `_integrate_energy`, and the
+result surfaces as the four sensors, `get_charging_sessions`, and the
+*Charging costs & history* options screen.
+
+**Still open from Phase 1:** the `view: charging` card view — session list, power
+curve, SoC arc. Until it exists the history is reachable through the service and
+the sensors, but not browsable, which is the part rule 3 cares about.
 
 Wrong numbers are the one thing that would destroy trust in this feature, and
 entity code isn't currently test-covered — so the maths goes where we *can* test

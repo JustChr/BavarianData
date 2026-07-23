@@ -17,6 +17,7 @@ from .conftest import load_module
 models = load_module("history.models")
 sessions = load_module("history.sessions")
 pricing = load_module("history.pricing")
+summary = load_module("history.summary")
 
 ChargingSession = models.ChargingSession
 SessionBuilder = sessions.SessionBuilder
@@ -238,3 +239,141 @@ def test_battery_energy_is_only_grossed_up_when_asked():
     value, source = pricing.billable_energy(battery_kwh=9.0, loss_percent=10.0)
     assert source == "battery_adjusted"
     assert value == 10.0
+
+
+def test_pricing_config_treats_half_configured_as_unconfigured():
+    assert not pricing.PricingConfig().enabled
+    assert not pricing.PricingConfig(mode="fixed").enabled
+    assert not pricing.PricingConfig(mode="entity").enabled
+    assert pricing.PricingConfig(mode="fixed", fixed_price=0.30).enabled
+    assert pricing.PricingConfig(mode="entity", price_entity="sensor.x").enabled
+
+
+def test_pricing_config_parses_options_defensively():
+    config = pricing.PricingConfig.from_options(
+        {"price_mode": "fixed", "price_fixed": "0.42", "charging_loss_percent": ""}
+    )
+    assert (config.mode, config.fixed_price, config.loss_percent) == ("fixed", 0.42, 0.0)
+    assert config.currency == "EUR"
+    # Junk must not raise during setup.
+    assert pricing.PricingConfig.from_options({"price_fixed": "abc"}).fixed_price is None
+
+
+# --- summaries -------------------------------------------------------------
+
+
+def _costed(start: datetime, amount: float, **overrides) -> ChargingSession:
+    data = {
+        "vin": "WBY1",
+        "start": start,
+        "end": start + timedelta(hours=1),
+        "energy_kwh": 10.0,
+        "cost": {"amount": amount, "currency": "EUR", "source": "tariff"},
+    }
+    data.update(overrides)
+    return ChargingSession(**data)
+
+
+def test_month_bucketing_uses_local_time_not_utc():
+    # 23:30 UTC on 31 July is already 01:30 on 1 August in CEST, so the session
+    # belongs to August from the user's point of view.
+    late = _costed(datetime(2026, 7, 31, 23, 30, tzinfo=timezone.utc), 5.0)
+
+    def as_cest(value):
+        return value.astimezone(timezone(timedelta(hours=2)))
+
+    # Without a localizer it stays in July, matching its UTC timestamp.
+    assert summary.sessions_in_month([late], year=2026, month=7) == [late]
+    assert (
+        summary.sessions_in_month([late], year=2026, month=8, localize=as_cest) == [late]
+    )
+    assert summary.sessions_in_month([late], year=2026, month=7, localize=as_cest) == []
+
+
+def test_summary_totals_cost_and_energy():
+    result = summary.summarise(
+        [
+            _costed(START, 3.0),
+            _costed(START + timedelta(days=2), 4.5),
+        ]
+    )
+    assert result["sessions"] == 2
+    assert result["cost"] == 7.5
+    assert result["currency"] == "EUR"
+    assert result["energy_kwh"] == 20.0
+    assert result["partial"] is False
+
+
+def test_summary_refuses_to_add_up_mixed_currencies():
+    mixed = [
+        _costed(START, 3.0),
+        _costed(
+            START + timedelta(days=1),
+            4.0,
+            cost={"amount": 4.0, "currency": "GBP", "source": "bmw"},
+        ),
+    ]
+    result = summary.summarise(mixed)
+    assert result["cost"] is None
+    assert result["currency"] is None
+    # Energy is currency-free, so it still totals.
+    assert result["energy_kwh"] == 20.0
+
+
+def test_summary_propagates_a_partial_session():
+    result = summary.summarise(
+        [
+            _costed(START, 3.0),
+            _costed(
+                START + timedelta(days=1),
+                1.0,
+                cost={
+                    "amount": 1.0,
+                    "currency": "EUR",
+                    "source": "tariff",
+                    "partial": True,
+                },
+            ),
+        ]
+    )
+    assert result["partial"] is True
+
+
+def test_summary_ignores_sessions_that_were_never_costed():
+    result = summary.summarise([_costed(START, 3.0), _session(energy_kwh=5.0)])
+    assert result["sessions"] == 2
+    assert result["cost"] == 3.0
+    assert result["energy_kwh"] == 15.0
+
+
+def test_cost_per_distance_needs_two_odometer_readings():
+    one = summary.summarise([_costed(START, 3.0, mileage_km=1000.0)])
+    assert one["distance_km"] is None
+    assert one["cost_per_100km"] is None
+
+    two = summary.summarise(
+        [
+            _costed(START, 3.0, mileage_km=1000.0),
+            _costed(START + timedelta(days=5), 7.0, mileage_km=1400.0),
+        ]
+    )
+    assert two["distance_km"] == 400.0
+    assert two["cost_per_100km"] == 2.5
+
+
+def test_a_stationary_odometer_yields_no_distance():
+    result = summary.summarise(
+        [
+            _costed(START, 3.0, mileage_km=1000.0),
+            _costed(START + timedelta(days=1), 3.0, mileage_km=1000.0),
+        ]
+    )
+    assert result["distance_km"] is None
+    assert result["cost_per_100km"] is None
+
+
+def test_empty_summary_is_all_none_not_zero_cost():
+    result = summary.summarise([])
+    assert result["sessions"] == 0
+    assert result["cost"] is None
+    assert result["cost_per_100km"] is None

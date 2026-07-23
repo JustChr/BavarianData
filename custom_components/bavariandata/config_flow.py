@@ -20,18 +20,28 @@ from homeassistant.components import persistent_notification
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult, FlowResultType
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import selector
 
 from . import async_manual_refresh_tokens
 from .container import CardataContainerError
 from .const import (
     DEBUG_LOG,
+    DEFAULT_HISTORY_RETAIN_MONTHS,
     DEFAULT_SCOPE,
     DOMAIN,
+    OPTION_CHARGING_LOSS_PERCENT,
     OPTION_DEBUG_LOG,
+    OPTION_GRID_ENERGY_ENTITY,
+    OPTION_HISTORY_RETAIN_MONTHS,
+    OPTION_PRICE_CURRENCY,
+    OPTION_PRICE_ENTITY,
+    OPTION_PRICE_FIXED,
+    OPTION_PRICE_MODE,
     OPTION_STREAM_SECTIONS,
     VEHICLE_METADATA,
 )
 from .debug import set_debug_enabled
+from .history.pricing import DEFAULT_CURRENCY, MODE_ENTITY, MODE_FIXED, MODE_NONE, PricingConfig
 from .descriptors import build_portal_snippet, default_sections, section_labels
 from .device_flow import CardataAuthError, poll_for_tokens, request_device_code
 
@@ -390,6 +400,7 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
                 "action_fetch_tyre",
                 "action_fetch_location_charging",
                 "action_fetch_image",
+                "action_charging_costs",
                 "action_debug_logging",
             ],
         )
@@ -559,6 +570,106 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
             blocking=True,
         )
         return self._finish()
+
+    async def async_step_action_charging_costs(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Configure how charging energy is turned into money.
+
+        Deliberately not a tariff editor: users already have a price entity from
+        Tibber/Nordpool/aWATTar, or a flat rate they know. Until a mode other
+        than "none" is picked, no cost entity is created at all.
+        """
+
+        options = dict(self._config_entry.options)
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    OPTION_PRICE_MODE,
+                    default=options.get(OPTION_PRICE_MODE, MODE_NONE),
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=[MODE_NONE, MODE_FIXED, MODE_ENTITY],
+                        translation_key="price_mode",
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+                vol.Optional(
+                    OPTION_PRICE_FIXED,
+                    description={"suggested_value": options.get(OPTION_PRICE_FIXED)},
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=0, step="any", mode=selector.NumberSelectorMode.BOX
+                    )
+                ),
+                vol.Optional(
+                    OPTION_PRICE_ENTITY,
+                    description={"suggested_value": options.get(OPTION_PRICE_ENTITY)},
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=["sensor", "input_number"])
+                ),
+                vol.Required(
+                    OPTION_PRICE_CURRENCY,
+                    default=options.get(OPTION_PRICE_CURRENCY, DEFAULT_CURRENCY),
+                ): str,
+                vol.Optional(
+                    OPTION_GRID_ENERGY_ENTITY,
+                    description={
+                        "suggested_value": options.get(OPTION_GRID_ENERGY_ENTITY)
+                    },
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor")
+                ),
+                vol.Required(
+                    OPTION_CHARGING_LOSS_PERCENT,
+                    default=options.get(OPTION_CHARGING_LOSS_PERCENT, 0),
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=0, max=30, step=0.5, mode=selector.NumberSelectorMode.BOX
+                    )
+                ),
+                vol.Required(
+                    OPTION_HISTORY_RETAIN_MONTHS,
+                    default=options.get(
+                        OPTION_HISTORY_RETAIN_MONTHS, DEFAULT_HISTORY_RETAIN_MONTHS
+                    ),
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=0, max=120, step=1, mode=selector.NumberSelectorMode.BOX
+                    )
+                ),
+            }
+        )
+
+        if user_input is None:
+            return self.async_show_form(
+                step_id="action_charging_costs", data_schema=schema
+            )
+
+        mode = user_input.get(OPTION_PRICE_MODE, MODE_NONE)
+        if mode == MODE_FIXED and user_input.get(OPTION_PRICE_FIXED) is None:
+            return self.async_show_form(
+                step_id="action_charging_costs",
+                data_schema=schema,
+                errors={"base": "price_required"},
+            )
+        if mode == MODE_ENTITY and not user_input.get(OPTION_PRICE_ENTITY):
+            return self.async_show_form(
+                step_id="action_charging_costs",
+                data_schema=schema,
+                errors={"base": "price_entity_required"},
+            )
+
+        options.update(user_input)
+        # Apply immediately rather than reloading the entry: BMW allows only one
+        # concurrent stream per account, so a reload risks racing the reconnect.
+        runtime = self.hass.data.get(DOMAIN, {}).get(self._config_entry.entry_id)
+        if runtime is not None:
+            runtime.coordinator.pricing = PricingConfig.from_options(options)
+            if runtime.history is not None:
+                months = int(user_input.get(OPTION_HISTORY_RETAIN_MONTHS, 0) or 0)
+                runtime.history.retain_months = months if months > 0 else None
+        return self.async_create_entry(title="", data=options)
 
     async def async_step_action_debug_logging(
         self, user_input: Optional[Dict[str, Any]] = None

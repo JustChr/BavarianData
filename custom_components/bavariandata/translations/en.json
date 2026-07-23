@@ -60,6 +60,7 @@
           "action_fetch_tyre": "Fetch tyre diagnosis",
           "action_fetch_location_charging": "Fetch charging settings",
           "action_fetch_image": "Fetch vehicle image",
+          "action_charging_costs": "Charging costs & history",
           "action_debug_logging": "Debug logging"
         }
       },
@@ -123,6 +124,28 @@
         "title": "Fetch vehicle image",
         "description": "Fetch the current vehicle image for your vehicles.\n\nPress Submit to continue."
       },
+      "action_charging_costs": {
+        "title": "Charging costs & history",
+        "description": "Turn recorded charging into money. Until a price source is set, no cost entities are created at all — a wrong price is worse than none.\n\n**Fixed price** bills every kWh at one rate. **Price entity** follows a live tariff (Tibber, Nordpool, aWATTar, …) and is sampled as the car charges, so a session spanning a price change is billed correctly.\n\nEnergy is measured at the battery, so it is slightly less than what the grid delivered. Point **Wallbox energy sensor** at a meter if you have one — that is exact. Otherwise you can gross the figure up by your charging losses; it stays at 0 % by default because an invented correction would look like a measurement.",
+        "data": {
+          "price_mode": "Price source",
+          "price_fixed": "Fixed price per kWh",
+          "price_entity": "Price entity",
+          "price_currency": "Currency",
+          "grid_energy_entity": "Wallbox energy sensor",
+          "charging_loss_percent": "Charging losses (%)",
+          "history_retain_months": "Keep history for (months)"
+        },
+        "data_description": {
+          "price_mode": "Choose 'None' to record sessions without costing them.",
+          "price_fixed": "Only used when the price source is 'Fixed price'.",
+          "price_entity": "Only used when the price source is 'Price entity'. Its state must be a price per kWh.",
+          "price_currency": "ISO code shown on the cost sensors, e.g. EUR, GBP, CHF.",
+          "grid_energy_entity": "Optional. A measured grid figure always beats our battery-side estimate.",
+          "charging_loss_percent": "Optional. Grosses battery-side energy up towards grid energy.",
+          "history_retain_months": "0 keeps everything. Sessions older than this are discarded."
+        }
+      },
       "action_debug_logging": {
         "title": "Debug logging",
         "description": "Turn on verbose logging for this integration (MQTT connection, subscribed topics, and each incoming message). This is separate from Home Assistant's generic debug toggle — both the log level and this switch must be on to see the detailed lines. It's verbose and can include vehicle data such as GPS coordinates, so leave it off for normal use. The change applies immediately.",
@@ -141,13 +164,24 @@
       "runtime_missing": "The integration isn't ready yet. Try again once setup has finished.",
       "no_vins": "No vehicles are known yet. Run \"Discover vehicles\" first, or wait for the stream to report one.",
       "invalid_int": "Enter a positive whole number.",
-      "invalid_client_id": "Enter the BMW CarData Client ID."
+      "invalid_client_id": "Enter the BMW CarData Client ID.",
+      "price_required": "Enter a fixed price per kWh, or choose a different price source.",
+      "price_entity_required": "Pick the entity that reports your price per kWh, or choose a different price source."
     },
     "abort": {
       "reauth_started": "Authorization restarted. Finish the new login from the notification that just appeared.",
       "reauth_device_code_failed": "BMW rejected the device authorization request ({error}). Check the Client ID and try again.",
       "reauth_missing_client_id": "Client ID is missing for this integration entry. Remove and re-add the integration to authorize again.",
       "reauth_failed": "Re-authorization could not be started. Try again from the integration options."
+    }
+  },
+  "selector": {
+    "price_mode": {
+      "options": {
+        "none": "None",
+        "fixed": "Fixed price",
+        "entity": "Price entity"
+      }
     }
   },
   "entity": {
@@ -1698,6 +1732,18 @@
       },
       "api_quota_remaining": {
         "name": "API Quota Remaining"
+      },
+      "charging_cost_month": {
+        "name": "Charging Cost (This Month)"
+      },
+      "charging_cost_session": {
+        "name": "Charging Cost (Last Session)"
+      },
+      "charging_energy_month": {
+        "name": "Charging Energy (This Month)"
+      },
+      "charging_cost_per_100km": {
+        "name": "Charging Cost per 100 km"
       }
     },
     "binary_sensor": {

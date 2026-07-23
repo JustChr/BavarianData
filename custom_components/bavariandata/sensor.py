@@ -12,6 +12,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
@@ -23,6 +24,7 @@ from .const import DOMAIN, REQUEST_LIMIT
 from .coordinator import CardataCoordinator
 from .descriptor_metadata import DESCRIPTOR_META
 from .entity import CardataEntity
+from .history.summary import sessions_in_month, summarise
 
 
 # String metadata values -> Home Assistant sensor enums.
@@ -600,6 +602,204 @@ class CardataSessionEnergySensor(CardataEntity, SensorEntity):
             self.schedule_update_ha_state()
 
 
+class CardataChargingSummarySensor(CardataEntity, SensorEntity):
+    """Base for the sensors derived from recorded charging sessions.
+
+    Values are recomputed on read rather than cached, and the state is rewritten
+    both when a session lands and just after midnight -- otherwise a "this
+    month" total would still show last month's figure on the 1st, which is
+    exactly the sort of quietly-wrong number this feature must avoid.
+    """
+
+    _attr_should_poll = False
+
+    def __init__(self, coordinator: CardataCoordinator, vin: str, key: str) -> None:
+        super().__init__(coordinator, vin, key)
+        self._unsubscribe = None
+        self._unsub_midnight = None
+
+    @property
+    def _summary(self) -> Dict[str, Any]:
+        history = self._coordinator.history
+        if history is None:
+            return {}
+        now = dt_util.now()
+        return summarise(
+            sessions_in_month(
+                history.sessions(self.vin),
+                year=now.year,
+                month=now.month,
+                localize=dt_util.as_local,
+            )
+        )
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self._unsubscribe = async_dispatcher_connect(
+            self.hass,
+            self._coordinator.signal_history,
+            self._handle_update,
+        )
+        self._unsub_midnight = async_track_time_change(
+            self.hass, self._handle_rollover, hour=0, minute=0, second=10
+        )
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._unsubscribe:
+            self._unsubscribe()
+            self._unsubscribe = None
+        if self._unsub_midnight:
+            self._unsub_midnight()
+            self._unsub_midnight = None
+
+    def _handle_update(self, vin: str) -> None:
+        if vin == self.vin:
+            self.schedule_update_ha_state()
+
+    def _handle_rollover(self, _now) -> None:
+        self.schedule_update_ha_state()
+
+
+class CardataChargingCostMonthSensor(CardataChargingSummarySensor):
+    """What charging has cost so far this calendar month."""
+
+    _attr_device_class = SensorDeviceClass.MONETARY
+    _attr_state_class = SensorStateClass.TOTAL
+    _attr_icon = "mdi:cash-multiple"
+    _attr_translation_key = "charging_cost_month"
+
+    def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
+        super().__init__(coordinator, vin, "charging_cost_month")
+        self._attr_native_unit_of_measurement = coordinator.pricing.currency
+
+    @property
+    def native_value(self):
+        return self._summary.get("cost")
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        attrs = dict(super().extra_state_attributes)
+        summary = self._summary
+        attrs["sessions"] = summary.get("sessions", 0)
+        attrs["energy_kwh"] = summary.get("energy_kwh")
+        # Flags a total that is a floor, not a figure: at least one session was
+        # charged while the price was unknown.
+        attrs["partial"] = summary.get("partial", False)
+        return attrs
+
+
+class CardataChargingCostSessionSensor(CardataEntity, SensorEntity):
+    """What the most recently finished charging session cost."""
+
+    _attr_should_poll = False
+    _attr_device_class = SensorDeviceClass.MONETARY
+    _attr_state_class = SensorStateClass.TOTAL
+    _attr_icon = "mdi:cash"
+    _attr_translation_key = "charging_cost_session"
+
+    def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
+        super().__init__(coordinator, vin, "charging_cost_session")
+        self._attr_native_unit_of_measurement = coordinator.pricing.currency
+        self._unsubscribe = None
+
+    @property
+    def _latest(self):
+        history = self._coordinator.history
+        if history is None:
+            return None
+        found = history.sessions(self.vin, limit=1)
+        return found[0] if found else None
+
+    @property
+    def native_value(self):
+        session = self._latest
+        if session is None or not session.cost:
+            return None
+        return session.cost.get("amount")
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        attrs = dict(super().extra_state_attributes)
+        session = self._latest
+        if session is None:
+            return attrs
+        attrs["energy_kwh"] = session.energy_kwh
+        attrs["duration_s"] = session.duration_s
+        attrs["soc_start"] = session.soc_start
+        attrs["soc_end"] = session.soc_end
+        attrs["peak_power_kw"] = session.peak_power_kw
+        if session.location:
+            attrs["zone"] = session.location.get("zone")
+        attrs["location_assumed"] = session.location_assumed
+        if session.cost:
+            attrs["cost_source"] = session.cost.get("source")
+            attrs["partial"] = bool(session.cost.get("partial"))
+        return attrs
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self._unsubscribe = async_dispatcher_connect(
+            self.hass,
+            self._coordinator.signal_history,
+            self._handle_update,
+        )
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._unsubscribe:
+            self._unsubscribe()
+            self._unsubscribe = None
+
+    def _handle_update(self, vin: str) -> None:
+        if vin == self.vin:
+            self.schedule_update_ha_state()
+
+
+class CardataChargingEnergyMonthSensor(CardataChargingSummarySensor):
+    """Energy delivered to the battery this calendar month."""
+
+    _attr_device_class = SensorDeviceClass.ENERGY
+    _attr_state_class = SensorStateClass.TOTAL
+    _attr_native_unit_of_measurement = "kWh"
+    _attr_icon = "mdi:ev-station"
+    _attr_translation_key = "charging_energy_month"
+
+    def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
+        super().__init__(coordinator, vin, "charging_energy_month")
+
+    @property
+    def native_value(self):
+        return self._summary.get("energy_kwh")
+
+
+class CardataChargingCostPerDistanceSensor(CardataChargingSummarySensor):
+    """Charging cost per 100 km, from the odometer read at each session.
+
+    Only created when the odometer is actually streaming, and stays ``None``
+    until two sessions have bracketed some distance -- one reading cannot
+    describe a gap.
+    """
+
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_icon = "mdi:cash-marker"
+    _attr_translation_key = "charging_cost_per_100km"
+
+    def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
+        super().__init__(coordinator, vin, "charging_cost_per_100km")
+        self._attr_native_unit_of_measurement = (
+            f"{coordinator.pricing.currency}/100 km"
+        )
+
+    @property
+    def native_value(self):
+        return self._summary.get("cost_per_100km")
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        attrs = dict(super().extra_state_attributes)
+        attrs["distance_km"] = self._summary.get("distance_km")
+        return attrs
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities
 ) -> None:
@@ -612,6 +812,30 @@ async def async_setup_entry(
     soc_rate_entities: Dict[str, CardataSocRateSensor] = {}
     charged_energy_entities: Dict[str, CardataChargedEnergySensor] = {}
     session_energy_entities: Dict[str, CardataSessionEnergySensor] = {}
+    charging_summary_entities: Dict[str, list] = {}
+
+    def ensure_charging_summary_entities(vin: str) -> None:
+        """Create the ledger sensors, but only once they can say something true.
+
+        The energy total works for anyone. The cost sensors need a configured
+        tariff, so until one exists they are not created at all rather than
+        sitting at "unknown" and inviting the question of what's broken.
+        """
+
+        if vin in charging_summary_entities or coordinator.history is None:
+            return
+        new_entities: list = [CardataChargingEnergyMonthSensor(coordinator, vin)]
+        if coordinator.pricing.enabled:
+            new_entities.append(CardataChargingCostMonthSensor(coordinator, vin))
+            new_entities.append(CardataChargingCostSessionSensor(coordinator, vin))
+            # Distance-based cost is meaningless without an odometer, and the
+            # Vehicle status cluster is optional in the portal.
+            if coordinator.get_state(vin, "vehicle.vehicle.mileage") is not None:
+                new_entities.append(
+                    CardataChargingCostPerDistanceSensor(coordinator, vin)
+                )
+        charging_summary_entities[vin] = new_entities
+        async_add_entities(new_entities, True)
 
     def ensure_soc_tracking_entities(vin: str) -> None:
         new_entities = []
@@ -640,6 +864,7 @@ async def async_setup_entry(
 
     def ensure_entity(vin: str, descriptor: str, *, assume_sensor: bool = False) -> None:
         ensure_soc_tracking_entities(vin)
+        ensure_charging_summary_entities(vin)
         if (vin, descriptor) in entities:
             return
         

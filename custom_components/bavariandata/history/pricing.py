@@ -21,6 +21,59 @@ from typing import Any, Optional
 # a single missed sample at a tariff boundary shouldn't flag a whole session.
 PARTIAL_TOLERANCE = 0.05
 
+MODE_NONE = "none"
+MODE_FIXED = "fixed"
+MODE_ENTITY = "entity"
+DEFAULT_CURRENCY = "EUR"
+
+
+@dataclass
+class PricingConfig:
+    """How this entry turns kWh into money.
+
+    Parsed from the config entry's options, kept HA-free so the parsing rules
+    (and the "is this even configured?" question) are testable.
+    """
+
+    mode: str = MODE_NONE
+    currency: str = DEFAULT_CURRENCY
+    fixed_price: Optional[float] = None
+    price_entity: Optional[str] = None
+    grid_energy_entity: Optional[str] = None
+    loss_percent: float = 0.0
+
+    @property
+    def enabled(self) -> bool:
+        """True when a cost can actually be computed.
+
+        A mode set to ``fixed`` without a price, or ``entity`` without an
+        entity, is treated as not configured rather than as zero.
+        """
+
+        if self.mode == MODE_FIXED:
+            return self.fixed_price is not None
+        if self.mode == MODE_ENTITY:
+            return bool(self.price_entity)
+        return False
+
+    @classmethod
+    def from_options(cls, options: dict[str, Any]) -> "PricingConfig":
+        def _float(key: str) -> Optional[float]:
+            try:
+                value = options.get(key)
+                return None if value is None or value == "" else float(value)
+            except (TypeError, ValueError):
+                return None
+
+        return cls(
+            mode=options.get("price_mode") or MODE_NONE,
+            currency=options.get("price_currency") or DEFAULT_CURRENCY,
+            fixed_price=_float("price_fixed"),
+            price_entity=options.get("price_entity") or None,
+            grid_energy_entity=options.get("grid_energy_entity") or None,
+            loss_percent=_float("charging_loss_percent") or 0.0,
+        )
+
 
 @dataclass
 class CostAccumulator:

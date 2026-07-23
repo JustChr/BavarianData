@@ -21,6 +21,14 @@ from .const import (
     EVENT_CHARGING_COMPLETE,
 )
 from .debug import debug_enabled
+from .history.pricing import (
+    MODE_FIXED,
+    CostAccumulator,
+    PricingConfig,
+    billable_energy,
+    resolve_cost,
+)
+from .history.sessions import SessionBuilder
 from .units import normalize_unit
 
 _LOGGER = logging.getLogger(__name__)
@@ -186,6 +194,17 @@ class CardataCoordinator:
     _energy_session_wh: Dict[str, float] = field(default_factory=dict, init=False)
     _energy_session_start: Dict[str, datetime] = field(default_factory=dict, init=False)
     _energy_last_time: Dict[str, datetime] = field(default_factory=dict, init=False)
+    # Charging-session recording. ``history`` is injected during setup; when it
+    # is None (or pricing isn't configured) recording degrades quietly rather
+    # than breaking the stream -- history is a bonus, not a prerequisite.
+    history: Optional[Any] = None
+    pricing: PricingConfig = field(default_factory=PricingConfig)
+    _session_builders: Dict[str, SessionBuilder] = field(
+        default_factory=dict, init=False
+    )
+    _session_costs: Dict[str, CostAccumulator] = field(
+        default_factory=dict, init=False
+    )
 
     @property
     def signal_new_sensor(self) -> str:
@@ -214,6 +233,10 @@ class CardataCoordinator:
     @property
     def signal_energy(self) -> str:
         return f"{DOMAIN}_{self.entry_id}_energy"
+
+    @property
+    def signal_history(self) -> str:
+        return f"{DOMAIN}_{self.entry_id}_history"
 
     def _get_testing_tracking(self, vin: str) -> SocTracking:
         return self._testing_soc_tracking.setdefault(vin, SocTracking())
@@ -474,7 +497,31 @@ class CardataCoordinator:
         wh = power_w * (delta_seconds / 3600.0)
         self._energy_lifetime_wh[vin] = self._energy_lifetime_wh.get(vin, 0.0) + wh
         self._energy_session_wh[vin] = self._energy_session_wh.get(vin, 0.0) + wh
+        self._record_energy_delta(vin, now, power_w, wh / 1000.0)
         return True
+
+    def _record_energy_delta(
+        self, vin: str, now: datetime, power_w: float, kwh: float
+    ) -> None:
+        """Feed the session record from the same delta that moved the counters.
+
+        Sharing the integration step is deliberate: the curve, the energy and
+        the cost then describe exactly the same samples and cannot disagree.
+        """
+
+        builder = self._session_builders.get(vin)
+        if builder is not None:
+            builder.sample(now, power_w / 1000.0)
+            tracking = self._soc_tracking.get(vin)
+            if tracking is not None:
+                builder.note_soc(tracking.last_soc_percent)
+
+        accumulator = self._session_costs.get(vin)
+        if accumulator is not None:
+            billable, _source = billable_energy(
+                battery_kwh=kwh, loss_percent=self.pricing.loss_percent
+            )
+            accumulator.add(billable, self._current_price())
 
     def get_lifetime_energy_kwh(self, vin: str) -> Optional[float]:
         value = self._energy_lifetime_wh.get(vin)
@@ -532,15 +579,134 @@ class CardataCoordinator:
         if now_charging:
             # New session: zero the session accumulator and stamp its start so
             # the session-energy sensor reports a fresh last_reset.
+            started_at = datetime.now(timezone.utc)
             self._energy_session_wh[vin] = 0.0
-            self._energy_session_start[vin] = datetime.now(timezone.utc)
+            self._energy_session_start[vin] = started_at
+            self._open_session_record(vin, tracking, started_at)
             self.hass.bus.async_fire(EVENT_CHARGING_STARTED, payload)
             return
-        # Session ended.
+        # Session ended. Close the record first so its summary can ride along
+        # on the event -- automations then get the cost without a second lookup.
+        session = self._close_session_record(vin, tracking, status)
+        if session is not None:
+            payload["energy_kwh"] = session.energy_kwh
+            payload["cost"] = session.cost
+            payload["session_id"] = session.id
         self.hass.bus.async_fire(EVENT_CHARGING_STOPPED, payload)
         target = tracking.target_soc_percent
         if target is not None and soc is not None and soc >= target - 1.0:
             self.hass.bus.async_fire(EVENT_CHARGING_COMPLETE, payload)
+
+    def _open_session_record(
+        self, vin: str, tracking: SocTracking, started_at: datetime
+    ) -> None:
+        if self.history is None:
+            return
+        location = self._charging_location(vin)
+        self._session_builders[vin] = SessionBuilder(
+            vin,
+            started_at,
+            soc_start=tracking.last_soc_percent,
+            target_soc=tracking.target_soc_percent,
+            location=location,
+            location_assumed=location is None,
+        )
+        self._session_costs[vin] = CostAccumulator(currency=self.pricing.currency)
+
+    def _close_session_record(self, vin: str, tracking: SocTracking, status: str):
+        builder = self._session_builders.pop(vin, None)
+        accumulator = self._session_costs.pop(vin, None)
+        if builder is None or self.history is None:
+            return None
+
+        energy_kwh = self.get_session_energy_kwh(vin)
+        session = builder.close(
+            datetime.now(timezone.utc),
+            soc_end=tracking.last_soc_percent,
+            energy_kwh=energy_kwh,
+            cost=resolve_cost(accumulated=accumulator.as_cost() if accumulator else None),
+            reason=status,
+        )
+        session.mileage_km = self._odometer_km(vin)
+        try:
+            self.history.add_session(session)
+        except Exception:  # noqa: BLE001 - never let bookkeeping break the stream
+            _LOGGER.exception("Could not record charging session for %s", vin)
+            return None
+        async_dispatcher_send(self.hass, self.signal_history, vin)
+        return session
+
+    def _odometer_km(self, vin: str) -> Optional[float]:
+        """Odometer at the end of the session, for distance-based costing."""
+
+        state = self.get_state(vin, "vehicle.vehicle.mileage")
+        if state is None or state.value is None:
+            return None
+        try:
+            return float(state.value)
+        except (TypeError, ValueError):
+            return None
+
+    def _charging_location(self, vin: str) -> Optional[Dict[str, Any]]:
+        """Where the car is plugged in, as an HA zone name when we can tell.
+
+        Only the resolved zone is stored, never raw coordinates: knowing a
+        session happened "at home" is what costing needs, and a list of exact
+        positions is far more sensitive than that.
+        """
+
+        latitude = self._coordinate(vin, "latitude")
+        longitude = self._coordinate(vin, "longitude")
+        if latitude is None or longitude is None:
+            return None
+        zone = self._zone_name(latitude, longitude)
+        return {"zone": zone} if zone else {"zone": None}
+
+    def _coordinate(self, vin: str, kind: str) -> Optional[float]:
+        for descriptor in (
+            f"vehicle.cabin.infotainment.navigation.currentLocation.{kind}",
+            f"vehicle.trip.segment.end.vehicleLocation.gpsPosition.{kind}",
+        ):
+            state = self.get_state(vin, descriptor)
+            if state is None or state.value is None:
+                continue
+            try:
+                return float(state.value)
+            except (TypeError, ValueError):
+                continue
+        return None
+
+    def _zone_name(self, latitude: float, longitude: float) -> Optional[str]:
+        from homeassistant.components import zone as zone_component
+
+        try:
+            found = zone_component.async_active_zone(self.hass, latitude, longitude)
+        except Exception:  # noqa: BLE001 - zone lookup is best-effort
+            return None
+        if found is None:
+            return None
+        return found.name or found.entity_id
+
+    def _current_price(self) -> Optional[float]:
+        """The price per kWh in force right now, or ``None`` if unknowable.
+
+        Read live rather than at the end of the session: with a dynamic tariff
+        the price moves while the car charges, so each energy delta has to be
+        billed at the price that applied when it was delivered.
+        """
+
+        config = self.pricing
+        if not config.enabled:
+            return None
+        if config.mode == MODE_FIXED:
+            return config.fixed_price
+        state = self.hass.states.get(config.price_entity)
+        if state is None or state.state in ("unknown", "unavailable", ""):
+            return None
+        try:
+            return float(state.state)
+        except (TypeError, ValueError):
+            return None
 
     def get_state(self, vin: str, descriptor: str) -> Optional[DescriptorState]:
         return self.data.get(vin, {}).get(descriptor)

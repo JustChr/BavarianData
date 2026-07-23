@@ -48,6 +48,22 @@
     "api_quota_remaining": {
       "en": "API Quota Remaining",
       "de": "Verbleibendes API-Kontingent"
+    },
+    "charging_cost_month": {
+      "en": "Charging Cost (This Month)",
+      "de": "Ladekosten (dieser Monat)"
+    },
+    "charging_cost_session": {
+      "en": "Charging Cost (Last Session)",
+      "de": "Ladekosten (letzter Ladevorgang)"
+    },
+    "charging_energy_month": {
+      "en": "Charging Energy (This Month)",
+      "de": "Geladene Energie (dieser Monat)"
+    },
+    "charging_cost_per_100km": {
+      "en": "Charging Cost per 100 km",
+      "de": "Ladekosten pro 100 km"
     }
   },
   "device_tracker": {

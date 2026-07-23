@@ -68,6 +68,8 @@ class ChargingSession:
     # {"amount": float, "currency": "EUR", "source": "tariff"|"bmw"}
     cost: Optional[dict[str, Any]] = None
     end_reason: Optional[str] = None
+    # Odometer at the end of the session; lets cost be expressed per distance.
+    mileage_km: Optional[float] = None
     # Set once BMW's charging history has been merged in.
     enriched: bool = False
 
@@ -118,6 +120,7 @@ class ChargingSession:
             "location_assumed": self.location_assumed,
             "cost": self.cost,
             "end_reason": self.end_reason,
+            "mileage_km": self.mileage_km,
             "enriched": self.enriched,
         }
 
@@ -148,6 +151,7 @@ class ChargingSession:
             location_assumed=bool(data.get("location_assumed")),
             cost=data.get("cost"),
             end_reason=data.get("end_reason"),
+            mileage_km=data.get("mileage_km"),
             enriched=bool(data.get("enriched")),
         )
 

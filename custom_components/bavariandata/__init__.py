@@ -8,7 +8,7 @@ import logging
 import os
 import time
 from collections import deque
-from datetime import datetime, timezone
+from datetime import datetime, time as dt_time, timezone
 from contextlib import suppress
 from dataclasses import dataclass
 from typing import Any, Deque, Dict, List, Optional
@@ -18,14 +18,15 @@ import voluptuous as vol
 
 from homeassistant.const import Platform
 from homeassistant.config_entries import ConfigEntry, SOURCE_REAUTH
-from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.core import HomeAssistant, SupportsResponse
+from homeassistant.exceptions import ConfigEntryNotReady, ServiceValidationError
 
 from homeassistant.components import persistent_notification
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.util import dt as dt_util
 
 from .const import (
     DEFAULT_SCOPE,
@@ -46,6 +47,8 @@ from .const import (
     OPTION_MQTT_KEEPALIVE,
     OPTION_DEBUG_LOG,
     OPTION_DIAGNOSTIC_INTERVAL,
+    OPTION_HISTORY_RETAIN_MONTHS,
+    DEFAULT_HISTORY_RETAIN_MONTHS,
     DEBUG_LOG,
     LOVELACE_CARD_FILENAME,
     LOVELACE_CARD_URL,
@@ -61,6 +64,8 @@ from .api import (
     async_get_vehicle_mappings,
 )
 from .container import CardataContainerError, CardataContainerManager
+from .history.pricing import PricingConfig
+from .history.store import HistoryStore
 from .stream import CardataStreamManager
 from .coordinator import CardataCoordinator
 from .debug import set_debug_enabled
@@ -74,6 +79,16 @@ PLATFORMS: list[Platform] = [
     Platform.IMAGE,
 ]
 
+def _retain_months(options: dict) -> Optional[int]:
+    """Retention in months, where 0 (or nonsense) means keep forever."""
+
+    try:
+        months = int(options.get(OPTION_HISTORY_RETAIN_MONTHS, DEFAULT_HISTORY_RETAIN_MONTHS))
+    except (TypeError, ValueError):
+        return DEFAULT_HISTORY_RETAIN_MONTHS
+    return months if months > 0 else None
+
+
 @dataclass
 class CardataRuntimeData:
     stream: CardataStreamManager
@@ -81,6 +96,7 @@ class CardataRuntimeData:
     session: aiohttp.ClientSession
     coordinator: CardataCoordinator
     container_manager: Optional[CardataContainerManager]
+    history: Optional[HistoryStore] = None
     bootstrap_task: asyncio.Task | None = None
     quota_manager: "QuotaManager" | None = None
     telematic_task: asyncio.Task | None = None
@@ -280,7 +296,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await session.close()
         raise ConfigEntryNotReady("Missing GCID or ID token")
 
+    # History is a bonus, not a prerequisite: a failure to read it must never
+    # stop the stream from setting up, so HistoryStore.async_load swallows its
+    # own errors and starts empty.
+    history_store = HistoryStore(
+        hass,
+        entry.entry_id,
+        retain_months=_retain_months(options),
+    )
+    await history_store.async_load()
+
     coordinator = CardataCoordinator(hass=hass, entry_id=entry.entry_id)
+    coordinator.history = history_store
+    coordinator.pricing = PricingConfig.from_options(options)
     coordinator.diagnostic_interval = diagnostic_interval
     last_poll_ts = data.get("last_telematic_poll")
     if isinstance(last_poll_ts, (int, float)) and last_poll_ts > 0:
@@ -380,6 +408,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         session=session,
         coordinator=coordinator,
         container_manager=stored_container_manager,
+        history=history_store,
         bootstrap_task=None,
         quota_manager=quota_manager,
         telematic_task=None,
@@ -662,6 +691,42 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 vol.Optional("to"): str,
             }
         )
+        get_sessions_schema = vol.Schema(
+            {
+                vol.Optional("entry_id"): str,
+                vol.Optional("vin"): str,
+                vol.Optional("from"): str,
+                vol.Optional("to"): str,
+                vol.Optional("limit"): vol.All(int, vol.Range(min=1)),
+            }
+        )
+
+        async def async_handle_get_charging_sessions(call: Any) -> dict:
+            target = _resolve_target(call)
+            if target is None or target[2].history is None:
+                return {"sessions": []}
+            _entry_id, _entry, runtime = target
+
+            def _bound(key: str) -> Optional[datetime]:
+                raw = call.data.get(key)
+                if not raw:
+                    return None
+                parsed = dt_util.parse_datetime(raw) or dt_util.parse_date(raw)
+                if parsed is None:
+                    raise ServiceValidationError(
+                        f"Could not read '{key}' as a date or date/time: {raw!r}"
+                    )
+                if isinstance(parsed, datetime):
+                    return dt_util.as_utc(parsed)
+                return dt_util.as_utc(datetime.combine(parsed, dt_time.min))
+
+            sessions = runtime.history.sessions(
+                call.data.get("vin"),
+                start=_bound("from"),
+                end=_bound("to"),
+                limit=call.data.get("limit"),
+            )
+            return {"sessions": [session.to_dict() for session in sessions]}
 
         hass.services.async_register(
             DOMAIN,
@@ -705,6 +770,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             async_handle_fetch_vehicle_image,
             schema=vin_service_schema,
         )
+        # Returns data instead of creating entities: a session list would need
+        # dozens of entities to express, and none of them is a question anyone
+        # asks of their dashboard. Reads the local store, so it spends no quota.
+        hass.services.async_register(
+            DOMAIN,
+            "get_charging_sessions",
+            async_handle_get_charging_sessions,
+            schema=get_sessions_schema,
+            supports_response=SupportsResponse.ONLY,
+        )
         registered_services = domain_data.setdefault("_registered_services", set())
         registered_services.update(
             {
@@ -715,6 +790,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 "fetch_tyre_diagnosis",
                 "fetch_location_charging_settings",
                 "fetch_vehicle_image",
+                "get_charging_sessions",
             }
         )
         domain_data["_service_registered"] = True
@@ -753,6 +829,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             await data.telematic_task
     if data.quota_manager:
         await data.quota_manager.async_close()
+    if data.history:
+        # Saves are debounced, so a reload or a restart right after a session
+        # ended would otherwise drop it.
+        with suppress(Exception):
+            await data.history.async_save_now()
     await data.stream.async_stop()
     await data.session.close()
     remaining_entries = [k for k in domain_data.keys() if not k.startswith("_")]
@@ -766,6 +847,19 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if not domain_data or not remaining_entries:
         hass.data.pop(DOMAIN, None)
     return True
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Delete this entry's recorded history when the integration is removed.
+
+    Charging history outlives the recorder by design, so it also has to be
+    cleaned up deliberately -- removing the integration should not leave a
+    record of where and when the car charged behind in .storage.
+    """
+
+    store = HistoryStore(hass, entry.entry_id)
+    with suppress(Exception):
+        await store.async_clear()
 
 
 async def _handle_stream_error(hass: HomeAssistant, entry: ConfigEntry, reason: str) -> None:

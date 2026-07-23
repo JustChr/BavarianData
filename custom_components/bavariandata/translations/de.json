@@ -60,6 +60,7 @@
           "action_fetch_tyre": "Reifendiagnose abrufen",
           "action_fetch_location_charging": "Ladeeinstellungen abrufen",
           "action_fetch_image": "Fahrzeugbild abrufen",
+          "action_charging_costs": "Ladekosten & Verlauf",
           "action_debug_logging": "Debug-Protokollierung"
         }
       },
@@ -123,6 +124,28 @@
         "title": "Fahrzeugbild abrufen",
         "description": "Ruft das aktuelle Fahrzeugbild deiner Fahrzeuge ab.\n\nKlicke auf **Absenden**, um fortzufahren."
       },
+      "action_charging_costs": {
+        "title": "Ladekosten & Verlauf",
+        "description": "Rechnet aufgezeichnete Ladevorgänge in Geld um. Solange keine Preisquelle eingestellt ist, werden gar keine Kosten-Entitäten angelegt — ein falscher Preis ist schlimmer als keiner.\n\n**Fester Preis** rechnet jede kWh mit demselben Satz ab. **Preis-Entität** folgt einem dynamischen Tarif (Tibber, Nordpool, aWATTar, …) und wird während des Ladens laufend abgetastet, sodass ein Ladevorgang über einen Preiswechsel hinweg korrekt abgerechnet wird.\n\nDie Energie wird an der Batterie gemessen und liegt damit etwas unter dem, was das Netz geliefert hat. Wenn du einen Zähler hast, wähle ihn unter **Wallbox-Energiesensor** aus — dieser Wert ist exakt. Andernfalls kannst du den Wert um deine Ladeverluste hochrechnen; die Vorgabe ist 0 %, weil eine erfundene Korrektur wie eine Messung aussähe.",
+        "data": {
+          "price_mode": "Preisquelle",
+          "price_fixed": "Fester Preis pro kWh",
+          "price_entity": "Preis-Entität",
+          "price_currency": "Währung",
+          "grid_energy_entity": "Wallbox-Energiesensor",
+          "charging_loss_percent": "Ladeverluste (%)",
+          "history_retain_months": "Verlauf aufbewahren (Monate)"
+        },
+        "data_description": {
+          "price_mode": "Wähle „Keine“, um Ladevorgänge aufzuzeichnen, ohne sie zu bepreisen.",
+          "price_fixed": "Wird nur bei der Preisquelle „Fester Preis“ verwendet.",
+          "price_entity": "Wird nur bei der Preisquelle „Preis-Entität“ verwendet. Ihr Zustand muss ein Preis pro kWh sein.",
+          "price_currency": "ISO-Code für die Kosten-Sensoren, z. B. EUR, GBP, CHF.",
+          "grid_energy_entity": "Optional. Ein gemessener Netzwert schlägt immer unsere batterieseitige Schätzung.",
+          "charging_loss_percent": "Optional. Rechnet die batterieseitige Energie in Richtung Netzenergie hoch.",
+          "history_retain_months": "0 behält alles. Ältere Ladevorgänge werden verworfen."
+        }
+      },
       "action_debug_logging": {
         "title": "Debug-Protokollierung",
         "description": "Schaltet die ausführliche Protokollierung dieser Integration ein (MQTT-Verbindung, abonnierte Topics und jede eingehende Nachricht). Das ist unabhängig von Home Assistants allgemeinem Debug-Schalter — es müssen sowohl der Log-Level als auch dieser Schalter aktiv sein, damit die detaillierten Zeilen erscheinen. Die Ausgabe ist umfangreich und kann Fahrzeugdaten wie GPS-Koordinaten enthalten; lass sie im Normalbetrieb also aus. Die Änderung wirkt sofort.",
@@ -141,13 +164,24 @@
       "runtime_missing": "Die Integration ist noch nicht bereit. Versuche es erneut, sobald die Einrichtung abgeschlossen ist.",
       "no_vins": "Es sind noch keine Fahrzeuge bekannt. Führe zuerst **Fahrzeuge suchen** aus, oder warte, bis der Stream eines meldet.",
       "invalid_int": "Gib eine positive ganze Zahl ein.",
-      "invalid_client_id": "Gib die BMW CarData Client-ID ein."
+      "invalid_client_id": "Gib die BMW CarData Client-ID ein.",
+      "price_required": "Gib einen festen Preis pro kWh ein, oder wähle eine andere Preisquelle.",
+      "price_entity_required": "Wähle die Entität, die deinen Preis pro kWh liefert, oder wähle eine andere Preisquelle."
     },
     "abort": {
       "reauth_started": "Autorisierung neu gestartet. Schließe die neue Anmeldung über die soeben erschienene Benachrichtigung ab.",
       "reauth_device_code_failed": "BMW hat die Anfrage zur Geräteautorisierung abgelehnt ({error}). Prüfe die Client-ID und versuche es erneut.",
       "reauth_missing_client_id": "Für diesen Integrationseintrag fehlt die Client-ID. Entferne die Integration und füge sie neu hinzu, um erneut zu autorisieren.",
       "reauth_failed": "Die Neuautorisierung konnte nicht gestartet werden. Versuche es erneut über die Optionen der Integration."
+    }
+  },
+  "selector": {
+    "price_mode": {
+      "options": {
+        "none": "Keine",
+        "fixed": "Fester Preis",
+        "entity": "Preis-Entität"
+      }
     }
   },
   "entity": {
@@ -1464,6 +1498,18 @@
       },
       "api_quota_remaining": {
         "name": "Verbleibendes API-Kontingent"
+      },
+      "charging_cost_month": {
+        "name": "Ladekosten (dieser Monat)"
+      },
+      "charging_cost_session": {
+        "name": "Ladekosten (letzter Ladevorgang)"
+      },
+      "charging_energy_month": {
+        "name": "Geladene Energie (dieser Monat)"
+      },
+      "charging_cost_per_100km": {
+        "name": "Ladekosten pro 100 km"
       }
     },
     "binary_sensor": {
