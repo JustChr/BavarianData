@@ -53,7 +53,7 @@ leaving scaffolding behind.
 | 1 | Charging ledger and real cost | done |
 | 2 | Battery health / degradation | done |
 | 3 | Trips (Fahrtenbuch) | done |
-| 4 | Statistics backfill + export | sketched |
+| 4 | Statistics backfill + export | done |
 
 Charging goes first deliberately: it is the smallest delta from what already
 exists (sessions are detected today), it touches no GPS so no privacy design
@@ -318,9 +318,47 @@ Classification via an actionable notification ("Business / Private") or a
 
 ## Phase 4 — Statistics backfill and export
 
-Import charging history and trips into Home Assistant's long-term statistics via
-`async_import_statistics`, so the Energy dashboard shows charging from before
-install or while HA was down. Plus monthly CSV/PDF reports.
+Import charging history and trips into Home Assistant's long-term statistics, so
+the Energy dashboard shows charging from before install or while HA was down.
+Plus monthly reports.
+
+**As built:**
+
+- **External statistics, not entity statistics.** The sketch said
+  `async_import_statistics`; the build uses `async_add_external_statistics` under
+  a `bavariandata:` namespace instead. Our sensors already generate their own
+  recorder statistics from the moment they exist — backfill is about the hours
+  *no entity was alive for*, which can be written freely in our own namespace but
+  would mean fighting the recorder over an entity it owns. Three series per VIN:
+  `charging_energy` (kWh), `driving_distance` (km), and `charging_cost` — the
+  last only once a tariff has produced one, in a single currency.
+- **HA-free, unit-tested** (`tests/test_statistics.py`, 26 tests):
+  `history/stats.py` spreads each record across the UTC hours it spans weighted
+  by occupancy (the total is exact; an open-ended or implausibly long record
+  collapses into its starting hour), prefers measured `grid_kwh` over integrated
+  battery-side energy, refuses mixed currencies the way `summarise` does, and
+  turns per-hour amounts into the running-sum rows statistics expect.
+  `history/backfill.py` is the thin recorder glue.
+- **The statistics mirror the store; they are not a second archive.** Every
+  rebuild clears our own ids and regenerates the series from zero. That is what
+  keeps the sums consistent once retention prunes the oldest records — an
+  incremental append would strand them on a baseline whose records are gone — and
+  it makes the retention setting mean what it says. Rebuilds are gated on a
+  fingerprint (count + oldest/newest id per VIN) so a restart that changed
+  nothing doesn't churn the database, and they hang off the existing
+  `signal_history` / `signal_trips` dispatches plus `async_at_started` (the
+  recorder may not be up when we are).
+- **No PDF dependency.** `history/export.py` emits CSV and a *self-contained,
+  print-styled HTML* month report instead. A rendering dependency on every
+  install for a feature few users touch was the wrong trade, and the browser's
+  print-to-PDF produces a better-looking A4 page than we would draw by hand. Both
+  languages are baked into the module, as in the card.
+- **Delivery is a browser download**, not a file on disk: `export_history`
+  returns the file *contents* as response data and the card's **CSV** /
+  **Report** header buttons turn them into a Blob. No path configuration, no
+  allowlisted directory, works from a phone. Automations can call it too.
+- **Options:** one toggle in *Charging costs & history* (on by default; turning
+  it off deletes the published series). No new setup step, per rule 2.
 
 ---
 
@@ -363,27 +401,41 @@ Ideas worth keeping but not scheduled:
 
 ## Where this stands (2026-07-23)
 
-Phases 0–2 are **released as a beta**. Phase 3 (Trips) is **built on `main`, not
-yet released** — the trip layer (`history/trips.py`, `classify.py`,
-`trip_builder.py`, `geocoding.py`, `driving_summary`), the coordinator detection,
-the `driving_distance_month` sensor, the `get_trips` / `get_driving_summary` /
-`set_trip_class` services, the *Trips* options step, and the `view: trips` card.
+Phases 0–2 are **released as a beta**. Phases 3 (Trips) and 4 (Statistics +
+export) are **built on `main`, not yet released** — the trip layer
+(`history/trips.py`, `classify.py`, `trip_builder.py`, `geocoding.py`,
+`driving_summary`), the coordinator detection, the `driving_distance_month`
+sensor, the `get_trips` / `get_driving_summary` / `set_trip_class` services, the
+*Trips* options step, the `view: trips` card — and on top of that
+`history/stats.py` + `history/backfill.py`, `history/export.py`, the
+`export_history` / `import_statistics` services, the statistics toggle, and the
+card's CSV/Report buttons.
 
-**Verified:** 105 unit tests pass (`history/` maths + summaries + pricing +
-battery-health + **trips**), card JS `node --check` clean, `test_catalogue`
-idempotence + no key collision, en/de translation parity (integration `entity`
-block + card `tr_*`/`bh_*` strings).
+**With Phase 4 the roadmap's four phases are complete.** What follows is
+"Beyond the roadmap" below, not a Phase 5.
+
+**Verified:** 131 unit tests pass (`history/` maths + summaries + pricing +
+battery-health + trips + **statistics bucketing and export**), card JS
+`node --check` clean, `test_catalogue` idempotence + no key collision, en/de
+translation parity (integration `entity` block + card `tr_*`/`bh_*`/`ex_*`
+strings). The HTML report was rendered headless in both languages and printed to
+A4 to check the layout.
 
 **NOT verified — needs a live HA pass before release:** trip detection on a real
 drive (which of `isMoving` / `isIgnitionOn` / `trip.segment.end` the i5 streams
 and in what order), place resolution (zone + one geocoded address), distance vs
 the odometer delta, commute auto-classification and the `set_trip_class` override,
 the `driving_distance_month` sensor, and the `view: trips` review panel + list.
-Entity/flow/card code has no test harness in this repo by design.
+For Phase 4: that `async_add_external_statistics` accepts our metadata on the
+installed core (the `has_mean` → `mean_type` probe in `backfill.py` is defensive,
+not tested against a real recorder), that the series show up under **Energy →
+Individual devices**, that clear-then-import leaves no orphan rows, and that the
+card's Blob download works in the HA companion app's webview as well as a desktop
+browser. Entity/flow/card code has no test harness in this repo by design.
 
-**How to shake it down (Phases 0–3 in one outing):** turn on **Configure → Debug
-logging**, then drive and charge. Every recorded event logs one tagged, greppable
-line — debug stays opt-in because these carry VIN, zone and place names.
+**How to shake it down (all four phases in one outing):** turn on **Configure →
+Debug logging**, then drive and charge. Every recorded event logs one tagged,
+greppable line — debug stays opt-in because these carry VIN, zone and place names.
 
 | Tag | Logged when | Answers |
 | --- | --- | --- |
@@ -392,10 +444,16 @@ line — debug stays opt-in because these carry VIN, zone and place names.
 | `[trip] OPEN` / `CLOSE(reason)` / `DROPPED` / `RECORDED` | per drive | place resolution, distance vs BMW's own, SoC, stats, why a close fired, the auto-classification and the home/work zones compared |
 | `[charge] OPEN` / `CLOSE(reason)` | per charge | zone + assumed flag, SoC, odometer, the resolved cost and how much energy went priced vs unpriced |
 | `[health]` | after each charge | sample count, estimate, and whether it's `confident`/`suspicious` — i.e. *why* the sensor still reads "Learning (n/10)" |
+| `[stats]` | after a rebuild that wrote something | which statistic ids were published and how many hourly rows each got — a rebuild that changed nothing logs nothing, by design |
 
-Grep `\[trip\]`, `\[charge\]`, `\[health\]` or `\[history\]` to pull each phase's
-trace out of an otherwise very chatty debug log.
+Grep `\[trip\]`, `\[charge\]`, `\[health\]`, `\[stats\]` or `\[history\]` to pull
+each phase's trace out of an otherwise very chatty debug log.
 
-**Pick up next:** the live-HA shakedown of Phase 3 (and the still-pending Phase
-0–2 real-drive/charge shakedown), then Phase 4 (statistics backfill + CSV/PDF
-export).
+For Phase 4 specifically, `bavariandata.import_statistics` returns the row counts
+in Developer Tools without needing debug logging at all — the fastest check that
+the series exist. Then look for them under **Settings → Dashboards → Energy →
+Individual devices**.
+
+**Pick up next:** the live-HA shakedown of Phases 0–4 — all four phases are now
+built and none has been through a real drive-and-charge outing. After that, the
+release, and then "Beyond the roadmap" is the open field.

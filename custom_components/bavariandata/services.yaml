@@ -157,3 +157,62 @@ set_trip_class:
             - business
             - private
             - commute
+export_history:
+  name: Export History
+  description: >-
+    Return one month of recorded charging sessions and/or trips as files - CSV
+    for spreadsheets, or a self-contained HTML report you can print to PDF from
+    the browser. The file contents come back in the response; nothing is written
+    to disk. Reads the local store, so it costs no BMW API quota.
+  fields:
+    entry_id:
+      description: Optional config entry id to target. Required if multiple entries are configured.
+      example: 01K65NKFESKBQZ78PBW6V9BCCX
+    vin:
+      description: Optional VIN. Defaults to the single configured vehicle.
+      example: WBY31AW090FP15359
+    month:
+      description: Month to export as YYYY-MM. Defaults to the current month.
+      example: "2026-07"
+    type:
+      description: Which records to include.
+      default: both
+      example: both
+      selector:
+        select:
+          options:
+            - charging
+            - trips
+            - both
+    format:
+      description: >-
+        csv returns one file per record type; html returns a single printable
+        month report.
+      default: csv
+      example: csv
+      selector:
+        select:
+          options:
+            - csv
+            - html
+    language:
+      description: >-
+        Report language (en or de). Defaults to Home Assistant's own language.
+        Only affects the HTML report - CSV headers are always machine-readable
+        English.
+      example: de
+import_statistics:
+  name: Import Into Long-Term Statistics
+  description: >-
+    Rebuild this integration's long-term statistics from the recorded history,
+    so charging and driving from before the install (or from while Home
+    Assistant was down) appear on the Energy dashboard. This runs automatically
+    as records are made; use it after restoring a backup or to verify the row
+    counts. Local only - no BMW API quota.
+  fields:
+    entry_id:
+      description: Optional config entry id to target. Required if multiple entries are configured.
+      example: 01K65NKFESKBQZ78PBW6V9BCCX
+    vin:
+      description: Optional VIN to rebuild. Defaults to every known vehicle.
+      example: WBY31AW090FP15359

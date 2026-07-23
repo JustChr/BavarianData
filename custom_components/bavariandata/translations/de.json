@@ -127,7 +127,7 @@
       },
       "action_charging_costs": {
         "title": "Ladekosten & Verlauf",
-        "description": "Rechnet aufgezeichnete Ladevorgänge in Geld um. Solange keine Preisquelle eingestellt ist, werden gar keine Kosten-Entitäten angelegt — ein falscher Preis ist schlimmer als keiner.\n\n**Fester Preis** rechnet jede kWh mit demselben Satz ab. **Preis-Entität** folgt einem dynamischen Tarif (Tibber, Nordpool, aWATTar, …) und wird während des Ladens laufend abgetastet, sodass ein Ladevorgang über einen Preiswechsel hinweg korrekt abgerechnet wird.\n\nDie Energie wird an der Batterie gemessen und liegt damit etwas unter dem, was das Netz geliefert hat. Wenn du einen Zähler hast, wähle ihn unter **Wallbox-Energiesensor** aus — dieser Wert ist exakt. Andernfalls kannst du den Wert um deine Ladeverluste hochrechnen; die Vorgabe ist 0 %, weil eine erfundene Korrektur wie eine Messung aussähe.",
+        "description": "Rechnet aufgezeichnete Ladevorgänge in Geld um. Solange keine Preisquelle eingestellt ist, werden gar keine Kosten-Entitäten angelegt — ein falscher Preis ist schlimmer als keiner.\n\n**Fester Preis** rechnet jede kWh mit demselben Satz ab. **Preis-Entität** folgt einem dynamischen Tarif (Tibber, Nordpool, aWATTar, …) und wird während des Ladens laufend abgetastet, sodass ein Ladevorgang über einen Preiswechsel hinweg korrekt abgerechnet wird.\n\nDie Energie wird an der Batterie gemessen und liegt damit etwas unter dem, was das Netz geliefert hat. Wenn du einen Zähler hast, wähle ihn unter **Wallbox-Energiesensor** aus — dieser Wert ist exakt. Andernfalls kannst du den Wert um deine Ladeverluste hochrechnen; die Vorgabe ist 0 %, weil eine erfundene Korrektur wie eine Messung aussähe.\n\n**Langzeitstatistiken** überträgt den aufgezeichneten Verlauf in die Statistiken von Home Assistant — so erscheinen auch Ladevorgänge im Energie-Dashboard, die vor der Installation lagen oder während Home Assistant aus war.",
         "data": {
           "price_mode": "Preisquelle",
           "price_fixed": "Fester Preis pro kWh",
@@ -135,7 +135,8 @@
           "price_currency": "Währung",
           "grid_energy_entity": "Wallbox-Energiesensor",
           "charging_loss_percent": "Ladeverluste (%)",
-          "history_retain_months": "Verlauf aufbewahren (Monate)"
+          "history_retain_months": "Verlauf aufbewahren (Monate)",
+          "statistics_import": "In Langzeitstatistiken übernehmen"
         },
         "data_description": {
           "price_mode": "Wähle „Keine“, um Ladevorgänge aufzuzeichnen, ohne sie zu bepreisen.",
@@ -144,7 +145,8 @@
           "price_currency": "ISO-Code für die Kosten-Sensoren, z. B. EUR, GBP, CHF.",
           "grid_energy_entity": "Optional. Ein gemessener Netzwert schlägt immer unsere batterieseitige Schätzung.",
           "charging_loss_percent": "Optional. Rechnet die batterieseitige Energie in Richtung Netzenergie hoch.",
-          "history_retain_months": "0 behält alles. Ältere Ladevorgänge werden verworfen."
+          "history_retain_months": "0 behält alles. Ältere Ladevorgänge werden verworfen.",
+          "statistics_import": "Spiegelt Energie, Kosten und Strecke in Statistiken, die du im Energie-Dashboard hinzufügen kannst. Bleibt lokal; beim Ausschalten werden sie wieder gelöscht."
         }
       },
       "action_trips": {

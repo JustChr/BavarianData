@@ -50,6 +50,13 @@ DEFAULT_HISTORY_RETAIN_MONTHS = 24
 OPTION_TRIP_WORK_ZONE = "trip_work_zone"
 OPTION_TRIP_GEOCODE = "trip_geocode"
 
+# Statistics backfill (roadmap Phase 4). On by default: it writes only into this
+# integration's own "bavariandata:" statistic namespace, stays local, and is what
+# puts charging that predates the install onto the Energy dashboard. Turning it
+# off deletes the series we published.
+OPTION_STATISTICS_IMPORT = "statistics_import"
+DEFAULT_STATISTICS_IMPORT = True
+
 # Dispatcher signal fired when a vehicle render is (re)cached, carrying the VIN.
 SIGNAL_VEHICLE_IMAGE = f"{DOMAIN}_vehicle_image_updated"
 

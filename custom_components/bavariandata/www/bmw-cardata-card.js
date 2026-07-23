@@ -13,7 +13,7 @@
  * config is just `type: custom:bmw-cardata-card`.
  */
 
-const CARD_VERSION = "1.3.0";
+const CARD_VERSION = "1.4.0";
 
 // Register a custom element idempotently: always attempt the define so a cold
 // load can never silently skip it, but swallow the benign "already defined"
@@ -224,6 +224,13 @@ const TRANSLATIONS = {
     tr_best: "Best",
     tr_worst: "Worst",
     tr_unknown_place: "Unknown",
+    // export
+    ex_csv: "CSV",
+    ex_report: "Report",
+    ex_csv_hint: "Download this month as a spreadsheet",
+    ex_report_hint: "Open a printable month report (print it to get a PDF)",
+    ex_empty: "Nothing recorded for this month yet.",
+    ex_error: "Export failed. Check the Home Assistant log.",
     // editor
     ed_device: "Vehicle",
     ed_cluster: "Mode",
@@ -390,6 +397,13 @@ const TRANSLATIONS = {
     tr_best: "Beste",
     tr_worst: "Schlechteste",
     tr_unknown_place: "Unbekannt",
+    // export
+    ex_csv: "CSV",
+    ex_report: "Bericht",
+    ex_csv_hint: "Diesen Monat als Tabelle herunterladen",
+    ex_report_hint: "Druckbaren Monatsbericht öffnen (zum Drucken als PDF)",
+    ex_empty: "Für diesen Monat ist noch nichts aufgezeichnet.",
+    ex_error: "Export fehlgeschlagen. Bitte das Home-Assistant-Log prüfen.",
     // editor
     ed_device: "Fahrzeug",
     ed_cluster: "Modus",
@@ -983,6 +997,7 @@ class BmwCardataCard extends HTMLElement {
             <span class="chead__title">${this._config.title || this._t("ch_title")}</span>
             <span class="chead__sub">${name}${count ? " · " + countLabel : ""}</span>
           </div>
+          ${this._exportButtons("charging")}
         </div>
         ${summary ? this._chargingSummaryBand(summary) : ""}
         ${body}
@@ -1197,7 +1212,90 @@ class BmwCardataCard extends HTMLElement {
     return this._round(session.energy_kwh / hours, 1);
   }
 
+  /* ---- export (roadmap Phase 4) ----------------------------------------- */
+
+  /** Header buttons for the charging and trips views. `kind` scopes the CSV. */
+  _exportButtons(kind) {
+    return `
+      <div class="xbar">
+        <button class="xbtn" data-export="csv" data-kind="${kind}"
+                title="${this._t("ex_csv_hint")}">
+          <ha-icon icon="mdi:file-delimited-outline"></ha-icon>${this._t("ex_csv")}
+        </button>
+        <button class="xbtn" data-export="html" data-kind="both"
+                title="${this._t("ex_report_hint")}">
+          <ha-icon icon="mdi:file-document-outline"></ha-icon>${this._t("ex_report")}
+        </button>
+      </div>`;
+  }
+
+  _wireExport() {
+    this.shadowRoot.querySelectorAll("[data-export]").forEach((el) => {
+      el.addEventListener("click", (ev) => {
+        ev.stopPropagation(); // rows below are tappable too
+        this._export(el.getAttribute("data-kind"), el.getAttribute("data-export"));
+      });
+    });
+  }
+
+  _export(kind, format) {
+    const vin = this._deviceVin(this._resolveDeviceId());
+    // One export at a time: the button stays in the DOM across repaints, and a
+    // double tap would otherwise download the same month twice.
+    if (!vin || this._exporting) return;
+    this._exporting = true;
+    this._hass
+      .callService(
+        "bavariandata",
+        "export_history",
+        { vin, type: kind, format },
+        undefined,
+        false,
+        true
+      )
+      .then((res) => {
+        const files = (res && res.response && res.response.files) || [];
+        const written = files.filter((f) => f && f.content && f.rows);
+        if (!written.length) {
+          this._notify(this._t("ex_empty"));
+          return;
+        }
+        written.forEach((file) => this._download(file));
+      })
+      .catch(() => this._notify(this._t("ex_error")))
+      .finally(() => {
+        this._exporting = false;
+      });
+  }
+
+  /** Hand the service's file content to the browser as a download. */
+  _download(file) {
+    const blob = new Blob([file.content], {
+      type: `${file.mime || "text/plain"};charset=utf-8`,
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = file.filename || "bavariandata-export";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    // Revoking immediately can cancel the download in some browsers.
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  }
+
+  _notify(message) {
+    this.dispatchEvent(
+      new CustomEvent("hass-notification", {
+        detail: { message },
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
+
   _wireChargingTaps() {
+    this._wireExport();
     this.shadowRoot.querySelectorAll("[data-session]").forEach((el) => {
       el.addEventListener("click", () => {
         const id = el.getAttribute("data-session");
@@ -1318,6 +1416,7 @@ class BmwCardataCard extends HTMLElement {
             <span class="chead__title">${this._config.title || this._t("tr_title")}</span>
             <span class="chead__sub">${name}${count ? " · " + countLabel : ""}</span>
           </div>
+          ${this._exportButtons("trips")}
         </div>
         ${body}
       </ha-card>
@@ -1545,6 +1644,7 @@ class BmwCardataCard extends HTMLElement {
   }
 
   _wireTripTaps() {
+    this._wireExport();
     this.shadowRoot.querySelectorAll("[data-trip]").forEach((el) => {
       el.addEventListener("click", () => {
         const id = el.getAttribute("data-trip");
@@ -2555,10 +2655,28 @@ class BmwCardataCard extends HTMLElement {
         padding: 16px 18px;
         border-bottom: 1px solid var(--divider-color);
       }
-      .chead ha-icon { --mdc-icon-size: 26px; color: var(--bmw-charge); }
+      .chead > ha-icon { --mdc-icon-size: 26px; color: var(--bmw-charge); }
       .chead__text { display: flex; flex-direction: column; }
       .chead__title { font-size: 1.05rem; font-weight: 600; color: var(--primary-text-color); }
       .chead__sub { font-size: 0.74rem; color: var(--secondary-text-color); }
+      /* export buttons, pushed to the right edge of the header */
+      .xbar { margin-left: auto; display: flex; gap: 6px; flex-shrink: 0; }
+      .xbtn {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 5px 10px 5px 7px;
+        font: inherit; font-size: 0.74rem; font-weight: 500;
+        color: var(--secondary-text-color);
+        background: var(--secondary-background-color);
+        border: 1px solid var(--divider-color); border-radius: 16px;
+        cursor: pointer;
+        transition: color 0.13s ease, border-color 0.13s ease;
+      }
+      .xbtn:hover { color: var(--primary-text-color); border-color: var(--bmw-charge); }
+      .xbtn ha-icon { --mdc-icon-size: 15px; }
+      @media (max-width: 420px) {
+        /* the labels are the first thing worth losing on a phone */
+        .xbtn { font-size: 0; gap: 0; padding: 6px; }
+      }
       .list { display: flex; flex-direction: column; padding: 6px 8px 10px; }
       .item {
         display: flex; align-items: center; justify-content: space-between; gap: 12px;

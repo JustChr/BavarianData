@@ -336,6 +336,38 @@ entities. Drives between your home and work zones auto-classify as commutes, and
 default: places are stored as zone names, and reverse geocoding is opt-in and
 never persists coordinates. No REST quota. **Not a tax-office-compliant logbook.**
 
+**Energy dashboard & long-term statistics** — the recorded history is published
+into Home Assistant's own long-term statistics, under this integration's
+`bavariandata:` namespace: charging energy (kWh), charging cost and driving
+distance, one series per vehicle. Because they're written as *external*
+statistics, they can cover hours no entity was alive for — so charging from
+**before you installed this**, or from **while Home Assistant was down**, still
+lands on the Energy dashboard. Add one under **Settings → Dashboards → Energy →
+Individual devices**.
+
+The statistics mirror the store rather than being a second archive: each rebuild
+regenerates the whole series from the records still held, so your retention
+setting genuinely governs everything kept. It happens automatically as sessions
+and trips are recorded; `bavariandata.import_statistics` forces a rebuild (useful
+after restoring a backup) and reports the row counts. Turn the whole thing off
+under **Configure → Charging costs & history**, which also deletes the published
+series.
+
+**Export** — the Charging and Trips card views each carry **CSV** and **Report**
+buttons that download the current month straight from the browser:
+
+- **CSV** — one row per session or trip, with both the battery-side and measured
+  grid energy kept in separate columns, the cost and where it came from, and (for
+  trips) the endpoints as place names. Opens cleanly in Excel and Numbers.
+- **Report** — a self-contained HTML page: month totals, the charging table and
+  the trip journal. Print it (Ctrl/⌘+P → *Save as PDF*) for a tidy A4 document.
+  It's a trip journal and expense helper, **not** a tax-office-compliant logbook,
+  and says so on the page.
+
+Both come from `bavariandata.export_history` (`month`, `type`, `format`,
+`language`), which returns the file contents as response data — nothing is
+written to disk, and it spends no API quota. Automations can use it too.
+
 **Events** — meaningful charging transitions fire on the Home Assistant event
 bus, ready to use as automation triggers (Developer Tools → Events to watch them):
 
@@ -376,10 +408,17 @@ Each service is available in Developer Tools and as a button in the integration'
 | `bavariandata.fetch_location_charging_settings` | Location-based charging settings (paginated). |
 | `bavariandata.fetch_vehicle_image` | Vehicle render (updates the image entity). |
 
-`bavariandata.get_charging_sessions`, `bavariandata.get_trips`,
-`bavariandata.get_driving_summary` and `bavariandata.set_trip_class` are the
-exceptions: they read (or write) the integration's own recorded history and cost
-**no** quota.
+These read (or write) the integration's own recorded history instead, and cost
+**no** quota:
+
+| Service | What it does |
+| --- | --- |
+| `bavariandata.get_charging_sessions` | Recorded charging sessions as response data. |
+| `bavariandata.get_trips` | Recorded trips as response data. |
+| `bavariandata.get_driving_summary` | The month-in-review aggregation for trips. |
+| `bavariandata.set_trip_class` | Corrects a trip's business/private/commute class. |
+| `bavariandata.export_history` | Returns a month as CSV or a printable HTML report. |
+| `bavariandata.import_statistics` | Rebuilds the long-term statistics from the store. |
 
 ## Troubleshooting
 

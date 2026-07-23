@@ -38,6 +38,8 @@ from .const import (
     OPTION_PRICE_FIXED,
     OPTION_PRICE_MODE,
     OPTION_STREAM_SECTIONS,
+    OPTION_STATISTICS_IMPORT,
+    DEFAULT_STATISTICS_IMPORT,
     OPTION_TRIP_GEOCODE,
     OPTION_TRIP_WORK_ZONE,
     VEHICLE_METADATA,
@@ -641,6 +643,12 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
                         min=0, max=120, step=1, mode=selector.NumberSelectorMode.BOX
                     )
                 ),
+                vol.Required(
+                    OPTION_STATISTICS_IMPORT,
+                    default=options.get(
+                        OPTION_STATISTICS_IMPORT, DEFAULT_STATISTICS_IMPORT
+                    ),
+                ): selector.BooleanSelector(),
             }
         )
 
@@ -672,6 +680,18 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
             if runtime.history is not None:
                 months = int(user_input.get(OPTION_HISTORY_RETAIN_MONTHS, 0) or 0)
                 runtime.history.retain_months = months if months > 0 else None
+            if runtime.statistics is not None:
+                enabled = bool(user_input.get(OPTION_STATISTICS_IMPORT, True))
+                was_enabled = runtime.statistics.enabled
+                runtime.statistics.enabled = enabled
+                if enabled:
+                    # A changed tariff or retention window changes the series, so
+                    # rebuild rather than wait for the next recorded session.
+                    await runtime.statistics.async_publish(force=True)
+                elif was_enabled:
+                    # Turning it off has to take the published series with it --
+                    # otherwise a stale mirror lingers on the Energy dashboard.
+                    await runtime.statistics.async_remove()
         return self.async_create_entry(title="", data=options)
 
     async def async_step_action_trips(

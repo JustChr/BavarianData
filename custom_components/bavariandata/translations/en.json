@@ -127,7 +127,7 @@
       },
       "action_charging_costs": {
         "title": "Charging costs & history",
-        "description": "Turn recorded charging into money. Until a price source is set, no cost entities are created at all — a wrong price is worse than none.\n\n**Fixed price** bills every kWh at one rate. **Price entity** follows a live tariff (Tibber, Nordpool, aWATTar, …) and is sampled as the car charges, so a session spanning a price change is billed correctly.\n\nEnergy is measured at the battery, so it is slightly less than what the grid delivered. Point **Wallbox energy sensor** at a meter if you have one — that is exact. Otherwise you can gross the figure up by your charging losses; it stays at 0 % by default because an invented correction would look like a measurement.",
+        "description": "Turn recorded charging into money. Until a price source is set, no cost entities are created at all — a wrong price is worse than none.\n\n**Fixed price** bills every kWh at one rate. **Price entity** follows a live tariff (Tibber, Nordpool, aWATTar, …) and is sampled as the car charges, so a session spanning a price change is billed correctly.\n\nEnergy is measured at the battery, so it is slightly less than what the grid delivered. Point **Wallbox energy sensor** at a meter if you have one — that is exact. Otherwise you can gross the figure up by your charging losses; it stays at 0 % by default because an invented correction would look like a measurement.\n\n**Long-term statistics** publishes the recorded history into Home Assistant's own statistics, so charging from before you installed this — or from while Home Assistant was down — still shows up on the Energy dashboard.",
         "data": {
           "price_mode": "Price source",
           "price_fixed": "Fixed price per kWh",
@@ -135,7 +135,8 @@
           "price_currency": "Currency",
           "grid_energy_entity": "Wallbox energy sensor",
           "charging_loss_percent": "Charging losses (%)",
-          "history_retain_months": "Keep history for (months)"
+          "history_retain_months": "Keep history for (months)",
+          "statistics_import": "Publish to long-term statistics"
         },
         "data_description": {
           "price_mode": "Choose 'None' to record sessions without costing them.",
@@ -144,7 +145,8 @@
           "price_currency": "ISO code shown on the cost sensors, e.g. EUR, GBP, CHF.",
           "grid_energy_entity": "Optional. A measured grid figure always beats our battery-side estimate.",
           "charging_loss_percent": "Optional. Grosses battery-side energy up towards grid energy.",
-          "history_retain_months": "0 keeps everything. Sessions older than this are discarded."
+          "history_retain_months": "0 keeps everything. Sessions older than this are discarded.",
+          "statistics_import": "Mirrors energy, cost and distance into statistics you can add to the Energy dashboard. Stays local; turning it off deletes them again."
         }
       },
       "action_trips": {

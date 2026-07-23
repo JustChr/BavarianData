@@ -18,7 +18,7 @@ import voluptuous as vol
 
 from homeassistant.const import Platform
 from homeassistant.config_entries import ConfigEntry, SOURCE_REAUTH
-from homeassistant.core import HomeAssistant, SupportsResponse
+from homeassistant.core import HomeAssistant, SupportsResponse, callback
 from homeassistant.exceptions import ConfigEntryNotReady, ServiceValidationError
 
 from homeassistant.components import persistent_notification
@@ -26,7 +26,11 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.helpers.dispatcher import (
+    async_dispatcher_connect,
+    async_dispatcher_send,
+)
+from homeassistant.helpers.start import async_at_started
 from homeassistant.util import dt as dt_util
 
 from .const import (
@@ -52,6 +56,8 @@ from .const import (
     DEFAULT_HISTORY_RETAIN_MONTHS,
     OPTION_TRIP_WORK_ZONE,
     OPTION_TRIP_GEOCODE,
+    OPTION_STATISTICS_IMPORT,
+    DEFAULT_STATISTICS_IMPORT,
     DEBUG_LOG,
     LOVELACE_CARD_FILENAME,
     LOVELACE_CARD_URL,
@@ -67,6 +73,14 @@ from .api import (
     async_get_vehicle_mappings,
 )
 from .container import CardataContainerError, CardataContainerManager
+from .history.backfill import StatisticsPublisher
+from .history.export import (
+    MIME_CSV,
+    MIME_HTML,
+    month_report_html,
+    sessions_csv,
+    trips_csv,
+)
 from .history.geocoding import ReverseGeocoder
 from .history.pricing import PricingConfig
 from .history.store import HistoryStore
@@ -108,6 +122,7 @@ class CardataRuntimeData:
     coordinator: CardataCoordinator
     container_manager: Optional[CardataContainerManager]
     history: Optional[HistoryStore] = None
+    statistics: Optional[StatisticsPublisher] = None
     bootstrap_task: asyncio.Task | None = None
     quota_manager: "QuotaManager" | None = None
     telematic_task: asyncio.Task | None = None
@@ -328,6 +343,44 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     coordinator.work_zone_entity = options.get(OPTION_TRIP_WORK_ZONE) or None
     coordinator.diagnostic_interval = diagnostic_interval
+
+    # Statistics backfill (roadmap Phase 4). Publishes the recorded history into
+    # Home Assistant's long-term statistics under our own "bavariandata:"
+    # namespace, so charging from before the install -- or from while HA was
+    # down -- still lands on the Energy dashboard. See history/backfill.py.
+    def _vehicle_name(vin: str) -> str:
+        metadata = coordinator.device_metadata.get(vin, {})
+        return metadata.get("name") or coordinator.names.get(vin, vin)
+
+    statistics = StatisticsPublisher(
+        hass,
+        history_store,
+        name_for=_vehicle_name,
+        enabled=bool(options.get(OPTION_STATISTICS_IMPORT, DEFAULT_STATISTICS_IMPORT)),
+    )
+
+    @callback
+    def _refresh_statistics(_caller: Any = None) -> None:
+        # One handler, three callers, none of whose argument we need: the
+        # dispatcher hands us a VIN and async_at_started hands us `hass`.
+        #
+        # Fires whenever a session or trip is recorded (or reclassified). The
+        # publisher itself is fingerprint-gated, so a signal that changed nothing
+        # -- a reclassification of an already-published trip, say -- costs a
+        # dictionary comparison rather than a database rewrite.
+        entry.async_create_background_task(
+            hass, statistics.async_publish(), f"{DOMAIN}_statistics"
+        )
+
+    entry.async_on_unload(
+        async_dispatcher_connect(hass, coordinator.signal_history, _refresh_statistics)
+    )
+    entry.async_on_unload(
+        async_dispatcher_connect(hass, coordinator.signal_trips, _refresh_statistics)
+    )
+    # The recorder may not be up yet when we are: statistics is its feature, so
+    # the first publish waits for Home Assistant to have finished starting.
+    entry.async_on_unload(async_at_started(hass, _refresh_statistics))
     last_poll_ts = data.get("last_telematic_poll")
     if isinstance(last_poll_ts, (int, float)) and last_poll_ts > 0:
         coordinator.last_telematic_api_at = datetime.fromtimestamp(
@@ -427,6 +480,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         coordinator=coordinator,
         container_manager=stored_container_manager,
         history=history_store,
+        statistics=statistics,
         bootstrap_task=None,
         quota_manager=quota_manager,
         telematic_task=None,
@@ -765,6 +819,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             data = runtime.coordinator.data
             return next(iter(data)) if data else None
 
+        def _month_bounds(raw: Optional[str]) -> tuple[int, int]:
+            """Parse a 'YYYY-MM' argument, defaulting to the current local month.
+
+            Local, not UTC: a month is what the user's calendar says it is.
+            """
+
+            if not raw:
+                now_local = dt_util.now()
+                return now_local.year, now_local.month
+            try:
+                year, month = (int(part) for part in str(raw).split("-", 1))
+            except (ValueError, TypeError):
+                raise ServiceValidationError(f"'month' must be 'YYYY-MM', got {raw!r}")
+            if not 1 <= month <= 12:
+                raise ServiceValidationError(f"'month' has no month {month}: {raw!r}")
+            return year, month
+
         get_trips_schema = get_sessions_schema
         get_driving_summary_schema = vol.Schema(
             {
@@ -804,16 +875,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             history = runtime.history
             vin = _default_vin(runtime, call.data.get("vin"))
 
-            now_local = dt_util.now()
-            year, month = now_local.year, now_local.month
-            raw_month = call.data.get("month")
-            if raw_month:
-                try:
-                    year, month = (int(part) for part in raw_month.split("-", 1))
-                except (ValueError, TypeError):
-                    raise ServiceValidationError(
-                        f"'month' must be 'YYYY-MM', got {raw_month!r}"
-                    )
+            year, month = _month_bounds(call.data.get("month"))
             prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
 
             all_trips = history.trips(vin)
@@ -863,6 +925,148 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             trip.classification_source = SOURCE_USER
             runtime.history.add_trip(trip)
             async_dispatcher_send(hass, coordinator.signal_trips, vin)
+
+        # --- Phase 4: statistics backfill and export ------------------------
+
+        export_schema = vol.Schema(
+            {
+                vol.Optional("entry_id"): str,
+                vol.Optional("vin"): str,
+                vol.Optional("month"): str,  # "YYYY-MM"; defaults to this month
+                vol.Optional("type", default="both"): vol.In(
+                    ("charging", "trips", "both")
+                ),
+                vol.Optional("format", default="csv"): vol.In(("csv", "html")),
+                vol.Optional("language"): str,
+            }
+        )
+        import_statistics_schema = vol.Schema(
+            {
+                vol.Optional("entry_id"): str,
+                vol.Optional("vin"): str,
+            }
+        )
+
+        async def async_handle_export_history(call: Any) -> dict:
+            """Render the recorded month as files the user keeps.
+
+            Returns the file *contents* rather than writing to disk: the card
+            turns them into a browser download, which needs no path
+            configuration, no allowlisted directory, and works from a phone.
+            """
+
+            target = _resolve_target(call)
+            if target is None or target[2].history is None:
+                return {"files": [], "month": None}
+            _entry_id, _entry, runtime = target
+            history = runtime.history
+            vin = _default_vin(runtime, call.data.get("vin"))
+            year, month = _month_bounds(call.data.get("month"))
+            label = f"{year:04d}-{month:02d}"
+            wanted = call.data.get("type", "both")
+            fmt = call.data.get("format", "csv")
+            lang = call.data.get("language") or hass.config.language or "en"
+
+            sessions = (
+                sessions_in_month(
+                    history.sessions(vin),
+                    year=year,
+                    month=month,
+                    localize=dt_util.as_local,
+                )
+                if wanted in ("charging", "both")
+                else []
+            )
+            trips = (
+                trips_in_month(
+                    history.trips(vin), year=year, month=month, localize=dt_util.as_local
+                )
+                if wanted in ("trips", "both")
+                else []
+            )
+
+            # A file name the user can find again after ten monthly exports.
+            stem = f"bavariandata-{(vin or 'vehicle').lower()}-{label}"
+            files: list[dict[str, Any]] = []
+
+            if fmt == "html":
+                # Same aggregations the card renders, so a printed report and
+                # the dashboard can never disagree about a month's totals.
+                ledger = summarise(sessions)
+                vehicle = (
+                    runtime.coordinator.device_metadata.get(vin or "", {}).get("name")
+                    or vin
+                    or "BMW"
+                )
+                files.append(
+                    {
+                        "filename": f"{stem}.html",
+                        "mime": MIME_HTML,
+                        "rows": len(sessions) + len(trips),
+                        "content": month_report_html(
+                            month=label,
+                            vehicle=vehicle,
+                            sessions=sessions,
+                            trips=trips,
+                            charging_summary=ledger,
+                            driving=driving_summary(
+                                trips,
+                                cost_per_100km=ledger.get("cost_per_100km"),
+                                currency=runtime.coordinator.pricing.currency,
+                            ),
+                            lang=lang,
+                            localize=dt_util.as_local,
+                            now=dt_util.utcnow(),
+                        ),
+                    }
+                )
+            else:
+                if wanted in ("charging", "both"):
+                    files.append(
+                        {
+                            "filename": f"{stem}-charging.csv",
+                            "mime": MIME_CSV,
+                            "rows": len(sessions),
+                            "content": sessions_csv(
+                                sessions, localize=dt_util.as_local
+                            ),
+                        }
+                    )
+                if wanted in ("trips", "both"):
+                    files.append(
+                        {
+                            "filename": f"{stem}-trips.csv",
+                            "mime": MIME_CSV,
+                            "rows": len(trips),
+                            "content": trips_csv(trips, localize=dt_util.as_local),
+                        }
+                    )
+
+            return {"month": label, "vin": vin, "files": files}
+
+        async def async_handle_import_statistics(call: Any) -> dict:
+            """Force a statistics rebuild, bypassing the change fingerprint."""
+
+            target = _resolve_target(call)
+            if target is None or target[2].statistics is None:
+                return {"statistics": {}}
+            _entry_id, _entry, runtime = target
+            publisher = runtime.statistics
+            if not publisher.enabled:
+                raise ServiceValidationError(
+                    "Statistics import is turned off for this vehicle "
+                    "(Configure -> Charging costs & history)."
+                )
+            if not publisher.available:
+                raise ServiceValidationError(
+                    "Home Assistant's recorder is not set up, so there are no "
+                    "long-term statistics to import into."
+                )
+            written = await publisher.async_publish(
+                vin=call.data.get("vin"), force=True
+            )
+            _LOGGER.info("Imported BavarianData statistics: %s", written)
+            return {"statistics": written}
 
         hass.services.async_register(
             DOMAIN,
@@ -937,6 +1141,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             async_handle_set_trip_class,
             schema=set_trip_class_schema,
         )
+        # Export (roadmap Phase 4). Returns file contents; the card downloads
+        # them. Local store only -- no quota.
+        hass.services.async_register(
+            DOMAIN,
+            "export_history",
+            async_handle_export_history,
+            schema=export_schema,
+            supports_response=SupportsResponse.ONLY,
+        )
+        # Statistics backfill happens automatically as records land; this is the
+        # manual rebuild, and it reports the row counts so it can be verified.
+        hass.services.async_register(
+            DOMAIN,
+            "import_statistics",
+            async_handle_import_statistics,
+            schema=import_statistics_schema,
+            supports_response=SupportsResponse.OPTIONAL,
+        )
         registered_services = domain_data.setdefault("_registered_services", set())
         registered_services.update(
             {
@@ -951,6 +1173,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 "get_trips",
                 "get_driving_summary",
                 "set_trip_class",
+                "export_history",
+                "import_statistics",
             }
         )
         domain_data["_service_registered"] = True
@@ -1021,6 +1245,12 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """
 
     store = HistoryStore(hass, entry.entry_id)
+    with suppress(Exception):
+        # Load first: the published statistic ids are derived from the VINs in
+        # the store, so they have to be read before the store is emptied.
+        await store.async_load()
+        publisher = StatisticsPublisher(hass, store, name_for=lambda vin: vin)
+        await publisher.async_remove()
     with suppress(Exception):
         await store.async_clear()
 
