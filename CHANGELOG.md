@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.0-beta.9] - 2026-07-24
+
 ### Fixed
 - **Already-imported home charges now show "Home" instead of "Away".** beta.8
   taught new imports to resolve a zone, but sessions imported by an earlier build
