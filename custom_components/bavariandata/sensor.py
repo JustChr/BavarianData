@@ -1163,6 +1163,17 @@ async def async_setup_entry(
         if descriptor == "driving_distance_month":
             ensure_driving_entity(vin, force=True)
             continue
+        if descriptor in {
+            "charging_energy_month",
+            "charging_cost_month",
+            "charging_cost_session",
+            "charging_cost_per_100km",
+        }:
+            # These are minted by ensure_charging_summary_entities, not the
+            # generic path; routing them there avoids assume_sensor also
+            # creating a duplicate CardataSensor on the same unique id.
+            ensure_charging_summary_entities(vin)
+            continue
         ensure_entity(vin, descriptor, assume_sensor=True)
 
     for vin, descriptor in coordinator.iter_descriptors(binary=False):

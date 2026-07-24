@@ -2669,6 +2669,10 @@
     "api_quota_exhausted": {
       "title": "BMW CarData API quota exhausted",
       "description": "The {limit} requests-per-24h BMW CarData REST limit has been reached, so on-demand data (basic info, charging history, tyre diagnosis, vehicle image) can't be refreshed right now. The streaming data keeps flowing. The quota frees up again at {next_reset}."
+    },
+    "stream_coverage_gaps": {
+      "title": "Some selected stream data has never arrived",
+      "description": "For {vehicle}, {count} descriptor(s) from the clusters you enabled ({clusters}) have not streamed once in {days} days: {descriptors}. This usually means the data isn't selected in the BMW portal's Data Selection, or your car doesn't produce it. Re-check the Data Selection using the snippet under Configure, or unselect those clusters. Run the get_coverage_report service for the full list."
     }
   }
 }

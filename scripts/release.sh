@@ -47,6 +47,21 @@ if [[ ! -f "$manifest_file" ]]; then
   exit 1
 fi
 
+changelog_file="$repo_root/CHANGELOG.md"
+if [[ ! -f "$changelog_file" ]]; then
+  echo "CHANGELOG.md not found at $changelog_file" >&2
+  echo "Every release needs a proper changelog. Create CHANGELOG.md with a '## [Unreleased]' section." >&2
+  exit 1
+fi
+
+# A hand-written changelog is required for every release: the [Unreleased]
+# section must have content, which becomes this release's notes.
+if ! awk '/^## \[Unreleased\]/{c=1;next} c&&/^## /{c=0} c&&/[^[:space:]]/{f=1} END{exit !f}' "$changelog_file"; then
+  echo "The '## [Unreleased]' section of CHANGELOG.md is empty." >&2
+  echo "Add release notes under '## [Unreleased]' before releasing." >&2
+  exit 1
+fi
+
 if ! version_output=$(python3 - "$manifest_file" "$release_type" <<'PY'
 import json
 import pathlib
@@ -109,6 +124,26 @@ if [[ -z "$old_version" || -z "$new_version" || "$old_version" == "$new_version"
   exit 1
 fi
 
+# Capture the [Unreleased] notes for this release, then roll the section over to
+# the new version, leaving a fresh, empty [Unreleased] behind.
+notes_file="$(mktemp)"
+awk '/^## \[Unreleased\]/{c=1;next} c&&/^## /{c=0} c{print}' "$changelog_file" > "$notes_file"
+
+release_date="$(date +%Y-%m-%d)"
+python3 - "$changelog_file" "$new_version" "$release_date" <<'PY'
+import pathlib
+import sys
+
+path, version, date = sys.argv[1], sys.argv[2], sys.argv[3]
+text = pathlib.Path(path).read_text(encoding="utf-8")
+text = text.replace(
+    "## [Unreleased]",
+    f"## [Unreleased]\n\n## [{version}] - {date}",
+    1,
+)
+pathlib.Path(path).write_text(text, encoding="utf-8")
+PY
+
 if [[ -z "$commit_message" ]]; then
   if [[ "$release_type" == "beta" ]]; then
     commit_message="Pre-release v$new_version"
@@ -133,7 +168,7 @@ git -C "$repo_root" push
 git -C "$repo_root" push origin "$tag_name"
 
 if command -v gh >/dev/null 2>&1; then
-  gh_args=("release" "create" "$tag_name" "--title" "v$new_version" "--generate-notes")
+  gh_args=("release" "create" "$tag_name" "--title" "v$new_version" "--notes-file" "$notes_file")
   if [[ "$release_type" == "beta" ]]; then
     gh_args+=("--prerelease")
   fi

@@ -5,9 +5,13 @@ fetch_telematic_data:
     entry_id:
       description: Optional config entry id to target. Required if multiple entries are configured.
       example: 01K65NKFESKBQZ78PBW6V9BCCX
+      selector:
+        text:
     vin:
       description: Optional VIN to query. Defaults to the first VIN seen on the stream.
       example: WBY31AW090FP15359
+      selector:
+        text:
 fetch_vehicle_mappings:
   name: Fetch Vehicle Mappings
   description: Fetch mapping information for the configured account and log the response.
@@ -15,6 +19,8 @@ fetch_vehicle_mappings:
     entry_id:
       description: Optional config entry id to target. Required if multiple entries are configured.
       example: 01K65NKFESKBQZ78PBW6V9BCCX
+      selector:
+        text:
 fetch_basic_data:
   name: Fetch Basic Vehicle Data
   description: Fetch static vehicle metadata (model name, series, etc.) for a VIN and log the response.
@@ -22,9 +28,13 @@ fetch_basic_data:
     entry_id:
       description: Optional config entry id to target. Required if multiple entries are configured.
       example: 01K65NKFESKBQZ78PBW6V9BCCX
+      selector:
+        text:
     vin:
       description: Optional VIN to query. Defaults to the VIN stored in the config entry.
       example: WBY31AW090FP15359
+      selector:
+        text:
 fetch_charging_history:
   name: Fetch Charging History
   description: >-
@@ -34,15 +44,23 @@ fetch_charging_history:
     entry_id:
       description: Optional config entry id to target. Required if multiple entries are configured.
       example: 01K65NKFESKBQZ78PBW6V9BCCX
+      selector:
+        text:
     vin:
       description: Optional VIN to query. Defaults to the first known VIN.
       example: WBY31AW090FP15359
+      selector:
+        text:
     from:
-      description: Optional ISO 8601 start date/time to filter sessions.
+      description: Start of the window to fetch. Defaults to 30 days ago when left empty.
       example: "2025-01-01T00:00:00Z"
+      selector:
+        datetime:
     to:
-      description: Optional ISO 8601 end date/time to filter sessions.
+      description: End of the window to fetch. Defaults to now when left empty.
       example: "2025-02-01T00:00:00Z"
+      selector:
+        datetime:
 fetch_tyre_diagnosis:
   name: Fetch Smart Maintenance Tyre Diagnosis
   description: Fetch the smart-maintenance tyre diagnosis for a VIN and log the response.
@@ -50,9 +68,13 @@ fetch_tyre_diagnosis:
     entry_id:
       description: Optional config entry id to target. Required if multiple entries are configured.
       example: 01K65NKFESKBQZ78PBW6V9BCCX
+      selector:
+        text:
     vin:
       description: Optional VIN to query. Defaults to the first known VIN.
       example: WBY31AW090FP15359
+      selector:
+        text:
 fetch_location_charging_settings:
   name: Fetch Location-Based Charging Settings
   description: Fetch the location-based charging settings for a VIN (paginated) and log the response.
@@ -60,9 +82,13 @@ fetch_location_charging_settings:
     entry_id:
       description: Optional config entry id to target. Required if multiple entries are configured.
       example: 01K65NKFESKBQZ78PBW6V9BCCX
+      selector:
+        text:
     vin:
       description: Optional VIN to query. Defaults to the first known VIN.
       example: WBY31AW090FP15359
+      selector:
+        text:
 fetch_vehicle_image:
   name: Fetch Vehicle Image
   description: Fetch the vehicle image for a VIN and log its size/content type.
@@ -70,9 +96,13 @@ fetch_vehicle_image:
     entry_id:
       description: Optional config entry id to target. Required if multiple entries are configured.
       example: 01K65NKFESKBQZ78PBW6V9BCCX
+      selector:
+        text:
     vin:
       description: Optional VIN to query. Defaults to the first known VIN.
       example: WBY31AW090FP15359
+      selector:
+        text:
 get_charging_sessions:
   name: Get Charging Sessions
   description: >-
@@ -82,18 +112,30 @@ get_charging_sessions:
     entry_id:
       description: Optional config entry id to target. Required if multiple entries are configured.
       example: 01K65NKFESKBQZ78PBW6V9BCCX
+      selector:
+        text:
     vin:
       description: Optional VIN to filter by. Defaults to every known vehicle.
       example: WBY31AW090FP15359
+      selector:
+        text:
     from:
       description: Only sessions that started on or after this date/time.
       example: "2026-07-01"
+      selector:
+        date:
     to:
       description: Only sessions that started on or before this date/time.
       example: "2026-07-31"
+      selector:
+        date:
     limit:
       description: Maximum number of sessions to return.
       example: 20
+      selector:
+        number:
+          min: 1
+          mode: box
 get_trips:
   name: Get Trips
   description: >-
@@ -104,18 +146,30 @@ get_trips:
     entry_id:
       description: Optional config entry id to target. Required if multiple entries are configured.
       example: 01K65NKFESKBQZ78PBW6V9BCCX
+      selector:
+        text:
     vin:
       description: Optional VIN to filter by. Defaults to every known vehicle.
       example: WBY31AW090FP15359
+      selector:
+        text:
     from:
       description: Only trips that started on or after this date/time.
       example: "2026-07-01"
+      selector:
+        date:
     to:
       description: Only trips that started on or before this date/time.
       example: "2026-07-31"
+      selector:
+        date:
     limit:
       description: Maximum number of trips to return.
       example: 50
+      selector:
+        number:
+          min: 1
+          mode: box
 get_driving_summary:
   name: Get Driving Summary
   description: >-
@@ -127,12 +181,18 @@ get_driving_summary:
     entry_id:
       description: Optional config entry id to target. Required if multiple entries are configured.
       example: 01K65NKFESKBQZ78PBW6V9BCCX
+      selector:
+        text:
     vin:
       description: Optional VIN. Defaults to the single configured vehicle.
       example: WBY31AW090FP15359
+      selector:
+        text:
     month:
       description: Month to summarise as YYYY-MM. Defaults to the current month.
       example: "2026-07"
+      selector:
+        text:
 set_trip_class:
   name: Set Trip Classification
   description: >-
@@ -142,12 +202,18 @@ set_trip_class:
     entry_id:
       description: Optional config entry id to target. Required if multiple entries are configured.
       example: 01K65NKFESKBQZ78PBW6V9BCCX
+      selector:
+        text:
     vin:
       description: Optional VIN. Defaults to the single configured vehicle.
       example: WBY31AW090FP15359
+      selector:
+        text:
     trip_id:
       description: The trip's id, as returned by get_trips.
       example: WBY31AW090FP15359-2026-07-06T08:00:00+00:00
+      selector:
+        text:
     classification:
       description: One of business, private or commute.
       example: business
@@ -168,12 +234,18 @@ export_history:
     entry_id:
       description: Optional config entry id to target. Required if multiple entries are configured.
       example: 01K65NKFESKBQZ78PBW6V9BCCX
+      selector:
+        text:
     vin:
       description: Optional VIN. Defaults to the single configured vehicle.
       example: WBY31AW090FP15359
+      selector:
+        text:
     month:
       description: Month to export as YYYY-MM. Defaults to the current month.
       example: "2026-07"
+      selector:
+        text:
     type:
       description: Which records to include.
       default: both
@@ -201,6 +273,30 @@ export_history:
         Only affects the HTML report - CSV headers are always machine-readable
         English.
       example: de
+      selector:
+        select:
+          options:
+            - en
+            - de
+get_coverage_report:
+  name: Get Descriptor Coverage Report
+  description: >-
+    Run the descriptor-coverage self-test: for each vehicle, compare the
+    descriptors your selected stream clusters should deliver against those that
+    have actually arrived, and list any that are missing. Answers "I enabled a
+    cluster but no entities appeared - is it my selection, my car, or a bug?".
+    Reads the local store and live stream only, so it costs no BMW API quota.
+  fields:
+    entry_id:
+      description: Optional config entry id to target. Required if multiple entries are configured.
+      example: 01K65NKFESKBQZ78PBW6V9BCCX
+      selector:
+        text:
+    vin:
+      description: Optional VIN to report on. Defaults to every known vehicle.
+      example: WBY31AW090FP15359
+      selector:
+        text:
 import_statistics:
   name: Import Into Long-Term Statistics
   description: >-
@@ -213,6 +309,10 @@ import_statistics:
     entry_id:
       description: Optional config entry id to target. Required if multiple entries are configured.
       example: 01K65NKFESKBQZ78PBW6V9BCCX
+      selector:
+        text:
     vin:
       description: Optional VIN to rebuild. Defaults to every known vehicle.
       example: WBY31AW090FP15359
+      selector:
+        text:

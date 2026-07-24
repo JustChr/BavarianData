@@ -20,6 +20,7 @@ else:
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -60,6 +61,21 @@ async def async_setup_entry(
         async_add_entities([tracker])
         _LOGGER.debug("Created device tracker for VIN: %s", vin)
 
+    # Re-create trackers the registry already knows about, rather than waiting
+    # for BMW to stream a location again -- which can take hours. Without this a
+    # tracker restored after a restart stays an unavailable ghost until the next
+    # GPS push; the entity has to exist for RestoreEntity to seed its position.
+    entity_registry = er.async_get(hass)
+    for entity_entry in er.async_entries_for_config_entry(
+        entity_registry, config_entry.entry_id
+    ):
+        if entity_entry.disabled_by is not None:
+            continue
+        if entity_entry.domain == "device_tracker" and entity_entry.unique_id.endswith(
+            "_tracker"
+        ):
+            ensure_tracker(entity_entry.unique_id[: -len("_tracker")])
+
     for vin in coordinator.data.keys():
         ensure_tracker(vin)
 
@@ -91,11 +107,36 @@ class CardataDeviceTracker(CardataEntity, TrackerEntity):
     async def async_added_to_hass(self) -> None:
         """Handle entity added to Home Assistant."""
         await super().async_added_to_hass()
+        await self._async_restore_location()
         self._unsubscribe = async_dispatcher_connect(
             self.hass,
             self._coordinator.signal_update,
             self._handle_update,
         )
+
+    async def _async_restore_location(self) -> None:
+        """Show where the car was last left instead of "unknown" after a restart.
+
+        BMW only streams a location occasionally, so without this the map point
+        would blank on every restart until the next GPS push (potentially hours).
+        Seed the coordinator so the ``latitude``/``longitude`` properties resolve
+        the restored position unchanged, and only until live data supersedes it.
+        """
+        lat_desc, lon_desc = LOCATION_DESCRIPTORS[0], LOCATION_DESCRIPTORS[1]
+        if self._coordinator.get_state(self._vin, lat_desc) is not None:
+            return  # A live location already arrived; nothing to restore.
+        last_state = await self.async_get_last_state()
+        if not last_state or last_state.state in ("unknown", "unavailable"):
+            return
+        lat = last_state.attributes.get("latitude")
+        lon = last_state.attributes.get("longitude")
+        if lat is None or lon is None:
+            return
+        timestamp = (
+            last_state.last_changed.isoformat() if last_state.last_changed else None
+        )
+        self._coordinator.restore_descriptor_state(self._vin, lat_desc, lat, None, timestamp)
+        self._coordinator.restore_descriptor_state(self._vin, lon_desc, lon, None, timestamp)
 
     async def async_will_remove_from_hass(self) -> None:
         """Handle entity removal from Home Assistant."""

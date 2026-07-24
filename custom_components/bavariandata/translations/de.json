@@ -2435,6 +2435,10 @@
     "api_quota_exhausted": {
       "title": "BMW CarData API-Kontingent aufgebraucht",
       "description": "Das BMW CarData REST-Limit von {limit} Anfragen pro 24 h ist erreicht. On-Demand-Daten (Basisinfos, Ladehistorie, Reifendiagnose, Fahrzeugbild) können derzeit nicht aktualisiert werden. Die Streaming-Daten laufen weiter. Das Kontingent wird um {next_reset} wieder freigegeben."
+    },
+    "stream_coverage_gaps": {
+      "title": "Ausgewählte Stream-Daten sind nie eingetroffen",
+      "description": "Für {vehicle} sind {count} Merkmal(e) aus den von dir aktivierten Clustern ({clusters}) seit {days} Tagen kein einziges Mal gestreamt worden: {descriptors}. Meist bedeutet das, dass die Daten in der Datenauswahl im BMW-Portal nicht ausgewählt sind oder dein Fahrzeug sie nicht liefert. Prüfe die Datenauswahl mit dem Snippet unter Konfigurieren erneut oder deaktiviere diese Cluster. Die vollständige Liste liefert der Dienst get_coverage_report."
     }
   }
 }

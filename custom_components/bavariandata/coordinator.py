@@ -223,6 +223,9 @@ class CardataCoordinator:
     # is None (or pricing isn't configured) recording degrades quietly rather
     # than breaking the stream -- history is a bonus, not a prerequisite.
     history: Optional[Any] = None
+    # Descriptor-coverage self-test ("Beyond the roadmap"). Records which selected
+    # descriptors have actually streamed; optional, degrades quietly when absent.
+    coverage: Optional[Any] = None
     pricing: PricingConfig = field(default_factory=PricingConfig)
     # Trip recording (roadmap Phase 3). ``geocoder`` and ``work_zone_entity`` are
     # injected/updated from options; both are optional and degrade quietly.
@@ -383,6 +386,8 @@ class CardataCoordinator:
         vehicle_state = self.data.setdefault(vin, {})
         new_binary: list[str] = []
         new_sensor: list[str] = []
+        # Descriptors carrying a value in this batch, for the coverage self-test.
+        seen_descriptors: list[str] = []
 
         self.last_message_at = datetime.now(timezone.utc)
 
@@ -424,6 +429,7 @@ class CardataCoordinator:
                 continue
             is_new = descriptor not in vehicle_state
             vehicle_state[descriptor] = DescriptorState(value=value, unit=unit, timestamp=timestamp)
+            seen_descriptors.append(descriptor)
             if descriptor == "vehicle.vehicleIdentification.basicVehicleData" and isinstance(value, dict):
                 self.apply_basic_data(vin, value)
             if is_new:
@@ -516,6 +522,13 @@ class CardataCoordinator:
             async_dispatcher_send(self.hass, self.signal_new_sensor, vin, descriptor)
         for descriptor in new_binary:
             async_dispatcher_send(self.hass, self.signal_new_binary, vin, descriptor)
+
+        if self.coverage is not None and seen_descriptors:
+            # Bookkeeping must never break the stream.
+            try:
+                self.coverage.note_seen(vin, seen_descriptors)
+            except Exception:  # noqa: BLE001
+                _LOGGER.exception("Coverage tracking failed for %s", vin)
 
         self._apply_soc_estimate(vin, now)
         if self._integrate_energy(vin, now):

@@ -382,10 +382,16 @@ Ideas worth keeping but not scheduled:
   other data source can.
 - **Watchdogs** — window open with rain forecast; car unlocked away from home;
   12 V voltage trending down over weeks (a classic BMW failure we can see coming).
-- **Descriptor coverage self-test** — "you enabled cluster X but descriptor Y has
-  never arrived in 7 days". Extendable to an opt-in anonymised model
-  compatibility matrix; nobody knows what their car actually streams, and we
-  could become the authority on that.
+- **Descriptor coverage self-test** — *shipped.* "You enabled cluster X but
+  descriptor Y has never arrived in 7 days." `coverage.py` (HA-free, unit-tested)
+  compares each selected cluster's expected descriptors against those that have
+  actually streamed; `coverage_store.py` persists the seen-descriptor record and
+  a grace clock that restarts when the selection changes. Surfaced two ways per
+  doctrine: the `get_coverage_report` service (zero quota, the self-test you run)
+  and a dismissible repair issue raised once a gap is genuinely overdue (past the
+  7-day grace), never a notification. Still extendable to an opt-in anonymised
+  model-compatibility matrix; nobody knows what their car actually streams, and
+  we could become the authority on that.
 
 ## Standing risks
 

@@ -8,7 +8,7 @@ import logging
 import os
 import time
 from collections import deque
-from datetime import datetime, time as dt_time, timezone
+from datetime import datetime, time as dt_time, timedelta, timezone
 from contextlib import suppress
 from dataclasses import dataclass
 from typing import Any, Deque, Dict, List, Optional
@@ -30,6 +30,7 @@ from homeassistant.helpers.dispatcher import (
     async_dispatcher_connect,
     async_dispatcher_send,
 )
+from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.start import async_at_started
 from homeassistant.util import dt as dt_util
 
@@ -58,6 +59,7 @@ from .const import (
     OPTION_TRIP_GEOCODE,
     OPTION_STATISTICS_IMPORT,
     DEFAULT_STATISTICS_IMPORT,
+    OPTION_STREAM_SECTIONS,
     DEBUG_LOG,
     LOVELACE_CARD_FILENAME,
     LOVELACE_CARD_URL,
@@ -73,6 +75,7 @@ from .api import (
     async_get_vehicle_mappings,
 )
 from .container import CardataContainerError, CardataContainerManager
+from .coverage_store import CoverageStore
 from .history.backfill import StatisticsPublisher
 from .history.export import (
     MIME_CSV,
@@ -104,6 +107,43 @@ PLATFORMS: list[Platform] = [
     Platform.IMAGE,
 ]
 
+def _cardata_timestamp(value: datetime) -> str:
+    """Format a datetime as the ISO 8601 UTC string BMW's REST API expects."""
+
+    return dt_util.as_utc(value).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _as_cardata_timestamp(value: Any) -> Optional[str]:
+    """Normalise a service-call date/time into BMW's ISO 8601 UTC format.
+
+    The datetime selector delivers a naive local ``datetime`` (or its string
+    form); a hand-typed value may already be a full ISO 8601 string. Empty means
+    "not supplied" so the caller can fall back to a default window.
+    """
+
+    if value in (None, ""):
+        return None
+    parsed = value if isinstance(value, datetime) else dt_util.parse_datetime(value)
+    if parsed is None:
+        # Not a datetime we recognise -- pass the raw string through unchanged.
+        return value
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
+    return _cardata_timestamp(parsed)
+
+
+def _as_limit(value: Any) -> Optional[int]:
+    """Coerce a service-call ``limit`` to an int (the number selector yields a
+    float, which would break list slicing). Empty/garbage means no limit."""
+
+    if value in (None, ""):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _retain_months(options: dict) -> Optional[int]:
     """Retention in months, where 0 (or nonsense) means keep forever."""
 
@@ -112,6 +152,67 @@ def _retain_months(options: dict) -> Optional[int]:
     except (TypeError, ValueError):
         return DEFAULT_HISTORY_RETAIN_MONTHS
     return months if months > 0 else None
+
+
+def _coverage_reports(runtime: "CardataRuntimeData", vin: Optional[str] = None):
+    """Build the coverage self-test reports, folding in live descriptor state.
+
+    The persisted store outlives a disabled entity; the live coordinator state
+    covers a wiped store or a descriptor seen before the store existed. Their
+    union is what the report should judge against.
+    """
+
+    if runtime.coverage is None:
+        return []
+    live = {
+        known_vin: set(descriptors)
+        for known_vin, descriptors in runtime.coordinator.data.items()
+    }
+    reports = runtime.coverage.reports(live)
+    if vin is not None:
+        reports = [report for report in reports if report.vin == vin]
+    return reports
+
+
+def _coverage_issue_id(entry_id: str, vin: str) -> str:
+    return f"stream_coverage_gaps_{entry_id}_{vin}"
+
+
+@callback
+def _refresh_coverage_issues(hass: HomeAssistant, entry_id: str) -> None:
+    """Create or clear a per-vehicle repair issue from the coverage self-test."""
+
+    runtime: Optional["CardataRuntimeData"] = hass.data.get(DOMAIN, {}).get(entry_id)
+    if runtime is None or runtime.coverage is None:
+        return
+    for report in _coverage_reports(runtime):
+        issue_id = _coverage_issue_id(entry_id, report.vin)
+        overdue_clusters = report.overdue_clusters()
+        if not overdue_clusters:
+            ir.async_delete_issue(hass, DOMAIN, issue_id)
+            continue
+        vehicle = runtime.coordinator.names.get(report.vin, report.vin)
+        cluster_labels = ", ".join(cluster.label for cluster in overdue_clusters)
+        # A handful of concrete descriptors makes the issue actionable without
+        # dumping the whole missing list into a notification body.
+        examples = ", ".join(report.overdue[:5])
+        if len(report.overdue) > 5:
+            examples = f"{examples}, ..."
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            issue_id,
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="stream_coverage_gaps",
+            translation_placeholders={
+                "vehicle": vehicle,
+                "count": str(len(report.overdue)),
+                "days": str(report.grace_days),
+                "clusters": cluster_labels,
+                "descriptors": examples,
+            },
+        )
 
 
 @dataclass
@@ -123,6 +224,7 @@ class CardataRuntimeData:
     container_manager: Optional[CardataContainerManager]
     history: Optional[HistoryStore] = None
     statistics: Optional[StatisticsPublisher] = None
+    coverage: Optional[CoverageStore] = None
     bootstrap_task: asyncio.Task | None = None
     quota_manager: "QuotaManager" | None = None
     telematic_task: asyncio.Task | None = None
@@ -332,8 +434,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     await history_store.async_load()
 
+    # Descriptor-coverage self-test ("Beyond the roadmap"). Tracks which of the
+    # selected stream clusters' descriptors have actually arrived, so a cluster
+    # the car never produces -- or a portal selection that silently doesn't match
+    # -- is surfaced instead of looking like a healthy-but-empty stream. The
+    # selection lives on the entry (stream_sections); an entry from before the
+    # picker existed has none, which yields an empty expectation and no alarms.
+    coverage_store = CoverageStore(
+        hass,
+        entry.entry_id,
+        sections=data.get(OPTION_STREAM_SECTIONS) or [],
+    )
+    await coverage_store.async_load()
+
     coordinator = CardataCoordinator(hass=hass, entry_id=entry.entry_id)
     coordinator.history = history_store
+    coordinator.coverage = coverage_store
     coordinator.pricing = PricingConfig.from_options(options)
     # Trips: the shared HA client session drives the (opt-in) reverse geocoder;
     # the work zone drives commute classification. Both are refreshed on reload.
@@ -381,6 +497,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # The recorder may not be up yet when we are: statistics is its feature, so
     # the first publish waits for Home Assistant to have finished starting.
     entry.async_on_unload(async_at_started(hass, _refresh_statistics))
+
+    @callback
+    def _evaluate_coverage(_now: Any = None) -> None:
+        # Raise or clear a repair issue per vehicle when a selected cluster's
+        # descriptors have gone unseen past the grace window -- "you enabled
+        # cluster X but descriptor Y has never arrived". A repair issue (not a
+        # notification) keeps this dismissible and out of the way until it
+        # actually matters, and only appears once past grace so a fresh install
+        # never cries wolf. Cheap enough to run on a slow timer.
+        _refresh_coverage_issues(hass, entry.entry_id)
+
+    # Once shortly after start (descriptors have restored by then), then on a
+    # slow timer -- a "7 days" test does not need a fast cadence.
+    entry.async_on_unload(async_at_started(hass, _evaluate_coverage))
+    entry.async_on_unload(
+        async_track_time_interval(hass, _evaluate_coverage, timedelta(hours=6))
+    )
     last_poll_ts = data.get("last_telematic_poll")
     if isinstance(last_poll_ts, (int, float)) and last_poll_ts > 0:
         coordinator.last_telematic_api_at = datetime.fromtimestamp(
@@ -481,6 +614,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         container_manager=stored_container_manager,
         history=history_store,
         statistics=statistics,
+        coverage=coverage_store,
         bootstrap_task=None,
         quota_manager=quota_manager,
         telematic_task=None,
@@ -654,13 +788,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             if not prepared:
                 return
             _entry, runtime, vin, access_token = prepared
+            # BMW requires both from/to; default to the last 30 days so a bare
+            # call from the UI succeeds instead of returning HTTP 400.
+            to_date = _as_cardata_timestamp(call.data.get("to")) or _cardata_timestamp(
+                dt_util.utcnow()
+            )
+            from_date = _as_cardata_timestamp(call.data.get("from")) or _cardata_timestamp(
+                dt_util.utcnow() - timedelta(days=30)
+            )
             try:
                 payload = await async_get_charging_history(
                     runtime.session,
                     access_token,
                     vin,
-                    from_date=call.data.get("from"),
-                    to_date=call.data.get("to"),
+                    from_date=from_date,
+                    to_date=to_date,
                 )
             except CardataApiError as err:
                 _LOGGER.error("Cardata fetch_charging_history failed for %s: %s", vin, err)
@@ -796,7 +938,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 call.data.get("vin"),
                 start=_bound("from"),
                 end=_bound("to"),
-                limit=call.data.get("limit"),
+                limit=_as_limit(call.data.get("limit")),
             )
             return {"sessions": [session.to_dict() for session in sessions]}
 
@@ -862,7 +1004,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 call.data.get("vin"),
                 start=_service_bound(call, "from"),
                 end=_service_bound(call, "to"),
-                limit=call.data.get("limit"),
+                limit=_as_limit(call.data.get("limit")),
             )
             return {"trips": [trip.to_dict() for trip in trips]}
 
@@ -946,6 +1088,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 vol.Optional("vin"): str,
             }
         )
+        coverage_report_schema = vol.Schema(
+            {
+                vol.Optional("entry_id"): str,
+                vol.Optional("vin"): str,
+            }
+        )
+
+        async def async_handle_get_coverage_report(call: Any) -> dict:
+            """Run the descriptor-coverage self-test and return it as data.
+
+            Reads only the local coverage store and live stream state, so it
+            spends no BMW API quota.
+            """
+
+            target = _resolve_target(call)
+            if target is None or target[2].coverage is None:
+                return {"reports": []}
+            _entry_id, _entry, runtime = target
+            reports = _coverage_reports(runtime, call.data.get("vin"))
+            return {"reports": [report.to_dict() for report in reports]}
 
         async def async_handle_export_history(call: Any) -> dict:
             """Render the recorded month as files the user keeps.
@@ -1159,6 +1321,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             schema=import_statistics_schema,
             supports_response=SupportsResponse.OPTIONAL,
         )
+        # Descriptor-coverage self-test. Reads the local store + live stream
+        # state only -- no quota.
+        hass.services.async_register(
+            DOMAIN,
+            "get_coverage_report",
+            async_handle_get_coverage_report,
+            schema=coverage_report_schema,
+            supports_response=SupportsResponse.ONLY,
+        )
         registered_services = domain_data.setdefault("_registered_services", set())
         registered_services.update(
             {
@@ -1175,6 +1346,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 "set_trip_class",
                 "export_history",
                 "import_statistics",
+                "get_coverage_report",
             }
         )
         domain_data["_service_registered"] = True
@@ -1221,6 +1393,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # ended would otherwise drop it.
         with suppress(Exception):
             await data.history.async_save_now()
+    if data.coverage:
+        with suppress(Exception):
+            await data.coverage.async_save_now()
+        # Drop any coverage repair issues this entry raised, so a reconfigure or
+        # removal doesn't leave a stale "descriptor missing" warning behind.
+        for vin in list(data.coordinator.data):
+            ir.async_delete_issue(hass, DOMAIN, _coverage_issue_id(entry.entry_id, vin))
     await data.stream.async_stop()
     await data.session.close()
     remaining_entries = [k for k in domain_data.keys() if not k.startswith("_")]
@@ -1253,6 +1432,10 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         await publisher.async_remove()
     with suppress(Exception):
         await store.async_clear()
+    with suppress(Exception):
+        # The coverage self-test keeps its own small store; remove it too so
+        # nothing of this entry is left behind in .storage.
+        await CoverageStore(hass, entry.entry_id, sections=[]).async_clear()
 
 
 async def _handle_stream_error(hass: HomeAssistant, entry: ConfigEntry, reason: str) -> None:
