@@ -33,6 +33,12 @@ MAX_CURVE_POINTS = 120
 # ``startTime`` for the same plug-in are close but not equal; this window decides
 # whether an imported session enriches an existing one or is added as new.
 DEFAULT_MATCH_TOLERANCE_S = 30 * 60
+# A live fragment of an imported charge starts within seconds of BMW's own
+# block times, but a status flap can leave it a few minutes adrift. This padding
+# decides whether a live-only record lies *inside* BMW's charge window (so it is
+# a fragment to absorb) rather than a distinct charge; kept far tighter than the
+# match tolerance so a genuine back-to-back charge is never swallowed.
+FRAGMENT_PAD_S = 5 * 60
 
 CostFn = Callable[[Optional[float]], Optional[dict[str, Any]]]
 # (latitude, longitude) -> resolved Home Assistant zone name, or None.
@@ -209,21 +215,99 @@ def _interval(session: ChargingSession) -> tuple[datetime, datetime]:
     return session.start, session.end or session.start
 
 
-def _find_overlap(
+def _find_overlaps(
     sessions: list[ChargingSession], incoming: ChargingSession, tolerance: timedelta
-) -> Optional[ChargingSession]:
+) -> list[ChargingSession]:
+    """Every existing session whose interval overlaps ``incoming`` (padded).
+
+    The tolerance padding keeps the same charge under two clocks matching while
+    back-to-back charges stay distinct. A momentary ``charging.status`` flap can
+    leave *several* live fragments of one plug-in here, so all matches are
+    returned, not just the closest -- the caller collapses the extras.
+    """
+
     inc_start, inc_end = _interval(incoming)
-    best: Optional[ChargingSession] = None
-    best_gap: Optional[timedelta] = None
+    found: list[ChargingSession] = []
     for session in sessions:
         s_start, s_end = _interval(session)
-        # Intervals overlap (padded by the tolerance), so back-to-back charges
-        # stay distinct while the same charge under two clocks still matches.
         if inc_start <= s_end + tolerance and s_start <= inc_end + tolerance:
-            gap = abs(s_start - inc_start)
-            if best_gap is None or gap < best_gap:
-                best, best_gap = session, gap
-    return best
+            found.append(session)
+    return found
+
+
+def _contained(inner: ChargingSession, outer: ChargingSession, pad: timedelta) -> bool:
+    """True when ``inner`` falls inside ``outer``'s window (padded for skew)."""
+
+    i_start, i_end = _interval(inner)
+    o_start, o_end = _interval(outer)
+    return i_start >= o_start - pad and i_end <= o_end + pad
+
+
+def _absorb_fragments(
+    result: list[ChargingSession],
+    inc: ChargingSession,
+    keep: ChargingSession,
+    pad: timedelta,
+) -> int:
+    """Fold live-only fragments of the same plug-in into ``keep``; return count.
+
+    A brief ``charging.status`` flap can split one physical charge into several
+    live sessions (e.g. a 3-minute record then a 28-minute one); BMW reports it
+    as a single charge. Every *live-only* record that falls inside BMW's charge
+    window is therefore a fragment of ``keep`` -- absorbing it prevents its
+    battery-side energy being counted again on top of BMW's grid figure (the
+    monthly total, statistics and export all sum ``effective_energy_kwh`` per
+    record). Only records that are not yet enriched and carry no ``grid_kwh`` are
+    touched, so a distinct back-to-back charge -- which lies outside this
+    window -- is never removed.
+    """
+
+    victims = [
+        session
+        for session in result
+        if session is not keep
+        and not session.enriched
+        and session.grid_kwh is None
+        and _contained(session, inc, pad)
+    ]
+    if not victims:
+        return 0
+
+    # Widen ``keep`` to span the union of the fragments and BMW's own window so
+    # the surviving record's timeline, SoC swing and peak describe the whole
+    # charge rather than the one sliver that happened to be the merge target.
+    starts = [keep.start, *(v.start for v in victims)]
+    keep.start = min(starts)
+    ends = [e for e in (keep.end, inc.end, *(v.end for v in victims)) if e is not None]
+    if ends:
+        keep.end = max(ends)
+    soc_starts = [
+        s for s in (keep.soc_start, inc.soc_start, *(v.soc_start for v in victims))
+        if s is not None
+    ]
+    if soc_starts:
+        keep.soc_start = min(soc_starts)
+    soc_ends = [
+        s for s in (keep.soc_end, inc.soc_end, *(v.soc_end for v in victims))
+        if s is not None
+    ]
+    if soc_ends:
+        keep.soc_end = max(soc_ends)
+    peaks = [
+        p for p in (keep.peak_power_kw, inc.peak_power_kw, *(v.peak_power_kw for v in victims))
+        if p is not None
+    ]
+    if peaks:
+        keep.peak_power_kw = max(peaks)
+    # Prefer the most detailed curve available -- BMW's full-charge curve, or a
+    # longer live fragment -- over the target's sliver.
+    for source in (inc, *victims):
+        if len(source.power_curve) > len(keep.power_curve):
+            keep.power_curve = source.power_curve
+
+    for victim in victims:
+        result.remove(victim)
+    return len(victims)
 
 
 def _enrich_in_place(target: ChargingSession, incoming: ChargingSession) -> None:
@@ -273,15 +357,25 @@ def merge_cardata_sessions(
     """
 
     tolerance = timedelta(seconds=max(0, tolerance_s))
+    pad = timedelta(seconds=FRAGMENT_PAD_S)
     result = list(existing)
     added = updated = 0
     for inc in incoming:
-        match = _find_overlap(result, inc, tolerance)
-        if match is None:
+        overlaps = _find_overlaps(result, inc, tolerance)
+        if not overlaps:
             result.append(inc)
             added += 1
-        else:
-            _enrich_in_place(match, inc)
-            updated += 1
+            continue
+        # Prefer an already-enriched overlap as the survivor so a re-import heals
+        # a previously-split charge (the enriched half is kept, the live-only
+        # fragments are absorbed) instead of enriching a fragment and orphaning
+        # the other. Otherwise keep the closest-start match, as before.
+        enriched = [session for session in overlaps if session.enriched]
+        target = min(
+            enriched or overlaps, key=lambda session: abs(session.start - inc.start)
+        )
+        _enrich_in_place(target, inc)
+        _absorb_fragments(result, inc, target, pad)
+        updated += 1
     result.sort(key=lambda item: item.start, reverse=True)
     return result, added, updated

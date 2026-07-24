@@ -1403,6 +1403,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Close any in-progress trip before the debounced save below, so a reload
     # mid-drive doesn't lose it.
     await data.coordinator.async_flush_trips()
+    # Likewise commit a charge whose debounced close was still pending, so a
+    # reload during the flap grace window doesn't drop the session.
+    data.coordinator.async_flush_charging()
     await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     data.refresh_task.cancel()
     with suppress(asyncio.CancelledError):

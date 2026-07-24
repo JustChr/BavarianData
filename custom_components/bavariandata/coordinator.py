@@ -66,6 +66,15 @@ DESC_SEG_ELECTRIC = "vehicle.trip.segment.accumulated.drivetrain.transmission.se
 # parked car's trip closes promptly.
 TRIP_CLOSE_DEBOUNCE_S = 300
 
+# BMW's ``charging.status`` can briefly drop out of CHARGINGACTIVE mid-charge (a
+# momentary NOCHARGING/PAUSED blip on the stream) and come straight back. Closing
+# the session on the transition would split one plug-in into two records -- one
+# then enriched by BMW's import, the other orphaned and double-counted -- so the
+# close is debounced: if charging resumes within this window the same session
+# continues instead. Long enough to ride out a flap, short enough that a genuine
+# unplug still records promptly.
+CHARGE_CLOSE_DEBOUNCE_S = 120
+
 # A ``trip.segment.end.*`` field is only a completed-trip signal if its own
 # timestamp is recent: BMW ships the "last trip end" fields (e.g. ``hvSoc``) in
 # every telematic snapshot with the *previous* drive's timestamp, so an old one
@@ -256,6 +265,10 @@ class CardataCoordinator:
     _trip_builders: Dict[str, TripBuilder] = field(default_factory=dict, init=False)
     # Cancel callbacks for the per-VIN stationary-close debounce timers.
     _trip_close_timers: Dict[str, Any] = field(default_factory=dict, init=False)
+    # Cancel callbacks for the per-VIN charging-session close debounce timers; a
+    # pending timer means charging just stopped and we're waiting to see whether
+    # it resumes (a status flap) before committing the close.
+    _charge_close_timers: Dict[str, Any] = field(default_factory=dict, init=False)
     # Per-VIN GPS movement trackers. Trips are detected from the live position
     # stream because the i5 streams neither motion/ignition nor a fresh segment
     # batch (see ``_process_gps_signal``).
@@ -674,6 +687,16 @@ class CardataCoordinator:
             "target_soc": tracking.target_soc_percent,
         }
         if now_charging:
+            # Charging resumed while a close was pending: this was a brief status
+            # flap, not a new plug-in. Cancel the pending close and let the same
+            # session continue -- no fresh STARTED event, no split record.
+            if self._cancel_charge_close_timer(vin):
+                if debug_enabled():
+                    _LOGGER.debug(
+                        "[charge] %s RESUME after status flap; keeping session",
+                        vin,
+                    )
+                return
             # New session: zero the session accumulator and stamp its start so
             # the session-energy sensor reports a fresh last_reset.
             started_at = datetime.now(timezone.utc)
@@ -682,8 +705,57 @@ class CardataCoordinator:
             self._open_session_record(vin, tracking, started_at)
             self.hass.bus.async_fire(EVENT_CHARGING_STARTED, payload)
             return
-        # Session ended. Close the record first so its summary can ride along
-        # on the event -- automations then get the cost without a second lookup.
+        # Charging stopped. Debounce the close so a momentary NOCHARGING blip
+        # that comes straight back doesn't split one plug-in into two records.
+        self._arm_charge_close_timer(vin, status)
+
+    def _arm_charge_close_timer(self, vin: str, status: str) -> None:
+        """Commit the session close only if charging stays stopped for the grace.
+
+        Re-arming on each stop transition restarts the countdown, so the close
+        fires ``CHARGE_CLOSE_DEBOUNCE_S`` after the *last* stop; a resume in
+        between cancels it (see :meth:`_fire_charging_event`).
+        """
+
+        self._cancel_charge_close_timer(vin)
+
+        def _fire(_now) -> None:
+            self._charge_close_timers.pop(vin, None)
+            self._finalize_charge_close(vin, status)
+
+        self._charge_close_timers[vin] = async_call_later(
+            self.hass, CHARGE_CLOSE_DEBOUNCE_S, _fire
+        )
+
+    def _cancel_charge_close_timer(self, vin: str) -> bool:
+        """Cancel a pending close; return whether one was actually pending."""
+
+        cancel = self._charge_close_timers.pop(vin, None)
+        if cancel is None:
+            return False
+        cancel()
+        return True
+
+    def _finalize_charge_close(self, vin: str, status: str) -> None:
+        """Actually close the debounced session and fire the stop events."""
+
+        tracking = self._soc_tracking.get(vin)
+        if tracking is None:
+            return
+        soc = (
+            tracking.estimated_percent
+            if tracking.estimated_percent is not None
+            else tracking.last_soc_percent
+        )
+        payload: Dict[str, Any] = {
+            "vin": vin,
+            "entry_id": self.entry_id,
+            "status": status,
+            "soc": None if soc is None else round(soc, 1),
+            "target_soc": tracking.target_soc_percent,
+        }
+        # Close the record first so its summary can ride along on the event --
+        # automations then get the cost without a second lookup.
         session = self._close_session_record(vin, tracking, status)
         if session is not None:
             payload["energy_kwh"] = session.energy_kwh
@@ -1127,6 +1199,20 @@ class CardataCoordinator:
                 await self._close_trip(
                     vin, datetime.now(timezone.utc), reason="unload"
                 )
+
+    def async_flush_charging(self) -> None:
+        """Commit any charge whose debounced close is still pending (on unload).
+
+        A session that stopped within the last ``CHARGE_CLOSE_DEBOUNCE_S`` still
+        has a timer counting down; cancelling it without closing would drop the
+        session, so finalize it here. An actively-charging session (no pending
+        timer) is left as before -- BMW's import recovers it on the next fetch.
+        """
+
+        for vin in list(self._charge_close_timers):
+            if self._cancel_charge_close_timer(vin):
+                with suppress(Exception):
+                    self._finalize_charge_close(vin, "unload")
 
     async def _resolve_place(self, vin: str) -> Optional[dict[str, Any]]:
         """A trip endpoint as a named place -- never coordinates.

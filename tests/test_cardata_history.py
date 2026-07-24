@@ -214,3 +214,72 @@ def test_distinct_charges_stay_separate():
     result, added, updated = merge_cardata_sessions([], [first, later])
     assert (added, updated) == (2, 0)
     assert len(result) == 2
+
+
+def test_status_flap_fragments_are_collapsed():
+    # One physical plug-in that a charging.status flap split into two live
+    # sessions: a short fragment then the bulk of the charge. Both fall inside
+    # BMW's charge window.
+    fragment = _live_session(
+        start=START_DT + timedelta(minutes=2),
+        end=START_DT + timedelta(minutes=5),
+        energy_kwh=1.0,
+        soc_start=66.0,
+        soc_end=67.0,
+        peak_power_kw=3.5,
+    )
+    bulk = _live_session(
+        start=START_DT + timedelta(minutes=6),
+        end=START_DT + timedelta(minutes=58),
+        energy_kwh=13.0,
+        soc_start=67.0,
+        soc_end=82.0,
+        peak_power_kw=11.0,
+    )
+    imported = session_from_cardata("WBY1", _raw())
+
+    result, added, updated = merge_cardata_sessions([fragment, bulk], [imported])
+
+    # Collapsed to a single enriched record -- not two live fragments plus an
+    # import, which would triple-count the energy in the monthly total.
+    assert (added, updated) == (0, 1)
+    assert len(result) == 1
+    survivor = result[0]
+    assert survivor.enriched is True
+    assert survivor.grid_kwh == 15.92
+    # The one figure every aggregate counts is BMW's grid energy, once.
+    assert survivor.effective_energy_kwh == 15.92
+    # Timeline and SoC swing span the whole charge, not the one merge target.
+    assert survivor.start == START_DT + timedelta(minutes=2)
+    assert survivor.soc_start == 66.0
+    assert survivor.soc_end == 82.0
+    # Peak is the max across the fragments and BMW's own curve (11.2 kW here).
+    assert survivor.peak_power_kw == 11.2
+
+
+def test_reimport_heals_a_previously_split_charge():
+    # The state a pre-fix build leaves behind: the import enriched one fragment
+    # and orphaned the other as a live-only record.
+    enriched = _live_session(
+        start=START_DT + timedelta(minutes=2),
+        end=START_DT + timedelta(minutes=5),
+        energy_kwh=1.0,
+        grid_kwh=15.92,
+        enriched=True,
+    )
+    orphan = _live_session(
+        start=START_DT + timedelta(minutes=6),
+        end=START_DT + timedelta(minutes=58),
+        energy_kwh=13.0,
+    )
+
+    result, added, updated = merge_cardata_sessions(
+        [enriched, orphan], [session_from_cardata("WBY1", _raw())]
+    )
+
+    # A single re-import reconciles them: the enriched half survives, the
+    # live-only orphan is absorbed.
+    assert (added, updated) == (0, 1)
+    assert len(result) == 1
+    assert result[0].enriched is True
+    assert result[0].effective_energy_kwh == 15.92
