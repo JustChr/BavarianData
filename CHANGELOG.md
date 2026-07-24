@@ -4,8 +4,8 @@ All notable changes to BavarianData are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-A curated changelog is kept from v0.9.0-beta.6 onward; earlier releases used
-auto-generated notes.
+A curated changelog is kept from v0.9.0-beta.6 onward and backfilled to the last
+stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
@@ -34,3 +34,69 @@ auto-generated notes.
   car next streamed a GPS position (often hours away). The device tracker is now
   recreated immediately and its last known position restored, so the map shows
   where the car was parked straight away.
+
+## [0.9.0-beta.5] - 2026-07-23
+
+### Fixed
+- hassfest validation: manifest keys sorted into the required order.
+
+## [0.9.0-beta.4] - 2026-07-23
+
+### Fixed
+- hassfest validation: declare the `recorder` dependency in the manifest, now
+  required because the history layer writes long-term statistics.
+
+## [0.9.0-beta.3] - 2026-07-23
+
+### Added
+- **Statistics backfill & month export (history layer Phase 4).** The new
+  `import_statistics` service rebuilds long-term statistics from recorded
+  history, so charging and driving from before the install — or from while Home
+  Assistant was down — appear on the Energy dashboard. The new `export_history`
+  service returns a month of charging sessions and/or trips as CSV files or a
+  self-contained, printable HTML report. Both read the local store and cost no
+  BMW API quota.
+
+## [0.9.0-beta.2] - 2026-07-23
+
+### Added
+- **Trips / Fahrtenbuch with a month-in-review (history layer Phase 3).** Trips
+  are recorded locally with their endpoints stored as place names, never
+  coordinates. The `get_trips` service lists them, and `get_driving_summary`
+  aggregates a month — distance, the business/private/commute split, consumption,
+  recuperation, a driving-style score, top destinations, and (with a tariff
+  configured) an estimated driving cost.
+- Tagged debug tracing across the history layer
+  (`[trip]`/`[charge]`/`[health]`/`[stats]`/`[history]`) to make the opt-in debug
+  log readable.
+
+## [0.9.0-beta.1] - 2026-07-23
+
+### Added
+- **History layer — the foundation (Phases 0–2).** A local history store that
+  records **charging sessions with real cost** (Phase 1) and surfaces them in a
+  new **charging-history card view**, plus a **battery-health estimate** learned
+  from wide-SoC charges with its own view (Phase 2). All local — no BMW API
+  quota.
+- German translations for the derived entities and the setup/config flow.
+
+## [0.8.1] - 2026-07-21
+
+### Added
+- Options-flow toggle to enable debug logging (opt-in, since debug output can
+  contain VIN/GPS).
+
+### Fixed
+- GPS and length sensors could fail to be added because of an `AttributeError`
+  reading `_attr_device_class`; the read is now guarded.
+- Invalid energy `state_class` (`measurement` → `None`) corrected through the
+  descriptor metadata pipeline, restoring Energy-dashboard compatibility.
+- Device tracker crash (`_update_name`) and a blocking manifest read during
+  setup.
+
+### Changed
+- Minimum supported Home Assistant raised to **2026.3** (needed for self-served
+  brand icons). Untracked `.venv` and dropped the obsolete `brands/` staging dir.
+- A clean MQTT `rc=0` disconnect is now logged at debug instead of warning.
+- README images use absolute `raw.githubusercontent.com` URLs so they render on
+  the HACS info screen.
