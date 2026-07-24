@@ -1057,7 +1057,12 @@
       "vehicle_drivetrain_electricengine_charging_status": {
         "name": "Ladestatus",
         "state": {
-          "unknown": "Unbekannt"
+          "nocharging": "Lädt nicht",
+          "initialization": "Initialisierung",
+          "chargingactive": "Lädt",
+          "chargingpaused": "Ladevorgang pausiert",
+          "chargingended": "Ladevorgang beendet",
+          "chargingerror": "Ladefehler"
         }
       },
       "vehicle_drivetrain_electricengine_charging_timeremaining": {

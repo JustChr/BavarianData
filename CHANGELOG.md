@@ -9,6 +9,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The charging-state sensor ("Ladestatus") now shows readable states.** BMW's
+  catalogue lists the wrong allowed values for this field (a charging-*mode*
+  list), so the actual stream states — `nocharging`, `chargingactive`,
+  `initialization`, `chargingpaused`, `chargingended`, `chargingerror` — were
+  shown raw and untranslated. The real enum (which BMW documents in the field's
+  own description) is now pinned, so the sensor reads "Not charging" / "Charging"
+  / "Charging paused" … in English and "Lädt nicht" / "Lädt" / … in German.
+
 ## [0.9.0-beta.9] - 2026-07-24
 
 ### Fixed

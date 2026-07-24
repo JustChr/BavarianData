@@ -28,6 +28,41 @@ _ENUM_TOKEN = re.compile(r"[A-Za-z][A-Za-z0-9_\-]*")
 # The historic ALL-CAPS token, matched regardless of declared data type.
 _CAPS_TOKEN = re.compile(r"[A-Z][A-Z0-9_\-]+")
 
+# BMW's ``value_range`` column is wrong for a few descriptors (a copy-paste from
+# a neighbouring field). Where the descriptor's own *description* documents the
+# real enum, pin the true values here so metadata ``options`` and the translation
+# state labels match what the stream actually emits, instead of a bogus list.
+# Keyed by descriptor; values are the raw (upper-case) enum tokens.
+_DESCRIPTOR_ENUM_OVERRIDES: dict[str, tuple[str, ...]] = {
+    # value_range claims MANUAL_SELECTION/AUTOMATIC_SELECTION/... (a charging-mode
+    # list); the field's description spells out the real charging states, and the
+    # stream emits exactly these (e.g. NOCHARGING, CHARGINGACTIVE, INITIALIZATION).
+    "vehicle.drivetrain.electricEngine.charging.status": (
+        "NOCHARGING",
+        "INITIALIZATION",
+        "CHARGINGACTIVE",
+        "CHARGINGPAUSED",
+        "CHARGINGENDED",
+        "CHARGINGERROR",
+    ),
+}
+
+
+def enum_options(
+    descriptor: str, value_range: str, data_type: str = ""
+) -> tuple[str, ...]:
+    """Enum values for a descriptor: a pinned override if any, else parsed.
+
+    The override wins over the (occasionally wrong) catalogue ``value_range`` so
+    the generators and tests all agree on the true set. See
+    ``_DESCRIPTOR_ENUM_OVERRIDES``.
+    """
+
+    override = _DESCRIPTOR_ENUM_OVERRIDES.get(descriptor)
+    if override is not None:
+        return override
+    return enum_tokens(value_range, data_type)
+
 
 def enum_tokens(value_range: str, data_type: str = "") -> tuple[str, ...]:
     """Return the enum values (original case, de-duplicated) or ``()``.

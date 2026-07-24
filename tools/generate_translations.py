@@ -37,7 +37,7 @@ def _load(module_name: str, filename: str):
 translation_key = _load("keys", "keys.py").translation_key
 # Shared enum detection (see catalogue_enums.py) so translation state labels and
 # the metadata ``options`` are always derived from the same tokens.
-enum_tokens = _load("catalogue_enums", "catalogue_enums.py").enum_tokens
+enum_options = _load("catalogue_enums", "catalogue_enums.py").enum_options
 
 # Curated bilingual labels for frequently occurring enum values. Anything not
 # listed is humanised from the raw token (English) and German falls back to it.
@@ -159,7 +159,7 @@ def build() -> tuple[dict, dict]:
         # Same enum detection as tools/generate_metadata.py (shared helper), so
         # every metadata option gets a matching state label.
         value_range = entry.get("value_range_en") or entry.get("value_range_de") or ""
-        opts = list(enum_tokens(value_range, entry.get("data_type", "")))
+        opts = list(enum_options(descriptor, value_range, entry.get("data_type", "")))
         if opts:
             en_states, de_states = state_labels(opts)
             sensor_en[key]["state"] = en_states

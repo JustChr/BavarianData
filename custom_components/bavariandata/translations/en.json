@@ -1238,10 +1238,12 @@
       "vehicle_drivetrain_electricengine_charging_status": {
         "name": "Charging EV Charging state",
         "state": {
-          "manual_selection": "Manual selection",
-          "automatic_selection": "Automatic selection",
-          "automatic_selection_20": "Automatic selection 20",
-          "unknown": "Unknown"
+          "nocharging": "Not charging",
+          "initialization": "Initialising",
+          "chargingactive": "Charging",
+          "chargingpaused": "Charging paused",
+          "chargingended": "Charging ended",
+          "chargingerror": "Charging error"
         }
       },
       "vehicle_drivetrain_electricengine_charging_timeremaining": {

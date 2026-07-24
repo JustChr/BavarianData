@@ -1746,7 +1746,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "device_class": None,
         "state_class": None,
         "unit": None,
-        "options": ['manual_selection', 'automatic_selection', 'automatic_selection_20', 'unknown'],
+        "options": ['nocharging', 'initialization', 'chargingactive', 'chargingpaused', 'chargingended', 'chargingerror'],
         "entity_category": None,
         "enabled_default": True,
     },

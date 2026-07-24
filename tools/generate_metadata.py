@@ -37,7 +37,7 @@ def _load(name: str, path: Path):
 
 # Shared with tools/generate_translations.py and the tests so metadata options
 # and translation state labels are derived identically (see catalogue_enums.py).
-enum_tokens = _load("catalogue_enums", PKG / "catalogue_enums.py").enum_tokens
+enum_options = _load("catalogue_enums", PKG / "catalogue_enums.py").enum_options
 
 # Raw catalogue unit -> Home Assistant canonical unit string.
 UNIT_CANONICAL = {
@@ -110,16 +110,19 @@ def canonical_unit(raw: str) -> str | None:
     return UNIT_CANONICAL.get(raw, raw or None)
 
 
-def parse_options(value_range: str, data_type: str = "") -> tuple[str, ...]:
-    """Return enum option slugs from a value-range string, else empty.
+def parse_options(
+    descriptor: str, value_range: str, data_type: str = ""
+) -> tuple[str, ...]:
+    """Return enum option slugs for a descriptor, else empty.
 
-    Enum detection lives in :func:`catalogue_enums.enum_tokens` (shared with the
-    translation generator). Home Assistant requires ``options`` / translation
-    state keys to be lowercase slugs, so the tokens are lower-cased here; the
-    runtime lower-cases the incoming value to match (see sensor.py).
+    Enum detection lives in :func:`catalogue_enums.enum_options` (shared with the
+    translation generator, and honouring the per-descriptor overrides). Home
+    Assistant requires ``options`` / translation state keys to be lowercase
+    slugs, so the tokens are lower-cased here; the runtime lower-cases the
+    incoming value to match (see sensor.py).
     """
 
-    return tuple(t.lower() for t in enum_tokens(value_range, data_type))
+    return tuple(t.lower() for t in enum_options(descriptor, value_range, data_type))
 
 
 def device_and_state_class(
@@ -169,7 +172,7 @@ def classify(entry: dict) -> dict:
     unit = canonical_unit(entry["unit"])
     data_type = entry["data_type"]
     options = parse_options(
-        entry["value_range_en"] or entry["value_range_de"], data_type
+        descriptor, entry["value_range_en"] or entry["value_range_de"], data_type
     )
 
     if descriptor in _OVERRIDES:
