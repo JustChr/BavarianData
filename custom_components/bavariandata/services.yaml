@@ -38,8 +38,11 @@ fetch_basic_data:
 fetch_charging_history:
   name: Fetch Charging History
   description: >-
-    Fetch the charging session history for a VIN (paginated) and log the
-    response. Counts as one or more API calls against the 50/24h quota.
+    Fetch the charging session history for a VIN (paginated) from BMW and import
+    it into the local history, so past charges appear on the card and in the
+    monthly summaries. Overlapping live-recorded sessions are enriched in place
+    with BMW's measured grid energy. Counts as one or more API calls against the
+    50/24h quota.
   fields:
     entry_id:
       description: Optional config entry id to target. Required if multiple entries are configured.

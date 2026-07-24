@@ -67,6 +67,18 @@ const NOT_CHARGING_STATES = new Set([
   "default",
 ]);
 
+// Values BMW streams on charging.status while a charge is actually in progress.
+// "chargingactive" is not in the catalogue's option list, so it arrives
+// untranslated -- treat it (and its siblings) as active charging and render a
+// clean localized label instead of the raw token. Mirrors the coordinator's own
+// charging-active test (status in {CHARGINGACTIVE, CHARGING_IN_PROGRESS}).
+const CHARGING_ACTIVE_STATES = new Set([
+  "chargingactive",
+  "charging_active",
+  "charging_in_progress",
+  "charging",
+]);
+
 /* ------------------------------------------------------------------------- *
  * Localization                                                              *
  *                                                                           *
@@ -537,13 +549,22 @@ class BmwCardataCard extends HTMLElement {
       // Match against the descriptor path too (exposed as an attribute). The
       // entity_id and friendly_name are localized (German, etc.), but the
       // descriptor is always the English BMW path, so keyword matching keeps
-      // working regardless of the user's Home Assistant language.
+      // working regardless of the user's Home Assistant language. Include a
+      // space-normalized copy (camelCase + dots/underscores -> spaces) so
+      // multi-word English keys like "charging status" or "electric range"
+      // match the descriptor and not only the localized friendly_name.
+      const descriptor = attrs.descriptor || "";
+      const descriptorWords = descriptor
+        .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+        .replace(/[._]/g, " ");
       const hay = (
         id +
         " " +
         (attrs.friendly_name || "") +
         " " +
-        (attrs.descriptor || "")
+        descriptor +
+        " " +
+        descriptorWords
       ).toLowerCase();
       if (avoid.some((a) => hay.includes(a))) continue;
       let score = 0;
@@ -575,7 +596,7 @@ class BmwCardataCard extends HTMLElement {
         this._pick(entities, { prefer: ["range"] }),
       charging:
         cfg.charging ||
-        this._pick(entities, { prefer: ["charging status", "hvstatus", "charging"], avoid: ["port", "cable", "history"] }),
+        this._pick(entities, { prefer: ["charging.status", "charging status", "hvstatus", "charging"], avoid: ["port", "cable", "history"] }),
       target:
         cfg.target_soc ||
         this._pick(entities, { deviceClass: "battery", unit: "%", prefer: ["target"] }),
@@ -629,11 +650,17 @@ class BmwCardataCard extends HTMLElement {
   }
 
   _isCharging(chargingSt, socSt) {
+    // The charging.status descriptor is authoritative (see coordinator), so an
+    // explicit active/not-charging value settles it before the heuristic.
+    const raw = chargingSt && chargingSt.state != null ? String(chargingSt.state).toLowerCase() : "";
+    if (CHARGING_ACTIVE_STATES.has(raw)) return true;
+    if (NOT_CHARGING_STATES.has(raw)) return false;
     const hay = [chargingSt && chargingSt.state, socSt && socSt.attributes && socSt.attributes.charging]
       .filter(Boolean)
       .join(" ")
       .toLowerCase();
-    return /(^|_| )charging|active|in_progress/.test(hay) && !/not|no_?charging|complete|finished/.test(hay);
+    // Boundary before "active" so "inactive" is not read as charging.
+    return /(^|_| )(charging|active)|in_progress/.test(hay) && !/not|no_?charging|complete|finished/.test(hay);
   }
 
   /* ---- render ----------------------------------------------------------- */
@@ -801,6 +828,10 @@ class BmwCardataCard extends HTMLElement {
     const raw = st && st.state != null ? String(st.state).toLowerCase() : "";
     if (!st || UNAVAILABLE.has(st.state) || NOT_CHARGING_STATES.has(raw)) {
       return this._t(charging ? "is_charging" : "not_charging");
+    }
+    // "chargingactive" et al. are uncatalogued raw tokens; show a clean label.
+    if (CHARGING_ACTIVE_STATES.has(raw)) {
+      return this._t("is_charging");
     }
     return this._fmt(st);
   }
@@ -1043,8 +1074,10 @@ class BmwCardataCard extends HTMLElement {
     const id = session.start || "";
     const isOpen = expanded === id;
     const date = this._fmtSessionDate(session.start);
-    const energy =
-      session.energy_kwh != null ? `${this._round(session.energy_kwh, 1)} kWh` : "—";
+    // Prefer the measured grid figure (imported / enriched sessions carry only
+    // that); fall back to the battery-side energy for live-only sessions.
+    const energyKwh = session.grid_kwh != null ? session.grid_kwh : session.energy_kwh;
+    const energy = energyKwh != null ? `${this._round(energyKwh, 1)} kWh` : "—";
     const cost = this._fmtCost(session.cost);
     const soc = this._socArc(session);
     const badge = this._locationBadge(session);
@@ -1205,11 +1238,12 @@ class BmwCardataCard extends HTMLElement {
   }
 
   _avgPowerKw(session) {
-    if (session.energy_kwh == null || !session.start || !session.end) return null;
+    const energyKwh = session.grid_kwh != null ? session.grid_kwh : session.energy_kwh;
+    if (energyKwh == null || !session.start || !session.end) return null;
     const hours =
       (new Date(session.end).getTime() - new Date(session.start).getTime()) / 3600000;
     if (!(hours > 0)) return null;
-    return this._round(session.energy_kwh / hours, 1);
+    return this._round(energyKwh / hours, 1);
   }
 
   /* ---- export (roadmap Phase 4) ----------------------------------------- */

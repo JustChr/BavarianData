@@ -85,7 +85,7 @@ from .history.export import (
     trips_csv,
 )
 from .history.geocoding import ReverseGeocoder
-from .history.pricing import PricingConfig
+from .history.pricing import MODE_FIXED, PricingConfig, fixed_cost
 from .history.store import HistoryStore
 from .history.summary import (
     driving_summary,
@@ -808,10 +808,32 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 _LOGGER.error("Cardata fetch_charging_history failed for %s: %s", vin, err)
                 return
             sessions = payload.get("data") if isinstance(payload, dict) else None
+            # Import BMW's server-side history into our own store so it shows on
+            # the card, enriching any live-recorded session in place. Cost is
+            # backfilled only for a fixed tariff -- a dynamic tariff's historical
+            # prices can't be reconstructed after the fact.
+            pricing = runtime.coordinator.pricing
+
+            def _cost_fn(grid_kwh):
+                if grid_kwh and pricing.mode == MODE_FIXED:
+                    return fixed_cost(grid_kwh, pricing.fixed_price, pricing.currency)
+                return None
+
+            imported = updated = 0
+            if runtime.history is not None and isinstance(sessions, list):
+                imported, updated = runtime.history.import_cardata_sessions(
+                    vin, sessions, cost_fn=_cost_fn
+                )
+                if imported or updated:
+                    async_dispatcher_send(
+                        hass, runtime.coordinator.signal_history, vin
+                    )
             _LOGGER.info(
-                "Fetched charging history for %s (%s session(s))",
+                "Fetched charging history for %s (%s session(s); imported %s, updated %s)",
                 vin,
                 len(sessions) if isinstance(sessions, list) else 0,
+                imported,
+                updated,
             )
             _LOGGER.debug("Cardata charging history for %s: %s", vin, payload)
 

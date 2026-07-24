@@ -9,6 +9,34 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.0-beta.7] - 2026-07-24
+
+### Added
+- **`fetch_charging_history` now imports into the local history**, instead of
+  only logging BMW's response. Past charges — including ones from before the
+  integration was installed, or from while Home Assistant was down — appear on
+  the card's charging view and in the monthly summaries. BMW's measured grid
+  energy, SoC, odometer, location and power curve are mapped into our session
+  records; a charge that also streamed live is enriched in place (no duplicate),
+  and cost is backfilled for a fixed tariff. Re-running the import is idempotent.
+
+### Fixed
+- **The Lovelace card showed "not charging" while the car was charging.** The
+  overview picked the wrong status entity (`charging.hvStatus`) over the
+  authoritative `charging.status` (the "Ladestatus" the integration itself uses
+  to detect sessions), and it did not recognise BMW's uncatalogued
+  `chargingactive` value. The card now prefers `charging.status`, treats
+  `chargingactive`/`charging_in_progress` as active, and renders them as a clean
+  localized "Charging" label. The detection heuristic also no longer misreads an
+  `inactive` value as charging.
+- **Card entity auto-selection ignored multi-word keywords on non-English
+  installs.** The picker matched keys like "charging status", "electric range"
+  or "connection status" only against the localized friendly name, never the
+  English descriptor path — so on a German (or other) install it fell back to
+  arbitrary tie-breaks. The descriptor is now also matched word-normalized,
+  fixing selection of the charging-status, range, plug and time-to-full tiles
+  regardless of Home Assistant's language.
+
 ## [0.9.0-beta.6] - 2026-07-24
 
 ### Added

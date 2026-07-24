@@ -21,6 +21,7 @@ from homeassistant.helpers.storage import Store
 
 from ..const import DOMAIN
 from ..debug import debug_enabled
+from .cardata_history import CostFn, merge_cardata_sessions, session_from_cardata
 from .models import SCHEMA_VERSION, ChargingSession, merge_session, prune_sessions
 from .trips import Trip, merge_trip, prune_trips
 
@@ -169,6 +170,46 @@ class HistoryStore:
             max_entries=self.max_sessions,
         )
         self.async_schedule_save()
+
+    def import_cardata_sessions(
+        self,
+        vin: str,
+        raw_sessions: Any,
+        *,
+        cost_fn: Optional[CostFn] = None,
+    ) -> tuple[int, int]:
+        """Import BMW's REST charging history, returning (added, updated).
+
+        Overlapping live-recorded sessions are enriched in place (grid energy,
+        SoC, odometer, location, power curve, cost) rather than duplicated;
+        genuinely new charges -- pre-install or from while HA was down -- are
+        added. Saves only when something changed.
+        """
+
+        incoming = [
+            session
+            for session in (
+                session_from_cardata(vin, raw, cost_fn=cost_fn)
+                for raw in (raw_sessions or [])
+            )
+            if session is not None
+        ]
+        if not incoming:
+            return (0, 0)
+
+        merged, added, updated = merge_cardata_sessions(
+            self._sessions.get(vin, []), incoming
+        )
+        if not (added or updated):
+            return (0, 0)
+        self._sessions[vin] = prune_sessions(
+            merged,
+            now=datetime.now(timezone.utc),
+            retain_months=self.retain_months,
+            max_entries=self.max_sessions,
+        )
+        self.async_schedule_save()
+        return (added, updated)
 
     def trips(
         self,
