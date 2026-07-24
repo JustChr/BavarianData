@@ -81,6 +81,23 @@ class ChargingSession:
         return f"{self.vin}-{_iso(self.start)}"
 
     @property
+    def effective_energy_kwh(self) -> Optional[float]:
+        """The kWh figure a user-facing total should count for this session.
+
+        Prefers the measured grid figure over our integrated battery-side one:
+        ``grid_kwh`` is only ever set from something that actually measured it
+        (BMW's charging history, a bound wallbox), and an imported session
+        carries *only* ``grid_kwh``. Falling back to ``energy_kwh`` before it
+        keeps live-only sessions counting. This is the single rule every
+        aggregate (monthly summary, statistics, export) must share, or imported
+        charging silently drops out of one of them.
+        """
+
+        if self.grid_kwh is not None:
+            return self.grid_kwh
+        return self.energy_kwh
+
+    @property
     def duration_s(self) -> Optional[int]:
         if self.end is None:
             return None

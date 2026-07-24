@@ -74,14 +74,12 @@ def spread(
 def session_energy_kwh(session: ChargingSession) -> Optional[float]:
     """The kWh figure a statistic should carry for one session.
 
-    Prefers the measured grid figure over our integrated battery-side one: the
-    Energy dashboard is about what came out of the wall, and ``grid_kwh`` is only
-    ever set from something that actually measured it (see ``models.py``).
+    Thin wrapper over :attr:`ChargingSession.effective_energy_kwh` so the
+    Energy-dashboard statistics, the monthly summary and the export all count a
+    session's energy the same way (see the property's docstring).
     """
 
-    if session.grid_kwh is not None:
-        return session.grid_kwh
-    return session.energy_kwh
+    return session.effective_energy_kwh
 
 
 def _accumulate(

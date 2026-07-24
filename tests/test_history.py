@@ -347,6 +347,21 @@ def test_summary_ignores_sessions_that_were_never_costed():
     assert result["energy_kwh"] == 15.0
 
 
+def test_summary_counts_grid_only_imported_sessions():
+    # An imported BMW session carries only ``grid_kwh`` (never battery-side
+    # ``energy_kwh``); it must still land in the monthly energy total, and the
+    # measured grid figure wins when both are present.
+    result = summary.summarise(
+        [
+            _session(grid_kwh=11.2),
+            _session(energy_kwh=10.0, grid_kwh=12.0),
+            _session(energy_kwh=5.0),
+        ]
+    )
+    assert result["sessions"] == 3
+    assert result["energy_kwh"] == 28.2
+
+
 def test_cost_per_distance_needs_two_odometer_readings():
     one = summary.summarise([_costed(START, 3.0, mileage_km=1000.0)])
     assert one["distance_km"] is None

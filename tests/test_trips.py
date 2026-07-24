@@ -176,6 +176,46 @@ def test_noise_trip_detection():
     assert trip_builder.is_noise_trip(brief) is True
 
 
+# --- GPS-derived distance --------------------------------------------------
+
+
+def test_haversine_km_matches_known_distance():
+    # Two points ~1.11 km apart (0.01 deg of latitude at the equator meridian).
+    d = trip_builder.haversine_km(48.0, 11.0, 48.01, 11.0)
+    assert round(d, 2) == 1.11
+    # Identical points are zero, never a rounding artefact.
+    assert trip_builder.haversine_km(48.0, 11.0, 48.0, 11.0) == 0.0
+
+
+def test_gps_tracker_reports_steps_between_fixes():
+    tracker = trip_builder.GpsTracker()
+    # The first fix has no predecessor, so its step is zero.
+    assert tracker.step(48.0, 11.0) == 0.0
+    step = tracker.step(48.01, 11.0)
+    assert round(step, 2) == 1.11
+    # A jitter-sized hop is below the movement threshold; a real one is above.
+    assert trip_builder.is_gps_movement(0.02) is False
+    assert trip_builder.is_gps_movement(step) is True
+
+
+def test_builder_uses_gps_track_when_no_odometer():
+    # No odometer and no BMW distance: the summed GPS track is all there is.
+    builder = TripBuilder("WBY1", START, soc_start=80.0)
+    builder.add_gps_km(0.7)
+    builder.add_gps_km(0.5)
+    builder.add_gps_km(-1.0)  # a bad hop is ignored, never subtracted
+    trip = builder.close(START + timedelta(minutes=20), soc_end=76.0)
+    assert trip.distance_km == 1.2
+
+
+def test_odometer_and_bmw_distance_outrank_the_gps_track():
+    builder = TripBuilder("WBY1", START, mileage_start=1000.0)
+    builder.add_gps_km(5.0)
+    # Odometer delta wins over the GPS track when it is available.
+    trip = builder.close(START + timedelta(minutes=20), mileage_end=1023.4)
+    assert trip.distance_km == 23.4
+
+
 # --- month in review -------------------------------------------------------
 
 

@@ -9,6 +9,25 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Trips are now detected from the live GPS position stream.** On vehicles that
+  don't stream a live `isMoving` / ignition signal or a fresh completed-trip
+  batch (e.g. the i5, even with those descriptors selected in Data Selection),
+  no trip was ever recorded. Trip detection now opens on GPS movement, sums the
+  drive's distance from the position track when no odometer or BMW
+  `travelledDistance` is available, and closes after the car has been stationary
+  — so drives finally appear in the trip list and the monthly distance sensor.
+- **Imported BMW charging now counts toward the monthly energy total.** An
+  imported session carries only BMW's measured grid energy (`grid_kwh`), never
+  the stream-integrated battery-side figure, so it was silently excluded from
+  the "charging energy this month" sensor. The monthly summary now counts the
+  measured grid figure — the same rule the Energy-dashboard statistics and the
+  CSV/HTML export already use.
+- **A stale "last trip end" field can no longer close a live trip.** BMW repeats
+  the previous drive's `trip.segment.end.*` fields (with their old timestamp) in
+  every telematic snapshot; these are now ignored unless their timestamp is
+  recent, so a parked, charging car no longer looks like a just-finished trip.
+
 ## [0.9.0-beta.8] - 2026-07-24
 
 ### Changed

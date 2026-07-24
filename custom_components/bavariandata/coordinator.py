@@ -34,7 +34,12 @@ from .history.pricing import (
 )
 from .history.sessions import SessionBuilder
 from .history.trips import SOURCE_AUTO, place
-from .history.trip_builder import TripBuilder, is_noise_trip
+from .history.trip_builder import (
+    GpsTracker,
+    TripBuilder,
+    is_gps_movement,
+    is_noise_trip,
+)
 from .units import normalize_unit
 
 # Trip-detection descriptors (roadmap Phase 3). Motion is powertrain-agnostic and
@@ -42,6 +47,11 @@ from .units import normalize_unit
 # batch is the authoritative close and carries the per-trip statistics.
 DESC_MOVING = "vehicle.isMoving"
 DESC_IGNITION = "vehicle.drivetrain.engine.isIgnitionOn"
+# Live position, the trip signal for cars that stream neither motion nor
+# ignition. Latitude and longitude arrive as separate messages, so the current
+# fix is read back from stored state rather than assumed present in one batch.
+DESC_GPS_LAT = "vehicle.cabin.infotainment.navigation.currentLocation.latitude"
+DESC_GPS_LON = "vehicle.cabin.infotainment.navigation.currentLocation.longitude"
 DESC_SEG_PREFIX = "vehicle.trip.segment.end."
 DESC_SEG_DISTANCE = "vehicle.trip.segment.end.travelledDistance"
 DESC_SEG_RECUP = "vehicle.trip.segment.accumulated.drivetrain.electricEngine.recuperationTotal"
@@ -55,6 +65,12 @@ DESC_SEG_ELECTRIC = "vehicle.trip.segment.accumulated.drivetrain.transmission.se
 # trip as ended. Long enough to ride out a traffic light, short enough that a
 # parked car's trip closes promptly.
 TRIP_CLOSE_DEBOUNCE_S = 300
+
+# A ``trip.segment.end.*`` field is only a completed-trip signal if its own
+# timestamp is recent: BMW ships the "last trip end" fields (e.g. ``hvSoc``) in
+# every telematic snapshot with the *previous* drive's timestamp, so an old one
+# would otherwise close a live GPS trip the moment the car parks and polls.
+SEG_FRESH_S = 900
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -240,6 +256,10 @@ class CardataCoordinator:
     _trip_builders: Dict[str, TripBuilder] = field(default_factory=dict, init=False)
     # Cancel callbacks for the per-VIN stationary-close debounce timers.
     _trip_close_timers: Dict[str, Any] = field(default_factory=dict, init=False)
+    # Per-VIN GPS movement trackers. Trips are detected from the live position
+    # stream because the i5 streams neither motion/ignition nor a fresh segment
+    # batch (see ``_process_gps_signal``).
+    _gps_trackers: Dict[str, GpsTracker] = field(default_factory=dict, init=False)
 
     @property
     def signal_new_sensor(self) -> str:
@@ -402,7 +422,8 @@ class CardataCoordinator:
         # closing a trip (which may await a geocode) never re-enters mid-iteration.
         motion_value: Optional[bool] = None
         ignition_value: Optional[bool] = None
-        segment_seen = False
+        segment_fresh = False
+        gps_seen = False
 
         for descriptor, descriptor_payload in data.items():
             if not isinstance(descriptor_payload, dict):
@@ -513,8 +534,17 @@ class CardataCoordinator:
                 motion_value = value
             elif descriptor == DESC_IGNITION and isinstance(value, bool):
                 ignition_value = value
+            if descriptor in (DESC_GPS_LAT, DESC_GPS_LON):
+                gps_seen = True
             if descriptor.startswith(DESC_SEG_PREFIX):
-                segment_seen = True
+                # Only a segment carrying a *recent* timestamp is a completed
+                # trip; the stale "last trip end" fields BMW repeats in every
+                # snapshot must not be mistaken for one (see ``SEG_FRESH_S``).
+                if (
+                    parsed_ts is not None
+                    and (now - parsed_ts).total_seconds() <= SEG_FRESH_S
+                ):
+                    segment_fresh = True
 
             async_dispatcher_send(self.hass, self.signal_update, vin, descriptor)
 
@@ -535,8 +565,10 @@ class CardataCoordinator:
             async_dispatcher_send(self.hass, self.signal_energy, vin)
 
         await self._process_trip_signals(
-            vin, now, motion_value, ignition_value, segment_seen
+            vin, now, motion_value, ignition_value, segment_fresh
         )
+        if gps_seen:
+            await self._process_gps_signal(vin, now)
 
         async_dispatcher_send(self.hass, self.signal_diagnostics)
 
@@ -854,13 +886,16 @@ class CardataCoordinator:
         now: datetime,
         motion: Optional[bool],
         ignition: Optional[bool],
-        segment_seen: bool,
+        segment_fresh: bool,
     ) -> None:
         """React to this batch's motion / ignition / segment signals.
 
-        Kept off the per-descriptor path (called once per message) because
-        closing a trip may await a reverse geocode. All of it is guarded: trip
-        bookkeeping must never break the stream.
+        A secondary path to the GPS detector (:meth:`_process_gps_signal`): cars
+        that *do* stream motion/ignition still open and close on them, and a
+        genuinely fresh segment batch closes with BMW's own statistics. Kept off
+        the per-descriptor path (called once per message) because closing a trip
+        may await a reverse geocode. All of it is guarded: trip bookkeeping must
+        never break the stream.
         """
 
         if self.history is None:
@@ -872,20 +907,20 @@ class CardataCoordinator:
             # under the opt-in debug flag. Tag it so a drive can be grepped out
             # of an otherwise very chatty debug log.
             if debug_enabled() and (
-                motion is not None or ignition is not None or segment_seen
+                motion is not None or ignition is not None or segment_fresh
             ):
                 _LOGGER.debug(
                     "[trip] %s signals moving=%s ignition=%s segment=%s open=%s",
                     vin,
                     motion,
                     ignition,
-                    segment_seen,
+                    segment_fresh,
                     open_trip,
                 )
 
             # BMW's own completed-trip batch is the authoritative close and
             # carries the statistics, so it wins over the motion heuristics.
-            if segment_seen and open_trip:
+            if segment_fresh and open_trip:
                 await self._close_trip(vin, now, reason="segment")
                 return
 
@@ -899,6 +934,54 @@ class CardataCoordinator:
                 self._arm_trip_close_timer(vin)
         except Exception:  # noqa: BLE001 - never let trip logic break the stream
             _LOGGER.exception("Trip detection failed for %s", vin)
+
+    async def _process_gps_signal(self, vin: str, now: datetime) -> None:
+        """Open, extend and close trips from the live GPS position stream.
+
+        The primary detector on a vehicle that streams neither motion/ignition
+        nor a fresh segment batch: a fix that moves more than the jitter
+        threshold opens a trip (if none is open) and adds its hop to the track
+        distance; the close is left to the debounce timer, reset on every moving
+        fix so a mid-drive GPS dropout still closes the trip, and armed once on a
+        stationary fix so a parked car that keeps polling still closes promptly.
+        """
+
+        if self.history is None:
+            return
+        latitude = self._coordinate(vin, "latitude")
+        longitude = self._coordinate(vin, "longitude")
+        if latitude is None or longitude is None:
+            return
+        try:
+            tracker = self._gps_trackers.get(vin)
+            if tracker is None:
+                tracker = self._gps_trackers[vin] = GpsTracker()
+            step_km = tracker.step(latitude, longitude)
+            moving = is_gps_movement(step_km)
+            open_trip = vin in self._trip_builders
+
+            if moving:
+                if not open_trip:
+                    await self._open_trip(vin, now)
+                builder = self._trip_builders.get(vin)
+                if builder is not None:
+                    builder.add_gps_km(step_km)
+                # Rolling window: keep the trip alive while the car is moving,
+                # but guarantee a close even if the fixes stop arriving.
+                self._reset_trip_close_timer(vin)
+                if debug_enabled():
+                    _LOGGER.debug(
+                        "[trip] %s gps MOVE step=%.3fkm total=%.1fkm",
+                        vin,
+                        step_km,
+                        builder.gps_km if builder is not None else 0.0,
+                    )
+            elif open_trip:
+                # Stationary fix: start the countdown but don't keep resetting it,
+                # or a car that streams its parked position never closes.
+                self._arm_trip_close_timer(vin)
+        except Exception:  # noqa: BLE001 - never let trip logic break the stream
+            _LOGGER.exception("GPS trip detection failed for %s", vin)
 
     async def _open_trip(self, vin: str, now: datetime) -> None:
         start_place = await self._resolve_place(vin)
@@ -1011,6 +1094,17 @@ class CardataCoordinator:
         self._trip_close_timers[vin] = async_call_later(
             self.hass, TRIP_CLOSE_DEBOUNCE_S, _fire
         )
+
+    def _reset_trip_close_timer(self, vin: str) -> None:
+        """Restart the debounce from now -- used on every moving GPS fix.
+
+        Unlike :meth:`_arm_trip_close_timer`, which leaves a running countdown
+        alone, this pushes the close out so a moving car never times out; the
+        timer then fires ``TRIP_CLOSE_DEBOUNCE_S`` after the *last* movement.
+        """
+
+        self._cancel_trip_close_timer(vin)
+        self._arm_trip_close_timer(vin)
 
     def _cancel_trip_close_timer(self, vin: str) -> None:
         cancel = self._trip_close_timers.pop(vin, None)

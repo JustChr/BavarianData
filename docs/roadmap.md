@@ -301,6 +301,16 @@ Classification via an actionable notification ("Business / Private") or a
   a stationary debounce as fallback — never on the combustion-oriented
   `engine.isActive`. It enriches from `trip.segment.accumulated.*` (consumption,
   recuperation, eco fractions, driving-style stars) and classifies at close.
+  **Live-HA reality (2026-07-24):** the i5 streams *none* of `isMoving`,
+  `isIgnitionOn`, `trip.segment.end.time` or `travelledDistance` over MQTT even
+  with those descriptors selected — only its live GPS position — so the primary
+  detector now runs off the GPS stream (`GpsTracker`/`_process_gps_signal`):
+  movement over a ~50 m jitter threshold opens a trip, the distance is summed
+  from the position track (haversine) when no odometer/`travelledDistance`
+  exists, and a rolling debounce closes it. Motion/ignition and a *fresh* segment
+  batch remain as a secondary path for vehicles that do stream them; the segment
+  path is now gated on a recent timestamp so BMW's repeated stale "last trip end"
+  fields can't false-close a live trip.
 - **Privacy as chosen:** only the resolved HA zone name is stored; a point outside
   any zone is reverse-geocoded to an **address string** via the *opt-in* Nominatim
   geocoder (`history/geocoding.py`) — the coordinates are sent for the lookup but
@@ -428,10 +438,14 @@ strings). The HTML report was rendered headless in both languages and printed to
 A4 to check the layout.
 
 **NOT verified — needs a live HA pass before release:** trip detection on a real
-drive (which of `isMoving` / `isIgnitionOn` / `trip.segment.end` the i5 streams
-and in what order), place resolution (zone + one geocoded address), distance vs
-the odometer delta, commute auto-classification and the `set_trip_class` override,
-the `driving_distance_month` sensor, and the `view: trips` review panel + list.
+drive. A first live pass (2026-07-24) showed the i5 streams none of `isMoving` /
+`isIgnitionOn` / `trip.segment.end.time` / `travelledDistance`, only live GPS, so
+detection was moved onto the GPS stream (above); **the GPS detector itself now
+needs a real-drive shakedown** — that a drive opens/closes cleanly, the summed
+track distance is sane vs the actual route, and a mid-drive stop shorter than the
+debounce doesn't split a trip. Also: place resolution (zone + one geocoded
+address), commute auto-classification and the `set_trip_class` override, the
+`driving_distance_month` sensor, and the `view: trips` review panel + list.
 For Phase 4: that `async_add_external_statistics` accepts our metadata on the
 installed core (the `has_mean` → `mean_type` probe in `backfill.py` is defensive,
 not tested against a real recorder), that the series show up under **Energy →

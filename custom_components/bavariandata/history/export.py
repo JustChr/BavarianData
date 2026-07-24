@@ -448,7 +448,7 @@ def month_report_html(
                 if item.soc_start is not None and item.soc_end is not None
                 else "—"
             )
-            energy = item.grid_kwh if item.grid_kwh is not None else item.energy_kwh
+            energy = item.effective_energy_kwh
             cost = (item.cost or {}).get("amount")
             rows.append(
                 "<tr>"

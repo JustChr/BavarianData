@@ -77,8 +77,13 @@ def summarise(sessions: Iterable[ChargingSession]) -> dict[str, Any]:
     partial = False
 
     for session in sessions:
-        if session.energy_kwh:
-            energy += session.energy_kwh
+        # Prefer the measured grid figure over the battery-side estimate, and
+        # count imported sessions that carry only ``grid_kwh`` -- otherwise
+        # BMW-imported charging is invisible in the monthly total (the
+        # statistics and export paths already use this same rule).
+        effective = session.effective_energy_kwh
+        if effective:
+            energy += effective
         entry = session.cost
         if not entry:
             continue
