@@ -65,23 +65,64 @@ def _mileage_km(value: Any, units: Any) -> Optional[float]:
     return round(km, 1)
 
 
-def _location(raw: Any, zone_fn: Optional[ZoneFn]) -> Optional[dict[str, Any]]:
-    """Resolve BMW's coordinates to an HA zone, storing only that zone.
+def _address_label(raw: dict[str, Any]) -> Optional[str]:
+    """BMW's own human-readable address for the charge, or ``None``.
 
-    Mirrors the live charging path: the zone (Home/Work/...) is what costing and
-    the card need, and a list of exact positions is far more sensitive, so the
-    latitude/longitude BMW returns are used to look up the zone and then dropped
-    rather than persisted.
+    BMW has already reverse-geocoded the location for us (``formattedAddress`` is
+    a required field of ``ChargingLocationDto``), so a public charge can be
+    labelled without ever touching Nominatim.
+    """
+
+    for key in ("formattedAddress", "streetAddress"):
+        value = raw.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
+def _location(raw: Any, zone_fn: Optional[ZoneFn]) -> Optional[dict[str, Any]]:
+    """Resolve BMW's charge location to an HA zone, else BMW's address string.
+
+    Mirrors the trip path (see ``geocoding.py``): a matching HA zone (Home/Work/
+    ...) is preferred because it is what costing and the card key on, and only
+    when the point falls in no zone is BMW's ``formattedAddress`` kept as a
+    label. Either way the raw latitude/longitude are used and then dropped, never
+    persisted -- a stored address *string* is no more sensitive than the trip
+    endpoints we already keep, but a list of exact coordinates would be.
     """
 
     if not isinstance(raw, dict):
         return None
     lat = _as_float(raw.get("mapMatchedLatitude"))
     lon = _as_float(raw.get("mapMatchedLongitude"))
-    if lat is None or lon is None:
-        return None
-    zone = zone_fn(lat, lon) if zone_fn else None
-    return {"zone": zone}
+    zone = zone_fn(lat, lon) if (zone_fn and lat is not None and lon is not None) else None
+    if zone:
+        return {"zone": zone}
+    address = _address_label(raw)
+    if address:
+        return {"zone": None, "address": address}
+    if lat is not None and lon is not None:
+        # Coordinates existed but resolved to nothing we can name -- record the
+        # empty slot so the card shows "public" rather than "assumed home".
+        return {"zone": None}
+    return None
+
+
+def _location_rank(location: Any) -> int:
+    """How informative a stored location is: zone (2) > address (1) > nothing.
+
+    Used by the merge so a re-import can *upgrade* a session's location (e.g. a
+    legacy import that stored ``{"zone": None}`` before imports resolved zones)
+    without ever downgrading a resolved zone back to an address or blank.
+    """
+
+    if not isinstance(location, dict):
+        return 0
+    if location.get("zone"):
+        return 2
+    if location.get("address"):
+        return 1
+    return 0
 
 
 def _power_curve(
@@ -196,7 +237,14 @@ def _enrich_in_place(target: ChargingSession, incoming: ChargingSession) -> None
         target.soc_end = incoming.soc_end
     if target.mileage_km is None:
         target.mileage_km = incoming.mileage_km
-    if not target.location and incoming.location:
+    # Adopt the incoming location when it is strictly more informative -- this is
+    # what lets a re-import correct a legacy record that stored no zone (or only
+    # BMW's address) once the point now resolves to a zone. A resolved zone is
+    # never downgraded, so a live-recorded Home isn't lost to a blank import.
+    if incoming.location and (
+        target.location is None
+        or _location_rank(incoming.location) > _location_rank(target.location)
+    ):
         target.location = incoming.location
     if not target.power_curve and incoming.power_curve:
         target.power_curve = incoming.power_curve

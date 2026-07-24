@@ -449,6 +449,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     coordinator = CardataCoordinator(hass=hass, entry_id=entry.entry_id)
     coordinator.history = history_store
+    # One-time repair: legacy imports stored coordinates but no zone (see
+    # HistoryStore.reresolve_zones). Now that the coordinator's zone lookup is
+    # available, resolve them locally so a charge at Home stops showing "public".
+    history_store.reresolve_zones(coordinator.zone_at)
     coordinator.coverage = coverage_store
     coordinator.pricing = PricingConfig.from_options(options)
     # Trips: the shared HA client session drives the (opt-in) reverse geocoder;

@@ -1197,6 +1197,10 @@ class BmwCardataCard extends HTMLElement {
     } else if (zone) {
       label = this._t("ch_home");
       cls += " chg__badge--home";
+    } else if (loc.address) {
+      // No matching zone, but BMW gave us the address of a public charge.
+      label = loc.address;
+      cls += " chg__badge--away";
     } else {
       label = this._t("ch_public");
       cls += " chg__badge--away";

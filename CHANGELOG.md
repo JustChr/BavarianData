@@ -10,6 +10,17 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [Unreleased]
 
 ### Fixed
+- **Already-imported home charges now show "Home" instead of "Away".** beta.8
+  taught new imports to resolve a zone, but sessions imported by an earlier build
+  kept their unresolved location, and a re-import wouldn't overwrite it — so a
+  charge at home stayed labelled "Away" forever. On startup those legacy records
+  are now re-resolved locally (no BMW request, no quota) and a re-import upgrades
+  an unresolved location in place rather than skipping it.
+- **Public charges now show BMW's address.** When a charge's location matches no
+  Home Assistant zone, BMW's own `formattedAddress` (which the charging-history
+  API already returns) is kept as the label and shown on the card, in the CSV/
+  HTML export, and as a sensor attribute — no reverse geocoding, and still no raw
+  coordinates stored.
 - **Trips are now detected from the live GPS position stream.** On vehicles that
   don't stream a live `isMoving` / ignition signal or a fresh completed-trip
   batch (e.g. the i5, even with those descriptors selected in Data Selection),

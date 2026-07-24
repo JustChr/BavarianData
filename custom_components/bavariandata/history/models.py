@@ -62,7 +62,9 @@ class ChargingSession:
     peak_power_kw: Optional[float] = None
     # [[seconds_since_start, kw], ...] -- downsampled, bounded (see sessions.py).
     power_curve: list[list[float]] = field(default_factory=list)
-    # {"zone": "home"|"work"|..., "lat": float|None, "lon": float|None}
+    # {"zone": "Home"|"Work"|...} when the point falls in an HA zone; otherwise
+    # {"zone": None, "address": "<BMW formatted address>"} for a public charge,
+    # or {"zone": None} when neither is known. Never carries raw coordinates.
     location: Optional[dict[str, Any]] = None
     # True when no GPS was available and the home tariff was applied anyway.
     location_assumed: bool = False

@@ -123,6 +123,44 @@ class HistoryStore:
                 self.retain_months,
             )
 
+    @callback
+    def reresolve_zones(self, zone_fn: ZoneFn) -> int:
+        """Fix legacy imported sessions that stored raw coordinates but no zone.
+
+        Older builds imported charging history before the import path resolved
+        zones, leaving records like ``{"zone": None, "lat": .., "lon": ..}`` --
+        which the card shows as "public" even for a charge at Home. Re-run the
+        zone lookup locally (no BMW request, no quota) and, on a hit, replace the
+        record with a plain ``{"zone": name}`` -- which also drops the stored
+        coordinates, restoring the "coordinates are never persisted" invariant.
+
+        A miss is left untouched (coordinates and any BMW address kept) so a
+        genuinely-public charge still shows its address and a lookup that ran
+        before zones finished loading is retried on the next start. Idempotent.
+        """
+
+        if zone_fn is None:
+            return 0
+        fixed = 0
+        for sessions in self._sessions.values():
+            for session in sessions:
+                loc = session.location
+                if not isinstance(loc, dict) or loc.get("zone"):
+                    continue
+                lat = loc.get("lat")
+                lon = loc.get("lon")
+                if lat is None or lon is None:
+                    continue
+                zone = zone_fn(lat, lon)
+                if zone:
+                    session.location = {"zone": zone}
+                    fixed += 1
+        if fixed:
+            if debug_enabled():
+                _LOGGER.debug("[history] re-resolved %s legacy charge location(s) to a zone", fixed)
+            self.async_schedule_save()
+        return fixed
+
     def _prune(self, sessions: list[ChargingSession]) -> list[ChargingSession]:
         return prune_sessions(
             sessions,

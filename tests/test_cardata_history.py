@@ -65,17 +65,29 @@ def test_maps_core_fields():
     assert session.soc_end == 82
     assert session.mileage_km == 17796
     assert session.enriched is True
-    # Without a zone resolver, only the (unresolved) zone slot is kept -- raw
-    # coordinates are never persisted.
-    assert session.location == {"zone": None}
+    # Without a zone resolver the point matches no zone, so BMW's own address is
+    # kept as the label -- raw coordinates are never persisted.
+    assert session.location == {
+        "zone": None,
+        "address": "Professor-Otto-Zeiller-Straße 24, 2000 Stockerau",
+    }
 
 
 def test_zone_fn_resolves_location():
     session = session_from_cardata("WBY1", _raw(), zone_fn=lambda lat, lon: "Home")
+    # A matching zone wins over (and replaces) the address; no coordinates kept.
     assert session.location == {"zone": "Home"}
 
 
-def test_location_dropped_without_coordinates():
+def test_address_kept_when_no_zone_matches():
+    session = session_from_cardata("WBY1", _raw(), zone_fn=lambda lat, lon: None)
+    assert session.location == {
+        "zone": None,
+        "address": "Professor-Otto-Zeiller-Straße 24, 2000 Stockerau",
+    }
+
+
+def test_location_dropped_without_coordinates_or_address():
     session = session_from_cardata(
         "WBY1", _raw(chargingLocation={"municipality": "Stockerau"})
     )
@@ -168,6 +180,29 @@ def test_import_is_idempotent():
     twice, added, updated = merge_cardata_sessions(once, [session_from_cardata("WBY1", _raw())])
     assert (added, updated) == (0, 1)
     assert len(twice) == 1
+
+
+def test_reimport_upgrades_unresolved_location_to_zone():
+    # A legacy record imported before the zone lookup existed: no zone.
+    legacy = session_from_cardata("WBY1", _raw())
+    assert legacy.location == {
+        "zone": None,
+        "address": "Professor-Otto-Zeiller-Straße 24, 2000 Stockerau",
+    }
+    # Re-importing now that the point resolves to a zone corrects it in place.
+    fresh = session_from_cardata("WBY1", _raw(), zone_fn=lambda lat, lon: "Home")
+    result, added, updated = merge_cardata_sessions([legacy], [fresh])
+    assert (added, updated) == (0, 1)
+    assert result[0].location == {"zone": "Home"}
+
+
+def test_reimport_does_not_downgrade_a_resolved_zone():
+    resolved = session_from_cardata("WBY1", _raw(), zone_fn=lambda lat, lon: "Home")
+    # A later import whose point matched no zone must not blank the Home label.
+    blank = session_from_cardata("WBY1", _raw(), zone_fn=lambda lat, lon: None)
+    result, _, updated = merge_cardata_sessions([resolved], [blank])
+    assert updated == 1
+    assert result[0].location == {"zone": "Home"}
 
 
 def test_distinct_charges_stay_separate():

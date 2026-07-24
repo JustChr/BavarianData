@@ -736,6 +736,8 @@ class CardataChargingCostSessionSensor(CardataEntity, SensorEntity):
         attrs["peak_power_kw"] = session.peak_power_kw
         if session.location:
             attrs["zone"] = session.location.get("zone")
+            if session.location.get("address"):
+                attrs["address"] = session.location.get("address")
         attrs["location_assumed"] = session.location_assumed
         if session.cost:
             attrs["cost_source"] = session.cost.get("source")

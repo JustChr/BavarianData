@@ -220,7 +220,9 @@ def sessions_csv(
                 _fmt_dt(session.start, localize),
                 _fmt_dt(session.end, localize),
                 _minutes(session.duration_s),
-                (session.location or {}).get("zone") or "",
+                (session.location or {}).get("zone")
+                or (session.location or {}).get("address")
+                or "",
                 "yes" if session.location_assumed else "no",
                 _num(session.soc_start, 1),
                 _num(session.soc_end, 1),
@@ -438,7 +440,8 @@ def month_report_html(
         )
         rows: list[str] = []
         for item in sessions:
-            zone = (item.location or {}).get("zone") or "—"
+            loc = item.location or {}
+            zone = loc.get("zone") or loc.get("address") or "—"
             if item.location_assumed:
                 zone = f'{escape(zone)} <span class="sub">({escape(s["assumed"])})</span>'
             else:
