@@ -189,6 +189,7 @@ const TRANSLATIONS = {
     ch_avg: "Avg",
     ch_grid: "From grid",
     ch_duration: "Duration",
+    ch_cost: "Cost",
     ch_no_cost: "no price set",
     ch_ongoing: "charging…",
     // battery health
@@ -362,6 +363,7 @@ const TRANSLATIONS = {
     ch_avg: "Ø",
     ch_grid: "Aus dem Netz",
     ch_duration: "Dauer",
+    ch_cost: "Kosten",
     ch_no_cost: "kein Preis gesetzt",
     ch_ongoing: "lädt…",
     // battery health
@@ -1078,7 +1080,6 @@ class BmwCardataCard extends HTMLElement {
     // that); fall back to the battery-side energy for live-only sessions.
     const energyKwh = session.grid_kwh != null ? session.grid_kwh : session.energy_kwh;
     const energy = energyKwh != null ? `${this._round(energyKwh, 1)} kWh` : "—";
-    const cost = this._fmtCost(session.cost);
     const soc = this._socArc(session);
     const badge = this._locationBadge(session);
     const partial =
@@ -1097,8 +1098,7 @@ class BmwCardataCard extends HTMLElement {
             <span class="chg__meta">${soc}${badge}${ongoing}${partial}</span>
           </span>
           <span class="chg__figures">
-            <span class="chg__energy">${energy}</span>
-            <span class="chg__cost">${cost}</span>
+            <span class="chg__energy chg__energy--lead">${energy}</span>
           </span>
         </button>
         ${isOpen ? this._chargingDetail(session) : ""}
@@ -1120,6 +1120,11 @@ class BmwCardataCard extends HTMLElement {
     if (session.grid_kwh != null) {
       facts.push([this._t("ch_grid"), `${this._round(session.grid_kwh, 1)} kWh`]);
     }
+    // Cost moved off the collapsed row to here, so it's kept for tariff users
+    // without competing with the kWh for the row's headline figure.
+    if (session.cost && session.cost.amount != null) {
+      facts.push([this._t("ch_cost"), this._fmtCost(session.cost)]);
+    }
 
     const factRow = facts
       .map(
@@ -1136,7 +1141,11 @@ class BmwCardataCard extends HTMLElement {
     `;
   }
 
-  /** Inline SVG line chart of the [seconds, kW] power curve. No dependencies. */
+  /** Inline SVG step chart of the [seconds, kW] power curve. No dependencies.
+   *
+   * Stepped, not interpolated: each sampled power holds until the next sample
+   * arrives, which is what the data means (an average over a block), rather than
+   * drawing a diagonal ramp between two readings that never happened. */
   _powerCurveSvg(curve) {
     if (!Array.isArray(curve) || curve.length < 2) return "";
     const W = 260;
@@ -1150,7 +1159,17 @@ class BmwCardataCard extends HTMLElement {
     const spanX = xMax - xMin || 1;
     const sx = (x) => pad + ((x - xMin) / spanX) * (W - 2 * pad);
     const sy = (y) => H - pad - (y / yMax) * (H - 2 * pad);
-    const line = curve.map((p) => `${this._round(sx(p[0]), 1)},${this._round(sy(p[1]), 1)}`).join(" ");
+    const pts = curve.map((p) => [sx(p[0]), sy(p[1])]);
+    const stepped = [];
+    for (let i = 0; i < pts.length; i++) {
+      stepped.push(pts[i]);
+      // Hold this reading's level across to the next sample's time before
+      // stepping to the new level.
+      if (i < pts.length - 1) stepped.push([pts[i + 1][0], pts[i][1]]);
+    }
+    const line = stepped
+      .map(([x, y]) => `${this._round(x, 1)},${this._round(y, 1)}`)
+      .join(" ");
     const area = `${pad},${H - pad} ${line} ${W - pad},${H - pad}`;
     return `
       <svg class="chg__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
@@ -2881,6 +2900,7 @@ class BmwCardataCard extends HTMLElement {
         white-space: nowrap;
       }
       .chg__energy { font-variant-numeric: tabular-nums; font-size: 0.86rem; }
+      .chg__energy--lead { font-size: 0.98rem; font-weight: 600; }
       .chg__cost {
         font-weight: 600; font-variant-numeric: tabular-nums;
       }

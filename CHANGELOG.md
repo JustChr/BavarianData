@@ -9,6 +9,19 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.0-beta.8] - 2026-07-24
+
+### Changed
+- **Imported charging sessions now resolve their location to a Home Assistant
+  zone** (Home, Work, …) from BMW's coordinates, the same way live-recorded
+  sessions do — so the card shows "Home" for a home charge instead of "Away".
+  Only the resolved zone is stored; the raw latitude/longitude BMW returns are
+  used for the lookup and then dropped, matching the live path's privacy stance.
+- **Card charging view:** the collapsed session row now leads with the energy
+  (kWh) instead of the price; the per-session cost moves into the expanded
+  detail. The power-curve chart is now stepped — each sampled power holds until
+  the next reading rather than being drawn as a diagonal ramp between samples.
+
 ## [0.9.0-beta.7] - 2026-07-24
 
 ### Added

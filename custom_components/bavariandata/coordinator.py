@@ -829,6 +829,12 @@ class CardataCoordinator:
                 continue
         return None
 
+    def zone_at(self, latitude: float, longitude: float) -> Optional[str]:
+        """Public zone lookup, used when importing BMW's charging history so an
+        imported session resolves to the same zone a live one would."""
+
+        return self._zone_name(latitude, longitude)
+
     def _zone_name(self, latitude: float, longitude: float) -> Optional[str]:
         from homeassistant.components import zone as zone_component
 

@@ -35,6 +35,8 @@ MAX_CURVE_POINTS = 120
 DEFAULT_MATCH_TOLERANCE_S = 30 * 60
 
 CostFn = Callable[[Optional[float]], Optional[dict[str, Any]]]
+# (latitude, longitude) -> resolved Home Assistant zone name, or None.
+ZoneFn = Callable[[float, float], Optional[str]]
 
 
 def _epoch_to_dt(value: Any) -> Optional[datetime]:
@@ -63,24 +65,23 @@ def _mileage_km(value: Any, units: Any) -> Optional[float]:
     return round(km, 1)
 
 
-def _location(raw: Any) -> Optional[dict[str, Any]]:
+def _location(raw: Any, zone_fn: Optional[ZoneFn]) -> Optional[dict[str, Any]]:
+    """Resolve BMW's coordinates to an HA zone, storing only that zone.
+
+    Mirrors the live charging path: the zone (Home/Work/...) is what costing and
+    the card need, and a list of exact positions is far more sensitive, so the
+    latitude/longitude BMW returns are used to look up the zone and then dropped
+    rather than persisted.
+    """
+
     if not isinstance(raw, dict):
         return None
     lat = _as_float(raw.get("mapMatchedLatitude"))
     lon = _as_float(raw.get("mapMatchedLongitude"))
-    address = raw.get("formattedAddress") or raw.get("streetAddress")
-    municipality = raw.get("municipality")
-    if lat is None and lon is None and not address and not municipality:
+    if lat is None or lon is None:
         return None
-    # "zone" is left None: BMW gives coordinates, not one of the user's Home
-    # Assistant zones, and inventing "home" from a raw lat/lon is the summary
-    # layer's job, not the importer's.
-    out: dict[str, Any] = {"zone": None, "lat": lat, "lon": lon}
-    if address:
-        out["address"] = address
-    if municipality:
-        out["municipality"] = municipality
-    return out
+    zone = zone_fn(lat, lon) if zone_fn else None
+    return {"zone": zone}
 
 
 def _power_curve(
@@ -120,7 +121,11 @@ def _power_curve(
 
 
 def session_from_cardata(
-    vin: str, raw: Any, *, cost_fn: Optional[CostFn] = None
+    vin: str,
+    raw: Any,
+    *,
+    cost_fn: Optional[CostFn] = None,
+    zone_fn: Optional[ZoneFn] = None,
 ) -> Optional[ChargingSession]:
     """One BMW history entry -> a ChargingSession, or ``None`` if unusable.
 
@@ -151,7 +156,7 @@ def session_from_cardata(
         grid_kwh=grid_kwh,
         peak_power_kw=peak,
         power_curve=curve,
-        location=_location(raw.get("chargingLocation")),
+        location=_location(raw.get("chargingLocation"), zone_fn),
         location_assumed=False,
         cost=cost_fn(grid_kwh) if cost_fn else None,
         mileage_km=_mileage_km(raw.get("mileage"), raw.get("mileageUnits")),

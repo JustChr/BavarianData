@@ -21,7 +21,12 @@ from homeassistant.helpers.storage import Store
 
 from ..const import DOMAIN
 from ..debug import debug_enabled
-from .cardata_history import CostFn, merge_cardata_sessions, session_from_cardata
+from .cardata_history import (
+    CostFn,
+    ZoneFn,
+    merge_cardata_sessions,
+    session_from_cardata,
+)
 from .models import SCHEMA_VERSION, ChargingSession, merge_session, prune_sessions
 from .trips import Trip, merge_trip, prune_trips
 
@@ -177,6 +182,7 @@ class HistoryStore:
         raw_sessions: Any,
         *,
         cost_fn: Optional[CostFn] = None,
+        zone_fn: Optional[ZoneFn] = None,
     ) -> tuple[int, int]:
         """Import BMW's REST charging history, returning (added, updated).
 
@@ -189,7 +195,7 @@ class HistoryStore:
         incoming = [
             session
             for session in (
-                session_from_cardata(vin, raw, cost_fn=cost_fn)
+                session_from_cardata(vin, raw, cost_fn=cost_fn, zone_fn=zone_fn)
                 for raw in (raw_sessions or [])
             )
             if session is not None

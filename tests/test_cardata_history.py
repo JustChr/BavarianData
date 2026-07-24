@@ -65,9 +65,21 @@ def test_maps_core_fields():
     assert session.soc_end == 82
     assert session.mileage_km == 17796
     assert session.enriched is True
-    assert session.location["lat"] == 48.39092
-    assert session.location["municipality"] == "Stockerau"
-    assert session.location["zone"] is None
+    # Without a zone resolver, only the (unresolved) zone slot is kept -- raw
+    # coordinates are never persisted.
+    assert session.location == {"zone": None}
+
+
+def test_zone_fn_resolves_location():
+    session = session_from_cardata("WBY1", _raw(), zone_fn=lambda lat, lon: "Home")
+    assert session.location == {"zone": "Home"}
+
+
+def test_location_dropped_without_coordinates():
+    session = session_from_cardata(
+        "WBY1", _raw(chargingLocation={"municipality": "Stockerau"})
+    )
+    assert session.location is None
 
 
 def test_peak_from_all_blocks_and_curve_offsets():

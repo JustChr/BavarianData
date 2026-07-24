@@ -822,7 +822,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             imported = updated = 0
             if runtime.history is not None and isinstance(sessions, list):
                 imported, updated = runtime.history.import_cardata_sessions(
-                    vin, sessions, cost_fn=_cost_fn
+                    vin,
+                    sessions,
+                    cost_fn=_cost_fn,
+                    zone_fn=runtime.coordinator.zone_at,
                 )
                 if imported or updated:
                     async_dispatcher_send(
