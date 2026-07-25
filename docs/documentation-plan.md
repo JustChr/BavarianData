@@ -90,9 +90,10 @@ restructure) · ❌ missing · 📷 needs screenshot.
 | Step (`async_step_…`) | Screen | Status | Shot |
 | --- | --- | --- | --- |
 | `user` | Guided/manual chooser (menu) | ❌ new — needs shot | 📷 |
-| `guided` | Guided: cluster picker | ❌ new — needs shot | 📷 |
-| `guided_activate` | Guided: run snippet + paste result | ❌ new — needs shot | 📷 |
+| `guided_wait` | Guided: open setup page, waiting for activation (progress) | ❌ new — needs shot | 📷 |
+| `guided_paste` | Guided: paste-result fallback (plain-HTTP HA) | ❌ new — needs shot | 📷 |
 | `guided_done` | Guided: activation confirmation | ❌ new — needs shot | 📷 |
+| served `/bavariandata/onboarding` | Bookmarklet helper page (drag + console fallback) | ❌ new — needs shot | 📷 |
 | `manual` | Client ID entry + portal recap | 🟡 | 📷 |
 | `authorize` | Device link + user code | 🟡 | 📷 |
 | `authorize_failed` | Access-denied recovery | 🟡 | 📷 |

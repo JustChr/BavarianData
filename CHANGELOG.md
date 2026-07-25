@@ -9,7 +9,23 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
-## [0.9.1-beta.3] - 2026-07-25
+## [0.9.1-beta.4] - 2026-07-25
+
+### Changed
+- **Guided setup is now one click, not a copy-paste.** The guided path no longer
+  hands you a console snippet to paste. Instead Home Assistant serves a small
+  setup page with a one-click **"Activate BMW data"** bookmarklet; you run it on
+  the BMW portal and it activates the stream **in your own browser** (no password
+  or session ever leaves it), then **reports the result straight back to Home
+  Assistant via a webhook** — so setup continues automatically, with nothing to
+  copy. A paste fallback remains for Home Assistant instances reached over plain
+  HTTP (where the browser blocks the automatic report).
+- **The activator is now bulletproof.** It reads BMW's per-vehicle *streamable
+  catalogue* and only turns on fields BMW will accept (fixes an HTTP 500 when a
+  descriptor wasn't streamable for that car), is **additive** (never removes a
+  field you already had) and **idempotent** (re-running a fully-set car does
+  nothing), has **per-request timeouts** so a stalled request can't hang it, shows
+  live progress, and detects when you're on the wrong page.
 
 ### Added
 - **Guided setup (one-snippet onboarding).** Setup now opens with a Guided vs.

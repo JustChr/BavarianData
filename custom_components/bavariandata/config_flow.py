@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import contextlib
 import hashlib
 import secrets
 import string
@@ -11,16 +12,19 @@ import time
 from typing import Any, Dict, Optional
 
 import aiohttp
+from aiohttp import web
 import voluptuous as vol
 
 import logging
 
 from homeassistant import config_entries
-from homeassistant.components import persistent_notification
-from homeassistant.core import callback
+from homeassistant.components import persistent_notification, webhook
+from homeassistant.components.http import HomeAssistantView
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult, FlowResultType
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
+from homeassistant.helpers.network import NoURLAvailableError, get_url
 
 from . import async_manual_refresh_tokens
 from .container import CardataContainerError
@@ -50,12 +54,66 @@ from .descriptors import build_portal_snippet, default_sections, section_labels
 from .onboarding import (
     OnboardingParseError,
     OnboardingResult,
-    build_onboarding_snippet,
+    build_bookmarklet,
+    build_console_snippet,
+    build_helper_page,
+    default_activator_attributes,
     parse_onboarding_result,
 )
 from .device_flow import CardataAuthError, poll_for_tokens, request_device_code
 
 DATA_SCHEMA = vol.Schema({vol.Required("client_id"): str})
+
+# Guided onboarding: the served helper page (hosts the draggable bookmarklet) and
+# the per-flow webhook the in-browser activator reports its result to. The page is
+# served from Home Assistant's own origin because a config-flow dialog sanitizes a
+# ``javascript:`` link; the webhook lets the activator hand the result back with no
+# copy-paste. Both are set up on demand when a guided flow starts (there is no
+# entry yet at first-time setup, so this can't wait for async_setup_entry).
+ONBOARDING_VIEW_URL = f"/{DOMAIN}/onboarding"
+_ONBOARDING_STORE = "_onboarding_flows"
+_ONBOARDING_VIEW_REGISTERED = "_onboarding_view_registered"
+# How long the guided flow waits for the activator to report before offering the
+# manual paste fallback.
+ONBOARDING_WAIT_TIMEOUT = 600
+
+
+class _OnboardingHelperView(HomeAssistantView):
+    """Serve the (prebuilt) onboarding helper page for a pending guided flow."""
+
+    url = ONBOARDING_VIEW_URL
+    name = f"{DOMAIN}:onboarding"
+    requires_auth = False  # opened directly in the user's browser
+
+    async def get(self, request: web.Request) -> web.Response:
+        hass: HomeAssistant = request.app["hass"]
+        token = request.query.get("token", "")
+        flows = hass.data.get(DOMAIN, {}).get(_ONBOARDING_STORE, {})
+        pending = flows.get(token)
+        if not pending:
+            return web.Response(
+                status=404,
+                text="This setup link has expired — restart setup in Home Assistant.",
+            )
+        return web.Response(text=pending["html"], content_type="text/html")
+
+
+async def _handle_onboarding_webhook(
+    hass: HomeAssistant, webhook_id: str, request: web.Request
+) -> web.Response:
+    """Receive the activator's result and wake the waiting guided flow."""
+
+    flows = hass.data.get(DOMAIN, {}).get(_ONBOARDING_STORE, {})
+    pending = flows.get(webhook_id)
+    if not pending:
+        return web.Response(status=404, text="unknown")
+    try:
+        result = parse_onboarding_result(await request.text())
+    except OnboardingParseError as err:
+        return web.Response(status=400, text=str(err))
+    pending["result"] = result
+    pending["event"].set()
+    return web.Response(status=200, text="Received — you can return to Home Assistant.")
 
 # Hassfest forbids literal URLs in translation strings, so the BMW portal links
 # used in the onboarding step are injected as description placeholders instead.
@@ -98,8 +156,11 @@ class CardataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # the manual path (clusters -> discover -> auth vs. auth -> clusters).
         self._guided: bool = False
         self._guided_sections: list[str] = []
-        self._onboarding_snippet: str = ""
         self._onboarding: Optional[OnboardingResult] = None
+        self._onboarding_webhook_id: Optional[str] = None
+        self._onboarding_event: Optional[asyncio.Event] = None
+        self._onboarding_page_url: str = ""
+        self._onboarding_wait_task: Optional[asyncio.Task] = None
 
     async def async_step_user(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """Entry point: choose guided (recommended) or manual setup."""
@@ -147,81 +208,193 @@ class CardataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_guided(
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> FlowResult:
-        """Guided path, step 1: pick the clusters to stream.
+        """Guided path, step 1: set up the served helper page + webhook.
 
-        The choice is baked into an in-browser snippet that (on the portal page)
-        discovers the client id, verifies the mapping and activates exactly these
-        clusters' descriptors on the stream -- so setup and stream activation
-        happen together, before device auth.
+        Activation happens in the user's own browser (the only place the portal
+        session lives). We host a page with a one-click bookmarklet and a webhook
+        the activator reports back to, then wait for it -- no client id to copy,
+        no snippet to paste. The relevant default cluster set is activated;
+        clusters can be tuned later under Configure.
         """
-
-        labels = section_labels()
-        schema = vol.Schema(
-            {
-                vol.Required(
-                    "sections", default=default_sections()
-                ): cv.multi_select(labels),
-            }
-        )
-        if user_input is None:
-            return self.async_show_form(step_id="guided", data_schema=schema)
 
         self._guided = True
-        self._guided_sections = [
-            slug for slug in labels if slug in set(user_input.get("sections", []))
-        ]
-        self._onboarding_snippet = build_onboarding_snippet(self._guided_sections)
-        return await self.async_step_guided_activate()
+        self._guided_sections = default_sections()
+        self._ensure_onboarding_view()
 
-    async def async_step_guided_activate(
+        webhook_id = webhook.async_generate_id()
+        try:
+            report_url = webhook.async_generate_url(self.hass, webhook_id)
+        except NoURLAvailableError:
+            report_url = ""  # no reachable URL: activator falls back to clipboard
+
+        attributes = default_activator_attributes()
+        bookmarklet = build_bookmarklet(attributes, report_url=report_url)
+        console = build_console_snippet(attributes, report_url=report_url)
+        html = build_helper_page(
+            bookmarklet=bookmarklet, console_js=console, attribute_count=len(attributes)
+        )
+
+        event = asyncio.Event()
+        store = self.hass.data.setdefault(DOMAIN, {}).setdefault(_ONBOARDING_STORE, {})
+        store[webhook_id] = {"event": event, "result": None, "html": html}
+        webhook.async_register(
+            self.hass, DOMAIN, "BavarianData onboarding", webhook_id, _handle_onboarding_webhook
+        )
+        self._onboarding_webhook_id = webhook_id
+        self._onboarding_event = event
+        try:
+            self._onboarding_page_url = (
+                get_url(self.hass) + ONBOARDING_VIEW_URL + f"?token={webhook_id}"
+            )
+        except NoURLAvailableError:
+            self._onboarding_page_url = f"{ONBOARDING_VIEW_URL}?token={webhook_id}"
+
+        return await self.async_step_guided_wait()
+
+    async def async_remove(self) -> None:
+        """Flow teardown (abort/cancel/finish): drop the webhook + wait task."""
+
+        self._cleanup_onboarding()
+        if self._onboarding_wait_task and not self._onboarding_wait_task.done():
+            self._onboarding_wait_task.cancel()
+
+    @callback
+    def _ensure_onboarding_view(self) -> None:
+        """Register the helper-page view once per Home Assistant instance.
+
+        Guarded by a flag, and the actual registration is wrapped: the flag lives
+        in ``hass.data[DOMAIN]`` which is dropped when the last entry unloads, so a
+        later guided flow could try to register the (still-live) view again --
+        suppress that rather than error.
+        """
+
+        domain_data = self.hass.data.setdefault(DOMAIN, {})
+        if domain_data.get(_ONBOARDING_VIEW_REGISTERED):
+            return
+        with contextlib.suppress(Exception):
+            self.hass.http.register_view(_OnboardingHelperView())
+        domain_data[_ONBOARDING_VIEW_REGISTERED] = True
+
+    def _cleanup_onboarding(self) -> None:
+        """Unregister the webhook and drop the pending record for this flow."""
+
+        webhook_id = self._onboarding_webhook_id
+        if not webhook_id:
+            return
+        with contextlib.suppress(ValueError, KeyError):
+            webhook.async_unregister(self.hass, webhook_id)
+        self.hass.data.get(DOMAIN, {}).get(_ONBOARDING_STORE, {}).pop(webhook_id, None)
+        self._onboarding_webhook_id = None
+        self._onboarding_event = None
+
+    async def _await_onboarding_result(self) -> Optional[OnboardingResult]:
+        """Wait (bounded) for the activator to POST its result to the webhook."""
+
+        assert self._onboarding_event is not None
+        try:
+            await asyncio.wait_for(
+                self._onboarding_event.wait(), timeout=ONBOARDING_WAIT_TIMEOUT
+            )
+        except asyncio.TimeoutError:
+            return None
+        pending = self.hass.data.get(DOMAIN, {}).get(_ONBOARDING_STORE, {}).get(
+            self._onboarding_webhook_id
+        )
+        return pending.get("result") if pending else None
+
+    async def async_step_guided_wait(
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> FlowResult:
-        """Guided path, step 2: run the snippet, paste the result back.
+        """Guided path, step 2: wait for the browser activator to report back."""
 
-        The snippet prints a non-secret blob (client id, mapped vehicle,
-        activation count); we parse it, adopt the discovered client id, and move
-        straight into device authorization.
-        """
+        if self._onboarding_wait_task is None:
+            self._onboarding_wait_task = self.hass.async_create_task(
+                self._await_onboarding_result()
+            )
+
+        if not self._onboarding_wait_task.done():
+            return self.async_show_progress(
+                step_id="guided_wait",
+                progress_action="wait_for_activation",
+                description_placeholders={"url": self._onboarding_page_url},
+                progress_task=self._onboarding_wait_task,
+            )
+
+        result = self._onboarding_wait_task.result()
+        self._onboarding_wait_task = None
+        if result is None:
+            # No report within the window -- offer the manual paste fallback.
+            return self.async_show_progress_done(next_step_id="guided_paste")
+        self._onboarding = result
+        return self.async_show_progress_done(next_step_id="guided_confirm")
+
+    async def async_step_guided_confirm(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Guided path, step 3: adopt the discovered client id, then device auth."""
+
+        result = self._onboarding
+        client_id = result.primary_client_id if result else None
+        if not client_id:
+            self._cleanup_onboarding()
+            return self.async_abort(reason="no_client_id")
+
+        self._cleanup_onboarding()
+        await self._adopt_client_id(client_id)
+        try:
+            await self._request_device_code()
+        except CardataAuthError as err:
+            self._auth_error = self._format_auth_error(err)
+            return await self.async_step_authorize_failed()
+        return await self.async_step_authorize()
+
+    async def async_step_guided_paste(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Guided fallback: paste the activator result if the auto-report didn't arrive."""
 
         schema = vol.Schema({vol.Required("result"): str})
         if user_input is None:
             return self.async_show_form(
-                step_id="guided_activate",
+                step_id="guided_paste",
                 data_schema=schema,
-                # ``error`` is referenced by the step text; always supply it (blank
-                # on first show) so the placeholder is never missing.
-                description_placeholders={"snippet": self._onboarding_snippet, "error": ""},
+                description_placeholders={"url": self._onboarding_page_url, "error": ""},
             )
 
         try:
             result = parse_onboarding_result(user_input["result"])
         except OnboardingParseError as err:
             return self.async_show_form(
-                step_id="guided_activate",
+                step_id="guided_paste",
                 data_schema=schema,
                 errors={"result": "invalid_result"},
-                description_placeholders={
-                    "snippet": self._onboarding_snippet,
-                    "error": str(err),
-                },
+                description_placeholders={"url": self._onboarding_page_url, "error": str(err)},
             )
-
         client_id = result.primary_client_id
         if not client_id:
             return self.async_show_form(
-                step_id="guided_activate",
+                step_id="guided_paste",
                 data_schema=schema,
                 errors={"result": "no_client_id"},
-                description_placeholders={
-                    "snippet": self._onboarding_snippet,
-                    "error": (
-                        "No API client was found on your account. Create one in "
-                        "the BMW portal (API clients), then run the snippet again."
-                    ),
-                },
+                description_placeholders={"url": self._onboarding_page_url, "error": ""},
             )
 
         self._onboarding = result
+        self._cleanup_onboarding()
+        await self._adopt_client_id(client_id)
+        try:
+            await self._request_device_code()
+        except CardataAuthError as err:
+            return self.async_show_form(
+                step_id="guided_paste",
+                data_schema=schema,
+                errors={"base": "device_code_failed"},
+                description_placeholders={"url": self._onboarding_page_url, "error": str(err)},
+            )
+        return await self.async_step_authorize()
+
+    async def _adopt_client_id(self, client_id: str) -> None:
+        """Remove any duplicate entry for this client id and claim it as unique id."""
 
         for entry in list(self._async_current_entries()):
             existing_client_id = entry.data.get("client_id") if hasattr(entry, "data") else None
@@ -229,21 +402,6 @@ class CardataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 await self.hass.config_entries.async_remove(entry.entry_id)
         await self.async_set_unique_id(client_id)
         self._client_id = client_id
-
-        try:
-            await self._request_device_code()
-        except CardataAuthError as err:
-            return self.async_show_form(
-                step_id="guided_activate",
-                data_schema=schema,
-                errors={"base": "device_code_failed"},
-                description_placeholders={
-                    "snippet": self._onboarding_snippet,
-                    "error": str(err),
-                },
-            )
-
-        return await self.async_step_authorize()
 
     async def _request_device_code(self) -> None:
         assert self._client_id is not None

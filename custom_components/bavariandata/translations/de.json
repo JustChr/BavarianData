@@ -19,24 +19,14 @@
           "client_id": "Die CarData Client-ID aus dem BMW-Portal — eine lange Zeichenfolge im UUID-Format."
         }
       },
-      "guided": {
-        "title": "Gestreamte Daten auswählen",
-        "description": "Wähle aus, welche Datengruppen des Fahrzeugs gestreamt werden sollen. Die nächste Seite liefert dir ein einziges Snippet für das BMW-Portal — es findet deine Client-ID, prüft die Fahrzeugzuordnung und aktiviert in einem Schritt genau die Felder dieser Datengruppen. Diagnose- und technische Felder bleiben standardmäßig ausgeblendet, sobald Daten eintreffen.\n\nDu kannst das jederzeit später unter **Konfigurieren → Gestreamte Daten auswählen** ändern.",
-        "data": {
-          "sections": "Datengruppen"
-        },
-        "data_description": {
-          "sections": "Belasse die Vorauswahl für den empfohlenen Satz, oder beschränke sie auf die Daten, die dich wirklich interessieren (z. B. nur Elektrofahrzeug und Fahrzeugstatus)."
-        }
-      },
-      "guided_activate": {
-        "title": "Setup-Snippet im BMW-Portal ausführen",
-        "description": "Melde dich im Browser im BMW-Portal an und öffne die **Stream-Setup**-Seite eines Fahrzeugs (*Datenauswahl / Stream-Setup*). Öffne die Konsole (F12 → Konsole), füge dies ein und drücke Enter:\n\n```\n{snippet}\n```\n\nEs läuft vollständig in deinem Browser — **kein Passwort und keine Sitzung verlässt ihn**. Es findet deine Client-ID, prüft die Fahrzeugzuordnung und aktiviert deine gewählten Felder im Stream. Es kopiert ein kurzes Ergebnis in die Zwischenablage und zeigt es zusätzlich in einem Pop-up.\n\nFüge dieses Ergebnis unten ein.\n\n{error}",
+      "guided_paste": {
+        "title": "Setup-Ergebnis einfügen",
+        "description": "Die Setup-Seite hat sich nicht automatisch zurückgemeldet (das passiert, wenn Home Assistant über einfaches HTTP erreicht wird). Kein Problem — klicke auf der Setup-Seite, die du geöffnet hast ([hier]({url})), im Ergebnisfeld auf **Copy** und füge das Ergebnis unten ein.\n\n{error}",
         "data": {
           "result": "Setup-Ergebnis"
         },
         "data_description": {
-          "result": "Der BAVARIANDATA…-Text, den das Snippet in die Zwischenablage kopiert hat."
+          "result": "Der BAVARIANDATA…-Text, den die Copy-Schaltfläche in die Zwischenablage gelegt hat."
         }
       },
       "guided_done": {
@@ -63,6 +53,7 @@
       }
     },
     "progress": {
+      "wait_for_activation": "**Aktiviere deine Daten im Browser**\n\n1. Öffne die **[BavarianData-Setup-Seite]({url})**.\n2. Ziehe die Schaltfläche **Activate BMW data** einmalig in deine Lesezeichenleiste.\n3. Öffne das **BMW-Portal**, melde dich an und gehe zur **Stream-Setup**-Seite eines Fahrzeugs.\n4. Klicke auf das Lesezeichen **Activate BMW data**.\n\nEs findet deine Client-ID, prüft dein Fahrzeug und schaltet den Datenstream ein — alles in deinem eigenen Browser, nichts zu kopieren. Dieser Dialog läuft automatisch weiter, sobald die Rückmeldung eintrifft. Hier ist nichts anzuklicken.",
       "wait_for_authorization": "**Home Assistant auf der BMW-Website bestätigen**\n\n1. Öffne die **[Autorisierungsseite]({verification_url})** und melde dich mit deinem BMW-Konto an.\n2. Gib bei der Abfrage diesen Code ein: **{user_code}**\n3. Bestätige das Gerät.\n\n**Tippe den Code von Hand ein** — verwende keinen Link, der den Code bereits in der Adresse enthält, und achte darauf, dass kein alter Code vorausgefüllt ist. BMWs Server verbucht bei vorausgefüllten Codes häufig fälschlich eine *Ablehnung*. Schlägt es trotzdem fehl, versuche es in einem privaten bzw. Inkognito-Fenster.\n\nLass diesen Dialog offen — er läuft automatisch weiter, sobald du bestätigt hast. Hier ist nichts anzuklicken."
     },
     "error": {
