@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.1-beta.2] - 2026-07-25
+
 ### Fixed
 - **Trip distance now uses BMW's odometer, not just the GPS track.** The i5
   streams its cumulative odometer as `vehicle.vehicle.travelledDistance` (km),
