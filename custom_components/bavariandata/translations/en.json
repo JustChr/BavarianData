@@ -21,7 +21,7 @@
       },
       "guided_paste": {
         "title": "Activate your data, then paste the result",
-        "description": "1. Open the **[BavarianData setup page]({url})**.\n2. Drag the **Activate BMW data** button to your bookmarks bar (once).\n3. Open the **BMW portal**, sign in, and go to a vehicle's **stream setup** page.\n4. Click the **Activate BMW data** bookmark. When it finishes, press **Copy** in the box it shows.\n5. Paste that result below and press **Submit**.\n\nEverything runs in your own browser — no password or session ever leaves it.\n\n{error}",
+        "description": "1. Open the **[BavarianData setup page]({url})**.\n2. Drag the **Activate BMW data** button to your bookmarks bar (once).\n3. Open the **BMW or MINI portal**, sign in, and go to a vehicle's **stream setup** page.\n4. Click the **Activate BMW data** bookmark. When it finishes, press **Copy** in the box it shows.\n5. Paste that result below and press **Submit**.\n\nEverything runs in your own browser — no password or session ever leaves it.\n\n{error}",
         "data": {
           "result": "Setup result"
         },
@@ -53,8 +53,8 @@
       }
     },
     "progress": {
-      "wait_for_activation": "**Activate your data in the browser**\n\n1. Open the **[BavarianData setup page]({url})**.\n2. Drag the **Activate BMW data** button to your bookmarks bar (once).\n3. Open the **BMW portal**, sign in, and go to a vehicle's **stream setup** page.\n4. Click the **Activate BMW data** bookmark.\n\nIt finds your Client ID, checks your vehicle, and turns on the data stream — all in your own browser, nothing to copy. This dialog continues automatically the moment it reports back. There's nothing to click here.",
-      "wait_for_authorization": "**Approve Home Assistant on BMW's website**\n\n1. Open the **[authorization page]({verification_url})** and sign in with your BMW account.\n2. Type in this code when asked: **{user_code}**\n3. Confirm the device.\n\n**Enter the code by hand** — don't use a link with the code already in the URL, and make sure no old code is pre-filled. BMW's server often wrongly records a *decline* for pre-filled codes. If it fails anyway, retry in a private/incognito window.\n\nLeave this dialog open — it continues automatically the moment you approve. There's nothing to click here."
+      "wait_for_activation": "**Activate your data in the browser**\n\n1. Open the **[BavarianData setup page]({url})**.\n2. Drag the **Activate BMW data** button to your bookmarks bar (once).\n3. Open the **BMW or MINI portal**, sign in, and go to a vehicle's **stream setup** page.\n4. Click the **Activate BMW data** bookmark.\n\nIt finds your Client ID, checks your vehicle, and turns on the data stream — all in your own browser, nothing to copy. This dialog continues automatically the moment it reports back. There's nothing to click here.",
+      "wait_for_authorization": "**Approve Home Assistant on the BMW/MINI sign-in page**\n\n1. Open the **[authorization page]({verification_url})** and sign in with your BMW/MINI account.\n2. Type in this code when asked: **{user_code}**\n3. Confirm the device.\n\n**Enter the code by hand** — don't use a link with the code already in the URL, and make sure no old code is pre-filled. BMW's server often wrongly records a *decline* for pre-filled codes. If it fails anyway, retry in a private/incognito window.\n\nLeave this dialog open — it continues automatically the moment you approve. There's nothing to click here."
     },
     "error": {
       "device_code_failed": "BMW rejected the device authorization request ({error}). Check that the Client ID is correct and subscribed to both CarData services, then try again.",

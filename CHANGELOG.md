@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.1-beta.6] - 2026-07-26
+
+### Fixed
+- **MINI vehicles are now handled in guided setup.** The activator recognised only
+  a `bmw` portal address, so it would refuse to run on the MINI portal
+  (`mini.at`); it now accepts both, and the setup wording is brand-neutral
+  ("BMW or MINI"). BMW and MINI share the same CarData backend — the API path is
+  `/utilities/bmw/api/cd/…` on both — so a MINI's own portal and MINI-branded
+  sign-in page are correct and work identically.
+
 ## [0.9.1-beta.5] - 2026-07-25
 
 ### Fixed

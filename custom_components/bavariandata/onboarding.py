@@ -110,11 +110,11 @@ _ACTIVATOR_TEMPLATE = """(async () => {
   const out = { v: 1, origin, locale, mappedVehicleId: mappedId,
                 clientIds: [], vehicle: {}, activated: null, errors: [] };
 
-  if (origin.indexOf('bmw') === -1) {
-    show('Open your BMW portal and sign in first, then click this again.'); return;
+  if (origin.indexOf('bmw') === -1 && origin.indexOf('mini') === -1) {
+    show('Open your BMW or MINI portal and sign in first, then click this again.'); return;
   }
   if (!mappedId) {
-    show('Open a vehicle&#39;s <b>stream setup</b> page on the BMW portal, then click this again.');
+    show('Open a vehicle&#39;s <b>stream setup</b> page on the BMW or MINI portal, then click this again.');
     return;
   }
   show('Checking your account&hellip;');
@@ -286,13 +286,13 @@ _HELPER_PAGE_TEMPLATE = """<!doctype html>
   <li><b>Drag this button to your bookmarks bar</b> (once):<br><br>
       <a class="bm" href="__BOOKMARKLET__">Activate BMW data</a>
       <div class="hint">Can't drag? Right-click it &rarr; &ldquo;Bookmark link&rdquo;, or use the console option below.</div></li>
-  <li>Open the <b>BMW portal</b>, sign in, and go to a vehicle's <b>stream setup</b> page.</li>
+  <li>Open the <b>BMW or MINI portal</b>, sign in, and go to a vehicle's <b>stream setup</b> page.</li>
   <li>Click the <b>Activate BMW data</b> bookmark. It turns on __COUNT__ data fields
       (only the ones not already on) and tells Home Assistant automatically.</li>
 </ol>
 <details>
   <summary>No bookmarks bar? Use the console instead</summary>
-  <p class="hint">On the BMW stream-setup page, press <b>F12</b> &rarr; <b>Console</b>, paste this, and press Enter:</p>
+  <p class="hint">On the BMW or MINI stream-setup page, press <b>F12</b> &rarr; <b>Console</b>, paste this, and press Enter:</p>
   <textarea readonly onclick="this.select()">__CONSOLE__</textarea>
 </details>
 </body></html>"""
@@ -395,7 +395,7 @@ def parse_onboarding_result(blob: str) -> OnboardingResult:
     if not text.startswith(RESULT_PREFIX):
         raise OnboardingParseError(
             "That doesn't look like a BavarianData result. Run the activator on "
-            "the BMW portal page and use exactly what it produced."
+            "the BMW or MINI portal page and use exactly what it produced."
         )
     encoded = text[len(RESULT_PREFIX):].strip()
     try:

@@ -332,6 +332,12 @@ class CardataCoordinator:
     # segment-close path: a segment batch must not close a trip the GPS track
     # still shows to be under way.
     _last_gps_move: Dict[str, datetime] = field(default_factory=dict, init=False)
+    # Per-VIN lock serialising trip detection. Each MQTT message is dispatched as
+    # its own task (``run_coroutine_threadsafe`` in ``stream``), so two GPS fixes
+    # can interleave at the geocode ``await`` inside ``_open_trip`` and both pass
+    # the ``not open_trip`` check -- opening the trip twice and dropping the first
+    # builder. The lock makes "check-then-open" (and close) atomic per vehicle.
+    _trip_locks: Dict[str, asyncio.Lock] = field(default_factory=dict, init=False)
 
     @property
     def signal_new_sensor(self) -> str:
@@ -639,11 +645,20 @@ class CardataCoordinator:
         if self._integrate_energy(vin, now):
             async_dispatcher_send(self.hass, self.signal_energy, vin)
 
-        await self._process_trip_signals(
-            vin, now, motion_value, ignition_value, segment_fresh
-        )
-        if gps_seen:
-            await self._process_gps_signal(vin, now)
+        # Serialise per-VIN so concurrent messages can't double-open a trip while
+        # one is awaiting a geocode (see ``_trip_locks``). The timer-driven close
+        # stays outside the lock -- it pops its builder before any await, so it
+        # can't corrupt an open running here, and taking the lock there would
+        # deadlock the in-lock segment/stationary closes.
+        lock = self._trip_locks.get(vin)
+        if lock is None:
+            lock = self._trip_locks[vin] = asyncio.Lock()
+        async with lock:
+            await self._process_trip_signals(
+                vin, now, motion_value, ignition_value, segment_fresh
+            )
+            if gps_seen:
+                await self._process_gps_signal(vin, now)
 
         async_dispatcher_send(self.hass, self.signal_diagnostics)
 
