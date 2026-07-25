@@ -56,6 +56,28 @@ imports Home Assistant — keep new test targets HA-import-free, or they won't b
 testable here. There is no HA test harness in this repo; config-flow/entity
 behavior is verified against a live HA instance manually.
 
+## User documentation
+
+User-facing docs live in three tiers — keep them **in lockstep with the code**:
+
+- `README.md` — Tier-1 shop window only (overview, screenshots, requirements,
+  the 4-step quick start, links into the Wiki). Keep it lean; detail belongs in
+  the Wiki, not here.
+- `docs/wiki/*.md` — the full manual and the **source of truth** for the GitHub
+  Wiki (a separate git repo). Publish with `bash scripts/publish-wiki.sh` after
+  changing any page. Pages reference screenshots via
+  `raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/…`, so
+  screenshot files must be committed to `main` for the images to load.
+- `docs/reference/*` — generated deep reference; never hand-edit generated files.
+
+**A feature isn't done until its docs are updated in the same change.** Any new
+config-flow step, Configure/options screen, card view, service (`services.yaml`),
+option key, event, or derived entity needs its Wiki page/row — and, where it's a
+visible screen, a screenshot (capture against the live HA instance; force English
+first). Update the coverage matrix in [`docs/documentation-plan.md`](docs/documentation-plan.md)
+too — that matrix is the definition of "documented everything," and reviewing it
+is how you catch a gap. English is the source language; German is a fast-follow.
+
 ## Releases
 
 Pushing to `main` is **not** a release — HACS users get updates only from
