@@ -35,6 +35,7 @@ These read (or write) the integration's own store and cost **no** quota.
 | `bavariandata.export_history` | Returns a month as CSV or a printable HTML report. |
 | `bavariandata.get_coverage_report` | Descriptor-coverage self-test — see below. |
 | `bavariandata.import_statistics` | Rebuilds the long-term statistics from the store. |
+| `bavariandata.activate_stream_fields` | Replaces which attributes BMW streams, by replaying the portal's stream-setup request — see below. |
 
 ## Field details
 
@@ -69,6 +70,43 @@ history, so charging/driving from before the install (or from while HA was down)
 appears on the Energy dashboard. Runs automatically as records are made; use it
 after restoring a backup or to verify the row counts. See
 [Energy & statistics](Feature-Energy-and-Statistics).
+
+### `activate_stream_fields`
+Replaces a vehicle's streamed-attribute selection by sending the **same request
+the BMW portal sends** when you save *Datenauswahl ändern* — so you can activate
+all your fields in one call instead of ticking checkboxes. It is a **replace**:
+the attribute list you pass becomes the whole selection.
+
+Stream selection has **no CarData API**; it lives behind the market portal, which
+authenticates with your **browser session**. This service therefore needs a
+**captured portal session**, and — because that session (including BMW's
+bot-defense cookies) is short-lived and cannot be refreshed automatically — it is
+a **manual, occasional** tool, not something that runs unattended. It spends no
+API quota.
+
+**Getting the four required values** — open your vehicle's **stream-setup** page
+in a browser, open DevTools → **Network**, save any change, and inspect the
+`POST …/utilities/bmw/api/cd/streams/…` request:
+
+| Field | Where it comes from | Example |
+| --- | --- | --- |
+| `base_url` | the request origin | `https://www.bmw.at` |
+| `locale` | first path segment | `de-at` |
+| `mapped_vehicle_id` | the id in the URL (a hash, **not** the VIN) | `90d3dd3e0ba0ea99…` |
+| `cookie` | the request's **Cookie** header (a secret — never logged) | `gcdmToken=…; ak_bmsc=…` |
+
+**Choosing the attributes** — pass an explicit `attributes` list, or `sections`
+(cluster slugs like `electric`, `status`, `tire`). If you pass neither, it uses
+your saved **Choose streamed data** clusters, or the default cluster set. The
+list is de-duplicated and sorted, and an unchanged selection is detected and
+skipped. Returns `{requested, accepted, unchanged}` as response data.
+
+If the call reports the session was **rejected** (auth), the captured cookie has
+expired — grab a fresh one and retry. If it **times out**, BMW's bot-defense is
+throttling automated calls; wait a bit and retry with a **freshly captured**
+session (this is why it's a one-shot manual tool, not something to loop). See
+[Choose your data](Getting-Started-4-Choose-Data) for the checkbox/snippet
+alternative.
 
 ### `fetch_charging_history`
 `vin`, `from` (defaults to 30 days ago), `to` (defaults to now). Imports BMW's

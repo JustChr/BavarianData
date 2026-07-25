@@ -49,6 +49,14 @@ STAT_DRIVING_DISTANCE = "driving_distance"
 _KM = "km"
 _KWH = "kWh"
 
+# Home Assistant's statistics unit-conversion class per unit. It must be supplied
+# (>=2026.11 warns, then requires it); ``None`` is valid and means "no conversion"
+# -- correct for a currency. Keyed on our own unit constants so it can't drift.
+_UNIT_CLASS: dict[str, Optional[str]] = {
+    _KWH: "energy",
+    _KM: "distance",
+}
+
 
 def statistic_id(vin: str, suffix: str) -> str:
     """``bavariandata:charging_energy_wby...`` -- lowercase, no double underscore.
@@ -75,6 +83,9 @@ def _metadata(*, name: str, stat_id: str, unit: Optional[str]) -> dict[str, Any]
         "source": DOMAIN,
         "statistic_id": stat_id,
         "unit_of_measurement": unit,
+        # Present-but-None is valid (e.g. currency); omitting it entirely is what
+        # HA warns about.
+        "unit_class": _UNIT_CLASS.get(unit),
     }
     try:
         from homeassistant.components.recorder.models import (  # noqa: PLC0415

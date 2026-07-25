@@ -300,6 +300,69 @@ get_coverage_report:
       example: WBY31AW090FP15359
       selector:
         text:
+activate_stream_fields:
+  name: Activate Stream Fields
+  description: >-
+    Replace which CarData attributes BMW streams over MQTT for a vehicle, by
+    sending the same request the BMW portal's stream-setup page sends when you
+    save "Datenauswahl ändern". Stream selection has no CarData API, so this
+    needs a captured portal browser session (it cannot be refreshed
+    automatically - the session is short-lived). Costs no BMW API quota. Returns
+    the requested/accepted attribute counts.
+  fields:
+    entry_id:
+      description: Optional config entry id to target. Required if multiple entries are configured.
+      example: 01K65NKFESKBQZ78PBW6V9BCCX
+      selector:
+        text:
+    base_url:
+      description: >-
+        Your market portal origin, from the stream-setup URL (no trailing
+        slash).
+      example: https://www.bmw.at
+      required: true
+      selector:
+        text:
+    locale:
+      description: The locale path segment from the stream-setup URL.
+      example: de-at
+      required: true
+      selector:
+        text:
+    mapped_vehicle_id:
+      description: >-
+        The portal's mapped-vehicle id (a hash, NOT the VIN) from the
+        stream-setup URL /mybmw/mapped-vehicle/<id>/cardata/stream-setup.
+      example: 90d3dd3e0ba0ea99…
+      required: true
+      selector:
+        text:
+    cookie:
+      description: >-
+        The raw Cookie header from an authenticated portal request (DevTools ->
+        Network -> the stream request -> Copy value of the Cookie header). A
+        secret; it is never logged. Expires after a while - recapture if the call
+        reports the session was rejected.
+      example: "gcdmToken=…; mybmwUserLogin=…; ak_bmsc=…"
+      required: true
+      selector:
+        text:
+          multiline: true
+    attributes:
+      description: >-
+        Explicit list of technical descriptors to stream (replaces the whole
+        selection). Overrides sections. Defaults to your chosen streamed-data
+        clusters, or the default cluster set.
+      example: '["vehicle.isMoving", "vehicle.electricalSystem.battery.voltage"]'
+      selector:
+        object:
+    sections:
+      description: >-
+        Cluster slugs to stream (e.g. electric, status, tire). Used when
+        attributes is omitted.
+      example: '["electric", "status"]'
+      selector:
+        object:
 import_statistics:
   name: Import Into Long-Term Statistics
   description: >-

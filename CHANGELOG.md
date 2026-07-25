@@ -9,6 +9,41 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.1-beta.3] - 2026-07-25
+
+### Added
+- **Guided setup (one-snippet onboarding).** Setup now opens with a Guided vs.
+  Manual choice. Guided asks which data clusters you want, then hands you a single
+  snippet to run on the BMW portal: it discovers your **Client ID** (no more
+  copying it by hand), checks your vehicle mapping, and **activates the stream
+  fields** for those clusters — all in your browser, so no password or session
+  ever leaves it. You paste back a short, non-secret result and the flow fills in
+  the Client ID and continues to device authorization. The classic Manual path
+  (paste a Client ID) is unchanged. New module `onboarding.py`; portal route
+  documented in
+  [`docs/reference/stream-attribute-activation.md`](docs/reference/stream-attribute-activation.md).
+- **Activate stream fields in one call** — a new `bavariandata.activate_stream_fields`
+  service replays the exact request the BMW portal's stream-setup page sends when
+  you save *Datenauswahl ändern*, replacing your whole streamed-attribute
+  selection at once instead of ticking checkboxes. Stream selection has no CarData
+  API and is gated by your browser session (behind BMW's bot-defense), so the
+  service takes a **captured portal session** (`base_url`/`locale`/`mapped_vehicle_id`/`cookie`)
+  and is a manual, occasional tool — it can't run unattended and spends no API
+  quota. Attributes default to your chosen streamed-data clusters. The captured
+  cookie is never logged; the service reports requested/accepted counts. See
+  [`docs/reference/stream-attribute-activation.md`](docs/reference/stream-attribute-activation.md).
+
+### Fixed
+- **Long-term statistics no longer log a deprecation warning.** The statistics
+  backfill now sets `unit_class` on each external-statistics series (energy for
+  kWh, distance for km, none for currency), which Home Assistant requires from
+  2026.11 — silences the "doesn't specify unit_class" warning.
+- **Trip/charge close timers now run on the event loop.** The debounced trip- and
+  charge-close timer callbacks were plain functions, so Home Assistant dispatched
+  them to a worker thread, where `async_create_task` / `async_dispatcher_send` are
+  not thread-safe (HA logged a thread-safety warning and warned of possible
+  corruption). Both are now `@callback`, so they run inline on the loop.
+
 ## [0.9.1-beta.2] - 2026-07-25
 
 ### Fixed

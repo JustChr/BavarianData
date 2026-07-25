@@ -3,6 +3,14 @@
     "step": {
       "user": {
         "title": "Connect BMW CarData",
+        "description": "This streams your BMW or Mini vehicle data into Home Assistant.\n\nPick how to set up:\n\n- **Guided (recommended)** — you run one snippet on the BMW portal and it finds your Client ID, checks your vehicle, and turns on the data stream for you. No copying IDs by hand.\n- **Manual** — the classic path, if you already created a Client ID in the portal.",
+        "menu_options": {
+          "guided": "Guided setup (recommended)",
+          "manual": "I already have a Client ID"
+        }
+      },
+      "manual": {
+        "title": "Connect BMW CarData",
         "description": "This streams your BMW or Mini vehicle data into Home Assistant.\n\n**First, set up CarData in the BMW portal** (skip if you already have a Client ID):\n\n1. Open the [BMW CarData portal]({portal_url}) and sign in. If CarData isn't available in your country, sign in via the [UK]({portal_uk}) or [German]({portal_de}) portal — the Client ID works everywhere.\n2. Create a **CarData Client** and copy the **Client ID** it shows you.\n3. Subscribe the client to **both** services: **CarData API** and **CarData Streaming**.\n\nDon't tick anything under **Data Selection** yet — after you authorize, the next screens let you choose which data to stream and hand you a ready-made portal snippet.\n\nThen paste the **Client ID** below.",
         "data": {
           "client_id": "Client ID"
@@ -10,6 +18,30 @@
         "data_description": {
           "client_id": "The CarData Client ID from the BMW portal — a long string that looks like a UUID."
         }
+      },
+      "guided": {
+        "title": "Choose streamed data",
+        "description": "Pick which clusters of vehicle data to stream. The next screen gives you one snippet to run on the BMW portal — it finds your Client ID, checks your vehicle mapping, and turns on exactly these clusters' fields in one go. Diagnostic/technical fields stay hidden by default once data arrives.\n\nYou can change this any time later under Configure → Choose streamed data.",
+        "data": {
+          "sections": "Data clusters"
+        },
+        "data_description": {
+          "sections": "Leave the defaults for the recommended set, or tailor it to just the data you care about (e.g. only Electric vehicle and Vehicle status)."
+        }
+      },
+      "guided_activate": {
+        "title": "Run the setup snippet on the BMW portal",
+        "description": "In your browser, sign in to the BMW portal and open a vehicle's **stream setup** page (*Datenauswahl / Stream setup*). Open the console (F12 → Console), paste this, and press Enter:\n\n```\n{snippet}\n```\n\nIt runs entirely in your browser — **no password or session ever leaves it**. It finds your Client ID, checks the vehicle mapping, and activates your chosen fields on the stream. It copies a short result to your clipboard and also shows it in a pop-up.\n\nPaste that result below.\n\n{error}",
+        "data": {
+          "result": "Setup result"
+        },
+        "data_description": {
+          "result": "The BAVARIANDATA… text the snippet copied to your clipboard."
+        }
+      },
+      "guided_done": {
+        "title": "Stream activated",
+        "description": "Done — **{field_count}** fields are now streaming for **{vehicle}**, and your Client ID is set. Press **Submit** to finish, then trigger a lock/unlock in the MyBMW app to prompt the first update."
       },
       "authorize_failed": {
         "title": "Authorization didn't finish",
@@ -34,7 +66,9 @@
       "wait_for_authorization": "**Approve Home Assistant on BMW's website**\n\n1. Open the **[authorization page]({verification_url})** and sign in with your BMW account.\n2. Type in this code when asked: **{user_code}**\n3. Confirm the device.\n\n**Enter the code by hand** — don't use a link with the code already in the URL, and make sure no old code is pre-filled. BMW's server often wrongly records a *decline* for pre-filled codes. If it fails anyway, retry in a private/incognito window.\n\nLeave this dialog open — it continues automatically the moment you approve. There's nothing to click here."
     },
     "error": {
-      "device_code_failed": "BMW rejected the device authorization request ({error}). Check that the Client ID is correct and subscribed to both CarData services, then try again."
+      "device_code_failed": "BMW rejected the device authorization request ({error}). Check that the Client ID is correct and subscribed to both CarData services, then try again.",
+      "invalid_result": "That result couldn't be read. Run the snippet on the BMW portal page and paste exactly what it copied to your clipboard.",
+      "no_client_id": "No API client was found on your account. Create a CarData Client in the BMW portal, then run the snippet again."
     },
     "abort": {
       "reauth_successful": "Re-authorization successful — BMW CarData is connected again.",

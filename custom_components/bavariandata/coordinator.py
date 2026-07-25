@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Deque, Dict, Iterable, Optional
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_call_later
@@ -781,6 +781,10 @@ class CardataCoordinator:
 
         self._cancel_charge_close_timer(vin)
 
+        # @callback so HA runs it inline on the event loop; an undecorated timer
+        # action is dispatched to the executor thread, and _finalize_charge_close
+        # touches loop-only helpers (async_dispatcher_send).
+        @callback
         def _fire(_now) -> None:
             self._charge_close_timers.pop(vin, None)
             self._finalize_charge_close(vin, status)
@@ -1246,6 +1250,10 @@ class CardataCoordinator:
         if vin in self._trip_close_timers:
             return
 
+        # @callback so HA runs it inline on the event loop; an undecorated timer
+        # action is dispatched to the executor thread, where async_create_task is
+        # not thread-safe.
+        @callback
         def _fire(_now) -> None:
             self._trip_close_timers.pop(vin, None)
             self.hass.async_create_task(

@@ -47,6 +47,12 @@ from .const import (
 from .debug import set_debug_enabled
 from .history.pricing import DEFAULT_CURRENCY, MODE_ENTITY, MODE_FIXED, MODE_NONE, PricingConfig
 from .descriptors import build_portal_snippet, default_sections, section_labels
+from .onboarding import (
+    OnboardingParseError,
+    OnboardingResult,
+    build_onboarding_snippet,
+    parse_onboarding_result,
+)
 from .device_flow import CardataAuthError, poll_for_tokens, request_device_code
 
 DATA_SCHEMA = vol.Schema({vol.Required("client_id"): str})
@@ -87,11 +93,30 @@ class CardataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._entry_data: Optional[Dict[str, Any]] = None
         self._entry_title: str = ""
         self._cluster_snippet: str = ""
+        # Guided onboarding: the in-browser snippet discovers the client id and
+        # activates the stream before device auth, so the flow order differs from
+        # the manual path (clusters -> discover -> auth vs. auth -> clusters).
+        self._guided: bool = False
+        self._guided_sections: list[str] = []
+        self._onboarding_snippet: str = ""
+        self._onboarding: Optional[OnboardingResult] = None
 
     async def async_step_user(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+        """Entry point: choose guided (recommended) or manual setup."""
+
+        return self.async_show_menu(
+            step_id="user",
+            menu_options=["guided", "manual"],
+        )
+
+    async def async_step_manual(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Manual path: user pastes a client id they created in the portal."""
+
         if user_input is None:
             return self.async_show_form(
-                step_id="user",
+                step_id="manual",
                 data_schema=DATA_SCHEMA,
                 description_placeholders=dict(USER_STEP_PLACEHOLDERS),
             )
@@ -111,10 +136,111 @@ class CardataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await self._request_device_code()
         except CardataAuthError as err:
             return self.async_show_form(
-                step_id="user",
+                step_id="manual",
                 data_schema=DATA_SCHEMA,
                 errors={"base": "device_code_failed"},
                 description_placeholders={**USER_STEP_PLACEHOLDERS, "error": str(err)},
+            )
+
+        return await self.async_step_authorize()
+
+    async def async_step_guided(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Guided path, step 1: pick the clusters to stream.
+
+        The choice is baked into an in-browser snippet that (on the portal page)
+        discovers the client id, verifies the mapping and activates exactly these
+        clusters' descriptors on the stream -- so setup and stream activation
+        happen together, before device auth.
+        """
+
+        labels = section_labels()
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    "sections", default=default_sections()
+                ): cv.multi_select(labels),
+            }
+        )
+        if user_input is None:
+            return self.async_show_form(step_id="guided", data_schema=schema)
+
+        self._guided = True
+        self._guided_sections = [
+            slug for slug in labels if slug in set(user_input.get("sections", []))
+        ]
+        self._onboarding_snippet = build_onboarding_snippet(self._guided_sections)
+        return await self.async_step_guided_activate()
+
+    async def async_step_guided_activate(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Guided path, step 2: run the snippet, paste the result back.
+
+        The snippet prints a non-secret blob (client id, mapped vehicle,
+        activation count); we parse it, adopt the discovered client id, and move
+        straight into device authorization.
+        """
+
+        schema = vol.Schema({vol.Required("result"): str})
+        if user_input is None:
+            return self.async_show_form(
+                step_id="guided_activate",
+                data_schema=schema,
+                # ``error`` is referenced by the step text; always supply it (blank
+                # on first show) so the placeholder is never missing.
+                description_placeholders={"snippet": self._onboarding_snippet, "error": ""},
+            )
+
+        try:
+            result = parse_onboarding_result(user_input["result"])
+        except OnboardingParseError as err:
+            return self.async_show_form(
+                step_id="guided_activate",
+                data_schema=schema,
+                errors={"result": "invalid_result"},
+                description_placeholders={
+                    "snippet": self._onboarding_snippet,
+                    "error": str(err),
+                },
+            )
+
+        client_id = result.primary_client_id
+        if not client_id:
+            return self.async_show_form(
+                step_id="guided_activate",
+                data_schema=schema,
+                errors={"result": "no_client_id"},
+                description_placeholders={
+                    "snippet": self._onboarding_snippet,
+                    "error": (
+                        "No API client was found on your account. Create one in "
+                        "the BMW portal (API clients), then run the snippet again."
+                    ),
+                },
+            )
+
+        self._onboarding = result
+
+        for entry in list(self._async_current_entries()):
+            existing_client_id = entry.data.get("client_id") if hasattr(entry, "data") else None
+            if entry.unique_id == client_id or existing_client_id == client_id:
+                await self.hass.config_entries.async_remove(entry.entry_id)
+        await self.async_set_unique_id(client_id)
+        self._client_id = client_id
+
+        try:
+            await self._request_device_code()
+        except CardataAuthError as err:
+            return self.async_show_form(
+                step_id="guided_activate",
+                data_schema=schema,
+                errors={"base": "device_code_failed"},
+                description_placeholders={
+                    "snippet": self._onboarding_snippet,
+                    "error": str(err),
+                },
             )
 
         return await self.async_step_authorize()
@@ -290,12 +416,45 @@ class CardataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             "BavarianData: Connect Home Assistant to BMW CarData "
             f"({self._client_id[:8]})"
         )
-        # Authorization succeeded but BMW streams nothing until descriptors are
-        # ticked in the portal's Data Selection. Carry the token payload forward
-        # and route straight into the cluster picker so the user leaves setup with
-        # a ready-to-paste snippet instead of an empty stream.
         self._entry_data = entry_data
+
+        # Guided path: clusters were already chosen and the snippet already
+        # activated the stream before auth, so skip the picker and finish. Persist
+        # the cluster choice (and the portal mapped-vehicle id, for later
+        # re-activation) so the install matches what was just streamed.
+        if self._guided:
+            entry_data[OPTION_STREAM_SECTIONS] = self._guided_sections
+            if self._onboarding and self._onboarding.mapped_vehicle_id:
+                entry_data["mapped_vehicle_id"] = self._onboarding.mapped_vehicle_id
+            return await self.async_step_guided_done()
+
+        # Manual path: authorization succeeded but BMW streams nothing until
+        # descriptors are ticked in the portal's Data Selection. Route into the
+        # cluster picker so the user leaves setup with a ready-to-paste snippet
+        # instead of an empty stream.
         return await self.async_step_select_clusters()
+
+    async def async_step_guided_done(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Guided path, final: confirm what was activated, then create the entry."""
+
+        assert self._entry_data is not None
+        if user_input is None:
+            result = self._onboarding
+            count = result.activated_count if result else None
+            placeholders = {
+                "field_count": str(count) if count is not None else "the selected",
+                "vehicle": (result.mapped_vehicle_id[:8] + "…")
+                if result and result.mapped_vehicle_id
+                else "your vehicle",
+            }
+            return self.async_show_form(
+                step_id="guided_done",
+                data_schema=vol.Schema({}),
+                description_placeholders=placeholders,
+            )
+        return self.async_create_entry(title=self._entry_title, data=self._entry_data)
 
     async def async_step_select_clusters(
         self, user_input: Optional[Dict[str, Any]] = None

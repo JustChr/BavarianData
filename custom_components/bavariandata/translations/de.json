@@ -3,6 +3,14 @@
     "step": {
       "user": {
         "title": "BMW CarData verbinden",
+        "description": "Damit werden die Daten deines BMW oder Mini nach Home Assistant gestreamt.\n\nWähle, wie du einrichten möchtest:\n\n- **Geführt (empfohlen)** — du führst ein Snippet im BMW-Portal aus, das deine Client-ID findet, dein Fahrzeug prüft und den Datenstream für dich aktiviert. Kein Abtippen von IDs.\n- **Manuell** — der klassische Weg, falls du im Portal bereits eine Client-ID erstellt hast.",
+        "menu_options": {
+          "guided": "Geführte Einrichtung (empfohlen)",
+          "manual": "Ich habe bereits eine Client-ID"
+        }
+      },
+      "manual": {
+        "title": "BMW CarData verbinden",
         "description": "Damit werden die Daten deines BMW oder Mini nach Home Assistant gestreamt.\n\n**Zuerst CarData im BMW-Portal einrichten** (überspringen, wenn du bereits eine Client-ID hast):\n\n1. Öffne das [BMW CarData Portal]({portal_url}) und melde dich an. Falls CarData in deinem Land nicht angeboten wird, melde dich über das [britische]({portal_uk}) oder [deutsche]({portal_de}) Portal an — die Client-ID gilt kontoweit und funktioniert überall.\n2. Erstelle einen **CarData Client** und kopiere die angezeigte **Client-ID**.\n3. Schalte den Client für **beide** Dienste frei: **CarData API** und **CarData Streaming**.\n\nHake unter **Datenauswahl** noch nichts an — nach der Autorisierung wählst du auf den nächsten Seiten aus, welche Daten gestreamt werden, und bekommst dafür ein fertiges Snippet für das Portal.\n\nFüge dann unten die **Client-ID** ein.",
         "data": {
           "client_id": "Client-ID"
@@ -10,6 +18,30 @@
         "data_description": {
           "client_id": "Die CarData Client-ID aus dem BMW-Portal — eine lange Zeichenfolge im UUID-Format."
         }
+      },
+      "guided": {
+        "title": "Gestreamte Daten auswählen",
+        "description": "Wähle aus, welche Datengruppen des Fahrzeugs gestreamt werden sollen. Die nächste Seite liefert dir ein einziges Snippet für das BMW-Portal — es findet deine Client-ID, prüft die Fahrzeugzuordnung und aktiviert in einem Schritt genau die Felder dieser Datengruppen. Diagnose- und technische Felder bleiben standardmäßig ausgeblendet, sobald Daten eintreffen.\n\nDu kannst das jederzeit später unter **Konfigurieren → Gestreamte Daten auswählen** ändern.",
+        "data": {
+          "sections": "Datengruppen"
+        },
+        "data_description": {
+          "sections": "Belasse die Vorauswahl für den empfohlenen Satz, oder beschränke sie auf die Daten, die dich wirklich interessieren (z. B. nur Elektrofahrzeug und Fahrzeugstatus)."
+        }
+      },
+      "guided_activate": {
+        "title": "Setup-Snippet im BMW-Portal ausführen",
+        "description": "Melde dich im Browser im BMW-Portal an und öffne die **Stream-Setup**-Seite eines Fahrzeugs (*Datenauswahl / Stream-Setup*). Öffne die Konsole (F12 → Konsole), füge dies ein und drücke Enter:\n\n```\n{snippet}\n```\n\nEs läuft vollständig in deinem Browser — **kein Passwort und keine Sitzung verlässt ihn**. Es findet deine Client-ID, prüft die Fahrzeugzuordnung und aktiviert deine gewählten Felder im Stream. Es kopiert ein kurzes Ergebnis in die Zwischenablage und zeigt es zusätzlich in einem Pop-up.\n\nFüge dieses Ergebnis unten ein.\n\n{error}",
+        "data": {
+          "result": "Setup-Ergebnis"
+        },
+        "data_description": {
+          "result": "Der BAVARIANDATA…-Text, den das Snippet in die Zwischenablage kopiert hat."
+        }
+      },
+      "guided_done": {
+        "title": "Stream aktiviert",
+        "description": "Fertig — **{field_count}** Felder werden jetzt für **{vehicle}** gestreamt, und deine Client-ID ist gesetzt. Klicke auf **Absenden**, um abzuschließen, und löse dann in der MyBMW App einmal Ver- oder Entriegeln aus, damit die erste Aktualisierung gesendet wird."
       },
       "authorize_failed": {
         "title": "Autorisierung nicht abgeschlossen",
@@ -34,7 +66,9 @@
       "wait_for_authorization": "**Home Assistant auf der BMW-Website bestätigen**\n\n1. Öffne die **[Autorisierungsseite]({verification_url})** und melde dich mit deinem BMW-Konto an.\n2. Gib bei der Abfrage diesen Code ein: **{user_code}**\n3. Bestätige das Gerät.\n\n**Tippe den Code von Hand ein** — verwende keinen Link, der den Code bereits in der Adresse enthält, und achte darauf, dass kein alter Code vorausgefüllt ist. BMWs Server verbucht bei vorausgefüllten Codes häufig fälschlich eine *Ablehnung*. Schlägt es trotzdem fehl, versuche es in einem privaten bzw. Inkognito-Fenster.\n\nLass diesen Dialog offen — er läuft automatisch weiter, sobald du bestätigt hast. Hier ist nichts anzuklicken."
     },
     "error": {
-      "device_code_failed": "BMW hat die Anfrage zur Geräteautorisierung abgelehnt ({error}). Prüfe, ob die Client-ID korrekt ist und für beide CarData-Dienste freigeschaltet wurde, und versuche es erneut."
+      "device_code_failed": "BMW hat die Anfrage zur Geräteautorisierung abgelehnt ({error}). Prüfe, ob die Client-ID korrekt ist und für beide CarData-Dienste freigeschaltet wurde, und versuche es erneut.",
+      "invalid_result": "Das Ergebnis konnte nicht gelesen werden. Führe das Snippet auf der BMW-Portalseite aus und füge genau das ein, was es in die Zwischenablage kopiert hat.",
+      "no_client_id": "Auf deinem Konto wurde kein API-Client gefunden. Erstelle im BMW-Portal einen CarData Client und führe das Snippet dann erneut aus."
     },
     "abort": {
       "reauth_successful": "Neuautorisierung erfolgreich — BMW CarData ist wieder verbunden.",

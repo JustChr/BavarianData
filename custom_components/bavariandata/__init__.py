@@ -76,6 +76,13 @@ from .api import (
 )
 from .container import CardataContainerError, CardataContainerManager
 from .coverage_store import CoverageStore
+from .descriptors import descriptors_for_sections
+from .stream_activation import (
+    DEFAULT_STREAM_ATTRIBUTES,
+    PortalSession,
+    PortalStreamClient,
+    StreamActivationError,
+)
 from .history.backfill import StatisticsPublisher
 from .history.export import (
     MIME_CSV,
@@ -1282,6 +1289,92 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             _LOGGER.info("Imported BavarianData statistics: %s", written)
             return {"statistics": written}
 
+        activate_stream_fields_schema = vol.Schema(
+            {
+                vol.Optional("entry_id"): str,
+                vol.Required("base_url"): str,
+                vol.Required("locale"): str,
+                vol.Required("mapped_vehicle_id"): str,
+                vol.Required("cookie"): str,
+                vol.Optional("attributes"): [str],
+                vol.Optional("sections"): [str],
+            }
+        )
+
+        async def async_handle_activate_stream_fields(call: Any) -> dict:
+            """Replace a vehicle's streamed attribute selection via the BMW portal.
+
+            Stream-attribute selection has no CarData API; it lives behind the
+            market portal, which authenticates with an interactive browser
+            session. The caller therefore supplies a captured portal session
+            (``base_url``/``locale``/``cookie``) and the portal ``mapped_vehicle_id``
+            (a portal hash, not the VIN -- take it from the stream-setup URL).
+
+            Desired attributes come from, in order: an explicit ``attributes``
+            list, the clusters named in ``sections``, this entry's stored
+            "Choose streamed data" selection, or the default cluster set.
+            """
+
+            # Resolve the entry only for its shared HTTP session; the portal call
+            # spends no CarData API quota and needs no token.
+            target = _resolve_target(call)
+            if target is None:
+                raise ServiceValidationError(
+                    "No config entry to run against; specify entry_id."
+                )
+            _entry_id, entry, runtime = target
+
+            if call.data.get("attributes"):
+                attributes = list(call.data["attributes"])
+            elif call.data.get("sections"):
+                attributes = descriptors_for_sections(call.data["sections"])
+            elif entry.data.get(OPTION_STREAM_SECTIONS):
+                attributes = descriptors_for_sections(
+                    entry.data[OPTION_STREAM_SECTIONS]
+                )
+            else:
+                attributes = list(DEFAULT_STREAM_ATTRIBUTES)
+
+            if not attributes:
+                raise ServiceValidationError(
+                    "No attributes to activate; pass 'attributes' or 'sections', "
+                    "or choose streamed-data clusters in the options."
+                )
+
+            session = PortalSession(
+                base_url=call.data["base_url"],
+                locale=call.data["locale"],
+                cookie=call.data["cookie"],
+            )
+            client = PortalStreamClient(runtime.session, session)
+            mapped_vehicle_id = call.data["mapped_vehicle_id"]
+            try:
+                result = await client.async_set_stream_attributes(
+                    mapped_vehicle_id, attributes
+                )
+            except StreamActivationError as err:
+                # Turn the classified failure into a user-facing message. The
+                # commonest is an expired session -- portal cookies (incl. the
+                # bot-defense ones) are short-lived and cannot be refreshed here.
+                if err.kind == "auth":
+                    raise ServiceValidationError(
+                        "BMW rejected the portal session (expired or invalid). "
+                        "Capture a fresh session from the stream-setup page and "
+                        "retry."
+                    ) from err
+                if err.kind == "not_found":
+                    raise ServiceValidationError(
+                        "BMW returned 404 -- check the mapped_vehicle_id and locale."
+                    ) from err
+                raise ServiceValidationError(str(err)) from err
+
+            return {
+                "mapped_vehicle_id": mapped_vehicle_id,
+                "requested": result.requested_count,
+                "accepted": result.accepted_count,
+                "unchanged": result.unchanged,
+            }
+
         hass.services.async_register(
             DOMAIN,
             "fetch_telematic_data",
@@ -1382,6 +1475,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             schema=coverage_report_schema,
             supports_response=SupportsResponse.ONLY,
         )
+        # Portal stream-attribute activation. Talks to the market portal with a
+        # supplied browser session, not the CarData API -- spends no quota, needs
+        # no token. Returns the requested/accepted counts.
+        hass.services.async_register(
+            DOMAIN,
+            "activate_stream_fields",
+            async_handle_activate_stream_fields,
+            schema=activate_stream_fields_schema,
+            supports_response=SupportsResponse.OPTIONAL,
+        )
         registered_services = domain_data.setdefault("_registered_services", set())
         registered_services.update(
             {
@@ -1399,6 +1502,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 "export_history",
                 "import_statistics",
                 "get_coverage_report",
+                "activate_stream_fields",
             }
         )
         domain_data["_service_registered"] = True

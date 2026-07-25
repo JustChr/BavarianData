@@ -89,12 +89,16 @@ restructure) · ❌ missing · 📷 needs screenshot.
 
 | Step (`async_step_…`) | Screen | Status | Shot |
 | --- | --- | --- | --- |
-| `user` | Client ID entry + portal recap | 🟡 | 📷 |
+| `user` | Guided/manual chooser (menu) | ❌ new — needs shot | 📷 |
+| `guided` | Guided: cluster picker | ❌ new — needs shot | 📷 |
+| `guided_activate` | Guided: run snippet + paste result | ❌ new — needs shot | 📷 |
+| `guided_done` | Guided: activation confirmation | ❌ new — needs shot | 📷 |
+| `manual` | Client ID entry + portal recap | 🟡 | 📷 |
 | `authorize` | Device link + user code | 🟡 | 📷 |
 | `authorize_failed` | Access-denied recovery | 🟡 | 📷 |
 | `tokens` | Token exchange (auto-advance) | 🟡 | — |
-| `select_clusters` | Cluster picker | 🟡 | 📷 |
-| `cluster_snippet` | Generated console snippet | 🟡 | 📷 |
+| `select_clusters` | Cluster picker (manual path) | 🟡 | 📷 |
+| `cluster_snippet` | Generated console snippet (manual path) | 🟡 | 📷 |
 | `reauth` | Re-authorize with BMW | 🟡 | 📷 |
 
 ### Configure (options) menu — 14 actions from `async_step_init`
@@ -147,7 +151,7 @@ restructure) · ❌ missing · 📷 needs screenshot.
 | `cluster: <other>` | Single-cluster list | 🟡 | 📷 |
 | YAML options (`device`, `vin`, entity overrides) | — | 🟡 | — |
 
-### Services — 14 from `services.yaml`
+### Services — 15 from `services.yaml`
 
 | Service | Quota | Status |
 | --- | --- | --- |
@@ -165,6 +169,7 @@ restructure) · ❌ missing · 📷 needs screenshot.
 | `export_history` | free | 🟡 |
 | `import_statistics` | free | 🟡 |
 | **`get_coverage_report`** | free | ❌ **missing from README** |
+| `activate_stream_fields` | free | 🟢 Services-Reference + README + reference doc |
 
 ### Entities — descriptor + derived
 
