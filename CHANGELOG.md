@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Trips no longer fragment mid-drive.** On the i5 (and other cars that stream
+  live GPS), BMW emits `trip.segment` batches repeatedly *during* a drive, not
+  just at its end. Each one was treated as a completed-trip marker and closed the
+  open trip, chopping one continuous drive into sub-minute pieces that then
+  dropped out as noise — so a long drive recorded as a single 0.7 km trip. A
+  segment batch now closes a trip only when the GPS track shows the car has
+  actually stopped; otherwise the drive stays open and the GPS stationary-close
+  debounce owns the end.
+
 ## [0.9.1-beta.1] - 2026-07-25
 
 ### Added
