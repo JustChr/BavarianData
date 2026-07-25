@@ -5,12 +5,14 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+from collections import deque
 from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, Iterable, Optional
+from typing import Any, Deque, Dict, Iterable, Optional
 
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_call_later
 from homeassistant.util import dt as dt_util
@@ -80,6 +82,28 @@ CHARGE_CLOSE_DEBOUNCE_S = 120
 # every telematic snapshot with the *previous* drive's timestamp, so an old one
 # would otherwise close a live GPS trip the moment the car parks and polls.
 SEG_FRESH_S = 900
+
+# --- Stream-health repairs -------------------------------------------------
+# A diagnostics download turns "it doesn't work" into 30-second triage, but a
+# repair issue is what actually gets a stuck stream in front of the user. Both
+# link to the Wiki's Troubleshooting page so the fix is one click away; the URL
+# lives here rather than in the translation strings because hassfest forbids URLs
+# inside translations/*.json.
+WIKI_TROUBLESHOOTING = (
+    "https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ"
+)
+# How long the stream may go without a single message before we raise a repair.
+# Long enough that a car simply parked in a garage for a weekend (BMW streams
+# most descriptors only on a state change) doesn't trip it, short enough that a
+# genuinely broken selection surfaces within a couple of days.
+NO_DATA_REPAIR_AFTER_S = 48 * 60 * 60
+# How long an "unauthorized" (MQTT rc=5) condition must persist -- reauth having
+# failed to clear it -- before it is a repair rather than a transient blip the
+# reconnect logic is already handling.
+UNAUTHORIZED_REPAIR_AFTER_S = 30 * 60
+# Bounded ring buffer of connection transitions (status + rc/reason), surfaced in
+# the diagnostics download so a reconnect storm is visible after the fact.
+CONNECTION_HISTORY_LEN = 30
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -224,6 +248,30 @@ class CardataCoordinator:
     last_disconnect_reason: Optional[str] = None
     diagnostic_interval: int = DIAGNOSTIC_LOG_INTERVAL
     watchdog_task: Optional[asyncio.Task] = field(default=None, init=False, repr=False)
+    # Wall-clock the watchdog started, so "no data in 48h" has a baseline on a
+    # stream that has never delivered a single message.
+    stream_started_at: Optional[datetime] = field(default=None, init=False)
+    # When a message last arrived per VIN (the global ``last_message_at`` can't
+    # tell a healthy car from a silent one when several are configured).
+    last_message_by_vin: Dict[str, datetime] = field(default_factory=dict, init=False)
+    # Per-VIN, per-descriptor arrival tally for the diagnostics download. Live
+    # counters only -- restored state doesn't count as an arrival.
+    descriptor_counts: Dict[str, Dict[str, int]] = field(
+        default_factory=dict, init=False
+    )
+    # Recent connection transitions (status + rc/reason + time) for diagnostics.
+    connection_history: Deque[Dict[str, Any]] = field(
+        default_factory=lambda: deque(maxlen=CONNECTION_HISTORY_LEN),
+        init=False,
+        repr=False,
+    )
+    # First time the stream went "unauthorized" without recovering since, driving
+    # the persisting-rc=5 repair. Cleared on the next successful connect.
+    _unauthorized_since: Optional[datetime] = field(default=None, init=False)
+    # Latched repair state so the watchdog only calls the issue registry on a
+    # transition rather than every tick.
+    _no_data_issue_active: bool = field(default=False, init=False)
+    _unauthorized_issue_active: bool = field(default=False, init=False)
     _soc_tracking: Dict[str, SocTracking] = field(default_factory=dict, init=False)
     _soc_rate: Dict[str, float] = field(default_factory=dict, init=False)
     _soc_estimate: Dict[str, float] = field(default_factory=dict, init=False)
@@ -423,6 +471,7 @@ class CardataCoordinator:
         seen_descriptors: list[str] = []
 
         self.last_message_at = datetime.now(timezone.utc)
+        self.last_message_by_vin[vin] = self.last_message_at
 
         if debug_enabled():
             _LOGGER.debug("Processing message for VIN %s: %s", vin, list(data.keys()))
@@ -464,6 +513,8 @@ class CardataCoordinator:
             is_new = descriptor not in vehicle_state
             vehicle_state[descriptor] = DescriptorState(value=value, unit=unit, timestamp=timestamp)
             seen_descriptors.append(descriptor)
+            vin_counts = self.descriptor_counts.setdefault(vin, {})
+            vin_counts[descriptor] = vin_counts.get(descriptor, 0) + 1
             if descriptor == "vehicle.vehicleIdentification.basicVehicleData" and isinstance(value, dict):
                 self.apply_basic_data(vin, value)
             if is_new:
@@ -1340,16 +1391,127 @@ class CardataCoordinator:
     async def async_handle_connection_event(
         self, status: str, *, reason: Optional[str] = None
     ) -> None:
+        now = datetime.now(timezone.utc)
         self.connection_status = status
         if reason:
             self.last_disconnect_reason = reason
         elif status == "connected":
             self.last_disconnect_reason = None
+        self.connection_history.append(
+            {"at": now.isoformat(), "status": status, "reason": reason}
+        )
+        # Track an unresolved "unauthorized" (MQTT rc=5) window: it opens on the
+        # first unauthorized event and closes only on a successful connect, which
+        # is exactly the condition the persisting-rc=5 repair should flag.
+        if status == "unauthorized":
+            if self._unauthorized_since is None:
+                self._unauthorized_since = now
+        elif status == "connected":
+            self._unauthorized_since = None
         self._log_diagnostics()
+        self._evaluate_stream_repairs(now)
+
+    def _evaluate_stream_repairs(self, now: Optional[datetime] = None) -> None:
+        """Raise or clear the stream-health repair issues.
+
+        Idempotent and latched: the underlying registry calls are only made on a
+        state transition, so this is cheap to run from both the watchdog tick and
+        every connection event. Both issues carry a ``learn_more_url`` to the
+        matching Wiki anchor -- the fix, not just the symptom.
+        """
+
+        now = now or datetime.now(timezone.utc)
+
+        # Persisting rc=5 first: it is the more specific diagnosis, and while it
+        # is active the no-data repair would only be a vaguer restatement of the
+        # same outage, so we suppress that one.
+        unauthorized = (
+            self._unauthorized_since is not None
+            and (now - self._unauthorized_since).total_seconds()
+            >= UNAUTHORIZED_REPAIR_AFTER_S
+        )
+        self._set_unauthorized_issue(unauthorized)
+
+        reference = self.last_message_at or self.stream_started_at
+        no_data = (
+            not unauthorized
+            and reference is not None
+            and (now - reference).total_seconds() >= NO_DATA_REPAIR_AFTER_S
+        )
+        self._set_no_data_issue(no_data)
+
+    def _set_unauthorized_issue(self, active: bool) -> None:
+        issue_id = f"stream_unauthorized_{self.entry_id}"
+        if active == self._unauthorized_issue_active:
+            return
+        self._unauthorized_issue_active = active
+        if not active:
+            ir.async_delete_issue(self.hass, DOMAIN, issue_id)
+            return
+        ir.async_create_issue(
+            self.hass,
+            DOMAIN,
+            issue_id,
+            is_fixable=False,
+            severity=ir.IssueSeverity.ERROR,
+            translation_key="stream_unauthorized",
+            translation_placeholders={
+                "minutes": str(UNAUTHORIZED_REPAIR_AFTER_S // 60),
+            },
+            learn_more_url=f"{WIKI_TROUBLESHOOTING}#stream-authorization-failing",
+        )
+
+    def _set_no_data_issue(self, active: bool) -> None:
+        issue_id = f"stream_no_data_{self.entry_id}"
+        if active == self._no_data_issue_active:
+            return
+        self._no_data_issue_active = active
+        if not active:
+            ir.async_delete_issue(self.hass, DOMAIN, issue_id)
+            return
+        ir.async_create_issue(
+            self.hass,
+            DOMAIN,
+            issue_id,
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="stream_no_data",
+            translation_placeholders={
+                "hours": str(NO_DATA_REPAIR_AFTER_S // 3600),
+            },
+            learn_more_url=f"{WIKI_TROUBLESHOOTING}#no-data-arriving",
+        )
+
+    def async_clear_stream_repairs(self) -> None:
+        """Drop both stream-health repairs (called on unload)."""
+
+        ir.async_delete_issue(self.hass, DOMAIN, f"stream_unauthorized_{self.entry_id}")
+        ir.async_delete_issue(self.hass, DOMAIN, f"stream_no_data_{self.entry_id}")
+
+    def descriptor_diagnostics(self, vin: str) -> list[dict[str, Any]]:
+        """Per-descriptor arrival count + last timestamp for the diagnostics dump.
+
+        Values are deliberately omitted -- only counts, units and timestamps --
+        so nothing sensitive (GPS, VIN-bearing payloads) rides along; only the
+        descriptor *names* appear, which are catalogue identifiers.
+        """
+
+        counts = self.descriptor_counts.get(vin, {})
+        rows = [
+            {
+                "descriptor": descriptor,
+                "arrivals": counts.get(descriptor, 0),
+                "last_timestamp": state.timestamp,
+                "unit": state.unit,
+            }
+            for descriptor, state in self.data.get(vin, {}).items()
+        ]
+        return sorted(rows, key=lambda row: row["descriptor"])
 
     async def async_start_watchdog(self) -> None:
         if self.watchdog_task:
             return
+        self.stream_started_at = datetime.now(timezone.utc)
         # Tie the heartbeat to the config entry so it is cancelled on unload and
         # its exceptions surface, instead of being an orphaned bare loop task.
         entry = self.hass.config_entries.async_get_entry(self.entry_id)
@@ -1375,6 +1537,7 @@ class CardataCoordinator:
             while True:
                 await asyncio.sleep(self.diagnostic_interval)
                 self._log_diagnostics()
+                self._evaluate_stream_repairs()
         except asyncio.CancelledError:
             return
 

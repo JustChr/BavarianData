@@ -9,6 +9,21 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **Diagnostics download.** Settings → Devices & Services → BavarianData → ⋮ →
+  Download diagnostics now produces a redacted snapshot for triage: integration
+  and Home Assistant versions, REST quota state, selected clusters, per-VIN
+  descriptor arrival counts and last-message timestamps, and the MQTT
+  connect/disconnect history with rc codes. VIN, GCID, client ID, tokens and GPS
+  are redacted.
+- **Two new repair issues** (Settings → Repairs), each linking to the matching
+  Troubleshooting anchor: **no stream data received in 48 h**, and **stream
+  unauthorized (MQTT rc=5) persisting** past reauth. The existing quota-exhausted
+  repair now links to its Troubleshooting section too.
+- **GitHub issue templates.** A bug report form that requires the diagnostics
+  attachment and the "did you save Data Selection?" answer, and routes setup /
+  BMW-registration questions to Discussions.
+
 ## [0.9.0] - 2026-07-24
 
 The big one: a full **history layer**. BavarianData now keeps its own local

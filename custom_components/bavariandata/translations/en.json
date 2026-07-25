@@ -2675,6 +2675,14 @@
     "stream_coverage_gaps": {
       "title": "Some selected stream data has never arrived",
       "description": "For {vehicle}, {count} descriptor(s) from the clusters you enabled ({clusters}) have not streamed once in {days} days: {descriptors}. This usually means the data isn't selected in the BMW portal's Data Selection, or your car doesn't produce it. Re-check the Data Selection using the snippet under Configure, or unselect those clusters. Run the get_coverage_report service for the full list."
+    },
+    "stream_no_data": {
+      "title": "No BMW CarData stream data received",
+      "description": "No streamed vehicle data has arrived for over {hours} hours. The stream may have stopped, or the data was never selected in the first place. Check that your Data Selection is saved in the BMW portal (step 4 of setup), trigger a lock/unlock in the MyBMW app to prompt an update, and make sure no other CarData client is connected — BMW allows only one stream per account. Run the get_coverage_report service to see which descriptors are missing."
+    },
+    "stream_unauthorized": {
+      "title": "BMW CarData stream not authorized",
+      "description": "BMW has rejected the streaming connection as unauthorized (MQTT rc=5) for over {minutes} minutes and it hasn't recovered on its own. This usually means the tokens need renewing, or another CarData client is holding the single per-account stream. Try Configure → Refresh tokens now, then Re-authorize with BMW if it keeps failing, and disconnect any other CarData client."
     }
   }
 }

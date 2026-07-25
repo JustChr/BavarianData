@@ -320,6 +320,10 @@ class QuotaManager:
                         "limit": str(REQUEST_LIMIT),
                         "next_reset": reset,
                     },
+                    learn_more_url=(
+                        "https://github.com/JustChr/BavarianData/wiki/"
+                        "Troubleshooting-and-FAQ#quota-exhausted"
+                    ),
                 )
                 raise CardataQuotaError(
                     "BMW CarData API limit reached; try again after quota resets"
@@ -1420,6 +1424,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> 
     domain_data = hass.data.get(DOMAIN, {})
     domain_data.get("_entries", set()).discard(entry.entry_id)
     await data.coordinator.async_stop_watchdog()
+    # Drop the stream-health repairs this entry raised, so a reconfigure or
+    # removal doesn't leave a stale "no data" / "unauthorized" warning behind.
+    data.coordinator.async_clear_stream_repairs()
     # Close any in-progress trip before the debounced save below, so a reload
     # mid-drive doesn't lose it.
     await data.coordinator.async_flush_trips()

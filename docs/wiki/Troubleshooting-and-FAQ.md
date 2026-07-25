@@ -38,6 +38,8 @@ error, if BMW showed one).
 
 ## No data arriving
 
+<a id="no-data-arriving"></a>
+
 1. Make sure you completed [step 4](Getting-Started-4-Choose-Data) — descriptors
    must be ticked **and saved** in the portal's Data Selection.
 2. Trigger a lock/unlock in the MyBMW app to prompt the car to send an update.
@@ -46,7 +48,30 @@ error, if BMW showed one).
    which expected descriptors haven't arrived, so you can tell a selection
    problem from a car-doesn't-send-it problem.
 
+If nothing streams for **48 hours**, a repair issue appears under **Settings →
+Repairs** pointing back here.
+
+## Stream authorization failing (MQTT rc=5)
+
+<a id="stream-authorization-failing"></a>
+
+If the stream is rejected as **unauthorized** (`MQTT rc=5`) and stays that way,
+a repair issue appears under **Settings → Repairs**. The integration retries and
+re-authorizes on its own first; the repair only appears once that hasn't
+recovered it for a while. Two usual causes:
+
+1. **Stale tokens.** Run **Configure → Refresh tokens now**. If it keeps
+   failing, **Configure → Re-authorize with BMW** (the refresh token expires
+   roughly every two weeks — see
+   [access denied](#onboarding-fails-with-access-denied) if the re-auth itself
+   is rejected).
+2. **Another client holds the stream.** BMW allows only
+   [one stream per account](#only-one-stream-per-account) — disconnect any other
+   CarData client, then reload the integration.
+
 ## Only one stream per account
+
+<a id="only-one-stream-per-account"></a>
 
 BMW allows a **single concurrent streaming client** per account (GCID), so no
 other tool can be connected at the same time. If another CarData client is
@@ -70,6 +95,8 @@ per-integration log level.)
 **Hard-refresh the browser** — the bundled card is cached aggressively.
 
 ## Quota exhausted
+
+<a id="quota-exhausted"></a>
 
 If you've spent all [50 REST requests](Feature-API-Quota) in 24 h, a repair
 issue appears under **Settings → Repairs** telling you when it resets.

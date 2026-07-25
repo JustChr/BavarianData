@@ -2444,6 +2444,14 @@
     "stream_coverage_gaps": {
       "title": "Ausgewählte Stream-Daten sind nie eingetroffen",
       "description": "Für {vehicle} sind {count} Merkmal(e) aus den von dir aktivierten Clustern ({clusters}) seit {days} Tagen kein einziges Mal gestreamt worden: {descriptors}. Meist bedeutet das, dass die Daten in der Datenauswahl im BMW-Portal nicht ausgewählt sind oder dein Fahrzeug sie nicht liefert. Prüfe die Datenauswahl mit dem Snippet unter Konfigurieren erneut oder deaktiviere diese Cluster. Die vollständige Liste liefert der Dienst get_coverage_report."
+    },
+    "stream_no_data": {
+      "title": "Keine BMW CarData Stream-Daten empfangen",
+      "description": "Seit über {hours} Stunden sind keine gestreamten Fahrzeugdaten eingetroffen. Möglicherweise ist der Stream abgebrochen oder die Daten wurden nie ausgewählt. Prüfe, ob deine Datenauswahl im BMW-Portal gespeichert ist (Schritt 4 der Einrichtung), löse in der MyBMW-App ein Ver-/Entriegeln aus, um ein Update anzustoßen, und stelle sicher, dass kein anderer CarData-Client verbunden ist – BMW erlaubt nur einen Stream pro Konto. Der Dienst get_coverage_report zeigt, welche Merkmale fehlen."
+    },
+    "stream_unauthorized": {
+      "title": "BMW CarData Stream nicht autorisiert",
+      "description": "BMW hat die Streaming-Verbindung seit über {minutes} Minuten als nicht autorisiert abgelehnt (MQTT rc=5), und sie hat sich nicht von selbst erholt. Meist müssen die Tokens erneuert werden, oder ein anderer CarData-Client belegt den einzigen Stream pro Konto. Versuche Konfigurieren → Tokens jetzt aktualisieren, danach Bei BMW neu autorisieren, falls es weiter fehlschlägt, und trenne jeden anderen CarData-Client."
     }
   }
 }

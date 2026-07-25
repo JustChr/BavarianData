@@ -1,0 +1,12 @@
+blank_issues_enabled: false
+contact_links:
+  - name: BMW registration / authorization help & general questions
+    url: https://github.com/JustChr/BavarianData/discussions
+    about: >
+      Setup help, BMW-side "access denied", or usage questions belong in
+      Discussions — the issue tracker is for bugs in the integration.
+  - name: Troubleshooting & FAQ
+    url: https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ
+    about: >
+      No data, only-one-stream, quota, and the access-denied workaround are
+      covered here — please check before opening an issue.

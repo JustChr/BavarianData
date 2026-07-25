@@ -1,0 +1,97 @@
+name: Bug report
+description: Report a problem with the BavarianData integration itself
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug.
+
+        **Before you start:** most "no data" / "it won't connect" problems are
+        BMW-side (Data Selection not saved, another CarData client holding the
+        single stream, or the daily REST quota). Please skim the
+        [Troubleshooting & FAQ](https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ)
+        first — and for BMW registration/authorization help or general questions,
+        use [Discussions](https://github.com/JustChr/BavarianData/discussions)
+        rather than an issue.
+
+        The single most useful thing you can attach is the **diagnostics
+        download** — it answers most of the questions below on its own.
+  - type: checkboxes
+    id: diagnostics
+    attributes:
+      label: Diagnostics download
+      description: |
+        In Home Assistant: **Settings → Devices & Services → BavarianData →
+        the ⋮ menu on the entry → Download diagnostics**. Drag the downloaded
+        JSON file into the description box below. It is already redacted — VIN,
+        GCID, client ID, tokens and GPS are removed.
+      options:
+        - label: I have attached the diagnostics JSON file to this issue
+          required: true
+  - type: dropdown
+    id: data-selection
+    attributes:
+      label: Did you save Data Selection in the BMW portal?
+      description: |
+        The portal's **Data Selection** page must have the fields ticked **and
+        saved** (step 4 of setup) before anything streams. This is the most
+        common cause of "no data".
+      options:
+        - "Yes — ticked and saved in the portal"
+        - "No / not yet"
+        - "Not sure"
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What went wrong, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: What did you do leading up to the problem?
+      placeholder: |
+        1. …
+        2. …
+        3. …
+    validations:
+      required: true
+  - type: input
+    id: integration-version
+    attributes:
+      label: BavarianData version
+      description: From HACS, or the `version` shown in the diagnostics download.
+      placeholder: "0.9.0"
+    validations:
+      required: true
+  - type: input
+    id: ha-version
+    attributes:
+      label: Home Assistant version
+      placeholder: "2026.7.x"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: |
+        Any related lines from **Settings → System → Logs**. For a hard-to-pin
+        problem, enable **Configure → Debug logging** first, reproduce, then
+        paste the `custom_components.bavariandata` lines. Debug logs can contain
+        VIN/GPS — review before pasting.
+      render: text
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Confirmations
+      options:
+        - label: I searched existing issues and this isn't a duplicate
+          required: true
+        - label: I'm running the latest release (or `main`) of BavarianData
+          required: false
