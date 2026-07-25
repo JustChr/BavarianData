@@ -54,6 +54,12 @@ DESC_IGNITION = "vehicle.drivetrain.engine.isIgnitionOn"
 # fix is read back from stored state rather than assumed present in one batch.
 DESC_GPS_LAT = "vehicle.cabin.infotainment.navigation.currentLocation.latitude"
 DESC_GPS_LON = "vehicle.cabin.infotainment.navigation.currentLocation.longitude"
+# The cumulative odometer descriptor differs by model: most cars stream
+# ``vehicle.vehicle.mileage``; the i5 streams ``vehicle.vehicle.travelledDistance``
+# instead (same thing -- a lifetime total in km). Trying both in order means trip
+# distance and charging-cost mileage come from BMW's own figure wherever either
+# is present, falling back to the GPS track only when neither is.
+DESC_ODOMETER = ("vehicle.vehicle.mileage", "vehicle.vehicle.travelledDistance")
 DESC_SEG_PREFIX = "vehicle.trip.segment.end."
 DESC_SEG_DISTANCE = "vehicle.trip.segment.end.travelledDistance"
 DESC_SEG_RECUP = "vehicle.trip.segment.accumulated.drivetrain.electricEngine.recuperationTotal"
@@ -918,15 +924,23 @@ class CardataCoordinator:
         )
 
     def _odometer_km(self, vin: str) -> Optional[float]:
-        """Odometer at the end of the session, for distance-based costing."""
+        """Cumulative odometer in km, for trip distance and distance-based costing.
 
-        state = self.get_state(vin, "vehicle.vehicle.mileage")
-        if state is None or state.value is None:
-            return None
-        try:
-            return float(state.value)
-        except (TypeError, ValueError):
-            return None
+        Reads whichever odometer descriptor the car actually streams (see
+        ``DESC_ODOMETER``) -- notably the i5's ``travelledDistance``, which the
+        trip builder prefers over its GPS-track fallback. Coarse (1 km integer
+        steps), so a sub-km trip that doesn't tick it still falls through to GPS.
+        """
+
+        for descriptor in DESC_ODOMETER:
+            state = self.get_state(vin, descriptor)
+            if state is None or state.value is None:
+                continue
+            try:
+                return float(state.value)
+            except (TypeError, ValueError):
+                continue
+        return None
 
     def _battery_kwh(self, vin: str, descriptor: str) -> Optional[float]:
         state = self.get_state(vin, descriptor)

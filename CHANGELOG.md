@@ -10,6 +10,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [Unreleased]
 
 ### Fixed
+- **Trip distance now uses BMW's odometer, not just the GPS track.** The i5
+  streams its cumulative odometer as `vehicle.vehicle.travelledDistance` (km),
+  but the code only ever read `vehicle.vehicle.mileage` (which the i5 doesn't
+  stream), so every trip fell back to the GPS haversine track — which undercounts
+  winding roads. The odometer is now read from either descriptor, giving BMW's
+  own exact distance on cars that stream it; sub-kilometre trips that don't tick
+  the (1 km-resolution) odometer still fall back to GPS.
 - **Trips no longer fragment mid-drive.** On the i5 (and other cars that stream
   live GPS), BMW emits `trip.segment` batches repeatedly *during* a drive, not
   just at its end. Each one was treated as a completed-trip marker and closed the
