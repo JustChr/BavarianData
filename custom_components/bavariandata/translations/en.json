@@ -20,8 +20,8 @@
         }
       },
       "guided_paste": {
-        "title": "Paste the setup result",
-        "description": "The setup page didn't report back automatically (this happens when Home Assistant is reached over plain HTTP). No problem — on the setup page you opened ([here]({url})), press **Copy** on the result box, then paste it below.\n\n{error}",
+        "title": "Activate your data, then paste the result",
+        "description": "1. Open the **[BavarianData setup page]({url})**.\n2. Drag the **Activate BMW data** button to your bookmarks bar (once).\n3. Open the **BMW portal**, sign in, and go to a vehicle's **stream setup** page.\n4. Click the **Activate BMW data** bookmark. When it finishes, press **Copy** in the box it shows.\n5. Paste that result below and press **Submit**.\n\nEverything runs in your own browser — no password or session ever leaves it.\n\n{error}",
         "data": {
           "result": "Setup result"
         },

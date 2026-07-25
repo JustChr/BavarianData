@@ -74,8 +74,9 @@ ONBOARDING_VIEW_URL = f"/{DOMAIN}/onboarding"
 _ONBOARDING_STORE = "_onboarding_flows"
 _ONBOARDING_VIEW_REGISTERED = "_onboarding_view_registered"
 # How long the guided flow waits for the activator to report before offering the
-# manual paste fallback.
-ONBOARDING_WAIT_TIMEOUT = 600
+# manual paste fallback. Only reached on an https instance where the webhook is
+# viable but doesn't arrive (rare); http instances skip the wait entirely.
+ONBOARDING_WAIT_TIMEOUT = 300
 
 
 class _OnboardingHelperView(HomeAssistantView):
@@ -161,6 +162,7 @@ class CardataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._onboarding_event: Optional[asyncio.Event] = None
         self._onboarding_page_url: str = ""
         self._onboarding_wait_task: Optional[asyncio.Task] = None
+        self._onboarding_auto: bool = False
 
     async def async_step_user(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """Entry point: choose guided (recommended) or manual setup."""
@@ -221,11 +223,19 @@ class CardataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._guided_sections = default_sections()
         self._ensure_onboarding_view()
 
-        webhook_id = webhook.async_generate_id()
+        token = webhook.async_generate_id()
         try:
-            report_url = webhook.async_generate_url(self.hass, webhook_id)
+            webhook_url = webhook.async_generate_url(self.hass, token)
         except NoURLAvailableError:
-            report_url = ""  # no reachable URL: activator falls back to clipboard
+            webhook_url = ""
+        # The activator runs on https://www.bmw.at and can only POST its result to
+        # an **https** Home Assistant; an http instance blocks that as mixed
+        # content. So only wire the webhook (and the auto-continue wait) when HA is
+        # https -- otherwise the activator is clipboard-only and we go straight to
+        # the paste screen, instead of a wait that could never complete.
+        auto = webhook_url.startswith("https://")
+        report_url = webhook_url if auto else ""
+        self._onboarding_auto = auto
 
         attributes = default_activator_attributes()
         bookmarklet = build_bookmarklet(attributes, report_url=report_url)
@@ -236,20 +246,24 @@ class CardataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         event = asyncio.Event()
         store = self.hass.data.setdefault(DOMAIN, {}).setdefault(_ONBOARDING_STORE, {})
-        store[webhook_id] = {"event": event, "result": None, "html": html}
-        webhook.async_register(
-            self.hass, DOMAIN, "BavarianData onboarding", webhook_id, _handle_onboarding_webhook
-        )
-        self._onboarding_webhook_id = webhook_id
+        store[token] = {"event": event, "result": None, "html": html}
+        self._onboarding_webhook_id = token
         self._onboarding_event = event
+        if auto:
+            webhook.async_register(
+                self.hass, DOMAIN, "BavarianData onboarding", token, _handle_onboarding_webhook
+            )
+
         try:
             self._onboarding_page_url = (
-                get_url(self.hass) + ONBOARDING_VIEW_URL + f"?token={webhook_id}"
+                get_url(self.hass) + ONBOARDING_VIEW_URL + f"?token={token}"
             )
         except NoURLAvailableError:
-            self._onboarding_page_url = f"{ONBOARDING_VIEW_URL}?token={webhook_id}"
+            self._onboarding_page_url = f"{ONBOARDING_VIEW_URL}?token={token}"
 
-        return await self.async_step_guided_wait()
+        if auto:
+            return await self.async_step_guided_wait()
+        return await self.async_step_guided_paste()
 
     async def async_remove(self) -> None:
         """Flow teardown (abort/cancel/finish): drop the webhook + wait task."""
@@ -278,12 +292,13 @@ class CardataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def _cleanup_onboarding(self) -> None:
         """Unregister the webhook and drop the pending record for this flow."""
 
-        webhook_id = self._onboarding_webhook_id
-        if not webhook_id:
+        token = self._onboarding_webhook_id
+        if not token:
             return
-        with contextlib.suppress(ValueError, KeyError):
-            webhook.async_unregister(self.hass, webhook_id)
-        self.hass.data.get(DOMAIN, {}).get(_ONBOARDING_STORE, {}).pop(webhook_id, None)
+        if self._onboarding_auto:
+            with contextlib.suppress(ValueError, KeyError):
+                webhook.async_unregister(self.hass, token)
+        self.hass.data.get(DOMAIN, {}).get(_ONBOARDING_STORE, {}).pop(token, None)
         self._onboarding_webhook_id = None
         self._onboarding_event = None
 

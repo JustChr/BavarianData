@@ -9,6 +9,17 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.1-beta.5] - 2026-07-25
+
+### Fixed
+- **Guided setup no longer hangs on an http Home Assistant.** The browser
+  activator can only auto-report to an **https** Home Assistant (an http instance
+  blocks the https→http POST as mixed content). The guided flow now detects this
+  and, on an http instance, goes **straight to a self-contained paste screen**
+  (open the setup page → run the bookmarklet → Copy → paste) instead of a webhook
+  wait that could never complete. On https it still auto-continues; the wait's
+  fallback timeout dropped from 10 to 5 minutes.
+
 ## [0.9.1-beta.4] - 2026-07-25
 
 ### Changed

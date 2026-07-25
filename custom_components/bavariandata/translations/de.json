@@ -20,8 +20,8 @@
         }
       },
       "guided_paste": {
-        "title": "Setup-Ergebnis einfügen",
-        "description": "Die Setup-Seite hat sich nicht automatisch zurückgemeldet (das passiert, wenn Home Assistant über einfaches HTTP erreicht wird). Kein Problem — klicke auf der Setup-Seite, die du geöffnet hast ([hier]({url})), im Ergebnisfeld auf **Copy** und füge das Ergebnis unten ein.\n\n{error}",
+        "title": "Daten aktivieren und Ergebnis einfügen",
+        "description": "1. Öffne die **[BavarianData-Setup-Seite]({url})**.\n2. Ziehe die Schaltfläche **Activate BMW data** einmalig in deine Lesezeichenleiste.\n3. Öffne das **BMW-Portal**, melde dich an und gehe zur **Stream-Setup**-Seite eines Fahrzeugs.\n4. Klicke auf das Lesezeichen **Activate BMW data**. Wenn es fertig ist, klicke im angezeigten Feld auf **Copy**.\n5. Füge das Ergebnis unten ein und klicke auf **Absenden**.\n\nAlles läuft in deinem eigenen Browser — kein Passwort und keine Sitzung verlässt ihn.\n\n{error}",
         "data": {
           "result": "Setup-Ergebnis"
         },
