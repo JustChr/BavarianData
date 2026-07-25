@@ -27,6 +27,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   nothing), has **per-request timeouts** so a stalled request can't hang it, shows
   live progress, and detects when you're on the wrong page.
 
+## [0.9.1-beta.3] - 2026-07-25
+
 ### Added
 - **Guided setup (one-snippet onboarding).** Setup now opens with a Guided vs.
   Manual choice. Guided asks which data clusters you want, then hands you a single
