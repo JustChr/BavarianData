@@ -1350,7 +1350,15 @@ class CardataCoordinator:
     async def async_start_watchdog(self) -> None:
         if self.watchdog_task:
             return
-        self.watchdog_task = self.hass.loop.create_task(self._watchdog_loop())
+        # Tie the heartbeat to the config entry so it is cancelled on unload and
+        # its exceptions surface, instead of being an orphaned bare loop task.
+        entry = self.hass.config_entries.async_get_entry(self.entry_id)
+        if entry is not None:
+            self.watchdog_task = entry.async_create_background_task(
+                self.hass, self._watchdog_loop(), f"{DOMAIN}_watchdog"
+            )
+        else:  # pragma: no cover - entry always present during setup
+            self.watchdog_task = self.hass.loop.create_task(self._watchdog_loop())
 
     async def async_stop_watchdog(self) -> None:
         if not self.watchdog_task:

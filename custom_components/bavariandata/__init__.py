@@ -182,7 +182,10 @@ def _coverage_issue_id(entry_id: str, vin: str) -> str:
 def _refresh_coverage_issues(hass: HomeAssistant, entry_id: str) -> None:
     """Create or clear a per-vehicle repair issue from the coverage self-test."""
 
-    runtime: Optional["CardataRuntimeData"] = hass.data.get(DOMAIN, {}).get(entry_id)
+    entry = hass.config_entries.async_get_entry(entry_id)
+    runtime: Optional["CardataRuntimeData"] = (
+        getattr(entry, "runtime_data", None) if entry else None
+    )
     if runtime is None or runtime.coverage is None:
         return
     for report in _coverage_reports(runtime):
@@ -233,6 +236,14 @@ class CardataRuntimeData:
     last_reauth_attempt: float = 0.0
     last_refresh_attempt: float = 0.0
     reauth_pending: bool = False
+
+
+# Per-entry runtime lives on ``entry.runtime_data`` (HA 2026.3+), so a typed
+# ConfigEntry alias gives callers ``entry.runtime_data`` with the right type and
+# removes the old ``hass.data[DOMAIN][entry.entry_id]`` lookups. Process-wide
+# state (registered services, the shared vehicle-image cache) still lives on
+# ``hass.data[DOMAIN]``.
+CardataConfigEntry = ConfigEntry[CardataRuntimeData]
 
 
 class CardataQuotaError(Exception):
@@ -399,7 +410,7 @@ def _integration_version() -> str:
         return "0"
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> bool:
     domain_data = hass.data.setdefault(DOMAIN, {})
 
     _LOGGER.debug("Setting up BMW CarData entry %s", entry.entry_id)
@@ -563,6 +574,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         host=data.get("mqtt_host", DEFAULT_STREAM_HOST),
         port=data.get("mqtt_port", DEFAULT_STREAM_PORT),
         keepalive=mqtt_keepalive,
+        config_entry=entry,
         error_callback=handle_stream_error,
     )
     manager.set_message_callback(coordinator.async_handle_message)
@@ -604,8 +616,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 ) from err
             raise ConfigEntryNotReady(f"Unable to connect to BMW MQTT: {err}") from err
 
-    refresh_task = hass.loop.create_task(
-        _refresh_loop(hass, entry, session, manager, container_manager)
+    refresh_task = entry.async_create_background_task(
+        hass,
+        _refresh_loop(hass, entry, session, manager, container_manager),
+        f"{DOMAIN}_token_refresh",
     )
 
     stored_container_manager = container_manager
@@ -625,7 +639,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         reauth_in_progress=False,
         reauth_flow_id=None,
     )
-    hass.data[DOMAIN][entry.entry_id] = runtime_data
+    entry.runtime_data = runtime_data
+    # Track loaded entries so services (registered process-wide) are torn down
+    # once the last entry unloads. Runtime itself lives on entry.runtime_data.
+    domain_data.setdefault("_entries", set()).add(entry.entry_id)
 
     await coordinator.async_handle_connection_event("connecting")
     await coordinator.async_start_watchdog()
@@ -634,9 +651,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         def _resolve_target(call: Any) -> tuple[str, ConfigEntry, CardataRuntimeData] | None:
             entries = {
-                key: value
-                for key, value in hass.data.get(DOMAIN, {}).items()
-                if not key.startswith("_")
+                loaded_entry.entry_id: loaded_entry.runtime_data
+                for loaded_entry in hass.config_entries.async_entries(DOMAIN)
+                if getattr(loaded_entry, "runtime_data", None) is not None
             }
 
             target_entry_id = call.data.get("entry_id")
@@ -1001,8 +1018,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 return now_local.year, now_local.month
             try:
                 year, month = (int(part) for part in str(raw).split("-", 1))
-            except (ValueError, TypeError):
-                raise ServiceValidationError(f"'month' must be 'YYYY-MM', got {raw!r}")
+            except (ValueError, TypeError) as err:
+                raise ServiceValidationError(
+                    f"'month' must be 'YYYY-MM', got {raw!r}"
+                ) from err
             if not 1 <= month <= 12:
                 raise ServiceValidationError(f"'month' has no month {month}: {raw!r}")
             return year, month
@@ -1383,22 +1402,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     if should_bootstrap:
-        runtime_data.bootstrap_task = hass.loop.create_task(
-            _async_run_bootstrap(hass, entry)
+        runtime_data.bootstrap_task = entry.async_create_background_task(
+            hass, _async_run_bootstrap(hass, entry), f"{DOMAIN}_bootstrap"
         )
 
-    runtime_data.telematic_task = hass.loop.create_task(
-        _telematic_poll_loop(hass, entry.entry_id)
+    runtime_data.telematic_task = entry.async_create_background_task(
+        hass, _telematic_poll_loop(hass, entry.entry_id), f"{DOMAIN}_telematic_poll"
     )
 
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    domain_data = hass.data.get(DOMAIN)
-    if not domain_data or entry.entry_id not in domain_data:
+async def async_unload_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> bool:
+    data: CardataRuntimeData | None = getattr(entry, "runtime_data", None)
+    if data is None:
         return True
-    data: CardataRuntimeData = domain_data.pop(entry.entry_id)
+    domain_data = hass.data.get(DOMAIN, {})
+    domain_data.get("_entries", set()).discard(entry.entry_id)
     await data.coordinator.async_stop_watchdog()
     # Close any in-progress trip before the debounced save below, so a reload
     # mid-drive doesn't lose it.
@@ -1434,7 +1454,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             ir.async_delete_issue(hass, DOMAIN, _coverage_issue_id(entry.entry_id, vin))
     await data.stream.async_stop()
     await data.session.close()
-    remaining_entries = [k for k in domain_data.keys() if not k.startswith("_")]
+    remaining_entries = domain_data.get("_entries") or set()
     if not remaining_entries:
         registered_services = domain_data.get("_registered_services", set())
         for service in list(registered_services):
@@ -1442,7 +1462,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 hass.services.async_remove(DOMAIN, service)
         domain_data.pop("_service_registered", None)
         domain_data.pop("_registered_services", None)
-    if not domain_data or not remaining_entries:
+        domain_data.pop("_entries", None)
         hass.data.pop(DOMAIN, None)
     return True
 
@@ -1470,8 +1490,8 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         await CoverageStore(hass, entry.entry_id, sections=[]).async_clear()
 
 
-async def _handle_stream_error(hass: HomeAssistant, entry: ConfigEntry, reason: str) -> None:
-    runtime: CardataRuntimeData = hass.data[DOMAIN][entry.entry_id]
+async def _handle_stream_error(hass: HomeAssistant, entry: CardataConfigEntry, reason: str) -> None:
+    runtime: CardataRuntimeData = entry.runtime_data
     notification_id = f"{DOMAIN}_reauth_{entry.entry_id}"
     if reason == "unauthorized":
         if runtime.reauth_in_progress:
@@ -1645,7 +1665,7 @@ async def _refresh_tokens(
                     data["hv_container_id"] = container_id
                     data["hv_descriptor_signature"] = desired_signature
                     container_manager.sync_from_entry(container_id)
-                    runtime = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+                    runtime = getattr(entry, "runtime_data", None)
                     if runtime and runtime.container_manager:
                         runtime.container_manager.sync_from_entry(container_id)
 
@@ -1654,13 +1674,13 @@ async def _refresh_tokens(
         gcid=data.get("gcid"),
         id_token=new_id_token,
     )
-    runtime = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+    runtime = getattr(entry, "runtime_data", None)
     if runtime:
         runtime.reauth_pending = False
 
 
-async def async_manual_refresh_tokens(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    runtime: CardataRuntimeData | None = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+async def async_manual_refresh_tokens(hass: HomeAssistant, entry: CardataConfigEntry) -> None:
+    runtime: CardataRuntimeData | None = getattr(entry, "runtime_data", None)
     if runtime is None:
         raise CardataAuthError("Integration runtime not ready")
     await _refresh_tokens(
@@ -1671,9 +1691,8 @@ async def async_manual_refresh_tokens(hass: HomeAssistant, entry: ConfigEntry) -
     )
 
 
-async def _async_run_bootstrap(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    domain_entries = hass.data.get(DOMAIN, {})
-    runtime: CardataRuntimeData | None = domain_entries.get(entry.entry_id)
+async def _async_run_bootstrap(hass: HomeAssistant, entry: CardataConfigEntry) -> None:
+    runtime: CardataRuntimeData | None = getattr(entry, "runtime_data", None)
     if runtime is None:
         return
 
@@ -1871,7 +1890,7 @@ async def _async_fetch_basic_data_for_vins(
     vins: List[str],
     quota: QuotaManager | None,
 ) -> None:
-    runtime: CardataRuntimeData = hass.data[DOMAIN][entry.entry_id]
+    runtime: CardataRuntimeData = entry.runtime_data
     session = runtime.session
     coordinator = runtime.coordinator
     device_registry = dr.async_get(hass)
@@ -2029,9 +2048,7 @@ async def _telematic_poll_loop(hass: HomeAssistant, entry_id: str) -> None:
         while True:
             entry = hass.config_entries.async_get_entry(entry_id)
             runtime: CardataRuntimeData | None = (
-                hass.data.get(DOMAIN, {}).get(entry_id)
-                if hass.data.get(DOMAIN)
-                else None
+                getattr(entry, "runtime_data", None) if entry else None
             )
             if entry is None or runtime is None:
                 return

@@ -82,7 +82,7 @@ class CardataSensor(CardataEntity, SensorEntity):
                 self._is_enum = True
         elif self._descriptor == "vehicle.vehicle.travelledDistance":
             self._attr_state_class = SensorStateClass.TOTAL_INCREASING
-    
+
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
         if getattr(self, "_attr_native_value", None) is None:
@@ -973,7 +973,7 @@ class CardataDrivingDistanceMonthSensor(CardataEntity, SensorEntity):
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities
 ) -> None:
-    runtime = hass.data[DOMAIN][entry.entry_id]
+    runtime = entry.runtime_data
     coordinator: CardataCoordinator = runtime.coordinator
 
     entities: Dict[Tuple[str, str], CardataSensor] = {}
@@ -1096,7 +1096,7 @@ async def async_setup_entry(
         ensure_driving_entity(vin)
         if (vin, descriptor) in entities:
             return
-        
+
         # Filter out location descriptors - these are used by device_tracker only
         location_descriptors = [
             "vehicle.cabin.infotainment.navigation.currentLocation.latitude",
@@ -1105,7 +1105,7 @@ async def async_setup_entry(
         ]
         if descriptor in location_descriptors:
             return
-        
+
         state = coordinator.get_state(vin, descriptor)
         if state:
             if isinstance(state.value, bool):

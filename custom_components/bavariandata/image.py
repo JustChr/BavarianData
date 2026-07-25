@@ -174,7 +174,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up one vehicle-image entity per known VIN."""
 
-    runtime = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+    runtime = getattr(entry, "runtime_data", None)
     if not runtime:
         return
     coordinator: CardataCoordinator = runtime.coordinator

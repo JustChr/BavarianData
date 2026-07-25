@@ -3,19 +3,44 @@
 from __future__ import annotations
 
 import asyncio
+import concurrent.futures
 import json
 import logging
 import ssl
 import time
-from typing import Awaitable, Callable, Optional
+from typing import Any, Awaitable, Callable, Coroutine, Optional
 
 import paho.mqtt.client as mqtt
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
+from .const import DOMAIN
 from .debug import debug_enabled
 
 _LOGGER = logging.getLogger(__name__)
+
+# BMW's MQTTv3 CONNACK/DISCONNECT numeric codes are surfaced by paho 2.x's
+# VERSION2 callbacks as their MQTTv5 equivalents: 4 ("bad user name or
+# password") -> 134 and 5 ("not authorized") -> 135. A clean disconnect is 0.
+_RC_BAD_CREDENTIALS = 134
+_RC_NOT_AUTHORIZED = 135
+
+
+def _log_future_exception(future: concurrent.futures.Future) -> None:
+    """Surface exceptions from coroutines scheduled off the MQTT network thread.
+
+    ``run_coroutine_threadsafe`` hands back a future nobody awaits, so without
+    this a regression in the message callback -- or any other scheduled
+    coroutine -- would fail completely silently. This runs on the event loop
+    once the coroutine finishes.
+    """
+
+    if future.cancelled():
+        return
+    exc = future.exception()
+    if exc is not None:
+        _LOGGER.error("BMW CarData stream task failed: %s", exc, exc_info=exc)
 
 
 class CardataStreamManager:
@@ -31,9 +56,11 @@ class CardataStreamManager:
         host: str,
         port: int,
         keepalive: int,
+        config_entry: ConfigEntry,
         error_callback: Optional[Callable[[str], Awaitable[None]]] = None,
     ) -> None:
         self.hass = hass
+        self._config_entry = config_entry
         self._client_id = client_id
         self._gcid = gcid
         self._password = id_token
@@ -125,6 +152,21 @@ class CardataStreamManager:
     ) -> None:
         self._status_callback = callback
 
+    def _run_coro(
+        self, coro: Coroutine[Any, Any, Any]
+    ) -> "concurrent.futures.Future[Any]":
+        """Schedule a coroutine from the MQTT thread and log any exception.
+
+        paho's callbacks run on its own network thread, so everything that
+        touches the event loop is bounced across with
+        ``run_coroutine_threadsafe``. Attaching a done-callback is what keeps a
+        failure in (say) ``_message_callback`` from vanishing unnoticed.
+        """
+
+        future = asyncio.run_coroutine_threadsafe(coro, self.hass.loop)
+        future.add_done_callback(_log_future_exception)
+        return future
+
     @property
     def debug_info(self) -> dict[str, str | int | bool]:
         """Return connection parameters for diagnostics."""
@@ -147,6 +189,9 @@ class CardataStreamManager:
     def _start_client(self) -> None:
         client_id = self._gcid
         client = mqtt.Client(
+            # paho 2.x defaults to the deprecated VERSION1 callback API and warns;
+            # VERSION2 is the supported one and the only one paho 3.x will ship.
+            callback_api_version=mqtt.CallbackAPIVersion.VERSION2,
             client_id=client_id,
             clean_session=True,
             # Subscribe only to direct VIN topics. Do not modify this unless BMW changes the stream contract.
@@ -189,8 +234,10 @@ class CardataStreamManager:
         client.loop_start()
         self._client = client
 
-    def _handle_connect(self, client: mqtt.Client, userdata, flags, rc) -> None:
-        if rc == 0:
+    def _handle_connect(
+        self, client: mqtt.Client, userdata, flags, reason_code, properties=None
+    ) -> None:
+        if reason_code == 0:
             topic = userdata.get("topic")
             if topic:
                 result = client.subscribe(topic)
@@ -199,19 +246,16 @@ class CardataStreamManager:
             if self._reauth_notified:
                 self._reauth_notified = False
                 self._awaiting_new_credentials = False
-                asyncio.run_coroutine_threadsafe(self._notify_recovered(), self.hass.loop)
+                self._run_coro(self._notify_recovered())
             self._cancel_retry()
             self._last_disconnect = None
             self._retry_backoff = 3
             if self._status_callback:
-                asyncio.run_coroutine_threadsafe(
-                    self._status_callback("connected"),
-                    self.hass.loop,
-                )
-        elif rc in (4, 5):  # bad credentials / not authorized
+                self._run_coro(self._status_callback("connected"))
+        elif reason_code.value in (_RC_BAD_CREDENTIALS, _RC_NOT_AUTHORIZED):
             now = time.monotonic()
             if (
-                rc == 5
+                reason_code.value == _RC_NOT_AUTHORIZED
                 and self._last_disconnect is not None
                 and now - self._last_disconnect < 10
             ):
@@ -223,21 +267,21 @@ class CardataStreamManager:
                 self._client = None
                 self._schedule_retry(3)
                 return
-            _LOGGER.error("BMW MQTT connection failed: rc=%s", rc)
-            asyncio.run_coroutine_threadsafe(self._handle_unauthorized(), self.hass.loop)
+            _LOGGER.error("BMW MQTT connection failed: rc=%s", reason_code)
+            self._run_coro(self._handle_unauthorized())
             client.loop_stop()
             self._client = None
             return
         elif self._status_callback:
-            asyncio.run_coroutine_threadsafe(
-                self._status_callback("connection_failed", reason=str(rc)),
-                self.hass.loop,
+            self._run_coro(
+                self._status_callback("connection_failed", reason=str(reason_code))
             )
 
-    def _handle_subscribe(self, client: mqtt.Client, userdata, mid, granted_qos) -> None:
+    def _handle_subscribe(
+        self, client: mqtt.Client, userdata, mid, reason_code_list, properties=None
+    ) -> None:
         if debug_enabled():
-            if debug_enabled():
-                _LOGGER.debug("BMW MQTT subscribed mid=%s qos=%s", mid, granted_qos)
+            _LOGGER.debug("BMW MQTT subscribed mid=%s qos=%s", mid, reason_code_list)
 
     def _handle_message(self, client: mqtt.Client, userdata, msg: mqtt.MQTTMessage) -> None:
         payload = msg.payload.decode(errors="ignore")
@@ -250,24 +294,20 @@ class CardataStreamManager:
         except json.JSONDecodeError:
             return
         if self._message_callback:
-            asyncio.run_coroutine_threadsafe(self._message_callback(data), self.hass.loop)
+            self._run_coro(self._message_callback(data))
 
-    def _handle_disconnect(self, client: mqtt.Client, userdata, rc) -> None:
-        reason = {
-            0: "clean disconnect",
-            1: "Unacceptable protocol version",
-            2: "Identifier rejected",
-            3: "Server unavailable",
-            4: "Bad username or password",
-            5: "Not authorized",
-        }.get(rc, "Unknown")
-        # rc=0 is a clean, self-initiated disconnect (e.g. reconnect on credential
-        # refresh) — routine, so keep it at debug. Any other rc is unexpected.
-        if rc == 0:
+    def _handle_disconnect(
+        self, client: mqtt.Client, userdata, disconnect_flags, reason_code, properties=None
+    ) -> None:
+        reason = str(reason_code)
+        is_clean = reason_code == 0
+        # A clean, self-initiated disconnect (e.g. reconnect on credential
+        # refresh) is routine, so keep it at debug. Anything else is unexpected.
+        if is_clean:
             if debug_enabled():
-                _LOGGER.debug("BMW MQTT disconnected rc=%s (%s)", rc, reason)
+                _LOGGER.debug("BMW MQTT disconnected rc=%s (%s)", reason_code, reason)
         else:
-            _LOGGER.warning("BMW MQTT disconnected rc=%s (%s)", rc, reason)
+            _LOGGER.warning("BMW MQTT disconnected rc=%s (%s)", reason_code, reason)
         self._last_disconnect = time.monotonic()
         disconnect_future = self._disconnect_future
         if disconnect_future and not disconnect_future.done():
@@ -280,10 +320,10 @@ class CardataStreamManager:
         if isinstance(userdata, dict):
             should_reconnect = userdata.get("reconnect", True)
             userdata["reconnect"] = True
-        if rc in (4, 5):
+        if reason_code.value in (_RC_BAD_CREDENTIALS, _RC_NOT_AUTHORIZED):
             now = time.monotonic()
             if (
-                rc == 5
+                reason_code.value == _RC_NOT_AUTHORIZED
                 and self._last_disconnect is not None
                 and now - self._last_disconnect < 10
             ):
@@ -293,21 +333,15 @@ class CardataStreamManager:
                     )
                 self._schedule_retry(3)
                 return
-            asyncio.run_coroutine_threadsafe(self._handle_unauthorized(), self.hass.loop)
+            self._run_coro(self._handle_unauthorized())
             self._reconnect_backoff = min(self._reconnect_backoff * 2, self._max_backoff)
             if self._status_callback:
-                asyncio.run_coroutine_threadsafe(
-                    self._status_callback("unauthorized", reason=reason),
-                    self.hass.loop,
-                )
+                self._run_coro(self._status_callback("unauthorized", reason=reason))
         else:
             if should_reconnect:
-                asyncio.run_coroutine_threadsafe(self._async_reconnect(), self.hass.loop)
+                self._run_coro(self._async_reconnect())
             if self._status_callback:
-                asyncio.run_coroutine_threadsafe(
-                    self._status_callback("disconnected", reason=reason),
-                    self.hass.loop,
-                )
+                self._run_coro(self._status_callback("disconnected", reason=reason))
 
     async def _async_reconnect(self) -> None:
         await self.async_stop()
@@ -442,4 +476,17 @@ class CardataStreamManager:
             finally:
                 self._retry_task = None
 
-        self._retry_task = self.hass.loop.create_task(_retry())
+        # _schedule_retry runs on paho's network thread; hop to the event loop
+        # to create the task so it is registered against the config entry
+        # (cancelled on unload) and its exceptions surface via Home Assistant.
+        self.hass.loop.call_soon_threadsafe(self._spawn_retry_task, _retry())
+
+    def _spawn_retry_task(self, coro: Coroutine[Any, Any, Any]) -> None:
+        # Re-check on the loop thread (the authoritative one) so two disconnects
+        # racing in from the network thread can't spawn duplicate retries.
+        if self._retry_task is not None and not self._retry_task.done():
+            coro.close()
+            return
+        self._retry_task = self._config_entry.async_create_background_task(
+            self.hass, coro, f"{DOMAIN}_mqtt_retry"
+        )

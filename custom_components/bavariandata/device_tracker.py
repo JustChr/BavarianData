@@ -24,7 +24,6 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
 from .coordinator import CardataCoordinator
 from .entity import CardataEntity
 
@@ -46,7 +45,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the BMW CarData tracker from config entry."""
-    runtime_data = hass.data.get(DOMAIN, {}).get(config_entry.entry_id)
+    runtime_data = getattr(config_entry, "runtime_data", None)
     if not runtime_data:
         return
 

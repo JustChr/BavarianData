@@ -13,7 +13,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers import entity_registry as er
 
-from .const import DOMAIN
 from .coordinator import CardataCoordinator
 from .entity import CardataEntity
 
@@ -37,7 +36,7 @@ def _binary_device_class(
         return BinarySensorDeviceClass.PLUG, False
     if d.endswith(".ismoving"):
         return BinarySensorDeviceClass.MOVING, False
-    if d.endswith("engine.isactive") or d.endswith(".isignitionon"):
+    if d.endswith(("engine.isactive", ".isignitionon")):
         return BinarySensorDeviceClass.RUNNING, False
     if d.endswith(".ismobilephoneconnected"):
         return BinarySensorDeviceClass.CONNECTIVITY, False
@@ -89,7 +88,7 @@ class CardataBinarySensor(CardataEntity, BinarySensorEntity):
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities
 ) -> None:
-    runtime = hass.data[DOMAIN][entry.entry_id]
+    runtime = entry.runtime_data
     coordinator: CardataCoordinator = runtime.coordinator
 
     entities: Dict[Tuple[str, str], CardataBinarySensor] = {}

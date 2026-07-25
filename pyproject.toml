@@ -1,0 +1,34 @@
+# Ruff configuration for the BavarianData integration.
+#
+# The lint selection is intentionally wider than "just the fatal errors": it
+# catches real bug patterns (pyflakes, flake8-bugbear, flake8-logging) on top of
+# syntax/undefined-name checks, while leaving the purely cosmetic rules
+# (line-length, import sorting, the pyupgrade rewrites) off so a legacy file does
+# not drown the signal. Narrow the net per-file with ``per-file-ignores`` rather
+# than shrinking the global ``select``.
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E4",   # pycodestyle: import placement
+    "E7",   # pycodestyle: statement/compound-statement errors
+    "E9",   # pycodestyle: syntax errors
+    "F",    # pyflakes: undefined names, unused imports/vars, f-string bugs
+    "W",    # pycodestyle warnings (trailing whitespace, etc.)
+    "B",    # flake8-bugbear: likely bugs (mutable defaults, raise-without-from)
+    "C4",   # flake8-comprehensions
+    "PIE",  # flake8-pie: small correctness/idiom fixes
+    "LOG",  # flake8-logging: logging misuse
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests favour readability over lint purity.
+"tests/**" = ["B011"]
+
+[tool.ruff.format]
+# Formatting is configured but not yet enforced in CI; run ``ruff format`` to
+# normalise the tree (a large, purely-cosmetic diff) before turning on the
+# ``ruff format --check`` gate.
+docstring-code-format = false

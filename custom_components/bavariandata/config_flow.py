@@ -266,7 +266,7 @@ class CardataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             merged.update(entry_data)
             merged.pop("reauth_pending", None)
             self.hass.config_entries.async_update_entry(self._reauth_entry, data=merged)
-            runtime = self.hass.data.get(DOMAIN, {}).get(self._reauth_entry.entry_id)
+            runtime = getattr(self._reauth_entry, "runtime_data", None)
             if runtime:
                 runtime.reauth_in_progress = False
                 runtime.reauth_flow_id = None
@@ -363,7 +363,7 @@ class CardataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 err,
             )
             if self._reauth_entry:
-                runtime = self.hass.data.get(DOMAIN, {}).get(self._reauth_entry.entry_id)
+                runtime = getattr(self._reauth_entry, "runtime_data", None)
                 if runtime:
                     runtime.reauth_in_progress = False
                     runtime.reauth_flow_id = None
@@ -430,7 +430,7 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
         )
 
     def _get_runtime(self):
-        return self.hass.data.get(DOMAIN, {}).get(self._config_entry.entry_id)
+        return getattr(self._config_entry, "runtime_data", None)
 
     def _finish(self) -> FlowResult:
         # Finishing an options flow overwrites entry.options with this data, so
@@ -674,7 +674,7 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
         options.update(user_input)
         # Apply immediately rather than reloading the entry: BMW allows only one
         # concurrent stream per account, so a reload risks racing the reconnect.
-        runtime = self.hass.data.get(DOMAIN, {}).get(self._config_entry.entry_id)
+        runtime = getattr(self._config_entry, "runtime_data", None)
         if runtime is not None:
             runtime.coordinator.pricing = PricingConfig.from_options(options)
             if runtime.history is not None:
@@ -729,7 +729,7 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
         options.update(user_input)
         # Apply immediately rather than reloading (one concurrent stream per
         # account means a reload risks racing the reconnect).
-        runtime = self.hass.data.get(DOMAIN, {}).get(self._config_entry.entry_id)
+        runtime = getattr(self._config_entry, "runtime_data", None)
         if runtime is not None:
             coordinator = runtime.coordinator
             coordinator.work_zone_entity = (
