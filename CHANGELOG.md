@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.1-beta.1] - 2026-07-25
+
 ### Added
 - **Diagnostics download.** Settings → Devices & Services → BavarianData → ⋮ →
   Download diagnostics now produces a redacted snapshot for triage: integration
