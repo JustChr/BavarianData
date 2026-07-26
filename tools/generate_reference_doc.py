@@ -73,7 +73,10 @@ def main() -> None:
             meta = META.get(e["descriptor"], {})
             unit = meta.get("unit") or "—"
             default = "on" if meta.get("enabled_default", True) else "off"
-            name_en = esc(e["name_en"] or e["element_en"] or "")
+            # Prefer BMW's own English name; for the few German-only descriptors
+            # (no English export row) fall back to our curated title_en so the
+            # column is never blank.
+            name_en = esc(e["name_en"] or e["element_en"] or e["title_en"] or "")
             name_de = esc(e["name_de"] or "")
             desc = esc(e["description_en"] or e["description_de"] or "")
             if len(desc) > 160:

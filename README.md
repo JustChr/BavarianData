@@ -71,19 +71,22 @@ Four steps — the Wiki has the detail and screenshots for each.
    even though your login worked, that's a
    [known BMW-side quirk with a workaround](https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ#onboarding-fails-with-access-denied).
 4. **[Choose which data to stream](https://github.com/JustChr/BavarianData/wiki/Getting-Started-4-Choose-Data)** —
-   pick clusters, paste the generated snippet into the portal's Data Selection,
-   save, and trigger a lock/unlock to prompt the first update.
+   pick your clusters. Guided setup then turns the fields on with a one-click
+   **Activate BMW data** bookmarklet; manual setup hands you a browser-console
+   snippet to paste into the portal's Data Selection instead. Either way, save
+   and trigger a lock/unlock to prompt the first update.
 
 ### Activating stream fields in one call (advanced)
 
-Stream selection ("Datenauswahl") has no CarData API — it normally means ticking
-checkboxes (or pasting the snippet above) in the BMW portal. The
-`bavariandata.activate_stream_fields` service can instead **replay the exact
-request the portal sends when you save**, replacing the whole selection in one
-call. Because that endpoint authenticates with your **browser session** (not the
-integration's token, and behind BMW's bot-defense), you supply a **captured
-portal session** and it can't run unattended — it's a manual, occasional tool. It
-spends no API quota. See
+Stream selection ("Datenauswahl") has no CarData API. Guided setup and
+**Configure → Choose streamed data** hide this behind the one-click **Activate
+BMW data** bookmarklet, which flips the fields on for you in the browser. If you
+instead want to drive it yourself, the `bavariandata.activate_stream_fields`
+service **replays the exact request the portal sends when you save**, replacing
+the whole selection in one call. Because that endpoint authenticates with your
+**browser session** (not the integration's token, and behind BMW's bot-defense),
+you supply a **captured portal session** — a manual, occasional tool that spends
+no API quota. See
 [Services → activate_stream_fields](https://github.com/JustChr/BavarianData/wiki/Services-Reference#activate_stream_fields).
 
 ## Contributing & support

@@ -1424,7 +1424,7 @@
         }
       },
       "vehicle_powertrain_electric_battery_charging_authenticationstatus": {
-        "name": "authenticationStatus",
+        "name": "Battery EV Charging authentication state",
         "state": {
           "not_started": "Not started",
           "started_eim": "Started eim",
@@ -1508,7 +1508,7 @@
         }
       },
       "vehicle_powertrain_electric_battery_stateofcharge_displayed": {
-        "name": "displayed"
+        "name": "Battery EV Displayed state of charge"
       },
       "vehicle_powertrain_electric_battery_stateofcharge_target": {
         "name": "Battery EV Target state of charge"
@@ -2442,7 +2442,7 @@
         "name": "Battery EV Acoustic charging limit"
       },
       "vehicle_powertrain_electric_battery_charging_authenticationstatus": {
-        "name": "authenticationStatus"
+        "name": "Battery EV Charging authentication state"
       },
       "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isactive": {
         "name": "Battery EV Battery care mode active"
@@ -2481,7 +2481,7 @@
         "name": "Battery EV Preconditioning state"
       },
       "vehicle_powertrain_electric_battery_stateofcharge_displayed": {
-        "name": "displayed"
+        "name": "Battery EV Displayed state of charge"
       },
       "vehicle_powertrain_electric_battery_stateofcharge_target": {
         "name": "Battery EV Target state of charge"
