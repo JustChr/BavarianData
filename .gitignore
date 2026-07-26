@@ -13,4 +13,8 @@ __pycache__/
 
 # macOS
 .DS_Store
+
+# Local planning / strategy notes -- never publish
+/feature-strategy.html
+*.strategy.html
  
