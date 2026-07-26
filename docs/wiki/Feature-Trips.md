@@ -51,6 +51,10 @@ show where the car went **and** replay the drive.
   stays a compact route rather than an unbounded stream of fixes. A stop shows up
   as a single point whose gap to the next stamp records how long the car sat.
 
+Once routes are recorded, the dashboard card's **Trip map** view (`view: map`)
+draws them on a map, coloured by classification and filterable by time window
+([see the card](The-Dashboard-Card#trip-map-view-map)).
+
 ## Classification
 
 Drives auto-classify as **business**, **private** or **commute**:

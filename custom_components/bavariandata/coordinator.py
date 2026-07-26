@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
+import os
 import re
 from collections import deque
 from contextlib import suppress
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Deque, Dict, Iterable, Optional
 
 from homeassistant.core import HomeAssistant, callback
@@ -69,6 +71,40 @@ DESC_SEG_BRAKE_STARS = "vehicle.trip.segment.accumulated.chassis.brake.starsAver
 DESC_SEG_ECO = "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveEcoPro"
 DESC_SEG_ELECTRIC = "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveElectric"
 
+# GPS-quality descriptors, folded into every ``[trip.gps]`` capture line. They
+# bear directly on the detector's worst failure mode: a run of "no movement"
+# fixes that is really the *fix* being lost, not the car stopping, splits one
+# drive in two. Seeing fix state / satellite count / heading alongside each step
+# tells the two apart. Same ``currentLocation.*`` group as lat/lon, so a car that
+# streams position very likely streams these too (when selected).
+DESC_GPS_FIX = "vehicle.cabin.infotainment.navigation.currentLocation.fixStatus"
+DESC_GPS_SATS = "vehicle.cabin.infotainment.navigation.currentLocation.numberOfSatellites"
+DESC_GPS_HEADING = "vehicle.cabin.infotainment.navigation.currentLocation.heading"
+
+# Curated candidate trip-lifecycle / motion signals, surfaced on a ``[trip.watch]``
+# line in trip-capture mode. NONE is used for detection today -- the capture
+# exists to learn which (if any) the car actually streams and which cleanly
+# bracket a drive, so a future detector can lean on something sturdier than GPS
+# jitter + a 5-minute debounce. Chosen from the catalogue as the fields most
+# likely to mark "driving": a speed, the HV system / plug state, the ignition
+# trio (to confirm on a real drive they truly stay silent on this car), the
+# driver door + central lock (entry/exit brackets), and active-navigation hints.
+TRIP_WATCH_DESCRIPTORS = (
+    "vehicle.isMoving",
+    "vehicle.drivetrain.engine.isIgnitionOn",
+    "vehicle.drivetrain.engine.isActive",
+    "vehicle.vehicle.avgSpeed",
+    "vehicle.vehicle.speedRange.lowerBound",
+    "vehicle.vehicle.speedRange.upperBound",
+    "vehicle.drivetrain.electricEngine.charging.hvStatus",
+    "vehicle.drivetrain.electricEngine.charging.connectorStatus",
+    "vehicle.cabin.door.row1.driver.isOpen",
+    "vehicle.cabin.door.lock.status",
+    "vehicle.cabin.infotainment.navigation.currentLocation.altitude",
+    "vehicle.cabin.infotainment.navigation.destinationSet.distance",
+    "vehicle.cabin.infotainment.navigation.remainingRange",
+)
+
 # Once the car has been at rest this long with no new segment batch, treat the
 # trip as ended. Long enough to ride out a traffic light, short enough that a
 # parked car's trip closes promptly.
@@ -88,6 +124,23 @@ CHARGE_CLOSE_DEBOUNCE_S = 120
 # every telematic snapshot with the *previous* drive's timestamp, so an old one
 # would otherwise close a live GPS trip the moment the car parks and polls.
 SEG_FRESH_S = 900
+
+# --- Trip-capture diagnostics (OPTION_TRIP_DEBUG) --------------------------
+# A dedicated logger so the trip capture is visible on its own, independent of
+# the generic ``debug_log`` toggle (which only raises the parent logger). Lines
+# are emitted at INFO so they appear whatever the integration's log level, and
+# only ever when the user has explicitly switched trip-capture mode on.
+_TRIPLOG = logging.getLogger(f"{__name__}.tripcapture")
+# Basename of the raw-batch NDJSON capture written to the HA config dir while
+# trip-capture mode is on. One record per MQTT batch, replayable offline.
+TRIP_CAPTURE_FILE = "bavariandata_trip_capture.ndjson"
+# Stop appending once the capture file reaches this size, so a toggle left on by
+# accident can't fill the disk. ~25 MB is many hours of driving.
+TRIP_CAPTURE_MAX_BYTES = 25 * 1024 * 1024
+# Every field of a segment/accumulated batch, captured whole (not just the
+# ``end.*`` subset the detector reduces to a boolean) so we can tell whether any
+# variant ever carries a real trip end.
+DESC_SEG_CAPTURE_PREFIX = "vehicle.trip.segment."
 
 # --- Stream-health repairs -------------------------------------------------
 # A diagnostics download turns "it doesn't work" into 30-second triage, but a
@@ -313,6 +366,9 @@ class CardataCoordinator:
     # Record each trip's GPS route (opt-in, off by default). The only setting that
     # persists raw coordinates; refreshed from options on reload / options change.
     record_trip_track: bool = False
+    # Trip-capture diagnostic mode (opt-in, off by default). Emits the rich
+    # ``[trip.*]`` capture and the NDJSON file; refreshed from options like above.
+    trip_debug: bool = False
     _session_builders: Dict[str, SessionBuilder] = field(
         default_factory=dict, init=False
     )
@@ -335,6 +391,15 @@ class CardataCoordinator:
     # segment-close path: a segment batch must not close a trip the GPS track
     # still shows to be under way.
     _last_gps_move: Dict[str, datetime] = field(default_factory=dict, init=False)
+    # Trip-capture bookkeeping (only populated in ``trip_debug`` mode). The last
+    # GPS fix's wall-clock (for the inter-fix gap), the scheduled close-timer fire
+    # time (for the countdown shown on each fix line), per-open-trip capture stats
+    # for the post-mortem, and a one-shot guard so the file-size warning is logged
+    # only once.
+    _last_gps_fix_at: Dict[str, datetime] = field(default_factory=dict, init=False)
+    _trip_close_due: Dict[str, datetime] = field(default_factory=dict, init=False)
+    _trip_capture: Dict[str, dict] = field(default_factory=dict, init=False)
+    _trip_capture_warned: bool = field(default=False, init=False)
     # Per-VIN lock serialising trip detection. Each MQTT message is dispatched as
     # its own task (``run_coroutine_threadsafe`` in ``stream``), so two GPS fixes
     # can interleave at the geocode ``await`` inside ``_open_trip`` and both pass
@@ -506,6 +571,7 @@ class CardataCoordinator:
         ignition_value: Optional[bool] = None
         segment_fresh = False
         gps_seen = False
+        gps_ts: Optional[datetime] = None
 
         for descriptor, descriptor_payload in data.items():
             if not isinstance(descriptor_payload, dict):
@@ -620,6 +686,8 @@ class CardataCoordinator:
                 ignition_value = value
             if descriptor in (DESC_GPS_LAT, DESC_GPS_LON):
                 gps_seen = True
+                if parsed_ts is not None:
+                    gps_ts = parsed_ts
             if descriptor.startswith(DESC_SEG_PREFIX):
                 # Only a segment carrying a *recent* timestamp is a completed
                 # trip; the stale "last trip end" fields BMW repeats in every
@@ -661,7 +729,14 @@ class CardataCoordinator:
                 vin, now, motion_value, ignition_value, segment_fresh
             )
             if gps_seen:
-                await self._process_gps_signal(vin, now)
+                await self._process_gps_signal(vin, now, gps_ts)
+
+        # Trip-capture diagnostics: the raw firehose + NDJSON file, outside the
+        # trip lock (they only read state) and strictly gated on the opt-in.
+        if self.trip_debug:
+            self._capture_batch(vin, data, now)
+            with suppress(Exception):  # file IO must never break the stream
+                await self._capture_to_file(vin, data, now)
 
         async_dispatcher_send(self.hass, self.signal_diagnostics)
 
@@ -1044,6 +1119,129 @@ class CardataCoordinator:
 
     # --- trips (roadmap Phase 3) -------------------------------------------
 
+    def _cap(self, msg: str, *args: Any, substrate: bool = False) -> None:
+        """Emit a trip log line, routed by which debug mode is on.
+
+        Trip-capture mode (``trip_debug``) is the loudest: it sends the line to
+        the dedicated capture logger at INFO so it is visible on its own, whether
+        or not the generic ``debug_log`` is on. Without capture mode, the decision
+        lines (``substrate=False``) still appear under ``debug_log`` exactly as
+        before; the heavy substrate lines (``substrate=True``) never do -- they
+        are only worth their volume during a deliberate capture.
+        """
+
+        if self.trip_debug:
+            _TRIPLOG.info(msg, *args)
+        elif not substrate and debug_enabled():
+            _LOGGER.debug(msg, *args)
+
+    def _capture_batch(self, vin: str, data: Dict[str, Any], now: datetime) -> None:
+        """Capture a raw MQTT batch: a compact ``[trip.raw]``/``[trip.seg]`` log
+        line for eyeballing, plus the whole batch appended to the NDJSON file for
+        offline replay. Only called in ``trip_debug`` mode. Never raises."""
+
+        try:
+            open_trip = vin in self._trip_builders
+            scalars = []
+            for key, payload in data.items():
+                short = key[len("vehicle.") :] if key.startswith("vehicle.") else key
+                value = payload.get("value") if isinstance(payload, dict) else payload
+                if isinstance(value, (dict, list)):
+                    scalars.append(f"{short}=<{type(value).__name__}>")
+                else:
+                    scalars.append(f"{short}={value}")
+            self._cap(
+                "[trip.raw] %s open=%s n=%d %s",
+                vin,
+                open_trip,
+                len(data),
+                " ".join(scalars),
+                substrate=True,
+            )
+
+            # Segment/accumulated batch, captured whole with each field's own
+            # timestamp so we can see whether any ever carries a real trip end.
+            seg = {
+                k: v for k, v in data.items() if k.startswith(DESC_SEG_CAPTURE_PREFIX)
+            }
+            if seg:
+                freshest = None
+                parts = []
+                for key, payload in seg.items():
+                    short = key[len(DESC_SEG_CAPTURE_PREFIX) :]
+                    if isinstance(payload, dict):
+                        ts = payload.get("timestamp")
+                        parts.append(f"{short}={payload.get('value')}@{ts}")
+                        parsed = dt_util.parse_datetime(ts) if ts else None
+                        if parsed is not None and (freshest is None or parsed > freshest):
+                            freshest = parsed
+                    else:
+                        parts.append(f"{short}={payload}")
+                age = (now - freshest).total_seconds() if freshest is not None else None
+                self._cap(
+                    "[trip.seg] %s n=%d freshest_age=%ss fresh=%s %s",
+                    vin,
+                    len(seg),
+                    None if age is None else int(age),
+                    age is not None and age <= SEG_FRESH_S,
+                    " ".join(parts),
+                    substrate=True,
+                )
+
+            # Curated candidate lifecycle/motion signals present in this batch,
+            # pulled out of the firehose so the fields we hope might drive a
+            # better detector are trivially greppable. Each with its own
+            # timestamp; absent (unstreamed) fields simply never appear.
+            watch = []
+            for key in TRIP_WATCH_DESCRIPTORS:
+                payload = data.get(key)
+                if not isinstance(payload, dict):
+                    continue
+                short = key[len("vehicle.") :] if key.startswith("vehicle.") else key
+                watch.append(f"{short}={payload.get('value')}@{payload.get('timestamp')}")
+            if watch:
+                self._cap(
+                    "[trip.watch] %s %s", vin, " ".join(watch), substrate=True
+                )
+        except Exception:  # noqa: BLE001 - capture must never break the stream
+            _LOGGER.exception("Trip capture (log) failed for %s", vin)
+
+    async def _capture_to_file(self, vin: str, data: Dict[str, Any], now: datetime) -> None:
+        """Append one raw batch to the NDJSON capture file (off the event loop)."""
+
+        record = {
+            "at": now.isoformat(),
+            "vin": vin,
+            "open": vin in self._trip_builders,
+            "data": data,
+        }
+        try:
+            line = json.dumps(record, default=str)
+        except (TypeError, ValueError):
+            return
+        path = self.hass.config.path(TRIP_CAPTURE_FILE)
+        await self.hass.async_add_executor_job(self._append_capture_line, path, line)
+
+    def _append_capture_line(self, path: str, line: str) -> None:
+        try:
+            if (
+                os.path.exists(path)
+                and os.path.getsize(path) > TRIP_CAPTURE_MAX_BYTES
+            ):
+                if not self._trip_capture_warned:
+                    self._trip_capture_warned = True
+                    _TRIPLOG.warning(
+                        "Trip capture file %s exceeded %d bytes; pausing capture "
+                        "writes. Turn trip-capture mode off, or move/delete the file.",
+                        path,
+                        TRIP_CAPTURE_MAX_BYTES,
+                    )
+                return
+            with open(path, "a", encoding="utf-8") as handle:
+                handle.write(line + "\n")
+        except OSError as err:
+            _TRIPLOG.warning("Trip capture file write failed: %s", err)
+
     async def _process_trip_signals(
         self,
         vin: str,
@@ -1070,10 +1268,8 @@ class CardataCoordinator:
             # thing no unit test here can answer, so record every observation
             # under the opt-in debug flag. Tag it so a drive can be grepped out
             # of an otherwise very chatty debug log.
-            if debug_enabled() and (
-                motion is not None or ignition is not None or segment_fresh
-            ):
-                _LOGGER.debug(
+            if motion is not None or ignition is not None or segment_fresh:
+                self._cap(
                     "[trip] %s signals moving=%s ignition=%s segment=%s open=%s",
                     vin,
                     motion,
@@ -1105,7 +1301,9 @@ class CardataCoordinator:
         except Exception:  # noqa: BLE001 - never let trip logic break the stream
             _LOGGER.exception("Trip detection failed for %s", vin)
 
-    async def _process_gps_signal(self, vin: str, now: datetime) -> None:
+    async def _process_gps_signal(
+        self, vin: str, now: datetime, fix_ts: Optional[datetime] = None
+    ) -> None:
         """Open, extend and close trips from the live GPS position stream.
 
         The primary detector on a vehicle that streams neither motion/ignition
@@ -1114,6 +1312,9 @@ class CardataCoordinator:
         distance; the close is left to the debounce timer, reset on every moving
         fix so a mid-drive GPS dropout still closes the trip, and armed once on a
         stationary fix so a parked car that keeps polling still closes promptly.
+
+        ``fix_ts`` is the fix's own BMW timestamp (when known), used only by the
+        trip-capture ``[trip.gps]`` line to expose stream latency and cadence.
         """
 
         if self.history is None:
@@ -1130,10 +1331,17 @@ class CardataCoordinator:
             moving = is_gps_movement(step_km)
             open_trip = vin in self._trip_builders
 
+            # Inter-fix gap and stream latency -- the two numbers that explain a
+            # mid-drive split (a gap over the debounce) or a laggy close.
+            prev_fix = self._last_gps_fix_at.get(vin)
+            gap_s = (now - prev_fix).total_seconds() if prev_fix is not None else None
+            self._last_gps_fix_at[vin] = now
+
             if moving:
                 self._last_gps_move[vin] = now
                 if not open_trip:
                     await self._open_trip(vin, now)
+                    open_trip = True
                 builder = self._trip_builders.get(vin)
                 if builder is not None:
                     builder.add_gps_km(step_km)
@@ -1143,19 +1351,94 @@ class CardataCoordinator:
                 # Rolling window: keep the trip alive while the car is moving,
                 # but guarantee a close even if the fixes stop arriving.
                 self._reset_trip_close_timer(vin)
-                if debug_enabled():
-                    _LOGGER.debug(
-                        "[trip] %s gps MOVE step=%.3fkm total=%.1fkm",
-                        vin,
-                        step_km,
-                        builder.gps_km if builder is not None else 0.0,
-                    )
             elif open_trip:
                 # Stationary fix: start the countdown but don't keep resetting it,
                 # or a car that streams its parked position never closes.
                 self._arm_trip_close_timer(vin)
+
+            self._note_capture_fix(vin, now, step_km, moving, gap_s)
+            if self.trip_debug:
+                self._log_gps_fix(
+                    vin, now, latitude, longitude, step_km, moving, gap_s, fix_ts,
+                    open_trip,
+                )
         except Exception:  # noqa: BLE001 - never let trip logic break the stream
             _LOGGER.exception("GPS trip detection failed for %s", vin)
+
+    def _note_capture_fix(
+        self,
+        vin: str,
+        now: datetime,
+        step_km: float,
+        moving: bool,
+        gap_s: Optional[float],
+    ) -> None:
+        """Fold one fix into the open trip's capture stats (for [trip.post])."""
+
+        stats = self._trip_capture.get(vin)
+        if stats is None:
+            return
+        stats["fixes"] += 1
+        if moving:
+            stats["moves"] += 1
+        else:
+            stats["holds"] += 1
+        if gap_s is not None and gap_s > stats["max_gap"]:
+            stats["max_gap"] = gap_s
+
+    def _log_gps_fix(
+        self,
+        vin: str,
+        now: datetime,
+        latitude: float,
+        longitude: float,
+        step_km: float,
+        moving: bool,
+        gap_s: Optional[float],
+        fix_ts: Optional[datetime],
+        open_trip: bool,
+    ) -> None:
+        """The per-fix substrate line: every fix, moving or not."""
+
+        last_move = self._last_gps_move.get(vin)
+        since_move = (now - last_move).total_seconds() if last_move is not None else None
+        due = self._trip_close_due.get(vin)
+        timer = "none" if due is None else f"armed({int((due - now).total_seconds())}s)"
+        latency = (now - fix_ts).total_seconds() if fix_ts is not None else None
+        builder = self._trip_builders.get(vin)
+        # GPS-quality context: distinguishes "the car stopped" from "the fix was
+        # lost" when a run of fixes shows no movement.
+        fix_state = self._raw_value(vin, DESC_GPS_FIX)
+        sats = self._raw_value(vin, DESC_GPS_SATS)
+        heading = self._raw_value(vin, DESC_GPS_HEADING)
+        self._cap(
+            "[trip.gps] %s fix=(%.5f,%.5f) step=%dm gap=%ss lat=%ss moving=%s "
+            "sinceMove=%ss odo=%s soc=%s gpsKm=%.2f open=%s timer=%s "
+            "fixState=%s sats=%s hdg=%s",
+            vin,
+            latitude,
+            longitude,
+            round(step_km * 1000),
+            None if gap_s is None else int(gap_s),
+            None if latency is None else int(latency),
+            moving,
+            None if since_move is None else int(since_move),
+            self._odometer_km(vin),
+            self._current_soc(vin),
+            builder.gps_km if builder is not None else 0.0,
+            open_trip,
+            timer,
+            fix_state,
+            sats,
+            heading,
+            substrate=True,
+        )
+
+    def _raw_value(self, vin: str, descriptor: str) -> Any:
+        """Latest stored value of a descriptor, or None if never streamed."""
+
+        state = self.get_state(vin, descriptor)
+        return None if state is None else state.value
 
     def _gps_recently_moving(self, vin: str, now: datetime) -> bool:
         """True while the GPS track still shows the car under way.
@@ -1191,21 +1474,31 @@ class CardataCoordinator:
         longitude = self._coordinate(vin, "longitude")
         if latitude is not None and longitude is not None:
             builder.add_track_point(latitude, longitude, now)
-        if debug_enabled():
-            _LOGGER.debug(
-                "[trip] %s OPEN at %s place=%s soc=%s odo=%s",
-                vin,
-                now.isoformat(),
-                (start_place or {}).get("label"),
-                builder.soc_start,
-                builder.mileage_start,
-            )
+        # Start the per-trip capture stats (a no-op cost when capture is off, but
+        # cheap and it means _note_capture_fix needn't check the mode).
+        self._trip_capture[vin] = {
+            "fixes": 0,
+            "moves": 0,
+            "holds": 0,
+            "max_gap": 0.0,
+            "odo_start": builder.mileage_start,
+        }
+        self._cap(
+            "[trip] %s OPEN at %s place=%s soc=%s odo=%s",
+            vin,
+            now.isoformat(),
+            (start_place or {}).get("label"),
+            builder.soc_start,
+            builder.mileage_start,
+        )
 
     async def _close_trip(
         self, vin: str, now: datetime, *, reason: str = "stationary"
     ) -> None:
         builder = self._trip_builders.pop(vin, None)
+        cap_stats = self._trip_capture.pop(vin, None)
         self._cancel_trip_close_timer(vin)
+        self._trip_close_due.pop(vin, None)
         if builder is None or self.history is None:
             return
 
@@ -1223,30 +1516,56 @@ class CardataCoordinator:
             travelled_km=travelled_km,
             stats=stats,
         )
-        if debug_enabled():
-            _LOGGER.debug(
-                "[trip] %s CLOSE(%s) %s -> %s dist=%s (bmw=%s) soc=%s->%s "
-                "energy=%s stats=%s",
+        dropped = is_noise_trip(trip)
+        self._cap(
+            "[trip] %s CLOSE(%s) %s -> %s dist=%s (bmw=%s) soc=%s->%s "
+            "energy=%s stats=%s",
+            vin,
+            reason,
+            (trip.start_place or {}).get("label"),
+            (trip.end_place or {}).get("label"),
+            trip.distance_km,
+            travelled_km,
+            trip.soc_start,
+            trip.soc_end,
+            trip.energy_kwh,
+            stats,
+        )
+        # One-line post-mortem: the distance signals side by side and the fix
+        # cadence, so a bad trip can be diagnosed without scrolling the capture.
+        if self.trip_debug:
+            odo_start = (cap_stats or {}).get("odo_start")
+            odo_end = self._odometer_km(vin)
+            odo_delta = (
+                round(odo_end - odo_start, 1)
+                if odo_start is not None and odo_end is not None
+                else None
+            )
+            self._cap(
+                "[trip.post] %s reason=%s dropped=%s fixes=%s moves=%s holds=%s "
+                "maxGap=%ss odoΔ=%s gpsKm=%.2f bmwKm=%s dist=%s dur=%ss",
                 vin,
                 reason,
-                (trip.start_place or {}).get("label"),
-                (trip.end_place or {}).get("label"),
-                trip.distance_km,
+                dropped,
+                (cap_stats or {}).get("fixes"),
+                (cap_stats or {}).get("moves"),
+                (cap_stats or {}).get("holds"),
+                int((cap_stats or {}).get("max_gap", 0.0)),
+                odo_delta,
+                builder.gps_km,
                 travelled_km,
-                trip.soc_start,
-                trip.soc_end,
-                trip.energy_kwh,
-                stats,
+                trip.distance_km,
+                trip.duration_s,
+                substrate=True,
             )
-        if is_noise_trip(trip):
+        if dropped:
             # A parking manoeuvre or a spurious blip, not a drive worth logging.
-            if debug_enabled():
-                _LOGGER.debug(
-                    "[trip] %s DROPPED as noise (dist=%s, duration=%ss)",
-                    vin,
-                    trip.distance_km,
-                    trip.duration_s,
-                )
+            self._cap(
+                "[trip] %s DROPPED as noise (dist=%s, duration=%ss)",
+                vin,
+                trip.distance_km,
+                trip.duration_s,
+            )
             return
 
         classification = classify_trip(
@@ -1258,16 +1577,15 @@ class CardataCoordinator:
         if classification is not None:
             trip.classification = classification
             trip.classification_source = SOURCE_AUTO
-        if debug_enabled():
-            _LOGGER.debug(
-                "[trip] %s RECORDED id=%s class=%s track=%d pts (home=%s work=%s)",
-                vin,
-                trip.id,
-                classification,
-                len(trip.track),
-                self._home_zone_name(),
-                self._work_zone_name(),
-            )
+        self._cap(
+            "[trip] %s RECORDED id=%s class=%s track=%d pts (home=%s work=%s)",
+            vin,
+            trip.id,
+            classification,
+            len(trip.track),
+            self._home_zone_name(),
+            self._work_zone_name(),
+        )
 
         try:
             self.history.add_trip(trip)
@@ -1276,7 +1594,7 @@ class CardataCoordinator:
             return
         async_dispatcher_send(self.hass, self.signal_trips, vin)
 
-    def _arm_trip_close_timer(self, vin: str) -> None:
+    def _arm_trip_close_timer(self, vin: str, *, quiet: bool = False) -> None:
         if vin in self._trip_close_timers:
             return
 
@@ -1286,15 +1604,35 @@ class CardataCoordinator:
         @callback
         def _fire(_now) -> None:
             self._trip_close_timers.pop(vin, None)
+            self._trip_close_due.pop(vin, None)
+            self._cap(
+                "[trip.timer] %s FIRE -> closing (stationary %ds)",
+                vin,
+                TRIP_CLOSE_DEBOUNCE_S,
+                substrate=True,
+            )
             self.hass.async_create_task(
                 self._close_trip(
                     vin, datetime.now(timezone.utc), reason="stationary"
                 )
             )
 
+        self._trip_close_due[vin] = datetime.now(timezone.utc) + timedelta(
+            seconds=TRIP_CLOSE_DEBOUNCE_S
+        )
         self._trip_close_timers[vin] = async_call_later(
             self.hass, TRIP_CLOSE_DEBOUNCE_S, _fire
         )
+        # Only the first arm (car goes stationary) is worth a line; the per-fix
+        # reset while moving would otherwise log every fix (the countdown is
+        # already shown on each [trip.gps] line).
+        if not quiet:
+            self._cap(
+                "[trip.timer] %s ARM due_in=%ds",
+                vin,
+                TRIP_CLOSE_DEBOUNCE_S,
+                substrate=True,
+            )
 
     def _reset_trip_close_timer(self, vin: str) -> None:
         """Restart the debounce from now -- used on every moving GPS fix.
@@ -1305,10 +1643,11 @@ class CardataCoordinator:
         """
 
         self._cancel_trip_close_timer(vin)
-        self._arm_trip_close_timer(vin)
+        self._arm_trip_close_timer(vin, quiet=True)
 
     def _cancel_trip_close_timer(self, vin: str) -> None:
         cancel = self._trip_close_timers.pop(vin, None)
+        self._trip_close_due.pop(vin, None)
         if cancel is not None:
             cancel()
 

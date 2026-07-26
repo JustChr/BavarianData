@@ -13,7 +13,17 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.4.0";
+const CARD_VERSION = "1.5.0";
+
+// Classification -> colour, shared by the trips legend and the trip map so a
+// route drawn on the map matches the colour of its row in the Trips view.
+// Kept in sync with the `.tr__seg--*` background rules in `_styles()`.
+const TRIP_CLASS_COLORS = {
+  business: "#0066b1",
+  commute: "#00a1e0",
+  private: "#7ac142",
+  unclassified: "#8a8a8a",
+};
 
 // Register a custom element idempotently: always attempt the define so a cold
 // load can never silently skip it, but swallow the benign "already defined"
@@ -237,6 +247,19 @@ const TRANSLATIONS = {
     tr_best: "Best",
     tr_worst: "Worst",
     tr_unknown_place: "Unknown",
+    // map
+    mp_title: "Trip map",
+    mp_loading: "Loading map…",
+    mp_error: "Couldn't load the map. Reload the page and try again.",
+    mp_empty_none:
+      "No routes to draw yet. Turn on “Record trip routes” under Configure → Trips, then drive — recorded routes appear here.",
+    mp_empty_window: "No routes recorded in this period.",
+    mp_unavailable: "The map couldn't be loaded in this browser.",
+    mp_win_month: "This month",
+    mp_win_3m: "3 months",
+    mp_win_all: "All",
+    mp_route_one: "1 route",
+    mp_route_many: "{n} routes",
     // export
     ex_csv: "CSV",
     ex_report: "Report",
@@ -259,7 +282,7 @@ const TRANSLATIONS = {
     ed_overview_option: "Overview (default)",
     ed_overrides_title: "Entity overrides (optional — leave empty to auto-detect)",
     edh_cluster:
-      "Overview shows the hero image and key metrics. Charging history lists recorded sessions with cost and power curve. Trips lists recorded drives with a month-in-review summary. Battery health shows learned usable capacity and its trend. A cluster shows every value of that group as a list.",
+      "Overview shows the hero image and key metrics. Charging history lists recorded sessions with cost and power curve. Trips lists recorded drives with a month-in-review summary. Trip map draws recorded routes on a map (needs “Record trip routes” enabled). Battery health shows learned usable capacity and its trend. A cluster shows every value of that group as a list.",
     edh_title: "Overrides the vehicle name shown on the card.",
   },
   de: {
@@ -411,6 +434,19 @@ const TRANSLATIONS = {
     tr_best: "Beste",
     tr_worst: "Schlechteste",
     tr_unknown_place: "Unbekannt",
+    // map
+    mp_title: "Fahrtenkarte",
+    mp_loading: "Karte wird geladen…",
+    mp_error: "Karte konnte nicht geladen werden. Seite neu laden und erneut versuchen.",
+    mp_empty_none:
+      "Noch keine Routen zum Anzeigen. Unter Konfigurieren → Fahrten „Fahrtrouten aufzeichnen“ aktivieren, dann fahren — aufgezeichnete Routen erscheinen hier.",
+    mp_empty_window: "In diesem Zeitraum keine Routen aufgezeichnet.",
+    mp_unavailable: "Die Karte konnte in diesem Browser nicht geladen werden.",
+    mp_win_month: "Dieser Monat",
+    mp_win_3m: "3 Monate",
+    mp_win_all: "Alle",
+    mp_route_one: "1 Route",
+    mp_route_many: "{n} Routen",
     // export
     ex_csv: "CSV",
     ex_report: "Bericht",
@@ -433,7 +469,7 @@ const TRANSLATIONS = {
     ed_overview_option: "Übersicht (Standard)",
     ed_overrides_title: "Entitäten überschreiben (optional — leer lassen für Auto-Erkennung)",
     edh_cluster:
-      "Die Übersicht zeigt das Fahrzeugbild und Kennzahlen. Der Ladeverlauf listet aufgezeichnete Ladevorgänge mit Kosten und Ladekurve. Fahrten listet aufgezeichnete Fahrten mit einer Monatsübersicht. Der Batteriezustand zeigt die gelernte nutzbare Kapazität und ihren Verlauf. Ein Cluster listet alle Werte dieser Gruppe auf.",
+      "Die Übersicht zeigt das Fahrzeugbild und Kennzahlen. Der Ladeverlauf listet aufgezeichnete Ladevorgänge mit Kosten und Ladekurve. Fahrten listet aufgezeichnete Fahrten mit einer Monatsübersicht. Die Fahrtenkarte zeichnet aufgezeichnete Routen auf einer Karte (benötigt aktiviertes „Fahrtrouten aufzeichnen“). Der Batteriezustand zeigt die gelernte nutzbare Kapazität und ihren Verlauf. Ein Cluster listet alle Werte dieser Gruppe auf.",
     edh_title: "Überschreibt den auf der Karte angezeigten Fahrzeugnamen.",
   },
 };
@@ -477,6 +513,7 @@ class BavarianDataCard extends HTMLElement {
   getCardSize() {
     if (this._config && this._config.view === "charging") return 10;
     if (this._config && this._config.view === "trips") return 11;
+    if (this._config && this._config.view === "map") return 10;
     if (this._config && this._config.view === "health") return 7;
     return this._config && this._config.cluster ? 6 : 8;
   }
@@ -686,6 +723,8 @@ class BavarianDataCard extends HTMLElement {
       this._renderCharging(deviceId, entities);
     } else if (this._config.view === "trips") {
       this._renderTrips(deviceId, entities);
+    } else if (this._config.view === "map") {
+      this._renderMap(deviceId, entities);
     } else if (this._config.view === "health") {
       this._renderHealth(deviceId, entities);
     } else if (this._config.cluster === "tire") {
@@ -1741,6 +1780,339 @@ class BavarianDataCard extends HTMLElement {
           .catch(() => {});
       });
     });
+  }
+
+  /* ---- trip map --------------------------------------------------------- */
+
+  // The map draws the opt-in route polylines (`trip_track`) on Home Assistant's
+  // own Leaflet map element (`ha-map`), reusing the frontend's map component
+  // rather than bundling a mapping library. Trips come from `get_trips` (which
+  // carries `track`), gated on the monthly-distance sensor like the Trips view.
+  _renderMap(deviceId, entities) {
+    const vin = this._deviceVin(deviceId);
+    if (!vin) {
+      this._mapPhase = null;
+      this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
+      return;
+    }
+    this._ensureMapLib();
+
+    const trigSt = entities
+      .map((id) => this._st(id))
+      .find(
+        (st) =>
+          st && st.attributes && st.attributes.descriptor === "driving_distance_month"
+      );
+    const trigger = trigSt ? trigSt.last_changed : "";
+
+    const cache = this._mapData;
+    const current = cache && cache.vin === vin && cache.trigger === trigger;
+    if (!current || (!cache.trips && !cache.loading)) {
+      this._mapData = {
+        vin,
+        trigger,
+        trips: current && cache ? cache.trips : null,
+        loading: true,
+        error: false,
+      };
+      this._fetchMapTrips(vin);
+    }
+
+    this._paintMap(deviceId, entities);
+  }
+
+  _fetchMapTrips(vin) {
+    const req = this._mapData;
+    // A generous limit: a route map wants more than the visible trip list, and
+    // get_trips reads the store (zero REST quota), so a wide fetch is cheap.
+    this._hass
+      .callService("bavariandata", "get_trips", { vin, limit: 200 }, undefined, false, true)
+      .then((res) => {
+        if (!this._mapData || this._mapData.vin !== vin || this._mapData.trigger !== req.trigger)
+          return;
+        const trips = (res && res.response && res.response.trips) || [];
+        this._mapData = { ...this._mapData, trips, loading: false, error: false };
+        this._render();
+      })
+      .catch(() => {
+        if (!this._mapData || this._mapData.vin !== vin || this._mapData.trigger !== req.trigger)
+          return;
+        this._mapData = { ...this._mapData, loading: false, error: true };
+        this._render();
+      });
+  }
+
+  // Force Home Assistant to load its `ha-map` element on demand. Creating a
+  // throwaway `map` card pulls in the map-card module, which imports (and thus
+  // registers) `ha-map`; the setConfig it then runs may throw for our empty
+  // entity list, but by then the element is defined, so we swallow it.
+  _ensureMapLib() {
+    if (customElements.get("ha-map")) {
+      this._mapLib = "ready";
+      return;
+    }
+    if (this._mapLib === "loading" || this._mapLib === "failed") return;
+    this._mapLib = "loading";
+    const finish = (ok) => {
+      this._mapLib = ok ? "ready" : "failed";
+      this._render();
+    };
+    (async () => {
+      try {
+        const helpers = await window.loadCardHelpers();
+        try {
+          await helpers.createCardElement({ type: "map", entities: [] });
+        } catch (_) {
+          /* setConfig may reject an empty map; the import already ran */
+        }
+        await Promise.race([
+          customElements.whenDefined("ha-map"),
+          new Promise((_, reject) => setTimeout(reject, 6000)),
+        ]);
+        finish(!!customElements.get("ha-map"));
+      } catch (_) {
+        finish(false);
+      }
+    })();
+  }
+
+  /** Trips that carry a drawable track, filtered to the active time window. */
+  _mapWindowTrips() {
+    const all = (this._mapData && this._mapData.trips) || [];
+    const withTrack = all.filter(
+      (t) => Array.isArray(t.track) && t.track.length >= 2
+    );
+    const win = this._mapWindow || "month";
+    if (win === "all") return withTrack;
+    const now = new Date();
+    let cutoff;
+    if (win === "3m") {
+      cutoff = new Date(now);
+      cutoff.setMonth(cutoff.getMonth() - 3);
+    } else {
+      cutoff = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+    return withTrack.filter((t) => {
+      const d = new Date(t.start);
+      return !isNaN(d.getTime()) && d >= cutoff;
+    });
+  }
+
+  /** One ha-map path per trip, coloured by classification, points decimated. */
+  _mapPaths(trips) {
+    const MAX_PTS = 150; // ha-map draws a marker per point; cap for performance
+    return trips
+      .map((trip) => {
+        const startMs = Date.parse(trip.start) || Date.now();
+        const raw = trip.track;
+        const step = raw.length > MAX_PTS ? Math.ceil(raw.length / MAX_PTS) : 1;
+        const points = [];
+        const push = (p) => {
+          if (!Array.isArray(p) || p.length < 2) return;
+          const lat = p[0];
+          const lon = p[1];
+          if (typeof lat !== "number" || typeof lon !== "number") return;
+          const secs = p.length > 2 && typeof p[2] === "number" ? p[2] : 0;
+          points.push({ point: [lat, lon], timestamp: new Date(startMs + secs * 1000) });
+        };
+        for (let i = 0; i < raw.length; i += step) push(raw[i]);
+        // Always include the final fix so the drawn line reaches the endpoint.
+        if (step > 1 && (raw.length - 1) % step !== 0) push(raw[raw.length - 1]);
+        return {
+          points,
+          color: TRIP_CLASS_COLORS[trip.classification] || TRIP_CLASS_COLORS.unclassified,
+        };
+      })
+      .filter((path) => path.points.length >= 2);
+  }
+
+  _paintMap(deviceId, entities) {
+    const name = this._config.title || this._deviceName(deviceId);
+    const state = this._mapData || {};
+    const win = this._mapWindow || "month";
+    const lang = _lang(this._hass);
+
+    const allTrips = state.trips;
+    const anyTrack =
+      Array.isArray(allTrips) &&
+      allTrips.some((t) => Array.isArray(t.track) && t.track.length >= 2);
+    const winTrips = allTrips ? this._mapWindowTrips() : [];
+
+    let phase;
+    if (state.error) phase = "error";
+    else if (this._mapLib === "failed") phase = "unavailable";
+    else if ((!allTrips && state.loading) || this._mapLib !== "ready") phase = "loading";
+    else if (!anyTrack) phase = "empty_none";
+    else if (!winTrips.length) phase = "empty_window";
+    else phase = "data";
+
+    // The live map must survive routine hass ticks: rebuild the surrounding
+    // chrome only when the phase or a header field changes, and update the
+    // ha-map element in place otherwise (a full innerHTML rewrite would tear
+    // down Leaflet and reset the user's pan/zoom on every state update).
+    const chromeSig = this._signature({ m: "map", phase, name, lang });
+    const mounted =
+      phase === "data" && this._mapEl && this.shadowRoot.contains(this._mapEl);
+
+    if (chromeSig !== this._mapChromeSig || (phase === "data" && !mounted)) {
+      this._mapChromeSig = chromeSig;
+      this._buildMapChrome(deviceId, phase, name);
+    }
+
+    if (phase === "data") {
+      this._refreshMap(winTrips, win);
+    }
+  }
+
+  _buildMapChrome(deviceId, phase, name) {
+    const count = phase === "data" ? this._mapWindowTrips().length : 0;
+    const countLabel =
+      count === 1 ? this._t("mp_route_one") : this._t("mp_route_many", { n: count });
+
+    let body;
+    if (phase === "error") {
+      body = `<div class="empty">${this._t("mp_error")}</div>`;
+    } else if (phase === "unavailable") {
+      body = `<div class="empty">${this._t("mp_unavailable")}</div>`;
+    } else if (phase === "loading") {
+      body = `<div class="empty">${this._t("mp_loading")}</div>`;
+    } else if (phase === "empty_none") {
+      body = `<div class="empty">${this._t("mp_empty_none")}</div>`;
+    } else if (phase === "empty_window") {
+      body = `${this._mapFilters()}<div class="empty">${this._t("mp_empty_window")}</div>`;
+    } else {
+      body = `${this._mapFilters()}<div class="map__holder"></div><div class="map__legend"></div>`;
+    }
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <div class="chead">
+          <ha-icon icon="mdi:map-marker-path"></ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">${this._config.title || this._t("mp_title")}</span>
+            <span class="chead__sub">${name}${count ? " · " + countLabel : ""}</span>
+          </div>
+        </div>
+        ${body}
+      </ha-card>
+    `;
+
+    this._mapEl = null;
+    if (phase === "data") {
+      const holder = this.shadowRoot.querySelector(".map__holder");
+      const map = document.createElement("ha-map");
+      // autoFit only frames entities/zones/layers, never `paths`, so we fit the
+      // view to the routes ourselves (see _fitMapToPaths); leave it off so it
+      // can't yank the view back to the home coordinates.
+      map.autoFit = false;
+      map.zoom = 13;
+      map.themeMode = "auto";
+      map.style.height = "360px";
+      map.style.display = "block";
+      map.hass = this._hass;
+      holder.appendChild(map);
+      this._mapEl = map;
+      this._mapDataSig = null; // force the first path push
+    }
+    this._wireMapFilters();
+  }
+
+  /** The time-window chip row (This month / 3 months / All). */
+  _mapFilters() {
+    const win = this._mapWindow || "month";
+    const chip = (key, label) =>
+      `<button class="map__chip${win === key ? " is-active" : ""}" data-win="${key}">${label}</button>`;
+    return `
+      <div class="map__filters">
+        ${chip("month", this._t("mp_win_month"))}
+        ${chip("3m", this._t("mp_win_3m"))}
+        ${chip("all", this._t("mp_win_all"))}
+      </div>`;
+  }
+
+  _wireMapFilters() {
+    this.shadowRoot.querySelectorAll("[data-win]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const win = el.getAttribute("data-win");
+        if ((this._mapWindow || "month") === win) return;
+        this._mapWindow = win;
+        // Re-run the paint: a window change can move between data and
+        // empty_window (a chrome rebuild) or just swap the drawn routes.
+        this._paintMap(this._resolveDeviceId(), this._deviceEntities(this._resolveDeviceId()));
+      });
+    });
+  }
+
+  /** Update the mounted ha-map's paths + legend without rebuilding chrome. */
+  _refreshMap(winTrips, win) {
+    if (!this._mapEl) return;
+    this._mapEl.hass = this._hass;
+
+    const dataSig = this._signature({
+      win,
+      rows: winTrips.map((t) => [t.start, (t.track || []).length, t.classification]),
+    });
+    if (dataSig === this._mapDataSig) return;
+    this._mapDataSig = dataSig;
+
+    const paths = this._mapPaths(winTrips);
+    this._mapEl.paths = paths;
+    this._fitMapToPaths(paths);
+
+    // Keep the chip active-state and route count honest after an in-place swap.
+    const cur = this._mapWindow || "month";
+    this.shadowRoot.querySelectorAll("[data-win]").forEach((el) => {
+      el.classList.toggle("is-active", el.getAttribute("data-win") === cur);
+    });
+    const sub = this.shadowRoot.querySelector(".chead__sub");
+    if (sub) {
+      const name = this._config.title || this._deviceName(this._resolveDeviceId());
+      const n = winTrips.length;
+      const label = n === 1 ? this._t("mp_route_one") : this._t("mp_route_many", { n });
+      sub.textContent = `${name}${n ? " · " + label : ""}`;
+    }
+
+    // Legend: only the classifications actually present in the drawn window.
+    const present = [];
+    const order = ["business", "commute", "private", "unclassified"];
+    for (const cls of order) {
+      if (winTrips.some((t) => (t.classification || "unclassified") === cls)) present.push(cls);
+    }
+    const legend = this.shadowRoot.querySelector(".map__legend");
+    if (legend) {
+      const segCls = (c) => (c === "unclassified" ? "tr__seg--unc" : "tr__seg--" + c);
+      legend.innerHTML = present
+        .map(
+          (c) =>
+            `<span class="tr__leg"><i class="tr__dot ${segCls(c)}"></i>${this._t("tr_" + c)}</span>`
+        )
+        .join("");
+    }
+  }
+
+  /** Frame the Leaflet view to every drawn point (autoFit ignores paths).
+   * `leafletMap` only exists after ha-map's async Leaflet init, so retry a few
+   * times; `fitBounds` accepts a raw array of [lat, lon] tuples as its bounds. */
+  _fitMapToPaths(paths) {
+    const pts = [];
+    for (const path of paths) for (const p of path.points) pts.push(p.point);
+    if (pts.length < 1) return;
+    let tries = 0;
+    const attempt = () => {
+      if (!this._mapEl || !this.shadowRoot.contains(this._mapEl)) return;
+      const lmap = this._mapEl.leafletMap;
+      if (lmap && typeof lmap.fitBounds === "function") {
+        try {
+          lmap.fitBounds(pts, { padding: [24, 24], maxZoom: 16 });
+        } catch (_) {
+          /* a transient Leaflet size race; the next data change re-fits */
+        }
+        return;
+      }
+      if (tries++ < 25) setTimeout(attempt, 120);
+    };
+    attempt();
   }
 
   /* ---- battery health --------------------------------------------------- */
@@ -3021,6 +3393,29 @@ class BavarianDataCard extends HTMLElement {
         font-variant-numeric: tabular-nums;
       }
       .tr__dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+      /* ---- trip map ---- */
+      .map__filters {
+        display: flex; gap: 6px; padding: 4px 14px 10px; flex-wrap: wrap;
+      }
+      .map__chip {
+        border: 1px solid var(--divider-color); background: transparent;
+        color: var(--secondary-text-color); cursor: pointer;
+        font: inherit; font-size: 0.74rem; padding: 3px 12px; border-radius: 999px;
+      }
+      .map__chip:hover { border-color: var(--primary-color); }
+      .map__chip.is-active {
+        background: var(--primary-color); color: var(--text-primary-color, #fff);
+        border-color: var(--primary-color);
+      }
+      .map__holder {
+        margin: 0 14px; border-radius: 12px; overflow: hidden;
+        border: 1px solid var(--divider-color);
+      }
+      .map__holder ha-map { width: 100%; }
+      .map__legend {
+        display: flex; flex-wrap: wrap; gap: 10px; padding: 10px 14px 14px;
+      }
       .tr__style { display: flex; flex-direction: column; gap: 6px; }
       .tr__style-head { display: flex; align-items: center; justify-content: space-between; }
       .tr__style-lbl {
@@ -3105,8 +3500,10 @@ const CHARGING_VIEW = "charging";
 const HEALTH_VIEW = "health";
 // And trips (the Fahrtenbuch), also a `view:` sharing the one dropdown.
 const TRIPS_VIEW = "trips";
+// The trip map (opt-in route polylines on ha-map), also a `view:`.
+const MAP_VIEW = "map";
 // The `view:` values that are layouts in their own right rather than clusters.
-const VIEW_MODES = new Set([CHARGING_VIEW, TRIPS_VIEW, HEALTH_VIEW]);
+const VIEW_MODES = new Set([CHARGING_VIEW, TRIPS_VIEW, MAP_VIEW, HEALTH_VIEW]);
 
 class BavarianDataCardEditor extends HTMLElement {
   setConfig(config) {
@@ -3124,6 +3521,7 @@ class BavarianDataCardEditor extends HTMLElement {
       { value: OVERVIEW, label: t(this._hass, "ed_overview_option") },
       { value: CHARGING_VIEW, label: t(this._hass, "ch_title") },
       { value: TRIPS_VIEW, label: t(this._hass, "tr_title") },
+      { value: MAP_VIEW, label: t(this._hass, "mp_title") },
       { value: HEALTH_VIEW, label: t(this._hass, "bh_title") },
       { value: "closures", label: t(this._hass, "cl_closures") },
       ...CLUSTER_SLUGS.map((slug) => ({

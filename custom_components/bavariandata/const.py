@@ -55,6 +55,14 @@ OPTION_TRIP_GEOCODE = "trip_geocode"
 # coordinates to disk, so it stays strictly opt-in. When off, trips keep storing
 # named places only -- never coordinates.
 OPTION_TRIP_TRACK = "trip_track"
+# Trip-capture debug mode (diagnostic, off by default). Independent of the
+# generic ``debug_log`` toggle: when on, the coordinator emits a rich, greppable
+# capture of the trip detector's raw substrate (every GPS fix, the close-timer
+# lifecycle, full segment batches, a per-message descriptor firehose and a
+# per-trip post-mortem) and mirrors each raw MQTT batch to an NDJSON file, so a
+# single test drive yields the data to design a better detector. Verbose and
+# PII-heavy (raw GPS/VIN) -- meant to be switched on for a drive and back off.
+OPTION_TRIP_DEBUG = "trip_debug"
 
 # Statistics backfill (roadmap Phase 4). On by default: it writes only into this
 # integration's own "bavariandata:" statistic namespace, stays local, and is what

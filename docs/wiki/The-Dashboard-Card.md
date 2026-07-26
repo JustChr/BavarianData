@@ -20,6 +20,7 @@ dashboard to show them side by side.
 - [Charging history](#charging-history-view-charging)
 - [Battery health](#battery-health-view-health)
 - [Trips / driving journal](#trips--driving-journal-view-trips)
+- [Trip map](#trip-map-view-map)
 - [Tire pressures](#tire-pressures-cluster-tire)
 - [Security & closures](#security--closures-cluster-closures)
 - [Single-cluster list](#single-cluster-list)
@@ -121,6 +122,39 @@ under **Configure → Trips** so home↔work drives are recognised as commutes
 
 ---
 
+## Trip map (`view: map`)
+
+Draws your recorded routes on a map, each line coloured by its
+business/commute/private classification (matching the Trips legend). A chip row
+switches the time window — **This month** (default), **3 months** or **All** —
+and the map auto-fits to the routes shown.
+
+```yaml
+type: custom:bavariandata-card
+view: map
+```
+
+<!-- screenshot: card-map -->
+
+The map only has something to draw once you turn on **Record trip routes** under
+**Configure → Trips** — that opt-in setting is what stores each drive's GPS
+polyline (it is the only place the integration keeps raw coordinates on disk, and
+it is **off by default**). With it off, or before your first drive with it on,
+the view explains that no routes have been recorded yet. Drives recorded *before*
+you enabled it have no line to draw.
+
+It reads routes through the `get_trips` service, so it spends **no API quota**,
+and it reuses Home Assistant's own map component (map tiles load from
+OpenStreetMap, as they do for the built-in Map card).
+
+> **Privacy:** unlike the rest of the history layer — which stores place *names*,
+> never coordinates — a recorded route is the exact path driven, including the
+> start and end points at home. Only enable route recording if you're comfortable
+> with that, and remember the map (and its home coordinates) is visible to anyone
+> who can see the dashboard.
+
+---
+
 ## Tire pressures (`cluster: tire`)
 
 Draws a top-down car with each tire coloured by pressure vs. its target (green
@@ -176,7 +210,7 @@ names — so it works regardless of the user's Home Assistant language.
 | Key | Purpose |
 | --- | --- |
 | `type` | Always `custom:bavariandata-card`. |
-| `view` | `charging`, `trips`, or `health`. Omit for the Overview. |
+| `view` | `charging`, `trips`, `map`, or `health`. Omit for the Overview. |
 | `cluster` | `electric`, `status`, `tire`, `usage`, `events`, `basic`, `contract`, `metadata`, `other`, `closures`. Renders a single-cluster list (or the special tire/closures diagrams). |
 | `device` | Device id, to pin a specific vehicle. |
 | `vin` | VIN, as an alternative to `device`. |

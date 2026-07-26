@@ -90,6 +90,45 @@ verbose and can include vehicle data such as **GPS and VIN**, so leave it off
 unless you're chasing a problem. (Separate from Home Assistant's generic
 per-integration log level.)
 
+## Capturing a drive for trip detection
+
+<a id="capturing-a-drive-for-trip-detection"></a>
+
+If trips are being missed, split or mis-measured, a capture of one drive gives
+us the raw data to improve detection. Turn on **Trip-capture diagnostics** under
+**Configure → Trips** (independent of Debug logging), take a normal drive that
+reproduces the problem, then **turn it back off**.
+
+For the richest capture, first **select as many data fields as you can** in the
+BMW portal's Data Selection ([Choose data](Getting-Started-4-Choose-Data)) —
+especially the navigation/GPS, speed and drivetrain fields. The capture can only
+show what the car actually streams, and part of what we're looking for is which
+extra signals (GPS fix quality and satellite count, heading, speed, HV-system
+and door/lock state) your car sends while driving.
+
+It produces two things:
+
+- **Log lines** tagged for easy filtering — grep the Home Assistant log for
+  `[trip.`:
+  - `[trip.gps]` — every GPS fix with its step, inter-fix gap, stream latency,
+    odometer, SoC, the close-timer countdown, **and GPS fix state / satellite
+    count / heading** (so a "no movement" run can be told apart from a lost fix).
+  - `[trip.timer]` — when the stationary-close timer arms and fires.
+  - `[trip.seg]` — each BMW trip-segment batch in full, with timestamps.
+  - `[trip.watch]` — a curated set of candidate "is it driving?" signals (speed,
+    HV-system state, ignition, driver door/lock, active navigation) whenever the
+    car streams them.
+  - `[trip.raw]` — every other descriptor each message carried.
+  - `[trip.post]` — a one-line summary per closed trip (distances side by side,
+    fix counts, largest GPS gap).
+- **A capture file** `bavariandata_trip_capture.ndjson` in your Home Assistant
+  **config folder** — one JSON record per message, so a drive can be replayed
+  offline while testing detector changes.
+
+Both contain **GPS coordinates and your VIN**. Share them only with the
+maintainers (e.g. attached to a GitHub issue you're comfortable making), and
+delete the capture file when you're done. It stops growing at ~25 MB.
+
 ## The card doesn't show up after an update
 
 **Hard-refresh the browser** — the bundled card is cached aggressively.

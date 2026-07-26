@@ -66,6 +66,7 @@ Screen: **Configure → Trips**. See [Trips](Feature-Trips) for the concepts.
 | **Work zone** | zone entity | Drives commute classification (home↔work). |
 | **Resolve addresses** | on/off | Off by default. When on, trip endpoints **outside** any zone are reverse-geocoded via OpenStreetMap; the address string is stored, never the coordinates. |
 | **Record route** | on/off | Off by default. When on, each new trip stores its GPS track — coordinates along the drive, each stamped with its time (`[lat, lon, t]`, `t` = seconds since start) — so a map can draw and replay the route. The only setting that persists raw coordinates, your exact start/end included. Served via `get_trips`; never in the export. |
+| **Trip-capture diagnostics** | on/off | Off by default. A troubleshooting aid for improving trip detection: logs the raw substrate (every GPS fix with cadence/latency, the close-timer lifecycle, full segment batches, a per-message descriptor firehose and a per-trip post-mortem) under `[trip.*]` tags, and writes `bavariandata_trip_capture.ndjson` to your config folder. Independent of **Debug logging**. Verbose and contains GPS/VIN — turn it on for a test drive and back off. See [Troubleshooting](Troubleshooting-and-FAQ#capturing-a-drive-for-trip-detection). |
 
 ## Debug logging
 

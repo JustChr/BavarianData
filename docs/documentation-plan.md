@@ -53,6 +53,7 @@ Home  (landing / nav)
 │   ├─ Charging history view
 │   ├─ Battery health view
 │   ├─ Trips / driving journal view
+│   ├─ Trip map view (view: map)
 │   ├─ Tire pressures (cluster: tire)
 │   ├─ Security & closures (cluster: closures)
 │   ├─ Single-cluster lists
@@ -154,6 +155,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `trip_work_zone` | Trips | 🟡 |
 | `trip_geocode` | Trips | 🟡 |
 | `trip_track` (route recording) | Trips | ✅ |
+| `trip_debug` (trip-capture diagnostics) | Trips | ✅ |
 | `debug_log` | Debug logging | 🟡 |
 | `mqtt_keepalive` (hidden override) | — | ❌ |
 | `diagnostic_log_interval` (hidden override) | — | ❌ |
@@ -165,6 +167,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | *(default)* | Overview | 🟡 | 📷 (have) |
 | `view: charging` | Charging history | 🟡 | 📷 |
 | `view: trips` | Driving journal | 🟡 | 📷 |
+| `view: map` | Trip map (routes) | 🟡 | 📷 (needs route data) |
 | `view: health` | Battery health | 🟡 | 📷 |
 | `cluster: tire` | Tire pressures | 🟡 | 📷 (have) |
 | `cluster: closures` | Security & closures | 🟡 | 📷 (have) |

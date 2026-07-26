@@ -57,6 +57,7 @@ from .const import (
     DEFAULT_HISTORY_RETAIN_MONTHS,
     OPTION_TRIP_WORK_ZONE,
     OPTION_TRIP_GEOCODE,
+    OPTION_TRIP_DEBUG,
     OPTION_TRIP_TRACK,
     OPTION_STATISTICS_IMPORT,
     DEFAULT_STATISTICS_IMPORT,
@@ -486,6 +487,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     )
     coordinator.work_zone_entity = options.get(OPTION_TRIP_WORK_ZONE) or None
     coordinator.record_trip_track = bool(options.get(OPTION_TRIP_TRACK))
+    coordinator.trip_debug = bool(options.get(OPTION_TRIP_DEBUG))
     coordinator.diagnostic_interval = diagnostic_interval
 
     # Statistics backfill (roadmap Phase 4). Publishes the recorded history into

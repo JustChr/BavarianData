@@ -9,7 +9,31 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.2-beta.1] - 2026-07-26
+
 ### Added
+- **Trip-capture diagnostics (`Configure → Trips`).** A new opt-in troubleshooting
+  toggle for improving trip detection. When on, the integration logs the raw
+  detector substrate under greppable tags — every GPS fix with its cadence,
+  latency, odometer and the close-timer countdown (`[trip.gps]`), the timer
+  lifecycle (`[trip.timer]`), full BMW segment batches (`[trip.seg]`), a
+  per-message descriptor firehose (`[trip.raw]`) and a per-trip post-mortem
+  (`[trip.post]`) — and writes a replayable `bavariandata_trip_capture.ndjson`
+  capture to the config folder. Each `[trip.gps]` line also carries the GPS fix
+  state, satellite count and heading (to tell a stopped car from a lost fix), and
+  a `[trip.watch]` line surfaces catalogue signals that might drive a better
+  detector (speed, HV-system and connector state, the ignition trio, driver
+  door/lock, active navigation) whenever the car streams them. Independent of
+  Debug logging, off by default, and contains GPS/VIN, so it's meant to be
+  switched on for a test drive and back off.
+- **Trip map (`view: map`) on the dashboard card.** A new card view draws your
+  recorded routes on a map, each line coloured by its business/commute/private
+  classification, with a time-window chip row (This month / 3 months / All) and
+  auto-fit. It reuses Home Assistant's own map component (OpenStreetMap tiles)
+  and reads routes via `get_trips`, so it spends no API quota. Routes only appear
+  once **Record route** (`trip_track`) is enabled — the map shows a hint until
+  then. (Pace colouring and real-time playback of a single drive are planned as a
+  follow-up.)
 - **Recorded routes now carry timing.** With **Record route** (`trip_track`) on,
   each GPS fix in a trip's track is stored with the number of seconds since the
   trip started (`track` points become `[lat, lon, t]`), so an upcoming map can
