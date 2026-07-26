@@ -114,6 +114,8 @@ It produces two things:
     odometer, SoC, the close-timer countdown, **and GPS fix state / satellite
     count / heading** (so a "no movement" run can be told apart from a lost fix).
   - `[trip.timer]` — when the stationary-close timer arms and fires.
+  - `[trip.door]` — driver-door start/end refinements (when the car streams the
+    door).
   - `[trip.seg]` — each BMW trip-segment batch in full, with timestamps.
   - `[trip.watch]` — a curated set of candidate "is it driving?" signals (speed,
     HV-system state, ignition, driver door/lock, active navigation) whenever the

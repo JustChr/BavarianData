@@ -70,6 +70,12 @@ DESC_SEG_ACCEL_STARS = "vehicle.trip.segment.accumulated.acceleration.starsAvera
 DESC_SEG_BRAKE_STARS = "vehicle.trip.segment.accumulated.chassis.brake.starsAverage"
 DESC_SEG_ECO = "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveEcoPro"
 DESC_SEG_ELECTRIC = "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveElectric"
+# Driver door. When a car streams it (the i5 does), it brackets a drive far more
+# precisely than GPS jitter: the door closing means the driver just got in (a
+# drive is imminent), and the door opening after the car has stopped means they
+# have arrived. Used as an *accelerator* only -- GPS stays the fallback for cars
+# that don't stream it -- so trip detection never depends on it.
+DESC_DRIVER_DOOR = "vehicle.cabin.door.row1.driver.isOpen"
 
 # GPS-quality descriptors, folded into every ``[trip.gps]`` capture line. They
 # bear directly on the detector's worst failure mode: a run of "no movement"
@@ -109,6 +115,19 @@ TRIP_WATCH_DESCRIPTORS = (
 # trip as ended. Long enough to ride out a traffic light, short enough that a
 # parked car's trip closes promptly.
 TRIP_CLOSE_DEBOUNCE_S = 300
+
+# A driver-door-close start marker is only honoured for opening a trip within
+# this long -- so an unrelated door-close hours before a drive can't seed it.
+PENDING_START_MAX_S = 300
+# A driver-door-open ends an open trip only once the car has been stationary at
+# least this long, so a door read that flickers open mid-move can't close a live
+# drive. Short, because a driver opens their door only after actually stopping.
+DOOR_ARRIVAL_STOP_S = 20
+# BMW streams latitude and longitude as two separate messages ~1 s apart, so a
+# fix is only complete once *both* have arrived. Detection waits for that (see
+# ``_process_gps_signal``); this guard stops a frozen single component from
+# stalling GPS processing forever if the pairing assumption ever fails.
+GPS_PAIR_STALE_S = 120
 
 # BMW's ``charging.status`` can briefly drop out of CHARGINGACTIVE mid-charge (a
 # momentary NOCHARGING/PAUSED blip on the stream) and come straight back. Closing
@@ -391,6 +410,25 @@ class CardataCoordinator:
     # segment-close path: a segment batch must not close a trip the GPS track
     # still shows to be under way.
     _last_gps_move: Dict[str, datetime] = field(default_factory=dict, init=False)
+    # Last settled GPS position per VIN (updated on every complete fix, moving or
+    # not). It is what a new trip's track is seeded from, so the route starts
+    # where the car actually was parked rather than at the first movement fix.
+    _last_gps_position: Dict[str, tuple[float, float]] = field(
+        default_factory=dict, init=False
+    )
+    # Timestamps of the last processed latitude / longitude, used to pair BMW's
+    # two-message fix (lat and lon arrive separately): a fix is processed only
+    # once both have advanced, which also drops the duplicate "same position"
+    # step the old per-message handling produced.
+    _gps_last_lat_ts: Dict[str, datetime] = field(default_factory=dict, init=False)
+    _gps_last_lon_ts: Dict[str, datetime] = field(default_factory=dict, init=False)
+    # Driver-door state and a pending door-close start marker (see
+    # ``_process_door_signal``). Both optional: absent on cars that don't stream
+    # the door, in which case detection falls back to GPS alone.
+    _driver_door_open: Dict[str, bool] = field(default_factory=dict, init=False)
+    _pending_start: Dict[str, tuple[datetime, Optional[tuple[float, float]]]] = field(
+        default_factory=dict, init=False
+    )
     # Trip-capture bookkeeping (only populated in ``trip_debug`` mode). The last
     # GPS fix's wall-clock (for the inter-fix gap), the scheduled close-timer fire
     # time (for the countdown shown on each fix line), per-open-trip capture stats
@@ -569,6 +607,7 @@ class CardataCoordinator:
         # closing a trip (which may await a geocode) never re-enters mid-iteration.
         motion_value: Optional[bool] = None
         ignition_value: Optional[bool] = None
+        door_value: Optional[bool] = None
         segment_fresh = False
         gps_seen = False
         gps_ts: Optional[datetime] = None
@@ -684,6 +723,8 @@ class CardataCoordinator:
                 motion_value = value
             elif descriptor == DESC_IGNITION and isinstance(value, bool):
                 ignition_value = value
+            elif descriptor == DESC_DRIVER_DOOR and isinstance(value, bool):
+                door_value = value
             if descriptor in (DESC_GPS_LAT, DESC_GPS_LON):
                 gps_seen = True
                 if parsed_ts is not None:
@@ -728,6 +769,8 @@ class CardataCoordinator:
             await self._process_trip_signals(
                 vin, now, motion_value, ignition_value, segment_fresh
             )
+            if door_value is not None:
+                await self._process_door_signal(vin, now, door_value)
             if gps_seen:
                 await self._process_gps_signal(vin, now, gps_ts)
 
@@ -1301,6 +1344,93 @@ class CardataCoordinator:
         except Exception:  # noqa: BLE001 - never let trip logic break the stream
             _LOGGER.exception("Trip detection failed for %s", vin)
 
+    async def _process_door_signal(
+        self, vin: str, now: datetime, door_open: bool
+    ) -> None:
+        """Refine trip start/end from the driver door, when the car streams it.
+
+        Closing the door (driver got in) arms a start marker at that position, so
+        the next movement seeds the trip there. Opening the door after the car has
+        stopped means the driver is getting out -- an arrival -- so an open trip
+        is closed promptly instead of waiting out the GPS debounce. A pure
+        accelerator: cars that never send the door fall back to GPS alone.
+        """
+
+        if self.history is None:
+            return
+        try:
+            previous = self._driver_door_open.get(vin)
+            self._driver_door_open[vin] = door_open
+            if previous is None or previous == door_open:
+                return  # first reading or no transition
+            open_trip = vin in self._trip_builders
+
+            if door_open and open_trip:
+                # Opened while a trip is open: an arrival, but only once the car
+                # has actually stopped (guards a flickery read mid-move).
+                last_move = self._last_gps_move.get(vin)
+                stopped = (
+                    last_move is None
+                    or (now - last_move).total_seconds() >= DOOR_ARRIVAL_STOP_S
+                )
+                if stopped:
+                    self._cap(
+                        "[trip.door] %s driver door opened while stopped -> close",
+                        vin,
+                        substrate=True,
+                    )
+                    await self._close_trip(vin, now, reason="door")
+            elif not door_open and not open_trip:
+                # Closed with no trip open: the driver just got in. Mark the start
+                # here so the next movement seeds the trip from this spot.
+                self._pending_start[vin] = (now, self._last_gps_position.get(vin))
+                self._cap(
+                    "[trip.door] %s driver door closed -> start marked at %s",
+                    vin,
+                    self._last_gps_position.get(vin),
+                    substrate=True,
+                )
+        except Exception:  # noqa: BLE001 - never let trip logic break the stream
+            _LOGGER.exception("Door trip detection failed for %s", vin)
+
+    def _gps_fix_ready(self, vin: str, now: datetime) -> bool:
+        """True when a complete lat+lon fix is ready to process.
+
+        BMW streams the two coordinates as separate messages, so a position is
+        only settled once *both* timestamps have advanced past the last processed
+        fix; until then acting would plot a phantom (fresh component + stale one).
+        Falls through (returns True) when there are no timestamps to pair on, or
+        when a component has been frozen past ``GPS_PAIR_STALE_S`` -- so a broken
+        pairing assumption degrades to the old behaviour rather than stalling.
+        """
+
+        lat_state = self.get_state(vin, DESC_GPS_LAT)
+        lon_state = self.get_state(vin, DESC_GPS_LON)
+        lat_ts = (
+            dt_util.parse_datetime(lat_state.timestamp)
+            if lat_state and lat_state.timestamp
+            else None
+        )
+        lon_ts = (
+            dt_util.parse_datetime(lon_state.timestamp)
+            if lon_state and lon_state.timestamp
+            else None
+        )
+        if lat_ts is None or lon_ts is None:
+            return True  # nothing to pair on -- process as before
+        last_lat = self._gps_last_lat_ts.get(vin)
+        last_lon = self._gps_last_lon_ts.get(vin)
+        both_advanced = (last_lat is None or lat_ts > last_lat) and (
+            last_lon is None or lon_ts > last_lon
+        )
+        if not both_advanced:
+            prev = self._last_gps_fix_at.get(vin)
+            if prev is not None and (now - prev).total_seconds() < GPS_PAIR_STALE_S:
+                return False  # incomplete pair (or duplicate); wait for the mate
+        self._gps_last_lat_ts[vin] = lat_ts
+        self._gps_last_lon_ts[vin] = lon_ts
+        return True
+
     async def _process_gps_signal(
         self, vin: str, now: datetime, fix_ts: Optional[datetime] = None
     ) -> None:
@@ -1323,6 +1453,14 @@ class CardataCoordinator:
         longitude = self._coordinate(vin, "longitude")
         if latitude is None or longitude is None:
             return
+        # BMW sends latitude and longitude as two separate messages ~1 s apart.
+        # Acting on each pairs a fresh component with a stale one, so the first
+        # message plots a phantom right-angle point (and doubles the distance)
+        # that the second corrects. Wait until *both* components have advanced
+        # since the last processed fix, so the tracker only ever sees a settled
+        # position -- unless a component has frozen long enough to risk a stall.
+        if not self._gps_fix_ready(vin, now):
+            return
         try:
             tracker = self._gps_trackers.get(vin)
             if tracker is None:
@@ -1340,6 +1478,10 @@ class CardataCoordinator:
             if moving:
                 self._last_gps_move[vin] = now
                 if not open_trip:
+                    # Seed the track from where the car actually started (the
+                    # parked position / door-close point), not this already
+                    # moved-on fix -- done inside _open_trip before we overwrite
+                    # _last_gps_position below.
                     await self._open_trip(vin, now)
                     open_trip = True
                 builder = self._trip_builders.get(vin)
@@ -1356,6 +1498,8 @@ class CardataCoordinator:
                 # or a car that streams its parked position never closes.
                 self._arm_trip_close_timer(vin)
 
+            # Remember where the car is now, for the next trip's start seed.
+            self._last_gps_position[vin] = (latitude, longitude)
             self._note_capture_fix(vin, now, step_km, moving, gap_s)
             if self.trip_debug:
                 self._log_gps_fix(
@@ -1454,8 +1598,36 @@ class CardataCoordinator:
             return False
         return (now - last).total_seconds() < TRIP_CLOSE_DEBOUNCE_S
 
+    def _trip_start_seed(self, vin: str, now: datetime) -> Optional[tuple[float, float]]:
+        """Where the trip actually began, for the track's t=0 point and start place.
+
+        Prefers a recent driver-door-close position (the driver got in there),
+        then the last known parked position, so the route connects from where the
+        car was rather than the already-moved-on fix that triggered detection.
+        Falls back to the current fix when neither is available.
+        """
+
+        pending = self._pending_start.pop(vin, None)
+        if pending is not None:
+            marked_at, marked_pos = pending
+            if (now - marked_at).total_seconds() <= PENDING_START_MAX_S and marked_pos:
+                return marked_pos
+        parked = self._last_gps_position.get(vin)
+        if parked is not None:
+            return parked
+        latitude = self._coordinate(vin, "latitude")
+        longitude = self._coordinate(vin, "longitude")
+        if latitude is not None and longitude is not None:
+            return (latitude, longitude)
+        return None
+
     async def _open_trip(self, vin: str, now: datetime) -> None:
-        start_place = await self._resolve_place(vin)
+        seed = self._trip_start_seed(vin, now)
+        # Resolve the start place from the seed (the parked/door-close spot), not
+        # the ~hundreds-of-metres-later fix that first registered as movement.
+        start_place = await self._resolve_place(
+            vin, seed[0] if seed else None, seed[1] if seed else None
+        )
         builder = self._trip_builders[vin] = TripBuilder(
             vin,
             now,
@@ -1466,14 +1638,11 @@ class CardataCoordinator:
             or start_place.get("label") == "Unknown",
             record_track=self.record_trip_track,
         )
-        # Seed the route with the opening fix so the polyline starts where the
-        # drive did, not at the first mid-drive movement step. Stamped with the
-        # trip's start (t=0). A no-op when route recording is off or no GPS is
-        # available.
-        latitude = self._coordinate(vin, "latitude")
-        longitude = self._coordinate(vin, "longitude")
-        if latitude is not None and longitude is not None:
-            builder.add_track_point(latitude, longitude, now)
+        # Seed the route from where the drive actually started (see
+        # _trip_start_seed), stamped t=0. A no-op when route recording is off or
+        # no position is available.
+        if seed is not None:
+            builder.add_track_point(seed[0], seed[1], now)
         # Start the per-trip capture stats (a no-op cost when capture is off, but
         # cheap and it means _note_capture_fix needn't check the mode).
         self._trip_capture[vin] = {
@@ -1682,16 +1851,24 @@ class CardataCoordinator:
                 with suppress(Exception):
                     self._finalize_charge_close(vin, "unload")
 
-    async def _resolve_place(self, vin: str) -> Optional[dict[str, Any]]:
+    async def _resolve_place(
+        self,
+        vin: str,
+        latitude: Optional[float] = None,
+        longitude: Optional[float] = None,
+    ) -> Optional[dict[str, Any]]:
         """A trip endpoint as a named place -- never coordinates.
 
         Prefers the resolved HA zone (free, local, private). Only a point with no
         matching zone is offered to the optional geocoder, and only the resulting
-        string is kept. ``None`` means no GPS was available at all.
+        string is kept. ``None`` means no GPS was available at all. Explicit
+        coordinates override the current fix (used to place a trip's *start* at
+        the parked/door-close point rather than where movement was first seen).
         """
 
-        latitude = self._coordinate(vin, "latitude")
-        longitude = self._coordinate(vin, "longitude")
+        if latitude is None or longitude is None:
+            latitude = self._coordinate(vin, "latitude")
+            longitude = self._coordinate(vin, "longitude")
         if latitude is None or longitude is None:
             return None
         zone = self._zone_name(latitude, longitude)

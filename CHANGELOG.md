@@ -9,6 +9,27 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.2-beta.3] - 2026-07-26
+
+### Fixed
+- **Recorded routes no longer zig-zag, and trip distance is more accurate.** BMW
+  streams a position's latitude and longitude as two separate messages ~1 s
+  apart; the detector was acting on each, briefly pairing a fresh coordinate with
+  a stale one and plotting a phantom right-angle point that also inflated the
+  measured distance. It now waits for both halves of a fix before recording it.
+- **Routes now start where the car was parked.** A trip's track (and its start
+  place) began at the first point that registered as movement — often a block or
+  more past the actual start. It is now seeded from the last known parked
+  position, so the line connects from where the drive really began.
+
+### Added
+- **Sharper trip start/end on cars that stream the driver door (e.g. the i5).**
+  Closing the driver door (you got in) marks where a trip starts, and opening it
+  again after the car has stopped (you got out) ends the trip promptly instead of
+  waiting out the 5-minute stationary timer. Used only as an accelerator — cars
+  that don't stream the door fall back to GPS exactly as before. Trip-capture mode
+  logs these decisions as `[trip.door]`.
+
 ## [0.9.2-beta.2] - 2026-07-26
 
 ### Fixed
