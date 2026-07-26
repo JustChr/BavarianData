@@ -9,6 +9,19 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.2-beta.2] - 2026-07-26
+
+### Fixed
+- **Dashboard card failed to load after the BavarianData rename.** The legacy
+  `custom:bmw-cardata-card` back-compat alias was registered by binding the same
+  element class to a second tag name, which the Custom Elements spec forbids
+  (`this constructor has already been used with this registry`). The uncaught
+  error aborted the rest of the card module, so the legacy alias never defined
+  (existing cards showed "custom element doesn't exist: bmw-cardata-card"), the
+  visual editor didn't register, and the card was missing from the "Add card"
+  picker. The alias tags now each get their own trivial subclass, so old and new
+  cards render and the picker lists "BavarianData Card" again.
+
 ## [0.9.2-beta.1] - 2026-07-26
 
 ### Added

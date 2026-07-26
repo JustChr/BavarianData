@@ -3482,9 +3482,13 @@ class BavarianDataCard extends HTMLElement {
 // already-defined error, so registration can never be silently missed.
 defineCardElement("bavariandata-card", BavarianDataCard);
 // Back-compat alias: dashboards created before the BavarianData rename still
-// reference `custom:bmw-cardata-card`. Register the same class under the legacy
-// tag so those cards keep rendering. Not advertised in the card picker.
-defineCardElement("bmw-cardata-card", BavarianDataCard);
+// reference `custom:bmw-cardata-card`. A custom-element constructor can only be
+// bound to ONE tag name -- reusing `BavarianDataCard` here throws "this
+// constructor has already been used with this registry", which aborts the rest
+// of this module (editor + card-picker registration never run). Register a
+// trivial subclass so the legacy tag gets its own constructor. Not advertised
+// in the card picker.
+defineCardElement("bmw-cardata-card", class extends BavarianDataCard {});
 
 /* ------------------------------------------------------------------------- *
  * Visual editor (config-changed via ha-form)                                *
@@ -3622,8 +3626,9 @@ class BavarianDataCardEditor extends HTMLElement {
 }
 
 defineCardElement("bavariandata-card-editor", BavarianDataCardEditor);
-// Legacy alias for the editor element, matching the card alias above.
-defineCardElement("bmw-cardata-card-editor", BavarianDataCardEditor);
+// Legacy alias for the editor element, matching the card alias above. Needs its
+// own constructor for the same reason (one class -> one tag name).
+defineCardElement("bmw-cardata-card-editor", class extends BavarianDataCardEditor {});
 
 window.customCards = window.customCards || [];
 // Only advertise the card once — a second evaluation would otherwise add a
