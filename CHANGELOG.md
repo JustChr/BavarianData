@@ -9,6 +9,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **The dashboard card is now the "BavarianData Card".** It was previously shown
+  as the "BMW CarData Card" (element `custom:bmw-cardata-card`); the card, its
+  element (`custom:bavariandata-card`) and its bundled file have been renamed to
+  match the integration's name. Existing dashboards keep working: the old
+  `custom:bmw-cardata-card` element is still registered as a hidden alias, so no
+  card needs to be re-added. The old name simply no longer appears in the card
+  picker.
+
 ## [0.9.1] - 2026-07-26
 
 ### Added

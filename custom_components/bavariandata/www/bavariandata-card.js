@@ -1,6 +1,6 @@
 /*
- * BMW CarData Card
- * A custom Lovelace card for the BMW CarData integration.
+ * BavarianData Card
+ * A custom Lovelace card for the BavarianData integration (BMW CarData).
  *
  * Two modes:
  *   - overview (default): the vehicle render as a hero, a state-of-charge ring,
@@ -10,7 +10,7 @@
  *     is read from its `cluster` attribute, exposed by the integration.
  *
  * The card auto-discovers entities from the vehicle's device, so a minimal
- * config is just `type: custom:bmw-cardata-card`.
+ * config is just `type: custom:bavariandata-card`.
  */
 
 const CARD_VERSION = "1.4.0";
@@ -462,7 +462,7 @@ function t(hass, key, vars, dflt) {
   return s;
 }
 
-class BmwCardataCard extends HTMLElement {
+class BavarianDataCard extends HTMLElement {
   setConfig(config) {
     this._config = { ...config };
     this._sig = null; // force first render
@@ -487,12 +487,12 @@ class BmwCardataCard extends HTMLElement {
   }
 
   static getConfigElement() {
-    return document.createElement("bmw-cardata-card-editor");
+    return document.createElement("bavariandata-card-editor");
   }
 
   static getStubConfig(hass) {
     // Pre-fill the card picker with the first BMW CarData device found.
-    const device = BmwCardataCard._firstDevice(hass);
+    const device = BavarianDataCard._firstDevice(hass);
     return device ? { device } : {};
   }
 
@@ -518,7 +518,7 @@ class BmwCardataCard extends HTMLElement {
         }
       }
     }
-    return BmwCardataCard._firstDevice(hass);
+    return BavarianDataCard._firstDevice(hass);
   }
 
   _deviceEntities(deviceId) {
@@ -2190,7 +2190,7 @@ class BmwCardataCard extends HTMLElement {
   };
 
   _renderClosures(deviceId, entities) {
-    const P = BmwCardataCard.CLOSURE_PATHS;
+    const P = BavarianDataCard.CLOSURE_PATHS;
     const byDesc = {};
     for (const id of entities) {
       const st = this._st(id);
@@ -3085,7 +3085,11 @@ class BmwCardataCard extends HTMLElement {
 // whenDefined->rebuild never fires because the tag never becomes defined) until a
 // hard refresh. Always attempt the define and swallow only the benign
 // already-defined error, so registration can never be silently missed.
-defineCardElement("bmw-cardata-card", BmwCardataCard);
+defineCardElement("bavariandata-card", BavarianDataCard);
+// Back-compat alias: dashboards created before the BavarianData rename still
+// reference `custom:bmw-cardata-card`. Register the same class under the legacy
+// tag so those cards keep rendering. Not advertised in the card picker.
+defineCardElement("bmw-cardata-card", BavarianDataCard);
 
 /* ------------------------------------------------------------------------- *
  * Visual editor (config-changed via ha-form)                                *
@@ -3104,7 +3108,7 @@ const TRIPS_VIEW = "trips";
 // The `view:` values that are layouts in their own right rather than clusters.
 const VIEW_MODES = new Set([CHARGING_VIEW, TRIPS_VIEW, HEALTH_VIEW]);
 
-class BmwCardataCardEditor extends HTMLElement {
+class BavarianDataCardEditor extends HTMLElement {
   setConfig(config) {
     this._config = { ...config };
     this._render();
@@ -3205,7 +3209,7 @@ class BmwCardataCardEditor extends HTMLElement {
       }
     }
     delete value.type;
-    const config = { type: this._config.type || "custom:bmw-cardata-card", ...value };
+    const config = { type: this._config.type || "custom:bavariandata-card", ...value };
     this._config = config;
     // Switching to/from a cluster changes which fields are relevant.
     this._form.schema = this._schema();
@@ -3219,15 +3223,17 @@ class BmwCardataCardEditor extends HTMLElement {
   }
 }
 
-defineCardElement("bmw-cardata-card-editor", BmwCardataCardEditor);
+defineCardElement("bavariandata-card-editor", BavarianDataCardEditor);
+// Legacy alias for the editor element, matching the card alias above.
+defineCardElement("bmw-cardata-card-editor", BavarianDataCardEditor);
 
 window.customCards = window.customCards || [];
 // Only advertise the card once — a second evaluation would otherwise add a
 // duplicate entry to the card picker.
-if (!window.customCards.some((c) => c.type === "bmw-cardata-card")) {
+if (!window.customCards.some((c) => c.type === "bavariandata-card")) {
   window.customCards.push({
-    type: "bmw-cardata-card",
-    name: "BMW CarData Card",
+    type: "bavariandata-card",
+    name: "BavarianData Card",
     description: "Vehicle render, state of charge and per-cluster data for BMW CarData.",
     preview: true,
     documentationURL: "https://github.com/JustChr/BavarianData",

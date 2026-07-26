@@ -15,7 +15,7 @@ user's personal BMW client ID. Domain: `bavariandata`. Repo:
   - `config_flow.py` — setup wizard: client ID → device auth → cluster picker (generates a browser-console snippet; BMW has **no API** for Data Selection, it's portal-only).
   - `sensor.py` / `binary_sensor.py` / `image.py` / `device_tracker.py` / `entity.py` — entity platforms. One device per VIN.
   - `descriptors.py`, `keys.py`, `units.py` — descriptor → entity mapping; `keys.py` derives the HA `translation_key` and is shared by runtime **and** generators so they can't drift.
-  - `www/bmw-cardata-card.js` — bundled Lovelace card (vanilla JS, registered automatically by `__init__.py`; no build step). Groups entities via their `cluster`/`category` attributes, not names.
+  - `www/bavariandata-card.js` — bundled Lovelace card (vanilla JS, registered automatically by `__init__.py`; no build step). Groups entities via their `cluster`/`category` attributes, not names.
 - `tools/` — catalogue generation pipeline (see below).
 - `tests/` — pytest, **no Home Assistant required** (see below).
 - `docs/reference/` — BMW API notes + generated field reference.

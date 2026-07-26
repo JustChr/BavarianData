@@ -1,13 +1,13 @@
 # The dashboard card
 
-A custom **BMW CarData Card** is bundled and registered automatically — there is
+A custom **BavarianData Card** is bundled and registered automatically — there is
 no dashboard resource to add by hand. Pick it from the card gallery to open a
 visual editor, or write YAML directly.
 
 With the integration installed, the minimal config auto-discovers the car:
 
 ```yaml
-type: custom:bmw-cardata-card
+type: custom:bavariandata-card
 ```
 
 The card has several **views**. The default is the Overview; set `view:` or
@@ -37,7 +37,7 @@ range, charging status, and a grid of key metrics.
 </p>
 
 ```yaml
-type: custom:bmw-cardata-card
+type: custom:bavariandata-card
 ```
 
 Pin a specific vehicle with `device:` (device id) or `vin:`.
@@ -53,7 +53,7 @@ top. **CSV** and **Report** buttons export the current month
 ([see Export](Feature-Export)).
 
 ```yaml
-type: custom:bmw-cardata-card
+type: custom:bavariandata-card
 view: charging
 ```
 
@@ -77,7 +77,7 @@ Shows the learned usable battery capacity as a gauge (percentage of the as-new
 pack) with a capacity-vs-mileage trend below.
 
 ```yaml
-type: custom:bmw-cardata-card
+type: custom:bavariandata-card
 view: health
 ```
 
@@ -103,7 +103,7 @@ driving-style score and your top destinations — and, once a tariff is set, an
 estimated driving cost. **CSV** and **Report** buttons export the current month.
 
 ```yaml
-type: custom:bmw-cardata-card
+type: custom:bavariandata-card
 view: trips
 ```
 
@@ -131,7 +131,7 @@ OK, amber high, red low) and the readings beside each wheel.
 </p>
 
 ```yaml
-type: custom:bmw-cardata-card
+type: custom:bavariandata-card
 cluster: tire
 ```
 
@@ -150,7 +150,7 @@ the vehicle doesn't report are simply omitted.
 </p>
 
 ```yaml
-type: custom:bmw-cardata-card
+type: custom:bavariandata-card
 cluster: closures
 ```
 
@@ -162,7 +162,7 @@ Set `cluster:` to list every value in one catalogue cluster. Use one card per
 cluster:
 
 ```yaml
-type: custom:bmw-cardata-card
+type: custom:bavariandata-card
 cluster: electric   # electric · status · tire · usage · events · basic · contract · metadata · other
 ```
 
@@ -175,7 +175,7 @@ names — so it works regardless of the user's Home Assistant language.
 
 | Key | Purpose |
 | --- | --- |
-| `type` | Always `custom:bmw-cardata-card`. |
+| `type` | Always `custom:bavariandata-card`. |
 | `view` | `charging`, `trips`, or `health`. Omit for the Overview. |
 | `cluster` | `electric`, `status`, `tire`, `usage`, `events`, `basic`, `contract`, `metadata`, `other`, `closures`. Renders a single-cluster list (or the special tire/closures diagrams). |
 | `device` | Device id, to pin a specific vehicle. |

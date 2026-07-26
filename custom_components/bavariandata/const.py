@@ -74,7 +74,7 @@ EVENT_CHARGING_COMPLETE = f"{DOMAIN}_charging_complete"
 
 # Bundled Lovelace card. The JS is served as a static path and auto-registered as
 # a frontend resource so users don't have to add it manually.
-LOVELACE_CARD_FILENAME = "bmw-cardata-card.js"
+LOVELACE_CARD_FILENAME = "bavariandata-card.js"
 LOVELACE_CARD_URL = f"/{DOMAIN}/{LOVELACE_CARD_FILENAME}"
 
 HV_BATTERY_CONTAINER_NAME = "BMW CarData HV Battery"

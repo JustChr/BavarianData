@@ -380,7 +380,7 @@ async def _async_register_frontend_card(hass: HomeAssistant) -> None:
     """Serve the bundled Lovelace card and register it as a frontend resource.
 
     Runs once per Home Assistant process (guarded by a module-level flag so it
-    survives config-entry reloads) making the ``custom:bmw-cardata-card`` element
+    survives config-entry reloads) making the ``custom:bavariandata-card`` element
     available without the user manually adding a dashboard resource.
     """
 

@@ -158,7 +158,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `mqtt_keepalive` (hidden override) | — | ❌ |
 | `diagnostic_log_interval` (hidden override) | — | ❌ |
 
-### Dashboard card views — from `bmw-cardata-card.js`
+### Dashboard card views — from `bavariandata-card.js`
 
 | Config | View | Status | Shot |
 | --- | --- | --- | --- |
