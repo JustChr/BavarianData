@@ -3,13 +3,21 @@
 BMW only streams the descriptors you tick under **Data Selection** in the
 portal, and it offers **no API** to set that selection — it is portal-only.
 Rather than hand-picking hundreds of technical fields, the integration builds
-the selection for you.
+the selection for you. There are **two routes**, and which one you see depends on
+how you got here:
 
-These screens appear automatically at the end of
-[step 3](Getting-Started-3-Add-and-Authorize), and you can re-run them any time
-from **Configure → Choose streamed data**.
+- **Guided setup** (and later **Configure → Choose streamed data**) use a
+  one-click **Activate BMW data** bookmarklet — the same activator described on
+  the [guided path](Getting-Started-3-Add-and-Authorize#guided-path). Pick your
+  clusters, run the bookmarklet on the portal's stream-setup page, and Home
+  Assistant turns the fields on for you. This route is **additive** (see
+  *Widening or narrowing later* below).
+- **Manual first-time setup** hands you a **browser-console snippet** for the
+  portal's Data Selection page instead. Those steps are below.
 
-## Steps
+## Manual setup — the Data Selection snippet
+
+This is the route the **Manual** setup path takes right after authorization.
 
 1. **Pick the clusters** you want (Electric vehicle, Vehicle status, Tire data,
    …). The defaults are a sensible starting set; your choice is remembered and

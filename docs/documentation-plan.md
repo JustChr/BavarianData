@@ -89,12 +89,12 @@ restructure) · ❌ missing · 📷 needs screenshot.
 
 | Step (`async_step_…`) | Screen | Status | Shot |
 | --- | --- | --- | --- |
-| `user` | Guided/manual chooser (menu) | ❌ new — needs shot | 📷 |
-| `guided_wait` | Guided: open setup page, waiting for activation (progress) | ❌ new — needs shot | 📷 |
-| `guided_paste` | Guided: paste-result fallback (plain-HTTP HA) | ❌ new — needs shot | 📷 |
-| `guided_done` | Guided: activation confirmation | ❌ new — needs shot | 📷 |
-| served `/bavariandata/onboarding` | Bookmarklet helper page (drag + console fallback) | ❌ new — needs shot | 📷 |
-| `manual` | Client ID entry + portal recap | 🟡 | 📷 |
+| `user` | Guided/manual chooser (menu) | ✅ `bavariandata-setup-chooser` | — |
+| `guided_wait` | Guided: waiting for activation (progress, **https only**) | ❌ needs https HA to reach | 📷 |
+| `guided_paste` | Guided: activation + paste screen (http HA) | ✅ `bavariandata-setup-guided` | — |
+| `guided_done` | Guided: activation confirmation | ❌ needs a real activation | 📷 |
+| served `/bavariandata/onboarding` | Bookmarklet helper page (drag + console fallback) | ✅ `bavariandata-setup-bookmarklet` | — |
+| `manual` | Client ID entry + portal recap | ✅ `bavariandata-setup-manual` | — |
 | `authorize` | Device link + user code | 🟡 | 📷 |
 | `authorize_failed` | Access-denied recovery | 🟡 | 📷 |
 | `tokens` | Token exchange (auto-advance) | 🟡 | — |
