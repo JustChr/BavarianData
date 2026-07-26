@@ -186,14 +186,16 @@
       },
       "action_trips": {
         "title": "Fahrten (Fahrtenbuch)",
-        "description": "Rekonstruiert deine Fahrten aus dem Stream ohne API-Kosten — Strecke, die Aufteilung geschäftlich/privat/Pendeln, Verbrauch und eine Monatsübersicht.\n\nLege **Arbeitszone** fest, damit Pendelfahrten (Zuhause ↔ Arbeit) automatisch erkannt werden; du kannst eine Fahrt jederzeit nachträglich korrigieren. **Adressen auflösen** ist standardmäßig aus: Ist es an, wird ein Fahrt-Endpunkt außerhalb jeder Home-Assistant-Zone über OpenStreetMap nachgeschlagen und als Adresse gespeichert — die Koordinaten werden für die Abfrage gesendet, aber nie gespeichert.",
+        "description": "Rekonstruiert deine Fahrten aus dem Stream ohne API-Kosten — Strecke, die Aufteilung geschäftlich/privat/Pendeln, Verbrauch und eine Monatsübersicht.\n\nLege **Arbeitszone** fest, damit Pendelfahrten (Zuhause ↔ Arbeit) automatisch erkannt werden; du kannst eine Fahrt jederzeit nachträglich korrigieren. **Adressen auflösen** ist standardmäßig aus: Ist es an, wird ein Fahrt-Endpunkt außerhalb jeder Home-Assistant-Zone über OpenStreetMap nachgeschlagen und als Adresse gespeichert — die Koordinaten werden für die Abfrage gesendet, aber nie gespeichert.\n\n**Route aufzeichnen** ist ebenfalls standardmäßig aus: Ist es an, speichert jede Fahrt ihren GPS-Verlauf, damit eine Karte zeigen kann, wo das Auto gefahren ist. Dies ist die einzige Einstellung, die rohe Koordinaten dauerhaft speichert.",
         "data": {
           "trip_work_zone": "Arbeitszone",
-          "trip_geocode": "Adressen auflösen"
+          "trip_geocode": "Adressen auflösen",
+          "trip_track": "Route aufzeichnen"
         },
         "data_description": {
           "trip_work_zone": "Optional. Eine Fahrt zwischen dieser Zone und Zuhause gilt als Pendelfahrt.",
-          "trip_geocode": "Optional. Sendet Endpunkte außerhalb von Zonen an OpenStreetMap; gespeichert wird nur die Adresse, nie die Koordinaten."
+          "trip_geocode": "Optional. Sendet Endpunkte außerhalb von Zonen an OpenStreetMap; gespeichert wird nur die Adresse, nie die Koordinaten.",
+          "trip_track": "Optional. Speichert den GPS-Verlauf jeder Fahrt (rohe Koordinaten), damit eine Karte die Route zeichnen kann. Standardmäßig aus, zum Schutz der Privatsphäre."
         }
       },
       "action_debug_logging": {

@@ -186,14 +186,16 @@
       },
       "action_trips": {
         "title": "Trips (driving journal)",
-        "description": "Reconstructs your drives from the stream at no API cost — distance, the business/private/commute split, consumption and a monthly review.\n\nSet **Work zone** so commutes (home ↔ work) are recognised automatically; you can always correct a trip afterwards. **Resolve addresses** is off by default: with it on, a trip endpoint outside any Home Assistant zone is looked up via OpenStreetMap and stored as an address — the coordinates are sent for the lookup but never saved.",
+        "description": "Reconstructs your drives from the stream at no API cost — distance, the business/private/commute split, consumption and a monthly review.\n\nSet **Work zone** so commutes (home ↔ work) are recognised automatically; you can always correct a trip afterwards. **Resolve addresses** is off by default: with it on, a trip endpoint outside any Home Assistant zone is looked up via OpenStreetMap and stored as an address — the coordinates are sent for the lookup but never saved.\n\n**Record route** is also off by default: with it on, each trip stores its GPS track so a map can show where the car went. This is the only setting that saves raw coordinates to disk.",
         "data": {
           "trip_work_zone": "Work zone",
-          "trip_geocode": "Resolve addresses"
+          "trip_geocode": "Resolve addresses",
+          "trip_track": "Record route"
         },
         "data_description": {
           "trip_work_zone": "Optional. A drive between this zone and home is classified as a commute.",
-          "trip_geocode": "Optional. Sends non-zone endpoints to OpenStreetMap; only the resulting address is stored, never the coordinates."
+          "trip_geocode": "Optional. Sends non-zone endpoints to OpenStreetMap; only the resulting address is stored, never the coordinates.",
+          "trip_track": "Optional. Stores each trip's GPS track (raw coordinates) so a map can draw the route. Off by default for privacy."
         }
       },
       "action_debug_logging": {

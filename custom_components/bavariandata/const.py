@@ -49,6 +49,11 @@ DEFAULT_HISTORY_RETAIN_MONTHS = 24
 # geocode toggle is off by default because it sends coordinates to OpenStreetMap.
 OPTION_TRIP_WORK_ZONE = "trip_work_zone"
 OPTION_TRIP_GEOCODE = "trip_geocode"
+# Record the GPS track (route polyline) of each trip so a future map can draw
+# where the car went. Off by default and independent of geocoding: it is the one
+# trip setting that persists raw coordinates to disk, so it stays strictly
+# opt-in. When off, trips keep storing named places only -- never coordinates.
+OPTION_TRIP_TRACK = "trip_track"
 
 # Statistics backfill (roadmap Phase 4). On by default: it writes only into this
 # integration's own "bavariandata:" statistic namespace, stays local, and is what

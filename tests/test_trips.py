@@ -216,6 +216,47 @@ def test_odometer_and_bmw_distance_outrank_the_gps_track():
     assert trip.distance_km == 23.4
 
 
+# --- route track (opt-in) --------------------------------------------------
+
+
+def test_track_is_empty_unless_opted_in():
+    # Default builder never stores a coordinate, even when fed fixes.
+    builder = TripBuilder("WBY1", START)
+    builder.add_track_point(48.1, 11.5)
+    builder.add_track_point(48.2, 11.6)
+    trip = builder.close(START + timedelta(minutes=20))
+    assert trip.track == []
+
+
+def test_track_records_fixes_when_opted_in():
+    builder = TripBuilder("WBY1", START, record_track=True)
+    builder.add_track_point(48.123456, 11.5)  # rounded to 5 dp
+    builder.add_track_point(48.2, 11.6)
+    builder.add_track_point(48.2, 11.6)  # a repeated fix is skipped
+    trip = builder.close(START + timedelta(minutes=20))
+    assert trip.track == [[48.12346, 11.5], [48.2, 11.6]]
+
+
+def test_track_round_trips_through_json():
+    original = _trip(track=[[48.1, 11.5], [48.2, 11.6]])
+    restored = Trip.from_dict(json.loads(json.dumps(original.to_dict())))
+    assert restored is not None
+    assert restored.track == [[48.1, 11.5], [48.2, 11.6]]
+
+
+def test_track_decimates_past_the_point_budget():
+    builder = TripBuilder("WBY1", START, record_track=True)
+    cap = trip_builder.MAX_TRACK_POINTS
+    # Feed well past the cap with monotonically distinct points.
+    for i in range(cap * 3):
+        builder.add_track_point(48.0 + i * 1e-4, 11.0 + i * 1e-4)
+    trip = builder.close(START + timedelta(hours=3))
+    # Bounded, and still a real route (first fix preserved, order kept).
+    assert len(trip.track) <= cap
+    assert trip.track[0] == [48.0, 11.0]
+    assert trip.track == sorted(trip.track)
+
+
 # --- month in review -------------------------------------------------------
 
 

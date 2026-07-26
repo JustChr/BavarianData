@@ -25,6 +25,14 @@ MIN_TRIP_S = 120
 # so anything under ~50 m must not open (or keep alive) a trip.
 GPS_MOVE_THRESHOLD_KM = 0.05
 
+# Decimal places kept for a recorded track point: 5 dp is ~1.1 m, plenty to draw
+# a route without persisting a needlessly precise fix.
+TRACK_PRECISION = 5
+# Hard bound on stored track points. A long drive decimates in place (halving the
+# resolution) rather than growing the store without limit; 2000 points is a very
+# detailed multi-hour route.
+MAX_TRACK_POINTS = 2000
+
 
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Great-circle distance between two WGS-84 points, in kilometres.
@@ -88,6 +96,7 @@ class TripBuilder:
         soc_start: Optional[float] = None,
         mileage_start: Optional[float] = None,
         location_assumed: bool = False,
+        record_track: bool = False,
     ) -> None:
         self.vin = vin
         self.start = start
@@ -98,6 +107,12 @@ class TripBuilder:
         # Distance summed from the GPS track, for cars that stream neither an
         # odometer nor BMW's ``travelledDistance`` (see ``add_gps_km``).
         self.gps_km = 0.0
+        # Route polyline, only when the user opted in. Off by default so the
+        # builder never persists a coordinate unless route recording is on.
+        self.record_track = record_track
+        self.track: list[list[float]] = []
+        self._track_stride = 1
+        self._track_seen = 0
 
     def add_gps_km(self, km: float) -> None:
         """Fold one GPS hop into the running track distance.
@@ -108,6 +123,36 @@ class TripBuilder:
 
         if km and km > 0:
             self.gps_km += km
+
+    def add_track_point(self, lat: float, lon: float) -> None:
+        """Append a fix to the route polyline, when route recording is on.
+
+        A no-op unless the user opted in, so a coordinate is only ever stored
+        deliberately. Consecutive duplicates (a car sitting still still streams
+        its position) are skipped, and once the point budget is exhausted the
+        track decimates in place -- mirroring the charging power curve -- so a
+        very long drive can't grow the record without bound.
+        """
+
+        if not self.record_track:
+            return
+        point = [round(lat, TRACK_PRECISION), round(lon, TRACK_PRECISION)]
+        # Sub-sample at the current stride so decimation stays uniform: after a
+        # halving, only every other subsequent fix is a candidate too.
+        self._track_seen += 1
+        if (self._track_seen - 1) % self._track_stride != 0:
+            return
+        if self.track and self.track[-1] == point:
+            return
+        self.track.append(point)
+        if len(self.track) > MAX_TRACK_POINTS:
+            self._decimate_track()
+
+    def _decimate_track(self) -> None:
+        """Halve the track resolution in place once the point budget is exceeded."""
+
+        self.track = self.track[::2]
+        self._track_stride *= 2
 
     def _distance_km(
         self, mileage_end: Optional[float], travelled_km: Optional[float]
@@ -161,6 +206,7 @@ class TripBuilder:
             location_assumed=self.location_assumed
             or end_place is None
             or end_place.get("label") == "Unknown",
+            track=list(self.track),
         )
 
 

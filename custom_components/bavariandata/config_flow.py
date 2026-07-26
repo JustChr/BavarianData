@@ -45,6 +45,7 @@ from .const import (
     OPTION_STATISTICS_IMPORT,
     DEFAULT_STATISTICS_IMPORT,
     OPTION_TRIP_GEOCODE,
+    OPTION_TRIP_TRACK,
     OPTION_TRIP_WORK_ZONE,
     VEHICLE_METADATA,
 )
@@ -1066,6 +1067,9 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         resolution is off by default: turning it on sends the coordinates of
         trip endpoints outside a known zone to OpenStreetMap's Nominatim -- the
         resulting address string is stored, never the coordinates themselves.
+        Route recording is a separate opt-in: turning it on stores each trip's
+        GPS track (raw coordinates) so a map can draw where the car went -- the
+        one trip setting that persists coordinates to disk.
         """
 
         options = dict(self._config_entry.options)
@@ -1082,6 +1086,10 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 vol.Required(
                     OPTION_TRIP_GEOCODE,
                     default=options.get(OPTION_TRIP_GEOCODE, False),
+                ): selector.BooleanSelector(),
+                vol.Required(
+                    OPTION_TRIP_TRACK,
+                    default=options.get(OPTION_TRIP_TRACK, False),
                 ): selector.BooleanSelector(),
             }
         )
@@ -1102,6 +1110,11 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 coordinator.geocoder.enabled = bool(
                     user_input.get(OPTION_TRIP_GEOCODE)
                 )
+            # Takes effect on the next trip that opens; an in-progress trip keeps
+            # whatever setting it started with.
+            coordinator.record_trip_track = bool(
+                user_input.get(OPTION_TRIP_TRACK)
+            )
         return self.async_create_entry(title="", data=options)
 
     async def async_step_action_debug_logging(

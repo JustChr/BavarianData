@@ -310,6 +310,9 @@ class CardataCoordinator:
     # injected/updated from options; both are optional and degrade quietly.
     geocoder: Optional[Any] = None
     work_zone_entity: Optional[str] = None
+    # Record each trip's GPS route (opt-in, off by default). The only setting that
+    # persists raw coordinates; refreshed from options on reload / options change.
+    record_trip_track: bool = False
     _session_builders: Dict[str, SessionBuilder] = field(
         default_factory=dict, init=False
     )
@@ -1134,6 +1137,8 @@ class CardataCoordinator:
                 builder = self._trip_builders.get(vin)
                 if builder is not None:
                     builder.add_gps_km(step_km)
+                    # Record the route point too (opt-in; a no-op otherwise).
+                    builder.add_track_point(latitude, longitude)
                 # Rolling window: keep the trip alive while the car is moving,
                 # but guarantee a close even if the fixes stop arriving.
                 self._reset_trip_close_timer(vin)
@@ -1167,7 +1172,7 @@ class CardataCoordinator:
 
     async def _open_trip(self, vin: str, now: datetime) -> None:
         start_place = await self._resolve_place(vin)
-        self._trip_builders[vin] = TripBuilder(
+        builder = self._trip_builders[vin] = TripBuilder(
             vin,
             now,
             start_place=start_place,
@@ -1175,9 +1180,16 @@ class CardataCoordinator:
             mileage_start=self._odometer_km(vin),
             location_assumed=start_place is None
             or start_place.get("label") == "Unknown",
+            record_track=self.record_trip_track,
         )
+        # Seed the route with the opening fix so the polyline starts where the
+        # drive did, not at the first mid-drive movement step. A no-op when route
+        # recording is off or no GPS is available.
+        latitude = self._coordinate(vin, "latitude")
+        longitude = self._coordinate(vin, "longitude")
+        if latitude is not None and longitude is not None:
+            builder.add_track_point(latitude, longitude)
         if debug_enabled():
-            builder = self._trip_builders[vin]
             _LOGGER.debug(
                 "[trip] %s OPEN at %s place=%s soc=%s odo=%s",
                 vin,
@@ -1246,10 +1258,11 @@ class CardataCoordinator:
             trip.classification_source = SOURCE_AUTO
         if debug_enabled():
             _LOGGER.debug(
-                "[trip] %s RECORDED id=%s class=%s (home=%s work=%s)",
+                "[trip] %s RECORDED id=%s class=%s track=%d pts (home=%s work=%s)",
                 vin,
                 trip.id,
                 classification,
+                len(trip.track),
                 self._home_zone_name(),
                 self._work_zone_name(),
             )

@@ -25,6 +25,25 @@ Endpoints are stored as **place names, never coordinates**:
   endpoint coordinates to OpenStreetMap's Nominatim; the resulting address
   string is stored, and the coordinates themselves are never persisted.
 
+## Recording the route (opt-in)
+
+By default a trip keeps only its named endpoints — enough for the journal, but
+not enough to draw a map. Turn on **Record route** under **Configure → Trips**
+(`trip_track`) and each new trip additionally stores its **GPS track**: the
+polyline of coordinates along the drive, so a map can show where the car went.
+
+- This is the **only** setting that writes raw coordinates to disk, which is why
+  it is off by default and independent of address resolution.
+- It takes effect on the **next** trip that starts; trips already recorded keep
+  whatever they were captured with, and an in-progress drive keeps the setting
+  it began with.
+- The track rides the trip record and is returned by
+  **`bavariandata.get_trips`** (as a `track` list of `[lat, lon]` points). It is
+  never included in the CSV / printable [export](Feature-Export), which stays
+  place-names-only.
+- The track is bounded and lightly downsampled, so even a long multi-hour drive
+  stays a compact route rather than an unbounded stream of fixes.
+
 ## Classification
 
 Drives auto-classify as **business**, **private** or **commute**:

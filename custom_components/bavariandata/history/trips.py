@@ -4,10 +4,17 @@ Home Assistant-free on purpose (see ``models.py``): a trip's shape, its distance
 and duration arithmetic, and its retention all have to be unit-testable without
 an HA install. Everything here survives a ``json.dumps``/``loads`` round trip.
 
-Privacy is baked into the record, not bolted on: a trip stores *places*, never
-coordinates. A place is the resolved Home Assistant zone name when the endpoint
-sits inside a zone, an optional reverse-geocoded address string when it does not,
-and never a latitude/longitude. See ``docs/roadmap.md`` (Phase 3) for why.
+Privacy is baked into the record, not bolted on: a trip's *endpoints* are always
+stored as *places*, never coordinates. A place is the resolved Home Assistant
+zone name when the endpoint sits inside a zone, an optional reverse-geocoded
+address string when it does not, and never a latitude/longitude. See
+``docs/roadmap.md`` (Phase 3) for why.
+
+The one exception is the optional ``track``: a route polyline of raw
+``[lat, lon]`` fixes, recorded only when the user explicitly opts in (the
+``trip_track`` option, off by default) so a map can draw where the car went. It
+is empty on every trip unless route recording is on, which is why it is the sole
+place in the history layer coordinates ever reach disk.
 """
 
 from __future__ import annotations
@@ -71,6 +78,10 @@ class Trip:
     stats: dict[str, Any] = field(default_factory=dict)
     # True when an endpoint's place had to be assumed (no GPS, no geocode).
     location_assumed: bool = False
+    # Optional route polyline: [[lat, lon], ...] along the drive, downsampled and
+    # bounded (see trip_builder.py). Empty unless the user opted into route
+    # recording (``trip_track``) -- the only coordinates the layer ever persists.
+    track: list[list[float]] = field(default_factory=list)
 
     @property
     def id(self) -> str:
@@ -117,6 +128,7 @@ class Trip:
             "classification_source": self.classification_source,
             "stats": self.stats,
             "location_assumed": self.location_assumed,
+            "track": [list(point) for point in self.track],
         }
 
     @classmethod
@@ -144,6 +156,7 @@ class Trip:
             classification_source=data.get("classification_source"),
             stats=dict(data.get("stats") or {}),
             location_assumed=bool(data.get("location_assumed")),
+            track=[list(point) for point in data.get("track") or []],
         )
 
 

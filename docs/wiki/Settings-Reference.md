@@ -32,7 +32,7 @@ The menu labels below are exactly as they appear in the UI.
 | **Fetch charging settings** | action ⚡ | Location-based charging settings. " |
 | **Fetch vehicle image** | action ⚡ | " |
 | **Charging costs & history** | settings | Price source, retention, statistics — below. |
-| **Trips** | settings | Work zone and address resolution — below. |
+| **Trips** | settings | Work zone, address resolution and route recording — below. |
 | **Debug logging** | settings | Verbose logging toggle — below. |
 
 ⚡ = spends one (or more) of your [50 requests / 24 h](Feature-API-Quota).
@@ -65,6 +65,7 @@ Screen: **Configure → Trips**. See [Trips](Feature-Trips) for the concepts.
 | --- | --- | --- |
 | **Work zone** | zone entity | Drives commute classification (home↔work). |
 | **Resolve addresses** | on/off | Off by default. When on, trip endpoints **outside** any zone are reverse-geocoded via OpenStreetMap; the address string is stored, never the coordinates. |
+| **Record route** | on/off | Off by default. When on, each new trip stores its GPS track (raw coordinates) so a map can draw the route — the only setting that persists coordinates. Served via `get_trips`; never in the export. |
 
 ## Debug logging
 

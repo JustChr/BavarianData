@@ -153,6 +153,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `statistics_import` | Charging costs & history | 🟡 |
 | `trip_work_zone` | Trips | 🟡 |
 | `trip_geocode` | Trips | 🟡 |
+| `trip_track` (route recording) | Trips | ✅ |
 | `debug_log` | Debug logging | 🟡 |
 | `mqtt_keepalive` (hidden override) | — | ❌ |
 | `diagnostic_log_interval` (hidden override) | — | ❌ |

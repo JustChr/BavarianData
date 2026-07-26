@@ -9,6 +9,19 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-07-26
+
+### Added
+- **Optional route recording for trips.** A new **Record route** toggle under
+  **Configure → Trips** (off by default) makes each new trip additionally store
+  its GPS track — the polyline of coordinates along the drive — so a map can show
+  where the car went. It is the only setting that persists raw coordinates, is
+  independent of address resolution, and takes effect on the next trip that
+  starts. The track is served through `bavariandata.get_trips` (a `track` list of
+  `[lat, lon]` points) and is never included in the CSV / printable export, which
+  stays place-names-only. Trips keep storing named places only when the toggle is
+  off, exactly as before.
+
 ## [0.9.1-beta.7] - 2026-07-26
 
 ### Changed
