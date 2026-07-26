@@ -32,11 +32,17 @@ This is the route the **Manual** setup path takes right after authorization.
 
    <!-- screenshot: config-flow-cluster-snippet -->
 
-3. In the BMW portal, open **Data Selection** (*Datenauswahl ändern*) and click
-   **Load more** until every field is listed. Open the browser console
-   (F12 → Console), paste the snippet, and press **Enter**. It ticks only the
-   checkboxes belonging to your chosen clusters — leaving any other selections
-   untouched — and logs how many it matched.
+3. In the BMW portal, open the vehicle's **BMW CarData** page and press
+   **Change data selection** (*Datenauswahl ändern*) under **CarData Stream**:
+
+   <p align="center">
+     <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bmw-portal-change-data-selection.png" alt="BMW CarData Stream panel showing configuration status 'ready' with 'Delete stream' and 'Change data selection' buttons" width="760" />
+   </p>
+
+   On the selection page, click **Load more** until every field is listed. Open
+   the browser console (F12 → Console), paste the snippet, and press **Enter**.
+   It ticks only the checkboxes belonging to your chosen clusters — leaving any
+   other selections untouched — and logs how many it matched.
 4. **Save** the selection in the portal, then press **Submit** in Home Assistant
    to finish. Repeat the portal step for each vehicle.
 5. Trigger something in the MyBMW app (lock/unlock) to nudge the car into

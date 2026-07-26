@@ -44,9 +44,28 @@ see [step 4](Getting-Started-4-Choose-Data).
    </p>
 
 2. Open the **BMW or MINI portal**, sign in, go to a vehicle's **stream setup**
-   page, and click the **Activate BMW data** bookmark. It finds your client ID,
-   checks the vehicle, and turns on the default data fields — **all in your own
-   browser**, so no password or session ever leaves it.
+   page (BMW CarData → **Change data selection**), and click the **Activate BMW
+   data** bookmark. This is the page it runs on:
+
+   <p align="center">
+     <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bmw-portal-stream-setup.png" alt="BMW CarData stream-setup page ('Selection of vehicle data') listing the streamable technical descriptors for an i5 eDrive40" width="760" />
+   </p>
+
+   The bookmarklet finds your client ID, checks the vehicle, and turns on the
+   default data fields — **all in your own browser**, so no password or session
+   ever leaves it. You'll see it read the available fields…
+
+   <p align="center">
+     <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bmw-portal-bookmarklet-running.png" alt="The same portal page with a 'BavarianData — Reading available fields…' progress toast in the top-right corner" width="760" />
+   </p>
+
+   …then report how many are active:
+
+   <p align="center">
+     <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bmw-portal-bookmarklet-done.png" alt="Portal page with a 'BavarianData — 228 fields active' toast and a 'Copy this and paste it into Home Assistant' box with a Copy button" width="760" />
+   </p>
+
+   Back in Home Assistant, the guided screen waits for that result:
 
    <p align="center">
      <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-setup-guided.png" alt="Guided activation screen: run the bookmarklet on the portal, then Home Assistant continues automatically or you paste the short result" width="520" />
@@ -55,7 +74,7 @@ see [step 4](Getting-Started-4-Choose-Data).
    - On an **https** Home Assistant the activator reports back and setup
      **continues on its own**.
    - On an **http** Home Assistant, press **Copy** in the box the activator shows
-     and **paste** the short (non-secret) result into the field.
+     (pictured above) and **paste** the short (non-secret) result into the field.
 
 3. Continue with **device authorization** (below). When it finishes, the default
    clusters are already streaming — fine-tune them any time from

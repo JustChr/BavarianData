@@ -19,7 +19,13 @@ once before starting — the steps below mirror it.
 
 ## Open the CarData portal
 
-Open the vehicle overview and pick **CarData**:
+Sign in to your BMW account and open **My Vehicles → Vehicle overview**:
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bmw-portal-account.png" alt="MyBMW account landing page; under 'My Vehicles' the 'Vehicle overview' link is highlighted" width="760" />
+</p>
+
+Direct links to the vehicle overview per market:
 
 |       | English | German | Austrian |
 | ----- | ------- | ------ | -------- |
@@ -28,10 +34,21 @@ Open the vehicle overview and pick **CarData**:
 
 ## Steps
 
-1. Select your vehicle and open **BMW CarData** / **Mini CarData**.
+1. Select your vehicle and open the **BMW CarData** / **Mini CarData** tile.
+
+   <p align="center">
+     <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bmw-portal-vehicle-overview.png" alt="Vehicle overview page for a BMW i5 eDrive40 with the 'BMW CarData' tile among the vehicle tiles" width="760" />
+   </p>
+
 2. [Generate a client ID](https://bmw-cardata.bmwgroup.com/customer/public/api-documentation/Id-Technical-registration_Step-1).
 3. Give the client **both** scopes — `cardata:api:read` and
-   `cardata:streaming:read` — and authorize it.
+   `cardata:streaming:read` — and authorize it. On the **Technical access to
+   BMW CarData** screen you should end up with a **Client ID** shown and both
+   **Request access to CarData API** and **CarData Stream** switched on.
+
+   <p align="center">
+     <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bmw-portal-cardata-client.png" alt="'Technical access to BMW CarData' screen showing the generated Client ID (redacted) with the CarData API and CarData Stream toggles both enabled, plus Delete Client and Authenticate device buttons" width="760" />
+   </p>
 
    > If the portal throws a scope error, reload the page, add one scope, wait
    > ~30 seconds, then add the second.

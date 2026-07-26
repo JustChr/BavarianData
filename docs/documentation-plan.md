@@ -102,6 +102,21 @@ restructure) · ❌ missing · 📷 needs screenshot.
 | `cluster_snippet` | Generated console snippet (manual path) | 🟡 | 📷 |
 | `reauth` | Re-authorize with BMW | 🟡 | 📷 |
 
+### BMW portal steps — external, shown in Getting-Started 1/3/4
+
+These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
+© BMW AG, redacted, and reproduced only to document setup (see `_Footer.md`).
+
+| Portal screen | Page | Status | Shot |
+| --- | --- | --- | --- |
+| MyBMW account → Vehicle overview | GS-1 | ✅ | `bmw-portal-account` |
+| Vehicle overview + CarData tile | GS-1 | ✅ | `bmw-portal-vehicle-overview` |
+| Technical access — Client ID + scopes | GS-1 | ✅ | `bmw-portal-cardata-client` |
+| CarData Stream + Change data selection | GS-4 | ✅ | `bmw-portal-change-data-selection` |
+| Stream setup — selection of vehicle data | GS-3 | ✅ | `bmw-portal-stream-setup` |
+| Bookmarklet running (reading fields) | GS-3 | ✅ | `bmw-portal-bookmarklet-running` |
+| Bookmarklet done (fields active + copy box) | GS-3 | ✅ | `bmw-portal-bookmarklet-done` |
+
 ### Configure (options) menu — 14 actions from `async_step_init`
 
 | Action | Screen | Status | Shot |
@@ -237,9 +252,11 @@ PR. (Proposed addition to `CLAUDE.md`.)
 4. ✅ Write the genuinely-missing pages (coverage self-test, reset container,
    refresh tokens, diagnostics entities, device tracker, hidden overrides,
    `get_coverage_report`). The full English manual is staged in `docs/wiki/`.
-5. 🟡 Screenshot pass — **5 of ~9 captured** against the live HA instance via the
-   Playwright workflow (cluster picker, Configure menu, charging-costs settings,
-   charging & battery-health card views; in `screenshots/`). Remaining are
+5. 🟡 Screenshot pass — HA-side shots captured via the Playwright workflow
+   (cluster picker, Configure menu, charging-costs settings, charging &
+   battery-health card views), **plus the 7 BMW-portal setup shots** (account →
+   vehicle overview → CarData client → stream setup → bookmarklet running/done;
+   captured in-browser, cropped, PII redacted, in `screenshots/`). Remaining are
    deliberately deferred: the two onboarding screens (`config-flow-user` /
    `-authorize`) and `config-flow-cluster-snippet` would disturb the live
    single-stream / persist state, and `card-trips` has no data yet. The `Trips`
