@@ -36,9 +36,21 @@ from **Configure → Choose streamed data**.
 
 ## Widening or narrowing later
 
-Re-run this any time from **Configure → Choose streamed data**. Requesting
-per-descriptor streaming *scopes* instead of a portal selection is rejected by
-BMW — see
+Re-run this any time from **Configure → Choose streamed data**. Reconfiguring
+uses the **one-click activator** rather than the console snippet: pick your
+clusters, then run the **Activate BMW data** bookmarklet (the same one guided
+setup uses) on the portal's **stream setup** page — Home Assistant turns on the
+fields for you and continues automatically, no copy-paste. See
+[guided setup](Getting-Started-3-Add-and-Authorize) for how the bookmarklet
+works.
+
+> **Additive:** re-running the activator *adds* the chosen clusters to your live
+> stream; it never removes a field you already stream. To **stop** streaming a
+> field, untick it under **Data Selection** in the portal (the console snippet
+> above only ticks boxes — it does not untick them either).
+
+Requesting per-descriptor streaming *scopes* instead of a portal selection is
+rejected by BMW — see
 [stream-scope-investigation.md](https://github.com/JustChr/BavarianData/blob/main/docs/reference/stream-scope-investigation.md).
 The full field-per-cluster breakdown lives in
 [telematics-fields.md](https://github.com/JustChr/BavarianData/blob/main/docs/reference/telematics-fields.md).

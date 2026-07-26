@@ -9,6 +9,20 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.1-beta.7] - 2026-07-26
+
+### Changed
+- **Changing your streamed data is now one click, like guided setup.**
+  **Configure → Choose streamed data** no longer hands you a console snippet to
+  paste on the portal's Data Selection page. Instead it reuses the guided-setup
+  activator: pick your clusters, then run the **Activate BMW data** bookmarklet on
+  the portal's stream-setup page and Home Assistant turns the fields on for you
+  and continues automatically (on an http instance it falls back to the same
+  Copy-and-paste screen guided setup uses). The activator is **additive** — it
+  adds the chosen clusters to your live stream but never removes a field you
+  already stream; to stop streaming a field, untick it under Data Selection in the
+  portal.
+
 ## [0.9.1-beta.6] - 2026-07-26
 
 ### Fixed

@@ -50,7 +50,12 @@ from .const import (
 )
 from .debug import set_debug_enabled
 from .history.pricing import DEFAULT_CURRENCY, MODE_ENTITY, MODE_FIXED, MODE_NONE, PricingConfig
-from .descriptors import build_portal_snippet, default_sections, section_labels
+from .descriptors import (
+    build_portal_snippet,
+    default_sections,
+    descriptors_for_sections,
+    section_labels,
+)
 from .onboarding import (
     OnboardingParseError,
     OnboardingResult,
@@ -135,7 +140,128 @@ def _generate_code_challenge(code_verifier: str) -> str:
     return base64.urlsafe_b64encode(digest).decode("ascii").rstrip("=")
 
 
-class CardataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class _StreamActivatorFlow:
+    """Shared plumbing for the in-browser stream-field activator.
+
+    BMW's stream selection has no API and lives behind an interactive portal
+    session, so activation runs in the user's *own* browser: we host a helper
+    page carrying a one-click bookmarklet (plus a console fallback) and a
+    one-time webhook the activator reports its result back to. Both first-time
+    guided setup (:class:`CardataConfigFlow`) and the later "Choose streamed
+    data" reconfiguration (:class:`CardataOptionsFlowHandler`) drive the very
+    same activator, so neither path needs any copy-paste. Relies only on
+    ``self.hass``.
+    """
+
+    def _init_activator_state(self) -> None:
+        """Initialise the per-flow activator state (call from ``__init__``)."""
+
+        self._onboarding: Optional[OnboardingResult] = None
+        self._onboarding_webhook_id: Optional[str] = None
+        self._onboarding_event: Optional[asyncio.Event] = None
+        self._onboarding_page_url: str = ""
+        self._onboarding_wait_task: Optional[asyncio.Task] = None
+        self._onboarding_auto: bool = False
+
+    @callback
+    def _ensure_onboarding_view(self) -> None:
+        """Register the helper-page view once per Home Assistant instance.
+
+        Guarded by a flag, and the actual registration is wrapped: the flag lives
+        in ``hass.data[DOMAIN]`` which is dropped when the last entry unloads, so a
+        later flow could try to register the (still-live) view again -- suppress
+        that rather than error.
+        """
+
+        domain_data = self.hass.data.setdefault(DOMAIN, {})
+        if domain_data.get(_ONBOARDING_VIEW_REGISTERED):
+            return
+        with contextlib.suppress(Exception):
+            self.hass.http.register_view(_OnboardingHelperView())
+        domain_data[_ONBOARDING_VIEW_REGISTERED] = True
+
+    def _start_activator(self, attributes: list[str]) -> None:
+        """Host the helper page + webhook for one activator run.
+
+        The activator runs on ``https://www.bmw.at`` and can only POST its result
+        to an **https** Home Assistant; an http instance blocks that as mixed
+        content. So the webhook (and the auto-continue wait) is only wired when HA
+        is https -- otherwise the activator is clipboard-only and the caller goes
+        straight to the paste screen. Sets ``_onboarding_auto`` and
+        ``_onboarding_page_url`` for the caller to route on.
+        """
+
+        self._ensure_onboarding_view()
+
+        token = webhook.async_generate_id()
+        try:
+            webhook_url = webhook.async_generate_url(self.hass, token)
+        except NoURLAvailableError:
+            webhook_url = ""
+        auto = webhook_url.startswith("https://")
+        report_url = webhook_url if auto else ""
+        self._onboarding_auto = auto
+
+        bookmarklet = build_bookmarklet(attributes, report_url=report_url)
+        console = build_console_snippet(attributes, report_url=report_url)
+        html = build_helper_page(
+            bookmarklet=bookmarklet, console_js=console, attribute_count=len(attributes)
+        )
+
+        event = asyncio.Event()
+        store = self.hass.data.setdefault(DOMAIN, {}).setdefault(_ONBOARDING_STORE, {})
+        store[token] = {"event": event, "result": None, "html": html}
+        self._onboarding_webhook_id = token
+        self._onboarding_event = event
+        if auto:
+            webhook.async_register(
+                self.hass, DOMAIN, "BavarianData onboarding", token, _handle_onboarding_webhook
+            )
+
+        try:
+            self._onboarding_page_url = (
+                get_url(self.hass) + ONBOARDING_VIEW_URL + f"?token={token}"
+            )
+        except NoURLAvailableError:
+            self._onboarding_page_url = f"{ONBOARDING_VIEW_URL}?token={token}"
+
+    def _cleanup_onboarding(self) -> None:
+        """Unregister the webhook and drop the pending record for this flow."""
+
+        token = self._onboarding_webhook_id
+        if not token:
+            return
+        if self._onboarding_auto:
+            with contextlib.suppress(ValueError, KeyError):
+                webhook.async_unregister(self.hass, token)
+        self.hass.data.get(DOMAIN, {}).get(_ONBOARDING_STORE, {}).pop(token, None)
+        self._onboarding_webhook_id = None
+        self._onboarding_event = None
+
+    async def _await_onboarding_result(self) -> Optional[OnboardingResult]:
+        """Wait (bounded) for the activator to POST its result to the webhook."""
+
+        assert self._onboarding_event is not None
+        try:
+            await asyncio.wait_for(
+                self._onboarding_event.wait(), timeout=ONBOARDING_WAIT_TIMEOUT
+            )
+        except asyncio.TimeoutError:
+            return None
+        pending = self.hass.data.get(DOMAIN, {}).get(_ONBOARDING_STORE, {}).get(
+            self._onboarding_webhook_id
+        )
+        return pending.get("result") if pending else None
+
+    async def async_remove(self) -> None:
+        """Flow teardown (abort/cancel/finish): drop the webhook + wait task."""
+
+        self._cleanup_onboarding()
+        if self._onboarding_wait_task and not self._onboarding_wait_task.done():
+            self._onboarding_wait_task.cancel()
+
+
+class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=DOMAIN):
     """Handle config flow for BMW CarData."""
 
     VERSION = 1
@@ -157,12 +283,7 @@ class CardataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # the manual path (clusters -> discover -> auth vs. auth -> clusters).
         self._guided: bool = False
         self._guided_sections: list[str] = []
-        self._onboarding: Optional[OnboardingResult] = None
-        self._onboarding_webhook_id: Optional[str] = None
-        self._onboarding_event: Optional[asyncio.Event] = None
-        self._onboarding_page_url: str = ""
-        self._onboarding_wait_task: Optional[asyncio.Task] = None
-        self._onboarding_auto: bool = False
+        self._init_activator_state()
 
     async def async_step_user(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """Entry point: choose guided (recommended) or manual setup."""
@@ -221,101 +342,11 @@ class CardataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         self._guided = True
         self._guided_sections = default_sections()
-        self._ensure_onboarding_view()
+        self._start_activator(default_activator_attributes())
 
-        token = webhook.async_generate_id()
-        try:
-            webhook_url = webhook.async_generate_url(self.hass, token)
-        except NoURLAvailableError:
-            webhook_url = ""
-        # The activator runs on https://www.bmw.at and can only POST its result to
-        # an **https** Home Assistant; an http instance blocks that as mixed
-        # content. So only wire the webhook (and the auto-continue wait) when HA is
-        # https -- otherwise the activator is clipboard-only and we go straight to
-        # the paste screen, instead of a wait that could never complete.
-        auto = webhook_url.startswith("https://")
-        report_url = webhook_url if auto else ""
-        self._onboarding_auto = auto
-
-        attributes = default_activator_attributes()
-        bookmarklet = build_bookmarklet(attributes, report_url=report_url)
-        console = build_console_snippet(attributes, report_url=report_url)
-        html = build_helper_page(
-            bookmarklet=bookmarklet, console_js=console, attribute_count=len(attributes)
-        )
-
-        event = asyncio.Event()
-        store = self.hass.data.setdefault(DOMAIN, {}).setdefault(_ONBOARDING_STORE, {})
-        store[token] = {"event": event, "result": None, "html": html}
-        self._onboarding_webhook_id = token
-        self._onboarding_event = event
-        if auto:
-            webhook.async_register(
-                self.hass, DOMAIN, "BavarianData onboarding", token, _handle_onboarding_webhook
-            )
-
-        try:
-            self._onboarding_page_url = (
-                get_url(self.hass) + ONBOARDING_VIEW_URL + f"?token={token}"
-            )
-        except NoURLAvailableError:
-            self._onboarding_page_url = f"{ONBOARDING_VIEW_URL}?token={token}"
-
-        if auto:
+        if self._onboarding_auto:
             return await self.async_step_guided_wait()
         return await self.async_step_guided_paste()
-
-    async def async_remove(self) -> None:
-        """Flow teardown (abort/cancel/finish): drop the webhook + wait task."""
-
-        self._cleanup_onboarding()
-        if self._onboarding_wait_task and not self._onboarding_wait_task.done():
-            self._onboarding_wait_task.cancel()
-
-    @callback
-    def _ensure_onboarding_view(self) -> None:
-        """Register the helper-page view once per Home Assistant instance.
-
-        Guarded by a flag, and the actual registration is wrapped: the flag lives
-        in ``hass.data[DOMAIN]`` which is dropped when the last entry unloads, so a
-        later guided flow could try to register the (still-live) view again --
-        suppress that rather than error.
-        """
-
-        domain_data = self.hass.data.setdefault(DOMAIN, {})
-        if domain_data.get(_ONBOARDING_VIEW_REGISTERED):
-            return
-        with contextlib.suppress(Exception):
-            self.hass.http.register_view(_OnboardingHelperView())
-        domain_data[_ONBOARDING_VIEW_REGISTERED] = True
-
-    def _cleanup_onboarding(self) -> None:
-        """Unregister the webhook and drop the pending record for this flow."""
-
-        token = self._onboarding_webhook_id
-        if not token:
-            return
-        if self._onboarding_auto:
-            with contextlib.suppress(ValueError, KeyError):
-                webhook.async_unregister(self.hass, token)
-        self.hass.data.get(DOMAIN, {}).get(_ONBOARDING_STORE, {}).pop(token, None)
-        self._onboarding_webhook_id = None
-        self._onboarding_event = None
-
-    async def _await_onboarding_result(self) -> Optional[OnboardingResult]:
-        """Wait (bounded) for the activator to POST its result to the webhook."""
-
-        assert self._onboarding_event is not None
-        try:
-            await asyncio.wait_for(
-                self._onboarding_event.wait(), timeout=ONBOARDING_WAIT_TIMEOUT
-            )
-        except asyncio.TimeoutError:
-            return None
-        pending = self.hass.data.get(DOMAIN, {}).get(_ONBOARDING_STORE, {}).get(
-            self._onboarding_webhook_id
-        )
-        return pending.get("result") if pending else None
 
     async def async_step_guided_wait(
         self, user_input: Optional[Dict[str, Any]] = None
@@ -713,11 +744,11 @@ class CardataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 LOGGER = logging.getLogger(__name__)
 
 
-class CardataOptionsFlowHandler(config_entries.OptionsFlow):
+class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow):
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         self._config_entry = config_entry
         self._reauth_client_id: Optional[str] = None
-        self._cluster_snippet: str = ""
+        self._init_activator_state()
 
     async def async_step_init(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         # Labels/descriptions come from translations (options.step.init.menu_options),
@@ -1140,12 +1171,15 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_action_select_clusters(
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> FlowResult:
-        """Pick which data clusters to stream and generate a portal snippet.
+        """Pick which data clusters to stream, then activate them in the browser.
 
-        BMW has no API to set the stream's data selection — it is done in the
-        portal's Data Selection page. So instead of changing scopes, this builds
-        a browser-console snippet that ticks exactly the selected clusters'
-        checkboxes there (see :func:`build_portal_snippet`).
+        BMW has no API to set the stream selection — it lives behind the portal's
+        interactive session — so this reuses the same in-browser activator as
+        guided setup (:class:`_StreamActivatorFlow`): the user runs a one-click
+        bookmarklet on the portal's stream-setup page and Home Assistant continues
+        automatically. The activator is **additive** (it never removes a field you
+        already stream), so widening a selection just works; to *stop* streaming a
+        field, untick it in the portal's Data Selection.
         """
 
         current = (
@@ -1169,7 +1203,8 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
         # Preserve the catalogue's cluster order regardless of checkbox order.
         chosen = [slug for slug in labels if slug in set(user_input.get("sections", []))]
 
-        # Remember the choice so the picker re-opens pre-filled next time.
+        # Remember the choice so the picker re-opens pre-filled next time, and so
+        # the activate_stream_fields service / a container reset can reuse it.
         entry = self.hass.config_entries.async_get_entry(self._config_entry.entry_id)
         if entry is not None:
             updated = dict(entry.data)
@@ -1177,19 +1212,90 @@ class CardataOptionsFlowHandler(config_entries.OptionsFlow):
             self.hass.config_entries.async_update_entry(entry, data=updated)
             self._config_entry = entry
 
-        self._cluster_snippet = build_portal_snippet(chosen)
-        return await self.async_step_cluster_snippet()
+        attributes = descriptors_for_sections(chosen)
+        if not attributes:
+            # An empty selection has nothing to activate; just persist and finish.
+            return self._finish()
 
-    async def async_step_cluster_snippet(
+        self._start_activator(attributes)
+        if self._onboarding_auto:
+            return await self.async_step_activate_stream_wait()
+        return await self.async_step_activate_stream_paste()
+
+    async def async_step_activate_stream_wait(
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> FlowResult:
-        """Show the generated Data Selection snippet for the user to copy."""
+        """Wait for the browser activator to report the stream fields it turned on."""
 
+        if self._onboarding_wait_task is None:
+            self._onboarding_wait_task = self.hass.async_create_task(
+                self._await_onboarding_result()
+            )
+
+        if not self._onboarding_wait_task.done():
+            return self.async_show_progress(
+                step_id="activate_stream_wait",
+                progress_action="wait_for_stream_activation",
+                description_placeholders={"url": self._onboarding_page_url},
+                progress_task=self._onboarding_wait_task,
+            )
+
+        result = self._onboarding_wait_task.result()
+        self._onboarding_wait_task = None
+        if result is None:
+            # No report within the window -- offer the manual paste fallback.
+            return self.async_show_progress_done(next_step_id="activate_stream_paste")
+        self._onboarding = result
+        return self.async_show_progress_done(next_step_id="activate_stream_done")
+
+    async def async_step_activate_stream_paste(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Fallback: paste the activator result if the auto-report didn't arrive."""
+
+        schema = vol.Schema({vol.Required("result"): str})
         if user_input is None:
             return self.async_show_form(
-                step_id="cluster_snippet",
+                step_id="activate_stream_paste",
+                data_schema=schema,
+                description_placeholders={"url": self._onboarding_page_url, "error": ""},
+            )
+
+        try:
+            result = parse_onboarding_result(user_input["result"])
+        except OnboardingParseError as err:
+            return self.async_show_form(
+                step_id="activate_stream_paste",
+                data_schema=schema,
+                errors={"result": "invalid_result"},
+                description_placeholders={"url": self._onboarding_page_url, "error": str(err)},
+            )
+        self._onboarding = result
+        return await self.async_step_activate_stream_done()
+
+    async def async_step_activate_stream_done(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Confirm what the activator turned on, then persist and finish."""
+
+        result = self._onboarding
+        if user_input is None:
+            total = result.activated_count if result else None
+            added = result.added_count if result else None
+            ok = bool(result and result.activation_ok)
+            # The done screen text works for both outcomes; on a problem, surface
+            # the last reported error as an extra line (empty on success).
+            error = "" if ok else (result.errors[-1] if result and result.errors else "")
+            placeholders = {
+                "field_count": str(total) if total is not None else "the selected",
+                "added_count": str(added) if added is not None else "0",
+                "error": f"\n\n⚠️ {error}" if error else "",
+            }
+            self._cleanup_onboarding()
+            return self.async_show_form(
+                step_id="activate_stream_done",
                 data_schema=vol.Schema({}),
-                description_placeholders={"snippet": self._cluster_snippet},
+                description_placeholders=placeholders,
             )
         return self._finish()
 

@@ -106,7 +106,10 @@ restructure) · ❌ missing · 📷 needs screenshot.
 
 | Action | Screen | Status | Shot |
 | --- | --- | --- | --- |
-| `action_select_clusters` | Choose streamed data | 🟡 | 📷 |
+| `action_select_clusters` | Choose streamed data (cluster picker) | 🟡 | 📷 |
+| `activate_stream_wait` | Reconfigure: run activator, waiting (progress) | ❌ new — needs shot | 📷 |
+| `activate_stream_paste` | Reconfigure: paste-result fallback (http HA) | ❌ new — needs shot | 📷 |
+| `activate_stream_done` | Reconfigure: activation confirmation | ❌ new — needs shot | 📷 |
 | `action_refresh_tokens` | Refresh tokens | ❌ | 📷 |
 | `action_reauth` | Re-authorize with BMW | 🟡 | 📷 |
 | `action_reset_container` | Reset telematics container | ❌ | 📷 |

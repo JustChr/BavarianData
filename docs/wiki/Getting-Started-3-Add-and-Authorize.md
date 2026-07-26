@@ -1,15 +1,25 @@
 # 3. Add & authorize the integration
 
-With the client ID from [step 1](Getting-Started-1-BMW-Portal-Setup) ready:
+You need the portal prep from [step 1](Getting-Started-1-BMW-Portal-Setup) done
+first: a **CarData Client** created and subscribed to **both** CarData API and
+CarData Streaming. That applies to **both** setup paths below — the guided path
+only saves you copying the client ID by hand, it doesn't skip creating the
+client.
 
 ## Steps
 
 1. **Settings → Devices & Services → Add Integration → BavarianData: Connect
    Home Assistant to BMW CarData**.
-2. The first screen recaps the portal setup and asks for your **client ID**.
-   Paste it in.
+2. Pick a setup path:
+   - **Guided (recommended)** — Home Assistant serves a small page with a
+     one-click **Activate BMW data** bookmarklet. Run it on the BMW/MINI portal's
+     stream-setup page and it finds your client ID, checks the vehicle, and turns
+     on the stream **in your own browser** — nothing to copy. On an https Home
+     Assistant it reports back and continues automatically; on http it shows a
+     **Copy** button and you paste the short result back.
+   - **Manual** — paste the **client ID** yourself, the classic path.
 
-   <!-- screenshot: config-flow-user (client ID entry) -->
+   <!-- screenshot: config-flow-user (guided/manual chooser) -->
 
 3. Home Assistant shows a **link and a code**. Open the link, sign in, and
    approve the device on BMW's site. When BMW accepts the approval, the dialog

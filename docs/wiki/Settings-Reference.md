@@ -20,7 +20,7 @@ The menu labels below are exactly as they appear in the UI.
 
 | Menu entry | Kind | What it does |
 | --- | --- | --- |
-| **Choose streamed data** | setup | Re-open the [cluster picker](Getting-Started-4-Choose-Data) to widen/narrow the stream. |
+| **Choose streamed data** | setup | Re-open the [cluster picker](Getting-Started-4-Choose-Data), then activate the fields with the one-click **Activate BMW data** bookmarklet (same activator as guided setup). Additive — it adds the chosen clusters to the live stream but never removes fields you already stream. |
 | **Refresh tokens now** | action | Force an OAuth token refresh. |
 | **Re-authorize with BMW** | action | Re-run device auth (after BMW invalidates the token). |
 | **Reset telemetry container** | action | Clear the stored HV container id/signature so it's rebuilt on the next fetch. Use if telematics fetches start failing after a descriptor change. |

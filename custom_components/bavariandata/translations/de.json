@@ -3,10 +3,10 @@
     "step": {
       "user": {
         "title": "BMW CarData verbinden",
-        "description": "Damit werden die Daten deines BMW oder Mini nach Home Assistant gestreamt.\n\nWähle, wie du einrichten möchtest:\n\n- **Geführt (empfohlen)** — du führst ein Snippet im BMW-Portal aus, das deine Client-ID findet, dein Fahrzeug prüft und den Datenstream für dich aktiviert. Kein Abtippen von IDs.\n- **Manuell** — der klassische Weg, falls du im Portal bereits eine Client-ID erstellt hast.",
+        "description": "Damit werden die Daten deines BMW oder Mini nach Home Assistant gestreamt.\n\n**Zuerst im BMW-Portal — für beide Wege nötig:** erstelle einen **CarData Client** und schalte ihn für **beide** Dienste frei, **CarData API** und **CarData Streaming**. Hake unter Datenauswahl noch nichts an.\n\nWähle dann hier, wie du abschließen möchtest:\n\n- **Geführt (empfohlen)** — du führst ein Snippet im BMW-Portal aus, das diese Client-ID findet, dein Fahrzeug prüft und den Datenstream für dich aktiviert. Kein Abtippen von IDs.\n- **Manuell** — der klassische Weg, wenn du die Client-ID lieber selbst überträgst.",
         "menu_options": {
           "guided": "Geführte Einrichtung (empfohlen)",
-          "manual": "Ich habe bereits eine Client-ID"
+          "manual": "Ich füge die Client-ID selbst ein"
         }
       },
       "manual": {
@@ -21,7 +21,7 @@
       },
       "guided_paste": {
         "title": "Daten aktivieren und Ergebnis einfügen",
-        "description": "1. Öffne die **[BavarianData-Setup-Seite]({url})**.\n2. Ziehe die Schaltfläche **Activate BMW data** einmalig in deine Lesezeichenleiste.\n3. Öffne das **BMW- oder MINI-Portal**, melde dich an und gehe zur **Stream-Setup**-Seite eines Fahrzeugs.\n4. Klicke auf das Lesezeichen **Activate BMW data**. Wenn es fertig ist, klicke im angezeigten Feld auf **Copy**.\n5. Füge das Ergebnis unten ein und klicke auf **Absenden**.\n\nAlles läuft in deinem eigenen Browser — kein Passwort und keine Sitzung verlässt ihn.\n\n{error}",
+        "description": "Stelle zuerst sicher, dass du im BMW-Portal einen **CarData Client** erstellt hast, der für **beide Dienste, CarData API und CarData Streaming**, freigeschaltet ist — der Aktivator findet diesen Client, er erstellt keinen.\n\n1. Öffne die **[BavarianData-Setup-Seite]({url})**.\n2. Ziehe die Schaltfläche **Activate BMW data** einmalig in deine Lesezeichenleiste.\n3. Öffne das **BMW- oder MINI-Portal**, melde dich an und gehe zur **Stream-Setup**-Seite eines Fahrzeugs.\n4. Klicke auf das Lesezeichen **Activate BMW data**. Wenn es fertig ist, klicke im angezeigten Feld auf **Copy**.\n5. Füge das Ergebnis unten ein und klicke auf **Absenden**.\n\nAlles läuft in deinem eigenen Browser — kein Passwort und keine Sitzung verlässt ihn.\n\n{error}",
         "data": {
           "result": "Setup-Ergebnis"
         },
@@ -53,7 +53,7 @@
       }
     },
     "progress": {
-      "wait_for_activation": "**Aktiviere deine Daten im Browser**\n\n1. Öffne die **[BavarianData-Setup-Seite]({url})**.\n2. Ziehe die Schaltfläche **Activate BMW data** einmalig in deine Lesezeichenleiste.\n3. Öffne das **BMW- oder MINI-Portal**, melde dich an und gehe zur **Stream-Setup**-Seite eines Fahrzeugs.\n4. Klicke auf das Lesezeichen **Activate BMW data**.\n\nEs findet deine Client-ID, prüft dein Fahrzeug und schaltet den Datenstream ein — alles in deinem eigenen Browser, nichts zu kopieren. Dieser Dialog läuft automatisch weiter, sobald die Rückmeldung eintrifft. Hier ist nichts anzuklicken.",
+      "wait_for_activation": "**Aktiviere deine Daten im Browser**\n\nStelle sicher, dass du bereits im BMW-Portal einen **CarData Client** erstellt hast, der für **beide Dienste, CarData API und CarData Streaming**, freigeschaltet ist — der Aktivator findet diesen Client, er erstellt keinen.\n\n1. Öffne die **[BavarianData-Setup-Seite]({url})**.\n2. Ziehe die Schaltfläche **Activate BMW data** einmalig in deine Lesezeichenleiste.\n3. Öffne das **BMW- oder MINI-Portal**, melde dich an und gehe zur **Stream-Setup**-Seite eines Fahrzeugs.\n4. Klicke auf das Lesezeichen **Activate BMW data**.\n\nEs findet deine Client-ID, prüft dein Fahrzeug und schaltet den Datenstream ein — alles in deinem eigenen Browser, nichts zu kopieren. Dieser Dialog läuft automatisch weiter, sobald die Rückmeldung eintrifft. Hier ist nichts anzuklicken.",
       "wait_for_authorization": "**Home Assistant auf der BMW-/MINI-Anmeldeseite bestätigen**\n\n1. Öffne die **[Autorisierungsseite]({verification_url})** und melde dich mit deinem BMW-/MINI-Konto an.\n2. Gib bei der Abfrage diesen Code ein: **{user_code}**\n3. Bestätige das Gerät.\n\n**Tippe den Code von Hand ein** — verwende keinen Link, der den Code bereits in der Adresse enthält, und achte darauf, dass kein alter Code vorausgefüllt ist. BMWs Server verbucht bei vorausgefüllten Codes häufig fälschlich eine *Ablehnung*. Schlägt es trotzdem fehl, versuche es in einem privaten bzw. Inkognito-Fenster.\n\nLass diesen Dialog offen — er läuft automatisch weiter, sobald du bestätigt hast. Hier ist nichts anzuklicken."
     },
     "error": {
@@ -92,7 +92,7 @@
       },
       "action_select_clusters": {
         "title": "Gestreamte Daten auswählen",
-        "description": "Wähle aus, welche Datengruppen des Fahrzeugs gestreamt werden sollen. BMW bietet dafür keine API — das wird auf der Seite „Datenauswahl“ im Portal eingestellt. Die nächste Seite liefert dir deshalb ein Browser-Snippet, das dort genau diese Datengruppen anhakt. Diagnose- und technische Felder bleiben standardmäßig ausgeblendet, sobald Daten eintreffen.",
+        "description": "Wähle aus, welche Datengruppen des Fahrzeugs gestreamt werden sollen. BMW bietet dafür keine API — das läuft über die Browser-Sitzung im Portal. Die nächste Seite liefert dir deshalb ein Ein-Klick-Lesezeichen **Activate BMW data**, das du auf der Stream-Setup-Seite des Portals ausführst; Home Assistant macht dann automatisch weiter.\n\nDamit werden die gewählten Datengruppen zu deinem laufenden Stream **hinzugefügt**; bereits gestreamte Felder werden nie entfernt. Um ein Feld nicht mehr zu streamen, hake es im Portal unter „Datenauswahl“ ab. Diagnose- und technische Felder bleiben standardmäßig ausgeblendet, sobald Daten eintreffen.",
         "data": {
           "sections": "Datengruppen"
         },
@@ -100,9 +100,19 @@
           "sections": "Belasse die Vorauswahl für den empfohlenen Satz, oder beschränke sie auf die Daten, die dich wirklich interessieren (z. B. nur Elektrofahrzeug und Fahrzeugstatus)."
         }
       },
-      "cluster_snippet": {
-        "title": "Snippet für die Datenauswahl im Portal",
-        "description": "Öffne im BMW-Portal **Datenauswahl** (`Datenauswahl ändern`) und klicke so lange auf „Mehr laden“, bis alle Felder aufgelistet sind. Öffne die Browser-Konsole (F12 → Konsole), füge dies ein und drücke Enter:\n\n```\n{snippet}\n```\n\nEs hakt nur die Checkboxen an, deren technischer Deskriptor zu deinen gewählten Datengruppen gehört (alle anderen Auswahlen bleiben unverändert), und gibt aus, wie viele getroffen wurden. Speichere die Auswahl im Portal und klicke hier auf **Absenden**, um abzuschließen."
+      "activate_stream_paste": {
+        "title": "Daten aktivieren und Ergebnis einfügen",
+        "description": "1. Öffne die **[BavarianData-Aktivierungsseite]({url})**.\n2. Ziehe die Schaltfläche **Activate BMW data** einmalig in deine Lesezeichenleiste.\n3. Öffne das **BMW- oder MINI-Portal**, melde dich an und gehe zur **Stream-Setup**-Seite eines Fahrzeugs.\n4. Klicke auf das Lesezeichen **Activate BMW data**. Wenn es fertig ist, klicke im angezeigten Feld auf **Copy**.\n5. Füge das Ergebnis unten ein und klicke auf **Absenden**.\n\nAlles läuft in deinem eigenen Browser — kein Passwort und keine Sitzung verlässt ihn.\n\n{error}",
+        "data": {
+          "result": "Aktivierungs-Ergebnis"
+        },
+        "data_description": {
+          "result": "Der BAVARIANDATA…-Text, den die Copy-Schaltfläche in die Zwischenablage gelegt hat."
+        }
+      },
+      "activate_stream_done": {
+        "title": "Stream-Felder aktiviert",
+        "description": "Fertig — der Aktivator hat **{added_count}** neue(s) Feld(er) eingeschaltet; **{field_count}** Felder werden jetzt für dieses Fahrzeug gestreamt.{error}\n\nKlicke auf **Absenden**, um deine Auswahl zu speichern. Löse in der MyBMW App einmal Ver- oder Entriegeln aus, damit die nächste Aktualisierung gesendet wird."
       },
       "action_refresh_tokens": {
         "title": "Token jetzt erneuern",
@@ -197,6 +207,9 @@
         }
       }
     },
+    "progress": {
+      "wait_for_stream_activation": "**Aktiviere die gewählten Daten in deinem Browser**\n\n1. Öffne die **[BavarianData-Aktivierungsseite]({url})**.\n2. Ziehe die Schaltfläche **Activate BMW data** einmalig in deine Lesezeichenleiste.\n3. Öffne das **BMW- oder MINI-Portal**, melde dich an und gehe zur **Stream-Setup**-Seite eines Fahrzeugs.\n4. Klicke auf das Lesezeichen **Activate BMW data**.\n\nEs schaltet die Felder deiner gewählten Datengruppen ein — alles in deinem eigenen Browser, nichts zu kopieren. Dieser Dialog läuft automatisch weiter, sobald die Rückmeldung eintrifft. Hier ist nichts anzuklicken."
+    },
     "error": {
       "refresh_failed": "Token-Erneuerung fehlgeschlagen: {error}",
       "reset_failed": "Zurücksetzen des Telemetrie-Containers fehlgeschlagen: {error}",
@@ -205,6 +218,7 @@
       "no_vins": "Es sind noch keine Fahrzeuge bekannt. Führe zuerst **Fahrzeuge suchen** aus, oder warte, bis der Stream eines meldet.",
       "invalid_int": "Gib eine positive ganze Zahl ein.",
       "invalid_client_id": "Gib die BMW CarData Client-ID ein.",
+      "invalid_result": "Das Ergebnis konnte nicht gelesen werden. Führe das Lesezeichen „Activate BMW data“ auf der Stream-Setup-Seite des BMW-Portals aus und füge genau das ein, was es in die Zwischenablage kopiert hat.",
       "price_required": "Gib einen festen Preis pro kWh ein, oder wähle eine andere Preisquelle.",
       "price_entity_required": "Wähle die Entität, die deinen Preis pro kWh liefert, oder wähle eine andere Preisquelle."
     },
