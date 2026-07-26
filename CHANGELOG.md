@@ -9,6 +9,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **Recorded routes now carry timing.** With **Record route** (`trip_track`) on,
+  each GPS fix in a trip's track is stored with the number of seconds since the
+  trip started (`track` points become `[lat, lon, t]`), so an upcoming map can
+  replay a drive in real time, colour it by pace and show where the car stopped.
+  Only affects opted-in recording; routes captured before this update keep their
+  two-element `[lat, lon]` points and read back without timing (their times
+  can't be backfilled).
+
 ### Changed
 - **The dashboard card is now the "BavarianData Card".** It was previously shown
   as the "BMW CarData Card" (element `custom:bmw-cardata-card`); the card, its

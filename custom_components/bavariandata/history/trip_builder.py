@@ -26,7 +26,10 @@ MIN_TRIP_S = 120
 GPS_MOVE_THRESHOLD_KM = 0.05
 
 # Decimal places kept for a recorded track point: 5 dp is ~1.1 m, plenty to draw
-# a route without persisting a needlessly precise fix.
+# a route without persisting a needlessly precise fix. A point carries a third
+# element -- whole seconds since the trip started -- when its fix time is known,
+# so it is [lat, lon] or [lat, lon, t]; second resolution is enough because
+# points are movement-gated well above what a car covers in a second.
 TRACK_PRECISION = 5
 # Hard bound on stored track points. A long drive decimates in place (halving the
 # resolution) rather than growing the store without limit; 2000 points is a very
@@ -108,7 +111,8 @@ class TripBuilder:
         # odometer nor BMW's ``travelledDistance`` (see ``add_gps_km``).
         self.gps_km = 0.0
         # Route polyline, only when the user opted in. Off by default so the
-        # builder never persists a coordinate unless route recording is on.
+        # builder never persists a coordinate unless route recording is on. Each
+        # point is [lat, lon] or [lat, lon, t] (t = seconds since start).
         self.record_track = record_track
         self.track: list[list[float]] = []
         self._track_stride = 1
@@ -124,29 +128,52 @@ class TripBuilder:
         if km and km > 0:
             self.gps_km += km
 
-    def add_track_point(self, lat: float, lon: float) -> None:
+    def add_track_point(
+        self, lat: float, lon: float, at: Optional[datetime] = None
+    ) -> None:
         """Append a fix to the route polyline, when route recording is on.
 
         A no-op unless the user opted in, so a coordinate is only ever stored
-        deliberately. Consecutive duplicates (a car sitting still still streams
-        its position) are skipped, and once the point budget is exhausted the
-        track decimates in place -- mirroring the charging power curve -- so a
-        very long drive can't grow the record without bound.
+        deliberately. When the fix's time ``at`` is supplied the point is stored
+        as ``[lat, lon, t]`` where ``t`` is whole seconds since the trip started;
+        omit it and the point is the legacy ``[lat, lon]`` (no time). ``t`` is
+        what lets a map play the route back in real time and colour it by
+        pace -- neither reconstructable after the fact, which is why the time is
+        captured at record time or lost.
+
+        Consecutive fixes at the *same coordinate* (a car sitting still still
+        streams its position) are skipped -- deliberately comparing only the
+        lat/lon so a differing ``t`` can't defeat the dedupe; the gap to the next
+        stored point's ``t`` then encodes the dwell for free. Once the point
+        budget is exhausted the track decimates in place -- mirroring the
+        charging power curve, timestamps riding along -- so a very long drive
+        can't grow the record without bound.
         """
 
         if not self.record_track:
             return
-        point = [round(lat, TRACK_PRECISION), round(lon, TRACK_PRECISION)]
+        coord = [round(lat, TRACK_PRECISION), round(lon, TRACK_PRECISION)]
         # Sub-sample at the current stride so decimation stays uniform: after a
         # halving, only every other subsequent fix is a candidate too.
         self._track_seen += 1
         if (self._track_seen - 1) % self._track_stride != 0:
             return
-        if self.track and self.track[-1] == point:
+        if self.track and self.track[-1][:2] == coord:
             return
+        point = coord if at is None else coord + [self._seconds_since_start(at)]
         self.track.append(point)
         if len(self.track) > MAX_TRACK_POINTS:
             self._decimate_track()
+
+    def _seconds_since_start(self, at: datetime) -> int:
+        """Whole seconds from the trip's start to a fix, floored at zero.
+
+        A fix that timestamps just before the recorded start (clock skew, or an
+        opening seed resolved a beat late) clamps to 0 rather than going
+        negative and breaking a monotonic playback timeline.
+        """
+
+        return max(0, int((at - self.start).total_seconds()))
 
     def _decimate_track(self) -> None:
         """Halve the track resolution in place once the point budget is exceeded."""

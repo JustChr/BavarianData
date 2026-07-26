@@ -234,14 +234,46 @@ def test_track_records_fixes_when_opted_in():
     builder.add_track_point(48.2, 11.6)
     builder.add_track_point(48.2, 11.6)  # a repeated fix is skipped
     trip = builder.close(START + timedelta(minutes=20))
+    # A fix with no time stays the legacy two-element point.
     assert trip.track == [[48.12346, 11.5], [48.2, 11.6]]
 
 
+def test_track_stamps_seconds_since_start_when_time_given():
+    builder = TripBuilder("WBY1", START, record_track=True)
+    builder.add_track_point(48.1, 11.5, START)  # t=0 at the opening fix
+    builder.add_track_point(48.2, 11.6, START + timedelta(seconds=7))
+    builder.add_track_point(48.3, 11.7, START + timedelta(minutes=2, seconds=30))
+    trip = builder.close(START + timedelta(minutes=20))
+    assert trip.track == [[48.1, 11.5, 0], [48.2, 11.6, 7], [48.3, 11.7, 150]]
+
+
+def test_track_dedupes_on_coordinate_not_time():
+    # A parked car streaming its unchanged position with advancing timestamps
+    # must not fill the buffer: the coordinate dedupe ignores the differing t,
+    # and the gap to the next moved point encodes the dwell.
+    builder = TripBuilder("WBY1", START, record_track=True)
+    builder.add_track_point(48.1, 11.5, START)
+    builder.add_track_point(48.1, 11.5, START + timedelta(minutes=5))
+    builder.add_track_point(48.1, 11.5, START + timedelta(minutes=12))
+    builder.add_track_point(48.2, 11.6, START + timedelta(minutes=13))
+    trip = builder.close(START + timedelta(minutes=20))
+    assert trip.track == [[48.1, 11.5, 0], [48.2, 11.6, 780]]
+
+
+def test_track_clamps_time_before_start_to_zero():
+    builder = TripBuilder("WBY1", START, record_track=True)
+    builder.add_track_point(48.1, 11.5, START - timedelta(seconds=3))
+    trip = builder.close(START + timedelta(minutes=20))
+    assert trip.track == [[48.1, 11.5, 0]]
+
+
 def test_track_round_trips_through_json():
-    original = _trip(track=[[48.1, 11.5], [48.2, 11.6]])
+    # Mixed shapes -- a timestamped point and a legacy two-element one -- both
+    # survive the round trip, so a store spanning the timestamp change reads back.
+    original = _trip(track=[[48.1, 11.5, 0], [48.2, 11.6, 42], [48.3, 11.7]])
     restored = Trip.from_dict(json.loads(json.dumps(original.to_dict())))
     assert restored is not None
-    assert restored.track == [[48.1, 11.5], [48.2, 11.6]]
+    assert restored.track == [[48.1, 11.5, 0], [48.2, 11.6, 42], [48.3, 11.7]]
 
 
 def test_track_decimates_past_the_point_budget():

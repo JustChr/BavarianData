@@ -1137,8 +1137,9 @@ class CardataCoordinator:
                 builder = self._trip_builders.get(vin)
                 if builder is not None:
                     builder.add_gps_km(step_km)
-                    # Record the route point too (opt-in; a no-op otherwise).
-                    builder.add_track_point(latitude, longitude)
+                    # Record the route point too, stamped with this fix's time
+                    # (opt-in; a no-op otherwise).
+                    builder.add_track_point(latitude, longitude, now)
                 # Rolling window: keep the trip alive while the car is moving,
                 # but guarantee a close even if the fixes stop arriving.
                 self._reset_trip_close_timer(vin)
@@ -1183,12 +1184,13 @@ class CardataCoordinator:
             record_track=self.record_trip_track,
         )
         # Seed the route with the opening fix so the polyline starts where the
-        # drive did, not at the first mid-drive movement step. A no-op when route
-        # recording is off or no GPS is available.
+        # drive did, not at the first mid-drive movement step. Stamped with the
+        # trip's start (t=0). A no-op when route recording is off or no GPS is
+        # available.
         latitude = self._coordinate(vin, "latitude")
         longitude = self._coordinate(vin, "longitude")
         if latitude is not None and longitude is not None:
-            builder.add_track_point(latitude, longitude)
+            builder.add_track_point(latitude, longitude, now)
         if debug_enabled():
             _LOGGER.debug(
                 "[trip] %s OPEN at %s place=%s soc=%s odo=%s",

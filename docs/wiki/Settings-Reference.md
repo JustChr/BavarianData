@@ -65,7 +65,7 @@ Screen: **Configure → Trips**. See [Trips](Feature-Trips) for the concepts.
 | --- | --- | --- |
 | **Work zone** | zone entity | Drives commute classification (home↔work). |
 | **Resolve addresses** | on/off | Off by default. When on, trip endpoints **outside** any zone are reverse-geocoded via OpenStreetMap; the address string is stored, never the coordinates. |
-| **Record route** | on/off | Off by default. When on, each new trip stores its GPS track (raw coordinates) so a map can draw the route — the only setting that persists coordinates. Served via `get_trips`; never in the export. |
+| **Record route** | on/off | Off by default. When on, each new trip stores its GPS track — coordinates along the drive, each stamped with its time (`[lat, lon, t]`, `t` = seconds since start) — so a map can draw and replay the route. The only setting that persists raw coordinates, your exact start/end included. Served via `get_trips`; never in the export. |
 
 ## Debug logging
 

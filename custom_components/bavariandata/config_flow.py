@@ -1068,8 +1068,9 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         trip endpoints outside a known zone to OpenStreetMap's Nominatim -- the
         resulting address string is stored, never the coordinates themselves.
         Route recording is a separate opt-in: turning it on stores each trip's
-        GPS track (raw coordinates) so a map can draw where the car went -- the
-        one trip setting that persists coordinates to disk.
+        GPS track (raw coordinates, each stamped with its time) so a map can draw
+        where -- and when -- the car went. The one trip setting that persists
+        coordinates to disk.
         """
 
         options = dict(self._config_entry.options)

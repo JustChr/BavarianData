@@ -10,11 +10,13 @@ zone name when the endpoint sits inside a zone, an optional reverse-geocoded
 address string when it does not, and never a latitude/longitude. See
 ``docs/roadmap.md`` (Phase 3) for why.
 
-The one exception is the optional ``track``: a route polyline of raw
-``[lat, lon]`` fixes, recorded only when the user explicitly opts in (the
-``trip_track`` option, off by default) so a map can draw where the car went. It
-is empty on every trip unless route recording is on, which is why it is the sole
-place in the history layer coordinates ever reach disk.
+The one exception is the optional ``track``: a route polyline of raw fixes,
+each ``[lat, lon]`` or ``[lat, lon, t]`` where ``t`` is whole seconds since the
+trip started, recorded only when the user explicitly opts in (the ``trip_track``
+option, off by default) so a map can draw where -- and, with ``t``, when -- the
+car went. It is empty on every trip unless route recording is on, which is why
+it is the sole place in the history layer coordinates ever reach disk. Points
+written before timestamps shipped are two-element and read back time-less.
 """
 
 from __future__ import annotations
@@ -78,9 +80,11 @@ class Trip:
     stats: dict[str, Any] = field(default_factory=dict)
     # True when an endpoint's place had to be assumed (no GPS, no geocode).
     location_assumed: bool = False
-    # Optional route polyline: [[lat, lon], ...] along the drive, downsampled and
-    # bounded (see trip_builder.py). Empty unless the user opted into route
-    # recording (``trip_track``) -- the only coordinates the layer ever persists.
+    # Optional route polyline along the drive, downsampled and bounded (see
+    # trip_builder.py). Each point is [lat, lon] or [lat, lon, t] (t = seconds
+    # since ``start``); a track mixes neither -- it is all-timestamped or, for
+    # records predating timestamps, all not. Empty unless the user opted into
+    # route recording (``trip_track``) -- the only coordinates the layer persists.
     track: list[list[float]] = field(default_factory=list)
 
     @property
