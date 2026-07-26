@@ -40,7 +40,12 @@ Direct links to the vehicle overview per market:
      <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bmw-portal-vehicle-overview.png" alt="Vehicle overview page for a BMW i5 eDrive40 with the 'BMW CarData' tile among the vehicle tiles" width="760" />
    </p>
 
-2. [Generate a client ID](https://bmw-cardata.bmwgroup.com/customer/public/api-documentation/Id-Technical-registration_Step-1).
+2. Press **Create CarData Client** to generate a client ID:
+
+   <p align="center">
+     <img src="https://cd-prd-euc1-cardata-public-s3.s3.eu-central-1.amazonaws.com/customer-portal/b2c/2_1_Create-Client.png" alt="'Technical access to BMW CarData' screen with the 'Create CarData Client' button highlighted" width="760" />
+   </p>
+
 3. Give the client **both** scopes — `cardata:api:read` and
    `cardata:streaming:read` — and authorize it. On the **Technical access to
    BMW CarData** screen you should end up with a **Client ID** shown and both
