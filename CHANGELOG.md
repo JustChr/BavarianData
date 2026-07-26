@@ -9,6 +9,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.2-beta.5] - 2026-07-26
+
+### Changed
+- **Trip route mini-maps are now a clean line.** The per-trip map (expand a trip
+  in the Trips view) drew a dot at every GPS point and applied a spline that
+  overshot on sparse fixes, so it looked messy. It now renders the drive as a
+  single clean line (a native map polyline) with just a start and an end marker —
+  direct segments, no vertex dots, no bulging.
+
 ## [0.9.2-beta.4] - 2026-07-26
 
 ### Added

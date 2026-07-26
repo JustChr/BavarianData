@@ -1,0 +1,520 @@
+<title>BavarianData — Feature Strategy & Business Cases</title>
+<style>
+  :root{
+    --bg:#F4F5F7; --surface:#FFFFFF; --surface-2:#EDEFF3;
+    --ink:#191C22; --ink-soft:#565C68; --ink-faint:#8B92A0;
+    --line:#DFE3EA;
+    --accent:#3B63E0; --accent-soft:#E6ECFD;
+    --good:#1F9D63; --good-soft:#E1F3EA;
+    --warn:#C7871B; --warn-soft:#F7EEDB;
+    --crit:#D2483F; --crit-soft:#F8E4E2;
+    --mono:ui-monospace,"SF Mono","Cascadia Code",Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --shadow:0 1px 2px rgba(20,25,35,.06),0 6px 20px rgba(20,25,35,.05);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0F1216; --surface:#171B21; --surface-2:#1F242C;
+      --ink:#EAECEF; --ink-soft:#A2A9B5; --ink-faint:#6C7480;
+      --line:#2A303A;
+      --accent:#7A97F6; --accent-soft:#1C2537;
+      --good:#3FBE82; --good-soft:#14271E;
+      --warn:#E0A94B; --warn-soft:#2A2312;
+      --crit:#E56B60; --crit-soft:#2C1917;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#F4F5F7; --surface:#FFFFFF; --surface-2:#EDEFF3;
+    --ink:#191C22; --ink-soft:#565C68; --ink-faint:#8B92A0;
+    --line:#DFE3EA; --accent:#3B63E0; --accent-soft:#E6ECFD;
+    --good:#1F9D63; --good-soft:#E1F3EA; --warn:#C7871B; --warn-soft:#F7EEDB;
+    --crit:#D2483F; --crit-soft:#F8E4E2;
+    --shadow:0 1px 2px rgba(20,25,35,.06),0 6px 20px rgba(20,25,35,.05);
+  }
+  :root[data-theme="dark"]{
+    --bg:#0F1216; --surface:#171B21; --surface-2:#1F242C;
+    --ink:#EAECEF; --ink-soft:#A2A9B5; --ink-faint:#6C7480;
+    --line:#2A303A; --accent:#7A97F6; --accent-soft:#1C2537;
+    --good:#3FBE82; --good-soft:#14271E; --warn:#E0A94B; --warn-soft:#2A2312;
+    --crit:#E56B60; --crit-soft:#2C1917;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.55;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+  .wrap{max-width:1140px;margin:0 auto;padding:clamp(20px,4vw,56px) clamp(16px,4vw,40px) 80px}
+
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 12px}
+  h1{font-size:clamp(28px,5vw,44px);line-height:1.05;letter-spacing:-.02em;margin:0 0 16px;
+    text-wrap:balance;font-weight:800}
+  .lede{font-size:clamp(16px,2.2vw,19px);color:var(--ink-soft);max-width:64ch;margin:0}
+  .thesis{margin:22px 0 0;padding:16px 20px;border-left:3px solid var(--accent);
+    background:var(--surface);border-radius:0 10px 10px 0;box-shadow:var(--shadow);max-width:74ch}
+  .thesis strong{color:var(--ink)}
+
+  h2{font-size:13px;font-family:var(--mono);letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-faint);margin:56px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+
+  /* Quadrant map */
+  .map{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    box-shadow:var(--shadow);padding:26px 26px 20px}
+  .plot{position:relative;height:440px;margin:8px 44px 40px 52px;
+    background:
+      linear-gradient(var(--line),var(--line)) center/1px 100% no-repeat,
+      linear-gradient(var(--line),var(--line)) center/100% 1px no-repeat;
+    border-left:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .qlabel{position:absolute;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--ink-faint);pointer-events:none}
+  .q-tl{top:6px;left:8px}.q-tr{top:6px;right:8px;color:var(--accent)}
+  .q-bl{bottom:6px;left:8px}.q-br{bottom:6px;right:8px}
+  .axis-x{position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+  .axis-y{position:absolute;left:-40px;top:50%;transform:rotate(-90deg) translateX(50%);transform-origin:left;
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap}
+  .dot{position:absolute;width:26px;height:26px;border-radius:50%;transform:translate(-50%,-50%);
+    display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:700;
+    color:#fff;border:2px solid var(--surface);box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:default}
+  .t-stake{background:var(--ink-faint)}
+  .t-diff{background:var(--accent)}
+  .t-vis{background:var(--warn)}
+  .t-moon{background:var(--crit)}
+  .maplegend{display:flex;flex-wrap:wrap;gap:16px 22px;margin-top:6px;font-size:12.5px;color:var(--ink-soft)}
+  .maplegend span{display:inline-flex;align-items:center;gap:7px}
+  .swatch{width:11px;height:11px;border-radius:50%}
+
+  /* Matrix table */
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);background:var(--surface)}
+  table{border-collapse:collapse;width:100%;min-width:720px;font-size:13.5px}
+  thead th{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-faint);text-align:left;padding:14px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
+  tbody td{padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:var(--surface-2)}
+  .num{font-family:var(--mono);color:var(--ink-faint);font-size:12px}
+  .fname{font-weight:600}
+  .pill{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;
+    padding:3px 9px;border-radius:999px;white-space:nowrap;font-weight:600}
+  .p-stake{background:var(--surface-2);color:var(--ink-soft)}
+  .p-diff{background:var(--accent-soft);color:var(--accent)}
+  .p-vis{background:var(--warn-soft);color:var(--warn)}
+  .p-moon{background:var(--crit-soft);color:var(--crit)}
+  .meter{display:inline-flex;gap:3px;vertical-align:middle}
+  .meter i{width:16px;height:6px;border-radius:2px;background:var(--line)}
+  .meter i.on{background:var(--accent)}
+  .meter.m-warn i.on{background:var(--warn)}
+  .meter.m-crit i.on{background:var(--crit)}
+  .val{font-family:var(--mono);font-weight:700}
+
+  /* Cards */
+  .cards{display:grid;gap:18px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);
+    padding:22px 24px;position:relative;overflow:hidden}
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
+  .card.t-stake::before{background:var(--ink-faint)}
+  .card.t-diff::before{background:var(--accent)}
+  .card.t-vis::before{background:var(--warn)}
+  .card.t-moon::before{background:var(--crit)}
+  .chead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .chead .idx{font-family:var(--mono);font-size:12px;color:var(--ink-faint)}
+  .chead h3{margin:2px 0 4px;font-size:20px;letter-spacing:-.01em;font-weight:700}
+  .oneliner{color:var(--ink-soft);font-size:14px;margin:0;max-width:70ch}
+  .cmeta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+  .swot{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 16px}
+  .quad{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--surface-2)}
+  .quad h4{margin:0 0 7px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase}
+  .quad.s h4{color:var(--good)} .quad.w h4{color:var(--crit)}
+  .quad.o h4{color:var(--accent)} .quad.t h4{color:var(--warn)}
+  .quad ul{margin:0;padding-left:15px;font-size:13px;color:var(--ink-soft)}
+  .quad li{margin:3px 0}
+
+  .biz{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;background:var(--accent-soft);
+    border-radius:10px}
+  .biz .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);
+    flex:0 0 auto;padding-top:1px}
+  .biz p{margin:0;font-size:13.5px;color:var(--ink)}
+  .biz p b{font-weight:700}
+
+  .complex{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+  .complex .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint)}
+
+  .foot{margin-top:44px;padding-top:20px;border-top:1px solid var(--line);color:var(--ink-faint);font-size:12.5px;max-width:74ch}
+  @media (max-width:600px){.swot{grid-template-columns:1fr}.plot{margin:8px 8px 40px 40px;height:520px}}
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">BavarianData · Product Strategy</p>
+  <h1>Seventeen ways a read-only car stream becomes a product</h1>
+  <p class="lede">A portfolio review of feature directions for the BMW CarData integration — from table-stakes to moonshots — each with a SWOT, an implementation-complexity estimate, and a business case.</p>
+  <div class="thesis">
+    <strong>The strategic bet:</strong> CarData can't command the car, and every rival integration is a <em>remote</em>. That constraint pushes BavarianData toward being a <strong>brain</strong> — analytics, prediction, memory, and community data that no manufacturer will ever build, because it isn't in their interest. The moat isn't features; it's owned data.
+  </div>
+
+  <h2>The map — effort vs. strategic value</h2>
+  <div class="map">
+    <div class="plot">
+      <span class="qlabel q-tl">Big bets</span>
+      <span class="qlabel q-tr">★ Sweet spot</span>
+      <span class="qlabel q-bl">Quick wins</span>
+      <span class="qlabel q-br">Fill-ins</span>
+      <span class="axis-x">Implementation effort →</span>
+      <span class="axis-y">Strategic value →</span>
+
+      <span class="dot t-stake" style="left:15%;top:55%"  title="Alerts & Notifications">1</span>
+      <span class="dot t-stake" style="left:26%;top:58%"  title="Real-world Range & Efficiency">2</span>
+      <span class="dot t-diff"  style="left:46%;top:20%"  title="Dynamic-Tariff Charging Cost">3</span>
+      <span class="dot t-diff"  style="left:50%;top:34%"  title="Solar Self-Consumption">4</span>
+      <span class="dot t-diff"  style="left:32%;top:44%"  title="Charging-Curve Forensics">5</span>
+      <span class="dot t-diff"  style="left:44%;top:28%"  title="Battery SoH Trend">6</span>
+      <span class="dot t-diff"  style="left:72%;top:10%"  title="Finanzamt Fahrtenbuch">7</span>
+      <span class="dot t-diff"  style="left:40%;top:42%"  title="Vampire-Drain & Anomaly">8</span>
+      <span class="dot t-diff"  style="left:22%;top:48%"  title="Departure-Readiness Advisor">9</span>
+      <span class="dot t-moon"  style="left:90%;top:5%"   title="Owner-Data Commons">10</span>
+      <span class="dot t-vis"   style="left:64%;top:28%"  title="Anticipatory Home / Digital Twin">11</span>
+      <span class="dot t-vis"   style="left:60%;top:23%"  title="AI Copilot">12</span>
+      <span class="dot t-vis"   style="left:78%;top:17%"  title="Battery Health Certificate">13</span>
+      <span class="dot t-vis"   style="left:52%;top:37%"  title="Carbon & Energy Orchestration">14</span>
+      <span class="dot t-vis"   style="left:44%;top:54%"  title="Personal Cartography">15</span>
+      <span class="dot t-moon"  style="left:50%;top:40%"  title="Guardian Mode">16</span>
+      <span class="dot t-moon"  style="left:40%;top:62%"  title="Life-Logger">17</span>
+    </div>
+    <div class="maplegend">
+      <span><i class="swatch" style="background:var(--ink-faint)"></i>Table stakes</span>
+      <span><i class="swatch" style="background:var(--accent)"></i>Differentiated (data leverage)</span>
+      <span><i class="swatch" style="background:var(--warn)"></i>Visionary</span>
+      <span><i class="swatch" style="background:var(--crit)"></i>Moonshot</span>
+    </div>
+  </div>
+
+  <h2>The matrix</h2>
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Feature</th><th>Tier</th><th>Complexity</th><th>Strategic value</th><th>Moat</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="num">01</td><td class="fname">Alerts &amp; Notifications</td><td><span class="pill p-stake">Table stakes</span></td><td><span class="meter"><i class="on"></i><i></i><i></i><i></i></span></td><td><span class="val">Med</span></td><td class="num">None</td></tr>
+        <tr><td class="num">02</td><td class="fname">Real-world Range &amp; Efficiency</td><td><span class="pill p-stake">Table stakes</span></td><td><span class="meter"><i class="on"></i><i class="on"></i><i></i><i></i></span></td><td><span class="val">Med</span></td><td class="num">Low</td></tr>
+        <tr><td class="num">03</td><td class="fname">Dynamic-Tariff Charging Cost</td><td><span class="pill p-diff">Differentiated</span></td><td><span class="meter"><i class="on"></i><i class="on"></i><i></i><i></i></span></td><td><span class="val">High</span></td><td class="num">Med</td></tr>
+        <tr><td class="num">04</td><td class="fname">Solar Self-Consumption Attribution</td><td><span class="pill p-diff">Differentiated</span></td><td><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="val">High</span></td><td class="num">Med</td></tr>
+        <tr><td class="num">05</td><td class="fname">Charging-Curve Forensics</td><td><span class="pill p-diff">Differentiated</span></td><td><span class="meter"><i class="on"></i><i class="on"></i><i></i><i></i></span></td><td><span class="val">Med</span></td><td class="num">Med</td></tr>
+        <tr><td class="num">06</td><td class="fname">Battery SoH Trend &amp; Prediction</td><td><span class="pill p-diff">Differentiated</span></td><td><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="val">High</span></td><td class="num">Med</td></tr>
+        <tr><td class="num">07</td><td class="fname">Finanzamt-grade Fahrtenbuch</td><td><span class="pill p-diff">Differentiated</span></td><td><span class="meter m-warn"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></td><td><span class="val">V. High</span></td><td class="num">High</td></tr>
+        <tr><td class="num">08</td><td class="fname">Vampire-Drain &amp; Anomaly Detection</td><td><span class="pill p-diff">Differentiated</span></td><td><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="val">Med</span></td><td class="num">Med</td></tr>
+        <tr><td class="num">09</td><td class="fname">Departure-Readiness Advisor</td><td><span class="pill p-diff">Differentiated</span></td><td><span class="meter"><i class="on"></i><i class="on"></i><i></i><i></i></span></td><td><span class="val">Med</span></td><td class="num">Low</td></tr>
+        <tr><td class="num">10</td><td class="fname">Owner-Data Commons</td><td><span class="pill p-moon">Moonshot</span></td><td><span class="meter m-crit"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></td><td><span class="val">V. High</span></td><td class="num" style="color:var(--good);font-family:var(--mono)">Deep</td></tr>
+        <tr><td class="num">11</td><td class="fname">Anticipatory Home / Digital Twin</td><td><span class="pill p-vis">Visionary</span></td><td><span class="meter m-warn"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="val">High</span></td><td class="num">Med</td></tr>
+        <tr><td class="num">12</td><td class="fname">AI Copilot over Car Memory</td><td><span class="pill p-vis">Visionary</span></td><td><span class="meter m-warn"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="val">High</span></td><td class="num">Med</td></tr>
+        <tr><td class="num">13</td><td class="fname">Battery Health Certificate</td><td><span class="pill p-vis">Visionary</span></td><td><span class="meter m-warn"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="val">High</span></td><td class="num" style="color:var(--good);font-family:var(--mono)">Deep</td></tr>
+        <tr><td class="num">14</td><td class="fname">Carbon &amp; Energy Orchestration</td><td><span class="pill p-vis">Visionary</span></td><td><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="val">High</span></td><td class="num">Med</td></tr>
+        <tr><td class="num">15</td><td class="fname">Personal Cartography / Roving Sensor</td><td><span class="pill p-vis">Visionary</span></td><td><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="val">Med</span></td><td class="num">Low</td></tr>
+        <tr><td class="num">16</td><td class="fname">Guardian Mode</td><td><span class="pill p-moon">Moonshot</span></td><td><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="val">Med</span></td><td class="num">Low</td></tr>
+        <tr><td class="num">17</td><td class="fname">Life-Logger</td><td><span class="pill p-moon">Moonshot</span></td><td><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="val">Low–Med</span></td><td class="num">Low</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:12px;color:var(--ink-faint);margin:10px 2px 0;font-family:var(--mono)">Complexity: 1 bar ≈ days · 2 ≈ weeks · 3 ≈ months · 4 ≈ external backend + ongoing ops/legal.</p>
+
+  <!-- ============ TABLE STAKES ============ -->
+  <h2>Tier 1 · Table stakes — expected, not differentiating</h2>
+  <div class="cards">
+
+    <div class="card t-stake">
+      <div class="chead">
+        <div>
+          <div class="idx">01</div>
+          <h3>Alerts &amp; Notifications</h3>
+          <p class="oneliner">Charging complete, low battery, door/window left open, sunroof + rain incoming. The reflexes every car integration is judged on.</p>
+        </div>
+        <div class="cmeta"><span class="pill p-stake">Table stakes</span></div>
+      </div>
+      <div class="complex"><span class="lbl">Complexity</span><span class="meter"><i class="on"></i><i></i><i></i><i></i></span><span class="num">days · existing entities + HA weather</span></div>
+      <div class="swot">
+        <div class="quad s"><h4>Strengths</h4><ul><li>Almost free — data already flows</li><li>Immediate, visible daily value</li></ul></div>
+        <div class="quad w"><h4>Weaknesses</h4><ul><li>Zero differentiation</li><li>Users can hand-roll in HA automations</li></ul></div>
+        <div class="quad o"><h4>Opportunities</h4><ul><li>Ship as polished blueprints</li><li>Onboarding "it just works" moment</li></ul></div>
+        <div class="quad t"><h4>Threats</h4><ul><li>Absence is a 1-star review; presence earns nothing</li></ul></div>
+      </div>
+      <div class="biz"><span class="k">Case</span><p><b>Insurance, not growth.</b> Cheap to build and mandatory for credibility. Don't skip it, don't over-invest. Payoff is retention floor, not acquisition.</p></div>
+    </div>
+
+    <div class="card t-stake">
+      <div class="chead">
+        <div>
+          <div class="idx">02</div>
+          <h3>Real-world Range &amp; Efficiency</h3>
+          <p class="oneliner">Actual kWh/100 km, consumption vs. temperature, rated-vs-real range confidence — learned from your own history.</p>
+        </div>
+        <div class="cmeta"><span class="pill p-stake">Table stakes</span></div>
+      </div>
+      <div class="complex"><span class="lbl">Complexity</span><span class="meter"><i class="on"></i><i class="on"></i><i></i><i></i></span><span class="num">weeks · derived sensors + history layer</span></div>
+      <div class="swot">
+        <div class="quad s"><h4>Strengths</h4><ul><li>Builds on the stats backfill you already ship</li><li>Answers the #1 EV anxiety</li></ul></div>
+        <div class="quad w"><h4>Weaknesses</h4><ul><li>i5 stream sparsity limits inputs</li><li>Accuracy needs weeks of data</li></ul></div>
+        <div class="quad o"><h4>Opportunities</h4><ul><li>Gateway to range-prediction (#3-adjacent)</li></ul></div>
+        <div class="quad t"><h4>Threats</h4><ul><li>BMW app shows a version of this already</li></ul></div>
+      </div>
+      <div class="biz"><span class="k">Case</span><p><b>Trust-builder.</b> Turns raw telemetry into the metric owners actually care about. Modest moat, but it's the foundation the differentiated tier stands on.</p></div>
+    </div>
+  </div>
+
+  <!-- ============ DIFFERENTIATED ============ -->
+  <h2>Tier 2 · Differentiated — leverage data others don't have</h2>
+  <div class="cards">
+
+    <div class="card t-diff">
+      <div class="chead">
+        <div><div class="idx">03</div><h3>Dynamic-Tariff Charging Cost</h3>
+          <p class="oneliner">Reconcile every real charge session's kWh + timestamps against spot price (Tibber / aWATTar / EPEX). Not a flat guess — the true cost.</p></div>
+        <div class="cmeta"><span class="pill p-diff">Differentiated</span></div>
+      </div>
+      <div class="complex"><span class="lbl">Complexity</span><span class="meter"><i class="on"></i><i class="on"></i><i></i><i></i></span><span class="num">weeks · join ledger to a price sensor</span></div>
+      <div class="swot">
+        <div class="quad s"><h4>Strengths</h4><ul><li>Session ledger + timestamps already exist</li><li>HA already carries the price data</li></ul></div>
+        <div class="quad w"><h4>Weaknesses</h4><ul><li>Needs a dynamic tariff to shine</li><li>Edge cases: split sessions, losses</li></ul></div>
+        <div class="quad o"><h4>Opportunities</h4><ul><li>"Cheapest charge window" advisory</li><li>Feeds #14 carbon story</li></ul></div>
+        <div class="quad t"><h4>Threats</h4><ul><li>Tibber-style apps do this for their own hardware</li></ul></div>
+      </div>
+      <div class="biz"><span class="k">Case</span><p><b>High value, low lift.</b> Command integrations guess at a €/kWh; you know the curve. Strong sweet-spot pick — real money saved, screenshot-worthy, built on assets you own.</p></div>
+    </div>
+
+    <div class="card t-diff">
+      <div class="chead">
+        <div><div class="idx">04</div><h3>Solar Self-Consumption Attribution</h3>
+          <p class="oneliner">Split each charge into sun vs. grid using HA's PV/power sensors and your charge windows. "64% of this month ran on your own roof."</p></div>
+        <div class="cmeta"><span class="pill p-diff">Differentiated</span></div>
+      </div>
+      <div class="complex"><span class="lbl">Complexity</span><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="num">weeks–months · power-flow modelling</span></div>
+      <div class="swot">
+        <div class="quad s"><h4>Strengths</h4><ul><li>You already model a grid_kwh notion</li><li>Emotionally resonant for PV owners</li></ul></div>
+        <div class="quad w"><h4>Weaknesses</h4><ul><li>Depends on user's PV sensor quality</li><li>Attribution is approximate</li></ul></div>
+        <div class="quad o"><h4>Opportunities</h4><ul><li>Anchor of the "green car" identity</li><li>Pairs with #14</li></ul></div>
+        <div class="quad t"><h4>Threats</h4><ul><li>EVCC owns this story for controllable chargers</li></ul></div>
+      </div>
+      <div class="biz"><span class="k">Case</span><p><b>Identity, not utility.</b> Rooftop-solar EV owners are your most engaged segment and evangelists. This is the feature they screenshot to a WhatsApp group.</p></div>
+    </div>
+
+    <div class="card t-diff">
+      <div class="chead">
+        <div><div class="idx">05</div><h3>Charging-Curve Forensics</h3>
+          <p class="oneliner">Plot charging power vs. SoC per session. Reveals throttling, cold-battery derating, charger faults, and degradation over time.</p></div>
+        <div class="cmeta"><span class="pill p-diff">Differentiated</span></div>
+      </div>
+      <div class="complex"><span class="lbl">Complexity</span><span class="meter"><i class="on"></i><i class="on"></i><i></i><i></i></span><span class="num">weeks · a card view over existing samples</span></div>
+      <div class="swot">
+        <div class="quad s"><h4>Strengths</h4><ul><li>Pure visual candy nobody else ships</li><li>Data already captured mid-session</li></ul></div>
+        <div class="quad w"><h4>Weaknesses</h4><ul><li>Niche — enthusiasts, not everyone</li><li>Stream sample rate caps resolution</li></ul></div>
+        <div class="quad o"><h4>Opportunities</h4><ul><li>Community show-and-tell content</li><li>Early-warning for battery/charger health</li></ul></div>
+        <div class="quad t"><h4>Threats</h4><ul><li>ABRP/enthusiast tools plot similar</li></ul></div>
+      </div>
+      <div class="biz"><span class="k">Case</span><p><b>Marketing asset disguised as a feature.</b> Cheap, gorgeous, and exactly the kind of thing that spreads in forums — feeding your community-outreach flywheel.</p></div>
+    </div>
+
+    <div class="card t-diff">
+      <div class="chead">
+        <div><div class="idx">06</div><h3>Battery SoH Trend &amp; Prediction</h3>
+          <p class="oneliner">Not just "current health" — a degradation curve with a projected trajectory. The quiet anxiety of every EV owner, answered.</p></div>
+        <div class="cmeta"><span class="pill p-diff">Differentiated</span></div>
+      </div>
+      <div class="complex"><span class="lbl">Complexity</span><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="num">months · trend model + long baseline</span></div>
+      <div class="swot">
+        <div class="quad s"><h4>Strengths</h4><ul><li>Battery-health data already collected</li><li>Feeds directly into #13 Certificate</li></ul></div>
+        <div class="quad w"><h4>Weaknesses</h4><ul><li>Needs many months to be credible</li><li>Noisy signal; false alarms erode trust</li></ul></div>
+        <div class="quad o"><h4>Opportunities</h4><ul><li>"Your car vs. the fleet" once #10 exists</li></ul></div>
+        <div class="quad t"><h4>Threats</h4><ul><li>Over-claiming invites accuracy backlash</li></ul></div>
+      </div>
+      <div class="biz"><span class="k">Case</span><p><b>Stickiness engine.</b> A trend only has value if you keep the integration running for years — which is exactly the retention behaviour you want. The gateway drug to #10 and #13.</p></div>
+    </div>
+
+    <div class="card t-diff">
+      <div class="chead">
+        <div><div class="idx">07</div><h3>Finanzamt-grade Fahrtenbuch</h3>
+          <p class="oneliner">A tax-office-compliant electronic logbook: business/private/commute classification, immutable timestamps, clean export. In BMW's home market, this is worth real money.</p></div>
+        <div class="cmeta"><span class="pill p-diff">Differentiated</span></div>
+      </div>
+      <div class="complex"><span class="lbl">Complexity</span><span class="meter m-warn"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span><span class="num">months · compliance rules + tamper-evidence</span></div>
+      <div class="swot">
+        <div class="quad s"><h4>Strengths</h4><ul><li>Trips + GPS + export already shipped</li><li>Germany-centric userbase = perfect fit</li></ul></div>
+        <div class="quad w"><h4>Weaknesses</h4><ul><li>Finanzamt acceptance bar is strict (immutability, completeness)</li><li>Liability if it's trusted and wrong</li></ul></div>
+        <div class="quad o"><h4>Opportunities</h4><ul><li>Headline feature; replaces €5–10/mo SaaS logbooks</li><li>Reason to install before you need it</li></ul></div>
+        <div class="quad t"><h4>Threats</h4><ul><li>Established compliant SaaS incumbents</li><li>Rule changes require maintenance</li></ul></div>
+      </div>
+      <div class="biz"><span class="k">Case</span><p><b>The killer app for the German market.</b> Highest strategic value in the deck: solves a paid problem, for the exact people you already have, with data you already store. Hard, but this is what makes BavarianData a <em>reason to own a BMW on HA</em>.</p></div>
+    </div>
+
+    <div class="card t-diff">
+      <div class="chead">
+        <div><div class="idx">08</div><h3>Vampire-Drain &amp; Anomaly Detection</h3>
+          <p class="oneliner">SoC drop while parked flags phantom drain or a failing 12V. Unexpected movement or door-open while "away" flags theft.</p></div>
+        <div class="cmeta"><span class="pill p-diff">Differentiated</span></div>
+      </div>
+      <div class="complex"><span class="lbl">Complexity</span><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="num">weeks–months · baselining + thresholds</span></div>
+      <div class="swot">
+        <div class="quad s"><h4>Strengths</h4><ul><li>Pure data — no command needed</li><li>High emotional payoff (money + safety)</li></ul></div>
+        <div class="quad w"><h4>Weaknesses</h4><ul><li>False positives destroy trust fast</li><li>Stream latency limits theft realtime-ness</li></ul></div>
+        <div class="quad o"><h4>Opportunities</h4><ul><li>Feeds #16 Guardian Mode</li></ul></div>
+        <div class="quad t"><h4>Threats</h4><ul><li>Users expect a security guarantee you can't make</li></ul></div>
+      </div>
+      <div class="biz"><span class="k">Case</span><p><b>Peace-of-mind sells.</b> Turns passive monitoring into "my car is watching itself." Frame carefully as advisory, not alarm system, to manage the liability tail.</p></div>
+    </div>
+
+    <div class="card t-diff">
+      <div class="chead">
+        <div><div class="idx">09</div><h3>Departure-Readiness Advisor</h3>
+          <p class="oneliner">You can't precondition — but you can say at 07:30: "you usually leave at 08:00; battery is 54%, target 80% — it won't finish." The nagging half of smart charging.</p></div>
+        <div class="cmeta"><span class="pill p-diff">Differentiated</span></div>
+      </div>
+      <div class="complex"><span class="lbl">Complexity</span><span class="meter"><i class="on"></i><i class="on"></i><i></i><i></i></span><span class="num">weeks · pattern learning + notification</span></div>
+      <div class="swot">
+        <div class="quad s"><h4>Strengths</h4><ul><li>Delivers 80% of smart-charging value with 0 control</li><li>Turns the read-only limit into a clever angle</li></ul></div>
+        <div class="quad w"><h4>Weaknesses</h4><ul><li>Advisory only — can't act on it</li><li>Departure-time learning can be wrong</li></ul></div>
+        <div class="quad o"><h4>Opportunities</h4><ul><li>Bridge to #11 anticipatory home</li></ul></div>
+        <div class="quad t"><h4>Threats</h4><ul><li>Owners may want action, not advice</li></ul></div>
+      </div>
+      <div class="biz"><span class="k">Case</span><p><b>Reframe the weakness as wit.</b> Cheap, and it demonstrates the whole "brain not remote" thesis in a single notification. Good demo, good story.</p></div>
+    </div>
+  </div>
+
+  <!-- ============ VISIONARY ============ -->
+  <h2>Tier 3 · Visionary — the defensible bets</h2>
+  <div class="cards">
+
+    <div class="card t-vis">
+      <div class="chead">
+        <div><div class="idx">11</div><h3>Anticipatory Home / Digital Twin</h3>
+          <p class="oneliner">The car's behaviour becomes the smart home's intent sensor. Leaving the geofence at 07:42 on that road → set away-mode; 25 min before return → pre-heat, open the gate.</p></div>
+        <div class="cmeta"><span class="pill p-vis">Visionary</span></div>
+      </div>
+      <div class="complex"><span class="lbl">Complexity</span><span class="meter m-warn"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="num">months · behaviour model + blueprints</span></div>
+      <div class="swot">
+        <div class="quad s"><h4>Strengths</h4><ul><li>Read-only is irrelevant — you command the house, not the car</li><li>Deeply native to HA's core purpose</li></ul></div>
+        <div class="quad w"><h4>Weaknesses</h4><ul><li>Prediction errors are annoying/creepy</li><li>Hard to make robust across households</li></ul></div>
+        <div class="quad o"><h4>Opportunities</h4><ul><li>Positions BavarianData as an HA cornerstone, not a car add-on</li></ul></div>
+        <div class="quad t"><h4>Threats</h4><ul><li>Generic presence/geofencing partly covers it</li></ul></div>
+      </div>
+      <div class="biz"><span class="k">Case</span><p><b>Category redefinition.</b> Stops being "a BMW integration" and becomes "the thing that makes my house know I'm coming." Ship as opinionated blueprints first; full model later.</p></div>
+    </div>
+
+    <div class="card t-vis">
+      <div class="chead">
+        <div><div class="idx">12</div><h3>AI Copilot over Car Memory</h3>
+          <p class="oneliner">Natural language over the whole history: "How much did I spend charging in June?" "Where was I last Tuesday?" Plus a weekly narrated summary the car writes about itself.</p></div>
+        <div class="cmeta"><span class="pill p-vis">Visionary</span></div>
+      </div>
+      <div class="complex"><span class="lbl">Complexity</span><span class="meter m-warn"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="num">months · query layer + HA Assist / LLM</span></div>
+      <div class="swot">
+        <div class="quad s"><h4>Strengths</h4><ul><li>History layer already stores the answers</li><li>Rides HA's Assist momentum</li></ul></div>
+        <div class="quad w"><h4>Weaknesses</h4><ul><li>LLM hallucination over personal data is risky</li><li>Local-LLM users vs. cloud privacy split</li></ul></div>
+        <div class="quad o"><h4>Opportunities</h4><ul><li>Voice: "Hey car, did I leave a window open?"</li><li>Weekly narrative = recurring delight</li></ul></div>
+        <div class="quad t"><h4>Threats</h4><ul><li>HA-native LLM tooling may commoditise it</li></ul></div>
+      </div>
+      <div class="biz"><span class="k">Case</span><p><b>Wow-factor + retention.</b> The narrated weekly summary is a recurring reason to care. Start with structured Q&A (deterministic), layer the LLM on top so it never invents numbers.</p></div>
+    </div>
+
+    <div class="card t-vis">
+      <div class="chead">
+        <div><div class="idx">13</div><h3>Battery Health Certificate</h3>
+          <p class="oneliner">A tamper-evident SoH history the owner hands a buyer at resale. The used-EV market's biggest fear, answered by data you've been logging for years.</p></div>
+        <div class="cmeta"><span class="pill p-vis">Visionary</span></div>
+      </div>
+      <div class="complex"><span class="lbl">Complexity</span><span class="meter m-warn"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="num">months · needs #06 baseline + trust/signing</span></div>
+      <div class="swot">
+        <div class="quad s"><h4>Strengths</h4><ul><li>Turns data into resale equity — real €</li><li>Install-before-you-need-it hook</li></ul></div>
+        <div class="quad w"><h4>Weaknesses</h4><ul><li>Trust requires tamper-evidence / third-party anchor</li><li>Only pays off at sale time</li></ul></div>
+        <div class="quad o"><h4>Opportunities</h4><ul><li>Hosted verification = a plausible paid tier</li><li>Partner with used-EV marketplaces</li></ul></div>
+        <div class="quad t"><h4>Threats</h4><ul><li>OEM/third-party cert services (Aviloo, etc.)</li></ul></div>
+      </div>
+      <div class="biz"><span class="k">Case</span><p><b>Data becomes money.</b> The rare feature with a direct monetisation path (hosted, signed certificates). Deep moat: needs years of <em>your</em> continuous logging that no one can retrofit.</p></div>
+    </div>
+
+    <div class="card t-vis">
+      <div class="chead">
+        <div><div class="idx">14</div><h3>Carbon &amp; Energy Orchestration</h3>
+          <p class="oneliner">The EV as the household's biggest battery. Attribute every charge to sun/grid/price, advise the greenest+cheapest moment, and tell the story: "avoided 190 kg CO₂ vs. the diesel it replaced."</p></div>
+        <div class="cmeta"><span class="pill p-vis">Visionary</span></div>
+      </div>
+      <div class="complex"><span class="lbl">Complexity</span><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="num">weeks–months · fuse #03/#04 + grid-carbon feed</span></div>
+      <div class="swot">
+        <div class="quad s"><h4>Strengths</h4><ul><li>Composes cleanly from #03 + #04</li><li>Aligns with HA's energy-dashboard ethos</li></ul></div>
+        <div class="quad w"><h4>Weaknesses</h4><ul><li>Advisory only without charge control</li><li>Carbon data availability varies by region</li></ul></div>
+        <div class="quad o"><h4>Opportunities</h4><ul><li>Feed HA Energy dashboard as a first-class source</li></ul></div>
+        <div class="quad t"><h4>Threats</h4><ul><li>EVCC + energy integrations overlap</li></ul></div>
+      </div>
+      <div class="biz"><span class="k">Case</span><p><b>Meaning multiplier.</b> Cheap once #03/#04 exist, and it converts dry kWh into a story owners are proud of — the emotional close on the whole energy narrative.</p></div>
+    </div>
+
+    <div class="card t-vis">
+      <div class="chead">
+        <div><div class="idx">15</div><h3>Personal Cartography / Roving Sensor</h3>
+          <p class="oneliner">Every drive is a probe. A year of everywhere you've been as map art, your true commute-time distribution, your private "roads I drive" heatmap. Strava-for-driving.</p></div>
+        <div class="cmeta"><span class="pill p-vis">Visionary</span></div>
+      </div>
+      <div class="complex"><span class="lbl">Complexity</span><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="num">weeks–months · aggregate the GPS track store</span></div>
+      <div class="swot">
+        <div class="quad s"><h4>Strengths</h4><ul><li>Opt-in GPS track recording already ships</li><li>Beautiful, shareable, viral-adjacent</li></ul></div>
+        <div class="quad w"><h4>Weaknesses</h4><ul><li>Privacy-sensitive raw location on disk</li><li>Delight, not utility — low retention alone</li></ul></div>
+        <div class="quad o"><h4>Opportunities</h4><ul><li>Seed data for #10's aggregate map layers</li></ul></div>
+        <div class="quad t"><h4>Threats</h4><ul><li>Google Timeline etc. do personal maps</li></ul></div>
+      </div>
+      <div class="biz"><span class="k">Case</span><p><b>Joy drives adoption.</b> Won't retain on its own, but a year-in-review map is the kind of thing people post — cheap top-of-funnel that leans on data you already keep.</p></div>
+    </div>
+  </div>
+
+  <!-- ============ MOONSHOTS ============ -->
+  <h2>Tier 4 · Moonshots — the moat and the magic</h2>
+  <div class="cards">
+
+    <div class="card t-moon">
+      <div class="chead">
+        <div><div class="idx">10</div><h3>Owner-Data Commons</h3>
+          <p class="oneliner">Anonymised, opt-in pooling → the only real-world, owner-generated EV ground truth on earth: true range by model + temperature, thousands of charging curves, degradation percentiles. "Your i5 is at the 78th percentile for its mileage."</p></div>
+        <div class="cmeta"><span class="pill p-moon">Moonshot</span></div>
+      </div>
+      <div class="complex"><span class="lbl">Complexity</span><span class="meter m-crit"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span><span class="num">external backend · privacy/legal · ongoing ops</span></div>
+      <div class="swot">
+        <div class="quad s"><h4>Strengths</h4><ul><li>A moat that compounds with every user</li><li>Manufacturers <em>can't</em> and <em>won't</em> match it</li></ul></div>
+        <div class="quad w"><h4>Weaknesses</h4><ul><li>Breaks the "all data stays local" promise</li><li>Needs a hosted service + GDPR rigour</li><li>Cold-start: useless until a critical mass opts in</li></ul></div>
+        <div class="quad o"><h4>Opportunities</h4><ul><li>Powers #06 percentiles and #13 certificates</li><li>Community-owned dataset = durable identity</li><li>Foundation for a sustainable funding model</li></ul></div>
+        <div class="quad t"><h4>Threats</h4><ul><li>Privacy backlash if mishandled — existential</li><li>Governance/trust burden of stewarding data</li></ul></div>
+      </div>
+      <div class="biz"><span class="k">Case</span><p><b>The only real moat in the deck.</b> Everything else is copyable; a community dataset isn't. High-risk, high-cost, and the payoff — being the definitive source of real-world BMW EV truth — is worth more than the other sixteen combined. Needs airtight consent, anonymisation, and a governance story before a single row is collected.</p></div>
+    </div>
+
+    <div class="card t-moon">
+      <div class="chead">
+        <div><div class="idx">16</div><h3>Guardian Mode</h3>
+          <p class="oneliner">Borrowed-car / teen-driver / elderly-parent watch: geofence + movement anomalies, "got home safe" pings, unexpected-motion-while-away theft signals. Pure data, high emotion.</p></div>
+        <div class="cmeta"><span class="pill p-moon">Moonshot</span></div>
+      </div>
+      <div class="complex"><span class="lbl">Complexity</span><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="num">months · builds on #08; careful UX framing</span></div>
+      <div class="swot">
+        <div class="quad s"><h4>Strengths</h4><ul><li>Deeply emotional, word-of-mouth worthy</li><li>Reuses #08's detection engine</li></ul></div>
+        <div class="quad w"><h4>Weaknesses</h4><ul><li>Safety framing invites liability</li><li>Latency limits true real-time response</li></ul></div>
+        <div class="quad o"><h4>Opportunities</h4><ul><li>Reaches non-enthusiast family users</li></ul></div>
+        <div class="quad t"><h4>Threats</h4><ul><li>Users may over-trust it as a security system</li></ul></div>
+      </div>
+      <div class="biz"><span class="k">Case</span><p><b>Broadens the audience.</b> Moves beyond the tinkerer to the worried parent. Advisory framing is mandatory — sell reassurance, never a guarantee.</p></div>
+    </div>
+
+    <div class="card t-moon">
+      <div class="chead">
+        <div><div class="idx">17</div><h3>Life-Logger</h3>
+          <p class="oneliner">Auto-generated trip stories, a driving year-in-review, geotagged memories. The car as an autobiography that writes itself.</p></div>
+        <div class="cmeta"><span class="pill p-moon">Moonshot</span></div>
+      </div>
+      <div class="complex"><span class="lbl">Complexity</span><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="num">months · storytelling layer over trips/#15</span></div>
+      <div class="swot">
+        <div class="quad s"><h4>Strengths</h4><ul><li>Pure delight; strong shareability</li><li>Sits on trips + cartography you have</li></ul></div>
+        <div class="quad w"><h4>Weaknesses</h4><ul><li>Nice-to-have; won't drive retention</li><li>Taste-dependent — easy to feel gimmicky</li></ul></div>
+        <div class="quad o"><h4>Opportunities</h4><ul><li>Pairs with #12 AI for auto-narration</li></ul></div>
+        <div class="quad t"><h4>Threats</h4><ul><li>Photo/timeline apps occupy this space</li></ul></div>
+      </div>
+      <div class="biz"><span class="k">Case</span><p><b>Icing, not cake.</b> Do it late, cheaply, once #12 and #15 exist — then it's nearly free and gives the whole project a soul. Low priority, high charm.</p></div>
+    </div>
+  </div>
+
+  <p class="foot">Complexity ratings are relative to a solo/small-maintainer HACS integration: 1 bar ≈ days, 2 ≈ weeks, 3 ≈ months, 4 ≈ needs an external backend plus ongoing operations and legal/privacy work. "Strategic value" and "moat" are judgment calls, not measurements. "Business case" is framed for an MIT open-source project — the currency is adoption, retention, differentiation, and community, with a hosted paid tier plausible only for #10 and #13.</p>
+</div>

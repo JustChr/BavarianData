@@ -98,8 +98,8 @@ there are enough wide-range charges to be sure of the number, it shows
 Lists your recorded drives, newest first, each showing *from → to*, distance,
 duration and a business/private/commute badge; tap one for consumption,
 recuperation and the SoC used, to reclassify it, and — for drives recorded with
-**Record route** on — a small map of the route (lightly smoothed; nothing leaves
-your browser to draw it). Above the list a **month in
+**Record route** on — a small map of the route (drawn as a clean line with a
+start and end marker; nothing leaves your browser to draw it). Above the list a **month in
 review** sums the distance (with a vs-last-month delta), the
 business/private/commute split, average consumption, energy recuperated, a
 driving-style score and your top destinations — and, once a tariff is set, an

@@ -13,7 +13,7 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.6.0";
+const CARD_VERSION = "1.6.1";
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -1764,6 +1764,9 @@ class BavarianDataCard extends HTMLElement {
     const trip = ((this._trp && this._trp.trips) || []).find((t) => t.start === id);
     if (!trip || !Array.isArray(trip.track) || trip.track.length < 2) return;
 
+    const coords = this._trackCoords(trip);
+    if (coords.length < 2) return;
+
     holder.innerHTML = "";
     const map = document.createElement("ha-map");
     map.autoFit = false;
@@ -1773,37 +1776,73 @@ class BavarianDataCard extends HTMLElement {
     map.style.display = "block";
     map.hass = this._hass;
     holder.appendChild(map);
-
-    const path = this._miniMapPath(trip);
-    map.paths = path;
     this._miniMapEl = map;
     this._miniMapTripId = expanded;
-    const pts = [];
-    for (const p of path) for (const q of p.points) pts.push(q.point);
-    this._fitLeafletMap(map, pts);
-  }
 
-  /** One smoothed, classification-coloured ha-map path for a single trip. */
-  _miniMapPath(trip) {
-    const raw = (trip.track || []).filter(
-      (p) =>
-        Array.isArray(p) &&
-        p.length >= 2 &&
-        typeof p[0] === "number" &&
-        typeof p[1] === "number"
-    );
-    if (raw.length < 2) return [];
-    const base = this._decimate(raw.map((p) => [p[0], p[1]]), 40);
-    const smooth = this._smoothTrack(base, 5);
-    const startMs = Date.parse(trip.start) || Date.now();
-    const points = smooth.map((c, i) => ({
-      point: [c[0], c[1]],
-      timestamp: new Date(startMs + i * 1000),
-    }));
-    if (points.length < 2) return [];
     const color =
       TRIP_CLASS_COLORS[trip.classification] || TRIP_CLASS_COLORS.unclassified;
-    return [{ points, color }];
+    this._drawRoute(map, coords, color);
+  }
+
+  /** A trip's track as clean [lat, lon] tuples, lightly decimated. */
+  _trackCoords(trip) {
+    const raw = (trip.track || [])
+      .filter(
+        (p) =>
+          Array.isArray(p) &&
+          p.length >= 2 &&
+          typeof p[0] === "number" &&
+          typeof p[1] === "number"
+      )
+      .map((p) => [p[0], p[1]]);
+    return this._decimate(raw, 400);
+  }
+
+  /** Draw a route as a native Leaflet polyline (via ha-map's Leaflet handle) --
+   * a clean, dot-free line, unlike ha-map `paths` which mark every vertex. Adds
+   * a green start and a red end marker. leafletMap/Leaflet appear only after
+   * ha-map's async init, so retry until they're there. */
+  _drawRoute(mapEl, coords, color) {
+    let tries = 0;
+    const draw = () => {
+      if (!mapEl || !this.shadowRoot.contains(mapEl)) return;
+      const lmap = mapEl.leafletMap;
+      const L = mapEl.Leaflet;
+      if (!lmap || !L || typeof L.polyline !== "function") {
+        if (tries++ < 30) setTimeout(draw, 150);
+        return;
+      }
+      try {
+        if (mapEl._bdRoute) lmap.removeLayer(mapEl._bdRoute);
+        const group = L.layerGroup();
+        L.polyline(coords, {
+          color,
+          weight: 4,
+          opacity: 0.9,
+          lineJoin: "round",
+          lineCap: "round",
+        }).addTo(group);
+        const dot = (fill) => ({
+          radius: 5,
+          color: "#fff",
+          weight: 2,
+          fillColor: fill,
+          fillOpacity: 1,
+        });
+        L.circleMarker(coords[0], dot("#22a06b")).addTo(group); // start
+        L.circleMarker(coords[coords.length - 1], dot("#d1453b")).addTo(group); // end
+        group.addTo(lmap);
+        mapEl._bdRoute = group;
+        try {
+          lmap.fitBounds(coords, { padding: [16, 16], maxZoom: 16 });
+        } catch (_) {
+          /* transient size race; the next expand re-fits */
+        }
+      } catch (_) {
+        if (tries++ < 30) setTimeout(draw, 150);
+      }
+    };
+    draw();
   }
 
   _tripPlace(place) {
@@ -2220,42 +2259,6 @@ class BavarianDataCard extends HTMLElement {
     );
   }
 
-  /** Fit a given ha-map's Leaflet view to [lat, lon] tuples. `leafletMap` only
-   * exists after ha-map's async Leaflet init, so retry a few times; `fitBounds`
-   * accepts a raw array of tuples as its bounds. */
-  _fitLeafletMap(mapEl, pts) {
-    if (!mapEl || !pts || pts.length < 1) return;
-    let tries = 0;
-    const attempt = () => {
-      if (!mapEl || !this.shadowRoot.contains(mapEl)) return;
-      const lmap = mapEl.leafletMap;
-      if (lmap && typeof lmap.fitBounds === "function") {
-        try {
-          lmap.fitBounds(pts, { padding: [20, 20], maxZoom: 16 });
-        } catch (_) {
-          /* a transient Leaflet size race; the next data change re-fits */
-        }
-        return;
-      }
-      if (tries++ < 25) setTimeout(attempt, 120);
-    };
-    attempt();
-  }
-
-  /* ---- route smoothing (shared by the trip mini-map) -------------------- */
-
-  /** Great-circle distance in km between two [lat, lon] points. */
-  _haversineKm(a, b) {
-    const R = 6371.0088;
-    const rad = Math.PI / 180;
-    const dLat = (b[0] - a[0]) * rad;
-    const dLon = (b[1] - a[1]) * rad;
-    const s =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos(a[0] * rad) * Math.cos(b[0] * rad) * Math.sin(dLon / 2) ** 2;
-    return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
-  }
-
   /** Keep at most `max` points, always retaining the first and last. */
   _decimate(points, max) {
     if (points.length <= max) return points.slice();
@@ -2264,38 +2267,6 @@ class BavarianDataCard extends HTMLElement {
     for (let i = 0; i < points.length; i += step) out.push(points[i]);
     const last = points[points.length - 1];
     if (out[out.length - 1] !== last) out.push(last);
-    return out;
-  }
-
-  /** Round off the corners of a [lat, lon] polyline with a Catmull-Rom spline.
-   * Purely cosmetic (no road data leaves the device); long jumps between sparse
-   * fixes are kept straight so the spline can't bulge across a gap. */
-  _smoothTrack(pts, segments) {
-    if (!Array.isArray(pts) || pts.length < 3) return (pts || []).slice();
-    const cr = (a, b, c, d, s) => {
-      const s2 = s * s;
-      const s3 = s2 * s;
-      return 0.5 * (2 * b + (-a + c) * s + (2 * a - 5 * b + 4 * c - d) * s2 +
-        (-a + 3 * b - 3 * c + d) * s3);
-    };
-    const out = [pts[0]];
-    for (let i = 0; i < pts.length - 1; i++) {
-      const p0 = pts[i > 0 ? i - 1 : 0];
-      const p1 = pts[i];
-      const p2 = pts[i + 1];
-      const p3 = pts[i + 2 < pts.length ? i + 2 : i + 1];
-      if (this._haversineKm(p1, p2) > 0.4) {
-        out.push(p2); // a sparse-fix gap -- leave it straight
-        continue;
-      }
-      for (let t = 1; t <= segments; t++) {
-        const s = t / segments;
-        out.push([
-          cr(p0[0], p1[0], p2[0], p3[0], s),
-          cr(p0[1], p1[1], p2[1], p3[1], s),
-        ]);
-      }
-    }
     return out;
   }
 
