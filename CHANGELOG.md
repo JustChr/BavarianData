@@ -9,6 +9,25 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.2-beta.4] - 2026-07-26
+
+### Added
+- **Each trip now shows its route on a map.** Expanding a trip in the Trips card
+  view draws that drive on a small map, for trips recorded with **Record route**
+  on. The line is lightly smoothed (a local spline) so it reads as a route rather
+  than jagged GPS hops — no map data leaves your browser to do it.
+
+### Changed
+- **The Trip map card view is now a destinations map.** Instead of drawing route
+  lines, `view: map` now plots where your trips **end** (their destinations) as
+  markers that **cluster into counted bubbles when zoomed out and split apart as
+  you zoom in** — a quick read on where you go most, with an honest "times arrived
+  here" count (a trip's start is the previous trip's end, so plotting both would
+  double-count). (The actual route of a drive now lives on the
+  Trips card, on the trip you expand.) The time-window filter (This month / 3
+  months / All) still applies. Uses Home Assistant's own map and clustering, so no
+  new dependencies and no map data leaves your browser.
+
 ## [0.9.2-beta.3] - 2026-07-26
 
 ### Fixed

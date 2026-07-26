@@ -97,7 +97,9 @@ there are enough wide-range charges to be sure of the number, it shows
 
 Lists your recorded drives, newest first, each showing *from → to*, distance,
 duration and a business/private/commute badge; tap one for consumption,
-recuperation and the SoC used, and to reclassify it. Above the list a **month in
+recuperation and the SoC used, to reclassify it, and — for drives recorded with
+**Record route** on — a small map of the route (lightly smoothed; nothing leaves
+your browser to draw it). Above the list a **month in
 review** sums the distance (with a vs-last-month delta), the
 business/private/commute split, average consumption, energy recuperated, a
 driving-style score and your top destinations — and, once a tariff is set, an
@@ -124,10 +126,15 @@ under **Configure → Trips** so home↔work drives are recognised as commutes
 
 ## Trip map (`view: map`)
 
-Draws your recorded routes on a map, each line coloured by its
-business/commute/private classification (matching the Trips legend). A chip row
-switches the time window — **This month** (default), **3 months** or **All** —
-and the map auto-fits to the routes shown.
+A **destinations map**: it plots where your trips **end**, and those markers
+**cluster into counted bubbles when you zoom out and split apart as you zoom in** —
+a quick read on where you go most. Only the end of each trip is shown (a trip's
+start is the previous trip's end, so plotting both would double-count), giving an
+honest "times arrived here" count. Click a cluster to zoom into it. A chip row
+switches the time window — **This month** (default), **3 months** or **All**.
+
+To see the *route* of a particular drive, open the [Trips](#trips--driving-journal-view-trips)
+view and expand that trip — its route is drawn on a small map there.
 
 ```yaml
 type: custom:bavariandata-card
@@ -136,22 +143,21 @@ view: map
 
 <!-- screenshot: card-map -->
 
-The map only has something to draw once you turn on **Record trip routes** under
+The map only has something to show once you turn on **Record route** under
 **Configure → Trips** — that opt-in setting is what stores each drive's GPS
-polyline (it is the only place the integration keeps raw coordinates on disk, and
-it is **off by default**). With it off, or before your first drive with it on,
-the view explains that no routes have been recorded yet. Drives recorded *before*
-you enabled it have no line to draw.
+coordinates (it is the only place the integration keeps raw coordinates on disk,
+and it is **off by default**). With it off, or before your first drive with it on,
+the view explains that no places have been recorded yet. Drives recorded *before*
+you enabled it have no coordinates to place.
 
-It reads routes through the `get_trips` service, so it spends **no API quota**,
-and it reuses Home Assistant's own map component (map tiles load from
-OpenStreetMap, as they do for the built-in Map card).
+It reads endpoints through the `get_trips` service, so it spends **no API quota**,
+and it reuses Home Assistant's own map component and marker clustering (map tiles
+load from OpenStreetMap, as they do for the built-in Map card).
 
 > **Privacy:** unlike the rest of the history layer — which stores place *names*,
-> never coordinates — a recorded route is the exact path driven, including the
-> start and end points at home. Only enable route recording if you're comfortable
-> with that, and remember the map (and its home coordinates) is visible to anyone
-> who can see the dashboard.
+> never coordinates — this view uses the recorded coordinates of your trip
+> endpoints, home included. Only enable route recording if you're comfortable with
+> that, and remember the map is visible to anyone who can see the dashboard.
 
 ---
 

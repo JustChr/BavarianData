@@ -13,7 +13,7 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.5.0";
+const CARD_VERSION = "1.6.0";
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -252,8 +252,8 @@ const TRANSLATIONS = {
     mp_loading: "Loading map…",
     mp_error: "Couldn't load the map. Reload the page and try again.",
     mp_empty_none:
-      "No routes to draw yet. Turn on “Record trip routes” under Configure → Trips, then drive — recorded routes appear here.",
-    mp_empty_window: "No routes recorded in this period.",
+      "No places to map yet. Turn on “Record route” under Configure → Trips, then drive — the places you visit appear here.",
+    mp_empty_window: "No places recorded in this period.",
     mp_unavailable: "The map couldn't be loaded in this browser.",
     mp_win_month: "This month",
     mp_win_3m: "3 months",
@@ -439,8 +439,8 @@ const TRANSLATIONS = {
     mp_loading: "Karte wird geladen…",
     mp_error: "Karte konnte nicht geladen werden. Seite neu laden und erneut versuchen.",
     mp_empty_none:
-      "Noch keine Routen zum Anzeigen. Unter Konfigurieren → Fahrten „Fahrtrouten aufzeichnen“ aktivieren, dann fahren — aufgezeichnete Routen erscheinen hier.",
-    mp_empty_window: "In diesem Zeitraum keine Routen aufgezeichnet.",
+      "Noch keine Orte zum Anzeigen. Unter Konfigurieren → Fahrten „Route aufzeichnen“ aktivieren, dann fahren — die besuchten Orte erscheinen hier.",
+    mp_empty_window: "In diesem Zeitraum keine Orte aufgezeichnet.",
     mp_unavailable: "Die Karte konnte in diesem Browser nicht geladen werden.",
     mp_win_month: "Dieser Monat",
     mp_win_3m: "3 Monate",
@@ -1440,6 +1440,10 @@ class BavarianDataCard extends HTMLElement {
     }
 
     this._paintTrips(deviceId, entities);
+    // The expanded trip's route rides a live ha-map (loaded on demand); mount it
+    // after paint so a repaint never tears down an in-place Leaflet instance.
+    this._ensureMapLib();
+    this._mountTripMiniMap();
   }
 
   _fetchTrips(vin) {
@@ -1720,8 +1724,17 @@ class BavarianDataCard extends HTMLElement {
       )
       .join("");
 
+    // A recorded route (opt-in trip_track) gets a small map of the drive; the
+    // ha-map element is mounted into this placeholder after paint (see
+    // _mountTripMiniMap), so a repaint can't tear a live Leaflet map down.
+    const hasTrack = Array.isArray(trip.track) && trip.track.length >= 2;
+    const mini = hasTrack
+      ? `<div class="tr__minimap" data-mini="${this._attr(trip.start || "")}"></div>`
+      : "";
+
     return `
       <div class="chg__detail">
+        ${mini}
         ${soc ? `<div class="chg__facts">${soc}</div>` : ""}
         ${factRow ? `<div class="chg__facts">${factRow}</div>` : ""}
         <div class="tr__classify">
@@ -1730,6 +1743,67 @@ class BavarianDataCard extends HTMLElement {
         </div>
       </div>
     `;
+  }
+
+  /** Build (or refresh) the mini-map for the currently expanded trip.
+   * Idempotent and called after every trips paint: it mounts the ha-map once the
+   * library is ready and the row exists, and re-mounts after a repaint clears it. */
+  _mountTripMiniMap() {
+    const expanded = this._trpExpanded || null;
+    const holder = this.shadowRoot && this.shadowRoot.querySelector(".tr__minimap");
+    if (!holder || !expanded) {
+      this._miniMapTripId = null;
+      return;
+    }
+    if (this._miniMapTripId === expanded && holder.firstChild) {
+      if (this._miniMapEl) this._miniMapEl.hass = this._hass;
+      return; // already mounted for this trip
+    }
+    if (this._mapLib !== "ready") return; // _ensureMapLib re-renders when ready
+    const id = holder.getAttribute("data-mini");
+    const trip = ((this._trp && this._trp.trips) || []).find((t) => t.start === id);
+    if (!trip || !Array.isArray(trip.track) || trip.track.length < 2) return;
+
+    holder.innerHTML = "";
+    const map = document.createElement("ha-map");
+    map.autoFit = false;
+    map.zoom = 14;
+    map.themeMode = "auto";
+    map.style.height = "200px";
+    map.style.display = "block";
+    map.hass = this._hass;
+    holder.appendChild(map);
+
+    const path = this._miniMapPath(trip);
+    map.paths = path;
+    this._miniMapEl = map;
+    this._miniMapTripId = expanded;
+    const pts = [];
+    for (const p of path) for (const q of p.points) pts.push(q.point);
+    this._fitLeafletMap(map, pts);
+  }
+
+  /** One smoothed, classification-coloured ha-map path for a single trip. */
+  _miniMapPath(trip) {
+    const raw = (trip.track || []).filter(
+      (p) =>
+        Array.isArray(p) &&
+        p.length >= 2 &&
+        typeof p[0] === "number" &&
+        typeof p[1] === "number"
+    );
+    if (raw.length < 2) return [];
+    const base = this._decimate(raw.map((p) => [p[0], p[1]]), 40);
+    const smooth = this._smoothTrack(base, 5);
+    const startMs = Date.parse(trip.start) || Date.now();
+    const points = smooth.map((c, i) => ({
+      point: [c[0], c[1]],
+      timestamp: new Date(startMs + i * 1000),
+    }));
+    if (points.length < 2) return [];
+    const color =
+      TRIP_CLASS_COLORS[trip.classification] || TRIP_CLASS_COLORS.unclassified;
+    return [{ points, color }];
   }
 
   _tripPlace(place) {
@@ -1748,6 +1822,7 @@ class BavarianDataCard extends HTMLElement {
         this._sig = null; // force a repaint with the new expansion state
         const deviceId = this._resolveDeviceId();
         this._paintTrips(deviceId, this._deviceEntities(deviceId));
+        this._mountTripMiniMap(); // show the newly expanded trip's route at once
       });
     });
     this.shadowRoot.querySelectorAll("[data-trip-class]").forEach((el) => {
@@ -1898,32 +1973,23 @@ class BavarianDataCard extends HTMLElement {
     });
   }
 
-  /** One ha-map path per trip, coloured by classification, points decimated. */
-  _mapPaths(trips) {
-    const MAX_PTS = 150; // ha-map draws a marker per point; cap for performance
-    return trips
-      .map((trip) => {
-        const startMs = Date.parse(trip.start) || Date.now();
-        const raw = trip.track;
-        const step = raw.length > MAX_PTS ? Math.ceil(raw.length / MAX_PTS) : 1;
-        const points = [];
-        const push = (p) => {
-          if (!Array.isArray(p) || p.length < 2) return;
-          const lat = p[0];
-          const lon = p[1];
-          if (typeof lat !== "number" || typeof lon !== "number") return;
-          const secs = p.length > 2 && typeof p[2] === "number" ? p[2] : 0;
-          points.push({ point: [lat, lon], timestamp: new Date(startMs + secs * 1000) });
-        };
-        for (let i = 0; i < raw.length; i += step) push(raw[i]);
-        // Always include the final fix so the drawn line reaches the endpoint.
-        if (step > 1 && (raw.length - 1) % step !== 0) push(raw[raw.length - 1]);
-        return {
-          points,
-          color: TRIP_CLASS_COLORS[trip.classification] || TRIP_CLASS_COLORS.unclassified,
-        };
-      })
-      .filter((path) => path.points.length >= 2);
+  /** The destination (end point) of every trip with a track, as visit markers.
+   * Only the end, not the start: a trip's start is essentially the previous
+   * trip's end (the car parks, then drives on from there), so plotting both would
+   * double-count every place. End-only gives an honest "times arrived here" count.
+   * Routes themselves now live on the trip card's mini-map. */
+  _mapEndpoints(trips) {
+    const out = [];
+    const valid = (p) =>
+      Array.isArray(p) && typeof p[0] === "number" && typeof p[1] === "number";
+    for (const trip of trips) {
+      const track = trip.track;
+      if (!Array.isArray(track) || track.length < 2) continue;
+      const end = track[track.length - 1];
+      if (valid(end))
+        out.push({ lat: end[0], lon: end[1], label: this._tripPlace(trip.end_place) });
+    }
+    return out;
   }
 
   _paintMap(deviceId, entities) {
@@ -1960,14 +2026,14 @@ class BavarianDataCard extends HTMLElement {
     }
 
     if (phase === "data") {
-      this._refreshMap(winTrips, win);
+      this._refreshDestinations(winTrips, win);
     }
   }
 
   _buildMapChrome(deviceId, phase, name) {
     const count = phase === "data" ? this._mapWindowTrips().length : 0;
     const countLabel =
-      count === 1 ? this._t("mp_route_one") : this._t("mp_route_many", { n: count });
+      count === 1 ? this._t("tr_trip_one") : this._t("tr_trip_many", { n: count });
 
     let body;
     if (phase === "error") {
@@ -1981,14 +2047,14 @@ class BavarianDataCard extends HTMLElement {
     } else if (phase === "empty_window") {
       body = `${this._mapFilters()}<div class="empty">${this._t("mp_empty_window")}</div>`;
     } else {
-      body = `${this._mapFilters()}<div class="map__holder"></div><div class="map__legend"></div>`;
+      body = `${this._mapFilters()}<div class="map__holder"></div>`;
     }
 
     this.shadowRoot.innerHTML = `
       ${this._styles()}
       <ha-card>
         <div class="chead">
-          <ha-icon icon="mdi:map-marker-path"></ha-icon>
+          <ha-icon icon="mdi:map-marker-multiple"></ha-icon>
           <div class="chead__text">
             <span class="chead__title">${this._config.title || this._t("mp_title")}</span>
             <span class="chead__sub">${name}${count ? " · " + countLabel : ""}</span>
@@ -2002,9 +2068,8 @@ class BavarianDataCard extends HTMLElement {
     if (phase === "data") {
       const holder = this.shadowRoot.querySelector(".map__holder");
       const map = document.createElement("ha-map");
-      // autoFit only frames entities/zones/layers, never `paths`, so we fit the
-      // view to the routes ourselves (see _fitMapToPaths); leave it off so it
-      // can't yank the view back to the home coordinates.
+      // We add our own clustered markers to the Leaflet map, so autoFit (entities/
+      // zones/layers only) stays off and we fit to the endpoints ourselves.
       map.autoFit = false;
       map.zoom = 13;
       map.themeMode = "auto";
@@ -2013,7 +2078,8 @@ class BavarianDataCard extends HTMLElement {
       map.hass = this._hass;
       holder.appendChild(map);
       this._mapEl = map;
-      this._mapDataSig = null; // force the first path push
+      this._mapDataSig = null; // force the first cluster build
+      this._clusterLayer = null; // fresh map -- the old layer is gone with it
     }
     this._wireMapFilters();
   }
@@ -2044,23 +2110,21 @@ class BavarianDataCard extends HTMLElement {
     });
   }
 
-  /** Update the mounted ha-map's paths + legend without rebuilding chrome. */
-  _refreshMap(winTrips, win) {
+  /** Rebuild the clustered destination markers when the data/window changes. */
+  _refreshDestinations(winTrips, win) {
     if (!this._mapEl) return;
     this._mapEl.hass = this._hass;
 
     const dataSig = this._signature({
       win,
-      rows: winTrips.map((t) => [t.start, (t.track || []).length, t.classification]),
+      rows: winTrips.map((t) => [t.start, (t.track || []).length]),
     });
     if (dataSig === this._mapDataSig) return;
     this._mapDataSig = dataSig;
 
-    const paths = this._mapPaths(winTrips);
-    this._mapEl.paths = paths;
-    this._fitMapToPaths(paths);
+    this._mountClusters(this._mapEndpoints(winTrips));
 
-    // Keep the chip active-state and route count honest after an in-place swap.
+    // Keep the chip active-state and the trip count honest after a swap.
     const cur = this._mapWindow || "month";
     this.shadowRoot.querySelectorAll("[data-win]").forEach((el) => {
       el.classList.toggle("is-active", el.getAttribute("data-win") === cur);
@@ -2069,42 +2133,105 @@ class BavarianDataCard extends HTMLElement {
     if (sub) {
       const name = this._config.title || this._deviceName(this._resolveDeviceId());
       const n = winTrips.length;
-      const label = n === 1 ? this._t("mp_route_one") : this._t("mp_route_many", { n });
+      const label = n === 1 ? this._t("tr_trip_one") : this._t("tr_trip_many", { n });
       sub.textContent = `${name}${n ? " · " + label : ""}`;
-    }
-
-    // Legend: only the classifications actually present in the drawn window.
-    const present = [];
-    const order = ["business", "commute", "private", "unclassified"];
-    for (const cls of order) {
-      if (winTrips.some((t) => (t.classification || "unclassified") === cls)) present.push(cls);
-    }
-    const legend = this.shadowRoot.querySelector(".map__legend");
-    if (legend) {
-      const segCls = (c) => (c === "unclassified" ? "tr__seg--unc" : "tr__seg--" + c);
-      legend.innerHTML = present
-        .map(
-          (c) =>
-            `<span class="tr__leg"><i class="tr__dot ${segCls(c)}"></i>${this._t("tr_" + c)}</span>`
-        )
-        .join("");
     }
   }
 
-  /** Frame the Leaflet view to every drawn point (autoFit ignores paths).
-   * `leafletMap` only exists after ha-map's async Leaflet init, so retry a few
-   * times; `fitBounds` accepts a raw array of [lat, lon] tuples as its bounds. */
-  _fitMapToPaths(paths) {
-    const pts = [];
-    for (const path of paths) for (const p of path.points) pts.push(p.point);
-    if (pts.length < 1) return;
+  /** Add the endpoints to the Leaflet map as a native marker-cluster group.
+   * Reuses the Leaflet + markercluster that Home Assistant's own ha-map loads
+   * (reachable via the mounted element), so clustering, counts, zoom-split and
+   * spiderfy are all native -- no hand-rolled overlay. `leafletMap`/`Leaflet`
+   * appear only after ha-map's async init, so retry until they're there. */
+  _mountClusters(endpoints) {
+    const mapEl = this._mapEl;
+    if (!mapEl) return;
+    let tries = 0;
+    const build = () => {
+      if (!mapEl || !this.shadowRoot.contains(mapEl)) return;
+      const lmap = mapEl.leafletMap;
+      const L = mapEl.Leaflet;
+      if (!lmap || !L || typeof L.markerClusterGroup !== "function") {
+        if (tries++ < 30) setTimeout(build, 150);
+        return; // markercluster/Leaflet not ready (or unavailable) yet
+      }
+      try {
+        if (this._clusterLayer) {
+          lmap.removeLayer(this._clusterLayer);
+          this._clusterLayer = null;
+        }
+        const group = L.markerClusterGroup({
+          showCoverageOnHover: false,
+          maxClusterRadius: 48,
+          iconCreateFunction: (c) =>
+            L.divIcon({
+              html: this._clusterBubbleHtml(c.getChildCount()),
+              className: "",
+              iconSize: [40, 40],
+              iconAnchor: [20, 20],
+            }),
+        });
+        const pts = [];
+        for (const ep of endpoints) {
+          const marker = L.marker([ep.lat, ep.lon], {
+            icon: L.divIcon({
+              html: this._pinHtml(),
+              className: "",
+              iconSize: [16, 16],
+              iconAnchor: [8, 8],
+            }),
+          });
+          if (ep.label) marker.bindTooltip(ep.label, { direction: "top" });
+          group.addLayer(marker);
+          pts.push([ep.lat, ep.lon]);
+        }
+        lmap.addLayer(group);
+        this._clusterLayer = group;
+        if (pts.length) {
+          try {
+            lmap.fitBounds(pts, { padding: [30, 30], maxZoom: 15 });
+          } catch (_) {
+            /* transient size race; the next data change re-fits */
+          }
+        }
+      } catch (_) {
+        if (tries++ < 30) setTimeout(build, 150);
+      }
+    };
+    build();
+  }
+
+  /** Inline-styled HTML for a cluster bubble (styles must be inline: the marker
+   * lives in ha-map's shadow tree, out of reach of this card's stylesheet). */
+  _clusterBubbleHtml(n) {
+    return (
+      `<div style="display:flex;align-items:center;justify-content:center;` +
+      `width:40px;height:40px;border-radius:50%;background:rgba(0,102,177,0.92);` +
+      `color:#fff;font:600 14px/1 system-ui,sans-serif;border:2px solid #fff;` +
+      `box-shadow:0 1px 5px rgba(0,0,0,0.45);">${n}</div>`
+    );
+  }
+
+  /** Inline-styled HTML for a single endpoint pin. */
+  _pinHtml() {
+    return (
+      `<div style="width:14px;height:14px;border-radius:50%;background:#0066b1;` +
+      `border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.45);"></div>`
+    );
+  }
+
+  /** Fit a given ha-map's Leaflet view to [lat, lon] tuples. `leafletMap` only
+   * exists after ha-map's async Leaflet init, so retry a few times; `fitBounds`
+   * accepts a raw array of tuples as its bounds. */
+  _fitLeafletMap(mapEl, pts) {
+    if (!mapEl || !pts || pts.length < 1) return;
     let tries = 0;
     const attempt = () => {
-      if (!this._mapEl || !this.shadowRoot.contains(this._mapEl)) return;
-      const lmap = this._mapEl.leafletMap;
+      if (!mapEl || !this.shadowRoot.contains(mapEl)) return;
+      const lmap = mapEl.leafletMap;
       if (lmap && typeof lmap.fitBounds === "function") {
         try {
-          lmap.fitBounds(pts, { padding: [24, 24], maxZoom: 16 });
+          lmap.fitBounds(pts, { padding: [20, 20], maxZoom: 16 });
         } catch (_) {
           /* a transient Leaflet size race; the next data change re-fits */
         }
@@ -2113,6 +2240,63 @@ class BavarianDataCard extends HTMLElement {
       if (tries++ < 25) setTimeout(attempt, 120);
     };
     attempt();
+  }
+
+  /* ---- route smoothing (shared by the trip mini-map) -------------------- */
+
+  /** Great-circle distance in km between two [lat, lon] points. */
+  _haversineKm(a, b) {
+    const R = 6371.0088;
+    const rad = Math.PI / 180;
+    const dLat = (b[0] - a[0]) * rad;
+    const dLon = (b[1] - a[1]) * rad;
+    const s =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(a[0] * rad) * Math.cos(b[0] * rad) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
+  }
+
+  /** Keep at most `max` points, always retaining the first and last. */
+  _decimate(points, max) {
+    if (points.length <= max) return points.slice();
+    const step = Math.ceil(points.length / max);
+    const out = [];
+    for (let i = 0; i < points.length; i += step) out.push(points[i]);
+    const last = points[points.length - 1];
+    if (out[out.length - 1] !== last) out.push(last);
+    return out;
+  }
+
+  /** Round off the corners of a [lat, lon] polyline with a Catmull-Rom spline.
+   * Purely cosmetic (no road data leaves the device); long jumps between sparse
+   * fixes are kept straight so the spline can't bulge across a gap. */
+  _smoothTrack(pts, segments) {
+    if (!Array.isArray(pts) || pts.length < 3) return (pts || []).slice();
+    const cr = (a, b, c, d, s) => {
+      const s2 = s * s;
+      const s3 = s2 * s;
+      return 0.5 * (2 * b + (-a + c) * s + (2 * a - 5 * b + 4 * c - d) * s2 +
+        (-a + 3 * b - 3 * c + d) * s3);
+    };
+    const out = [pts[0]];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i > 0 ? i - 1 : 0];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[i + 2 < pts.length ? i + 2 : i + 1];
+      if (this._haversineKm(p1, p2) > 0.4) {
+        out.push(p2); // a sparse-fix gap -- leave it straight
+        continue;
+      }
+      for (let t = 1; t <= segments; t++) {
+        const s = t / segments;
+        out.push([
+          cr(p0[0], p1[0], p2[0], p3[0], s),
+          cr(p0[1], p1[1], p2[1], p3[1], s),
+        ]);
+      }
+    }
+    return out;
   }
 
   /* ---- battery health --------------------------------------------------- */
@@ -3413,9 +3597,11 @@ class BavarianDataCard extends HTMLElement {
         border: 1px solid var(--divider-color);
       }
       .map__holder ha-map { width: 100%; }
-      .map__legend {
-        display: flex; flex-wrap: wrap; gap: 10px; padding: 10px 14px 14px;
+      .tr__minimap {
+        margin: 2px 0 12px; height: 200px; border-radius: 10px; overflow: hidden;
+        border: 1px solid var(--divider-color); background: var(--card-background-color);
       }
+      .tr__minimap ha-map { width: 100%; }
       .tr__style { display: flex; flex-direction: column; gap: 6px; }
       .tr__style-head { display: flex; align-items: center; justify-content: space-between; }
       .tr__style-lbl {
