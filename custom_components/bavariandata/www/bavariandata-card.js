@@ -13,7 +13,7 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.6.1";
+const CARD_VERSION = "1.6.2";
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -3802,7 +3802,7 @@ if (!window.customCards.some((c) => c.type === "bavariandata-card")) {
 
 // eslint-disable-next-line no-console
 console.info(
-  `%c BMW-CARDATA-CARD %c ${CARD_VERSION} `,
+  `%c BAVARIANDATA-CARD %c ${CARD_VERSION} `,
   "color:#fff;background:#2f80ed;border-radius:3px 0 0 3px;padding:2px 4px;",
   "color:#2f80ed;background:#0b0f14;border-radius:0 3px 3px 0;padding:2px 4px;"
 );

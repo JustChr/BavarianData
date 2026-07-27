@@ -143,6 +143,37 @@ If you've spent all [50 REST requests](Feature-API-Quota) in 24 h, a repair
 issue appears under **Settings → Repairs** telling you when it resets.
 **Streaming keeps flowing throughout** — only `fetch_*` calls pause.
 
+## Removing BavarianData completely
+
+<a id="clean-uninstall"></a>
+
+Deleting the integration under **Settings → Devices & Services** does the important
+part: it removes your tokens *and* deletes the recorded history — charging
+sessions, trips, any recorded routes — plus the long-term statistics it published.
+That is deliberate: your driving and charging record should not outlive the
+integration.
+
+A few things are **not** removed automatically:
+
+- The **API quota log** and the **cached vehicle image** in `.storage`.
+- `bavariandata_trip_capture.ndjson` in your config folder, if you ever enabled
+  trip debugging. **It contains GPS coordinates — delete it.**
+- Devices and entities occasionally linger in the registries; delete leftovers
+  under **Settings → Devices & Services → Devices / Entities**.
+
+**If you are testing a fresh install**, one extra check matters: long-term
+statistics live in the recorder database, not the entity registry, so a *partial*
+removal (deleted folder, crash mid-removal) can leave `bavariandata:…` series
+behind that reappear in your Energy dashboard with nothing installed. Look under
+**Developer tools → Statistics** for orphaned ids and delete them.
+
+The complete artifact list and a step-by-step checklist:
+[clean-install.md](https://github.com/JustChr/BavarianData/blob/main/docs/clean-install.md).
+
+> **Upgrading from an older `cardata` / `bmw_cardata` install?** There is no
+> cross-domain migration — the domain rename is a breaking change. Remove the old
+> integration using the checklist above, then set BavarianData up fresh.
+
 ## Where to get help
 
 - Bugs in the integration → [Issues](https://github.com/JustChr/BavarianData/issues).

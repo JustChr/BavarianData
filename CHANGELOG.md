@@ -9,6 +9,20 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **Documented how to remove BavarianData completely.** Troubleshooting & FAQ has a
+  new "Removing BavarianData completely" section: deleting the integration already
+  wipes your tokens, your charging/trip history and the statistics it published,
+  but the quota log, the cached vehicle image and any trip-capture file are left
+  behind — and a trip capture contains GPS coordinates, so it's worth deleting.
+  Also covers the one trap when testing a fresh install: long-term statistics live
+  in the recorder database, so a partial removal can leave `bavariandata:…` series
+  showing up in your Energy dashboard with nothing installed.
+
+### Fixed
+- The card's browser-console banner still announced itself as `BMW-CARDATA-CARD`
+  after the rename; it now reads `BAVARIANDATA-CARD` (card 1.6.2). Cosmetic only.
+
 ## [0.9.2-beta.5] - 2026-07-26
 
 ### Changed

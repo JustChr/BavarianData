@@ -227,6 +227,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Automation blueprints (2) | 🟡 |
 | API quota + Repairs issue | 🟡 |
 | Descriptor-coverage self-test | ❌ |
+| Clean uninstall / fresh-install reset | 🟡 Troubleshooting → "Removing BavarianData completely" + `docs/clean-install.md` |
 
 ## Conventions
 
@@ -256,27 +257,32 @@ PR. (Proposed addition to `CLAUDE.md`.)
 4. ✅ Write the genuinely-missing pages (coverage self-test, reset container,
    refresh tokens, diagnostics entities, device tracker, hidden overrides,
    `get_coverage_report`). The full English manual is staged in `docs/wiki/`.
-5. 🟡 Screenshot pass — HA-side shots captured via the Playwright workflow
-   (cluster picker, Configure menu, charging-costs settings, charging &
-   battery-health card views), **plus the 7 BMW-portal setup shots** (account →
+5. 🟡 Screenshot pass — captured via the Playwright workflow and committed to
+   `main`: the HA-side shots (cluster picker, Configure menu, charging-costs
+   settings, charging & battery-health card views), the **4 setup shots**
+   (chooser, manual, guided, bookmarklet) and the **7 BMW-portal shots** (account →
    vehicle overview → CarData client → stream setup → bookmarklet running/done;
-   captured in-browser, cropped, PII redacted, in `screenshots/`). Remaining are
-   deliberately deferred: the two onboarding screens (`config-flow-user` /
-   `-authorize`) and `config-flow-cluster-snippet` would disturb the live
-   single-stream / persist state, and `card-trips` has no data yet. The `Trips`
-   settings screen was captured but showed a real work-zone name (redact first).
+   cropped, PII pixelated). Remaining are deliberately deferred because they
+   cannot be captured safely: `authorize` / `authorize_failed` (submitting a client
+   id **deletes** the existing entry with that id), `guided_wait` (https-only, and
+   the test instance is http), `guided_done` / `activate_stream_done` (need a real
+   activation), the trip **map** view and `card-trips` (need recorded route data).
+   The `Trips` settings screen was captured but showed a real work-zone name
+   (redact before use).
 6. ⬜ German pass.
 
-### Publishing the staged Wiki — blocked on a one-time manual step
+### Publishing the staged Wiki — done
 
-The English manual lives in **`docs/wiki/`** (source, reviewable in PRs). It
-cannot be pushed yet: GitHub does not provision the wiki git remote (and offers
-no API for it) until the **first page is created via the web UI** — a clone/push
-to `…/BavarianData.wiki.git` currently 404s. Once someone creates one page at
-<https://github.com/JustChr/BavarianData/wiki>, run
-[`scripts/publish-wiki.sh`](../scripts/publish-wiki.sh) to sync everything.
-The screenshots referenced by the pages must also be **committed to `main`** for
-the raw-URL images to load. Until published, the README's Wiki links 404.
+The English manual lives in **`docs/wiki/`** (the source of truth, reviewable in
+PRs) and is **published**. Sync it with
+[`scripts/publish-wiki.sh`](../scripts/publish-wiki.sh) after any change; the
+script no-ops when the wiki is already in sync, so it is safe to run on every
+commit. Screenshots referenced by the pages must be **committed to `main`** for
+the raw-URL images to load.
+
+(Historical note, in case a future repo hits it: GitHub provisions the wiki git
+remote only after the **first page is created in the web UI** — until then a
+clone/push to `…/BavarianData.wiki.git` 404s and there is no API to force it.)
 
 ### Status after this rollout
 
