@@ -12,6 +12,17 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [0.9.2-beta.7] - 2026-07-27
 
 ### Changed
+- **A trip's start and end times now describe the drive, not the detection.** A
+  trip was stamped from the first position fix that registered movement to the
+  moment the five-minute stationary timer expired — so a drive from 10:51 to
+  10:57 was recorded as 10:54 → 11:00, and its duration overstated by minutes at
+  both ends. The start now falls back to when the car was last seen parked (on
+  cars that stream the driver door, bounded to five minutes before detection, so
+  sitting in the car before pulling away doesn't count as driving), and a
+  stationary or segment close ends the trip at the last fix that showed movement
+  instead of when the timer fired. A driver-door arrival still ends the trip
+  where it always did — the door opening *is* the arrival. Trips already
+  recorded keep their old timestamps.
 - **The tire card is now a tire card, not a tire-pressure card** (card 1.8.0). It
   is titled **Tires**, and it opens with the two things that can actually be
   wrong with one, side by side: **Pressure** (the measured spread across the set,
@@ -33,19 +44,6 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   BMW's target is the *cold* pressure and a tire you have just driven on reads
   8–10% high. Under-inflation is the condition worth an early hint; over-
   inflation is only worth one past what warm-up explains.
-
-### Changed
-- **A trip's start and end times now describe the drive, not the detection.** A
-  trip was stamped from the first position fix that registered movement to the
-  moment the five-minute stationary timer expired — so a drive from 10:51 to
-  10:57 was recorded as 10:54 → 11:00, and its duration overstated by minutes at
-  both ends. The start now falls back to when the car was last seen parked (on
-  cars that stream the driver door, bounded to five minutes before detection, so
-  sitting in the car before pulling away doesn't count as driving), and a
-  stationary or segment close ends the trip at the last fix that showed movement
-  instead of when the timer fired. A driver-door arrival still ends the trip
-  where it always did — the door opening *is* the arrival. Trips already
-  recorded keep their old timestamps.
 
 ### Fixed
 - **Trip routes were drawn from mismatched latitude/longitude pairs**, putting
