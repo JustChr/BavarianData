@@ -12,16 +12,6 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [0.9.2-beta.6] - 2026-07-27
 
 ### Added
-- **Documented how to remove BavarianData completely.** Troubleshooting & FAQ has a
-  new "Removing BavarianData completely" section: deleting the integration already
-  wipes your tokens, your charging/trip history and the statistics it published,
-  but the quota log, the cached vehicle image and any trip-capture file are left
-  behind — and a trip capture contains GPS coordinates, so it's worth deleting.
-  Also covers the one trap when testing a fresh install: long-term statistics live
-  in the recorder database, so a partial removal can leave `bavariandata:…` series
-  showing up in your Energy dashboard with nothing installed.
-
-### Added
 - **Tyre wear on the tire card.** BMW's smart-maintenance tyre diagnosis was
   being fetched and thrown away — `fetch_tyre_diagnosis` logged it and nothing
   else. It now becomes five entities per car (**Tyre Condition** plus one per
@@ -30,6 +20,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   Wear outranks pressure in the wheel colour and the header: a tyre BMW flags as
   worn reads "Check tyres" even at perfect pressure. Cars with no tyre service
   record on file get no tyre entities and an unchanged card (card 1.7.0).
+- **Documented how to remove BavarianData completely.** Troubleshooting & FAQ has a
+  new "Removing BavarianData completely" section: deleting the integration already
+  wipes your tokens, your charging/trip history and the statistics it published,
+  but the quota log, the cached vehicle image and any trip-capture file are left
+  behind — and a trip capture contains GPS coordinates, so it's worth deleting.
+  Also covers the one trap when testing a fresh install: long-term statistics live
+  in the recorder database, so a partial removal can leave `bavariandata:…` series
+  showing up in your Energy dashboard with nothing installed.
 
 ### Changed
 - **The REST container is polled once a day instead of every 40 minutes, and now
