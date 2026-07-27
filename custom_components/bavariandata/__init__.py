@@ -84,6 +84,7 @@ from .stream_activation import (
     PortalStreamClient,
     StreamActivationError,
 )
+from .tyre_store import TyreStore
 from .history.backfill import StatisticsPublisher
 from .history.export import (
     MIME_CSV,
@@ -236,6 +237,7 @@ class CardataRuntimeData:
     history: Optional[HistoryStore] = None
     statistics: Optional[StatisticsPublisher] = None
     coverage: Optional[CoverageStore] = None
+    tyre: Optional[TyreStore] = None
     bootstrap_task: asyncio.Task | None = None
     quota_manager: "QuotaManager" | None = None
     telematic_task: asyncio.Task | None = None
@@ -470,8 +472,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     )
     await coverage_store.async_load()
 
+    # The tyre diagnosis costs a REST request and is refreshed at most daily, so
+    # it is kept across restarts instead of leaving the tyre sensors blank until
+    # the next fetch comes due. Like history, a failure to read it is not fatal.
+    tyre_store = TyreStore(hass, entry.entry_id)
+    stored_tyre = await tyre_store.async_load()
+
     coordinator = CardataCoordinator(hass=hass, entry_id=entry.entry_id)
     coordinator.history = history_store
+    coordinator.tyre_store = tyre_store
+    # Seeded before the platforms load, so the tyre entities are re-created with
+    # their wheels known and come up showing the last reading.
+    coordinator.restore_tyre_diagnosis(stored_tyre)
     # One-time repair: legacy imports stored coordinates but no zone (see
     # HistoryStore.reresolve_zones). Now that the coordinator's zone lookup is
     # available, resolve them locally so a charge at Home stops showing "public".
@@ -647,6 +659,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         history=history_store,
         statistics=statistics,
         coverage=coverage_store,
+        tyre=tyre_store,
         bootstrap_task=None,
         quota_manager=quota_manager,
         telematic_task=None,
@@ -1571,6 +1584,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> 
         # removal doesn't leave a stale "descriptor missing" warning behind.
         for vin in list(data.coordinator.data):
             ir.async_delete_issue(hass, DOMAIN, _coverage_issue_id(entry.entry_id, vin))
+    if data.tyre:
+        # Same reason as history: the save is debounced, and a fetch immediately
+        # before a reload would otherwise be lost.
+        with suppress(Exception):
+            await data.tyre.async_save_now()
     await data.stream.async_stop()
     await data.session.close()
     remaining_entries = domain_data.get("_entries") or set()
@@ -1607,6 +1625,10 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         # The coverage self-test keeps its own small store; remove it too so
         # nothing of this entry is left behind in .storage.
         await CoverageStore(hass, entry.entry_id, sections=[]).async_clear()
+    with suppress(Exception):
+        # Likewise the tyre diagnosis -- it names the car's fitted tyres and
+        # their service dates, so it goes with everything else.
+        await TyreStore(hass, entry.entry_id).async_clear()
 
 
 async def _handle_stream_error(hass: HomeAssistant, entry: CardataConfigEntry, reason: str) -> None:

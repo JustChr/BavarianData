@@ -1000,6 +1000,13 @@ class CardataTyreEntity(CardataEntity, SensorEntity):
         # has to be declared here. Must stay present even when unavailable.
         attrs["cluster"] = "tire"
         attrs["cluster_name"] = SECTIONS.get("tire", "Tire data")
+        # When the diagnosis was last fetched. Worth exposing: it is refreshed
+        # once a day at most and now survives restarts, so a reading can
+        # legitimately be a day old. Mirrored onto ``timestamp`` so these carry
+        # the same "as of" attribute as every streamed entity.
+        if fetched_at := self._diagnosis.get("fetched_at"):
+            attrs["fetched_at"] = fetched_at
+            attrs.setdefault("timestamp", fetched_at)
         return attrs
 
     async def async_added_to_hass(self) -> None:
@@ -1346,6 +1353,13 @@ async def async_setup_entry(
         ensure_soc_tracking_entities(vin)
         ensure_battery_health_entity(vin)
         ensure_driving_entity(vin)
+
+    for vin in list(coordinator.tyre_diagnosis):
+        # The diagnosis restored from the tyre store (tyre_store.py) covers the
+        # registry loop's case, but also the one it can't: a vehicle whose tyre
+        # entities were removed from the registry still gets them back now
+        # rather than waiting for the next daily fetch.
+        ensure_tyre_entities(vin)
 
     async def async_handle_new(vin: str, descriptor: str) -> None:
         ensure_entity(vin, descriptor)

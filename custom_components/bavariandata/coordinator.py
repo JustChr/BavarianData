@@ -328,7 +328,9 @@ class CardataCoordinator:
     names: Dict[str, str] = field(default_factory=dict)
     device_metadata: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     # vin -> parsed smart-maintenance tyre diagnosis (see tyre.py). REST-only:
-    # BMW cannot stream this, so it is refreshed on the daily poll.
+    # BMW cannot stream this, so it is refreshed on the daily poll and persisted
+    # by ``tyre_store`` -- a restart must not blank the tyre card until the next
+    # fetch comes due.
     tyre_diagnosis: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     last_message_at: Optional[datetime] = None
     last_telematic_api_at: Optional[datetime] = None
@@ -387,6 +389,9 @@ class CardataCoordinator:
     # Descriptor-coverage self-test ("Beyond the roadmap"). Records which selected
     # descriptors have actually streamed; optional, degrades quietly when absent.
     coverage: Optional[Any] = None
+    # Persistence for the tyre diagnosis (see tyre_store.py); injected during
+    # setup. Optional: without it the diagnosis is simply not remembered.
+    tyre_store: Optional[Any] = None
     pricing: PricingConfig = field(default_factory=PricingConfig)
     # Trip recording (roadmap Phase 3). ``geocoder`` and ``work_zone_entity`` are
     # injected/updated from options; both are optional and degrade quietly.
@@ -507,10 +512,27 @@ class CardataCoordinator:
         """
 
         parsed = parse_tyre_diagnosis(payload)
+        if self.tyre_store is not None:
+            # Persist before dispatching, so ``fetched_at`` is already on the
+            # document the woken entities read.
+            parsed["fetched_at"] = self.tyre_store.async_record(vin, parsed)
         self.tyre_diagnosis[vin] = parsed
         async_dispatcher_send(self.hass, self.signal_tyre, vin)
         async_dispatcher_send(self.hass, f"{DOMAIN}_{self.entry_id}_new_tyre", vin)
         return parsed
+
+    def restore_tyre_diagnosis(self, stored: Dict[str, Dict[str, Any]]) -> None:
+        """Seed the diagnosis from the store at setup.
+
+        Called before the platforms are set up, so the tyre entities find their
+        data already in place and come up with yesterday's reading rather than
+        "unknown". A live fetch always wins: anything already present (it cannot
+        be, this early, but the guard keeps the method safe to call again) stays.
+        """
+
+        for vin, diagnosis in (stored or {}).items():
+            if vin and isinstance(diagnosis, dict) and vin not in self.tyre_diagnosis:
+                self.tyre_diagnosis[vin] = diagnosis
 
     def _get_testing_tracking(self, vin: str) -> SocTracking:
         return self._testing_soc_tracking.setdefault(vin, SocTracking())

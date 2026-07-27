@@ -158,3 +158,38 @@ def parse_tyre_diagnosis(payload: Any) -> Dict[str, Any]:
         "wheels": wheels,
         "errors": _errors(payload),
     }
+
+
+def restore_diagnosis(record: Any) -> Optional[Dict[str, Any]]:
+    """Rebuild one persisted record (see ``tyre_store``) into a diagnosis.
+
+    ``record`` is ``{"fetched_at": iso, "diagnosis": {...}}`` as written to
+    ``.storage``. Returns ``None`` when there is nothing usable in it, so a
+    half-written or hand-edited store degrades to "not fetched yet" rather than
+    handing the entities a shape they will index into and crash on -- hence the
+    per-container type checks rather than trusting what we wrote last time.
+    """
+
+    diagnosis = _obj(_obj(record).get("diagnosis"))
+    if not diagnosis:
+        return None
+
+    wheels = diagnosis.get("wheels")
+    diagnosis["wheels"] = {
+        str(position): _obj(wheel)
+        for position, wheel in (wheels.items() if isinstance(wheels, dict) else ())
+        if isinstance(wheel, dict)
+    }
+    errors = diagnosis.get("errors")
+    diagnosis["errors"] = (
+        [item for item in errors if isinstance(item, str)]
+        if isinstance(errors, list)
+        else []
+    )
+
+    fetched_at = _obj(record).get("fetched_at")
+    if isinstance(fetched_at, str) and fetched_at.strip():
+        diagnosis["fetched_at"] = fetched_at
+    else:
+        diagnosis.pop("fetched_at", None)
+    return diagnosis

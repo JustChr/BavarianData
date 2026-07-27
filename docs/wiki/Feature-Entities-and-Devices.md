@@ -52,6 +52,11 @@ no data, not a fault. They are populated by the
 [daily refresh](Feature-API-Quota#the-daily-refresh) and by
 `bavariandata.fetch_tyre_diagnosis`.
 
+Because that data costs a request and is refreshed at most once a day, it is
+**stored and restored across restarts** — the sensors come back showing the last
+reading rather than `unknown`. Each carries a `fetched_at` attribute with the
+time of that fetch, so a day-old reading is recognisable as one.
+
 ## Vehicle image
 
 Each VIN also gets an **image** entity holding BMW's rendered picture of the car.

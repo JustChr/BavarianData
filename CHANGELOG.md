@@ -10,6 +10,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [Unreleased]
 
 ### Fixed
+- **The tire diagnosis now survives a restart.** Wear, tread, size, season and
+  fitting date were held in memory only, so every Home Assistant restart blanked
+  the tire sensors and the wear half of the tire card until the next daily
+  refresh came due — up to 24 hours later — or `fetch_tyre_diagnosis` was called
+  by hand. The last fetched diagnosis is now stored and restored at startup, at
+  no cost to the API quota. The sensors also carry a `fetched_at` attribute now,
+  so a day-old reading is recognisable as one.
 - **Maps no longer come back empty after switching dashboard tabs** (card
   1.8.1). Leaving a dashboard tab and returning left both maps bare — the trip
   map lost its destination bubbles, an expanded trip lost its route line — until

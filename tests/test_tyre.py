@@ -17,6 +17,7 @@ tyre = load_module("tyre")
 WHEEL_POSITIONS = tyre.WHEEL_POSITIONS
 parse_tyre_diagnosis = tyre.parse_tyre_diagnosis
 parse_wheel = tyre.parse_wheel
+restore_diagnosis = tyre.restore_diagnosis
 
 
 def _wheel(**overrides):
@@ -108,6 +109,47 @@ def test_errors_branch_is_surfaced():
     )
     assert result["errors"] == ["service down"]
     assert result["wheels"] == {}
+
+
+def test_restore_round_trips_a_stored_diagnosis():
+    # What tyre_store writes must come back in the shape the entities read, or a
+    # restart shows "unknown" until the next daily fetch -- the bug this store
+    # exists to fix.
+    parsed = parse_tyre_diagnosis(_payload(frontLeft=_wheel(), rearRight=_wheel()))
+    restored = restore_diagnosis({"fetched_at": "2026-07-27T06:00:00+00:00", "diagnosis": parsed})
+    assert set(restored["wheels"]) == {"front_left", "rear_right"}
+    assert restored["wheels"]["front_left"]["due_mileage_km"] == 30000.0
+    assert restored["aggregated_status"] == "GOOD"
+    assert restored["fetched_at"] == "2026-07-27T06:00:00+00:00"
+
+
+def test_restore_rejects_records_with_nothing_in_them():
+    for record in (None, {}, [], "nope", {"diagnosis": None}, {"diagnosis": {}}, {"fetched_at": "x"}):
+        assert restore_diagnosis(record) is None
+
+
+def test_restore_repairs_a_corrupt_store_instead_of_handing_on_junk():
+    restored = restore_diagnosis(
+        {
+            "fetched_at": 1234,  # not a string: dropped rather than displayed
+            "diagnosis": {
+                "aggregated_status": "GOOD",
+                "wheels": {"front_left": "not a dict", "rear_left": {"wear_status": "OK"}},
+                "errors": "boom",
+            },
+        }
+    )
+    # The entities index into both containers, so both must survive as their
+    # expected types no matter what was on disk.
+    assert set(restored["wheels"]) == {"rear_left"}
+    assert restored["errors"] == []
+    assert "fetched_at" not in restored
+
+
+def test_restore_tolerates_wheels_and_errors_being_absent():
+    restored = restore_diagnosis({"diagnosis": {"aggregated_status": "GOOD"}})
+    assert restored["wheels"] == {}
+    assert restored["errors"] == []
 
 
 def test_wheel_slugs_match_the_streamed_tire_attributes():

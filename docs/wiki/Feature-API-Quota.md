@@ -35,8 +35,9 @@ these values move on the scale of days, not minutes.
   services — they read or write the integration's own local store.
 
 Prefer the stream. Poll only what the stream genuinely cannot carry, and cache
-what's fetched (the vehicle image entity is cached across restarts for exactly
-this reason).
+what's fetched — the vehicle image and the tyre diagnosis are both kept across
+restarts for exactly this reason, so a reboot never costs a request to get back
+what was already fetched.
 
 ## Watching it
 
