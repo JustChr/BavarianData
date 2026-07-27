@@ -10,6 +10,19 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [Unreleased]
 
 ### Fixed
+- **Cards no longer break on a browser reload.** Every BavarianData card turned
+  into a "Configuration error" box after pressing F5 — a hard refresh didn't
+  help, only closing and reopening the browser did. The card was published as a
+  frontend module, which Home Assistant renders into the page as a
+  fire-and-forget `import()`; the frontend's service worker can serve that page
+  from cache without it, so the `bavariandata-card` element was never defined
+  and every placed card fell back to the error box
+  ([home-assistant/frontend#18728](https://github.com/home-assistant/frontend/issues/18728)).
+  The card is now registered as a proper Lovelace dashboard resource, which is
+  loaded before any dashboard renders and is version-stamped on every update.
+  Installations whose dashboard resources are YAML-managed keep the old
+  behaviour and should add the resource by hand — see
+  [Troubleshooting](https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ#config-error-after-reload).
 - **The tire diagnosis now survives a restart.** Wear, tread, size, season and
   fitting date were held in memory only, so every Home Assistant restart blanked
   the tire sensors and the wear half of the tire card until the next daily

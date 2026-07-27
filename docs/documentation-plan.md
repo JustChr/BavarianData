@@ -230,6 +230,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Daily REST refresh (container + tyre, 2 req/day) | 🟢 Feature-API-Quota → "The daily refresh" + Services-Reference |
 | Descriptor-coverage self-test | ❌ |
 | Clean uninstall / fresh-install reset | 🟡 Troubleshooting → "Removing BavarianData completely" + `docs/clean-install.md` |
+| Card auto-registration (Lovelace resource; YAML-mode caveat) | 🟢 The-Dashboard-Card intro + Troubleshooting → "Every card shows Configuration error after a reload" |
 
 ## Conventions
 

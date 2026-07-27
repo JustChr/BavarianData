@@ -135,6 +135,44 @@ delete the capture file when you're done. It stops growing at ~25 MB.
 
 **Hard-refresh the browser** — the bundled card is cached aggressively.
 
+## Every card shows "Configuration error" after a reload
+
+<a id="config-error-after-reload"></a>
+
+Symptom: the cards render correctly when you first open Home Assistant, then
+every one of them turns into a *Configuration error* box after pressing F5. A
+hard refresh doesn't help; only a fresh browser session does.
+
+This is fixed from **v0.9.2-beta.8** onward — update the integration and restart
+Home Assistant. If it persists:
+
+1. Go to **Settings → Dashboards → ⋮ → Resources** and check that
+   `/bavariandata/bavariandata-card.js?v=…` is listed, with the `?v=` matching
+   your installed version. It is created and kept up to date automatically.
+2. If the list is missing or greyed out, your dashboard resources are
+   YAML-managed. Add the resource yourself in `configuration.yaml`:
+
+   ```yaml
+   lovelace:
+     mode: yaml
+     resources:
+       - url: /bavariandata/bavariandata-card.js
+         type: module
+   ```
+
+   Since Home Assistant 2026.2 you can instead set `resource_mode: storage` on a
+   YAML dashboard to let BavarianData manage the resource for you.
+
+The cause was that the card used to be injected as a frontend module, which
+Home Assistant renders into the page as a fire-and-forget `import()`. The
+frontend's service worker can serve that page from its cache without it, so the
+`bavariandata-card` element was never defined and every placed card fell back to
+the error box — see [home-assistant/frontend#18728][fe18728]. Dashboard
+resources are delivered with the Lovelace config instead and are loaded before
+any dashboard renders.
+
+[fe18728]: https://github.com/home-assistant/frontend/issues/18728
+
 ## Quota exhausted
 
 <a id="quota-exhausted"></a>

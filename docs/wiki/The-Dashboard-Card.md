@@ -1,8 +1,13 @@
 # The dashboard card
 
-A custom **BavarianData Card** is bundled and registered automatically — there is
-no dashboard resource to add by hand. Pick it from the card gallery to open a
-visual editor, or write YAML directly.
+A custom **BavarianData Card** is bundled and registered automatically as a
+dashboard resource — there is nothing to add by hand, and the registration is
+refreshed on every update so browsers pick up the new version. Pick the card
+from the card gallery to open a visual editor, or write YAML directly.
+
+> Automatic registration needs storage-mode resources, which is the default. If
+> your dashboard resources are YAML-managed you must add the resource yourself —
+> see [Troubleshooting](Troubleshooting-and-FAQ#config-error-after-reload).
 
 With the integration installed, the minimal config auto-discovers the car:
 
