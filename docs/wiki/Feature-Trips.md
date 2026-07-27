@@ -15,6 +15,23 @@ distance along the GPS track), so no configuration is needed. Make sure the
 **Electric vehicle** and location descriptors are enabled in
 [step 4](Getting-Started-4-Choose-Data).
 
+### The times on a trip
+
+A drive is *noticed* later than it starts and *closed* later than it ends — BMW's
+position stream can go quiet for minutes at a time, and a trip only closes once
+the car has sat still for five. The recorded start and end are corrected for
+that, so they read as driving times rather than detection times:
+
+- **Start** — when the car was last seen parked, if your car streams its driver
+  door (the door closing means the driver just got in) and it closed within the
+  last five minutes. Otherwise the first position fix that showed movement.
+- **End** — the last position fix that showed movement, not the moment the
+  five-minute stop timer expired. If the driver door opening ends the drive
+  instead, that is the arrival.
+
+Both are still estimates bounded by how often your car reports its position: a
+long gap in the stream is a long gap in what can be known.
+
 ## Privacy by default
 
 Endpoints are stored as **place names, never coordinates**:

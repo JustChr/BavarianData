@@ -32,7 +32,31 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   8–10% high. Under-inflation is the condition worth an early hint; over-
   inflation is only worth one past what warm-up explains.
 
+### Changed
+- **A trip's start and end times now describe the drive, not the detection.** A
+  trip was stamped from the first position fix that registered movement to the
+  moment the five-minute stationary timer expired — so a drive from 10:51 to
+  10:57 was recorded as 10:54 → 11:00, and its duration overstated by minutes at
+  both ends. The start now falls back to when the car was last seen parked (on
+  cars that stream the driver door, bounded to five minutes before detection, so
+  sitting in the car before pulling away doesn't count as driving), and a
+  stationary or segment close ends the trip at the last fix that showed movement
+  instead of when the timer fired. A driver-door arrival still ends the trip
+  where it always did — the door opening *is* the arrival. Trips already
+  recorded keep their old timestamps.
+
 ### Fixed
+- **Trip routes were drawn from mismatched latitude/longitude pairs**, putting
+  every recorded point somewhere the car never was: a right-angle staircase where
+  each vertex took its latitude from the *previous* fix and its longitude from the
+  current one. BMW sends the two coordinates as separate messages, and the pairing
+  guard compared each coordinate only against its own previous value — so once a
+  single unpaired message slipped through (the first one after connect always
+  does, with nothing to compare against), the stale half counted as "advanced"
+  too and every later fix paired one message behind, permanently. Pairing now
+  waits for both halves of a fix to actually *arrive*, and drops BMW's duplicate
+  redelivery by the fix's own timestamp. Routes recorded before this fix keep
+  their bad points; new drives are correct.
 - **The card printed BMW's remaining-mileage figure twice per wheel**, once
   labelled as though it were a tread depth. BMW's tyre diagnosis does not report
   tread depth at all: `tyreWear.value` is a rendering of the same remaining
