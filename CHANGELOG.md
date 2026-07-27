@@ -9,6 +9,17 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Maps no longer come back empty after switching dashboard tabs** (card
+  1.8.1). Leaving a dashboard tab and returning left both maps bare — the trip
+  map lost its destination bubbles, an expanded trip lost its route line — until
+  the map was forced to redraw by collapsing and re-expanding the trip or
+  changing the time window. Home Assistant detaches a card when its view is
+  hidden, and `ha-map` destroys its Leaflet map on the way out, so our markers
+  and route lines were left on a map that no longer existed while the card
+  believed everything was still drawn. The card now notices that the map
+  underneath it has been rebuilt and puts the overlays back.
+
 ## [0.9.2-beta.7] - 2026-07-27
 
 ### Changed

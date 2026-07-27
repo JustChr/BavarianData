@@ -13,7 +13,7 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.8.0";
+const CARD_VERSION = "1.8.1";
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -540,6 +540,15 @@ class BavarianDataCard extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
     this._render();
+  }
+
+  /** Home Assistant detaches the card when the user switches dashboard tabs,
+   * and `ha-map`'s disconnectedCallback destroys its Leaflet map (building a
+   * fresh one on reconnect). Our route/cluster layers ride the old instance, so
+   * re-draw them here -- the paint guards would otherwise see nothing changed
+   * and leave the new map bare. */
+  connectedCallback() {
+    this._reassertMapOverlays();
   }
 
   getCardSize() {
@@ -1797,6 +1806,7 @@ class BavarianDataCard extends HTMLElement {
     }
     if (this._miniMapTripId === expanded && holder.firstChild) {
       if (this._miniMapEl) this._miniMapEl.hass = this._hass;
+      this._reassertMapOverlays(); // the map may have been re-created under us
       return; // already mounted for this trip
     }
     if (this._mapLib !== "ready") return; // _ensureMapLib re-renders when ready
@@ -1853,7 +1863,7 @@ class BavarianDataCard extends HTMLElement {
         return;
       }
       try {
-        if (mapEl._bdRoute) lmap.removeLayer(mapEl._bdRoute);
+        if (mapEl._bdRoute && mapEl._bdRouteMap === lmap) lmap.removeLayer(mapEl._bdRoute);
         const group = L.layerGroup();
         L.polyline(coords, {
           color,
@@ -1873,6 +1883,10 @@ class BavarianDataCard extends HTMLElement {
         L.circleMarker(coords[coords.length - 1], dot("#d1453b")).addTo(group); // end
         group.addTo(lmap);
         mapEl._bdRoute = group;
+        // Remember the instance and the inputs, so a torn-down map (tab switch)
+        // can be detected and the route re-drawn without a full re-mount.
+        mapEl._bdRouteMap = lmap;
+        mapEl._bdRouteSpec = { coords, color };
         try {
           lmap.fitBounds(coords, { padding: [16, 16], maxZoom: 16 });
         } catch (_) {
@@ -2159,6 +2173,7 @@ class BavarianDataCard extends HTMLElement {
       this._mapEl = map;
       this._mapDataSig = null; // force the first cluster build
       this._clusterLayer = null; // fresh map -- the old layer is gone with it
+      this._clusterMap = null;
     }
     this._wireMapFilters();
   }
@@ -2193,6 +2208,7 @@ class BavarianDataCard extends HTMLElement {
   _refreshDestinations(winTrips, win) {
     if (!this._mapEl) return;
     this._mapEl.hass = this._hass;
+    this._reassertMapOverlays(); // the map may have been re-created under us
 
     const dataSig = this._signature({
       win,
@@ -2236,8 +2252,9 @@ class BavarianDataCard extends HTMLElement {
       }
       try {
         if (this._clusterLayer) {
-          lmap.removeLayer(this._clusterLayer);
+          if (this._clusterMap === lmap) lmap.removeLayer(this._clusterLayer);
           this._clusterLayer = null;
+          this._clusterMap = null;
         }
         const group = L.markerClusterGroup({
           showCoverageOnHover: false,
@@ -2266,6 +2283,7 @@ class BavarianDataCard extends HTMLElement {
         }
         lmap.addLayer(group);
         this._clusterLayer = group;
+        this._clusterMap = lmap; // so a torn-down map is detectable on reconnect
         if (pts.length) {
           try {
             lmap.fitBounds(pts, { padding: [30, 30], maxZoom: 15 });
@@ -2278,6 +2296,50 @@ class BavarianDataCard extends HTMLElement {
       }
     };
     build();
+  }
+
+  /** Re-add our Leaflet layers when the map element has been re-created under
+   * them (tab switch -> disconnect -> `leafletMap.remove()` -> new instance).
+   * Only fires for overlays that were actually drawn once, so it never races
+   * an initial draw that is still retrying; cheap enough to call from every
+   * paint as well as from connectedCallback. */
+  _reassertMapOverlays() {
+    const shadow = this.shadowRoot;
+    if (!shadow) return;
+
+    const mini = this._miniMapEl;
+    if (
+      mini &&
+      shadow.contains(mini) &&
+      mini._bdRouteSpec &&
+      this._layerLost(mini, mini._bdRouteMap, mini._bdRoute)
+    ) {
+      const spec = mini._bdRouteSpec;
+      mini._bdRoute = null;
+      mini._bdRouteMap = null;
+      this._drawRoute(mini, spec.coords, spec.color);
+    }
+
+    const mapEl = this._mapEl;
+    if (
+      mapEl &&
+      shadow.contains(mapEl) &&
+      this._clusterMap &&
+      this._layerLost(mapEl, this._clusterMap, this._clusterLayer)
+    ) {
+      this._clusterLayer = null;
+      this._clusterMap = null;
+      this._mountClusters(this._mapEndpoints(this._mapWindowTrips()));
+    }
+  }
+
+  /** True when a layer we drew is no longer on the element's live Leaflet map:
+   * the map is gone, or was replaced, or dropped the layer. */
+  _layerLost(mapEl, drawnOn, layer) {
+    const lmap = mapEl.leafletMap;
+    if (!lmap) return true; // torn down; the draw retry waits for the new one
+    if (lmap !== drawnOn) return true;
+    return !!layer && typeof lmap.hasLayer === "function" && !lmap.hasLayer(layer);
   }
 
   /** Inline-styled HTML for a cluster bubble (styles must be inline: the marker
