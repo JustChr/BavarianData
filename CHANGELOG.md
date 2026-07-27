@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.2-beta.6] - 2026-07-27
+
 ### Added
 - **Documented how to remove BavarianData completely.** Troubleshooting & FAQ has a
   new "Removing BavarianData completely" section: deleting the integration already
