@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.2-beta.8] - 2026-07-27
+
 ### Fixed
 - **Cards no longer break on a browser reload.** Every BavarianData card turned
   into a "Configuration error" box after pressing F5 — a hard refresh didn't
