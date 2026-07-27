@@ -22,7 +22,7 @@ from homeassistant.const import UnitOfLength
 
 from .const import DOMAIN, REQUEST_LIMIT
 from .coordinator import CardataCoordinator
-from .descriptor_metadata import DESCRIPTOR_META
+from .descriptor_metadata import DESCRIPTOR_META, SECTIONS
 from .entity import CardataEntity
 from .history.health import MIN_SAMPLES, degradation_series, usable_capacity
 from .history.summary import (
@@ -970,6 +970,126 @@ class CardataDrivingDistanceMonthSensor(CardataEntity, SensorEntity):
         self.schedule_update_ha_state()
 
 
+# Our wheel slugs -> the axle token BMW's streamed tire descriptors use, so a
+# diagnosis entity and a pressure entity for the same wheel share a card slot.
+_AXLE_ROWS = {"front": "row1", "rear": "row2"}
+
+
+class CardataTyreEntity(CardataEntity, SensorEntity):
+    """Base for the sensors fed by the smart-maintenance tyre diagnosis.
+
+    That data is REST-only -- BMW cannot stream it -- so these listen on their
+    own signal rather than the stream update, and their state is read straight
+    off the coordinator's stored diagnosis instead of being cached.
+    """
+
+    _attr_should_poll = False
+
+    def __init__(self, coordinator: CardataCoordinator, vin: str, key: str) -> None:
+        super().__init__(coordinator, vin, key)
+        self._unsubscribe = None
+
+    @property
+    def _diagnosis(self) -> Dict[str, Any]:
+        return self._coordinator.tyre_diagnosis.get(self.vin) or {}
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        attrs = dict(super().extra_state_attributes)
+        # These have no catalogue descriptor, so the cluster the card groups by
+        # has to be declared here. Must stay present even when unavailable.
+        attrs["cluster"] = "tire"
+        attrs["cluster_name"] = SECTIONS.get("tire", "Tire data")
+        return attrs
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self._unsubscribe = async_dispatcher_connect(
+            self.hass, self._coordinator.signal_tyre, self._handle_update
+        )
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._unsubscribe:
+            self._unsubscribe()
+            self._unsubscribe = None
+
+    def _handle_update(self, vin: str) -> None:
+        if vin == self.vin:
+            self.schedule_update_ha_state()
+
+
+class CardataTyreWheelSensor(CardataTyreEntity):
+    """Tyre condition for one wheel.
+
+    The state is the wear traffic light (``green``/``yellow``/``red``/``grey``)
+    because that is the one field with a defined set of values; everything else
+    BMW sends for the wheel -- remaining mileage, tread, season, dimension,
+    dates -- rides along as attributes, which is what the card renders. Splitting
+    those into ~8 entities per wheel would put 32 on the device to express one
+    tyre service report.
+    """
+
+    _attr_icon = "mdi:tire"
+
+    def __init__(self, coordinator: CardataCoordinator, vin: str, position: str) -> None:
+        # Set before super(): CardataEntity falls back to a computed English
+        # _attr_name when it finds no translation key, and that name would then
+        # win over the translated one for German installs.
+        self._attr_translation_key = f"tyre_{position}"
+        super().__init__(coordinator, vin, f"tyre_{position}")
+        self._position = position
+
+    @property
+    def _wheel(self) -> Dict[str, Any]:
+        return (self._diagnosis.get("wheels") or {}).get(self._position) or {}
+
+    @property
+    def native_value(self):
+        wheel = self._wheel
+        return wheel.get("wear_status_color") or wheel.get("wear_status")
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        attrs = dict(super().extra_state_attributes)
+        # Land on the same wheel slot as the streamed pressure/temperature
+        # sensors: the card keys wheels by "<tire_axle>_<tire_side>", and those
+        # come from BMW's descriptor path, which numbers axles rather than
+        # naming them (vehicle.chassis.axle.row1.wheel.left.tire.pressure).
+        axle, side = self._position.split("_", 1)
+        attrs["tire_axle"] = _AXLE_ROWS[axle]
+        attrs["tire_side"] = side
+        attrs["tire_metric"] = "diagnosis"
+        attrs.update(self._wheel)
+        return attrs
+
+
+class CardataTyreStatusSensor(CardataTyreEntity):
+    """BMW's overall verdict on the mounted set, plus any upstream errors."""
+
+    _attr_icon = "mdi:car-tire-alert"
+    _attr_translation_key = "tyre_status"
+
+    def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
+        super().__init__(coordinator, vin, "tyre_status")
+
+    @property
+    def native_value(self):
+        return self._diagnosis.get("aggregated_status")
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        attrs = dict(super().extra_state_attributes)
+        diagnosis = self._diagnosis
+        attrs["label"] = diagnosis.get("aggregated_label")
+        attrs["wheels_reported"] = sorted(diagnosis.get("wheels") or {})
+        errors = diagnosis.get("errors") or []
+        if errors:
+            # Surfaced rather than swallowed: an upstream outage is why the
+            # wheels went empty, and that is worth being able to see.
+            attrs["errors"] = errors
+        return attrs
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities
 ) -> None:
@@ -985,6 +1105,8 @@ async def async_setup_entry(
     charging_summary_entities: Dict[str, list] = {}
     battery_health_entities: Dict[str, CardataBatteryHealthSensor] = {}
     driving_entities: Dict[str, CardataDrivingDistanceMonthSensor] = {}
+    # vin -> {"status"|<wheel position>: entity}
+    tyre_entities: Dict[str, Dict[str, CardataTyreEntity]] = {}
 
     # A car that reports either of these can produce trips worth summarising; a
     # device that streams neither (never driven, no odometer) gets no trip sensor
@@ -1089,6 +1211,36 @@ async def async_setup_entry(
         if new_entities:
             async_add_entities(new_entities, True)
 
+    def ensure_tyre_entities(
+        vin: str, *, positions: Any = None, status: bool = False
+    ) -> None:
+        """Create the tyre-diagnosis sensors for whichever wheels BMW reported.
+
+        Only wheels present in the payload get an entity: a car with no tyre
+        service record on file would otherwise gain four sensors permanently
+        reading "unknown". ``positions``/``status`` re-create ones restored from
+        the registry, before the first fetch of the day has landed.
+        """
+
+        known = tyre_entities.setdefault(vin, {})
+        diagnosis = coordinator.tyre_diagnosis.get(vin) or {}
+        wanted = (
+            set(positions)
+            if positions is not None
+            else set(diagnosis.get("wheels") or {})
+        )
+        new_entities: list = []
+        if (wanted or status) and "status" not in known:
+            known["status"] = CardataTyreStatusSensor(coordinator, vin)
+            new_entities.append(known["status"])
+        for position in sorted(wanted):
+            if position in known:
+                continue
+            known[position] = CardataTyreWheelSensor(coordinator, vin, position)
+            new_entities.append(known[position])
+        if new_entities:
+            async_add_entities(new_entities, True)
+
     def ensure_entity(vin: str, descriptor: str, *, assume_sensor: bool = False) -> None:
         ensure_soc_tracking_entities(vin)
         ensure_charging_summary_entities(vin)
@@ -1165,6 +1317,15 @@ async def async_setup_entry(
         if descriptor == "driving_distance_month":
             ensure_driving_entity(vin, force=True)
             continue
+        if descriptor.startswith("tyre_"):
+            # Re-create what the car had before today's fetch lands, so the
+            # entity keeps its id and history instead of the generic path
+            # minting a CardataSensor on the same unique id.
+            if descriptor == "tyre_status":
+                ensure_tyre_entities(vin, positions=set(), status=True)
+            else:
+                ensure_tyre_entities(vin, positions={descriptor[len("tyre_"):]})
+            continue
         if descriptor in {
             "charging_energy_month",
             "charging_cost_month",
@@ -1199,6 +1360,17 @@ async def async_setup_entry(
     entry.async_on_unload(
         async_dispatcher_connect(
             hass, coordinator.signal_soc_estimate, async_handle_soc_estimate
+        )
+    )
+
+    async def async_handle_new_tyre(vin: str) -> None:
+        # A later fetch can report a wheel the first one omitted, so this runs on
+        # every diagnosis, not just the first.
+        ensure_tyre_entities(vin)
+
+    entry.async_on_unload(
+        async_dispatcher_connect(
+            hass, f"{DOMAIN}_{entry.entry_id}_new_tyre", async_handle_new_tyre
         )
     )
 

@@ -1810,6 +1810,21 @@
       },
       "driving_distance_month": {
         "name": "Driving Distance (This Month)"
+      },
+      "tyre_status": {
+        "name": "Tyre Condition"
+      },
+      "tyre_front_left": {
+        "name": "Tyre Front Left"
+      },
+      "tyre_front_right": {
+        "name": "Tyre Front Right"
+      },
+      "tyre_rear_left": {
+        "name": "Tyre Rear Left"
+      },
+      "tyre_rear_right": {
+        "name": "Tyre Rear Right"
       }
     },
     "binary_sensor": {

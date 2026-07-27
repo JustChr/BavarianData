@@ -7,8 +7,25 @@ integration tracks and enforces this itself.
 
 - Every manual **`fetch_*`** service call
   ([Services reference](Services-Reference)).
-- On-demand background fetches (basic vehicle data, tyre diagnosis, the vehicle
-  image, …).
+- The **daily refresh**: **2 requests every 24 h**, covering everything BMW
+  cannot stream (see below).
+- One-off fetches at setup (basic vehicle data, the vehicle image), which are
+  not repeated because that data does not change.
+
+## The daily refresh
+
+BMW cannot stream 49 of its ~295 telematic fields — service demands, Condition
+Based Servicing, check-control messages, tread wear, lifetime-consumption
+counters, door-lock status. The REST API is their only route into Home
+Assistant, so the integration fetches them once a day:
+
+| Request | Covers |
+| --- | --- |
+| The telematics **container** | All 41 non-streamable fields the container endpoint can serve — **one request for the lot** |
+| **Tyre diagnosis** | Tread wear and remaining mileage per wheel — its own endpoint, so its own request |
+
+**2 of your 50 per day**, leaving 48 for manual fetches. Daily is deliberate:
+these values move on the scale of days, not minutes.
 
 ## What does not
 
@@ -17,8 +34,9 @@ integration tracks and enforces this itself.
 - The **`get_*`** and `export_history` / `import_statistics` / `set_trip_class`
   services — they read or write the integration's own local store.
 
-Prefer the stream. Never add polling that burns quota; cache what's fetched (the
-vehicle image entity is cached across restarts for exactly this reason).
+Prefer the stream. Poll only what the stream genuinely cannot carry, and cache
+what's fetched (the vehicle image entity is cached across restarts for exactly
+this reason).
 
 ## Watching it
 

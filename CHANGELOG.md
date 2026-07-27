@@ -19,7 +19,59 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   in the recorder database, so a partial removal can leave `bavariandata:…` series
   showing up in your Energy dashboard with nothing installed.
 
+### Added
+- **Tyre wear on the tire card.** BMW's smart-maintenance tyre diagnosis was
+  being fetched and thrown away — `fetch_tyre_diagnosis` logged it and nothing
+  else. It now becomes five entities per car (**Tyre Condition** plus one per
+  wheel BMW reports), and the tire card shows tread depth and the mileage until a
+  change is due beside each wheel, with size/tread/season/fitting date underneath.
+  Wear outranks pressure in the wheel colour and the header: a tyre BMW flags as
+  worn reads "Check tyres" even at perfect pressure. Cars with no tyre service
+  record on file get no tyre entities and an unchanged card (card 1.7.0).
+
+### Changed
+- **The REST container is polled once a day instead of every 40 minutes, and now
+  carries everything the stream cannot.** The container held 30 descriptors of
+  which 26 duplicated the stream, and was refetched every 40 minutes — about 36
+  of the 50 daily requests. It now holds the 41 non-streamable descriptors the
+  container endpoint can serve (service demands, Condition Based Servicing,
+  check-control messages, door-lock status, lifetime-consumption counters, state
+  of health) plus the battery keys for a fast first paint, and refreshes daily.
+
+  **Net effect: from ~36 requests a day to 2** (the container, plus the tyre
+  diagnosis on its own endpoint), leaving 48 free for manual fetches — while
+  filling entities that until now could only ever sit empty. Existing installs
+  migrate on the next token refresh: the old container is deleted and replaced,
+  rather than left to idle against BMW's 10-container limit.
+- **Refreshed BMW's API reference material from source.** `docs/reference/` now
+  carries Integration Guide **v1.5 (09/01/2026)** and the current Swagger files,
+  re-fetched from BMW. Notable spec changes: the charging-history session gained
+  `energyDecreaseHvbKwh` and `energyDischargedKwh` and lost
+  `chargingCostInformation`; `basicData` gained `reessNominalCapacityGross`; the
+  device-code response no longer documents `verification_uri_complete`; and the
+  streaming chapter now states MQTT **QoS 0 only** plus a per-IP connection-rate
+  policy over a one-minute window. No integration behaviour changes. The README
+  in that folder records the exact URLs to re-fetch from.
+- **`tools/README.md` records the direct Telematics Data Catalogue download URL**
+  and spells out that the catalogue — not the Swagger — is the stream's contract.
+
 ### Fixed
+- **The coverage report no longer reports gaps that can never close.** BMW's
+  telematic catalogue marks each field with whether the MQTT stream can carry it
+  (246 of 295 can), but that column is drawn as a tick glyph rather than text, so
+  the catalogue generator read it as empty and the flag never existed. As a
+  result **35 fields BMW cannot stream** — tyre diagnosis, vehicle image, state of
+  health, Condition Based Servicing, door-lock status, the lifetime-consumption
+  counters — were being requested on the stream and counted as expected by
+  `get_coverage_report`, which then listed them as missing on every car, forever.
+  That is exactly the false alarm the self-test exists to prevent.
+
+  The flag is now parsed and carried through the pipeline, and non-streamable
+  fields are excluded from the cluster picker, the portal snippet,
+  `activate_stream_fields` and the coverage comparison. **Entities are unaffected**
+  — several of these fields arrive over REST via a container, so they keep their
+  entity and simply are not expected on the stream. `telematics-fields.md` gained
+  a **Stream** column so you can see which is which per field.
 - The card's browser-console banner still announced itself as `BMW-CARDATA-CARD`
   after the rename; it now reads `BAVARIANDATA-CARD` (card 1.6.2). Cosmetic only.
 

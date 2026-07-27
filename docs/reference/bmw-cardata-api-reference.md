@@ -1,4 +1,20 @@
-1. Introduction
+<!-- BMW-provided source artifact, reproduced verbatim. Do not hand-edit.
+     Source: https://bmw-cardata.bmwgroup.com/customer/public/api-documentation
+     (content file: https://bmw-cardata.bmwgroup.com/customer/api/public/content/download-content-file)
+     Retrieved: 2026-07-27 -->
+
+# BMW CarData Integration Guide — registration & REST API
+
+Sections 1–3 of BMW's Integration Guide. The streaming half is in
+`bmw-cardata-streaming-guide.md`; the whole document in `bmw-cardata-api-guide.md`.
+
+```
+Version: 1.5
+Date: 09/01/2026
+```
+
+## 1. Introduction
+
 BMW Group vehicles generate telematics data that are transferred exclusively to secure BMW servers. These data points are stored and can be accessed in accordance with the Extended Vehicle (ExVe) approach. For instance, this data may include status information such as mileage, usage-based metrics like average fuel consumption, or event data such notifications about automatic service calls.
 
 In addition to the Customer Archive which provides your vehicle data conveniently packaged in a .zip file, BMW CarData enables access to your vehicle data on a technical level: via data streams and RESTful APIs. We aim to guide you to establish an initial connection and then retrieve your vehicle on a continuous basis via these commonly used technologies.
@@ -6,385 +22,383 @@ For individuals with a solid understanding of modern IT-concepts and -technologi
 
 The following illustration offers an overview of the obligatory steps to establish your technical connection to BMW CarData.
 
-CarData
 Figure 1: Overview
 
+### 1.1 Frequently used terms
 
-1.1 Frequently used terms
-Connected Drive portal
+**Connected Drive portal**
 
 BMW ConnectedDrive includes all innovative equipment and features designed to intelligently connect vehicle occupants and the vehicle to the outside world. This includes telematics services, vehicle assistance systems, integration with mobile and devices, entertainment options and traffic services.
 
-
-Customer portals
+**Customer portals**
 
 BMW customers can use the "My BMW ConnectedDrive" customer portal to manage personal data and vehicle settings necessary for utilizing BMW ConnectedDrive services within the vehicle, across various applications and via the BMW ConnectedDrive call center. Additionally, customers can add services or extend the active duration of existing ones. The customer information entrusted to BMW CarData is integrated to the My BMW portal, enabling customers to view and manage data access clearances (permissions) for third parties.
 
-Portal	Link	Comment
-BMW ConnectedDrive	Direct link	
-Mini Connected	Direct link	
-Toyota Supra Connect	Direct link	
-Rolls-Royce Connected	Direct link	
-My BMW Motorrad	Direct link	For a different language, click button top right: "BMW Motorrad in your country"
+| **Portal** | **Link** | **Comment** |
+| --- | --- | --- |
+| BMW ConnectedDrive | [Direct link](https://www.bmw.co.uk/en/shop/ls/country-selection) |  |
+| Mini Connected | [Direct link](https://www.mini-connected.com/en_CD/choose-market.html) |  |
+| Toyota Supra Connect | [Direct link](https://www.toyota-supraconnect.de/de-de/mytoyota/public/country-region-selection) |  |
+| Rolls-Royce Connected | [Direct link](https://cardata.rolls-roycemotorcars.com) |  |
+| My BMW Motorrad | [Direct link](https://www.bmw-motorrad.com/en/experience/my-bmw-motorrad-landingpage.html)| For a different language, click button top right: "BMW Motorrad in your country" |
 
-VIN
+**VIN**
 
 The Vehicle Identification Number (VIN) is a standardized 17-digit code used to uniquely identify a vehicle.
 
-
-Mapping
+**Mapping**
 
 The link between a Customer ID (“GCID”) and a VIN is referred to as “mapping”. Once a vehicle is mapped to your account, you are identified as the owner or user, allowing you to access vehicle-related functions and services through My BMW app or web portal, such as Remote Services to lock or unlock your vehicle.
-For further instructions on how to map visit these links: German or English.
+For further instructions on how to map visit these links: [German](https://www.bmw.de/de/s/article/My-BMW-App-Fahrzeug-hinzuf%C3%BCgen-Anleitung-ab-OS8-L1rdF?language=de&) or [English](https://faq.bmw.co.uk/s/article/My-BMW-App-Add-vehicle-Link-to-how-to-video-jT4lb?language=en_GB).
 
+**Mapping-type**
 
-Mapping-type
+It is possible to map multiple user accounts to a single VIN. The concepts of PRIMARY (or MAIN user) and SECONDARY (or CO/JOINT user) mappings are explained here: [German](https://faq.bmw.de/s/article/My-BMW-App-My-BMW-Portal-Fahrzeug-hinzuf%C3%BCgen-Multi-Mapping-w9N5D?language=de) or [English](https://faq.bmw.co.uk/s/article/My-BMW-App-My-BMW-portal-Add-vehicle-Multi-mapping-OwH4n?language=en_GB).
 
-It is possible to map multiple user accounts to a single VIN. The concepts of PRIMARY (or MAIN user) and SECONDARY (or CO/JOINT user) mappings are explained here: German or English.
-
-Telematic data key
+**Telematic data key**
 
 A telematic data key can be seen as one attribute (e.g. mileage) or a logically connected set of attributes (e.g. “basic vehicle data”) containing data generated by your vehicle.
 
-
-Container
+**Container**
 
 The telematics data (“keys”) are provided in a data structure called “container” representing a specific use case. The containers can be configured individually via API.
 
+**Telematics data catalogue (TDC)**
 
-Telematics data catalogue (TDC)
+The telematics data catalogue is the single-point-of-truth when it comes to the availability of telematics data keys through BMW CarData. You can find the TDC with the link below. Be aware that the TDC is also available in your market language. Find the translated TDC in your [customer portal](#Customer-portals) in the CarData section.
 
-The telematics data catalogue is the single-point-of-truth when it comes to the availability of telematics data keys through BMW CarData. You can find the TDC with the link below. Be aware that the TDC is also available in your market language. Find the translated TDC in your customer portal in the CarData section.
+| **Portal** | **Link to the TDC** |
+| --- | --- |
+| BMW ConnectedDrive | [Direct link](https://www.bmw.co.uk/en-gb/mybmw/public/cardata-telematic-catalogue)  (EN-Version)
+| Mini Connected | [Direct link](https://www.mini.co.uk/en-gb/mymini/public/cardata-telematic-catalogue)  (EN-Version)
+| Toyota Supra Connect | [Direct link](https://www.toyota-supraconnect.uk/en-gb/mytoyota/public/cardata-telematic-catalogue)  (EN-Version)
+| Rolls-Royce Connected | [Direct link](https://cardata.rolls-roycemotorcars.com/en-gb/myrr/public/cardata-telematic-catalogue)  (EN-Version)
+| My BMW Motorrad | [Direct link](https://www.bmw-motorrad.de/de/my-bmw-motorrad-vm4/my-garage.html#/car-data-telematic-catalogue)
 
-Portal	Link to the TDC (EN-Version)
-BMW ConnectedDrive	Direct link
-Mini Connected	Direct link
-Toyota Supra Connect	Direct link
-Rolls-Royce Connected	Direct link
-My BMW Motorrad	Not yet available
+### 1.2 Availability and additional information
 
-1.2 Availability and additional information
 In order to retrieve vehicle-data via BMW CarData on a technical level, four prerequisites must be met.
 
-Prerequisites:
+**Prerequisites:**
 
-your vehicle is equipped with an active SIM card
-your vehicle is assigned to a supported market (EU)
-you have an active Connected Drive contract
-your vehicle is mapped to your Connected Drive account
+- your vehicle is equipped with an active SIM card
+- your vehicle is assigned to a supported market (EU)
+- you have an active Connected Drive contract
+- your vehicle is mapped to your Connected Drive account
+
 The terms and conditions for the usage of BMW CarData can be found here (link to: B2C T&Cs).
 
+**Update frequency**
 
-Timestamps
+Please note that the update frequency of the telematics keys is depending on different conditions, such as the vehicle generation, optional equipment, current vehicle usage, network coverage and the specific telematics key.
+
+**Timestamps**
 
 When retrieving telematics data via the BMW CarData API, timestamps are provided for the respective values. You can use the timestamps to identify when a specific value was transmitted from the vehicle to the backend.
 
-Example response:
+**Example response:**
 
-{
-"name: "vehicle.cabin.infotainment.navigation.currentLocation.longitude",
-"timestamp": ""2025-07-28T05:16:53.000Z",
-"unit": “degrees”,
-"value": "9.498705"
-}
+    {
+    "name: "vehicle.cabin.infotainment.navigation.currentLocation.longitude",
+    "timestamp": ""2025-07-28T05:16:53.000Z",
+    "unit": “degrees”,
+    "value": "9.498705"
+    }
 
-All timestamps provided by BMW CarData are specified in the ISO 8601 format.
+All timestamps provided by BMW CarData are specified in the [ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html) format.
 
+## 2. Technical registration
 
+In order to retrieve your vehicle data via a data stream or REST API you must first complete the technical registration. BMW CarData offers a standardized Oauth authorization method: [OAuth 2.0 Device Authorization Grant](https://datatracker.ietf.org/doc/html/rfc8628), stated in this document as the Device Code Flow.
 
-2. Technical registration
-In order to retrieve your vehicle data via a data stream or REST API you must first complete the technical registration. BMW CarData offers a standardized Oauth authorization method: OAuth 2.0 Device Authorization Grant, stated in this document as the Device Code Flow.
+### 2.1 Step 1: Generate your client ID
 
+Generate a CarData client ID in the [customer portal](#Customer-portals) frontend. This creates a unique client ID within the BMW back end systems, which will be displayed upon clicking the **Create CarData Client** button. Your client ID serves two important purposes: it is required for registering your devices using the Device Code Flow (explained in the following chapter), and it is essential for generating tokens to ensure continuous access to your most recent vehicle data.
 
-2.1 Step 1: Generate your client ID
-Generate a CarData client ID in the customer portal frontend. This creates a unique client ID within the BMW back end systems, which will be displayed upon clicking the Create CarData Client button. Your client ID serves two important purposes: it is required for registering your devices using the Device Code Flow (explained in the following chapter), and it is essential for generating tokens to ensure continuous access to your most recent vehicle data.
-
-CarData
 Figure 2: Create CarData Client
 
+### 2.2 Step 2: Subscribe to services
 
-2.2 Step 2: Subscribe to services
 After generating your client ID, it is necessary to subscribe to the relevant services. This allocates a specific scope to your client ID, which is required for the subsequent steps. Upon interacting with the corresponding buttons in the frontend, the following scopes will be allocated to your client ID:
 
+**Scopes in CarData:**
 
-Scopes in CarData:
+| **Description** | **Scope** |
+| --- | --- |
+| Scope for CarData API | cardata:api:read |
+| Scope for CarData Stream | cardata:streaming:read |
 
-Description	Scope
-Scope for CarData API	cardata:api:read
-Scope for CarData Stream	cardata:streaming:read
-
-
-CarData
 Figure 3: Create CarData Client
 
-
-Consider:
+**Consider:**
 
 If you have not completed the subscription step before registering your device (see chapter below), your tokens will not work for the corresponding CarData service.
 
+### 2.3 Step 3: Register via the Device Code Flow
 
-2.3 Step 3: Register via the Device Code Flow
-Use a REST client application or the command line to execute the cURLs of the Device Code Flow (DCF). Each of the upcoming example requests will be filled with the host from our Swagger. Sensitive fields have been populated using placeholders in the examples below, while others have been kept as is or truncated to demonstrate their format.
-For further details on the available endpoints, please refer to the Swagger file.
+Use a REST client application or the command line to execute the cURLs of the Device Code Flow (DCF). Each of the upcoming example requests will be filled with the host from our [Swagger](https://bmw-cardata.bmwgroup.com/customer/public/api-specification). Sensitive fields have been populated using placeholders in the examples below, while others have been kept as is or truncated to demonstrate their format.
+For further details on the available endpoints, please refer to the [Swagger file](https://bmw-cardata.bmwgroup.com/customer/public/api-specification).
 
+#### 2.3.1 Request your codes
 
-2.3.1 Request your codes
 To initiate the authorization-process for a specific device, call the endpoint shown below. This method will deliver the user code and the device code provided by our services.
 
-POST /gcdm/oauth/device/code
+**POST /gcdm/oauth/device/code**
 
-Request details:
+**Request details:**
 
-client_id: use the generated client ID from the customer portal
-response_type: use the fixed value as stated in the Swagger file
-code_challenge: see further explanation below
-code_challenge_method: use the fixed value as stated in the Swagger file
-scope: use the values as stated in the Swagger File and see further explanation below
+- [client_id](#Technical-registration_Step-1): use the generated client ID from the [customer portal](#Customer-portals)
+- response_type: use the fixed value as stated in the [Swagger file](https://bmw-cardata.bmwgroup.com/customer/public/api-specification)
+- code_challenge: see further explanation below
+- code_challenge_method: use the fixed value as stated in the [Swagger file](https://bmw-cardata.bmwgroup.com/customer/public/api-specification)
+- scope: use the values as stated in the [Swagger File](https://bmw-cardata.bmwgroup.com/customer/public/api-specification) and see further explanation below
 
-Code_verifier & code_challenge:
+**Code_verifier & code_challenge:**
 
-The S256 code challenge method in PKCE (Proof Key for Code Exchange) improves security by hashing the code verifier using SHA-256 and then encoding the result with Base64url. This approach provides a more secure way to verify the client during the authorization code exchange compared to the plain method, where the code verifier is used directly. The standard is further described here.
+The S256 code challenge method in PKCE (Proof Key for Code Exchange) improves security by hashing the code verifier using SHA-256 and then encoding the result with Base64url. This approach provides a more secure way to verify the client during the authorization code exchange compared to the plain method, where the code verifier is used directly.
+The standard is further described [here](https://datatracker.ietf.org/doc/html/rfc7636#section-4).
 
-code_verifier:
+**code_verifier**:
 
 A cryptographically random string generated by the client.
 
-code_challenge:
+**code_challenge**:
 
 A transformation of the code_verifier, using either the plain or S256 method.
 
+**Scopes:**
 
-Scopes:
+When authenticating a user with OAuth 2.0, there are generally two ways to request scopes: explicit or default. Requesting specific scopes enhances security and user control by limiting the access granted to the application, while expecting default scopes may result in unnecessary permissions. We recommend explicitly requesting the “authenticate_user” and “openid” scopes, which facilitates the authentication process for OAuth 2.0 (and OpenID Connect). Additionally add the scopes of the services you are interested in and the client ID is subscribed to. See [this chapter](#Scopes) for the correct notations of the CarData specific scopes. Therefor it is suggested to define the scopes as following:
 
-When authenticating a user with OAuth 2.0, there are generally two ways to request scopes: explicit or default. Requesting specific scopes enhances security and user control by limiting the access granted to the application, while expecting default scopes may result in unnecessary permissions. We recommend explicitly requesting the “authenticate_user” and “openid” scopes, which facilitates the authentication process for OAuth 2.0 (and OpenID Connect). Additionally add the scopes of the services you are interested in and the client ID is subscribed to. See this chapter for the correct notations of the CarData specific scopes. Therefor it is suggested to define the scopes as following:
+**Example request for a subscription to both services:**
 
-Example request for a subscription to both services:
+    curl --request POST \
+      --url https://customer.bmwgroup.com/gcdm/oauth/device/code \
+      --header 'Accept: application/json' \
+      --header 'Content-Type: application/x-www-form-urlencoded' \
+      --data client_id=cj5b3499-4918-40x6-a232-f4112f837d72 \
+      --data response_type=device_code \
+      --data 'scope=authenticate_user openid cardata:streaming:read cardata:api:read'
+      --data code_challenge=yourCodeChallenge \
+      --data code_challenge_method=S256 \
 
-curl --request POST \
-  --url https://customer.bmwgroup.com/gcdm/oauth/device/code \
-  --header 'Accept: application/json' \
-  --header 'Content-Type: application/x-www-form-urlencoded' \
-  --data client_id=cj5b3499-4918-40x6-a232-f4112f837d72 \
-  --data response_type=device_code \      
-  --data 'scope=authenticate_user openid cardata:streaming:read cardata:api:read'
-  --data code_challenge=yourCodeChallenge \
-  --data code_challenge_method=S256 \
+**Response details:**
 
-Response details:
+- user_code: the device verification code
+- device_code: used by the device to poll for the tokens in the final step of the flow
+- interval: The minimum amount of time in seconds that the client should wait between polling requests to the token endpoint
+- expires_in: The lifetime in seconds of the "device_code" and "user_code"
+- verification_uri: link to the page for the user to authorize the login
 
-user_code: the device verification code
-device_code: used by the device to poll for the tokens in the final step of the flow
-interval: The minimum amount of time in seconds that the client should wait between polling requests to the token endpoint
-expires_in: The lifetime in seconds of the "device_code" and "user_code"
-verification_uri: link to the page for the user to authorize the login
-verification_uri_complete: link to the page for the user to authorize the login including the user_code
+#### 2.3.2 Authenticate the device
 
+After successfully retrieving your [user_code](#user-code) & [device_code](#device-code), you now need to authenticate within the given [expires_in](#expiry-time) time. Open the [verification_uri](#verification-uri) link in a browser and log in with your [customer portal](#Customer-portals) credentials (if you are not already logged in) and enter the [user_code](#user-code). The syntax for the direct link is verification_uri-link?user_code=user_code.
 
-2.3.2 Authenticate the device
-After successfully retrieving your user_code & device_code, you now need to authenticate within the given expires_in time. Open the verification_uri_complete link in a browser and log in with your customer portal credentials if you are not already logged in.
-Alternatively you can use the highlighted button in the CarData page, which refers to verification_uri-link, to manually add the user_code:
+Alternatively you can use the highlighted button in the CarData page, which refers to the very same  [verification_uri](#verification-uri)-link, to manually add your [user_code](#user-code):
 
-CarData
 Figure 4: Authenticate device
 
 After clicking the corresponding frontend button, you will get navigated to a page where the user_code needs to be added:
 
-CarData
 Figure 5: Enter Code
 
+#### 2.3.3 Request your tokens
 
-2.3.3 Request your tokens
 After successfully completing the authentication of your device, you are now able to request your tokens.
 
-/gcdm/oauth/token
+**/gcdm/oauth/token**
 
-Input-parameters:
+**Input-parameters:**
 
-Content-Type: Use the fixed value as stated in the Swagger
-client_id: Use the generated client ID from the customer portal
-device_code: Part of the response of POST /gcdm/oauth/device/code
-grant_type: Use the fixed value as stated in the Swagger, additional information here
-code_verifier: See explanation from this chapter
-Example request
+- Content-Type: Use the fixed value as stated in the [Swagger](https://bmw-cardata.bmwgroup.com/customer/public/api-specification)
+- client_id: Use the generated [client ID](#Technical-registration_Step-1) from the [customer portal](#Customer-portals)
+- device_code: Part of the response of [POST /gcdm/oauth/device/code](#Technical-registration_Step-3_Request-codes)
+- grant_type: Use the fixed value as stated in the [Swagger](https://bmw-cardata.bmwgroup.com/customer/public/api-specification), additional information [here](https://datatracker.ietf.org/doc/html/rfc8628#section-3.4)
+- code_verifier: See explanation from [this chapter](#Code-verifier-code-challenge)
 
-curl --request POST \
-  --url https://customer.bmwgroup.com/gcdm/oauth/token \
-  --header 'Content-Type: application/x-www-form-urlencoded' \
-  --data client_id=cj5b3499-4918-40x6-a232-f4112f837d72 \
-  --data device_code=yourDeviceCode \            
-  --data grant_type=urn:ietf:params:oauth:grant-type:device_code \
-  --data code_verifier=yourCodeVerifier
+**Example request**
 
-Response details:
+    curl --request POST \
+      --url https://customer.bmwgroup.com/gcdm/oauth/token \
+      --header 'Content-Type: application/x-www-form-urlencoded' \
+      --data client_id=cj5b3499-4918-40x6-a232-f4112f837d72 \
+      --data device_code=yourDeviceCode \
+      --data grant_type=urn:ietf:params:oauth:grant-type:device_code \
+      --data code_verifier=yourCodeVerifier
 
-access_token: your token to access the CarData APIs
-token_type: the type of the token (Bearer)
-expires_in: the duration in seconds until the access token expires
-refresh_token: the token to refresh your access token
-scope: the given scope(s) of your token(s)
-id_token: your token to access the CarData data stream
-gcid: your unique identifier of your portal user account
+**Response details:**
+
+- access_token: your token to access the CarData APIs
+- token_type: the type of the token (Bearer)
+- expires_in: the duration in seconds until the access token expires
+- refresh_token: the token to refresh your access token
+- scope: the given scope(s) of your token(s)
+- id_token: your token to access the CarData data stream
+- gcid: your unique identifier of your portal user account
+
 The response contains three tokens, consisting of an access token, the refresh token and the ID token.
 
+**The access token:**
 
-The access token:
+An access token is a short-term “credential” that a user/application provides to a system to request authorization to specific resources or actions. Use this token to access the CarData APIs, by including it in the header of each request to authenticate as the requesting user. In the back end, we verify the user, check the associated scope, and ensure that the given token is still valid and has not yet expired. The access token is valid for 1 hour (3600 seconds).
 
-Use this token to access the CarData APIs, by including it in the header of each request to authenticate as the requesting user. In the back end, we verify the user, check the associated scope and ensure that the given token is still valid and has not yet expired. The access token is valid for 1 hour (3600 seconds).
+**The refresh token:**
 
+A refresh token is a special element that allows continuous access to protected resources when an access token expires. This allows a seamless user experience since the user does not need to rerun the complete process to obtain a new set of tokens. The refresh-token is valid for two weeks (1.209.600 seconds). Once your refresh-token expires, you have to rerun the device code flow. Therefore, it is suggested to perform the refresh action in time.
 
-The refresh token:
+Note: When a client ID is de-subscribed from its associated services, the corresponding refresh-token will no longer be valid to obtain a new set of tokens. In this case, the device code flow needs to be run again with the adapted scopes.
 
-Use this token to refresh your access-token and your ID-token. The refresh-token is valid for two weeks (1.209.600 seconds). Once your refresh-token has expired, you have to rerun the device code flow and register your device again. Therefore, it is suggested to refresh your refresh-token in time. When a client ID is de-subscribed from its associated services, the corresponding refresh-token would lose its validity immediately.
+**The ID token:**
 
+An ID Token is a JSON Web Token (JWT) that contains identity information about the user in the form of claims (for example: name or email). These claims allow the exchange of identity data between the provider and client applications, without relying on additional API calls. In this way, client applications can personalize the corresponding user experience by validating the ID Token and extracting the user information from the claims. The ID token is used to access the CarData data stream, and it is valid for one hour (3600 seconds). For further details, please refer to the [associated chapters](#Streaming) of this document.
 
-The ID token:
+Note: The ID Token is not used for authorizing access to APIs. This authorization is handled with an access token.
 
-The ID token is used to access the CarData data stream. For further details, please refer to the associated chapters of this document. The ID token is valid for one hour (3600 seconds).
+### 2.4 Step 4: Refresh your tokens iteratively
 
-
-2.4 Step 4: Refresh your tokens iteratively
 In order to access vehicle data - either per stream or REST API calls - you have to remain authenticated with a valid token. If your current access token/ID token is about to expire, you can easily request a new one using the refresh token as an input parameter in the token endpoint:
 
-/gcdm/oauth/token
+**/gcdm/oauth/token**
 
 Example curl for requesting a new access token with the refresh token:
 
-curl --request POST \
-  --url https://customer.bmwgroup.com/gcdm/oauth/token \
-  --header 'Content-Type: application/x-www-form-urlencoded' \
-  --data grant_type=refresh_token \
-  --data refresh_token=yourRefreshToken \
-  --data client_id=cj5b3499-4918-40x6-a232-f4112f837d72
+    curl --request POST \
+      --url https://customer.bmwgroup.com/gcdm/oauth/token \
+      --header 'Content-Type: application/x-www-form-urlencoded' \
+      --data grant_type=refresh_token \
+      --data refresh_token=yourRefreshToken \
+      --data client_id=cj5b3499-4918-40x6-a232-f4112f837d72
 
-This generates a new set of access token, refresh token and ID token and also resets the expiry timer of each token. Please refer to the Swagger or this chapter for further explanation concerning the response.
+This generates a new set of access token, refresh token and ID token and also resets the expiry timer of each token. Please refer to the [Swagger](https://bmw-cardata.bmwgroup.com/customer/public/api-specification) or [this chapter](#Technical-registration_Step-3_Request-tokens) for further explanation concerning the response.
 
+## 3. CarData API
 
-
-3. CarData API
 This chapter contains additional information about the CarData RESTful API. For further details, please refer to the swagger documentation.
 
+### 3.1 Prerequisites
 
-3.1 Prerequisites
 You must perform the following steps to be able to access the CarData endpoints:
 
-Mapping of the vehicle
+**Mapping of the vehicle**
 
-The vehicle you want to retrieve data for needs to be mapped to your customer portal account. You need to be PRIMARY user (i.e. main user / admin) for the given VIN.
+The vehicle you want to retrieve data for needs to be [mapped](#Mapping) to your [customer portal](#Customer-portals) account. You need to be [PRIMARY user](#Mapping-type) (i.e. main user / admin) for the given VIN.
 
-Generated client ID
+**Generated client ID**
 
-You have successfully generated a client ID in your customer portal.
+You have successfully generated a [client ID](#Technical-registration_Step-1) in your [customer portal](#Customer-portals).
 
-Subscription & scope
+**Subscription & scope**
 
-You are successfully subscribed to the CarData API & your device was registered with the correct scope. This chapter contains more information about this step. Be aware, the subscription must have been performed before registering your device.
+You are successfully subscribed to the CarData API & your device was registered with the correct [scope](#Scopes). [This chapter](#Technical-registration_Step-2) contains more information about this step. Be aware, the subscription must have been performed before registering your device.
 
-CarData
 Figure 6: Subscribe to API
 
-Device code flow & access token
+**Device code flow & access token**
 
-In order to use our CarData API solution, you need to authenticate via a valid access token which needs to be included in every call. The retrieval of the access token is part of our Device Code Flow. Use the corresponding chapters from this integration guide and the device-code-flow swagger.
+In order to use our CarData API solution, you need to authenticate via a valid [access token](#Access-token) which needs to be included in every call. The retrieval of the [access token](#Access-token) is part of our [Device Code Flow](#Technical-registration_Step-3). Use the corresponding chapters from this integration guide and the [device-code-flow swagger](https://bmw-cardata.bmwgroup.com/customer/public/api-specification).
 
+### 3.2 Authentication
 
-3.2 Authentication
-The access token needs to be included in the header of each CarData API request. Further details on how to retrieve this token are described here.
+The [access token](#Access-token) needs to be included in the header of each CarData API request. Further details on how to retrieve this token are described [here](#Technical-registration_Step-3_Request-tokens).
 
+### 3.3 Additional information concerning the CarData endpoints
 
-3.3 Additional information concerning the CarData endpoints
-Additional information about CarData endpoints, their input parameters and the structure of their responses can be found in the CarData API Swagger.
+Additional information about CarData endpoints, their input parameters and the structure of their responses can be found in the [CarData API Swagger](https://bmw-cardata.bmwgroup.com/customer/public/api-specification).
 
-In addition to the technical documentation, the upcoming chapters contain supplementary information. Most of the endpoints can be used to retrieve data which were generated by using the given vehicle. Therefor it is suggested to take a deeper look into the telematics data catalogue, as this documentation contains the description and additional metadata for each telematic key.
+In addition to the technical documentation, the upcoming chapters contain supplementary information. Most of the endpoints can be used to retrieve data which were generated by using the given vehicle. Therefor it is suggested to take a deeper look into the [telematics data catalogue](#Telematics-data-catalogue), as this documentation contains the description and additional metadata for each telematic key.
 
-Consider rate-limit:
+**Consider rate-limit:**
 
 The use of the CarData APIs is subject to a daily rate limit of 50 requests. If you require more frequent access to your vehicle data, we recommend utilizing the CarData streaming solution.
 
+#### 3.3.1 Endpoint: Mapping information
 
-3.3.1 Endpoint: Mapping information
-GET /customers/vehicles/mappings
+**GET /customers/vehicles/mappings**
 
-The mapping endpoint returns information about vehicles that are mapped to your account, including the mapping type (PRIMARY or SECONDARY). Be aware that you are only able to retrieve data for mapped vehicles for which you are the primary user.
+The mapping endpoint returns information about vehicles that are [mapped](#Mapping) to your account, including the [mapping type](#Mapping-type) (PRIMARY or SECONDARY). Be aware that you are only able to retrieve data for mapped vehicles for which you are the primary user.
 
-Consider:
+**Consider:**
 
 Not all vehicle models are capable of having secondary users. If there is no such concept, the mapped user is considered the primary user.
 
-Home Assistant users can trigger the `cardata.fetch_vehicle_mappings` developer tool service to call this endpoint and inspect the mapping payload in the logs.
+#### 3.3.2 Endpoints: Container management
 
-To retrieve static vehicle metadata (brand, model, etc.), use `cardata.fetch_basic_data`, which calls `GET /customers/vehicles/{vin}/basicData` and logs the response.
-
-
-3.3.2 Endpoints: Container management
 CarData offers you four endpoints to manage your containers. The endpoints have the following path:
-/customers/containers/
+**/customers/containers/**
 
-Use the telematics data catalogue for further details about the available telematics data keys. Be aware that there is a limit of 10 containers per user.
+Use the [telematics data catalogue](#Telematics-data-catalogue) for further details about the available telematics data keys. Be aware that there is a limit of 10 containers per user.
 
-Create your container(s) via the POST endpoint. Use the telematics data catalogue for the correct syntax concerning the technicalDescriptor for a telematic data key.
+Create your [container(s)](#Container) via the POST endpoint. Use the [telematics data catalogue](#Telematics-data-catalogue) for the correct syntax concerning the _technicalDescriptor_ for a telematic data key.
 
-Consider:
+**Consider:**
 
-You are able to add all available keys from the TDC to a container, though keys which are bound to a dedicated endpoint - see this table - can not be retrieved via the data-retrieval-endpoint.
-Via the GET-endpoints you can retrieve all information about your created containers. A container can either have the state ACTIVE or INACTIVE. The data retrieval for a given container is only achievable for containers with the state ACTIVE.
+You are able to add all available keys from the [TDC](#Telematics-data-catalogue) to a container, though keys which are bound to a dedicated endpoint - see [this table](#CarData-API_Additional-information_Data-retrieval-for-use-cases) - can not be retrieved via the data-retrieval-endpoint.
+
+Via the GET-endpoints you can retrieve all information about your created containers. A container can either have the state ACTIVE or INACTIVE. The [data retrieval](#CarData-API_Additional-information_Data-retrieval-for-container) for a given container is only achievable for containers with the state ACTIVE.
+
 Via the DELETE-endpoint you can set state for a container to INACTIVE. Containers which have the state INACTIVE will be deleted after 29 days automatically.
 
+This document was proudly written by MKL.
 
-3.3.3 Retrieve your vehicle data for a container
+#### 3.3.3 Retrieve your vehicle data for a container
+
 With the following endpoint you are able to retrieve available data for telematics keys which were defined in the given container:
 
-GET /customers/vehicles/{vin}/telematicData
+**GET /customers/vehicles/{vin}/telematicData**
 
-Telematics keys which belong to the category BASIC DATA or which are bound to a dedicated endpoint will not be shown in this data retrieval. These cases are furthermore described in the upcoming chapter.
+Telematics keys which belong to the category [BASIC DATA](#CarData-API_Additional-information_Data-retrieval-for-use-cases) or which are bound to a [dedicated endpoint](#CarData-API_Additional-information_Data-retrieval-for-use-cases) will not be shown in this data retrieval. These cases are furthermore described in the upcoming chapter.
 
-Example response:
+**Example response:**
 
-{
-"name: "vehicle.cabin.infotainment.navigation.currentLocation.longitude",
-"timestamp": ""2025-07-28T05:16:53.000Z",
-"unit": “degrees”,
-"value": "9.498705"
-}
+    {
+    "name: "vehicle.cabin.infotainment.navigation.currentLocation.longitude",
+    "timestamp": ""2025-07-28T05:16:53.000Z",
+    "unit": “degrees”,
+    "value": "9.498705"
+    }
 
-You can find more information about the timestamp here.
+You can find more information about the timestamp [here](#Timestamps).
 
+#### 3.3.4 Retrieve your vehicle data for predefined use cases
 
-3.3.4 Retrieve your vehicle data for predefined use cases
 The following table provides an overview of dedicated endpoints for specific telematics keys.
 
-Endpoint	Telematic Data Key(s) – Technical descriptor	Additional information
-GET /customer/vehicles/{vin}/smartMaintenanceTyreDiagnosis	vehicle.chassis.axle.wheel.tire.diagnosis	
-GET /customer/vehicles/{vin}/image	vehicle.look.image	
-GET /customer/vehicles/{vin}/chargingHistory	vehicle.powertrain.electric.battery.charging.history.sessionsList	
-GET /customer/vehicles/{vin}/basicData	All technical descriptors in category: BASIC_DATA	
-GET /customers/vehicles/locationBasedChargingSettings	vehicle.powertrain.electric.battery.charging.settingsList	Everything in English; KM as unit
+| **Endpoint** | **Telematic Data Key(s) – Technical descriptor** | **Additional information** |
+| --- | --- | --- |
+| GET /customer/vehicles/{vin}/smartMaintenanceTyreDiagnosis | vehicle.chassis.axle.wheel.tire.diagnosis |     |
+| GET /customer/vehicles/{vin}/image | vehicle.look.image |     |
+| GET /customer/vehicles/{vin}/chargingHistory | vehicle.powertrain.electric.battery.charging.history.sessionsList |     |
+| GET /customer/vehicles/{vin}/basicData | All technical descriptors in category: BASIC_DATA |     |
+| GET /customers/vehicles/locationBasedChargingSettings | vehicle.powertrain.electric.battery.charging.settingsList | Everything in English; KM as unit |
 
-3.4 Error codes
+### 3.4 Error codes
+
 The following table includes all error codes you might receive from BMW CarData.
 
-ErrorID	Error message	ExveNote
-CU-100	No token sent	This application error is raised when there was no token included.
-CU-101	Authentication error	This application error is raised when there is an authentication error.
-CU-102	Token expired	This application error is raised when the given token is expired.
-CU-103	Token-scope is not CarData	This application error is raised when the given token is not authorized for the usage of the application: CarData.
-CU-104	No permission for specified VIN	This application error is raised when access to the VIN used is not permitted. Reasons are that the vehicle may not be telematics-capable or that the end-customer is not mapped to the given VIN.
-CU-105	No permission for specified containerId	This application error is raised when access to the containerId used is not permitted. Reasons are that the containerId is not allocated to the user or it does not exist. Use the GET /customer/containers endpoint to retrieve the identifier.
-CU-120	Format of parameter VIN is invalid	This application error is raised when the format of the VIN is invalid. The VIN is always exactly 17 characters long with UPPER case letters.
+| **ErrorID** | **Error message** | **ExveNote** |
+| --- | --- | --- |
+| CU-100 | No token sent | This application error is raised when there was no token included. |
+| CU-101 | Authentication error | This application error is raised when there is an authentication error. |
+| CU-102 | Token expired | This application error is raised when the given token is expired. |
+| CU-103 | Token-scope is not CarData | This application error is raised when the given token is not authorized for the usage of the application: CarData. |
+| CU-104 | No permission for specified VIN | This application error is raised when access to the VIN used is not permitted. Reasons are that the vehicle may not be telematics-capable or that the end-customer is not mapped to the given VIN. |
+| CU-105 | No permission for specified containerId | This application error is raised when access to the containerId used is not permitted. Reasons are that the containerId is not allocated to the user or it does not exist. Use the GET /customer/containers endpoint to retrieve the identifier. |
+| CU-120 | Format of parameter VIN is invalid | This application error is raised when the format of the VIN is invalid. The VIN is always exactly 17 characters long with UPPER case letters.
 
-Please check the VIN used.
-CU-121	Format of parameter containerId is invalid	This application error is raised when the format of the containerId is invalid. The containerId always has a length of 13 characters, and can be retrieved after creation via the GET /customer/containers endpoint.
+Please check the VIN used. |
+| CU-121 | Format of parameter containerId is invalid | This application error is raised when the format of the containerId is invalid. The containerId always has a length of 13 characters, and can be retrieved after creation via the GET /customer/containers endpoint.
 
-Please check the containerId used.
-CU-122	Container already set for deletion	This application error is raised when the container was already set for deletion.
-CU-124	Maximum number of containers reached	This application error is raised when the limit of containers is reached. A container needs to be deleted in order to be able to create a new one.
-CU-125	Pagination-Token expired	The specified pagination token in Request-URL is expired.
-CU-126	No vehicle image found
-for given VIN	This application error is raised if no vehicle image can be found for given VIN.
-CU-127	No LBCS data found	This application error is raised if no LBCS data is available for the given VIN.
-CU-400	Bad request	This error is raised when the request is wrong.
-CU-401	Parameter Invalid	This error is raised when the value of the input parameter was invalid/wrong.
-CU-402	Telematic key is invalid	This error is raised when at least one of the requested telematic keys is not found.
-CU-429	API rate limit reached	This application error is raised when the daily rate limit has been reached.
-CU-500	Internal server error	The server encountered an unexpected condition which prevented it from
-fulfilling the request.
-CU-503	Service temporarily unavailable	This error is raised in case a partner system is out of order.
+Please check the containerId used. |
+| CU-122 | Container already set for deletion | This application error is raised when the container was already set for deletion. |
+| CU-124 | Maximum number of containers reached | This application error is raised when the limit of containers is reached. A container needs to be deleted in order to be able to create a new one. |
+| CU-125 | Pagination-Token expired | The specified pagination token in Request-URL is expired. |
+| CU-126 | No vehicle image found
+for given VIN | This application error is raised if no vehicle image can be found for given VIN. |
+| CU-127 | No LBCS data found | This application error is raised if no LBCS data is available for the given VIN. |
+| CU-400 | Bad request | This error is raised when the request is wrong. |
+| CU-401 | Parameter Invalid | This error is raised when the value of the input parameter was invalid/wrong. |
+| CU-402 | Telematic key is invalid | This error is raised when at least one of the requested telematic keys is not found. |
+| CU-429 | API rate limit reached | This application error is raised when the daily rate limit has been reached. |
+| CU-500 | Internal server error | The server encountered an unexpected condition which prevented it from
+fulfilling the request. |
+| CU-503 | Service temporarily unavailable | This error is raised in case a partner system is out of order. |

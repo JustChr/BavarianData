@@ -10,15 +10,17 @@ the first known vehicle).
 ## Fetch services — spend API quota ⚡
 
 Each of these spends **one or more** of your
-[50 requests / 24 h](Feature-API-Quota).
+[50 requests / 24 h](Feature-API-Quota). The first two run automatically once a
+day as the [daily refresh](Feature-API-Quota#the-daily-refresh); calling them by
+hand just fetches early and spends an extra request.
 
 | Service | What it fetches |
 | --- | --- |
-| `bavariandata.fetch_telematic_data` | Current contents of a VIN's telematics container. |
+| `bavariandata.fetch_telematic_data` | Current contents of a VIN's telematics container — every field BMW cannot stream, in one request. |
 | `bavariandata.fetch_vehicle_mappings` | Vehicles linked to the account and their PRIMARY/SECONDARY status. |
 | `bavariandata.fetch_basic_data` | Static vehicle metadata (model, series, …). |
 | `bavariandata.fetch_charging_history` | BMW's charging sessions (paginated; optional `from`/`to`), imported into local history and enriched with measured grid energy. |
-| `bavariandata.fetch_tyre_diagnosis` | Smart-maintenance tyre diagnosis. |
+| `bavariandata.fetch_tyre_diagnosis` | Smart-maintenance tyre diagnosis — tread wear, remaining mileage, defect status per wheel. Populates the tyre sensors and the card's wheel diagram. |
 | `bavariandata.fetch_location_charging_settings` | Location-based charging settings (paginated). |
 | `bavariandata.fetch_vehicle_image` | Vehicle render (updates the cached image entity). |
 
@@ -63,6 +65,11 @@ contents as response data; nothing is written to disk. See
 *should* deliver against those that have actually arrived, and lists any missing
 ones. Answers *"I enabled a cluster but no entities appeared — is it my
 selection, my car, or a bug?"* Reads the local store and live stream only.
+
+Fields BMW marks as not streaming-capable are excluded from the comparison — they
+can only arrive over REST, so counting them would report a permanent gap that no
+setting can close. See
+[Choose your data](Getting-Started-4-Choose-Data#some-fields-never-arrive-on-the-stream).
 
 ### `import_statistics`
 `vin`. Rebuilds this integration's long-term statistics from the recorded

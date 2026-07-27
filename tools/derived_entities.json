@@ -72,6 +72,26 @@
     "driving_distance_month": {
       "en": "Driving Distance (This Month)",
       "de": "Fahrstrecke (dieser Monat)"
+    },
+    "tyre_status": {
+      "en": "Tyre Condition",
+      "de": "Reifenzustand"
+    },
+    "tyre_front_left": {
+      "en": "Tyre Front Left",
+      "de": "Reifen vorne links"
+    },
+    "tyre_front_right": {
+      "en": "Tyre Front Right",
+      "de": "Reifen vorne rechts"
+    },
+    "tyre_rear_left": {
+      "en": "Tyre Rear Left",
+      "de": "Reifen hinten links"
+    },
+    "tyre_rear_right": {
+      "en": "Tyre Rear Right",
+      "de": "Reifen hinten rechts"
     }
   },
   "device_tracker": {

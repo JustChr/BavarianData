@@ -1579,6 +1579,21 @@
       },
       "driving_distance_month": {
         "name": "Fahrstrecke (dieser Monat)"
+      },
+      "tyre_status": {
+        "name": "Reifenzustand"
+      },
+      "tyre_front_left": {
+        "name": "Reifen vorne links"
+      },
+      "tyre_front_right": {
+        "name": "Reifen vorne rechts"
+      },
+      "tyre_rear_left": {
+        "name": "Reifen hinten links"
+      },
+      "tyre_rear_right": {
+        "name": "Reifen hinten rechts"
       }
     },
     "binary_sensor": {

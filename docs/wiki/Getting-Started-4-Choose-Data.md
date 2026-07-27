@@ -93,4 +93,19 @@ actually arrived, and lists any missing ones. It answers "is it my selection, my
 car, or a bug?" and spends no API quota. See
 [Services reference](Services-Reference#get_coverage_report).
 
+### Some fields never arrive on the stream
+
+BMW's catalogue marks each field with whether the MQTT stream can carry it, and
+**49 of 295 cannot** — tyre diagnosis, the vehicle image, state of health,
+Condition Based Servicing, door-lock status and the lifetime-consumption
+counters among them. These are **REST-only**: they are never requested on the
+stream, so an empty entity for one of them is not a gap in your Data Selection
+and the coverage report will not flag it. Fetch them with the matching
+`bavariandata.fetch_*` service ([Services reference](Services-Reference)),
+minding the 50-calls-per-day quota.
+
+The **Stream** column in
+[telematics-fields.md](https://github.com/JustChr/BavarianData/blob/main/docs/reference/telematics-fields.md)
+tells you which is which, field by field.
+
 **Done!** Head to [The dashboard card](The-Dashboard-Card) to build a dashboard.

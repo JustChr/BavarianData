@@ -38,11 +38,19 @@ integration's own translations (so German installs get German names too).
 | **Charging Cost per 100 km** | Needs the odometer and two sessions to measure a distance. |
 | **Battery Health** | Learned usable capacity (kWh), with vs-new %, sample count and a capacity-vs-mileage trend. |
 | **Driving Distance (This Month)** | Monthly distance + business/private/commute split. |
+| **Tyre Condition** | BMW's overall verdict on the mounted set, plus any upstream errors. |
+| **Tyre Front Left / Front Right / Rear Left / Rear Right** | Per-wheel wear traffic light (`green`/`yellow`/`red`/`grey`), with tread depth, mileage until a change is due, defect status, season, dimension and fitting date as attributes. |
 | **API Quota Remaining** | Diagnostic: requests left in the 50/24 h window. |
 | **State-of-charge estimate / rate** | Extrapolated SoC helpers (need the Electric vehicle cluster). |
 | **Stream Connection Status** | Diagnostic: MQTT connection state. |
 | **Last Message Received** | Diagnostic: timestamp of the last stream payload. |
 | **Last Telematics API Call** | Diagnostic: timestamp of the last REST call. |
+
+The tyre entities only exist for wheels BMW actually reports. Many cars have no
+tyre service record on file, in which case none are created — that is BMW having
+no data, not a fault. They are populated by the
+[daily refresh](Feature-API-Quota#the-daily-refresh) and by
+`bavariandata.fetch_tyre_diagnosis`.
 
 ## Vehicle image
 

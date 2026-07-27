@@ -17,6 +17,7 @@ from .const import (
     HV_BATTERY_DESCRIPTORS,
 )
 from .debug import debug_enabled
+from .descriptors import container_descriptors
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,7 +44,10 @@ class CardataContainerManager:
         self._entry_id = entry_id
         self._container_id: Optional[str] = initial_container_id
         self._lock = asyncio.Lock()
-        descriptors = list(dict.fromkeys(HV_BATTERY_DESCRIPTORS))
+        # Everything BMW cannot stream (the container is those fields' only route
+        # into HA) plus the battery keys, so a fresh install shows values before
+        # the first stream message. One GET returns the lot.
+        descriptors = container_descriptors(HV_BATTERY_DESCRIPTORS)
         self._desired_descriptors = tuple(descriptors)
         self._descriptor_signature = self.compute_signature(descriptors)
 
@@ -111,10 +115,23 @@ class CardataContainerManager:
 
         async with self._lock:
             containers = await self._list_containers(access_token)
+
+            # Create before deleting. The reverse order would leave the entry
+            # with no container at all if BMW rejects the new one (e.g. a
+            # descriptor it no longer accepts), and the old one is still a
+            # working fallback until the replacement exists.
+            new_id = await self._create_container(access_token)
+            self._container_id = new_id
+            _LOGGER.info(
+                "[%s] Reset HV telemetry container; new container id %s",
+                self._entry_id,
+                new_id,
+            )
+
             deleted_ids: List[str] = []
             for container in containers:
                 container_id = container.get("containerId")
-                if not isinstance(container_id, str):
+                if not isinstance(container_id, str) or container_id == new_id:
                     continue
                 if not self._matches_hv_container(container):
                     continue
@@ -132,20 +149,12 @@ class CardataContainerManager:
 
             if deleted_ids and debug_enabled():
                 _LOGGER.debug(
-                    "[%s] Deleted %s HV container(s): %s",
+                    "[%s] Deleted %s stale container(s): %s",
                     self._entry_id,
                     len(deleted_ids),
                     ", ".join(deleted_ids),
                 )
 
-            self._container_id = None
-            new_id = await self._create_container(access_token)
-            self._container_id = new_id
-            _LOGGER.info(
-                "[%s] Reset HV telemetry container; new container id %s",
-                self._entry_id,
-                new_id,
-            )
             return new_id
 
     async def _create_container(self, access_token: str) -> str:

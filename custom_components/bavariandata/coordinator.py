@@ -44,6 +44,7 @@ from .history.trip_builder import (
     is_gps_movement,
     is_noise_trip,
 )
+from .tyre import parse_tyre_diagnosis
 from .units import normalize_unit
 
 # Trip-detection descriptors (roadmap Phase 3). Motion is powertrain-agnostic and
@@ -320,6 +321,9 @@ class CardataCoordinator:
     data: Dict[str, Dict[str, DescriptorState]] = field(default_factory=dict)
     names: Dict[str, str] = field(default_factory=dict)
     device_metadata: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    # vin -> parsed smart-maintenance tyre diagnosis (see tyre.py). REST-only:
+    # BMW cannot stream this, so it is refreshed on the daily poll.
+    tyre_diagnosis: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     last_message_at: Optional[datetime] = None
     last_telematic_api_at: Optional[datetime] = None
     connection_status: str = "connecting"
@@ -480,6 +484,25 @@ class CardataCoordinator:
     @property
     def signal_trips(self) -> str:
         return f"{DOMAIN}_{self.entry_id}_trips"
+
+    @property
+    def signal_tyre(self) -> str:
+        return f"{DOMAIN}_{self.entry_id}_tyre"
+
+    def apply_tyre_diagnosis(self, vin: str, payload: Any) -> Dict[str, Any]:
+        """Store a parsed tyre diagnosis and wake the entities that show it.
+
+        Returns the parsed result so the caller can log how much arrived. A
+        response with no wheels is still stored: it is how "BMW has no tyre
+        service data for this car" becomes visible rather than looking like a
+        failed fetch.
+        """
+
+        parsed = parse_tyre_diagnosis(payload)
+        self.tyre_diagnosis[vin] = parsed
+        async_dispatcher_send(self.hass, self.signal_tyre, vin)
+        async_dispatcher_send(self.hass, f"{DOMAIN}_{self.entry_id}_new_tyre", vin)
+        return parsed
 
     def _get_testing_tracking(self, vin: str) -> SocTracking:
         return self._testing_soc_tracking.setdefault(vin, SocTracking())

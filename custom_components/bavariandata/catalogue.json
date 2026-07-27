@@ -25,7 +25,8 @@
       "data_type": "string",
       "value_range_en": "DISCONNECTED, CONNECTED, INVALID",
       "value_range_de": "DISCONNECTED, CONNECTED, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.body.chargingPort.dcStatus",
@@ -41,7 +42,8 @@
       "data_type": "string",
       "value_range_en": "DISCONNECTED, CONNECTED, INVALID",
       "value_range_de": "DISCONNECTED, CONNECTED, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.body.chargingPort.isHospitalityActive",
@@ -57,7 +59,8 @@
       "data_type": "boolean",
       "value_range_en": "HOSPITALITY_INACTIVE, HOSPITALITY_ACTIVE, INVALID",
       "value_range_de": "HOSPITALITY_INACTIVE, HOSPITALITY_ACTIVE, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.body.chargingPort.isoSessionId",
@@ -73,7 +76,8 @@
       "data_type": "string",
       "value_range_en": "-",
       "value_range_de": "None",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.body.chargingPort.lockedStatus",
@@ -89,7 +93,8 @@
       "data_type": "string",
       "value_range_en": "CHARGING_CABLE_NOT_LOCKED, CHARGING_CABLE_LOCKED, CHARGING_CABLE_LOCKING_ERROR_DETECTED, UNKNOWN",
       "value_range_de": "CHARGING_CABLE_NOT_LOCKED, CHARGING_CABLE_LOCKED, CHARGING_CABLE_LOCKING_ERROR_DETECTED, UNKNOWN",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.body.chargingPort.plugEventId",
@@ -105,7 +110,8 @@
       "data_type": "uint32",
       "value_range_en": "0 - 131068",
       "value_range_de": "0 - 131068",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.body.chargingPort.status",
@@ -121,7 +127,8 @@
       "data_type": "string",
       "value_range_en": "CONNECTED, DISCONNECTED, INVALID, -NA-",
       "value_range_de": "CONNECTED, DISCONNECTED, INVALID, -NA-",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.body.chargingPort.statusClearText",
@@ -137,7 +144,8 @@
       "data_type": "string",
       "value_range_en": "DISCONNECTED, CONNECTED",
       "value_range_de": "DISCONNECTED, CONNECTED",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.body.flap.isLocked",
@@ -153,7 +161,8 @@
       "data_type": "boolean",
       "value_range_en": "FLAP_UNLOCKED, FLAP_LOCKED, INVALID",
       "value_range_de": "FLAP_UNLOCKED, FLAP_LOCKED, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.body.flap.isPermanentlyUnlocked",
@@ -169,7 +178,8 @@
       "data_type": "boolean",
       "value_range_en": "NO_ACTION, FLAP_UNLOCKED, FLAP_LOCKED, INVALID",
       "value_range_de": "NO_ACTION, FLAP_UNLOCKED, FLAP_LOCKED, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.body.hood.isOpen",
@@ -185,7 +195,8 @@
       "data_type": "boolean",
       "value_range_en": "CLOSED, OPEN, INVALID",
       "value_range_de": "CLOSED, OPEN, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.body.lights.isRunningOn",
@@ -201,7 +212,8 @@
       "data_type": "boolean",
       "value_range_en": "ASN_isFalse, ASN_isTrue, ASN_isUnknown",
       "value_range_de": "ASN_isFalse, ASN_isTrue, ASN_isUnknown",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.body.trunk.door.isOpen",
@@ -217,7 +229,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.body.trunk.isLocked",
@@ -233,7 +246,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.body.trunk.isOpen",
@@ -249,7 +263,8 @@
       "data_type": "boolean",
       "value_range_en": "CLOSED, OPEN, INVALID",
       "value_range_de": "CLOSED, OPEN, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.body.trunk.left.door.isOpen",
@@ -265,7 +280,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.body.trunk.lower.door.isOpen",
@@ -281,7 +297,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.body.trunk.right.door.isOpen",
@@ -297,7 +314,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.body.trunk.upper.door.isOpen",
@@ -313,7 +331,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.body.trunk.window.isOpen",
@@ -329,7 +348,8 @@
       "data_type": "boolean",
       "value_range_en": "CLOSED, OPEN, INVALID",
       "value_range_de": "CLOSED, OPEN, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.climate.timers.overwriteTimer.action",
@@ -345,7 +365,8 @@
       "data_type": "string",
       "value_range_en": "ACTIVATE, DEACTIVATE, NO_ACTION",
       "value_range_de": "ACTIVATE, DEACTIVATE, NO_ACTION",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.climate.timers.overwriteTimer.hour",
@@ -361,7 +382,8 @@
       "data_type": "uint8",
       "value_range_en": "0 - 23",
       "value_range_de": "0 - 23",
-      "unit": "h"
+      "unit": "h",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.climate.timers.overwriteTimer.minute",
@@ -377,7 +399,8 @@
       "data_type": "uint8",
       "value_range_en": "0 - 59",
       "value_range_de": "0 - 59",
-      "unit": "min"
+      "unit": "min",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.climate.timers.weekdaysTimer1.action",
@@ -393,7 +416,8 @@
       "data_type": "string",
       "value_range_en": "ACTIVATE, DEACTIVATE, NO_ACTION",
       "value_range_de": "ACTIVATE, DEACTIVATE, NO_ACTION",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.climate.timers.weekdaysTimer1.hour",
@@ -409,7 +433,8 @@
       "data_type": "uint8",
       "value_range_en": "0 - 23",
       "value_range_de": "0 - 23",
-      "unit": "h"
+      "unit": "h",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.climate.timers.weekdaysTimer1.minute",
@@ -425,7 +450,8 @@
       "data_type": "uint8",
       "value_range_en": "0 - 59",
       "value_range_de": "0 - 59",
-      "unit": "min"
+      "unit": "min",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.climate.timers.weekdaysTimer2.action",
@@ -441,7 +467,8 @@
       "data_type": "string",
       "value_range_en": "ACTIVATE, DEACTIVATE, NO_ACTION",
       "value_range_de": "ACTIVATE, DEACTIVATE, NO_ACTION",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.climate.timers.weekdaysTimer2.hour",
@@ -457,7 +484,8 @@
       "data_type": "uint8",
       "value_range_en": "0 - 23",
       "value_range_de": "0 - 23",
-      "unit": "h"
+      "unit": "h",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.climate.timers.weekdaysTimer2.minute",
@@ -473,7 +501,8 @@
       "data_type": "uint8",
       "value_range_en": "0 - 59",
       "value_range_de": "0 - 59",
-      "unit": "min"
+      "unit": "min",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.convertible.roofRetractableStatus",
@@ -489,7 +518,8 @@
       "data_type": "string",
       "value_range_en": "-",
       "value_range_de": "None",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.convertible.roofStatus",
@@ -505,7 +535,8 @@
       "data_type": "string",
       "value_range_en": "CLOSEDSECURED, OPENSECURED",
       "value_range_de": "CLOSEDSECURED, OPENSECURED",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.door.lock.status",
@@ -521,7 +552,8 @@
       "data_type": "-",
       "value_range_en": "SECURED, UNLOCKED, SELECTIVE-LOCKED, LOCKED, INVALID, UNKNOWN",
       "value_range_de": "SECURED, UNLOCKED, SELECTIVE-LOCKED, LOCKED, INVALID, UNKNOWN",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.cabin.door.row1.driver.isOpen",
@@ -537,7 +569,8 @@
       "data_type": "boolean",
       "value_range_en": "OPEN, CLOSED, INVALID, UNKNOWN",
       "value_range_de": "OPEN, CLOSED, INVALID, UNKNOWN",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.door.row1.driver.position",
@@ -553,7 +586,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.door.row1.passenger.isOpen",
@@ -569,7 +603,8 @@
       "data_type": "boolean",
       "value_range_en": "OPEN, CLOSED, INVALID, UNKNOWN",
       "value_range_de": "OPEN, CLOSED, INVALID, UNKNOWN",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.door.row1.passenger.position",
@@ -585,7 +620,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.door.row2.driver.isOpen",
@@ -601,7 +637,8 @@
       "data_type": "boolean",
       "value_range_en": "OPEN, CLOSED, INVALID, UNKNOWN",
       "value_range_de": "OPEN, CLOSED, INVALID, UNKNOWN",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.door.row2.driver.position",
@@ -617,7 +654,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.door.row2.passenger.isOpen",
@@ -633,7 +671,8 @@
       "data_type": "boolean",
       "value_range_en": "OPEN, CLOSED, INVALID, UNKNOWN",
       "value_range_de": "OPEN, CLOSED, INVALID, UNKNOWN",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.door.row2.passenger.position",
@@ -649,7 +688,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.door.status",
@@ -665,7 +705,8 @@
       "data_type": "string",
       "value_range_en": "oldDoorStatus: ASN_secured ASN_unlocked ASN_unknown ASN_selective-Locked newDoorStatus: ASN_locked ASN_unlocked ASN_selective-Locked ASN_unknown allDoorsLocked: ASN_isUnknown ASN_isTrue ASN_isFalse trunkLocked: ASN_isUnknown ASN_isTrue ASN_isFalse",
       "value_range_de": "oldDoorStatus: ASN_secured ASN_unlocked ASN_unknown ASN_selective-Locked newDoorStatus: ASN_locked ASN_unlocked ASN_selective-Locked ASN_unknown allDoorsLocked: ASN_isUnknown ASN_isTrue ASN_isFalse trunkLocked: ASN_isUnknown ASN_isTrue ASN_isFalse",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row1.driverSide.cooling",
@@ -681,7 +722,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row1.driverSide.heating",
@@ -697,7 +739,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row1.passengerSide.cooling",
@@ -713,7 +756,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row1.passengerSide.heating",
@@ -729,7 +773,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row2.driverSide.cooling",
@@ -745,7 +790,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row2.driverSide.heating",
@@ -761,7 +807,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row2.passengerSide.cooling",
@@ -777,7 +824,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row2.passengerSide.heating",
@@ -793,7 +841,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row3.driverSide.cooling",
@@ -809,7 +858,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row3.driverSide.heating",
@@ -825,7 +875,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row3.passengerSide.cooling",
@@ -841,7 +892,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row3.passengerSide.heating",
@@ -857,7 +909,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.steeringWheel.heating",
@@ -873,7 +926,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.targetTemperature",
@@ -889,7 +943,8 @@
       "data_type": "float",
       "value_range_en": "0 °C to 50 °C",
       "value_range_de": "0 °C bis 50 °C",
-      "unit": "celsius"
+      "unit": "celsius",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row1.driverSide.cooling",
@@ -905,7 +960,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row1.driverSide.heating",
@@ -921,7 +977,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row1.passengerSide.cooling",
@@ -937,7 +994,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row1.passengerSide.heating",
@@ -953,7 +1011,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row2.driverSide.cooling",
@@ -969,7 +1028,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row2.driverSide.heating",
@@ -985,7 +1045,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row2.passengerSide.cooling",
@@ -1001,7 +1062,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row2.passengerSide.heating",
@@ -1017,7 +1079,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row3.driverSide.cooling",
@@ -1033,7 +1096,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row3.driverSide.heating",
@@ -1049,7 +1113,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row3.passengerSide.cooling",
@@ -1065,7 +1130,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row3.passengerSide.heating",
@@ -1081,7 +1147,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.steeringWheel.heating",
@@ -1097,7 +1164,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, AUTOMATIC, NO_CHANGE",
       "value_range_de": "OFF, ON, AUTOMATIC, NO_CHANGE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.targetTemperature",
@@ -1113,7 +1181,8 @@
       "data_type": "float",
       "value_range_en": "0 °C to 50 °C",
       "value_range_de": "0 °C bis 50 °C",
-      "unit": "celsius"
+      "unit": "celsius",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.configuration.isRemoteEngineStartDisclaimer",
@@ -1129,7 +1198,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.status.comfortState",
@@ -1145,7 +1215,8 @@
       "data_type": "string",
       "value_range_en": "NOT_ACTIVE, COMFORT_HEATING, COMFORT_COOLING, COMFORT_VENTILATION, DEFROST, COMFORT_UNDEFINED",
       "value_range_de": "NOT_ACTIVE, COMFORT_HEATING, COMFORT_COOLING, COMFORT_VENTILATION, DEFROST, COMFORT_UNDEFINED",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.status.isExteriorMirrorHeatingActive",
@@ -1161,7 +1232,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.status.progress",
@@ -1177,7 +1249,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.status.rearDefrostActive",
@@ -1193,7 +1266,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.preconditioning.status.remainingRunningTime",
@@ -1209,7 +1283,8 @@
       "data_type": "uint32",
       "value_range_en": "0 - 10000000",
       "value_range_de": "0 - 10000000",
-      "unit": "s"
+      "unit": "s",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.hvac.statusAirPurification",
@@ -1225,7 +1300,8 @@
       "data_type": "string",
       "value_range_en": "UNFILTERED, PURIFYING_ONGOING, PURIFIED, INVALID",
       "value_range_de": "UNFILTERED, PURIFYING_ONGOING, PURIFIED, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.infotainment.displayUnit.distance",
@@ -1241,7 +1317,8 @@
       "data_type": "string",
       "value_range_en": "km, miles",
       "value_range_de": "km, miles",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.infotainment.hmi.distanceUnit",
@@ -1257,7 +1334,8 @@
       "data_type": "string",
       "value_range_en": "MILES, KILOMETERS",
       "value_range_de": "MILES, KILOMETERS",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.infotainment.isMobilePhoneConnected",
@@ -1273,7 +1351,8 @@
       "data_type": "boolean",
       "value_range_en": "ASN_isFalse, ASN_isTrue, ASN_isUnknown",
       "value_range_de": "ASN_isFalse, ASN_isTrue, ASN_isUnknown",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.altitude",
@@ -1289,7 +1368,8 @@
       "data_type": "double",
       "value_range_en": "-100 m to 6000 m or -328 ft to 19685 ft or -NA-",
       "value_range_de": "-100 m bis 6000 m oder -NA-",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.fixStatus",
@@ -1305,7 +1385,8 @@
       "data_type": "string",
       "value_range_en": "NO_FIX, GPS_FIX_2D, GPS_FIX_3D",
       "value_range_de": "NO_FIX, GPS_FIX_2D, GPS_FIX_3D",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.heading",
@@ -1321,7 +1402,8 @@
       "data_type": "double",
       "value_range_en": "0° to 359°",
       "value_range_de": "0 ° bis 359 °",
-      "unit": "degrees"
+      "unit": "degrees",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.latitude",
@@ -1337,7 +1419,8 @@
       "data_type": "double",
       "value_range_en": "-90,0000 to + 90,0000",
       "value_range_de": "-90.0000 bis +90.0000",
-      "unit": "degrees"
+      "unit": "degrees",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.longitude",
@@ -1353,7 +1436,8 @@
       "data_type": "double",
       "value_range_en": "-180,0000 to + 180,0000",
       "value_range_de": "-180.0000 bis +180.0000",
-      "unit": "degrees"
+      "unit": "degrees",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.numberOfSatellites",
@@ -1369,7 +1453,8 @@
       "data_type": "uint8",
       "value_range_en": "-",
       "value_range_de": "None",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.infotainment.navigation.destinationSet.arrivalTime",
@@ -1385,7 +1470,8 @@
       "data_type": "string",
       "value_range_en": "hh:mm",
       "value_range_de": "hh:mm",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.infotainment.navigation.destinationSet.distance",
@@ -1401,7 +1487,8 @@
       "data_type": "uint16",
       "value_range_en": "0 km to 100000 km or 0 mi to 62137 mi",
       "value_range_de": "0 km bis 100.000 km",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.infotainment.navigation.destinationSet.latitude",
@@ -1417,7 +1504,8 @@
       "data_type": "-",
       "value_range_en": "-",
       "value_range_de": "-",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.cabin.infotainment.navigation.destinationSet.longitude",
@@ -1433,7 +1521,8 @@
       "data_type": "-",
       "value_range_en": "-",
       "value_range_de": "-",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.cabin.infotainment.navigation.pointsOfInterests.available",
@@ -1449,7 +1538,8 @@
       "data_type": "uint16",
       "value_range_en": "25",
       "value_range_de": "25",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.infotainment.navigation.pointsOfInterests.max",
@@ -1465,7 +1555,8 @@
       "data_type": "uint16",
       "value_range_en": "25",
       "value_range_de": "25",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.infotainment.navigation.remainingRange",
@@ -1481,7 +1572,8 @@
       "data_type": "uint16",
       "value_range_en": "0 km to 100000 km or 0 mi to 62137 mi",
       "value_range_de": "0 km bis 100.000 km",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.seat.row1.driverSide.cooling",
@@ -1497,7 +1589,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.seat.row1.driverSide.heating",
@@ -1513,7 +1606,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.seat.row1.passengerSide.cooling",
@@ -1529,7 +1623,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.seat.row1.passengerSide.heating",
@@ -1545,7 +1640,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.seat.row2.driverSide.cooling",
@@ -1561,7 +1657,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.seat.row2.driverSide.heating",
@@ -1577,7 +1674,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.seat.row2.passengerSide.cooling",
@@ -1593,7 +1691,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.seat.row2.passengerSide.heating",
@@ -1609,7 +1708,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.seat.row3.driverSide.cooling",
@@ -1625,7 +1725,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.seat.row3.driverSide.heating",
@@ -1641,7 +1742,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.seat.row3.passengerSide.cooling",
@@ -1657,7 +1759,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.seat.row3.passengerSide.heating",
@@ -1673,7 +1776,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.steeringWheel.heating",
@@ -1689,7 +1793,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.sunroof.overallStatus",
@@ -1705,7 +1810,8 @@
       "data_type": "string",
       "value_range_en": "INVALID, OPEN, OPEN_TILT, INTERMEDIATE_TILT, CLOSED",
       "value_range_de": "INVALID, OPEN, OPEN_TILT, INTERMEDIATE_TILT, CLOSED",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.sunroof.relativePosition",
@@ -1721,7 +1827,8 @@
       "data_type": "int8",
       "value_range_en": "-100% to 100%",
       "value_range_de": "-100% bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.sunroof.shade.position",
@@ -1737,7 +1844,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.sunroof.status",
@@ -1753,7 +1861,8 @@
       "data_type": "string",
       "value_range_en": "CLOSED, INTERMEDIATE, OPEN, INVALID",
       "value_range_de": "CLOSED, INTERMEDIATE, OPEN, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.sunroof.tiltStatus",
@@ -1769,7 +1878,8 @@
       "data_type": "string",
       "value_range_en": "CLOSED, INTERMEDIATE, OPEN, INVALID",
       "value_range_de": "CLOSED, INTERMEDIATE, OPEN, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.window.row1.driver.status",
@@ -1785,7 +1895,8 @@
       "data_type": "string",
       "value_range_en": "CLOSED, INTERMEDIATE, OPEN, INVALID",
       "value_range_de": "CLOSED, INTERMEDIATE, OPEN, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.window.row1.passenger.status",
@@ -1801,7 +1912,8 @@
       "data_type": "string",
       "value_range_en": "CLOSED, INTERMEDIATE, OPEN, INVALID",
       "value_range_de": "CLOSED, INTERMEDIATE, OPEN, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.window.row2.driver.status",
@@ -1817,7 +1929,8 @@
       "data_type": "string",
       "value_range_en": "CLOSED, INTERMEDIATE, OPEN, INVALID",
       "value_range_de": "CLOSED, INTERMEDIATE, OPEN, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.cabin.window.row2.passenger.status",
@@ -1833,7 +1946,8 @@
       "data_type": "string",
       "value_range_en": "CLOSED, INTERMEDIATE, OPEN, INVALID",
       "value_range_de": "CLOSED, INTERMEDIATE, OPEN, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.channel.ista.obfcm.lastTransmissionStatus",
@@ -1849,7 +1963,8 @@
       "data_type": "string",
       "value_range_en": "OK, ECU_COMMUNICATION_ERROR, VEHICLE_MANIPULATION_DETECTED, MANUFACTURER_EXCLUDED",
       "value_range_de": "OK, ECU_COMMUNICATION_ERROR, VEHICLE_MANIPULATION_DETECTED, MANUFACTURER_EXCLUDED",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.channel.ngtp.timeVehicle",
@@ -1865,7 +1980,8 @@
       "data_type": "string",
       "value_range_en": "00:00 to 23:59 or 12:00 am to 11:59 pm",
       "value_range_de": "00:00 Uhr bis 23:59 Uhr",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.channel.teleservice.lastAutomaticServiceCallTime",
@@ -1881,7 +1997,8 @@
       "data_type": "string",
       "value_range_en": "dd.mm.yyyy hh:mm UTC or mm/dd/yyyy hh:mm UTC",
       "value_range_de": "dd.mm.yyyy hh:mm UTC",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.channel.teleservice.lastBreakdownCallTime",
@@ -1897,7 +2014,8 @@
       "data_type": "string",
       "value_range_en": "-",
       "value_range_de": "None",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.channel.teleservice.lastManualCallTime",
@@ -1913,7 +2031,8 @@
       "data_type": "string",
       "value_range_en": "-",
       "value_range_de": "None",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.channel.teleservice.lastTeleserviceReportTime",
@@ -1929,7 +2048,8 @@
       "data_type": "string",
       "value_range_en": "dd.mm.yyyy hh:mm:ss UTC",
       "value_range_de": "dd.mm.yyyy hh:mm:ss UTC",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.channel.teleservice.status",
@@ -1945,7 +2065,8 @@
       "data_type": "string",
       "value_range_en": "PENDING, IDLE, SUCCESSFUL, ERROR",
       "value_range_de": "PENDING, IDLE, SUCCESSFUL, ERROR",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.chassis.axle.row1.wheel.left.tire.pressure",
@@ -1961,7 +2082,8 @@
       "data_type": "uint16",
       "value_range_en": "0-1000 kPa or -NA-",
       "value_range_de": "0-1000 kPa oder -NA-",
-      "unit": "kPa"
+      "unit": "kPa",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.chassis.axle.row1.wheel.left.tire.pressureTarget",
@@ -1977,7 +2099,8 @@
       "data_type": "uint16",
       "value_range_en": "0-1000 kPa or -NA-",
       "value_range_de": "0-1000 kPa oder -NA-",
-      "unit": "kPa"
+      "unit": "kPa",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.chassis.axle.row1.wheel.left.tire.temperature",
@@ -1993,7 +2116,8 @@
       "data_type": "float",
       "value_range_en": "0 °C to 50 °C",
       "value_range_de": "0 °C bis 50 °C",
-      "unit": "Celsius"
+      "unit": "Celsius",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.chassis.axle.row1.wheel.right.tire.pressure",
@@ -2009,7 +2133,8 @@
       "data_type": "uint16",
       "value_range_en": "0-1000 kPa or -NA-",
       "value_range_de": "0-1000 kPa oder -NA-",
-      "unit": "kPa"
+      "unit": "kPa",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.chassis.axle.row1.wheel.right.tire.pressureTarget",
@@ -2025,7 +2150,8 @@
       "data_type": "uint16",
       "value_range_en": "0-1000 kPa or -NA-",
       "value_range_de": "0-1000 kPa oder -NA-",
-      "unit": "kPa"
+      "unit": "kPa",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.chassis.axle.row1.wheel.right.tire.temperature",
@@ -2041,7 +2167,8 @@
       "data_type": "float",
       "value_range_en": "0 °C to 50 °C",
       "value_range_de": "0 °C bis 50 °C",
-      "unit": "Celsius"
+      "unit": "Celsius",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.chassis.axle.row2.wheel.left.tire.pressure",
@@ -2057,7 +2184,8 @@
       "data_type": "uint16",
       "value_range_en": "0-1000 kPa or -NA-",
       "value_range_de": "0-1000 kPa oder -NA-",
-      "unit": "kPa"
+      "unit": "kPa",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.chassis.axle.row2.wheel.left.tire.pressureTarget",
@@ -2073,7 +2201,8 @@
       "data_type": "uint16",
       "value_range_en": "0-1000 kPa or -NA-",
       "value_range_de": "0-1000 kPa oder -NA-",
-      "unit": "kPa"
+      "unit": "kPa",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.chassis.axle.row2.wheel.left.tire.temperature",
@@ -2089,7 +2218,8 @@
       "data_type": "float",
       "value_range_en": "0 °C to 50 °C",
       "value_range_de": "0 °C bis 50 °C",
-      "unit": "Celsius"
+      "unit": "Celsius",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.chassis.axle.row2.wheel.right.tire.pressure",
@@ -2105,7 +2235,8 @@
       "data_type": "uint16",
       "value_range_en": "0-1000 kPa or -NA-",
       "value_range_de": "0-1000 kPa oder -NA-",
-      "unit": "kPa"
+      "unit": "kPa",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.chassis.axle.row2.wheel.right.tire.pressureTarget",
@@ -2121,7 +2252,8 @@
       "data_type": "uint16",
       "value_range_en": "0-1000 kPa or -NA-",
       "value_range_de": "0-1000 kPa oder -NA-",
-      "unit": "kPa"
+      "unit": "kPa",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.chassis.axle.row2.wheel.right.tire.temperature",
@@ -2137,7 +2269,8 @@
       "data_type": "float",
       "value_range_en": "0 °C to 50 °C",
       "value_range_de": "0 °C bis 50 °C",
-      "unit": "Celsius"
+      "unit": "Celsius",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.chassis.axle.wheel.tire.diagnosis",
@@ -2153,7 +2286,8 @@
       "data_type": "-",
       "value_range_en": "Details can be found in the corresponding Swagger documentation: ../smartMaintenanceTyreDiagnosis",
       "value_range_de": "Details sind in der entsprechenden Swagger-Dokumentation: ../smartMaintenanceTyreDiagnosis",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.drivetrain.avgElectricRangeConsumption",
@@ -2169,7 +2303,8 @@
       "data_type": "float",
       "value_range_en": "0 kWh/100 km to 100 kWh/100 km or 0,6213 mi/kWh to 62,1371 mi/kWh",
       "value_range_de": "0 kWh/100 km - 100 kWh/100 km",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.batteryManagement.batterySizeMax",
@@ -2185,7 +2320,8 @@
       "data_type": "float",
       "value_range_en": "0 - 300 kWh, INVALID",
       "value_range_de": "0 - 300 kWh, INVALID",
-      "unit": "kWh"
+      "unit": "kWh",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.batteryManagement.header",
@@ -2201,7 +2337,8 @@
       "data_type": "float",
       "value_range_en": "0 % to 100 %",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.batteryManagement.maxEnergy",
@@ -2217,7 +2354,8 @@
       "data_type": "float",
       "value_range_en": "0 - 300 kWh, INVALID",
       "value_range_de": "0 - 300 kWh, INVALID",
-      "unit": "kWh"
+      "unit": "kWh",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.acAmpere",
@@ -2233,7 +2371,8 @@
       "data_type": "uint8",
       "value_range_en": "0 A to 25 A or -NA-",
       "value_range_de": "0 A bis 25 A oder -NA-",
-      "unit": "A"
+      "unit": "A",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.acRestriction.factor",
@@ -2249,7 +2388,8 @@
       "data_type": "string",
       "value_range_en": "MAXCHARGING, REDUCEDCHARGING, MINCHARGING",
       "value_range_de": "MAXCHARGING, REDUCEDCHARGING, MINCHARGING",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.acRestriction.isChosen",
@@ -2265,7 +2405,8 @@
       "data_type": "boolean",
       "value_range_en": "NOTCHOSEN, CHOSEN, INVALID; MAXCHARGING, REDUCEDCHARGING, MINCHARGING, INVALID",
       "value_range_de": "NOTCHOSEN, CHOSEN, INVALID; MAXCHARGING, REDUCEDCHARGING, MINCHARGING, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.acVoltage",
@@ -2281,7 +2422,8 @@
       "data_type": "float",
       "value_range_en": "0 V to 300 V or -NA-",
       "value_range_de": "0 V bis 300 V oder -NA-",
-      "unit": "V"
+      "unit": "V",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.authentication.status",
@@ -2297,7 +2439,8 @@
       "data_type": "string",
       "value_range_en": "AUTHORIZATION_SUCCESSFUL, TRANSPORT_LAYER_ERROR, HIGH_LEVEL_COMMUNICATION_ERROR, CONTRACT_SERVICE_NOT_SUPPORTED_ERROR, AUTHORIZATION_ERROR, AUTHORIZATION_TIMEOUT, NVM_READ_CERTIFICATE_ERROR, CERTIFICATE_UPDATE_ERROR, XML_SECURITY_ERROR",
       "value_range_de": "AUTHORIZATION_SUCCESSFUL, TRANSPORT_LAYER_ERROR, HIGH_LEVEL_COMMUNICATION_ERROR, CONTRACT_SERVICE_NOT_SUPPORTED_ERROR, AUTHORIZATION_ERROR, AUTHORIZATION_TIMEOUT, NVM_READ_CERTIFICATE_ERROR, CERTIFICATE_UPDATE_ERROR, XML_SECURITY_ERROR",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.chargingMode",
@@ -2313,7 +2456,8 @@
       "data_type": "string",
       "value_range_en": "NORMAL_PROGNOSE_BASED, STEP_BASED, PLC_MODE",
       "value_range_de": "NORMAL_PROGNOSE_BASED, STEP_BASED, PLC_MODE",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.connectionType",
@@ -2329,7 +2473,8 @@
       "data_type": "string",
       "value_range_en": "CONDUCTIVE, INDUCTIVE, SIGNAL_INVALID",
       "value_range_de": "CONDUCTIVE, INDUCTIVE, SIGNAL_INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.connectorStatus",
@@ -2345,7 +2490,8 @@
       "data_type": "string",
       "value_range_en": "CONNECTED, DISCONNECTED, ERROR",
       "value_range_de": "CONNECTED, DISCONNECTED, ERROR",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.engineOff.gridEnergy",
@@ -2361,7 +2507,8 @@
       "data_type": "float",
       "value_range_en": "kWh",
       "value_range_de": "kWh",
-      "unit": "kWh"
+      "unit": "kWh",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.engineOff.referenceDistance",
@@ -2377,7 +2524,8 @@
       "data_type": "float",
       "value_range_en": "0.0 km - 250000.0 km",
       "value_range_de": "0.0 km bis 250000.0 km",
-      "unit": "km"
+      "unit": "km",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.engineOn.gridEnergy",
@@ -2393,7 +2541,8 @@
       "data_type": "float",
       "value_range_en": "kWh",
       "value_range_de": "kWh",
-      "unit": "kWh"
+      "unit": "kWh",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.engineOn.referenceDistance",
@@ -2409,7 +2558,8 @@
       "data_type": "float",
       "value_range_en": "0.0 km - 250000.0 km",
       "value_range_de": "0.0 km bis 250000.0 km",
-      "unit": "km"
+      "unit": "km",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.overall.gridEnergy",
@@ -2425,7 +2575,8 @@
       "data_type": "float",
       "value_range_en": "0.0 kWh - 30000.0 kWh",
       "value_range_de": "0.0 kWh bis 30000.0 kWh",
-      "unit": "kWh"
+      "unit": "kWh",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.overall.referenceDistance",
@@ -2441,7 +2592,8 @@
       "data_type": "float",
       "value_range_en": "0.0 km - 250000.0 km",
       "value_range_de": "0.0 km bis 250000.0 km",
-      "unit": "km"
+      "unit": "km",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.hvStatus",
@@ -2457,7 +2609,8 @@
       "data_type": "string",
       "value_range_en": "INVALID, CHARGING, ERROR, NOT_CHARGING, WAITING_FOR_CHARGING, FINISHED_FULLY_CHARGED, FINISHED_NOT_FULL",
       "value_range_de": "INVALID, CHARGING, ERROR, NOT_CHARGING, WAITING_FOR_CHARGING, FINISHED_FULLY_CHARGED, FINISHED_NOT_FULL",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.hvpmFinishReason",
@@ -2473,7 +2626,8 @@
       "data_type": "string",
       "value_range_en": "UNKNOWN, CHARGING_GOAL_REACHED, END_REQUESTED_BY_DRIVER, CONNECTOR_REMOVED, POWERGRID_FAILED, HV_SYSTEM_FAILURE, CHARGING_STATION_FAILURE, PARKING_LOCK_FAILED, NO_PARKING_LOCK, SIGNAL_INVALID, INVALID",
       "value_range_de": "UNKNOWN, CHARGING_GOAL_REACHED, END_REQUESTED_BY_DRIVER, CONNECTOR_REMOVED, POWERGRID_FAILED, HV_SYSTEM_FAILURE, CHARGING_STATION_FAILURE, PARKING_LOCK_FAILED, NO_PARKING_LOCK, SIGNAL_INVALID, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.isImmediateChargingSystemReason",
@@ -2489,7 +2643,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.isSingleImmediateCharging",
@@ -2505,7 +2660,8 @@
       "data_type": "boolean",
       "value_range_en": "DIRECT_CHG_ONCE_NOT_ACTIVE, DIRECT_CHG_ONCE_ACTIVE, INVALID",
       "value_range_de": "DIRECT_CHG_ONCE_NOT_ACTIVE, DIRECT_CHG_ONCE_ACTIVE, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.lastChargingReason",
@@ -2521,7 +2677,8 @@
       "data_type": "string",
       "value_range_en": "CHARGING_GOAL_REACHED, END_REQUESTED_BY_DRIVER, CONNECTOR_REMOVED, POWERGRID_FAILED, HV_SYSTEM_FAILURE, CHARGING_STATION_FAILURE, PARKING_LOCK_FAILED, NO_PARKING_LOCK, INVALID, -NA-",
       "value_range_de": "CHARGING_GOAL_REACHED, END_REQUESTED_BY_DRIVER, CONNECTOR_REMOVED, POWERGRID_FAILED, HV_SYSTEM_FAILURE, CHARGING_STATION_FAILURE, PARKING_LOCK_FAILED, NO_PARKING_LOCK, INVALID, -NA-",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.lastChargingResult",
@@ -2537,7 +2694,8 @@
       "data_type": "string",
       "value_range_en": "SUCCESS, FAILED, UNKNOWN",
       "value_range_de": "SUCCESS, FAILED, UNKNOWN",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.level",
@@ -2553,7 +2711,8 @@
       "data_type": "float",
       "value_range_en": "0 % to 100 %",
       "value_range_de": "0% bis 100%",
-      "unit": "%"
+      "unit": "%",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.method",
@@ -2569,7 +2728,8 @@
       "data_type": "string",
       "value_range_en": "AC_TYPE1PLUG,AC_TYPE2PLUG, NOCHARGING",
       "value_range_de": "AC_TYPE1PLUG, AC_TYPE2PLUG, NOCHARGING",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.modeDeviation",
@@ -2585,7 +2745,8 @@
       "data_type": "string",
       "value_range_en": "NO_DEVIATION, DC_DYNAMIC_MALIBU, DC_DYNAMIC_MIN_SOE_PROTECTION, IMMEDIATE_CHARGING_NOT_SUPPORTED_BY_EVSE, IMMEDIATE_CHARGING_WAKE_UP_LIMIT_REACHED, IMMEDIATE_CHARGING, CHARGING_TIMESLOT, CHARGING_IN_TIMESLOT, SMART_CHARGING, DC_DYNAMIC, BIDIRECTIONAL_CHARGING, NO_ACTION, UNKNOWN",
       "value_range_de": "NO_DEVIATION, DC_DYNAMIC_MALIBU, DC_DYNAMIC_MIN_SOE_PROTECTION, IMMEDIATE_CHARGING_NOT_SUPPORTED_BY_EVSE, IMMEDIATE_CHARGING_WAKE_UP_LIMIT_REACHED, IMMEDIATE_CHARGING, CHARGING_TIMESLOT, CHARGING_IN_TIMESLOT, SMART_CHARGING, DC_DYNAMIC, BIDIRECTIONAL_CHARGING, NO_ACTION, UNKNOWN",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.phaseNumber",
@@ -2601,7 +2762,8 @@
       "data_type": "string",
       "value_range_en": "NO_CHARGING, 1-PHASES, 2-PHASES, 3-PHASES, INVALID",
       "value_range_de": "NO_CHARGING, 1-PHASES, 2-PHASES, 3-PHASES, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.profile.climatizationActive",
@@ -2617,7 +2779,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.profile.isRcpConfigComplete",
@@ -2633,7 +2796,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.profile.mode",
@@ -2649,7 +2813,8 @@
       "data_type": "string",
       "value_range_en": "The XML structure is appended at the end of the table (1).",
       "value_range_de": "kWh",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.profile.preference",
@@ -2665,7 +2830,8 @@
       "data_type": "string",
       "value_range_en": "CHARGING_WINDOW, SMART_CHARGING, NO_PRESELECTION",
       "value_range_de": "CHARGING_WINDOW, SMART_CHARGING, NO_PRESELECTION",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.profile.settings.biDirectionalCharging.departureTimeRelevant",
@@ -2681,7 +2847,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.profile.settings.biDirectionalCharging.dischargeAllowed",
@@ -2697,7 +2864,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.profile.timerType",
@@ -2713,7 +2881,8 @@
       "data_type": "string",
       "value_range_en": "-",
       "value_range_de": "None",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.reasonChargingEnd",
@@ -2729,7 +2898,8 @@
       "data_type": "string",
       "value_range_en": "NO_CHARGING_END_SINCE_IPF_WAKEUP, CUSTOMER_INTERACTION_HMI_UNPLUG_CABLE_ONCE, CUSTOMER_INTERACTION_HMI_CHARGING_TARGET_REACHED, CUSTOMER_INTERACTION_APP_UNPLUG_CABLE_ONCE, CUSTOMER_INTERACTION_APP_CHARGING_TARGET_REACHED, CUSTOMER_INTERACTION_CHARGING_STOP_VIA_CHARGING_STOP_BUTTON_SOCKET, CUSTOMER_INTERACTION_AC_CHARGING_STOP_VIA_KEY, CUSTOMER_INTERACTION_AC_CHARGING_STOP_WALLBOX, CUSTOMER_INTERACTION_AC_CHARGING_STOP_LATCH, HV_BATTERY_FULLY_CHARGED, INFRASTRUCTURE_PHYSICAL_LIMITS_REACHED_TARGET_SOE_NOT_REACHABLE, INFRASTRUCTURE_DC_CCS_EVSE_SHUTDOWN, INFRASTRUCTURE_DC_GBT_CST_MESSAGE, INFRASTRUCTURE_DC_CCS_STATIC_PILOT, INFRASTRUCTURE_DC_CCS_COMMUNICATION_ERROR_FAILED_RESPONSE_CODE, INFRASTRUCTURE_DC_CCS_COMMUNICATION_ERROR, INFRASTRUCTURE_NO_ENERGY_TRANSFER, INFRASTRUCTURE_DC_CCS_PRECHARGE_ERROR, INFRASTRUCTURE_DC_CCS_EVSE_MALFUNCTION_EMERGENCY_SHUTDOWN, INFRASTRUCTURE_STATION_NOT_COMPATIBLE, INFRASTRUCTURE_CHARGE_READINESS_TIMEOUT, INFRASTRUCTURE_AC_MAXIMUM_GRID_ERROR_REACHED, INFRASTRUCTURE_DC_GBT_ISOLATION_ERROR_DETECTED, INFRASTRUCTURE_AUTHENTIFICATION_ERROR, VEHICLE_HV_BATTERY_ERROR, VEHICLE_HV_BATTERY_COMMUNICATION_ERROR, VEHICLE_DCDC_ERROR, VEHICLE_PLC_BOOTUP_ERROR, VEHICLE_HV_BATTERY_MAXIMAL_CURRENT_OVERSHOOT, VEHICLE_ISOLATION_ERROR, VEHICLE_MAXIMUM_TEMPERATURE_CHARGING_SOCKET_OVERSHOOT, VEHICLE_LT3_OVERSHOOT, VEHICLE_FUSI_CABLE_LOCK_ERROR, VEHICLE_PLC_COMMUNICATION_NOT_POSSIBLE, FLEXCHARGER_GRID_ERROR, FLEXCHARGER_GRID_TEMPERATURE_ERROR, FLEXCHARGER_EVSE_TEMPERATURE_ERROR, FLEXCHARGER_EVSE_INTERNAL_ERROR, FLEXCHARGER_AC_DC_FAULT_CURRENT, FLEXCHARGER_INCORRECT_REACTION_TIME_PWM, FLEXCHARGER_CHARGING_CURRENT_TOO_HIGH, FLEXCHARGER_PE_FAULT, INFRASTRUCTURE_INEFFICIENT_CHARGING_LOW_POWER, VEHICLE_CABLE_LOCKING_ERROR, VEHICLE_CONFIGURATION_ERROR_400V_800V, INFRASTRUCTURE_NO_AC_VOLTAGE, PLUG_AND_CHARGE_TLS_ERROR, PLUG_AND_CHARGE_CONTRACT_ERROR, SMART_CHARGING_TARIFF_SELECTION_INVALID, SMART_CHARGING_CHARGING_PROFILE_INVALID, CUSTOMER_INTERACTION_AC_CHARGING_STOP_VIA_APP, CHARGING_PAUSED, DISCHARGE_NOT_POSSIBLE_VOLTAGE_TOO_HIGH, DISCHARGE_NOT_POSSIBLE_SOE_TOO_LOW, DISCHARGE_NOT_POSSIBLE_INTERNAL_ERROR, DISCHARGE_NOT_POSSIBLE_INCOMPATIBLE_ADAPTER, DISCHARGE_NOT_POSSIBLE_INCOMPATIBLE_CONSUMER",
       "value_range_de": "NO_CHARGING_END_SINCE_IPF_WAKEUP, CUSTOMER_INTERACTION_HMI_UNPLUG_CABLE_ONCE, CUSTOMER_INTERACTION_HMI_CHARGING_TARGET_REACHED, CUSTOMER_INTERACTION_APP_UNPLUG_CABLE_ONCE, CUSTOMER_INTERACTION_APP_CHARGING_TARGET_REACHED, CUSTOMER_INTERACTION_CHARGING_STOP_VIA_CHARGING_STOP_BUTTON_SOCKET, CUSTOMER_INTERACTION_AC_CHARGING_STOP_VIA_KEY, CUSTOMER_INTERACTION_AC_CHARGING_STOP_WALLBOX, CUSTOMER_INTERACTION_AC_CHARGING_STOP_LATCH, HV_BATTERY_FULLY_CHARGED, INFRASTRUCTURE_PHYSICAL_LIMITS_REACHED_TARGET_SOE_NOT_REACHABLE, INFRASTRUCTURE_DC_CCS_EVSE_SHUTDOWN, INFRASTRUCTURE_DC_GBT_CST_MESSAGE, INFRASTRUCTURE_DC_CCS_STATIC_PILOT, INFRASTRUCTURE_DC_CCS_COMMUNICATION_ERROR_FAILED_RESPONSE_CODE, INFRASTRUCTURE_DC_CCS_COMMUNICATION_ERROR, INFRASTRUCTURE_NO_ENERGY_TRANSFER, INFRASTRUCTURE_DC_CCS_PRECHARGE_ERROR, INFRASTRUCTURE_DC_CCS_EVSE_MALFUNCTION_EMERGENCY_SHUTDOWN, INFRASTRUCTURE_STATION_NOT_COMPATIBLE, INFRASTRUCTURE_CHARGE_READINESS_TIMEOUT, INFRASTRUCTURE_AC_MAXIMUM_GRID_ERROR_REACHED, INFRASTRUCTURE_DC_GBT_ISOLATION_ERROR_DETECTED, INFRASTRUCTURE_AUTHENTIFICATION_ERROR, VEHICLE_HV_BATTERY_ERROR, VEHICLE_HV_BATTERY_COMMUNICATION_ERROR, VEHICLE_DCDC_ERROR, VEHICLE_PLC_BOOTUP_ERROR, VEHICLE_HV_BATTERY_MAXIMAL_CURRENT_OVERSHOOT, VEHICLE_ISOLATION_ERROR, VEHICLE_MAXIMUM_TEMPERATURE_CHARGING_SOCKET_OVERSHOOT, VEHICLE_LT3_OVERSHOOT, VEHICLE_FUSI_CABLE_LOCK_ERROR, VEHICLE_PLC_COMMUNICATION_NOT_POSSIBLE, FLEXCHARGER_GRID_ERROR, FLEXCHARGER_GRID_TEMPERATURE_ERROR, FLEXCHARGER_EVSE_TEMPERATURE_ERROR, FLEXCHARGER_EVSE_INTERNAL_ERROR, FLEXCHARGER_AC_DC_FAULT_CURRENT, FLEXCHARGER_INCORRECT_REACTION_TIME_PWM, FLEXCHARGER_CHARGING_CURRENT_TOO_HIGH, FLEXCHARGER_PE_FAULT, INFRASTRUCTURE_INEFFICIENT_CHARGING_LOW_POWER, VEHICLE_CABLE_LOCKING_ERROR, VEHICLE_CONFIGURATION_ERROR_400V_800V, INFRASTRUCTURE_NO_AC_VOLTAGE, PLUG_AND_CHARGE_TLS_ERROR, PLUG_AND_CHARGE_CONTRACT_ERROR, SMART_CHARGING_TARIFF_SELECTION_INVALID, SMART_CHARGING_CHARGING_PROFILE_INVALID, CUSTOMER_INTERACTION_AC_CHARGING_STOP_VIA_APP, CHARGING_PAUSED, DISCHARGE_NOT_POSSIBLE_VOLTAGE_TOO_HIGH, DISCHARGE_NOT_POSSIBLE_SOE_TOO_LOW, DISCHARGE_NOT_POSSIBLE_INTERNAL_ERROR, DISCHARGE_NOT_POSSIBLE_INCOMPATIBLE_ADAPTER, DISCHARGE_NOT_POSSIBLE_INCOMPATIBLE_CONSUMER",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.routeOptimizedChargingStatus",
@@ -2745,7 +2915,8 @@
       "data_type": "string",
       "value_range_en": "ROUTE_OPTIMIZED_CHARGING_IN_PROGRESS, ROUTE_OPTIMIZED_SOC_TARGET_REACHED",
       "value_range_de": "ROUTE_OPTIMIZED_CHARGING_IN_PROGRESS, ROUTE_OPTIMIZED_SOC_TARGET_REACHED",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.smeEnergyDeltaFullyCharged",
@@ -2761,7 +2932,8 @@
       "data_type": "float",
       "value_range_en": "0 - 300 kWh, INVALID",
       "value_range_de": "0 - 300 kWh, INVALID",
-      "unit": "kWh"
+      "unit": "kWh",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.status",
@@ -2777,7 +2949,8 @@
       "data_type": "string",
       "value_range_en": "MANUAL_SELECTION, AUTOMATIC_SELECTION, AUTOMATIC_SELECTION_20, UNKNOWN",
       "value_range_de": "MANUAL_SELECTION, AUTOMATIC_SELECTION, AUTOMATIC_SELECTION_20, UNKNOWN",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.timeRemaining",
@@ -2793,7 +2966,8 @@
       "data_type": "uint16",
       "value_range_en": "0 - 200 Min",
       "value_range_de": "0 - 200 Min",
-      "unit": "min"
+      "unit": "min",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.timeToFullyCharged",
@@ -2809,7 +2983,8 @@
       "data_type": "uint16",
       "value_range_en": "0 – 65500 Min, INVALID",
       "value_range_de": "0 – 65500 Min, INVALID",
-      "unit": "min"
+      "unit": "min",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.charging.windowSelection",
@@ -2825,7 +3000,8 @@
       "data_type": "string",
       "value_range_en": "CHOSEN, NOTCHOSEN, -NA-",
       "value_range_de": "CHOSEN, NOTCHOSEN, -NA-",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.hvsMaxEnergyAbsolute",
@@ -2841,7 +3017,8 @@
       "data_type": "-",
       "value_range_en": "0 - 300 kWh, INVALID",
       "value_range_de": "0 - 300 kWh, INVALID",
-      "unit": "kWh"
+      "unit": "kWh",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.kombiRemainingElectricRange",
@@ -2857,7 +3034,8 @@
       "data_type": "float",
       "value_range_en": "0 km to 4000 km or 0 mi to 2485 mi, INVALID",
       "value_range_de": "0-4000 km, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.electricEngine.remainingElectricRange",
@@ -2873,7 +3051,8 @@
       "data_type": "float",
       "value_range_en": "0 - 1000 km",
       "value_range_de": "0 - 1000 km",
-      "unit": "km"
+      "unit": "km",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.engine.isActive",
@@ -2889,7 +3068,8 @@
       "data_type": "boolean",
       "value_range_en": "ASN_isFalse, ASN_isTrue, ASN_isUnknown",
       "value_range_de": "ASN_isFalse, ASN_isTrue, ASN_isUnknown",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.engine.isIgnitionOn",
@@ -2905,7 +3085,8 @@
       "data_type": "boolean",
       "value_range_en": "ASN_isFalse, ASN_isTrue, ASN_isUnknown",
       "value_range_de": "ASN_isFalse, ASN_isTrue, ASN_isUnknown",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeDepleting.fuel",
@@ -2921,7 +3102,8 @@
       "data_type": "float",
       "value_range_en": "0.00 l - 30000.00 l",
       "value_range_de": "0.00 l - 30000.00 l",
-      "unit": "l"
+      "unit": "l",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeDepleting.referenceDistanceEngineOff",
@@ -2937,7 +3119,8 @@
       "data_type": "float",
       "value_range_en": "0.0 km - 250000.0 km",
       "value_range_de": "0.0 km - 250000.0 km",
-      "unit": "km"
+      "unit": "km",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeDepleting.referenceDistanceEngineOn",
@@ -2953,7 +3136,8 @@
       "data_type": "float",
       "value_range_en": "0.0 km - 250000.0 km",
       "value_range_de": "0.0 km bis 250000.0 km",
-      "unit": "km"
+      "unit": "km",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeIncreasing.fuel",
@@ -2969,7 +3153,8 @@
       "data_type": "float",
       "value_range_en": "0.00 l - 30000.00 l",
       "value_range_de": "0.0 kWh bis 30000.0 kWh",
-      "unit": "l"
+      "unit": "l",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeIncreasing.referenceDistance",
@@ -2985,7 +3170,8 @@
       "data_type": "float",
       "value_range_en": "0.0 km - 250000.0 km",
       "value_range_de": "100.000 km",
-      "unit": "km"
+      "unit": "km",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.overall.fuel",
@@ -3001,7 +3187,8 @@
       "data_type": "float",
       "value_range_en": "0.00 l - 30000.00 l",
       "value_range_de": "0.00 l - 30000.00 l",
-      "unit": "l"
+      "unit": "l",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.overall.referenceDistance",
@@ -3017,7 +3204,8 @@
       "data_type": "float",
       "value_range_en": "0.0 km - 250000.0 km",
       "value_range_de": "0.0 km - 250000.0 km",
-      "unit": "km"
+      "unit": "km",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.drivetrain.fuelSystem.level",
@@ -3033,7 +3221,8 @@
       "data_type": "uint8",
       "value_range_en": "0 % to 100 %, INVALID",
       "value_range_de": "0-100 %, INVALID",
-      "unit": "%"
+      "unit": "%",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.fuelSystem.remainingFuel",
@@ -3049,7 +3238,8 @@
       "data_type": "float",
       "value_range_en": "0 L to 100 L or 0 gal to 26.5 gal",
       "value_range_de": "0 l bis 100 l",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.internalCombustionEngine.engine.ect",
@@ -3065,7 +3255,8 @@
       "data_type": "int16",
       "value_range_en": "0 °C to 150 °C or 32 °F to 302 °F",
       "value_range_de": "0 °C bis 150 °C",
-      "unit": "Celsius"
+      "unit": "Celsius",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.lastRemainingRange",
@@ -3081,7 +3272,8 @@
       "data_type": "float",
       "value_range_en": "0-6500",
       "value_range_de": "0-6500",
-      "unit": "km"
+      "unit": "km",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.drivetrain.totalRemainingRange",
@@ -3097,7 +3289,8 @@
       "data_type": "float",
       "value_range_en": "0 - 2000 km",
       "value_range_de": "0 - 2000 km",
-      "unit": "km"
+      "unit": "km",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.electricalSystem.battery.serviceDemand.recharge",
@@ -3113,7 +3306,8 @@
       "data_type": "-",
       "value_range_en": "1 0",
       "value_range_de": "1 0",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.electricalSystem.battery.serviceDemand.replace",
@@ -3129,7 +3323,8 @@
       "data_type": "-",
       "value_range_en": "200 140 110 80",
       "value_range_de": "200 140 110 80",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.electricalSystem.battery.stateOfCharge",
@@ -3145,7 +3340,8 @@
       "data_type": "-",
       "value_range_en": "-",
       "value_range_de": "-",
-      "unit": "%"
+      "unit": "%",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.electricalSystem.battery.stateOfChargePlausibility",
@@ -3161,7 +3357,8 @@
       "data_type": "-",
       "value_range_en": "-",
       "value_range_de": "-",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.electricalSystem.battery.voltage",
@@ -3177,7 +3374,8 @@
       "data_type": "float",
       "value_range_en": "5 V to 20 V",
       "value_range_de": "5 V bis 20 V",
-      "unit": "V"
+      "unit": "V",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.electricalSystem.battery48V.stateOfHealth.displayed",
@@ -3193,7 +3391,8 @@
       "data_type": "uint16",
       "value_range_en": "0% to 250%",
       "value_range_de": "0 % bis 250 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.electronicControlUnit.diagnosticTroubleCodes.raw",
@@ -3209,7 +3408,8 @@
       "data_type": "-",
       "value_range_en": "The JSON structure is appended at the end of the table (4).",
       "value_range_de": "-",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.extras.optionalEquipment.code",
@@ -3225,7 +3425,8 @@
       "data_type": "-",
       "value_range_en": "4-digit number and/or letter code comma-separated from each other.",
       "value_range_de": "4-stellige, durch ein Komma voneinander getrennte Zahlen- und/oder Buchstabencode",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.isMoving",
@@ -3241,7 +3442,8 @@
       "data_type": "boolean",
       "value_range_en": "ASN_isFalse, ASN_isTrue, ASN_isUnknown",
       "value_range_de": "ASN_isFalse, ASN_isTrue, ASN_isUnknown",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.learningNavigation",
@@ -3257,7 +3459,8 @@
       "data_type": "-",
       "value_range_en": "Details can be found in the corresponding Swagger documentation: ../learningNavigation",
       "value_range_de": "",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.look.image",
@@ -3273,7 +3476,8 @@
       "data_type": "-",
       "value_range_en": "PNG file",
       "value_range_de": "PNG-Datei",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.biDirectionalCharging.availability",
@@ -3289,7 +3493,8 @@
       "data_type": "string",
       "value_range_en": "AVAILABLE, NOT_AVAILABLE, DISABLED_MALIBU, DISABLED_HVS, BPT_AND_IMO_DISABLED, BPT_ONLY_FOR_EMERGENCY_POWER_SUPPLY, DISABLED_IMO_POSSIBLE, DISABLED_LONG_TERM",
       "value_range_de": "AVAILABLE, NOT_AVAILABLE, DISABLED_MALIBU, DISABLED_HVS, BPT_AND_IMO_DISABLED, BPT_ONLY_FOR_EMERGENCY_POWER_SUPPLY, DISABLED_IMO_POSSIBLE, DISABLED_LONG_TERM",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.charging.acLimit.isActive",
@@ -3305,7 +3510,8 @@
       "data_type": "boolean",
       "value_range_en": "AC_LIMIT_INACTIVE, AC_LIMIT_ACTIVE, INVALID",
       "value_range_de": "AC_LIMIT_INACTIVE, AC_LIMIT_ACTIVE, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.charging.acLimit.max",
@@ -3321,7 +3527,8 @@
       "data_type": "uint8",
       "value_range_en": "0-250 A, INVALID",
       "value_range_de": "0-250 A, INVALID",
-      "unit": "A"
+      "unit": "A",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.charging.acLimit.min",
@@ -3337,7 +3544,8 @@
       "data_type": "uint8",
       "value_range_en": "0-250 A, INVALID",
       "value_range_de": "0-250 A, INVALID",
-      "unit": "A"
+      "unit": "A",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.charging.acLimit.selected",
@@ -3353,7 +3561,8 @@
       "data_type": "uint8",
       "value_range_en": "0-252 A, INVALID",
       "value_range_de": "0-252 A, INVALID",
-      "unit": "A"
+      "unit": "A",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.charging.acousticLimit",
@@ -3369,7 +3578,8 @@
       "data_type": "string",
       "value_range_en": "NO_ACTION, AUTOMATIC, UNLIMITED,LIMITED",
       "value_range_de": "NO_ACTION, AUTOMATIC, UNLIMITED,LIMITED",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.charging.authenticationStatus",
@@ -3385,7 +3595,8 @@
       "data_type": "string",
       "value_range_en": "",
       "value_range_de": "NOT_STARTED, STARTED_EIM, STARTED_PNC, STARTED_PLC_EIM, DONE_EIM, DONE_PLC_EIM, DONE_PNC, FAILED_PLC_EIM, FAILED_PNC, UNKNOWN",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.charging.batteryCarePersisted.isActive",
@@ -3401,7 +3612,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.charging.batteryCarePersisted.isPreservingChargingMode",
@@ -3417,7 +3629,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.charging.batteryCarePersisted.isReducedTargetSoe",
@@ -3433,7 +3646,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.charging.cableCheckVoltage",
@@ -3449,7 +3663,8 @@
       "data_type": "uint16",
       "value_range_en": "-",
       "value_range_de": "None",
-      "unit": "V"
+      "unit": "V",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.charging.dcChargingModeActive",
@@ -3465,7 +3680,8 @@
       "data_type": "string",
       "value_range_en": "EFFICIENT, STANDARD, PERFORMANCE",
       "value_range_de": "EFFICIENT, STANDARD, PERFORMANCE",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.charging.history.sessionsList",
@@ -3481,7 +3697,8 @@
       "data_type": "-",
       "value_range_en": "Details can be found in the corresponding Swagger documentation: ../chargingHistory",
       "value_range_de": "Details sind in der entsprechenden Swagger-Dokumentation: ../chargingHistory",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.charging.power",
@@ -3497,7 +3714,8 @@
       "data_type": "int32",
       "value_range_en": "20 W to 80 W",
       "value_range_de": "20 W bis 80 W",
-      "unit": "W"
+      "unit": "W",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.charging.preferenceSmartCharging",
@@ -3513,7 +3731,8 @@
       "data_type": "string",
       "value_range_en": "PRICE_OPTIMIZED, RENEWABLE_ENERGEY, CO2_OPTIMIZED, INVALID",
       "value_range_de": "PRICE_OPTIMIZED, RENEWABLE_ENERGEY, CO2_OPTIMIZED, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.charging.settingsList",
@@ -3529,7 +3748,8 @@
       "data_type": "-",
       "value_range_en": "Details can be found in the corresponding Swagger documentation: ../locationBasedChargingSettings",
       "value_range_de": "Details sind in der entsprechenden Swagger-Dokumentation: ../locationBasedChargingSettings",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.preconditioning.automaticMode.statusFeedback",
@@ -3545,7 +3765,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON, TEMP_OFF, UNKNOWN",
       "value_range_de": "OFF, ON, TEMP_OFF, UNKNOWN",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.preconditioning.manualMode.statusFeedback",
@@ -3561,7 +3782,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON_CHARGE, ON_DRIVE, UNKNOWN",
       "value_range_de": "OFF, ON_CHARGE, ON_DRIVE, UNKNOWN",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.preconditioning.state",
@@ -3577,7 +3799,8 @@
       "data_type": "string",
       "value_range_en": "OFF, ON_LEGACY, MANUAL_ON_CHARGE, AUTOMATIC_ON, REMOTE_ON_CHARGE, REMOTE_ON_DRIVE, REMOTE_OFF, UNKNOWN",
       "value_range_de": "OFF, ON_LEGACY, MANUAL_ON_CHARGE, AUTOMATIC_ON, REMOTE_ON_CHARGE, REMOTE_ON_DRIVE, REMOTE_OFF, UNKNOWN",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.stateOfCharge.displayed",
@@ -3593,7 +3816,8 @@
       "data_type": "float",
       "value_range_en": "",
       "value_range_de": "0 - 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.stateOfCharge.target",
@@ -3609,7 +3833,8 @@
       "data_type": "uint8",
       "value_range_en": "0-100 [10% Schritte], INVALID",
       "value_range_de": "0-100 [10% Schritte], INVALID",
-      "unit": "%"
+      "unit": "%",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.stateOfCharge.targetMin",
@@ -3625,7 +3850,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.stateOfCharge.targetSoCForProfessionalMode",
@@ -3641,7 +3867,8 @@
       "data_type": "uint8",
       "value_range_en": "0% to 100%",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.electric.battery.stateOfHealth.displayed",
@@ -3657,7 +3884,8 @@
       "data_type": "-",
       "value_range_en": "-",
       "value_range_de": "-",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.powertrain.electric.chargingDuration.displayControl",
@@ -3673,7 +3901,8 @@
       "data_type": "string",
       "value_range_en": "NO_DISPLAY_TIME_FOR_CHARGING, DISPLAY_CHARGING_DURATION, NO_DISPLAY_CHARGING_DURATION, INVALID",
       "value_range_de": "NO_DISPLAY_TIME_FOR_CHARGING, DISPLAY_CHARGING_DURATION, NO_DISPLAY_CHARGING_DURATION, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.electric.departureTime.displayControl",
@@ -3689,7 +3918,8 @@
       "data_type": "string",
       "value_range_en": "DONT_DISPLAY, DISPLAY_DEPARTURE_TIME, DISPLAY_DEPARTURE_TIME_WITH_V2XSOE, UNKNOWN",
       "value_range_de": "DONT_DISPLAY, DISPLAY_DEPARTURE_TIME, DISPLAY_DEPARTURE_TIME_WITH_V2XSOE, UNKNOWN",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.electric.range.displayControl",
@@ -3705,7 +3935,8 @@
       "data_type": "string",
       "value_range_en": "-",
       "value_range_de": "None",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.electric.range.target",
@@ -3721,7 +3952,8 @@
       "data_type": "float",
       "value_range_en": "0-4000 KM oder MI, INVALID",
       "value_range_de": "0-4000 KM oder MI, INVALID",
-      "unit": "km"
+      "unit": "km",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.anyPosition.flap.isAutomaticOpenAndCloseActive",
@@ -3737,7 +3969,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.anyPosition.flap.isOpen",
@@ -3753,7 +3986,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.anyPosition.isPlugged",
@@ -3769,7 +4003,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.frontLeft.flap.isAutomaticOpenAndCloseActive",
@@ -3785,7 +4020,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.frontLeft.flap.isOpen",
@@ -3801,7 +4037,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.frontLeft.isPlugged",
@@ -3817,7 +4054,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.frontMiddle.flap.isAutomaticOpenAndCloseActive",
@@ -3833,7 +4071,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.frontMiddle.flap.isOpen",
@@ -3849,7 +4088,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.frontMiddle.isPlugged",
@@ -3865,7 +4105,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.frontRight.flap.isAutomaticOpenAndCloseActive",
@@ -3881,7 +4122,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.frontRight.flap.isOpen",
@@ -3897,7 +4139,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.frontRight.isPlugged",
@@ -3913,7 +4156,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.rearLeft.flap.isAutomaticOpenAndCloseActive",
@@ -3929,7 +4173,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.rearLeft.flap.isOpen",
@@ -3945,7 +4190,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.rearLeft.isPlugged",
@@ -3961,7 +4207,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.rearMiddle.flap.isAutomaticOpenAndCloseActive",
@@ -3977,7 +4224,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.rearMiddle.flap.isOpen",
@@ -3993,7 +4241,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.rearMiddle.isPlugged",
@@ -4009,7 +4258,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.rearRight.flap.isAutomaticOpenAndCloseActive",
@@ -4025,7 +4275,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.rearRight.flap.isOpen",
@@ -4041,7 +4292,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.powertrain.tractionBattery.charging.port.rearRight.isPlugged",
@@ -4057,7 +4309,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.privacySettings.dataCollection.regulations.obfcm",
@@ -4073,7 +4326,8 @@
       "data_type": "boolean",
       "value_range_en": "True False",
       "value_range_de": "True False",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.serviceDemand.defect.id",
@@ -4089,7 +4343,8 @@
       "data_type": "-",
       "value_range_en": "-",
       "value_range_de": "-",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.sevice.preferredSevicePartner",
@@ -4105,7 +4360,8 @@
       "data_type": "-",
       "value_range_en": "string",
       "value_range_de": "string",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.sim.status",
@@ -4121,7 +4377,8 @@
       "data_type": "-",
       "value_range_en": "true, false",
       "value_range_de": "true, false",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.status.checkControlMessages",
@@ -4137,7 +4394,8 @@
       "data_type": "-",
       "value_range_en": "The Check Control example is appended at the end of the table (2).",
       "value_range_de": "-",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.status.conditionBasedServices",
@@ -4153,7 +4411,8 @@
       "data_type": "-",
       "value_range_en": "The Condition Based Service example is appended at the end of the table (3).",
       "value_range_de": "-",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.status.conditionBasedServicesAverageDistancePerDay",
@@ -4169,7 +4428,8 @@
       "data_type": "int32",
       "value_range_en": "-",
       "value_range_de": "None",
-      "unit": "km"
+      "unit": "km",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.status.conditionBasedServicesCount",
@@ -4185,7 +4445,8 @@
       "data_type": "uint16",
       "value_range_en": "0 to 60 Messages",
       "value_range_de": "0 bis 60 Meldungen",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.status.serviceDistance.next",
@@ -4201,7 +4462,8 @@
       "data_type": "uint16",
       "value_range_en": "0 km to 100,000 km or 0 mi to 62,137 mi",
       "value_range_de": "0 km bis 100.000 km",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.status.serviceDistance.yellow",
@@ -4217,7 +4479,8 @@
       "data_type": "uint16",
       "value_range_en": "2000 km or 1243 mi",
       "value_range_de": "2000 km",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.status.serviceTime.hUandAuServiceYellow",
@@ -4233,7 +4496,8 @@
       "data_type": "uint16",
       "value_range_en": "0 to 10 months",
       "value_range_de": "0 bis 10 Monate",
-      "unit": "months"
+      "unit": "months",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.status.serviceTime.inspectionDateLegal",
@@ -4249,7 +4513,8 @@
       "data_type": "string",
       "value_range_en": "dd.mm.yyyy hh:mm UTC or mm/dd/yyyy hh:mm UTC",
       "value_range_de": "dd.mm.yyyy hh:mm UTC",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.status.serviceTime.yellow",
@@ -4265,7 +4530,8 @@
       "data_type": "uint16",
       "value_range_en": "4 weeks",
       "value_range_de": "4 weeks",
-      "unit": "weeks"
+      "unit": "weeks",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.trip.segment.accumulated.acceleration.starsAverage",
@@ -4281,7 +4547,8 @@
       "data_type": "float",
       "value_range_en": "0 to 5 stars",
       "value_range_de": "0 bis 5 Sterne",
-      "unit": "stars"
+      "unit": "stars",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.trip.segment.accumulated.chassis.brake.starsAverage",
@@ -4297,7 +4564,8 @@
       "data_type": "float",
       "value_range_en": "0 to 5 stars",
       "value_range_de": "0 bis 5 Sterne",
-      "unit": "stars"
+      "unit": "stars",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.trip.segment.accumulated.drivetrain.electricEngine.energyConsumptionComfort",
@@ -4313,7 +4581,8 @@
       "data_type": "double",
       "value_range_en": "0 kWh to 10 kWh",
       "value_range_de": "0 kWh bis 10 kWh",
-      "unit": "kWh"
+      "unit": "kWh",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.trip.segment.accumulated.drivetrain.electricEngine.recuperationTotal",
@@ -4329,7 +4598,8 @@
       "data_type": "float",
       "value_range_en": "0 kWh/100 km to 170 kWh/100 km or 0 kWh/62 mi to 170 kWh/62 mi",
       "value_range_de": "0 kWh/100 km bis 170 kWh/100 km",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveEcoPro",
@@ -4345,7 +4615,8 @@
       "data_type": "float",
       "value_range_en": "0 % to 100 %",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveEcoProPlus",
@@ -4361,7 +4632,8 @@
       "data_type": "float",
       "value_range_en": "0 % to 100 %",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveElectric",
@@ -4377,7 +4649,8 @@
       "data_type": "float",
       "value_range_en": "0 % to 100 %",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.trip.segment.end.drivetrain.batteryManagement.hvSoc",
@@ -4393,7 +4666,8 @@
       "data_type": "float",
       "value_range_en": "0 % to 100 %",
       "value_range_de": "0 % bis 100 %",
-      "unit": "percent"
+      "unit": "percent",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.trip.segment.end.time",
@@ -4409,7 +4683,8 @@
       "data_type": "int32",
       "value_range_en": "dd.mm.yyyy hh:mm:ss UTC or mm/dd/yyyy hh:mm:ss UTC",
       "value_range_de": "dd.mm.yyyy hh:mm:ss UTC",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.trip.segment.end.travelledDistance",
@@ -4425,7 +4700,8 @@
       "data_type": "float",
       "value_range_en": "0 km to 999999 km or 0 mi to 621371 mi",
       "value_range_de": "0 km bis 999999 km",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.vehicle.antiTheftAlarmSystem.alarm.activationTime",
@@ -4441,7 +4717,8 @@
       "data_type": "string",
       "value_range_en": "-",
       "value_range_de": "None",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.vehicle.antiTheftAlarmSystem.alarm.armStatus",
@@ -4457,7 +4734,8 @@
       "data_type": "string",
       "value_range_en": "unarmed, doorsOnly, doorsTiltCabin",
       "value_range_de": "unarmed, doorsOnly, doorsTiltCabin",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.vehicle.antiTheftAlarmSystem.alarm.isOn",
@@ -4473,7 +4751,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "wahr, falsch",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.vehicle.averageWeeklyDistanceLongTerm",
@@ -4489,7 +4768,8 @@
       "data_type": "float",
       "value_range_en": "1 km to 3000 km or 1 mi to 1864 mi",
       "value_range_de": "1 km bis 3000 km",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.vehicle.averageWeeklyDistanceShortTerm",
@@ -4505,7 +4785,8 @@
       "data_type": "float",
       "value_range_en": "1 km to 3000 km or 1 mi to 1864 mi",
       "value_range_de": "1 km bis 3000 km",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.vehicle.avgAuxPower",
@@ -4521,7 +4802,8 @@
       "data_type": "float",
       "value_range_en": "0 kW to 655,34 kW, INVALID",
       "value_range_de": "0 – 655.34, INVALID",
-      "unit": "kW"
+      "unit": "kW",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.vehicle.avgSpeed",
@@ -4537,7 +4819,8 @@
       "data_type": "uint16",
       "value_range_en": "0 km/h to 300 km/h or 0 mph to 186 mph, INVALID",
       "value_range_de": "0-300 km/h, INVALID",
-      "unit": "km/h"
+      "unit": "km/h",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.vehicle.deepSleepModeActive",
@@ -4553,7 +4836,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "true, false",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.vehicle.preConditioning.activity",
@@ -4569,7 +4853,8 @@
       "data_type": "string",
       "value_range_en": "standby, heating, cooling, ventilation, inactive",
       "value_range_de": "standby heating cooling ventilation inactive",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.vehicle.preConditioning.error",
@@ -4585,7 +4870,8 @@
       "data_type": "string",
       "value_range_en": "LowFuel, LowBattery, QuotaExceeded, HeaterFailure, ComponentFailure, OpenOrUnlocked, OK, INVALID",
       "value_range_de": "LowFuel LowBattery QuotaExceeded HeaterFailure ComponentFailure OpenOrUnlocked OK INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.vehicle.preConditioning.isRemoteEngineRunning",
@@ -4601,7 +4887,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false",
       "value_range_de": "true, false",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.vehicle.preConditioning.isRemoteEngineStartAllowed",
@@ -4617,7 +4904,8 @@
       "data_type": "boolean",
       "value_range_en": "true, false, INVALID",
       "value_range_de": "true, false, INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.vehicle.preConditioning.remainingTime",
@@ -4633,7 +4921,8 @@
       "data_type": "uint8",
       "value_range_en": "0-60 min, INVALID",
       "value_range_de": "0-60 min, INVALID",
-      "unit": "min"
+      "unit": "min",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.vehicle.speedRange.lowerBound",
@@ -4649,7 +4938,8 @@
       "data_type": "int16",
       "value_range_en": "-100 km/h - 500 km/h",
       "value_range_de": "-100 km/h - 500 km/h",
-      "unit": "km/h"
+      "unit": "km/h",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.vehicle.speedRange.upperBound",
@@ -4665,7 +4955,8 @@
       "data_type": "int16",
       "value_range_en": "-100 km/h - 500 km/h",
       "value_range_de": "-100 km/h - 500 km/h",
-      "unit": "km/h"
+      "unit": "km/h",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.vehicle.timeSetting",
@@ -4681,7 +4972,8 @@
       "data_type": "string",
       "value_range_en": "wintertime, summertime, utc, manual, INVALID",
       "value_range_de": "wintertime summertime utc manual INVALID",
-      "unit": ""
+      "unit": "",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.vehicle.travelledDistance",
@@ -4697,7 +4989,8 @@
       "data_type": "float",
       "value_range_en": "0 km to 500000 km or 0 mi to 310686 mi",
       "value_range_de": "0 km bis 500000 km",
-      "unit": "null"
+      "unit": "null",
+      "streamable": true
     },
     {
       "descriptor": "vehicle.vehicleIdentification.basicVehicleData",
@@ -4713,7 +5006,8 @@
       "data_type": "-",
       "value_range_en": "Details can be found in the corresponding Swagger documentation: ../basicData",
       "value_range_de": "Details sind in der entsprechenden Swagger-Dokumentation: ../basicData",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     },
     {
       "descriptor": "vehicle.vehicleIdentification.connectedDriveContractList",
@@ -4729,7 +5023,8 @@
       "data_type": "-",
       "value_range_en": "yyyy-mm-dd hh:mm:ss UTC",
       "value_range_de": "yyyy-mm-dd hh:mm:ss UTC",
-      "unit": ""
+      "unit": "",
+      "streamable": false
     }
   ]
 }

@@ -209,6 +209,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | `charging_cost_month`, `charging_cost_session`, `charging_cost_per_100km` | Cost | 🟡 |
 | `battery_health` | Learned capacity | 🟡 |
 | `driving_distance_month` | Monthly distance + split | 🟡 |
+| `tyre_status`, `tyre_<position>` (×4) | Tyre wear / condition from the REST diagnosis | 🟢 Feature-Entities-and-Devices + The-Dashboard-Card |
 | `api_quota_remaining` | Diagnostic | 🟡 |
 | `connection_status`, `last_message`, `last_telematic_api` | Diagnostics | ❌ |
 | `car` (device_tracker) | Location | ❌ |
@@ -226,6 +227,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Charging events (`bavariandata_charging_*`) | 🟡 |
 | Automation blueprints (2) | 🟡 |
 | API quota + Repairs issue | 🟡 |
+| Daily REST refresh (container + tyre, 2 req/day) | 🟢 Feature-API-Quota → "The daily refresh" + Services-Reference |
 | Descriptor-coverage self-test | ❌ |
 | Clean uninstall / fresh-install reset | 🟡 Troubleshooting → "Removing BavarianData completely" + `docs/clean-install.md` |
 

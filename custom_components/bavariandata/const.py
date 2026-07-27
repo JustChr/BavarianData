@@ -18,7 +18,13 @@ REQUEST_LOG = "request_log"
 REQUEST_LOG_VERSION = 1
 REQUEST_LIMIT = 50 # API Quota
 REQUEST_WINDOW_SECONDS = 24 * 60 * 60 # How long API Quota is reserved after API Call in seconds
-TELEMATIC_POLL_INTERVAL = 40 * 60 # How often to call the Telematic API in seconds
+# How often to call the Telematic API, in seconds. Once a day: the container now
+# holds the fields BMW *cannot* stream, and those change on the scale of days
+# (service demands, tread wear, lifetime counters), not minutes. A 24 h cadence
+# spends 1 of the 50 daily requests instead of the 36 the old 40-minute loop did,
+# leaving the quota free for the fetch_* services.
+# The tyre diagnosis rides the same loop on its own endpoint (one more request).
+TELEMATIC_POLL_INTERVAL = 24 * 60 * 60
 VEHICLE_METADATA = "vehicle_metadata"
 OPTION_MQTT_KEEPALIVE = "mqtt_keepalive"
 OPTION_DEBUG_LOG = "debug_log"

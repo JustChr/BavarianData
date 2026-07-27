@@ -60,6 +60,25 @@ def clean(text: str) -> str:
     return text.strip()
 
 
+# BMW renders the catalogue's last column ("Streamingfähig") as a tick glyph, not
+# as text: ``<td class="col7"><div class="true-tick"></div></td>``. The flag is
+# therefore in the *class*, and :func:`clean` — which strips tags — reads the cell
+# as empty. Parse the class instead.
+_TICK_RE = re.compile(r'class="(true|false)-tick"')
+
+
+def parse_streamable(cell_html: str) -> bool:
+    """Read the Streamingfähig tick out of a raw ``col7`` cell.
+
+    Unknown markup is treated as streamable: BMW can only ever *add* fields to the
+    stream, so guessing "yes" degrades to today's behaviour (a descriptor we ask
+    for and never receive) rather than silently hiding one that works.
+    """
+
+    match = _TICK_RE.search(cell_html)
+    return match.group(1) == "true" if match else True
+
+
 def parse_html() -> "OrderedDict[str, dict]":
     raw = HTML_FILE.read_text(encoding="utf-8")
     entries: "OrderedDict[str, dict]" = OrderedDict()
@@ -81,6 +100,10 @@ def parse_html() -> "OrderedDict[str, dict]":
                 for classes, value in cols
                 if classes.split()
             }
+            # Kept un-cleaned alongside: col7's value lives in markup, not text.
+            raw_byclass = {
+                classes.split()[0]: value for classes, value in cols if classes.split()
+            }
             descriptor = byclass.get("col3", "")
             if not descriptor.startswith("vehicle"):
                 continue
@@ -93,6 +116,7 @@ def parse_html() -> "OrderedDict[str, dict]":
                 "data_type": byclass.get("col4", ""),
                 "value_range_de": byclass.get("col5", ""),
                 "unit": byclass.get("col6-emea", ""),
+                "streamable": parse_streamable(raw_byclass.get("col7", "")),
             }
     return entries
 
@@ -154,6 +178,9 @@ def main() -> None:
             "value_range_en": e.get("value_range_en", ""),
             "value_range_de": d.get("value_range_de", ""),
             "unit": unit,
+            # BMW's own "can this be streamed?" flag. Descriptors present only in
+            # the English CSV have no tick to read, so they default to True.
+            "streamable": d.get("streamable", True),
         }
         catalogue.append(entry)
 
@@ -166,6 +193,8 @@ def main() -> None:
         json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
     print(f"Wrote {len(catalogue)} descriptors to {OUTPUT_FILE.relative_to(REPO_ROOT)}")
+    streamable = sum(1 for e in catalogue if e["streamable"])
+    print(f"  streamable: {streamable} / {len(catalogue)}")
     only_de = set(de) - set(en)
     only_en = set(en) - set(de)
     if only_de:

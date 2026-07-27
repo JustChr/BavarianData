@@ -9,7 +9,10 @@ registry (no Home Assistant imports) describing, per descriptor:
   numeric sensors get statistics, unit conversion and proper history,
 * ``options`` — raw enum values (for ENUM sensors / state translations),
 * ``entity_category`` — ``"diagnostic"`` for the technical long tail,
-* ``enabled_default`` — whether the entity is created enabled.
+* ``enabled_default`` — whether the entity is created enabled,
+* ``streamable`` — BMW's own flag for whether the MQTT stream can carry it. A
+  non-streamable descriptor still gets an entity (several arrive over REST via a
+  container), it is just never asked for on the stream.
 
 ``sensor.py`` maps the string values here onto the Home Assistant enums, so
 this file stays framework-agnostic and unit-testable.
@@ -195,6 +198,7 @@ def classify(entry: dict) -> dict:
         "options": options,
         "entity_category": entity_category,
         "enabled_default": enabled_default,
+        "streamable": bool(entry.get("streamable", True)),
     }
 
 
@@ -236,6 +240,7 @@ def main() -> None:
         lines.append(f"        \"options\": {list(m['options'])!r},")
         lines.append(f"        \"entity_category\": {m['entity_category']!r},")
         lines.append(f"        \"enabled_default\": {m['enabled_default']!r},")
+        lines.append(f"        \"streamable\": {m['streamable']!r},")
         lines.append("    },")
     lines.append("}")
     lines.append("")
@@ -248,6 +253,7 @@ def main() -> None:
     print("  enabled_default True:", sum(m["enabled_default"] for m in meta.values()))
     print("  diagnostic:", sum(m["entity_category"] == "diagnostic" for m in meta.values()))
     print("  with options:", sum(1 for m in meta.values() if m["options"]))
+    print("  streamable:", sum(m["streamable"] for m in meta.values()), "/", len(meta))
 
 
 if __name__ == "__main__":

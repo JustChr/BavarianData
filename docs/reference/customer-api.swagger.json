@@ -158,6 +158,18 @@
         ],
         "summary": "Create a container",
         "operationId": "createContainer",
+        "description": "Please note that some keys are bound to dedicated endpoints. These keys can be added to a container, but the corresponding endpoint for which the container is an input-parameter (/telematicData/), won't return these keys. For further details, check the Integration Guide (chapter 3.3.2).",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-version",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "v1"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -289,6 +301,7 @@
         ],
         "summary": "Request Vehicle's telematic data for a container, for the specified vehicle.",
         "operationId": "getTelematicData",
+        "description": "Please note that some keys are bound to dedicated endpoints. These keys can be added to a container, but the corresponding endpoint for which the container is an input-parameter (/telematicData/), won't return these keys. For further details, check the Integration Guide (chapter 3.3.2).",
         "parameters": [
           {
             "in": "header",
@@ -725,6 +738,9 @@
         ],
         "summary": "Request a vehicle image for the specified vehicle.",
         "operationId": "getImage",
+        "produces": [
+          "image/png,image/jpeg,application/json"
+        ],
         "parameters": [
           {
             "in": "header",
@@ -840,7 +856,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "string"
+                  "type": "file"
                 }
               }
             }
@@ -1298,6 +1314,7 @@
         ],
         "summary": "Request container details",
         "operationId": "getContainerDetails",
+        "description": "Please note that some keys are bound to dedicated endpoints. These keys can be added to a container, but the corresponding endpoint for which the container is an input-parameter (/telematicData/), won't return these keys. For further details, check the Integration Guide (chapter 3.3.2).",
         "parameters": [
           {
             "in": "header",
@@ -1438,6 +1455,15 @@
         "summary": "Delete container by ID",
         "operationId": "deleteContainer",
         "parameters": [
+          {
+            "in": "header",
+            "name": "x-version",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "v1"
+            }
+          },
           {
             "name": "containerId",
             "in": "path",
@@ -2118,27 +2144,6 @@
           "startTime"
         ]
       },
-      "ChargingCostInformationDto": {
-        "type": "object",
-        "properties": {
-          "currency": {
-            "type": "string"
-          },
-          "calculatedChargingCost": {
-            "type": "number",
-            "format": "double"
-          },
-          "calculatedSavings": {
-            "type": "number",
-            "format": "double"
-          }
-        },
-        "required": [
-          "calculatedChargingCost",
-          "calculatedSavings",
-          "currency"
-        ]
-      },
       "ChargingHistoryResponseDto": {
         "type": "object",
         "properties": {
@@ -2220,6 +2225,16 @@
             "type": "number",
             "format": "double"
           },
+          "energyDecreaseHvbKwh": {
+            "type": "number",
+            "format": "double",
+            "example": "1.2"
+          },
+          "energyDischargedKwh": {
+            "type": "number",
+            "format": "double",
+            "example": "1.2"
+          },
           "isPreconditioningActivated": {
             "type": "boolean"
           },
@@ -2234,9 +2249,6 @@
               "MileageUnits.KM",
               "MileageUnits.MI"
             ]
-          },
-          "chargingCostInformation": {
-            "$ref": "#/components/schemas/ChargingCostInformationDto"
           },
           "chargingLocation": {
             "$ref": "#/components/schemas/ChargingLocationDto"
@@ -2379,6 +2391,9 @@
             "type": "string"
           },
           "simStatus": {
+            "type": "string"
+          },
+          "reessNominalCapacityGross": {
             "type": "string"
           }
         }

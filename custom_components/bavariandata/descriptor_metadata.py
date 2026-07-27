@@ -29,6 +29,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['disconnected', 'connected', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.body.chargingPort.dcStatus': {
         "section": 'electric',
@@ -39,6 +40,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['disconnected', 'connected', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.body.chargingPort.isHospitalityActive': {
         "section": 'electric',
@@ -49,6 +51,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['hospitality_inactive', 'hospitality_active', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.body.chargingPort.isoSessionId': {
         "section": 'electric',
@@ -59,6 +62,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": False,
     },
     'vehicle.body.chargingPort.lockedStatus': {
         "section": 'electric',
@@ -69,6 +73,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['charging_cable_not_locked', 'charging_cable_locked', 'charging_cable_locking_error_detected', 'unknown'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.body.chargingPort.plugEventId': {
         "section": 'electric',
@@ -79,6 +84,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.body.chargingPort.status': {
         "section": 'electric',
@@ -89,6 +95,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['connected', 'disconnected', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.body.chargingPort.statusClearText': {
         "section": 'electric',
@@ -99,6 +106,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['disconnected', 'connected'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.body.flap.isLocked': {
         "section": 'electric',
@@ -109,6 +117,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['flap_unlocked', 'flap_locked', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.body.flap.isPermanentlyUnlocked': {
         "section": 'electric',
@@ -119,6 +128,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['no_action', 'flap_unlocked', 'flap_locked', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.body.hood.isOpen': {
         "section": 'status',
@@ -129,6 +139,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['closed', 'open', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.body.lights.isRunningOn': {
         "section": 'status',
@@ -139,6 +150,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.body.trunk.door.isOpen': {
         "section": 'status',
@@ -149,6 +161,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.body.trunk.isLocked': {
         "section": 'status',
@@ -159,6 +172,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.body.trunk.isOpen': {
         "section": 'status',
@@ -169,6 +183,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['closed', 'open', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.body.trunk.left.door.isOpen': {
         "section": 'status',
@@ -179,6 +194,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.body.trunk.lower.door.isOpen': {
         "section": 'status',
@@ -189,6 +205,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.body.trunk.right.door.isOpen': {
         "section": 'status',
@@ -199,6 +216,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.body.trunk.upper.door.isOpen': {
         "section": 'status',
@@ -209,6 +227,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.body.trunk.window.isOpen': {
         "section": 'status',
@@ -219,6 +238,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['closed', 'open', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.climate.timers.overwriteTimer.action': {
         "section": 'metadata',
@@ -229,6 +249,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['activate', 'deactivate', 'no_action'],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.cabin.climate.timers.overwriteTimer.hour': {
         "section": 'metadata',
@@ -239,6 +260,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.cabin.climate.timers.overwriteTimer.minute': {
         "section": 'metadata',
@@ -249,6 +271,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.cabin.climate.timers.weekdaysTimer1.action': {
         "section": 'metadata',
@@ -259,6 +282,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['activate', 'deactivate', 'no_action'],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.cabin.climate.timers.weekdaysTimer1.hour': {
         "section": 'metadata',
@@ -269,6 +293,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.cabin.climate.timers.weekdaysTimer1.minute': {
         "section": 'metadata',
@@ -279,6 +304,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.cabin.climate.timers.weekdaysTimer2.action': {
         "section": 'metadata',
@@ -289,6 +315,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['activate', 'deactivate', 'no_action'],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.cabin.climate.timers.weekdaysTimer2.hour': {
         "section": 'metadata',
@@ -299,6 +326,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.cabin.climate.timers.weekdaysTimer2.minute': {
         "section": 'metadata',
@@ -309,6 +337,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.cabin.convertible.roofRetractableStatus': {
         "section": 'status',
@@ -319,6 +348,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.convertible.roofStatus': {
         "section": 'status',
@@ -329,6 +359,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['closedsecured', 'opensecured'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.door.lock.status': {
         "section": 'status',
@@ -339,6 +370,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['secured', 'unlocked', 'selective-locked', 'locked', 'invalid', 'unknown'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.cabin.door.row1.driver.isOpen': {
         "section": 'status',
@@ -349,6 +381,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['open', 'closed', 'invalid', 'unknown'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.door.row1.driver.position': {
         "section": 'status',
@@ -359,6 +392,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.door.row1.passenger.isOpen': {
         "section": 'status',
@@ -369,6 +403,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['open', 'closed', 'invalid', 'unknown'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.door.row1.passenger.position': {
         "section": 'status',
@@ -379,6 +414,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.door.row2.driver.isOpen': {
         "section": 'status',
@@ -389,6 +425,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['open', 'closed', 'invalid', 'unknown'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.door.row2.driver.position': {
         "section": 'status',
@@ -399,6 +436,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.door.row2.passenger.isOpen': {
         "section": 'status',
@@ -409,6 +447,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['open', 'closed', 'invalid', 'unknown'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.door.row2.passenger.position': {
         "section": 'status',
@@ -419,6 +458,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.door.status': {
         "section": 'status',
@@ -429,6 +469,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row1.driverSide.cooling': {
         "section": 'status',
@@ -439,6 +480,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row1.driverSide.heating': {
         "section": 'status',
@@ -449,6 +491,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row1.passengerSide.cooling': {
         "section": 'status',
@@ -459,6 +502,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row1.passengerSide.heating': {
         "section": 'status',
@@ -469,6 +513,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row2.driverSide.cooling': {
         "section": 'status',
@@ -479,6 +524,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row2.driverSide.heating': {
         "section": 'status',
@@ -489,6 +535,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row2.passengerSide.cooling': {
         "section": 'status',
@@ -499,6 +546,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row2.passengerSide.heating': {
         "section": 'status',
@@ -509,6 +557,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row3.driverSide.cooling': {
         "section": 'status',
@@ -519,6 +568,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row3.driverSide.heating': {
         "section": 'status',
@@ -529,6 +579,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row3.passengerSide.cooling': {
         "section": 'status',
@@ -539,6 +590,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.seat.row3.passengerSide.heating': {
         "section": 'status',
@@ -549,6 +601,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.steeringWheel.heating': {
         "section": 'status',
@@ -559,6 +612,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.targetTemperature': {
         "section": 'status',
@@ -569,6 +623,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row1.driverSide.cooling': {
         "section": 'status',
@@ -579,6 +634,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row1.driverSide.heating': {
         "section": 'status',
@@ -589,6 +645,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row1.passengerSide.cooling': {
         "section": 'status',
@@ -599,6 +656,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row1.passengerSide.heating': {
         "section": 'status',
@@ -609,6 +667,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row2.driverSide.cooling': {
         "section": 'status',
@@ -619,6 +678,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row2.driverSide.heating': {
         "section": 'status',
@@ -629,6 +689,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row2.passengerSide.cooling': {
         "section": 'status',
@@ -639,6 +700,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row2.passengerSide.heating': {
         "section": 'status',
@@ -649,6 +711,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row3.driverSide.cooling': {
         "section": 'status',
@@ -659,6 +722,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row3.driverSide.heating': {
         "section": 'status',
@@ -669,6 +733,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row3.passengerSide.cooling': {
         "section": 'status',
@@ -679,6 +744,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row3.passengerSide.heating': {
         "section": 'status',
@@ -689,6 +755,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.steeringWheel.heating': {
         "section": 'status',
@@ -699,6 +766,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'automatic', 'no_change'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.targetTemperature': {
         "section": 'status',
@@ -709,6 +777,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.configuration.isRemoteEngineStartDisclaimer': {
         "section": 'status',
@@ -719,6 +788,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.cabin.hvac.preconditioning.status.comfortState': {
         "section": 'status',
@@ -729,6 +799,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['not_active', 'comfort_heating', 'comfort_cooling', 'comfort_ventilation', 'defrost', 'comfort_undefined'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.status.isExteriorMirrorHeatingActive': {
         "section": 'status',
@@ -739,6 +810,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.status.progress': {
         "section": 'status',
@@ -749,6 +821,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.status.rearDefrostActive': {
         "section": 'status',
@@ -759,6 +832,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.preconditioning.status.remainingRunningTime': {
         "section": 'status',
@@ -769,6 +843,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.hvac.statusAirPurification': {
         "section": 'status',
@@ -779,6 +854,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['unfiltered', 'purifying_ongoing', 'purified', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.infotainment.displayUnit.distance': {
         "section": 'status',
@@ -789,6 +865,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['km', 'miles'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.infotainment.hmi.distanceUnit': {
         "section": 'metadata',
@@ -799,6 +876,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['miles', 'kilometers'],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.cabin.infotainment.isMobilePhoneConnected': {
         "section": 'status',
@@ -809,6 +887,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.infotainment.navigation.currentLocation.altitude': {
         "section": 'status',
@@ -819,6 +898,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.infotainment.navigation.currentLocation.fixStatus': {
         "section": 'metadata',
@@ -829,6 +909,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['no_fix', 'gps_fix_2d', 'gps_fix_3d'],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.cabin.infotainment.navigation.currentLocation.heading': {
         "section": 'status',
@@ -839,6 +920,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.infotainment.navigation.currentLocation.latitude': {
         "section": 'status',
@@ -849,6 +931,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.infotainment.navigation.currentLocation.longitude': {
         "section": 'status',
@@ -859,6 +942,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.infotainment.navigation.currentLocation.numberOfSatellites': {
         "section": 'metadata',
@@ -869,6 +953,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.cabin.infotainment.navigation.destinationSet.arrivalTime': {
         "section": 'status',
@@ -879,6 +964,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.infotainment.navigation.destinationSet.distance': {
         "section": 'status',
@@ -889,6 +975,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.infotainment.navigation.destinationSet.latitude': {
         "section": 'status',
@@ -899,6 +986,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.cabin.infotainment.navigation.destinationSet.longitude': {
         "section": 'status',
@@ -909,6 +997,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.cabin.infotainment.navigation.pointsOfInterests.available': {
         "section": 'status',
@@ -919,6 +1008,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.infotainment.navigation.pointsOfInterests.max': {
         "section": 'status',
@@ -929,6 +1019,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.infotainment.navigation.remainingRange': {
         "section": 'status',
@@ -939,6 +1030,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.seat.row1.driverSide.cooling': {
         "section": 'status',
@@ -949,6 +1041,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.seat.row1.driverSide.heating': {
         "section": 'status',
@@ -959,6 +1052,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.seat.row1.passengerSide.cooling': {
         "section": 'status',
@@ -969,6 +1063,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.seat.row1.passengerSide.heating': {
         "section": 'status',
@@ -979,6 +1074,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.seat.row2.driverSide.cooling': {
         "section": 'status',
@@ -989,6 +1085,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.seat.row2.driverSide.heating': {
         "section": 'status',
@@ -999,6 +1096,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.seat.row2.passengerSide.cooling': {
         "section": 'status',
@@ -1009,6 +1107,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.seat.row2.passengerSide.heating': {
         "section": 'status',
@@ -1019,6 +1118,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.seat.row3.driverSide.cooling': {
         "section": 'status',
@@ -1029,6 +1129,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.seat.row3.driverSide.heating': {
         "section": 'status',
@@ -1039,6 +1140,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.seat.row3.passengerSide.cooling': {
         "section": 'status',
@@ -1049,6 +1151,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.seat.row3.passengerSide.heating': {
         "section": 'status',
@@ -1059,6 +1162,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.steeringWheel.heating': {
         "section": 'status',
@@ -1069,6 +1173,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.sunroof.overallStatus': {
         "section": 'status',
@@ -1079,6 +1184,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['invalid', 'open', 'open_tilt', 'intermediate_tilt', 'closed'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.sunroof.relativePosition': {
         "section": 'status',
@@ -1089,6 +1195,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.sunroof.shade.position': {
         "section": 'status',
@@ -1099,6 +1206,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.sunroof.status': {
         "section": 'status',
@@ -1109,6 +1217,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['closed', 'intermediate', 'open', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.sunroof.tiltStatus': {
         "section": 'status',
@@ -1119,6 +1228,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['closed', 'intermediate', 'open', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.window.row1.driver.status': {
         "section": 'status',
@@ -1129,6 +1239,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['closed', 'intermediate', 'open', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.window.row1.passenger.status': {
         "section": 'status',
@@ -1139,6 +1250,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['closed', 'intermediate', 'open', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.window.row2.driver.status': {
         "section": 'status',
@@ -1149,6 +1261,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['closed', 'intermediate', 'open', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.cabin.window.row2.passenger.status': {
         "section": 'status',
@@ -1159,6 +1272,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['closed', 'intermediate', 'open', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.channel.ista.obfcm.lastTransmissionStatus': {
         "section": 'status',
@@ -1169,6 +1283,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['ok', 'ecu_communication_error', 'vehicle_manipulation_detected', 'manufacturer_excluded'],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": False,
     },
     'vehicle.channel.ngtp.timeVehicle': {
         "section": 'status',
@@ -1179,6 +1294,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.channel.teleservice.lastAutomaticServiceCallTime': {
         "section": 'events',
@@ -1189,6 +1305,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.channel.teleservice.lastBreakdownCallTime': {
         "section": 'status',
@@ -1199,6 +1316,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.channel.teleservice.lastManualCallTime': {
         "section": 'status',
@@ -1209,6 +1327,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.channel.teleservice.lastTeleserviceReportTime': {
         "section": 'events',
@@ -1219,6 +1338,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.channel.teleservice.status': {
         "section": 'status',
@@ -1229,6 +1349,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['pending', 'idle', 'successful', 'error'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.chassis.axle.row1.wheel.left.tire.pressure': {
         "section": 'tire',
@@ -1239,6 +1360,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.chassis.axle.row1.wheel.left.tire.pressureTarget': {
         "section": 'tire',
@@ -1249,6 +1371,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.chassis.axle.row1.wheel.left.tire.temperature': {
         "section": 'tire',
@@ -1259,6 +1382,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.chassis.axle.row1.wheel.right.tire.pressure': {
         "section": 'tire',
@@ -1269,6 +1393,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.chassis.axle.row1.wheel.right.tire.pressureTarget': {
         "section": 'tire',
@@ -1279,6 +1404,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.chassis.axle.row1.wheel.right.tire.temperature': {
         "section": 'tire',
@@ -1289,6 +1415,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.chassis.axle.row2.wheel.left.tire.pressure': {
         "section": 'tire',
@@ -1299,6 +1426,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.chassis.axle.row2.wheel.left.tire.pressureTarget': {
         "section": 'tire',
@@ -1309,6 +1437,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.chassis.axle.row2.wheel.left.tire.temperature': {
         "section": 'tire',
@@ -1319,6 +1448,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.chassis.axle.row2.wheel.right.tire.pressure': {
         "section": 'tire',
@@ -1329,6 +1459,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.chassis.axle.row2.wheel.right.tire.pressureTarget': {
         "section": 'tire',
@@ -1339,6 +1470,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.chassis.axle.row2.wheel.right.tire.temperature': {
         "section": 'tire',
@@ -1349,6 +1481,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.chassis.axle.wheel.tire.diagnosis': {
         "section": 'status',
@@ -1359,6 +1492,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.drivetrain.avgElectricRangeConsumption': {
         "section": 'electric',
@@ -1369,6 +1503,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.batteryManagement.batterySizeMax': {
         "section": 'basic',
@@ -1379,6 +1514,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.batteryManagement.header': {
         "section": 'electric',
@@ -1389,6 +1525,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.drivetrain.batteryManagement.maxEnergy': {
         "section": 'electric',
@@ -1399,6 +1536,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.acAmpere': {
         "section": 'electric',
@@ -1409,6 +1547,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.acRestriction.factor': {
         "section": 'electric',
@@ -1419,6 +1558,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['maxcharging', 'reducedcharging', 'mincharging'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.acRestriction.isChosen': {
         "section": 'electric',
@@ -1429,6 +1569,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['notchosen', 'chosen', 'reducedcharging', 'mincharging', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.acVoltage': {
         "section": 'electric',
@@ -1439,6 +1580,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.authentication.status': {
         "section": 'electric',
@@ -1449,6 +1591,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['authorization_successful', 'transport_layer_error', 'high_level_communication_error', 'contract_service_not_supported_error', 'authorization_error', 'authorization_timeout', 'nvm_read_certificate_error', 'certificate_update_error', 'xml_security_error'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.chargingMode': {
         "section": 'electric',
@@ -1459,6 +1602,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['normal_prognose_based', 'step_based', 'plc_mode'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.connectionType': {
         "section": 'electric',
@@ -1469,6 +1613,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['conductive', 'inductive', 'signal_invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.connectorStatus': {
         "section": 'electric',
@@ -1479,6 +1624,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['connected', 'disconnected', 'error'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.engineOff.gridEnergy': {
         "section": 'electric',
@@ -1489,6 +1635,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.engineOff.referenceDistance': {
         "section": 'electric',
@@ -1499,6 +1646,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": False,
     },
     'vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.engineOn.gridEnergy': {
         "section": 'electric',
@@ -1509,6 +1657,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.engineOn.referenceDistance': {
         "section": 'electric',
@@ -1519,6 +1668,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": False,
     },
     'vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.overall.gridEnergy': {
         "section": 'electric',
@@ -1529,6 +1679,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.overall.referenceDistance': {
         "section": 'electric',
@@ -1539,6 +1690,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": False,
     },
     'vehicle.drivetrain.electricEngine.charging.hvStatus': {
         "section": 'electric',
@@ -1549,6 +1701,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['invalid', 'charging', 'error', 'not_charging', 'waiting_for_charging', 'finished_fully_charged', 'finished_not_full'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.hvpmFinishReason': {
         "section": 'electric',
@@ -1559,6 +1712,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['unknown', 'charging_goal_reached', 'end_requested_by_driver', 'connector_removed', 'powergrid_failed', 'hv_system_failure', 'charging_station_failure', 'parking_lock_failed', 'no_parking_lock', 'signal_invalid', 'invalid'],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.isImmediateChargingSystemReason': {
         "section": 'electric',
@@ -1569,6 +1723,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.isSingleImmediateCharging': {
         "section": 'electric',
@@ -1579,6 +1734,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['direct_chg_once_not_active', 'direct_chg_once_active', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.lastChargingReason': {
         "section": 'electric',
@@ -1589,6 +1745,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['charging_goal_reached', 'end_requested_by_driver', 'connector_removed', 'powergrid_failed', 'hv_system_failure', 'charging_station_failure', 'parking_lock_failed', 'no_parking_lock', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.lastChargingResult': {
         "section": 'electric',
@@ -1599,6 +1756,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['success', 'failed', 'unknown'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.level': {
         "section": 'electric',
@@ -1609,6 +1767,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.drivetrain.electricEngine.charging.method': {
         "section": 'electric',
@@ -1619,6 +1778,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['ac_type1plug', 'ac_type2plug', 'nocharging'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.modeDeviation': {
         "section": 'electric',
@@ -1629,6 +1789,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['no_deviation', 'dc_dynamic_malibu', 'dc_dynamic_min_soe_protection', 'immediate_charging_not_supported_by_evse', 'immediate_charging_wake_up_limit_reached', 'immediate_charging', 'charging_timeslot', 'charging_in_timeslot', 'smart_charging', 'dc_dynamic', 'bidirectional_charging', 'no_action', 'unknown'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.phaseNumber': {
         "section": 'electric',
@@ -1639,6 +1800,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['no_charging', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.profile.climatizationActive': {
         "section": 'electric',
@@ -1649,6 +1811,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.profile.isRcpConfigComplete': {
         "section": 'electric',
@@ -1659,6 +1822,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.profile.mode': {
         "section": 'status',
@@ -1669,6 +1833,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.profile.preference': {
         "section": 'electric',
@@ -1679,6 +1844,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['charging_window', 'smart_charging', 'no_preselection'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.profile.settings.biDirectionalCharging.departureTimeRelevant': {
         "section": 'electric',
@@ -1689,6 +1855,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.profile.settings.biDirectionalCharging.dischargeAllowed': {
         "section": 'electric',
@@ -1699,6 +1866,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.profile.timerType': {
         "section": 'electric',
@@ -1709,6 +1877,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.reasonChargingEnd': {
         "section": 'electric',
@@ -1719,6 +1888,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['no_charging_end_since_ipf_wakeup', 'customer_interaction_hmi_unplug_cable_once', 'customer_interaction_hmi_charging_target_reached', 'customer_interaction_app_unplug_cable_once', 'customer_interaction_app_charging_target_reached', 'customer_interaction_charging_stop_via_charging_stop_button_socket', 'customer_interaction_ac_charging_stop_via_key', 'customer_interaction_ac_charging_stop_wallbox', 'customer_interaction_ac_charging_stop_latch', 'hv_battery_fully_charged', 'infrastructure_physical_limits_reached_target_soe_not_reachable', 'infrastructure_dc_ccs_evse_shutdown', 'infrastructure_dc_gbt_cst_message', 'infrastructure_dc_ccs_static_pilot', 'infrastructure_dc_ccs_communication_error_failed_response_code', 'infrastructure_dc_ccs_communication_error', 'infrastructure_no_energy_transfer', 'infrastructure_dc_ccs_precharge_error', 'infrastructure_dc_ccs_evse_malfunction_emergency_shutdown', 'infrastructure_station_not_compatible', 'infrastructure_charge_readiness_timeout', 'infrastructure_ac_maximum_grid_error_reached', 'infrastructure_dc_gbt_isolation_error_detected', 'infrastructure_authentification_error', 'vehicle_hv_battery_error', 'vehicle_hv_battery_communication_error', 'vehicle_dcdc_error', 'vehicle_plc_bootup_error', 'vehicle_hv_battery_maximal_current_overshoot', 'vehicle_isolation_error', 'vehicle_maximum_temperature_charging_socket_overshoot', 'vehicle_lt3_overshoot', 'vehicle_fusi_cable_lock_error', 'vehicle_plc_communication_not_possible', 'flexcharger_grid_error', 'flexcharger_grid_temperature_error', 'flexcharger_evse_temperature_error', 'flexcharger_evse_internal_error', 'flexcharger_ac_dc_fault_current', 'flexcharger_incorrect_reaction_time_pwm', 'flexcharger_charging_current_too_high', 'flexcharger_pe_fault', 'infrastructure_inefficient_charging_low_power', 'vehicle_cable_locking_error', 'vehicle_configuration_error_400v_800v', 'infrastructure_no_ac_voltage', 'plug_and_charge_tls_error', 'plug_and_charge_contract_error', 'smart_charging_tariff_selection_invalid', 'smart_charging_charging_profile_invalid', 'customer_interaction_ac_charging_stop_via_app', 'charging_paused', 'discharge_not_possible_voltage_too_high', 'discharge_not_possible_soe_too_low', 'discharge_not_possible_internal_error', 'discharge_not_possible_incompatible_adapter', 'discharge_not_possible_incompatible_consumer'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.routeOptimizedChargingStatus': {
         "section": 'electric',
@@ -1729,6 +1899,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['route_optimized_charging_in_progress', 'route_optimized_soc_target_reached'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.smeEnergyDeltaFullyCharged': {
         "section": 'electric',
@@ -1739,6 +1910,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.status': {
         "section": 'electric',
@@ -1749,6 +1921,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['nocharging', 'initialization', 'chargingactive', 'chargingpaused', 'chargingended', 'chargingerror'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.timeRemaining': {
         "section": 'electric',
@@ -1759,6 +1932,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.timeToFullyCharged': {
         "section": 'electric',
@@ -1769,6 +1943,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.charging.windowSelection': {
         "section": 'electric',
@@ -1779,6 +1954,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['chosen', 'notchosen'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.hvsMaxEnergyAbsolute': {
         "section": 'basic',
@@ -1789,6 +1965,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.drivetrain.electricEngine.kombiRemainingElectricRange': {
         "section": 'electric',
@@ -1799,6 +1976,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.electricEngine.remainingElectricRange': {
         "section": 'electric',
@@ -1809,6 +1987,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.engine.isActive': {
         "section": 'status',
@@ -1819,6 +1998,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.engine.isIgnitionOn': {
         "section": 'status',
@@ -1829,6 +2009,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeDepleting.fuel': {
         "section": 'usage',
@@ -1839,6 +2020,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeDepleting.referenceDistanceEngineOff': {
         "section": 'usage',
@@ -1849,6 +2031,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": False,
     },
     'vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeDepleting.referenceDistanceEngineOn': {
         "section": 'usage',
@@ -1859,6 +2042,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": False,
     },
     'vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeIncreasing.fuel': {
         "section": 'usage',
@@ -1869,6 +2053,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeIncreasing.referenceDistance': {
         "section": 'usage',
@@ -1879,6 +2064,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": False,
     },
     'vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.overall.fuel': {
         "section": 'usage',
@@ -1889,6 +2075,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.overall.referenceDistance': {
         "section": 'usage',
@@ -1899,6 +2086,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": False,
     },
     'vehicle.drivetrain.fuelSystem.level': {
         "section": 'status',
@@ -1909,6 +2097,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.fuelSystem.remainingFuel': {
         "section": 'status',
@@ -1919,6 +2108,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.internalCombustionEngine.engine.ect': {
         "section": 'status',
@@ -1929,6 +2119,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.lastRemainingRange': {
         "section": 'usage',
@@ -1939,6 +2130,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.drivetrain.totalRemainingRange': {
         "section": 'electric',
@@ -1949,6 +2141,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.electricalSystem.battery.serviceDemand.recharge': {
         "section": 'status',
@@ -1959,6 +2152,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.electricalSystem.battery.serviceDemand.replace': {
         "section": 'status',
@@ -1969,6 +2163,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.electricalSystem.battery.stateOfCharge': {
         "section": 'status',
@@ -1979,6 +2174,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.electricalSystem.battery.stateOfChargePlausibility': {
         "section": 'status',
@@ -1989,6 +2185,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": False,
     },
     'vehicle.electricalSystem.battery.voltage': {
         "section": 'status',
@@ -1999,6 +2196,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.electricalSystem.battery48V.stateOfHealth.displayed': {
         "section": 'electric',
@@ -2009,6 +2207,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.electronicControlUnit.diagnosticTroubleCodes.raw': {
         "section": 'status',
@@ -2019,6 +2218,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.extras.optionalEquipment.code': {
         "section": 'basic',
@@ -2029,6 +2229,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.isMoving': {
         "section": 'status',
@@ -2039,6 +2240,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.learningNavigation': {
         "section": 'other',
@@ -2049,6 +2251,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.look.image': {
         "section": 'basic',
@@ -2059,6 +2262,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.powertrain.electric.battery.biDirectionalCharging.availability': {
         "section": 'electric',
@@ -2069,6 +2273,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['available', 'not_available', 'disabled_malibu', 'disabled_hvs', 'bpt_and_imo_disabled', 'bpt_only_for_emergency_power_supply', 'disabled_imo_possible', 'disabled_long_term'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.powertrain.electric.battery.charging.acLimit.isActive': {
         "section": 'electric',
@@ -2079,6 +2284,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['ac_limit_inactive', 'ac_limit_active', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.electric.battery.charging.acLimit.max': {
         "section": 'electric',
@@ -2089,6 +2295,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.electric.battery.charging.acLimit.min': {
         "section": 'electric',
@@ -2099,6 +2306,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.electric.battery.charging.acLimit.selected': {
         "section": 'electric',
@@ -2109,6 +2317,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.electric.battery.charging.acousticLimit': {
         "section": 'electric',
@@ -2119,6 +2328,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['no_action', 'automatic', 'unlimited', 'limited'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.electric.battery.charging.authenticationStatus': {
         "section": 'electric',
@@ -2129,6 +2339,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['not_started', 'started_eim', 'started_pnc', 'started_plc_eim', 'done_eim', 'done_plc_eim', 'done_pnc', 'failed_plc_eim', 'failed_pnc', 'unknown'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.powertrain.electric.battery.charging.batteryCarePersisted.isActive': {
         "section": 'electric',
@@ -2139,6 +2350,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.powertrain.electric.battery.charging.batteryCarePersisted.isPreservingChargingMode': {
         "section": 'electric',
@@ -2149,6 +2361,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.powertrain.electric.battery.charging.batteryCarePersisted.isReducedTargetSoe': {
         "section": 'electric',
@@ -2159,6 +2372,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.powertrain.electric.battery.charging.cableCheckVoltage': {
         "section": 'electric',
@@ -2169,6 +2383,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": False,
     },
     'vehicle.powertrain.electric.battery.charging.dcChargingModeActive': {
         "section": 'electric',
@@ -2179,6 +2394,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['efficient', 'standard', 'performance'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.powertrain.electric.battery.charging.history.sessionsList': {
         "section": 'electric',
@@ -2189,6 +2405,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.powertrain.electric.battery.charging.power': {
         "section": 'electric',
@@ -2199,6 +2416,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.electric.battery.charging.preferenceSmartCharging': {
         "section": 'electric',
@@ -2209,6 +2427,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['price_optimized', 'renewable_energey', 'co2_optimized', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.electric.battery.charging.settingsList': {
         "section": 'electric',
@@ -2219,6 +2438,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.powertrain.electric.battery.preconditioning.automaticMode.statusFeedback': {
         "section": 'electric',
@@ -2229,6 +2449,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on', 'temp_off', 'unknown'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.electric.battery.preconditioning.manualMode.statusFeedback': {
         "section": 'electric',
@@ -2239,6 +2460,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on_charge', 'on_drive', 'unknown'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.electric.battery.preconditioning.state': {
         "section": 'electric',
@@ -2249,6 +2471,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['off', 'on_legacy', 'manual_on_charge', 'automatic_on', 'remote_on_charge', 'remote_on_drive', 'remote_off', 'unknown'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.electric.battery.stateOfCharge.displayed': {
         "section": 'electric',
@@ -2259,6 +2482,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.electric.battery.stateOfCharge.target': {
         "section": 'electric',
@@ -2269,6 +2493,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.electric.battery.stateOfCharge.targetMin': {
         "section": 'electric',
@@ -2279,6 +2504,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.electric.battery.stateOfCharge.targetSoCForProfessionalMode': {
         "section": 'electric',
@@ -2289,6 +2515,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.electric.battery.stateOfHealth.displayed': {
         "section": 'electric',
@@ -2299,6 +2526,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.powertrain.electric.chargingDuration.displayControl': {
         "section": 'electric',
@@ -2309,6 +2537,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['no_display_time_for_charging', 'display_charging_duration', 'no_display_charging_duration', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.electric.departureTime.displayControl': {
         "section": 'electric',
@@ -2319,6 +2548,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['dont_display', 'display_departure_time', 'display_departure_time_with_v2xsoe', 'unknown'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.electric.range.displayControl': {
         "section": 'metadata',
@@ -2329,6 +2559,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.powertrain.electric.range.target': {
         "section": 'electric',
@@ -2339,6 +2570,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.anyPosition.flap.isAutomaticOpenAndCloseActive': {
         "section": 'electric',
@@ -2349,6 +2581,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.anyPosition.flap.isOpen': {
         "section": 'electric',
@@ -2359,6 +2592,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.anyPosition.isPlugged': {
         "section": 'electric',
@@ -2369,6 +2603,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.frontLeft.flap.isAutomaticOpenAndCloseActive': {
         "section": 'electric',
@@ -2379,6 +2614,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.frontLeft.flap.isOpen': {
         "section": 'electric',
@@ -2389,6 +2625,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.frontLeft.isPlugged': {
         "section": 'electric',
@@ -2399,6 +2636,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.frontMiddle.flap.isAutomaticOpenAndCloseActive': {
         "section": 'electric',
@@ -2409,6 +2647,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.frontMiddle.flap.isOpen': {
         "section": 'electric',
@@ -2419,6 +2658,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.frontMiddle.isPlugged': {
         "section": 'electric',
@@ -2429,6 +2669,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.frontRight.flap.isAutomaticOpenAndCloseActive': {
         "section": 'electric',
@@ -2439,6 +2680,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.frontRight.flap.isOpen': {
         "section": 'electric',
@@ -2449,6 +2691,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.frontRight.isPlugged': {
         "section": 'electric',
@@ -2459,6 +2702,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.rearLeft.flap.isAutomaticOpenAndCloseActive': {
         "section": 'electric',
@@ -2469,6 +2713,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.rearLeft.flap.isOpen': {
         "section": 'electric',
@@ -2479,6 +2724,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.rearLeft.isPlugged': {
         "section": 'electric',
@@ -2489,6 +2735,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.rearMiddle.flap.isAutomaticOpenAndCloseActive': {
         "section": 'electric',
@@ -2499,6 +2746,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.rearMiddle.flap.isOpen': {
         "section": 'electric',
@@ -2509,6 +2757,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.rearMiddle.isPlugged': {
         "section": 'electric',
@@ -2519,6 +2768,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.rearRight.flap.isAutomaticOpenAndCloseActive': {
         "section": 'electric',
@@ -2529,6 +2779,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.rearRight.flap.isOpen': {
         "section": 'electric',
@@ -2539,6 +2790,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.powertrain.tractionBattery.charging.port.rearRight.isPlugged': {
         "section": 'electric',
@@ -2549,6 +2801,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.privacySettings.dataCollection.regulations.obfcm': {
         "section": 'usage',
@@ -2559,6 +2812,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": False,
     },
     'vehicle.serviceDemand.defect.id': {
         "section": 'status',
@@ -2569,6 +2823,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.sevice.preferredSevicePartner': {
         "section": 'status',
@@ -2579,6 +2834,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.sim.status': {
         "section": 'basic',
@@ -2589,6 +2845,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": False,
     },
     'vehicle.status.checkControlMessages': {
         "section": 'usage',
@@ -2599,6 +2856,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.status.conditionBasedServices': {
         "section": 'usage',
@@ -2609,6 +2867,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.status.conditionBasedServicesAverageDistancePerDay': {
         "section": 'usage',
@@ -2619,6 +2878,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.status.conditionBasedServicesCount': {
         "section": 'status',
@@ -2629,6 +2889,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.status.serviceDistance.next': {
         "section": 'status',
@@ -2639,6 +2900,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.status.serviceDistance.yellow': {
         "section": 'status',
@@ -2649,6 +2911,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.status.serviceTime.hUandAuServiceYellow': {
         "section": 'status',
@@ -2659,6 +2922,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.status.serviceTime.inspectionDateLegal': {
         "section": 'status',
@@ -2669,6 +2933,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.status.serviceTime.yellow': {
         "section": 'status',
@@ -2679,6 +2944,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.trip.segment.accumulated.acceleration.starsAverage': {
         "section": 'electric',
@@ -2689,6 +2955,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.trip.segment.accumulated.chassis.brake.starsAverage': {
         "section": 'electric',
@@ -2699,6 +2966,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.trip.segment.accumulated.drivetrain.electricEngine.energyConsumptionComfort': {
         "section": 'electric',
@@ -2709,6 +2977,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.trip.segment.accumulated.drivetrain.electricEngine.recuperationTotal': {
         "section": 'electric',
@@ -2719,6 +2988,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveEcoPro': {
         "section": 'electric',
@@ -2729,6 +2999,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveEcoProPlus': {
         "section": 'electric',
@@ -2739,6 +3010,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveElectric': {
         "section": 'electric',
@@ -2749,6 +3021,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.trip.segment.end.drivetrain.batteryManagement.hvSoc': {
         "section": 'electric',
@@ -2759,6 +3032,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.trip.segment.end.time': {
         "section": 'electric',
@@ -2769,6 +3043,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.trip.segment.end.travelledDistance': {
         "section": 'electric',
@@ -2779,6 +3054,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.vehicle.antiTheftAlarmSystem.alarm.activationTime': {
         "section": 'status',
@@ -2789,6 +3065,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.vehicle.antiTheftAlarmSystem.alarm.armStatus': {
         "section": 'status',
@@ -2799,6 +3076,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['unarmed', 'doorsonly', 'doorstiltcabin'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.vehicle.antiTheftAlarmSystem.alarm.isOn': {
         "section": 'status',
@@ -2809,6 +3087,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.vehicle.averageWeeklyDistanceLongTerm': {
         "section": 'usage',
@@ -2819,6 +3098,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.vehicle.averageWeeklyDistanceShortTerm': {
         "section": 'usage',
@@ -2829,6 +3109,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.vehicle.avgAuxPower': {
         "section": 'electric',
@@ -2839,6 +3120,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.vehicle.avgSpeed': {
         "section": 'electric',
@@ -2849,6 +3131,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.vehicle.deepSleepModeActive': {
         "section": 'status',
@@ -2859,6 +3142,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.vehicle.preConditioning.activity': {
         "section": 'status',
@@ -2869,6 +3153,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['standby', 'heating', 'cooling', 'ventilation', 'inactive'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.vehicle.preConditioning.error': {
         "section": 'status',
@@ -2879,6 +3164,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['lowfuel', 'lowbattery', 'quotaexceeded', 'heaterfailure', 'componentfailure', 'openorunlocked', 'ok', 'invalid'],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.vehicle.preConditioning.isRemoteEngineRunning': {
         "section": 'status',
@@ -2889,6 +3175,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.vehicle.preConditioning.isRemoteEngineStartAllowed': {
         "section": 'status',
@@ -2899,6 +3186,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.vehicle.preConditioning.remainingTime': {
         "section": 'status',
@@ -2909,6 +3197,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.vehicle.speedRange.lowerBound': {
         "section": 'usage',
@@ -2919,6 +3208,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.vehicle.speedRange.upperBound': {
         "section": 'usage',
@@ -2929,6 +3219,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.vehicle.timeSetting': {
         "section": 'status',
@@ -2939,6 +3230,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": ['wintertime', 'summertime', 'utc', 'manual', 'invalid'],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": True,
     },
     'vehicle.vehicle.travelledDistance': {
         "section": 'status',
@@ -2949,6 +3241,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": True,
     },
     'vehicle.vehicleIdentification.basicVehicleData': {
         "section": 'basic',
@@ -2959,6 +3252,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": None,
         "enabled_default": True,
+        "streamable": False,
     },
     'vehicle.vehicleIdentification.connectedDriveContractList': {
         "section": 'contract',
@@ -2969,5 +3263,6 @@ DESCRIPTOR_META: dict[str, dict] = {
         "options": [],
         "entity_category": 'diagnostic',
         "enabled_default": False,
+        "streamable": False,
     },
 }

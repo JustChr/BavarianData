@@ -21,7 +21,7 @@ dashboard to show them side by side.
 - [Battery health](#battery-health-view-health)
 - [Trips / driving journal](#trips--driving-journal-view-trips)
 - [Trip map](#trip-map-view-map)
-- [Tire pressures](#tire-pressures-cluster-tire)
+- [Tires](#tires-cluster-tire)
 - [Security & closures](#security--closures-cluster-closures)
 - [Single-cluster list](#single-cluster-list)
 - [Full YAML reference](#full-yaml-reference)
@@ -161,10 +161,10 @@ load from OpenStreetMap, as they do for the built-in Map card).
 
 ---
 
-## Tire pressures (`cluster: tire`)
+## Tires (`cluster: tire`)
 
-Draws a top-down car with each tire coloured by pressure vs. its target (green
-OK, amber high, red low) and the readings beside each wheel.
+Draws a top-down car with each tire coloured by condition and the readings
+beside each wheel.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-tires.png" alt="Tire pressure card flagging slightly high pressures on all four tires" width="300" />
@@ -174,6 +174,20 @@ OK, amber high, red low) and the readings beside each wheel.
 type: custom:bavariandata-card
 cluster: tire
 ```
+
+**Pressure** comes from the stream: green OK, amber high, red low, judged against
+each wheel's target.
+
+**Wear** comes from BMW's smart-maintenance tyre diagnosis, refreshed by the
+[daily refresh](Feature-API-Quota#the-daily-refresh). When it is available each
+wheel also shows tread depth and the mileage until a change is due, and the
+fitment line under the diagram gives size, tread, season and fitting date.
+
+Wear outranks pressure in the colour and the header: a tyre BMW flags as worn
+reads *"Check tyres"* even at perfect pressure, because pressure is trivially
+fixable and tread is not. If your car has no tyre service record on file BMW
+returns nothing here, the wear parts are simply absent, and the card behaves
+exactly as before.
 
 ---
 

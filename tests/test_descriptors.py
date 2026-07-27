@@ -38,29 +38,60 @@ def test_sections_cover_every_descriptor_section():
 def test_default_sections_are_relevant_and_ordered():
     defaults = D.default_sections()
     assert defaults, "expected some relevant clusters"
-    # Only clusters that carry an enabled-by-default descriptor qualify.
-    relevant = {m["section"] for m in META.values() if m["enabled_default"]}
+    # Only clusters carrying an enabled-by-default, streamable descriptor qualify.
+    relevant = {
+        m["section"] for m in META.values() if m["enabled_default"] and m["streamable"]
+    }
     assert set(defaults) == relevant
     # Order follows the catalogue's section order.
     assert defaults == [s for s in SECTIONS if s in relevant]
 
 
 def test_descriptors_for_sections_is_total_and_scoped():
-    # Selecting every section (with the diagnostic tail) yields every descriptor.
-    all_desc = D.descriptors_for_sections(SECTIONS, include_diagnostic=True)
+    # Selecting every section, holding back neither filter, yields every descriptor.
+    all_desc = D.descriptors_for_sections(
+        SECTIONS, include_diagnostic=True, include_unstreamable=True
+    )
     assert set(all_desc) == set(META)
-    # Default (relevant-only) excludes the diagnostic long tail.
+    # Default excludes the diagnostic long tail *and* the non-streamable ones.
     relevant = D.descriptors_for_sections(SECTIONS)
-    assert set(relevant) == {d for d, m in META.items() if m["enabled_default"]}
+    assert set(relevant) == {
+        d for d, m in META.items() if m["enabled_default"] and m["streamable"]
+    }
     assert set(relevant) < set(all_desc)
+
+
+def test_descriptors_for_sections_omits_unstreamable():
+    # BMW's catalogue marks descriptors it cannot put on the MQTT stream. Asking
+    # for them would leave the coverage self-test reporting permanent gaps, so
+    # every stream-facing caller must never see them.
+    unstreamable = {d for d, m in META.items() if not m["streamable"]}
+    assert unstreamable, "expected the catalogue to mark some as non-streamable"
+    offered = set(
+        D.descriptors_for_sections(SECTIONS, include_diagnostic=True)
+    )
+    assert not (offered & unstreamable)
+    # They are still real catalogue entries and still get entities.
+    assert unstreamable < set(META)
+    # ...and the escape hatch brings them back.
+    with_all = set(
+        D.descriptors_for_sections(
+            SECTIONS, include_diagnostic=True, include_unstreamable=True
+        )
+    )
+    assert unstreamable < with_all
 
 
 def test_descriptors_are_partitioned_by_section():
     # A descriptor belongs to exactly one cluster, so per-section sets are disjoint
-    # and their union (with diagnostics) is the whole catalogue.
+    # and their union (unfiltered) is the whole catalogue.
     seen: set[str] = set()
     for slug in SECTIONS:
-        got = set(D.descriptors_for_sections([slug], include_diagnostic=True))
+        got = set(
+            D.descriptors_for_sections(
+                [slug], include_diagnostic=True, include_unstreamable=True
+            )
+        )
         assert not (got & seen), f"{slug} overlaps another section"
         seen |= got
     assert seen == set(META)

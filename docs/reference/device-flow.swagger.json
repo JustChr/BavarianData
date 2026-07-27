@@ -220,7 +220,7 @@
       },
       "DeviceCodeResponse" : {
         "type" : "object",
-        "required" : [ "device_code", "user_code", "verification_uri", "verification_uri_complete", "expires_in" ],
+        "required" : [ "device_code", "user_code", "verification_uri",  "expires_in" ],
         "properties" : {
           "user_code" : {
             "type" : "string",
@@ -239,13 +239,8 @@
           },
           "verification_uri" : {
             "type" : "string",
-            "example" : "https://customer-i.bmwgroup.com/oneid/link",
+            "example" : "https://customer.bmwgroup.com/oneid/link",
             "description" : "Link to the UI that allows the user to enter the user_code."
-          },
-          "verification_uri_complete" : {
-            "type" : "string",
-            "example" : "https://customer-i.bmwgroup.com/oneid/link?user_code=sDzZXXmD",
-            "description" : "Link to the UI with the user_code generated."
           },
           "expires_in" : {
             "type" : "integer",

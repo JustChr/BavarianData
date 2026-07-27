@@ -42,7 +42,6 @@ from .const import (
     DOMAIN,
     MQTT_KEEPALIVE,
     DIAGNOSTIC_LOG_INTERVAL,
-    HV_BATTERY_DESCRIPTORS,
     BOOTSTRAP_COMPLETE,
     REQUEST_LOG,
     REQUEST_LOG_VERSION,
@@ -888,7 +887,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             except CardataApiError as err:
                 _LOGGER.error("Cardata fetch_tyre_diagnosis failed for %s: %s", vin, err)
                 return
-            _LOGGER.info("Fetched tyre diagnosis for %s", vin)
+            parsed = runtime.coordinator.apply_tyre_diagnosis(vin, payload)
+            _LOGGER.info(
+                "Fetched tyre diagnosis for %s (%s wheel(s) reported)",
+                vin,
+                len(parsed.get("wheels") or {}),
+            )
             _LOGGER.debug("Cardata tyre diagnosis for %s: %s", vin, payload)
 
         async def async_handle_fetch_location_charging(call) -> None:
@@ -1751,9 +1755,10 @@ async def _refresh_tokens(
         }
     )
 
-    desired_signature = CardataContainerManager.compute_signature(HV_BATTERY_DESCRIPTORS)
-
     if container_manager:
+        # The manager derives the descriptor set from the catalogue, so ask it
+        # rather than recomputing here — the two must never disagree.
+        desired_signature = container_manager.descriptor_signature
         hv_container_id = data.get("hv_container_id")
         stored_signature = data.get("hv_descriptor_signature")
         access_token = data.get("access_token")
@@ -1764,11 +1769,20 @@ async def _refresh_tokens(
             data["hv_descriptor_signature"] = desired_signature
             container_manager.sync_from_entry(hv_container_id)
         else:
+            # A container already exists but holds the wrong descriptors (we
+            # widened the set). Reset rather than ensure, so the stale one is
+            # deleted instead of idling against BMW's 10-container limit.
+            stale = bool(hv_container_id)
             container_manager.sync_from_entry(None)
             try:
-                container_id = await container_manager.async_ensure_hv_container(
-                    access_token
-                )
+                if stale:
+                    container_id = await container_manager.async_reset_hv_container(
+                        access_token
+                    )
+                else:
+                    container_id = await container_manager.async_ensure_hv_container(
+                        access_token
+                    )
             except CardataContainerError as err:
                 _LOGGER.warning(
                     "Unable to ensure HV container for entry %s: %s",
@@ -2158,7 +2172,57 @@ def _async_update_last_telematic_poll(
     hass.config_entries.async_update_entry(entry, data=updated)
 
 
+async def _async_perform_tyre_fetch(
+    hass: HomeAssistant, entry: ConfigEntry, runtime: CardataRuntimeData
+) -> bool:
+    """Refresh the smart-maintenance tyre diagnosis for the entry's vehicle.
+
+    Its own endpoint, so its own request against the daily quota -- it cannot be
+    folded into the container call.
+    """
+
+    vin = entry.data.get("vin")
+    if not vin and runtime.coordinator.data:
+        vin = next(iter(runtime.coordinator.data))
+    if not vin:
+        return False
+
+    access_token = entry.data.get("access_token")
+    if not access_token:
+        return False
+
+    quota = runtime.quota_manager
+    if quota:
+        try:
+            await quota.async_claim()
+        except CardataQuotaError as err:
+            _LOGGER.warning("Daily tyre diagnosis skipped for %s: %s", vin, err)
+            return False
+
+    try:
+        payload = await async_get_tyre_diagnosis(runtime.session, access_token, vin)
+    except CardataApiError as err:
+        # Not every vehicle has tyre service data; a failure here must not stop
+        # the container refresh that shares this loop.
+        _LOGGER.debug("Daily tyre diagnosis failed for %s: %s", vin, err)
+        return False
+
+    parsed = runtime.coordinator.apply_tyre_diagnosis(vin, payload)
+    _LOGGER.debug(
+        "Daily tyre diagnosis for %s: %s wheel(s)", vin, len(parsed.get("wheels") or {})
+    )
+    return True
+
+
 async def _telematic_poll_loop(hass: HomeAssistant, entry_id: str) -> None:
+    """Daily REST refresh of everything BMW cannot stream.
+
+    Two requests per run: one container call covering every non-streamable
+    descriptor at once, plus the tyre diagnosis on its own endpoint. The image
+    and basic data are deliberately not here -- they do not change, so they stay
+    on the setup path and the manual services.
+    """
+
     try:
         while True:
             entry = hass.config_entries.async_get_entry(entry_id)
@@ -2180,6 +2244,7 @@ async def _telematic_poll_loop(hass: HomeAssistant, entry_id: str) -> None:
                 entry,
                 runtime,
             )
+            await _async_perform_tyre_fetch(hass, entry, runtime)
             _async_update_last_telematic_poll(hass, entry, time.time())
             await asyncio.sleep(TELEMATIC_POLL_INTERVAL)
     except asyncio.CancelledError:

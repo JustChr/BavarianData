@@ -57,6 +57,13 @@ def main() -> None:
         "whether the entity is created enabled; the technical long tail is "
         "created disabled and can be turned on per entity in Home Assistant.",
         "",
+        "**Stream** is BMW's own flag for whether the MQTT stream can carry the "
+        "field. A `no` is not a bug and not a gap in your Data Selection: the "
+        "value only ever arrives over the REST API, so the entity stays empty "
+        "until something fetches it (for most of them, one of the "
+        "`bavariandata.fetch_*` services). Those fields are never requested on "
+        "the stream and are not counted by `get_coverage_report`.",
+        "",
     ]
 
     total = 0
@@ -67,12 +74,15 @@ def main() -> None:
         entries.sort(key=lambda e: e["descriptor"])
         lines.append(f"## {section_label} ({len(entries)})")
         lines.append("")
-        lines.append("| Name (EN) | Name (DE) | Descriptor | Unit | Default | Description |")
-        lines.append("| --- | --- | --- | --- | --- | --- |")
+        lines.append(
+            "| Name (EN) | Name (DE) | Descriptor | Unit | Default | Stream | Description |"
+        )
+        lines.append("| --- | --- | --- | --- | --- | --- | --- |")
         for e in entries:
             meta = META.get(e["descriptor"], {})
             unit = meta.get("unit") or "—"
             default = "on" if meta.get("enabled_default", True) else "off"
+            stream = "yes" if meta.get("streamable", True) else "no"
             # Prefer BMW's own English name; for the few German-only descriptors
             # (no English export row) fall back to our curated title_en so the
             # column is never blank.
@@ -83,7 +93,7 @@ def main() -> None:
                 desc = desc[:157] + "…"
             lines.append(
                 f"| {name_en} | {name_de} | `{e['descriptor']}` | {unit} | "
-                f"{default} | {desc} |"
+                f"{default} | {stream} | {desc} |"
             )
         lines.append("")
         total += len(entries)
