@@ -54,7 +54,7 @@ Home  (landing / nav)
 │   ├─ Battery health view
 │   ├─ Trips / driving journal view
 │   ├─ Trip map view (view: map)
-│   ├─ Tire pressures (cluster: tire)
+│   ├─ Tires (cluster: tire)
 │   ├─ Security & closures (cluster: closures)
 │   ├─ Single-cluster lists
 │   └─ Full YAML option reference
@@ -169,7 +169,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `view: trips` | Driving journal | 🟡 | 📷 |
 | `view: map` | Trip map (routes) | 🟡 | 📷 (needs route data) |
 | `view: health` | Battery health | 🟡 | 📷 |
-| `cluster: tire` | Tire pressures | 🟡 | 📷 (have) |
+| `cluster: tire` | Tires (pressure + wear) | 🟡 | 📷 (have) |
 | `cluster: closures` | Security & closures | 🟡 | 📷 (have) |
 | `cluster: <other>` | Single-cluster list | 🟡 | 📷 |
 | YAML options (`device`, `vin`, entity overrides) | — | 🟡 | — |

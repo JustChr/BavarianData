@@ -39,7 +39,7 @@ integration's own translations (so German installs get German names too).
 | **Battery Health** | Learned usable capacity (kWh), with vs-new %, sample count and a capacity-vs-mileage trend. |
 | **Driving Distance (This Month)** | Monthly distance + business/private/commute split. |
 | **Tyre Condition** | BMW's overall verdict on the mounted set, plus any upstream errors. |
-| **Tyre Front Left / Front Right / Rear Left / Rear Right** | Per-wheel wear traffic light (`green`/`yellow`/`red`/`grey`), with tread depth, mileage until a change is due, defect status, season, dimension and fitting date as attributes. |
+| **Tyre Front Left / Front Right / Rear Left / Rear Right** | Per-wheel wear traffic light (`green`/`yellow`/`red`/`grey`), with the mileage until a change is due, defect status, season, dimension, tread pattern and fitting date as attributes. |
 | **API Quota Remaining** | Diagnostic: requests left in the 50/24 h window. |
 | **State-of-charge estimate / rate** | Extrapolated SoC helpers (need the Electric vehicle cluster). |
 | **Stream Connection Status** | Diagnostic: MQTT connection state. |

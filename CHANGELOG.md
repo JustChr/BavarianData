@@ -9,6 +9,36 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **The tire card is now a tire card, not a tire-pressure card** (card 1.8.0). It
+  is titled **Tires**, and it opens with the two things that can actually be
+  wrong with one, side by side: **Pressure** (the measured spread across the set,
+  with the shared target under it) and **Wear** (BMW's verdict, with the mileage
+  until the soonest wheel is due). The header badge stays the combined verdict
+  for the whole car.
+- **Each wheel now carries its own size, tread, season and fitting date**, beside
+  that wheel instead of in one line under the diagram. Staggered setups are
+  normal — the i5 runs 245s at the front and 275s at the rear — and a single
+  shared line had to pick one of them to show, so it showed the wrong size for
+  half the car.
+- **Nothing gets cut off any more.** The wheel labels were absolutely positioned
+  at a fixed 29% width with `white-space: nowrap`, so anything longer than the
+  gap beside the car ran off the edge. The diagram is a grid now: each wheel's
+  column is sized by the card, and long lines wrap. Below roughly 340 px the car
+  drops out and the four wheels fall back to a 2×2 grid.
+- **The pressure band is no longer symmetric: low from 8% under target, high only
+  past 15% over.** The old ±4% flagged every wheel of a perfectly healthy car —
+  BMW's target is the *cold* pressure and a tire you have just driven on reads
+  8–10% high. Under-inflation is the condition worth an early hint; over-
+  inflation is only worth one past what warm-up explains.
+
+### Fixed
+- **The card printed BMW's remaining-mileage figure twice per wheel**, once
+  labelled as though it were a tread depth. BMW's tyre diagnosis does not report
+  tread depth at all: `tyreWear.value` is a rendering of the same remaining
+  mileage, and `tread` is the tread *pattern* ("EcoContact 6 Q"). Both now read
+  as what they are.
+
 ## [0.9.2-beta.6] - 2026-07-27
 
 ### Added

@@ -13,7 +13,7 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.7.0";
+const CARD_VERSION = "1.8.0";
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -145,7 +145,7 @@ const TRANSLATIONS = {
     front_right: "Front right",
     rear_left: "Rear left",
     rear_right: "Rear right",
-    tire_pressure: "Tire pressure",
+    tires: "Tires",
     no_tire_data:
       "No tire data for this vehicle yet. Enable the Tire data cluster and drive to populate readings.",
     check_pressure: "Check pressure",
@@ -161,6 +161,18 @@ const TRANSLATIONS = {
     wear_due: "change in",
     fitted: "fitted",
     t_current: "Current",
+    // tire summary + per-wheel fitment
+    sum_pressure: "Pressure",
+    sum_wear: "Wear",
+    p_target: "Target",
+    p_target_varies: "Targets vary",
+    w_ok: "OK",
+    w_soon: "Check soon",
+    w_due: "Replace",
+    season_summer: "Summer",
+    season_winter: "Winter",
+    season_all: "All-season",
+    runflat: "Runflat",
     // closures / security
     cl_closures: "Security & closures",
     closures_none:
@@ -336,7 +348,7 @@ const TRANSLATIONS = {
     front_right: "Vorne rechts",
     rear_left: "Hinten links",
     rear_right: "Hinten rechts",
-    tire_pressure: "Reifendruck",
+    tires: "Reifen",
     no_tire_data:
       "Noch keine Reifendaten für dieses Fahrzeug. Aktiviere den Cluster „Reifendaten“ und fahre, um Werte zu erfassen.",
     check_pressure: "Druck prüfen",
@@ -352,6 +364,18 @@ const TRANSLATIONS = {
     wear_due: "Wechsel in",
     fitted: "montiert",
     t_current: "Aktuell",
+    // tire summary + per-wheel fitment
+    sum_pressure: "Druck",
+    sum_wear: "Verschleiß",
+    p_target: "Soll",
+    p_target_varies: "Sollwerte unterschiedlich",
+    w_ok: "OK",
+    w_soon: "Bald prüfen",
+    w_due: "Wechseln",
+    season_summer: "Sommer",
+    season_winter: "Winter",
+    season_all: "Ganzjahres",
+    runflat: "Runflat",
     // closures / security
     cl_closures: "Sicherheit & Öffnungen",
     closures_none:
@@ -2505,11 +2529,10 @@ class BavarianDataCard extends HTMLElement {
             Object.entries(m).map(([mk, s]) => [
               mk,
               // The diagnosis entity's state changes only when the traffic light
-              // flips; tread and remaining mileage move underneath it, so they
-              // have to be in the signature or the card would never redraw them.
-              mk === "diagnosis"
-                ? `${s.state}|${(s.attributes || {}).wear_value}|${(s.attributes || {}).due_mileage_km}`
-                : s.state,
+              // flips; everything the card draws from it -- remaining mileage,
+              // size, tread, season, fitting date -- moves underneath it, so it
+              // all has to be in the signature or the card would never redraw.
+              mk === "diagnosis" ? this._wearSig(s) : s.state,
             ])
           ),
         ])
@@ -2528,40 +2551,7 @@ class BavarianDataCard extends HTMLElement {
       return;
     }
 
-    // Fleet-wide status summary for the header. Wear is called out separately
-    // from pressure so "check tyres" never reads as "top up the air".
-    const statuses = present.map((s) => this._tireStatus(wheels[s.key]).cls);
-    const worn = present.some((s) => {
-      const w = this._tireWear(wheels[s.key]);
-      return w && (w.color === "red" || w.color === "yellow");
-    });
-    const worst = worn
-      ? {
-          t: this._t("check_tyres"),
-          c: statuses.includes("low") ? "var(--bmw-low)" : "var(--bmw-mid)",
-        }
-      : statuses.includes("low")
-      ? { t: this._t("check_pressure"), c: "var(--bmw-low)" }
-      : statuses.includes("high")
-      ? { t: this._t("slightly_high"), c: "var(--bmw-mid)" }
-      : statuses.every((c) => c === "ok")
-      ? { t: this._t("all_nominal"), c: "var(--bmw-high)" }
-      : { t: this._t("of_four", { n: present.length }), c: "var(--secondary-text-color)" };
-
-    // Fitment facts are per-wheel in BMW's payload but near-always identical, so
-    // showing them once under the diagram beats repeating them four times.
-    const anyWear = present.map((s) => this._tireWear(wheels[s.key])).find(Boolean);
-    const fitment = anyWear
-      ? [
-          anyWear.dimension,
-          anyWear.tread,
-          anyWear.season,
-          anyWear.fitted ? `${this._t("fitted")} ${anyWear.fitted}` : null,
-        ]
-          .filter(Boolean)
-          .map((part) => this._esc(part))
-          .join(" · ")
-      : "";
+    const summary = this._tireSummary(present.map((s) => wheels[s.key]));
 
     const colors = {
       fl: this._tireStatus(wheels.row1_left || {}).color,
@@ -2573,18 +2563,128 @@ class BavarianDataCard extends HTMLElement {
     this.shadowRoot.innerHTML = `
       ${this._styles()}
       <ha-card>
-        ${this._tireHead(name, worst.t, worst.c)}
-        <div class="tirecar">
-          <span class="tirecar__front">${this._t("front")}</span>
-          ${this._carSvg(colors)}
-          ${this._wheelLabel(slots[0], wheels.row1_left, "fl")}
-          ${this._wheelLabel(slots[1], wheels.row1_right, "fr")}
-          ${this._wheelLabel(slots[2], wheels.row2_left, "rl")}
-          ${this._wheelLabel(slots[3], wheels.row2_right, "rr")}
+        ${this._tireHead(name, summary.overall.t, summary.overall.c)}
+        ${this._tireSummaryBar(summary)}
+        <div class="tirewrap">
+          <div class="tirecar">
+            <span class="tirecar__front">${this._t("front")}</span>
+            <div class="tirecar__svg">${this._carSvg(colors)}</div>
+            ${this._wheelBlock(slots[0], wheels.row1_left, "fl")}
+            ${this._wheelBlock(slots[1], wheels.row1_right, "fr")}
+            ${this._wheelBlock(slots[2], wheels.row2_left, "rl")}
+            ${this._wheelBlock(slots[3], wheels.row2_right, "rr")}
+          </div>
         </div>
-        ${fitment ? `<div class="tirefit">${fitment}</div>` : ""}
       </ha-card>`;
     this._wireTaps();
+  }
+
+  // Everything the card renders from a diagnosis entity, flattened for the
+  // redraw signature.
+  _wearSig(st) {
+    const a = st.attributes || {};
+    return [
+      st.state,
+      a.due_mileage_km,
+      a.dimension,
+      a.tread,
+      a.tread_manufacturer,
+      a.season,
+      a.mounting_date,
+      a.run_flat,
+    ].join("|");
+  }
+
+  // The two things that can be wrong with a tyre -- its pressure and its
+  // remaining life -- summarised across every wheel BMW reports, plus the
+  // combined headline for the card header. Kept separate because "check tyres"
+  // must never read as "top up the air".
+  _tireSummary(list) {
+    const pressures = list.map((w) => this._pressureStatus(w));
+    const cls = pressures.map((p) => p.cls);
+    const color = cls.includes("low")
+      ? "var(--bmw-low)"
+      : cls.includes("high")
+      ? "var(--bmw-mid)"
+      : cls.includes("ok")
+      ? "var(--bmw-high)"
+      : "var(--divider-color)";
+    // The measured spread, not a verdict word -- the header already carries the
+    // verdict, and a card that says "Slightly high" twice in 60px says less than
+    // one that says which wheels and by how much. Ranked on the raw states
+    // because unit conversion is monotonic, so no localized number parsing.
+    const pressure = { t: this._pressureRange(list), c: color };
+
+    // The target is per-wheel but shared per axle at worst, so it is only worth
+    // a summary line when every wheel agrees on it.
+    const targets = list.map((w) => (w.pressureTarget ? this._fmt(w.pressureTarget) : null));
+    const known = targets.filter(Boolean);
+    const pressureSub =
+      known.length && known.length === list.length
+        ? known.every((t) => t === known[0])
+          ? `${this._t("p_target")} ${this._esc(known[0])}`
+          : this._t("p_target_varies")
+        : "";
+
+    const wears = list.map((w) => this._tireWear(w)).filter(Boolean);
+    const colors = wears.map((w) => w.color);
+    const wear = !wears.length
+      ? null
+      : colors.includes("red")
+      ? { t: this._t("w_due"), c: "var(--bmw-low)" }
+      : colors.includes("yellow")
+      ? { t: this._t("w_soon"), c: "var(--bmw-mid)" }
+      : colors.includes("green")
+      ? { t: this._t("w_ok"), c: "var(--bmw-high)" }
+      : { t: this._t("t_nodata"), c: "var(--divider-color)" };
+
+    // The soonest wheel is the one that decides when the car goes in.
+    const dues = wears.map((w) => w.dueKm).filter((v) => v != null);
+    const wearSub = dues.length ? `${this._t("wear_due")} ${this._km(Math.min(...dues))}` : "";
+
+    const worn = colors.includes("red") || colors.includes("yellow");
+    const overall = worn
+      ? {
+          t: this._t("check_tyres"),
+          c: colors.includes("red") || cls.includes("low") ? "var(--bmw-low)" : "var(--bmw-mid)",
+        }
+      : cls.includes("low")
+      ? { t: this._t("check_pressure"), c: "var(--bmw-low)" }
+      : cls.includes("high")
+      ? { t: this._t("slightly_high"), c: "var(--bmw-mid)" }
+      : cls.every((c) => c === "ok")
+      ? { t: this._t("all_nominal"), c: "var(--bmw-high)" }
+      : { t: this._t("of_four", { n: list.length }), c: "var(--secondary-text-color)" };
+
+    return { pressure, pressureSub, wear, wearSub, overall };
+  }
+
+  // "280 – 290 kPa" across the reported wheels, or a single value when they
+  // agree. Falls back to a dash when no wheel has a measurement.
+  _pressureRange(list) {
+    const rated = list
+      .map((w) => ({ st: w.pressure, n: this._num(w.pressure) }))
+      .filter((r) => r.n != null)
+      .sort((a, b) => a.n - b.n);
+    if (!rated.length) return "—";
+    const lo = this._splitValueUnit(rated[0].st);
+    const hi = this._splitValueUnit(rated[rated.length - 1].st);
+    const unit = hi.unit ? ` ${hi.unit}` : "";
+    return lo.value === hi.value ? `${hi.value}${unit}` : `${lo.value} – ${hi.value}${unit}`;
+  }
+
+  _tireSummaryBar(s) {
+    const cell = (label, v, sub) => `
+      <div class="tsum__cell" style="--c:${v.c}">
+        <span class="tsum__k">${label}</span>
+        <span class="tsum__v"><span class="tstat__dot"></span>${v.t}</span>
+        ${sub ? `<span class="tsum__sub">${sub}</span>` : ""}
+      </div>`;
+    return `
+      <div class="tsum">
+        ${cell(this._t("sum_pressure"), s.pressure, s.pressureSub)}
+        ${s.wear ? cell(this._t("sum_wear"), s.wear, s.wearSub) : ""}
+      </div>`;
   }
 
   _carSvg(c) {
@@ -2688,7 +2788,11 @@ class BavarianDataCard extends HTMLElement {
         <path d="M52 217 L78 217" class="carsvg__crease"/>`;
   }
 
-  _wheelLabel(slot, wheel, pos) {
+  // One wheel: pressure headline, then that wheel's own fitment. BMW reports
+  // size and tread per wheel and staggered setups are common (the i5 runs 245
+  // front / 275 rear), so these facts belong beside their wheel, not in a
+  // single line under the diagram that would have to pick one to show.
+  _wheelBlock(slot, wheel, pos) {
     const status = wheel ? this._tireStatus(wheel) : { label: "—", color: "var(--divider-color)" };
     const pressure = wheel && wheel.pressure;
     const target = wheel && wheel.pressureTarget;
@@ -2696,23 +2800,61 @@ class BavarianDataCard extends HTMLElement {
     const tapId = (pressure && pressure.entity_id) || (temp && temp.entity_id) || "";
     const pv = pressure ? this._splitValueUnit(pressure) : { value: "—", unit: "" };
     const wear = wheel ? this._tireWear(wheel) : null;
-    const sub = [
-      target ? `◎ ${this._fmt(target)}` : null,
-      temp ? this._fmt(temp) : null,
-      // Tread depth and remaining life, from the REST diagnosis.
-      wear && wear.value ? `▤ ${this._esc(wear.value)}` : null,
-      wear && wear.dueKm != null
-        ? `${this._t("wear_due")} ${this._km(wear.dueKm)}`
-        : null,
-    ]
+    const sub = [target ? `◎ ${this._fmt(target)}` : null, temp ? this._fmt(temp) : null]
       .filter(Boolean)
       .join(" · ");
+
+    const meta = [];
+    if (wear) {
+      if (wear.dimension) meta.push(this._esc(wear.dimension));
+      const tread = [wear.manufacturer, wear.tread].filter(Boolean).join(" ");
+      if (tread) meta.push(this._esc(tread));
+      const fitline = [
+        wear.season ? this._seasonLabel(wear.season) : null,
+        wear.runFlat ? this._t("runflat") : null,
+        wear.fitted ? `${this._t("fitted")} ${this._fmtDay(wear.fitted)}` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      if (fitline) meta.push(fitline);
+      if (wear.dueKm != null)
+        meta.push(
+          `<b class="wlabel__due">${this._t("wear_due")} ${this._km(wear.dueKm)}</b>`
+        );
+    }
+
     return `
       <button class="wlabel wlabel--${pos}" style="--c:${status.color}" data-entity="${tapId}" title="${slot.full}">
         <span class="wlabel__pos"><b>${slot.label}</b><span class="wlabel__badge">${status.label}</span></span>
         <span class="wlabel__val">${pv.value}${pv.unit ? `<i>${pv.unit}</i>` : ""}</span>
         ${sub ? `<span class="wlabel__sub">${sub}</span>` : ""}
+        ${meta.map((m) => `<span class="wlabel__meta">${m}</span>`).join("")}
       </button>`;
+  }
+
+  // BMW sends the season as a SUMMER/WINTER/ALL_SEASON token; anything else is
+  // passed through so an unknown token still tells the user something.
+  _seasonLabel(raw) {
+    const key = {
+      SUMMER: "season_summer",
+      WINTER: "season_winter",
+      ALL_SEASON: "season_all",
+      ALLSEASON: "season_all",
+    }[String(raw).toUpperCase()];
+    return key ? this._t(key) : this._esc(raw);
+  }
+
+  // A bare calendar day ("2026-06-13"), no time component. Numeric-short: it
+  // shares a line with the season inside a wheel column, and a spelled-out
+  // month wraps that line on any narrow dashboard.
+  _fmtDay(iso) {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return this._esc(iso);
+    try {
+      return d.toLocaleDateString(_lang(this._hass), { dateStyle: "short" });
+    } catch (e) {
+      return this._esc(iso);
+    }
   }
 
   _tireHead(name, statusText, statusColor) {
@@ -2720,7 +2862,7 @@ class BavarianDataCard extends HTMLElement {
       <div class="chead">
         <ha-icon icon="mdi:car-tire-alert"></ha-icon>
         <div class="chead__text">
-          <span class="chead__title">${this._t("tire_pressure")}</span>
+          <span class="chead__title">${this._t("tires")}</span>
           <span class="chead__sub">${name}</span>
         </div>
         ${
@@ -2740,33 +2882,47 @@ class BavarianDataCard extends HTMLElement {
     if (!a) return null;
     return {
       color: st.state,                       // green | yellow | red | grey
-      value: a.wear_value || null,           // e.g. "5.8 mm"
+      // BMW's tyreWear.value is a rendering of dueMileage, not a tread depth,
+      // so only the numeric km figure is kept -- showing both read as two
+      // different facts when they are one.
       dueKm: a.due_mileage_km ?? null,
       season: a.season || null,
       dimension: a.dimension || null,
       tread: a.tread || null,
+      manufacturer: a.tread_manufacturer || null,
+      runFlat: a.run_flat === true,
       fitted: a.mounting_date || null,
       entity_id: st.entity_id,
     };
   }
 
+  // Combined per-wheel status. Wear outranks pressure: a bald tyre at perfect
+  // pressure is still the more urgent thing to say, and pressure is trivially
+  // fixable where wear is not.
   _tireStatus(wheel) {
-    // Wear outranks pressure: a bald tyre at perfect pressure is still the more
-    // urgent thing to say, and pressure is trivially fixable where wear is not.
     const wear = this._tireWear(wheel);
     if (wear && wear.color === "red")
       return { cls: "low", label: this._t("t_wear"), color: "var(--bmw-low)" };
     if (wear && wear.color === "yellow")
       return { cls: "wear", label: this._t("t_wear"), color: "var(--bmw-mid)" };
+    return this._pressureStatus(wheel);
+  }
 
+  // Pressure alone, so the summary can report it separately from wear.
+  _pressureStatus(wheel) {
     const cur = this._num(wheel.pressure);
     const tgt = this._num(wheel.pressureTarget);
     if (cur == null) return { cls: "na", label: this._t("t_nodata"), color: "var(--divider-color)" };
     if (tgt == null) return { cls: "na", label: this._t("t_current"), color: "var(--divider-color)" };
     const devPct = ((cur - tgt) / tgt) * 100;
-    const tol = 4; // ±4% of target counts as nominal
-    if (devPct < -tol) return { cls: "low", label: this._t("t_low"), color: "var(--bmw-low)" };
-    if (devPct > tol) return { cls: "high", label: this._t("t_high"), color: "var(--bmw-mid)" };
+    // Asymmetric on purpose. BMW's target is the cold placard pressure while the
+    // measurement is whatever the tyre is right now, and a tyre that has been
+    // driven on reads 8-10% high -- a symmetric ±4% band flagged every wheel of
+    // a perfectly healthy car. Under-inflation is the condition worth an early
+    // hint (TPMS itself only warns near -20%), over-inflation only past what
+    // warm-up explains.
+    if (devPct < -8) return { cls: "low", label: this._t("t_low"), color: "var(--bmw-low)" };
+    if (devPct > 15) return { cls: "high", label: this._t("t_high"), color: "var(--bmw-mid)" };
     return { cls: "ok", label: this._t("t_ok"), color: "var(--bmw-high)" };
   }
 
@@ -3382,31 +3538,53 @@ class BavarianDataCard extends HTMLElement {
         white-space: nowrap;
       }
       .tstat__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+      /* Pressure and wear summarised across every wheel, above the diagram. */
+      .tsum { display: flex; gap: 8px; padding: 12px 14px 2px; }
+      .tsum__cell {
+        flex: 1; min-width: 0;
+        display: flex; flex-direction: column; gap: 2px;
+        padding: 8px 10px; border-radius: 12px;
+        background: var(--secondary-background-color);
+      }
+      .tsum__k {
+        font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase;
+        color: var(--secondary-text-color);
+      }
+      .tsum__v {
+        display: flex; gap: 6px;
+        /* baseline, not center: a long pressure range wraps to two lines in a
+           narrow column and the dot belongs on the first one. */
+        align-items: baseline;
+        font-size: 0.92rem; font-weight: 600; color: var(--c);
+      }
+      .tsum__v .tstat__dot { flex-shrink: 0; }
+      .tsum__sub { font-size: 0.68rem; color: var(--secondary-text-color); }
+      /* Grid, not absolute positioning: each wheel's own column sizes to the
+         card so long fitment lines wrap instead of being clipped. */
+      .tirewrap { container-type: inline-size; }
       .tirecar {
-        position: relative;
-        padding: 14px 12px 18px;
-        min-height: 260px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) clamp(72px, 24%, 118px) minmax(0, 1fr);
+        grid-template-areas:
+          ".  front ."
+          "fl car   fr"
+          "rl car   rr";
+        column-gap: 10px; row-gap: 14px;
+        padding: 10px 12px 16px;
+        align-items: start;
       }
       .tirecar__front {
-        position: absolute; top: 8px; left: 0; right: 0;
+        grid-area: front;
         text-align: center;
         font-size: 0.56rem; letter-spacing: 0.18em; font-weight: 700;
         color: var(--secondary-text-color);
       }
-      /* Fitment facts (size, tread, season, date) under the wheel diagram. */
-      .tirefit {
-        padding: 0 16px 14px;
-        text-align: center;
-        font-size: 0.72rem; line-height: 1.5;
-        color: var(--secondary-text-color);
-      }
+      .tirecar__svg { grid-area: car; align-self: center; }
       .carsvg {
         display: block;
-        width: 40%;
-        min-width: 112px;
-        max-width: 162px;
+        width: 100%;
         height: auto;
-        margin: 4px auto 0;
+        margin: 0 auto;
         overflow: visible;
         /* Surface-modelling tokens derived from the active HA theme, so the
            metal/glass sheen holds up in both light and dark. */
@@ -3451,27 +3629,26 @@ class BavarianDataCard extends HTMLElement {
       .item__dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
 
       .wlabel {
-        position: absolute;
-        width: 29%;
+        min-width: 0;
         display: flex; flex-direction: column; gap: 1px;
-        padding: 4px 2px;
+        padding: 4px 4px;
         border-radius: 10px;
         transition: background 0.14s ease;
       }
       .wlabel:hover { background: var(--secondary-background-color); }
-      .wlabel--fl { top: 16%; left: 3%; align-items: flex-end; text-align: right; }
-      .wlabel--fr { top: 16%; right: 3%; align-items: flex-start; text-align: left; }
-      .wlabel--rl { bottom: 14%; left: 3%; align-items: flex-end; text-align: right; }
-      .wlabel--rr { bottom: 14%; right: 3%; align-items: flex-start; text-align: left; }
+      .wlabel--fl { grid-area: fl; align-items: flex-end; text-align: right; }
+      .wlabel--fr { grid-area: fr; align-items: flex-start; text-align: left; }
+      .wlabel--rl { grid-area: rl; align-items: flex-end; text-align: right; }
+      .wlabel--rr { grid-area: rr; align-items: flex-start; text-align: left; }
       .wlabel__pos {
         display: inline-flex; align-items: center; gap: 6px;
         font-size: 0.66rem; letter-spacing: 0.05em; text-transform: uppercase;
         color: var(--secondary-text-color);
       }
       .wlabel--fl .wlabel__pos, .wlabel--rl .wlabel__pos { flex-direction: row-reverse; }
-      .wlabel__badge { color: var(--c); font-weight: 700; white-space: nowrap; }
+      .wlabel__badge { color: var(--c); font-weight: 700; }
       .wlabel__val {
-        font-size: 1.55rem; font-weight: 600; line-height: 1.05;
+        font-size: 1.45rem; font-weight: 600; line-height: 1.1;
         font-variant-numeric: tabular-nums;
         color: var(--primary-text-color);
         white-space: nowrap;
@@ -3482,7 +3659,32 @@ class BavarianDataCard extends HTMLElement {
       }
       .wlabel__sub {
         font-size: 0.66rem; color: var(--secondary-text-color);
-        font-variant-numeric: tabular-nums; white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+      /* Per-wheel fitment. Wraps rather than clips -- a tyre size and a tread
+         name are long, and the column is whatever the dashboard gives us. */
+      .wlabel__meta {
+        font-size: 0.63rem; line-height: 1.35;
+        color: var(--secondary-text-color);
+        overflow-wrap: anywhere;
+      }
+      .wlabel__val + .wlabel__meta,
+      .wlabel__sub + .wlabel__meta { margin-top: 3px; }
+      .wlabel__due { color: var(--primary-text-color); font-weight: 600; }
+      /* Narrow columns: the diagram is the first thing worth losing, and the
+         four wheels fall back to a 2x2 grid that still reads front-over-rear.
+         Must come after the .wlabel rules it overrides. */
+      @container (max-width: 340px) {
+        .tirecar {
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+          grid-template-areas:
+            "front front"
+            "fl    fr"
+            "rl    rr";
+        }
+        .tirecar__svg { display: none; }
+        .wlabel--fl, .wlabel--rl { align-items: flex-start; text-align: left; }
+        .wlabel--fl .wlabel__pos, .wlabel--rl .wlabel__pos { flex-direction: row; }
       }
 
       /* ---- charging history ---- */
