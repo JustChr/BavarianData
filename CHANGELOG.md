@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.2-beta.7] - 2026-07-27
+
 ### Changed
 - **The tire card is now a tire card, not a tire-pressure card** (card 1.8.0). It
   is titled **Tires**, and it opens with the two things that can actually be
