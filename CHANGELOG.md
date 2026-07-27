@@ -9,112 +9,84 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
-## [0.9.2-beta.8] - 2026-07-27
+## [0.9.2] - 2026-07-27
 
-### Fixed
-- **Cards no longer break on a browser reload.** Every BavarianData card turned
-  into a "Configuration error" box after pressing F5 — a hard refresh didn't
-  help, only closing and reopening the browser did. The card was published as a
-  frontend module, which Home Assistant renders into the page as a
-  fire-and-forget `import()`; the frontend's service worker can serve that page
-  from cache without it, so the `bavariandata-card` element was never defined
-  and every placed card fell back to the error box
-  ([home-assistant/frontend#18728](https://github.com/home-assistant/frontend/issues/18728)).
-  The card is now registered as a proper Lovelace dashboard resource, which is
-  loaded before any dashboard renders and is version-stamped on every update.
-  Installations whose dashboard resources are YAML-managed keep the old
-  behaviour and should add the resource by hand — see
-  [Troubleshooting](https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ#config-error-after-reload).
-- **The tire diagnosis now survives a restart.** Wear, tread, size, season and
-  fitting date were held in memory only, so every Home Assistant restart blanked
-  the tire sensors and the wear half of the tire card until the next daily
-  refresh came due — up to 24 hours later — or `fetch_tyre_diagnosis` was called
-  by hand. The last fetched diagnosis is now stored and restored at startup, at
-  no cost to the API quota. The sensors also carry a `fetched_at` attribute now,
-  so a day-old reading is recognisable as one.
-- **Maps no longer come back empty after switching dashboard tabs** (card
-  1.8.1). Leaving a dashboard tab and returning left both maps bare — the trip
-  map lost its destination bubbles, an expanded trip lost its route line — until
-  the map was forced to redraw by collapsing and re-expanding the trip or
-  changing the time window. Home Assistant detaches a card when its view is
-  hidden, and `ha-map` destroys its Leaflet map on the way out, so our markers
-  and route lines were left on a map that no longer existed while the card
-  believed everything was still drawn. The card now notices that the map
-  underneath it has been rebuilt and puts the overlays back.
-
-## [0.9.2-beta.7] - 2026-07-27
-
-### Changed
-- **A trip's start and end times now describe the drive, not the detection.** A
-  trip was stamped from the first position fix that registered movement to the
-  moment the five-minute stationary timer expired — so a drive from 10:51 to
-  10:57 was recorded as 10:54 → 11:00, and its duration overstated by minutes at
-  both ends. The start now falls back to when the car was last seen parked (on
-  cars that stream the driver door, bounded to five minutes before detection, so
-  sitting in the car before pulling away doesn't count as driving), and a
-  stationary or segment close ends the trip at the last fix that showed movement
-  instead of when the timer fired. A driver-door arrival still ends the trip
-  where it always did — the door opening *is* the arrival. Trips already
-  recorded keep their old timestamps.
-- **The tire card is now a tire card, not a tire-pressure card** (card 1.8.0). It
-  is titled **Tires**, and it opens with the two things that can actually be
-  wrong with one, side by side: **Pressure** (the measured spread across the set,
-  with the shared target under it) and **Wear** (BMW's verdict, with the mileage
-  until the soonest wheel is due). The header badge stays the combined verdict
-  for the whole car.
-- **Each wheel now carries its own size, tread, season and fitting date**, beside
-  that wheel instead of in one line under the diagram. Staggered setups are
-  normal — the i5 runs 245s at the front and 275s at the rear — and a single
-  shared line had to pick one of them to show, so it showed the wrong size for
-  half the car.
-- **Nothing gets cut off any more.** The wheel labels were absolutely positioned
-  at a fixed 29% width with `white-space: nowrap`, so anything longer than the
-  gap beside the car ran off the edge. The diagram is a grid now: each wheel's
-  column is sized by the card, and long lines wrap. Below roughly 340 px the car
-  drops out and the four wheels fall back to a 2×2 grid.
-- **The pressure band is no longer symmetric: low from 8% under target, high only
-  past 15% over.** The old ±4% flagged every wheel of a perfectly healthy car —
-  BMW's target is the *cold* pressure and a tire you have just driven on reads
-  8–10% high. Under-inflation is the condition worth an early hint; over-
-  inflation is only worth one past what warm-up explains.
-
-### Fixed
-- **Trip routes were drawn from mismatched latitude/longitude pairs**, putting
-  every recorded point somewhere the car never was: a right-angle staircase where
-  each vertex took its latitude from the *previous* fix and its longitude from the
-  current one. BMW sends the two coordinates as separate messages, and the pairing
-  guard compared each coordinate only against its own previous value — so once a
-  single unpaired message slipped through (the first one after connect always
-  does, with nothing to compare against), the stale half counted as "advanced"
-  too and every later fix paired one message behind, permanently. Pairing now
-  waits for both halves of a fix to actually *arrive*, and drops BMW's duplicate
-  redelivery by the fix's own timestamp. Routes recorded before this fix keep
-  their bad points; new drives are correct.
-- **The card printed BMW's remaining-mileage figure twice per wheel**, once
-  labelled as though it were a tread depth. BMW's tyre diagnosis does not report
-  tread depth at all: `tyreWear.value` is a rendering of the same remaining
-  mileage, and `tread` is the tread *pattern* ("EcoContact 6 Q"). Both now read
-  as what they are.
-
-## [0.9.2-beta.6] - 2026-07-27
+Trips grow up: every recorded drive can now be drawn on a map — a route line per
+trip and a clustering map of where you actually go — and a trip's start and end
+times finally describe the drive rather than the moment the detector noticed it.
+Tires gain BMW's wear diagnosis next to pressure on a rebuilt tire card. And the
+REST poller stops eating your quota: the daily container now carries the 41
+fields the stream cannot, taking normal running from about 36 requests a day
+down to 2 — while filling entities that until now could only ever sit empty.
+Everything below accumulated across the 0.9.2 pre-releases; upgrading from 0.9.1
+gets it all at once.
 
 ### Added
-- **Tyre wear on the tire card.** BMW's smart-maintenance tyre diagnosis was
-  being fetched and thrown away — `fetch_tyre_diagnosis` logged it and nothing
-  else. It now becomes five entities per car (**Tyre Condition** plus one per
-  wheel BMW reports), and the tire card shows tread depth and the mileage until a
-  change is due beside each wheel, with size/tread/season/fitting date underneath.
-  Wear outranks pressure in the wheel colour and the header: a tyre BMW flags as
-  worn reads "Check tyres" even at perfect pressure. Cars with no tyre service
-  record on file get no tyre entities and an unchanged card (card 1.7.0).
-- **Documented how to remove BavarianData completely.** Troubleshooting & FAQ has a
-  new "Removing BavarianData completely" section: deleting the integration already
-  wipes your tokens, your charging/trip history and the statistics it published,
-  but the quota log, the cached vehicle image and any trip-capture file are left
-  behind — and a trip capture contains GPS coordinates, so it's worth deleting.
-  Also covers the one trap when testing a fresh install: long-term statistics live
-  in the recorder database, so a partial removal can leave `bavariandata:…` series
-  showing up in your Energy dashboard with nothing installed.
+- **Each trip now shows its route on a map.** Expanding a trip in the Trips card
+  view draws that drive on a small map — a single clean line with a start and an
+  end marker — for trips recorded with **Record route** on. No map data leaves
+  your browser to do it.
+- **A destinations map (`view: map`) on the dashboard card.** A new card view
+  plots where your trips **end** as markers that **cluster into counted bubbles
+  when zoomed out and split apart as you zoom in** — a quick read on where you go
+  most, with an honest "times arrived here" count (a trip's start is the previous
+  trip's end, so plotting both would double-count). A time-window chip row (This
+  month / 3 months / All) filters it. It reuses Home Assistant's own map and
+  clustering, so there are no new dependencies, and it reads routes via
+  `get_trips`, so it spends no API quota. Destinations appear once **Record
+  route** (`trip_track`) is enabled; the map shows a hint until then.
+- **Tire wear, on a rebuilt tire card** (card 1.8.1). BMW's smart-maintenance
+  tyre diagnosis was being fetched and thrown away — `fetch_tyre_diagnosis`
+  logged it and nothing else. It now becomes five entities per car (**Tyre
+  Condition** plus one per wheel BMW reports), and the card is a tire card rather
+  than a tire-*pressure* card: titled **Tires**, it opens with the two things
+  that can actually be wrong with one, side by side — **Pressure** (the measured
+  spread across the set, with the shared target under it) and **Wear** (BMW's
+  verdict, with the mileage until the soonest wheel is due). Each wheel carries
+  its own size, tread pattern, season and fitting date beside it, because
+  staggered setups are normal: the i5 runs 245s at the front and 275s at the
+  rear, and a single shared line had to show the wrong size for half the car.
+  Wear outranks pressure in the wheel colour and the header badge — a tyre BMW
+  flags as worn reads "Check tires" even at perfect pressure. Note that BMW
+  reports **remaining mileage, not tread depth**; `tread` is the tread *pattern*
+  ("EcoContact 6 Q"). Cars with no tyre service record on file get no tyre
+  entities and an unchanged card.
+- **Sharper trip start and end on cars that stream the driver door** (e.g. the
+  i5). The driver door brackets the drive: closing it (you got in) anchors where
+  a trip starts, and opening it again after the car has stopped (you got out)
+  ends the trip promptly instead of waiting out the 5-minute stationary timer.
+  Used only as an accelerator — cars that don't stream the door fall back to GPS
+  exactly as before.
+- **Recorded routes now carry timing.** With **Record route** (`trip_track`) on,
+  each GPS fix in a trip's track is stored with the number of seconds since the
+  trip started (`track` points become `[lat, lon, t]`), so a map can replay a
+  drive in real time, colour it by pace and show where the car stopped. Only
+  affects opted-in recording; routes captured before this update keep their
+  two-element `[lat, lon]` points and read back without timing (their times
+  can't be backfilled).
+- **Trip-capture diagnostics (`Configure → Trips`).** An opt-in troubleshooting
+  toggle for improving trip detection. When on, the integration logs the raw
+  detector substrate under greppable tags — every GPS fix with its cadence,
+  latency, odometer and the close-timer countdown (`[trip.gps]`), the timer
+  lifecycle (`[trip.timer]`), full BMW segment batches (`[trip.seg]`), a
+  per-message descriptor firehose (`[trip.raw]`) and a per-trip post-mortem
+  (`[trip.post]`) — and writes a replayable `bavariandata_trip_capture.ndjson`
+  capture to the config folder. Each `[trip.gps]` line also carries the GPS fix
+  state, satellite count and heading (to tell a stopped car from a lost fix), and
+  a `[trip.watch]` line surfaces catalogue signals that might drive a better
+  detector (speed, HV-system and connector state, the ignition trio, driver
+  door/lock, active navigation) whenever the car streams them. Independent of
+  Debug logging, off by default, and contains GPS/VIN, so it's meant to be
+  switched on for a test drive and back off.
+- **Documented how to remove BavarianData completely.** Troubleshooting & FAQ has
+  a new "Removing BavarianData completely" section: deleting the integration
+  already wipes your tokens, your charging/trip history and the statistics it
+  published, but the quota log, the cached vehicle image and any trip-capture
+  file are left behind — and a trip capture contains GPS coordinates, so it's
+  worth deleting. Also covers the one trap when testing a fresh install: long-term
+  statistics live in the recorder database, so a partial removal can leave
+  `bavariandata:…` series showing up in your Energy dashboard with nothing
+  installed.
 
 ### Changed
 - **The REST container is polled once a day instead of every 40 minutes, and now
@@ -130,6 +102,29 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   filling entities that until now could only ever sit empty. Existing installs
   migrate on the next token refresh: the old container is deleted and replaced,
   rather than left to idle against BMW's 10-container limit.
+- **A trip's start and end times now describe the drive, not the detection.** A
+  trip was stamped from the first position fix that registered movement to the
+  moment the five-minute stationary timer expired — so a drive from 10:51 to
+  10:57 was recorded as 10:54 → 11:00, and its duration overstated by minutes at
+  both ends. The start now falls back to when the car was last seen parked (on
+  cars that stream the driver door, bounded to five minutes before detection, so
+  sitting in the car before pulling away doesn't count as driving), and a
+  stationary or segment close ends the trip at the last fix that showed movement
+  instead of when the timer fired. A driver-door arrival still ends the trip
+  where it always did — the door opening *is* the arrival. Trips already
+  recorded keep their old timestamps.
+- **The tire-pressure band is no longer symmetric: low from 8% under target, high
+  only past 15% over.** The old ±4% flagged every wheel of a perfectly healthy
+  car — BMW's target is the *cold* pressure and a tire you have just driven on
+  reads 8–10% high. Under-inflation is the condition worth an early hint;
+  over-inflation is only worth one past what warm-up explains.
+- **The dashboard card is now the "BavarianData Card".** It was previously shown
+  as the "BMW CarData Card" (element `custom:bmw-cardata-card`); the card, its
+  element (`custom:bavariandata-card`) and its bundled file have been renamed to
+  match the integration's name. Existing dashboards keep working: the old
+  `custom:bmw-cardata-card` element is still registered as a hidden alias, so no
+  card needs to be re-added. The old name simply no longer appears in the card
+  picker.
 - **Refreshed BMW's API reference material from source.** `docs/reference/` now
   carries Integration Guide **v1.5 (09/01/2026)** and the current Swagger files,
   re-fetched from BMW. Notable spec changes: the charging-history session gained
@@ -138,11 +133,47 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   device-code response no longer documents `verification_uri_complete`; and the
   streaming chapter now states MQTT **QoS 0 only** plus a per-IP connection-rate
   policy over a one-minute window. No integration behaviour changes. The README
-  in that folder records the exact URLs to re-fetch from.
-- **`tools/README.md` records the direct Telematics Data Catalogue download URL**
-  and spells out that the catalogue — not the Swagger — is the stream's contract.
+  in that folder records the exact URLs to re-fetch from, and `tools/README.md`
+  now records the direct Telematics Data Catalogue download URL and spells out
+  that the catalogue — not the Swagger — is the stream's contract.
 
 ### Fixed
+- **Cards no longer break on a browser reload.** Every BavarianData card turned
+  into a "Configuration error" box after pressing F5 — a hard refresh didn't
+  help, only closing and reopening the browser did. The card was published as a
+  frontend module, which Home Assistant renders into the page as a
+  fire-and-forget `import()`; the frontend's service worker can serve that page
+  from cache without it, so the `bavariandata-card` element was never defined
+  and every placed card fell back to the error box
+  ([home-assistant/frontend#18728](https://github.com/home-assistant/frontend/issues/18728)).
+  The card is now registered as a proper Lovelace dashboard resource, which is
+  loaded before any dashboard renders and is version-stamped on every update.
+  Installations whose dashboard resources are YAML-managed keep the old
+  behaviour and should add the resource by hand — see
+  [Troubleshooting](https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ#config-error-after-reload).
+- **Trip routes were drawn from mismatched latitude/longitude pairs**, putting
+  every recorded point somewhere the car never was: a right-angle staircase where
+  each vertex took its latitude from the *previous* fix and its longitude from the
+  current one. BMW sends the two coordinates as separate messages, and the pairing
+  guard compared each coordinate only against its own previous value — so once a
+  single unpaired message slipped through (the first one after connect always
+  does, with nothing to compare against), the stale half counted as "advanced"
+  too and every later fix paired one message behind, permanently. Pairing now
+  waits for both halves of a fix to actually *arrive*, and drops BMW's duplicate
+  redelivery by the fix's own timestamp. The phantom right-angle points also
+  inflated the measured trip distance, which is now correct too. Routes recorded
+  before this fix keep their bad points; new drives are correct.
+- **Routes now start where the car was parked.** A trip's track (and its start
+  place) began at the first point that registered as movement — often a block or
+  more past the actual start. It is now seeded from the last known parked
+  position, so the line connects from where the drive really began.
+- **The tire diagnosis now survives a restart.** Wear, tread, size, season and
+  fitting date were held in memory only, so every Home Assistant restart blanked
+  the tire sensors and the wear half of the tire card until the next daily
+  refresh came due — up to 24 hours later — or `fetch_tyre_diagnosis` was called
+  by hand. The last fetched diagnosis is now stored and restored at startup, at
+  no cost to the API quota. The sensors also carry a `fetched_at` attribute now,
+  so a day-old reading is recognisable as one.
 - **The coverage report no longer reports gaps that can never close.** BMW's
   telematic catalogue marks each field with whether the MQTT stream can carry it
   (246 of 295 can), but that column is drawn as a tick glyph rather than text, so
@@ -159,112 +190,6 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   — several of these fields arrive over REST via a container, so they keep their
   entity and simply are not expected on the stream. `telematics-fields.md` gained
   a **Stream** column so you can see which is which per field.
-- The card's browser-console banner still announced itself as `BMW-CARDATA-CARD`
-  after the rename; it now reads `BAVARIANDATA-CARD` (card 1.6.2). Cosmetic only.
-
-## [0.9.2-beta.5] - 2026-07-26
-
-### Changed
-- **Trip route mini-maps are now a clean line.** The per-trip map (expand a trip
-  in the Trips view) drew a dot at every GPS point and applied a spline that
-  overshot on sparse fixes, so it looked messy. It now renders the drive as a
-  single clean line (a native map polyline) with just a start and an end marker —
-  direct segments, no vertex dots, no bulging.
-
-## [0.9.2-beta.4] - 2026-07-26
-
-### Added
-- **Each trip now shows its route on a map.** Expanding a trip in the Trips card
-  view draws that drive on a small map, for trips recorded with **Record route**
-  on. The line is lightly smoothed (a local spline) so it reads as a route rather
-  than jagged GPS hops — no map data leaves your browser to do it.
-
-### Changed
-- **The Trip map card view is now a destinations map.** Instead of drawing route
-  lines, `view: map` now plots where your trips **end** (their destinations) as
-  markers that **cluster into counted bubbles when zoomed out and split apart as
-  you zoom in** — a quick read on where you go most, with an honest "times arrived
-  here" count (a trip's start is the previous trip's end, so plotting both would
-  double-count). (The actual route of a drive now lives on the
-  Trips card, on the trip you expand.) The time-window filter (This month / 3
-  months / All) still applies. Uses Home Assistant's own map and clustering, so no
-  new dependencies and no map data leaves your browser.
-
-## [0.9.2-beta.3] - 2026-07-26
-
-### Fixed
-- **Recorded routes no longer zig-zag, and trip distance is more accurate.** BMW
-  streams a position's latitude and longitude as two separate messages ~1 s
-  apart; the detector was acting on each, briefly pairing a fresh coordinate with
-  a stale one and plotting a phantom right-angle point that also inflated the
-  measured distance. It now waits for both halves of a fix before recording it.
-- **Routes now start where the car was parked.** A trip's track (and its start
-  place) began at the first point that registered as movement — often a block or
-  more past the actual start. It is now seeded from the last known parked
-  position, so the line connects from where the drive really began.
-
-### Added
-- **Sharper trip start/end on cars that stream the driver door (e.g. the i5).**
-  Closing the driver door (you got in) marks where a trip starts, and opening it
-  again after the car has stopped (you got out) ends the trip promptly instead of
-  waiting out the 5-minute stationary timer. Used only as an accelerator — cars
-  that don't stream the door fall back to GPS exactly as before. Trip-capture mode
-  logs these decisions as `[trip.door]`.
-
-## [0.9.2-beta.2] - 2026-07-26
-
-### Fixed
-- **Dashboard card failed to load after the BavarianData rename.** The legacy
-  `custom:bmw-cardata-card` back-compat alias was registered by binding the same
-  element class to a second tag name, which the Custom Elements spec forbids
-  (`this constructor has already been used with this registry`). The uncaught
-  error aborted the rest of the card module, so the legacy alias never defined
-  (existing cards showed "custom element doesn't exist: bmw-cardata-card"), the
-  visual editor didn't register, and the card was missing from the "Add card"
-  picker. The alias tags now each get their own trivial subclass, so old and new
-  cards render and the picker lists "BavarianData Card" again.
-
-## [0.9.2-beta.1] - 2026-07-26
-
-### Added
-- **Trip-capture diagnostics (`Configure → Trips`).** A new opt-in troubleshooting
-  toggle for improving trip detection. When on, the integration logs the raw
-  detector substrate under greppable tags — every GPS fix with its cadence,
-  latency, odometer and the close-timer countdown (`[trip.gps]`), the timer
-  lifecycle (`[trip.timer]`), full BMW segment batches (`[trip.seg]`), a
-  per-message descriptor firehose (`[trip.raw]`) and a per-trip post-mortem
-  (`[trip.post]`) — and writes a replayable `bavariandata_trip_capture.ndjson`
-  capture to the config folder. Each `[trip.gps]` line also carries the GPS fix
-  state, satellite count and heading (to tell a stopped car from a lost fix), and
-  a `[trip.watch]` line surfaces catalogue signals that might drive a better
-  detector (speed, HV-system and connector state, the ignition trio, driver
-  door/lock, active navigation) whenever the car streams them. Independent of
-  Debug logging, off by default, and contains GPS/VIN, so it's meant to be
-  switched on for a test drive and back off.
-- **Trip map (`view: map`) on the dashboard card.** A new card view draws your
-  recorded routes on a map, each line coloured by its business/commute/private
-  classification, with a time-window chip row (This month / 3 months / All) and
-  auto-fit. It reuses Home Assistant's own map component (OpenStreetMap tiles)
-  and reads routes via `get_trips`, so it spends no API quota. Routes only appear
-  once **Record route** (`trip_track`) is enabled — the map shows a hint until
-  then. (Pace colouring and real-time playback of a single drive are planned as a
-  follow-up.)
-- **Recorded routes now carry timing.** With **Record route** (`trip_track`) on,
-  each GPS fix in a trip's track is stored with the number of seconds since the
-  trip started (`track` points become `[lat, lon, t]`), so an upcoming map can
-  replay a drive in real time, colour it by pace and show where the car stopped.
-  Only affects opted-in recording; routes captured before this update keep their
-  two-element `[lat, lon]` points and read back without timing (their times
-  can't be backfilled).
-
-### Changed
-- **The dashboard card is now the "BavarianData Card".** It was previously shown
-  as the "BMW CarData Card" (element `custom:bmw-cardata-card`); the card, its
-  element (`custom:bavariandata-card`) and its bundled file have been renamed to
-  match the integration's name. Existing dashboards keep working: the old
-  `custom:bmw-cardata-card` element is still registered as a hidden alias, so no
-  card needs to be re-added. The old name simply no longer appears in the card
-  picker.
 
 ## [0.9.1] - 2026-07-26
 
