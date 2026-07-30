@@ -11,8 +11,27 @@ BMW support has confirmed (in response to a ticket) that the device-code flow is
 handled by an internal partner system with "sync problems." There is nothing the
 integration can do to fix it.
 
-It can take a few attempts. This sequence has worked reliably (multiple times)
-for others:
+> **Update, 2026-07-28 — BMW says this is fixed.** BMW notified several projects
+> that the partner-system sync problem has been resolved, and confirmed it by
+> email to users who had raised tickets. Most affected people got through
+> immediately afterwards. **Affected clients are not repaired in place**: BMW's
+> instruction is to **delete the CarData client in the portal, create a new one**
+> (tick both subscriptions), and run the device flow again with the new client
+> ID. If you have been stuck for weeks, do that first — before working through
+> the ritual below.
+
+If it still fails, two things outside the flow itself have repeatedly turned out
+to be the cause:
+
+- **MyBMW app privacy settings.** Several people only got through after setting
+  the profile's privacy/data-sharing settings to **all** in the MyBMW app and
+  then **starting the car once** so the change is applied. You can turn them back
+  down afterwards.
+- **Ad blockers.** AdGuard, Pi-hole and friends can break the portal's approval
+  page. Disable them for the attempt.
+
+Beyond that it can take a few attempts. This sequence has worked reliably
+(multiple times) for others:
 
 1. Open a **fresh incognito/private browser window**.
 2. Go to the My BMW / CarData portal **manually** — do **not** use the
