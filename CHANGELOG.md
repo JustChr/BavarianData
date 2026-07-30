@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.3-beta.1] - 2026-07-30
+
 ### Added
 - **You can see the drive that's happening now.** Until it ended, a trip was
   invisible: nothing on the card, no entity, nothing in `get_trips`. Now there's a
