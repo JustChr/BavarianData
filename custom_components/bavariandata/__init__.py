@@ -58,6 +58,10 @@ from .const import (
     OPTION_TRIP_GEOCODE,
     OPTION_TRIP_DEBUG,
     OPTION_TRIP_TRACK,
+    OPTION_TRIP_DEFAULT_CLASS,
+    DEFAULT_TRIP_DEFAULT_CLASS,
+    OPTION_TRIP_COMMUTE_GAP,
+    DEFAULT_TRIP_COMMUTE_GAP_MIN,
     OPTION_STATISTICS_IMPORT,
     DEFAULT_STATISTICS_IMPORT,
     OPTION_STREAM_SECTIONS,
@@ -93,6 +97,7 @@ from .history.export import (
     sessions_csv,
     trips_csv,
 )
+from .history.classify import trip_class_setting
 from .history.geocoding import ReverseGeocoder
 from .history.pricing import MODE_FIXED, PricingConfig, fixed_cost
 from .history.store import HistoryStore
@@ -573,6 +578,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         enabled=bool(options.get(OPTION_TRIP_GEOCODE)),
     )
     coordinator.work_zone_entity = options.get(OPTION_TRIP_WORK_ZONE) or None
+    coordinator.trip_default_class = trip_class_setting(
+        options.get(OPTION_TRIP_DEFAULT_CLASS, DEFAULT_TRIP_DEFAULT_CLASS)
+    )
+    coordinator.trip_commute_gap_s = (
+        int(options.get(OPTION_TRIP_COMMUTE_GAP, DEFAULT_TRIP_COMMUTE_GAP_MIN) or 0)
+        * 60
+    )
     coordinator.record_trip_track = bool(options.get(OPTION_TRIP_TRACK))
     coordinator.trip_debug = bool(options.get(OPTION_TRIP_DEBUG))
     coordinator.diagnostic_interval = diagnostic_interval

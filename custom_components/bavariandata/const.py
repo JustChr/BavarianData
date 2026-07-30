@@ -55,6 +55,18 @@ DEFAULT_HISTORY_RETAIN_MONTHS = 24
 # geocode toggle is off by default because it sends coordinates to OpenStreetMap.
 OPTION_TRIP_WORK_ZONE = "trip_work_zone"
 OPTION_TRIP_GEOCODE = "trip_geocode"
+# What a trip that isn't a recognised home <-> work commute is classified as.
+# Every automatic classification is a *default* the user can correct from the
+# card, so labelling beats leaving drives blank -- but "unclassified" stays
+# available for anyone who would rather triage each trip by hand.
+OPTION_TRIP_DEFAULT_CLASS = "trip_default_class"
+DEFAULT_TRIP_DEFAULT_CLASS = "private"
+# How long the car may stand between two drives for both to still count as one
+# commute -- the supermarket stop on the way to work. 0 turns chaining off.
+# Stops shorter than the detector's own close debounce never split a drive in the
+# first place, so this governs the band above it (see history/classify.py).
+OPTION_TRIP_COMMUTE_GAP = "trip_commute_gap"
+DEFAULT_TRIP_COMMUTE_GAP_MIN = 30
 # Record the GPS track (route polyline) of each trip so a map can draw where --
 # and, from the per-point timestamp, when -- the car went. Off by default and
 # independent of geocoding: it is the one trip setting that persists raw

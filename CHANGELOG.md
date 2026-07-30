@@ -9,6 +9,35 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **A configurable default type for trips.** Anything that isn't a recognised
+  home ↔ work commute is now filed as your **Default type** under
+  **Configure → Trips** — **Private** out of the box, **Business** if that is the
+  honest default for your driving, or **Leave unclassified** to keep sorting every
+  trip by hand (the previous behaviour). Trips whose endpoints fall outside any
+  zone are covered too; they used to be left blank however obvious they were. An
+  automatic class is never more than a starting point: a trip you classified
+  yourself is never overwritten.
+- **A commute survives a stop on the way.** Buying groceries between home and work
+  parks the car long enough that the detector records two drives, neither of which
+  is home → work on its own. With the new **Commute stop tolerance** (default
+  **30 minutes**) they are recognised as one commute and *both* legs are badged as
+  such — retroactively, once the chain arrives. The stops stay visible as separate
+  trips in the journal. A chain ends when it reaches home or work, so a lunch run
+  out of the office and back is not dragged into the morning commute, and a round
+  trip that starts and finishes at home stays private. Set the tolerance to 0 to
+  switch chaining off.
+
+### Fixed
+- **A quiet position stream no longer splits one drive into two trips.** "No
+  movement for five minutes" was treated as the car having stopped, when it can
+  just as easily be the stream going silent — a tunnel, a coverage hole, or the
+  i5's own sparse cadence. A stop is now only acted on once something confirms it
+  (a position report showing the car standing still, or an explicit "not moving");
+  otherwise the drive is held open until the reports come back and settle it. A
+  car that reappears where it vanished still ends its trip back at the last
+  movement, so a park in a signal-dead garage is not merged into the next drive.
+
 ## [0.9.2] - 2026-07-27
 
 Trips grow up: every recorded drive can now be drawn on a map — a route line per

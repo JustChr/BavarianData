@@ -153,6 +153,8 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `history_retain_months` | Charging costs & history | 🟡 |
 | `statistics_import` | Charging costs & history | 🟡 |
 | `trip_work_zone` | Trips | 🟡 |
+| `trip_default_class` (default type) | Trips | ✅ |
+| `trip_commute_gap` (commute stop tolerance) | Trips | ✅ |
 | `trip_geocode` | Trips | 🟡 |
 | `trip_track` (route recording) | Trips | ✅ |
 | `trip_debug` (trip-capture diagnostics) | Trips | ✅ |
@@ -222,6 +224,8 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Charging history & cost | 🟡 |
 | Battery health (learning method) | 🟡 |
 | Trips / Fahrtenbuch (+ legal caveat) | 🟡 |
+| Commute chains (a stop on the way) + default type | 🟢 Feature-Trips → "Classification" + Settings-Reference → "Trips" |
+| Deferred close when the position stream goes quiet | 🟢 Feature-Trips → "When the position stream goes quiet" |
 | Energy dashboard & long-term statistics | 🟡 |
 | Export (CSV / HTML report) | 🟡 |
 | Charging events (`bavariandata_charging_*`) | 🟡 |

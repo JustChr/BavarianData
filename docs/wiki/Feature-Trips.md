@@ -32,6 +32,20 @@ that, so they read as driving times rather than detection times:
 Both are still estimates bounded by how often your car reports its position: a
 long gap in the stream is a long gap in what can be known.
 
+### When the position stream goes quiet
+
+"No movement seen for five minutes" has two very different causes: the car
+stopped, or the stream did. Only the first ends a drive — closing on the second
+used to split one drive through a tunnel or a coverage hole into two trips.
+
+So a stop is only acted on once something **confirms** it: a position report that
+arrived showing the car standing still, or an explicit "not moving" from cars that
+send one. With neither, the drive is held open until the reports come back and
+settle it — if the car has moved on, it was one drive all along; if it reappears
+where it vanished, it really was parked and the trip ends back at the last
+movement. A stream that never comes back closes the trip after half an hour, and
+because the end is backdated either way, a late close costs no accuracy.
+
 ## Privacy by default
 
 Endpoints are stored as **place names, never coordinates**:
@@ -78,8 +92,43 @@ Drives auto-classify as **business**, **private** or **commute**:
 
 - Set a **work zone** under **Configure → Trips** (`trip_work_zone`) so
   home↔work drives are recognised as commutes.
+- Everything else is filed as your **Default type** (`trip_default_class`) —
+  **Private** out of the box. Choose **Business** if that is the honest default
+  for your driving, or **Leave unclassified** to sort every trip by hand.
 - Correct any guess with **`bavariandata.set_trip_class`** or the tap-to-edit
   control on the [trips card](The-Dashboard-Card#trips--driving-journal-view-trips).
+
+Automatic classification is only ever a **starting point**: a trip you classified
+yourself is never overwritten, and changing these settings does not touch trips
+that are already recorded.
+
+### A commute with a stop on the way
+
+Buying groceries between home and work parks the car long enough that the
+detector records **two** drives, neither of which is home→work on its own. The
+**Commute stop tolerance** (`trip_commute_gap`, default **30 minutes**) covers
+that: if the car stands no longer than this between one drive ending and the next
+beginning, the drives form a *chain*, and a chain that runs from one commute zone
+to the other counts as commuting — all of its legs, retroactively. The stops stay
+visible as separate trips in the journal; they are just all badged commute.
+
+```
+Home ──12 min──▶ Supermarket ──[22 min stop]──▶ Work     both legs = commute
+Home ──8 min───▶ Bakery ──────[15 min stop]───▶ Home     both legs = private
+Work ──5 min───▶ Lunch ───────[40 min stop]───▶ Work     both legs = private
+```
+
+Details worth knowing:
+
+- A chain **ends when it reaches home or work**, so a lunch run out of the office
+  and back doesn't get pulled into the morning commute.
+- Both **ends** of the chain are checked, not any endpoint — a round trip that
+  starts and finishes at home stays private, however many stops it had.
+- Up to **five** drives may form one chain. A longer string of short hops is a day
+  of running around, so it keeps the default type.
+- Stops shorter than about **five minutes** never split a drive in the first
+  place, so this setting governs the band above that. Set it to **0** to switch
+  chaining off entirely.
 
 ## The monthly sensor and summaries
 

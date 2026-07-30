@@ -21,13 +21,19 @@ from homeassistant.util import dt as dt_util
 
 from .const import (
     DOMAIN,
+    DEFAULT_TRIP_COMMUTE_GAP_MIN,
+    DEFAULT_TRIP_DEFAULT_CLASS,
     DIAGNOSTIC_LOG_INTERVAL,
     EVENT_CHARGING_STARTED,
     EVENT_CHARGING_STOPPED,
     EVENT_CHARGING_COMPLETE,
 )
 from .debug import debug_enabled
-from .history.classify import classify_trip
+from .history.classify import (
+    COMMUTE_CHAIN_MAX_LEGS,
+    classify_trip,
+    commute_chain,
+)
 from .history.health import usable_capacity
 from .history.pricing import (
     MODE_FIXED,
@@ -37,12 +43,13 @@ from .history.pricing import (
     resolve_cost,
 )
 from .history.sessions import SessionBuilder
-from .history.trips import SOURCE_AUTO, place
+from .history.trips import CLASS_COMMUTE, SOURCE_AUTO, place
 from .history.trip_builder import (
     GpsTracker,
     TripBuilder,
     is_gps_movement,
     is_noise_trip,
+    silence_implies_stop,
 )
 from .tyre import parse_tyre_diagnosis
 from .units import normalize_unit
@@ -116,6 +123,18 @@ TRIP_WATCH_DESCRIPTORS = (
 # trip as ended. Long enough to ride out a traffic light, short enough that a
 # parked car's trip closes promptly.
 TRIP_CLOSE_DEBOUNCE_S = 300
+
+# The debounce above assumes the fixes that stopped moving are evidence the *car*
+# stopped. When the position stream simply goes quiet mid-drive -- the i5 can gap
+# for minutes, and a tunnel or a bad cell patch longer still -- there is no such
+# evidence, and closing on the timer alone splits one drive into two. So a close
+# with no stop evidence behind it is *held*: the trip stays open until a fix comes
+# back and settles it (a fix showing the car where it left off closes the trip; a
+# fix showing it has moved on continues the same trip). This caps how long that
+# wait may last, for a stream that never comes back. Generous, because the close
+# is backdated to the last movement either way (see ``_trip_end_time``), so a late
+# close costs latency, not accuracy.
+TRIP_SILENT_HOLD_MAX_S = 1800
 
 # A driver-door-close start marker is only honoured for opening a trip within
 # this long -- so an unrelated door-close hours before a drive can't seed it.
@@ -397,6 +416,11 @@ class CardataCoordinator:
     # injected/updated from options; both are optional and degrade quietly.
     geocoder: Optional[Any] = None
     work_zone_entity: Optional[str] = None
+    # What a non-commute trip is classified as, and how long the car may stand
+    # between two legs for both to still count as one commute (0 = never). Both
+    # come from options; see ``history/classify.py`` for the rules they feed.
+    trip_default_class: Optional[str] = DEFAULT_TRIP_DEFAULT_CLASS
+    trip_commute_gap_s: int = DEFAULT_TRIP_COMMUTE_GAP_MIN * 60
     # Record each trip's GPS route (opt-in, off by default). The only setting that
     # persists raw coordinates; refreshed from options on reload / options change.
     record_trip_track: bool = False
@@ -425,6 +449,16 @@ class CardataCoordinator:
     # segment-close path: a segment batch must not close a trip the GPS track
     # still shows to be under way.
     _last_gps_move: Dict[str, datetime] = field(default_factory=dict, init=False)
+    # Wall-clock of the last *positive* evidence the car is standing still: a GPS
+    # fix that arrived showing no movement, or an explicit ``isMoving: false``.
+    # Newer than ``_last_gps_move`` means "the car stopped"; older (or absent)
+    # while the debounce expires means "the stream stopped", which must not close
+    # a trip -- see ``_hold_close_on_silence``.
+    _last_stop_evidence: Dict[str, datetime] = field(default_factory=dict, init=False)
+    # When an unevidenced close was first held off, per VIN. Present only while a
+    # trip is being held open through stream silence; bounded by
+    # ``TRIP_SILENT_HOLD_MAX_S``.
+    _trip_held_since: Dict[str, datetime] = field(default_factory=dict, init=False)
     # Last settled GPS position per VIN (updated on every complete fix, moving or
     # not). It is what a new trip's track is seeded from, so the route starts
     # where the car actually was parked rather than at the first movement fix.
@@ -1397,9 +1431,15 @@ class CardataCoordinator:
                 )
             if motion is True:
                 # Moving again: cancel any pending stationary-close.
+                self._trip_held_since.pop(vin, None)
                 self._cancel_trip_close_timer(vin)
-            elif motion is False and open_trip:
-                self._arm_trip_close_timer(vin)
+            elif motion is False:
+                # An explicit "not moving" is stop evidence in its own right, so a
+                # car that streams it never has its close held (see
+                # ``_hold_close_on_silence``).
+                self._last_stop_evidence[vin] = now
+                if open_trip:
+                    self._arm_trip_close_timer(vin)
         except Exception:  # noqa: BLE001 - never let trip logic break the stream
             _LOGGER.exception("Trip detection failed for %s", vin)
 
@@ -1562,6 +1602,27 @@ class CardataCoordinator:
             self._last_gps_fix_at[vin] = now
 
             if moving:
+                if open_trip and vin in self._trip_held_since and silence_implies_stop(
+                    gap_s, step_km, min_gap_s=TRIP_CLOSE_DEBOUNCE_S
+                ):
+                    # The fixes are back, but barely anywhere: the car stood
+                    # through the silence (a garage that swallows the fix), so the
+                    # held close was right after all. Close it *before* stamping
+                    # this movement, or the backdated end would land on this
+                    # departure instead of the real arrival -- then let the fix
+                    # below open the new trip.
+                    self._trip_held_since.pop(vin, None)
+                    self._cancel_trip_close_timer(vin)
+                    self._cap(
+                        "[trip.timer] %s held close CONFIRMED by distance "
+                        "(%dm over %ds silence)",
+                        vin,
+                        round(step_km * 1000),
+                        int(gap_s or 0),
+                        substrate=True,
+                    )
+                    await self._close_trip(vin, now, reason="silent")
+                    open_trip = False
                 self._last_gps_move[vin] = now
                 if not open_trip:
                     # Seed the track from where the car actually started (the
@@ -1578,13 +1639,33 @@ class CardataCoordinator:
                     # Record the route point too, stamped with this fix's time
                     # (opt-in; a no-op otherwise).
                     builder.add_track_point(latitude, longitude, now)
+                # The fixes are back and the car has moved on: the drive never
+                # ended, so drop any hold and keep going as one trip.
+                self._trip_held_since.pop(vin, None)
                 # Rolling window: keep the trip alive while the car is moving,
                 # but guarantee a close even if the fixes stop arriving.
                 self._reset_trip_close_timer(vin)
-            elif open_trip:
-                # Stationary fix: start the countdown but don't keep resetting it,
-                # or a car that streams its parked position never closes.
-                self._arm_trip_close_timer(vin)
+            else:
+                # A fix that arrived showing no movement is the one thing that
+                # positively says the *car* stopped rather than the stream.
+                self._last_stop_evidence[vin] = now
+                if open_trip and vin in self._trip_held_since:
+                    # A held close, now confirmed: the stream went quiet while the
+                    # car was already parked. Close on the spot -- the end is
+                    # backdated to the last movement, so nothing is lost.
+                    self._trip_held_since.pop(vin, None)
+                    self._cancel_trip_close_timer(vin)
+                    self._cap(
+                        "[trip.timer] %s held close CONFIRMED by a stationary fix",
+                        vin,
+                        substrate=True,
+                    )
+                    await self._close_trip(vin, now, reason="silent")
+                    open_trip = False
+                elif open_trip:
+                    # Stationary fix: start the countdown but don't keep resetting
+                    # it, or a car that streams its parked position never closes.
+                    self._arm_trip_close_timer(vin)
 
             # Remember where the car is now, for the next trip's start seed.
             self._last_gps_position[vin] = (latitude, longitude)
@@ -1679,8 +1760,14 @@ class CardataCoordinator:
         stationary-close debounce -- the same window the GPS close timer uses --
         so a segment batch can't pre-empt a drive the timer would still keep
         alive. Cars that stream no GPS never set this and are never gated.
+
+        A trip held open through stream silence counts as still moving too: the
+        whole point of the hold is that we don't yet know the car stopped, and a
+        segment batch is no help deciding -- the i5 emits them mid-drive.
         """
 
+        if vin in self._trip_held_since:
+            return True
         last = self._last_gps_move.get(vin)
         if last is None:
             return False
@@ -1740,6 +1827,7 @@ class CardataCoordinator:
         caller must decide rather than let a just-updated fix time stand in.
         """
 
+        self._trip_held_since.pop(vin, None)
         seed, started_at = self._trip_start_seed(vin, now, parked_until)
         # Resolve the start place from the seed (the parked/door-close spot), not
         # the ~hundreds-of-metres-later fix that first registered as movement.
@@ -1797,9 +1885,13 @@ class CardataCoordinator:
         directly and usually within seconds of it, which beats a movement fix that
         may be minutes old on a sparse stream. So is an unload, which is simply
         "whatever we have, now".
+
+        A ``silent`` close -- one that was held while the stream was quiet and then
+        settled -- backdates as well, and matters more than the others: the hold can
+        run for half an hour, so ``now`` would be wildly wrong.
         """
 
-        if reason not in ("stationary", "segment"):
+        if reason not in ("stationary", "segment", "silent"):
             return now
         last_move = self._last_gps_move.get(vin)
         if last_move is None:
@@ -1813,6 +1905,7 @@ class CardataCoordinator:
         cap_stats = self._trip_capture.pop(vin, None)
         self._cancel_trip_close_timer(vin)
         self._trip_close_due.pop(vin, None)
+        self._trip_held_since.pop(vin, None)
         if builder is None or self.history is None:
             return
 
@@ -1883,31 +1976,125 @@ class CardataCoordinator:
             )
             return
 
+        home_zone = self._home_zone_name()
+        work_zone = self._work_zone_name()
         classification = classify_trip(
             trip.start_place,
             trip.end_place,
-            home=self._home_zone_name(),
-            work=self._work_zone_name(),
+            home=home_zone,
+            work=work_zone,
+            default_class=self.trip_default_class,
         )
+        # Not a commute on its own: it may still be the last leg of one that a
+        # stop on the way split in two (groceries between home and work).
+        chain: Optional[list] = None
+        if classification != CLASS_COMMUTE:
+            chain = self._commute_chain(vin, trip, home=home_zone, work=work_zone)
+            if chain is not None:
+                classification = CLASS_COMMUTE
         if classification is not None:
             trip.classification = classification
             trip.classification_source = SOURCE_AUTO
         self._cap(
-            "[trip] %s RECORDED id=%s class=%s track=%d pts (home=%s work=%s)",
+            "[trip] %s RECORDED id=%s class=%s chain=%s track=%d pts "
+            "(home=%s work=%s)",
             vin,
             trip.id,
             classification,
+            "no" if chain is None else f"{len(chain) + 1} legs",
             len(trip.track),
-            self._home_zone_name(),
-            self._work_zone_name(),
+            home_zone,
+            work_zone,
         )
 
         try:
             self.history.add_trip(trip)
+            if chain:
+                self._promote_chain_legs(vin, chain)
         except Exception:  # noqa: BLE001 - bookkeeping must not break the stream
             _LOGGER.exception("Could not record trip for %s", vin)
             return
         async_dispatcher_send(self.hass, self.signal_trips, vin)
+
+    def _commute_chain(
+        self,
+        vin: str,
+        trip: Any,
+        *,
+        home: Optional[str],
+        work: Optional[str],
+    ) -> Optional[list]:
+        """Earlier legs that make this trip the end of a commute, or ``None``.
+
+        Thin wrapper over :func:`history.classify.commute_chain`: it only reads
+        back as many recent trips as a chain may span, and never lets a lookup
+        failure block the record being written.
+        """
+
+        if self.history is None or self.trip_commute_gap_s <= 0:
+            return None
+        try:
+            previous = self.history.trips(vin, limit=COMMUTE_CHAIN_MAX_LEGS + 1)
+        except Exception:  # noqa: BLE001 - classification is best-effort
+            _LOGGER.exception("Could not read trip history for %s", vin)
+            return None
+        return commute_chain(
+            trip,
+            previous,
+            home=home,
+            work=work,
+            gap_s=self.trip_commute_gap_s,
+        )
+
+    def _promote_chain_legs(self, vin: str, legs: list) -> None:
+        """Re-label the earlier legs of a completed commute chain.
+
+        Those legs were stored when the chain's destination wasn't known yet, so
+        each got the default type. Only automatic classifications are rewritten --
+        a leg the user classified by hand keeps their answer (``commute_chain``
+        filters those out). Writing them back through ``add_trip`` replaces each
+        record by id, so this stays idempotent.
+        """
+
+        for leg in legs:
+            leg.classification = CLASS_COMMUTE
+            leg.classification_source = SOURCE_AUTO
+            self.history.add_trip(leg)
+            self._cap("[trip] %s chain leg %s -> commute", vin, leg.id)
+
+    def _hold_close_on_silence(self, vin: str, now: datetime) -> bool:
+        """True when a due close has no evidence behind it and must wait.
+
+        The stationary debounce fires ``TRIP_CLOSE_DEBOUNCE_S`` after the last
+        movement -- but "no movement seen" has two very different causes. If a fix
+        arrived showing the car standing still (or the car said ``isMoving:
+        false``), the car stopped and the trip really is over. If nothing arrived
+        at all, only the *stream* stopped, and closing here splits a drive through
+        a tunnel or a cell-coverage hole into two trips -- the detector's known
+        worst failure mode.
+
+        So a close with no stop evidence newer than the last movement is held off,
+        up to ``TRIP_SILENT_HOLD_MAX_S`` from when the hold began. Cars that stream
+        no position at all (detection then runs off motion/ignition) are never
+        held: there is no cadence to have gone quiet.
+        """
+
+        last_move = self._last_gps_move.get(vin)
+        if last_move is None:
+            return False
+        evidence = self._last_stop_evidence.get(vin)
+        if evidence is not None and evidence >= last_move:
+            return False  # the car was seen standing still: a real stop
+        held_since = self._trip_held_since.setdefault(vin, now)
+        if (now - held_since).total_seconds() >= TRIP_SILENT_HOLD_MAX_S:
+            return False  # the stream never came back; close on what we have
+        self._cap(
+            "[trip.timer] %s HOLD (stream silent %ds, no stop evidence)",
+            vin,
+            int((now - last_move).total_seconds()),
+            substrate=True,
+        )
+        return True
 
     def _arm_trip_close_timer(self, vin: str, *, quiet: bool = False) -> None:
         if vin in self._trip_close_timers:
@@ -1920,16 +2107,22 @@ class CardataCoordinator:
         def _fire(_now) -> None:
             self._trip_close_timers.pop(vin, None)
             self._trip_close_due.pop(vin, None)
+            now = datetime.now(timezone.utc)
+            if self._hold_close_on_silence(vin, now):
+                # Nothing says the car stopped -- only that the stream did. Keep
+                # the trip open and look again after another debounce.
+                self._arm_trip_close_timer(vin, quiet=True)
+                return
+            reason = "silent" if self._trip_held_since.pop(vin, None) else "stationary"
             self._cap(
-                "[trip.timer] %s FIRE -> closing (stationary %ds)",
+                "[trip.timer] %s FIRE -> closing (%s, %ds)",
                 vin,
+                reason,
                 TRIP_CLOSE_DEBOUNCE_S,
                 substrate=True,
             )
             self.hass.async_create_task(
-                self._close_trip(
-                    vin, datetime.now(timezone.utc), reason="stationary"
-                )
+                self._close_trip(vin, now, reason=reason)
             )
 
         self._trip_close_due[vin] = datetime.now(timezone.utc) + timedelta(
@@ -1972,15 +2165,20 @@ class CardataCoordinator:
         A trip left open when Home Assistant restarts would otherwise be lost;
         closing it here captures whatever end state we have. Timers are cancelled
         first so a pending debounce can't fire against a stale builder.
+
+        A trip being held open through stream silence is flushed as ``silent`` so
+        its end is still backdated to the last movement -- for those, "whatever we
+        have, now" could be half an hour past the arrival.
         """
 
         for cancel in list(self._trip_close_timers.values()):
             cancel()
         self._trip_close_timers.clear()
         for vin in list(self._trip_builders):
+            reason = "silent" if vin in self._trip_held_since else "unload"
             with suppress(Exception):
                 await self._close_trip(
-                    vin, datetime.now(timezone.utc), reason="unload"
+                    vin, datetime.now(timezone.utc), reason=reason
                 )
 
     def async_flush_charging(self) -> None:

@@ -129,22 +129,173 @@ def test_known_but_non_commute_is_private():
     )
 
 
-def test_unknown_endpoint_stays_unclassified():
+def test_unknown_endpoint_takes_the_default_type():
+    # Whether we happen to know where the car was says nothing about the trip's
+    # purpose, so an unplaceable trip is filed as the default like any other
+    # non-commute -- correctable on the card either way.
+    for start, end in (
+        (place(zone="Home"), place(address="Somewhere")),
+        (None, None),
+    ):
+        assert classify.classify_trip(start, end, home="Home", work="Work") == "private"
+
+
+def test_default_type_is_configurable():
+    home, gym = place(zone="Home"), place(zone="Gym")
+    assert (
+        classify.classify_trip(home, gym, home="Home", work="Work", default_class="business")
+        == "business"
+    )
+    # "unclassified" (and an unrecognised value) restores the leave-it-blank
+    # behaviour rather than writing a class nothing understands.
+    for value in ("unclassified", None, "nonsense"):
+        assert (
+            classify.classify_trip(
+                home, gym, home="Home", work="Work", default_class=value
+            )
+            is None
+        )
+
+
+def test_default_type_never_overrides_a_commute():
+    home, work = place(zone="Home"), place(zone="Work")
     assert (
         classify.classify_trip(
-            place(zone="Home"), place(address="Somewhere"), home="Home", work="Work"
+            home, work, home="Home", work="Work", default_class="business"
         )
-        is None
+        == "commute"
     )
-    assert classify.classify_trip(None, None, home="Home", work="Work") is None
+
+
+def test_trip_class_setting_maps_the_option_value():
+    assert classify.trip_class_setting("private") == "private"
+    assert classify.trip_class_setting("business") == "business"
+    assert classify.trip_class_setting("unclassified") is None
+    assert classify.trip_class_setting(None) is None
 
 
 def test_classifier_never_invents_business():
-    # business is only ever reachable through the manual override.
+    # Without the user choosing it as their default, business is only ever
+    # reachable through the manual override.
     result = classify.classify_trip(
         place(zone="Home"), place(zone="Work"), home="Home", work=None
     )
     assert result != "business"
+
+
+def test_identical_home_and_work_is_not_a_commute():
+    # A misconfigured work zone pointing at home would otherwise make every
+    # drive home a commute.
+    assert (
+        classify.classify_trip(
+            place(zone="Home"), place(zone="Home"), home="Home", work="Home"
+        )
+        == "private"
+    )
+
+
+# --- commute chains (a stop on the way) ------------------------------------
+
+
+def _leg(minutes_in: int, minutes_out: int, start_zone, end_zone, **overrides) -> Trip:
+    """One leg of a chain, placed relative to ``START`` by minute offsets."""
+
+    data = {
+        "vin": "WBY1",
+        "start": START + timedelta(minutes=minutes_in),
+        "end": START + timedelta(minutes=minutes_out),
+        "distance_km": 8.0,
+        "start_place": None if start_zone is None else place(zone=start_zone),
+        "end_place": None if end_zone is None else place(zone=end_zone),
+        "classification": "private",
+        "classification_source": "auto",
+    }
+    data.update(overrides)
+    return Trip(**data)
+
+
+def _chain(trip, previous, *, gap_min=30, home="Home", work="Work"):
+    return classify.commute_chain(
+        trip, previous, home=home, work=work, gap_s=gap_min * 60
+    )
+
+
+def test_stop_on_the_way_to_work_chains_into_a_commute():
+    # Home -> supermarket (22 min stop) -> Work: two records, one commute.
+    leg1 = _leg(0, 12, "Home", None)  # supermarket is in no zone
+    leg2 = _leg(34, 49, None, "Work")
+    promoted = _chain(leg2, [leg1])
+    assert promoted is not None
+    assert [leg.id for leg in promoted] == [leg1.id]
+
+
+def test_a_long_stop_breaks_the_chain():
+    leg1 = _leg(0, 12, "Home", None)
+    leg2 = _leg(60, 75, None, "Work")  # stood 48 min
+    assert _chain(leg2, [leg1]) is None
+
+
+def test_a_round_trip_from_home_is_not_a_commute():
+    # Home -> bakery -> Home: the chain begins and ends at home.
+    leg1 = _leg(0, 8, "Home", None)
+    leg2 = _leg(20, 28, None, "Home")
+    assert _chain(leg2, [leg1]) is None
+
+
+def test_an_errand_from_work_is_not_a_commute():
+    # Home -> Work, then Work -> lunch -> Work with short gaps. The morning
+    # commute must not drag the lunch run in with it.
+    commute = _leg(0, 25, "Home", "Work", classification="commute")
+    out = _leg(50, 58, "Work", None)
+    back = _leg(75, 83, None, "Work")
+    assert _chain(back, [commute, out]) is None
+
+
+def test_the_evening_commute_chains_too():
+    morning = _leg(0, 25, "Home", "Work", classification="commute")
+    leg1 = _leg(500, 515, "Work", None)  # leaves work, stops at the bakery
+    leg2 = _leg(530, 545, None, "Home")
+    promoted = _chain(leg2, [morning, leg1])
+    assert promoted is not None
+    assert [leg.id for leg in promoted] == [leg1.id]
+
+
+def test_several_stops_chain_up_to_the_leg_cap():
+    # Four legs in: still one commute with errands (the cap is five, arriving
+    # leg included).
+    legs = [
+        _leg(0, 10, "Home", None),
+        _leg(20, 30, None, None),
+        _leg(40, 50, None, None),
+    ]
+    promoted = _chain(_leg(60, 70, None, "Work"), legs)
+    assert promoted is not None
+    assert len(promoted) == 3
+
+    # Six legs is a day of running around, not a commute: with no chain origin
+    # reachable inside the cap, the default type stands.
+    legs = [_leg(i * 20, i * 20 + 10, "Home" if i == 0 else None, None) for i in range(5)]
+    assert _chain(_leg(100, 110, None, "Work"), legs) is None
+
+
+def test_a_hand_classified_leg_keeps_its_class_but_still_chains():
+    leg1 = _leg(0, 12, "Home", None, classification="business", classification_source="user")
+    leg2 = _leg(34, 49, None, "Work")
+    promoted = _chain(leg2, [leg1])
+    assert promoted == []  # a commute chain, but nothing to rewrite
+
+
+def test_chaining_off_and_missing_work_zone_do_nothing():
+    leg1 = _leg(0, 12, "Home", None)
+    leg2 = _leg(34, 49, None, "Work")
+    assert _chain(leg2, [leg1], gap_min=0) is None
+    assert _chain(leg2, [leg1], work=None) is None
+
+
+def test_a_chain_needs_to_arrive_somewhere_that_matters():
+    leg1 = _leg(0, 12, "Home", None)
+    leg2 = _leg(34, 49, None, "Gym")
+    assert _chain(leg2, [leg1]) is None
 
 
 # --- builder ---------------------------------------------------------------
@@ -166,6 +317,20 @@ def test_builder_falls_back_to_bmw_distance():
         START + timedelta(minutes=20), mileage_end=1000.0, travelled_km=12.0
     )
     assert trip.distance_km == 12.0
+
+
+def test_silence_implies_stop_reads_the_gap_as_a_whole():
+    stop = lambda gap_s, step_km: trip_builder.silence_implies_stop(  # noqa: E731
+        gap_s, step_km, min_gap_s=300
+    )
+    # 12 minutes of silence, 80 m covered: the car stood in a garage.
+    assert stop(720, 0.08) is True
+    # 12 minutes of silence, 9 km covered: it was driving the whole time.
+    assert stop(720, 9.0) is False
+    # A gap no longer than the debounce never had a close pending to settle.
+    assert stop(200, 0.02) is False
+    assert stop(None, 0.02) is False
+    assert stop(720, None) is False
 
 
 def test_noise_trip_detection():

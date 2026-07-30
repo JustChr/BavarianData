@@ -44,13 +44,18 @@ from .const import (
     OPTION_STREAM_SECTIONS,
     OPTION_STATISTICS_IMPORT,
     DEFAULT_STATISTICS_IMPORT,
+    OPTION_TRIP_COMMUTE_GAP,
+    DEFAULT_TRIP_COMMUTE_GAP_MIN,
     OPTION_TRIP_DEBUG,
+    OPTION_TRIP_DEFAULT_CLASS,
+    DEFAULT_TRIP_DEFAULT_CLASS,
     OPTION_TRIP_GEOCODE,
     OPTION_TRIP_TRACK,
     OPTION_TRIP_WORK_ZONE,
     VEHICLE_METADATA,
 )
 from .debug import set_debug_enabled
+from .history.classify import DEFAULT_CLASS_CHOICES, trip_class_setting
 from .history.pricing import DEFAULT_CURRENCY, MODE_ENTITY, MODE_FIXED, MODE_NONE, PricingConfig
 from .descriptors import (
     build_portal_snippet,
@@ -1064,9 +1069,11 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
     ) -> FlowResult:
         """Configure trip classification and address resolution.
 
-        The work zone drives commute classification (home <-> work). Address
-        resolution is off by default: turning it on sends the coordinates of
-        trip endpoints outside a known zone to OpenStreetMap's Nominatim -- the
+        The work zone drives commute classification (home <-> work); the default
+        type is what every other trip gets, and the commute stop tolerance lets a
+        commute survive an errand on the way (see ``history/classify.py``).
+        Address resolution is off by default: turning it on sends the coordinates
+        of trip endpoints outside a known zone to OpenStreetMap's Nominatim -- the
         resulting address string is stored, never the coordinates themselves.
         Route recording is a separate opt-in: turning it on stores each trip's
         GPS track (raw coordinates, each stamped with its time) so a map can draw
@@ -1084,6 +1091,32 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                     },
                 ): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain="zone")
+                ),
+                vol.Required(
+                    OPTION_TRIP_DEFAULT_CLASS,
+                    default=options.get(
+                        OPTION_TRIP_DEFAULT_CLASS, DEFAULT_TRIP_DEFAULT_CLASS
+                    ),
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=list(DEFAULT_CLASS_CHOICES),
+                        translation_key=OPTION_TRIP_DEFAULT_CLASS,
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+                vol.Required(
+                    OPTION_TRIP_COMMUTE_GAP,
+                    default=options.get(
+                        OPTION_TRIP_COMMUTE_GAP, DEFAULT_TRIP_COMMUTE_GAP_MIN
+                    ),
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=0,
+                        max=180,
+                        step=5,
+                        unit_of_measurement="min",
+                        mode=selector.NumberSelectorMode.BOX,
+                    )
                 ),
                 vol.Required(
                     OPTION_TRIP_GEOCODE,
@@ -1111,6 +1144,23 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
             coordinator = runtime.coordinator
             coordinator.work_zone_entity = (
                 user_input.get(OPTION_TRIP_WORK_ZONE) or None
+            )
+            # Classification settings apply to the next trip that closes; already
+            # stored trips keep the class they were recorded with (correct them
+            # from the card).
+            coordinator.trip_default_class = trip_class_setting(
+                user_input.get(
+                    OPTION_TRIP_DEFAULT_CLASS, DEFAULT_TRIP_DEFAULT_CLASS
+                )
+            )
+            coordinator.trip_commute_gap_s = (
+                int(
+                    user_input.get(
+                        OPTION_TRIP_COMMUTE_GAP, DEFAULT_TRIP_COMMUTE_GAP_MIN
+                    )
+                    or 0
+                )
+                * 60
             )
             if coordinator.geocoder is not None:
                 coordinator.geocoder.enabled = bool(

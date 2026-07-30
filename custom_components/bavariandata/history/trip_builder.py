@@ -63,6 +63,40 @@ def is_gps_movement(step_km: float) -> bool:
     return step_km >= GPS_MOVE_THRESHOLD_KM
 
 
+# Average speed across a gap in the fixes below which the car cannot have been
+# driving for most of it. Walking pace: a car crawling in a jam still beats it
+# over ten minutes, but a car parked in a signal-dead garage cannot.
+SILENT_STOP_MAX_KMH = 3.0
+
+
+def silence_implies_stop(
+    gap_s: Optional[float],
+    step_km: Optional[float],
+    *,
+    min_gap_s: float,
+    max_kmh: float = SILENT_STOP_MAX_KMH,
+) -> bool:
+    """True when a long silence between fixes covered too little ground to drive.
+
+    The coordinator holds a trip open when the position stream goes quiet, because
+    silence alone doesn't mean the car stopped (see ``_hold_close_on_silence``).
+    When the fixes come back, this decides which it was: a car that reappears far
+    away was driving all along and the trip continues, while one that reappears
+    where it vanished spent that time parked -- somewhere the fix simply couldn't
+    be had, an underground garage being the obvious case -- so the trip really did
+    end back then.
+
+    Averaged over the whole gap rather than judged on the step alone, so a long
+    silence needs proportionally more ground covered to read as driving. Only
+    applied to gaps longer than ``min_gap_s`` (the close debounce): below that no
+    close was ever due, so there is nothing to decide.
+    """
+
+    if gap_s is None or step_km is None or gap_s <= min_gap_s or gap_s <= 0:
+        return False
+    return step_km / (gap_s / 3600.0) < max_kmh
+
+
 class GpsTracker:
     """Turns a stream of GPS fixes into per-fix movement steps.
 

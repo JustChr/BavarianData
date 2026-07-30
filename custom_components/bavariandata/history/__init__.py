@@ -11,7 +11,14 @@ dependency. See ``docs/roadmap.md`` for the phases this supports.
 
 from __future__ import annotations
 
-from .classify import classify_trip
+from .classify import (
+    CLASS_UNCLASSIFIED,
+    COMMUTE_CHAIN_MAX_LEGS,
+    DEFAULT_CLASS_CHOICES,
+    classify_trip,
+    commute_chain,
+    trip_class_setting,
+)
 from .geocoding import ReverseGeocoder, format_address
 from .models import SCHEMA_VERSION, ChargingSession, merge_session, prune_sessions
 from .pricing import (
@@ -24,9 +31,12 @@ from .pricing import (
 )
 from .sessions import SessionBuilder
 from .trips import Trip, merge_trip, place, prune_trips
-from .trip_builder import TripBuilder, is_noise_trip
+from .trip_builder import TripBuilder, is_noise_trip, silence_implies_stop
 
 __all__ = [
+    "CLASS_UNCLASSIFIED",
+    "COMMUTE_CHAIN_MAX_LEGS",
+    "DEFAULT_CLASS_CHOICES",
     "SCHEMA_VERSION",
     "ChargingSession",
     "CostAccumulator",
@@ -38,6 +48,7 @@ __all__ = [
     "billable_energy",
     "bmw_cost",
     "classify_trip",
+    "commute_chain",
     "fixed_cost",
     "format_address",
     "is_noise_trip",
@@ -47,4 +58,6 @@ __all__ = [
     "prune_sessions",
     "prune_trips",
     "resolve_cost",
+    "silence_implies_stop",
+    "trip_class_setting",
 ]
