@@ -31,7 +31,7 @@ These read (or write) the integration's own store and cost **no** quota.
 | Service | What it does |
 | --- | --- |
 | `bavariandata.get_charging_sessions` | Recorded charging sessions as response data. |
-| `bavariandata.get_trips` | Recorded trips as response data (endpoints as place names). |
+| `bavariandata.get_trips` | Recorded trips as response data (endpoints as place names), plus any drive still under way. |
 | `bavariandata.get_driving_summary` | The month-in-review aggregation for trips. |
 | `bavariandata.set_trip_class` | Corrects a trip's business/private/commute class. |
 | `bavariandata.export_history` | Returns a month as CSV or a printable HTML report. |
@@ -44,6 +44,12 @@ These read (or write) the integration's own store and cost **no** quota.
 ### `get_charging_sessions` / `get_trips`
 `vin`, `from`, `to`, `limit`. Returns records newest-first as **response data**
 (tick *Return response* in Developer Tools).
+
+`get_trips` also returns **`open_trips`** — a drive still under way, which is not
+in the journal yet: no end, no classification, a provisional distance and the
+route so far when route recording is on. Omitted when you pass a `from`/`to`
+window, since a past month plainly doesn't include the drive happening now. See
+[Trips](Feature-Trips#seeing-the-drive-thats-happening-now).
 
 ### `get_driving_summary`
 `vin`, `month` (`YYYY-MM`, defaults to current). Returns distance, the

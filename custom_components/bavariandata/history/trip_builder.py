@@ -236,6 +236,56 @@ class TripBuilder:
             return round(self.gps_km, 1)
         return None
 
+    def progress_km(self, mileage_now: Optional[float] = None) -> Optional[float]:
+        """Provisional distance for a drive still under way.
+
+        The same source ranking the finished record uses, so the figure shown
+        mid-drive and the one that lands can't disagree about where the number
+        came from. BMW's ``travelledDistance`` segment field is deliberately not
+        offered here: mid-drive it still carries the *previous* trip's total (the
+        i5 repeats the whole batch while driving, see ``coordinator``), which
+        would read as a wild jump and then snap back at close.
+
+        ``None`` until either source has something to say -- the odometer only
+        ticks in whole kilometres, so the first minute of a drive legitimately
+        has no distance to report yet.
+        """
+
+        return self._distance_km(mileage_now, None)
+
+    def progress(
+        self,
+        now: datetime,
+        *,
+        mileage_now: Optional[float] = None,
+        soc_now: Optional[float] = None,
+    ) -> dict[str, Any]:
+        """A live view of the trip so far, for surfacing a drive in progress.
+
+        Shaped like a :class:`Trip` record on purpose -- same key names for the
+        start, the places and the SoC pair -- so a frontend can render an
+        in-progress drive with the code it already has for a finished one, with
+        ``in_progress`` the single flag that says not to treat it as final.
+        ``end``/``end_place`` are absent rather than guessed: the drive has no
+        end yet, and inventing one is exactly the wrong answer.
+
+        The caller supplies the live readings (they come from the vehicle state,
+        which this module deliberately can't reach) and adds whatever only it
+        knows -- the recorded route, whether the close is being held.
+        """
+
+        return {
+            "vin": self.vin,
+            "start": self.start.isoformat(),
+            "start_place": dict(self.start_place) if self.start_place else None,
+            "distance_km": self.progress_km(mileage_now),
+            "duration_s": max(0, int((now - self.start).total_seconds())),
+            "soc_start": self.soc_start,
+            "soc_end": soc_now,
+            "location_assumed": self.location_assumed,
+            "in_progress": True,
+        }
+
     def close(
         self,
         at: datetime,

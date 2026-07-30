@@ -46,6 +46,38 @@ where it vanished, it really was parked and the trip ends back at the last
 movement. A stream that never comes back closes the trip after half an hour, and
 because the end is backdated either way, a late close costs no accuracy.
 
+## Seeing the drive that's happening now
+
+A drive in progress is not in the journal yet — it has no end, no final distance
+and nothing to classify — so it is surfaced separately, live:
+
+- A **Trip in Progress** binary sensor per vehicle: `on` while a drive is under
+  way, with the trip so far as attributes — `started`, `start_location`,
+  `distance_km`, `duration_s`, `soc_start`, `soc_now`, `energy_kwh`,
+  `last_movement` and `held`.
+- On the card: a **badge on the overview** (distance and minutes so far, tap it
+  for the attributes) and a **live row at the top of the trips view** — where you
+  came from, the distance and time so far, and the route so far on a map when
+  [route recording](#recording-the-route-opt-in) is on.
+- In `bavariandata.get_trips`: an `open_trips` list alongside the recorded ones.
+
+Two things to know before you automate on it:
+
+- **It is not a "car is moving" sensor**, which is why it isn't named one. It
+  tells you a *trip is open*. A trip opens on the first position report that shows
+  movement and closes five minutes after the last one — longer while the stream is
+  quiet (see [above](#when-the-position-stream-goes-quiet)), which is what parking
+  underground looks like. So it stays `on` for some minutes after you arrive, and
+  up to half an hour if the car parked somewhere with no reception. The recorded
+  trip's end is backdated correctly regardless; it is only the live flag that
+  lingers. Use the `last_movement` attribute if you need the finer question.
+- **The figures are provisional.** Distance comes from the odometer, which only
+  ticks in whole kilometres, so it reads `unknown` for the first minute or so of a
+  drive and then falls behind the GPS track a little. The final record is
+  computed at close from the better of the available sources.
+- Nothing survives a restart: an in-flight trip lives only in memory, so
+  restarting Home Assistant mid-drive ends the trip and the flag goes `off`.
+
 ## Privacy by default
 
 Endpoints are stored as **place names, never coordinates**:
@@ -134,8 +166,11 @@ Details worth knowing:
 
 - One **Driving Distance (This Month)** sensor per vehicle carries the monthly
   total and the business/private/commute split.
+- One **Trip in Progress** binary sensor per vehicle for the drive happening now
+  — see [above](#seeing-the-drive-thats-happening-now).
 - The detail lives in the services (and the card), not a flood of entities:
-  - **`bavariandata.get_trips`** — recorded trips as response data.
+  - **`bavariandata.get_trips`** — recorded trips as response data, plus
+    `open_trips` for a drive still under way.
   - **`bavariandata.get_driving_summary`** — the "month in review": distance
     (vs last month), the split, consumption, recuperation, a driving-style
     score, top destinations, and (with a tariff) an estimated driving cost.

@@ -1166,15 +1166,36 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         async def async_handle_get_trips(call: Any) -> dict:
             target = _resolve_target(call)
             if target is None or target[2].history is None:
-                return {"trips": []}
+                return {"trips": [], "open_trips": []}
             _entry_id, _entry, runtime = target
+            start = _service_bound(call, "from")
+            end = _service_bound(call, "to")
+            vin_filter = call.data.get("vin")
             trips = runtime.history.trips(
-                call.data.get("vin"),
-                start=_service_bound(call, "from"),
-                end=_service_bound(call, "to"),
+                vin_filter,
+                start=start,
+                end=end,
                 limit=_as_limit(call.data.get("limit")),
             )
-            return {"trips": [trip.to_dict() for trip in trips]}
+            # A drive still under way is not in the store -- it only exists in the
+            # coordinator's memory -- so it rides alongside the recorded trips
+            # rather than inside them: it has no end, no distance we'd stand
+            # behind yet and nothing to classify. Suppressed when the caller asked
+            # for a bounded window, because "trips in March" plainly doesn't mean
+            # the one happening now.
+            open_trips: list[dict] = []
+            if start is None and end is None:
+                coordinator = runtime.coordinator
+                for vin in coordinator.open_trip_vins():
+                    if vin_filter and vin != vin_filter:
+                        continue
+                    progress = coordinator.open_trip_progress(vin, include_track=True)
+                    if progress is not None:
+                        open_trips.append(progress)
+            return {
+                "trips": [trip.to_dict() for trip in trips],
+                "open_trips": open_trips,
+            }
 
         async def async_handle_get_driving_summary(call: Any) -> dict:
             target = _resolve_target(call)

@@ -2492,6 +2492,9 @@
       },
       "vehicle_vehicleidentification_connecteddrivecontractlist": {
         "name": "Aktive ConnectedDrive Verträge"
+      },
+      "trip_in_progress": {
+        "name": "Fahrt aktiv"
       }
     },
     "device_tracker": {

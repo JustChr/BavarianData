@@ -13,7 +13,7 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.8.1";
+const CARD_VERSION = "1.9.0";
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -263,6 +263,11 @@ const TRANSLATIONS = {
     tr_best: "Best",
     tr_worst: "Worst",
     tr_unknown_place: "Unknown",
+    tr_open: "Trip in progress",
+    tr_open_hint: "A drive is under way",
+    tr_min: "{n} min",
+    tr_open_note:
+      "This drive is still under way. Distance and consumption are provisional, and the trip can be classified once it ends.",
     // map
     mp_title: "Trip map",
     mp_loading: "Loading map…",
@@ -298,7 +303,7 @@ const TRANSLATIONS = {
     ed_overview_option: "Overview (default)",
     ed_overrides_title: "Entity overrides (optional — leave empty to auto-detect)",
     edh_cluster:
-      "Overview shows the hero image and key metrics. Charging history lists recorded sessions with cost and power curve. Trips lists recorded drives with a month-in-review summary. Trip map draws recorded routes on a map (needs “Record trip routes” enabled). Battery health shows learned usable capacity and its trend. A cluster shows every value of that group as a list.",
+      "Overview shows the hero image and key metrics. Charging history lists recorded sessions with cost and power curve. Trips lists recorded drives with a month-in-review summary. Trip map draws recorded routes on a map (needs “Record trip routes” enabled). Battery health shows learned usable capacity and its trend. A cluster shows every value of that group as a list. A drive in progress appears as a badge on the overview and as a live row at the top of Trips.",
     edh_title: "Overrides the vehicle name shown on the card.",
   },
   de: {
@@ -466,6 +471,11 @@ const TRANSLATIONS = {
     tr_best: "Beste",
     tr_worst: "Schlechteste",
     tr_unknown_place: "Unbekannt",
+    tr_open: "Fahrt aktiv",
+    tr_open_hint: "Eine Fahrt ist im Gange",
+    tr_min: "{n} Min.",
+    tr_open_note:
+      "Diese Fahrt läuft noch. Strecke und Verbrauch sind vorläufig; zuordnen lässt sich die Fahrt, sobald sie beendet ist.",
     // map
     mp_title: "Fahrtenkarte",
     mp_loading: "Karte wird geladen…",
@@ -501,7 +511,7 @@ const TRANSLATIONS = {
     ed_overview_option: "Übersicht (Standard)",
     ed_overrides_title: "Entitäten überschreiben (optional — leer lassen für Auto-Erkennung)",
     edh_cluster:
-      "Die Übersicht zeigt das Fahrzeugbild und Kennzahlen. Der Ladeverlauf listet aufgezeichnete Ladevorgänge mit Kosten und Ladekurve. Fahrten listet aufgezeichnete Fahrten mit einer Monatsübersicht. Die Fahrtenkarte zeichnet aufgezeichnete Routen auf einer Karte (benötigt aktiviertes „Fahrtrouten aufzeichnen“). Der Batteriezustand zeigt die gelernte nutzbare Kapazität und ihren Verlauf. Ein Cluster listet alle Werte dieser Gruppe auf.",
+      "Die Übersicht zeigt das Fahrzeugbild und Kennzahlen. Der Ladeverlauf listet aufgezeichnete Ladevorgänge mit Kosten und Ladekurve. Fahrten listet aufgezeichnete Fahrten mit einer Monatsübersicht. Die Fahrtenkarte zeichnet aufgezeichnete Routen auf einer Karte (benötigt aktiviertes „Fahrtrouten aufzeichnen“). Der Batteriezustand zeigt die gelernte nutzbare Kapazität und ihren Verlauf. Ein Cluster listet alle Werte dieser Gruppe auf. Eine laufende Fahrt erscheint als Abzeichen in der Übersicht und als aktive Zeile oben in Fahrten.",
     edh_title: "Überschreibt den auf der Karte angezeigten Fahrzeugnamen.",
   },
 };
@@ -693,6 +703,20 @@ class BavarianDataCard extends HTMLElement {
     };
   }
 
+  /** The state of a device entity by its `descriptor` attribute.
+   * Derived entities (trip flag, monthly distance, battery health) are found this
+   * way rather than by name: the descriptor is language-independent, so it works
+   * on a German install where the friendly name is localized. */
+  _byDescriptor(entities, descriptor) {
+    return (
+      entities
+        .map((id) => this._st(id))
+        .find(
+          (st) => st && st.attributes && st.attributes.descriptor === descriptor
+        ) || null
+    );
+  }
+
   /* ---- formatting ------------------------------------------------------- */
 
   _fmt(st) {
@@ -810,6 +834,7 @@ class BavarianDataCard extends HTMLElement {
     const soc = this._num(socSt);
     const charging = this._isCharging(chargingSt, socSt);
     const name = this._config.title || this._deviceName(deviceId);
+    const trip = this._openTrip(entities);
 
     // freshest update among the headline entities
     const freshest = [socSt, rangeSt, chargingSt]
@@ -837,6 +862,11 @@ class BavarianDataCard extends HTMLElement {
       fresh: freshest,
       sec: secondary.map((s) => [s.label, s.st.state]),
       plug: picks.plug && this._st(picks.plug) && this._st(picks.plug).state,
+      // Elapsed minutes ride the signature so the badge's duration keeps ticking
+      // between the entity's throttled attribute writes.
+      trip: trip
+        ? [trip.distance_km, this._elapsedMin(trip.started), trip.held]
+        : null,
     });
     if (sig === this._sig) return;
     this._sig = sig;
@@ -864,6 +894,7 @@ class BavarianDataCard extends HTMLElement {
             <div class="hero__name" title="${name}">${name}</div>
             ${rel ? `<div class="pill" title="${this._t("last_update")}"><span class="dot ${this._staleClass(freshest)}"></span>${rel}</div>` : ""}
           </div>
+          ${this._tripPill(trip)}
         </div>
 
         <div class="band">
@@ -912,6 +943,56 @@ class BavarianDataCard extends HTMLElement {
       </ha-card>
     `;
     this._wireTaps();
+  }
+
+  /** The drive under way, read off the trip flag entity — or null when parked.
+   *
+   * The integration exposes the in-flight trip as a binary sensor with the trip
+   * so far as attributes, which is the only place it exists: an open trip is not
+   * in the history store until it closes. Deliberately not treated as a "car is
+   * moving" signal — see the entity's own docstring. It opens on the first GPS
+   * fix that reads as movement and closes a debounce after the last one, so it
+   * lingers for some minutes after an arrival. */
+  _openTrip(entities) {
+    const st = this._byDescriptor(entities, "trip_in_progress");
+    if (!st || st.state !== "on") return null;
+    const a = st.attributes || {};
+    return {
+      entity_id: st.entity_id,
+      started: a.started || null,
+      start_location: a.start_location || null,
+      distance_km: a.distance_km == null ? null : Number(a.distance_km),
+      soc_start: a.soc_start == null ? null : Number(a.soc_start),
+      soc_now: a.soc_now == null ? null : Number(a.soc_now),
+      held: !!a.held,
+    };
+  }
+
+  /** Elapsed whole minutes since an ISO timestamp, or null if unparseable.
+   * Computed in the frontend so the figure stays live between the entity's
+   * throttled attribute writes. */
+  _elapsedMin(iso) {
+    if (!iso) return null;
+    const t = new Date(iso).getTime();
+    if (!Number.isFinite(t)) return null;
+    return Math.max(0, Math.floor((Date.now() - t) / 60000));
+  }
+
+  /** Hero badge for a drive in progress; empty string when the car is parked. */
+  _tripPill(trip) {
+    if (!trip) return "";
+    const bits = [];
+    if (trip.distance_km != null) bits.push(`${this._round(trip.distance_km, 1)} km`);
+    const min = this._elapsedMin(trip.started);
+    if (min != null) bits.push(this._t("tr_min", { n: min }));
+    return `
+      <button class="hero__trip" data-entity="${trip.entity_id}" title="${this._t(
+        "tr_open_hint"
+      )}">
+        <span class="hero__trip-dot"></span>
+        <span class="hero__trip-lbl">${this._t("tr_open")}</span>
+        ${bits.length ? `<span class="hero__trip-sub">${bits.join(" · ")}</span>` : ""}
+      </button>`;
   }
 
   _chargingLabel(st, charging) {
@@ -1464,15 +1545,16 @@ class BavarianDataCard extends HTMLElement {
     // Like charging, trips come from services (a list + the month-in-review),
     // not entity state. Gate the fetch on the monthly-distance sensor's
     // last_changed so a plain hass tick never hits the services.
-    const trigSt = entities
-      .map((id) => this._st(id))
-      .find(
-        (st) =>
-          st &&
-          st.attributes &&
-          st.attributes.descriptor === "driving_distance_month"
-      );
-    const trigger = trigSt ? trigSt.last_changed : "";
+    const trigSt = this._byDescriptor(entities, "driving_distance_month");
+    // A drive under way is not in the store, so the monthly figure doesn't move
+    // while it happens: the trip flag's own writes are what refresh the
+    // in-progress row. It rewrites at most once a minute while driving (the
+    // integration throttles it), so this costs one local service call a minute.
+    const tripSt = this._byDescriptor(entities, "trip_in_progress");
+    const trigger = [
+      trigSt ? trigSt.last_changed : "",
+      tripSt ? `${tripSt.state}@${tripSt.last_updated}` : "",
+    ].join("|");
 
     const cache = this._trp;
     const current = cache && cache.vin === vin && cache.trigger === trigger;
@@ -1482,6 +1564,7 @@ class BavarianDataCard extends HTMLElement {
         trigger,
         trips: current && cache ? cache.trips : null,
         summary: current && cache ? cache.summary : null,
+        open: current && cache ? cache.open : null,
         loading: true,
         error: false,
       };
@@ -1508,7 +1591,19 @@ class BavarianDataCard extends HTMLElement {
           return;
         const trips = (tripsRes && tripsRes.response && tripsRes.response.trips) || [];
         const summary = (sumRes && sumRes.response && sumRes.response.summary) || null;
-        this._trp = { ...this._trp, trips, summary, loading: false, error: false };
+        // The drive under way (if any) rides alongside the recorded trips rather
+        // than inside them — it has no end and nothing to classify yet.
+        const openList =
+          (tripsRes && tripsRes.response && tripsRes.response.open_trips) || [];
+        const open = openList.length ? openList[0] : null;
+        this._trp = {
+          ...this._trp,
+          trips,
+          summary,
+          open,
+          loading: false,
+          error: false,
+        };
         this._render();
       })
       .catch(() => {
@@ -1524,6 +1619,7 @@ class BavarianDataCard extends HTMLElement {
     const state = this._trp || {};
     const trips = state.trips;
     const summary = state.summary;
+    const open = state.open || null;
     const expanded = this._trpExpanded || null;
 
     const sig = this._signature({
@@ -1534,20 +1630,30 @@ class BavarianDataCard extends HTMLElement {
       error: state.error,
       summary,
       expanded,
+      // Elapsed minutes so the in-progress row's duration ticks between fetches.
+      open: open
+        ? [open.start, open.distance_km, this._elapsedMin(open.start), open.held]
+        : null,
       rows: (trips || []).map((t) => [t.start, t.distance_km, t.classification]),
     });
     if (sig === this._sig) return;
     this._sig = sig;
+
+    // The drive under way leads the list: it's the row a user opening this view
+    // mid-drive is looking for, and it is the newest thing there is.
+    const openRow = open ? this._tripRow(open, expanded) : "";
 
     let body;
     if (state.error) {
       body = `<div class="empty">${this._t("tr_error")}</div>`;
     } else if (!trips && state.loading) {
       body = `<div class="empty">${this._t("tr_loading")}</div>`;
-    } else if (!trips || !trips.length) {
+    } else if ((!trips || !trips.length) && !open) {
       body = `<div class="empty">${this._t("tr_empty")}</div>`;
     } else {
-      body = `${this._tripReview(summary)}<div class="chg__list">${trips
+      body = `${this._tripReview(summary)}<div class="chg__list">${openRow}${(
+        trips || []
+      )
         .map((t) => this._tripRow(t, expanded))
         .join("")}</div>`;
     }
@@ -1708,12 +1814,21 @@ class BavarianDataCard extends HTMLElement {
   _tripRow(trip, expanded) {
     const id = trip.start || "";
     const isOpen = expanded === id;
+    const live = !!trip.in_progress;
     const date = this._fmtSessionDate(trip.start);
     const from = this._tripPlace(trip.start_place);
-    const to = this._tripPlace(trip.end_place);
+    // A drive under way has no destination yet, and guessing one would be a lie:
+    // the arrow trails off instead.
+    const to = live ? "…" : this._esc(this._tripPlace(trip.end_place));
     const dist =
       trip.distance_km != null ? `${this._round(trip.distance_km, 1)} km` : "—";
-    const cls = trip.classification
+    // In progress: a live badge in place of a classification (there is nothing to
+    // classify until the trip lands) and a duration counted from the start.
+    const cls = live
+      ? `<span class="tr__badge tr__badge--live"><i class="tr__live-dot"></i>${this._t(
+          "tr_open"
+        )}</span>`
+      : trip.classification
       ? `<span class="tr__badge tr__badge--${trip.classification}">${this._t(
           "tr_" + trip.classification
         )}${
@@ -1722,13 +1837,18 @@ class BavarianDataCard extends HTMLElement {
             : ""
         }</span>`
       : "";
-    const dur = this._durationLabel(trip);
+    const min = live ? this._elapsedMin(trip.start) : null;
+    const dur = live
+      ? min == null
+        ? ""
+        : this._t("tr_min", { n: min })
+      : this._durationLabel(trip);
 
     return `
-      <div class="chg__session${isOpen ? " is-open" : ""}">
+      <div class="chg__session${isOpen ? " is-open" : ""}${live ? " is-live" : ""}">
         <button class="chg__row" data-trip="${this._attr(id)}">
           <span class="chg__row-main">
-            <span class="chg__date">${this._esc(from)} → ${this._esc(to)}</span>
+            <span class="chg__date">${this._esc(from)} → ${to}</span>
             <span class="chg__meta"><span class="chg__soc">${date}</span>${cls}</span>
           </span>
           <span class="chg__figures">
@@ -1781,15 +1901,23 @@ class BavarianDataCard extends HTMLElement {
       ? `<div class="tr__minimap" data-mini="${this._attr(trip.start || "")}"></div>`
       : "";
 
+    // A drive under way gets the route and the figures so far, but no
+    // classification controls: there is no stored trip to reclassify yet, and the
+    // distance and consumption are provisional. The note says so out loud rather
+    // than letting a mid-drive figure read as final.
+    const footer = trip.in_progress
+      ? `<div class="tr__live-note">${this._t("tr_open_note")}</div>`
+      : `<div class="tr__classify">
+          <span class="tr__classify-lbl">${this._t("tr_classify")}</span>
+          <span class="tr__cls-btns">${buttons}</span>
+        </div>`;
+
     return `
       <div class="chg__detail">
         ${mini}
         ${soc ? `<div class="chg__facts">${soc}</div>` : ""}
         ${factRow ? `<div class="chg__facts">${factRow}</div>` : ""}
-        <div class="tr__classify">
-          <span class="tr__classify-lbl">${this._t("tr_classify")}</span>
-          <span class="tr__cls-btns">${buttons}</span>
-        </div>
+        ${footer}
       </div>
     `;
   }
@@ -1807,15 +1935,32 @@ class BavarianDataCard extends HTMLElement {
     if (this._miniMapTripId === expanded && holder.firstChild) {
       if (this._miniMapEl) this._miniMapEl.hass = this._hass;
       this._reassertMapOverlays(); // the map may have been re-created under us
+      // A drive under way keeps adding points. Re-draw the polyline on the map
+      // that's already there -- _drawRoute replaces its own layer group -- rather
+      // than re-mounting an ha-map every time the route grows.
+      const growing = this._tripById(expanded);
+      if (growing && growing.in_progress && this._miniMapEl) {
+        const live = this._trackCoords(growing);
+        if (live.length >= 2 && live.length !== this._miniMapPoints) {
+          this._miniMapPoints = live.length;
+          this._drawRoute(
+            this._miniMapEl,
+            live,
+            TRIP_CLASS_COLORS[growing.classification] ||
+              TRIP_CLASS_COLORS.unclassified
+          );
+        }
+      }
       return; // already mounted for this trip
     }
     if (this._mapLib !== "ready") return; // _ensureMapLib re-renders when ready
     const id = holder.getAttribute("data-mini");
-    const trip = ((this._trp && this._trp.trips) || []).find((t) => t.start === id);
+    const trip = this._tripById(id);
     if (!trip || !Array.isArray(trip.track) || trip.track.length < 2) return;
 
     const coords = this._trackCoords(trip);
     if (coords.length < 2) return;
+    this._miniMapPoints = coords.length;
 
     holder.innerHTML = "";
     const map = document.createElement("ha-map");
@@ -1832,6 +1977,14 @@ class BavarianDataCard extends HTMLElement {
     const color =
       TRIP_CLASS_COLORS[trip.classification] || TRIP_CLASS_COLORS.unclassified;
     this._drawRoute(map, coords, color);
+  }
+
+  /** A fetched trip by its row id (its start), the drive under way included --
+   * an open trip is not in the recorded list, it rides alongside it. */
+  _tripById(id) {
+    const state = this._trp || {};
+    if (state.open && state.open.start === id) return state.open;
+    return ((state.trips || []).find((t) => t.start === id)) || null;
   }
 
   /** A trip's track as clean [lat, lon] tuples, lightly decimated. */
@@ -3428,6 +3581,41 @@ class BavarianDataCard extends HTMLElement {
         text-shadow: 0 1px 3px rgba(0,0,0,0.55);
         overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
       }
+      /* "trip in progress" badge, bottom-left of the hero so it never competes
+         with the vehicle name or the freshness pill above it. */
+      .hero__trip {
+        position: absolute; left: 16px; bottom: 12px;
+        display: inline-flex; align-items: center; gap: 7px;
+        max-width: calc(100% - 32px);
+        background: rgba(0,0,0,0.46);
+        color: #fff;
+        border-radius: 999px;
+        padding: 5px 12px;
+        font-size: 0.74rem;
+        font-weight: 600;
+        backdrop-filter: blur(3px);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      }
+      .hero__trip-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: var(--bmw-charge, #4cc2ff);
+        flex: 0 0 auto;
+        animation: bd-trip-pulse 2s ease-in-out infinite;
+      }
+      .hero__trip-sub {
+        font-weight: 500;
+        opacity: 0.85;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      @keyframes bd-trip-pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.45; transform: scale(0.82); }
+      }
+      /* Respect a reduced-motion preference: the badge still reads as live from
+         its colour, so the pulse is simply dropped. */
+      @media (prefers-reduced-motion: reduce) {
+        .hero__trip-dot { animation: none; }
+      }
       .pill {
         display: inline-flex; align-items: center; gap: 6px;
         background: rgba(0,0,0,0.38);
@@ -3954,6 +4142,29 @@ class BavarianDataCard extends HTMLElement {
       .tr__badge--business { background: #0066b1; }
       .tr__badge--commute { background: #00a1e0; }
       .tr__badge--private { background: #7ac142; }
+      /* A drive under way: the badge that replaces a classification until the
+         trip lands and there is something to classify. */
+      .tr__badge--live {
+        background: var(--bmw-charge, #4cc2ff);
+        display: inline-flex; align-items: center; gap: 5px;
+      }
+      .tr__live-dot {
+        width: 6px; height: 6px; border-radius: 50%; background: #fff;
+        animation: bd-trip-pulse 2s ease-in-out infinite;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .tr__live-dot { animation: none; }
+      }
+      /* The in-progress row leads with an accent edge so it reads as different
+         from the recorded trips below it without shouting. */
+      .chg__session.is-live > .chg__row {
+        border-left: 3px solid var(--bmw-charge, #4cc2ff);
+        padding-left: 7px;
+      }
+      .tr__live-note {
+        font-size: 0.72rem; color: var(--secondary-text-color);
+        line-height: 1.45; padding: 8px 2px 2px;
+      }
       .tr__auto { font-style: normal; opacity: 0.75; text-transform: none; }
       .tr__classify { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 2px 2px; }
       .tr__classify-lbl {

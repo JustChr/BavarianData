@@ -188,7 +188,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `fetch_location_charging_settings` | spends | 🟡 |
 | `fetch_vehicle_image` | spends | 🟡 |
 | `get_charging_sessions` | free | 🟡 |
-| `get_trips` | free | 🟡 |
+| `get_trips` | free | 🟡 (`open_trips` 🟢 Services-Reference) |
 | `get_driving_summary` | free | 🟡 |
 | `set_trip_class` | free | 🟡 |
 | `export_history` | free | 🟡 |
@@ -211,6 +211,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | `charging_cost_month`, `charging_cost_session`, `charging_cost_per_100km` | Cost | 🟡 |
 | `battery_health` | Learned capacity | 🟡 |
 | `driving_distance_month` | Monthly distance + split | 🟡 |
+| `trip_in_progress` (binary_sensor) | The drive under way, with live attributes | 🟢 Feature-Trips → "Seeing the drive that's happening now" + Feature-Entities-and-Devices + The-Dashboard-Card |
 | `tyre_status`, `tyre_<position>` (×4) | Tyre wear / condition from the REST diagnosis | 🟢 Feature-Entities-and-Devices + The-Dashboard-Card |
 | `api_quota_remaining` | Diagnostic | 🟡 |
 | `connection_status`, `last_message`, `last_telematic_api` | Diagnostics | ❌ |
@@ -226,6 +227,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Trips / Fahrtenbuch (+ legal caveat) | 🟡 |
 | Commute chains (a stop on the way) + default type | 🟢 Feature-Trips → "Classification" + Settings-Reference → "Trips" |
 | Deferred close when the position stream goes quiet | 🟢 Feature-Trips → "When the position stream goes quiet" |
+| Live "trip in progress" (entity + hero badge + trips row) | 🟢 Feature-Trips → "Seeing the drive that's happening now" + The-Dashboard-Card |
 | Energy dashboard & long-term statistics | 🟡 |
 | Export (CSV / HTML report) | 🟡 |
 | Charging events (`bavariandata_charging_*`) | 🟡 |
@@ -273,7 +275,9 @@ PR. (Proposed addition to `CLAUDE.md`.)
    cannot be captured safely: `authorize` / `authorize_failed` (submitting a client
    id **deletes** the existing entry with that id), `guided_wait` (https-only, and
    the test instance is http), `guided_done` / `activate_stream_done` (need a real
-   activation), the trip **map** view and `card-trips` (need recorded route data).
+   activation), the trip **map** view and `card-trips` (need recorded route data),
+   and the **trip-in-progress** hero badge / live trips row (only exist while the
+   car is actually being driven — grab them opportunistically on a real drive).
    The `Trips` settings screen was captured but showed a real work-zone name
    (redact before use).
 6. ⬜ German pass.

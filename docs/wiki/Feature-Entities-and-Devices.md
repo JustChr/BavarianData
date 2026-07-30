@@ -38,6 +38,7 @@ integration's own translations (so German installs get German names too).
 | **Charging Cost per 100 km** | Needs the odometer and two sessions to measure a distance. |
 | **Battery Health** | Learned usable capacity (kWh), with vs-new %, sample count and a capacity-vs-mileage trend. |
 | **Driving Distance (This Month)** | Monthly distance + business/private/commute split. |
+| **Trip in Progress** | Binary sensor: `on` while a drive is under way, with the trip so far as attributes. Deliberately *not* a "moving" sensor — it lingers after an arrival; see [Trips](Feature-Trips#seeing-the-drive-thats-happening-now). |
 | **Tyre Condition** | BMW's overall verdict on the mounted set, plus any upstream errors. |
 | **Tyre Front Left / Front Right / Rear Left / Rear Right** | Per-wheel wear traffic light (`green`/`yellow`/`red`/`grey`), with the mileage until a change is due, defect status, season, dimension, tread pattern and fitting date as attributes. |
 | **API Quota Remaining** | Diagnostic: requests left in the 50/24 h window. |

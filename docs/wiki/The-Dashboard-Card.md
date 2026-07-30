@@ -46,6 +46,11 @@ range, charging status, and a grid of key metrics.
 type: custom:bavariandata-card
 ```
 
+While a drive is under way, a **Trip in progress** badge appears at the bottom of
+the vehicle image with the distance and minutes so far; tap it for the full
+attributes. It follows the *Trip in Progress* entity, so it lingers for a few
+minutes after you arrive — [why](Feature-Trips#seeing-the-drive-thats-happening-now).
+
 Pin a specific vehicle with `device:` (device id) or `vin:`.
 
 ---
@@ -109,6 +114,12 @@ review** sums the distance (with a vs-last-month delta), the
 business/private/commute split, average consumption, energy recuperated, a
 driving-style score and your top destinations — and, once a tariff is set, an
 estimated driving cost. **CSV** and **Report** buttons export the current month.
+
+A drive still under way **leads the list**, marked with a live badge and an accent
+edge: where you set off from, the distance and time so far, and — with **Record
+route** on — the route as it grows. It carries no classification buttons, because
+there is no stored trip to classify until it ends
+([details](Feature-Trips#seeing-the-drive-thats-happening-now)).
 
 ```yaml
 type: custom:bavariandata-card

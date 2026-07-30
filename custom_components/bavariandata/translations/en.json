@@ -2723,6 +2723,9 @@
       },
       "vehicle_vehicleidentification_connecteddrivecontractlist": {
         "name": "Legal Connected drive contracts"
+      },
+      "trip_in_progress": {
+        "name": "Trip in Progress"
       }
     },
     "device_tracker": {

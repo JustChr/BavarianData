@@ -381,6 +381,63 @@ def test_odometer_and_bmw_distance_outrank_the_gps_track():
     assert trip.distance_km == 23.4
 
 
+# --- trip in progress ------------------------------------------------------
+
+
+def test_progress_reports_the_drive_so_far():
+    builder = TripBuilder(
+        "WBY1", START, start_place=place(zone="Home"), mileage_start=1000.0,
+        soc_start=80.0,
+    )
+    builder.add_gps_km(2.0)
+    live = builder.progress(
+        START + timedelta(minutes=12), mileage_now=1008.0, soc_now=76.0
+    )
+    assert live["in_progress"] is True
+    assert live["start"] == START.isoformat()
+    assert live["start_place"] == place(zone="Home")
+    assert live["distance_km"] == 8.0  # odometer delta, not the GPS track
+    assert live["duration_s"] == 720
+    assert live["soc_start"] == 80.0
+    assert live["soc_end"] == 76.0
+    # No end is invented for a drive that has not ended.
+    assert "end" not in live and "end_place" not in live
+
+
+def test_progress_distance_is_unknown_before_either_source_ticks():
+    # The odometer only moves in whole km, so the first minutes have nothing to
+    # report -- None, rather than a zero that reads like a stalled trip.
+    builder = TripBuilder("WBY1", START, mileage_start=1000.0)
+    assert builder.progress_km(1000.0) is None
+    live = builder.progress(START + timedelta(seconds=40), mileage_now=1000.0)
+    assert live["distance_km"] is None
+    assert live["duration_s"] == 40
+
+
+def test_progress_falls_back_to_the_gps_track_but_never_to_bmws_distance():
+    # BMW's travelledDistance still carries the *previous* trip mid-drive, so
+    # progress must not consult it: the GPS track is the fallback here.
+    builder = TripBuilder("WBY1", START)
+    builder.add_gps_km(3.4)
+    assert builder.progress_km(None) == 3.4
+
+
+def test_progress_start_place_is_a_copy():
+    # The live view is handed to callers that may keep or mutate it; it must not
+    # alias the builder's own record of where the drive began.
+    start = place(zone="Home")
+    builder = TripBuilder("WBY1", START, start_place=start)
+    live = builder.progress(START + timedelta(minutes=1))
+    live["start_place"]["zone"] = "Elsewhere"
+    assert builder.start_place == start
+
+
+def test_progress_duration_never_goes_negative():
+    builder = TripBuilder("WBY1", START)
+    live = builder.progress(START - timedelta(seconds=30))
+    assert live["duration_s"] == 0
+
+
 # --- route track (opt-in) --------------------------------------------------
 
 

@@ -94,6 +94,12 @@
       "de": "Reifen hinten rechts"
     }
   },
+  "binary_sensor": {
+    "trip_in_progress": {
+      "en": "Trip in Progress",
+      "de": "Fahrt aktiv"
+    }
+  },
   "device_tracker": {
     "car": {
       "en": "Location",

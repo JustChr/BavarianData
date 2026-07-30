@@ -10,6 +10,22 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [Unreleased]
 
 ### Added
+- **You can see the drive that's happening now.** Until it ended, a trip was
+  invisible: nothing on the card, no entity, nothing in `get_trips`. Now there's a
+  **Trip in Progress** binary sensor per vehicle carrying the trip so far
+  (`started`, `start_location`, `distance_km`, `duration_s`, `soc_start`,
+  `soc_now`, `energy_kwh`, `last_movement`, `held`), a **badge on the overview
+  card** with the distance and minutes so far, and a **live row at the top of the
+  trips view** — where you set off from, the figures so far, and the route as it
+  grows when *Record route* is on. `get_trips` returns it as `open_trips`
+  alongside the recorded ones. Card **1.9.0**.
+
+  It is deliberately **not** a "car is moving" sensor and isn't named one: it says
+  a *trip is open*, which starts at the first position report showing movement and
+  ends five minutes after the last one — longer while the stream is quiet, which is
+  what parking underground looks like. So it stays on for a few minutes after you
+  arrive. The recorded trip's end is backdated correctly regardless; only the live
+  flag lingers. Use `last_movement` for the finer question.
 - **A configurable default type for trips.** Anything that isn't a recognised
   home ↔ work commute is now filed as your **Default type** under
   **Configure → Trips** — **Private** out of the box, **Business** if that is the

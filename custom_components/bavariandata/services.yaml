@@ -144,7 +144,9 @@ get_trips:
   description: >-
     Return recorded trips, newest first. Reads the integration's own history, so
     like get_charging_sessions it costs no BMW API quota. Endpoints are stored as
-    place names, never coordinates.
+    place names, never coordinates. A drive still under way is returned separately
+    as open_trips (it has no end, and its distance is provisional) unless a from /
+    to window was given.
   fields:
     entry_id:
       description: Optional config entry id to target. Required if multiple entries are configured.

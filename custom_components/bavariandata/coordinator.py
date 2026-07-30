@@ -533,8 +533,71 @@ class CardataCoordinator:
         return f"{DOMAIN}_{self.entry_id}_trips"
 
     @property
+    def signal_trip_active(self) -> str:
+        """Fired when a trip opens or closes, so the "drive under way" flag flips.
+
+        Separate from :attr:`signal_trips`, which means "a finished trip landed in
+        the store" and drives the statistics rebuild -- an opening trip has
+        nothing to rebuild from.
+        """
+
+        return f"{DOMAIN}_{self.entry_id}_trip_active"
+
+    @property
     def signal_tyre(self) -> str:
         return f"{DOMAIN}_{self.entry_id}_tyre"
+
+    def has_open_trip(self, vin: str) -> bool:
+        """True while a drive is under way on ``vin``.
+
+        The cheap half of :meth:`open_trip_progress`, for the entity state that
+        answers only "is it driving?" without building the whole live view.
+        """
+
+        return vin in self._trip_builders
+
+    def open_trip_vins(self) -> list[str]:
+        """Every vehicle with a drive under way right now."""
+
+        return list(self._trip_builders)
+
+    def open_trip_progress(
+        self, vin: str, *, include_track: bool = False
+    ) -> Optional[Dict[str, Any]]:
+        """Live view of the drive under way on ``vin``, or ``None`` when parked.
+
+        The only window into ``_trip_builders`` from outside the coordinator. A
+        trip in progress exists purely in memory until it closes, so without this
+        nothing -- neither an entity nor ``get_trips`` -- can show that the car is
+        out driving right now.
+
+        ``include_track`` adds the route recorded so far, and only exists when the
+        user opted into route recording. Off by default because the polyline runs
+        to ``MAX_TRACK_POINTS`` and must never land in an entity attribute, where
+        every point would be written to the recorder on every update; a service
+        response is the right place to ask for it.
+        """
+
+        builder = self._trip_builders.get(vin)
+        if builder is None:
+            return None
+        soc_now = self._current_soc(vin)
+        progress = builder.progress(
+            dt_util.utcnow(),
+            mileage_now=self._odometer_km(vin),
+            soc_now=soc_now,
+        )
+        energy_kwh = self._trip_energy_kwh(vin, builder.soc_start, soc_now)
+        progress["energy_kwh"] = None if energy_kwh is None else round(energy_kwh, 3)
+        # Both of these qualify how much the "under way" flag can be trusted: the
+        # last movement we actually saw, and whether the close is currently being
+        # held through stream silence (see _hold_close_on_silence).
+        last_move = self._last_gps_move.get(vin)
+        progress["last_movement"] = last_move.isoformat() if last_move else None
+        progress["held"] = vin in self._trip_held_since
+        if include_track:
+            progress["track"] = [list(point) for point in builder.track]
+        return progress
 
     def apply_tyre_diagnosis(self, vin: str, payload: Any) -> Dict[str, Any]:
         """Store a parsed tyre diagnosis and wake the entities that show it.
@@ -1868,6 +1931,7 @@ class CardataCoordinator:
             builder.soc_start,
             builder.mileage_start,
         )
+        async_dispatcher_send(self.hass, self.signal_trip_active, vin)
 
     def _trip_end_time(
         self, vin: str, now: datetime, start: datetime, reason: str
@@ -1906,6 +1970,11 @@ class CardataCoordinator:
         self._cancel_trip_close_timer(vin)
         self._trip_close_due.pop(vin, None)
         self._trip_held_since.pop(vin, None)
+        if builder is not None:
+            # The drive is over whatever happens to the record below -- including
+            # the no-history and dropped-as-noise paths, which never reach
+            # ``signal_trips`` -- so the "under way" flag has to be told here.
+            async_dispatcher_send(self.hass, self.signal_trip_active, vin)
         if builder is None or self.history is None:
             return
 
