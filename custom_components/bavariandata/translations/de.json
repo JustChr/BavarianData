@@ -2525,5 +2525,293 @@
       "title": "BMW CarData Stream nicht autorisiert",
       "description": "BMW hat die Streaming-Verbindung seit über {minutes} Minuten als nicht autorisiert abgelehnt (MQTT rc=5), und sie hat sich nicht von selbst erholt. Meist müssen die Tokens erneuert werden, oder ein anderer CarData-Client belegt den einzigen Stream pro Konto. Versuche Konfigurieren → Tokens jetzt aktualisieren, danach Bei BMW neu autorisieren, falls es weiter fehlschlägt, und trenne jeden anderen CarData-Client."
     }
+  },
+  "services": {
+    "fetch_telematic_data": {
+      "name": "Telematikdaten abrufen",
+      "description": "Telematikdaten für eine FIN über den gespeicherten Container abrufen und die Antwort protokollieren.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+        },
+        "vin": {
+          "name": "FIN",
+          "description": "Optionale FIN. Standardmäßig die erste im Stream gesehene FIN."
+        }
+      }
+    },
+    "fetch_vehicle_mappings": {
+      "name": "Fahrzeugzuordnungen abrufen",
+      "description": "Zuordnungsinformationen für das konfigurierte Konto abrufen und die Antwort protokollieren.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+        }
+      }
+    },
+    "fetch_basic_data": {
+      "name": "Fahrzeug-Stammdaten abrufen",
+      "description": "Statische Fahrzeugdaten (Modellname, Baureihe usw.) für eine FIN abrufen und die Antwort protokollieren.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+        },
+        "vin": {
+          "name": "FIN",
+          "description": "Optionale FIN. Standardmäßig die im Konfigurationseintrag gespeicherte FIN."
+        }
+      }
+    },
+    "fetch_charging_history": {
+      "name": "Ladehistorie abrufen",
+      "description": "Die Historie der Ladevorgänge für eine FIN (seitenweise) von BMW abrufen und in die lokale Historie importieren, damit vergangene Ladungen auf der Karte und in den Monatsübersichten erscheinen. Überlappende live aufgezeichnete Ladevorgänge werden dabei um die von BMW gemessene Netzenergie ergänzt. Zählt als ein oder mehrere API-Aufrufe gegen das Kontingent von 50/24 h.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+        },
+        "vin": {
+          "name": "FIN",
+          "description": "Optionale FIN. Standardmäßig die erste bekannte FIN."
+        },
+        "from": {
+          "name": "Von",
+          "description": "Beginn des abzurufenden Zeitraums. Leer gelassen: vor 30 Tagen."
+        },
+        "to": {
+          "name": "Bis",
+          "description": "Ende des abzurufenden Zeitraums. Leer gelassen: jetzt."
+        }
+      }
+    },
+    "fetch_tyre_diagnosis": {
+      "name": "Smart-Maintenance-Reifendiagnose abrufen",
+      "description": "Die Smart-Maintenance-Reifendiagnose für eine FIN abrufen und die Antwort protokollieren.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+        },
+        "vin": {
+          "name": "FIN",
+          "description": "Optionale FIN. Standardmäßig die erste bekannte FIN."
+        }
+      }
+    },
+    "fetch_location_charging_settings": {
+      "name": "Standortbasierte Ladeeinstellungen abrufen",
+      "description": "Die standortbasierten Ladeeinstellungen für eine FIN (seitenweise) abrufen und die Antwort protokollieren.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+        },
+        "vin": {
+          "name": "FIN",
+          "description": "Optionale FIN. Standardmäßig die erste bekannte FIN."
+        }
+      }
+    },
+    "fetch_vehicle_image": {
+      "name": "Fahrzeugbild abrufen",
+      "description": "Das Fahrzeugbild für eine FIN abrufen und Größe/Inhaltstyp protokollieren.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+        },
+        "vin": {
+          "name": "FIN",
+          "description": "Optionale FIN. Standardmäßig die erste bekannte FIN."
+        }
+      }
+    },
+    "get_charging_sessions": {
+      "name": "Ladevorgänge abfragen",
+      "description": "Aufgezeichnete Ladevorgänge zurückgeben, neueste zuerst. Liest die eigene Historie der Integration und verbraucht daher – anders als die Abruf-Aktionen – kein BMW-API-Kontingent.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+        },
+        "vin": {
+          "name": "FIN",
+          "description": "Optionale FIN als Filter. Standardmäßig alle bekannten Fahrzeuge."
+        },
+        "from": {
+          "name": "Von",
+          "description": "Nur Ladevorgänge, die zu diesem Zeitpunkt oder später begonnen haben."
+        },
+        "to": {
+          "name": "Bis",
+          "description": "Nur Ladevorgänge, die zu diesem Zeitpunkt oder früher begonnen haben."
+        },
+        "limit": {
+          "name": "Maximale Anzahl",
+          "description": "Maximale Anzahl zurückgegebener Ladevorgänge."
+        }
+      }
+    },
+    "get_trips": {
+      "name": "Fahrten abfragen",
+      "description": "Aufgezeichnete Fahrten zurückgeben, neueste zuerst. Liest die eigene Historie der Integration und verbraucht daher – wie die Ladevorgänge – kein BMW-API-Kontingent. Start- und Zielpunkte werden als Ortsnamen gespeichert, nie als Koordinaten. Eine gerade laufende Fahrt wird separat als offene Fahrt zurückgegeben (ohne Ende, mit vorläufiger Distanz), sofern kein Zeitraum angegeben wurde.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+        },
+        "vin": {
+          "name": "FIN",
+          "description": "Optionale FIN als Filter. Standardmäßig alle bekannten Fahrzeuge."
+        },
+        "from": {
+          "name": "Von",
+          "description": "Nur Fahrten, die zu diesem Zeitpunkt oder später begonnen haben."
+        },
+        "to": {
+          "name": "Bis",
+          "description": "Nur Fahrten, die zu diesem Zeitpunkt oder früher begonnen haben."
+        },
+        "limit": {
+          "name": "Maximale Anzahl",
+          "description": "Maximale Anzahl zurückgegebener Fahrten."
+        }
+      }
+    },
+    "get_driving_summary": {
+      "name": "Fahrtenübersicht abfragen",
+      "description": "Die Monatsübersicht der Fahrten zurückgeben: Distanz, Aufteilung nach geschäftlich/privat/Pendeln, Verbrauch, Rekuperation, Fahrstil-Score, häufigste Ziele und (mit hinterlegtem Tarif) geschätzte Fahrtkosten. Liest den lokalen Speicher und verbraucht kein BMW-API-Kontingent.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+        },
+        "vin": {
+          "name": "FIN",
+          "description": "Optionale FIN. Standardmäßig das einzige konfigurierte Fahrzeug."
+        },
+        "month": {
+          "name": "Monat",
+          "description": "Auszuwertender Monat als JJJJ-MM. Standardmäßig der aktuelle Monat."
+        }
+      }
+    },
+    "set_trip_class": {
+      "name": "Fahrtkategorie setzen",
+      "description": "Die Kategorie einer Fahrt überschreiben (geschäftlich, privat oder Pendeln). Damit lässt sich die automatische Zonen-Erkennung korrigieren. Schreibt nur in den lokalen Speicher.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+        },
+        "vin": {
+          "name": "FIN",
+          "description": "Optionale FIN. Standardmäßig das einzige konfigurierte Fahrzeug."
+        },
+        "trip_id": {
+          "name": "Fahrt-ID",
+          "description": "Die ID der Fahrt, wie von der Fahrten-Abfrage geliefert."
+        },
+        "classification": {
+          "name": "Kategorie",
+          "description": "Eine von: geschäftlich, privat oder Pendeln."
+        }
+      }
+    },
+    "export_history": {
+      "name": "Historie exportieren",
+      "description": "Einen Monat aufgezeichneter Ladevorgänge und/oder Fahrten als Dateien zurückgeben: CSV für Tabellenkalkulationen oder ein eigenständiger HTML-Bericht, den sich im Browser als PDF drucken lässt. Der Dateiinhalt kommt in der Antwort zurück; nichts wird auf die Festplatte geschrieben. Liest den lokalen Speicher und verbraucht kein BMW-API-Kontingent.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+        },
+        "vin": {
+          "name": "FIN",
+          "description": "Optionale FIN. Standardmäßig das einzige konfigurierte Fahrzeug."
+        },
+        "month": {
+          "name": "Monat",
+          "description": "Zu exportierender Monat als JJJJ-MM. Standardmäßig der aktuelle Monat."
+        },
+        "type": {
+          "name": "Typ",
+          "description": "Welche Datensätze enthalten sein sollen."
+        },
+        "format": {
+          "name": "Format",
+          "description": "CSV liefert eine Datei je Datensatzart; HTML liefert einen druckbaren Monatsbericht."
+        },
+        "language": {
+          "name": "Sprache",
+          "description": "Sprache des Berichts (en oder de). Standardmäßig die Sprache von Home Assistant. Betrifft nur den HTML-Bericht – CSV-Kopfzeilen sind immer maschinenlesbar englisch."
+        }
+      }
+    },
+    "get_coverage_report": {
+      "name": "Descriptor-Abdeckungsbericht abfragen",
+      "description": "Den Selbsttest zur Descriptor-Abdeckung ausführen: für jedes Fahrzeug vergleichen, welche Descriptors die gewählten Stream-Cluster liefern sollten und welche tatsächlich angekommen sind, und fehlende auflisten. Beantwortet die Frage „Ich habe einen Cluster aktiviert, aber es sind keine Entitäten erschienen – liegt es an meiner Auswahl, an meinem Auto oder an einem Fehler?“. Liest nur den lokalen Speicher und den laufenden Stream und verbraucht kein BMW-API-Kontingent.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+        },
+        "vin": {
+          "name": "FIN",
+          "description": "Optionale FIN für den Bericht. Standardmäßig alle bekannten Fahrzeuge."
+        }
+      }
+    },
+    "activate_stream_fields": {
+      "name": "Stream-Felder aktivieren",
+      "description": "Ersetzen, welche CarData-Attribute BMW für ein Fahrzeug per MQTT streamt – durch dieselbe Anfrage, die die Stream-Setup-Seite des BMW-Portals beim Speichern der Datenauswahl sendet. Für die Stream-Auswahl gibt es keine CarData-API, daher wird eine mitgeschnittene Portal-Browsersitzung benötigt (sie kann nicht automatisch erneuert werden – die Sitzung ist kurzlebig). Verbraucht kein BMW-API-Kontingent. Liefert die Anzahl der angefragten und akzeptierten Attribute zurück.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+        },
+        "base_url": {
+          "name": "Portal-Basisadresse",
+          "description": "Der Ursprung deines Marktportals, aus der Stream-Setup-Adresse (ohne abschließenden Schrägstrich)."
+        },
+        "locale": {
+          "name": "Gebietsschema",
+          "description": "Das Gebietsschema-Segment aus der Stream-Setup-Adresse."
+        },
+        "mapped_vehicle_id": {
+          "name": "Zugeordnete Fahrzeug-ID",
+          "description": "Die zugeordnete Fahrzeug-ID des Portals (ein Hash, NICHT die FIN) aus der Stream-Setup-Adresse."
+        },
+        "cookie": {
+          "name": "Cookie-Header",
+          "description": "Der rohe Cookie-Header einer authentifizierten Portal-Anfrage (Entwicklertools, Netzwerk, die Stream-Anfrage, Wert des Cookie-Headers kopieren). Ein Geheimnis; es wird nie protokolliert. Läuft nach einer Weile ab – neu mitschneiden, wenn der Aufruf eine abgelehnte Sitzung meldet."
+        },
+        "attributes": {
+          "name": "Attribute",
+          "description": "Explizite Liste technischer Descriptors, die gestreamt werden sollen (ersetzt die gesamte Auswahl). Hat Vorrang vor den Bereichen. Standardmäßig die gewählten Stream-Cluster oder der Standard-Clustersatz."
+        },
+        "sections": {
+          "name": "Bereiche",
+          "description": "Cluster-Kürzel, die gestreamt werden sollen (z. B. electric, status, tire). Wird verwendet, wenn keine Attribute angegeben sind."
+        }
+      }
+    },
+    "import_statistics": {
+      "name": "In Langzeitstatistiken importieren",
+      "description": "Die Langzeitstatistiken dieser Integration aus der aufgezeichneten Historie neu aufbauen, damit Laden und Fahren von vor der Installation (oder aus einer Zeit, in der Home Assistant aus war) im Energie-Dashboard erscheinen. Läuft automatisch mit jedem neuen Datensatz; nach dem Zurückspielen eines Backups oder zur Überprüfung der Zeilenzahlen manuell ausführen. Rein lokal – kein BMW-API-Kontingent.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+        },
+        "vin": {
+          "name": "FIN",
+          "description": "Optionale FIN für den Neuaufbau. Standardmäßig alle bekannten Fahrzeuge."
+        }
+      }
+    }
   }
 }

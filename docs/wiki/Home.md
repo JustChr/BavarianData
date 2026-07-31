@@ -46,6 +46,8 @@ views:
 - [Troubleshooting & FAQ](Troubleshooting-and-FAQ)
 - [Deep reference](Reference) — descriptor/field catalogue
 
-> **Status — experimental.** A spare-time project, verified against a limited
-> number of vehicles and Home Assistant versions. Expect rough edges and avoid
-> wiring it into safety-critical automations.
+> **Status — actively developed.** A spare-time project, verified against a
+> limited number of vehicles and Home Assistant versions, so expect the odd
+> rough edge on a model it hasn't met yet. It is read-only by design — CarData
+> cannot command the car — so treat what it reports as informational rather than
+> as the trigger for a safety-critical automation.

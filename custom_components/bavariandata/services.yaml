@@ -1,226 +1,149 @@
+# Service *schemas* only. Every user-facing name and description lives in
+# translations/en.json and translations/de.json under the "services" block, so
+# German installs get translated service names in the UI like everything else.
+# Examples must stay obviously synthetic -- never paste a real VIN, config entry
+# id or portal identifier in here; they are rendered to every user.
+
 fetch_telematic_data:
-  name: Fetch Telematic Data
-  description: Fetch telematic data for a VIN using the stored container and log the response.
   fields:
     entry_id:
-      description: Optional config entry id to target. Required if multiple entries are configured.
-      example: 01K65NKFESKBQZ78PBW6V9BCCX
       selector:
         text:
     vin:
-      description: Optional VIN to query. Defaults to the first VIN seen on the stream.
-      example: WBY31AW090FP15359
+      example: WBAEXAMPLE0000000
       selector:
         text:
 fetch_vehicle_mappings:
-  name: Fetch Vehicle Mappings
-  description: Fetch mapping information for the configured account and log the response.
   fields:
     entry_id:
-      description: Optional config entry id to target. Required if multiple entries are configured.
-      example: 01K65NKFESKBQZ78PBW6V9BCCX
       selector:
         text:
 fetch_basic_data:
-  name: Fetch Basic Vehicle Data
-  description: Fetch static vehicle metadata (model name, series, etc.) for a VIN and log the response.
   fields:
     entry_id:
-      description: Optional config entry id to target. Required if multiple entries are configured.
-      example: 01K65NKFESKBQZ78PBW6V9BCCX
       selector:
         text:
     vin:
-      description: Optional VIN to query. Defaults to the VIN stored in the config entry.
-      example: WBY31AW090FP15359
+      example: WBAEXAMPLE0000000
       selector:
         text:
 fetch_charging_history:
-  name: Fetch Charging History
-  description: >-
-    Fetch the charging session history for a VIN (paginated) from BMW and import
-    it into the local history, so past charges appear on the card and in the
-    monthly summaries. Overlapping live-recorded sessions are enriched in place
-    with BMW's measured grid energy. Counts as one or more API calls against the
-    50/24h quota.
   fields:
     entry_id:
-      description: Optional config entry id to target. Required if multiple entries are configured.
-      example: 01K65NKFESKBQZ78PBW6V9BCCX
       selector:
         text:
     vin:
-      description: Optional VIN to query. Defaults to the first known VIN.
-      example: WBY31AW090FP15359
+      example: WBAEXAMPLE0000000
       selector:
         text:
     from:
-      description: Start of the window to fetch. Defaults to 30 days ago when left empty.
       example: "2025-01-01T00:00:00Z"
       selector:
         datetime:
     to:
-      description: End of the window to fetch. Defaults to now when left empty.
       example: "2025-02-01T00:00:00Z"
       selector:
         datetime:
 fetch_tyre_diagnosis:
-  name: Fetch Smart Maintenance Tyre Diagnosis
-  description: Fetch the smart-maintenance tyre diagnosis for a VIN and log the response.
   fields:
     entry_id:
-      description: Optional config entry id to target. Required if multiple entries are configured.
-      example: 01K65NKFESKBQZ78PBW6V9BCCX
       selector:
         text:
     vin:
-      description: Optional VIN to query. Defaults to the first known VIN.
-      example: WBY31AW090FP15359
+      example: WBAEXAMPLE0000000
       selector:
         text:
 fetch_location_charging_settings:
-  name: Fetch Location-Based Charging Settings
-  description: Fetch the location-based charging settings for a VIN (paginated) and log the response.
   fields:
     entry_id:
-      description: Optional config entry id to target. Required if multiple entries are configured.
-      example: 01K65NKFESKBQZ78PBW6V9BCCX
       selector:
         text:
     vin:
-      description: Optional VIN to query. Defaults to the first known VIN.
-      example: WBY31AW090FP15359
+      example: WBAEXAMPLE0000000
       selector:
         text:
 fetch_vehicle_image:
-  name: Fetch Vehicle Image
-  description: Fetch the vehicle image for a VIN and log its size/content type.
   fields:
     entry_id:
-      description: Optional config entry id to target. Required if multiple entries are configured.
-      example: 01K65NKFESKBQZ78PBW6V9BCCX
       selector:
         text:
     vin:
-      description: Optional VIN to query. Defaults to the first known VIN.
-      example: WBY31AW090FP15359
+      example: WBAEXAMPLE0000000
       selector:
         text:
 get_charging_sessions:
-  name: Get Charging Sessions
-  description: >-
-    Return recorded charging sessions, newest first. Reads the integration's own
-    history, so unlike the fetch_* services it costs no BMW API quota.
   fields:
     entry_id:
-      description: Optional config entry id to target. Required if multiple entries are configured.
-      example: 01K65NKFESKBQZ78PBW6V9BCCX
       selector:
         text:
     vin:
-      description: Optional VIN to filter by. Defaults to every known vehicle.
-      example: WBY31AW090FP15359
+      example: WBAEXAMPLE0000000
       selector:
         text:
     from:
-      description: Only sessions that started on or after this date/time.
       example: "2026-07-01"
       selector:
         date:
     to:
-      description: Only sessions that started on or before this date/time.
       example: "2026-07-31"
       selector:
         date:
     limit:
-      description: Maximum number of sessions to return.
       example: 20
       selector:
         number:
           min: 1
           mode: box
 get_trips:
-  name: Get Trips
-  description: >-
-    Return recorded trips, newest first. Reads the integration's own history, so
-    like get_charging_sessions it costs no BMW API quota. Endpoints are stored as
-    place names, never coordinates. A drive still under way is returned separately
-    as open_trips (it has no end, and its distance is provisional) unless a from /
-    to window was given.
   fields:
     entry_id:
-      description: Optional config entry id to target. Required if multiple entries are configured.
-      example: 01K65NKFESKBQZ78PBW6V9BCCX
       selector:
         text:
     vin:
-      description: Optional VIN to filter by. Defaults to every known vehicle.
-      example: WBY31AW090FP15359
+      example: WBAEXAMPLE0000000
       selector:
         text:
     from:
-      description: Only trips that started on or after this date/time.
       example: "2026-07-01"
       selector:
         date:
     to:
-      description: Only trips that started on or before this date/time.
       example: "2026-07-31"
       selector:
         date:
     limit:
-      description: Maximum number of trips to return.
       example: 50
       selector:
         number:
           min: 1
           mode: box
 get_driving_summary:
-  name: Get Driving Summary
-  description: >-
-    Return the "month in review" aggregation for trips - distance, the
-    business/private/commute split, consumption, recuperation, driving-style
-    score, top destinations and (with a tariff) an estimated driving cost. Reads
-    the local store, so it costs no BMW API quota.
   fields:
     entry_id:
-      description: Optional config entry id to target. Required if multiple entries are configured.
-      example: 01K65NKFESKBQZ78PBW6V9BCCX
       selector:
         text:
     vin:
-      description: Optional VIN. Defaults to the single configured vehicle.
-      example: WBY31AW090FP15359
+      example: WBAEXAMPLE0000000
       selector:
         text:
     month:
-      description: Month to summarise as YYYY-MM. Defaults to the current month.
       example: "2026-07"
       selector:
         text:
 set_trip_class:
-  name: Set Trip Classification
-  description: >-
-    Override a trip's classification (business, private or commute). Use this to
-    correct the automatic zone-pair guess. Writes the local store only.
   fields:
     entry_id:
-      description: Optional config entry id to target. Required if multiple entries are configured.
-      example: 01K65NKFESKBQZ78PBW6V9BCCX
       selector:
         text:
     vin:
-      description: Optional VIN. Defaults to the single configured vehicle.
-      example: WBY31AW090FP15359
+      example: WBAEXAMPLE0000000
       selector:
         text:
     trip_id:
-      description: The trip's id, as returned by get_trips.
-      example: WBY31AW090FP15359-2026-07-06T08:00:00+00:00
+      example: WBAEXAMPLE0000000-2026-07-06T08:00:00+00:00
       selector:
         text:
     classification:
-      description: One of business, private or commute.
       example: business
       selector:
         select:
@@ -229,30 +152,19 @@ set_trip_class:
             - private
             - commute
 export_history:
-  name: Export History
-  description: >-
-    Return one month of recorded charging sessions and/or trips as files - CSV
-    for spreadsheets, or a self-contained HTML report you can print to PDF from
-    the browser. The file contents come back in the response; nothing is written
-    to disk. Reads the local store, so it costs no BMW API quota.
   fields:
     entry_id:
-      description: Optional config entry id to target. Required if multiple entries are configured.
-      example: 01K65NKFESKBQZ78PBW6V9BCCX
       selector:
         text:
     vin:
-      description: Optional VIN. Defaults to the single configured vehicle.
-      example: WBY31AW090FP15359
+      example: WBAEXAMPLE0000000
       selector:
         text:
     month:
-      description: Month to export as YYYY-MM. Defaults to the current month.
       example: "2026-07"
       selector:
         text:
     type:
-      description: Which records to include.
       default: both
       example: both
       selector:
@@ -262,9 +174,6 @@ export_history:
             - trips
             - both
     format:
-      description: >-
-        csv returns one file per record type; html returns a single printable
-        month report.
       default: csv
       example: csv
       selector:
@@ -273,10 +182,6 @@ export_history:
             - csv
             - html
     language:
-      description: >-
-        Report language (en or de). Defaults to Home Assistant's own language.
-        Only affects the HTML report - CSV headers are always machine-readable
-        English.
       example: de
       selector:
         select:
@@ -284,103 +189,54 @@ export_history:
             - en
             - de
 get_coverage_report:
-  name: Get Descriptor Coverage Report
-  description: >-
-    Run the descriptor-coverage self-test: for each vehicle, compare the
-    descriptors your selected stream clusters should deliver against those that
-    have actually arrived, and list any that are missing. Answers "I enabled a
-    cluster but no entities appeared - is it my selection, my car, or a bug?".
-    Reads the local store and live stream only, so it costs no BMW API quota.
   fields:
     entry_id:
-      description: Optional config entry id to target. Required if multiple entries are configured.
-      example: 01K65NKFESKBQZ78PBW6V9BCCX
       selector:
         text:
     vin:
-      description: Optional VIN to report on. Defaults to every known vehicle.
-      example: WBY31AW090FP15359
+      example: WBAEXAMPLE0000000
       selector:
         text:
 activate_stream_fields:
-  name: Activate Stream Fields
-  description: >-
-    Replace which CarData attributes BMW streams over MQTT for a vehicle, by
-    sending the same request the BMW portal's stream-setup page sends when you
-    save "Datenauswahl ändern". Stream selection has no CarData API, so this
-    needs a captured portal browser session (it cannot be refreshed
-    automatically - the session is short-lived). Costs no BMW API quota. Returns
-    the requested/accepted attribute counts.
   fields:
     entry_id:
-      description: Optional config entry id to target. Required if multiple entries are configured.
-      example: 01K65NKFESKBQZ78PBW6V9BCCX
       selector:
         text:
     base_url:
-      description: >-
-        Your market portal origin, from the stream-setup URL (no trailing
-        slash).
       example: https://www.bmw.at
       required: true
       selector:
         text:
     locale:
-      description: The locale path segment from the stream-setup URL.
       example: de-at
       required: true
       selector:
         text:
     mapped_vehicle_id:
-      description: >-
-        The portal's mapped-vehicle id (a hash, NOT the VIN) from the
-        stream-setup URL /mybmw/mapped-vehicle/<id>/cardata/stream-setup.
-      example: 90d3dd3e0ba0ea99…
+      example: 0123456789abcdef…
       required: true
       selector:
         text:
     cookie:
-      description: >-
-        The raw Cookie header from an authenticated portal request (DevTools ->
-        Network -> the stream request -> Copy value of the Cookie header). A
-        secret; it is never logged. Expires after a while - recapture if the call
-        reports the session was rejected.
       example: "gcdmToken=…; mybmwUserLogin=…; ak_bmsc=…"
       required: true
       selector:
         text:
           multiline: true
     attributes:
-      description: >-
-        Explicit list of technical descriptors to stream (replaces the whole
-        selection). Overrides sections. Defaults to your chosen streamed-data
-        clusters, or the default cluster set.
       example: '["vehicle.isMoving", "vehicle.electricalSystem.battery.voltage"]'
       selector:
         object:
     sections:
-      description: >-
-        Cluster slugs to stream (e.g. electric, status, tire). Used when
-        attributes is omitted.
       example: '["electric", "status"]'
       selector:
         object:
 import_statistics:
-  name: Import Into Long-Term Statistics
-  description: >-
-    Rebuild this integration's long-term statistics from the recorded history,
-    so charging and driving from before the install (or from while Home
-    Assistant was down) appear on the Energy dashboard. This runs automatically
-    as records are made; use it after restoring a backup or to verify the row
-    counts. Local only - no BMW API quota.
   fields:
     entry_id:
-      description: Optional config entry id to target. Required if multiple entries are configured.
-      example: 01K65NKFESKBQZ78PBW6V9BCCX
       selector:
         text:
     vin:
-      description: Optional VIN to rebuild. Defaults to every known vehicle.
-      example: WBY31AW090FP15359
+      example: WBAEXAMPLE0000000
       selector:
         text:

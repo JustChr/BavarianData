@@ -26,7 +26,7 @@ from the README services table.**
 ### Tier 1 — Shop window (`README.md` + `info.md`, kept lean, ~150 lines)
 
 What a HACS visitor needs *before* installing: what it is, the three hero
-screenshots, requirements, the experimental-status note, the start-to-finish
+screenshots, requirements, the project-status note, the start-to-finish
 quick path (the 4 setup steps), and a prominent link into the manual.
 Everything else moves to Tier 2.
 

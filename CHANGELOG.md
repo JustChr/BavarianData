@@ -9,6 +9,25 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.3] - 2026-07-31
+
+### Added
+- **Actions are now translated.** All 15 actions — their names, descriptions and
+  every field — now live in `translations/en.json` and `translations/de.json`
+  instead of being hardcoded English in `services.yaml`. German installs showed
+  English action names in the UI; they no longer do.
+
+### Fixed
+- **Removed real vehicle identifiers from the shipped integration.** A real VIN
+  was used as the `example:` for every VIN field in `services.yaml` (rendered to
+  every user in the actions UI), a real config entry id as the `entry_id`
+  example, and `const.py` carried three pasted debug-log dumps containing two
+  VINs plus colour, build date, country and the full option list of the cars
+  they came from. All replaced with the synthetic placeholder
+  `WBAEXAMPLE0000000` or deleted; the response shapes those dumps documented are
+  in `docs/reference/customer-api.swagger.json` anyway. A test now fails if a
+  VIN- or entry-id-shaped literal reappears in any shipped file.
+
 ## [0.9.3-beta.1] - 2026-07-30
 
 ### Added

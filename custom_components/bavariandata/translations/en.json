@@ -2756,5 +2756,293 @@
       "title": "BMW CarData stream not authorized",
       "description": "BMW has rejected the streaming connection as unauthorized (MQTT rc=5) for over {minutes} minutes and it hasn't recovered on its own. This usually means the tokens need renewing, or another CarData client is holding the single per-account stream. Try Configure → Refresh tokens now, then Re-authorize with BMW if it keeps failing, and disconnect any other CarData client."
     }
+  },
+  "services": {
+    "fetch_telematic_data": {
+      "name": "Fetch telematic data",
+      "description": "Fetch telematic data for a VIN using the stored container and log the response.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN to query. Defaults to the first VIN seen on the stream."
+        }
+      }
+    },
+    "fetch_vehicle_mappings": {
+      "name": "Fetch vehicle mappings",
+      "description": "Fetch mapping information for the configured account and log the response.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        }
+      }
+    },
+    "fetch_basic_data": {
+      "name": "Fetch basic vehicle data",
+      "description": "Fetch static vehicle metadata (model name, series, etc.) for a VIN and log the response.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN to query. Defaults to the VIN stored in the config entry."
+        }
+      }
+    },
+    "fetch_charging_history": {
+      "name": "Fetch charging history",
+      "description": "Fetch the charging session history for a VIN (paginated) from BMW and import it into the local history, so past charges appear on the card and in the monthly summaries. Overlapping live-recorded sessions are enriched in place with BMW's measured grid energy. Counts as one or more API calls against the 50/24h quota.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN to query. Defaults to the first known VIN."
+        },
+        "from": {
+          "name": "From",
+          "description": "Start of the window to fetch. Defaults to 30 days ago when left empty."
+        },
+        "to": {
+          "name": "To",
+          "description": "End of the window to fetch. Defaults to now when left empty."
+        }
+      }
+    },
+    "fetch_tyre_diagnosis": {
+      "name": "Fetch smart maintenance tyre diagnosis",
+      "description": "Fetch the smart-maintenance tyre diagnosis for a VIN and log the response.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN to query. Defaults to the first known VIN."
+        }
+      }
+    },
+    "fetch_location_charging_settings": {
+      "name": "Fetch location-based charging settings",
+      "description": "Fetch the location-based charging settings for a VIN (paginated) and log the response.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN to query. Defaults to the first known VIN."
+        }
+      }
+    },
+    "fetch_vehicle_image": {
+      "name": "Fetch vehicle image",
+      "description": "Fetch the vehicle image for a VIN and log its size/content type.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN to query. Defaults to the first known VIN."
+        }
+      }
+    },
+    "get_charging_sessions": {
+      "name": "Get charging sessions",
+      "description": "Return recorded charging sessions, newest first. Reads the integration's own history, so unlike the fetch actions it costs no BMW API quota.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN to filter by. Defaults to every known vehicle."
+        },
+        "from": {
+          "name": "From",
+          "description": "Only sessions that started on or after this date/time."
+        },
+        "to": {
+          "name": "To",
+          "description": "Only sessions that started on or before this date/time."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "Maximum number of sessions to return."
+        }
+      }
+    },
+    "get_trips": {
+      "name": "Get trips",
+      "description": "Return recorded trips, newest first. Reads the integration's own history, so like the charging sessions it costs no BMW API quota. Endpoints are stored as place names, never coordinates. A drive still under way is returned separately as open trips (it has no end, and its distance is provisional) unless a from/to window was given.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN to filter by. Defaults to every known vehicle."
+        },
+        "from": {
+          "name": "From",
+          "description": "Only trips that started on or after this date/time."
+        },
+        "to": {
+          "name": "To",
+          "description": "Only trips that started on or before this date/time."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "Maximum number of trips to return."
+        }
+      }
+    },
+    "get_driving_summary": {
+      "name": "Get driving summary",
+      "description": "Return the month-in-review aggregation for trips: distance, the business/private/commute split, consumption, recuperation, driving-style score, top destinations and (with a tariff) an estimated driving cost. Reads the local store, so it costs no BMW API quota.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN. Defaults to the single configured vehicle."
+        },
+        "month": {
+          "name": "Month",
+          "description": "Month to summarise as YYYY-MM. Defaults to the current month."
+        }
+      }
+    },
+    "set_trip_class": {
+      "name": "Set trip classification",
+      "description": "Override a trip's classification (business, private or commute). Use this to correct the automatic zone-pair guess. Writes the local store only.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN. Defaults to the single configured vehicle."
+        },
+        "trip_id": {
+          "name": "Trip ID",
+          "description": "The trip's id, as returned by the get trips action."
+        },
+        "classification": {
+          "name": "Classification",
+          "description": "One of business, private or commute."
+        }
+      }
+    },
+    "export_history": {
+      "name": "Export history",
+      "description": "Return one month of recorded charging sessions and/or trips as files: CSV for spreadsheets, or a self-contained HTML report you can print to PDF from the browser. The file contents come back in the response; nothing is written to disk. Reads the local store, so it costs no BMW API quota.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN. Defaults to the single configured vehicle."
+        },
+        "month": {
+          "name": "Month",
+          "description": "Month to export as YYYY-MM. Defaults to the current month."
+        },
+        "type": {
+          "name": "Type",
+          "description": "Which records to include."
+        },
+        "format": {
+          "name": "Format",
+          "description": "CSV returns one file per record type; HTML returns a single printable month report."
+        },
+        "language": {
+          "name": "Language",
+          "description": "Report language (en or de). Defaults to Home Assistant's own language. Only affects the HTML report -- CSV headers are always machine-readable English."
+        }
+      }
+    },
+    "get_coverage_report": {
+      "name": "Get descriptor coverage report",
+      "description": "Run the descriptor-coverage self-test: for each vehicle, compare the descriptors your selected stream clusters should deliver against those that have actually arrived, and list any that are missing. Answers \"I enabled a cluster but no entities appeared -- is it my selection, my car, or a bug?\". Reads the local store and live stream only, so it costs no BMW API quota.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN to report on. Defaults to every known vehicle."
+        }
+      }
+    },
+    "activate_stream_fields": {
+      "name": "Activate stream fields",
+      "description": "Replace which CarData attributes BMW streams over MQTT for a vehicle, by sending the same request the BMW portal's stream-setup page sends when you save the data selection. Stream selection has no CarData API, so this needs a captured portal browser session (it cannot be refreshed automatically -- the session is short-lived). Costs no BMW API quota. Returns the requested/accepted attribute counts.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        },
+        "base_url": {
+          "name": "Portal base URL",
+          "description": "Your market portal origin, from the stream-setup address (no trailing slash)."
+        },
+        "locale": {
+          "name": "Locale",
+          "description": "The locale path segment from the stream-setup address."
+        },
+        "mapped_vehicle_id": {
+          "name": "Mapped vehicle ID",
+          "description": "The portal's mapped-vehicle id (a hash, NOT the VIN) from the stream-setup address."
+        },
+        "cookie": {
+          "name": "Cookie header",
+          "description": "The raw Cookie header from an authenticated portal request (DevTools, Network, the stream request, copy the value of the Cookie header). A secret; it is never logged. Expires after a while -- recapture if the call reports the session was rejected."
+        },
+        "attributes": {
+          "name": "Attributes",
+          "description": "Explicit list of technical descriptors to stream (replaces the whole selection). Overrides sections. Defaults to your chosen streamed-data clusters, or the default cluster set."
+        },
+        "sections": {
+          "name": "Sections",
+          "description": "Cluster slugs to stream (e.g. electric, status, tire). Used when attributes is omitted."
+        }
+      }
+    },
+    "import_statistics": {
+      "name": "Import into long-term statistics",
+      "description": "Rebuild this integration's long-term statistics from the recorded history, so charging and driving from before the install (or from while Home Assistant was down) appear on the Energy dashboard. This runs automatically as records are made; use it after restoring a backup or to verify the row counts. Local only -- no BMW API quota.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN to rebuild. Defaults to every known vehicle."
+        }
+      }
+    }
   }
 }
