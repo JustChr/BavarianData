@@ -150,6 +150,19 @@ Both contain **GPS coordinates and your VIN**. Share them only with the
 maintainers (e.g. attached to a GitHub issue you're comfortable making), and
 delete the capture file when you're done. It stops growing at ~25 MB.
 
+## No dashboard appears after setup
+
+<a id="no-dashboard-appears"></a>
+
+Expected: nothing new turns up in the sidebar. BavarianData creates **entities
+and devices**, not a dashboard. The bundled card registers itself as a dashboard
+*resource*, which makes it available — you still place it yourself: open any
+dashboard, **✏️ Edit → ➕ Add card**, pick **BavarianData Card**. See
+[The dashboard card](The-Dashboard-Card).
+
+If **BavarianData Card** isn't in the card picker at all, that *is* a fault —
+carry on to the next two sections.
+
 ## The card doesn't show up after an update
 
 **Hard-refresh the browser** — the bundled card is cached aggressively.

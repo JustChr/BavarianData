@@ -47,8 +47,10 @@ Home  (landing / nav)
 │   ├─ 1. BMW portal setup (client ID + scopes)
 │   ├─ 2. Install via HACS
 │   ├─ 3. Add & authorize the integration
-│   └─ 4. Choose which data to stream (cluster picker + snippet)
+│   ├─ 4. Choose which data to stream (cluster picker + snippet)
+│   └─ 5. Add the card to a dashboard (no dashboard is auto-created)
 ├─ The dashboard card         [How-to + Reference]
+│   ├─ Placing the card (Add card → BavarianData Card)
 │   ├─ Overview view
 │   ├─ Charging history view
 │   ├─ Battery health view
@@ -237,6 +239,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Descriptor-coverage self-test | ❌ |
 | Clean uninstall / fresh-install reset | 🟡 Troubleshooting → "Removing BavarianData completely" + `docs/clean-install.md` |
 | Card auto-registration (Lovelace resource; YAML-mode caveat) | 🟢 The-Dashboard-Card intro + Troubleshooting → "Every card shows Configuration error after a reload" |
+| No dashboard is auto-created — the user places the card (issue #4) | 🟢 README quick start step 5 + Home → "Start here" + Getting-Started-4 outro + The-Dashboard-Card intro + Troubleshooting → "No dashboard appears after setup" |
 
 ## Conventions
 

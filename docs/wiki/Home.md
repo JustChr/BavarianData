@@ -14,17 +14,19 @@ see the [README](https://github.com/JustChr/BavarianData#readme).
 
 ## Start here
 
-New install? Follow the four steps in order:
+New install? Follow the five steps in order:
 
 1. [BMW portal setup](Getting-Started-1-BMW-Portal-Setup) — client ID + scopes
 2. [Install via HACS](Getting-Started-2-Install)
 3. [Add & authorize the integration](Getting-Started-3-Add-and-Authorize)
 4. [Choose which data to stream](Getting-Started-4-Choose-Data) — the cluster picker
+5. [Add the card to a dashboard](The-Dashboard-Card) — nothing appears in the
+   sidebar on its own
 
 ## The dashboard card
 
-BavarianData ships a Lovelace card, registered automatically. It has several
-views:
+BavarianData ships a Lovelace card whose *resource* is registered automatically;
+you add the card to a dashboard yourself. It has several views:
 
 - [Overview, and all card views + full YAML reference](The-Dashboard-Card)
 

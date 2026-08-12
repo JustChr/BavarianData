@@ -23,7 +23,8 @@ translated states. On top of that the integration derives a **charging history &
 cost** ledger, **battery-health** learning, a **trip journal**, **long-term
 statistics** for the Energy dashboard, and **CSV/PDF export** — all from the
 stream, spending no API quota. A bundled **Lovelace card** and a cached vehicle
-image give you a usable dashboard out of the box.
+image put a good-looking dashboard one card away — the card registers itself,
+you just place it.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-car.png" alt="Bundled Lovelace card showing a BMW i5 eDrive40 with charge level, range, charging status and odometer" width="360" />
@@ -59,7 +60,7 @@ README is the quick overview.
 
 ## Quick start
 
-Four steps — the Wiki has the detail and screenshots for each.
+Five steps — the Wiki has the detail and screenshots for each.
 
 1. **[Set up BMW CarData in the portal](https://github.com/JustChr/BavarianData/wiki/Getting-Started-1-BMW-Portal-Setup)** —
    generate a **client ID** and give it both scopes (`cardata:api:read` and
@@ -77,6 +78,9 @@ Four steps — the Wiki has the detail and screenshots for each.
    **Activate BMW data** bookmarklet; manual setup hands you a browser-console
    snippet to paste into the portal's Data Selection instead. Either way, save
    and trigger a lock/unlock to prompt the first update.
+5. **[Add the card to a dashboard](https://github.com/JustChr/BavarianData/wiki/The-Dashboard-Card)** —
+   the integration doesn't create a dashboard of its own. Open any dashboard,
+   **Add card → BavarianData Card**, and it finds your vehicle by itself.
 
 ### Activating stream fields in one call (advanced)
 

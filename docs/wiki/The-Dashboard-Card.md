@@ -1,19 +1,24 @@
 # The dashboard card
 
-A custom **BavarianData Card** is bundled and registered automatically as a
-dashboard resource — there is nothing to add by hand, and the registration is
-refreshed on every update so browsers pick up the new version. Pick the card
-from the card gallery to open a visual editor, or write YAML directly.
+A custom **BavarianData Card** is bundled with the integration and registered
+automatically as a dashboard *resource* — there is no resource to add by hand,
+and it is refreshed on every update so browsers pick up the new version.
+
+**The integration does not create a dashboard of its own.** Registering the
+resource makes the card *available*; you place it where you want it:
+
+1. Open any dashboard and click **✏️ Edit → ➕ Add card**.
+2. Search for **BavarianData Card** and pick it — a visual editor opens.
+3. Save. The minimal config auto-discovers the car, so there is nothing to fill
+   in:
+
+   ```yaml
+   type: custom:bavariandata-card
+   ```
 
 > Automatic registration needs storage-mode resources, which is the default. If
 > your dashboard resources are YAML-managed you must add the resource yourself —
 > see [Troubleshooting](Troubleshooting-and-FAQ#config-error-after-reload).
-
-With the integration installed, the minimal config auto-discovers the car:
-
-```yaml
-type: custom:bavariandata-card
-```
 
 The card has several **views**. The default is the Overview; set `view:` or
 `cluster:` to switch. Use **one card per view** — add several cards to a

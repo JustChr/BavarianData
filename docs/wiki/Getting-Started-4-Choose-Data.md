@@ -108,4 +108,12 @@ The **Stream** column in
 [telematics-fields.md](https://github.com/JustChr/BavarianData/blob/main/docs/reference/telematics-fields.md)
 tells you which is which, field by field.
 
-**Done!** Head to [The dashboard card](The-Dashboard-Card) to build a dashboard.
+## One last step: put the card on a dashboard
+
+Your entities exist now, but BavarianData does **not** create a dashboard of its
+own — nothing new appears in the sidebar. Open any dashboard, choose
+**✏️ Edit → ➕ Add card**, and pick **BavarianData Card**; it finds your vehicle
+by itself.
+
+**Done!** [The dashboard card](The-Dashboard-Card) covers the other views —
+charging history, battery health, trips, the map, tyres and closures.
