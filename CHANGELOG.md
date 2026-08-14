@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.4-beta.1] - 2026-08-14
+
 ### Fixed
 - **Average consumption was badly overstated.** The monthly figure averaged the
   *per-trip* consumption ratios, so a 1 km hop counted exactly as much as a
