@@ -83,6 +83,46 @@ def test_consumption_needs_distance_and_energy():
     assert _trip(distance_km=0.0, energy_kwh=4.0).consumption_kwh_per_100km is None
 
 
+def test_consumption_refuses_a_soc_drop_too_small_to_divide_by():
+    """A 1 km hop that ticked one percent is not a 78 kWh/100 km drive.
+
+    Trip energy is SoC x capacity and SoC arrives as a whole percent, so below a
+    few percent the quantisation *is* the measurement. The honest answer is no
+    figure at all -- the number it would otherwise print poisons every average
+    and "worst trip" it reaches.
+    """
+
+    hop = _trip(distance_km=1.0, energy_kwh=0.78, soc_start=40.0, soc_end=39.0)
+    assert hop.soc_drop == 1.0
+    assert hop.consumption_kwh_per_100km is None
+
+    real = _trip(distance_km=33.0, energy_kwh=7.8, soc_start=51.0, soc_end=41.0)
+    assert real.consumption_kwh_per_100km == 23.6
+
+
+def test_consumption_is_not_gated_when_energy_did_not_come_from_soc():
+    """A car reporting its own trip energy isn't held to the SoC resolution."""
+
+    trip = _trip(distance_km=1.0, energy_kwh=0.2, soc_start=None, soc_end=None)
+    assert trip.consumption_kwh_per_100km == 20.0
+
+
+def test_serialised_record_carries_the_consumption_it_stands_behind():
+    """The figure ships with the record so no reader recomputes it.
+
+    The card used to divide energy by distance itself, which printed exactly the
+    numbers the gate exists to withhold.
+    """
+
+    rated = _trip(distance_km=33.0, energy_kwh=7.8, soc_start=51.0, soc_end=41.0)
+    assert rated.to_dict()["consumption_kwh_per_100km"] == 23.6
+
+    gated = _trip(distance_km=1.0, energy_kwh=0.78, soc_start=40.0, soc_end=39.0)
+    assert gated.to_dict()["consumption_kwh_per_100km"] is None
+    # The energy itself is still recorded -- it just isn't a rate.
+    assert gated.to_dict()["energy_kwh"] == 0.78
+
+
 def test_place_label_prefers_zone_then_address():
     assert place(zone="Home")["label"] == "Home"
     assert place(address="Somewhere")["label"] == "Somewhere"
@@ -545,19 +585,67 @@ def test_driving_summary_consumption_best_worst():
     assert result["avg_consumption_kwh_per_100km"] == 20.0
 
 
-def test_driving_summary_recuperation_and_style():
+def test_average_consumption_weights_by_distance_not_by_trip():
+    """The headline is total energy over total distance, never a mean of ratios.
+
+    Averaging ratios lets a 2 km hop outvote a 200 km run. Real data made this
+    concrete: a month of 19 usable trips read 35.3 kWh/100 km as a mean of
+    ratios and 21.1 summed properly, against a true figure near 21.
+    """
+
     month = [
-        _trip(start=START, stats={"accel_stars": 4.0, "brake_stars": 2.0,
-                                  "recuperation_kwh": 1.0}),
-        _trip(start=START + timedelta(days=8), stats={"accel_stars": 5.0,
-                                                      "recuperation_kwh": 2.0}),
+        _trip(start=START, distance_km=200.0, energy_kwh=40.0),  # 20/100km
+        _trip(start=START + timedelta(days=1), distance_km=2.0, energy_kwh=1.0),  # 50
+    ]
+    # Mean of the two ratios would be 35.0; weighted by distance it is 20.3.
+    assert summary.driving_summary(month)["avg_consumption_kwh_per_100km"] == 20.3
+
+
+def test_average_consumption_ignores_trips_it_refuses_to_rate():
+    """Energy and distance must describe the same set of drives.
+
+    A gated trip contributing its kilometres but not its kWh (or the reverse)
+    would bend the headline by exactly the amount the gate exists to exclude.
+    """
+
+    month = [
+        _trip(start=START, distance_km=100.0, energy_kwh=20.0,
+              soc_start=60.0, soc_end=34.0),
+        # Gated: one percent over 1 km. Neither its 0.78 kWh nor its 1 km counts.
+        _trip(start=START + timedelta(days=1), distance_km=1.0, energy_kwh=0.78,
+              soc_start=34.0, soc_end=33.0),
     ]
     result = summary.driving_summary(month)
-    assert result["recuperation_kwh"] == 3.0
+    assert result["avg_consumption_kwh_per_100km"] == 20.0
+    assert result["worst_trip"]["consumption"] == 20.0  # not the 78/100km hop
+
+
+def test_driving_summary_recuperation_and_style():
+    month = [
+        _trip(start=START, distance_km=10.0,
+              stats={"accel_stars": 4.0, "brake_stars": 2.0,
+                     "recuperation_kwh_per_100km": 1.0}),
+        _trip(start=START + timedelta(days=8), distance_km=30.0,
+              stats={"accel_stars": 5.0,
+                     "recuperation_kwh_per_100km": 2.0}),
+    ]
+    result = summary.driving_summary(month)
+    # BMW's figure is already per 100 km, so the month is a distance-weighted
+    # mean -- (1*10 + 2*30) / 40 -- never the sum, which would mean nothing.
+    assert result["recuperation_kwh_per_100km"] == 1.8
     # trip1 score = mean(4,2)=3; trip2 score = 5 -> overall mean 4.0
     assert result["style_score"] == 4.0
     # two different ISO weeks -> two trend points, oldest first
     assert [pt["score"] for pt in result["style_trend"]] == [3.0, 5.0]
+
+
+def test_recuperation_reads_the_legacy_misnamed_stats_key():
+    """Records written before the unit was understood still read correctly."""
+
+    month = [
+        _trip(start=START, distance_km=10.0, stats={"recuperation_kwh": 4.0}),
+    ]
+    assert summary.driving_summary(month)["recuperation_kwh_per_100km"] == 4.0
 
 
 def test_driving_summary_top_destinations_skip_unknown():

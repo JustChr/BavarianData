@@ -494,3 +494,247 @@ def test_degradation_series_keeps_only_the_most_recent_points():
     ]
     series = health.degradation_series(charges, limit=2)
     assert [point[0] for point in series] == [4000.0, 5000.0]
+
+
+# --- energy balance --------------------------------------------------------
+#
+# The plug-side consumption figure, and the one the card leads with. It exists
+# because the per-trip route cannot beat the resolution of the signal it is
+# built from: BMW streams SoC as a whole percent, so trip energy is quantised at
+# ~0.8 kWh on a 78 kWh pack. This reads the charging ledger instead -- odometer
+# and SoC at each session end -- and never touches a trip.
+
+CAP = 78.0
+
+
+def _charge_point(start: datetime, *, odo: float, soc: float, kwh: float = 10.0):
+    """A charging session as the balance sees it: a reading plus what it delivered."""
+
+    return _session(
+        start=start,
+        end=start + timedelta(hours=2),
+        mileage_km=odo,
+        soc_end=soc,
+        energy_kwh=kwh,
+    )
+
+
+def test_energy_balance_measures_between_two_charging_readings():
+    charges = [
+        _charge_point(START, odo=10000.0, soc=80.0, kwh=5.0),
+        _charge_point(START + timedelta(days=3), odo=10100.0, soc=60.0, kwh=15.0),
+    ]
+    result = summary.energy_balance(charges, battery_capacity_kwh=CAP)
+    # The opening session's own 5 kWh landed before the window opened.
+    assert result["charged_kwh"] == 15.0
+    # The pack ended 20 % emptier, so 15.6 kWh of the driving came out of it.
+    assert result["battery_delta_kwh"] == -15.6
+    assert result["used_kwh"] == 30.6
+    assert result["distance_km"] == 100.0
+    assert result["kwh_per_100km"] == 30.6
+
+
+def test_energy_balance_ignores_the_trip_record_entirely():
+    """Its whole value is surviving a month whose drives weren't all detected.
+
+    Trip detection shipped after charging history did. Real data: a month with
+    charging from the 1st but trips only from the 26th read 86.8 kWh/100 km off
+    the trip distance and 20.4 off the odometer.
+    """
+
+    charges = [
+        _charge_point(START, odo=17416.0, soc=55.0, kwh=8.0),
+        _charge_point(START + timedelta(days=28), odo=17917.0, soc=95.0, kwh=133.2),
+    ]
+    result = summary.energy_balance(charges, battery_capacity_kwh=CAP)
+    assert result["distance_km"] == 501.0
+    assert result["kwh_per_100km"] == 20.4  # not the 86.8 a partial trip log gives
+
+
+def test_energy_balance_needs_two_odometer_readings():
+    one = [_charge_point(START, odo=10000.0, soc=80.0)]
+    assert summary.energy_balance(one, battery_capacity_kwh=CAP) is None
+    # A session with no odometer can't bound anything, however much it delivered.
+    blind = one + [_session(start=START + timedelta(days=2), energy_kwh=40.0)]
+    assert summary.energy_balance(blind, battery_capacity_kwh=CAP) is None
+
+
+def test_energy_balance_refuses_a_span_too_short_to_mean_anything():
+    """Below ~50 km the whole-percent SoC correction outweighs the energy used."""
+
+    charges = [
+        _charge_point(START, odo=10000.0, soc=80.0),
+        _charge_point(START + timedelta(hours=6), odo=10010.0, soc=76.0, kwh=3.0),
+    ]
+    assert summary.energy_balance(charges, battery_capacity_kwh=CAP) is None
+
+
+def test_energy_balance_needs_a_capacity_to_scale_the_correction():
+    charges = [
+        _charge_point(START, odo=10000.0, soc=80.0),
+        _charge_point(START + timedelta(days=3), odo=10100.0, soc=60.0, kwh=15.0),
+    ]
+    assert summary.energy_balance(charges, battery_capacity_kwh=None) is None
+    assert summary.energy_balance(charges, battery_capacity_kwh=0.0) is None
+
+
+def test_energy_balance_prefers_the_measured_grid_figure():
+    """Same rule as every other aggregate: grid_kwh outranks our estimate."""
+
+    charges = [
+        _charge_point(START, odo=10000.0, soc=60.0),
+        _session(
+            start=START + timedelta(days=3),
+            end=START + timedelta(days=3, hours=2),
+            mileage_km=10100.0,
+            soc_end=60.0,
+            energy_kwh=20.0,
+            grid_kwh=23.0,
+        ),
+    ]
+    result = summary.energy_balance(charges, battery_capacity_kwh=CAP)
+    assert result["charged_kwh"] == 23.0
+    assert result["kwh_per_100km"] == 23.0
+
+
+def test_energy_balance_discards_an_impossible_result():
+    """A corrupt odometer or a capacity from another car yields no figure."""
+
+    # 100 km on 2 kWh: below anything a road vehicle does.
+    thrifty = [
+        _charge_point(START, odo=10000.0, soc=60.0),
+        _charge_point(START + timedelta(days=3), odo=10100.0, soc=60.0, kwh=2.0),
+    ]
+    assert summary.energy_balance(thrifty, battery_capacity_kwh=CAP) is None
+    # 100 km on 200 kWh: likewise.
+    thirsty = [
+        _charge_point(START, odo=10000.0, soc=60.0),
+        _charge_point(START + timedelta(days=3), odo=10100.0, soc=60.0, kwh=200.0),
+    ]
+    assert summary.energy_balance(thirsty, battery_capacity_kwh=CAP) is None
+
+
+def test_energy_balance_refuses_a_window_that_consumed_nothing():
+    """More charge aboard at the close than went in means the window is wrong."""
+
+    charges = [
+        _charge_point(START, odo=10000.0, soc=10.0),
+        _charge_point(START + timedelta(days=3), odo=10100.0, soc=90.0, kwh=1.0),
+    ]
+    assert summary.energy_balance(charges, battery_capacity_kwh=CAP) is None
+
+
+def test_energy_balance_says_which_side_of_the_charger_it_measured():
+    """``energy_kwh`` is battery-side; only a measured ``grid_kwh`` is at the plug.
+
+    Presenting one as the other overstates consumption by the charging losses --
+    or, when both figures are really battery-side, invents a loss between them
+    that isn't there.
+    """
+
+    estimated = [
+        _charge_point(START, odo=10000.0, soc=60.0),
+        _charge_point(START + timedelta(days=3), odo=10100.0, soc=60.0, kwh=20.0),
+    ]
+    assert summary.energy_balance(estimated, battery_capacity_kwh=CAP)["source"] == (
+        "battery"
+    )
+
+    measured = [
+        _session(start=START, end=START + timedelta(hours=2),
+                 mileage_km=10000.0, soc_end=60.0, energy_kwh=10.0, grid_kwh=11.0),
+        _session(start=START + timedelta(days=3),
+                 end=START + timedelta(days=3, hours=2),
+                 mileage_km=10100.0, soc_end=60.0, energy_kwh=20.0, grid_kwh=23.0),
+    ]
+    result = summary.energy_balance(measured, battery_capacity_kwh=CAP)
+    assert result["source"] == "grid"
+    assert result["charged_kwh"] == 23.0
+
+
+def test_one_estimated_session_makes_the_whole_balance_battery_side():
+    """A mixture is not "at the plug" -- the estimated part never saw a meter."""
+
+    mixed = [
+        _charge_point(START, odo=10000.0, soc=60.0),
+        _session(start=START + timedelta(days=1), end=START + timedelta(days=1, hours=2),
+                 mileage_km=10050.0, soc_end=60.0, energy_kwh=10.0, grid_kwh=11.0),
+        _charge_point(START + timedelta(days=3), odo=10100.0, soc=60.0, kwh=10.0),
+    ]
+    assert summary.energy_balance(mixed, battery_capacity_kwh=CAP)["source"] == "battery"
+
+
+# --- late-started charges --------------------------------------------------
+#
+# A charge already running when the integration noticed it: both the energy
+# integration and soc_start begin late, by different amounts, so the record is a
+# floor on the energy and its SoC span covers only the watched part. Real data:
+# a session opened at 56 % when the pack was last seen at 42 %, and the 11.045
+# kWh it caught over a recorded 9 % span implied a 123 kWh pack on a 78 kWh car.
+
+builders = load_module("history.sessions")
+
+
+def test_a_charge_running_before_we_noticed_is_flagged():
+    late = builders.SessionBuilder("WBY1", START, soc_start=56.0, soc_before=42.0)
+    assert late.close(START + timedelta(hours=2), soc_end=65.0,
+                      energy_kwh=11.045).late_start is True
+
+
+def test_an_ordinary_charge_is_not_flagged():
+    """Session SoC normally matches the last pre-charge reading exactly.
+
+    Measured across 29 real sessions the median gap was +0.4 points, so the
+    margin has to tolerate ordinary jitter without swallowing a real miss.
+    """
+
+    for before, start in ((42.0, 42.0), (51.0, 52.0), (53.0, 54.0), (58.0, 60.0)):
+        session = builders.SessionBuilder(
+            "WBY1", START, soc_start=start, soc_before=before
+        ).close(START + timedelta(hours=2), soc_end=start + 30.0, energy_kwh=24.0)
+        assert session.late_start is False, (before, start)
+
+
+def test_no_pre_charge_reading_means_no_accusation():
+    """The first charge after a restart has nothing to compare against."""
+
+    session = builders.SessionBuilder(
+        "WBY1", START, soc_start=56.0, soc_before=None
+    ).close(START + timedelta(hours=2), soc_end=90.0, energy_kwh=26.0)
+    assert session.late_start is False
+
+
+def test_late_started_charges_are_not_capacity_samples():
+    good = [_charge(20.0, 80.0, 46.8) for _ in range(10)]
+    assert health.usable_capacity(good, sanity_kwh=78.0).confident is True
+
+    # One wide-but-late session would imply a 123 kWh pack; it must not count.
+    poisoned = good + [_charge(56.0, 90.0, 42.0, late_start=True)]
+    result = health.usable_capacity(poisoned, sanity_kwh=78.0)
+    assert result.samples == 10  # the late one contributed nothing
+    assert result.usable_kwh == 78.0
+
+
+def test_late_started_charges_stay_out_of_the_degradation_trend():
+    charges = [
+        _charge(20.0, 80.0, 46.8, mileage_km=10000.0),
+        _charge(56.0, 90.0, 42.0, mileage_km=20000.0, late_start=True),
+    ]
+    assert [point[0] for point in health.degradation_series(charges)] == [10000.0]
+
+
+def test_the_capacity_gate_admits_a_realistic_charge():
+    """40 % was unreachable for a top-up-often owner; 25 % is not.
+
+    A real car went 39 sessions without one charge spanning 40 %, so the sensor
+    sat at "Learning (0/10)" permanently rather than slowly.
+    """
+
+    assert health.MIN_SOC_DELTA == 25.0
+    # A 21 % charge is still too narrow to trust...
+    assert health.usable_capacity([_charge(39.0, 60.0, 16.25)]).samples == 0
+    # ...while a 30 % one now counts, and lands within 1 % of BMW's own figure.
+    result = health.usable_capacity([_charge(39.0, 69.0, 23.4)], sanity_kwh=78.0)
+    assert result.samples == 1
+    assert result.usable_kwh == 78.0
+    assert result.suspicious is False

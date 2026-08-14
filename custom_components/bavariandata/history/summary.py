@@ -12,8 +12,17 @@ from datetime import datetime
 from statistics import mean
 from typing import Any, Callable, Iterable, Optional
 
-from .models import ChargingSession
+from .models import ChargingSession, _iso
 from .trips import CLASS_BUSINESS, CLASS_COMMUTE, CLASS_PRIVATE, Trip
+
+__all__ = [
+    "driving_summary",
+    "energy_balance",
+    "fleet_consumption_kwh_per_100km",
+    "sessions_in_month",
+    "summarise",
+    "trips_in_month",
+]
 
 # Identity by default; the caller passes Home Assistant's local-time converter.
 # Month boundaries are a local-time concept -- a session at 01:00 CEST on the
@@ -159,6 +168,48 @@ def _style_score(stats: dict[str, Any]) -> Optional[float]:
     return mean(values) if values else None
 
 
+# BMW's ``recuperationTotal`` is documented as an *average per 100 km* -- "the
+# average electrical energy in kWh/100 km recuperated during the last logged
+# drive" -- not a kWh total for the drive. Adding those up across a month
+# produces a number with no meaning at all (ten drives at 5 kWh/100 km is not
+# 50 of anything), so they are averaged, weighted by the distance each one
+# describes. The older ``recuperation_kwh`` stats key is read too: records
+# written before the unit was understood hold the same per-100 km figure under
+# the wrong name, and re-reading them correctly is free.
+_RECUP_KEYS = ("recuperation_kwh_per_100km", "recuperation_kwh")
+
+
+def _recuperation_value(stats: dict[str, Any]) -> Optional[float]:
+    for key in _RECUP_KEYS:
+        value = stats.get(key)
+        if isinstance(value, (int, float)):
+            return float(value)
+    return None
+
+
+def _recuperation_per_100km(trips: list[Trip]) -> Optional[float]:
+    """Distance-weighted mean recuperation, in kWh/100 km.
+
+    Weighted rather than a plain mean for the same reason consumption is: a long
+    drive's figure describes more kilometres than a short one's. Trips with no
+    distance fall back to counting once, so a car that reports recuperation but
+    no distance still yields something rather than nothing.
+    """
+
+    weighted = 0.0
+    total_weight = 0.0
+    for trip in trips:
+        value = _recuperation_value(trip.stats)
+        if value is None:
+            continue
+        weight = trip.distance_km or 1.0
+        weighted += value * weight
+        total_weight += weight
+    if total_weight <= 0:
+        return None
+    return round(weighted / total_weight, 1)
+
+
 def _dest_label(trip: Trip) -> Optional[str]:
     """A named destination for the top-destinations tally, or ``None``.
 
@@ -178,20 +229,179 @@ def _iso_week(dt: datetime) -> str:
     return f"{year}-W{week:02d}"
 
 
+def fleet_consumption_kwh_per_100km(trips: Iterable[Trip]) -> Optional[float]:
+    """Battery-side consumption across many trips: total energy over total distance.
+
+    Deliberately *not* the mean of the per-trip figures. Averaging ratios weights
+    a 1 km hop the same as a 200 km run, so a handful of short drives -- the ones
+    whose SoC quantisation already over-reads (see
+    :data:`trips.MIN_CONSUMPTION_SOC_DELTA`) -- drag the headline far above
+    anything the car ever used. Summing first weights every kilometre once, which
+    is what "average consumption" means.
+
+    Only trips that carry a usable consumption figure contribute, so the energy
+    and the distance always describe the same set of drives.
+    """
+
+    energy = 0.0
+    distance = 0.0
+    for trip in trips:
+        if trip.consumption_kwh_per_100km is None:
+            continue
+        energy += trip.energy_kwh or 0.0
+        distance += trip.distance_km or 0.0
+    if distance <= 0 or energy <= 0:
+        return None
+    return round(energy / distance * 100, 1)
+
+
+# Shortest odometer span the balance will report a figure for. Over a few
+# kilometres the correction term (a whole-percent SoC reading at each end) is
+# larger than the energy actually used, so the answer would be quantisation
+# noise wearing a decimal point.
+MIN_BALANCE_DISTANCE_KM = 50.0
+# Absurdity bounds. Not a judgement about efficient driving -- winter short-trip
+# figures genuinely reach the forties -- only a catch for a corrupted odometer
+# or a capacity that isn't this car's, where the arithmetic is meaningless
+# rather than merely unflattering.
+MIN_PLAUSIBLE_KWH_PER_100KM = 5.0
+MAX_PLAUSIBLE_KWH_PER_100KM = 80.0
+
+
+def energy_balance(
+    sessions: Iterable[ChargingSession],
+    *,
+    battery_capacity_kwh: Optional[float] = None,
+) -> Optional[dict[str, Any]]:
+    """Consumption over a period, measured from the charging ledger alone.
+
+    The per-trip route cannot beat the resolution of the SoC signal it is built
+    from. This sidesteps that entirely, and deliberately reads *nothing* from the
+    trip record -- not even the distance. Every charging session carries an
+    odometer reading and an SoC, taken at the moment it ended, so two sessions
+    bracket a window whose distance and energy are both known without a single
+    drive having to have been detected::
+
+        used     = energy delivered between the two readings
+                   - (soc_end_last - soc_end_first) / 100 * capacity
+        distance = odometer_last - odometer_first
+
+    That independence is the whole point. Trip detection shipped after charging
+    history did, and any month where a drive was missed -- a dead stream, an
+    upgrade, a garage with no signal -- would otherwise divide a full month of
+    charging by a partial month of driving and report a wildly inflated figure.
+    Real data made that concrete: one such month read 86.8 kWh/100 km off the
+    trip distance and 20.4 off the odometer.
+
+    The opening session's own energy is excluded: its readings are taken when it
+    *finished*, so what it delivered arrived before the window opened. Charged
+    energy is integrated from streamed charging power rather than read off a
+    quantised SoC, so only the correction term carries a rounding step, and a
+    month of driving dwarfs it.
+
+    **Which side of the charger the answer describes depends on the ledger**, and
+    the returned ``source`` says which: ``"grid"`` when every contributing
+    session carried a measured ``grid_kwh`` (a bound wallbox, or BMW's own
+    import), otherwise ``"battery"`` -- because ``energy_kwh`` is integrated
+    battery-side charging power, not what came out of the wall (see
+    :class:`~.models.ChargingSession`). A grid-side figure includes charging
+    losses and reads above the car's own display; a battery-side one is the same
+    quantity the trip figures measure, just measured far better. Presenting
+    either without saying which is how a number ends up quietly meaning
+    something other than its label.
+
+    Returns ``None`` rather than a guess whenever the inputs can't support an
+    answer: fewer than two odometer readings, too short a span, an unknown
+    capacity, or a result outside anything a road vehicle produces.
+    """
+
+    if not battery_capacity_kwh or battery_capacity_kwh <= 0:
+        return None
+
+    # Only sessions that carry both an odometer and an SoC can bound a window.
+    bounded = sorted(
+        (
+            session
+            for session in sessions
+            if session.mileage_km is not None and session.soc_end is not None
+        ),
+        key=lambda session: session.start,
+    )
+    if len(bounded) < 2:
+        return None
+
+    first, last = bounded[0], bounded[-1]
+    distance = last.mileage_km - first.mileage_km
+    if distance < MIN_BALANCE_DISTANCE_KM:
+        return None
+
+    contributing = [
+        session for session in bounded[1:] if session.effective_energy_kwh
+    ]
+    charged = sum(session.effective_energy_kwh or 0.0 for session in contributing)
+    if charged <= 0:
+        return None
+    # Grid-side only when every last kWh of it was actually measured at the grid.
+    # One estimated session in the total makes the whole figure battery-side --
+    # calling a mixture "at the plug" would overstate it by the losses of the
+    # part that never saw a meter.
+    source = (
+        "grid"
+        if all(session.grid_kwh is not None for session in contributing)
+        else "battery"
+    )
+
+    # A battery fuller at the close than at the open means some of what was
+    # charged is still aboard and was not driven on; emptier means the window
+    # was partly run off charge that arrived before it.
+    stored_delta = (last.soc_end - first.soc_end) / 100.0 * battery_capacity_kwh
+    used = charged - stored_delta
+    if used <= 0:
+        return None
+
+    rate = round(used / distance * 100, 1)
+    if not MIN_PLAUSIBLE_KWH_PER_100KM <= rate <= MAX_PLAUSIBLE_KWH_PER_100KM:
+        return None
+
+    return {
+        "kwh_per_100km": rate,
+        # "grid" (includes charging losses) or "battery" (what the car uses).
+        # Never omitted: a consumption figure without its side is ambiguous by
+        # exactly the size of the charging loss.
+        "source": source,
+        "used_kwh": round(used, 1),
+        "charged_kwh": round(charged, 1),
+        "battery_delta_kwh": round(stored_delta, 1),
+        "distance_km": round(distance, 1),
+        "soc_start": first.soc_end,
+        "soc_end": last.soc_end,
+        # The window really measured, which is the first charge to the last --
+        # not the whole month. A caller showing the figure can say so.
+        "from": _iso(first.end or first.start),
+        "to": _iso(last.end or last.start),
+    }
+
+
 def driving_summary(
     trips: Iterable[Trip],
     *,
     prev_trips: Optional[Iterable[Trip]] = None,
     cost_per_100km: Optional[float] = None,
     currency: Optional[str] = None,
+    sessions: Optional[Iterable[ChargingSession]] = None,
+    battery_capacity_kwh: Optional[float] = None,
 ) -> dict[str, Any]:
     """The whole "month in review" object the trips card renders.
 
     ``trips`` is the current month's trips (already filtered -- use
     :func:`trips_in_month`); ``prev_trips`` is the previous month's, for the
-    month-over-month delta. Every figure is omitted (``None``/absent) rather than
-    faked when its inputs are missing, so the card can hide what it can't show
-    (roadmap rule 4). All aggregation lives here, not in the card's JS.
+    month-over-month delta. ``sessions`` is the same month's charging, which
+    together with ``battery_capacity_kwh`` yields the plug-side
+    :func:`energy_balance` -- the headline consumption figure, because it is the
+    only one the SoC signal's resolution doesn't limit. Every figure is omitted
+    (``None``/absent) rather than faked when its inputs are missing, so the card
+    can hide what it can't show (roadmap rule 4). All aggregation lives here, not
+    in the card's JS.
     """
 
     trips = list(trips)
@@ -221,17 +431,20 @@ def driving_summary(
     }
 
     # Consumption: use each trip's own energy/distance so best/worst are self
-    # consistent with what the row shows. Best = most efficient (lowest).
+    # consistent with what the row shows. Best = most efficient (lowest). Trips
+    # whose SoC drop was too small to divide by report no figure at all, so they
+    # can neither be nominated nor weigh on the average.
     consumptions = [
         (trip, trip.consumption_kwh_per_100km)
         for trip in trips
         if trip.consumption_kwh_per_100km is not None
     ]
-    avg_consumption = (
-        round(mean(value for _t, value in consumptions), 1) if consumptions else None
-    )
+    avg_consumption = fleet_consumption_kwh_per_100km(trips)
     best = min(consumptions, key=lambda pair: pair[1], default=None)
     worst = max(consumptions, key=lambda pair: pair[1], default=None)
+    balance = energy_balance(
+        sessions or [], battery_capacity_kwh=battery_capacity_kwh
+    )
 
     def _trip_ref(pair) -> Optional[dict[str, Any]]:
         if pair is None:
@@ -244,11 +457,7 @@ def driving_summary(
             "distance_km": trip.distance_km,
         }
 
-    recuperation = sum(
-        float(t.stats.get("recuperation_kwh"))
-        for t in trips
-        if isinstance(t.stats.get("recuperation_kwh"), (int, float))
-    )
+    recuperation = _recuperation_per_100km(trips)
 
     # Driving style: overall score plus a week-over-week trend for the sparkline.
     scored = [(t, _style_score(t.stats)) for t in trips]
@@ -293,10 +502,15 @@ def driving_summary(
         "trip_count": count,
         "avg_trip_km": round(total_km / count, 1) if count else None,
         "split": split,
+        # Battery-side, from the trips that carried a usable figure -- comparable
+        # with the car's own display, and consistent with the per-trip rows.
         "avg_consumption_kwh_per_100km": avg_consumption,
+        # Grid-side, from the charging ledger -- the headline, and the one that
+        # survives a missed drive or a month of nothing but short hops.
+        "energy_balance": balance,
         "best_trip": _trip_ref(best),
         "worst_trip": _trip_ref(worst),
-        "recuperation_kwh": round(recuperation, 1) if recuperation else None,
+        "recuperation_kwh_per_100km": recuperation,
         "style_score": style_score,
         "style_trend": style_trend,
         "top_destinations": top_destinations,

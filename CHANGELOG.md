@@ -9,6 +9,70 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Average consumption was badly overstated.** The monthly figure averaged the
+  *per-trip* consumption ratios, so a 1 km hop counted exactly as much as a
+  200 km run. Because BMW streams SoC as a whole percent — about 0.8 kWh a step
+  on a 78 kWh pack — short drives can only record 0 kWh or a full step, and the
+  0 kWh ones drop out while the full-step ones stay, so the survivors all
+  over-read. On one real month the card showed **35.3 kWh/100 km** against a true
+  figure near 21. The month is now measured two ways, both shown:
+  - **An energy balance** (the headline): from the charging ledger alone — two
+    charging sessions bracket a window, each carrying an odometer reading and an
+    SoC, so distance and energy are both known without any drive having to have
+    been detected. It deliberately reads nothing from the trip record: a month
+    where a drive was missed used to divide a full month of charging by a partial
+    month of driving (86.8 kWh/100 km on real data, against 20.4 from the
+    odometer). It is labelled **at the battery** or **at the plug** according to
+    its new `source` field — plug-side only when every contributing charge
+    carried a *measured* `grid_kwh`, since BMW streams battery-side charging
+    power and an estimated session never saw the wall.
+  - **The battery-side trip figure**: total trip energy over total trip distance —
+    a distance-weighted total, not an average of ratios. Shown beside the balance
+    only when the balance is grid-side, where the gap between them is the
+    charging loss; otherwise both measure the same quantity and showing two would
+    dress the difference between their windows up as a loss.
+- **Per-trip consumption is withheld below a 3 % SoC drop**, where the
+  quantisation *is* the measurement. Such trips keep their distance, duration and
+  energy but show no rate, and can no longer be nominated "best" or "worst" trip
+  of the month — a 1 km errand was being reported as the month's worst drive at
+  79 kWh/100 km. The figure now ships with the record instead of being
+  recomputed by the card, which had been re-deriving the numbers the integration
+  refuses to publish.
+- **Recuperation was summed in the wrong unit.** BMW documents
+  `recuperationTotal` as an average per 100 km, not a kWh total, so adding a
+  month of them together produced a meaningless number. It is now a
+  distance-weighted mean, labelled kWh/100 km. Records written under the old key
+  are still read.
+- **`to:` on `get_trips` / `get_charging_sessions` dropped the last day.** A bare
+  date resolved to midnight, so `to: 2026-08-31` excluded everything that
+  happened on the 31st. A bare date now means the whole day at either end.
+
+- **Battery health could never leave "Learning (0/10)" on some cars.** A charge
+  had to span **40 % of SoC** to count as a capacity sample — a threshold set
+  before there was data to calibrate it, and unreachable for anyone who tops up
+  little and often rather than running the pack down: one real car went 39
+  sessions without a single qualifying charge, so the sensor was stuck
+  permanently rather than learning slowly. The gate is now **25 %**, calibrated
+  against measured error (on that car a 21 % charge implied 77 kWh against BMW's
+  own 78, a 12 % charge 82 kWh, a 9 % charge 123 kWh). Two further rules are now
+  explicit and documented: sessions imported from BMW's charging history carry
+  only a grid-side figure and can never be capacity samples, and a charge that
+  was **already running when the integration noticed it** is now detected
+  (`late_start`) and skipped — its energy and SoC span both begin late by
+  different amounts, and one such session implied a 123 kWh pack on a 78 kWh
+  car. Its energy and cost still count everywhere else, as a floor.
+
+### Added
+- **The trips and charging card views show one month at a time**, with a
+  `‹ August 2026 ›` control under the header. History is kept for two years, so
+  both lists had grown into a single unbounded scroll that nothing on screen
+  described — and on the trips view it disagreed with the month-in-review band
+  right above it. The month scopes the list, the summary and the CSV / Report
+  export together. A drive still under way stays pinned to the top of the current
+  month: `get_trips` now returns `open_trips` for any window containing the
+  present moment, not only for an unbounded query. Card **1.10.0**.
+
 ## [0.9.3] - 2026-07-31
 
 ### Added

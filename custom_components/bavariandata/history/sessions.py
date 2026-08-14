@@ -27,6 +27,30 @@ MIN_SAMPLE_INTERVAL_S = 60
 MAX_CURVE_POINTS = 480
 
 
+# How far the SoC at session open may sit above the last reading taken before it
+# before the charge is judged to have been running already. One percent is the
+# resolution BMW streams SoC at and two is comfortably inside the jitter of two
+# readings taken minutes apart; beyond that the pack genuinely gained charge we
+# did not watch. Measured against real data: ordinary sessions sit at 0-1 points
+# while a genuinely missed start showed 14.
+LATE_START_SOC_MARGIN = 3.0
+
+
+def _is_late_start(
+    soc_before: Optional[float], soc_start: Optional[float]
+) -> bool:
+    """True when the pack was already fuller at open than we last saw it.
+
+    Charging only raises SoC, so a session opening meaningfully above the last
+    pre-charge reading means it had been running before we noticed -- a restart
+    mid-charge, or a status transition the stream never sent.
+    """
+
+    if soc_before is None or soc_start is None:
+        return False
+    return soc_start - soc_before > LATE_START_SOC_MARGIN
+
+
 class SessionBuilder:
     """Accumulates one in-progress charging session."""
 
@@ -39,6 +63,7 @@ class SessionBuilder:
         target_soc: Optional[float] = None,
         location: Optional[dict[str, Any]] = None,
         location_assumed: bool = False,
+        soc_before: Optional[float] = None,
     ) -> None:
         self.vin = vin
         self.start = start
@@ -47,6 +72,12 @@ class SessionBuilder:
         self.target_soc = target_soc
         self.location = location
         self.location_assumed = location_assumed
+        # The last SoC seen while the car was *not* charging. Only used to judge
+        # whether this session caught the whole charge -- never to replace
+        # ``soc_start``, because the energy integration starts when we notice the
+        # charge too, and moving one end without the other would make the record
+        # internally inconsistent rather than more accurate.
+        self.late_start = _is_late_start(soc_before, soc_start)
         self.peak_power_kw: Optional[float] = None
         self._curve: list[list[float]] = []
         self._interval = MIN_SAMPLE_INTERVAL_S
@@ -123,4 +154,5 @@ class SessionBuilder:
             location_assumed=self.location_assumed,
             cost=cost,
             end_reason=reason,
+            late_start=self.late_start,
         )

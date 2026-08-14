@@ -65,8 +65,13 @@ Pin a specific vehicle with `device:` (device id) or `vin:`.
 Lists recorded charging sessions, newest first, each showing the date, energy,
 cost and a Home/Away badge. Tap a session to expand its **power curve**, peak and
 average power, duration, and grid energy. The "this month" totals ride along the
-top. **CSV** and **Report** buttons export the current month
+top. **CSV** and **Report** buttons export the month you are viewing
 ([see Export](Feature-Export)).
+
+**One month at a time.** As on the trips view, a `‹ August 2026 ›` control under
+the header scopes the list to one calendar month; page back for older sessions.
+The "this month" totals band appears only on the current month — it is fed by the
+monthly sensors, which have no older value to show.
 
 ```yaml
 type: custom:bavariandata-card
@@ -118,7 +123,20 @@ start and end marker; nothing leaves your browser to draw it). Above the list a 
 review** sums the distance (with a vs-last-month delta), the
 business/private/commute split, average consumption, energy recuperated, a
 driving-style score and your top destinations — and, once a tariff is set, an
-estimated driving cost. **CSV** and **Report** buttons export the current month.
+estimated driving cost.
+
+**One month at a time.** A `‹ August 2026 ›` control under the header scopes the
+list, the month-in-review and the **CSV** / **Report** buttons to a single
+calendar month. Page back to reach older records — history is kept for two years
+by default ([retention](Feature-History-Retention)), which is far more than any
+one screen should show at once. Forward stops at the current month.
+
+> **Average consumption** is measured from the charging ledger and the odometer,
+> not from the trips, and is labelled **at the battery** or **at the plug**
+> according to where the energy was actually measured — plug-side only once every
+> charge carries a measured grid figure, in which case the battery-side figure
+> appears beneath it with the charging loss between them. See
+> [how consumption is measured](Feature-Trips#how-consumption-is-measured).
 
 A drive still under way **leads the list**, marked with a live badge and an accent
 edge: where you set off from, the distance and time so far, and — with **Record

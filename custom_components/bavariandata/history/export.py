@@ -53,6 +53,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "consumption": "Avg consumption",
         # The table column carries its unit; the tile puts it in the value.
         "consumption_col": "Consumption (kWh/100 km)",
+        "at_the_plug": "at the plug",
+        "at_the_battery": "at the battery",
         "recuperation": "Recuperated",
         "cost_per_100km": "Cost per 100 km",
         "business": "Business",
@@ -99,6 +101,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "trip_count": "Fahrten",
         "consumption": "Ø Verbrauch",
         "consumption_col": "Verbrauch (kWh/100 km)",
+        "at_the_plug": "ab Steckdose",
+        "at_the_battery": "ab Akku",
         "recuperation": "Rekuperiert",
         "cost_per_100km": "Kosten pro 100 km",
         "business": "Geschäftlich",
@@ -487,18 +491,36 @@ def month_report_html(
             _tile(s["distance"], f"{driving.get('total_km', 0)} km"),
             _tile(s["trip_count"], str(driving.get("trip_count", len(trips)))),
         ]
-        if driving.get("avg_consumption_kwh_per_100km") is not None:
+        # Consumption headlines with the energy balance -- the figure whose
+        # accuracy doesn't depend on the SoC signal's one-percent resolution.
+        # The battery-side trip total joins it only when the balance is
+        # genuinely grid-side, where the gap between them is the charging loss;
+        # otherwise both measure the same thing and printing two would imply a
+        # difference that isn't there (see summary.energy_balance).
+        balance = driving.get("energy_balance") or {}
+        battery_side = driving.get("avg_consumption_kwh_per_100km")
+        if balance.get("kwh_per_100km") is not None:
+            is_grid = balance.get("source") == "grid"
             # The unit rides as the small note: spelled out at tile size it is
             # the one value long enough to wrap onto a second line.
+            note = "kWh/100 km · " + (
+                s["at_the_plug"] if is_grid else s["at_the_battery"]
+            )
+            if is_grid and battery_side is not None:
+                note += f" · {battery_side} {s['at_the_battery']}"
+            tiles.append(_tile(s["consumption"], str(balance["kwh_per_100km"]), note))
+        elif battery_side is not None:
+            tiles.append(
+                _tile(s["consumption"], str(battery_side), "kWh/100 km")
+            )
+        if driving.get("recuperation_kwh_per_100km") is not None:
             tiles.append(
                 _tile(
-                    s["consumption"],
-                    str(driving["avg_consumption_kwh_per_100km"]),
+                    s["recuperation"],
+                    str(driving["recuperation_kwh_per_100km"]),
                     "kWh/100 km",
                 )
             )
-        if driving.get("recuperation_kwh") is not None:
-            tiles.append(_tile(s["recuperation"], f"{driving['recuperation_kwh']} kWh"))
         for key, label in (
             ("business_km", s["business"]),
             ("commute_km", s["commute"]),

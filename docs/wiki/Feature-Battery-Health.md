@@ -19,6 +19,27 @@ Surfaces as one **Battery Health** sensor per EV:
 - **Attributes** — vs-new percentage, sample count, and a capacity-vs-mileage
   trend.
 
+## What counts as a sample
+
+Not every charge can say something about capacity. A session qualifies only if
+**all** of these hold:
+
+- **It spans at least 25 % of SoC.** BMW streams SoC as a whole percent, so a
+  narrow charge divides a small energy figure by a small, coarsely-rounded SoC
+  delta. Measured on a real car against BMW's own `maxEnergy` of 78 kWh: a 21 %
+  charge implied 77 kWh (0.8 % out), a 12 % charge 82 kWh (5 %), and a 9 % charge
+  **123 kWh** (58 %). The error is modest above ~20 % and explodes below ~15 %.
+- **It carries battery-side energy.** Sessions imported from BMW's charging
+  history hold only a *grid* figure, which includes charging losses and would
+  overstate the pack. They are excluded however wide their SoC span — so the
+  first charges after an install, which are usually imported, don't count.
+- **It caught the whole charge.** If the car was already charging when the
+  integration noticed — a restart mid-charge, or a status transition the stream
+  never sent — both the energy and the SoC span start late by *different*
+  amounts, and dividing one by the other is meaningless. Such a session is
+  flagged `late_start` and skipped. Its energy and cost still count everywhere
+  else, as a floor.
+
 ## Learning mode
 
 It reads **`Learning (n/10)`** until it has enough good samples **and** the
@@ -28,6 +49,15 @@ worse than an honest "not sure yet."
 
 To reach a confident number faster, do a few **wide-range charges** (a large SoC
 swing in one session) rather than many small top-ups.
+
+> **If it sits at `Learning (0/10)`**, your charging pattern is probably the
+> reason: topping up little and often from a half-full pack never produces a
+> qualifying charge. Running the battery lower and charging it back in one go —
+> even occasionally — is what moves the counter. Meanwhile BMW's own
+> **State of health (SOCE)** sensor gives you a figure directly, if your car
+> streams it. Note also that the vs-new percentage needs BMW's `batterySizeMax`,
+> which some cars report as `0` (invalid); where that happens the percentage
+> stays blank however many samples accumulate.
 
 ## Viewing it
 

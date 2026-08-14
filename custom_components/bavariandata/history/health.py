@@ -25,7 +25,16 @@ from .models import ChargingSession
 # capacity: a 5%% top-up divides a small energy figure by a small SoC delta and
 # amplifies every rounding error and every bit of measurement noise. Only
 # whole-battery-ish charges are trusted as capacity samples.
-MIN_SOC_DELTA = 40.0
+#
+# 40 %% was set before there was data to calibrate it against, and it turned out
+# to be unreachable for anyone who tops up little and often rather than running
+# the pack down -- one real car went 39 sessions without a single qualifying
+# charge, leaving the sensor at "Learning (0/10)" permanently rather than
+# slowly. Measured error against BMW's own ``maxEnergy`` on that car: a 21 %%
+# charge implied 77 kWh against BMW's 78 (0.8 %% out), a 12 %% charge 82 kWh
+# (5 %%), a 9 %% charge 123 kWh (58 %%). The error is small well below 40 %% and
+# explodes below ~15 %%, so the gate sits between them.
+MIN_SOC_DELTA = 25.0
 
 # Below this many qualifying charges the sensor reads "Learning (n/10)" instead
 # of a number, per the roadmap's rule 4 (never show a value we aren't sure of).
@@ -71,8 +80,17 @@ def _capacity_sample(session: ChargingSession) -> Optional[float]:
 
     Uses the battery-side energy on purpose: capacity is what the pack holds, so
     the grid-side figure (which includes charging losses) would overstate it.
+    That is also why an imported session, which carries only ``grid_kwh``, can
+    never be a capacity sample however wide its SoC span.
+
+    A session that opened mid-charge is rejected outright: its energy and its
+    SoC span both start late and by *different* amounts, so dividing one by the
+    other is meaningless rather than merely noisy -- the case that prompted this
+    implied a 123 kWh pack on a 78 kWh car.
     """
 
+    if session.late_start:
+        return None
     delta = session.soc_delta
     if delta is None or delta < MIN_SOC_DELTA:
         return None

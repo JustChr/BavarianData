@@ -38,6 +38,25 @@ CLASSIFICATIONS = (CLASS_BUSINESS, CLASS_PRIVATE, CLASS_COMMUTE)
 SOURCE_AUTO = "auto"
 SOURCE_USER = "user"
 
+# Smallest SoC drop a trip's consumption figure may be derived from.
+#
+# Trip energy is SoC delta x pack capacity (see ``coordinator._trip_energy_kwh``)
+# and BMW streams SoC as a whole percent, so the energy is quantised at roughly
+# 0.8 kWh on a 78 kWh pack -- a step that is a rounding error over 30 km and the
+# entire measurement over 1 km. Worse, the quantisation is *one-sided* in what
+# survives: a short drive that rounds to a 0 % drop yields no energy at all and
+# drops out, while one that rounds to 1 % keeps a full step it did not use. So
+# the short trips that reach an average are exactly the ones that over-read, and
+# no amount of averaging removes a bias that only points one way.
+#
+# 3 % keeps the quantisation error under roughly a sixth of the figure, which is
+# the point where a consumption number is worth showing at all. Below it the
+# honest answer is "not measurable", not a number that happens to be printable.
+# There is no finer signal to reach for: the only other energy descriptor the
+# stream carries (``smeEnergyDeltaFullyCharged``) is the same quantity rounded
+# to whole kWh, i.e. coarser still.
+MIN_CONSUMPTION_SOC_DELTA = 3.0
+
 
 def place(
     zone: Optional[str] = None, address: Optional[str] = None
@@ -111,11 +130,34 @@ class Trip:
 
         Kept as a property rather than a stored field so it can't disagree with
         ``energy_kwh``/``distance_km`` after an enrichment updates them.
+
+        ``None`` when the SoC drop behind ``energy_kwh`` is too small to divide
+        by (see :data:`MIN_CONSUMPTION_SOC_DELTA`) -- a 1 km hop that ticked one
+        percent is not a 79 kWh/100 km drive, and printing it as one poisons
+        every average and "worst trip" it lands in. The gate only applies when
+        the record carries both SoC readings, which is exactly when the energy
+        was derived from them; a car that one day reports its own trip energy
+        directly is not held to a resolution limit that isn't its.
         """
 
         if not self.distance_km or self.distance_km <= 0 or self.energy_kwh is None:
             return None
+        drop = self.soc_drop
+        if drop is not None and drop < MIN_CONSUMPTION_SOC_DELTA:
+            return None
         return round(self.energy_kwh / self.distance_km * 100, 1)
+
+    @property
+    def soc_drop(self) -> Optional[float]:
+        """How far the SoC fell over the drive, or ``None`` if unknown.
+
+        The positive counterpart to :attr:`soc_delta`: a drive spends charge, so
+        the figure everything downstream reasons about is the drop.
+        """
+
+        if self.soc_start is None or self.soc_end is None:
+            return None
+        return round(self.soc_start - self.soc_end, 1)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -128,6 +170,12 @@ class Trip:
             "soc_start": self.soc_start,
             "soc_end": self.soc_end,
             "energy_kwh": self.energy_kwh,
+            # Derived, but shipped rather than left to the reader: the card used
+            # to divide energy by distance itself, which quietly re-introduced
+            # the very figures the property refuses to produce. One rule, one
+            # place. ``from_dict`` ignores it -- the property stays the source
+            # of truth on the way back in.
+            "consumption_kwh_per_100km": self.consumption_kwh_per_100km,
             "classification": self.classification,
             "classification_source": self.classification_source,
             "stats": self.stats,

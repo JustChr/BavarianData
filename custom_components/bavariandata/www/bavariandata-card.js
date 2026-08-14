@@ -13,7 +13,7 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.9.0";
+const CARD_VERSION = "1.10.0";
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -204,7 +204,10 @@ const TRANSLATIONS = {
     ch_loading: "Loading charging history…",
     ch_empty:
       "No charging sessions recorded yet. Once the car charges, sessions appear here automatically.",
+    ch_empty_month: "No charging in this month.",
     ch_error: "Couldn't load charging history. Reload the page and try again.",
+    mn_prev: "Previous month",
+    mn_next: "Next month",
     ch_home: "Home",
     ch_public: "Away",
     ch_assumed: "assumed",
@@ -238,6 +241,7 @@ const TRANSLATIONS = {
     tr_loading: "Loading trips…",
     tr_empty:
       "No trips recorded yet. Once the car is driven, trips appear here automatically.",
+    tr_empty_month: "No trips in this month.",
     tr_error: "Couldn't load trips. Reload the page and try again.",
     tr_trip_one: "1 trip",
     tr_trip_many: "{n} trips",
@@ -248,6 +252,9 @@ const TRANSLATIONS = {
     tr_commute: "Commute",
     tr_unclassified: "Unclassified",
     tr_consumption: "Avg consumption",
+    tr_at_plug: "at the plug",
+    tr_at_battery: "at the battery",
+    tr_charge_loss: "{n}% charging loss",
     tr_recuperation: "Recuperated",
     tr_style: "Driving style",
     tr_style_trend: "Style over time",
@@ -412,7 +419,10 @@ const TRANSLATIONS = {
     ch_loading: "Ladeverlauf wird geladen…",
     ch_empty:
       "Noch keine Ladevorgänge aufgezeichnet. Sobald das Fahrzeug lädt, erscheinen sie hier automatisch.",
+    ch_empty_month: "Keine Ladevorgänge in diesem Monat.",
     ch_error: "Ladeverlauf konnte nicht geladen werden. Lade die Seite neu und versuche es erneut.",
+    mn_prev: "Vorheriger Monat",
+    mn_next: "Nächster Monat",
     ch_home: "Zuhause",
     ch_public: "Unterwegs",
     ch_assumed: "angenommen",
@@ -446,6 +456,7 @@ const TRANSLATIONS = {
     tr_loading: "Fahrten werden geladen…",
     tr_empty:
       "Noch keine Fahrten aufgezeichnet. Sobald das Fahrzeug bewegt wird, erscheinen Fahrten hier automatisch.",
+    tr_empty_month: "Keine Fahrten in diesem Monat.",
     tr_error: "Fahrten konnten nicht geladen werden. Seite neu laden und erneut versuchen.",
     tr_trip_one: "1 Fahrt",
     tr_trip_many: "{n} Fahrten",
@@ -456,6 +467,9 @@ const TRANSLATIONS = {
     tr_commute: "Pendeln",
     tr_unclassified: "Nicht zugeordnet",
     tr_consumption: "Ø Verbrauch",
+    tr_at_plug: "ab Steckdose",
+    tr_at_battery: "ab Akku",
+    tr_charge_loss: "{n}% Ladeverlust",
     tr_recuperation: "Rekuperiert",
     tr_style: "Fahrstil",
     tr_style_trend: "Fahrstil über Zeit",
@@ -1108,36 +1122,45 @@ class BavarianDataCard extends HTMLElement {
       );
     const trigger = trigSt ? trigSt.last_changed : "";
 
+    const month = this._month("charging");
     const cache = this._chg;
-    const current = cache && cache.vin === vin && cache.trigger === trigger;
+    const current =
+      cache && cache.vin === vin && cache.trigger === trigger && cache.month === month;
     if (!current || (!cache.data && !cache.loading)) {
       this._chg = {
         vin,
         trigger,
+        month,
         data: current && cache ? cache.data : null,
         loading: true,
         error: false,
       };
-      this._fetchCharging(vin);
+      this._fetchCharging(vin, month);
     }
 
     this._paintCharging(deviceId, entities);
   }
 
-  _fetchCharging(vin) {
+  _fetchCharging(vin, month) {
     const req = this._chg;
+    const bounds = this._monthBounds(month);
     this._hass
       .callService(
         "bavariandata",
         "get_charging_sessions",
-        { vin, limit: 40 },
+        { vin, from: bounds.from, to: bounds.to },
         undefined,
         false,
         true
       )
       .then((res) => {
         // Ignore a response for a request we've already superseded.
-        if (!this._chg || this._chg.vin !== vin || this._chg.trigger !== req.trigger)
+        if (
+          !this._chg ||
+          this._chg.vin !== vin ||
+          this._chg.trigger !== req.trigger ||
+          this._chg.month !== month
+        )
           return;
         const sessions = (res && res.response && res.response.sessions) || [];
         this._chg = { ...this._chg, data: sessions, loading: false, error: false };
@@ -1155,13 +1178,19 @@ class BavarianDataCard extends HTMLElement {
     const name = this._config.title || this._deviceName(deviceId);
     const state = this._chg || {};
     const sessions = state.data;
-    const summary = this._chargingSummary(entities);
+    const month = this._month("charging");
+    const isCurrent = month === this._monthKey();
+    // The summary band is fed by the monthly sensors, which only ever describe
+    // the month happening now. Showing it above a list of last March would put
+    // two different periods in one card, so it goes with the current month.
+    const summary = isCurrent ? this._chargingSummary(entities) : null;
     const expanded = this._chgExpanded || null;
 
     const sig = this._signature({
       m: "chg",
       lang: _lang(this._hass),
       name,
+      month,
       loading: state.loading && !sessions,
       error: state.error,
       summary,
@@ -1177,7 +1206,9 @@ class BavarianDataCard extends HTMLElement {
     } else if (!sessions && state.loading) {
       body = `<div class="empty">${this._t("ch_loading")}</div>`;
     } else if (!sessions || !sessions.length) {
-      body = `<div class="empty">${this._t("ch_empty")}</div>`;
+      body = `<div class="empty">${this._t(
+        isCurrent ? "ch_empty" : "ch_empty_month"
+      )}</div>`;
     } else {
       body = `<div class="chg__list">${sessions
         .map((s) => this._chargingRow(s, expanded))
@@ -1201,11 +1232,13 @@ class BavarianDataCard extends HTMLElement {
           </div>
           ${this._exportButtons("charging")}
         </div>
+        ${this._monthNav("charging")}
         ${summary ? this._chargingSummaryBand(summary) : ""}
         ${body}
       </ha-card>
     `;
     this._wireChargingTaps();
+    this._wireMonthNav();
   }
 
   /** "This month" figures, read from the summary sensors when they exist. */
@@ -1438,6 +1471,103 @@ class BavarianDataCard extends HTMLElement {
     return this._round(energyKwh / hours, 1);
   }
 
+  /* ---- month window ------------------------------------------------------
+   *
+   * The trips and charging views show one calendar month at a time. History is
+   * kept for two years, so the alternative is a list that grows without end and
+   * that nothing on screen describes — the "month in review" band above it was
+   * always month-scoped, so an unbounded list below it made the card disagree
+   * with itself. Paging by month keeps every record reachable and lets the
+   * summary, the list and the export all speak about the same period.
+   */
+
+  /** "YYYY-MM" for a Date; the current month when given nothing. */
+  _monthKey(date) {
+    const d = date || new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  }
+
+  /** The month a view is showing, defaulting to the current one. */
+  _month(kind) {
+    return (kind === "trips" ? this._trpMonth : this._chgMonth) || this._monthKey();
+  }
+
+  _shiftMonth(key, delta) {
+    const [y, m] = key.split("-").map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    return this._monthKey(d);
+  }
+
+  /** First and last instant of a month, as the `from`/`to` the services take. */
+  _monthBounds(key) {
+    const [y, m] = key.split("-").map(Number);
+    return {
+      from: `${key}-01`,
+      // The services treat `to` as inclusive of the day, so the last day of the
+      // month is the bound — computed as "day 0 of next month" to dodge leap
+      // years and 30/31-day arithmetic entirely.
+      to: `${key}-${String(new Date(y, m, 0).getDate()).padStart(2, "0")}`,
+    };
+  }
+
+  _monthLabel(key) {
+    const [y, m] = key.split("-").map(Number);
+    const d = new Date(y, m - 1, 1);
+    try {
+      return d.toLocaleDateString(_lang(this._hass) === "de" ? "de-DE" : "en-GB", {
+        month: "long",
+        year: "numeric",
+      });
+    } catch (_e) {
+      return key;
+    }
+  }
+
+  /** ‹ August 2026 › — forward stops at the current month, which is the newest
+   * one that can hold anything. */
+  _monthNav(kind) {
+    const key = this._month(kind);
+    const atNewest = key >= this._monthKey();
+    return `
+      <div class="mnav">
+        <button class="mnav__btn" data-month-kind="${kind}" data-month-step="-1"
+                title="${this._t("mn_prev")}" aria-label="${this._t("mn_prev")}">
+          <ha-icon icon="mdi:chevron-left"></ha-icon>
+        </button>
+        <span class="mnav__label">${this._monthLabel(key)}</span>
+        <button class="mnav__btn" data-month-kind="${kind}" data-month-step="1"
+                title="${this._t("mn_next")}" aria-label="${this._t("mn_next")}"
+                ${atNewest ? "disabled" : ""}>
+          <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </button>
+      </div>`;
+  }
+
+  _wireMonthNav() {
+    this.shadowRoot.querySelectorAll("[data-month-step]").forEach((el) => {
+      el.addEventListener("click", (ev) => {
+        ev.stopPropagation(); // the rows underneath are tappable
+        if (el.hasAttribute("disabled")) return;
+        const kind = el.getAttribute("data-month-kind");
+        const step = Number(el.getAttribute("data-month-step"));
+        const next = this._shiftMonth(this._month(kind), step);
+        if (next > this._monthKey()) return;
+        if (kind === "trips") {
+          this._trpMonth = next;
+          // An expanded row belongs to the month it was opened in; carrying the
+          // id across would leave a detail panel open on a trip not in the list.
+          this._trpExpanded = null;
+          this._trp = null;
+        } else {
+          this._chgMonth = next;
+          this._chgExpanded = null;
+          this._chg = null;
+        }
+        this._render();
+      });
+    });
+  }
+
   /* ---- export (roadmap Phase 4) ----------------------------------------- */
 
   /** Header buttons for the charging and trips views. `kind` scopes the CSV. */
@@ -1470,11 +1600,16 @@ class BavarianDataCard extends HTMLElement {
     // double tap would otherwise download the same month twice.
     if (!vin || this._exporting) return;
     this._exporting = true;
+    // Export what the user is looking at: paging back to March and hitting CSV
+    // must not quietly hand over the current month instead.
+    const month = this._month(
+      this._config.view === "trips" ? "trips" : "charging"
+    );
     this._hass
       .callService(
         "bavariandata",
         "export_history",
-        { vin, type: kind, format },
+        { vin, type: kind, format, month },
         undefined,
         false,
         true
@@ -1556,19 +1691,22 @@ class BavarianDataCard extends HTMLElement {
       tripSt ? `${tripSt.state}@${tripSt.last_updated}` : "",
     ].join("|");
 
+    const month = this._month("trips");
     const cache = this._trp;
-    const current = cache && cache.vin === vin && cache.trigger === trigger;
+    const current =
+      cache && cache.vin === vin && cache.trigger === trigger && cache.month === month;
     if (!current || (!cache.trips && !cache.loading)) {
       this._trp = {
         vin,
         trigger,
+        month,
         trips: current && cache ? cache.trips : null,
         summary: current && cache ? cache.summary : null,
         open: current && cache ? cache.open : null,
         loading: true,
         error: false,
       };
-      this._fetchTrips(vin);
+      this._fetchTrips(vin, month);
     }
 
     this._paintTrips(deviceId, entities);
@@ -1578,16 +1716,25 @@ class BavarianDataCard extends HTMLElement {
     this._mountTripMiniMap();
   }
 
-  _fetchTrips(vin) {
+  _fetchTrips(vin, month) {
     const req = this._trp;
     const call = (service, data) =>
       this._hass.callService("bavariandata", service, data, undefined, false, true);
+    const bounds = this._monthBounds(month);
     Promise.all([
-      call("get_trips", { vin, limit: 60 }),
-      call("get_driving_summary", { vin }),
+      // Bounded to the month on the service side rather than fetched wide and
+      // sliced here: the store holds two years, and the card should never pull
+      // more than it is about to draw.
+      call("get_trips", { vin, from: bounds.from, to: bounds.to }),
+      call("get_driving_summary", { vin, month }),
     ])
       .then(([tripsRes, sumRes]) => {
-        if (!this._trp || this._trp.vin !== vin || this._trp.trigger !== req.trigger)
+        if (
+          !this._trp ||
+          this._trp.vin !== vin ||
+          this._trp.trigger !== req.trigger ||
+          this._trp.month !== month
+        )
           return;
         const trips = (tripsRes && tripsRes.response && tripsRes.response.trips) || [];
         const summary = (sumRes && sumRes.response && sumRes.response.summary) || null;
@@ -1622,10 +1769,12 @@ class BavarianDataCard extends HTMLElement {
     const open = state.open || null;
     const expanded = this._trpExpanded || null;
 
+    const month = this._month("trips");
     const sig = this._signature({
       m: "trp",
       lang: _lang(this._hass),
       name,
+      month,
       loading: state.loading && !trips,
       error: state.error,
       summary,
@@ -1649,7 +1798,11 @@ class BavarianDataCard extends HTMLElement {
     } else if (!trips && state.loading) {
       body = `<div class="empty">${this._t("tr_loading")}</div>`;
     } else if ((!trips || !trips.length) && !open) {
-      body = `<div class="empty">${this._t("tr_empty")}</div>`;
+      // Distinguish "nothing yet, ever" from "nothing in the month you paged
+      // to" -- the first is onboarding advice, the second just means go back.
+      body = `<div class="empty">${this._t(
+        month === this._monthKey() ? "tr_empty" : "tr_empty_month"
+      )}</div>`;
     } else {
       body = `${this._tripReview(summary)}<div class="chg__list">${openRow}${(
         trips || []
@@ -1673,10 +1826,12 @@ class BavarianDataCard extends HTMLElement {
           </div>
           ${this._exportButtons("trips")}
         </div>
+        ${this._monthNav("trips")}
         ${body}
       </ha-card>
     `;
     this._wireTripTaps();
+    this._wireMonthNav();
   }
 
   /** The "month in review" panel, built entirely from get_driving_summary. */
@@ -1701,22 +1856,55 @@ class BavarianDataCard extends HTMLElement {
         0
       )} <i>km</i></span><span class="tr__tile-lbl">${this._t("tr_review")}</span>${deltaTxt}</div>`,
     ];
-    if (summary.avg_consumption_kwh_per_100km != null) {
+    // Consumption leads with the energy balance: it comes from the charging
+    // ledger and the odometer rather than from SoC deltas, so it isn't limited
+    // by the one-percent resolution BMW streams SoC at, and it survives a month
+    // whose drives were all too short to rate.
+    const balance = summary.energy_balance || null;
+    const battSide = summary.avg_consumption_kwh_per_100km;
+    if (balance && balance.kwh_per_100km != null) {
+      const isGrid = balance.source === "grid";
+      // The second line only earns its place when the two figures measure
+      // *different* things — a grid-side balance against the battery-side trip
+      // total, where the gap really is the charging loss. Without a measured
+      // grid figure the balance is battery-side too, so printing both would show
+      // one quantity twice and dress the difference between their windows up as
+      // a loss (it read "-2%" on real data, which is not a thing).
+      let foot = "";
+      if (isGrid && battSide != null) {
+        const loss = (1 - battSide / balance.kwh_per_100km) * 100;
+        const lossTxt =
+          loss >= 3 && loss <= 30
+            ? " · " + this._t("tr_charge_loss", { n: this._round(loss, 0) })
+            : "";
+        foot = `<span class="tr__tile-sub">${this._round(battSide, 1)} ${this._t(
+          "tr_at_battery"
+        )}${lossTxt}</span>`;
+      }
       tiles.push(
         `<div class="tr__tile"><span class="tr__tile-val">${this._round(
-          summary.avg_consumption_kwh_per_100km,
+          balance.kwh_per_100km,
+          1
+        )} <i>kWh/100km</i></span><span class="tr__tile-lbl">${this._t(
+          "tr_consumption"
+        )} · ${this._t(isGrid ? "tr_at_plug" : "tr_at_battery")}</span>${foot}</div>`
+      );
+    } else if (battSide != null) {
+      tiles.push(
+        `<div class="tr__tile"><span class="tr__tile-val">${this._round(
+          battSide,
           1
         )} <i>kWh/100km</i></span><span class="tr__tile-lbl">${this._t(
           "tr_consumption"
         )}</span></div>`
       );
     }
-    if (summary.recuperation_kwh != null) {
+    if (summary.recuperation_kwh_per_100km != null) {
       tiles.push(
         `<div class="tr__tile"><span class="tr__tile-val">${this._round(
-          summary.recuperation_kwh,
+          summary.recuperation_kwh_per_100km,
           1
-        )} <i>kWh</i></span><span class="tr__tile-lbl">${this._t(
+        )} <i>kWh/100km</i></span><span class="tr__tile-lbl">${this._t(
           "tr_recuperation"
         )}</span></div>`
       );
@@ -1863,14 +2051,22 @@ class BavarianDataCard extends HTMLElement {
 
   _tripDetail(trip) {
     const facts = [];
-    const cons =
-      trip.energy_kwh != null && trip.distance_km
-        ? this._round((trip.energy_kwh / trip.distance_km) * 100, 1)
-        : null;
-    if (cons != null) facts.push([this._t("tr_consumption"), `${cons} kWh/100km`]);
+    // Taken from the record, never recomputed here: the integration withholds a
+    // consumption figure when the SoC drop behind it was too small to divide by
+    // (a 1 km hop that ticked one percent is not a 78 kWh/100 km drive), and
+    // dividing energy by distance in the card would print it anyway.
+    const cons = trip.consumption_kwh_per_100km;
+    if (cons != null) {
+      facts.push([this._t("tr_consumption"), `${this._round(cons, 1)} kWh/100km`]);
+    }
     const st = trip.stats || {};
-    if (st.recuperation_kwh != null) {
-      facts.push([this._t("tr_recuperation"), `${this._round(st.recuperation_kwh, 1)} kWh`]);
+    // BMW's recuperation figure is already an average per 100 km, not a total.
+    const recup = st.recuperation_kwh_per_100km ?? st.recuperation_kwh;
+    if (recup != null) {
+      facts.push([
+        this._t("tr_recuperation"),
+        `${this._round(recup, 1)} kWh/100km`,
+      ]);
     }
     const soc = this._socArc(trip);
 
@@ -3736,6 +3932,30 @@ class BavarianDataCard extends HTMLElement {
       .chead__sub { font-size: 0.74rem; color: var(--secondary-text-color); }
       /* export buttons, pushed to the right edge of the header */
       .xbar { margin-left: auto; display: flex; gap: 6px; flex-shrink: 0; }
+
+      /* month navigator, between the header and the list it scopes */
+      .mnav {
+        display: flex; align-items: center; justify-content: center; gap: 4px;
+        padding: 8px 14px 2px;
+      }
+      .mnav__label {
+        min-width: 11ch; text-align: center;
+        font-size: 0.8rem; font-weight: 600; color: var(--primary-text-color);
+      }
+      .mnav__btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 28px; height: 28px; padding: 0;
+        border: 1px solid var(--divider-color); border-radius: 999px;
+        background: transparent; color: var(--secondary-text-color);
+        cursor: pointer; font: inherit;
+      }
+      .mnav__btn > ha-icon { --mdc-icon-size: 18px; }
+      .mnav__btn:hover:not([disabled]) {
+        border-color: var(--primary-color); color: var(--primary-color);
+      }
+      /* Forward past the current month leads nowhere, so the control says so
+         rather than silently doing nothing. */
+      .mnav__btn[disabled] { opacity: 0.35; cursor: default; }
       .xbtn {
         display: inline-flex; align-items: center; gap: 4px;
         padding: 5px 10px 5px 7px;
@@ -4071,6 +4291,12 @@ class BavarianDataCard extends HTMLElement {
       .tr__tile-lbl {
         font-size: 0.68rem; color: var(--secondary-text-color);
         text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      /* The secondary reading under a headline figure (battery-side consumption
+         beneath the plug-side one). Deliberately quieter than the label. */
+      .tr__tile-sub {
+        font-size: 0.68rem; color: var(--secondary-text-color);
+        font-variant-numeric: tabular-nums; opacity: 0.85;
       }
       .tr__delta { font-size: 0.7rem; font-variant-numeric: tabular-nums; }
       .tr__delta--up { color: var(--bmw-charge, #34c759); }

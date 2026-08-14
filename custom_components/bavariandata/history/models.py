@@ -75,6 +75,15 @@ class ChargingSession:
     mileage_km: Optional[float] = None
     # Set once BMW's charging history has been merged in.
     enriched: bool = False
+    # True when charging had demonstrably been running before we noticed it: the
+    # SoC at the moment the session opened was already well above the last
+    # reading taken before it. Both the energy integration and ``soc_start``
+    # then start late, by different amounts, so the record is a *floor* on what
+    # was delivered and its SoC span describes only the part we watched. Nothing
+    # that divides one by the other (battery-health capacity, per-session
+    # efficiency) may use such a session -- one real example implied a 123 kWh
+    # pack on a 78 kWh car. The energy and cost totals stay valid as floors.
+    late_start: bool = False
 
     @property
     def id(self) -> str:
@@ -142,6 +151,7 @@ class ChargingSession:
             "end_reason": self.end_reason,
             "mileage_km": self.mileage_km,
             "enriched": self.enriched,
+            "late_start": self.late_start,
         }
 
     @classmethod
@@ -173,6 +183,7 @@ class ChargingSession:
             end_reason=data.get("end_reason"),
             mileage_km=data.get("mileage_km"),
             enriched=bool(data.get("enriched")),
+            late_start=bool(data.get("late_start")),
         )
 
 

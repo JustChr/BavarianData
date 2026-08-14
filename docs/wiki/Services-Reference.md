@@ -45,16 +45,38 @@ These read (or write) the integration's own store and cost **no** quota.
 `vin`, `from`, `to`, `limit`. Returns records newest-first as **response data**
 (tick *Return response* in Developer Tools).
 
+A bare date names the **whole day**, at whichever end it is used: `from:
+2026-08-01` starts at midnight and `to: 2026-08-31` runs to the end of the 31st,
+so asking for a month doesn't silently drop its last day. Pass an explicit
+date/time instead and it is used exactly as given.
+
 `get_trips` also returns **`open_trips`** — a drive still under way, which is not
 in the journal yet: no end, no classification, a provisional distance and the
-route so far when route recording is on. Omitted when you pass a `from`/`to`
-window, since a past month plainly doesn't include the drive happening now. See
+route so far when route recording is on. It rides along whenever the window you
+asked for **contains the present moment** (including no window at all): a request
+for last March plainly doesn't mean the drive happening now, but one for this
+month just as plainly does. See
 [Trips](Feature-Trips#seeing-the-drive-thats-happening-now).
 
 ### `get_driving_summary`
 `vin`, `month` (`YYYY-MM`, defaults to current). Returns distance, the
 business/private/commute split, consumption, recuperation, driving-style score,
 top destinations, and (with a tariff) estimated driving cost.
+
+Consumption comes back as two independent figures, either of which may be absent
+when its inputs don't support one:
+
+- **`energy_balance`** — an object with `kwh_per_100km` plus the window and the
+  inputs it came from. Its **`source`** says which side of the charger it
+  describes: `"grid"` only when every contributing session carried a measured
+  `grid_kwh`, otherwise `"battery"` (BMW streams *battery* charging power, so an
+  estimated session never measured the wall). Read `source` before labelling the
+  number — the two differ by the charging losses.
+- **`avg_consumption_kwh_per_100km`** — battery-side, from the trips.
+
+Recuperation is `recuperation_kwh_per_100km`, a distance-weighted mean rather
+than a total. See
+[how consumption is measured](Feature-Trips#how-consumption-is-measured).
 
 ### `set_trip_class`
 `vin`, `trip_id` (as returned by `get_trips`), `classification`

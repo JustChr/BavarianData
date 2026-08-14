@@ -43,7 +43,7 @@ from .history.pricing import (
     resolve_cost,
 )
 from .history.sessions import SessionBuilder
-from .history.trips import CLASS_COMMUTE, SOURCE_AUTO, place
+from .history.trips import CLASS_COMMUTE, SOURCE_AUTO, Trip, place
 from .history.trip_builder import (
     GpsTracker,
     TripBuilder,
@@ -232,6 +232,9 @@ class SocTracking:
     estimated_percent: Optional[float] = None
     last_estimate_time: Optional[datetime] = None
     target_soc_percent: Optional[float] = None
+    # Last SoC seen while not charging -- the reference a new session is checked
+    # against to tell whether it caught the whole charge.
+    soc_before_charge: Optional[float] = None
 
     def update_max_energy(self, value: Optional[float]) -> None:
         if value is None:
@@ -242,6 +245,12 @@ class SocTracking:
         self._recalculate_rate()
 
     def update_actual_soc(self, percent: float, timestamp: Optional[datetime]) -> None:
+        # Remember the last reading taken while the car was *not* charging. A
+        # session that opens well above it caught only part of a charge already
+        # under way (see ``sessions._is_late_start``); it is never used to
+        # backdate ``soc_start``, only to judge whether the record is whole.
+        if not self.charging_active:
+            self.soc_before_charge = percent
         self.last_soc_percent = percent
         ts = timestamp or datetime.now(timezone.utc)
         self.last_update = ts
@@ -589,6 +598,18 @@ class CardataCoordinator:
         )
         energy_kwh = self._trip_energy_kwh(vin, builder.soc_start, soc_now)
         progress["energy_kwh"] = None if energy_kwh is None else round(energy_kwh, 3)
+        # Shaped like a finished record, so it carries the same consumption
+        # figure under the same rule -- built through a real Trip rather than
+        # divided here, or a drive still under way would print the one-percent
+        # nonsense a finished one withholds.
+        progress["consumption_kwh_per_100km"] = Trip(
+            vin=vin,
+            start=builder.start,
+            distance_km=progress.get("distance_km"),
+            soc_start=builder.soc_start,
+            soc_end=soc_now,
+            energy_kwh=energy_kwh,
+        ).consumption_kwh_per_100km
         # Both of these qualify how much the "under way" flag can be trusted: the
         # last movement we actually saw, and whether the close is currently being
         # held through stream silence (see _hold_close_on_silence).
@@ -1133,6 +1154,7 @@ class CardataCoordinator:
             target_soc=tracking.target_soc_percent,
             location=location,
             location_assumed=location is None,
+            soc_before=tracking.soc_before_charge,
         )
         self._session_costs[vin] = CostAccumulator(currency=self.pricing.currency)
         if debug_enabled():
@@ -2343,7 +2365,10 @@ class CardataCoordinator:
 
         stats: dict[str, Any] = {}
         for key, descriptor in (
-            ("recuperation_kwh", DESC_SEG_RECUP),
+            # BMW documents ``recuperationTotal`` as an average per 100 km, not a
+            # kWh total -- the key says so, because the earlier name led the
+            # month-in-review to add the figures together (see summary.py).
+            ("recuperation_kwh_per_100km", DESC_SEG_RECUP),
             ("accel_stars", DESC_SEG_ACCEL_STARS),
             ("brake_stars", DESC_SEG_BRAKE_STARS),
             ("eco_fraction", DESC_SEG_ECO),

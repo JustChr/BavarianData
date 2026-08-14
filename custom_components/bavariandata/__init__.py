@@ -1081,34 +1081,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             }
         )
 
-        async def async_handle_get_charging_sessions(call: Any) -> dict:
-            target = _resolve_target(call)
-            if target is None or target[2].history is None:
-                return {"sessions": []}
-            _entry_id, _entry, runtime = target
+        def _service_bound(
+            call: Any, key: str, *, end_of_day: bool = False
+        ) -> Optional[datetime]:
+            """A ``from``/``to`` argument as an instant, or ``None`` if absent.
 
-            def _bound(key: str) -> Optional[datetime]:
-                raw = call.data.get(key)
-                if not raw:
-                    return None
-                parsed = dt_util.parse_datetime(raw) or dt_util.parse_date(raw)
-                if parsed is None:
-                    raise ServiceValidationError(
-                        f"Could not read '{key}' as a date or date/time: {raw!r}"
-                    )
-                if isinstance(parsed, datetime):
-                    return dt_util.as_utc(parsed)
-                return dt_util.as_utc(datetime.combine(parsed, dt_time.min))
+            A bare date names a whole day, so which end of it we mean depends on
+            which bound it is: ``from: 2026-08-01`` starts at midnight, while
+            ``to: 2026-08-31`` has to run to the end of the 31st or a request for
+            August silently drops everything that happened on its last day.
+            An explicit date/time is always taken at its word.
+            """
 
-            sessions = runtime.history.sessions(
-                call.data.get("vin"),
-                start=_bound("from"),
-                end=_bound("to"),
-                limit=_as_limit(call.data.get("limit")),
-            )
-            return {"sessions": [session.to_dict() for session in sessions]}
-
-        def _service_bound(call: Any, key: str) -> Optional[datetime]:
             raw = call.data.get(key)
             if not raw:
                 return None
@@ -1119,7 +1103,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 )
             if isinstance(parsed, datetime):
                 return dt_util.as_utc(parsed)
-            return dt_util.as_utc(datetime.combine(parsed, dt_time.min))
+            return dt_util.as_utc(
+                datetime.combine(parsed, dt_time.max if end_of_day else dt_time.min)
+            )
+
+        async def async_handle_get_charging_sessions(call: Any) -> dict:
+            target = _resolve_target(call)
+            if target is None or target[2].history is None:
+                return {"sessions": []}
+            _entry_id, _entry, runtime = target
+            sessions = runtime.history.sessions(
+                call.data.get("vin"),
+                start=_service_bound(call, "from"),
+                end=_service_bound(call, "to", end_of_day=True),
+                limit=_as_limit(call.data.get("limit")),
+            )
+            return {"sessions": [session.to_dict() for session in sessions]}
 
         def _default_vin(runtime: CardataRuntimeData, vin: Optional[str]) -> Optional[str]:
             if vin is not None:
@@ -1169,7 +1168,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 return {"trips": [], "open_trips": []}
             _entry_id, _entry, runtime = target
             start = _service_bound(call, "from")
-            end = _service_bound(call, "to")
+            end = _service_bound(call, "to", end_of_day=True)
             vin_filter = call.data.get("vin")
             trips = runtime.history.trips(
                 vin_filter,
@@ -1180,11 +1179,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             # A drive still under way is not in the store -- it only exists in the
             # coordinator's memory -- so it rides alongside the recorded trips
             # rather than inside them: it has no end, no distance we'd stand
-            # behind yet and nothing to classify. Suppressed when the caller asked
-            # for a bounded window, because "trips in March" plainly doesn't mean
-            # the one happening now.
+            # behind yet and nothing to classify. It belongs to whatever window
+            # contains *now*: asking for March plainly doesn't mean the drive
+            # happening today, but asking for this month just as plainly does --
+            # which is what the card's month view asks for every time.
+            now = dt_util.utcnow()
+            in_window = (start is None or start <= now) and (end is None or now <= end)
             open_trips: list[dict] = []
-            if start is None and end is None:
+            if in_window:
                 coordinator = runtime.coordinator
                 for vin in coordinator.open_trip_vins():
                     if vin_filter and vin != vin_filter:
@@ -1217,25 +1219,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 all_trips, year=prev_year, month=prev_month, localize=dt_util.as_local
             )
 
-            # The estimated driving cost reuses the charging ledger's own
-            # cost-per-100km for the same month -- trips × the charging record.
+            # The month's charging is needed twice over: for the estimated
+            # driving cost (trips × the charging ledger's own cost-per-100km)
+            # and for the plug-side energy balance, which is the headline
+            # consumption figure precisely because it never touches a trip.
+            month_sessions = sessions_in_month(
+                history.sessions(vin),
+                year=year,
+                month=month,
+                localize=dt_util.as_local,
+            )
             cost_per_100km = None
             if coordinator.pricing.enabled:
-                ledger = summarise(
-                    sessions_in_month(
-                        history.sessions(vin),
-                        year=year,
-                        month=month,
-                        localize=dt_util.as_local,
-                    )
-                )
-                cost_per_100km = ledger.get("cost_per_100km")
+                cost_per_100km = summarise(month_sessions).get("cost_per_100km")
 
             summary = driving_summary(
                 month_trips,
                 prev_trips=prev_trips,
                 cost_per_100km=cost_per_100km,
                 currency=coordinator.pricing.currency,
+                sessions=month_sessions,
+                battery_capacity_kwh=coordinator.battery_capacity_kwh(vin),
             )
             return {"summary": summary, "month": f"{year:04d}-{month:02d}"}
 
@@ -1364,6 +1368,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                                 trips,
                                 cost_per_100km=ledger.get("cost_per_100km"),
                                 currency=runtime.coordinator.pricing.currency,
+                                sessions=sessions,
+                                battery_capacity_kwh=(
+                                    runtime.coordinator.battery_capacity_kwh(vin)
+                                    if vin
+                                    else None
+                                ),
                             ),
                             lang=lang,
                             localize=dt_util.as_local,

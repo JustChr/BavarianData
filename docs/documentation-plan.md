@@ -189,9 +189,9 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `fetch_tyre_diagnosis` | spends | 🟡 |
 | `fetch_location_charging_settings` | spends | 🟡 |
 | `fetch_vehicle_image` | spends | 🟡 |
-| `get_charging_sessions` | free | 🟡 |
-| `get_trips` | free | 🟡 (`open_trips` 🟢 Services-Reference) |
-| `get_driving_summary` | free | 🟡 |
+| `get_charging_sessions` | free | 🟢 Services-Reference (whole-day `from`/`to`) |
+| `get_trips` | free | 🟢 Services-Reference (`open_trips`, whole-day `from`/`to`) |
+| `get_driving_summary` | free | 🟢 Services-Reference + Feature-Trips → "How consumption is measured" |
 | `set_trip_class` | free | 🟡 |
 | `export_history` | free | 🟡 |
 | `import_statistics` | free | 🟡 |
@@ -225,8 +225,10 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Feature | Status |
 | --- | --- |
 | Charging history & cost | 🟡 |
-| Battery health (learning method) | 🟡 |
+| Battery health (learning method, sample rules, why it can stall) | 🟢 Feature-Battery-Health → "What counts as a sample" + "Learning mode" |
 | Trips / Fahrtenbuch (+ legal caveat) | 🟡 |
+| Consumption: plug-side balance, battery-side average, the 3 % SoC gate | 🟢 Feature-Trips → "How consumption is measured" + The-Dashboard-Card |
+| Month window on the trips & charging card views | 🟢 The-Dashboard-Card → "One month at a time" (both views) |
 | Commute chains (a stop on the way) + default type | 🟢 Feature-Trips → "Classification" + Settings-Reference → "Trips" |
 | Deferred close when the position stream goes quiet | 🟢 Feature-Trips → "When the position stream goes quiet" |
 | Live "trip in progress" (entity + hero badge + trips row) | 🟢 Feature-Trips → "Seeing the drive that's happening now" + The-Dashboard-Card |

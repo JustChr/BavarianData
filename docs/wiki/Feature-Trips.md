@@ -162,6 +162,67 @@ Details worth knowing:
   place, so this setting governs the band above that. Set it to **0** to switch
   chaining off entirely.
 
+## How consumption is measured
+
+BMW streams the state of charge as a **whole percent**. On a 78 kWh pack that
+makes one step worth about 0.8 kWh — a rounding error over a 30 km commute, and
+the entire measurement over a 1 km hop. There is nothing finer to reach for: the
+only other energy value in the stream (`smeEnergyDeltaFullyCharged`) is the same
+quantity rounded to whole kWh, and BMW's own per-trip consumption field
+(`energyConsumptionComfort`) is not sent by every car — the i5, for one, never
+sends it. So BavarianData shows two figures, and refuses a third.
+
+**The headline: an energy balance.** Measured from the charging ledger alone —
+two charging sessions bracket a window, each carrying an odometer reading and an
+SoC taken when it ended, so the distance covered and the energy delivered between
+them are both known without any drive having to have been detected.
+
+```
+used     = energy charged between the two readings
+           − (SoC at the close − SoC at the open) × capacity
+distance = odometer at the close − odometer at the open
+```
+
+Charged energy is integrated from streamed charging power, not read off a
+quantised SoC, so this figure isn't limited by the one-percent resolution. And
+because it never reads the trip record, it stays right in a month where a drive
+was missed (a dead stream, an upgrade, an underground garage). It covers first
+charge to last charge, which is usually a little shorter than the calendar month.
+
+**Which side of the charger it describes depends on your setup**, and the card
+says which:
+
+- **At the battery** — the default. BMW streams *battery* charging power, so the
+  energy that goes into this sum is what reached the pack, not what left the
+  wall. This is directly comparable with the car's own consumption display.
+- **At the plug** — only once every charge in the window carries a *measured*
+  grid figure, from a wallbox energy entity you've bound or from BMW's own
+  charging-history import. This one **includes charging losses**, so it reads
+  above the car's display and is what the electricity actually cost. Only then
+  does the card also show the battery-side figure beneath it, with the gap
+  between them labelled as the charging loss — because only then are the two
+  measuring genuinely different things.
+
+**The battery-side trip figure.** Total trip energy over total trip distance,
+also comparable with the car's display. It is a distance-weighted total, *not* an
+average of the per-trip figures: averaging ratios lets a 2 km hop outvote a
+200 km run, which inflates the result badly. It is the same quantity the
+battery-side balance measures, only measured through trip detection and SoC
+deltas — which is why the balance leads and this appears alongside it only when
+the balance is grid-side.
+
+**Per-trip consumption is withheld below a 3 % SoC drop.** Under that, the
+quantisation is the measurement — a 1 km drive that happens to tick one percent
+would read as ~78 kWh/100 km. Such trips show their distance, duration and
+energy as usual but no consumption figure, and they can be neither the "best" nor
+the "worst" trip of the month. On a typical month of short errands and long
+commutes this means only the longer drives carry a rate; that is the honest
+outcome, not a gap.
+
+> **Recuperation** is likewise shown in **kWh/100 km**, not kWh: BMW's
+> `recuperationTotal` is documented as an average per 100 km, so a month is a
+> distance-weighted mean of it, never a sum.
+
 ## The monthly sensor and summaries
 
 - One **Driving Distance (This Month)** sensor per vehicle carries the monthly
@@ -174,6 +235,11 @@ Details worth knowing:
   - **`bavariandata.get_driving_summary`** — the "month in review": distance
     (vs last month), the split, consumption, recuperation, a driving-style
     score, top destinations, and (with a tariff) an estimated driving cost.
+    Consumption arrives as two keys — `energy_balance` (plug-side, with the
+    window and the inputs it was derived from) and
+    `avg_consumption_kwh_per_100km` (battery-side); see
+    [how consumption is measured](#how-consumption-is-measured). Either can be
+    absent when its inputs don't support a figure.
 
 ## Viewing & exporting
 
