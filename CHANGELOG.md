@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.4-beta.2] - 2026-08-14
+
 ### Fixed
 - **Charged energy could overshoot badly when the stream went quiet mid-charge.**
   BMW sends charging power in *bursts*, sometimes with over an hour between them,
