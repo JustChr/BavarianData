@@ -738,3 +738,79 @@ def test_the_capacity_gate_admits_a_realistic_charge():
     assert result.samples == 1
     assert result.usable_kwh == 78.0
     assert result.suspicious is False
+
+
+# --- the energy ceiling ----------------------------------------------------
+#
+# BMW sends charging power in bursts with hour-long gaps, while the integrator
+# holds the last sample and runs on a watchdog tick. One real session held a
+# 3.54 kW reading for 162 minutes and claimed 11.10 kWh where the battery took
+# 5.46. SoC bounds that: the pack cannot absorb more than its charge level rose.
+
+CEIL_MARGIN = builders.SOC_CEILING_MARGIN_PERCENT
+
+
+def test_ceiling_is_the_soc_rise_plus_a_margin():
+    # 10 points of a 78 kWh pack = 7.8 kWh, plus 2 points of slack = 9.36.
+    assert builders.energy_ceiling_kwh(40.0, 50.0, 78.0) == 9.36
+
+
+def test_ceiling_never_clips_an_honest_session():
+    """A real 21-point charge integrated 16.25 kWh; SoC implies 16.38."""
+
+    ceiling = builders.energy_ceiling_kwh(39.0, 60.0, 78.0)
+    assert ceiling > 16.25
+
+
+def test_ceiling_catches_the_runaway_that_prompted_it():
+    """The 09:15 session: 7 points of SoC, 11.10 kWh claimed."""
+
+    ceiling = builders.energy_ceiling_kwh(45.0, 52.0, 78.0)
+    assert min(11.10, ceiling) == 7.02  # was 11.10; the battery took ~5.46
+
+
+def test_ceiling_is_a_bound_not_a_correction():
+    """A session that under-read is left exactly as it is.
+
+    Nothing here can tell an under-read from a slow charge, so raising a total
+    to meet the ceiling would invent energy rather than withhold it.
+    """
+
+    ceiling = builders.energy_ceiling_kwh(32.0, 40.0, 78.0)   # 8 points -> 7.8
+    assert min(3.71, ceiling) == 3.71
+
+
+def test_ceiling_needs_soc_and_capacity_or_it_does_not_bind():
+    assert builders.energy_ceiling_kwh(None, 50.0, 78.0) is None
+    assert builders.energy_ceiling_kwh(40.0, None, 78.0) is None
+    assert builders.energy_ceiling_kwh(40.0, 50.0, None) is None
+    assert builders.energy_ceiling_kwh(40.0, 50.0, 0.0) is None
+
+
+def test_a_falling_soc_still_allows_the_margin():
+    """SoC dipping mid-charge must not produce a negative ceiling."""
+
+    assert builders.energy_ceiling_kwh(50.0, 48.0, 78.0) == CEIL_MARGIN / 100 * 78.0
+
+
+def test_bounding_the_total_lets_it_catch_up_when_soc_lands():
+    """Why the bound applies to the running total, not to each increment.
+
+    SoC arrives a whole percent at a time, so it always lags the charge. Capping
+    each increment would write off the energy that flowed while the reading was
+    pending; bounding the total lets it recover the moment the reading lands.
+    """
+
+    raw = 0.0
+    exposed = []
+    # A steady 1 kWh a step. Six of them is 6 kWh, which on a 78 kWh pack is
+    # ~7.7 points of SoC -- but the reading only lands once, halfway through.
+    for step in range(6):
+        raw += 1.0
+        soc_now = 40.0 if step < 3 else 48.0
+        ceiling = builders.energy_ceiling_kwh(40.0, soc_now, 78.0)
+        exposed.append(min(raw, ceiling))
+    # Held back while the reading was pending...
+    assert exposed[2] < 3.0
+    # ...and fully recovered once it landed, rather than lost for good.
+    assert exposed[5] == 6.0

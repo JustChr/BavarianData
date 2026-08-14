@@ -225,6 +225,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Feature | Status |
 | --- | --- |
 | Charging history & cost | 🟡 |
+| Charged-energy accuracy (burst sampling, the SoC ceiling) | 🟢 Feature-Charging-History-and-Cost → "How accurate is it?" |
 | Battery health (learning method, sample rules, why it can stall) | 🟢 Feature-Battery-Health → "What counts as a sample" + "Learning mode" |
 | Trips / Fahrtenbuch (+ legal caveat) | 🟡 |
 | Consumption: plug-side balance, battery-side average, the 3 % SoC gate | 🟢 Feature-Trips → "How consumption is measured" + The-Dashboard-Card |

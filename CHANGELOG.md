@@ -9,6 +9,30 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Charged energy could overshoot badly when the stream went quiet mid-charge.**
+  BMW sends charging power in *bursts*, sometimes with over an hour between them,
+  while the integration assumes the last reported power held until the next
+  reading — and it re-integrates on a watchdog tick as well as on each message.
+  Held across a long gap, one unrepresentative sample dominates: a real session
+  integrated a 3.54 kW reading for 162 minutes and recorded **11.10 kWh where the
+  battery had taken 5.46**. Another claimed 11.04 against 7.02.
+
+  The running total is now bounded by what the pack can actually have absorbed —
+  the SoC rise times the capacity, plus a margin for SoC arriving a whole percent
+  at a time. It is a **ceiling, not a correction**: a session that under-read is
+  left exactly as it is, because nothing can distinguish an under-read from a
+  genuinely slow charge. The bound applies to the running total rather than to
+  each step, so a charge held back while a SoC reading is pending recovers in
+  full once it lands instead of being written off. Where SoC or capacity is
+  unknown, nothing is bounded.
+
+  This was not a uniform inflation — five of seven measurable sessions were
+  already within a few percent, and one *under*-read by 2.5 kWh. It was
+  occasional and large. It affected the charged-energy sensors, charging **cost**
+  (billed on this energy), long-term statistics, battery-health capacity samples,
+  and the plug-side consumption figure added in 0.9.4-beta.1.
+
 ## [0.9.4-beta.1] - 2026-08-14
 
 ### Fixed

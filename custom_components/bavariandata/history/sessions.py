@@ -36,6 +36,49 @@ MAX_CURVE_POINTS = 480
 LATE_START_SOC_MARGIN = 3.0
 
 
+# Slack in the SoC-derived ceiling on session energy, in percentage points.
+#
+# BMW streams SoC as a whole percent, so a delta of *n* points really lies
+# anywhere in [n-1, n+1] once both ends' rounding is allowed for -- and if the
+# ends are truncated rather than rounded, up to n+2. Two points is therefore the
+# smallest slack that cannot clip a genuine reading, which is the only thing
+# that matters here: the ceiling exists to catch an integration that ran away by
+# several kWh, not to shave the last hundred watt-hours off an honest one.
+SOC_CEILING_MARGIN_PERCENT = 2.0
+
+
+def energy_ceiling_kwh(
+    soc_start: Optional[float],
+    soc_now: Optional[float],
+    capacity_kwh: Optional[float],
+    *,
+    margin_percent: float = SOC_CEILING_MARGIN_PERCENT,
+) -> Optional[float]:
+    """Most energy a session can plausibly have put into the pack, in kWh.
+
+    Battery-side energy and state of charge measure the same thing, so the pack
+    cannot have absorbed materially more than its SoC rose: ``ΔSoC × capacity``.
+    That makes SoC a *physical bound* on the integrated power figure even though
+    it is far too coarse to be the figure itself -- one percent is ~0.8 kWh on a
+    78 kWh pack.
+
+    The bound exists because BMW does not sample charging power evenly: it
+    arrives in bursts with hour-long gaps, and a left Riemann sum holding one
+    unrepresentative sample across such a gap runs away. A real session
+    integrated a 3.54 kW reading for 162 minutes and claimed 11.10 kWh where the
+    battery had taken 5.46.
+
+    ``None`` when SoC or capacity is unknown -- an unbounded total is better than
+    an invented limit. Never a *correction*: a session whose integration
+    under-read is left alone, because nothing here can tell that it did.
+    """
+
+    if soc_start is None or soc_now is None or not capacity_kwh or capacity_kwh <= 0:
+        return None
+    gained = max(0.0, soc_now - soc_start)
+    return (gained + margin_percent) / 100.0 * capacity_kwh
+
+
 def _is_late_start(
     soc_before: Optional[float], soc_start: Optional[float]
 ) -> bool:

@@ -17,6 +17,27 @@ power over time into two sensors per vehicle:
 
 Both work on any vehicle that streams charging power.
 
+### How accurate is it?
+
+The figure is **battery-side** — it's what reached the pack, not what left the
+wall, so it sits below your meter by the charging losses. (A true grid figure
+only appears as `grid_kwh`, from BMW's charging-history import or a wallbox
+entity you bind.)
+
+BMW does **not** sample charging power evenly. It arrives in bursts, sometimes
+with more than an hour between them, and the integration has to assume the last
+reported power held until the next one. When the readings are dense that is
+accurate to within a percent; when the stream goes quiet mid-charge, one
+unrepresentative sample can dominate a long stretch.
+
+So the running total is **bounded by what the battery can have absorbed** — the
+SoC rise times the pack capacity, plus a small margin for the fact that SoC
+arrives a whole percent at a time. It is a ceiling, never a correction: a
+session that under-read is left alone, because nothing can tell an under-read
+from a genuinely slow charge. The bound applies to the total rather than to each
+step, so a charge held back while a SoC reading is pending recovers in full the
+moment it lands. Where SoC or capacity is unknown, no bound applies.
+
 ## Recorded history
 
 Every completed session is recorded and kept in the integration's **own store**

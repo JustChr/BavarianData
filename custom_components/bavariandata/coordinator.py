@@ -42,7 +42,7 @@ from .history.pricing import (
     billable_energy,
     resolve_cost,
 )
-from .history.sessions import SessionBuilder
+from .history.sessions import SessionBuilder, energy_ceiling_kwh
 from .history.trips import CLASS_COMMUTE, SOURCE_AUTO, Trip, place
 from .history.trip_builder import (
     GpsTracker,
@@ -409,6 +409,14 @@ class CardataCoordinator:
     _energy_lifetime_wh: Dict[str, float] = field(default_factory=dict, init=False)
     _energy_session_wh: Dict[str, float] = field(default_factory=dict, init=False)
     _energy_session_start: Dict[str, datetime] = field(default_factory=dict, init=False)
+    # SoC at the moment the current session opened, for the energy ceiling.
+    _energy_session_soc: Dict[str, Optional[float]] = field(
+        default_factory=dict, init=False
+    )
+    # Unbounded integral behind ``_energy_session_wh``. Kept so the exposed total
+    # can rise again the moment a fresh SoC reading grants the room, instead of
+    # the charge being written off while the reading was pending.
+    _energy_session_raw_wh: Dict[str, float] = field(default_factory=dict, init=False)
     _energy_last_time: Dict[str, datetime] = field(default_factory=dict, init=False)
     # Charging-session recording. ``history`` is injected during setup; when it
     # is None (or pricing isn't configured) recording degrades quietly rather
@@ -960,9 +968,18 @@ class CardataCoordinator:
         """Accumulate delivered energy from effective charging power.
 
         Assumes the last-sampled power held constant since the previous tick (a
-        left Riemann sum); the stream samples often enough that the error stays
-        small. ``_energy_last_time`` is advanced every call — including while
-        idle — so a resumed session never integrates over a stale gap.
+        left Riemann sum). ``_energy_last_time`` is advanced every call —
+        including while idle — so a resumed session never integrates over a
+        stale gap.
+
+        BMW does *not* sample charging power evenly: it arrives in bursts with
+        gaps of an hour or more between them, while this runs on every batch
+        *and* on the watchdog tick. Held across such a gap, one unrepresentative
+        sample dominates the total — a real session integrated a 3.54 kW reading
+        for 162 minutes and recorded 11.10 kWh where the battery took 5.46. So
+        the running total is capped by what the pack can actually have absorbed
+        (see :meth:`_session_energy_ceiling_wh`); the integration still supplies
+        the timing and the curve, it just can't run away from the battery.
         """
         last = self._energy_last_time.get(vin)
         self._energy_last_time[vin] = now
@@ -976,10 +993,70 @@ class CardataCoordinator:
         if delta_seconds <= 0:
             return False
         wh = power_w * (delta_seconds / 3600.0)
-        self._energy_lifetime_wh[vin] = self._energy_lifetime_wh.get(vin, 0.0) + wh
-        self._energy_session_wh[vin] = self._energy_session_wh.get(vin, 0.0) + wh
-        self._record_energy_delta(vin, now, power_w, wh / 1000.0)
+
+        # Accumulate raw, expose bounded. Capping each *increment* instead would
+        # lose energy for good every time SoC lagged the charge -- and SoC always
+        # lags, arriving a whole percent at a time. Bounding the running total
+        # lets it catch up the moment the next reading lands, so an honest
+        # session ends on its full figure while a runaway one stays pinned to
+        # what the battery can hold.
+        raw_before = self._energy_session_raw_wh.get(vin, 0.0)
+        before = self._bounded_session_wh(vin, raw_before)
+        raw_after = raw_before + wh
+        self._energy_session_raw_wh[vin] = raw_after
+        after = self._bounded_session_wh(vin, raw_after)
+
+        self._energy_session_wh[vin] = after
+        gained = after - before
+        if gained <= 0:
+            # The ceiling is holding the total where it is. The curve still wants
+            # the sample -- the car really did report that power -- but no energy
+            # is billed, because none of it reached the battery.
+            self._sample_power_curve(vin, now, power_w)
+            return False
+        self._energy_lifetime_wh[vin] = self._energy_lifetime_wh.get(vin, 0.0) + gained
+        self._record_energy_delta(vin, now, power_w, gained / 1000.0)
         return True
+
+    def _bounded_session_wh(self, vin: str, raw_wh: float) -> float:
+        """The raw running total, held to what the pack can have absorbed."""
+
+        ceiling = self._session_energy_ceiling_wh(vin)
+        return raw_wh if ceiling is None else min(raw_wh, ceiling)
+
+    def _session_energy_ceiling_wh(self, vin: str) -> Optional[float]:
+        """The live inputs for :func:`energy_ceiling_kwh`, as Wh.
+
+        The ceiling rises as SoC does, so a charge that keeps going keeps room
+        to accrue, and a stream that falls silent -- taking SoC with it -- grants
+        none. Reads the *reported* SoC, never the extrapolated one: the estimate
+        is advanced from the very charging power this bounds, so using it would
+        let the figure authorise its own growth.
+        """
+
+        tracking = self._soc_tracking.get(vin)
+        ceiling_kwh = energy_ceiling_kwh(
+            self._energy_session_soc.get(vin),
+            None if tracking is None else tracking.last_soc_percent,
+            self.battery_capacity_kwh(vin),
+        )
+        return None if ceiling_kwh is None else ceiling_kwh * 1000.0
+
+    def _sample_power_curve(self, vin: str, now: datetime, power_w: float) -> None:
+        """Feed the session record's curve and its running SoC.
+
+        Split out from the energy step because the two answer different
+        questions: the curve records what the car *reported*, which stays true
+        even in a tick where the ceiling let no energy through.
+        """
+
+        builder = self._session_builders.get(vin)
+        if builder is None:
+            return
+        builder.sample(now, power_w / 1000.0)
+        tracking = self._soc_tracking.get(vin)
+        if tracking is not None:
+            builder.note_soc(tracking.last_soc_percent)
 
     def _record_energy_delta(
         self, vin: str, now: datetime, power_w: float, kwh: float
@@ -990,12 +1067,7 @@ class CardataCoordinator:
         the cost then describe exactly the same samples and cannot disagree.
         """
 
-        builder = self._session_builders.get(vin)
-        if builder is not None:
-            builder.sample(now, power_w / 1000.0)
-            tracking = self._soc_tracking.get(vin)
-            if tracking is not None:
-                builder.note_soc(tracking.last_soc_percent)
+        self._sample_power_curve(vin, now, power_w)
 
         accumulator = self._session_costs.get(vin)
         if accumulator is not None:
@@ -1026,6 +1098,11 @@ class CardataCoordinator:
     ) -> None:
         if kwh is not None:
             self._energy_session_wh.setdefault(vin, kwh * 1000.0)
+            # Seed the raw total to match: a restart mid-charge that left the raw
+            # figure at zero would read as "the ceiling is holding everything
+            # back" and stall the session's energy until the next plug-in. The
+            # restored value is already bounded, so starting them equal is right.
+            self._energy_session_raw_wh.setdefault(vin, kwh * 1000.0)
         if start is not None:
             self._energy_session_start.setdefault(vin, start)
 
@@ -1072,7 +1149,12 @@ class CardataCoordinator:
             # the session-energy sensor reports a fresh last_reset.
             started_at = datetime.now(timezone.utc)
             self._energy_session_wh[vin] = 0.0
+            self._energy_session_raw_wh[vin] = 0.0
             self._energy_session_start[vin] = started_at
+            # The SoC this session started from, kept here rather than read off
+            # the session record so the energy ceiling still applies when history
+            # is switched off (the record is optional; the counters are not).
+            self._energy_session_soc[vin] = tracking.last_soc_percent
             self._open_session_record(vin, tracking, started_at)
             self.hass.bus.async_fire(EVENT_CHARGING_STARTED, payload)
             return
