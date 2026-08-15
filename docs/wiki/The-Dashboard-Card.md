@@ -24,7 +24,10 @@ The card has several **views**. The default is the Overview; set `view:` or
 `cluster:` to switch. Use **one card per view** — add several cards to a
 dashboard to show them side by side.
 
-> If the card doesn't show up after an update, **hard-refresh the browser**.
+> If the card doesn't show up after an update, **hard-refresh the browser**. If
+> it renders in a browser but the **companion app** shows *Custom element doesn't
+> exist*, clear the app's frontend cache — see
+> [Troubleshooting](Troubleshooting-and-FAQ#custom-element-doesnt-exist-app).
 
 - [Overview](#overview)
 - [Charging history](#charging-history-view-charging)

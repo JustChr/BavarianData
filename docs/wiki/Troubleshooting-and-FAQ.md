@@ -167,6 +167,58 @@ carry on to the next two sections.
 
 **Hard-refresh the browser** — the bundled card is cached aggressively.
 
+## "Custom element doesn't exist: bavariandata-card" in the mobile app
+
+<a id="custom-element-doesnt-exist-app"></a>
+
+Symptom: the card renders fine in a desktop browser, but the Home Assistant
+**companion app** (iOS or Android) shows a red *Configuration error* box reading
+`Custom element doesn't exist: bavariandata-card`.
+
+The card is registered once, for the whole instance — so if a browser sees it,
+the integration side is fine and something on the phone is failing to load the
+card file. Don't start clearing caches; two quick tests narrow it down first.
+
+**Test 1 — open the same dashboard in the phone's own browser** (Safari on iOS,
+Chrome on Android), not the app. Same rendering engine, different cache and
+different connection settings, so this splits the problem in half:
+
+- **Works in the browser, broken in the app** → it's the app's own frontend
+  cache. Restarting Home Assistant or the phone does *not* clear it; you have to
+  do it in the app:
+  - iOS: **Settings → Companion App → Debugging → Reset frontend cache**, then
+    force-quit the app (swipe it away) and reopen it.
+  - Android: **Settings → Companion app → Troubleshooting → Clear cache**, then
+    force-stop and reopen the app.
+- **Broken in the browser too** → carry on to test 2.
+
+**Test 2 — can the phone fetch the card file at all?** In the phone's browser,
+open your Home Assistant address with this path appended:
+
+```
+/bavariandata/bavariandata-card.js
+```
+
+- **A wall of JavaScript** → the file is reachable, so the card is failing while
+  it loads. Please open an issue with your iOS/Android version and, if you can
+  get at them, the browser console errors.
+- **404 / "not found"** → your connection can't reach the path. That's a
+  **reverse proxy** (Nginx, Traefik, Caddy, Cloudflare Tunnel …) forwarding only
+  the well-known paths — `/api/`, `/static/`, `/frontend_latest/` and friends.
+  Custom cards live outside those: BavarianData's at `/bavariandata/`, HACS
+  cards at `/hacsfiles/`. It has to forward everything. Home Assistant Cloud
+  (Nabu Casa) does, and is unaffected.
+
+Worth knowing for both tests: the companion app only uses your **internal** URL
+when you've told it which Wi-Fi network is home (**Settings → Companion App →
+Connection → Internal URL**, with an SSID set). Without that it uses the
+external URL *even on your home Wi-Fi* — which is how a proxy problem hides
+until you look at it on the phone. Test whichever URL the app is actually using,
+and ideally both.
+
+Cross-check if you have any HACS card installed: if *it* is broken on the phone
+too, the cause is the connection or the app, not this integration.
+
 ## Every card shows "Configuration error" after a reload
 
 <a id="config-error-after-reload"></a>
