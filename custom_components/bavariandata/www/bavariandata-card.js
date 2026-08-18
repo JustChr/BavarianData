@@ -739,13 +739,13 @@ class BavarianDataCard extends HTMLElement {
     const hass = this._hass;
     if (hass.formatEntityState) {
       try {
-        return hass.formatEntityState(st);
+        return this._esc(hass.formatEntityState(st));
       } catch (e) {
         /* fall through */
       }
     }
     const unit = st.attributes && st.attributes.unit_of_measurement;
-    return unit ? `${st.state} ${unit}` : st.state;
+    return this._esc(unit ? `${st.state} ${unit}` : st.state);
   }
 
   _num(st) {
@@ -902,10 +902,10 @@ class BavarianDataCard extends HTMLElement {
       ${this._styles()}
       <ha-card>
         <div class="hero ${imgUrl ? "" : "hero--empty"}">
-          ${imgUrl ? `<img class="hero__img" src="${imgUrl}" alt="${name}" />` : `<ha-icon class="hero__placeholder" icon="mdi:car-electric"></ha-icon>`}
+          ${imgUrl ? `<img class="hero__img" src="${imgUrl}" alt="${this._esc(name)}" />` : `<ha-icon class="hero__placeholder" icon="mdi:car-electric"></ha-icon>`}
           <div class="hero__scrim"></div>
           <div class="hero__top">
-            <div class="hero__name" title="${name}">${name}</div>
+            <div class="hero__name" title="${this._esc(name)}">${this._esc(name)}</div>
             ${rel ? `<div class="pill" title="${this._t("last_update")}"><span class="dot ${this._staleClass(freshest)}"></span>${rel}</div>` : ""}
           </div>
           ${this._tripPill(trip)}
@@ -1063,8 +1063,8 @@ class BavarianDataCard extends HTMLElement {
         <div class="chead">
           <ha-icon icon="${icon}"></ha-icon>
           <div class="chead__text">
-            <span class="chead__title">${label}</span>
-            <span class="chead__sub">${name} · ${rows.length} ${this._t(rows.length === 1 ? "value" : "values")}</span>
+            <span class="chead__title">${this._esc(label)}</span>
+            <span class="chead__sub">${this._esc(name)} · ${rows.length} ${this._t(rows.length === 1 ? "value" : "values")}</span>
           </div>
         </div>
         ${
@@ -1074,7 +1074,7 @@ class BavarianDataCard extends HTMLElement {
                   .map((st) => {
                     const category = st.attributes.category;
                     return `<button class="item" data-entity="${st.entity_id}">
-                      <span class="item__name" title="${st.attributes.friendly_name || st.entity_id}">${this._shortName(st, name)}</span>
+                      <span class="item__name" title="${this._esc(st.attributes.friendly_name || st.entity_id)}">${this._shortName(st, name)}</span>
                       <span class="item__val">${this._fmt(st)}</span>
                     </button>`;
                   })
@@ -1095,7 +1095,7 @@ class BavarianDataCard extends HTMLElement {
   _shortName(st, deviceName) {
     let n = st.attributes.friendly_name || st.entity_id;
     if (deviceName && n.startsWith(deviceName + " ")) n = n.slice(deviceName.length + 1);
-    return n;
+    return this._esc(n);
   }
 
   /* ---- charging history ------------------------------------------------- */
@@ -1227,8 +1227,8 @@ class BavarianDataCard extends HTMLElement {
         <div class="chead">
           <ha-icon icon="mdi:ev-station"></ha-icon>
           <div class="chead__text">
-            <span class="chead__title">${this._config.title || this._t("ch_title")}</span>
-            <span class="chead__sub">${name}${count ? " · " + countLabel : ""}</span>
+            <span class="chead__title">${this._esc(this._config.title || this._t("ch_title"))}</span>
+            <span class="chead__sub">${this._esc(name)}${count ? " · " + countLabel : ""}</span>
           </div>
           ${this._exportButtons("charging")}
         </div>
@@ -1425,13 +1425,17 @@ class BavarianDataCard extends HTMLElement {
     }
     const lang = _lang(this._hass);
     try {
-      return new Intl.NumberFormat(lang, {
-        style: "currency",
-        currency: cost.currency || "EUR",
-        maximumFractionDigits: 2,
-      }).format(cost.amount);
+      return this._esc(
+        new Intl.NumberFormat(lang, {
+          style: "currency",
+          currency: cost.currency || "EUR",
+          maximumFractionDigits: 2,
+        }).format(cost.amount)
+      );
     } catch (e) {
-      return `${this._round(cost.amount, 2)} ${cost.currency || ""}`.trim();
+      return this._esc(
+        `${this._round(cost.amount, 2)} ${cost.currency || ""}`.trim()
+      );
     }
   }
 
@@ -1821,8 +1825,8 @@ class BavarianDataCard extends HTMLElement {
         <div class="chead">
           <ha-icon icon="mdi:road-variant"></ha-icon>
           <div class="chead__text">
-            <span class="chead__title">${this._config.title || this._t("tr_title")}</span>
-            <span class="chead__sub">${name}${count ? " · " + countLabel : ""}</span>
+            <span class="chead__title">${this._esc(this._config.title || this._t("tr_title"))}</span>
+            <span class="chead__sub">${this._esc(name)}${count ? " · " + countLabel : ""}</span>
           </div>
           ${this._exportButtons("trips")}
         </div>
@@ -1912,9 +1916,9 @@ class BavarianDataCard extends HTMLElement {
     if (summary.estimated_cost && summary.estimated_cost.amount != null) {
       const c = summary.estimated_cost;
       tiles.push(
-        `<div class="tr__tile"><span class="tr__tile-val">${this._round(c.amount, 2)} <i>${
+        `<div class="tr__tile"><span class="tr__tile-val">${this._round(c.amount, 2)} <i>${this._esc(
           c.currency || ""
-        }</i></span><span class="tr__tile-lbl">${this._t("tr_est_cost")}</span></div>`
+        )}</i></span><span class="tr__tile-lbl">${this._t("tr_est_cost")}</span></div>`
       );
     }
 
@@ -2498,8 +2502,8 @@ class BavarianDataCard extends HTMLElement {
         <div class="chead">
           <ha-icon icon="mdi:map-marker-multiple"></ha-icon>
           <div class="chead__text">
-            <span class="chead__title">${this._config.title || this._t("mp_title")}</span>
-            <span class="chead__sub">${name}${count ? " · " + countLabel : ""}</span>
+            <span class="chead__title">${this._esc(this._config.title || this._t("mp_title"))}</span>
+            <span class="chead__sub">${this._esc(name)}${count ? " · " + countLabel : ""}</span>
           </div>
         </div>
         ${body}
@@ -2626,7 +2630,7 @@ class BavarianDataCard extends HTMLElement {
               iconAnchor: [8, 8],
             }),
           });
-          if (ep.label) marker.bindTooltip(ep.label, { direction: "top" });
+          if (ep.label) marker.bindTooltip(this._esc(ep.label), { direction: "top" });
           group.addLayer(marker);
           pts.push([ep.lat, ep.lon]);
         }
@@ -2775,8 +2779,8 @@ class BavarianDataCard extends HTMLElement {
         <div class="chead">
           <ha-icon icon="mdi:battery-heart-variant"></ha-icon>
           <div class="chead__text">
-            <span class="chead__title">${this._config.title || this._t("bh_title")}</span>
-            <span class="chead__sub">${name}</span>
+            <span class="chead__title">${this._esc(this._config.title || this._t("bh_title"))}</span>
+            <span class="chead__sub">${this._esc(name)}</span>
           </div>
         </div>
         ${body}
@@ -3274,7 +3278,7 @@ class BavarianDataCard extends HTMLElement {
         <ha-icon icon="mdi:car-tire-alert"></ha-icon>
         <div class="chead__text">
           <span class="chead__title">${this._t("tires")}</span>
-          <span class="chead__sub">${name}</span>
+          <span class="chead__sub">${this._esc(name)}</span>
         </div>
         ${
           statusText
@@ -3540,7 +3544,7 @@ class BavarianDataCard extends HTMLElement {
         <ha-icon icon="mdi:car-door-lock"></ha-icon>
         <div class="chead__text">
           <span class="chead__title">${this._t("cl_closures")}</span>
-          <span class="chead__sub">${name}</span>
+          <span class="chead__sub">${this._esc(name)}</span>
         </div>
         ${
           overall

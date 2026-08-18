@@ -10,6 +10,14 @@ import ssl
 import time
 from typing import Any, Awaitable, Callable, Coroutine, Optional
 
+# ``paho-mqtt`` stays declared in ``manifest.json`` even though Home Assistant
+# also ships it for its own ``mqtt`` integration. The official container image
+# pre-installs every integration requirement, so it is already present there --
+# but a Home Assistant Core (pip venv) install only installs a requirement when
+# an integration that declares it is set up, and a user who never configures the
+# built-in MQTT integration would have no paho at all. Core constrains the
+# version to ``==2.1.0`` in ``package_constraints.txt``, which our ``>=2.1.0``
+# resolves cleanly against, so declaring it can never pull a conflicting build.
 import paho.mqtt.client as mqtt
 
 from homeassistant.config_entries import ConfigEntry

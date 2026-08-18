@@ -9,6 +9,42 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.4] - 2026-08-18
+
+### Security
+- **The bundled card now escapes every value it renders.** The card composes its
+  views as HTML strings, and several sources of user-controllable text reached
+  `innerHTML` unescaped: the card's `title:` option (in both the heading and the
+  subtitle), the device name as renamed in Home Assistant, entity
+  `friendly_name`s, formatted entity states and their units, the free-text
+  **currency** option, and the cluster heading. The trip map was affected too —
+  Leaflet treats a tooltip string as HTML, and an endpoint tooltip carries a zone
+  name or a reverse-geocoded address. Markup placed in any of those was parsed
+  rather than shown.
+
+  Escaping now happens at the source wherever there is one — `_fmt()`,
+  `_shortName()` and `_fmtCost()` escape what they return — plus at each
+  individual site the vehicle name, card title or currency is interpolated, and
+  on the map tooltip. A value containing `&`, `<`, `>` or `"` now displays as
+  typed. The one deliberate exception is the trip-map subtitle, which is written
+  through `textContent` and must stay unescaped.
+
+  Setting any of those strings requires an authenticated Home Assistant user, so
+  this was not remotely reachable — but a card should not depend on that.
+
+### Changed
+- The onboarding helper view now carries a full rationale for why it is served
+  unauthenticated (one-time capability token, GET-only, no identifiers in the
+  page, torn down with the flow), and `stream.py` records why `paho-mqtt` stays
+  declared in the manifest even though Home Assistant's container image already
+  ships it — a Home Assistant Core install does not.
+
+### Also in this release
+This is the first stable release since 0.9.3. It carries the two fixes published
+in the 0.9.4 betas: **average consumption was badly overstated** (0.9.4-beta.1)
+and **charged energy could overshoot when the stream went quiet mid-charge**
+(0.9.4-beta.2). See those sections below for the detail.
+
 ## [0.9.4-beta.2] - 2026-08-14
 
 ### Fixed

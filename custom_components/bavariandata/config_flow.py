@@ -92,11 +92,33 @@ ONBOARDING_WAIT_TIMEOUT = 300
 
 
 class _OnboardingHelperView(HomeAssistantView):
-    """Serve the (prebuilt) onboarding helper page for a pending guided flow."""
+    """Serve the (prebuilt) onboarding helper page for a pending guided flow.
+
+    This view is deliberately unauthenticated, so it is worth being explicit
+    about why that is safe here:
+
+    * The page has to open in the browser tab the user then carries to BMW's
+      portal, straight from a link in the config-flow dialog. That navigation
+      does not carry Home Assistant's auth headers, so an authenticated view
+      would simply 401.
+    * Access is gated on a one-time capability token (``webhook.async_generate_id()``,
+      the same generator Home Assistant uses for webhook ids). Without the exact
+      token the view returns 404 -- it enumerates nothing.
+    * It is GET-only and read-only. It serves a page built entirely from
+      constants plus the descriptor list the user just picked; no VIN, GCID,
+      client id or token is ever rendered into it, and nothing about the
+      instance can be mutated through it.
+    * The record is dropped in ``_cleanup_onboarding`` when the flow finishes or
+      aborts, so the URL stops resolving as soon as setup is over.
+
+    The paired result webhook is a regular Home Assistant webhook and unauthenticated
+    for the same structural reason: it is posted to by a script running on BMW's
+    origin, which has no Home Assistant credentials.
+    """
 
     url = ONBOARDING_VIEW_URL
     name = f"{DOMAIN}:onboarding"
-    requires_auth = False  # opened directly in the user's browser
+    requires_auth = False  # see the class docstring for why this is safe
 
     async def get(self, request: web.Request) -> web.Response:
         hass: HomeAssistant = request.app["hass"]
