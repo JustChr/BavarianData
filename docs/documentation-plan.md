@@ -244,6 +244,8 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Card auto-registration (Lovelace resource; YAML-mode caveat) | 🟢 The-Dashboard-Card intro + Troubleshooting → "Every card shows Configuration error after a reload" |
 | No dashboard is auto-created — the user places the card (issue #4) | 🟢 README quick start step 5 + Home → "Start here" + Getting-Started-4 outro + The-Dashboard-Card intro + Troubleshooting → "No dashboard appears after setup" |
 | Card missing in the companion app only — app cache / proxy path (issue #4) | 🟢 The-Dashboard-Card intro + Troubleshooting → "Custom element doesn't exist … in the mobile app" |
+| Diagnostics download (what it holds, what it redacts, no quota cost) | 🟢 Troubleshooting → "Download diagnostics" + "Where to get help" |
+| What appears in logs — masked VIN at default level, full VIN only under debug | 🟢 Troubleshooting → "Debug logging" + Settings-Reference → "Debug logging" |
 
 ## Conventions
 

@@ -226,8 +226,12 @@ class CardataStreamManager:
         client.on_message = self._handle_message
         client.on_disconnect = self._handle_disconnect
         context = ssl.create_default_context()
-        # BMW's broker requires TLS 1.3 — a handshake capped at 1.2 is rejected
-        # with "tlsv1 alert protocol version". Set a floor, never a ceiling.
+        # BMW's broker only negotiates TLS 1.3, so what has to be guarded against
+        # is a handshake capped *below* it ("tlsv1 alert protocol version"), not
+        # a weak floor. Hence a floor and never a ceiling: ``maximum_version`` is
+        # deliberately left alone. The floor stays at the default 1.2 rather than
+        # 1.3 -- raising it would gain nothing today and would lock us out if BMW
+        # ever offers 1.2.
         context.minimum_version = ssl.TLSVersion.TLSv1_2
         client.tls_set_context(context)
         client.tls_insecure_set(False)

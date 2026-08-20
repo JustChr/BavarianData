@@ -102,12 +102,41 @@ running, disconnect it.
 precondition, or otherwise control the car. Automations act on external devices
 in response to the car's data — see [Events & blueprints](Feature-Automations).
 
+## Download diagnostics
+
+<a id="download-diagnostics"></a>
+
+The fastest way to turn "it doesn't work" into an answer. Go to **Settings →
+Devices & Services → BavarianData → ⋮ → Download diagnostics** and attach the
+file to your issue.
+
+It costs **no API quota** — everything in it is state the integration already
+holds — and it is built to be safe to post in public: your **VIN, GCID, client
+ID, tokens, MQTT topic and GPS coordinates are redacted automatically**.
+
+What's left is exactly what distinguishes the common failures from each other:
+
+| In the file | Answers |
+| --- | --- |
+| Quota state (used / remaining / next reset) | Whether you've spent your 50 requests / 24 h. |
+| Selected clusters + descriptor coverage per car | Whether Data Selection actually saved, and whether the car produces what you picked. |
+| Per-descriptor arrival counts and last-seen times | Whether the stream is delivering, and what. |
+| Connection history with MQTT `rc` codes | Authorization failures, and another client stealing the single stream. |
+| Bootstrap state and your options | Setup that never finished; a setting that isn't what you thought. |
+
 ## Debug logging
 
 Off by default. Turn it on in **Configure → Debug logging** and reload. It's
-verbose and can include vehicle data such as **GPS and VIN**, so leave it off
-unless you're chasing a problem. (Separate from Home Assistant's generic
+verbose and can include vehicle data such as **GPS and the full VIN**, so leave
+it off unless you're chasing a problem. (Separate from Home Assistant's generic
 per-integration log level.)
+
+Ordinary log lines — the ones written without debug enabled — show the VIN
+masked to its last four characters (`***1234`), which is still enough to tell
+two cars apart when you read the log.
+
+Prefer the [diagnostics download](#download-diagnostics) when reporting a
+problem: it carries more of what's needed and less of what isn't.
 
 ## Capturing a drive for trip detection
 
@@ -299,5 +328,7 @@ The complete artifact list and a step-by-step checklist:
 ## Where to get help
 
 - Bugs in the integration → [Issues](https://github.com/JustChr/BavarianData/issues).
+  Attach a [diagnostics download](#download-diagnostics) — it is redacted, costs
+  no quota, and usually answers the first three questions we'd ask.
 - BMW-side registration trouble, setup help, or general questions →
   [Discussions](https://github.com/JustChr/BavarianData/discussions).

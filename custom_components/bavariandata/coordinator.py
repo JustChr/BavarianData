@@ -28,7 +28,7 @@ from .const import (
     EVENT_CHARGING_STOPPED,
     EVENT_CHARGING_COMPLETE,
 )
-from .debug import debug_enabled
+from .debug import debug_enabled, mask_vin
 from .history.classify import (
     COMMUTE_CHAIN_MAX_LEGS,
     classify_trip,
@@ -932,7 +932,7 @@ class CardataCoordinator:
             try:
                 self.coverage.note_seen(vin, seen_descriptors)
             except Exception:  # noqa: BLE001
-                _LOGGER.exception("Coverage tracking failed for %s", vin)
+                _LOGGER.exception("Coverage tracking failed for %s", mask_vin(vin))
 
         self._apply_soc_estimate(vin, now)
         if self._integrate_energy(vin, now):
@@ -1286,7 +1286,7 @@ class CardataCoordinator:
         try:
             self.history.add_session(session)
         except Exception:  # noqa: BLE001 - never let bookkeeping break the stream
-            _LOGGER.exception("Could not record charging session for %s", vin)
+            _LOGGER.exception("Could not record charging session for %s", mask_vin(vin))
             return None
         async_dispatcher_send(self.hass, self.signal_history, vin)
         self._log_battery_health(vin)
@@ -1503,7 +1503,7 @@ class CardataCoordinator:
                     "[trip.watch] %s %s", vin, " ".join(watch), substrate=True
                 )
         except Exception:  # noqa: BLE001 - capture must never break the stream
-            _LOGGER.exception("Trip capture (log) failed for %s", vin)
+            _LOGGER.exception("Trip capture (log) failed for %s", mask_vin(vin))
 
     async def _capture_to_file(self, vin: str, data: Dict[str, Any], now: datetime) -> None:
         """Append one raw batch to the NDJSON capture file (off the event loop)."""
@@ -1608,7 +1608,7 @@ class CardataCoordinator:
                 if open_trip:
                     self._arm_trip_close_timer(vin)
         except Exception:  # noqa: BLE001 - never let trip logic break the stream
-            _LOGGER.exception("Trip detection failed for %s", vin)
+            _LOGGER.exception("Trip detection failed for %s", mask_vin(vin))
 
     async def _process_door_signal(
         self, vin: str, now: datetime, door_open: bool
@@ -1657,7 +1657,7 @@ class CardataCoordinator:
                     substrate=True,
                 )
         except Exception:  # noqa: BLE001 - never let trip logic break the stream
-            _LOGGER.exception("Door trip detection failed for %s", vin)
+            _LOGGER.exception("Door trip detection failed for %s", mask_vin(vin))
 
     def _gps_fix_ready(self, vin: str, now: datetime, parts: set[str]) -> bool:
         """True when a complete lat+lon fix is ready to process.
@@ -1843,7 +1843,7 @@ class CardataCoordinator:
                     open_trip,
                 )
         except Exception:  # noqa: BLE001 - never let trip logic break the stream
-            _LOGGER.exception("GPS trip detection failed for %s", vin)
+            _LOGGER.exception("GPS trip detection failed for %s", mask_vin(vin))
 
     def _note_capture_fix(
         self,
@@ -2185,7 +2185,7 @@ class CardataCoordinator:
             if chain:
                 self._promote_chain_legs(vin, chain)
         except Exception:  # noqa: BLE001 - bookkeeping must not break the stream
-            _LOGGER.exception("Could not record trip for %s", vin)
+            _LOGGER.exception("Could not record trip for %s", mask_vin(vin))
             return
         async_dispatcher_send(self.hass, self.signal_trips, vin)
 
@@ -2209,7 +2209,7 @@ class CardataCoordinator:
         try:
             previous = self.history.trips(vin, limit=COMMUTE_CHAIN_MAX_LEGS + 1)
         except Exception:  # noqa: BLE001 - classification is best-effort
-            _LOGGER.exception("Could not read trip history for %s", vin)
+            _LOGGER.exception("Could not read trip history for %s", mask_vin(vin))
             return None
         return commute_chain(
             trip,

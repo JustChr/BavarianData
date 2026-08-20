@@ -17,6 +17,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Optional
 
+# The option keys are read here and written by the options flow; sharing the
+# constants keeps a rename from silently reverting everyone to the defaults.
+from ..const import (
+    OPTION_CHARGING_LOSS_PERCENT,
+    OPTION_GRID_ENERGY_ENTITY,
+    OPTION_PRICE_CURRENCY,
+    OPTION_PRICE_ENTITY,
+    OPTION_PRICE_FIXED,
+    OPTION_PRICE_MODE,
+)
+
 # Below this share of unpriced energy the total is treated as trustworthy --
 # a single missed sample at a tariff boundary shouldn't flag a whole session.
 PARTIAL_TOLERANCE = 0.05
@@ -66,12 +77,12 @@ class PricingConfig:
                 return None
 
         return cls(
-            mode=options.get("price_mode") or MODE_NONE,
-            currency=options.get("price_currency") or DEFAULT_CURRENCY,
-            fixed_price=_float("price_fixed"),
-            price_entity=options.get("price_entity") or None,
-            grid_energy_entity=options.get("grid_energy_entity") or None,
-            loss_percent=_float("charging_loss_percent") or 0.0,
+            mode=options.get(OPTION_PRICE_MODE) or MODE_NONE,
+            currency=options.get(OPTION_PRICE_CURRENCY) or DEFAULT_CURRENCY,
+            fixed_price=_float(OPTION_PRICE_FIXED),
+            price_entity=options.get(OPTION_PRICE_ENTITY) or None,
+            grid_energy_entity=options.get(OPTION_GRID_ENERGY_ENTITY) or None,
+            loss_percent=_float(OPTION_CHARGING_LOSS_PERCENT) or 0.0,
         )
 
 

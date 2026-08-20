@@ -131,7 +131,7 @@ estimated driving cost.
 **One month at a time.** A `‹ August 2026 ›` control under the header scopes the
 list, the month-in-review and the **CSV** / **Report** buttons to a single
 calendar month. Page back to reach older records — history is kept for two years
-by default ([retention](Feature-History-Retention)), which is far more than any
+by default ([retention](Settings-Reference#charging-costs--history)), which is far more than any
 one screen should show at once. Forward stops at the current month.
 
 > **Average consumption** is measured from the charging ledger and the odometer,

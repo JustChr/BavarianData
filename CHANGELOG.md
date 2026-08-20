@@ -9,6 +9,57 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.5] - 2026-08-20
+
+### Security
+- **The last unescaped value in the bundled card.** v0.9.4 escaped every value
+  the card renders, but one site survived: the cluster view's empty state passes
+  the card's `title:` option through a translation placeholder, and `t()`
+  substitutes placeholders raw so that a caller can deliberately pass markup.
+  A cluster card whose title contained markup therefore had it parsed rather
+  than shown, on any vehicle where that cluster has no entities. Card **1.10.1**.
+- **The VIN is masked in ordinary log lines.** Verbose debug logging is opt-in
+  because it carries the VIN and GPS position — but 27 lines at INFO and above
+  wrote the full VIN to `home-assistant.log` on every install, and that file is
+  what users paste into public issues. Those now show the last four characters
+  (`***1234`), which still tells two cars apart while reading a log. Debug lines
+  are unchanged: triage needs the full value, and the user opted in to it.
+
+### Fixed
+- **`webhook` is now declared in `manifest.json`.** Guided setup registers a
+  webhook for the in-browser stream activator to report its result to, but never
+  declared the dependency. On an install without `default_config` the route
+  would not have existed, and the guided flow would have silently fallen back to
+  the manual paste step.
+
+### Changed
+- The charging-price options are read through the shared `OPTION_*` constants
+  instead of repeated string literals, so renaming one cannot silently reset
+  everybody's pricing to the defaults.
+
+### Documentation
+- **The diagnostics download is documented at last.** It was shipped but
+  described nowhere — despite being the one artifact that answers most "it
+  doesn't work" reports. Troubleshooting now has a *Download diagnostics*
+  section covering what it contains, what it redacts, and that it costs no API
+  quota, and *Where to get help* points at it.
+- **Settings reference now matches the screen.** Seven rows on the
+  *Charging costs & history* and *Debug logging* screens were documented under
+  paraphrased names (“Price mode”, “Charging loss %”, “History retain months”)
+  that never appeared in the UI. They now read exactly as the dialog does.
+- Fixed a broken link on the card page pointing at a retention page that does
+  not exist; it now goes to the retention setting itself.
+
+### Added
+- **The HACS review audit now runs in CI.** Two Home Assistant-free guard
+  modules replace a checklist that was being re-derived by hand before each
+  release: `tests/test_card_escaping.py` scans the card for user-controlled text
+  reaching `innerHTML` unescaped (it catches the bug above), for Leaflet tooltips
+  and for external resource loads; `tests/test_review_guards.py` pins the classes
+  HACS review actually rejects for — disabled TLS verification, new
+  unauthenticated HTTP views, credentials reaching logs or diagnostics,
+  undeclared integration dependencies and payload size.
+
 ## [0.9.4] - 2026-08-18
 
 ### Security

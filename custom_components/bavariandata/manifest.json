@@ -10,7 +10,8 @@
   "config_flow": true,
   "dependencies": [
     "http",
-    "frontend"
+    "frontend",
+    "webhook"
   ],
   "documentation": "https://github.com/JustChr/BavarianData",
   "integration_type": "device",
@@ -22,5 +23,5 @@
   "requirements": [
     "paho-mqtt>=2.1.0"
   ],
-  "version": "0.9.4"
+  "version": "0.9.5"
 }

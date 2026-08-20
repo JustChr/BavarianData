@@ -28,6 +28,7 @@ from homeassistant.util import dt as dt_util
 from .api import CardataApiError, async_get_vehicle_image
 from .const import DOMAIN, SIGNAL_VEHICLE_IMAGE
 from .coordinator import CardataCoordinator
+from .debug import mask_vin
 from .entity import CardataEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -125,11 +126,11 @@ async def async_refresh_vehicle_image(
         )
     except CardataAuthError as err:
         # A stale-but-valid token may still work; log and try the fetch anyway.
-        _LOGGER.warning("Cardata image: token refresh failed for %s: %s", vin, err)
+        _LOGGER.warning("Cardata image: token refresh failed for %s: %s", mask_vin(vin), err)
 
     access_token = entry.data.get("access_token")
     if not access_token:
-        _LOGGER.error("Cardata image: no access token available for %s", vin)
+        _LOGGER.error("Cardata image: no access token available for %s", mask_vin(vin))
         return None
 
     quota = runtime.quota_manager
@@ -137,7 +138,7 @@ async def async_refresh_vehicle_image(
         try:
             await quota.async_claim()
         except CardataQuotaError as err:
-            _LOGGER.warning("Cardata image fetch for %s blocked: %s", vin, err)
+            _LOGGER.warning("Cardata image fetch for %s blocked: %s", mask_vin(vin), err)
             return None
 
     try:
@@ -145,7 +146,7 @@ async def async_refresh_vehicle_image(
             runtime.session, access_token, vin
         )
     except CardataApiError as err:
-        _LOGGER.error("Cardata image fetch failed for %s: %s", vin, err)
+        _LOGGER.error("Cardata image fetch failed for %s: %s", mask_vin(vin), err)
         return None
 
     cache = await _async_load_cache(hass)
@@ -157,7 +158,7 @@ async def async_refresh_vehicle_image(
     await _async_persist_cache(hass)
     _LOGGER.info(
         "Cardata: cached vehicle render for %s (%s bytes, %s)",
-        vin,
+        mask_vin(vin),
         len(data),
         content_type or "unknown type",
     )

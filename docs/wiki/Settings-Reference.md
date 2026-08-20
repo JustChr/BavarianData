@@ -48,14 +48,14 @@ Screen: **Configure → Charging costs & history**. See
 
 | Option | Values | Meaning |
 | --- | --- | --- |
-| **Price mode** | `none` · `fixed` · `entity` | How energy becomes money. `none` creates **no cost entities at all**. |
-| **Fixed price** | number | Price per kWh, when mode is `fixed`. Required in that mode. |
+| **Price source** | `none` · `fixed` · `entity` | How energy becomes money. `none` creates **no cost entities at all**. |
+| **Fixed price per kWh** | number | Price per kWh, when mode is `fixed`. Required in that mode. |
 | **Price entity** | sensor / input_number | Live price source (Tibber/Nordpool/aWATTar), when mode is `entity`. Sampled while charging. Required in that mode. |
 | **Currency** | text | Currency code for the cost entities. |
-| **Grid energy entity** | sensor | Optional wallbox energy sensor; its exact grid figure replaces the battery-side estimate. |
-| **Charging loss %** | 0–30 | Grosses the battery figure up by your losses. Default **0** (no invented correction). |
-| **History retain months** | 0–120 | How long to keep recorded sessions/trips. **0 = keep everything.** |
-| **Publish long-term statistics** | on/off | Mirror history into the Energy dashboard. Turning it **off deletes** the published series. See [Energy & statistics](Feature-Energy-and-Statistics). |
+| **Wallbox energy sensor** | sensor | Optional wallbox energy sensor; its exact grid figure replaces the battery-side estimate. |
+| **Charging losses (%)** | 0–30 | Grosses the battery figure up by your losses. Default **0** (no invented correction). |
+| **Keep history for (months)** | 0–120 | How long to keep recorded sessions/trips. **0 = keep everything.** |
+| **Publish to long-term statistics** | on/off | Mirror history into the Energy dashboard. Turning it **off deletes** the published series. See [Energy & statistics](Feature-Energy-and-Statistics). |
 
 ## Trips
 
@@ -76,7 +76,7 @@ Screen: **Configure → Debug logging**.
 
 | Option | Values | Meaning |
 | --- | --- | --- |
-| **Debug logging** | on/off | Off by default. Gates the integration's verbose logging (separate from HA's per-integration log level). **Verbose and can include VIN/GPS** — leave off unless chasing a problem. Applies immediately. |
+| **Enable debug logging** | on/off | Off by default. Gates the integration's verbose logging (separate from HA's per-integration log level). **Verbose and can include VIN/GPS** — leave off unless chasing a problem. Applies immediately. |
 
 ## Hidden overrides
 

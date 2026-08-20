@@ -13,7 +13,7 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.10.0";
+const CARD_VERSION = "1.10.1";
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -536,7 +536,12 @@ function _lang(hass) {
 }
 
 /** Translate `key` for the active hass language, filling `{name}` vars.
- *  Falls back to English, then to `dflt` (or the key itself). */
+ *  Falls back to English, then to `dflt` (or the key itself).
+ *
+ *  `vars` are substituted **raw**, because some callers deliberately pass markup
+ *  (`<b>…</b>`). The result is therefore only as safe as its vars: anything
+ *  user-controlled must be `_esc()`d by the caller before it is passed in.
+ *  `tests/test_card_escaping.py` enforces that. */
 function t(hass, key, vars, dflt) {
   const lang = _lang(hass);
   const table =
@@ -1080,7 +1085,7 @@ class BavarianDataCard extends HTMLElement {
                   })
                   .join("")}
               </div>`
-            : `<div class="empty">${this._t("no_cluster_entities", { label: `<b>${label}</b>` })}</div>`
+            : `<div class="empty">${this._t("no_cluster_entities", { label: `<b>${this._esc(label)}</b>` })}</div>`
         }
       </ha-card>
     `;

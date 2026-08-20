@@ -110,7 +110,7 @@ from .history.summary import (
 from .history.trips import CLASSIFICATIONS, SOURCE_USER
 from .stream import CardataStreamManager
 from .coordinator import CardataCoordinator
-from .debug import set_debug_enabled
+from .debug import mask_vin, set_debug_enabled
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -839,9 +839,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             try:
                 payload = await async_get_basic_data(runtime.session, access_token, vin)
             except CardataApiError as err:
-                _LOGGER.error("Cardata fetch_basic_data failed for %s: %s", vin, err)
+                _LOGGER.error("Cardata fetch_basic_data failed for %s: %s", mask_vin(vin), err)
                 return
-            _LOGGER.info("Fetched basic vehicle data for %s", vin)
+            _LOGGER.info("Fetched basic vehicle data for %s", mask_vin(vin))
             _LOGGER.debug("Cardata basic data for %s: %s", vin, payload)
             if isinstance(payload, dict):
                 metadata = runtime.coordinator.apply_basic_data(vin, payload)
@@ -941,7 +941,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                     to_date=to_date,
                 )
             except CardataApiError as err:
-                _LOGGER.error("Cardata fetch_charging_history failed for %s: %s", vin, err)
+                _LOGGER.error(
+                    "Cardata fetch_charging_history failed for %s: %s", mask_vin(vin), err
+                )
                 return
             sessions = payload.get("data") if isinstance(payload, dict) else None
             # Import BMW's server-side history into our own store so it shows on
@@ -969,7 +971,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                     )
             _LOGGER.info(
                 "Fetched charging history for %s (%s session(s); imported %s, updated %s)",
-                vin,
+                mask_vin(vin),
                 len(sessions) if isinstance(sessions, list) else 0,
                 imported,
                 updated,
@@ -986,12 +988,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             try:
                 payload = await async_get_tyre_diagnosis(runtime.session, access_token, vin)
             except CardataApiError as err:
-                _LOGGER.error("Cardata fetch_tyre_diagnosis failed for %s: %s", vin, err)
+                _LOGGER.error("Cardata fetch_tyre_diagnosis failed for %s: %s", mask_vin(vin), err)
                 return
             parsed = runtime.coordinator.apply_tyre_diagnosis(vin, payload)
             _LOGGER.info(
                 "Fetched tyre diagnosis for %s (%s wheel(s) reported)",
-                vin,
+                mask_vin(vin),
                 len(parsed.get("wheels") or {}),
             )
             _LOGGER.debug("Cardata tyre diagnosis for %s: %s", vin, payload)
@@ -1009,13 +1011,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 )
             except CardataApiError as err:
                 _LOGGER.error(
-                    "Cardata fetch_location_charging_settings failed for %s: %s", vin, err
+                    "Cardata fetch_location_charging_settings failed for %s: %s", mask_vin(vin), err
                 )
                 return
             settings = payload.get("data") if isinstance(payload, dict) else None
             _LOGGER.info(
                 "Fetched location-based charging settings for %s (%s entr(y/ies))",
-                vin,
+                mask_vin(vin),
                 len(settings) if isinstance(settings, list) else 0,
             )
             _LOGGER.debug(
@@ -2125,7 +2127,7 @@ async def _async_seed_telematic_data(
             except CardataQuotaError as err:
                 _LOGGER.warning(
                     "Bootstrap telematic request skipped for %s: %s",
-                    vin,
+                    mask_vin(vin),
                     err,
                 )
                 break
@@ -2172,7 +2174,7 @@ async def _async_fetch_basic_data_for_vins(
             except CardataQuotaError as err:
                 _LOGGER.warning(
                     "Bootstrap basic data request skipped for %s: %s",
-                    vin,
+                    mask_vin(vin),
                     err,
                 )
                 break
@@ -2269,7 +2271,7 @@ async def _async_perform_telematic_fetch(
         except CardataQuotaError as err:
             _LOGGER.warning(
                 "Cardata fetch_telematic_data blocked for %s: %s",
-                vin,
+                mask_vin(vin),
                 err,
             )
             return False
@@ -2281,12 +2283,12 @@ async def _async_perform_telematic_fetch(
     except CardataApiError as err:
         _LOGGER.error(
             "Cardata fetch_telematic_data: request failed for %s: %s",
-            vin,
+            mask_vin(vin),
             err,
         )
         return True
 
-    _LOGGER.info("Fetched telematic data for %s", vin)
+    _LOGGER.info("Fetched telematic data for %s", mask_vin(vin))
     _LOGGER.debug("Cardata telematic data for %s: %s", vin, payload)
     telematic_payload = None
     if isinstance(payload, dict):
@@ -2337,7 +2339,7 @@ async def _async_perform_tyre_fetch(
         try:
             await quota.async_claim()
         except CardataQuotaError as err:
-            _LOGGER.warning("Daily tyre diagnosis skipped for %s: %s", vin, err)
+            _LOGGER.warning("Daily tyre diagnosis skipped for %s: %s", mask_vin(vin), err)
             return False
 
     try:
