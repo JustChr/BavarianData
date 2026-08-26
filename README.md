@@ -21,10 +21,11 @@ Every descriptor BMW sends becomes a native entity — charge level, doors, tyre
 pressures, the 12 V battery — each with a proper device class, unit and
 translated states. On top of that the integration derives a **charging history &
 cost** ledger, **battery-health** learning, a **trip journal**, **long-term
-statistics** for the Energy dashboard, and **CSV/PDF export** — all from the
-stream, spending no API quota. A bundled **Lovelace card** and a cached vehicle
-image put a good-looking dashboard one card away — the card registers itself,
-you just place it.
+statistics** for the Energy dashboard, and **CSV and printable-HTML export**
+(the report prints to PDF from any browser) — all from the stream, spending no
+API quota. A bundled **Lovelace card** and a cached vehicle image put a
+good-looking dashboard one card away — the card registers itself, you just
+place it.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-car.png" alt="Bundled Lovelace card showing a BMW i5 eDrive40 with charge level, range, charging status and odometer" width="360" />

@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **README overstated the export formats.** The feature summary advertised
+  "CSV/PDF export", but `export_history` emits CSV and a self-contained HTML
+  report — there is deliberately no PDF renderer (see `history/export.py`); the
+  HTML report prints to PDF from any browser. Wording only, no code change.
+  Spotted by @frenck during the HACS default review
+  ([hacs/default#9018](https://github.com/hacs/default/pull/9018)).
+
 ## [0.9.5] - 2026-08-20
 
 ### Security
