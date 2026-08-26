@@ -67,8 +67,8 @@ Five steps — the Wiki has the detail and screenshots for each.
    generate a **client ID** and give it both scopes (`cardata:api:read` and
    `cardata:streaming:read`). Don't touch Data Selection yet.
 2. **[Install via HACS](https://github.com/JustChr/BavarianData/wiki/Getting-Started-2-Install)** —
-   add this repo as a custom repository (category *Integration*), install, and
-   restart Home Assistant.
+   BavarianData is in the **HACS default store**: search for it in HACS,
+   install, and restart Home Assistant.
 3. **[Add & authorize](https://github.com/JustChr/BavarianData/wiki/Getting-Started-3-Add-and-Authorize)** —
    **Settings → Devices & Services → Add Integration → BavarianData**, paste the
    client ID, and approve the device on BMW's site. If BMW says *access denied*

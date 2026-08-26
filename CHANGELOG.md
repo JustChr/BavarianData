@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Documentation
+- **Install instructions now describe the HACS default store.** BavarianData was
+  accepted into the HACS default list
+  ([hacs/default#9018](https://github.com/hacs/default/pull/9018), merged
+  2026-08-25), so it installs by searching HACS — the README quick start and the
+  *Install via HACS* wiki page no longer walk users through adding a custom
+  repository. That route is kept on the wiki page as a fallback for instances
+  whose HACS data hasn't refreshed yet, alongside a note that the missing logo
+  in the HACS list is a HACS-side limitation and not a broken install.
+
 ### Fixed
 - **README overstated the export formats.** The feature summary advertised
   "CSV/PDF export", but `export_history` emits CSV and a self-contained HTML
