@@ -117,3 +117,12 @@ by itself.
 
 **Done!** [The dashboard card](The-Dashboard-Card) covers the other views —
 charging history, battery health, trips, the map, tyres and closures.
+
+---
+
+> **Which car do you drive?** BavarianData is built and tested against exactly one
+> vehicle — an i5 eDrive40 — so which descriptors *your* model streams is something
+> we genuinely cannot find out on our own. If you made it this far, it would help a
+> lot to hear your model and roughly how many entities showed up, and whether the
+> setup needed the portal snippet or the one-click activator.
+> [Tell us in Discussions →](https://github.com/JustChr/BavarianData/discussions)

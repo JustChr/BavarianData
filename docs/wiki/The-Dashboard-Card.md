@@ -302,3 +302,11 @@ names — so it works regardless of the user's Home Assistant language.
 With the integration installed, entity overrides are rarely needed — the card
 auto-discovers them from the vehicle's device. Use them only if you've renamed
 entities or want to point the card at a helper.
+
+---
+
+> **Does this look right on your car?** The card is only ever seen on an i5 here.
+> A screenshot of it on a different model is the single most useful thing you can
+> send — especially if a view comes up empty, a value looks wrong, or a cluster you
+> expected is missing.
+> [Post it in Discussions →](https://github.com/JustChr/BavarianData/discussions)

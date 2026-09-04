@@ -10,6 +10,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [Unreleased]
 
 ### Documentation
+- **The wiki now asks for feedback on the pages users actually reach.** A short
+  ask closes *4. Choose which data to stream* (which model, how many entities
+  appeared, whether setup needed the portal snippet), *The dashboard card* (a
+  screenshot on anything that isn't an i5) and *Troubleshooting & FAQ* (say so
+  when nothing on the page matched). Placed only where a reader has just
+  succeeded or just failed — the earlier Getting Started steps are mid-funnel and
+  are left uninterrupted. The links point at the Discussions index rather than a
+  numbered thread, so they survive announcement-thread rotation.
 - **Install instructions now describe the HACS default store.** BavarianData was
   accepted into the HACS default list
   ([hacs/default#9018](https://github.com/hacs/default/pull/9018), merged

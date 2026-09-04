@@ -332,3 +332,7 @@ The complete artifact list and a step-by-step checklist:
   no quota, and usually answers the first three questions we'd ask.
 - BMW-side registration trouble, setup help, or general questions →
   [Discussions](https://github.com/JustChr/BavarianData/discussions).
+- **Nothing here matched?** Say so anyway — in
+  [Discussions](https://github.com/JustChr/BavarianData/discussions). A problem
+  this page failed to answer is worth knowing about even when you worked around
+  it, and it is how this page gets better for the next car.
