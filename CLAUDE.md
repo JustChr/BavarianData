@@ -81,11 +81,17 @@ is how you catch a gap. English is the source language; German is a fast-follow.
 ## Releases
 
 Pushing to `main` is **not** a release — HACS users get updates only from
-GitHub releases. Use `scripts/release.sh` (bash): bumps
-`manifest.json` version, commits, tags `vX.Y.Z`, pushes, runs
-`gh release create --generate-notes`. Default is a beta pre-release
+GitHub releases. Use `scripts/release.sh` (bash): bumps `manifest.json` version,
+commits (`git add .` — so check for stray files first), tags `vX.Y.Z`, pushes,
+and creates the release with `--notes-file`. Default is a beta pre-release
 (`-beta.N`); pass `--stable` for a full release. Only release when the user
 asks.
+
+**The release notes are the `## [Unreleased]` section of `CHANGELOG.md`** — the
+script refuses to run if it is empty, then rolls it over to the new version and
+leaves a fresh empty one behind. So write the changelog *before* releasing; it
+is the release, not a summary of it. Publish the wiki afterwards
+(`bash scripts/publish-wiki.sh`) when any `docs/wiki/` page changed.
 
 Version lives in `custom_components/bavariandata/manifest.json`. `hacs.json`
 sets `zip_release: true` / `bavariandata.zip` (the release workflow expects the
