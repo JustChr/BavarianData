@@ -1519,12 +1519,12 @@ DESCRIPTOR_META: dict[str, dict] = {
     'vehicle.drivetrain.batteryManagement.header': {
         "section": 'electric',
         "category": 'Battery HV',
-        "device_class": None,
+        "device_class": 'battery',
         "state_class": 'measurement',
         "unit": '%',
         "options": [],
-        "entity_category": 'diagnostic',
-        "enabled_default": False,
+        "entity_category": None,
+        "enabled_default": True,
         "streamable": True,
     },
     'vehicle.drivetrain.batteryManagement.maxEnergy': {

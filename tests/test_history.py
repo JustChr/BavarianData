@@ -814,3 +814,77 @@ def test_bounding_the_total_lets_it_catch_up_when_soc_lands():
     assert exposed[2] < 3.0
     # ...and fully recovered once it landed, rather than lost for good.
     assert exposed[5] == 6.0
+
+
+# --- SoC that never moves --------------------------------------------------
+#
+# Issue #6: an iX xDrive40 that does not stream ``batteryManagement.header``.
+# Its only SoC is whatever the REST bootstrap left there, so every session
+# opened and closed on the same stale 38 %. Four DC charges, each peaking above
+# 100 kW over ~25 minutes, were filed as "38 -> 38%" and 1.4 kWh -- which is
+# exactly the ceiling's bare margin, 2 % of the pack, and nothing to do with the
+# charge. Duration and peak power were right throughout, because neither goes
+# anywhere near SoC.
+
+
+def test_a_reading_from_during_the_session_counts():
+    assert builders.soc_is_from_session(START + timedelta(minutes=5), START) is True
+
+
+def test_a_reading_from_days_before_the_session_does_not():
+    """The iX's case: the bootstrap value, three days old and never replaced."""
+
+    assert builders.soc_is_from_session(START - timedelta(days=3), START) is False
+
+
+def test_bmw_timestamp_skew_at_the_plug_in_is_tolerated():
+    """BMW's own timestamps trail ours by seconds; that is not staleness."""
+
+    assert builders.soc_is_from_session(START - timedelta(seconds=30), START) is True
+    assert builders.soc_is_from_session(START - timedelta(minutes=10), START) is False
+
+
+def test_a_missing_reading_or_start_never_counts():
+    assert builders.soc_is_from_session(None, START) is False
+    assert builders.soc_is_from_session(START, None) is False
+
+
+def test_a_stale_soc_grants_no_ceiling_rather_than_the_margin_alone():
+    """Why the guard has to gate the ceiling and not just the arc.
+
+    With a frozen reading at both ends the rise is zero, and the ceiling
+    collapses to the margin: 1.42 kWh on the iX's 71 kWh pack, against a real
+    charge of ~30. Withholding the ceiling entirely leaves the figure on the
+    power integration -- imperfect, but the right order of magnitude.
+    """
+
+    frozen = builders.energy_ceiling_kwh(38.0, 38.0, 71.0)
+    assert round(frozen, 2) == 1.42
+    assert min(30.0, frozen) == frozen  # the bug: a 30 kWh charge filed as 1.42
+
+
+def test_an_unwatched_session_records_no_soc_arc_at_all():
+    """No reading during the charge means no claim about the pack.
+
+    Not even the start: on the iX that is a bootstrap value from a previous day,
+    describing some other charge. Left empty, BMW's own charging history can
+    fill both ends in on the next import.
+    """
+
+    session = builders.SessionBuilder("WBY1", START, soc_start=38.0).close(
+        START + timedelta(minutes=25), energy_kwh=29.8
+    )
+    assert session.soc_start is None
+    assert session.soc_end is None
+    assert session.soc_delta is None
+    # The half of the record that never depended on SoC is untouched.
+    assert session.energy_kwh == 29.8
+
+
+def test_a_watched_session_still_records_both_ends():
+    builder = builders.SessionBuilder("WBY1", START, soc_start=38.0)
+    builder.note_soc(52.0)
+    session = builder.close(START + timedelta(minutes=25), soc_end=61.0,
+                            energy_kwh=17.5)
+    assert (session.soc_start, session.soc_end) == (38.0, 61.0)
+    assert session.soc_delta == 23.0

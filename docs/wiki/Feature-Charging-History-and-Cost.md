@@ -38,6 +38,13 @@ from a genuinely slow charge. The bound applies to the total rather than to each
 step, so a charge held back while a SoC reading is pending recovers in full the
 moment it lands. Where SoC or capacity is unknown, no bound applies.
 
+The bound needs a SoC reading **taken during the session**. Not every car streams
+one: where the only state of charge available comes from the REST snapshot it
+never changes between charges, and a rise of zero would bound every session at
+the margin alone rather than at what the car took. Such a session is left
+unbounded and recorded with no SoC — see [no start/end SoC on a
+session](#no-startend-soc-on-a-session) below.
+
 ## Recorded history
 
 Every completed session is recorded and kept in the integration's **own store**
@@ -46,6 +53,28 @@ SoC, energy, duration, peak power, the charging power curve, and cost.
 
 Retention is set by **`history_retain_months`** under
 **Configure → Charging costs & history** (0 = keep everything).
+
+### No start/end SoC on a session
+
+A session shows no SoC when no state-of-charge reading arrived while it ran. That
+is the honest answer rather than a missing feature: the last value held may be
+days old and belong to a different charge, and reporting it as this one's start
+and end would show a flat "38 → 38%" for every charge the car ever makes.
+
+It means your car isn't streaming
+`vehicle.drivetrain.batteryManagement.header`, which is BMW's (confusingly named)
+high-voltage state of charge.
+
+**If you set up before v0.9.6, re-run the Data Selection snippet** under
+**Configure → Choose data to stream**. That descriptor was missing from the
+snippet, so it was never ticked in the portal and never reached the stream. The
+coverage repair names it once it has been missing long enough.
+
+If it is ticked and the value still never updates, your car doesn't send it and
+there is nothing the integration can do about that. Energy, duration, peak power,
+the power curve and cost are all unaffected either way, and importing BMW's own
+charging history (**Grid energy vs. battery energy**, below) fills the SoC back in
+where BMW recorded it.
 
 ## Setting up cost
 

@@ -80,6 +80,7 @@ from .api import (
     async_get_vehicle_mappings,
 )
 from .container import CardataContainerError, CardataContainerManager
+from .coverage import coverage_issue_id, legacy_coverage_issue_id
 from .coverage_store import CoverageStore
 from .descriptors import descriptors_for_sections
 from .stream_activation import (
@@ -188,8 +189,6 @@ def _coverage_reports(runtime: "CardataRuntimeData", vin: Optional[str] = None):
     return reports
 
 
-def _coverage_issue_id(entry_id: str, vin: str) -> str:
-    return f"stream_coverage_gaps_{entry_id}_{vin}"
 
 
 @callback
@@ -203,12 +202,20 @@ def _refresh_coverage_issues(hass: HomeAssistant, entry_id: str) -> None:
     if runtime is None or runtime.coverage is None:
         return
     for report in _coverage_reports(runtime):
-        issue_id = _coverage_issue_id(entry_id, report.vin)
+        issue_id = coverage_issue_id(entry_id, report.vin)
+        # Clear the pre-0.9.6 id unconditionally: it embedded the raw VIN, and
+        # leaving it in place would both orphan a duplicate repair and keep the
+        # VIN in the issue registry that diagnostics downloads dump.
+        ir.async_delete_issue(
+            hass, DOMAIN, legacy_coverage_issue_id(entry_id, report.vin)
+        )
         overdue_clusters = report.overdue_clusters()
         if not overdue_clusters:
             ir.async_delete_issue(hass, DOMAIN, issue_id)
             continue
-        vehicle = runtime.coordinator.names.get(report.vin, report.vin)
+        # Falls back to the masked VIN, never the raw one: a repair notification
+        # is a screenshot away from a public issue (see debug.mask_vin).
+        vehicle = runtime.coordinator.names.get(report.vin) or mask_vin(report.vin)
         cluster_labels = ", ".join(cluster.label for cluster in overdue_clusters)
         # A handful of concrete descriptors makes the issue actionable without
         # dumping the whole missing list into a notification body.
@@ -1704,7 +1711,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> 
         # Drop any coverage repair issues this entry raised, so a reconfigure or
         # removal doesn't leave a stale "descriptor missing" warning behind.
         for vin in list(data.coordinator.data):
-            ir.async_delete_issue(hass, DOMAIN, _coverage_issue_id(entry.entry_id, vin))
+            ir.async_delete_issue(hass, DOMAIN, coverage_issue_id(entry.entry_id, vin))
+            ir.async_delete_issue(
+                hass, DOMAIN, legacy_coverage_issue_id(entry.entry_id, vin)
+            )
     if data.tyre:
         # Same reason as history: the save is debounced, and a fetch immediately
         # before a reload would otherwise be lost.

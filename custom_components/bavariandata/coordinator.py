@@ -42,7 +42,11 @@ from .history.pricing import (
     billable_energy,
     resolve_cost,
 )
-from .history.sessions import SessionBuilder, energy_ceiling_kwh
+from .history.sessions import (
+    SessionBuilder,
+    energy_ceiling_kwh,
+    soc_is_from_session,
+)
 from .history.trips import CLASS_COMMUTE, SOURCE_AUTO, Trip, place
 from .history.trip_builder import (
     GpsTracker,
@@ -1024,6 +1028,24 @@ class CardataCoordinator:
         ceiling = self._session_energy_ceiling_wh(vin)
         return raw_wh if ceiling is None else min(raw_wh, ceiling)
 
+    def _session_soc_percent(self, vin: str) -> Optional[float]:
+        """The reported SoC, but only if it was read during this session.
+
+        A car that doesn't stream ``batteryManagement.header`` holds the same
+        bootstrap reading forever, which would otherwise be recorded as both ends
+        of every charge and bound every one of them to the ceiling's bare margin.
+        See :func:`soc_is_from_session` for what that costs.
+        """
+
+        tracking = self._soc_tracking.get(vin)
+        if tracking is None or tracking.last_soc_percent is None:
+            return None
+        if not soc_is_from_session(
+            tracking.last_update, self._energy_session_start.get(vin)
+        ):
+            return None
+        return tracking.last_soc_percent
+
     def _session_energy_ceiling_wh(self, vin: str) -> Optional[float]:
         """The live inputs for :func:`energy_ceiling_kwh`, as Wh.
 
@@ -1031,13 +1053,14 @@ class CardataCoordinator:
         to accrue, and a stream that falls silent -- taking SoC with it -- grants
         none. Reads the *reported* SoC, never the extrapolated one: the estimate
         is advanced from the very charging power this bounds, so using it would
-        let the figure authorise its own growth.
+        let the figure authorise its own growth. And never a reading from before
+        the session (see :meth:`_session_soc_percent`), which would bound the
+        charge by a number that predates it.
         """
 
-        tracking = self._soc_tracking.get(vin)
         ceiling_kwh = energy_ceiling_kwh(
             self._energy_session_soc.get(vin),
-            None if tracking is None else tracking.last_soc_percent,
+            self._session_soc_percent(vin),
             self.battery_capacity_kwh(vin),
         )
         return None if ceiling_kwh is None else ceiling_kwh * 1000.0
@@ -1054,9 +1077,7 @@ class CardataCoordinator:
         if builder is None:
             return
         builder.sample(now, power_w / 1000.0)
-        tracking = self._soc_tracking.get(vin)
-        if tracking is not None:
-            builder.note_soc(tracking.last_soc_percent)
+        builder.note_soc(self._session_soc_percent(vin))
 
     def _record_energy_delta(
         self, vin: str, now: datetime, power_w: float, kwh: float
@@ -1213,7 +1234,7 @@ class CardataCoordinator:
         }
         # Close the record first so its summary can ride along on the event --
         # automations then get the cost without a second lookup.
-        session = self._close_session_record(vin, tracking, status)
+        session = self._close_session_record(vin, status)
         if session is not None:
             payload["energy_kwh"] = session.energy_kwh
             payload["cost"] = session.cost
@@ -1252,7 +1273,7 @@ class CardataCoordinator:
                 self._current_price(),
             )
 
-    def _close_session_record(self, vin: str, tracking: SocTracking, status: str):
+    def _close_session_record(self, vin: str, status: str):
         builder = self._session_builders.pop(vin, None)
         accumulator = self._session_costs.pop(vin, None)
         if builder is None or self.history is None:
@@ -1261,7 +1282,7 @@ class CardataCoordinator:
         energy_kwh = self.get_session_energy_kwh(vin)
         session = builder.close(
             datetime.now(timezone.utc),
-            soc_end=tracking.last_soc_percent,
+            soc_end=self._session_soc_percent(vin),
             energy_kwh=energy_kwh,
             cost=resolve_cost(accumulated=accumulator.as_cost() if accumulator else None),
             reason=status,

@@ -24,7 +24,14 @@ from homeassistant.core import HomeAssistant
 from homeassistant.loader import async_get_integration
 
 from . import CardataConfigEntry, _coverage_reports
-from .const import BOOTSTRAP_COMPLETE, DOMAIN, OPTION_STREAM_SECTIONS, REQUEST_LIMIT
+from .const import (
+    BOOTSTRAP_COMPLETE,
+    DOMAIN,
+    OPTION_GRID_ENERGY_ENTITY,
+    OPTION_PRICE_ENTITY,
+    OPTION_STREAM_SECTIONS,
+    REQUEST_LIMIT,
+)
 
 # Redacted by key wherever they appear in the payload (including inside the
 # stream ``parameters`` and each vehicle entry). ``topic`` is here because its
@@ -45,8 +52,32 @@ TO_REDACT = {
 }
 
 
+# Options whose value is an entity id the user picked. Triage needs to know
+# whether one is configured, never which one: an entity id is free text chosen by
+# whichever integration created it, and it routinely embeds identifiers of its
+# own. A real report carried
+# ``sensor.octopus_energy_electricity_<meter serial>_<MPAN>_current_accumulative_cost``
+# -- an electricity meter serial and the supply point of a home, pasted into a
+# public issue by a file we asked for. Reduced to the domain, which is all the
+# triage actually used.
+ENTITY_ID_OPTIONS = frozenset({OPTION_PRICE_ENTITY, OPTION_GRID_ENERGY_ENTITY})
+
+
 def _iso(value: Any) -> Any:
     return value.isoformat() if hasattr(value, "isoformat") else value
+
+
+def _safe_options(options: Any) -> dict[str, Any]:
+    """Config-entry options with user-chosen entity ids reduced to their domain."""
+
+    safe: dict[str, Any] = {}
+    for key, value in dict(options or {}).items():
+        if key in ENTITY_ID_OPTIONS and isinstance(value, str) and value:
+            domain = value.split(".", 1)[0]
+            safe[key] = f"{domain}.**REDACTED**" if "." in value else "**REDACTED**"
+        else:
+            safe[key] = value
+    return safe
 
 
 async def async_get_config_entry_diagnostics(
@@ -109,7 +140,7 @@ async def async_get_config_entry_diagnostics(
             "title": entry.title,
             "bootstrap_complete": bool(entry.data.get(BOOTSTRAP_COMPLETE)),
             "selected_clusters": entry.data.get(OPTION_STREAM_SECTIONS) or [],
-            "options": dict(entry.options),
+            "options": _safe_options(entry.options),
         },
         "quota": quota_info,
         "stream": {

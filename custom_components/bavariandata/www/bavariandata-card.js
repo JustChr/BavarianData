@@ -13,7 +13,7 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.10.1";
+const CARD_VERSION = "1.11.0";
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -693,10 +693,19 @@ class BavarianDataCard extends HTMLElement {
       image: cfg.image || entities.find((id) => id.startsWith("image.")),
       soc:
         cfg.soc ||
+        // Two battery-class percentages impersonate the live SoC here. "trip"
+        // excludes the trip-end one, which only moves when a drive finishes;
+        // "charging.level" excludes BMW's *predicted* SoC, which is REST-only
+        // and so never updates on the stream at all. Both were silently winning
+        // this pick on a car whose live SoC was missing, showing a figure hours
+        // old (issue #6). Note "charging.level" is matched against the
+        // descriptor rather than the name: "predicted" alone only rejects it in
+        // English, and a German install picked it up. Both remain available to
+        // the fallback below, where they are chosen knowingly.
         this._pick(entities, {
           deviceClass: "battery",
           unit: "%",
-          avoid: ["target", "predicted", "health", "testing"],
+          avoid: ["target", "predicted", "health", "testing", "trip", "charging.level"],
         }) ||
         this._pick(entities, { prefer: ["charge", "soc"], unit: "%", avoid: ["target", "rate"] }),
       range:

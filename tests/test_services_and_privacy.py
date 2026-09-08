@@ -108,3 +108,54 @@ def test_translations_contain_no_urls(lang: str, doc: dict) -> None:
 
     urls = re.findall(r"https?://[^\s\"]+", json.dumps(doc, ensure_ascii=False))
     assert not urls, f"{lang}.json contains URL(s): {urls[:5]}"
+
+
+# --------------------------------------------------------------------------
+# Identifiers that escape the diagnostics redaction
+# --------------------------------------------------------------------------
+#
+# ``diagnostics.py`` builds a deliberately safe payload and runs
+# ``async_redact_data`` over it, but that only covers *our* payload. Home
+# Assistant's own diagnostics wrapper appends the registered repair issues to
+# the download, and a repair id is chosen by us -- so a VIN embedded in one
+# bypasses the redaction entirely and lands in the file we ask users to attach
+# to public issues. That is how a real VIN reached issue #6.
+
+
+def _coverage_module():
+    from .conftest import load_module
+
+    return load_module("coverage")
+
+
+SAMPLE_VIN = "WBA00000000000000"
+SAMPLE_ENTRY = "01ABCDEF0123456789ABCDEFGH"
+
+
+def test_the_repair_id_does_not_carry_the_vin() -> None:
+    issue_id = _coverage_module().coverage_issue_id(SAMPLE_ENTRY, SAMPLE_VIN)
+    assert SAMPLE_VIN not in issue_id, (
+        f"{issue_id!r} embeds the VIN. Repair ids are appended to the "
+        "diagnostics download by Home Assistant, outside our redaction."
+    )
+    assert VIN_RE.search(issue_id) is None
+
+
+def test_the_repair_id_is_stable_and_per_vehicle() -> None:
+    """It has to survive a restart to clear an existing repair, and not collide."""
+
+    coverage = _coverage_module()
+    again = coverage.coverage_issue_id(SAMPLE_ENTRY, SAMPLE_VIN)
+    assert again == coverage.coverage_issue_id(SAMPLE_ENTRY, SAMPLE_VIN)
+    other = coverage.coverage_issue_id(SAMPLE_ENTRY, "WBA00000000000001")
+    assert again != other
+    assert again != coverage.coverage_issue_id("01ZZZZZZZZZZZZZZZZZZZZZZZZ", SAMPLE_VIN)
+
+
+def test_the_leaking_id_is_still_derivable_so_it_can_be_deleted() -> None:
+    """An install that already raised one must have it cleared, not orphaned."""
+
+    coverage = _coverage_module()
+    legacy = coverage.legacy_coverage_issue_id(SAMPLE_ENTRY, SAMPLE_VIN)
+    assert legacy.endswith(SAMPLE_VIN)
+    assert legacy != coverage.coverage_issue_id(SAMPLE_ENTRY, SAMPLE_VIN)

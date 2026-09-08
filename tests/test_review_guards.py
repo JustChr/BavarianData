@@ -414,3 +414,73 @@ def test_no_debug_output(path: pathlib.Path) -> None:
             and node.func.id == "print"
         ):
             pytest.fail(f"{_rel(path)}:{node.lineno} uses print(); log instead")
+
+
+# --------------------------------------------------------------------------
+# Descriptors the live features cannot work without
+# --------------------------------------------------------------------------
+#
+# ``enabled_default`` is generated from a substring match in
+# ``tools/generate_metadata.py``, and it does far more than collapse an entity:
+# ``descriptors.descriptors_for_sections`` streams only what it marks, so the
+# flag decides what the portal snippet ticks, what the stream activator turns
+# on, what onboarding selects -- and what the coverage self-test expects. A
+# descriptor that loses the flag is therefore never ticked in Data Selection,
+# never arrives, and is not reported missing either.
+#
+# That is issue #6. The pattern ``.header`` matched exactly one descriptor in
+# BMW's 295-field catalogue: ``vehicle.drivetrain.batteryManagement.header``,
+# which despite the name is the high-voltage state of charge. An iX charged four
+# times with no SoC on the wire, so the energy ceiling saw a rise of zero and
+# filed every 100 kW DC charge as 1.4 kWh.
+#
+# These are the descriptors the coordinator reads off the *stream* to drive a
+# feature, as opposed to the ones it reads from a REST container. Each has to be
+# streamable and in the set the integration actually asks BMW for.
+
+STREAM_CRITICAL_DESCRIPTORS = {
+    # Charging sessions: SoC arc, the energy ceiling, the card's gauge.
+    "vehicle.drivetrain.batteryManagement.header": "state of charge",
+    # Scales SoC into energy, and is the ceiling's capacity term.
+    "vehicle.drivetrain.batteryManagement.maxEnergy": "pack capacity",
+    # Integrated into delivered energy, and drawn as the power curve.
+    "vehicle.powertrain.electric.battery.charging.power": "charging power",
+    # The transition that opens and closes a session and fires the events.
+    "vehicle.drivetrain.electricEngine.charging.status": "charging status",
+    "vehicle.powertrain.electric.battery.stateOfCharge.target": "charge target",
+    # AC fallback when charging.power is absent (V x A x phases).
+    "vehicle.drivetrain.electricEngine.charging.acVoltage": "AC voltage",
+    "vehicle.drivetrain.electricEngine.charging.acAmpere": "AC current",
+    "vehicle.drivetrain.electricEngine.charging.phaseNumber": "AC phases",
+    # Trips, and the zone a charge is attributed to.
+    "vehicle.cabin.infotainment.navigation.currentLocation.latitude": "position",
+    "vehicle.cabin.infotainment.navigation.currentLocation.longitude": "position",
+    # Trip distance and the mileage stamped on a session.
+    "vehicle.vehicle.travelledDistance": "odometer",
+}
+
+
+def _activation_set() -> set[str]:
+    """What the portal snippet, the activator and onboarding actually ask for."""
+
+    import sys
+
+    sys.path.insert(0, str(_PKG))
+    try:
+        import descriptors as D  # type: ignore[import-not-found]
+
+        return set(D.descriptors_for_sections(D.default_sections()))
+    finally:
+        sys.path.remove(str(_PKG))
+
+
+@pytest.mark.parametrize(
+    ("descriptor", "role"), sorted(STREAM_CRITICAL_DESCRIPTORS.items())
+)
+def test_stream_critical_descriptors_are_activated(descriptor: str, role: str) -> None:
+    assert descriptor in _activation_set(), (
+        f"{descriptor} ({role}) is not in the default activation set, so Data "
+        "Selection never ticks it and it never reaches the stream. Check it "
+        "hasn't been caught by a _DIAGNOSTIC_PATTERNS substring in "
+        "tools/generate_metadata.py -- see issue #6."
+    )

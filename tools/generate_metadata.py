@@ -75,6 +75,16 @@ _CLOCK_SUFFIX = re.compile(r"\.(hour|minute)$")
 
 # Fields that belong in the collapsed "Diagnostic" section and are created
 # disabled by default. Matched as substrings against the descriptor.
+#
+# Every pattern here costs more than a collapsed entity: ``enabled_default`` is
+# what ``descriptors.descriptors_for_sections`` streams, so a descriptor matched
+# here is left out of the portal snippet, the stream activator, the onboarding
+# default set *and* the coverage self-test -- it is never ticked in Data
+# Selection, never arrives, and nothing notices. Match on meaning, never on a
+# word that happens to appear in a name: ``.header`` once matched exactly one
+# descriptor in the whole catalogue, ``vehicle.drivetrain.batteryManagement.header``,
+# which despite the name is the high-voltage **state of charge** the charging
+# history is built on (issue #6).
 _DIAGNOSTIC_PATTERNS = (
     ".raw",
     "sessionid",
@@ -90,7 +100,6 @@ _DIAGNOSTIC_PATTERNS = (
     "referencedistance",
     "hvpmfinishreason",
     "smeenergydelta",
-    ".header",
     "deepsleepmodeactive",
     "timesetting",
     "timevehicle",
@@ -106,6 +115,12 @@ _DIAGNOSTIC_SECTIONS = {"metadata", "contract"}
 _OVERRIDES: dict[str, tuple[str | None, str | None, str | None]] = {
     # Odometer: catalogue lists unit "null" though the value range is km/mi.
     "vehicle.vehicle.travelledDistance": ("distance", "total_increasing", "km"),
+    # The high-voltage state of charge, which BMW named like a protocol field.
+    # The generic heuristic keys off "stateofcharge"/"soc"/".level" in the
+    # descriptor and this has none of them, so it would come out with no device
+    # class at all -- leaving the card's gauge to fall back to the *trip-end*
+    # SoC, which only moves when a drive finishes (issue #6).
+    "vehicle.drivetrain.batteryManagement.header": ("battery", "measurement", "%"),
 }
 
 

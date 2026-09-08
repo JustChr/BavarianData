@@ -15,6 +15,7 @@ HA-importing siblings (``coverage_store.py``) and ``__init__.py``.
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Collection, Mapping, Optional
@@ -166,3 +167,38 @@ def analyze_coverage(
         overdue=overdue,
         clusters=clusters,
     )
+
+
+# --- Repair-issue identity ------------------------------------------------
+
+COVERAGE_ISSUE_PREFIX = "stream_coverage_gaps"
+
+
+def coverage_issue_id(entry_id: str, vin: str) -> str:
+    """A stable per-vehicle repair id that does not contain the VIN.
+
+    Repair ids are **not** covered by the integration's diagnostics redaction:
+    Home Assistant's own diagnostics wrapper appends the registered issues to the
+    download, outside the payload ``diagnostics.py`` builds and redacts. A VIN
+    embedded here therefore rides straight into whatever the user attaches to a
+    public issue -- which is exactly how ``WBY1...`` reached issue #6, in the one
+    file we ask people to upload.
+
+    The digest keeps the id stable across restarts (so an existing repair is
+    still found and cleared) and unique per vehicle within an entry, without
+    carrying the identifier itself.
+    """
+
+    digest = hashlib.sha256(vin.encode("utf-8")).hexdigest()[:12]
+    return f"{COVERAGE_ISSUE_PREFIX}_{entry_id}_{digest}"
+
+
+def legacy_coverage_issue_id(entry_id: str, vin: str) -> str:
+    """The pre-0.9.6 id, which embedded the raw VIN.
+
+    Kept only so an install that already raised one can have it deleted rather
+    than orphaned beside its replacement -- which also clears the leaked value
+    out of that user's issue registry.
+    """
+
+    return f"{COVERAGE_ISSUE_PREFIX}_{entry_id}_{vin}"

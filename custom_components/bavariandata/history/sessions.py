@@ -13,7 +13,7 @@ takes the final figure at close.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Optional
 
 from .models import ChargingSession
@@ -45,6 +45,46 @@ LATE_START_SOC_MARGIN = 3.0
 # that matters here: the ceiling exists to catch an integration that ran away by
 # several kWh, not to shave the last hundred watt-hours off an honest one.
 SOC_CEILING_MARGIN_PERCENT = 2.0
+
+
+# How far before a session opened a state-of-charge reading may have been taken
+# and still be treated as belonging to that session. BMW stamps its own
+# timestamps on stream messages and they trail ours by seconds, so a reading
+# that genuinely arrived at the plug-in can carry a timestamp fractionally
+# before the moment the session opened. Two minutes absorbs that skew and
+# nothing more: the readings this rejects are hours or days old.
+SOC_SESSION_SKEW = timedelta(seconds=120)
+
+
+def soc_is_from_session(
+    reading_at: Optional[datetime],
+    session_start: Optional[datetime],
+    *,
+    skew: timedelta = SOC_SESSION_SKEW,
+) -> bool:
+    """Whether a SoC reading was taken during the session it would describe.
+
+    Not every car streams ``batteryManagement.header``. On one that doesn't, the
+    only SoC ever held is whatever the REST bootstrap left there, and it never
+    moves again -- so a session's opening and closing readings are the same stale
+    number and the delta between them is a flat zero that says nothing about the
+    charge.
+
+    Reported as an arc that zero is merely wrong ("38 -> 38%"). Fed to
+    :func:`energy_ceiling_kwh` it is destructive: a rise of zero pins every
+    session to the margin alone, 1.4 kWh on a 71 kWh pack however much the car
+    actually took. A real iX recorded four DC charges that way, each peaking
+    above 100 kW and each filed as 1.4 kWh.
+
+    So the reading has to postdate the session's own start. That is exactly the
+    condition under which a delta against ``soc_start`` means anything, and it
+    fails closed: without a live SoC there is no arc and no ceiling, and the
+    energy figure stands on the power integration alone.
+    """
+
+    if reading_at is None or session_start is None:
+        return False
+    return reading_at >= session_start - skew
 
 
 def energy_ceiling_kwh(
@@ -111,7 +151,11 @@ class SessionBuilder:
         self.vin = vin
         self.start = start
         self.soc_start = soc_start
-        self.soc_end = soc_start
+        # Left unknown until a reading actually arrives during the session.
+        # Seeding it from ``soc_start`` would turn "we never saw the end" into a
+        # confident claim that the charge moved the pack not at all -- which on a
+        # car that doesn't stream SoC is every session it ever records.
+        self.soc_end: Optional[float] = None
         self.target_soc = target_soc
         self.location = location
         self.location_assumed = location_assumed
@@ -176,6 +220,14 @@ class SessionBuilder:
 
         self.note_soc(soc_end)
         end_offset = self._offset(at)
+        # Not one SoC reading landed while this charge ran, so nothing here
+        # describes what it did to the pack -- ``soc_start`` is only the last
+        # value we happened to be holding, which on a car that doesn't stream
+        # SoC can be days old and belong to a different charge entirely. Drop
+        # the arc rather than half-assert it, which also leaves the fields open
+        # for BMW's own charging history to fill in on the next import (see
+        # ``cardata_history._enrich_in_place``).
+        soc_start = self.soc_start if self.soc_end is not None else None
         # Carry the last reading out to the end so the curve doesn't appear to
         # stop early when the final samples fell inside the downsample window.
         if self._last_power is not None and (
@@ -187,7 +239,7 @@ class SessionBuilder:
             vin=self.vin,
             start=self.start,
             end=at,
-            soc_start=self.soc_start,
+            soc_start=soc_start,
             soc_end=self.soc_end,
             target_soc=self.target_soc,
             energy_kwh=None if energy_kwh is None else round(energy_kwh, 3),
