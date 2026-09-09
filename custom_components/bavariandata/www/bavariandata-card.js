@@ -3381,7 +3381,11 @@ class BavarianDataCard extends HTMLElement {
     trunk: "vehicle.body.trunk.isOpen",
     rearWindow: "vehicle.body.trunk.window.isOpen",
     sunroof: ["vehicle.cabin.sunroof.overallStatus", "vehicle.cabin.sunroof.status"],
-    lock: "vehicle.cabin.door.lock.status",
+    // Central lock: door.status first. Both descriptors carry the same lock
+    // vocabulary, but door.lock.status is NOT streamable -- it only refreshes on
+    // a quota-limited REST fetch, so it can sit on a stale value for days while
+    // door.status follows the actual lock within seconds (issue #8).
+    lock: ["vehicle.cabin.door.status", "vehicle.cabin.door.lock.status"],
     alarmArm: "vehicle.vehicle.antiTheftAlarmSystem.alarm.armStatus",
     alarmOn: "vehicle.vehicle.antiTheftAlarmSystem.alarm.isOn",
   };
@@ -3396,6 +3400,18 @@ class BavarianDataCard extends HTMLElement {
     }
     const find = (path) =>
       Array.isArray(path) ? path.map((p) => byDesc[p]).find(Boolean) : byDesc[path];
+    // Like find(), but skips candidates that carry no usable value, so a
+    // preferred-but-silent descriptor does not hide a real value on the next
+    // one. Falls back to find() when none of them has a value yet.
+    const findWithValue = (path) => {
+      const ids = (Array.isArray(path) ? path : [path]).map((p) => byDesc[p]).filter(Boolean);
+      const usable = ids.find((id) => {
+        const st = this._st(id);
+        const raw = st ? String(st.state).trim().toLowerCase() : "";
+        return st && !UNAVAILABLE.has(raw) && raw !== "invalid";
+      });
+      return usable || ids[0];
+    };
 
     const name = this._deviceName(deviceId);
     const ALERT = "var(--bmw-low)";
@@ -3429,7 +3445,7 @@ class BavarianDataCard extends HTMLElement {
     const rearWindow = single(P.rearWindow);
     const sunroof = single(P.sunroof);
 
-    const lockId = find(P.lock);
+    const lockId = findWithValue(P.lock);
     const lock = this._lockInfo(lockId ? this._st(lockId) : null);
     const armId = find(P.alarmArm);
     const onId = find(P.alarmOn);

@@ -117,6 +117,12 @@ TRIP_WATCH_DESCRIPTORS = (
     "vehicle.drivetrain.electricEngine.charging.hvStatus",
     "vehicle.drivetrain.electricEngine.charging.connectorStatus",
     "vehicle.cabin.door.row1.driver.isOpen",
+    # Central lock, both spellings of it: door.lock.status is the documented one
+    # but is not streamable (it only refreshes on a REST fetch, so it is silent
+    # for days at a time), while door.status carries the same lock vocabulary and
+    # arrives within seconds of every lock/unlock -- the sturdier entry/exit
+    # bracket of the two (issue #8).
+    "vehicle.cabin.door.status",
     "vehicle.cabin.door.lock.status",
     "vehicle.cabin.infotainment.navigation.currentLocation.altitude",
     "vehicle.cabin.infotainment.navigation.destinationSet.distance",

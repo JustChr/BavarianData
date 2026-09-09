@@ -250,7 +250,10 @@ back to a 2×2 grid, front row over rear.
 
 Shows doors, windows, hood, trunk, sunroof, the central lock and the anti-theft
 alarm on the same car diagram. Open doors highlight red, open windows/sunroof
-amber, and a central padlock reflects the lock state; a badge summarises the
+amber, and a central padlock reflects the lock state — read from the streamed
+**Doors overall state**, so it tracks the real lock rather than the stale
+REST-only *Doors lock*
+([why](Feature-Entities-and-Devices#which-lock-entity-to-use)); a badge summarises the
 worst-case status and every part taps through to the underlying entity. Parts
 the vehicle doesn't report are simply omitted.
 

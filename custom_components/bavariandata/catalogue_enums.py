@@ -45,6 +45,20 @@ _DESCRIPTOR_ENUM_OVERRIDES: dict[str, tuple[str, ...]] = {
         "CHARGINGENDED",
         "CHARGINGERROR",
     ),
+    # value_range documents the raw signal's four sub-fields with ASN_ prefixes
+    # ("oldDoorStatus: ASN_secured ... allDoorsLocked: ASN_isTrue"), which is not
+    # a comma list and parses as no enum at all -- so this streamed lock state
+    # was a free-text sensor, unusable in the automation editor's state picker
+    # (issue #8). The stream sends a single plain token from the lock vocabulary;
+    # these are the values observed on real cars. Note SELECTIVELOCKED has no
+    # hyphen here, unlike vehicle.cabin.door.lock.status's SELECTIVE-LOCKED.
+    "vehicle.cabin.door.status": (
+        "SECURED",
+        "LOCKED",
+        "SELECTIVELOCKED",
+        "UNLOCKED",
+        "UNKNOWN",
+    ),
 }
 
 

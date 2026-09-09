@@ -248,6 +248,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Diagnostics download (what it holds, what it redacts, no quota cost) | 🟢 Troubleshooting → "Download diagnostics" + "Where to get help" |
 | What appears in logs — masked VIN at default level, full VIN only under debug | 🟢 Troubleshooting → "Debug logging" + Settings-Reference → "Debug logging" |
 | Display units are the user's choice; values are stored as the car sends them (issue #7) | 🟢 Troubleshooting → "A sensor shows an absurd value, or reads unknown after an update" |
+| Which lock entity to automate on — streamed `door.status` vs REST-only `door.lock.status` (issue #8) | 🟢 Feature-Entities-and-Devices → "Which lock entity to use" |
 
 ## Conventions
 

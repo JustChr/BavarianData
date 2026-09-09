@@ -9,7 +9,32 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.8-beta.1] - 2026-09-09
+
 ### Changed
+- **"Doors overall state" is now a proper enum, so it can be picked from the
+  automation editor instead of typed.** It is the *streamed* central lock —
+  `vehicle.cabin.door.lock.status` is not streamable and only refreshes on a
+  quota-limited REST call, so it can sit on a stale value for days while this one
+  follows every lock/unlock within seconds. BMW documents its allowed values as a
+  compound of four raw sub-fields (`oldDoorStatus: ASN_secured …`), which parsed
+  as no enum at all, leaving it a free-text sensor whose state picker offered
+  only *Unknown* and *Unavailable*. It now carries the lock vocabulary the stream
+  actually sends — `Secured`, `Locked`, `Partially locked`, `Unlocked` — in both
+  languages. Thanks to @nevryn for the report (#8).
+  **Breaking for existing automations:** the state is now a lowercase slug
+  (`SECURED` → `secured`, shown as "Secured"), so conditions that match the old
+  ALL-CAPS text need updating — re-pick the state from the dropdown.
+- **The card's central-lock tile follows the streamed lock.** It read
+  `Doors lock`, which meant the padlock could show "Secured" for days after the
+  car was unlocked. It now prefers `Doors overall state` and falls back to
+  `Doors lock` on cars that never stream it.
+- **Trip capture watches the streamed lock too.** The `[trip.watch]` line listed
+  only the REST-only `door.lock.status` as an entry/exit bracket, which never
+  arrives on the stream; it now also carries `door.status`, which does.
+- **`SELECTIVE-LOCKED` now reads "Partially locked" ("Teilweise verriegelt")**
+  on `Doors lock`, matching the card's wording; it previously read "Selective
+  locked" and had no German label at all.
 - **BMW's unit spellings are now canonicalised in one place instead of two.**
   The catalogue export and the live stream do not use the same vocabulary — the
   export says `percent`, `Celsius`, `degrees`, `l`; the stream says `kpa` for

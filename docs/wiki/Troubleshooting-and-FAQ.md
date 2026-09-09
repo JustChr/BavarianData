@@ -96,6 +96,18 @@ keeps the old bad values; only new readings are correct.
 You can keep displaying whatever unit you prefer. **Settings → Devices &
 services → Entities →** the entity **→ ⚙ → Unit of measurement** is safe again.
 
+## "Doors lock" hasn't changed in days
+
+Expected, and not a fault. BMW does **not** put `vehicle.cabin.door.lock.status`
+on the stream — it only refreshes on a REST call, so it shows whatever the lock
+was at the last [daily refresh](Feature-API-Quota#the-daily-refresh) and can be
+days out of date.
+
+Use **Doors overall state** (`vehicle.cabin.door.status`) instead: it is streamed
+and follows every lock/unlock within seconds, with the same `Secured` / `Locked`
+/ `Partially locked` / `Unlocked` values. See
+[Which lock entity to use](Feature-Entities-and-Devices#which-lock-entity-to-use).
+
 ## Stream authorization failing (MQTT rc=5)
 
 <a id="stream-authorization-failing"></a>
@@ -192,7 +204,8 @@ It produces two things:
     door).
   - `[trip.seg]` — each BMW trip-segment batch in full, with timestamps.
   - `[trip.watch]` — a curated set of candidate "is it driving?" signals (speed,
-    HV-system state, ignition, driver door/lock, active navigation) whenever the
+    HV-system state, ignition, driver door, both central-lock descriptors, active
+    navigation) whenever the
     car streams them.
   - `[trip.raw]` — every other descriptor each message carried.
   - `[trip.post]` — a one-line summary per closed trip (distances side by side,

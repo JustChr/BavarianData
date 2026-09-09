@@ -59,6 +59,12 @@ COMMON_STATES: dict[str, tuple[str, str]] = {
     "LOCKED": ("Locked", "Verriegelt"),
     "UNLOCKED": ("Unlocked", "Entriegelt"),
     "SECURED": ("Secured", "Gesichert"),
+    # Locked except the driver's door. BMW spells it with a hyphen on
+    # vehicle.cabin.door.lock.status and without one on the stream's
+    # vehicle.cabin.door.status, so curate both; the wording matches the
+    # dashboard card's central-lock tile.
+    "SELECTIVE-LOCKED": ("Partially locked", "Teilweise verriegelt"),
+    "SELECTIVELOCKED": ("Partially locked", "Teilweise verriegelt"),
     "KILOMETERS": ("Kilometres", "Kilometer"),
     "MILES": ("Miles", "Meilen"),
     "CHARGINGACTIVE": ("Charging", "Lädt"),

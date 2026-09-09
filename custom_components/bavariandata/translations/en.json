@@ -428,7 +428,7 @@
         "state": {
           "secured": "Secured",
           "unlocked": "Unlocked",
-          "selective-locked": "Selective locked",
+          "selective-locked": "Partially locked",
           "locked": "Locked",
           "invalid": "Invalid",
           "unknown": "Unknown"
@@ -483,7 +483,14 @@
         "name": "Door position (rear passenger)"
       },
       "vehicle_cabin_door_status": {
-        "name": "Doors overall state"
+        "name": "Doors overall state",
+        "state": {
+          "secured": "Secured",
+          "locked": "Locked",
+          "selectivelocked": "Partially locked",
+          "unlocked": "Unlocked",
+          "unknown": "Unknown"
+        }
       },
       "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_cooling": {
         "name": "Preconditioning Default Seat cooling (front driver)",

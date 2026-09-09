@@ -69,6 +69,29 @@ refresh it manually with `bavariandata.fetch_vehicle_image`.
 Each VIN gets a **device_tracker** ("car") carrying the vehicle's location from
 the GPS stream, usable on the HA map and in zone-based automations.
 
+## Which lock entity to use
+
+The car reports its central lock through **two** descriptors, and they behave
+very differently:
+
+| Entity | Descriptor | Updates |
+| --- | --- | --- |
+| **Doors overall state** | `vehicle.cabin.door.status` | **On the stream** — follows every lock/unlock within seconds |
+| **Doors lock** | `vehicle.cabin.door.lock.status` | **REST only** — BMW does not stream it, so it refreshes at most once per [daily refresh](Feature-API-Quota#the-daily-refresh) and can sit on a stale value for days |
+
+Despite its name, **Doors overall state is the one to automate on.** Both carry
+the same values — `Secured`, `Locked`, `Partially locked`, `Unlocked` — and both
+appear in the automation editor's state picker, so a condition can be selected
+from the dropdown rather than typed by hand. The
+[dashboard card](The-Dashboard-Card) prefers the streamed one for its central-lock
+tile too, and falls back to `Doors lock` on cars that never stream it.
+
+"Partially locked" (BMW's `SELECTIVE-LOCKED`) means every door is locked except
+the driver's — the state a car lands in after a remote unlock.
+
+Per-door **open/closed** state is separate again, and streamed: the four
+`Door state (…)` binary sensors.
+
 ## Why some entities are "unavailable"
 
 Entities keep exposing their `cluster`/`category` attributes even when restored

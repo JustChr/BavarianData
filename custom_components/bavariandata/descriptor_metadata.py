@@ -466,7 +466,7 @@ DESCRIPTOR_META: dict[str, dict] = {
         "device_class": None,
         "state_class": None,
         "unit": None,
-        "options": [],
+        "options": ['secured', 'locked', 'selectivelocked', 'unlocked', 'unknown'],
         "entity_category": None,
         "enabled_default": True,
         "streamable": True,

@@ -415,6 +415,7 @@
         "state": {
           "secured": "Gesichert",
           "unlocked": "Entriegelt",
+          "selective-locked": "Teilweise verriegelt",
           "locked": "Verriegelt",
           "invalid": "Ungültig",
           "unknown": "Unbekannt"
@@ -469,7 +470,14 @@
         "name": "Stellung der Beifahrertür hinten"
       },
       "vehicle_cabin_door_status": {
-        "name": "Zustand der Türen"
+        "name": "Zustand der Türen",
+        "state": {
+          "secured": "Gesichert",
+          "locked": "Verriegelt",
+          "selectivelocked": "Teilweise verriegelt",
+          "unlocked": "Entriegelt",
+          "unknown": "Unbekannt"
+        }
       },
       "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_cooling": {
         "name": "Standard für Sitzkühlung Fahrerseite vorn",
