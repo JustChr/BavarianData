@@ -9,6 +9,32 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Sensor values no longer shrink a little more with every restart.** Home
+  Assistant saves the value it *displayed*, not the one we reported, and the
+  integration read that back as if it were the raw reading — so any sensor shown
+  in a unit other than the one BMW sends had its conversion applied again on
+  every restart. Tyre pressure held in kPa but displayed in bar was divided by
+  100 each time: 250 kPa became 2.5, then 0.025, and after five restarts the
+  2.5e-10 bar reported in
+  [#7](https://github.com/JustChr/BavarianData/issues/7). It could not
+  self-correct, because the unit never disagreed with itself — only a fresh
+  message from the car reset it, which is why slow-moving readings like tyre
+  pressure were where it showed. The same descent is visible in the maintainer's
+  own history on a charge-time sensor displayed in hours, dividing by 60 a step
+  at a time.
+
+  Sensors now save their native value *and* its unit (Home Assistant's
+  `RestoreSensor`), so there is nothing left to infer. This affected any entity
+  whose unit was changed in its settings, and — with no user action at all —
+  distance, speed, temperature, pressure and volume on installs using the US
+  customary unit system, where Home Assistant picks the display unit itself.
+
+  **After updating, an affected sensor reads as unknown until the car next
+  reports it** (for tyre pressure, that means the next drive). A value already
+  decayed cannot be recovered, and restoring it would only preserve a wrong
+  number; recorded history for those entities keeps the bad readings.
+
 ## [0.9.6] - 2026-09-08
 
 ### Documentation

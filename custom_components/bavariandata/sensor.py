@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Tuple
+import logging
+from typing import Any, Dict, Optional, Tuple
 
 from homeassistant.components.sensor import (
+    RestoreSensor,
     SensorDeviceClass,
     SensorEntity,
     SensorStateClass,
@@ -31,6 +33,7 @@ from .history.summary import (
     summarise,
     trips_in_month,
 )
+from .restore_units import restore_native
 
 
 # String metadata values -> Home Assistant sensor enums.
@@ -54,8 +57,66 @@ _STATE_CLASS_MAP = {
     "total_increasing": SensorStateClass.TOTAL_INCREASING,
 }
 
+_LOGGER = logging.getLogger(__name__)
 
-class CardataSensor(CardataEntity, SensorEntity):
+
+class CardataRestoreSensor(CardataEntity, RestoreSensor):
+    """A sensor that gets its own value back after a restart -- in native units.
+
+    ``RestoreSensor`` (rather than plain ``RestoreEntity``) because Home
+    Assistant's saved *state* is the value as displayed, and a display unit is
+    not ours to choose: the unit system picks one for imperial installs, and any
+    user can pick one per entity. Restoring that number as if it were native
+    re-applies the conversion on every restart -- see ``restore_units``, which
+    also carries the one-shot fallback for upgrading from a build that never
+    saved native data.
+    """
+
+    async def async_restored_native(self) -> Tuple[Any, Optional[str], Any]:
+        """Return ``(value, unit, last_state)`` from the previous run.
+
+        ``value`` is ``None`` when there is nothing trustworthy to restore --
+        no saved state, or one whose unit says it has been converted. Callers
+        get ``last_state`` regardless so they can read the attributes they
+        stored alongside it (timestamps, ``last_reset``), but must only use
+        those when ``value`` is not ``None``.
+        """
+
+        last_state = await self.async_get_last_state()
+        native_unit = self.native_unit_of_measurement
+
+        # Preferred: what this class saves for itself -- the native value and
+        # the unit it was actually measured in, with nothing to infer.
+        sensor_data = await self.async_get_last_sensor_data()
+        if sensor_data is not None and sensor_data.native_value is not None:
+            stored_value = sensor_data.native_value
+            stored_unit = sensor_data.native_unit_of_measurement
+        elif last_state is not None:
+            # Upgrading from a build that saved no native data: all that exists
+            # is the state as displayed, and its unit is the only evidence of
+            # whether it was converted on the way out.
+            stored_value = last_state.state
+            stored_unit = last_state.attributes.get("unit_of_measurement")
+        else:
+            return None, None, None
+
+        # Both sources go through the same rule. Saved native data is normally a
+        # match, but the catalogue's unit for a descriptor can change under it --
+        # and a value silently relabelled into a new unit is the same bug again.
+        value, unit = restore_native(stored_value, stored_unit, native_unit)
+        if value is None and str(stored_value) not in ("unknown", "unavailable"):
+            _LOGGER.debug(
+                "%s: not restoring %r -- stored as %s, native unit is %s; "
+                "waiting for a fresh reading instead",
+                self.descriptor,
+                stored_value,
+                stored_unit,
+                native_unit,
+            )
+        return value, unit, last_state
+
+
+class CardataSensor(CardataRestoreSensor):
     def __init__(self, coordinator: CardataCoordinator, vin: str, descriptor: str) -> None:
         super().__init__(coordinator, vin, descriptor)
         self._attr_should_poll = False
@@ -86,9 +147,8 @@ class CardataSensor(CardataEntity, SensorEntity):
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
         if getattr(self, "_attr_native_value", None) is None:
-            last_state = await self.async_get_last_state()
-            if last_state and last_state.state not in ("unknown", "unavailable"):
-                restored = last_state.state
+            restored, unit, last_state = await self.async_restored_native()
+            if restored is not None:
                 if self._is_enum and isinstance(restored, str):
                     # Match the lowercase-slug options (old installs stored
                     # ALL_CAPS enum states before this normalisation).
@@ -96,7 +156,6 @@ class CardataSensor(CardataEntity, SensorEntity):
                     if restored not in self._attr_options:
                         self._attr_options = [*self._attr_options, restored]
                 self._attr_native_value = restored
-                unit = last_state.attributes.get("unit_of_measurement")
                 if unit is not None and not self._fixed_unit:
                     self._attr_native_unit_of_measurement = unit
                     # If unit is a length/distance type, enable conversion. The
@@ -112,9 +171,11 @@ class CardataSensor(CardataEntity, SensorEntity):
                         and unit in {u.value for u in UnitOfLength}
                     ):
                         self._attr_device_class = SensorDeviceClass.DISTANCE # Enables km/mi, m/ft, etc., conversion
-                timestamp = last_state.attributes.get("timestamp")
-                if not timestamp and last_state.last_changed:
-                    timestamp = last_state.last_changed.isoformat()
+                timestamp = None
+                if last_state is not None:
+                    timestamp = last_state.attributes.get("timestamp")
+                    if not timestamp and last_state.last_changed:
+                        timestamp = last_state.last_changed.isoformat()
                 self._coordinator.restore_descriptor_state(
                     self.vin,
                     self.descriptor,
@@ -330,7 +391,7 @@ class CardataQuotaSensor(SensorEntity):
         self.schedule_update_ha_state()
 
 
-class CardataSocEstimateSensor(CardataEntity, SensorEntity):
+class CardataSocEstimateSensor(CardataRestoreSensor):
     _attr_should_poll = False
     _attr_device_class = SensorDeviceClass.BATTERY
     _attr_state_class = SensorStateClass.MEASUREMENT
@@ -346,16 +407,16 @@ class CardataSocEstimateSensor(CardataEntity, SensorEntity):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        last_state = await self.async_get_last_state()
-        if last_state and last_state.state not in ("unknown", "unavailable"):
+        restored, _unit, last_state = await self.async_restored_native()
+        if restored is not None:
             try:
-                self._attr_native_value = float(last_state.state)
+                self._attr_native_value = float(restored)
             except (TypeError, ValueError):
                 self._attr_native_value = None
             else:
-                restored_ts = last_state.attributes.get("timestamp")
+                restored_ts = last_state.attributes.get("timestamp") if last_state else None
                 reference = dt_util.parse_datetime(restored_ts) if restored_ts else None
-                if reference is None:
+                if reference is None and last_state is not None:
                     reference = last_state.last_changed
                 if reference is not None:
                     reference = dt_util.as_utc(reference)
@@ -388,7 +449,7 @@ class CardataSocEstimateSensor(CardataEntity, SensorEntity):
         self.schedule_update_ha_state()
 
 
-class CardataTestingSocEstimateSensor(CardataEntity, SensorEntity):
+class CardataTestingSocEstimateSensor(CardataRestoreSensor):
     _attr_should_poll = False
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = "%"
@@ -402,16 +463,16 @@ class CardataTestingSocEstimateSensor(CardataEntity, SensorEntity):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        last_state = await self.async_get_last_state()
-        if last_state and last_state.state not in ("unknown", "unavailable"):
+        restored, _unit, last_state = await self.async_restored_native()
+        if restored is not None:
             try:
-                self._attr_native_value = float(last_state.state)
+                self._attr_native_value = float(restored)
             except (TypeError, ValueError):
                 self._attr_native_value = None
             else:
-                restored_ts = last_state.attributes.get("timestamp")
+                restored_ts = last_state.attributes.get("timestamp") if last_state else None
                 reference = dt_util.parse_datetime(restored_ts) if restored_ts else None
-                if reference is None:
+                if reference is None and last_state is not None:
                     reference = last_state.last_changed
                 if reference is not None:
                     reference = dt_util.as_utc(reference)
@@ -444,7 +505,7 @@ class CardataTestingSocEstimateSensor(CardataEntity, SensorEntity):
         self.schedule_update_ha_state()
 
 
-class CardataSocRateSensor(CardataEntity, SensorEntity):
+class CardataSocRateSensor(CardataRestoreSensor):
     _attr_should_poll = False
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = "%/h"
@@ -457,16 +518,16 @@ class CardataSocRateSensor(CardataEntity, SensorEntity):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        last_state = await self.async_get_last_state()
-        if last_state and last_state.state not in ("unknown", "unavailable"):
+        restored, _unit, last_state = await self.async_restored_native()
+        if restored is not None:
             try:
-                self._attr_native_value = float(last_state.state)
+                self._attr_native_value = float(restored)
             except (TypeError, ValueError):
                 self._attr_native_value = None
             else:
-                restored_ts = last_state.attributes.get("timestamp")
+                restored_ts = last_state.attributes.get("timestamp") if last_state else None
                 reference = dt_util.parse_datetime(restored_ts) if restored_ts else None
-                if reference is None:
+                if reference is None and last_state is not None:
                     reference = last_state.last_changed
                 if reference is not None:
                     reference = dt_util.as_utc(reference)
@@ -499,7 +560,7 @@ class CardataSocRateSensor(CardataEntity, SensorEntity):
         self.schedule_update_ha_state()
 
 
-class CardataChargedEnergySensor(CardataEntity, SensorEntity):
+class CardataChargedEnergySensor(CardataRestoreSensor):
     """Lifetime energy delivered to the battery, for the HA Energy dashboard.
 
     ``TOTAL_INCREASING`` + ``ENERGY`` is exactly what the Energy dashboard needs
@@ -521,10 +582,10 @@ class CardataChargedEnergySensor(CardataEntity, SensorEntity):
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
         if self._coordinator.get_lifetime_energy_kwh(self.vin) is None:
-            last_state = await self.async_get_last_state()
-            if last_state and last_state.state not in ("unknown", "unavailable"):
+            value, _unit, last_state = await self.async_restored_native()
+            if value is not None:
                 try:
-                    restored = float(last_state.state)
+                    restored = float(value)
                 except (TypeError, ValueError):
                     restored = None
                 if restored is not None:
@@ -553,7 +614,7 @@ class CardataChargedEnergySensor(CardataEntity, SensorEntity):
             self.schedule_update_ha_state()
 
 
-class CardataSessionEnergySensor(CardataEntity, SensorEntity):
+class CardataSessionEnergySensor(CardataRestoreSensor):
     """Energy delivered during the current charging session (resets each plug-in)."""
 
     _attr_should_poll = False
@@ -574,15 +635,15 @@ class CardataSessionEnergySensor(CardataEntity, SensorEntity):
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
         if self._coordinator.get_session_energy_kwh(self.vin) is None:
-            last_state = await self.async_get_last_state()
-            if last_state and last_state.state not in ("unknown", "unavailable"):
+            value, _unit, last_state = await self.async_restored_native()
+            if value is not None:
                 try:
-                    restored = float(last_state.state)
+                    restored = float(value)
                 except (TypeError, ValueError):
                     restored = None
                 if restored is not None:
                     self._attr_native_value = restored
-                    start_iso = last_state.attributes.get("last_reset")
+                    start_iso = last_state.attributes.get("last_reset") if last_state else None
                     start = dt_util.parse_datetime(start_iso) if start_iso else None
                     self._coordinator.restore_session_energy(self.vin, restored, start)
         existing = self._coordinator.get_session_energy_kwh(self.vin)

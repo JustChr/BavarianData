@@ -484,3 +484,102 @@ def test_stream_critical_descriptors_are_activated(descriptor: str, role: str) -
         "hasn't been caught by a _DIAGNOSTIC_PATTERNS substring in "
         "tools/generate_metadata.py -- see issue #6."
     )
+
+
+# --------------------------------------------------------------------------
+# Restoring a value without re-converting it
+# --------------------------------------------------------------------------
+
+# Issue #7: Home Assistant saves the value it *displayed*. Feeding
+# ``last_state.state`` back into ``_attr_native_value`` therefore re-applies the
+# display conversion on every restart -- a tyre pressure held in kPa but shown in
+# bar divides by 100 each time, and five restarts is the 2.5e-10 bar that was
+# reported. It cannot self-correct, because the native unit never disagrees with
+# itself; only a fresh reading from the stream resets it.
+#
+# ``CardataRestoreSensor.async_restored_native`` is the only safe way to read a
+# saved value back: it prefers ``RestoreSensor``'s native data and falls back
+# through ``restore_units``. Anything else touching ``async_get_last_state`` in
+# the sensor platform has to say why it is exempt.
+
+RAW_STATE_RESTORE_ALLOWED = {
+    # The implementation of the safe path itself.
+    "CardataRestoreSensor": "wraps the raw state in restore_units",
+    # Timestamps and connection strings. No unit, no device class that converts,
+    # so the saved state is the native value by construction.
+    "CardataDiagnosticsSensor": "unitless timestamps and status strings",
+}
+
+
+def _class_of(tree: ast.Module, node: ast.AST) -> str | None:
+    """Name of the class a node sits in, if any."""
+
+    for cls in [n for n in ast.walk(tree) if isinstance(n, ast.ClassDef)]:
+        if any(child is node for child in ast.walk(cls)):
+            return cls.name
+    return None
+
+
+def test_sensor_values_are_restored_in_native_units() -> None:
+    path = _PKG / "sensor.py"
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        if not (isinstance(func, ast.Attribute) and func.attr == "async_get_last_state"):
+            continue
+        owner = _class_of(tree, node)
+        assert owner in RAW_STATE_RESTORE_ALLOWED, (
+            f"{_rel(path)}:{node.lineno}: {owner} reads the saved *displayed* "
+            "state directly. Use CardataRestoreSensor.async_restored_native() so "
+            "a display unit (a user override, or the one the US customary unit "
+            "system picks by itself) is not re-applied on every restart -- see "
+            "issue #7 and restore_units.py."
+        )
+
+
+def test_the_safe_restore_path_stores_native_data() -> None:
+    """``RestoreSensor`` is what persists the native value and its unit.
+
+    Downgrading the base back to ``RestoreEntity`` would silently return the
+    platform to guessing from the display unit forever, rather than only across
+    the one upgrade restart.
+    """
+
+    path = _PKG / "sensor.py"
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    base = next(
+        n
+        for n in ast.walk(tree)
+        if isinstance(n, ast.ClassDef) and n.name == "CardataRestoreSensor"
+    )
+    bases = {ast.unparse(b) for b in base.bases}
+    assert "RestoreSensor" in bases, (
+        f"CardataRestoreSensor inherits {sorted(bases)}; it must inherit "
+        "RestoreSensor so native values and units are what get persisted."
+    )
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "CardataSensor",
+        "CardataSocEstimateSensor",
+        "CardataTestingSocEstimateSensor",
+        "CardataSocRateSensor",
+        "CardataChargedEnergySensor",
+        "CardataSessionEnergySensor",
+    ],
+)
+def test_restoring_sensors_use_the_safe_base(name: str) -> None:
+    path = _PKG / "sensor.py"
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    cls = next(
+        n for n in ast.walk(tree) if isinstance(n, ast.ClassDef) and n.name == name
+    )
+    bases = {ast.unparse(b) for b in cls.bases}
+    assert "CardataRestoreSensor" in bases, (
+        f"{name} restores a value across restarts, so it must derive from "
+        f"CardataRestoreSensor; it inherits {sorted(bases)}."
+    )

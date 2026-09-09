@@ -70,6 +70,32 @@ error, if BMW showed one).
 If nothing streams for **48 hours**, a repair issue appears under **Settings →
 Repairs** pointing back here.
 
+## A sensor shows an absurd value, or reads unknown after an update
+
+<a id="sensor-value-looks-wrong"></a>
+
+**Changed a unit in an entity's settings?** Versions up to 0.9.6 had a bug where
+that unit was applied again on every Home Assistant restart. A tyre pressure the
+car reports in kPa but shown in bar was divided by 100 each time, so it drifted
+towards zero — `2.5e-10 bar` after five restarts
+([issue #7](https://github.com/JustChr/BavarianData/issues/7)). Readings the car
+sends rarely, like tyre pressure, were worst affected, because a fresh message
+from the car was what reset the value. Installs using the **US customary** unit
+system were affected without changing anything, since Home Assistant picks the
+display unit itself there — distance, speed, temperature, pressure and volume.
+
+Update to the latest release. From then on the value is stored in the unit the
+car sends it in, and the unit you display it in makes no difference to it.
+
+**Why it then says unknown:** a value that already drifted can't be recovered,
+and the update deliberately discards it rather than keep a wrong number. The
+sensor fills in the next time the car reports that reading — immediately for
+most, at the end of your **next drive** for tyre pressure. Recorded history
+keeps the old bad values; only new readings are correct.
+
+You can keep displaying whatever unit you prefer. **Settings → Devices &
+services → Entities →** the entity **→ ⚙ → Unit of measurement** is safe again.
+
 ## Stream authorization failing (MQTT rc=5)
 
 <a id="stream-authorization-failing"></a>
