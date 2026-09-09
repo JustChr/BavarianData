@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.7] - 2026-09-09
+
 ### Fixed
 - **Sensor values no longer shrink a little more with every restart.** Home
   Assistant saves the value it *displayed*, not the one we reported, and the
