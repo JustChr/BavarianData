@@ -111,6 +111,71 @@ def test_enum_options_have_english_state_labels():
             assert option in states, f"{key} missing state label for {option}"
 
 
+UNITS = _load("units", "units.py")
+
+
+def test_every_catalogue_unit_is_one_the_project_can_name():
+    """A unit missing from ``units.py`` costs a device class, silently.
+
+    ``generate_metadata.device_and_state_class`` matches the canonical string
+    exactly, and an unrecognised unit is passed through unchanged -- so it
+    matches nothing and the descriptor loses its device class *and* its state
+    class, taking unit conversion and long-term statistics with it. Nothing in
+    the generated output looks wrong afterwards, which is why this is checked
+    against the raw catalogue rather than the metadata.
+    """
+
+    unknown = {
+        entry["unit"]: entry["descriptor"]
+        for entry in CATALOGUE["descriptors"]
+        if not UNITS.is_known(entry.get("unit"))
+    }
+    assert not unknown, (
+        f"catalogue.json uses unit(s) units.py does not recognise: {unknown}. "
+        "Add them to UNIT_ALIASES/CANONICAL_UNITS and decide in "
+        "tools/generate_metadata.py whether they classify."
+    )
+
+
+def test_generated_units_are_already_canonical():
+    """The registry must never carry a pass-through spelling."""
+
+    for descriptor, meta in META.items():
+        unit = meta["unit"]
+        if unit is None:
+            continue
+        assert unit in UNITS.CANONICAL_UNITS, f"{descriptor} has non-canonical unit {unit!r}"
+
+
+# The device classes that carry a feature rather than a label: conversion,
+# statistics, the Energy dashboard, the card's tyre view. Each is derived purely
+# from the descriptor's unit string, so a unit spelling change silently drops
+# it -- which reads to a user as "my sensors lost their history", with nothing
+# to point at. Same failure shape as issue #6.
+UNIT_CRITICAL_DEVICE_CLASSES = {
+    "vehicle.chassis.axle.row1.wheel.left.tire.pressure": "pressure",
+    "vehicle.chassis.axle.row2.wheel.right.tire.pressureTarget": "pressure",
+    "vehicle.vehicle.travelledDistance": "distance",
+    "vehicle.drivetrain.batteryManagement.header": "battery",
+    "vehicle.drivetrain.batteryManagement.maxEnergy": "energy_storage",
+    "vehicle.powertrain.electric.battery.charging.power": "power",
+    "vehicle.drivetrain.electricEngine.charging.acVoltage": "voltage",
+    "vehicle.drivetrain.electricEngine.charging.acAmpere": "current",
+    "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.overall.fuel": "volume_storage",
+    "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.targetTemperature": "temperature",
+}
+
+
+def test_unit_critical_device_classes_survive_regeneration():
+    for descriptor, device_class in UNIT_CRITICAL_DEVICE_CLASSES.items():
+        assert descriptor in META, f"{descriptor} vanished from the catalogue"
+        assert META[descriptor]["device_class"] == device_class, (
+            f"{descriptor} lost device_class {device_class!r} "
+            f"(now {META[descriptor]['device_class']!r}) -- check its unit in "
+            "catalogue.json against units.py."
+        )
+
+
 def test_device_class_units_are_consistent():
     # A pinned device class must carry a unit (except duration which HA infers).
     unit_required = {

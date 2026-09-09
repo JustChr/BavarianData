@@ -9,6 +9,29 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **BMW's unit spellings are now canonicalised in one place instead of two.**
+  The catalogue export and the live stream do not use the same vocabulary — the
+  export says `percent`, `Celsius`, `degrees`, `l`; the stream says `kpa` for
+  the very descriptors the catalogue calls `kPa`. There was a translation table
+  for each side, and only the build-time one had been filled in (24 entries
+  against the runtime's one), so stream spellings reached entities and
+  diagnostics unnormalised. Both sides now share
+  `custom_components/bavariandata/units.py`. Visible effect is small — GPS
+  latitude/longitude/heading show `°` rather than `degrees` — and no sensor that
+  records long-term statistics changes unit, so no history is affected.
+
+### Fixed
+- **A future BMW catalogue update can no longer silently strip a sensor's device
+  class.** A descriptor's device class and state class are derived from its unit
+  string by exact match, and an unrecognised unit was passed through unchanged —
+  so a catalogue that spelled `kPa` as `kpa` would have turned all eight
+  tyre-pressure sensors into plain unclassified ones: no pressure device class,
+  no unit conversion, and no long-term statistics, with nothing in the build
+  saying so. The generator now refuses to run on a unit it cannot name, tests
+  pin the device classes that carry a feature, and the whole unit vocabulary is
+  covered by tests for the first time.
+
 ## [0.9.7] - 2026-09-09
 
 ### Fixed

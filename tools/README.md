@@ -27,6 +27,16 @@ descriptor's, or if a German name is missing.
 `translation_key` from a descriptor and is shared by the generators and the
 runtime entities so they can never drift.
 
+`units.py` is shared the same way, and for the same reason. **Step 2 stops with
+an error if the catalogue uses a unit it does not recognise** — that is
+deliberate, not an obstacle to work around. A descriptor's device class and
+state class are derived from its unit string by an exact match, so an
+unrecognised spelling (`kpa` for `kPa`, say) silently produces a sensor with no
+device class, no unit conversion and no long-term statistics, and nothing in the
+output looks wrong afterwards. Add the spelling to `UNIT_ALIASES` in
+`custom_components/bavariandata/units.py`, then check whether
+`device_and_state_class` should classify it.
+
 `tests/test_catalogue.py` checks the outputs stay consistent (every descriptor
 has metadata + bilingual translations, enum options have labels, generators are
 idempotent). Run `python -m pytest tests/test_catalogue.py`.

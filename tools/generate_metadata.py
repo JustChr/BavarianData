@@ -42,32 +42,12 @@ def _load(name: str, path: Path):
 # and translation state labels are derived identically (see catalogue_enums.py).
 enum_options = _load("catalogue_enums", PKG / "catalogue_enums.py").enum_options
 
-# Raw catalogue unit -> Home Assistant canonical unit string.
-UNIT_CANONICAL = {
-    "": None,
-    "-": None,
-    "null": None,
-    "percent": "%",
-    "%": "%",
-    "celsius": "°C",
-    "Celsius": "°C",
-    "km": "km",
-    "km/h": "km/h",
-    "kW": "kW",
-    "kWh": "kWh",
-    "W": "W",
-    "V": "V",
-    "A": "A",
-    "kPa": "kPa",
-    "l": "L",
-    "min": "min",
-    "s": "s",
-    "h": "h",
-    "degrees": "°",
-    "weeks": "weeks",
-    "months": "months",
-    "stars": "stars",
-}
+# Unit canonicalisation is shared with the runtime (custom_components/.../units.py)
+# rather than duplicated here: two tables drift, and the drift is invisible --
+# the pipeline's had 24 entries and the runtime's had one.
+_units = _load("units", PKG / "units.py")
+canonical_unit = _units.normalize_unit
+unit_is_known = _units.is_known
 
 # Descriptors whose min/h unit denotes a clock component (hour/minute of day),
 # not a duration.
@@ -122,10 +102,6 @@ _OVERRIDES: dict[str, tuple[str | None, str | None, str | None]] = {
     # SoC, which only moves when a drive finishes (issue #6).
     "vehicle.drivetrain.batteryManagement.header": ("battery", "measurement", "%"),
 }
-
-
-def canonical_unit(raw: str) -> str | None:
-    return UNIT_CANONICAL.get(raw, raw or None)
 
 
 def parse_options(
@@ -217,8 +193,41 @@ def classify(entry: dict) -> dict:
     }
 
 
+def check_units(descriptors: list[dict]) -> None:
+    """Refuse to generate metadata from a unit this project cannot name.
+
+    ``device_and_state_class`` matches the canonical unit exactly, and an
+    unrecognised one is passed through unchanged -- so it matches nothing, and
+    the descriptor silently loses its device class *and* its state class, which
+    takes its unit conversion and its long-term statistics with it. That is a
+    one-letter catalogue change away (``kpa`` for ``kPa``) and would look to a
+    user like "my tyre pressure sensors lost their history", with nothing in the
+    build to point at. So it stops here instead, and adding the unit to
+    ``units.UNIT_ALIASES`` is the deliberate act of deciding what it means.
+    """
+
+    unknown: dict[str, list[str]] = {}
+    for entry in descriptors:
+        raw = entry.get("unit")
+        if not unit_is_known(raw):
+            unknown.setdefault(raw, []).append(entry["descriptor"])
+    if not unknown:
+        return
+    report = "\n".join(
+        f"  {raw!r} on {len(ds)} descriptor(s), e.g. {ds[0]}" for raw, ds in unknown.items()
+    )
+    raise SystemExit(
+        "Unrecognised unit(s) in catalogue.json:\n"
+        f"{report}\n"
+        "Add each to UNIT_ALIASES (or CANONICAL_UNITS) in "
+        "custom_components/bavariandata/units.py, and check whether "
+        "device_and_state_class here should classify it."
+    )
+
+
 def main() -> None:
     data = json.loads(CATALOGUE_FILE.read_text(encoding="utf-8"))
+    check_units(data["descriptors"])
     meta = {e["descriptor"]: classify(e) for e in data["descriptors"]}
 
     # Ordered slug -> human label for each cluster/section, in the catalogue's

@@ -92,7 +92,21 @@ def test_the_native_unit_is_what_gets_recorded() -> None:
 
     assert restore_units.restore_native("250", "kPa", "kPa") == ("250", "kPa")
     assert restore_units.restore_native("250", "percent", "%") == ("250", "%")
-    assert restore_units.restore_native("250", "kpa", None) == ("250", "kpa")
+    # A payload spelling is canonicalised on the way in (units.py), so an
+    # unclassified sensor records "kPa" rather than the stream's "kpa".
+    assert restore_units.restore_native("250", "kpa", None) == ("250", "kPa")
+
+
+def test_a_spelling_difference_is_not_a_unit_difference() -> None:
+    """``kpa`` off the stream and ``kPa`` from the catalogue are one unit.
+
+    Before the tables were merged these compared unequal, which would have made
+    the restore rule discard a value that needed no conversion at all.
+    """
+
+    assert restore_units.units_agree("kpa", "kPa") is True
+    assert restore_units.restore_native("250", "kpa", "kPa") == ("250", "kPa")
+    assert restore_units.restore_native("20", "celsius", "°C") == ("20", "°C")
 
 
 # --------------------------------------------------------------------------
