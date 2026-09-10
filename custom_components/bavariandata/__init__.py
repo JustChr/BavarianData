@@ -417,10 +417,19 @@ async def _async_register_frontend_card(hass: HomeAssistant) -> None:
 
     from homeassistant.components.http import StaticPathConfig
 
-    await hass.http.async_register_static_paths(
-        [StaticPathConfig(LOVELACE_CARD_URL, card_path, cache_headers=False)]
-    )
+    # Claim before the first await. Home Assistant sets up every entry of this
+    # domain concurrently, so with two accounts a second entry would otherwise
+    # pass the check above while the first is still registering, add the same
+    # route again and fail its setup.
     _FRONTEND_REGISTERED = True
+    try:
+        await hass.http.async_register_static_paths(
+            [StaticPathConfig(LOVELACE_CARD_URL, card_path, cache_headers=False)]
+        )
+    except Exception:
+        # Release the claim so reloading the entry can try again.
+        _FRONTEND_REGISTERED = False
+        raise
 
     # Cache-bust on integration version so browsers pick up card updates.
     # Read the manifest off the event loop — open() is a blocking call.
