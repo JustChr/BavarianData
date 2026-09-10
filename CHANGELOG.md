@@ -9,6 +9,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **With two BMW accounts, one of them no longer fails to set up after a restart.**
+  Home Assistant starts all config entries at the same time, and both registered the
+  bundled card's static route; the second hit `RuntimeError: Added route will never be
+  executed, method GET is already registered` and stayed unavailable until it was
+  reloaded by hand. The registration is now claimed before its first await.
+
 ## [0.9.8-beta.1] - 2026-09-09
 
 ### Changed
