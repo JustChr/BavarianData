@@ -21,6 +21,7 @@ outage does for a scripted number of attempts.
 from __future__ import annotations
 
 import asyncio
+import logging
 import math
 import socket
 import sys
@@ -179,8 +180,8 @@ class _Network:
         self._manager._client = _ConnectedClient(self.registry, self._manager)
 
 
-def _manager_behind(*, failures: float, connect_time: float = 0.0):
-    manager = _STREAM.CardataStreamManager(
+def _new_manager():
+    return _STREAM.CardataStreamManager(
         hass=_FakeHass(),
         client_id="client-id",
         gcid="gcid",
@@ -190,6 +191,10 @@ def _manager_behind(*, failures: float, connect_time: float = 0.0):
         keepalive=30,
         config_entry=_FakeConfigEntry(),
     )
+
+
+def _manager_behind(*, failures: float, connect_time: float = 0.0):
+    manager = _new_manager()
     network = _Network(manager, failures, connect_time)
     manager._start_client = network.start_client
     return manager, network
@@ -525,6 +530,101 @@ def test_a_retry_left_by_a_failed_connect_does_not_open_a_second_stream(instant_
     max_live, live, attempts = asyncio.run(scenario())
 
     assert (max_live, live, attempts) == (1, 1, 2)
+
+
+# -- Logging -----------------------------------------------------------------
+
+
+def _refuse_like_a_dns_outage(self, host, port=1883, keepalive=60, *args, **kwargs):
+    raise socket.gaierror(-3, "Try again")
+
+
+class _ScriptedBroker:
+    """Follows a script, one step per connection attempt.
+
+    ``"outage"`` runs the stream's real ``_start_client``, whose paho connect is
+    patched to fail the way it does without DNS, so its own logging is exercised.
+    ``"accept"`` connects and confirms the CONNACK on a thread of its own.
+    """
+
+    def __init__(self, manager, script: list[str]) -> None:
+        self._manager = manager
+        self._script = list(script)
+        self._real_start_client = manager._start_client
+        self.registry = _Registry()
+        self.confirmed = 0
+        self.client = None
+
+    def start_client(self) -> None:
+        if self._script.pop(0) == "outage":
+            self._real_start_client()
+            return
+        manager = self._manager
+        client = _ConnectedClient(self.registry, manager)
+        manager._client = client
+        self.client = client
+
+        def network_loop() -> None:
+            manager._handle_connect(
+                client, client._userdata, None, ReasonCode(PacketTypes.CONNACK, identifier=0)
+            )
+            self.confirmed += 1
+
+        threading.Thread(target=network_loop, daemon=True).start()
+
+
+def _stream_records(caplog, level: int) -> list[logging.LogRecord]:
+    return [
+        record
+        for record in caplog.records
+        if record.name == _STREAM.__name__ and record.levelno == level
+    ]
+
+
+def test_an_outage_is_logged_once_and_so_is_its_recovery(instant_backoff, monkeypatch, caplog):
+    monkeypatch.setattr(_STREAM.mqtt.Client, "connect", _refuse_like_a_dns_outage)
+    caplog.set_level(logging.INFO, logger=_STREAM.__name__)
+
+    async def scenario():
+        manager = _new_manager()
+        broker = _ScriptedBroker(manager, ["outage"] * 5 + ["accept"])
+        manager._start_client = broker.start_client
+        manager._schedule_retry()
+        return await _eventually(lambda: broker.confirmed == 1)
+
+    assert asyncio.run(scenario())
+    assert len(_stream_records(caplog, logging.WARNING)) == 1
+    assert _stream_records(caplog, logging.ERROR) == []
+    assert len(_stream_records(caplog, logging.INFO)) == 1
+
+
+def test_every_new_outage_is_announced_again(instant_backoff, monkeypatch, caplog):
+    monkeypatch.setattr(_STREAM.mqtt.Client, "connect", _refuse_like_a_dns_outage)
+    caplog.set_level(logging.INFO, logger=_STREAM.__name__)
+
+    async def scenario():
+        manager = _new_manager()
+        broker = _ScriptedBroker(manager, ["outage", "outage", "accept", "outage", "outage", "accept"])
+        manager._start_client = broker.start_client
+        manager._schedule_retry()
+        first = await _eventually(lambda: broker.confirmed == 1)
+        client = broker.client
+        _from_the_network_thread(
+            lambda: manager._handle_disconnect(
+                client,
+                client._userdata,
+                None,
+                ReasonCode(PacketTypes.DISCONNECT, "Unspecified error"),
+            )
+        )
+        second = await _eventually(lambda: broker.confirmed == 2)
+        return first and second
+
+    assert asyncio.run(scenario())
+    # The first outage, the dropped connection, and the second outage.
+    assert len(_stream_records(caplog, logging.WARNING)) == 3
+    assert _stream_records(caplog, logging.ERROR) == []
+    assert len(_stream_records(caplog, logging.INFO)) == 2
 
 
 class _FlakyBroker:

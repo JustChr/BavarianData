@@ -87,6 +87,9 @@ class CardataStreamManager:
         # from _min_reconnect_interval up to _max_backoff. The attempt count only
         # starts over once a connection has stayed up for _stable_after seconds.
         self._backoff_attempt = 0
+        # Failed attempts in the current outage: its first failure and its
+        # recovery are logged, the attempts in between only at debug level.
+        self._connect_failures = 0
         self._max_backoff = 120.0
         self._stable_after = 60.0
         self._connected_at: Optional[float] = None
@@ -269,7 +272,9 @@ class CardataStreamManager:
         try:
             client.connect(self._host, self._port, keepalive=self._keepalive)
         except Exception as err:
-            _LOGGER.error("Unable to connect to BMW MQTT: %s", err)
+            # The caller reports failed attempts, once per outage.
+            if debug_enabled():
+                _LOGGER.debug("Unable to connect to BMW MQTT: %s", err)
             client.loop_stop()
             raise
         client.loop_start()
@@ -293,6 +298,11 @@ class CardataStreamManager:
             self.hass.loop.call_soon_threadsafe(self._cancel_retry)
             self._last_disconnect = None
             self._connected_at = time.monotonic()
+            if self._connect_failures:
+                _LOGGER.info(
+                    "BMW MQTT reconnected after %d failed attempts", self._connect_failures
+                )
+                self._connect_failures = 0
             if self._status_callback:
                 self._run_coro(self._status_callback("connected"))
         elif reason_code.value in (_RC_BAD_CREDENTIALS, _RC_NOT_AUTHORIZED):
@@ -397,9 +407,15 @@ class CardataStreamManager:
         self._schedule_retry()
 
     def _connect_failed(self, err: Exception) -> None:
-        """A connection attempt failed; recovery has to go on regardless."""
+        """A connection attempt failed: report the outage once and keep trying."""
 
-        _LOGGER.error("BMW MQTT connection attempt failed: %s", err)
+        if self._connect_failures == 0:
+            _LOGGER.warning("BMW MQTT unavailable, retrying with backoff: %s", err)
+        elif debug_enabled():
+            _LOGGER.debug(
+                "BMW MQTT connection attempt %d failed: %s", self._connect_failures + 1, err
+            )
+        self._connect_failures += 1
         self._schedule_retry()
 
     async def _handle_unauthorized(self) -> None:
