@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.8-beta.2] - 2026-09-11
+
 ### Fixed
 - **With two BMW accounts, one of them no longer fails to set up after a restart.**
   Home Assistant starts all config entries at the same time, and both registered the
