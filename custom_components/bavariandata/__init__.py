@@ -1948,7 +1948,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> 
         # before a reload would otherwise be lost.
         with suppress(Exception):
             await data.tyre.async_save_now()
-    await data.stream.async_stop()
+    await data.stream.async_shutdown()
     await data.session.close()
     remaining_entries = domain_data.get("_entries") or set()
     if not remaining_entries:

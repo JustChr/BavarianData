@@ -1,4 +1,4 @@
-"""The MQTT stream must keep trying to reconnect until the broker is reachable.
+"""The MQTT stream must recover from outages without ever running two clients.
 
 When BMW's broker drops the connection, ``_handle_disconnect`` schedules
 ``_async_reconnect``. Seen in the field: during a DNS outage that single attempt
@@ -6,11 +6,16 @@ failed with ``[Errno -3] Try again`` and nothing was scheduled after it, so the
 stream stayed disconnected for nine hours -- until Home Assistant restarted --
 although DNS was back within two.
 
+Recovery has to keep trying, but BMW allows one stream per account (the client
+id is the GCID): a second client makes the broker kick the first, and the two
+then push each other off indefinitely. So every test that lets connects overlap
+also counts the clients that are alive at the same time.
+
 The stream module imports Home Assistant only for type names, so the test stubs
 those and drives the real ``CardataStreamManager``. Only the network boundary is
-faked: ``_start_client`` (build the paho client and connect) fails the way a DNS
-outage does for a scripted number of attempts. ``asyncio.sleep`` is replaced in
-the stream module so backoff delays pass instantly.
+faked: ``_start_client`` (build the paho client and connect) runs on a real
+executor thread, takes as long as the scenario says, and fails the way a DNS
+outage does for a scripted number of attempts.
 """
 
 from __future__ import annotations
@@ -19,9 +24,13 @@ import asyncio
 import math
 import socket
 import sys
+import threading
+import time
 import types
 
 import pytest
+from paho.mqtt.packettypes import PacketTypes
+from paho.mqtt.reasoncodes import ReasonCode
 
 from .conftest import load_module
 
@@ -47,6 +56,8 @@ _REAL_SLEEP = asyncio.sleep
 
 @pytest.fixture
 def instant_backoff(monkeypatch):
+    """Let the stream module's backoff waits pass instantly."""
+
     fast_asyncio = types.ModuleType("asyncio")
     fast_asyncio.__dict__.update(vars(asyncio))
 
@@ -65,7 +76,7 @@ class _FakeHass:
         self.loop = asyncio.get_running_loop()
 
     async def async_add_executor_job(self, target, *args):
-        return target(*args)
+        return await self.loop.run_in_executor(None, target, *args)
 
 
 class _FakeConfigEntry:
@@ -75,32 +86,69 @@ class _FakeConfigEntry:
         return hass.loop.create_task(target, name=name)
 
 
+class _Registry:
+    """Counts paho clients that are connected and not yet stopped."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self.live = 0
+        self.max_live = 0
+
+    def opened(self) -> None:
+        with self._lock:
+            self.live += 1
+            self.max_live = max(self.max_live, self.live)
+
+    def closed(self) -> None:
+        with self._lock:
+            self.live -= 1
+
+
 class _ConnectedClient:
     """The paho client ``_start_client`` leaves behind; only a stop touches it."""
 
+    def __init__(self, registry: _Registry, manager) -> None:
+        self._registry = registry
+        self._manager = manager
+        self._userdata: dict = {}
+        self._stopped = False
+        registry.opened()
+
     def disconnect(self) -> None:
-        pass
+        # paho answers a requested disconnect with on_disconnect(rc 0).
+        self._manager._handle_disconnect(
+            self,
+            self._userdata,
+            None,
+            ReasonCode(PacketTypes.DISCONNECT, "Normal disconnection"),
+        )
 
     def loop_stop(self, force: bool = False) -> None:
-        pass
+        if not self._stopped:
+            self._stopped = True
+            self._registry.closed()
 
 
 class _Network:
-    """Refuses connection attempts like a DNS outage, then lets one through."""
+    """Refuses connection attempts like a DNS outage, then lets them through."""
 
-    def __init__(self, manager, failures: float) -> None:
+    def __init__(self, manager, failures: float, connect_time: float) -> None:
         self._manager = manager
         self._failures = failures
+        self._connect_time = connect_time
+        self.registry = _Registry()
         self.attempts = 0
 
     def start_client(self) -> None:
         self.attempts += 1
-        if self.attempts <= self._failures:
+        attempt = self.attempts
+        time.sleep(self._connect_time)
+        if attempt <= self._failures:
             raise socket.gaierror(-3, "Try again")
-        self._manager._client = _ConnectedClient()
+        self._manager._client = _ConnectedClient(self.registry, self._manager)
 
 
-def _manager_behind(*, failures: float):
+def _manager_behind(*, failures: float, connect_time: float = 0.0):
     manager = _STREAM.CardataStreamManager(
         hass=_FakeHass(),
         client_id="client-id",
@@ -111,7 +159,7 @@ def _manager_behind(*, failures: float):
         keepalive=30,
         config_entry=_FakeConfigEntry(),
     )
-    network = _Network(manager, failures)
+    network = _Network(manager, failures, connect_time)
     manager._start_client = network.start_client
     return manager, network
 
@@ -124,6 +172,17 @@ async def _eventually(condition, timeout: float = 2.0) -> bool:
             return False
         await asyncio.sleep(0.005)
     return True
+
+
+def _from_the_network_thread(target) -> None:
+    """Run ``target`` the way paho's callbacks do: on a thread of their own."""
+
+    thread = threading.Thread(target=target)
+    thread.start()
+    thread.join()
+
+
+# -- Recovery keeps trying ---------------------------------------------------
 
 
 def test_reconnect_keeps_trying_until_the_outage_is_over(instant_backoff):
@@ -162,6 +221,18 @@ def test_a_credential_update_during_an_outage_keeps_trying(
     assert attempts == 3
 
 
+def test_a_retry_scheduled_from_the_network_thread_connects(instant_backoff):
+    async def scenario():
+        manager, _network = _manager_behind(failures=0)
+        _from_the_network_thread(manager._schedule_retry)
+        return await _eventually(lambda: manager.client is not None)
+
+    assert asyncio.run(scenario())
+
+
+# -- A stop ends recovery ----------------------------------------------------
+
+
 def test_stopping_the_stream_ends_a_pending_reconnect(instant_backoff):
     async def scenario():
         manager, network = _manager_behind(failures=math.inf)
@@ -180,12 +251,14 @@ def test_stopping_the_stream_ends_a_pending_reconnect(instant_backoff):
     assert attempts_later == attempts_at_stop
 
 
-def test_a_retry_queued_before_a_stop_never_runs(instant_backoff):
+def test_a_retry_scheduled_from_the_network_thread_before_a_stop_never_runs(
+    instant_backoff,
+):
     async def scenario():
-        manager, network = _manager_behind(failures=math.inf)
-        # paho's network thread schedules a retry; the task is only created once
-        # the event loop gets to it, and the stop lands in between.
-        manager._schedule_retry(0)
+        manager, network = _manager_behind(failures=0)
+        # paho schedules the retry on its own thread; the task is only created
+        # once the event loop gets to it, and the stop lands in between.
+        _from_the_network_thread(manager._schedule_retry)
         await manager.async_stop()
         await asyncio.sleep(0.05)
         return network.attempts
@@ -193,16 +266,123 @@ def test_a_retry_queued_before_a_stop_never_runs(instant_backoff):
     assert asyncio.run(scenario()) == 0
 
 
-def test_stopping_during_the_reconnect_backoff_opens_no_connection():
+def test_a_retry_scheduled_after_shutdown_never_connects(instant_backoff):
     async def scenario():
-        manager, network = _manager_behind(failures=math.inf)
-        manager._reconnect_backoff = 0.05
-        manager._min_reconnect_interval = 0
-        reconnect = asyncio.get_running_loop().create_task(manager._async_reconnect())
-        await asyncio.sleep(0.01)  # the reconnect is now waiting out its backoff
-        await manager.async_stop()
-        await reconnect
-        await asyncio.sleep(0.1)
+        manager, network = _manager_behind(failures=0)
+        await manager.async_shutdown()
+        # A callback from the client that was just stopped can still arrive.
+        _from_the_network_thread(manager._schedule_retry)
+        await asyncio.sleep(0.05)
         return network.attempts
 
     assert asyncio.run(scenario()) == 0
+
+
+def test_a_credential_update_after_shutdown_opens_no_stream(instant_backoff):
+    async def scenario():
+        manager, network = _manager_behind(failures=0)
+        await manager.async_shutdown()
+        # A token refresh that was already in flight (a service call, the vehicle
+        # image) still hands its new token to the stream after the unload.
+        await manager.async_update_credentials(id_token="renewed-id-token")
+        await asyncio.sleep(0.05)
+        return network.attempts
+
+    assert asyncio.run(scenario()) == 0
+
+
+def test_stopping_before_the_first_retry_opens_no_connection():
+    async def scenario():
+        manager, network = _manager_behind(failures=math.inf)
+        manager._min_reconnect_interval = 0.05
+        reconnect = asyncio.get_running_loop().create_task(manager._async_reconnect())
+        await asyncio.sleep(0.01)  # the reconnect is now waiting to retry
+        await manager.async_stop()
+        await reconnect
+        await asyncio.sleep(0.15)
+        return network.attempts
+
+    assert asyncio.run(scenario()) == 0
+
+
+# -- Never two clients -------------------------------------------------------
+
+
+def test_a_pending_retry_and_a_credential_update_share_one_stream():
+    async def scenario():
+        manager, network = _manager_behind(failures=0, connect_time=0.3)
+        manager._min_reconnect_interval = 0.5
+        # A failed attempt left a retry pending when the refresh loop delivers a
+        # renewed token, just as the network comes back.
+        manager._schedule_retry()
+        await asyncio.sleep(0.05)
+        await manager.async_update_credentials(id_token="renewed-id-token")
+        await asyncio.sleep(1.0)
+        return network.registry.max_live, network.registry.live
+
+    max_live, live = asyncio.run(scenario())
+
+    assert max_live == 1
+    assert live == 1
+
+
+def test_a_credential_update_while_a_reconnect_waits_opens_one_stream():
+    async def scenario():
+        manager, network = _manager_behind(failures=0, connect_time=0.1)
+        manager._min_reconnect_interval = 0.3
+        # The broker dropped the connection and the reconnect waits to retry.
+        reconnect = asyncio.get_running_loop().create_task(manager._async_reconnect())
+        await asyncio.sleep(0.05)
+        await manager.async_update_credentials(id_token="renewed-id-token")
+        await reconnect
+        await asyncio.sleep(0.6)
+        return network.registry.max_live, network.registry.live
+
+    max_live, live = asyncio.run(scenario())
+
+    assert max_live == 1
+    assert live == 1
+
+
+def test_renewing_the_token_of_a_connected_stream_replaces_its_client(instant_backoff):
+    async def scenario():
+        manager, network = _manager_behind(failures=0)
+        await manager.async_start()
+        await manager.async_update_credentials(id_token="renewed-id-token")
+        await asyncio.sleep(0.05)
+        return network.registry.max_live, network.registry.live, network.attempts
+
+    max_live, live, attempts = asyncio.run(scenario())
+
+    assert (max_live, live, attempts) == (1, 1, 2)
+
+
+def test_a_retry_left_by_a_failed_connect_does_not_open_a_second_stream(instant_backoff):
+    async def scenario():
+        manager, network = _manager_behind(failures=1, connect_time=0.05)
+        # Setup: the connect after the token refresh fails and leaves a retry...
+        await manager.async_update_credentials(id_token="renewed-id-token")
+        # ...and setup, finding no client, connects directly.
+        await manager.async_start()
+        await asyncio.sleep(0.1)
+        return network.registry.max_live, network.registry.live, network.attempts
+
+    max_live, live, attempts = asyncio.run(scenario())
+
+    assert (max_live, live, attempts) == (1, 1, 2)
+
+
+def test_a_retry_due_while_a_credential_update_connects_opens_one_stream():
+    async def scenario():
+        manager, network = _manager_behind(failures=0, connect_time=0.4)
+        manager._min_reconnect_interval = 0.2
+        manager._schedule_retry()  # due before the update's connect finishes
+        await asyncio.sleep(0.1)
+        await manager.async_update_credentials(id_token="renewed-id-token")
+        await asyncio.sleep(1.0)
+        return network.registry.max_live, network.registry.live
+
+    max_live, live = asyncio.run(scenario())
+
+    assert max_live == 1
+    assert live == 1
