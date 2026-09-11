@@ -201,3 +201,29 @@ def test_failed_registration_lets_the_next_setup_retry(ha_http):
 
     assert attempts == 2
     assert len(_card_routes(hass)) == 1
+
+
+def test_cancelled_registration_lets_the_next_setup_retry(ha_http):
+    # ``asyncio.CancelledError`` is a ``BaseException``, not an ``Exception``. A
+    # setup cancelled inside the registration await must still release the claim,
+    # or every later setup returns early and the card is never served.
+    register_card = _load_register_card()["_async_register_frontend_card"]
+    hass = _FakeHass()
+    register_routes = hass.http.async_register_static_paths
+    attempts = 0
+
+    async def cancelled_on_first_attempt(configs) -> None:
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise asyncio.CancelledError
+        await register_routes(configs)
+
+    hass.http.async_register_static_paths = cancelled_on_first_attempt
+
+    with pytest.raises(asyncio.CancelledError):
+        asyncio.run(register_card(hass))
+    asyncio.run(register_card(hass))
+
+    assert attempts == 2
+    assert len(_card_routes(hass)) == 1

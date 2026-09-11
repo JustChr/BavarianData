@@ -14,7 +14,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   Home Assistant starts all config entries at the same time, and both registered the
   bundled card's static route; the second hit `RuntimeError: Added route will never be
   executed, method GET is already registered` and stayed unavailable until it was
-  reloaded by hand. The registration is now claimed before its first await.
+  reloaded by hand. The card is now registered exactly once, however many accounts
+  start together. Thanks to @netbasebe for tracking it down and fixing it (#9).
 
 ## [0.9.8-beta.1] - 2026-09-09
 

@@ -426,8 +426,10 @@ async def _async_register_frontend_card(hass: HomeAssistant) -> None:
         await hass.http.async_register_static_paths(
             [StaticPathConfig(LOVELACE_CARD_URL, card_path, cache_headers=False)]
         )
-    except Exception:
-        # Release the claim so reloading the entry can try again.
+    except BaseException:
+        # Release the claim so reloading the entry can try again. BaseException,
+        # not Exception: a setup cancelled mid-await must not leave the flag set,
+        # or the card stays unserved until Home Assistant restarts.
         _FRONTEND_REGISTERED = False
         raise
 
