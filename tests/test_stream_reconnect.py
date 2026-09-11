@@ -188,7 +188,7 @@ def _from_the_network_thread(target) -> None:
 def test_reconnect_keeps_trying_until_the_outage_is_over(instant_backoff):
     async def scenario():
         manager, network = _manager_behind(failures=3)
-        await manager._async_reconnect()
+        await manager._async_reconnect(manager.client)
         connected = await _eventually(lambda: manager.client is not None)
         return connected, network.attempts
 
@@ -236,7 +236,7 @@ def test_a_retry_scheduled_from_the_network_thread_connects(instant_backoff):
 def test_stopping_the_stream_ends_a_pending_reconnect(instant_backoff):
     async def scenario():
         manager, network = _manager_behind(failures=math.inf)
-        await manager._async_reconnect()
+        await manager._async_reconnect(manager.client)
         retrying = await _eventually(lambda: network.attempts >= 2)
         # What unloading or reloading the config entry does. A retry that
         # outlived it would open a second stream for the same account.
@@ -295,7 +295,7 @@ def test_stopping_before_the_first_retry_opens_no_connection():
     async def scenario():
         manager, network = _manager_behind(failures=math.inf)
         manager._min_reconnect_interval = 0.05
-        reconnect = asyncio.get_running_loop().create_task(manager._async_reconnect())
+        reconnect = asyncio.get_running_loop().create_task(manager._async_reconnect(manager.client))
         await asyncio.sleep(0.01)  # the reconnect is now waiting to retry
         await manager.async_stop()
         await reconnect
@@ -331,7 +331,7 @@ def test_a_credential_update_while_a_reconnect_waits_opens_one_stream():
         manager, network = _manager_behind(failures=0, connect_time=0.1)
         manager._min_reconnect_interval = 0.3
         # The broker dropped the connection and the reconnect waits to retry.
-        reconnect = asyncio.get_running_loop().create_task(manager._async_reconnect())
+        reconnect = asyncio.get_running_loop().create_task(manager._async_reconnect(manager.client))
         await asyncio.sleep(0.05)
         await manager.async_update_credentials(id_token="renewed-id-token")
         await reconnect
@@ -342,6 +342,116 @@ def test_a_credential_update_while_a_reconnect_waits_opens_one_stream():
 
     assert max_live == 1
     assert live == 1
+
+
+class _Broker:
+    """Accepts a connection only with a valid ID token, like BMW's broker.
+
+    It answers on a thread of its own, the way paho's network loop does. A
+    refused CONNACK (135, "not authorized") is followed by on_disconnect with
+    "Unspecified error", which is what paho 2.1 does after a refused connect.
+    """
+
+    def __init__(self, manager, valid_tokens: set[str]) -> None:
+        self._manager = manager
+        self._valid_tokens = valid_tokens
+        self.registry = _Registry()
+        self.attempts = 0
+        self.accepted = 0
+
+    def start_client(self) -> None:
+        self.attempts += 1
+        manager = self._manager
+        client = _ConnectedClient(self.registry, manager)
+        manager._client = client
+        accepted = manager._password in self._valid_tokens
+
+        def network_loop() -> None:
+            if accepted:
+                self.accepted += 1
+                manager._handle_connect(
+                    client, client._userdata, None, ReasonCode(PacketTypes.CONNACK, identifier=0)
+                )
+                return
+            manager._handle_connect(
+                client, client._userdata, None, ReasonCode(PacketTypes.CONNACK, identifier=135)
+            )
+            manager._handle_disconnect(
+                client,
+                client._userdata,
+                None,
+                ReasonCode(PacketTypes.DISCONNECT, "Unspecified error"),
+            )
+
+        threading.Thread(target=network_loop, daemon=True).start()
+
+
+def _manager_with_broker(*, valid_tokens: set[str]):
+    manager, _network = _manager_behind(failures=0)
+    broker = _Broker(manager, valid_tokens)
+    manager._start_client = broker.start_client
+    return manager, broker
+
+
+def test_a_refused_login_followed_by_a_renewed_token_leaves_one_stream(instant_backoff):
+    async def scenario():
+        manager, broker = _manager_with_broker(valid_tokens={"renewed-id-token"})
+
+        async def refresh_tokens(reason: str) -> None:
+            if reason == "unauthorized":
+                await manager.async_update_credentials(id_token="renewed-id-token")
+
+        manager._error_callback = refresh_tokens
+        await manager.async_start()  # with the ID token that has expired
+        connected = await _eventually(lambda: broker.accepted >= 1)
+        await asyncio.sleep(0.2)  # room for a second client to show up
+        return connected, broker.registry.max_live, broker.registry.live, broker.attempts
+
+    connected, max_live, live, attempts = asyncio.run(scenario())
+
+    assert connected
+    assert (max_live, live, attempts) == (1, 1, 2)
+
+
+def test_a_refused_login_stops_connecting_until_the_token_is_renewed(instant_backoff):
+    async def scenario():
+        manager, broker = _manager_with_broker(valid_tokens={"renewed-id-token"})
+
+        async def token_endpoint_unreachable(reason: str) -> None:
+            return
+
+        manager._error_callback = token_endpoint_unreachable
+        await manager.async_start()
+        await asyncio.sleep(0.3)
+        attempts_while_waiting = broker.attempts
+        await manager.async_update_credentials(id_token="renewed-id-token")
+        connected = await _eventually(lambda: broker.accepted >= 1)
+        return attempts_while_waiting, connected, broker.attempts
+
+    attempts_while_waiting, connected, attempts = asyncio.run(scenario())
+
+    assert attempts_while_waiting == 1
+    assert connected
+    assert attempts == 2
+
+
+def test_a_late_disconnect_of_a_replaced_client_leaves_the_new_one_alone(instant_backoff):
+    async def scenario():
+        manager, network = _manager_behind(failures=0)
+        await manager.async_start()
+        replaced = manager.client
+        await manager.async_update_credentials(id_token="renewed-id-token")
+        current = manager.client
+        # paho's on_disconnect for the replaced client scheduled a reconnect that
+        # only runs now, after the credential update connected the new client.
+        await manager._async_reconnect(replaced)
+        await asyncio.sleep(0.05)
+        return manager.client is current, network.attempts, network.registry.live
+
+    still_current, attempts, live = asyncio.run(scenario())
+
+    assert still_current
+    assert (attempts, live) == (2, 1)
 
 
 def test_renewing_the_token_of_a_connected_stream_replaces_its_client(instant_backoff):

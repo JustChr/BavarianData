@@ -373,14 +373,22 @@ class CardataStreamManager:
                 self._run_coro(self._status_callback("unauthorized", reason=reason))
         else:
             if should_reconnect:
-                self._run_coro(self._async_reconnect())
+                self._run_coro(self._async_reconnect(client))
             if self._status_callback:
                 self._run_coro(self._status_callback("disconnected", reason=reason))
 
-    async def _async_reconnect(self) -> None:
-        # Release the dropped client (paho would otherwise reconnect it on its
-        # own), then recover through the retry path like every other failure.
-        await self.async_stop()
+    async def _async_reconnect(self, client: Optional[mqtt.Client]) -> None:
+        """Recover from ``client`` losing its connection."""
+
+        async with self._connect_lock:
+            if self._client is not None and self._client is not client:
+                # This runs after paho's callback, by which time a credential
+                # update may already have replaced the dropped client. Stopping
+                # now would tear down the healthy connection that took its place.
+                return
+            # Release the dropped client (paho would otherwise reconnect it on
+            # its own), then recover through the retry path like any failure.
+            await self._async_stop_locked()
         self._schedule_retry()
 
     def _connect_failed(self, err: Exception) -> None:
