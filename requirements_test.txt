@@ -14,6 +14,7 @@
 # that pin; versioning-strategy in .github/dependabot.yml keeps it from
 # reopening the floors above every time one of them ships a release.
 aiohttp>=3.14.3
+paho-mqtt>=2.1.0
 pytest>=9.1.1
 PyYAML>=6.0.3
 syrupy>=6.1.1

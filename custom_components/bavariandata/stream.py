@@ -88,6 +88,9 @@ class CardataStreamManager:
         self._disconnect_future: Optional[asyncio.Future[None]] = None
         self._retry_backoff = 3
         self._retry_task: Optional[asyncio.Task] = None
+        # Bumped by every stop. A retry scheduled before a stop must not outlive
+        # it, or a reload would end up with two streams for one account.
+        self._stop_generation = 0
         self._min_reconnect_interval = 10.0
         self._connect_lock = asyncio.Lock()
 
@@ -144,6 +147,7 @@ class CardataStreamManager:
                 if debug_enabled():
                     _LOGGER.debug("Error stopping BMW MQTT loop: %s", err)
         self._last_disconnect = time.monotonic()
+        self._stop_generation += 1
         self._cancel_retry()
 
     @property
@@ -350,12 +354,19 @@ class CardataStreamManager:
 
     async def _async_reconnect(self) -> None:
         await self.async_stop()
+        generation = self._stop_generation
         await asyncio.sleep(self._reconnect_backoff)
+        if generation != self._stop_generation:
+            # Stopped (unloaded, reloaded) or restarted with new credentials
+            # while backing off; connecting now would open a second stream.
+            return
         try:
             await self.async_start()
         except Exception as err:
             _LOGGER.error("BMW MQTT reconnect failed: %s", err)
             self._reconnect_backoff = min(self._reconnect_backoff * 2, self._max_backoff)
+            # A transient failure (DNS or network down) must not end recovery.
+            self._schedule_retry(self._reconnect_backoff)
         else:
             self._reconnect_backoff = 5
 
@@ -415,6 +426,7 @@ class CardataStreamManager:
                             "BMW MQTT reconnect failed after credential refresh: %s",
                             err,
                         )
+                        self._schedule_retry(self._reconnect_backoff)
             return
 
         if self._client:
@@ -437,6 +449,7 @@ class CardataStreamManager:
             await self.async_start()
         except Exception as err:
             _LOGGER.error("BMW MQTT reconnect failed after credential update: %s", err)
+            self._schedule_retry(self._reconnect_backoff)
 
     async def async_update_token(self, id_token: Optional[str]) -> None:
         await self.async_update_credentials(id_token=id_token)
@@ -454,8 +467,10 @@ class CardataStreamManager:
         delay = max(delay, self._retry_backoff, self._min_reconnect_interval)
         self._retry_backoff = min(self._retry_backoff * 2, 30)
         self._last_disconnect = time.monotonic()
+        generation = self._stop_generation
 
         async def _retry() -> None:
+            failed = False
             try:
                 await asyncio.sleep(delay)
                 if self._client is None:
@@ -473,20 +488,28 @@ class CardataStreamManager:
                         await self._async_start_locked()
             except asyncio.CancelledError:
                 return
-            except Exception as err:  # pragma: no cover - defensive logging
+            except Exception as err:
                 _LOGGER.error("BMW MQTT retry failed: %s", err)
+                failed = True
             finally:
                 self._retry_task = None
+            if failed:
+                # A failed attempt must not end recovery: schedule the next one,
+                # backing off further each time. Stopping the stream ends the chain.
+                self._schedule_retry(0)
 
         # _schedule_retry runs on paho's network thread; hop to the event loop
         # to create the task so it is registered against the config entry
         # (cancelled on unload) and its exceptions surface via Home Assistant.
-        self.hass.loop.call_soon_threadsafe(self._spawn_retry_task, _retry())
+        self.hass.loop.call_soon_threadsafe(self._spawn_retry_task, _retry(), generation)
 
-    def _spawn_retry_task(self, coro: Coroutine[Any, Any, Any]) -> None:
+    def _spawn_retry_task(self, coro: Coroutine[Any, Any, Any], generation: int) -> None:
         # Re-check on the loop thread (the authoritative one) so two disconnects
-        # racing in from the network thread can't spawn duplicate retries.
-        if self._retry_task is not None and not self._retry_task.done():
+        # racing in from the network thread can't spawn duplicate retries, and a
+        # retry scheduled before the stream was stopped since is dropped.
+        if generation != self._stop_generation or (
+            self._retry_task is not None and not self._retry_task.done()
+        ):
             coro.close()
             return
         self._retry_task = self._config_entry.async_create_background_task(

@@ -41,6 +41,7 @@ from .const import (
     DEFAULT_STREAM_HOST,
     DEFAULT_STREAM_PORT,
     DEFAULT_REFRESH_INTERVAL,
+    TOKEN_REFRESH_RETRY_DELAY,
     DOMAIN,
     MQTT_KEEPALIVE,
     DIAGNOSTIC_LOG_INTERVAL,
@@ -2128,9 +2129,15 @@ async def _refresh_loop(
     manager: CardataStreamManager,
     container_manager: Optional[CardataContainerManager],
 ) -> None:
+    # This loop renews the ID token the stream authenticates with, and restarts a
+    # stopped stream through ``async_update_credentials``. Nothing reports an
+    # exception that escapes a background task, so no failed refresh may end it:
+    # retry well within the token's one-hour lifetime, backing off while it fails.
+    delay = DEFAULT_REFRESH_INTERVAL
+    retry_delay = TOKEN_REFRESH_RETRY_DELAY
     try:
         while True:
-            await asyncio.sleep(DEFAULT_REFRESH_INTERVAL)
+            await asyncio.sleep(delay)
             try:
                 await _refresh_tokens(
                     entry,
@@ -2138,8 +2145,20 @@ async def _refresh_loop(
                     manager,
                     container_manager,
                 )
-            except CardataAuthError as err:
-                _LOGGER.error("Token refresh failed: %s", err)
+            except Exception as err:  # pylint: disable=broad-except
+                if isinstance(err, CardataAuthError):
+                    _LOGGER.error(
+                        "Token refresh failed, retrying in %ss: %s", retry_delay, err
+                    )
+                else:
+                    _LOGGER.warning(
+                        "Token refresh failed, retrying in %ss: %s", retry_delay, err
+                    )
+                delay = retry_delay
+                retry_delay = min(retry_delay * 2, DEFAULT_REFRESH_INTERVAL)
+            else:
+                delay = DEFAULT_REFRESH_INTERVAL
+                retry_delay = TOKEN_REFRESH_RETRY_DELAY
     except asyncio.CancelledError:
         return
 

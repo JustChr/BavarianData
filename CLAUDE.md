@@ -56,7 +56,8 @@ python -m pytest tests/
 ```
 
 Deps: `requirements_test.txt` — light on purpose (aiohttp, pytest, PyYAML,
-plus a pinned `ruff`); nothing there pulls in Home Assistant. `tests/conftest.py`
+paho-mqtt so `stream.py` imports, plus a pinned `ruff`); nothing there pulls in
+Home Assistant. `tests/conftest.py`
 loads integration modules in isolation via a synthetic package so nothing
 imports Home Assistant — keep new test targets HA-import-free, or they won't be
 testable here. There is no HA test harness in this repo; config-flow/entity
