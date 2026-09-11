@@ -6,6 +6,7 @@ import asyncio
 import concurrent.futures
 import json
 import logging
+import random
 import ssl
 import time
 from typing import Any, Awaitable, Callable, Coroutine, Optional
@@ -82,11 +83,15 @@ class CardataStreamManager:
         self._unauthorized_retry_in_progress = False
         self._awaiting_new_credentials = False
         self._status_callback: Optional[Callable[[str, Optional[str]], Awaitable[None]]] = None
-        self._reconnect_backoff = 5
-        self._max_backoff = 300
+        # Retry delays: equal jitter on a ceiling that doubles per failed attempt
+        # from _min_reconnect_interval up to _max_backoff. The attempt count only
+        # starts over once a connection has stayed up for _stable_after seconds.
+        self._backoff_attempt = 0
+        self._max_backoff = 120.0
+        self._stable_after = 60.0
+        self._connected_at: Optional[float] = None
         self._last_disconnect: Optional[float] = None
         self._disconnect_future: Optional[asyncio.Future[None]] = None
-        self._retry_backoff = 3
         self._retry_task: Optional[asyncio.Task] = None
         # Bumped by every stop. A retry scheduled before a stop must not outlive
         # it, or a reload would end up with two streams for one account.
@@ -113,7 +118,6 @@ class CardataStreamManager:
                     )
                 await asyncio.sleep(delay)
         await self.hass.async_add_executor_job(self._start_client)
-        self._reconnect_backoff = 5
 
     async def async_stop(self) -> None:
         async with self._connect_lock:
@@ -284,9 +288,11 @@ class CardataStreamManager:
                 self._reauth_notified = False
                 self._awaiting_new_credentials = False
                 self._run_coro(self._notify_recovered())
-            self._cancel_retry()
+            # This runs on paho's network thread; the retry task has to be
+            # cancelled on the event loop, or the cancel can strand it.
+            self.hass.loop.call_soon_threadsafe(self._cancel_retry)
             self._last_disconnect = None
-            self._retry_backoff = 3
+            self._connected_at = time.monotonic()
             if self._status_callback:
                 self._run_coro(self._status_callback("connected"))
         elif reason_code.value in (_RC_BAD_CREDENTIALS, _RC_NOT_AUTHORIZED):
@@ -368,7 +374,6 @@ class CardataStreamManager:
                 self._schedule_retry()
                 return
             self._run_coro(self._handle_unauthorized())
-            self._reconnect_backoff = min(self._reconnect_backoff * 2, self._max_backoff)
             if self._status_callback:
                 self._run_coro(self._status_callback("unauthorized", reason=reason))
         else:
@@ -470,7 +475,6 @@ class CardataStreamManager:
         if self._retry_task and not self._retry_task.done():
             self._retry_task.cancel()
         self._retry_task = None
-        self._retry_backoff = 3
 
     def _schedule_retry(self) -> None:
         """Schedule the next connection attempt. Safe to call from any thread."""
@@ -489,9 +493,20 @@ class CardataStreamManager:
             self._retry_task is not None and not self._retry_task.done()
         ):
             return
-        delay = max(self._retry_backoff, self._min_reconnect_interval)
-        self._retry_backoff = min(self._retry_backoff * 2, 30)
-        self._last_disconnect = time.monotonic()
+        now = time.monotonic()
+        if self._connected_at is not None:
+            if now - self._connected_at >= self._stable_after:
+                self._backoff_attempt = 0
+            self._connected_at = None
+        ceiling = min(
+            self._max_backoff,
+            self._min_reconnect_interval * 2 ** min(self._backoff_attempt, 16),
+        )
+        # Equal jitter spreads out installations that lost the broker at the same
+        # moment, without ever retrying sooner than BMW accepts a reconnect.
+        delay = max(self._min_reconnect_interval, ceiling / 2 + random.uniform(0, ceiling / 2))
+        self._backoff_attempt += 1
+        self._last_disconnect = now
         # Registered against the config entry, so unloading cancels it.
         self._retry_task = self._config_entry.async_create_background_task(
             self.hass, self._async_retry(delay), f"{DOMAIN}_mqtt_retry"

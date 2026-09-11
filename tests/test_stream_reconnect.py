@@ -69,6 +69,37 @@ def instant_backoff(monkeypatch):
     monkeypatch.setattr(_STREAM, "asyncio", fast_asyncio)
 
 
+class _SimulatedClock:
+    """Time for the stream module: its sleeps return at once and advance the clock."""
+
+    def __init__(self) -> None:
+        self.now = 1000.0
+        self.sleeps: list[float] = []
+
+    def monotonic(self) -> float:
+        return self.now
+
+    async def sleep(self, delay, result=None):
+        self.sleeps.append(delay)
+        self.now += delay
+        await _REAL_SLEEP(0)
+        return result
+
+
+@pytest.fixture
+def simulated_clock(monkeypatch):
+    clock = _SimulatedClock()
+    clocked_asyncio = types.ModuleType("asyncio")
+    clocked_asyncio.__dict__.update(vars(asyncio))
+    clocked_asyncio.sleep = clock.sleep
+    monkeypatch.setattr(_STREAM, "asyncio", clocked_asyncio)
+    clocked_time = types.ModuleType("time")
+    clocked_time.__dict__.update(vars(time))
+    clocked_time.monotonic = clock.monotonic
+    monkeypatch.setattr(_STREAM, "time", clocked_time)
+    return clock
+
+
 class _FakeHass:
     """The slice of ``HomeAssistant`` the stream manager uses."""
 
@@ -175,11 +206,25 @@ async def _eventually(condition, timeout: float = 2.0) -> bool:
 
 
 def _from_the_network_thread(target) -> None:
-    """Run ``target`` the way paho's callbacks do: on a thread of their own."""
+    """Run ``target`` the way paho's callbacks do: on a thread of their own.
 
-    thread = threading.Thread(target=target)
+    An exception there would only be printed by the thread; re-raise it so the
+    test sees it.
+    """
+
+    errors: list[BaseException] = []
+
+    def run() -> None:
+        try:
+            target()
+        except BaseException as err:  # noqa: BLE001 - handed to the test
+            errors.append(err)
+
+    thread = threading.Thread(target=run)
     thread.start()
     thread.join()
+    if errors:
+        raise errors[0]
 
 
 # -- Recovery keeps trying ---------------------------------------------------
@@ -480,6 +525,136 @@ def test_a_retry_left_by_a_failed_connect_does_not_open_a_second_stream(instant_
     max_live, live, attempts = asyncio.run(scenario())
 
     assert (max_live, live, attempts) == (1, 1, 2)
+
+
+class _FlakyBroker:
+    """Refuses connects like a DNS outage for a while, then confirms them on its thread."""
+
+    def __init__(self, manager, failures: int) -> None:
+        self._manager = manager
+        self._failures = failures
+        self.registry = _Registry()
+        self.attempts = 0
+        self.confirmed = 0
+        self.client = None
+
+    def start_client(self) -> None:
+        self.attempts += 1
+        if self.attempts <= self._failures:
+            raise socket.gaierror(-3, "Try again")
+        manager = self._manager
+        client = _ConnectedClient(self.registry, manager)
+        manager._client = client
+        self.client = client
+
+        def network_loop() -> None:
+            manager._handle_connect(
+                client, client._userdata, None, ReasonCode(PacketTypes.CONNACK, identifier=0)
+            )
+            self.confirmed += 1
+
+        threading.Thread(target=network_loop, daemon=True).start()
+
+
+@pytest.mark.parametrize(
+    ("jitter", "expected"),
+    [
+        pytest.param(lambda low, high: low, [10, 10, 20, 40, 60, 60], id="shortest"),
+        pytest.param(lambda low, high: high, [10, 20, 40, 80, 120, 120], id="longest"),
+    ],
+)
+def test_retry_delays_back_off_between_the_floor_and_the_cap(
+    simulated_clock, monkeypatch, jitter, expected
+):
+    # Equal jitter: half of the ceiling is fixed, the other half random, and never
+    # below BMW's minimum reconnect interval of 10 s or above the 2-minute cap.
+    monkeypatch.setattr(_STREAM, "random", types.SimpleNamespace(uniform=jitter), raising=False)
+
+    async def scenario():
+        manager, _network = _manager_behind(failures=math.inf)
+        manager._schedule_retry()
+        await _eventually(lambda: len(simulated_clock.sleeps) >= 6)
+        await manager.async_stop()
+        return simulated_clock.sleeps[:6]
+
+    assert asyncio.run(scenario()) == expected
+
+
+@pytest.mark.parametrize(
+    ("uptime", "next_delay"),
+    [
+        pytest.param(61, 10, id="stayed-up-a-minute"),
+        pytest.param(1, 80, id="dropped-at-once"),
+    ],
+)
+def test_the_backoff_starts_over_only_after_a_connection_stayed_up(
+    simulated_clock, monkeypatch, uptime, next_delay
+):
+    monkeypatch.setattr(
+        _STREAM, "random", types.SimpleNamespace(uniform=lambda low, high: high), raising=False
+    )
+
+    async def scenario():
+        manager, _network = _manager_behind(failures=0)
+        broker = _FlakyBroker(manager, failures=2)
+        manager._start_client = broker.start_client
+        manager._schedule_retry()  # waits 10, 20, then 40 before the connect holds
+        await _eventually(lambda: broker.confirmed == 1)
+        simulated_clock.now += uptime
+        client = broker.client
+        _from_the_network_thread(
+            lambda: manager._handle_disconnect(
+                client,
+                client._userdata,
+                None,
+                ReasonCode(PacketTypes.DISCONNECT, "Unspecified error"),
+            )
+        )
+        await _eventually(lambda: len(simulated_clock.sleeps) >= 4)
+        await manager.async_stop()
+        return simulated_clock.sleeps[:4]
+
+    delays = asyncio.run(scenario())
+
+    assert delays == [10, 20, 40, next_delay]
+
+
+def test_a_connect_confirmed_on_the_network_thread_ends_the_pending_retry():
+    async def scenario():
+        manager, network = _manager_behind(failures=0)
+        manager._min_reconnect_interval = 0.1
+        manager._max_backoff = 0.1
+        manager._schedule_retry()
+        await asyncio.sleep(0.02)  # the retry task now waits
+        client = _ConnectedClient(network.registry, manager)
+        manager._client = client
+        # CONNACK arrives on paho's thread. asyncio's debug mode rejects
+        # cancelling the retry task from there.
+        _from_the_network_thread(
+            lambda: manager._handle_connect(
+                client, client._userdata, None, ReasonCode(PacketTypes.CONNACK, identifier=0)
+            )
+        )
+        await asyncio.sleep(0.3)
+        return network.attempts
+
+    outcome: dict = {}
+
+    def run_with_debug_checks() -> None:
+        try:
+            outcome["attempts"] = asyncio.run(scenario(), debug=True)
+        except BaseException as err:  # noqa: BLE001 - reported below
+            outcome["error"] = err
+
+    # A task cancelled from the wrong thread can be left waiting forever, which
+    # hangs asyncio.run; bound it so that shows up as a failure, not a stuck run.
+    runner = threading.Thread(target=run_with_debug_checks, daemon=True)
+    runner.start()
+    runner.join(timeout=5)
+
+    assert not runner.is_alive(), "the event loop hung after cancelling from paho's thread"
+    assert "error" not in outcome, outcome.get("error")
+    assert outcome["attempts"] == 0
 
 
 def test_a_retry_due_while_a_credential_update_connects_opens_one_stream():
