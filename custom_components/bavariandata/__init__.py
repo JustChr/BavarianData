@@ -42,6 +42,7 @@ from .const import (
     DEFAULT_STREAM_PORT,
     DEFAULT_REFRESH_INTERVAL,
     TOKEN_REFRESH_RETRY_DELAY,
+    TOKEN_REFRESH_RETRY_MAX,
     DOMAIN,
     MQTT_KEEPALIVE,
     DIAGNOSTIC_LOG_INTERVAL,
@@ -255,6 +256,8 @@ class CardataRuntimeData:
     session: aiohttp.ClientSession
     coordinator: CardataCoordinator
     container_manager: Optional[CardataContainerManager]
+    # Set to have the token-refresh loop refresh now instead of at its next turn.
+    refresh_wake: asyncio.Event
     history: Optional[HistoryStore] = None
     statistics: Optional[StatisticsPublisher] = None
     coverage: Optional[CoverageStore] = None
@@ -762,9 +765,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 ) from err
             raise ConfigEntryNotReady(f"Unable to connect to BMW MQTT: {err}") from err
 
+    refresh_wake = asyncio.Event()
     refresh_task = entry.async_create_background_task(
         hass,
-        _refresh_loop(hass, entry, session, manager, container_manager),
+        _refresh_loop(hass, entry, session, manager, container_manager, refresh_wake),
         f"{DOMAIN}_token_refresh",
     )
 
@@ -814,6 +818,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         session=session,
         coordinator=coordinator,
         container_manager=stored_container_manager,
+        refresh_wake=refresh_wake,
         history=history_store,
         statistics=statistics,
         coverage=coverage_store,
@@ -2074,6 +2079,17 @@ async def _handle_stream_error(hass: HomeAssistant, entry: CardataConfigEntry, r
                     entry.entry_id,
                     err,
                 )
+            except Exception as err:  # pylint: disable=broad-except
+                # The network failed, not the credentials: no reauth. Have the
+                # refresh loop retry soon, or the stream waiting for a new token
+                # would sit idle until the next regular refresh.
+                _LOGGER.warning(
+                    "Token refresh after unauthorized failed for entry %s, retrying: %s",
+                    entry.entry_id,
+                    err,
+                )
+                runtime.refresh_wake.set()
+                return
         else:
             runtime.reauth_pending = True
             _LOGGER.debug(
@@ -2122,22 +2138,33 @@ async def _handle_stream_error(hass: HomeAssistant, entry: CardataConfigEntry, r
         runtime.last_reauth_attempt = 0.0
 
 
+async def _wait_for_refresh(wake: asyncio.Event, delay: float) -> None:
+    """Wait ``delay`` seconds, or less when a refresh is requested sooner."""
+
+    with suppress(TimeoutError):
+        async with asyncio.timeout(delay):
+            await wake.wait()
+    wake.clear()
+
+
 async def _refresh_loop(
     hass: HomeAssistant,
     entry: ConfigEntry,
     session: aiohttp.ClientSession,
     manager: CardataStreamManager,
     container_manager: Optional[CardataContainerManager],
+    wake: asyncio.Event,
 ) -> None:
     # This loop renews the ID token the stream authenticates with, and restarts a
     # stopped stream through ``async_update_credentials``. Nothing reports an
     # exception that escapes a background task, so no failed refresh may end it:
     # retry well within the token's one-hour lifetime, backing off while it fails.
+    # ``wake`` lets a stream whose login was refused ask for a refresh right away.
     delay = DEFAULT_REFRESH_INTERVAL
     retry_delay = TOKEN_REFRESH_RETRY_DELAY
     try:
         while True:
-            await asyncio.sleep(delay)
+            await _wait_for_refresh(wake, delay)
             try:
                 await _refresh_tokens(
                     entry,
@@ -2155,7 +2182,7 @@ async def _refresh_loop(
                         "Token refresh failed, retrying in %ss: %s", retry_delay, err
                     )
                 delay = retry_delay
-                retry_delay = min(retry_delay * 2, DEFAULT_REFRESH_INTERVAL)
+                retry_delay = min(retry_delay * 2, TOKEN_REFRESH_RETRY_MAX)
             else:
                 delay = DEFAULT_REFRESH_INTERVAL
                 retry_delay = TOKEN_REFRESH_RETRY_DELAY

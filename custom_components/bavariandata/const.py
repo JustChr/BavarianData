@@ -10,10 +10,12 @@ BASIC_DATA_ENDPOINT = "/customers/vehicles/{vin}/basicData"
 DEFAULT_STREAM_HOST = "customer.streaming-cardata.bmwgroup.com"
 DEFAULT_STREAM_PORT = 9000
 DEFAULT_REFRESH_INTERVAL = 45 * 60  # How often to refresh the auth tokens in seconds
-# First retry after a failed token refresh, in seconds; doubles per failure up to
-# DEFAULT_REFRESH_INTERVAL. The ID token lives one hour, so the renewal must not
+# A failed token refresh is retried after TOKEN_REFRESH_RETRY_DELAY seconds,
+# doubling per failure up to TOKEN_REFRESH_RETRY_MAX. The ID token lives one hour,
+# and a stream whose login BMW refused waits for the renewal, so the retry must not
 # wait for the next regular refresh.
 TOKEN_REFRESH_RETRY_DELAY = 60
+TOKEN_REFRESH_RETRY_MAX = 5 * 60
 MQTT_KEEPALIVE = 30
 DEBUG_LOG = False
 DIAGNOSTIC_LOG_INTERVAL = 30  # How often we print stream logs in seconds
