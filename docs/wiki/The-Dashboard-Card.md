@@ -134,6 +134,10 @@ type: custom:bavariandata-card
 view: efficiency
 ```
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-efficiency.png" alt="Efficiency and range card: real range now at the current charge, how far that is under the car's own prediction, the measured consumption with the side of the charger and the window it used, the usable capacity and where it came from, and a bar chart of consumption by month" width="360" />
+</p>
+
 It shows the real range from here (and on a full battery), how that compares
 with the car's own remaining-range prediction, the measured consumption with the
 side of the charger and the window it came from, the measured charging loss where

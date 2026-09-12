@@ -550,8 +550,14 @@ def driving_summary(
         # Battery-side, from the trips that carried a usable figure -- comparable
         # with the car's own display, and consistent with the per-trip rows.
         "avg_consumption_kwh_per_100km": avg_consumption,
-        # Grid-side, from the charging ledger -- the headline, and the one that
-        # survives a missed drive or a month of nothing but short hops.
+        # From the charging ledger -- the headline, and the one that survives a
+        # missed drive or a month of nothing but short hops. Its side is
+        # whichever the ledger can actually measure (``SIDE_AUTO``): grid when a
+        # measured grid figure exists, battery otherwise, and the ``source`` key
+        # says which. Do not describe it as grid-side -- on an install with no
+        # grid figure it is battery-side, the same quantity the trip average
+        # measures, which is exactly why the card prints the pair only when the
+        # balance really is grid-side.
         "energy_balance": balance,
         "best_trip": _trip_ref(best),
         "worst_trip": _trip_ref(worst),

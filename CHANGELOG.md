@@ -9,6 +9,28 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.9-beta.4] - 2026-09-12
+
+### Fixed
+- **Distances are whole kilometres again.** Home Assistant stamps two decimals on
+  any sensor whose unit it can convert, so the card's headline read
+  **"379.00 km"** — and the only cure was for every user to set the precision by
+  hand, entity by entity. Ranges, the odometer and the lifetime reference
+  distances now declare whole kilometres, which is the resolution BMW streams
+  them at.
+- **The car's own remaining range is now a properly classified sensor.** BMW
+  ships `kombiRemainingElectricRange` with an empty unit ("Remaining electric
+  range in km or mi"), so it arrived with no unit, no device class and no
+  statistics — and the card's range tile, which looks for a distance, could not
+  see the one range worth showing. It was only classified at all on installs
+  where a restored state happened to carry "km". Now pinned to km / distance /
+  measurement, next to the odometer override that exists for the same reason.
+
+### Changed
+- The month summary's `energy_balance` is documented as what it is: grid-side
+  when a measured grid figure exists, battery-side otherwise, with `source`
+  saying which. It was described in the code as always grid-side.
+
 ## [0.9.9-beta.3] - 2026-09-12
 
 ### Fixed

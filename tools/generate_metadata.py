@@ -101,6 +101,19 @@ _OVERRIDES: dict[str, tuple[str | None, str | None, str | None]] = {
     # class at all -- leaving the card's gauge to fall back to the *trip-end*
     # SoC, which only moves when a drive finishes (issue #6).
     "vehicle.drivetrain.batteryManagement.header": ("battery", "measurement", "%"),
+    # The remaining range on the car's own display -- the one range figure worth
+    # showing, and the one BMW ships with an empty unit ("Remaining electric
+    # range in km or mi"). Without this it comes out with no unit and no device
+    # class, so the card's range pick -- which filters on device class distance
+    # -- cannot see it at all, and picks one of the two impostors beside it: the
+    # estimate *during charging* or the range at the *target* state of charge.
+    # On this instance it was only classified at all because a restored state
+    # happened to carry "km".
+    "vehicle.drivetrain.electricEngine.kombiRemainingElectricRange": (
+        "distance",
+        "measurement",
+        "km",
+    ),
 }
 
 

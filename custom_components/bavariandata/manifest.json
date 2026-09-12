@@ -23,5 +23,5 @@
   "requirements": [
     "paho-mqtt>=2.1.0"
   ],
-  "version": "0.9.9-beta.3"
+  "version": "0.9.9-beta.4"
 }

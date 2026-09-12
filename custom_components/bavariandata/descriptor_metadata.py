@@ -1970,9 +1970,9 @@ DESCRIPTOR_META: dict[str, dict] = {
     'vehicle.drivetrain.electricEngine.kombiRemainingElectricRange': {
         "section": 'electric',
         "category": 'Range EV',
-        "device_class": None,
-        "state_class": None,
-        "unit": None,
+        "device_class": 'distance',
+        "state_class": 'measurement',
+        "unit": 'km',
         "options": [],
         "entity_category": None,
         "enabled_default": True,

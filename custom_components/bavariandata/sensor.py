@@ -140,6 +140,16 @@ class CardataSensor(CardataRestoreSensor):
                 if meta.get("unit"):
                     self._attr_native_unit_of_measurement = meta["unit"]
                     self._fixed_unit = True
+                if (
+                    device_class is SensorDeviceClass.DISTANCE
+                    and meta.get("unit") in ("km", "mi")
+                ):
+                    # BMW streams whole kilometres for every one of these -- a
+                    # range, an odometer, a trip length. Left unsaid, Home
+                    # Assistant stamps two decimals on any convertible unit and
+                    # the card's headline reads "379.00 km", which every user
+                    # then fixes by hand, entity by entity.
+                    self._attr_suggested_display_precision = 0
             elif options:
                 # Enum sensor: translated states come from the translation key.
                 self._attr_device_class = SensorDeviceClass.ENUM

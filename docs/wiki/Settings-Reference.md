@@ -64,6 +64,10 @@ Screen: **Configure → Solar & energy sources**. See
 [Charging history & cost → Where the energy came from](Feature-Charging-History-and-Cost)
 for what it does with these.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-solar-sources.png" alt="Solar and energy sources settings: PV power, grid power, optional house battery power, a switch for batteries that report positive while charging, and the value of your own solar per kWh" width="460" />
+</p>
+
 | Option | Values | Meaning |
 | --- | --- | --- |
 | **PV power** | sensor (power) | Total generation from your inverter(s). Required for any attribution. |
