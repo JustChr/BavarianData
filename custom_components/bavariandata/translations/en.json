@@ -206,7 +206,7 @@
       },
       "action_evcc_bridge": {
         "title": "evcc / wallbox bridge",
-        "description": "Publish this car's live state onto your MQTT broker so a charge controller can read it.\n\nThis is the one thing BavarianData has that evcc, openWB and friends do not: a **state of charge straight off BMW's stream, at no API cost**. Their own BMW integrations poll a vendor API on a timer and get rate-limited for it; this arrives as the car reports it, and spends none of your 50 daily requests.\n\nIt publishes through **Home Assistant's own MQTT integration**, so it lands on exactly the broker evcc already reads and there is no host, port or password to enter here. You need the MQTT integration set up first.\n\nPer vehicle, under `<prefix>/<VIN>/`: `soc`, `status` (evcc's A/B/C), `range`, `odometer`, `limitSoc`, `chargePower`, `plugged`, `charging`, `updated`, and `state` as one JSON document. **Anything the car doesn't report is not published** rather than sent as a zero — a charge controller acts on these numbers, so a wrong one is worse than a missing one. Everything is re-sent every five minutes even when unchanged, so a parked car's state of charge never goes stale on the broker.\n\nSwitching this off again removes what was published, so nothing keeps charging against a frozen state of charge.\n\nThe next screen gives you the evcc configuration to paste.",
+        "description": "Publish this car's live state onto your MQTT broker so a charge controller can read it.\n\nThis is the one thing BavarianData has that evcc, openWB and friends do not: a **state of charge straight off BMW's stream, at no API cost**. Their own BMW integrations poll a vendor API on a timer and get rate-limited for it; this arrives as the car reports it, and spends none of your 50 daily requests.\n\nIt publishes through **Home Assistant's own MQTT integration**, so it lands on exactly the broker evcc already reads and there is no host, port or password to enter here. You need the MQTT integration set up first.\n\nPer vehicle, under `PREFIX/VIN/`: `soc`, `status` (evcc's A/B/C), `range`, `odometer`, `limitSoc`, `chargePower`, `plugged`, `charging`, `updated`, and `state` as one JSON document. **Anything the car doesn't report is not published** rather than sent as a zero — a charge controller acts on these numbers, so a wrong one is worse than a missing one. Everything is re-sent every five minutes even when unchanged, so a parked car's state of charge never goes stale on the broker.\n\nSwitching this off again removes what was published, so nothing keeps charging against a frozen state of charge.\n\nThe next screen gives you the evcc configuration to paste.",
         "data": {
           "bridge_enabled": "Publish this car to MQTT",
           "bridge_topic_prefix": "Topic prefix",
@@ -214,7 +214,7 @@
         },
         "data_description": {
           "bridge_enabled": "Off by default: it puts the VIN and the car's state on a broker other things can read.",
-          "bridge_topic_prefix": "Topics become <prefix>/<VIN>/soc and so on. Leave it as bavariandata unless it clashes with something.",
+          "bridge_topic_prefix": "Topics become `PREFIX/VIN/soc` and so on. Leave it as bavariandata unless it clashes with something.",
           "bridge_retain": "Keep this on. It is what lets evcc find the state of charge the moment it starts, instead of waiting for the car to say something next — which on a parked car can be hours. Turn it off only if your broker refuses retained messages."
         }
       },

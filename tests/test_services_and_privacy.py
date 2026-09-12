@@ -110,6 +110,35 @@ def test_translations_contain_no_urls(lang: str, doc: dict) -> None:
     assert not urls, f"{lang}.json contains URL(s): {urls[:5]}"
 
 
+# hassfest's sibling rule to the URL one, and an easier trap to fall into: a
+# translation string may contain no HTML. Anything shaped like a tag counts, so
+# the natural way to write a placeholder -- <prefix>/<VIN>/soc -- fails the whole
+# integration's validation. Use a notation that does not look like markup
+# (PREFIX/VIN/soc). Caught here, after it had already gone out in a release.
+_HTML_LIKE = re.compile(r"<\s*/?\s*[A-Za-z][^<>]*>")
+
+
+@pytest.mark.parametrize("lang,doc", [("en", EN), ("de", DE)])
+def test_translations_contain_no_html(lang: str, doc: dict) -> None:
+    """hassfest rejects anything tag-shaped inside translation strings."""
+
+    found: list[str] = []
+
+    def walk(node, path: str = "") -> None:
+        if isinstance(node, dict):
+            for key, value in node.items():
+                walk(value, f"{path}.{key}" if path else key)
+        elif isinstance(node, str):
+            for match in _HTML_LIKE.findall(node):
+                found.append(f"{path}: {match}")
+
+    walk(doc)
+    assert not found, (
+        f"{lang}.json contains HTML-like text, which hassfest rejects: "
+        f"{found[:5]}. Write placeholders without angle brackets."
+    )
+
+
 # --------------------------------------------------------------------------
 # Identifiers that escape the diagnostics redaction
 # --------------------------------------------------------------------------

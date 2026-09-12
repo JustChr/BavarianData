@@ -9,6 +9,19 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.9-beta.6] - 2026-09-13
+
+### Fixed
+- **The bridge's settings screen failed Home Assistant's own validation.** Its
+  help text spelled the topic layout the obvious way — `<prefix>/<VIN>/soc` —
+  and hassfest rejects *any* translation string containing something tag-shaped,
+  which fails validation for the whole integration rather than for that one
+  string. Written as `PREFIX/VIN/soc` now. This is the same class of trap as the
+  no-URLs-in-translations rule, so it has the same answer: a test
+  (`test_translations_contain_no_html`) that catches it in CI before a release
+  does, proven to fail on the exact string that got through.
+
+
 ## [0.9.9-beta.5] - 2026-09-13
 
 ### Added
