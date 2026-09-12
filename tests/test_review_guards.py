@@ -740,3 +740,34 @@ def test_the_measured_charging_loss_comes_from_one_window() -> None:
             "The grid-side balance no longer reads the window the battery-side "
             "figure was measured over."
         )
+
+
+def test_the_real_range_entity_watches_the_figures_it_is_measured_against() -> None:
+    """A parked car must not be left showing what it knew at startup.
+
+    The profile is recomputed on two signals -- a charge landing and the SoC
+    estimate moving -- and neither fires for BMW's own remaining range or the
+    pack capacity, which arrive as plain stream messages. Measured on the live
+    instance after a restart: the entity held ``bmw_range_km: null`` while the
+    same call through ``get_efficiency`` answered 379 km, so the card's whole
+    comparison against BMW was missing and stayed missing, a parked car offering
+    neither signal that would refresh it.
+    """
+
+    tree = ast.parse((_PKG / "sensor.py").read_text(encoding="utf-8"))
+    cls = next(
+        n
+        for n in ast.walk(tree)
+        if isinstance(n, ast.ClassDef) and n.name == "CardataRealRangeSensor"
+    )
+    source = ast.unparse(cls)
+    assert "signal_update" in source, (
+        "The real-range entity no longer subscribes to signal_update: BMW's "
+        "range and the pack capacity would freeze at whatever they were when "
+        "the entity was created."
+    )
+    assert "EFFICIENCY_LIVE_DESCRIPTORS" in source, (
+        "The descriptor handler must filter on EFFICIENCY_LIVE_DESCRIPTORS -- "
+        "recomputing the profile walks every stored session, so doing it for "
+        "every message a car streams is a cost for nothing."
+    )

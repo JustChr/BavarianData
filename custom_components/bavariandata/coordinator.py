@@ -232,6 +232,19 @@ TRIP_CAPTURE_MAX_BYTES = 25 * 1024 * 1024
 # variant ever carries a real trip end.
 DESC_SEG_CAPTURE_PREFIX = "vehicle.trip.segment."
 
+# --- What the efficiency profile reads live --------------------------------
+# The measured consumption comes out of the charging ledger, but two of its
+# inputs arrive as ordinary stream messages: BMW's own remaining range (the
+# comparison the real-range entity and the card's efficiency view are built
+# around) and the pack capacity that consumption is divided into. Neither moves
+# the SoC estimate nor lands a history record, so anything that recomputes the
+# profile only on those two signals must also watch these -- otherwise it keeps
+# whatever it worked out when it was created, which right after a restart is
+# before either descriptor has arrived.
+DESC_BMW_RANGE = "vehicle.drivetrain.electricEngine.kombiRemainingElectricRange"
+DESC_MAX_ENERGY = "vehicle.drivetrain.batteryManagement.maxEnergy"
+EFFICIENCY_LIVE_DESCRIPTORS = (DESC_BMW_RANGE, DESC_MAX_ENERGY)
+
 # --- Stream-health repairs -------------------------------------------------
 # A diagnostics download turns "it doesn't work" into 30-second triage, but a
 # repair issue is what actually gets a stuck stream in front of the user. Both
@@ -1779,7 +1792,7 @@ class CardataCoordinator:
         tracking = self._soc_tracking.get(vin)
         if tracking is not None and tracking.max_energy_kwh:
             return tracking.max_energy_kwh
-        return self._battery_kwh(vin, "vehicle.drivetrain.batteryManagement.maxEnergy")
+        return self._battery_kwh(vin, DESC_MAX_ENERGY)
 
     def current_soc(self, vin: str) -> Optional[float]:
         """The best state of charge we have, live estimate first.
@@ -1804,9 +1817,7 @@ class CardataCoordinator:
         do with either car's efficiency.
         """
 
-        state = self.get_state(
-            vin, "vehicle.drivetrain.electricEngine.kombiRemainingElectricRange"
-        )
+        state = self.get_state(vin, DESC_BMW_RANGE)
         if state is None or state.value is None:
             return None
         try:

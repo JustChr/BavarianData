@@ -9,6 +9,20 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.9-beta.2] - 2026-09-12
+
+### Fixed
+- **The Real Range sensor no longer freezes at what it knew when Home Assistant
+  started.** It recomputed itself when a charge landed or the state of charge
+  moved — but the two figures it is measured *against*, the car's own
+  remaining-range prediction and the pack capacity, arrive as ordinary stream
+  messages that do neither. On a car parked after a restart, that left the
+  comparison against BMW missing from the sensor's attributes and from the card's
+  *Efficiency & range* view, and it stayed missing until the next drive or
+  charge. Found on a live instance: the sensor reported no BMW range at all while
+  the `get_efficiency` action, reading the same data a moment later, answered
+  379 km.
+
 ## [0.9.9-beta.1] - 2026-09-12
 
 ### Added

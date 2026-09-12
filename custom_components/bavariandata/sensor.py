@@ -23,7 +23,11 @@ from homeassistant.util import dt as dt_util
 from homeassistant.const import UnitOfLength
 
 from .const import DOMAIN, REQUEST_LIMIT
-from .coordinator import DESC_ODOMETER, CardataCoordinator
+from .coordinator import (
+    DESC_ODOMETER,
+    EFFICIENCY_LIVE_DESCRIPTORS,
+    CardataCoordinator,
+)
 from .descriptor_metadata import DESCRIPTOR_META, SECTIONS
 from .entity import CardataEntity
 from .history.health import MIN_SAMPLES, degradation_series, usable_capacity
@@ -1007,6 +1011,7 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
         super().__init__(coordinator, vin, "real_range")
         self._unsub_history = None
         self._unsub_soc = None
+        self._unsub_live = None
         self._cached: Optional[Dict[str, Any]] = None
 
     @property
@@ -1070,6 +1075,14 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
         self._unsub_soc = async_dispatcher_connect(
             self.hass, self._coordinator.signal_soc_estimate, self._handle_update
         )
+        # ...and the two figures it is measured *against* -- BMW's own range and
+        # the pack capacity -- move with neither: they are plain stream messages.
+        # Without this the first write after a restart, taken before the stream
+        # has delivered anything, is the last one a parked car ever gets, and the
+        # card's comparison against BMW silently disappears until the next charge.
+        self._unsub_live = async_dispatcher_connect(
+            self.hass, self._coordinator.signal_update, self._handle_descriptor
+        )
 
     async def async_will_remove_from_hass(self) -> None:
         if self._unsub_history:
@@ -1078,6 +1091,17 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
         if self._unsub_soc:
             self._unsub_soc()
             self._unsub_soc = None
+        if self._unsub_live:
+            self._unsub_live()
+            self._unsub_live = None
+
+    def _handle_descriptor(self, vin: str, descriptor: str) -> None:
+        # Every descriptor this car streams comes through here, and recomputing
+        # the profile walks every stored session -- so filter to the two the
+        # profile actually reads live before paying for it.
+        if descriptor not in EFFICIENCY_LIVE_DESCRIPTORS:
+            return
+        self._handle_update(vin)
 
     def _handle_update(self, vin: str) -> None:
         if vin != self.vin:
