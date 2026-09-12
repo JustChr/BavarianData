@@ -9,6 +9,40 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.8] - 2026-09-12
+
+The first stable release since 0.9.7. No code has changed since
+`v0.9.8-beta.2`: this promotes the two 0.9.8 betas unchanged, so everything
+below has already been running in the betas.
+
+### Breaking
+- **"Doors overall state" now reports a lowercase slug** (`SECURED` →
+  `secured`, displayed "Secured"). Automations that match the old ALL-CAPS text
+  silently stop matching — open the condition and re-pick the state from the
+  dropdown, which now offers the real values. This is the one disruptive part of
+  this release; it is what made the entity usable from the automation editor in
+  the first place.
+
+### Also in this release
+- **The streamed lock state is usable in automations, and the card follows it**
+  (0.9.8-beta.1). `Doors overall state` is the lock BMW actually streams —
+  `Doors lock` is REST-only and can sit stale for days on a 50-request budget —
+  but its values parsed as no enum at all, so the state picker offered only
+  *Unknown* and *Unavailable*. It is now a proper enum in both languages, the
+  card's central-lock tile prefers it, and trip capture watches it. Reported by
+  @nevryn ([#8](https://github.com/JustChr/BavarianData/issues/8)).
+- **Two BMW accounts start up together again** (0.9.8-beta.2). Home Assistant
+  sets all config entries up at once and both registered the bundled card's
+  static route, so the second entry failed on every restart and stayed
+  unavailable until reloaded by hand. Found and fixed by @netbasebe — the first
+  external code contribution ([#9](https://github.com/JustChr/BavarianData/pull/9)).
+- **BMW's unit spellings are canonicalised in one shared table** (0.9.8-beta.1),
+  and the catalogue pipeline now refuses to build on a unit it cannot name —
+  an unrecognised spelling used to strip a sensor's device class, unit
+  conversion and long-term statistics with nothing in the build saying so.
+
+See the beta sections below for the full detail of each.
+
 ## [0.9.8-beta.2] - 2026-09-11
 
 ### Fixed
