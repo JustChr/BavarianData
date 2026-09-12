@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.9-beta.1] - 2026-09-12
+
 ### Added
 - **How far the car really goes — measured, not predicted.** A new **Real
   Range** sensor divides the usable battery capacity by the consumption your own
