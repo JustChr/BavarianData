@@ -37,6 +37,7 @@ you add the card to a dashboard yourself. It has several views:
 - [Battery health](Feature-Battery-Health) — how usable capacity is learned
 - [Efficiency & real range](Feature-Efficiency-and-Range) — measured consumption, and how far it reaches
 - [Trips / driving journal](Feature-Trips) — and the Fahrtenbuch caveat
+- [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge) — hand your state of charge to a charge controller, at no API cost
 - [Energy dashboard & long-term statistics](Feature-Energy-and-Statistics)
 - [Export (CSV / HTML report)](Feature-Export)
 - [Events & automation blueprints](Feature-Automations)

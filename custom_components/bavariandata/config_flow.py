@@ -28,6 +28,7 @@ from homeassistant.helpers.network import NoURLAvailableError, get_url
 
 from . import async_manual_refresh_tokens
 from .container import CardataContainerError
+from .evcc import BridgeConfig, bridge_payloads, evcc_yaml
 from .const import (
     DEBUG_LOG,
     DEFAULT_HISTORY_RETAIN_MONTHS,
@@ -36,6 +37,11 @@ from .const import (
     OPTION_BATTERY_POWER_ENTITY,
     OPTION_BATTERY_POWER_INVERT,
     OPTION_CHARGING_LOSS_PERCENT,
+    DEFAULT_BRIDGE_PREFIX,
+    DEFAULT_BRIDGE_RETAIN,
+    OPTION_BRIDGE_ENABLED,
+    OPTION_BRIDGE_PREFIX,
+    OPTION_BRIDGE_RETAIN,
     OPTION_DEBUG_LOG,
     OPTION_GRID_ENERGY_ENTITY,
     OPTION_GRID_POWER_ENTITY,
@@ -782,6 +788,10 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         self._config_entry = config_entry
         self._reauth_client_id: Optional[str] = None
+        # Carried between the bridge step and the snippet screen that follows it,
+        # so the snippet describes the settings just submitted rather than the
+        # ones still on disk.
+        self._bridge_options: Optional[Dict[str, Any]] = None
         self._init_activator_state()
 
     async def async_step_init(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
@@ -803,6 +813,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 "action_fetch_image",
                 "action_charging_costs",
                 "action_energy_sources",
+                "action_evcc_bridge",
                 "action_trips",
                 "action_debug_logging",
             ],
@@ -1175,6 +1186,134 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         if runtime is not None:
             runtime.coordinator.pricing = PricingConfig.from_options(options)
         return self.async_create_entry(title="", data=options)
+
+    async def async_step_action_evcc_bridge(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Publish the car's live state for a charge controller to read.
+
+        The one setting in this integration that *pushes* data to something
+        which then acts on it, which is why it is off by default and why
+        switching it off clears what was published rather than leaving evcc
+        charging against a state of charge frozen at that moment.
+        """
+
+        options = dict(self._config_entry.options)
+        was_enabled = bool(options.get(OPTION_BRIDGE_ENABLED))
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    OPTION_BRIDGE_ENABLED, default=was_enabled
+                ): selector.BooleanSelector(),
+                vol.Optional(
+                    OPTION_BRIDGE_PREFIX,
+                    description={
+                        "suggested_value": options.get(OPTION_BRIDGE_PREFIX)
+                        or DEFAULT_BRIDGE_PREFIX
+                    },
+                ): selector.TextSelector(),
+                vol.Required(
+                    OPTION_BRIDGE_RETAIN,
+                    default=bool(
+                        options.get(OPTION_BRIDGE_RETAIN, DEFAULT_BRIDGE_RETAIN)
+                    ),
+                ): selector.BooleanSelector(),
+            }
+        )
+
+        if user_input is None:
+            return self.async_show_form(
+                step_id="action_evcc_bridge", data_schema=schema
+            )
+
+        # Refuse to switch on a bridge with nowhere to publish. Tested on the
+        # *presence* of an MQTT config entry, not on it being loaded: "you have
+        # not set up MQTT" is unambiguous and actionable, while a broker that
+        # happens to be reconnecting is not the user's mistake to fix here.
+        if user_input.get(
+            OPTION_BRIDGE_ENABLED
+        ) and not self.hass.config_entries.async_entries("mqtt"):
+            return self.async_show_form(
+                step_id="action_evcc_bridge",
+                data_schema=schema,
+                errors={"base": "mqtt_missing"},
+            )
+
+        options.update(user_input)
+        runtime = self._get_runtime()
+        bridge = None if runtime is None else runtime.bridge
+        if bridge is not None:
+            if was_enabled and not options.get(OPTION_BRIDGE_ENABLED):
+                # Switched off: remove what we published. Otherwise a charge
+                # controller keeps charging against a state of charge that
+                # stopped updating the moment this checkbox was cleared -- the
+                # one genuinely dangerous failure mode of pushing data out.
+                await bridge.async_clear_all()
+            # Applied in place rather than by reloading the entry: BMW allows
+            # one concurrent stream per account, so a reload risks racing the
+            # reconnect (same reason as the energy-sources step).
+            bridge.apply_config(BridgeConfig.from_options(options))
+            if bridge.enabled:
+                await bridge.async_publish_all(force=True)
+        self._bridge_options = options
+        return await self.async_step_evcc_snippet()
+
+    async def async_step_evcc_snippet(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Hand over the paste-ready evcc config, then save.
+
+        Shown here as well as through the ``get_evcc_config`` action because
+        this is the moment it is wanted: the user has just switched the bridge
+        on, and the next thing they do is edit ``evcc.yaml``.
+        """
+
+        options = getattr(self, "_bridge_options", None) or dict(
+            self._config_entry.options
+        )
+        if user_input is None:
+            return self.async_show_form(
+                step_id="evcc_snippet",
+                data_schema=vol.Schema({}),
+                description_placeholders={"snippet": self._evcc_snippet(options)},
+            )
+        return self.async_create_entry(title="", data=options)
+
+    def _evcc_snippet(self, options: Dict[str, Any]) -> str:
+        """Every known car as one evcc ``vehicles:`` block.
+
+        One ``vehicles:`` key however many cars: repeating the key in a single
+        YAML file is invalid and evcc refuses to start on it. Only topics that
+        are actually being published are referenced -- a plugin pointed at a
+        topic no message ever arrives on makes evcc log a read error on every
+        update cycle.
+        """
+
+        config = BridgeConfig.from_options(options)
+        runtime = self._get_runtime()
+        if not config.enabled or runtime is None:
+            return "(the bridge is switched off -- nothing is published)"
+        coordinator = runtime.coordinator
+        blocks = []
+        for vin in coordinator.data:
+            metadata = coordinator.device_metadata.get(vin, {})
+            blocks.append(
+                evcc_yaml(
+                    prefix=config.prefix,
+                    vin=vin,
+                    title=metadata.get("name") or coordinator.names.get(vin),
+                    capacity_kwh=coordinator.battery_capacity_kwh(vin),
+                    topics=tuple(bridge_payloads(coordinator.bridge_snapshot(vin)))
+                    or None,
+                )
+            )
+        if not blocks:
+            return "(no vehicle seen yet -- wait for the first stream message)"
+        joined = "\n".join(
+            block if index == 0 else block.split("\n", 1)[1]
+            for index, block in enumerate(blocks)
+        )
+        return joined.strip()
 
     async def async_step_action_trips(
         self, user_input: Optional[Dict[str, Any]] = None

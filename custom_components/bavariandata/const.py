@@ -164,3 +164,21 @@ HV_BATTERY_DESCRIPTORS = [
 # Response shapes for the mapping, telematic and basic-data endpoints are
 # documented in docs/reference/customer-api.swagger.json (BMW's own schema).
 
+
+# --- evcc / wallbox bridge -------------------------------------------------
+# Publish the car's live state onto Home Assistant's own MQTT broker so a charge
+# controller (evcc, openWB, a Node-RED flow) can read the state of charge we get
+# for free off BMW's stream instead of polling a rate-limited vendor API. Off by
+# default: it puts the VIN and the car's state on a broker other things can read,
+# which is the user's call to make, not ours.
+OPTION_BRIDGE_ENABLED = "bridge_enabled"
+# Topic root. Everything lands under "<prefix>/<vin>/..." -- see evcc.py, which
+# owns the layout and normalizes whatever the user types.
+OPTION_BRIDGE_PREFIX = "bridge_topic_prefix"
+DEFAULT_BRIDGE_PREFIX = "bavariandata"
+# Publish retained, so a charge controller that starts (or reconnects) after us
+# has the SoC immediately instead of waiting for the car to say something next --
+# which, on a parked car, can be hours. Overridable because a few brokers are
+# configured to refuse retained messages.
+OPTION_BRIDGE_RETAIN = "bridge_retain"
+DEFAULT_BRIDGE_RETAIN = True

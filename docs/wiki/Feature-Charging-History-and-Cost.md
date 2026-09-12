@@ -175,11 +175,19 @@ You then get, per vehicle:
 Energy is measured **at the battery**, so it's slightly below what the grid
 delivered. Two ways to reconcile:
 
-- **Wallbox sensor** — select your wallbox energy sensor
-  (`grid_energy_entity`) and that exact grid figure is used instead.
+- **Wallbox sensor** — select your wallbox's **cumulative** energy sensor
+  (`grid_energy_entity`) and that exact grid figure is used instead: it lands on
+  the session as a measured `grid_kwh`, feeds the monthly totals, the statistics
+  and the export, and is billed **as the charge proceeds**, so a dynamic tariff
+  still prices each kilowatt-hour at the rate in force when it arrived. A
+  reading that can't be right — a meter that reset, or one reporting less than
+  the pack absorbed or nearly twice it — is refused rather than believed, and
+  the session keeps its battery-side figure. Details and the failure cases:
+  [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge#inbound-your-wallboxs-meter-for-the-charging-history).
 - **Loss percentage** — otherwise gross the battery figure up by your charging
   losses (`charging_loss_percent`). It stays at **0 %** by default, because an
-  invented correction would look like a measurement.
+  invented correction would look like a measurement. With a wallbox meter bound
+  you don't need it: the loss becomes measured.
 
 A session charged while the price was briefly unknown is flagged `partial`
 rather than silently understated.

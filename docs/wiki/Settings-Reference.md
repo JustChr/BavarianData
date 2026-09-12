@@ -33,6 +33,7 @@ The menu labels below are exactly as they appear in the UI.
 | **Fetch vehicle image** | action ⚡ | " |
 | **Charging costs & history** | settings | Price source, retention, statistics — below. |
 | **Solar & energy sources** | settings | Where each charge's energy came from: PV, house battery, grid — below. |
+| **evcc / wallbox bridge** | settings | Publish the car's live state to MQTT for a charge controller — below. |
 | **Trips** | settings | Work zone, default type, commute stop tolerance, address resolution and route recording — below. |
 | **Debug logging** | settings | Verbose logging toggle — below. |
 
@@ -53,7 +54,7 @@ Screen: **Configure → Charging costs & history**. See
 | **Fixed price per kWh** | number | Price per kWh, when mode is `fixed`. Required in that mode. |
 | **Price entity** | sensor / input_number | Live price source (Tibber/Nordpool/aWATTar), when mode is `entity`. Sampled while charging. Required in that mode. |
 | **Currency** | text | Currency code for the cost entities. |
-| **Wallbox energy sensor** | sensor | Optional wallbox energy sensor; its exact grid figure replaces the battery-side estimate. |
+| **Wallbox energy sensor** | sensor | Optional. The wallbox's **cumulative** energy total (`total_increasing`, not a per-session counter). Its measured grid figure replaces the battery-side estimate in the session record, the monthly totals and the cost. Refused when it can't be right — see [the bridge page](Feature-evcc-and-Wallbox-Bridge#when-the-reading-is-refused). |
 | **Charging losses (%)** | 0–30 | Grosses the battery figure up by your losses. Default **0** (no invented correction). |
 | **Keep history for (months)** | 0–120 | How long to keep recorded sessions/trips. **0 = keep everything.** |
 | **Publish to long-term statistics** | on/off | Mirror history into the Energy dashboard. Turning it **off deletes** the published series. See [Energy & statistics](Feature-Energy-and-Statistics). |
@@ -83,6 +84,25 @@ all is read as **watts**.
 The pickers list sensors whose **device class is `power`**. If your own template
 sensor isn't offered, give it `device_class: power` (and a `unit_of_measurement`
 of `W` or `kW`) and it will appear.
+
+## evcc / wallbox bridge
+
+Screen: **Configure → evcc / wallbox bridge**. See
+[evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge) for the concepts, the
+topic table and the troubleshooting.
+
+Publishes the car's live state onto your MQTT broker so evcc, openWB or a
+Node-RED flow can read a state of charge that costs no
+[API quota](Feature-API-Quota). **Requires the MQTT integration** to be set up in
+Home Assistant — the bridge publishes through it, so there is no broker host or
+password to enter here. Switching it on shows a second screen with the
+ready-to-paste evcc configuration.
+
+| Option | Values | Meaning |
+| --- | --- | --- |
+| **Publish this car to MQTT** | on/off | Default **off**. It puts the VIN and the car's state on a broker other things can read. Switching it back off **removes** the published topics. |
+| **Topic prefix** | text | Topic root; everything lands under `<prefix>/<VIN>/`. Default `bavariandata`. Slashes are trimmed and an MQTT wildcard falls back to the default. |
+| **Publish retained** | on/off | Default **on**, and best left on: it is what lets evcc find the state of charge the moment it starts rather than waiting for the car to speak again. Turn off only for a broker that refuses retained messages. |
 
 ## Trips
 

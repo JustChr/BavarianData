@@ -87,6 +87,7 @@
           "action_fetch_image": "Fetch vehicle image",
           "action_charging_costs": "Charging costs & history",
           "action_energy_sources": "Solar & energy sources",
+          "action_evcc_bridge": "evcc / wallbox bridge",
           "action_trips": "Trips",
           "action_debug_logging": "Debug logging"
         }
@@ -179,7 +180,7 @@
           "price_fixed": "Only used when the price source is 'Fixed price'.",
           "price_entity": "Only used when the price source is 'Price entity'. Its state must be a price per kWh.",
           "price_currency": "ISO code shown on the cost sensors, e.g. EUR, GBP, CHF.",
-          "grid_energy_entity": "Optional. A measured grid figure always beats our battery-side estimate.",
+          "grid_energy_entity": "Optional. Your wallbox's cumulative energy total (one that only ever counts up, not a per-session counter that resets). Wh, kWh and MWh are handled; no unit at all is read as kWh. A measured grid figure always beats our battery-side estimate — and one that cannot be right, such as a house meter reading far more than the pack absorbed, is ignored rather than believed.",
           "charging_loss_percent": "Optional. Grosses battery-side energy up towards grid energy.",
           "history_retain_months": "0 keeps everything. Sessions older than this are discarded.",
           "statistics_import": "Mirrors energy, cost and distance into statistics you can add to the Energy dashboard. Stays local; turning it off deletes them again."
@@ -202,6 +203,24 @@
           "battery_power_invert": "Many integrations publish battery power positive while charging. There is no way to tell from the value itself, so say which yours is.",
           "price_solar": "Leave empty to cost solar at the import price. Set it to your feed-in tariff to see what a charge really cost you."
         }
+      },
+      "action_evcc_bridge": {
+        "title": "evcc / wallbox bridge",
+        "description": "Publish this car's live state onto your MQTT broker so a charge controller can read it.\n\nThis is the one thing BavarianData has that evcc, openWB and friends do not: a **state of charge straight off BMW's stream, at no API cost**. Their own BMW integrations poll a vendor API on a timer and get rate-limited for it; this arrives as the car reports it, and spends none of your 50 daily requests.\n\nIt publishes through **Home Assistant's own MQTT integration**, so it lands on exactly the broker evcc already reads and there is no host, port or password to enter here. You need the MQTT integration set up first.\n\nPer vehicle, under `<prefix>/<VIN>/`: `soc`, `status` (evcc's A/B/C), `range`, `odometer`, `limitSoc`, `chargePower`, `plugged`, `charging`, `updated`, and `state` as one JSON document. **Anything the car doesn't report is not published** rather than sent as a zero — a charge controller acts on these numbers, so a wrong one is worse than a missing one. Everything is re-sent every five minutes even when unchanged, so a parked car's state of charge never goes stale on the broker.\n\nSwitching this off again removes what was published, so nothing keeps charging against a frozen state of charge.\n\nThe next screen gives you the evcc configuration to paste.",
+        "data": {
+          "bridge_enabled": "Publish this car to MQTT",
+          "bridge_topic_prefix": "Topic prefix",
+          "bridge_retain": "Publish retained"
+        },
+        "data_description": {
+          "bridge_enabled": "Off by default: it puts the VIN and the car's state on a broker other things can read.",
+          "bridge_topic_prefix": "Topics become <prefix>/<VIN>/soc and so on. Leave it as bavariandata unless it clashes with something.",
+          "bridge_retain": "Keep this on. It is what lets evcc find the state of charge the moment it starts, instead of waiting for the car to say something next — which on a parked car can be hours. Turn it off only if your broker refuses retained messages."
+        }
+      },
+      "evcc_snippet": {
+        "title": "evcc configuration",
+        "description": "Add this to your `evcc.yaml` under a `vehicles:` key (merge it with any vehicles you already have — the key may only appear once):\n\n```\n{snippet}\n```\n\nevcc also needs to know your broker, in its own `mqtt:` section — the same one Home Assistant uses. Then assign the vehicle to a loadpoint and restart evcc.\n\nOnly the fields this car actually reports are listed: a plugin pointed at a topic that never gets a message makes evcc log a read error on every cycle. No `timeout` is set on purpose — the values are republished on a heartbeat, so a parked car keeps a valid state of charge instead of going blank.\n\nYou can fetch this again at any time with the **Get evcc configuration** action."
       },
       "action_trips": {
         "title": "Trips (driving journal)",
@@ -248,7 +267,8 @@
       "invalid_client_id": "Enter the BMW CarData Client ID.",
       "invalid_result": "That result couldn't be read. Run the Activate BMW data bookmarklet on the BMW portal's stream-setup page and paste exactly what it copied to your clipboard.",
       "price_required": "Enter a fixed price per kWh, or choose a different price source.",
-      "price_entity_required": "Pick the entity that reports your price per kWh, or choose a different price source."
+      "price_entity_required": "Pick the entity that reports your price per kWh, or choose a different price source.",
+      "mqtt_missing": "The bridge publishes through Home Assistant's MQTT integration, and you don't have one set up. Add it under Settings → Devices & services (the Mosquitto broker add-on is the usual choice), then come back."
     },
     "abort": {
       "reauth_started": "Authorization restarted. Finish the new login from the notification that just appeared.",
@@ -2963,6 +2983,20 @@
     "get_efficiency": {
       "name": "Get efficiency and real range",
       "description": "Return measured consumption (kWh/100 km), the real range it implies at the current state of charge, the charging loss between the grid and the battery, and a month-by-month efficiency trend. Everything is derived from the charging ledger, so it costs no BMW API quota.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN. Defaults to the single configured vehicle."
+        }
+      }
+    },
+    "get_evcc_config": {
+      "name": "Get evcc configuration",
+      "description": "Return the evcc 'custom' vehicle configuration for this car, ready to paste into evcc.yaml, along with the MQTT topics the bridge publishes and which of them are currently live. Reads local state only, so it costs no BMW API quota.",
       "fields": {
         "entry_id": {
           "name": "Config entry",

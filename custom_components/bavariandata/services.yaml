@@ -139,6 +139,15 @@ get_efficiency:
       example: WBAEXAMPLE0000000
       selector:
         text:
+get_evcc_config:
+  fields:
+    entry_id:
+      selector:
+        text:
+    vin:
+      example: WBAEXAMPLE0000000
+      selector:
+        text:
 set_trip_class:
   fields:
     entry_id:

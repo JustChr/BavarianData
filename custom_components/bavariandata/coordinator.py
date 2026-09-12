@@ -43,6 +43,7 @@ from .history.pricing import (
     billable_energy,
     resolve_cost,
 )
+from .evcc import BridgeSnapshot
 from .history.energy_mix import (
     SOURCE_PV,
     MixAccumulator,
@@ -244,6 +245,17 @@ DESC_SEG_CAPTURE_PREFIX = "vehicle.trip.segment."
 DESC_BMW_RANGE = "vehicle.drivetrain.electricEngine.kombiRemainingElectricRange"
 DESC_MAX_ENERGY = "vehicle.drivetrain.batteryManagement.maxEnergy"
 EFFICIENCY_LIVE_DESCRIPTORS = (DESC_BMW_RANGE, DESC_MAX_ENERGY)
+
+# --- What a charge controller is told (see bridge.py / evcc.py) ------------
+# The charging status is already handled by name in the message paths above;
+# named here because the bridge needs to know whether it has *ever* arrived,
+# which is a different question from what it currently says.
+DESC_CHARGE_STATUS = "vehicle.drivetrain.electricEngine.charging.status"
+# Is a cable in the car. Two spellings because cars stream different clusters:
+# the port boolean lives in "Charging Port", the connector status in
+# "Charging EV", and a given car may select either.
+DESC_PLUGGED = "vehicle.powertrain.tractionBattery.charging.port.anyPosition.isPlugged"
+DESC_CONNECTOR_STATUS = "vehicle.drivetrain.electricEngine.charging.connectorStatus"
 
 # --- Stream-health repairs -------------------------------------------------
 # A diagnostics download turns "it doesn't work" into 30-second triage, but a
@@ -558,6 +570,11 @@ class CardataCoordinator:
     # only between the resume and the first SoC reading that can measure what the
     # gap cost (see ``_apply_gap_credit``).
     _gap_credit_soc: Dict[str, float] = field(default_factory=dict, init=False)
+    # Where the bound wallbox meter stood when this session's cost was last
+    # billed. Separate from the builder's own first/last pair: that one spans the
+    # whole session and produces the record's ``grid_kwh``, this one is a cursor
+    # so no kilowatt-hour is billed twice.
+    _grid_meter_billed: Dict[str, float] = field(default_factory=dict, init=False)
     _trip_builders: Dict[str, TripBuilder] = field(default_factory=dict, init=False)
     # Cancel callbacks for the per-VIN stationary-close debounce timers.
     _trip_close_timers: Dict[str, Any] = field(default_factory=dict, init=False)
@@ -1198,12 +1215,28 @@ class CardataCoordinator:
 
         Sharing the integration step is deliberate: the curve, the energy and
         the cost then describe exactly the same samples and cannot disagree.
+
+        The bound wallbox meter rides the same step, and for the same reason.
+        Its advance over this interval is a *measured* grid delta for exactly
+        the window the battery-side increment covers, so it can be billed
+        directly -- which is what makes the setting's promise ("that exact grid
+        figure is used instead") true of the cost and not only of the total.
+        Billing the session's grid figure at close instead would price the whole
+        charge at whatever the tariff happened to be when the plug came out.
         """
 
         self._sample_power_curve(vin, now, power_w)
 
+        # One read of the wallbox meter, used twice: to bill this increment and
+        # to move the session's running total. ``_grid_meter_step`` advances the
+        # billing cursor, so it is called on its own line rather than inline --
+        # a side effect buried in an argument list is how one gets called twice.
+        meter_now = self._grid_meter_kwh()
+        metered_kwh = self._grid_meter_step(vin, meter_now)
         billable, _source = billable_energy(
-            battery_kwh=kwh, loss_percent=self.pricing.loss_percent
+            battery_kwh=kwh,
+            grid_kwh=metered_kwh,
+            loss_percent=self.pricing.loss_percent,
         )
         # One sample of the house's meters serves both the mix and the cost, so
         # the two can never describe different instants.
@@ -1212,6 +1245,30 @@ class CardataCoordinator:
         accumulator = self._session_costs.get(vin)
         if accumulator is not None:
             self._bill_split(accumulator, billable, split)
+        builder = self._session_builders.get(vin)
+        if builder is not None:
+            builder.note_grid_meter(meter_now)
+
+    def _grid_meter_step(
+        self, vin: str, meter_now: Optional[float]
+    ) -> Optional[float]:
+        """How far the wallbox meter has advanced since the last billed step.
+
+        ``None`` when there is nothing measured to bill -- no meter bound, the
+        first step of a session (the baseline has to be established before a
+        delta exists), or a meter that went backwards, which is a reset and not
+        a negative charge. In each case billing falls back to the battery-side
+        figure, exactly as it did before a meter was ever bound.
+        """
+
+        if meter_now is None:
+            return None
+        previous = self._grid_meter_billed.get(vin)
+        self._grid_meter_billed[vin] = meter_now
+        if previous is None:
+            return None
+        delta = meter_now - previous
+        return delta if delta > 0 else None
 
     def get_lifetime_energy_kwh(self, vin: str) -> Optional[float]:
         value = self._energy_lifetime_wh.get(vin)
@@ -1392,6 +1449,18 @@ class CardataCoordinator:
         )
         self._session_costs[vin] = CostAccumulator(currency=self.pricing.currency)
         self._session_mixes[vin] = MixAccumulator()
+        # Where the wallbox meter stood when the charge began. Taken here, at
+        # the transition, rather than at the first energy sample -- which can be
+        # minutes later, by which time the meter has already counted kilowatt-
+        # hours this session would then not be credited with. The billing cursor
+        # starts in the same place, so the very first increment is billed at the
+        # meter rather than being skipped for want of a baseline.
+        meter_at_open = self._grid_meter_kwh()
+        self._session_builders[vin].note_grid_meter(meter_at_open)
+        if meter_at_open is None:
+            self._grid_meter_billed.pop(vin, None)
+        else:
+            self._grid_meter_billed[vin] = meter_at_open
         # Snapshot straight away: a restart in the first five minutes of a charge
         # is exactly as likely as one in any other five, and an unsnapshotted
         # session is the thing this whole mechanism exists to prevent.
@@ -1464,6 +1533,7 @@ class CardataCoordinator:
         self._open_session_saved.pop(vin, None)
         self._restored_open_sessions.pop(vin, None)
         self._gap_credit_soc.pop(vin, None)
+        self._grid_meter_billed.pop(vin, None)
         self._cancel_restored_open_timer(vin)
         if self.history is None:
             return
@@ -1502,6 +1572,16 @@ class CardataCoordinator:
             self._energy_session_soc[vin] = _snapshot_float(
                 snapshot.get("soc_baseline")
             )
+            # Resume the billing cursor where the snapshot left it, so the
+            # kilowatt-hours the wallbox counted while we were away are not
+            # billed at whatever the tariff happens to be now. They still reach
+            # the record's ``grid_kwh`` -- the meter's own span covers the gap --
+            # which is the same division of labour the battery-side gap credit
+            # already makes: honest total, no invented price.
+            if builder.grid_meter_last is None:
+                self._grid_meter_billed.pop(vin, None)
+            else:
+                self._grid_meter_billed[vin] = builder.grid_meter_last
             saved_at = _snapshot_time(snapshot.get("saved_at")) or builder.last_sample_at
             self._open_session_saved[vin] = saved_at or now
 
@@ -1682,6 +1762,10 @@ class CardataCoordinator:
             return None
 
         energy_kwh = self.get_session_energy_kwh(vin)
+        # One last look at the wallbox meter. The final energy deltas and the
+        # close can be minutes apart on a charge that tapers, and those are
+        # kilowatt-hours the meter did count.
+        builder.note_grid_meter(self._grid_meter_kwh())
         session = builder.close(
             at or datetime.now(timezone.utc),
             soc_end=self._session_soc_percent(vin),
@@ -1825,6 +1909,80 @@ class CardataCoordinator:
         except (TypeError, ValueError):
             return None
         return value if value > 0 else None
+
+    def _plug_state(self, vin: str) -> Optional[bool]:
+        """Whether a cable is in the car, or ``None`` if the car doesn't say.
+
+        Two sources, because cars differ in which they stream: the charging-port
+        boolean is the direct answer, and BMW's connector status carries the same
+        fact in words for cars that stream the ``Charging EV`` cluster but not
+        the ``Charging Port`` one. ``ERROR`` is not treated as unplugged -- a
+        faulted connector is very much still in the socket.
+        """
+
+        state = self.get_state(vin, DESC_PLUGGED)
+        if state is not None and isinstance(state.value, bool):
+            return state.value
+        connector = self.get_state(vin, DESC_CONNECTOR_STATUS)
+        if connector is not None and isinstance(connector.value, str):
+            value = connector.value.strip().upper()
+            if value == "CONNECTED":
+                return True
+            if value == "DISCONNECTED":
+                return False
+        return None
+
+    def _charging_state(self, vin: str) -> Optional[bool]:
+        """Whether the car is charging, or ``None`` if it has never said.
+
+        The distinction matters here in a way it does not elsewhere: everywhere
+        else in this integration "not charging" is a safe default, but a charge
+        controller told ``status: A`` (not connected) may stop charging the car
+        it is plugged into. So a car that has never streamed a charging status
+        publishes no status at all rather than a confident negative.
+        """
+
+        if self.get_state(vin, DESC_CHARGE_STATUS) is None:
+            return None
+        tracking = self._soc_tracking.get(vin)
+        return None if tracking is None else tracking.charging_active
+
+    def bridge_snapshot(self, vin: str) -> BridgeSnapshot:
+        """This car as a charge controller sees it (see ``bridge.py``).
+
+        The SoC is the same figure the integration's own sensor and card show --
+        extrapolated while charging, the last reading otherwise -- so evcc can
+        never disagree with the dashboard about the percentage.
+
+        Charging power is published only when the car is known to be charging.
+        BMW's power reading *lingers at its final value* long after the plug
+        comes out (the charging ledger has the same problem and solves it with a
+        ceiling), so a parked car would otherwise advertise 11 kW forever.
+
+        ``updated`` is deliberately the last *measured* SoC, not "now": the
+        extrapolated figure is always current by construction, so quoting its
+        own freshness would tell a user nothing about whether to trust it.
+        """
+
+        tracking = self._soc_tracking.get(vin)
+        charging = self._charging_state(vin)
+        power_kw: Optional[float] = None
+        if charging is True:
+            power_w = self._charging_power_w.get(vin)
+            power_kw = None if power_w is None else max(power_w, 0.0) / 1000.0
+        elif charging is False:
+            power_kw = 0.0
+        return BridgeSnapshot(
+            vin=vin,
+            soc=self.current_soc(vin),
+            charging=charging,
+            plugged=self._plug_state(vin),
+            range_km=self.bmw_range_km(vin),
+            odometer_km=self._odometer_km(vin),
+            limit_soc=None if tracking is None else tracking.target_soc_percent,
+            charge_power_kw=power_kw,
+            updated=None if tracking is None else tracking.last_update,
+        )
 
     def efficiency(self, vin: str, *, months: int = TREND_MONTHS) -> Dict[str, Any]:
         """Measured consumption, the range it implies, and the seasonal trend.
@@ -3019,6 +3177,39 @@ class CardataCoordinator:
             return value * 1000.0
         if unit in ("mw",):
             return value * 1_000_000.0
+        return value
+
+    def _grid_meter_kwh(self) -> Optional[float]:
+        """The bound wallbox energy meter's cumulative total, in kWh.
+
+        The wallbox is the only thing in this integration that can *measure*
+        what a charge drew from the grid; everything else derives it. Read as a
+        running total and differenced over the session (see
+        ``sessions.measured_grid_kwh``) rather than trusting a per-session
+        counter, because a cumulative ``total_increasing`` energy sensor is what
+        every wallbox integration exposes and the only shape that survives a
+        Home Assistant restart mid-charge with its history intact.
+
+        Units are honoured -- Wh and MWh sensors are both common -- and a sensor
+        with no unit is taken as kWh, which the setting's own help text states
+        and is what an energy sensor without a unit almost always is.
+        """
+
+        entity_id = self.pricing.grid_energy_entity
+        if not entity_id:
+            return None
+        state = self.hass.states.get(entity_id)
+        if state is None or state.state in ("unknown", "unavailable", ""):
+            return None
+        try:
+            value = float(state.state)
+        except (TypeError, ValueError):
+            return None
+        unit = (state.attributes.get("unit_of_measurement") or "").strip().lower()
+        if unit == "wh":
+            return value / 1000.0
+        if unit == "mwh":
+            return value * 1000.0
         return value
 
     def _supply_shares(self) -> Optional[dict[str, float]]:

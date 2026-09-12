@@ -33,6 +33,8 @@ These read (or write) the integration's own store and cost **no** quota.
 | `bavariandata.get_charging_sessions` | Recorded charging sessions as response data. |
 | `bavariandata.get_trips` | Recorded trips as response data (endpoints as place names), plus any drive still under way. |
 | `bavariandata.get_driving_summary` | The month-in-review aggregation for trips. |
+| `bavariandata.get_efficiency` | Measured consumption, the real range it implies, the charging loss and the monthly trend — see below. |
+| `bavariandata.get_evcc_config` | The evcc `custom` vehicle configuration for a car, plus the bridge's MQTT topics — see below. |
 | `bavariandata.set_trip_class` | Corrects a trip's business/private/commute class. |
 | `bavariandata.export_history` | Returns a month as CSV or a printable HTML report. |
 | `bavariandata.get_coverage_report` | Descriptor-coverage self-test — see below. |
@@ -105,6 +107,28 @@ so it costs no BMW API quota.
 `status` says why a figure is missing: `ok`, `not_enough_history`, or
 `no_capacity`. See
 [Efficiency & real range](Feature-Efficiency-and-Range).
+
+### `get_evcc_config`
+`vin`. Returns the evcc configuration for one car, ready to paste into
+`evcc.yaml`, plus everything needed to debug the bridge. Reads local state only,
+so it costs no BMW API quota.
+
+- **`yaml`** — the `vehicles:` block, with your VIN, your topic prefix and the
+  car's pack size already filled in. Only the fields the car actually reports
+  are referenced, and **no `timeout`** is set (the bridge republishes on a
+  heartbeat instead).
+- **`enabled`** — whether the bridge is switched on. The YAML is generated
+  either way, but nothing is published while this is `false`.
+- **`mqtt_available`** — whether Home Assistant has a loaded MQTT integration to
+  publish through. `false` here is the first thing to check when nothing appears
+  on the broker.
+- **`topic_prefix`**, **`topics`** — the prefix in force and every topic the
+  bridge owns.
+- **`published_topics`** — the subset currently being published, i.e. what this
+  car actually reports. A `status` missing from this list means the car streams
+  no charging-port descriptor.
+
+See [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge).
 
 ### `set_trip_class`
 `vin`, `trip_id` (as returned by `get_trips`), `classification`

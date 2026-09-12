@@ -56,6 +56,74 @@ SOC_CEILING_MARGIN_PERCENT = 2.0
 SOC_SESSION_SKEW = timedelta(seconds=120)
 
 
+# --- The bound wallbox meter ----------------------------------------------
+# How far the meter's own delta may sit *below* the energy the pack absorbed
+# before the reading is rejected. Below 1.0 by physics: the grid cannot deliver
+# less than the battery took, so anything under the battery figure is either the
+# wrong entity or a meter that was not counting this car. The 10 % allowance is
+# for our own side of the comparison -- the battery figure is an integration of
+# a bursty power stream bounded by a whole-percent SoC ceiling, not a
+# measurement -- and not for real charging losses, which go the other way.
+GRID_METER_MIN_RATIO = 0.9
+# ...and how far above. AC charging losses run 5-15 %, more on a cold pack or a
+# trickle charge; 80 % is not a loss, it is a different meter. This is the check
+# that catches the commonest misconfiguration by far: binding the *house* import
+# meter instead of the wallbox's, which would otherwise inflate every cost in
+# the ledger by whatever else the house was doing.
+GRID_METER_MAX_RATIO = 1.8
+# Sessions this small are not worth cross-checking: on a 0.2 kWh top-up the
+# ratio test is dominated by the meter's own resolution.
+GRID_METER_MIN_KWH = 0.2
+
+
+def measured_grid_kwh(
+    meter_start: Optional[float],
+    meter_end: Optional[float],
+    *,
+    battery_kwh: Optional[float] = None,
+    cross_check: bool = True,
+) -> Optional[float]:
+    """What the bound wallbox meter says this charge drew, or ``None``.
+
+    ``grid_kwh`` is the one field in a record that is *measured* rather than
+    derived, and the whole ledger leans on that (cost, the efficiency layer's
+    grid-side balance, the CSV export). So it is only ever filled in from a
+    reading that survives every check available:
+
+    - Both ends must be present and the meter must have gone **up**. A
+      non-positive delta is a meter that reset, restarted at zero, or never
+      counted this car -- never a charge that drew nothing, because a session
+      only exists once charging was reported.
+    - It must be *physically consistent* with the energy the pack absorbed.
+      Deliver-less-than-absorbed is impossible; deliver nearly twice is a
+      different meter. See the ratio constants.
+
+    ``cross_check`` is turned off for a session whose own battery figure is
+    known to be a floor (``late_start`` / ``interrupted``): comparing against a
+    number that is admittedly short would reject exactly the measurements that
+    are most valuable, since the meter is the only thing that saw the part we
+    missed.
+    """
+
+    if meter_start is None or meter_end is None:
+        return None
+    delta = meter_end - meter_start
+    if delta <= 0:
+        return None
+    if (
+        cross_check
+        and battery_kwh is not None
+        and battery_kwh >= GRID_METER_MIN_KWH
+        and not (
+            battery_kwh * GRID_METER_MIN_RATIO
+            <= delta
+            <= battery_kwh * GRID_METER_MAX_RATIO
+        )
+    ):
+        return None
+    return round(delta, 3)
+
+
 # How stale a snapshotted in-progress session may be and still be picked up as
 # the *same* charge when Home Assistant comes back. A restart takes seconds and
 # an update a few minutes; beyond this the car has very likely been unplugged
@@ -209,6 +277,12 @@ class SessionBuilder:
         # should be recorded as having ended -- that has to be the last moment we
         # actually watched it charge, not whenever we noticed it had stopped.
         self.last_sample_at: Optional[datetime] = None
+        # The bound wallbox meter's own cumulative total, first and latest.
+        # Sampled rather than read once at each end so the figure survives a
+        # restart and so a charge that ends while the meter is briefly
+        # unavailable still has a usable last reading.
+        self.grid_meter_start: Optional[float] = None
+        self.grid_meter_last: Optional[float] = None
 
     def _offset(self, at: datetime) -> int:
         # Clock skew between BMW's timestamps and ours could put a sample before
@@ -247,6 +321,42 @@ class SessionBuilder:
         if soc is not None:
             self.soc_end = soc
 
+    def note_grid_meter(self, reading: Optional[float]) -> None:
+        """Record where the bound wallbox meter stands.
+
+        The *first* reading becomes the baseline and is never revised: a later
+        one would silently shorten the window the delta covers. A reading that
+        has gone backwards is a meter reset, and the session cannot be measured
+        across one -- so the baseline is dropped rather than producing a delta
+        that spans a discontinuity.
+        """
+
+        if reading is None:
+            return
+        if self.grid_meter_start is None:
+            self.grid_meter_start = reading
+        elif (
+            self.grid_meter_last is not None and reading < self.grid_meter_last
+        ):
+            self.grid_meter_start = None
+            self.grid_meter_last = None
+            return
+        self.grid_meter_last = reading
+
+    def measured_grid_kwh(self, *, battery_kwh: Optional[float] = None) -> Optional[float]:
+        """The meter's verdict on this session, or ``None`` if unusable.
+
+        The cross-check is skipped for a session whose battery-side energy is
+        itself admittedly a floor -- see :func:`measured_grid_kwh`.
+        """
+
+        return measured_grid_kwh(
+            self.grid_meter_start,
+            self.grid_meter_last,
+            battery_kwh=battery_kwh,
+            cross_check=not (self.late_start or self.interrupted),
+        )
+
     def to_dict(self) -> dict[str, Any]:
         """Snapshot the in-progress session so a restart cannot lose it.
 
@@ -271,6 +381,8 @@ class SessionBuilder:
             "last_offset": self._last_offset,
             "last_power": self._last_power,
             "last_sample_at": _iso(self.last_sample_at),
+            "grid_meter_start": self.grid_meter_start,
+            "grid_meter_last": self.grid_meter_last,
         }
 
     @classmethod
@@ -314,6 +426,11 @@ class SessionBuilder:
         builder._last_offset = None if last_offset is None else int(last_offset)
         builder._last_power = data.get("last_power")
         builder.last_sample_at = _parse(data.get("last_sample_at"))
+        # Absent from snapshots written before the wallbox meter was wired up;
+        # such a session simply gets no measured grid figure, which is the
+        # behaviour it already had.
+        builder.grid_meter_start = data.get("grid_meter_start")
+        builder.grid_meter_last = data.get("grid_meter_last")
         return builder
 
     def close(
@@ -360,4 +477,7 @@ class SessionBuilder:
             end_reason=reason,
             late_start=self.late_start,
             interrupted=self.interrupted,
+            # Measured, not derived: only ever set from the bound wallbox meter
+            # (or later, from BMW's own charging history during enrichment).
+            grid_kwh=self.measured_grid_kwh(battery_kwh=energy_kwh),
         )

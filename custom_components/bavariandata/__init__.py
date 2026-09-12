@@ -91,6 +91,8 @@ from .stream_activation import (
 )
 from .tyre_store import TyreStore
 from .history.backfill import StatisticsPublisher
+from .bridge import REPUBLISH_INTERVAL_S, VehicleBridge, async_clear_published
+from .evcc import ALL_TOPICS, BridgeConfig, bridge_payloads, evcc_yaml
 from .history.export import (
     MIME_CSV,
     MIME_HTML,
@@ -250,6 +252,7 @@ class CardataRuntimeData:
     statistics: Optional[StatisticsPublisher] = None
     coverage: Optional[CoverageStore] = None
     tyre: Optional[TyreStore] = None
+    bridge: Optional[VehicleBridge] = None
     bootstrap_task: asyncio.Task | None = None
     quota_manager: "QuotaManager" | None = None
     telematic_task: asyncio.Task | None = None
@@ -761,6 +764,50 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
 
     stored_container_manager = container_manager
 
+    # evcc / wallbox bridge. Publishes the live state of charge -- the one thing
+    # a charge controller cannot get cheaply -- onto Home Assistant's own MQTT
+    # broker, so evcc or openWB can charge on our zero-quota stream instead of
+    # polling a rate-limited vendor API. Off unless the user switched it on.
+    bridge = VehicleBridge(
+        hass, coordinator, config=BridgeConfig.from_options(options)
+    )
+
+    @callback
+    def _bridge_publish(vin: Any = None, _descriptor: Any = None) -> None:
+        # Two callers, two signatures: the SoC signal hands us a VIN, the
+        # descriptor signal a VIN and a descriptor. Defensive on the type so a
+        # third caller cannot turn a stray argument into a VIN.
+        bridge.async_schedule(vin if isinstance(vin, str) else None)
+
+    entry.async_on_unload(
+        async_dispatcher_connect(
+            hass, coordinator.signal_soc_estimate, _bridge_publish
+        )
+    )
+    entry.async_on_unload(
+        async_dispatcher_connect(hass, coordinator.signal_update, _bridge_publish)
+    )
+
+    @callback
+    def _bridge_heartbeat(_now: Any = None) -> None:
+        # Re-sends everything unchanged. A parked car streams nothing for days
+        # and its SoC is no less true for that, so without this a charge
+        # controller's staleness check would blank it -- see bridge.py.
+        entry.async_create_background_task(
+            hass, bridge.async_publish_all(force=True), f"{DOMAIN}_bridge"
+        )
+
+    entry.async_on_unload(
+        async_track_time_interval(
+            hass, _bridge_heartbeat, timedelta(seconds=REPUBLISH_INTERVAL_S)
+        )
+    )
+    # The MQTT integration may still be starting when we are, and the stream has
+    # usually delivered nothing yet either; both are settled by the time Home
+    # Assistant has finished starting.
+    entry.async_on_unload(async_at_started(hass, _bridge_heartbeat))
+    entry.async_on_unload(bridge.async_shutdown)
+
     runtime_data = CardataRuntimeData(
         stream=manager,
         refresh_task=refresh_task,
@@ -771,6 +818,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         statistics=statistics,
         coverage=coverage_store,
         tyre=tyre_store,
+        bridge=bridge,
         bootstrap_task=None,
         quota_manager=quota_manager,
         telematic_task=None,
@@ -1184,6 +1232,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 vol.Optional("vin"): str,
             }
         )
+        get_evcc_config_schema = get_efficiency_schema
         set_trip_class_schema = vol.Schema(
             {
                 vol.Optional("entry_id"): str,
@@ -1310,6 +1359,53 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             )
             profile["energy_mix"] = month_summary.get("energy_mix")
             return {"efficiency": profile, "vin": vin}
+
+        async def async_handle_get_evcc_config(call: Any) -> dict:
+            """The evcc ``custom`` vehicle block for this car, ready to paste.
+
+            Generated rather than documented as a static example, for the same
+            reason the Data Selection snippet is: it carries the user's own VIN,
+            their own topic prefix and their own pack size, so there is nothing
+            left to edit and get wrong. It also reports which topics are
+            actually live, because a plugin pointed at a topic that never gets a
+            message makes evcc log a read error on every update cycle.
+            """
+
+            target = _resolve_target(call)
+            if target is None:
+                raise ServiceValidationError("No BavarianData config entry found")
+            _entry_id, target_entry, runtime = target
+            coordinator = runtime.coordinator
+            vin = _default_vin(runtime, call.data.get("vin"))
+            if not vin:
+                raise ServiceValidationError(
+                    "No vehicle known yet -- wait for the first stream message"
+                )
+            bridge = runtime.bridge
+            config = (
+                bridge.config
+                if bridge is not None
+                else BridgeConfig.from_options(dict(target_entry.options))
+            )
+            live = tuple(bridge_payloads(coordinator.bridge_snapshot(vin)))
+            metadata = coordinator.device_metadata.get(vin, {})
+            return {
+                "vin": vin,
+                "enabled": config.enabled,
+                # Stated plainly: the snippet is useless without a broker, and
+                # this is the one thing a user cannot tell from the YAML itself.
+                "mqtt_available": bridge is not None and bridge.available(),
+                "topic_prefix": config.prefix,
+                "topics": [f"{config.prefix}/{vin}/{suffix}" for suffix in ALL_TOPICS],
+                "published_topics": list(live),
+                "yaml": evcc_yaml(
+                    prefix=config.prefix,
+                    vin=vin,
+                    title=metadata.get("name") or coordinator.names.get(vin),
+                    capacity_kwh=coordinator.battery_capacity_kwh(vin),
+                    topics=live or None,
+                ),
+            }
 
         async def async_handle_set_trip_class(call: Any) -> None:
             target = _resolve_target(call)
@@ -1657,6 +1753,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             schema=get_efficiency_schema,
             supports_response=SupportsResponse.ONLY,
         )
+        # The evcc bridge's paste-ready config. Reads local state only -- no
+        # quota, no broker round trip.
+        hass.services.async_register(
+            DOMAIN,
+            "get_evcc_config",
+            async_handle_get_evcc_config,
+            schema=get_evcc_config_schema,
+            supports_response=SupportsResponse.ONLY,
+        )
         hass.services.async_register(
             DOMAIN,
             "set_trip_class",
@@ -1714,6 +1819,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 "get_trips",
                 "get_driving_summary",
                 "get_efficiency",
+                "get_evcc_config",
                 "set_trip_class",
                 "export_history",
                 "import_statistics",
@@ -1845,6 +1951,21 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         # Likewise the tyre diagnosis -- it names the car's fitted tyres and
         # their service dates, so it goes with everything else.
         await TyreStore(hass, entry.entry_id).async_clear()
+    bridge_config = BridgeConfig.from_options(dict(entry.options))
+    if bridge_config.enabled:
+        with suppress(Exception):
+            # ...and anything the evcc bridge published. Retained MQTT messages
+            # are held by the broker, not by us, so they are the one thing this
+            # entry leaves behind that removing it would not otherwise touch --
+            # and a charge controller would go on charging against a state of
+            # charge frozen at the moment the integration was deleted. Only when
+            # the bridge was actually on: an install that never used it has
+            # nothing out there, and publishing into a broker it may not even
+            # have would be noise for nothing.
+            metadata = (entry.data or {}).get(VEHICLE_METADATA) or {}
+            await async_clear_published(
+                hass, prefix=bridge_config.prefix, vins=list(metadata)
+            )
 
 
 async def _handle_stream_error(hass: HomeAssistant, entry: CardataConfigEntry, reason: str) -> None:

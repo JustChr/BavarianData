@@ -87,6 +87,7 @@
           "action_fetch_image": "Fahrzeugbild abrufen",
           "action_charging_costs": "Ladekosten & Verlauf",
           "action_energy_sources": "Solar & Energiequellen",
+          "action_evcc_bridge": "evcc-/Wallbox-Brücke",
           "action_trips": "Fahrten",
           "action_debug_logging": "Debug-Protokollierung"
         }
@@ -179,7 +180,7 @@
           "price_fixed": "Wird nur bei der Preisquelle „Fester Preis“ verwendet.",
           "price_entity": "Wird nur bei der Preisquelle „Preis-Entität“ verwendet. Ihr Zustand muss ein Preis pro kWh sein.",
           "price_currency": "ISO-Code für die Kosten-Sensoren, z. B. EUR, GBP, CHF.",
-          "grid_energy_entity": "Optional. Ein gemessener Netzwert schlägt immer unsere batterieseitige Schätzung.",
+          "grid_energy_entity": "Optional. Der kumulative Energiezähler deiner Wallbox (einer, der nur hochzählt – kein Zähler, der pro Ladevorgang zurücksetzt). Wh, kWh und MWh werden umgerechnet; ohne Einheit wird kWh angenommen. Ein gemessener Netzwert schlägt immer unsere batterieseitige Schätzung – und ein Wert, der nicht stimmen kann, etwa ein Hauszähler mit weit mehr als die Batterie aufgenommen hat, wird ignoriert statt geglaubt.",
           "charging_loss_percent": "Optional. Rechnet die batterieseitige Energie in Richtung Netzenergie hoch.",
           "history_retain_months": "0 behält alles. Ältere Ladevorgänge werden verworfen.",
           "statistics_import": "Spiegelt Energie, Kosten und Strecke in Statistiken, die du im Energie-Dashboard hinzufügen kannst. Bleibt lokal; beim Ausschalten werden sie wieder gelöscht."
@@ -202,6 +203,24 @@
           "battery_power_invert": "Viele Integrationen liefern die Speicherleistung positiv beim Laden. Am Wert selbst ist das nicht erkennbar, deshalb die Nachfrage.",
           "price_solar": "Leer lassen, um Solarstrom mit dem Bezugspreis zu bewerten. Mit der Einspeisevergütung zeigt die Ladung, was sie wirklich gekostet hat."
         }
+      },
+      "action_evcc_bridge": {
+        "title": "evcc-/Wallbox-Brücke",
+        "description": "Veröffentlicht den Live-Zustand dieses Autos auf deinem MQTT-Broker, damit eine Ladesteuerung ihn lesen kann.\n\nDas ist der eine Vorteil, den BavarianData gegenüber evcc, openWB & Co. hat: ein **Ladezustand direkt aus BMWs Stream, ohne API-Kosten**. Deren eigene BMW-Anbindungen fragen zyklisch eine Hersteller-API ab und laufen dafür ins Limit; hier kommt der Wert, sobald das Auto ihn meldet, und verbraucht keine deiner 50 täglichen Anfragen.\n\nVeröffentlicht wird über **die MQTT-Integration von Home Assistant** – also genau auf dem Broker, den evcc schon liest, und ohne dass hier Host, Port oder Passwort eingetragen werden müssen. Die MQTT-Integration muss dafür eingerichtet sein.\n\nPro Fahrzeug unter `<Prefix>/<VIN>/`: `soc`, `status` (evccs A/B/C), `range`, `odometer`, `limitSoc`, `chargePower`, `plugged`, `charging`, `updated` sowie `state` als ein JSON-Dokument. **Was das Auto nicht meldet, wird nicht veröffentlicht** – statt als Null gesendet: eine Ladesteuerung handelt nach diesen Werten, und ein falscher ist schlimmer als ein fehlender. Alles wird alle fünf Minuten erneut gesendet, auch unverändert, damit der Ladezustand eines geparkten Autos auf dem Broker nicht veraltet.\n\nWird die Brücke wieder abgeschaltet, werden die veröffentlichten Werte entfernt – damit niemand weiter gegen einen eingefrorenen Ladezustand lädt.\n\nDer nächste Schritt liefert die evcc-Konfiguration zum Einfügen.",
+        "data": {
+          "bridge_enabled": "Dieses Auto per MQTT veröffentlichen",
+          "bridge_topic_prefix": "Topic-Prefix",
+          "bridge_retain": "Mit Retain veröffentlichen"
+        },
+        "data_description": {
+          "bridge_enabled": "Standardmäßig aus: es legt VIN und Fahrzeugzustand auf einen Broker, den auch anderes lesen kann.",
+          "bridge_topic_prefix": "Die Topics lauten dann <Prefix>/<VIN>/soc usw. Lass bavariandata stehen, sofern es nicht mit etwas kollidiert.",
+          "bridge_retain": "Am besten aktiviert lassen. Nur so findet evcc den Ladezustand sofort beim Start, statt zu warten, bis das Auto sich das nächste Mal meldet – bei einem geparkten Auto können das Stunden sein. Nur abschalten, wenn dein Broker Retain-Nachrichten ablehnt."
+        }
+      },
+      "evcc_snippet": {
+        "title": "evcc-Konfiguration",
+        "description": "Füge das in deine `evcc.yaml` unter einem `vehicles:`-Schlüssel ein (mit bereits vorhandenen Fahrzeugen zusammenführen – der Schlüssel darf nur einmal vorkommen):\n\n```\n{snippet}\n```\n\nevcc muss zusätzlich deinen Broker kennen, in seinem eigenen `mqtt:`-Abschnitt – denselben, den Home Assistant nutzt. Danach das Fahrzeug einem Ladepunkt zuweisen und evcc neu starten.\n\nAufgeführt sind nur die Felder, die dieses Auto wirklich meldet: ein Plugin auf einem Topic, auf dem nie eine Nachricht ankommt, lässt evcc in jedem Zyklus einen Lesefehler protokollieren. Ein `timeout` wird absichtlich nicht gesetzt – die Werte werden zyklisch erneut gesendet, damit ein geparktes Auto einen gültigen Ladezustand behält statt leer zu laufen.\n\nDu kannst das jederzeit erneut abrufen – mit der Aktion **evcc-Konfiguration abrufen**."
       },
       "action_trips": {
         "title": "Fahrten (Fahrtenbuch)",
@@ -248,7 +267,8 @@
       "invalid_client_id": "Gib die BMW CarData Client-ID ein.",
       "invalid_result": "Das Ergebnis konnte nicht gelesen werden. Führe das Lesezeichen „Activate BMW data“ auf der Stream-Setup-Seite des BMW-Portals aus und füge genau das ein, was es in die Zwischenablage kopiert hat.",
       "price_required": "Gib einen festen Preis pro kWh ein, oder wähle eine andere Preisquelle.",
-      "price_entity_required": "Wähle die Entität, die deinen Preis pro kWh liefert, oder wähle eine andere Preisquelle."
+      "price_entity_required": "Wähle die Entität, die deinen Preis pro kWh liefert, oder wähle eine andere Preisquelle.",
+      "mqtt_missing": "Die Brücke veröffentlicht über die MQTT-Integration von Home Assistant, und die ist bei dir nicht eingerichtet. Füge sie unter Einstellungen → Geräte & Dienste hinzu (üblich ist das Mosquitto-Broker-Add-on) und komm dann zurück."
     },
     "abort": {
       "reauth_started": "Autorisierung neu gestartet. Schließe die neue Anmeldung über die soeben erschienene Benachrichtigung ab.",
@@ -2741,6 +2761,20 @@
         "vin": {
           "name": "FIN",
           "description": "Optionale FIN. Standard ist das einzige konfigurierte Fahrzeug."
+        }
+      }
+    },
+    "get_evcc_config": {
+      "name": "evcc-Konfiguration abrufen",
+      "description": "Gibt die evcc-Konfiguration (Fahrzeugtyp 'custom') für dieses Auto zurück, fertig zum Einfügen in die evcc.yaml, dazu die MQTT-Topics der Brücke und welche davon aktuell bespielt werden. Liest nur lokale Daten und verbraucht daher kein BMW-API-Kontingent.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale Eintrags-ID. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionale VIN. Standard ist das einzige konfigurierte Fahrzeug."
         }
       }
     },

@@ -28,6 +28,13 @@ API quota. A bundled **Lovelace card** and a cached vehicle image put a
 good-looking dashboard one card away — the card registers itself, you just
 place it.
 
+It can also hand that live charge level **to your charge controller**: the
+[evcc / wallbox bridge](https://github.com/JustChr/BavarianData/wiki/Feature-evcc-and-Wallbox-Bridge)
+publishes the car's state of charge over MQTT, so evcc or openWB can charge on a
+figure that arrives as the car reports it instead of polling a rate-limited
+vendor API — and it reads your wallbox's own meter back, to record what each
+charge really drew from the grid.
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-car.png" alt="Bundled Lovelace card showing a BMW i5 eDrive40 with charge level, range, charging status and odometer" width="360" />
 </p>

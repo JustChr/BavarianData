@@ -139,6 +139,8 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `action_fetch_location_charging` | Fetch location charging settings | 🟡 | — |
 | `action_fetch_image` | Fetch vehicle image | 🟡 | — |
 | `action_charging_costs` | Charging costs & history | 🟡 | 📷 |
+| `action_evcc_bridge` | evcc / wallbox bridge | 🟢 Feature-evcc-and-Wallbox-Bridge + Settings-Reference → "evcc / wallbox bridge" | 📷 **owed** — needs the build installed |
+| `evcc_snippet` | evcc configuration (generated, paste-ready) | 🟢 Feature-evcc-and-Wallbox-Bridge → "Setting it up" | 📷 **owed** — needs the build installed |
 | `action_trips` | Trips | 🟡 | 📷 |
 | `action_debug_logging` | Debug logging toggle | 🟡 | 📷 |
 
@@ -150,10 +152,13 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `price_fixed` | Charging costs & history | 🟡 |
 | `price_entity` | Charging costs & history | 🟡 |
 | `price_currency` | Charging costs & history | ❌ |
-| `grid_energy_entity` (wallbox) | Charging costs & history | 🟡 |
+| `grid_energy_entity` (wallbox) | Charging costs & history | 🟢 Feature-Charging-History-and-Cost → "Grid energy vs. battery energy" + Feature-evcc-and-Wallbox-Bridge (inbound half, incl. when a reading is refused) |
 | `charging_loss_percent` | Charging costs & history | 🟡 |
 | `history_retain_months` | Charging costs & history | 🟡 |
 | `statistics_import` | Charging costs & history | 🟡 |
+| `bridge_enabled` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |
+| `bridge_topic_prefix` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |
+| `bridge_retain` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |
 | `trip_work_zone` | Trips | 🟡 |
 | `trip_default_class` (default type) | Trips | ✅ |
 | `trip_commute_gap` (commute stop tolerance) | Trips | ✅ |
@@ -194,6 +199,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `get_trips` | free | 🟢 Services-Reference (`open_trips`, whole-day `from`/`to`) |
 | `get_driving_summary` | free | 🟢 Services-Reference + Feature-Trips → "How consumption is measured" |
 | `get_efficiency` | free | 🟢 Services-Reference + Feature-Efficiency-and-Range |
+| `get_evcc_config` | free | 🟢 Services-Reference + Feature-evcc-and-Wallbox-Bridge |
 | `set_trip_class` | free | 🟡 |
 | `export_history` | free | 🟡 |
 | `import_statistics` | free | 🟡 |
@@ -232,8 +238,9 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | A car that never streams SoC (no arc, no ceiling; issue #6) | 🟢 Feature-Charging-History-and-Cost → "No start/end SoC on a session" |
 | Battery health (learning method, sample rules, why it can stall) | 🟢 Feature-Battery-Health → "What counts as a sample" + "Learning mode" |
 | Restarting mid-charge (session survives; the `interrupted` flag) | 🟢 Feature-Charging-History-and-Cost → "Restarting while the car is charging" + Feature-Battery-Health → "What counts as a sample" |
-| Solar & energy sources (the PV/battery/grid split, what it costs) | 🟢 Feature-Charging-History-and-Cost → "Where the energy came from" + Settings-Reference → "Solar & energy sources" (screen shot 2026-09-12) + The-Dashboard-Card; the Configure menu shot is refreshed to all fifteen actions |
+| Solar & energy sources (the PV/battery/grid split, what it costs) | 🟢 Feature-Charging-History-and-Cost → "Where the energy came from" + Settings-Reference → "Solar & energy sources" (screen shot 2026-09-12) + The-Dashboard-Card; the Configure menu shot is refreshed to all fifteen actions (superseded: the bridge makes it sixteen) |
 | Efficiency & real range (the window rule, the two sides of the charger, the measured charging loss) | 🟢 Feature-Efficiency-and-Range + The-Dashboard-Card — the `view: efficiency` card shot 2026-09-12, showing the comparison against the car's own prediction |
+| evcc / wallbox bridge — outbound SoC over MQTT (unknown publishes nothing, the heartbeat, switch-off clears) and inbound wallbox metering | 🟢 Feature-evcc-and-Wallbox-Bridge + Settings-Reference → "evcc / wallbox bridge" + Services-Reference → `get_evcc_config`; the Configure menu shot is now owed again (sixteen actions) |
 | Trips / Fahrtenbuch (+ legal caveat) | 🟡 |
 | Consumption: plug-side balance, battery-side average, the 3 % SoC gate | 🟢 Feature-Trips → "How consumption is measured" + The-Dashboard-Card |
 | Month window on the trips & charging card views | 🟢 The-Dashboard-Card → "One month at a time" (both views) |

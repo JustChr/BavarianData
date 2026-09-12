@@ -778,3 +778,95 @@ def test_the_real_range_entity_watches_the_figures_it_is_measured_against() -> N
         "recomputing the profile walks every stored session, so doing it for "
         "every message a car streams is a cost for nothing."
     )
+
+
+# --------------------------------------------------------------------------
+# The evcc / wallbox bridge
+# --------------------------------------------------------------------------
+#
+# The bridge is the only feature that *pushes* data to something that then acts
+# on it -- a charge controller will start and stop a charge on what we publish.
+# That inverts the usual stakes: elsewhere a stale or over-confident value shows
+# a user a wrong number, here it charges, or refuses to charge, a real car. The
+# three guards below pin the decisions that follow from that.
+
+
+def test_switching_the_bridge_off_clears_what_it_published() -> None:
+    """Otherwise evcc charges forever against a frozen state of charge.
+
+    The values are published *retained*, so they outlive us by design -- that is
+    what lets a charge controller find the SoC the moment it starts. The same
+    property means that simply stopping is not enough: a user who clears the
+    checkbox would leave a broker serving a state of charge that never updates
+    again, with evcc having no way to tell. Turning the bridge off has to take
+    the data with it.
+    """
+
+    source = _function_source(_PKG / "config_flow.py", "async_step_action_evcc_bridge")
+    assert "async_clear_all" in source, (
+        "The bridge options step no longer clears published topics when the "
+        "bridge is switched off. A retained state of charge that stops updating "
+        "is worse than never having published one: evcc goes on charging "
+        "against it."
+    )
+
+
+def test_the_bridge_never_advertises_charge_power_on_a_parked_car() -> None:
+    """BMW's power reading lingers at its final value long after the plug is out.
+
+    The charging ledger has the same problem and answers it with a SoC-derived
+    ceiling; here there is nothing to bound it, so the reading is only published
+    while the car is known to be charging. Without the gate a car parked since
+    Tuesday advertises 11 kW indefinitely.
+    """
+
+    tree = ast.parse((_PKG / "coordinator.py").read_text(encoding="utf-8"))
+    snapshot = next(
+        n
+        for n in ast.walk(tree)
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and n.name == "bridge_snapshot"
+    )
+    assert "_charging_power_w" in ast.unparse(snapshot), (
+        "bridge_snapshot no longer reads the charging power at all."
+    )
+    # Structural, not textual: the read has to sit under a test of the charging
+    # state, and only a "known to be charging" test will do -- a car that has
+    # never reported one must publish nothing rather than a lingering figure.
+    guarded = [
+        node
+        for node in ast.walk(snapshot)
+        if isinstance(node, ast.If)
+        and "charging is True" in ast.unparse(node.test)
+        and "_charging_power_w" in ast.unparse(node.body)
+    ]
+    assert guarded, (
+        "The charging power is read outside a 'charging is True' branch in "
+        "bridge_snapshot. BMW's last power reading persists for days after the "
+        "charge ends, so a car parked since Tuesday would advertise 11 kW."
+    )
+
+
+def test_the_wallbox_meter_is_billed_on_the_step_that_bills_the_cost() -> None:
+    """A measured grid figure has to be billed as it arrives, like everything else.
+
+    The setting promises that a bound wallbox meter's "exact grid figure is used
+    instead" of our battery-side estimate. Applying it to the session total at
+    close instead would price the whole charge at whatever the tariff happened
+    to be when the plug came out -- which for a dynamic tariff, the case this
+    integration goes out of its way to support, is simply a different number.
+    So the meter's advance over each integration step is what gets billed, on
+    the same step and from the same sample as the source mix.
+    """
+
+    source = _function_source(_PKG / "coordinator.py", "_record_energy_delta")
+    assert "_grid_meter_step" in source and "billable_energy" in source, (
+        "_record_energy_delta no longer bills the wallbox meter's own advance. "
+        "The measured grid figure has to reach billable_energy() per step, not "
+        "be applied to the session total at close."
+    )
+    assert "grid_kwh=" in source, (
+        "billable_energy() is being called without a grid figure, so a bound "
+        "wallbox meter cannot affect the cost -- which is exactly what the "
+        "setting says it does."
+    )

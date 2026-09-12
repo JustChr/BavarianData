@@ -9,6 +9,94 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.9-beta.5] - 2026-09-13
+
+### Added
+- **evcc / wallbox bridge — hand your charge controller the state of charge, at
+  no API cost.** BavarianData has the one thing evcc, openWB and friends cannot
+  get cheaply: a charge level that arrives over BMW's stream as the car reports
+  it. Their own BMW integrations poll a rate-limited vendor API on a timer, which
+  is the most common complaint in their issue trackers. **Configure → evcc /
+  wallbox bridge** now republishes what we already know onto your own MQTT
+  broker, and the screen that follows hands you the evcc `custom` vehicle
+  configuration with your VIN, your topic prefix and your pack size already
+  filled in — paste-ready, the way the portal Data Selection snippet is.
+  Published under `<prefix>/<VIN>/`: `soc`, `status` (evcc's A/B/C), `range`,
+  `odometer`, `limitSoc`, `chargePower`, `plugged`, `charging`, `updated`, and
+  `state` as one JSON document for openWB's MQTT SoC module or a Node-RED flow.
+  It publishes through **Home Assistant's own MQTT integration**, so it lands on
+  exactly the broker evcc already reads and there is no host, port or password to
+  enter — and if you have no MQTT integration the settings screen says so
+  instead of failing quietly. Off by default.
+
+  Three decisions worth knowing, because a charge controller *acts* on what we
+  publish — which makes this the one place where a confident wrong number does
+  more than mislead a dashboard:
+  - **Anything the car doesn't report is not published**, rather than sent as a
+    zero. Told `soc: 0` a controller charges a full battery; told `status: A`
+    ("no vehicle connected") an identifying charger can stop charging the car it
+    is plugged into. A car that streams no charging-port descriptor therefore
+    gets no `status` topic at all. Charging power is published only while the car
+    is *known* to be charging, because BMW's reading lingers at its final value
+    for days after the plug comes out.
+  - **Everything is re-sent every five minutes, unchanged.** A parked car streams
+    nothing for days and its charge level is no less true for it, so the
+    generated config deliberately sets no `timeout` and the bridge keeps the
+    values current on the broker instead.
+  - **Switching the bridge off removes what it published**, and so does removing
+    the integration. Retained messages are held by the broker, not by us — which
+    is what lets evcc find the charge level the instant it starts, and equally
+    what would leave it charging forever against a value that stopped updating.
+    A restart or reload deliberately leaves them: the last thing we knew is still
+    true for those few seconds.
+- `bavariandata.get_evcc_config` returns that configuration again at any time,
+  plus the topics the bridge owns, which of them are currently live, and whether
+  Home Assistant has an MQTT integration to publish through — the three things
+  worth knowing when nothing shows up on the broker. Local only, no quota.
+
+### Fixed
+- **The wallbox energy sensor now actually does something.** The setting has been
+  offered since 0.9.0 and the manual promised "that exact grid figure is used
+  instead" — but nothing ever read it: the entity id was stored, carried into
+  the pricing config, and dropped. Bind your wallbox's cumulative energy total
+  and each session now records a measured `grid_kwh` alongside the battery-side
+  figure, which the monthly totals, the long-term statistics and the CSV export
+  all prefer where it exists. The **cost is billed from the meter's own advance
+  as the charge proceeds**, on the same sample as the source mix, so a dynamic
+  tariff still prices each kilowatt-hour at the rate in force when it arrived —
+  applying a session total at close would instead price the whole charge at
+  whatever the tariff happened to be when the plug came out. The measured
+  charging loss on the efficiency view stops being an assumption, and the
+  *charging loss %* setting becomes what it was always meant to be: the fallback
+  for people with no meter to bind.
+
+  A measured number is only worth having if it is measuring *this car*, so each
+  session's delta is **refused rather than believed** when it cannot be right:
+  a meter that went down or nowhere (a reset or power cycle), one reporting less
+  than the pack absorbed (physically impossible), or one reporting nearly twice
+  it — which is the common misconfiguration of binding the *house* import meter,
+  and would otherwise inflate every cost by whatever else the house was doing for
+  those hours. A refused reading leaves the session on its battery-side figure;
+  nothing is ever presented as measured that isn't. The cross-check is skipped
+  for a session whose own energy is already known to be short — one interrupted
+  by a restart, or one that started before we noticed — because there the meter
+  is the only thing that saw the missing part, and that is exactly where it earns
+  its keep. The baseline rides the open-session snapshot, so a restart mid-charge
+  keeps it.
+
+### Documentation
+- New wiki page **evcc & wallbox bridge**, covering both directions, the full
+  topic table, the three deliberate behaviours above, when a wallbox reading is
+  refused, and the troubleshooting path for "nothing appears on the broker".
+  Settings and Services reference, `Home`, the sidebar and the coverage matrix
+  updated; `docs/clean-install.md` gains a section on retained MQTT messages,
+  which are the one thing this integration leaves behind that lives on someone
+  else's machine.
+- The charging-history page no longer claims behaviour that did not exist, and
+  `get_efficiency` — which had a reference section but no row — is now listed in
+  the Services table.
+
+
 ## [0.9.9-beta.4] - 2026-09-12
 
 ### Fixed

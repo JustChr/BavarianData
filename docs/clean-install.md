@@ -35,6 +35,8 @@ whether a "fresh" install is really fresh:
 | Hidden overrides | `mqtt_keepalive`, `diagnostic_log_interval` |
 | Charging costs | `price_mode`, `price_fixed`, `price_entity`, `price_currency`, `grid_energy_entity`, `charging_loss_percent` |
 | History | `history_retain_months`, `statistics_import` |
+| Solar & energy sources | `pv_power_entity`, `grid_power_entity`, `battery_power_entity`, `battery_power_invert`, `price_solar` |
+| evcc / wallbox bridge | `bridge_enabled`, `bridge_topic_prefix`, `bridge_retain` |
 | Trips | `trip_work_zone`, `trip_geocode`, `trip_track` |
 
 ## .storage files
@@ -62,6 +64,22 @@ registry, so they are **not** removed by deleting entities or devices:
 **Developer tools → Statistics**, which lists orphaned statistic ids and offers to
 delete them. Stale rows here are the easiest way to invalidate a fresh-install
 test, because they reappear in the Energy dashboard with no integration installed.
+
+## Retained MQTT messages (your broker)
+
+If the [evcc / wallbox bridge](wiki/Feature-evcc-and-Wallbox-Bridge) was ever
+switched on, it published **retained** messages — which are held by the *broker*,
+not by Home Assistant, and therefore outlive anything done inside HA:
+
+- Topics follow `<prefix>/<VIN>/<field>` (default prefix `bavariandata`), ten
+  topics per VIN.
+
+`async_remove_entry` clears them, and so does switching the bridge off. If the
+integration went away some other way, delete them at the broker — in MQTT
+Explorer, subscribe to `bavariandata/#` and clear each retained topic, or
+`mosquitto_pub -t '<topic>' -r -n` per topic. Left behind, they are worse than
+orphaned statistics: a charge controller keeps reading a state of charge that
+will never update again.
 
 ## Config-directory files
 
@@ -137,7 +155,9 @@ useful to know when debugging.
    ids and delete any that remain.
 6. Delete `bavariandata_trip_capture.ndjson` from the config directory if trip
    debugging was ever enabled.
-7. Dismiss any remaining reauth notifications.
-8. Restart Home Assistant.
+7. If the evcc bridge was ever on, check the broker for retained
+   `bavariandata/#` topics and clear any that survived.
+8. Dismiss any remaining reauth notifications.
+9. Restart Home Assistant.
 
 After these steps, reinstalling behaves like a true first-time setup.

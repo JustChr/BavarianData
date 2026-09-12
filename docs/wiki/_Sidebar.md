@@ -17,6 +17,7 @@
 - [Battery health](Feature-Battery-Health)
 - [Efficiency & range](Feature-Efficiency-and-Range)
 - [Trips](Feature-Trips)
+- [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge)
 - [Energy & statistics](Feature-Energy-and-Statistics)
 - [Export](Feature-Export)
 - [Events & blueprints](Feature-Automations)
