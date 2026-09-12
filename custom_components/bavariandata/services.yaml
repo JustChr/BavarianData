@@ -130,6 +130,15 @@ get_driving_summary:
       example: "2026-07"
       selector:
         text:
+get_efficiency:
+  fields:
+    entry_id:
+      selector:
+        text:
+    vin:
+      example: WBAEXAMPLE0000000
+      selector:
+        text:
 set_trip_class:
   fields:
     entry_id:

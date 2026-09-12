@@ -23,7 +23,7 @@ from homeassistant.util import dt as dt_util
 from homeassistant.const import UnitOfLength
 
 from .const import DOMAIN, REQUEST_LIMIT
-from .coordinator import CardataCoordinator
+from .coordinator import DESC_ODOMETER, CardataCoordinator
 from .descriptor_metadata import DESCRIPTOR_META, SECTIONS
 from .entity import CardataEntity
 from .history.health import MIN_SAMPLES, degradation_series, usable_capacity
@@ -973,6 +973,119 @@ class CardataBatteryHealthSensor(CardataEntity, SensorEntity):
             self.schedule_update_ha_state()
 
 
+class CardataRealRangeSensor(CardataEntity, SensorEntity):
+    """How far the car really goes from its current charge.
+
+    The one number BMW's own estimate is always being second-guessed against,
+    so it is worth the entity slot the rest of this layer spends on services and
+    attributes: usable capacity divided by consumption the charging ledger
+    actually measured, scaled to the state of charge right now. Everything that
+    explains it -- which window the consumption came from, which side of the
+    charger, whose capacity, and what the car itself is predicting -- rides as
+    attributes; the seasonal trend is left to ``get_efficiency`` rather than
+    rewritten into the recorder on every SoC tick.
+
+    Stays ``unknown`` until the ledger can support a figure. There is no
+    "Learning" state to fall back on here the way battery health has one: a
+    distance sensor has to be a distance, and a range invented from a nameplate
+    consumption is precisely the number that strands someone.
+    """
+
+    _attr_should_poll = False
+    _attr_device_class = SensorDeviceClass.DISTANCE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = "km"
+    # Whole kilometres: the inputs are a capacity good to ~1 kWh and a
+    # consumption good to 0.1 kWh/100 km, so a decimal place here would be
+    # precision the measurement doesn't have -- and the car's own display,
+    # which this sits next to, shows whole kilometres too.
+    _attr_suggested_display_precision = 0
+    _attr_icon = "mdi:map-marker-distance"
+    _attr_translation_key = "real_range"
+
+    def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
+        super().__init__(coordinator, vin, "real_range")
+        self._unsub_history = None
+        self._unsub_soc = None
+        self._cached: Optional[Dict[str, Any]] = None
+
+    @property
+    def _profile(self) -> Dict[str, Any]:
+        """The efficiency profile, recomputed only when something moved it.
+
+        Both the state and the attributes read this, and each state write asks
+        for both; the balance behind it walks every stored session, so caching
+        between signals keeps a charging car's SoC ticks cheap.
+        """
+
+        if self._cached is None:
+            self._cached = self._coordinator.efficiency(self.vin, months=0)
+        return self._cached
+
+    @property
+    def native_value(self):
+        ranges = self._profile.get("range") or {}
+        return ranges.get("now_km")
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        attrs = dict(super().extra_state_attributes)
+        profile = self._profile
+        ranges = profile.get("range") or {}
+        consumption = profile.get("consumption") or {}
+        grid = profile.get("grid_consumption") or {}
+        # Why there is no figure, when there is none: "not enough charging
+        # history yet" and "this car never streamed its capacity" want different
+        # things from the user.
+        attrs["status"] = profile.get("status")
+        attrs["range_full_km"] = ranges.get("full_km")
+        # The same figure as the state, in kilometres whatever the user's unit
+        # system converts the state into -- the card renders kilometres from the
+        # ledger throughout, and reading them off a converted state is exactly
+        # how a display unit once leaked into a stored value (issue #7).
+        attrs["range_now_km"] = ranges.get("now_km")
+        attrs["soc_percent"] = ranges.get("soc_percent")
+        attrs["consumption_kwh_per_100km"] = consumption.get("kwh_per_100km")
+        # Always beside the figure: a consumption number without its side is
+        # ambiguous by exactly the size of the charging loss.
+        attrs["consumption_source"] = consumption.get("source")
+        attrs["consumption_window_days"] = consumption.get("window_days")
+        attrs["consumption_distance_km"] = consumption.get("distance_km")
+        attrs["grid_consumption_kwh_per_100km"] = grid.get("kwh_per_100km")
+        attrs["measured_loss_percent"] = profile.get("measured_loss_percent")
+        attrs["capacity_kwh"] = profile.get("capacity_kwh")
+        attrs["capacity_source"] = profile.get("capacity_source")
+        attrs["bmw_range_km"] = ranges.get("bmw_km")
+        attrs["bmw_range_full_km"] = ranges.get("bmw_full_km")
+        attrs["vs_bmw_percent"] = ranges.get("vs_bmw_percent")
+        return attrs
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self._unsub_history = async_dispatcher_connect(
+            self.hass, self._coordinator.signal_history, self._handle_update
+        )
+        # The range from *here* moves with every SoC tick, not only when a
+        # charge lands.
+        self._unsub_soc = async_dispatcher_connect(
+            self.hass, self._coordinator.signal_soc_estimate, self._handle_update
+        )
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._unsub_history:
+            self._unsub_history()
+            self._unsub_history = None
+        if self._unsub_soc:
+            self._unsub_soc()
+            self._unsub_soc = None
+
+    def _handle_update(self, vin: str) -> None:
+        if vin != self.vin:
+            return
+        self._cached = None
+        self.schedule_update_ha_state()
+
+
 class CardataDrivingDistanceMonthSensor(CardataEntity, SensorEntity):
     """How far the car has been driven this calendar month, from trip records.
 
@@ -1195,13 +1308,16 @@ async def async_setup_entry(
     charging_summary_entities: Dict[str, list] = {}
     battery_health_entities: Dict[str, CardataBatteryHealthSensor] = {}
     driving_entities: Dict[str, CardataDrivingDistanceMonthSensor] = {}
+    real_range_entities: Dict[str, CardataRealRangeSensor] = {}
     # vin -> {"status"|<wheel position>: entity}
     tyre_entities: Dict[str, Dict[str, CardataTyreEntity]] = {}
 
-    # A car that reports either of these can produce trips worth summarising; a
-    # device that streams neither (never driven, no odometer) gets no trip sensor
-    # rather than one stuck at 0 km.
-    _DRIVE_SIGNALS = ("vehicle.vehicle.mileage", "vehicle.isMoving")
+    # A car that reports any of these can produce trips worth summarising; a
+    # device that streams none (never driven, no odometer) gets no trip sensor
+    # rather than one stuck at 0 km. Both odometer spellings count: the i5
+    # streams ``travelledDistance`` and never ``mileage``, and gating on the
+    # latter alone left the real car with no monthly-distance sensor at all.
+    _DRIVE_SIGNALS = (*DESC_ODOMETER, "vehicle.isMoving")
 
     def ensure_driving_entity(vin: str, *, force: bool = False) -> None:
         """Create the monthly-distance sensor once the car looks drivable.
@@ -1253,6 +1369,35 @@ async def async_setup_entry(
         battery_health_entities[vin] = entity
         async_add_entities([entity], True)
 
+    def _has_odometer(vin: str) -> bool:
+        return any(
+            coordinator.get_state(vin, descriptor) is not None
+            for descriptor in DESC_ODOMETER
+        )
+
+    def ensure_real_range_entity(vin: str, *, force: bool = False) -> None:
+        """Create the real-range sensor for an EV that reports its odometer.
+
+        Both halves are required by the arithmetic, not by taste: the range is
+        usable capacity over consumption, and the consumption comes from the
+        distance between two charging sessions' odometer readings. A car with no
+        odometer would hold an entity that can never produce a number.
+        ``force`` re-creates one restored from the registry without re-checking
+        for a live signal.
+        """
+
+        if vin in real_range_entities or coordinator.history is None:
+            return
+        eligible = _has_odometer(vin) and any(
+            coordinator.get_state(vin, descriptor) is not None
+            for descriptor in _EV_SIGNALS
+        )
+        if not (force or eligible):
+            return
+        entity = CardataRealRangeSensor(coordinator, vin)
+        real_range_entities[vin] = entity
+        async_add_entities([entity], True)
+
     def ensure_charging_summary_entities(vin: str) -> None:
         """Create the ledger sensors, but only once they can say something true.
 
@@ -1268,8 +1413,9 @@ async def async_setup_entry(
             new_entities.append(CardataChargingCostMonthSensor(coordinator, vin))
             new_entities.append(CardataChargingCostSessionSensor(coordinator, vin))
             # Distance-based cost is meaningless without an odometer, and the
-            # Vehicle status cluster is optional in the portal.
-            if coordinator.get_state(vin, "vehicle.vehicle.mileage") is not None:
+            # Vehicle status cluster is optional in the portal. Either spelling
+            # of the odometer will do -- see ``_DRIVE_SIGNALS``.
+            if _has_odometer(vin):
                 new_entities.append(
                     CardataChargingCostPerDistanceSensor(coordinator, vin)
                 )
@@ -1336,6 +1482,7 @@ async def async_setup_entry(
         ensure_charging_summary_entities(vin)
         ensure_battery_health_entity(vin)
         ensure_driving_entity(vin)
+        ensure_real_range_entity(vin)
         if (vin, descriptor) in entities:
             return
 
@@ -1407,6 +1554,9 @@ async def async_setup_entry(
         if descriptor == "driving_distance_month":
             ensure_driving_entity(vin, force=True)
             continue
+        if descriptor == "real_range":
+            ensure_real_range_entity(vin, force=True)
+            continue
         if descriptor.startswith("tyre_"):
             # Re-create what the car had before today's fetch lands, so the
             # entity keeps its id and history instead of the generic path
@@ -1436,6 +1586,7 @@ async def async_setup_entry(
         ensure_soc_tracking_entities(vin)
         ensure_battery_health_entity(vin)
         ensure_driving_entity(vin)
+        ensure_real_range_entity(vin)
 
     for vin in list(coordinator.tyre_diagnosis):
         # The diagnosis restored from the tyre store (tyre_store.py) covers the

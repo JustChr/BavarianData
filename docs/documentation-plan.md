@@ -173,12 +173,13 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `view: trips` | Driving journal | 🟡 | 📷 |
 | `view: map` | Trip map (routes) | 🟡 | 📷 (needs route data) |
 | `view: health` | Battery health | 🟡 | 📷 |
+| `view: efficiency` | Efficiency & real range | 🟢 The-Dashboard-Card + Feature-Efficiency-and-Range | 📷 **owed** — needs the build installed |
 | `cluster: tire` | Tires (pressure + wear) | 🟡 | 📷 (have) |
 | `cluster: closures` | Security & closures | 🟡 | 📷 (have) |
 | `cluster: <other>` | Single-cluster list | 🟡 | 📷 |
 | YAML options (`device`, `vin`, entity overrides) | — | 🟡 | — |
 
-### Services — 15 from `services.yaml`
+### Services — 16 from `services.yaml`
 
 | Service | Quota | Status |
 | --- | --- | --- |
@@ -192,6 +193,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `get_charging_sessions` | free | 🟢 Services-Reference (whole-day `from`/`to`) |
 | `get_trips` | free | 🟢 Services-Reference (`open_trips`, whole-day `from`/`to`) |
 | `get_driving_summary` | free | 🟢 Services-Reference + Feature-Trips → "How consumption is measured" |
+| `get_efficiency` | free | 🟢 Services-Reference + Feature-Efficiency-and-Range |
 | `set_trip_class` | free | 🟡 |
 | `export_history` | free | 🟡 |
 | `import_statistics` | free | 🟡 |
@@ -212,6 +214,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | `charging_energy_month` | Monthly total | 🟡 |
 | `charging_cost_month`, `charging_cost_session`, `charging_cost_per_100km` | Cost | 🟡 |
 | `battery_health` | Learned capacity | 🟡 |
+| `real_range` | Measured consumption → range now, vs BMW's own estimate | 🟢 Feature-Efficiency-and-Range + Feature-Entities-and-Devices + The-Dashboard-Card |
 | `driving_distance_month` | Monthly distance + split | 🟡 |
 | `trip_in_progress` (binary_sensor) | The drive under way, with live attributes | 🟢 Feature-Trips → "Seeing the drive that's happening now" + Feature-Entities-and-Devices + The-Dashboard-Card |
 | `tyre_status`, `tyre_<position>` (×4) | Tyre wear / condition from the REST diagnosis | 🟢 Feature-Entities-and-Devices + The-Dashboard-Card |
@@ -230,6 +233,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Battery health (learning method, sample rules, why it can stall) | 🟢 Feature-Battery-Health → "What counts as a sample" + "Learning mode" |
 | Restarting mid-charge (session survives; the `interrupted` flag) | 🟢 Feature-Charging-History-and-Cost → "Restarting while the car is charging" + Feature-Battery-Health → "What counts as a sample" |
 | Solar & energy sources (the PV/battery/grid split, what it costs) | 🟡 Feature-Charging-History-and-Cost → "Where the energy came from" + Settings-Reference → "Solar & energy sources" + The-Dashboard-Card — **two screenshots owed**: the new settings screen, and a refreshed Configure menu (it now lists fifteen actions) |
+| Efficiency & real range (the window rule, the two sides of the charger, the measured charging loss) | 🟢 Feature-Efficiency-and-Range — **one screenshot owed**: the `view: efficiency` card |
 | Trips / Fahrtenbuch (+ legal caveat) | 🟡 |
 | Consumption: plug-side balance, battery-side average, the 3 % SoC gate | 🟢 Feature-Trips → "How consumption is measured" + The-Dashboard-Card |
 | Month window on the trips & charging card views | 🟢 The-Dashboard-Card → "One month at a time" (both views) |

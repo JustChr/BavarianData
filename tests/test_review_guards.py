@@ -662,3 +662,81 @@ def test_the_source_mix_is_sampled_with_the_cost() -> None:
         "_record_energy_delta no longer attributes the increment it is billing. "
         "The source mix has to be sampled on the same energy delta as the cost."
     )
+
+
+def _calls_to(path, function: str, name: str) -> list:
+    """Every call to ``name`` inside the given top-level function."""
+
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    scope = next(
+        n
+        for n in ast.walk(tree)
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and n.name == function
+    )
+    return [
+        node
+        for node in ast.walk(scope)
+        if isinstance(node, ast.Call) and ast.unparse(node.func) == name
+    ]
+
+
+def test_real_range_is_never_computed_from_the_grid_side_figure() -> None:
+    """Range is capacity over what the car takes *out of the pack*.
+
+    A grid-side consumption figure includes the charging losses, so dividing a
+    battery capacity by it has the car driving on energy that never reached the
+    pack -- a range that reads short, quietly, with nothing about it looking
+    wrong. The two sides are computed separately on purpose; this pins which one
+    reaches the arithmetic.
+    """
+
+    path = _PKG / "history" / "efficiency.py"
+    calls = _calls_to(path, "efficiency_profile", "real_range")
+    assert calls, "efficiency_profile no longer computes a range at all."
+    for call in calls:
+        rendered = ast.unparse(call)
+        assert "grid" not in rendered, (
+            "real_range() is being fed a grid-side figure: the charging losses "
+            "would be driven as kilometres. It takes the battery-side "
+            "consumption only."
+        )
+        assert "battery" in rendered, (
+            "real_range() no longer takes the battery-side consumption figure."
+        )
+
+
+def test_the_measured_charging_loss_comes_from_one_window() -> None:
+    """Both sides must describe the same kilometres, or the loss is fiction.
+
+    ``consumption()`` walks widening windows until one can answer, so asking it
+    for the grid side separately can land on a different period -- and the gap
+    between a 30-day battery figure and a 365-day grid figure is a change in
+    driving, reported as a charging loss.
+    """
+
+    path = _PKG / "history" / "efficiency.py"
+    for call in _calls_to(path, "efficiency_profile", "consumption"):
+        sides = [
+            ast.unparse(kw.value) for kw in call.keywords if kw.arg == "side"
+        ]
+        assert "SIDE_GRID" not in sides, (
+            "The grid-side figure is being fetched through the window-walking "
+            "consumption() helper, which can settle on a different window than "
+            "the battery-side one. It must be measured over the window the "
+            "battery figure already chose."
+        )
+    grid_balances = [
+        call
+        for call in _calls_to(path, "efficiency_profile", "energy_balance")
+        if any(
+            kw.arg == "side" and ast.unparse(kw.value) == "SIDE_GRID"
+            for kw in call.keywords
+        )
+    ]
+    assert grid_balances, "The grid-side figure is no longer computed at all."
+    for call in grid_balances:
+        assert call.args and ast.unparse(call.args[0]) == "scope", (
+            "The grid-side balance no longer reads the window the battery-side "
+            "figure was measured over."
+        )

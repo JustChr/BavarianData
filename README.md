@@ -20,7 +20,8 @@ server and no MyBMW screen-scraping — Home Assistant is the only client, and i
 Every descriptor BMW sends becomes a native entity — charge level, doors, tyre
 pressures, the 12 V battery — each with a proper device class, unit and
 translated states. On top of that the integration derives a **charging history &
-cost** ledger, **battery-health** learning, a **trip journal**, **long-term
+cost** ledger, **battery-health** learning, a **trip journal**, a **real-range**
+figure measured from your own driving rather than predicted, **long-term
 statistics** for the Energy dashboard, and **CSV and printable-HTML export**
 (the report prints to PDF from any browser) — all from the stream, spending no
 API quota. A bundled **Lovelace card** and a cached vehicle image put a

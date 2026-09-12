@@ -242,6 +242,34 @@ const TRANSLATIONS = {
     bh_analysed: "Based on",
     bh_samples: "{n} charges",
     bh_trend_title: "Capacity vs mileage",
+    // efficiency and real range
+    ef_title: "Efficiency & range",
+    ef_loading: "Working out your real range…",
+    ef_empty:
+      "Not enough charging history yet. Once two charges bracket 50 km or so of driving, your real consumption and the range it reaches appear here.",
+    ef_no_capacity:
+      "This car hasn't reported its battery capacity, so a range can't be worked out from the measured consumption.",
+    ef_error: "Couldn't load the efficiency data. Reload the page and try again.",
+    ef_range_now: "Real range now",
+    ef_at_soc: "at {p}% charge",
+    ef_range_full: "{km} km on a full battery",
+    ef_vs_bmw_over: "{p}% further than the car predicts ({km} km)",
+    ef_vs_bmw_under: "{p}% less than the car predicts ({km} km)",
+    ef_vs_bmw_same: "Same as the car's own estimate ({km} km)",
+    ef_consumption: "Measured consumption",
+    ef_side_battery: "from the battery",
+    ef_side_grid: "at the plug",
+    ef_window_days: "last {n} days",
+    ef_window_all: "all records",
+    ef_loss: "Charging loss",
+    ef_capacity: "Usable capacity",
+    ef_capacity_measured: "measured",
+    ef_capacity_bmw: "BMW's figure",
+    ef_cost: "Cost per 100 km",
+    ef_solar: "{p}% solar this month",
+    ef_trend_title: "Consumption by month",
+    ef_footnote:
+      "Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate.",
     // trips
     tr_title: "Trips",
     tr_loading: "Loading trips…",
@@ -463,6 +491,34 @@ const TRANSLATIONS = {
     bh_analysed: "Basis",
     bh_samples: "{n} Ladevorgänge",
     bh_trend_title: "Kapazität nach Laufleistung",
+    // efficiency and real range
+    ef_title: "Effizienz & Reichweite",
+    ef_loading: "Reale Reichweite wird berechnet…",
+    ef_empty:
+      "Noch zu wenig Ladehistorie. Sobald zwei Ladevorgänge rund 50 km Fahrt einschließen, erscheinen hier der reale Verbrauch und die Reichweite, die er ergibt.",
+    ef_no_capacity:
+      "Dieses Fahrzeug meldet keine Batteriekapazität, daher lässt sich aus dem gemessenen Verbrauch keine Reichweite berechnen.",
+    ef_error: "Effizienzdaten konnten nicht geladen werden. Seite neu laden und erneut versuchen.",
+    ef_range_now: "Reale Reichweite jetzt",
+    ef_at_soc: "bei {p} % Ladung",
+    ef_range_full: "{km} km bei voller Batterie",
+    ef_vs_bmw_over: "{p} % weiter als das Fahrzeug vorhersagt ({km} km)",
+    ef_vs_bmw_under: "{p} % weniger als das Fahrzeug vorhersagt ({km} km)",
+    ef_vs_bmw_same: "Genau wie die Prognose des Fahrzeugs ({km} km)",
+    ef_consumption: "Gemessener Verbrauch",
+    ef_side_battery: "ab Batterie",
+    ef_side_grid: "ab Steckdose",
+    ef_window_days: "letzte {n} Tage",
+    ef_window_all: "gesamte Historie",
+    ef_loss: "Ladeverlust",
+    ef_capacity: "Nutzbare Kapazität",
+    ef_capacity_measured: "gemessen",
+    ef_capacity_bmw: "BMW-Wert",
+    ef_cost: "Kosten pro 100 km",
+    ef_solar: "{p} % Solar diesen Monat",
+    ef_trend_title: "Verbrauch nach Monat",
+    ef_footnote:
+      "Gemessen aus der Ladehistorie: die Strecke zwischen zwei Ladevorgängen und die Energie, die hineinging — nicht die Prognose des Fahrzeugs.",
     // trips
     tr_title: "Fahrten",
     tr_loading: "Fahrten werden geladen…",
@@ -597,6 +653,7 @@ class BavarianDataCard extends HTMLElement {
     if (this._config && this._config.view === "trips") return 11;
     if (this._config && this._config.view === "map") return 10;
     if (this._config && this._config.view === "health") return 7;
+    if (this._config && this._config.view === "efficiency") return 8;
     return this._config && this._config.cluster ? 6 : 8;
   }
 
@@ -840,6 +897,8 @@ class BavarianDataCard extends HTMLElement {
       this._renderMap(deviceId, entities);
     } else if (this._config.view === "health") {
       this._renderHealth(deviceId, entities);
+    } else if (this._config.view === "efficiency") {
+      this._renderEfficiency(deviceId, entities);
     } else if (this._config.cluster === "tire") {
       this._renderTires(deviceId, entities);
     } else if (this._config.cluster === "closures") {
@@ -2956,6 +3015,304 @@ class BavarianDataCard extends HTMLElement {
     `;
   }
 
+  /* ---- efficiency & real range ------------------------------------------ */
+
+  _renderEfficiency(deviceId, entities) {
+    const vin = this._deviceVin(deviceId);
+    if (!vin) {
+      this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
+      return;
+    }
+
+    const st = entities
+      .map((id) => this._st(id))
+      .find((s) => s && s.attributes && s.attributes.descriptor === "real_range");
+    const a = (st && st.attributes) || {};
+
+    // The month trend and the running cost come from the charging ledger, so
+    // they only move when a charge lands -- gate the service call on the
+    // measured consumption rather than on the entity's last_changed, which
+    // ticks with every state-of-charge update while the car is plugged in.
+    const trigger = [
+      a.consumption_kwh_per_100km,
+      a.consumption_window_days,
+      a.status,
+    ].join("|");
+    const cache = this._eff;
+    const current = cache && cache.vin === vin && cache.trigger === trigger;
+    if (!current || (!cache.data && !cache.loading)) {
+      this._eff = {
+        vin,
+        trigger,
+        data: current && cache ? cache.data : null,
+        loading: true,
+        error: false,
+      };
+      this._fetchEfficiency(vin);
+    }
+
+    this._paintEfficiency(deviceId, st);
+  }
+
+  _fetchEfficiency(vin) {
+    const req = this._eff;
+    this._hass
+      .callService("bavariandata", "get_efficiency", { vin }, undefined, false, true)
+      .then((res) => {
+        if (!this._eff || this._eff.vin !== vin || this._eff.trigger !== req.trigger)
+          return;
+        const profile = (res && res.response && res.response.efficiency) || null;
+        this._eff = { ...this._eff, data: profile, loading: false, error: false };
+        this._render();
+      })
+      .catch(() => {
+        if (!this._eff || this._eff.vin !== vin || this._eff.trigger !== req.trigger)
+          return;
+        this._eff = { ...this._eff, loading: false, error: true };
+        this._render();
+      });
+  }
+
+  /** Every figure here is in kilometres and kWh as the ledger recorded them,
+   * never read off the entity's state: a distance state is converted into the
+   * viewer's unit system while these attributes stay metric, and mixing the two
+   * would put miles and kilometres in one card. */
+  _efFigures(st, profile) {
+    const a = (st && st.attributes) || {};
+    if (st && a.status) {
+      return {
+        status: a.status,
+        nowKm: a.range_now_km,
+        fullKm: a.range_full_km,
+        soc: a.soc_percent,
+        consumption: a.consumption_kwh_per_100km,
+        side: a.consumption_source,
+        window: a.consumption_window_days,
+        gridConsumption: a.grid_consumption_kwh_per_100km,
+        loss: a.measured_loss_percent,
+        capacity: a.capacity_kwh,
+        capacitySource: a.capacity_source,
+        bmwKm: a.bmw_range_km,
+        vsBmw: a.vs_bmw_percent,
+      };
+    }
+    // No entity (a car with no odometer, or one the owner disabled): the service
+    // answers the same questions, just without the per-tick freshness.
+    const p = profile || {};
+    const range = p.range || {};
+    const consumption = p.consumption || {};
+    const grid = p.grid_consumption || {};
+    return {
+      status: p.status,
+      nowKm: range.now_km,
+      fullKm: range.full_km,
+      soc: range.soc_percent,
+      consumption: consumption.kwh_per_100km,
+      side: consumption.source,
+      window: consumption.window_days,
+      gridConsumption: grid.kwh_per_100km,
+      loss: p.measured_loss_percent,
+      capacity: p.capacity_kwh,
+      capacitySource: p.capacity_source,
+      bmwKm: range.bmw_km,
+      vsBmw: range.vs_bmw_percent,
+    };
+  }
+
+  _paintEfficiency(deviceId, st) {
+    const name = this._config.title || this._deviceName(deviceId);
+    const state = this._eff || {};
+    const profile = state.data;
+    const f = this._efFigures(st, profile);
+    const trend = (profile && Array.isArray(profile.trend) && profile.trend) || [];
+
+    const sig = this._signature({
+      m: "ef",
+      lang: _lang(this._hass),
+      name,
+      loading: state.loading && !profile && !st,
+      error: state.error,
+      f,
+      trend,
+      cost: profile && profile.cost_per_100km,
+      currency: profile && profile.currency,
+      mix: profile && profile.energy_mix,
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    let body;
+    if (state.error && !st) {
+      body = `<div class="empty">${this._t("ef_error")}</div>`;
+    } else if (state.loading && !profile && !st) {
+      body = `<div class="empty">${this._t("ef_loading")}</div>`;
+    } else if (f.consumption == null) {
+      body = `<div class="empty">${this._t("ef_empty")}</div>`;
+    } else if (f.fullKm == null) {
+      // Consumption measured, but nothing to divide it into: say which half is
+      // missing rather than showing the same "no data yet" as an empty ledger.
+      body = `<div class="empty">${this._t("ef_no_capacity")}</div>`;
+    } else {
+      body = this._efBody(f, trend, profile || {});
+    }
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <div class="chead">
+          <ha-icon icon="mdi:map-marker-distance"></ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">${this._esc(this._config.title || this._t("ef_title"))}</span>
+            <span class="chead__sub">${this._esc(name)}</span>
+          </div>
+        </div>
+        ${body}
+      </ha-card>
+    `;
+  }
+
+  _efBody(f, trend, profile) {
+    const hero =
+      f.nowKm != null
+        ? `<span class="ef__hero-val">${this._round(f.nowKm, 0)} <i>km</i></span>
+           <span class="ef__hero-lbl">${this._t("ef_range_now")}${
+             f.soc != null
+               ? " · " + this._t("ef_at_soc", { p: this._round(f.soc, 0) })
+               : ""
+           }</span>`
+        : `<span class="ef__hero-val">${this._round(f.fullKm, 0)} <i>km</i></span>
+           <span class="ef__hero-lbl">${this._t("ef_range_full", {
+             km: this._round(f.fullKm, 0),
+           })}</span>`;
+
+    let vsBmw = "";
+    if (f.vsBmw != null && f.bmwKm != null) {
+      const p = Math.abs(this._round(f.vsBmw, 0));
+      const km = this._round(f.bmwKm, 0);
+      const key =
+        p < 1 ? "ef_vs_bmw_same" : f.vsBmw > 0 ? "ef_vs_bmw_over" : "ef_vs_bmw_under";
+      const tone = p < 1 ? "" : f.vsBmw > 0 ? " ef__vs--over" : " ef__vs--under";
+      vsBmw = `<span class="ef__vs${tone}">${this._t(key, { p, km })}</span>`;
+    }
+
+    const sideLabel =
+      f.side === "grid" ? this._t("ef_side_grid") : this._t("ef_side_battery");
+    const windowLabel =
+      f.window != null
+        ? this._t("ef_window_days", { n: f.window })
+        : this._t("ef_window_all");
+
+    const facts = [
+      [
+        this._t("ef_consumption"),
+        `${this._round(f.consumption, 1)} kWh/100 km`,
+        `${sideLabel} · ${windowLabel}`,
+      ],
+    ];
+    if (f.loss != null && f.gridConsumption != null) {
+      facts.push([
+        this._t("ef_loss"),
+        `${this._round(f.loss, 0)} %`,
+        `${this._round(f.gridConsumption, 1)} kWh/100 km ${this._t("ef_side_grid")}`,
+      ]);
+    }
+    if (f.capacity != null) {
+      facts.push([
+        this._t("ef_capacity"),
+        `${this._round(f.capacity, 1)} kWh`,
+        f.capacitySource === "measured"
+          ? this._t("ef_capacity_measured")
+          : this._t("ef_capacity_bmw"),
+      ]);
+    }
+    if (profile.cost_per_100km != null) {
+      const currency = profile.currency ? ` ${this._esc(profile.currency)}` : "";
+      const mix = profile.energy_mix || {};
+      facts.push([
+        this._t("ef_cost"),
+        `${this._round(profile.cost_per_100km, 2)}${currency}`,
+        mix.solar_percent != null
+          ? this._t("ef_solar", { p: this._round(mix.solar_percent, 0) })
+          : "",
+      ]);
+    }
+
+    const factRow = facts
+      .map(
+        ([k, v, note]) =>
+          `<div class="ef__fact">
+             <span class="ef__fact-lbl">${k}</span>
+             <span class="ef__fact-val">${v}</span>
+             ${note ? `<span class="ef__fact-note">${note}</span>` : ""}
+           </div>`
+      )
+      .join("");
+
+    const chart = this._efTrendSvg(trend);
+    return `
+      <div class="ef">
+        <div class="ef__hero">
+          <div class="ef__hero-text">${hero}</div>
+          ${vsBmw}
+        </div>
+        <div class="ef__facts">${factRow}</div>
+        ${
+          chart
+            ? `<div class="ef__trend"><span class="ef__trend-title">${this._t(
+                "ef_trend_title"
+              )}</span>${chart}</div>`
+            : ""
+        }
+        <span class="ef__note">${this._t("ef_footnote")}</span>
+      </div>
+    `;
+  }
+
+  /** Monthly consumption as bars. Zero-based on purpose, unlike the capacity
+   * trend: the summer-to-winter difference is large and real, and a zoomed axis
+   * would make a 1 kWh/100 km wobble look like a season. */
+  _efTrendSvg(trend) {
+    if (!Array.isArray(trend) || trend.length < 2) return "";
+    const W = 280;
+    const H = 88;
+    const pad = 6;
+    const bottom = 14;
+    const values = trend.map((e) => e.kwh_per_100km);
+    const max = Math.max(...values) * 1.15 || 1;
+    const slot = (W - 2 * pad) / trend.length;
+    // Capped as well as proportional: with two months on file a purely
+    // proportional bar is 78 px wide and reads as a block, not a chart.
+    const width = Math.min(28, Math.max(4, slot * 0.58));
+    const bars = trend
+      .map((entry, i) => {
+        const x = pad + i * slot + (slot - width) / 2;
+        const h = (entry.kwh_per_100km / max) * (H - bottom - pad);
+        const y = H - bottom - h;
+        // "2026-09" -> "09": a bare month number reads the same in every
+        // language, which a translated abbreviation would not.
+        const label = String(entry.month || "").slice(5);
+        return `<rect class="ef__bar" x="${this._round(x, 1)}" y="${this._round(y, 1)}"
+                  width="${this._round(width, 1)}" height="${this._round(
+          Math.max(h, 1),
+          1
+        )}" rx="2"></rect>
+                <text class="ef__bar-lbl" x="${this._round(
+                  x + width / 2,
+                  1
+                )}" y="${H - 3}" text-anchor="middle">${this._esc(label)}</text>`;
+      })
+      .join("");
+    return `
+      <svg class="ef__chart" viewBox="0 0 ${W} ${H}" role="img">
+        ${bars}
+        <text x="${pad}" y="9" class="chg__chart-max">${this._round(
+      max,
+      0
+    )} kWh/100 km</text>
+      </svg>
+    `;
+  }
+
   _round(n, dp) {
     const f = Math.pow(10, dp);
     return Math.round(n * f) / f;
@@ -4359,6 +4716,47 @@ class BavarianDataCard extends HTMLElement {
       }
       .bh__chart { width: 100%; height: 70px; display: block; }
 
+      /* ---- efficiency & real range ---- */
+      .ef { padding: 6px 14px 14px; display: flex; flex-direction: column; gap: 14px; }
+      .ef__hero { display: flex; flex-direction: column; gap: 4px; }
+      .ef__hero-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+      .ef__hero-val {
+        font-size: 2.1rem; font-weight: 600; line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+      .ef__hero-val i {
+        font-size: 0.95rem; font-weight: 500; font-style: normal;
+        color: var(--secondary-text-color);
+      }
+      .ef__hero-lbl {
+        font-size: 0.7rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .ef__vs { font-size: 0.82rem; color: var(--secondary-text-color); font-weight: 500; }
+      .ef__vs--over { color: var(--bmw-high); }
+      .ef__vs--under { color: var(--bmw-mid); }
+      .ef__facts { display: flex; flex-wrap: wrap; gap: 8px; }
+      .ef__fact {
+        flex: 1 1 44%; display: flex; flex-direction: column; gap: 2px;
+        padding: 8px 10px; border-radius: 12px;
+        background: var(--secondary-background-color);
+      }
+      .ef__fact-lbl {
+        font-size: 0.68rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .ef__fact-val { font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+      .ef__fact-note { font-size: 0.72rem; color: var(--secondary-text-color); }
+      .ef__trend { display: flex; flex-direction: column; gap: 4px; }
+      .ef__trend-title {
+        font-size: 0.68rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .ef__chart { width: 100%; height: 88px; display: block; }
+      .ef__bar { fill: var(--bmw-charge); opacity: 0.85; }
+      .ef__bar-lbl { fill: var(--secondary-text-color); font-size: 8px; }
+      .ef__note { font-size: 0.72rem; color: var(--secondary-text-color); line-height: 1.35; }
+
       /* trips */
       .tr__review { padding: 8px 14px 4px; display: flex; flex-direction: column; gap: 12px; }
       .tr__tiles { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -4538,7 +4936,15 @@ const TRIPS_VIEW = "trips";
 // The trip map (opt-in route polylines on ha-map), also a `view:`.
 const MAP_VIEW = "map";
 // The `view:` values that are layouts in their own right rather than clusters.
-const VIEW_MODES = new Set([CHARGING_VIEW, TRIPS_VIEW, MAP_VIEW, HEALTH_VIEW]);
+const EFFICIENCY_VIEW = "efficiency";
+
+const VIEW_MODES = new Set([
+  CHARGING_VIEW,
+  TRIPS_VIEW,
+  MAP_VIEW,
+  HEALTH_VIEW,
+  EFFICIENCY_VIEW,
+]);
 
 class BavarianDataCardEditor extends HTMLElement {
   setConfig(config) {
@@ -4558,6 +4964,7 @@ class BavarianDataCardEditor extends HTMLElement {
       { value: TRIPS_VIEW, label: t(this._hass, "tr_title") },
       { value: MAP_VIEW, label: t(this._hass, "mp_title") },
       { value: HEALTH_VIEW, label: t(this._hass, "bh_title") },
+      { value: EFFICIENCY_VIEW, label: t(this._hass, "ef_title") },
       { value: "closures", label: t(this._hass, "cl_closures") },
       ...CLUSTER_SLUGS.map((slug) => ({
         value: slug,

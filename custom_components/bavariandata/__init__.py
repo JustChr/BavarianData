@@ -1178,6 +1178,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 vol.Optional("month"): str,  # "YYYY-MM"; defaults to this month
             }
         )
+        get_efficiency_schema = vol.Schema(
+            {
+                vol.Optional("entry_id"): str,
+                vol.Optional("vin"): str,
+            }
+        )
         set_trip_class_schema = vol.Schema(
             {
                 vol.Optional("entry_id"): str,
@@ -1267,6 +1273,43 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 battery_capacity_kwh=coordinator.battery_capacity_kwh(vin),
             )
             return {"summary": summary, "month": f"{year:04d}-{month:02d}"}
+
+        async def async_handle_get_efficiency(call: Any) -> dict:
+            """Measured consumption, real range and the seasonal trend.
+
+            The same profile the real-range entity publishes, plus the month
+            trend it deliberately keeps out of the recorder -- one code path, so
+            the card and the entity can never quote different numbers.
+            """
+
+            target = _resolve_target(call)
+            if target is None or target[2].history is None:
+                return {"efficiency": {}}
+            _entry_id, _entry, runtime = target
+            coordinator = runtime.coordinator
+            vin = _default_vin(runtime, call.data.get("vin"))
+            profile = coordinator.efficiency(vin)
+            # The ledger's own cost-per-100 km and the month's solar share are
+            # what turn an efficiency view into a running-costs one; they come
+            # from the same sessions, so they are answered here rather than
+            # making the card place a second call and risk a different window.
+            month = dt_util.now()
+            month_summary = summarise(
+                sessions_in_month(
+                    runtime.history.sessions(vin),
+                    year=month.year,
+                    month=month.month,
+                    localize=dt_util.as_local,
+                )
+            )
+            profile["cost_per_100km"] = month_summary.get("cost_per_100km")
+            profile["currency"] = (
+                coordinator.pricing.currency
+                if coordinator.pricing.enabled
+                else None
+            )
+            profile["energy_mix"] = month_summary.get("energy_mix")
+            return {"efficiency": profile, "vin": vin}
 
         async def async_handle_set_trip_class(call: Any) -> None:
             target = _resolve_target(call)
@@ -1609,6 +1652,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         )
         hass.services.async_register(
             DOMAIN,
+            "get_efficiency",
+            async_handle_get_efficiency,
+            schema=get_efficiency_schema,
+            supports_response=SupportsResponse.ONLY,
+        )
+        hass.services.async_register(
+            DOMAIN,
             "set_trip_class",
             async_handle_set_trip_class,
             schema=set_trip_class_schema,
@@ -1663,6 +1713,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 "get_charging_sessions",
                 "get_trips",
                 "get_driving_summary",
+                "get_efficiency",
                 "set_trip_class",
                 "export_history",
                 "import_statistics",

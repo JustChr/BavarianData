@@ -35,6 +35,7 @@ you add the card to a dashboard yourself. It has several views:
 - [Entities & devices](Feature-Entities-and-Devices) — what appears, and how it's named
 - [Charging history & cost](Feature-Charging-History-and-Cost)
 - [Battery health](Feature-Battery-Health) — how usable capacity is learned
+- [Efficiency & real range](Feature-Efficiency-and-Range) — measured consumption, and how far it reaches
 - [Trips / driving journal](Feature-Trips) — and the Fahrtenbuch caveat
 - [Energy dashboard & long-term statistics](Feature-Energy-and-Statistics)
 - [Export (CSV / HTML report)](Feature-Export)

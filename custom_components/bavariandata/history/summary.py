@@ -17,6 +17,9 @@ from .models import ChargingSession, _iso
 from .trips import CLASS_BUSINESS, CLASS_COMMUTE, CLASS_PRIVATE, Trip
 
 __all__ = [
+    "SIDE_AUTO",
+    "SIDE_BATTERY",
+    "SIDE_GRID",
     "driving_summary",
     "energy_balance",
     "fleet_consumption_kwh_per_100km",
@@ -273,10 +276,29 @@ MIN_PLAUSIBLE_KWH_PER_100KM = 5.0
 MAX_PLAUSIBLE_KWH_PER_100KM = 80.0
 
 
+# Which side of the charger a balance should describe. ``"auto"`` takes whatever
+# each session carries (the ledger's usual grid-preferred rule) and reports which
+# it got; the explicit sides answer only when *every* contributing session can be
+# read on that side, because a hole in the sum is a quietly understated figure
+# rather than a missing one.
+SIDE_AUTO = "auto"
+SIDE_BATTERY = "battery"
+SIDE_GRID = "grid"
+
+
+def _side_energy(session: ChargingSession, side: str) -> Optional[float]:
+    if side == SIDE_BATTERY:
+        return session.energy_kwh
+    if side == SIDE_GRID:
+        return session.grid_kwh
+    return session.effective_energy_kwh
+
+
 def energy_balance(
     sessions: Iterable[ChargingSession],
     *,
     battery_capacity_kwh: Optional[float] = None,
+    side: str = SIDE_AUTO,
 ) -> Optional[dict[str, Any]]:
     """Consumption over a period, measured from the charging ledger alone.
 
@@ -315,6 +337,13 @@ def energy_balance(
     either without saying which is how a number ends up quietly meaning
     something other than its label.
 
+    ``side`` overrides that: ask for :data:`SIDE_BATTERY` or :data:`SIDE_GRID`
+    and the figure is only returned when every session that delivered energy in
+    the window can be read on that side. A caller comparing the two sides -- to
+    quantify the charging loss, or to turn consumption into range -- must have
+    both describing the same kilometres, and a session missing from one sum
+    would understate that side instead of declining to answer.
+
     Returns ``None`` rather than a guess whenever the inputs can't support an
     answer: fewer than two odometer readings, too short a span, an unknown
     capacity, or a result outside anything a road vehicle produces.
@@ -343,7 +372,14 @@ def energy_balance(
     contributing = [
         session for session in bounded[1:] if session.effective_energy_kwh
     ]
-    charged = sum(session.effective_energy_kwh or 0.0 for session in contributing)
+    # An explicit side must be able to read every one of them: a session that
+    # only carries the other side's figure would silently drop out of the sum
+    # and make the window look thriftier than it was.
+    if side != SIDE_AUTO and any(
+        _side_energy(session, side) is None for session in contributing
+    ):
+        return None
+    charged = sum(_side_energy(session, side) or 0.0 for session in contributing)
     if charged <= 0:
         return None
     # Grid-side only when every last kWh of it was actually measured at the grid.
@@ -351,9 +387,13 @@ def energy_balance(
     # calling a mixture "at the plug" would overstate it by the losses of the
     # part that never saw a meter.
     source = (
-        "grid"
-        if all(session.grid_kwh is not None for session in contributing)
-        else "battery"
+        side
+        if side != SIDE_AUTO
+        else (
+            "grid"
+            if all(session.grid_kwh is not None for session in contributing)
+            else "battery"
+        )
     )
 
     # A battery fuller at the close than at the open means some of what was

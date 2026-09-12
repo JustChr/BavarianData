@@ -10,6 +10,42 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [Unreleased]
 
 ### Added
+- **How far the car really goes — measured, not predicted.** A new **Real
+  Range** sensor divides the usable battery capacity by the consumption your own
+  charging history actually recorded, and scales it to the charge in the car
+  right now. Its attributes carry the whole story: the consumption it used, which
+  side of the charger that figure describes, how many days it was measured over,
+  the capacity it divided into and where that came from, and what the car's own
+  remaining-range prediction says for comparison.
+
+  Consumption is measured the way the trips card's headline figure already is —
+  two charging sessions bracket a window, and the odometer and state of charge at
+  each end give the distance and the energy without a single drive having to have
+  been detected. What is new is that it picks **the shortest window that can
+  answer**: 30 days, then 90, then a year, then everything on file. A fixed month
+  goes blank for anyone who charges rarely; “all time” is still quoting last
+  winter in June. Whichever it used is published beside the number, because
+  17.5 kWh/100 km means different things over a month and over a year.
+
+  Battery-side and grid-side figures are never mixed. Range is computed from the
+  battery side only — feeding it a grid figure would have the car driving on the
+  charging losses — and a window that contains a charge which can only be read on
+  one side reports nothing on the other rather than summing a hole.
+- **A new `view: efficiency` card view.** The real range from here, how it
+  compares with the car's own estimate, the measured consumption with its window
+  and its side of the charger, the measured charging loss, the usable capacity,
+  your cost per 100 km with the month's solar share, and a bar chart of
+  consumption by calendar month — which is where the seasonal story shows up,
+  since winter consumption on an EV runs routinely a third above summer.
+- **A `get_efficiency` service** returning the same profile plus the month trend,
+  for templates and automations. Local store only, no BMW API quota.
+- **The charging loss is now measured, where it can be.** With a wallbox energy
+  entity bound (or BMW's own imported charging records), grid-side and
+  battery-side consumption are computed over **the same window** and their gap
+  reported as `measured_loss_percent`. It is deliberately named apart from the
+  *charging loss %* setting, which is an assumption you supply so cost can be
+  grossed up when nothing measured the wall — the measured figure is a good
+  sanity check on the number you typed there.
 - **Where each charge's energy came from: PV, house battery, or the grid.**
   Point **Configure → Solar & energy sources** at your PV power and grid power
   sensors (house battery optional) and every session records the split in
@@ -37,6 +73,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   three in the morning, and that is not knowable here.
 
 ### Fixed
+- **The monthly driving-distance sensor now appears on cars that report
+  `travelledDistance`.** It was created only for a car streaming
+  `vehicle.vehicle.mileage` or `vehicle.isMoving` — and the i5 streams neither,
+  only the other spelling of the odometer. On such a car the sensor was never
+  created at all, however many trips were recorded underneath it; the
+  cost-per-100 km sensor was gated the same way and had the same gap. Both now
+  accept either odometer descriptor, which is what every other part of the
+  integration already did.
 - **A restart no longer loses the charge that was running.** An in-progress
   charging session lived only in memory, so any Home Assistant restart, update
   or options reload mid-charge deleted it — and Home Assistant does not unload

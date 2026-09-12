@@ -32,6 +32,7 @@ dashboard to show them side by side.
 - [Overview](#overview)
 - [Charging history](#charging-history-view-charging)
 - [Battery health](#battery-health-view-health)
+- [Efficiency & range](#efficiency--range-view-efficiency)
 - [Trips / driving journal](#trips--driving-journal-view-trips)
 - [Trip map](#trip-map-view-map)
 - [Tires](#tires-cluster-tire)
@@ -120,6 +121,32 @@ It reads the **Battery Health** sensor, so it spends **no API quota**. Until
 there are enough wide-range charges to be sure of the number, it shows
 *Learning (n/10)* rather than a figure that would jump around
 ([how it's learned](Feature-Battery-Health)).
+
+---
+
+## Efficiency & range (`view: efficiency`)
+
+How far the car really goes from its current charge, above the consumption that
+figure is built on.
+
+```yaml
+type: custom:bavariandata-card
+view: efficiency
+```
+
+It shows the real range from here (and on a full battery), how that compares
+with the car's own remaining-range prediction, the measured consumption with the
+side of the charger and the window it came from, the measured charging loss where
+a grid figure exists, the usable capacity it divided into, your cost per 100 km
+with the month's solar share, and a bar chart of consumption by calendar month —
+the seasonal story, since winter consumption is routinely a third above summer.
+
+Everything is measured from the charging ledger — two charges bracket a distance
+and the energy that went into it — so it spends **no API quota** and never
+borrows the car's own estimate ([how it's measured](Feature-Efficiency-and-Range)).
+
+Until there is enough charging history to bracket ~50 km of driving, the card
+says so rather than showing a number.
 
 ---
 

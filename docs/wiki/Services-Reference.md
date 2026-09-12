@@ -78,6 +78,34 @@ Recuperation is `recuperation_kwh_per_100km`, a distance-weighted mean rather
 than a total. See
 [how consumption is measured](Feature-Trips#how-consumption-is-measured).
 
+### `get_efficiency`
+`vin`. Returns the measured-efficiency profile: consumption, the real range it
+implies, the charging loss, and a month-by-month trend. Reads the local store,
+so it costs no BMW API quota.
+
+- **`consumption`** — battery-side `kwh_per_100km` plus `window_days` (30, 90,
+  365, or `null` when it took the whole ledger) and the odometer window it was
+  measured over. **`grid_consumption`** is the same figure at the plug, present
+  only when every charge in that same window carried a measured `grid_kwh`.
+- **`measured_loss_percent`** — the gap between the two, when both exist. This is
+  *measured*, and is a different thing from the
+  [charging loss % setting](Settings-Reference#charging-costs--history), which is
+  an assumption used for costing.
+- **`range`** — `full_km`, `now_km` (scaled by the current charge), `bmw_km`
+  (the car's own prediction) and `vs_bmw_percent`. Absent when either the
+  capacity or the consumption is unknown.
+- **`capacity_kwh` / `capacity_source`** — `measured` once battery health is
+  confident, otherwise `bmw`.
+- **`trend`** — one entry per calendar month that could be measured, oldest
+  first; months whose charging couldn't bracket enough distance are omitted
+  rather than shown as zero.
+- **`cost_per_100km` / `currency` / `energy_mix`** — this month's running cost
+  and where its energy came from.
+
+`status` says why a figure is missing: `ok`, `not_enough_history`, or
+`no_capacity`. See
+[Efficiency & real range](Feature-Efficiency-and-Range).
+
 ### `set_trip_class`
 `vin`, `trip_id` (as returned by `get_trips`), `classification`
 (`business` · `private` · `commute`). Writes the local store only.

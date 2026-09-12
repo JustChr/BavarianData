@@ -1619,6 +1619,9 @@
       "driving_distance_month": {
         "name": "Fahrstrecke (dieser Monat)"
       },
+      "real_range": {
+        "name": "Reale Reichweite"
+      },
       "tyre_status": {
         "name": "Reifenzustand"
       },
@@ -2724,6 +2727,20 @@
         "month": {
           "name": "Monat",
           "description": "Auszuwertender Monat als JJJJ-MM. Standardmäßig der aktuelle Monat."
+        }
+      }
+    },
+    "get_efficiency": {
+      "name": "Effizienz und reale Reichweite abrufen",
+      "description": "Liefert den gemessenen Verbrauch (kWh/100 km), die daraus folgende reale Reichweite beim aktuellen Ladezustand, den Ladeverlust zwischen Netz und Batterie sowie einen Monatsverlauf der Effizienz. Alles stammt aus der Ladehistorie und kostet daher kein BMW-API-Kontingent.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+        },
+        "vin": {
+          "name": "FIN",
+          "description": "Optionale FIN. Standard ist das einzige konfigurierte Fahrzeug."
         }
       }
     },

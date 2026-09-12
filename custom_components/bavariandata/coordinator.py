@@ -34,6 +34,7 @@ from .history.classify import (
     classify_trip,
     commute_chain,
 )
+from .history.efficiency import TREND_MONTHS, efficiency_profile
 from .history.health import usable_capacity
 from .history.pricing import (
     MODE_FIXED,
@@ -1779,6 +1780,71 @@ class CardataCoordinator:
         if tracking is not None and tracking.max_energy_kwh:
             return tracking.max_energy_kwh
         return self._battery_kwh(vin, "vehicle.drivetrain.batteryManagement.maxEnergy")
+
+    def current_soc(self, vin: str) -> Optional[float]:
+        """The best state of charge we have, live estimate first.
+
+        Public because anything that scales the pack into something else --
+        remaining real range, most obviously -- needs exactly the chain the
+        internal one walks: the tracker's extrapolated figure while charging,
+        the last reading otherwise.
+        """
+
+        return self._current_soc(vin)
+
+    def bmw_range_km(self, vin: str) -> Optional[float]:
+        """BMW's own remaining *electric* range, as shown in the cluster.
+
+        Deliberately only ``kombiRemainingElectricRange``: it is the number on
+        the car's display, which is what a comparison against our measured one
+        means to a user. ``lastRemainingRange`` looks like a drop-in fallback
+        and is identical on a battery car, but on a plug-in hybrid it includes
+        the fuel range -- comparing that against an electric range would make
+        BMW's estimate look wildly optimistic for a reason that has nothing to
+        do with either car's efficiency.
+        """
+
+        state = self.get_state(
+            vin, "vehicle.drivetrain.electricEngine.kombiRemainingElectricRange"
+        )
+        if state is None or state.value is None:
+            return None
+        try:
+            value = float(state.value)
+        except (TypeError, ValueError):
+            return None
+        return value if value > 0 else None
+
+    def efficiency(self, vin: str, *, months: int = TREND_MONTHS) -> Dict[str, Any]:
+        """Measured consumption, the range it implies, and the seasonal trend.
+
+        One code path for all three consumers -- the real-range entity, the
+        ``get_efficiency`` service and the card's efficiency view -- so none of
+        them can quote a figure the others would disagree with.
+
+        The capacity fed to the range arithmetic is our own learned one *only
+        once battery health is confident in it*; until then BMW's ``maxEnergy``
+        stands in. Both are battery-side usable energy, which is what makes
+        dividing a battery-side consumption figure by it legitimate.
+        """
+
+        sessions = [] if self.history is None else self.history.sessions(vin)
+        bmw_capacity = self.battery_capacity_kwh(vin)
+        health = usable_capacity(
+            sessions,
+            nominal_kwh=self.battery_nominal_kwh(vin),
+            sanity_kwh=bmw_capacity,
+        )
+        return efficiency_profile(
+            sessions,
+            battery_capacity_kwh=bmw_capacity,
+            usable_capacity_kwh=health.usable_kwh if health.confident else None,
+            soc_percent=self.current_soc(vin),
+            bmw_range_km=self.bmw_range_km(vin),
+            now=dt_util.utcnow(),
+            localize=dt_util.as_local,
+            months=months,
+        )
 
     def _charging_location(self, vin: str) -> Optional[Dict[str, Any]]:
         """Where the car is plugged in, as an HA zone name when we can tell.

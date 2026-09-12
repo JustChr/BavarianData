@@ -37,6 +37,7 @@ integration's own translations (so German installs get German names too).
 | **Charging Cost (Last Session)** | Cost of the most recent session — only with a price source. |
 | **Charging Cost per 100 km** | Needs the odometer and two sessions to measure a distance. |
 | **Battery Health** | Learned usable capacity (kWh), with vs-new %, sample count and a capacity-vs-mileage trend. |
+| **Real Range** | How far the car really goes from its current charge (km), from measured consumption and usable capacity — with the car's own prediction and the difference as attributes. |
 | **Driving Distance (This Month)** | Monthly distance + business/private/commute split. |
 | **Trip in Progress** | Binary sensor: `on` while a drive is under way, with the trip so far as attributes. Deliberately *not* a "moving" sensor — it lingers after an arrival; see [Trips](Feature-Trips#seeing-the-drive-thats-happening-now). |
 | **Tyre Condition** | BMW's overall verdict on the mounted set, plus any upstream errors. |

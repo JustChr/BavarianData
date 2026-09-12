@@ -73,6 +73,10 @@
       "en": "Driving Distance (This Month)",
       "de": "Fahrstrecke (dieser Monat)"
     },
+    "real_range": {
+      "en": "Real Range",
+      "de": "Reale Reichweite"
+    },
     "tyre_status": {
       "en": "Tyre Condition",
       "de": "Reifenzustand"

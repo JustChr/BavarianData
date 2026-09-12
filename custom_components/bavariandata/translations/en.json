@@ -1849,6 +1849,9 @@
       "driving_distance_month": {
         "name": "Driving Distance (This Month)"
       },
+      "real_range": {
+        "name": "Real Range"
+      },
       "tyre_status": {
         "name": "Tyre Condition"
       },
@@ -2954,6 +2957,20 @@
         "month": {
           "name": "Month",
           "description": "Month to summarise as YYYY-MM. Defaults to the current month."
+        }
+      }
+    },
+    "get_efficiency": {
+      "name": "Get efficiency and real range",
+      "description": "Return measured consumption (kWh/100 km), the real range it implies at the current state of charge, the charging loss between the grid and the battery, and a month-by-month efficiency trend. Everything is derived from the charging ledger, so it costs no BMW API quota.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN. Defaults to the single configured vehicle."
         }
       }
     },
