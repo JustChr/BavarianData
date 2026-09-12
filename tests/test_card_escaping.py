@@ -321,3 +321,29 @@ def test_card_loads_no_external_resources() -> None:
         "https://github.com/JustChr/BavarianData",  # console banner link
     }
     assert not (urls - allowed), f"card references external URL(s): {sorted(urls - allowed)}"
+
+
+def test_the_overview_range_names_the_descriptor_it_wants() -> None:
+    """Three "electric range" entities tie on keywords; only one is the truth.
+
+    BMW's ``remainingElectricRange`` is the estimate *during charging* -- on a
+    parked car it is whatever was predicted mid-charge, and it showed 128 km on
+    an i5 sitting at 86 % with a real 379. ``powertrain.electric.range.target``
+    is the range at the *target* state of charge. Both score identically to
+    ``kombiRemainingElectricRange``, the figure on the car's own display, so
+    which one the overview card showed came down to entity-registry order.
+    """
+
+    source = _CARD.read_text(encoding="utf-8")
+    start = source.index("      range:\n        cfg.range ||")
+    block = source[start : source.index("charging:", start)]
+    assert "kombi remaining electric range" in block, (
+        "The overview range pick no longer names kombiRemainingElectricRange, "
+        "leaving the car's own displayed range to win a keyword tie by luck."
+    )
+    for impostor in ("electricengine.remainingelectricrange", "range.target"):
+        assert impostor in block, (
+            f"The overview range pick no longer rejects {impostor}: a "
+            "during-charging estimate or a target-based range can be shown as "
+            "the range the car has now."
+        )

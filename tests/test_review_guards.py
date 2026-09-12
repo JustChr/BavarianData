@@ -766,6 +766,13 @@ def test_the_real_range_entity_watches_the_figures_it_is_measured_against() -> N
         "range and the pack capacity would freeze at whatever they were when "
         "the entity was created."
     )
+    assert "signal_diagnostics" in source, (
+        "The real-range entity no longer watches the stream heartbeat. A "
+        "restart restores those same two figures with no signal of any kind -- "
+        "each descriptor entity pushes its own restored value back into the "
+        "coordinator -- so a parked car would keep the empty profile it wrote "
+        "before the restore landed."
+    )
     assert "EFFICIENCY_LIVE_DESCRIPTORS" in source, (
         "The descriptor handler must filter on EFFICIENCY_LIVE_DESCRIPTORS -- "
         "recomputing the profile walks every stored session, so doing it for "

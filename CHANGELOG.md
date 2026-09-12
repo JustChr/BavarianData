@@ -9,6 +9,29 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.9-beta.3] - 2026-09-12
+
+### Fixed
+- **The main card showed the wrong range.** Three entities on an electric car
+  answer to "electric range", they scored identically in the card's entity
+  matching, and which one won came down to the order Home Assistant happened to
+  list them in. The one that kept winning is BMW's *estimate during charging* —
+  on a parked car that is whatever was predicted mid-charge, and it read **128 km
+  on a car sitting at 86 % with a real 379**. The card now names the figure it
+  wants, `kombiRemainingElectricRange`, the number on the car's own display, and
+  explicitly rejects both impostors: the during-charging estimate and the range
+  at the *target* state of charge. They stay available to the fallback for a car
+  that streams nothing better, where they are chosen knowingly.
+- **The Real Range sensor could still miss a restart.** v0.9.9-beta.2 taught it to
+  watch its inputs arriving on the stream, but a restart delivers them without a
+  stream message at all: every descriptor entity restores its own state and hands
+  it back to the coordinator silently, in whatever order the entities are added.
+  A car parked over a restart therefore kept the empty profile it wrote before
+  that restore landed — no comparison against BMW, and a capacity figure left
+  over from the previous run. It now also watches the stream heartbeat, which is
+  the one tick that always comes, and re-reads the ledger only on the rare tick
+  where one of those two figures has actually moved.
+
 ## [0.9.9-beta.2] - 2026-09-12
 
 ### Fixed

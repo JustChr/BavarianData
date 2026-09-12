@@ -779,7 +779,22 @@ class BavarianDataCard extends HTMLElement {
         this._pick(entities, { prefer: ["charge", "soc"], unit: "%", avoid: ["target", "rate"] }),
       range:
         cfg.range ||
-        this._pick(entities, { deviceClass: "distance", prefer: ["electric range", "range"] }) ||
+        // Three distance entities answer to "electric range" on a BEV, and BMW
+        // named the useless one best. `remainingElectricRange` is, in BMW's own
+        // words, "the electric range predicted during charging" -- on a parked
+        // car it is whatever was predicted mid-charge, 128 km against a real 379
+        // on a car sitting at 86 %. `range.target` is the range at the *target*
+        // state of charge, not the current one. The number on the car's own
+        // display is `kombiRemainingElectricRange`, so name it outright: all
+        // three score identically on the keywords, and the winner of that tie
+        // was decided by entity-registry order.
+        this._pick(entities, {
+          deviceClass: "distance",
+          prefer: ["kombi remaining electric range", "electric range", "range"],
+          avoid: ["electricengine.remainingelectricrange", "range.target"],
+        }) ||
+        // Both impostors stay reachable here, for a car that streams nothing
+        // better -- chosen knowingly rather than by accident.
         this._pick(entities, { prefer: ["range"] }),
       charging:
         cfg.charging ||

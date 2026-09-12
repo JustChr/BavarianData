@@ -1012,7 +1012,11 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
         self._unsub_history = None
         self._unsub_soc = None
         self._unsub_live = None
+        self._unsub_heartbeat = None
         self._cached: Optional[Dict[str, Any]] = None
+        # What the cached profile was computed from, so the heartbeat can tell
+        # "nothing moved" from "nobody told us" without walking the ledger.
+        self._inputs: Optional[tuple] = None
 
     @property
     def _profile(self) -> Dict[str, Any]:
@@ -1024,8 +1028,22 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
         """
 
         if self._cached is None:
+            self._inputs = self._live_inputs()
             self._cached = self._coordinator.efficiency(self.vin, months=0)
         return self._cached
+
+    def _live_inputs(self) -> tuple:
+        """The two figures the profile reads off the stream rather than the ledger.
+
+        Both are O(1) dictionary reads, which is the point: the heartbeat can
+        check them on every tick, and only the rare tick where one has actually
+        moved pays for recomputing the profile.
+        """
+
+        return (
+            self._coordinator.bmw_range_km(self.vin),
+            self._coordinator.battery_capacity_kwh(self.vin),
+        )
 
     @property
     def native_value(self):
@@ -1083,6 +1101,16 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
         self._unsub_live = async_dispatcher_connect(
             self.hass, self._coordinator.signal_update, self._handle_descriptor
         )
+        # A restart delivers those same two figures with no signal at all: every
+        # descriptor entity restores its own state and pushes it back into the
+        # coordinator, silently, in whatever order the platform adds them. This
+        # entity's one write can therefore happen before the figures it is
+        # measured against exist -- and on a parked car, which streams nothing
+        # for hours, that first write is the last one. The stream heartbeat is
+        # the tick that always comes, so it is what notices.
+        self._unsub_heartbeat = async_dispatcher_connect(
+            self.hass, self._coordinator.signal_diagnostics, self._handle_heartbeat
+        )
 
     async def async_will_remove_from_hass(self) -> None:
         if self._unsub_history:
@@ -1094,6 +1122,9 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
         if self._unsub_live:
             self._unsub_live()
             self._unsub_live = None
+        if self._unsub_heartbeat:
+            self._unsub_heartbeat()
+            self._unsub_heartbeat = None
 
     def _handle_descriptor(self, vin: str, descriptor: str) -> None:
         # Every descriptor this car streams comes through here, and recomputing
@@ -1102,6 +1133,11 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
         if descriptor not in EFFICIENCY_LIVE_DESCRIPTORS:
             return
         self._handle_update(vin)
+
+    def _handle_heartbeat(self) -> None:
+        if self._cached is not None and self._live_inputs() == self._inputs:
+            return
+        self._handle_update(self.vin)
 
     def _handle_update(self, vin: str) -> None:
         if vin != self.vin:
