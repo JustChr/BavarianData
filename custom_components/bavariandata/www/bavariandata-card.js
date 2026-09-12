@@ -217,6 +217,12 @@ const TRANSLATIONS = {
     ch_peak: "Peak",
     ch_avg: "Avg",
     ch_grid: "From grid",
+    ch_solar: "solar",
+    ch_mix: "Energy source",
+    ch_mix_pv: "PV",
+    ch_mix_battery: "House battery",
+    ch_mix_grid: "Grid",
+    ch_mix_unknown: "unattributed",
     ch_duration: "Duration",
     ch_cost: "Cost",
     ch_no_cost: "no price set",
@@ -432,6 +438,12 @@ const TRANSLATIONS = {
     ch_peak: "Spitze",
     ch_avg: "Ø",
     ch_grid: "Aus dem Netz",
+    ch_solar: "Solar",
+    ch_mix: "Energiequelle",
+    ch_mix_pv: "PV",
+    ch_mix_battery: "Hausspeicher",
+    ch_mix_grid: "Netz",
+    ch_mix_unknown: "nicht zuordenbar",
     ch_duration: "Dauer",
     ch_cost: "Kosten",
     ch_no_cost: "kein Preis gesetzt",
@@ -1305,13 +1317,14 @@ class BavarianDataCard extends HTMLElement {
     const ongoing = session.end
       ? ""
       : `<span class="chg__tag">${this._t("ch_ongoing")}</span>`;
+    const solar = this._solarTag(session);
 
     return `
       <div class="chg__session${isOpen ? " is-open" : ""}">
         <button class="chg__row" data-session="${this._attr(id)}">
           <span class="chg__row-main">
             <span class="chg__date">${date}</span>
-            <span class="chg__meta">${soc}${badge}${ongoing}${partial}</span>
+            <span class="chg__meta">${soc}${badge}${solar}${ongoing}${partial}</span>
           </span>
           <span class="chg__figures">
             <span class="chg__energy chg__energy--lead">${energy}</span>
@@ -1320,6 +1333,37 @@ class BavarianDataCard extends HTMLElement {
         ${isOpen ? this._chargingDetail(session) : ""}
       </div>
     `;
+  }
+
+  // How much of this charge came off the roof, as a compact tag. Absent --
+  // rather than "0 %" -- when the energy could not be attributed at all: no PV
+  // and grid sensors configured, or a charge from before they were.
+  _solarTag(session) {
+    const pct = session.energy_mix && session.energy_mix.solar_percent;
+    if (pct == null) return "";
+    return `<span class="chg__tag chg__tag--sun">\u2600 ${this._round(
+      pct,
+      0
+    )}% ${this._t("ch_solar")}</span>`;
+  }
+
+  // The breakdown behind that tag, in grid-side kWh. Sources with nothing in
+  // them are left out, so a night charge reads "Grid 11.2 kWh" and not a list
+  // of zeroes.
+  _mixLabel(mix) {
+    if (!mix) return "";
+    const parts = [];
+    for (const [key, label] of [
+      ["pv", "ch_mix_pv"],
+      ["battery", "ch_mix_battery"],
+      ["grid", "ch_mix_grid"],
+      ["unknown", "ch_mix_unknown"],
+    ]) {
+      const value = mix[key];
+      if (value == null || !(value > 0)) continue;
+      parts.push(`${this._t(label)} ${this._round(value, 1)}`);
+    }
+    return parts.length ? `${parts.join(" · ")} kWh` : "";
   }
 
   _chargingDetail(session) {
@@ -1341,6 +1385,8 @@ class BavarianDataCard extends HTMLElement {
     if (session.cost && session.cost.amount != null) {
       facts.push([this._t("ch_cost"), this._fmtCost(session.cost)]);
     }
+    const mixLabel = this._mixLabel(session.energy_mix);
+    if (mixLabel) facts.push([this._t("ch_mix"), mixLabel]);
 
     const factRow = facts
       .map(
@@ -4245,6 +4291,7 @@ class BavarianDataCard extends HTMLElement {
       .chg__badge--away { border-color: var(--bmw-charge); color: var(--bmw-charge); }
       .chg__badge--assumed { border-style: dashed; }
       .chg__tag--warn { border-color: var(--bmw-mid); color: var(--bmw-mid); }
+      .chg__tag--sun { border-color: var(--bmw-high); color: var(--bmw-high); }
       .chg__detail { padding: 2px 12px 12px; }
       .chg__chart {
         width: 100%; height: 64px; display: block; margin-bottom: 8px;

@@ -228,6 +228,8 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Charged-energy accuracy (burst sampling, the SoC ceiling) | 🟢 Feature-Charging-History-and-Cost → "How accurate is it?" |
 | A car that never streams SoC (no arc, no ceiling; issue #6) | 🟢 Feature-Charging-History-and-Cost → "No start/end SoC on a session" |
 | Battery health (learning method, sample rules, why it can stall) | 🟢 Feature-Battery-Health → "What counts as a sample" + "Learning mode" |
+| Restarting mid-charge (session survives; the `interrupted` flag) | 🟢 Feature-Charging-History-and-Cost → "Restarting while the car is charging" + Feature-Battery-Health → "What counts as a sample" |
+| Solar & energy sources (the PV/battery/grid split, what it costs) | 🟡 Feature-Charging-History-and-Cost → "Where the energy came from" + Settings-Reference → "Solar & energy sources" + The-Dashboard-Card — **two screenshots owed**: the new settings screen, and a refreshed Configure menu (it now lists fifteen actions) |
 | Trips / Fahrtenbuch (+ legal caveat) | 🟡 |
 | Consumption: plug-side balance, battery-side average, the 3 % SoC gate | 🟢 Feature-Trips → "How consumption is measured" + The-Dashboard-Card |
 | Month window on the trips & charging card views | 🟢 The-Dashboard-Card → "One month at a time" (both views) |

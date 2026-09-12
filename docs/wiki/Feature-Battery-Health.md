@@ -39,6 +39,11 @@ Not every charge can say something about capacity. A session qualifies only if
   amounts, and dividing one by the other is meaningless. Such a session is
   flagged `late_start` and skipped. Its energy and cost still count everywhere
   else, as a floor.
+- **It ran end to end without an interruption.** A charge that Home Assistant
+  restarted in the middle of keeps its full SoC span but has a hole in its
+  energy, filled from an estimate that already assumes a pack size — so
+  measuring capacity with it would measure the assumption. Such a session is
+  flagged `interrupted` and skipped too.
 
 ## Learning mode
 

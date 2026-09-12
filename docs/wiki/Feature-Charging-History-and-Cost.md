@@ -54,6 +54,28 @@ SoC, energy, duration, peak power, the charging power curve, and cost.
 Retention is set by **`history_retain_months`** under
 **Configure → Charging costs & history** (0 = keep everything).
 
+### Restarting while the car is charging
+
+A charge that is still running is written to the store as it goes, so restarting
+Home Assistant, updating it, or reloading the integration in the middle of one
+no longer loses it. When Home Assistant comes back:
+
+- **still charging** — the same session simply carries on, and the energy the
+  pack gained while nothing was watching is credited back from the state of
+  charge that measured it;
+- **charging already over** — the session is recorded ending at the last reading
+  actually seen, not at the moment the integration noticed. Whatever flowed
+  after that reading is not in the figure, so the record is a *floor*.
+
+Either way the session is flagged **`interrupted`**, which is visible in
+`get_charging_sessions` and in an export. Battery health skips such a session
+(see [Battery health](Feature-Battery-Health)); energy and cost still count
+everywhere else.
+
+Before v0.9.9 an in-progress charge was dropped outright on a restart, which is
+why the odd charge could be missing from the ledger and monthly totals could
+read low.
+
 ### No start/end SoC on a session
 
 A session shows no SoC when no state-of-charge reading arrived while it ran. That
@@ -75,6 +97,56 @@ there is nothing the integration can do about that. Energy, duration, peak power
 the power curve and cost are all unaffected either way, and importing BMW's own
 charging history (**Grid energy vs. battery energy**, below) fills the SoC back in
 where BMW recorded it.
+
+## Where the energy came from
+
+With **Configure → Solar & energy sources** set up, every charge also records
+how much of its energy came off your roof, out of your house battery, and off
+the grid — in grid-side kWh, the side your house meters measure.
+
+The card shows a **☀ 62 % solar** tag on the session row and the full breakdown
+when you expand it; the month's share rides as attributes (`solar_percent`,
+`energy_mix`) on the **Charging energy this month** sensor, and the export and
+the printed month report both carry the numbers.
+
+### How the split is decided
+
+Energy is attributed **as it is delivered**, from the site's supply mix at that
+instant — the same way the price is sampled. A charge that starts in sunshine
+and finishes after dark is split between the two, rather than filed under
+whichever came last.
+
+The car is treated as **just another load**: it gets the same mix the rest of
+the house got at that moment. No convention that gives the car the sunshine
+first (which flatters the roof), and none that makes it the marginal load
+carrying the grid import (which flatters the grid). Concretely, at an instant
+with 4 kW of PV reaching loads, 2 kW out of the battery and 2 kW imported, the
+car's energy is booked 50 % PV, 25 % battery, 25 % grid.
+
+Two consequences worth knowing:
+
+- **Exported PV doesn't count**, and PV going *into* the house battery doesn't
+  count yet — it is attributed later, as battery, when it comes back out. So the
+  same kilowatt-hour is never counted twice.
+- **A missing or unavailable sensor means "unattributed"**, not "grid". Such
+  energy lands in its own bucket, and a session where nothing could be
+  attributed records no mix at all — because "we couldn't tell" and "none of it
+  was solar" are different statements. The solar percentage is always a share of
+  what *could* be attributed.
+
+### What it costs
+
+Set **Value of own solar per kWh** — usually your feed-in tariff, the money you
+give up by not exporting — and a charge's cost becomes what it really cost you.
+Leave it empty and solar is billed at your import price, so existing totals keep
+their old meaning and only the mix is new information.
+
+House-battery energy is **always** billed at the import price in force at the
+time. Its contents could have come from the roof at noon or from a cheap-hour
+grid charge at three in the morning, and this integration cannot tell which —
+so it takes the conservative figure rather than claim a saving that may never
+have existed. The raw kWh per source are stored, so you can always do that
+arithmetic differently yourself.
 
 ## Setting up cost
 

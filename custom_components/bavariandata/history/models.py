@@ -84,6 +84,21 @@ class ChargingSession:
     # efficiency) may use such a session -- one real example implied a 123 kWh
     # pack on a 78 kWh car. The energy and cost totals stay valid as floors.
     late_start: bool = False
+    # True when Home Assistant restarted (or the entry reloaded) while this
+    # charge was running. The session survives -- it is snapshotted to the store
+    # and resumed -- but the seconds between the last snapshot and the restart
+    # are integrated by nobody, so like ``late_start`` the energy figure is a
+    # *floor*. Kept separate because the two say different things: a late start
+    # missed the beginning, an interrupted session has a hole in the middle, and
+    # only the latter still has a trustworthy ``soc_start``.
+    interrupted: bool = False
+    # Where this charge's energy came from, in **grid-side** kWh:
+    # ``{"pv": .., "battery": .., "grid": .., "unknown": .., "solar_percent": ..}``
+    # with the zero buckets left out. ``None`` means the question was never
+    # asked (no PV/grid sensors configured) or nothing could be attributed --
+    # which is deliberately distinct from a mix that says none of it was solar.
+    # Built by ``energy_mix.MixAccumulator`` as the energy arrives.
+    energy_mix: Optional[dict[str, Any]] = None
 
     @property
     def id(self) -> str:
@@ -152,6 +167,8 @@ class ChargingSession:
             "mileage_km": self.mileage_km,
             "enriched": self.enriched,
             "late_start": self.late_start,
+            "interrupted": self.interrupted,
+            "energy_mix": self.energy_mix,
         }
 
     @classmethod
@@ -184,6 +201,8 @@ class ChargingSession:
             mileage_km=data.get("mileage_km"),
             enriched=bool(data.get("enriched")),
             late_start=bool(data.get("late_start")),
+            interrupted=bool(data.get("interrupted")),
+            energy_mix=data.get("energy_mix") or None,
         )
 
 

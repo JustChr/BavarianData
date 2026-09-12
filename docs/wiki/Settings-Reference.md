@@ -13,7 +13,7 @@ reconnect.
 ## The Configure menu
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-menu.png" alt="BavarianData options menu listing all fourteen actions, from Choose streamed data to Debug logging" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-menu.png" alt="BavarianData options menu listing every action, from Choose streamed data to Debug logging" width="460" />
 </p>
 
 The menu labels below are exactly as they appear in the UI.
@@ -32,6 +32,7 @@ The menu labels below are exactly as they appear in the UI.
 | **Fetch charging settings** | action ⚡ | Location-based charging settings. " |
 | **Fetch vehicle image** | action ⚡ | " |
 | **Charging costs & history** | settings | Price source, retention, statistics — below. |
+| **Solar & energy sources** | settings | Where each charge's energy came from: PV, house battery, grid — below. |
 | **Trips** | settings | Work zone, default type, commute stop tolerance, address resolution and route recording — below. |
 | **Debug logging** | settings | Verbose logging toggle — below. |
 
@@ -56,6 +57,28 @@ Screen: **Configure → Charging costs & history**. See
 | **Charging losses (%)** | 0–30 | Grosses the battery figure up by your losses. Default **0** (no invented correction). |
 | **Keep history for (months)** | 0–120 | How long to keep recorded sessions/trips. **0 = keep everything.** |
 | **Publish to long-term statistics** | on/off | Mirror history into the Energy dashboard. Turning it **off deletes** the published series. See [Energy & statistics](Feature-Energy-and-Statistics). |
+
+## Solar & energy sources
+
+Screen: **Configure → Solar & energy sources**. See
+[Charging history & cost → Where the energy came from](Feature-Charging-History-and-Cost)
+for what it does with these.
+
+| Option | Values | Meaning |
+| --- | --- | --- |
+| **PV power** | sensor (power) | Total generation from your inverter(s). Required for any attribution. |
+| **Grid power (+ import / − export)** | sensor (power) | Signed power at the meter: **positive while importing**. Required. |
+| **House battery power** | sensor (power) | Optional. Without it you get a two-way PV/grid split. Expected **positive while discharging**. |
+| **My battery sensor is positive when charging** | on/off | Flips the sign convention. There is no way to tell from the value itself, so this has to be stated. |
+| **Value of own solar per kWh** | number | What a kWh off your own roof is worth — usually your feed-in tariff. **Empty = solar is costed at your import price**, exactly as before, and only the mix is new. |
+
+Both power sensors are needed: with only one, the split would have to assume the
+other. Sensors reporting **kW** are converted automatically; one with no unit at
+all is read as **watts**.
+
+The pickers list sensors whose **device class is `power`**. If your own template
+sensor isn't offered, give it `device_class: power` (and a `unit_of_measurement`
+of `W` or `kW`) and it will appear.
 
 ## Trips
 

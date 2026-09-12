@@ -93,6 +93,13 @@ sessions still list with their energy. A session charged without GPS is badged
 *Home · assumed*, and one priced while the tariff was briefly unknown is tagged
 *partial price*.
 
+With **Configure → Solar & energy sources** set up, a session that could be
+attributed also carries a **☀ 62 % solar** tag, and expanding it adds an
+*Energy source* line with the kWh per source
+([see Where the energy came from](Feature-Charging-History-and-Cost)). Sessions
+recorded before those sensors were configured simply have no tag — the card
+never shows a 0 % that would really mean "not measured".
+
 ---
 
 ## Battery health (`view: health`)

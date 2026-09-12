@@ -63,6 +63,11 @@ class HistoryStore:
         self._store = Store(hass, STORE_VERSION, f"{DOMAIN}_{entry_id}_history")
         self._sessions: dict[str, list[ChargingSession]] = {}
         self._trips: dict[str, list[Trip]] = {}
+        # In-progress charges, one per VIN: the snapshot of a session that had
+        # not closed yet. Kept out of ``_sessions`` on purpose -- nothing that
+        # sums, exports or backfills history may see a record that is still
+        # moving. The coordinator drains this at startup.
+        self._open_sessions: dict[str, dict[str, Any]] = {}
         self._loaded = False
 
     async def async_load(self) -> None:
@@ -101,6 +106,14 @@ class HistoryStore:
             if restored:
                 self._sessions[vin] = self._prune(restored)
 
+        # ``open_sessions`` is absent in every store written before in-progress
+        # charges were snapshotted; like ``trips``, a plain ``.get`` is the whole
+        # migration. Kept additive for the same reason the trip track was: a
+        # schema bump makes an older build refuse the entire document.
+        for vin, snapshot in (data.get("open_sessions") or {}).items():
+            if isinstance(snapshot, dict):
+                self._open_sessions[vin] = snapshot
+
         # ``trips`` is absent in schema-1 stores; a plain ``.get`` handles the
         # upgrade with no migration step.
         for vin, raw_trips in (data.get("trips") or {}).items():
@@ -116,10 +129,12 @@ class HistoryStore:
             # Confirms the store survived a restart, and how much of it did --
             # the one thing a purely in-memory bug would look identical to.
             _LOGGER.debug(
-                "[history] restored schema=%s sessions=%s trips=%s (retain=%s months)",
+                "[history] restored schema=%s sessions=%s trips=%s open=%s "
+                "(retain=%s months)",
                 schema,
                 {vin: len(items) for vin, items in self._sessions.items()},
                 {vin: len(items) for vin, items in self._trips.items()},
+                list(self._open_sessions),
                 self.retain_months,
             )
 
@@ -213,6 +228,32 @@ class HistoryStore:
             max_entries=self.max_sessions,
         )
         self.async_schedule_save()
+
+    def open_sessions(self) -> dict[str, dict[str, Any]]:
+        """The snapshotted in-progress charges, by VIN."""
+
+        return dict(self._open_sessions)
+
+    @callback
+    def async_set_open_session(self, vin: str, snapshot: dict[str, Any]) -> None:
+        """Record (or refresh) the in-progress charge for one VIN."""
+
+        self._open_sessions[vin] = snapshot
+        self.async_schedule_save()
+
+    @callback
+    def async_clear_open_session(self, vin: str) -> bool:
+        """Forget the in-progress charge for one VIN; True if there was one.
+
+        Called when the session closes -- by then it is a real record, and
+        leaving the snapshot behind would resurrect it as a duplicate on the
+        next start.
+        """
+
+        if self._open_sessions.pop(vin, None) is None:
+            return False
+        self.async_schedule_save()
+        return True
 
     def import_cardata_sessions(
         self,
@@ -316,6 +357,7 @@ class HistoryStore:
                 vin: [trip.to_dict() for trip in trips]
                 for vin, trips in self._trips.items()
             },
+            "open_sessions": dict(self._open_sessions),
         }
 
     async def async_save_now(self) -> None:
@@ -329,4 +371,5 @@ class HistoryStore:
 
         self._sessions = {}
         self._trips = {}
+        self._open_sessions = {}
         await self._store.async_remove()

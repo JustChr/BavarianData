@@ -87,9 +87,15 @@ def _capacity_sample(session: ChargingSession) -> Optional[float]:
     SoC span both start late and by *different* amounts, so dividing one by the
     other is meaningless rather than merely noisy -- the case that prompted this
     implied a 123 kWh pack on a 78 kWh car.
+
+    One that was *interrupted* -- a restart mid-charge -- is rejected for a
+    sharper reason: its SoC span is complete while its energy has a hole in it,
+    and the hole is filled from an estimate that already assumes a capacity
+    (``coordinator._apply_gap_credit``). Dividing that by the SoC span would
+    measure the assumption, not the pack.
     """
 
-    if session.late_start:
+    if session.late_start or session.interrupted:
         return None
     delta = session.soc_delta
     if delta is None or delta < MIN_SOC_DELTA:

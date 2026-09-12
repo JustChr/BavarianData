@@ -20,12 +20,17 @@ from typing import Any, Optional
 # The option keys are read here and written by the options flow; sharing the
 # constants keeps a rename from silently reverting everyone to the defaults.
 from ..const import (
+    OPTION_BATTERY_POWER_ENTITY,
+    OPTION_BATTERY_POWER_INVERT,
     OPTION_CHARGING_LOSS_PERCENT,
     OPTION_GRID_ENERGY_ENTITY,
+    OPTION_GRID_POWER_ENTITY,
     OPTION_PRICE_CURRENCY,
     OPTION_PRICE_ENTITY,
     OPTION_PRICE_FIXED,
     OPTION_PRICE_MODE,
+    OPTION_PRICE_SOLAR,
+    OPTION_PV_POWER_ENTITY,
 )
 
 # Below this share of unpriced energy the total is treated as trustworthy --
@@ -52,6 +57,25 @@ class PricingConfig:
     price_entity: Optional[str] = None
     grid_energy_entity: Optional[str] = None
     loss_percent: float = 0.0
+    # Where the energy came from (see ``energy_mix.py``). Independent of the
+    # tariff: a user with no price set can still see their solar share, and a
+    # user with a tariff and no PV sensors sees costs exactly as before.
+    grid_power_entity: Optional[str] = None
+    pv_power_entity: Optional[str] = None
+    battery_power_entity: Optional[str] = None
+    battery_power_invert: bool = False
+    solar_price: Optional[float] = None
+
+    @property
+    def mix_enabled(self) -> bool:
+        """True when a charge's energy can be attributed to its sources.
+
+        Both meters are required. With only one of them the split would have to
+        assume the other, which is exactly the guesswork this feature exists to
+        replace.
+        """
+
+        return bool(self.grid_power_entity and self.pv_power_entity)
 
     @property
     def enabled(self) -> bool:
@@ -83,6 +107,11 @@ class PricingConfig:
             price_entity=options.get(OPTION_PRICE_ENTITY) or None,
             grid_energy_entity=options.get(OPTION_GRID_ENERGY_ENTITY) or None,
             loss_percent=_float(OPTION_CHARGING_LOSS_PERCENT) or 0.0,
+            grid_power_entity=options.get(OPTION_GRID_POWER_ENTITY) or None,
+            pv_power_entity=options.get(OPTION_PV_POWER_ENTITY) or None,
+            battery_power_entity=options.get(OPTION_BATTERY_POWER_ENTITY) or None,
+            battery_power_invert=bool(options.get(OPTION_BATTERY_POWER_INVERT)),
+            solar_price=_float(OPTION_PRICE_SOLAR),
         )
 
 
@@ -112,6 +141,47 @@ class CostAccumulator:
         # hundreds of samples in a long session. Rounding happens in as_cost().
         self.amount += energy_kwh * price_per_kwh
         self.priced_kwh += energy_kwh
+
+    def to_dict(self) -> dict[str, Any]:
+        """Snapshot the running cost so a restart doesn't bill from zero."""
+
+        return {
+            "currency": self.currency,
+            "amount": self.amount,
+            "priced_kwh": self.priced_kwh,
+            "unpriced_kwh": self.unpriced_kwh,
+        }
+
+    @classmethod
+    def from_dict(
+        cls, data: Optional[dict[str, Any]], *, currency: str
+    ) -> "CostAccumulator":
+        """Rebuild a snapshotted accumulator, or start a fresh one.
+
+        ``currency`` is the one configured *now*. A snapshot taken under a
+        different one is dropped rather than added to: money in two currencies
+        does not sum, and half a session billed in each would be a wrong number
+        wearing a right one's clothes. The energy already delivered is not lost
+        -- it simply reverts to unpriced, which the record reports honestly.
+        """
+
+        fresh = cls(currency=currency)
+        if not isinstance(data, dict) or data.get("currency") != currency:
+            if isinstance(data, dict):
+                try:
+                    fresh.unpriced_kwh = float(data.get("priced_kwh") or 0.0) + float(
+                        data.get("unpriced_kwh") or 0.0
+                    )
+                except (TypeError, ValueError):
+                    fresh.unpriced_kwh = 0.0
+            return fresh
+        try:
+            fresh.amount = float(data.get("amount") or 0.0)
+            fresh.priced_kwh = float(data.get("priced_kwh") or 0.0)
+            fresh.unpriced_kwh = float(data.get("unpriced_kwh") or 0.0)
+        except (TypeError, ValueError):
+            return cls(currency=currency)
+        return fresh
 
     @property
     def total_kwh(self) -> float:

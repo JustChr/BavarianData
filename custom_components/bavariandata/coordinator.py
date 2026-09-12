@@ -42,9 +42,15 @@ from .history.pricing import (
     billable_energy,
     resolve_cost,
 )
+from .history.energy_mix import (
+    SOURCE_PV,
+    MixAccumulator,
+    supply_shares,
+)
 from .history.sessions import (
     SessionBuilder,
     energy_ceiling_kwh,
+    open_session_is_resumable,
     soc_is_from_session,
 )
 from .history.trips import CLASS_COMMUTE, SOURCE_AUTO, Trip, place
@@ -174,6 +180,34 @@ GPS_PAIR_PARTS = frozenset({GPS_PART_LAT, GPS_PART_LON})
 # unplug still records promptly.
 CHARGE_CLOSE_DEBOUNCE_S = 120
 
+# How often an in-progress charge is written to the store. Every write rewrites
+# the whole history document, so this is a trade between disk churn and how much
+# of a charge a *crash* can cost -- a clean restart or reload loses nothing,
+# because both snapshot on the way out. Five minutes of a 11 kW charge is under
+# a kilowatt-hour, and the SoC-derived ceiling stops even that from inflating a
+# resumed total beyond what the pack can hold.
+OPEN_SESSION_SAVE_INTERVAL_S = 300
+
+# How long a restored in-progress charge waits for the stream to say whether it
+# is still running. BMW republishes ``charging.status`` on its own schedule --
+# measured at seven minutes after one restart, and not at all after another
+# where the charge had ended meanwhile -- so the wait has to be generous. When
+# it expires the session is closed as what it already is, ending at its last
+# sample rather than at the timeout.
+RESTORED_SESSION_GRACE_S = 900
+
+# Charging statuses that mean this plug-in is over, as opposed to merely not
+# delivering right now. BMW's enum is nocharging / initialization /
+# chargingactive / chargingpaused / chargingended / chargingerror, and the
+# middle two are *transient*: a charge that is handshaking or paused is still
+# the same charge. Only used to decide the fate of a session restored across a
+# restart -- a live session has the flap debounce for this, which a restored one
+# cannot use because its gap has already happened. Anything unrecognised counts
+# as transient and waits for the grace timer instead.
+CHARGE_TERMINAL_STATUSES = frozenset(
+    {"NOCHARGING", "CHARGINGENDED", "CHARGINGERROR"}
+)
+
 # A ``trip.segment.end.*`` field is only a completed-trip signal if its own
 # timestamp is recent: BMW ships the "last trip end" fields (e.g. ``hvSoc``) in
 # every telematic snapshot with the *previous* drive's timestamp, so an old one
@@ -220,6 +254,28 @@ UNAUTHORIZED_REPAIR_AFTER_S = 30 * 60
 CONNECTION_HISTORY_LEN = 30
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _snapshot_float(value: Any) -> Optional[float]:
+    """A number out of a stored snapshot, or ``None`` if it is not one.
+
+    Snapshots are JSON written by an older build of this integration, so every
+    field in one is untrusted input: a counter that comes back as ``null`` or a
+    string must leave the session unseeded rather than raise on the setup path.
+    """
+
+    try:
+        return None if value is None else float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _snapshot_time(value: Any) -> Optional[datetime]:
+    """A timestamp out of a stored snapshot, or ``None`` if it is unusable."""
+
+    if not isinstance(value, str):
+        return None
+    return dt_util.parse_datetime(value)
 
 
 @dataclass
@@ -460,6 +516,34 @@ class CardataCoordinator:
     _session_costs: Dict[str, CostAccumulator] = field(
         default_factory=dict, init=False
     )
+    # Running source mix per open session (PV / house battery / grid). Separate
+    # from the cost accumulator because the two can be configured independently:
+    # a solar share is worth having with no tariff set, and a tariff is worth
+    # having with no PV.
+    _session_mixes: Dict[str, MixAccumulator] = field(
+        default_factory=dict, init=False
+    )
+    # VINs whose in-progress charge was restored from the store at startup and
+    # has not yet been confirmed either way by the stream. Present means "we
+    # believe a charge is running but haven't heard from BMW since the restart";
+    # the value is when the snapshot was taken.
+    _restored_open_sessions: Dict[str, datetime] = field(
+        default_factory=dict, init=False
+    )
+    # Cancel callbacks for the per-VIN timers that close a restored session the
+    # stream never confirmed. Without them an outage that spanned the end of a
+    # charge would leave the record open forever.
+    _restored_open_timers: Dict[str, Any] = field(default_factory=dict, init=False)
+    # When each VIN's in-progress charge was last written to the store. The
+    # snapshot is refreshed on a cadence rather than on every sample: a charge
+    # runs for hours and the whole history document is rewritten each time.
+    _open_session_saved: Dict[str, datetime] = field(
+        default_factory=dict, init=False
+    )
+    # SoC a resumed session was last seen at before the restart, per VIN. Present
+    # only between the resume and the first SoC reading that can measure what the
+    # gap cost (see ``_apply_gap_credit``).
+    _gap_credit_soc: Dict[str, float] = field(default_factory=dict, init=False)
     _trip_builders: Dict[str, TripBuilder] = field(default_factory=dict, init=False)
     # Cancel callbacks for the per-VIN stationary-close debounce timers.
     _trip_close_timers: Dict[str, Any] = field(default_factory=dict, init=False)
@@ -997,6 +1081,10 @@ class CardataCoordinator:
         power_w = self._charging_power_w.get(vin)
         if last is None or tracking is None or not tracking.charging_active:
             return False
+        # A session resumed across a restart is owed whatever the pack gained
+        # while we were away; it can only be measured once a SoC reading from
+        # this session lands, so it is attempted here rather than at the resume.
+        self._apply_gap_credit(vin)
         if not power_w or power_w <= 0:
             return False
         delta_seconds = (now - last).total_seconds()
@@ -1084,6 +1172,10 @@ class CardataCoordinator:
             return
         builder.sample(now, power_w / 1000.0)
         builder.note_soc(self._session_soc_percent(vin))
+        # Throttled inside; this is simply the one place that runs for every
+        # sample of every open session, which is exactly the cadence a snapshot
+        # of an open session wants.
+        self._snapshot_open_session(vin)
 
     def _record_energy_delta(
         self, vin: str, now: datetime, power_w: float, kwh: float
@@ -1096,12 +1188,16 @@ class CardataCoordinator:
 
         self._sample_power_curve(vin, now, power_w)
 
+        billable, _source = billable_energy(
+            battery_kwh=kwh, loss_percent=self.pricing.loss_percent
+        )
+        # One sample of the house's meters serves both the mix and the cost, so
+        # the two can never describe different instants.
+        mix = self._session_mixes.get(vin)
+        split = {} if mix is None else mix.add(billable, self._supply_shares())
         accumulator = self._session_costs.get(vin)
         if accumulator is not None:
-            billable, _source = billable_energy(
-                battery_kwh=kwh, loss_percent=self.pricing.loss_percent
-            )
-            accumulator.add(billable, self._current_price())
+            self._bill_split(accumulator, billable, split)
 
     def get_lifetime_energy_kwh(self, vin: str) -> Optional[float]:
         value = self._energy_lifetime_wh.get(vin)
@@ -1147,6 +1243,21 @@ class CardataCoordinator:
         "finished as planned" from "unplugged early".
         """
         now_charging = tracking.charging_active
+        if vin in self._restored_open_sessions:
+            # First word from the stream since a restart left a charge open.
+            # Either it is still running -- the same record continues -- or it
+            # ended while we were away, in which case it is closed at its last
+            # sample rather than now. Deliberately not routed through the
+            # flap debounce: that window exists to rejoin a session we were
+            # watching, and here the gap has already happened.
+            if now_charging:
+                self._resume_restored_session(vin)
+            elif str(status).strip().upper() in CHARGE_TERMINAL_STATUSES:
+                self._close_restored_session(vin, status)
+            # Anything else -- initialization, a pause, a status we don't know --
+            # says nothing about whether this charge is over, so the session is
+            # left restored and the grace timer keeps the deadline.
+            return
         if was_charging == now_charging:
             return
         soc = (
@@ -1266,6 +1377,11 @@ class CardataCoordinator:
             soc_before=tracking.soc_before_charge,
         )
         self._session_costs[vin] = CostAccumulator(currency=self.pricing.currency)
+        self._session_mixes[vin] = MixAccumulator()
+        # Snapshot straight away: a restart in the first five minutes of a charge
+        # is exactly as likely as one in any other five, and an unsnapshotted
+        # session is the thing this whole mechanism exists to prevent.
+        self._snapshot_open_session(vin, force=True)
         if debug_enabled():
             _LOGGER.debug(
                 "[charge] %s OPEN at %s zone=%s soc=%s target=%s "
@@ -1279,21 +1395,288 @@ class CardataCoordinator:
                 self._current_price(),
             )
 
-    def _close_session_record(self, vin: str, status: str):
+    def _snapshot_open_session(self, vin: str, *, force: bool = False) -> None:
+        """Write the in-progress charge to the store so a restart can resume it.
+
+        Throttled to ``OPEN_SESSION_SAVE_INTERVAL_S``: every write rewrites the
+        whole history document, and a charge samples for hours. ``force`` skips
+        the throttle for the moments that matter -- the session opening, and the
+        way out on unload or shutdown.
+        """
+
+        builder = self._session_builders.get(vin)
+        if builder is None or self.history is None:
+            return
+        if vin in self._restored_open_sessions:
+            # Restored but not yet confirmed by the stream: nothing has been
+            # sampled into it since, so there is nothing new to write -- and
+            # rewriting it would stamp a fresh ``saved_at`` on an old charge,
+            # which is exactly the staleness test that decides whether it may be
+            # resumed at all.
+            return
+        now = datetime.now(timezone.utc)
+        if not force:
+            last_saved = self._open_session_saved.get(vin)
+            if (
+                last_saved is not None
+                and (now - last_saved).total_seconds() < OPEN_SESSION_SAVE_INTERVAL_S
+            ):
+                return
+
+        snapshot = builder.to_dict()
+        accumulator = self._session_costs.get(vin)
+        snapshot["cost"] = None if accumulator is None else accumulator.to_dict()
+        mix = self._session_mixes.get(vin)
+        snapshot["mix"] = None if mix is None else mix.to_dict()
+        # The counters live on the coordinator, not on the builder (they exist
+        # even with history switched off), so they have to ride along or a
+        # resumed session would integrate from zero.
+        snapshot["energy_wh"] = self._energy_session_wh.get(vin, 0.0)
+        snapshot["energy_raw_wh"] = self._energy_session_raw_wh.get(vin, 0.0)
+        snapshot["soc_baseline"] = self._energy_session_soc.get(vin)
+        snapshot["saved_at"] = now.isoformat()
+        try:
+            self.history.async_set_open_session(vin, snapshot)
+        except Exception:  # noqa: BLE001 - bookkeeping must not break the stream
+            _LOGGER.exception(
+                "Could not snapshot the in-progress charge for %s", mask_vin(vin)
+            )
+            return
+        self._open_session_saved[vin] = now
+
+    def _clear_open_session(self, vin: str) -> None:
+        """Forget the in-progress charge for one VIN, in store and in memory."""
+
+        self._open_session_saved.pop(vin, None)
+        self._restored_open_sessions.pop(vin, None)
+        self._gap_credit_soc.pop(vin, None)
+        self._cancel_restored_open_timer(vin)
+        if self.history is None:
+            return
+        with suppress(Exception):
+            self.history.async_clear_open_session(vin)
+
+    @callback
+    def async_restore_open_sessions(self) -> None:
+        """Pick up charges that were still running when we last stopped.
+
+        Runs once at setup, after the store has loaded and before the stream
+        connects. A session young enough to still be the same charge is held
+        open until the stream says otherwise (see :meth:`_fire_charging_event`);
+        an older one is filed immediately as what it already is.
+        """
+
+        if self.history is None:
+            return
+        now = datetime.now(timezone.utc)
+        for vin, snapshot in self.history.open_sessions().items():
+            builder = SessionBuilder.from_dict(snapshot)
+            if builder is None:
+                self._clear_open_session(vin)
+                continue
+            self._session_builders[vin] = builder
+            self._session_costs[vin] = CostAccumulator.from_dict(
+                snapshot.get("cost"), currency=self.pricing.currency
+            )
+            self._session_mixes[vin] = MixAccumulator.from_dict(snapshot.get("mix"))
+            energy_wh = _snapshot_float(snapshot.get("energy_wh")) or 0.0
+            self._energy_session_wh[vin] = energy_wh
+            self._energy_session_raw_wh[vin] = (
+                _snapshot_float(snapshot.get("energy_raw_wh")) or energy_wh
+            )
+            self._energy_session_start[vin] = builder.start
+            self._energy_session_soc[vin] = _snapshot_float(
+                snapshot.get("soc_baseline")
+            )
+            saved_at = _snapshot_time(snapshot.get("saved_at")) or builder.last_sample_at
+            self._open_session_saved[vin] = saved_at or now
+
+            if not open_session_is_resumable(saved_at, now):
+                if debug_enabled():
+                    _LOGGER.debug(
+                        "[charge] %s RESTORED stale (saved %s); closing at %s",
+                        vin,
+                        None if saved_at is None else saved_at.isoformat(),
+                        None
+                        if builder.last_sample_at is None
+                        else builder.last_sample_at.isoformat(),
+                    )
+                self._close_session_record(
+                    vin, "restart", at=builder.last_sample_at or builder.start
+                )
+                continue
+
+            self._restored_open_sessions[vin] = saved_at or now
+            self._arm_restored_open_timer(vin)
+            if debug_enabled():
+                _LOGGER.debug(
+                    "[charge] %s RESTORED open session from %s energy=%s kWh "
+                    "soc=%s->%s; awaiting the stream",
+                    vin,
+                    builder.start.isoformat(),
+                    round(energy_wh / 1000.0, 3),
+                    builder.soc_start,
+                    builder.soc_end,
+                )
+
+    def _arm_restored_open_timer(self, vin: str) -> None:
+        """Close a restored session the stream never confirmed either way."""
+
+        self._cancel_restored_open_timer(vin)
+
+        # @callback so HA runs it on the event loop: the close touches
+        # async_dispatcher_send, which is loop-only.
+        @callback
+        def _fire(_now) -> None:
+            self._restored_open_timers.pop(vin, None)
+            if self._charge_is_evidently_running(vin):
+                # BMW has not re-sent the status, but it is still reporting
+                # charging power stamped after the snapshot -- which only a
+                # running charge produces. Resume rather than split one plug-in
+                # into two records.
+                self._resume_restored_session(vin)
+                tracking = self._soc_tracking.get(vin)
+                if tracking is not None:
+                    tracking.charging_active = True
+                return
+            self._close_restored_session(vin, "restart")
+
+        self._restored_open_timers[vin] = async_call_later(
+            self.hass, RESTORED_SESSION_GRACE_S, _fire
+        )
+
+    def _charge_is_evidently_running(self, vin: str) -> bool:
+        """Whether the stream still shows this restored charge under way.
+
+        Charging power arriving with a timestamp *after* the snapshot can only
+        come from a charge that outlived the restart: an open session is
+        snapshotted continuously while it samples, so anything newer than the
+        last snapshot was reported while we were away or since we came back.
+        Deliberately not a plain "is the last power reading non-zero" test --
+        that value lingers at its final figure long after the plug comes out.
+        """
+
+        tracking = self._soc_tracking.get(vin)
+        saved_at = self._restored_open_sessions.get(vin)
+        if tracking is None or saved_at is None:
+            return False
+        last_power_time = tracking.last_power_time
+        if last_power_time is None or last_power_time <= saved_at:
+            return False
+        return bool(tracking.last_power_w and tracking.last_power_w > 0)
+
+    def _cancel_restored_open_timer(self, vin: str) -> bool:
+        cancel = self._restored_open_timers.pop(vin, None)
+        if cancel is None:
+            return False
+        cancel()
+        return True
+
+    def _resume_restored_session(self, vin: str) -> None:
+        """Carry on with a restored session the stream says is still charging."""
+
+        self._restored_open_sessions.pop(vin, None)
+        self._cancel_restored_open_timer(vin)
+        builder = self._session_builders.get(vin)
+        if builder is not None and builder.soc_end is not None:
+            # Claim the charge that ran while nobody was watching, once a SoC
+            # reading from *this* session arrives to measure it (see
+            # :meth:`_apply_gap_credit`). The pack's SoC rose; that energy is as
+            # real as the integrated kind, and the same ceiling bounds both.
+            self._gap_credit_soc[vin] = builder.soc_end
+        if debug_enabled():
+            _LOGGER.debug(
+                "[charge] %s RESUME restored session (energy=%s kWh so far)",
+                vin,
+                self.get_session_energy_kwh(vin),
+            )
+
+    def _close_restored_session(self, vin: str, status: str) -> None:
+        """File a restored session the charge did not survive.
+
+        Ends at the last sample we actually watched, never at the moment we
+        found out: the car stopped charging somewhere in the gap, and stretching
+        the record to now would inflate its duration and its average power.
+        """
+
+        builder = self._session_builders.get(vin)
+        end_at = None if builder is None else (builder.last_sample_at or builder.start)
+        session = self._close_session_record(vin, status, at=end_at)
+        if session is None:
+            return
+        self.hass.bus.async_fire(
+            EVENT_CHARGING_STOPPED,
+            {
+                "vin": vin,
+                "entry_id": self.entry_id,
+                "status": status,
+                "soc": session.soc_end,
+                "target_soc": session.target_soc,
+                "energy_kwh": session.energy_kwh,
+                "cost": session.cost,
+                "session_id": session.id,
+            },
+        )
+
+    def _apply_gap_credit(self, vin: str) -> None:
+        """Credit the SoC a resumed session gained while we were not watching.
+
+        Applied once, and only from a reading taken during the session itself --
+        the same test the energy ceiling uses. Added to the *raw* total so the
+        ceiling still has the last word: this can give back energy the restart
+        cost us, never invent energy the pack never took.
+        """
+
+        baseline = self._gap_credit_soc.get(vin)
+        if baseline is None:
+            return
+        soc_now = self._session_soc_percent(vin)
+        if soc_now is None:
+            return
+        self._gap_credit_soc.pop(vin, None)
+        capacity = self.battery_capacity_kwh(vin)
+        gained = soc_now - baseline
+        if not capacity or capacity <= 0 or gained <= 0:
+            return
+        credit_wh = gained / 100.0 * capacity * 1000.0
+        self._energy_session_raw_wh[vin] = (
+            self._energy_session_raw_wh.get(vin, 0.0) + credit_wh
+        )
+        self._energy_session_wh[vin] = self._bounded_session_wh(
+            vin, self._energy_session_raw_wh[vin]
+        )
+        if debug_enabled():
+            _LOGGER.debug(
+                "[charge] %s GAP credit %s kWh (soc %s -> %s across the restart)",
+                vin,
+                round(credit_wh / 1000.0, 3),
+                baseline,
+                soc_now,
+            )
+
+    def _close_session_record(
+        self, vin: str, status: str, *, at: Optional[datetime] = None
+    ):
         builder = self._session_builders.pop(vin, None)
         accumulator = self._session_costs.pop(vin, None)
+        mix = self._session_mixes.pop(vin, None)
+        # Whatever happens below, this charge is no longer in progress: the
+        # snapshot has to go even when there is no history to file the record in,
+        # or the next start would resurrect it.
+        self._clear_open_session(vin)
         if builder is None or self.history is None:
             return None
 
         energy_kwh = self.get_session_energy_kwh(vin)
         session = builder.close(
-            datetime.now(timezone.utc),
+            at or datetime.now(timezone.utc),
             soc_end=self._session_soc_percent(vin),
             energy_kwh=energy_kwh,
             cost=resolve_cost(accumulated=accumulator.as_cost() if accumulator else None),
             reason=status,
         )
         session.mileage_km = self._odometer_km(vin)
+        session.energy_mix = None if mix is None else mix.as_record()
         if debug_enabled():
             _LOGGER.debug(
                 "[charge] %s CLOSE(%s) energy=%s kWh soc=%s->%s zone=%s "
@@ -2382,18 +2765,33 @@ class CardataCoordinator:
                 )
 
     def async_flush_charging(self) -> None:
-        """Commit any charge whose debounced close is still pending (on unload).
+        """Preserve every in-flight charge on the way out (unload or shutdown).
 
-        A session that stopped within the last ``CHARGE_CLOSE_DEBOUNCE_S`` still
-        has a timer counting down; cancelling it without closing would drop the
-        session, so finalize it here. An actively-charging session (no pending
-        timer) is left as before -- BMW's import recovers it on the next fetch.
+        Two different states need saving. A session that stopped within the last
+        ``CHARGE_CLOSE_DEBOUNCE_S`` still has a timer counting down; cancelling
+        it without closing would drop the session, so it is finalized here. A
+        session that is still *charging* is snapshotted to the store instead, to
+        be picked up by :meth:`async_restore_open_sessions` on the way back in.
+
+        That second half used to be a deliberate omission -- the session was
+        dropped, on the assumption BMW's charging-history import would recover
+        it. It does not: the import is a manual, quota-costing service. Measured
+        on a live instance, two restarts that happened to land mid-charge cost
+        about 22 kWh in a single week, and every total built on the ledger
+        (energy, cost, statistics, the driving summary's energy balance) read low
+        by exactly that much.
         """
 
         for vin in list(self._charge_close_timers):
             if self._cancel_charge_close_timer(vin):
                 with suppress(Exception):
                     self._finalize_charge_close(vin, "unload")
+        for vin in list(self._session_builders):
+            self._snapshot_open_session(vin, force=True)
+        # Nothing is waiting on these any more, and a timer left armed across a
+        # reload would fire against the outgoing coordinator.
+        for vin in list(self._restored_open_timers):
+            self._cancel_restored_open_timer(vin)
 
     async def _resolve_place(
         self,
@@ -2519,6 +2917,82 @@ class CardataCoordinator:
             return float(state.state)
         except (TypeError, ValueError):
             return None
+
+    def _power_state_w(self, entity_id: Optional[str]) -> Optional[float]:
+        """A power entity's value in watts, or ``None`` if it can't be read.
+
+        Converts from kilowatts where the entity says so. A sensor with no unit
+        at all is taken as watts (the Home Assistant default for
+        ``device_class: power``), which is stated in the setting's help text --
+        silently mixing kW into a watt sum would skew every attribution by a
+        factor of a thousand and still look plausible.
+        """
+
+        if not entity_id:
+            return None
+        state = self.hass.states.get(entity_id)
+        if state is None or state.state in ("unknown", "unavailable", ""):
+            return None
+        try:
+            value = float(state.state)
+        except (TypeError, ValueError):
+            return None
+        unit = (state.attributes.get("unit_of_measurement") or "").strip().lower()
+        if unit == "kw":
+            return value * 1000.0
+        if unit in ("mw",):
+            return value * 1_000_000.0
+        return value
+
+    def _supply_shares(self) -> Optional[dict[str, float]]:
+        """The site's supply mix right now, or ``None`` if it can't be known.
+
+        Read live for the same reason the price is: a charge that starts in
+        sunshine and finishes after dark is half and half, and a single reading
+        at either end would describe only that end.
+        """
+
+        config = self.pricing
+        if not config.mix_enabled:
+            return None
+        battery_w = self._power_state_w(config.battery_power_entity)
+        if battery_w is not None and config.battery_power_invert:
+            battery_w = -battery_w
+        return supply_shares(
+            pv_w=self._power_state_w(config.pv_power_entity),
+            grid_w=self._power_state_w(config.grid_power_entity),
+            battery_w=battery_w,
+        )
+
+    def _bill_split(
+        self,
+        accumulator: CostAccumulator,
+        billable_kwh: Optional[float],
+        split: dict[str, float],
+    ) -> None:
+        """Bill one energy increment, each source at what that source costs.
+
+        Own solar is billed at ``price_solar`` when the user has set one --
+        usually the feed-in tariff, the money given up by not exporting. House
+        battery and grid are both billed at the import price in force right now:
+        the battery's contents could have come from the roof at noon or from a
+        cheap-hour grid charge at three in the morning, and this integration
+        cannot tell. Pricing it as solar would quietly claim a saving that may
+        never have existed, so the conservative figure stands.
+        """
+
+        price_now = self._current_price()
+        if not split:
+            accumulator.add(billable_kwh, price_now)
+            return
+        solar_price = self.pricing.solar_price
+        for source, amount in split.items():
+            price = (
+                solar_price
+                if source == SOURCE_PV and solar_price is not None
+                else price_now
+            )
+            accumulator.add(amount, price)
 
     def get_state(self, vin: str, descriptor: str) -> Optional[DescriptorState]:
         return self.data.get(vin, {}).get(descriptor)
@@ -2943,7 +3417,13 @@ class CardataCoordinator:
             tracking.rate_per_hour = rate if rate not in (None, 0) else None
             if tracking.rate_per_hour:
                 self._soc_rate[vin] = round(tracking.rate_per_hour, 3)
-                tracking.charging_active = True
+                # Only believe the restored rate means "charging" when a restored
+                # session agrees. Setting it unconditionally made a stale rate
+                # sensor claim a charge was running: the next genuine
+                # CHARGINGACTIVE then looked like no transition at all
+                # (``was_charging == now_charging``) and opened no session.
+                if vin in self._restored_open_sessions:
+                    tracking.charging_active = True
                 if tracking.max_energy_kwh not in (None, 0):
                     tracking.last_power_w = (
                         tracking.rate_per_hour / 100.0

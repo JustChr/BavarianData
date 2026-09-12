@@ -86,6 +86,7 @@
           "action_fetch_location_charging": "Ladeeinstellungen abrufen",
           "action_fetch_image": "Fahrzeugbild abrufen",
           "action_charging_costs": "Ladekosten & Verlauf",
+          "action_energy_sources": "Solar & Energiequellen",
           "action_trips": "Fahrten",
           "action_debug_logging": "Debug-Protokollierung"
         }
@@ -184,6 +185,24 @@
           "statistics_import": "Spiegelt Energie, Kosten und Strecke in Statistiken, die du im Energie-Dashboard hinzufügen kannst. Bleibt lokal; beim Ausschalten werden sie wieder gelöscht."
         }
       },
+      "action_energy_sources": {
+        "title": "Solar & Energiequellen",
+        "description": "Erfasst, woher die Energie jeder Ladung kam: vom eigenen Dach, aus dem Hausspeicher oder aus dem Netz.\n\n**PV-Leistung** und **Netzleistung** sind beide erforderlich. Sie werden während des Ladens abgefragt und die Energie wird laufend zugeordnet — eine Ladung, die in der Sonne beginnt und nach Sonnenuntergang endet, wird also aufgeteilt und nicht nach dem letzten Messwert verbucht. Das Auto gilt dabei als gewöhnlicher Verbraucher und bekommt denselben Mix wie der restliche Haushalt in diesem Moment — ohne Konvention, die dem Auto den Netzbezug zuschiebt, und ohne eine, die ihm die Sonne zuerst gibt.\n\nDie Netzleistung muss **positiv beim Bezug** sein. Der Hausspeicher ist optional; ohne ihn gibt es eine zweiteilige Aufteilung. Sensoren in kW werden automatisch umgerechnet, ein Sensor ganz ohne Einheit wird als Watt gelesen.\n\n**Wert des eigenen Solarstroms** ist, was dir eine kWh vom eigenen Dach wert ist — in der Regel die Einspeisevergütung, also das Geld, auf das du verzichtest, wenn du sie nicht einspeist. Bleibt das Feld leer, wird Solarstrom wie bisher mit dem Bezugspreis bewertet und nur der Mix ist neu. Energie aus dem Hausspeicher wird immer mit dem Bezugspreis bewertet: sie kann mittags vom Dach oder nachts um drei aus dem Netz gekommen sein, und das ist hier nicht unterscheidbar.",
+        "data": {
+          "pv_power_entity": "PV-Leistung",
+          "grid_power_entity": "Netzleistung (+ Bezug / − Einspeisung)",
+          "battery_power_entity": "Hausspeicher-Leistung (optional)",
+          "battery_power_invert": "Mein Speichersensor ist beim Laden positiv",
+          "price_solar": "Wert des eigenen Solarstroms pro kWh"
+        },
+        "data_description": {
+          "pv_power_entity": "Gesamterzeugung deiner Wechselrichter.",
+          "grid_power_entity": "Vorzeichenbehaftete Leistung am Zähler: positiv beim Bezug, negativ bei der Einspeisung.",
+          "battery_power_entity": "Leer lassen, wenn es keinen Hausspeicher gibt. Erwartet wird positiv beim Entladen — sonst das Feld darunter ankreuzen.",
+          "battery_power_invert": "Viele Integrationen liefern die Speicherleistung positiv beim Laden. Am Wert selbst ist das nicht erkennbar, deshalb die Nachfrage.",
+          "price_solar": "Leer lassen, um Solarstrom mit dem Bezugspreis zu bewerten. Mit der Einspeisevergütung zeigt die Ladung, was sie wirklich gekostet hat."
+        }
+      },
       "action_trips": {
         "title": "Fahrten (Fahrtenbuch)",
         "description": "Rekonstruiert deine Fahrten aus dem Stream ohne API-Kosten — Strecke, die Aufteilung geschäftlich/privat/Pendeln, Verbrauch und eine Monatsübersicht.\n\nLege **Arbeitszone** fest, damit Pendelfahrten (Zuhause ↔ Arbeit) automatisch erkannt werden; du kannst eine Fahrt jederzeit nachträglich korrigieren. Alles, was keine Pendelfahrt ist, wird als **Standard-Typ** eingeordnet (voreingestellt Privat). Eine Pendelfahrt übersteht auch einen Zwischenstopp: Steht das Auto nicht länger als die **Toleranz für Zwischenstopps**, zählen die Hinfahrt und die Weiterfahrt beide als Pendeln. **Adressen auflösen** ist standardmäßig aus: Ist es an, wird ein Fahrt-Endpunkt außerhalb jeder Home-Assistant-Zone über OpenStreetMap nachgeschlagen und als Adresse gespeichert — die Koordinaten werden für die Abfrage gesendet, aber nie gespeichert.\n\n**Route aufzeichnen** ist ebenfalls standardmäßig aus: Ist es an, speichert jede Fahrt ihren GPS-Verlauf — wo das Auto gefahren ist und wann — damit eine Karte die Fahrt zeigen und abspielen kann. Dies ist die einzige Einstellung, die rohe Koordinaten dauerhaft speichert, einschließlich deiner genauen Start- und Zielpunkte.\n\n**Fahrt-Diagnoseaufzeichnung** ist eine Fehlersuche-Hilfe: Ist sie an, werden jeder GPS-Punkt, Timer und jede Nachricht ausführlich protokolliert und eine Aufzeichnungsdatei geschrieben, um die Fahrterkennung zu verbessern. Nur für eine Testfahrt einschalten und danach wieder aus.",
@@ -219,6 +238,7 @@
       "wait_for_stream_activation": "**Aktiviere die gewählten Daten in deinem Browser**\n\n1. Öffne die **[BavarianData-Aktivierungsseite]({url})**.\n2. Ziehe die Schaltfläche **Activate BMW data** einmalig in deine Lesezeichenleiste.\n3. Öffne das **BMW- oder MINI-Portal**, melde dich an und gehe zur **Stream-Setup**-Seite eines Fahrzeugs.\n4. Klicke auf das Lesezeichen **Activate BMW data**.\n\nEs schaltet die Felder deiner gewählten Datengruppen ein — alles in deinem eigenen Browser, nichts zu kopieren. Dieser Dialog läuft automatisch weiter, sobald die Rückmeldung eintrifft. Hier ist nichts anzuklicken."
     },
     "error": {
+      "mix_needs_both": "Für die Zuordnung sind beide Sensoren nötig: PV-Leistung und Netzleistung. Mit nur einem müsste der jeweils andere geraten werden.",
       "refresh_failed": "Token-Erneuerung fehlgeschlagen: {error}",
       "reset_failed": "Zurücksetzen des Telemetrie-Containers fehlgeschlagen: {error}",
       "missing_token": "Es ist kein gültiges Access-Token verfügbar. Versuche zuerst **Token jetzt erneuern** oder autorisiere neu.",

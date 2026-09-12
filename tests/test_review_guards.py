@@ -583,3 +583,82 @@ def test_restoring_sensors_use_the_safe_base(name: str) -> None:
         f"{name} restores a value across restarts, so it must derive from "
         f"CardataRestoreSensor; it inherits {sorted(bases)}."
     )
+
+
+def _function_source(path, name: str) -> str:
+    """The source of one top-level method, found by name anywhere in the file."""
+
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    node = next(
+        n
+        for n in ast.walk(tree)
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == name
+    )
+    return ast.unparse(node)
+
+
+def test_an_in_progress_charge_is_snapshotted_on_the_way_out() -> None:
+    """Unload and shutdown must persist a charge that is still running.
+
+    This used to be a deliberate omission -- the active session was dropped on
+    the assumption BMW's charging-history import would recover it, which it does
+    not (that import is a manual, quota-costing service). Measured on a live
+    instance, two restarts that landed mid-charge cost about 22 kWh in one week,
+    and every total built on the ledger read low by exactly that much.
+    """
+
+    source = _function_source(_PKG / "coordinator.py", "async_flush_charging")
+    assert "_session_builders" in source and "_snapshot_open_session" in source, (
+        "async_flush_charging no longer snapshots the open sessions. A charge "
+        "still running at unload or shutdown is then lost for good, taking its "
+        "kWh, its cost and its statistics with it."
+    )
+
+
+def test_closing_a_session_drops_its_snapshot() -> None:
+    """Otherwise the next start resurrects a charge that already got filed."""
+
+    source = _function_source(_PKG / "coordinator.py", "_close_session_record")
+    assert "_clear_open_session" in source, (
+        "_close_session_record must clear the in-progress snapshot; leaving it "
+        "behind would restore an already-recorded charge as a duplicate on the "
+        "next restart."
+    )
+
+
+def test_home_assistant_shutdown_is_listened_for() -> None:
+    """HA does not unload config entries on shutdown, so the flush needs a hook.
+
+    Without this listener ``async_flush_charging`` runs only on a reload, which
+    is the one restart flavour users never do.
+    """
+
+    path = _PKG / "__init__.py"
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    listens = any(
+        isinstance(node, ast.Call)
+        and ast.unparse(node.func).endswith("async_listen_once")
+        and any(ast.unparse(arg) == "EVENT_HOMEASSISTANT_STOP" for arg in node.args)
+        for node in ast.walk(tree)
+    )
+    assert listens, (
+        "Nothing listens for EVENT_HOMEASSISTANT_STOP any more: an open charge "
+        "or trip would only reach disk if it happened to be snapshotted in the "
+        "last few minutes before the restart."
+    )
+
+
+def test_the_source_mix_is_sampled_with_the_cost() -> None:
+    """One sample of the house's meters must serve both, or they disagree.
+
+    Attributing at the end of a session instead would file a charge that began
+    in sunshine and ended after dark under whichever came last -- the exact
+    error the feature exists to avoid -- and a mix taken at a different instant
+    from the price would let the cost and the solar share contradict each other.
+    """
+
+    source = _function_source(_PKG / "coordinator.py", "_record_energy_delta")
+    assert "_session_mixes" in source and "_supply_shares" in source, (
+        "_record_energy_delta no longer attributes the increment it is billing. "
+        "The source mix has to be sampled on the same energy delta as the cost."
+    )

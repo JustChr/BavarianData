@@ -839,6 +839,28 @@ class CardataChargingEnergyMonthSensor(CardataChargingSummarySensor):
     def native_value(self):
         return self._summary.get("energy_kwh")
 
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Adds this month's source mix -- as attributes, not as new entities.
+
+        The history layer's entity budget is spent (one entity per question a
+        user actually asks), and "how much of my charging was sun?" is asked of
+        the same number this sensor already reports. ``solar_percent`` is lifted
+        to the top level because it is the figure people want; the kWh behind it
+        stay in ``energy_mix`` for anything that wants to check the arithmetic.
+
+        Absent entirely when nothing could be attributed, which is deliberately
+        distinct from a mix saying none of it was solar.
+        """
+
+        attrs = dict(super().extra_state_attributes)
+        mix = self._summary.get("energy_mix")
+        if mix:
+            attrs["energy_mix"] = mix
+            if mix.get("solar_percent") is not None:
+                attrs["solar_percent"] = mix["solar_percent"]
+        return attrs
+
 
 class CardataChargingCostPerDistanceSensor(CardataChargingSummarySensor):
     """Charging cost per 100 km, from the odometer read at each session.

@@ -46,6 +46,26 @@ OPTION_GRID_ENERGY_ENTITY = "grid_energy_entity"
 # Gross up battery-side energy by the AC charging losses. Defaults to 0 so we
 # never dress an estimate up as a measurement.
 OPTION_CHARGING_LOSS_PERCENT = "charging_loss_percent"
+# Where a charge's energy came from: PV, the house battery, or the grid. Sampled
+# live while the car charges, exactly like the price -- see
+# ``history/energy_mix.py`` for the attribution and why it is proportional.
+# Grid power, signed: positive = importing, negative = exporting. Required; the
+# split cannot be honest without knowing what the house was drawing.
+OPTION_GRID_POWER_ENTITY = "grid_power_entity"
+# Total PV generation, in watts. Required for the same reason.
+OPTION_PV_POWER_ENTITY = "pv_power_entity"
+# House battery power. Optional -- a house without storage gets a two-way split.
+OPTION_BATTERY_POWER_ENTITY = "battery_power_entity"
+# Sign convention for the battery entity. We need "positive = discharging";
+# plenty of integrations publish the opposite, and there is no way to tell from
+# the state itself, so the user says which it is.
+OPTION_BATTERY_POWER_INVERT = "battery_power_invert"
+# What a kWh of own solar is worth, in the same currency as the tariff. Left
+# empty, solar is billed at the import price (so totals keep their old meaning)
+# and only the mix is new information. Set it -- usually to the feed-in tariff,
+# the money given up by not exporting -- and cost becomes what the charge really
+# cost you.
+OPTION_PRICE_SOLAR = "price_solar"
 # How long recorded sessions are kept. 0 means "keep forever" (the hard
 # per-VIN cap in history/store.py still applies).
 OPTION_HISTORY_RETAIN_MONTHS = "history_retain_months"

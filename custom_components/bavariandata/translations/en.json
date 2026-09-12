@@ -86,6 +86,7 @@
           "action_fetch_location_charging": "Fetch charging settings",
           "action_fetch_image": "Fetch vehicle image",
           "action_charging_costs": "Charging costs & history",
+          "action_energy_sources": "Solar & energy sources",
           "action_trips": "Trips",
           "action_debug_logging": "Debug logging"
         }
@@ -184,6 +185,24 @@
           "statistics_import": "Mirrors energy, cost and distance into statistics you can add to the Energy dashboard. Stays local; turning it off deletes them again."
         }
       },
+      "action_energy_sources": {
+        "title": "Solar & energy sources",
+        "description": "Record where each charge's energy came from: your roof, your house battery, or the grid.\n\nBoth **PV power** and **Grid power** are needed. They are sampled while the car charges and the energy is attributed as it arrives, so a charge that starts in sunshine and finishes after dark is split between the two rather than filed under whichever came last. The car is treated as just another load and gets the same mix the rest of the house got at that moment — no convention that charges the car with the grid import, and none that gives it the sunshine first.\n\nGrid power must be **positive when importing**. The house battery is optional; without it you get a two-way split. Sensors in kW are converted automatically, and one with no unit at all is read as watts.\n\n**Value of own solar** is what a kWh off your own roof is worth to you — usually your feed-in tariff, the money you give up by not exporting it. Leave it empty and solar is costed at your import price, exactly as before, so only the mix is new. House-battery energy is always costed at the import price: its contents could have come from the roof at noon or from a cheap-hour grid charge at three in the morning, and this integration cannot tell which.",
+        "data": {
+          "pv_power_entity": "PV power",
+          "grid_power_entity": "Grid power (+ import / − export)",
+          "battery_power_entity": "House battery power (optional)",
+          "battery_power_invert": "My battery sensor is positive when charging",
+          "price_solar": "Value of own solar per kWh"
+        },
+        "data_description": {
+          "pv_power_entity": "Total generation from your inverter(s).",
+          "grid_power_entity": "Signed power at the meter: positive while drawing from the grid, negative while exporting.",
+          "battery_power_entity": "Leave empty if you have no home storage. Expected positive while discharging — tick the box below if yours is the other way round.",
+          "battery_power_invert": "Many integrations publish battery power positive while charging. There is no way to tell from the value itself, so say which yours is.",
+          "price_solar": "Leave empty to cost solar at the import price. Set it to your feed-in tariff to see what a charge really cost you."
+        }
+      },
       "action_trips": {
         "title": "Trips (driving journal)",
         "description": "Reconstructs your drives from the stream at no API cost — distance, the business/private/commute split, consumption and a monthly review.\n\nSet **Work zone** so commutes (home ↔ work) are recognised automatically; you can always correct a trip afterwards. Everything that isn't a commute is filed as the **Default type** (Private out of the box). A commute also survives a stop on the way: if the car stands no longer than the **Commute stop tolerance**, the drive there and the drive on are both counted as commuting. **Resolve addresses** is off by default: with it on, a trip endpoint outside any Home Assistant zone is looked up via OpenStreetMap and stored as an address — the coordinates are sent for the lookup but never saved.\n\n**Record route** is also off by default: with it on, each trip stores its GPS track — where the car went and when — so a map can show and replay the drive. This is the only setting that saves raw coordinates to disk, including your exact start and end points.\n\n**Trip-capture diagnostics** is a troubleshooting aid: with it on, every GPS fix, timer and message is logged in detail and a capture file is written, to help improve trip detection. Turn it on only for a test drive, then off again.",
@@ -219,6 +238,7 @@
       "wait_for_stream_activation": "**Activate the selected data in your browser**\n\n1. Open the **[BavarianData activation page]({url})**.\n2. Drag the **Activate BMW data** button to your bookmarks bar (once).\n3. Open the **BMW or MINI portal**, sign in, and go to a vehicle's **stream setup** page.\n4. Click the **Activate BMW data** bookmark.\n\nIt turns on the fields for your chosen clusters — all in your own browser, nothing to copy. This dialog continues automatically the moment it reports back. There's nothing to click here."
     },
     "error": {
+      "mix_needs_both": "Attributing energy needs both a PV power sensor and a grid power sensor. With only one of them the split would have to assume the other.",
       "refresh_failed": "Token refresh failed: {error}",
       "reset_failed": "Resetting the telemetry container failed: {error}",
       "missing_token": "No valid access token is available. Try \"Refresh tokens now\" or re-authorize first.",

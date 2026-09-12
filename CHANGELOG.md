@@ -9,6 +9,60 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **Where each charge's energy came from: PV, house battery, or the grid.**
+  Point **Configure → Solar & energy sources** at your PV power and grid power
+  sensors (house battery optional) and every session records the split in
+  grid-side kWh, plus the share that came off your own roof. The card tags the
+  session row with **☀ 62 % solar** and breaks it down when expanded; the
+  month's share rides as `solar_percent` / `energy_mix` attributes on the
+  existing *Charging energy this month* sensor — no new entities; the CSV export
+  gains four columns and the printed month report a tile.
+
+  Energy is attributed **as it is delivered** from the site's supply mix at that
+  instant — the same live sampling the tariff already uses — so a charge that
+  starts in sunshine and ends after dark is split rather than filed under
+  whichever came last. The car is treated as just another load and gets the mix
+  the rest of the house got at that moment: no convention that hands the car the
+  sunshine first, none that makes it the marginal load carrying the import.
+  Exported PV is excluded, and PV going into the house battery is attributed
+  later, as battery, so nothing is counted twice. A missing sensor makes energy
+  *unattributed* rather than *grid*, and a session that could attribute nothing
+  records no mix at all — "we couldn't tell" must not look like "no sun".
+- **Optionally, what that solar is worth.** Set **Value of own solar per kWh**
+  (usually your feed-in tariff) and cost becomes what a charge really cost you.
+  Left empty, solar is billed at the import price and existing totals keep their
+  old meaning. House-battery energy is always billed at the import price: it
+  could have come from the roof at noon or from a cheap-hour grid charge at
+  three in the morning, and that is not knowable here.
+
+### Fixed
+- **A restart no longer loses the charge that was running.** An in-progress
+  charging session lived only in memory, so any Home Assistant restart, update
+  or options reload mid-charge deleted it — and Home Assistant does not unload
+  config entries on shutdown, so the existing flush never ran on a restart at
+  all. The session is now snapshotted to the history store as it charges, and
+  picked up again on the way back in: still charging, and it carries on as the
+  same record; already over, and it is filed ending at the last sample actually
+  watched, not at the moment we noticed. The energy the pack gained during the
+  gap is credited back from the SoC that measured it, bounded by the same
+  ceiling as everything else, and such a record is flagged `interrupted` so
+  nothing that divides energy by SoC treats it as a clean measurement.
+
+  This was not a cosmetic loss. Measured on a live instance, two restarts that
+  happened to land mid-charge cost about **22 kWh in a single week** — every
+  total built on the ledger (session energy, cost, the Energy dashboard
+  statistics, and the driving summary's energy balance) read low by exactly
+  that much. It is why the trips dashboard could show a consumption figure well
+  below what the trips underneath it added up to.
+- **A restored charging rate no longer masquerades as a charge in progress.**
+  The state was set from the restored rate sensor alone, so the next genuine
+  `CHARGINGACTIVE` looked like no transition at all and opened no session.
+- **A drive in progress at a restart is now captured too.** The same root
+  cause: Home Assistant does not unload config entries when it shuts down, so
+  the existing "close the open trip" step ran on a reload but never on a
+  restart. Both flushes are now wired to the shutdown event.
+
 ## [0.9.8] - 2026-09-12
 
 The first stable release since 0.9.7. No code has changed since

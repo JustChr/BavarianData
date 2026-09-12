@@ -33,9 +33,14 @@ from .const import (
     DEFAULT_HISTORY_RETAIN_MONTHS,
     DEFAULT_SCOPE,
     DOMAIN,
+    OPTION_BATTERY_POWER_ENTITY,
+    OPTION_BATTERY_POWER_INVERT,
     OPTION_CHARGING_LOSS_PERCENT,
     OPTION_DEBUG_LOG,
     OPTION_GRID_ENERGY_ENTITY,
+    OPTION_GRID_POWER_ENTITY,
+    OPTION_PRICE_SOLAR,
+    OPTION_PV_POWER_ENTITY,
     OPTION_HISTORY_RETAIN_MONTHS,
     OPTION_PRICE_CURRENCY,
     OPTION_PRICE_ENTITY,
@@ -797,6 +802,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 "action_fetch_location_charging",
                 "action_fetch_image",
                 "action_charging_costs",
+                "action_energy_sources",
                 "action_trips",
                 "action_debug_logging",
             ],
@@ -1084,6 +1090,90 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                     # Turning it off has to take the published series with it --
                     # otherwise a stale mirror lingers on the Energy dashboard.
                     await runtime.statistics.async_remove()
+        return self.async_create_entry(title="", data=options)
+
+    async def async_step_action_energy_sources(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Point the integration at the house's own meters.
+
+        Separate from the tariff step on purpose: "what did this kilowatt-hour
+        cost" and "where did it come from" are different questions, and either
+        is worth answering without the other. Both power entities are needed
+        before anything is attributed -- with only one the split would have to
+        assume the other, which is the guesswork this replaces.
+        """
+
+        options = dict(self._config_entry.options)
+        schema = vol.Schema(
+            {
+                vol.Optional(
+                    OPTION_PV_POWER_ENTITY,
+                    description={
+                        "suggested_value": options.get(OPTION_PV_POWER_ENTITY)
+                    },
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain="sensor", device_class="power"
+                    )
+                ),
+                vol.Optional(
+                    OPTION_GRID_POWER_ENTITY,
+                    description={
+                        "suggested_value": options.get(OPTION_GRID_POWER_ENTITY)
+                    },
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain="sensor", device_class="power"
+                    )
+                ),
+                vol.Optional(
+                    OPTION_BATTERY_POWER_ENTITY,
+                    description={
+                        "suggested_value": options.get(OPTION_BATTERY_POWER_ENTITY)
+                    },
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain="sensor", device_class="power"
+                    )
+                ),
+                vol.Required(
+                    OPTION_BATTERY_POWER_INVERT,
+                    default=bool(options.get(OPTION_BATTERY_POWER_INVERT, False)),
+                ): selector.BooleanSelector(),
+                vol.Optional(
+                    OPTION_PRICE_SOLAR,
+                    description={"suggested_value": options.get(OPTION_PRICE_SOLAR)},
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=0, step="any", mode=selector.NumberSelectorMode.BOX
+                    )
+                ),
+            }
+        )
+
+        if user_input is None:
+            return self.async_show_form(
+                step_id="action_energy_sources", data_schema=schema
+            )
+
+        # One meter without the other cannot attribute anything, so say so here
+        # rather than letting every session record an "unknown" mix.
+        if bool(user_input.get(OPTION_PV_POWER_ENTITY)) != bool(
+            user_input.get(OPTION_GRID_POWER_ENTITY)
+        ):
+            return self.async_show_form(
+                step_id="action_energy_sources",
+                data_schema=schema,
+                errors={"base": "mix_needs_both"},
+            )
+
+        options.update(user_input)
+        # Applied in place rather than by reloading the entry: BMW allows one
+        # concurrent stream per account, so a reload risks racing the reconnect.
+        runtime = getattr(self._config_entry, "runtime_data", None)
+        if runtime is not None:
+            runtime.coordinator.pricing = PricingConfig.from_options(options)
         return self.async_create_entry(title="", data=options)
 
     async def async_step_action_trips(

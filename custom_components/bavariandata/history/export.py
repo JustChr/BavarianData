@@ -47,6 +47,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "no_trips": "No trips recorded for this month.",
         "sessions": "Sessions",
         "energy": "Energy",
+        "solar": "From own solar",
         "cost": "Cost",
         "distance": "Distance",
         "trip_count": "Trips",
@@ -96,6 +97,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "no_trips": "Für diesen Monat sind keine Fahrten erfasst.",
         "sessions": "Ladevorgänge",
         "energy": "Energie",
+        "solar": "Aus eigenem Solarstrom",
         "cost": "Kosten",
         "distance": "Strecke",
         "trip_count": "Fahrten",
@@ -213,6 +215,16 @@ def sessions_csv(
         "cost_partial",
         "odometer_km",
         "enriched",
+        # A restart landed in the middle of this charge: the SoC span is whole
+        # but the energy is a floor (see history/models.ChargingSession).
+        "interrupted",
+        # Where the energy came from, grid-side kWh. Blank on a session recorded
+        # before the PV/grid sensors were configured -- blank, not zero, because
+        # "not measured" and "no sun" are different answers.
+        "pv_kwh",
+        "house_battery_kwh",
+        "grid_mix_kwh",
+        "solar_percent",
     ]
     rows: list[list[Any]] = [header]
     for session in sessions:
@@ -241,6 +253,11 @@ def sessions_csv(
                 "yes" if cost.get("partial") else "no",
                 _num(session.mileage_km, 1),
                 "yes" if session.enriched else "no",
+                "yes" if session.interrupted else "no",
+                _num((session.energy_mix or {}).get("pv"), 3),
+                _num((session.energy_mix or {}).get("battery"), 3),
+                _num((session.energy_mix or {}).get("grid"), 3),
+                _num((session.energy_mix or {}).get("solar_percent"), 1),
             ]
         )
     return _write(rows)
@@ -413,6 +430,17 @@ def month_report_html(
             _tile(s["sessions"], str(charging_summary.get("sessions", len(sessions)))),
             _tile(s["energy"], f"{charging_summary.get('energy_kwh', 0)} kWh"),
         ]
+        mix = charging_summary.get("energy_mix") or {}
+        if mix.get("solar_percent") is not None:
+            # The kWh alongside the percentage, because a share on its own says
+            # nothing about how much charging it is a share of.
+            tiles.append(
+                _tile(
+                    s["solar"],
+                    f"{mix['solar_percent']} %",
+                    f"{mix.get('pv', 0)} kWh",
+                )
+            )
         if charging_summary.get("cost") is not None:
             tiles.append(
                 _tile(

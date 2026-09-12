@@ -12,6 +12,7 @@ from datetime import datetime
 from statistics import mean
 from typing import Any, Callable, Iterable, Optional
 
+from .energy_mix import merge_mix
 from .models import ChargingSession, _iso
 from .trips import CLASS_BUSINESS, CLASS_COMMUTE, CLASS_PRIVATE, Trip
 
@@ -116,6 +117,10 @@ def summarise(sessions: Iterable[ChargingSession]) -> dict[str, Any]:
         "partial": partial,
         "distance_km": None,
         "cost_per_100km": None,
+        # Where the month's energy came from, summed across the sessions that
+        # could attribute theirs (see ``energy_mix.merge_mix``). ``None`` when
+        # none of them could, which is not the same as "no solar".
+        "energy_mix": merge_mix([session.energy_mix for session in sessions]),
     }
 
     if costed and len(currencies) <= 1:

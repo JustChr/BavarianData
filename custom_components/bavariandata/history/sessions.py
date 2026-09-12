@@ -16,7 +16,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Any, Optional
 
-from .models import ChargingSession
+from .models import ChargingSession, _iso, _parse  # shared ISO (de)serialisation helpers
 
 # A point per minute is plenty to draw a charging curve, and keeps a typical AC
 # session well under a hundred points.
@@ -54,6 +54,37 @@ SOC_CEILING_MARGIN_PERCENT = 2.0
 # before the moment the session opened. Two minutes absorbs that skew and
 # nothing more: the readings this rejects are hours or days old.
 SOC_SESSION_SKEW = timedelta(seconds=120)
+
+
+# How stale a snapshotted in-progress session may be and still be picked up as
+# the *same* charge when Home Assistant comes back. A restart takes seconds and
+# an update a few minutes; beyond this the car has very likely been unplugged
+# and driven, so resuming would staple two unrelated charges together. The
+# snapshot is still used -- it is closed as the record it already is, ending at
+# its last sample -- just never continued.
+OPEN_SESSION_MAX_AGE_S = 3600.0
+
+
+def open_session_is_resumable(
+    saved_at: Optional[datetime],
+    now: datetime,
+    *,
+    max_age_s: float = OPEN_SESSION_MAX_AGE_S,
+) -> bool:
+    """Whether a snapshotted session may continue as the same charge.
+
+    A snapshot with no timestamp, or one from the future (a clock change), is
+    not resumable: without a trustworthy age there is no way to tell a
+    thirty-second restart from a three-day outage, and the safe answer is to
+    close the record we already have rather than to keep accruing into it.
+    """
+
+    if saved_at is None:
+        return False
+    age = (now - saved_at).total_seconds()
+    if age < 0:
+        return False
+    return age <= max_age_s
 
 
 def soc_is_from_session(
@@ -166,10 +197,18 @@ class SessionBuilder:
         # internally inconsistent rather than more accurate.
         self.late_start = _is_late_start(soc_before, soc_start)
         self.peak_power_kw: Optional[float] = None
+        # True once this session has survived a restart (see
+        # ``ChargingSession.interrupted``): set by :meth:`from_dict`, never here.
+        self.interrupted = False
         self._curve: list[list[float]] = []
         self._interval = MIN_SAMPLE_INTERVAL_S
         self._last_offset: Optional[int] = None
         self._last_power: Optional[float] = None
+        # Wall-clock time of the most recent sample. The curve stores offsets,
+        # which are useless for deciding *when* a session that was interrupted
+        # should be recorded as having ended -- that has to be the last moment we
+        # actually watched it charge, not whenever we noticed it had stopped.
+        self.last_sample_at: Optional[datetime] = None
 
     def _offset(self, at: datetime) -> int:
         # Clock skew between BMW's timestamps and ours could put a sample before
@@ -190,6 +229,7 @@ class SessionBuilder:
 
         offset = self._offset(at)
         self._last_offset = offset
+        self.last_sample_at = at
         self._last_power = round(power_kw, 3)
         if self._curve and offset - self._curve[-1][0] < self._interval:
             return
@@ -206,6 +246,75 @@ class SessionBuilder:
     def note_soc(self, soc: Optional[float]) -> None:
         if soc is not None:
             self.soc_end = soc
+
+    def to_dict(self) -> dict[str, Any]:
+        """Snapshot the in-progress session so a restart cannot lose it.
+
+        Everything the builder needs to carry on accumulating, including the
+        downsampling state -- restoring a curve without its interval would make
+        the resumed half of a long session denser than the first half.
+        """
+
+        return {
+            "vin": self.vin,
+            "start": _iso(self.start),
+            "soc_start": self.soc_start,
+            "soc_end": self.soc_end,
+            "target_soc": self.target_soc,
+            "location": self.location,
+            "location_assumed": self.location_assumed,
+            "late_start": self.late_start,
+            "interrupted": self.interrupted,
+            "peak_power_kw": self.peak_power_kw,
+            "curve": [list(point) for point in self._curve],
+            "interval": self._interval,
+            "last_offset": self._last_offset,
+            "last_power": self._last_power,
+            "last_sample_at": _iso(self.last_sample_at),
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Optional["SessionBuilder"]:
+        """Rebuild a snapshotted session, or ``None`` if it is unusable.
+
+        Always comes back with ``interrupted`` set: by definition the only way
+        to be restored is to have survived something that stopped us watching.
+        ``late_start`` is taken from the snapshot rather than recomputed --
+        whether the charge had been running before we noticed was decided when
+        the session opened, and the pre-charge reading behind that judgement is
+        long gone.
+        """
+
+        if not isinstance(data, dict):
+            return None
+        vin = data.get("vin")
+        start = _parse(data.get("start"))
+        if not vin or start is None:
+            return None
+        builder = cls(
+            vin,
+            start,
+            soc_start=data.get("soc_start"),
+            target_soc=data.get("target_soc"),
+            location=data.get("location"),
+            location_assumed=bool(data.get("location_assumed")),
+        )
+        builder.late_start = bool(data.get("late_start"))
+        builder.interrupted = True
+        builder.soc_end = data.get("soc_end")
+        builder.peak_power_kw = data.get("peak_power_kw")
+        builder._curve = [
+            list(point) for point in data.get("curve") or [] if len(point) >= 2
+        ]
+        try:
+            builder._interval = int(data.get("interval") or MIN_SAMPLE_INTERVAL_S)
+        except (TypeError, ValueError):
+            builder._interval = MIN_SAMPLE_INTERVAL_S
+        last_offset = data.get("last_offset")
+        builder._last_offset = None if last_offset is None else int(last_offset)
+        builder._last_power = data.get("last_power")
+        builder.last_sample_at = _parse(data.get("last_sample_at"))
+        return builder
 
     def close(
         self,
@@ -250,4 +359,5 @@ class SessionBuilder:
             cost=cost,
             end_reason=reason,
             late_start=self.late_start,
+            interrupted=self.interrupted,
         )

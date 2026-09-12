@@ -16,7 +16,7 @@ from typing import Any, Deque, Dict, List, Optional
 import aiohttp
 import voluptuous as vol
 
-from homeassistant.const import Platform
+from homeassistant.const import EVENT_HOMEASSISTANT_STOP, Platform
 from homeassistant.config_entries import ConfigEntry, SOURCE_REAUTH
 from homeassistant.core import HomeAssistant, SupportsResponse, callback
 from homeassistant.exceptions import ConfigEntryNotReady, ServiceValidationError
@@ -589,6 +589,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     history_store.reresolve_zones(coordinator.zone_at)
     coordinator.coverage = coverage_store
     coordinator.pricing = PricingConfig.from_options(options)
+    # A charge that was still running when we last stopped is picked up here --
+    # after the tariff is known (the restored cost is only kept if its currency
+    # still matches) and before the platforms load, so the session-energy sensor
+    # restores on top of the real figure instead of seeding it.
+    coordinator.async_restore_open_sessions()
     # Trips: the shared HA client session drives the (opt-in) reverse geocoder;
     # the work zone drives commute classification. Both are refreshed on reload.
     coordinator.geocoder = ReverseGeocoder(
@@ -1676,6 +1681,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
 
     runtime_data.telematic_task = entry.async_create_background_task(
         hass, _telematic_poll_loop(hass, entry.entry_id), f"{DOMAIN}_telematic_poll"
+    )
+
+    async def _flush_on_stop(_event) -> None:
+        """Save in-flight records when Home Assistant shuts down.
+
+        Home Assistant does *not* unload config entries on shutdown -- it fires
+        this event and writes storage -- so ``async_unload_entry`` never runs on
+        a restart. Without this listener an open charge or an open trip reached
+        disk only if it happened to be snapshotted in the last few minutes.
+        """
+
+        await coordinator.async_flush_trips()
+        coordinator.async_flush_charging()
+        with suppress(Exception):
+            await history_store.async_save_now()
+
+    entry.async_on_unload(
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _flush_on_stop)
     )
 
     return True
