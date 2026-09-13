@@ -38,6 +38,7 @@ from .history.summary import (
     trips_in_month,
 )
 from .restore_units import restore_native
+from .structured_values import ITEMS_ATTRIBUTE, restored_items, structured_state
 
 
 # String metadata values -> Home Assistant sensor enums.
@@ -162,6 +163,11 @@ class CardataSensor(CardataRestoreSensor):
         await super().async_added_to_hass()
         if getattr(self, "_attr_native_value", None) is None:
             restored, unit, last_state = await self.async_restored_native()
+            if last_state is not None:
+                # A list-valued descriptor saved its count as the state; the
+                # list itself is in the attributes (see structured_values).
+                if (items := restored_items(last_state.attributes)) is not None:
+                    restored = items
             if restored is not None:
                 if self._is_enum and isinstance(restored, str):
                     # Match the lowercase-slug options (old installs stored
@@ -169,7 +175,7 @@ class CardataSensor(CardataRestoreSensor):
                     restored = restored.lower()
                     if restored not in self._attr_options:
                         self._attr_options = [*self._attr_options, restored]
-                self._attr_native_value = restored
+                self._attr_native_value, _items = structured_state(restored)
                 if unit is not None and not self._fixed_unit:
                     self._attr_native_unit_of_measurement = unit
                     # If unit is a length/distance type, enable conversion. The
@@ -193,7 +199,7 @@ class CardataSensor(CardataRestoreSensor):
                 self._coordinator.restore_descriptor_state(
                     self.vin,
                     self.descriptor,
-                    self._attr_native_value,
+                    restored,
                     unit,
                     timestamp,
                 )
@@ -226,11 +232,24 @@ class CardataSensor(CardataRestoreSensor):
                 # document. Extend the option list so Home Assistant accepts it
                 # instead of logging a validation error; it shows untranslated.
                 self._attr_options = [*self._attr_options, value]
-        self._attr_native_value = value
+        # A list (service items, Check Control messages) is shown as its count:
+        # stringified it overflows Home Assistant's 255-character state limit
+        # and is recorded as unknown. The list itself goes out as an attribute.
+        self._attr_native_value, _items = structured_state(value)
         if not self._fixed_unit:
             self._attr_native_unit_of_measurement = state.unit
 
         self.schedule_update_ha_state()
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        attrs = super().extra_state_attributes
+        state = self._coordinator.get_state(self._vin, self._descriptor)
+        if state is not None:
+            _native, items = structured_state(state.value)
+            if items is not None:
+                attrs[ITEMS_ATTRIBUTE] = items
+        return attrs
 
 
 class CardataDiagnosticsSensor(SensorEntity, RestoreEntity):

@@ -9,6 +9,23 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The card's charge ring could show "—" instead of the state of charge.**
+  Beta.8 switched on the measured state-of-charge entity on installs where an old
+  default had left it off, and taught the ring to prefer it. But a freshly
+  enabled entity has no value until the car next reports one, and the ring
+  preferred it anyway — so it went blank while the integration's own estimate
+  had the right figure. The ring now uses whatever has a value, measured first,
+  and only waits on the measured one when nothing else has a value either. Card
+  **1.12.1**.
+- **Condition Based Service and Check Control messages never showed anything.**
+  BMW sends both as a list — the service items with their due dates, and the
+  warnings the car raised. Home Assistant can't store a state that long, so it
+  logged an error on every start and showed *unknown* instead. The state is now
+  the **number of entries** (so "a Check Control message appeared" works in an
+  automation), and the full list is in the entity's **`items`** attribute. It
+  fills in the next time the car sends it.
+
 ## [0.9.9-beta.8] - 2026-09-13
 
 ### Added

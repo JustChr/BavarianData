@@ -52,11 +52,11 @@ TANK = "sensor.car_tank_level"
 ESTIMATE = "sensor.car_soc_estimate"
 
 
-def _sensor(descriptor: str, *, battery: bool = True, name: str = "") -> dict:
+def _sensor(descriptor: str, *, battery: bool = True, name: str = "", state: str = "50") -> dict:
     attrs = {"descriptor": descriptor, "unit_of_measurement": "%", "friendly_name": name}
     if battery:
         attrs["device_class"] = "battery"
-    return {"state": "50", "attributes": attrs}
+    return {"state": state, "attributes": attrs}
 
 
 _TWELVE_VOLT = _sensor("vehicle.electricalSystem.battery.stateOfCharge", name="Battery")
@@ -94,6 +94,25 @@ def test_hybrid_gauge_shows_the_battery_not_the_tank():
 def test_combustion_car_gauge_shows_neither_tank_nor_12v_battery():
     picks = _picks({TANK: _TANK, TWELVE_VOLT: _TWELVE_VOLT, ESTIMATE: _ESTIMATE})
     assert picks.get("soc") == ESTIMATE
+
+
+def test_gauge_does_not_blank_on_a_measured_soc_that_has_not_reported_yet():
+    # beta.8 on the maintainer's i5: the header entity was re-enabled, had nothing
+    # to restore, and the ring read "—" while the estimate held 85 %. The
+    # estimate's English name says "Predicted", which the avoid-list rejects, so
+    # it must still be reachable by its descriptor.
+    hv_unknown = _sensor("vehicle.drivetrain.batteryManagement.header", state="unknown")
+    estimate = _sensor("soc_estimate", name="State Of Charge (Predicted on Integration side)", state="85.0")
+    picks = _picks({HV_SOC: hv_unknown, TWELVE_VOLT: _TWELVE_VOLT, ESTIMATE: estimate})
+    assert picks.get("soc") == ESTIMATE
+
+
+def test_gauge_binds_to_the_measured_soc_when_nothing_has_a_value():
+    # A brand-new install: the ring waits on the real SoC, not the 12 V battery.
+    hv_unknown = _sensor("vehicle.drivetrain.batteryManagement.header", state="unknown")
+    estimate = _sensor("soc_estimate", state="unknown")
+    picks = _picks({ESTIMATE: estimate, TWELVE_VOLT: _TWELVE_VOLT, HV_SOC: hv_unknown})
+    assert picks.get("soc") == HV_SOC
 
 
 def test_combustion_car_fallback_pick_skips_the_12v_battery():

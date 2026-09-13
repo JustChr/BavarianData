@@ -19,6 +19,12 @@ Every descriptor BMW streams becomes a native entity:
 - Every entity exposes its **source timestamp** plus its catalogue `cluster` and
   `category` as attributes — the [dashboard card](The-Dashboard-Card) uses these
   to group values regardless of the user's HA language.
+- A few descriptors are **lists** rather than single values — **Condition Based
+  Service** (each service item with its due date) and **Check Control messages**
+  (the warnings the car raised). Their state is the **number of entries** and the
+  full list is in the **`items`** attribute, e.g.
+  `{{ state_attr('sensor.<car>_check_control_messages', 'items') }}` in a
+  template. A state of `0` means the car reported an empty list.
 
 The full field-per-cluster catalogue lives in
 [telematics-fields.md](https://github.com/JustChr/BavarianData/blob/main/docs/reference/telematics-fields.md).
