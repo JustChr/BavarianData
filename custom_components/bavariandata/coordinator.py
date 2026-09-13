@@ -52,6 +52,7 @@ from .history.energy_mix import (
 from .history.sessions import (
     SessionBuilder,
     energy_ceiling_kwh,
+    meter_counts_this_session,
     open_session_is_resumable,
     soc_is_from_session,
 )
@@ -1228,7 +1229,7 @@ class CardataCoordinator:
         # to move the session's running total. ``_grid_meter_step`` advances the
         # billing cursor, so it is called on its own line rather than inline --
         # a side effect buried in an argument list is how one gets called twice.
-        meter_now = self._grid_meter_kwh()
+        meter_now = self._session_grid_meter_kwh(self._session_builders.get(vin))
         metered_kwh = self._grid_meter_step(vin, meter_now)
         billable, _source = billable_energy(
             battery_kwh=kwh,
@@ -1452,7 +1453,7 @@ class CardataCoordinator:
         # hours this session would then not be credited with. The billing cursor
         # starts in the same place, so the very first increment is billed at the
         # meter rather than being skipped for want of a baseline.
-        meter_at_open = self._grid_meter_kwh()
+        meter_at_open = self._session_grid_meter_kwh(self._session_builders[vin])
         self._session_builders[vin].note_grid_meter(meter_at_open)
         if meter_at_open is None:
             self._grid_meter_billed.pop(vin, None)
@@ -1762,7 +1763,7 @@ class CardataCoordinator:
         # One last look at the wallbox meter. The final energy deltas and the
         # close can be minutes apart on a charge that tapers, and those are
         # kilowatt-hours the meter did count.
-        builder.note_grid_meter(self._grid_meter_kwh())
+        builder.note_grid_meter(self._session_grid_meter_kwh(builder))
         session = builder.close(
             at or datetime.now(timezone.utc),
             soc_end=self._session_soc_percent(vin),
@@ -3168,6 +3169,23 @@ class CardataCoordinator:
         if unit in ("mw",):
             return value * 1_000_000.0
         return value
+
+    def _session_grid_meter_kwh(
+        self, builder: Optional[SessionBuilder]
+    ) -> Optional[float]:
+        """The wallbox meter as a charge may see it -- ``None`` away from home.
+
+        Every read of the meter on behalf of a session goes through here, so the
+        location rule in :func:`meter_counts_this_session` cannot be skipped by a
+        new call site (a test pins that). With no session record open there is
+        no position to judge, and the reading is returned as it always was.
+        """
+
+        if builder is not None and not meter_counts_this_session(
+            builder.location, self._home_zone_name()
+        ):
+            return None
+        return self._grid_meter_kwh()
 
     def _grid_meter_kwh(self) -> Optional[float]:
         """The bound wallbox energy meter's cumulative total, in kWh.

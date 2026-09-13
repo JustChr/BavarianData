@@ -54,7 +54,7 @@ Screen: **Configure → Charging costs & history**. See
 | **Fixed price per kWh** | number | Price per kWh, when mode is `fixed`. Required in that mode. |
 | **Price entity** | sensor / input_number | Live price source (Tibber/Nordpool/aWATTar), when mode is `entity`. Sampled while charging. Required in that mode. |
 | **Currency** | text | Currency code for the cost entities. |
-| **Wallbox energy sensor** | sensor | Optional. The wallbox's **cumulative** energy total (`total_increasing`, not a per-session counter). Its measured grid figure replaces the battery-side estimate in the session record, the monthly totals and the cost. Refused when it can't be right — see [the bridge page](Feature-evcc-and-Wallbox-Bridge#when-the-reading-is-refused). |
+| **Wallbox energy sensor** | sensor | Optional. The wallbox's **cumulative** energy total (`total_increasing`, not a per-session counter). Its measured grid figure replaces the battery-side estimate in the session record, the monthly totals and the cost. Only read for charges in your Home zone, and refused when it can't be right — see [the bridge page](Feature-evcc-and-Wallbox-Bridge#when-the-reading-is-refused). |
 | **Charging losses (%)** | 0–30 | Grosses the battery figure up by your losses. Default **0** (no invented correction). |
 | **Keep history for (months)** | 0–120 | How long to keep recorded sessions/trips. **0 = keep everything.** |
 | **Publish to long-term statistics** | on/off | Mirror history into the Energy dashboard. Turning it **off deletes** the published series. See [Energy & statistics](Feature-Energy-and-Statistics). |

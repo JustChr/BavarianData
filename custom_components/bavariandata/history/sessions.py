@@ -136,6 +136,33 @@ def measured_grid_kwh(
     return round(delta, 3)
 
 
+def meter_counts_this_session(
+    location: Optional[dict[str, Any]], home_zone: Optional[str]
+) -> bool:
+    """Whether the bound wallbox meter can be measuring this charge at all.
+
+    The meter hangs on a wall at home, and nothing it reports says *which* car
+    it charged. So a session the car itself places somewhere else -- work, a
+    public charger -- must never read it: if another car is charging at home at
+    the same moment, the meter's advance belongs to that car, and a charge of a
+    similar size passes every plausibility check in :func:`measured_grid_kwh`.
+
+    Only a *known* elsewhere vetoes. A session with no position at all (the car
+    streams no GPS, or none had arrived) keeps the meter, still cross-checked:
+    refusing it would switch the feature off for every car that doesn't report
+    where it is, to guard against a case such a car can't tell apart anyway.
+    ``{"zone": None}`` is not "no position" -- it is a known position inside no
+    zone, which is what a public charger looks like.
+    """
+
+    if not isinstance(location, dict):
+        return True
+    zone = location.get("zone")
+    if zone is None:
+        return False
+    return zone == home_zone or zone == "zone.home"
+
+
 # How stale a snapshotted in-progress session may be and still be picked up as
 # the *same* charge when Home Assistant comes back. A restart takes seconds and
 # an update a few minutes; beyond this the car has very likely been unplugged

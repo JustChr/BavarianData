@@ -143,6 +143,11 @@ A measured figure is only worth having if it's actually measuring this car, so
 each session's delta is sanity-checked and **dropped rather than believed** when
 it can't be right:
 
+- The charge happened **outside your Home zone**. The meter can't tell which car
+  it charged, so while your car charges at work or a public charger, another car
+  on your wallbox would otherwise be booked to it — and a charge of a similar
+  size passes every check below. A charge with no known position keeps the
+  meter, still checked as below.
 - The meter went **down or nowhere** — a reset, a power cycle, or a meter that
   wasn't counting this charge.
 - It reports **far less than the battery absorbed**. The grid can't deliver less

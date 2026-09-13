@@ -180,7 +180,7 @@
           "price_fixed": "Wird nur bei der Preisquelle „Fester Preis“ verwendet.",
           "price_entity": "Wird nur bei der Preisquelle „Preis-Entität“ verwendet. Ihr Zustand muss ein Preis pro kWh sein.",
           "price_currency": "ISO-Code für die Kosten-Sensoren, z. B. EUR, GBP, CHF.",
-          "grid_energy_entity": "Optional. Der kumulative Energiezähler deiner Wallbox (einer, der nur hochzählt – kein Zähler, der pro Ladevorgang zurücksetzt). Wh, kWh und MWh werden umgerechnet; ohne Einheit wird kWh angenommen. Ein gemessener Netzwert schlägt immer unsere batterieseitige Schätzung – und ein Wert, der nicht stimmen kann, etwa ein Hauszähler mit weit mehr als die Batterie aufgenommen hat, wird ignoriert statt geglaubt.",
+          "grid_energy_entity": "Optional. Der kumulative Energiezähler deiner Wallbox (einer, der nur hochzählt – kein Zähler, der pro Ladevorgang zurücksetzt). Wh, kWh und MWh werden umgerechnet; ohne Einheit wird kWh angenommen. Er wird nur für Ladevorgänge in deiner Zone „Zuhause“ gelesen, weil der Zähler nicht weiß, welches Auto er geladen hat. Ein gemessener Netzwert schlägt immer unsere batterieseitige Schätzung – und ein Wert, der nicht stimmen kann, etwa ein Hauszähler mit weit mehr als die Batterie aufgenommen hat, wird ignoriert statt geglaubt.",
           "charging_loss_percent": "Optional. Rechnet die batterieseitige Energie in Richtung Netzenergie hoch.",
           "history_retain_months": "0 behält alles. Ältere Ladevorgänge werden verworfen.",
           "statistics_import": "Spiegelt Energie, Kosten und Strecke in Statistiken, die du im Energie-Dashboard hinzufügen kannst. Bleibt lokal; beim Ausschalten werden sie wieder gelöscht."

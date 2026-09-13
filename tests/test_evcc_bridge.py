@@ -16,6 +16,7 @@ instance instead):
 from __future__ import annotations
 
 import json
+import pathlib
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -381,6 +382,46 @@ def test_the_cross_check_is_skipped_when_our_own_figure_is_a_floor() -> None:
         )
         == 40.0
     )
+
+
+def test_the_meter_is_read_for_a_charge_at_home() -> None:
+    assert sessions.meter_counts_this_session({"zone": "Home"}, "Home") is True
+    # A zone resolved to its entity id rather than its name is still home.
+    assert sessions.meter_counts_this_session({"zone": "zone.home"}, "Zuhause") is True
+
+
+def test_a_charge_elsewhere_never_reads_the_home_wallbox() -> None:
+    """The meter cannot say which car it charged.
+
+    Our car charges at work while another car charges on the wallbox at home:
+    the meter's advance is that car's, and a charge of similar size sails
+    through the plausibility check -- so location is the only thing that can
+    keep it out.
+    """
+
+    assert sessions.measured_grid_kwh(1000.0, 1011.0, battery_kwh=10.4) == 11.0
+    assert sessions.meter_counts_this_session({"zone": "Work"}, "Home") is False
+    # A known position inside no zone at all: a public charger.
+    assert sessions.meter_counts_this_session({"zone": None}, "Home") is False
+
+
+def test_a_charge_with_no_known_position_keeps_the_meter() -> None:
+    """Refusing it would switch the meter off for every car that streams no GPS."""
+
+    assert sessions.meter_counts_this_session(None, "Home") is True
+
+
+def test_every_session_read_of_the_meter_passes_the_location_rule() -> None:
+    """A new call site reading the raw meter would quietly bypass the rule."""
+
+    source = (
+        pathlib.Path(__file__).resolve().parents[1]
+        / "custom_components"
+        / "bavariandata"
+        / "coordinator.py"
+    ).read_text(encoding="utf-8")
+    assert source.count("self._grid_meter_kwh()") == 1
+    assert "meter_counts_this_session(" in source
 
 
 def test_the_builder_keeps_the_first_reading_as_its_baseline() -> None:

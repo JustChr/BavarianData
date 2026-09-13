@@ -23,6 +23,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   or combustion car is very welcome. Card **1.12.0**.
 
 ### Fixed
+- **A charge away from home could be booked with another car's energy from your
+  wallbox.** The *wallbox energy sensor* was read for every charge the car
+  reported, wherever it was plugged in. Had your car charged at work while someone
+  else charged on your wallbox, that meter's advance would have been taken as
+  this car's measured grid energy and cost — and a charge of a similar size
+  passes every plausibility check. The meter is now read only for charges in your
+  **Home** zone; a charge with no known position still uses it, cross-checked as
+  before.
 - **The "stream data has never arrived" repair appeared on every car.** BMW
   publishes one catalogue for its whole fleet, so no car sends every field of a
   data cluster — the maintainer's i5 was warned about 154 "missing" fields, from

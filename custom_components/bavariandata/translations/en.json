@@ -180,7 +180,7 @@
           "price_fixed": "Only used when the price source is 'Fixed price'.",
           "price_entity": "Only used when the price source is 'Price entity'. Its state must be a price per kWh.",
           "price_currency": "ISO code shown on the cost sensors, e.g. EUR, GBP, CHF.",
-          "grid_energy_entity": "Optional. Your wallbox's cumulative energy total (one that only ever counts up, not a per-session counter that resets). Wh, kWh and MWh are handled; no unit at all is read as kWh. A measured grid figure always beats our battery-side estimate — and one that cannot be right, such as a house meter reading far more than the pack absorbed, is ignored rather than believed.",
+          "grid_energy_entity": "Optional. Your wallbox's cumulative energy total (one that only ever counts up, not a per-session counter that resets). Wh, kWh and MWh are handled; no unit at all is read as kWh. It is read only for charges in your Home zone, since the meter cannot tell which car it charged. A measured grid figure always beats our battery-side estimate — and one that cannot be right, such as a house meter reading far more than the pack absorbed, is ignored rather than believed.",
           "charging_loss_percent": "Optional. Grosses battery-side energy up towards grid energy.",
           "history_retain_months": "0 keeps everything. Sessions older than this are discarded.",
           "statistics_import": "Mirrors energy, cost and distance into statistics you can add to the Energy dashboard. Stays local; turning it off deletes them again."
