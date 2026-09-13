@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.9-beta.9] - 2026-09-13
+
 ### Fixed
 - **The card's charge ring could show "—" instead of the state of charge.**
   Beta.8 switched on the measured state-of-charge entity on installs where an old
