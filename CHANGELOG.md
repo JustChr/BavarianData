@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.9-beta.8] - 2026-09-13
+
 ### Added
 - **The card's Overview fits the car's drivetrain.** It was built for electric
   cars only, so a petrol or diesel car got a "Charge" ring, "Not charging" and a
