@@ -26,6 +26,7 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import (
     async_dispatcher_connect,
     async_dispatcher_send,
@@ -92,6 +93,8 @@ from .stream_activation import (
 from .tyre_store import TyreStore
 from .history.backfill import StatisticsPublisher
 from .bridge import REPUBLISH_INTERVAL_S, VehicleBridge, async_clear_published
+from .descriptor_metadata import DESCRIPTOR_META
+from .registry_repair import entities_to_reenable
 from .evcc import ALL_TOPICS, BridgeConfig, bridge_payloads, evcc_yaml
 from .history.export import (
     MIME_CSV,
@@ -1828,6 +1831,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             }
         )
         domain_data["_service_registered"] = True
+
+    # Undo disabled states left behind by old defaults. Home Assistant fixes an
+    # entity's enabled state when it is first registered, so a descriptor whose
+    # ``enabled_default`` a later release turned on stays off on every install
+    # that already had it -- the measured state of charge, off until v0.9.6, is
+    # the case that prompted this. Only entries *we* disabled are touched, never
+    # a user's choice (see registry_repair.py). Home Assistant answers any
+    # ``disabled_by`` change with one delayed reload of the entry; that costs a
+    # single stream reconnect, once, on the first start after upgrading.
+    entity_registry = er.async_get(hass)
+    for entity_id in entities_to_reenable(
+        er.async_entries_for_config_entry(entity_registry, entry.entry_id),
+        DESCRIPTOR_META,
+    ):
+        _LOGGER.info(
+            "Enabling %s: an earlier release created it disabled by default",
+            entity_id,
+        )
+        entity_registry.async_update_entity(entity_id, disabled_by=None)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

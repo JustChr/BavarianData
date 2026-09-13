@@ -9,6 +9,23 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The car's measured state of charge was hidden on every install from before
+  v0.9.6.** That release switched the *HV battery state of charge* entity
+  (`batteryManagement.header`) to enabled by default, but Home Assistant decides
+  an entity's enabled state only once, when it is first registered — so every
+  existing install kept it disabled, and nothing ever revisited it. Found on the
+  maintainer's own car, where it had sat disabled since the July install. No
+  recorded data was affected (the integration reads the stream, not the entity),
+  but the measured figure was invisible next to the estimate, and a disabled
+  entity never restores after a restart — which is why the evcc bridge's
+  `updated` topic went missing after one until the car next reported. On start-up
+  the integration now re-enables any entity **it** disabled whose default has
+  since been turned on. Entities you disabled yourself are never touched, and
+  descriptors still off by default stay off. Home Assistant reloads the
+  integration once, about 30 seconds after the first start on this version, when
+  something was re-enabled — one extra stream reconnect, once.
+
 ## [0.9.9-beta.7] - 2026-09-13
 
 ### Fixed
