@@ -26,6 +26,49 @@ from typing import Any, Collection, Mapping, Optional
 # is long enough to have driven and charged at least once.
 DEFAULT_GRACE_DAYS = 7
 
+# BMW publishes one catalogue for the whole fleet, so no car streams every
+# descriptor of a cluster: an i5 has no third seat row, convertible roof or fuel
+# tank. Measured on the maintainer's i5, a per-descriptor alarm listed 154
+# "overdue" fields on a perfectly healthy stream. What the self-test can honestly
+# catch is a cluster that has sent *nothing* -- a Data Selection that never saved
+# or does not match the picker -- so only that raises a repair.
+
+# Clusters that fire only on a rare event -- a teleservice call can be months
+# apart -- where silence says nothing about the selection.
+EVENT_DRIVEN_SECTIONS = frozenset({"events"})
+
+# Clusters that exist for a high-voltage battery. The default selection asks for
+# them on every car, and a combustion car can never answer.
+HIGH_VOLTAGE_SECTIONS = frozenset({"electric", "basic"})
+
+# Any of these arriving marks a high-voltage battery (the same signals sensor.py
+# uses to decide battery health is worth tracking). Deliberately not "anything
+# from the electric cluster": a petrol F87 M2 streams the EV charge *target*.
+HIGH_VOLTAGE_SIGNALS = frozenset(
+    {
+        "vehicle.drivetrain.batteryManagement.batterySizeMax",
+        "vehicle.drivetrain.batteryManagement.maxEnergy",
+        "vehicle.drivetrain.batteryManagement.header",
+    }
+)
+COMBUSTION_PREFIXES = (
+    "vehicle.drivetrain.fuelSystem.",
+    "vehicle.drivetrain.internalCombustionEngine.",
+)
+
+
+def is_combustion_only(seen: Collection[str]) -> bool:
+    """Whether the car has shown an engine and no high-voltage battery.
+
+    Needs positive evidence both ways: a car that has sent neither yet (a fresh
+    install, or the status cluster unselected) is not assumed to be anything.
+    """
+
+    seen_set = set(seen)
+    if seen_set & HIGH_VOLTAGE_SIGNALS:
+        return False
+    return any(descriptor.startswith(COMBUSTION_PREFIXES) for descriptor in seen_set)
+
 
 @dataclass
 class ClusterCoverage:
@@ -69,6 +112,9 @@ class CoverageReport:
     # before alarming.
     overdue: list[str] = field(default_factory=list)
     clusters: list[ClusterCoverage] = field(default_factory=list)
+    # Selected clusters this car's drivetrain can never fill (the high-voltage
+    # clusters on a combustion car). Still tallied, never warned about.
+    not_applicable: list[str] = field(default_factory=list)
 
     @property
     def complete(self) -> bool:
@@ -76,16 +122,28 @@ class CoverageReport:
 
     @property
     def has_gaps(self) -> bool:
-        """A gap worth surfacing: something is overdue, not merely still waiting."""
+        """A gap worth surfacing: a cluster that is silent past grace."""
 
-        return bool(self.overdue)
+        return bool(self.overdue_clusters())
 
     def overdue_clusters(self) -> list[ClusterCoverage]:
-        """Clusters carrying at least one overdue descriptor (past grace only)."""
+        """Clusters worth a repair: past grace, and not one descriptor arrived.
+
+        A partly-filled cluster is the fleet catalogue meeting one car, not a
+        fault (see the module note above ``EVENT_DRIVEN_SECTIONS``). Event-driven
+        clusters and ones the drivetrain cannot fill are left out.
+        """
 
         if not self.past_grace:
             return []
-        return [cluster for cluster in self.clusters if cluster.missing]
+        return [
+            cluster
+            for cluster in self.clusters
+            if cluster.expected
+            and not cluster.seen
+            and cluster.section not in EVENT_DRIVEN_SECTIONS
+            and cluster.section not in self.not_applicable
+        ]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -101,6 +159,7 @@ class CoverageReport:
             "missing": list(self.missing),
             "overdue": list(self.overdue),
             "clusters": [cluster.to_dict() for cluster in self.clusters],
+            "not_applicable": list(self.not_applicable),
         }
 
 
@@ -153,6 +212,11 @@ def analyze_coverage(
         round(100.0 * total_seen / total_expected, 1) if total_expected else 100.0
     )
     overdue = list(all_missing) if past_grace else []
+    not_applicable = (
+        sorted(HIGH_VOLTAGE_SECTIONS & set(expected_by_section))
+        if is_combustion_only(seen_set)
+        else []
+    )
 
     return CoverageReport(
         vin=vin,
@@ -166,6 +230,7 @@ def analyze_coverage(
         missing=all_missing,
         overdue=overdue,
         clusters=clusters,
+        not_applicable=not_applicable,
     )
 
 

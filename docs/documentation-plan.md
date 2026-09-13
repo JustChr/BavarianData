@@ -173,7 +173,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 
 | Config | View | Status | Shot |
 | --- | --- | --- | --- |
-| *(default)* | Overview | 🟡 | 📷 (have) |
+| *(default)* | Overview — drivetrain-aware (electric / plug-in hybrid / petrol-diesel layouts, `drivetrain:` override) | 🟢 The-Dashboard-Card → "Overview" + YAML reference | 📷 (have, electric only — hybrid and petrol/diesel shots owed: no such car to capture) |
 | `view: charging` | Charging history | 🟡 | 📷 |
 | `view: trips` | Driving journal | 🟡 | 📷 |
 | `view: map` | Trip map (routes) | 🟡 | 📷 (needs route data) |
@@ -253,7 +253,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Automation blueprints (2) | 🟡 |
 | API quota + Repairs issue | 🟡 |
 | Daily REST refresh (container + tyre, 2 req/day) | 🟢 Feature-API-Quota → "The daily refresh" + Services-Reference |
-| Descriptor-coverage self-test | ❌ |
+| Descriptor-coverage self-test (the report lists every gap; the Repairs warning fires only for a silent cluster, never for events or a cluster the drivetrain can't fill) | 🟢 Services-Reference → `get_coverage_report` + Getting-Started-4 → "Did it work?" + Troubleshooting → "No data arriving" |
 | Clean uninstall / fresh-install reset | 🟡 Troubleshooting → "Removing BavarianData completely" + `docs/clean-install.md` |
 | Card auto-registration (Lovelace resource; YAML-mode caveat) | 🟢 The-Dashboard-Card intro + Troubleshooting → "Every card shows Configuration error after a reload" |
 | No dashboard is auto-created — the user places the card (issue #4) | 🟢 README quick start step 5 + Home → "Start here" + Getting-Started-4 outro + The-Dashboard-Card intro + Troubleshooting → "No dashboard appears after setup" |

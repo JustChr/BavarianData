@@ -93,6 +93,11 @@ actually arrived, and lists any missing ones. It answers "is it my selection, my
 car, or a bug?" and spends no API quota. See
 [Services reference](Services-Reference#get_coverage_report).
 
+Don't be alarmed by a long list: every cluster covers BMW's whole fleet, so each
+car delivers only part of it. If a cluster you selected sends **nothing at all**
+for 7 days, a warning appears under **Settings → Repairs** — that is the case
+worth re-checking the Data Selection for.
+
 ### Some fields never arrive on the stream
 
 BMW's catalogue marks each field with whether the MQTT stream can carry it, and

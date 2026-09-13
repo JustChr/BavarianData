@@ -151,6 +151,19 @@ can only arrive over REST, so counting them would report a permanent gap that no
 setting can close. See
 [Choose your data](Getting-Started-4-Choose-Data#some-fields-never-arrive-on-the-stream).
 
+**Expect a long missing list on a healthy car.** BMW publishes one catalogue for
+the whole fleet, so every cluster holds fields your car has no hardware for — a
+third seat row, a convertible roof, a fuel tank on an electric car. The report
+lists them all; the per-cluster `seen` count is the part to read. Each report
+also names `not_applicable` clusters: the *Electric vehicle* and *Vehicle basic
+data* clusters on a car that has sent fuel data and no high-voltage battery data.
+
+**The Repairs warning is stricter than the report.** It appears only when a
+selected cluster has sent **nothing at all** for 7 days — the signature of a Data
+Selection that didn't save — and never for a partly-filled cluster, for the
+*Vehicle events* cluster (teleservice calls can be months apart), or for a
+`not_applicable` one.
+
 ### `import_statistics`
 `vin`. Rebuilds this integration's long-term statistics from the recorded
 history, so charging/driving from before the install (or from while HA was down)

@@ -74,8 +74,78 @@ def test_partial_past_grace_promotes_missing_to_overdue():
     }
     assert report.overdue == report.missing
     assert report.has_gaps
-    # Both clusters carry an overdue descriptor.
-    assert {c.section for c in report.overdue_clusters()} == {"electric", "tire"}
+    # Only the silent cluster warns: electric delivered one field, which is the
+    # fleet catalogue meeting one car, not a broken selection.
+    assert {c.section for c in report.overdue_clusters()} == {"tire"}
+
+
+def _real(expected, seen, *, days=10):
+    return analyze_coverage(
+        vin="VIN1",
+        expected_by_section=expected,
+        labels={},
+        seen=seen,
+        monitoring_since=NOW - timedelta(days=days),
+        now=NOW,
+    )
+
+
+HV_SOC = "vehicle.drivetrain.batteryManagement.header"
+BATTERY_SIZE = "vehicle.drivetrain.batteryManagement.batterySizeMax"
+FUEL = "vehicle.drivetrain.fuelSystem.remainingFuel"
+EV_TARGET = "vehicle.powertrain.electric.battery.stateOfCharge.target"
+TELESERVICE = "vehicle.channel.teleservice.lastAutomaticServiceCallTime"
+DOOR = "vehicle.cabin.door.status"
+SUNROOF = "vehicle.cabin.sunroof.status"
+TYRE = "vehicle.chassis.axle.row1.wheel.left.tire.pressure"
+
+
+def test_partly_filled_clusters_never_warn():
+    # The maintainer's i5: every cluster short of fields it has no hardware for
+    # (154 of them), yet a healthy stream. Measured 2026-09-13.
+    report = _real(
+        {
+            "electric": [HV_SOC, "vehicle.drivetrain.totalRemainingRange"],
+            "status": [DOOR, SUNROOF, FUEL],
+            "basic": [BATTERY_SIZE],
+        },
+        {HV_SOC, DOOR, BATTERY_SIZE},
+    )
+    assert report.overdue  # still listed for get_coverage_report...
+    assert report.overdue_clusters() == []  # ...but nothing to repair
+    assert not report.has_gaps
+
+
+def test_event_driven_cluster_silence_does_not_warn():
+    # A teleservice call can be months apart; the i5 had seen neither event field.
+    report = _real({"events": [TELESERVICE], "status": [DOOR]}, {DOOR})
+    assert report.overdue_clusters() == []
+
+
+def test_combustion_car_is_not_asked_for_high_voltage_clusters():
+    # The F87 M2 from issue #8: fuel arrives, no battery signal, yet it streams
+    # the EV charge target -- which must not make it look electric.
+    report = _real(
+        {"electric": [HV_SOC], "basic": [BATTERY_SIZE], "tire": [TYRE], "status": [FUEL]},
+        {FUEL, EV_TARGET},
+    )
+    assert set(report.not_applicable) == {"electric", "basic"}
+    # Its tyre data genuinely never arrived, and that is still worth a repair.
+    assert [c.section for c in report.overdue_clusters()] == ["tire"]
+
+
+def test_electric_car_keeps_high_voltage_clusters():
+    report = _real({"electric": ["desc.power"], "basic": [BATTERY_SIZE]}, {HV_SOC, FUEL})
+    assert report.not_applicable == []
+    assert {c.section for c in report.overdue_clusters()} == {"electric", "basic"}
+
+
+def test_unknown_drivetrain_assumes_nothing():
+    # Neither an engine nor a battery seen yet: a silent electric cluster is a
+    # real finding, not something to explain away.
+    report = _real({"electric": [HV_SOC], "status": [DOOR]}, {DOOR})
+    assert report.not_applicable == []
+    assert [c.section for c in report.overdue_clusters()] == ["electric"]
 
 
 def test_missing_preserves_cluster_and_descriptor_order():

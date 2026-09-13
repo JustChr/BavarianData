@@ -9,7 +9,32 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **The card's Overview fits the car's drivetrain.** It was built for electric
+  cars only, so a petrol or diesel car got a "Charge" ring, "Not charging" and a
+  charge *Target* tile — BMW streams an EV charge target even to a petrol F87 M2.
+  The card now works out the drivetrain from what the car streams. A **petrol or
+  diesel** car gets its tank in the ring (the fill level where the car sends a
+  percentage, otherwise the volume), its remaining range, and no charging tiles. A
+  **plug-in hybrid** keeps the charge ring and adds its tank and total range. An
+  **electric** car looks exactly as before. If the guess is wrong, set
+  **Drivetrain** in the card editor (`drivetrain: bev | phev | ice`). Only the
+  electric layout has been seen on a real car so far — a screenshot from a hybrid
+  or combustion car is very welcome. Card **1.12.0**.
+
 ### Fixed
+- **The "stream data has never arrived" repair appeared on every car.** BMW
+  publishes one catalogue for its whole fleet, so no car sends every field of a
+  data cluster — the maintainer's i5 was warned about 154 "missing" fields, from
+  a third seat row to a fuel tank, on a perfectly healthy stream, and a petrol car
+  was warned about the entire electric cluster. The warning now appears only when
+  a selected cluster has sent **nothing at all** for 7 days, which is what a Data
+  Selection that didn't save looks like. Partly-filled clusters, the *Vehicle
+  events* cluster (teleservice calls can be months apart), and the *Electric
+  vehicle* and *Vehicle basic data* clusters on a car that shows fuel data and no
+  high-voltage battery never raise it. An existing warning clears itself on the
+  next check. `get_coverage_report` still lists every missing field, and now also
+  names the clusters that don't apply to the car.
 - **The car's measured state of charge was hidden on every install from before
   v0.9.6.** That release switched the *HV battery state of charge* entity
   (`batteryManagement.header`) to enabled by default, but Home Assistant decides

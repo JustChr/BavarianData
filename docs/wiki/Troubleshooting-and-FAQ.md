@@ -65,7 +65,8 @@ error, if BMW showed one).
 3. Run **`bavariandata.get_coverage_report`**
    ([Services](Services-Reference#get_coverage_report)) — it tells you exactly
    which expected descriptors haven't arrived, so you can tell a selection
-   problem from a car-doesn't-send-it problem.
+   problem from a car-doesn't-send-it problem. A cluster with *some* fields
+   arriving is healthy; one with none is the selection problem.
 
 If nothing streams for **48 hours**, a repair issue appears under **Settings →
 Repairs** pointing back here.

@@ -224,8 +224,9 @@ def _refresh_coverage_issues(hass: HomeAssistant, entry_id: str) -> None:
         cluster_labels = ", ".join(cluster.label for cluster in overdue_clusters)
         # A handful of concrete descriptors makes the issue actionable without
         # dumping the whole missing list into a notification body.
-        examples = ", ".join(report.overdue[:5])
-        if len(report.overdue) > 5:
+        silent = [d for cluster in overdue_clusters for d in cluster.missing]
+        examples = ", ".join(silent[:5])
+        if len(silent) > 5:
             examples = f"{examples}, ..."
         ir.async_create_issue(
             hass,
@@ -236,7 +237,7 @@ def _refresh_coverage_issues(hass: HomeAssistant, entry_id: str) -> None:
             translation_key="stream_coverage_gaps",
             translation_placeholders={
                 "vehicle": vehicle,
-                "count": str(len(report.overdue)),
+                "count": str(len(silent)),
                 "days": str(report.grace_days),
                 "clusters": cluster_labels,
                 "descriptors": examples,

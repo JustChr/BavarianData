@@ -13,7 +13,7 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.11.1";
+const CARD_VERSION = "1.12.0";
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -71,6 +71,24 @@ const UNAVAILABLE = new Set(["unavailable", "unknown", "none", "", null, undefin
 // state-of-charge gauge's picks (see _overviewEntities).
 const NOT_HV_BATTERY = ["electricalsystem", "fuelsystem"];
 
+// Descriptors that prove a high-voltage battery. Deliberately not "anything from
+// the electric cluster": a petrol F87 M2 streams the EV charge *target* (issue #8's
+// diagnostics), which must not make it look electric.
+const HV_SIGNALS = [
+  "vehicle.drivetrain.batteryManagement.header",
+  "vehicle.drivetrain.batteryManagement.maxEnergy",
+  "vehicle.drivetrain.batteryManagement.batterySizeMax",
+  "vehicle.drivetrain.electricEngine.charging.status",
+  "vehicle.drivetrain.electricEngine.kombiRemainingElectricRange",
+];
+// Descriptor prefixes only a car with a combustion engine streams.
+const COMBUSTION_PREFIXES = [
+  "vehicle.drivetrain.fuelSystem.",
+  "vehicle.drivetrain.internalCombustionEngine.",
+];
+// The overview layouts: electric, plug-in hybrid, petrol/diesel.
+const DRIVETRAINS = new Set(["bev", "phev", "ice"]);
+
 // BMW reports these charging-status values when nothing is actively charging
 // (e.g. `invalid` when no cable is connected). Show a clean localized "not
 // charging" for them instead of the raw state translation ("Ungültig", …).
@@ -123,6 +141,10 @@ const TRANSLATIONS = {
     not_charging: "Not charging",
     target: "Target",
     plug: "Plug",
+    fuel: "fuel",
+    tank: "Tank",
+    electric_range: "electric range",
+    total_range: "Total range",
     time_to_full: "Time to full",
     charge_time: "Charge time",
     odometer: "Odometer",
@@ -346,6 +368,13 @@ const TRANSLATIONS = {
     ed_time_to_full: "Time to full",
     ed_odometer: "Odometer",
     ed_plug: "Plug / connection",
+    ed_fuel: "Fuel tank",
+    ed_drivetrain: "Drivetrain",
+    edh_drivetrain: "Detected from what the car streams. Set it only if the card picks the wrong layout.",
+    dt_auto: "Auto-detect",
+    dt_bev: "Electric",
+    dt_phev: "Plug-in hybrid",
+    dt_ice: "Petrol / diesel",
     ed_overview_option: "Overview (default)",
     ed_overrides_title: "Entity overrides (optional — leave empty to auto-detect)",
     edh_cluster:
@@ -372,6 +401,10 @@ const TRANSLATIONS = {
     not_charging: "Lädt nicht",
     target: "Ziel",
     plug: "Stecker",
+    fuel: "Kraftstoff",
+    tank: "Tank",
+    electric_range: "elektrische Reichweite",
+    total_range: "Gesamtreichweite",
     time_to_full: "Bis voll",
     charge_time: "Ladezeit",
     odometer: "Kilometerstand",
@@ -595,6 +628,13 @@ const TRANSLATIONS = {
     ed_time_to_full: "Bis voll",
     ed_odometer: "Kilometerstand",
     ed_plug: "Stecker / Verbindung",
+    ed_fuel: "Tank",
+    ed_drivetrain: "Antrieb",
+    edh_drivetrain: "Wird aus den gestreamten Daten erkannt. Nur setzen, wenn die Karte das falsche Layout wählt.",
+    dt_auto: "Automatisch",
+    dt_bev: "Elektrisch",
+    dt_phev: "Plug-in-Hybrid",
+    dt_ice: "Benzin / Diesel",
     ed_overview_option: "Übersicht (Standard)",
     ed_overrides_title: "Entitäten überschreiben (optional — leer lassen für Auto-Erkennung)",
     edh_cluster:
@@ -845,6 +885,40 @@ class BavarianDataCard extends HTMLElement {
     );
   }
 
+  /** Entity id of a device entity by its `descriptor` attribute. */
+  _idByDescriptor(entities, descriptor) {
+    const st = this._byDescriptor(entities, descriptor);
+    return st ? st.entity_id : undefined;
+  }
+
+  /** The overview layout: "bev", "phev" or "ice".
+   *
+   * An explicit `drivetrain:` wins. Otherwise it is read from what the car
+   * actually streams -- high-voltage battery data and fuel data together make a
+   * plug-in hybrid, fuel data alone a petrol or diesel car. BMW's basic data
+   * spells an electric car "BEV", but its spelling for the others is unknown, so
+   * it only ever confirms electric. A car that has sent neither yet keeps the
+   * electric layout this card has always shown. */
+  _drivetrain(entities) {
+    const wanted = String((this._config || {}).drivetrain || "").toLowerCase();
+    if (DRIVETRAINS.has(wanted)) return wanted;
+    let hv = false;
+    let fuel = false;
+    let basic = null;
+    for (const id of entities) {
+      const st = this._st(id);
+      const attrs = (st && st.attributes) || {};
+      const descriptor = attrs.descriptor || "";
+      if (HV_SIGNALS.includes(descriptor)) hv = true;
+      if (COMBUSTION_PREFIXES.some((prefix) => descriptor.startsWith(prefix))) fuel = true;
+      const bd = attrs.vehicle_basic_data;
+      if (!basic && bd && bd.drive_train) basic = String(bd.drive_train).toUpperCase();
+    }
+    if (hv && fuel) return "phev";
+    if (fuel && basic !== "BEV") return "ice";
+    return "bev";
+  }
+
   /* ---- formatting ------------------------------------------------------- */
 
   _fmt(st) {
@@ -957,41 +1031,125 @@ class BavarianDataCard extends HTMLElement {
   }
 
   _renderOverview(deviceId, entities) {
+    const cfg = this._config || {};
+    const drivetrain = this._drivetrain(entities);
+    const ice = drivetrain === "ice";
     const picks = this._overviewEntities(entities);
+    const byDesc = (descriptor) => this._idByDescriptor(entities, descriptor);
+    const name = cfg.title || this._deviceName(deviceId);
+    const trip = this._openTrip(entities);
     const socSt = this._st(picks.soc);
     const chargingSt = this._st(picks.charging);
-    const rangeSt = this._st(picks.range);
-    const soc = this._num(socSt);
-    const charging = this._isCharging(chargingSt, socSt);
-    const name = this._config.title || this._deviceName(deviceId);
-    const trip = this._openTrip(entities);
+    const odometerSt = this._st(picks.odometer);
+
+    // What the ring and the tiles show follows the drivetrain. An electric car
+    // keeps the layout this card has always had; a plug-in hybrid adds its tank
+    // and combined range; a petrol or diesel car swaps the charge ring for its
+    // tank and drops every charging tile -- BMW streams an EV charge target even
+    // to a petrol M2, where "Target 0 %" means nothing.
+    const fuelId =
+      cfg.fuel ||
+      byDesc("vehicle.drivetrain.fuelSystem.level") ||
+      byDesc("vehicle.drivetrain.fuelSystem.remainingFuel");
+    const fuelSt = this._st(fuelId);
+    const litresId = byDesc("vehicle.drivetrain.fuelSystem.remainingFuel");
+    const litresSt = litresId && litresId !== fuelId ? this._st(litresId) : null;
+    const rangeId = ice
+      ? cfg.range ||
+        byDesc("vehicle.drivetrain.lastRemainingRange") ||
+        byDesc("vehicle.cabin.infotainment.navigation.remainingRange") ||
+        picks.range
+      : picks.range;
+    const rangeSt = this._st(rangeId);
+    const charging = !ice && this._isCharging(chargingSt, socSt);
+
+    // The ring: state of charge, or the tank on a combustion car -- as a fill
+    // level where the car streams a percentage, otherwise its volume on a bare
+    // ring (a fill level can't be drawn from litres without the tank size).
+    const gaugeId = ice ? fuelId : picks.soc;
+    const gaugeSt = this._st(gaugeId);
+    const gaugeNum = this._num(gaugeSt);
+    const gaugeUnit = (gaugeSt && gaugeSt.attributes && gaugeSt.attributes.unit_of_measurement) || "";
+    const isPct = !ice || gaugeUnit === "%";
+    const pct = isPct && gaugeNum != null ? Math.max(0, Math.min(100, gaugeNum)) : 0;
+    const ringColor = charging
+      ? "var(--bmw-charge)"
+      : !isPct || gaugeNum == null
+      ? "var(--divider-color)"
+      : gaugeNum <= 15
+      ? "var(--bmw-low)"
+      : gaugeNum <= 40
+      ? "var(--bmw-mid)"
+      : "var(--bmw-high)";
+    const gaugeVal = gaugeNum == null ? "—" : String(Math.round(gaugeNum));
+    const gaugeUnitHtml = isPct ? "%" : this._esc(gaugeUnit);
+    const gaugeCap = ice ? this._t("fuel") : charging ? this._t("charging") : this._t("charge");
+
+    const tile = (key, label, st, icon) => ({ key, label, st, icon });
+    const rangeRow = {
+      entity: rangeId,
+      icon: "mdi:map-marker-distance",
+      val: this._fmt(rangeSt),
+      lbl: this._t(drivetrain === "phev" ? "electric_range" : "remaining_range"),
+    };
+    let lead;
+    let secondary;
+    if (ice) {
+      lead = [
+        rangeRow,
+        litresSt
+          ? { entity: litresId, icon: "mdi:gas-station", val: this._fmt(litresSt), lbl: this._t("tank") }
+          : { entity: picks.odometer, icon: "mdi:counter", val: this._fmt(odometerSt), lbl: this._t("odometer") },
+      ];
+      secondary = litresSt ? [tile("odo", this._t("odometer"), odometerSt, "mdi:counter")] : [];
+    } else {
+      lead = [
+        rangeRow,
+        {
+          entity: picks.charging,
+          icon: charging ? "mdi:battery-charging" : "mdi:ev-station",
+          val: this._chargingLabel(chargingSt, charging),
+          lbl: this._t("charging_status"),
+        },
+      ];
+      secondary = [
+        ...(drivetrain === "phev"
+          ? [
+              tile("fuel", this._t("tank"), fuelSt, "mdi:gas-station"),
+              tile(
+                "total",
+                this._t("total_range"),
+                this._st(byDesc("vehicle.drivetrain.lastRemainingRange")),
+                "mdi:map-marker-distance"
+              ),
+            ]
+          : []),
+        tile("target", this._t("target"), this._st(picks.target), "mdi:target"),
+        tile("plug", this._t("plug"), this._st(picks.plug), charging ? "mdi:power-plug" : "mdi:power-plug-off"),
+        tile("ttf", charging ? this._t("time_to_full") : this._t("charge_time"), this._st(picks.timeToFull), "mdi:timer-sand"),
+        tile("odo", this._t("odometer"), odometerSt, "mdi:counter"),
+      ];
+    }
+    secondary = secondary.filter((m) => m.st);
 
     // freshest update among the headline entities
-    const freshest = [socSt, rangeSt, chargingSt]
+    const freshest = [gaugeSt, rangeSt, ice ? null : chargingSt]
       .filter(Boolean)
       .map((s) => s.last_changed)
       .sort()
       .pop();
 
-    const secondary = [
-      // Range and charging status live in the lead band above; the grid carries
-      // the rest of the at-a-glance metrics.
-      { key: "target", label: this._t("target"), st: this._st(picks.target), icon: "mdi:target" },
-      { key: "plug", label: this._t("plug"), st: this._st(picks.plug), icon: charging ? "mdi:power-plug" : "mdi:power-plug-off" },
-      { key: "ttf", label: charging ? this._t("time_to_full") : this._t("charge_time"), st: this._st(picks.timeToFull), icon: "mdi:timer-sand" },
-      { key: "odo", label: this._t("odometer"), st: this._st(picks.odometer), icon: "mdi:counter" },
-    ].filter((m) => m.st);
-
     const sig = this._signature({
       m: "ov",
+      dt: drivetrain,
       lang: _lang(this._hass),
       name,
-      soc,
       charging,
       img: picks.image,
       fresh: freshest,
+      gauge: [gaugeId, gaugeVal, gaugeUnitHtml, pct, ringColor, gaugeCap],
+      lead: lead.map((r) => [r.entity, r.lbl, r.val]),
       sec: secondary.map((s) => [s.label, s.st.state]),
-      plug: picks.plug && this._st(picks.plug) && this._st(picks.plug).state,
       // Elapsed minutes ride the signature so the badge's duration keeps ticking
       // between the entity's throttled attribute writes.
       trip: trip
@@ -1002,23 +1160,13 @@ class BavarianDataCard extends HTMLElement {
     this._sig = sig;
 
     const imgUrl = picks.image ? this._imageUrl(picks.image) : null;
-    const ringColor = charging
-      ? "var(--bmw-charge)"
-      : soc == null
-      ? "var(--divider-color)"
-      : soc <= 15
-      ? "var(--bmw-low)"
-      : soc <= 40
-      ? "var(--bmw-mid)"
-      : "var(--bmw-high)";
-    const pct = soc == null ? 0 : Math.max(0, Math.min(100, soc));
     const rel = this._relTime(freshest);
 
     this.shadowRoot.innerHTML = `
       ${this._styles()}
       <ha-card>
         <div class="hero ${imgUrl ? "" : "hero--empty"}">
-          ${imgUrl ? `<img class="hero__img" src="${imgUrl}" alt="${this._esc(name)}" />` : `<ha-icon class="hero__placeholder" icon="mdi:car-electric"></ha-icon>`}
+          ${imgUrl ? `<img class="hero__img" src="${imgUrl}" alt="${this._esc(name)}" />` : `<ha-icon class="hero__placeholder" icon="${ice ? "mdi:car" : "mdi:car-electric"}"></ha-icon>`}
           <div class="hero__scrim"></div>
           <div class="hero__top">
             <div class="hero__name" title="${this._esc(name)}">${this._esc(name)}</div>
@@ -1028,27 +1176,27 @@ class BavarianDataCard extends HTMLElement {
         </div>
 
         <div class="band">
-          <button class="gauge" data-entity="${picks.soc || ""}" aria-label="State of charge">
+          <button class="gauge" data-entity="${gaugeId || ""}" aria-label="${gaugeCap}">
             <div class="gauge__ring" style="--pct:${pct};--ring:${ringColor}">
               <div class="gauge__hole">
-                <span class="gauge__val">${soc == null ? "—" : Math.round(soc)}<i>%</i></span>
-                <span class="gauge__cap">${charging ? this._t("charging") : this._t("charge")}</span>
+                <span class="gauge__val">${gaugeVal}<i>${gaugeUnitHtml}</i></span>
+                <span class="gauge__cap">${gaugeCap}</span>
               </div>
             </div>
             ${charging ? `<ha-icon class="gauge__bolt" icon="mdi:lightning-bolt"></ha-icon>` : ""}
           </button>
 
           <div class="lead">
-            <button class="lead__row" data-entity="${picks.range || ""}">
-              <ha-icon icon="mdi:map-marker-distance"></ha-icon>
-              <span class="lead__val">${this._fmt(rangeSt)}</span>
-              <span class="lead__lbl">${this._t("remaining_range")}</span>
-            </button>
-            <button class="lead__row" data-entity="${picks.charging || ""}">
-              <ha-icon icon="${charging ? "mdi:battery-charging" : "mdi:ev-station"}"></ha-icon>
-              <span class="lead__val">${this._chargingLabel(chargingSt, charging)}</span>
-              <span class="lead__lbl">${this._t("charging_status")}</span>
-            </button>
+            ${lead
+              .map(
+                (r) => `
+            <button class="lead__row" data-entity="${r.entity || ""}">
+              <ha-icon icon="${r.icon}"></ha-icon>
+              <span class="lead__val">${r.val}</span>
+              <span class="lead__lbl">${r.lbl}</span>
+            </button>`
+              )
+              .join("")}
           </div>
         </div>
 
@@ -5013,6 +5161,18 @@ class BavarianDataCardEditor extends HTMLElement {
       { name: "title", selector: { text: {} } },
     ];
     if (overview) {
+      schema.push({
+        name: "drivetrain",
+        selector: {
+          select: {
+            mode: "dropdown",
+            options: ["auto", "bev", "phev", "ice"].map((value) => ({
+              value,
+              label: t(this._hass, "dt_" + value),
+            })),
+          },
+        },
+      });
       // Entity overrides only make sense for the overview layout.
       schema.push({
         name: "",
@@ -5032,6 +5192,7 @@ class BavarianDataCardEditor extends HTMLElement {
               { name: "time_to_full", selector: entitySel() },
               { name: "odometer", selector: entitySel() },
               { name: "plug", selector: entitySel() },
+              { name: "fuel", selector: entitySel() },
             ],
           },
         ],
@@ -5057,7 +5218,7 @@ class BavarianDataCardEditor extends HTMLElement {
     const mode = VIEW_MODES.has(this._config.view)
       ? this._config.view
       : this._config.cluster || OVERVIEW;
-    this._form.data = { ...this._config, cluster: mode };
+    this._form.data = { ...this._config, cluster: mode, drivetrain: this._config.drivetrain || "auto" };
   }
 
   _valueChanged(ev) {
@@ -5073,6 +5234,8 @@ class BavarianDataCardEditor extends HTMLElement {
       delete value.view;
       if (value.cluster === OVERVIEW || !value.cluster) delete value.cluster;
     }
+    // "Auto-detect" is the absence of the key, not a value to store.
+    if (value.drivetrain === "auto") delete value.drivetrain;
     // Drop empties so the stored config stays minimal.
     for (const key of Object.keys(value)) {
       if (value[key] === "" || value[key] === undefined || value[key] === null) {

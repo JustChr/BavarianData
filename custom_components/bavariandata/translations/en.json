@@ -2795,8 +2795,8 @@
       "description": "The {limit} requests-per-24h BMW CarData REST limit has been reached, so on-demand data (basic info, charging history, tyre diagnosis, vehicle image) can't be refreshed right now. The streaming data keeps flowing. The quota frees up again at {next_reset}."
     },
     "stream_coverage_gaps": {
-      "title": "Some selected stream data has never arrived",
-      "description": "For {vehicle}, {count} descriptor(s) from the clusters you enabled ({clusters}) have not streamed once in {days} days: {descriptors}. This usually means the data isn't selected in the BMW portal's Data Selection, or your car doesn't produce it. Re-check the Data Selection using the snippet under Configure, or unselect those clusters. Run the get_coverage_report service for the full list."
+      "title": "A selected data cluster has never streamed",
+      "description": "For {vehicle}, nothing at all from {clusters} has arrived in {days} days ({count} descriptor(s), e.g. {descriptors}). A cluster that stays completely silent usually means it isn't ticked and saved in the BMW portal's Data Selection, or your car doesn't produce that data. Re-check the Data Selection using the snippet under Configure, or unselect the cluster. Clusters that deliver only some of their fields are normal and never raise this. Run the get_coverage_report service for the full list."
     },
     "stream_no_data": {
       "title": "No BMW CarData stream data received",

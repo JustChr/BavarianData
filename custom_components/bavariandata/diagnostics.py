@@ -125,6 +125,8 @@ async def async_get_config_entry_diagnostics(
                     "coverage_percent": report.coverage_percent,
                     "past_grace": report.past_grace,
                     "overdue_count": len(report.overdue),
+                    "silent_clusters": [c.section for c in report.overdue_clusters()],
+                    "not_applicable": list(report.not_applicable),
                 },
                 "descriptors": coordinator.descriptor_diagnostics(vin),
             }

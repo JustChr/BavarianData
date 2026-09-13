@@ -44,8 +44,20 @@ dashboard to show them side by side.
 
 ## Overview
 
-The vehicle render, a state-of-charge ring (blue while charging), remaining
-range, charging status, and a grid of key metrics.
+The vehicle render, a ring, the range and a grid of key metrics. What they show
+follows the car's **drivetrain**, which the card works out from what the car
+streams:
+
+| Drivetrain | Ring | Beside it | Grid |
+| --- | --- | --- | --- |
+| Electric | State of charge (blue while charging) | Remaining range, charging status | Target, plug, time to full, odometer |
+| Plug-in hybrid | State of charge | Electric range, charging status | Tank, total range, target, plug, time to full, odometer |
+| Petrol / diesel | Tank level — or the volume in the tank, on a car that doesn't stream a percentage | Remaining range, and the tank volume or the odometer | Odometer |
+
+A car that sends high-voltage battery data *and* fuel data is a plug-in hybrid;
+fuel data alone makes it petrol or diesel. Some petrol cars stream an EV charge
+target anyway, so that never makes a car look electric. Until either kind of
+data has arrived, the card shows the electric layout.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-car.png" alt="Overview card showing a BMW i5 with charge level, range, charging status and odometer" width="360" />
@@ -54,6 +66,16 @@ range, charging status, and a grid of key metrics.
 ```yaml
 type: custom:bavariandata-card
 ```
+
+If it picks the wrong layout, set **Drivetrain** in the visual editor, or:
+
+```yaml
+type: custom:bavariandata-card
+drivetrain: ice   # bev · phev · ice — omit to auto-detect
+```
+
+The charging, battery-health and efficiency views are built on charging data, so
+on a petrol or diesel car they have nothing to show.
 
 While a drive is under way, a **Trip in progress** badge appears at the bottom of
 the vehicle image with the distance and minutes so far; tap it for the full
@@ -326,7 +348,7 @@ names — so it works regardless of the user's Home Assistant language.
 | Key | Purpose |
 | --- | --- |
 | `type` | Always `custom:bavariandata-card`. |
-| `view` | `charging`, `trips`, `map`, or `health`. Omit for the Overview. |
+| `view` | `charging`, `trips`, `map`, `health` or `efficiency`. Omit for the Overview. |
 | `cluster` | `electric`, `status`, `tire`, `usage`, `events`, `basic`, `contract`, `metadata`, `other`, `closures`. Renders a single-cluster list (or the special tire/closures diagrams). |
 | `device` | Device id, to pin a specific vehicle. |
 | `vin` | VIN, as an alternative to `device`. |
@@ -339,6 +361,8 @@ names — so it works regardless of the user's Home Assistant language.
 | `time_to_full` | Override the time-to-full entity. |
 | `odometer` | Override the odometer entity. |
 | `plug` | Override the plug-status entity. |
+| `drivetrain` | `bev`, `phev` or `ice` — the Overview layout. Omit to detect it from what the car streams. |
+| `fuel` | Override the fuel-tank entity (a percentage or a volume). |
 
 With the integration installed, entity overrides are rarely needed — the card
 auto-discovers them from the vehicle's device. Use them only if you've renamed
