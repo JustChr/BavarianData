@@ -25,6 +25,17 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   descriptors still off by default stay off. Home Assistant reloads the
   integration once, about 30 seconds after the first start on this version, when
   something was re-enabled — one extra stream reconnect, once.
+- **The card's state-of-charge ring could show the fuel tank or the 12 V
+  battery.** The *Tank level (%)* sensor was tagged as a battery (its BMW name
+  ends in `.level`), and every car also reports its 12 V battery as a
+  percentage. The ring took the first battery percentage it found, so which one
+  won came down to the order the entities were registered: a plug-in hybrid
+  could show its tank instead of its charge, and a petrol or diesel car its 12 V
+  battery. The ring now asks for the high-voltage state of charge by name and
+  never takes the tank or the 12 V battery. The tank level is no longer a
+  battery in Home Assistant either — it keeps its history and now carries a
+  fuel-pump icon. On a petrol or diesel car the ring reads "—" for now; a
+  drivetrain-aware overview is planned. Card **1.11.1**.
 
 ## [0.9.9-beta.7] - 2026-09-13
 

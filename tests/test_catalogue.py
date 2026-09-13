@@ -176,6 +176,30 @@ def test_unit_critical_device_classes_survive_regeneration():
         )
 
 
+def test_fuel_tank_level_is_not_a_battery():
+    """The tank level must not pose as a battery.
+
+    ``device_and_state_class`` tags any ``%`` field whose name contains ``.level``
+    as a battery, which caught ``fuelSystem.level``: Home Assistant showed the
+    tank as a battery, and the card's state-of-charge gauge could pick it -- on a
+    plug-in hybrid, over the real HV state of charge. Its unit and state class
+    must survive the fix, or the entity loses its long-term statistics.
+    """
+
+    tank = META["vehicle.drivetrain.fuelSystem.level"]
+    assert tank["device_class"] is None
+    assert (tank["unit"], tank["state_class"]) == ("%", "measurement")
+    for descriptor, meta in META.items():
+        if ".fuelsystem." in descriptor.lower():
+            assert meta["device_class"] != "battery", descriptor
+
+    # Without a device class the entity loses its battery icon and would fall
+    # back to Home Assistant's generic one, so icons.json names it a fuel gauge.
+    icons = json.loads((_PKG / "icons.json").read_text(encoding="utf-8"))
+    key = KEYS.translation_key("vehicle.drivetrain.fuelSystem.level")
+    assert icons["entity"]["sensor"][key]["default"] == "mdi:gas-station"
+
+
 def test_device_class_units_are_consistent():
     # A pinned device class must carry a unit (except duration which HA infers).
     unit_required = {

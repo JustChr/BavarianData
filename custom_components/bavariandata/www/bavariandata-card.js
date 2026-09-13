@@ -13,7 +13,7 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.11.0";
+const CARD_VERSION = "1.11.1";
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -65,6 +65,11 @@ const CLUSTER_ICONS = {
 };
 
 const UNAVAILABLE = new Set(["unavailable", "unknown", "none", "", null, undefined]);
+
+// Descriptor fragments of percentages that are never the high-voltage state of
+// charge: the 12 V battery every car reports, and the fuel tank. Kept out of the
+// state-of-charge gauge's picks (see _overviewEntities).
+const NOT_HV_BATTERY = ["electricalsystem", "fuelsystem"];
 
 // BMW reports these charging-status values when nothing is actively charging
 // (e.g. `invalid` when no cable is connected). Show a clean localized "not
@@ -771,12 +776,23 @@ class BavarianDataCard extends HTMLElement {
         // descriptor rather than the name: "predicted" alone only rejects it in
         // English, and a German install picked it up. Both remain available to
         // the fallback below, where they are chosen knowingly.
+        //
+        // The measured HV state of charge is named outright first: the other
+        // battery-class percentages all score zero, so without a preference the
+        // tie went to entity-registry order -- and every car also carries its
+        // 12 V battery, and older installs the fuel tank tagged as a battery. A
+        // plug-in hybrid could show its tank here, a petrol car its 12 V battery.
         this._pick(entities, {
           deviceClass: "battery",
           unit: "%",
-          avoid: ["target", "predicted", "health", "testing", "trip", "charging.level"],
+          prefer: ["batterymanagement.header"],
         }) ||
-        this._pick(entities, { prefer: ["charge", "soc"], unit: "%", avoid: ["target", "rate"] }),
+        this._pick(entities, {
+          deviceClass: "battery",
+          unit: "%",
+          avoid: ["target", "predicted", "health", "testing", "trip", "charging.level", ...NOT_HV_BATTERY],
+        }) ||
+        this._pick(entities, { prefer: ["charge", "soc"], unit: "%", avoid: ["target", "rate", ...NOT_HV_BATTERY] }),
       range:
         cfg.range ||
         // Three distance entities answer to "electric range" on a BEV, and BMW

@@ -114,6 +114,12 @@ _OVERRIDES: dict[str, tuple[str | None, str | None, str | None]] = {
         "measurement",
         "km",
     ),
+    # The fuel tank, in percent. The heuristic reads ".level" as a battery, so
+    # Home Assistant showed the tank as one and the card's state-of-charge gauge
+    # could pick it -- on a plug-in hybrid, in place of the real HV state of
+    # charge. Home Assistant has no fuel device class; the unit and state class
+    # stay so the entity keeps its statistics, and icons.json supplies the icon.
+    "vehicle.drivetrain.fuelSystem.level": (None, "measurement", "%"),
 }
 
 

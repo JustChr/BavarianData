@@ -1,0 +1,9 @@
+{
+  "entity": {
+    "sensor": {
+      "vehicle_drivetrain_fuelsystem_level": {
+        "default": "mdi:gas-station"
+      }
+    }
+  }
+}

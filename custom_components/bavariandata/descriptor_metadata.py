@@ -2091,7 +2091,7 @@ DESCRIPTOR_META: dict[str, dict] = {
     'vehicle.drivetrain.fuelSystem.level': {
         "section": 'status',
         "category": 'Range',
-        "device_class": 'battery',
+        "device_class": None,
         "state_class": 'measurement',
         "unit": '%',
         "options": [],
