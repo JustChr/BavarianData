@@ -27,7 +27,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, Mapping, Optional
 
 from .const import (
     DEFAULT_BRIDGE_PREFIX,
@@ -126,6 +126,53 @@ def evcc_status(
         return STATUS_CONNECTED
     if plugged is False:
         return STATUS_DISCONNECTED
+    return None
+
+
+# Where a car says whether a cable is in it, most direct first. Cars disagree
+# about which of these they stream: a BMW i5 reports only
+# ``chargingPort.status``, and the first version of this bridge -- which looked
+# at the port boolean and the connector status alone -- published no plug state
+# for it at all. Found on the maintainer's own car, plugged in at the time. On
+# that car ``chargingPort.status`` was checked against ten days of the recorder:
+# ``connected`` ahead of every charge, and never still ``connected`` when a drive
+# began (27 trips).
+#
+# Two plug descriptors are left out on purpose. ``chargingPort.dcStatus``
+# describes the DC side only, so its DISCONNECTED says nothing about an AC cable.
+# ``chargingPort.combinedStatus`` is not streamable -- it only ever changes on a
+# REST poll -- and a charge controller acting on this morning's plug state is
+# precisely what the bridge must not cause. A test pins that every entry here is
+# streamable.
+PLUG_DESCRIPTORS = (
+    "vehicle.powertrain.tractionBattery.charging.port.anyPosition.isPlugged",
+    "vehicle.body.chargingPort.status",
+    "vehicle.body.chargingPort.statusClearText",
+    "vehicle.drivetrain.electricEngine.charging.connectorStatus",
+)
+
+
+def plug_state(values: Mapping[str, Any]) -> Optional[bool]:
+    """Whether a cable is in the car, from whichever source the car streams.
+
+    ``values`` maps descriptor -> current value. The first source with a real
+    answer wins. ``INVALID``, ``-NA-`` and the connector's ``ERROR`` are not
+    answers -- a faulted connector is very much still in the socket -- so they
+    fall through to the next source instead of being read as "unplugged".
+    Case-insensitive, because a value restored after a restart comes back as the
+    entity's lower-case state rather than BMW's upper-case original.
+    """
+
+    for descriptor in PLUG_DESCRIPTORS:
+        value = values.get(descriptor)
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            word = value.strip().upper()
+            if word == "CONNECTED":
+                return True
+            if word == "DISCONNECTED":
+                return False
     return None
 
 

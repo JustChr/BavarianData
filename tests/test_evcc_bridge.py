@@ -343,14 +343,11 @@ def test_a_plausible_delta_is_taken_as_measured() -> None:
     assert sessions.measured_grid_kwh(1000.0, 1011.5, battery_kwh=10.4) == 11.5
 
 
-def test_the_grid_cannot_have_delivered_less_than_the_pack_absorbed() -> None:
-    """Not a tolerance -- a physical impossibility, so the reading is wrong.
-
-    In practice it means the wrong entity was bound, or a meter that was not
-    counting this car.
-    """
+def test_a_meter_that_barely_moved_is_counting_something_else() -> None:
+    """Far below what the pack absorbed: the wrong entity, or another car's meter."""
 
     assert sessions.measured_grid_kwh(1000.0, 1002.0, battery_kwh=10.4) is None
+    assert sessions.measured_grid_kwh(1000.0, 1002.0, battery_kwh=36.66) is None
 
 
 def test_a_whole_house_meter_is_rejected_rather_than_believed() -> None:
@@ -488,3 +485,99 @@ def test_an_interrupted_session_keeps_the_meters_larger_figure() -> None:
         NOW + timedelta(hours=5), soc_end=80.0, energy_kwh=0.3
     )
     assert session.grid_kwh == 48.0
+
+
+# --------------------------------------------------------------------------
+# Plug state: which descriptor says a cable is in
+# --------------------------------------------------------------------------
+
+PORT_STATUS = "vehicle.body.chargingPort.status"
+PORT_TEXT = "vehicle.body.chargingPort.statusClearText"
+PORT_BOOL = "vehicle.powertrain.tractionBattery.charging.port.anyPosition.isPlugged"
+CONNECTOR = "vehicle.drivetrain.electricEngine.charging.connectorStatus"
+
+
+def test_an_i5_reports_its_plug_through_the_charging_port_status() -> None:
+    """The regression: a plugged-in i5 published no status at all.
+
+    It streams neither the port boolean nor the connector status, only
+    ``chargingPort.status`` -- which the first version of the bridge never read.
+    """
+
+    assert evcc.plug_state({PORT_STATUS: "CONNECTED"}) is True
+    assert evcc.plug_state({PORT_STATUS: "DISCONNECTED"}) is False
+
+
+def test_a_restored_plug_state_reads_the_same_as_a_streamed_one() -> None:
+    """After a restart the value is the entity's lower-case state, not BMW's."""
+
+    assert evcc.plug_state({PORT_STATUS: "connected"}) is True
+    assert evcc.plug_state({CONNECTOR: " disconnected "}) is False
+
+
+@pytest.mark.parametrize("non_answer", ["INVALID", "-NA-", "ERROR", "", 3])
+def test_a_source_without_an_answer_defers_to_the_next(non_answer) -> None:
+    """Silence is not "unplugged"; a faulted connector is still in the socket."""
+
+    assert evcc.plug_state({PORT_STATUS: non_answer}) is None
+    assert evcc.plug_state({PORT_STATUS: non_answer, CONNECTOR: "CONNECTED"}) is True
+
+
+def test_the_most_direct_source_wins() -> None:
+    assert evcc.plug_state({PORT_BOOL: False, PORT_STATUS: "CONNECTED"}) is False
+    assert evcc.plug_state({PORT_TEXT: "CONNECTED", CONNECTOR: "DISCONNECTED"}) is True
+
+
+def test_the_dc_side_alone_never_decides() -> None:
+    """``dcStatus`` DISCONNECTED says nothing about an AC cable."""
+
+    assert evcc.plug_state({"vehicle.body.chargingPort.dcStatus": "DISCONNECTED"}) is None
+
+
+def test_every_plug_source_is_streamed() -> None:
+    """A REST-only plug state is stale by construction.
+
+    ``chargingPort.combinedStatus`` only changes on a poll. A charge controller
+    acting on this morning's plug state is precisely what the bridge must not
+    cause, so every source in the chain has to arrive over the stream.
+    """
+
+    import pathlib
+
+    catalogue = json.loads(
+        (
+            pathlib.Path(__file__).resolve().parents[1]
+            / "custom_components"
+            / "bavariandata"
+            / "catalogue.json"
+        ).read_text(encoding="utf-8")
+    )
+    streamable = {
+        entry["descriptor"]: entry.get("streamable")
+        for entry in catalogue["descriptors"]
+    }
+    for descriptor in evcc.PLUG_DESCRIPTORS:
+        assert descriptor in streamable, f"{descriptor} is not in the catalogue"
+        assert streamable[descriptor] is True, f"{descriptor} is not streamable"
+
+
+# --------------------------------------------------------------------------
+# The meter floor, calibrated against a real wallbox
+# --------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("battery", "meter"),
+    [
+        # Real sessions from the maintainer's wallbox, where the meter read a
+        # median 0.989 of our battery figure -- ours runs a little high.
+        (2.591, 2.434),
+        (11.7, 11.134),
+        (0.267, 0.247),
+        # And the case the ratio-only floor would have refused: a small charge
+        # where our figure overshoots by more than ten percent.
+        (2.591, 2.25),
+    ],
+)
+def test_a_genuine_meter_reading_is_not_refused_for_our_own_error(battery, meter) -> None:
+    assert sessions.measured_grid_kwh(0.0, meter, battery_kwh=battery) == round(meter, 3)

@@ -125,8 +125,8 @@ so it costs no BMW API quota.
 - **`topic_prefix`**, **`topics`** — the prefix in force and every topic the
   bridge owns.
 - **`published_topics`** — the subset currently being published, i.e. what this
-  car actually reports. A `status` missing from this list means the car streams
-  no charging-port descriptor.
+  car actually reports. A `status` missing from this list means the car reports
+  no plug state — see the bridge page's troubleshooting.
 
 See [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge).
 

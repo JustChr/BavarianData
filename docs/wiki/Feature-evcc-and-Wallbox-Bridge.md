@@ -74,7 +74,7 @@ in MQTT Explorer when something isn't working.
 simply absent. A charge controller *acts* on these numbers: told `soc: 0` it
 charges a full battery, and told `status: A` ("no vehicle connected") an
 identifying charger can stop charging the car it's plugged into. So a car that
-streams no charging-port descriptor gets no `status` topic, and evcc falls back
+reports no plug state gets no `status` topic, and evcc falls back
 to its own handling instead of being misled. If a value later becomes unknown
 again, its topic is removed rather than left showing last week's reading.
 
@@ -131,8 +131,11 @@ What it changes, once bound:
   force when it was delivered.
 - The **charging loss** on the
   [efficiency view](Feature-Efficiency-and-Range) becomes measured rather than
-  assumed. You can leave *charging loss percentage* at 0 %: it exists only for
-  people with no meter to bind.
+  assumed — when the meter reads above our battery-side figure. Our figure can
+  run a little high (on one real car the meter read about 1 % *below* it), and
+  then no loss is shown at all rather than a negative one. You can leave
+  *charging loss percentage* at 0 %: it exists only for people with no meter to
+  bind.
 
 ### When the reading is refused
 
@@ -142,7 +145,10 @@ it can't be right:
 
 - The meter went **down or nowhere** — a reset, a power cycle, or a meter that
   wasn't counting this charge.
-- It reports **less than the battery absorbed**, which is physically impossible.
+- It reports **far less than the battery absorbed**. The grid can't deliver less
+  than the pack took; our own battery figure measurably runs a little high, so
+  there's room for that, but a meter that barely moved is counting something
+  else.
 - It reports **nearly twice** the battery figure. This is the common
   misconfiguration: binding the *house* import meter instead of the wallbox's,
   which would otherwise inflate every cost by whatever else the house was doing
@@ -169,10 +175,13 @@ same broker, and that the topic in your `vehicles:` block matches the prefix on
 the settings screen character for character. Subscribe to
 `bavariandata/#` in MQTT Explorer to see what's really there.
 
-**`status` is missing.** Your car doesn't stream a charging-port descriptor.
-Re-run [Choose data to stream](Getting-Started-4-Choose-Data) and make sure the
-**Charging Port** and **Charging EV** clusters are selected; if the car streams
-neither, the bridge won't invent one.
+**`status` is missing.** The bridge found no plug state. Cars differ in where
+they report one, so it reads, in order: *Charging Port plugged (any position)*,
+*Charging Port plug state*, *Charging Port state text* and *Charging EV
+Connector state* — an i5, for example, reports only *Charging Port plug state*.
+Re-run [Choose data to stream](Getting-Started-4-Choose-Data) with the
+**Charging Port** and **Charging EV** clusters selected. If the car still reports
+none of them, the bridge won't invent one.
 
 **The state of charge looks stale.** Compare the `updated` topic with now. If
 BMW's own reading is hours old, that's the stream, not the bridge — the car

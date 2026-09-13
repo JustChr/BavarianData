@@ -9,6 +9,29 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The evcc bridge published no plug state for a BMW i5.** Cars report "is a
+  cable in" through different descriptors, and the bridge only read two of them
+  — neither of which an i5 streams. So a plugged-in i5 (the maintainer's own,
+  found on a live check) gave evcc no `status` and no `plugged` topic, and the
+  troubleshooting text blamed the car. It now also reads *Charging Port plug
+  state* and *Charging Port state text*. The source was checked against ten days
+  of the recorder before trusting a charge controller to act on it: `connected`
+  ahead of every charge, and never still `connected` when a drive began (27
+  trips). The chain now lives in the HA-free `evcc.py` with its own tests,
+  including one that refuses any source not delivered over the stream — a
+  REST-polled plug state is stale by construction.
+- **A genuine wallbox reading could have been refused on a small charge.** The
+  cross-check rejected a meter delta below 90 % of our battery-side figure, on
+  the reasoning that the grid cannot deliver less than the pack absorbed. Tested
+  against a real wallbox over twelve sessions, the meter read a median **0.989**
+  of our figure: below it, which the grid cannot do, so it is *our* figure running
+  a little high — and three sessions sat within four percent of refusal. That
+  floor was using the less reliable number to veto the measurement, on exactly
+  the charges where ours is weakest. It now allows for our own error, which is
+  bounded by the state-of-charge ceiling in absolute terms (about 1.5 kWh), not
+  as a percentage. A meter that barely moved is still refused.
+
 ## [0.9.9-beta.6] - 2026-09-13
 
 ### Fixed

@@ -180,8 +180,8 @@ delivered. Two ways to reconcile:
   the session as a measured `grid_kwh`, feeds the monthly totals, the statistics
   and the export, and is billed **as the charge proceeds**, so a dynamic tariff
   still prices each kilowatt-hour at the rate in force when it arrived. A
-  reading that can't be right — a meter that reset, or one reporting less than
-  the pack absorbed or nearly twice it — is refused rather than believed, and
+  reading that can't be right — a meter that reset, or one reporting far less
+  than the pack absorbed or nearly twice it — is refused rather than believed, and
   the session keeps its battery-side figure. Details and the failure cases:
   [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge#inbound-your-wallboxs-meter-for-the-charging-history).
 - **Loss percentage** — otherwise gross the battery figure up by your charging

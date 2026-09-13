@@ -43,7 +43,7 @@ from .history.pricing import (
     billable_energy,
     resolve_cost,
 )
-from .evcc import BridgeSnapshot
+from .evcc import PLUG_DESCRIPTORS, BridgeSnapshot, plug_state
 from .history.energy_mix import (
     SOURCE_PV,
     MixAccumulator,
@@ -251,11 +251,8 @@ EFFICIENCY_LIVE_DESCRIPTORS = (DESC_BMW_RANGE, DESC_MAX_ENERGY)
 # named here because the bridge needs to know whether it has *ever* arrived,
 # which is a different question from what it currently says.
 DESC_CHARGE_STATUS = "vehicle.drivetrain.electricEngine.charging.status"
-# Is a cable in the car. Two spellings because cars stream different clusters:
-# the port boolean lives in "Charging Port", the connector status in
-# "Charging EV", and a given car may select either.
-DESC_PLUGGED = "vehicle.powertrain.tractionBattery.charging.port.anyPosition.isPlugged"
-DESC_CONNECTOR_STATUS = "vehicle.drivetrain.electricEngine.charging.connectorStatus"
+# Whether a cable is in the car comes from a chain of descriptors that differs by
+# model -- see ``evcc.PLUG_DESCRIPTORS``, where it is unit-tested.
 
 # --- Stream-health repairs -------------------------------------------------
 # A diagnostics download turns "it doesn't work" into 30-second triage, but a
@@ -1913,24 +1910,17 @@ class CardataCoordinator:
     def _plug_state(self, vin: str) -> Optional[bool]:
         """Whether a cable is in the car, or ``None`` if the car doesn't say.
 
-        Two sources, because cars differ in which they stream: the charging-port
-        boolean is the direct answer, and BMW's connector status carries the same
-        fact in words for cars that stream the ``Charging EV`` cluster but not
-        the ``Charging Port`` one. ``ERROR`` is not treated as unplugged -- a
-        faulted connector is very much still in the socket.
+        Only gathers the car's current values: which descriptors count, in what
+        order, and how their words are read all live in ``evcc.plug_state``,
+        where they are unit-tested. Entity-side code in this file is not.
         """
 
-        state = self.get_state(vin, DESC_PLUGGED)
-        if state is not None and isinstance(state.value, bool):
-            return state.value
-        connector = self.get_state(vin, DESC_CONNECTOR_STATUS)
-        if connector is not None and isinstance(connector.value, str):
-            value = connector.value.strip().upper()
-            if value == "CONNECTED":
-                return True
-            if value == "DISCONNECTED":
-                return False
-        return None
+        values: Dict[str, Any] = {}
+        for descriptor in PLUG_DESCRIPTORS:
+            state = self.get_state(vin, descriptor)
+            if state is not None:
+                values[descriptor] = state.value
+        return plug_state(values)
 
     def _charging_state(self, vin: str) -> Optional[bool]:
         """Whether the car is charging, or ``None`` if it has never said.

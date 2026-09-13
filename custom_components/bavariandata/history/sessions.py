@@ -65,6 +65,16 @@ SOC_SESSION_SKEW = timedelta(seconds=120)
 # a bursty power stream bounded by a whole-percent SoC ceiling, not a
 # measurement -- and not for real charging losses, which go the other way.
 GRID_METER_MIN_RATIO = 0.9
+# ...less an absolute allowance, because our side of the comparison is wrong by
+# an amount that does not shrink with the charge. The battery figure is held to
+# a SoC ceiling with two points of slack (``SOC_CEILING_MARGIN_PERCENT``), about
+# 1.5 kWh on a typical pack, and a ratio alone cannot absorb that on a small
+# session. Measured, not assumed: against a real wallbox over twelve sessions,
+# the meter read a median 0.989 of our battery figure -- *below* it, which the
+# grid cannot do, so it is our figure running high -- and three sessions sat
+# between 0.925 and 0.939. A ratio-only floor was a few percent from refusing
+# genuine measurements on exactly the charges where ours is weakest.
+GRID_METER_ABS_SLACK_KWH = 1.5
 # ...and how far above. AC charging losses run 5-15 %, more on a cold pack or a
 # trickle charge; 80 % is not a loss, it is a different meter. This is the check
 # that catches the commonest misconfiguration by far: binding the *house* import
@@ -95,8 +105,10 @@ def measured_grid_kwh(
       counted this car -- never a charge that drew nothing, because a session
       only exists once charging was reported.
     - It must be *physically consistent* with the energy the pack absorbed.
-      Deliver-less-than-absorbed is impossible; deliver nearly twice is a
-      different meter. See the ratio constants.
+      Delivering far less than the pack took means a meter that was counting
+      something else -- the floor leaves room for our own figure running a
+      little high, which it measurably does -- and delivering nearly twice is a
+      different meter. See the constants.
 
     ``cross_check`` is turned off for a session whose own battery figure is
     known to be a floor (``late_start`` / ``interrupted``): comparing against a
@@ -115,7 +127,7 @@ def measured_grid_kwh(
         and battery_kwh is not None
         and battery_kwh >= GRID_METER_MIN_KWH
         and not (
-            battery_kwh * GRID_METER_MIN_RATIO
+            battery_kwh * GRID_METER_MIN_RATIO - GRID_METER_ABS_SLACK_KWH
             <= delta
             <= battery_kwh * GRID_METER_MAX_RATIO
         )
