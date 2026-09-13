@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.10-beta.1] - 2026-09-13
+
 ### Added
 - **The card's charging, battery-health and efficiency views explain themselves
   on a petrol or diesel car.** They used to sit empty, which looks like a fault.
