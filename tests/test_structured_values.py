@@ -43,6 +43,54 @@ def test_an_empty_list_is_zero_not_unknown():
     assert structured_values.structured_state([]) == (0, [])
 
 
+# The exact text from the i5's log after beta.9 (2026-09-13): the list reached the
+# sensor as a JSON string, so the list-only check passed it through and Home
+# Assistant rejected it again. Double quotes and ``null`` give it away -- a
+# stringified Python list would read ``'…'`` and ``None``.
+CBS_WIRE = (
+    '[{"date":"2027-10","description":"Next change due at the latest by the stated date.",'
+    '"id":3,"messageType":"CBS","status":"OK","title":"Brake fluid","text":"-",'
+    '"unitOfLengthRemaining":"-"},{"date":"2027-10","description":"-","id":100,'
+    '"messageType":"CBS","status":"OK","title":"Vehicle check","text":"-",'
+    '"unitOfLengthRemaining":"-"},{"date":"2028-10","description":"Next statutory vehicle '
+    'inspection due by the stated date.","id":32,"messageType":"CBS","status":"OK",'
+    '"title":"Statutory vehicle inspection","text":"-","unitOfLengthRemaining":"-"}]'
+)
+CCM_WIRE = (
+    '[{"date":null,"description":null,"id":164,"messageType":"CCM","status":"NULL",'
+    '"title":null,"text":"The washer fluid level is low in the window washer reservoir. '
+    'Please add washer fluid as soon as possible. See Owner´s Manual for more '
+    'information.","unitOfLengthRemaining":"19596"}]'
+)
+
+
+def test_a_json_list_string_is_shown_as_its_count_and_decoded():
+    state, items = structured_values.structured_state(CBS_WIRE)
+    assert state == 3
+    assert [item["title"] for item in items] == [
+        "Brake fluid",
+        "Vehicle check",
+        "Statutory vehicle inspection",
+    ]
+
+
+def test_a_single_check_control_message_string_counts_one():
+    state, items = structured_values.structured_state(CCM_WIRE)
+    assert state == 1
+    assert items[0]["id"] == 164
+    assert items[0]["date"] is None
+
+
+def test_a_json_object_string_is_exposed_but_has_no_count():
+    assert structured_values.structured_state('{"a": 1}') == (None, {"a": 1})
+
+
+def test_strings_that_are_not_a_json_structure_pass_through():
+    # Enum tokens, numbers-as-text, and bracketed text that isn't JSON stay values.
+    for value in ("locked", "85", "", "[not json", "{oops}", '"quoted"'):
+        assert structured_values.structured_state(value) == (value, None)
+
+
 def test_a_mapping_is_exposed_but_has_no_count():
     state, items = structured_values.structured_state({"a": 1})
     assert state is None

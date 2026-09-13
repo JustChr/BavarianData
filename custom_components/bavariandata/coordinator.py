@@ -64,8 +64,10 @@ from .history.trip_builder import (
     is_noise_trip,
     silence_implies_stop,
 )
+from .coverage import is_combustion_only, is_plug_in_hybrid
 from .tyre import parse_tyre_diagnosis
 from .units import normalize_unit
+from .vehicle_support import is_motorcycle, motorcycle_issue_id
 
 # Trip-detection descriptors (roadmap Phase 3). Motion is powertrain-agnostic and
 # the cleanest start signal; ignition corroborates it; BMW's own completed-segment
@@ -740,6 +742,7 @@ class CardataCoordinator:
             soc_start=builder.soc_start,
             soc_end=soc_now,
             energy_kwh=energy_kwh,
+            hybrid=self.is_plug_in_hybrid(vin),
         ).consumption_kwh_per_100km
         # Both of these qualify how much the "under way" flag can be trusted: the
         # last movement we actually saw, and whether the close is currently being
@@ -2732,6 +2735,7 @@ class CardataCoordinator:
             energy_kwh=energy_kwh,
             travelled_km=travelled_km,
             stats=stats,
+            hybrid=self.is_plug_in_hybrid(vin),
         )
         dropped = is_noise_trip(trip)
         self._cap(
@@ -3279,6 +3283,26 @@ class CardataCoordinator:
                 if isinstance(descriptor_state.value, bool) == binary:
                     yield vin, descriptor
 
+    def seen_descriptors(self, vin: str) -> set[str]:
+        """Every descriptor this car has ever sent: live state plus the record.
+
+        The coverage store remembers arrivals across restarts, so the drivetrain
+        is known at setup, before the first message of the day.
+        """
+
+        seen = set(self.data.get(vin, {}))
+        if self.coverage is not None:
+            seen |= self.coverage.seen_descriptors(vin)
+        return seen
+
+    def is_combustion_only(self, vin: str) -> bool:
+        """Positive evidence of a fuel system and none of a high-voltage battery."""
+
+        return is_combustion_only(self.seen_descriptors(vin))
+
+    def is_plug_in_hybrid(self, vin: str) -> bool:
+        return is_plug_in_hybrid(self.seen_descriptors(vin))
+
     async def async_handle_connection_event(
         self, status: str, *, reason: Optional[str] = None
     ) -> None:
@@ -3776,6 +3800,27 @@ class CardataCoordinator:
         if not metadata:
             return None
         self.device_metadata[vin] = metadata
+        if is_motorcycle(payload.get("brand")):
+            # CarData lists BMW Motorrad bikes, but BMW streams nothing for them,
+            # so setup "works" and then stays empty. Say so where it's seen.
+            # The issue id carries a digest, never the VIN (diagnostics attach
+            # issue ids unredacted), and the placeholder only a model name.
+            ir.async_create_issue(
+                self.hass,
+                DOMAIN,
+                motorcycle_issue_id(self.entry_id, vin),
+                is_fixable=False,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key="motorcycle_unsupported",
+                translation_placeholders={
+                    "vehicle": payload.get("modelName")
+                    or payload.get("series")
+                    or "BMW Motorrad",
+                },
+                learn_more_url=(
+                    f"{WIKI_TROUBLESHOOTING}#does-bavariandata-work-with-a-bmw-motorcycle"
+                ),
+            )
         new_name = metadata.get("name", vin)
         name_changed = self.names.get(vin) != new_name
         self.names[vin] = new_name

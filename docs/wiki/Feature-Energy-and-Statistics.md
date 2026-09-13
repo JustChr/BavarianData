@@ -1,5 +1,7 @@
 # Energy dashboard & long-term statistics
 
+> 🇩🇪 [Deutsch](DE-Feature-Energy-and-Statistics)
+
 The recorded history is published into Home Assistant's own **long-term
 statistics**, under this integration's `bavariandata:` namespace: charging
 energy (kWh), charging cost and driving distance — one series per vehicle.

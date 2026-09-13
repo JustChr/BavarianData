@@ -1,5 +1,7 @@
 # Export (CSV / HTML report)
 
+> 🇩🇪 [Deutsch](DE-Feature-Export)
+
 The [Charging](The-Dashboard-Card#charging-history-view-charging) and
 [Trips](The-Dashboard-Card#trips--driving-journal-view-trips) card views each
 carry **CSV** and **Report** buttons that download the current month straight

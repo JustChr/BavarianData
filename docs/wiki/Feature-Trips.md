@@ -1,5 +1,7 @@
 # Trips / driving journal
 
+> 🇩🇪 [Deutsch](DE-Feature-Trips)
+
 Every drive is reconstructed from the stream and kept: distance, duration,
 start/end places, SoC used, and BMW's own per-trip consumption, recuperation and
 driving-style figures. No REST quota.
@@ -218,6 +220,13 @@ energy as usual but no consumption figure, and they can be neither the "best" no
 the "worst" trip of the month. On a typical month of short errands and long
 commutes this means only the longer drives carry a rate; that is the honest
 outcome, not a gap.
+
+**Plug-in hybrids get no per-trip consumption rate.** A trip's energy is the drop
+in battery charge, but a hybrid may have driven part of the distance on fuel, and
+the stream carries no electric-only distance to divide by. A 40 km run that used
+4 kWh and a litre of petrol would read 10 kWh/100 km — a figure no part of the car
+achieved. So hybrid trips keep their energy and leave the rate blank, and they
+don't count toward the battery-side average.
 
 > **Recuperation** is likewise shown in **kWh/100 km**, not kWh: BMW's
 > `recuperationTotal` is documented as an average per 100 km, so a month is a

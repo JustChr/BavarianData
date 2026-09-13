@@ -34,11 +34,16 @@ commits and pushes. Re-run it any time these files change.
   Still marked with `<!-- screenshot: … -->` comments and pending:
   - `config-flow-user` / `config-flow-authorize` — need a live onboarding (not
     captured on the production instance to avoid disturbing the single stream).
-  - `config-flow-cluster-snippet` — reachable only by submitting the picker,
-    which persists/reloads; capture during a real setup.
   - `card-trips` — the live car has no recorded trips yet (empty state); capture
     once trips exist.
   - `Trips` settings screen — captured, but showed a real work-zone name;
     redact before publishing.
-- **German** — English prose ships first; German is a fast-follow (see
-  [docs/documentation-plan.md](../documentation-plan.md)).
+
+## German pages
+
+Every page has a German counterpart in [`de/`](de/), named `DE-<page>.md`. They
+publish flat beside the English pages (wiki page names are global, hence the
+prefix), and the sidebar lists both languages. German sections carry the English
+section ids as `<a id>` anchors, so links use the same `#section` in both.
+`tests/test_wiki_links.py` checks links, anchors, the pairing and the sidebar —
+change an English page and its German page together.

@@ -120,6 +120,16 @@ _OVERRIDES: dict[str, tuple[str | None, str | None, str | None]] = {
     # charge. Home Assistant has no fuel device class; the unit and state class
     # stay so the entity keeps its statistics, and icons.json supplies the icon.
     "vehicle.drivetrain.fuelSystem.level": (None, "measurement", "%"),
+    # The fuel in the tank, by volume. The catalogue gives no unit ("0 L to 100 L
+    # or 0 gal to 26.5 gal"), so it came out unclassified and without long-term
+    # statistics. The class is set but the unit deliberately is not: pinning L
+    # would label a US car's gallons as litres. The entity takes the unit the car
+    # streams (an F87 M2 sends ``l``), and Home Assistant converts from there.
+    "vehicle.drivetrain.fuelSystem.remainingFuel": (
+        "volume_storage",
+        "measurement",
+        None,
+    ),
 }
 
 

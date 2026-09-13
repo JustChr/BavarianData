@@ -133,6 +133,11 @@ class CoverageStore:
         if added:
             self.async_schedule_save()
 
+    def seen_descriptors(self, vin: str) -> set[str]:
+        """Every descriptor that has ever arrived for ``vin``, across restarts."""
+
+        return set(self._seen.get(vin, {}))
+
     def _expected_by_section(self) -> dict[str, list[str]]:
         # The non-diagnostic set is exactly what the picker asks BMW to stream,
         # so it is what we are entitled to expect back.

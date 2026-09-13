@@ -22,7 +22,29 @@ makes the registry calls.
 
 from __future__ import annotations
 
-from typing import Any, Iterable, Mapping, Optional
+from typing import Any, Callable, Iterable, Mapping, Optional
+
+# The integration's own entities that only mean something with a high-voltage
+# battery: the state-of-charge estimate and its rate, the charged-energy
+# counters, the charging ledger and cost sensors, battery health and real range.
+# Up to v0.9.9-beta.9 the first ten were created for every car, so a petrol or
+# diesel install carries them stuck at "unknown" -- and, because they are
+# re-created from the registry on every start, would carry them forever.
+EV_ONLY_SUFFIXES = frozenset(
+    {
+        "soc_estimate",
+        "soc_estimate_testing",
+        "soc_rate",
+        "charged_energy_total",
+        "charged_energy_session",
+        "charging_energy_month",
+        "charging_cost_month",
+        "charging_cost_session",
+        "charging_cost_per_100km",
+        "battery_health",
+        "real_range",
+    }
+)
 
 # Home Assistant's ``RegistryEntryDisabler.INTEGRATION``, spelled as its string
 # value so this module needs no HA import (the enum is a ``StrEnum``, so it
@@ -62,5 +84,28 @@ def entities_to_reenable(
         descriptor = descriptor_of(row.unique_id or "")
         meta = metadata.get(descriptor) if descriptor else None
         if meta is not None and meta.get("enabled_default") is True:
+            selected.append(row.entity_id)
+    return selected
+
+
+def ev_entities_to_remove(
+    rows: Iterable[Any], combustion_only: Callable[[str], bool]
+) -> list[str]:
+    """Entity ids of battery-only entities on a car proven to have no battery.
+
+    ``combustion_only`` answers for a VIN, and must need positive evidence (see
+    ``coverage.is_combustion_only``): a car that has sent nothing yet is not a
+    petrol car, and removing its entities would throw away a real EV's history
+    on a fresh restart. Removed rather than disabled on purpose -- a
+    ``disabled_by`` change makes Home Assistant reload the entry, and an entity
+    that can never have a value has no customisation worth keeping.
+    """
+
+    selected: list[str] = []
+    for row in rows:
+        vin, separator, suffix = (row.unique_id or "").partition("_")
+        if not (separator and vin) or suffix not in EV_ONLY_SUFFIXES:
+            continue
+        if combustion_only(vin):
             selected.append(row.entity_id)
     return selected

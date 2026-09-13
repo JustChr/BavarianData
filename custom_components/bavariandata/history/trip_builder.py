@@ -298,6 +298,7 @@ class TripBuilder:
         stats: Optional[dict[str, Any]] = None,
         classification: Optional[str] = None,
         classification_source: Optional[str] = None,
+        hybrid: bool = False,
     ) -> Trip:
         """Finish the trip and return the record to persist."""
 
@@ -318,6 +319,7 @@ class TripBuilder:
             or end_place is None
             or end_place.get("label") == "Unknown",
             track=list(self.track),
+            hybrid=hybrid,
         )
 
 

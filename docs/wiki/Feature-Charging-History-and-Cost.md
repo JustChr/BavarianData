@@ -1,5 +1,7 @@
 # Charging history & cost
 
+> 🇩🇪 [Deutsch](DE-Feature-Charging-History-and-Cost)
+
 Because BavarianData streams data in real time, it records every completed
 charging session and can put a price on it — all from the stream, spending **no
 REST quota**.
@@ -87,9 +89,9 @@ It means your car isn't streaming
 `vehicle.drivetrain.batteryManagement.header`, which is BMW's (confusingly named)
 high-voltage state of charge.
 
-**If you set up before v0.9.6, re-run the Data Selection snippet** under
-**Configure → Choose data to stream**. That descriptor was missing from the
-snippet, so it was never ticked in the portal and never reached the stream. The
+**If you set up before v0.9.6, re-run Configure → Choose streamed data.** That
+descriptor was missing from the old setup snippet, so it was never switched on in
+the portal and never reached the stream. The
 coverage repair names it once it has been missing long enough.
 
 If it is ticked and the value still never updates, your car doesn't send it and

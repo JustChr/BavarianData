@@ -1,5 +1,7 @@
 # The dashboard card
 
+> 🇩🇪 [Deutsch](DE-The-Dashboard-Card)
+
 A custom **BavarianData Card** is bundled with the integration and registered
 automatically as a dashboard *resource* — there is no resource to add by hand,
 and it is refreshed on every update so browsers pick up the new version.
@@ -74,8 +76,10 @@ type: custom:bavariandata-card
 drivetrain: ice   # bev · phev · ice — omit to auto-detect
 ```
 
-The charging, battery-health and efficiency views are built on charging data, so
-on a petrol or diesel car they have nothing to show.
+The charging, battery-health and efficiency views are built on charging data. On
+a petrol or diesel car they say so — *Nothing to show for this car* — rather than
+sitting empty as if something were broken. If that car does plug in, set
+**Drivetrain**.
 
 While a drive is under way, a **Trip in progress** badge appears at the bottom of
 the vehicle image with the distance and minutes so far; tap it for the full

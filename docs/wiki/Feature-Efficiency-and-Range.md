@@ -1,5 +1,7 @@
 # Efficiency & real range
 
+> 🇩🇪 [Deutsch](DE-Feature-Efficiency-and-Range)
+
 How much the car really uses, and how far that actually reaches — measured from
 your own [charging history](Feature-Charging-History-and-Cost) rather than taken
 from the car's own estimate. No REST quota: every figure comes from records the
@@ -103,7 +105,7 @@ capacity, your cost per 100 km with the month's solar share, and a bar chart of
 consumption by month — which is where the seasonal story shows up, since winter
 consumption on an EV is routinely a third higher than summer.
 
-Or call [`bavariandata.get_efficiency`](Services-Reference#bavariandataget_efficiency)
+Or call [`bavariandata.get_efficiency`](Services-Reference#get_efficiency)
 for the whole profile including the month trend.
 
 ## Why the numbers may differ from the car

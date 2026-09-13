@@ -62,7 +62,8 @@ README is the quick overview.
 
 ## Requirements
 
-- A BMW account with a vehicle that supports CarData.
+- A BMW account with a **car** that supports CarData (BMW streams no data for
+  BMW Motorrad motorcycles).
 - **CarData API** and **CarData Streaming** subscribed in the BMW portal, and a
   **client ID** generated for this integration.
 - Home Assistant **2026.3** or newer, with [HACS](https://hacs.xyz/).
@@ -83,10 +84,9 @@ Five steps — the Wiki has the detail and screenshots for each.
    even though your login worked, that's a
    [known BMW-side quirk with a workaround](https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ#onboarding-fails-with-access-denied).
 4. **[Choose which data to stream](https://github.com/JustChr/BavarianData/wiki/Getting-Started-4-Choose-Data)** —
-   pick your clusters. Guided setup then turns the fields on with a one-click
-   **Activate BMW data** bookmarklet; manual setup hands you a browser-console
-   snippet to paste into the portal's Data Selection instead. Either way, save
-   and trigger a lock/unlock to prompt the first update.
+   turn the fields on with the one-click **Activate BMW data** bookmarklet —
+   guided and manual setup use the same one, manual after you pick the clusters.
+   Then trigger a lock/unlock to prompt the first update.
 5. **[Add the card to a dashboard](https://github.com/JustChr/BavarianData/wiki/The-Dashboard-Card)** —
    the integration doesn't create a dashboard of its own. Open any dashboard,
    **Add card → BavarianData Card**, and it finds your vehicle by itself.

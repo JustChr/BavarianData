@@ -1,23 +1,16 @@
 # 4. Choose which data to stream
 
+> 🇩🇪 [Deutsch](DE-Getting-Started-4-Choose-Data)
+
 BMW only streams the descriptors you tick under **Data Selection** in the
 portal, and it offers **no API** to set that selection — it is portal-only.
-Rather than hand-picking hundreds of technical fields, the integration builds
-the selection for you. There are **two routes**, and which one you see depends on
-how you got here:
+Rather than hand-picking hundreds of technical fields, the integration switches
+them on for you with a one-click **Activate BMW data** bookmarklet — the same
+activator described on the [guided path](Getting-Started-3-Add-and-Authorize#guided-path).
+Guided setup runs it with a default set before you authorize; **manual setup**
+and **Configure → Choose streamed data** let you pick the clusters first.
 
-- **Guided setup** (and later **Configure → Choose streamed data**) use a
-  one-click **Activate BMW data** bookmarklet — the same activator described on
-  the [guided path](Getting-Started-3-Add-and-Authorize#guided-path). Pick your
-  clusters, run the bookmarklet on the portal's stream-setup page, and Home
-  Assistant turns the fields on for you. This route is **additive** (see
-  *Widening or narrowing later* below).
-- **Manual first-time setup** hands you a **browser-console snippet** for the
-  portal's Data Selection page instead. Those steps are below.
-
-## Manual setup — the Data Selection snippet
-
-This is the route the **Manual** setup path takes right after authorization.
+## Picking clusters and switching them on
 
 1. **Pick the clusters** you want (Electric vehicle, Vehicle status, Tire data,
    …). The defaults are a sensible starting set; your choice is remembered and
@@ -27,11 +20,8 @@ This is the route the **Manual** setup path takes right after authorization.
      <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-cluster-picker.png" alt="Choose streamed data dialog with a multi-select of clusters (Electric vehicle, Vehicle status, Vehicle events, Tire data, …)" width="540" />
    </p>
 
-2. The next screen shows a **browser-console snippet** generated for exactly
-   those clusters. Copy it.
-
-   <!-- screenshot: config-flow-cluster-snippet -->
-
+2. The next screen links to the activation page. Drag the **Activate BMW data**
+   button to your bookmarks bar if it isn't there yet.
 3. In the BMW portal, open the vehicle's **BMW CarData** page and press
    **Change data selection** (*Datenauswahl ändern*) under **CarData Stream**:
 
@@ -39,29 +29,27 @@ This is the route the **Manual** setup path takes right after authorization.
      <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bmw-portal-change-data-selection.png" alt="BMW CarData Stream panel showing configuration status 'ready' with 'Delete stream' and 'Change data selection' buttons" width="760" />
    </p>
 
-   On the selection page, click **Load more** until every field is listed. Open
-   the browser console (F12 → Console), paste the snippet, and press **Enter**.
-   It ticks only the checkboxes belonging to your chosen clusters — leaving any
-   other selections untouched — and logs how many it matched.
-4. **Save** the selection in the portal, then press **Submit** in Home Assistant
-   to finish. Repeat the portal step for each vehicle.
+   On that stream-setup page, click the **Activate BMW data** bookmark. It turns
+   on the fields of your chosen clusters, all in your own browser.
+4. Back in Home Assistant:
+   - on an **https** Home Assistant the dialog **continues on its own**;
+   - on an **http** Home Assistant, press **Copy** in the box the activator shows
+     and paste the short result into the field.
+
+   A confirmation says how many fields are now streaming. Press **Submit**.
+   (During first-time setup only: if you already ticked the fields in the portal
+   yourself, leave the result box empty and press **Submit** to finish.)
 5. Trigger something in the MyBMW app (lock/unlock) to nudge the car into
    sending its first update.
 
 ## Widening or narrowing later
 
-Re-run this any time from **Configure → Choose streamed data**. Reconfiguring
-uses the **one-click activator** rather than the console snippet: pick your
-clusters, then run the **Activate BMW data** bookmarklet (the same one guided
-setup uses) on the portal's **stream setup** page — Home Assistant turns on the
-fields for you and continues automatically, no copy-paste. See
-[guided setup](Getting-Started-3-Add-and-Authorize) for how the bookmarklet
-works.
+Re-run this any time from **Configure → Choose streamed data** — the same picker
+and the same bookmarklet.
 
-> **Additive:** re-running the activator *adds* the chosen clusters to your live
-> stream; it never removes a field you already stream. To **stop** streaming a
-> field, untick it under **Data Selection** in the portal (the console snippet
-> above only ticks boxes — it does not untick them either).
+> **Additive:** the activator *adds* the chosen clusters to your live stream; it
+> never removes a field you already stream. To **stop** streaming a field, untick
+> it under **Data Selection** in the portal.
 
 Requesting per-descriptor streaming *scopes* instead of a portal selection is
 rejected by BMW — see
@@ -128,6 +116,6 @@ charging history, battery health, trips, the map, tyres and closures.
 > **Which car do you drive?** BavarianData is built and tested against exactly one
 > vehicle — an i5 eDrive40 — so which descriptors *your* model streams is something
 > we genuinely cannot find out on our own. If you made it this far, it would help a
-> lot to hear your model and roughly how many entities showed up, and whether the
-> setup needed the portal snippet or the one-click activator.
+> lot to hear your model, roughly how many entities showed up, and whether the
+> one-click activator worked in your browser.
 > [Tell us in Discussions →](https://github.com/JustChr/BavarianData/discussions)

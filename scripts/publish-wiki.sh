@@ -26,7 +26,9 @@ if ! git clone "$WIKI_URL" "$TMP/wiki" 2>/dev/null; then
 fi
 
 echo "Syncing pages from ${SRC} ..."
-for f in "$SRC"/*.md; do
+# German pages live in de/ in the repo but publish flat: a wiki page name is
+# global, which is why each carries a DE- prefix.
+for f in "$SRC"/*.md "$SRC"/de/*.md; do
   base="$(basename "$f")"
   [ "$base" = "README.md" ] && continue   # repo-facing note, not a wiki page
   cp "$f" "$TMP/wiki/"

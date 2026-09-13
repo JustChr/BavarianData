@@ -28,6 +28,7 @@ from .coordinator import (
     EFFICIENCY_LIVE_DESCRIPTORS,
     CardataCoordinator,
 )
+from .coverage import HIGH_VOLTAGE_SIGNALS
 from .descriptor_metadata import DESCRIPTOR_META, SECTIONS
 from .entity import CardataEntity
 from .history.health import MIN_SAMPLES, degradation_series, usable_capacity
@@ -144,12 +145,25 @@ class CardataSensor(CardataRestoreSensor):
                 if (
                     device_class is SensorDeviceClass.DISTANCE
                     and meta.get("unit") in ("km", "mi")
+                ) or (
+                    device_class is SensorDeviceClass.PRESSURE
+                    and meta.get("unit") == "kPa"
+                ) or (
+                    device_class is SensorDeviceClass.VOLUME_STORAGE
+                    and not meta.get("unit")
                 ):
                     # BMW streams whole kilometres for every one of these -- a
                     # range, an odometer, a trip length. Left unsaid, Home
                     # Assistant stamps two decimals on any convertible unit and
                     # the card's headline reads "379.00 km", which every user
-                    # then fixes by hand, entity by entity.
+                    # then fixes by hand, entity by entity. Tyre pressures are
+                    # whole kPa too and read "260,00 kPa" for the same reason;
+                    # a user showing them in bar still gets the decimals, as
+                    # Home Assistant adds precision when it converts. The fuel
+                    # in the tank (the one volume whose unit comes off the
+                    # stream) is a float BMW itself calls accurate to about 6
+                    # litres, so decimals there are noise; the lifetime fuel
+                    # totals keep theirs.
                     self._attr_suggested_display_precision = 0
             elif options:
                 # Enum sensor: translated states come from the translation key.
@@ -1428,13 +1442,16 @@ async def async_setup_entry(
         driving_entities[vin] = entity
         async_add_entities([entity], True)
 
-    # Any of these streaming marks the car as having an HV battery worth tracking
-    # health for; a pure-ICE car streams none of them.
-    _EV_SIGNALS = (
-        "vehicle.drivetrain.batteryManagement.batterySizeMax",
-        "vehicle.drivetrain.batteryManagement.maxEnergy",
-        "vehicle.drivetrain.batteryManagement.header",
-    )
+    # Any of these streaming marks the car as having an HV battery worth tracking;
+    # a pure-ICE car streams none of them. Shared with the coverage self-test so
+    # "is this an EV" has one answer.
+    _EV_SIGNALS = tuple(sorted(HIGH_VOLTAGE_SIGNALS))
+
+    def _has_battery(vin: str) -> bool:
+        return any(
+            coordinator.get_state(vin, descriptor) is not None
+            for descriptor in _EV_SIGNALS
+        )
 
     def ensure_battery_health_entity(vin: str, *, force: bool = False) -> None:
         """Create the battery-health sensor once the car looks like an EV.
@@ -1448,11 +1465,7 @@ async def async_setup_entry(
 
         if vin in battery_health_entities or coordinator.history is None:
             return
-        has_battery = any(
-            coordinator.get_state(vin, descriptor) is not None
-            for descriptor in _EV_SIGNALS
-        )
-        if not (force or has_battery):
+        if not (force or _has_battery(vin)):
             return
         entity = CardataBatteryHealthSensor(coordinator, vin)
         battery_health_entities[vin] = entity
@@ -1477,25 +1490,26 @@ async def async_setup_entry(
 
         if vin in real_range_entities or coordinator.history is None:
             return
-        eligible = _has_odometer(vin) and any(
-            coordinator.get_state(vin, descriptor) is not None
-            for descriptor in _EV_SIGNALS
-        )
+        eligible = _has_odometer(vin) and _has_battery(vin)
         if not (force or eligible):
             return
         entity = CardataRealRangeSensor(coordinator, vin)
         real_range_entities[vin] = entity
         async_add_entities([entity], True)
 
-    def ensure_charging_summary_entities(vin: str) -> None:
+    def ensure_charging_summary_entities(vin: str, *, force: bool = False) -> None:
         """Create the ledger sensors, but only once they can say something true.
 
-        The energy total works for anyone. The cost sensors need a configured
-        tariff, so until one exists they are not created at all rather than
-        sitting at "unknown" and inviting the question of what's broken.
+        The energy total works for any car that charges -- so not for a petrol
+        or diesel car, which gets none of them. The cost sensors need a
+        configured tariff, so until one exists they are not created at all
+        rather than sitting at "unknown" and inviting the question of what's
+        broken. ``force`` re-creates ones restored from the registry.
         """
 
         if vin in charging_summary_entities or coordinator.history is None:
+            return
+        if not (force or _has_battery(vin)):
             return
         new_entities: list = [CardataChargingEnergyMonthSensor(coordinator, vin)]
         if coordinator.pricing.enabled:
@@ -1511,7 +1525,18 @@ async def async_setup_entry(
         charging_summary_entities[vin] = new_entities
         async_add_entities(new_entities, True)
 
-    def ensure_soc_tracking_entities(vin: str) -> None:
+    def ensure_soc_tracking_entities(vin: str, *, force: bool = False) -> None:
+        """Create the state-of-charge estimate and charged-energy sensors.
+
+        Only for a car with a high-voltage battery: a petrol car used to get all
+        five, stuck at "unknown" for good. ``force`` re-creates ones restored
+        from the registry before the battery has reported today; entities a
+        combustion car was given by an older release are removed at setup
+        (``registry_repair.ev_entities_to_remove``) before this runs.
+        """
+
+        if not (force or _has_battery(vin)):
+            return
         new_entities = []
         if vin not in soc_estimate_entities:
             estimate = CardataSocEstimateSensor(coordinator, vin)
@@ -1633,7 +1658,7 @@ async def async_setup_entry(
             "charged_energy_total",
             "charged_energy_session",
         }:
-            ensure_soc_tracking_entities(vin)
+            ensure_soc_tracking_entities(vin, force=True)
             continue
         if descriptor == "battery_health":
             # Re-create the one it had before live data arrives, rather than
@@ -1664,7 +1689,7 @@ async def async_setup_entry(
             # These are minted by ensure_charging_summary_entities, not the
             # generic path; routing them there avoids assume_sensor also
             # creating a duplicate CardataSensor on the same unique id.
-            ensure_charging_summary_entities(vin)
+            ensure_charging_summary_entities(vin, force=True)
             continue
         ensure_entity(vin, descriptor, assume_sensor=True)
 

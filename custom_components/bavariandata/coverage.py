@@ -57,6 +57,18 @@ COMBUSTION_PREFIXES = (
 )
 
 
+def has_high_voltage(seen: Collection[str]) -> bool:
+    """Whether the car has shown a high-voltage battery."""
+
+    return not HIGH_VOLTAGE_SIGNALS.isdisjoint(seen)
+
+
+def has_combustion(seen: Collection[str]) -> bool:
+    """Whether the car has shown a fuel system or an engine."""
+
+    return any(descriptor.startswith(COMBUSTION_PREFIXES) for descriptor in seen)
+
+
 def is_combustion_only(seen: Collection[str]) -> bool:
     """Whether the car has shown an engine and no high-voltage battery.
 
@@ -65,9 +77,14 @@ def is_combustion_only(seen: Collection[str]) -> bool:
     """
 
     seen_set = set(seen)
-    if seen_set & HIGH_VOLTAGE_SIGNALS:
-        return False
-    return any(descriptor.startswith(COMBUSTION_PREFIXES) for descriptor in seen_set)
+    return has_combustion(seen_set) and not has_high_voltage(seen_set)
+
+
+def is_plug_in_hybrid(seen: Collection[str]) -> bool:
+    """Whether the car has shown both a high-voltage battery and a fuel system."""
+
+    seen_set = set(seen)
+    return has_high_voltage(seen_set) and has_combustion(seen_set)
 
 
 @dataclass

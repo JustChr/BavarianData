@@ -13,7 +13,7 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.12.1";
+const CARD_VERSION = "1.13.0";
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -297,6 +297,10 @@ const TRANSLATIONS = {
     ef_trend_title: "Consumption by month",
     ef_footnote:
       "Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate.",
+    // charging, battery health and efficiency on a petrol or diesel car
+    ice_view_title: "Nothing to show for this car",
+    ice_view_body:
+      "{name} runs on fuel alone, so there is no charging, battery health or electric range to show. If it does plug in, set Drivetrain in the card editor.",
     // trips
     tr_title: "Trips",
     tr_loading: "Loading trips…",
@@ -557,6 +561,10 @@ const TRANSLATIONS = {
     ef_trend_title: "Verbrauch nach Monat",
     ef_footnote:
       "Gemessen aus der Ladehistorie: die Strecke zwischen zwei Ladevorgängen und die Energie, die hineinging — nicht die Prognose des Fahrzeugs.",
+    // charging, battery health and efficiency on a petrol or diesel car
+    ice_view_title: "Für dieses Fahrzeug gibt es hier nichts",
+    ice_view_body:
+      "{name} fährt nur mit Kraftstoff, daher gibt es keine Ladevorgänge, keinen Batteriezustand und keine elektrische Reichweite. Wird es doch geladen, im Karteneditor den Antrieb einstellen.",
     // trips
     tr_title: "Fahrten",
     tr_loading: "Fahrten werden geladen…",
@@ -646,6 +654,28 @@ const TRANSLATIONS = {
 function _lang(hass) {
   const loc = hass && hass.locale;
   return (loc && loc.language) || (hass && hass.language) || "en";
+}
+
+/** The locale the card writes numbers in, following the profile's "Number
+ *  format" setting the way Home Assistant's own formatter does, so the card's
+ *  figures match the entity states beside them. `null` for "none": plain
+ *  digits, no grouping. */
+function _numberLocale(hass) {
+  const loc = hass && hass.locale;
+  switch (loc && loc.number_format) {
+    case "none":
+      return null;
+    case "system":
+      return undefined;
+    case "comma_decimal":
+      return ["en-US", "en"];
+    case "decimal_comma":
+      return ["de", "es", "it"];
+    case "space_comma":
+      return ["fr", "sv", "cs"];
+    default:
+      return _lang(hass);
+  }
 }
 
 /** Translate `key` for the active hass language, filling `{name}` vars.
@@ -970,7 +1000,7 @@ class BavarianDataCard extends HTMLElement {
   _km(v) {
     const n = Number(v);
     if (!Number.isFinite(n)) return "—";
-    return `${Math.round(n).toLocaleString(_lang(this._hass))} km`;
+    return `${this._dec(n, 0)} km`;
   }
 
   _relTime(iso) {
@@ -1283,7 +1313,7 @@ class BavarianDataCard extends HTMLElement {
   _tripPill(trip) {
     if (!trip) return "";
     const bits = [];
-    if (trip.distance_km != null) bits.push(`${this._round(trip.distance_km, 1)} km`);
+    if (trip.distance_km != null) bits.push(`${this._dec(trip.distance_km, 1)} km`);
     const min = this._elapsedMin(trip.started);
     if (min != null) bits.push(this._t("tr_min", { n: min }));
     return `
@@ -1387,12 +1417,30 @@ class BavarianDataCard extends HTMLElement {
 
   /* ---- charging history ------------------------------------------------- */
 
+  /** Charging, battery health and efficiency all describe a high-voltage
+   * battery. On a petrol or diesel car each would sit empty for good and read
+   * like a fault, so say why instead -- before any service is called. Returns
+   * whether it painted. */
+  _renderIceNotice(deviceId, entities) {
+    if (this._drivetrain(entities) !== "ice") return false;
+    const name = this._config.title || this._deviceName(deviceId);
+    const sig = this._signature({ m: "ice", lang: _lang(this._hass), name });
+    if (sig === this._sig) return true;
+    this._renderMessage(
+      this._esc(this._t("ice_view_title")),
+      this._esc(this._t("ice_view_body", { name }))
+    );
+    this._sig = sig;
+    return true;
+  }
+
   _renderCharging(deviceId, entities) {
     const vin = this._deviceVin(deviceId);
     if (!vin) {
       this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
       return;
     }
+    if (this._renderIceNotice(deviceId, entities)) return;
 
     // Sessions come from a service response, not entity state, so they can't be
     // read synchronously off hass. Fetch once, then only re-fetch when a new
@@ -1568,7 +1616,7 @@ class BavarianDataCard extends HTMLElement {
     // Prefer the measured grid figure (imported / enriched sessions carry only
     // that); fall back to the battery-side energy for live-only sessions.
     const energyKwh = session.grid_kwh != null ? session.grid_kwh : session.energy_kwh;
-    const energy = energyKwh != null ? `${this._round(energyKwh, 1)} kWh` : "—";
+    const energy = energyKwh != null ? `${this._dec(energyKwh, 1)} kWh` : "—";
     const soc = this._socArc(session);
     const badge = this._locationBadge(session);
     const partial =
@@ -1602,7 +1650,7 @@ class BavarianDataCard extends HTMLElement {
   _solarTag(session) {
     const pct = session.energy_mix && session.energy_mix.solar_percent;
     if (pct == null) return "";
-    return `<span class="chg__tag chg__tag--sun">\u2600 ${this._round(
+    return `<span class="chg__tag chg__tag--sun">\u2600 ${this._dec(
       pct,
       0
     )}% ${this._t("ch_solar")}</span>`;
@@ -1622,7 +1670,7 @@ class BavarianDataCard extends HTMLElement {
     ]) {
       const value = mix[key];
       if (value == null || !(value > 0)) continue;
-      parts.push(`${this._t(label)} ${this._round(value, 1)}`);
+      parts.push(`${this._t(label)} ${this._dec(value, 1)}`);
     }
     return parts.length ? `${parts.join(" · ")} kWh` : "";
   }
@@ -1631,15 +1679,15 @@ class BavarianDataCard extends HTMLElement {
     const chart = this._powerCurveSvg(session.power_curve);
     const facts = [];
     if (session.peak_power_kw != null) {
-      facts.push([this._t("ch_peak"), `${this._round(session.peak_power_kw, 1)} kW`]);
+      facts.push([this._t("ch_peak"), `${this._dec(session.peak_power_kw, 1)} kW`]);
     }
     const avg = this._avgPowerKw(session);
-    if (avg != null) facts.push([this._t("ch_avg"), `${avg} kW`]);
+    if (avg != null) facts.push([this._t("ch_avg"), `${this._dec(avg, 1)} kW`]);
     // duration_s isn't in the service payload; derive it from the timestamps.
     const dur = this._durationLabel(session);
     if (dur) facts.push([this._t("ch_duration"), dur]);
     if (session.grid_kwh != null) {
-      facts.push([this._t("ch_grid"), `${this._round(session.grid_kwh, 1)} kWh`]);
+      facts.push([this._t("ch_grid"), `${this._dec(session.grid_kwh, 1)} kWh`]);
     }
     // Cost moved off the collapsed row to here, so it's kept for tariff users
     // without competing with the kWh for the row's headline figure.
@@ -1691,14 +1739,14 @@ class BavarianDataCard extends HTMLElement {
       if (i < pts.length - 1) stepped.push([pts[i + 1][0], pts[i][1]]);
     }
     const line = stepped
-      .map(([x, y]) => `${this._round(x, 1)},${this._round(y, 1)}`)
+      .map(([x, y]) => `${this._px(x)},${this._px(y)}`)
       .join(" ");
     const area = `${pad},${H - pad} ${line} ${W - pad},${H - pad}`;
     return `
       <svg class="chg__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
         <polygon points="${area}" class="chg__chart-fill"></polygon>
         <polyline points="${line}" class="chg__chart-line"></polyline>
-        <text x="${pad}" y="10" class="chg__chart-max">${this._round(yMax, 1)} kW</text>
+        <text x="${pad}" y="10" class="chg__chart-max">${this._dec(yMax, 1)} kW</text>
       </svg>
     `;
   }
@@ -1744,10 +1792,11 @@ class BavarianDataCard extends HTMLElement {
     if (!cost || cost.amount == null) {
       return `<span class="chg__cost--none">${this._t("ch_no_cost")}</span>`;
     }
-    const lang = _lang(this._hass);
+    const locale = _numberLocale(this._hass);
     try {
+      if (locale === null) throw new Error("number format: none");
       return this._esc(
-        new Intl.NumberFormat(lang, {
+        new Intl.NumberFormat(locale, {
           style: "currency",
           currency: cost.currency || "EUR",
           maximumFractionDigits: 2,
@@ -1755,7 +1804,7 @@ class BavarianDataCard extends HTMLElement {
       );
     } catch (e) {
       return this._esc(
-        `${this._round(cost.amount, 2)} ${cost.currency || ""}`.trim()
+        `${this._dec(cost.amount, 2)} ${cost.currency || ""}`.trim()
       );
     }
   }
@@ -1793,7 +1842,7 @@ class BavarianDataCard extends HTMLElement {
     const hours =
       (new Date(session.end).getTime() - new Date(session.start).getTime()) / 3600000;
     if (!(hours > 0)) return null;
-    return this._round(energyKwh / hours, 1);
+    return energyKwh / hours;
   }
 
   /* ---- month window ------------------------------------------------------
@@ -2162,7 +2211,7 @@ class BavarianDataCard extends HTMLElement {
   /** The "month in review" panel, built entirely from get_driving_summary. */
   _tripReview(summary) {
     if (!summary || !summary.total_km) return "";
-    const km = (v) => (v == null ? "—" : `${this._round(v, 0)} km`);
+    const km = (v) => (v == null ? "—" : `${this._dec(v, 0)} km`);
     const split = summary.split || {};
 
     // Headline tiles: distance with a month-over-month arrow, and trip count.
@@ -2171,12 +2220,13 @@ class BavarianDataCard extends HTMLElement {
     const deltaTxt =
       delta == null
         ? ""
-        : `<span class="tr__delta tr__delta--${delta >= 0 ? "up" : "down"}">${arrow} ${Math.abs(
-            this._round(delta, 0)
+        : `<span class="tr__delta tr__delta--${delta >= 0 ? "up" : "down"}">${arrow} ${this._dec(
+            Math.abs(delta),
+            0
           )}% ${this._t("tr_vs_last")}</span>`;
 
     const tiles = [
-      `<div class="tr__tile"><span class="tr__tile-val">${this._round(
+      `<div class="tr__tile"><span class="tr__tile-val">${this._dec(
         summary.total_km,
         0
       )} <i>km</i></span><span class="tr__tile-lbl">${this._t("tr_review")}</span>${deltaTxt}</div>`,
@@ -2200,14 +2250,14 @@ class BavarianDataCard extends HTMLElement {
         const loss = (1 - battSide / balance.kwh_per_100km) * 100;
         const lossTxt =
           loss >= 3 && loss <= 30
-            ? " · " + this._t("tr_charge_loss", { n: this._round(loss, 0) })
+            ? " · " + this._t("tr_charge_loss", { n: this._dec(loss, 0) })
             : "";
-        foot = `<span class="tr__tile-sub">${this._round(battSide, 1)} ${this._t(
+        foot = `<span class="tr__tile-sub">${this._dec(battSide, 1)} ${this._t(
           "tr_at_battery"
         )}${lossTxt}</span>`;
       }
       tiles.push(
-        `<div class="tr__tile"><span class="tr__tile-val">${this._round(
+        `<div class="tr__tile"><span class="tr__tile-val">${this._dec(
           balance.kwh_per_100km,
           1
         )} <i>kWh/100km</i></span><span class="tr__tile-lbl">${this._t(
@@ -2216,7 +2266,7 @@ class BavarianDataCard extends HTMLElement {
       );
     } else if (battSide != null) {
       tiles.push(
-        `<div class="tr__tile"><span class="tr__tile-val">${this._round(
+        `<div class="tr__tile"><span class="tr__tile-val">${this._dec(
           battSide,
           1
         )} <i>kWh/100km</i></span><span class="tr__tile-lbl">${this._t(
@@ -2226,7 +2276,7 @@ class BavarianDataCard extends HTMLElement {
     }
     if (summary.recuperation_kwh_per_100km != null) {
       tiles.push(
-        `<div class="tr__tile"><span class="tr__tile-val">${this._round(
+        `<div class="tr__tile"><span class="tr__tile-val">${this._dec(
           summary.recuperation_kwh_per_100km,
           1
         )} <i>kWh/100km</i></span><span class="tr__tile-lbl">${this._t(
@@ -2237,7 +2287,7 @@ class BavarianDataCard extends HTMLElement {
     if (summary.estimated_cost && summary.estimated_cost.amount != null) {
       const c = summary.estimated_cost;
       tiles.push(
-        `<div class="tr__tile"><span class="tr__tile-val">${this._round(c.amount, 2)} <i>${this._esc(
+        `<div class="tr__tile"><span class="tr__tile-val">${this._dec(c.amount, 2)} <i>${this._esc(
           c.currency || ""
         )}</i></span><span class="tr__tile-lbl">${this._t("tr_est_cost")}</span></div>`
       );
@@ -2334,7 +2384,7 @@ class BavarianDataCard extends HTMLElement {
     // the arrow trails off instead.
     const to = live ? "…" : this._esc(this._tripPlace(trip.end_place));
     const dist =
-      trip.distance_km != null ? `${this._round(trip.distance_km, 1)} km` : "—";
+      trip.distance_km != null ? `${this._dec(trip.distance_km, 1)} km` : "—";
     // In progress: a live badge in place of a classification (there is nothing to
     // classify until the trip lands) and a duration counted from the start.
     const cls = live
@@ -2382,7 +2432,7 @@ class BavarianDataCard extends HTMLElement {
     // dividing energy by distance in the card would print it anyway.
     const cons = trip.consumption_kwh_per_100km;
     if (cons != null) {
-      facts.push([this._t("tr_consumption"), `${this._round(cons, 1)} kWh/100km`]);
+      facts.push([this._t("tr_consumption"), `${this._dec(cons, 1)} kWh/100km`]);
     }
     const st = trip.stats || {};
     // BMW's recuperation figure is already an average per 100 km, not a total.
@@ -2390,7 +2440,7 @@ class BavarianDataCard extends HTMLElement {
     if (recup != null) {
       facts.push([
         this._t("tr_recuperation"),
-        `${this._round(recup, 1)} kWh/100km`,
+        `${this._dec(recup, 1)} kWh/100km`,
       ]);
     }
     const soc = this._socArc(trip);
@@ -3049,6 +3099,7 @@ class BavarianDataCard extends HTMLElement {
   /* ---- battery health --------------------------------------------------- */
 
   _renderHealth(deviceId, entities) {
+    if (this._renderIceNotice(deviceId, entities)) return;
     const name = this._config.title || this._deviceName(deviceId);
     // Everything the view needs already lives on the battery_health sensor
     // (state + attributes), so unlike the charging view there is no service to
@@ -3129,7 +3180,7 @@ class BavarianDataCard extends HTMLElement {
   _healthConfident(usable, nominal, vsNew, samples, trend) {
     const facts = [];
     if (nominal != null) {
-      facts.push([this._t("bh_nominal"), `${this._round(nominal, 1)} kWh`]);
+      facts.push([this._t("bh_nominal"), `${this._dec(nominal, 1)} kWh`]);
     }
     facts.push([this._t("bh_analysed"), this._t("bh_samples", { n: samples })]);
     const factRow = facts
@@ -3144,11 +3195,11 @@ class BavarianDataCard extends HTMLElement {
         <div class="bh__hero">
           ${this._healthRing(vsNew)}
           <div class="bh__hero-text">
-            <span class="bh__usable">${this._round(usable, 1)} <i>kWh</i></span>
+            <span class="bh__usable">${this._dec(usable, 1)} <i>kWh</i></span>
             <span class="bh__usable-lbl">${this._t("bh_usable")}</span>
             ${
               vsNew != null
-                ? `<span class="bh__vsnew">${this._t("bh_of_new", { p: this._round(vsNew, 0) })}</span>`
+                ? `<span class="bh__vsnew">${this._t("bh_of_new", { p: this._dec(vsNew, 0) })}</span>`
                 : ""
             }
           </div>
@@ -3169,12 +3220,12 @@ class BavarianDataCard extends HTMLElement {
     const circ = 2 * Math.PI * r;
     const p = pct == null ? null : Math.max(0, Math.min(100, pct));
     const dash = p == null ? 0 : (p / 100) * circ;
-    const label = p == null ? "—" : `${this._round(p, 0)}%`;
+    const label = p == null ? "—" : `${this._dec(p, 0)}%`;
     return `
       <svg class="bh__ring" viewBox="0 0 80 80" role="img">
         <circle class="bh__ring-track" cx="40" cy="40" r="${r}"></circle>
         <circle class="bh__ring-val" cx="40" cy="40" r="${r}"
-          stroke-dasharray="${this._round(dash, 1)} ${this._round(circ, 1)}"
+          stroke-dasharray="${this._px(dash)} ${this._px(circ)}"
           transform="rotate(-90 40 40)"></circle>
         <text x="40" y="45" class="bh__ring-text">${label}</text>
       </svg>
@@ -3206,13 +3257,13 @@ class BavarianDataCard extends HTMLElement {
     const sx = (x) => pad + ((x - xMin) / spanX) * (W - 2 * pad);
     const sy = (y) => H - pad - ((y - yMin) / spanY) * (H - 2 * pad);
     const line = points
-      .map((p) => `${this._round(sx(p[0]), 1)},${this._round(sy(p[1]), 1)}`)
+      .map((p) => `${this._px(sx(p[0]))},${this._px(sy(p[1]))}`)
       .join(" ");
     return `
       <svg class="bh__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
         <polyline points="${line}" class="chg__chart-line"></polyline>
-        <text x="${pad}" y="10" class="chg__chart-max">${this._round(yMax, 1)} kWh</text>
-        <text x="${pad}" y="${H - 3}" class="chg__chart-max">${this._round(yMin, 1)} kWh</text>
+        <text x="${pad}" y="10" class="chg__chart-max">${this._dec(yMax, 1)} kWh</text>
+        <text x="${pad}" y="${H - 3}" class="chg__chart-max">${this._dec(yMin, 1)} kWh</text>
       </svg>
     `;
   }
@@ -3225,6 +3276,7 @@ class BavarianDataCard extends HTMLElement {
       this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
       return;
     }
+    if (this._renderIceNotice(deviceId, entities)) return;
 
     const st = entities
       .map((id) => this._st(id))
@@ -3376,25 +3428,25 @@ class BavarianDataCard extends HTMLElement {
   _efBody(f, trend, profile) {
     const hero =
       f.nowKm != null
-        ? `<span class="ef__hero-val">${this._round(f.nowKm, 0)} <i>km</i></span>
+        ? `<span class="ef__hero-val">${this._dec(f.nowKm, 0)} <i>km</i></span>
            <span class="ef__hero-lbl">${this._t("ef_range_now")}${
              f.soc != null
-               ? " · " + this._t("ef_at_soc", { p: this._round(f.soc, 0) })
+               ? " · " + this._t("ef_at_soc", { p: this._dec(f.soc, 0) })
                : ""
            }</span>`
-        : `<span class="ef__hero-val">${this._round(f.fullKm, 0)} <i>km</i></span>
+        : `<span class="ef__hero-val">${this._dec(f.fullKm, 0)} <i>km</i></span>
            <span class="ef__hero-lbl">${this._t("ef_range_full", {
-             km: this._round(f.fullKm, 0),
+             km: this._dec(f.fullKm, 0),
            })}</span>`;
 
     let vsBmw = "";
     if (f.vsBmw != null && f.bmwKm != null) {
-      const p = Math.abs(this._round(f.vsBmw, 0));
-      const km = this._round(f.bmwKm, 0);
+      const p = Math.round(Math.abs(f.vsBmw));
+      const km = this._dec(f.bmwKm, 0);
       const key =
         p < 1 ? "ef_vs_bmw_same" : f.vsBmw > 0 ? "ef_vs_bmw_over" : "ef_vs_bmw_under";
       const tone = p < 1 ? "" : f.vsBmw > 0 ? " ef__vs--over" : " ef__vs--under";
-      vsBmw = `<span class="ef__vs${tone}">${this._t(key, { p, km })}</span>`;
+      vsBmw = `<span class="ef__vs${tone}">${this._t(key, { p: this._dec(p, 0), km })}</span>`;
     }
 
     const sideLabel =
@@ -3407,21 +3459,21 @@ class BavarianDataCard extends HTMLElement {
     const facts = [
       [
         this._t("ef_consumption"),
-        `${this._round(f.consumption, 1)} kWh/100 km`,
+        `${this._dec(f.consumption, 1)} kWh/100 km`,
         `${sideLabel} · ${windowLabel}`,
       ],
     ];
     if (f.loss != null && f.gridConsumption != null) {
       facts.push([
         this._t("ef_loss"),
-        `${this._round(f.loss, 0)} %`,
-        `${this._round(f.gridConsumption, 1)} kWh/100 km ${this._t("ef_side_grid")}`,
+        `${this._dec(f.loss, 0)} %`,
+        `${this._dec(f.gridConsumption, 1)} kWh/100 km ${this._t("ef_side_grid")}`,
       ]);
     }
     if (f.capacity != null) {
       facts.push([
         this._t("ef_capacity"),
-        `${this._round(f.capacity, 1)} kWh`,
+        `${this._dec(f.capacity, 1)} kWh`,
         f.capacitySource === "measured"
           ? this._t("ef_capacity_measured")
           : this._t("ef_capacity_bmw"),
@@ -3432,9 +3484,9 @@ class BavarianDataCard extends HTMLElement {
       const mix = profile.energy_mix || {};
       facts.push([
         this._t("ef_cost"),
-        `${this._round(profile.cost_per_100km, 2)}${currency}`,
+        `${this._dec(profile.cost_per_100km, 2)}${currency}`,
         mix.solar_percent != null
-          ? this._t("ef_solar", { p: this._round(mix.solar_percent, 0) })
+          ? this._t("ef_solar", { p: this._dec(mix.solar_percent, 0) })
           : "",
       ]);
     }
@@ -3493,21 +3545,19 @@ class BavarianDataCard extends HTMLElement {
         // "2026-09" -> "09": a bare month number reads the same in every
         // language, which a translated abbreviation would not.
         const label = String(entry.month || "").slice(5);
-        return `<rect class="ef__bar" x="${this._round(x, 1)}" y="${this._round(y, 1)}"
-                  width="${this._round(width, 1)}" height="${this._round(
-          Math.max(h, 1),
-          1
+        return `<rect class="ef__bar" x="${this._px(x)}" y="${this._px(y)}"
+                  width="${this._px(width)}" height="${this._px(
+          Math.max(h, 1)
         )}" rx="2"></rect>
-                <text class="ef__bar-lbl" x="${this._round(
-                  x + width / 2,
-                  1
+                <text class="ef__bar-lbl" x="${this._px(
+                  x + width / 2
                 )}" y="${H - 3}" text-anchor="middle">${this._esc(label)}</text>`;
       })
       .join("");
     return `
       <svg class="ef__chart" viewBox="0 0 ${W} ${H}" role="img">
         ${bars}
-        <text x="${pad}" y="9" class="chg__chart-max">${this._round(
+        <text x="${pad}" y="9" class="chg__chart-max">${this._dec(
       max,
       0
     )} kWh/100 km</text>
@@ -3518,6 +3568,30 @@ class BavarianDataCard extends HTMLElement {
   _round(n, dp) {
     const f = Math.pow(10, dp);
     return Math.round(n * f) / f;
+  }
+
+  // A figure the card worked out itself (a state object goes through _fmt),
+  // rounded to `dp` places and written in the user's number format. A bare
+  // `${number}` always prints a point, so a German dashboard read "19.8 kWh"
+  // right next to Home Assistant's "110,10 kWh". Display text only -- SVG
+  // coordinates go through _px.
+  _dec(n, dp) {
+    const num = Number(n);
+    if (!Number.isFinite(num)) return "—";
+    const v = this._round(num, dp) || 0; // never "-0"
+    const locale = _numberLocale(this._hass);
+    if (locale === null) return String(v);
+    try {
+      return v.toLocaleString(locale, { maximumFractionDigits: dp });
+    } catch (e) {
+      return String(v);
+    }
+  }
+
+  // An SVG coordinate: always a dot decimal, whatever the locale -- "18,4"
+  // inside points="…" would draw a different chart, not a German one.
+  _px(n) {
+    return this._round(n, 1);
   }
 
   _esc(s) {

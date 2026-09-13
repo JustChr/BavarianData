@@ -1,5 +1,7 @@
 # Battery health
 
+> 🇩🇪 [Deutsch](DE-Feature-Battery-Health)
+
 The integration learns your EV battery's **usable capacity** from the same
 recorded charging sessions used for [charging history](Feature-Charging-History-and-Cost)
 — no REST quota, all derived from the stream.

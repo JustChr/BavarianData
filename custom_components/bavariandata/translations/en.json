@@ -11,7 +11,7 @@
       },
       "manual": {
         "title": "Connect BMW CarData",
-        "description": "This streams your BMW or Mini vehicle data into Home Assistant.\n\n**First, set up CarData in the BMW portal** (skip if you already have a Client ID):\n\n1. Open the [BMW CarData portal]({portal_url}) and sign in. If CarData isn't available in your country, sign in via the [UK]({portal_uk}) or [German]({portal_de}) portal — the Client ID works everywhere.\n2. Create a **CarData Client** and copy the **Client ID** it shows you.\n3. Subscribe the client to **both** services: **CarData API** and **CarData Streaming**.\n\nDon't tick anything under **Data Selection** yet — after you authorize, the next screens let you choose which data to stream and hand you a ready-made portal snippet.\n\nThen paste the **Client ID** below.",
+        "description": "This streams your BMW or Mini vehicle data into Home Assistant.\n\n**First, set up CarData in the BMW portal** (skip if you already have a Client ID):\n\n1. Open the [BMW CarData portal]({portal_url}) and sign in. If CarData isn't available in your country, sign in via the [UK]({portal_uk}) or [German]({portal_de}) portal — the Client ID works everywhere.\n2. Create a **CarData Client** and copy the **Client ID** it shows you.\n3. Subscribe the client to **both** services: **CarData API** and **CarData Streaming**.\n\nDon't tick anything under **Data Selection** yet — after you authorize, the next screens let you choose which data to stream and turn it on with a one-click bookmarklet.\n\nThen paste the **Client ID** below.",
         "data": {
           "client_id": "Client ID"
         },
@@ -39,7 +39,7 @@
       },
       "select_clusters": {
         "title": "Choose streamed data",
-        "description": "You're connected. Now pick which clusters of vehicle data you want to stream. BMW has no API to set this — it's done on the portal's Data Selection page — so the next screen gives you a browser snippet that ticks exactly these clusters there. Diagnostic/technical fields stay hidden by default once data arrives.\n\nYou can change this any time later under Configure → Choose streamed data.",
+        "description": "You're connected. Now pick which clusters of vehicle data you want to stream. BMW has no API to set this — it lives behind the portal's browser session — so the next screen hands you the same one-click **Activate BMW data** bookmarklet guided setup uses. You run it on the portal's stream-setup page and it turns on exactly these clusters. Diagnostic/technical fields stay hidden by default once data arrives.\n\nYou can change this any time later under Configure → Choose streamed data.",
         "data": {
           "sections": "Data clusters"
         },
@@ -47,19 +47,30 @@
           "sections": "Leave the defaults for the recommended set, or tailor it to just the data you care about (e.g. only Electric vehicle and Vehicle status)."
         }
       },
-      "cluster_snippet": {
-        "title": "Portal data-selection snippet",
-        "description": "Last step. In the BMW portal, open **Data Selection** (`Datenauswahl ändern`) and click \"Load more\" until every field is listed. Open your browser console (F12 → Console) and paste this, then press Enter:\n\n```\n{snippet}\n```\n\nIt ticks only the checkboxes whose technical descriptor is in your chosen clusters (leaving any other selections as-is) and logs how many it matched. Save the selection in the portal, then press Submit here to finish. Trigger a lock/unlock in the MyBMW app to prompt the first update."
+      "activate_stream_paste": {
+        "title": "Activate your data, then paste the result",
+        "description": "1. Open the **[BavarianData activation page]({url})**.\n2. Drag the **Activate BMW data** button to your bookmarks bar (once).\n3. Open the **BMW or MINI portal**, sign in, and go to a vehicle's **stream setup** page.\n4. Click the **Activate BMW data** bookmark. When it finishes, press **Copy** in the box it shows.\n5. Paste that result below and press **Submit**.\n\nEverything runs in your own browser — no password or session ever leaves it. Already ticked these fields in the portal yourself? Leave the box empty and press **Submit** to finish.\n\n{error}",
+        "data": {
+          "result": "Activation result"
+        },
+        "data_description": {
+          "result": "The BAVARIANDATA… text the Copy button put on your clipboard. Leave it empty to finish without activating."
+        }
+      },
+      "activate_stream_done": {
+        "title": "Stream activated",
+        "description": "Done — the activator turned on **{added_count}** new field(s); **{field_count}** fields are now streaming for this vehicle.{error}\n\nPress **Submit** to finish setup, then trigger a lock/unlock in the MyBMW app to prompt the first update."
       }
     },
     "progress": {
       "wait_for_activation": "**Activate your data in the browser**\n\nMake sure you've already created a **CarData Client** in the BMW portal subscribed to **both CarData API and CarData Streaming** — the activator finds that client, it doesn't create one.\n\n1. Open the **[BavarianData setup page]({url})**.\n2. Drag the **Activate BMW data** button to your bookmarks bar (once).\n3. Open the **BMW or MINI portal**, sign in, and go to a vehicle's **stream setup** page.\n4. Click the **Activate BMW data** bookmark.\n\nIt finds your Client ID, checks your vehicle, and turns on the data stream — all in your own browser, nothing to copy. This dialog continues automatically the moment it reports back. There's nothing to click here.",
-      "wait_for_authorization": "**Approve Home Assistant on the BMW/MINI sign-in page**\n\n1. Open the **[authorization page]({verification_url})** and sign in with your BMW/MINI account.\n2. Type in this code when asked: **{user_code}**\n3. Confirm the device.\n\n**Enter the code by hand** — don't use a link with the code already in the URL, and make sure no old code is pre-filled. BMW's server often wrongly records a *decline* for pre-filled codes. If it fails anyway, retry in a private/incognito window.\n\nLeave this dialog open — it continues automatically the moment you approve. There's nothing to click here."
+      "wait_for_authorization": "**Approve Home Assistant on the BMW/MINI sign-in page**\n\n1. Open the **[authorization page]({verification_url})** and sign in with your BMW/MINI account.\n2. Type in this code when asked: **{user_code}**\n3. Confirm the device.\n\n**Enter the code by hand** — don't use a link with the code already in the URL, and make sure no old code is pre-filled. BMW's server often wrongly records a *decline* for pre-filled codes. If it fails anyway, retry in a private/incognito window.\n\nLeave this dialog open — it continues automatically the moment you approve. There's nothing to click here.",
+      "wait_for_stream_activation": "**Activate the selected data in your browser**\n\n1. Open the **[BavarianData activation page]({url})**.\n2. Drag the **Activate BMW data** button to your bookmarks bar (once).\n3. Open the **BMW or MINI portal**, sign in, and go to a vehicle's **stream setup** page.\n4. Click the **Activate BMW data** bookmark.\n\nIt turns on the fields for your chosen clusters — all in your own browser, nothing to copy. This dialog continues automatically the moment it reports back. There's nothing to click here."
     },
     "error": {
       "device_code_failed": "BMW rejected the device authorization request ({error}). Check that the Client ID is correct and subscribed to both CarData services, then try again.",
-      "invalid_result": "That result couldn't be read. Run the snippet on the BMW portal page and paste exactly what it copied to your clipboard.",
-      "no_client_id": "No API client was found on your account. Create a CarData Client in the BMW portal, then run the snippet again."
+      "invalid_result": "That result couldn't be read. Run the Activate BMW data bookmark on the BMW portal page and paste exactly what it copied to your clipboard.",
+      "no_client_id": "No API client was found on your account. Create a CarData Client in the BMW portal, then run the Activate BMW data bookmark again."
     },
     "abort": {
       "reauth_successful": "Re-authorization successful — BMW CarData is connected again.",
@@ -2794,9 +2805,13 @@
       "title": "BMW CarData API quota exhausted",
       "description": "The {limit} requests-per-24h BMW CarData REST limit has been reached, so on-demand data (basic info, charging history, tyre diagnosis, vehicle image) can't be refreshed right now. The streaming data keeps flowing. The quota frees up again at {next_reset}."
     },
+    "motorcycle_unsupported": {
+      "title": "BMW motorcycles can't stream their data",
+      "description": "{vehicle} is a BMW Motorrad. BMW CarData lists motorcycles on the account, but BMW does not stream any data for them, so BavarianData has nothing to show and its entities stay empty. This is a limit on BMW's side, not a setup mistake. You can remove the integration entry for this vehicle, or ignore this notice if the account also has a car."
+    },
     "stream_coverage_gaps": {
       "title": "A selected data cluster has never streamed",
-      "description": "For {vehicle}, nothing at all from {clusters} has arrived in {days} days ({count} descriptor(s), e.g. {descriptors}). A cluster that stays completely silent usually means it isn't ticked and saved in the BMW portal's Data Selection, or your car doesn't produce that data. Re-check the Data Selection using the snippet under Configure, or unselect the cluster. Clusters that deliver only some of their fields are normal and never raise this. Run the get_coverage_report service for the full list."
+      "description": "For {vehicle}, nothing at all from {clusters} has arrived in {days} days ({count} descriptor(s), e.g. {descriptors}). A cluster that stays completely silent usually means it isn't ticked and saved in the BMW portal's Data Selection, or your car doesn't produce that data. Re-activate it under Configure → Choose streamed data, or unselect the cluster. Clusters that deliver only some of their fields are normal and never raise this. Run the get_coverage_report service for the full list."
     },
     "stream_no_data": {
       "title": "No BMW CarData stream data received",

@@ -47,7 +47,7 @@ Home  (landing / nav)
 │   ├─ 1. BMW portal setup (client ID + scopes)
 │   ├─ 2. Install via HACS
 │   ├─ 3. Add & authorize the integration
-│   ├─ 4. Choose which data to stream (cluster picker + snippet)
+│   ├─ 4. Choose which data to stream (cluster picker + activator)
 │   └─ 5. Add the card to a dashboard (no dashboard is auto-created)
 ├─ The dashboard card         [How-to + Reference]
 │   ├─ Placing the card (Add card → BavarianData Card)
@@ -101,8 +101,8 @@ restructure) · ❌ missing · 📷 needs screenshot.
 | `authorize` | Device link + user code | 🟡 | 📷 |
 | `authorize_failed` | Access-denied recovery | 🟡 | 📷 |
 | `tokens` | Token exchange (auto-advance) | 🟡 | — |
-| `select_clusters` | Cluster picker (manual path) | 🟡 | 📷 |
-| `cluster_snippet` | Generated console snippet (manual path) | 🟡 | 📷 |
+| `select_clusters` | Cluster picker (manual path), then the activator | 🟢 Getting-Started-3 → "Manual path" + Getting-Started-4 | 📷 (`bavariandata-cluster-picker`) |
+| `activate_stream_wait` / `_paste` / `_done` | Manual path: the same activator screens as reconfigure (one shared mixin; the paste box may be left empty at first-time setup) | 🟢 Getting-Started-4 → "Picking clusters and switching them on" | 📷 shared with the reconfigure rows below |
 | `reauth` | Re-authorize with BMW | 🟡 | 📷 |
 
 ### BMW portal steps — external, shown in Getting-Started 1/3/4
@@ -247,6 +247,8 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Commute chains (a stop on the way) + default type | 🟢 Feature-Trips → "Classification" + Settings-Reference → "Trips" |
 | Deferred close when the position stream goes quiet | 🟢 Feature-Trips → "When the position stream goes quiet" |
 | Live "trip in progress" (entity + hero badge + trips row) | 🟢 Feature-Trips → "Seeing the drive that's happening now" + The-Dashboard-Card |
+| Petrol / diesel / plug-in hybrid: battery-only entities not created (and removed on upgrade), battery card views explain themselves, fuel volume with statistics, hybrid trips withhold kWh/100 km | 🟢 Feature-Entities-and-Devices → "Derived & diagnostic entities" + The-Dashboard-Card → "Overview" + Feature-Trips → "How consumption is measured" |
+| BMW Motorrad unsupported (Repairs warning) | 🟢 Troubleshooting-and-FAQ → "Does BavarianData work with a BMW motorcycle?" + Getting-Started-1 → "Requirements" + README |
 | Energy dashboard & long-term statistics | 🟡 |
 | Export (CSV / HTML report) | 🟡 |
 | Charging events (`bavariandata_charging_*`) | 🟡 |
@@ -305,7 +307,16 @@ PR. (Proposed addition to `CLAUDE.md`.)
    car is actually being driven — grab them opportunistically on a real drive).
    The `Trips` settings screen was captured but showed a real work-zone name
    (redact before use).
-6. ⬜ German pass.
+6. ✅ German pass — every page has a German counterpart in `docs/wiki/de/`,
+   named `DE-<English page>.md` and published flat beside the English ones (a wiki
+   page name is global). The sidebar carries both languages and each page links to
+   its counterpart. German sections repeat the **English** section ids as
+   `<a id>` anchors, so cross-links read the same in both languages.
+   `tests/test_wiki_links.py` fails on a broken page or section link, a missing
+   counterpart, or a page missing from the sidebar. UI labels follow the German
+   `translations/de.json` and the card's German strings; screenshots stay English.
+   **Keep them in lockstep: a change to an English page lands in its German page
+   in the same change.**
 
 ### Publishing the staged Wiki — done
 
@@ -325,4 +336,4 @@ clone/push to `…/BavarianData.wiki.git` 404s and there is no API to force it.)
 Every 🟡 row in the matrix is now written English prose in `docs/wiki/`, and the
 ❌ rows are covered too (incl. `get_coverage_report`, which the README table used
 to omit — the README no longer carries a services table at all). Remaining work
-is the two ⬜ passes above: screenshots and German.
+is the screenshot pass above; the German pass is done.

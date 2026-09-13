@@ -15,12 +15,19 @@ along as the ``items`` attribute, and is what gets restored after a restart --
 the count alone could not give the list back, and these descriptors arrive
 rarely.
 
+The structure usually arrives as **JSON text**, not a decoded list: that is what
+the live i5 delivered, and it is also what Home Assistant restores after a restart
+from a run that stored the rejected string as the native value. Text that parses
+to a list or mapping is treated as that structure; any other string is a plain
+value.
+
 Home Assistant-free on purpose, so the rule is unit-tested; ``sensor.py`` applies
 it.
 """
 
 from __future__ import annotations
 
+import json
 from typing import Any, Mapping, Optional, Tuple, Union
 
 ITEMS_ATTRIBUTE = "items"
@@ -33,15 +40,31 @@ def structured_state(value: Any) -> Tuple[Any, Optional[Structure]]:
 
     A list is shown as its length and exposed whole. A mapping has no count
     worth showing, so its state is ``None`` (unknown) but it is still exposed
-    rather than dropped. Anything else is a plain value and passes through with
-    no items.
+    rather than dropped. A string holding a JSON list or object counts as that
+    structure. Anything else is a plain value and passes through with no items.
     """
 
+    value = _decoded(value)
     if isinstance(value, list):
         return len(value), value
     if isinstance(value, dict):
         return None, value
     return value, None
+
+
+def _decoded(value: Any) -> Any:
+    """``value`` decoded when it is JSON text for a list or mapping, else as-is."""
+
+    if not isinstance(value, str):
+        return value
+    text = value.strip()
+    if not text or text[0] not in "[{":
+        return value
+    try:
+        parsed = json.loads(text)
+    except ValueError:
+        return value
+    return parsed if isinstance(parsed, (list, dict)) else value
 
 
 def restored_items(attributes: Optional[Mapping[str, Any]]) -> Optional[Structure]:

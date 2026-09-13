@@ -12,7 +12,7 @@ user's personal BMW client ID. Domain: `bavariandata`. Repo:
   - `device_flow.py` — OAuth 2.0 device-authorization flow (no HA imports; unit-testable).
   - `stream.py` — MQTT streaming client (paho-mqtt).
   - `coordinator.py` — central state: token refresh, stream lifecycle, quota, charging-session tracking + `bavariandata_charging_*` events, derived charged-energy sensors.
-  - `config_flow.py` — setup wizard: client ID → device auth → cluster picker (generates a browser-console snippet; BMW has **no API** for Data Selection, it's portal-only).
+  - `config_flow.py` — setup wizard: client ID → device auth → cluster picker → in-browser bookmarklet activator (shared by guided, manual and Configure via `_StreamActivatorFlow`; BMW has **no API** for Data Selection, it's portal-only).
   - `sensor.py` / `binary_sensor.py` / `image.py` / `device_tracker.py` / `entity.py` — entity platforms. One device per VIN.
   - `descriptors.py`, `keys.py`, `units.py` — descriptor → entity mapping; `keys.py` derives the HA `translation_key` and is shared by runtime **and** generators so they can't drift.
   - `www/bavariandata-card.js` — bundled Lovelace card (vanilla JS, registered automatically by `__init__.py`; no build step). Groups entities via their `cluster`/`category` attributes, not names.
@@ -76,7 +76,9 @@ option key, event, or derived entity needs its Wiki page/row — and, where it's
 visible screen, a screenshot (capture against the live HA instance; force English
 first). Update the coverage matrix in [`docs/documentation-plan.md`](docs/documentation-plan.md)
 too — that matrix is the definition of "documented everything," and reviewing it
-is how you catch a gap. English is the source language; German is a fast-follow.
+is how you catch a gap. English is the source language; every page has a German
+counterpart in `docs/wiki/de/DE-<page>.md` that changes **in the same commit**
+(`tests/test_wiki_links.py` checks links, anchors and the EN↔DE pairing).
 
 ## Releases
 

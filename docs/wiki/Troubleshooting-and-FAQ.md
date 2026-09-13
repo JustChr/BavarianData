@@ -1,5 +1,7 @@
 # Troubleshooting & FAQ
 
+> 🇩🇪 [Deutsch](DE-Troubleshooting-and-FAQ)
+
 ## Onboarding fails with "access denied"
 
 <a id="onboarding-fails-with-access-denied"></a>
@@ -140,6 +142,14 @@ running, disconnect it.
 **Read-only.** CarData cannot send commands, so this integration can't lock,
 precondition, or otherwise control the car. Automations act on external devices
 in response to the car's data — see [Events & blueprints](Feature-Automations).
+
+## Does BavarianData work with a BMW motorcycle?
+
+No. BMW's CarData guide says streaming is not available for **BMW Motorrad**. A
+motorcycle can still be mapped to the account and pass setup, so its device would
+simply stay empty. When the integration sees a motorcycle in the vehicle's basic
+data, it raises a warning under **Settings → Repairs** that says so. There is
+nothing to fix on your side; remove the entry if the account has no car.
 
 ## Download diagnostics
 

@@ -1,5 +1,7 @@
 # Settings reference
 
+> 🇩🇪 [Deutsch](DE-Settings-Reference)
+
 All settings live under the integration's **Configure** menu: **Settings →
 Devices & Services → BavarianData → Configure**. Every action step and every
 option is listed here.

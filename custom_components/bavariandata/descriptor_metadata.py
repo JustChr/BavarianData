@@ -2102,8 +2102,8 @@ DESCRIPTOR_META: dict[str, dict] = {
     'vehicle.drivetrain.fuelSystem.remainingFuel': {
         "section": 'status',
         "category": 'Range',
-        "device_class": None,
-        "state_class": None,
+        "device_class": 'volume_storage',
+        "state_class": 'measurement',
         "unit": None,
         "options": [],
         "entity_category": None,

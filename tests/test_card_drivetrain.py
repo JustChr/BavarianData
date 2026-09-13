@@ -178,3 +178,71 @@ def test_nothing_streamed_yet_keeps_the_electric_layout():
 def test_configured_drivetrain_wins():
     assert _render(I5, {"drivetrain": "ice"})["drivetrain"] == "ice"
     assert _render(M2, {"drivetrain": "auto"})["drivetrain"] == "ice"
+
+
+# Renders one of the battery views. A service call never resolves, so a view
+# that reached its fetch shows its loading state rather than the notice.
+_VIEW_HARNESS = r"""
+const fs = require("fs");
+globalThis.HTMLElement = class {};
+globalThis.customElements = { define() {}, get() {}, whenDefined() {} };
+globalThis.window = globalThis;
+console.info = () => {};
+const src = fs.readFileSync(process.argv[1], "utf8");
+const Card = new Function(src + "\nreturn BavarianDataCard;")();
+const input = JSON.parse(fs.readFileSync(0, "utf8"));
+const card = Object.create(Card.prototype);
+card._config = input.config;
+card._hass = {
+  states: input.states,
+  language: "en",
+  locale: { language: "en" },
+  devices: { device: { name: "M2", identifiers: [["bavariandata", "WBS1"]] } },
+  callService: () => new Promise(() => {}),
+};
+card.shadowRoot = { innerHTML: "", querySelectorAll: () => [], querySelector: () => null };
+card._wireTaps = () => {};
+card._styles = () => "";
+const entities = Object.keys(input.states);
+const method = { charging: "_renderCharging", health: "_renderHealth", efficiency: "_renderEfficiency" }[input.config.view];
+card[method]("device", entities);
+process.stdout.write(JSON.stringify({ html: card.shadowRoot.innerHTML }));
+"""
+
+
+def _render_view(states: dict, view: str, config: dict | None = None) -> str:
+    states = {entity_id: {**st, "entity_id": entity_id} for entity_id, st in states.items()}
+    result = subprocess.run(
+        [NODE, "-e", _VIEW_HARNESS, str(_CARD)],
+        input=json.dumps({"states": states, "config": {"view": view, **(config or {})}}),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+        timeout=60,
+    )
+    return json.loads(result.stdout)["html"]
+
+
+def test_battery_views_explain_themselves_on_a_petrol_car():
+    for view in ("charging", "health", "efficiency"):
+        html = _render_view(M2, view)
+        assert "Nothing to show for this car" in html, view
+        assert "M2 runs on fuel alone" in html, view
+
+
+def test_battery_views_are_untouched_on_an_electric_car():
+    for view in ("charging", "health", "efficiency"):
+        html = _render_view(I5, view)
+        assert "Nothing to show for this car" not in html, view
+
+
+def test_a_plug_in_hybrid_keeps_its_battery_views():
+    for view in ("charging", "health", "efficiency"):
+        assert "Nothing to show for this car" not in _render_view(PHEV, view), view
+
+
+def test_the_petrol_notice_is_escaped():
+    html = _render_view(M2, "health", {"title": "<b>M2</b>"})
+    assert "<b>" not in html
+    assert "&lt;b&gt;M2&lt;/b&gt;" in html

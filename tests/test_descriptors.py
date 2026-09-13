@@ -134,26 +134,3 @@ def test_base_scopes_keep_coarse_streaming_scope():
     # coarse read scope, so granular selections must keep it.
     assert "cardata:streaming:read" in D.BASE_SCOPES
     assert "cardata:streaming:read" in D.build_scope(["tire"]).split(" ")
-
-
-def _embedded_wanted(snippet: str) -> list[str]:
-    import json as _json
-
-    anchor = "const wanted = new Set("
-    idx = snippet.index(anchor) + len(anchor)
-    value, _end = _json.JSONDecoder().raw_decode(snippet, idx)
-    return value
-
-
-def test_build_portal_snippet_matches_descriptors_exactly():
-    snippet = D.build_portal_snippet(["tire"])
-    assert D._IDS_MARKER not in snippet  # placeholder fully substituted
-    assert snippet.startswith("(() =>")
-    # The portal matches the raw descriptor column, so the embedded set is
-    # exactly the selected clusters' descriptors — no fuzzy display names.
-    wanted = set(_embedded_wanted(snippet))
-    assert wanted == set(D.descriptors_for_sections(["tire"]))
-
-
-def test_build_portal_snippet_empty_selection_matches_nothing():
-    assert _embedded_wanted(D.build_portal_snippet([])) == []

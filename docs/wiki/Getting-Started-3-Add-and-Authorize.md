@@ -1,5 +1,7 @@
 # 3. Add & authorize the integration
 
+> 🇩🇪 [Deutsch](DE-Getting-Started-3-Add-and-Authorize)
+
 You need the portal prep from [step 1](Getting-Started-1-BMW-Portal-Setup) done
 first: a **CarData Client** created and subscribed to **both** CarData API and
 CarData Streaming. That applies to **both** setup paths below — the guided path
@@ -25,13 +27,13 @@ and **how the stream is switched on**:
 | | **Guided** (recommended) | **Manual** |
 | --- | --- | --- |
 | Client ID | discovered for you | you copy & paste it |
-| Switching on the stream | one click — an **Activate BMW data** bookmarklet you run on the portal | pick clusters in Home Assistant, then run a console snippet on the portal's **Data Selection** page |
+| Switching on the stream | one click — an **Activate BMW data** bookmarklet you run on the portal, before authorizing | the same bookmarklet, after authorizing and picking clusters |
 | Which fields turn on | a sensible **default** set (fine-tune later) | **exactly** the clusters you tick |
-| Best when | you just want it working with no copying | you want to choose clusters up front, or the bookmarklet can't run in your browser |
+| Best when | you just want it working with no copying | you want to choose clusters up front |
 
 You can always change the streamed clusters afterwards from
-**Configure → Choose streamed data** (which uses the same one-click activator) —
-see [step 4](Getting-Started-4-Choose-Data).
+**Configure → Choose streamed data**, which uses the same one-click activator
+again — see [step 4](Getting-Started-4-Choose-Data).
 
 ## Guided path
 
@@ -90,9 +92,10 @@ see [step 4](Getting-Started-4-Choose-Data).
    </p>
 
 2. Continue with **device authorization** (below).
-3. When authorization succeeds, setup moves straight into the **cluster picker**,
-   where you choose clusters and get a ready-made snippet for the portal's Data
-   Selection page. Continue with [step 4](Getting-Started-4-Choose-Data).
+3. When authorization succeeds, setup moves straight into the **cluster picker**.
+   Choose your clusters, then run the **Activate BMW data** bookmarklet exactly as
+   on the [guided path](#guided-path). Continue with
+   [step 4](Getting-Started-4-Choose-Data).
 
 ## Device authorization (both paths)
 

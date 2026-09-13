@@ -215,9 +215,21 @@ def test_device_class_units_are_consistent():
         "battery",
         "volume_storage",
     }
-    for meta in META.values():
-        if meta["device_class"] in unit_required:
-            assert meta["unit"], f"{meta['device_class']} without unit"
+    # Classified on purpose with the unit left to the stream: BMW documents the
+    # tank in "litres or gallons", and pinning L would mislabel a US car.
+    unit_from_stream = {"vehicle.drivetrain.fuelSystem.remainingFuel"}
+    for descriptor, meta in META.items():
+        if meta["device_class"] in unit_required and descriptor not in unit_from_stream:
+            assert meta["unit"], f"{descriptor}: {meta['device_class']} without unit"
+
+
+def test_fuel_volume_is_classified_without_pinning_litres():
+    meta = META["vehicle.drivetrain.fuelSystem.remainingFuel"]
+    assert (meta["device_class"], meta["state_class"], meta["unit"]) == (
+        "volume_storage",
+        "measurement",
+        None,
+    )
 
 
 def test_diagnostic_fields_are_disabled_by_default():

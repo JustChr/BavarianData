@@ -94,7 +94,7 @@ from .tyre_store import TyreStore
 from .history.backfill import StatisticsPublisher
 from .bridge import REPUBLISH_INTERVAL_S, VehicleBridge, async_clear_published
 from .descriptor_metadata import DESCRIPTOR_META
-from .registry_repair import entities_to_reenable
+from .registry_repair import entities_to_reenable, ev_entities_to_remove
 from .evcc import ALL_TOPICS, BridgeConfig, bridge_payloads, evcc_yaml
 from .history.export import (
     MIME_CSV,
@@ -1851,6 +1851,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             entity_id,
         )
         entity_registry.async_update_entity(entity_id, disabled_by=None)
+
+    # Drop the battery-only sensors a petrol or diesel car was given before they
+    # were gated on a high-voltage battery. They can never hold a value, and the
+    # sensor platform re-creates whatever the registry lists, so without this
+    # they would stay "unknown" forever. Decided on the persisted coverage record,
+    # which needs a fuel system seen *and* no battery ever seen; removal (unlike
+    # a ``disabled_by`` change) does not reload the entry.
+    for entity_id in ev_entities_to_remove(
+        er.async_entries_for_config_entry(entity_registry, entry.entry_id),
+        coordinator.is_combustion_only,
+    ):
+        _LOGGER.info(
+            "Removing %s: this car has a fuel system and no high-voltage battery",
+            entity_id,
+        )
+        entity_registry.async_remove(entity_id)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

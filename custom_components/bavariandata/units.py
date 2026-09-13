@@ -44,6 +44,7 @@ CANONICAL_UNITS: FrozenSet[str] = frozenset(
         "A",
         "kPa",
         "L",
+        "gal",
         "m",
         "min",
         "s",
@@ -62,6 +63,11 @@ UNIT_ALIASES: Dict[str, str] = {
     "celsius": "°C",
     "degrees": "°",
     "l": "L",
+    # The catalogue documents the tank in "litres or gallons". Only the litre
+    # spelling has been seen (an F87 M2 streams ``l``); these cover the other
+    # half without guessing past Home Assistant's own symbols.
+    "gallon": "gal",
+    "gallons": "gal",
     # Stream payload. Observed live on a G42 and an iX (1,034 arrivals of
     # ``kpa`` while the catalogue for the same descriptors says ``kPa``).
     "kpa": "kPa",

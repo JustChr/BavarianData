@@ -12,7 +12,6 @@ never drift apart. The data comes from the generated
 
 from __future__ import annotations
 
-import json
 from collections.abc import Iterable
 
 try:  # normal case: imported as part of the package
@@ -169,8 +168,8 @@ def build_scope(
 
     Note: BMW's device-code endpoint rejects the granular streaming scopes with
     ``400 invalid_request`` (see docs/reference/stream-scope-investigation.md), so
-    this is retained for reference/tests only — the runtime uses the portal
-    snippet (:func:`build_portal_snippet`) instead.
+    this is retained for reference/tests only — the runtime activates fields in
+    the portal with the in-browser activator (``onboarding.py``) instead.
     """
 
     scopes = list(base_scopes)
@@ -181,50 +180,3 @@ def build_scope(
         )
     )
     return " ".join(scopes)
-
-
-# Injected marker (not a JS/format token) so the template stays valid JS.
-_IDS_MARKER = "__CARDATA_IDS__"
-
-# The BMW portal's Data Selection page is a table whose "Technischer Beschreiber"
-# column is the raw descriptor. Each checkbox <label> lives in a cell
-# (``div.css-k008qs``) next to a <p> holding that descriptor, so the cell's text
-# is exactly the descriptor. We match that against the selected clusters' set.
-_PORTAL_SNIPPET_TEMPLATE = """(() => {
-  const wanted = new Set(__CARDATA_IDS__);
-  const labels = [...document.querySelectorAll('.css-k008qs label.chakra-checkbox')];
-  let matched = 0, checked = 0;
-  labels.forEach(label => {
-    const cell = label.parentElement;              // div.css-k008qs (label + descriptor <p>)
-    const descriptor = (cell ? cell.textContent : '').replace(/\\s+/g, '');
-    if (!wanted.has(descriptor)) return;
-    matched++;
-    const input = label.querySelector('input.chakra-checkbox__input[type="checkbox"]');
-    if (!input || input.disabled || input.checked) return;
-    label.click();
-    if (!input.checked) { const c = label.querySelector('.chakra-checkbox__control'); if (c) c.click(); }
-    if (!input.checked) {
-      input.checked = true;
-      ['click', 'input', 'change'].forEach(t => input.dispatchEvent(new Event(t, { bubbles: true })));
-    }
-    if (input.checked) checked++;
-  });
-  console.log(`Matched ${matched} of ${labels.length} attributes for your clusters; newly checked ${checked}. Existing selections were left as-is; save in the portal.`);
-})();"""
-
-
-def build_portal_snippet(
-    sections: Iterable[str], *, include_diagnostic: bool = False
-) -> str:
-    """Return a browser-console snippet that ticks the selected clusters.
-
-    Run in the BMW portal's Data Selection page, it checks only the checkboxes
-    whose descriptor is in the selected clusters (matched exactly against the
-    portal's technical-descriptor column), leaving other selections untouched,
-    and logs how many it matched.
-    """
-
-    ids = descriptors_for_sections(sections, include_diagnostic=include_diagnostic)
-    return _PORTAL_SNIPPET_TEMPLATE.replace(
-        _IDS_MARKER, json.dumps(sorted(ids), ensure_ascii=False)
-    )

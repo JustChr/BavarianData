@@ -1,5 +1,7 @@
 # Events & automation blueprints
 
+> 🇩🇪 [Deutsch](DE-Feature-Automations)
+
 BavarianData streams data in real time, so it's built for automations that react
 the instant something changes rather than on a polling cycle.
 

@@ -9,6 +9,57 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **The card's charging, battery-health and efficiency views explain themselves
+  on a petrol or diesel car.** They used to sit empty, which looks like a fault.
+  They now say there is nothing to show for a car that runs on fuel alone, and
+  point to the card editor's **Drivetrain** setting in case the car does plug in.
+  Card **1.13.0**.
+- **The fuel in the tank now has long-term statistics.** It had no device class,
+  so Home Assistant kept no history for it. It is now a volume sensor in whatever
+  unit the car sends — litres, or gallons on a car that reports them — shown as a
+  whole number, since BMW calls the reading accurate to about 6 litres.
+- **A BMW motorcycle gets a notice under Settings → Repairs.** BMW lists BMW
+  Motorrad bikes in CarData but streams no data for them, so setup went through
+  and the device then stayed empty with no explanation.
+
+### Changed
+- **Manual setup switches the stream on the same way guided setup does.** After
+  you pick your clusters, it now runs the one-click **Activate BMW data**
+  bookmarklet instead of handing you a console snippet to paste into the portal's
+  Data Selection page. Guided setup, manual setup and **Configure → Choose
+  streamed data** now all use the same screens. If you already ticked the fields
+  in the portal yourself, leave the result box empty and press **Submit**.
+- **Plug-in hybrid trips no longer show a kWh/100 km figure.** A trip's energy is
+  the drop in battery charge, but a hybrid may have driven part of the distance on
+  fuel, so dividing the two read far too low. The trip keeps its energy; the rate
+  is left blank and stays out of the monthly average.
+
+### Fixed
+- **Petrol and diesel cars no longer get electric-car sensors.** The
+  state-of-charge estimate, charged energy and charging energy and cost sensors
+  were created for every car, so a petrol or diesel car had up to ten of them
+  stuck at *unknown*. They now appear only once the car sends high-voltage battery
+  data. On a car that has sent fuel data and never any battery data, the existing
+  ones are removed on the first start after updating; their old history may then
+  show under **Developer tools → Statistics**, where it can be deleted.
+- **Condition Based Service and Check Control messages now really show their
+  data.** Beta.9 said it fixed this, but it didn't: it expected BMW to send a
+  list, and BMW sends the list as text. Home Assistant kept logging the same
+  "longer than 255" error on every start and kept showing *unknown*. The text is
+  now read as the list it contains, so the state is the **number of entries** and
+  the full list is in the **`items`** attribute, as beta.9 described. Installs
+  that already stored the rejected text fix themselves on the first start after
+  updating; nothing to wait for.
+- **The card wrote its own figures with a decimal point on a German
+  dashboard.** Consumption, charged energy, capacity, trip distances and costs
+  that the card works out itself read "19.8" and "0.2 kWh" right next to Home
+  Assistant's "110,10 kWh". They now follow your profile's language and *Number
+  format* setting, like every entity state does.
+- **Tyre pressures showed two decimals** ("260,00 kPa"). BMW reports whole kPa,
+  so they now show as "260 kPa", like distances already do. A display precision
+  you set yourself on an entity is kept.
+
 ## [0.9.9-beta.9] - 2026-09-13
 
 ### Fixed

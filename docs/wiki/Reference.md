@@ -1,5 +1,7 @@
 # Deep reference
 
+> 🇩🇪 [Deutsch](DE-Reference)
+
 Technical reference material, kept in the repository and (for the field
 catalogue) generated from BMW's own exports so it can't drift.
 

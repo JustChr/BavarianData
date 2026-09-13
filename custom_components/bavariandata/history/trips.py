@@ -105,6 +105,10 @@ class Trip:
     # records predating timestamps, all not. Empty unless the user opted into
     # route recording (``trip_track``) -- the only coordinates the layer persists.
     track: list[list[float]] = field(default_factory=list)
+    # True when the car is a plug-in hybrid. Its energy is still the battery
+    # drop, but the distance may have been driven partly on fuel, so dividing
+    # one by the other reads low -- see ``consumption_kwh_per_100km``.
+    hybrid: bool = False
 
     @property
     def id(self) -> str:
@@ -138,8 +142,16 @@ class Trip:
         the record carries both SoC readings, which is exactly when the energy
         was derived from them; a car that one day reports its own trip energy
         directly is not held to a resolution limit that isn't its.
+
+        ``None`` on a plug-in hybrid too. The battery drop is real, but nothing
+        says how much of the distance the engine drove: a 40 km run that used
+        4 kWh and a litre of petrol would print 10 kWh/100 km, a figure no part of
+        the car achieved. The stream carries no electric-only distance to divide
+        by instead, so the energy stays on the record and the ratio is withheld.
         """
 
+        if self.hybrid:
+            return None
         if not self.distance_km or self.distance_km <= 0 or self.energy_kwh is None:
             return None
         drop = self.soc_drop
@@ -181,6 +193,7 @@ class Trip:
             "stats": self.stats,
             "location_assumed": self.location_assumed,
             "track": [list(point) for point in self.track],
+            "hybrid": self.hybrid,
         }
 
     @classmethod
@@ -209,6 +222,7 @@ class Trip:
             stats=dict(data.get("stats") or {}),
             location_assumed=bool(data.get("location_assumed")),
             track=[list(point) for point in data.get("track") or []],
+            hybrid=bool(data.get("hybrid")),
         )
 
 

@@ -1,5 +1,7 @@
 # 2. Install via HACS
 
+> 🇩🇪 [Deutsch](DE-Getting-Started-2-Install)
+
 BavarianData is in the **HACS default store**, so it installs like any other
 integration — no custom repository needed.
 

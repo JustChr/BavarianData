@@ -1,5 +1,7 @@
 # 1. Set up BMW CarData in the portal
 
+> 🇩🇪 [Deutsch](DE-Getting-Started-1-BMW-Portal-Setup)
+
 Do this **before** adding the integration to Home Assistant.
 
 BMW CarData is BMW's own telematics service. To use it you need a **client ID**
@@ -12,6 +14,8 @@ on every vehicle on the account.
 
 - A BMW account with a vehicle that supports CarData.
 - **CarData API** and **CarData Streaming** subscribed in the BMW portal.
+- A **car**. BMW Motorrad motorcycles are listed in CarData, but BMW streams no
+  data for them ([more](Troubleshooting-and-FAQ#does-bavariandata-work-with-a-bmw-motorcycle)).
 
 It helps to skim
 [BMW's CarData documentation](https://bmw-cardata.bmwgroup.com/customer/public/api-documentation/Id-Introduction)
@@ -63,9 +67,9 @@ That's all you need in the portal for now.
 > **Don't tick anything under Data Selection yet.** Which descriptors to stream
 > is chosen from inside Home Assistant after install
 > ([step 4](Getting-Started-4-Choose-Data)). The **guided** setup turns them on
-> for you with a one-click **Activate BMW data** bookmarklet; the **manual** setup
-> hands you a portal snippet for exactly the clusters you pick. Either way, doing
-> it by hand here means picking through hundreds of technical fields — so leave it.
+> for you with a one-click **Activate BMW data** bookmarklet, and the **manual**
+> setup uses the same bookmarklet for the clusters you pick. Doing it by hand here
+> means picking through hundreds of technical fields — so leave it.
 
 That's the whole portal setup. In [step 3](Getting-Started-3-Add-and-Authorize)
 you'll either let the **guided** path discover this client ID for you, or paste it

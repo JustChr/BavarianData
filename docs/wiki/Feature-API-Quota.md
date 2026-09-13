@@ -1,5 +1,7 @@
 # API quota
 
+> 🇩🇪 [Deutsch](DE-Feature-API-Quota)
+
 BMW caps the CarData REST API at **50 requests per 24 hours per account**. The
 integration tracks and enforces this itself.
 

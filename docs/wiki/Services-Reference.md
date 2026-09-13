@@ -1,5 +1,7 @@
 # Services reference
 
+> 🇩🇪 [Deutsch](DE-Services-Reference)
+
 Every service is available in **Developer Tools → Actions** and (for most) as a
 button in the integration's **Configure** menu.
 
@@ -205,7 +207,7 @@ If the call reports the session was **rejected** (auth), the captured cookie has
 expired — grab a fresh one and retry. If it **times out**, BMW's bot-defense is
 throttling automated calls; wait a bit and retry with a **freshly captured**
 session (this is why it's a one-shot manual tool, not something to loop). See
-[Choose your data](Getting-Started-4-Choose-Data) for the checkbox/snippet
+[Choose your data](Getting-Started-4-Choose-Data) for the one-click bookmarklet
 alternative.
 
 ### `fetch_charging_history`

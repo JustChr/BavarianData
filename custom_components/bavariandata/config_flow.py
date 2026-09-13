@@ -69,7 +69,6 @@ from .debug import set_debug_enabled
 from .history.classify import DEFAULT_CLASS_CHOICES, trip_class_setting
 from .history.pricing import DEFAULT_CURRENCY, MODE_ENTITY, MODE_FIXED, MODE_NONE, PricingConfig
 from .descriptors import (
-    build_portal_snippet,
     default_sections,
     descriptors_for_sections,
     section_labels,
@@ -191,7 +190,19 @@ class _StreamActivatorFlow:
     data" reconfiguration (:class:`CardataOptionsFlowHandler`) drive the very
     same activator, so neither path needs any copy-paste. Relies only on
     ``self.hass``.
+
+    The wait / paste / done steps live here too, so both flows walk the same
+    three screens; each flow says what happens afterwards in
+    :meth:`_activation_finished`. That includes manual first-time setup, which
+    used to hand out a console snippet for the portal's Data Selection page
+    instead -- a second route to the same end that matched checkboxes by the
+    portal's CSS class names.
     """
+
+    # First-time setup may finish without activating (the fields can already be
+    # ticked in the portal); reconfiguring exists only to activate, so its paste
+    # screen insists on a result.
+    _activation_paste_optional: bool = False
 
     def _init_activator_state(self) -> None:
         """Initialise the per-flow activator state (call from ``__init__``)."""
@@ -300,11 +311,111 @@ class _StreamActivatorFlow:
         if self._onboarding_wait_task and not self._onboarding_wait_task.done():
             self._onboarding_wait_task.cancel()
 
+    async def _begin_activation(self, attributes: list[str]) -> FlowResult:
+        """Run the activator for ``attributes``, then wait for it or ask for a paste."""
+
+        self._start_activator(attributes)
+        if self._onboarding_auto:
+            return await self.async_step_activate_stream_wait()
+        return await self.async_step_activate_stream_paste()
+
+    async def _activation_finished(self) -> FlowResult:
+        """Where the flow goes once activation is confirmed (or skipped)."""
+
+        raise NotImplementedError
+
+    async def async_step_activate_stream_wait(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Wait for the browser activator to report the stream fields it turned on."""
+
+        if self._onboarding_wait_task is None:
+            self._onboarding_wait_task = self.hass.async_create_task(
+                self._await_onboarding_result()
+            )
+
+        if not self._onboarding_wait_task.done():
+            return self.async_show_progress(
+                step_id="activate_stream_wait",
+                progress_action="wait_for_stream_activation",
+                description_placeholders={"url": self._onboarding_page_url},
+                progress_task=self._onboarding_wait_task,
+            )
+
+        result = self._onboarding_wait_task.result()
+        self._onboarding_wait_task = None
+        if result is None:
+            # No report within the window -- offer the manual paste fallback.
+            return self.async_show_progress_done(next_step_id="activate_stream_paste")
+        self._onboarding = result
+        return self.async_show_progress_done(next_step_id="activate_stream_done")
+
+    async def async_step_activate_stream_paste(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Fallback: paste the activator result if the auto-report didn't arrive."""
+
+        field = (
+            vol.Optional("result", default="")
+            if self._activation_paste_optional
+            else vol.Required("result")
+        )
+        schema = vol.Schema({field: str})
+        if user_input is None:
+            return self.async_show_form(
+                step_id="activate_stream_paste",
+                data_schema=schema,
+                description_placeholders={"url": self._onboarding_page_url, "error": ""},
+            )
+
+        raw = (user_input.get("result") or "").strip()
+        if not raw and self._activation_paste_optional:
+            self._cleanup_onboarding()
+            return await self._activation_finished()
+        try:
+            result = parse_onboarding_result(raw)
+        except OnboardingParseError as err:
+            return self.async_show_form(
+                step_id="activate_stream_paste",
+                data_schema=schema,
+                errors={"result": "invalid_result"},
+                description_placeholders={"url": self._onboarding_page_url, "error": str(err)},
+            )
+        self._onboarding = result
+        return await self.async_step_activate_stream_done()
+
+    async def async_step_activate_stream_done(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Confirm what the activator turned on, then hand back to the flow."""
+
+        result = self._onboarding
+        if user_input is None:
+            total = result.activated_count if result else None
+            added = result.added_count if result else None
+            ok = bool(result and result.activation_ok)
+            # The done screen text works for both outcomes; on a problem, surface
+            # the last reported error as an extra line (empty on success).
+            error = "" if ok else (result.errors[-1] if result and result.errors else "")
+            placeholders = {
+                "field_count": str(total) if total is not None else "the selected",
+                "added_count": str(added) if added is not None else "0",
+                "error": f"\n\n⚠️ {error}" if error else "",
+            }
+            self._cleanup_onboarding()
+            return self.async_show_form(
+                step_id="activate_stream_done",
+                data_schema=vol.Schema({}),
+                description_placeholders=placeholders,
+            )
+        return await self._activation_finished()
+
 
 class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=DOMAIN):
     """Handle config flow for BMW CarData."""
 
     VERSION = 1
+    _activation_paste_optional = True
 
     def __init__(self) -> None:
         self._client_id: Optional[str] = None
@@ -317,7 +428,6 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
         self._requested_scope: str = DEFAULT_SCOPE
         self._entry_data: Optional[Dict[str, Any]] = None
         self._entry_title: str = ""
-        self._cluster_snippet: str = ""
         # Guided onboarding: the in-browser snippet discovers the client id and
         # activates the stream before device auth, so the flow order differs from
         # the manual path (clusters -> discover -> auth vs. auth -> clusters).
@@ -673,9 +783,9 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
             return await self.async_step_guided_done()
 
         # Manual path: authorization succeeded but BMW streams nothing until
-        # descriptors are ticked in the portal's Data Selection. Route into the
-        # cluster picker so the user leaves setup with a ready-to-paste snippet
-        # instead of an empty stream.
+        # descriptors are activated in the portal. Route into the cluster picker
+        # and the activator, so the user leaves setup with a live stream rather
+        # than an empty one.
         return await self.async_step_select_clusters()
 
     async def async_step_guided_done(
@@ -706,10 +816,9 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
         """Pick which data clusters to stream, right after authorization.
 
         Mirrors the options-flow picker (:meth:`CardataOptionsFlowHandler.
-        async_step_action_select_clusters`) but runs inside initial setup so a
-        first-time user is handed a portal snippet without hunting through
-        Configure afterwards. BMW has no API to set the selection — it is done in
-        the portal — so this builds a browser-console snippet instead.
+        async_step_action_select_clusters`) and runs the same in-browser
+        activator, inside initial setup, so a first-time user leaves with the
+        stream switched on rather than hunting through Configure afterwards.
         """
 
         labels = section_labels()
@@ -730,24 +839,19 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
         chosen = [slug for slug in labels if slug in set(user_input.get("sections", []))]
         assert self._entry_data is not None
         self._entry_data[OPTION_STREAM_SECTIONS] = chosen
-        self._cluster_snippet = build_portal_snippet(chosen)
-        return await self.async_step_cluster_snippet()
+        attributes = descriptors_for_sections(chosen)
+        if not attributes:
+            # Nothing selected, nothing to activate.
+            return await self._activation_finished()
+        return await self._begin_activation(attributes)
 
-    async def async_step_cluster_snippet(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
-        """Show the generated Data Selection snippet, then create the entry."""
+    async def _activation_finished(self) -> FlowResult:
+        """Create the entry, keeping the portal vehicle id for re-activation."""
 
-        if user_input is None:
-            return self.async_show_form(
-                step_id="cluster_snippet",
-                data_schema=vol.Schema({}),
-                description_placeholders={"snippet": self._cluster_snippet},
-            )
         assert self._entry_data is not None
-        return self.async_create_entry(
-            title=self._entry_title, data=self._entry_data
-        )
+        if self._onboarding and self._onboarding.mapped_vehicle_id:
+            self._entry_data["mapped_vehicle_id"] = self._onboarding.mapped_vehicle_id
+        return self.async_create_entry(title=self._entry_title, data=self._entry_data)
 
     async def async_step_reauth(self, entry_data: Dict[str, Any]) -> FlowResult:
         entry_id = entry_data.get("entry_id")
@@ -1539,86 +1643,11 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
             # An empty selection has nothing to activate; just persist and finish.
             return self._finish()
 
-        self._start_activator(attributes)
-        if self._onboarding_auto:
-            return await self.async_step_activate_stream_wait()
-        return await self.async_step_activate_stream_paste()
+        return await self._begin_activation(attributes)
 
-    async def async_step_activate_stream_wait(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
-        """Wait for the browser activator to report the stream fields it turned on."""
+    async def _activation_finished(self) -> FlowResult:
+        """The selection was already saved; close the options flow."""
 
-        if self._onboarding_wait_task is None:
-            self._onboarding_wait_task = self.hass.async_create_task(
-                self._await_onboarding_result()
-            )
-
-        if not self._onboarding_wait_task.done():
-            return self.async_show_progress(
-                step_id="activate_stream_wait",
-                progress_action="wait_for_stream_activation",
-                description_placeholders={"url": self._onboarding_page_url},
-                progress_task=self._onboarding_wait_task,
-            )
-
-        result = self._onboarding_wait_task.result()
-        self._onboarding_wait_task = None
-        if result is None:
-            # No report within the window -- offer the manual paste fallback.
-            return self.async_show_progress_done(next_step_id="activate_stream_paste")
-        self._onboarding = result
-        return self.async_show_progress_done(next_step_id="activate_stream_done")
-
-    async def async_step_activate_stream_paste(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
-        """Fallback: paste the activator result if the auto-report didn't arrive."""
-
-        schema = vol.Schema({vol.Required("result"): str})
-        if user_input is None:
-            return self.async_show_form(
-                step_id="activate_stream_paste",
-                data_schema=schema,
-                description_placeholders={"url": self._onboarding_page_url, "error": ""},
-            )
-
-        try:
-            result = parse_onboarding_result(user_input["result"])
-        except OnboardingParseError as err:
-            return self.async_show_form(
-                step_id="activate_stream_paste",
-                data_schema=schema,
-                errors={"result": "invalid_result"},
-                description_placeholders={"url": self._onboarding_page_url, "error": str(err)},
-            )
-        self._onboarding = result
-        return await self.async_step_activate_stream_done()
-
-    async def async_step_activate_stream_done(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
-        """Confirm what the activator turned on, then persist and finish."""
-
-        result = self._onboarding
-        if user_input is None:
-            total = result.activated_count if result else None
-            added = result.added_count if result else None
-            ok = bool(result and result.activation_ok)
-            # The done screen text works for both outcomes; on a problem, surface
-            # the last reported error as an extra line (empty on success).
-            error = "" if ok else (result.errors[-1] if result and result.errors else "")
-            placeholders = {
-                "field_count": str(total) if total is not None else "the selected",
-                "added_count": str(added) if added is not None else "0",
-                "error": f"\n\n⚠️ {error}" if error else "",
-            }
-            self._cleanup_onboarding()
-            return self.async_show_form(
-                step_id="activate_stream_done",
-                data_schema=vol.Schema({}),
-                description_placeholders=placeholders,
-            )
         return self._finish()
 
     async def async_step_action_reset_container(

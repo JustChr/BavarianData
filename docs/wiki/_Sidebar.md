@@ -28,3 +28,36 @@
 - [Services](Services-Reference)
 - [Troubleshooting & FAQ](Troubleshooting-and-FAQ)
 - [Deep reference](Reference)
+
+---
+
+### 🇩🇪 Deutsch
+
+[Startseite](DE-Home)
+
+**Erste Schritte**
+- [1. Einrichtung im BMW-Portal](DE-Getting-Started-1-BMW-Portal-Setup)
+- [2. Installation](DE-Getting-Started-2-Install)
+- [3. Hinzufügen & autorisieren](DE-Getting-Started-3-Add-and-Authorize)
+- [4. Daten auswählen](DE-Getting-Started-4-Choose-Data)
+
+**Die Karte**
+- [Die Dashboard-Karte](DE-The-Dashboard-Card)
+
+**Funktionen**
+- [Entitäten & Geräte](DE-Feature-Entities-and-Devices)
+- [Ladeverlauf & Kosten](DE-Feature-Charging-History-and-Cost)
+- [Batteriezustand](DE-Feature-Battery-Health)
+- [Effizienz & Reichweite](DE-Feature-Efficiency-and-Range)
+- [Fahrten](DE-Feature-Trips)
+- [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge)
+- [Energie & Statistiken](DE-Feature-Energy-and-Statistics)
+- [Export](DE-Feature-Export)
+- [Ereignisse & Blueprints](DE-Feature-Automations)
+- [API-Kontingent](DE-Feature-API-Quota)
+
+**Nachschlagen**
+- [Einstellungen](DE-Settings-Reference)
+- [Dienste](DE-Services-Reference)
+- [Fehlerbehebung & FAQ](DE-Troubleshooting-and-FAQ)
+- [Technische Referenz](DE-Reference)

@@ -1,5 +1,7 @@
 # Entities & devices
 
+> 🇩🇪 [Deutsch](DE-Feature-Entities-and-Devices)
+
 ## One device per VIN
 
 Each VIN on your account becomes its own Home Assistant **device**. A separate
@@ -53,6 +55,17 @@ integration's own translations (so German installs get German names too).
 | **Stream Connection Status** | Diagnostic: MQTT connection state. |
 | **Last Message Received** | Diagnostic: timestamp of the last stream payload. |
 | **Last Telematics API Call** | Diagnostic: timestamp of the last REST call. |
+
+The charging, state-of-charge, battery-health and real-range entities only exist
+for a car with a **high-voltage battery**; they appear once the car first sends
+battery data. A petrol or diesel car gets none of them. One that was given them by
+an earlier release has them removed on the first start after updating, because
+they could never hold a value — their old history may then be listed under
+**Developer tools → Statistics**, where it can be deleted.
+
+The **fuel in the tank** (*Range Tank level*) is a volume sensor with long-term
+statistics. It takes the unit the car sends — litres, or gallons on a car that
+reports them — and Home Assistant converts it to your display unit like any other.
 
 The tyre entities only exist for wheels BMW actually reports. Many cars have no
 tyre service record on file, in which case none are created — that is BMW having
