@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.9-beta.7] - 2026-09-13
+
 ### Fixed
 - **The evcc bridge published no plug state for a BMW i5.** Cars report "is a
   cable in" through different descriptors, and the bridge only read two of them
