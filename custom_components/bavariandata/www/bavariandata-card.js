@@ -13,7 +13,7 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.13.0";
+const CARD_VERSION = "1.14.0";
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -158,6 +158,12 @@ const TRANSLATIONS = {
     values: "values",
     no_cluster_entities:
       "No {label} entities for this vehicle. Enable the cluster in the integration options.",
+    cc_title: "Check Control messages",
+    cc_none: "No Check Control messages reported.",
+    cc_teleservice: "Teleservice",
+    cc_mileage: "Last shown at",
+    cc_sent: "Sent by the car",
+    cc_code: "Code",
     // messages
     no_vehicle_title: "No BMW CarData vehicle found",
     no_vehicle_body:
@@ -422,6 +428,12 @@ const TRANSLATIONS = {
     values: "Werte",
     no_cluster_entities:
       "Keine {label}-Entitäten für dieses Fahrzeug. Aktiviere den Cluster in den Integrationsoptionen.",
+    cc_title: "Check-Control-Meldungen",
+    cc_none: "Keine Check-Control-Meldungen gemeldet.",
+    cc_teleservice: "Teleservice",
+    cc_mileage: "Zuletzt angezeigt bei",
+    cc_sent: "Vom Fahrzeug gesendet",
+    cc_code: "Code",
     // messages
     no_vehicle_title: "Kein BMW-CarData-Fahrzeug gefunden",
     no_vehicle_body:
@@ -742,15 +754,39 @@ class BavarianDataCard extends HTMLElement {
   }
 
   static getStubConfig(hass) {
-    // Pre-fill the card picker with the first BMW CarData device found.
+    // Pre-fill the card picker with the first car found.
     const device = BavarianDataCard._firstDevice(hass);
     return device ? { device } : {};
   }
 
+  /**
+   * Whether a device is a car rather than the integration's "CarData Debug
+   * Device". Both carry a `bavariandata` identifier: a car's is its VIN, the
+   * debug device's is the id of its own config entry. The debug device holds
+   * diagnostics only, so a card bound to it has nothing to show.
+   */
+  static _isVehicleDevice(dev) {
+    if (!dev) return false;
+    const entries = new Set(dev.config_entries || []);
+    return (dev.identifiers || []).some(
+      (pair) => pair && pair[0] === "bavariandata" && !entries.has(pair[1])
+    );
+  }
+
+  /** Device ids of every car, in registry order. */
+  static _vehicleDevices(hass) {
+    if (!hass || !hass.devices) return [];
+    return Object.values(hass.devices)
+      .filter((dev) => BavarianDataCard._isVehicleDevice(dev))
+      .map((dev) => dev.id);
+  }
+
   static _firstDevice(hass) {
     if (!hass || !hass.entities) return undefined;
+    const devices = hass.devices || {};
     for (const ent of Object.values(hass.entities)) {
-      if (ent.platform === "bavariandata" && ent.device_id) return ent.device_id;
+      if (ent.platform !== "bavariandata" || !ent.device_id) continue;
+      if (BavarianDataCard._isVehicleDevice(devices[ent.device_id])) return ent.device_id;
     }
     return undefined;
   }
@@ -760,7 +796,12 @@ class BavarianDataCard extends HTMLElement {
   _resolveDeviceId() {
     const hass = this._hass;
     const cfg = this._config || {};
-    if (cfg.device) return cfg.device;
+    if (cfg.device) {
+      const dev = hass.devices && hass.devices[cfg.device];
+      // A card saved while the editor still offered the "CarData Debug Device"
+      // would stay blank for good: that device holds no car, so find the car.
+      if (!dev || BavarianDataCard._isVehicleDevice(dev)) return cfg.device;
+    }
     if (cfg.vin && hass.devices) {
       for (const dev of Object.values(hass.devices)) {
         const ids = dev.identifiers || [];
@@ -1361,15 +1402,24 @@ class BavarianDataCard extends HTMLElement {
         )
       );
 
+    // BMW files Check Control messages ("washer fluid low") under usage-based
+    // data, yet they are what a driver means by a vehicle event: the events
+    // cluster itself holds only two teleservice timestamps, which most cars
+    // never send. So that view leads with the messages.
+    const cc = slug === "events" ? this._checkControl(entities) : null;
+    const messages = cc ? cc.items : [];
+
     const label = this._config.title || this._clusterLabel(slug);
     const icon = CLUSTER_ICONS[slug] || "mdi:car";
     const name = this._deviceName(deviceId);
+    const count = rows.length + messages.length;
 
     const sig = this._signature({
       m: "cl",
       lang: _lang(this._hass),
       slug,
       rows: rows.map((s) => [s.entity_id, s.state]),
+      cc: cc && [cc.id, cc.items, cc.updated, cc.unit, this._ccExpanded],
     });
     if (sig === this._sig) return;
     this._sig = sig;
@@ -1381,9 +1431,20 @@ class BavarianDataCard extends HTMLElement {
           <ha-icon icon="${icon}"></ha-icon>
           <div class="chead__text">
             <span class="chead__title">${this._esc(label)}</span>
-            <span class="chead__sub">${this._esc(name)} · ${rows.length} ${this._t(rows.length === 1 ? "value" : "values")}</span>
+            <span class="chead__sub">${this._esc(name)} · ${count} ${this._t(count === 1 ? "value" : "values")}</span>
           </div>
         </div>
+        ${
+          cc
+            ? `<div class="list__head">${this._t("cc_title")}</div>
+              ${
+                messages.length
+                  ? `<div class="list">${messages.map((msg) => this._ccRow(cc, msg)).join("")}</div>`
+                  : `<div class="empty empty--inline">${this._t("cc_none")}</div>`
+              }
+              ${rows.length ? `<div class="list__head">${this._t("cc_teleservice")}</div>` : ""}`
+            : ""
+        }
         ${
           rows.length
             ? `<div class="list">
@@ -1397,11 +1458,99 @@ class BavarianDataCard extends HTMLElement {
                   })
                   .join("")}
               </div>`
-            : `<div class="empty">${this._t("no_cluster_entities", { label: `<b>${this._esc(label)}</b>` })}</div>`
+            : cc
+              ? ""
+              : `<div class="empty">${this._t("no_cluster_entities", { label: `<b>${this._esc(label)}</b>` })}</div>`
         }
       </ha-card>
     `;
     this._wireTaps();
+    // A message is a list item, not an entity: it expands in place, the way a
+    // charging session or a trip does, instead of opening more-info.
+    this.shadowRoot.querySelectorAll("[data-cc]").forEach((el) => {
+      el.addEventListener("click", () => this._toggleCc(el.getAttribute("data-cc")));
+    });
+  }
+
+  _toggleCc(key) {
+    this._ccExpanded = this._ccExpanded === key ? null : key;
+    this._sig = null; // force a repaint with the new expansion state
+    this._render();
+  }
+
+  /** The Check Control sensor and its messages; null on a car without one. */
+  _checkControl(entities) {
+    const st = this._byDescriptor(entities, "vehicle.status.checkControlMessages");
+    if (!st) return null;
+    const attrs = st.attributes || {};
+    const odometer = this._byDescriptor(entities, "vehicle.vehicle.travelledDistance");
+    return {
+      id: st.entity_id,
+      items: Array.isArray(attrs.items)
+        ? attrs.items.filter((msg) => msg && typeof msg === "object")
+        : [],
+      updated: attrs.timestamp,
+      unit: (odometer && odometer.attributes && odometer.attributes.unit_of_measurement) || "km",
+    };
+  }
+
+  /** A Check Control field, or null for BMW's placeholders ("-", "NULL"). */
+  _ccField(value) {
+    if (value == null) return null;
+    const text = String(value).trim();
+    return text === "" || text === "-" || text.toUpperCase() === "NULL" ? null : text;
+  }
+
+  /** One Check Control message. BMW sends the text in English on every install,
+   * and on the maintainer's i5 with no title and no date. */
+  _ccRow(cc, msg) {
+    const key = String(msg.id != null ? msg.id : msg.text || "");
+    const isOpen = this._ccExpanded === key;
+    const title = this._ccField(msg.title);
+    const text = this._ccField(msg.text);
+    const head = title || text || this._ccField(msg.messageType) || "—";
+    const when = this._ccField(msg.date) ? this._fmtDay(msg.date) : "";
+    return `<div class="cc${isOpen ? " is-open" : ""}">
+      <button class="item item--msg" data-cc="${this._attr(key)}" aria-expanded="${isOpen}">
+        <ha-icon class="item__icon" icon="mdi:alert-circle-outline"></ha-icon>
+        <span class="item__body">
+          <span class="item__text${isOpen ? "" : " item__clamp"}">${this._esc(head)}</span>
+          ${title && text && !isOpen ? `<span class="item__sub item__clamp">${this._esc(text)}</span>` : ""}
+        </span>
+        ${when ? `<span class="item__val">${when}</span>` : ""}
+      </button>
+      ${isOpen ? this._ccDetail(cc, msg, title && text ? text : "") : ""}
+    </div>`;
+  }
+
+  _ccDetail(cc, msg, body) {
+    const description = this._ccField(msg.description);
+    const facts = [];
+    // Despite its name this is no distance left: on the maintainer's i5 it was
+    // the odometer at the start of the drive on which the car last showed the
+    // message (19 596, then 19 599 a drive later, while the car read 19 624).
+    const mileage = this._ccField(msg.unitOfLengthRemaining);
+    if (mileage && Number.isFinite(Number(mileage))) {
+      facts.push([this._t("cc_mileage"), `${this._dec(Number(mileage), 0)} ${this._esc(cc.unit)}`]);
+    }
+    const sent = this._relTime(cc.updated);
+    if (sent) facts.push([this._t("cc_sent"), sent]);
+    const code = [this._ccField(msg.messageType), this._ccField(msg.id)].filter(Boolean).join(" ");
+    if (code) facts.push([this._t("cc_code"), this._esc(code)]);
+
+    const factRow = facts
+      .map(
+        ([k, v]) =>
+          `<div class="chg__fact"><span class="chg__fact-lbl">${k}</span><span class="chg__fact-val">${v}</span></div>`
+      )
+      .join("");
+    return `
+      <div class="chg__detail">
+        ${body ? `<p class="cc__text">${this._esc(body)}</p>` : ""}
+        ${description ? `<p class="cc__text">${this._esc(description)}</p>` : ""}
+        ${factRow ? `<div class="chg__facts">${factRow}</div>` : ""}
+      </div>
+    `;
   }
 
   /** Localized display label for a catalogue cluster slug. */
@@ -4702,8 +4851,30 @@ class BavarianDataCard extends HTMLElement {
         font-variant-numeric: tabular-nums;
         flex: 0 0 auto; text-align: right;
       }
+      .list__head {
+        padding: 12px 20px 0;
+        color: var(--secondary-text-color);
+        font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+      }
+      .item--msg { justify-content: flex-start; align-items: flex-start; text-align: left; }
+      .item__icon { --mdc-icon-size: 20px; color: var(--warning-color, #ffa600); flex: 0 0 auto; }
+      .item__body { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
+      .item__text { color: var(--primary-text-color); font-size: 0.92rem; }
+      .item__sub { color: var(--secondary-text-color); font-size: 0.82rem; }
+      .item__clamp {
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      }
+      .cc { border-radius: 10px; }
+      .cc + .cc { border-top: 1px solid var(--divider-color); }
+      .cc.is-open { background: var(--secondary-background-color); border-top-color: transparent; }
+      .cc > .item--msg {
+        width: 100%; background: none; border: none; color: inherit; font: inherit; cursor: pointer;
+      }
+      .cc.is-open > .item--msg:hover { background: transparent; }
+      .cc__text { margin: 0 0 8px; color: var(--primary-text-color); font-size: 0.86rem; line-height: 1.4; }
       .empty, .msg__body { color: var(--secondary-text-color); font-size: 0.9rem; }
       .empty { padding: 22px 18px; }
+      .empty.empty--inline { padding: 8px 20px 14px; }
 
       /* message state */
       .msg { padding: 28px 20px; text-align: center; }
@@ -5252,8 +5423,15 @@ class BavarianDataCardEditor extends HTMLElement {
     });
     const overview =
       !this._config || (!this._config.cluster && !VIEW_MODES.has(this._config.view));
+    // Cars only. HA's device picker, filtered by integration, also offers the
+    // "CarData Debug Device" -- registered first, it was even preselected -- and
+    // a card bound to it has nothing to show.
+    const cars = BavarianDataCard._vehicleDevices(this._hass).map((id) => {
+      const dev = this._hass.devices[id];
+      return { value: id, label: dev.name_by_user || dev.name || id };
+    });
     const schema = [
-      { name: "device", selector: { device: { integration: "bavariandata" } } },
+      { name: "device", selector: { select: { mode: "dropdown", options: cars } } },
       { name: "cluster", selector: { select: { mode: "dropdown", options: clusterOptions } } },
       { name: "title", selector: { text: {} } },
     ];

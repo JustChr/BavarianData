@@ -345,6 +345,14 @@ cluster: electric   # electric · status · tire · usage · events · basic · 
 The card groups entities via their `cluster`/`category` **attributes**, not their
 names — so it works regardless of the user's Home Assistant language.
 
+`cluster: events` leads with the car's **Check Control messages** — the warnings
+the car shows on its own display, such as low washer fluid — and says so when
+there are none. Tap a message to expand it: the mileage at which the car last
+showed it, how long ago the car sent it, and BMW's message code. The text is shown as BMW sends it, which is English whatever your
+language. The messages come from the *Check Control messages* sensor, which BMW
+files under usage-based data; BMW's own *Vehicle events* cluster holds only two
+teleservice timestamps, listed below the messages when the car sends them.
+
 ---
 
 ## Full YAML reference
@@ -354,7 +362,7 @@ names — so it works regardless of the user's Home Assistant language.
 | `type` | Always `custom:bavariandata-card`. |
 | `view` | `charging`, `trips`, `map`, `health` or `efficiency`. Omit for the Overview. |
 | `cluster` | `electric`, `status`, `tire`, `usage`, `events`, `basic`, `contract`, `metadata`, `other`, `closures`. Renders a single-cluster list (or the special tire/closures diagrams). |
-| `device` | Device id, to pin a specific vehicle. |
+| `device` | Device id, to pin a specific vehicle. The visual editor lists your cars only, never the *CarData Debug Device*; a card set to it shows the first car instead. |
 | `vin` | VIN, as an alternative to `device`. |
 | `title` | Override the card title entity. |
 | `image` | Override the vehicle-image entity. |

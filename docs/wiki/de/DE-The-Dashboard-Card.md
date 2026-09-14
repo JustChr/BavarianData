@@ -369,6 +369,16 @@ cluster: electric   # electric · status · tire · usage · events · basic · 
 Die Karte gruppiert Entitäten über ihre **Attribute** `cluster`/`category`, nicht über
 ihre Namen — sie funktioniert also unabhängig von der Sprache in Home Assistant.
 
+`cluster: events` zeigt zuerst die **Check-Control-Meldungen** des Fahrzeugs — die
+Warnungen, die das Auto selbst im Display anzeigt, etwa zu wenig Waschwasser — und
+sagt es, wenn keine vorliegen. Tippe auf eine Meldung, um sie aufzuklappen: der
+Kilometerstand, bei dem das Fahrzeug sie zuletzt angezeigt hat, wie lange es her
+ist, dass das Fahrzeug sie gesendet hat, und BMWs Meldungscode. Der Text erscheint so, wie BMW ihn sendet, also auf
+Englisch, egal welche Sprache eingestellt ist. Die Meldungen stammen vom Sensor
+*Check Control Meldungen*, den BMW unter den nutzungsbasierten Daten führt; BMWs
+eigene Datengruppe *Fahrzeugereignisse* enthält nur zwei Teleservice-Zeitstempel,
+die unter den Meldungen stehen, wenn das Fahrzeug sie sendet.
+
 ---
 
 ## Vollständige YAML-Referenz
@@ -380,7 +390,7 @@ ihre Namen — sie funktioniert also unabhängig von der Sprache in Home Assista
 | `type` | Immer `custom:bavariandata-card`. |
 | `view` | `charging`, `trips`, `map`, `health` oder `efficiency`. Weglassen für die Übersicht. |
 | `cluster` | `electric`, `status`, `tire`, `usage`, `events`, `basic`, `contract`, `metadata`, `other`, `closures`. Zeigt die Liste einer Datengruppe (oder die besonderen Diagramme für Reifen und Öffnungen). |
-| `device` | Geräte-ID, um ein bestimmtes Fahrzeug festzulegen. |
+| `device` | Geräte-ID, um ein bestimmtes Fahrzeug festzulegen. Der visuelle Editor listet nur deine Fahrzeuge, nie das *CarData Debug Device*; eine Karte, die darauf eingestellt ist, zeigt stattdessen das erste Fahrzeug. |
 | `vin` | FIN, als Alternative zu `device`. |
 | `title` | Überschreibt den Titel der Karte. |
 | `image` | Überschreibt die Bild-Entität des Fahrzeugs. |

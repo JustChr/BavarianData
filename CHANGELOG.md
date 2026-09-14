@@ -9,6 +9,21 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The card's *Vehicle events* view now shows Check Control messages.** With
+  "washer fluid level is low" on the car's display, the view still said there
+  were no events: it listed only BMW's *Vehicle events* cluster, which holds two
+  teleservice timestamps, while Check Control messages are filed under usage-based
+  data. The view now leads with each message, as BMW sends it (in English), says
+  so when there are none, and keeps the teleservice timestamps below. Tap a
+  message for its details: the mileage at which the car last showed it, how long
+  ago the car sent it, and BMW's message code.
+- **The card editor no longer offers the *CarData Debug Device*.** It was listed
+  next to your cars, and when adding the card it was even preselected, although
+  it holds only diagnostics and the card had nothing to show. The vehicle picker
+  now lists cars only, and a card already set to the debug device shows the first
+  car instead.
+
 ## [0.9.10-beta.2] - 2026-09-14
 
 ### Fixed
