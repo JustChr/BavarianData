@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.10-beta.3] - 2026-09-14
+
 ### Fixed
 - **The card's *Vehicle events* view now shows Check Control messages.** With
   "washer fluid level is low" on the car's display, the view still said there
