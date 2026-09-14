@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.10-beta.2] - 2026-09-14
+
 ### Fixed
 - **Fetching BMW's charging history now repairs charges recorded before
   v0.9.6.** Until v0.9.6 the state of charge never reached the stream, so those
