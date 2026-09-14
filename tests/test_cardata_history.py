@@ -283,3 +283,135 @@ def test_reimport_heals_a_previously_split_charge():
     assert len(result) == 1
     assert result[0].enriched is True
     assert result[0].effective_energy_kwh == 15.92
+
+
+# --- repairing a frozen SoC arc (issue #6) ---------------------------------
+
+
+def _frozen_session(**overrides) -> ChargingSession:
+    """A charge as a pre-v0.9.6 build stored it: SoC never streamed."""
+    data = {
+        "soc_start": 38.0,
+        "soc_end": 38.0,
+        "energy_kwh": 1.4,  # the energy ceiling's bare margin
+        "cost": {"amount": 0.42, "currency": "EUR", "source": "tariff"},
+        "energy_mix": {"pv": 0.4, "grid": 1.0, "solar_percent": 28.6},
+    }
+    data.update(overrides)
+    return _live_session(**data)
+
+
+def test_import_repairs_a_frozen_soc_arc():
+    frozen = _frozen_session()
+    frozen_id = frozen.id
+
+    result, added, updated = merge_cardata_sessions(
+        [frozen], [session_from_cardata("WBY1", _raw())]
+    )
+
+    assert (added, updated) == (0, 1)
+    survivor = result[0]
+    assert survivor.id == frozen_id
+    assert (survivor.soc_start, survivor.soc_end) == (66, 82)
+    assert survivor.grid_kwh == 15.92
+    # Everything that accrued from the capped figure is dropped, not kept wrong.
+    assert survivor.energy_kwh is None
+    assert survivor.energy_mix is None
+    # A live-price cost can't be rebuilt: kept, but no longer passed off as whole.
+    assert survivor.cost == {
+        "amount": 0.42,
+        "currency": "EUR",
+        "source": "tariff",
+        "partial": True,
+    }
+
+
+def test_repaired_charge_is_costed_again_on_a_fixed_tariff():
+    def cost_fn(grid_kwh):
+        return pricing.fixed_cost(grid_kwh, 0.30, "EUR")
+
+    result, _, _ = merge_cardata_sessions(
+        [_frozen_session()], [session_from_cardata("WBY1", _raw(), cost_fn=cost_fn)]
+    )
+    assert result[0].cost == {
+        "amount": round(15.92 * 0.30, 2),
+        "currency": "EUR",
+        "source": "tariff",
+    }
+
+
+def test_a_rise_of_exactly_the_threshold_repairs():
+    result, _, _ = merge_cardata_sessions(
+        [_frozen_session()],
+        [session_from_cardata("WBY1", _raw(displayedStartSoc=38, displayedSoc=40))],
+    )
+    assert (result[0].soc_start, result[0].soc_end) == (38, 40)
+    assert result[0].energy_kwh is None
+
+
+def test_frozen_soc_repair_is_idempotent():
+    once, _, _ = merge_cardata_sessions(
+        [_frozen_session()], [session_from_cardata("WBY1", _raw())]
+    )
+    twice, added, updated = merge_cardata_sessions(
+        once, [session_from_cardata("WBY1", _raw())]
+    )
+    assert (added, updated) == (0, 1)
+    assert len(twice) == 1
+    assert (twice[0].soc_start, twice[0].soc_end) == (66, 82)
+    assert twice[0].cost["partial"] is True
+
+
+def _assert_untouched(existing: ChargingSession, raw: dict) -> None:
+    before = existing.to_dict()
+    result, _, _ = merge_cardata_sessions([existing], [session_from_cardata("WBY1", raw)])
+    assert len(result) == 1
+    survivor = result[0]
+    assert (survivor.soc_start, survivor.soc_end) == (before["soc_start"], before["soc_end"])
+    assert survivor.energy_kwh == before["energy_kwh"]
+    assert survivor.energy_mix == before["energy_mix"]
+    assert not (survivor.cost or {}).get("partial")
+
+
+def test_flat_on_both_sides_is_left_alone():
+    # Plugged in at full charge, pre-heating: grid energy flows, SoC really is flat.
+    _assert_untouched(
+        _frozen_session(soc_start=80.0, soc_end=80.0, energy_kwh=2.1),
+        _raw(displayedStartSoc=80, displayedSoc=80, energyConsumedFromPowerGridKwh=2.3),
+    )
+
+
+def test_a_one_point_rise_is_left_alone():
+    # A small top-up whose single step landed on BMW's side of the rounding only.
+    _assert_untouched(
+        _frozen_session(soc_start=80.0, soc_end=80.0, energy_kwh=0.9),
+        _raw(displayedStartSoc=80, displayedSoc=81, energyConsumedFromPowerGridKwh=1.0),
+    )
+
+
+def test_a_real_arc_is_left_alone():
+    _assert_untouched(
+        _frozen_session(soc_start=66.0, soc_end=81.0, energy_kwh=14.0),
+        _raw(),
+    )
+
+
+def test_a_restart_cut_record_is_left_alone():
+    _assert_untouched(_frozen_session(late_start=True), _raw())
+    _assert_untouched(_frozen_session(interrupted=True), _raw())
+
+
+def test_a_record_reaching_outside_bmws_window_is_left_alone():
+    # Overlaps BMW's charge through the merge tolerance but runs well past its
+    # end, so it is a neighbouring charge, not a stale copy of this one.
+    _assert_untouched(
+        _frozen_session(
+            start=START_DT + timedelta(minutes=40),
+            end=START_DT + timedelta(minutes=100),
+        ),
+        _raw(),
+    )
+
+
+def test_bmw_without_soc_is_left_alone():
+    _assert_untouched(_frozen_session(), _raw(displayedStartSoc=None, displayedSoc=None))

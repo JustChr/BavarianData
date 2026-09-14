@@ -39,6 +39,11 @@ DEFAULT_MATCH_TOLERANCE_S = 30 * 60
 # a fragment to absorb) rather than a distinct charge; kept far tighter than the
 # match tolerance so a genuine back-to-back charge is never swallowed.
 FRAGMENT_PAD_S = 5 * 60
+# How far BMW's displayed SoC must have risen before a flat arc on our record is
+# taken for a frozen reading rather than a small top-up the two sides rounded
+# differently. Before v0.9.6 the SoC never reached the stream, so every charge
+# stored the same stale value at both ends ("38 -> 38 %").
+MIN_CONTRADICTING_SOC_RISE = 2.0
 
 CostFn = Callable[[Optional[float]], Optional[dict[str, Any]]]
 # (latitude, longitude) -> resolved Home Assistant zone name, or None.
@@ -310,9 +315,50 @@ def _absorb_fragments(
     return len(victims)
 
 
-def _enrich_in_place(target: ChargingSession, incoming: ChargingSession) -> None:
+def _soc_arc_was_frozen(
+    target: ChargingSession, incoming: ChargingSession, pad: timedelta
+) -> bool:
+    """True when BMW's own record shows ``target``'s flat SoC arc was never real.
+
+    A frozen reading can't be told apart from a genuine one on our side alone:
+    a car topping up a pre-heated cabin at full charge also reads flat. BMW's
+    displayed SoC for the same charge is what settles it -- flat there too means
+    the arc was real and nothing is touched. Records a restart cut into are left
+    alone (their SoC ends are floors by design), and so is anything reaching
+    outside BMW's charge window, so a neighbouring charge matched through the
+    merge tolerance is never rewritten.
+    """
+
+    if target.late_start or target.interrupted:
+        return False
+    if target.soc_start is None or target.soc_start != target.soc_end:
+        return False
+    if incoming.soc_start is None or incoming.soc_end is None:
+        return False
+    if incoming.soc_end - incoming.soc_start < MIN_CONTRADICTING_SOC_RISE:
+        return False
+    return _contained(target, incoming, pad)
+
+
+def _enrich_in_place(
+    target: ChargingSession,
+    incoming: ChargingSession,
+    pad: timedelta = timedelta(seconds=FRAGMENT_PAD_S),
+) -> None:
     """Fold BMW's measured figures into an existing session, keeping its id."""
 
+    if _soc_arc_was_frozen(target, incoming, pad):
+        target.soc_start = incoming.soc_start
+        target.soc_end = incoming.soc_end
+        # A flat arc held the live energy ceiling at its bare margin, and the
+        # battery-side kWh, the energy mix and the cost all accrued from that
+        # capped figure. The kWh and mix can't be rebuilt, so they go rather
+        # than stay wrong; the cost is kept but flagged, and a fixed tariff
+        # below replaces it outright.
+        target.energy_kwh = None
+        target.energy_mix = None
+        if target.cost and target.cost.get("source") != "bmw":
+            target.cost = {**target.cost, "partial": True}
     if incoming.grid_kwh is not None:
         target.grid_kwh = incoming.grid_kwh
     if target.soc_start is None:
@@ -374,7 +420,7 @@ def merge_cardata_sessions(
         target = min(
             enriched or overlaps, key=lambda session: abs(session.start - inc.start)
         )
-        _enrich_in_place(target, inc)
+        _enrich_in_place(target, inc, pad)
         _absorb_fragments(result, inc, target, pad)
         updated += 1
     result.sort(key=lambda item: item.start, reverse=True)

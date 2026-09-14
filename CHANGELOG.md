@@ -9,6 +9,24 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Fetching BMW's charging history now repairs charges recorded before
+  v0.9.6.** Until v0.9.6 the state of charge never reached the stream, so those
+  charges were stored with a frozen, flat level such as "38 → 38 %" and only about
+  1.4 kWh. The import used to fill in empty fields only, so it added BMW's
+  measured kWh and left the flat level in place. Now, when BMW recorded a rise of
+  at least 2 percentage points for a charge stored as flat, the import takes
+  BMW's start and end level. The battery-side kWh and the solar share came from
+  the same wrong figure, so they are removed rather than kept. Cost is worked out
+  again on a fixed price; with a live price entity it can't be rebuilt, so it is
+  kept and marked *partial*. Charges where BMW's own level is flat too are left
+  alone. **To repair:** run **Fetch charging history** once with **From** set
+  before your first affected charge — without it, only the last 30 days are
+  fetched. Real range and the measured charging loss need the battery-side kWh
+  of every charge they cover, so they show nothing rather than a wrong figure
+  until the repaired charges are older than 30 days. Thanks to @karpilin for
+  asking (#6).
+
 ## [0.9.10-beta.1] - 2026-09-13
 
 ### Added

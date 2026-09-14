@@ -110,8 +110,13 @@ Abdeckungs-Reparaturmeldung nennt ihn, sobald er lange genug fehlt.
 Ist er eingeschaltet und der Wert ändert sich trotzdem nie, sendet dein Auto ihn
 nicht, und die Integration kann daran nichts ändern. Energie, Dauer,
 Spitzenleistung, Ladekurve und Kosten sind davon in keinem Fall betroffen, und der
-Import von BMWs eigener Ladehistorie (**Netzenergie oder Batterieenergie**, unten)
-füllt den Ladezustand dort nach, wo BMW ihn aufgezeichnet hat.
+Import von BMWs eigener Ladehistorie
+([Frühere Ladungen von BMW importieren](#importing-past-charges-from-bmw)) füllt
+den Ladezustand dort nach, wo BMW ihn aufgezeichnet hat.
+
+Ladungen **von vor v0.9.6** zeigen das umgekehrte Bild — ein flaches „38 → 38 %“
+und etwa 1,4 kWh — und lassen sich ebenfalls aus BMWs Historie reparieren:
+[Ladungen von vor v0.9.6 reparieren](#repairing-charges-from-before-v096).
 
 ## Woher die Energie kam
 
@@ -216,6 +221,8 @@ Netz geliefert hat. Zwei Wege, das auszugleichen:
 Ein Ladevorgang, während dem der Preis kurz unbekannt war, wird als `partial`
 markiert, statt stillschweigend zu niedrig auszufallen.
 
+<a id="importing-past-charges-from-bmw"></a>
+
 ## Frühere Ladungen von BMW importieren
 
 Der Dienst **`bavariandata.fetch_charging_history`** holt BMWs eigene
@@ -223,7 +230,42 @@ aufgezeichnete Ladevorgänge und importiert sie in den lokalen Verlauf, sodass
 Ladungen von vor der Installation auf der Karte und in den Monatsübersichten
 erscheinen. Überlappende live aufgezeichnete Ladevorgänge werden an Ort und Stelle
 um BMWs **gemessene Netzenergie** ergänzt. Dieser Dienst **verbraucht**
-API-Kontingent (eine oder mehrere deiner 50 pro 24 h).
+API-Kontingent (eine oder mehrere deiner 50 pro 24 h). Ohne **Von** und **Bis**
+holt er die letzten 30 Tage.
+
+<a id="repairing-charges-from-before-v096"></a>
+
+### Ladungen von vor v0.9.6 reparieren
+
+Bis v0.9.6 kam der Ladezustand nie über den Stream, daher wurde jede Ladung aus
+dieser Zeit mit demselben veralteten Wert an beiden Enden gespeichert („38 → 38 %“).
+Die Energie wurde auf das begrenzt, was ein flacher Wert zulässt: etwa 2 % des
+Akkus, rund 1,4 kWh.
+
+Führe **Ladehistorie abrufen** einmal aus und setze **Von** vor deine erste
+betroffene Ladung. Für jede Ladung, bei der BMW einen Anstieg von **mindestens 2
+Prozentpunkten** aufgezeichnet hat, die aber flach gespeichert ist, macht der
+Import Folgendes:
+
+- er übernimmt BMWs Start- und Endwert,
+- er ergänzt BMWs gemessene Netzenergie, die Karte, Monatssummen, Statistiken und
+  Export dann zählen,
+- er entfernt die batterieseitigen kWh und den Solaranteil, weil beide aus dem
+  begrenzten Wert stammen,
+- er berechnet die Kosten bei einem festen Preis neu; mit einer Live-Preis-Entität
+  bleiben sie erhalten und als **partial** markiert, weil sich vergangene Preise
+  nicht rekonstruieren lassen.
+
+Eine Ladung, die auch BMW flach aufgezeichnet hat — etwa ein volles Auto, das
+vorklimatisiert —, bleibt genau so, wie sie ist, ebenso eine Ladung, die BMW nicht
+aufführt. Ein erneuter Import ändert nichts weiter.
+
+Zwei Dinge bleiben anders als bei einer Ladung, die mit einer korrigierten Version
+aufgezeichnet wurde. Diese Ladungen zählen nie zum
+[Batteriezustand](DE-Feature-Battery-Health), der batterieseitige Energie braucht.
+Und die [reale Reichweite](DE-Feature-Efficiency-and-Range) braucht die
+batterieseitigen kWh jeder Ladung, die sie abdeckt; sie zeigt daher nichts statt
+eines falschen Werts, bis die reparierten Ladungen älter als 30 Tage sind.
 
 ## Auslesen
 

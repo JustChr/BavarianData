@@ -97,8 +97,12 @@ coverage repair names it once it has been missing long enough.
 If it is ticked and the value still never updates, your car doesn't send it and
 there is nothing the integration can do about that. Energy, duration, peak power,
 the power curve and cost are all unaffected either way, and importing BMW's own
-charging history (**Grid energy vs. battery energy**, below) fills the SoC back in
-where BMW recorded it.
+charging history ([Importing past charges from BMW](#importing-past-charges-from-bmw))
+fills the SoC back in where BMW recorded it.
+
+Charges recorded **before v0.9.6** show the opposite symptom — a flat "38 → 38%"
+and about 1.4 kWh — and can be repaired from BMW's history too:
+[Repairing charges from before v0.9.6](#repairing-charges-from-before-v096).
 
 ## Where the energy came from
 
@@ -201,6 +205,35 @@ sessions and imports them into the local history, so charges from before you
 installed the integration appear on the card and in the monthly summaries.
 Overlapping live-recorded sessions are enriched in place with BMW's **measured
 grid energy**. This one **does** spend API quota (one or more of your 50/24 h).
+Without **From** and **To** it fetches the last 30 days.
+
+### Repairing charges from before v0.9.6
+
+Until v0.9.6 the state of charge never reached the stream, so every charge from
+then was stored with the same stale level at both ends ("38 → 38%"). The energy
+was held to what a flat level allows: about 2 % of the pack, roughly 1.4 kWh.
+
+Run **Fetch charging history** once with **From** set before your first affected
+charge. For each charge that BMW recorded with a rise of **at least 2 percentage
+points** but that is stored as flat, the import:
+
+- takes BMW's start and end level,
+- adds BMW's measured grid energy, which the card, monthly totals, statistics and
+  export then count,
+- removes the battery-side kWh and the solar share, since both came from the
+  capped figure,
+- works the cost out again on a fixed price, or keeps it marked **partial** with
+  a live price entity, whose past prices can't be rebuilt.
+
+A charge BMW also recorded as flat — a car pre-heating while full, say — is left
+exactly as it is, as is a charge BMW doesn't list. Running the import again
+changes nothing further.
+
+Two things stay different from a charge recorded on a fixed build. Those charges
+never count toward [battery health](Feature-Battery-Health), which needs
+battery-side energy. And [real range](Feature-Efficiency-and-Range) needs the
+battery-side kWh of every charge it covers, so it shows nothing rather than a
+wrong figure until the repaired charges are older than 30 days.
 
 ## Reading it back
 
