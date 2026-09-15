@@ -379,6 +379,10 @@ Englisch, egal welche Sprache eingestellt ist. Die Meldungen stammen vom Sensor
 eigene Datengruppe *Fahrzeugereignisse* enthält nur zwei Teleservice-Zeitstempel,
 die unter den Meldungen stehen, wenn das Fahrzeug sie sendet.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-events.png" alt="Karte Fahrzeugereignisse mit einer Check-Control-Meldung zu wenig Waschwasser, aufgeklappt mit dem Kilometerstand der letzten Anzeige, wie lange es her ist, dass das Fahrzeug sie gesendet hat, und dem Code" width="420" />
+</p>
+
 ---
 
 ## Vollständige YAML-Referenz

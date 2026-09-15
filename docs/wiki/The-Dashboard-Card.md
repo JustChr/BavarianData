@@ -353,6 +353,10 @@ language. The messages come from the *Check Control messages* sensor, which BMW
 files under usage-based data; BMW's own *Vehicle events* cluster holds only two
 teleservice timestamps, listed below the messages when the car sends them.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-events.png" alt="Vehicle events card with a Check Control message about low washer fluid, expanded to show the mileage it was last shown at, how long ago the car sent it and its code" width="420" />
+</p>
+
 ---
 
 ## Full YAML reference

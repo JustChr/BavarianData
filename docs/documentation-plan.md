@@ -181,7 +181,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `view: efficiency` | Efficiency & real range | 🟢 The-Dashboard-Card + Feature-Efficiency-and-Range | 📷 **owed** — needs the build installed |
 | `cluster: tire` | Tires (pressure + wear) | 🟡 | 📷 (have) |
 | `cluster: closures` | Security & closures | 🟡 | 📷 (have) |
-| `cluster: events` | Vehicle events — Check Control messages first, then the teleservice timestamps | 🟢 The-Dashboard-Card → "Single-cluster list" | 📷 |
+| `cluster: events` | Vehicle events — Check Control messages first, then the teleservice timestamps | 🟢 The-Dashboard-Card → "Single-cluster list" | 📷 (have, 2026-09-15, message expanded) |
 | `cluster: <other>` | Single-cluster list | 🟡 | 📷 |
 | YAML options (`device`, `vin`, entity overrides) | — | 🟡 | — |
 
