@@ -1,17 +1,17 @@
 /*
-* BavarianData Card
-* A custom Lovelace card for the BavarianData integration (BMW CarData).
-*
-* Two modes:
-*   - overview (default): the vehicle render as a hero, a state-of-charge ring,
-*     range, charging status and a compact grid of key metrics.
-*   - cluster: `cluster: <slug>` renders every entity of that catalogue cluster
-*     (electric, status, tire, ...) as a clean list. The cluster of each entity
-*     is read from its `cluster` attribute, exposed by the integration.
-*
-* The card auto-discovers entities from the vehicle's device, so a minimal
-* config is just `type: custom:bavariandata-card`.
-*/
+ * BavarianData Card
+ * A custom Lovelace card for the BavarianData integration (BMW CarData).
+ *
+ * Two modes:
+ *   - overview (default): the vehicle render as a hero, a state-of-charge ring,
+ *     range, charging status and a compact grid of key metrics.
+ *   - cluster: `cluster: <slug>` renders every entity of that catalogue cluster
+ *     (electric, status, tire, ...) as a clean list. The cluster of each entity
+ *     is read from its `cluster` attribute, exposed by the integration.
+ *
+ * The card auto-discovers entities from the vehicle's device, so a minimal
+ * config is just `type: custom:bavariandata-card`.
+ */
 
 const CARD_VERSION = "1.14.0";
 
@@ -113,13 +113,13 @@ const CHARGING_ACTIVE_STATES = new Set([
 ]);
 
 /* ------------------------------------------------------------------------- *
-* Localization                                                              *
-*                                                                           *
-* The card's own chrome (labels, headings, relative times, tire positions,  *
-* editor fields) is translated here. Entity names and states keep coming    *
-* from Home Assistant's own translations via hass.formatEntityState. Add a  *
-* language by adding a block below; anything missing falls back to English. *
-* ------------------------------------------------------------------------- */
+ * Localization                                                              *
+ *                                                                           *
+ * The card's own chrome (labels, headings, relative times, tire positions,  *
+ * editor fields) is translated here. Entity names and states keep coming    *
+ * from Home Assistant's own translations via hass.formatEntityState. Add a  *
+ * language by adding a block below; anything missing falls back to English. *
+ * ------------------------------------------------------------------------- */
 const TRANSLATIONS = {
   en: {
     // cluster labels
@@ -2002,14 +2002,14 @@ class BavarianDataCard extends HTMLElement {
   }
 
   /* ---- month window ------------------------------------------------------
-  *
-  * The trips and charging views show one calendar month at a time. History is
-  * kept for two years, so the alternative is a list that grows without end and
-  * that nothing on screen describes — the "month in review" band above it was
-  * always month-scoped, so an unbounded list below it made the card disagree
-  * with itself. Paging by month keeps every record reachable and lets the
-  * summary, the list and the export all speak about the same period.
-  */
+   *
+   * The trips and charging views show one calendar month at a time. History is
+   * kept for two years, so the alternative is a list that grows without end and
+   * that nothing on screen describes — the "month in review" band above it was
+   * always month-scoped, so an unbounded list below it made the card disagree
+   * with itself. Paging by month keeps every record reachable and lets the
+   * summary, the list and the export all speak about the same period.
+   */
 
   /** "YYYY-MM" for a Date; the current month when given nothing. */
   _monthKey(date) {
@@ -3589,15 +3589,15 @@ class BavarianDataCard extends HTMLElement {
     const hero =
       f.nowKm != null
         ? `<span class="ef__hero-val">${this._dec(f.nowKm, 0)} <i>km</i></span>
-          <span class="ef__hero-lbl">${this._t("ef_range_now")}${
-            f.soc != null
-              ? " · " + this._t("ef_at_soc", { p: this._dec(f.soc, 0) })
-              : ""
-          }</span>`
+           <span class="ef__hero-lbl">${this._t("ef_range_now")}${
+             f.soc != null
+               ? " · " + this._t("ef_at_soc", { p: this._dec(f.soc, 0) })
+               : ""
+           }</span>`
         : `<span class="ef__hero-val">${this._dec(f.fullKm, 0)} <i>km</i></span>
-          <span class="ef__hero-lbl">${this._t("ef_range_full", {
-            km: this._dec(f.fullKm, 0),
-          })}</span>`;
+           <span class="ef__hero-lbl">${this._t("ef_range_full", {
+             km: this._dec(f.fullKm, 0),
+           })}</span>`;
 
     let vsBmw = "";
     if (f.vsBmw != null && f.bmwKm != null) {
@@ -3655,10 +3655,10 @@ class BavarianDataCard extends HTMLElement {
       .map(
         ([k, v, note]) =>
           `<div class="ef__fact">
-            <span class="ef__fact-lbl">${k}</span>
-            <span class="ef__fact-val">${v}</span>
-            ${note ? `<span class="ef__fact-note">${note}</span>` : ""}
-          </div>`
+             <span class="ef__fact-lbl">${k}</span>
+             <span class="ef__fact-val">${v}</span>
+             ${note ? `<span class="ef__fact-note">${note}</span>` : ""}
+           </div>`
       )
       .join("");
 
@@ -4493,9 +4493,9 @@ class BavarianDataCard extends HTMLElement {
       : "M61 134 V130 a4 4 0 0 1 8 0";
     const padlock = d.lockId
       ? `<g class="cldiag__lock" data-entity="${d.lockId}" style="--c:${d.lock.color}">
-          <path d="${shackle}" class="cldiag__shackle"/>
-          <rect x="58" y="134" width="14" height="10" rx="1.8" class="cldiag__lockbody"/>
-        </g>`
+           <path d="${shackle}" class="cldiag__shackle"/>
+           <rect x="58" y="134" width="14" height="10" rx="1.8" class="cldiag__lockbody"/>
+         </g>`
       : "";
 
     return `
@@ -4651,7 +4651,7 @@ class BavarianDataCard extends HTMLElement {
         overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
       }
       /* "trip in progress" badge, bottom-left of the hero so it never competes
-        with the vehicle name or the freshness pill above it. */
+         with the vehicle name or the freshness pill above it. */
       .hero__trip {
         position: absolute; left: 16px; bottom: 12px;
         display: inline-flex; align-items: center; gap: 7px;
@@ -4681,7 +4681,7 @@ class BavarianDataCard extends HTMLElement {
         50% { opacity: 0.45; transform: scale(0.82); }
       }
       /* Respect a reduced-motion preference: the badge still reads as live from
-        its colour, so the pulse is simply dropped. */
+         its colour, so the pulse is simply dropped. */
       @media (prefers-reduced-motion: reduce) {
         .hero__trip-dot { animation: none; }
       }
@@ -4827,7 +4827,7 @@ class BavarianDataCard extends HTMLElement {
         border-color: var(--primary-color); color: var(--primary-color);
       }
       /* Forward past the current month leads nowhere, so the control says so
-        rather than silently doing nothing. */
+         rather than silently doing nothing. */
       .mnav__btn[disabled] { opacity: 0.35; cursor: default; }
       .xbtn {
         display: inline-flex; align-items: center; gap: 4px;
@@ -4918,14 +4918,14 @@ class BavarianDataCard extends HTMLElement {
       .tsum__v {
         display: flex; gap: 6px;
         /* baseline, not center: a long pressure range wraps to two lines in a
-          narrow column and the dot belongs on the first one. */
+           narrow column and the dot belongs on the first one. */
         align-items: baseline;
         font-size: 0.92rem; font-weight: 600; color: var(--c);
       }
       .tsum__v .tstat__dot { flex-shrink: 0; }
       .tsum__sub { font-size: 0.68rem; color: var(--secondary-text-color); }
       /* Grid, not absolute positioning: each wheel's own column sizes to the
-        card so long fitment lines wrap instead of being clipped. */
+         card so long fitment lines wrap instead of being clipped. */
       .tirewrap { container-type: inline-size; }
       .tirecar {
         display: grid;
@@ -4952,7 +4952,7 @@ class BavarianDataCard extends HTMLElement {
         margin: 0 auto;
         overflow: visible;
         /* Surface-modelling tokens derived from the active HA theme, so the
-          metal/glass sheen holds up in both light and dark. */
+           metal/glass sheen holds up in both light and dark. */
         --body-hi: color-mix(in srgb, var(--secondary-background-color), white 20%);
         --body-lo: color-mix(in srgb, var(--secondary-background-color), black 14%);
         --roof-hi: color-mix(in srgb, var(--card-background-color), white 12%);
@@ -5027,7 +5027,7 @@ class BavarianDataCard extends HTMLElement {
         font-variant-numeric: tabular-nums;
       }
       /* Per-wheel fitment. Wraps rather than clips -- a tyre size and a tread
-        name are long, and the column is whatever the dashboard gives us. */
+         name are long, and the column is whatever the dashboard gives us. */
       .wlabel__meta {
         font-size: 0.63rem; line-height: 1.35;
         color: var(--secondary-text-color);
@@ -5037,8 +5037,8 @@ class BavarianDataCard extends HTMLElement {
       .wlabel__sub + .wlabel__meta { margin-top: 3px; }
       .wlabel__due { color: var(--primary-text-color); font-weight: 600; }
       /* Narrow columns: the diagram is the first thing worth losing, and the
-        four wheels fall back to a 2x2 grid that still reads front-over-rear.
-        Must come after the .wlabel rules it overrides. */
+         four wheels fall back to a 2x2 grid that still reads front-over-rear.
+         Must come after the .wlabel rules it overrides. */
       @container (max-width: 340px) {
         .tirecar {
           grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -5230,7 +5230,7 @@ class BavarianDataCard extends HTMLElement {
         text-transform: uppercase; letter-spacing: 0.04em;
       }
       /* The secondary reading under a headline figure (battery-side consumption
-        beneath the plug-side one). Deliberately quieter than the label. */
+         beneath the plug-side one). Deliberately quieter than the label. */
       .tr__tile-sub {
         font-size: 0.68rem; color: var(--secondary-text-color);
         font-variant-numeric: tabular-nums; opacity: 0.85;
@@ -5306,7 +5306,7 @@ class BavarianDataCard extends HTMLElement {
       .tr__badge--commute { background: #00a1e0; }
       .tr__badge--private { background: #7ac142; }
       /* A drive under way: the badge that replaces a classification until the
-        trip lands and there is something to classify. */
+         trip lands and there is something to classify. */
       .tr__badge--live {
         background: var(--bmw-charge, #4cc2ff);
         display: inline-flex; align-items: center; gap: 5px;
@@ -5319,7 +5319,7 @@ class BavarianDataCard extends HTMLElement {
         .tr__live-dot { animation: none; }
       }
       /* The in-progress row leads with an accent edge so it reads as different
-        from the recorded trips below it without shouting. */
+         from the recorded trips below it without shouting. */
       .chg__session.is-live > .chg__row {
         border-left: 3px solid var(--bmw-charge, #4cc2ff);
         padding-left: 7px;
@@ -5378,8 +5378,8 @@ defineCardElement("bavariandata-card", BavarianDataCard);
 defineCardElement("bmw-cardata-card", class extends BavarianDataCard {});
 
 /* ------------------------------------------------------------------------- *
-* Visual editor (config-changed via ha-form)                                *
-* ------------------------------------------------------------------------- */
+ * Visual editor (config-changed via ha-form)                                *
+ * ------------------------------------------------------------------------- */
 
 // Sentinel for "no cluster" so the dropdown always has a concrete value.
 const OVERVIEW = "overview";
