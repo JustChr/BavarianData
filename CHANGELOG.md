@@ -9,6 +9,206 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.10] - 2026-09-16
+
+The first stable release since 0.9.8, promoting twelve betas (0.9.9-beta.1
+through 0.9.10-beta.3) unchanged: everything below has already been running in
+the betas. The theme is **energy you can account for** — what a charge really
+cost, where it came from, how far it actually gets you — plus a long batch of
+fixes for cars that aren't electric, which until now got an integration built
+for one that is.
+
+### Breaking
+- **Petrol and diesel cars lose their electric-car sensors.** The
+  state-of-charge estimate and the charged-energy and charging-cost sensors were
+  created for every car, so a combustion car had up to ten of them stuck at
+  *unknown*. They are now created only once the car sends high-voltage battery
+  data, and on a car that has sent fuel data and never any battery data the
+  existing ones are **removed on the first start after updating**. If you built
+  an automation or dashboard card on one of them it will break — but it was
+  reading *unknown* anyway. Their old history may still show under **Developer
+  tools → Statistics**, where it can be deleted (0.9.10-beta.1).
+
+### Added
+- **How far the car really goes — measured, not predicted.** A new **Real
+  Range** sensor divides the usable battery capacity by the consumption your own
+  charging history recorded, scaled to the charge in the car right now. It picks
+  the shortest window that can answer — 30 days, then 90, then a year, then
+  everything on file — and publishes which one it used beside the number,
+  because 17.5 kWh/100 km means different things over a month and over a year.
+  Battery-side and grid-side figures are never mixed: feeding it a grid figure
+  would have the car driving on the charging losses (0.9.9-beta.1).
+- **A new `view: efficiency` card view** — the real range, how it compares with
+  the car's own estimate, the measured consumption with its window and its side
+  of the charger, the measured charging loss, the usable capacity, your cost per
+  100 km with the month's solar share, and consumption by calendar month, which
+  is where the seasonal story shows up (0.9.9-beta.1).
+- **Where each charge's energy came from: PV, house battery, or the grid.**
+  Point **Configure → Solar & energy sources** at your PV and grid power sensors
+  and every session records the split, plus the share that came off your own
+  roof. The card tags the session row **☀ 62 % solar**; the month's share rides
+  on the existing *Charging energy this month* sensor. Energy is attributed **as
+  it is delivered**, so a charge that starts in sunshine and ends after dark is
+  split rather than filed under whichever came last — and a session that could
+  attribute nothing records no mix at all, because "we couldn't tell" must not
+  look like "no sun". Set **Value of own solar per kWh** and cost becomes what a
+  charge really cost you (0.9.9-beta.1).
+- **Measured grid energy and cost, from your own wallbox meter.** The *wallbox
+  energy sensor* setting has been offered since 0.9.0, and until now nothing read
+  it. Bind your wallbox's cumulative energy total and each session records a
+  measured `grid_kwh` beside the battery-side figure, which the monthly totals,
+  the long-term statistics and the CSV export all prefer. Cost is billed from the
+  meter's advance **as the charge proceeds**, so a dynamic tariff prices each
+  kilowatt-hour at the rate in force when it arrived. A reading that cannot be
+  right is refused rather than believed — a meter that went backwards, one
+  reporting less than the pack absorbed, or one reporting nearly twice it, which
+  is what binding the *house* import meter looks like (0.9.9-beta.5). The meter
+  is read only for charges in your **Home** zone (0.9.9-beta.8).
+- **evcc / wallbox bridge — hand your charge controller the state of charge, at
+  no API cost.** **Configure → evcc / wallbox bridge** republishes what we
+  already know onto your own MQTT broker, and the screen after it hands you the
+  evcc `custom` vehicle configuration with your VIN, prefix and pack size filled
+  in. Published under `PREFIX/VIN/`: `soc`, `status` (evcc's A/B/C), `range`,
+  `odometer`, `limitSoc`, `chargePower`, `plugged`, `charging`, `updated`, and
+  `state` as one JSON document. It publishes through Home Assistant's own MQTT
+  integration, so there is no host, port or password to enter. Off by default.
+  Because a charge controller *acts* on what we publish: anything the car doesn't
+  report is **not published** rather than sent as a zero, everything is re-sent
+  every five minutes so a parked car's level stays current, and switching the
+  bridge off **removes what it published** (0.9.9-beta.5). `get_evcc_config`
+  returns the same configuration at any time. No quota.
+- **The card's Overview fits the car's drivetrain.** A petrol or diesel car got a
+  "Charge" ring and a charge *Target* tile, because BMW streams an EV charge
+  target even to a petrol M2. The card now works the drivetrain out from what the
+  car streams: combustion gets its tank in the ring and no charging tiles, a
+  plug-in hybrid keeps the charge ring and adds tank and total range, an electric
+  car looks exactly as before. Override it with **Drivetrain** in the card editor
+  (0.9.9-beta.8). The charging, battery-health and efficiency views now say there
+  is nothing to show for a fuel-only car instead of sitting empty, which looks
+  like a fault (0.9.10-beta.1).
+- **Check Control messages appear in the card's *Vehicle events* view.** With
+  "washer fluid level is low" on the car's display the view still said there were
+  no events — Check Control messages are filed under usage-based data, not under
+  BMW's *Vehicle events* cluster. Tap a message for the mileage it was last shown
+  at, how long ago the car sent it, and BMW's message code (0.9.10-beta.3).
+- **The fuel in the tank now has long-term statistics.** It had no device class,
+  so Home Assistant kept no history for it. It is now a volume sensor in whatever
+  unit the car sends, shown as a whole number (0.9.10-beta.1).
+- **A BMW motorcycle gets a notice under Settings → Repairs.** BMW lists Motorrad
+  bikes in CarData but streams no data for them, so setup went through and the
+  device then sat empty with no explanation (0.9.10-beta.1).
+- **`get_efficiency`** returns the whole profile plus the month trend, for
+  templates and automations. Local store only, no quota (0.9.9-beta.1).
+
+### Changed
+- **Manual setup switches the stream on the same way guided setup does.** After
+  you pick your clusters it runs the one-click **Activate BMW data** bookmarklet
+  instead of handing you a console snippet to paste into the portal. Guided
+  setup, manual setup and **Configure → Choose streamed data** now use the same
+  screens. Already ticked the fields in the portal yourself? Leave the result box
+  empty and press **Submit** (0.9.10-beta.1).
+- **Plug-in hybrid trips no longer show a kWh/100 km figure.** A trip's energy is
+  the drop in battery charge, but a hybrid may have driven part of the distance
+  on fuel, so dividing the two read far too low. The trip keeps its energy; the
+  rate is left blank and stays out of the monthly average (0.9.10-beta.1).
+
+### Fixed
+- **A restart no longer loses the charge that was running.** An in-progress
+  session lived only in memory, and Home Assistant does not unload config entries
+  on shutdown, so any restart, update or options reload mid-charge deleted it.
+  The session is now snapshotted as it charges and picked up again on the way
+  back in: still charging and it carries on as the same record; already over and
+  it is filed ending at the last sample actually watched, flagged `interrupted`
+  so nothing treats it as a clean measurement. This was not cosmetic — measured
+  on a live instance, two restarts that landed mid-charge cost about **22 kWh in
+  a single week**, and every total built on the ledger read low by exactly that
+  much (0.9.9-beta.1). A drive in progress at a restart is now captured too.
+- **The car's measured state of charge was hidden on every install from before
+  v0.9.6.** That release enabled the *HV battery state of charge* entity by
+  default, but Home Assistant decides an entity's enabled state only once, when
+  it is first registered — so every existing install kept it disabled and nothing
+  ever revisited it. No recorded data was affected, but the measured figure was
+  invisible next to the estimate. The integration now re-enables any entity **it**
+  disabled whose default has since been turned on; entities you disabled yourself
+  are never touched. Expect one extra reload about 30 seconds after the first
+  start on this version (0.9.9-beta.8).
+- **A charge away from home could be booked with another car's energy from your
+  wallbox.** The meter was read for every charge wherever the car was plugged in,
+  so a charge at work while someone else used your wallbox would have taken that
+  meter's advance as this car's measured grid energy and cost (0.9.9-beta.8).
+- **The "stream data has never arrived" repair appeared on every car.** BMW
+  publishes one catalogue for its whole fleet, so no car sends every field — the
+  maintainer's i5 was warned about 154 "missing" fields on a perfectly healthy
+  stream. The warning now appears only when a selected cluster has sent nothing
+  at all for 7 days, which is what a Data Selection that didn't save looks like.
+  An existing warning clears itself on the next check (0.9.9-beta.8).
+- **The main card showed the wrong range**, and the state-of-charge ring could
+  show the fuel tank or the 12 V battery. Three entities answer to "electric
+  range" and which one won came down to registration order — the usual winner was
+  BMW's *estimate during charging*, which read **128 km on a car sitting at 86 %
+  with a real 379**. The card now names the figures it wants and rejects the
+  impostors (0.9.9-beta.3, 0.9.9-beta.8). The charge ring no longer reads "—"
+  when the measured entity has not reported yet (0.9.9-beta.9).
+- **Condition Based Service and Check Control messages now really show their
+  data.** BMW sends both as a list, as text, and Home Assistant cannot store a
+  state that long — so it logged an error on every start and showed *unknown*.
+  The state is now the **number of entries**, so "a Check Control message
+  appeared" works in an automation, and the full list is in the **`items`**
+  attribute. Installs that already stored the rejected text fix themselves on the
+  first start after updating (0.9.9-beta.9, really fixed in 0.9.10-beta.1).
+- **Distances are whole kilometres again** — Home Assistant stamps two decimals
+  on any sensor whose unit it can convert, so the card's headline read
+  "379.00 km" (0.9.9-beta.4). Tyre pressures likewise show "260 kPa" rather than
+  "260,00 kPa"; a display precision you set yourself is kept (0.9.10-beta.1).
+- **The card wrote its own figures with a decimal point on a German dashboard.**
+  Consumption, charged energy, capacity, trip distances and costs that the card
+  works out itself read "19.8" right next to Home Assistant's "110,10 kWh". They
+  now follow your profile's language and *Number format* setting (0.9.10-beta.1).
+- **The Real Range sensor no longer freezes at what it knew when Home Assistant
+  started.** The two figures it is measured against arrive as ordinary stream
+  messages, and a restart delivers them with no stream message at all
+  (0.9.9-beta.2, 0.9.9-beta.3).
+- **The evcc bridge published no plug state for a BMW i5.** It read only two of
+  the descriptors cars use to report "is a cable in", neither of which an i5
+  streams. The source was checked against ten days of recorder history — and 27
+  trips — before trusting a charge controller to act on it (0.9.9-beta.7).
+- **A genuine wallbox reading could have been refused on a small charge.** The
+  cross-check vetoed a meter delta below 90 % of our battery-side figure, but
+  against a real wallbox over twelve sessions the meter read a median **0.989**
+  of ours — below it, which the grid cannot do, so it is *our* figure running a
+  little high. It now allows for our own error in absolute terms (0.9.9-beta.7).
+- **The monthly driving-distance and cost-per-100 km sensors now appear on cars
+  that report `travelledDistance`** — the i5 streams that spelling of the
+  odometer and neither of the two the sensors were gated on (0.9.9-beta.1).
+- **The car's own remaining range is a properly classified sensor.** BMW ships
+  `kombiRemainingElectricRange` with an empty unit, so it arrived with no unit,
+  no device class and no statistics (0.9.9-beta.4).
+- **Fetching BMW's charging history repairs charges recorded before v0.9.6.**
+  Until v0.9.6 the state of charge never reached the stream, so those charges
+  were stored flat — "38 → 38 %" and about 1.4 kWh. The import now takes BMW's
+  start and end level where BMW recorded a rise of at least 2 percentage points
+  for a charge stored as flat. The battery-side kWh and the solar share came from
+  the same wrong figure, so they are removed rather than kept. **To repair:** run
+  **Fetch charging history** once with **From** set before your first affected
+  charge — without it, only the last 30 days are fetched. Thanks to @karpilin for
+  asking ([#6](https://github.com/JustChr/BavarianData/issues/6))
+  (0.9.10-beta.2).
+- **The card editor no longer offers the *CarData Debug Device*.** It was listed
+  next to your cars and even preselected when adding the card, although it holds
+  only diagnostics and the card had nothing to show for it (0.9.10-beta.3).
+- **The bridge's settings screen failed Home Assistant's own validation**, which
+  fails validation for the whole integration rather than for the one string. Now
+  guarded by a test that runs in CI (0.9.9-beta.6).
+
+### Documentation
+- New wiki page **evcc & wallbox bridge**, covering both directions, the full
+  topic table, when a wallbox reading is refused, and the troubleshooting path
+  for "nothing appears on the broker". `docs/clean-install.md` gains a section on
+  retained MQTT messages, the one thing this integration leaves behind that lives
+  on someone else's machine (0.9.9-beta.5).
+- **The manual is now complete in German**, page for page with the English one
+  (0.9.10-beta.1).
+
 ## [0.9.10-beta.3] - 2026-09-14
 
 ### Fixed
