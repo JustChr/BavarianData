@@ -2232,6 +2232,7 @@ class BavarianDataCard extends HTMLElement {
         vin,
         trigger,
         month,
+        entryId: entryId,
         trips: current && cache ? cache.trips : null,
         summary: current && cache ? cache.summary : null,
         open: current && cache ? cache.open : null,
@@ -2806,10 +2807,12 @@ class BavarianDataCard extends HTMLElement {
         const tripId = el.getAttribute("data-trip-class");
         const cls = el.getAttribute("data-class");
         const vin = this._trp && this._trp.vin;
+        const entryId = this._trp && this._trp.entryId;
         if (!vin) return;
         this._hass
           .callService("bavariandata", "set_trip_class", {
             vin,
+            entry_id: entryId,
             trip_id: `${vin}-${tripId}`,
             classification: cls,
           })
