@@ -1,5569 +1,5558 @@
-  /*
-  * BavarianData Card
-  * A custom Lovelace card for the BavarianData integration (BMW CarData).
-  *
-  * Two modes:
-  *   - overview (default): the vehicle render as a hero, a state-of-charge ring,
-  *     range, charging status and a compact grid of key metrics.
-  *   - cluster: `cluster: <slug>` renders every entity of that catalogue cluster
-  *     (electric, status, tire, ...) as a clean list. The cluster of each entity
-  *     is read from its `cluster` attribute, exposed by the integration.
-  *
-  * The card auto-discovers entities from the vehicle's device, so a minimal
-  * config is just `type: custom:bavariandata-card`.
-  */
+/*
+ * BavarianData Card
+ * A custom Lovelace card for the BavarianData integration (BMW CarData).
+ *
+ * Two modes:
+ *   - overview (default): the vehicle render as a hero, a state-of-charge ring,
+ *     range, charging status and a compact grid of key metrics.
+ *   - cluster: `cluster: <slug>` renders every entity of that catalogue cluster
+ *     (electric, status, tire, ...) as a clean list. The cluster of each entity
+ *     is read from its `cluster` attribute, exposed by the integration.
+ *
+ * The card auto-discovers entities from the vehicle's device, so a minimal
+ * config is just `type: custom:bavariandata-card`.
+ */
 
-  const CARD_VERSION = "1.14.0";
+const CARD_VERSION = "1.14.0";
 
-  // Classification -> colour, shared by the trips legend and the trip map so a
-  // route drawn on the map matches the colour of its row in the Trips view.
-  // Kept in sync with the `.tr__seg--*` background rules in `_styles()`.
-  const TRIP_CLASS_COLORS = {
-    business: "#0066b1",
-    commute: "#00a1e0",
-    private: "#7ac142",
-    unclassified: "#8a8a8a",
-  };
+// Classification -> colour, shared by the trips legend and the trip map so a
+// route drawn on the map matches the colour of its row in the Trips view.
+// Kept in sync with the `.tr__seg--*` background rules in `_styles()`.
+const TRIP_CLASS_COLORS = {
+  business: "#0066b1",
+  commute: "#00a1e0",
+  private: "#7ac142",
+  unclassified: "#8a8a8a",
+};
 
-  // Register a custom element idempotently: always attempt the define so a cold
-  // load can never silently skip it, but swallow the benign "already defined"
-  // error from a legitimate second evaluation. A real error (e.g. an invalid
-  // class) still surfaces. Hoisted (function declaration) so the define() call
-  // sites near the end of the module can use it.
-  function defineCardElement(tag, cls) {
-    try {
-      customElements.define(tag, cls);
-    } catch (err) {
-      if (!customElements.get(tag)) throw err; // not a duplicate-definition race
-    }
+// Register a custom element idempotently: always attempt the define so a cold
+// load can never silently skip it, but swallow the benign "already defined"
+// error from a legitimate second evaluation. A real error (e.g. an invalid
+// class) still surfaces. Hoisted (function declaration) so the define() call
+// sites near the end of the module can use it.
+function defineCardElement(tag, cls) {
+  try {
+    customElements.define(tag, cls);
+  } catch (err) {
+    if (!customElements.get(tag)) throw err; // not a duplicate-definition race
   }
+}
 
-  // Catalogue cluster slugs, in display order. Human labels are localized via the
-  // translation table (keys `cl_<slug>`); icons are language-independent.
-  const CLUSTER_SLUGS = [
-    "electric",
-    "status",
-    "metadata",
-    "events",
-    "tire",
-    "basic",
-    "usage",
-    "other",
-    "contract",
-  ];
+// Catalogue cluster slugs, in display order. Human labels are localized via the
+// translation table (keys `cl_<slug>`); icons are language-independent.
+const CLUSTER_SLUGS = [
+  "electric",
+  "status",
+  "metadata",
+  "events",
+  "tire",
+  "basic",
+  "usage",
+  "other",
+  "contract",
+];
 
-  const CLUSTER_ICONS = {
-    electric: "mdi:lightning-bolt",
-    status: "mdi:car-info",
-    tire: "mdi:tire",
-    events: "mdi:calendar-alert",
-    usage: "mdi:chart-line",
-    basic: "mdi:card-account-details-outline",
-    metadata: "mdi:information-outline",
-    contract: "mdi:file-document-outline",
-    other: "mdi:dots-horizontal",
-  };
+const CLUSTER_ICONS = {
+  electric: "mdi:lightning-bolt",
+  status: "mdi:car-info",
+  tire: "mdi:tire",
+  events: "mdi:calendar-alert",
+  usage: "mdi:chart-line",
+  basic: "mdi:card-account-details-outline",
+  metadata: "mdi:information-outline",
+  contract: "mdi:file-document-outline",
+  other: "mdi:dots-horizontal",
+};
 
-  const UNAVAILABLE = new Set(["unavailable", "unknown", "none", "", null, undefined]);
+const UNAVAILABLE = new Set(["unavailable", "unknown", "none", "", null, undefined]);
 
-  // Descriptor fragments of percentages that are never the high-voltage state of
-  // charge: the 12 V battery every car reports, and the fuel tank. Kept out of the
-  // state-of-charge gauge's picks (see _overviewEntities).
-  const NOT_HV_BATTERY = ["electricalsystem", "fuelsystem"];
+// Descriptor fragments of percentages that are never the high-voltage state of
+// charge: the 12 V battery every car reports, and the fuel tank. Kept out of the
+// state-of-charge gauge's picks (see _overviewEntities).
+const NOT_HV_BATTERY = ["electricalsystem", "fuelsystem"];
 
-  // Descriptors that prove a high-voltage battery. Deliberately not "anything from
-  // the electric cluster": a petrol F87 M2 streams the EV charge *target* (issue #8's
-  // diagnostics), which must not make it look electric.
-  const HV_SIGNALS = [
-    "vehicle.drivetrain.batteryManagement.header",
-    "vehicle.drivetrain.batteryManagement.maxEnergy",
-    "vehicle.drivetrain.batteryManagement.batterySizeMax",
-    "vehicle.drivetrain.electricEngine.charging.status",
-    "vehicle.drivetrain.electricEngine.kombiRemainingElectricRange",
-  ];
-  // Descriptor prefixes only a car with a combustion engine streams.
-  const COMBUSTION_PREFIXES = [
-    "vehicle.drivetrain.fuelSystem.",
-    "vehicle.drivetrain.internalCombustionEngine.",
-  ];
-  // The overview layouts: electric, plug-in hybrid, petrol/diesel.
-  const DRIVETRAINS = new Set(["bev", "phev", "ice"]);
+// Descriptors that prove a high-voltage battery. Deliberately not "anything from
+// the electric cluster": a petrol F87 M2 streams the EV charge *target* (issue #8's
+// diagnostics), which must not make it look electric.
+const HV_SIGNALS = [
+  "vehicle.drivetrain.batteryManagement.header",
+  "vehicle.drivetrain.batteryManagement.maxEnergy",
+  "vehicle.drivetrain.batteryManagement.batterySizeMax",
+  "vehicle.drivetrain.electricEngine.charging.status",
+  "vehicle.drivetrain.electricEngine.kombiRemainingElectricRange",
+];
+// Descriptor prefixes only a car with a combustion engine streams.
+const COMBUSTION_PREFIXES = [
+  "vehicle.drivetrain.fuelSystem.",
+  "vehicle.drivetrain.internalCombustionEngine.",
+];
+// The overview layouts: electric, plug-in hybrid, petrol/diesel.
+const DRIVETRAINS = new Set(["bev", "phev", "ice"]);
 
-  // BMW reports these charging-status values when nothing is actively charging
-  // (e.g. `invalid` when no cable is connected). Show a clean localized "not
-  // charging" for them instead of the raw state translation ("Ungültig", …).
-  const NOT_CHARGING_STATES = new Set([
-    "invalid",
-    "not_charging",
-    "notcharging",
-    "no_charging",
-    "default",
-  ]);
+// BMW reports these charging-status values when nothing is actively charging
+// (e.g. `invalid` when no cable is connected). Show a clean localized "not
+// charging" for them instead of the raw state translation ("Ungültig", …).
+const NOT_CHARGING_STATES = new Set([
+  "invalid",
+  "not_charging",
+  "notcharging",
+  "no_charging",
+  "default",
+]);
 
-  // Values BMW streams on charging.status while a charge is actually in progress.
-  // "chargingactive" is not in the catalogue's option list, so it arrives
-  // untranslated -- treat it (and its siblings) as active charging and render a
-  // clean localized label instead of the raw token. Mirrors the coordinator's own
-  // charging-active test (status in {CHARGINGACTIVE, CHARGING_IN_PROGRESS}).
-  const CHARGING_ACTIVE_STATES = new Set([
-    "chargingactive",
-    "charging_active",
-    "charging_in_progress",
-    "charging",
-  ]);
+// Values BMW streams on charging.status while a charge is actually in progress.
+// "chargingactive" is not in the catalogue's option list, so it arrives
+// untranslated -- treat it (and its siblings) as active charging and render a
+// clean localized label instead of the raw token. Mirrors the coordinator's own
+// charging-active test (status in {CHARGINGACTIVE, CHARGING_IN_PROGRESS}).
+const CHARGING_ACTIVE_STATES = new Set([
+  "chargingactive",
+  "charging_active",
+  "charging_in_progress",
+  "charging",
+]);
 
-  /* ------------------------------------------------------------------------- *
-  * Localization                                                              *
-  *                                                                           *
-  * The card's own chrome (labels, headings, relative times, tire positions,  *
-  * editor fields) is translated here. Entity names and states keep coming    *
-  * from Home Assistant's own translations via hass.formatEntityState. Add a  *
-  * language by adding a block below; anything missing falls back to English. *
-  * ------------------------------------------------------------------------- */
-  const TRANSLATIONS = {
-    en: {
-      // cluster labels
-      cl_electric: "Electric vehicle",
-      cl_status: "Vehicle status",
-      cl_metadata: "Metadata",
-      cl_events: "Vehicle events",
-      cl_tire: "Tire data",
-      cl_basic: "Vehicle basic data",
-      cl_usage: "Usage-based data",
-      cl_other: "Other",
-      cl_contract: "ConnectedDrive contract",
-      // overview
-      remaining_range: "remaining range",
-      charging_status: "charging status",
-      charge: "charge",
-      charging: "charging",
-      is_charging: "Charging",
-      not_charging: "Not charging",
-      target: "Target",
-      plug: "Plug",
-      fuel: "fuel",
-      tank: "Tank",
-      electric_range: "electric range",
-      total_range: "Total range",
-      time_to_full: "Time to full",
-      charge_time: "Charge time",
-      odometer: "Odometer",
-      last_update: "Last update",
-      just_now: "just now",
-      min_ago: "{n} min ago",
-      h_ago: "{n} h ago",
-      d_ago: "{n} d ago",
-      // cluster list
-      value: "value",
-      values: "values",
-      no_cluster_entities:
-        "No {label} entities for this vehicle. Enable the cluster in the integration options.",
-      cc_title: "Check Control messages",
-      cc_none: "No Check Control messages reported.",
-      cc_teleservice: "Teleservice",
-      cc_mileage: "Last shown at",
-      cc_sent: "Sent by the car",
-      cc_code: "Code",
-      // messages
-      no_vehicle_title: "No BMW CarData vehicle found",
-      no_vehicle_body:
-        "Add the integration, or set <code>device:</code> / <code>vin:</code> in the card config.",
-      // tire
-      front: "FRONT",
-      fl: "FL",
-      fr: "FR",
-      rl: "RL",
-      rr: "RR",
-      front_left: "Front left",
-      front_right: "Front right",
-      rear_left: "Rear left",
-      rear_right: "Rear right",
-      tires: "Tires",
-      no_tire_data:
-        "No tire data for this vehicle yet. Enable the Tire data cluster and drive to populate readings.",
-      check_pressure: "Check pressure",
-      slightly_high: "Slightly high",
-      all_nominal: "All nominal",
-      of_four: "{n} of 4",
-      t_low: "Low",
-      t_high: "High",
-      t_ok: "OK",
-      t_nodata: "No data",
-      t_wear: "Worn",
-      check_tyres: "Check tyres",
-      wear_due: "change in",
-      fitted: "fitted",
-      t_current: "Current",
-      // tire summary + per-wheel fitment
-      sum_pressure: "Pressure",
-      sum_wear: "Wear",
-      p_target: "Target",
-      p_target_varies: "Targets vary",
-      w_ok: "OK",
-      w_soon: "Check soon",
-      w_due: "Replace",
-      season_summer: "Summer",
-      season_winter: "Winter",
-      season_all: "All-season",
-      runflat: "Runflat",
-      // closures / security
-      cl_closures: "Security & closures",
-      closures_none:
-        "No door, window or security data for this vehicle yet. Enable the Vehicle status cluster in the integration options.",
-      central_lock: "Central lock",
-      alarm_word: "Anti-theft alarm",
-      alarm_armed: "Armed",
-      alarm_disarmed: "Disarmed",
-      alarm_triggered: "Alarm triggered",
-      secured: "Secured",
-      locked: "Locked",
-      unlocked: "Unlocked",
-      partially_locked: "Partially locked",
-      all_closed: "All closed",
-      windows_open: "Windows open",
-      n_open: "{n} open",
-      state_open: "Open",
-      state_closed: "Closed",
-      state_tilted: "Tilted",
-      door_word: "Door",
-      window_word: "Window",
-      hood_word: "Hood",
-      trunk_word: "Trunk",
-      rear_window_word: "Rear window",
-      sunroof_word: "Sunroof",
-      // charging history
-      ch_title: "Charging history",
-      ch_month: "This month",
-      ch_loading: "Loading charging history…",
-      ch_empty:
-        "No charging sessions recorded yet. Once the car charges, sessions appear here automatically.",
-      ch_empty_month: "No charging in this month.",
-      ch_error: "Couldn't load charging history. Reload the page and try again.",
-      mn_prev: "Previous month",
-      mn_next: "Next month",
-      ch_home: "Home",
-      ch_public: "Away",
-      ch_assumed: "assumed",
-      ch_partial: "partial price",
-      ch_session_one: "1 session",
-      ch_session_many: "{n} sessions",
-      ch_peak: "Peak",
-      ch_avg: "Avg",
-      ch_grid: "From grid",
-      ch_solar: "solar",
-      ch_mix: "Energy source",
-      ch_mix_pv: "PV",
-      ch_mix_battery: "House battery",
-      ch_mix_grid: "Grid",
-      ch_mix_unknown: "unattributed",
-      ch_duration: "Duration",
-      ch_cost: "Cost",
-      ch_no_cost: "no price set",
-      ch_ongoing: "charging…",
-      // battery health
-      bh_title: "Battery health",
-      bh_empty:
-        "No battery-health data yet. Once the car logs a few wide-range charges, its usable capacity appears here.",
-      bh_learning: "Learning ({n}/{total})",
-      bh_learning_hint:
-        "Estimating usable capacity from your charges. A few wide-range charges (e.g. 20 → 80%) teach it fastest.",
-      bh_suspicious:
-        "Cross-checking against BMW's own capacity figure before showing a number.",
-      bh_usable: "Usable capacity",
-      bh_of_new: "{p}% of original",
-      bh_nominal: "As new",
-      bh_analysed: "Based on",
-      bh_samples: "{n} charges",
-      bh_trend_title: "Capacity vs mileage",
-      // efficiency and real range
-      ef_title: "Efficiency & range",
-      ef_loading: "Working out your real range…",
-      ef_empty:
-        "Not enough charging history yet. Once two charges bracket 50 km or so of driving, your real consumption and the range it reaches appear here.",
-      ef_no_capacity:
-        "This car hasn't reported its battery capacity, so a range can't be worked out from the measured consumption.",
-      ef_error: "Couldn't load the efficiency data. Reload the page and try again.",
-      ef_range_now: "Real range now",
-      ef_at_soc: "at {p}% charge",
-      ef_range_full: "{km} km on a full battery",
-      ef_vs_bmw_over: "{p}% further than the car predicts ({km} km)",
-      ef_vs_bmw_under: "{p}% less than the car predicts ({km} km)",
-      ef_vs_bmw_same: "Same as the car's own estimate ({km} km)",
-      ef_consumption: "Measured consumption",
-      ef_side_battery: "from the battery",
-      ef_side_grid: "at the plug",
-      ef_window_days: "last {n} days",
-      ef_window_all: "all records",
-      ef_loss: "Charging loss",
-      ef_capacity: "Usable capacity",
-      ef_capacity_measured: "measured",
-      ef_capacity_bmw: "BMW's figure",
-      ef_cost: "Cost per 100 km",
-      ef_solar: "{p}% solar this month",
-      ef_trend_title: "Consumption by month",
-      ef_footnote:
-        "Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate.",
-      // charging, battery health and efficiency on a petrol or diesel car
-      ice_view_title: "Nothing to show for this car",
-      ice_view_body:
-        "{name} runs on fuel alone, so there is no charging, battery health or electric range to show. If it does plug in, set Drivetrain in the card editor.",
-      // trips
-      tr_title: "Trips",
-      tr_loading: "Loading trips…",
-      tr_empty:
-        "No trips recorded yet. Once the car is driven, trips appear here automatically.",
-      tr_empty_month: "No trips in this month.",
-      tr_error: "Couldn't load trips. Reload the page and try again.",
-      tr_trip_one: "1 trip",
-      tr_trip_many: "{n} trips",
-      tr_review: "This month",
-      tr_vs_last: "vs last month",
-      tr_business: "Business",
-      tr_private: "Private",
-      tr_commute: "Commute",
-      tr_unclassified: "Unclassified",
-      tr_consumption: "Avg consumption",
-      tr_at_plug: "at the plug",
-      tr_at_battery: "at the battery",
-      tr_charge_loss: "{n}% charging loss",
-      tr_recuperation: "Recuperated",
-      tr_style: "Driving style",
-      tr_style_trend: "Style over time",
-      tr_top_dest: "Top destinations",
-      tr_est_cost: "Est. cost",
-      tr_longest: "Longest trip",
-      tr_duration: "Duration",
-      tr_distance: "Distance",
-      tr_soc_used: "Battery used",
-      tr_visits: "{n}×",
-      tr_auto: "auto",
-      tr_classify: "Classify",
-      tr_best: "Best",
-      tr_worst: "Worst",
-      tr_unknown_place: "Unknown",
-      tr_open: "Trip in progress",
-      tr_open_hint: "A drive is under way",
-      tr_min: "{n} min",
-      tr_open_note:
-        "This drive is still under way. Distance and consumption are provisional, and the trip can be classified once it ends.",
-      // map
-      mp_title: "Trip map",
-      mp_loading: "Loading map…",
-      mp_error: "Couldn't load the map. Reload the page and try again.",
-      mp_empty_none:
-        "No places to map yet. Turn on “Record route” under Configure → Trips, then drive — the places you visit appear here.",
-      mp_empty_window: "No places recorded in this period.",
-      mp_unavailable: "The map couldn't be loaded in this browser.",
-      mp_win_month: "This month",
-      mp_win_3m: "3 months",
-      mp_win_all: "All",
-      mp_route_one: "1 route",
-      mp_route_many: "{n} routes",
-      // export
-      ex_csv: "CSV",
-      ex_report: "Report",
-      ex_csv_hint: "Download this month as a spreadsheet",
-      ex_report_hint: "Open a printable month report (print it to get a PDF)",
-      ex_empty: "Nothing recorded for this month yet.",
-      ex_error: "Export failed. Check the Home Assistant log.",
-      // editor
-      ed_device: "Vehicle",
-      ed_cluster: "Mode",
-      ed_title: "Title (optional)",
-      ed_image: "Image entity",
-      ed_soc: "State of charge",
-      ed_range: "Range",
-      ed_charging: "Charging status",
-      ed_target_soc: "Charge target",
-      ed_time_to_full: "Time to full",
-      ed_odometer: "Odometer",
-      ed_plug: "Plug / connection",
-      ed_fuel: "Fuel tank",
-      ed_drivetrain: "Drivetrain",
-      edh_drivetrain: "Detected from what the car streams. Set it only if the card picks the wrong layout.",
-      dt_auto: "Auto-detect",
-      dt_bev: "Electric",
-      dt_phev: "Plug-in hybrid",
-      dt_ice: "Petrol / diesel",
-      ed_overview_option: "Overview (default)",
-      ed_overrides_title: "Entity overrides (optional — leave empty to auto-detect)",
-      edh_cluster:
-        "Overview shows the hero image and key metrics. Charging history lists recorded sessions with cost and power curve. Trips lists recorded drives with a month-in-review summary. Trip map draws recorded routes on a map (needs “Record trip routes” enabled). Battery health shows learned usable capacity and its trend. A cluster shows every value of that group as a list. A drive in progress appears as a badge on the overview and as a live row at the top of Trips.",
-      edh_title: "Overrides the vehicle name shown on the card.",
-    },
-    de: {
-      // cluster labels
-      cl_electric: "Elektrofahrzeug",
-      cl_status: "Fahrzeugstatus",
-      cl_metadata: "Metadaten",
-      cl_events: "Fahrzeugereignisse",
-      cl_tire: "Reifendaten",
-      cl_basic: "Fahrzeug-Basisdaten",
-      cl_usage: "Nutzungsdaten",
-      cl_other: "Sonstiges",
-      cl_contract: "ConnectedDrive-Vertrag",
-      // overview
-      remaining_range: "Reichweite",
-      charging_status: "Ladestatus",
-      charge: "Ladung",
-      charging: "lädt",
-      is_charging: "Lädt",
-      not_charging: "Lädt nicht",
-      target: "Ziel",
-      plug: "Stecker",
-      fuel: "Kraftstoff",
-      tank: "Tank",
-      electric_range: "elektrische Reichweite",
-      total_range: "Gesamtreichweite",
-      time_to_full: "Bis voll",
-      charge_time: "Ladezeit",
-      odometer: "Kilometerstand",
-      last_update: "Letzte Aktualisierung",
-      just_now: "gerade eben",
-      min_ago: "vor {n} Min.",
-      h_ago: "vor {n} Std.",
-      d_ago: "vor {n} T.",
-      // cluster list
-      value: "Wert",
-      values: "Werte",
-      no_cluster_entities:
-        "Keine {label}-Entitäten für dieses Fahrzeug. Aktiviere den Cluster in den Integrationsoptionen.",
-      cc_title: "Check-Control-Meldungen",
-      cc_none: "Keine Check-Control-Meldungen gemeldet.",
-      cc_teleservice: "Teleservice",
-      cc_mileage: "Zuletzt angezeigt bei",
-      cc_sent: "Vom Fahrzeug gesendet",
-      cc_code: "Code",
-      // messages
-      no_vehicle_title: "Kein BMW-CarData-Fahrzeug gefunden",
-      no_vehicle_body:
-        "Füge die Integration hinzu oder setze <code>device:</code> / <code>vin:</code> in der Kartenkonfiguration.",
-      // tire
-      front: "VORNE",
-      fl: "VL",
-      fr: "VR",
-      rl: "HL",
-      rr: "HR",
-      front_left: "Vorne links",
-      front_right: "Vorne rechts",
-      rear_left: "Hinten links",
-      rear_right: "Hinten rechts",
-      tires: "Reifen",
-      no_tire_data:
-        "Noch keine Reifendaten für dieses Fahrzeug. Aktiviere den Cluster „Reifendaten“ und fahre, um Werte zu erfassen.",
-      check_pressure: "Druck prüfen",
-      slightly_high: "Etwas hoch",
-      all_nominal: "Alles normal",
-      of_four: "{n} von 4",
-      t_low: "Niedrig",
-      t_high: "Hoch",
-      t_ok: "OK",
-      t_nodata: "Keine Daten",
-      t_wear: "Abgefahren",
-      check_tyres: "Reifen prüfen",
-      wear_due: "Wechsel in",
-      fitted: "montiert",
-      t_current: "Aktuell",
-      // tire summary + per-wheel fitment
-      sum_pressure: "Druck",
-      sum_wear: "Verschleiß",
-      p_target: "Soll",
-      p_target_varies: "Sollwerte unterschiedlich",
-      w_ok: "OK",
-      w_soon: "Bald prüfen",
-      w_due: "Wechseln",
-      season_summer: "Sommer",
-      season_winter: "Winter",
-      season_all: "Ganzjahres",
-      runflat: "Runflat",
-      // closures / security
-      cl_closures: "Sicherheit & Öffnungen",
-      closures_none:
-        "Noch keine Tür-, Fenster- oder Sicherheitsdaten für dieses Fahrzeug. Aktiviere den Cluster „Fahrzeugstatus“ in den Integrationsoptionen.",
-      central_lock: "Zentralverriegelung",
-      alarm_word: "Diebstahlwarnanlage",
-      alarm_armed: "Scharf",
-      alarm_disarmed: "Unscharf",
-      alarm_triggered: "Alarm ausgelöst",
-      secured: "Gesichert",
-      locked: "Verriegelt",
-      unlocked: "Entriegelt",
-      partially_locked: "Teilweise verriegelt",
-      all_closed: "Alles geschlossen",
-      windows_open: "Fenster offen",
-      n_open: "{n} offen",
-      state_open: "Offen",
-      state_closed: "Geschlossen",
-      state_tilted: "Gekippt",
-      door_word: "Tür",
-      window_word: "Fenster",
-      hood_word: "Motorhaube",
-      trunk_word: "Kofferraum",
-      rear_window_word: "Heckscheibe",
-      sunroof_word: "Schiebedach",
-      // charging history
-      ch_title: "Ladeverlauf",
-      ch_month: "Dieser Monat",
-      ch_loading: "Ladeverlauf wird geladen…",
-      ch_empty:
-        "Noch keine Ladevorgänge aufgezeichnet. Sobald das Fahrzeug lädt, erscheinen sie hier automatisch.",
-      ch_empty_month: "Keine Ladevorgänge in diesem Monat.",
-      ch_error: "Ladeverlauf konnte nicht geladen werden. Lade die Seite neu und versuche es erneut.",
-      mn_prev: "Vorheriger Monat",
-      mn_next: "Nächster Monat",
-      ch_home: "Zuhause",
-      ch_public: "Unterwegs",
-      ch_assumed: "angenommen",
-      ch_partial: "Teilpreis",
-      ch_session_one: "1 Ladevorgang",
-      ch_session_many: "{n} Ladevorgänge",
-      ch_peak: "Spitze",
-      ch_avg: "Ø",
-      ch_grid: "Aus dem Netz",
-      ch_solar: "Solar",
-      ch_mix: "Energiequelle",
-      ch_mix_pv: "PV",
-      ch_mix_battery: "Hausspeicher",
-      ch_mix_grid: "Netz",
-      ch_mix_unknown: "nicht zuordenbar",
-      ch_duration: "Dauer",
-      ch_cost: "Kosten",
-      ch_no_cost: "kein Preis gesetzt",
-      ch_ongoing: "lädt…",
-      // battery health
-      bh_title: "Batteriezustand",
-      bh_empty:
-        "Noch keine Daten zum Batteriezustand. Sobald das Fahrzeug einige Ladevorgänge über einen weiten Bereich aufzeichnet, erscheint hier die nutzbare Kapazität.",
-      bh_learning: "Lernt ({n}/{total})",
-      bh_learning_hint:
-        "Die nutzbare Kapazität wird aus deinen Ladevorgängen geschätzt. Ein paar Ladungen über einen weiten Bereich (z. B. 20 → 80 %) beschleunigen das.",
-      bh_suspicious:
-        "Wird mit BMWs eigener Kapazitätsangabe abgeglichen, bevor ein Wert angezeigt wird.",
-      bh_usable: "Nutzbare Kapazität",
-      bh_of_new: "{p} % vom Original",
-      bh_nominal: "Neuwert",
-      bh_analysed: "Basis",
-      bh_samples: "{n} Ladevorgänge",
-      bh_trend_title: "Kapazität nach Laufleistung",
-      // efficiency and real range
-      ef_title: "Effizienz & Reichweite",
-      ef_loading: "Reale Reichweite wird berechnet…",
-      ef_empty:
-        "Noch zu wenig Ladehistorie. Sobald zwei Ladevorgänge rund 50 km Fahrt einschließen, erscheinen hier der reale Verbrauch und die Reichweite, die er ergibt.",
-      ef_no_capacity:
-        "Dieses Fahrzeug meldet keine Batteriekapazität, daher lässt sich aus dem gemessenen Verbrauch keine Reichweite berechnen.",
-      ef_error: "Effizienzdaten konnten nicht geladen werden. Seite neu laden und erneut versuchen.",
-      ef_range_now: "Reale Reichweite jetzt",
-      ef_at_soc: "bei {p} % Ladung",
-      ef_range_full: "{km} km bei voller Batterie",
-      ef_vs_bmw_over: "{p} % weiter als das Fahrzeug vorhersagt ({km} km)",
-      ef_vs_bmw_under: "{p} % weniger als das Fahrzeug vorhersagt ({km} km)",
-      ef_vs_bmw_same: "Genau wie die Prognose des Fahrzeugs ({km} km)",
-      ef_consumption: "Gemessener Verbrauch",
-      ef_side_battery: "ab Batterie",
-      ef_side_grid: "ab Steckdose",
-      ef_window_days: "letzte {n} Tage",
-      ef_window_all: "gesamte Historie",
-      ef_loss: "Ladeverlust",
-      ef_capacity: "Nutzbare Kapazität",
-      ef_capacity_measured: "gemessen",
-      ef_capacity_bmw: "BMW-Wert",
-      ef_cost: "Kosten pro 100 km",
-      ef_solar: "{p} % Solar diesen Monat",
-      ef_trend_title: "Verbrauch nach Monat",
-      ef_footnote:
-        "Gemessen aus der Ladehistorie: die Strecke zwischen zwei Ladevorgängen und die Energie, die hineinging — nicht die Prognose des Fahrzeugs.",
-      // charging, battery health and efficiency on a petrol or diesel car
-      ice_view_title: "Für dieses Fahrzeug gibt es hier nichts",
-      ice_view_body:
-        "{name} fährt nur mit Kraftstoff, daher gibt es keine Ladevorgänge, keinen Batteriezustand und keine elektrische Reichweite. Wird es doch geladen, im Karteneditor den Antrieb einstellen.",
-      // trips
-      tr_title: "Fahrten",
-      tr_loading: "Fahrten werden geladen…",
-      tr_empty:
-        "Noch keine Fahrten aufgezeichnet. Sobald das Fahrzeug bewegt wird, erscheinen Fahrten hier automatisch.",
-      tr_empty_month: "Keine Fahrten in diesem Monat.",
-      tr_error: "Fahrten konnten nicht geladen werden. Seite neu laden und erneut versuchen.",
-      tr_trip_one: "1 Fahrt",
-      tr_trip_many: "{n} Fahrten",
-      tr_review: "Dieser Monat",
-      tr_vs_last: "ggü. Vormonat",
-      tr_business: "Geschäftlich",
-      tr_private: "Privat",
-      tr_commute: "Pendeln",
-      tr_unclassified: "Nicht zugeordnet",
-      tr_consumption: "Ø Verbrauch",
-      tr_at_plug: "ab Steckdose",
-      tr_at_battery: "ab Akku",
-      tr_charge_loss: "{n}% Ladeverlust",
-      tr_recuperation: "Rekuperiert",
-      tr_style: "Fahrstil",
-      tr_style_trend: "Fahrstil über Zeit",
-      tr_top_dest: "Häufigste Ziele",
-      tr_est_cost: "Gesch. Kosten",
-      tr_longest: "Längste Fahrt",
-      tr_duration: "Dauer",
-      tr_distance: "Strecke",
-      tr_soc_used: "Batterie verbraucht",
-      tr_visits: "{n}×",
-      tr_auto: "auto",
-      tr_classify: "Zuordnen",
-      tr_best: "Beste",
-      tr_worst: "Schlechteste",
-      tr_unknown_place: "Unbekannt",
-      tr_open: "Fahrt aktiv",
-      tr_open_hint: "Eine Fahrt ist im Gange",
-      tr_min: "{n} Min.",
-      tr_open_note:
-        "Diese Fahrt läuft noch. Strecke und Verbrauch sind vorläufig; zuordnen lässt sich die Fahrt, sobald sie beendet ist.",
-      // map
-      mp_title: "Fahrtenkarte",
-      mp_loading: "Karte wird geladen…",
-      mp_error: "Karte konnte nicht geladen werden. Seite neu laden und erneut versuchen.",
-      mp_empty_none:
-        "Noch keine Orte zum Anzeigen. Unter Konfigurieren → Fahrten „Route aufzeichnen“ aktivieren, dann fahren — die besuchten Orte erscheinen hier.",
-      mp_empty_window: "In diesem Zeitraum keine Orte aufgezeichnet.",
-      mp_unavailable: "Die Karte konnte in diesem Browser nicht geladen werden.",
-      mp_win_month: "Dieser Monat",
-      mp_win_3m: "3 Monate",
-      mp_win_all: "Alle",
-      mp_route_one: "1 Route",
-      mp_route_many: "{n} Routen",
-      // export
-      ex_csv: "CSV",
-      ex_report: "Bericht",
-      ex_csv_hint: "Diesen Monat als Tabelle herunterladen",
-      ex_report_hint: "Druckbaren Monatsbericht öffnen (zum Drucken als PDF)",
-      ex_empty: "Für diesen Monat ist noch nichts aufgezeichnet.",
-      ex_error: "Export fehlgeschlagen. Bitte das Home-Assistant-Log prüfen.",
-      // editor
-      ed_device: "Fahrzeug",
-      ed_cluster: "Modus",
-      ed_title: "Titel (optional)",
-      ed_image: "Bild-Entität",
-      ed_soc: "Ladezustand",
-      ed_range: "Reichweite",
-      ed_charging: "Ladestatus",
-      ed_target_soc: "Ladeziel",
-      ed_time_to_full: "Bis voll",
-      ed_odometer: "Kilometerstand",
-      ed_plug: "Stecker / Verbindung",
-      ed_fuel: "Tank",
-      ed_drivetrain: "Antrieb",
-      edh_drivetrain: "Wird aus den gestreamten Daten erkannt. Nur setzen, wenn die Karte das falsche Layout wählt.",
-      dt_auto: "Automatisch",
-      dt_bev: "Elektrisch",
-      dt_phev: "Plug-in-Hybrid",
-      dt_ice: "Benzin / Diesel",
-      ed_overview_option: "Übersicht (Standard)",
-      ed_overrides_title: "Entitäten überschreiben (optional — leer lassen für Auto-Erkennung)",
-      edh_cluster:
-        "Die Übersicht zeigt das Fahrzeugbild und Kennzahlen. Der Ladeverlauf listet aufgezeichnete Ladevorgänge mit Kosten und Ladekurve. Fahrten listet aufgezeichnete Fahrten mit einer Monatsübersicht. Die Fahrtenkarte zeichnet aufgezeichnete Routen auf einer Karte (benötigt aktiviertes „Fahrtrouten aufzeichnen“). Der Batteriezustand zeigt die gelernte nutzbare Kapazität und ihren Verlauf. Ein Cluster listet alle Werte dieser Gruppe auf. Eine laufende Fahrt erscheint als Abzeichen in der Übersicht und als aktive Zeile oben in Fahrten.",
-      edh_title: "Überschreibt den auf der Karte angezeigten Fahrzeugnamen.",
-    },
-  };
+/* ------------------------------------------------------------------------- *
+ * Localization                                                              *
+ *                                                                           *
+ * The card's own chrome (labels, headings, relative times, tire positions,  *
+ * editor fields) is translated here. Entity names and states keep coming    *
+ * from Home Assistant's own translations via hass.formatEntityState. Add a  *
+ * language by adding a block below; anything missing falls back to English. *
+ * ------------------------------------------------------------------------- */
+const TRANSLATIONS = {
+  en: {
+    // cluster labels
+    cl_electric: "Electric vehicle",
+    cl_status: "Vehicle status",
+    cl_metadata: "Metadata",
+    cl_events: "Vehicle events",
+    cl_tire: "Tire data",
+    cl_basic: "Vehicle basic data",
+    cl_usage: "Usage-based data",
+    cl_other: "Other",
+    cl_contract: "ConnectedDrive contract",
+    // overview
+    remaining_range: "remaining range",
+    charging_status: "charging status",
+    charge: "charge",
+    charging: "charging",
+    is_charging: "Charging",
+    not_charging: "Not charging",
+    target: "Target",
+    plug: "Plug",
+    fuel: "fuel",
+    tank: "Tank",
+    electric_range: "electric range",
+    total_range: "Total range",
+    time_to_full: "Time to full",
+    charge_time: "Charge time",
+    odometer: "Odometer",
+    last_update: "Last update",
+    just_now: "just now",
+    min_ago: "{n} min ago",
+    h_ago: "{n} h ago",
+    d_ago: "{n} d ago",
+    // cluster list
+    value: "value",
+    values: "values",
+    no_cluster_entities:
+      "No {label} entities for this vehicle. Enable the cluster in the integration options.",
+    cc_title: "Check Control messages",
+    cc_none: "No Check Control messages reported.",
+    cc_teleservice: "Teleservice",
+    cc_mileage: "Last shown at",
+    cc_sent: "Sent by the car",
+    cc_code: "Code",
+    // messages
+    no_vehicle_title: "No BMW CarData vehicle found",
+    no_vehicle_body:
+      "Add the integration, or set <code>device:</code> / <code>vin:</code> in the card config.",
+    // tire
+    front: "FRONT",
+    fl: "FL",
+    fr: "FR",
+    rl: "RL",
+    rr: "RR",
+    front_left: "Front left",
+    front_right: "Front right",
+    rear_left: "Rear left",
+    rear_right: "Rear right",
+    tires: "Tires",
+    no_tire_data:
+      "No tire data for this vehicle yet. Enable the Tire data cluster and drive to populate readings.",
+    check_pressure: "Check pressure",
+    slightly_high: "Slightly high",
+    all_nominal: "All nominal",
+    of_four: "{n} of 4",
+    t_low: "Low",
+    t_high: "High",
+    t_ok: "OK",
+    t_nodata: "No data",
+    t_wear: "Worn",
+    check_tyres: "Check tyres",
+    wear_due: "change in",
+    fitted: "fitted",
+    t_current: "Current",
+    // tire summary + per-wheel fitment
+    sum_pressure: "Pressure",
+    sum_wear: "Wear",
+    p_target: "Target",
+    p_target_varies: "Targets vary",
+    w_ok: "OK",
+    w_soon: "Check soon",
+    w_due: "Replace",
+    season_summer: "Summer",
+    season_winter: "Winter",
+    season_all: "All-season",
+    runflat: "Runflat",
+    // closures / security
+    cl_closures: "Security & closures",
+    closures_none:
+      "No door, window or security data for this vehicle yet. Enable the Vehicle status cluster in the integration options.",
+    central_lock: "Central lock",
+    alarm_word: "Anti-theft alarm",
+    alarm_armed: "Armed",
+    alarm_disarmed: "Disarmed",
+    alarm_triggered: "Alarm triggered",
+    secured: "Secured",
+    locked: "Locked",
+    unlocked: "Unlocked",
+    partially_locked: "Partially locked",
+    all_closed: "All closed",
+    windows_open: "Windows open",
+    n_open: "{n} open",
+    state_open: "Open",
+    state_closed: "Closed",
+    state_tilted: "Tilted",
+    door_word: "Door",
+    window_word: "Window",
+    hood_word: "Hood",
+    trunk_word: "Trunk",
+    rear_window_word: "Rear window",
+    sunroof_word: "Sunroof",
+    // charging history
+    ch_title: "Charging history",
+    ch_month: "This month",
+    ch_loading: "Loading charging history…",
+    ch_empty:
+      "No charging sessions recorded yet. Once the car charges, sessions appear here automatically.",
+    ch_empty_month: "No charging in this month.",
+    ch_error: "Couldn't load charging history. Reload the page and try again.",
+    mn_prev: "Previous month",
+    mn_next: "Next month",
+    ch_home: "Home",
+    ch_public: "Away",
+    ch_assumed: "assumed",
+    ch_partial: "partial price",
+    ch_session_one: "1 session",
+    ch_session_many: "{n} sessions",
+    ch_peak: "Peak",
+    ch_avg: "Avg",
+    ch_grid: "From grid",
+    ch_solar: "solar",
+    ch_mix: "Energy source",
+    ch_mix_pv: "PV",
+    ch_mix_battery: "House battery",
+    ch_mix_grid: "Grid",
+    ch_mix_unknown: "unattributed",
+    ch_duration: "Duration",
+    ch_cost: "Cost",
+    ch_no_cost: "no price set",
+    ch_ongoing: "charging…",
+    // battery health
+    bh_title: "Battery health",
+    bh_empty:
+      "No battery-health data yet. Once the car logs a few wide-range charges, its usable capacity appears here.",
+    bh_learning: "Learning ({n}/{total})",
+    bh_learning_hint:
+      "Estimating usable capacity from your charges. A few wide-range charges (e.g. 20 → 80%) teach it fastest.",
+    bh_suspicious:
+      "Cross-checking against BMW's own capacity figure before showing a number.",
+    bh_usable: "Usable capacity",
+    bh_of_new: "{p}% of original",
+    bh_nominal: "As new",
+    bh_analysed: "Based on",
+    bh_samples: "{n} charges",
+    bh_trend_title: "Capacity vs mileage",
+    // efficiency and real range
+    ef_title: "Efficiency & range",
+    ef_loading: "Working out your real range…",
+    ef_empty:
+      "Not enough charging history yet. Once two charges bracket 50 km or so of driving, your real consumption and the range it reaches appear here.",
+    ef_no_capacity:
+      "This car hasn't reported its battery capacity, so a range can't be worked out from the measured consumption.",
+    ef_error: "Couldn't load the efficiency data. Reload the page and try again.",
+    ef_range_now: "Real range now",
+    ef_at_soc: "at {p}% charge",
+    ef_range_full: "{km} km on a full battery",
+    ef_vs_bmw_over: "{p}% further than the car predicts ({km} km)",
+    ef_vs_bmw_under: "{p}% less than the car predicts ({km} km)",
+    ef_vs_bmw_same: "Same as the car's own estimate ({km} km)",
+    ef_consumption: "Measured consumption",
+    ef_side_battery: "from the battery",
+    ef_side_grid: "at the plug",
+    ef_window_days: "last {n} days",
+    ef_window_all: "all records",
+    ef_loss: "Charging loss",
+    ef_capacity: "Usable capacity",
+    ef_capacity_measured: "measured",
+    ef_capacity_bmw: "BMW's figure",
+    ef_cost: "Cost per 100 km",
+    ef_solar: "{p}% solar this month",
+    ef_trend_title: "Consumption by month",
+    ef_footnote:
+      "Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate.",
+    // charging, battery health and efficiency on a petrol or diesel car
+    ice_view_title: "Nothing to show for this car",
+    ice_view_body:
+      "{name} runs on fuel alone, so there is no charging, battery health or electric range to show. If it does plug in, set Drivetrain in the card editor.",
+    // trips
+    tr_title: "Trips",
+    tr_loading: "Loading trips…",
+    tr_empty:
+      "No trips recorded yet. Once the car is driven, trips appear here automatically.",
+    tr_empty_month: "No trips in this month.",
+    tr_error: "Couldn't load trips. Reload the page and try again.",
+    tr_trip_one: "1 trip",
+    tr_trip_many: "{n} trips",
+    tr_review: "This month",
+    tr_vs_last: "vs last month",
+    tr_business: "Business",
+    tr_private: "Private",
+    tr_commute: "Commute",
+    tr_unclassified: "Unclassified",
+    tr_consumption: "Avg consumption",
+    tr_at_plug: "at the plug",
+    tr_at_battery: "at the battery",
+    tr_charge_loss: "{n}% charging loss",
+    tr_recuperation: "Recuperated",
+    tr_style: "Driving style",
+    tr_style_trend: "Style over time",
+    tr_top_dest: "Top destinations",
+    tr_est_cost: "Est. cost",
+    tr_longest: "Longest trip",
+    tr_duration: "Duration",
+    tr_distance: "Distance",
+    tr_soc_used: "Battery used",
+    tr_visits: "{n}×",
+    tr_auto: "auto",
+    tr_classify: "Classify",
+    tr_best: "Best",
+    tr_worst: "Worst",
+    tr_unknown_place: "Unknown",
+    tr_open: "Trip in progress",
+    tr_open_hint: "A drive is under way",
+    tr_min: "{n} min",
+    tr_open_note:
+      "This drive is still under way. Distance and consumption are provisional, and the trip can be classified once it ends.",
+    // map
+    mp_title: "Trip map",
+    mp_loading: "Loading map…",
+    mp_error: "Couldn't load the map. Reload the page and try again.",
+    mp_empty_none:
+      "No places to map yet. Turn on “Record route” under Configure → Trips, then drive — the places you visit appear here.",
+    mp_empty_window: "No places recorded in this period.",
+    mp_unavailable: "The map couldn't be loaded in this browser.",
+    mp_win_month: "This month",
+    mp_win_3m: "3 months",
+    mp_win_all: "All",
+    mp_route_one: "1 route",
+    mp_route_many: "{n} routes",
+    // export
+    ex_csv: "CSV",
+    ex_report: "Report",
+    ex_csv_hint: "Download this month as a spreadsheet",
+    ex_report_hint: "Open a printable month report (print it to get a PDF)",
+    ex_empty: "Nothing recorded for this month yet.",
+    ex_error: "Export failed. Check the Home Assistant log.",
+    // editor
+    ed_device: "Vehicle",
+    ed_cluster: "Mode",
+    ed_title: "Title (optional)",
+    ed_image: "Image entity",
+    ed_soc: "State of charge",
+    ed_range: "Range",
+    ed_charging: "Charging status",
+    ed_target_soc: "Charge target",
+    ed_time_to_full: "Time to full",
+    ed_odometer: "Odometer",
+    ed_plug: "Plug / connection",
+    ed_fuel: "Fuel tank",
+    ed_drivetrain: "Drivetrain",
+    edh_drivetrain: "Detected from what the car streams. Set it only if the card picks the wrong layout.",
+    dt_auto: "Auto-detect",
+    dt_bev: "Electric",
+    dt_phev: "Plug-in hybrid",
+    dt_ice: "Petrol / diesel",
+    ed_overview_option: "Overview (default)",
+    ed_overrides_title: "Entity overrides (optional — leave empty to auto-detect)",
+    edh_cluster:
+      "Overview shows the hero image and key metrics. Charging history lists recorded sessions with cost and power curve. Trips lists recorded drives with a month-in-review summary. Trip map draws recorded routes on a map (needs “Record trip routes” enabled). Battery health shows learned usable capacity and its trend. A cluster shows every value of that group as a list. A drive in progress appears as a badge on the overview and as a live row at the top of Trips.",
+    edh_title: "Overrides the vehicle name shown on the card.",
+  },
+  de: {
+    // cluster labels
+    cl_electric: "Elektrofahrzeug",
+    cl_status: "Fahrzeugstatus",
+    cl_metadata: "Metadaten",
+    cl_events: "Fahrzeugereignisse",
+    cl_tire: "Reifendaten",
+    cl_basic: "Fahrzeug-Basisdaten",
+    cl_usage: "Nutzungsdaten",
+    cl_other: "Sonstiges",
+    cl_contract: "ConnectedDrive-Vertrag",
+    // overview
+    remaining_range: "Reichweite",
+    charging_status: "Ladestatus",
+    charge: "Ladung",
+    charging: "lädt",
+    is_charging: "Lädt",
+    not_charging: "Lädt nicht",
+    target: "Ziel",
+    plug: "Stecker",
+    fuel: "Kraftstoff",
+    tank: "Tank",
+    electric_range: "elektrische Reichweite",
+    total_range: "Gesamtreichweite",
+    time_to_full: "Bis voll",
+    charge_time: "Ladezeit",
+    odometer: "Kilometerstand",
+    last_update: "Letzte Aktualisierung",
+    just_now: "gerade eben",
+    min_ago: "vor {n} Min.",
+    h_ago: "vor {n} Std.",
+    d_ago: "vor {n} T.",
+    // cluster list
+    value: "Wert",
+    values: "Werte",
+    no_cluster_entities:
+      "Keine {label}-Entitäten für dieses Fahrzeug. Aktiviere den Cluster in den Integrationsoptionen.",
+    cc_title: "Check-Control-Meldungen",
+    cc_none: "Keine Check-Control-Meldungen gemeldet.",
+    cc_teleservice: "Teleservice",
+    cc_mileage: "Zuletzt angezeigt bei",
+    cc_sent: "Vom Fahrzeug gesendet",
+    cc_code: "Code",
+    // messages
+    no_vehicle_title: "Kein BMW-CarData-Fahrzeug gefunden",
+    no_vehicle_body:
+      "Füge die Integration hinzu oder setze <code>device:</code> / <code>vin:</code> in der Kartenkonfiguration.",
+    // tire
+    front: "VORNE",
+    fl: "VL",
+    fr: "VR",
+    rl: "HL",
+    rr: "HR",
+    front_left: "Vorne links",
+    front_right: "Vorne rechts",
+    rear_left: "Hinten links",
+    rear_right: "Hinten rechts",
+    tires: "Reifen",
+    no_tire_data:
+      "Noch keine Reifendaten für dieses Fahrzeug. Aktiviere den Cluster „Reifendaten“ und fahre, um Werte zu erfassen.",
+    check_pressure: "Druck prüfen",
+    slightly_high: "Etwas hoch",
+    all_nominal: "Alles normal",
+    of_four: "{n} von 4",
+    t_low: "Niedrig",
+    t_high: "Hoch",
+    t_ok: "OK",
+    t_nodata: "Keine Daten",
+    t_wear: "Abgefahren",
+    check_tyres: "Reifen prüfen",
+    wear_due: "Wechsel in",
+    fitted: "montiert",
+    t_current: "Aktuell",
+    // tire summary + per-wheel fitment
+    sum_pressure: "Druck",
+    sum_wear: "Verschleiß",
+    p_target: "Soll",
+    p_target_varies: "Sollwerte unterschiedlich",
+    w_ok: "OK",
+    w_soon: "Bald prüfen",
+    w_due: "Wechseln",
+    season_summer: "Sommer",
+    season_winter: "Winter",
+    season_all: "Ganzjahres",
+    runflat: "Runflat",
+    // closures / security
+    cl_closures: "Sicherheit & Öffnungen",
+    closures_none:
+      "Noch keine Tür-, Fenster- oder Sicherheitsdaten für dieses Fahrzeug. Aktiviere den Cluster „Fahrzeugstatus“ in den Integrationsoptionen.",
+    central_lock: "Zentralverriegelung",
+    alarm_word: "Diebstahlwarnanlage",
+    alarm_armed: "Scharf",
+    alarm_disarmed: "Unscharf",
+    alarm_triggered: "Alarm ausgelöst",
+    secured: "Gesichert",
+    locked: "Verriegelt",
+    unlocked: "Entriegelt",
+    partially_locked: "Teilweise verriegelt",
+    all_closed: "Alles geschlossen",
+    windows_open: "Fenster offen",
+    n_open: "{n} offen",
+    state_open: "Offen",
+    state_closed: "Geschlossen",
+    state_tilted: "Gekippt",
+    door_word: "Tür",
+    window_word: "Fenster",
+    hood_word: "Motorhaube",
+    trunk_word: "Kofferraum",
+    rear_window_word: "Heckscheibe",
+    sunroof_word: "Schiebedach",
+    // charging history
+    ch_title: "Ladeverlauf",
+    ch_month: "Dieser Monat",
+    ch_loading: "Ladeverlauf wird geladen…",
+    ch_empty:
+      "Noch keine Ladevorgänge aufgezeichnet. Sobald das Fahrzeug lädt, erscheinen sie hier automatisch.",
+    ch_empty_month: "Keine Ladevorgänge in diesem Monat.",
+    ch_error: "Ladeverlauf konnte nicht geladen werden. Lade die Seite neu und versuche es erneut.",
+    mn_prev: "Vorheriger Monat",
+    mn_next: "Nächster Monat",
+    ch_home: "Zuhause",
+    ch_public: "Unterwegs",
+    ch_assumed: "angenommen",
+    ch_partial: "Teilpreis",
+    ch_session_one: "1 Ladevorgang",
+    ch_session_many: "{n} Ladevorgänge",
+    ch_peak: "Spitze",
+    ch_avg: "Ø",
+    ch_grid: "Aus dem Netz",
+    ch_solar: "Solar",
+    ch_mix: "Energiequelle",
+    ch_mix_pv: "PV",
+    ch_mix_battery: "Hausspeicher",
+    ch_mix_grid: "Netz",
+    ch_mix_unknown: "nicht zuordenbar",
+    ch_duration: "Dauer",
+    ch_cost: "Kosten",
+    ch_no_cost: "kein Preis gesetzt",
+    ch_ongoing: "lädt…",
+    // battery health
+    bh_title: "Batteriezustand",
+    bh_empty:
+      "Noch keine Daten zum Batteriezustand. Sobald das Fahrzeug einige Ladevorgänge über einen weiten Bereich aufzeichnet, erscheint hier die nutzbare Kapazität.",
+    bh_learning: "Lernt ({n}/{total})",
+    bh_learning_hint:
+      "Die nutzbare Kapazität wird aus deinen Ladevorgängen geschätzt. Ein paar Ladungen über einen weiten Bereich (z. B. 20 → 80 %) beschleunigen das.",
+    bh_suspicious:
+      "Wird mit BMWs eigener Kapazitätsangabe abgeglichen, bevor ein Wert angezeigt wird.",
+    bh_usable: "Nutzbare Kapazität",
+    bh_of_new: "{p} % vom Original",
+    bh_nominal: "Neuwert",
+    bh_analysed: "Basis",
+    bh_samples: "{n} Ladevorgänge",
+    bh_trend_title: "Kapazität nach Laufleistung",
+    // efficiency and real range
+    ef_title: "Effizienz & Reichweite",
+    ef_loading: "Reale Reichweite wird berechnet…",
+    ef_empty:
+      "Noch zu wenig Ladehistorie. Sobald zwei Ladevorgänge rund 50 km Fahrt einschließen, erscheinen hier der reale Verbrauch und die Reichweite, die er ergibt.",
+    ef_no_capacity:
+      "Dieses Fahrzeug meldet keine Batteriekapazität, daher lässt sich aus dem gemessenen Verbrauch keine Reichweite berechnen.",
+    ef_error: "Effizienzdaten konnten nicht geladen werden. Seite neu laden und erneut versuchen.",
+    ef_range_now: "Reale Reichweite jetzt",
+    ef_at_soc: "bei {p} % Ladung",
+    ef_range_full: "{km} km bei voller Batterie",
+    ef_vs_bmw_over: "{p} % weiter als das Fahrzeug vorhersagt ({km} km)",
+    ef_vs_bmw_under: "{p} % weniger als das Fahrzeug vorhersagt ({km} km)",
+    ef_vs_bmw_same: "Genau wie die Prognose des Fahrzeugs ({km} km)",
+    ef_consumption: "Gemessener Verbrauch",
+    ef_side_battery: "ab Batterie",
+    ef_side_grid: "ab Steckdose",
+    ef_window_days: "letzte {n} Tage",
+    ef_window_all: "gesamte Historie",
+    ef_loss: "Ladeverlust",
+    ef_capacity: "Nutzbare Kapazität",
+    ef_capacity_measured: "gemessen",
+    ef_capacity_bmw: "BMW-Wert",
+    ef_cost: "Kosten pro 100 km",
+    ef_solar: "{p} % Solar diesen Monat",
+    ef_trend_title: "Verbrauch nach Monat",
+    ef_footnote:
+      "Gemessen aus der Ladehistorie: die Strecke zwischen zwei Ladevorgängen und die Energie, die hineinging — nicht die Prognose des Fahrzeugs.",
+    // charging, battery health and efficiency on a petrol or diesel car
+    ice_view_title: "Für dieses Fahrzeug gibt es hier nichts",
+    ice_view_body:
+      "{name} fährt nur mit Kraftstoff, daher gibt es keine Ladevorgänge, keinen Batteriezustand und keine elektrische Reichweite. Wird es doch geladen, im Karteneditor den Antrieb einstellen.",
+    // trips
+    tr_title: "Fahrten",
+    tr_loading: "Fahrten werden geladen…",
+    tr_empty:
+      "Noch keine Fahrten aufgezeichnet. Sobald das Fahrzeug bewegt wird, erscheinen Fahrten hier automatisch.",
+    tr_empty_month: "Keine Fahrten in diesem Monat.",
+    tr_error: "Fahrten konnten nicht geladen werden. Seite neu laden und erneut versuchen.",
+    tr_trip_one: "1 Fahrt",
+    tr_trip_many: "{n} Fahrten",
+    tr_review: "Dieser Monat",
+    tr_vs_last: "ggü. Vormonat",
+    tr_business: "Geschäftlich",
+    tr_private: "Privat",
+    tr_commute: "Pendeln",
+    tr_unclassified: "Nicht zugeordnet",
+    tr_consumption: "Ø Verbrauch",
+    tr_at_plug: "ab Steckdose",
+    tr_at_battery: "ab Akku",
+    tr_charge_loss: "{n}% Ladeverlust",
+    tr_recuperation: "Rekuperiert",
+    tr_style: "Fahrstil",
+    tr_style_trend: "Fahrstil über Zeit",
+    tr_top_dest: "Häufigste Ziele",
+    tr_est_cost: "Gesch. Kosten",
+    tr_longest: "Längste Fahrt",
+    tr_duration: "Dauer",
+    tr_distance: "Strecke",
+    tr_soc_used: "Batterie verbraucht",
+    tr_visits: "{n}×",
+    tr_auto: "auto",
+    tr_classify: "Zuordnen",
+    tr_best: "Beste",
+    tr_worst: "Schlechteste",
+    tr_unknown_place: "Unbekannt",
+    tr_open: "Fahrt aktiv",
+    tr_open_hint: "Eine Fahrt ist im Gange",
+    tr_min: "{n} Min.",
+    tr_open_note:
+      "Diese Fahrt läuft noch. Strecke und Verbrauch sind vorläufig; zuordnen lässt sich die Fahrt, sobald sie beendet ist.",
+    // map
+    mp_title: "Fahrtenkarte",
+    mp_loading: "Karte wird geladen…",
+    mp_error: "Karte konnte nicht geladen werden. Seite neu laden und erneut versuchen.",
+    mp_empty_none:
+      "Noch keine Orte zum Anzeigen. Unter Konfigurieren → Fahrten „Route aufzeichnen“ aktivieren, dann fahren — die besuchten Orte erscheinen hier.",
+    mp_empty_window: "In diesem Zeitraum keine Orte aufgezeichnet.",
+    mp_unavailable: "Die Karte konnte in diesem Browser nicht geladen werden.",
+    mp_win_month: "Dieser Monat",
+    mp_win_3m: "3 Monate",
+    mp_win_all: "Alle",
+    mp_route_one: "1 Route",
+    mp_route_many: "{n} Routen",
+    // export
+    ex_csv: "CSV",
+    ex_report: "Bericht",
+    ex_csv_hint: "Diesen Monat als Tabelle herunterladen",
+    ex_report_hint: "Druckbaren Monatsbericht öffnen (zum Drucken als PDF)",
+    ex_empty: "Für diesen Monat ist noch nichts aufgezeichnet.",
+    ex_error: "Export fehlgeschlagen. Bitte das Home-Assistant-Log prüfen.",
+    // editor
+    ed_device: "Fahrzeug",
+    ed_cluster: "Modus",
+    ed_title: "Titel (optional)",
+    ed_image: "Bild-Entität",
+    ed_soc: "Ladezustand",
+    ed_range: "Reichweite",
+    ed_charging: "Ladestatus",
+    ed_target_soc: "Ladeziel",
+    ed_time_to_full: "Bis voll",
+    ed_odometer: "Kilometerstand",
+    ed_plug: "Stecker / Verbindung",
+    ed_fuel: "Tank",
+    ed_drivetrain: "Antrieb",
+    edh_drivetrain: "Wird aus den gestreamten Daten erkannt. Nur setzen, wenn die Karte das falsche Layout wählt.",
+    dt_auto: "Automatisch",
+    dt_bev: "Elektrisch",
+    dt_phev: "Plug-in-Hybrid",
+    dt_ice: "Benzin / Diesel",
+    ed_overview_option: "Übersicht (Standard)",
+    ed_overrides_title: "Entitäten überschreiben (optional — leer lassen für Auto-Erkennung)",
+    edh_cluster:
+      "Die Übersicht zeigt das Fahrzeugbild und Kennzahlen. Der Ladeverlauf listet aufgezeichnete Ladevorgänge mit Kosten und Ladekurve. Fahrten listet aufgezeichnete Fahrten mit einer Monatsübersicht. Die Fahrtenkarte zeichnet aufgezeichnete Routen auf einer Karte (benötigt aktiviertes „Fahrtrouten aufzeichnen“). Der Batteriezustand zeigt die gelernte nutzbare Kapazität und ihren Verlauf. Ein Cluster listet alle Werte dieser Gruppe auf. Eine laufende Fahrt erscheint als Abzeichen in der Übersicht und als aktive Zeile oben in Fahrten.",
+    edh_title: "Überschreibt den auf der Karte angezeigten Fahrzeugnamen.",
+  },
+};
 
-  function _lang(hass) {
-    const loc = hass && hass.locale;
-    return (loc && loc.language) || (hass && hass.language) || "en";
-  }
+function _lang(hass) {
+  const loc = hass && hass.locale;
+  return (loc && loc.language) || (hass && hass.language) || "en";
+}
 
-  /** The locale the card writes numbers in, following the profile's "Number
-   *  format" setting the way Home Assistant's own formatter does, so the card's
-   *  figures match the entity states beside them. `null` for "none": plain
-   *  digits, no grouping. */
-  function _numberLocale(hass) {
-    const loc = hass && hass.locale;
-    switch (loc && loc.number_format) {
-      case "none":
-        return null;
-      case "system":
-        return undefined;
-      case "comma_decimal":
-        return ["en-US", "en"];
-      case "decimal_comma":
-        return ["de", "es", "it"];
-      case "space_comma":
-        return ["fr", "sv", "cs"];
-      default:
-        return _lang(hass);
-    }
-  }
-
-  /** Translate `key` for the active hass language, filling `{name}` vars.
-   *  Falls back to English, then to `dflt` (or the key itself).
-   *
-   *  `vars` are substituted **raw**, because some callers deliberately pass markup
-   *  (`<b>…</b>`). The result is therefore only as safe as its vars: anything
-   *  user-controlled must be `_esc()`d by the caller before it is passed in.
-   *  `tests/test_card_escaping.py` enforces that. */
-  function t(hass, key, vars, dflt) {
-    const lang = _lang(hass);
-    const table =
-      TRANSLATIONS[lang] ||
-      TRANSLATIONS[String(lang).split("-")[0]] ||
-      TRANSLATIONS.en;
-    let s = table[key];
-    if (s === undefined) s = TRANSLATIONS.en[key];
-    if (s === undefined) s = dflt !== undefined ? dflt : key;
-    if (vars) {
-      Object.keys(vars).forEach((k) => {
-        s = s.split("{" + k + "}").join(vars[k]);
-      });
-    }
-    return s;
-  }
-
-  class BavarianDataCard extends HTMLElement {
-    setConfig(config) {
-      this._config = { ...config };
-      this._sig = null; // force first render
-      if (this._hass) this._render();
-    }
-
-    set hass(hass) {
-      this._hass = hass;
-      this._render();
-    }
-
-    /** Home Assistant detaches the card when the user switches dashboard tabs,
-     * and `ha-map`'s disconnectedCallback destroys its Leaflet map (building a
-     * fresh one on reconnect). Our route/cluster layers ride the old instance, so
-     * re-draw them here -- the paint guards would otherwise see nothing changed
-     * and leave the new map bare. */
-    connectedCallback() {
-      this._reassertMapOverlays();
-    }
-
-    getCardSize() {
-      if (this._config && this._config.view === "charging") return 10;
-      if (this._config && this._config.view === "trips") return 11;
-      if (this._config && this._config.view === "map") return 10;
-      if (this._config && this._config.view === "health") return 7;
-      if (this._config && this._config.view === "efficiency") return 8;
-      return this._config && this._config.cluster ? 6 : 8;
-    }
-
-    /** Localized string for the active Home Assistant language. */
-    _t(key, vars, dflt) {
-      return t(this._hass, key, vars, dflt);
-    }
-
-    static getConfigElement() {
-      return document.createElement("bavariandata-card-editor");
-    }
-
-    static getStubConfig(hass) {
-      // Pre-fill the card picker with the first car found.
-      const device = BavarianDataCard._firstDevice(hass);
-      return device ? { device } : {};
-    }
-
-    /**
-     * Whether a device is a car rather than the integration's "CarData Debug
-     * Device". Both carry a `bavariandata` identifier: a car's is its VIN, the
-     * debug device's is the id of its own config entry. The debug device holds
-     * diagnostics only, so a card bound to it has nothing to show.
-     */
-    static _isVehicleDevice(dev) {
-      if (!dev) return false;
-      const entries = new Set(dev.config_entries || []);
-      return (dev.identifiers || []).some(
-        (pair) => pair && pair[0] === "bavariandata" && !entries.has(pair[1])
-      );
-    }
-
-    /** Device ids of every car, in registry order. */
-    static _vehicleDevices(hass) {
-      if (!hass || !hass.devices) return [];
-      return Object.values(hass.devices)
-        .filter((dev) => BavarianDataCard._isVehicleDevice(dev))
-        .map((dev) => dev.id);
-    }
-
-    static _firstDevice(hass) {
-      if (!hass || !hass.entities) return undefined;
-      const devices = hass.devices || {};
-      for (const ent of Object.values(hass.entities)) {
-        if (ent.platform !== "bavariandata" || !ent.device_id) continue;
-        if (BavarianDataCard._isVehicleDevice(devices[ent.device_id])) return ent.device_id;
-      }
-      return undefined;
-    }
-
-    /* ---- discovery -------------------------------------------------------- */
-
-    _resolveDeviceId() {
-      const hass = this._hass;
-      const cfg = this._config || {};
-      if (cfg.device) {
-        const dev = hass.devices && hass.devices[cfg.device];
-        // A card saved while the editor still offered the "CarData Debug Device"
-        // would stay blank for good: that device holds no car, so find the car.
-        if (!dev || BavarianDataCard._isVehicleDevice(dev)) return cfg.device;
-      }
-      if (cfg.vin && hass.devices) {
-        for (const dev of Object.values(hass.devices)) {
-          const ids = dev.identifiers || [];
-          if (ids.some((pair) => pair && pair[0] === "bavariandata" && pair[1] === cfg.vin)) {
-            return dev.id;
-          }
-        }
-      }
-      return BavarianDataCard._firstDevice(hass);
-    }
-
-    _deviceEntities(deviceId) {
-      const hass = this._hass;
-      if (!hass || !hass.entities) return [];
-      return Object.values(hass.entities)
-        .filter(
-          (ent) =>
-            ent.platform === "bavariandata" &&
-            ent.device_id === deviceId &&
-            hass.states[ent.entity_id]
-        )
-        .map((ent) => ent.entity_id);
-    }
-
-    _st(entityId) {
-      return entityId ? this._hass.states[entityId] : undefined;
-    }
-
-    /** Rank candidate entities by keyword preference; return the best entity_id. */
-    _pick(entities, { domain = "sensor", prefer = [], avoid = [], deviceClass, unit, usable = false } = {}) {
-      const scored = [];
-      for (const id of entities) {
-        if (domain && !id.startsWith(domain + ".")) continue;
-        const st = this._st(id);
-        if (!st) continue;
-        // `usable`: only an entity that has something to show right now.
-        if (usable && UNAVAILABLE.has(st.state)) continue;
-        const attrs = st.attributes || {};
-        if (deviceClass && attrs.device_class !== deviceClass) continue;
-        if (unit && attrs.unit_of_measurement !== unit) continue;
-        // Match against the descriptor path too (exposed as an attribute). The
-        // entity_id and friendly_name are localized (German, etc.), but the
-        // descriptor is always the English BMW path, so keyword matching keeps
-        // working regardless of the user's Home Assistant language. Include a
-        // space-normalized copy (camelCase + dots/underscores -> spaces) so
-        // multi-word English keys like "charging status" or "electric range"
-        // match the descriptor and not only the localized friendly_name.
-        const descriptor = attrs.descriptor || "";
-        const descriptorWords = descriptor
-          .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-          .replace(/[._]/g, " ");
-        const hay = (
-          id +
-          " " +
-          (attrs.friendly_name || "") +
-          " " +
-          descriptor +
-          " " +
-          descriptorWords
-        ).toLowerCase();
-        if (avoid.some((a) => hay.includes(a))) continue;
-        let score = 0;
-        prefer.forEach((p, i) => {
-          if (hay.includes(p)) score += prefer.length - i;
-        });
-        if (prefer.length && score === 0) continue;
-        scored.push({ id, score });
-      }
-      scored.sort((a, b) => b.score - a.score);
-      return scored.length ? scored[0].id : undefined;
-    }
-
-    _overviewEntities(entities) {
-      const cfg = this._config || {};
-      return {
-        image: cfg.image || entities.find((id) => id.startsWith("image.")),
-        soc:
-          cfg.soc ||
-          // Two battery-class percentages impersonate the live SoC here. "trip"
-          // excludes the trip-end one, which only moves when a drive finishes;
-          // "charging.level" excludes BMW's *predicted* SoC, which is REST-only
-          // and so never updates on the stream at all. Both were silently winning
-          // this pick on a car whose live SoC was missing, showing a figure hours
-          // old (issue #6). Note "charging.level" is matched against the
-          // descriptor rather than the name: "predicted" alone only rejects it in
-          // English, and a German install picked it up. Both remain available to
-          // the fallback below, where they are chosen knowingly.
-          //
-          // The measured HV state of charge is named outright first: the other
-          // battery-class percentages all score zero, so without a preference the
-          // tie went to entity-registry order -- and every car also carries its
-          // 12 V battery, and older installs the fuel tank tagged as a battery. A
-          // plug-in hybrid could show its tank here, a petrol car its 12 V battery.
-          //
-          // Every pick with a value comes before any without one. The measured SoC
-          // reads unknown until the car first reports it -- on a new install, and
-          // on one where an old default had left it disabled, so it had nothing to
-          // restore -- and naming it outright regardless blanked the ring while the
-          // integration's own estimate (whose English name says "Predicted", so the
-          // avoid-list skips it) held the right figure. Only when nothing has a
-          // value does the gauge bind to the measured SoC, to fill in when it lands.
-          this._pick(entities, {
-            deviceClass: "battery",
-            unit: "%",
-            prefer: ["batterymanagement.header"],
-            usable: true,
-          }) ||
-          this._pick(entities, {
-            deviceClass: "battery",
-            unit: "%",
-            avoid: ["target", "predicted", "health", "testing", "trip", "charging.level", ...NOT_HV_BATTERY],
-            usable: true,
-          }) ||
-          this._pick(entities, { unit: "%", prefer: ["soc_estimate"], avoid: ["testing"], usable: true }) ||
-          this._pick(entities, {
-            deviceClass: "battery",
-            unit: "%",
-            prefer: ["batterymanagement.header"],
-          }) ||
-          this._pick(entities, {
-            deviceClass: "battery",
-            unit: "%",
-            avoid: ["target", "predicted", "health", "testing", "trip", "charging.level", ...NOT_HV_BATTERY],
-          }) ||
-          this._pick(entities, { prefer: ["charge", "soc"], unit: "%", avoid: ["target", "rate", ...NOT_HV_BATTERY] }),
-        range:
-          cfg.range ||
-          // Three distance entities answer to "electric range" on a BEV, and BMW
-          // named the useless one best. `remainingElectricRange` is, in BMW's own
-          // words, "the electric range predicted during charging" -- on a parked
-          // car it is whatever was predicted mid-charge, 128 km against a real 379
-          // on a car sitting at 86 %. `range.target` is the range at the *target*
-          // state of charge, not the current one. The number on the car's own
-          // display is `kombiRemainingElectricRange`, so name it outright: all
-          // three score identically on the keywords, and the winner of that tie
-          // was decided by entity-registry order.
-          this._pick(entities, {
-            deviceClass: "distance",
-            prefer: ["kombi remaining electric range", "electric range", "range"],
-            avoid: ["electricengine.remainingelectricrange", "range.target"],
-          }) ||
-          // Both impostors stay reachable here, for a car that streams nothing
-          // better -- chosen knowingly rather than by accident.
-          this._pick(entities, { prefer: ["range"] }),
-        charging:
-          cfg.charging ||
-          this._pick(entities, { prefer: ["charging.status", "charging status", "hvstatus", "charging"], avoid: ["port", "cable", "history"] }),
-        target:
-          cfg.target_soc ||
-          this._pick(entities, { deviceClass: "battery", unit: "%", prefer: ["target"] }),
-        timeToFull:
-          cfg.time_to_full ||
-          this._pick(entities, { prefer: ["fully charged", "time remaining", "timetofully"] }),
-        odometer:
-          cfg.odometer ||
-          this._pick(entities, { prefer: ["mileage", "odometer", "travelled", "traveled"] }),
-        plug:
-          cfg.plug ||
-          this._pick(entities, { domain: "binary_sensor", prefer: ["plug", "connector"] }) ||
-          this._pick(entities, { prefer: ["plug", "connection status"], avoid: ["stream"] }),
-      };
-    }
-
-    /** The state of a device entity by its `descriptor` attribute.
-     * Derived entities (trip flag, monthly distance, battery health) are found this
-     * way rather than by name: the descriptor is language-independent, so it works
-     * on a German install where the friendly name is localized. */
-    _byDescriptor(entities, descriptor) {
-      return (
-        entities
-          .map((id) => this._st(id))
-          .find(
-            (st) => st && st.attributes && st.attributes.descriptor === descriptor
-          ) || null
-      );
-    }
-
-    /** Entity id of a device entity by its `descriptor` attribute. */
-    _idByDescriptor(entities, descriptor) {
-      const st = this._byDescriptor(entities, descriptor);
-      return st ? st.entity_id : undefined;
-    }
-
-    /** The overview layout: "bev", "phev" or "ice".
-     *
-     * An explicit `drivetrain:` wins. Otherwise it is read from what the car
-     * actually streams -- high-voltage battery data and fuel data together make a
-     * plug-in hybrid, fuel data alone a petrol or diesel car. BMW's basic data
-     * spells an electric car "BEV", but its spelling for the others is unknown, so
-     * it only ever confirms electric. A car that has sent neither yet keeps the
-     * electric layout this card has always shown. */
-    _drivetrain(entities) {
-      const wanted = String((this._config || {}).drivetrain || "").toLowerCase();
-      if (DRIVETRAINS.has(wanted)) return wanted;
-      let hv = false;
-      let fuel = false;
-      let basic = null;
-      for (const id of entities) {
-        const st = this._st(id);
-        const attrs = (st && st.attributes) || {};
-        const descriptor = attrs.descriptor || "";
-        if (HV_SIGNALS.includes(descriptor)) hv = true;
-        if (COMBUSTION_PREFIXES.some((prefix) => descriptor.startsWith(prefix))) fuel = true;
-        const bd = attrs.vehicle_basic_data;
-        if (!basic && bd && bd.drive_train) basic = String(bd.drive_train).toUpperCase();
-      }
-      if (hv && fuel) return "phev";
-      if (fuel && basic !== "BEV") return "ice";
-      return "bev";
-    }
-
-    /* ---- formatting ------------------------------------------------------- */
-
-    _fmt(st) {
-      if (!st) return "—";
-      if (UNAVAILABLE.has(st.state)) return "—";
-      const hass = this._hass;
-      if (hass.formatEntityState) {
-        try {
-          return this._esc(hass.formatEntityState(st));
-        } catch (e) {
-          /* fall through */
-        }
-      }
-      const unit = st.attributes && st.attributes.unit_of_measurement;
-      return this._esc(unit ? `${st.state} ${unit}` : st.state);
-    }
-
-    _num(st) {
-      if (!st || UNAVAILABLE.has(st.state)) return null;
-      const n = Number(st.state);
-      return Number.isFinite(n) ? n : null;
-    }
-
-    // A raw kilometre figure (not a state object) with locale grouping. The
-    // integration normalises BMW's KILOMETER/MILE unit to km before storing it.
-    _km(v) {
-      const n = Number(v);
-      if (!Number.isFinite(n)) return "—";
-      return `${this._dec(n, 0)} km`;
-    }
-
-    _relTime(iso) {
-      if (!iso) return null;
-      const then = new Date(iso).getTime();
-      if (Number.isNaN(then)) return null;
-      const s = Math.round((Date.now() - then) / 1000);
-      if (s < 60) return this._t("just_now");
-      const m = Math.round(s / 60);
-      if (m < 60) return this._t("min_ago", { n: m });
-      const h = Math.round(m / 60);
-      if (h < 24) return this._t("h_ago", { n: h });
-      return this._t("d_ago", { n: Math.round(h / 24) });
-    }
-
-    _isCharging(chargingSt, socSt) {
-      // The charging.status descriptor is authoritative (see coordinator), so an
-      // explicit active/not-charging value settles it before the heuristic.
-      const raw = chargingSt && chargingSt.state != null ? String(chargingSt.state).toLowerCase() : "";
-      if (CHARGING_ACTIVE_STATES.has(raw)) return true;
-      if (NOT_CHARGING_STATES.has(raw)) return false;
-      const hay = [chargingSt && chargingSt.state, socSt && socSt.attributes && socSt.attributes.charging]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      // Boundary before "active" so "inactive" is not read as charging.
-      return /(^|_| )(charging|active)|in_progress/.test(hay) && !/not|no_?charging|complete|finished/.test(hay);
-    }
-
-    /* ---- render ----------------------------------------------------------- */
-
-    _signature(payload) {
-      // Cheap change-detection so we don't rebuild the DOM on every hass tick.
-      return JSON.stringify(payload);
-    }
-
-    _render() {
-      if (!this._hass || !this._config) return;
-      if (!this.shadowRoot) this.attachShadow({ mode: "open" });
-
-      const deviceId = this._resolveDeviceId();
-      if (!deviceId) {
-        this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
-        return;
-      }
-      const entities = this._deviceEntities(deviceId);
-      if (this._config.view === "charging") {
-        this._renderCharging(deviceId, entities);
-      } else if (this._config.view === "trips") {
-        this._renderTrips(deviceId, entities);
-      } else if (this._config.view === "map") {
-        this._renderMap(deviceId, entities);
-      } else if (this._config.view === "health") {
-        this._renderHealth(deviceId, entities);
-      } else if (this._config.view === "efficiency") {
-        this._renderEfficiency(deviceId, entities);
-      } else if (this._config.cluster === "tire") {
-        this._renderTires(deviceId, entities);
-      } else if (this._config.cluster === "closures") {
-        this._renderClosures(deviceId, entities);
-      } else if (this._config.cluster) {
-        this._renderCluster(deviceId, entities);
-      } else {
-        this._renderOverview(deviceId, entities);
-      }
-    }
-
-    /** VIN behind a device id, read from the integration's device identifier. */
-    _deviceVin(deviceId) {
-      const dev = this._hass.devices && this._hass.devices[deviceId];
-      const ids = (dev && dev.identifiers) || [];
-      for (const pair of ids) {
-        if (pair && pair[0] === "bavariandata") return pair[1];
-      }
+/** The locale the card writes numbers in, following the profile's "Number
+ *  format" setting the way Home Assistant's own formatter does, so the card's
+ *  figures match the entity states beside them. `null` for "none": plain
+ *  digits, no grouping. */
+function _numberLocale(hass) {
+  const loc = hass && hass.locale;
+  switch (loc && loc.number_format) {
+    case "none":
       return null;
+    case "system":
+      return undefined;
+    case "comma_decimal":
+      return ["en-US", "en"];
+    case "decimal_comma":
+      return ["de", "es", "it"];
+    case "space_comma":
+      return ["fr", "sv", "cs"];
+    default:
+      return _lang(hass);
+  }
+}
+
+/** Translate `key` for the active hass language, filling `{name}` vars.
+ *  Falls back to English, then to `dflt` (or the key itself).
+ *
+ *  `vars` are substituted **raw**, because some callers deliberately pass markup
+ *  (`<b>…</b>`). The result is therefore only as safe as its vars: anything
+ *  user-controlled must be `_esc()`d by the caller before it is passed in.
+ *  `tests/test_card_escaping.py` enforces that. */
+function t(hass, key, vars, dflt) {
+  const lang = _lang(hass);
+  const table =
+    TRANSLATIONS[lang] ||
+    TRANSLATIONS[String(lang).split("-")[0]] ||
+    TRANSLATIONS.en;
+  let s = table[key];
+  if (s === undefined) s = TRANSLATIONS.en[key];
+  if (s === undefined) s = dflt !== undefined ? dflt : key;
+  if (vars) {
+    Object.keys(vars).forEach((k) => {
+      s = s.split("{" + k + "}").join(vars[k]);
+    });
+  }
+  return s;
+}
+
+class BavarianDataCard extends HTMLElement {
+  setConfig(config) {
+    this._config = { ...config };
+    this._sig = null; // force first render
+    if (this._hass) this._render();
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    this._render();
+  }
+
+  /** Home Assistant detaches the card when the user switches dashboard tabs,
+   * and `ha-map`'s disconnectedCallback destroys its Leaflet map (building a
+   * fresh one on reconnect). Our route/cluster layers ride the old instance, so
+   * re-draw them here -- the paint guards would otherwise see nothing changed
+   * and leave the new map bare. */
+  connectedCallback() {
+    this._reassertMapOverlays();
+  }
+
+  getCardSize() {
+    if (this._config && this._config.view === "charging") return 10;
+    if (this._config && this._config.view === "trips") return 11;
+    if (this._config && this._config.view === "map") return 10;
+    if (this._config && this._config.view === "health") return 7;
+    if (this._config && this._config.view === "efficiency") return 8;
+    return this._config && this._config.cluster ? 6 : 8;
+  }
+
+  /** Localized string for the active Home Assistant language. */
+  _t(key, vars, dflt) {
+    return t(this._hass, key, vars, dflt);
+  }
+
+  static getConfigElement() {
+    return document.createElement("bavariandata-card-editor");
+  }
+
+  static getStubConfig(hass) {
+    // Pre-fill the card picker with the first car found.
+    const device = BavarianDataCard._firstDevice(hass);
+    return device ? { device } : {};
+  }
+
+  /**
+   * Whether a device is a car rather than the integration's "CarData Debug
+   * Device". Both carry a `bavariandata` identifier: a car's is its VIN, the
+   * debug device's is the id of its own config entry. The debug device holds
+   * diagnostics only, so a card bound to it has nothing to show.
+   */
+  static _isVehicleDevice(dev) {
+    if (!dev) return false;
+    const entries = new Set(dev.config_entries || []);
+    return (dev.identifiers || []).some(
+      (pair) => pair && pair[0] === "bavariandata" && !entries.has(pair[1])
+    );
+  }
+
+  /** Device ids of every car, in registry order. */
+  static _vehicleDevices(hass) {
+    if (!hass || !hass.devices) return [];
+    return Object.values(hass.devices)
+      .filter((dev) => BavarianDataCard._isVehicleDevice(dev))
+      .map((dev) => dev.id);
+  }
+
+  static _firstDevice(hass) {
+    if (!hass || !hass.entities) return undefined;
+    const devices = hass.devices || {};
+    for (const ent of Object.values(hass.entities)) {
+      if (ent.platform !== "bavariandata" || !ent.device_id) continue;
+      if (BavarianDataCard._isVehicleDevice(devices[ent.device_id])) return ent.device_id;
     }
+    return undefined;
+  }
 
-    _deviceEntry(deviceId) {
-      const dev = this._hass.devices && this._hass.devices[deviceId];
-      return (dev && (dev.config_entry_id)) || null;
+  /* ---- discovery -------------------------------------------------------- */
+
+  _resolveDeviceId() {
+    const hass = this._hass;
+    const cfg = this._config || {};
+    if (cfg.device) {
+      const dev = hass.devices && hass.devices[cfg.device];
+      // A card saved while the editor still offered the "CarData Debug Device"
+      // would stay blank for good: that device holds no car, so find the car.
+      if (!dev || BavarianDataCard._isVehicleDevice(dev)) return cfg.device;
     }
-
-    _deviceName(deviceId) {
-      const dev = this._hass.devices && this._hass.devices[deviceId];
-      return (dev && (dev.name_by_user || dev.name)) || "BMW";
-    }
-
-    _renderOverview(deviceId, entities) {
-      const cfg = this._config || {};
-      const drivetrain = this._drivetrain(entities);
-      const ice = drivetrain === "ice";
-      const picks = this._overviewEntities(entities);
-      const byDesc = (descriptor) => this._idByDescriptor(entities, descriptor);
-      const name = cfg.title || this._deviceName(deviceId);
-      const trip = this._openTrip(entities);
-      const socSt = this._st(picks.soc);
-      const chargingSt = this._st(picks.charging);
-      const odometerSt = this._st(picks.odometer);
-
-      // What the ring and the tiles show follows the drivetrain. An electric car
-      // keeps the layout this card has always had; a plug-in hybrid adds its tank
-      // and combined range; a petrol or diesel car swaps the charge ring for its
-      // tank and drops every charging tile -- BMW streams an EV charge target even
-      // to a petrol M2, where "Target 0 %" means nothing.
-      const fuelId =
-        cfg.fuel ||
-        byDesc("vehicle.drivetrain.fuelSystem.level") ||
-        byDesc("vehicle.drivetrain.fuelSystem.remainingFuel");
-      const fuelSt = this._st(fuelId);
-      const litresId = byDesc("vehicle.drivetrain.fuelSystem.remainingFuel");
-      const litresSt = litresId && litresId !== fuelId ? this._st(litresId) : null;
-      const rangeId = ice
-        ? cfg.range ||
-          byDesc("vehicle.drivetrain.lastRemainingRange") ||
-          byDesc("vehicle.cabin.infotainment.navigation.remainingRange") ||
-          picks.range
-        : picks.range;
-      const rangeSt = this._st(rangeId);
-      const charging = !ice && this._isCharging(chargingSt, socSt);
-
-      // The ring: state of charge, or the tank on a combustion car -- as a fill
-      // level where the car streams a percentage, otherwise its volume on a bare
-      // ring (a fill level can't be drawn from litres without the tank size).
-      const gaugeId = ice ? fuelId : picks.soc;
-      const gaugeSt = this._st(gaugeId);
-      const gaugeNum = this._num(gaugeSt);
-      const gaugeUnit = (gaugeSt && gaugeSt.attributes && gaugeSt.attributes.unit_of_measurement) || "";
-      const isPct = !ice || gaugeUnit === "%";
-      const pct = isPct && gaugeNum != null ? Math.max(0, Math.min(100, gaugeNum)) : 0;
-      const ringColor = charging
-        ? "var(--bmw-charge)"
-        : !isPct || gaugeNum == null
-        ? "var(--divider-color)"
-        : gaugeNum <= 15
-        ? "var(--bmw-low)"
-        : gaugeNum <= 40
-        ? "var(--bmw-mid)"
-        : "var(--bmw-high)";
-      const gaugeVal = gaugeNum == null ? "—" : String(Math.round(gaugeNum));
-      const gaugeUnitHtml = isPct ? "%" : this._esc(gaugeUnit);
-      const gaugeCap = ice ? this._t("fuel") : charging ? this._t("charging") : this._t("charge");
-
-      const tile = (key, label, st, icon) => ({ key, label, st, icon });
-      const rangeRow = {
-        entity: rangeId,
-        icon: "mdi:map-marker-distance",
-        val: this._fmt(rangeSt),
-        lbl: this._t(drivetrain === "phev" ? "electric_range" : "remaining_range"),
-      };
-      let lead;
-      let secondary;
-      if (ice) {
-        lead = [
-          rangeRow,
-          litresSt
-            ? { entity: litresId, icon: "mdi:gas-station", val: this._fmt(litresSt), lbl: this._t("tank") }
-            : { entity: picks.odometer, icon: "mdi:counter", val: this._fmt(odometerSt), lbl: this._t("odometer") },
-        ];
-        secondary = litresSt ? [tile("odo", this._t("odometer"), odometerSt, "mdi:counter")] : [];
-      } else {
-        lead = [
-          rangeRow,
-          {
-            entity: picks.charging,
-            icon: charging ? "mdi:battery-charging" : "mdi:ev-station",
-            val: this._chargingLabel(chargingSt, charging),
-            lbl: this._t("charging_status"),
-          },
-        ];
-        secondary = [
-          ...(drivetrain === "phev"
-            ? [
-                tile("fuel", this._t("tank"), fuelSt, "mdi:gas-station"),
-                tile(
-                  "total",
-                  this._t("total_range"),
-                  this._st(byDesc("vehicle.drivetrain.lastRemainingRange")),
-                  "mdi:map-marker-distance"
-                ),
-              ]
-            : []),
-          tile("target", this._t("target"), this._st(picks.target), "mdi:target"),
-          tile("plug", this._t("plug"), this._st(picks.plug), charging ? "mdi:power-plug" : "mdi:power-plug-off"),
-          tile("ttf", charging ? this._t("time_to_full") : this._t("charge_time"), this._st(picks.timeToFull), "mdi:timer-sand"),
-          tile("odo", this._t("odometer"), odometerSt, "mdi:counter"),
-        ];
+    if (cfg.vin && hass.devices) {
+      for (const dev of Object.values(hass.devices)) {
+        const ids = dev.identifiers || [];
+        if (ids.some((pair) => pair && pair[0] === "bavariandata" && pair[1] === cfg.vin)) {
+          return dev.id;
+        }
       }
-      secondary = secondary.filter((m) => m.st);
-
-      // freshest update among the headline entities
-      const freshest = [gaugeSt, rangeSt, ice ? null : chargingSt]
-        .filter(Boolean)
-        .map((s) => s.last_changed)
-        .sort()
-        .pop();
-
-      const sig = this._signature({
-        m: "ov",
-        dt: drivetrain,
-        lang: _lang(this._hass),
-        name,
-        charging,
-        img: picks.image,
-        fresh: freshest,
-        gauge: [gaugeId, gaugeVal, gaugeUnitHtml, pct, ringColor, gaugeCap],
-        lead: lead.map((r) => [r.entity, r.lbl, r.val]),
-        sec: secondary.map((s) => [s.label, s.st.state]),
-        // Elapsed minutes ride the signature so the badge's duration keeps ticking
-        // between the entity's throttled attribute writes.
-        trip: trip
-          ? [trip.distance_km, this._elapsedMin(trip.started), trip.held]
-          : null,
-      });
-      if (sig === this._sig) return;
-      this._sig = sig;
-
-      const imgUrl = picks.image ? this._imageUrl(picks.image) : null;
-      const rel = this._relTime(freshest);
-
-      this.shadowRoot.innerHTML = `
-        ${this._styles()}
-        <ha-card>
-          <div class="hero ${imgUrl ? "" : "hero--empty"}">
-            ${imgUrl ? `<img class="hero__img" src="${imgUrl}" alt="${this._esc(name)}" />` : `<ha-icon class="hero__placeholder" icon="${ice ? "mdi:car" : "mdi:car-electric"}"></ha-icon>`}
-            <div class="hero__scrim"></div>
-            <div class="hero__top">
-              <div class="hero__name" title="${this._esc(name)}">${this._esc(name)}</div>
-              ${rel ? `<div class="pill" title="${this._t("last_update")}"><span class="dot ${this._staleClass(freshest)}"></span>${rel}</div>` : ""}
-            </div>
-            ${this._tripPill(trip)}
-          </div>
-
-          <div class="band">
-            <button class="gauge" data-entity="${gaugeId || ""}" aria-label="${gaugeCap}">
-              <div class="gauge__ring" style="--pct:${pct};--ring:${ringColor}">
-                <div class="gauge__hole">
-                  <span class="gauge__val">${gaugeVal}<i>${gaugeUnitHtml}</i></span>
-                  <span class="gauge__cap">${gaugeCap}</span>
-                </div>
-              </div>
-              ${charging ? `<ha-icon class="gauge__bolt" icon="mdi:lightning-bolt"></ha-icon>` : ""}
-            </button>
-
-            <div class="lead">
-              ${lead
-                .map(
-                  (r) => `
-              <button class="lead__row" data-entity="${r.entity || ""}">
-                <ha-icon icon="${r.icon}"></ha-icon>
-                <span class="lead__val">${r.val}</span>
-                <span class="lead__lbl">${r.lbl}</span>
-              </button>`
-                )
-                .join("")}
-            </div>
-          </div>
-
-          ${
-            secondary.length
-              ? `<div class="grid">
-                  ${secondary
-                    .map(
-                      (m) => `
-                    <button class="cell" data-entity="${m.st.entity_id}">
-                      <ha-icon icon="${m.icon}"></ha-icon>
-                      <div class="cell__body">
-                        <span class="cell__val">${this._fmt(m.st)}</span>
-                        <span class="cell__lbl">${m.label}</span>
-                      </div>
-                    </button>`
-                    )
-                    .join("")}
-                </div>`
-              : ""
-          }
-        </ha-card>
-      `;
-      this._wireTaps();
     }
+    return BavarianDataCard._firstDevice(hass);
+  }
 
-    /** The drive under way, read off the trip flag entity — or null when parked.
-     *
-     * The integration exposes the in-flight trip as a binary sensor with the trip
-     * so far as attributes, which is the only place it exists: an open trip is not
-     * in the history store until it closes. Deliberately not treated as a "car is
-     * moving" signal — see the entity's own docstring. It opens on the first GPS
-     * fix that reads as movement and closes a debounce after the last one, so it
-     * lingers for some minutes after an arrival. */
-    _openTrip(entities) {
-      const st = this._byDescriptor(entities, "trip_in_progress");
-      if (!st || st.state !== "on") return null;
-      const a = st.attributes || {};
-      return {
-        entity_id: st.entity_id,
-        started: a.started || null,
-        start_location: a.start_location || null,
-        distance_km: a.distance_km == null ? null : Number(a.distance_km),
-        soc_start: a.soc_start == null ? null : Number(a.soc_start),
-        soc_now: a.soc_now == null ? null : Number(a.soc_now),
-        held: !!a.held,
-      };
-    }
+  _deviceEntities(deviceId) {
+    const hass = this._hass;
+    if (!hass || !hass.entities) return [];
+    return Object.values(hass.entities)
+      .filter(
+        (ent) =>
+          ent.platform === "bavariandata" &&
+          ent.device_id === deviceId &&
+          hass.states[ent.entity_id]
+      )
+      .map((ent) => ent.entity_id);
+  }
 
-    /** Elapsed whole minutes since an ISO timestamp, or null if unparseable.
-     * Computed in the frontend so the figure stays live between the entity's
-     * throttled attribute writes. */
-    _elapsedMin(iso) {
-      if (!iso) return null;
-      const t = new Date(iso).getTime();
-      if (!Number.isFinite(t)) return null;
-      return Math.max(0, Math.floor((Date.now() - t) / 60000));
-    }
+  _st(entityId) {
+    return entityId ? this._hass.states[entityId] : undefined;
+  }
 
-    /** Hero badge for a drive in progress; empty string when the car is parked. */
-    _tripPill(trip) {
-      if (!trip) return "";
-      const bits = [];
-      if (trip.distance_km != null) bits.push(`${this._dec(trip.distance_km, 1)} km`);
-      const min = this._elapsedMin(trip.started);
-      if (min != null) bits.push(this._t("tr_min", { n: min }));
-      return `
-        <button class="hero__trip" data-entity="${trip.entity_id}" title="${this._t(
-          "tr_open_hint"
-        )}">
-          <span class="hero__trip-dot"></span>
-          <span class="hero__trip-lbl">${this._t("tr_open")}</span>
-          ${bits.length ? `<span class="hero__trip-sub">${bits.join(" · ")}</span>` : ""}
-        </button>`;
-    }
-
-    _chargingLabel(st, charging) {
-      const raw = st && st.state != null ? String(st.state).toLowerCase() : "";
-      if (!st || UNAVAILABLE.has(st.state) || NOT_CHARGING_STATES.has(raw)) {
-        return this._t(charging ? "is_charging" : "not_charging");
-      }
-      // "chargingactive" et al. are uncatalogued raw tokens; show a clean label.
-      if (CHARGING_ACTIVE_STATES.has(raw)) {
-        return this._t("is_charging");
-      }
-      return this._fmt(st);
-    }
-
-    _staleClass(iso) {
-      const rel = iso ? (Date.now() - new Date(iso).getTime()) / 3600000 : 999;
-      return rel > 12 ? "dot--stale" : "dot--live";
-    }
-
-    _imageUrl(entityId) {
-      const st = this._st(entityId);
-      if (!st || !st.attributes) return null;
-      // entity_picture carries a signed, cache-busted access token URL.
-      return st.attributes.entity_picture || null;
-    }
-
-    _renderCluster(deviceId, entities) {
-      const slug = this._config.cluster;
-      const rows = entities
-        .map((id) => this._st(id))
-        .filter((st) => st && st.attributes && st.attributes.cluster === slug)
-        .sort((a, b) =>
-          (a.attributes.friendly_name || a.entity_id).localeCompare(
-            b.attributes.friendly_name || b.entity_id
-          )
-        );
-
-      // BMW files Check Control messages ("washer fluid low") under usage-based
-      // data, yet they are what a driver means by a vehicle event: the events
-      // cluster itself holds only two teleservice timestamps, which most cars
-      // never send. So that view leads with the messages.
-      const cc = slug === "events" ? this._checkControl(entities) : null;
-      const messages = cc ? cc.items : [];
-
-      const label = this._config.title || this._clusterLabel(slug);
-      const icon = CLUSTER_ICONS[slug] || "mdi:car";
-      const name = this._deviceName(deviceId);
-      const count = rows.length + messages.length;
-
-      const sig = this._signature({
-        m: "cl",
-        lang: _lang(this._hass),
-        slug,
-        rows: rows.map((s) => [s.entity_id, s.state]),
-        cc: cc && [cc.id, cc.items, cc.updated, cc.unit, this._ccExpanded],
-      });
-      if (sig === this._sig) return;
-      this._sig = sig;
-
-      this.shadowRoot.innerHTML = `
-        ${this._styles()}
-        <ha-card>
-          <div class="chead">
-            <ha-icon icon="${icon}"></ha-icon>
-            <div class="chead__text">
-              <span class="chead__title">${this._esc(label)}</span>
-              <span class="chead__sub">${this._esc(name)} · ${count} ${this._t(count === 1 ? "value" : "values")}</span>
-            </div>
-          </div>
-          ${
-            cc
-              ? `<div class="list__head">${this._t("cc_title")}</div>
-                ${
-                  messages.length
-                    ? `<div class="list">${messages.map((msg) => this._ccRow(cc, msg)).join("")}</div>`
-                    : `<div class="empty empty--inline">${this._t("cc_none")}</div>`
-                }
-                ${rows.length ? `<div class="list__head">${this._t("cc_teleservice")}</div>` : ""}`
-              : ""
-          }
-          ${
-            rows.length
-              ? `<div class="list">
-                  ${rows
-                    .map((st) => {
-                      const category = st.attributes.category;
-                      return `<button class="item" data-entity="${st.entity_id}">
-                        <span class="item__name" title="${this._esc(st.attributes.friendly_name || st.entity_id)}">${this._shortName(st, name)}</span>
-                        <span class="item__val">${this._fmt(st)}</span>
-                      </button>`;
-                    })
-                    .join("")}
-                </div>`
-              : cc
-                ? ""
-                : `<div class="empty">${this._t("no_cluster_entities", { label: `<b>${this._esc(label)}</b>` })}</div>`
-          }
-        </ha-card>
-      `;
-      this._wireTaps();
-      // A message is a list item, not an entity: it expands in place, the way a
-      // charging session or a trip does, instead of opening more-info.
-      this.shadowRoot.querySelectorAll("[data-cc]").forEach((el) => {
-        el.addEventListener("click", () => this._toggleCc(el.getAttribute("data-cc")));
-      });
-    }
-
-    _toggleCc(key) {
-      this._ccExpanded = this._ccExpanded === key ? null : key;
-      this._sig = null; // force a repaint with the new expansion state
-      this._render();
-    }
-
-    /** The Check Control sensor and its messages; null on a car without one. */
-    _checkControl(entities) {
-      const st = this._byDescriptor(entities, "vehicle.status.checkControlMessages");
-      if (!st) return null;
+  /** Rank candidate entities by keyword preference; return the best entity_id. */
+  _pick(entities, { domain = "sensor", prefer = [], avoid = [], deviceClass, unit, usable = false } = {}) {
+    const scored = [];
+    for (const id of entities) {
+      if (domain && !id.startsWith(domain + ".")) continue;
+      const st = this._st(id);
+      if (!st) continue;
+      // `usable`: only an entity that has something to show right now.
+      if (usable && UNAVAILABLE.has(st.state)) continue;
       const attrs = st.attributes || {};
-      const odometer = this._byDescriptor(entities, "vehicle.vehicle.travelledDistance");
-      return {
-        id: st.entity_id,
-        items: Array.isArray(attrs.items)
-          ? attrs.items.filter((msg) => msg && typeof msg === "object")
-          : [],
-        updated: attrs.timestamp,
-        unit: (odometer && odometer.attributes && odometer.attributes.unit_of_measurement) || "km",
-      };
-    }
-
-    /** A Check Control field, or null for BMW's placeholders ("-", "NULL"). */
-    _ccField(value) {
-      if (value == null) return null;
-      const text = String(value).trim();
-      return text === "" || text === "-" || text.toUpperCase() === "NULL" ? null : text;
-    }
-
-    /** One Check Control message. BMW sends the text in English on every install,
-     * and on the maintainer's i5 with no title and no date. */
-    _ccRow(cc, msg) {
-      const key = String(msg.id != null ? msg.id : msg.text || "");
-      const isOpen = this._ccExpanded === key;
-      const title = this._ccField(msg.title);
-      const text = this._ccField(msg.text);
-      const head = title || text || this._ccField(msg.messageType) || "—";
-      const when = this._ccField(msg.date) ? this._fmtDay(msg.date) : "";
-      return `<div class="cc${isOpen ? " is-open" : ""}">
-        <button class="item item--msg" data-cc="${this._attr(key)}" aria-expanded="${isOpen}">
-          <ha-icon class="item__icon" icon="mdi:alert-circle-outline"></ha-icon>
-          <span class="item__body">
-            <span class="item__text${isOpen ? "" : " item__clamp"}">${this._esc(head)}</span>
-            ${title && text && !isOpen ? `<span class="item__sub item__clamp">${this._esc(text)}</span>` : ""}
-          </span>
-          ${when ? `<span class="item__val">${when}</span>` : ""}
-        </button>
-        ${isOpen ? this._ccDetail(cc, msg, title && text ? text : "") : ""}
-      </div>`;
-    }
-
-    _ccDetail(cc, msg, body) {
-      const description = this._ccField(msg.description);
-      const facts = [];
-      // Despite its name this is no distance left: on the maintainer's i5 it was
-      // the odometer at the start of the drive on which the car last showed the
-      // message (19 596, then 19 599 a drive later, while the car read 19 624).
-      const mileage = this._ccField(msg.unitOfLengthRemaining);
-      if (mileage && Number.isFinite(Number(mileage))) {
-        facts.push([this._t("cc_mileage"), `${this._dec(Number(mileage), 0)} ${this._esc(cc.unit)}`]);
-      }
-      const sent = this._relTime(cc.updated);
-      if (sent) facts.push([this._t("cc_sent"), sent]);
-      const code = [this._ccField(msg.messageType), this._ccField(msg.id)].filter(Boolean).join(" ");
-      if (code) facts.push([this._t("cc_code"), this._esc(code)]);
-
-      const factRow = facts
-        .map(
-          ([k, v]) =>
-            `<div class="chg__fact"><span class="chg__fact-lbl">${k}</span><span class="chg__fact-val">${v}</span></div>`
-        )
-        .join("");
-      return `
-        <div class="chg__detail">
-          ${body ? `<p class="cc__text">${this._esc(body)}</p>` : ""}
-          ${description ? `<p class="cc__text">${this._esc(description)}</p>` : ""}
-          ${factRow ? `<div class="chg__facts">${factRow}</div>` : ""}
-        </div>
-      `;
-    }
-
-    /** Localized display label for a catalogue cluster slug. */
-    _clusterLabel(slug) {
-      return this._t("cl_" + slug, null, slug);
-    }
-
-    _shortName(st, deviceName) {
-      let n = st.attributes.friendly_name || st.entity_id;
-      if (deviceName && n.startsWith(deviceName + " ")) n = n.slice(deviceName.length + 1);
-      return this._esc(n);
-    }
-
-    /* ---- charging history ------------------------------------------------- */
-
-    /** Charging, battery health and efficiency all describe a high-voltage
-     * battery. On a petrol or diesel car each would sit empty for good and read
-     * like a fault, so say why instead -- before any service is called. Returns
-     * whether it painted. */
-    _renderIceNotice(deviceId, entities) {
-      if (this._drivetrain(entities) !== "ice") return false;
-      const name = this._config.title || this._deviceName(deviceId);
-      const sig = this._signature({ m: "ice", lang: _lang(this._hass), name });
-      if (sig === this._sig) return true;
-      this._renderMessage(
-        this._esc(this._t("ice_view_title")),
-        this._esc(this._t("ice_view_body", { name }))
-      );
-      this._sig = sig;
-      return true;
-    }
-
-    _renderCharging(deviceId, entities) {
-      const vin = this._deviceVin(deviceId);
-      if (!vin) {
-        this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
-        return;
-      }
-      if (this._renderIceNotice(deviceId, entities)) return;
-
-      const entryId = this._deviceEntry(deviceId);
-
-      // Sessions come from a service response, not entity state, so they can't be
-      // read synchronously off hass. Fetch once, then only re-fetch when a new
-      // session is likely: gate on the summary sensor's last_changed rather than
-      // polling, so a plain hass tick never hits the service.
-      const trigSt = entities
-        .map((id) => this._st(id))
-        .find(
-          (st) =>
-            st &&
-            st.attributes &&
-            (st.attributes.descriptor === "charging_cost_session" ||
-              st.attributes.descriptor === "charging_energy_month")
-        );
-      const trigger = trigSt ? trigSt.last_changed : "";
-
-      const month = this._month("charging");
-      const cache = this._chg;
-      const current =
-        cache && cache.vin === vin && cache.trigger === trigger && cache.month === month;
-      if (!current || (!cache.data && !cache.loading)) {
-        this._chg = {
-          vin,
-          trigger,
-          month,
-          data: current && cache ? cache.data : null,
-          loading: true,
-          error: false,
-        };
-        this._fetchCharging(vin, entryId, month);
-      }
-
-      this._paintCharging(deviceId, entities);
-    }
-
-    _fetchCharging(vin, entryId, month) {
-      const req = this._chg;
-      const bounds = this._monthBounds(month);
-      this._hass
-        .callService(
-          "bavariandata",
-          "get_charging_sessions",
-          { vin, entry_id: entryId, from: bounds.from, to: bounds.to },
-          undefined,
-          false,
-          true
-        )
-        .then((res) => {
-          // Ignore a response for a request we've already superseded.
-          if (
-            !this._chg ||
-            this._chg.vin !== vin ||
-            this._chg.trigger !== req.trigger ||
-            this._chg.month !== month
-          )
-            return;
-          const sessions = (res && res.response && res.response.sessions) || [];
-          this._chg = { ...this._chg, data: sessions, loading: false, error: false };
-          this._render();
-        })
-        .catch(() => {
-          if (!this._chg || this._chg.vin !== vin || this._chg.trigger !== req.trigger)
-            return;
-          this._chg = { ...this._chg, loading: false, error: true };
-          this._render();
-        });
-    }
-
-    _paintCharging(deviceId, entities) {
-      const name = this._config.title || this._deviceName(deviceId);
-      const state = this._chg || {};
-      const sessions = state.data;
-      const month = this._month("charging");
-      const isCurrent = month === this._monthKey();
-      // The summary band is fed by the monthly sensors, which only ever describe
-      // the month happening now. Showing it above a list of last March would put
-      // two different periods in one card, so it goes with the current month.
-      const summary = isCurrent ? this._chargingSummary(entities) : null;
-      const expanded = this._chgExpanded || null;
-
-      const sig = this._signature({
-        m: "chg",
-        lang: _lang(this._hass),
-        name,
-        month,
-        loading: state.loading && !sessions,
-        error: state.error,
-        summary,
-        expanded,
-        rows: (sessions || []).map((s) => [s.start, s.energy_kwh, s.cost && s.cost.amount]),
+      if (deviceClass && attrs.device_class !== deviceClass) continue;
+      if (unit && attrs.unit_of_measurement !== unit) continue;
+      // Match against the descriptor path too (exposed as an attribute). The
+      // entity_id and friendly_name are localized (German, etc.), but the
+      // descriptor is always the English BMW path, so keyword matching keeps
+      // working regardless of the user's Home Assistant language. Include a
+      // space-normalized copy (camelCase + dots/underscores -> spaces) so
+      // multi-word English keys like "charging status" or "electric range"
+      // match the descriptor and not only the localized friendly_name.
+      const descriptor = attrs.descriptor || "";
+      const descriptorWords = descriptor
+        .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+        .replace(/[._]/g, " ");
+      const hay = (
+        id +
+        " " +
+        (attrs.friendly_name || "") +
+        " " +
+        descriptor +
+        " " +
+        descriptorWords
+      ).toLowerCase();
+      if (avoid.some((a) => hay.includes(a))) continue;
+      let score = 0;
+      prefer.forEach((p, i) => {
+        if (hay.includes(p)) score += prefer.length - i;
       });
-      if (sig === this._sig) return;
-      this._sig = sig;
-
-      let body;
-      if (state.error) {
-        body = `<div class="empty">${this._t("ch_error")}</div>`;
-      } else if (!sessions && state.loading) {
-        body = `<div class="empty">${this._t("ch_loading")}</div>`;
-      } else if (!sessions || !sessions.length) {
-        body = `<div class="empty">${this._t(
-          isCurrent ? "ch_empty" : "ch_empty_month"
-        )}</div>`;
-      } else {
-        body = `<div class="chg__list">${sessions
-          .map((s) => this._chargingRow(s, expanded))
-          .join("")}</div>`;
-      }
-
-      const count = sessions ? sessions.length : 0;
-      const countLabel =
-        count === 1
-          ? this._t("ch_session_one")
-          : this._t("ch_session_many", { n: count });
-
-      this.shadowRoot.innerHTML = `
-        ${this._styles()}
-        <ha-card>
-          <div class="chead">
-            <ha-icon icon="mdi:ev-station"></ha-icon>
-            <div class="chead__text">
-              <span class="chead__title">${this._esc(this._config.title || this._t("ch_title"))}</span>
-              <span class="chead__sub">${this._esc(name)}${count ? " · " + countLabel : ""}</span>
-            </div>
-            ${this._exportButtons("charging")}
-          </div>
-          ${this._monthNav("charging")}
-          ${summary ? this._chargingSummaryBand(summary) : ""}
-          ${body}
-        </ha-card>
-      `;
-      this._wireChargingTaps();
-      this._wireMonthNav();
-    }
-
-    /** "This month" figures, read from the summary sensors when they exist. */
-    _chargingSummary(entities) {
-      let cost = null;
-      let energy = null;
-      for (const id of entities) {
-        const st = this._st(id);
-        const d = st && st.attributes && st.attributes.descriptor;
-        if (d === "charging_cost_month") cost = st;
-        else if (d === "charging_energy_month") energy = st;
-      }
-      if (!cost && !energy) return null;
-      return {
-        cost: cost ? this._fmt(cost) : null,
-        energy: energy ? this._fmt(energy) : null,
-      };
-    }
-
-    _chargingSummaryBand(summary) {
-      const cells = [];
-      if (summary.energy) {
-        cells.push(
-          `<div class="chg__stat"><span class="chg__stat-val">${summary.energy}</span><span class="chg__stat-lbl">${this._t("ch_month")}</span></div>`
-        );
-      }
-      if (summary.cost) {
-        cells.push(
-          `<div class="chg__stat"><span class="chg__stat-val">${summary.cost}</span><span class="chg__stat-lbl">${this._t("ch_month")}</span></div>`
-        );
-      }
-      if (!cells.length) return "";
-      return `<div class="chg__summary">${cells.join("")}</div>`;
-    }
-
-    _chargingRow(session, expanded) {
-      const id = session.start || "";
-      const isOpen = expanded === id;
-      const date = this._fmtSessionDate(session.start);
-      // Prefer the measured grid figure (imported / enriched sessions carry only
-      // that); fall back to the battery-side energy for live-only sessions.
-      const energyKwh = session.grid_kwh != null ? session.grid_kwh : session.energy_kwh;
-      const energy = energyKwh != null ? `${this._dec(energyKwh, 1)} kWh` : "—";
-      const soc = this._socArc(session);
-      const badge = this._locationBadge(session);
-      const partial =
-        session.cost && session.cost.partial
-          ? `<span class="chg__tag chg__tag--warn">${this._t("ch_partial")}</span>`
-          : "";
-      const ongoing = session.end
-        ? ""
-        : `<span class="chg__tag">${this._t("ch_ongoing")}</span>`;
-      const solar = this._solarTag(session);
-
-      return `
-        <div class="chg__session${isOpen ? " is-open" : ""}">
-          <button class="chg__row" data-session="${this._attr(id)}">
-            <span class="chg__row-main">
-              <span class="chg__date">${date}</span>
-              <span class="chg__meta">${soc}${badge}${solar}${ongoing}${partial}</span>
-            </span>
-            <span class="chg__figures">
-              <span class="chg__energy chg__energy--lead">${energy}</span>
-            </span>
-          </button>
-          ${isOpen ? this._chargingDetail(session) : ""}
-        </div>
-      `;
-    }
-
-    // How much of this charge came off the roof, as a compact tag. Absent --
-    // rather than "0 %" -- when the energy could not be attributed at all: no PV
-    // and grid sensors configured, or a charge from before they were.
-    _solarTag(session) {
-      const pct = session.energy_mix && session.energy_mix.solar_percent;
-      if (pct == null) return "";
-      return `<span class="chg__tag chg__tag--sun">\u2600 ${this._dec(
-        pct,
-        0
-      )}% ${this._t("ch_solar")}</span>`;
-    }
-
-    // The breakdown behind that tag, in grid-side kWh. Sources with nothing in
-    // them are left out, so a night charge reads "Grid 11.2 kWh" and not a list
-    // of zeroes.
-    _mixLabel(mix) {
-      if (!mix) return "";
-      const parts = [];
-      for (const [key, label] of [
-        ["pv", "ch_mix_pv"],
-        ["battery", "ch_mix_battery"],
-        ["grid", "ch_mix_grid"],
-        ["unknown", "ch_mix_unknown"],
-      ]) {
-        const value = mix[key];
-        if (value == null || !(value > 0)) continue;
-        parts.push(`${this._t(label)} ${this._dec(value, 1)}`);
-      }
-      return parts.length ? `${parts.join(" · ")} kWh` : "";
-    }
-
-    _chargingDetail(session) {
-      const chart = this._powerCurveSvg(session.power_curve);
-      const facts = [];
-      if (session.peak_power_kw != null) {
-        facts.push([this._t("ch_peak"), `${this._dec(session.peak_power_kw, 1)} kW`]);
-      }
-      const avg = this._avgPowerKw(session);
-      if (avg != null) facts.push([this._t("ch_avg"), `${this._dec(avg, 1)} kW`]);
-      // duration_s isn't in the service payload; derive it from the timestamps.
-      const dur = this._durationLabel(session);
-      if (dur) facts.push([this._t("ch_duration"), dur]);
-      if (session.grid_kwh != null) {
-        facts.push([this._t("ch_grid"), `${this._dec(session.grid_kwh, 1)} kWh`]);
-      }
-      // Cost moved off the collapsed row to here, so it's kept for tariff users
-      // without competing with the kWh for the row's headline figure.
-      if (session.cost && session.cost.amount != null) {
-        facts.push([this._t("ch_cost"), this._fmtCost(session.cost)]);
-      }
-      const mixLabel = this._mixLabel(session.energy_mix);
-      if (mixLabel) facts.push([this._t("ch_mix"), mixLabel]);
-
-      const factRow = facts
-        .map(
-          ([k, v]) =>
-            `<div class="chg__fact"><span class="chg__fact-lbl">${k}</span><span class="chg__fact-val">${v}</span></div>`
-        )
-        .join("");
-
-      return `
-        <div class="chg__detail">
-          ${chart}
-          <div class="chg__facts">${factRow}</div>
-        </div>
-      `;
-    }
-
-    /** Inline SVG step chart of the [seconds, kW] power curve. No dependencies.
-     *
-     * Stepped, not interpolated: each sampled power holds until the next sample
-     * arrives, which is what the data means (an average over a block), rather than
-     * drawing a diagonal ramp between two readings that never happened. */
-    _powerCurveSvg(curve) {
-      if (!Array.isArray(curve) || curve.length < 2) return "";
-      const W = 260;
-      const H = 64;
-      const pad = 4;
-      const xs = curve.map((p) => p[0]);
-      const ys = curve.map((p) => p[1]);
-      const xMin = Math.min(...xs);
-      const xMax = Math.max(...xs);
-      const yMax = Math.max(...ys, 0.1);
-      const spanX = xMax - xMin || 1;
-      const sx = (x) => pad + ((x - xMin) / spanX) * (W - 2 * pad);
-      const sy = (y) => H - pad - (y / yMax) * (H - 2 * pad);
-      const pts = curve.map((p) => [sx(p[0]), sy(p[1])]);
-      const stepped = [];
-      for (let i = 0; i < pts.length; i++) {
-        stepped.push(pts[i]);
-        // Hold this reading's level across to the next sample's time before
-        // stepping to the new level.
-        if (i < pts.length - 1) stepped.push([pts[i + 1][0], pts[i][1]]);
-      }
-      const line = stepped
-        .map(([x, y]) => `${this._px(x)},${this._px(y)}`)
-        .join(" ");
-      const area = `${pad},${H - pad} ${line} ${W - pad},${H - pad}`;
-      return `
-        <svg class="chg__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
-          <polygon points="${area}" class="chg__chart-fill"></polygon>
-          <polyline points="${line}" class="chg__chart-line"></polyline>
-          <text x="${pad}" y="10" class="chg__chart-max">${this._dec(yMax, 1)} kW</text>
-        </svg>
-      `;
-    }
-
-    _locationBadge(session) {
-      const loc = session.location || {};
-      const zone = loc.zone;
-      const assumed = session.location_assumed;
-      // A resolved non-home zone shows its own name; everything else is Home vs
-      // Away, with "assumed" spelled out when we had no GPS and fell back to home.
-      let label;
-      let cls = "chg__badge";
-      if (assumed) {
-        label = `${this._t("ch_home")} · ${this._t("ch_assumed")}`;
-        cls += " chg__badge--assumed";
-      } else if (zone && !/^home$/i.test(zone)) {
-        label = zone;
-        cls += " chg__badge--away";
-      } else if (zone) {
-        label = this._t("ch_home");
-        cls += " chg__badge--home";
-      } else if (loc.address) {
-        // No matching zone, but BMW gave us the address of a public charge.
-        label = loc.address;
-        cls += " chg__badge--away";
-      } else {
-        label = this._t("ch_public");
-        cls += " chg__badge--away";
-      }
-      return `<span class="${cls}">${this._esc(label)}</span>`;
-    }
-
-    _socArc(session) {
-      const a = session.soc_start;
-      const b = session.soc_end;
-      if (a == null && b == null) return "";
-      const from = a == null ? "?" : Math.round(a);
-      const to = b == null ? "?" : Math.round(b);
-      return `<span class="chg__soc">${from}→${to}%</span>`;
-    }
-
-    _fmtCost(cost) {
-      if (!cost || cost.amount == null) {
-        return `<span class="chg__cost--none">${this._t("ch_no_cost")}</span>`;
-      }
-      const locale = _numberLocale(this._hass);
-      try {
-        if (locale === null) throw new Error("number format: none");
-        return this._esc(
-          new Intl.NumberFormat(locale, {
-            style: "currency",
-            currency: cost.currency || "EUR",
-            maximumFractionDigits: 2,
-          }).format(cost.amount)
-        );
-      } catch (e) {
-        return this._esc(
-          `${this._dec(cost.amount, 2)} ${cost.currency || ""}`.trim()
-        );
-      }
-    }
-
-    _fmtSessionDate(iso) {
-      if (!iso) return "—";
-      const d = new Date(iso);
-      if (isNaN(d.getTime())) return this._esc(iso);
-      try {
-        return d.toLocaleString(_lang(this._hass), {
-          day: "numeric",
-          month: "short",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-      } catch (e) {
-        return d.toISOString().slice(0, 16).replace("T", " ");
-      }
-    }
-
-    _durationLabel(session) {
-      if (!session.start || !session.end) return null;
-      const ms = new Date(session.end).getTime() - new Date(session.start).getTime();
-      if (!(ms > 0)) return null;
-      const mins = Math.round(ms / 60000);
-      if (mins < 60) return `${mins} min`;
-      const h = Math.floor(mins / 60);
-      const m = mins % 60;
-      return m ? `${h} h ${m} min` : `${h} h`;
-    }
-
-    _avgPowerKw(session) {
-      const energyKwh = session.grid_kwh != null ? session.grid_kwh : session.energy_kwh;
-      if (energyKwh == null || !session.start || !session.end) return null;
-      const hours =
-        (new Date(session.end).getTime() - new Date(session.start).getTime()) / 3600000;
-      if (!(hours > 0)) return null;
-      return energyKwh / hours;
-    }
-
-    /* ---- month window ------------------------------------------------------
-    *
-    * The trips and charging views show one calendar month at a time. History is
-    * kept for two years, so the alternative is a list that grows without end and
-    * that nothing on screen describes — the "month in review" band above it was
-    * always month-scoped, so an unbounded list below it made the card disagree
-    * with itself. Paging by month keeps every record reachable and lets the
-    * summary, the list and the export all speak about the same period.
-    */
-
-    /** "YYYY-MM" for a Date; the current month when given nothing. */
-    _monthKey(date) {
-      const d = date || new Date();
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    }
-
-    /** The month a view is showing, defaulting to the current one. */
-    _month(kind) {
-      return (kind === "trips" ? this._trpMonth : this._chgMonth) || this._monthKey();
-    }
-
-    _shiftMonth(key, delta) {
-      const [y, m] = key.split("-").map(Number);
-      const d = new Date(y, m - 1 + delta, 1);
-      return this._monthKey(d);
-    }
-
-    /** First and last instant of a month, as the `from`/`to` the services take. */
-    _monthBounds(key) {
-      const [y, m] = key.split("-").map(Number);
-      return {
-        from: `${key}-01`,
-        // The services treat `to` as inclusive of the day, so the last day of the
-        // month is the bound — computed as "day 0 of next month" to dodge leap
-        // years and 30/31-day arithmetic entirely.
-        to: `${key}-${String(new Date(y, m, 0).getDate()).padStart(2, "0")}`,
-      };
-    }
-
-    _monthLabel(key) {
-      const [y, m] = key.split("-").map(Number);
-      const d = new Date(y, m - 1, 1);
-      try {
-        return d.toLocaleDateString(_lang(this._hass) === "de" ? "de-DE" : "en-GB", {
-          month: "long",
-          year: "numeric",
-        });
-      } catch (_e) {
-        return key;
-      }
-    }
-
-    /** ‹ August 2026 › — forward stops at the current month, which is the newest
-     * one that can hold anything. */
-    _monthNav(kind) {
-      const key = this._month(kind);
-      const atNewest = key >= this._monthKey();
-      return `
-        <div class="mnav">
-          <button class="mnav__btn" data-month-kind="${kind}" data-month-step="-1"
-                  title="${this._t("mn_prev")}" aria-label="${this._t("mn_prev")}">
-            <ha-icon icon="mdi:chevron-left"></ha-icon>
-          </button>
-          <span class="mnav__label">${this._monthLabel(key)}</span>
-          <button class="mnav__btn" data-month-kind="${kind}" data-month-step="1"
-                  title="${this._t("mn_next")}" aria-label="${this._t("mn_next")}"
-                  ${atNewest ? "disabled" : ""}>
-            <ha-icon icon="mdi:chevron-right"></ha-icon>
-          </button>
-        </div>`;
-    }
-
-    _wireMonthNav() {
-      this.shadowRoot.querySelectorAll("[data-month-step]").forEach((el) => {
-        el.addEventListener("click", (ev) => {
-          ev.stopPropagation(); // the rows underneath are tappable
-          if (el.hasAttribute("disabled")) return;
-          const kind = el.getAttribute("data-month-kind");
-          const step = Number(el.getAttribute("data-month-step"));
-          const next = this._shiftMonth(this._month(kind), step);
-          if (next > this._monthKey()) return;
-          if (kind === "trips") {
-            this._trpMonth = next;
-            // An expanded row belongs to the month it was opened in; carrying the
-            // id across would leave a detail panel open on a trip not in the list.
-            this._trpExpanded = null;
-            this._trp = null;
-          } else {
-            this._chgMonth = next;
-            this._chgExpanded = null;
-            this._chg = null;
-          }
-          this._render();
-        });
-      });
-    }
-
-    /* ---- export (roadmap Phase 4) ----------------------------------------- */
-
-    /** Header buttons for the charging and trips views. `kind` scopes the CSV. */
-    _exportButtons(kind) {
-      return `
-        <div class="xbar">
-          <button class="xbtn" data-export="csv" data-kind="${kind}"
-                  title="${this._t("ex_csv_hint")}">
-            <ha-icon icon="mdi:file-delimited-outline"></ha-icon>${this._t("ex_csv")}
-          </button>
-          <button class="xbtn" data-export="html" data-kind="both"
-                  title="${this._t("ex_report_hint")}">
-            <ha-icon icon="mdi:file-document-outline"></ha-icon>${this._t("ex_report")}
-          </button>
-        </div>`;
-    }
-
-    _wireExport() {
-      this.shadowRoot.querySelectorAll("[data-export]").forEach((el) => {
-        el.addEventListener("click", (ev) => {
-          ev.stopPropagation(); // rows below are tappable too
-          this._export(el.getAttribute("data-kind"), el.getAttribute("data-export"));
-        });
-      });
-    }
-
-    _export(kind, format) {
-      const vin = this._deviceVin(this._resolveDeviceId());
-      // One export at a time: the button stays in the DOM across repaints, and a
-      // double tap would otherwise download the same month twice.
-      if (!vin || this._exporting) return;
-      this._exporting = true;
-      // Export what the user is looking at: paging back to March and hitting CSV
-      // must not quietly hand over the current month instead.
-      const month = this._month(
-        this._config.view === "trips" ? "trips" : "charging"
-      );
-      this._hass
-        .callService(
-          "bavariandata",
-          "export_history",
-          { vin, type: kind, format, month },
-          undefined,
-          false,
-          true
-        )
-        .then((res) => {
-          const files = (res && res.response && res.response.files) || [];
-          const written = files.filter((f) => f && f.content && f.rows);
-          if (!written.length) {
-            this._notify(this._t("ex_empty"));
-            return;
-          }
-          written.forEach((file) => this._download(file));
-        })
-        .catch(() => this._notify(this._t("ex_error")))
-        .finally(() => {
-          this._exporting = false;
-        });
-    }
-
-    /** Hand the service's file content to the browser as a download. */
-    _download(file) {
-      const blob = new Blob([file.content], {
-        type: `${file.mime || "text/plain"};charset=utf-8`,
-      });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = file.filename || "bavariandata-export";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      // Revoking immediately can cancel the download in some browsers.
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
-    }
-
-    _notify(message) {
-      this.dispatchEvent(
-        new CustomEvent("hass-notification", {
-          detail: { message },
-          bubbles: true,
-          composed: true,
-        })
-      );
-    }
-
-    _wireChargingTaps() {
-      this._wireExport();
-      this.shadowRoot.querySelectorAll("[data-session]").forEach((el) => {
-        el.addEventListener("click", () => {
-          const id = el.getAttribute("data-session");
-          this._chgExpanded = this._chgExpanded === id ? null : id;
-          this._sig = null; // force a repaint with the new expansion state
-          const deviceId = this._resolveDeviceId();
-          this._paintCharging(deviceId, this._deviceEntities(deviceId));
-        });
-      });
-    }
-
-    /* ---- trips (Fahrtenbuch) ---------------------------------------------- */
-
-    _renderTrips(deviceId, entities) {
-      const vin = this._deviceVin(deviceId);
-      if (!vin) {
-        this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
-        return;
-      }
-
-      const entryId = this._deviceEntry(deviceId);
-
-      // Like charging, trips come from services (a list + the month-in-review),
-      // not entity state. Gate the fetch on the monthly-distance sensor's
-      // last_changed so a plain hass tick never hits the services.
-      const trigSt = this._byDescriptor(entities, "driving_distance_month");
-      // A drive under way is not in the store, so the monthly figure doesn't move
-      // while it happens: the trip flag's own writes are what refresh the
-      // in-progress row. It rewrites at most once a minute while driving (the
-      // integration throttles it), so this costs one local service call a minute.
-      const tripSt = this._byDescriptor(entities, "trip_in_progress");
-      const trigger = [
-        trigSt ? trigSt.last_changed : "",
-        tripSt ? `${tripSt.state}@${tripSt.last_updated}` : "",
-      ].join("|");
-
-      const month = this._month("trips");
-      const cache = this._trp;
-      const current =
-        cache && cache.vin === vin && cache.trigger === trigger && cache.month === month;
-      if (!current || (!cache.trips && !cache.loading)) {
-        this._trp = {
-          vin,
-          trigger,
-          month,
-          trips: current && cache ? cache.trips : null,
-          summary: current && cache ? cache.summary : null,
-          open: current && cache ? cache.open : null,
-          loading: true,
-          error: false,
-        };
-        this._fetchTrips(vin, entryId, month);
-      }
-
-      this._paintTrips(deviceId, entities);
-      // The expanded trip's route rides a live ha-map (loaded on demand); mount it
-      // after paint so a repaint never tears down an in-place Leaflet instance.
-      this._ensureMapLib();
-      this._mountTripMiniMap();
-    }
-
-    _fetchTrips(vin, entryId, month) {
-      const req = this._trp;
-      const call = (service, data) =>
-        this._hass.callService("bavariandata", service, data, undefined, false, true);
-      const bounds = this._monthBounds(month);
-      Promise.all([
-        // Bounded to the month on the service side rather than fetched wide and
-        // sliced here: the store holds two years, and the card should never pull
-        // more than it is about to draw.
-        call("get_trips", { vin, entry_id: entryId, from: bounds.from, to: bounds.to }),
-        call("get_driving_summary", { vin, entry_id: entryId, month }),
-      ])
-        .then(([tripsRes, sumRes]) => {
-          if (
-            !this._trp ||
-            this._trp.vin !== vin ||
-            this._trp.trigger !== req.trigger ||
-            this._trp.month !== month
-          )
-            return;
-          const trips = (tripsRes && tripsRes.response && tripsRes.response.trips) || [];
-          const summary = (sumRes && sumRes.response && sumRes.response.summary) || null;
-          // The drive under way (if any) rides alongside the recorded trips rather
-          // than inside them — it has no end and nothing to classify yet.
-          const openList =
-            (tripsRes && tripsRes.response && tripsRes.response.open_trips) || [];
-          const open = openList.length ? openList[0] : null;
-          this._trp = {
-            ...this._trp,
-            trips,
-            summary,
-            open,
-            loading: false,
-            error: false,
-          };
-          this._render();
-        })
-        .catch(() => {
-          if (!this._trp || this._trp.vin !== vin || this._trp.trigger !== req.trigger)
-            return;
-          this._trp = { ...this._trp, loading: false, error: true };
-          this._render();
-        });
-    }
-
-    _paintTrips(deviceId, entities) {
-      const name = this._config.title || this._deviceName(deviceId);
-      const state = this._trp || {};
-      const trips = state.trips;
-      const summary = state.summary;
-      const open = state.open || null;
-      const expanded = this._trpExpanded || null;
-
-      const month = this._month("trips");
-      const sig = this._signature({
-        m: "trp",
-        lang: _lang(this._hass),
-        name,
-        month,
-        loading: state.loading && !trips,
-        error: state.error,
-        summary,
-        expanded,
-        // Elapsed minutes so the in-progress row's duration ticks between fetches.
-        open: open
-          ? [open.start, open.distance_km, this._elapsedMin(open.start), open.held]
-          : null,
-        rows: (trips || []).map((t) => [t.start, t.distance_km, t.classification]),
-      });
-      if (sig === this._sig) return;
-      this._sig = sig;
-
-      // The drive under way leads the list: it's the row a user opening this view
-      // mid-drive is looking for, and it is the newest thing there is.
-      const openRow = open ? this._tripRow(open, expanded) : "";
-
-      let body;
-      if (state.error) {
-        body = `<div class="empty">${this._t("tr_error")}</div>`;
-      } else if (!trips && state.loading) {
-        body = `<div class="empty">${this._t("tr_loading")}</div>`;
-      } else if ((!trips || !trips.length) && !open) {
-        // Distinguish "nothing yet, ever" from "nothing in the month you paged
-        // to" -- the first is onboarding advice, the second just means go back.
-        body = `<div class="empty">${this._t(
-          month === this._monthKey() ? "tr_empty" : "tr_empty_month"
-        )}</div>`;
-      } else {
-        body = `${this._tripReview(summary)}<div class="chg__list">${openRow}${(
-          trips || []
-        )
-          .map((t) => this._tripRow(t, expanded))
-          .join("")}</div>`;
-      }
-
-      const count = trips ? trips.length : 0;
-      const countLabel =
-        count === 1 ? this._t("tr_trip_one") : this._t("tr_trip_many", { n: count });
-
-      this.shadowRoot.innerHTML = `
-        ${this._styles()}
-        <ha-card>
-          <div class="chead">
-            <ha-icon icon="mdi:road-variant"></ha-icon>
-            <div class="chead__text">
-              <span class="chead__title">${this._esc(this._config.title || this._t("tr_title"))}</span>
-              <span class="chead__sub">${this._esc(name)}${count ? " · " + countLabel : ""}</span>
-            </div>
-            ${this._exportButtons("trips")}
-          </div>
-          ${this._monthNav("trips")}
-          ${body}
-        </ha-card>
-      `;
-      this._wireTripTaps();
-      this._wireMonthNav();
-    }
-
-    /** The "month in review" panel, built entirely from get_driving_summary. */
-    _tripReview(summary) {
-      if (!summary || !summary.total_km) return "";
-      const km = (v) => (v == null ? "—" : `${this._dec(v, 0)} km`);
-      const split = summary.split || {};
-
-      // Headline tiles: distance with a month-over-month arrow, and trip count.
-      const delta = summary.mom_delta_percent;
-      const arrow = delta == null ? "" : delta > 0 ? "▲" : delta < 0 ? "▼" : "→";
-      const deltaTxt =
-        delta == null
-          ? ""
-          : `<span class="tr__delta tr__delta--${delta >= 0 ? "up" : "down"}">${arrow} ${this._dec(
-              Math.abs(delta),
-              0
-            )}% ${this._t("tr_vs_last")}</span>`;
-
-      const tiles = [
-        `<div class="tr__tile"><span class="tr__tile-val">${this._dec(
-          summary.total_km,
-          0
-        )} <i>km</i></span><span class="tr__tile-lbl">${this._t("tr_review")}</span>${deltaTxt}</div>`,
-      ];
-      // Consumption leads with the energy balance: it comes from the charging
-      // ledger and the odometer rather than from SoC deltas, so it isn't limited
-      // by the one-percent resolution BMW streams SoC at, and it survives a month
-      // whose drives were all too short to rate.
-      const balance = summary.energy_balance || null;
-      const battSide = summary.avg_consumption_kwh_per_100km;
-      if (balance && balance.kwh_per_100km != null) {
-        const isGrid = balance.source === "grid";
-        // The second line only earns its place when the two figures measure
-        // *different* things — a grid-side balance against the battery-side trip
-        // total, where the gap really is the charging loss. Without a measured
-        // grid figure the balance is battery-side too, so printing both would show
-        // one quantity twice and dress the difference between their windows up as
-        // a loss (it read "-2%" on real data, which is not a thing).
-        let foot = "";
-        if (isGrid && battSide != null) {
-          const loss = (1 - battSide / balance.kwh_per_100km) * 100;
-          const lossTxt =
-            loss >= 3 && loss <= 30
-              ? " · " + this._t("tr_charge_loss", { n: this._dec(loss, 0) })
-              : "";
-          foot = `<span class="tr__tile-sub">${this._dec(battSide, 1)} ${this._t(
-            "tr_at_battery"
-          )}${lossTxt}</span>`;
-        }
-        tiles.push(
-          `<div class="tr__tile"><span class="tr__tile-val">${this._dec(
-            balance.kwh_per_100km,
-            1
-          )} <i>kWh/100km</i></span><span class="tr__tile-lbl">${this._t(
-            "tr_consumption"
-          )} · ${this._t(isGrid ? "tr_at_plug" : "tr_at_battery")}</span>${foot}</div>`
-        );
-      } else if (battSide != null) {
-        tiles.push(
-          `<div class="tr__tile"><span class="tr__tile-val">${this._dec(
-            battSide,
-            1
-          )} <i>kWh/100km</i></span><span class="tr__tile-lbl">${this._t(
-            "tr_consumption"
-          )}</span></div>`
-        );
-      }
-      if (summary.recuperation_kwh_per_100km != null) {
-        tiles.push(
-          `<div class="tr__tile"><span class="tr__tile-val">${this._dec(
-            summary.recuperation_kwh_per_100km,
-            1
-          )} <i>kWh/100km</i></span><span class="tr__tile-lbl">${this._t(
-            "tr_recuperation"
-          )}</span></div>`
-        );
-      }
-      if (summary.estimated_cost && summary.estimated_cost.amount != null) {
-        const c = summary.estimated_cost;
-        tiles.push(
-          `<div class="tr__tile"><span class="tr__tile-val">${this._dec(c.amount, 2)} <i>${this._esc(
-            c.currency || ""
-          )}</i></span><span class="tr__tile-lbl">${this._t("tr_est_cost")}</span></div>`
-        );
-      }
-
-      // Business / private / commute split as one stacked bar with a legend.
-      const segs = [
-        ["business", split.business_km, "tr__seg--business"],
-        ["commute", split.commute_km, "tr__seg--commute"],
-        ["private", split.private_km, "tr__seg--private"],
-        ["unclassified", split.unclassified_km, "tr__seg--unc"],
-      ];
-      const total = summary.total_km || 1;
-      const barSegs = segs
-        .filter(([, v]) => v)
-        .map(
-          ([, v, cls]) => `<span class="tr__seg ${cls}" style="width:${(v / total) * 100}%"></span>`
-        )
-        .join("");
-      const legend = segs
-        .filter(([, v]) => v)
-        .map(
-          ([key, v, cls]) =>
-            `<span class="tr__leg"><i class="tr__dot ${cls}"></i>${this._t(
-              "tr_" + key
-            )} ${km(v)}</span>`
-        )
-        .join("");
-      const splitBlock = barSegs
-        ? `<div class="tr__split"><div class="tr__bar">${barSegs}</div><div class="tr__legend">${legend}</div></div>`
-        : "";
-
-      // Driving-style score (0–5) with a week-over-week trend sparkline.
-      let styleBlock = "";
-      if (summary.style_score != null) {
-        const trend = Array.isArray(summary.style_trend) ? summary.style_trend : [];
-        const points = trend.map((pt, i) => [i, pt.score]);
-        const chart = points.length >= 2 ? this._healthTrendSvg(points) : "";
-        styleBlock = `
-          <div class="tr__style">
-            <div class="tr__style-head">
-              <span class="tr__style-lbl">${this._t("tr_style")}</span>
-              <span class="tr__stars">${this._styleStars(summary.style_score)}</span>
-            </div>
-            ${chart ? `<div class="bh__trend"><span class="bh__trend-title">${this._t("tr_style_trend")}</span>${chart}</div>` : ""}
-          </div>`;
-      }
-
-      // Top destinations.
-      const dests = Array.isArray(summary.top_destinations) ? summary.top_destinations : [];
-      const destBlock = dests.length
-        ? `<div class="tr__dests"><span class="tr__dests-lbl">${this._t(
-            "tr_top_dest"
-          )}</span>${dests
-            .map(
-              (d) =>
-                `<span class="tr__dest"><span class="tr__dest-name">${this._esc(
-                  d.label
-                )}</span><span class="tr__dest-n">${this._t("tr_visits", {
-                  n: d.count,
-                })}</span></span>`
-            )
-            .join("")}</div>`
-        : "";
-
-      return `
-        <div class="tr__review">
-          <div class="tr__tiles">${tiles.join("")}</div>
-          ${splitBlock}
-          ${styleBlock}
-          ${destBlock}
-        </div>`;
-    }
-
-    /** Five glyphs filled to the nearest half for a 0–5 style score. */
-    _styleStars(score) {
-      const s = Math.max(0, Math.min(5, score));
-      let out = "";
-      for (let i = 1; i <= 5; i++) {
-        if (s >= i) out += "★";
-        else if (s >= i - 0.5) out += "⯪";
-        else out += "☆";
-      }
-      return out;
-    }
-
-    _tripRow(trip, expanded) {
-      const id = trip.start || "";
-      const isOpen = expanded === id;
-      const live = !!trip.in_progress;
-      const date = this._fmtSessionDate(trip.start);
-      const from = this._tripPlace(trip.start_place);
-      // A drive under way has no destination yet, and guessing one would be a lie:
-      // the arrow trails off instead.
-      const to = live ? "…" : this._esc(this._tripPlace(trip.end_place));
-      const dist =
-        trip.distance_km != null ? `${this._dec(trip.distance_km, 1)} km` : "—";
-      // In progress: a live badge in place of a classification (there is nothing to
-      // classify until the trip lands) and a duration counted from the start.
-      const cls = live
-        ? `<span class="tr__badge tr__badge--live"><i class="tr__live-dot"></i>${this._t(
-            "tr_open"
-          )}</span>`
-        : trip.classification
-        ? `<span class="tr__badge tr__badge--${trip.classification}">${this._t(
-            "tr_" + trip.classification
-          )}${
-            trip.classification_source === "auto"
-              ? ` <i class="tr__auto">${this._t("tr_auto")}</i>`
-              : ""
-          }</span>`
-        : "";
-      const min = live ? this._elapsedMin(trip.start) : null;
-      const dur = live
-        ? min == null
-          ? ""
-          : this._t("tr_min", { n: min })
-        : this._durationLabel(trip);
-
-      return `
-        <div class="chg__session${isOpen ? " is-open" : ""}${live ? " is-live" : ""}">
-          <button class="chg__row" data-trip="${this._attr(id)}">
-            <span class="chg__row-main">
-              <span class="chg__date">${this._esc(from)} → ${to}</span>
-              <span class="chg__meta"><span class="chg__soc">${date}</span>${cls}</span>
-            </span>
-            <span class="chg__figures">
-              <span class="chg__energy">${dist}</span>
-              <span class="chg__cost">${dur || ""}</span>
-            </span>
-          </button>
-          ${isOpen ? this._tripDetail(trip) : ""}
-        </div>
-      `;
-    }
-
-    _tripDetail(trip) {
-      const facts = [];
-      // Taken from the record, never recomputed here: the integration withholds a
-      // consumption figure when the SoC drop behind it was too small to divide by
-      // (a 1 km hop that ticked one percent is not a 78 kWh/100 km drive), and
-      // dividing energy by distance in the card would print it anyway.
-      const cons = trip.consumption_kwh_per_100km;
-      if (cons != null) {
-        facts.push([this._t("tr_consumption"), `${this._dec(cons, 1)} kWh/100km`]);
-      }
-      const st = trip.stats || {};
-      // BMW's recuperation figure is already an average per 100 km, not a total.
-      const recup = st.recuperation_kwh_per_100km ?? st.recuperation_kwh;
-      if (recup != null) {
-        facts.push([
-          this._t("tr_recuperation"),
-          `${this._dec(recup, 1)} kWh/100km`,
-        ]);
-      }
-      const soc = this._socArc(trip);
-
-      const factRow = facts
-        .map(
-          ([k, v]) =>
-            `<div class="chg__fact"><span class="chg__fact-lbl">${k}</span><span class="chg__fact-val">${v}</span></div>`
-        )
-        .join("");
-
-      // Reclassification controls: an auto guess is a guess the user can correct.
-      const buttons = ["business", "private", "commute"]
-        .map(
-          (c) =>
-            `<button class="tr__cls-btn tr__badge--${c}${
-              trip.classification === c ? " is-active" : ""
-            }" data-trip-class="${this._attr(trip.start || "")}" data-class="${c}">${this._t(
-              "tr_" + c
-            )}</button>`
-        )
-        .join("");
-
-      // A recorded route (opt-in trip_track) gets a small map of the drive; the
-      // ha-map element is mounted into this placeholder after paint (see
-      // _mountTripMiniMap), so a repaint can't tear a live Leaflet map down.
-      const hasTrack = Array.isArray(trip.track) && trip.track.length >= 2;
-      const mini = hasTrack
-        ? `<div class="tr__minimap" data-mini="${this._attr(trip.start || "")}"></div>`
-        : "";
-
-      // A drive under way gets the route and the figures so far, but no
-      // classification controls: there is no stored trip to reclassify yet, and the
-      // distance and consumption are provisional. The note says so out loud rather
-      // than letting a mid-drive figure read as final.
-      const footer = trip.in_progress
-        ? `<div class="tr__live-note">${this._t("tr_open_note")}</div>`
-        : `<div class="tr__classify">
-            <span class="tr__classify-lbl">${this._t("tr_classify")}</span>
-            <span class="tr__cls-btns">${buttons}</span>
-          </div>`;
-
-      return `
-        <div class="chg__detail">
-          ${mini}
-          ${soc ? `<div class="chg__facts">${soc}</div>` : ""}
-          ${factRow ? `<div class="chg__facts">${factRow}</div>` : ""}
-          ${footer}
-        </div>
-      `;
-    }
-
-    /** Build (or refresh) the mini-map for the currently expanded trip.
-     * Idempotent and called after every trips paint: it mounts the ha-map once the
-     * library is ready and the row exists, and re-mounts after a repaint clears it. */
-    _mountTripMiniMap() {
-      const expanded = this._trpExpanded || null;
-      const holder = this.shadowRoot && this.shadowRoot.querySelector(".tr__minimap");
-      if (!holder || !expanded) {
-        this._miniMapTripId = null;
-        return;
-      }
-      if (this._miniMapTripId === expanded && holder.firstChild) {
-        if (this._miniMapEl) this._miniMapEl.hass = this._hass;
-        this._reassertMapOverlays(); // the map may have been re-created under us
-        // A drive under way keeps adding points. Re-draw the polyline on the map
-        // that's already there -- _drawRoute replaces its own layer group -- rather
-        // than re-mounting an ha-map every time the route grows.
-        const growing = this._tripById(expanded);
-        if (growing && growing.in_progress && this._miniMapEl) {
-          const live = this._trackCoords(growing);
-          if (live.length >= 2 && live.length !== this._miniMapPoints) {
-            this._miniMapPoints = live.length;
-            this._drawRoute(
-              this._miniMapEl,
-              live,
-              TRIP_CLASS_COLORS[growing.classification] ||
-                TRIP_CLASS_COLORS.unclassified
-            );
-          }
-        }
-        return; // already mounted for this trip
-      }
-      if (this._mapLib !== "ready") return; // _ensureMapLib re-renders when ready
-      const id = holder.getAttribute("data-mini");
-      const trip = this._tripById(id);
-      if (!trip || !Array.isArray(trip.track) || trip.track.length < 2) return;
-
-      const coords = this._trackCoords(trip);
-      if (coords.length < 2) return;
-      this._miniMapPoints = coords.length;
-
-      holder.innerHTML = "";
-      const map = document.createElement("ha-map");
-      map.autoFit = false;
-      map.zoom = 14;
-      map.themeMode = "auto";
-      map.style.height = "200px";
-      map.style.display = "block";
-      map.hass = this._hass;
-      holder.appendChild(map);
-      this._miniMapEl = map;
-      this._miniMapTripId = expanded;
-
-      const color =
-        TRIP_CLASS_COLORS[trip.classification] || TRIP_CLASS_COLORS.unclassified;
-      this._drawRoute(map, coords, color);
-    }
-
-    /** A fetched trip by its row id (its start), the drive under way included --
-     * an open trip is not in the recorded list, it rides alongside it. */
-    _tripById(id) {
-      const state = this._trp || {};
-      if (state.open && state.open.start === id) return state.open;
-      return ((state.trips || []).find((t) => t.start === id)) || null;
-    }
-
-    /** A trip's track as clean [lat, lon] tuples, lightly decimated. */
-    _trackCoords(trip) {
-      const raw = (trip.track || [])
-        .filter(
-          (p) =>
-            Array.isArray(p) &&
-            p.length >= 2 &&
-            typeof p[0] === "number" &&
-            typeof p[1] === "number"
-        )
-        .map((p) => [p[0], p[1]]);
-      return this._decimate(raw, 400);
-    }
-
-    /** Draw a route as a native Leaflet polyline (via ha-map's Leaflet handle) --
-     * a clean, dot-free line, unlike ha-map `paths` which mark every vertex. Adds
-     * a green start and a red end marker. leafletMap/Leaflet appear only after
-     * ha-map's async init, so retry until they're there. */
-    _drawRoute(mapEl, coords, color) {
-      let tries = 0;
-      const draw = () => {
-        if (!mapEl || !this.shadowRoot.contains(mapEl)) return;
-        const lmap = mapEl.leafletMap;
-        const L = mapEl.Leaflet;
-        if (!lmap || !L || typeof L.polyline !== "function") {
-          if (tries++ < 30) setTimeout(draw, 150);
-          return;
-        }
-        try {
-          if (mapEl._bdRoute && mapEl._bdRouteMap === lmap) lmap.removeLayer(mapEl._bdRoute);
-          const group = L.layerGroup();
-          L.polyline(coords, {
-            color,
-            weight: 4,
-            opacity: 0.9,
-            lineJoin: "round",
-            lineCap: "round",
-          }).addTo(group);
-          const dot = (fill) => ({
-            radius: 5,
-            color: "#fff",
-            weight: 2,
-            fillColor: fill,
-            fillOpacity: 1,
-          });
-          L.circleMarker(coords[0], dot("#22a06b")).addTo(group); // start
-          L.circleMarker(coords[coords.length - 1], dot("#d1453b")).addTo(group); // end
-          group.addTo(lmap);
-          mapEl._bdRoute = group;
-          // Remember the instance and the inputs, so a torn-down map (tab switch)
-          // can be detected and the route re-drawn without a full re-mount.
-          mapEl._bdRouteMap = lmap;
-          mapEl._bdRouteSpec = { coords, color };
-          try {
-            lmap.fitBounds(coords, { padding: [16, 16], maxZoom: 16 });
-          } catch (_) {
-            /* transient size race; the next expand re-fits */
-          }
-        } catch (_) {
-          if (tries++ < 30) setTimeout(draw, 150);
-        }
-      };
-      draw();
-    }
-
-    _tripPlace(place) {
-      if (!place) return this._t("tr_unknown_place");
-      const label = place.label || place.zone || place.address;
-      if (!label || label === "Unknown") return this._t("tr_unknown_place");
-      return label;
-    }
-
-    _wireTripTaps() {
-      this._wireExport();
-      this.shadowRoot.querySelectorAll("[data-trip]").forEach((el) => {
-        el.addEventListener("click", () => {
-          const id = el.getAttribute("data-trip");
-          this._trpExpanded = this._trpExpanded === id ? null : id;
-          this._sig = null; // force a repaint with the new expansion state
-          const deviceId = this._resolveDeviceId();
-          this._paintTrips(deviceId, this._deviceEntities(deviceId));
-          this._mountTripMiniMap(); // show the newly expanded trip's route at once
-        });
-      });
-      this.shadowRoot.querySelectorAll("[data-trip-class]").forEach((el) => {
-        el.addEventListener("click", (ev) => {
-          ev.stopPropagation();
-          const tripId = el.getAttribute("data-trip-class");
-          const cls = el.getAttribute("data-class");
-          const vin = this._trp && this._trp.vin;
-          if (!vin) return;
-          this._hass
-            .callService("bavariandata", "set_trip_class", {
-              vin,
-              trip_id: `${vin}-${tripId}`,
-              classification: cls,
-            })
-            .then(() => {
-              // Optimistically reflect the change; the service re-dispatches and
-              // the summary sensor's last_changed will trigger a real refetch.
-              if (this._trp && Array.isArray(this._trp.trips)) {
-                const hit = this._trp.trips.find((t) => t.start === tripId);
-                if (hit) {
-                  hit.classification = cls;
-                  hit.classification_source = "user";
-                }
-                this._sig = null;
-                const deviceId = this._resolveDeviceId();
-                this._paintTrips(deviceId, this._deviceEntities(deviceId));
-              }
-            })
-            .catch(() => {});
-        });
-      });
-    }
-
-    /* ---- trip map --------------------------------------------------------- */
-
-    // The map draws the opt-in route polylines (`trip_track`) on Home Assistant's
-    // own Leaflet map element (`ha-map`), reusing the frontend's map component
-    // rather than bundling a mapping library. Trips come from `get_trips` (which
-    // carries `track`), gated on the monthly-distance sensor like the Trips view.
-    _renderMap(deviceId, entities) {
-      const vin = this._deviceVin(deviceId);
-      if (!vin) {
-        this._mapPhase = null;
-        this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
-        return;
-      }
-      this._ensureMapLib();
-
-      const entryId = this._deviceEntry(deviceId);
-
-      const trigSt = entities
-        .map((id) => this._st(id))
-        .find(
-          (st) =>
-            st && st.attributes && st.attributes.descriptor === "driving_distance_month"
-        );
-      const trigger = trigSt ? trigSt.last_changed : "";
-
-      const cache = this._mapData;
-      const current = cache && cache.vin === vin && cache.trigger === trigger;
-      if (!current || (!cache.trips && !cache.loading)) {
-        this._mapData = {
-          vin,
-          trigger,
-          trips: current && cache ? cache.trips : null,
-          loading: true,
-          error: false,
-        };
-        this._fetchMapTrips(vin, entryId);
-      }
-
-      this._paintMap(deviceId, entities);
-    }
-
-    _fetchMapTrips(vin, entryId) {
-      const req = this._mapData;
-      // A generous limit: a route map wants more than the visible trip list, and
-      // get_trips reads the store (zero REST quota), so a wide fetch is cheap.
-      this._hass
-        .callService("bavariandata", "get_trips", { vin, entry_id: entryId, limit: 200 }, undefined, false, true)
-        .then((res) => {
-          if (!this._mapData || this._mapData.vin !== vin || this._mapData.trigger !== req.trigger)
-            return;
-          const trips = (res && res.response && res.response.trips) || [];
-          this._mapData = { ...this._mapData, trips, loading: false, error: false };
-          this._render();
-        })
-        .catch(() => {
-          if (!this._mapData || this._mapData.vin !== vin || this._mapData.trigger !== req.trigger)
-            return;
-          this._mapData = { ...this._mapData, loading: false, error: true };
-          this._render();
-        });
-    }
-
-    // Force Home Assistant to load its `ha-map` element on demand. Creating a
-    // throwaway `map` card pulls in the map-card module, which imports (and thus
-    // registers) `ha-map`; the setConfig it then runs may throw for our empty
-    // entity list, but by then the element is defined, so we swallow it.
-    _ensureMapLib() {
-      if (customElements.get("ha-map")) {
-        this._mapLib = "ready";
-        return;
-      }
-      if (this._mapLib === "loading" || this._mapLib === "failed") return;
-      this._mapLib = "loading";
-      const finish = (ok) => {
-        this._mapLib = ok ? "ready" : "failed";
-        this._render();
-      };
-      (async () => {
-        try {
-          const helpers = await window.loadCardHelpers();
-          try {
-            await helpers.createCardElement({ type: "map", entities: [] });
-          } catch (_) {
-            /* setConfig may reject an empty map; the import already ran */
-          }
-          await Promise.race([
-            customElements.whenDefined("ha-map"),
-            new Promise((_, reject) => setTimeout(reject, 6000)),
-          ]);
-          finish(!!customElements.get("ha-map"));
-        } catch (_) {
-          finish(false);
-        }
-      })();
-    }
-
-    /** Trips that carry a drawable track, filtered to the active time window. */
-    _mapWindowTrips() {
-      const all = (this._mapData && this._mapData.trips) || [];
-      const withTrack = all.filter(
-        (t) => Array.isArray(t.track) && t.track.length >= 2
-      );
-      const win = this._mapWindow || "month";
-      if (win === "all") return withTrack;
-      const now = new Date();
-      let cutoff;
-      if (win === "3m") {
-        cutoff = new Date(now);
-        cutoff.setMonth(cutoff.getMonth() - 3);
-      } else {
-        cutoff = new Date(now.getFullYear(), now.getMonth(), 1);
-      }
-      return withTrack.filter((t) => {
-        const d = new Date(t.start);
-        return !isNaN(d.getTime()) && d >= cutoff;
-      });
-    }
-
-    /** The destination (end point) of every trip with a track, as visit markers.
-     * Only the end, not the start: a trip's start is essentially the previous
-     * trip's end (the car parks, then drives on from there), so plotting both would
-     * double-count every place. End-only gives an honest "times arrived here" count.
-     * Routes themselves now live on the trip card's mini-map. */
-    _mapEndpoints(trips) {
-      const out = [];
-      const valid = (p) =>
-        Array.isArray(p) && typeof p[0] === "number" && typeof p[1] === "number";
-      for (const trip of trips) {
-        const track = trip.track;
-        if (!Array.isArray(track) || track.length < 2) continue;
-        const end = track[track.length - 1];
-        if (valid(end))
-          out.push({ lat: end[0], lon: end[1], label: this._tripPlace(trip.end_place) });
-      }
-      return out;
-    }
-
-    _paintMap(deviceId, entities) {
-      const name = this._config.title || this._deviceName(deviceId);
-      const state = this._mapData || {};
-      const win = this._mapWindow || "month";
-      const lang = _lang(this._hass);
-
-      const allTrips = state.trips;
-      const anyTrack =
-        Array.isArray(allTrips) &&
-        allTrips.some((t) => Array.isArray(t.track) && t.track.length >= 2);
-      const winTrips = allTrips ? this._mapWindowTrips() : [];
-
-      let phase;
-      if (state.error) phase = "error";
-      else if (this._mapLib === "failed") phase = "unavailable";
-      else if ((!allTrips && state.loading) || this._mapLib !== "ready") phase = "loading";
-      else if (!anyTrack) phase = "empty_none";
-      else if (!winTrips.length) phase = "empty_window";
-      else phase = "data";
-
-      // The live map must survive routine hass ticks: rebuild the surrounding
-      // chrome only when the phase or a header field changes, and update the
-      // ha-map element in place otherwise (a full innerHTML rewrite would tear
-      // down Leaflet and reset the user's pan/zoom on every state update).
-      const chromeSig = this._signature({ m: "map", phase, name, lang });
-      const mounted =
-        phase === "data" && this._mapEl && this.shadowRoot.contains(this._mapEl);
-
-      if (chromeSig !== this._mapChromeSig || (phase === "data" && !mounted)) {
-        this._mapChromeSig = chromeSig;
-        this._buildMapChrome(deviceId, phase, name);
-      }
-
-      if (phase === "data") {
-        this._refreshDestinations(winTrips, win);
-      }
-    }
-
-    _buildMapChrome(deviceId, phase, name) {
-      const count = phase === "data" ? this._mapWindowTrips().length : 0;
-      const countLabel =
-        count === 1 ? this._t("tr_trip_one") : this._t("tr_trip_many", { n: count });
-
-      let body;
-      if (phase === "error") {
-        body = `<div class="empty">${this._t("mp_error")}</div>`;
-      } else if (phase === "unavailable") {
-        body = `<div class="empty">${this._t("mp_unavailable")}</div>`;
-      } else if (phase === "loading") {
-        body = `<div class="empty">${this._t("mp_loading")}</div>`;
-      } else if (phase === "empty_none") {
-        body = `<div class="empty">${this._t("mp_empty_none")}</div>`;
-      } else if (phase === "empty_window") {
-        body = `${this._mapFilters()}<div class="empty">${this._t("mp_empty_window")}</div>`;
-      } else {
-        body = `${this._mapFilters()}<div class="map__holder"></div>`;
-      }
-
-      this.shadowRoot.innerHTML = `
-        ${this._styles()}
-        <ha-card>
-          <div class="chead">
-            <ha-icon icon="mdi:map-marker-multiple"></ha-icon>
-            <div class="chead__text">
-              <span class="chead__title">${this._esc(this._config.title || this._t("mp_title"))}</span>
-              <span class="chead__sub">${this._esc(name)}${count ? " · " + countLabel : ""}</span>
-            </div>
-          </div>
-          ${body}
-        </ha-card>
-      `;
-
-      this._mapEl = null;
-      if (phase === "data") {
-        const holder = this.shadowRoot.querySelector(".map__holder");
-        const map = document.createElement("ha-map");
-        // We add our own clustered markers to the Leaflet map, so autoFit (entities/
-        // zones/layers only) stays off and we fit to the endpoints ourselves.
-        map.autoFit = false;
-        map.zoom = 13;
-        map.themeMode = "auto";
-        map.style.height = "360px";
-        map.style.display = "block";
-        map.hass = this._hass;
-        holder.appendChild(map);
-        this._mapEl = map;
-        this._mapDataSig = null; // force the first cluster build
-        this._clusterLayer = null; // fresh map -- the old layer is gone with it
-        this._clusterMap = null;
-      }
-      this._wireMapFilters();
-    }
-
-    /** The time-window chip row (This month / 3 months / All). */
-    _mapFilters() {
-      const win = this._mapWindow || "month";
-      const chip = (key, label) =>
-        `<button class="map__chip${win === key ? " is-active" : ""}" data-win="${key}">${label}</button>`;
-      return `
-        <div class="map__filters">
-          ${chip("month", this._t("mp_win_month"))}
-          ${chip("3m", this._t("mp_win_3m"))}
-          ${chip("all", this._t("mp_win_all"))}
-        </div>`;
-    }
-
-    _wireMapFilters() {
-      this.shadowRoot.querySelectorAll("[data-win]").forEach((el) => {
-        el.addEventListener("click", () => {
-          const win = el.getAttribute("data-win");
-          if ((this._mapWindow || "month") === win) return;
-          this._mapWindow = win;
-          // Re-run the paint: a window change can move between data and
-          // empty_window (a chrome rebuild) or just swap the drawn routes.
-          this._paintMap(this._resolveDeviceId(), this._deviceEntities(this._resolveDeviceId()));
-        });
-      });
-    }
-
-    /** Rebuild the clustered destination markers when the data/window changes. */
-    _refreshDestinations(winTrips, win) {
-      if (!this._mapEl) return;
-      this._mapEl.hass = this._hass;
-      this._reassertMapOverlays(); // the map may have been re-created under us
-
-      const dataSig = this._signature({
-        win,
-        rows: winTrips.map((t) => [t.start, (t.track || []).length]),
-      });
-      if (dataSig === this._mapDataSig) return;
-      this._mapDataSig = dataSig;
-
-      this._mountClusters(this._mapEndpoints(winTrips));
-
-      // Keep the chip active-state and the trip count honest after a swap.
-      const cur = this._mapWindow || "month";
-      this.shadowRoot.querySelectorAll("[data-win]").forEach((el) => {
-        el.classList.toggle("is-active", el.getAttribute("data-win") === cur);
-      });
-      const sub = this.shadowRoot.querySelector(".chead__sub");
-      if (sub) {
-        const name = this._config.title || this._deviceName(this._resolveDeviceId());
-        const n = winTrips.length;
-        const label = n === 1 ? this._t("tr_trip_one") : this._t("tr_trip_many", { n });
-        sub.textContent = `${name}${n ? " · " + label : ""}`;
-      }
-    }
-
-    /** Add the endpoints to the Leaflet map as a native marker-cluster group.
-     * Reuses the Leaflet + markercluster that Home Assistant's own ha-map loads
-     * (reachable via the mounted element), so clustering, counts, zoom-split and
-     * spiderfy are all native -- no hand-rolled overlay. `leafletMap`/`Leaflet`
-     * appear only after ha-map's async init, so retry until they're there. */
-    _mountClusters(endpoints) {
-      const mapEl = this._mapEl;
-      if (!mapEl) return;
-      let tries = 0;
-      const build = () => {
-        if (!mapEl || !this.shadowRoot.contains(mapEl)) return;
-        const lmap = mapEl.leafletMap;
-        const L = mapEl.Leaflet;
-        if (!lmap || !L || typeof L.markerClusterGroup !== "function") {
-          if (tries++ < 30) setTimeout(build, 150);
-          return; // markercluster/Leaflet not ready (or unavailable) yet
-        }
-        try {
-          if (this._clusterLayer) {
-            if (this._clusterMap === lmap) lmap.removeLayer(this._clusterLayer);
-            this._clusterLayer = null;
-            this._clusterMap = null;
-          }
-          const group = L.markerClusterGroup({
-            showCoverageOnHover: false,
-            maxClusterRadius: 48,
-            iconCreateFunction: (c) =>
-              L.divIcon({
-                html: this._clusterBubbleHtml(c.getChildCount()),
-                className: "",
-                iconSize: [40, 40],
-                iconAnchor: [20, 20],
-              }),
-          });
-          const pts = [];
-          for (const ep of endpoints) {
-            const marker = L.marker([ep.lat, ep.lon], {
-              icon: L.divIcon({
-                html: this._pinHtml(),
-                className: "",
-                iconSize: [16, 16],
-                iconAnchor: [8, 8],
-              }),
-            });
-            if (ep.label) marker.bindTooltip(this._esc(ep.label), { direction: "top" });
-            group.addLayer(marker);
-            pts.push([ep.lat, ep.lon]);
-          }
-          lmap.addLayer(group);
-          this._clusterLayer = group;
-          this._clusterMap = lmap; // so a torn-down map is detectable on reconnect
-          if (pts.length) {
-            try {
-              lmap.fitBounds(pts, { padding: [30, 30], maxZoom: 15 });
-            } catch (_) {
-              /* transient size race; the next data change re-fits */
-            }
-          }
-        } catch (_) {
-          if (tries++ < 30) setTimeout(build, 150);
-        }
-      };
-      build();
-    }
-
-    /** Re-add our Leaflet layers when the map element has been re-created under
-     * them (tab switch -> disconnect -> `leafletMap.remove()` -> new instance).
-     * Only fires for overlays that were actually drawn once, so it never races
-     * an initial draw that is still retrying; cheap enough to call from every
-     * paint as well as from connectedCallback. */
-    _reassertMapOverlays() {
-      const shadow = this.shadowRoot;
-      if (!shadow) return;
-
-      const mini = this._miniMapEl;
-      if (
-        mini &&
-        shadow.contains(mini) &&
-        mini._bdRouteSpec &&
-        this._layerLost(mini, mini._bdRouteMap, mini._bdRoute)
-      ) {
-        const spec = mini._bdRouteSpec;
-        mini._bdRoute = null;
-        mini._bdRouteMap = null;
-        this._drawRoute(mini, spec.coords, spec.color);
-      }
-
-      const mapEl = this._mapEl;
-      if (
-        mapEl &&
-        shadow.contains(mapEl) &&
-        this._clusterMap &&
-        this._layerLost(mapEl, this._clusterMap, this._clusterLayer)
-      ) {
-        this._clusterLayer = null;
-        this._clusterMap = null;
-        this._mountClusters(this._mapEndpoints(this._mapWindowTrips()));
-      }
-    }
-
-    /** True when a layer we drew is no longer on the element's live Leaflet map:
-     * the map is gone, or was replaced, or dropped the layer. */
-    _layerLost(mapEl, drawnOn, layer) {
-      const lmap = mapEl.leafletMap;
-      if (!lmap) return true; // torn down; the draw retry waits for the new one
-      if (lmap !== drawnOn) return true;
-      return !!layer && typeof lmap.hasLayer === "function" && !lmap.hasLayer(layer);
-    }
-
-    /** Inline-styled HTML for a cluster bubble (styles must be inline: the marker
-     * lives in ha-map's shadow tree, out of reach of this card's stylesheet). */
-    _clusterBubbleHtml(n) {
-      return (
-        `<div style="display:flex;align-items:center;justify-content:center;` +
-        `width:40px;height:40px;border-radius:50%;background:rgba(0,102,177,0.92);` +
-        `color:#fff;font:600 14px/1 system-ui,sans-serif;border:2px solid #fff;` +
-        `box-shadow:0 1px 5px rgba(0,0,0,0.45);">${n}</div>`
-      );
-    }
-
-    /** Inline-styled HTML for a single endpoint pin. */
-    _pinHtml() {
-      return (
-        `<div style="width:14px;height:14px;border-radius:50%;background:#0066b1;` +
-        `border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.45);"></div>`
-      );
-    }
-
-    /** Keep at most `max` points, always retaining the first and last. */
-    _decimate(points, max) {
-      if (points.length <= max) return points.slice();
-      const step = Math.ceil(points.length / max);
-      const out = [];
-      for (let i = 0; i < points.length; i += step) out.push(points[i]);
-      const last = points[points.length - 1];
-      if (out[out.length - 1] !== last) out.push(last);
-      return out;
-    }
-
-    /* ---- battery health --------------------------------------------------- */
-
-    _renderHealth(deviceId, entities) {
-      if (this._renderIceNotice(deviceId, entities)) return;
-      const name = this._config.title || this._deviceName(deviceId);
-      // Everything the view needs already lives on the battery_health sensor
-      // (state + attributes), so unlike the charging view there is no service to
-      // call -- the estimate and its trend paint straight from hass.
-      const st = entities
-        .map((id) => this._st(id))
-        .find(
-          (s) => s && s.attributes && s.attributes.descriptor === "battery_health"
-        );
-      const a = (st && st.attributes) || {};
-      const confident = !!a.confident;
-      const usable = a.usable_capacity_kwh;
-      const nominal = a.nominal_capacity_kwh;
-      const vsNew = a.vs_new_percent;
-      const samples = a.samples || 0;
-      const needed = a.samples_needed || 10;
-      const suspicious = !!a.suspicious;
-      const trend = Array.isArray(a.trend) ? a.trend : [];
-
-      const sig = this._signature({
-        m: "bh",
-        lang: _lang(this._hass),
-        name,
-        has: !!st,
-        confident,
-        usable,
-        nominal,
-        vsNew,
-        samples,
-        needed,
-        suspicious,
-        trend,
-      });
-      if (sig === this._sig) return;
-      this._sig = sig;
-
-      let body;
-      if (!st) {
-        body = `<div class="empty">${this._t("bh_empty")}</div>`;
-      } else if (confident) {
-        body = this._healthConfident(usable, nominal, vsNew, samples, trend);
-      } else {
-        body = this._healthLearning(samples, needed, suspicious);
-      }
-
-      this.shadowRoot.innerHTML = `
-        ${this._styles()}
-        <ha-card>
-          <div class="chead">
-            <ha-icon icon="mdi:battery-heart-variant"></ha-icon>
-            <div class="chead__text">
-              <span class="chead__title">${this._esc(this._config.title || this._t("bh_title"))}</span>
-              <span class="chead__sub">${this._esc(name)}</span>
-            </div>
-          </div>
-          ${body}
-        </ha-card>
-      `;
-    }
-
-    _healthLearning(samples, needed, suspicious) {
-      const capped = Math.min(samples, needed);
-      const pct = needed ? Math.min(100, Math.round((capped / needed) * 100)) : 0;
-      // A suspicious estimate is a different message from "not enough data yet":
-      // say we're cross-checking rather than implying the car hasn't charged.
-      const hint = suspicious ? this._t("bh_suspicious") : this._t("bh_learning_hint");
-      return `
-        <div class="bh">
-          <div class="bh__learn">
-            <span class="bh__learn-val">${this._t("bh_learning", { n: capped, total: needed })}</span>
-            <div class="bh__bar"><div class="bh__bar-fill" style="width:${pct}%"></div></div>
-            <span class="bh__hint">${hint}</span>
-          </div>
-        </div>
-      `;
-    }
-
-    _healthConfident(usable, nominal, vsNew, samples, trend) {
-      const facts = [];
-      if (nominal != null) {
-        facts.push([this._t("bh_nominal"), `${this._dec(nominal, 1)} kWh`]);
-      }
-      facts.push([this._t("bh_analysed"), this._t("bh_samples", { n: samples })]);
-      const factRow = facts
-        .map(
-          ([k, v]) =>
-            `<div class="chg__fact"><span class="chg__fact-lbl">${k}</span><span class="chg__fact-val">${v}</span></div>`
-        )
-        .join("");
-      const chart = this._healthTrendSvg(trend);
-      return `
-        <div class="bh">
-          <div class="bh__hero">
-            ${this._healthRing(vsNew)}
-            <div class="bh__hero-text">
-              <span class="bh__usable">${this._dec(usable, 1)} <i>kWh</i></span>
-              <span class="bh__usable-lbl">${this._t("bh_usable")}</span>
-              ${
-                vsNew != null
-                  ? `<span class="bh__vsnew">${this._t("bh_of_new", { p: this._dec(vsNew, 0) })}</span>`
-                  : ""
-              }
-            </div>
-          </div>
-          ${
-            chart
-              ? `<div class="bh__trend"><span class="bh__trend-title">${this._t("bh_trend_title")}</span>${chart}</div>`
-              : ""
-          }
-          <div class="chg__facts">${factRow}</div>
-        </div>
-      `;
-    }
-
-    /** A compact donut showing capacity as a percentage of the as-new pack. */
-    _healthRing(pct) {
-      const r = 34;
-      const circ = 2 * Math.PI * r;
-      const p = pct == null ? null : Math.max(0, Math.min(100, pct));
-      const dash = p == null ? 0 : (p / 100) * circ;
-      const label = p == null ? "—" : `${this._dec(p, 0)}%`;
-      return `
-        <svg class="bh__ring" viewBox="0 0 80 80" role="img">
-          <circle class="bh__ring-track" cx="40" cy="40" r="${r}"></circle>
-          <circle class="bh__ring-val" cx="40" cy="40" r="${r}"
-            stroke-dasharray="${this._px(dash)} ${this._px(circ)}"
-            transform="rotate(-90 40 40)"></circle>
-          <text x="40" y="45" class="bh__ring-text">${label}</text>
-        </svg>
-      `;
-    }
-
-    /** Inline SVG of the [odometer_km, usable_kwh] trend. Y is scaled to the data
-     * range, not zero-based: capacity fade is a few kWh and would be invisible on
-     * a 0-based axis. */
-    _healthTrendSvg(points) {
-      if (!Array.isArray(points) || points.length < 2) return "";
-      const W = 260;
-      const H = 70;
-      const pad = 6;
-      const xs = points.map((p) => p[0]);
-      const ys = points.map((p) => p[1]);
-      const xMin = Math.min(...xs);
-      const xMax = Math.max(...xs);
-      let yMin = Math.min(...ys);
-      let yMax = Math.max(...ys);
-      // Give a nearly-flat series some vertical room so it doesn't render as a
-      // jagged line amplifying sub-kWh noise into an alarming-looking drop.
-      if (yMax - yMin < 1) {
-        yMin -= 1;
-        yMax += 1;
-      }
-      const spanX = xMax - xMin || 1;
-      const spanY = yMax - yMin || 1;
-      const sx = (x) => pad + ((x - xMin) / spanX) * (W - 2 * pad);
-      const sy = (y) => H - pad - ((y - yMin) / spanY) * (H - 2 * pad);
-      const line = points
-        .map((p) => `${this._px(sx(p[0]))},${this._px(sy(p[1]))}`)
-        .join(" ");
-      return `
-        <svg class="bh__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
-          <polyline points="${line}" class="chg__chart-line"></polyline>
-          <text x="${pad}" y="10" class="chg__chart-max">${this._dec(yMax, 1)} kWh</text>
-          <text x="${pad}" y="${H - 3}" class="chg__chart-max">${this._dec(yMin, 1)} kWh</text>
-        </svg>
-      `;
-    }
-
-    /* ---- efficiency & real range ------------------------------------------ */
-
-    _renderEfficiency(deviceId, entities) {
-      const vin = this._deviceVin(deviceId);
-      if (!vin) {
-        this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
-        return;
-      }
-      if (this._renderIceNotice(deviceId, entities)) return;
-
-      const st = entities
-        .map((id) => this._st(id))
-        .find((s) => s && s.attributes && s.attributes.descriptor === "real_range");
-      const a = (st && st.attributes) || {};
-
-      // The month trend and the running cost come from the charging ledger, so
-      // they only move when a charge lands -- gate the service call on the
-      // measured consumption rather than on the entity's last_changed, which
-      // ticks with every state-of-charge update while the car is plugged in.
-      const trigger = [
-        a.consumption_kwh_per_100km,
-        a.consumption_window_days,
-        a.status,
-      ].join("|");
-      const cache = this._eff;
-      const current = cache && cache.vin === vin && cache.trigger === trigger;
-      if (!current || (!cache.data && !cache.loading)) {
-        this._eff = {
-          vin,
-          trigger,
-          data: current && cache ? cache.data : null,
-          loading: true,
-          error: false,
-        };
-        this._fetchEfficiency(vin);
-      }
-
-      this._paintEfficiency(deviceId, st);
-    }
-
-    _fetchEfficiency(vin) {
-      const req = this._eff;
-      this._hass
-        .callService("bavariandata", "get_efficiency", { vin }, undefined, false, true)
-        .then((res) => {
-          if (!this._eff || this._eff.vin !== vin || this._eff.trigger !== req.trigger)
-            return;
-          const profile = (res && res.response && res.response.efficiency) || null;
-          this._eff = { ...this._eff, data: profile, loading: false, error: false };
-          this._render();
-        })
-        .catch(() => {
-          if (!this._eff || this._eff.vin !== vin || this._eff.trigger !== req.trigger)
-            return;
-          this._eff = { ...this._eff, loading: false, error: true };
-          this._render();
-        });
-    }
-
-    /** Every figure here is in kilometres and kWh as the ledger recorded them,
-     * never read off the entity's state: a distance state is converted into the
-     * viewer's unit system while these attributes stay metric, and mixing the two
-     * would put miles and kilometres in one card. */
-    _efFigures(st, profile) {
-      const a = (st && st.attributes) || {};
-      if (st && a.status) {
-        return {
-          status: a.status,
-          nowKm: a.range_now_km,
-          fullKm: a.range_full_km,
-          soc: a.soc_percent,
-          consumption: a.consumption_kwh_per_100km,
-          side: a.consumption_source,
-          window: a.consumption_window_days,
-          gridConsumption: a.grid_consumption_kwh_per_100km,
-          loss: a.measured_loss_percent,
-          capacity: a.capacity_kwh,
-          capacitySource: a.capacity_source,
-          bmwKm: a.bmw_range_km,
-          vsBmw: a.vs_bmw_percent,
-        };
-      }
-      // No entity (a car with no odometer, or one the owner disabled): the service
-      // answers the same questions, just without the per-tick freshness.
-      const p = profile || {};
-      const range = p.range || {};
-      const consumption = p.consumption || {};
-      const grid = p.grid_consumption || {};
-      return {
-        status: p.status,
-        nowKm: range.now_km,
-        fullKm: range.full_km,
-        soc: range.soc_percent,
-        consumption: consumption.kwh_per_100km,
-        side: consumption.source,
-        window: consumption.window_days,
-        gridConsumption: grid.kwh_per_100km,
-        loss: p.measured_loss_percent,
-        capacity: p.capacity_kwh,
-        capacitySource: p.capacity_source,
-        bmwKm: range.bmw_km,
-        vsBmw: range.vs_bmw_percent,
-      };
-    }
-
-    _paintEfficiency(deviceId, st) {
-      const name = this._config.title || this._deviceName(deviceId);
-      const state = this._eff || {};
-      const profile = state.data;
-      const f = this._efFigures(st, profile);
-      const trend = (profile && Array.isArray(profile.trend) && profile.trend) || [];
-
-      const sig = this._signature({
-        m: "ef",
-        lang: _lang(this._hass),
-        name,
-        loading: state.loading && !profile && !st,
-        error: state.error,
-        f,
-        trend,
-        cost: profile && profile.cost_per_100km,
-        currency: profile && profile.currency,
-        mix: profile && profile.energy_mix,
-      });
-      if (sig === this._sig) return;
-      this._sig = sig;
-
-      let body;
-      if (state.error && !st) {
-        body = `<div class="empty">${this._t("ef_error")}</div>`;
-      } else if (state.loading && !profile && !st) {
-        body = `<div class="empty">${this._t("ef_loading")}</div>`;
-      } else if (f.consumption == null) {
-        body = `<div class="empty">${this._t("ef_empty")}</div>`;
-      } else if (f.fullKm == null) {
-        // Consumption measured, but nothing to divide it into: say which half is
-        // missing rather than showing the same "no data yet" as an empty ledger.
-        body = `<div class="empty">${this._t("ef_no_capacity")}</div>`;
-      } else {
-        body = this._efBody(f, trend, profile || {});
-      }
-
-      this.shadowRoot.innerHTML = `
-        ${this._styles()}
-        <ha-card>
-          <div class="chead">
-            <ha-icon icon="mdi:map-marker-distance"></ha-icon>
-            <div class="chead__text">
-              <span class="chead__title">${this._esc(this._config.title || this._t("ef_title"))}</span>
-              <span class="chead__sub">${this._esc(name)}</span>
-            </div>
-          </div>
-          ${body}
-        </ha-card>
-      `;
-    }
-
-    _efBody(f, trend, profile) {
-      const hero =
-        f.nowKm != null
-          ? `<span class="ef__hero-val">${this._dec(f.nowKm, 0)} <i>km</i></span>
-            <span class="ef__hero-lbl">${this._t("ef_range_now")}${
-              f.soc != null
-                ? " · " + this._t("ef_at_soc", { p: this._dec(f.soc, 0) })
-                : ""
-            }</span>`
-          : `<span class="ef__hero-val">${this._dec(f.fullKm, 0)} <i>km</i></span>
-            <span class="ef__hero-lbl">${this._t("ef_range_full", {
-              km: this._dec(f.fullKm, 0),
-            })}</span>`;
-
-      let vsBmw = "";
-      if (f.vsBmw != null && f.bmwKm != null) {
-        const p = Math.round(Math.abs(f.vsBmw));
-        const km = this._dec(f.bmwKm, 0);
-        const key =
-          p < 1 ? "ef_vs_bmw_same" : f.vsBmw > 0 ? "ef_vs_bmw_over" : "ef_vs_bmw_under";
-        const tone = p < 1 ? "" : f.vsBmw > 0 ? " ef__vs--over" : " ef__vs--under";
-        vsBmw = `<span class="ef__vs${tone}">${this._t(key, { p: this._dec(p, 0), km })}</span>`;
-      }
-
-      const sideLabel =
-        f.side === "grid" ? this._t("ef_side_grid") : this._t("ef_side_battery");
-      const windowLabel =
-        f.window != null
-          ? this._t("ef_window_days", { n: f.window })
-          : this._t("ef_window_all");
-
-      const facts = [
-        [
-          this._t("ef_consumption"),
-          `${this._dec(f.consumption, 1)} kWh/100 km`,
-          `${sideLabel} · ${windowLabel}`,
-        ],
-      ];
-      if (f.loss != null && f.gridConsumption != null) {
-        facts.push([
-          this._t("ef_loss"),
-          `${this._dec(f.loss, 0)} %`,
-          `${this._dec(f.gridConsumption, 1)} kWh/100 km ${this._t("ef_side_grid")}`,
-        ]);
-      }
-      if (f.capacity != null) {
-        facts.push([
-          this._t("ef_capacity"),
-          `${this._dec(f.capacity, 1)} kWh`,
-          f.capacitySource === "measured"
-            ? this._t("ef_capacity_measured")
-            : this._t("ef_capacity_bmw"),
-        ]);
-      }
-      if (profile.cost_per_100km != null) {
-        const currency = profile.currency ? ` ${this._esc(profile.currency)}` : "";
-        const mix = profile.energy_mix || {};
-        facts.push([
-          this._t("ef_cost"),
-          `${this._dec(profile.cost_per_100km, 2)}${currency}`,
-          mix.solar_percent != null
-            ? this._t("ef_solar", { p: this._dec(mix.solar_percent, 0) })
-            : "",
-        ]);
-      }
-
-      const factRow = facts
-        .map(
-          ([k, v, note]) =>
-            `<div class="ef__fact">
-              <span class="ef__fact-lbl">${k}</span>
-              <span class="ef__fact-val">${v}</span>
-              ${note ? `<span class="ef__fact-note">${note}</span>` : ""}
-            </div>`
-        )
-        .join("");
-
-      const chart = this._efTrendSvg(trend);
-      return `
-        <div class="ef">
-          <div class="ef__hero">
-            <div class="ef__hero-text">${hero}</div>
-            ${vsBmw}
-          </div>
-          <div class="ef__facts">${factRow}</div>
-          ${
-            chart
-              ? `<div class="ef__trend"><span class="ef__trend-title">${this._t(
-                  "ef_trend_title"
-                )}</span>${chart}</div>`
-              : ""
-          }
-          <span class="ef__note">${this._t("ef_footnote")}</span>
-        </div>
-      `;
-    }
-
-    /** Monthly consumption as bars. Zero-based on purpose, unlike the capacity
-     * trend: the summer-to-winter difference is large and real, and a zoomed axis
-     * would make a 1 kWh/100 km wobble look like a season. */
-    _efTrendSvg(trend) {
-      if (!Array.isArray(trend) || trend.length < 2) return "";
-      const W = 280;
-      const H = 88;
-      const pad = 6;
-      const bottom = 14;
-      const values = trend.map((e) => e.kwh_per_100km);
-      const max = Math.max(...values) * 1.15 || 1;
-      const slot = (W - 2 * pad) / trend.length;
-      // Capped as well as proportional: with two months on file a purely
-      // proportional bar is 78 px wide and reads as a block, not a chart.
-      const width = Math.min(28, Math.max(4, slot * 0.58));
-      const bars = trend
-        .map((entry, i) => {
-          const x = pad + i * slot + (slot - width) / 2;
-          const h = (entry.kwh_per_100km / max) * (H - bottom - pad);
-          const y = H - bottom - h;
-          // "2026-09" -> "09": a bare month number reads the same in every
-          // language, which a translated abbreviation would not.
-          const label = String(entry.month || "").slice(5);
-          return `<rect class="ef__bar" x="${this._px(x)}" y="${this._px(y)}"
-                    width="${this._px(width)}" height="${this._px(
-            Math.max(h, 1)
-          )}" rx="2"></rect>
-                  <text class="ef__bar-lbl" x="${this._px(
-                    x + width / 2
-                  )}" y="${H - 3}" text-anchor="middle">${this._esc(label)}</text>`;
-        })
-        .join("");
-      return `
-        <svg class="ef__chart" viewBox="0 0 ${W} ${H}" role="img">
-          ${bars}
-          <text x="${pad}" y="9" class="chg__chart-max">${this._dec(
-        max,
-        0
-      )} kWh/100 km</text>
-        </svg>
-      `;
-    }
-
-    _round(n, dp) {
-      const f = Math.pow(10, dp);
-      return Math.round(n * f) / f;
-    }
-
-    // A figure the card worked out itself (a state object goes through _fmt),
-    // rounded to `dp` places and written in the user's number format. A bare
-    // `${number}` always prints a point, so a German dashboard read "19.8 kWh"
-    // right next to Home Assistant's "110,10 kWh". Display text only -- SVG
-    // coordinates go through _px.
-    _dec(n, dp) {
-      const num = Number(n);
-      if (!Number.isFinite(num)) return "—";
-      const v = this._round(num, dp) || 0; // never "-0"
-      const locale = _numberLocale(this._hass);
-      if (locale === null) return String(v);
-      try {
-        return v.toLocaleString(locale, { maximumFractionDigits: dp });
-      } catch (e) {
-        return String(v);
-      }
-    }
-
-    // An SVG coordinate: always a dot decimal, whatever the locale -- "18,4"
-    // inside points="…" would draw a different chart, not a German one.
-    _px(n) {
-      return this._round(n, 1);
-    }
-
-    _esc(s) {
-      return String(s == null ? "" : s).replace(/[&<>"]/g, (c) =>
-        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])
-      );
-    }
-
-    _attr(s) {
-      return this._esc(s).replace(/'/g, "&#39;");
-    }
-
-    /* ---- tire diagram ----------------------------------------------------- */
-
-    _renderTires(deviceId, entities) {
-      // Index tire entities by wheel + metric using the attributes the integration
-      // exposes (tire_axle / tire_side / tire_metric), so placement is reliable.
-      const wheels = {};
-      for (const id of entities) {
-        const st = this._st(id);
-        const a = st && st.attributes;
-        if (!a || a.cluster !== "tire" || !a.tire_axle || !a.tire_side) continue;
-        const key = `${a.tire_axle}_${a.tire_side}`;
-        (wheels[key] = wheels[key] || {})[a.tire_metric || "other"] = st;
-      }
-
-      const name = this._deviceName(deviceId);
-      const slots = [
-        { key: "row1_left", label: this._t("fl"), full: this._t("front_left") },
-        { key: "row1_right", label: this._t("fr"), full: this._t("front_right") },
-        { key: "row2_left", label: this._t("rl"), full: this._t("rear_left") },
-        { key: "row2_right", label: this._t("rr"), full: this._t("rear_right") },
-      ];
-      const present = slots.filter((s) => wheels[s.key]);
-
-      const sig = this._signature({
-        m: "tire",
-        lang: _lang(this._hass),
-        w: Object.fromEntries(
-          Object.entries(wheels).map(([k, m]) => [
-            k,
-            Object.fromEntries(
-              Object.entries(m).map(([mk, s]) => [
-                mk,
-                // The diagnosis entity's state changes only when the traffic light
-                // flips; everything the card draws from it -- remaining mileage,
-                // size, tread, season, fitting date -- moves underneath it, so it
-                // all has to be in the signature or the card would never redraw.
-                mk === "diagnosis" ? this._wearSig(s) : s.state,
-              ])
-            ),
-          ])
-        ),
-      });
-      if (sig === this._sig) return;
-      this._sig = sig;
-
-      if (!present.length) {
-        this.shadowRoot.innerHTML = `
-          ${this._styles()}
-          <ha-card>
-            ${this._tireHead(name, "—")}
-            <div class="empty">${this._t("no_tire_data")}</div>
-          </ha-card>`;
-        return;
-      }
-
-      const summary = this._tireSummary(present.map((s) => wheels[s.key]));
-
-      const colors = {
-        fl: this._tireStatus(wheels.row1_left || {}).color,
-        fr: this._tireStatus(wheels.row1_right || {}).color,
-        rl: this._tireStatus(wheels.row2_left || {}).color,
-        rr: this._tireStatus(wheels.row2_right || {}).color,
-      };
-
-      this.shadowRoot.innerHTML = `
-        ${this._styles()}
-        <ha-card>
-          ${this._tireHead(name, summary.overall.t, summary.overall.c)}
-          ${this._tireSummaryBar(summary)}
-          <div class="tirewrap">
-            <div class="tirecar">
-              <span class="tirecar__front">${this._t("front")}</span>
-              <div class="tirecar__svg">${this._carSvg(colors)}</div>
-              ${this._wheelBlock(slots[0], wheels.row1_left, "fl")}
-              ${this._wheelBlock(slots[1], wheels.row1_right, "fr")}
-              ${this._wheelBlock(slots[2], wheels.row2_left, "rl")}
-              ${this._wheelBlock(slots[3], wheels.row2_right, "rr")}
-            </div>
-          </div>
-        </ha-card>`;
-      this._wireTaps();
-    }
-
-    // Everything the card renders from a diagnosis entity, flattened for the
-    // redraw signature.
-    _wearSig(st) {
-      const a = st.attributes || {};
-      return [
-        st.state,
-        a.due_mileage_km,
-        a.dimension,
-        a.tread,
-        a.tread_manufacturer,
-        a.season,
-        a.mounting_date,
-        a.run_flat,
-      ].join("|");
-    }
-
-    // The two things that can be wrong with a tyre -- its pressure and its
-    // remaining life -- summarised across every wheel BMW reports, plus the
-    // combined headline for the card header. Kept separate because "check tyres"
-    // must never read as "top up the air".
-    _tireSummary(list) {
-      const pressures = list.map((w) => this._pressureStatus(w));
-      const cls = pressures.map((p) => p.cls);
-      const color = cls.includes("low")
-        ? "var(--bmw-low)"
-        : cls.includes("high")
-        ? "var(--bmw-mid)"
-        : cls.includes("ok")
-        ? "var(--bmw-high)"
-        : "var(--divider-color)";
-      // The measured spread, not a verdict word -- the header already carries the
-      // verdict, and a card that says "Slightly high" twice in 60px says less than
-      // one that says which wheels and by how much. Ranked on the raw states
-      // because unit conversion is monotonic, so no localized number parsing.
-      const pressure = { t: this._pressureRange(list), c: color };
-
-      // The target is per-wheel but shared per axle at worst, so it is only worth
-      // a summary line when every wheel agrees on it.
-      const targets = list.map((w) => (w.pressureTarget ? this._fmt(w.pressureTarget) : null));
-      const known = targets.filter(Boolean);
-      const pressureSub =
-        known.length && known.length === list.length
-          ? known.every((t) => t === known[0])
-            ? `${this._t("p_target")} ${this._esc(known[0])}`
-            : this._t("p_target_varies")
-          : "";
-
-      const wears = list.map((w) => this._tireWear(w)).filter(Boolean);
-      const colors = wears.map((w) => w.color);
-      const wear = !wears.length
-        ? null
-        : colors.includes("red")
-        ? { t: this._t("w_due"), c: "var(--bmw-low)" }
-        : colors.includes("yellow")
-        ? { t: this._t("w_soon"), c: "var(--bmw-mid)" }
-        : colors.includes("green")
-        ? { t: this._t("w_ok"), c: "var(--bmw-high)" }
-        : { t: this._t("t_nodata"), c: "var(--divider-color)" };
-
-      // The soonest wheel is the one that decides when the car goes in.
-      const dues = wears.map((w) => w.dueKm).filter((v) => v != null);
-      const wearSub = dues.length ? `${this._t("wear_due")} ${this._km(Math.min(...dues))}` : "";
-
-      const worn = colors.includes("red") || colors.includes("yellow");
-      const overall = worn
-        ? {
-            t: this._t("check_tyres"),
-            c: colors.includes("red") || cls.includes("low") ? "var(--bmw-low)" : "var(--bmw-mid)",
-          }
-        : cls.includes("low")
-        ? { t: this._t("check_pressure"), c: "var(--bmw-low)" }
-        : cls.includes("high")
-        ? { t: this._t("slightly_high"), c: "var(--bmw-mid)" }
-        : cls.every((c) => c === "ok")
-        ? { t: this._t("all_nominal"), c: "var(--bmw-high)" }
-        : { t: this._t("of_four", { n: list.length }), c: "var(--secondary-text-color)" };
-
-      return { pressure, pressureSub, wear, wearSub, overall };
-    }
-
-    // "280 – 290 kPa" across the reported wheels, or a single value when they
-    // agree. Falls back to a dash when no wheel has a measurement.
-    _pressureRange(list) {
-      const rated = list
-        .map((w) => ({ st: w.pressure, n: this._num(w.pressure) }))
-        .filter((r) => r.n != null)
-        .sort((a, b) => a.n - b.n);
-      if (!rated.length) return "—";
-      const lo = this._splitValueUnit(rated[0].st);
-      const hi = this._splitValueUnit(rated[rated.length - 1].st);
-      const unit = hi.unit ? ` ${hi.unit}` : "";
-      return lo.value === hi.value ? `${hi.value}${unit}` : `${lo.value} – ${hi.value}${unit}`;
-    }
-
-    _tireSummaryBar(s) {
-      const cell = (label, v, sub) => `
-        <div class="tsum__cell" style="--c:${v.c}">
-          <span class="tsum__k">${label}</span>
-          <span class="tsum__v"><span class="tstat__dot"></span>${v.t}</span>
-          ${sub ? `<span class="tsum__sub">${sub}</span>` : ""}
-        </div>`;
-      return `
-        <div class="tsum">
-          ${cell(this._t("sum_pressure"), s.pressure, s.pressureSub)}
-          ${s.wear ? cell(this._t("sum_wear"), s.wear, s.wearSub) : ""}
-        </div>`;
-    }
-
-    _carSvg(c) {
-      // Top-down BMW sedan with each wheel stroked in its tire-status colour.
-      return `
-        <svg class="carsvg" viewBox="0 0 130 228" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          ${this._carWheels(c)}
-          ${this._carBody()}
-        </svg>`;
-    }
-
-    // Four wheels, each stroked in its colour (falls back to the neutral divider
-    // colour when a caller doesn't care about per-wheel status, e.g. closures).
-    // Tucked under the flared arches so the tyre reads as a wheel, not a block.
-    _carWheels(c = {}) {
-      const n = "var(--divider-color)";
-      const wheel = (x, y, color) =>
-        `<rect x="${x}" y="${y}" width="13" height="34" rx="6" class="carsvg__wheel" style="stroke:${color || n}"/>`;
-      return `${wheel(13, 40, c.fl)}${wheel(104, 40, c.fr)}${wheel(13, 160, c.rl)}${wheel(104, 160, c.rr)}`;
-    }
-
-    // Static body art. Shared by the tire diagram and the closures diagram; the
-    // latter layers overlays on top. Design language: taut rectilinear silhouette,
-    // gradient-modelled sheet metal (no cartoon keyline), long-hood / cab-rearward
-    // stance, and correctly-scaled BMW cues (twin front-of-bumper kidneys, swept
-    // corner-wrapping lamps). viewBox 130x228, centreline x=65.
-    _carBody() {
-      return `
-          <defs>
-            <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stop-color="var(--body-lo)"/>
-              <stop offset=".5" stop-color="var(--body-hi)"/>
-              <stop offset="1" stop-color="var(--body-lo)"/>
-            </linearGradient>
-            <linearGradient id="roofGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stop-color="var(--roof-lo)"/>
-              <stop offset=".5" stop-color="var(--roof-hi)"/>
-              <stop offset="1" stop-color="var(--roof-lo)"/>
-            </linearGradient>
-            <linearGradient id="glassGrad" x1="0" y1="0" x2=".35" y2="1">
-              <stop offset="0" stop-color="var(--glass-hi)"/>
-              <stop offset="1" stop-color="var(--glass-lo)"/>
-            </linearGradient>
-          </defs>
-
-          <!-- fender flares over each wheel -->
-          <rect x="20" y="39" width="5" height="34" rx="2.5" class="carsvg__flare"/>
-          <rect x="105" y="39" width="5" height="34" rx="2.5" class="carsvg__flare"/>
-          <rect x="20" y="159" width="5" height="34" rx="2.5" class="carsvg__flare"/>
-          <rect x="105" y="159" width="5" height="34" rx="2.5" class="carsvg__flare"/>
-
-          <!-- taut body: wider stance, squarer bumpers, straight flanks -->
-          <path d="M40 6 L90 6 C99 6 107 12 108 24 L108 198 C107 211 103 219 94 222 L36 222 C27 219 23 211 22 198 L22 24 C23 12 31 6 40 6 Z" class="carsvg__body"/>
-
-          <!-- side mirrors at the cowl -->
-          <path d="M22 88 L14 84 L12 90 L21 94 Z" class="carsvg__mirror"/>
-          <path d="M108 88 L116 84 L118 90 L109 94 Z" class="carsvg__mirror"/>
-
-          <!-- bumper/hood seam + hood centreline + hood shut lines -->
-          <path d="M38 22 C52 20.5 78 20.5 92 22" class="carsvg__seam"/>
-          <path d="M65 24 L65 86" class="carsvg__crease"/>
-          <path d="M32 38 C29 55 29 74 34 88 M98 38 C101 55 101 74 96 88" class="carsvg__seam"/>
-
-          <!-- twin kidneys at the very front of the bumper -->
-          <rect x="54" y="6.5" width="22" height="13" rx="2" class="carsvg__chrome"/>
-          <rect x="55" y="7.5" width="9.3" height="11" rx="1.5" class="carsvg__kidney"/>
-          <rect x="65.7" y="7.5" width="9.3" height="11" rx="1.5" class="carsvg__kidney"/>
-          <path d="M57 8.5 V17.5 M60 8.5 V17.5 M67.5 8.5 V17.5 M70.5 8.5 V17.5" class="carsvg__kbar"/>
-
-          <!-- headlights: fat at the outer bumper corner, tapering inward -->
-          <path d="M22.5 23 C21 11 29 6.5 40 6.5 L47 7 C50.5 8.5 50 10.5 47.5 11.5 C39 12.5 30 15.5 22.5 23 Z" class="carsvg__light"/>
-          <path d="M107.5 23 C109 11 101 6.5 90 6.5 L83 7 C79.5 8.5 80 10.5 82.5 11.5 C91 12.5 100 15.5 107.5 23 Z" class="carsvg__light"/>
-
-          <!-- windshield -->
-          <path d="M31 88 L99 88 L87 112 L43 112 Z" class="carsvg__glass"/>
-
-          <!-- roof + sunroof -->
-          <path d="M43 112 L87 112 L86 164 L44 164 Z" class="carsvg__roof"/>
-          <rect x="53" y="120" width="24" height="28" rx="2" class="carsvg__glassdk"/>
-
-          <!-- side windows: front pair butts the windshield; rear pair matched in length -->
-          <path d="M33 98 L43 112 L43 136 L35 136 Z" class="carsvg__glass"/>
-          <path d="M35 140 L43 140 L43 162 L37 162 Z" class="carsvg__glass"/>
-          <path d="M97 98 L87 112 L87 136 L95 136 Z" class="carsvg__glass"/>
-          <path d="M95 140 L87 140 L87 162 L93 162 Z" class="carsvg__glass"/>
-
-          <!-- door shut seams + handles (4 doors) -->
-          <path d="M22 138 L43 138 M108 138 L87 138" class="carsvg__seam"/>
-          <rect x="26" y="122" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
-          <rect x="27" y="150" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
-          <rect x="98" y="122" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
-          <rect x="97" y="150" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
-
-          <!-- rear window -->
-          <path d="M43 164 L87 164 L97 182 L33 182 Z" class="carsvg__glass"/>
-
-          <!-- rear deck: trunk seam + corner-wrapping tail lights + diffuser -->
-          <path d="M33 187 C48 190 82 190 97 187" class="carsvg__seam"/>
-          <path d="M22.5 205 C21 217 29 221.5 40 221.5 L47 221 C49.5 219.5 49 218.5 47 217.8 C39 217 30 214.5 22.5 205 Z" class="carsvg__tail"/>
-          <path d="M107.5 205 C109 217 101 221.5 90 221.5 L83 221 C80.5 219.5 81 218.5 83 217.8 C91 217 100 214.5 107.5 205 Z" class="carsvg__tail"/>
-          <path d="M52 217 L78 217" class="carsvg__crease"/>`;
-    }
-
-    // One wheel: pressure headline, then that wheel's own fitment. BMW reports
-    // size and tread per wheel and staggered setups are common (the i5 runs 245
-    // front / 275 rear), so these facts belong beside their wheel, not in a
-    // single line under the diagram that would have to pick one to show.
-    _wheelBlock(slot, wheel, pos) {
-      const status = wheel ? this._tireStatus(wheel) : { label: "—", color: "var(--divider-color)" };
-      const pressure = wheel && wheel.pressure;
-      const target = wheel && wheel.pressureTarget;
-      const temp = wheel && wheel.temperature;
-      const tapId = (pressure && pressure.entity_id) || (temp && temp.entity_id) || "";
-      const pv = pressure ? this._splitValueUnit(pressure) : { value: "—", unit: "" };
-      const wear = wheel ? this._tireWear(wheel) : null;
-      const sub = [target ? `◎ ${this._fmt(target)}` : null, temp ? this._fmt(temp) : null]
-        .filter(Boolean)
-        .join(" · ");
-
-      const meta = [];
-      if (wear) {
-        if (wear.dimension) meta.push(this._esc(wear.dimension));
-        const tread = [wear.manufacturer, wear.tread].filter(Boolean).join(" ");
-        if (tread) meta.push(this._esc(tread));
-        const fitline = [
-          wear.season ? this._seasonLabel(wear.season) : null,
-          wear.runFlat ? this._t("runflat") : null,
-          wear.fitted ? `${this._t("fitted")} ${this._fmtDay(wear.fitted)}` : null,
-        ]
-          .filter(Boolean)
-          .join(" · ");
-        if (fitline) meta.push(fitline);
-        if (wear.dueKm != null)
-          meta.push(
-            `<b class="wlabel__due">${this._t("wear_due")} ${this._km(wear.dueKm)}</b>`
-          );
-      }
-
-      return `
-        <button class="wlabel wlabel--${pos}" style="--c:${status.color}" data-entity="${tapId}" title="${slot.full}">
-          <span class="wlabel__pos"><b>${slot.label}</b><span class="wlabel__badge">${status.label}</span></span>
-          <span class="wlabel__val">${pv.value}${pv.unit ? `<i>${pv.unit}</i>` : ""}</span>
-          ${sub ? `<span class="wlabel__sub">${sub}</span>` : ""}
-          ${meta.map((m) => `<span class="wlabel__meta">${m}</span>`).join("")}
-        </button>`;
-    }
-
-    // BMW sends the season as a SUMMER/WINTER/ALL_SEASON token; anything else is
-    // passed through so an unknown token still tells the user something.
-    _seasonLabel(raw) {
-      const key = {
-        SUMMER: "season_summer",
-        WINTER: "season_winter",
-        ALL_SEASON: "season_all",
-        ALLSEASON: "season_all",
-      }[String(raw).toUpperCase()];
-      return key ? this._t(key) : this._esc(raw);
-    }
-
-    // A bare calendar day ("2026-06-13"), no time component. Numeric-short: it
-    // shares a line with the season inside a wheel column, and a spelled-out
-    // month wraps that line on any narrow dashboard.
-    _fmtDay(iso) {
-      const d = new Date(iso);
-      if (isNaN(d.getTime())) return this._esc(iso);
-      try {
-        return d.toLocaleDateString(_lang(this._hass), { dateStyle: "short" });
-      } catch (e) {
-        return this._esc(iso);
-      }
-    }
-
-    _tireHead(name, statusText, statusColor) {
-      return `
-        <div class="chead">
-          <ha-icon icon="mdi:car-tire-alert"></ha-icon>
-          <div class="chead__text">
-            <span class="chead__title">${this._t("tires")}</span>
-            <span class="chead__sub">${this._esc(name)}</span>
-          </div>
-          ${
-            statusText
-              ? `<span class="tstat" style="--c:${statusColor || "var(--secondary-text-color)"}"><span class="tstat__dot"></span>${statusText}</span>`
-              : ""
-          }
-        </div>`;
-    }
-
-    // BMW's own wear traffic light for a wheel, from the REST tyre diagnosis.
-    // Returns null when the car has no diagnosis (most do not until a tyre
-    // service has been recorded), so pressure alone decides in that case.
-    _tireWear(wheel) {
-      const st = wheel && wheel.diagnosis;
-      const a = st && st.attributes;
-      if (!a) return null;
-      return {
-        color: st.state,                       // green | yellow | red | grey
-        // BMW's tyreWear.value is a rendering of dueMileage, not a tread depth,
-        // so only the numeric km figure is kept -- showing both read as two
-        // different facts when they are one.
-        dueKm: a.due_mileage_km ?? null,
-        season: a.season || null,
-        dimension: a.dimension || null,
-        tread: a.tread || null,
-        manufacturer: a.tread_manufacturer || null,
-        runFlat: a.run_flat === true,
-        fitted: a.mounting_date || null,
-        entity_id: st.entity_id,
-      };
-    }
-
-    // Combined per-wheel status. Wear outranks pressure: a bald tyre at perfect
-    // pressure is still the more urgent thing to say, and pressure is trivially
-    // fixable where wear is not.
-    _tireStatus(wheel) {
-      const wear = this._tireWear(wheel);
-      if (wear && wear.color === "red")
-        return { cls: "low", label: this._t("t_wear"), color: "var(--bmw-low)" };
-      if (wear && wear.color === "yellow")
-        return { cls: "wear", label: this._t("t_wear"), color: "var(--bmw-mid)" };
-      return this._pressureStatus(wheel);
-    }
-
-    // Pressure alone, so the summary can report it separately from wear.
-    _pressureStatus(wheel) {
-      const cur = this._num(wheel.pressure);
-      const tgt = this._num(wheel.pressureTarget);
-      if (cur == null) return { cls: "na", label: this._t("t_nodata"), color: "var(--divider-color)" };
-      if (tgt == null) return { cls: "na", label: this._t("t_current"), color: "var(--divider-color)" };
-      const devPct = ((cur - tgt) / tgt) * 100;
-      // Asymmetric on purpose. BMW's target is the cold placard pressure while the
-      // measurement is whatever the tyre is right now, and a tyre that has been
-      // driven on reads 8-10% high -- a symmetric ±4% band flagged every wheel of
-      // a perfectly healthy car. Under-inflation is the condition worth an early
-      // hint (TPMS itself only warns near -20%), over-inflation only past what
-      // warm-up explains.
-      if (devPct < -8) return { cls: "low", label: this._t("t_low"), color: "var(--bmw-low)" };
-      if (devPct > 15) return { cls: "high", label: this._t("t_high"), color: "var(--bmw-mid)" };
-      return { cls: "ok", label: this._t("t_ok"), color: "var(--bmw-high)" };
-    }
-
-    /* ---- closures / security diagram -------------------------------------- */
-
-    // Descriptor paths for every closure signal the card knows how to place.
-    static CLOSURE_PATHS = {
-      doorOpen: {
-        lf: "vehicle.cabin.door.row1.driver.isOpen",
-        rf: "vehicle.cabin.door.row1.passenger.isOpen",
-        lr: "vehicle.cabin.door.row2.driver.isOpen",
-        rr: "vehicle.cabin.door.row2.passenger.isOpen",
-      },
-      doorPos: {
-        lf: "vehicle.cabin.door.row1.driver.position",
-        rf: "vehicle.cabin.door.row1.passenger.position",
-        lr: "vehicle.cabin.door.row2.driver.position",
-        rr: "vehicle.cabin.door.row2.passenger.position",
-      },
-      window: {
-        lf: "vehicle.cabin.window.row1.driver.status",
-        rf: "vehicle.cabin.window.row1.passenger.status",
-        lr: "vehicle.cabin.window.row2.driver.status",
-        rr: "vehicle.cabin.window.row2.passenger.status",
-      },
-      hood: "vehicle.body.hood.isOpen",
-      trunk: "vehicle.body.trunk.isOpen",
-      rearWindow: "vehicle.body.trunk.window.isOpen",
-      sunroof: ["vehicle.cabin.sunroof.overallStatus", "vehicle.cabin.sunroof.status"],
-      // Central lock: door.status first. Both descriptors carry the same lock
-      // vocabulary, but door.lock.status is NOT streamable -- it only refreshes on
-      // a quota-limited REST fetch, so it can sit on a stale value for days while
-      // door.status follows the actual lock within seconds (issue #8).
-      lock: ["vehicle.cabin.door.status", "vehicle.cabin.door.lock.status"],
-      alarmArm: "vehicle.vehicle.antiTheftAlarmSystem.alarm.armStatus",
-      alarmOn: "vehicle.vehicle.antiTheftAlarmSystem.alarm.isOn",
+      if (prefer.length && score === 0) continue;
+      scored.push({ id, score });
+    }
+    scored.sort((a, b) => b.score - a.score);
+    return scored.length ? scored[0].id : undefined;
+  }
+
+  _overviewEntities(entities) {
+    const cfg = this._config || {};
+    return {
+      image: cfg.image || entities.find((id) => id.startsWith("image.")),
+      soc:
+        cfg.soc ||
+        // Two battery-class percentages impersonate the live SoC here. "trip"
+        // excludes the trip-end one, which only moves when a drive finishes;
+        // "charging.level" excludes BMW's *predicted* SoC, which is REST-only
+        // and so never updates on the stream at all. Both were silently winning
+        // this pick on a car whose live SoC was missing, showing a figure hours
+        // old (issue #6). Note "charging.level" is matched against the
+        // descriptor rather than the name: "predicted" alone only rejects it in
+        // English, and a German install picked it up. Both remain available to
+        // the fallback below, where they are chosen knowingly.
+        //
+        // The measured HV state of charge is named outright first: the other
+        // battery-class percentages all score zero, so without a preference the
+        // tie went to entity-registry order -- and every car also carries its
+        // 12 V battery, and older installs the fuel tank tagged as a battery. A
+        // plug-in hybrid could show its tank here, a petrol car its 12 V battery.
+        //
+        // Every pick with a value comes before any without one. The measured SoC
+        // reads unknown until the car first reports it -- on a new install, and
+        // on one where an old default had left it disabled, so it had nothing to
+        // restore -- and naming it outright regardless blanked the ring while the
+        // integration's own estimate (whose English name says "Predicted", so the
+        // avoid-list skips it) held the right figure. Only when nothing has a
+        // value does the gauge bind to the measured SoC, to fill in when it lands.
+        this._pick(entities, {
+          deviceClass: "battery",
+          unit: "%",
+          prefer: ["batterymanagement.header"],
+          usable: true,
+        }) ||
+        this._pick(entities, {
+          deviceClass: "battery",
+          unit: "%",
+          avoid: ["target", "predicted", "health", "testing", "trip", "charging.level", ...NOT_HV_BATTERY],
+          usable: true,
+        }) ||
+        this._pick(entities, { unit: "%", prefer: ["soc_estimate"], avoid: ["testing"], usable: true }) ||
+        this._pick(entities, {
+          deviceClass: "battery",
+          unit: "%",
+          prefer: ["batterymanagement.header"],
+        }) ||
+        this._pick(entities, {
+          deviceClass: "battery",
+          unit: "%",
+          avoid: ["target", "predicted", "health", "testing", "trip", "charging.level", ...NOT_HV_BATTERY],
+        }) ||
+        this._pick(entities, { prefer: ["charge", "soc"], unit: "%", avoid: ["target", "rate", ...NOT_HV_BATTERY] }),
+      range:
+        cfg.range ||
+        // Three distance entities answer to "electric range" on a BEV, and BMW
+        // named the useless one best. `remainingElectricRange` is, in BMW's own
+        // words, "the electric range predicted during charging" -- on a parked
+        // car it is whatever was predicted mid-charge, 128 km against a real 379
+        // on a car sitting at 86 %. `range.target` is the range at the *target*
+        // state of charge, not the current one. The number on the car's own
+        // display is `kombiRemainingElectricRange`, so name it outright: all
+        // three score identically on the keywords, and the winner of that tie
+        // was decided by entity-registry order.
+        this._pick(entities, {
+          deviceClass: "distance",
+          prefer: ["kombi remaining electric range", "electric range", "range"],
+          avoid: ["electricengine.remainingelectricrange", "range.target"],
+        }) ||
+        // Both impostors stay reachable here, for a car that streams nothing
+        // better -- chosen knowingly rather than by accident.
+        this._pick(entities, { prefer: ["range"] }),
+      charging:
+        cfg.charging ||
+        this._pick(entities, { prefer: ["charging.status", "charging status", "hvstatus", "charging"], avoid: ["port", "cable", "history"] }),
+      target:
+        cfg.target_soc ||
+        this._pick(entities, { deviceClass: "battery", unit: "%", prefer: ["target"] }),
+      timeToFull:
+        cfg.time_to_full ||
+        this._pick(entities, { prefer: ["fully charged", "time remaining", "timetofully"] }),
+      odometer:
+        cfg.odometer ||
+        this._pick(entities, { prefer: ["mileage", "odometer", "travelled", "traveled"] }),
+      plug:
+        cfg.plug ||
+        this._pick(entities, { domain: "binary_sensor", prefer: ["plug", "connector"] }) ||
+        this._pick(entities, { prefer: ["plug", "connection status"], avoid: ["stream"] }),
     };
+  }
 
-    _renderClosures(deviceId, entities) {
-      const P = BavarianDataCard.CLOSURE_PATHS;
-      const byDesc = {};
-      for (const id of entities) {
-        const st = this._st(id);
-        const d = st && st.attributes && st.attributes.descriptor;
-        if (d) byDesc[d] = id;
+  /** The state of a device entity by its `descriptor` attribute.
+   * Derived entities (trip flag, monthly distance, battery health) are found this
+   * way rather than by name: the descriptor is language-independent, so it works
+   * on a German install where the friendly name is localized. */
+  _byDescriptor(entities, descriptor) {
+    return (
+      entities
+        .map((id) => this._st(id))
+        .find(
+          (st) => st && st.attributes && st.attributes.descriptor === descriptor
+        ) || null
+    );
+  }
+
+  /** Entity id of a device entity by its `descriptor` attribute. */
+  _idByDescriptor(entities, descriptor) {
+    const st = this._byDescriptor(entities, descriptor);
+    return st ? st.entity_id : undefined;
+  }
+
+  /** The overview layout: "bev", "phev" or "ice".
+   *
+   * An explicit `drivetrain:` wins. Otherwise it is read from what the car
+   * actually streams -- high-voltage battery data and fuel data together make a
+   * plug-in hybrid, fuel data alone a petrol or diesel car. BMW's basic data
+   * spells an electric car "BEV", but its spelling for the others is unknown, so
+   * it only ever confirms electric. A car that has sent neither yet keeps the
+   * electric layout this card has always shown. */
+  _drivetrain(entities) {
+    const wanted = String((this._config || {}).drivetrain || "").toLowerCase();
+    if (DRIVETRAINS.has(wanted)) return wanted;
+    let hv = false;
+    let fuel = false;
+    let basic = null;
+    for (const id of entities) {
+      const st = this._st(id);
+      const attrs = (st && st.attributes) || {};
+      const descriptor = attrs.descriptor || "";
+      if (HV_SIGNALS.includes(descriptor)) hv = true;
+      if (COMBUSTION_PREFIXES.some((prefix) => descriptor.startsWith(prefix))) fuel = true;
+      const bd = attrs.vehicle_basic_data;
+      if (!basic && bd && bd.drive_train) basic = String(bd.drive_train).toUpperCase();
+    }
+    if (hv && fuel) return "phev";
+    if (fuel && basic !== "BEV") return "ice";
+    return "bev";
+  }
+
+  /* ---- formatting ------------------------------------------------------- */
+
+  _fmt(st) {
+    if (!st) return "—";
+    if (UNAVAILABLE.has(st.state)) return "—";
+    const hass = this._hass;
+    if (hass.formatEntityState) {
+      try {
+        return this._esc(hass.formatEntityState(st));
+      } catch (e) {
+        /* fall through */
       }
-      const find = (path) =>
-        Array.isArray(path) ? path.map((p) => byDesc[p]).find(Boolean) : byDesc[path];
-      // Like find(), but skips candidates that carry no usable value, so a
-      // preferred-but-silent descriptor does not hide a real value on the next
-      // one. Falls back to find() when none of them has a value yet.
-      const findWithValue = (path) => {
-        const ids = (Array.isArray(path) ? path : [path]).map((p) => byDesc[p]).filter(Boolean);
-        const usable = ids.find((id) => {
-          const st = this._st(id);
-          const raw = st ? String(st.state).trim().toLowerCase() : "";
-          return st && !UNAVAILABLE.has(raw) && raw !== "invalid";
-        });
-        return usable || ids[0];
-      };
+    }
+    const unit = st.attributes && st.attributes.unit_of_measurement;
+    return this._esc(unit ? `${st.state} ${unit}` : st.state);
+  }
 
-      const name = this._deviceName(deviceId);
-      const ALERT = "var(--bmw-low)";
-      const WARN = "var(--bmw-mid)";
-      const OK = "var(--bmw-high)";
+  _num(st) {
+    if (!st || UNAVAILABLE.has(st.state)) return null;
+    const n = Number(st.state);
+    return Number.isFinite(n) ? n : null;
+  }
 
-      // Per-slot doors (prefer isOpen; fall back to position sensor).
-      const doors = {};
-      for (const k of ["lf", "rf", "lr", "rr"]) {
-        const id = find(P.doorOpen[k]) || find(P.doorPos[k]);
-        if (!id) continue;
-        const st = this._st(id);
-        doors[k] = { id, open: this._openState(st) };
-      }
-      // Per-slot windows.
-      const windows = {};
-      for (const k of ["lf", "rf", "lr", "rr"]) {
-        const id = find(P.window[k]);
-        if (!id) continue;
-        const st = this._st(id);
-        windows[k] = { id, open: this._openState(st), partial: this._isPartialState(st) };
-      }
-      const single = (path) => {
-        const id = find(path);
-        if (!id) return null;
-        const st = this._st(id);
-        return { id, st, open: this._openState(st), partial: this._isPartialState(st) };
-      };
-      const hood = single(P.hood);
-      const trunk = single(P.trunk);
-      const rearWindow = single(P.rearWindow);
-      const sunroof = single(P.sunroof);
+  // A raw kilometre figure (not a state object) with locale grouping. The
+  // integration normalises BMW's KILOMETER/MILE unit to km before storing it.
+  _km(v) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return "—";
+    return `${this._dec(n, 0)} km`;
+  }
 
-      const lockId = findWithValue(P.lock);
-      const lock = this._lockInfo(lockId ? this._st(lockId) : null);
-      const armId = find(P.alarmArm);
-      const onId = find(P.alarmOn);
-      const alarm = this._alarmInfo(armId ? this._st(armId) : null, onId ? this._st(onId) : null);
+  _relTime(iso) {
+    if (!iso) return null;
+    const then = new Date(iso).getTime();
+    if (Number.isNaN(then)) return null;
+    const s = Math.round((Date.now() - then) / 1000);
+    if (s < 60) return this._t("just_now");
+    const m = Math.round(s / 60);
+    if (m < 60) return this._t("min_ago", { n: m });
+    const h = Math.round(m / 60);
+    if (h < 24) return this._t("h_ago", { n: h });
+    return this._t("d_ago", { n: Math.round(h / 24) });
+  }
 
-      const present =
-        Object.keys(doors).length +
-        Object.keys(windows).length +
-        [hood, trunk, rearWindow, sunroof].filter(Boolean).length +
-        (lockId ? 1 : 0) +
-        (alarm ? 1 : 0);
+  _isCharging(chargingSt, socSt) {
+    // The charging.status descriptor is authoritative (see coordinator), so an
+    // explicit active/not-charging value settles it before the heuristic.
+    const raw = chargingSt && chargingSt.state != null ? String(chargingSt.state).toLowerCase() : "";
+    if (CHARGING_ACTIVE_STATES.has(raw)) return true;
+    if (NOT_CHARGING_STATES.has(raw)) return false;
+    const hay = [chargingSt && chargingSt.state, socSt && socSt.attributes && socSt.attributes.charging]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    // Boundary before "active" so "inactive" is not read as charging.
+    return /(^|_| )(charging|active)|in_progress/.test(hay) && !/not|no_?charging|complete|finished/.test(hay);
+  }
 
-      // Change-detection signature.
-      const stateOf = (id) => (id && this._st(id) ? this._st(id).state : null);
-      const sig = this._signature({
-        m: "clo",
-        lang: _lang(this._hass),
-        doors: Object.fromEntries(Object.entries(doors).map(([k, v]) => [k, stateOf(v.id)])),
-        wins: Object.fromEntries(Object.entries(windows).map(([k, v]) => [k, stateOf(v.id)])),
-        hood: hood && stateOf(hood.id),
-        trunk: trunk && stateOf(trunk.id),
-        rw: rearWindow && stateOf(rearWindow.id),
-        sr: sunroof && stateOf(sunroof.id),
-        lock: stateOf(lockId),
-        arm: stateOf(armId),
-        on: stateOf(onId),
-      });
-      if (sig === this._sig) return;
-      this._sig = sig;
+  /* ---- render ----------------------------------------------------------- */
 
-      if (!present) {
-        this.shadowRoot.innerHTML = `
-          ${this._styles()}
-          <ha-card>
-            ${this._closuresHead(name, null)}
-            <div class="empty">${this._t("closures_none")}</div>
-          </ha-card>`;
-        return;
-      }
+  _signature(payload) {
+    // Cheap change-detection so we don't rebuild the DOM on every hass tick.
+    return JSON.stringify(payload);
+  }
 
-      // Build the itemised list: lock + alarm always shown; then each open part.
-      const openItems = [];
-      const slotLabel = { lf: "front_left", rf: "front_right", lr: "rear_left", rr: "rear_right" };
-      for (const k of ["lf", "rf", "lr", "rr"]) {
-        if (doors[k] && doors[k].open) {
-          openItems.push({
-            id: doors[k].id,
-            label: `${this._t(slotLabel[k])} · ${this._t("door_word")}`,
-            value: this._t("state_open"),
-            color: ALERT,
-          });
-        }
-      }
-      for (const k of ["lf", "rf", "lr", "rr"]) {
-        if (windows[k] && windows[k].open) {
-          openItems.push({
-            id: windows[k].id,
-            label: `${this._t(slotLabel[k])} · ${this._t("window_word")}`,
-            value: this._t(windows[k].partial ? "state_tilted" : "state_open"),
-            color: WARN,
-          });
-        }
-      }
-      const bodyPart = (part, key, color) => {
-        if (part && part.open) {
-          openItems.push({
-            id: part.id,
-            label: this._t(key),
-            value: this._t(part.partial ? "state_tilted" : "state_open"),
-            color,
-          });
-        }
-      };
-      bodyPart(hood, "hood_word", ALERT);
-      bodyPart(trunk, "trunk_word", ALERT);
-      bodyPart(rearWindow, "rear_window_word", WARN);
-      bodyPart(sunroof, "sunroof_word", WARN);
+  _render() {
+    if (!this._hass || !this._config) return;
+    if (!this.shadowRoot) this.attachShadow({ mode: "open" });
 
-      const anyBodyOpen =
-        (hood && hood.open) || (trunk && trunk.open) ||
-        Object.values(doors).some((d) => d.open);
-      const anyGlassOpen =
-        Object.values(windows).some((w) => w.open) ||
-        (sunroof && sunroof.open) || (rearWindow && rearWindow.open);
-      const overall = this._closuresOverall({ anyBodyOpen, anyGlassOpen, count: openItems.length, lock, alarm });
+    const deviceId = this._resolveDeviceId();
+    if (!deviceId) {
+      this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
+      return;
+    }
+    const entities = this._deviceEntities(deviceId);
+    if (this._config.view === "charging") {
+      this._renderCharging(deviceId, entities);
+    } else if (this._config.view === "trips") {
+      this._renderTrips(deviceId, entities);
+    } else if (this._config.view === "map") {
+      this._renderMap(deviceId, entities);
+    } else if (this._config.view === "health") {
+      this._renderHealth(deviceId, entities);
+    } else if (this._config.view === "efficiency") {
+      this._renderEfficiency(deviceId, entities);
+    } else if (this._config.cluster === "tire") {
+      this._renderTires(deviceId, entities);
+    } else if (this._config.cluster === "closures") {
+      this._renderClosures(deviceId, entities);
+    } else if (this._config.cluster) {
+      this._renderCluster(deviceId, entities);
+    } else {
+      this._renderOverview(deviceId, entities);
+    }
+  }
 
-      const rows = [];
-      if (lockId) {
-        rows.push({ id: lockId, label: this._t("central_lock"), value: lock.label, color: lock.color });
-      }
-      if (alarm) {
-        rows.push({ id: armId || onId, label: this._t("alarm_word"), value: alarm.label, color: alarm.color });
-      }
-      rows.push(...openItems);
-      if (!openItems.length) {
-        rows.push({ id: "", label: this._t("all_closed"), value: "✓", color: OK });
-      }
+  /** VIN behind a device id, read from the integration's device identifier. */
+  _deviceVin(deviceId) {
+    const dev = this._hass.devices && this._hass.devices[deviceId];
+    const ids = (dev && dev.identifiers) || [];
+    for (const pair of ids) {
+      if (pair && pair[0] === "bavariandata") return pair[1];
+    }
+    return null;
+  }
 
-      const diagram = this._carSvgClosures({
-        doors, windows, hood, trunk, rearWindow, sunroof, lock, lockId,
-        colors: { ALERT, WARN, OK },
-      });
+  _deviceName(deviceId) {
+    const dev = this._hass.devices && this._hass.devices[deviceId];
+    return (dev && (dev.name_by_user || dev.name)) || "BMW";
+  }
 
-      this.shadowRoot.innerHTML = `
-        ${this._styles()}
-        <ha-card>
-          ${this._closuresHead(name, overall)}
-          <div class="closcar">${diagram}</div>
-          <div class="list">
-            ${rows
+  _renderOverview(deviceId, entities) {
+    const cfg = this._config || {};
+    const drivetrain = this._drivetrain(entities);
+    const ice = drivetrain === "ice";
+    const picks = this._overviewEntities(entities);
+    const byDesc = (descriptor) => this._idByDescriptor(entities, descriptor);
+    const name = cfg.title || this._deviceName(deviceId);
+    const trip = this._openTrip(entities);
+    const socSt = this._st(picks.soc);
+    const chargingSt = this._st(picks.charging);
+    const odometerSt = this._st(picks.odometer);
+
+    // What the ring and the tiles show follows the drivetrain. An electric car
+    // keeps the layout this card has always had; a plug-in hybrid adds its tank
+    // and combined range; a petrol or diesel car swaps the charge ring for its
+    // tank and drops every charging tile -- BMW streams an EV charge target even
+    // to a petrol M2, where "Target 0 %" means nothing.
+    const fuelId =
+      cfg.fuel ||
+      byDesc("vehicle.drivetrain.fuelSystem.level") ||
+      byDesc("vehicle.drivetrain.fuelSystem.remainingFuel");
+    const fuelSt = this._st(fuelId);
+    const litresId = byDesc("vehicle.drivetrain.fuelSystem.remainingFuel");
+    const litresSt = litresId && litresId !== fuelId ? this._st(litresId) : null;
+    const rangeId = ice
+      ? cfg.range ||
+        byDesc("vehicle.drivetrain.lastRemainingRange") ||
+        byDesc("vehicle.cabin.infotainment.navigation.remainingRange") ||
+        picks.range
+      : picks.range;
+    const rangeSt = this._st(rangeId);
+    const charging = !ice && this._isCharging(chargingSt, socSt);
+
+    // The ring: state of charge, or the tank on a combustion car -- as a fill
+    // level where the car streams a percentage, otherwise its volume on a bare
+    // ring (a fill level can't be drawn from litres without the tank size).
+    const gaugeId = ice ? fuelId : picks.soc;
+    const gaugeSt = this._st(gaugeId);
+    const gaugeNum = this._num(gaugeSt);
+    const gaugeUnit = (gaugeSt && gaugeSt.attributes && gaugeSt.attributes.unit_of_measurement) || "";
+    const isPct = !ice || gaugeUnit === "%";
+    const pct = isPct && gaugeNum != null ? Math.max(0, Math.min(100, gaugeNum)) : 0;
+    const ringColor = charging
+      ? "var(--bmw-charge)"
+      : !isPct || gaugeNum == null
+      ? "var(--divider-color)"
+      : gaugeNum <= 15
+      ? "var(--bmw-low)"
+      : gaugeNum <= 40
+      ? "var(--bmw-mid)"
+      : "var(--bmw-high)";
+    const gaugeVal = gaugeNum == null ? "—" : String(Math.round(gaugeNum));
+    const gaugeUnitHtml = isPct ? "%" : this._esc(gaugeUnit);
+    const gaugeCap = ice ? this._t("fuel") : charging ? this._t("charging") : this._t("charge");
+
+    const tile = (key, label, st, icon) => ({ key, label, st, icon });
+    const rangeRow = {
+      entity: rangeId,
+      icon: "mdi:map-marker-distance",
+      val: this._fmt(rangeSt),
+      lbl: this._t(drivetrain === "phev" ? "electric_range" : "remaining_range"),
+    };
+    let lead;
+    let secondary;
+    if (ice) {
+      lead = [
+        rangeRow,
+        litresSt
+          ? { entity: litresId, icon: "mdi:gas-station", val: this._fmt(litresSt), lbl: this._t("tank") }
+          : { entity: picks.odometer, icon: "mdi:counter", val: this._fmt(odometerSt), lbl: this._t("odometer") },
+      ];
+      secondary = litresSt ? [tile("odo", this._t("odometer"), odometerSt, "mdi:counter")] : [];
+    } else {
+      lead = [
+        rangeRow,
+        {
+          entity: picks.charging,
+          icon: charging ? "mdi:battery-charging" : "mdi:ev-station",
+          val: this._chargingLabel(chargingSt, charging),
+          lbl: this._t("charging_status"),
+        },
+      ];
+      secondary = [
+        ...(drivetrain === "phev"
+          ? [
+              tile("fuel", this._t("tank"), fuelSt, "mdi:gas-station"),
+              tile(
+                "total",
+                this._t("total_range"),
+                this._st(byDesc("vehicle.drivetrain.lastRemainingRange")),
+                "mdi:map-marker-distance"
+              ),
+            ]
+          : []),
+        tile("target", this._t("target"), this._st(picks.target), "mdi:target"),
+        tile("plug", this._t("plug"), this._st(picks.plug), charging ? "mdi:power-plug" : "mdi:power-plug-off"),
+        tile("ttf", charging ? this._t("time_to_full") : this._t("charge_time"), this._st(picks.timeToFull), "mdi:timer-sand"),
+        tile("odo", this._t("odometer"), odometerSt, "mdi:counter"),
+      ];
+    }
+    secondary = secondary.filter((m) => m.st);
+
+    // freshest update among the headline entities
+    const freshest = [gaugeSt, rangeSt, ice ? null : chargingSt]
+      .filter(Boolean)
+      .map((s) => s.last_changed)
+      .sort()
+      .pop();
+
+    const sig = this._signature({
+      m: "ov",
+      dt: drivetrain,
+      lang: _lang(this._hass),
+      name,
+      charging,
+      img: picks.image,
+      fresh: freshest,
+      gauge: [gaugeId, gaugeVal, gaugeUnitHtml, pct, ringColor, gaugeCap],
+      lead: lead.map((r) => [r.entity, r.lbl, r.val]),
+      sec: secondary.map((s) => [s.label, s.st.state]),
+      // Elapsed minutes ride the signature so the badge's duration keeps ticking
+      // between the entity's throttled attribute writes.
+      trip: trip
+        ? [trip.distance_km, this._elapsedMin(trip.started), trip.held]
+        : null,
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    const imgUrl = picks.image ? this._imageUrl(picks.image) : null;
+    const rel = this._relTime(freshest);
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <div class="hero ${imgUrl ? "" : "hero--empty"}">
+          ${imgUrl ? `<img class="hero__img" src="${imgUrl}" alt="${this._esc(name)}" />` : `<ha-icon class="hero__placeholder" icon="${ice ? "mdi:car" : "mdi:car-electric"}"></ha-icon>`}
+          <div class="hero__scrim"></div>
+          <div class="hero__top">
+            <div class="hero__name" title="${this._esc(name)}">${this._esc(name)}</div>
+            ${rel ? `<div class="pill" title="${this._t("last_update")}"><span class="dot ${this._staleClass(freshest)}"></span>${rel}</div>` : ""}
+          </div>
+          ${this._tripPill(trip)}
+        </div>
+
+        <div class="band">
+          <button class="gauge" data-entity="${gaugeId || ""}" aria-label="${gaugeCap}">
+            <div class="gauge__ring" style="--pct:${pct};--ring:${ringColor}">
+              <div class="gauge__hole">
+                <span class="gauge__val">${gaugeVal}<i>${gaugeUnitHtml}</i></span>
+                <span class="gauge__cap">${gaugeCap}</span>
+              </div>
+            </div>
+            ${charging ? `<ha-icon class="gauge__bolt" icon="mdi:lightning-bolt"></ha-icon>` : ""}
+          </button>
+
+          <div class="lead">
+            ${lead
               .map(
-                (r) => `<button class="item" data-entity="${r.id}">
-                  <span class="item__name" title="${r.label}"><span class="item__dot" style="background:${r.color}"></span>${r.label}</span>
-                  <span class="item__val" style="color:${r.color}">${r.value}</span>
-                </button>`
+                (r) => `
+            <button class="lead__row" data-entity="${r.entity || ""}">
+              <ha-icon icon="${r.icon}"></ha-icon>
+              <span class="lead__val">${r.val}</span>
+              <span class="lead__lbl">${r.lbl}</span>
+            </button>`
               )
               .join("")}
           </div>
-        </ha-card>`;
-      this._wireTaps();
-    }
+        </div>
 
-    _closuresHead(name, overall) {
-      return `
-        <div class="chead">
-          <ha-icon icon="mdi:car-door-lock"></ha-icon>
-          <div class="chead__text">
-            <span class="chead__title">${this._t("cl_closures")}</span>
-            <span class="chead__sub">${this._esc(name)}</span>
-          </div>
-          ${
-            overall
-              ? `<span class="tstat" style="--c:${overall.color}"><span class="tstat__dot"></span>${overall.label}</span>`
-              : ""
-          }
-        </div>`;
-    }
-
-    _closuresOverall({ anyBodyOpen, anyGlassOpen, count, lock, alarm }) {
-      if (alarm && alarm.key === "triggered") return { label: alarm.label, color: "var(--bmw-low)" };
-      if (anyBodyOpen) return { label: this._t("n_open", { n: count }), color: "var(--bmw-low)" };
-      if (anyGlassOpen) return { label: this._t("windows_open"), color: "var(--bmw-mid)" };
-      if (lock.key === "unlocked") return { label: this._t("unlocked"), color: "var(--bmw-low)" };
-      if (lock.key === "partial") return { label: this._t("partially_locked"), color: "var(--bmw-mid)" };
-      if (lock.key === "secured" || lock.key === "locked") return { label: lock.label, color: "var(--bmw-high)" };
-      return { label: this._t("all_closed"), color: "var(--bmw-high)" };
-    }
-
-    // Same top-down car as the tire view, with closure overlays layered on top:
-    // open doors sprout a coloured flap, open glass is tinted, hood/trunk shade,
-    // and a central padlock reflects the lock state. Every part is tappable.
-    _carSvgClosures(d) {
-      const { ALERT, WARN } = d.colors;
-      const doorGeo = {
-        lf: { flap: "M22 116 L5 110 L7 128 L22 134 Z", hit: "22 112 21 27" },
-        lr: { flap: "M22 142 L5 136 L7 154 L22 160 Z", hit: "22 139 21 25" },
-        rf: { flap: "M108 116 L125 110 L123 128 L108 134 Z", hit: "87 112 21 27" },
-        rr: { flap: "M108 142 L125 136 L123 154 L108 160 Z", hit: "87 139 21 25" },
-      };
-      const winGeo = {
-        lf: "M33 98 L43 112 L43 136 L35 136 Z",
-        lr: "M35 140 L43 140 L43 162 L37 162 Z",
-        rf: "M97 98 L87 112 L87 136 L95 136 Z",
-        rr: "M95 140 L87 140 L87 162 L93 162 Z",
-      };
-      const hit = (spec, id) => {
-        const [x, y, w, h] = spec.split(" ");
-        return `<rect x="${x}" y="${y}" width="${w}" height="${h}" class="cldiag__hit" data-entity="${id}"/>`;
-      };
-      const parts = [];
-
-      // Doors: flap when open, always a tap zone.
-      for (const k of ["lf", "rf", "lr", "rr"]) {
-        const door = d.doors[k];
-        if (!door) continue;
-        if (door.open) {
-          parts.push(`<path d="${doorGeo[k].flap}" class="cldiag__flap" style="fill:${ALERT};stroke:${ALERT}"/>`);
-        }
-        parts.push(hit(doorGeo[k].hit, door.id));
-      }
-      // Zones (hood / trunk) shaded when open.
-      const zone = (part, path) => {
-        if (!part) return;
-        if (part.open) parts.push(`<path d="${path}" class="cldiag__zone" style="fill:${ALERT}"/>`);
-        parts.push(`<path d="${path}" class="cldiag__hit" data-entity="${part.id}"/>`);
-      };
-      zone(d.hood, "M38 26 H92 L96 88 H34 Z");
-      zone(d.trunk, "M34 184 H96 L93 218 H37 Z");
-      // Glass (windows / sunroof / rear window) tinted amber when open.
-      const glass = (part, path) => {
-        if (!part) return;
-        if (part.open) parts.push(`<path d="${path}" class="cldiag__glass-open" style="fill:${WARN}"/>`);
-        parts.push(`<path d="${path}" class="cldiag__hit" data-entity="${part.id}"/>`);
-      };
-      for (const k of ["lf", "rf", "lr", "rr"]) {
-        const w = d.windows[k];
-        if (w) glass(w, winGeo[k]);
-      }
-      glass(d.sunroof, "M53 120 H77 V148 H53 Z");
-      glass(d.rearWindow, "M43 164 L87 164 L97 182 L33 182 Z");
-
-      // Central padlock (open shackle when unlocked/unknown).
-      const locked = d.lock.key === "locked" || d.lock.key === "secured";
-      const shackle = locked
-        ? "M61 134 V130 a4 4 0 0 1 8 0 V134"
-        : "M61 134 V130 a4 4 0 0 1 8 0";
-      const padlock = d.lockId
-        ? `<g class="cldiag__lock" data-entity="${d.lockId}" style="--c:${d.lock.color}">
-            <path d="${shackle}" class="cldiag__shackle"/>
-            <rect x="58" y="134" width="14" height="10" rx="1.8" class="cldiag__lockbody"/>
-          </g>`
-        : "";
-
-      return `
-        <svg class="carsvg" viewBox="0 0 130 228" xmlns="http://www.w3.org/2000/svg">
-          ${this._carWheels()}
-          ${this._carBody()}
-          ${parts.join("\n        ")}
-          ${padlock}
-        </svg>`;
-    }
-
-    // true = open, false = closed, null = unknown/unavailable. Understands the
-    // catalogue's OPEN/CLOSED/INTERMEDIATE/TILT vocabulary, boolean on/off/true/
-    // false, and numeric door-position percentages.
-    _openState(st) {
-      if (!st) return null;
-      const raw = String(st.state).trim().toLowerCase();
-      if (UNAVAILABLE.has(raw) || raw === "invalid") return null;
-      if (/^-?\d+(\.\d+)?$/.test(raw)) return Number(raw) > 0;
-      if (/\b(closed|secured|off|false)\b/.test(raw)) return false;
-      if (/(open|tilt|intermediate|ajar|unlocked|\btrue\b|\bon\b)/.test(raw)) return true;
-      if (raw === "locked") return false;
-      return null;
-    }
-
-    _isPartialState(st) {
-      if (!st) return false;
-      return /intermediate|tilt/.test(String(st.state).toLowerCase());
-    }
-
-    _lockInfo(st) {
-      const raw = st ? String(st.state).trim().toUpperCase() : "";
-      if (!st || UNAVAILABLE.has(raw.toLowerCase()) || raw === "INVALID" || raw === "")
-        return { key: "unknown", color: "var(--divider-color)", label: "—" };
-      if (raw.includes("SECURED")) return { key: "secured", color: "var(--bmw-high)", label: this._t("secured") };
-      if (raw.includes("SELECTIVE")) return { key: "partial", color: "var(--bmw-mid)", label: this._t("partially_locked") };
-      if (raw.includes("UNLOCK")) return { key: "unlocked", color: "var(--bmw-low)", label: this._t("unlocked") };
-      if (raw.includes("LOCK")) return { key: "locked", color: "var(--bmw-high)", label: this._t("locked") };
-      return { key: "unknown", color: "var(--divider-color)", label: this._fmt(st) };
-    }
-
-    _alarmInfo(armSt, onSt) {
-      if (!armSt && !onSt) return null;
-      const onRaw = onSt ? String(onSt.state).trim().toLowerCase() : "";
-      const honking = onSt && !UNAVAILABLE.has(onRaw) && /^(on|true)$/.test(onRaw);
-      if (honking) return { key: "triggered", color: "var(--bmw-low)", label: this._t("alarm_triggered") };
-      const armRaw = armSt ? String(armSt.state).trim().toLowerCase() : "";
-      const known = armSt && !UNAVAILABLE.has(armRaw) && armRaw !== "invalid";
-      if (!known) return { key: "unknown", color: "var(--divider-color)", label: "—" };
-      if (armRaw === "unarmed")
-        return { key: "disarmed", color: "var(--secondary-text-color)", label: this._t("alarm_disarmed") };
-      return { key: "armed", color: "var(--bmw-high)", label: this._t("alarm_armed") };
-    }
-
-    _splitValueUnit(st) {
-      const formatted = this._fmt(st);
-      if (formatted === "—") return { value: "—", unit: "" };
-      const idx = formatted.indexOf(" ");
-      if (idx === -1) return { value: formatted, unit: "" };
-      return { value: formatted.slice(0, idx), unit: formatted.slice(idx + 1) };
-    }
-
-    _renderMessage(title, html) {
-      this._sig = null;
-      this.shadowRoot.innerHTML = `
-        ${this._styles()}
-        <ha-card>
-          <div class="msg">
-            <ha-icon icon="mdi:car-off"></ha-icon>
-            <div class="msg__title">${title}</div>
-            <div class="msg__body">${html}</div>
-          </div>
-        </ha-card>`;
-    }
-
-    _wireTaps() {
-      this.shadowRoot.querySelectorAll("[data-entity]").forEach((el) => {
-        const id = el.getAttribute("data-entity");
-        if (!id) {
-          el.classList.add("is-static");
-          return;
-        }
-        el.addEventListener("click", () => this._moreInfo(id));
-      });
-    }
-
-    _moreInfo(entityId) {
-      const ev = new Event("hass-more-info", { bubbles: true, composed: true });
-      ev.detail = { entityId };
-      this.dispatchEvent(ev);
-    }
-
-    _styles() {
-      return `
-      <style>
-        :host {
-          --bmw-charge: #2f80ed;
-          --bmw-high: #29a36a;
-          --bmw-mid: #e6a417;
-          --bmw-low: #d64545;
-        }
-        ha-card {
-          overflow: hidden;
-          padding: 0;
-        }
-        * { box-sizing: border-box; }
-        button {
-          font: inherit;
-          color: inherit;
-          background: none;
-          border: 0;
-          padding: 0;
-          text-align: left;
-          cursor: pointer;
-        }
-        button.is-static { cursor: default; }
-
-        /* hero */
-        .hero {
-          position: relative;
-          aspect-ratio: 16 / 9;
-          background: var(--secondary-background-color);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .hero__img {
-          width: 100%;
-          height: 100%;
-          object-fit: contain;
-          object-position: center 60%;
-        }
-        .hero__placeholder {
-          --mdc-icon-size: 72px;
-          color: var(--disabled-text-color);
-        }
-        .hero__scrim {
-          position: absolute; inset: 0;
-          background: linear-gradient(180deg, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0) 34%);
-          pointer-events: none;
-        }
-        .hero__top {
-          position: absolute; top: 0; left: 0; right: 0;
-          display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
-          padding: 14px 16px;
-        }
-        .hero__name {
-          color: #fff;
-          font-size: 1.15rem;
-          font-weight: 600;
-          letter-spacing: 0.01em;
-          text-shadow: 0 1px 3px rgba(0,0,0,0.55);
-          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        /* "trip in progress" badge, bottom-left of the hero so it never competes
-          with the vehicle name or the freshness pill above it. */
-        .hero__trip {
-          position: absolute; left: 16px; bottom: 12px;
-          display: inline-flex; align-items: center; gap: 7px;
-          max-width: calc(100% - 32px);
-          background: rgba(0,0,0,0.46);
-          color: #fff;
-          border-radius: 999px;
-          padding: 5px 12px;
-          font-size: 0.74rem;
-          font-weight: 600;
-          backdrop-filter: blur(3px);
-          box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-        }
-        .hero__trip-dot {
-          width: 8px; height: 8px; border-radius: 50%;
-          background: var(--bmw-charge, #4cc2ff);
-          flex: 0 0 auto;
-          animation: bd-trip-pulse 2s ease-in-out infinite;
-        }
-        .hero__trip-sub {
-          font-weight: 500;
-          opacity: 0.85;
-          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        @keyframes bd-trip-pulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.45; transform: scale(0.82); }
-        }
-        /* Respect a reduced-motion preference: the badge still reads as live from
-          its colour, so the pulse is simply dropped. */
-        @media (prefers-reduced-motion: reduce) {
-          .hero__trip-dot { animation: none; }
-        }
-        .pill {
-          display: inline-flex; align-items: center; gap: 6px;
-          background: rgba(0,0,0,0.38);
-          color: #fff;
-          border-radius: 999px;
-          padding: 4px 10px;
-          font-size: 0.72rem;
-          font-weight: 500;
-          backdrop-filter: blur(3px);
-          white-space: nowrap;
-        }
-        .dot { width: 7px; height: 7px; border-radius: 50%; }
-        .dot--live { background: #37d67a; box-shadow: 0 0 0 0 rgba(55,214,122,0.6); animation: pulse 2.6s infinite; }
-        .dot--stale { background: #c9a227; }
-        @keyframes pulse {
-          0% { box-shadow: 0 0 0 0 rgba(55,214,122,0.55); }
-          70% { box-shadow: 0 0 0 6px rgba(55,214,122,0); }
-          100% { box-shadow: 0 0 0 0 rgba(55,214,122,0); }
-        }
-
-        /* band: gauge + lead metrics */
-        .band {
-          display: flex;
-          align-items: center;
-          gap: 18px;
-          padding: 18px 18px 8px;
-        }
-        .gauge {
-          position: relative;
-          flex: 0 0 auto;
-        }
-        .gauge__ring {
-          width: 96px; height: 96px;
-          border-radius: 50%;
-          background:
-            radial-gradient(closest-side, var(--card-background-color) 70%, transparent 71% 100%),
-            conic-gradient(var(--ring) calc(var(--pct) * 1%), var(--divider-color) 0);
-          display: grid; place-items: center;
-          transition: background 0.6s ease;
-        }
-        .gauge__hole { text-align: center; line-height: 1; }
-        .gauge__val {
-          font-size: 1.7rem; font-weight: 600;
-          font-variant-numeric: tabular-nums;
-          color: var(--primary-text-color);
-        }
-        .gauge__val i { font-size: 0.85rem; font-weight: 500; font-style: normal; color: var(--secondary-text-color); margin-left: 1px; }
-        .gauge__cap {
-          display: block; margin-top: 3px;
-          font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.09em;
-          color: var(--secondary-text-color);
-        }
-        .gauge__bolt {
-          position: absolute; right: -2px; top: -2px;
-          --mdc-icon-size: 20px;
-          color: var(--bmw-charge);
-          background: var(--card-background-color);
-          border-radius: 50%;
-          padding: 2px;
-        }
-
-        .lead { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
-        .lead__row {
-          display: grid;
-          grid-template-columns: 24px 1fr;
-          grid-template-rows: auto auto;
-          column-gap: 10px;
-          align-items: center;
-          border-radius: 10px;
-          padding: 6px 8px;
-          transition: background 0.15s ease;
-        }
-        .lead__row:hover { background: var(--secondary-background-color); }
-        .lead__row ha-icon { grid-row: 1 / 3; color: var(--secondary-text-color); --mdc-icon-size: 22px; }
-        .lead__val {
-          font-size: 1.05rem; font-weight: 600;
-          font-variant-numeric: tabular-nums;
-          color: var(--primary-text-color);
-          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .lead__lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--secondary-text-color); }
-
-        /* metric grid */
-        .grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-          gap: 8px;
-          padding: 8px 14px 16px;
-        }
-        .cell {
-          display: flex; align-items: center; gap: 10px;
-          padding: 10px 12px;
-          border-radius: 12px;
-          background: var(--secondary-background-color);
-          transition: transform 0.12s ease, background 0.15s ease;
-        }
-        .cell:hover { background: var(--divider-color); }
-        .cell:active { transform: scale(0.98); }
-        .cell ha-icon { color: var(--secondary-text-color); --mdc-icon-size: 22px; flex: 0 0 auto; }
-        .cell__body { min-width: 0; display: flex; flex-direction: column; }
-        .cell__val {
-          font-size: 0.98rem; font-weight: 600;
-          font-variant-numeric: tabular-nums;
-          color: var(--primary-text-color);
-          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .cell__lbl { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--secondary-text-color); }
-
-        /* cluster mode */
-        .chead {
-          display: flex; align-items: center; gap: 12px;
-          padding: 16px 18px;
-          border-bottom: 1px solid var(--divider-color);
-        }
-        .chead > ha-icon { --mdc-icon-size: 26px; color: var(--bmw-charge); }
-        .chead__text { display: flex; flex-direction: column; }
-        .chead__title { font-size: 1.05rem; font-weight: 600; color: var(--primary-text-color); }
-        .chead__sub { font-size: 0.74rem; color: var(--secondary-text-color); }
-        /* export buttons, pushed to the right edge of the header */
-        .xbar { margin-left: auto; display: flex; gap: 6px; flex-shrink: 0; }
-
-        /* month navigator, between the header and the list it scopes */
-        .mnav {
-          display: flex; align-items: center; justify-content: center; gap: 4px;
-          padding: 8px 14px 2px;
-        }
-        .mnav__label {
-          min-width: 11ch; text-align: center;
-          font-size: 0.8rem; font-weight: 600; color: var(--primary-text-color);
-        }
-        .mnav__btn {
-          display: inline-flex; align-items: center; justify-content: center;
-          width: 28px; height: 28px; padding: 0;
-          border: 1px solid var(--divider-color); border-radius: 999px;
-          background: transparent; color: var(--secondary-text-color);
-          cursor: pointer; font: inherit;
-        }
-        .mnav__btn > ha-icon { --mdc-icon-size: 18px; }
-        .mnav__btn:hover:not([disabled]) {
-          border-color: var(--primary-color); color: var(--primary-color);
-        }
-        /* Forward past the current month leads nowhere, so the control says so
-          rather than silently doing nothing. */
-        .mnav__btn[disabled] { opacity: 0.35; cursor: default; }
-        .xbtn {
-          display: inline-flex; align-items: center; gap: 4px;
-          padding: 5px 10px 5px 7px;
-          font: inherit; font-size: 0.74rem; font-weight: 500;
-          color: var(--secondary-text-color);
-          background: var(--secondary-background-color);
-          border: 1px solid var(--divider-color); border-radius: 16px;
-          cursor: pointer;
-          transition: color 0.13s ease, border-color 0.13s ease;
-        }
-        .xbtn:hover { color: var(--primary-text-color); border-color: var(--bmw-charge); }
-        .xbtn ha-icon { --mdc-icon-size: 15px; }
-        @media (max-width: 420px) {
-          /* the labels are the first thing worth losing on a phone */
-          .xbtn { font-size: 0; gap: 0; padding: 6px; }
-        }
-        .list { display: flex; flex-direction: column; padding: 6px 8px 10px; }
-        .item {
-          display: flex; align-items: center; justify-content: space-between; gap: 12px;
-          padding: 11px 12px;
-          border-radius: 10px;
-          transition: background 0.13s ease;
-        }
-        .item:hover { background: var(--secondary-background-color); }
-        .item + .item { border-top: 1px solid var(--divider-color); }
-        .item:hover { border-top-color: transparent; }
-        .item__name { color: var(--primary-text-color); font-size: 0.92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .item__val {
-          color: var(--secondary-text-color);
-          font-size: 0.92rem; font-weight: 600;
-          font-variant-numeric: tabular-nums;
-          flex: 0 0 auto; text-align: right;
-        }
-        .list__head {
-          padding: 12px 20px 0;
-          color: var(--secondary-text-color);
-          font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
-        }
-        .item--msg { justify-content: flex-start; align-items: flex-start; text-align: left; }
-        .item__icon { --mdc-icon-size: 20px; color: var(--warning-color, #ffa600); flex: 0 0 auto; }
-        .item__body { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
-        .item__text { color: var(--primary-text-color); font-size: 0.92rem; }
-        .item__sub { color: var(--secondary-text-color); font-size: 0.82rem; }
-        .item__clamp {
-          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-        }
-        .cc { border-radius: 10px; }
-        .cc + .cc { border-top: 1px solid var(--divider-color); }
-        .cc.is-open { background: var(--secondary-background-color); border-top-color: transparent; }
-        .cc > .item--msg {
-          width: 100%; background: none; border: none; color: inherit; font: inherit; cursor: pointer;
-        }
-        .cc.is-open > .item--msg:hover { background: transparent; }
-        .cc__text { margin: 0 0 8px; color: var(--primary-text-color); font-size: 0.86rem; line-height: 1.4; }
-        .empty, .msg__body { color: var(--secondary-text-color); font-size: 0.9rem; }
-        .empty { padding: 22px 18px; }
-        .empty.empty--inline { padding: 8px 20px 14px; }
-
-        /* message state */
-        .msg { padding: 28px 20px; text-align: center; }
-        .msg ha-icon { --mdc-icon-size: 40px; color: var(--disabled-text-color); }
-        .msg__title { margin-top: 10px; font-weight: 600; color: var(--primary-text-color); }
-        .msg__body { margin-top: 6px; }
-        .msg code, .empty b { font-family: var(--code-font-family, monospace); }
-
-        /* tire diagram */
-        .tstat {
-          margin-left: auto;
-          display: inline-flex; align-items: center; gap: 6px;
-          font-size: 0.74rem; font-weight: 600;
-          color: var(--c);
-          white-space: nowrap;
-        }
-        .tstat__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
-        /* Pressure and wear summarised across every wheel, above the diagram. */
-        .tsum { display: flex; gap: 8px; padding: 12px 14px 2px; }
-        .tsum__cell {
-          flex: 1; min-width: 0;
-          display: flex; flex-direction: column; gap: 2px;
-          padding: 8px 10px; border-radius: 12px;
-          background: var(--secondary-background-color);
-        }
-        .tsum__k {
-          font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase;
-          color: var(--secondary-text-color);
-        }
-        .tsum__v {
-          display: flex; gap: 6px;
-          /* baseline, not center: a long pressure range wraps to two lines in a
-            narrow column and the dot belongs on the first one. */
-          align-items: baseline;
-          font-size: 0.92rem; font-weight: 600; color: var(--c);
-        }
-        .tsum__v .tstat__dot { flex-shrink: 0; }
-        .tsum__sub { font-size: 0.68rem; color: var(--secondary-text-color); }
-        /* Grid, not absolute positioning: each wheel's own column sizes to the
-          card so long fitment lines wrap instead of being clipped. */
-        .tirewrap { container-type: inline-size; }
-        .tirecar {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) clamp(72px, 24%, 118px) minmax(0, 1fr);
-          grid-template-areas:
-            ".  front ."
-            "fl car   fr"
-            "rl car   rr";
-          column-gap: 10px; row-gap: 14px;
-          padding: 10px 12px 16px;
-          align-items: start;
-        }
-        .tirecar__front {
-          grid-area: front;
-          text-align: center;
-          font-size: 0.56rem; letter-spacing: 0.18em; font-weight: 700;
-          color: var(--secondary-text-color);
-        }
-        .tirecar__svg { grid-area: car; align-self: center; }
-        .carsvg {
-          display: block;
-          width: 100%;
-          height: auto;
-          margin: 0 auto;
-          overflow: visible;
-          /* Surface-modelling tokens derived from the active HA theme, so the
-            metal/glass sheen holds up in both light and dark. */
-          --body-hi: color-mix(in srgb, var(--secondary-background-color), white 20%);
-          --body-lo: color-mix(in srgb, var(--secondary-background-color), black 14%);
-          --roof-hi: color-mix(in srgb, var(--card-background-color), white 12%);
-          --roof-lo: color-mix(in srgb, var(--card-background-color), black 6%);
-          --glass-hi: color-mix(in srgb, var(--divider-color) 66%, #4c5c6e);
-          --glass-lo: color-mix(in srgb, var(--divider-color) 50%, #0e141b);
-          --chrome: color-mix(in srgb, var(--secondary-text-color), white 22%);
-          --edge: var(--divider-color);
-          --seam-c: var(--secondary-text-color);
-          --tire: #14171b;
-        }
-        .carsvg__body { fill: url(#bodyGrad); stroke: var(--edge); stroke-width: 0.7; }
-        .carsvg__flare { fill: var(--secondary-text-color); opacity: 0.26; }
-        .carsvg__crease { stroke: var(--seam-c); stroke-width: 0.7; opacity: 0.35; fill: none; stroke-linecap: round; }
-        .carsvg__seam { stroke: var(--seam-c); stroke-width: 0.8; opacity: 0.55; fill: none; stroke-linecap: round; }
-        .carsvg__roof { fill: url(#roofGrad); }
-        .carsvg__glassdk { fill: var(--glass-lo); opacity: 0.85; }
-        .carsvg__glass { fill: url(#glassGrad); }
-        .carsvg__handle { fill: var(--seam-c); opacity: 0.55; }
-        .carsvg__mirror { fill: url(#bodyGrad); stroke: var(--edge); stroke-width: 0.6; }
-        .carsvg__chrome { fill: var(--chrome); }
-        .carsvg__kidney { fill: #0c0f13; }
-        .carsvg__kbar { stroke: var(--chrome); stroke-width: 0.5; opacity: 0.55; }
-        .carsvg__light { fill: var(--secondary-text-color); opacity: 0.7; }
-        .carsvg__tail { fill: #c0392b; opacity: 0.82; }
-        .carsvg__wheel { fill: var(--tire); stroke-width: 3.4; stroke-linejoin: round; }
-
-        /* closures / security diagram */
-        .closcar { padding: 10px 12px 4px; display: flex; justify-content: center; }
-        .closcar .carsvg { width: 50%; min-width: 138px; max-width: 196px; margin: 0; }
-        .cldiag__hit { fill: transparent; cursor: pointer; }
-        .cldiag__hit:hover { fill: rgba(127, 127, 127, 0.14); }
-        .cldiag__flap { stroke-width: 1.2; opacity: 0.92; stroke-linejoin: round; }
-        .cldiag__zone { opacity: 0.42; pointer-events: none; }
-        .cldiag__glass-open { opacity: 0.7; pointer-events: none; }
-        .cldiag__lock { cursor: pointer; }
-        .cldiag__lockbody { fill: var(--c); }
-        .cldiag__shackle { fill: none; stroke: var(--c); stroke-width: 2.2; stroke-linecap: round; }
-        .item__dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
-
-        .wlabel {
-          min-width: 0;
-          display: flex; flex-direction: column; gap: 1px;
-          padding: 4px 4px;
-          border-radius: 10px;
-          transition: background 0.14s ease;
-        }
-        .wlabel:hover { background: var(--secondary-background-color); }
-        .wlabel--fl { grid-area: fl; align-items: flex-end; text-align: right; }
-        .wlabel--fr { grid-area: fr; align-items: flex-start; text-align: left; }
-        .wlabel--rl { grid-area: rl; align-items: flex-end; text-align: right; }
-        .wlabel--rr { grid-area: rr; align-items: flex-start; text-align: left; }
-        .wlabel__pos {
-          display: inline-flex; align-items: center; gap: 6px;
-          font-size: 0.66rem; letter-spacing: 0.05em; text-transform: uppercase;
-          color: var(--secondary-text-color);
-        }
-        .wlabel--fl .wlabel__pos, .wlabel--rl .wlabel__pos { flex-direction: row-reverse; }
-        .wlabel__badge { color: var(--c); font-weight: 700; }
-        .wlabel__val {
-          font-size: 1.45rem; font-weight: 600; line-height: 1.1;
-          font-variant-numeric: tabular-nums;
-          color: var(--primary-text-color);
-          white-space: nowrap;
-        }
-        .wlabel__val i {
-          font-size: 0.66rem; font-weight: 500; font-style: normal;
-          color: var(--secondary-text-color); margin-left: 2px;
-        }
-        .wlabel__sub {
-          font-size: 0.66rem; color: var(--secondary-text-color);
-          font-variant-numeric: tabular-nums;
-        }
-        /* Per-wheel fitment. Wraps rather than clips -- a tyre size and a tread
-          name are long, and the column is whatever the dashboard gives us. */
-        .wlabel__meta {
-          font-size: 0.63rem; line-height: 1.35;
-          color: var(--secondary-text-color);
-          overflow-wrap: anywhere;
-        }
-        .wlabel__val + .wlabel__meta,
-        .wlabel__sub + .wlabel__meta { margin-top: 3px; }
-        .wlabel__due { color: var(--primary-text-color); font-weight: 600; }
-        /* Narrow columns: the diagram is the first thing worth losing, and the
-          four wheels fall back to a 2x2 grid that still reads front-over-rear.
-          Must come after the .wlabel rules it overrides. */
-        @container (max-width: 340px) {
-          .tirecar {
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-            grid-template-areas:
-              "front front"
-              "fl    fr"
-              "rl    rr";
-          }
-          .tirecar__svg { display: none; }
-          .wlabel--fl, .wlabel--rl { align-items: flex-start; text-align: left; }
-          .wlabel--fl .wlabel__pos, .wlabel--rl .wlabel__pos { flex-direction: row; }
-        }
-
-        /* ---- charging history ---- */
-        .chg__summary {
-          display: flex; gap: 8px; padding: 10px 14px 4px;
-        }
-        .chg__stat {
-          flex: 1; display: flex; flex-direction: column; gap: 2px;
-          padding: 8px 10px; border-radius: 12px;
-          background: var(--secondary-background-color);
-        }
-        .chg__stat-val {
-          font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums;
-        }
-        .chg__stat-lbl {
-          font-size: 0.68rem; color: var(--secondary-text-color);
-          text-transform: uppercase; letter-spacing: 0.04em;
-        }
-        .chg__list { padding: 6px 6px 8px; }
-        .chg__session { border-radius: 12px; }
-        .chg__session.is-open { background: var(--secondary-background-color); }
-        .chg__row {
-          width: 100%; display: flex; align-items: center; justify-content: space-between;
-          gap: 10px; padding: 10px 10px; background: none; border: none;
-          color: inherit; text-align: left; cursor: pointer; border-radius: 12px;
-        }
-        .chg__row:hover { background: var(--secondary-background-color); }
-        .chg__session.is-open .chg__row:hover { background: transparent; }
-        .chg__row-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-        .chg__date { font-weight: 600; font-size: 0.92rem; }
-        .chg__meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-        .chg__soc {
-          font-size: 0.72rem; color: var(--secondary-text-color);
-          font-variant-numeric: tabular-nums;
-        }
-        .chg__figures {
-          display: flex; flex-direction: column; align-items: flex-end; gap: 3px;
-          white-space: nowrap;
-        }
-        .chg__energy { font-variant-numeric: tabular-nums; font-size: 0.86rem; }
-        .chg__energy--lead { font-size: 0.98rem; font-weight: 600; }
-        .chg__cost {
-          font-weight: 600; font-variant-numeric: tabular-nums;
-        }
-        .chg__cost--none {
-          font-weight: 400; font-size: 0.72rem; color: var(--secondary-text-color);
-        }
-        .chg__badge, .chg__tag {
-          font-size: 0.66rem; padding: 1px 7px; border-radius: 999px;
-          border: 1px solid var(--divider-color); color: var(--secondary-text-color);
-          white-space: nowrap;
-        }
-        .chg__badge--home { border-color: var(--bmw-high); color: var(--bmw-high); }
-        .chg__badge--away { border-color: var(--bmw-charge); color: var(--bmw-charge); }
-        .chg__badge--assumed { border-style: dashed; }
-        .chg__tag--warn { border-color: var(--bmw-mid); color: var(--bmw-mid); }
-        .chg__tag--sun { border-color: var(--bmw-high); color: var(--bmw-high); }
-        .chg__detail { padding: 2px 12px 12px; }
-        .chg__chart {
-          width: 100%; height: 64px; display: block; margin-bottom: 8px;
-        }
-        .chg__chart-line {
-          fill: none; stroke: var(--bmw-charge); stroke-width: 2;
-          stroke-linejoin: round; stroke-linecap: round;
-          vector-effect: non-scaling-stroke;
-        }
-        .chg__chart-fill { fill: var(--bmw-charge); opacity: 0.12; stroke: none; }
-        .chg__chart-max {
-          fill: var(--secondary-text-color); font-size: 9px;
-        }
-        .chg__facts { display: flex; flex-wrap: wrap; gap: 6px; }
-        .chg__fact {
-          flex: 1 1 40%; display: flex; justify-content: space-between; gap: 8px;
-          padding: 6px 10px; border-radius: 10px;
-          background: var(--card-background-color);
-        }
-        .chg__fact-lbl { color: var(--secondary-text-color); font-size: 0.76rem; }
-        .chg__fact-val { font-variant-numeric: tabular-nums; font-size: 0.82rem; }
-
-        /* ---- battery health ---- */
-        .bh { padding: 6px 14px 14px; display: flex; flex-direction: column; gap: 14px; }
-        .bh__hero { display: flex; align-items: center; gap: 16px; }
-        .bh__ring { width: 92px; height: 92px; flex: 0 0 auto; }
-        .bh__ring-track { fill: none; stroke: var(--divider-color); stroke-width: 7; }
-        .bh__ring-val {
-          fill: none; stroke: var(--bmw-high); stroke-width: 7; stroke-linecap: round;
-          transition: stroke-dasharray 0.6s ease;
-        }
-        .bh__ring-text {
-          fill: var(--primary-text-color); font-size: 17px; font-weight: 600;
-          text-anchor: middle; font-variant-numeric: tabular-nums;
-        }
-        .bh__hero-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-        .bh__usable {
-          font-size: 1.9rem; font-weight: 600; line-height: 1;
-          font-variant-numeric: tabular-nums;
-        }
-        .bh__usable i { font-size: 0.9rem; font-weight: 500; font-style: normal;
-          color: var(--secondary-text-color); }
-        .bh__usable-lbl {
-          font-size: 0.7rem; color: var(--secondary-text-color);
-          text-transform: uppercase; letter-spacing: 0.04em;
-        }
-        .bh__vsnew { font-size: 0.82rem; color: var(--bmw-high); font-weight: 500; }
-        .bh__learn { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; }
-        .bh__learn-val {
-          font-size: 1.35rem; font-weight: 600; font-variant-numeric: tabular-nums;
-        }
-        .bh__bar {
-          height: 7px; border-radius: 999px; background: var(--divider-color);
-          overflow: hidden;
-        }
-        .bh__bar-fill {
-          height: 100%; border-radius: 999px; background: var(--bmw-charge);
-          transition: width 0.6s ease;
-        }
-        .bh__hint { font-size: 0.78rem; color: var(--secondary-text-color); line-height: 1.35; }
-        .bh__trend { display: flex; flex-direction: column; gap: 4px; }
-        .bh__trend-title {
-          font-size: 0.68rem; color: var(--secondary-text-color);
-          text-transform: uppercase; letter-spacing: 0.04em;
-        }
-        .bh__chart { width: 100%; height: 70px; display: block; }
-
-        /* ---- efficiency & real range ---- */
-        .ef { padding: 6px 14px 14px; display: flex; flex-direction: column; gap: 14px; }
-        .ef__hero { display: flex; flex-direction: column; gap: 4px; }
-        .ef__hero-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-        .ef__hero-val {
-          font-size: 2.1rem; font-weight: 600; line-height: 1;
-          font-variant-numeric: tabular-nums;
-        }
-        .ef__hero-val i {
-          font-size: 0.95rem; font-weight: 500; font-style: normal;
-          color: var(--secondary-text-color);
-        }
-        .ef__hero-lbl {
-          font-size: 0.7rem; color: var(--secondary-text-color);
-          text-transform: uppercase; letter-spacing: 0.04em;
-        }
-        .ef__vs { font-size: 0.82rem; color: var(--secondary-text-color); font-weight: 500; }
-        .ef__vs--over { color: var(--bmw-high); }
-        .ef__vs--under { color: var(--bmw-mid); }
-        .ef__facts { display: flex; flex-wrap: wrap; gap: 8px; }
-        .ef__fact {
-          flex: 1 1 44%; display: flex; flex-direction: column; gap: 2px;
-          padding: 8px 10px; border-radius: 12px;
-          background: var(--secondary-background-color);
-        }
-        .ef__fact-lbl {
-          font-size: 0.68rem; color: var(--secondary-text-color);
-          text-transform: uppercase; letter-spacing: 0.04em;
-        }
-        .ef__fact-val { font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-        .ef__fact-note { font-size: 0.72rem; color: var(--secondary-text-color); }
-        .ef__trend { display: flex; flex-direction: column; gap: 4px; }
-        .ef__trend-title {
-          font-size: 0.68rem; color: var(--secondary-text-color);
-          text-transform: uppercase; letter-spacing: 0.04em;
-        }
-        .ef__chart { width: 100%; height: 88px; display: block; }
-        .ef__bar { fill: var(--bmw-charge); opacity: 0.85; }
-        .ef__bar-lbl { fill: var(--secondary-text-color); font-size: 8px; }
-        .ef__note { font-size: 0.72rem; color: var(--secondary-text-color); line-height: 1.35; }
-
-        /* trips */
-        .tr__review { padding: 8px 14px 4px; display: flex; flex-direction: column; gap: 12px; }
-        .tr__tiles { display: flex; gap: 8px; flex-wrap: wrap; }
-        .tr__tile {
-          flex: 1 1 40%; display: flex; flex-direction: column; gap: 2px;
-          padding: 8px 10px; border-radius: 12px;
-          background: var(--secondary-background-color);
-        }
-        .tr__tile-val { font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-        .tr__tile-val i { font-style: normal; font-size: 0.72rem; color: var(--secondary-text-color); }
-        .tr__tile-lbl {
-          font-size: 0.68rem; color: var(--secondary-text-color);
-          text-transform: uppercase; letter-spacing: 0.04em;
-        }
-        /* The secondary reading under a headline figure (battery-side consumption
-          beneath the plug-side one). Deliberately quieter than the label. */
-        .tr__tile-sub {
-          font-size: 0.68rem; color: var(--secondary-text-color);
-          font-variant-numeric: tabular-nums; opacity: 0.85;
-        }
-        .tr__delta { font-size: 0.7rem; font-variant-numeric: tabular-nums; }
-        .tr__delta--up { color: var(--bmw-charge, #34c759); }
-        .tr__delta--down { color: var(--error-color, #ff453a); }
-        .tr__split { display: flex; flex-direction: column; gap: 6px; }
-        .tr__bar {
-          display: flex; height: 12px; border-radius: 999px; overflow: hidden;
-          background: var(--secondary-background-color);
-        }
-        .tr__seg { display: block; height: 100%; }
-        .tr__seg--business, .tr__dot.tr__seg--business { background: #0066b1; }
-        .tr__seg--commute, .tr__dot.tr__seg--commute { background: #00a1e0; }
-        .tr__seg--private, .tr__dot.tr__seg--private { background: #7ac142; }
-        .tr__seg--unc, .tr__dot.tr__seg--unc { background: var(--disabled-text-color, #8a8a8a); }
-        .tr__legend { display: flex; flex-wrap: wrap; gap: 10px; }
-        .tr__leg {
-          display: inline-flex; align-items: center; gap: 5px;
-          font-size: 0.72rem; color: var(--secondary-text-color);
-          font-variant-numeric: tabular-nums;
-        }
-        .tr__dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
-
-        /* ---- trip map ---- */
-        .map__filters {
-          display: flex; gap: 6px; padding: 4px 14px 10px; flex-wrap: wrap;
-        }
-        .map__chip {
-          border: 1px solid var(--divider-color); background: transparent;
-          color: var(--secondary-text-color); cursor: pointer;
-          font: inherit; font-size: 0.74rem; padding: 3px 12px; border-radius: 999px;
-        }
-        .map__chip:hover { border-color: var(--primary-color); }
-        .map__chip.is-active {
-          background: var(--primary-color); color: var(--text-primary-color, #fff);
-          border-color: var(--primary-color);
-        }
-        .map__holder {
-          margin: 0 14px; border-radius: 12px; overflow: hidden;
-          border: 1px solid var(--divider-color);
-        }
-        .map__holder ha-map { width: 100%; }
-        .tr__minimap {
-          margin: 2px 0 12px; height: 200px; border-radius: 10px; overflow: hidden;
-          border: 1px solid var(--divider-color); background: var(--card-background-color);
-        }
-        .tr__minimap ha-map { width: 100%; }
-        .tr__style { display: flex; flex-direction: column; gap: 6px; }
-        .tr__style-head { display: flex; align-items: center; justify-content: space-between; }
-        .tr__style-lbl {
-          font-size: 0.68rem; color: var(--secondary-text-color);
-          text-transform: uppercase; letter-spacing: 0.04em;
-        }
-        .tr__stars { font-size: 0.95rem; color: #f5a623; letter-spacing: 1px; }
-        .tr__dests { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-        .tr__dests-lbl {
-          font-size: 0.68rem; color: var(--secondary-text-color);
-          text-transform: uppercase; letter-spacing: 0.04em; width: 100%;
-        }
-        .tr__dest {
-          display: inline-flex; align-items: center; gap: 6px;
-          padding: 4px 8px; border-radius: 999px;
-          background: var(--secondary-background-color); font-size: 0.78rem;
-        }
-        .tr__dest-n { color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
-        .tr__badge {
-          font-size: 0.66rem; padding: 1px 7px; border-radius: 999px;
-          color: #fff; text-transform: uppercase; letter-spacing: 0.03em;
-        }
-        .tr__badge--business { background: #0066b1; }
-        .tr__badge--commute { background: #00a1e0; }
-        .tr__badge--private { background: #7ac142; }
-        /* A drive under way: the badge that replaces a classification until the
-          trip lands and there is something to classify. */
-        .tr__badge--live {
-          background: var(--bmw-charge, #4cc2ff);
-          display: inline-flex; align-items: center; gap: 5px;
-        }
-        .tr__live-dot {
-          width: 6px; height: 6px; border-radius: 50%; background: #fff;
-          animation: bd-trip-pulse 2s ease-in-out infinite;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .tr__live-dot { animation: none; }
-        }
-        /* The in-progress row leads with an accent edge so it reads as different
-          from the recorded trips below it without shouting. */
-        .chg__session.is-live > .chg__row {
-          border-left: 3px solid var(--bmw-charge, #4cc2ff);
-          padding-left: 7px;
-        }
-        .tr__live-note {
-          font-size: 0.72rem; color: var(--secondary-text-color);
-          line-height: 1.45; padding: 8px 2px 2px;
-        }
-        .tr__auto { font-style: normal; opacity: 0.75; text-transform: none; }
-        .tr__classify { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 2px 2px; }
-        .tr__classify-lbl {
-          font-size: 0.68rem; color: var(--secondary-text-color);
-          text-transform: uppercase; letter-spacing: 0.04em;
-        }
-        .tr__cls-btns { display: inline-flex; gap: 6px; flex-wrap: wrap; }
-        .tr__cls-btn {
-          border: 1px solid var(--divider-color); background: none; cursor: pointer;
-          font-size: 0.66rem; padding: 3px 9px; border-radius: 999px;
-          color: var(--primary-text-color); text-transform: uppercase; letter-spacing: 0.03em;
-          opacity: 0.6;
-        }
-        .tr__cls-btn:hover { opacity: 1; }
-        .tr__cls-btn.is-active { opacity: 1; color: #fff; border-color: transparent; }
-
-        @media (prefers-reduced-motion: reduce) {
-          .dot--live { animation: none; }
-          .gauge__ring { transition: none; }
-        }
-        @media (max-width: 360px) {
-          .band { flex-direction: column; align-items: stretch; }
-          .gauge { align-self: center; }
-        }
-      </style>`;
-    }
+        ${
+          secondary.length
+            ? `<div class="grid">
+                ${secondary
+                  .map(
+                    (m) => `
+                  <button class="cell" data-entity="${m.st.entity_id}">
+                    <ha-icon icon="${m.icon}"></ha-icon>
+                    <div class="cell__body">
+                      <span class="cell__val">${this._fmt(m.st)}</span>
+                      <span class="cell__lbl">${m.label}</span>
+                    </div>
+                  </button>`
+                  )
+                  .join("")}
+              </div>`
+            : ""
+        }
+      </ha-card>
+    `;
+    this._wireTaps();
   }
 
-  // Register idempotently. The script can legitimately be evaluated more than once
-  // in one session (e.g. the integration re-injects a fresh ?v= URL after an update
-  // on top of the already-loaded copy). A bare customElements.define() would throw
-  // "the name has already been used" on the second run and abort the module.
-  //
-  // The previous `if (!customElements.get(tag)) define(tag)` guard proved unsafe:
-  // on cold loads the define was sometimes *skipped* while the element was never
-  // actually registered, leaving every placed card stuck on "config error" (HA's
-  // whenDefined->rebuild never fires because the tag never becomes defined) until a
-  // hard refresh. Always attempt the define and swallow only the benign
-  // already-defined error, so registration can never be silently missed.
-  defineCardElement("bavariandata-card", BavarianDataCard);
-  // Back-compat alias: dashboards created before the BavarianData rename still
-  // reference `custom:bmw-cardata-card`. A custom-element constructor can only be
-  // bound to ONE tag name -- reusing `BavarianDataCard` here throws "this
-  // constructor has already been used with this registry", which aborts the rest
-  // of this module (editor + card-picker registration never run). Register a
-  // trivial subclass so the legacy tag gets its own constructor. Not advertised
-  // in the card picker.
-  defineCardElement("bmw-cardata-card", class extends BavarianDataCard {});
+  /** The drive under way, read off the trip flag entity — or null when parked.
+   *
+   * The integration exposes the in-flight trip as a binary sensor with the trip
+   * so far as attributes, which is the only place it exists: an open trip is not
+   * in the history store until it closes. Deliberately not treated as a "car is
+   * moving" signal — see the entity's own docstring. It opens on the first GPS
+   * fix that reads as movement and closes a debounce after the last one, so it
+   * lingers for some minutes after an arrival. */
+  _openTrip(entities) {
+    const st = this._byDescriptor(entities, "trip_in_progress");
+    if (!st || st.state !== "on") return null;
+    const a = st.attributes || {};
+    return {
+      entity_id: st.entity_id,
+      started: a.started || null,
+      start_location: a.start_location || null,
+      distance_km: a.distance_km == null ? null : Number(a.distance_km),
+      soc_start: a.soc_start == null ? null : Number(a.soc_start),
+      soc_now: a.soc_now == null ? null : Number(a.soc_now),
+      held: !!a.held,
+    };
+  }
 
-  /* ------------------------------------------------------------------------- *
-  * Visual editor (config-changed via ha-form)                                *
-  * ------------------------------------------------------------------------- */
+  /** Elapsed whole minutes since an ISO timestamp, or null if unparseable.
+   * Computed in the frontend so the figure stays live between the entity's
+   * throttled attribute writes. */
+  _elapsedMin(iso) {
+    if (!iso) return null;
+    const t = new Date(iso).getTime();
+    if (!Number.isFinite(t)) return null;
+    return Math.max(0, Math.floor((Date.now() - t) / 60000));
+  }
 
-  // Sentinel for "no cluster" so the dropdown always has a concrete value.
-  const OVERVIEW = "overview";
-  // The mode dropdown is a single selector for every layout, but charging isn't a
-  // catalogue cluster -- it's stored as `view: charging`. This sentinel lets the
-  // one dropdown offer it, mapped to/from `view` in _render and _valueChanged.
-  const CHARGING_VIEW = "charging";
-  // Same idea for battery health: a `view:`, not a cluster, sharing the dropdown.
-  const HEALTH_VIEW = "health";
-  // And trips (the Fahrtenbuch), also a `view:` sharing the one dropdown.
-  const TRIPS_VIEW = "trips";
-  // The trip map (opt-in route polylines on ha-map), also a `view:`.
-  const MAP_VIEW = "map";
-  // The `view:` values that are layouts in their own right rather than clusters.
-  const EFFICIENCY_VIEW = "efficiency";
+  /** Hero badge for a drive in progress; empty string when the car is parked. */
+  _tripPill(trip) {
+    if (!trip) return "";
+    const bits = [];
+    if (trip.distance_km != null) bits.push(`${this._dec(trip.distance_km, 1)} km`);
+    const min = this._elapsedMin(trip.started);
+    if (min != null) bits.push(this._t("tr_min", { n: min }));
+    return `
+      <button class="hero__trip" data-entity="${trip.entity_id}" title="${this._t(
+        "tr_open_hint"
+      )}">
+        <span class="hero__trip-dot"></span>
+        <span class="hero__trip-lbl">${this._t("tr_open")}</span>
+        ${bits.length ? `<span class="hero__trip-sub">${bits.join(" · ")}</span>` : ""}
+      </button>`;
+  }
 
-  const VIEW_MODES = new Set([
-    CHARGING_VIEW,
-    TRIPS_VIEW,
-    MAP_VIEW,
-    HEALTH_VIEW,
-    EFFICIENCY_VIEW,
-  ]);
-
-  class BavarianDataCardEditor extends HTMLElement {
-    setConfig(config) {
-      this._config = { ...config };
-      this._render();
+  _chargingLabel(st, charging) {
+    const raw = st && st.state != null ? String(st.state).toLowerCase() : "";
+    if (!st || UNAVAILABLE.has(st.state) || NOT_CHARGING_STATES.has(raw)) {
+      return this._t(charging ? "is_charging" : "not_charging");
     }
-
-    set hass(hass) {
-      this._hass = hass;
-      this._render();
+    // "chargingactive" et al. are uncatalogued raw tokens; show a clean label.
+    if (CHARGING_ACTIVE_STATES.has(raw)) {
+      return this._t("is_charging");
     }
+    return this._fmt(st);
+  }
 
-    _schema() {
-      const clusterOptions = [
-        { value: OVERVIEW, label: t(this._hass, "ed_overview_option") },
-        { value: CHARGING_VIEW, label: t(this._hass, "ch_title") },
-        { value: TRIPS_VIEW, label: t(this._hass, "tr_title") },
-        { value: MAP_VIEW, label: t(this._hass, "mp_title") },
-        { value: HEALTH_VIEW, label: t(this._hass, "bh_title") },
-        { value: EFFICIENCY_VIEW, label: t(this._hass, "ef_title") },
-        { value: "closures", label: t(this._hass, "cl_closures") },
-        ...CLUSTER_SLUGS.map((slug) => ({
-          value: slug,
-          label: t(this._hass, "cl_" + slug, null, slug),
-        })),
-      ];
-      const entitySel = (domain) => ({
-        entity: { integration: "bavariandata", ...(domain ? { domain } : {}) },
-      });
-      const overview =
-        !this._config || (!this._config.cluster && !VIEW_MODES.has(this._config.view));
-      // Cars only. HA's device picker, filtered by integration, also offers the
-      // "CarData Debug Device" -- registered first, it was even preselected -- and
-      // a card bound to it has nothing to show.
-      const cars = BavarianDataCard._vehicleDevices(this._hass).map((id) => {
-        const dev = this._hass.devices[id];
-        return { value: id, label: dev.name_by_user || dev.name || id };
-      });
-      const schema = [
-        { name: "device", selector: { select: { mode: "dropdown", options: cars } } },
-        { name: "cluster", selector: { select: { mode: "dropdown", options: clusterOptions } } },
-        { name: "title", selector: { text: {} } },
-      ];
-      if (overview) {
-        schema.push({
-          name: "drivetrain",
-          selector: {
-            select: {
-              mode: "dropdown",
-              options: ["auto", "bev", "phev", "ice"].map((value) => ({
-                value,
-                label: t(this._hass, "dt_" + value),
-              })),
-            },
-          },
-        });
-        // Entity overrides only make sense for the overview layout.
-        schema.push({
-          name: "",
-          type: "expandable",
-          flatten: true,
-          title: t(this._hass, "ed_overrides_title"),
-          icon: "mdi:tune-variant",
-          schema: [
-            { name: "image", selector: entitySel("image") },
-            {
-              type: "grid",
-              schema: [
-                { name: "soc", selector: entitySel() },
-                { name: "range", selector: entitySel() },
-                { name: "charging", selector: entitySel() },
-                { name: "target_soc", selector: entitySel() },
-                { name: "time_to_full", selector: entitySel() },
-                { name: "odometer", selector: entitySel() },
-                { name: "plug", selector: entitySel() },
-                { name: "fuel", selector: entitySel() },
-              ],
-            },
-          ],
-        });
-      }
-      return schema;
-    }
+  _staleClass(iso) {
+    const rel = iso ? (Date.now() - new Date(iso).getTime()) / 3600000 : 999;
+    return rel > 12 ? "dot--stale" : "dot--live";
+  }
 
-    _render() {
-      if (!this._hass || !this._config) return;
-      if (!this._form) {
-        this._form = document.createElement("ha-form");
-        this._form.computeLabel = (s) => t(this._hass, "ed_" + s.name, null, s.name);
-        this._form.computeHelper = (s) => t(this._hass, "edh_" + s.name, null, "");
-        this._form.addEventListener("value-changed", (ev) => this._valueChanged(ev));
-        this.appendChild(this._form);
-      }
-      this._form.hass = this._hass;
-      this._form.schema = this._schema();
-      // Present a concrete value so the mode dropdown reflects the current layout.
-      // A `view:` layout maps onto its dropdown sentinel (its own value); a cluster
-      // onto the cluster; otherwise the overview sentinel.
-      const mode = VIEW_MODES.has(this._config.view)
-        ? this._config.view
-        : this._config.cluster || OVERVIEW;
-      this._form.data = { ...this._config, cluster: mode, drivetrain: this._config.drivetrain || "auto" };
-    }
+  _imageUrl(entityId) {
+    const st = this._st(entityId);
+    if (!st || !st.attributes) return null;
+    // entity_picture carries a signed, cache-busted access token URL.
+    return st.attributes.entity_picture || null;
+  }
 
-    _valueChanged(ev) {
-      ev.stopPropagation();
-      if (!this._config) return;
-      const value = { ...ev.detail.value };
-      // The mode dropdown feeds the `cluster` field; translate its special values
-      // back into the real config keys.
-      if (VIEW_MODES.has(value.cluster)) {
-        value.view = value.cluster;
-        delete value.cluster;
-      } else {
-        delete value.view;
-        if (value.cluster === OVERVIEW || !value.cluster) delete value.cluster;
-      }
-      // "Auto-detect" is the absence of the key, not a value to store.
-      if (value.drivetrain === "auto") delete value.drivetrain;
-      // Drop empties so the stored config stays minimal.
-      for (const key of Object.keys(value)) {
-        if (value[key] === "" || value[key] === undefined || value[key] === null) {
-          delete value[key];
+  _renderCluster(deviceId, entities) {
+    const slug = this._config.cluster;
+    const rows = entities
+      .map((id) => this._st(id))
+      .filter((st) => st && st.attributes && st.attributes.cluster === slug)
+      .sort((a, b) =>
+        (a.attributes.friendly_name || a.entity_id).localeCompare(
+          b.attributes.friendly_name || b.entity_id
+        )
+      );
+
+    // BMW files Check Control messages ("washer fluid low") under usage-based
+    // data, yet they are what a driver means by a vehicle event: the events
+    // cluster itself holds only two teleservice timestamps, which most cars
+    // never send. So that view leads with the messages.
+    const cc = slug === "events" ? this._checkControl(entities) : null;
+    const messages = cc ? cc.items : [];
+
+    const label = this._config.title || this._clusterLabel(slug);
+    const icon = CLUSTER_ICONS[slug] || "mdi:car";
+    const name = this._deviceName(deviceId);
+    const count = rows.length + messages.length;
+
+    const sig = this._signature({
+      m: "cl",
+      lang: _lang(this._hass),
+      slug,
+      rows: rows.map((s) => [s.entity_id, s.state]),
+      cc: cc && [cc.id, cc.items, cc.updated, cc.unit, this._ccExpanded],
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <div class="chead">
+          <ha-icon icon="${icon}"></ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">${this._esc(label)}</span>
+            <span class="chead__sub">${this._esc(name)} · ${count} ${this._t(count === 1 ? "value" : "values")}</span>
+          </div>
+        </div>
+        ${
+          cc
+            ? `<div class="list__head">${this._t("cc_title")}</div>
+              ${
+                messages.length
+                  ? `<div class="list">${messages.map((msg) => this._ccRow(cc, msg)).join("")}</div>`
+                  : `<div class="empty empty--inline">${this._t("cc_none")}</div>`
+              }
+              ${rows.length ? `<div class="list__head">${this._t("cc_teleservice")}</div>` : ""}`
+            : ""
         }
-      }
-      delete value.type;
-      const config = { type: this._config.type || "custom:bavariandata-card", ...value };
-      this._config = config;
-      // Switching to/from a cluster changes which fields are relevant.
-      this._form.schema = this._schema();
-      this.dispatchEvent(
-        new CustomEvent("config-changed", {
-          detail: { config },
-          bubbles: true,
-          composed: true,
-        })
+        ${
+          rows.length
+            ? `<div class="list">
+                ${rows
+                  .map((st) => {
+                    const category = st.attributes.category;
+                    return `<button class="item" data-entity="${st.entity_id}">
+                      <span class="item__name" title="${this._esc(st.attributes.friendly_name || st.entity_id)}">${this._shortName(st, name)}</span>
+                      <span class="item__val">${this._fmt(st)}</span>
+                    </button>`;
+                  })
+                  .join("")}
+              </div>`
+            : cc
+              ? ""
+              : `<div class="empty">${this._t("no_cluster_entities", { label: `<b>${this._esc(label)}</b>` })}</div>`
+        }
+      </ha-card>
+    `;
+    this._wireTaps();
+    // A message is a list item, not an entity: it expands in place, the way a
+    // charging session or a trip does, instead of opening more-info.
+    this.shadowRoot.querySelectorAll("[data-cc]").forEach((el) => {
+      el.addEventListener("click", () => this._toggleCc(el.getAttribute("data-cc")));
+    });
+  }
+
+  _toggleCc(key) {
+    this._ccExpanded = this._ccExpanded === key ? null : key;
+    this._sig = null; // force a repaint with the new expansion state
+    this._render();
+  }
+
+  /** The Check Control sensor and its messages; null on a car without one. */
+  _checkControl(entities) {
+    const st = this._byDescriptor(entities, "vehicle.status.checkControlMessages");
+    if (!st) return null;
+    const attrs = st.attributes || {};
+    const odometer = this._byDescriptor(entities, "vehicle.vehicle.travelledDistance");
+    return {
+      id: st.entity_id,
+      items: Array.isArray(attrs.items)
+        ? attrs.items.filter((msg) => msg && typeof msg === "object")
+        : [],
+      updated: attrs.timestamp,
+      unit: (odometer && odometer.attributes && odometer.attributes.unit_of_measurement) || "km",
+    };
+  }
+
+  /** A Check Control field, or null for BMW's placeholders ("-", "NULL"). */
+  _ccField(value) {
+    if (value == null) return null;
+    const text = String(value).trim();
+    return text === "" || text === "-" || text.toUpperCase() === "NULL" ? null : text;
+  }
+
+  /** One Check Control message. BMW sends the text in English on every install,
+   * and on the maintainer's i5 with no title and no date. */
+  _ccRow(cc, msg) {
+    const key = String(msg.id != null ? msg.id : msg.text || "");
+    const isOpen = this._ccExpanded === key;
+    const title = this._ccField(msg.title);
+    const text = this._ccField(msg.text);
+    const head = title || text || this._ccField(msg.messageType) || "—";
+    const when = this._ccField(msg.date) ? this._fmtDay(msg.date) : "";
+    return `<div class="cc${isOpen ? " is-open" : ""}">
+      <button class="item item--msg" data-cc="${this._attr(key)}" aria-expanded="${isOpen}">
+        <ha-icon class="item__icon" icon="mdi:alert-circle-outline"></ha-icon>
+        <span class="item__body">
+          <span class="item__text${isOpen ? "" : " item__clamp"}">${this._esc(head)}</span>
+          ${title && text && !isOpen ? `<span class="item__sub item__clamp">${this._esc(text)}</span>` : ""}
+        </span>
+        ${when ? `<span class="item__val">${when}</span>` : ""}
+      </button>
+      ${isOpen ? this._ccDetail(cc, msg, title && text ? text : "") : ""}
+    </div>`;
+  }
+
+  _ccDetail(cc, msg, body) {
+    const description = this._ccField(msg.description);
+    const facts = [];
+    // Despite its name this is no distance left: on the maintainer's i5 it was
+    // the odometer at the start of the drive on which the car last showed the
+    // message (19 596, then 19 599 a drive later, while the car read 19 624).
+    const mileage = this._ccField(msg.unitOfLengthRemaining);
+    if (mileage && Number.isFinite(Number(mileage))) {
+      facts.push([this._t("cc_mileage"), `${this._dec(Number(mileage), 0)} ${this._esc(cc.unit)}`]);
+    }
+    const sent = this._relTime(cc.updated);
+    if (sent) facts.push([this._t("cc_sent"), sent]);
+    const code = [this._ccField(msg.messageType), this._ccField(msg.id)].filter(Boolean).join(" ");
+    if (code) facts.push([this._t("cc_code"), this._esc(code)]);
+
+    const factRow = facts
+      .map(
+        ([k, v]) =>
+          `<div class="chg__fact"><span class="chg__fact-lbl">${k}</span><span class="chg__fact-val">${v}</span></div>`
+      )
+      .join("");
+    return `
+      <div class="chg__detail">
+        ${body ? `<p class="cc__text">${this._esc(body)}</p>` : ""}
+        ${description ? `<p class="cc__text">${this._esc(description)}</p>` : ""}
+        ${factRow ? `<div class="chg__facts">${factRow}</div>` : ""}
+      </div>
+    `;
+  }
+
+  /** Localized display label for a catalogue cluster slug. */
+  _clusterLabel(slug) {
+    return this._t("cl_" + slug, null, slug);
+  }
+
+  _shortName(st, deviceName) {
+    let n = st.attributes.friendly_name || st.entity_id;
+    if (deviceName && n.startsWith(deviceName + " ")) n = n.slice(deviceName.length + 1);
+    return this._esc(n);
+  }
+
+  /* ---- charging history ------------------------------------------------- */
+
+  /** Charging, battery health and efficiency all describe a high-voltage
+   * battery. On a petrol or diesel car each would sit empty for good and read
+   * like a fault, so say why instead -- before any service is called. Returns
+   * whether it painted. */
+  _renderIceNotice(deviceId, entities) {
+    if (this._drivetrain(entities) !== "ice") return false;
+    const name = this._config.title || this._deviceName(deviceId);
+    const sig = this._signature({ m: "ice", lang: _lang(this._hass), name });
+    if (sig === this._sig) return true;
+    this._renderMessage(
+      this._esc(this._t("ice_view_title")),
+      this._esc(this._t("ice_view_body", { name }))
+    );
+    this._sig = sig;
+    return true;
+  }
+
+  _renderCharging(deviceId, entities) {
+    const vin = this._deviceVin(deviceId);
+    if (!vin) {
+      this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
+      return;
+    }
+    if (this._renderIceNotice(deviceId, entities)) return;
+
+    // Sessions come from a service response, not entity state, so they can't be
+    // read synchronously off hass. Fetch once, then only re-fetch when a new
+    // session is likely: gate on the summary sensor's last_changed rather than
+    // polling, so a plain hass tick never hits the service.
+    const trigSt = entities
+      .map((id) => this._st(id))
+      .find(
+        (st) =>
+          st &&
+          st.attributes &&
+          (st.attributes.descriptor === "charging_cost_session" ||
+            st.attributes.descriptor === "charging_energy_month")
+      );
+    const trigger = trigSt ? trigSt.last_changed : "";
+
+    const month = this._month("charging");
+    const cache = this._chg;
+    const current =
+      cache && cache.vin === vin && cache.trigger === trigger && cache.month === month;
+    if (!current || (!cache.data && !cache.loading)) {
+      this._chg = {
+        vin,
+        trigger,
+        month,
+        data: current && cache ? cache.data : null,
+        loading: true,
+        error: false,
+      };
+      this._fetchCharging(vin, month);
+    }
+
+    this._paintCharging(deviceId, entities);
+  }
+
+  _fetchCharging(vin, month) {
+    const req = this._chg;
+    const bounds = this._monthBounds(month);
+    this._hass
+      .callService(
+        "bavariandata",
+        "get_charging_sessions",
+        { vin, from: bounds.from, to: bounds.to },
+        undefined,
+        false,
+        true
+      )
+      .then((res) => {
+        // Ignore a response for a request we've already superseded.
+        if (
+          !this._chg ||
+          this._chg.vin !== vin ||
+          this._chg.trigger !== req.trigger ||
+          this._chg.month !== month
+        )
+          return;
+        const sessions = (res && res.response && res.response.sessions) || [];
+        this._chg = { ...this._chg, data: sessions, loading: false, error: false };
+        this._render();
+      })
+      .catch(() => {
+        if (!this._chg || this._chg.vin !== vin || this._chg.trigger !== req.trigger)
+          return;
+        this._chg = { ...this._chg, loading: false, error: true };
+        this._render();
+      });
+  }
+
+  _paintCharging(deviceId, entities) {
+    const name = this._config.title || this._deviceName(deviceId);
+    const state = this._chg || {};
+    const sessions = state.data;
+    const month = this._month("charging");
+    const isCurrent = month === this._monthKey();
+    // The summary band is fed by the monthly sensors, which only ever describe
+    // the month happening now. Showing it above a list of last March would put
+    // two different periods in one card, so it goes with the current month.
+    const summary = isCurrent ? this._chargingSummary(entities) : null;
+    const expanded = this._chgExpanded || null;
+
+    const sig = this._signature({
+      m: "chg",
+      lang: _lang(this._hass),
+      name,
+      month,
+      loading: state.loading && !sessions,
+      error: state.error,
+      summary,
+      expanded,
+      rows: (sessions || []).map((s) => [s.start, s.energy_kwh, s.cost && s.cost.amount]),
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    let body;
+    if (state.error) {
+      body = `<div class="empty">${this._t("ch_error")}</div>`;
+    } else if (!sessions && state.loading) {
+      body = `<div class="empty">${this._t("ch_loading")}</div>`;
+    } else if (!sessions || !sessions.length) {
+      body = `<div class="empty">${this._t(
+        isCurrent ? "ch_empty" : "ch_empty_month"
+      )}</div>`;
+    } else {
+      body = `<div class="chg__list">${sessions
+        .map((s) => this._chargingRow(s, expanded))
+        .join("")}</div>`;
+    }
+
+    const count = sessions ? sessions.length : 0;
+    const countLabel =
+      count === 1
+        ? this._t("ch_session_one")
+        : this._t("ch_session_many", { n: count });
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <div class="chead">
+          <ha-icon icon="mdi:ev-station"></ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">${this._esc(this._config.title || this._t("ch_title"))}</span>
+            <span class="chead__sub">${this._esc(name)}${count ? " · " + countLabel : ""}</span>
+          </div>
+          ${this._exportButtons("charging")}
+        </div>
+        ${this._monthNav("charging")}
+        ${summary ? this._chargingSummaryBand(summary) : ""}
+        ${body}
+      </ha-card>
+    `;
+    this._wireChargingTaps();
+    this._wireMonthNav();
+  }
+
+  /** "This month" figures, read from the summary sensors when they exist. */
+  _chargingSummary(entities) {
+    let cost = null;
+    let energy = null;
+    for (const id of entities) {
+      const st = this._st(id);
+      const d = st && st.attributes && st.attributes.descriptor;
+      if (d === "charging_cost_month") cost = st;
+      else if (d === "charging_energy_month") energy = st;
+    }
+    if (!cost && !energy) return null;
+    return {
+      cost: cost ? this._fmt(cost) : null,
+      energy: energy ? this._fmt(energy) : null,
+    };
+  }
+
+  _chargingSummaryBand(summary) {
+    const cells = [];
+    if (summary.energy) {
+      cells.push(
+        `<div class="chg__stat"><span class="chg__stat-val">${summary.energy}</span><span class="chg__stat-lbl">${this._t("ch_month")}</span></div>`
+      );
+    }
+    if (summary.cost) {
+      cells.push(
+        `<div class="chg__stat"><span class="chg__stat-val">${summary.cost}</span><span class="chg__stat-lbl">${this._t("ch_month")}</span></div>`
+      );
+    }
+    if (!cells.length) return "";
+    return `<div class="chg__summary">${cells.join("")}</div>`;
+  }
+
+  _chargingRow(session, expanded) {
+    const id = session.start || "";
+    const isOpen = expanded === id;
+    const date = this._fmtSessionDate(session.start);
+    // Prefer the measured grid figure (imported / enriched sessions carry only
+    // that); fall back to the battery-side energy for live-only sessions.
+    const energyKwh = session.grid_kwh != null ? session.grid_kwh : session.energy_kwh;
+    const energy = energyKwh != null ? `${this._dec(energyKwh, 1)} kWh` : "—";
+    const soc = this._socArc(session);
+    const badge = this._locationBadge(session);
+    const partial =
+      session.cost && session.cost.partial
+        ? `<span class="chg__tag chg__tag--warn">${this._t("ch_partial")}</span>`
+        : "";
+    const ongoing = session.end
+      ? ""
+      : `<span class="chg__tag">${this._t("ch_ongoing")}</span>`;
+    const solar = this._solarTag(session);
+
+    return `
+      <div class="chg__session${isOpen ? " is-open" : ""}">
+        <button class="chg__row" data-session="${this._attr(id)}">
+          <span class="chg__row-main">
+            <span class="chg__date">${date}</span>
+            <span class="chg__meta">${soc}${badge}${solar}${ongoing}${partial}</span>
+          </span>
+          <span class="chg__figures">
+            <span class="chg__energy chg__energy--lead">${energy}</span>
+          </span>
+        </button>
+        ${isOpen ? this._chargingDetail(session) : ""}
+      </div>
+    `;
+  }
+
+  // How much of this charge came off the roof, as a compact tag. Absent --
+  // rather than "0 %" -- when the energy could not be attributed at all: no PV
+  // and grid sensors configured, or a charge from before they were.
+  _solarTag(session) {
+    const pct = session.energy_mix && session.energy_mix.solar_percent;
+    if (pct == null) return "";
+    return `<span class="chg__tag chg__tag--sun">\u2600 ${this._dec(
+      pct,
+      0
+    )}% ${this._t("ch_solar")}</span>`;
+  }
+
+  // The breakdown behind that tag, in grid-side kWh. Sources with nothing in
+  // them are left out, so a night charge reads "Grid 11.2 kWh" and not a list
+  // of zeroes.
+  _mixLabel(mix) {
+    if (!mix) return "";
+    const parts = [];
+    for (const [key, label] of [
+      ["pv", "ch_mix_pv"],
+      ["battery", "ch_mix_battery"],
+      ["grid", "ch_mix_grid"],
+      ["unknown", "ch_mix_unknown"],
+    ]) {
+      const value = mix[key];
+      if (value == null || !(value > 0)) continue;
+      parts.push(`${this._t(label)} ${this._dec(value, 1)}`);
+    }
+    return parts.length ? `${parts.join(" · ")} kWh` : "";
+  }
+
+  _chargingDetail(session) {
+    const chart = this._powerCurveSvg(session.power_curve);
+    const facts = [];
+    if (session.peak_power_kw != null) {
+      facts.push([this._t("ch_peak"), `${this._dec(session.peak_power_kw, 1)} kW`]);
+    }
+    const avg = this._avgPowerKw(session);
+    if (avg != null) facts.push([this._t("ch_avg"), `${this._dec(avg, 1)} kW`]);
+    // duration_s isn't in the service payload; derive it from the timestamps.
+    const dur = this._durationLabel(session);
+    if (dur) facts.push([this._t("ch_duration"), dur]);
+    if (session.grid_kwh != null) {
+      facts.push([this._t("ch_grid"), `${this._dec(session.grid_kwh, 1)} kWh`]);
+    }
+    // Cost moved off the collapsed row to here, so it's kept for tariff users
+    // without competing with the kWh for the row's headline figure.
+    if (session.cost && session.cost.amount != null) {
+      facts.push([this._t("ch_cost"), this._fmtCost(session.cost)]);
+    }
+    const mixLabel = this._mixLabel(session.energy_mix);
+    if (mixLabel) facts.push([this._t("ch_mix"), mixLabel]);
+
+    const factRow = facts
+      .map(
+        ([k, v]) =>
+          `<div class="chg__fact"><span class="chg__fact-lbl">${k}</span><span class="chg__fact-val">${v}</span></div>`
+      )
+      .join("");
+
+    return `
+      <div class="chg__detail">
+        ${chart}
+        <div class="chg__facts">${factRow}</div>
+      </div>
+    `;
+  }
+
+  /** Inline SVG step chart of the [seconds, kW] power curve. No dependencies.
+   *
+   * Stepped, not interpolated: each sampled power holds until the next sample
+   * arrives, which is what the data means (an average over a block), rather than
+   * drawing a diagonal ramp between two readings that never happened. */
+  _powerCurveSvg(curve) {
+    if (!Array.isArray(curve) || curve.length < 2) return "";
+    const W = 260;
+    const H = 64;
+    const pad = 4;
+    const xs = curve.map((p) => p[0]);
+    const ys = curve.map((p) => p[1]);
+    const xMin = Math.min(...xs);
+    const xMax = Math.max(...xs);
+    const yMax = Math.max(...ys, 0.1);
+    const spanX = xMax - xMin || 1;
+    const sx = (x) => pad + ((x - xMin) / spanX) * (W - 2 * pad);
+    const sy = (y) => H - pad - (y / yMax) * (H - 2 * pad);
+    const pts = curve.map((p) => [sx(p[0]), sy(p[1])]);
+    const stepped = [];
+    for (let i = 0; i < pts.length; i++) {
+      stepped.push(pts[i]);
+      // Hold this reading's level across to the next sample's time before
+      // stepping to the new level.
+      if (i < pts.length - 1) stepped.push([pts[i + 1][0], pts[i][1]]);
+    }
+    const line = stepped
+      .map(([x, y]) => `${this._px(x)},${this._px(y)}`)
+      .join(" ");
+    const area = `${pad},${H - pad} ${line} ${W - pad},${H - pad}`;
+    return `
+      <svg class="chg__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
+        <polygon points="${area}" class="chg__chart-fill"></polygon>
+        <polyline points="${line}" class="chg__chart-line"></polyline>
+        <text x="${pad}" y="10" class="chg__chart-max">${this._dec(yMax, 1)} kW</text>
+      </svg>
+    `;
+  }
+
+  _locationBadge(session) {
+    const loc = session.location || {};
+    const zone = loc.zone;
+    const assumed = session.location_assumed;
+    // A resolved non-home zone shows its own name; everything else is Home vs
+    // Away, with "assumed" spelled out when we had no GPS and fell back to home.
+    let label;
+    let cls = "chg__badge";
+    if (assumed) {
+      label = `${this._t("ch_home")} · ${this._t("ch_assumed")}`;
+      cls += " chg__badge--assumed";
+    } else if (zone && !/^home$/i.test(zone)) {
+      label = zone;
+      cls += " chg__badge--away";
+    } else if (zone) {
+      label = this._t("ch_home");
+      cls += " chg__badge--home";
+    } else if (loc.address) {
+      // No matching zone, but BMW gave us the address of a public charge.
+      label = loc.address;
+      cls += " chg__badge--away";
+    } else {
+      label = this._t("ch_public");
+      cls += " chg__badge--away";
+    }
+    return `<span class="${cls}">${this._esc(label)}</span>`;
+  }
+
+  _socArc(session) {
+    const a = session.soc_start;
+    const b = session.soc_end;
+    if (a == null && b == null) return "";
+    const from = a == null ? "?" : Math.round(a);
+    const to = b == null ? "?" : Math.round(b);
+    return `<span class="chg__soc">${from}→${to}%</span>`;
+  }
+
+  _fmtCost(cost) {
+    if (!cost || cost.amount == null) {
+      return `<span class="chg__cost--none">${this._t("ch_no_cost")}</span>`;
+    }
+    const locale = _numberLocale(this._hass);
+    try {
+      if (locale === null) throw new Error("number format: none");
+      return this._esc(
+        new Intl.NumberFormat(locale, {
+          style: "currency",
+          currency: cost.currency || "EUR",
+          maximumFractionDigits: 2,
+        }).format(cost.amount)
+      );
+    } catch (e) {
+      return this._esc(
+        `${this._dec(cost.amount, 2)} ${cost.currency || ""}`.trim()
       );
     }
   }
 
-  defineCardElement("bavariandata-card-editor", BavarianDataCardEditor);
-  // Legacy alias for the editor element, matching the card alias above. Needs its
-  // own constructor for the same reason (one class -> one tag name).
-  defineCardElement("bmw-cardata-card-editor", class extends BavarianDataCardEditor {});
+  _fmtSessionDate(iso) {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return this._esc(iso);
+    try {
+      return d.toLocaleString(_lang(this._hass), {
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (e) {
+      return d.toISOString().slice(0, 16).replace("T", " ");
+    }
+  }
 
-  window.customCards = window.customCards || [];
-  // Only advertise the card once — a second evaluation would otherwise add a
-  // duplicate entry to the card picker.
-  if (!window.customCards.some((c) => c.type === "bavariandata-card")) {
-    window.customCards.push({
-      type: "bavariandata-card",
-      name: "BavarianData Card",
-      description: "Vehicle render, state of charge and per-cluster data for BMW CarData.",
-      preview: true,
-      documentationURL: "https://github.com/JustChr/BavarianData",
+  _durationLabel(session) {
+    if (!session.start || !session.end) return null;
+    const ms = new Date(session.end).getTime() - new Date(session.start).getTime();
+    if (!(ms > 0)) return null;
+    const mins = Math.round(ms / 60000);
+    if (mins < 60) return `${mins} min`;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m ? `${h} h ${m} min` : `${h} h`;
+  }
+
+  _avgPowerKw(session) {
+    const energyKwh = session.grid_kwh != null ? session.grid_kwh : session.energy_kwh;
+    if (energyKwh == null || !session.start || !session.end) return null;
+    const hours =
+      (new Date(session.end).getTime() - new Date(session.start).getTime()) / 3600000;
+    if (!(hours > 0)) return null;
+    return energyKwh / hours;
+  }
+
+  /* ---- month window ------------------------------------------------------
+   *
+   * The trips and charging views show one calendar month at a time. History is
+   * kept for two years, so the alternative is a list that grows without end and
+   * that nothing on screen describes — the "month in review" band above it was
+   * always month-scoped, so an unbounded list below it made the card disagree
+   * with itself. Paging by month keeps every record reachable and lets the
+   * summary, the list and the export all speak about the same period.
+   */
+
+  /** "YYYY-MM" for a Date; the current month when given nothing. */
+  _monthKey(date) {
+    const d = date || new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  }
+
+  /** The month a view is showing, defaulting to the current one. */
+  _month(kind) {
+    return (kind === "trips" ? this._trpMonth : this._chgMonth) || this._monthKey();
+  }
+
+  _shiftMonth(key, delta) {
+    const [y, m] = key.split("-").map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    return this._monthKey(d);
+  }
+
+  /** First and last instant of a month, as the `from`/`to` the services take. */
+  _monthBounds(key) {
+    const [y, m] = key.split("-").map(Number);
+    return {
+      from: `${key}-01`,
+      // The services treat `to` as inclusive of the day, so the last day of the
+      // month is the bound — computed as "day 0 of next month" to dodge leap
+      // years and 30/31-day arithmetic entirely.
+      to: `${key}-${String(new Date(y, m, 0).getDate()).padStart(2, "0")}`,
+    };
+  }
+
+  _monthLabel(key) {
+    const [y, m] = key.split("-").map(Number);
+    const d = new Date(y, m - 1, 1);
+    try {
+      return d.toLocaleDateString(_lang(this._hass) === "de" ? "de-DE" : "en-GB", {
+        month: "long",
+        year: "numeric",
+      });
+    } catch (_e) {
+      return key;
+    }
+  }
+
+  /** ‹ August 2026 › — forward stops at the current month, which is the newest
+   * one that can hold anything. */
+  _monthNav(kind) {
+    const key = this._month(kind);
+    const atNewest = key >= this._monthKey();
+    return `
+      <div class="mnav">
+        <button class="mnav__btn" data-month-kind="${kind}" data-month-step="-1"
+                title="${this._t("mn_prev")}" aria-label="${this._t("mn_prev")}">
+          <ha-icon icon="mdi:chevron-left"></ha-icon>
+        </button>
+        <span class="mnav__label">${this._monthLabel(key)}</span>
+        <button class="mnav__btn" data-month-kind="${kind}" data-month-step="1"
+                title="${this._t("mn_next")}" aria-label="${this._t("mn_next")}"
+                ${atNewest ? "disabled" : ""}>
+          <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </button>
+      </div>`;
+  }
+
+  _wireMonthNav() {
+    this.shadowRoot.querySelectorAll("[data-month-step]").forEach((el) => {
+      el.addEventListener("click", (ev) => {
+        ev.stopPropagation(); // the rows underneath are tappable
+        if (el.hasAttribute("disabled")) return;
+        const kind = el.getAttribute("data-month-kind");
+        const step = Number(el.getAttribute("data-month-step"));
+        const next = this._shiftMonth(this._month(kind), step);
+        if (next > this._monthKey()) return;
+        if (kind === "trips") {
+          this._trpMonth = next;
+          // An expanded row belongs to the month it was opened in; carrying the
+          // id across would leave a detail panel open on a trip not in the list.
+          this._trpExpanded = null;
+          this._trp = null;
+        } else {
+          this._chgMonth = next;
+          this._chgExpanded = null;
+          this._chg = null;
+        }
+        this._render();
+      });
     });
   }
 
-  // eslint-disable-next-line no-console
-  console.info(
-    `%c BAVARIANDATA-CARD %c ${CARD_VERSION} `,
-    "color:#fff;background:#2f80ed;border-radius:3px 0 0 3px;padding:2px 4px;",
-    "color:#2f80ed;background:#0b0f14;border-radius:0 3px 3px 0;padding:2px 4px;"
-  );
+  /* ---- export (roadmap Phase 4) ----------------------------------------- */
+
+  /** Header buttons for the charging and trips views. `kind` scopes the CSV. */
+  _exportButtons(kind) {
+    return `
+      <div class="xbar">
+        <button class="xbtn" data-export="csv" data-kind="${kind}"
+                title="${this._t("ex_csv_hint")}">
+          <ha-icon icon="mdi:file-delimited-outline"></ha-icon>${this._t("ex_csv")}
+        </button>
+        <button class="xbtn" data-export="html" data-kind="both"
+                title="${this._t("ex_report_hint")}">
+          <ha-icon icon="mdi:file-document-outline"></ha-icon>${this._t("ex_report")}
+        </button>
+      </div>`;
+  }
+
+  _wireExport() {
+    this.shadowRoot.querySelectorAll("[data-export]").forEach((el) => {
+      el.addEventListener("click", (ev) => {
+        ev.stopPropagation(); // rows below are tappable too
+        this._export(el.getAttribute("data-kind"), el.getAttribute("data-export"));
+      });
+    });
+  }
+
+  _export(kind, format) {
+    const vin = this._deviceVin(this._resolveDeviceId());
+    // One export at a time: the button stays in the DOM across repaints, and a
+    // double tap would otherwise download the same month twice.
+    if (!vin || this._exporting) return;
+    this._exporting = true;
+    // Export what the user is looking at: paging back to March and hitting CSV
+    // must not quietly hand over the current month instead.
+    const month = this._month(
+      this._config.view === "trips" ? "trips" : "charging"
+    );
+    this._hass
+      .callService(
+        "bavariandata",
+        "export_history",
+        { vin, type: kind, format, month },
+        undefined,
+        false,
+        true
+      )
+      .then((res) => {
+        const files = (res && res.response && res.response.files) || [];
+        const written = files.filter((f) => f && f.content && f.rows);
+        if (!written.length) {
+          this._notify(this._t("ex_empty"));
+          return;
+        }
+        written.forEach((file) => this._download(file));
+      })
+      .catch(() => this._notify(this._t("ex_error")))
+      .finally(() => {
+        this._exporting = false;
+      });
+  }
+
+  /** Hand the service's file content to the browser as a download. */
+  _download(file) {
+    const blob = new Blob([file.content], {
+      type: `${file.mime || "text/plain"};charset=utf-8`,
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = file.filename || "bavariandata-export";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    // Revoking immediately can cancel the download in some browsers.
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  }
+
+  _notify(message) {
+    this.dispatchEvent(
+      new CustomEvent("hass-notification", {
+        detail: { message },
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
+
+  _wireChargingTaps() {
+    this._wireExport();
+    this.shadowRoot.querySelectorAll("[data-session]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const id = el.getAttribute("data-session");
+        this._chgExpanded = this._chgExpanded === id ? null : id;
+        this._sig = null; // force a repaint with the new expansion state
+        const deviceId = this._resolveDeviceId();
+        this._paintCharging(deviceId, this._deviceEntities(deviceId));
+      });
+    });
+  }
+
+  /* ---- trips (Fahrtenbuch) ---------------------------------------------- */
+
+  _renderTrips(deviceId, entities) {
+    const vin = this._deviceVin(deviceId);
+    if (!vin) {
+      this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
+      return;
+    }
+
+    // Like charging, trips come from services (a list + the month-in-review),
+    // not entity state. Gate the fetch on the monthly-distance sensor's
+    // last_changed so a plain hass tick never hits the services.
+    const trigSt = this._byDescriptor(entities, "driving_distance_month");
+    // A drive under way is not in the store, so the monthly figure doesn't move
+    // while it happens: the trip flag's own writes are what refresh the
+    // in-progress row. It rewrites at most once a minute while driving (the
+    // integration throttles it), so this costs one local service call a minute.
+    const tripSt = this._byDescriptor(entities, "trip_in_progress");
+    const trigger = [
+      trigSt ? trigSt.last_changed : "",
+      tripSt ? `${tripSt.state}@${tripSt.last_updated}` : "",
+    ].join("|");
+
+    const month = this._month("trips");
+    const cache = this._trp;
+    const current =
+      cache && cache.vin === vin && cache.trigger === trigger && cache.month === month;
+    if (!current || (!cache.trips && !cache.loading)) {
+      this._trp = {
+        vin,
+        trigger,
+        month,
+        trips: current && cache ? cache.trips : null,
+        summary: current && cache ? cache.summary : null,
+        open: current && cache ? cache.open : null,
+        loading: true,
+        error: false,
+      };
+      this._fetchTrips(vin, month);
+    }
+
+    this._paintTrips(deviceId, entities);
+    // The expanded trip's route rides a live ha-map (loaded on demand); mount it
+    // after paint so a repaint never tears down an in-place Leaflet instance.
+    this._ensureMapLib();
+    this._mountTripMiniMap();
+  }
+
+  _fetchTrips(vin, month) {
+    const req = this._trp;
+    const call = (service, data) =>
+      this._hass.callService("bavariandata", service, data, undefined, false, true);
+    const bounds = this._monthBounds(month);
+    Promise.all([
+      // Bounded to the month on the service side rather than fetched wide and
+      // sliced here: the store holds two years, and the card should never pull
+      // more than it is about to draw.
+      call("get_trips", { vin, from: bounds.from, to: bounds.to }),
+      call("get_driving_summary", { vin, month }),
+    ])
+      .then(([tripsRes, sumRes]) => {
+        if (
+          !this._trp ||
+          this._trp.vin !== vin ||
+          this._trp.trigger !== req.trigger ||
+          this._trp.month !== month
+        )
+          return;
+        const trips = (tripsRes && tripsRes.response && tripsRes.response.trips) || [];
+        const summary = (sumRes && sumRes.response && sumRes.response.summary) || null;
+        // The drive under way (if any) rides alongside the recorded trips rather
+        // than inside them — it has no end and nothing to classify yet.
+        const openList =
+          (tripsRes && tripsRes.response && tripsRes.response.open_trips) || [];
+        const open = openList.length ? openList[0] : null;
+        this._trp = {
+          ...this._trp,
+          trips,
+          summary,
+          open,
+          loading: false,
+          error: false,
+        };
+        this._render();
+      })
+      .catch(() => {
+        if (!this._trp || this._trp.vin !== vin || this._trp.trigger !== req.trigger)
+          return;
+        this._trp = { ...this._trp, loading: false, error: true };
+        this._render();
+      });
+  }
+
+  _paintTrips(deviceId, entities) {
+    const name = this._config.title || this._deviceName(deviceId);
+    const state = this._trp || {};
+    const trips = state.trips;
+    const summary = state.summary;
+    const open = state.open || null;
+    const expanded = this._trpExpanded || null;
+
+    const month = this._month("trips");
+    const sig = this._signature({
+      m: "trp",
+      lang: _lang(this._hass),
+      name,
+      month,
+      loading: state.loading && !trips,
+      error: state.error,
+      summary,
+      expanded,
+      // Elapsed minutes so the in-progress row's duration ticks between fetches.
+      open: open
+        ? [open.start, open.distance_km, this._elapsedMin(open.start), open.held]
+        : null,
+      rows: (trips || []).map((t) => [t.start, t.distance_km, t.classification]),
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    // The drive under way leads the list: it's the row a user opening this view
+    // mid-drive is looking for, and it is the newest thing there is.
+    const openRow = open ? this._tripRow(open, expanded) : "";
+
+    let body;
+    if (state.error) {
+      body = `<div class="empty">${this._t("tr_error")}</div>`;
+    } else if (!trips && state.loading) {
+      body = `<div class="empty">${this._t("tr_loading")}</div>`;
+    } else if ((!trips || !trips.length) && !open) {
+      // Distinguish "nothing yet, ever" from "nothing in the month you paged
+      // to" -- the first is onboarding advice, the second just means go back.
+      body = `<div class="empty">${this._t(
+        month === this._monthKey() ? "tr_empty" : "tr_empty_month"
+      )}</div>`;
+    } else {
+      body = `${this._tripReview(summary)}<div class="chg__list">${openRow}${(
+        trips || []
+      )
+        .map((t) => this._tripRow(t, expanded))
+        .join("")}</div>`;
+    }
+
+    const count = trips ? trips.length : 0;
+    const countLabel =
+      count === 1 ? this._t("tr_trip_one") : this._t("tr_trip_many", { n: count });
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <div class="chead">
+          <ha-icon icon="mdi:road-variant"></ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">${this._esc(this._config.title || this._t("tr_title"))}</span>
+            <span class="chead__sub">${this._esc(name)}${count ? " · " + countLabel : ""}</span>
+          </div>
+          ${this._exportButtons("trips")}
+        </div>
+        ${this._monthNav("trips")}
+        ${body}
+      </ha-card>
+    `;
+    this._wireTripTaps();
+    this._wireMonthNav();
+  }
+
+  /** The "month in review" panel, built entirely from get_driving_summary. */
+  _tripReview(summary) {
+    if (!summary || !summary.total_km) return "";
+    const km = (v) => (v == null ? "—" : `${this._dec(v, 0)} km`);
+    const split = summary.split || {};
+
+    // Headline tiles: distance with a month-over-month arrow, and trip count.
+    const delta = summary.mom_delta_percent;
+    const arrow = delta == null ? "" : delta > 0 ? "▲" : delta < 0 ? "▼" : "→";
+    const deltaTxt =
+      delta == null
+        ? ""
+        : `<span class="tr__delta tr__delta--${delta >= 0 ? "up" : "down"}">${arrow} ${this._dec(
+            Math.abs(delta),
+            0
+          )}% ${this._t("tr_vs_last")}</span>`;
+
+    const tiles = [
+      `<div class="tr__tile"><span class="tr__tile-val">${this._dec(
+        summary.total_km,
+        0
+      )} <i>km</i></span><span class="tr__tile-lbl">${this._t("tr_review")}</span>${deltaTxt}</div>`,
+    ];
+    // Consumption leads with the energy balance: it comes from the charging
+    // ledger and the odometer rather than from SoC deltas, so it isn't limited
+    // by the one-percent resolution BMW streams SoC at, and it survives a month
+    // whose drives were all too short to rate.
+    const balance = summary.energy_balance || null;
+    const battSide = summary.avg_consumption_kwh_per_100km;
+    if (balance && balance.kwh_per_100km != null) {
+      const isGrid = balance.source === "grid";
+      // The second line only earns its place when the two figures measure
+      // *different* things — a grid-side balance against the battery-side trip
+      // total, where the gap really is the charging loss. Without a measured
+      // grid figure the balance is battery-side too, so printing both would show
+      // one quantity twice and dress the difference between their windows up as
+      // a loss (it read "-2%" on real data, which is not a thing).
+      let foot = "";
+      if (isGrid && battSide != null) {
+        const loss = (1 - battSide / balance.kwh_per_100km) * 100;
+        const lossTxt =
+          loss >= 3 && loss <= 30
+            ? " · " + this._t("tr_charge_loss", { n: this._dec(loss, 0) })
+            : "";
+        foot = `<span class="tr__tile-sub">${this._dec(battSide, 1)} ${this._t(
+          "tr_at_battery"
+        )}${lossTxt}</span>`;
+      }
+      tiles.push(
+        `<div class="tr__tile"><span class="tr__tile-val">${this._dec(
+          balance.kwh_per_100km,
+          1
+        )} <i>kWh/100km</i></span><span class="tr__tile-lbl">${this._t(
+          "tr_consumption"
+        )} · ${this._t(isGrid ? "tr_at_plug" : "tr_at_battery")}</span>${foot}</div>`
+      );
+    } else if (battSide != null) {
+      tiles.push(
+        `<div class="tr__tile"><span class="tr__tile-val">${this._dec(
+          battSide,
+          1
+        )} <i>kWh/100km</i></span><span class="tr__tile-lbl">${this._t(
+          "tr_consumption"
+        )}</span></div>`
+      );
+    }
+    if (summary.recuperation_kwh_per_100km != null) {
+      tiles.push(
+        `<div class="tr__tile"><span class="tr__tile-val">${this._dec(
+          summary.recuperation_kwh_per_100km,
+          1
+        )} <i>kWh/100km</i></span><span class="tr__tile-lbl">${this._t(
+          "tr_recuperation"
+        )}</span></div>`
+      );
+    }
+    if (summary.estimated_cost && summary.estimated_cost.amount != null) {
+      const c = summary.estimated_cost;
+      tiles.push(
+        `<div class="tr__tile"><span class="tr__tile-val">${this._dec(c.amount, 2)} <i>${this._esc(
+          c.currency || ""
+        )}</i></span><span class="tr__tile-lbl">${this._t("tr_est_cost")}</span></div>`
+      );
+    }
+
+    // Business / private / commute split as one stacked bar with a legend.
+    const segs = [
+      ["business", split.business_km, "tr__seg--business"],
+      ["commute", split.commute_km, "tr__seg--commute"],
+      ["private", split.private_km, "tr__seg--private"],
+      ["unclassified", split.unclassified_km, "tr__seg--unc"],
+    ];
+    const total = summary.total_km || 1;
+    const barSegs = segs
+      .filter(([, v]) => v)
+      .map(
+        ([, v, cls]) => `<span class="tr__seg ${cls}" style="width:${(v / total) * 100}%"></span>`
+      )
+      .join("");
+    const legend = segs
+      .filter(([, v]) => v)
+      .map(
+        ([key, v, cls]) =>
+          `<span class="tr__leg"><i class="tr__dot ${cls}"></i>${this._t(
+            "tr_" + key
+          )} ${km(v)}</span>`
+      )
+      .join("");
+    const splitBlock = barSegs
+      ? `<div class="tr__split"><div class="tr__bar">${barSegs}</div><div class="tr__legend">${legend}</div></div>`
+      : "";
+
+    // Driving-style score (0–5) with a week-over-week trend sparkline.
+    let styleBlock = "";
+    if (summary.style_score != null) {
+      const trend = Array.isArray(summary.style_trend) ? summary.style_trend : [];
+      const points = trend.map((pt, i) => [i, pt.score]);
+      const chart = points.length >= 2 ? this._healthTrendSvg(points) : "";
+      styleBlock = `
+        <div class="tr__style">
+          <div class="tr__style-head">
+            <span class="tr__style-lbl">${this._t("tr_style")}</span>
+            <span class="tr__stars">${this._styleStars(summary.style_score)}</span>
+          </div>
+          ${chart ? `<div class="bh__trend"><span class="bh__trend-title">${this._t("tr_style_trend")}</span>${chart}</div>` : ""}
+        </div>`;
+    }
+
+    // Top destinations.
+    const dests = Array.isArray(summary.top_destinations) ? summary.top_destinations : [];
+    const destBlock = dests.length
+      ? `<div class="tr__dests"><span class="tr__dests-lbl">${this._t(
+          "tr_top_dest"
+        )}</span>${dests
+          .map(
+            (d) =>
+              `<span class="tr__dest"><span class="tr__dest-name">${this._esc(
+                d.label
+              )}</span><span class="tr__dest-n">${this._t("tr_visits", {
+                n: d.count,
+              })}</span></span>`
+          )
+          .join("")}</div>`
+      : "";
+
+    return `
+      <div class="tr__review">
+        <div class="tr__tiles">${tiles.join("")}</div>
+        ${splitBlock}
+        ${styleBlock}
+        ${destBlock}
+      </div>`;
+  }
+
+  /** Five glyphs filled to the nearest half for a 0–5 style score. */
+  _styleStars(score) {
+    const s = Math.max(0, Math.min(5, score));
+    let out = "";
+    for (let i = 1; i <= 5; i++) {
+      if (s >= i) out += "★";
+      else if (s >= i - 0.5) out += "⯪";
+      else out += "☆";
+    }
+    return out;
+  }
+
+  _tripRow(trip, expanded) {
+    const id = trip.start || "";
+    const isOpen = expanded === id;
+    const live = !!trip.in_progress;
+    const date = this._fmtSessionDate(trip.start);
+    const from = this._tripPlace(trip.start_place);
+    // A drive under way has no destination yet, and guessing one would be a lie:
+    // the arrow trails off instead.
+    const to = live ? "…" : this._esc(this._tripPlace(trip.end_place));
+    const dist =
+      trip.distance_km != null ? `${this._dec(trip.distance_km, 1)} km` : "—";
+    // In progress: a live badge in place of a classification (there is nothing to
+    // classify until the trip lands) and a duration counted from the start.
+    const cls = live
+      ? `<span class="tr__badge tr__badge--live"><i class="tr__live-dot"></i>${this._t(
+          "tr_open"
+        )}</span>`
+      : trip.classification
+      ? `<span class="tr__badge tr__badge--${trip.classification}">${this._t(
+          "tr_" + trip.classification
+        )}${
+          trip.classification_source === "auto"
+            ? ` <i class="tr__auto">${this._t("tr_auto")}</i>`
+            : ""
+        }</span>`
+      : "";
+    const min = live ? this._elapsedMin(trip.start) : null;
+    const dur = live
+      ? min == null
+        ? ""
+        : this._t("tr_min", { n: min })
+      : this._durationLabel(trip);
+
+    return `
+      <div class="chg__session${isOpen ? " is-open" : ""}${live ? " is-live" : ""}">
+        <button class="chg__row" data-trip="${this._attr(id)}">
+          <span class="chg__row-main">
+            <span class="chg__date">${this._esc(from)} → ${to}</span>
+            <span class="chg__meta"><span class="chg__soc">${date}</span>${cls}</span>
+          </span>
+          <span class="chg__figures">
+            <span class="chg__energy">${dist}</span>
+            <span class="chg__cost">${dur || ""}</span>
+          </span>
+        </button>
+        ${isOpen ? this._tripDetail(trip) : ""}
+      </div>
+    `;
+  }
+
+  _tripDetail(trip) {
+    const facts = [];
+    // Taken from the record, never recomputed here: the integration withholds a
+    // consumption figure when the SoC drop behind it was too small to divide by
+    // (a 1 km hop that ticked one percent is not a 78 kWh/100 km drive), and
+    // dividing energy by distance in the card would print it anyway.
+    const cons = trip.consumption_kwh_per_100km;
+    if (cons != null) {
+      facts.push([this._t("tr_consumption"), `${this._dec(cons, 1)} kWh/100km`]);
+    }
+    const st = trip.stats || {};
+    // BMW's recuperation figure is already an average per 100 km, not a total.
+    const recup = st.recuperation_kwh_per_100km ?? st.recuperation_kwh;
+    if (recup != null) {
+      facts.push([
+        this._t("tr_recuperation"),
+        `${this._dec(recup, 1)} kWh/100km`,
+      ]);
+    }
+    const soc = this._socArc(trip);
+
+    const factRow = facts
+      .map(
+        ([k, v]) =>
+          `<div class="chg__fact"><span class="chg__fact-lbl">${k}</span><span class="chg__fact-val">${v}</span></div>`
+      )
+      .join("");
+
+    // Reclassification controls: an auto guess is a guess the user can correct.
+    const buttons = ["business", "private", "commute"]
+      .map(
+        (c) =>
+          `<button class="tr__cls-btn tr__badge--${c}${
+            trip.classification === c ? " is-active" : ""
+          }" data-trip-class="${this._attr(trip.start || "")}" data-class="${c}">${this._t(
+            "tr_" + c
+          )}</button>`
+      )
+      .join("");
+
+    // A recorded route (opt-in trip_track) gets a small map of the drive; the
+    // ha-map element is mounted into this placeholder after paint (see
+    // _mountTripMiniMap), so a repaint can't tear a live Leaflet map down.
+    const hasTrack = Array.isArray(trip.track) && trip.track.length >= 2;
+    const mini = hasTrack
+      ? `<div class="tr__minimap" data-mini="${this._attr(trip.start || "")}"></div>`
+      : "";
+
+    // A drive under way gets the route and the figures so far, but no
+    // classification controls: there is no stored trip to reclassify yet, and the
+    // distance and consumption are provisional. The note says so out loud rather
+    // than letting a mid-drive figure read as final.
+    const footer = trip.in_progress
+      ? `<div class="tr__live-note">${this._t("tr_open_note")}</div>`
+      : `<div class="tr__classify">
+          <span class="tr__classify-lbl">${this._t("tr_classify")}</span>
+          <span class="tr__cls-btns">${buttons}</span>
+        </div>`;
+
+    return `
+      <div class="chg__detail">
+        ${mini}
+        ${soc ? `<div class="chg__facts">${soc}</div>` : ""}
+        ${factRow ? `<div class="chg__facts">${factRow}</div>` : ""}
+        ${footer}
+      </div>
+    `;
+  }
+
+  /** Build (or refresh) the mini-map for the currently expanded trip.
+   * Idempotent and called after every trips paint: it mounts the ha-map once the
+   * library is ready and the row exists, and re-mounts after a repaint clears it. */
+  _mountTripMiniMap() {
+    const expanded = this._trpExpanded || null;
+    const holder = this.shadowRoot && this.shadowRoot.querySelector(".tr__minimap");
+    if (!holder || !expanded) {
+      this._miniMapTripId = null;
+      return;
+    }
+    if (this._miniMapTripId === expanded && holder.firstChild) {
+      if (this._miniMapEl) this._miniMapEl.hass = this._hass;
+      this._reassertMapOverlays(); // the map may have been re-created under us
+      // A drive under way keeps adding points. Re-draw the polyline on the map
+      // that's already there -- _drawRoute replaces its own layer group -- rather
+      // than re-mounting an ha-map every time the route grows.
+      const growing = this._tripById(expanded);
+      if (growing && growing.in_progress && this._miniMapEl) {
+        const live = this._trackCoords(growing);
+        if (live.length >= 2 && live.length !== this._miniMapPoints) {
+          this._miniMapPoints = live.length;
+          this._drawRoute(
+            this._miniMapEl,
+            live,
+            TRIP_CLASS_COLORS[growing.classification] ||
+              TRIP_CLASS_COLORS.unclassified
+          );
+        }
+      }
+      return; // already mounted for this trip
+    }
+    if (this._mapLib !== "ready") return; // _ensureMapLib re-renders when ready
+    const id = holder.getAttribute("data-mini");
+    const trip = this._tripById(id);
+    if (!trip || !Array.isArray(trip.track) || trip.track.length < 2) return;
+
+    const coords = this._trackCoords(trip);
+    if (coords.length < 2) return;
+    this._miniMapPoints = coords.length;
+
+    holder.innerHTML = "";
+    const map = document.createElement("ha-map");
+    map.autoFit = false;
+    map.zoom = 14;
+    map.themeMode = "auto";
+    map.style.height = "200px";
+    map.style.display = "block";
+    map.hass = this._hass;
+    holder.appendChild(map);
+    this._miniMapEl = map;
+    this._miniMapTripId = expanded;
+
+    const color =
+      TRIP_CLASS_COLORS[trip.classification] || TRIP_CLASS_COLORS.unclassified;
+    this._drawRoute(map, coords, color);
+  }
+
+  /** A fetched trip by its row id (its start), the drive under way included --
+   * an open trip is not in the recorded list, it rides alongside it. */
+  _tripById(id) {
+    const state = this._trp || {};
+    if (state.open && state.open.start === id) return state.open;
+    return ((state.trips || []).find((t) => t.start === id)) || null;
+  }
+
+  /** A trip's track as clean [lat, lon] tuples, lightly decimated. */
+  _trackCoords(trip) {
+    const raw = (trip.track || [])
+      .filter(
+        (p) =>
+          Array.isArray(p) &&
+          p.length >= 2 &&
+          typeof p[0] === "number" &&
+          typeof p[1] === "number"
+      )
+      .map((p) => [p[0], p[1]]);
+    return this._decimate(raw, 400);
+  }
+
+  /** Draw a route as a native Leaflet polyline (via ha-map's Leaflet handle) --
+   * a clean, dot-free line, unlike ha-map `paths` which mark every vertex. Adds
+   * a green start and a red end marker. leafletMap/Leaflet appear only after
+   * ha-map's async init, so retry until they're there. */
+  _drawRoute(mapEl, coords, color) {
+    let tries = 0;
+    const draw = () => {
+      if (!mapEl || !this.shadowRoot.contains(mapEl)) return;
+      const lmap = mapEl.leafletMap;
+      const L = mapEl.Leaflet;
+      if (!lmap || !L || typeof L.polyline !== "function") {
+        if (tries++ < 30) setTimeout(draw, 150);
+        return;
+      }
+      try {
+        if (mapEl._bdRoute && mapEl._bdRouteMap === lmap) lmap.removeLayer(mapEl._bdRoute);
+        const group = L.layerGroup();
+        L.polyline(coords, {
+          color,
+          weight: 4,
+          opacity: 0.9,
+          lineJoin: "round",
+          lineCap: "round",
+        }).addTo(group);
+        const dot = (fill) => ({
+          radius: 5,
+          color: "#fff",
+          weight: 2,
+          fillColor: fill,
+          fillOpacity: 1,
+        });
+        L.circleMarker(coords[0], dot("#22a06b")).addTo(group); // start
+        L.circleMarker(coords[coords.length - 1], dot("#d1453b")).addTo(group); // end
+        group.addTo(lmap);
+        mapEl._bdRoute = group;
+        // Remember the instance and the inputs, so a torn-down map (tab switch)
+        // can be detected and the route re-drawn without a full re-mount.
+        mapEl._bdRouteMap = lmap;
+        mapEl._bdRouteSpec = { coords, color };
+        try {
+          lmap.fitBounds(coords, { padding: [16, 16], maxZoom: 16 });
+        } catch (_) {
+          /* transient size race; the next expand re-fits */
+        }
+      } catch (_) {
+        if (tries++ < 30) setTimeout(draw, 150);
+      }
+    };
+    draw();
+  }
+
+  _tripPlace(place) {
+    if (!place) return this._t("tr_unknown_place");
+    const label = place.label || place.zone || place.address;
+    if (!label || label === "Unknown") return this._t("tr_unknown_place");
+    return label;
+  }
+
+  _wireTripTaps() {
+    this._wireExport();
+    this.shadowRoot.querySelectorAll("[data-trip]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const id = el.getAttribute("data-trip");
+        this._trpExpanded = this._trpExpanded === id ? null : id;
+        this._sig = null; // force a repaint with the new expansion state
+        const deviceId = this._resolveDeviceId();
+        this._paintTrips(deviceId, this._deviceEntities(deviceId));
+        this._mountTripMiniMap(); // show the newly expanded trip's route at once
+      });
+    });
+    this.shadowRoot.querySelectorAll("[data-trip-class]").forEach((el) => {
+      el.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        const tripId = el.getAttribute("data-trip-class");
+        const cls = el.getAttribute("data-class");
+        const vin = this._trp && this._trp.vin;
+        if (!vin) return;
+        this._hass
+          .callService("bavariandata", "set_trip_class", {
+            vin,
+            trip_id: `${vin}-${tripId}`,
+            classification: cls,
+          })
+          .then(() => {
+            // Optimistically reflect the change; the service re-dispatches and
+            // the summary sensor's last_changed will trigger a real refetch.
+            if (this._trp && Array.isArray(this._trp.trips)) {
+              const hit = this._trp.trips.find((t) => t.start === tripId);
+              if (hit) {
+                hit.classification = cls;
+                hit.classification_source = "user";
+              }
+              this._sig = null;
+              const deviceId = this._resolveDeviceId();
+              this._paintTrips(deviceId, this._deviceEntities(deviceId));
+            }
+          })
+          .catch(() => {});
+      });
+    });
+  }
+
+  /* ---- trip map --------------------------------------------------------- */
+
+  // The map draws the opt-in route polylines (`trip_track`) on Home Assistant's
+  // own Leaflet map element (`ha-map`), reusing the frontend's map component
+  // rather than bundling a mapping library. Trips come from `get_trips` (which
+  // carries `track`), gated on the monthly-distance sensor like the Trips view.
+  _renderMap(deviceId, entities) {
+    const vin = this._deviceVin(deviceId);
+    if (!vin) {
+      this._mapPhase = null;
+      this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
+      return;
+    }
+    this._ensureMapLib();
+
+    const trigSt = entities
+      .map((id) => this._st(id))
+      .find(
+        (st) =>
+          st && st.attributes && st.attributes.descriptor === "driving_distance_month"
+      );
+    const trigger = trigSt ? trigSt.last_changed : "";
+
+    const cache = this._mapData;
+    const current = cache && cache.vin === vin && cache.trigger === trigger;
+    if (!current || (!cache.trips && !cache.loading)) {
+      this._mapData = {
+        vin,
+        trigger,
+        trips: current && cache ? cache.trips : null,
+        loading: true,
+        error: false,
+      };
+      this._fetchMapTrips(vin);
+    }
+
+    this._paintMap(deviceId, entities);
+  }
+
+  _fetchMapTrips(vin) {
+    const req = this._mapData;
+    // A generous limit: a route map wants more than the visible trip list, and
+    // get_trips reads the store (zero REST quota), so a wide fetch is cheap.
+    this._hass
+      .callService("bavariandata", "get_trips", { vin, limit: 200 }, undefined, false, true)
+      .then((res) => {
+        if (!this._mapData || this._mapData.vin !== vin || this._mapData.trigger !== req.trigger)
+          return;
+        const trips = (res && res.response && res.response.trips) || [];
+        this._mapData = { ...this._mapData, trips, loading: false, error: false };
+        this._render();
+      })
+      .catch(() => {
+        if (!this._mapData || this._mapData.vin !== vin || this._mapData.trigger !== req.trigger)
+          return;
+        this._mapData = { ...this._mapData, loading: false, error: true };
+        this._render();
+      });
+  }
+
+  // Force Home Assistant to load its `ha-map` element on demand. Creating a
+  // throwaway `map` card pulls in the map-card module, which imports (and thus
+  // registers) `ha-map`; the setConfig it then runs may throw for our empty
+  // entity list, but by then the element is defined, so we swallow it.
+  _ensureMapLib() {
+    if (customElements.get("ha-map")) {
+      this._mapLib = "ready";
+      return;
+    }
+    if (this._mapLib === "loading" || this._mapLib === "failed") return;
+    this._mapLib = "loading";
+    const finish = (ok) => {
+      this._mapLib = ok ? "ready" : "failed";
+      this._render();
+    };
+    (async () => {
+      try {
+        const helpers = await window.loadCardHelpers();
+        try {
+          await helpers.createCardElement({ type: "map", entities: [] });
+        } catch (_) {
+          /* setConfig may reject an empty map; the import already ran */
+        }
+        await Promise.race([
+          customElements.whenDefined("ha-map"),
+          new Promise((_, reject) => setTimeout(reject, 6000)),
+        ]);
+        finish(!!customElements.get("ha-map"));
+      } catch (_) {
+        finish(false);
+      }
+    })();
+  }
+
+  /** Trips that carry a drawable track, filtered to the active time window. */
+  _mapWindowTrips() {
+    const all = (this._mapData && this._mapData.trips) || [];
+    const withTrack = all.filter(
+      (t) => Array.isArray(t.track) && t.track.length >= 2
+    );
+    const win = this._mapWindow || "month";
+    if (win === "all") return withTrack;
+    const now = new Date();
+    let cutoff;
+    if (win === "3m") {
+      cutoff = new Date(now);
+      cutoff.setMonth(cutoff.getMonth() - 3);
+    } else {
+      cutoff = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+    return withTrack.filter((t) => {
+      const d = new Date(t.start);
+      return !isNaN(d.getTime()) && d >= cutoff;
+    });
+  }
+
+  /** The destination (end point) of every trip with a track, as visit markers.
+   * Only the end, not the start: a trip's start is essentially the previous
+   * trip's end (the car parks, then drives on from there), so plotting both would
+   * double-count every place. End-only gives an honest "times arrived here" count.
+   * Routes themselves now live on the trip card's mini-map. */
+  _mapEndpoints(trips) {
+    const out = [];
+    const valid = (p) =>
+      Array.isArray(p) && typeof p[0] === "number" && typeof p[1] === "number";
+    for (const trip of trips) {
+      const track = trip.track;
+      if (!Array.isArray(track) || track.length < 2) continue;
+      const end = track[track.length - 1];
+      if (valid(end))
+        out.push({ lat: end[0], lon: end[1], label: this._tripPlace(trip.end_place) });
+    }
+    return out;
+  }
+
+  _paintMap(deviceId, entities) {
+    const name = this._config.title || this._deviceName(deviceId);
+    const state = this._mapData || {};
+    const win = this._mapWindow || "month";
+    const lang = _lang(this._hass);
+
+    const allTrips = state.trips;
+    const anyTrack =
+      Array.isArray(allTrips) &&
+      allTrips.some((t) => Array.isArray(t.track) && t.track.length >= 2);
+    const winTrips = allTrips ? this._mapWindowTrips() : [];
+
+    let phase;
+    if (state.error) phase = "error";
+    else if (this._mapLib === "failed") phase = "unavailable";
+    else if ((!allTrips && state.loading) || this._mapLib !== "ready") phase = "loading";
+    else if (!anyTrack) phase = "empty_none";
+    else if (!winTrips.length) phase = "empty_window";
+    else phase = "data";
+
+    // The live map must survive routine hass ticks: rebuild the surrounding
+    // chrome only when the phase or a header field changes, and update the
+    // ha-map element in place otherwise (a full innerHTML rewrite would tear
+    // down Leaflet and reset the user's pan/zoom on every state update).
+    const chromeSig = this._signature({ m: "map", phase, name, lang });
+    const mounted =
+      phase === "data" && this._mapEl && this.shadowRoot.contains(this._mapEl);
+
+    if (chromeSig !== this._mapChromeSig || (phase === "data" && !mounted)) {
+      this._mapChromeSig = chromeSig;
+      this._buildMapChrome(deviceId, phase, name);
+    }
+
+    if (phase === "data") {
+      this._refreshDestinations(winTrips, win);
+    }
+  }
+
+  _buildMapChrome(deviceId, phase, name) {
+    const count = phase === "data" ? this._mapWindowTrips().length : 0;
+    const countLabel =
+      count === 1 ? this._t("tr_trip_one") : this._t("tr_trip_many", { n: count });
+
+    let body;
+    if (phase === "error") {
+      body = `<div class="empty">${this._t("mp_error")}</div>`;
+    } else if (phase === "unavailable") {
+      body = `<div class="empty">${this._t("mp_unavailable")}</div>`;
+    } else if (phase === "loading") {
+      body = `<div class="empty">${this._t("mp_loading")}</div>`;
+    } else if (phase === "empty_none") {
+      body = `<div class="empty">${this._t("mp_empty_none")}</div>`;
+    } else if (phase === "empty_window") {
+      body = `${this._mapFilters()}<div class="empty">${this._t("mp_empty_window")}</div>`;
+    } else {
+      body = `${this._mapFilters()}<div class="map__holder"></div>`;
+    }
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <div class="chead">
+          <ha-icon icon="mdi:map-marker-multiple"></ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">${this._esc(this._config.title || this._t("mp_title"))}</span>
+            <span class="chead__sub">${this._esc(name)}${count ? " · " + countLabel : ""}</span>
+          </div>
+        </div>
+        ${body}
+      </ha-card>
+    `;
+
+    this._mapEl = null;
+    if (phase === "data") {
+      const holder = this.shadowRoot.querySelector(".map__holder");
+      const map = document.createElement("ha-map");
+      // We add our own clustered markers to the Leaflet map, so autoFit (entities/
+      // zones/layers only) stays off and we fit to the endpoints ourselves.
+      map.autoFit = false;
+      map.zoom = 13;
+      map.themeMode = "auto";
+      map.style.height = "360px";
+      map.style.display = "block";
+      map.hass = this._hass;
+      holder.appendChild(map);
+      this._mapEl = map;
+      this._mapDataSig = null; // force the first cluster build
+      this._clusterLayer = null; // fresh map -- the old layer is gone with it
+      this._clusterMap = null;
+    }
+    this._wireMapFilters();
+  }
+
+  /** The time-window chip row (This month / 3 months / All). */
+  _mapFilters() {
+    const win = this._mapWindow || "month";
+    const chip = (key, label) =>
+      `<button class="map__chip${win === key ? " is-active" : ""}" data-win="${key}">${label}</button>`;
+    return `
+      <div class="map__filters">
+        ${chip("month", this._t("mp_win_month"))}
+        ${chip("3m", this._t("mp_win_3m"))}
+        ${chip("all", this._t("mp_win_all"))}
+      </div>`;
+  }
+
+  _wireMapFilters() {
+    this.shadowRoot.querySelectorAll("[data-win]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const win = el.getAttribute("data-win");
+        if ((this._mapWindow || "month") === win) return;
+        this._mapWindow = win;
+        // Re-run the paint: a window change can move between data and
+        // empty_window (a chrome rebuild) or just swap the drawn routes.
+        this._paintMap(this._resolveDeviceId(), this._deviceEntities(this._resolveDeviceId()));
+      });
+    });
+  }
+
+  /** Rebuild the clustered destination markers when the data/window changes. */
+  _refreshDestinations(winTrips, win) {
+    if (!this._mapEl) return;
+    this._mapEl.hass = this._hass;
+    this._reassertMapOverlays(); // the map may have been re-created under us
+
+    const dataSig = this._signature({
+      win,
+      rows: winTrips.map((t) => [t.start, (t.track || []).length]),
+    });
+    if (dataSig === this._mapDataSig) return;
+    this._mapDataSig = dataSig;
+
+    this._mountClusters(this._mapEndpoints(winTrips));
+
+    // Keep the chip active-state and the trip count honest after a swap.
+    const cur = this._mapWindow || "month";
+    this.shadowRoot.querySelectorAll("[data-win]").forEach((el) => {
+      el.classList.toggle("is-active", el.getAttribute("data-win") === cur);
+    });
+    const sub = this.shadowRoot.querySelector(".chead__sub");
+    if (sub) {
+      const name = this._config.title || this._deviceName(this._resolveDeviceId());
+      const n = winTrips.length;
+      const label = n === 1 ? this._t("tr_trip_one") : this._t("tr_trip_many", { n });
+      sub.textContent = `${name}${n ? " · " + label : ""}`;
+    }
+  }
+
+  /** Add the endpoints to the Leaflet map as a native marker-cluster group.
+   * Reuses the Leaflet + markercluster that Home Assistant's own ha-map loads
+   * (reachable via the mounted element), so clustering, counts, zoom-split and
+   * spiderfy are all native -- no hand-rolled overlay. `leafletMap`/`Leaflet`
+   * appear only after ha-map's async init, so retry until they're there. */
+  _mountClusters(endpoints) {
+    const mapEl = this._mapEl;
+    if (!mapEl) return;
+    let tries = 0;
+    const build = () => {
+      if (!mapEl || !this.shadowRoot.contains(mapEl)) return;
+      const lmap = mapEl.leafletMap;
+      const L = mapEl.Leaflet;
+      if (!lmap || !L || typeof L.markerClusterGroup !== "function") {
+        if (tries++ < 30) setTimeout(build, 150);
+        return; // markercluster/Leaflet not ready (or unavailable) yet
+      }
+      try {
+        if (this._clusterLayer) {
+          if (this._clusterMap === lmap) lmap.removeLayer(this._clusterLayer);
+          this._clusterLayer = null;
+          this._clusterMap = null;
+        }
+        const group = L.markerClusterGroup({
+          showCoverageOnHover: false,
+          maxClusterRadius: 48,
+          iconCreateFunction: (c) =>
+            L.divIcon({
+              html: this._clusterBubbleHtml(c.getChildCount()),
+              className: "",
+              iconSize: [40, 40],
+              iconAnchor: [20, 20],
+            }),
+        });
+        const pts = [];
+        for (const ep of endpoints) {
+          const marker = L.marker([ep.lat, ep.lon], {
+            icon: L.divIcon({
+              html: this._pinHtml(),
+              className: "",
+              iconSize: [16, 16],
+              iconAnchor: [8, 8],
+            }),
+          });
+          if (ep.label) marker.bindTooltip(this._esc(ep.label), { direction: "top" });
+          group.addLayer(marker);
+          pts.push([ep.lat, ep.lon]);
+        }
+        lmap.addLayer(group);
+        this._clusterLayer = group;
+        this._clusterMap = lmap; // so a torn-down map is detectable on reconnect
+        if (pts.length) {
+          try {
+            lmap.fitBounds(pts, { padding: [30, 30], maxZoom: 15 });
+          } catch (_) {
+            /* transient size race; the next data change re-fits */
+          }
+        }
+      } catch (_) {
+        if (tries++ < 30) setTimeout(build, 150);
+      }
+    };
+    build();
+  }
+
+  /** Re-add our Leaflet layers when the map element has been re-created under
+   * them (tab switch -> disconnect -> `leafletMap.remove()` -> new instance).
+   * Only fires for overlays that were actually drawn once, so it never races
+   * an initial draw that is still retrying; cheap enough to call from every
+   * paint as well as from connectedCallback. */
+  _reassertMapOverlays() {
+    const shadow = this.shadowRoot;
+    if (!shadow) return;
+
+    const mini = this._miniMapEl;
+    if (
+      mini &&
+      shadow.contains(mini) &&
+      mini._bdRouteSpec &&
+      this._layerLost(mini, mini._bdRouteMap, mini._bdRoute)
+    ) {
+      const spec = mini._bdRouteSpec;
+      mini._bdRoute = null;
+      mini._bdRouteMap = null;
+      this._drawRoute(mini, spec.coords, spec.color);
+    }
+
+    const mapEl = this._mapEl;
+    if (
+      mapEl &&
+      shadow.contains(mapEl) &&
+      this._clusterMap &&
+      this._layerLost(mapEl, this._clusterMap, this._clusterLayer)
+    ) {
+      this._clusterLayer = null;
+      this._clusterMap = null;
+      this._mountClusters(this._mapEndpoints(this._mapWindowTrips()));
+    }
+  }
+
+  /** True when a layer we drew is no longer on the element's live Leaflet map:
+   * the map is gone, or was replaced, or dropped the layer. */
+  _layerLost(mapEl, drawnOn, layer) {
+    const lmap = mapEl.leafletMap;
+    if (!lmap) return true; // torn down; the draw retry waits for the new one
+    if (lmap !== drawnOn) return true;
+    return !!layer && typeof lmap.hasLayer === "function" && !lmap.hasLayer(layer);
+  }
+
+  /** Inline-styled HTML for a cluster bubble (styles must be inline: the marker
+   * lives in ha-map's shadow tree, out of reach of this card's stylesheet). */
+  _clusterBubbleHtml(n) {
+    return (
+      `<div style="display:flex;align-items:center;justify-content:center;` +
+      `width:40px;height:40px;border-radius:50%;background:rgba(0,102,177,0.92);` +
+      `color:#fff;font:600 14px/1 system-ui,sans-serif;border:2px solid #fff;` +
+      `box-shadow:0 1px 5px rgba(0,0,0,0.45);">${n}</div>`
+    );
+  }
+
+  /** Inline-styled HTML for a single endpoint pin. */
+  _pinHtml() {
+    return (
+      `<div style="width:14px;height:14px;border-radius:50%;background:#0066b1;` +
+      `border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.45);"></div>`
+    );
+  }
+
+  /** Keep at most `max` points, always retaining the first and last. */
+  _decimate(points, max) {
+    if (points.length <= max) return points.slice();
+    const step = Math.ceil(points.length / max);
+    const out = [];
+    for (let i = 0; i < points.length; i += step) out.push(points[i]);
+    const last = points[points.length - 1];
+    if (out[out.length - 1] !== last) out.push(last);
+    return out;
+  }
+
+  /* ---- battery health --------------------------------------------------- */
+
+  _renderHealth(deviceId, entities) {
+    if (this._renderIceNotice(deviceId, entities)) return;
+    const name = this._config.title || this._deviceName(deviceId);
+    // Everything the view needs already lives on the battery_health sensor
+    // (state + attributes), so unlike the charging view there is no service to
+    // call -- the estimate and its trend paint straight from hass.
+    const st = entities
+      .map((id) => this._st(id))
+      .find(
+        (s) => s && s.attributes && s.attributes.descriptor === "battery_health"
+      );
+    const a = (st && st.attributes) || {};
+    const confident = !!a.confident;
+    const usable = a.usable_capacity_kwh;
+    const nominal = a.nominal_capacity_kwh;
+    const vsNew = a.vs_new_percent;
+    const samples = a.samples || 0;
+    const needed = a.samples_needed || 10;
+    const suspicious = !!a.suspicious;
+    const trend = Array.isArray(a.trend) ? a.trend : [];
+
+    const sig = this._signature({
+      m: "bh",
+      lang: _lang(this._hass),
+      name,
+      has: !!st,
+      confident,
+      usable,
+      nominal,
+      vsNew,
+      samples,
+      needed,
+      suspicious,
+      trend,
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    let body;
+    if (!st) {
+      body = `<div class="empty">${this._t("bh_empty")}</div>`;
+    } else if (confident) {
+      body = this._healthConfident(usable, nominal, vsNew, samples, trend);
+    } else {
+      body = this._healthLearning(samples, needed, suspicious);
+    }
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <div class="chead">
+          <ha-icon icon="mdi:battery-heart-variant"></ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">${this._esc(this._config.title || this._t("bh_title"))}</span>
+            <span class="chead__sub">${this._esc(name)}</span>
+          </div>
+        </div>
+        ${body}
+      </ha-card>
+    `;
+  }
+
+  _healthLearning(samples, needed, suspicious) {
+    const capped = Math.min(samples, needed);
+    const pct = needed ? Math.min(100, Math.round((capped / needed) * 100)) : 0;
+    // A suspicious estimate is a different message from "not enough data yet":
+    // say we're cross-checking rather than implying the car hasn't charged.
+    const hint = suspicious ? this._t("bh_suspicious") : this._t("bh_learning_hint");
+    return `
+      <div class="bh">
+        <div class="bh__learn">
+          <span class="bh__learn-val">${this._t("bh_learning", { n: capped, total: needed })}</span>
+          <div class="bh__bar"><div class="bh__bar-fill" style="width:${pct}%"></div></div>
+          <span class="bh__hint">${hint}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  _healthConfident(usable, nominal, vsNew, samples, trend) {
+    const facts = [];
+    if (nominal != null) {
+      facts.push([this._t("bh_nominal"), `${this._dec(nominal, 1)} kWh`]);
+    }
+    facts.push([this._t("bh_analysed"), this._t("bh_samples", { n: samples })]);
+    const factRow = facts
+      .map(
+        ([k, v]) =>
+          `<div class="chg__fact"><span class="chg__fact-lbl">${k}</span><span class="chg__fact-val">${v}</span></div>`
+      )
+      .join("");
+    const chart = this._healthTrendSvg(trend);
+    return `
+      <div class="bh">
+        <div class="bh__hero">
+          ${this._healthRing(vsNew)}
+          <div class="bh__hero-text">
+            <span class="bh__usable">${this._dec(usable, 1)} <i>kWh</i></span>
+            <span class="bh__usable-lbl">${this._t("bh_usable")}</span>
+            ${
+              vsNew != null
+                ? `<span class="bh__vsnew">${this._t("bh_of_new", { p: this._dec(vsNew, 0) })}</span>`
+                : ""
+            }
+          </div>
+        </div>
+        ${
+          chart
+            ? `<div class="bh__trend"><span class="bh__trend-title">${this._t("bh_trend_title")}</span>${chart}</div>`
+            : ""
+        }
+        <div class="chg__facts">${factRow}</div>
+      </div>
+    `;
+  }
+
+  /** A compact donut showing capacity as a percentage of the as-new pack. */
+  _healthRing(pct) {
+    const r = 34;
+    const circ = 2 * Math.PI * r;
+    const p = pct == null ? null : Math.max(0, Math.min(100, pct));
+    const dash = p == null ? 0 : (p / 100) * circ;
+    const label = p == null ? "—" : `${this._dec(p, 0)}%`;
+    return `
+      <svg class="bh__ring" viewBox="0 0 80 80" role="img">
+        <circle class="bh__ring-track" cx="40" cy="40" r="${r}"></circle>
+        <circle class="bh__ring-val" cx="40" cy="40" r="${r}"
+          stroke-dasharray="${this._px(dash)} ${this._px(circ)}"
+          transform="rotate(-90 40 40)"></circle>
+        <text x="40" y="45" class="bh__ring-text">${label}</text>
+      </svg>
+    `;
+  }
+
+  /** Inline SVG of the [odometer_km, usable_kwh] trend. Y is scaled to the data
+   * range, not zero-based: capacity fade is a few kWh and would be invisible on
+   * a 0-based axis. */
+  _healthTrendSvg(points) {
+    if (!Array.isArray(points) || points.length < 2) return "";
+    const W = 260;
+    const H = 70;
+    const pad = 6;
+    const xs = points.map((p) => p[0]);
+    const ys = points.map((p) => p[1]);
+    const xMin = Math.min(...xs);
+    const xMax = Math.max(...xs);
+    let yMin = Math.min(...ys);
+    let yMax = Math.max(...ys);
+    // Give a nearly-flat series some vertical room so it doesn't render as a
+    // jagged line amplifying sub-kWh noise into an alarming-looking drop.
+    if (yMax - yMin < 1) {
+      yMin -= 1;
+      yMax += 1;
+    }
+    const spanX = xMax - xMin || 1;
+    const spanY = yMax - yMin || 1;
+    const sx = (x) => pad + ((x - xMin) / spanX) * (W - 2 * pad);
+    const sy = (y) => H - pad - ((y - yMin) / spanY) * (H - 2 * pad);
+    const line = points
+      .map((p) => `${this._px(sx(p[0]))},${this._px(sy(p[1]))}`)
+      .join(" ");
+    return `
+      <svg class="bh__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
+        <polyline points="${line}" class="chg__chart-line"></polyline>
+        <text x="${pad}" y="10" class="chg__chart-max">${this._dec(yMax, 1)} kWh</text>
+        <text x="${pad}" y="${H - 3}" class="chg__chart-max">${this._dec(yMin, 1)} kWh</text>
+      </svg>
+    `;
+  }
+
+  /* ---- efficiency & real range ------------------------------------------ */
+
+  _renderEfficiency(deviceId, entities) {
+    const vin = this._deviceVin(deviceId);
+    if (!vin) {
+      this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
+      return;
+    }
+    if (this._renderIceNotice(deviceId, entities)) return;
+
+    const st = entities
+      .map((id) => this._st(id))
+      .find((s) => s && s.attributes && s.attributes.descriptor === "real_range");
+    const a = (st && st.attributes) || {};
+
+    // The month trend and the running cost come from the charging ledger, so
+    // they only move when a charge lands -- gate the service call on the
+    // measured consumption rather than on the entity's last_changed, which
+    // ticks with every state-of-charge update while the car is plugged in.
+    const trigger = [
+      a.consumption_kwh_per_100km,
+      a.consumption_window_days,
+      a.status,
+    ].join("|");
+    const cache = this._eff;
+    const current = cache && cache.vin === vin && cache.trigger === trigger;
+    if (!current || (!cache.data && !cache.loading)) {
+      this._eff = {
+        vin,
+        trigger,
+        data: current && cache ? cache.data : null,
+        loading: true,
+        error: false,
+      };
+      this._fetchEfficiency(vin);
+    }
+
+    this._paintEfficiency(deviceId, st);
+  }
+
+  _fetchEfficiency(vin) {
+    const req = this._eff;
+    this._hass
+      .callService("bavariandata", "get_efficiency", { vin }, undefined, false, true)
+      .then((res) => {
+        if (!this._eff || this._eff.vin !== vin || this._eff.trigger !== req.trigger)
+          return;
+        const profile = (res && res.response && res.response.efficiency) || null;
+        this._eff = { ...this._eff, data: profile, loading: false, error: false };
+        this._render();
+      })
+      .catch(() => {
+        if (!this._eff || this._eff.vin !== vin || this._eff.trigger !== req.trigger)
+          return;
+        this._eff = { ...this._eff, loading: false, error: true };
+        this._render();
+      });
+  }
+
+  /** Every figure here is in kilometres and kWh as the ledger recorded them,
+   * never read off the entity's state: a distance state is converted into the
+   * viewer's unit system while these attributes stay metric, and mixing the two
+   * would put miles and kilometres in one card. */
+  _efFigures(st, profile) {
+    const a = (st && st.attributes) || {};
+    if (st && a.status) {
+      return {
+        status: a.status,
+        nowKm: a.range_now_km,
+        fullKm: a.range_full_km,
+        soc: a.soc_percent,
+        consumption: a.consumption_kwh_per_100km,
+        side: a.consumption_source,
+        window: a.consumption_window_days,
+        gridConsumption: a.grid_consumption_kwh_per_100km,
+        loss: a.measured_loss_percent,
+        capacity: a.capacity_kwh,
+        capacitySource: a.capacity_source,
+        bmwKm: a.bmw_range_km,
+        vsBmw: a.vs_bmw_percent,
+      };
+    }
+    // No entity (a car with no odometer, or one the owner disabled): the service
+    // answers the same questions, just without the per-tick freshness.
+    const p = profile || {};
+    const range = p.range || {};
+    const consumption = p.consumption || {};
+    const grid = p.grid_consumption || {};
+    return {
+      status: p.status,
+      nowKm: range.now_km,
+      fullKm: range.full_km,
+      soc: range.soc_percent,
+      consumption: consumption.kwh_per_100km,
+      side: consumption.source,
+      window: consumption.window_days,
+      gridConsumption: grid.kwh_per_100km,
+      loss: p.measured_loss_percent,
+      capacity: p.capacity_kwh,
+      capacitySource: p.capacity_source,
+      bmwKm: range.bmw_km,
+      vsBmw: range.vs_bmw_percent,
+    };
+  }
+
+  _paintEfficiency(deviceId, st) {
+    const name = this._config.title || this._deviceName(deviceId);
+    const state = this._eff || {};
+    const profile = state.data;
+    const f = this._efFigures(st, profile);
+    const trend = (profile && Array.isArray(profile.trend) && profile.trend) || [];
+
+    const sig = this._signature({
+      m: "ef",
+      lang: _lang(this._hass),
+      name,
+      loading: state.loading && !profile && !st,
+      error: state.error,
+      f,
+      trend,
+      cost: profile && profile.cost_per_100km,
+      currency: profile && profile.currency,
+      mix: profile && profile.energy_mix,
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    let body;
+    if (state.error && !st) {
+      body = `<div class="empty">${this._t("ef_error")}</div>`;
+    } else if (state.loading && !profile && !st) {
+      body = `<div class="empty">${this._t("ef_loading")}</div>`;
+    } else if (f.consumption == null) {
+      body = `<div class="empty">${this._t("ef_empty")}</div>`;
+    } else if (f.fullKm == null) {
+      // Consumption measured, but nothing to divide it into: say which half is
+      // missing rather than showing the same "no data yet" as an empty ledger.
+      body = `<div class="empty">${this._t("ef_no_capacity")}</div>`;
+    } else {
+      body = this._efBody(f, trend, profile || {});
+    }
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <div class="chead">
+          <ha-icon icon="mdi:map-marker-distance"></ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">${this._esc(this._config.title || this._t("ef_title"))}</span>
+            <span class="chead__sub">${this._esc(name)}</span>
+          </div>
+        </div>
+        ${body}
+      </ha-card>
+    `;
+  }
+
+  _efBody(f, trend, profile) {
+    const hero =
+      f.nowKm != null
+        ? `<span class="ef__hero-val">${this._dec(f.nowKm, 0)} <i>km</i></span>
+           <span class="ef__hero-lbl">${this._t("ef_range_now")}${
+             f.soc != null
+               ? " · " + this._t("ef_at_soc", { p: this._dec(f.soc, 0) })
+               : ""
+           }</span>`
+        : `<span class="ef__hero-val">${this._dec(f.fullKm, 0)} <i>km</i></span>
+           <span class="ef__hero-lbl">${this._t("ef_range_full", {
+             km: this._dec(f.fullKm, 0),
+           })}</span>`;
+
+    let vsBmw = "";
+    if (f.vsBmw != null && f.bmwKm != null) {
+      const p = Math.round(Math.abs(f.vsBmw));
+      const km = this._dec(f.bmwKm, 0);
+      const key =
+        p < 1 ? "ef_vs_bmw_same" : f.vsBmw > 0 ? "ef_vs_bmw_over" : "ef_vs_bmw_under";
+      const tone = p < 1 ? "" : f.vsBmw > 0 ? " ef__vs--over" : " ef__vs--under";
+      vsBmw = `<span class="ef__vs${tone}">${this._t(key, { p: this._dec(p, 0), km })}</span>`;
+    }
+
+    const sideLabel =
+      f.side === "grid" ? this._t("ef_side_grid") : this._t("ef_side_battery");
+    const windowLabel =
+      f.window != null
+        ? this._t("ef_window_days", { n: f.window })
+        : this._t("ef_window_all");
+
+    const facts = [
+      [
+        this._t("ef_consumption"),
+        `${this._dec(f.consumption, 1)} kWh/100 km`,
+        `${sideLabel} · ${windowLabel}`,
+      ],
+    ];
+    if (f.loss != null && f.gridConsumption != null) {
+      facts.push([
+        this._t("ef_loss"),
+        `${this._dec(f.loss, 0)} %`,
+        `${this._dec(f.gridConsumption, 1)} kWh/100 km ${this._t("ef_side_grid")}`,
+      ]);
+    }
+    if (f.capacity != null) {
+      facts.push([
+        this._t("ef_capacity"),
+        `${this._dec(f.capacity, 1)} kWh`,
+        f.capacitySource === "measured"
+          ? this._t("ef_capacity_measured")
+          : this._t("ef_capacity_bmw"),
+      ]);
+    }
+    if (profile.cost_per_100km != null) {
+      const currency = profile.currency ? ` ${this._esc(profile.currency)}` : "";
+      const mix = profile.energy_mix || {};
+      facts.push([
+        this._t("ef_cost"),
+        `${this._dec(profile.cost_per_100km, 2)}${currency}`,
+        mix.solar_percent != null
+          ? this._t("ef_solar", { p: this._dec(mix.solar_percent, 0) })
+          : "",
+      ]);
+    }
+
+    const factRow = facts
+      .map(
+        ([k, v, note]) =>
+          `<div class="ef__fact">
+             <span class="ef__fact-lbl">${k}</span>
+             <span class="ef__fact-val">${v}</span>
+             ${note ? `<span class="ef__fact-note">${note}</span>` : ""}
+           </div>`
+      )
+      .join("");
+
+    const chart = this._efTrendSvg(trend);
+    return `
+      <div class="ef">
+        <div class="ef__hero">
+          <div class="ef__hero-text">${hero}</div>
+          ${vsBmw}
+        </div>
+        <div class="ef__facts">${factRow}</div>
+        ${
+          chart
+            ? `<div class="ef__trend"><span class="ef__trend-title">${this._t(
+                "ef_trend_title"
+              )}</span>${chart}</div>`
+            : ""
+        }
+        <span class="ef__note">${this._t("ef_footnote")}</span>
+      </div>
+    `;
+  }
+
+  /** Monthly consumption as bars. Zero-based on purpose, unlike the capacity
+   * trend: the summer-to-winter difference is large and real, and a zoomed axis
+   * would make a 1 kWh/100 km wobble look like a season. */
+  _efTrendSvg(trend) {
+    if (!Array.isArray(trend) || trend.length < 2) return "";
+    const W = 280;
+    const H = 88;
+    const pad = 6;
+    const bottom = 14;
+    const values = trend.map((e) => e.kwh_per_100km);
+    const max = Math.max(...values) * 1.15 || 1;
+    const slot = (W - 2 * pad) / trend.length;
+    // Capped as well as proportional: with two months on file a purely
+    // proportional bar is 78 px wide and reads as a block, not a chart.
+    const width = Math.min(28, Math.max(4, slot * 0.58));
+    const bars = trend
+      .map((entry, i) => {
+        const x = pad + i * slot + (slot - width) / 2;
+        const h = (entry.kwh_per_100km / max) * (H - bottom - pad);
+        const y = H - bottom - h;
+        // "2026-09" -> "09": a bare month number reads the same in every
+        // language, which a translated abbreviation would not.
+        const label = String(entry.month || "").slice(5);
+        return `<rect class="ef__bar" x="${this._px(x)}" y="${this._px(y)}"
+                  width="${this._px(width)}" height="${this._px(
+          Math.max(h, 1)
+        )}" rx="2"></rect>
+                <text class="ef__bar-lbl" x="${this._px(
+                  x + width / 2
+                )}" y="${H - 3}" text-anchor="middle">${this._esc(label)}</text>`;
+      })
+      .join("");
+    return `
+      <svg class="ef__chart" viewBox="0 0 ${W} ${H}" role="img">
+        ${bars}
+        <text x="${pad}" y="9" class="chg__chart-max">${this._dec(
+      max,
+      0
+    )} kWh/100 km</text>
+      </svg>
+    `;
+  }
+
+  _round(n, dp) {
+    const f = Math.pow(10, dp);
+    return Math.round(n * f) / f;
+  }
+
+  // A figure the card worked out itself (a state object goes through _fmt),
+  // rounded to `dp` places and written in the user's number format. A bare
+  // `${number}` always prints a point, so a German dashboard read "19.8 kWh"
+  // right next to Home Assistant's "110,10 kWh". Display text only -- SVG
+  // coordinates go through _px.
+  _dec(n, dp) {
+    const num = Number(n);
+    if (!Number.isFinite(num)) return "—";
+    const v = this._round(num, dp) || 0; // never "-0"
+    const locale = _numberLocale(this._hass);
+    if (locale === null) return String(v);
+    try {
+      return v.toLocaleString(locale, { maximumFractionDigits: dp });
+    } catch (e) {
+      return String(v);
+    }
+  }
+
+  // An SVG coordinate: always a dot decimal, whatever the locale -- "18,4"
+  // inside points="…" would draw a different chart, not a German one.
+  _px(n) {
+    return this._round(n, 1);
+  }
+
+  _esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])
+    );
+  }
+
+  _attr(s) {
+    return this._esc(s).replace(/'/g, "&#39;");
+  }
+
+  /* ---- tire diagram ----------------------------------------------------- */
+
+  _renderTires(deviceId, entities) {
+    // Index tire entities by wheel + metric using the attributes the integration
+    // exposes (tire_axle / tire_side / tire_metric), so placement is reliable.
+    const wheels = {};
+    for (const id of entities) {
+      const st = this._st(id);
+      const a = st && st.attributes;
+      if (!a || a.cluster !== "tire" || !a.tire_axle || !a.tire_side) continue;
+      const key = `${a.tire_axle}_${a.tire_side}`;
+      (wheels[key] = wheels[key] || {})[a.tire_metric || "other"] = st;
+    }
+
+    const name = this._deviceName(deviceId);
+    const slots = [
+      { key: "row1_left", label: this._t("fl"), full: this._t("front_left") },
+      { key: "row1_right", label: this._t("fr"), full: this._t("front_right") },
+      { key: "row2_left", label: this._t("rl"), full: this._t("rear_left") },
+      { key: "row2_right", label: this._t("rr"), full: this._t("rear_right") },
+    ];
+    const present = slots.filter((s) => wheels[s.key]);
+
+    const sig = this._signature({
+      m: "tire",
+      lang: _lang(this._hass),
+      w: Object.fromEntries(
+        Object.entries(wheels).map(([k, m]) => [
+          k,
+          Object.fromEntries(
+            Object.entries(m).map(([mk, s]) => [
+              mk,
+              // The diagnosis entity's state changes only when the traffic light
+              // flips; everything the card draws from it -- remaining mileage,
+              // size, tread, season, fitting date -- moves underneath it, so it
+              // all has to be in the signature or the card would never redraw.
+              mk === "diagnosis" ? this._wearSig(s) : s.state,
+            ])
+          ),
+        ])
+      ),
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    if (!present.length) {
+      this.shadowRoot.innerHTML = `
+        ${this._styles()}
+        <ha-card>
+          ${this._tireHead(name, "—")}
+          <div class="empty">${this._t("no_tire_data")}</div>
+        </ha-card>`;
+      return;
+    }
+
+    const summary = this._tireSummary(present.map((s) => wheels[s.key]));
+
+    const colors = {
+      fl: this._tireStatus(wheels.row1_left || {}).color,
+      fr: this._tireStatus(wheels.row1_right || {}).color,
+      rl: this._tireStatus(wheels.row2_left || {}).color,
+      rr: this._tireStatus(wheels.row2_right || {}).color,
+    };
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        ${this._tireHead(name, summary.overall.t, summary.overall.c)}
+        ${this._tireSummaryBar(summary)}
+        <div class="tirewrap">
+          <div class="tirecar">
+            <span class="tirecar__front">${this._t("front")}</span>
+            <div class="tirecar__svg">${this._carSvg(colors)}</div>
+            ${this._wheelBlock(slots[0], wheels.row1_left, "fl")}
+            ${this._wheelBlock(slots[1], wheels.row1_right, "fr")}
+            ${this._wheelBlock(slots[2], wheels.row2_left, "rl")}
+            ${this._wheelBlock(slots[3], wheels.row2_right, "rr")}
+          </div>
+        </div>
+      </ha-card>`;
+    this._wireTaps();
+  }
+
+  // Everything the card renders from a diagnosis entity, flattened for the
+  // redraw signature.
+  _wearSig(st) {
+    const a = st.attributes || {};
+    return [
+      st.state,
+      a.due_mileage_km,
+      a.dimension,
+      a.tread,
+      a.tread_manufacturer,
+      a.season,
+      a.mounting_date,
+      a.run_flat,
+    ].join("|");
+  }
+
+  // The two things that can be wrong with a tyre -- its pressure and its
+  // remaining life -- summarised across every wheel BMW reports, plus the
+  // combined headline for the card header. Kept separate because "check tyres"
+  // must never read as "top up the air".
+  _tireSummary(list) {
+    const pressures = list.map((w) => this._pressureStatus(w));
+    const cls = pressures.map((p) => p.cls);
+    const color = cls.includes("low")
+      ? "var(--bmw-low)"
+      : cls.includes("high")
+      ? "var(--bmw-mid)"
+      : cls.includes("ok")
+      ? "var(--bmw-high)"
+      : "var(--divider-color)";
+    // The measured spread, not a verdict word -- the header already carries the
+    // verdict, and a card that says "Slightly high" twice in 60px says less than
+    // one that says which wheels and by how much. Ranked on the raw states
+    // because unit conversion is monotonic, so no localized number parsing.
+    const pressure = { t: this._pressureRange(list), c: color };
+
+    // The target is per-wheel but shared per axle at worst, so it is only worth
+    // a summary line when every wheel agrees on it.
+    const targets = list.map((w) => (w.pressureTarget ? this._fmt(w.pressureTarget) : null));
+    const known = targets.filter(Boolean);
+    const pressureSub =
+      known.length && known.length === list.length
+        ? known.every((t) => t === known[0])
+          ? `${this._t("p_target")} ${this._esc(known[0])}`
+          : this._t("p_target_varies")
+        : "";
+
+    const wears = list.map((w) => this._tireWear(w)).filter(Boolean);
+    const colors = wears.map((w) => w.color);
+    const wear = !wears.length
+      ? null
+      : colors.includes("red")
+      ? { t: this._t("w_due"), c: "var(--bmw-low)" }
+      : colors.includes("yellow")
+      ? { t: this._t("w_soon"), c: "var(--bmw-mid)" }
+      : colors.includes("green")
+      ? { t: this._t("w_ok"), c: "var(--bmw-high)" }
+      : { t: this._t("t_nodata"), c: "var(--divider-color)" };
+
+    // The soonest wheel is the one that decides when the car goes in.
+    const dues = wears.map((w) => w.dueKm).filter((v) => v != null);
+    const wearSub = dues.length ? `${this._t("wear_due")} ${this._km(Math.min(...dues))}` : "";
+
+    const worn = colors.includes("red") || colors.includes("yellow");
+    const overall = worn
+      ? {
+          t: this._t("check_tyres"),
+          c: colors.includes("red") || cls.includes("low") ? "var(--bmw-low)" : "var(--bmw-mid)",
+        }
+      : cls.includes("low")
+      ? { t: this._t("check_pressure"), c: "var(--bmw-low)" }
+      : cls.includes("high")
+      ? { t: this._t("slightly_high"), c: "var(--bmw-mid)" }
+      : cls.every((c) => c === "ok")
+      ? { t: this._t("all_nominal"), c: "var(--bmw-high)" }
+      : { t: this._t("of_four", { n: list.length }), c: "var(--secondary-text-color)" };
+
+    return { pressure, pressureSub, wear, wearSub, overall };
+  }
+
+  // "280 – 290 kPa" across the reported wheels, or a single value when they
+  // agree. Falls back to a dash when no wheel has a measurement.
+  _pressureRange(list) {
+    const rated = list
+      .map((w) => ({ st: w.pressure, n: this._num(w.pressure) }))
+      .filter((r) => r.n != null)
+      .sort((a, b) => a.n - b.n);
+    if (!rated.length) return "—";
+    const lo = this._splitValueUnit(rated[0].st);
+    const hi = this._splitValueUnit(rated[rated.length - 1].st);
+    const unit = hi.unit ? ` ${hi.unit}` : "";
+    return lo.value === hi.value ? `${hi.value}${unit}` : `${lo.value} – ${hi.value}${unit}`;
+  }
+
+  _tireSummaryBar(s) {
+    const cell = (label, v, sub) => `
+      <div class="tsum__cell" style="--c:${v.c}">
+        <span class="tsum__k">${label}</span>
+        <span class="tsum__v"><span class="tstat__dot"></span>${v.t}</span>
+        ${sub ? `<span class="tsum__sub">${sub}</span>` : ""}
+      </div>`;
+    return `
+      <div class="tsum">
+        ${cell(this._t("sum_pressure"), s.pressure, s.pressureSub)}
+        ${s.wear ? cell(this._t("sum_wear"), s.wear, s.wearSub) : ""}
+      </div>`;
+  }
+
+  _carSvg(c) {
+    // Top-down BMW sedan with each wheel stroked in its tire-status colour.
+    return `
+      <svg class="carsvg" viewBox="0 0 130 228" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        ${this._carWheels(c)}
+        ${this._carBody()}
+      </svg>`;
+  }
+
+  // Four wheels, each stroked in its colour (falls back to the neutral divider
+  // colour when a caller doesn't care about per-wheel status, e.g. closures).
+  // Tucked under the flared arches so the tyre reads as a wheel, not a block.
+  _carWheels(c = {}) {
+    const n = "var(--divider-color)";
+    const wheel = (x, y, color) =>
+      `<rect x="${x}" y="${y}" width="13" height="34" rx="6" class="carsvg__wheel" style="stroke:${color || n}"/>`;
+    return `${wheel(13, 40, c.fl)}${wheel(104, 40, c.fr)}${wheel(13, 160, c.rl)}${wheel(104, 160, c.rr)}`;
+  }
+
+  // Static body art. Shared by the tire diagram and the closures diagram; the
+  // latter layers overlays on top. Design language: taut rectilinear silhouette,
+  // gradient-modelled sheet metal (no cartoon keyline), long-hood / cab-rearward
+  // stance, and correctly-scaled BMW cues (twin front-of-bumper kidneys, swept
+  // corner-wrapping lamps). viewBox 130x228, centreline x=65.
+  _carBody() {
+    return `
+        <defs>
+          <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="var(--body-lo)"/>
+            <stop offset=".5" stop-color="var(--body-hi)"/>
+            <stop offset="1" stop-color="var(--body-lo)"/>
+          </linearGradient>
+          <linearGradient id="roofGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="var(--roof-lo)"/>
+            <stop offset=".5" stop-color="var(--roof-hi)"/>
+            <stop offset="1" stop-color="var(--roof-lo)"/>
+          </linearGradient>
+          <linearGradient id="glassGrad" x1="0" y1="0" x2=".35" y2="1">
+            <stop offset="0" stop-color="var(--glass-hi)"/>
+            <stop offset="1" stop-color="var(--glass-lo)"/>
+          </linearGradient>
+        </defs>
+
+        <!-- fender flares over each wheel -->
+        <rect x="20" y="39" width="5" height="34" rx="2.5" class="carsvg__flare"/>
+        <rect x="105" y="39" width="5" height="34" rx="2.5" class="carsvg__flare"/>
+        <rect x="20" y="159" width="5" height="34" rx="2.5" class="carsvg__flare"/>
+        <rect x="105" y="159" width="5" height="34" rx="2.5" class="carsvg__flare"/>
+
+        <!-- taut body: wider stance, squarer bumpers, straight flanks -->
+        <path d="M40 6 L90 6 C99 6 107 12 108 24 L108 198 C107 211 103 219 94 222 L36 222 C27 219 23 211 22 198 L22 24 C23 12 31 6 40 6 Z" class="carsvg__body"/>
+
+        <!-- side mirrors at the cowl -->
+        <path d="M22 88 L14 84 L12 90 L21 94 Z" class="carsvg__mirror"/>
+        <path d="M108 88 L116 84 L118 90 L109 94 Z" class="carsvg__mirror"/>
+
+        <!-- bumper/hood seam + hood centreline + hood shut lines -->
+        <path d="M38 22 C52 20.5 78 20.5 92 22" class="carsvg__seam"/>
+        <path d="M65 24 L65 86" class="carsvg__crease"/>
+        <path d="M32 38 C29 55 29 74 34 88 M98 38 C101 55 101 74 96 88" class="carsvg__seam"/>
+
+        <!-- twin kidneys at the very front of the bumper -->
+        <rect x="54" y="6.5" width="22" height="13" rx="2" class="carsvg__chrome"/>
+        <rect x="55" y="7.5" width="9.3" height="11" rx="1.5" class="carsvg__kidney"/>
+        <rect x="65.7" y="7.5" width="9.3" height="11" rx="1.5" class="carsvg__kidney"/>
+        <path d="M57 8.5 V17.5 M60 8.5 V17.5 M67.5 8.5 V17.5 M70.5 8.5 V17.5" class="carsvg__kbar"/>
+
+        <!-- headlights: fat at the outer bumper corner, tapering inward -->
+        <path d="M22.5 23 C21 11 29 6.5 40 6.5 L47 7 C50.5 8.5 50 10.5 47.5 11.5 C39 12.5 30 15.5 22.5 23 Z" class="carsvg__light"/>
+        <path d="M107.5 23 C109 11 101 6.5 90 6.5 L83 7 C79.5 8.5 80 10.5 82.5 11.5 C91 12.5 100 15.5 107.5 23 Z" class="carsvg__light"/>
+
+        <!-- windshield -->
+        <path d="M31 88 L99 88 L87 112 L43 112 Z" class="carsvg__glass"/>
+
+        <!-- roof + sunroof -->
+        <path d="M43 112 L87 112 L86 164 L44 164 Z" class="carsvg__roof"/>
+        <rect x="53" y="120" width="24" height="28" rx="2" class="carsvg__glassdk"/>
+
+        <!-- side windows: front pair butts the windshield; rear pair matched in length -->
+        <path d="M33 98 L43 112 L43 136 L35 136 Z" class="carsvg__glass"/>
+        <path d="M35 140 L43 140 L43 162 L37 162 Z" class="carsvg__glass"/>
+        <path d="M97 98 L87 112 L87 136 L95 136 Z" class="carsvg__glass"/>
+        <path d="M95 140 L87 140 L87 162 L93 162 Z" class="carsvg__glass"/>
+
+        <!-- door shut seams + handles (4 doors) -->
+        <path d="M22 138 L43 138 M108 138 L87 138" class="carsvg__seam"/>
+        <rect x="26" y="122" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
+        <rect x="27" y="150" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
+        <rect x="98" y="122" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
+        <rect x="97" y="150" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
+
+        <!-- rear window -->
+        <path d="M43 164 L87 164 L97 182 L33 182 Z" class="carsvg__glass"/>
+
+        <!-- rear deck: trunk seam + corner-wrapping tail lights + diffuser -->
+        <path d="M33 187 C48 190 82 190 97 187" class="carsvg__seam"/>
+        <path d="M22.5 205 C21 217 29 221.5 40 221.5 L47 221 C49.5 219.5 49 218.5 47 217.8 C39 217 30 214.5 22.5 205 Z" class="carsvg__tail"/>
+        <path d="M107.5 205 C109 217 101 221.5 90 221.5 L83 221 C80.5 219.5 81 218.5 83 217.8 C91 217 100 214.5 107.5 205 Z" class="carsvg__tail"/>
+        <path d="M52 217 L78 217" class="carsvg__crease"/>`;
+  }
+
+  // One wheel: pressure headline, then that wheel's own fitment. BMW reports
+  // size and tread per wheel and staggered setups are common (the i5 runs 245
+  // front / 275 rear), so these facts belong beside their wheel, not in a
+  // single line under the diagram that would have to pick one to show.
+  _wheelBlock(slot, wheel, pos) {
+    const status = wheel ? this._tireStatus(wheel) : { label: "—", color: "var(--divider-color)" };
+    const pressure = wheel && wheel.pressure;
+    const target = wheel && wheel.pressureTarget;
+    const temp = wheel && wheel.temperature;
+    const tapId = (pressure && pressure.entity_id) || (temp && temp.entity_id) || "";
+    const pv = pressure ? this._splitValueUnit(pressure) : { value: "—", unit: "" };
+    const wear = wheel ? this._tireWear(wheel) : null;
+    const sub = [target ? `◎ ${this._fmt(target)}` : null, temp ? this._fmt(temp) : null]
+      .filter(Boolean)
+      .join(" · ");
+
+    const meta = [];
+    if (wear) {
+      if (wear.dimension) meta.push(this._esc(wear.dimension));
+      const tread = [wear.manufacturer, wear.tread].filter(Boolean).join(" ");
+      if (tread) meta.push(this._esc(tread));
+      const fitline = [
+        wear.season ? this._seasonLabel(wear.season) : null,
+        wear.runFlat ? this._t("runflat") : null,
+        wear.fitted ? `${this._t("fitted")} ${this._fmtDay(wear.fitted)}` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      if (fitline) meta.push(fitline);
+      if (wear.dueKm != null)
+        meta.push(
+          `<b class="wlabel__due">${this._t("wear_due")} ${this._km(wear.dueKm)}</b>`
+        );
+    }
+
+    return `
+      <button class="wlabel wlabel--${pos}" style="--c:${status.color}" data-entity="${tapId}" title="${slot.full}">
+        <span class="wlabel__pos"><b>${slot.label}</b><span class="wlabel__badge">${status.label}</span></span>
+        <span class="wlabel__val">${pv.value}${pv.unit ? `<i>${pv.unit}</i>` : ""}</span>
+        ${sub ? `<span class="wlabel__sub">${sub}</span>` : ""}
+        ${meta.map((m) => `<span class="wlabel__meta">${m}</span>`).join("")}
+      </button>`;
+  }
+
+  // BMW sends the season as a SUMMER/WINTER/ALL_SEASON token; anything else is
+  // passed through so an unknown token still tells the user something.
+  _seasonLabel(raw) {
+    const key = {
+      SUMMER: "season_summer",
+      WINTER: "season_winter",
+      ALL_SEASON: "season_all",
+      ALLSEASON: "season_all",
+    }[String(raw).toUpperCase()];
+    return key ? this._t(key) : this._esc(raw);
+  }
+
+  // A bare calendar day ("2026-06-13"), no time component. Numeric-short: it
+  // shares a line with the season inside a wheel column, and a spelled-out
+  // month wraps that line on any narrow dashboard.
+  _fmtDay(iso) {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return this._esc(iso);
+    try {
+      return d.toLocaleDateString(_lang(this._hass), { dateStyle: "short" });
+    } catch (e) {
+      return this._esc(iso);
+    }
+  }
+
+  _tireHead(name, statusText, statusColor) {
+    return `
+      <div class="chead">
+        <ha-icon icon="mdi:car-tire-alert"></ha-icon>
+        <div class="chead__text">
+          <span class="chead__title">${this._t("tires")}</span>
+          <span class="chead__sub">${this._esc(name)}</span>
+        </div>
+        ${
+          statusText
+            ? `<span class="tstat" style="--c:${statusColor || "var(--secondary-text-color)"}"><span class="tstat__dot"></span>${statusText}</span>`
+            : ""
+        }
+      </div>`;
+  }
+
+  // BMW's own wear traffic light for a wheel, from the REST tyre diagnosis.
+  // Returns null when the car has no diagnosis (most do not until a tyre
+  // service has been recorded), so pressure alone decides in that case.
+  _tireWear(wheel) {
+    const st = wheel && wheel.diagnosis;
+    const a = st && st.attributes;
+    if (!a) return null;
+    return {
+      color: st.state,                       // green | yellow | red | grey
+      // BMW's tyreWear.value is a rendering of dueMileage, not a tread depth,
+      // so only the numeric km figure is kept -- showing both read as two
+      // different facts when they are one.
+      dueKm: a.due_mileage_km ?? null,
+      season: a.season || null,
+      dimension: a.dimension || null,
+      tread: a.tread || null,
+      manufacturer: a.tread_manufacturer || null,
+      runFlat: a.run_flat === true,
+      fitted: a.mounting_date || null,
+      entity_id: st.entity_id,
+    };
+  }
+
+  // Combined per-wheel status. Wear outranks pressure: a bald tyre at perfect
+  // pressure is still the more urgent thing to say, and pressure is trivially
+  // fixable where wear is not.
+  _tireStatus(wheel) {
+    const wear = this._tireWear(wheel);
+    if (wear && wear.color === "red")
+      return { cls: "low", label: this._t("t_wear"), color: "var(--bmw-low)" };
+    if (wear && wear.color === "yellow")
+      return { cls: "wear", label: this._t("t_wear"), color: "var(--bmw-mid)" };
+    return this._pressureStatus(wheel);
+  }
+
+  // Pressure alone, so the summary can report it separately from wear.
+  _pressureStatus(wheel) {
+    const cur = this._num(wheel.pressure);
+    const tgt = this._num(wheel.pressureTarget);
+    if (cur == null) return { cls: "na", label: this._t("t_nodata"), color: "var(--divider-color)" };
+    if (tgt == null) return { cls: "na", label: this._t("t_current"), color: "var(--divider-color)" };
+    const devPct = ((cur - tgt) / tgt) * 100;
+    // Asymmetric on purpose. BMW's target is the cold placard pressure while the
+    // measurement is whatever the tyre is right now, and a tyre that has been
+    // driven on reads 8-10% high -- a symmetric ±4% band flagged every wheel of
+    // a perfectly healthy car. Under-inflation is the condition worth an early
+    // hint (TPMS itself only warns near -20%), over-inflation only past what
+    // warm-up explains.
+    if (devPct < -8) return { cls: "low", label: this._t("t_low"), color: "var(--bmw-low)" };
+    if (devPct > 15) return { cls: "high", label: this._t("t_high"), color: "var(--bmw-mid)" };
+    return { cls: "ok", label: this._t("t_ok"), color: "var(--bmw-high)" };
+  }
+
+  /* ---- closures / security diagram -------------------------------------- */
+
+  // Descriptor paths for every closure signal the card knows how to place.
+  static CLOSURE_PATHS = {
+    doorOpen: {
+      lf: "vehicle.cabin.door.row1.driver.isOpen",
+      rf: "vehicle.cabin.door.row1.passenger.isOpen",
+      lr: "vehicle.cabin.door.row2.driver.isOpen",
+      rr: "vehicle.cabin.door.row2.passenger.isOpen",
+    },
+    doorPos: {
+      lf: "vehicle.cabin.door.row1.driver.position",
+      rf: "vehicle.cabin.door.row1.passenger.position",
+      lr: "vehicle.cabin.door.row2.driver.position",
+      rr: "vehicle.cabin.door.row2.passenger.position",
+    },
+    window: {
+      lf: "vehicle.cabin.window.row1.driver.status",
+      rf: "vehicle.cabin.window.row1.passenger.status",
+      lr: "vehicle.cabin.window.row2.driver.status",
+      rr: "vehicle.cabin.window.row2.passenger.status",
+    },
+    hood: "vehicle.body.hood.isOpen",
+    trunk: "vehicle.body.trunk.isOpen",
+    rearWindow: "vehicle.body.trunk.window.isOpen",
+    sunroof: ["vehicle.cabin.sunroof.overallStatus", "vehicle.cabin.sunroof.status"],
+    // Central lock: door.status first. Both descriptors carry the same lock
+    // vocabulary, but door.lock.status is NOT streamable -- it only refreshes on
+    // a quota-limited REST fetch, so it can sit on a stale value for days while
+    // door.status follows the actual lock within seconds (issue #8).
+    lock: ["vehicle.cabin.door.status", "vehicle.cabin.door.lock.status"],
+    alarmArm: "vehicle.vehicle.antiTheftAlarmSystem.alarm.armStatus",
+    alarmOn: "vehicle.vehicle.antiTheftAlarmSystem.alarm.isOn",
+  };
+
+  _renderClosures(deviceId, entities) {
+    const P = BavarianDataCard.CLOSURE_PATHS;
+    const byDesc = {};
+    for (const id of entities) {
+      const st = this._st(id);
+      const d = st && st.attributes && st.attributes.descriptor;
+      if (d) byDesc[d] = id;
+    }
+    const find = (path) =>
+      Array.isArray(path) ? path.map((p) => byDesc[p]).find(Boolean) : byDesc[path];
+    // Like find(), but skips candidates that carry no usable value, so a
+    // preferred-but-silent descriptor does not hide a real value on the next
+    // one. Falls back to find() when none of them has a value yet.
+    const findWithValue = (path) => {
+      const ids = (Array.isArray(path) ? path : [path]).map((p) => byDesc[p]).filter(Boolean);
+      const usable = ids.find((id) => {
+        const st = this._st(id);
+        const raw = st ? String(st.state).trim().toLowerCase() : "";
+        return st && !UNAVAILABLE.has(raw) && raw !== "invalid";
+      });
+      return usable || ids[0];
+    };
+
+    const name = this._deviceName(deviceId);
+    const ALERT = "var(--bmw-low)";
+    const WARN = "var(--bmw-mid)";
+    const OK = "var(--bmw-high)";
+
+    // Per-slot doors (prefer isOpen; fall back to position sensor).
+    const doors = {};
+    for (const k of ["lf", "rf", "lr", "rr"]) {
+      const id = find(P.doorOpen[k]) || find(P.doorPos[k]);
+      if (!id) continue;
+      const st = this._st(id);
+      doors[k] = { id, open: this._openState(st) };
+    }
+    // Per-slot windows.
+    const windows = {};
+    for (const k of ["lf", "rf", "lr", "rr"]) {
+      const id = find(P.window[k]);
+      if (!id) continue;
+      const st = this._st(id);
+      windows[k] = { id, open: this._openState(st), partial: this._isPartialState(st) };
+    }
+    const single = (path) => {
+      const id = find(path);
+      if (!id) return null;
+      const st = this._st(id);
+      return { id, st, open: this._openState(st), partial: this._isPartialState(st) };
+    };
+    const hood = single(P.hood);
+    const trunk = single(P.trunk);
+    const rearWindow = single(P.rearWindow);
+    const sunroof = single(P.sunroof);
+
+    const lockId = findWithValue(P.lock);
+    const lock = this._lockInfo(lockId ? this._st(lockId) : null);
+    const armId = find(P.alarmArm);
+    const onId = find(P.alarmOn);
+    const alarm = this._alarmInfo(armId ? this._st(armId) : null, onId ? this._st(onId) : null);
+
+    const present =
+      Object.keys(doors).length +
+      Object.keys(windows).length +
+      [hood, trunk, rearWindow, sunroof].filter(Boolean).length +
+      (lockId ? 1 : 0) +
+      (alarm ? 1 : 0);
+
+    // Change-detection signature.
+    const stateOf = (id) => (id && this._st(id) ? this._st(id).state : null);
+    const sig = this._signature({
+      m: "clo",
+      lang: _lang(this._hass),
+      doors: Object.fromEntries(Object.entries(doors).map(([k, v]) => [k, stateOf(v.id)])),
+      wins: Object.fromEntries(Object.entries(windows).map(([k, v]) => [k, stateOf(v.id)])),
+      hood: hood && stateOf(hood.id),
+      trunk: trunk && stateOf(trunk.id),
+      rw: rearWindow && stateOf(rearWindow.id),
+      sr: sunroof && stateOf(sunroof.id),
+      lock: stateOf(lockId),
+      arm: stateOf(armId),
+      on: stateOf(onId),
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    if (!present) {
+      this.shadowRoot.innerHTML = `
+        ${this._styles()}
+        <ha-card>
+          ${this._closuresHead(name, null)}
+          <div class="empty">${this._t("closures_none")}</div>
+        </ha-card>`;
+      return;
+    }
+
+    // Build the itemised list: lock + alarm always shown; then each open part.
+    const openItems = [];
+    const slotLabel = { lf: "front_left", rf: "front_right", lr: "rear_left", rr: "rear_right" };
+    for (const k of ["lf", "rf", "lr", "rr"]) {
+      if (doors[k] && doors[k].open) {
+        openItems.push({
+          id: doors[k].id,
+          label: `${this._t(slotLabel[k])} · ${this._t("door_word")}`,
+          value: this._t("state_open"),
+          color: ALERT,
+        });
+      }
+    }
+    for (const k of ["lf", "rf", "lr", "rr"]) {
+      if (windows[k] && windows[k].open) {
+        openItems.push({
+          id: windows[k].id,
+          label: `${this._t(slotLabel[k])} · ${this._t("window_word")}`,
+          value: this._t(windows[k].partial ? "state_tilted" : "state_open"),
+          color: WARN,
+        });
+      }
+    }
+    const bodyPart = (part, key, color) => {
+      if (part && part.open) {
+        openItems.push({
+          id: part.id,
+          label: this._t(key),
+          value: this._t(part.partial ? "state_tilted" : "state_open"),
+          color,
+        });
+      }
+    };
+    bodyPart(hood, "hood_word", ALERT);
+    bodyPart(trunk, "trunk_word", ALERT);
+    bodyPart(rearWindow, "rear_window_word", WARN);
+    bodyPart(sunroof, "sunroof_word", WARN);
+
+    const anyBodyOpen =
+      (hood && hood.open) || (trunk && trunk.open) ||
+      Object.values(doors).some((d) => d.open);
+    const anyGlassOpen =
+      Object.values(windows).some((w) => w.open) ||
+      (sunroof && sunroof.open) || (rearWindow && rearWindow.open);
+    const overall = this._closuresOverall({ anyBodyOpen, anyGlassOpen, count: openItems.length, lock, alarm });
+
+    const rows = [];
+    if (lockId) {
+      rows.push({ id: lockId, label: this._t("central_lock"), value: lock.label, color: lock.color });
+    }
+    if (alarm) {
+      rows.push({ id: armId || onId, label: this._t("alarm_word"), value: alarm.label, color: alarm.color });
+    }
+    rows.push(...openItems);
+    if (!openItems.length) {
+      rows.push({ id: "", label: this._t("all_closed"), value: "✓", color: OK });
+    }
+
+    const diagram = this._carSvgClosures({
+      doors, windows, hood, trunk, rearWindow, sunroof, lock, lockId,
+      colors: { ALERT, WARN, OK },
+    });
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        ${this._closuresHead(name, overall)}
+        <div class="closcar">${diagram}</div>
+        <div class="list">
+          ${rows
+            .map(
+              (r) => `<button class="item" data-entity="${r.id}">
+                <span class="item__name" title="${r.label}"><span class="item__dot" style="background:${r.color}"></span>${r.label}</span>
+                <span class="item__val" style="color:${r.color}">${r.value}</span>
+              </button>`
+            )
+            .join("")}
+        </div>
+      </ha-card>`;
+    this._wireTaps();
+  }
+
+  _closuresHead(name, overall) {
+    return `
+      <div class="chead">
+        <ha-icon icon="mdi:car-door-lock"></ha-icon>
+        <div class="chead__text">
+          <span class="chead__title">${this._t("cl_closures")}</span>
+          <span class="chead__sub">${this._esc(name)}</span>
+        </div>
+        ${
+          overall
+            ? `<span class="tstat" style="--c:${overall.color}"><span class="tstat__dot"></span>${overall.label}</span>`
+            : ""
+        }
+      </div>`;
+  }
+
+  _closuresOverall({ anyBodyOpen, anyGlassOpen, count, lock, alarm }) {
+    if (alarm && alarm.key === "triggered") return { label: alarm.label, color: "var(--bmw-low)" };
+    if (anyBodyOpen) return { label: this._t("n_open", { n: count }), color: "var(--bmw-low)" };
+    if (anyGlassOpen) return { label: this._t("windows_open"), color: "var(--bmw-mid)" };
+    if (lock.key === "unlocked") return { label: this._t("unlocked"), color: "var(--bmw-low)" };
+    if (lock.key === "partial") return { label: this._t("partially_locked"), color: "var(--bmw-mid)" };
+    if (lock.key === "secured" || lock.key === "locked") return { label: lock.label, color: "var(--bmw-high)" };
+    return { label: this._t("all_closed"), color: "var(--bmw-high)" };
+  }
+
+  // Same top-down car as the tire view, with closure overlays layered on top:
+  // open doors sprout a coloured flap, open glass is tinted, hood/trunk shade,
+  // and a central padlock reflects the lock state. Every part is tappable.
+  _carSvgClosures(d) {
+    const { ALERT, WARN } = d.colors;
+    const doorGeo = {
+      lf: { flap: "M22 116 L5 110 L7 128 L22 134 Z", hit: "22 112 21 27" },
+      lr: { flap: "M22 142 L5 136 L7 154 L22 160 Z", hit: "22 139 21 25" },
+      rf: { flap: "M108 116 L125 110 L123 128 L108 134 Z", hit: "87 112 21 27" },
+      rr: { flap: "M108 142 L125 136 L123 154 L108 160 Z", hit: "87 139 21 25" },
+    };
+    const winGeo = {
+      lf: "M33 98 L43 112 L43 136 L35 136 Z",
+      lr: "M35 140 L43 140 L43 162 L37 162 Z",
+      rf: "M97 98 L87 112 L87 136 L95 136 Z",
+      rr: "M95 140 L87 140 L87 162 L93 162 Z",
+    };
+    const hit = (spec, id) => {
+      const [x, y, w, h] = spec.split(" ");
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}" class="cldiag__hit" data-entity="${id}"/>`;
+    };
+    const parts = [];
+
+    // Doors: flap when open, always a tap zone.
+    for (const k of ["lf", "rf", "lr", "rr"]) {
+      const door = d.doors[k];
+      if (!door) continue;
+      if (door.open) {
+        parts.push(`<path d="${doorGeo[k].flap}" class="cldiag__flap" style="fill:${ALERT};stroke:${ALERT}"/>`);
+      }
+      parts.push(hit(doorGeo[k].hit, door.id));
+    }
+    // Zones (hood / trunk) shaded when open.
+    const zone = (part, path) => {
+      if (!part) return;
+      if (part.open) parts.push(`<path d="${path}" class="cldiag__zone" style="fill:${ALERT}"/>`);
+      parts.push(`<path d="${path}" class="cldiag__hit" data-entity="${part.id}"/>`);
+    };
+    zone(d.hood, "M38 26 H92 L96 88 H34 Z");
+    zone(d.trunk, "M34 184 H96 L93 218 H37 Z");
+    // Glass (windows / sunroof / rear window) tinted amber when open.
+    const glass = (part, path) => {
+      if (!part) return;
+      if (part.open) parts.push(`<path d="${path}" class="cldiag__glass-open" style="fill:${WARN}"/>`);
+      parts.push(`<path d="${path}" class="cldiag__hit" data-entity="${part.id}"/>`);
+    };
+    for (const k of ["lf", "rf", "lr", "rr"]) {
+      const w = d.windows[k];
+      if (w) glass(w, winGeo[k]);
+    }
+    glass(d.sunroof, "M53 120 H77 V148 H53 Z");
+    glass(d.rearWindow, "M43 164 L87 164 L97 182 L33 182 Z");
+
+    // Central padlock (open shackle when unlocked/unknown).
+    const locked = d.lock.key === "locked" || d.lock.key === "secured";
+    const shackle = locked
+      ? "M61 134 V130 a4 4 0 0 1 8 0 V134"
+      : "M61 134 V130 a4 4 0 0 1 8 0";
+    const padlock = d.lockId
+      ? `<g class="cldiag__lock" data-entity="${d.lockId}" style="--c:${d.lock.color}">
+           <path d="${shackle}" class="cldiag__shackle"/>
+           <rect x="58" y="134" width="14" height="10" rx="1.8" class="cldiag__lockbody"/>
+         </g>`
+      : "";
+
+    return `
+      <svg class="carsvg" viewBox="0 0 130 228" xmlns="http://www.w3.org/2000/svg">
+        ${this._carWheels()}
+        ${this._carBody()}
+        ${parts.join("\n        ")}
+        ${padlock}
+      </svg>`;
+  }
+
+  // true = open, false = closed, null = unknown/unavailable. Understands the
+  // catalogue's OPEN/CLOSED/INTERMEDIATE/TILT vocabulary, boolean on/off/true/
+  // false, and numeric door-position percentages.
+  _openState(st) {
+    if (!st) return null;
+    const raw = String(st.state).trim().toLowerCase();
+    if (UNAVAILABLE.has(raw) || raw === "invalid") return null;
+    if (/^-?\d+(\.\d+)?$/.test(raw)) return Number(raw) > 0;
+    if (/\b(closed|secured|off|false)\b/.test(raw)) return false;
+    if (/(open|tilt|intermediate|ajar|unlocked|\btrue\b|\bon\b)/.test(raw)) return true;
+    if (raw === "locked") return false;
+    return null;
+  }
+
+  _isPartialState(st) {
+    if (!st) return false;
+    return /intermediate|tilt/.test(String(st.state).toLowerCase());
+  }
+
+  _lockInfo(st) {
+    const raw = st ? String(st.state).trim().toUpperCase() : "";
+    if (!st || UNAVAILABLE.has(raw.toLowerCase()) || raw === "INVALID" || raw === "")
+      return { key: "unknown", color: "var(--divider-color)", label: "—" };
+    if (raw.includes("SECURED")) return { key: "secured", color: "var(--bmw-high)", label: this._t("secured") };
+    if (raw.includes("SELECTIVE")) return { key: "partial", color: "var(--bmw-mid)", label: this._t("partially_locked") };
+    if (raw.includes("UNLOCK")) return { key: "unlocked", color: "var(--bmw-low)", label: this._t("unlocked") };
+    if (raw.includes("LOCK")) return { key: "locked", color: "var(--bmw-high)", label: this._t("locked") };
+    return { key: "unknown", color: "var(--divider-color)", label: this._fmt(st) };
+  }
+
+  _alarmInfo(armSt, onSt) {
+    if (!armSt && !onSt) return null;
+    const onRaw = onSt ? String(onSt.state).trim().toLowerCase() : "";
+    const honking = onSt && !UNAVAILABLE.has(onRaw) && /^(on|true)$/.test(onRaw);
+    if (honking) return { key: "triggered", color: "var(--bmw-low)", label: this._t("alarm_triggered") };
+    const armRaw = armSt ? String(armSt.state).trim().toLowerCase() : "";
+    const known = armSt && !UNAVAILABLE.has(armRaw) && armRaw !== "invalid";
+    if (!known) return { key: "unknown", color: "var(--divider-color)", label: "—" };
+    if (armRaw === "unarmed")
+      return { key: "disarmed", color: "var(--secondary-text-color)", label: this._t("alarm_disarmed") };
+    return { key: "armed", color: "var(--bmw-high)", label: this._t("alarm_armed") };
+  }
+
+  _splitValueUnit(st) {
+    const formatted = this._fmt(st);
+    if (formatted === "—") return { value: "—", unit: "" };
+    const idx = formatted.indexOf(" ");
+    if (idx === -1) return { value: formatted, unit: "" };
+    return { value: formatted.slice(0, idx), unit: formatted.slice(idx + 1) };
+  }
+
+  _renderMessage(title, html) {
+    this._sig = null;
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <div class="msg">
+          <ha-icon icon="mdi:car-off"></ha-icon>
+          <div class="msg__title">${title}</div>
+          <div class="msg__body">${html}</div>
+        </div>
+      </ha-card>`;
+  }
+
+  _wireTaps() {
+    this.shadowRoot.querySelectorAll("[data-entity]").forEach((el) => {
+      const id = el.getAttribute("data-entity");
+      if (!id) {
+        el.classList.add("is-static");
+        return;
+      }
+      el.addEventListener("click", () => this._moreInfo(id));
+    });
+  }
+
+  _moreInfo(entityId) {
+    const ev = new Event("hass-more-info", { bubbles: true, composed: true });
+    ev.detail = { entityId };
+    this.dispatchEvent(ev);
+  }
+
+  _styles() {
+    return `
+    <style>
+      :host {
+        --bmw-charge: #2f80ed;
+        --bmw-high: #29a36a;
+        --bmw-mid: #e6a417;
+        --bmw-low: #d64545;
+      }
+      ha-card {
+        overflow: hidden;
+        padding: 0;
+      }
+      * { box-sizing: border-box; }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        text-align: left;
+        cursor: pointer;
+      }
+      button.is-static { cursor: default; }
+
+      /* hero */
+      .hero {
+        position: relative;
+        aspect-ratio: 16 / 9;
+        background: var(--secondary-background-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .hero__img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center 60%;
+      }
+      .hero__placeholder {
+        --mdc-icon-size: 72px;
+        color: var(--disabled-text-color);
+      }
+      .hero__scrim {
+        position: absolute; inset: 0;
+        background: linear-gradient(180deg, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0) 34%);
+        pointer-events: none;
+      }
+      .hero__top {
+        position: absolute; top: 0; left: 0; right: 0;
+        display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+        padding: 14px 16px;
+      }
+      .hero__name {
+        color: #fff;
+        font-size: 1.15rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.55);
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      /* "trip in progress" badge, bottom-left of the hero so it never competes
+         with the vehicle name or the freshness pill above it. */
+      .hero__trip {
+        position: absolute; left: 16px; bottom: 12px;
+        display: inline-flex; align-items: center; gap: 7px;
+        max-width: calc(100% - 32px);
+        background: rgba(0,0,0,0.46);
+        color: #fff;
+        border-radius: 999px;
+        padding: 5px 12px;
+        font-size: 0.74rem;
+        font-weight: 600;
+        backdrop-filter: blur(3px);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      }
+      .hero__trip-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: var(--bmw-charge, #4cc2ff);
+        flex: 0 0 auto;
+        animation: bd-trip-pulse 2s ease-in-out infinite;
+      }
+      .hero__trip-sub {
+        font-weight: 500;
+        opacity: 0.85;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      @keyframes bd-trip-pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.45; transform: scale(0.82); }
+      }
+      /* Respect a reduced-motion preference: the badge still reads as live from
+         its colour, so the pulse is simply dropped. */
+      @media (prefers-reduced-motion: reduce) {
+        .hero__trip-dot { animation: none; }
+      }
+      .pill {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(0,0,0,0.38);
+        color: #fff;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.72rem;
+        font-weight: 500;
+        backdrop-filter: blur(3px);
+        white-space: nowrap;
+      }
+      .dot { width: 7px; height: 7px; border-radius: 50%; }
+      .dot--live { background: #37d67a; box-shadow: 0 0 0 0 rgba(55,214,122,0.6); animation: pulse 2.6s infinite; }
+      .dot--stale { background: #c9a227; }
+      @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(55,214,122,0.55); }
+        70% { box-shadow: 0 0 0 6px rgba(55,214,122,0); }
+        100% { box-shadow: 0 0 0 0 rgba(55,214,122,0); }
+      }
+
+      /* band: gauge + lead metrics */
+      .band {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 18px 18px 8px;
+      }
+      .gauge {
+        position: relative;
+        flex: 0 0 auto;
+      }
+      .gauge__ring {
+        width: 96px; height: 96px;
+        border-radius: 50%;
+        background:
+          radial-gradient(closest-side, var(--card-background-color) 70%, transparent 71% 100%),
+          conic-gradient(var(--ring) calc(var(--pct) * 1%), var(--divider-color) 0);
+        display: grid; place-items: center;
+        transition: background 0.6s ease;
+      }
+      .gauge__hole { text-align: center; line-height: 1; }
+      .gauge__val {
+        font-size: 1.7rem; font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        color: var(--primary-text-color);
+      }
+      .gauge__val i { font-size: 0.85rem; font-weight: 500; font-style: normal; color: var(--secondary-text-color); margin-left: 1px; }
+      .gauge__cap {
+        display: block; margin-top: 3px;
+        font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.09em;
+        color: var(--secondary-text-color);
+      }
+      .gauge__bolt {
+        position: absolute; right: -2px; top: -2px;
+        --mdc-icon-size: 20px;
+        color: var(--bmw-charge);
+        background: var(--card-background-color);
+        border-radius: 50%;
+        padding: 2px;
+      }
+
+      .lead { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+      .lead__row {
+        display: grid;
+        grid-template-columns: 24px 1fr;
+        grid-template-rows: auto auto;
+        column-gap: 10px;
+        align-items: center;
+        border-radius: 10px;
+        padding: 6px 8px;
+        transition: background 0.15s ease;
+      }
+      .lead__row:hover { background: var(--secondary-background-color); }
+      .lead__row ha-icon { grid-row: 1 / 3; color: var(--secondary-text-color); --mdc-icon-size: 22px; }
+      .lead__val {
+        font-size: 1.05rem; font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        color: var(--primary-text-color);
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      .lead__lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--secondary-text-color); }
+
+      /* metric grid */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 8px;
+        padding: 8px 14px 16px;
+      }
+      .cell {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: var(--secondary-background-color);
+        transition: transform 0.12s ease, background 0.15s ease;
+      }
+      .cell:hover { background: var(--divider-color); }
+      .cell:active { transform: scale(0.98); }
+      .cell ha-icon { color: var(--secondary-text-color); --mdc-icon-size: 22px; flex: 0 0 auto; }
+      .cell__body { min-width: 0; display: flex; flex-direction: column; }
+      .cell__val {
+        font-size: 0.98rem; font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        color: var(--primary-text-color);
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      .cell__lbl { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--secondary-text-color); }
+
+      /* cluster mode */
+      .chead {
+        display: flex; align-items: center; gap: 12px;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--divider-color);
+      }
+      .chead > ha-icon { --mdc-icon-size: 26px; color: var(--bmw-charge); }
+      .chead__text { display: flex; flex-direction: column; }
+      .chead__title { font-size: 1.05rem; font-weight: 600; color: var(--primary-text-color); }
+      .chead__sub { font-size: 0.74rem; color: var(--secondary-text-color); }
+      /* export buttons, pushed to the right edge of the header */
+      .xbar { margin-left: auto; display: flex; gap: 6px; flex-shrink: 0; }
+
+      /* month navigator, between the header and the list it scopes */
+      .mnav {
+        display: flex; align-items: center; justify-content: center; gap: 4px;
+        padding: 8px 14px 2px;
+      }
+      .mnav__label {
+        min-width: 11ch; text-align: center;
+        font-size: 0.8rem; font-weight: 600; color: var(--primary-text-color);
+      }
+      .mnav__btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 28px; height: 28px; padding: 0;
+        border: 1px solid var(--divider-color); border-radius: 999px;
+        background: transparent; color: var(--secondary-text-color);
+        cursor: pointer; font: inherit;
+      }
+      .mnav__btn > ha-icon { --mdc-icon-size: 18px; }
+      .mnav__btn:hover:not([disabled]) {
+        border-color: var(--primary-color); color: var(--primary-color);
+      }
+      /* Forward past the current month leads nowhere, so the control says so
+         rather than silently doing nothing. */
+      .mnav__btn[disabled] { opacity: 0.35; cursor: default; }
+      .xbtn {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 5px 10px 5px 7px;
+        font: inherit; font-size: 0.74rem; font-weight: 500;
+        color: var(--secondary-text-color);
+        background: var(--secondary-background-color);
+        border: 1px solid var(--divider-color); border-radius: 16px;
+        cursor: pointer;
+        transition: color 0.13s ease, border-color 0.13s ease;
+      }
+      .xbtn:hover { color: var(--primary-text-color); border-color: var(--bmw-charge); }
+      .xbtn ha-icon { --mdc-icon-size: 15px; }
+      @media (max-width: 420px) {
+        /* the labels are the first thing worth losing on a phone */
+        .xbtn { font-size: 0; gap: 0; padding: 6px; }
+      }
+      .list { display: flex; flex-direction: column; padding: 6px 8px 10px; }
+      .item {
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        padding: 11px 12px;
+        border-radius: 10px;
+        transition: background 0.13s ease;
+      }
+      .item:hover { background: var(--secondary-background-color); }
+      .item + .item { border-top: 1px solid var(--divider-color); }
+      .item:hover { border-top-color: transparent; }
+      .item__name { color: var(--primary-text-color); font-size: 0.92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .item__val {
+        color: var(--secondary-text-color);
+        font-size: 0.92rem; font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        flex: 0 0 auto; text-align: right;
+      }
+      .list__head {
+        padding: 12px 20px 0;
+        color: var(--secondary-text-color);
+        font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+      }
+      .item--msg { justify-content: flex-start; align-items: flex-start; text-align: left; }
+      .item__icon { --mdc-icon-size: 20px; color: var(--warning-color, #ffa600); flex: 0 0 auto; }
+      .item__body { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
+      .item__text { color: var(--primary-text-color); font-size: 0.92rem; }
+      .item__sub { color: var(--secondary-text-color); font-size: 0.82rem; }
+      .item__clamp {
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      }
+      .cc { border-radius: 10px; }
+      .cc + .cc { border-top: 1px solid var(--divider-color); }
+      .cc.is-open { background: var(--secondary-background-color); border-top-color: transparent; }
+      .cc > .item--msg {
+        width: 100%; background: none; border: none; color: inherit; font: inherit; cursor: pointer;
+      }
+      .cc.is-open > .item--msg:hover { background: transparent; }
+      .cc__text { margin: 0 0 8px; color: var(--primary-text-color); font-size: 0.86rem; line-height: 1.4; }
+      .empty, .msg__body { color: var(--secondary-text-color); font-size: 0.9rem; }
+      .empty { padding: 22px 18px; }
+      .empty.empty--inline { padding: 8px 20px 14px; }
+
+      /* message state */
+      .msg { padding: 28px 20px; text-align: center; }
+      .msg ha-icon { --mdc-icon-size: 40px; color: var(--disabled-text-color); }
+      .msg__title { margin-top: 10px; font-weight: 600; color: var(--primary-text-color); }
+      .msg__body { margin-top: 6px; }
+      .msg code, .empty b { font-family: var(--code-font-family, monospace); }
+
+      /* tire diagram */
+      .tstat {
+        margin-left: auto;
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.74rem; font-weight: 600;
+        color: var(--c);
+        white-space: nowrap;
+      }
+      .tstat__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+      /* Pressure and wear summarised across every wheel, above the diagram. */
+      .tsum { display: flex; gap: 8px; padding: 12px 14px 2px; }
+      .tsum__cell {
+        flex: 1; min-width: 0;
+        display: flex; flex-direction: column; gap: 2px;
+        padding: 8px 10px; border-radius: 12px;
+        background: var(--secondary-background-color);
+      }
+      .tsum__k {
+        font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase;
+        color: var(--secondary-text-color);
+      }
+      .tsum__v {
+        display: flex; gap: 6px;
+        /* baseline, not center: a long pressure range wraps to two lines in a
+           narrow column and the dot belongs on the first one. */
+        align-items: baseline;
+        font-size: 0.92rem; font-weight: 600; color: var(--c);
+      }
+      .tsum__v .tstat__dot { flex-shrink: 0; }
+      .tsum__sub { font-size: 0.68rem; color: var(--secondary-text-color); }
+      /* Grid, not absolute positioning: each wheel's own column sizes to the
+         card so long fitment lines wrap instead of being clipped. */
+      .tirewrap { container-type: inline-size; }
+      .tirecar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) clamp(72px, 24%, 118px) minmax(0, 1fr);
+        grid-template-areas:
+          ".  front ."
+          "fl car   fr"
+          "rl car   rr";
+        column-gap: 10px; row-gap: 14px;
+        padding: 10px 12px 16px;
+        align-items: start;
+      }
+      .tirecar__front {
+        grid-area: front;
+        text-align: center;
+        font-size: 0.56rem; letter-spacing: 0.18em; font-weight: 700;
+        color: var(--secondary-text-color);
+      }
+      .tirecar__svg { grid-area: car; align-self: center; }
+      .carsvg {
+        display: block;
+        width: 100%;
+        height: auto;
+        margin: 0 auto;
+        overflow: visible;
+        /* Surface-modelling tokens derived from the active HA theme, so the
+           metal/glass sheen holds up in both light and dark. */
+        --body-hi: color-mix(in srgb, var(--secondary-background-color), white 20%);
+        --body-lo: color-mix(in srgb, var(--secondary-background-color), black 14%);
+        --roof-hi: color-mix(in srgb, var(--card-background-color), white 12%);
+        --roof-lo: color-mix(in srgb, var(--card-background-color), black 6%);
+        --glass-hi: color-mix(in srgb, var(--divider-color) 66%, #4c5c6e);
+        --glass-lo: color-mix(in srgb, var(--divider-color) 50%, #0e141b);
+        --chrome: color-mix(in srgb, var(--secondary-text-color), white 22%);
+        --edge: var(--divider-color);
+        --seam-c: var(--secondary-text-color);
+        --tire: #14171b;
+      }
+      .carsvg__body { fill: url(#bodyGrad); stroke: var(--edge); stroke-width: 0.7; }
+      .carsvg__flare { fill: var(--secondary-text-color); opacity: 0.26; }
+      .carsvg__crease { stroke: var(--seam-c); stroke-width: 0.7; opacity: 0.35; fill: none; stroke-linecap: round; }
+      .carsvg__seam { stroke: var(--seam-c); stroke-width: 0.8; opacity: 0.55; fill: none; stroke-linecap: round; }
+      .carsvg__roof { fill: url(#roofGrad); }
+      .carsvg__glassdk { fill: var(--glass-lo); opacity: 0.85; }
+      .carsvg__glass { fill: url(#glassGrad); }
+      .carsvg__handle { fill: var(--seam-c); opacity: 0.55; }
+      .carsvg__mirror { fill: url(#bodyGrad); stroke: var(--edge); stroke-width: 0.6; }
+      .carsvg__chrome { fill: var(--chrome); }
+      .carsvg__kidney { fill: #0c0f13; }
+      .carsvg__kbar { stroke: var(--chrome); stroke-width: 0.5; opacity: 0.55; }
+      .carsvg__light { fill: var(--secondary-text-color); opacity: 0.7; }
+      .carsvg__tail { fill: #c0392b; opacity: 0.82; }
+      .carsvg__wheel { fill: var(--tire); stroke-width: 3.4; stroke-linejoin: round; }
+
+      /* closures / security diagram */
+      .closcar { padding: 10px 12px 4px; display: flex; justify-content: center; }
+      .closcar .carsvg { width: 50%; min-width: 138px; max-width: 196px; margin: 0; }
+      .cldiag__hit { fill: transparent; cursor: pointer; }
+      .cldiag__hit:hover { fill: rgba(127, 127, 127, 0.14); }
+      .cldiag__flap { stroke-width: 1.2; opacity: 0.92; stroke-linejoin: round; }
+      .cldiag__zone { opacity: 0.42; pointer-events: none; }
+      .cldiag__glass-open { opacity: 0.7; pointer-events: none; }
+      .cldiag__lock { cursor: pointer; }
+      .cldiag__lockbody { fill: var(--c); }
+      .cldiag__shackle { fill: none; stroke: var(--c); stroke-width: 2.2; stroke-linecap: round; }
+      .item__dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+
+      .wlabel {
+        min-width: 0;
+        display: flex; flex-direction: column; gap: 1px;
+        padding: 4px 4px;
+        border-radius: 10px;
+        transition: background 0.14s ease;
+      }
+      .wlabel:hover { background: var(--secondary-background-color); }
+      .wlabel--fl { grid-area: fl; align-items: flex-end; text-align: right; }
+      .wlabel--fr { grid-area: fr; align-items: flex-start; text-align: left; }
+      .wlabel--rl { grid-area: rl; align-items: flex-end; text-align: right; }
+      .wlabel--rr { grid-area: rr; align-items: flex-start; text-align: left; }
+      .wlabel__pos {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.66rem; letter-spacing: 0.05em; text-transform: uppercase;
+        color: var(--secondary-text-color);
+      }
+      .wlabel--fl .wlabel__pos, .wlabel--rl .wlabel__pos { flex-direction: row-reverse; }
+      .wlabel__badge { color: var(--c); font-weight: 700; }
+      .wlabel__val {
+        font-size: 1.45rem; font-weight: 600; line-height: 1.1;
+        font-variant-numeric: tabular-nums;
+        color: var(--primary-text-color);
+        white-space: nowrap;
+      }
+      .wlabel__val i {
+        font-size: 0.66rem; font-weight: 500; font-style: normal;
+        color: var(--secondary-text-color); margin-left: 2px;
+      }
+      .wlabel__sub {
+        font-size: 0.66rem; color: var(--secondary-text-color);
+        font-variant-numeric: tabular-nums;
+      }
+      /* Per-wheel fitment. Wraps rather than clips -- a tyre size and a tread
+         name are long, and the column is whatever the dashboard gives us. */
+      .wlabel__meta {
+        font-size: 0.63rem; line-height: 1.35;
+        color: var(--secondary-text-color);
+        overflow-wrap: anywhere;
+      }
+      .wlabel__val + .wlabel__meta,
+      .wlabel__sub + .wlabel__meta { margin-top: 3px; }
+      .wlabel__due { color: var(--primary-text-color); font-weight: 600; }
+      /* Narrow columns: the diagram is the first thing worth losing, and the
+         four wheels fall back to a 2x2 grid that still reads front-over-rear.
+         Must come after the .wlabel rules it overrides. */
+      @container (max-width: 340px) {
+        .tirecar {
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+          grid-template-areas:
+            "front front"
+            "fl    fr"
+            "rl    rr";
+        }
+        .tirecar__svg { display: none; }
+        .wlabel--fl, .wlabel--rl { align-items: flex-start; text-align: left; }
+        .wlabel--fl .wlabel__pos, .wlabel--rl .wlabel__pos { flex-direction: row; }
+      }
+
+      /* ---- charging history ---- */
+      .chg__summary {
+        display: flex; gap: 8px; padding: 10px 14px 4px;
+      }
+      .chg__stat {
+        flex: 1; display: flex; flex-direction: column; gap: 2px;
+        padding: 8px 10px; border-radius: 12px;
+        background: var(--secondary-background-color);
+      }
+      .chg__stat-val {
+        font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums;
+      }
+      .chg__stat-lbl {
+        font-size: 0.68rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .chg__list { padding: 6px 6px 8px; }
+      .chg__session { border-radius: 12px; }
+      .chg__session.is-open { background: var(--secondary-background-color); }
+      .chg__row {
+        width: 100%; display: flex; align-items: center; justify-content: space-between;
+        gap: 10px; padding: 10px 10px; background: none; border: none;
+        color: inherit; text-align: left; cursor: pointer; border-radius: 12px;
+      }
+      .chg__row:hover { background: var(--secondary-background-color); }
+      .chg__session.is-open .chg__row:hover { background: transparent; }
+      .chg__row-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+      .chg__date { font-weight: 600; font-size: 0.92rem; }
+      .chg__meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+      .chg__soc {
+        font-size: 0.72rem; color: var(--secondary-text-color);
+        font-variant-numeric: tabular-nums;
+      }
+      .chg__figures {
+        display: flex; flex-direction: column; align-items: flex-end; gap: 3px;
+        white-space: nowrap;
+      }
+      .chg__energy { font-variant-numeric: tabular-nums; font-size: 0.86rem; }
+      .chg__energy--lead { font-size: 0.98rem; font-weight: 600; }
+      .chg__cost {
+        font-weight: 600; font-variant-numeric: tabular-nums;
+      }
+      .chg__cost--none {
+        font-weight: 400; font-size: 0.72rem; color: var(--secondary-text-color);
+      }
+      .chg__badge, .chg__tag {
+        font-size: 0.66rem; padding: 1px 7px; border-radius: 999px;
+        border: 1px solid var(--divider-color); color: var(--secondary-text-color);
+        white-space: nowrap;
+      }
+      .chg__badge--home { border-color: var(--bmw-high); color: var(--bmw-high); }
+      .chg__badge--away { border-color: var(--bmw-charge); color: var(--bmw-charge); }
+      .chg__badge--assumed { border-style: dashed; }
+      .chg__tag--warn { border-color: var(--bmw-mid); color: var(--bmw-mid); }
+      .chg__tag--sun { border-color: var(--bmw-high); color: var(--bmw-high); }
+      .chg__detail { padding: 2px 12px 12px; }
+      .chg__chart {
+        width: 100%; height: 64px; display: block; margin-bottom: 8px;
+      }
+      .chg__chart-line {
+        fill: none; stroke: var(--bmw-charge); stroke-width: 2;
+        stroke-linejoin: round; stroke-linecap: round;
+        vector-effect: non-scaling-stroke;
+      }
+      .chg__chart-fill { fill: var(--bmw-charge); opacity: 0.12; stroke: none; }
+      .chg__chart-max {
+        fill: var(--secondary-text-color); font-size: 9px;
+      }
+      .chg__facts { display: flex; flex-wrap: wrap; gap: 6px; }
+      .chg__fact {
+        flex: 1 1 40%; display: flex; justify-content: space-between; gap: 8px;
+        padding: 6px 10px; border-radius: 10px;
+        background: var(--card-background-color);
+      }
+      .chg__fact-lbl { color: var(--secondary-text-color); font-size: 0.76rem; }
+      .chg__fact-val { font-variant-numeric: tabular-nums; font-size: 0.82rem; }
+
+      /* ---- battery health ---- */
+      .bh { padding: 6px 14px 14px; display: flex; flex-direction: column; gap: 14px; }
+      .bh__hero { display: flex; align-items: center; gap: 16px; }
+      .bh__ring { width: 92px; height: 92px; flex: 0 0 auto; }
+      .bh__ring-track { fill: none; stroke: var(--divider-color); stroke-width: 7; }
+      .bh__ring-val {
+        fill: none; stroke: var(--bmw-high); stroke-width: 7; stroke-linecap: round;
+        transition: stroke-dasharray 0.6s ease;
+      }
+      .bh__ring-text {
+        fill: var(--primary-text-color); font-size: 17px; font-weight: 600;
+        text-anchor: middle; font-variant-numeric: tabular-nums;
+      }
+      .bh__hero-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+      .bh__usable {
+        font-size: 1.9rem; font-weight: 600; line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+      .bh__usable i { font-size: 0.9rem; font-weight: 500; font-style: normal;
+        color: var(--secondary-text-color); }
+      .bh__usable-lbl {
+        font-size: 0.7rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .bh__vsnew { font-size: 0.82rem; color: var(--bmw-high); font-weight: 500; }
+      .bh__learn { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; }
+      .bh__learn-val {
+        font-size: 1.35rem; font-weight: 600; font-variant-numeric: tabular-nums;
+      }
+      .bh__bar {
+        height: 7px; border-radius: 999px; background: var(--divider-color);
+        overflow: hidden;
+      }
+      .bh__bar-fill {
+        height: 100%; border-radius: 999px; background: var(--bmw-charge);
+        transition: width 0.6s ease;
+      }
+      .bh__hint { font-size: 0.78rem; color: var(--secondary-text-color); line-height: 1.35; }
+      .bh__trend { display: flex; flex-direction: column; gap: 4px; }
+      .bh__trend-title {
+        font-size: 0.68rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .bh__chart { width: 100%; height: 70px; display: block; }
+
+      /* ---- efficiency & real range ---- */
+      .ef { padding: 6px 14px 14px; display: flex; flex-direction: column; gap: 14px; }
+      .ef__hero { display: flex; flex-direction: column; gap: 4px; }
+      .ef__hero-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+      .ef__hero-val {
+        font-size: 2.1rem; font-weight: 600; line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+      .ef__hero-val i {
+        font-size: 0.95rem; font-weight: 500; font-style: normal;
+        color: var(--secondary-text-color);
+      }
+      .ef__hero-lbl {
+        font-size: 0.7rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .ef__vs { font-size: 0.82rem; color: var(--secondary-text-color); font-weight: 500; }
+      .ef__vs--over { color: var(--bmw-high); }
+      .ef__vs--under { color: var(--bmw-mid); }
+      .ef__facts { display: flex; flex-wrap: wrap; gap: 8px; }
+      .ef__fact {
+        flex: 1 1 44%; display: flex; flex-direction: column; gap: 2px;
+        padding: 8px 10px; border-radius: 12px;
+        background: var(--secondary-background-color);
+      }
+      .ef__fact-lbl {
+        font-size: 0.68rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .ef__fact-val { font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+      .ef__fact-note { font-size: 0.72rem; color: var(--secondary-text-color); }
+      .ef__trend { display: flex; flex-direction: column; gap: 4px; }
+      .ef__trend-title {
+        font-size: 0.68rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .ef__chart { width: 100%; height: 88px; display: block; }
+      .ef__bar { fill: var(--bmw-charge); opacity: 0.85; }
+      .ef__bar-lbl { fill: var(--secondary-text-color); font-size: 8px; }
+      .ef__note { font-size: 0.72rem; color: var(--secondary-text-color); line-height: 1.35; }
+
+      /* trips */
+      .tr__review { padding: 8px 14px 4px; display: flex; flex-direction: column; gap: 12px; }
+      .tr__tiles { display: flex; gap: 8px; flex-wrap: wrap; }
+      .tr__tile {
+        flex: 1 1 40%; display: flex; flex-direction: column; gap: 2px;
+        padding: 8px 10px; border-radius: 12px;
+        background: var(--secondary-background-color);
+      }
+      .tr__tile-val { font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+      .tr__tile-val i { font-style: normal; font-size: 0.72rem; color: var(--secondary-text-color); }
+      .tr__tile-lbl {
+        font-size: 0.68rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      /* The secondary reading under a headline figure (battery-side consumption
+         beneath the plug-side one). Deliberately quieter than the label. */
+      .tr__tile-sub {
+        font-size: 0.68rem; color: var(--secondary-text-color);
+        font-variant-numeric: tabular-nums; opacity: 0.85;
+      }
+      .tr__delta { font-size: 0.7rem; font-variant-numeric: tabular-nums; }
+      .tr__delta--up { color: var(--bmw-charge, #34c759); }
+      .tr__delta--down { color: var(--error-color, #ff453a); }
+      .tr__split { display: flex; flex-direction: column; gap: 6px; }
+      .tr__bar {
+        display: flex; height: 12px; border-radius: 999px; overflow: hidden;
+        background: var(--secondary-background-color);
+      }
+      .tr__seg { display: block; height: 100%; }
+      .tr__seg--business, .tr__dot.tr__seg--business { background: #0066b1; }
+      .tr__seg--commute, .tr__dot.tr__seg--commute { background: #00a1e0; }
+      .tr__seg--private, .tr__dot.tr__seg--private { background: #7ac142; }
+      .tr__seg--unc, .tr__dot.tr__seg--unc { background: var(--disabled-text-color, #8a8a8a); }
+      .tr__legend { display: flex; flex-wrap: wrap; gap: 10px; }
+      .tr__leg {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: 0.72rem; color: var(--secondary-text-color);
+        font-variant-numeric: tabular-nums;
+      }
+      .tr__dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+      /* ---- trip map ---- */
+      .map__filters {
+        display: flex; gap: 6px; padding: 4px 14px 10px; flex-wrap: wrap;
+      }
+      .map__chip {
+        border: 1px solid var(--divider-color); background: transparent;
+        color: var(--secondary-text-color); cursor: pointer;
+        font: inherit; font-size: 0.74rem; padding: 3px 12px; border-radius: 999px;
+      }
+      .map__chip:hover { border-color: var(--primary-color); }
+      .map__chip.is-active {
+        background: var(--primary-color); color: var(--text-primary-color, #fff);
+        border-color: var(--primary-color);
+      }
+      .map__holder {
+        margin: 0 14px; border-radius: 12px; overflow: hidden;
+        border: 1px solid var(--divider-color);
+      }
+      .map__holder ha-map { width: 100%; }
+      .tr__minimap {
+        margin: 2px 0 12px; height: 200px; border-radius: 10px; overflow: hidden;
+        border: 1px solid var(--divider-color); background: var(--card-background-color);
+      }
+      .tr__minimap ha-map { width: 100%; }
+      .tr__style { display: flex; flex-direction: column; gap: 6px; }
+      .tr__style-head { display: flex; align-items: center; justify-content: space-between; }
+      .tr__style-lbl {
+        font-size: 0.68rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .tr__stars { font-size: 0.95rem; color: #f5a623; letter-spacing: 1px; }
+      .tr__dests { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      .tr__dests-lbl {
+        font-size: 0.68rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em; width: 100%;
+      }
+      .tr__dest {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 4px 8px; border-radius: 999px;
+        background: var(--secondary-background-color); font-size: 0.78rem;
+      }
+      .tr__dest-n { color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
+      .tr__badge {
+        font-size: 0.66rem; padding: 1px 7px; border-radius: 999px;
+        color: #fff; text-transform: uppercase; letter-spacing: 0.03em;
+      }
+      .tr__badge--business { background: #0066b1; }
+      .tr__badge--commute { background: #00a1e0; }
+      .tr__badge--private { background: #7ac142; }
+      /* A drive under way: the badge that replaces a classification until the
+         trip lands and there is something to classify. */
+      .tr__badge--live {
+        background: var(--bmw-charge, #4cc2ff);
+        display: inline-flex; align-items: center; gap: 5px;
+      }
+      .tr__live-dot {
+        width: 6px; height: 6px; border-radius: 50%; background: #fff;
+        animation: bd-trip-pulse 2s ease-in-out infinite;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .tr__live-dot { animation: none; }
+      }
+      /* The in-progress row leads with an accent edge so it reads as different
+         from the recorded trips below it without shouting. */
+      .chg__session.is-live > .chg__row {
+        border-left: 3px solid var(--bmw-charge, #4cc2ff);
+        padding-left: 7px;
+      }
+      .tr__live-note {
+        font-size: 0.72rem; color: var(--secondary-text-color);
+        line-height: 1.45; padding: 8px 2px 2px;
+      }
+      .tr__auto { font-style: normal; opacity: 0.75; text-transform: none; }
+      .tr__classify { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 2px 2px; }
+      .tr__classify-lbl {
+        font-size: 0.68rem; color: var(--secondary-text-color);
+        text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .tr__cls-btns { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+      .tr__cls-btn {
+        border: 1px solid var(--divider-color); background: none; cursor: pointer;
+        font-size: 0.66rem; padding: 3px 9px; border-radius: 999px;
+        color: var(--primary-text-color); text-transform: uppercase; letter-spacing: 0.03em;
+        opacity: 0.6;
+      }
+      .tr__cls-btn:hover { opacity: 1; }
+      .tr__cls-btn.is-active { opacity: 1; color: #fff; border-color: transparent; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .dot--live { animation: none; }
+        .gauge__ring { transition: none; }
+      }
+      @media (max-width: 360px) {
+        .band { flex-direction: column; align-items: stretch; }
+        .gauge { align-self: center; }
+      }
+    </style>`;
+  }
+}
+
+// Register idempotently. The script can legitimately be evaluated more than once
+// in one session (e.g. the integration re-injects a fresh ?v= URL after an update
+// on top of the already-loaded copy). A bare customElements.define() would throw
+// "the name has already been used" on the second run and abort the module.
+//
+// The previous `if (!customElements.get(tag)) define(tag)` guard proved unsafe:
+// on cold loads the define was sometimes *skipped* while the element was never
+// actually registered, leaving every placed card stuck on "config error" (HA's
+// whenDefined->rebuild never fires because the tag never becomes defined) until a
+// hard refresh. Always attempt the define and swallow only the benign
+// already-defined error, so registration can never be silently missed.
+defineCardElement("bavariandata-card", BavarianDataCard);
+// Back-compat alias: dashboards created before the BavarianData rename still
+// reference `custom:bmw-cardata-card`. A custom-element constructor can only be
+// bound to ONE tag name -- reusing `BavarianDataCard` here throws "this
+// constructor has already been used with this registry", which aborts the rest
+// of this module (editor + card-picker registration never run). Register a
+// trivial subclass so the legacy tag gets its own constructor. Not advertised
+// in the card picker.
+defineCardElement("bmw-cardata-card", class extends BavarianDataCard {});
+
+/* ------------------------------------------------------------------------- *
+ * Visual editor (config-changed via ha-form)                                *
+ * ------------------------------------------------------------------------- */
+
+// Sentinel for "no cluster" so the dropdown always has a concrete value.
+const OVERVIEW = "overview";
+// The mode dropdown is a single selector for every layout, but charging isn't a
+// catalogue cluster -- it's stored as `view: charging`. This sentinel lets the
+// one dropdown offer it, mapped to/from `view` in _render and _valueChanged.
+const CHARGING_VIEW = "charging";
+// Same idea for battery health: a `view:`, not a cluster, sharing the dropdown.
+const HEALTH_VIEW = "health";
+// And trips (the Fahrtenbuch), also a `view:` sharing the one dropdown.
+const TRIPS_VIEW = "trips";
+// The trip map (opt-in route polylines on ha-map), also a `view:`.
+const MAP_VIEW = "map";
+// The `view:` values that are layouts in their own right rather than clusters.
+const EFFICIENCY_VIEW = "efficiency";
+
+const VIEW_MODES = new Set([
+  CHARGING_VIEW,
+  TRIPS_VIEW,
+  MAP_VIEW,
+  HEALTH_VIEW,
+  EFFICIENCY_VIEW,
+]);
+
+class BavarianDataCardEditor extends HTMLElement {
+  setConfig(config) {
+    this._config = { ...config };
+    this._render();
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    this._render();
+  }
+
+  _schema() {
+    const clusterOptions = [
+      { value: OVERVIEW, label: t(this._hass, "ed_overview_option") },
+      { value: CHARGING_VIEW, label: t(this._hass, "ch_title") },
+      { value: TRIPS_VIEW, label: t(this._hass, "tr_title") },
+      { value: MAP_VIEW, label: t(this._hass, "mp_title") },
+      { value: HEALTH_VIEW, label: t(this._hass, "bh_title") },
+      { value: EFFICIENCY_VIEW, label: t(this._hass, "ef_title") },
+      { value: "closures", label: t(this._hass, "cl_closures") },
+      ...CLUSTER_SLUGS.map((slug) => ({
+        value: slug,
+        label: t(this._hass, "cl_" + slug, null, slug),
+      })),
+    ];
+    const entitySel = (domain) => ({
+      entity: { integration: "bavariandata", ...(domain ? { domain } : {}) },
+    });
+    const overview =
+      !this._config || (!this._config.cluster && !VIEW_MODES.has(this._config.view));
+    // Cars only. HA's device picker, filtered by integration, also offers the
+    // "CarData Debug Device" -- registered first, it was even preselected -- and
+    // a card bound to it has nothing to show.
+    const cars = BavarianDataCard._vehicleDevices(this._hass).map((id) => {
+      const dev = this._hass.devices[id];
+      return { value: id, label: dev.name_by_user || dev.name || id };
+    });
+    const schema = [
+      { name: "device", selector: { select: { mode: "dropdown", options: cars } } },
+      { name: "cluster", selector: { select: { mode: "dropdown", options: clusterOptions } } },
+      { name: "title", selector: { text: {} } },
+    ];
+    if (overview) {
+      schema.push({
+        name: "drivetrain",
+        selector: {
+          select: {
+            mode: "dropdown",
+            options: ["auto", "bev", "phev", "ice"].map((value) => ({
+              value,
+              label: t(this._hass, "dt_" + value),
+            })),
+          },
+        },
+      });
+      // Entity overrides only make sense for the overview layout.
+      schema.push({
+        name: "",
+        type: "expandable",
+        flatten: true,
+        title: t(this._hass, "ed_overrides_title"),
+        icon: "mdi:tune-variant",
+        schema: [
+          { name: "image", selector: entitySel("image") },
+          {
+            type: "grid",
+            schema: [
+              { name: "soc", selector: entitySel() },
+              { name: "range", selector: entitySel() },
+              { name: "charging", selector: entitySel() },
+              { name: "target_soc", selector: entitySel() },
+              { name: "time_to_full", selector: entitySel() },
+              { name: "odometer", selector: entitySel() },
+              { name: "plug", selector: entitySel() },
+              { name: "fuel", selector: entitySel() },
+            ],
+          },
+        ],
+      });
+    }
+    return schema;
+  }
+
+  _render() {
+    if (!this._hass || !this._config) return;
+    if (!this._form) {
+      this._form = document.createElement("ha-form");
+      this._form.computeLabel = (s) => t(this._hass, "ed_" + s.name, null, s.name);
+      this._form.computeHelper = (s) => t(this._hass, "edh_" + s.name, null, "");
+      this._form.addEventListener("value-changed", (ev) => this._valueChanged(ev));
+      this.appendChild(this._form);
+    }
+    this._form.hass = this._hass;
+    this._form.schema = this._schema();
+    // Present a concrete value so the mode dropdown reflects the current layout.
+    // A `view:` layout maps onto its dropdown sentinel (its own value); a cluster
+    // onto the cluster; otherwise the overview sentinel.
+    const mode = VIEW_MODES.has(this._config.view)
+      ? this._config.view
+      : this._config.cluster || OVERVIEW;
+    this._form.data = { ...this._config, cluster: mode, drivetrain: this._config.drivetrain || "auto" };
+  }
+
+  _valueChanged(ev) {
+    ev.stopPropagation();
+    if (!this._config) return;
+    const value = { ...ev.detail.value };
+    // The mode dropdown feeds the `cluster` field; translate its special values
+    // back into the real config keys.
+    if (VIEW_MODES.has(value.cluster)) {
+      value.view = value.cluster;
+      delete value.cluster;
+    } else {
+      delete value.view;
+      if (value.cluster === OVERVIEW || !value.cluster) delete value.cluster;
+    }
+    // "Auto-detect" is the absence of the key, not a value to store.
+    if (value.drivetrain === "auto") delete value.drivetrain;
+    // Drop empties so the stored config stays minimal.
+    for (const key of Object.keys(value)) {
+      if (value[key] === "" || value[key] === undefined || value[key] === null) {
+        delete value[key];
+      }
+    }
+    delete value.type;
+    const config = { type: this._config.type || "custom:bavariandata-card", ...value };
+    this._config = config;
+    // Switching to/from a cluster changes which fields are relevant.
+    this._form.schema = this._schema();
+    this.dispatchEvent(
+      new CustomEvent("config-changed", {
+        detail: { config },
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
+}
+
+defineCardElement("bavariandata-card-editor", BavarianDataCardEditor);
+// Legacy alias for the editor element, matching the card alias above. Needs its
+// own constructor for the same reason (one class -> one tag name).
+defineCardElement("bmw-cardata-card-editor", class extends BavarianDataCardEditor {});
+
+window.customCards = window.customCards || [];
+// Only advertise the card once — a second evaluation would otherwise add a
+// duplicate entry to the card picker.
+if (!window.customCards.some((c) => c.type === "bavariandata-card")) {
+  window.customCards.push({
+    type: "bavariandata-card",
+    name: "BavarianData Card",
+    description: "Vehicle render, state of charge and per-cluster data for BMW CarData.",
+    preview: true,
+    documentationURL: "https://github.com/JustChr/BavarianData",
+  });
+}
+
+// eslint-disable-next-line no-console
+console.info(
+  `%c BAVARIANDATA-CARD %c ${CARD_VERSION} `,
+  "color:#fff;background:#2f80ed;border-radius:3px 0 0 3px;padding:2px 4px;",
+  "color:#2f80ed;background:#0b0f14;border-radius:0 3px 3px 0;padding:2px 4px;"
+);
