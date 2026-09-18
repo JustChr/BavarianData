@@ -5,9 +5,11 @@
 Jeder Dienst ist unter **Entwicklerwerkzeuge → Aktionen** verfügbar und (die
 meisten) auch als Schaltfläche im Menü **Konfigurieren** der Integration.
 
-Alle Dienste akzeptieren eine optionale **`entry_id`** (nur nötig, wenn du mehrere
-Konfigurationseinträge hast) und, wo sinnvoll, eine optionale **`vin`**
-(Standard: das erste bekannte Fahrzeug).
+Alle Dienste akzeptieren eine optionale **`entry_id`** und, wo sinnvoll, eine
+optionale **`vin`** (Standard: das erste bekannte Fahrzeug). Mit einem einzigen
+Konto brauchst du keines von beidem. Bei **zwei Konten** — etwa einem BMW- und
+einem MINI-Konto — muss ein Aufruf sagen, welches gemeint ist: entweder du gibst
+die `entry_id` an oder die `vin`, aus der das Konto des Fahrzeugs ermittelt wird.
 
 ## Abruf-Dienste — verbrauchen API-Kontingent ⚡
 

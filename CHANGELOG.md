@@ -9,6 +9,22 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **With two accounts set up, the card's Charging, Trips, Map and Efficiency
+  views stayed empty.** Those views read their data from services rather than
+  from entity states, and a service call that does not say which account it
+  means is refused as soon as a second one exists — so a household running a BMW
+  and a MINI account side by side got blank views and a log filling with
+  *"multiple entries configured; specify entry_id"*. The card now reads the
+  account off the vehicle's own device and names it on every call it makes.
+  Found, diagnosed and fixed by @thebertster
+  ([#11](https://github.com/JustChr/BavarianData/pull/11)).
+- **Calling a service by hand with two accounts no longer needs the entry id.**
+  A `vin` already identifies the account, so an automation, script or Developer
+  Tools call that passes one is now resolved from it instead of being refused.
+  Naming `entry_id` explicitly still wins, and nothing changes for the single
+  account install.
+
 ## [0.9.10] - 2026-09-16
 
 The first stable release since 0.9.8, promoting twelve betas (0.9.9-beta.1

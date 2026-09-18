@@ -839,6 +839,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
 
     if not domain_data.get("_service_registered"):
 
+        def _entry_id_for_vin(vin: Optional[str]) -> Optional[str]:
+            """The config entry that owns ``vin``, via its device.
+
+            The device registry is the authority here rather than the
+            coordinator's live data: an entry that has not received anything
+            from the stream yet still has its devices, so a call right after a
+            restart resolves the same way as one an hour later.
+            """
+
+            if not vin:
+                return None
+            device = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, vin)})
+            if device is None:
+                return None
+            primary = getattr(device, "primary_config_entry", None)
+            if primary:
+                return primary
+            return next(iter(device.config_entries), None)
+
         def _resolve_target(call: Any) -> tuple[str, ConfigEntry, CardataRuntimeData] | None:
             entries = {
                 loaded_entry.entry_id: loaded_entry.runtime_data
@@ -859,6 +878,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 return target_entry_id, target_entry, runtime
 
             if len(entries) != 1:
+                # Two accounts (a BMW and a MINI, say) mean the call has to say
+                # which one it means -- but a VIN already says it, and every
+                # caller that matters passes one. Read the entry off that
+                # vehicle's device rather than making the user paste an entry
+                # id into an automation they had working before they added
+                # their second car.
+                by_vin = _entry_id_for_vin(call.data.get("vin"))
+                if by_vin is not None and by_vin in entries:
+                    target_entry = hass.config_entries.async_get_entry(by_vin)
+                    if target_entry is not None:
+                        return by_vin, target_entry, entries[by_vin]
                 _LOGGER.error(
                     "Cardata service call: multiple entries configured; specify entry_id"
                 )

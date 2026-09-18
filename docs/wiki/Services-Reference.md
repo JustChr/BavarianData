@@ -5,9 +5,11 @@
 Every service is available in **Developer Tools → Actions** and (for most) as a
 button in the integration's **Configure** menu.
 
-All services accept an optional **`entry_id`** (required only if you have
-multiple config entries) and, where relevant, an optional **`vin`** (defaults to
-the first known vehicle).
+All services accept an optional **`entry_id`** and, where relevant, an optional
+**`vin`** (defaults to the first known vehicle). With a single account set up
+you need neither. With **two accounts** — a BMW and a MINI, say — a call has to
+say which one it means: either name the `entry_id`, or pass the `vin`, and the
+vehicle's account is looked up from it.
 
 ## Fetch services — spend API quota ⚡
 

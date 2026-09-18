@@ -13,7 +13,7 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.14.0";
+const CARD_VERSION = "1.14.1";
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -1119,9 +1119,33 @@ class BavarianDataCard extends HTMLElement {
     return null;
   }
 
+  /** The config entry a vehicle device belongs to.
+   *
+   * With two accounts set up -- a BMW and a MINI, say -- the services cannot
+   * guess which entry a call means and refuse it, so every call the card makes
+   * has to name its entry. Home Assistant has spelled that field differently
+   * over time: `config_entry_id` only exists from 2026.8, `primary_config_entry`
+   * is there throughout, and the `config_entries` list is deprecated as of
+   * 2026.8. Take whichever is present, and `null` where none is -- see
+   * `_withEntry` for why that is never sent.
+   */
   _deviceEntry(deviceId) {
     const dev = this._hass.devices && this._hass.devices[deviceId];
-    return (dev && (dev.config_entry_id)) || null;
+    if (!dev) return null;
+    const entries = Array.isArray(dev.config_entries) ? dev.config_entries : [];
+    return dev.config_entry_id || dev.primary_config_entry || entries[0] || null;
+  }
+
+  /** Service data with `entry_id` added, but only when it is actually known.
+   *
+   * The services take `entry_id` as an optional *string*: sending it as null
+   * fails schema validation and the whole call errors out, which would break
+   * the very views this is here to fix. Leaving it off instead falls back to
+   * the single configured entry -- correct for the one-account install, and
+   * the only thing we can do when the device registry will not say.
+   */
+  _withEntry(data, entryId) {
+    return entryId ? { ...data, entry_id: entryId } : data;
   }
 
   _deviceName(deviceId) {
@@ -1639,7 +1663,7 @@ class BavarianDataCard extends HTMLElement {
       .callService(
         "bavariandata",
         "get_charging_sessions",
-        { vin, entry_id: entryId, from: bounds.from, to: bounds.to },
+        this._withEntry({ vin, from: bounds.from, to: bounds.to }, entryId),
         undefined,
         false,
         true
@@ -2125,7 +2149,8 @@ class BavarianDataCard extends HTMLElement {
   }
 
   _export(kind, format) {
-    const vin = this._deviceVin(this._resolveDeviceId());
+    const deviceId = this._resolveDeviceId();
+    const vin = this._deviceVin(deviceId);
     // One export at a time: the button stays in the DOM across repaints, and a
     // double tap would otherwise download the same month twice.
     if (!vin || this._exporting) return;
@@ -2139,7 +2164,10 @@ class BavarianDataCard extends HTMLElement {
       .callService(
         "bavariandata",
         "export_history",
-        { vin, type: kind, format, month },
+        this._withEntry(
+          { vin, type: kind, format, month },
+          this._deviceEntry(deviceId)
+        ),
         undefined,
         false,
         true
@@ -2258,8 +2286,8 @@ class BavarianDataCard extends HTMLElement {
       // Bounded to the month on the service side rather than fetched wide and
       // sliced here: the store holds two years, and the card should never pull
       // more than it is about to draw.
-      call("get_trips", { vin, entry_id: entryId, from: bounds.from, to: bounds.to }),
-      call("get_driving_summary", { vin, entry_id: entryId, month }),
+      call("get_trips", this._withEntry({ vin, from: bounds.from, to: bounds.to }, entryId)),
+      call("get_driving_summary", this._withEntry({ vin, month }, entryId)),
     ])
       .then(([tripsRes, sumRes]) => {
         if (
@@ -2810,12 +2838,14 @@ class BavarianDataCard extends HTMLElement {
         const entryId = this._trp && this._trp.entryId;
         if (!vin) return;
         this._hass
-          .callService("bavariandata", "set_trip_class", {
-            vin,
-            entry_id: entryId,
-            trip_id: `${vin}-${tripId}`,
-            classification: cls,
-          })
+          .callService(
+            "bavariandata",
+            "set_trip_class",
+            this._withEntry(
+              { vin, trip_id: `${vin}-${tripId}`, classification: cls },
+              entryId
+            )
+          )
           .then(() => {
             // Optimistically reflect the change; the service re-dispatches and
             // the summary sensor's last_changed will trigger a real refetch.
@@ -2881,7 +2911,14 @@ class BavarianDataCard extends HTMLElement {
     // A generous limit: a route map wants more than the visible trip list, and
     // get_trips reads the store (zero REST quota), so a wide fetch is cheap.
     this._hass
-      .callService("bavariandata", "get_trips", { vin, entry_id: entryId, limit: 200 }, undefined, false, true)
+      .callService(
+        "bavariandata",
+        "get_trips",
+        this._withEntry({ vin, limit: 200 }, entryId),
+        undefined,
+        false,
+        true
+      )
       .then((res) => {
         if (!this._mapData || this._mapData.vin !== vin || this._mapData.trigger !== req.trigger)
           return;
@@ -3441,6 +3478,8 @@ class BavarianDataCard extends HTMLElement {
     }
     if (this._renderIceNotice(deviceId, entities)) return;
 
+    const entryId = this._deviceEntry(deviceId);
+
     const st = entities
       .map((id) => this._st(id))
       .find((s) => s && s.attributes && s.attributes.descriptor === "real_range");
@@ -3465,16 +3504,23 @@ class BavarianDataCard extends HTMLElement {
         loading: true,
         error: false,
       };
-      this._fetchEfficiency(vin);
+      this._fetchEfficiency(vin, entryId);
     }
 
     this._paintEfficiency(deviceId, st);
   }
 
-  _fetchEfficiency(vin) {
+  _fetchEfficiency(vin, entryId) {
     const req = this._eff;
     this._hass
-      .callService("bavariandata", "get_efficiency", { vin }, undefined, false, true)
+      .callService(
+        "bavariandata",
+        "get_efficiency",
+        this._withEntry({ vin }, entryId),
+        undefined,
+        false,
+        true
+      )
       .then((res) => {
         if (!this._eff || this._eff.vin !== vin || this._eff.trigger !== req.trigger)
           return;
