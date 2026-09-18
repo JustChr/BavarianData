@@ -1119,6 +1119,11 @@ class BavarianDataCard extends HTMLElement {
     return null;
   }
 
+  _deviceEntry(deviceId) {
+    const dev = this._hass.devices && this._hass.devices[deviceId];
+    return (dev && (dev.config_entry_id)) || null;
+  }
+
   _deviceName(deviceId) {
     const dev = this._hass.devices && this._hass.devices[deviceId];
     return (dev && (dev.name_by_user || dev.name)) || "BMW";
@@ -1591,6 +1596,8 @@ class BavarianDataCard extends HTMLElement {
     }
     if (this._renderIceNotice(deviceId, entities)) return;
 
+    const entryId = this._deviceEntry(deviceId);
+
     // Sessions come from a service response, not entity state, so they can't be
     // read synchronously off hass. Fetch once, then only re-fetch when a new
     // session is likely: gate on the summary sensor's last_changed rather than
@@ -1619,20 +1626,20 @@ class BavarianDataCard extends HTMLElement {
         loading: true,
         error: false,
       };
-      this._fetchCharging(vin, month);
+      this._fetchCharging(vin, entryId, month);
     }
 
     this._paintCharging(deviceId, entities);
   }
 
-  _fetchCharging(vin, month) {
+  _fetchCharging(vin, entryId, month) {
     const req = this._chg;
     const bounds = this._monthBounds(month);
     this._hass
       .callService(
         "bavariandata",
         "get_charging_sessions",
-        { vin, from: bounds.from, to: bounds.to },
+        { vin, entry_id: entryId, from: bounds.from, to: bounds.to },
         undefined,
         false,
         true
@@ -2200,6 +2207,8 @@ class BavarianDataCard extends HTMLElement {
       return;
     }
 
+    const entryId = this._deviceEntry(deviceId);
+
     // Like charging, trips come from services (a list + the month-in-review),
     // not entity state. Gate the fetch on the monthly-distance sensor's
     // last_changed so a plain hass tick never hits the services.
@@ -2223,13 +2232,14 @@ class BavarianDataCard extends HTMLElement {
         vin,
         trigger,
         month,
+        entryId: entryId,
         trips: current && cache ? cache.trips : null,
         summary: current && cache ? cache.summary : null,
         open: current && cache ? cache.open : null,
         loading: true,
         error: false,
       };
-      this._fetchTrips(vin, month);
+      this._fetchTrips(vin, entryId, month);
     }
 
     this._paintTrips(deviceId, entities);
@@ -2239,7 +2249,7 @@ class BavarianDataCard extends HTMLElement {
     this._mountTripMiniMap();
   }
 
-  _fetchTrips(vin, month) {
+  _fetchTrips(vin, entryId, month) {
     const req = this._trp;
     const call = (service, data) =>
       this._hass.callService("bavariandata", service, data, undefined, false, true);
@@ -2248,8 +2258,8 @@ class BavarianDataCard extends HTMLElement {
       // Bounded to the month on the service side rather than fetched wide and
       // sliced here: the store holds two years, and the card should never pull
       // more than it is about to draw.
-      call("get_trips", { vin, from: bounds.from, to: bounds.to }),
-      call("get_driving_summary", { vin, month }),
+      call("get_trips", { vin, entry_id: entryId, from: bounds.from, to: bounds.to }),
+      call("get_driving_summary", { vin, entry_id: entryId, month }),
     ])
       .then(([tripsRes, sumRes]) => {
         if (
@@ -2797,10 +2807,12 @@ class BavarianDataCard extends HTMLElement {
         const tripId = el.getAttribute("data-trip-class");
         const cls = el.getAttribute("data-class");
         const vin = this._trp && this._trp.vin;
+        const entryId = this._trp && this._trp.entryId;
         if (!vin) return;
         this._hass
           .callService("bavariandata", "set_trip_class", {
             vin,
+            entry_id: entryId,
             trip_id: `${vin}-${tripId}`,
             classification: cls,
           })
@@ -2838,6 +2850,8 @@ class BavarianDataCard extends HTMLElement {
     }
     this._ensureMapLib();
 
+    const entryId = this._deviceEntry(deviceId);
+
     const trigSt = entities
       .map((id) => this._st(id))
       .find(
@@ -2856,18 +2870,18 @@ class BavarianDataCard extends HTMLElement {
         loading: true,
         error: false,
       };
-      this._fetchMapTrips(vin);
+      this._fetchMapTrips(vin, entryId);
     }
 
     this._paintMap(deviceId, entities);
   }
 
-  _fetchMapTrips(vin) {
+  _fetchMapTrips(vin, entryId) {
     const req = this._mapData;
     // A generous limit: a route map wants more than the visible trip list, and
     // get_trips reads the store (zero REST quota), so a wide fetch is cheap.
     this._hass
-      .callService("bavariandata", "get_trips", { vin, limit: 200 }, undefined, false, true)
+      .callService("bavariandata", "get_trips", { vin, entry_id: entryId, limit: 200 }, undefined, false, true)
       .then((res) => {
         if (!this._mapData || this._mapData.vin !== vin || this._mapData.trigger !== req.trigger)
           return;
