@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.11-beta.1] - 2026-09-18
+
 ### Fixed
 - **With two accounts set up, the card's Charging, Trips, Map and Efficiency
   views stayed empty.** Those views read their data from services rather than
