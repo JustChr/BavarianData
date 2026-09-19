@@ -178,6 +178,15 @@ einer Datenauswahl, die nicht gespeichert wurde —, und nie für eine teilweise
 gefüllte Datengruppe, für *Fahrzeugereignisse* (Teleservice-Anrufe können Monate
 auseinanderliegen) oder für eine `not_applicable`-Datengruppe.
 
+**Eine Datengruppe, die dein Auto schlicht nicht hat, gilt nach 30 Tagen nicht mehr
+als Lücke.** Ist nach einem Monat genau eine Datengruppe still, während alle anderen
+gewählten geliefert haben, wurde die Datenauswahl offensichtlich gespeichert und der
+Stream funktioniert — übrig bleibt ein Fahrzeug ohne diese Felder (ein älterer i3
+streamt zum Beispiel keinen Reifendruck). Diese Datengruppe wandert zu
+`not_applicable`, ihre Felder zählen nicht mehr als `overdue`, und die
+Reparaturwarnung verschwindet von selbst. Zwei oder mehr stille Datengruppen warnen
+weiterhin, egal wie lange: Dieses Muster deutet nach wie vor auf die Datenauswahl.
+
 ### `import_statistics`
 
 `vin`. Baut die Langzeitstatistiken dieser Integration aus dem aufgezeichneten

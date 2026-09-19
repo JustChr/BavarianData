@@ -33,6 +33,15 @@ DEFAULT_GRACE_DAYS = 7
 # catch is a cluster that has sent *nothing* -- a Data Selection that never saved
 # or does not match the picker -- so only that raises a repair.
 
+# How long a cluster that has produced *nothing* keeps being called a gap while
+# every other selected cluster is healthy. Past this, the likelier reading flips:
+# the selection demonstrably saved (the others arrived), so what is left is a car
+# that does not have those fields at all. A 2019 i3s streams no tyre pressure and
+# never will; before this, it was told for the rest of its life that 178 of 224
+# fields were overdue and shown a repair it could do nothing about (issue #13).
+# A month is long enough to have driven, charged and locked the car repeatedly.
+UNSUPPORTED_AFTER_DAYS = 30
+
 # Clusters that fire only on a rare event -- a teleservice call can be months
 # apart -- where silence says nothing about the selection.
 EVENT_DRIVEN_SECTIONS = frozenset({"events"})
@@ -87,6 +96,46 @@ def is_plug_in_hybrid(seen: Collection[str]) -> bool:
     return has_high_voltage(seen_set) and has_combustion(seen_set)
 
 
+def unsupported_sections(
+    clusters: "Collection[ClusterCoverage]",
+    *,
+    monitoring_days: float,
+    excluded: Collection[str] = (),
+    unsupported_after_days: int = UNSUPPORTED_AFTER_DAYS,
+) -> set[str]:
+    """Clusters whose silence is better explained by the car than the selection.
+
+    Deliberately narrow, because the cost of being wrong is silencing a genuine
+    misconfiguration. All three have to hold:
+
+    * the car has been watched for ``unsupported_after_days``;
+    * **exactly one** cluster is silent -- two or more is the signature of a
+      Data Selection that did not save, which is worth the repair; and
+    * at least one other cluster has delivered, proving the selection *did*
+      save and the stream works.
+
+    Event-driven clusters and ones already excluded (the high-voltage clusters
+    on a combustion car) never take part: their silence is explained already.
+    """
+
+    if monitoring_days < unsupported_after_days:
+        return set()
+    excluded_set = set(excluded)
+    candidates = [
+        cluster
+        for cluster in clusters
+        if cluster.expected
+        and cluster.section not in EVENT_DRIVEN_SECTIONS
+        and cluster.section not in excluded_set
+    ]
+    if len(candidates) < 2:
+        return set()
+    silent = [cluster for cluster in candidates if not cluster.seen]
+    if len(silent) != 1:
+        return set()
+    return {silent[0].section}
+
+
 @dataclass
 class ClusterCoverage:
     """Per-cluster tally of expected vs. actually-seen descriptors."""
@@ -129,8 +178,10 @@ class CoverageReport:
     # before alarming.
     overdue: list[str] = field(default_factory=list)
     clusters: list[ClusterCoverage] = field(default_factory=list)
-    # Selected clusters this car's drivetrain can never fill (the high-voltage
-    # clusters on a combustion car). Still tallied, never warned about.
+    # Selected clusters this car can never fill: the high-voltage ones on a
+    # combustion car, plus any single cluster still silent after
+    # ``UNSUPPORTED_AFTER_DAYS`` while the rest of the stream is healthy. Still
+    # tallied in ``expected``/``missing``, never overdue and never warned about.
     not_applicable: list[str] = field(default_factory=list)
 
     @property
@@ -189,6 +240,7 @@ def analyze_coverage(
     monitoring_since: Optional[datetime],
     now: datetime,
     grace_days: int = DEFAULT_GRACE_DAYS,
+    unsupported_after_days: int = UNSUPPORTED_AFTER_DAYS,
 ) -> CoverageReport:
     """Build a :class:`CoverageReport` from the raw inputs.
 
@@ -228,10 +280,30 @@ def analyze_coverage(
     coverage_percent = (
         round(100.0 * total_seen / total_expected, 1) if total_expected else 100.0
     )
-    overdue = list(all_missing) if past_grace else []
-    not_applicable = (
-        sorted(HIGH_VOLTAGE_SECTIONS & set(expected_by_section))
+    drivetrain_excluded = (
+        HIGH_VOLTAGE_SECTIONS & set(expected_by_section)
         if is_combustion_only(seen_set)
+        else set()
+    )
+    not_applicable = sorted(
+        drivetrain_excluded
+        | unsupported_sections(
+            clusters,
+            monitoring_days=monitoring_days,
+            excluded=drivetrain_excluded,
+            unsupported_after_days=unsupported_after_days,
+        )
+    )
+    # A field the car cannot produce is not overdue, it is absent -- counting it
+    # is what turned a healthy i3s into "178 overdue" (issue #13).
+    overdue = (
+        [
+            descriptor
+            for cluster in clusters
+            if cluster.section not in not_applicable
+            for descriptor in cluster.missing
+        ]
+        if past_grace
         else []
     )
 

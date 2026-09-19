@@ -168,6 +168,15 @@ Selection that didn't save — and never for a partly-filled cluster, for the
 *Vehicle events* cluster (teleservice calls can be months apart), or for a
 `not_applicable` one.
 
+**A cluster your car simply doesn't have stops being a gap after 30 days.** If
+one single cluster is still silent after a month while every other selected
+cluster has delivered, the selection has clearly saved and the stream works — so
+what's left is a car without those fields (an older i3 streams no tyre pressure,
+for example). That cluster joins `not_applicable`, its fields stop counting as
+`overdue`, and the Repairs warning clears itself. Two or more silent clusters
+keep warning however long they stay silent: that pattern still points at the
+Data Selection.
+
 ### `import_statistics`
 `vin`. Rebuilds this integration's long-term statistics from the recorded
 history, so charging/driving from before the install (or from while HA was down)
