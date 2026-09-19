@@ -114,6 +114,23 @@ und folgt jedem Ver- und Entriegeln innerhalb von Sekunden, mit denselben Werten
 `Gesichert` / `Verriegelt` / `Teilweise verriegelt` / `Entriegelt`. Siehe
 [Welche Verriegelungs-Entität verwenden](DE-Feature-Entities-and-Devices#which-lock-entity-to-use).
 
+## Die REST-Werte eines zweiten Fahrzeugs sind eingefroren
+
+Behoben in **v0.9.11-beta.2**. Davor wurde bei Konten mit mehreren Fahrzeugen
+nur eines aktualisiert: alles, was BMW nicht streamen kann — Condition Based
+Service, Servicebedarfe, Ladezustand der Ladung, Verriegelungsstatus der Türen,
+die Reifendiagnose — blieb auf dem Stand der Einrichtung dieses Autos stehen,
+während sein Stream normal weiterlief und die Lücke verdeckte.
+
+Erkennbar an einem Fahrzeug, dessen übrige Sensoren sekündlich aktualisieren,
+neben einer Handvoll, die sich einen wochenalten Zeitstempel teilen. Die
+[tägliche Aktualisierung](DE-Feature-API-Quota#the-daily-refresh) umfasst jetzt
+alle Fahrzeuge, mit 2 Anfragen pro Auto.
+
+Wer die Lücke sofort schließen will, statt auf die nächste Aktualisierung zu
+warten, ruft `bavariandata.fetch_telematic_data` mit der `vin` dieses Autos auf
+([Dienste](DE-Services-Reference)).
+
 ## Stream-Autorisierung schlägt fehl (MQTT rc=5)
 
 <a id="stream-authorization-failing"></a>

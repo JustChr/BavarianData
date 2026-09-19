@@ -2595,7 +2595,7 @@
   "services": {
     "fetch_telematic_data": {
       "name": "Telematikdaten abrufen",
-      "description": "Telematikdaten für eine FIN über den gespeicherten Container abrufen und die Antwort protokollieren.",
+      "description": "Telematikdaten aller Fahrzeuge des Kontos über den gespeicherten Container abrufen und die Antwort protokollieren. Eine Anfrage pro Fahrzeug.",
       "fields": {
         "entry_id": {
           "name": "Konfigurationseintrag",
@@ -2603,7 +2603,7 @@
         },
         "vin": {
           "name": "FIN",
-          "description": "Optionale FIN. Standardmäßig die erste im Stream gesehene FIN."
+          "description": "Optionale FIN. Leer lassen, um alle Fahrzeuge des Kontos zu aktualisieren."
         }
       }
     },

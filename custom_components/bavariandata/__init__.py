@@ -91,6 +91,7 @@ from .stream_activation import (
     StreamActivationError,
 )
 from .tyre_store import TyreStore
+from .vehicles import known_vins
 from .history.backfill import StatisticsPublisher
 from .bridge import REPUBLISH_INTERVAL_S, VehicleBridge, async_clear_published
 from .descriptor_metadata import DESCRIPTOR_META
@@ -2510,10 +2511,19 @@ async def _async_perform_telematic_fetch(
     vin_override: Optional[str] = None,
 ) -> bool:
     target_entry_id = entry.entry_id
-    vin = vin_override or entry.data.get("vin")
-    if not vin and runtime.coordinator.data:
-        vin = next(iter(runtime.coordinator.data))
-    if not vin:
+    # One account can hold several cars and the container endpoint is per VIN,
+    # so a refresh means one request *per vehicle*. Picking a single VIN here
+    # left every other car's non-streamable fields frozen at their setup value
+    # for good -- issue #13. An explicit vin still targets just that car.
+    if vin_override:
+        vins = [vin_override]
+    else:
+        vins = known_vins(
+            stored_metadata=entry.data.get(VEHICLE_METADATA),
+            coordinator_data=runtime.coordinator.data,
+            configured_vin=entry.data.get("vin"),
+        )
+    if not vins:
         _LOGGER.error(
             "Cardata fetch_telematic_data: no VIN available; provide vin parameter"
         )
@@ -2550,38 +2560,49 @@ async def _async_perform_telematic_fetch(
         return False
 
     quota = runtime.quota_manager
-    if quota:
+    attempted = False
+    for vin in vins:
+        if quota:
+            try:
+                await quota.async_claim()
+            except CardataQuotaError as err:
+                # The remaining cars have to wait for the next round rather than
+                # each logging the same exhaustion.
+                _LOGGER.warning(
+                    "Cardata fetch_telematic_data blocked for %s: %s",
+                    mask_vin(vin),
+                    err,
+                )
+                break
+
         try:
-            await quota.async_claim()
-        except CardataQuotaError as err:
-            _LOGGER.warning(
-                "Cardata fetch_telematic_data blocked for %s: %s",
+            payload = await async_get_telematic_data(
+                runtime.session, access_token, vin, container_id
+            )
+        except CardataApiError as err:
+            # One car's failure must not cost the others their refresh.
+            _LOGGER.error(
+                "Cardata fetch_telematic_data: request failed for %s: %s",
                 mask_vin(vin),
                 err,
             )
-            return False
+            attempted = True
+            continue
 
-    try:
-        payload = await async_get_telematic_data(
-            runtime.session, access_token, vin, container_id
-        )
-    except CardataApiError as err:
-        _LOGGER.error(
-            "Cardata fetch_telematic_data: request failed for %s: %s",
-            mask_vin(vin),
-            err,
-        )
-        return True
+        _LOGGER.info("Fetched telematic data for %s", mask_vin(vin))
+        _LOGGER.debug("Cardata telematic data for %s: %s", vin, payload)
+        telematic_payload = None
+        if isinstance(payload, dict):
+            telematic_payload = payload.get("telematicData") or payload.get("data")
+        if isinstance(telematic_payload, dict):
+            await runtime.coordinator.async_handle_message(
+                {"vin": vin, "data": telematic_payload}
+            )
+        attempted = True
 
-    _LOGGER.info("Fetched telematic data for %s", mask_vin(vin))
-    _LOGGER.debug("Cardata telematic data for %s: %s", vin, payload)
-    telematic_payload = None
-    if isinstance(payload, dict):
-        telematic_payload = payload.get("telematicData") or payload.get("data")
-    if isinstance(telematic_payload, dict):
-        await runtime.coordinator.async_handle_message(
-            {"vin": vin, "data": telematic_payload}
-        )
+    if not attempted:
+        return False
+
     runtime.coordinator.last_telematic_api_at = datetime.now(timezone.utc)
     async_dispatcher_send(
         runtime.coordinator.hass, runtime.coordinator.signal_diagnostics
@@ -2603,16 +2624,19 @@ def _async_update_last_telematic_poll(
 async def _async_perform_tyre_fetch(
     hass: HomeAssistant, entry: ConfigEntry, runtime: CardataRuntimeData
 ) -> bool:
-    """Refresh the smart-maintenance tyre diagnosis for the entry's vehicle.
+    """Refresh the smart-maintenance tyre diagnosis for every vehicle.
 
-    Its own endpoint, so its own request against the daily quota -- it cannot be
-    folded into the container call.
+    Its own endpoint, so its own request per car against the daily quota -- it
+    cannot be folded into the container call. Like that call, it used to serve a
+    single VIN, which left a second car's tread wear frozen forever (issue #13).
     """
 
-    vin = entry.data.get("vin")
-    if not vin and runtime.coordinator.data:
-        vin = next(iter(runtime.coordinator.data))
-    if not vin:
+    vins = known_vins(
+        stored_metadata=entry.data.get(VEHICLE_METADATA),
+        coordinator_data=runtime.coordinator.data,
+        configured_vin=entry.data.get("vin"),
+    )
+    if not vins:
         return False
 
     access_token = entry.data.get("access_token")
@@ -2620,26 +2644,34 @@ async def _async_perform_tyre_fetch(
         return False
 
     quota = runtime.quota_manager
-    if quota:
+    refreshed = False
+    for vin in vins:
+        if quota:
+            try:
+                await quota.async_claim()
+            except CardataQuotaError as err:
+                _LOGGER.warning(
+                    "Daily tyre diagnosis skipped for %s: %s", mask_vin(vin), err
+                )
+                break
+
         try:
-            await quota.async_claim()
-        except CardataQuotaError as err:
-            _LOGGER.warning("Daily tyre diagnosis skipped for %s: %s", mask_vin(vin), err)
-            return False
+            payload = await async_get_tyre_diagnosis(runtime.session, access_token, vin)
+        except CardataApiError as err:
+            # Not every vehicle has tyre service data; a failure here must not
+            # stop the other cars, nor the container refresh sharing this loop.
+            _LOGGER.debug("Daily tyre diagnosis failed for %s: %s", vin, err)
+            continue
 
-    try:
-        payload = await async_get_tyre_diagnosis(runtime.session, access_token, vin)
-    except CardataApiError as err:
-        # Not every vehicle has tyre service data; a failure here must not stop
-        # the container refresh that shares this loop.
-        _LOGGER.debug("Daily tyre diagnosis failed for %s: %s", vin, err)
-        return False
+        parsed = runtime.coordinator.apply_tyre_diagnosis(vin, payload)
+        _LOGGER.debug(
+            "Daily tyre diagnosis for %s: %s wheel(s)",
+            vin,
+            len(parsed.get("wheels") or {}),
+        )
+        refreshed = True
 
-    parsed = runtime.coordinator.apply_tyre_diagnosis(vin, payload)
-    _LOGGER.debug(
-        "Daily tyre diagnosis for %s: %s wheel(s)", vin, len(parsed.get("wheels") or {})
-    )
-    return True
+    return refreshed
 
 
 async def _telematic_poll_loop(hass: HomeAssistant, entry_id: str) -> None:

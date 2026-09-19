@@ -20,7 +20,7 @@ hand just fetches early and spends an extra request.
 
 | Service | What it fetches |
 | --- | --- |
-| `bavariandata.fetch_telematic_data` | Current contents of a VIN's telematics container — every field BMW cannot stream, in one request. |
+| `bavariandata.fetch_telematic_data` | Current contents of the telematics container — every field BMW cannot stream, in one request. Without a `vin` it refreshes **every vehicle on the account**, one request each. |
 | `bavariandata.fetch_vehicle_mappings` | Vehicles linked to the account and their PRIMARY/SECONDARY status. |
 | `bavariandata.fetch_basic_data` | Static vehicle metadata (model, series, …). |
 | `bavariandata.fetch_charging_history` | BMW's charging sessions (paginated; optional `from`/`to`), imported into local history and enriched with measured grid energy. |

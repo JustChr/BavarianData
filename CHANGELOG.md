@@ -9,6 +9,27 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.11-beta.2] - 2026-09-20
+
+### Fixed
+- **With more than one car on an account, only one of them got its daily REST
+  refresh.** Everything BMW cannot stream — Condition Based Servicing, service
+  demands, charging level, door-lock status, the tyre diagnosis — reaches Home
+  Assistant only through that refresh, and it covered a single vehicle: whichever
+  car happened to send the first message after a restart. Every other car kept
+  the values it had at setup, indefinitely, while its stream ran normally and
+  hid the gap — one reporter's i3s sat eight days behind its i4 on exactly those
+  fields. The refresh now walks every vehicle on the account, one request per
+  car, and so does a `fetch_telematic_data` call made without a `vin`. Reported
+  with the diagnostics that made it findable by @erwinweiss1955
+  ([#13](https://github.com/JustChr/BavarianData/issues/13)).
+
+### Changed
+- **The daily refresh now costs 2 requests per vehicle instead of 2 per
+  account** — 2 a day for one car, 4 for two, out of BMW's 50. That is the price
+  of the fix above; a one-car install is unaffected. Calling
+  `fetch_telematic_data` with a `vin` still spends exactly one request.
+
 ## [0.9.11-beta.1] - 2026-09-18
 
 ### Fixed

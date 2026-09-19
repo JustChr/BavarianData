@@ -111,6 +111,22 @@ and follows every lock/unlock within seconds, with the same `Secured` / `Locked`
 / `Partially locked` / `Unlocked` values. See
 [Which lock entity to use](Feature-Entities-and-Devices#which-lock-entity-to-use).
 
+## A second car's REST-only values are frozen
+
+Fixed in **v0.9.11-beta.2**. Before it, an account with more than one vehicle
+refreshed only one of them: everything BMW cannot stream — Condition Based
+Servicing, service demands, charging level, door-lock status, the tyre diagnosis
+— stayed at whatever it was when that car was set up, while the car's stream
+kept running normally and hid the gap.
+
+The tell is a car whose other sensors update by the second, next to a handful
+that share one timestamp weeks old. The [daily refresh](Feature-API-Quota#the-daily-refresh)
+now covers every vehicle, at 2 requests per car.
+
+To fill the gap immediately rather than waiting for the next refresh, call
+`bavariandata.fetch_telematic_data` with that car's `vin`
+([Services reference](Services-Reference)).
+
 ## Stream authorization failing (MQTT rc=5)
 
 <a id="stream-authorization-failing"></a>

@@ -9,8 +9,8 @@ Die Integration zählt und erzwingt das selbst.
 
 - Jeder manuelle Aufruf eines **`fetch_*`**-Dienstes
   ([Dienste](DE-Services-Reference)).
-- Die **tägliche Aktualisierung**: **2 Anfragen alle 24 h** für alles, was BMW
-  nicht streamen kann (siehe unten).
+- Die **tägliche Aktualisierung**: **2 Anfragen alle 24 h je Fahrzeug** für
+  alles, was BMW nicht streamen kann (siehe unten).
 - Einmalige Abrufe bei der Einrichtung (Fahrzeug-Basisdaten, das Fahrzeugbild),
   die nicht wiederholt werden, weil sich diese Daten nicht ändern.
 
@@ -29,7 +29,9 @@ einmal am Tag:
 | Der Telematik-**Container** | Alle 41 nicht streambaren Felder, die der Container-Endpunkt liefern kann — **eine Anfrage für alles** |
 | **Reifendiagnose** | Profiltiefe und Restlaufleistung pro Rad — ein eigener Endpunkt, also eine eigene Anfrage |
 
-**2 deiner 50 pro Tag**, es bleiben 48 für manuelle Abrufe. Täglich ist Absicht:
+Beide Endpunkte gelten je Fahrzeug, die Aktualisierung kostet also **2 Anfragen
+pro Auto**: 2 pro Tag bei einem Auto, 4 bei zweien, 6 bei dreien — von 50.
+Täglich ist Absicht:
 Diese Werte ändern sich über Tage, nicht über Minuten.
 
 ## Was kein Kontingent verbraucht

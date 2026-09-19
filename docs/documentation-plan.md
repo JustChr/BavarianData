@@ -255,7 +255,8 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Charging events (`bavariandata_charging_*`) | 🟡 |
 | Automation blueprints (2) | 🟡 |
 | API quota + Repairs issue | 🟡 |
-| Daily REST refresh (container + tyre, 2 req/day) | 🟢 Feature-API-Quota → "The daily refresh" + Services-Reference |
+| Daily REST refresh (container + tyre, 2 req/day **per vehicle**) | 🟢 Feature-API-Quota → "The daily refresh" + Services-Reference |
+| Multi-vehicle accounts: every car is refreshed, not just one (issue #13) | 🟢 Troubleshooting → "A second car's REST-only values are frozen" + Feature-API-Quota → "The daily refresh" + Services-Reference (`fetch_telematic_data` without a `vin`) |
 | Descriptor-coverage self-test (the report lists every gap; the Repairs warning fires only for a silent cluster, never for events or a cluster the drivetrain can't fill) | 🟢 Services-Reference → `get_coverage_report` + Getting-Started-4 → "Did it work?" + Troubleshooting → "No data arriving" |
 | Clean uninstall / fresh-install reset | 🟡 Troubleshooting → "Removing BavarianData completely" + `docs/clean-install.md` |
 | Card auto-registration (Lovelace resource; YAML-mode caveat) | 🟢 The-Dashboard-Card intro + Troubleshooting → "Every card shows Configuration error after a reload" |

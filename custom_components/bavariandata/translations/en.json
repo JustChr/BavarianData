@@ -2825,7 +2825,7 @@
   "services": {
     "fetch_telematic_data": {
       "name": "Fetch telematic data",
-      "description": "Fetch telematic data for a VIN using the stored container and log the response.",
+      "description": "Fetch telematic data for every vehicle on the account using the stored container and log the response. One request per vehicle.",
       "fields": {
         "entry_id": {
           "name": "Config entry",
@@ -2833,7 +2833,7 @@
         },
         "vin": {
           "name": "VIN",
-          "description": "Optional VIN to query. Defaults to the first VIN seen on the stream."
+          "description": "Optional VIN to query. Leave empty to refresh every vehicle on the account."
         }
       }
     },
