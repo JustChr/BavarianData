@@ -185,7 +185,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `cluster: <other>` | Single-cluster list | 🟡 | 📷 |
 | YAML options (`device`, `vin`, entity overrides) | — | 🟡 | — |
 
-### Services — 16 from `services.yaml`
+### Services — 17 from `services.yaml`
 
 | Service | Quota | Status |
 | --- | --- | --- |
