@@ -92,6 +92,13 @@ class FakeResponse:
             return self._body
         return (await self.text()).encode("utf-8")
 
+    async def json(self, content_type: Optional[str] = None) -> Any:
+        """Mirror aiohttp's ``json()``; ``content_type`` is accepted and ignored."""
+
+        if isinstance(self._body, (dict, list)):
+            return self._body
+        return json.loads(await self.text())
+
 
 class FakeSession:
     """Records requests and replays a queue of FakeResponse objects."""
