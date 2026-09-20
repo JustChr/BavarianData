@@ -1,0 +1,717 @@
+# serializer version: 1
+# name: test_the_card_renders_what_it_rendered_before[charging-i5]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:ev-station">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Charging history</span>
+              <span class="chead__sub">Car</span>
+            </div>
+            
+        <div class="xbar">
+          <button class="xbtn" data-export="csv" data-kind="charging"
+                  title="Download this month as a spreadsheet">
+            <ha-icon icon="mdi:file-delimited-outline">
+  </ha-icon>CSV
+          </button>
+          <button class="xbtn" data-export="html" data-kind="both"
+                  title="Open a printable month report (print it to get a PDF)">
+            <ha-icon icon="mdi:file-document-outline">
+  </ha-icon>Report
+          </button>
+        </div>
+          </div>
+          
+        <div class="mnav">
+          <button class="mnav__btn" data-month-kind="charging" data-month-step="-1"
+                  title="Previous month" aria-label="Previous month">
+            <ha-icon icon="mdi:chevron-left">
+  </ha-icon>
+          </button>
+          <span class="mnav__label">September 2026</span>
+          <button class="mnav__btn" data-month-kind="charging" data-month-step="1"
+                  title="Next month" aria-label="Next month"
+                  disabled>
+            <ha-icon icon="mdi:chevron-right">
+  </ha-icon>
+          </button>
+        </div>
+          
+          <div class="empty">Loading charging history…</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[charging-m2]
+  '''
+  <ha-card>
+          <div class="msg">
+            <ha-icon icon="mdi:car-off">
+  </ha-icon>
+            <div class="msg__title">Nothing to show for this car</div>
+            <div class="msg__body">Car runs on fuel alone, so there is no charging, battery health or electric range to show. If it does plug in, set Drivetrain in the card editor.</div>
+          </div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[charging-phev]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:ev-station">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Charging history</span>
+              <span class="chead__sub">Car</span>
+            </div>
+            
+        <div class="xbar">
+          <button class="xbtn" data-export="csv" data-kind="charging"
+                  title="Download this month as a spreadsheet">
+            <ha-icon icon="mdi:file-delimited-outline">
+  </ha-icon>CSV
+          </button>
+          <button class="xbtn" data-export="html" data-kind="both"
+                  title="Open a printable month report (print it to get a PDF)">
+            <ha-icon icon="mdi:file-document-outline">
+  </ha-icon>Report
+          </button>
+        </div>
+          </div>
+          
+        <div class="mnav">
+          <button class="mnav__btn" data-month-kind="charging" data-month-step="-1"
+                  title="Previous month" aria-label="Previous month">
+            <ha-icon icon="mdi:chevron-left">
+  </ha-icon>
+          </button>
+          <span class="mnav__label">September 2026</span>
+          <button class="mnav__btn" data-month-kind="charging" data-month-step="1"
+                  title="Next month" aria-label="Next month"
+                  disabled>
+            <ha-icon icon="mdi:chevron-right">
+  </ha-icon>
+          </button>
+        </div>
+          
+          <div class="empty">Loading charging history…</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[cluster-closures-i5]
+  '''
+  <ha-card>
+            
+        <div class="chead">
+          <ha-icon icon="mdi:car-door-lock">
+  </ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">Security & closures</span>
+            <span class="chead__sub">Car</span>
+          </div>
+          
+        </div>
+            <div class="empty">No door, window or security data for this vehicle yet. Enable the Vehicle status cluster in the integration options.</div>
+          </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[cluster-closures-m2]
+  '''
+  <ha-card>
+            
+        <div class="chead">
+          <ha-icon icon="mdi:car-door-lock">
+  </ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">Security & closures</span>
+            <span class="chead__sub">Car</span>
+          </div>
+          
+        </div>
+            <div class="empty">No door, window or security data for this vehicle yet. Enable the Vehicle status cluster in the integration options.</div>
+          </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[cluster-closures-phev]
+  '''
+  <ha-card>
+            
+        <div class="chead">
+          <ha-icon icon="mdi:car-door-lock">
+  </ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">Security & closures</span>
+            <span class="chead__sub">Car</span>
+          </div>
+          
+        </div>
+            <div class="empty">No door, window or security data for this vehicle yet. Enable the Vehicle status cluster in the integration options.</div>
+          </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[cluster-electric-i5]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:lightning-bolt">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Electric vehicle</span>
+              <span class="chead__sub">Car · 0 values</span>
+            </div>
+          </div>
+          
+          <div class="empty">No <b>Electric vehicle</b> entities for this vehicle. Enable the cluster in the integration options.</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[cluster-electric-m2]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:lightning-bolt">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Electric vehicle</span>
+              <span class="chead__sub">Car · 0 values</span>
+            </div>
+          </div>
+          
+          <div class="empty">No <b>Electric vehicle</b> entities for this vehicle. Enable the cluster in the integration options.</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[cluster-electric-phev]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:lightning-bolt">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Electric vehicle</span>
+              <span class="chead__sub">Car · 0 values</span>
+            </div>
+          </div>
+          
+          <div class="empty">No <b>Electric vehicle</b> entities for this vehicle. Enable the cluster in the integration options.</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[cluster-tire-i5]
+  '''
+  <ha-card>
+            
+        <div class="chead">
+          <ha-icon icon="mdi:car-tire-alert">
+  </ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">Tires</span>
+            <span class="chead__sub">Car</span>
+          </div>
+          <span class="tstat" style="--c:var(--secondary-text-color)">
+  <span class="tstat__dot">
+  </span>—</span>
+        </div>
+            <div class="empty">No tire data for this vehicle yet. Enable the Tire data cluster and drive to populate readings.</div>
+          </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[cluster-tire-m2]
+  '''
+  <ha-card>
+            
+        <div class="chead">
+          <ha-icon icon="mdi:car-tire-alert">
+  </ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">Tires</span>
+            <span class="chead__sub">Car</span>
+          </div>
+          <span class="tstat" style="--c:var(--secondary-text-color)">
+  <span class="tstat__dot">
+  </span>—</span>
+        </div>
+            <div class="empty">No tire data for this vehicle yet. Enable the Tire data cluster and drive to populate readings.</div>
+          </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[cluster-tire-phev]
+  '''
+  <ha-card>
+            
+        <div class="chead">
+          <ha-icon icon="mdi:car-tire-alert">
+  </ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">Tires</span>
+            <span class="chead__sub">Car</span>
+          </div>
+          <span class="tstat" style="--c:var(--secondary-text-color)">
+  <span class="tstat__dot">
+  </span>—</span>
+        </div>
+            <div class="empty">No tire data for this vehicle yet. Enable the Tire data cluster and drive to populate readings.</div>
+          </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[efficiency-i5]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:map-marker-distance">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Efficiency &amp; range</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="empty">Working out your real range…</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[efficiency-m2]
+  '''
+  <ha-card>
+          <div class="msg">
+            <ha-icon icon="mdi:car-off">
+  </ha-icon>
+            <div class="msg__title">Nothing to show for this car</div>
+            <div class="msg__body">Car runs on fuel alone, so there is no charging, battery health or electric range to show. If it does plug in, set Drivetrain in the card editor.</div>
+          </div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[efficiency-phev]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:map-marker-distance">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Efficiency &amp; range</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="empty">Working out your real range…</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[health-i5]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:battery-heart-variant">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Battery health</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="empty">No battery-health data yet. Once the car logs a few wide-range charges, its usable capacity appears here.</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[health-m2]
+  '''
+  <ha-card>
+          <div class="msg">
+            <ha-icon icon="mdi:car-off">
+  </ha-icon>
+            <div class="msg__title">Nothing to show for this car</div>
+            <div class="msg__body">Car runs on fuel alone, so there is no charging, battery health or electric range to show. If it does plug in, set Drivetrain in the card editor.</div>
+          </div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[health-phev]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:battery-heart-variant">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Battery health</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="empty">No battery-health data yet. Once the car logs a few wide-range charges, its usable capacity appears here.</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[map-i5]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:map-marker-multiple">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Trip map</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="empty">The map couldn't be loaded in this browser.</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[map-m2]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:map-marker-multiple">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Trip map</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="empty">The map couldn't be loaded in this browser.</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[map-phev]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:map-marker-multiple">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Trip map</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="empty">The map couldn't be loaded in this browser.</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[overview-i5]
+  '''
+  <ha-card>
+          <div class="hero hero--empty">
+            <ha-icon class="hero__placeholder" icon="mdi:car-electric">
+  </ha-icon>
+            <div class="hero__scrim">
+  </div>
+            <div class="hero__top">
+              <div class="hero__name" title="Car">Car</div>
+              <div class="pill" title="Last update">
+  <span class="dot dot--stale">
+  </span>21 h ago</div>
+            </div>
+            
+          </div>
+  
+          <div class="band">
+            <button class="gauge" data-entity="sensor.i5_soc" aria-label="charge">
+              <div class="gauge__ring" style="--pct:72;--ring:var(--bmw-high)">
+                <div class="gauge__hole">
+                  <span class="gauge__val">72<i>%</i>
+  </span>
+                  <span class="gauge__cap">charge</span>
+                </div>
+              </div>
+              
+            </button>
+  
+            <div class="lead">
+              
+              <button class="lead__row" data-entity="sensor.i5_range">
+                <ha-icon icon="mdi:map-marker-distance">
+  </ha-icon>
+                <span class="lead__val">379 km</span>
+                <span class="lead__lbl">remaining range</span>
+              </button>
+              <button class="lead__row" data-entity="sensor.i5_charging">
+                <ha-icon icon="mdi:ev-station">
+  </ha-icon>
+                <span class="lead__val">nocharging</span>
+                <span class="lead__lbl">charging status</span>
+              </button>
+            </div>
+          </div>
+  
+          <div class="grid">
+                  
+                    <button class="cell" data-entity="sensor.i5_target">
+                      <ha-icon icon="mdi:target">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">0 %</span>
+                        <span class="cell__lbl">Target</span>
+                      </div>
+                    </button>
+                    <button class="cell" data-entity="sensor.i5_odometer">
+                      <ha-icon icon="mdi:counter">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">41234 km</span>
+                        <span class="cell__lbl">Odometer</span>
+                      </div>
+                    </button>
+                </div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[overview-m2]
+  '''
+  <ha-card>
+          <div class="hero hero--empty">
+            <ha-icon class="hero__placeholder" icon="mdi:car">
+  </ha-icon>
+            <div class="hero__scrim">
+  </div>
+            <div class="hero__top">
+              <div class="hero__name" title="Car">Car</div>
+              <div class="pill" title="Last update">
+  <span class="dot dot--stale">
+  </span>21 h ago</div>
+            </div>
+            
+          </div>
+  
+          <div class="band">
+            <button class="gauge" data-entity="sensor.m2_remaining_fuel" aria-label="fuel">
+              <div class="gauge__ring" style="--pct:0;--ring:var(--divider-color)">
+                <div class="gauge__hole">
+                  <span class="gauge__val">38<i>L</i>
+  </span>
+                  <span class="gauge__cap">fuel</span>
+                </div>
+              </div>
+              
+            </button>
+  
+            <div class="lead">
+              
+              <button class="lead__row" data-entity="sensor.m2_range">
+                <ha-icon icon="mdi:map-marker-distance">
+  </ha-icon>
+                <span class="lead__val">412 km</span>
+                <span class="lead__lbl">remaining range</span>
+              </button>
+              <button class="lead__row" data-entity="sensor.m2_odometer">
+                <ha-icon icon="mdi:counter">
+  </ha-icon>
+                <span class="lead__val">41234 km</span>
+                <span class="lead__lbl">Odometer</span>
+              </button>
+            </div>
+          </div>
+  
+          
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[overview-phev]
+  '''
+  <ha-card>
+          <div class="hero hero--empty">
+            <ha-icon class="hero__placeholder" icon="mdi:car-electric">
+  </ha-icon>
+            <div class="hero__scrim">
+  </div>
+            <div class="hero__top">
+              <div class="hero__name" title="Car">Car</div>
+              <div class="pill" title="Last update">
+  <span class="dot dot--stale">
+  </span>21 h ago</div>
+            </div>
+            
+          </div>
+  
+          <div class="band">
+            <button class="gauge" data-entity="sensor.i5_soc" aria-label="charge">
+              <div class="gauge__ring" style="--pct:72;--ring:var(--bmw-high)">
+                <div class="gauge__hole">
+                  <span class="gauge__val">72<i>%</i>
+  </span>
+                  <span class="gauge__cap">charge</span>
+                </div>
+              </div>
+              
+            </button>
+  
+            <div class="lead">
+              
+              <button class="lead__row" data-entity="sensor.i5_range">
+                <ha-icon icon="mdi:map-marker-distance">
+  </ha-icon>
+                <span class="lead__val">379 km</span>
+                <span class="lead__lbl">electric range</span>
+              </button>
+              <button class="lead__row" data-entity="sensor.i5_charging">
+                <ha-icon icon="mdi:ev-station">
+  </ha-icon>
+                <span class="lead__val">nocharging</span>
+                <span class="lead__lbl">charging status</span>
+              </button>
+            </div>
+          </div>
+  
+          <div class="grid">
+                  
+                    <button class="cell" data-entity="sensor.phev_tank">
+                      <ha-icon icon="mdi:gas-station">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">55 %</span>
+                        <span class="cell__lbl">Tank</span>
+                      </div>
+                    </button>
+                    <button class="cell" data-entity="sensor.phev_total_range">
+                      <ha-icon icon="mdi:map-marker-distance">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">690 km</span>
+                        <span class="cell__lbl">Total range</span>
+                      </div>
+                    </button>
+                    <button class="cell" data-entity="sensor.i5_target">
+                      <ha-icon icon="mdi:target">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">0 %</span>
+                        <span class="cell__lbl">Target</span>
+                      </div>
+                    </button>
+                    <button class="cell" data-entity="sensor.i5_odometer">
+                      <ha-icon icon="mdi:counter">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">41234 km</span>
+                        <span class="cell__lbl">Odometer</span>
+                      </div>
+                    </button>
+                </div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[trips-i5]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:road-variant">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Trips</span>
+              <span class="chead__sub">Car</span>
+            </div>
+            
+        <div class="xbar">
+          <button class="xbtn" data-export="csv" data-kind="trips"
+                  title="Download this month as a spreadsheet">
+            <ha-icon icon="mdi:file-delimited-outline">
+  </ha-icon>CSV
+          </button>
+          <button class="xbtn" data-export="html" data-kind="both"
+                  title="Open a printable month report (print it to get a PDF)">
+            <ha-icon icon="mdi:file-document-outline">
+  </ha-icon>Report
+          </button>
+        </div>
+          </div>
+          
+        <div class="mnav">
+          <button class="mnav__btn" data-month-kind="trips" data-month-step="-1"
+                  title="Previous month" aria-label="Previous month">
+            <ha-icon icon="mdi:chevron-left">
+  </ha-icon>
+          </button>
+          <span class="mnav__label">September 2026</span>
+          <button class="mnav__btn" data-month-kind="trips" data-month-step="1"
+                  title="Next month" aria-label="Next month"
+                  disabled>
+            <ha-icon icon="mdi:chevron-right">
+  </ha-icon>
+          </button>
+        </div>
+          <div class="empty">Loading trips…</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[trips-m2]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:road-variant">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Trips</span>
+              <span class="chead__sub">Car</span>
+            </div>
+            
+        <div class="xbar">
+          <button class="xbtn" data-export="csv" data-kind="trips"
+                  title="Download this month as a spreadsheet">
+            <ha-icon icon="mdi:file-delimited-outline">
+  </ha-icon>CSV
+          </button>
+          <button class="xbtn" data-export="html" data-kind="both"
+                  title="Open a printable month report (print it to get a PDF)">
+            <ha-icon icon="mdi:file-document-outline">
+  </ha-icon>Report
+          </button>
+        </div>
+          </div>
+          
+        <div class="mnav">
+          <button class="mnav__btn" data-month-kind="trips" data-month-step="-1"
+                  title="Previous month" aria-label="Previous month">
+            <ha-icon icon="mdi:chevron-left">
+  </ha-icon>
+          </button>
+          <span class="mnav__label">September 2026</span>
+          <button class="mnav__btn" data-month-kind="trips" data-month-step="1"
+                  title="Next month" aria-label="Next month"
+                  disabled>
+            <ha-icon icon="mdi:chevron-right">
+  </ha-icon>
+          </button>
+        </div>
+          <div class="empty">Loading trips…</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[trips-phev]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:road-variant">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Trips</span>
+              <span class="chead__sub">Car</span>
+            </div>
+            
+        <div class="xbar">
+          <button class="xbtn" data-export="csv" data-kind="trips"
+                  title="Download this month as a spreadsheet">
+            <ha-icon icon="mdi:file-delimited-outline">
+  </ha-icon>CSV
+          </button>
+          <button class="xbtn" data-export="html" data-kind="both"
+                  title="Open a printable month report (print it to get a PDF)">
+            <ha-icon icon="mdi:file-document-outline">
+  </ha-icon>Report
+          </button>
+        </div>
+          </div>
+          
+        <div class="mnav">
+          <button class="mnav__btn" data-month-kind="trips" data-month-step="-1"
+                  title="Previous month" aria-label="Previous month">
+            <ha-icon icon="mdi:chevron-left">
+  </ha-icon>
+          </button>
+          <span class="mnav__label">September 2026</span>
+          <button class="mnav__btn" data-month-kind="trips" data-month-step="1"
+                  title="Next month" aria-label="Next month"
+                  disabled>
+            <ha-icon icon="mdi:chevron-right">
+  </ha-icon>
+          </button>
+        </div>
+          <div class="empty">Loading trips…</div>
+        </ha-card>
+  '''
+# ---

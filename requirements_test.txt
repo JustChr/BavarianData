@@ -1,3 +1,11 @@
+# Test dependencies for the Home Assistant-free suite in tests/.
+#
+# Deliberately light: nothing here pulls in Home Assistant, so the suite runs
+# on a bare interpreter (see tests/conftest.py). Floors, not pins, except for
+# ruff -- an unpinned linter turns a new upstream release into a red build on
+# a commit that never changed, so it is pinned and bumped by Dependabot.
 aiohttp>=3.9
 pytest>=8.0
 PyYAML>=6.0
+syrupy>=6.1
+ruff==0.16.8
