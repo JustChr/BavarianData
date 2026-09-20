@@ -32,6 +32,14 @@ SERVICES = yaml.safe_load((_PKG / "services.yaml").read_text(encoding="utf-8"))
 EN = json.loads((_PKG / "translations" / "en.json").read_text(encoding="utf-8"))
 DE = json.loads((_PKG / "translations" / "de.json").read_text(encoding="utf-8"))
 
+# hassfest validates *every* file in translations/, so the two rules below are
+# discovered rather than listed: a regional delta like en-GB.json is small enough
+# to look harmless and would otherwise ship unchecked.
+ALL_TRANSLATIONS = [
+    (path.stem, json.loads(path.read_text(encoding="utf-8")))
+    for path in sorted((_PKG / "translations").glob("*.json"))
+]
+
 # The one VIN allowed to appear anywhere in the repo.
 PLACEHOLDER_VIN = "WBAEXAMPLE0000000"
 # BMW VINs start with the WB* world manufacturer identifier and run 17 chars,
@@ -99,7 +107,7 @@ def test_services_yaml_carries_no_user_facing_text() -> None:
             )
 
 
-@pytest.mark.parametrize("lang,doc", [("en", EN), ("de", DE)])
+@pytest.mark.parametrize("lang,doc", ALL_TRANSLATIONS)
 def test_translations_contain_no_urls(lang: str, doc: dict) -> None:
     """hassfest rejects URLs inside translation strings."""
 
@@ -115,7 +123,7 @@ def test_translations_contain_no_urls(lang: str, doc: dict) -> None:
 _HTML_LIKE = re.compile(r"<\s*/?\s*[A-Za-z][^<>]*>")
 
 
-@pytest.mark.parametrize("lang,doc", [("en", EN), ("de", DE)])
+@pytest.mark.parametrize("lang,doc", ALL_TRANSLATIONS)
 def test_translations_contain_no_html(lang: str, doc: dict) -> None:
     """hassfest rejects anything tag-shaped inside translation strings."""
 

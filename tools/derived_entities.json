@@ -78,23 +78,23 @@
       "de": "Reale Reichweite"
     },
     "tyre_status": {
-      "en": "Tyre Condition",
+      "en": "Tire Condition",
       "de": "Reifenzustand"
     },
     "tyre_front_left": {
-      "en": "Tyre Front Left",
+      "en": "Tire Front Left",
       "de": "Reifen vorne links"
     },
     "tyre_front_right": {
-      "en": "Tyre Front Right",
+      "en": "Tire Front Right",
       "de": "Reifen vorne rechts"
     },
     "tyre_rear_left": {
-      "en": "Tyre Rear Left",
+      "en": "Tire Rear Left",
       "de": "Reifen hinten links"
     },
     "tyre_rear_right": {
-      "en": "Tyre Rear Right",
+      "en": "Tire Rear Right",
       "de": "Reifen hinten rechts"
     }
   },

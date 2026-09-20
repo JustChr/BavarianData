@@ -346,7 +346,7 @@ Plus monthly reports.
   `history/stats.py` spreads each record across the UTC hours it spans weighted
   by occupancy (the total is exact; an open-ended or implausibly long record
   collapses into its starting hour), prefers measured `grid_kwh` over integrated
-  battery-side energy, refuses mixed currencies the way `summarise` does, and
+  battery-side energy, refuses mixed currencies the way `summarize` does, and
   turns per-hour amounts into the running-sum rows statistics expect.
   `history/backfill.py` is the thin recorder glue.
 - **The statistics mirror the store; they are not a second archive.** Every
@@ -380,15 +380,15 @@ Ideas worth keeping but not scheduled:
   car's own streamed climate-timer descriptors), a price entity and optional
   solar surplus produce `binary_sensor.should_charge_now` and a planned cost.
   We can also read the car's own charging profile and *warn about conflicts*
-  ("the car is in price-optimised mode and will refuse your surplus charging").
+  ("the car is in price-optimized mode and will refuse your surplus charging").
 - **Arrival ETA** — `sensor.minutes_until_home` from live GPS, heading and
   speed. Everyone else has only home/not-home; this is a genuinely new
   automation primitive.
-- **Service centre** — project when CBS distance thresholds are actually hit
+- **Service center** — project when CBS distance thresholds are actually hit
   using `CBS average distance per day`, and publish a `calendar` entity.
-- **Tyre intelligence** — the tyre-diagnosis endpoint carries tread depth, wear,
+- **Tire intelligence** — the tire-diagnosis endpoint carries tread depth, wear,
   season, mounting date and DOT production date. And because we stream *per-wheel
-  tyre temperature*, we can do temperature-corrected pressure, which almost no
+  tire temperature*, we can do temperature-corrected pressure, which almost no
   other data source can.
 - **Watchdogs** — window open with rain forecast; car unlocked away from home;
   12 V voltage trending down over weeks (a classic BMW failure we can see coming).

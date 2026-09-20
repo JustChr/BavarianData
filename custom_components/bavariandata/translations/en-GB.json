@@ -1,0 +1,224 @@
+{
+  "config": {
+    "step": {
+      "manual": {
+        "description": "This streams your BMW or Mini vehicle data into Home Assistant.\n\n**First, set up CarData in the BMW portal** (skip if you already have a Client ID):\n\n1. Open the [BMW CarData portal]({portal_url}) and sign in. If CarData isn't available in your country, sign in via the [UK]({portal_uk}) or [German]({portal_de}) portal — the Client ID works everywhere.\n2. Create a **CarData Client** and copy the **Client ID** it shows you.\n3. Subscribe the client to **both** services: **CarData API** and **CarData Streaming**.\n\nDon't tick anything under **Data Selection** yet — after you authorise, the next screens let you choose which data to stream and turn it on with a one-click bookmarklet.\n\nThen paste the **Client ID** below."
+      },
+      "authorize_failed": {
+        "title": "Authorisation didn't finish",
+        "description": "We couldn't complete the device authorisation.\n\n**Details**\n```\n{error}\n```\n\n**What to check**\n- **declined / access_denied (403):** BMW's server often reports a decline even after you approved — a known BMW-side issue. Retry in a **private/incognito window**: open the BMW CarData portal yourself (don't follow a link with a code in the URL), sign in, choose *Authenticate device* and **type the code by hand**. Also make sure the Client ID is subscribed to **both CarData API and CarData Streaming** before authorising, and that you're the **primary** user for the vehicle.\n- **expired / timeout:** the code wasn't approved in time.\n\nPress **Submit** to get a fresh code and try again. If it keeps failing, delete the CarData client in the BMW portal, create a new one, and re-authorise with the new Client ID — or email BMW support (bmwcardata-b2c-support@bmwgroup.com) quoting the **BMW reference** above.\n\nA full walkthrough is in the integration's README under *Troubleshooting → Onboarding fails with \"access denied\"*."
+      }
+    },
+    "progress": {
+      "wait_for_authorization": "**Approve Home Assistant on the BMW/MINI sign-in page**\n\n1. Open the **[authorisation page]({verification_url})** and sign in with your BMW/MINI account.\n2. Type in this code when asked: **{user_code}**\n3. Confirm the device.\n\n**Enter the code by hand** — don't use a link with the code already in the URL, and make sure no old code is pre-filled. BMW's server often wrongly records a *decline* for pre-filled codes. If it fails anyway, retry in a private/incognito window.\n\nLeave this dialog open — it continues automatically the moment you approve. There's nothing to click here."
+    },
+    "error": {
+      "device_code_failed": "BMW rejected the device authorisation request ({error}). Check that the Client ID is correct and subscribed to both CarData services, then try again."
+    },
+    "abort": {
+      "reauth_successful": "Re-authorisation successful — BMW CarData is connected again.",
+      "reauth_device_code_failed": "BMW rejected the device authorisation request ({error}). Update the Client ID under Configure → Re-authorise with BMW, or remove and re-add the integration.",
+      "reauth_missing_client_id": "Client ID is missing for this integration entry. Remove and re-add the integration to authorise again.",
+      "reauth_failed": "Re-authorisation could not be started. Try again from the integration options."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Pick an action. The token and authorisation actions keep your connection alive; the data actions call BMW's REST API on demand (each counts against the daily 50-request API limit).",
+        "menu_options": {
+          "action_reauth": "Re-authorise with BMW",
+          "action_fetch_tyre": "Fetch tyre diagnosis"
+        }
+      },
+      "action_reauth": {
+        "title": "Re-authorise with BMW",
+        "description": "Run BMW's device authorisation again — for example after the refresh token expired (every 2 weeks) or if you generated a new Client ID. You'll approve Home Assistant on BMW's website afterwards."
+      },
+      "action_fetch_basic": {
+        "description": "Fetch static details (model, colour, options) for every known vehicle.\n\nPress Submit to continue."
+      },
+      "action_fetch_tyre": {
+        "title": "Fetch tyre diagnosis",
+        "description": "Fetch the latest tyre-pressure diagnosis for your vehicles.\n\nPress Submit to continue."
+      },
+      "action_trips": {
+        "description": "Reconstructs your drives from the stream at no API cost — distance, the business/private/commute split, consumption and a monthly review.\n\nSet **Work zone** so commutes (home ↔ work) are recognised automatically; you can always correct a trip afterwards. Everything that isn't a commute is filed as the **Default type** (Private out of the box). A commute also survives a stop on the way: if the car stands no longer than the **Commute stop tolerance**, the drive there and the drive on are both counted as commuting. **Resolve addresses** is off by default: with it on, a trip endpoint outside any Home Assistant zone is looked up via OpenStreetMap and stored as an address — the coordinates are sent for the lookup but never saved.\n\n**Record route** is also off by default: with it on, each trip stores its GPS track — where the car went and when — so a map can show and replay the drive. This is the only setting that saves raw coordinates to disk, including your exact start and end points.\n\n**Trip-capture diagnostics** is a troubleshooting aid: with it on, every GPS fix, timer and message is logged in detail and a capture file is written, to help improve trip detection. Turn it on only for a test drive, then off again."
+      }
+    },
+    "error": {
+      "missing_token": "No valid access token is available. Try \"Refresh tokens now\" or re-authorise first."
+    },
+    "abort": {
+      "reauth_started": "Authorisation restarted. Finish the new login from the notification that just appeared.",
+      "reauth_device_code_failed": "BMW rejected the device authorisation request ({error}). Check the Client ID and try again.",
+      "reauth_missing_client_id": "Client ID is missing for this integration entry. Remove and re-add the integration to authorise again.",
+      "reauth_failed": "Re-authorisation could not be started. Try again from the integration options."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "vehicle_cabin_infotainment_displayunit_distance": {
+        "state": {
+          "km": "Kilometres"
+        }
+      },
+      "vehicle_cabin_infotainment_hmi_distanceunit": {
+        "state": {
+          "kilometers": "Kilometres"
+        }
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressure": {
+        "name": "Tyre pressure (front left)"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressuretarget": {
+        "name": "Tyre pressure target (front left)"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_temperature": {
+        "name": "Tyre temperature (front left)"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressure": {
+        "name": "Tyre pressure (front right)"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressuretarget": {
+        "name": "Tyre pressure target (front right)"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_temperature": {
+        "name": "Tyre temperature (front right)"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressure": {
+        "name": "Tyre pressure (rear left)"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressuretarget": {
+        "name": "Tyre pressure target (rear left)"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_temperature": {
+        "name": "Tyre temperature (rear left)"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressure": {
+        "name": "Tyre pressure (rear right)"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressuretarget": {
+        "name": "Tyre pressure target (rear right)"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_temperature": {
+        "name": "Tyre temperature (rear right)"
+      },
+      "vehicle_chassis_axle_wheel_tire_diagnosis": {
+        "name": "Tyre diagnostics"
+      },
+      "vehicle_drivetrain_electricengine_charging_authentication_status": {
+        "state": {
+          "authorization_successful": "Authorisation successful",
+          "authorization_error": "Authorisation error",
+          "authorization_timeout": "Authorisation timeout"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_climatizationactive": {
+        "name": "Charging EV Climatisation active"
+      },
+      "vehicle_drivetrain_electricengine_charging_routeoptimizedchargingstatus": {
+        "name": "Charging EV Route optimised charging state",
+        "state": {
+          "route_optimized_charging_in_progress": "Route optimised charging in progress",
+          "route_optimized_soc_target_reached": "Route optimised soc target reached"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_status": {
+        "state": {
+          "initialization": "Initialising"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_preferencesmartcharging": {
+        "state": {
+          "price_optimized": "Price optimised",
+          "co2_optimized": "Co2 optimised"
+        }
+      },
+      "tyre_status": {
+        "name": "Tyre Condition"
+      },
+      "tyre_front_left": {
+        "name": "Tyre Front Left"
+      },
+      "tyre_front_right": {
+        "name": "Tyre Front Right"
+      },
+      "tyre_rear_left": {
+        "name": "Tyre Rear Left"
+      },
+      "tyre_rear_right": {
+        "name": "Tyre Rear Right"
+      }
+    },
+    "binary_sensor": {
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressure": {
+        "name": "Tyre pressure (front left)"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressuretarget": {
+        "name": "Tyre pressure target (front left)"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_temperature": {
+        "name": "Tyre temperature (front left)"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressure": {
+        "name": "Tyre pressure (front right)"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressuretarget": {
+        "name": "Tyre pressure target (front right)"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_temperature": {
+        "name": "Tyre temperature (front right)"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressure": {
+        "name": "Tyre pressure (rear left)"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressuretarget": {
+        "name": "Tyre pressure target (rear left)"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_temperature": {
+        "name": "Tyre temperature (rear left)"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressure": {
+        "name": "Tyre pressure (rear right)"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressuretarget": {
+        "name": "Tyre pressure target (rear right)"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_temperature": {
+        "name": "Tyre temperature (rear right)"
+      },
+      "vehicle_chassis_axle_wheel_tire_diagnosis": {
+        "name": "Tyre diagnostics"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_climatizationactive": {
+        "name": "Charging EV Climatisation active"
+      },
+      "vehicle_drivetrain_electricengine_charging_routeoptimizedchargingstatus": {
+        "name": "Charging EV Route optimised charging state"
+      }
+    }
+  },
+  "issues": {
+    "api_quota_exhausted": {
+      "description": "The {limit} requests-per-24h BMW CarData REST limit has been reached, so on-demand data (basic info, charging history, tyre diagnosis, vehicle image) can't be refreshed right now. The streaming data keeps flowing. The quota frees up again at {next_reset}."
+    },
+    "stream_unauthorized": {
+      "title": "BMW CarData stream not authorised",
+      "description": "BMW has rejected the streaming connection as unauthorised (MQTT rc=5) for over {minutes} minutes and it hasn't recovered on its own. This usually means the tokens need renewing, or another CarData client is holding the single per-account stream. Try Configure → Refresh tokens now, then Re-authorise with BMW if it keeps failing, and disconnect any other CarData client."
+    }
+  },
+  "services": {
+    "fetch_tyre_diagnosis": {
+      "name": "Fetch smart maintenance tyre diagnosis",
+      "description": "Fetch the smart-maintenance tyre diagnosis for a VIN and log the response."
+    },
+    "get_driving_summary": {
+      "fields": {
+        "month": {
+          "description": "Month to summarise as YYYY-MM. Defaults to the current month."
+        }
+      }
+    }
+  }
+}

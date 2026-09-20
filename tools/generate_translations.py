@@ -66,14 +66,14 @@ COMMON_STATES: dict[str, tuple[str, str]] = {
     # dashboard card's central-lock tile.
     "SELECTIVE-LOCKED": ("Partially locked", "Teilweise verriegelt"),
     "SELECTIVELOCKED": ("Partially locked", "Teilweise verriegelt"),
-    "KILOMETERS": ("Kilometres", "Kilometer"),
+    "KILOMETERS": ("Kilometers", "Kilometer"),
     "MILES": ("Miles", "Meilen"),
     "CHARGINGACTIVE": ("Charging", "Lädt"),
     "CHARGINGPAUSED": ("Charging paused", "Ladevorgang pausiert"),
     "CHARGINGENDED": ("Charging ended", "Ladevorgang beendet"),
     "CHARGINGERROR": ("Charging error", "Ladefehler"),
     "NOCHARGING": ("Not charging", "Lädt nicht"),
-    "INITIALIZATION": ("Initialising", "Initialisierung"),
+    "INITIALIZATION": ("Initializing", "Initialisierung"),
     "OK": ("OK", "OK"),
     "utc": ("UTC", "UTC"),
     # Anti-theft alarm arming state (vehicle.…antiTheftAlarmSystem.alarm.armStatus).
@@ -98,7 +98,7 @@ COMMON_STATES: dict[str, tuple[str, str]] = {
     "summertime": ("Summer time", "Sommerzeit"),
     "manual": ("Manual", "Manuell"),
     # Display distance unit (vehicle.cabin.infotainment.displayUnit.distance).
-    "km": ("Kilometres", "Kilometer"),
+    "km": ("Kilometers", "Kilometer"),
     "miles": ("Miles", "Meilen"),
 }
 

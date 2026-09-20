@@ -13,7 +13,7 @@ mean.
 A config entry is **one BMW account**: one Client ID, one OAuth login, one MQTT
 stream, one 50-request daily quota — and **every car on that account**. Each VIN
 becomes its own [device](Feature-Entities-and-Devices) with its own entities,
-history, charging ledger and tyre record.
+history, charging ledger and tire record.
 
 So:
 
@@ -54,7 +54,7 @@ select the new car on the portal page the activator opens
 ## Quota with several cars
 
 The 50 requests per 24 h belong to the **account**, and the daily refresh costs
-**2 requests per car** (the telematics container, plus the tyre diagnosis). Three
+**2 requests per car** (the telematics container, plus the tire diagnosis). Three
 cars on one account is 6 of 50 a day — comfortable. Two separate accounts get 50
 each, because BMW counts per account. See [API quota](Feature-API-Quota).
 
@@ -75,6 +75,6 @@ each, because BMW counts per account. See [API quota](Feature-API-Quota).
 
 Removing one entry leaves the other running: its stream, services and card are
 untouched. The entry being removed takes its own stored history, coverage record
-and tyre data with it, and clears any retained evcc topics for **every** car it
+and tire data with it, and clears any retained evcc topics for **every** car it
 ever had — including one that only ever streamed and never answered a basic-data
 request.

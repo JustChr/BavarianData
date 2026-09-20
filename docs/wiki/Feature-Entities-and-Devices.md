@@ -48,8 +48,8 @@ integration's own translations (so German installs get German names too).
 | **Real Range** | How far the car really goes from its current charge (km), from measured consumption and usable capacity — with the car's own prediction and the difference as attributes. |
 | **Driving Distance (This Month)** | Monthly distance + business/private/commute split. |
 | **Trip in Progress** | Binary sensor: `on` while a drive is under way, with the trip so far as attributes. Deliberately *not* a "moving" sensor — it lingers after an arrival; see [Trips](Feature-Trips#seeing-the-drive-thats-happening-now). |
-| **Tyre Condition** | BMW's overall verdict on the mounted set, plus any upstream errors. |
-| **Tyre Front Left / Front Right / Rear Left / Rear Right** | Per-wheel wear traffic light (`green`/`yellow`/`red`/`grey`), with the mileage until a change is due, defect status, season, dimension, tread pattern and fitting date as attributes. |
+| **Tire Condition** | BMW's overall verdict on the mounted set, plus any upstream errors. |
+| **Tire Front Left / Front Right / Rear Left / Rear Right** | Per-wheel wear traffic light (`green`/`yellow`/`red`/`grey`), with the mileage until a change is due, defect status, season, dimension, tread pattern and fitting date as attributes. |
 | **API Quota Remaining** | Diagnostic: requests left in the 50/24 h window. |
 | **State-of-charge estimate / rate** | Extrapolated SoC helpers (need the Electric vehicle cluster). |
 | **Stream Connection Status** | Diagnostic: MQTT connection state. |
@@ -64,11 +64,11 @@ they could never hold a value — their old history may then be listed under
 **Developer tools → Statistics**, where it can be deleted.
 
 The **fuel in the tank** (*Range Tank level*) is a volume sensor with long-term
-statistics. It takes the unit the car sends — litres, or gallons on a car that
+statistics. It takes the unit the car sends — liters, or gallons on a car that
 reports them — and Home Assistant converts it to your display unit like any other.
 
-The tyre entities only exist for wheels BMW actually reports. Many cars have no
-tyre service record on file, in which case none are created — that is BMW having
+The tire entities only exist for wheels BMW actually reports. Many cars have no
+tire service record on file, in which case none are created — that is BMW having
 no data, not a fault. They are populated by the
 [daily refresh](Feature-API-Quota#the-daily-refresh) and by
 `bavariandata.fetch_tyre_diagnosis`.
@@ -111,6 +111,32 @@ the driver's — the state a car lands in after a remote unlock.
 
 Per-door **open/closed** state is separate again, and streamed: the four
 `Door state (…)` binary sensors.
+
+## Entity names and your language
+
+<a id="entity-names-and-your-language"></a>
+
+Entity names follow Home Assistant's own language setting. Three are shipped:
+
+| HA language | What you get |
+| --- | --- |
+| **English** | US spellings — *Tire pressure (front left)*, *Tire Condition* |
+| **English (UK)** | British spellings — *Tyre pressure (front left)*, *Tyre Condition* |
+| **Deutsch** | BMW's own German names — *Reifendruck (vorne links)*, *Reifenzustand* |
+
+Switch under *Profile → Language*; the names change on the next reload. The
+bundled card follows the same setting.
+
+**Entity IDs never change with it.** They are built once, from the descriptor BMW
+sends — `sensor.<car>_tire_pressure_front_left` — so automations, dashboards and
+templates keep working whichever language you pick, and a UK install still
+refers to `tire` in YAML. Only the display name is translated.
+
+US English is the default because BMW's own field names are US
+(`vehicle.chassis.axle.row1.wheel.left.tire.pressure`), so the name you read
+matches the ID you type. British English overrides only the words that actually
+differ and inherits everything else, which is why a new label appears in both
+without waiting for a translation.
 
 ## Why some entities are "unavailable"
 

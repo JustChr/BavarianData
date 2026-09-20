@@ -8,7 +8,7 @@ Bring your BMW's live data into Home Assistant straight from BMW CarData — no
 third-party cloud in between. BavarianData holds one MQTT connection to BMW's
 CarData stream, keeps the OAuth tokens fresh on its own, and turns every
 streamed descriptor into a native sensor or binary sensor. It also polls the
-CarData REST API for telematics, basic vehicle data, charging history, tyre
+CarData REST API for telematics, basic vehicle data, charging history, tire
 diagnosis, location-based charging settings and the vehicle image — all within
 BMW's 50 requests / 24 h quota. A Lovelace card and a cached vehicle image ship
 with it, so a usable dashboard exists out of the box.
@@ -33,7 +33,7 @@ with it, so a usable dashboard exists out of the box.
 </p>
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-security.png" alt="Security &amp; closures card with a top-down car diagram, anti-theft alarm armed and all closures closed" width="300" />
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-tires.png" alt="Tyre pressure card flagging slightly high pressures on all four tyres on a top-down car diagram" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-tires.png" alt="Tire pressure card flagging slightly high pressures on all four tires on a top-down car diagram" width="300" />
 </p>
 
 See the [README](https://github.com/JustChr/BavarianData) for the full BMW

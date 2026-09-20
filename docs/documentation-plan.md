@@ -135,7 +135,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `action_fetch_basic` | Fetch basic data | 🟡 | — |
 | `action_fetch_telematic` | Fetch telematic data | 🟡 | — |
 | `action_fetch_charging_history` | Fetch charging history | 🟡 | — |
-| `action_fetch_tyre` | Fetch tyre diagnosis | 🟡 | — |
+| `action_fetch_tyre` | Fetch tire diagnosis | 🟡 | — |
 | `action_fetch_location_charging` | Fetch location charging settings | 🟡 | — |
 | `action_fetch_image` | Fetch vehicle image | 🟡 | — |
 | `action_charging_costs` | Charging costs & history | 🟡 | 📷 |
@@ -224,7 +224,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | `real_range` | Measured consumption → range now, vs BMW's own estimate | 🟢 Feature-Efficiency-and-Range + Feature-Entities-and-Devices + The-Dashboard-Card |
 | `driving_distance_month` | Monthly distance + split | 🟡 |
 | `trip_in_progress` (binary_sensor) | The drive under way, with live attributes | 🟢 Feature-Trips → "Seeing the drive that's happening now" + Feature-Entities-and-Devices + The-Dashboard-Card |
-| `tyre_status`, `tyre_<position>` (×4) | Tyre wear / condition from the REST diagnosis | 🟢 Feature-Entities-and-Devices + The-Dashboard-Card |
+| `tyre_status`, `tyre_<position>` (×4) | Tire wear / condition from the REST diagnosis | 🟢 Feature-Entities-and-Devices + The-Dashboard-Card |
 | `api_quota_remaining` | Diagnostic | 🟡 |
 | `connection_status`, `last_message`, `last_telematic_api` | Diagnostics | ❌ |
 | `car` (device_tracker) | Location | ❌ |
@@ -255,7 +255,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Charging events (`bavariandata_charging_*`) | 🟡 |
 | Automation blueprints (2) | 🟡 |
 | API quota + Repairs issue | 🟡 |
-| Daily REST refresh (container + tyre, 2 req/day **per vehicle**) | 🟢 Feature-API-Quota → "The daily refresh" + Services-Reference |
+| Daily REST refresh (container + tire, 2 req/day **per vehicle**) | 🟢 Feature-API-Quota → "The daily refresh" + Services-Reference |
 | Multi-vehicle accounts: every car is refreshed, not just one (issue #13) | 🟢 Troubleshooting → "A second car's REST-only values are frozen" + Feature-API-Quota → "The daily refresh" + Services-Reference (`fetch_telematic_data` without a `vin`) |
 | One entry per account (a second entry for the same account is refused: one stream, one quota), two accounts side by side, and how to name the car in the card / services / automations / the bridge | 🟢 Feature-Multiple-Cars-and-Accounts (all sections) + Troubleshooting → "Setup says this BMW account is already set up" + Settings-Reference → "Debug logging" (the log level is shared) |
 | A car added to the account after setup: entities arrive on the stream by themselves, its name/model are fetched on first sight, its coverage grace window is its own, its Data Selection still has to be ticked per car | 🟢 Feature-Multiple-Cars-and-Accounts → "Adding a car later" + Troubleshooting → "A new car shows up as its VIN, with no model" |
@@ -268,6 +268,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | What appears in logs — masked VIN at default level, full VIN only under debug | 🟢 Troubleshooting → "Debug logging" + Settings-Reference → "Debug logging" |
 | Display units are the user's choice; values are stored as the car sends them (issue #7) | 🟢 Troubleshooting → "A sensor shows an absurd value, or reads unknown after an update" |
 | Which lock entity to automate on — streamed `door.status` vs REST-only `door.lock.status` (issue #8) | 🟢 Feature-Entities-and-Devices → "Which lock entity to use" |
+| Three shipped languages (English, English (UK), Deutsch): names follow HA's language, entity IDs never do; English is US because BMW's field names are (PR #24) | 🟢 Feature-Entities-and-Devices → "Entity names and your language" (EN + DE) |
 
 ## Conventions
 

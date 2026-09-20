@@ -24,7 +24,7 @@ hand just fetches early and spends an extra request.
 | `bavariandata.fetch_vehicle_mappings` | Vehicles linked to the account and their PRIMARY/SECONDARY status. |
 | `bavariandata.fetch_basic_data` | Static vehicle metadata (model, series, …). |
 | `bavariandata.fetch_charging_history` | BMW's charging sessions (paginated; optional `from`/`to`), imported into local history and enriched with measured grid energy. |
-| `bavariandata.fetch_tyre_diagnosis` | Smart-maintenance tyre diagnosis — tread wear, remaining mileage, defect status per wheel. Populates the tyre sensors and the card's wheel diagram. |
+| `bavariandata.fetch_tyre_diagnosis` | Smart-maintenance tire diagnosis — tread wear, remaining mileage, defect status per wheel. Populates the tire sensors and the card's wheel diagram. |
 | `bavariandata.fetch_location_charging_settings` | Location-based charging settings (paginated). |
 | `bavariandata.fetch_vehicle_image` | Vehicle render (updates the cached image entity). |
 
@@ -76,7 +76,7 @@ when its inputs don't support one:
   inputs it came from. Its **`source`** says which side of the charger it
   describes: `"grid"` only when every contributing session carried a measured
   `grid_kwh`, otherwise `"battery"` (BMW streams *battery* charging power, so an
-  estimated session never measured the wall). Read `source` before labelling the
+  estimated session never measured the wall). Read `source` before labeling the
   number — the two differ by the charging losses.
 - **`avg_consumption_kwh_per_100km`** — battery-side, from the trips.
 
@@ -171,7 +171,7 @@ Selection that didn't save — and never for a partly-filled cluster, for the
 **A cluster your car simply doesn't have stops being a gap after 30 days.** If
 one single cluster is still silent after a month while every other selected
 cluster has delivered, the selection has clearly saved and the stream works — so
-what's left is a car without those fields (an older i3 streams no tyre pressure,
+what's left is a car without those fields (an older i3 streams no tire pressure,
 for example). That cluster joins `not_applicable`, its fields stop counting as
 `overdue`, and the Repairs warning clears itself. Two or more silent clusters
 keep warning however long they stay silent: that pattern still points at the

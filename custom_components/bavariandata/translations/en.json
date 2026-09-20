@@ -94,7 +94,7 @@
           "action_fetch_basic": "Fetch basic vehicle info",
           "action_fetch_telematic": "Fetch telematics data",
           "action_fetch_charging_history": "Fetch charging history",
-          "action_fetch_tyre": "Fetch tyre diagnosis",
+          "action_fetch_tyre": "Fetch tire diagnosis",
           "action_fetch_location_charging": "Fetch charging settings",
           "action_fetch_image": "Fetch vehicle image",
           "action_charging_costs": "Charging costs & history",
@@ -152,7 +152,7 @@
       },
       "action_fetch_basic": {
         "title": "Fetch basic vehicle info",
-        "description": "Fetch static details (model, colour, options) for every known vehicle.\n\nPress Submit to continue."
+        "description": "Fetch static details (model, color, options) for every known vehicle.\n\nPress Submit to continue."
       },
       "action_fetch_telematic": {
         "title": "Fetch telematics data",
@@ -163,8 +163,8 @@
         "description": "Fetch the most recent charging sessions for your vehicles.\n\nPress Submit to continue."
       },
       "action_fetch_tyre": {
-        "title": "Fetch tyre diagnosis",
-        "description": "Fetch the latest tyre-pressure diagnosis for your vehicles.\n\nPress Submit to continue."
+        "title": "Fetch tire diagnosis",
+        "description": "Fetch the latest tire-pressure diagnosis for your vehicles.\n\nPress Submit to continue."
       },
       "action_fetch_location_charging": {
         "title": "Fetch charging settings",
@@ -236,7 +236,7 @@
       },
       "action_trips": {
         "title": "Trips (driving journal)",
-        "description": "Reconstructs your drives from the stream at no API cost — distance, the business/private/commute split, consumption and a monthly review.\n\nSet **Work zone** so commutes (home ↔ work) are recognised automatically; you can always correct a trip afterwards. Everything that isn't a commute is filed as the **Default type** (Private out of the box). A commute also survives a stop on the way: if the car stands no longer than the **Commute stop tolerance**, the drive there and the drive on are both counted as commuting. **Resolve addresses** is off by default: with it on, a trip endpoint outside any Home Assistant zone is looked up via OpenStreetMap and stored as an address — the coordinates are sent for the lookup but never saved.\n\n**Record route** is also off by default: with it on, each trip stores its GPS track — where the car went and when — so a map can show and replay the drive. This is the only setting that saves raw coordinates to disk, including your exact start and end points.\n\n**Trip-capture diagnostics** is a troubleshooting aid: with it on, every GPS fix, timer and message is logged in detail and a capture file is written, to help improve trip detection. Turn it on only for a test drive, then off again.",
+        "description": "Reconstructs your drives from the stream at no API cost — distance, the business/private/commute split, consumption and a monthly review.\n\nSet **Work zone** so commutes (home ↔ work) are recognized automatically; you can always correct a trip afterwards. Everything that isn't a commute is filed as the **Default type** (Private out of the box). A commute also survives a stop on the way: if the car stands no longer than the **Commute stop tolerance**, the drive there and the drive on are both counted as commuting. **Resolve addresses** is off by default: with it on, a trip endpoint outside any Home Assistant zone is looked up via OpenStreetMap and stored as an address — the coordinates are sent for the lookup but never saved.\n\n**Record route** is also off by default: with it on, each trip stores its GPS track — where the car went and when — so a map can show and replay the drive. This is the only setting that saves raw coordinates to disk, including your exact start and end points.\n\n**Trip-capture diagnostics** is a troubleshooting aid: with it on, every GPS fix, timer and message is logged in detail and a capture file is written, to help improve trip detection. Turn it on only for a test drive, then off again.",
         "data": {
           "trip_work_zone": "Work zone",
           "trip_default_class": "Default type",
@@ -822,7 +822,7 @@
       "vehicle_cabin_infotainment_displayunit_distance": {
         "name": "Vehicle Info Display unit (distance)",
         "state": {
-          "km": "Kilometres",
+          "km": "Kilometers",
           "miles": "Miles"
         }
       },
@@ -830,7 +830,7 @@
         "name": "Vehicle Info Distance unit",
         "state": {
           "miles": "Miles",
-          "kilometers": "Kilometres"
+          "kilometers": "Kilometers"
         }
       },
       "vehicle_cabin_infotainment_ismobilephoneconnected": {
@@ -1352,7 +1352,7 @@
         "name": "Charging EV Charging state",
         "state": {
           "nocharging": "Not charging",
-          "initialization": "Initialising",
+          "initialization": "Initializing",
           "chargingactive": "Charging",
           "chargingpaused": "Charging paused",
           "chargingended": "Charging ended",
@@ -1885,19 +1885,19 @@
         "name": "Real Range"
       },
       "tyre_status": {
-        "name": "Tyre Condition"
+        "name": "Tire Condition"
       },
       "tyre_front_left": {
-        "name": "Tyre Front Left"
+        "name": "Tire Front Left"
       },
       "tyre_front_right": {
-        "name": "Tyre Front Right"
+        "name": "Tire Front Right"
       },
       "tyre_rear_left": {
-        "name": "Tyre Rear Left"
+        "name": "Tire Rear Left"
       },
       "tyre_rear_right": {
-        "name": "Tyre Rear Right"
+        "name": "Tire Rear Right"
       }
     },
     "binary_sensor": {
@@ -2804,7 +2804,7 @@
   "issues": {
     "api_quota_exhausted": {
       "title": "BMW CarData API quota exhausted",
-      "description": "The {limit} requests-per-24h BMW CarData REST limit has been reached, so on-demand data (basic info, charging history, tyre diagnosis, vehicle image) can't be refreshed right now. The streaming data keeps flowing. The quota frees up again at {next_reset}."
+      "description": "The {limit} requests-per-24h BMW CarData REST limit has been reached, so on-demand data (basic info, charging history, tire diagnosis, vehicle image) can't be refreshed right now. The streaming data keeps flowing. The quota frees up again at {next_reset}."
     },
     "motorcycle_unsupported": {
       "title": "BMW motorcycles can't stream their data",
@@ -2885,8 +2885,8 @@
       }
     },
     "fetch_tyre_diagnosis": {
-      "name": "Fetch smart maintenance tyre diagnosis",
-      "description": "Fetch the smart-maintenance tyre diagnosis for a VIN and log the response.",
+      "name": "Fetch smart maintenance tire diagnosis",
+      "description": "Fetch the smart-maintenance tire diagnosis for a VIN and log the response.",
       "fields": {
         "entry_id": {
           "name": "Config entry",
@@ -2992,7 +2992,7 @@
         },
         "month": {
           "name": "Month",
-          "description": "Month to summarise as YYYY-MM. Defaults to the current month."
+          "description": "Month to summarize as YYYY-MM. Defaults to the current month."
         }
       }
     },

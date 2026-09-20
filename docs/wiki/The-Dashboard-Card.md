@@ -208,7 +208,7 @@ by default ([retention](Settings-Reference#charging-costs--history)), which is f
 one screen should show at once. Forward stops at the current month.
 
 > **Average consumption** is measured from the charging ledger and the odometer,
-> not from the trips, and is labelled **at the battery** or **at the plug**
+> not from the trips, and is labeled **at the battery** or **at the plug**
 > according to where the energy was actually measured — plug-side only once every
 > charge carries a measured grid figure, in which case the battery-side figure
 > appears beneath it with the charging loss between them. See
@@ -230,7 +230,7 @@ view: trips
 It reads the `get_trips` and `get_driving_summary` services, so it spends **no
 API quota**. Trips are reconstructed from the stream — no configuration needed.
 Endpoints are stored as **place names**, never coordinates. Set a **work zone**
-under **Configure → Trips** so home↔work drives are recognised as commutes
+under **Configure → Trips** so home↔work drives are recognized as commutes
 ([see Trips](Feature-Trips)).
 
 > This is a trip journal and expense helper — **not a tax-office-compliant
@@ -278,7 +278,7 @@ load from OpenStreetMap, as they do for the built-in Map card).
 
 ## Tires (`cluster: tire`)
 
-Draws a top-down car with each tire coloured by condition, a summary of the whole
+Draws a top-down car with each tire colored by condition, a summary of the whole
 set at the top, and each wheel's own readings and fitment beside it.
 
 <p align="center">
@@ -301,16 +301,16 @@ band is deliberately lopsided — low from 8% under target, high only past 15%
 over — because the target is a *cold* pressure and a tire you have just driven on
 reads 8–10% high without anything being wrong.
 
-**Wear** comes from BMW's smart-maintenance tyre diagnosis, refreshed by the
+**Wear** comes from BMW's smart-maintenance tire diagnosis, refreshed by the
 [daily refresh](Feature-API-Quota#the-daily-refresh). When it is available, each
 wheel also shows its own size, tread pattern, season, fitting date and the
 mileage until a change is due. These are per wheel on purpose: staggered setups
 (different sizes front and rear) are normal, and a single line under the diagram
 would have to pick one to show.
 
-Wear outranks pressure in the colour and the header: a tyre BMW flags as worn
-reads *"Check tyres"* even at perfect pressure, because pressure is trivially
-fixable and tread is not. If your car has no tyre service record on file BMW
+Wear outranks pressure in the color and the header: a tire BMW flags as worn
+reads *"Check tires"* even at perfect pressure, because pressure is trivially
+fixable and tread is not. If your car has no tire service record on file BMW
 returns nothing here, the wear parts are simply absent, and the card shows
 pressure alone.
 

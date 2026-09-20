@@ -32,6 +32,11 @@ the project-authored `tools/curated_titles.json` and
 - `custom_components/bavariandata/translations/en.json` and `de.json` —
   **only the `entity` block**; `config`/`options` sections are hand-maintained
   and preserved by the generator
+- `custom_components/bavariandata/translations/en-GB.json` — fully generated,
+  a *delta* over `en.json` (HA overlays a language on top of `en` key by key, so
+  only the ~75 differing strings exist). `en.json` is **US English**; the US/UK
+  word list is `tools/spelling_en_gb.json`. Re-run `tools/generate_en_gb.py`
+  after **any** `en.json` edit, hand-written flow strings included
 - `docs/reference/telematics-fields.md`
 
 Entities without a BMW descriptor (derived/diagnostic sensors, device tracker,
@@ -39,10 +44,10 @@ vehicle image) are named from `tools/derived_entities.json` — never a hardcode
 `_attr_name`, or German installs silently fall back to English.
 
 To change an entity name, edit `title_en` in `tools/curated_titles.json`, then
-re-run steps 1–4 from `tools/README.md` (`build_catalogue.py`,
-`generate_metadata.py`, `generate_translations.py`, `generate_reference_doc.py`)
-and run `python -m pytest tests/test_catalogue.py` (checks consistency and
-generator idempotence).
+re-run steps 1–5 from `tools/README.md` (`build_catalogue.py`,
+`generate_metadata.py`, `generate_translations.py`, `generate_reference_doc.py`,
+`generate_en_gb.py`) and run `python -m pytest tests/test_catalogue.py`
+(checks consistency and generator idempotence).
 
 ## Tests
 
@@ -177,7 +182,10 @@ zip asset).
   by the pipeline; the `config`/`options` (flow) sections are hand-edited
   directly in `en.json`/`de.json`.
 - English and German are both first-class: entity naming changes must land in
-  both languages (the pipeline handles this).
+  both languages (the pipeline handles this). English itself is **US English**
+  (`tire`, `color`, `authorize`) — `en-GB.json` and the card's `en-GB` table are
+  generated deltas over it, and `tests/test_translations_dialect.py` fails on a
+  British spelling in `en.json` or in the card's `en` table.
 - Keep the card dependency-free vanilla JS; there is no bundler. The root
   `package.json` is **dev-only** — ESLint (`npx eslint
   custom_components/bavariandata/www`, config in `eslint.config.mjs`) — and

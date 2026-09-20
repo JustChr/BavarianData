@@ -243,16 +243,19 @@ def test_generators_are_idempotent(tmp_path):
     build = _load("build_catalogue", str(_TOOLS / "build_catalogue.py"))
     meta_gen = _load("generate_metadata", str(_TOOLS / "generate_metadata.py"))
     trans_gen = _load("generate_translations", str(_TOOLS / "generate_translations.py"))
+    en_gb_gen = _load("generate_en_gb", str(_TOOLS / "generate_en_gb.py"))
 
     before_cat = (_PKG / "catalogue.json").read_text(encoding="utf-8")
     before_meta = (_PKG / "descriptor_metadata.py").read_text(encoding="utf-8")
     before_trans = {
         name: (_PKG / "translations" / name).read_text(encoding="utf-8")
-        for name in ("en.json", "de.json")
+        for name in ("en.json", "de.json", "en-GB.json")
     }
     build.main()
     meta_gen.main()
     trans_gen.main()
+    # Last, because it reads the en.json the step before it just wrote.
+    en_gb_gen.main()
     assert (_PKG / "catalogue.json").read_text(encoding="utf-8") == before_cat
     assert (_PKG / "descriptor_metadata.py").read_text(encoding="utf-8") == before_meta
     for name, before in before_trans.items():

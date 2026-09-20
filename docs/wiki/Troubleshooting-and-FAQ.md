@@ -78,11 +78,11 @@ Repairs** pointing back here.
 <a id="sensor-value-looks-wrong"></a>
 
 **Changed a unit in an entity's settings?** Versions up to 0.9.6 had a bug where
-that unit was applied again on every Home Assistant restart. A tyre pressure the
+that unit was applied again on every Home Assistant restart. A tire pressure the
 car reports in kPa but shown in bar was divided by 100 each time, so it drifted
 towards zero — `2.5e-10 bar` after five restarts
 ([issue #7](https://github.com/JustChr/BavarianData/issues/7)). Readings the car
-sends rarely, like tyre pressure, were worst affected, because a fresh message
+sends rarely, like tire pressure, were worst affected, because a fresh message
 from the car was what reset the value. Installs using the **US customary** unit
 system were affected without changing anything, since Home Assistant picks the
 display unit itself there — distance, speed, temperature, pressure and volume.
@@ -93,7 +93,7 @@ car sends it in, and the unit you display it in makes no difference to it.
 **Why it then says unknown:** a value that already drifted can't be recovered,
 and the update deliberately discards it rather than keep a wrong number. The
 sensor fills in the next time the car reports that reading — immediately for
-most, at the end of your **next drive** for tyre pressure. Recorded history
+most, at the end of your **next drive** for tire pressure. Recorded history
 keeps the old bad values; only new readings are correct.
 
 You can keep displaying whatever unit you prefer. **Settings → Devices &
@@ -115,7 +115,7 @@ and follows every lock/unlock within seconds, with the same `Secured` / `Locked`
 
 Fixed in **v0.9.11-beta.2**. Before it, an account with more than one vehicle
 refreshed only one of them: everything BMW cannot stream — Condition Based
-Servicing, service demands, charging level, door-lock status, the tyre diagnosis
+Servicing, service demands, charging level, door-lock status, the tire diagnosis
 — stayed at whatever it was when that car was set up, while the car's stream
 kept running normally and hid the gap.
 

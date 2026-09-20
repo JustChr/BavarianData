@@ -74,7 +74,7 @@ Two things to know before you automate on it:
   trip's end is backdated correctly regardless; it is only the live flag that
   lingers. Use the `last_movement` attribute if you need the finer question.
 - **The figures are provisional.** Distance comes from the odometer, which only
-  ticks in whole kilometres, so it reads `unknown` for the first minute or so of a
+  ticks in whole kilometers, so it reads `unknown` for the first minute or so of a
   drive and then falls behind the GPS track a little. The final record is
   computed at close from the better of the available sources.
 - Nothing survives a restart: an in-flight trip lives only in memory, so
@@ -107,7 +107,7 @@ show where the car went **and** replay the drive.
 - The track rides the trip record and is returned by
   **`bavariandata.get_trips`** (as a `track` list of points). Each point is
   `[lat, lon, t]`, where `t` is whole **seconds since the trip started** — so a
-  map can animate the route in real time and colour it by pace. Routes recorded
+  map can animate the route in real time and color it by pace. Routes recorded
   before this was added store two-element `[lat, lon]` points and read back
   without timing; there is no way to backfill their times. The track is never
   included in the CSV / printable [export](Feature-Export), which stays
@@ -117,7 +117,7 @@ show where the car went **and** replay the drive.
   as a single point whose gap to the next stamp records how long the car sat.
 
 Once routes are recorded, the dashboard card's **Trip map** view (`view: map`)
-draws them on a map, coloured by classification and filterable by time window
+draws them on a map, colored by classification and filterable by time window
 ([see the card](The-Dashboard-Card#trip-map-view-map)).
 
 ## Classification
@@ -125,7 +125,7 @@ draws them on a map, coloured by classification and filterable by time window
 Drives auto-classify as **business**, **private** or **commute**:
 
 - Set a **work zone** under **Configure → Trips** (`trip_work_zone`) so
-  home↔work drives are recognised as commutes.
+  home↔work drives are recognized as commutes.
 - Everything else is filed as your **Default type** (`trip_default_class`) —
   **Private** out of the box. Choose **Business** if that is the honest default
   for your driving, or **Leave unclassified** to sort every trip by hand.
@@ -202,7 +202,7 @@ says which:
   charging-history import. This one **includes charging losses**, so it reads
   above the car's display and is what the electricity actually cost. Only then
   does the card also show the battery-side figure beneath it, with the gap
-  between them labelled as the charging loss — because only then are the two
+  between them labeled as the charging loss — because only then are the two
   measuring genuinely different things.
 
 **The battery-side trip figure.** Total trip energy over total trip distance,
@@ -224,7 +224,7 @@ outcome, not a gap.
 **Plug-in hybrids get no per-trip consumption rate.** A trip's energy is the drop
 in battery charge, but a hybrid may have driven part of the distance on fuel, and
 the stream carries no electric-only distance to divide by. A 40 km run that used
-4 kWh and a litre of petrol would read 10 kWh/100 km — a figure no part of the car
+4 kWh and a liter of petrol would read 10 kWh/100 km — a figure no part of the car
 achieved. So hybrid trips keep their energy and leave the rate blank, and they
 don't count toward the battery-side average.
 
