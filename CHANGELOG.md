@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.11-beta.4] - 2026-09-20
+
 An audit of everything the integration still assumed about "one car in one
 account", after the two multi-car fixes of the previous betas. Six findings,
 all fixed here. Nothing changes for a single-car install.
