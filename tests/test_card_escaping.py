@@ -212,8 +212,7 @@ def _declarations() -> list[tuple[int, str, str]]:
     """Every simple ``const x = ...`` as ``(line, name, right-hand side)``."""
 
     return [
-        (_line_of(SOURCE, m.start()), m.group(1), m.group(2))
-        for m in _DECL_RE.finditer(SOURCE)
+        (_line_of(SOURCE, m.start()), m.group(1), m.group(2)) for m in _DECL_RE.finditer(SOURCE)
     ]
 
 
@@ -266,9 +265,9 @@ def _violations() -> list[tuple[int, str]]:
             tainted = any(source in expr for source in TAINT_SOURCES)
             if not tainted:
                 bare = expr.strip()
-                tainted = bool(
-                    re.fullmatch(r"[A-Za-z_$][\w$]*", bare)
-                ) and _is_tainted_local(bare, line)
+                tainted = bool(re.fullmatch(r"[A-Za-z_$][\w$]*", bare)) and _is_tainted_local(
+                    bare, line
+                )
             if tainted:
                 out.append((line, " ".join(expr.split())[:90]))
     return out

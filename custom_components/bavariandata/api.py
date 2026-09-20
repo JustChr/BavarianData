@@ -188,19 +188,13 @@ async def _async_collect_paginated(
 # --- High-level endpoint helpers -------------------------------------------------
 
 
-async def async_get_vehicle_mappings(
-    session: aiohttp.ClientSession, access_token: str
-) -> Any:
+async def async_get_vehicle_mappings(session: aiohttp.ClientSession, access_token: str) -> Any:
     """GET /customers/vehicles/mappings"""
 
-    return await async_request_json(
-        session, "GET", "/customers/vehicles/mappings", access_token
-    )
+    return await async_request_json(session, "GET", "/customers/vehicles/mappings", access_token)
 
 
-async def async_get_basic_data(
-    session: aiohttp.ClientSession, access_token: str, vin: str
-) -> Any:
+async def async_get_basic_data(session: aiohttp.ClientSession, access_token: str, vin: str) -> Any:
     """GET /customers/vehicles/{vin}/basicData"""
 
     return await async_request_json(

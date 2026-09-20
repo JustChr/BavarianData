@@ -96,14 +96,10 @@ class CoverageStore:
             if isinstance(raw_seen, dict):
                 for vin, descriptors in raw_seen.items():
                     if isinstance(descriptors, dict):
-                        self._seen[vin] = {
-                            str(k): str(v) for k, v in descriptors.items()
-                        }
+                        self._seen[vin] = {str(k): str(v) for k, v in descriptors.items()}
             raw_first = data.get("first_seen")
             if isinstance(raw_first, dict):
-                self._first_seen = {
-                    str(vin): str(stamp) for vin, stamp in raw_first.items()
-                }
+                self._first_seen = {str(vin): str(stamp) for vin, stamp in raw_first.items()}
             self._started_at = _parse(data.get("started_at"))
             # Records written before first sightings were kept still carry the
             # arrival timestamps to recover them from.
@@ -172,9 +168,7 @@ class CoverageStore:
     def _expected_by_section(self) -> dict[str, list[str]]:
         # The non-diagnostic set is exactly what the picker asks BMW to stream,
         # so it is what we are entitled to expect back.
-        return {
-            section: descriptors_for_sections([section]) for section in self._sections
-        }
+        return {section: descriptors_for_sections([section]) for section in self._sections}
 
     def reports(
         self,

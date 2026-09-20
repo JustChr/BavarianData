@@ -85,4 +85,5 @@ def mask_vin(vin: Any) -> str:
     text = str(vin)
     return f"***{text[-4:]}" if len(text) > 4 else "***"
 
+
 set_debug_enabled(DEBUG_LOG)

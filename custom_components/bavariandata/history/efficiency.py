@@ -79,9 +79,7 @@ def _identity(value: datetime) -> datetime:
     return value
 
 
-def _within(
-    sessions: list[ChargingSession], *, days: int, now: datetime
-) -> list[ChargingSession]:
+def _within(sessions: list[ChargingSession], *, days: int, now: datetime) -> list[ChargingSession]:
     """Sessions that *ended* within the last ``days``.
 
     Keyed on the end (falling back to the start) because that is when the
@@ -116,9 +114,7 @@ def consumption(
         )
         if result is not None:
             return {**result, "window_days": days}
-    result = energy_balance(
-        sessions, battery_capacity_kwh=battery_capacity_kwh, side=side
-    )
+    result = energy_balance(sessions, battery_capacity_kwh=battery_capacity_kwh, side=side)
     if result is not None:
         return {**result, "window_days": None}
     return None
@@ -154,9 +150,7 @@ def monthly_consumption(
     series: list[dict[str, Any]] = []
     for _ in range(max(0, months)):
         balance = energy_balance(
-            sessions_in_month(
-                sessions, year=year, month=month, localize=localize
-            ),
+            sessions_in_month(sessions, year=year, month=month, localize=localize),
             battery_capacity_kwh=battery_capacity_kwh,
             side=side,
         )
@@ -291,22 +285,14 @@ def efficiency_profile(
         # ``consumption`` again: that would fall back to a longer window when
         # this one has no grid figure, and the loss would then be measured
         # across two different periods of driving.
-        scope = (
-            sessions
-            if window is None
-            else _within(sessions, days=window, now=now)
-        )
-        balance = energy_balance(
-            scope, battery_capacity_kwh=battery_capacity_kwh, side=SIDE_GRID
-        )
+        scope = sessions if window is None else _within(sessions, days=window, now=now)
+        balance = energy_balance(scope, battery_capacity_kwh=battery_capacity_kwh, side=SIDE_GRID)
         if balance is not None:
             grid = {**balance, "window_days": window}
         if grid is not None and grid["kwh_per_100km"] > battery["kwh_per_100km"]:
             # Only ever a loss: a grid figure *below* the battery one means the
             # two sums cover different energy, not that charging created any.
-            loss_percent = round(
-                (1 - battery["kwh_per_100km"] / grid["kwh_per_100km"]) * 100, 1
-            )
+            loss_percent = round((1 - battery["kwh_per_100km"] / grid["kwh_per_100km"]) * 100, 1)
 
     ranges = real_range(
         kwh_per_100km=None if battery is None else battery["kwh_per_100km"],

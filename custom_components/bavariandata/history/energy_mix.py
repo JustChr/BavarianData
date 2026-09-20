@@ -110,11 +110,7 @@ def split_energy(
         return {}
     if not shares:
         return {SOURCE_UNKNOWN: amount}
-    return {
-        source: amount * fraction
-        for source, fraction in shares.items()
-        if fraction > 0
-    }
+    return {source: amount * fraction for source, fraction in shares.items() if fraction > 0}
 
 
 @dataclass
@@ -174,9 +170,7 @@ class MixAccumulator:
         if self.known_kwh <= 0:
             return None
         record: dict[str, Any] = {
-            source: round(self.totals[source], 3)
-            for source in SOURCES
-            if self.totals.get(source)
+            source: round(self.totals[source], 3) for source in SOURCES if self.totals.get(source)
         }
         solar = self.solar_percent()
         if solar is not None:
@@ -201,16 +195,14 @@ class MixAccumulator:
         for source in SOURCES:
             try:
                 value = float(raw.get(source) or 0.0)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 continue
             if value > 0:
                 totals[source] = value
         return cls(totals=totals)
 
 
-def merge_mix(
-    records: list[Optional[dict[str, Any]]]
-) -> Optional[dict[str, Any]]:
+def merge_mix(records: list[Optional[dict[str, Any]]]) -> Optional[dict[str, Any]]:
     """Sum several sessions' mixes into one, for a monthly total.
 
     Sessions with no mix contribute nothing at all -- not a zero -- so one

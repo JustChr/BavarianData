@@ -34,6 +34,7 @@ def _load(module_name: str, filename: str):
     spec.loader.exec_module(mod)
     return mod
 
+
 translation_key = _load("keys", "keys.py").translation_key
 # Shared enum detection (see catalogue_enums.py) so translation state labels and
 # the metadata ``options`` are always derived from the same tokens.
@@ -180,11 +181,7 @@ def build() -> tuple[dict, dict]:
 
 def load_derived() -> dict[str, dict[str, dict[str, str]]]:
     data = json.loads(DERIVED_FILE.read_text(encoding="utf-8"))
-    return {
-        platform: entries
-        for platform, entries in data.items()
-        if not platform.startswith("_")
-    }
+    return {platform: entries for platform, entries in data.items() if not platform.startswith("_")}
 
 
 def merge_derived(en_entity: dict, de_entity: dict) -> None:
@@ -218,9 +215,7 @@ def write_language(filename: str, entity_block: dict, *, entity_only: bool) -> N
     else:
         doc = {}
     doc["entity"] = entity_block
-    path.write_text(
-        json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
+    path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"Wrote entity translations to {path.relative_to(REPO_ROOT)}")
 
 

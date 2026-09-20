@@ -113,9 +113,7 @@ def test_hourly_energy_accumulates_overlapping_sessions():
 
 
 def test_hourly_cost_reports_its_currency():
-    buckets, currency = stats.hourly_cost(
-        [_session(cost={"amount": 4.0, "currency": "EUR"})]
-    )
+    buckets, currency = stats.hourly_cost([_session(cost={"amount": 4.0, "currency": "EUR"})])
     assert currency == "EUR"
     assert round(sum(buckets.values()), 6) == 4.0
 
@@ -251,9 +249,7 @@ def test_report_never_claims_tax_compliance():
 
 
 def test_report_speaks_german():
-    html = export.month_report_html(
-        month="2026-07", vehicle="i5", sessions=[], trips=[], lang="de"
-    )
+    html = export.month_report_html(month="2026-07", vehicle="i5", sessions=[], trips=[], lang="de")
     assert "Fahrt- und Ladebericht" in html
     assert "keine Ladevorgänge" in html
 
@@ -283,7 +279,5 @@ def test_report_omits_cost_it_does_not_have():
 
 
 def test_report_handles_an_empty_month():
-    html = export.month_report_html(
-        month="2026-07", vehicle="i5", sessions=[], trips=[]
-    )
+    html = export.month_report_html(month="2026-07", vehicle="i5", sessions=[], trips=[])
     assert "No charging sessions" in html and "No trips" in html

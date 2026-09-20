@@ -81,9 +81,7 @@ class CardataStreamManager:
         self._reauth_notified = False
         self._unauthorized_retry_in_progress = False
         self._awaiting_new_credentials = False
-        self._status_callback: Optional[
-            Callable[[str, Optional[str]], Awaitable[None]]
-        ] = None
+        self._status_callback: Optional[Callable[[str, Optional[str]], Awaitable[None]]] = None
         self._reconnect_backoff = 5
         self._max_backoff = 300
         self._last_disconnect: Optional[float] = None
@@ -160,9 +158,7 @@ class CardataStreamManager:
     ) -> None:
         self._status_callback = callback
 
-    def _run_coro(
-        self, coro: Coroutine[Any, Any, Any]
-    ) -> "concurrent.futures.Future[Any]":
+    def _run_coro(self, coro: Coroutine[Any, Any, Any]) -> "concurrent.futures.Future[Any]":
         """Schedule a coroutine from the MQTT thread and log any exception.
 
         paho's callbacks run on its own network thread, so everything that
@@ -285,9 +281,7 @@ class CardataStreamManager:
             self._client = None
             return
         elif self._status_callback:
-            self._run_coro(
-                self._status_callback("connection_failed", reason=str(reason_code))
-            )
+            self._run_coro(self._status_callback("connection_failed", reason=str(reason_code)))
 
     def _handle_subscribe(
         self, client: mqtt.Client, userdata, mid, reason_code_list, properties=None
@@ -323,6 +317,7 @@ class CardataStreamManager:
         self._last_disconnect = time.monotonic()
         disconnect_future = self._disconnect_future
         if disconnect_future and not disconnect_future.done():
+
             def _set_disconnect() -> None:
                 if not disconnect_future.done():
                     disconnect_future.set_result(None)
@@ -340,9 +335,7 @@ class CardataStreamManager:
                 and now - self._last_disconnect < 10
             ):
                 if debug_enabled():
-                    _LOGGER.debug(
-                        "Ignoring transient MQTT rc=5; scheduling retry instead"
-                    )
+                    _LOGGER.debug("Ignoring transient MQTT rc=5; scheduling retry instead")
                 self._schedule_retry(3)
                 return
             self._run_coro(self._handle_unauthorized())
@@ -466,10 +459,7 @@ class CardataStreamManager:
             try:
                 await asyncio.sleep(delay)
                 if self._client is None:
-                    if (
-                        self._disconnect_future is not None
-                        and not self._disconnect_future.done()
-                    ):
+                    if self._disconnect_future is not None and not self._disconnect_future.done():
                         try:
                             await asyncio.wait_for(self._disconnect_future, timeout=10)
                         except asyncio.TimeoutError:

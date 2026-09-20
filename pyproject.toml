@@ -30,9 +30,13 @@ select = [
 "tests/**" = ["B011"]
 
 [tool.ruff.format]
-# Formatting is configured but not yet enforced in CI; run ``ruff format`` to
-# normalise the tree (a large, purely-cosmetic diff) before turning on the
-# ``ruff format --check`` gate.
+# Enforced in CI as ``ruff format --check``.
+#
+# ``descriptor_metadata.py`` is excluded because it is generated: the formatter
+# would rewrite its quotes, ``tools/generate_metadata.py`` would write them back
+# on the next run, and ``test_generators_are_idempotent`` would fail either way.
+# How generated output looks is the generator's business, not the formatter's.
+exclude = ["custom_components/bavariandata/descriptor_metadata.py"]
 docstring-code-format = false
 
 # Coverage is measured and reported, never gated.

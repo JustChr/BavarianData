@@ -182,9 +182,7 @@ def restore_diagnosis(record: Any) -> Optional[Dict[str, Any]]:
     }
     errors = diagnosis.get("errors")
     diagnosis["errors"] = (
-        [item for item in errors if isinstance(item, str)]
-        if isinstance(errors, list)
-        else []
+        [item for item in errors if isinstance(item, str)] if isinstance(errors, list) else []
     )
 
     fetched_at = _obj(record).get("fetched_at")

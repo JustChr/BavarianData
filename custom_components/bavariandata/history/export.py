@@ -146,9 +146,7 @@ def _identity(value: datetime) -> datetime:
     return value
 
 
-def _fmt_dt(
-    value: Optional[datetime], localize: Localizer, *, time_only: bool = False
-) -> str:
+def _fmt_dt(value: Optional[datetime], localize: Localizer, *, time_only: bool = False) -> str:
     if value is None:
         return ""
     local = localize(value)
@@ -184,9 +182,7 @@ def _write(rows: Iterable[Iterable[Any]]) -> str:
     return BOM + buffer.getvalue()
 
 
-def sessions_csv(
-    sessions: Iterable[ChargingSession], *, localize: Localizer = _identity
-) -> str:
+def sessions_csv(sessions: Iterable[ChargingSession], *, localize: Localizer = _identity) -> str:
     """One row per charging session, newest first.
 
     Both energy columns are exported side by side rather than collapsed into
@@ -531,16 +527,12 @@ def month_report_html(
             is_grid = balance.get("source") == "grid"
             # The unit rides as the small note: spelled out at tile size it is
             # the one value long enough to wrap onto a second line.
-            note = "kWh/100 km · " + (
-                s["at_the_plug"] if is_grid else s["at_the_battery"]
-            )
+            note = "kWh/100 km · " + (s["at_the_plug"] if is_grid else s["at_the_battery"])
             if is_grid and battery_side is not None:
                 note += f" · {battery_side} {s['at_the_battery']}"
             tiles.append(_tile(s["consumption"], str(balance["kwh_per_100km"]), note))
         elif battery_side is not None:
-            tiles.append(
-                _tile(s["consumption"], str(battery_side), "kWh/100 km")
-            )
+            tiles.append(_tile(s["consumption"], str(battery_side), "kWh/100 km"))
         if driving.get("recuperation_kwh_per_100km") is not None:
             tiles.append(
                 _tile(
@@ -575,8 +567,8 @@ def month_report_html(
             rows.append(
                 "<tr>"
                 f"<td>{escape(_fmt_dt(trip.start, localize))}</td>"
-                f'<td>{escape((trip.start_place or {}).get("label") or "—")}</td>'
-                f'<td>{escape((trip.end_place or {}).get("label") or "—")}</td>'
+                f"<td>{escape((trip.start_place or {}).get('label') or '—')}</td>"
+                f"<td>{escape((trip.end_place or {}).get('label') or '—')}</td>"
                 f'<td class="n">{escape(_minutes(trip.duration_s))} min</td>'
                 f'<td class="n">{escape(_num(trip.distance_km, 1) or "—")} km</td>'
                 f'<td class="n">{escape(_num(trip.consumption_kwh_per_100km, 1) or "—")}</td>'

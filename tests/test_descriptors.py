@@ -39,9 +39,7 @@ def test_default_sections_are_relevant_and_ordered():
     defaults = D.default_sections()
     assert defaults, "expected some relevant clusters"
     # Only clusters carrying an enabled-by-default, streamable descriptor qualify.
-    relevant = {
-        m["section"] for m in META.values() if m["enabled_default"] and m["streamable"]
-    }
+    relevant = {m["section"] for m in META.values() if m["enabled_default"] and m["streamable"]}
     assert set(defaults) == relevant
     # Order follows the catalogue's section order.
     assert defaults == [s for s in SECTIONS if s in relevant]
@@ -55,9 +53,7 @@ def test_descriptors_for_sections_is_total_and_scoped():
     assert set(all_desc) == set(META)
     # Default excludes the diagnostic long tail *and* the non-streamable ones.
     relevant = D.descriptors_for_sections(SECTIONS)
-    assert set(relevant) == {
-        d for d, m in META.items() if m["enabled_default"] and m["streamable"]
-    }
+    assert set(relevant) == {d for d, m in META.items() if m["enabled_default"] and m["streamable"]}
     assert set(relevant) < set(all_desc)
 
 
@@ -67,17 +63,13 @@ def test_descriptors_for_sections_omits_unstreamable():
     # every stream-facing caller must never see them.
     unstreamable = {d for d, m in META.items() if not m["streamable"]}
     assert unstreamable, "expected the catalogue to mark some as non-streamable"
-    offered = set(
-        D.descriptors_for_sections(SECTIONS, include_diagnostic=True)
-    )
+    offered = set(D.descriptors_for_sections(SECTIONS, include_diagnostic=True))
     assert not (offered & unstreamable)
     # They are still real catalogue entries and still get entities.
     assert unstreamable < set(META)
     # ...and the escape hatch brings them back.
     with_all = set(
-        D.descriptors_for_sections(
-            SECTIONS, include_diagnostic=True, include_unstreamable=True
-        )
+        D.descriptors_for_sections(SECTIONS, include_diagnostic=True, include_unstreamable=True)
     )
     assert unstreamable < with_all
 
@@ -88,9 +80,7 @@ def test_descriptors_are_partitioned_by_section():
     seen: set[str] = set()
     for slug in SECTIONS:
         got = set(
-            D.descriptors_for_sections(
-                [slug], include_diagnostic=True, include_unstreamable=True
-            )
+            D.descriptors_for_sections([slug], include_diagnostic=True, include_unstreamable=True)
         )
         assert not (got & seen), f"{slug} overlaps another section"
         seen |= got
@@ -107,9 +97,7 @@ def test_build_scope_is_stable_and_round_trips():
     assert scope == D.build_scope(sections)
     # Every granular streaming token maps back to a known descriptor in a chosen
     # cluster (excluding the coarse cardata:streaming:read base scope).
-    expected = {
-        D.streaming_scope(d) for d in D.descriptors_for_sections(sections)
-    }
+    expected = {D.streaming_scope(d) for d in D.descriptors_for_sections(sections)}
     stream_tokens = {
         t
         for t in tokens

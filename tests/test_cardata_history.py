@@ -42,8 +42,16 @@ def _raw(**overrides) -> dict:
         },
         "chargingBlocks": [
             {"startTime": START_EPOCH, "endTime": START_EPOCH + 60, "averagePowerGridKw": 10.8},
-            {"startTime": START_EPOCH + 60, "endTime": START_EPOCH + 120, "averagePowerGridKw": 11.2},
-            {"startTime": START_EPOCH + 120, "endTime": START_EPOCH + 180, "averagePowerGridKw": 3.5},
+            {
+                "startTime": START_EPOCH + 60,
+                "endTime": START_EPOCH + 120,
+                "averagePowerGridKw": 11.2,
+            },
+            {
+                "startTime": START_EPOCH + 120,
+                "endTime": START_EPOCH + 180,
+                "averagePowerGridKw": 3.5,
+            },
         ],
     }
     raw.update(overrides)
@@ -88,9 +96,7 @@ def test_address_kept_when_no_zone_matches():
 
 
 def test_location_dropped_without_coordinates_or_address():
-    session = session_from_cardata(
-        "WBY1", _raw(chargingLocation={"municipality": "Stockerau"})
-    )
+    session = session_from_cardata("WBY1", _raw(chargingLocation={"municipality": "Stockerau"}))
     assert session.location is None
 
 
@@ -104,7 +110,10 @@ def test_peak_from_all_blocks_and_curve_offsets():
 
 def test_ongoing_session_is_skipped():
     # The top-of-list charge has no endTime and no grid energy yet.
-    assert session_from_cardata("WBY1", _raw(endTime=None, energyConsumedFromPowerGridKwh=None)) is None
+    assert (
+        session_from_cardata("WBY1", _raw(endTime=None, energyConsumedFromPowerGridKwh=None))
+        is None
+    )
 
 
 def test_miles_converted_to_km():
@@ -114,8 +123,7 @@ def test_miles_converted_to_km():
 
 def test_curve_downsampled_to_cap():
     blocks = [
-        {"startTime": START_EPOCH + i, "averagePowerGridKw": 1.0 + i / 1000.0}
-        for i in range(1000)
+        {"startTime": START_EPOCH + i, "averagePowerGridKw": 1.0 + i / 1000.0} for i in range(1000)
     ]
     session = session_from_cardata("WBY1", _raw(chargingBlocks=blocks))
     assert len(session.power_curve) <= cardata_history.MAX_CURVE_POINTS
@@ -350,12 +358,8 @@ def test_a_rise_of_exactly_the_threshold_repairs():
 
 
 def test_frozen_soc_repair_is_idempotent():
-    once, _, _ = merge_cardata_sessions(
-        [_frozen_session()], [session_from_cardata("WBY1", _raw())]
-    )
-    twice, added, updated = merge_cardata_sessions(
-        once, [session_from_cardata("WBY1", _raw())]
-    )
+    once, _, _ = merge_cardata_sessions([_frozen_session()], [session_from_cardata("WBY1", _raw())])
+    twice, added, updated = merge_cardata_sessions(once, [session_from_cardata("WBY1", _raw())])
     assert (added, updated) == (0, 1)
     assert len(twice) == 1
     assert (twice[0].soc_start, twice[0].soc_end) == (66, 82)

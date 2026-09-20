@@ -258,9 +258,7 @@ async def poll_for_tokens(
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             consecutive_transient += 1
             if consecutive_transient > max_consecutive_transient:
-                raise CardataAuthError(
-                    f"Token polling failed (network error: {err})"
-                ) from err
+                raise CardataAuthError(f"Token polling failed (network error: {err})") from err
             await asyncio.sleep(interval + 5)
             continue
 
@@ -286,7 +284,5 @@ async def refresh_tokens(
     async with session.post(token_url, data=payload, timeout=HTTP_TIMEOUT) as resp:
         data = await resp.json(content_type=None)
         if resp.status != 200:
-            raise CardataAuthError(
-                f"Token refresh failed ({_safe_error(resp.status, data)})"
-            )
+            raise CardataAuthError(f"Token refresh failed ({_safe_error(resp.status, data)})")
         return data

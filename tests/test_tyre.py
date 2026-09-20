@@ -68,9 +68,7 @@ def test_parse_wheel_flattens_every_branch():
 
 
 def test_due_mileage_converts_miles_to_km():
-    wheel = _wheel(
-        tyreWear={"dueMileage": 10000, "unit": "MILE", "statusColor": "YELLOW"}
-    )
+    wheel = _wheel(tyreWear={"dueMileage": 10000, "unit": "MILE", "statusColor": "YELLOW"})
     assert parse_wheel(wheel)["due_mileage_km"] == pytest.approx(16093.4, abs=0.1)
 
 
@@ -124,7 +122,15 @@ def test_restore_round_trips_a_stored_diagnosis():
 
 
 def test_restore_rejects_records_with_nothing_in_them():
-    for record in (None, {}, [], "nope", {"diagnosis": None}, {"diagnosis": {}}, {"fetched_at": "x"}):
+    for record in (
+        None,
+        {},
+        [],
+        "nope",
+        {"diagnosis": None},
+        {"diagnosis": {}},
+        {"fetched_at": "x"},
+    ):
         assert restore_diagnosis(record) is None
 
 

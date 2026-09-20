@@ -53,7 +53,7 @@ ZoneFn = Callable[[float, float], Optional[str]]
 def _epoch_to_dt(value: Any) -> Optional[datetime]:
     try:
         return datetime.fromtimestamp(int(value), tz=timezone.utc)
-    except (TypeError, ValueError, OverflowError, OSError):
+    except TypeError, ValueError, OverflowError, OSError:
         return None
 
 
@@ -62,7 +62,7 @@ def _as_float(value: Any) -> Optional[float]:
         return None
     try:
         return float(value)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
 
 
@@ -136,9 +136,7 @@ def _location_rank(location: Any) -> int:
     return 0
 
 
-def _power_curve(
-    blocks: Any, start_epoch: int
-) -> tuple[list[list[float]], Optional[float]]:
+def _power_curve(blocks: Any, start_epoch: int) -> tuple[list[list[float]], Optional[float]]:
     """[[seconds_since_start, kw], ...] downsampled, plus the peak kW.
 
     The peak is taken across every block before downsampling, so thinning the
@@ -161,7 +159,7 @@ def _power_curve(
             continue
         try:
             offset = int(block_start) - int(start_epoch)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             continue
         if offset < 0:
             continue
@@ -287,19 +285,18 @@ def _absorb_fragments(
     if ends:
         keep.end = max(ends)
     soc_starts = [
-        s for s in (keep.soc_start, inc.soc_start, *(v.soc_start for v in victims))
-        if s is not None
+        s for s in (keep.soc_start, inc.soc_start, *(v.soc_start for v in victims)) if s is not None
     ]
     if soc_starts:
         keep.soc_start = min(soc_starts)
     soc_ends = [
-        s for s in (keep.soc_end, inc.soc_end, *(v.soc_end for v in victims))
-        if s is not None
+        s for s in (keep.soc_end, inc.soc_end, *(v.soc_end for v in victims)) if s is not None
     ]
     if soc_ends:
         keep.soc_end = max(soc_ends)
     peaks = [
-        p for p in (keep.peak_power_kw, inc.peak_power_kw, *(v.peak_power_kw for v in victims))
+        p
+        for p in (keep.peak_power_kw, inc.peak_power_kw, *(v.peak_power_kw for v in victims))
         if p is not None
     ]
     if peaks:
@@ -315,9 +312,7 @@ def _absorb_fragments(
     return len(victims)
 
 
-def _soc_arc_was_frozen(
-    target: ChargingSession, incoming: ChargingSession, pad: timedelta
-) -> bool:
+def _soc_arc_was_frozen(target: ChargingSession, incoming: ChargingSession, pad: timedelta) -> bool:
     """True when BMW's own record shows ``target``'s flat SoC arc was never real.
 
     A frozen reading can't be told apart from a genuine one on our side alone:
@@ -417,9 +412,7 @@ def merge_cardata_sessions(
         # fragments are absorbed) instead of enriching a fragment and orphaning
         # the other. Otherwise keep the closest-start match, as before.
         enriched = [session for session in overlaps if session.enriched]
-        target = min(
-            enriched or overlaps, key=lambda session: abs(session.start - inc.start)
-        )
+        target = min(enriched or overlaps, key=lambda session: abs(session.start - inc.start))
         _enrich_in_place(target, inc, pad)
         _absorb_fragments(result, inc, target, pad)
         updated += 1

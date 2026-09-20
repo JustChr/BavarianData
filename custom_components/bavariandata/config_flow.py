@@ -160,6 +160,7 @@ async def _handle_onboarding_webhook(
     pending["event"].set()
     return web.Response(status=200, text="Received — you can return to Home Assistant.")
 
+
 # Hassfest forbids literal URLs in translation strings, so the BMW portal links
 # used in the onboarding step are injected as description placeholders instead.
 USER_STEP_PLACEHOLDERS = {
@@ -270,9 +271,7 @@ class _StreamActivatorFlow:
             )
 
         try:
-            self._onboarding_page_url = (
-                get_url(self.hass) + ONBOARDING_VIEW_URL + f"?token={token}"
-            )
+            self._onboarding_page_url = get_url(self.hass) + ONBOARDING_VIEW_URL + f"?token={token}"
         except NoURLAvailableError:
             self._onboarding_page_url = f"{ONBOARDING_VIEW_URL}?token={token}"
 
@@ -294,13 +293,13 @@ class _StreamActivatorFlow:
 
         assert self._onboarding_event is not None
         try:
-            await asyncio.wait_for(
-                self._onboarding_event.wait(), timeout=ONBOARDING_WAIT_TIMEOUT
-            )
+            await asyncio.wait_for(self._onboarding_event.wait(), timeout=ONBOARDING_WAIT_TIMEOUT)
         except asyncio.TimeoutError:
             return None
-        pending = self.hass.data.get(DOMAIN, {}).get(_ONBOARDING_STORE, {}).get(
-            self._onboarding_webhook_id
+        pending = (
+            self.hass.data.get(DOMAIN, {})
+            .get(_ONBOARDING_STORE, {})
+            .get(self._onboarding_webhook_id)
         )
         return pending.get("result") if pending else None
 
@@ -443,9 +442,7 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
             menu_options=["guided", "manual"],
         )
 
-    async def async_step_manual(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    async def async_step_manual(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """Manual path: user pastes a client id they created in the portal."""
 
         if user_input is None:
@@ -478,9 +475,7 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
 
         return await self.async_step_authorize()
 
-    async def async_step_guided(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    async def async_step_guided(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """Guided path, step 1: set up the served helper page + webhook.
 
         Activation happens in the user's own browser (the only place the portal
@@ -780,8 +775,7 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
             return self.async_abort(reason="reauth_successful")
 
         self._entry_title = (
-            "BavarianData: Connect Home Assistant to BMW CarData "
-            f"({self._client_id[:8]})"
+            f"BavarianData: Connect Home Assistant to BMW CarData ({self._client_id[:8]})"
         )
         self._entry_data = entry_data
 
@@ -837,9 +831,7 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
         labels = section_labels()
         schema = vol.Schema(
             {
-                vol.Required(
-                    "sections", default=default_sections()
-                ): cv.multi_select(labels),
+                vol.Required("sections", default=default_sections()): cv.multi_select(labels),
             }
         )
         if user_input is None:
@@ -895,8 +887,11 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry: config_entries.ConfigEntry) -> config_entries.OptionsFlow:
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> config_entries.OptionsFlow:
         return CardataOptionsFlowHandler(config_entry)
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -982,11 +977,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
     async def async_step_action_reauth(
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> FlowResult:
-        current_client_id = (
-            self._reauth_client_id
-            or self._config_entry.data.get("client_id")
-            or ""
-        )
+        current_client_id = self._reauth_client_id or self._config_entry.data.get("client_id") or ""
         schema = vol.Schema(
             {
                 vol.Required("client_id", default=current_client_id): str,
@@ -1145,12 +1136,8 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 ): str,
                 vol.Optional(
                     OPTION_GRID_ENERGY_ENTITY,
-                    description={
-                        "suggested_value": options.get(OPTION_GRID_ENERGY_ENTITY)
-                    },
-                ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="sensor")
-                ),
+                    description={"suggested_value": options.get(OPTION_GRID_ENERGY_ENTITY)},
+                ): selector.EntitySelector(selector.EntitySelectorConfig(domain="sensor")),
                 vol.Required(
                     OPTION_CHARGING_LOSS_PERCENT,
                     default=options.get(OPTION_CHARGING_LOSS_PERCENT, 0),
@@ -1171,17 +1158,13 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 ),
                 vol.Required(
                     OPTION_STATISTICS_IMPORT,
-                    default=options.get(
-                        OPTION_STATISTICS_IMPORT, DEFAULT_STATISTICS_IMPORT
-                    ),
+                    default=options.get(OPTION_STATISTICS_IMPORT, DEFAULT_STATISTICS_IMPORT),
                 ): selector.BooleanSelector(),
             }
         )
 
         if user_input is None:
-            return self.async_show_form(
-                step_id="action_charging_costs", data_schema=schema
-            )
+            return self.async_show_form(step_id="action_charging_costs", data_schema=schema)
 
         mode = user_input.get(OPTION_PRICE_MODE, MODE_NONE)
         if mode == MODE_FIXED and user_input.get(OPTION_PRICE_FIXED) is None:
@@ -1237,33 +1220,21 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
             {
                 vol.Optional(
                     OPTION_PV_POWER_ENTITY,
-                    description={
-                        "suggested_value": options.get(OPTION_PV_POWER_ENTITY)
-                    },
+                    description={"suggested_value": options.get(OPTION_PV_POWER_ENTITY)},
                 ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain="sensor", device_class="power"
-                    )
+                    selector.EntitySelectorConfig(domain="sensor", device_class="power")
                 ),
                 vol.Optional(
                     OPTION_GRID_POWER_ENTITY,
-                    description={
-                        "suggested_value": options.get(OPTION_GRID_POWER_ENTITY)
-                    },
+                    description={"suggested_value": options.get(OPTION_GRID_POWER_ENTITY)},
                 ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain="sensor", device_class="power"
-                    )
+                    selector.EntitySelectorConfig(domain="sensor", device_class="power")
                 ),
                 vol.Optional(
                     OPTION_BATTERY_POWER_ENTITY,
-                    description={
-                        "suggested_value": options.get(OPTION_BATTERY_POWER_ENTITY)
-                    },
+                    description={"suggested_value": options.get(OPTION_BATTERY_POWER_ENTITY)},
                 ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain="sensor", device_class="power"
-                    )
+                    selector.EntitySelectorConfig(domain="sensor", device_class="power")
                 ),
                 vol.Required(
                     OPTION_BATTERY_POWER_INVERT,
@@ -1281,9 +1252,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         )
 
         if user_input is None:
-            return self.async_show_form(
-                step_id="action_energy_sources", data_schema=schema
-            )
+            return self.async_show_form(step_id="action_energy_sources", data_schema=schema)
 
         # One meter without the other cannot attribute anything, so say so here
         # rather than letting every session record an "unknown" mix.
@@ -1331,25 +1300,21 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 ): selector.TextSelector(),
                 vol.Required(
                     OPTION_BRIDGE_RETAIN,
-                    default=bool(
-                        options.get(OPTION_BRIDGE_RETAIN, DEFAULT_BRIDGE_RETAIN)
-                    ),
+                    default=bool(options.get(OPTION_BRIDGE_RETAIN, DEFAULT_BRIDGE_RETAIN)),
                 ): selector.BooleanSelector(),
             }
         )
 
         if user_input is None:
-            return self.async_show_form(
-                step_id="action_evcc_bridge", data_schema=schema
-            )
+            return self.async_show_form(step_id="action_evcc_bridge", data_schema=schema)
 
         # Refuse to switch on a bridge with nowhere to publish. Tested on the
         # *presence* of an MQTT config entry, not on it being loaded: "you have
         # not set up MQTT" is unambiguous and actionable, while a broker that
         # happens to be reconnecting is not the user's mistake to fix here.
-        if user_input.get(
-            OPTION_BRIDGE_ENABLED
-        ) and not self.hass.config_entries.async_entries("mqtt"):
+        if user_input.get(OPTION_BRIDGE_ENABLED) and not self.hass.config_entries.async_entries(
+            "mqtt"
+        ):
             return self.async_show_form(
                 step_id="action_evcc_bridge",
                 data_schema=schema,
@@ -1385,9 +1350,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         on, and the next thing they do is edit ``evcc.yaml``.
         """
 
-        options = getattr(self, "_bridge_options", None) or dict(
-            self._config_entry.options
-        )
+        options = getattr(self, "_bridge_options", None) or dict(self._config_entry.options)
         if user_input is None:
             return self.async_show_form(
                 step_id="evcc_snippet",
@@ -1420,15 +1383,13 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                     vin=vin,
                     title=metadata.get("name") or coordinator.names.get(vin),
                     capacity_kwh=coordinator.battery_capacity_kwh(vin),
-                    topics=tuple(bridge_payloads(coordinator.bridge_snapshot(vin)))
-                    or None,
+                    topics=tuple(bridge_payloads(coordinator.bridge_snapshot(vin))) or None,
                 )
             )
         if not blocks:
             return "(no vehicle seen yet -- wait for the first stream message)"
         joined = "\n".join(
-            block if index == 0 else block.split("\n", 1)[1]
-            for index, block in enumerate(blocks)
+            block if index == 0 else block.split("\n", 1)[1] for index, block in enumerate(blocks)
         )
         return joined.strip()
 
@@ -1454,17 +1415,11 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
             {
                 vol.Optional(
                     OPTION_TRIP_WORK_ZONE,
-                    description={
-                        "suggested_value": options.get(OPTION_TRIP_WORK_ZONE)
-                    },
-                ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="zone")
-                ),
+                    description={"suggested_value": options.get(OPTION_TRIP_WORK_ZONE)},
+                ): selector.EntitySelector(selector.EntitySelectorConfig(domain="zone")),
                 vol.Required(
                     OPTION_TRIP_DEFAULT_CLASS,
-                    default=options.get(
-                        OPTION_TRIP_DEFAULT_CLASS, DEFAULT_TRIP_DEFAULT_CLASS
-                    ),
+                    default=options.get(OPTION_TRIP_DEFAULT_CLASS, DEFAULT_TRIP_DEFAULT_CLASS),
                 ): selector.SelectSelector(
                     selector.SelectSelectorConfig(
                         options=list(DEFAULT_CLASS_CHOICES),
@@ -1474,9 +1429,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 ),
                 vol.Required(
                     OPTION_TRIP_COMMUTE_GAP,
-                    default=options.get(
-                        OPTION_TRIP_COMMUTE_GAP, DEFAULT_TRIP_COMMUTE_GAP_MIN
-                    ),
+                    default=options.get(OPTION_TRIP_COMMUTE_GAP, DEFAULT_TRIP_COMMUTE_GAP_MIN),
                 ): selector.NumberSelector(
                     selector.NumberSelectorConfig(
                         min=0,
@@ -1510,35 +1463,21 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         runtime = getattr(self._config_entry, "runtime_data", None)
         if runtime is not None:
             coordinator = runtime.coordinator
-            coordinator.work_zone_entity = (
-                user_input.get(OPTION_TRIP_WORK_ZONE) or None
-            )
+            coordinator.work_zone_entity = user_input.get(OPTION_TRIP_WORK_ZONE) or None
             # Classification settings apply to the next trip that closes; already
             # stored trips keep the class they were recorded with (correct them
             # from the card).
             coordinator.trip_default_class = trip_class_setting(
-                user_input.get(
-                    OPTION_TRIP_DEFAULT_CLASS, DEFAULT_TRIP_DEFAULT_CLASS
-                )
+                user_input.get(OPTION_TRIP_DEFAULT_CLASS, DEFAULT_TRIP_DEFAULT_CLASS)
             )
             coordinator.trip_commute_gap_s = (
-                int(
-                    user_input.get(
-                        OPTION_TRIP_COMMUTE_GAP, DEFAULT_TRIP_COMMUTE_GAP_MIN
-                    )
-                    or 0
-                )
-                * 60
+                int(user_input.get(OPTION_TRIP_COMMUTE_GAP, DEFAULT_TRIP_COMMUTE_GAP_MIN) or 0) * 60
             )
             if coordinator.geocoder is not None:
-                coordinator.geocoder.enabled = bool(
-                    user_input.get(OPTION_TRIP_GEOCODE)
-                )
+                coordinator.geocoder.enabled = bool(user_input.get(OPTION_TRIP_GEOCODE))
             # Takes effect on the next trip that opens; an in-progress trip keeps
             # whatever setting it started with.
-            coordinator.record_trip_track = bool(
-                user_input.get(OPTION_TRIP_TRACK)
-            )
+            coordinator.record_trip_track = bool(user_input.get(OPTION_TRIP_TRACK))
             # Trip-capture diagnostics apply immediately (next message onward).
             coordinator.trip_debug = bool(user_input.get(OPTION_TRIP_DEBUG))
         return self.async_create_entry(title="", data=options)
@@ -1623,16 +1562,11 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         field, untick it in the portal's Data Selection.
         """
 
-        current = (
-            self._config_entry.data.get(OPTION_STREAM_SECTIONS)
-            or default_sections()
-        )
+        current = self._config_entry.data.get(OPTION_STREAM_SECTIONS) or default_sections()
         labels = section_labels()
         schema = vol.Schema(
             {
-                vol.Required("sections", default=list(current)): cv.multi_select(
-                    labels
-                ),
+                vol.Required("sections", default=list(current)): cv.multi_select(labels),
             }
         )
         if user_input is None:
@@ -1763,6 +1697,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         return self.async_abort(reason="reauth_started")
 
 
-
-async def async_get_options_flow(config_entry: config_entries.ConfigEntry) -> config_entries.OptionsFlow:
+async def async_get_options_flow(
+    config_entry: config_entries.ConfigEntry,
+) -> config_entries.OptionsFlow:
     return CardataOptionsFlowHandler(config_entry)

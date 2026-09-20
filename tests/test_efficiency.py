@@ -45,9 +45,7 @@ def test_consumption_uses_the_shortest_window_that_can_answer():
         _charge(20, odo=10000.0, soc=80.0, kwh=10.0),
         _charge(2, odo=10200.0, soc=80.0, kwh=40.0),
     ]
-    result = efficiency.consumption(
-        charges, battery_capacity_kwh=CAP, now=NOW
-    )
+    result = efficiency.consumption(charges, battery_capacity_kwh=CAP, now=NOW)
     assert result["window_days"] == 30
     assert result["kwh_per_100km"] == 20.0
     assert result["source"] == "battery"
@@ -96,10 +94,7 @@ def test_battery_side_refuses_a_window_containing_an_imported_charge():
         _charge(2, odo=10200.0, soc=80.0, kwh=20.0),
     ]
     assert (
-        summary.energy_balance(
-            charges, battery_capacity_kwh=CAP, side=summary.SIDE_BATTERY
-        )
-        is None
+        summary.energy_balance(charges, battery_capacity_kwh=CAP, side=summary.SIDE_BATTERY) is None
     )
     # Auto still answers, counting the import -- that is the ledger's usual rule.
     assert summary.energy_balance(charges, battery_capacity_kwh=CAP) is not None
@@ -125,12 +120,7 @@ def test_grid_side_refuses_a_window_with_an_unmetered_charge():
         _charge(10, odo=10100.0, soc=80.0, kwh=20.0),  # no meter behind it
         _charge(2, odo=10200.0, soc=80.0, kwh=20.0, grid=22.0),
     ]
-    assert (
-        summary.energy_balance(
-            charges, battery_capacity_kwh=CAP, side=summary.SIDE_GRID
-        )
-        is None
-    )
+    assert summary.energy_balance(charges, battery_capacity_kwh=CAP, side=summary.SIDE_GRID) is None
 
 
 def test_the_charging_loss_comes_from_one_window_or_not_at_all():
@@ -138,9 +128,7 @@ def test_the_charging_loss_comes_from_one_window_or_not_at_all():
         _charge(20, odo=10000.0, soc=80.0, kwh=10.0, grid=11.0),
         _charge(2, odo=10200.0, soc=80.0, kwh=40.0, grid=45.0),
     ]
-    profile = efficiency.efficiency_profile(
-        charges, battery_capacity_kwh=CAP, now=NOW
-    )
+    profile = efficiency.efficiency_profile(charges, battery_capacity_kwh=CAP, now=NOW)
     assert profile["consumption"]["kwh_per_100km"] == 20.0
     assert profile["grid_consumption"]["kwh_per_100km"] == 22.5
     assert profile["grid_consumption"]["window_days"] == 30
@@ -152,9 +140,7 @@ def test_no_loss_is_reported_when_only_one_side_can_be_read():
         _charge(20, odo=10000.0, soc=80.0, kwh=10.0),
         _charge(2, odo=10200.0, soc=80.0, kwh=40.0),
     ]
-    profile = efficiency.efficiency_profile(
-        charges, battery_capacity_kwh=CAP, now=NOW
-    )
+    profile = efficiency.efficiency_profile(charges, battery_capacity_kwh=CAP, now=NOW)
     assert profile["grid_consumption"] is None
     assert profile["measured_loss_percent"] is None
 
@@ -166,9 +152,7 @@ def test_a_grid_figure_below_the_battery_one_is_not_a_negative_loss():
         _charge(20, odo=10000.0, soc=80.0, kwh=10.0, grid=9.0),
         _charge(2, odo=10200.0, soc=80.0, kwh=40.0, grid=36.0),
     ]
-    profile = efficiency.efficiency_profile(
-        charges, battery_capacity_kwh=CAP, now=NOW
-    )
+    profile = efficiency.efficiency_profile(charges, battery_capacity_kwh=CAP, now=NOW)
     assert profile["measured_loss_percent"] is None
 
 
@@ -183,9 +167,7 @@ def test_real_range_is_capacity_over_consumption():
 
 
 def test_real_range_scales_to_the_current_charge():
-    result = efficiency.real_range(
-        kwh_per_100km=20.0, capacity_kwh=80.0, soc_percent=50.0
-    )
+    result = efficiency.real_range(kwh_per_100km=20.0, capacity_kwh=80.0, soc_percent=50.0)
     assert result["full_km"] == 400.0
     assert result["now_km"] == 200.0
 
@@ -266,9 +248,7 @@ def test_monthly_trend_runs_oldest_first_and_skips_what_it_cannot_measure():
             )
         ]
     )
-    trend = efficiency.monthly_consumption(
-        charges, battery_capacity_kwh=CAP, now=NOW, months=6
-    )
+    trend = efficiency.monthly_consumption(charges, battery_capacity_kwh=CAP, now=NOW, months=6)
     assert [entry["month"] for entry in trend] == ["2026-07", "2026-09"]
     assert trend[0]["kwh_per_100km"] == 20.0
     assert trend[1]["kwh_per_100km"] == 30.0
@@ -280,9 +260,7 @@ def test_profile_prefers_a_measured_capacity_over_the_nameplate():
         _charge(20, odo=10000.0, soc=80.0, kwh=10.0),
         _charge(2, odo=10200.0, soc=80.0, kwh=40.0),
     ]
-    bmw = efficiency.efficiency_profile(
-        charges, battery_capacity_kwh=78.0, now=NOW
-    )
+    bmw = efficiency.efficiency_profile(charges, battery_capacity_kwh=78.0, now=NOW)
     assert bmw["capacity_source"] == "bmw"
     assert bmw["range"]["full_km"] == 390.0
 
@@ -302,9 +280,7 @@ def test_profile_says_which_input_it_is_missing():
         _charge(2, odo=10200.0, soc=80.0, kwh=40.0),
     ]
     assert (
-        efficiency.efficiency_profile(
-            charges, battery_capacity_kwh=CAP, now=NOW
-        )["status"]
+        efficiency.efficiency_profile(charges, battery_capacity_kwh=CAP, now=NOW)["status"]
         == efficiency.STATUS_OK
     )
     # No capacity: the balance itself can't be computed either, so the honest

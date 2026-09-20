@@ -307,8 +307,7 @@ def build_helper_page(*, bookmarklet: str, console_js: str, attribute_count: int
     """
 
     return (
-        _HELPER_PAGE_TEMPLATE
-        .replace("__BOOKMARKLET__", escape(bookmarklet, quote=True))
+        _HELPER_PAGE_TEMPLATE.replace("__BOOKMARKLET__", escape(bookmarklet, quote=True))
         .replace("__COUNT__", str(attribute_count))
         .replace("__CONSOLE__", escape(console_js))
     )
@@ -397,7 +396,7 @@ def parse_onboarding_result(blob: str) -> OnboardingResult:
             "That doesn't look like a BavarianData result. Run the activator on "
             "the BMW or MINI portal page and use exactly what it produced."
         )
-    encoded = text[len(RESULT_PREFIX):].strip()
+    encoded = text[len(RESULT_PREFIX) :].strip()
     try:
         raw = base64.b64decode(encoded, validate=True)
     except (binascii.Error, ValueError) as err:

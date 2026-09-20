@@ -39,9 +39,12 @@ jobs:
           pip install -r requirements_test.txt
       - name: Lint (ruff)
         # Rule selection lives in pyproject.toml: real bug patterns (pyflakes,
-        # bugbear, logging) are enforced; cosmetic reflow is left to
-        # `ruff format` (not yet gated -- see pyproject.toml).
+        # bugbear, logging).
         run: ruff check custom_components/bavariandata tests
+      - name: Format (ruff)
+        # The generated descriptor_metadata.py is excluded in pyproject.toml;
+        # passing directories rather than files is what makes that apply.
+        run: ruff format --check custom_components/bavariandata tests tools
       - name: Install Node dev dependencies
         # Dev-only: ESLint for the card. Nothing from node_modules ships.
         run: npm ci

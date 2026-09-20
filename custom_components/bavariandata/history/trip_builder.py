@@ -50,10 +50,7 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     d_phi = math.radians(lat2 - lat1)
     d_lambda = math.radians(lon2 - lon1)
-    a = (
-        math.sin(d_phi / 2) ** 2
-        + math.cos(phi1) * math.cos(phi2) * math.sin(d_lambda / 2) ** 2
-    )
+    a = math.sin(d_phi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(d_lambda / 2) ** 2
     return 2 * radius_km * math.asin(min(1.0, math.sqrt(a)))
 
 
@@ -162,9 +159,7 @@ class TripBuilder:
         if km and km > 0:
             self.gps_km += km
 
-    def add_track_point(
-        self, lat: float, lon: float, at: Optional[datetime] = None
-    ) -> None:
+    def add_track_point(self, lat: float, lon: float, at: Optional[datetime] = None) -> None:
         """Append a fix to the route polyline, when route recording is on.
 
         A no-op unless the user opted in, so a coordinate is only ever stored

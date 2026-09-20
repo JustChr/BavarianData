@@ -266,9 +266,7 @@ def test_tapping_a_message_shows_its_details():
 
 
 def test_tapping_an_open_message_closes_it():
-    html = _run(
-        "render", _hass([_WASHER_ITEM]), {"cluster": "events"}, expand=("164", "164")
-    )
+    html = _run("render", _hass([_WASHER_ITEM]), {"cluster": "events"}, expand=("164", "164"))
     assert '<div class="chg__detail">' not in html
 
 

@@ -127,10 +127,7 @@ def _load_register_card() -> dict:
                 for target in node.targets
             )
         )
-        or (
-            isinstance(node, ast.AsyncFunctionDef)
-            and node.name == "_async_register_frontend_card"
-        )
+        or (isinstance(node, ast.AsyncFunctionDef) and node.name == "_async_register_frontend_card")
     ]
     assert len(wanted) == 2, "_FRONTEND_REGISTERED or _async_register_frontend_card moved"
 

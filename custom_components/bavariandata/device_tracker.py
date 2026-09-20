@@ -65,14 +65,10 @@ async def async_setup_entry(
     # tracker restored after a restart stays an unavailable ghost until the next
     # GPS push; the entity has to exist for RestoreEntity to seed its position.
     entity_registry = er.async_get(hass)
-    for entity_entry in er.async_entries_for_config_entry(
-        entity_registry, config_entry.entry_id
-    ):
+    for entity_entry in er.async_entries_for_config_entry(entity_registry, config_entry.entry_id):
         if entity_entry.disabled_by is not None:
             continue
-        if entity_entry.domain == "device_tracker" and entity_entry.unique_id.endswith(
-            "_tracker"
-        ):
+        if entity_entry.domain == "device_tracker" and entity_entry.unique_id.endswith("_tracker"):
             ensure_tracker(entity_entry.unique_id[: -len("_tracker")])
 
     for vin in coordinator.data.keys():
@@ -131,9 +127,7 @@ class CardataDeviceTracker(CardataEntity, TrackerEntity):
         lon = last_state.attributes.get("longitude")
         if lat is None or lon is None:
             return
-        timestamp = (
-            last_state.last_changed.isoformat() if last_state.last_changed else None
-        )
+        timestamp = last_state.last_changed.isoformat() if last_state.last_changed else None
         self._coordinator.restore_descriptor_state(self._vin, lat_desc, lat, None, timestamp)
         self._coordinator.restore_descriptor_state(self._vin, lon_desc, lon, None, timestamp)
 
@@ -172,7 +166,7 @@ class CardataDeviceTracker(CardataEntity, TrackerEntity):
         if state and state.value is not None:
             try:
                 return float(state.value)
-            except (ValueError, TypeError):
+            except ValueError, TypeError:
                 _LOGGER.debug(
                     "Unable to parse coordinate for %s from descriptor %s: %s",
                     self._vin,

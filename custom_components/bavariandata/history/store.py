@@ -98,9 +98,7 @@ class HistoryStore:
         for vin, raw_sessions in (data.get("sessions") or {}).items():
             restored = [
                 session
-                for session in (
-                    ChargingSession.from_dict(item) for item in raw_sessions or []
-                )
+                for session in (ChargingSession.from_dict(item) for item in raw_sessions or [])
                 if session is not None
             ]
             if restored:
@@ -129,8 +127,7 @@ class HistoryStore:
             # Confirms the store survived a restart, and how much of it did --
             # the one thing a purely in-memory bug would look identical to.
             _LOGGER.debug(
-                "[history] restored schema=%s sessions=%s trips=%s open=%s "
-                "(retain=%s months)",
+                "[history] restored schema=%s sessions=%s trips=%s open=%s (retain=%s months)",
                 schema,
                 {vin: len(items) for vin, items in self._sessions.items()},
                 {vin: len(items) for vin, items in self._trips.items()},
@@ -282,9 +279,7 @@ class HistoryStore:
         if not incoming:
             return (0, 0)
 
-        merged, added, updated = merge_cardata_sessions(
-            self._sessions.get(vin, []), incoming
-        )
+        merged, added, updated = merge_cardata_sessions(self._sessions.get(vin, []), incoming)
         if not (added or updated):
             return (0, 0)
         self._sessions[vin] = prune_sessions(
@@ -354,8 +349,7 @@ class HistoryStore:
                 for vin, sessions in self._sessions.items()
             },
             "trips": {
-                vin: [trip.to_dict() for trip in trips]
-                for vin, trips in self._trips.items()
+                vin: [trip.to_dict() for trip in trips] for vin, trips in self._trips.items()
             },
             "open_sessions": dict(self._open_sessions),
         }

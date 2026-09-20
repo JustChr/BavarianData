@@ -102,7 +102,9 @@ def test_gauge_does_not_blank_on_a_measured_soc_that_has_not_reported_yet():
     # estimate's English name says "Predicted", which the avoid-list rejects, so
     # it must still be reachable by its descriptor.
     hv_unknown = _sensor("vehicle.drivetrain.batteryManagement.header", state="unknown")
-    estimate = _sensor("soc_estimate", name="State Of Charge (Predicted on Integration side)", state="85.0")
+    estimate = _sensor(
+        "soc_estimate", name="State Of Charge (Predicted on Integration side)", state="85.0"
+    )
     picks = _picks({HV_SOC: hv_unknown, TWELVE_VOLT: _TWELVE_VOLT, ESTIMATE: estimate})
     assert picks.get("soc") == ESTIMATE
 
