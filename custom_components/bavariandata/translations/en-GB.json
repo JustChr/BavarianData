@@ -93,7 +93,7 @@
           "action_fetch_basic": "Fetch basic vehicle info",
           "action_fetch_telematic": "Fetch telematics data",
           "action_fetch_charging_history": "Fetch charging history",
-          "action_fetch_tyre": "Fetch tire diagnosis",
+          "action_fetch_tyre": "Fetch tyre diagnosis",
           "action_fetch_location_charging": "Fetch charging settings",
           "action_fetch_image": "Fetch vehicle image",
           "action_charging_costs": "Charging costs & history",
@@ -162,8 +162,8 @@
         "description": "Fetch the most recent charging sessions for your vehicles.\n\nPress Submit to continue."
       },
       "action_fetch_tyre": {
-        "title": "Fetch tire diagnosis",
-        "description": "Fetch the latest tire-pressure diagnosis for your vehicles.\n\nPress Submit to continue."
+        "title": "Fetch tyre diagnosis",
+        "description": "Fetch the latest tyre-pressure diagnosis for your vehicles.\n\nPress Submit to continue."
       },
       "action_fetch_location_charging": {
         "title": "Fetch charging settings",
@@ -1022,43 +1022,43 @@
         }
       },
       "vehicle_chassis_axle_row1_wheel_left_tire_pressure": {
-        "name": "Tire pressure (front left)"
+        "name": "Tyre pressure (front left)"
       },
       "vehicle_chassis_axle_row1_wheel_left_tire_pressuretarget": {
-        "name": "Tire pressure target (front left)"
+        "name": "Tyre pressure target (front left)"
       },
       "vehicle_chassis_axle_row1_wheel_left_tire_temperature": {
-        "name": "Tire temperature (front left)"
+        "name": "Tyre temperature (front left)"
       },
       "vehicle_chassis_axle_row1_wheel_right_tire_pressure": {
-        "name": "Tire pressure (front right)"
+        "name": "Tyre pressure (front right)"
       },
       "vehicle_chassis_axle_row1_wheel_right_tire_pressuretarget": {
-        "name": "Tire pressure target (front right)"
+        "name": "Tyre pressure target (front right)"
       },
       "vehicle_chassis_axle_row1_wheel_right_tire_temperature": {
-        "name": "Tire temperature (front right)"
+        "name": "Tyre temperature (front right)"
       },
       "vehicle_chassis_axle_row2_wheel_left_tire_pressure": {
-        "name": "Tire pressure (rear left)"
+        "name": "Tyre pressure (rear left)"
       },
       "vehicle_chassis_axle_row2_wheel_left_tire_pressuretarget": {
-        "name": "Tire pressure target (rear left)"
+        "name": "Tyre pressure target (rear left)"
       },
       "vehicle_chassis_axle_row2_wheel_left_tire_temperature": {
-        "name": "Tire temperature (rear left)"
+        "name": "Tyre temperature (rear left)"
       },
       "vehicle_chassis_axle_row2_wheel_right_tire_pressure": {
-        "name": "Tire pressure (rear right)"
+        "name": "Tyre pressure (rear right)"
       },
       "vehicle_chassis_axle_row2_wheel_right_tire_pressuretarget": {
-        "name": "Tire pressure target (rear right)"
+        "name": "Tyre pressure target (rear right)"
       },
       "vehicle_chassis_axle_row2_wheel_right_tire_temperature": {
-        "name": "Tire temperature (rear right)"
+        "name": "Tyre temperature (rear right)"
       },
       "vehicle_chassis_axle_wheel_tire_diagnosis": {
-        "name": "Tire diagnostics"
+        "name": "Tyre diagnostics"
       },
       "vehicle_drivetrain_avgelectricrangeconsumption": {
         "name": "Range EV Average electric consumption"
@@ -1884,19 +1884,19 @@
         "name": "Real Range"
       },
       "tyre_status": {
-        "name": "Tire Condition"
+        "name": "Tyre Condition"
       },
       "tyre_front_left": {
-        "name": "Tire Front Left"
+        "name": "Tyre Front Left"
       },
       "tyre_front_right": {
-        "name": "Tire Front Right"
+        "name": "Tyre Front Right"
       },
       "tyre_rear_left": {
-        "name": "Tire Rear Left"
+        "name": "Tyre Rear Left"
       },
       "tyre_rear_right": {
-        "name": "Tire Rear Right"
+        "name": "Tyre Rear Right"
       }
     },
     "binary_sensor": {
@@ -2264,43 +2264,43 @@
         "name": "Teleservice availability state"
       },
       "vehicle_chassis_axle_row1_wheel_left_tire_pressure": {
-        "name": "Tire pressure (front left)"
+        "name": "Tyre pressure (front left)"
       },
       "vehicle_chassis_axle_row1_wheel_left_tire_pressuretarget": {
-        "name": "Tire pressure target (front left)"
+        "name": "Tyre pressure target (front left)"
       },
       "vehicle_chassis_axle_row1_wheel_left_tire_temperature": {
-        "name": "Tire temperature (front left)"
+        "name": "Tyre temperature (front left)"
       },
       "vehicle_chassis_axle_row1_wheel_right_tire_pressure": {
-        "name": "Tire pressure (front right)"
+        "name": "Tyre pressure (front right)"
       },
       "vehicle_chassis_axle_row1_wheel_right_tire_pressuretarget": {
-        "name": "Tire pressure target (front right)"
+        "name": "Tyre pressure target (front right)"
       },
       "vehicle_chassis_axle_row1_wheel_right_tire_temperature": {
-        "name": "Tire temperature (front right)"
+        "name": "Tyre temperature (front right)"
       },
       "vehicle_chassis_axle_row2_wheel_left_tire_pressure": {
-        "name": "Tire pressure (rear left)"
+        "name": "Tyre pressure (rear left)"
       },
       "vehicle_chassis_axle_row2_wheel_left_tire_pressuretarget": {
-        "name": "Tire pressure target (rear left)"
+        "name": "Tyre pressure target (rear left)"
       },
       "vehicle_chassis_axle_row2_wheel_left_tire_temperature": {
-        "name": "Tire temperature (rear left)"
+        "name": "Tyre temperature (rear left)"
       },
       "vehicle_chassis_axle_row2_wheel_right_tire_pressure": {
-        "name": "Tire pressure (rear right)"
+        "name": "Tyre pressure (rear right)"
       },
       "vehicle_chassis_axle_row2_wheel_right_tire_pressuretarget": {
-        "name": "Tire pressure target (rear right)"
+        "name": "Tyre pressure target (rear right)"
       },
       "vehicle_chassis_axle_row2_wheel_right_tire_temperature": {
-        "name": "Tire temperature (rear right)"
+        "name": "Tyre temperature (rear right)"
       },
       "vehicle_chassis_axle_wheel_tire_diagnosis": {
-        "name": "Tire diagnostics"
+        "name": "Tyre diagnostics"
       },
       "vehicle_drivetrain_avgelectricrangeconsumption": {
         "name": "Range EV Average electric consumption"
@@ -2803,7 +2803,7 @@
   "issues": {
     "api_quota_exhausted": {
       "title": "BMW CarData API quota exhausted",
-      "description": "The {limit} requests-per-24h BMW CarData REST limit has been reached, so on-demand data (basic info, charging history, tire diagnosis, vehicle image) can't be refreshed right now. The streaming data keeps flowing. The quota frees up again at {next_reset}."
+      "description": "The {limit} requests-per-24h BMW CarData REST limit has been reached, so on-demand data (basic info, charging history, tyre diagnosis, vehicle image) can't be refreshed right now. The streaming data keeps flowing. The quota frees up again at {next_reset}."
     },
     "motorcycle_unsupported": {
       "title": "BMW motorcycles can't stream their data",
@@ -2884,8 +2884,8 @@
       }
     },
     "fetch_tyre_diagnosis": {
-      "name": "Fetch smart maintenance tire diagnosis",
-      "description": "Fetch the smart-maintenance tire diagnosis for a VIN and log the response.",
+      "name": "Fetch smart maintenance tyre diagnosis",
+      "description": "Fetch the smart-maintenance tyre diagnosis for a VIN and log the response.",
       "fields": {
         "entry_id": {
           "name": "Config entry",
@@ -3119,7 +3119,7 @@
         },
         "sections": {
           "name": "Sections",
-          "description": "Cluster slugs to stream (e.g. electric, status, tire). Used when attributes is omitted."
+          "description": "Cluster slugs to stream (e.g. electric, status, tyre). Used when attributes is omitted."
         }
       }
     },
