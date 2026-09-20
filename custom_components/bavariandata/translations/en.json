@@ -152,7 +152,7 @@
       },
       "action_fetch_basic": {
         "title": "Fetch basic vehicle info",
-        "description": "Fetch static details (model, colour, options) for every known vehicle.\n\nPress Submit to continue."
+        "description": "Fetch static details (model, color, options) for every known vehicle.\n\nPress Submit to continue."
       },
       "action_fetch_telematic": {
         "title": "Fetch telematics data",

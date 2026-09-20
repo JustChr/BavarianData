@@ -11,7 +11,7 @@
       },
       "manual": {
         "title": "Connect BMW CarData",
-        "description": "This streams your BMW or Mini vehicle data into Home Assistant.\n\n**First, set up CarData in the BMW portal** (skip if you already have a Client ID):\n\n1. Open the [BMW CarData portal]({portal_url}) and sign in. If CarData isn't available in your country, sign in via the [UK]({portal_uk}) or [German]({portal_de}) portal — the Client ID works everywhere.\n2. Create a **CarData Client** and copy the **Client ID** it shows you.\n3. Subscribe the client to **both** services: **CarData API** and **CarData Streaming**.\n\nDon't tick anything under **Data Selection** yet — after you authorize, the next screens let you choose which data to stream and turn it on with a one-click bookmarklet.\n\nThen paste the **Client ID** below.",
+        "description": "This streams your BMW or Mini vehicle data into Home Assistant.\n\n**First, set up CarData in the BMW portal** (skip if you already have a Client ID):\n\n1. Open the [BMW CarData portal]({portal_url}) and sign in. If CarData isn't available in your country, sign in via the [UK]({portal_uk}) or [German]({portal_de}) portal — the Client ID works everywhere.\n2. Create a **CarData Client** and copy the **Client ID** it shows you.\n3. Subscribe the client to **both** services: **CarData API** and **CarData Streaming**.\n\nDon't tick anything under **Data Selection** yet — after you authorise, the next screens let you choose which data to stream and turn it on with a one-click bookmarklet.\n\nThen paste the **Client ID** below.",
         "data": {
           "client_id": "Client ID"
         },
@@ -34,8 +34,8 @@
         "description": "Done — **{field_count}** fields are now streaming for **{vehicle}**, and your Client ID is set. Press **Submit** to finish, then trigger a lock/unlock in the MyBMW app to prompt the first update."
       },
       "authorize_failed": {
-        "title": "Authorization didn't finish",
-        "description": "We couldn't complete the device authorization.\n\n**Details**\n```\n{error}\n```\n\n**What to check**\n- **declined / access_denied (403):** BMW's server often reports a decline even after you approved — a known BMW-side issue. Retry in a **private/incognito window**: open the BMW CarData portal yourself (don't follow a link with a code in the URL), sign in, choose *Authenticate device* and **type the code by hand**. Also make sure the Client ID is subscribed to **both CarData API and CarData Streaming** before authorizing, and that you're the **primary** user for the vehicle.\n- **expired / timeout:** the code wasn't approved in time.\n\nPress **Submit** to get a fresh code and try again. If it keeps failing, delete the CarData client in the BMW portal, create a new one, and re-authorize with the new Client ID — or email BMW support (bmwcardata-b2c-support@bmwgroup.com) quoting the **BMW reference** above.\n\nA full walkthrough is in the integration's README under *Troubleshooting → Onboarding fails with \"access denied\"*."
+        "title": "Authorisation didn't finish",
+        "description": "We couldn't complete the device authorisation.\n\n**Details**\n```\n{error}\n```\n\n**What to check**\n- **declined / access_denied (403):** BMW's server often reports a decline even after you approved — a known BMW-side issue. Retry in a **private/incognito window**: open the BMW CarData portal yourself (don't follow a link with a code in the URL), sign in, choose *Authenticate device* and **type the code by hand**. Also make sure the Client ID is subscribed to **both CarData API and CarData Streaming** before authorising, and that you're the **primary** user for the vehicle.\n- **expired / timeout:** the code wasn't approved in time.\n\nPress **Submit** to get a fresh code and try again. If it keeps failing, delete the CarData client in the BMW portal, create a new one, and re-authorise with the new Client ID — or email BMW support (bmwcardata-b2c-support@bmwgroup.com) quoting the **BMW reference** above.\n\nA full walkthrough is in the integration's README under *Troubleshooting → Onboarding fails with \"access denied\"*."
       },
       "select_clusters": {
         "title": "Choose streamed data",
@@ -64,31 +64,30 @@
     },
     "progress": {
       "wait_for_activation": "**Activate your data in the browser**\n\nMake sure you've already created a **CarData Client** in the BMW portal subscribed to **both CarData API and CarData Streaming** — the activator finds that client, it doesn't create one.\n\n1. Open the **[BavarianData setup page]({url})**.\n2. Drag the **Activate BMW data** button to your bookmarks bar (once).\n3. Open the **BMW or MINI portal**, sign in, and go to a vehicle's **stream setup** page.\n4. Click the **Activate BMW data** bookmark.\n\nIt finds your Client ID, checks your vehicle, and turns on the data stream — all in your own browser, nothing to copy. This dialog continues automatically the moment it reports back. There's nothing to click here.",
-      "wait_for_authorization": "**Approve Home Assistant on the BMW/MINI sign-in page**\n\n1. Open the **[authorization page]({verification_url})** and sign in with your BMW/MINI account.\n2. Type in this code when asked: **{user_code}**\n3. Confirm the device.\n\n**Enter the code by hand** — don't use a link with the code already in the URL, and make sure no old code is pre-filled. BMW's server often wrongly records a *decline* for pre-filled codes. If it fails anyway, retry in a private/incognito window.\n\nLeave this dialog open — it continues automatically the moment you approve. There's nothing to click here.",
+      "wait_for_authorization": "**Approve Home Assistant on the BMW/MINI sign-in page**\n\n1. Open the **[authorisation page]({verification_url})** and sign in with your BMW/MINI account.\n2. Type in this code when asked: **{user_code}**\n3. Confirm the device.\n\n**Enter the code by hand** — don't use a link with the code already in the URL, and make sure no old code is pre-filled. BMW's server often wrongly records a *decline* for pre-filled codes. If it fails anyway, retry in a private/incognito window.\n\nLeave this dialog open — it continues automatically the moment you approve. There's nothing to click here.",
       "wait_for_stream_activation": "**Activate the selected data in your browser**\n\n1. Open the **[BavarianData activation page]({url})**.\n2. Drag the **Activate BMW data** button to your bookmarks bar (once).\n3. Open the **BMW or MINI portal**, sign in, and go to a vehicle's **stream setup** page.\n4. Click the **Activate BMW data** bookmark.\n\nIt turns on the fields for your chosen clusters — all in your own browser, nothing to copy. This dialog continues automatically the moment it reports back. There's nothing to click here."
     },
     "error": {
-      "device_code_failed": "BMW rejected the device authorization request ({error}). Check that the Client ID is correct and subscribed to both CarData services, then try again.",
+      "device_code_failed": "BMW rejected the device authorisation request ({error}). Check that the Client ID is correct and subscribed to both CarData services, then try again.",
       "invalid_result": "That result couldn't be read. Run the Activate BMW data bookmark on the BMW portal page and paste exactly what it copied to your clipboard.",
       "no_client_id": "No API client was found on your account. Create a CarData Client in the BMW portal, then run the Activate BMW data bookmark again."
     },
     "abort": {
-      "account_already_configured": "This BMW account is already set up in Home Assistant. One entry covers the whole account, including every car on it — adding a second Client ID for the same account would break the stream for both, because BMW allows only one connection per account. Use the existing entry, or remove it first.",
-      "reauth_successful": "Re-authorization successful — BMW CarData is connected again.",
-      "reauth_device_code_failed": "BMW rejected the device authorization request ({error}). Update the Client ID under Configure → Re-authorize with BMW, or remove and re-add the integration.",
-      "reauth_missing_client_id": "Client ID is missing for this integration entry. Remove and re-add the integration to authorize again.",
-      "reauth_failed": "Re-authorization could not be started. Try again from the integration options."
+      "reauth_successful": "Re-authorisation successful — BMW CarData is connected again.",
+      "reauth_device_code_failed": "BMW rejected the device authorisation request ({error}). Update the Client ID under Configure → Re-authorise with BMW, or remove and re-add the integration.",
+      "reauth_missing_client_id": "Client ID is missing for this integration entry. Remove and re-add the integration to authorise again.",
+      "reauth_failed": "Re-authorisation could not be started. Try again from the integration options."
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "BavarianData options",
-        "description": "Pick an action. The token and authorization actions keep your connection alive; the data actions call BMW's REST API on demand (each counts against the daily 50-request API limit).",
+        "description": "Pick an action. The token and authorisation actions keep your connection alive; the data actions call BMW's REST API on demand (each counts against the daily 50-request API limit).",
         "menu_options": {
           "action_select_clusters": "Choose streamed data",
           "action_refresh_tokens": "Refresh tokens now",
-          "action_reauth": "Re-authorize with BMW",
+          "action_reauth": "Re-authorise with BMW",
           "action_reset_container": "Reset telemetry container",
           "action_fetch_mappings": "Discover vehicles",
           "action_fetch_basic": "Fetch basic vehicle info",
@@ -133,8 +132,8 @@
         "description": "Renew the stored access and ID tokens without going through BMW's login again. Use this if data stopped updating. If problems persist, restart Home Assistant afterwards.\n\nPress Submit to continue."
       },
       "action_reauth": {
-        "title": "Re-authorize with BMW",
-        "description": "Run BMW's device authorization again — for example after the refresh token expired (every 2 weeks) or if you generated a new Client ID. You'll approve Home Assistant on BMW's website afterwards.",
+        "title": "Re-authorise with BMW",
+        "description": "Run BMW's device authorisation again — for example after the refresh token expired (every 2 weeks) or if you generated a new Client ID. You'll approve Home Assistant on BMW's website afterwards.",
         "data": {
           "client_id": "Client ID"
         },
@@ -256,7 +255,7 @@
       },
       "action_debug_logging": {
         "title": "Debug logging",
-        "description": "Turn on verbose logging for this integration (MQTT connection, subscribed topics, and each incoming message). This is separate from Home Assistant's generic debug toggle — both the log level and this switch must be on to see the detailed lines. It's verbose and can include vehicle data such as GPS coordinates, so leave it off for normal use. The change applies immediately. With more than one BMW account set up, the log level is shared: verbose logging stays on while any account has this switched on.",
+        "description": "Turn on verbose logging for this integration (MQTT connection, subscribed topics, and each incoming message). This is separate from Home Assistant's generic debug toggle — both the log level and this switch must be on to see the detailed lines. It's verbose and can include vehicle data such as GPS coordinates, so leave it off for normal use. The change applies immediately.",
         "data": {
           "debug_log": "Enable debug logging"
         },
@@ -272,7 +271,7 @@
       "mix_needs_both": "Attributing energy needs both a PV power sensor and a grid power sensor. With only one of them the split would have to assume the other.",
       "refresh_failed": "Token refresh failed: {error}",
       "reset_failed": "Resetting the telemetry container failed: {error}",
-      "missing_token": "No valid access token is available. Try \"Refresh tokens now\" or re-authorize first.",
+      "missing_token": "No valid access token is available. Try \"Refresh tokens now\" or re-authorise first.",
       "runtime_missing": "The integration isn't ready yet. Try again once setup has finished.",
       "no_vins": "No vehicles are known yet. Run \"Discover vehicles\" first, or wait for the stream to report one.",
       "invalid_int": "Enter a positive whole number.",
@@ -283,10 +282,10 @@
       "mqtt_missing": "The bridge publishes through Home Assistant's MQTT integration, and you don't have one set up. Add it under Settings → Devices & services (the Mosquitto broker add-on is the usual choice), then come back."
     },
     "abort": {
-      "reauth_started": "Authorization restarted. Finish the new login from the notification that just appeared.",
-      "reauth_device_code_failed": "BMW rejected the device authorization request ({error}). Check the Client ID and try again.",
-      "reauth_missing_client_id": "Client ID is missing for this integration entry. Remove and re-add the integration to authorize again.",
-      "reauth_failed": "Re-authorization could not be started. Try again from the integration options."
+      "reauth_started": "Authorisation restarted. Finish the new login from the notification that just appeared.",
+      "reauth_device_code_failed": "BMW rejected the device authorisation request ({error}). Check the Client ID and try again.",
+      "reauth_missing_client_id": "Client ID is missing for this integration entry. Remove and re-add the integration to authorise again.",
+      "reauth_failed": "Re-authorisation could not be started. Try again from the integration options."
     }
   },
   "selector": {
@@ -1100,12 +1099,12 @@
       "vehicle_drivetrain_electricengine_charging_authentication_status": {
         "name": "Charging EV Authentication state",
         "state": {
-          "authorization_successful": "Authorization successful",
+          "authorization_successful": "Authorisation successful",
           "transport_layer_error": "Transport layer error",
           "high_level_communication_error": "High level communication error",
           "contract_service_not_supported_error": "Contract service not supported error",
-          "authorization_error": "Authorization error",
-          "authorization_timeout": "Authorization timeout",
+          "authorization_error": "Authorisation error",
+          "authorization_timeout": "Authorisation timeout",
           "nvm_read_certificate_error": "Nvm read certificate error",
           "certificate_update_error": "Certificate update error",
           "xml_security_error": "Xml security error"
@@ -2819,8 +2818,8 @@
       "description": "No streamed vehicle data has arrived for over {hours} hours. The stream may have stopped, or the data was never selected in the first place. Check that your Data Selection is saved in the BMW portal (step 4 of setup), trigger a lock/unlock in the MyBMW app to prompt an update, and make sure no other CarData client is connected — BMW allows only one stream per account. Run the get_coverage_report service to see which descriptors are missing."
     },
     "stream_unauthorized": {
-      "title": "BMW CarData stream not authorized",
-      "description": "BMW has rejected the streaming connection as unauthorized (MQTT rc=5) for over {minutes} minutes and it hasn't recovered on its own. This usually means the tokens need renewing, or another CarData client is holding the single per-account stream. Try Configure → Refresh tokens now, then Re-authorize with BMW if it keeps failing, and disconnect any other CarData client."
+      "title": "BMW CarData stream not authorised",
+      "description": "BMW has rejected the streaming connection as unauthorised (MQTT rc=5) for over {minutes} minutes and it hasn't recovered on its own. This usually means the tokens need renewing, or another CarData client is holding the single per-account stream. Try Configure → Refresh tokens now, then Re-authorise with BMW if it keeps failing, and disconnect any other CarData client."
     }
   },
   "services": {
