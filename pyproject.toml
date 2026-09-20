@@ -7,7 +7,9 @@
 # not drown the signal. Narrow the net per-file with ``per-file-ignores`` rather
 # than shrinking the global ``select``.
 [tool.ruff]
-target-version = "py313"
+# Home Assistant 2026.3 (the floor in hacs.json) requires Python 3.14.2,
+# so every install runs 3.14 or newer -- ruff may assume its syntax.
+target-version = "py314"
 line-length = 100
 
 [tool.ruff.lint]

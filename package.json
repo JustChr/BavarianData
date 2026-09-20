@@ -1,0 +1,14 @@
+{
+  "name": "bavariandata-dev",
+  "private": true,
+  "description": "Dev-only tooling for the bundled Lovelace card. Nothing here ships: the card in custom_components/bavariandata/www/ stays dependency-free vanilla JS with no build step.",
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint custom_components/bavariandata/www"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.11.0",
+    "eslint-plugin-no-unsanitized": "^4.1.5"
+  }
+}
