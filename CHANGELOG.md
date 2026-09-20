@@ -9,6 +9,30 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **British English.** Setting Home Assistant's language to *English (UK)* now
+  gives British entity names and card labels — *Tyre pressure (front left)*,
+  *Tyre Condition*, *Check tyres*, *Authorisation* — while plain *English* stays
+  US. Entity IDs are untouched in both: they come from the descriptor BMW sends
+  (`sensor.…_tire_pressure_front_left`), so automations, templates and
+  dashboards keep working whichever you pick. Thanks to
+  [@thebertster](https://github.com/thebertster) for spotting it and for
+  [#24](https://github.com/JustChr/BavarianData/pull/24).
+
+### Fixed
+- **English was a mixture of US and British spellings.** *Tire pressure (front
+  left)* sat next to *Tyre Condition*; the charging state read *Initialising*
+  and the distance unit *Kilometres*; the Configure menu offered *Fetch tyre
+  diagnosis* while the card's cluster was *Tire data*. BMW is the origin — its
+  descriptor paths are US (`…wheel.left.tire.pressure`) while the English titles
+  in the same catalogue export say "tyre", so both arrived together and four of
+  our own files picked sides independently. English is now consistently US
+  throughout, with British English as a proper language rather than a spelling
+  that leaked through.
+- Five tyre entities and two enum labels are renamed by the above. **Only the
+  display names change** — no entity ID, service name or option key moves, so
+  nothing needs adjusting. A German install is unaffected.
+
 ## [0.9.11] - 2026-09-20
 
 Promotes the five 0.9.11 betas unchanged: everything below has already been

@@ -24,7 +24,7 @@ Assistant, so the integration fetches them once a day:
 | Request | Covers |
 | --- | --- |
 | The telematics **container** | All 41 non-streamable fields the container endpoint can serve — **one request for the lot** |
-| **Tyre diagnosis** | Tread wear and remaining mileage per wheel — its own endpoint, so its own request |
+| **Tire diagnosis** | Tread wear and remaining mileage per wheel — its own endpoint, so its own request |
 
 Both endpoints are per vehicle, so the refresh costs **2 requests per car**: 2 a
 day for one car, 4 for two, 6 for three — out of 50. Daily is deliberate: these
@@ -38,7 +38,7 @@ values move on the scale of days, not minutes.
   services — they read or write the integration's own local store.
 
 Prefer the stream. Poll only what the stream genuinely cannot carry, and cache
-what's fetched — the vehicle image and the tyre diagnosis are both kept across
+what's fetched — the vehicle image and the tire diagnosis are both kept across
 restarts for exactly this reason, so a reboot never costs a request to get back
 what was already fetched.
 

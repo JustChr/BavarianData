@@ -5,7 +5,7 @@ description: Regenerate the descriptor catalogue, metadata, translations and fie
 
 # Regenerate the catalogue pipeline
 
-Four generators, run **in order** — each one reads the previous one's output, so
+Five generators, run **in order** — each one reads the previous one's output, so
 a partial run leaves the tree self-consistent but wrong.
 
 ```bash
@@ -13,11 +13,19 @@ python tools/build_catalogue.py        # -> catalogue.json
 python tools/generate_metadata.py      # -> descriptor_metadata.py
 python tools/generate_translations.py  # -> translations/{en,de}.json (entity block only)
 python tools/generate_reference_doc.py # -> docs/reference/telematics-fields.md
-python -m pytest tests/test_catalogue.py
+python tools/generate_en_gb.py         # -> translations/en-GB.json (delta over en.json)
+python -m pytest tests/test_catalogue.py tests/test_translations_dialect.py
 ```
 
-The test is not optional: it is what proves the generators are idempotent and
-that every descriptor has metadata and **both** languages.
+The tests are not optional: they are what proves the generators are idempotent
+and that every descriptor has metadata and **both** languages.
+
+Step 5 must run after **any** change to `en.json`, including a hand-edit to the
+flow strings — it re-derives the British delta from it. `en-GB.json` is not a
+translation anybody maintains: Home Assistant loads `en` and overlays the
+requested language on top of it key by key, so the file holds only the ~75
+strings that differ, and `tools/spelling_en_gb.json` is the word list it is
+derived from.
 
 ## Edit the input, never the output
 
@@ -27,7 +35,8 @@ A hook refuses writes to the four generated files. What to edit instead:
 | --- | --- |
 | An entity's English name | `title_en` in `tools/curated_titles.json` |
 | A derived/diagnostic sensor, the device tracker, the vehicle image | `tools/derived_entities.json` |
-| The flow strings (`config` / `options`) | `translations/en.json` **and** `de.json` by hand — these are not generated |
+| The flow strings (`config` / `options`) | `translations/en.json` **and** `de.json` by hand — these are not generated (then re-run step 5) |
+| A US/UK spelling pair | `tools/spelling_en_gb.json` — never `en-GB.json`, which is fully generated |
 
 Entities with no BMW descriptor **must** have a `derived_entities.json` entry
 with a `_attr_translation_key` identical to the code's. A hardcoded
@@ -49,5 +58,5 @@ curl -s https://mybmwweb-utilities.api.bmw/de-at/utilities/bmw/api/cd/catalogue/
   -o tools/CustomerTelematicsDataCatalogue.html
 ```
 
-Market-scoped: the locale in the path picks the language. Then run all four
-steps and the test. The catalogue — not the Swagger — is the stream's contract.
+Market-scoped: the locale in the path picks the language. Then run all five
+steps and the tests. The catalogue — not the Swagger — is the stream's contract.

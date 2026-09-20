@@ -6,9 +6,11 @@ only thing enforcing that was ``test_generators_are_idempotent``, which fails
 that produced it has scrolled away. This turns the rule into a refusal at the
 moment of the write, and names the input file to edit instead.
 
-``translations/*.json`` are only half generated -- the ``entity`` block comes
-from the pipeline, the ``config``/``options`` flow strings are hand-maintained
--- so those get a warning rather than a refusal.
+``translations/en.json`` and ``de.json`` are only half generated -- the ``entity``
+block comes from the pipeline, the ``config``/``options`` flow strings are
+hand-maintained -- so those get a warning rather than a refusal.
+``translations/en-GB.json`` has no hand-maintained half at all and is refused
+outright.
 """
 
 from __future__ import annotations
@@ -23,14 +25,17 @@ _PKG = "custom_components/bavariandata"
 
 # path -> what to edit instead
 GENERATED = {
-    f"{_PKG}/catalogue.json": (
-        "tools/curated_titles.json (then re-run tools/build_catalogue.py)"
-    ),
+    f"{_PKG}/catalogue.json": ("tools/curated_titles.json (then re-run tools/build_catalogue.py)"),
     f"{_PKG}/descriptor_metadata.py": (
         "tools/curated_titles.json (then re-run tools/generate_metadata.py)"
     ),
     "docs/reference/telematics-fields.md": (
         "tools/curated_titles.json (then re-run tools/generate_reference_doc.py)"
+    ),
+    # Fully generated, unlike its siblings: it is a delta over en.json, so every
+    # string in it is derived and there is no hand-maintained half to preserve.
+    f"{_PKG}/translations/en-GB.json": (
+        "tools/spelling_en_gb.json, or en.json itself (then re-run tools/generate_en_gb.py)"
     ),
 }
 

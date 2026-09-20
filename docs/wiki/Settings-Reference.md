@@ -30,7 +30,7 @@ The menu labels below are exactly as they appear in the UI.
 | **Fetch basic vehicle info** | action ⚡ | See [Services](Services-Reference). |
 | **Fetch telematics data** | action ⚡ | " |
 | **Fetch charging history** | action ⚡ | " |
-| **Fetch tyre diagnosis** | action ⚡ | " |
+| **Fetch tire diagnosis** | action ⚡ | " |
 | **Fetch charging settings** | action ⚡ | Location-based charging settings. " |
 | **Fetch vehicle image** | action ⚡ | " |
 | **Charging costs & history** | settings | Price source, retention, statistics — below. |
@@ -113,7 +113,7 @@ Screen: **Configure → Trips**. See [Trips](Feature-Trips) for the concepts.
 | Option | Values | Meaning |
 | --- | --- | --- |
 | **Work zone** | zone entity | Drives commute classification (home↔work). |
-| **Default type** | Private / Business / Leave unclassified | Default **Private**. What every trip that isn't a recognised home↔work commute is filed as. Always just a starting point: a correction on the card is never overwritten. Pick **Leave unclassified** to triage each trip by hand. |
+| **Default type** | Private / Business / Leave unclassified | Default **Private**. What every trip that isn't a recognized home↔work commute is filed as. Always just a starting point: a correction on the card is never overwritten. Pick **Leave unclassified** to triage each trip by hand. |
 | **Commute stop tolerance** | 0–180 min | Default **30**. How long the car may stand between two drives for both to still count as one commute — the supermarket on the way to work. **0** switches chaining off. Stops under ~5 min never split a drive at all. |
 | **Resolve addresses** | on/off | Off by default. When on, trip endpoints **outside** any zone are reverse-geocoded via OpenStreetMap; the address string is stored, never the coordinates. |
 | **Record route** | on/off | Off by default. When on, each new trip stores its GPS track — coordinates along the drive, each stamped with its time (`[lat, lon, t]`, `t` = seconds since start) — so a map can draw and replay the route. The only setting that persists raw coordinates, your exact start/end included. Served via `get_trips`; never in the export. |

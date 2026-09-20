@@ -10,16 +10,40 @@ export; each writes into `custom_components/bavariandata/`.
 | 2. Metadata registry | `python tools/generate_metadata.py` | `catalogue.json` | `descriptor_metadata.py` (device/state class, unit, enum options, entity category, enabled-by-default, streamable) |
 | 3. Translations | `python tools/generate_translations.py` | `catalogue.json` + `derived_entities.json` | `translations/en.json`, `translations/de.json` (entity names + enum state labels) |
 | 4. Reference doc | `python tools/generate_reference_doc.py` | `catalogue.json` + `descriptor_metadata.py` | `docs/reference/telematics-fields.md` |
+| 5. British English | `python tools/generate_en_gb.py` | `translations/en.json` + `spelling_en_gb.json` (our curated US/UK word list) | `translations/en-GB.json` (a delta, not a full language) |
 
 To rename an entity, edit its `title_en` in `tools/curated_titles.json` and
-re-run steps 1–4. (`curated_titles.json` is project-authored, not a BMW export.)
+re-run steps 1–5. (`curated_titles.json` is project-authored, not a BMW export.)
+
+## Dialect
+
+`en.json` is **US English**, and `en-GB.json` is generated from it. BMW is why
+this needs saying: the descriptor paths in its catalogue are US
+(`vehicle.chassis.axle.row1.wheel.left.tire.pressure`) while the `element_en`
+titles in the same export say "tyre", so the two spellings arrive together and
+`en_name()` falls back to `element_en` for any descriptor without a curated
+title. US wins because the entity IDs users type are `tire_*`.
+
+British English is a **delta**: Home Assistant loads `en` and overlays the
+requested language on top of it key by key (`helpers/translation.py`), so
+`en-GB.json` holds only the ~75 strings that differ rather than 1300 duplicated
+ones — duplicates nothing would regenerate. The bundled card's `t()` falls back
+the same way, so `TRANSLATIONS["en-GB"]` there is four keys.
+
+`tools/spelling_en_gb.json` is the single list of US/UK pairs, and it is
+deliberately a word list rather than suffix rules: `meter` is the device in all
+four places it appears in `en.json` (wallbox, house, grid) and spelled the same
+either side of the Atlantic, so an `-er` → `-re` rule would render every one of
+them as "metre". The file's `_deliberately_absent` block records those
+exclusions and `tests/test_translations_dialect.py` checks the map and that
+reasoning still agree.
 
 Entities with **no BMW descriptor** — the integration's own derived and
 diagnostic sensors, the device tracker, the vehicle image — are named from
 `tools/derived_entities.json` (also project-authored) and merged into the same
 generated `entity` block, so they stay bilingual instead of carrying a hardcoded
 English `_attr_name`. Add a key there whenever you add such an entity, keep its
-`_attr_translation_key` identical, and re-run step 3; `tests/test_catalogue.py`
+`_attr_translation_key` identical, and re-run steps 3 and 5; `tests/test_catalogue.py`
 fails if a literal translation key has no entry, if a key collides with a
 descriptor's, or if a German name is missing.
 

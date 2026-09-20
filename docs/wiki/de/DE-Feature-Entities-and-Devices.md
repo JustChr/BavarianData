@@ -125,6 +125,33 @@ Fahrertür verriegelt ist — der Zustand nach einem Entriegeln aus der Ferne.
 Der Zustand **offen/geschlossen** jeder Tür ist wiederum getrennt und gestreamt:
 die vier Binärsensoren `Status der Tür …`.
 
+## Entitätsnamen und deine Sprache
+
+<a id="entity-names-and-your-language"></a>
+
+Entitätsnamen folgen der Sprache von Home Assistant. Drei werden mitgeliefert:
+
+| HA-Sprache | Was du bekommst |
+| --- | --- |
+| **Deutsch** | BMWs eigene deutsche Namen — *Reifendruck (vorne links)*, *Reifenzustand* |
+| **English** | US-Schreibweisen — *Tire pressure (front left)*, *Tire Condition* |
+| **English (UK)** | Britische Schreibweisen — *Tyre pressure (front left)*, *Tyre Condition* |
+
+Umschalten unter *Profil → Sprache*; die Namen wechseln beim nächsten Neuladen.
+Die mitgelieferte Karte folgt derselben Einstellung.
+
+**Entitäts-IDs ändern sich dabei nie.** Sie entstehen einmalig aus dem
+Deskriptor, den BMW sendet — `sensor.<auto>_tire_pressure_front_left` —, also
+funktionieren Automationen, Dashboards und Templates in jeder Sprache weiter, und
+auch eine deutsche Installation schreibt `tire` im YAML. Übersetzt wird nur der
+Anzeigename.
+
+Englisch ist US-Englisch, weil BMWs eigene Feldnamen US-Englisch sind
+(`vehicle.chassis.axle.row1.wheel.left.tire.pressure`) — der gelesene Name passt
+damit zur getippten ID. Britisches Englisch überschreibt nur die Wörter, die sich
+tatsächlich unterscheiden, und erbt alles andere; deshalb erscheint eine neue
+Bezeichnung dort sofort mit, ohne auf eine Übersetzung zu warten.
+
 ## Warum manche Entitäten „nicht verfügbar“ sind
 
 Entitäten behalten ihre Attribute `cluster`/`category` auch wiederhergestellt oder

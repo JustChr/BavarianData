@@ -17,7 +17,7 @@ to both directly, using your personal BMW client ID. There is no intermediate
 server and no MyBMW screen-scraping — Home Assistant is the only client, and it's
 **read-only** (CarData cannot command the car).
 
-Every descriptor BMW sends becomes a native entity — charge level, doors, tyre
+Every descriptor BMW sends becomes a native entity — charge level, doors, tire
 pressures, the 12 V battery — each with a proper device class, unit and
 translated states. On top of that the integration derives a **charging history &
 cost** ledger, **battery-health** learning, a **trip journal**, a **real-range**
@@ -42,7 +42,7 @@ charge really drew from the grid.
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-security.png" alt="Security &amp; closures card with a top-down car diagram, anti-theft alarm armed and all closures closed" width="300" />
   &nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-tires.png" alt="Tyre pressure card flagging slightly high pressures on all four tyres on a top-down car diagram" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-tires.png" alt="Tire pressure card flagging slightly high pressures on all four tires on a top-down car diagram" width="300" />
 </p>
 
 > **Status — actively developed.** A spare-time project, verified against a

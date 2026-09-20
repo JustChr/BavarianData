@@ -94,7 +94,7 @@ is listed as not applicable instead.
 ### Some fields never arrive on the stream
 
 BMW's catalogue marks each field with whether the MQTT stream can carry it, and
-**49 of 295 cannot** — tyre diagnosis, the vehicle image, state of health,
+**49 of 295 cannot** — tire diagnosis, the vehicle image, state of health,
 Condition Based Servicing, door-lock status and the lifetime-consumption
 counters among them. These are **REST-only**: they are never requested on the
 stream, so an empty entity for one of them is not a gap in your Data Selection
@@ -114,7 +114,7 @@ own — nothing new appears in the sidebar. Open any dashboard, choose
 by itself.
 
 **Done!** [The dashboard card](The-Dashboard-Card) covers the other views —
-charging history, battery health, trips, the map, tyres and closures.
+charging history, battery health, trips, the map, tires and closures.
 
 ---
 

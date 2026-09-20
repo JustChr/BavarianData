@@ -196,7 +196,7 @@ const TRANSLATIONS = {
     t_ok: "OK",
     t_nodata: "No data",
     t_wear: "Worn",
-    check_tyres: "Check tyres",
+    check_tyres: "Check tires",
     wear_due: "change in",
     fitted: "fitted",
     t_current: "Current",
@@ -397,11 +397,17 @@ const TRANSLATIONS = {
       "Overview shows the hero image and key metrics. Charging history lists recorded sessions with cost and power curve. Trips lists recorded drives with a month-in-review summary. Trip map draws recorded routes on a map (needs “Record trip routes” enabled). Battery health shows learned usable capacity and its trend. A cluster shows every value of that group as a list. A drive in progress appears as a badge on the overview and as a live row at the top of Trips.",
     edh_title: "Overrides the vehicle name shown on the card.",
   },
+  // British English is a delta over `en`, not a table of its own: `t()` falls
+  // back to `TRANSLATIONS.en` key by key, so only the strings that actually
+  // differ belong here. `tests/test_translations_dialect.py` derives the
+  // expected contents from `tools/spelling_en_gb.json` and fails if this drifts
+  // from it -- add the word there, not a second full table here.
   "en-GB": {
     cl_tire: "Tyre data",
     tires: "Tyres",
     no_tire_data:
       "No tyre data for this vehicle yet. Enable the Tyre data cluster and drive to populate readings.",
+    check_tyres: "Check tyres",
   },
   de: {
     // cluster labels
