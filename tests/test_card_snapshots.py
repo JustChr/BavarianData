@@ -19,7 +19,8 @@ Two things are pinned so a re-run cannot drift:
 * **The language.** Rendering is forced to English, as the docs screenshots are.
 
 The drivetrain fixtures come from ``test_card_drivetrain.py`` rather than being
-copied, so an electric/petrol/hybrid car means the same thing in both files.
+copied, so an electric/petrol/hybrid/unproven car means the same thing in both
+files.
 """
 
 from __future__ import annotations
@@ -31,7 +32,7 @@ import subprocess
 
 import pytest
 
-from .test_card_drivetrain import I5, M2, PHEV
+from .test_card_drivetrain import I5, M2, MINI, PHEV
 
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
 _CARD = _ROOT / "custom_components" / "bavariandata" / "www" / "bavariandata-card.js"
@@ -78,7 +79,9 @@ try { card._render(); } catch (e) { error = String((e && e.message) || e); }
 process.stdout.write(JSON.stringify({ html: card.shadowRoot.innerHTML, error }));
 """
 
-CARS = {"i5": I5, "m2": M2, "phev": PHEV}
+# "mini" is the fourth case: a car that proves no drivetrain at all (issue
+# #23), which gets its own bare overview and must never be shown a battery.
+CARS = {"i5": I5, "m2": M2, "phev": PHEV, "mini": MINI}
 
 # Every screen the card can show, addressed the way a user's YAML addresses it.
 SCREENS = {

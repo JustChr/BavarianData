@@ -212,7 +212,9 @@ läuft. Er verbraucht kein API-Kontingent.
 
 **Die vier nötigen Werte** — öffne die **Stream-Setup**-Seite deines Fahrzeugs im
 Browser, öffne die Entwicklertools → **Netzwerk**, speichere eine beliebige Änderung
-und sieh dir die Anfrage `POST …/utilities/bmw/api/cd/streams/…` an:
+und sieh dir die Anfrage `POST …/utilities/bmw/api/cd/streams/…` an — im
+MINI-Portal heißt dieser Pfad `…/utilities/mini/api/cd/streams/…`, denn das
+Segment folgt der Seite, auf der du bist:
 
 | Feld | Woher es kommt | Beispiel |
 | --- | --- | --- |

@@ -1,7 +1,9 @@
 """Guided-onboarding activator: one click in the user's own browser session.
 
 The BMW CarData portal exposes the whole onboarding chain on its
-``/utilities/bmw/api/cd/*`` and ``/mybmw/api/mapped-vehicle/*`` routes — the
+``/utilities/{brand}/api/cd/*`` and ``/my{brand}/api/mapped-vehicle/*`` routes,
+where ``{brand}`` mirrors the host (``bmw``, or ``mini`` on a MINI portal, which
+404s the BMW spelling — issue #23) — the
 registered API client (``/applications`` → the client id you otherwise copy by
 hand), the mapping/consent state, and the MQTT stream selection (``/streams``).
 All of it is gated by the interactive portal session (httpOnly cookies + Akamai
@@ -107,7 +109,13 @@ _ACTIVATOR_TEMPLATE = """(async () => {
   const mvIdx = parts.indexOf('mapped-vehicle');
   const mappedId = mvIdx >= 0 ? parts[mvIdx + 1] : null;
   const base = origin + '/' + locale;
-  const out = { v: 1, origin, locale, mappedVehicleId: mappedId,
+  // The portal's own brand segment. A MINI portal serves these routes under
+  // 'mini'/'mymini' and 404s the BMW spelling (issue #23); BMW's hosts 404 the
+  // MINI spelling in turn. Matched on a whole host label, so 'bmw.co.uk' can
+  // never be mistaken for a MINI market.
+  const brand = location.hostname.toLowerCase().split('.').indexOf('mini') >= 0 ? 'mini' : 'bmw';
+  const cdBase = base + '/utilities/' + brand + '/api/cd';
+  const out = { v: 1, origin, locale, brand, mappedVehicleId: mappedId,
                 clientIds: [], vehicle: {}, activated: null, errors: [] };
 
   if (origin.indexOf('bmw') === -1 && origin.indexOf('mini') === -1) {
@@ -119,21 +127,21 @@ _ACTIVATOR_TEMPLATE = """(async () => {
   }
   show('Checking your account&hellip;');
 
-  const apps = await req(base + '/utilities/bmw/api/cd/applications');
+  const apps = await req(cdBase + '/applications');
   if (apps.json && apps.json.data) {
     apps.json.data.forEach(a => (a.credentials || []).forEach(c => {
       if (c && c.apikey) out.clientIds.push({ apikey: c.apikey, scopes: c.scopes || [] });
     }));
   } else { out.errors.push('applications: unavailable'); }
 
-  const md = await req(base + '/mybmw/api/mapped-vehicle/' + mappedId + '/mapping-details');
+  const md = await req(base + '/my' + brand + '/api/mapped-vehicle/' + mappedId + '/mapping-details');
   if (md.json && md.json.data) {
     const d = md.json.data;
     out.vehicle = { mappingStatus: d.mappingStatus, subscriberStatus: d.subscriberStatus,
                     isElectricOrHybrid: d.isElectricOrHybrid };
   }
 
-  const s = await req(base + '/utilities/bmw/api/cd/streams/' + mappedId + '?includeAttributes=true');
+  const s = await req(cdBase + '/streams/' + mappedId + '?includeAttributes=true');
   const current = (s.json && s.json.data && s.json.data.attributes) || [];
 
   // BMW rejects the whole POST with HTTP 500 if it contains any descriptor it
@@ -146,7 +154,7 @@ _ACTIVATOR_TEMPLATE = """(async () => {
   let partial = false;
   for (let off = 0; off < 1000; off += 10) {
     show('Reading available fields&hellip; ' + valid.size);
-    const c = await req(base + '/utilities/bmw/api/cd/catalogue?streamable=true&offset=' + off + '&q=&category=');
+    const c = await req(cdBase + '/catalogue?streamable=true&offset=' + off + '&q=&category=');
     if (!c.json) { partial = true; out.errors.push('catalogue: stalled at offset ' + off); break; }
     const items = (c.json.data && c.json.data.items) || [];
     items.forEach(it => { if (it && it.id && it.streamable) valid.add(it.id); });
@@ -170,7 +178,7 @@ _ACTIVATOR_TEMPLATE = """(async () => {
 
     if (added > 0) {
       show('Activating ' + added + ' fields&hellip;');
-      const r = await req(base + '/utilities/bmw/api/cd/streams/' + mappedId, {
+      const r = await req(cdBase + '/streams/' + mappedId, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ attributes: desired }),
       });
@@ -187,12 +195,24 @@ _ACTIVATOR_TEMPLATE = """(async () => {
 
   const blob = 'BAVARIANDATA1:' + btoa(unescape(encodeURIComponent(JSON.stringify(out))));
   let reported = false;
-  if (REPORT) {
-    // text/plain keeps it a CORS "simple request" (no preflight); fire-and-forget.
+  // Home Assistant may answer on more than one address, and the one the browser
+  // can reach is not knowable from here: a split-horizon network serves the
+  // external URL only from outside, so reporting to it from the couch fails
+  // (issue #23). Try each in turn -- external first, since a browser that can
+  // reach both is usually the remote one -- and stop at the first that answers.
+  // Each gets its own short timeout so a black-holed address cannot stall the
+  // run before the reachable one is tried.
+  for (let i = 0; i < REPORT.length; i++) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
     try {
-      await fetch(REPORT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: blob });
+      // text/plain keeps it a CORS "simple request" (no preflight).
+      await fetch(REPORT[i], { method: 'POST', headers: { 'Content-Type': 'text/plain' },
+                               body: blob, signal: ctrl.signal });
+      clearTimeout(timer);
       reported = true;
-    } catch (e) {}
+      break;
+    } catch (e) { clearTimeout(timer); }
   }
 
   const a = out.activated || {};
@@ -230,20 +250,39 @@ def _normalize(attributes: Iterable[str]) -> list[str]:
     return sorted({a.strip() for a in attributes if a and a.strip()})
 
 
-def build_activator_js(attributes: Iterable[str], *, report_url: str = "") -> str:
+def report_urls(report_url: str | Iterable[str]) -> list[str]:
+    """Normalize the webhook address(es) the activator should try, in order.
+
+    One string or several; blanks and duplicates are dropped and the order is
+    kept, because it is the caller's preference order (external before
+    internal). Home Assistant can answer on more than one address and only the
+    browser knows which it can reach -- see issue #23.
+    """
+
+    candidates = [report_url] if isinstance(report_url, str) else list(report_url)
+    seen: list[str] = []
+    for url in candidates:
+        url = (url or "").strip()
+        if url and url not in seen:
+            seen.append(url)
+    return seen
+
+
+def build_activator_js(attributes: Iterable[str], *, report_url: str | Iterable[str] = "") -> str:
     """Return the raw activator JavaScript for a set of wanted attributes.
 
-    ``report_url`` (a Home Assistant webhook) makes the activator self-report; an
-    empty string falls back to clipboard-only. The attribute set is embedded
-    sorted+deduplicated, matching the stream-activation service byte-for-byte.
+    ``report_url`` (Home Assistant webhook address(es)) makes the activator
+    self-report; nothing usable falls back to clipboard-only. The attribute set
+    is embedded sorted+deduplicated, matching the stream-activation service
+    byte-for-byte.
     """
 
     want = json.dumps(_normalize(attributes), ensure_ascii=False)
-    report = json.dumps(report_url or "")
+    report = json.dumps(report_urls(report_url))
     return _ACTIVATOR_TEMPLATE.replace(_WANT_MARKER, want).replace(_REPORT_MARKER, report)
 
 
-def build_bookmarklet(attributes: Iterable[str], *, report_url: str = "") -> str:
+def build_bookmarklet(attributes: Iterable[str], *, report_url: str | Iterable[str] = "") -> str:
     """Return the activator as a ``javascript:`` bookmarklet URL.
 
     Percent-encoded so it is safe inside an anchor ``href`` and as a bookmark; the
@@ -254,7 +293,9 @@ def build_bookmarklet(attributes: Iterable[str], *, report_url: str = "") -> str
     return "javascript:" + urllib.parse.quote(js, safe="")
 
 
-def build_console_snippet(attributes: Iterable[str], *, report_url: str = "") -> str:
+def build_console_snippet(
+    attributes: Iterable[str], *, report_url: str | Iterable[str] = ""
+) -> str:
     """The activator as a paste-into-console one-liner (bookmarklet alternative)."""
 
     return build_activator_js(attributes, report_url=report_url)

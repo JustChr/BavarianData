@@ -5,9 +5,15 @@ CarData that has **no documented REST API**. It lives only behind the market
 portal (``https://www.bmw.at``, ``https://www.bmw.de`` …), whose stream-setup
 page saves the selection with a single request:
 
-    POST {base_url}/{locale}/utilities/bmw/api/cd/streams/{mapped_vehicle_id}
+    POST {base_url}/{locale}/utilities/{brand}/api/cd/streams/{mapped_vehicle_id}
     Content-Type: application/json
     {"attributes": ["vehicle.isMoving", …]}   # replace the whole list
+
+``{brand}`` mirrors the host and is **not** always ``bmw``: a MINI portal serves
+the same routes under ``mini``/``mymini`` and answers ``404`` to the BMW spelling
+(issue #23). Measured against BMW's own host, which disagrees symmetrically --
+``/utilities/bmw/api/cd/applications`` answers 401 there, ``/utilities/mini/...``
+answers 404. So the segment is derived from ``base_url``, never hardcoded.
 
 The portal authenticates that call with an **interactive browser session**
 (cookies incl. ``gcdmToken`` plus Akamai bot-defense cookies), *not* the OAuth
@@ -39,6 +45,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import urllib.parse
 from dataclasses import dataclass, field
 from typing import Any, Iterable, Optional
 
@@ -151,13 +158,29 @@ class PortalSession:
         object.__setattr__(self, "base_url", self.base_url.rstrip("/"))
         object.__setattr__(self, "locale", self.locale.strip("/"))
 
+    @property
+    def brand(self) -> str:
+        """The portal's own brand segment, read off the host.
+
+        ``www.mini.co.uk`` serves its CarData routes under ``mini``/``mymini``
+        and 404s the ``bmw`` spelling; BMW's hosts do the reverse. Matched on a
+        whole host label so a market like ``bmw.co.uk`` can never be read as a
+        MINI one.
+        """
+
+        host = urllib.parse.urlsplit(self.base_url).hostname or ""
+        return "mini" if "mini" in host.lower().split(".") else "bmw"
+
     def stream_url(self, mapped_vehicle_id: str) -> str:
-        return f"{self.base_url}/{self.locale}/utilities/bmw/api/cd/streams/{mapped_vehicle_id}"
+        return (
+            f"{self.base_url}/{self.locale}"
+            f"/utilities/{self.brand}/api/cd/streams/{mapped_vehicle_id}"
+        )
 
     def referer(self, mapped_vehicle_id: str) -> str:
         return (
             f"{self.base_url}/{self.locale}"
-            f"/mybmw/mapped-vehicle/{mapped_vehicle_id}/cardata/stream-setup"
+            f"/my{self.brand}/mapped-vehicle/{mapped_vehicle_id}/cardata/stream-setup"
         )
 
     def headers(self, mapped_vehicle_id: str) -> dict[str, str]:

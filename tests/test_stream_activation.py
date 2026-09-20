@@ -63,6 +63,30 @@ def test_default_attributes_sorted_unique_nonempty():
     assert all(a.startswith("vehicle.") for a in attrs)
 
 
+def test_session_urls_follow_the_portal_brand_not_the_bmw_spelling():
+    """MINI's portal serves these routes under ``mini``/``mymini``.
+
+    Issue #23: every activator request 404'd on ``www.mini.co.uk`` until the
+    segment matched the host. BMW's own host disagrees the same way --
+    ``/utilities/bmw/api/cd/applications`` answers 401 on ``www.bmw.co.uk``,
+    ``/utilities/mini/...`` answers 404 -- so the segment follows the host in
+    both directions and is never hardcoded.
+    """
+
+    mini = SA.PortalSession(base_url="https://www.mini.co.uk", locale="en_gb", cookie="c")
+    assert mini.brand == "mini"
+    assert mini.stream_url(MAPPED) == (
+        f"https://www.mini.co.uk/en_gb/utilities/mini/api/cd/streams/{MAPPED}"
+    )
+    assert mini.referer(MAPPED) == (
+        f"https://www.mini.co.uk/en_gb/mymini/mapped-vehicle/{MAPPED}/cardata/stream-setup"
+    )
+
+    # Matched on a whole host label, so a BMW market is never read as MINI.
+    for base in ("https://www.bmw.co.uk", "https://www.bmw.at", "https://www.bmw-motorrad.de"):
+        assert SA.PortalSession(base_url=base, locale="de-at", cookie="c").brand == "bmw"
+
+
 def test_session_urls_and_headers_match_portal_contract():
     sess = _session()
     assert sess.base_url == "https://www.bmw.at"  # normalized

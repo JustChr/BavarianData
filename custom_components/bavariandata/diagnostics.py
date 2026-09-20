@@ -16,7 +16,8 @@ and ``async_redact_data`` runs over the result as a second line of defence.
 
 from __future__ import annotations
 
-from typing import Any
+import hashlib
+from typing import Any, Optional
 
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.const import __version__ as HA_VERSION
@@ -67,6 +68,23 @@ def _iso(value: Any) -> Any:
     return value.isoformat() if hasattr(value, "isoformat") else value
 
 
+def _fingerprint(value: Any) -> Optional[str]:
+    """A short, stable, non-reversible stand-in for a redacted identifier.
+
+    The GCID is redacted -- it identifies the account -- but "do these two
+    config entries belong to the same account?" is the first question when two
+    of them misbehave together, because BMW allows **one concurrent stream per
+    GCID**. Redaction made that unanswerable from two dumps (issue #23's
+    reporter runs two accounts). A truncated digest answers it and reveals
+    nothing: it cannot be reversed, and it only ever matches another dump of
+    the same account.
+    """
+
+    if not value or not isinstance(value, str):
+        return None
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()[:12]
+
+
 def _safe_options(options: Any) -> dict[str, Any]:
     """Config-entry options with user-chosen entity ids reduced to their domain."""
 
@@ -78,6 +96,17 @@ def _safe_options(options: Any) -> dict[str, Any]:
         else:
             safe[key] = value
     return safe
+
+
+def _drivetrain_facts(coordinator: Any, vin: str) -> dict[str, Any]:
+    """``driveTrain``/``propulsionType`` and the model, straight from basic data."""
+
+    attrs = (coordinator.device_metadata.get(vin) or {}).get("extra_attributes") or {}
+    return {
+        "model_name": attrs.get("model_name"),
+        "drive_train": attrs.get("drive_train"),
+        "propulsion_type": attrs.get("propulsion_type"),
+    }
 
 
 async def async_get_config_entry_diagnostics(
@@ -129,6 +158,12 @@ async def async_get_config_entry_diagnostics(
                     "not_applicable": list(report.not_applicable),
                 },
                 "descriptors": coordinator.descriptor_diagnostics(vin),
+                # Not a value from the car's stream but the answer to "what kind
+                # of car is this", which decides the card's whole overview and
+                # which EV-only entities exist. Neither is sensitive -- they are
+                # model facts, not identifiers -- and without them a wrong layout
+                # cannot be diagnosed from a dump at all (issue #23).
+                **_drivetrain_facts(coordinator, vin),
             }
         )
 
@@ -152,6 +187,8 @@ async def async_get_config_entry_diagnostics(
             "stream_started_at": _iso(coordinator.stream_started_at),
             "connection_history": list(coordinator.connection_history),
             "parameters": runtime.stream.debug_info,
+            # Survives the redaction of ``gcid`` above; see ``_fingerprint``.
+            "account_fingerprint": _fingerprint((runtime.stream.debug_info or {}).get("gcid")),
         },
         "vehicles": vehicles,
     }

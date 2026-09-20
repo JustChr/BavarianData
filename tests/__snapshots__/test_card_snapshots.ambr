@@ -55,6 +55,50 @@
         </ha-card>
   '''
 # ---
+# name: test_the_card_renders_what_it_rendered_before[charging-mini]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:ev-station">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Charging history</span>
+              <span class="chead__sub">Car</span>
+            </div>
+            
+        <div class="xbar">
+          <button class="xbtn" data-export="csv" data-kind="charging"
+                  title="Download this month as a spreadsheet">
+            <ha-icon icon="mdi:file-delimited-outline">
+  </ha-icon>CSV
+          </button>
+          <button class="xbtn" data-export="html" data-kind="both"
+                  title="Open a printable month report (print it to get a PDF)">
+            <ha-icon icon="mdi:file-document-outline">
+  </ha-icon>Report
+          </button>
+        </div>
+          </div>
+          
+        <div class="mnav">
+          <button class="mnav__btn" data-month-kind="charging" data-month-step="-1"
+                  title="Previous month" aria-label="Previous month">
+            <ha-icon icon="mdi:chevron-left">
+  </ha-icon>
+          </button>
+          <span class="mnav__label">September 2026</span>
+          <button class="mnav__btn" data-month-kind="charging" data-month-step="1"
+                  title="Next month" aria-label="Next month"
+                  disabled>
+            <ha-icon icon="mdi:chevron-right">
+  </ha-icon>
+          </button>
+        </div>
+          
+          <div class="empty">Loading charging history…</div>
+        </ha-card>
+  '''
+# ---
 # name: test_the_card_renders_what_it_rendered_before[charging-phev]
   '''
   <ha-card>
@@ -133,6 +177,134 @@
           </ha-card>
   '''
 # ---
+# name: test_the_card_renders_what_it_rendered_before[cluster-closures-mini]
+  '''
+  <ha-card>
+          
+        <div class="chead">
+          <ha-icon icon="mdi:car-door-lock">
+  </ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">Security & closures</span>
+            <span class="chead__sub">Car</span>
+          </div>
+          <span class="tstat" style="--c:var(--bmw-high)">
+  <span class="tstat__dot">
+  </span>All closed</span>
+        </div>
+          <div class="closcar">
+        <svg class="carsvg" viewBox="0 0 130 228" xmlns="http://www.w3.org/2000/svg">
+          <rect x="13" y="40" width="13" height="34" rx="6" class="carsvg__wheel" style="stroke:var(--divider-color)"/>
+  <rect x="104" y="40" width="13" height="34" rx="6" class="carsvg__wheel" style="stroke:var(--divider-color)"/>
+  <rect x="13" y="160" width="13" height="34" rx="6" class="carsvg__wheel" style="stroke:var(--divider-color)"/>
+  <rect x="104" y="160" width="13" height="34" rx="6" class="carsvg__wheel" style="stroke:var(--divider-color)"/>
+          
+          <defs>
+            <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="var(--body-lo)"/>
+              <stop offset=".5" stop-color="var(--body-hi)"/>
+              <stop offset="1" stop-color="var(--body-lo)"/>
+            </linearGradient>
+            <linearGradient id="roofGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="var(--roof-lo)"/>
+              <stop offset=".5" stop-color="var(--roof-hi)"/>
+              <stop offset="1" stop-color="var(--roof-lo)"/>
+            </linearGradient>
+            <linearGradient id="glassGrad" x1="0" y1="0" x2=".35" y2="1">
+              <stop offset="0" stop-color="var(--glass-hi)"/>
+              <stop offset="1" stop-color="var(--glass-lo)"/>
+            </linearGradient>
+          </defs>
+  
+          <!-- fender flares over each wheel -->
+          <rect x="20" y="39" width="5" height="34" rx="2.5" class="carsvg__flare"/>
+          <rect x="105" y="39" width="5" height="34" rx="2.5" class="carsvg__flare"/>
+          <rect x="20" y="159" width="5" height="34" rx="2.5" class="carsvg__flare"/>
+          <rect x="105" y="159" width="5" height="34" rx="2.5" class="carsvg__flare"/>
+  
+          <!-- taut body: wider stance, squarer bumpers, straight flanks -->
+          <path d="M40 6 L90 6 C99 6 107 12 108 24 L108 198 C107 211 103 219 94 222 L36 222 C27 219 23 211 22 198 L22 24 C23 12 31 6 40 6 Z" class="carsvg__body"/>
+  
+          <!-- side mirrors at the cowl -->
+          <path d="M22 88 L14 84 L12 90 L21 94 Z" class="carsvg__mirror"/>
+          <path d="M108 88 L116 84 L118 90 L109 94 Z" class="carsvg__mirror"/>
+  
+          <!-- bumper/hood seam + hood centreline + hood shut lines -->
+          <path d="M38 22 C52 20.5 78 20.5 92 22" class="carsvg__seam"/>
+          <path d="M65 24 L65 86" class="carsvg__crease"/>
+          <path d="M32 38 C29 55 29 74 34 88 M98 38 C101 55 101 74 96 88" class="carsvg__seam"/>
+  
+          <!-- twin kidneys at the very front of the bumper -->
+          <rect x="54" y="6.5" width="22" height="13" rx="2" class="carsvg__chrome"/>
+          <rect x="55" y="7.5" width="9.3" height="11" rx="1.5" class="carsvg__kidney"/>
+          <rect x="65.7" y="7.5" width="9.3" height="11" rx="1.5" class="carsvg__kidney"/>
+          <path d="M57 8.5 V17.5 M60 8.5 V17.5 M67.5 8.5 V17.5 M70.5 8.5 V17.5" class="carsvg__kbar"/>
+  
+          <!-- headlights: fat at the outer bumper corner, tapering inward -->
+          <path d="M22.5 23 C21 11 29 6.5 40 6.5 L47 7 C50.5 8.5 50 10.5 47.5 11.5 C39 12.5 30 15.5 22.5 23 Z" class="carsvg__light"/>
+          <path d="M107.5 23 C109 11 101 6.5 90 6.5 L83 7 C79.5 8.5 80 10.5 82.5 11.5 C91 12.5 100 15.5 107.5 23 Z" class="carsvg__light"/>
+  
+          <!-- windshield -->
+          <path d="M31 88 L99 88 L87 112 L43 112 Z" class="carsvg__glass"/>
+  
+          <!-- roof + sunroof -->
+          <path d="M43 112 L87 112 L86 164 L44 164 Z" class="carsvg__roof"/>
+          <rect x="53" y="120" width="24" height="28" rx="2" class="carsvg__glassdk"/>
+  
+          <!-- side windows: front pair butts the windshield; rear pair matched in length -->
+          <path d="M33 98 L43 112 L43 136 L35 136 Z" class="carsvg__glass"/>
+          <path d="M35 140 L43 140 L43 162 L37 162 Z" class="carsvg__glass"/>
+          <path d="M97 98 L87 112 L87 136 L95 136 Z" class="carsvg__glass"/>
+          <path d="M95 140 L87 140 L87 162 L93 162 Z" class="carsvg__glass"/>
+  
+          <!-- door shut seams + handles (4 doors) -->
+          <path d="M22 138 L43 138 M108 138 L87 138" class="carsvg__seam"/>
+          <rect x="26" y="122" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
+          <rect x="27" y="150" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
+          <rect x="98" y="122" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
+          <rect x="97" y="150" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
+  
+          <!-- rear window -->
+          <path d="M43 164 L87 164 L97 182 L33 182 Z" class="carsvg__glass"/>
+  
+          <!-- rear deck: trunk seam + corner-wrapping tail lights + diffuser -->
+          <path d="M33 187 C48 190 82 190 97 187" class="carsvg__seam"/>
+          <path d="M22.5 205 C21 217 29 221.5 40 221.5 L47 221 C49.5 219.5 49 218.5 47 217.8 C39 217 30 214.5 22.5 205 Z" class="carsvg__tail"/>
+          <path d="M107.5 205 C109 217 101 221.5 90 221.5 L83 221 C80.5 219.5 81 218.5 83 217.8 C91 217 100 214.5 107.5 205 Z" class="carsvg__tail"/>
+          <path d="M52 217 L78 217" class="carsvg__crease"/>
+          <path d="M38 26 H92 L96 88 H34 Z" class="cldiag__hit" data-entity="sensor.mini_hood"/>
+          <path d="M34 184 H96 L93 218 H37 Z" class="cldiag__hit" data-entity="sensor.mini_trunk"/>
+          <path d="M33 98 L43 112 L43 136 L35 136 Z" class="cldiag__hit" data-entity="sensor.mini_window"/>
+          <path d="M53 120 H77 V148 H53 Z" class="cldiag__hit" data-entity="sensor.mini_sunroof"/>
+          <g class="cldiag__lock" data-entity="sensor.mini_doors" style="--c:var(--divider-color)">
+             <path d="M61 134 V130 a4 4 0 0 1 8 0" class="cldiag__shackle"/>
+             <rect x="58" y="134" width="14" height="10" rx="1.8" class="cldiag__lockbody"/>
+           </g>
+        </svg>
+  </div>
+          <div class="list">
+            <button class="item" data-entity="sensor.mini_doors">
+                  <span class="item__name" title="Central lock">
+  <span class="item__dot" style="background:var(--divider-color)">
+  </span>Central lock</span>
+                  <span class="item__val" style="color:var(--divider-color)">closed</span>
+                </button>
+  <button class="item" data-entity="sensor.mini_alarm">
+                  <span class="item__name" title="Anti-theft alarm">
+  <span class="item__dot" style="background:var(--divider-color)">
+  </span>Anti-theft alarm</span>
+                  <span class="item__val" style="color:var(--divider-color)">—</span>
+                </button>
+  <button class="item" data-entity="">
+                  <span class="item__name" title="All closed">
+  <span class="item__dot" style="background:var(--bmw-high)">
+  </span>All closed</span>
+                  <span class="item__val" style="color:var(--bmw-high)">✓</span>
+                </button>
+          </div>
+        </ha-card>
+  '''
+# ---
 # name: test_the_card_renders_what_it_rendered_before[cluster-closures-phev]
   '''
   <ha-card>
@@ -167,6 +339,22 @@
   '''
 # ---
 # name: test_the_card_renders_what_it_rendered_before[cluster-electric-m2]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:lightning-bolt">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Electric vehicle</span>
+              <span class="chead__sub">Car · 0 values</span>
+            </div>
+          </div>
+          
+          <div class="empty">No <b>Electric vehicle</b> entities for this vehicle. Enable the cluster in the integration options.</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[cluster-electric-mini]
   '''
   <ha-card>
           <div class="chead">
@@ -236,6 +424,25 @@
           </ha-card>
   '''
 # ---
+# name: test_the_card_renders_what_it_rendered_before[cluster-tire-mini]
+  '''
+  <ha-card>
+            
+        <div class="chead">
+          <ha-icon icon="mdi:car-tire-alert">
+  </ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">Tires</span>
+            <span class="chead__sub">Car</span>
+          </div>
+          <span class="tstat" style="--c:var(--secondary-text-color)">
+  <span class="tstat__dot">
+  </span>—</span>
+        </div>
+            <div class="empty">No tire data for this vehicle yet. Enable the Tire data cluster and drive to populate readings.</div>
+          </ha-card>
+  '''
+# ---
 # name: test_the_card_renders_what_it_rendered_before[cluster-tire-phev]
   '''
   <ha-card>
@@ -282,6 +489,21 @@
         </ha-card>
   '''
 # ---
+# name: test_the_card_renders_what_it_rendered_before[efficiency-mini]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:map-marker-distance">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Efficiency &amp; range</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="empty">Working out your real range…</div>
+        </ha-card>
+  '''
+# ---
 # name: test_the_card_renders_what_it_rendered_before[efficiency-phev]
   '''
   <ha-card>
@@ -324,6 +546,21 @@
         </ha-card>
   '''
 # ---
+# name: test_the_card_renders_what_it_rendered_before[health-mini]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:battery-heart-variant">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Battery health</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="empty">No battery-health data yet. Once the car logs a few wide-range charges, its usable capacity appears here.</div>
+        </ha-card>
+  '''
+# ---
 # name: test_the_card_renders_what_it_rendered_before[health-phev]
   '''
   <ha-card>
@@ -355,6 +592,21 @@
   '''
 # ---
 # name: test_the_card_renders_what_it_rendered_before[map-m2]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:map-marker-multiple">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Trip map</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="empty">The map couldn't be loaded in this browser.</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[map-mini]
   '''
   <ha-card>
           <div class="chead">
@@ -502,6 +754,50 @@
         </ha-card>
   '''
 # ---
+# name: test_the_card_renders_what_it_rendered_before[overview-mini]
+  '''
+  <ha-card>
+          <div class="hero hero--empty">
+            <ha-icon class="hero__placeholder" icon="mdi:car-electric">
+  </ha-icon>
+            <div class="hero__scrim">
+  </div>
+            <div class="hero__top">
+              <div class="hero__name" title="Car">Car</div>
+              <div class="pill" title="Last update">
+  <span class="dot dot--stale">
+  </span>21 h ago</div>
+            </div>
+            
+          </div>
+  
+          <div class="band">
+            <button class="gauge" data-entity="sensor.mini_range" aria-label="remaining range">
+              <div class="gauge__ring" style="--pct:0;--ring:var(--divider-color)">
+                <div class="gauge__hole">
+                  <span class="gauge__val">233<i>km</i>
+  </span>
+                  <span class="gauge__cap">remaining range</span>
+                </div>
+              </div>
+              
+            </button>
+  
+            <div class="lead">
+              
+              <button class="lead__row" data-entity="sensor.mini_odometer">
+                <ha-icon icon="mdi:counter">
+  </ha-icon>
+                <span class="lead__val">41234 km</span>
+                <span class="lead__lbl">Odometer</span>
+              </button>
+            </div>
+          </div>
+  
+          
+        </ha-card>
+  '''
+# ---
 # name: test_the_card_renders_what_it_rendered_before[overview-phev]
   '''
   <ha-card>
@@ -630,6 +926,49 @@
   '''
 # ---
 # name: test_the_card_renders_what_it_rendered_before[trips-m2]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:road-variant">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Trips</span>
+              <span class="chead__sub">Car</span>
+            </div>
+            
+        <div class="xbar">
+          <button class="xbtn" data-export="csv" data-kind="trips"
+                  title="Download this month as a spreadsheet">
+            <ha-icon icon="mdi:file-delimited-outline">
+  </ha-icon>CSV
+          </button>
+          <button class="xbtn" data-export="html" data-kind="both"
+                  title="Open a printable month report (print it to get a PDF)">
+            <ha-icon icon="mdi:file-document-outline">
+  </ha-icon>Report
+          </button>
+        </div>
+          </div>
+          
+        <div class="mnav">
+          <button class="mnav__btn" data-month-kind="trips" data-month-step="-1"
+                  title="Previous month" aria-label="Previous month">
+            <ha-icon icon="mdi:chevron-left">
+  </ha-icon>
+          </button>
+          <span class="mnav__label">September 2026</span>
+          <button class="mnav__btn" data-month-kind="trips" data-month-step="1"
+                  title="Next month" aria-label="Next month"
+                  disabled>
+            <ha-icon icon="mdi:chevron-right">
+  </ha-icon>
+          </button>
+        </div>
+          <div class="empty">Loading trips…</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[trips-mini]
   '''
   <ha-card>
           <div class="chead">

@@ -232,6 +232,25 @@ class _StreamActivatorFlow:
             self.hass.http.register_view(_OnboardingHelperView())
         domain_data[_ONBOARDING_VIEW_REGISTERED] = True
 
+    def _webhook_report_urls(self, token: str) -> list[str]:
+        """Every https address the activator could report this webhook to.
+
+        External first: a browser that can reach both is usually the remote one,
+        and the internal address may be a private name it cannot resolve. Only
+        https survives -- the activator runs on an https portal page, so a POST
+        to an http Home Assistant is blocked as mixed content before it is sent.
+        """
+
+        urls: list[str] = []
+        for kwargs in ({"allow_internal": False}, {"allow_external": False}):
+            try:
+                url = webhook.async_generate_url(self.hass, token, **kwargs)
+            except NoURLAvailableError:
+                continue
+            if url.startswith("https://") and url not in urls:
+                urls.append(url)
+        return urls
+
     def _start_activator(self, attributes: list[str]) -> None:
         """Host the helper page + webhook for one activator run.
 
@@ -241,21 +260,23 @@ class _StreamActivatorFlow:
         is https -- otherwise the activator is clipboard-only and the caller goes
         straight to the paste screen. Sets ``_onboarding_auto`` and
         ``_onboarding_page_url`` for the caller to route on.
+
+        The activator is handed *every* https address this instance answers on,
+        not just the preferred one: on a split-horizon network the external URL
+        resolves only from outside, so a browser on the couch could never report
+        back (issue #23). It tries them in order and stops at the first that
+        answers.
         """
 
         self._ensure_onboarding_view()
 
         token = webhook.async_generate_id()
-        try:
-            webhook_url = webhook.async_generate_url(self.hass, token)
-        except NoURLAvailableError:
-            webhook_url = ""
-        auto = webhook_url.startswith("https://")
-        report_url = webhook_url if auto else ""
+        report_candidates = self._webhook_report_urls(token)
+        auto = bool(report_candidates)
         self._onboarding_auto = auto
 
-        bookmarklet = build_bookmarklet(attributes, report_url=report_url)
-        console = build_console_snippet(attributes, report_url=report_url)
+        bookmarklet = build_bookmarklet(attributes, report_url=report_candidates)
+        console = build_console_snippet(attributes, report_url=report_candidates)
         html = build_helper_page(
             bookmarklet=bookmarklet, console_js=console, attribute_count=len(attributes)
         )

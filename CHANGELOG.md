@@ -9,6 +9,53 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.11-beta.5] - 2026-09-20
+
+### Fixed
+- **MINI owners could not select their streamed data at all.** The in-browser
+  activator (and the portal call behind "Choose Streamed Data") had BMW's own
+  brand baked into every API path, so on a MINI portal every request came back
+  `404` and nothing was ever selected — the setup appeared to work and then
+  streamed nothing. The segment is now read from the portal's own address:
+  `mini`/`mymini` on a MINI site, `bmw`/`mybmw` otherwise. The 0.9.1-beta.6
+  release notes claimed both brands shared the BMW path; they do not, and that
+  claim was written with no MINI to test it against. Measured both ways —
+  `www.bmw.co.uk` answers `401` for `/utilities/bmw/api/cd/applications` and
+  `404` for the `mini` spelling, and a MINI portal does the reverse. Thanks to
+  @thebertster, who diagnosed it down to the four paths (#23).
+- **Guided setup could never finish on a split-horizon network.** The activator
+  was told one address to report its result to — whichever Home Assistant
+  prefers, usually the external one — so a browser on the same LAN as Home
+  Assistant, where that external name does not resolve, silently failed to
+  report and the setup sat waiting. It is now handed every https address the
+  instance answers on and tries them in turn, stopping at the first that
+  replies. The clipboard fallback is unchanged, and an http instance still goes
+  straight to the paste screen (#23).
+- **A petrol car with no fuel data was shown an electric dashboard.** The card
+  decided a car was electric unless it proved otherwise, and a MINI Cooper C
+  streams neither a high-voltage battery nor any fuel-system or engine field —
+  so it got a charge ring, a "Not charging" row and charging tiles it could
+  never fill. Worse, the ring was fed by the *trip-end* state of charge, a
+  battery-class percentage that only moves when a drive finishes: a petrol car
+  displayed a battery level. Such a car now gets a bare overview — remaining
+  range in the ring, odometer beside it, nothing electric — and the trip-end
+  value can no longer win the state-of-charge ring on any car. A car that has
+  simply not said anything yet still keeps the electric layout, and
+  `drivetrain:` in the card's YAML still overrides all of it.
+
+### Changed
+- **Diagnostics now name the car's drivetrain** (`model_name`, `drive_train`,
+  `propulsion_type`, straight from BMW's basic data). They decide which overview
+  the card draws and which electric-only entities exist, so without them a
+  wrong layout could not be diagnosed from a dump at all. They are model facts,
+  not identifiers.
+- **Diagnostics carry an `account_fingerprint`** — a short, one-way digest of
+  the account id, which stays redacted. BMW allows one concurrent stream per
+  account, so "are these two config entries the same account?" is the first
+  question when two of them misbehave together; until now redaction made it
+  unanswerable. The digest cannot be reversed and only ever matches another
+  dump of the same account.
+
 ## [0.9.11-beta.4] - 2026-09-20
 
 An audit of everything the integration still assumed about "one car in one

@@ -60,12 +60,22 @@ ableitet:
 | Elektrisch | Ladezustand (blau beim Laden) | Reichweite, Ladestatus | Ziel, Stecker, Bis voll, Kilometerstand |
 | Plug-in-Hybrid | Ladezustand | elektrische Reichweite, Ladestatus | Tank, Gesamtreichweite, Ziel, Stecker, Bis voll, Kilometerstand |
 | Benzin / Diesel | Tankfüllstand — oder der Tankinhalt, bei einem Auto, das keinen Prozentwert streamt | Reichweite, dazu Tankinhalt oder Kilometerstand | Kilometerstand |
+| Keines, erwiesen | Reichweite | Kilometerstand | — |
 
 Ein Auto, das Daten der Hochvoltbatterie *und* Kraftstoffdaten sendet, ist ein
 Plug-in-Hybrid; Kraftstoffdaten allein machen es zum Benziner oder Diesel. Manche
 Benziner streamen trotzdem ein E-Ladeziel, das lässt ein Auto aber nie elektrisch
-erscheinen. Bis eine der beiden Datenarten angekommen ist, zeigt die Karte das
-elektrische Layout.
+erscheinen.
+
+Ein frisch eingerichtetes Auto hat noch nichts bewiesen und behält so lange das
+elektrische Layout. Ein Auto, das schon eine Weile sendet und **keine** der
+beiden Datenarten geliefert hat, hat dagegen etwas bewiesen: Es ist nicht
+elektrisch, was immer es sonst ist. Das kommt vor — ein MINI mit Benzinmotor
+streamt unter Umständen weder Kraftstoffsystem noch Motor — und ihm einen
+Ladering zu zeigen, den er nie füllen kann, war schlicht falsch. Er bekommt
+deshalb die letzte Zeile oben: Reichweite im Ring, Kilometerstand daneben, nichts
+zum Laden. Wenn dein Auto dort landet und du es besser weißt, setze `drivetrain:`
+in der YAML-Konfiguration der Karte.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-car.png" alt="Übersichtskarte eines BMW i5 mit Ladestand, Reichweite, Ladestatus und Kilometerstand" width="360" />

@@ -199,7 +199,9 @@ API quota.
 
 **Getting the four required values** — open your vehicle's **stream-setup** page
 in a browser, open DevTools → **Network**, save any change, and inspect the
-`POST …/utilities/bmw/api/cd/streams/…` request:
+`POST …/utilities/bmw/api/cd/streams/…` request — on a MINI portal that
+path reads `…/utilities/mini/api/cd/streams/…`, because the segment mirrors the
+site you are on:
 
 | Field | Where it comes from | Example |
 | --- | --- | --- |
