@@ -73,6 +73,7 @@
       "no_client_id": "No API client was found on your account. Create a CarData Client in the BMW portal, then run the Activate BMW data bookmark again."
     },
     "abort": {
+      "account_already_configured": "This BMW account is already set up in Home Assistant. One entry covers the whole account, including every car on it — adding a second Client ID for the same account would break the stream for both, because BMW allows only one connection per account. Use the existing entry, or remove it first.",
       "reauth_successful": "Re-authorization successful — BMW CarData is connected again.",
       "reauth_device_code_failed": "BMW rejected the device authorization request ({error}). Update the Client ID under Configure → Re-authorize with BMW, or remove and re-add the integration.",
       "reauth_missing_client_id": "Client ID is missing for this integration entry. Remove and re-add the integration to authorize again.",
@@ -255,7 +256,7 @@
       },
       "action_debug_logging": {
         "title": "Debug logging",
-        "description": "Turn on verbose logging for this integration (MQTT connection, subscribed topics, and each incoming message). This is separate from Home Assistant's generic debug toggle — both the log level and this switch must be on to see the detailed lines. It's verbose and can include vehicle data such as GPS coordinates, so leave it off for normal use. The change applies immediately.",
+        "description": "Turn on verbose logging for this integration (MQTT connection, subscribed topics, and each incoming message). This is separate from Home Assistant's generic debug toggle — both the log level and this switch must be on to see the detailed lines. It's verbose and can include vehicle data such as GPS coordinates, so leave it off for normal use. The change applies immediately. With more than one BMW account set up, the log level is shared: verbose logging stays on while any account has this switched on.",
         "data": {
           "debug_log": "Enable debug logging"
         },

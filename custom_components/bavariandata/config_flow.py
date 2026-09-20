@@ -741,6 +741,19 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
             "received_at": time.time(),
         }
 
+        # One account, one entry. The unique id is the Client ID, but a user can
+        # mint a second API client in the BMW portal for the *same* account --
+        # typically believing an entry is per car -- and that passes the Client
+        # ID check while colliding on everything that actually matters: BMW
+        # allows one MQTT connection per GCID (the two would evict each other
+        # forever), the entities of both entries share VIN-based unique ids, and
+        # the 50-request daily quota is counted per account, not per client.
+        # The GCID is only known here, once the tokens are in hand.
+        if not self._reauth_entry and (gcid := entry_data.get("gcid")):
+            for existing in self._async_current_entries():
+                if existing.data.get("gcid") == gcid:
+                    return self.async_abort(reason="account_already_configured")
+
         if self._reauth_entry:
             merged = dict(self._reauth_entry.data)
             merged.update(entry_data)
@@ -1553,7 +1566,9 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         enabled = bool(user_input.get(OPTION_DEBUG_LOG, False))
         # Apply immediately: options changes don't trigger a reload, and
         # set_debug_enabled() is otherwise only called from async_setup_entry.
-        set_debug_enabled(enabled)
+        # Recorded against this entry, so switching it off here cannot silence
+        # a second account that still has it on (see debug.py).
+        set_debug_enabled(enabled, entry_id=self._config_entry.entry_id)
         options = dict(self._config_entry.options)
         options[OPTION_DEBUG_LOG] = enabled
         return self.async_create_entry(title="", data=options)

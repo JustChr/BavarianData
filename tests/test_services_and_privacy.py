@@ -16,6 +16,7 @@ Two classes of regression, both Home Assistant-free:
 
 from __future__ import annotations
 
+import ast
 import json
 import pathlib
 import re
@@ -188,3 +189,88 @@ def test_the_leaking_id_is_still_derivable_so_it_can_be_deleted() -> None:
     legacy = coverage.legacy_coverage_issue_id(SAMPLE_ENTRY, SAMPLE_VIN)
     assert legacy.endswith(SAMPLE_VIN)
     assert legacy != coverage.coverage_issue_id(SAMPLE_ENTRY, SAMPLE_VIN)
+
+
+# --- service handlers must not close over the entry that registered them ----
+#
+# The services are registered process-wide, exactly once, by whichever config
+# entry sets up first. Every handler therefore has ``async_setup_entry``'s own
+# ``entry``/``runtime_data`` in scope -- and using one silently serves the wrong
+# account (a second car filed under the first account's entry), then fails
+# outright once that first entry is removed while another stays loaded. The
+# handler must work only from what ``_resolve_target`` hands it.
+#
+# Checked on the source rather than at runtime because there is no Home
+# Assistant in this harness, and because the failure is invisible until someone
+# owns two accounts: the reviewable artefact is the name lookup itself.
+
+_SETUP_SCOPE_NAMES = frozenset(
+    {
+        "entry",
+        "runtime_data",
+        "coordinator",
+        "history_store",
+        "coverage_store",
+        "tyre_store",
+        "quota",
+        "session",
+        "client_id",
+        "gcid",
+    }
+)
+
+
+def _service_registration_block(tree: "ast.AST") -> "ast.If":
+    """The ``if not domain_data.get("_service_registered"):`` body."""
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.If):
+            continue
+        source = ast.dump(node.test)
+        if "_service_registered" in source:
+            return node
+    raise AssertionError("service registration block not found in __init__.py")
+
+
+def _bound_names(node: "ast.AST") -> set[str]:
+    """Names a function binds itself (args, assignments, loops, with, except)."""
+
+    bound: set[str] = set()
+    args = getattr(node, "args", None)
+    if args is not None:
+        for arg in [*args.posonlyargs, *args.args, *args.kwonlyargs]:
+            bound.add(arg.arg)
+        for extra in (args.vararg, args.kwarg):
+            if extra is not None:
+                bound.add(extra.arg)
+    for child in ast.walk(node):
+        if isinstance(child, ast.Name) and isinstance(child.ctx, (ast.Store, ast.Del)):
+            bound.add(child.id)
+        elif isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            bound.add(child.name)
+        elif isinstance(child, ast.ExceptHandler) and child.name:
+            bound.add(child.name)
+        elif isinstance(child, ast.alias):
+            bound.add((child.asname or child.name).split(".")[0])
+    return bound
+
+
+def test_service_handlers_never_read_the_registering_entrys_scope() -> None:
+    tree = ast.parse((_PKG / "__init__.py").read_text(encoding="utf-8"))
+    block = _service_registration_block(tree)
+
+    leaks: list[str] = []
+    for handler in block.body:
+        if not isinstance(handler, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        bound = _bound_names(handler)
+        for child in ast.walk(handler):
+            if not isinstance(child, ast.Name) or not isinstance(child.ctx, ast.Load):
+                continue
+            if child.id in _SETUP_SCOPE_NAMES and child.id not in bound:
+                leaks.append(f"{handler.name} reads '{child.id}' (line {child.lineno})")
+
+    assert not leaks, (
+        "service handlers must use only what _resolve_target returns, "
+        "never async_setup_entry's own scope: " + "; ".join(leaks)
+    )

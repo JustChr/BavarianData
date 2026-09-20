@@ -127,6 +127,34 @@ To fill the gap immediately rather than waiting for the next refresh, call
 `bavariandata.fetch_telematic_data` with that car's `vin`
 ([Services reference](Services-Reference)).
 
+## A new car shows up as its VIN, with no model
+
+Everything that names a car — model, series, software version, the device name
+itself — comes from one REST call that used to run only during setup, so a car
+added to the account afterwards stayed a bare VIN.
+
+From **v0.9.11-beta.4** it is fetched automatically the first time that car is
+seen on the stream (one request against the day's quota, once). On an install
+that already has such a car, or if BMW refused the call, run
+**Configure → Fetch basic vehicle data**, which covers every car on the entry.
+
+Its streamed fields are a separate matter: BMW's Data Selection is per vehicle
+and portal-only, so tick the new car's fields via **Configure → Choose streamed
+data**. See [Multiple cars & accounts](Feature-Multiple-Cars-and-Accounts#adding-a-car-later).
+
+## Setup says this BMW account is already set up
+
+One config entry covers a whole CarData account, **including every car on it** —
+there is no need for a second entry per car, and since **v0.9.11-beta.4** setup
+refuses one, even when you generated a second Client ID in the BMW portal.
+
+BMW allows only **one stream connection per account**, so two entries for the
+same account would disconnect each other in a loop, and both would count against
+the same 50-request daily quota while claiming 50 each. If the existing entry is
+one you no longer want, remove it first and then add the new Client ID. Two
+*different* accounts are fine side by side — see
+[Multiple cars & accounts](Feature-Multiple-Cars-and-Accounts).
+
 ## Stream authorization failing (MQTT rc=5)
 
 <a id="stream-authorization-failing"></a>

@@ -73,6 +73,7 @@
       "no_client_id": "Auf deinem Konto wurde kein API-Client gefunden. Erstelle im BMW-Portal einen CarData Client und führe das Lesezeichen Activate BMW data dann erneut aus."
     },
     "abort": {
+      "account_already_configured": "Dieses BMW-Konto ist in Home Assistant bereits eingerichtet. Ein Eintrag deckt das gesamte Konto ab, einschließlich aller Fahrzeuge darin — eine zweite Client-ID für dasselbe Konto würde den Stream für beide Einträge unterbrechen, weil BMW nur eine Verbindung pro Konto zulässt. Nutze den vorhandenen Eintrag oder entferne ihn zuerst.",
       "reauth_successful": "Neuautorisierung erfolgreich — BMW CarData ist wieder verbunden.",
       "reauth_device_code_failed": "BMW hat die Anfrage zur Geräteautorisierung abgelehnt ({error}). Aktualisiere die Client-ID unter **Konfigurieren → Neu bei BMW autorisieren**, oder entferne die Integration und füge sie neu hinzu.",
       "reauth_missing_client_id": "Für diesen Integrationseintrag fehlt die Client-ID. Entferne die Integration und füge sie neu hinzu, um erneut zu autorisieren.",
@@ -255,7 +256,7 @@
       },
       "action_debug_logging": {
         "title": "Debug-Protokollierung",
-        "description": "Schaltet die ausführliche Protokollierung dieser Integration ein (MQTT-Verbindung, abonnierte Topics und jede eingehende Nachricht). Das ist unabhängig von Home Assistants allgemeinem Debug-Schalter — es müssen sowohl der Log-Level als auch dieser Schalter aktiv sein, damit die detaillierten Zeilen erscheinen. Die Ausgabe ist umfangreich und kann Fahrzeugdaten wie GPS-Koordinaten enthalten; lass sie im Normalbetrieb also aus. Die Änderung wirkt sofort.",
+        "description": "Schaltet die ausführliche Protokollierung dieser Integration ein (MQTT-Verbindung, abonnierte Topics und jede eingehende Nachricht). Das ist unabhängig von Home Assistants allgemeinem Debug-Schalter — es müssen sowohl der Log-Level als auch dieser Schalter aktiv sein, damit die detaillierten Zeilen erscheinen. Die Ausgabe ist umfangreich und kann Fahrzeugdaten wie GPS-Koordinaten enthalten; lass sie im Normalbetrieb also aus. Die Änderung wirkt sofort. Wenn mehrere BMW-Konten eingerichtet sind, gilt der Log-Level gemeinsam: Die ausführliche Protokollierung bleibt aktiv, solange irgendein Konto diesen Schalter an hat.",
         "data": {
           "debug_log": "Debug-Protokollierung aktivieren"
         },

@@ -22,6 +22,7 @@
 - [Export](Feature-Export)
 - [Events & blueprints](Feature-Automations)
 - [API quota](Feature-API-Quota)
+- [Multiple cars & accounts](Feature-Multiple-Cars-and-Accounts)
 
 **Reference**
 - [Settings](Settings-Reference)
@@ -55,6 +56,7 @@
 - [Export](DE-Feature-Export)
 - [Ereignisse & Blueprints](DE-Feature-Automations)
 - [API-Kontingent](DE-Feature-API-Quota)
+- [Mehrere Fahrzeuge & Konten](DE-Feature-Multiple-Cars-and-Accounts)
 
 **Nachschlagen**
 - [Einstellungen](DE-Settings-Reference)

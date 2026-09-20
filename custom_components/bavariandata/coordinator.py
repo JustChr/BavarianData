@@ -11,7 +11,7 @@ from collections import deque
 from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Any, Deque, Dict, Iterable, Optional
+from typing import Any, Callable, Deque, Dict, Iterable, Optional
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
@@ -452,6 +452,13 @@ class CardataCoordinator:
     # by ``tyre_store`` -- a restart must not blank the tyre card until the next
     # fetch comes due.
     tyre_diagnosis: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    # Called with the VIN the first time a vehicle is seen on the stream, so
+    # ``__init__.py`` can fetch the basic data a car bought after setup would
+    # otherwise never get: the bootstrap runs once per entry, and everything
+    # that names a car (model, software version, the device name itself) comes
+    # from that one REST call. Set by the setup path; never fires for a VIN the
+    # bootstrap already seeded.
+    on_new_vehicle: Optional[Callable[[str], None]] = field(default=None, repr=False)
     last_message_at: Optional[datetime] = None
     last_telematic_api_at: Optional[datetime] = None
     connection_status: str = "connecting"
@@ -892,7 +899,15 @@ class CardataCoordinator:
         if not vin or not isinstance(data, dict):
             return
 
+        first_sight = vin not in self.data
         vehicle_state = self.data.setdefault(vin, {})
+        if first_sight and self.on_new_vehicle is not None:
+            # Scheduling only -- the handler must not make this message wait on
+            # a REST call, and must never let one fail the stream.
+            try:
+                self.on_new_vehicle(vin)
+            except Exception:  # noqa: BLE001 - a new car is not worth a dropped message
+                _LOGGER.exception("Cardata: new-vehicle handler failed for %s", mask_vin(vin))
         new_binary: list[str] = []
         new_sensor: list[str] = []
         # Descriptors carrying a value in this batch, for the coverage self-test.

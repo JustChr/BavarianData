@@ -66,6 +66,52 @@ COMBUSTION_PREFIXES = (
 )
 
 
+def monitoring_since(
+    started_at: Optional[datetime], first_seen: Optional[datetime]
+) -> Optional[datetime]:
+    """When one vehicle's grace window starts.
+
+    ``started_at`` is the entry's clock, which restarts whenever the cluster
+    selection changes -- a new selection has to be given its own chance. It
+    cannot answer for a car added to the account later: one entry covers a whole
+    CarData account, so a car bought months in would be judged against the day
+    the *first* car was set up, be past grace on arrival, and be reported as a
+    cluster that has sent nothing before it had a chance to send anything.
+
+    So the window starts at whichever is later. A vehicle with no first sighting
+    (every record written before this existed) keeps the entry's clock, which is
+    exactly what it was already judged by.
+    """
+
+    if first_seen is None:
+        return started_at
+    if started_at is None:
+        return first_seen
+    return max(started_at, first_seen)
+
+
+def backfill_first_seen(
+    seen: Mapping[str, Mapping[str, str]], first_seen: Mapping[str, str]
+) -> dict[str, str]:
+    """First sightings to add for cars recorded before they were kept.
+
+    Each car's earliest descriptor arrival is when it turned up, and the stored
+    record has those timestamps already. Without reading them back, the upgrade
+    that introduced per-vehicle clocks would itself look like first contact:
+    every car would be handed a brand-new grace window and every real coverage
+    gap would go quiet for a week.
+    """
+
+    recovered: dict[str, str] = {}
+    for vin, descriptors in seen.items():
+        if vin in first_seen:
+            continue
+        stamps = [stamp for stamp in descriptors.values() if stamp]
+        if stamps:
+            recovered[vin] = min(stamps)
+    return recovered
+
+
 def has_high_voltage(seen: Collection[str]) -> bool:
     """Whether the car has shown a high-voltage battery."""
 

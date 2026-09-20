@@ -9,6 +9,62 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+An audit of everything the integration still assumed about "one car in one
+account", after the two multi-car fixes of the previous betas. Six findings,
+all fixed here. Nothing changes for a single-car install.
+
+### Fixed
+- **With two accounts set up, fetching basic vehicle data filed the car under
+  the wrong account.** The services are registered once, by whichever entry
+  loads first, and this one handler kept writing to *that* entry instead of the
+  one the call named: a second account's car had its model and software version
+  stored on the first account's entry, and its device attached there too. Worse
+  once the first account was removed while the other stayed — the handler still
+  pointed at the deleted entry, so fetching basic data failed outright for the
+  account that was still there.
+- **A car added to the account after setup stayed a bare VIN.** Its entities
+  appeared on their own, because it rides the same stream, but everything that
+  names a car — model, series, software version, the device name on the
+  dashboard — comes from a REST call that ran only during first-time setup.
+  Nothing ever revisited it, so a second BMW bought a year in was still listed
+  by its VIN. It is now fetched the first time that car is seen on the stream:
+  one request against that day's quota, once, and never retried in a loop for a
+  car BMW answers nothing for.
+- **A car added later was declared incomplete on day one.** The coverage
+  self-test gives a new install a week before it reports a cluster as silent,
+  but that clock belonged to the config entry — that is, to the day the *first*
+  car was set up. A car added two years in was past its grace window the moment
+  it arrived and was shown a Repairs warning for clusters it had not had a
+  chance to stream yet. Each vehicle now has its own clock.
+- **Removing the integration could leave a car's evcc topics retained on the
+  broker.** The cleanup walked the stored basic-data record, which a car added
+  after setup need never have appeared in — so a charge controller could go on
+  reading a state of charge frozen at the moment of removal, which is precisely
+  what that cleanup exists to prevent. It now covers every car the entry ever
+  had, down to one that only ever streamed.
+
+### Changed
+- **Debug logging is no longer decided by whichever account loaded last.** The
+  switch is per config entry but the log level is one logger's, so with two
+  accounts the last entry to set up — or to have any option saved — silently
+  overruled the other, turning verbose logging off on the account being
+  diagnosed. Logging now stays verbose while **any** entry has it enabled. It
+  still spans both accounts while it is on; the options screen says so.
+- **A second config entry for an account you already set up is now refused.**
+  Generating a second Client ID in the BMW portal for the same account passed
+  the duplicate check and then broke both entries: BMW allows one stream
+  connection per account, so the two evicted each other in a loop, their
+  VIN-keyed entities collided, and each claimed the full 50-request quota that
+  BMW counts once per account. Setup now stops with an explanation. Two
+  *different* accounts side by side are unaffected — that is supported, and now
+  documented.
+
+### Documentation
+- New Wiki page **Multiple cars & accounts** (EN + DE): what one entry covers,
+  adding a car later, quota with several cars, and how to name the car you mean
+  in the card, in services, in automations and in the evcc bridge. Plus two new
+  FAQ entries and the shared-log-level note in the settings reference.
+
 ## [0.9.11-beta.3] - 2026-09-20
 
 ### Changed
