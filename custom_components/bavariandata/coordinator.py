@@ -11,7 +11,7 @@ from collections import deque
 from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Any, Deque, Dict, Iterable, Optional
+from typing import Any, Callable, Deque, Dict, Iterable, Optional
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
@@ -88,11 +88,17 @@ DESC_ODOMETER = ("vehicle.vehicle.mileage", "vehicle.vehicle.travelledDistance")
 DESC_SEG_PREFIX = "vehicle.trip.segment.end."
 DESC_SEG_DISTANCE = "vehicle.trip.segment.end.travelledDistance"
 DESC_SEG_RECUP = "vehicle.trip.segment.accumulated.drivetrain.electricEngine.recuperationTotal"
-DESC_SEG_CONSUMPTION = "vehicle.trip.segment.accumulated.drivetrain.electricEngine.energyConsumptionComfort"
+DESC_SEG_CONSUMPTION = (
+    "vehicle.trip.segment.accumulated.drivetrain.electricEngine.energyConsumptionComfort"
+)
 DESC_SEG_ACCEL_STARS = "vehicle.trip.segment.accumulated.acceleration.starsAverage"
 DESC_SEG_BRAKE_STARS = "vehicle.trip.segment.accumulated.chassis.brake.starsAverage"
-DESC_SEG_ECO = "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveEcoPro"
-DESC_SEG_ELECTRIC = "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveElectric"
+DESC_SEG_ECO = (
+    "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveEcoPro"
+)
+DESC_SEG_ELECTRIC = (
+    "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveElectric"
+)
 # Driver door. When a car streams it (the i5 does), it brackets a drive far more
 # precisely than GPS jitter: the door closing means the driver just got in (a
 # drive is imminent), and the door opening after the car has stopped means they
@@ -209,9 +215,7 @@ RESTORED_SESSION_GRACE_S = 900
 # restart -- a live session has the flap debounce for this, which a restored one
 # cannot use because its gap has already happened. Anything unrecognised counts
 # as transient and waits for the grace timer instead.
-CHARGE_TERMINAL_STATUSES = frozenset(
-    {"NOCHARGING", "CHARGINGENDED", "CHARGINGERROR"}
-)
+CHARGE_TERMINAL_STATUSES = frozenset({"NOCHARGING", "CHARGINGENDED", "CHARGINGERROR"})
 
 # A ``trip.segment.end.*`` field is only a completed-trip signal if its own
 # timestamp is recent: BMW ships the "last trip end" fields (e.g. ``hvSoc``) in
@@ -263,9 +267,7 @@ DESC_CHARGE_STATUS = "vehicle.drivetrain.electricEngine.charging.status"
 # link to the Wiki's Troubleshooting page so the fix is one click away; the URL
 # lives here rather than in the translation strings because hassfest forbids URLs
 # inside translations/*.json.
-WIKI_TROUBLESHOOTING = (
-    "https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ"
-)
+WIKI_TROUBLESHOOTING = "https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ"
 # How long the stream may go without a single message before we raise a repair.
 # Long enough that a car simply parked in a garage for a weekend (BMW streams
 # most descriptors only on a state change) doesn't trip it, short enough that a
@@ -292,7 +294,7 @@ def _snapshot_float(value: Any) -> Optional[float]:
 
     try:
         return None if value is None else float(value)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
 
 
@@ -452,6 +454,13 @@ class CardataCoordinator:
     # by ``tyre_store`` -- a restart must not blank the tyre card until the next
     # fetch comes due.
     tyre_diagnosis: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    # Called with the VIN the first time a vehicle is seen on the stream, so
+    # ``__init__.py`` can fetch the basic data a car bought after setup would
+    # otherwise never get: the bootstrap runs once per entry, and everything
+    # that names a car (model, software version, the device name itself) comes
+    # from that one REST call. Set by the setup path; never fires for a VIN the
+    # bootstrap already seeded.
+    on_new_vehicle: Optional[Callable[[str], None]] = field(default=None, repr=False)
     last_message_at: Optional[datetime] = None
     last_telematic_api_at: Optional[datetime] = None
     connection_status: str = "connecting"
@@ -466,9 +475,7 @@ class CardataCoordinator:
     last_message_by_vin: Dict[str, datetime] = field(default_factory=dict, init=False)
     # Per-VIN, per-descriptor arrival tally for the diagnostics download. Live
     # counters only -- restored state doesn't count as an arrival.
-    descriptor_counts: Dict[str, Dict[str, int]] = field(
-        default_factory=dict, init=False
-    )
+    descriptor_counts: Dict[str, Dict[str, int]] = field(default_factory=dict, init=False)
     # Recent connection transitions (status + rc/reason + time) for diagnostics.
     connection_history: Deque[Dict[str, Any]] = field(
         default_factory=lambda: deque(maxlen=CONNECTION_HISTORY_LEN),
@@ -485,9 +492,7 @@ class CardataCoordinator:
     _soc_tracking: Dict[str, SocTracking] = field(default_factory=dict, init=False)
     _soc_rate: Dict[str, float] = field(default_factory=dict, init=False)
     _soc_estimate: Dict[str, float] = field(default_factory=dict, init=False)
-    _testing_soc_tracking: Dict[str, SocTracking] = field(
-        default_factory=dict, init=False
-    )
+    _testing_soc_tracking: Dict[str, SocTracking] = field(default_factory=dict, init=False)
     _testing_soc_estimate: Dict[str, float] = field(default_factory=dict, init=False)
     _avg_aux_power_w: Dict[str, float] = field(default_factory=dict, init=False)
     _charging_power_w: Dict[str, float] = field(default_factory=dict, init=False)
@@ -502,9 +507,7 @@ class CardataCoordinator:
     _energy_session_wh: Dict[str, float] = field(default_factory=dict, init=False)
     _energy_session_start: Dict[str, datetime] = field(default_factory=dict, init=False)
     # SoC at the moment the current session opened, for the energy ceiling.
-    _energy_session_soc: Dict[str, Optional[float]] = field(
-        default_factory=dict, init=False
-    )
+    _energy_session_soc: Dict[str, Optional[float]] = field(default_factory=dict, init=False)
     # Unbounded integral behind ``_energy_session_wh``. Kept so the exposed total
     # can rise again the moment a fresh SoC reading grants the room, instead of
     # the charge being written off while the reading was pending.
@@ -536,26 +539,18 @@ class CardataCoordinator:
     # Trip-capture diagnostic mode (opt-in, off by default). Emits the rich
     # ``[trip.*]`` capture and the NDJSON file; refreshed from options like above.
     trip_debug: bool = False
-    _session_builders: Dict[str, SessionBuilder] = field(
-        default_factory=dict, init=False
-    )
-    _session_costs: Dict[str, CostAccumulator] = field(
-        default_factory=dict, init=False
-    )
+    _session_builders: Dict[str, SessionBuilder] = field(default_factory=dict, init=False)
+    _session_costs: Dict[str, CostAccumulator] = field(default_factory=dict, init=False)
     # Running source mix per open session (PV / house battery / grid). Separate
     # from the cost accumulator because the two can be configured independently:
     # a solar share is worth having with no tariff set, and a tariff is worth
     # having with no PV.
-    _session_mixes: Dict[str, MixAccumulator] = field(
-        default_factory=dict, init=False
-    )
+    _session_mixes: Dict[str, MixAccumulator] = field(default_factory=dict, init=False)
     # VINs whose in-progress charge was restored from the store at startup and
     # has not yet been confirmed either way by the stream. Present means "we
     # believe a charge is running but haven't heard from BMW since the restart";
     # the value is when the snapshot was taken.
-    _restored_open_sessions: Dict[str, datetime] = field(
-        default_factory=dict, init=False
-    )
+    _restored_open_sessions: Dict[str, datetime] = field(default_factory=dict, init=False)
     # Cancel callbacks for the per-VIN timers that close a restored session the
     # stream never confirmed. Without them an outage that spanned the end of a
     # charge would leave the record open forever.
@@ -563,9 +558,7 @@ class CardataCoordinator:
     # When each VIN's in-progress charge was last written to the store. The
     # snapshot is refreshed on a cadence rather than on every sample: a charge
     # runs for hours and the whole history document is rewritten each time.
-    _open_session_saved: Dict[str, datetime] = field(
-        default_factory=dict, init=False
-    )
+    _open_session_saved: Dict[str, datetime] = field(default_factory=dict, init=False)
     # SoC a resumed session was last seen at before the restart, per VIN. Present
     # only between the resume and the first SoC reading that can measure what the
     # gap cost (see ``_apply_gap_credit``).
@@ -604,9 +597,7 @@ class CardataCoordinator:
     # Last settled GPS position per VIN (updated on every complete fix, moving or
     # not). It is what a new trip's track is seeded from, so the route starts
     # where the car actually was parked rather than at the first movement fix.
-    _last_gps_position: Dict[str, tuple[float, float]] = field(
-        default_factory=dict, init=False
-    )
+    _last_gps_position: Dict[str, tuple[float, float]] = field(default_factory=dict, init=False)
     # Pairing state for BMW's two-message fix (lat and lon arrive separately).
     # ``_gps_pending_parts`` is which halves have arrived since the last complete
     # fix, ``_gps_pending_since`` when that wait started (for the stale escape
@@ -800,9 +791,7 @@ class CardataCoordinator:
         if raw_power is None:
             return
         testing_tracking = self._get_testing_tracking(vin)
-        testing_tracking.update_power(
-            self._adjust_power_for_testing(vin, raw_power), timestamp
-        )
+        testing_tracking.update_power(self._adjust_power_for_testing(vin, raw_power), timestamp)
 
     def _set_direct_power(
         self, vin: str, power_w: Optional[float], timestamp: Optional[datetime]
@@ -840,7 +829,7 @@ class CardataCoordinator:
         elif isinstance(phase_value, (int, float)):
             try:
                 parsed = int(phase_value)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 parsed = None
             phase_count = parsed if parsed and parsed > 0 else None
         elif isinstance(phase_value, str):
@@ -848,7 +837,7 @@ class CardataCoordinator:
             if match:
                 try:
                     parsed = int(match.group(1))
-                except (TypeError, ValueError):
+                except TypeError, ValueError:
                     parsed = None
                 phase_count = parsed if parsed and parsed > 0 else None
         if phase_count is None:
@@ -871,9 +860,7 @@ class CardataCoordinator:
             return direct
         return self._derive_ac_power(vin)
 
-    def _apply_effective_power(
-        self, vin: str, timestamp: Optional[datetime]
-    ) -> None:
+    def _apply_effective_power(self, vin: str, timestamp: Optional[datetime]) -> None:
         tracking = self._soc_tracking.setdefault(vin, SocTracking())
         testing_tracking = self._get_testing_tracking(vin)
         effective_power = self._compute_effective_power(vin)
@@ -892,7 +879,15 @@ class CardataCoordinator:
         if not vin or not isinstance(data, dict):
             return
 
+        first_sight = vin not in self.data
         vehicle_state = self.data.setdefault(vin, {})
+        if first_sight and self.on_new_vehicle is not None:
+            # Scheduling only -- the handler must not make this message wait on
+            # a REST call, and must never let one fail the stream.
+            try:
+                self.on_new_vehicle(vin)
+            except Exception:  # noqa: BLE001 - a new car is not worth a dropped message
+                _LOGGER.exception("Cardata: new-vehicle handler failed for %s", mask_vin(vin))
         new_binary: list[str] = []
         new_sensor: list[str] = []
         # Descriptors carrying a value in this batch, for the coverage self-test.
@@ -945,7 +940,9 @@ class CardataCoordinator:
             seen_descriptors.append(descriptor)
             vin_counts = self.descriptor_counts.setdefault(vin, {})
             vin_counts[descriptor] = vin_counts.get(descriptor, 0) + 1
-            if descriptor == "vehicle.vehicleIdentification.basicVehicleData" and isinstance(value, dict):
+            if descriptor == "vehicle.vehicleIdentification.basicVehicleData" and isinstance(
+                value, dict
+            ):
                 self.apply_basic_data(vin, value)
             if is_new:
                 if isinstance(value, bool):
@@ -955,7 +952,7 @@ class CardataCoordinator:
             if descriptor == "vehicle.drivetrain.batteryManagement.header":
                 try:
                     percent = float(value)
-                except (TypeError, ValueError):
+                except TypeError, ValueError:
                     pass
                 else:
                     tracking.update_actual_soc(percent, parsed_ts)
@@ -963,7 +960,7 @@ class CardataCoordinator:
             elif descriptor == "vehicle.drivetrain.batteryManagement.maxEnergy":
                 try:
                     max_energy = float(value)
-                except (TypeError, ValueError):
+                except TypeError, ValueError:
                     pass
                 else:
                     tracking.update_max_energy(max_energy)
@@ -971,7 +968,7 @@ class CardataCoordinator:
             elif descriptor == "vehicle.powertrain.electric.battery.charging.power":
                 try:
                     power_w = float(value)
-                except (TypeError, ValueError):
+                except TypeError, ValueError:
                     self._set_direct_power(vin, None, parsed_ts)
                 else:
                     self._set_direct_power(vin, power_w, parsed_ts)
@@ -984,7 +981,7 @@ class CardataCoordinator:
             elif descriptor == "vehicle.powertrain.electric.battery.stateOfCharge.target":
                 try:
                     target = float(value)
-                except (TypeError, ValueError):
+                except TypeError, ValueError:
                     tracking.update_target_soc(None, parsed_ts)
                     testing_tracking.update_target_soc(None, parsed_ts)
                 else:
@@ -994,7 +991,7 @@ class CardataCoordinator:
                 aux_w: Optional[float] = None
                 try:
                     aux_value = float(value)
-                except (TypeError, ValueError):
+                except TypeError, ValueError:
                     pass
                 else:
                     if isinstance(unit, str) and unit.lower() == "w":
@@ -1011,14 +1008,14 @@ class CardataCoordinator:
             elif descriptor == "vehicle.drivetrain.electricEngine.charging.acVoltage":
                 try:
                     voltage_v = float(value)
-                except (TypeError, ValueError):
+                except TypeError, ValueError:
                     self._set_ac_voltage(vin, None, parsed_ts)
                 else:
                     self._set_ac_voltage(vin, voltage_v, parsed_ts)
             elif descriptor == "vehicle.drivetrain.electricEngine.charging.acAmpere":
                 try:
                     current_a = float(value)
-                except (TypeError, ValueError):
+                except TypeError, ValueError:
                     self._set_ac_current(vin, None, parsed_ts)
                 else:
                     self._set_ac_current(vin, current_a, parsed_ts)
@@ -1031,19 +1028,14 @@ class CardataCoordinator:
             elif descriptor == DESC_DRIVER_DOOR and isinstance(value, bool):
                 door_value = value
             if descriptor in (DESC_GPS_LAT, DESC_GPS_LON):
-                gps_parts.add(
-                    GPS_PART_LAT if descriptor == DESC_GPS_LAT else GPS_PART_LON
-                )
+                gps_parts.add(GPS_PART_LAT if descriptor == DESC_GPS_LAT else GPS_PART_LON)
                 if parsed_ts is not None:
                     gps_ts = parsed_ts
             if descriptor.startswith(DESC_SEG_PREFIX):
                 # Only a segment carrying a *recent* timestamp is a completed
                 # trip; the stale "last trip end" fields BMW repeats in every
                 # snapshot must not be mistaken for one (see ``SEG_FRESH_S``).
-                if (
-                    parsed_ts is not None
-                    and (now - parsed_ts).total_seconds() <= SEG_FRESH_S
-                ):
+                if parsed_ts is not None and (now - parsed_ts).total_seconds() <= SEG_FRESH_S:
                     segment_fresh = True
 
             async_dispatcher_send(self.hass, self.signal_update, vin, descriptor)
@@ -1073,9 +1065,7 @@ class CardataCoordinator:
         if lock is None:
             lock = self._trip_locks[vin] = asyncio.Lock()
         async with lock:
-            await self._process_trip_signals(
-                vin, now, motion_value, ignition_value, segment_fresh
-            )
+            await self._process_trip_signals(vin, now, motion_value, ignition_value, segment_fresh)
             if door_value is not None:
                 await self._process_door_signal(vin, now, door_value)
             if gps_parts:
@@ -1166,9 +1156,7 @@ class CardataCoordinator:
         tracking = self._soc_tracking.get(vin)
         if tracking is None or tracking.last_soc_percent is None:
             return None
-        if not soc_is_from_session(
-            tracking.last_update, self._energy_session_start.get(vin)
-        ):
+        if not soc_is_from_session(tracking.last_update, self._energy_session_start.get(vin)):
             return None
         return tracking.last_soc_percent
 
@@ -1209,9 +1197,7 @@ class CardataCoordinator:
         # of an open session wants.
         self._snapshot_open_session(vin)
 
-    def _record_energy_delta(
-        self, vin: str, now: datetime, power_w: float, kwh: float
-    ) -> None:
+    def _record_energy_delta(self, vin: str, now: datetime, power_w: float, kwh: float) -> None:
         """Feed the session record from the same delta that moved the counters.
 
         Sharing the integration step is deliberate: the curve, the energy and
@@ -1250,9 +1236,7 @@ class CardataCoordinator:
         if builder is not None:
             builder.note_grid_meter(meter_now)
 
-    def _grid_meter_step(
-        self, vin: str, meter_now: Optional[float]
-    ) -> Optional[float]:
+    def _grid_meter_step(self, vin: str, meter_now: Optional[float]) -> Optional[float]:
         """How far the wallbox meter has advanced since the last billed step.
 
         ``None`` when there is nothing measured to bill -- no meter bound, the
@@ -1390,9 +1374,7 @@ class CardataCoordinator:
             self._charge_close_timers.pop(vin, None)
             self._finalize_charge_close(vin, status)
 
-        self._charge_close_timers[vin] = async_call_later(
-            self.hass, CHARGE_CLOSE_DEBOUNCE_S, _fire
-        )
+        self._charge_close_timers[vin] = async_call_later(self.hass, CHARGE_CLOSE_DEBOUNCE_S, _fire)
 
     def _cancel_charge_close_timer(self, vin: str) -> bool:
         """Cancel a pending close; return whether one was actually pending."""
@@ -1433,9 +1415,7 @@ class CardataCoordinator:
         if target is not None and soc is not None and soc >= target - 1.0:
             self.hass.bus.async_fire(EVENT_CHARGING_COMPLETE, payload)
 
-    def _open_session_record(
-        self, vin: str, tracking: SocTracking, started_at: datetime
-    ) -> None:
+    def _open_session_record(self, vin: str, tracking: SocTracking, started_at: datetime) -> None:
         if self.history is None:
             return
         location = self._charging_location(vin)
@@ -1468,8 +1448,7 @@ class CardataCoordinator:
         self._snapshot_open_session(vin, force=True)
         if debug_enabled():
             _LOGGER.debug(
-                "[charge] %s OPEN at %s zone=%s soc=%s target=%s "
-                "pricing=%s price_now=%s",
+                "[charge] %s OPEN at %s zone=%s soc=%s target=%s pricing=%s price_now=%s",
                 vin,
                 started_at.isoformat(),
                 (location or {}).get("zone"),
@@ -1522,9 +1501,7 @@ class CardataCoordinator:
         try:
             self.history.async_set_open_session(vin, snapshot)
         except Exception:  # noqa: BLE001 - bookkeeping must not break the stream
-            _LOGGER.exception(
-                "Could not snapshot the in-progress charge for %s", mask_vin(vin)
-            )
+            _LOGGER.exception("Could not snapshot the in-progress charge for %s", mask_vin(vin))
             return
         self._open_session_saved[vin] = now
 
@@ -1570,9 +1547,7 @@ class CardataCoordinator:
                 _snapshot_float(snapshot.get("energy_raw_wh")) or energy_wh
             )
             self._energy_session_start[vin] = builder.start
-            self._energy_session_soc[vin] = _snapshot_float(
-                snapshot.get("soc_baseline")
-            )
+            self._energy_session_soc[vin] = _snapshot_float(snapshot.get("soc_baseline"))
             # Resume the billing cursor where the snapshot left it, so the
             # kilowatt-hours the wallbox counted while we were away are not
             # billed at whatever the tariff happens to be now. They still reach
@@ -1734,9 +1709,7 @@ class CardataCoordinator:
         if not capacity or capacity <= 0 or gained <= 0:
             return
         credit_wh = gained / 100.0 * capacity * 1000.0
-        self._energy_session_raw_wh[vin] = (
-            self._energy_session_raw_wh.get(vin, 0.0) + credit_wh
-        )
+        self._energy_session_raw_wh[vin] = self._energy_session_raw_wh.get(vin, 0.0) + credit_wh
         self._energy_session_wh[vin] = self._bounded_session_wh(
             vin, self._energy_session_raw_wh[vin]
         )
@@ -1749,9 +1722,7 @@ class CardataCoordinator:
                 soc_now,
             )
 
-    def _close_session_record(
-        self, vin: str, status: str, *, at: Optional[datetime] = None
-    ):
+    def _close_session_record(self, vin: str, status: str, *, at: Optional[datetime] = None):
         builder = self._session_builders.pop(vin, None)
         accumulator = self._session_costs.pop(vin, None)
         mix = self._session_mixes.pop(vin, None)
@@ -1843,7 +1814,7 @@ class CardataCoordinator:
                 continue
             try:
                 return float(state.value)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 continue
         return None
 
@@ -1853,7 +1824,7 @@ class CardataCoordinator:
             return None
         try:
             value = float(state.value)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return None
         # BMW streams a sentinel (0 / "INVALID") before the value is known; a
         # zero capacity would poison both the vs-new ratio and the sanity check.
@@ -1862,9 +1833,7 @@ class CardataCoordinator:
     def battery_nominal_kwh(self, vin: str) -> Optional[float]:
         """As-new HV battery size in kWh, for the battery-health vs-new figure."""
 
-        return self._battery_kwh(
-            vin, "vehicle.drivetrain.batteryManagement.batterySizeMax"
-        )
+        return self._battery_kwh(vin, "vehicle.drivetrain.batteryManagement.batterySizeMax")
 
     def battery_capacity_kwh(self, vin: str) -> Optional[float]:
         """BMW's own current full-pack capacity in kWh, used to sanity-check ours.
@@ -1907,7 +1876,7 @@ class CardataCoordinator:
             return None
         try:
             value = float(state.value)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return None
         return value if value > 0 else None
 
@@ -2034,7 +2003,7 @@ class CardataCoordinator:
                 continue
             try:
                 return float(state.value)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 continue
         return None
 
@@ -2099,9 +2068,7 @@ class CardataCoordinator:
 
             # Segment/accumulated batch, captured whole with each field's own
             # timestamp so we can see whether any ever carries a real trip end.
-            seg = {
-                k: v for k, v in data.items() if k.startswith(DESC_SEG_CAPTURE_PREFIX)
-            }
+            seg = {k: v for k, v in data.items() if k.startswith(DESC_SEG_CAPTURE_PREFIX)}
             if seg:
                 freshest = None
                 parts = []
@@ -2138,9 +2105,7 @@ class CardataCoordinator:
                 short = key[len("vehicle.") :] if key.startswith("vehicle.") else key
                 watch.append(f"{short}={payload.get('value')}@{payload.get('timestamp')}")
             if watch:
-                self._cap(
-                    "[trip.watch] %s %s", vin, " ".join(watch), substrate=True
-                )
+                self._cap("[trip.watch] %s %s", vin, " ".join(watch), substrate=True)
         except Exception:  # noqa: BLE001 - capture must never break the stream
             _LOGGER.exception("Trip capture (log) failed for %s", mask_vin(vin))
 
@@ -2155,17 +2120,14 @@ class CardataCoordinator:
         }
         try:
             line = json.dumps(record, default=str)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return
         path = self.hass.config.path(TRIP_CAPTURE_FILE)
         await self.hass.async_add_executor_job(self._append_capture_line, path, line)
 
     def _append_capture_line(self, path: str, line: str) -> None:
         try:
-            if (
-                os.path.exists(path)
-                and os.path.getsize(path) > TRIP_CAPTURE_MAX_BYTES
-            ):
+            if os.path.exists(path) and os.path.getsize(path) > TRIP_CAPTURE_MAX_BYTES:
                 if not self._trip_capture_warned:
                     self._trip_capture_warned = True
                     _TRIPLOG.warning(
@@ -2232,9 +2194,7 @@ class CardataCoordinator:
             if started and not open_trip:
                 # No fix was processed in this batch, so the last one on record is
                 # still the last time the car was seen parked.
-                await self._open_trip(
-                    vin, now, parked_until=self._last_gps_fix_at.get(vin)
-                )
+                await self._open_trip(vin, now, parked_until=self._last_gps_fix_at.get(vin))
             if motion is True:
                 # Moving again: cancel any pending stationary-close.
                 self._trip_held_since.pop(vin, None)
@@ -2249,9 +2209,7 @@ class CardataCoordinator:
         except Exception:  # noqa: BLE001 - never let trip logic break the stream
             _LOGGER.exception("Trip detection failed for %s", mask_vin(vin))
 
-    async def _process_door_signal(
-        self, vin: str, now: datetime, door_open: bool
-    ) -> None:
+    async def _process_door_signal(self, vin: str, now: datetime, door_open: bool) -> None:
         """Refine trip start/end from the driver door, when the car streams it.
 
         Closing the door (driver got in) arms a start marker at that position, so
@@ -2275,8 +2233,7 @@ class CardataCoordinator:
                 # has actually stopped (guards a flickery read mid-move).
                 last_move = self._last_gps_move.get(vin)
                 stopped = (
-                    last_move is None
-                    or (now - last_move).total_seconds() >= DOOR_ARRIVAL_STOP_S
+                    last_move is None or (now - last_move).total_seconds() >= DOOR_ARRIVAL_STOP_S
                 )
                 if stopped:
                     self._cap(
@@ -2408,8 +2365,10 @@ class CardataCoordinator:
             self._last_gps_fix_at[vin] = now
 
             if moving:
-                if open_trip and vin in self._trip_held_since and silence_implies_stop(
-                    gap_s, step_km, min_gap_s=TRIP_CLOSE_DEBOUNCE_S
+                if (
+                    open_trip
+                    and vin in self._trip_held_since
+                    and silence_implies_stop(gap_s, step_km, min_gap_s=TRIP_CLOSE_DEBOUNCE_S)
                 ):
                     # The fixes are back, but barely anywhere: the car stood
                     # through the silence (a garage that swallows the fix), so the
@@ -2420,8 +2379,7 @@ class CardataCoordinator:
                     self._trip_held_since.pop(vin, None)
                     self._cancel_trip_close_timer(vin)
                     self._cap(
-                        "[trip.timer] %s held close CONFIRMED by distance "
-                        "(%dm over %ds silence)",
+                        "[trip.timer] %s held close CONFIRMED by distance (%dm over %ds silence)",
                         vin,
                         round(step_km * 1000),
                         int(gap_s or 0),
@@ -2478,7 +2436,14 @@ class CardataCoordinator:
             self._note_capture_fix(vin, now, step_km, moving, gap_s)
             if self.trip_debug:
                 self._log_gps_fix(
-                    vin, now, latitude, longitude, step_km, moving, gap_s, fix_ts,
+                    vin,
+                    now,
+                    latitude,
+                    longitude,
+                    step_km,
+                    moving,
+                    gap_s,
+                    fix_ts,
                     open_trip,
                 )
         except Exception:  # noqa: BLE001 - never let trip logic break the stream
@@ -2646,8 +2611,7 @@ class CardataCoordinator:
             start_place=start_place,
             soc_start=self._current_soc(vin),
             mileage_start=self._odometer_km(vin),
-            location_assumed=start_place is None
-            or start_place.get("label") == "Unknown",
+            location_assumed=start_place is None or start_place.get("label") == "Unknown",
             record_track=self.record_trip_track,
         )
         # Seed the route from where the drive actually started (see
@@ -2676,9 +2640,7 @@ class CardataCoordinator:
         )
         async_dispatcher_send(self.hass, self.signal_trip_active, vin)
 
-    def _trip_end_time(
-        self, vin: str, now: datetime, start: datetime, reason: str
-    ) -> datetime:
+    def _trip_end_time(self, vin: str, now: datetime, start: datetime, reason: str) -> datetime:
         """When the drive ended, as opposed to when the close was decided.
 
         A stationary close fires a full ``TRIP_CLOSE_DEBOUNCE_S`` *after* the last
@@ -2705,9 +2667,7 @@ class CardataCoordinator:
             return now
         return max(start, min(last_move, now))
 
-    async def _close_trip(
-        self, vin: str, now: datetime, *, reason: str = "stationary"
-    ) -> None:
+    async def _close_trip(self, vin: str, now: datetime, *, reason: str = "stationary") -> None:
         builder = self._trip_builders.pop(vin, None)
         cap_stats = self._trip_capture.pop(vin, None)
         self._cancel_trip_close_timer(vin)
@@ -2739,8 +2699,7 @@ class CardataCoordinator:
         )
         dropped = is_noise_trip(trip)
         self._cap(
-            "[trip] %s CLOSE(%s) %s -> %s dist=%s (bmw=%s) soc=%s->%s "
-            "energy=%s stats=%s",
+            "[trip] %s CLOSE(%s) %s -> %s dist=%s (bmw=%s) soc=%s->%s energy=%s stats=%s",
             vin,
             reason,
             (trip.start_place or {}).get("label"),
@@ -2809,8 +2768,7 @@ class CardataCoordinator:
             trip.classification = classification
             trip.classification_source = SOURCE_AUTO
         self._cap(
-            "[trip] %s RECORDED id=%s class=%s chain=%s track=%d pts "
-            "(home=%s work=%s)",
+            "[trip] %s RECORDED id=%s class=%s chain=%s track=%d pts (home=%s work=%s)",
             vin,
             trip.id,
             classification,
@@ -2934,16 +2892,12 @@ class CardataCoordinator:
                 TRIP_CLOSE_DEBOUNCE_S,
                 substrate=True,
             )
-            self.hass.async_create_task(
-                self._close_trip(vin, now, reason=reason)
-            )
+            self.hass.async_create_task(self._close_trip(vin, now, reason=reason))
 
         self._trip_close_due[vin] = datetime.now(timezone.utc) + timedelta(
             seconds=TRIP_CLOSE_DEBOUNCE_S
         )
-        self._trip_close_timers[vin] = async_call_later(
-            self.hass, TRIP_CLOSE_DEBOUNCE_S, _fire
-        )
+        self._trip_close_timers[vin] = async_call_later(self.hass, TRIP_CLOSE_DEBOUNCE_S, _fire)
         # Only the first arm (car goes stationary) is worth a line; the per-fix
         # reset while moving would otherwise log every fix (the countdown is
         # already shown on each [trip.gps] line).
@@ -2990,9 +2944,7 @@ class CardataCoordinator:
         for vin in list(self._trip_builders):
             reason = "silent" if vin in self._trip_held_since else "unload"
             with suppress(Exception):
-                await self._close_trip(
-                    vin, datetime.now(timezone.utc), reason=reason
-                )
+                await self._close_trip(vin, datetime.now(timezone.utc), reason=reason)
 
     def async_flush_charging(self) -> None:
         """Preserve every in-flight charge on the way out (unload or shutdown).
@@ -3081,9 +3033,7 @@ class CardataCoordinator:
             return None
         return round(drop / 100.0 * capacity, 3)
 
-    def _read_trip_segment(
-        self, vin: str
-    ) -> tuple[dict[str, Any], Optional[float]]:
+    def _read_trip_segment(self, vin: str) -> tuple[dict[str, Any], Optional[float]]:
         """BMW's per-segment statistics and its own travelled distance.
 
         The statistics ride the trip record (served via ``get_trips``) rather
@@ -3097,7 +3047,7 @@ class CardataCoordinator:
                 return None
             try:
                 return float(state.value)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 return None
 
         stats: dict[str, Any] = {}
@@ -3145,7 +3095,7 @@ class CardataCoordinator:
             return None
         try:
             return float(state.state)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return None
 
     def _power_state_w(self, entity_id: Optional[str]) -> Optional[float]:
@@ -3165,7 +3115,7 @@ class CardataCoordinator:
             return None
         try:
             value = float(state.state)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return None
         unit = (state.attributes.get("unit_of_measurement") or "").strip().lower()
         if unit == "kw":
@@ -3174,9 +3124,7 @@ class CardataCoordinator:
             return value * 1_000_000.0
         return value
 
-    def _session_grid_meter_kwh(
-        self, builder: Optional[SessionBuilder]
-    ) -> Optional[float]:
+    def _session_grid_meter_kwh(self, builder: Optional[SessionBuilder]) -> Optional[float]:
         """The wallbox meter as a charge may see it -- ``None`` away from home.
 
         Every read of the meter on behalf of a session goes through here, so the
@@ -3215,7 +3163,7 @@ class CardataCoordinator:
             return None
         try:
             value = float(state.state)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return None
         unit = (state.attributes.get("unit_of_measurement") or "").strip().lower()
         if unit == "wh":
@@ -3267,11 +3215,7 @@ class CardataCoordinator:
             return
         solar_price = self.pricing.solar_price
         for source, amount in split.items():
-            price = (
-                solar_price
-                if source == SOURCE_PV and solar_price is not None
-                else price_now
-            )
+            price = solar_price if source == SOURCE_PV and solar_price is not None else price_now
             accumulator.add(amount, price)
 
     def get_state(self, vin: str, descriptor: str) -> Optional[DescriptorState]:
@@ -3312,9 +3256,7 @@ class CardataCoordinator:
             self.last_disconnect_reason = reason
         elif status == "connected":
             self.last_disconnect_reason = None
-        self.connection_history.append(
-            {"at": now.isoformat(), "status": status, "reason": reason}
-        )
+        self.connection_history.append({"at": now.isoformat(), "status": status, "reason": reason})
         # Track an unresolved "unauthorized" (MQTT rc=5) window: it opens on the
         # first unauthorized event and closes only on a successful connect, which
         # is exactly the condition the persisting-rc=5 repair should flag.
@@ -3342,8 +3284,7 @@ class CardataCoordinator:
         # same outage, so we suppress that one.
         unauthorized = (
             self._unauthorized_since is not None
-            and (now - self._unauthorized_since).total_seconds()
-            >= UNAUTHORIZED_REPAIR_AFTER_S
+            and (now - self._unauthorized_since).total_seconds() >= UNAUTHORIZED_REPAIR_AFTER_S
         )
         self._set_unauthorized_issue(unauthorized)
 
@@ -3591,7 +3532,7 @@ class CardataCoordinator:
         }:
             try:
                 stored_value = float(value)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 return
         vehicle_state[descriptor] = DescriptorState(
             value=stored_value,
@@ -3605,7 +3546,7 @@ class CardataCoordinator:
         if descriptor == "vehicle.drivetrain.batteryManagement.header":
             try:
                 percent = float(value)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 return
             tracking.update_actual_soc(percent, parsed_ts)
             testing_tracking.update_actual_soc(percent, parsed_ts)
@@ -3613,7 +3554,7 @@ class CardataCoordinator:
         elif descriptor == "vehicle.drivetrain.batteryManagement.maxEnergy":
             try:
                 max_energy = float(value)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 return
             tracking.update_max_energy(max_energy)
             testing_tracking.update_max_energy(max_energy)
@@ -3621,7 +3562,7 @@ class CardataCoordinator:
         elif descriptor == "vehicle.powertrain.electric.battery.charging.power":
             try:
                 power_w = float(value)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 self._set_direct_power(vin, None, parsed_ts)
             else:
                 self._set_direct_power(vin, power_w, parsed_ts)
@@ -3634,7 +3575,7 @@ class CardataCoordinator:
         elif descriptor == "vehicle.powertrain.electric.battery.stateOfCharge.target":
             try:
                 target = float(value)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 tracking.update_target_soc(None, parsed_ts)
                 testing_tracking.update_target_soc(None, parsed_ts)
                 updated = True
@@ -3646,7 +3587,7 @@ class CardataCoordinator:
             aux_w: Optional[float] = None
             try:
                 aux_value = float(value)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 pass
             else:
                 if isinstance(unit, str) and unit.lower() == "w":
@@ -3664,7 +3605,7 @@ class CardataCoordinator:
         elif descriptor == "vehicle.drivetrain.electricEngine.charging.acVoltage":
             try:
                 voltage_v = float(value)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 self._set_ac_voltage(vin, None, parsed_ts)
             else:
                 self._set_ac_voltage(vin, voltage_v, parsed_ts)
@@ -3672,7 +3613,7 @@ class CardataCoordinator:
         elif descriptor == "vehicle.drivetrain.electricEngine.charging.acAmpere":
             try:
                 current_a = float(value)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 self._set_ac_current(vin, None, parsed_ts)
             else:
                 self._set_ac_current(vin, current_a, parsed_ts)
@@ -3693,9 +3634,7 @@ class CardataCoordinator:
             self._soc_rate.pop(vin, None)
 
         if testing_tracking.estimated_percent is not None:
-            self._testing_soc_estimate[vin] = round(
-                testing_tracking.estimated_percent, 2
-            )
+            self._testing_soc_estimate[vin] = round(testing_tracking.estimated_percent, 2)
         elif vin in self._testing_soc_estimate:
             self._testing_soc_estimate.pop(vin, None)
 
@@ -3726,8 +3665,8 @@ class CardataCoordinator:
                     tracking.charging_active = True
                 if tracking.max_energy_kwh not in (None, 0):
                     tracking.last_power_w = (
-                        tracking.rate_per_hour / 100.0
-                    ) * tracking.max_energy_kwh * 1000.0
+                        (tracking.rate_per_hour / 100.0) * tracking.max_energy_kwh * 1000.0
+                    )
                 tracking.last_power_time = reference_time
             else:
                 self._soc_rate.pop(vin, None)
@@ -3752,10 +3691,7 @@ class CardataCoordinator:
         if not isinstance(payload, dict):
             return {}
         model_name = (
-            payload.get("modelName")
-            or payload.get("modelRange")
-            or payload.get("series")
-            or vin
+            payload.get("modelName") or payload.get("modelRange") or payload.get("series") or vin
         )
         brand = payload.get("brand") or "BMW"
         raw_payload = dict(payload)
@@ -3786,7 +3722,11 @@ class CardataCoordinator:
             "extra_attributes": display_attrs,
             "raw_data": raw_payload,
         }
-        model = raw_payload.get("modelName") or raw_payload.get("series") or raw_payload.get("modelRange")
+        model = (
+            raw_payload.get("modelName")
+            or raw_payload.get("series")
+            or raw_payload.get("modelRange")
+        )
         if model:
             metadata["model"] = model
         if raw_payload.get("puStep"):
@@ -3813,9 +3753,7 @@ class CardataCoordinator:
                 severity=ir.IssueSeverity.WARNING,
                 translation_key="motorcycle_unsupported",
                 translation_placeholders={
-                    "vehicle": payload.get("modelName")
-                    or payload.get("series")
-                    or "BMW Motorrad",
+                    "vehicle": payload.get("modelName") or payload.get("series") or "BMW Motorrad",
                 },
                 learn_more_url=(
                     f"{WIKI_TROUBLESHOOTING}#does-bavariandata-work-with-a-bmw-motorcycle"

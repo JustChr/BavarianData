@@ -111,6 +111,50 @@ and follows every lock/unlock within seconds, with the same `Secured` / `Locked`
 / `Partially locked` / `Unlocked` values. See
 [Which lock entity to use](Feature-Entities-and-Devices#which-lock-entity-to-use).
 
+## A second car's REST-only values are frozen
+
+Fixed in **v0.9.11-beta.2**. Before it, an account with more than one vehicle
+refreshed only one of them: everything BMW cannot stream — Condition Based
+Servicing, service demands, charging level, door-lock status, the tyre diagnosis
+— stayed at whatever it was when that car was set up, while the car's stream
+kept running normally and hid the gap.
+
+The tell is a car whose other sensors update by the second, next to a handful
+that share one timestamp weeks old. The [daily refresh](Feature-API-Quota#the-daily-refresh)
+now covers every vehicle, at 2 requests per car.
+
+To fill the gap immediately rather than waiting for the next refresh, call
+`bavariandata.fetch_telematic_data` with that car's `vin`
+([Services reference](Services-Reference)).
+
+## A new car shows up as its VIN, with no model
+
+Everything that names a car — model, series, software version, the device name
+itself — comes from one REST call that used to run only during setup, so a car
+added to the account afterwards stayed a bare VIN.
+
+From **v0.9.11-beta.4** it is fetched automatically the first time that car is
+seen on the stream (one request against the day's quota, once). On an install
+that already has such a car, or if BMW refused the call, run
+**Configure → Fetch basic vehicle data**, which covers every car on the entry.
+
+Its streamed fields are a separate matter: BMW's Data Selection is per vehicle
+and portal-only, so tick the new car's fields via **Configure → Choose streamed
+data**. See [Multiple cars & accounts](Feature-Multiple-Cars-and-Accounts#adding-a-car-later).
+
+## Setup says this BMW account is already set up
+
+One config entry covers a whole CarData account, **including every car on it** —
+there is no need for a second entry per car, and since **v0.9.11-beta.4** setup
+refuses one, even when you generated a second Client ID in the BMW portal.
+
+BMW allows only **one stream connection per account**, so two entries for the
+same account would disconnect each other in a loop, and both would count against
+the same 50-request daily quota while claiming 50 each. If the existing entry is
+one you no longer want, remove it first and then add the new Client ID. Two
+*different* accounts are fine side by side — see
+[Multiple cars & accounts](Feature-Multiple-Cars-and-Accounts).
+
 ## Stream authorization failing (MQTT rc=5)
 
 <a id="stream-authorization-failing"></a>

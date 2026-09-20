@@ -188,9 +188,7 @@ def test_a_snapshot_in_another_currency_is_not_summed():
 
 
 def test_a_corrupt_cost_snapshot_starts_clean():
-    restored = CostAccumulator.from_dict(
-        {"currency": "EUR", "amount": "lots"}, currency="EUR"
-    )
+    restored = CostAccumulator.from_dict({"currency": "EUR", "amount": "lots"}, currency="EUR")
     assert restored.amount == 0.0
     assert restored.total_kwh == 0.0
     assert CostAccumulator.from_dict(None, currency="EUR").currency == "EUR"

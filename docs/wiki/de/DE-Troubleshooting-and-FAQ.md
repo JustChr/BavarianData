@@ -114,6 +114,55 @@ und folgt jedem Ver- und Entriegeln innerhalb von Sekunden, mit denselben Werten
 `Gesichert` / `Verriegelt` / `Teilweise verriegelt` / `Entriegelt`. Siehe
 [Welche Verriegelungs-Entität verwenden](DE-Feature-Entities-and-Devices#which-lock-entity-to-use).
 
+## Die REST-Werte eines zweiten Fahrzeugs sind eingefroren
+
+Behoben in **v0.9.11-beta.2**. Davor wurde bei Konten mit mehreren Fahrzeugen
+nur eines aktualisiert: alles, was BMW nicht streamen kann — Condition Based
+Service, Servicebedarfe, Ladezustand der Ladung, Verriegelungsstatus der Türen,
+die Reifendiagnose — blieb auf dem Stand der Einrichtung dieses Autos stehen,
+während sein Stream normal weiterlief und die Lücke verdeckte.
+
+Erkennbar an einem Fahrzeug, dessen übrige Sensoren sekündlich aktualisieren,
+neben einer Handvoll, die sich einen wochenalten Zeitstempel teilen. Die
+[tägliche Aktualisierung](DE-Feature-API-Quota#the-daily-refresh) umfasst jetzt
+alle Fahrzeuge, mit 2 Anfragen pro Auto.
+
+Wer die Lücke sofort schließen will, statt auf die nächste Aktualisierung zu
+warten, ruft `bavariandata.fetch_telematic_data` mit der `vin` dieses Autos auf
+([Dienste](DE-Services-Reference)).
+
+## Ein neues Fahrzeug erscheint als FIN, ohne Modell
+
+Alles, was ein Auto benennt — Modell, Baureihe, Softwarestand, der Gerätename
+selbst — stammt aus einem REST-Aufruf, der bisher nur bei der Einrichtung lief.
+Ein später hinzugekommenes Fahrzeug blieb daher eine nackte FIN.
+
+Ab **v0.9.11-beta.4** erfolgt der Abruf automatisch, sobald das Auto zum ersten
+Mal im Stream auftaucht (eine Anfrage aus dem Tageskontingent, einmalig). Wer so
+ein Fahrzeug bereits hat oder dessen Abruf BMW abgelehnt hat, ruft
+**Konfigurieren → Fahrzeug-Basisdaten abrufen** auf — das deckt alle Fahrzeuge
+des Eintrags ab.
+
+Die gestreamten Felder sind eine eigene Sache: BMWs Datenauswahl gilt je
+Fahrzeug und nur im Portal. Kreuze die Felder des neuen Autos über
+**Konfigurieren → Gestreamte Daten auswählen** an. Siehe
+[Mehrere Fahrzeuge & Konten](DE-Feature-Multiple-Cars-and-Accounts#adding-a-car-later).
+
+## Die Einrichtung meldet, dieses BMW-Konto sei bereits eingerichtet
+
+Ein Konfigurationseintrag deckt ein ganzes CarData-Konto ab, **einschließlich
+aller Fahrzeuge darin** — ein zweiter Eintrag je Auto ist nicht nötig, und seit
+**v0.9.11-beta.4** wird er abgelehnt, selbst wenn du im BMW-Portal eine zweite
+Client-ID erzeugt hast.
+
+BMW erlaubt nur **eine Stream-Verbindung pro Konto**. Zwei Einträge für dasselbe
+Konto würden sich also endlos gegenseitig trennen, und beide würden dasselbe
+Tageskontingent von 50 Anfragen verbrauchen, während jeder 50 für sich
+annimmt. Ist der vorhandene Eintrag nicht mehr gewünscht, entferne ihn zuerst
+und füge dann die neue Client-ID hinzu. Zwei *verschiedene* Konten dürfen
+problemlos nebeneinander bestehen — siehe
+[Mehrere Fahrzeuge & Konten](DE-Feature-Multiple-Cars-and-Accounts).
+
 ## Stream-Autorisierung schlägt fehl (MQTT rc=5)
 
 <a id="stream-authorization-failing"></a>

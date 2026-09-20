@@ -6,20 +6,27 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   hassfest:
     name: Hassfest
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
+      # Pinned to master on purpose: Home Assistant ships hassfest from the
+      # branch and expects integrations to validate against the current rules.
       - uses: home-assistant/actions/hassfest@master
 
   hacs:
     name: HACS
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: HACS validation
+        # Likewise pinned to main by HACS's own instructions.
         uses: hacs/action@main
         with:
           category: integration

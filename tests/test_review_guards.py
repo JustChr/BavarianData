@@ -35,11 +35,7 @@ HACS = json.loads((_ROOT / "hacs.json").read_text(encoding="utf-8"))
 
 
 def _python_files() -> list[pathlib.Path]:
-    return [
-        p
-        for p in _PKG.rglob("*.py")
-        if "__pycache__" not in p.parts
-    ]
+    return [p for p in _PKG.rglob("*.py") if "__pycache__" not in p.parts]
 
 
 PY_FILES = _python_files()
@@ -144,7 +140,9 @@ def test_no_routes_in_home_assistants_reserved_namespace() -> None:
     """Squatting ``/api/`` collides with core and bypasses expectations."""
 
     for path in PY_FILES:
-        for match in re.finditer(r'^\s*url\s*=\s*["\'](/[^"\']*)', path.read_text(encoding="utf-8"), re.MULTILINE):
+        for match in re.finditer(
+            r'^\s*url\s*=\s*["\'](/[^"\']*)', path.read_text(encoding="utf-8"), re.MULTILINE
+        ):
             assert not match.group(1).startswith("/api/"), (
                 f"{_rel(path)} registers {match.group(1)!r} under Home Assistant's "
                 "reserved /api/ namespace"
@@ -273,9 +271,7 @@ def test_diagnostics_redacts_every_identifying_key() -> None:
             and isinstance(node.value, ast.Set)
         ):
             redacted = {
-                element.value
-                for element in node.value.elts
-                if isinstance(element, ast.Constant)
+                element.value for element in node.value.elts if isinstance(element, ast.Constant)
             }
 
     missing = MUST_REDACT - redacted
@@ -313,9 +309,7 @@ def test_manifest_declares_every_integration_it_depends_on() -> None:
                 if name.isidentifier():
                     used.add(name)
 
-    declared = set(MANIFEST.get("dependencies", [])) | set(
-        MANIFEST.get("after_dependencies", [])
-    )
+    declared = set(MANIFEST.get("dependencies", [])) | set(MANIFEST.get("after_dependencies", []))
     undeclared = used - declared - IMPLICIT_COMPONENTS
     assert not undeclared, (
         f"manifest.json does not declare {sorted(undeclared)}, but the code uses "
@@ -381,9 +375,7 @@ def test_shipped_payload_stays_small() -> None:
     total_kb = _kb(shipped)
 
     assert www_kb <= MAX_WWW_KB, f"www/ is {www_kb} KB (max {MAX_WWW_KB})"
-    assert total_kb <= MAX_TOTAL_KB, (
-        f"the integration ships {total_kb} KB (max {MAX_TOTAL_KB})"
-    )
+    assert total_kb <= MAX_TOTAL_KB, f"the integration ships {total_kb} KB (max {MAX_TOTAL_KB})"
 
 
 def test_no_bytecode_is_committed() -> None:
@@ -397,7 +389,7 @@ def test_no_bytecode_is_committed() -> None:
             text=True,
             check=True,
         ).stdout.split()
-    except (OSError, subprocess.CalledProcessError):  # pragma: no cover
+    except OSError, subprocess.CalledProcessError:  # pragma: no cover
         pytest.skip("git is not available")
 
     bytecode = [p for p in tracked if p.endswith(".pyc") or "__pycache__" in p]
@@ -474,9 +466,7 @@ def _activation_set() -> set[str]:
         sys.path.remove(str(_PKG))
 
 
-@pytest.mark.parametrize(
-    ("descriptor", "role"), sorted(STREAM_CRITICAL_DESCRIPTORS.items())
-)
+@pytest.mark.parametrize(("descriptor", "role"), sorted(STREAM_CRITICAL_DESCRIPTORS.items()))
 def test_stream_critical_descriptors_are_activated(descriptor: str, role: str) -> None:
     assert descriptor in _activation_set(), (
         f"{descriptor} ({role}) is not in the default activation set, so Data "
@@ -575,9 +565,7 @@ def test_the_safe_restore_path_stores_native_data() -> None:
 def test_restoring_sensors_use_the_safe_base(name: str) -> None:
     path = _PKG / "sensor.py"
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-    cls = next(
-        n for n in ast.walk(tree) if isinstance(n, ast.ClassDef) and n.name == name
-    )
+    cls = next(n for n in ast.walk(tree) if isinstance(n, ast.ClassDef) and n.name == name)
     bases = {ast.unparse(b) for b in cls.bases}
     assert "CardataRestoreSensor" in bases, (
         f"{name} restores a value across restarts, so it must derive from "
@@ -671,8 +659,7 @@ def _calls_to(path, function: str, name: str) -> list:
     scope = next(
         n
         for n in ast.walk(tree)
-        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
-        and n.name == function
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == function
     )
     return [
         node
@@ -717,9 +704,7 @@ def test_the_measured_charging_loss_comes_from_one_window() -> None:
 
     path = _PKG / "history" / "efficiency.py"
     for call in _calls_to(path, "efficiency_profile", "consumption"):
-        sides = [
-            ast.unparse(kw.value) for kw in call.keywords if kw.arg == "side"
-        ]
+        sides = [ast.unparse(kw.value) for kw in call.keywords if kw.arg == "side"]
         assert "SIDE_GRID" not in sides, (
             "The grid-side figure is being fetched through the window-walking "
             "consumption() helper, which can settle on a different window than "
@@ -729,10 +714,7 @@ def test_the_measured_charging_loss_comes_from_one_window() -> None:
     grid_balances = [
         call
         for call in _calls_to(path, "efficiency_profile", "energy_balance")
-        if any(
-            kw.arg == "side" and ast.unparse(kw.value) == "SIDE_GRID"
-            for kw in call.keywords
-        )
+        if any(kw.arg == "side" and ast.unparse(kw.value) == "SIDE_GRID" for kw in call.keywords)
     ]
     assert grid_balances, "The grid-side figure is no longer computed at all."
     for call in grid_balances:
@@ -824,8 +806,7 @@ def test_the_bridge_never_advertises_charge_power_on_a_parked_car() -> None:
     snapshot = next(
         n
         for n in ast.walk(tree)
-        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
-        and n.name == "bridge_snapshot"
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == "bridge_snapshot"
     )
     assert "_charging_power_w" in ast.unparse(snapshot), (
         "bridge_snapshot no longer reads the charging power at all."

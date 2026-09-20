@@ -50,11 +50,23 @@ generator idempotence).
 python -m pytest tests/
 ```
 
-Deps: `requirements_test.txt` (aiohttp + pytest only). `tests/conftest.py`
+Deps: `requirements_test.txt` — light on purpose (aiohttp, pytest, PyYAML,
+plus a pinned `ruff`); nothing there pulls in Home Assistant. `tests/conftest.py`
 loads integration modules in isolation via a synthetic package so nothing
 imports Home Assistant — keep new test targets HA-import-free, or they won't be
 testable here. There is no HA test harness in this repo; config-flow/entity
 behavior is verified against a live HA instance manually.
+
+Some tests run the shipped card under Node and skip themselves when it is
+absent; CI pins Node 24 so that coverage cannot silently disappear.
+
+`tests/test_card_snapshots.py` pins a golden render of **every card view for
+every drivetrain**, so a layout change shows up as a readable diff instead of
+having to be spotted by eye in Home Assistant. When a change to the card is
+intended, approve it with `python -m pytest tests/test_card_snapshots.py
+--snapshot-update` and **read the resulting diff** — that review is the point.
+The harness freezes the clock and forces English; without that the snapshots
+would rot daily.
 
 ## User documentation
 
@@ -78,7 +90,30 @@ first). Update the coverage matrix in [`docs/documentation-plan.md`](docs/docume
 too — that matrix is the definition of "documented everything," and reviewing it
 is how you catch a gap. English is the source language; every page has a German
 counterpart in `docs/wiki/de/DE-<page>.md` that changes **in the same commit**
-(`tests/test_wiki_links.py` checks links, anchors and the EN↔DE pairing).
+(`tests/test_wiki_links.py` checks links, anchors and the EN↔DE pairing;
+`tests/test_docs_lockstep.py` checks that every service in `services.yaml`
+and every card view is described in both languages **and** present in the
+coverage matrix).
+
+## Claude Code tooling (`.claude/`)
+
+Machinery for the rituals above, so they survive a fresh session instead of
+living only in prose.
+
+- **Hooks** (`.claude/hooks/`, wired in `.claude/settings.json`):
+  `guard_generated.py` refuses writes to the pipeline's output and names the
+  input to edit instead; `lint_touched.py` runs ruff on a `.py` and
+  `node --check` on the card right after it is written; `commit_guard.py` asks
+  before a commit that changes an English wiki page without its German
+  counterpart, or that ships code while `## [Unreleased]` is empty.
+- **Skills** (`.claude/skills/`): `regen` (the four generators, in order),
+  `ship` (release), `triage` (read a user's diagnostics), `live` (zero-quota
+  reads against the live instance), `shoot` (Playwright screenshots).
+- **Agent** (`.claude/agents/docs-lockstep.md`): reads a diff and reports which
+  wiki pages, German counterparts, matrix rows and screenshots went stale.
+
+Host names, addresses and credentials stay in local memory, never in these
+files — this repo is public.
 
 ## Releases
 
@@ -118,7 +153,16 @@ zip asset).
   `docs/reference/stream-scope-investigation.md` before revisiting.
 - Minimum supported HA is **2026.3** (`hacs.json`; needed for self-served brand
   icons in `brand/`) — don't use newer-only HA
-  APIs without bumping it deliberately.
+  APIs without bumping it deliberately. That floor sets the **Python floor too**:
+  HA 2026.3 requires **Python 3.14.2** (2026.2 was the last release to accept
+  3.13), so every install runs 3.14+. CI tests 3.14 only and `pyproject.toml`
+  targets `py314`; raising the HA floor means revisiting both.
+- The source is **syntactically 3.14-only**. `ruff format` at `target-version =
+  "py314"` drops the parentheses from multi-exception `except` clauses (PEP 758),
+  so `except TypeError, ValueError:` appears throughout — valid on 3.14, a
+  *syntax error* on 3.13, which therefore cannot even import this package. That
+  is deliberate and matches the floor. Run the suite with 3.14; if the floor
+  ever drops below 2026.3, lower `target-version` and re-run `ruff format`.
 - Entities must keep exposing `cluster`/`category` attributes even when
   restored/unavailable — the Lovelace card's cluster views depend on them.
 - README image links use absolute `raw.githubusercontent.com` URLs on purpose
@@ -134,4 +178,9 @@ zip asset).
   directly in `en.json`/`de.json`.
 - English and German are both first-class: entity naming changes must land in
   both languages (the pipeline handles this).
-- Keep the card dependency-free vanilla JS; there is no bundler.
+- Keep the card dependency-free vanilla JS; there is no bundler. The root
+  `package.json` is **dev-only** — ESLint (`npx eslint
+  custom_components/bavariandata/www`, config in `eslint.config.mjs`) — and
+  nothing from `node_modules/` reaches a user. `no-unsanitized/property` is off
+  there on purpose; `tests/test_card_escaping.py` guards escaping far more
+  precisely, and the reasoning is written out in the config.

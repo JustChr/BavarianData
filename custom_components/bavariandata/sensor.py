@@ -143,14 +143,12 @@ class CardataSensor(CardataRestoreSensor):
                     self._attr_native_unit_of_measurement = meta["unit"]
                     self._fixed_unit = True
                 if (
-                    device_class is SensorDeviceClass.DISTANCE
-                    and meta.get("unit") in ("km", "mi")
-                ) or (
-                    device_class is SensorDeviceClass.PRESSURE
-                    and meta.get("unit") == "kPa"
-                ) or (
-                    device_class is SensorDeviceClass.VOLUME_STORAGE
-                    and not meta.get("unit")
+                    (
+                        device_class is SensorDeviceClass.DISTANCE
+                        and meta.get("unit") in ("km", "mi")
+                    )
+                    or (device_class is SensorDeviceClass.PRESSURE and meta.get("unit") == "kPa")
+                    or (device_class is SensorDeviceClass.VOLUME_STORAGE and not meta.get("unit"))
                 ):
                     # BMW streams whole kilometres for every one of these -- a
                     # range, an odometer, a trip length. Left unsaid, Home
@@ -200,11 +198,12 @@ class CardataSensor(CardataRestoreSensor):
                     # so a direct attribute access raises AttributeError for any
                     # sensor whose __init__ never set a device class (e.g. GPS
                     # altitude), which would abort adding the entity.
-                    if (
-                        getattr(self, "_attr_device_class", None) is None
-                        and unit in {u.value for u in UnitOfLength}
-                    ):
-                        self._attr_device_class = SensorDeviceClass.DISTANCE # Enables km/mi, m/ft, etc., conversion
+                    if getattr(self, "_attr_device_class", None) is None and unit in {
+                        u.value for u in UnitOfLength
+                    }:
+                        self._attr_device_class = (
+                            SensorDeviceClass.DISTANCE
+                        )  # Enables km/mi, m/ft, etc., conversion
                 timestamp = None
                 if last_state is not None:
                     timestamp = last_state.attributes.get("timestamp")
@@ -458,7 +457,7 @@ class CardataSocEstimateSensor(CardataRestoreSensor):
         if restored is not None:
             try:
                 self._attr_native_value = float(restored)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 self._attr_native_value = None
             else:
                 restored_ts = last_state.attributes.get("timestamp") if last_state else None
@@ -514,7 +513,7 @@ class CardataTestingSocEstimateSensor(CardataRestoreSensor):
         if restored is not None:
             try:
                 self._attr_native_value = float(restored)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 self._attr_native_value = None
             else:
                 restored_ts = last_state.attributes.get("timestamp") if last_state else None
@@ -569,7 +568,7 @@ class CardataSocRateSensor(CardataRestoreSensor):
         if restored is not None:
             try:
                 self._attr_native_value = float(restored)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 self._attr_native_value = None
             else:
                 restored_ts = last_state.attributes.get("timestamp") if last_state else None
@@ -633,7 +632,7 @@ class CardataChargedEnergySensor(CardataRestoreSensor):
             if value is not None:
                 try:
                     restored = float(value)
-                except (TypeError, ValueError):
+                except TypeError, ValueError:
                     restored = None
                 if restored is not None:
                     self._attr_native_value = restored
@@ -686,7 +685,7 @@ class CardataSessionEnergySensor(CardataRestoreSensor):
             if value is not None:
                 try:
                     restored = float(value)
-                except (TypeError, ValueError):
+                except TypeError, ValueError:
                     restored = None
                 if restored is not None:
                     self._attr_native_value = restored
@@ -923,9 +922,7 @@ class CardataChargingCostPerDistanceSensor(CardataChargingSummarySensor):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "charging_cost_per_100km")
-        self._attr_native_unit_of_measurement = (
-            f"{coordinator.pricing.currency}/100 km"
-        )
+        self._attr_native_unit_of_measurement = f"{coordinator.pricing.currency}/100 km"
 
     @property
     def native_value(self):
@@ -1396,9 +1393,7 @@ class CardataTyreStatusSensor(CardataTyreEntity):
         return attrs
 
 
-async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities
-) -> None:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
     runtime = entry.runtime_data
     coordinator: CardataCoordinator = runtime.coordinator
 
@@ -1433,8 +1428,7 @@ async def async_setup_entry(
         if vin in driving_entities or coordinator.history is None:
             return
         drivable = any(
-            coordinator.get_state(vin, descriptor) is not None
-            for descriptor in _DRIVE_SIGNALS
+            coordinator.get_state(vin, descriptor) is not None for descriptor in _DRIVE_SIGNALS
         )
         if not (force or drivable):
             return
@@ -1448,10 +1442,7 @@ async def async_setup_entry(
     _EV_SIGNALS = tuple(sorted(HIGH_VOLTAGE_SIGNALS))
 
     def _has_battery(vin: str) -> bool:
-        return any(
-            coordinator.get_state(vin, descriptor) is not None
-            for descriptor in _EV_SIGNALS
-        )
+        return any(coordinator.get_state(vin, descriptor) is not None for descriptor in _EV_SIGNALS)
 
     def ensure_battery_health_entity(vin: str, *, force: bool = False) -> None:
         """Create the battery-health sensor once the car looks like an EV.
@@ -1473,8 +1464,7 @@ async def async_setup_entry(
 
     def _has_odometer(vin: str) -> bool:
         return any(
-            coordinator.get_state(vin, descriptor) is not None
-            for descriptor in DESC_ODOMETER
+            coordinator.get_state(vin, descriptor) is not None for descriptor in DESC_ODOMETER
         )
 
     def ensure_real_range_entity(vin: str, *, force: bool = False) -> None:
@@ -1519,9 +1509,7 @@ async def async_setup_entry(
             # Vehicle status cluster is optional in the portal. Either spelling
             # of the odometer will do -- see ``_DRIVE_SIGNALS``.
             if _has_odometer(vin):
-                new_entities.append(
-                    CardataChargingCostPerDistanceSensor(coordinator, vin)
-                )
+                new_entities.append(CardataChargingCostPerDistanceSensor(coordinator, vin))
         charging_summary_entities[vin] = new_entities
         async_add_entities(new_entities, True)
 
@@ -1561,9 +1549,7 @@ async def async_setup_entry(
         if new_entities:
             async_add_entities(new_entities, True)
 
-    def ensure_tyre_entities(
-        vin: str, *, positions: Any = None, status: bool = False
-    ) -> None:
+    def ensure_tyre_entities(vin: str, *, positions: Any = None, status: bool = False) -> None:
         """Create the tyre-diagnosis sensors for whichever wheels BMW reported.
 
         Only wheels present in the payload get an entity: a car with no tyre
@@ -1574,11 +1560,7 @@ async def async_setup_entry(
 
         known = tyre_entities.setdefault(vin, {})
         diagnosis = coordinator.tyre_diagnosis.get(vin) or {}
-        wanted = (
-            set(positions)
-            if positions is not None
-            else set(diagnosis.get("wheels") or {})
-        )
+        wanted = set(positions) if positions is not None else set(diagnosis.get("wheels") or {})
         new_entities: list = []
         if (wanted or status) and "status" not in known:
             known["status"] = CardataTyreStatusSensor(coordinator, vin)
@@ -1627,9 +1609,7 @@ async def async_setup_entry(
     for old_unique_id, new_unique_id in legacy_unique_ids.items():
         entity_id = entity_registry.async_get_entity_id("sensor", DOMAIN, old_unique_id)
         if entity_id:
-            entity_registry.async_update_entity(
-                entity_id, new_unique_id=new_unique_id
-            )
+            entity_registry.async_update_entity(entity_id, new_unique_id=new_unique_id)
 
     legacy_soc_rate_unique = f"{entry.entry_id}_diagnostics_soc_rate"
     legacy_soc_rate_entity = entity_registry.async_get_entity_id(
@@ -1638,9 +1618,7 @@ async def async_setup_entry(
     if legacy_soc_rate_entity:
         entity_registry.async_remove(legacy_soc_rate_entity)
 
-    for entity_entry in er.async_entries_for_config_entry(
-        entity_registry, entry.entry_id
-    ):
+    for entity_entry in er.async_entries_for_config_entry(entity_registry, entry.entry_id):
         if entity_entry.domain != "sensor":
             continue
         if entity_entry.disabled_by is not None:
@@ -1678,7 +1656,7 @@ async def async_setup_entry(
             if descriptor == "tyre_status":
                 ensure_tyre_entities(vin, positions=set(), status=True)
             else:
-                ensure_tyre_entities(vin, positions={descriptor[len("tyre_"):]})
+                ensure_tyre_entities(vin, positions={descriptor[len("tyre_") :]})
             continue
         if descriptor in {
             "charging_energy_month",
@@ -1720,9 +1698,7 @@ async def async_setup_entry(
         ensure_soc_tracking_entities(vin)
 
     entry.async_on_unload(
-        async_dispatcher_connect(
-            hass, coordinator.signal_soc_estimate, async_handle_soc_estimate
-        )
+        async_dispatcher_connect(hass, coordinator.signal_soc_estimate, async_handle_soc_estimate)
     )
 
     async def async_handle_new_tyre(vin: str) -> None:
@@ -1731,9 +1707,7 @@ async def async_setup_entry(
         ensure_tyre_entities(vin)
 
     entry.async_on_unload(
-        async_dispatcher_connect(
-            hass, f"{DOMAIN}_{entry.entry_id}_new_tyre", async_handle_new_tyre
-        )
+        async_dispatcher_connect(hass, f"{DOMAIN}_{entry.entry_id}_new_tyre", async_handle_new_tyre)
     )
 
     diagnostic_entities: list[CardataDiagnosticsSensor] = []
@@ -1765,9 +1739,7 @@ async def async_setup_entry(
 
     if runtime.quota_manager is not None:
         quota_unique_id = f"{entry.entry_id}_diagnostics_api_quota_remaining"
-        quota_entity_id = entity_registry.async_get_entity_id(
-            "sensor", DOMAIN, quota_unique_id
-        )
+        quota_entity_id = entity_registry.async_get_entity_id("sensor", DOMAIN, quota_unique_id)
         add_quota = True
         if quota_entity_id:
             quota_entry = entity_registry.async_get(quota_entity_id)
@@ -1775,9 +1747,7 @@ async def async_setup_entry(
                 add_quota = False
         if add_quota:
             diagnostic_entities.append(
-                CardataQuotaSensor(
-                    coordinator, entry.entry_id, runtime.quota_manager
-                )
+                CardataQuotaSensor(coordinator, entry.entry_id, runtime.quota_manager)
             )
 
     if diagnostic_entities:

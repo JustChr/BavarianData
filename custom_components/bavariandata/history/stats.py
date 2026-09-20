@@ -82,9 +82,7 @@ def session_energy_kwh(session: ChargingSession) -> Optional[float]:
     return session.effective_energy_kwh
 
 
-def _accumulate(
-    target: dict[datetime, float], buckets: dict[datetime, float]
-) -> None:
+def _accumulate(target: dict[datetime, float], buckets: dict[datetime, float]) -> None:
     for hour, value in buckets.items():
         target[hour] = target.get(hour, 0.0) + value
 
@@ -94,9 +92,7 @@ def hourly_energy(sessions: Iterable[ChargingSession]) -> dict[datetime, float]:
 
     buckets: dict[datetime, float] = {}
     for session in sessions:
-        _accumulate(
-            buckets, spread(session.start, session.end, session_energy_kwh(session))
-        )
+        _accumulate(buckets, spread(session.start, session.end, session_energy_kwh(session)))
     return buckets
 
 
@@ -136,9 +132,7 @@ def hourly_distance(trips: Iterable[Trip]) -> dict[datetime, float]:
     return buckets
 
 
-def cumulative(
-    buckets: dict[datetime, float], *, precision: int = 3
-) -> list[dict[str, Any]]:
+def cumulative(buckets: dict[datetime, float], *, precision: int = 3) -> list[dict[str, Any]]:
     """Turn per-hour amounts into the running-sum rows statistics expect.
 
     Home Assistant stores a ``sum``-type statistic as a monotonic meter reading,

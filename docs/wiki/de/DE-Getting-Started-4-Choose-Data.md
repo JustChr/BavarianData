@@ -95,6 +95,11 @@ gewählte Datengruppe 7 Tage lang **überhaupt nichts**, erscheint unter
 **Einstellungen → Reparaturen** eine Warnung — das ist der Fall, in dem es sich
 lohnt, die Datenauswahl zu prüfen.
 
+Ist diese eine Datengruppe nach **30 Tagen** immer noch leer, während alles andere
+weiter ankommt, behandelt die Integration sie nicht mehr als Lücke: Deine Auswahl
+wurde offenkundig gespeichert, die Felder fehlen also im Auto. Die Warnung
+verschwindet, und die Datengruppe wird stattdessen als nicht zutreffend geführt.
+
 ### Manche Felder kommen nie über den Stream
 
 <a id="some-fields-never-arrive-on-the-stream"></a>

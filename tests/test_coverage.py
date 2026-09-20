@@ -239,3 +239,94 @@ def test_seen_accepts_any_collection():
     as_set = _analyze({"desc.soc", "desc.range"}, since=NOW - timedelta(days=10))
     as_list = _analyze(["desc.soc", "desc.range"], since=NOW - timedelta(days=10))
     assert as_set.to_dict() == as_list.to_dict()
+
+
+# --- A cluster the car simply does not have (issue #13) --------------------
+#
+# The reporter's 2019 i3s: a healthy stream (486 messages in one session), every
+# selected cluster delivering except tyres, which that car does not put on
+# CarData at all. It was told 178 of 224 fields were overdue and shown a repair
+# it could never clear, which is what sent it hunting a BMW fault that was not
+# there.
+
+# Read defensively so these tests fail one by one on a build without the rule,
+# rather than breaking collection and hiding which behaviour regressed.
+UNSUPPORTED_AFTER_DAYS = getattr(coverage, "UNSUPPORTED_AFTER_DAYS", 30)
+
+
+def _aged(seen, days, expected=None):
+    return analyze_coverage(
+        vin="VIN1",
+        expected_by_section=expected if expected is not None else EXPECTED,
+        labels=LABELS,
+        seen=seen,
+        monitoring_since=NOW - timedelta(days=days),
+        now=NOW,
+    )
+
+
+def test_lone_silent_cluster_becomes_not_applicable_after_a_month():
+    report = _aged(["desc.soc", "desc.range", "desc.power"], UNSUPPORTED_AFTER_DAYS)
+    assert report.not_applicable == ["tire"]
+    assert report.overdue_clusters() == []
+    assert not report.has_gaps
+    # Still reported as missing -- the report stays honest about what never came.
+    assert set(report.missing) == {"desc.tyre.fl", "desc.tyre.fr"}
+    # ...but a field the car cannot produce is absent, not overdue.
+    assert report.overdue == []
+
+
+def test_the_same_silence_is_still_a_gap_before_a_month():
+    report = _aged(["desc.soc", "desc.range", "desc.power"], UNSUPPORTED_AFTER_DAYS - 1)
+    assert report.not_applicable == []
+    assert [c.section for c in report.overdue_clusters()] == ["tire"]
+    assert report.has_gaps
+
+
+def test_two_silent_clusters_stay_a_gap_however_long():
+    # The signature of a Data Selection that never saved: suppressing this is
+    # exactly the failure the self-test exists to catch.
+    report = _aged(
+        [DOOR],
+        365,
+        expected={"electric": ["desc.soc"], "tire": ["desc.tyre.fl"], "status": [DOOR]},
+    )
+    assert report.not_applicable == []
+    assert {c.section for c in report.overdue_clusters()} == {"electric", "tire"}
+
+
+def test_a_single_selected_cluster_never_declares_itself_unsupported():
+    # Nothing corroborates that the selection saved, so silence is still a gap.
+    report = _aged([], 365, expected={"tire": ["desc.tyre.fl"]})
+    assert report.not_applicable == []
+    assert [c.section for c in report.overdue_clusters()] == ["tire"]
+
+
+def test_event_driven_silence_does_not_spend_the_budget():
+    # 'events' is explained already, so a silent tyre cluster is still the only
+    # unexplained one and is read as a car limitation.
+    report = _aged(
+        [DOOR],
+        365,
+        expected={"events": [TELESERVICE], "tire": [TYRE], "status": [DOOR]},
+    )
+    assert report.not_applicable == ["tire"]
+    assert report.overdue_clusters() == []
+
+
+def test_combustion_car_no_longer_counts_electric_fields_as_overdue():
+    report = _aged(
+        [FUEL, EV_TARGET],
+        60,
+        expected={"electric": [HV_SOC], "basic": [BATTERY_SIZE], "status": [FUEL]},
+    )
+    assert set(report.not_applicable) == {"electric", "basic"}
+    assert report.overdue == []
+    assert HV_SOC in report.missing
+
+
+def test_a_car_that_fills_everything_needs_no_exemption():
+    every = [d for group in EXPECTED.values() for d in group]
+    report = _aged(every, 365)
+    assert report.not_applicable == []
+    assert not report.has_gaps

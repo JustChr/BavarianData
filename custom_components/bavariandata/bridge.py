@@ -67,9 +67,7 @@ REPUBLISH_INTERVAL_S = 300
 _CLEAR = ""
 
 
-async def async_clear_published(
-    hass: HomeAssistant, *, prefix: str, vins: Iterable[str]
-) -> None:
+async def async_clear_published(hass: HomeAssistant, *, prefix: str, vins: Iterable[str]) -> None:
     """Delete every retained topic the bridge owns for these vehicles.
 
     A module-level function, not a method, because the most important caller has
@@ -169,13 +167,9 @@ class VehicleBridge:
             @callback
             def _fire(_now: Any, target: str = target) -> None:
                 self._timers.pop(target, None)
-                self.hass.async_create_task(
-                    self.async_publish(target), eager_start=False
-                )
+                self.hass.async_create_task(self.async_publish(target), eager_start=False)
 
-            self._timers[target] = async_call_later(
-                self.hass, PUBLISH_DEBOUNCE_S, _fire
-            )
+            self._timers[target] = async_call_later(self.hass, PUBLISH_DEBOUNCE_S, _fire)
 
     @callback
     def async_shutdown(self) -> None:
@@ -293,17 +287,13 @@ class VehicleBridge:
         self._published.clear()
         self._prefixes.clear()
 
-    async def _async_clear(
-        self, vin: str, prefix: str, suffixes: tuple[str, ...]
-    ) -> None:
+    async def _async_clear(self, vin: str, prefix: str, suffixes: tuple[str, ...]) -> None:
         for suffix in suffixes:
             await self._async_send(f"{prefix}/{vin}/{suffix}", _CLEAR, clearing=True)
         for suffix in suffixes:
             self._published.get(vin, {}).pop(suffix, None)
 
-    async def _async_send(
-        self, topic: str, payload: str, *, clearing: bool = False
-    ) -> None:
+    async def _async_send(self, topic: str, payload: str, *, clearing: bool = False) -> None:
         """One publish, with the broker's problems kept out of the stream.
 
         Nothing upstream of here may fail because MQTT did: this runs off the

@@ -9,6 +9,101 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.11-beta.4] - 2026-09-20
+
+An audit of everything the integration still assumed about "one car in one
+account", after the two multi-car fixes of the previous betas. Six findings,
+all fixed here. Nothing changes for a single-car install.
+
+### Fixed
+- **With two accounts set up, fetching basic vehicle data filed the car under
+  the wrong account.** The services are registered once, by whichever entry
+  loads first, and this one handler kept writing to *that* entry instead of the
+  one the call named: a second account's car had its model and software version
+  stored on the first account's entry, and its device attached there too. Worse
+  once the first account was removed while the other stayed — the handler still
+  pointed at the deleted entry, so fetching basic data failed outright for the
+  account that was still there.
+- **A car added to the account after setup stayed a bare VIN.** Its entities
+  appeared on their own, because it rides the same stream, but everything that
+  names a car — model, series, software version, the device name on the
+  dashboard — comes from a REST call that ran only during first-time setup.
+  Nothing ever revisited it, so a second BMW bought a year in was still listed
+  by its VIN. It is now fetched the first time that car is seen on the stream:
+  one request against that day's quota, once, and never retried in a loop for a
+  car BMW answers nothing for.
+- **A car added later was declared incomplete on day one.** The coverage
+  self-test gives a new install a week before it reports a cluster as silent,
+  but that clock belonged to the config entry — that is, to the day the *first*
+  car was set up. A car added two years in was past its grace window the moment
+  it arrived and was shown a Repairs warning for clusters it had not had a
+  chance to stream yet. Each vehicle now has its own clock.
+- **Removing the integration could leave a car's evcc topics retained on the
+  broker.** The cleanup walked the stored basic-data record, which a car added
+  after setup need never have appeared in — so a charge controller could go on
+  reading a state of charge frozen at the moment of removal, which is precisely
+  what that cleanup exists to prevent. It now covers every car the entry ever
+  had, down to one that only ever streamed.
+
+### Changed
+- **Debug logging is no longer decided by whichever account loaded last.** The
+  switch is per config entry but the log level is one logger's, so with two
+  accounts the last entry to set up — or to have any option saved — silently
+  overruled the other, turning verbose logging off on the account being
+  diagnosed. Logging now stays verbose while **any** entry has it enabled. It
+  still spans both accounts while it is on; the options screen says so.
+- **A second config entry for an account you already set up is now refused.**
+  Generating a second Client ID in the BMW portal for the same account passed
+  the duplicate check and then broke both entries: BMW allows one stream
+  connection per account, so the two evicted each other in a loop, their
+  VIN-keyed entities collided, and each claimed the full 50-request quota that
+  BMW counts once per account. Setup now stops with an explanation. Two
+  *different* accounts side by side are unaffected — that is supported, and now
+  documented.
+
+### Documentation
+- New Wiki page **Multiple cars & accounts** (EN + DE): what one entry covers,
+  adding a car later, quota with several cars, and how to name the car you mean
+  in the card, in services, in automations and in the evcc bridge. Plus two new
+  FAQ entries and the shared-log-level note in the settings reference.
+
+## [0.9.11-beta.3] - 2026-09-20
+
+### Changed
+- **A cluster your car doesn't have stops being reported as a gap.** The
+  coverage self-test compares your cluster selection against what has actually
+  arrived, and it had only one exemption: the electric clusters on a petrol car.
+  Everything else stayed "overdue" forever — an older i3, which streams no tyre
+  pressure at all, was told 178 of 224 fields were missing and shown a Repairs
+  warning it could never clear. Now, when a single cluster is still silent after
+  30 days while every other selected cluster has delivered, the selection has
+  demonstrably saved and the car is simply missing those fields: the cluster is
+  marked not applicable, its fields stop counting as overdue, and the warning
+  clears itself. Two or more silent clusters still warn however long they stay
+  silent — that is the signature of a Data Selection that did not save, which is
+  what the self-test exists to catch.
+
+## [0.9.11-beta.2] - 2026-09-20
+
+### Fixed
+- **With more than one car on an account, only one of them got its daily REST
+  refresh.** Everything BMW cannot stream — Condition Based Servicing, service
+  demands, charging level, door-lock status, the tyre diagnosis — reaches Home
+  Assistant only through that refresh, and it covered a single vehicle: whichever
+  car happened to send the first message after a restart. Every other car kept
+  the values it had at setup, indefinitely, while its stream ran normally and
+  hid the gap — one reporter's i3s sat eight days behind its i4 on exactly those
+  fields. The refresh now walks every vehicle on the account, one request per
+  car, and so does a `fetch_telematic_data` call made without a `vin`. Reported
+  with the diagnostics that made it findable by @erwinweiss1955
+  ([#13](https://github.com/JustChr/BavarianData/issues/13)).
+
+### Changed
+- **The daily refresh now costs 2 requests per vehicle instead of 2 per
+  account** — 2 a day for one car, 4 for two, out of BMW's 50. That is the price
+  of the fix above; a one-car install is unaffected. Calling
+  `fetch_telematic_data` with a `vin` still spends exactly one request.
+
 ## [0.9.11-beta.1] - 2026-09-18
 
 ### Fixed

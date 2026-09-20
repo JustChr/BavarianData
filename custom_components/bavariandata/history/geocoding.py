@@ -120,9 +120,7 @@ class ReverseGeocoder:
             await asyncio.sleep(wait)
         self._last_call = time.monotonic()
 
-    async def _request(
-        self, latitude: float, longitude: float
-    ) -> Optional[str]:
+    async def _request(self, latitude: float, longitude: float) -> Optional[str]:
         params = {
             "format": "jsonv2",
             "lat": f"{latitude:.5f}",

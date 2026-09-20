@@ -62,9 +62,7 @@ def test_location_settings_single_page():
 
 
 def test_vehicle_image_returns_bytes():
-    session = FakeSession(
-        [FakeResponse(200, b"\x89PNG", headers={"Content-Type": "image/png"})]
-    )
+    session = FakeSession([FakeResponse(200, b"\x89PNG", headers={"Content-Type": "image/png"})])
     data, content_type = _run(api.async_get_vehicle_image(session, "tok", "VIN0"))
     assert data == b"\x89PNG"
     assert content_type == "image/png"

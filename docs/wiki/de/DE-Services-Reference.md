@@ -20,7 +20,7 @@ von Hand aufgerufen holen sie nur früher ab und verbrauchen eine Anfrage mehr.
 
 | Dienst | Was er abruft |
 | --- | --- |
-| `bavariandata.fetch_telematic_data` | Aktueller Inhalt des Telematik-Containers einer FIN — jedes Feld, das BMW nicht streamen kann, in einer Anfrage. |
+| `bavariandata.fetch_telematic_data` | Aktueller Inhalt des Telematik-Containers — jedes Feld, das BMW nicht streamen kann, in einer Anfrage. Ohne `vin` werden **alle Fahrzeuge des Kontos** aktualisiert, je eine Anfrage. |
 | `bavariandata.fetch_vehicle_mappings` | Mit dem Konto verknüpfte Fahrzeuge und ihr Status PRIMARY/SECONDARY. |
 | `bavariandata.fetch_basic_data` | Statische Fahrzeugdaten (Modell, Baureihe, …). |
 | `bavariandata.fetch_charging_history` | BMWs Ladevorgänge (seitenweise; optional `from`/`to`), in den lokalen Verlauf importiert und um gemessene Netzenergie ergänzt. |
@@ -177,6 +177,15 @@ gewählte Datengruppe 7 Tage lang **überhaupt nichts** gesendet hat — das Ken
 einer Datenauswahl, die nicht gespeichert wurde —, und nie für eine teilweise
 gefüllte Datengruppe, für *Fahrzeugereignisse* (Teleservice-Anrufe können Monate
 auseinanderliegen) oder für eine `not_applicable`-Datengruppe.
+
+**Eine Datengruppe, die dein Auto schlicht nicht hat, gilt nach 30 Tagen nicht mehr
+als Lücke.** Ist nach einem Monat genau eine Datengruppe still, während alle anderen
+gewählten geliefert haben, wurde die Datenauswahl offensichtlich gespeichert und der
+Stream funktioniert — übrig bleibt ein Fahrzeug ohne diese Felder (ein älterer i3
+streamt zum Beispiel keinen Reifendruck). Diese Datengruppe wandert zu
+`not_applicable`, ihre Felder zählen nicht mehr als `overdue`, und die
+Reparaturwarnung verschwindet von selbst. Zwei oder mehr stille Datengruppen warnen
+weiterhin, egal wie lange: Dieses Muster deutet nach wie vor auf die Datenauswahl.
 
 ### `import_statistics`
 

@@ -88,9 +88,7 @@ def entities_to_reenable(
     return selected
 
 
-def ev_entities_to_remove(
-    rows: Iterable[Any], combustion_only: Callable[[str], bool]
-) -> list[str]:
+def ev_entities_to_remove(rows: Iterable[Any], combustion_only: Callable[[str], bool]) -> list[str]:
     """Entity ids of battery-only entities on a car proven to have no battery.
 
     ``combustion_only`` answers for a VIN, and must need positive evidence (see

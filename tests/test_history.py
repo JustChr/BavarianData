@@ -59,9 +59,7 @@ def test_unusable_records_are_dropped_not_half_built():
 
 
 def test_naive_stored_timestamp_is_treated_as_utc():
-    restored = ChargingSession.from_dict(
-        {"vin": "WBY1", "start": "2026-07-01T18:00:00"}
-    )
+    restored = ChargingSession.from_dict({"vin": "WBY1", "start": "2026-07-01T18:00:00"})
     assert restored is not None
     assert restored.start == START
 
@@ -88,18 +86,14 @@ def test_prune_drops_sessions_outside_the_window():
     now = START + timedelta(days=400)
     kept = _session(start=now - timedelta(days=10))
     dropped = _session(start=now - timedelta(days=300))
-    result = models.prune_sessions(
-        [kept, dropped], now=now, retain_months=6, max_entries=100
-    )
+    result = models.prune_sessions([kept, dropped], now=now, retain_months=6, max_entries=100)
     assert [item.start for item in result] == [kept.start]
 
 
 def test_prune_enforces_the_cap_even_when_keeping_forever():
     now = START + timedelta(days=10)
     many = [_session(start=START + timedelta(hours=i)) for i in range(50)]
-    result = models.prune_sessions(
-        many, now=now, retain_months=None, max_entries=10
-    )
+    result = models.prune_sessions(many, now=now, retain_months=None, max_entries=10)
     assert len(result) == 10
     # Newest kept, and ordered newest-first.
     assert result[0].start == max(item.start for item in many)
@@ -285,9 +279,7 @@ def test_month_bucketing_uses_local_time_not_utc():
 
     # Without a localizer it stays in July, matching its UTC timestamp.
     assert summary.sessions_in_month([late], year=2026, month=7) == [late]
-    assert (
-        summary.sessions_in_month([late], year=2026, month=8, localize=as_cest) == [late]
-    )
+    assert summary.sessions_in_month([late], year=2026, month=8, localize=as_cest) == [late]
     assert summary.sessions_in_month([late], year=2026, month=7, localize=as_cest) == []
 
 
@@ -447,9 +439,7 @@ def test_median_shrugs_off_one_bad_session():
 
 
 def test_vs_new_percentage_needs_a_nominal_size():
-    result = health.usable_capacity(
-        [_charge(10.0, 90.0, 60.0)] * 10, nominal_kwh=80.0
-    )
+    result = health.usable_capacity([_charge(10.0, 90.0, 60.0)] * 10, nominal_kwh=80.0)
     assert result.usable_kwh == 75.0
     assert result.vs_new_percent == 93.8  # 75 / 80
     assert health.usable_capacity([_charge(10.0, 90.0, 60.0)]).vs_new_percent is None
@@ -458,9 +448,7 @@ def test_vs_new_percentage_needs_a_nominal_size():
 def test_a_wild_divergence_from_bmws_figure_is_distrusted():
     # BMW says the pack is ~80 kWh but our maths lands at 40: an input is wrong,
     # so refuse to present the number even with plenty of samples.
-    result = health.usable_capacity(
-        [_charge(20.0, 80.0, 24.0)] * 12, sanity_kwh=80.0
-    )
+    result = health.usable_capacity([_charge(20.0, 80.0, 24.0)] * 12, sanity_kwh=80.0)
     assert result.usable_kwh == 40.0
     assert result.suspicious is True
     assert result.confident is False
@@ -488,10 +476,7 @@ def test_degradation_series_is_capacity_against_mileage():
 
 
 def test_degradation_series_keeps_only_the_most_recent_points():
-    charges = [
-        _charge(20.0, 80.0, 48.0, mileage_km=float(km))
-        for km in range(1000, 6000, 1000)
-    ]
+    charges = [_charge(20.0, 80.0, 48.0, mileage_km=float(km)) for km in range(1000, 6000, 1000)]
     series = health.degradation_series(charges, limit=2)
     assert [point[0] for point in series] == [4000.0, 5000.0]
 
@@ -636,16 +621,25 @@ def test_energy_balance_says_which_side_of_the_charger_it_measured():
         _charge_point(START, odo=10000.0, soc=60.0),
         _charge_point(START + timedelta(days=3), odo=10100.0, soc=60.0, kwh=20.0),
     ]
-    assert summary.energy_balance(estimated, battery_capacity_kwh=CAP)["source"] == (
-        "battery"
-    )
+    assert summary.energy_balance(estimated, battery_capacity_kwh=CAP)["source"] == ("battery")
 
     measured = [
-        _session(start=START, end=START + timedelta(hours=2),
-                 mileage_km=10000.0, soc_end=60.0, energy_kwh=10.0, grid_kwh=11.0),
-        _session(start=START + timedelta(days=3),
-                 end=START + timedelta(days=3, hours=2),
-                 mileage_km=10100.0, soc_end=60.0, energy_kwh=20.0, grid_kwh=23.0),
+        _session(
+            start=START,
+            end=START + timedelta(hours=2),
+            mileage_km=10000.0,
+            soc_end=60.0,
+            energy_kwh=10.0,
+            grid_kwh=11.0,
+        ),
+        _session(
+            start=START + timedelta(days=3),
+            end=START + timedelta(days=3, hours=2),
+            mileage_km=10100.0,
+            soc_end=60.0,
+            energy_kwh=20.0,
+            grid_kwh=23.0,
+        ),
     ]
     result = summary.energy_balance(measured, battery_capacity_kwh=CAP)
     assert result["source"] == "grid"
@@ -657,8 +651,14 @@ def test_one_estimated_session_makes_the_whole_balance_battery_side():
 
     mixed = [
         _charge_point(START, odo=10000.0, soc=60.0),
-        _session(start=START + timedelta(days=1), end=START + timedelta(days=1, hours=2),
-                 mileage_km=10050.0, soc_end=60.0, energy_kwh=10.0, grid_kwh=11.0),
+        _session(
+            start=START + timedelta(days=1),
+            end=START + timedelta(days=1, hours=2),
+            mileage_km=10050.0,
+            soc_end=60.0,
+            energy_kwh=10.0,
+            grid_kwh=11.0,
+        ),
         _charge_point(START + timedelta(days=3), odo=10100.0, soc=60.0, kwh=10.0),
     ]
     assert summary.energy_balance(mixed, battery_capacity_kwh=CAP)["source"] == "battery"
@@ -677,8 +677,9 @@ builders = load_module("history.sessions")
 
 def test_a_charge_running_before_we_noticed_is_flagged():
     late = builders.SessionBuilder("WBY1", START, soc_start=56.0, soc_before=42.0)
-    assert late.close(START + timedelta(hours=2), soc_end=65.0,
-                      energy_kwh=11.045).late_start is True
+    assert (
+        late.close(START + timedelta(hours=2), soc_end=65.0, energy_kwh=11.045).late_start is True
+    )
 
 
 def test_an_ordinary_charge_is_not_flagged():
@@ -689,18 +690,18 @@ def test_an_ordinary_charge_is_not_flagged():
     """
 
     for before, start in ((42.0, 42.0), (51.0, 52.0), (53.0, 54.0), (58.0, 60.0)):
-        session = builders.SessionBuilder(
-            "WBY1", START, soc_start=start, soc_before=before
-        ).close(START + timedelta(hours=2), soc_end=start + 30.0, energy_kwh=24.0)
+        session = builders.SessionBuilder("WBY1", START, soc_start=start, soc_before=before).close(
+            START + timedelta(hours=2), soc_end=start + 30.0, energy_kwh=24.0
+        )
         assert session.late_start is False, (before, start)
 
 
 def test_no_pre_charge_reading_means_no_accusation():
     """The first charge after a restart has nothing to compare against."""
 
-    session = builders.SessionBuilder(
-        "WBY1", START, soc_start=56.0, soc_before=None
-    ).close(START + timedelta(hours=2), soc_end=90.0, energy_kwh=26.0)
+    session = builders.SessionBuilder("WBY1", START, soc_start=56.0, soc_before=None).close(
+        START + timedelta(hours=2), soc_end=90.0, energy_kwh=26.0
+    )
     assert session.late_start is False
 
 
@@ -776,7 +777,7 @@ def test_ceiling_is_a_bound_not_a_correction():
     to meet the ceiling would invent energy rather than withhold it.
     """
 
-    ceiling = builders.energy_ceiling_kwh(32.0, 40.0, 78.0)   # 8 points -> 7.8
+    ceiling = builders.energy_ceiling_kwh(32.0, 40.0, 78.0)  # 8 points -> 7.8
     assert min(3.71, ceiling) == 3.71
 
 
@@ -884,7 +885,6 @@ def test_an_unwatched_session_records_no_soc_arc_at_all():
 def test_a_watched_session_still_records_both_ends():
     builder = builders.SessionBuilder("WBY1", START, soc_start=38.0)
     builder.note_soc(52.0)
-    session = builder.close(START + timedelta(minutes=25), soc_end=61.0,
-                            energy_kwh=17.5)
+    session = builder.close(START + timedelta(minutes=25), soc_end=61.0, energy_kwh=17.5)
     assert (session.soc_start, session.soc_end) == (38.0, 61.0)
     assert session.soc_delta == 23.0

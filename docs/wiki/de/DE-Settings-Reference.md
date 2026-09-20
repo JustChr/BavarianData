@@ -135,7 +135,7 @@ Bildschirm: **Konfigurieren → Debug-Protokollierung**.
 
 | Option | Werte | Bedeutung |
 | --- | --- | --- |
-| **Debug-Protokollierung aktivieren** | an/aus | Standardmäßig aus. Schaltet die ausführliche Protokollierung der Integration frei (getrennt vom Log-Level, den HA pro Integration setzt). **Ausführlich und kann FIN/GPS enthalten** — nur zur Fehlersuche einschalten. Wirkt sofort. |
+| **Debug-Protokollierung aktivieren** | an/aus | Standardmäßig aus. Schaltet die ausführliche Protokollierung der Integration frei (getrennt vom Log-Level, den HA pro Integration setzt). **Ausführlich und kann FIN/GPS enthalten** — nur zur Fehlersuche einschalten. Wirkt sofort. Sind mehrere BMW-Konten eingerichtet, gilt der Log-Level gemeinsam: Die Protokollierung bleibt ausführlich, solange **irgendein** Eintrag sie anhat, und umfasst alle Konten ([Mehrere Fahrzeuge & Konten](DE-Feature-Multiple-Cars-and-Accounts#telling-the-cars-apart)). |
 
 ## Versteckte Optionen
 

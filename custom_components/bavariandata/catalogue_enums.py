@@ -62,9 +62,7 @@ _DESCRIPTOR_ENUM_OVERRIDES: dict[str, tuple[str, ...]] = {
 }
 
 
-def enum_options(
-    descriptor: str, value_range: str, data_type: str = ""
-) -> tuple[str, ...]:
+def enum_options(descriptor: str, value_range: str, data_type: str = "") -> tuple[str, ...]:
     """Enum values for a descriptor: a pinned override if any, else parsed.
 
     The override wins over the (occasionally wrong) catalogue ``value_range`` so

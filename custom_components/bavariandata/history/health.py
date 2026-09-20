@@ -122,9 +122,7 @@ def usable_capacity(
     """
 
     samples = sorted(
-        value
-        for value in (_capacity_sample(session) for session in sessions)
-        if value is not None
+        value for value in (_capacity_sample(session) for session in sessions) if value is not None
     )
     count = len(samples)
     if count == 0:

@@ -75,7 +75,9 @@ def test_every_step_shown_has_translated_text(language: str) -> None:
     for cls, actions in _shown("progress_action").items():
         for section in _SECTIONS[cls]:
             known = translations[section].get("progress", {})
-            missing += [f"{section}.progress.{a} ({cls})" for a in sorted(actions) if a not in known]
+            missing += [
+                f"{section}.progress.{a} ({cls})" for a in sorted(actions) if a not in known
+            ]
     assert not missing, f"{language}.json lacks: {missing}"
 
 

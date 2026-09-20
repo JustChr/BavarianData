@@ -376,12 +376,7 @@ def test_the_cross_check_is_skipped_when_our_own_figure_is_a_floor() -> None:
     saw the part we missed.
     """
 
-    assert (
-        sessions.measured_grid_kwh(
-            1000.0, 1040.0, battery_kwh=10.4, cross_check=False
-        )
-        == 40.0
-    )
+    assert sessions.measured_grid_kwh(1000.0, 1040.0, battery_kwh=10.4, cross_check=False) == 40.0
 
 
 def test_the_meter_is_read_for_a_charge_at_home() -> None:
@@ -488,9 +483,7 @@ def test_a_closed_session_carries_the_measured_grid_figure() -> None:
     builder.note_soc(75.0)
     builder.note_grid_meter(1000.0)
     builder.note_grid_meter(1030.0)
-    session = builder.close(
-        NOW + timedelta(hours=3), soc_end=75.0, energy_kwh=27.5
-    )
+    session = builder.close(NOW + timedelta(hours=3), soc_end=75.0, energy_kwh=27.5)
     assert session.grid_kwh == 30.0
     # Battery-side stays battery-side; the measured figure is a separate field,
     # and everything showing a number has to say which it is.
@@ -502,9 +495,7 @@ def test_a_closed_session_carries_the_measured_grid_figure() -> None:
 def test_a_session_with_no_meter_bound_behaves_exactly_as_before() -> None:
     builder = sessions.SessionBuilder(VIN, NOW, soc_start=40.0)
     builder.note_soc(75.0)
-    session = builder.close(
-        NOW + timedelta(hours=3), soc_end=75.0, energy_kwh=27.5
-    )
+    session = builder.close(NOW + timedelta(hours=3), soc_end=75.0, energy_kwh=27.5)
     assert session.grid_kwh is None
     assert session.effective_energy_kwh == 27.5
 
@@ -522,9 +513,7 @@ def test_an_interrupted_session_keeps_the_meters_larger_figure() -> None:
     assert resumed is not None and resumed.interrupted is True
     resumed.note_soc(80.0)
     resumed.note_grid_meter(1048.0)
-    session = resumed.close(
-        NOW + timedelta(hours=5), soc_end=80.0, energy_kwh=0.3
-    )
+    session = resumed.close(NOW + timedelta(hours=5), soc_end=80.0, energy_kwh=0.3)
     assert session.grid_kwh == 48.0
 
 
@@ -594,8 +583,7 @@ def test_every_plug_source_is_streamed() -> None:
         ).read_text(encoding="utf-8")
     )
     streamable = {
-        entry["descriptor"]: entry.get("streamable")
-        for entry in catalogue["descriptors"]
+        entry["descriptor"]: entry.get("streamable") for entry in catalogue["descriptors"]
     }
     for descriptor in evcc.PLUG_DESCRIPTORS:
         assert descriptor in streamable, f"{descriptor} is not in the catalogue"

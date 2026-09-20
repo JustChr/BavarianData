@@ -6,23 +6,51 @@ on:
   pull_request:
   workflow_dispatch:
 
+# A newer push to the same branch makes an in-flight run obsolete.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Unit tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          # Home Assistant 2026.3 -- the floor in hacs.json -- requires Python
+          # 3.14.2, so every install this integration runs on is on 3.14 or
+          # newer (2026.2 was the last release to accept 3.13). Testing an
+          # older minor would only cover a configuration no user has.
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: requirements_test.txt
+      - uses: actions/setup-node@v7
+        with:
+          # The card tests run the shipped JS under Node and skip themselves
+          # when it is absent. Pinning the major stops that coverage from
+          # appearing and disappearing with the runner image.
+          node-version: "24"
+          cache: npm
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements_test.txt ruff
+          pip install -r requirements_test.txt
       - name: Lint (ruff)
         # Rule selection lives in pyproject.toml: real bug patterns (pyflakes,
-        # bugbear, logging) are enforced; cosmetic reflow is left to
-        # `ruff format` (not yet gated — see pyproject.toml).
+        # bugbear, logging).
         run: ruff check custom_components/bavariandata tests
+      - name: Format (ruff)
+        # The generated descriptor_metadata.py is excluded in pyproject.toml;
+        # passing directories rather than files is what makes that apply.
+        run: ruff format --check custom_components/bavariandata tests tools
+      - name: Install Node dev dependencies
+        # Dev-only: ESLint for the card. Nothing from node_modules ships.
+        run: npm ci
+      - name: Lint the card (ESLint)
+        run: npx eslint custom_components/bavariandata/www
       - name: Run tests
-        run: pytest tests/ -q
+        # Coverage is reported, never gated -- see the note in pyproject.toml
+        # for why the total is the wrong number to read.
+        run: pytest tests/ -q --cov --cov-report=term:skip-covered

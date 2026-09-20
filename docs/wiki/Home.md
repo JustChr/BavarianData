@@ -44,6 +44,7 @@ you add the card to a dashboard yourself. It has several views:
 - [Export (CSV / HTML report)](Feature-Export)
 - [Events & automation blueprints](Feature-Automations)
 - [API quota](Feature-API-Quota) — the 50 requests / 24 h cap
+- [Multiple cars & accounts](Feature-Multiple-Cars-and-Accounts) — one entry per account, and how to say which car you mean
 
 ## Reference
 

@@ -7,7 +7,9 @@
 # not drown the signal. Narrow the net per-file with ``per-file-ignores`` rather
 # than shrinking the global ``select``.
 [tool.ruff]
-target-version = "py313"
+# Home Assistant 2026.3 (the floor in hacs.json) requires Python 3.14.2,
+# so every install runs 3.14 or newer -- ruff may assume its syntax.
+target-version = "py314"
 line-length = 100
 
 [tool.ruff.lint]
@@ -28,7 +30,31 @@ select = [
 "tests/**" = ["B011"]
 
 [tool.ruff.format]
-# Formatting is configured but not yet enforced in CI; run ``ruff format`` to
-# normalise the tree (a large, purely-cosmetic diff) before turning on the
-# ``ruff format --check`` gate.
+# Enforced in CI as ``ruff format --check``.
+#
+# ``descriptor_metadata.py`` is excluded because it is generated: the formatter
+# would rewrite its quotes, ``tools/generate_metadata.py`` would write them back
+# on the next run, and ``test_generators_are_idempotent`` would fail either way.
+# How generated output looks is the generator's business, not the formatter's.
+exclude = ["custom_components/bavariandata/descriptor_metadata.py"]
 docstring-code-format = false
+
+# Coverage is measured and reported, never gated.
+#
+# The number to read is not the total. Roughly 6,100 of the ~6,400 uncovered
+# lines are in the modules that import Home Assistant -- coordinator, sensor,
+# config_flow, stream, the entity platforms -- which the suite cannot execute
+# at all (tests/conftest.py loads modules in isolation, HA-free). Those sit at
+# 0% by construction, not by neglect, and a gate would only measure how much
+# HA-coupled code exists.
+#
+# What the report is actually for is the other column: an HA-free module that
+# has drifted below its neighbours is a real gap and is cheap to close.
+[tool.coverage.run]
+source = ["custom_components/bavariandata"]
+
+[tool.coverage.report]
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]

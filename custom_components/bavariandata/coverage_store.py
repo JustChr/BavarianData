@@ -25,7 +25,13 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.storage import Store
 
 from .const import DOMAIN
-from .coverage import DEFAULT_GRACE_DAYS, CoverageReport, analyze_coverage
+from .coverage import (
+    DEFAULT_GRACE_DAYS,
+    CoverageReport,
+    analyze_coverage,
+    backfill_first_seen,
+    monitoring_since,
+)
 
 try:  # normal case: imported as part of the package
     from .descriptors import descriptors_for_sections, section_labels
@@ -66,6 +72,11 @@ class CoverageStore:
         self._sections: list[str] = list(sections or [])
         self._store = Store(hass, STORE_VERSION, f"{DOMAIN}_{entry_id}_coverage")
         self._seen: dict[str, dict[str, str]] = {}
+        # When each vehicle was first heard from. The entry-wide clock below
+        # cannot answer for a car added to the account months later: judged
+        # against it, a brand-new car is past its grace window the moment it
+        # arrives and is told on day one that a cluster has sent nothing.
+        self._first_seen: dict[str, str] = {}
         self._started_at: Optional[datetime] = None
         self._loaded = False
 
@@ -85,10 +96,17 @@ class CoverageStore:
             if isinstance(raw_seen, dict):
                 for vin, descriptors in raw_seen.items():
                     if isinstance(descriptors, dict):
-                        self._seen[vin] = {
-                            str(k): str(v) for k, v in descriptors.items()
-                        }
+                        self._seen[vin] = {str(k): str(v) for k, v in descriptors.items()}
+            raw_first = data.get("first_seen")
+            if isinstance(raw_first, dict):
+                self._first_seen = {str(vin): str(stamp) for vin, stamp in raw_first.items()}
             self._started_at = _parse(data.get("started_at"))
+            # Records written before first sightings were kept still carry the
+            # arrival timestamps to recover them from.
+            recovered = backfill_first_seen(self._seen, self._first_seen)
+            if recovered:
+                self._first_seen.update(recovered)
+                changed = True
             stored_sections = data.get("sections")
             if isinstance(stored_sections, list) and stored_sections != self._sections:
                 # The selection changed while we were down: the grace clock is
@@ -126,12 +144,21 @@ class CoverageStore:
         seen = self._seen.setdefault(vin, {})
         stamp = datetime.now(timezone.utc).isoformat()
         added = False
+        if vin not in self._first_seen:
+            # First contact with this car: its own grace window starts here.
+            self._first_seen[vin] = stamp
+            added = True
         for descriptor in descriptors:
             if descriptor and descriptor not in seen:
                 seen[descriptor] = stamp
                 added = True
         if added:
             self.async_schedule_save()
+
+    def monitoring_since(self, vin: str) -> Optional[datetime]:
+        """When this vehicle's grace window started (see ``coverage``)."""
+
+        return monitoring_since(self._started_at, _parse(self._first_seen.get(vin)))
 
     def seen_descriptors(self, vin: str) -> set[str]:
         """Every descriptor that has ever arrived for ``vin``, across restarts."""
@@ -141,9 +168,7 @@ class CoverageStore:
     def _expected_by_section(self) -> dict[str, list[str]]:
         # The non-diagnostic set is exactly what the picker asks BMW to stream,
         # so it is what we are entitled to expect back.
-        return {
-            section: descriptors_for_sections([section]) for section in self._sections
-        }
+        return {section: descriptors_for_sections([section]) for section in self._sections}
 
     def reports(
         self,
@@ -173,7 +198,7 @@ class CoverageStore:
                     expected_by_section=expected,
                     labels=labels,
                     seen=seen,
-                    monitoring_since=self._started_at,
+                    monitoring_since=self.monitoring_since(vin),
                     now=now,
                     grace_days=self.grace_days,
                 )
@@ -189,6 +214,7 @@ class CoverageStore:
         return {
             "started_at": self._started_at.isoformat() if self._started_at else None,
             "sections": list(self._sections),
+            "first_seen": dict(self._first_seen),
             "seen": {vin: dict(items) for vin, items in self._seen.items()},
         }
 
@@ -202,5 +228,6 @@ class CoverageStore:
         """Delete the stored coverage record (integration removal)."""
 
         self._seen = {}
+        self._first_seen = {}
         self._started_at = None
         await self._store.async_remove()

@@ -46,6 +46,7 @@ mehrere Ansichten:
 - [Export (CSV / HTML-Bericht)](DE-Feature-Export)
 - [Ereignisse & Automations-Blueprints](DE-Feature-Automations)
 - [API-Kontingent](DE-Feature-API-Quota) — die Grenze von 50 Anfragen / 24 h
+- [Mehrere Fahrzeuge & Konten](DE-Feature-Multiple-Cars-and-Accounts) — ein Eintrag je Konto, und wie du sagst, welches Auto gemeint ist
 
 ## Nachschlagen
 

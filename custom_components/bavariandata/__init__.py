@@ -10,7 +10,8 @@ import time
 from collections import deque
 from datetime import datetime, time as dt_time, timedelta, timezone
 from contextlib import suppress
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from functools import partial
 from typing import Any, Deque, Dict, List, Optional
 
 import aiohttp
@@ -91,6 +92,7 @@ from .stream_activation import (
     StreamActivationError,
 )
 from .tyre_store import TyreStore
+from .vehicles import known_vins
 from .history.backfill import StatisticsPublisher
 from .bridge import REPUBLISH_INTERVAL_S, VehicleBridge, async_clear_published
 from .descriptor_metadata import DESCRIPTOR_META
@@ -116,7 +118,7 @@ from .history.summary import (
 from .history.trips import CLASSIFICATIONS, SOURCE_USER
 from .stream import CardataStreamManager
 from .coordinator import CardataCoordinator
-from .debug import mask_vin, set_debug_enabled
+from .debug import forget_entry as forget_entry_debug, mask_vin, set_debug_enabled
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -126,6 +128,7 @@ PLATFORMS: list[Platform] = [
     Platform.DEVICE_TRACKER,
     Platform.IMAGE,
 ]
+
 
 def _cardata_timestamp(value: datetime) -> str:
     """Format a datetime as the ISO 8601 UTC string BMW's REST API expects."""
@@ -160,7 +163,7 @@ def _as_limit(value: Any) -> Optional[int]:
         return None
     try:
         return int(value)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
 
 
@@ -169,7 +172,7 @@ def _retain_months(options: dict) -> Optional[int]:
 
     try:
         months = int(options.get(OPTION_HISTORY_RETAIN_MONTHS, DEFAULT_HISTORY_RETAIN_MONTHS))
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return DEFAULT_HISTORY_RETAIN_MONTHS
     return months if months > 0 else None
 
@@ -185,15 +188,12 @@ def _coverage_reports(runtime: "CardataRuntimeData", vin: Optional[str] = None):
     if runtime.coverage is None:
         return []
     live = {
-        known_vin: set(descriptors)
-        for known_vin, descriptors in runtime.coordinator.data.items()
+        known_vin: set(descriptors) for known_vin, descriptors in runtime.coordinator.data.items()
     }
     reports = runtime.coverage.reports(live)
     if vin is not None:
         reports = [report for report in reports if report.vin == vin]
     return reports
-
-
 
 
 @callback
@@ -211,9 +211,7 @@ def _refresh_coverage_issues(hass: HomeAssistant, entry_id: str) -> None:
         # Clear the pre-0.9.6 id unconditionally: it embedded the raw VIN, and
         # leaving it in place would both orphan a duplicate repair and keep the
         # VIN in the issue registry that diagnostics downloads dump.
-        ir.async_delete_issue(
-            hass, DOMAIN, legacy_coverage_issue_id(entry_id, report.vin)
-        )
+        ir.async_delete_issue(hass, DOMAIN, legacy_coverage_issue_id(entry_id, report.vin))
         overdue_clusters = report.overdue_clusters()
         if not overdue_clusters:
             ir.async_delete_issue(hass, DOMAIN, issue_id)
@@ -265,6 +263,10 @@ class CardataRuntimeData:
     last_reauth_attempt: float = 0.0
     last_refresh_attempt: float = 0.0
     reauth_pending: bool = False
+    # VINs whose basic data has been fetched (or attempted) since this entry
+    # loaded, so a car that BMW answers nothing for cannot spend a quota
+    # request on every stream message. See _async_on_new_vehicle.
+    basic_data_attempted: set[str] = field(default_factory=set)
 
 
 # Per-entry runtime lives on ``entry.runtime_data`` (HA 2026.3+), so a typed
@@ -308,10 +310,10 @@ class QuotaManager:
             elif isinstance(item, str):
                 try:
                     value = float(item)
-                except (TypeError, ValueError):
+                except TypeError, ValueError:
                     try:
                         value = datetime.fromisoformat(item.replace("Z", "+00:00")).timestamp()
-                    except (TypeError, ValueError):
+                    except TypeError, ValueError:
                         value = None
             if value is None:
                 continue
@@ -393,6 +395,7 @@ class QuotaManager:
 
     async def _async_save_locked(self) -> None:
         await self._store.async_save({"timestamps": list(self._timestamps)})
+
 
 _FRONTEND_REGISTERED = False
 
@@ -487,9 +490,7 @@ async def _async_register_lovelace_resource(hass: HomeAssistant, url: str) -> bo
             if str(item.get("url", "")).split("?", 1)[0] != LOVELACE_CARD_URL:
                 continue
             if item.get("url") != url:
-                await resources.async_update_item(
-                    item["id"], {"res_type": "module", "url": url}
-                )
+                await resources.async_update_item(item["id"], {"res_type": "module", "url": url})
                 _LOGGER.debug("Cardata: updated Lovelace resource to %s", url)
             return True
 
@@ -526,7 +527,7 @@ def _integration_version() -> str:
         manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
         with open(manifest_path, encoding="utf-8") as handle:
             return json.load(handle).get("version", "0")
-    except (OSError, ValueError):
+    except OSError, ValueError:
         return "0"
 
 
@@ -546,7 +547,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     debug_option = options.get(OPTION_DEBUG_LOG)
     debug_flag = DEBUG_LOG if debug_option is None else bool(debug_option)
 
-    set_debug_enabled(debug_flag)
+    set_debug_enabled(debug_flag, entry_id=entry.entry_id)
     should_bootstrap = not data.get(BOOTSTRAP_COMPLETE)
     client_id = data["client_id"]
     gcid = data.get("gcid")
@@ -595,6 +596,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     # available, resolve them locally so a charge at Home stops showing "public".
     history_store.reresolve_zones(coordinator.zone_at)
     coordinator.coverage = coverage_store
+    # A car added to the account after setup has no bootstrap of its own; this
+    # is what gives it a name, a model and a device entry.
+    coordinator.on_new_vehicle = partial(_async_on_new_vehicle, hass, entry)
     coordinator.pricing = PricingConfig.from_options(options)
     # A charge that was still running when we last stopped is picked up here --
     # after the tariff is known (the restored cost is only kept if its currency
@@ -612,8 +616,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         options.get(OPTION_TRIP_DEFAULT_CLASS, DEFAULT_TRIP_DEFAULT_CLASS)
     )
     coordinator.trip_commute_gap_s = (
-        int(options.get(OPTION_TRIP_COMMUTE_GAP, DEFAULT_TRIP_COMMUTE_GAP_MIN) or 0)
-        * 60
+        int(options.get(OPTION_TRIP_COMMUTE_GAP, DEFAULT_TRIP_COMMUTE_GAP_MIN) or 0) * 60
     )
     coordinator.record_trip_track = bool(options.get(OPTION_TRIP_TRACK))
     coordinator.trip_debug = bool(options.get(OPTION_TRIP_DEBUG))
@@ -643,9 +646,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         # publisher itself is fingerprint-gated, so a signal that changed nothing
         # -- a reclassification of an already-published trip, say -- costs a
         # dictionary comparison rather than a database rewrite.
-        entry.async_create_background_task(
-            hass, statistics.async_publish(), f"{DOMAIN}_statistics"
-        )
+        entry.async_create_background_task(hass, statistics.async_publish(), f"{DOMAIN}_statistics")
 
     entry.async_on_unload(
         async_dispatcher_connect(hass, coordinator.signal_history, _refresh_statistics)
@@ -670,14 +671,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     # Once shortly after start (descriptors have restored by then), then on a
     # slow timer -- a "7 days" test does not need a fast cadence.
     entry.async_on_unload(async_at_started(hass, _evaluate_coverage))
-    entry.async_on_unload(
-        async_track_time_interval(hass, _evaluate_coverage, timedelta(hours=6))
-    )
+    entry.async_on_unload(async_track_time_interval(hass, _evaluate_coverage, timedelta(hours=6)))
     last_poll_ts = data.get("last_telematic_poll")
     if isinstance(last_poll_ts, (int, float)) and last_poll_ts > 0:
-        coordinator.last_telematic_api_at = datetime.fromtimestamp(
-            last_poll_ts, timezone.utc
-        )
+        coordinator.last_telematic_api_at = datetime.fromtimestamp(last_poll_ts, timezone.utc)
     stored_metadata = data.get(VEHICLE_METADATA, {})
     if isinstance(stored_metadata, dict):
         device_registry = dr.async_get(hass)
@@ -772,9 +769,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     # a charge controller cannot get cheaply -- onto Home Assistant's own MQTT
     # broker, so evcc or openWB can charge on our zero-quota stream instead of
     # polling a rate-limited vendor API. Off unless the user switched it on.
-    bridge = VehicleBridge(
-        hass, coordinator, config=BridgeConfig.from_options(options)
-    )
+    bridge = VehicleBridge(hass, coordinator, config=BridgeConfig.from_options(options))
 
     @callback
     def _bridge_publish(vin: Any = None, _descriptor: Any = None) -> None:
@@ -784,9 +779,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         bridge.async_schedule(vin if isinstance(vin, str) else None)
 
     entry.async_on_unload(
-        async_dispatcher_connect(
-            hass, coordinator.signal_soc_estimate, _bridge_publish
-        )
+        async_dispatcher_connect(hass, coordinator.signal_soc_estimate, _bridge_publish)
     )
     entry.async_on_unload(
         async_dispatcher_connect(hass, coordinator.signal_update, _bridge_publish)
@@ -802,9 +795,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         )
 
     entry.async_on_unload(
-        async_track_time_interval(
-            hass, _bridge_heartbeat, timedelta(seconds=REPUBLISH_INTERVAL_S)
-        )
+        async_track_time_interval(hass, _bridge_heartbeat, timedelta(seconds=REPUBLISH_INTERVAL_S))
     )
     # The MQTT integration may still be starting when we are, and the stream has
     # usually delivered nothing yet either; both are settled by the time Home
@@ -889,9 +880,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                     target_entry = hass.config_entries.async_get_entry(by_vin)
                     if target_entry is not None:
                         return by_vin, target_entry, entries[by_vin]
-                _LOGGER.error(
-                    "Cardata service call: multiple entries configured; specify entry_id"
-                )
+                _LOGGER.error("Cardata service call: multiple entries configured; specify entry_id")
                 return None
 
             target_entry_id, runtime = next(iter(entries.items()))
@@ -921,9 +910,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 _async_update_last_telematic_poll(hass, target_entry, time.time())
 
         async def async_handle_fetch_mappings(call) -> None:
-            prepared = await _prepare_api_call(
-                call, "fetch_vehicle_mappings", require_vin=False
-            )
+            prepared = await _prepare_api_call(call, "fetch_vehicle_mappings", require_vin=False)
             if not prepared:
                 return
             _entry, runtime, _vin, access_token = prepared
@@ -940,7 +927,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             prepared = await _prepare_api_call(call, "fetch_basic_data", require_vin=True)
             if not prepared:
                 return
-            _entry, runtime, vin, access_token = prepared
+            # ``target_entry``, never the ``entry`` this closure was created
+            # with: the services are registered once, by whichever entry set up
+            # first, so writing to that one files a second account's car under
+            # the first account -- and fails outright once that first entry is
+            # removed while the other stays loaded.
+            target_entry, runtime, vin, access_token = prepared
             try:
                 payload = await async_get_basic_data(runtime.session, access_token, vin)
             except CardataApiError as err:
@@ -953,13 +945,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 if metadata:
                     _async_store_vehicle_metadata(
                         hass,
-                        entry,
+                        target_entry,
                         vin,
                         metadata.get("raw_data") or payload,
                     )
                     device_registry = dr.async_get(hass)
                     device_registry.async_get_or_create(
-                        config_entry_id=entry.entry_id,
+                        config_entry_id=target_entry.entry_id,
                         identifiers={(DOMAIN, vin)},
                         manufacturer=metadata.get("manufacturer", "BMW"),
                         name=metadata.get("name", vin),
@@ -1023,9 +1015,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             return target_entry, runtime, vin, access_token
 
         async def async_handle_fetch_charging_history(call) -> None:
-            prepared = await _prepare_api_call(
-                call, "fetch_charging_history", require_vin=True
-            )
+            prepared = await _prepare_api_call(call, "fetch_charging_history", require_vin=True)
             if not prepared:
                 return
             _entry, runtime, vin, access_token = prepared
@@ -1071,9 +1061,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                     zone_fn=runtime.coordinator.zone_at,
                 )
                 if imported or updated:
-                    async_dispatcher_send(
-                        hass, runtime.coordinator.signal_history, vin
-                    )
+                    async_dispatcher_send(hass, runtime.coordinator.signal_history, vin)
             _LOGGER.info(
                 "Fetched charging history for %s (%s session(s); imported %s, updated %s)",
                 mask_vin(vin),
@@ -1084,9 +1072,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             _LOGGER.debug("Cardata charging history for %s: %s", vin, payload)
 
         async def async_handle_fetch_tyre_diagnosis(call) -> None:
-            prepared = await _prepare_api_call(
-                call, "fetch_tyre_diagnosis", require_vin=True
-            )
+            prepared = await _prepare_api_call(call, "fetch_tyre_diagnosis", require_vin=True)
             if not prepared:
                 return
             _entry, runtime, vin, access_token = prepared
@@ -1125,9 +1111,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 mask_vin(vin),
                 len(settings) if isinstance(settings, list) else 0,
             )
-            _LOGGER.debug(
-                "Cardata location-based charging settings for %s: %s", vin, payload
-            )
+            _LOGGER.debug("Cardata location-based charging settings for %s: %s", vin, payload)
 
         async def async_handle_fetch_vehicle_image(call) -> None:
             # Resolve the target entry/vin (this also refreshes tokens and claims a
@@ -1188,9 +1172,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             }
         )
 
-        def _service_bound(
-            call: Any, key: str, *, end_of_day: bool = False
-        ) -> Optional[datetime]:
+        def _service_bound(call: Any, key: str, *, end_of_day: bool = False) -> Optional[datetime]:
             """A ``from``/``to`` argument as an instant, or ``None`` if absent.
 
             A bare date names a whole day, so which end of it we mean depends on
@@ -1245,9 +1227,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             try:
                 year, month = (int(part) for part in str(raw).split("-", 1))
             except (ValueError, TypeError) as err:
-                raise ServiceValidationError(
-                    f"'month' must be 'YYYY-MM', got {raw!r}"
-                ) from err
+                raise ServiceValidationError(f"'month' must be 'YYYY-MM', got {raw!r}") from err
             if not 1 <= month <= 12:
                 raise ServiceValidationError(f"'month' has no month {month}: {raw!r}")
             return year, month
@@ -1387,9 +1367,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             )
             profile["cost_per_100km"] = month_summary.get("cost_per_100km")
             profile["currency"] = (
-                coordinator.pricing.currency
-                if coordinator.pricing.enabled
-                else None
+                coordinator.pricing.currency if coordinator.pricing.enabled else None
             )
             profile["energy_mix"] = month_summary.get("energy_mix")
             return {"efficiency": profile, "vin": vin}
@@ -1451,9 +1429,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             trip_id = call.data["trip_id"]
             trip = runtime.history.find_trip(vin, trip_id)
             if trip is None:
-                raise ServiceValidationError(
-                    f"No trip {trip_id!r} found for vehicle {vin}"
-                )
+                raise ServiceValidationError(f"No trip {trip_id!r} found for vehicle {vin}")
             trip.classification = call.data["classification"]
             trip.classification_source = SOURCE_USER
             runtime.history.add_trip(trip)
@@ -1466,9 +1442,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 vol.Optional("entry_id"): str,
                 vol.Optional("vin"): str,
                 vol.Optional("month"): str,  # "YYYY-MM"; defaults to this month
-                vol.Optional("type", default="both"): vol.In(
-                    ("charging", "trips", "both")
-                ),
+                vol.Optional("type", default="both"): vol.In(("charging", "trips", "both")),
                 vol.Optional("format", default="csv"): vol.In(("csv", "html")),
                 vol.Optional("language"): str,
             }
@@ -1568,9 +1542,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                                 currency=runtime.coordinator.pricing.currency,
                                 sessions=sessions,
                                 battery_capacity_kwh=(
-                                    runtime.coordinator.battery_capacity_kwh(vin)
-                                    if vin
-                                    else None
+                                    runtime.coordinator.battery_capacity_kwh(vin) if vin else None
                                 ),
                             ),
                             lang=lang,
@@ -1586,9 +1558,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                             "filename": f"{stem}-charging.csv",
                             "mime": MIME_CSV,
                             "rows": len(sessions),
-                            "content": sessions_csv(
-                                sessions, localize=dt_util.as_local
-                            ),
+                            "content": sessions_csv(sessions, localize=dt_util.as_local),
                         }
                     )
                 if wanted in ("trips", "both"):
@@ -1621,9 +1591,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                     "Home Assistant's recorder is not set up, so there are no "
                     "long-term statistics to import into."
                 )
-            written = await publisher.async_publish(
-                vin=call.data.get("vin"), force=True
-            )
+            written = await publisher.async_publish(vin=call.data.get("vin"), force=True)
             _LOGGER.info("Imported BavarianData statistics: %s", written)
             return {"statistics": written}
 
@@ -1657,9 +1625,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             # spends no CarData API quota and needs no token.
             target = _resolve_target(call)
             if target is None:
-                raise ServiceValidationError(
-                    "No config entry to run against; specify entry_id."
-                )
+                raise ServiceValidationError("No config entry to run against; specify entry_id.")
             _entry_id, entry, runtime = target
 
             if call.data.get("attributes"):
@@ -1667,9 +1633,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             elif call.data.get("sections"):
                 attributes = descriptors_for_sections(call.data["sections"])
             elif entry.data.get(OPTION_STREAM_SECTIONS):
-                attributes = descriptors_for_sections(
-                    entry.data[OPTION_STREAM_SECTIONS]
-                )
+                attributes = descriptors_for_sections(entry.data[OPTION_STREAM_SECTIONS])
             else:
                 attributes = list(DEFAULT_STREAM_ATTRIBUTES)
 
@@ -1687,9 +1651,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             client = PortalStreamClient(runtime.session, session)
             mapped_vehicle_id = call.data["mapped_vehicle_id"]
             try:
-                result = await client.async_set_stream_attributes(
-                    mapped_vehicle_id, attributes
-                )
+                result = await client.async_set_stream_attributes(mapped_vehicle_id, attributes)
             except StreamActivationError as err:
                 # Turn the classified failure into a user-facing message. The
                 # commonest is an expired session -- portal cookies (incl. the
@@ -1923,9 +1885,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         with suppress(Exception):
             await history_store.async_save_now()
 
-    entry.async_on_unload(
-        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _flush_on_stop)
-    )
+    entry.async_on_unload(hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _flush_on_stop))
 
     return True
 
@@ -1936,6 +1896,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> 
         return True
     domain_data = hass.data.get(DOMAIN, {})
     domain_data.get("_entries", set()).discard(entry.entry_id)
+    # An unloaded entry no longer gets a say in the debug level.
+    forget_entry_debug(entry.entry_id)
     await data.coordinator.async_stop_watchdog()
     # Drop the stream-health repairs this entry raised, so a reconfigure or
     # removal doesn't leave a stale "no data" / "unauthorized" warning behind.
@@ -1972,9 +1934,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> 
         # removal doesn't leave a stale "descriptor missing" warning behind.
         for vin in list(data.coordinator.data):
             ir.async_delete_issue(hass, DOMAIN, coverage_issue_id(entry.entry_id, vin))
-            ir.async_delete_issue(
-                hass, DOMAIN, legacy_coverage_issue_id(entry.entry_id, vin)
-            )
+            ir.async_delete_issue(hass, DOMAIN, legacy_coverage_issue_id(entry.entry_id, vin))
     if data.tyre:
         # Same reason as history: the save is debounced, and a fetch immediately
         # before a reload would otherwise be lost.
@@ -1993,6 +1953,26 @@ async def async_unload_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> 
         domain_data.pop("_entries", None)
         hass.data.pop(DOMAIN, None)
     return True
+
+
+@callback
+def _registered_vins(hass: HomeAssistant, entry: ConfigEntry, *, exclude: set[str]) -> list[str]:
+    """VINs this entry has a device for, minus ``exclude``.
+
+    The last word on which cars an entry ever had: the coordinator is gone by
+    removal time and a car that streamed without ever answering a basic-data
+    request is in no stored record, but it does have a device. The debug device
+    is identified by the entry id rather than a VIN, so it is skipped.
+    """
+
+    found: list[str] = []
+    for device in dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id):
+        for domain, value in device.identifiers:
+            if domain != DOMAIN or value == entry.entry_id or value in exclude:
+                continue
+            exclude.add(value)
+            found.append(value)
+    return found
 
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -2031,10 +2011,19 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
             # the bridge was actually on: an install that never used it has
             # nothing out there, and publishing into a broker it may not even
             # have would be noise for nothing.
-            metadata = (entry.data or {}).get(VEHICLE_METADATA) or {}
-            await async_clear_published(
-                hass, prefix=bridge_config.prefix, vins=list(metadata)
+            # Every VIN the entry ever had, not just the ones with stored
+            # basic data: a car added after setup may have streamed (and so
+            # been published) for months without ever appearing in that record,
+            # and the whole point here is that nothing is left retained on the
+            # broker. The coordinator is gone by now, so the entry's own data
+            # plus its devices are what is left to ask.
+            data = entry.data or {}
+            vins = known_vins(
+                stored_metadata=data.get(VEHICLE_METADATA),
+                configured_vin=data.get("vin"),
             )
+            vins.extend(_registered_vins(hass, entry, exclude=set(vins)))
+            await async_clear_published(hass, prefix=bridge_config.prefix, vins=vins)
 
 
 async def _handle_stream_error(hass: HomeAssistant, entry: CardataConfigEntry, reason: str) -> None:
@@ -2042,7 +2031,9 @@ async def _handle_stream_error(hass: HomeAssistant, entry: CardataConfigEntry, r
     notification_id = f"{DOMAIN}_reauth_{entry.entry_id}"
     if reason == "unauthorized":
         if runtime.reauth_in_progress:
-            _LOGGER.debug("Ignoring duplicate unauthorized notification for entry %s", entry.entry_id)
+            _LOGGER.debug(
+                "Ignoring duplicate unauthorized notification for entry %s", entry.entry_id
+            )
             return
 
         now = time.time()
@@ -2204,13 +2195,9 @@ async def _refresh_tokens(
             container_manager.sync_from_entry(None)
             try:
                 if stale:
-                    container_id = await container_manager.async_reset_hv_container(
-                        access_token
-                    )
+                    container_id = await container_manager.async_reset_hv_container(access_token)
                 else:
-                    container_id = await container_manager.async_ensure_hv_container(
-                        access_token
-                    )
+                    container_id = await container_manager.async_ensure_hv_container(access_token)
             except CardataContainerError as err:
                 _LOGGER.warning(
                     "Unable to ensure HV container for entry %s: %s",
@@ -2417,9 +2404,7 @@ async def _async_seed_telematic_data(
                 )
                 break
         try:
-            payload = await async_get_telematic_data(
-                session, access_token, vin, container_id
-            )
+            payload = await async_get_telematic_data(session, access_token, vin, container_id)
         except CardataApiError as err:
             _LOGGER.debug(
                 "Bootstrap telematic request failed for %s: %s",
@@ -2446,6 +2431,7 @@ async def _async_fetch_basic_data_for_vins(
     access_token: str,
     vins: List[str],
     quota: QuotaManager | None,
+    label: str = "Bootstrap",
 ) -> None:
     runtime: CardataRuntimeData = entry.runtime_data
     session = runtime.session
@@ -2458,7 +2444,8 @@ async def _async_fetch_basic_data_for_vins(
                 await quota.async_claim()
             except CardataQuotaError as err:
                 _LOGGER.warning(
-                    "Bootstrap basic data request skipped for %s: %s",
+                    "%s basic data request skipped for %s: %s",
+                    label,
                     mask_vin(vin),
                     err,
                 )
@@ -2467,7 +2454,8 @@ async def _async_fetch_basic_data_for_vins(
             payload = await async_get_basic_data(session, access_token, vin)
         except CardataApiError as err:
             _LOGGER.debug(
-                "Bootstrap basic data request failed for %s: %s",
+                "%s basic data request failed for %s: %s",
+                label,
                 vin,
                 err,
             )
@@ -2494,6 +2482,73 @@ async def _async_fetch_basic_data_for_vins(
         )
 
 
+async def _async_adopt_new_vehicle(hass: HomeAssistant, entry_id: str, vin: str) -> None:
+    """Fetch the basic data of a car that appeared after setup.
+
+    The bootstrap runs once per entry and is what turns a VIN into a named
+    device -- model, software version, the name shown on the dashboard, and the
+    Motorrad warning all come from that one REST call. A car added to the
+    account later (a second BMW, or one enrolled in CarData after setup) streams
+    perfectly well, so its entities appear, but it used to stay a bare VIN on
+    the device page for good, because nothing ever revisited the bootstrap.
+
+    Costs one request against the daily quota per new car, once. Failure is not
+    retried within this Home Assistant run: ``basic_data_attempted`` is claimed
+    before the call, so a car BMW has no basic data for cannot spend the quota
+    over and over as it keeps streaming.
+    """
+
+    entry = hass.config_entries.async_get_entry(entry_id)
+    runtime: CardataRuntimeData | None = getattr(entry, "runtime_data", None) if entry else None
+    if entry is None or runtime is None:
+        return
+    if vin in (entry.data.get(VEHICLE_METADATA) or {}):
+        return
+
+    try:
+        await _refresh_tokens(entry, runtime.session, runtime.stream, runtime.container_manager)
+    except CardataAuthError as err:
+        _LOGGER.debug("New vehicle %s: token refresh failed: %s", mask_vin(vin), err)
+        return
+
+    access_token = entry.data.get("access_token")
+    if not access_token:
+        return
+
+    _LOGGER.info("New vehicle %s on this account; fetching its basic data", mask_vin(vin))
+    await _async_fetch_basic_data_for_vins(
+        hass,
+        entry,
+        access_token,
+        [vin],
+        runtime.quota_manager,
+        label="New vehicle",
+    )
+
+
+@callback
+def _async_on_new_vehicle(hass: HomeAssistant, entry: CardataConfigEntry, vin: str) -> None:
+    """Schedule :func:`_async_adopt_new_vehicle`, at most once per car per run.
+
+    Called from the message path, so it does nothing that can block or raise.
+    Skipped while the bootstrap is still to run: that covers every mapped
+    vehicle already, and both racing would spend two quota requests on one car.
+    """
+
+    runtime: CardataRuntimeData | None = getattr(entry, "runtime_data", None)
+    if runtime is None or not entry.data.get(BOOTSTRAP_COMPLETE):
+        return
+    if vin in runtime.basic_data_attempted or vin in (entry.data.get(VEHICLE_METADATA) or {}):
+        return
+    runtime.basic_data_attempted.add(vin)
+    entry.async_create_background_task(
+        hass,
+        _async_adopt_new_vehicle(hass, entry.entry_id, vin),
+        # Masked: task names surface in Home Assistant's own debug output.
+        f"{DOMAIN}_adopt_{mask_vin(vin)}",
+    )
+
+
 async def _async_mark_bootstrap_complete(hass: HomeAssistant, entry: ConfigEntry) -> None:
     if entry.data.get(BOOTSTRAP_COMPLETE):
         return
@@ -2510,13 +2565,20 @@ async def _async_perform_telematic_fetch(
     vin_override: Optional[str] = None,
 ) -> bool:
     target_entry_id = entry.entry_id
-    vin = vin_override or entry.data.get("vin")
-    if not vin and runtime.coordinator.data:
-        vin = next(iter(runtime.coordinator.data))
-    if not vin:
-        _LOGGER.error(
-            "Cardata fetch_telematic_data: no VIN available; provide vin parameter"
+    # One account can hold several cars and the container endpoint is per VIN,
+    # so a refresh means one request *per vehicle*. Picking a single VIN here
+    # left every other car's non-streamable fields frozen at their setup value
+    # for good -- issue #13. An explicit vin still targets just that car.
+    if vin_override:
+        vins = [vin_override]
+    else:
+        vins = known_vins(
+            stored_metadata=entry.data.get(VEHICLE_METADATA),
+            coordinator_data=runtime.coordinator.data,
+            configured_vin=entry.data.get("vin"),
         )
+    if not vins:
+        _LOGGER.error("Cardata fetch_telematic_data: no VIN available; provide vin parameter")
         return False
 
     container_id = entry.data.get("hv_container_id")
@@ -2544,48 +2606,53 @@ async def _async_perform_telematic_fetch(
 
     access_token = entry.data.get("access_token")
     if not access_token:
-        _LOGGER.error(
-            "Cardata fetch_telematic_data: access token missing after refresh"
-        )
+        _LOGGER.error("Cardata fetch_telematic_data: access token missing after refresh")
         return False
 
     quota = runtime.quota_manager
-    if quota:
+    attempted = False
+    for vin in vins:
+        if quota:
+            try:
+                await quota.async_claim()
+            except CardataQuotaError as err:
+                # The remaining cars have to wait for the next round rather than
+                # each logging the same exhaustion.
+                _LOGGER.warning(
+                    "Cardata fetch_telematic_data blocked for %s: %s",
+                    mask_vin(vin),
+                    err,
+                )
+                break
+
         try:
-            await quota.async_claim()
-        except CardataQuotaError as err:
-            _LOGGER.warning(
-                "Cardata fetch_telematic_data blocked for %s: %s",
+            payload = await async_get_telematic_data(
+                runtime.session, access_token, vin, container_id
+            )
+        except CardataApiError as err:
+            # One car's failure must not cost the others their refresh.
+            _LOGGER.error(
+                "Cardata fetch_telematic_data: request failed for %s: %s",
                 mask_vin(vin),
                 err,
             )
-            return False
+            attempted = True
+            continue
 
-    try:
-        payload = await async_get_telematic_data(
-            runtime.session, access_token, vin, container_id
-        )
-    except CardataApiError as err:
-        _LOGGER.error(
-            "Cardata fetch_telematic_data: request failed for %s: %s",
-            mask_vin(vin),
-            err,
-        )
-        return True
+        _LOGGER.info("Fetched telematic data for %s", mask_vin(vin))
+        _LOGGER.debug("Cardata telematic data for %s: %s", vin, payload)
+        telematic_payload = None
+        if isinstance(payload, dict):
+            telematic_payload = payload.get("telematicData") or payload.get("data")
+        if isinstance(telematic_payload, dict):
+            await runtime.coordinator.async_handle_message({"vin": vin, "data": telematic_payload})
+        attempted = True
 
-    _LOGGER.info("Fetched telematic data for %s", mask_vin(vin))
-    _LOGGER.debug("Cardata telematic data for %s: %s", vin, payload)
-    telematic_payload = None
-    if isinstance(payload, dict):
-        telematic_payload = payload.get("telematicData") or payload.get("data")
-    if isinstance(telematic_payload, dict):
-        await runtime.coordinator.async_handle_message(
-            {"vin": vin, "data": telematic_payload}
-        )
+    if not attempted:
+        return False
+
     runtime.coordinator.last_telematic_api_at = datetime.now(timezone.utc)
-    async_dispatcher_send(
-        runtime.coordinator.hass, runtime.coordinator.signal_diagnostics
-    )
+    async_dispatcher_send(runtime.coordinator.hass, runtime.coordinator.signal_diagnostics)
     return True
 
 
@@ -2603,16 +2670,19 @@ def _async_update_last_telematic_poll(
 async def _async_perform_tyre_fetch(
     hass: HomeAssistant, entry: ConfigEntry, runtime: CardataRuntimeData
 ) -> bool:
-    """Refresh the smart-maintenance tyre diagnosis for the entry's vehicle.
+    """Refresh the smart-maintenance tyre diagnosis for every vehicle.
 
-    Its own endpoint, so its own request against the daily quota -- it cannot be
-    folded into the container call.
+    Its own endpoint, so its own request per car against the daily quota -- it
+    cannot be folded into the container call. Like that call, it used to serve a
+    single VIN, which left a second car's tread wear frozen forever (issue #13).
     """
 
-    vin = entry.data.get("vin")
-    if not vin and runtime.coordinator.data:
-        vin = next(iter(runtime.coordinator.data))
-    if not vin:
+    vins = known_vins(
+        stored_metadata=entry.data.get(VEHICLE_METADATA),
+        coordinator_data=runtime.coordinator.data,
+        configured_vin=entry.data.get("vin"),
+    )
+    if not vins:
         return False
 
     access_token = entry.data.get("access_token")
@@ -2620,26 +2690,32 @@ async def _async_perform_tyre_fetch(
         return False
 
     quota = runtime.quota_manager
-    if quota:
+    refreshed = False
+    for vin in vins:
+        if quota:
+            try:
+                await quota.async_claim()
+            except CardataQuotaError as err:
+                _LOGGER.warning("Daily tyre diagnosis skipped for %s: %s", mask_vin(vin), err)
+                break
+
         try:
-            await quota.async_claim()
-        except CardataQuotaError as err:
-            _LOGGER.warning("Daily tyre diagnosis skipped for %s: %s", mask_vin(vin), err)
-            return False
+            payload = await async_get_tyre_diagnosis(runtime.session, access_token, vin)
+        except CardataApiError as err:
+            # Not every vehicle has tyre service data; a failure here must not
+            # stop the other cars, nor the container refresh sharing this loop.
+            _LOGGER.debug("Daily tyre diagnosis failed for %s: %s", vin, err)
+            continue
 
-    try:
-        payload = await async_get_tyre_diagnosis(runtime.session, access_token, vin)
-    except CardataApiError as err:
-        # Not every vehicle has tyre service data; a failure here must not stop
-        # the container refresh that shares this loop.
-        _LOGGER.debug("Daily tyre diagnosis failed for %s: %s", vin, err)
-        return False
+        parsed = runtime.coordinator.apply_tyre_diagnosis(vin, payload)
+        _LOGGER.debug(
+            "Daily tyre diagnosis for %s: %s wheel(s)",
+            vin,
+            len(parsed.get("wheels") or {}),
+        )
+        refreshed = True
 
-    parsed = runtime.coordinator.apply_tyre_diagnosis(vin, payload)
-    _LOGGER.debug(
-        "Daily tyre diagnosis for %s: %s wheel(s)", vin, len(parsed.get("wheels") or {})
-    )
-    return True
+    return refreshed
 
 
 async def _telematic_poll_loop(hass: HomeAssistant, entry_id: str) -> None:

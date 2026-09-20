@@ -86,6 +86,11 @@ car delivers only part of it. If a cluster you selected sends **nothing at all**
 for 7 days, a warning appears under **Settings → Repairs** — that is the case
 worth re-checking the Data Selection for.
 
+If that one cluster is still empty after **30 days** while everything else keeps
+arriving, the integration stops treating it as a gap: your selection evidently
+saved, so the fields just aren't in your car. The warning clears and the cluster
+is listed as not applicable instead.
+
 ### Some fields never arrive on the stream
 
 BMW's catalogue marks each field with whether the MQTT stream can carry it, and

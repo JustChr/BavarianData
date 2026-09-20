@@ -82,7 +82,9 @@ def test_internal_links_resolve(name: str) -> None:
 
 
 def test_every_page_has_a_german_counterpart_and_back() -> None:
-    english = {stem for stem, path in PAGES.items() if path.parent == _WIKI and path.name not in _CHROME}
+    english = {
+        stem for stem, path in PAGES.items() if path.parent == _WIKI and path.name not in _CHROME
+    }
     german = {stem for stem, path in PAGES.items() if path.parent.name == "de"}
     assert {f"DE-{stem}" for stem in english} == german
     for stem in english:

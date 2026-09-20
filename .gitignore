@@ -18,3 +18,13 @@ __pycache__/
 /feature-strategy.html
 *.strategy.html
  
+# Claude Code local overrides
+/.claude/settings.local.json
+
+# Dev-only Node tooling (ESLint for the card); nothing here ships
+/node_modules/
+
+# Coverage data (pytest-cov)
+/.coverage
+/.coverage.*
+/htmlcov/

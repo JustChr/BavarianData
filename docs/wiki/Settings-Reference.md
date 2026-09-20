@@ -125,7 +125,7 @@ Screen: **Configure → Debug logging**.
 
 | Option | Values | Meaning |
 | --- | --- | --- |
-| **Enable debug logging** | on/off | Off by default. Gates the integration's verbose logging (separate from HA's per-integration log level). **Verbose and can include VIN/GPS** — leave off unless chasing a problem. Applies immediately. |
+| **Enable debug logging** | on/off | Off by default. Gates the integration's verbose logging (separate from HA's per-integration log level). **Verbose and can include VIN/GPS** — leave off unless chasing a problem. Applies immediately. With more than one BMW account set up, the log level is shared: logging stays verbose while **any** entry has this on, and covers every account ([Multiple cars & accounts](Feature-Multiple-Cars-and-Accounts#telling-the-cars-apart)). |
 
 ## Hidden overrides
 

@@ -14,9 +14,7 @@ from .descriptor_metadata import DESCRIPTOR_META, SECTIONS
 from .keys import translation_key
 
 # vehicle.chassis.axle.row1.wheel.left.tire.pressure -> (row1, left, pressure)
-_TIRE_RE = re.compile(
-    r"vehicle\.chassis\.axle\.(row\d)\.wheel\.(left|right)\.tire\.(\w+)"
-)
+_TIRE_RE = re.compile(r"vehicle\.chassis\.axle\.(row\d)\.wheel\.(left|right)\.tire\.(\w+)")
 
 
 class CardataEntity(RestoreEntity):
@@ -36,9 +34,7 @@ class CardataEntity(RestoreEntity):
             self._attr_translation_key = translation_key(descriptor)
             if meta.get("entity_category") == "diagnostic":
                 self._attr_entity_category = EntityCategory.DIAGNOSTIC
-            self._attr_entity_registry_enabled_default = bool(
-                meta.get("enabled_default", True)
-            )
+            self._attr_entity_registry_enabled_default = bool(meta.get("enabled_default", True))
         elif getattr(self, "_attr_translation_key", None) is not None:
             # Subclass declared its own translation key (e.g. the device
             # tracker's "car"); leave its naming untouched.

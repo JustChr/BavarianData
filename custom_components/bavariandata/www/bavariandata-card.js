@@ -1485,7 +1485,6 @@ class BavarianDataCard extends HTMLElement {
             ? `<div class="list">
                 ${rows
                   .map((st) => {
-                    const category = st.attributes.category;
                     return `<button class="item" data-entity="${st.entity_id}">
                       <span class="item__name" title="${this._esc(st.attributes.friendly_name || st.entity_id)}">${this._shortName(st, name)}</span>
                       <span class="item__val">${this._fmt(st)}</span>
@@ -2328,7 +2327,7 @@ class BavarianDataCard extends HTMLElement {
       });
   }
 
-  _paintTrips(deviceId, entities) {
+  _paintTrips(deviceId, _entities) {
     const name = this._config.title || this._deviceName(deviceId);
     const state = this._trp || {};
     const trips = state.trips;
@@ -3015,7 +3014,7 @@ class BavarianDataCard extends HTMLElement {
     return out;
   }
 
-  _paintMap(deviceId, entities) {
+  _paintMap(deviceId, _entities) {
     const name = this._config.title || this._deviceName(deviceId);
     const state = this._mapData || {};
     const win = this._mapWindow || "month";

@@ -168,11 +168,7 @@ def _style_score(stats: dict[str, Any]) -> Optional[float]:
     when it carried neither, so a trip with no style data doesn't count as zero.
     """
 
-    values = [
-        float(stats[key])
-        for key in _STYLE_KEYS
-        if isinstance(stats.get(key), (int, float))
-    ]
+    values = [float(stats[key]) for key in _STYLE_KEYS if isinstance(stats.get(key), (int, float))]
     return mean(values) if values else None
 
 
@@ -369,15 +365,11 @@ def energy_balance(
     if distance < MIN_BALANCE_DISTANCE_KM:
         return None
 
-    contributing = [
-        session for session in bounded[1:] if session.effective_energy_kwh
-    ]
+    contributing = [session for session in bounded[1:] if session.effective_energy_kwh]
     # An explicit side must be able to read every one of them: a session that
     # only carries the other side's figure would silently drop out of the sum
     # and make the window look thriftier than it was.
-    if side != SIDE_AUTO and any(
-        _side_energy(session, side) is None for session in contributing
-    ):
+    if side != SIDE_AUTO and any(_side_energy(session, side) is None for session in contributing):
         return None
     charged = sum(_side_energy(session, side) or 0.0 for session in contributing)
     if charged <= 0:
@@ -390,9 +382,7 @@ def energy_balance(
         side
         if side != SIDE_AUTO
         else (
-            "grid"
-            if all(session.grid_kwh is not None for session in contributing)
-            else "battery"
+            "grid" if all(session.grid_kwh is not None for session in contributing) else "battery"
         )
     )
 
@@ -487,9 +477,7 @@ def driving_summary(
     avg_consumption = fleet_consumption_kwh_per_100km(trips)
     best = min(consumptions, key=lambda pair: pair[1], default=None)
     worst = max(consumptions, key=lambda pair: pair[1], default=None)
-    balance = energy_balance(
-        sessions or [], battery_capacity_kwh=battery_capacity_kwh
-    )
+    balance = energy_balance(sessions or [], battery_capacity_kwh=battery_capacity_kwh)
 
     def _trip_ref(pair) -> Optional[dict[str, Any]]:
         if pair is None:
@@ -512,16 +500,11 @@ def driving_summary(
     for trip, score in scored:
         weekly.setdefault(_iso_week(trip.start), []).append(score)
     style_trend = [
-        {"week": week, "score": round(mean(scores), 2)}
-        for week, scores in sorted(weekly.items())
+        {"week": week, "score": round(mean(scores), 2)} for week, scores in sorted(weekly.items())
     ]
 
-    destinations = Counter(
-        label for label in (_dest_label(t) for t in trips) if label is not None
-    )
-    top_destinations = [
-        {"label": label, "count": n} for label, n in destinations.most_common(3)
-    ]
+    destinations = Counter(label for label in (_dest_label(t) for t in trips) if label is not None)
+    top_destinations = [{"label": label, "count": n} for label, n in destinations.most_common(3)]
 
     longest = max(
         (t for t in trips if t.distance_km),
@@ -531,9 +514,7 @@ def driving_summary(
 
     prev_km = round(sum(t.distance_km or 0.0 for t in (prev_trips or [])), 1)
     mom_delta_km = round(total_km - prev_km, 1)
-    mom_delta_percent = (
-        round((total_km - prev_km) / prev_km * 100, 1) if prev_km > 0 else None
-    )
+    mom_delta_percent = round((total_km - prev_km) / prev_km * 100, 1) if prev_km > 0 else None
 
     est_cost = None
     if cost_per_100km is not None and total_km > 0:

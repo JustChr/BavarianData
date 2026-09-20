@@ -130,9 +130,7 @@ class CardataTripInProgressBinarySensor(CardataEntity, BinarySensorEntity):
     @property
     def extra_state_attributes(self) -> dict:
         attrs = dict(super().extra_state_attributes)
-        progress: Optional[Dict[str, Any]] = self._coordinator.open_trip_progress(
-            self.vin
-        )
+        progress: Optional[Dict[str, Any]] = self._coordinator.open_trip_progress(self.vin)
         if progress is None:
             # Parked: carry no figures at all rather than the last drive's, which
             # would go on reading like a live trip.
@@ -197,9 +195,7 @@ class CardataTripInProgressBinarySensor(CardataEntity, BinarySensorEntity):
         self.schedule_update_ha_state()
 
 
-async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities
-) -> None:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
     runtime = entry.runtime_data
     coordinator: CardataCoordinator = runtime.coordinator
 
@@ -227,9 +223,7 @@ async def async_setup_entry(
         async_add_entities([entity])
 
     entity_registry = er.async_get(hass)
-    for entity_entry in er.async_entries_for_config_entry(
-        entity_registry, entry.entry_id
-    ):
+    for entity_entry in er.async_entries_for_config_entry(entity_registry, entry.entry_id):
         if entity_entry.domain != "binary_sensor":
             continue
         if entity_entry.disabled_by is not None:
@@ -271,7 +265,5 @@ async def async_setup_entry(
             ensure_trip_entity(vin)
 
     entry.async_on_unload(
-        async_dispatcher_connect(
-            hass, coordinator.signal_trip_active, async_handle_trip_active
-        )
+        async_dispatcher_connect(hass, coordinator.signal_trip_active, async_handle_trip_active)
     )

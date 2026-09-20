@@ -185,7 +185,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `cluster: <other>` | Single-cluster list | 🟡 | 📷 |
 | YAML options (`device`, `vin`, entity overrides) | — | 🟡 | — |
 
-### Services — 16 from `services.yaml`
+### Services — 17 from `services.yaml`
 
 | Service | Quota | Status |
 | --- | --- | --- |
@@ -255,8 +255,11 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Charging events (`bavariandata_charging_*`) | 🟡 |
 | Automation blueprints (2) | 🟡 |
 | API quota + Repairs issue | 🟡 |
-| Daily REST refresh (container + tyre, 2 req/day) | 🟢 Feature-API-Quota → "The daily refresh" + Services-Reference |
-| Descriptor-coverage self-test (the report lists every gap; the Repairs warning fires only for a silent cluster, never for events or a cluster the drivetrain can't fill) | 🟢 Services-Reference → `get_coverage_report` + Getting-Started-4 → "Did it work?" + Troubleshooting → "No data arriving" |
+| Daily REST refresh (container + tyre, 2 req/day **per vehicle**) | 🟢 Feature-API-Quota → "The daily refresh" + Services-Reference |
+| Multi-vehicle accounts: every car is refreshed, not just one (issue #13) | 🟢 Troubleshooting → "A second car's REST-only values are frozen" + Feature-API-Quota → "The daily refresh" + Services-Reference (`fetch_telematic_data` without a `vin`) |
+| One entry per account (a second entry for the same account is refused: one stream, one quota), two accounts side by side, and how to name the car in the card / services / automations / the bridge | 🟢 Feature-Multiple-Cars-and-Accounts (all sections) + Troubleshooting → "Setup says this BMW account is already set up" + Settings-Reference → "Debug logging" (the log level is shared) |
+| A car added to the account after setup: entities arrive on the stream by themselves, its name/model are fetched on first sight, its coverage grace window is its own, its Data Selection still has to be ticked per car | 🟢 Feature-Multiple-Cars-and-Accounts → "Adding a car later" + Troubleshooting → "A new car shows up as its VIN, with no model" |
+| Descriptor-coverage self-test (the report lists every gap; the Repairs warning fires only for a silent cluster, never for events, a cluster the drivetrain can't fill, or a lone cluster still silent after 30 days — the car doesn't have it) | 🟢 Services-Reference → `get_coverage_report` + Getting-Started-4 → "Did it work?" + Troubleshooting → "No data arriving" |
 | Clean uninstall / fresh-install reset | 🟡 Troubleshooting → "Removing BavarianData completely" + `docs/clean-install.md` |
 | Card auto-registration (Lovelace resource; YAML-mode caveat) | 🟢 The-Dashboard-Card intro + Troubleshooting → "Every card shows Configuration error after a reload" |
 | No dashboard is auto-created — the user places the card (issue #4) | 🟢 README quick start step 5 + Home → "Start here" + Getting-Started-4 outro + The-Dashboard-Card intro + Troubleshooting → "No dashboard appears after setup" |
