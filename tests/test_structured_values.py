@@ -18,17 +18,20 @@ from .conftest import load_module
 structured_values = load_module("structured_values")
 
 _SENSOR = (
-    pathlib.Path(__file__).resolve().parents[1]
-    / "custom_components"
-    / "bavariandata"
-    / "sensor.py"
+    pathlib.Path(__file__).resolve().parents[1] / "custom_components" / "bavariandata" / "sensor.py"
 )
 
 # The shape BMW streams for vehicle.status.conditionBasedServices.
 CBS = [
     {"date": "2027-10", "id": 3, "messageType": "CBS", "status": "OK", "title": "Brake fluid"},
     {"date": "2027-10", "id": 100, "messageType": "CBS", "status": "OK", "title": "Vehicle check"},
-    {"date": "2028-10", "id": 32, "messageType": "CBS", "status": "OK", "title": "Statutory vehicle inspection"},
+    {
+        "date": "2028-10",
+        "id": 32,
+        "messageType": "CBS",
+        "status": "OK",
+        "title": "Statutory vehicle inspection",
+    },
 ]
 
 
@@ -59,7 +62,7 @@ CBS_WIRE = (
 CCM_WIRE = (
     '[{"date":null,"description":null,"id":164,"messageType":"CCM","status":"NULL",'
     '"title":null,"text":"The washer fluid level is low in the window washer reservoir. '
-    'Please add washer fluid as soon as possible. See Owner´s Manual for more '
+    "Please add washer fluid as soon as possible. See Owner´s Manual for more "
     'information.","unitOfLengthRemaining":"19596"}]'
 )
 
@@ -139,6 +142,6 @@ def test_descriptor_sensor_never_hands_a_raw_value_to_home_assistant():
             "structured_state -- a list-valued descriptor will overflow the "
             "255-character state limit again"
         )
-    assert _calls(
-        _method(tree, "CardataSensor", "async_added_to_hass"), "restored_items"
-    ), "sensor.py: CardataSensor.async_added_to_hass no longer restores the list"
+    assert _calls(_method(tree, "CardataSensor", "async_added_to_hass"), "restored_items"), (
+        "sensor.py: CardataSensor.async_added_to_hass no longer restores the list"
+    )

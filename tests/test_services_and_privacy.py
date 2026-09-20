@@ -48,9 +48,7 @@ def _shipped_files() -> list[pathlib.Path]:
     return [
         p
         for p in _PKG.rglob("*")
-        if p.is_file()
-        and p.suffix in TEXT_SUFFIXES
-        and "__pycache__" not in p.parts
+        if p.is_file() and p.suffix in TEXT_SUFFIXES and "__pycache__" not in p.parts
     ]
 
 
@@ -94,9 +92,7 @@ def test_services_yaml_carries_no_user_facing_text() -> None:
 
     for action, spec in SERVICES.items():
         assert "name" not in (spec or {}), f"{action}: move name to translations"
-        assert "description" not in (spec or {}), (
-            f"{action}: move description to translations"
-        )
+        assert "description" not in (spec or {}), f"{action}: move description to translations"
         for field, fspec in ((spec or {}).get("fields") or {}).items():
             assert "description" not in (fspec or {}), (
                 f"{action}.{field}: move description to translations"

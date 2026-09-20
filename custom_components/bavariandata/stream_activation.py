@@ -59,8 +59,7 @@ DEFAULT_TIMEOUT = aiohttp.ClientTimeout(total=30)
 # request; the captured session was taken from one, so we present the same kind
 # of client. Overridable via PortalSession.user_agent.
 DEFAULT_USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) Firefox/153.0"
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/153.0"
 )
 
 
@@ -153,10 +152,7 @@ class PortalSession:
         object.__setattr__(self, "locale", self.locale.strip("/"))
 
     def stream_url(self, mapped_vehicle_id: str) -> str:
-        return (
-            f"{self.base_url}/{self.locale}"
-            f"/utilities/bmw/api/cd/streams/{mapped_vehicle_id}"
-        )
+        return f"{self.base_url}/{self.locale}/utilities/bmw/api/cd/streams/{mapped_vehicle_id}"
 
     def referer(self, mapped_vehicle_id: str) -> str:
         return (
@@ -275,9 +271,7 @@ class PortalStreamClient:
         self._http = http
         self._session = session
 
-    async def async_get_stream_attributes(
-        self, mapped_vehicle_id: str
-    ) -> StreamSelection:
+    async def async_get_stream_attributes(self, mapped_vehicle_id: str) -> StreamSelection:
         """Read the currently selected stream attributes for a mapped vehicle.
 
         GET ``…/streams/{id}?includeAttributes=true``. Used for read-before-write
@@ -296,9 +290,7 @@ class PortalStreamClient:
                 timeout=DEFAULT_TIMEOUT,
             ) as response:
                 text = await response.text()
-                payload = _parse_envelope(
-                    response.status, text, action="Reading stream attributes"
-                )
+                payload = _parse_envelope(response.status, text, action="Reading stream attributes")
         except asyncio.TimeoutError as err:
             raise StreamActivationError(
                 "Timed out reading stream attributes: the portal did not respond "
@@ -360,8 +352,7 @@ class PortalStreamClient:
             else:
                 if normalize_attributes(current.attributes) == desired:
                     _LOGGER.info(
-                        "Stream activation for %s: %d attributes already selected; "
-                        "nothing to do",
+                        "Stream activation for %s: %d attributes already selected; nothing to do",
                         _mask(mapped_vehicle_id),
                         len(desired),
                     )
@@ -383,9 +374,7 @@ class PortalStreamClient:
                 timeout=DEFAULT_TIMEOUT,
             ) as response:
                 text = await response.text()
-                payload = _parse_envelope(
-                    response.status, text, action="Setting stream attributes"
-                )
+                payload = _parse_envelope(response.status, text, action="Setting stream attributes")
         except asyncio.TimeoutError as err:
             raise StreamActivationError(
                 "Timed out setting stream attributes: the portal did not respond "

@@ -52,9 +52,7 @@ MAPPED = "90d3dd3e0ba0ea99abc"
 
 
 def test_normalize_dedupes_trims_and_sorts():
-    out = SA.normalize_attributes(
-        [" vehicle.isMoving ", "vehicle.a", "vehicle.a", "", "  "]
-    )
+    out = SA.normalize_attributes([" vehicle.isMoving ", "vehicle.a", "vehicle.a", "", "  "])
     assert out == ["vehicle.a", "vehicle.isMoving"]
 
 
@@ -123,9 +121,7 @@ def test_skip_if_unchanged_short_circuits_without_posting():
         [FakeResponse(200, {"data": {"attributes": current}, "success": True})]
     )
     client = SA.PortalStreamClient(http, _session())
-    result = _run(
-        client.async_set_stream_attributes(MAPPED, ["vehicle.b", "vehicle.a"])
-    )
+    result = _run(client.async_set_stream_attributes(MAPPED, ["vehicle.b", "vehicle.a"]))
     # Only the GET pre-read happened; no POST.
     assert [c["method"] for c in http.calls] == ["GET"]
     assert result.unchanged is True
@@ -142,9 +138,7 @@ def test_changed_selection_reads_then_posts():
         ]
     )
     client = SA.PortalStreamClient(http, _session())
-    result = _run(
-        client.async_set_stream_attributes(MAPPED, ["vehicle.a", "vehicle.b"])
-    )
+    result = _run(client.async_set_stream_attributes(MAPPED, ["vehicle.a", "vehicle.b"]))
     assert [c["method"] for c in http.calls] == ["GET", "POST"]
     assert result.accepted_count == 2
 
@@ -195,11 +189,7 @@ def test_error_status_is_classified(status, kind, retryable):
     http = _FakeGetPostSession([FakeResponse(status, {"message": "nope"})])
     client = SA.PortalStreamClient(http, _session())
     with pytest.raises(SA.StreamActivationError) as excinfo:
-        _run(
-            client.async_set_stream_attributes(
-                MAPPED, ["vehicle.a"], skip_if_unchanged=False
-            )
-        )
+        _run(client.async_set_stream_attributes(MAPPED, ["vehicle.a"], skip_if_unchanged=False))
     assert excinfo.value.kind == kind
     assert excinfo.value.retryable is retryable
     assert excinfo.value.status == status
@@ -211,11 +201,7 @@ def test_2xx_with_success_false_is_a_validation_error():
     )
     client = SA.PortalStreamClient(http, _session())
     with pytest.raises(SA.StreamActivationError) as excinfo:
-        _run(
-            client.async_set_stream_attributes(
-                MAPPED, ["vehicle.a"], skip_if_unchanged=False
-            )
-        )
+        _run(client.async_set_stream_attributes(MAPPED, ["vehicle.a"], skip_if_unchanged=False))
     assert excinfo.value.kind == "validation"
 
 
@@ -253,11 +239,7 @@ def test_timeout_is_classified_not_leaked():
     # retryable network StreamActivationError, never a raw asyncio.TimeoutError.
     client = SA.PortalStreamClient(_TimeoutSession(), _session())
     with pytest.raises(SA.StreamActivationError) as excinfo:
-        _run(
-            client.async_set_stream_attributes(
-                MAPPED, ["vehicle.a"], skip_if_unchanged=False
-            )
-        )
+        _run(client.async_set_stream_attributes(MAPPED, ["vehicle.a"], skip_if_unchanged=False))
     assert excinfo.value.kind == "network"
     assert excinfo.value.retryable is True
 
@@ -266,9 +248,5 @@ def test_cookie_never_appears_in_error_text():
     http = _FakeGetPostSession([FakeResponse(401, {"message": "denied"})])
     client = SA.PortalStreamClient(http, _session())
     with pytest.raises(SA.StreamActivationError) as excinfo:
-        _run(
-            client.async_set_stream_attributes(
-                MAPPED, ["vehicle.a"], skip_if_unchanged=False
-            )
-        )
+        _run(client.async_set_stream_attributes(MAPPED, ["vehicle.a"], skip_if_unchanged=False))
     assert "secret" not in str(excinfo.value)

@@ -106,9 +106,7 @@ def normalize_prefix(value: Optional[str]) -> str:
     return cleaned
 
 
-def evcc_status(
-    *, charging: Optional[bool], plugged: Optional[bool]
-) -> Optional[str]:
+def evcc_status(*, charging: Optional[bool], plugged: Optional[bool]) -> Optional[str]:
     """Map what the car reports onto evcc's A/B/C, or ``None`` if unknowable.
 
     Charging outranks the plug: a car that is actively charging is connected
@@ -222,7 +220,7 @@ def _number(value: Optional[float], digits: int) -> Optional[str]:
         return None
     try:
         rounded = round(float(value), digits)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
     if rounded != rounded:  # NaN
         return None

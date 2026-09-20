@@ -9,15 +9,15 @@ API_VERSION = "v1"
 BASIC_DATA_ENDPOINT = "/customers/vehicles/{vin}/basicData"
 DEFAULT_STREAM_HOST = "customer.streaming-cardata.bmwgroup.com"
 DEFAULT_STREAM_PORT = 9000
-DEFAULT_REFRESH_INTERVAL = 45 * 60  #How often to refresh the auth tokens in seconds
+DEFAULT_REFRESH_INTERVAL = 45 * 60  # How often to refresh the auth tokens in seconds
 MQTT_KEEPALIVE = 30
 DEBUG_LOG = False
-DIAGNOSTIC_LOG_INTERVAL = 30 # How often we print stream logs in seconds
+DIAGNOSTIC_LOG_INTERVAL = 30  # How often we print stream logs in seconds
 BOOTSTRAP_COMPLETE = "bootstrap_complete"
 REQUEST_LOG = "request_log"
 REQUEST_LOG_VERSION = 1
-REQUEST_LIMIT = 50 # API Quota
-REQUEST_WINDOW_SECONDS = 24 * 60 * 60 # How long API Quota is reserved after API Call in seconds
+REQUEST_LIMIT = 50  # API Quota
+REQUEST_WINDOW_SECONDS = 24 * 60 * 60  # How long API Quota is reserved after API Call in seconds
 # How often to call the Telematic API, in seconds. Once a day: the container now
 # holds the fields BMW *cannot* stream, and those change on the scale of days
 # (service demands, tread wear, lifetime counters), not minutes. A 24 h cadence
@@ -36,9 +36,9 @@ OPTION_STREAM_SECTIONS = "stream_sections"
 
 # Charging-cost settings. Cost entities only exist once a mode other than
 # "none" is chosen -- showing a wrong price is worse than showing none.
-OPTION_PRICE_MODE = "price_mode"          # none | fixed | entity
-OPTION_PRICE_FIXED = "price_fixed"        # currency units per kWh
-OPTION_PRICE_ENTITY = "price_entity"      # a live price sensor (Tibber, Nordpool, ...)
+OPTION_PRICE_MODE = "price_mode"  # none | fixed | entity
+OPTION_PRICE_FIXED = "price_fixed"  # currency units per kWh
+OPTION_PRICE_ENTITY = "price_entity"  # a live price sensor (Tibber, Nordpool, ...)
 OPTION_PRICE_CURRENCY = "price_currency"
 # Optional wallbox energy sensor: a measured grid figure always beats the
 # battery-side energy we integrate from the stream.
@@ -157,8 +157,7 @@ HV_BATTERY_DESCRIPTORS = [
     "vehicle.drivetrain.batteryManagement.batterySizeMax",
     "vehicle.drivetrain.batteryManagement.maxEnergy",
     "vehicle.powertrain.electric.battery.charging.power",
-    "vehicle.drivetrain.electricEngine.charging.status"
-
+    "vehicle.drivetrain.electricEngine.charging.status",
 ]
 
 # Response shapes for the mapping, telematic and basic-data endpoints are

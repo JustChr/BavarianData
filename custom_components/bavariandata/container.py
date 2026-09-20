@@ -168,9 +168,7 @@ class CardataContainerManager:
         )
         container_id = response.get("containerId") if isinstance(response, dict) else None
         if not container_id:
-            raise CardataContainerError(
-                "Container creation response missing containerId"
-            )
+            raise CardataContainerError("Container creation response missing containerId")
         return container_id
 
     async def _list_containers(self, access_token: str) -> List[Dict[str, Any]]:

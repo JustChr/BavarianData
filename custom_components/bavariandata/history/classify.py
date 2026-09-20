@@ -200,6 +200,5 @@ def commute_chain(
     return [
         leg
         for leg in chain
-        if leg.classification_source != SOURCE_USER
-        and leg.classification != CLASS_COMMUTE
+        if leg.classification_source != SOURCE_USER and leg.classification != CLASS_COMMUTE
     ]

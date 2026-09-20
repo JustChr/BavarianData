@@ -112,9 +112,7 @@ def test_the_replacement_is_created_before_anything_is_deleted():
         ]
     )
     assert _run(manager.async_reset_hv_container(TOKEN)) == "new-1"
-    assert _methods(session) == ["GET", "POST", "DELETE"], (
-        "the POST must precede the DELETE"
-    )
+    assert _methods(session) == ["GET", "POST", "DELETE"], "the POST must precede the DELETE"
 
 
 def test_the_new_container_is_never_deleted():
@@ -183,12 +181,12 @@ def test_resetting_without_a_token_does_nothing():
 @pytest.mark.parametrize(
     "body",
     [
-        [{"containerId": "a"}],                      # a bare list
-        {"containers": [{"containerId": "a"}]},      # wrapped in an object
-        {"containers": "not a list"},                # wrapped, but not a list
-        {"containers": [1, 2, "three"]},             # a list of non-objects
-        123,                                         # valid JSON, wrong type
-        "null",                                      # JSON null
+        [{"containerId": "a"}],  # a bare list
+        {"containers": [{"containerId": "a"}]},  # wrapped in an object
+        {"containers": "not a list"},  # wrapped, but not a list
+        {"containers": [1, 2, "three"]},  # a list of non-objects
+        123,  # valid JSON, wrong type
+        "null",  # JSON null
     ],
 )
 def test_the_listing_survives_every_json_shape_bmw_could_return(body):

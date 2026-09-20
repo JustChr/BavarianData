@@ -85,7 +85,9 @@ I5 = {
         "km",
         device_class="distance",
     ),
-    "sensor.i5_charging": _sensor("vehicle.drivetrain.electricEngine.charging.status", "nocharging"),
+    "sensor.i5_charging": _sensor(
+        "vehicle.drivetrain.electricEngine.charging.status", "nocharging"
+    ),
     "sensor.i5_target": EV_TARGET,
     "sensor.i5_odometer": ODOMETER,
 }

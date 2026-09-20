@@ -90,7 +90,10 @@ first). Update the coverage matrix in [`docs/documentation-plan.md`](docs/docume
 too — that matrix is the definition of "documented everything," and reviewing it
 is how you catch a gap. English is the source language; every page has a German
 counterpart in `docs/wiki/de/DE-<page>.md` that changes **in the same commit**
-(`tests/test_wiki_links.py` checks links, anchors and the EN↔DE pairing).
+(`tests/test_wiki_links.py` checks links, anchors and the EN↔DE pairing;
+`tests/test_docs_lockstep.py` checks that every service in `services.yaml`
+and every card view is described in both languages **and** present in the
+coverage matrix).
 
 ## Claude Code tooling (`.claude/`)
 
@@ -154,6 +157,12 @@ zip asset).
   HA 2026.3 requires **Python 3.14.2** (2026.2 was the last release to accept
   3.13), so every install runs 3.14+. CI tests 3.14 only and `pyproject.toml`
   targets `py314`; raising the HA floor means revisiting both.
+- The source is **syntactically 3.14-only**. `ruff format` at `target-version =
+  "py314"` drops the parentheses from multi-exception `except` clauses (PEP 758),
+  so `except TypeError, ValueError:` appears throughout — valid on 3.14, a
+  *syntax error* on 3.13, which therefore cannot even import this package. That
+  is deliberate and matches the floor. Run the suite with 3.14; if the floor
+  ever drops below 2026.3, lower `target-version` and re-run `ruff format`.
 - Entities must keep exposing `cluster`/`category` attributes even when
   restored/unavailable — the Lovelace card's cluster views depend on them.
 - README image links use absolute `raw.githubusercontent.com` URLs on purpose

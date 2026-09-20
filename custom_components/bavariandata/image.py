@@ -72,7 +72,7 @@ async def _async_load_cache(hass: HomeAssistant) -> Dict[str, dict]:
                 continue
             try:
                 data = base64.b64decode(data_b64)
-            except (ValueError, TypeError):
+            except ValueError, TypeError:
                 continue
             cache[vin] = {
                 "data": data,
@@ -121,9 +121,7 @@ async def async_refresh_vehicle_image(
     )
 
     try:
-        await _refresh_tokens(
-            entry, runtime.session, runtime.stream, runtime.container_manager
-        )
+        await _refresh_tokens(entry, runtime.session, runtime.stream, runtime.container_manager)
     except CardataAuthError as err:
         # A stale-but-valid token may still work; log and try the fetch anyway.
         _LOGGER.warning("Cardata image: token refresh failed for %s: %s", mask_vin(vin), err)
@@ -142,9 +140,7 @@ async def async_refresh_vehicle_image(
             return None
 
     try:
-        data, content_type = await async_get_vehicle_image(
-            runtime.session, access_token, vin
-        )
+        data, content_type = await async_get_vehicle_image(runtime.session, access_token, vin)
     except CardataApiError as err:
         _LOGGER.error("Cardata image fetch failed for %s: %s", mask_vin(vin), err)
         return None
@@ -198,9 +194,7 @@ async def async_setup_entry(
     def handle_new(vin: str, descriptor: str) -> None:
         ensure_entity(vin)
 
-    entry.async_on_unload(
-        async_dispatcher_connect(hass, coordinator.signal_new_sensor, handle_new)
-    )
+    entry.async_on_unload(async_dispatcher_connect(hass, coordinator.signal_new_sensor, handle_new))
 
 
 class CardataVehicleImage(CardataEntity, ImageEntity):
@@ -237,9 +231,7 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
         self.async_on_remove(
-            async_dispatcher_connect(
-                self.hass, SIGNAL_VEHICLE_IMAGE, self._handle_image_signal
-            )
+            async_dispatcher_connect(self.hass, SIGNAL_VEHICLE_IMAGE, self._handle_image_signal)
         )
         if self._vin not in self._cache:
             # No render yet (fresh install / never fetched): pull it once in the
@@ -247,9 +239,7 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
             self.hass.async_create_task(self._async_initial_fetch())
 
     async def _async_initial_fetch(self) -> None:
-        await async_refresh_vehicle_image(
-            self.hass, self._entry, self._runtime, self._vin
-        )
+        await async_refresh_vehicle_image(self.hass, self._entry, self._runtime, self._vin)
 
     @callback
     def _handle_image_signal(self, vin: str) -> None:
@@ -268,9 +258,7 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
         record = self._cache.get(self._vin)
         if record:
             return record.get("data")
-        result = await async_refresh_vehicle_image(
-            self.hass, self._entry, self._runtime, self._vin
-        )
+        result = await async_refresh_vehicle_image(self.hass, self._entry, self._runtime, self._vin)
         if result:
             return result[0]
         return None

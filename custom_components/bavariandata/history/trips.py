@@ -58,9 +58,7 @@ SOURCE_USER = "user"
 MIN_CONSUMPTION_SOC_DELTA = 3.0
 
 
-def place(
-    zone: Optional[str] = None, address: Optional[str] = None
-) -> dict[str, Any]:
+def place(zone: Optional[str] = None, address: Optional[str] = None) -> dict[str, Any]:
     """Build a place record from a zone name and/or an address string.
 
     ``label`` is what the card shows: the zone name if we have one, else the

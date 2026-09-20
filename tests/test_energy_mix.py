@@ -140,7 +140,7 @@ def test_the_buckets_always_add_back_up_to_what_was_delivered():
 
 
 def test_a_session_with_nothing_attributable_records_no_mix():
-    """"We could not tell" must not look like "none of it was solar"."""
+    """ "We could not tell" must not look like "none of it was solar"."""
 
     accumulator = mix.MixAccumulator()
     accumulator.add(10.0, None)
@@ -151,9 +151,7 @@ def test_a_session_with_nothing_attributable_records_no_mix():
 def test_the_accumulator_survives_a_restart():
     accumulator = mix.MixAccumulator()
     accumulator.add(3.0, _shares(pv_w=4000.0, grid_w=0.0, battery_w=0.0))
-    restored = mix.MixAccumulator.from_dict(
-        json.loads(json.dumps(accumulator.to_dict()))
-    )
+    restored = mix.MixAccumulator.from_dict(json.loads(json.dumps(accumulator.to_dict())))
     assert restored.totals == accumulator.totals
 
     restored.add(1.0, _shares(pv_w=0.0, grid_w=5000.0, battery_w=0.0))

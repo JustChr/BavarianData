@@ -22,9 +22,7 @@ D = load_module("descriptors")
 
 def _make_blob(obj: dict) -> str:
     """Reproduce what the activator emits: PREFIX + base64(utf8 json)."""
-    return OB.RESULT_PREFIX + base64.b64encode(
-        json.dumps(obj).encode("utf-8")
-    ).decode("ascii")
+    return OB.RESULT_PREFIX + base64.b64encode(json.dumps(obj).encode("utf-8")).decode("ascii")
 
 
 # --- activator generation -------------------------------------------------------
@@ -73,7 +71,7 @@ def test_activator_is_page_aware_and_additive():
 def test_bookmarklet_is_javascript_scheme_and_roundtrips():
     bm = OB.build_bookmarklet(["vehicle.a", "vehicle.b"])
     assert bm.startswith("javascript:")
-    decoded = urllib.parse.unquote(bm[len("javascript:"):])
+    decoded = urllib.parse.unquote(bm[len("javascript:") :])
     assert decoded == OB.build_activator_js(["vehicle.a", "vehicle.b"])
     # Percent-encoded: no raw spaces/quotes that would break an href.
     assert " " not in bm and '"' not in bm
@@ -109,8 +107,14 @@ def _sample(**over) -> dict:
             {"apikey": "bbbb2222", "scopes": ["cardata:api:read", "openid"]},
         ],
         "vehicle": {"mappingStatus": "CONFIRMED", "isElectricOrHybrid": True},
-        "activated": {"status": 201, "current": 180, "added": 48, "total": 228,
-                      "skipped": 35, "ok": True},
+        "activated": {
+            "status": 201,
+            "current": 180,
+            "added": 48,
+            "total": 228,
+            "skipped": 35,
+            "ok": True,
+        },
         "errors": [],
     }
     base.update(over)

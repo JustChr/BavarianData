@@ -98,7 +98,10 @@ def main() -> None:
         lines.append("")
         total += len(entries)
 
-    lines.insert(4, f"**{total} fields** across {sum(1 for k, _ in SECTION_ORDER if by_section.get(k))} sections.")
+    lines.insert(
+        4,
+        f"**{total} fields** across {sum(1 for k, _ in SECTION_ORDER if by_section.get(k))} sections.",
+    )
     lines.insert(5, "")
 
     OUTPUT_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")

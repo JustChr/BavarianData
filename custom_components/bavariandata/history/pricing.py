@@ -97,7 +97,7 @@ class PricingConfig:
             try:
                 value = options.get(key)
                 return None if value is None or value == "" else float(value)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 return None
 
         return cls(
@@ -153,9 +153,7 @@ class CostAccumulator:
         }
 
     @classmethod
-    def from_dict(
-        cls, data: Optional[dict[str, Any]], *, currency: str
-    ) -> "CostAccumulator":
+    def from_dict(cls, data: Optional[dict[str, Any]], *, currency: str) -> "CostAccumulator":
         """Rebuild a snapshotted accumulator, or start a fresh one.
 
         ``currency`` is the one configured *now*. A snapshot taken under a
@@ -172,14 +170,14 @@ class CostAccumulator:
                     fresh.unpriced_kwh = float(data.get("priced_kwh") or 0.0) + float(
                         data.get("unpriced_kwh") or 0.0
                     )
-                except (TypeError, ValueError):
+                except TypeError, ValueError:
                     fresh.unpriced_kwh = 0.0
             return fresh
         try:
             fresh.amount = float(data.get("amount") or 0.0)
             fresh.priced_kwh = float(data.get("priced_kwh") or 0.0)
             fresh.unpriced_kwh = float(data.get("unpriced_kwh") or 0.0)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return cls(currency=currency)
         return fresh
 

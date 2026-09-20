@@ -89,14 +89,20 @@ def test_an_english_dashboard_keeps_decimal_points():
 
 @needs_node
 def test_the_number_format_setting_outranks_the_language():
-    assert _run({"v": ["_dec", 19.84, 1]}, language="de", number_format="comma_decimal") == {"v": "19.8"}
-    assert _run({"v": ["_dec", 19.84, 1]}, language="en", number_format="decimal_comma") == {"v": "19,8"}
+    assert _run({"v": ["_dec", 19.84, 1]}, language="de", number_format="comma_decimal") == {
+        "v": "19.8"
+    }
+    assert _run({"v": ["_dec", 19.84, 1]}, language="en", number_format="decimal_comma") == {
+        "v": "19,8"
+    }
     assert _run({"v": ["_dec", 12345.67, 1]}, number_format="none") == {"v": "12345.7"}
 
 
 @needs_node
 def test_rounding_edge_cases():
-    out = _run({"neg_zero": ["_dec", -0.04, 1], "junk": ["_dec", "n/a", 1], "whole": ["_dec", 77, 1]})
+    out = _run(
+        {"neg_zero": ["_dec", -0.04, 1], "junk": ["_dec", "n/a", 1], "whole": ["_dec", 77, 1]}
+    )
     assert out == {"neg_zero": "0", "junk": "—", "whole": "77"}
 
 

@@ -137,9 +137,7 @@ def test_prune_trims_by_window_and_cap():
     now = START + timedelta(days=400)
     old = _trip(start=START)  # >12 months before "now"
     recent = _trip(start=now - timedelta(days=5))
-    kept = trips.prune_trips(
-        [old, recent], now=now, retain_months=12, max_entries=100
-    )
+    kept = trips.prune_trips([old, recent], now=now, retain_months=12, max_entries=100)
     assert kept == [recent]
 
 
@@ -162,9 +160,7 @@ def test_home_to_work_is_a_commute_either_direction():
 
 def test_known_but_non_commute_is_private():
     assert (
-        classify.classify_trip(
-            place(zone="Home"), place(zone="Gym"), home="Home", work="Work"
-        )
+        classify.classify_trip(place(zone="Home"), place(zone="Gym"), home="Home", work="Work")
         == "private"
     )
 
@@ -190,19 +186,14 @@ def test_default_type_is_configurable():
     # behaviour rather than writing a class nothing understands.
     for value in ("unclassified", None, "nonsense"):
         assert (
-            classify.classify_trip(
-                home, gym, home="Home", work="Work", default_class=value
-            )
-            is None
+            classify.classify_trip(home, gym, home="Home", work="Work", default_class=value) is None
         )
 
 
 def test_default_type_never_overrides_a_commute():
     home, work = place(zone="Home"), place(zone="Work")
     assert (
-        classify.classify_trip(
-            home, work, home="Home", work="Work", default_class="business"
-        )
+        classify.classify_trip(home, work, home="Home", work="Work", default_class="business")
         == "commute"
     )
 
@@ -217,9 +208,7 @@ def test_trip_class_setting_maps_the_option_value():
 def test_classifier_never_invents_business():
     # Without the user choosing it as their default, business is only ever
     # reachable through the manual override.
-    result = classify.classify_trip(
-        place(zone="Home"), place(zone="Work"), home="Home", work=None
-    )
+    result = classify.classify_trip(place(zone="Home"), place(zone="Work"), home="Home", work=None)
     assert result != "business"
 
 
@@ -227,9 +216,7 @@ def test_identical_home_and_work_is_not_a_commute():
     # A misconfigured work zone pointing at home would otherwise make every
     # drive home a commute.
     assert (
-        classify.classify_trip(
-            place(zone="Home"), place(zone="Home"), home="Home", work="Home"
-        )
+        classify.classify_trip(place(zone="Home"), place(zone="Home"), home="Home", work="Home")
         == "private"
     )
 
@@ -255,9 +242,7 @@ def _leg(minutes_in: int, minutes_out: int, start_zone, end_zone, **overrides) -
 
 
 def _chain(trip, previous, *, gap_min=30, home="Home", work="Work"):
-    return classify.commute_chain(
-        trip, previous, home=home, work=work, gap_s=gap_min * 60
-    )
+    return classify.commute_chain(trip, previous, home=home, work=work, gap_s=gap_min * 60)
 
 
 def test_stop_on_the_way_to_work_chains_into_a_commute():
@@ -343,9 +328,7 @@ def test_a_chain_needs_to_arrive_somewhere_that_matters():
 
 def test_builder_distance_from_odometer_delta():
     builder = TripBuilder("WBY1", START, mileage_start=1000.0, soc_start=80.0)
-    trip = builder.close(
-        START + timedelta(minutes=20), mileage_end=1023.4, soc_end=74.0
-    )
+    trip = builder.close(START + timedelta(minutes=20), mileage_end=1023.4, soc_end=74.0)
     assert trip.distance_km == 23.4
     assert trip.soc_delta == -6.0
 
@@ -353,9 +336,7 @@ def test_builder_distance_from_odometer_delta():
 def test_builder_falls_back_to_bmw_distance():
     builder = TripBuilder("WBY1", START, mileage_start=1000.0)
     # Odometer unchanged -> use BMW's travelled distance instead.
-    trip = builder.close(
-        START + timedelta(minutes=20), mileage_end=1000.0, travelled_km=12.0
-    )
+    trip = builder.close(START + timedelta(minutes=20), mileage_end=1000.0, travelled_km=12.0)
     assert trip.distance_km == 12.0
 
 
@@ -426,13 +407,14 @@ def test_odometer_and_bmw_distance_outrank_the_gps_track():
 
 def test_progress_reports_the_drive_so_far():
     builder = TripBuilder(
-        "WBY1", START, start_place=place(zone="Home"), mileage_start=1000.0,
+        "WBY1",
+        START,
+        start_place=place(zone="Home"),
+        mileage_start=1000.0,
         soc_start=80.0,
     )
     builder.add_gps_km(2.0)
-    live = builder.progress(
-        START + timedelta(minutes=12), mileage_now=1008.0, soc_now=76.0
-    )
+    live = builder.progress(START + timedelta(minutes=12), mileage_now=1008.0, soc_now=76.0)
     assert live["in_progress"] is True
     assert live["start"] == START.isoformat()
     assert live["start_place"] == place(zone="Home")
@@ -609,11 +591,15 @@ def test_average_consumption_ignores_trips_it_refuses_to_rate():
     """
 
     month = [
-        _trip(start=START, distance_km=100.0, energy_kwh=20.0,
-              soc_start=60.0, soc_end=34.0),
+        _trip(start=START, distance_km=100.0, energy_kwh=20.0, soc_start=60.0, soc_end=34.0),
         # Gated: one percent over 1 km. Neither its 0.78 kWh nor its 1 km counts.
-        _trip(start=START + timedelta(days=1), distance_km=1.0, energy_kwh=0.78,
-              soc_start=34.0, soc_end=33.0),
+        _trip(
+            start=START + timedelta(days=1),
+            distance_km=1.0,
+            energy_kwh=0.78,
+            soc_start=34.0,
+            soc_end=33.0,
+        ),
     ]
     result = summary.driving_summary(month)
     assert result["avg_consumption_kwh_per_100km"] == 20.0
@@ -622,12 +608,16 @@ def test_average_consumption_ignores_trips_it_refuses_to_rate():
 
 def test_driving_summary_recuperation_and_style():
     month = [
-        _trip(start=START, distance_km=10.0,
-              stats={"accel_stars": 4.0, "brake_stars": 2.0,
-                     "recuperation_kwh_per_100km": 1.0}),
-        _trip(start=START + timedelta(days=8), distance_km=30.0,
-              stats={"accel_stars": 5.0,
-                     "recuperation_kwh_per_100km": 2.0}),
+        _trip(
+            start=START,
+            distance_km=10.0,
+            stats={"accel_stars": 4.0, "brake_stars": 2.0, "recuperation_kwh_per_100km": 1.0},
+        ),
+        _trip(
+            start=START + timedelta(days=8),
+            distance_km=30.0,
+            stats={"accel_stars": 5.0, "recuperation_kwh_per_100km": 2.0},
+        ),
     ]
     result = summary.driving_summary(month)
     # BMW's figure is already per 100 km, so the month is a distance-weighted
@@ -661,9 +651,7 @@ def test_driving_summary_top_destinations_skip_unknown():
 def test_driving_summary_month_over_month_and_cost():
     month = [_trip(start=START, distance_km=100.0)]
     prev = [_trip(start=START - timedelta(days=31), distance_km=80.0)]
-    result = summary.driving_summary(
-        month, prev_trips=prev, cost_per_100km=8.0, currency="EUR"
-    )
+    result = summary.driving_summary(month, prev_trips=prev, cost_per_100km=8.0, currency="EUR")
     assert result["mom_delta_km"] == 20.0
     assert result["mom_delta_percent"] == 25.0
     assert result["estimated_cost"] == {"amount": 8.0, "currency": "EUR"}

@@ -121,8 +121,7 @@ def container_retrievable(descriptor: str) -> bool:
     if meta is None:
         return False
     return (
-        meta["section"] != _BASIC_DATA_SECTION
-        and descriptor not in DEDICATED_ENDPOINT_DESCRIPTORS
+        meta["section"] != _BASIC_DATA_SECTION and descriptor not in DEDICATED_ENDPOINT_DESCRIPTORS
     )
 
 
@@ -175,8 +174,6 @@ def build_scope(
     scopes = list(base_scopes)
     scopes.extend(
         streaming_scope(descriptor)
-        for descriptor in descriptors_for_sections(
-            sections, include_diagnostic=include_diagnostic
-        )
+        for descriptor in descriptors_for_sections(sections, include_diagnostic=include_diagnostic)
     )
     return " ".join(scopes)

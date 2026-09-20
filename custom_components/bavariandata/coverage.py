@@ -323,13 +323,9 @@ def analyze_coverage(
             )
         )
 
-    coverage_percent = (
-        round(100.0 * total_seen / total_expected, 1) if total_expected else 100.0
-    )
+    coverage_percent = round(100.0 * total_seen / total_expected, 1) if total_expected else 100.0
     drivetrain_excluded = (
-        HIGH_VOLTAGE_SECTIONS & set(expected_by_section)
-        if is_combustion_only(seen_set)
-        else set()
+        HIGH_VOLTAGE_SECTIONS & set(expected_by_section) if is_combustion_only(seen_set) else set()
     )
     not_applicable = sorted(
         drivetrain_excluded

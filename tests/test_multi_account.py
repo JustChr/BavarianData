@@ -149,9 +149,7 @@ def test_the_duplicate_account_abort_is_translated() -> None:
     import json
 
     for lang in ("en", "de"):
-        doc = json.loads(
-            (_PKG / "translations" / f"{lang}.json").read_text(encoding="utf-8")
-        )
+        doc = json.loads((_PKG / "translations" / f"{lang}.json").read_text(encoding="utf-8"))
         assert "account_already_configured" in doc["config"]["abort"], lang
 
 

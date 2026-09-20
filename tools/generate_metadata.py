@@ -133,9 +133,7 @@ _OVERRIDES: dict[str, tuple[str | None, str | None, str | None]] = {
 }
 
 
-def parse_options(
-    descriptor: str, value_range: str, data_type: str = ""
-) -> tuple[str, ...]:
+def parse_options(descriptor: str, value_range: str, data_type: str = "") -> tuple[str, ...]:
     """Return enum option slugs for a descriptor, else empty.
 
     Enum detection lives in :func:`catalogue_enums.enum_options` (shared with the
@@ -285,15 +283,15 @@ def main() -> None:
     for descriptor in sorted(meta):
         m = meta[descriptor]
         lines.append(f"    {descriptor!r}: {{")
-        lines.append(f"        \"section\": {m['section']!r},")
-        lines.append(f"        \"category\": {m['category']!r},")
-        lines.append(f"        \"device_class\": {m['device_class']!r},")
-        lines.append(f"        \"state_class\": {m['state_class']!r},")
-        lines.append(f"        \"unit\": {m['unit']!r},")
-        lines.append(f"        \"options\": {list(m['options'])!r},")
-        lines.append(f"        \"entity_category\": {m['entity_category']!r},")
-        lines.append(f"        \"enabled_default\": {m['enabled_default']!r},")
-        lines.append(f"        \"streamable\": {m['streamable']!r},")
+        lines.append(f'        "section": {m["section"]!r},')
+        lines.append(f'        "category": {m["category"]!r},')
+        lines.append(f'        "device_class": {m["device_class"]!r},')
+        lines.append(f'        "state_class": {m["state_class"]!r},')
+        lines.append(f'        "unit": {m["unit"]!r},')
+        lines.append(f'        "options": {list(m["options"])!r},')
+        lines.append(f'        "entity_category": {m["entity_category"]!r},')
+        lines.append(f'        "enabled_default": {m["enabled_default"]!r},')
+        lines.append(f'        "streamable": {m["streamable"]!r},')
         lines.append("    },")
     lines.append("}")
     lines.append("")

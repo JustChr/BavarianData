@@ -88,22 +88,16 @@ def parse_html() -> "OrderedDict[str, dict]":
     for i in range(1, len(parts), 2):
         heading = clean(parts[i])
         body = parts[i + 1]
-        section_key, section_label = SECTION_MAP.get(
-            heading.upper(), ("other", heading.title())
-        )
+        section_key, section_label = SECTION_MAP.get(heading.upper(), ("other", heading.title()))
         for row in re.findall(r"<tr>(.*?)</tr>", body, flags=re.S):
             cols = re.findall(r'<td class="([^"]+)">(.*?)</td>', row, flags=re.S)
             # Cells may carry extra classes (e.g. "col1-emea top-column"); key by
             # the leading colN token so the lookup is stable.
             byclass = {
-                classes.split()[0]: clean(value)
-                for classes, value in cols
-                if classes.split()
+                classes.split()[0]: clean(value) for classes, value in cols if classes.split()
             }
             # Kept un-cleaned alongside: col7's value lives in markup, not text.
-            raw_byclass = {
-                classes.split()[0]: value for classes, value in cols if classes.split()
-            }
+            raw_byclass = {classes.split()[0]: value for classes, value in cols if classes.split()}
             descriptor = byclass.get("col3", "")
             if not descriptor.startswith("vehicle"):
                 continue

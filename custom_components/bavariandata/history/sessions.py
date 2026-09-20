@@ -136,9 +136,7 @@ def measured_grid_kwh(
     return round(delta, 3)
 
 
-def meter_counts_this_session(
-    location: Optional[dict[str, Any]], home_zone: Optional[str]
-) -> bool:
+def meter_counts_this_session(location: Optional[dict[str, Any]], home_zone: Optional[str]) -> bool:
     """Whether the bound wallbox meter can be measuring this charge at all.
 
     The meter hangs on a wall at home, and nothing it reports says *which* car
@@ -257,9 +255,7 @@ def energy_ceiling_kwh(
     return (gained + margin_percent) / 100.0 * capacity_kwh
 
 
-def _is_late_start(
-    soc_before: Optional[float], soc_start: Optional[float]
-) -> bool:
+def _is_late_start(soc_before: Optional[float], soc_start: Optional[float]) -> bool:
     """True when the pack was already fuller at open than we last saw it.
 
     Charging only raises SoC, so a session opening meaningfully above the last
@@ -374,9 +370,7 @@ class SessionBuilder:
             return
         if self.grid_meter_start is None:
             self.grid_meter_start = reading
-        elif (
-            self.grid_meter_last is not None and reading < self.grid_meter_last
-        ):
+        elif self.grid_meter_last is not None and reading < self.grid_meter_last:
             self.grid_meter_start = None
             self.grid_meter_last = None
             return
@@ -454,12 +448,10 @@ class SessionBuilder:
         builder.interrupted = True
         builder.soc_end = data.get("soc_end")
         builder.peak_power_kw = data.get("peak_power_kw")
-        builder._curve = [
-            list(point) for point in data.get("curve") or [] if len(point) >= 2
-        ]
+        builder._curve = [list(point) for point in data.get("curve") or [] if len(point) >= 2]
         try:
             builder._interval = int(data.get("interval") or MIN_SAMPLE_INTERVAL_S)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             builder._interval = MIN_SAMPLE_INTERVAL_S
         last_offset = data.get("last_offset")
         builder._last_offset = None if last_offset is None else int(last_offset)
@@ -495,9 +487,7 @@ class SessionBuilder:
         soc_start = self.soc_start if self.soc_end is not None else None
         # Carry the last reading out to the end so the curve doesn't appear to
         # stop early when the final samples fell inside the downsample window.
-        if self._last_power is not None and (
-            not self._curve or self._curve[-1][0] < end_offset
-        ):
+        if self._last_power is not None and (not self._curve or self._curve[-1][0] < end_offset):
             self._curve.append([end_offset, self._last_power])
 
         return ChargingSession(
