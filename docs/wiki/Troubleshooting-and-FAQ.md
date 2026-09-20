@@ -205,7 +205,11 @@ file to your issue.
 
 It costs **no API quota** — everything in it is state the integration already
 holds — and it is built to be safe to post in public: your **VIN, GCID, client
-ID, tokens, MQTT topic and GPS coordinates are redacted automatically**.
+ID, tokens, MQTT topic and GPS coordinates are redacted automatically**. The
+file does carry a short one-way fingerprint derived from your GCID: it cannot be
+turned back into the id, and its only use is telling whether two downloads came
+from the same account — which matters because BMW allows one live stream per
+account.
 
 What's left is exactly what distinguishes the common failures from each other:
 
@@ -216,6 +220,7 @@ What's left is exactly what distinguishes the common failures from each other:
 | Per-descriptor arrival counts and last-seen times | Whether the stream is delivering, and what. |
 | Connection history with MQTT `rc` codes | Authorization failures, and another client stealing the single stream. |
 | Bootstrap state and your options | Setup that never finished; a setting that isn't what you thought. |
+| The car's model and drivetrain | Which overview the card should draw, and which electric-only entities should exist. |
 
 ## Debug logging
 

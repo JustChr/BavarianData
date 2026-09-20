@@ -217,6 +217,9 @@ an dein Issue an.
 Das kostet **kein API-Kontingent** — alles darin sind Zustände, die die Integration ohnehin
 hat — und die Datei ist so gebaut, dass sie öffentlich gepostet werden kann: **FIN, GCID,
 Client-ID, Token, MQTT-Topic und GPS-Koordinaten werden automatisch geschwärzt**.
+Enthalten ist ein kurzer Einweg-Fingerabdruck deiner GCID: Er lässt sich nicht in
+die ID zurückrechnen und dient allein der Frage, ob zwei Downloads aus demselben
+Konto stammen — was zählt, weil BMW pro Konto nur einen laufenden Stream erlaubt.
 
 Übrig bleibt genau das, was die üblichen Fehler voneinander unterscheidet:
 
@@ -227,6 +230,7 @@ Client-ID, Token, MQTT-Topic und GPS-Koordinaten werden automatisch geschwärzt*
 | Ankünfte und letzter Zeitpunkt pro Deskriptor | Ob der Stream liefert, und was. |
 | Verbindungsverlauf mit MQTT-`rc`-Codes | Autorisierungsfehler und ein anderer Client, der den einzigen Stream belegt. |
 | Bootstrap-Zustand und deine Optionen | Eine nie abgeschlossene Einrichtung; eine Einstellung, die nicht ist, was du dachtest. |
+| Modell und Antrieb des Autos | Welches Overview die Karte zeichnen soll und welche reinen E-Entitäten es geben darf. |
 
 ## Debug-Protokollierung
 

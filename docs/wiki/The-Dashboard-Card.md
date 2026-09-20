@@ -55,11 +55,20 @@ streams:
 | Electric | State of charge (blue while charging) | Remaining range, charging status | Target, plug, time to full, odometer |
 | Plug-in hybrid | State of charge | Electric range, charging status | Tank, total range, target, plug, time to full, odometer |
 | Petrol / diesel | Tank level — or the volume in the tank, on a car that doesn't stream a percentage | Remaining range, and the tank volume or the odometer | Odometer |
+| Neither, proved | Remaining range | Odometer | — |
 
 A car that sends high-voltage battery data *and* fuel data is a plug-in hybrid;
 fuel data alone makes it petrol or diesel. Some petrol cars stream an EV charge
-target anyway, so that never makes a car look electric. Until either kind of
-data has arrived, the card shows the electric layout.
+target anyway, so that never makes a car look electric.
+
+A car that has only just been set up has proved nothing yet, and keeps the
+electric layout until it does. But a car that has been talking for a while and
+sent **neither** kind of data has proved something: it is not electric, whatever
+else it is. Some do — a petrol MINI can stream no fuel system and no engine at
+all — and showing it a charge ring it could never fill was simply wrong, so it
+gets the last row above instead: its range in the ring, its odometer beside it,
+and nothing about charging. If your car lands there and you know better, set
+`drivetrain:` in the card's YAML.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-car.png" alt="Overview card showing a BMW i5 with charge level, range, charging status and odometer" width="360" />

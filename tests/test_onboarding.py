@@ -35,9 +35,12 @@ def test_activator_embeds_sorted_attributes_and_endpoints():
     for descriptor in attrs[:5]:
         assert descriptor in js
     # All three onboarding endpoints + additive/idempotent + same-origin session.
-    assert "/utilities/bmw/api/cd/applications" in js
-    assert "/mybmw/api/mapped-vehicle/" in js
-    assert "/utilities/bmw/api/cd/streams/" in js
+    # The brand segment is built at runtime from the host, so the paths appear
+    # here as the pieces they are assembled from -- see the brand test below.
+    assert "'/utilities/' + brand + '/api/cd'" in js
+    assert "'/my' + brand + '/api/mapped-vehicle/'" in js
+    assert "cdBase + '/applications'" in js
+    assert "cdBase + '/streams/'" in js
     assert "credentials: 'include'" in js
     assert "?includeAttributes=true" in js  # reads current before writing
     # Filters wanted ids against BMW's streamable catalogue (avoids the 500 that
@@ -49,11 +52,55 @@ def test_activator_embeds_sorted_attributes_and_endpoints():
     assert js == OB.build_activator_js(attrs)
 
 
-def test_activator_embeds_report_url_or_empty():
-    with_report = OB.build_activator_js(["vehicle.a"], report_url="https://ha/api/webhook/xyz")
-    assert 'const REPORT = "https://ha/api/webhook/xyz"' in with_report
+def test_activator_derives_the_brand_segment_from_the_host():
+    """A MINI portal 404s the ``bmw`` routes, and BMW's hosts 404 ``mini``.
+
+    Both measured on issue #23: his MINI portal refused every request until the
+    segment matched, and ``www.bmw.co.uk`` answers 401 for
+    ``/utilities/bmw/api/cd/applications`` but 404 for the ``mini`` spelling. So
+    the segment can never be hardcoded, in either direction.
+    """
+
+    js = OB.build_activator_js(["vehicle.a"])
+    assert "location.hostname.toLowerCase().split('.').indexOf('mini')" in js
+    assert "? 'mini' : 'bmw'" in js
+    # And nothing may still be nailed to one brand.
+    assert "/utilities/bmw/" not in js
+    assert "/mybmw/" not in js
+
+
+def test_activator_embeds_every_report_url_it_should_try():
+    """Home Assistant may answer on several addresses; only the browser knows
+    which it can reach (issue #23: an external-only URL is unreachable from the
+    reporter's own LAN). Order is the caller's preference and is preserved."""
+
+    one = OB.build_activator_js(["vehicle.a"], report_url="https://ha/api/webhook/xyz")
+    assert 'const REPORT = ["https://ha/api/webhook/xyz"]' in one
+
+    both = OB.build_activator_js(
+        ["vehicle.a"],
+        report_url=["https://out.example/api/webhook/x", "https://in.local/api/webhook/x"],
+    )
+    assert (
+        'const REPORT = ["https://out.example/api/webhook/x", "https://in.local/api/webhook/x"]'
+        in both
+    )
+    # Tried in turn, stopping at the first that answers.
+    assert "for (let i = 0; i < REPORT.length; i++)" in both
+    assert "break;" in both
+
     without = OB.build_activator_js(["vehicle.a"])
-    assert 'const REPORT = ""' in without
+    assert "const REPORT = []" in without
+
+
+def test_report_urls_drops_blanks_and_duplicates_but_keeps_order():
+    assert OB.report_urls("") == []
+    assert OB.report_urls(["", "  ", None]) == []
+    assert OB.report_urls("https://a/x") == ["https://a/x"]
+    assert OB.report_urls(["https://a/x", "https://a/x", "https://b/x"]) == [
+        "https://a/x",
+        "https://b/x",
+    ]
 
 
 def test_activator_is_page_aware_and_additive():

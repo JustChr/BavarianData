@@ -173,7 +173,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 
 | Config | View | Status | Shot |
 | --- | --- | --- | --- |
-| *(default)* | Overview — drivetrain-aware (electric / plug-in hybrid / petrol-diesel layouts, `drivetrain:` override) | 🟢 The-Dashboard-Card → "Overview" + YAML reference | 📷 (have, electric only — hybrid and petrol/diesel shots owed: no such car to capture) |
+| *(default)* | Overview — drivetrain-aware (electric / plug-in hybrid / petrol-diesel layouts, plus the bare layout for a car that proves neither, `drivetrain:` override) | 🟢 The-Dashboard-Card → "Overview" + YAML reference | 📷 (have, electric only — hybrid, petrol/diesel and bare shots owed: no such car to capture) |
 | `view: charging` | Charging history | 🟡 | 📷 |
 | `view: trips` | Driving journal | 🟡 | 📷 |
 | `view: map` | Trip map (routes) | 🟡 | 📷 (needs route data) |

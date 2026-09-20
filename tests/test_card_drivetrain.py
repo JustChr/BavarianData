@@ -74,6 +74,31 @@ M2 = {
     "sensor.m2_odometer": ODOMETER,
 }
 
+# A MINI Cooper C, from the diagnostics on issue #23. A petrol car that streams
+# *no* combustion descriptor at all -- no fuel system, no engine -- so the
+# drivetrain cannot be proved from what it sends. It does carry the trip-end HV
+# state of charge, a battery-class percentage that must never reach the ring on
+# a car with no high-voltage battery. Trimmed to what the overview reads.
+MINI = {
+    "sensor.mini_range": _sensor(
+        "vehicle.drivetrain.lastRemainingRange", "233", "km", device_class="distance"
+    ),
+    "sensor.mini_trip_hvsoc": _sensor(
+        "vehicle.trip.segment.end.drivetrain.batteryManagement.hvSoc",
+        "50",
+        "%",
+        device_class="battery",
+    ),
+    "sensor.mini_doors": _sensor("vehicle.cabin.door.status", "closed"),
+    "sensor.mini_hood": _sensor("vehicle.body.hood.isOpen", "off"),
+    "sensor.mini_trunk": _sensor("vehicle.body.trunk.isOpen", "off"),
+    "sensor.mini_sunroof": _sensor("vehicle.cabin.sunroof.status", "closed"),
+    "sensor.mini_window": _sensor("vehicle.cabin.window.row1.driver.status", "closed"),
+    "sensor.mini_alarm": _sensor("vehicle.vehicle.antiTheftAlarmSystem.alarm.isOn", "off"),
+    "sensor.mini_tyre": _sensor("vehicle.chassis.axle.row1.wheel.left.tire.pressure", "230", "kPa"),
+    "sensor.mini_odometer": ODOMETER,
+}
+
 # The shape of the maintainer's i5.
 I5 = {
     "sensor.i5_soc": _sensor(
@@ -175,6 +200,45 @@ def test_basic_data_bev_outranks_a_stray_fuel_field():
 
 def test_nothing_streamed_yet_keeps_the_electric_layout():
     assert _render({"sensor.odometer": ODOMETER})["drivetrain"] == "bev"
+
+
+def test_a_car_that_proves_no_drivetrain_is_not_called_electric():
+    """Issue #23: a petrol MINI streams neither a battery nor a fuel system.
+
+    Calling that electric handed it a charge ring it could never fill -- and the
+    ring was fed by the trip-end state of charge, so a petrol car displayed a
+    battery percentage.
+    """
+
+    assert _render(MINI)["drivetrain"] == "unknown"
+
+
+def test_the_bare_overview_rings_range_and_shows_no_battery():
+    html = _render(MINI)["html"]
+    # The range is the ring, in its own unit, and the odometer sits beside it.
+    assert 'data-entity="sensor.mini_range"' in html
+    assert "233<i>km</i>" in html
+    assert "Odometer" in html
+    # Nothing electric, and above all not the impostor.
+    assert "sensor.mini_trip_hvsoc" not in html
+    for electric_only in ("Target", "charging status", "Plug", "Charge time", "Tank"):
+        assert electric_only not in html, electric_only
+
+
+def test_the_trip_end_soc_never_rings_even_where_it_is_the_only_percentage():
+    """It is a battery-class percentage that only moves when a drive ends, so
+    it reads hours old. Every earlier pick already rejected it; the loosest
+    fallback used to take it anyway."""
+
+    states = {"sensor.odometer": ODOMETER, **MINI}
+    html = _render(states, {"drivetrain": "bev"})["html"]
+    assert "sensor.mini_trip_hvsoc" not in html
+    # An honest empty ring instead of a stale number.
+    assert "—" in html
+
+
+def test_a_bare_car_still_takes_a_configured_drivetrain():
+    assert _render(MINI, {"drivetrain": "ice"})["drivetrain"] == "ice"
 
 
 def test_configured_drivetrain_wins():

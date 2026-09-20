@@ -9,6 +9,203 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.11] - 2026-09-20
+
+Promotes the five 0.9.11 betas unchanged: everything below has already been
+running in the betas. The theme is **installs that aren't one electric BMW in
+one account** — two cars, two accounts, a MINI, a car that runs on petrol —
+each of which quietly got something wrong, and several of which got nothing at
+all.
+
+### Fixed
+- **MINI owners could not select their streamed data at all.** The in-browser
+  activator (and the portal call behind "Choose Streamed Data") had BMW's own
+  brand baked into every API path, so on a MINI portal every request came back
+  `404` and nothing was ever selected — the setup appeared to work and then
+  streamed nothing. The segment is now read from the portal's own address:
+  `mini`/`mymini` on a MINI site, `bmw`/`mybmw` otherwise. The regression
+  arrived in 0.9.10-beta.1, which unified manual and guided setup onto this one
+  activator; the console snippet manual setup handed out before that ticked the
+  portal's own checkboxes and never called an API at all, which is why a MINI
+  set up before 13 September worked and the same car could not be reconfigured
+  afterwards. The 0.9.1-beta.6 release notes claimed both brands share the BMW
+  path; they do not, and that claim was written with no MINI to test it against.
+  Measured both ways — `www.bmw.co.uk` answers `401` for
+  `/utilities/bmw/api/cd/applications` and `404` for the `mini` spelling, and a
+  MINI portal does the reverse. Thanks to @thebertster, who diagnosed it down to
+  the four paths (#23, 0.9.11-beta.5).
+- **Guided setup could never finish on a split-horizon network.** The activator
+  was told one address to report its result to — whichever Home Assistant
+  prefers, usually the external one — so a browser on the same LAN as Home
+  Assistant, where that external name does not resolve, silently failed to
+  report and the setup sat waiting. It is now handed every https address the
+  instance answers on and tries them in turn, stopping at the first that
+  replies. The clipboard fallback is unchanged, and an http instance still goes
+  straight to the paste screen (#23, 0.9.11-beta.5).
+- **A petrol car with no fuel data was shown an electric dashboard.** The card
+  decided a car was electric unless it proved otherwise, and a MINI Cooper C
+  streams neither a high-voltage battery nor any fuel-system or engine field —
+  so it got a charge ring, a "Not charging" row and charging tiles it could
+  never fill. Worse, the ring was fed by the *trip-end* state of charge, a
+  battery-class percentage that only moves when a drive finishes: a petrol car
+  displayed a battery level. Such a car now gets a bare overview — remaining
+  range in the ring, odometer beside it, nothing electric — and the trip-end
+  value can no longer win the state-of-charge ring on any car. A car that has
+  simply not said anything yet still keeps the electric layout, and
+  `drivetrain:` in the card's YAML still overrides all of it (0.9.11-beta.5).
+- **With two accounts set up, the card's Charging, Trips, Map and Efficiency
+  views stayed empty.** Those views read their data from services rather than
+  from entity states, and a service call that does not say which account it
+  means is refused as soon as a second one exists — so a household running a BMW
+  and a MINI account side by side got blank views and a log filling with
+  *"multiple entries configured; specify entry_id"*. The card now reads the
+  account off the vehicle's own device and names it on every call it makes.
+  Found, diagnosed and fixed by @thebertster
+  ([#11](https://github.com/JustChr/BavarianData/pull/11), 0.9.11-beta.1).
+- **With more than one car on an account, only one of them got its daily REST
+  refresh.** Everything BMW cannot stream — Condition Based Servicing, service
+  demands, charging level, door-lock status, the tyre diagnosis — reaches Home
+  Assistant only through that refresh, and it covered a single vehicle: whichever
+  car happened to send the first message after a restart. Every other car kept
+  the values it had at setup, indefinitely, while its stream ran normally and
+  hid the gap — one reporter's i3s sat eight days behind its i4 on exactly those
+  fields. The refresh now walks every vehicle on the account, one request per
+  car, and so does a `fetch_telematic_data` call made without a `vin`. Reported
+  with the diagnostics that made it findable by @erwinweiss1955
+  ([#13](https://github.com/JustChr/BavarianData/issues/13), 0.9.11-beta.2).
+- **With two accounts set up, fetching basic vehicle data filed the car under
+  the wrong account.** The services are registered once, by whichever entry
+  loads first, and this one handler kept writing to *that* entry instead of the
+  one the call named: a second account's car had its model and software version
+  stored on the first account's entry, and its device attached there too. Worse
+  once the first account was removed while the other stayed — the handler still
+  pointed at the deleted entry, so fetching basic data failed outright for the
+  account that was still there (0.9.11-beta.4).
+- **A car added to the account after setup stayed a bare VIN.** Its entities
+  appeared on their own, because it rides the same stream, but everything that
+  names a car — model, series, software version, the device name on the
+  dashboard — comes from a REST call that ran only during first-time setup.
+  Nothing ever revisited it, so a second BMW bought a year in was still listed
+  by its VIN. It is now fetched the first time that car is seen on the stream:
+  one request against that day's quota, once, and never retried in a loop for a
+  car BMW answers nothing for (0.9.11-beta.4).
+- **A car added later was declared incomplete on day one.** The coverage
+  self-test gives a new install a week before it reports a cluster as silent,
+  but that clock belonged to the config entry — that is, to the day the *first*
+  car was set up. A car added two years in was past its grace window the moment
+  it arrived and was shown a Repairs warning for clusters it had not had a
+  chance to stream yet. Each vehicle now has its own clock (0.9.11-beta.4).
+- **Removing the integration could leave a car's evcc topics retained on the
+  broker.** The cleanup walked the stored basic-data record, which a car added
+  after setup need never have appeared in — so a charge controller could go on
+  reading a state of charge frozen at the moment of removal, which is precisely
+  what that cleanup exists to prevent. It now covers every car the entry ever
+  had, down to one that only ever streamed (0.9.11-beta.4).
+- **Calling a service by hand with two accounts no longer needs the entry id.**
+  A `vin` already identifies the account, so an automation, script or Developer
+  Tools call that passes one is now resolved from it instead of being refused.
+  Naming `entry_id` explicitly still wins, and nothing changes for the single
+  account install (0.9.11-beta.1).
+
+### Changed
+- **A cluster your car doesn't have stops being reported as a gap.** The
+  coverage self-test compares your cluster selection against what has actually
+  arrived, and it had only one exemption: the electric clusters on a petrol car.
+  Everything else stayed "overdue" forever — an older i3, which streams no tyre
+  pressure at all, was told 178 of 224 fields were missing and shown a Repairs
+  warning it could never clear. Now, when a single cluster is still silent after
+  30 days while every other selected cluster has delivered, the selection has
+  demonstrably saved and the car is simply missing those fields: the cluster is
+  marked not applicable, its fields stop counting as overdue, and the warning
+  clears itself. Two or more silent clusters still warn however long they stay
+  silent — that is the signature of a Data Selection that did not save, which is
+  what the self-test exists to catch (0.9.11-beta.3).
+- **The daily refresh now costs 2 requests per vehicle instead of 2 per
+  account** — 2 a day for one car, 4 for two, out of BMW's 50. That is the price
+  of the multi-car fix above; a one-car install is unaffected. Calling
+  `fetch_telematic_data` with a `vin` still spends exactly one request
+  (0.9.11-beta.2).
+- **Debug logging is no longer decided by whichever account loaded last.** The
+  switch is per config entry but the log level is one logger's, so with two
+  accounts the last entry to set up — or to have any option saved — silently
+  overruled the other, turning verbose logging off on the account being
+  diagnosed. Logging now stays verbose while **any** entry has it enabled. It
+  still spans both accounts while it is on; the options screen says so
+  (0.9.11-beta.4).
+- **A second config entry for an account you already set up is now refused.**
+  Generating a second Client ID in the BMW portal for the same account passed
+  the duplicate check and then broke both entries: BMW allows one stream
+  connection per account, so the two evicted each other in a loop, their
+  VIN-keyed entities collided, and each claimed the full 50-request quota that
+  BMW counts once per account. Setup now stops with an explanation. Two
+  *different* accounts side by side are unaffected — that is supported, and now
+  documented (0.9.11-beta.4).
+- **Diagnostics now name the car's drivetrain** (`model_name`, `drive_train`,
+  `propulsion_type`, straight from BMW's basic data). They decide which overview
+  the card draws and which electric-only entities exist, so without them a
+  wrong layout could not be diagnosed from a dump at all. They are model facts,
+  not identifiers (0.9.11-beta.5).
+- **Diagnostics carry an `account_fingerprint`** — a short, one-way digest of
+  the account id, which stays redacted. BMW allows one concurrent stream per
+  account, so "are these two config entries the same account?" is the first
+  question when two of them misbehave together; until now redaction made it
+  unanswerable. The digest cannot be reversed and only ever matches another
+  dump of the same account (0.9.11-beta.5).
+
+### Documentation
+- New Wiki page **Multiple cars & accounts** (EN + DE): what one entry covers,
+  adding a car later, quota with several cars, and how to name the car you mean
+  in the card, in services, in automations and in the evcc bridge. Plus two new
+  FAQ entries and the shared-log-level note in the settings reference
+  (0.9.11-beta.4).
+
+## [0.9.11-beta.5] - 2026-09-20
+
+### Fixed
+- **MINI owners could not select their streamed data at all.** The in-browser
+  activator (and the portal call behind "Choose Streamed Data") had BMW's own
+  brand baked into every API path, so on a MINI portal every request came back
+  `404` and nothing was ever selected — the setup appeared to work and then
+  streamed nothing. The segment is now read from the portal's own address:
+  `mini`/`mymini` on a MINI site, `bmw`/`mybmw` otherwise. The 0.9.1-beta.6
+  release notes claimed both brands shared the BMW path; they do not, and that
+  claim was written with no MINI to test it against. Measured both ways —
+  `www.bmw.co.uk` answers `401` for `/utilities/bmw/api/cd/applications` and
+  `404` for the `mini` spelling, and a MINI portal does the reverse. Thanks to
+  @thebertster, who diagnosed it down to the four paths (#23).
+- **Guided setup could never finish on a split-horizon network.** The activator
+  was told one address to report its result to — whichever Home Assistant
+  prefers, usually the external one — so a browser on the same LAN as Home
+  Assistant, where that external name does not resolve, silently failed to
+  report and the setup sat waiting. It is now handed every https address the
+  instance answers on and tries them in turn, stopping at the first that
+  replies. The clipboard fallback is unchanged, and an http instance still goes
+  straight to the paste screen (#23).
+- **A petrol car with no fuel data was shown an electric dashboard.** The card
+  decided a car was electric unless it proved otherwise, and a MINI Cooper C
+  streams neither a high-voltage battery nor any fuel-system or engine field —
+  so it got a charge ring, a "Not charging" row and charging tiles it could
+  never fill. Worse, the ring was fed by the *trip-end* state of charge, a
+  battery-class percentage that only moves when a drive finishes: a petrol car
+  displayed a battery level. Such a car now gets a bare overview — remaining
+  range in the ring, odometer beside it, nothing electric — and the trip-end
+  value can no longer win the state-of-charge ring on any car. A car that has
+  simply not said anything yet still keeps the electric layout, and
+  `drivetrain:` in the card's YAML still overrides all of it.
+
+### Changed
+- **Diagnostics now name the car's drivetrain** (`model_name`, `drive_train`,
+  `propulsion_type`, straight from BMW's basic data). They decide which overview
+  the card draws and which electric-only entities exist, so without them a
+  wrong layout could not be diagnosed from a dump at all. They are model facts,
+  not identifiers.
+- **Diagnostics carry an `account_fingerprint`** — a short, one-way digest of
+  the account id, which stays redacted. BMW allows one concurrent stream per
+  account, so "are these two config entries the same account?" is the first
+  question when two of them misbehave together; until now redaction made it
+  unanswerable. The digest cannot be reversed and only ever matches another
+  dump of the same account.
+
 ## [0.9.11-beta.4] - 2026-09-20
 
 An audit of everything the integration still assumed about "one car in one

@@ -13,7 +13,7 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.14.1";
+const CARD_VERSION = "1.15.0";
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -86,8 +86,14 @@ const COMBUSTION_PREFIXES = [
   "vehicle.drivetrain.fuelSystem.",
   "vehicle.drivetrain.internalCombustionEngine.",
 ];
-// The overview layouts: electric, plug-in hybrid, petrol/diesel.
+// The overview layouts a user may pick: electric, plug-in hybrid, petrol/diesel.
+// `_drivetrain` can also answer "unknown" for a car that proves none of them --
+// not selectable, because it describes missing evidence rather than a car.
 const DRIVETRAINS = new Set(["bev", "phev", "ice"]);
+// How much a car must have said before its *silence* about a drivetrain counts
+// as evidence. A car mid-bootstrap has sent a handful of fields and proves
+// nothing; the MINI that prompted this had 28.
+const MIN_DESCRIPTORS_TO_JUDGE = 8;
 
 // BMW reports these charging-status values when nothing is actively charging
 // (e.g. `invalid` when no cable is connected). Show a clean localized "not
@@ -932,7 +938,16 @@ class BavarianDataCard extends HTMLElement {
           unit: "%",
           avoid: ["target", "predicted", "health", "testing", "trip", "charging.level", ...NOT_HV_BATTERY],
         }) ||
-        this._pick(entities, { prefer: ["charge", "soc"], unit: "%", avoid: ["target", "rate", ...NOT_HV_BATTERY] }),
+        // Last resort, and it still may not take an impostor: on a car whose
+        // only battery-class percentage IS the trip-end SoC, every pick above
+        // rejects it and this one used to hand it the ring -- showing a petrol
+        // MINI a charge level (issue #23's diagnostics). Better an empty ring
+        // than a number from another drivetrain.
+        this._pick(entities, {
+          unit: "%",
+          prefer: ["charge", "soc"],
+          avoid: ["target", "rate", "trip", "charging.level", ...NOT_HV_BATTERY],
+        }),
       range:
         cfg.range ||
         // Three distance entities answer to "electric range" on a BEV, and BMW
@@ -1005,10 +1020,12 @@ class BavarianDataCard extends HTMLElement {
     let hv = false;
     let fuel = false;
     let basic = null;
+    let described = 0;
     for (const id of entities) {
       const st = this._st(id);
       const attrs = (st && st.attributes) || {};
       const descriptor = attrs.descriptor || "";
+      if (descriptor) described++;
       if (HV_SIGNALS.includes(descriptor)) hv = true;
       if (COMBUSTION_PREFIXES.some((prefix) => descriptor.startsWith(prefix))) fuel = true;
       const bd = attrs.vehicle_basic_data;
@@ -1016,7 +1033,13 @@ class BavarianDataCard extends HTMLElement {
     }
     if (hv && fuel) return "phev";
     if (fuel && basic !== "BEV") return "ice";
-    return "bev";
+    if (hv || basic === "BEV") return "bev";
+    // Neither proved, on a car that has plenty else to say: a petrol MINI
+    // streams no fuel system and no combustion engine at all (issue #23), and
+    // calling that electric hands it a charge ring it can never fill. A car
+    // that has said nothing yet keeps the electric layout this card has always
+    // shown, so a fresh install is not rearranged for a few seconds.
+    return described >= MIN_DESCRIPTORS_TO_JUDGE ? "unknown" : "bev";
   }
 
   /* ---- formatting ------------------------------------------------------- */
@@ -1163,6 +1186,10 @@ class BavarianDataCard extends HTMLElement {
     const cfg = this._config || {};
     const drivetrain = this._drivetrain(entities);
     const ice = drivetrain === "ice";
+    // A car that proved no drivetrain is laid out like a combustion one -- no
+    // charging tiles, nothing electric -- except that it has no tank either, so
+    // the ring falls through to empty and the lead row shows what it does have.
+    const bare = drivetrain === "unknown";
     const picks = this._overviewEntities(entities);
     const byDesc = (descriptor) => this._idByDescriptor(entities, descriptor);
     const name = cfg.title || this._deviceName(deviceId);
@@ -1183,23 +1210,25 @@ class BavarianDataCard extends HTMLElement {
     const fuelSt = this._st(fuelId);
     const litresId = byDesc("vehicle.drivetrain.fuelSystem.remainingFuel");
     const litresSt = litresId && litresId !== fuelId ? this._st(litresId) : null;
-    const rangeId = ice
+    const rangeId = ice || bare
       ? cfg.range ||
         byDesc("vehicle.drivetrain.lastRemainingRange") ||
         byDesc("vehicle.cabin.infotainment.navigation.remainingRange") ||
         picks.range
       : picks.range;
     const rangeSt = this._st(rangeId);
-    const charging = !ice && this._isCharging(chargingSt, socSt);
+    const charging = !ice && !bare && this._isCharging(chargingSt, socSt);
 
     // The ring: state of charge, or the tank on a combustion car -- as a fill
     // level where the car streams a percentage, otherwise its volume on a bare
     // ring (a fill level can't be drawn from litres without the tank size).
-    const gaugeId = ice ? fuelId : picks.soc;
+    // A car that proved no drivetrain has neither, so it rings the one headline
+    // number it does have: how far it can still go.
+    const gaugeId = ice ? fuelId : bare ? rangeId : picks.soc;
     const gaugeSt = this._st(gaugeId);
     const gaugeNum = this._num(gaugeSt);
     const gaugeUnit = (gaugeSt && gaugeSt.attributes && gaugeSt.attributes.unit_of_measurement) || "";
-    const isPct = !ice || gaugeUnit === "%";
+    const isPct = (!ice && !bare) || gaugeUnit === "%";
     const pct = isPct && gaugeNum != null ? Math.max(0, Math.min(100, gaugeNum)) : 0;
     const ringColor = charging
       ? "var(--bmw-charge)"
@@ -1212,7 +1241,13 @@ class BavarianDataCard extends HTMLElement {
       : "var(--bmw-high)";
     const gaugeVal = gaugeNum == null ? "—" : String(Math.round(gaugeNum));
     const gaugeUnitHtml = isPct ? "%" : this._esc(gaugeUnit);
-    const gaugeCap = ice ? this._t("fuel") : charging ? this._t("charging") : this._t("charge");
+    const gaugeCap = ice
+      ? this._t("fuel")
+      : bare
+      ? this._t("remaining_range")
+      : charging
+      ? this._t("charging")
+      : this._t("charge");
 
     const tile = (key, label, st, icon) => ({ key, label, st, icon });
     const rangeRow = {
@@ -1223,14 +1258,22 @@ class BavarianDataCard extends HTMLElement {
     };
     let lead;
     let secondary;
-    if (ice) {
-      lead = [
-        rangeRow,
-        litresSt
-          ? { entity: litresId, icon: "mdi:gas-station", val: this._fmt(litresSt), lbl: this._t("tank") }
-          : { entity: picks.odometer, icon: "mdi:counter", val: this._fmt(odometerSt), lbl: this._t("odometer") },
-      ];
-      secondary = litresSt ? [tile("odo", this._t("odometer"), odometerSt, "mdi:counter")] : [];
+    if (ice || bare) {
+      const odometerRow = {
+        entity: picks.odometer,
+        icon: "mdi:counter",
+        val: this._fmt(odometerSt),
+        lbl: this._t("odometer"),
+      };
+      lead = bare
+        ? [odometerRow]
+        : [
+            rangeRow,
+            litresSt
+              ? { entity: litresId, icon: "mdi:gas-station", val: this._fmt(litresSt), lbl: this._t("tank") }
+              : odometerRow,
+          ];
+      secondary = litresSt && !bare ? [tile("odo", this._t("odometer"), odometerSt, "mdi:counter")] : [];
     } else {
       lead = [
         rangeRow,
