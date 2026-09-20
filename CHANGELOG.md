@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.12-beta.1] - 2026-09-20
+
 ### Added
 - **British English.** Setting Home Assistant's language to *English (UK)* now
   gives British entity names and card labels — *Tyre pressure (front left)*,
