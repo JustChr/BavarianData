@@ -7,6 +7,6 @@
 aiohttp>=3.9
 pytest>=8.0
 PyYAML>=6.0
-syrupy>=6.1
+syrupy>=6.1.1
 pytest-cov>=7.1
 ruff==0.16.8
