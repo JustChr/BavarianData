@@ -5,7 +5,7 @@
 # ruff -- an unpinned linter turns a new upstream release into a red build on
 # a commit that never changed, so it is pinned and bumped by Dependabot.
 aiohttp>=3.14.3
-pytest>=8.0
+pytest>=9.1.1
 PyYAML>=6.0
 syrupy>=6.1.1
 pytest-cov>=7.1
