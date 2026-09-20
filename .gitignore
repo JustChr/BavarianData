@@ -23,3 +23,8 @@ __pycache__/
 
 # Dev-only Node tooling (ESLint for the card); nothing here ships
 /node_modules/
+
+# Coverage data (pytest-cov)
+/.coverage
+/.coverage.*
+/htmlcov/

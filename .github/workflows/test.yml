@@ -48,4 +48,6 @@ jobs:
       - name: Lint the card (ESLint)
         run: npx eslint custom_components/bavariandata/www
       - name: Run tests
-        run: pytest tests/ -q
+        # Coverage is reported, never gated -- see the note in pyproject.toml
+        # for why the total is the wrong number to read.
+        run: pytest tests/ -q --cov --cov-report=term:skip-covered
