@@ -9,6 +9,22 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.11-beta.3] - 2026-09-20
+
+### Changed
+- **A cluster your car doesn't have stops being reported as a gap.** The
+  coverage self-test compares your cluster selection against what has actually
+  arrived, and it had only one exemption: the electric clusters on a petrol car.
+  Everything else stayed "overdue" forever — an older i3, which streams no tyre
+  pressure at all, was told 178 of 224 fields were missing and shown a Repairs
+  warning it could never clear. Now, when a single cluster is still silent after
+  30 days while every other selected cluster has delivered, the selection has
+  demonstrably saved and the car is simply missing those fields: the cluster is
+  marked not applicable, its fields stop counting as overdue, and the warning
+  clears itself. Two or more silent clusters still warn however long they stay
+  silent — that is the signature of a Data Selection that did not save, which is
+  what the self-test exists to catch.
+
 ## [0.9.11-beta.2] - 2026-09-20
 
 ### Fixed
@@ -25,18 +41,6 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   ([#13](https://github.com/JustChr/BavarianData/issues/13)).
 
 ### Changed
-- **A cluster your car doesn't have stops being reported as a gap.** The
-  coverage self-test compares your cluster selection against what has actually
-  arrived, and it had only one exemption: the electric clusters on a petrol car.
-  Everything else stayed "overdue" forever — an older i3, which streams no tyre
-  pressure at all, was told 178 of 224 fields were missing and shown a Repairs
-  warning it could never clear. Now, when a single cluster is still silent after
-  30 days while every other selected cluster has delivered, the selection has
-  demonstrably saved and the car is simply missing those fields: the cluster is
-  marked not applicable, its fields stop counting as overdue, and the warning
-  clears itself. Two or more silent clusters still warn however long they stay
-  silent — that is the signature of a Data Selection that did not save, which is
-  what the self-test exists to catch.
 - **The daily refresh now costs 2 requests per vehicle instead of 2 per
   account** — 2 a day for one car, 4 for two, out of BMW's 50. That is the price
   of the fix above; a one-car install is unaffected. Calling
