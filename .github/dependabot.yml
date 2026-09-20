@@ -10,8 +10,14 @@ updates:
     commit-message:
       prefix: "ci"
 
+  # increase-if-necessary: only raise a requirement the new version does not
+  # already satisfy. That bumps the pinned ruff (a pin forbids the new release)
+  # while leaving the floors in requirements_test.txt alone -- widening those
+  # was four PRs a month that changed nothing, since a floor resolves to the
+  # newest release on a fresh runner anyway.
   - package-ecosystem: pip
     directory: "/"
+    versioning-strategy: increase-if-necessary
     schedule:
       interval: monthly
     commit-message:
