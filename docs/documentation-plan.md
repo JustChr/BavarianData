@@ -138,7 +138,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `action_fetch_tyre` | Fetch tire diagnosis | 🟡 | — |
 | `action_fetch_location_charging` | Fetch location charging settings | 🟡 | — |
 | `action_fetch_image` | Fetch vehicle image | 🟡 | — |
-| `action_data_refresh` | Automatic data refresh | 🟢 Settings-Reference → "Automatic data refresh" | 📷 **owed** — needs the build installed; the Configure-menu shot is stale too |
+| `action_data_refresh` | Automatic data refresh | 🟢 Settings-Reference → "Automatic data refresh" | 📷 |
 | `action_charging_costs` | Charging costs & history | 🟡 | 📷 |
 | `action_evcc_bridge` | evcc / wallbox bridge | 🟢 Feature-evcc-and-Wallbox-Bridge + Settings-Reference → "evcc / wallbox bridge" | 📷 **owed** — needs the build installed |
 | `evcc_snippet` | evcc configuration (generated, paste-ready) | 🟢 Feature-evcc-and-Wallbox-Bridge → "Setting it up" | 📷 **owed** — needs the build installed |

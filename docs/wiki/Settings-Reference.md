@@ -46,6 +46,10 @@ The menu labels below are exactly as they appear in the UI.
 
 Screen: **Configure → Automatic data refresh**.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-data-refresh.png" alt="Automatic data refresh settings: one toggle, Catch up after Home Assistant starts, switched on" width="460" />
+</p>
+
 The live stream only carries what changes while Home Assistant is listening.
 Whatever a car reported while Home Assistant was down — a charge that ended, the
 doors being locked, a drive — is not replayed on reconnect, and a car charging at

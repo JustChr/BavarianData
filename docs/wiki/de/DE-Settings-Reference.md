@@ -49,6 +49,10 @@ erscheinen (der Screenshot zeigt die englische).
 
 Bildschirm: **Konfigurieren → Automatische Aktualisierung**.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-data-refresh.png" alt="Einstellungen der automatischen Aktualisierung: ein Schalter, Catch up after Home Assistant starts, eingeschaltet (Screenshot englisch)" width="460" />
+</p>
+
 Der Live-Stream überträgt nur, was sich ändert, während Home Assistant zuhört. Was
 ein Auto gemeldet hat, während Home Assistant aus war — ein beendeter Ladevorgang,
 das Verriegeln, eine Fahrt —, wird beim Wiederverbinden nicht nachgeliefert, und
