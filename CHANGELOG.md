@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.13-beta.3] - 2026-09-26
+
 ### Fixed
 - **The tank level in % lost its long-term statistics in 0.9.10** (#25).
   Taking away its battery device class, so the card's ring could no longer
