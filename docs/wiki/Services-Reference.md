@@ -108,8 +108,9 @@ so it costs no BMW API quota.
 - **`cost_per_100km` / `currency` / `energy_mix`** — this month's running cost
   and where its energy came from.
 
-`status` says why a figure is missing: `ok`, `not_enough_history`, or
-`no_capacity`. See
+`status` says why a figure is missing: `ok`, `not_enough_history`,
+`no_capacity`, or `plug_in_hybrid` (consumption, range, trend and
+`cost_per_100km` are all withheld on a hybrid). See
 [Efficiency & real range](Feature-Efficiency-and-Range).
 
 ### `get_evcc_config`

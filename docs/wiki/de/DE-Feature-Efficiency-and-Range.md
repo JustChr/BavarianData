@@ -83,9 +83,10 @@ Pro E-Auto ein Sensor **Reale Reichweite**:
   Fenster, der netzseitige Wert und der gemessene Ladeverlust, die Kapazität und
   woher sie stammt, BMWs eigene Prognose und die prozentuale Abweichung.
 
-Er wird für ein E-Auto angelegt, das einen Kilometerstand streamt. Bis der Verlauf
-einen Wert trägt, zeigt er `unknown`, und das Attribut `status` sagt, welche Hälfte
-fehlt: `not_enough_history` oder `no_capacity`.
+Er wird für ein E-Auto angelegt, das einen Kilometerstand streamt — nicht für einen
+[Plug-in-Hybrid](#plug-in-hybride). Bis der Verlauf einen Wert trägt, zeigt er
+`unknown`, und das Attribut `status` sagt, welche Hälfte fehlt: `not_enough_history`
+oder `no_capacity`.
 
 > **Zum hier gezeigten Ladeverlust.** Er ist *gemessen* — netzseitiger gegen
 > batterieseitigen Verbrauch über dasselbe Fenster — und etwas anderes als die
@@ -93,6 +94,26 @@ fehlt: `not_enough_history` oder `no_capacity`.
 > angegebene Annahme ist, damit Kosten hochgerechnet werden können, wenn nichts das
 > Netz gemessen hat. Hast du beides, ist der gemessene Wert eine gute Probe für die
 > Zahl, die du eingetragen hast.
+
+## Plug-in-Hybride
+
+Ein Plug-in-Hybrid bekommt **keinen Verbrauchswert und keine reale Reichweite** — und
+auch keine [Ladekosten pro 100 km](DE-Feature-Charging-History-and-Cost#kosten-einrichten).
+Der Kilometerstand zählt jeden Kilometer, auch die, die der Motor gefahren ist, und
+nichts in den Fahrzeugdaten sagt, wie viele das waren. Die geladene Energie durch alle
+geteilt ergibt einen um genau den Kraftstoffanteil zu niedrigen Wert: Ein Auto, das
+zur Hälfte mit Kraftstoff fährt, zeigte die Hälfte seines echten Verbrauchs und eine
+doppelt so große reale Reichweite, wie die Batterie schafft — etwa 186 km aus einem
+19,7-kWh-Akku, der tatsächlich rund 90 schafft. Deshalb werden die Werte
+zurückgehalten, statt falsch angezeigt zu werden. Die Effizienzansicht sagt das, und
+`get_efficiency` liefert `status: plug_in_hybrid`.
+
+Was bei einem Hybrid weiter funktioniert: der [Batteriezustand](DE-Feature-Battery-Health),
+der [Ladeverlauf](DE-Feature-Charging-History-and-Cost) mit Energie und Kosten und die
+Energie jeder Fahrt. Als Hybrid gilt ein Auto, sobald es sowohl Daten der
+Hochvoltbatterie als auch Kraftstoffdaten gestreamt hat. Hat ein Hybrid aus einer
+früheren Version einen Sensor Reale Reichweite oder Ladekosten pro 100 km, wird er
+beim nächsten Neustart entfernt.
 
 ## Ansehen
 

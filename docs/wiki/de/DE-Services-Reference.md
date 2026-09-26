@@ -113,7 +113,9 @@ Speicher und kostet daher kein BMW-API-Kontingent.
 - **`cost_per_100km` / `currency` / `energy_mix`** — die laufenden Kosten dieses
   Monats und woher seine Energie kam.
 
-`status` sagt, warum ein Wert fehlt: `ok`, `not_enough_history` oder `no_capacity`.
+`status` sagt, warum ein Wert fehlt: `ok`, `not_enough_history`, `no_capacity` oder
+`plug_in_hybrid` (Verbrauch, Reichweite, Verlauf und `cost_per_100km` werden bei einem
+Hybrid alle zurückgehalten).
 Siehe [Effizienz & reale Reichweite](DE-Feature-Efficiency-and-Range).
 
 ### `get_evcc_config`

@@ -744,7 +744,8 @@ class CardataChargingSummarySensor(CardataEntity, SensorEntity):
                 year=now.year,
                 month=now.month,
                 localize=dt_util.as_local,
-            )
+            ),
+            hybrid=self._coordinator.is_plug_in_hybrid(self.vin),
         )
 
     async def async_added_to_hass(self) -> None:
@@ -1477,9 +1478,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         odometer would hold an entity that can never produce a number.
         ``force`` re-creates one restored from the registry without re-checking
         for a live signal.
+
+        Never for a plug-in hybrid, forced or not: its odometer includes the
+        kilometres the engine drove, so the range would read far too good
+        (``summary.energy_balance``). One created before the fuel system first
+        reported is removed at the next setup (``hybrid_entities_to_remove``).
         """
 
         if vin in real_range_entities or coordinator.history is None:
+            return
+        if coordinator.is_plug_in_hybrid(vin):
             return
         eligible = _has_odometer(vin) and _has_battery(vin)
         if not (force or eligible):
@@ -1509,7 +1517,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
             # Distance-based cost is meaningless without an odometer, and the
             # Vehicle status cluster is optional in the portal. Either spelling
             # of the odometer will do -- see ``_DRIVE_SIGNALS``.
-            if _has_odometer(vin):
+            # Not on a plug-in hybrid either, whose odometer also counts the
+            # kilometres driven on fuel (see ``summary.summarise``).
+            if _has_odometer(vin) and not coordinator.is_plug_in_hybrid(vin):
                 new_entities.append(CardataChargingCostPerDistanceSensor(coordinator, vin))
         charging_summary_entities[vin] = new_entities
         async_add_entities(new_entities, True)

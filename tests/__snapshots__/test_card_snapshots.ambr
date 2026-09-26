@@ -816,7 +816,7 @@
           </div>
   
           <div class="band">
-            <button class="gauge" data-entity="sensor.i5_soc" aria-label="charge">
+            <button class="gauge" data-entity="sensor.x3_30e_xdrive_battery_hv_state_of_charge" aria-label="charge">
               <div class="gauge__ring" style="--pct:72;--ring:var(--bmw-high)">
                 <div class="gauge__hole">
                   <span class="gauge__val">72<i>%</i>
@@ -829,16 +829,16 @@
   
             <div class="lead">
               
-              <button class="lead__row" data-entity="sensor.i5_range">
+              <button class="lead__row" data-entity="sensor.x3_30e_xdrive_range_ev_remaining_range">
                 <ha-icon icon="mdi:map-marker-distance">
   </ha-icon>
-                <span class="lead__val">379 km</span>
+                <span class="lead__val">61 km</span>
                 <span class="lead__lbl">electric range</span>
               </button>
-              <button class="lead__row" data-entity="sensor.i5_charging">
+              <button class="lead__row" data-entity="sensor.x3_30e_xdrive_charging_ev_charging_state">
                 <ha-icon icon="mdi:ev-station">
   </ha-icon>
-                <span class="lead__val">nocharging</span>
+                <span class="lead__val">chargingended</span>
                 <span class="lead__lbl">charging status</span>
               </button>
             </div>
@@ -846,7 +846,7 @@
   
           <div class="grid">
                   
-                    <button class="cell" data-entity="sensor.phev_tank">
+                    <button class="cell" data-entity="sensor.x3_30e_xdrive_range_tank_level">
                       <ha-icon icon="mdi:gas-station">
   </ha-icon>
                       <div class="cell__body">
@@ -854,23 +854,39 @@
                         <span class="cell__lbl">Tank</span>
                       </div>
                     </button>
-                    <button class="cell" data-entity="sensor.phev_total_range">
+                    <button class="cell" data-entity="sensor.x3_30e_xdrive_range_total_range_last_sent">
                       <ha-icon icon="mdi:map-marker-distance">
   </ha-icon>
                       <div class="cell__body">
-                        <span class="cell__val">690 km</span>
+                        <span class="cell__val">590 km</span>
                         <span class="cell__lbl">Total range</span>
                       </div>
                     </button>
-                    <button class="cell" data-entity="sensor.i5_target">
+                    <button class="cell" data-entity="sensor.x3_30e_xdrive_battery_ev_target_state_of_charge">
                       <ha-icon icon="mdi:target">
   </ha-icon>
                       <div class="cell__body">
-                        <span class="cell__val">0 %</span>
+                        <span class="cell__val">80 %</span>
                         <span class="cell__lbl">Target</span>
                       </div>
                     </button>
-                    <button class="cell" data-entity="sensor.i5_odometer">
+                    <button class="cell" data-entity="sensor.x3_30e_xdrive_charging_port_plug_state">
+                      <ha-icon icon="mdi:power-plug">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">connected</span>
+                        <span class="cell__lbl">Plug</span>
+                      </div>
+                    </button>
+                    <button class="cell" data-entity="sensor.x3_30e_xdrive_charging_ev_time_to_full_charge">
+                      <ha-icon icon="mdi:timer-sand">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">0 min</span>
+                        <span class="cell__lbl">Charge time</span>
+                      </div>
+                    </button>
+                    <button class="cell" data-entity="sensor.x3_30e_xdrive_mileage">
                       <ha-icon icon="mdi:counter">
   </ha-icon>
                       <div class="cell__body">

@@ -46,6 +46,12 @@ EV_ONLY_SUFFIXES = frozenset(
     }
 )
 
+# The two that divide the charging ledger by the odometer. On a plug-in hybrid
+# the odometer also counts the kilometres the engine drove, so both read far too
+# good -- a real range double what the battery reaches -- and both are withheld
+# there (``summary.energy_balance``). Hybrids created before v0.9.13 carry them.
+HYBRID_INVALID_SUFFIXES = frozenset({"real_range", "charging_cost_per_100km"})
+
 # Home Assistant's ``RegistryEntryDisabler.INTEGRATION``, spelled as its string
 # value so this module needs no HA import (the enum is a ``StrEnum``, so it
 # compares equal). It is the only disabler that is ours to undo: ``user`` is a
@@ -99,11 +105,30 @@ def ev_entities_to_remove(rows: Iterable[Any], combustion_only: Callable[[str], 
     that can never have a value has no customisation worth keeping.
     """
 
+    return _select(rows, EV_ONLY_SUFFIXES, combustion_only)
+
+
+def hybrid_entities_to_remove(
+    rows: Iterable[Any], plug_in_hybrid: Callable[[str], bool]
+) -> list[str]:
+    """Entity ids of the odometer-ratio entities on a plug-in hybrid.
+
+    ``plug_in_hybrid`` answers for a VIN from positive evidence both ways (see
+    ``coverage.is_plug_in_hybrid``). Removed for the same reason as
+    :func:`ev_entities_to_remove`: they can never hold a value on such a car.
+    """
+
+    return _select(rows, HYBRID_INVALID_SUFFIXES, plug_in_hybrid)
+
+
+def _select(
+    rows: Iterable[Any], suffixes: frozenset[str], applies: Callable[[str], bool]
+) -> list[str]:
     selected: list[str] = []
     for row in rows:
         vin, separator, suffix = (row.unique_id or "").partition("_")
-        if not (separator and vin) or suffix not in EV_ONLY_SUFFIXES:
+        if not (separator and vin) or suffix not in suffixes:
             continue
-        if combustion_only(vin):
+        if applies(vin):
             selected.append(row.entity_id)
     return selected

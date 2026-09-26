@@ -245,7 +245,8 @@ Kraftstoff gefahren sein, und der Stream liefert keine rein elektrische Strecke,
 die man teilen könnte. Eine 40-km-Fahrt mit 4 kWh und einem Liter Benzin ergäbe
 10 kWh/100 km — einen Wert, den kein Teil des Autos erreicht hat. Hybrid-Fahrten
 behalten daher ihre Energie, der Verbrauchswert bleibt leer, und sie zählen nicht zum
-batterieseitigen Durchschnitt.
+batterieseitigen Durchschnitt. Auch der am Stecker gemessene Monatsverbrauch wird aus
+demselben Grund zurückgehalten ([mehr](DE-Feature-Efficiency-and-Range#plug-in-hybride)).
 
 > Auch die **Rekuperation** wird in **kWh/100 km** gezeigt, nicht in kWh: BMWs
 > `recuperationTotal` ist als Durchschnitt pro 100 km dokumentiert, ein Monat ist

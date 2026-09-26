@@ -97,6 +97,7 @@ def consumption(
     now: datetime,
     side: str = SIDE_BATTERY,
     windows: Iterable[int] = EFFICIENCY_WINDOWS_DAYS,
+    hybrid: bool = False,
 ) -> Optional[dict[str, Any]]:
     """Recent consumption, from the shortest window that can support a figure.
 
@@ -111,10 +112,13 @@ def consumption(
             _within(sessions, days=days, now=now),
             battery_capacity_kwh=battery_capacity_kwh,
             side=side,
+            hybrid=hybrid,
         )
         if result is not None:
             return {**result, "window_days": days}
-    result = energy_balance(sessions, battery_capacity_kwh=battery_capacity_kwh, side=side)
+    result = energy_balance(
+        sessions, battery_capacity_kwh=battery_capacity_kwh, side=side, hybrid=hybrid
+    )
     if result is not None:
         return {**result, "window_days": None}
     return None
@@ -132,6 +136,7 @@ def monthly_consumption(
     months: int = TREND_MONTHS,
     localize: Localizer = _identity,
     side: str = SIDE_BATTERY,
+    hybrid: bool = False,
 ) -> list[dict[str, Any]]:
     """Consumption per calendar month, oldest first -- the seasonal story.
 
@@ -153,6 +158,7 @@ def monthly_consumption(
             sessions_in_month(sessions, year=year, month=month, localize=localize),
             battery_capacity_kwh=battery_capacity_kwh,
             side=side,
+            hybrid=hybrid,
         )
         if balance is not None:
             series.append(
@@ -233,6 +239,9 @@ def real_range(
 STATUS_OK = "ok"
 STATUS_NO_CONSUMPTION = "not_enough_history"
 STATUS_NO_CAPACITY = "no_capacity"
+# A plug-in hybrid: no amount of history would make the ledger's consumption
+# mean anything, so it is not "not enough history" (see summary.energy_balance).
+STATUS_PLUG_IN_HYBRID = "plug_in_hybrid"
 
 
 def efficiency_profile(
@@ -245,6 +254,7 @@ def efficiency_profile(
     now: datetime,
     localize: Localizer = _identity,
     months: int = TREND_MONTHS,
+    hybrid: bool = False,
 ) -> dict[str, Any]:
     """Everything the efficiency view and the real-range entity read.
 
@@ -253,6 +263,10 @@ def efficiency_profile(
     and it is preferred -- a measured pack beats a nameplate one, and
     ``capacity_source`` says which was used. Both are battery-side, which is
     what makes the range arithmetic legitimate.
+
+    On a plug-in hybrid (``hybrid``) every consumption-derived figure -- the
+    consumption itself, the range, the trend -- is withheld and ``status`` says
+    why; the capacity is still reported, since it describes the pack alone.
 
     The grid-side figure is deliberately recomputed over **the same window** the
     battery-side one came from. Comparing a 30-day battery figure against a
@@ -276,6 +290,7 @@ def efficiency_profile(
         battery_capacity_kwh=battery_capacity_kwh,
         now=now,
         side=SIDE_BATTERY,
+        hybrid=hybrid,
     )
     grid = None
     loss_percent = None
@@ -301,7 +316,9 @@ def efficiency_profile(
         bmw_range_km=bmw_range_km,
     )
 
-    if battery is None:
+    if hybrid:
+        status = STATUS_PLUG_IN_HYBRID
+    elif battery is None:
         status = STATUS_NO_CONSUMPTION
     elif not capacity:
         status = STATUS_NO_CAPACITY
@@ -322,5 +339,6 @@ def efficiency_profile(
             now=now,
             months=months,
             localize=localize,
+            hybrid=hybrid,
         ),
     }

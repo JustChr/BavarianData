@@ -82,9 +82,10 @@ One **Real Range** sensor per EV:
   capacity and where it came from, BMW's own prediction and the percentage
   difference.
 
-It is created for an EV that streams an odometer. Until the ledger can support a
-figure it reads `unknown`, and the `status` attribute says which half is
-missing: `not_enough_history` or `no_capacity`.
+It is created for an EV that streams an odometer — not for a
+[plug-in hybrid](#plug-in-hybrids). Until the ledger can support a figure it
+reads `unknown`, and the `status` attribute says which half is missing:
+`not_enough_history` or `no_capacity`.
 
 > **Note on the charging loss shown here.** It is *measured* — grid-side
 > consumption against battery-side consumption over the same window — and is a
@@ -92,6 +93,24 @@ missing: `not_enough_history` or `no_capacity`.
 > history*, which is an assumption you supply so cost can be grossed up when
 > nothing measured the grid. If you have both, the measured figure is a good
 > sanity check on the number you typed.
+
+## Plug-in hybrids
+
+A plug-in hybrid gets **no consumption figure and no real range** — and no
+[Charging Cost per 100 km](Feature-Charging-History-and-Cost#setting-up-cost)
+either. The odometer counts every kilometer, including the ones the engine
+drove, and nothing the car streams says how many those were. Dividing the
+charged energy by all of them reads low by exactly the share driven on fuel: a
+car driven half on fuel would show half its real consumption, and a real range
+twice what the battery reaches — say 186 km from a 19.7 kWh pack that really
+manages about 90. So the figures are withheld rather than shown wrong. The
+efficiency view says so, and `get_efficiency` returns `status: plug_in_hybrid`.
+
+What still works on a hybrid: [battery health](Feature-Battery-Health), the
+[charging history](Feature-Charging-History-and-Cost) with its energy and cost,
+and each trip's energy. A car is treated as a hybrid once it has streamed both
+high-voltage battery data and fuel data. A hybrid that got a Real Range or Charging Cost
+per 100 km sensor from an earlier version has it removed at the next restart.
 
 ## Viewing it
 

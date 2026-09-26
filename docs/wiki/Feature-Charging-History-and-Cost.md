@@ -184,7 +184,9 @@ You then get, per vehicle:
 - **Charging Cost (This Month)** and **Charging Cost (Last Session)** — once a
   price source is set.
 - **Charging Cost per 100 km** — additionally needs the odometer (Vehicle status
-  cluster) and two sessions to measure a distance between.
+  cluster) and two sessions to measure a distance between. Not on a plug-in
+  hybrid, whose odometer also counts the kilometers driven on fuel
+  ([why](Feature-Efficiency-and-Range#plug-in-hybrids)).
 
 ## Grid energy vs. battery energy
 

@@ -199,6 +199,8 @@ und Fenster, den gemessenen Ladeverlust, wo ein Netzwert existiert, die nutzbare
 Kapazität, durch die geteilt wurde, deine Kosten pro 100 km mit dem Solaranteil des
 Monats und ein Balkendiagramm des Verbrauchs nach Kalendermonat — die Jahreszeiten,
 denn der Winterverbrauch liegt regelmäßig ein Drittel über dem Sommer.
+Bei einem Plug-in-Hybrid erklärt sie stattdessen, warum es keinen Verbrauch und keine
+Reichweite gibt ([warum](DE-Feature-Efficiency-and-Range#plug-in-hybride)).
 
 Alles wird aus dem Ladeverlauf gemessen — zwei Ladungen schließen eine Strecke und
 die hineingeflossene Energie ein —, daher verbraucht sie **kein API-Kontingent** und

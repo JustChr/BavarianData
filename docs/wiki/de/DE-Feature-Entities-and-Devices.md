@@ -51,9 +51,9 @@ Namen).
 | **Geladene Energie (dieser Monat)** | Summe der geladenen Energie im Monat. |
 | **Ladekosten (dieser Monat)** | Kosten im Monat — erst, wenn eine Preisquelle gesetzt ist. |
 | **Ladekosten (letzter Ladevorgang)** | Kosten des letzten Ladevorgangs — nur mit Preisquelle. |
-| **Ladekosten pro 100 km** | Braucht den Kilometerstand und zwei Ladevorgänge, um eine Strecke zu messen. |
+| **Ladekosten pro 100 km** | Braucht den Kilometerstand und zwei Ladevorgänge, um eine Strecke zu messen. Nicht bei einem [Plug-in-Hybrid](DE-Feature-Efficiency-and-Range#plug-in-hybride). |
 | **Batteriezustand** | Gelernte nutzbare Kapazität (kWh), mit Prozent vom Neuwert, Zahl der Proben und einem Verlauf der Kapazität über die Laufleistung. |
-| **Reale Reichweite** | Wie weit das Auto mit der aktuellen Ladung wirklich kommt (km), aus gemessenem Verbrauch und nutzbarer Kapazität — mit der Prognose des Autos und der Abweichung als Attribute. |
+| **Reale Reichweite** | Wie weit das Auto mit der aktuellen Ladung wirklich kommt (km), aus gemessenem Verbrauch und nutzbarer Kapazität — mit der Prognose des Autos und der Abweichung als Attribute. Nicht bei einem [Plug-in-Hybrid](DE-Feature-Efficiency-and-Range#plug-in-hybride). |
 | **Fahrstrecke (dieser Monat)** | Strecke im Monat plus Aufteilung geschäftlich/privat/Pendeln. |
 | **Fahrt aktiv** | Binärsensor: `an`, solange eine Fahrt läuft, mit der bisherigen Fahrt als Attributen. Bewusst *kein* „bewegt sich“-Sensor — er bleibt nach der Ankunft noch eine Weile an; siehe [Fahrten](DE-Feature-Trips#seeing-the-drive-thats-happening-now). |
 | **Reifenzustand** | BMWs Gesamturteil zum montierten Satz, plus etwaige Fehler der Gegenseite. |

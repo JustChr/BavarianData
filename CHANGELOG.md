@@ -9,6 +9,32 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Plug-in hybrids were shown a real range far beyond what the battery
+  reaches.** Consumption is measured by dividing the energy charged by the
+  distance on the odometer — but a hybrid's odometer also counts the
+  kilometers the engine drove, so the figure read low by the share driven on
+  fuel, and the real range high by the same factor: roughly double for a car
+  driven half on fuel. A hybrid now gets no measured consumption, real range,
+  consumption trend or charging cost per 100 km; the efficiency view says why.
+  The **Real Range** and **Charging Cost per 100 km** sensors a hybrid was
+  given are removed at the next restart. Battery health, the charging history
+  and its costs are unaffected. Found in the diagnostics of the first plug-in
+  hybrid we've seen, an X3 30e (#25).
+- **The card kept saying "charging" after a charge had finished.** BMW reports
+  a charge that stopped at its target as `chargingended` (also `chargingpaused`,
+  `chargingerror`). The card read anything beginning with "charging" as active,
+  so a finished car sat under a green ring with a lightning bolt and "Time to
+  full". Cars whose charges are ended by a wallbox controller never showed it,
+  which is why it went unnoticed.
+- **The card's Plug tile could show the wrong sensor.** On a car without the
+  "plugged in" binary sensor, three sensors have "plug" in their English name,
+  two of them lock states, and whichever Home Assistant listed first won: the
+  X3 showed its post-charge lock state. On a German install none of them
+  matched, so the tile was missing. The card now looks the plug state up by
+  what it is, and its icon follows whether a cable is in rather than whether
+  the car is charging (card 1.15.2).
+
 ## [0.9.13-beta.3] - 2026-09-26
 
 ### Fixed

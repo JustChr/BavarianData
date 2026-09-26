@@ -106,7 +106,7 @@ from .vehicles import known_vins
 from .history.backfill import StatisticsPublisher
 from .bridge import REPUBLISH_INTERVAL_S, VehicleBridge, async_clear_published
 from .descriptor_metadata import DESCRIPTOR_META
-from .registry_repair import entities_to_reenable, ev_entities_to_remove
+from .registry_repair import entities_to_reenable, ev_entities_to_remove, hybrid_entities_to_remove
 from .evcc import ALL_TOPICS, BridgeConfig, bridge_payloads, evcc_yaml
 from .history.export import (
     MIME_CSV,
@@ -1340,9 +1340,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 month=month,
                 localize=dt_util.as_local,
             )
+            hybrid = coordinator.is_plug_in_hybrid(vin)
             cost_per_100km = None
             if coordinator.pricing.enabled:
-                cost_per_100km = summarise(month_sessions).get("cost_per_100km")
+                cost_per_100km = summarise(month_sessions, hybrid=hybrid).get("cost_per_100km")
 
             summary = driving_summary(
                 month_trips,
@@ -1351,6 +1352,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 currency=coordinator.pricing.currency,
                 sessions=month_sessions,
                 battery_capacity_kwh=coordinator.battery_capacity_kwh(vin),
+                hybrid=hybrid,
             )
             return {"summary": summary, "month": f"{year:04d}-{month:02d}"}
 
@@ -1380,7 +1382,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                     year=month.year,
                     month=month.month,
                     localize=dt_util.as_local,
-                )
+                ),
+                hybrid=coordinator.is_plug_in_hybrid(vin),
             )
             profile["cost_per_100km"] = month_summary.get("cost_per_100km")
             profile["currency"] = (
@@ -1536,7 +1539,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             if fmt == "html":
                 # Same aggregations the card renders, so a printed report and
                 # the dashboard can never disagree about a month's totals.
-                ledger = summarise(sessions)
+                hybrid = bool(vin) and runtime.coordinator.is_plug_in_hybrid(vin)
+                ledger = summarise(sessions, hybrid=hybrid)
                 vehicle = (
                     runtime.coordinator.device_metadata.get(vin or "", {}).get("name")
                     or vin
@@ -1561,6 +1565,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                                 battery_capacity_kwh=(
                                     runtime.coordinator.battery_capacity_kwh(vin) if vin else None
                                 ),
+                                hybrid=hybrid,
                             ),
                             lang=lang,
                             localize=dt_util.as_local,
@@ -1873,6 +1878,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     ):
         _LOGGER.info(
             "Removing %s: this car has a fuel system and no high-voltage battery",
+            entity_id,
+        )
+        entity_registry.async_remove(entity_id)
+    # Likewise the two odometer ratios a plug-in hybrid was given before they
+    # were withheld there: they can never hold a value on such a car again.
+    for entity_id in hybrid_entities_to_remove(
+        er.async_entries_for_config_entry(entity_registry, entry.entry_id),
+        coordinator.is_plug_in_hybrid,
+    ):
+        _LOGGER.info(
+            "Removing %s: this car is a plug-in hybrid, so its consumption cannot "
+            "be measured from the charging history",
             entity_id,
         )
         entity_registry.async_remove(entity_id)

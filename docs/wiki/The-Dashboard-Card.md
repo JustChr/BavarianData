@@ -185,6 +185,8 @@ side of the charger and the window it came from, the measured charging loss wher
 a grid figure exists, the usable capacity it divided into, your cost per 100 km
 with the month's solar share, and a bar chart of consumption by calendar month —
 the seasonal story, since winter consumption is routinely a third above summer.
+On a plug-in hybrid it explains instead why there is no consumption or range to
+show ([why](Feature-Efficiency-and-Range#plug-in-hybrids)).
 
 Everything is measured from the charging ledger — two charges bracket a distance
 and the energy that went into it — so it spends **no API quota** and never

@@ -1866,6 +1866,7 @@ class CardataCoordinator:
             now=dt_util.utcnow(),
             localize=dt_util.as_local,
             months=months,
+            hybrid=self.is_plug_in_hybrid(vin),
         )
 
     def _charging_location(self, vin: str) -> Optional[Dict[str, Any]]:

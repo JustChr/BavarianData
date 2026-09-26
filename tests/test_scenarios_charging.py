@@ -247,3 +247,73 @@ def test_without_history_a_restart_does_not_extrapolate():
         h.advance_to(100)
 
         assert h.estimate() == pytest.approx(held, abs=0.01)
+
+
+# --- efficiency -----------------------------------------------------------------
+
+FUEL_LEVEL = "vehicle.drivetrain.fuelSystem.level"
+
+
+def _two_charges_around_a_drive(h: CoordinatorHarness, *, fuel: bool) -> None:
+    """Charge, drive 100 km, charge back to where it was.
+
+    The charging ledger alone then brackets 100 km of driving -- enough for the
+    efficiency balance -- with ~11 kWh put back into the pack. ``fuel`` adds the
+    one thing that makes the car a plug-in hybrid: its tank reporting.
+    """
+
+    extra = {FUEL_LEVEL: 55} if fuel else None
+    h.send(0, odometer=10000, soc=40, status="NOCHARGING", extra=extra, step="parked")
+    _charge(h, 10, 190, soc_from=40, soc_to=80)
+    h.send(300, odometer=10100, soc=25, step="back from 100 km")
+    _charge(h, 400, 580, soc_from=25, soc_to=80)
+
+
+def _charge(h: CoordinatorHarness, start: int, end: int, *, soc_from: float, soc_to: float) -> None:
+    """A charge that reports power and SoC every ten minutes, as a car does.
+
+    Both are needed: the integrated energy is held to what the SoC says the
+    pack has absorbed so far (``_session_energy_ceiling_wh``).
+    """
+
+    h.send(start, soc=soc_from, status="CHARGINGACTIVE", power=3700, step=f"plug in {start}")
+    for minute in range(start + 10, end, 10):
+        soc = round(soc_from + (soc_to - soc_from) * (minute - start) / (end - start))
+        h.send(minute, soc=soc, power=3700, step=f"charging {minute}")
+    h.send(end, soc=soc_to, status="NOCHARGING", power=0, step=f"charge done {end}")
+    h.advance_to(end + 5)
+
+
+def test_the_ledger_measures_an_electric_cars_consumption():
+    """The control for the hybrid case below: same charges, a real figure."""
+
+    with CoordinatorHarness(capacity_kwh=19.7) as h:
+        _two_charges_around_a_drive(h, fuel=False)
+        profile = h.coordinator.efficiency(h.vin)
+
+        assert len(h.sessions()) == 2
+        assert profile["status"] == "ok"
+        assert profile["consumption"]["kwh_per_100km"] > 5
+        assert profile["range"]["full_km"] is not None
+
+
+def test_a_plug_in_hybrid_gets_no_consumption_or_range(snapshot):
+    """Issue #25: the odometer also counts what the engine drove.
+
+    The same charges on a car whose tank reports: dividing them by the odometer
+    would quote a frugal EV and a real range far past what the battery reaches,
+    so the profile withholds both and says why -- and keeps the capacity, which
+    describes the pack alone.
+    """
+
+    with CoordinatorHarness(capacity_kwh=19.7) as h:
+        _two_charges_around_a_drive(h, fuel=True)
+        profile = h.coordinator.efficiency(h.vin)
+
+        assert len(h.sessions()) == 2
+        assert profile["status"] == "plug_in_hybrid"
+        assert profile["consumption"] is None
+        assert profile["range"] is None
+        assert profile["trend"] == []
+        assert profile["capacity_kwh"] == 19.7
+        assert h.render() == snapshot

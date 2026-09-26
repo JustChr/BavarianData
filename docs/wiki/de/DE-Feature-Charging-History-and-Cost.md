@@ -206,7 +206,9 @@ Danach bekommst du pro Fahrzeug:
   eine Preisquelle gesetzt ist.
 - **Ladekosten pro 100 km** — braucht zusätzlich den Kilometerstand (Datengruppe
   Fahrzeugstatus) und zwei Ladevorgänge, zwischen denen eine Strecke gemessen
-  werden kann.
+  werden kann. Nicht bei einem Plug-in-Hybrid, dessen Kilometerstand auch die mit
+  Kraftstoff gefahrenen Kilometer zählt
+  ([warum](DE-Feature-Efficiency-and-Range#plug-in-hybride)).
 
 ## Netzenergie oder Batterieenergie
 

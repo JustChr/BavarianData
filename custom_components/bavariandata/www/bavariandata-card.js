@@ -13,7 +13,7 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.15.1";
+const CARD_VERSION = "1.15.2";
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -86,6 +86,13 @@ const COMBUSTION_PREFIXES = [
   "vehicle.drivetrain.fuelSystem.",
   "vehicle.drivetrain.internalCombustionEngine.",
 ];
+// Sensors that say whether a cable is in the car, best first. The `isPlugged`
+// binary sensor outranks all of them and is picked separately.
+const PLUG_SENSOR_DESCRIPTORS = [
+  "vehicle.body.chargingPort.status",
+  "vehicle.body.chargingPort.statusClearText",
+  "vehicle.drivetrain.electricEngine.charging.connectorStatus",
+];
 // The overview layouts a user may pick: electric, plug-in hybrid, petrol/diesel.
 // `_drivetrain` can also answer "unknown" for a car that proves none of them --
 // not selectable, because it describes missing evidence rather than a car.
@@ -117,6 +124,16 @@ const CHARGING_ACTIVE_STATES = new Set([
   "charging_in_progress",
   "charging",
 ]);
+
+// charging.status values that start with "charging" yet mean it has stopped. The
+// heuristic in _isCharging reads a leading "charging" as active, so a car that
+// finished at its target sat in `chargingended` under a green ring and "Time to
+// full" (issue #25's X3; the maintainer's i5 never showed it, because evcc ends
+// its charges and it drops straight to `nocharging`). Kept apart from
+// NOT_CHARGING_STATES so the label still shows Home Assistant's own translation
+// ("Charging ended", "Paused") rather than a generic "not charging". Agrees with
+// the integration (soc_tracking.is_charging_status), which counts none of these.
+const CHARGING_STOPPED_STATES = new Set(["chargingended", "chargingpaused", "chargingerror"]);
 
 /* ------------------------------------------------------------------------- *
  * Localization                                                              *
@@ -288,6 +305,8 @@ const TRANSLATIONS = {
       "Not enough charging history yet. Once two charges bracket 50 km or so of driving, your real consumption and the range it reaches appear here.",
     ef_no_capacity:
       "This car hasn't reported its battery capacity, so a range can't be worked out from the measured consumption.",
+    ef_hybrid:
+      "A plug-in hybrid covers part of its distance on fuel, and nothing the car sends says how much. A consumption or range worked out from the charging history would look far better than the battery really does, so none is shown. Battery health and the charging history are unaffected.",
     ef_error: "Couldn't load the efficiency data. Reload the page and try again.",
     ef_range_now: "Real range now",
     ef_at_soc: "at {p}% charge",
@@ -570,6 +589,8 @@ const TRANSLATIONS = {
       "Noch zu wenig Ladehistorie. Sobald zwei Ladevorgänge rund 50 km Fahrt einschließen, erscheinen hier der reale Verbrauch und die Reichweite, die er ergibt.",
     ef_no_capacity:
       "Dieses Fahrzeug meldet keine Batteriekapazität, daher lässt sich aus dem gemessenen Verbrauch keine Reichweite berechnen.",
+    ef_hybrid:
+      "Ein Plug-in-Hybrid fährt einen Teil seiner Strecke mit Kraftstoff, und keine der Fahrzeugdaten verrät, wie viel. Ein aus der Ladehistorie berechneter Verbrauch oder eine Reichweite sähen deshalb weit besser aus, als die Batterie tatsächlich ist, und werden nicht angezeigt. Batteriezustand und Ladehistorie sind davon nicht betroffen.",
     ef_error: "Effizienzdaten konnten nicht geladen werden. Seite neu laden und erneut versuchen.",
     ef_range_now: "Reale Reichweite jetzt",
     ef_at_soc: "bei {p} % Ladung",
@@ -996,7 +1017,14 @@ class BavarianDataCard extends HTMLElement {
       plug:
         cfg.plug ||
         this._pick(entities, { domain: "binary_sensor", prefer: ["plug", "connector"] }) ||
-        this._pick(entities, { prefer: ["plug", "connection status"], avoid: ["stream"] }),
+        // A car without the `isPlugged` binary sensor (issue #25's X3) says it
+        // on the charging port instead, and three of its English names contain
+        // "plug" -- the plug state and two *lock* states -- so the keyword pick
+        // was a coin toss decided by registry order, and on a German install
+        // none of them matched at all. Name the sources outright, in the order
+        // the evcc bridge reads them (evcc.PLUG_DESCRIPTORS).
+        PLUG_SENSOR_DESCRIPTORS.map((d) => this._idByDescriptor(entities, d)).find(Boolean) ||
+        this._pick(entities, { prefer: ["plug", "connection status"], avoid: ["stream", "lock", "hospitality"] }),
     };
   }
 
@@ -1100,12 +1128,21 @@ class BavarianDataCard extends HTMLElement {
     return this._t("d_ago", { n: Math.round(h / 24) });
   }
 
+  /** Whether the plug entity says a cable is in, whichever kind it is: the
+   * `isPlugged` binary sensor reads "on", the charging port's enum "connected".
+   * The icon used to follow *charging* instead, so a car plugged in and done
+   * showed a crossed-out plug beside the word "connected". */
+  _isPlugged(plugSt) {
+    const raw = plugSt && plugSt.state != null ? String(plugSt.state).toLowerCase() : "";
+    return raw === "on" || raw === "connected";
+  }
+
   _isCharging(chargingSt, socSt) {
     // The charging.status descriptor is authoritative (see coordinator), so an
     // explicit active/not-charging value settles it before the heuristic.
     const raw = chargingSt && chargingSt.state != null ? String(chargingSt.state).toLowerCase() : "";
     if (CHARGING_ACTIVE_STATES.has(raw)) return true;
-    if (NOT_CHARGING_STATES.has(raw)) return false;
+    if (NOT_CHARGING_STATES.has(raw) || CHARGING_STOPPED_STATES.has(raw)) return false;
     const hay = [chargingSt && chargingSt.state, socSt && socSt.attributes && socSt.attributes.charging]
       .filter(Boolean)
       .join(" ")
@@ -1264,6 +1301,7 @@ class BavarianDataCard extends HTMLElement {
       : this._t("charge");
 
     const tile = (key, label, st, icon) => ({ key, label, st, icon });
+    const plugSt = this._st(picks.plug);
     const rangeRow = {
       entity: rangeId,
       icon: "mdi:map-marker-distance",
@@ -1311,7 +1349,7 @@ class BavarianDataCard extends HTMLElement {
             ]
           : []),
         tile("target", this._t("target"), this._st(picks.target), "mdi:target"),
-        tile("plug", this._t("plug"), this._st(picks.plug), charging ? "mdi:power-plug" : "mdi:power-plug-off"),
+        tile("plug", this._t("plug"), plugSt, charging || this._isPlugged(plugSt) ? "mdi:power-plug" : "mdi:power-plug-off"),
         tile("ttf", charging ? this._t("time_to_full") : this._t("charge_time"), this._st(picks.timeToFull), "mdi:timer-sand"),
         tile("odo", this._t("odometer"), odometerSt, "mdi:counter"),
       ];
@@ -3671,6 +3709,10 @@ class BavarianDataCard extends HTMLElement {
       body = `<div class="empty">${this._t("ef_error")}</div>`;
     } else if (state.loading && !profile && !st) {
       body = `<div class="empty">${this._t("ef_loading")}</div>`;
+    } else if (f.status === "plug_in_hybrid") {
+      // Not "not enough history yet": on a plug-in hybrid no amount of it would
+      // do, because the odometer also counts the kilometres driven on fuel.
+      body = `<div class="empty">${this._t("ef_hybrid")}</div>`;
     } else if (f.consumption == null) {
       body = `<div class="empty">${this._t("ef_empty")}</div>`;
     } else if (f.fullKm == null) {

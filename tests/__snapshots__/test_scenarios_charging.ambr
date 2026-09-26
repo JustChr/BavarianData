@@ -13,6 +13,92 @@
      40.0  catch-up: it ended       est= 40.52 rate=    - charging=off open=n sessions=1 charging_stopped
   '''
 # ---
+# name: test_a_plug_in_hybrid_gets_no_consumption_or_range
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+      0.0  parked                   est= 40.00 rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est= 40.00 rate=    - charging=off open=n sessions=0
+     10.0  plug in 10               est= 40.00 rate=18.78 charging=on  open=y sessions=0 charging_started
+     20.0  wait 20                  est= 43.13 rate=18.78 charging=on  open=y sessions=0
+     20.0  charging 20              est= 42.00 rate=18.78 charging=on  open=y sessions=0
+     30.0  wait 30                  est= 45.13 rate=18.78 charging=on  open=y sessions=0
+     30.0  charging 30              est= 44.00 rate=18.78 charging=on  open=y sessions=0
+     40.0  wait 40                  est= 47.13 rate=18.78 charging=on  open=y sessions=0
+     40.0  charging 40              est= 47.00 rate=18.78 charging=on  open=y sessions=0
+     50.0  wait 50                  est= 50.13 rate=18.78 charging=on  open=y sessions=0
+     50.0  charging 50              est= 49.00 rate=18.78 charging=on  open=y sessions=0
+     60.0  wait 60                  est= 52.13 rate=18.78 charging=on  open=y sessions=0
+     60.0  charging 60              est= 51.00 rate=18.78 charging=on  open=y sessions=0
+     70.0  wait 70                  est= 54.13 rate=18.78 charging=on  open=y sessions=0
+     70.0  charging 70              est= 53.00 rate=18.78 charging=on  open=y sessions=0
+     80.0  wait 80                  est= 56.13 rate=18.78 charging=on  open=y sessions=0
+     80.0  charging 80              est= 56.00 rate=18.78 charging=on  open=y sessions=0
+     90.0  wait 90                  est= 59.13 rate=18.78 charging=on  open=y sessions=0
+     90.0  charging 90              est= 58.00 rate=18.78 charging=on  open=y sessions=0
+    100.0  wait 100                 est= 61.13 rate=18.78 charging=on  open=y sessions=0
+    100.0  charging 100             est= 60.00 rate=18.78 charging=on  open=y sessions=0
+    110.0  wait 110                 est= 63.13 rate=18.78 charging=on  open=y sessions=0
+    110.0  charging 110             est= 62.00 rate=18.78 charging=on  open=y sessions=0
+    120.0  wait 120                 est= 65.13 rate=18.78 charging=on  open=y sessions=0
+    120.0  charging 120             est= 64.00 rate=18.78 charging=on  open=y sessions=0
+    130.0  wait 130                 est= 67.13 rate=18.78 charging=on  open=y sessions=0
+    130.0  charging 130             est= 67.00 rate=18.78 charging=on  open=y sessions=0
+    140.0  wait 140                 est= 70.13 rate=18.78 charging=on  open=y sessions=0
+    140.0  charging 140             est= 69.00 rate=18.78 charging=on  open=y sessions=0
+    150.0  wait 150                 est= 72.13 rate=18.78 charging=on  open=y sessions=0
+    150.0  charging 150             est= 71.00 rate=18.78 charging=on  open=y sessions=0
+    160.0  wait 160                 est= 74.13 rate=18.78 charging=on  open=y sessions=0
+    160.0  charging 160             est= 73.00 rate=18.78 charging=on  open=y sessions=0
+    170.0  wait 170                 est= 76.13 rate=18.78 charging=on  open=y sessions=0
+    170.0  charging 170             est= 76.00 rate=18.78 charging=on  open=y sessions=0
+    180.0  wait 180                 est= 79.13 rate=18.78 charging=on  open=y sessions=0
+    180.0  charging 180             est= 78.00 rate=18.78 charging=on  open=y sessions=0
+    190.0  wait 190                 est= 81.13 rate=18.78 charging=on  open=y sessions=0
+    190.0  charge done 190          est= 80.00 rate=    - charging=off open=y sessions=0
+    195.0  advance 195              est= 80.00 rate=    - charging=off open=n sessions=1 charging_stopped
+    300.0  wait 300                 est= 80.00 rate=    - charging=off open=n sessions=1
+    300.0  back from 100 km         est= 25.00 rate=    - charging=off open=n sessions=1
+    400.0  wait 400                 est= 25.00 rate=    - charging=off open=n sessions=1
+    400.0  plug in 400              est= 25.00 rate=18.78 charging=on  open=y sessions=1 charging_started
+    410.0  wait 410                 est= 28.13 rate=18.78 charging=on  open=y sessions=1
+    410.0  charging 410             est= 28.00 rate=18.78 charging=on  open=y sessions=1
+    420.0  wait 420                 est= 31.13 rate=18.78 charging=on  open=y sessions=1
+    420.0  charging 420             est= 31.00 rate=18.78 charging=on  open=y sessions=1
+    430.0  wait 430                 est= 34.13 rate=18.78 charging=on  open=y sessions=1
+    430.0  charging 430             est= 34.00 rate=18.78 charging=on  open=y sessions=1
+    440.0  wait 440                 est= 37.13 rate=18.78 charging=on  open=y sessions=1
+    440.0  charging 440             est= 37.00 rate=18.78 charging=on  open=y sessions=1
+    450.0  wait 450                 est= 40.13 rate=18.78 charging=on  open=y sessions=1
+    450.0  charging 450             est= 40.00 rate=18.78 charging=on  open=y sessions=1
+    460.0  wait 460                 est= 43.13 rate=18.78 charging=on  open=y sessions=1
+    460.0  charging 460             est= 43.00 rate=18.78 charging=on  open=y sessions=1
+    470.0  wait 470                 est= 46.13 rate=18.78 charging=on  open=y sessions=1
+    470.0  charging 470             est= 46.00 rate=18.78 charging=on  open=y sessions=1
+    480.0  wait 480                 est= 49.13 rate=18.78 charging=on  open=y sessions=1
+    480.0  charging 480             est= 49.00 rate=18.78 charging=on  open=y sessions=1
+    490.0  wait 490                 est= 52.13 rate=18.78 charging=on  open=y sessions=1
+    490.0  charging 490             est= 52.00 rate=18.78 charging=on  open=y sessions=1
+    500.0  wait 500                 est= 55.13 rate=18.78 charging=on  open=y sessions=1
+    500.0  charging 500             est= 56.00 rate=18.78 charging=on  open=y sessions=1
+    510.0  wait 510                 est= 59.13 rate=18.78 charging=on  open=y sessions=1
+    510.0  charging 510             est= 59.00 rate=18.78 charging=on  open=y sessions=1
+    520.0  wait 520                 est= 62.13 rate=18.78 charging=on  open=y sessions=1
+    520.0  charging 520             est= 62.00 rate=18.78 charging=on  open=y sessions=1
+    530.0  wait 530                 est= 65.13 rate=18.78 charging=on  open=y sessions=1
+    530.0  charging 530             est= 65.00 rate=18.78 charging=on  open=y sessions=1
+    540.0  wait 540                 est= 68.13 rate=18.78 charging=on  open=y sessions=1
+    540.0  charging 540             est= 68.00 rate=18.78 charging=on  open=y sessions=1
+    550.0  wait 550                 est= 71.13 rate=18.78 charging=on  open=y sessions=1
+    550.0  charging 550             est= 71.00 rate=18.78 charging=on  open=y sessions=1
+    560.0  wait 560                 est= 74.13 rate=18.78 charging=on  open=y sessions=1
+    560.0  charging 560             est= 74.00 rate=18.78 charging=on  open=y sessions=1
+    570.0  wait 570                 est= 77.13 rate=18.78 charging=on  open=y sessions=1
+    570.0  charging 570             est= 77.00 rate=18.78 charging=on  open=y sessions=1
+    580.0  wait 580                 est= 80.13 rate=18.78 charging=on  open=y sessions=1
+    580.0  charge done 580          est= 80.00 rate=    - charging=off open=y sessions=1
+    585.0  advance 585              est= 80.00 rate=    - charging=off open=n sessions=2 charging_stopped
+  '''
+# ---
 # name: test_a_real_reading_replaces_the_estimate
   '''
       0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0

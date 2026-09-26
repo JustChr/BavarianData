@@ -19,6 +19,8 @@ repair = load_module("registry_repair")
 trips = load_module("history.trips")
 summary = load_module("history.summary")
 trip_builder = load_module("history.trip_builder")
+models = load_module("history.models")
+efficiency = load_module("history.efficiency")
 units = load_module("units")
 support = load_module("vehicle_support")
 
@@ -162,6 +164,133 @@ def test_builder_carries_the_flag_onto_the_record():
     )
     assert trip.hybrid is True
     assert trip.consumption_kwh_per_100km is None
+
+
+# --- plug-in hybrid: the charging ledger -----------------------------------
+#
+# The ledger divides energy charged by odometer distance, and a hybrid's odometer
+# also counts the kilometres the engine drove (issue #25, an X3 30e). These two
+# charges bracket 100 km with 10.6 kWh put back: an honest 10.6 kWh/100 km on an
+# electric car, and on a hybrid driven half on fuel, a figure half the truth
+# that the plausibility floor lets through.
+
+X3_CAPACITY = 19.7
+
+
+def _session(hours: float, *, odo: float, kwh: float, cost: float) -> object:
+    start = START + timedelta(hours=hours)
+    return models.ChargingSession(
+        vin=EV_VIN,
+        start=start,
+        end=start + timedelta(hours=3),
+        mileage_km=odo,
+        soc_end=80.0,
+        energy_kwh=kwh,
+        cost={"amount": cost, "currency": "EUR"},
+    )
+
+
+LEDGER = [
+    _session(0, odo=10000.0, kwh=7.9, cost=2.4),
+    _session(30, odo=10100.0, kwh=10.6, cost=3.2),
+]
+
+
+def test_the_ledger_balance_is_withheld_on_a_hybrid():
+    assert summary.energy_balance(LEDGER, battery_capacity_kwh=X3_CAPACITY)["kwh_per_100km"] == 10.6
+    assert summary.energy_balance(LEDGER, battery_capacity_kwh=X3_CAPACITY, hybrid=True) is None
+
+
+def test_a_hybrid_keeps_its_charging_cost_but_not_the_cost_per_distance():
+    electric = summary.summarise(LEDGER)
+    hybrid = summary.summarise(LEDGER, hybrid=True)
+    assert electric["cost_per_100km"] == 5.6
+    assert hybrid["cost_per_100km"] is None
+    # What was charged and what it cost are still true on any car.
+    assert hybrid["cost"] == electric["cost"] == 5.6
+    assert hybrid["energy_kwh"] == electric["energy_kwh"]
+    assert hybrid["distance_km"] == 100.0
+
+
+def test_the_month_review_withholds_the_balance_on_a_hybrid():
+    kwargs = {"sessions": LEDGER, "battery_capacity_kwh": X3_CAPACITY}
+    assert summary.driving_summary([], **kwargs)["energy_balance"] is not None
+    assert summary.driving_summary([], hybrid=True, **kwargs)["energy_balance"] is None
+
+
+def test_a_hybrids_efficiency_profile_says_why_it_is_empty():
+    now = START + timedelta(days=2)
+    electric = efficiency.efficiency_profile(LEDGER, battery_capacity_kwh=X3_CAPACITY, now=now)
+    hybrid = efficiency.efficiency_profile(
+        LEDGER, battery_capacity_kwh=X3_CAPACITY, now=now, hybrid=True
+    )
+    # The electric control: a 19.7 kWh pack "reaching" 186 km -- the very
+    # number a hybrid would have been shown.
+    assert electric["status"] == "ok"
+    assert electric["range"]["full_km"] == 185.8
+    assert hybrid["status"] == efficiency.STATUS_PLUG_IN_HYBRID == "plug_in_hybrid"
+    assert hybrid["consumption"] is None
+    assert hybrid["grid_consumption"] is None
+    assert hybrid["range"] is None
+    assert hybrid["trend"] == []
+    assert hybrid["capacity_kwh"] == X3_CAPACITY
+
+
+def test_a_hybrid_loses_exactly_its_odometer_ratio_entities():
+    rows = [
+        _row("sensor.x3_real_range", f"{EV_VIN}_real_range"),
+        _row("sensor.x3_cost_per_100km", f"{EV_VIN}_charging_cost_per_100km"),
+        # Kept: everything that describes the battery or the charging alone.
+        _row("sensor.x3_soc_estimate", f"{EV_VIN}_soc_estimate"),
+        _row("sensor.x3_battery_health", f"{EV_VIN}_battery_health"),
+        _row("sensor.x3_cost_month", f"{EV_VIN}_charging_cost_month"),
+        # Another car on the account that is not a hybrid.
+        _row("sensor.i5_real_range", f"{PETROL_VIN}_real_range"),
+    ]
+    removed = repair.hybrid_entities_to_remove(rows, lambda vin: vin == EV_VIN)
+    assert removed == ["sensor.x3_real_range", "sensor.x3_cost_per_100km"]
+    assert repair.hybrid_entities_to_remove(rows, lambda vin: False) == []
+
+
+def test_the_hybrid_suffixes_are_battery_only_suffixes():
+    # So the existing unique-id check above covers them too.
+    assert repair.HYBRID_INVALID_SUFFIXES <= repair.EV_ONLY_SUFFIXES
+
+
+def _calls(source: str, name: str) -> list[str]:
+    """The full text of every call to ``name(`` in ``source``."""
+
+    found = []
+    start = source.find(name + "(")
+    while start != -1:
+        depth = 0
+        for end in range(start + len(name), len(source)):
+            depth += {"(": 1, ")": -1}.get(source[end], 0)
+            if depth == 0:
+                break
+        found.append(source[start : end + 1])
+        start = source.find(name + "(", end)
+    return found
+
+
+def test_every_ledger_ratio_caller_says_whether_the_car_is_a_hybrid():
+    """The flag is opt-in, so a caller that forgets it fails silently -- by
+    quoting a hybrid a frugal EV's figures. Every call that hands charging
+    sessions to one of these must pass it."""
+
+    import pathlib
+
+    package = pathlib.Path(__file__).resolve().parents[1] / "custom_components" / "bavariandata"
+    checked = 0
+    for filename in ("__init__.py", "sensor.py", "coordinator.py"):
+        source = (package / filename).read_text(encoding="utf-8")
+        for name in ("summarise", "efficiency_profile", "driving_summary", "energy_balance"):
+            for call in _calls(source, name):
+                if name == "driving_summary" and "sessions=" not in call:
+                    continue  # trips only: no ledger balance to withhold
+                assert "hybrid=" in call, f"{filename}: {call[:120]}"
+                checked += 1
+    assert checked >= 6
 
 
 # --- fuel volume units -----------------------------------------------------

@@ -117,12 +117,76 @@ I5 = {
     "sensor.i5_odometer": ODOMETER,
 }
 
+
+def _named(descriptor: str, state: str, name: str, unit: str | None = None, **attrs) -> dict:
+    """A sensor carrying the friendly name Home Assistant would give it."""
+
+    return _sensor(descriptor, state, unit, friendly_name=f"X3 30e xDrive {name}", **attrs)
+
+
+# An X3 30e xDrive, from the diagnostics on issue #25 -- the first plug-in hybrid
+# seen. Trimmed to what the overview reads, named as an English install names
+# them, and in the registry's alphabetical order, which is what decided the plug
+# tile before it named its descriptor: three of these names contain "plug", and
+# two of them are lock states. It has no `isPlugged` binary sensor, and BMW's
+# basic data spells it PHEV but with the same "BE" propulsion as a battery car.
+# The charge had finished at its target, which BMW reports as `chargingended`.
 PHEV = {
-    **I5,
-    "sensor.phev_tank": _sensor("vehicle.drivetrain.fuelSystem.level", "55", "%"),
-    "sensor.phev_total_range": _sensor(
-        "vehicle.drivetrain.lastRemainingRange", "690", "km", device_class="distance"
+    "sensor.x3_30e_xdrive_charging_port_plug_post_charge_lock_state": _named(
+        "vehicle.body.chargingPort.isHospitalityActive",
+        "hospitality_inactive",
+        "Charging Port plug post-charge lock state",
     ),
+    "sensor.x3_30e_xdrive_charging_port_plug_lock_state": _named(
+        "vehicle.body.chargingPort.lockedStatus", "locked", "Charging Port plug lock state"
+    ),
+    "sensor.x3_30e_xdrive_charging_port_plug_state": _named(
+        "vehicle.body.chargingPort.status", "connected", "Charging Port plug state"
+    ),
+    "sensor.x3_30e_xdrive_battery_hv_state_of_charge": _named(
+        "vehicle.drivetrain.batteryManagement.header",
+        "72",
+        "Battery HV State Of Charge",
+        "%",
+        device_class="battery",
+        vehicle_basic_data={"drive_train": "PHEV", "propulsion_type": "BE"},
+    ),
+    "sensor.x3_30e_xdrive_charging_ev_charging_state": _named(
+        "vehicle.drivetrain.electricEngine.charging.status",
+        "chargingended",
+        "Charging EV Charging state",
+    ),
+    "sensor.x3_30e_xdrive_charging_ev_time_to_full_charge": _named(
+        "vehicle.drivetrain.electricEngine.charging.timeToFullyCharged",
+        "0",
+        "Charging EV Time to full charge",
+        "min",
+    ),
+    "sensor.x3_30e_xdrive_range_ev_remaining_range": _named(
+        "vehicle.drivetrain.electricEngine.kombiRemainingElectricRange",
+        "61",
+        "Range EV Remaining range",
+        "km",
+        device_class="distance",
+    ),
+    "sensor.x3_30e_xdrive_range_tank_level": _named(
+        "vehicle.drivetrain.fuelSystem.level", "55", "Range Tank level", "%"
+    ),
+    "sensor.x3_30e_xdrive_range_total_range_last_sent": _named(
+        "vehicle.drivetrain.lastRemainingRange",
+        "590",
+        "Range Total range (last sent)",
+        "km",
+        device_class="distance",
+    ),
+    "sensor.x3_30e_xdrive_battery_ev_target_state_of_charge": _named(
+        "vehicle.powertrain.electric.battery.stateOfCharge.target",
+        "80",
+        "Battery EV Target state of charge",
+        "%",
+        device_class="battery",
+    ),
+    "sensor.x3_30e_xdrive_mileage": ODOMETER,
 }
 
 
@@ -185,6 +249,59 @@ def test_plug_in_hybrid_shows_battery_and_tank():
     assert "electric range" in html
     assert "Tank" in html and "Total range" in html
     assert "Target" in html
+
+
+PLUG_STATE = "sensor.x3_30e_xdrive_charging_port_plug_state"
+
+
+def test_the_plug_tile_reads_the_plug_state_not_a_lock():
+    """Issue #25: registry order handed the tile the post-charge lock state."""
+
+    html = _render(PHEV)["html"]
+    assert f'data-entity="{PLUG_STATE}"' in html
+    assert "lock_state" not in html
+    # Plugged in and finished: the plug is in, so the icon says so.
+    assert "mdi:power-plug-off" not in html
+
+
+def test_the_plug_tile_survives_a_german_install():
+    """No German name contains "plug", so only the descriptor can find it."""
+
+    # Neutral ids and a German name, so only the descriptor carries English.
+    german = {
+        f"sensor.x3_{index}": {
+            **st,
+            "attributes": {**st["attributes"], "friendly_name": "X3 Ladeanschluss"},
+        }
+        for index, st in enumerate(PHEV.values())
+    }
+    plug_id = f"sensor.x3_{list(PHEV).index(PLUG_STATE)}"
+    html = _render(german)["html"]
+    assert f'data-entity="{plug_id}"' in html
+
+
+def _with_status(status: str) -> dict:
+    key = "sensor.x3_30e_xdrive_charging_ev_charging_state"
+    return {**PHEV, key: {**PHEV[key], "state": status}}
+
+
+@pytest.mark.parametrize(
+    "status", ["chargingended", "chargingpaused", "chargingerror", "nocharging"]
+)
+def test_a_charge_that_has_stopped_is_not_shown_as_charging(status: str):
+    """Issue #25: `chargingended` starts with "charging", and the heuristic
+    read that as active -- a finished car sat under a green ring and a bolt."""
+
+    html = _render(_with_status(status))["html"]
+    assert "gauge__bolt" not in html
+    assert "Time to full" not in html
+    assert "Charge time" in html
+
+
+def test_an_active_charge_is_still_shown_as_charging():
+    html = _render(_with_status("chargingactive"))["html"]
+    assert "gauge__bolt" in html
+    assert "Time to full" in html
 
 
 def test_basic_data_bev_outranks_a_stray_fuel_field():
@@ -264,23 +381,33 @@ card._hass = {
   language: "en",
   locale: { language: "en" },
   devices: { device: { name: "M2", identifiers: [["bavariandata", "WBS1"]] } },
-  callService: () => new Promise(() => {}),
+  // With a `response`, the service answers it and the view repaints; without
+  // one it never resolves, leaving the view on its loading state.
+  callService: () =>
+    input.response === undefined ? new Promise(() => {}) : Promise.resolve({ response: input.response }),
 };
 card.shadowRoot = { innerHTML: "", querySelectorAll: () => [], querySelector: () => null };
 card._wireTaps = () => {};
 card._styles = () => "";
 const entities = Object.keys(input.states);
+card._resolveDeviceId = () => "device";
+card._deviceEntities = () => entities;
 const method = { charging: "_renderCharging", health: "_renderHealth", efficiency: "_renderEfficiency" }[input.config.view];
 card[method]("device", entities);
-process.stdout.write(JSON.stringify({ html: card.shadowRoot.innerHTML }));
+setTimeout(() => process.stdout.write(JSON.stringify({ html: card.shadowRoot.innerHTML })), 0);
 """
 
 
-def _render_view(states: dict, view: str, config: dict | None = None) -> str:
+def _render_view(
+    states: dict, view: str, config: dict | None = None, *, response: dict | None = None
+) -> str:
     states = {entity_id: {**st, "entity_id": entity_id} for entity_id, st in states.items()}
+    payload = {"states": states, "config": {"view": view, **(config or {})}}
+    if response is not None:
+        payload["response"] = response
     result = subprocess.run(
         [NODE, "-e", _VIEW_HARNESS, str(_CARD)],
-        input=json.dumps({"states": states, "config": {"view": view, **(config or {})}}),
+        input=json.dumps(payload),
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -306,6 +433,15 @@ def test_battery_views_are_untouched_on_an_electric_car():
 def test_a_plug_in_hybrid_keeps_its_battery_views():
     for view in ("charging", "health", "efficiency"):
         assert "Nothing to show for this car" not in _render_view(PHEV, view), view
+
+
+def test_the_efficiency_view_explains_why_a_hybrid_has_no_range():
+    """Issue #25: not "not enough history yet" -- no amount of it would do."""
+
+    response = {"efficiency": {"status": "plug_in_hybrid", "consumption": None, "range": None}}
+    html = _render_view(PHEV, "efficiency", response=response)
+    assert "covers part of its distance on fuel" in html
+    assert "Not enough charging history" not in html
 
 
 def test_the_petrol_notice_is_escaped():

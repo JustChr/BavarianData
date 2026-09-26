@@ -74,12 +74,16 @@ def trips_in_month(
     return result
 
 
-def summarise(sessions: Iterable[ChargingSession]) -> dict[str, Any]:
+def summarise(sessions: Iterable[ChargingSession], *, hybrid: bool = False) -> dict[str, Any]:
     """Totals for a set of sessions.
 
     ``cost`` is ``None`` unless at least one session carried one. Mixed
     currencies also yield ``None``: summing euros and pounds into one number
     would be worse than showing nothing.
+
+    ``cost_per_100km`` stays ``None`` on a plug-in hybrid (``hybrid``): the
+    electricity spread over kilometres partly driven on fuel reads as a running
+    cost far below the real one, for the reason ``energy_balance`` gives.
     """
 
     sessions = list(sessions)
@@ -133,7 +137,7 @@ def summarise(sessions: Iterable[ChargingSession]) -> dict[str, Any]:
     distance = _distance_km(sessions)
     if distance:
         summary["distance_km"] = round(distance, 1)
-        if summary["cost"] is not None:
+        if summary["cost"] is not None and not hybrid:
             summary["cost_per_100km"] = round(summary["cost"] / distance * 100, 2)
 
     return summary
@@ -295,6 +299,7 @@ def energy_balance(
     *,
     battery_capacity_kwh: Optional[float] = None,
     side: str = SIDE_AUTO,
+    hybrid: bool = False,
 ) -> Optional[dict[str, Any]]:
     """Consumption over a period, measured from the charging ledger alone.
 
@@ -343,8 +348,18 @@ def energy_balance(
     Returns ``None`` rather than a guess whenever the inputs can't support an
     answer: fewer than two odometer readings, too short a span, an unknown
     capacity, or a result outside anything a road vehicle produces.
+
+    Always ``None`` on a plug-in hybrid (``hybrid``). The odometer counts every
+    kilometre, including the ones the engine drove, and nothing the car streams
+    separates them, so the charged energy spread over them reads low -- half the
+    true figure for a car driven half on fuel, and a real range double what the
+    battery reaches (issue #25's X3). The plausibility floor does not catch it:
+    a diluted 11 kWh/100 km looks like a frugal EV. Trips withhold their own
+    ratio for the same reason (``Trip.consumption_kwh_per_100km``).
     """
 
+    if hybrid:
+        return None
     if not battery_capacity_kwh or battery_capacity_kwh <= 0:
         return None
 
@@ -425,6 +440,7 @@ def driving_summary(
     currency: Optional[str] = None,
     sessions: Optional[Iterable[ChargingSession]] = None,
     battery_capacity_kwh: Optional[float] = None,
+    hybrid: bool = False,
 ) -> dict[str, Any]:
     """The whole "month in review" object the trips card renders.
 
@@ -433,7 +449,8 @@ def driving_summary(
     month-over-month delta. ``sessions`` is the same month's charging, which
     together with ``battery_capacity_kwh`` yields the plug-side
     :func:`energy_balance` -- the headline consumption figure, because it is the
-    only one the SoC signal's resolution doesn't limit. Every figure is omitted
+    only one the SoC signal's resolution doesn't limit -- and withheld on a
+    plug-in hybrid (``hybrid``), see there. Every figure is omitted
     (``None``/absent) rather than faked when its inputs are missing, so the card
     can hide what it can't show (roadmap rule 4). All aggregation lives here, not
     in the card's JS.
@@ -477,7 +494,9 @@ def driving_summary(
     avg_consumption = fleet_consumption_kwh_per_100km(trips)
     best = min(consumptions, key=lambda pair: pair[1], default=None)
     worst = max(consumptions, key=lambda pair: pair[1], default=None)
-    balance = energy_balance(sessions or [], battery_capacity_kwh=battery_capacity_kwh)
+    balance = energy_balance(
+        sessions or [], battery_capacity_kwh=battery_capacity_kwh, hybrid=hybrid
+    )
 
     def _trip_ref(pair) -> Optional[dict[str, Any]]:
         if pair is None:

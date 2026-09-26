@@ -226,7 +226,9 @@ in battery charge, but a hybrid may have driven part of the distance on fuel, an
 the stream carries no electric-only distance to divide by. A 40 km run that used
 4 kWh and a liter of petrol would read 10 kWh/100 km — a figure no part of the car
 achieved. So hybrid trips keep their energy and leave the rate blank, and they
-don't count toward the battery-side average.
+don't count toward the battery-side average. The month's consumption measured at
+the plug is withheld too, for the same reason
+([more](Feature-Efficiency-and-Range#plug-in-hybrids)).
 
 > **Recuperation** is likewise shown in **kWh/100 km**, not kWh: BMW's
 > `recuperationTotal` is documented as an average per 100 km, so a month is a
