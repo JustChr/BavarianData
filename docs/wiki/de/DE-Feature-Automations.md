@@ -5,17 +5,107 @@
 BavarianData streamt Daten in Echtzeit und eignet sich daher für Automationen,
 die sofort auf eine Änderung reagieren statt auf einen Abfragezyklus zu warten.
 
-## Lade-Ereignisse
+## Geräte-Auslöser
 
-Wichtige Übergänge beim Laden werden auf dem **Event-Bus** von Home Assistant
-ausgelöst und lassen sich direkt als Auslöser von Automationen nutzen (beobachten
-kannst du sie unter **Entwicklerwerkzeuge → Ereignisse**):
+Der einfachste Weg: Automation anlegen, als Auslöser **Gerät** wählen, dein Auto
+auswählen und aus der Liste wählen. Kein YAML, keine Entitätsnamen.
+
+| Auslöser | Löst aus, wenn | Optionen |
+| --- | --- | --- |
+| **In einer Zone angekommen** | eine Fahrt in einer Zone endet, sobald das Auto steht (meist 1–3 Minuten nach dem Anhalten) | eine Zone, oder leer für jede Zone |
+| **Eine Zone verlassen** | eine Fahrt das Auto aus der Zone bringt, in der sie begann | eine Zone, oder leer für jede Zone |
+| **Geparkt und nicht verriegelt** | das Auto die gewählte Zeit unverriegelt steht | wie lange (Standard 10 Minuten) |
+| **Angesteckt, lädt aber nicht** | ein Kabel steckt, nichts lädt und das Auto unter seinem Ladeziel ist, für die gewählte Zeit | wie lange (Standard 15 Minuten) |
+| **Laden gestartet** | ein Ladevorgang beginnt | — |
+| **Laden abgeschlossen (Ziel erreicht)** | ein Ladevorgang bei oder über dem Ziel endet | — |
+| **Laden vor dem Ziel beendet, Kabel steckt noch** | ein Ladevorgang unter dem Ziel endet, während das Kabel noch steckt | — |
+
+**Angeboten werden nur die Auslöser, die dein Auto auslösen kann.** Ein Auto,
+das nie einen Verriegelungszustand gesendet hat, bekommt kein *Geparkt und nicht
+verriegelt*; die Zonen-Auslöser brauchen die Position des Autos und das
+[Fahrtenbuch](DE-Feature-Trips) (standardmäßig an).
+
+### Was sie absichtlich nicht tun
+
+Diese Auslöser sollen genau einmal auslösen, und nie fälschlich:
+
+- **Ein Neustart löst nichts aus.** Nach einem Neustart von Home Assistant
+  beginnt eine Situation erst wieder, wenn das Auto sie neu meldet. Ein Auto, das
+  verriegelt wurde, während Home Assistant aus war, meldet beim Start nie „nicht
+  verriegelt“. Der Preis: Ein Auto, das schon vor dem Neustart offen stand, fällt
+  erst bei seiner nächsten Meldung auf.
+- **Aufsperren zum Einsteigen ist nicht „nicht verriegelt“.** Das Auto entriegelt
+  bei jeder Ankunft und verriegelt sich etwa zwei Minuten später selbst, wenn
+  keine Tür geöffnet wird. Dafür gibt es die Wartezeit; unter etwa drei Minuten
+  löst der Auslöser jeden Tag aus.
+- **Ein fertig geladenes Auto „lädt nicht“ nicht.** Am Ziel (oder bis 1 %
+  darunter) ist ein angestecktes Auto, das aufgehört hat, fertig und nicht
+  hängengeblieben.
+- **Früh abstecken ist keine Unterbrechung.** *Laden vor dem Ziel beendet*
+  braucht das Kabel noch zwei Minuten nach dem Stopp, also löst eine kurze Pause,
+  die von selbst weiterläuft, oder ein Abstecken durch den Fahrer nicht aus.
+- **Solar- und preisgesteuertes Laden pausiert absichtlich.** Wenn ein
+  Laderegler (evcc, der Solarmodus einer Wallbox) das Laden stoppt und wieder
+  startet, lösen *Angesteckt, lädt aber nicht* und *Laden vor dem Ziel beendet*
+  auch bei diesen Pausen aus — genau das ist passiert. Füge eine Bedingung hinzu
+  (zum Beispiel „erst nach 22:00“) oder eine längere Wartezeit.
+- **Ankommen ist nicht die Grenze überqueren.** *In einer Zone angekommen* löst
+  aus, wenn die Fahrt endet: Vorbeifahren am Zuhause löst es nicht aus, und
+  GPS-Zittern am Zonenrand kann es nicht flackern lassen. Die eigenen
+  Zonen-Auslöser von Home Assistant auf der Standort-Entität des Autos gibt es
+  weiterhin, wenn du den Moment des Überquerens willst.
+
+### Was die Automation bekommt
+
+Jeder Auslöser übergibt seine Details als `trigger.data`:
+
+| Auslöser | `trigger.data` |
+| --- | --- |
+| In einer Zone angekommen | `zone`, `zone_entity_id`, `from`, `distance_km`, `duration_s`, `energy_kwh`, `soc`, `trip_id`, `trip_start` |
+| Eine Zone verlassen | `zone`, `zone_entity_id`, `soc`, `trip_start` |
+| Geparkt und nicht verriegelt | `since`, `zone`, `zone_entity_id` |
+| Angesteckt, lädt aber nicht | `since`, `soc`, `target_soc`, `zone`, `zone_entity_id` |
+| Laden gestartet / abgeschlossen | `soc`, `target_soc`, `status` (abgeschlossen: auch `energy_kwh`, `cost`, `session_id`) |
+| Laden vor dem Ziel beendet | wie abgeschlossen, dazu `reason` — BMWs eigene Begründung, wenn das Auto eine sendet |
+
+Jede Nutzlast enthält außerdem `vin` und `entry_id`. Ein Beispiel, das vor einem
+zu Hause unverriegelt abgestellten Auto warnt:
+
+```yaml
+triggers:
+  - trigger: device
+    domain: bavariandata
+    device_id: <dein Auto>
+    type: parked_unlocked
+    for: { minutes: 10 }
+conditions:
+  - condition: template
+    value_template: "{{ trigger.data.zone_entity_id == 'zone.home' }}"
+actions:
+  - action: notify.mobile_app_telefon
+    data:
+      message: "Das Auto steht seit 10 Minuten unverriegelt in der Einfahrt."
+```
+
+## Ereignisse
+
+Alles hinter den Auslösern wird auch auf dem **Event-Bus** von Home Assistant
+ausgelöst, für YAML-Automationen und Node-RED (beobachten kannst du sie unter
+**Entwicklerwerkzeuge → Ereignisse**). Jedes enthält `vin` und `entry_id`.
 
 | Ereignis | Wird ausgelöst, wenn | Daten |
 | --- | --- | --- |
-| `bavariandata_charging_started` | ein Ladevorgang beginnt | `vin`, `soc`, `target_soc`, `status` |
-| `bavariandata_charging_stopped` | ein Ladevorgang endet (aus jedem Grund) | `vin`, `soc`, `target_soc`, `status` |
-| `bavariandata_charging_complete` | ein Ladevorgang **bei/über** dem Ziel-Ladezustand endet | `vin`, `soc`, `target_soc`, `status` |
+| `bavariandata_charging_started` | ein Ladevorgang beginnt | `soc`, `target_soc`, `status` |
+| `bavariandata_charging_stopped` | ein Ladevorgang endet (aus jedem Grund) | `soc`, `target_soc`, `status`, `energy_kwh`, `cost`, `session_id` |
+| `bavariandata_charging_complete` | ein Ladevorgang **bei/über** dem Ziel-Ladezustand endet | wie `charging_stopped` |
+| `bavariandata_charging_interrupted` | ein Ladevorgang unter dem Ziel endet, während das Kabel noch steckt | wie `charging_stopped`, dazu `reason` |
+| `bavariandata_zone_arrived` | eine Fahrt in einer Zone endet | wie beim Auslöser *In einer Zone angekommen* |
+| `bavariandata_zone_left` | eine Fahrt die Zone verlässt, in der sie begann | wie beim Auslöser *Eine Zone verlassen* |
+| `bavariandata_situation` | eine Situation beginnt (`active: true`) oder endet (`active: false`) | `situation` (`parked_unlocked` oder `plugged_not_charging`), `active`, `since`, … |
+
+`bavariandata_situation` löst im Moment des Beginns aus, ohne Wartezeit — das
+„für N Minuten“ fügen die Geräte-Auslöser hinzu. In YAML braucht derselbe Effekt
+ein `wait_for_trigger` auf das passende Ereignis mit `active: false`.
 
 ## Blueprints für den Einstieg
 

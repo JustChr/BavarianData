@@ -7,7 +7,7 @@
       7.0  wait 7                   est=     - rate=    - charging=off open=n sessions=0
       7.0  fix 48.1100,16.3100      est=     - rate=    - charging=off open=n sessions=0
       7.0  wait 7.01667             est=     - rate=    - charging=off open=n sessions=0
-      7.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+      7.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0 zone_left
       9.0  wait 9                   est=     - rate=    - charging=off open=n sessions=0
       9.0  fix 48.1200,16.3200      est=     - rate=    - charging=off open=n sessions=0
       9.0  wait 9.01667             est=     - rate=    - charging=off open=n sessions=0
@@ -36,7 +36,7 @@
       7.0  wait 7                   est=     - rate=    - charging=off open=n sessions=0
       7.0  fix 48.1100,16.3100      est=     - rate=    - charging=off open=n sessions=0
       7.0  wait 7.01667             est=     - rate=    - charging=off open=n sessions=0
-      7.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+      7.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0 zone_left
       9.0  wait 9                   est=     - rate=    - charging=off open=n sessions=0
       9.0  fix 48.1200,16.3200      est=     - rate=    - charging=off open=n sessions=0
       9.0  wait 9.01667             est=     - rate=    - charging=off open=n sessions=0
@@ -88,7 +88,7 @@
       7.0  wait 7                   est=     - rate=    - charging=off open=n sessions=0
       7.0  fix 48.1100,16.3100      est=     - rate=    - charging=off open=n sessions=0
       7.0  wait 7.01667             est=     - rate=    - charging=off open=n sessions=0
-      7.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+      7.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0 zone_left
       9.0  wait 9                   est=     - rate=    - charging=off open=n sessions=0
       9.0  fix 48.1200,16.3200      est=     - rate=    - charging=off open=n sessions=0
       9.0  wait 9.01667             est=     - rate=    - charging=off open=n sessions=0
@@ -121,7 +121,7 @@
       7.0  wait 7                   est=     - rate=    - charging=off open=n sessions=0
       7.0  fix 48.1100,16.3100      est=     - rate=    - charging=off open=n sessions=0
       7.0  wait 7.01667             est=     - rate=    - charging=off open=n sessions=0
-      7.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+      7.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0 zone_left
       9.0  wait 9                   est=     - rate=    - charging=off open=n sessions=0
       9.0  fix 48.1200,16.3200      est=     - rate=    - charging=off open=n sessions=0
       9.0  wait 9.01667             est=     - rate=    - charging=off open=n sessions=0
@@ -174,7 +174,7 @@
       7.0  wait 7                   est=     - rate=    - charging=off open=n sessions=0
       7.0  fix 48.1100,16.3100      est=     - rate=    - charging=off open=n sessions=0
       7.0  wait 7.01667             est=     - rate=    - charging=off open=n sessions=0
-      7.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+      7.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0 zone_left
       9.0  wait 9                   est=     - rate=    - charging=off open=n sessions=0
       9.0  fix 48.1200,16.3200      est=     - rate=    - charging=off open=n sessions=0
       9.0  wait 9.01667             est=     - rate=    - charging=off open=n sessions=0
@@ -227,7 +227,7 @@
       7.0  wait 7                   est=     - rate=    - charging=off open=n sessions=0
       7.0  fix 48.1100,16.3100      est=     - rate=    - charging=off open=n sessions=0
       7.0  wait 7.01667             est=     - rate=    - charging=off open=n sessions=0
-      7.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+      7.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0 zone_left
       9.0  wait 9                   est=     - rate=    - charging=off open=n sessions=0
       9.0  fix 48.1200,16.3200      est=     - rate=    - charging=off open=n sessions=0
       9.0  wait 9.01667             est=     - rate=    - charging=off open=n sessions=0

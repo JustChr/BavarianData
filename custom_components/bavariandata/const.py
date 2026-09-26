@@ -133,6 +133,17 @@ SIGNAL_VEHICLE_IMAGE = f"{DOMAIN}_vehicle_image_updated"
 EVENT_CHARGING_STARTED = f"{DOMAIN}_charging_started"
 EVENT_CHARGING_STOPPED = f"{DOMAIN}_charging_stopped"
 EVENT_CHARGING_COMPLETE = f"{DOMAIN}_charging_complete"
+# Charging stopped short of the target while the cable is still in (see
+# ``vehicle_triggers.charging_interrupted``).
+EVENT_CHARGING_INTERRUPTED = f"{DOMAIN}_charging_interrupted"
+# A trip ended inside a zone / a drive carried the car out of the zone it
+# started in. Carry {"zone", "zone_entity_id"} plus the trip's figures.
+EVENT_ZONE_ARRIVED = f"{DOMAIN}_zone_arrived"
+EVENT_ZONE_LEFT = f"{DOMAIN}_zone_left"
+# A situation (``vehicle_triggers.SITUATIONS``) began or ended: {"situation",
+# "active", "since"}. The device triggers turn "began, and lasted N minutes"
+# into one firing; the raw pair is there for YAML users too.
+EVENT_SITUATION = f"{DOMAIN}_situation"
 
 # Bundled Lovelace card. The JS is served as a static path and auto-registered as
 # a frontend resource so users don't have to add it manually.

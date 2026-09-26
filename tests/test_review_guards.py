@@ -289,6 +289,9 @@ def test_diagnostics_redacts_every_identifying_key() -> None:
 # is missing on an install without ``default_config``.
 IMPLICIT_COMPONENTS = {
     "binary_sensor",
+    # ``device_trigger.py`` is a platform ``device_automation`` loads from its own
+    # side; an install without it has no automation editor to offer triggers in.
+    "device_automation",
     "device_tracker",
     "diagnostics",
     "image",

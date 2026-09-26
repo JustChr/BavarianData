@@ -27,6 +27,10 @@ from .const import (
     EVENT_CHARGING_STARTED,
     EVENT_CHARGING_STOPPED,
     EVENT_CHARGING_COMPLETE,
+    EVENT_CHARGING_INTERRUPTED,
+    EVENT_SITUATION,
+    EVENT_ZONE_ARRIVED,
+    EVENT_ZONE_LEFT,
 )
 from .debug import debug_enabled, mask_vin
 from .history.classify import (
@@ -69,6 +73,16 @@ from .soc_tracking import SocTracking
 from .tyre import parse_tyre_diagnosis
 from .units import normalize_unit
 from .vehicle_support import is_motorcycle, motorcycle_issue_id
+from .vehicle_triggers import (
+    LOCK_DESCRIPTORS,
+    SITUATION_PARKED_UNLOCKED,
+    SITUATION_PLUGGED_NOT_CHARGING,
+    SituationTracker,
+    charging_interrupted,
+    lock_state,
+    parked_unlocked,
+    plugged_not_charging,
+)
 
 # Trip-detection descriptors (roadmap Phase 3). Motion is powertrain-agnostic and
 # the cleanest start signal; ignition corroborates it; BMW's own completed-segment
@@ -259,6 +273,11 @@ EFFICIENCY_LIVE_DESCRIPTORS = (DESC_BMW_RANGE, DESC_MAX_ENERGY)
 # named here because the bridge needs to know whether it has *ever* arrived,
 # which is a different question from what it currently says.
 DESC_CHARGE_STATUS = "vehicle.drivetrain.electricEngine.charging.status"
+# Why a charge ended, most specific first (carried on the interrupted event).
+CHARGE_END_REASON_DESCRIPTORS = (
+    "vehicle.drivetrain.electricEngine.charging.reasonChargingEnd",
+    "vehicle.drivetrain.electricEngine.charging.hvpmFinishReason",
+)
 # Whether a cable is in the car comes from a chain of descriptors that differs by
 # model -- see ``evcc.PLUG_DESCRIPTORS``, where it is unit-tested.
 
@@ -506,6 +525,14 @@ class CardataCoordinator:
     # the ``not open_trip`` check -- opening the trip twice and dropping the first
     # builder. The lock makes "check-then-open" (and close) atomic per vehicle.
     _trip_locks: Dict[str, asyncio.Lock] = field(default_factory=dict, init=False)
+    # The device triggers (``vehicle_triggers``). Descriptors the stream delivered
+    # since this instance started -- situations are judged on these alone, never
+    # on a value restored after a restart. The zone a trip started in (name and
+    # entity id, for "left a zone"), and the VINs whose trip already left it.
+    _live_descriptors: Dict[str, set[str]] = field(default_factory=dict, init=False)
+    _situations: SituationTracker = field(default_factory=SituationTracker, init=False)
+    _trip_start_zone: Dict[str, tuple[str, str]] = field(default_factory=dict, init=False)
+    _zone_left_fired: set[str] = field(default_factory=set, init=False)
 
     @property
     def signal_new_sensor(self) -> str:
@@ -930,6 +957,9 @@ class CardataCoordinator:
         for descriptor in new_binary:
             async_dispatcher_send(self.hass, self.signal_new_binary, vin, descriptor)
 
+        if seen_descriptors:
+            self._live_descriptors.setdefault(vin, set()).update(seen_descriptors)
+
         if self.coverage is not None and seen_descriptors:
             # Bookkeeping must never break the stream.
             try:
@@ -955,6 +985,8 @@ class CardataCoordinator:
                 await self._process_door_signal(vin, now, door_value)
             if gps_parts:
                 await self._process_gps_signal(vin, now, gps_ts, gps_parts)
+            # After the trip logic: a trip opening ends "parked unlocked".
+            self._evaluate_situations(vin, now)
 
         # Trip-capture diagnostics: the raw firehose + NDJSON file, outside the
         # trip lock (they only read state) and strictly gated on the opt-in.
@@ -1299,6 +1331,22 @@ class CardataCoordinator:
         target = tracking.target_soc_percent
         if target is not None and soc is not None and soc >= target - 1.0:
             self.hass.bus.async_fire(EVENT_CHARGING_COMPLETE, payload)
+        elif charging_interrupted(
+            soc, target, plug_state(self._live_values(vin, PLUG_DESCRIPTORS))
+        ):
+            # Short of the target with the cable still in, two minutes on (the
+            # close debounce) -- not a flap, and not the driver unplugging.
+            self.hass.bus.async_fire(
+                EVENT_CHARGING_INTERRUPTED, {**payload, "reason": self._charge_end_reason(vin)}
+            )
+
+    def _charge_end_reason(self, vin: str) -> Optional[str]:
+        """BMW's own word for why the charge ended, when the car sent one live."""
+
+        for value in self._live_values(vin, CHARGE_END_REASON_DESCRIPTORS).values():
+            if isinstance(value, str) and value.strip().upper() not in ("", "INVALID", "UNKNOWN"):
+                return value
+        return None
 
     def _open_session_record(self, vin: str, tracking: SocTracking, started_at: datetime) -> None:
         if self.history is None:
@@ -1905,6 +1953,12 @@ class CardataCoordinator:
         return self._zone_name(latitude, longitude)
 
     def _zone_name(self, latitude: float, longitude: float) -> Optional[str]:
+        found = self._zone_at(latitude, longitude)
+        return None if found is None else found[0]
+
+    def _zone_at(self, latitude: float, longitude: float) -> Optional[tuple[str, str]]:
+        """The zone a point lies in, as ``(name, entity_id)``, or ``None``."""
+
         from homeassistant.components import zone as zone_component
 
         try:
@@ -1913,7 +1967,106 @@ class CardataCoordinator:
             return None
         if found is None:
             return None
-        return found.name or found.entity_id
+        return (found.name or found.entity_id, found.entity_id)
+
+    def _current_zone(self, vin: str) -> Optional[tuple[str, str]]:
+        latitude = self._coordinate(vin, "latitude")
+        longitude = self._coordinate(vin, "longitude")
+        if latitude is None or longitude is None:
+            return None
+        return self._zone_at(latitude, longitude)
+
+    # --- device triggers (vehicle_triggers.py) ------------------------------
+
+    def _live_values(self, vin: str, descriptors: Iterable[str]) -> Dict[str, Any]:
+        """Current values of those ``descriptors`` the stream sent since startup."""
+
+        live = self._live_descriptors.get(vin, set())
+        values: Dict[str, Any] = {}
+        for descriptor in descriptors:
+            if descriptor not in live:
+                continue
+            state = self.get_state(vin, descriptor)
+            if state is not None:
+                values[descriptor] = state.value
+        return values
+
+    def _evaluate_situations(self, vin: str, now: datetime) -> None:
+        """Start or end the trigger situations, firing ``EVENT_SITUATION`` on a change.
+
+        Judged on live values only (see ``_live_descriptors``), so a restart can
+        start nothing until the car speaks again.
+        """
+
+        try:
+            tracking = self._soc_tracking.get(vin)
+            charging: Optional[bool] = None
+            if tracking is not None and DESC_CHARGE_STATUS in self._live_descriptors.get(
+                vin, set()
+            ):
+                charging = tracking.charging_active
+            soc = self._current_soc(vin)
+            target = None if tracking is None else tracking.target_soc_percent
+            states = {
+                SITUATION_PARKED_UNLOCKED: parked_unlocked(
+                    lock_state(self._live_values(vin, LOCK_DESCRIPTORS)),
+                    vin in self._trip_builders,
+                ),
+                SITUATION_PLUGGED_NOT_CHARGING: plugged_not_charging(
+                    plug_state(self._live_values(vin, PLUG_DESCRIPTORS)), charging, soc, target
+                ),
+            }
+            for situation, active in states.items():
+                began = self._situations.since(vin, situation)
+                change = self._situations.update(vin, situation, active, now)
+                if change is None:
+                    continue
+                zone = self._current_zone(vin)
+                payload: Dict[str, Any] = {
+                    "vin": vin,
+                    "entry_id": self.entry_id,
+                    "situation": situation,
+                    "active": change,
+                    "since": (now if change else began or now).isoformat(),
+                    "zone": None if zone is None else zone[0],
+                    "zone_entity_id": None if zone is None else zone[1],
+                }
+                if situation == SITUATION_PLUGGED_NOT_CHARGING:
+                    payload["soc"] = None if soc is None else round(soc, 1)
+                    payload["target_soc"] = target
+                if debug_enabled():
+                    _LOGGER.debug(
+                        "[trigger] %s %s %s", vin, situation, "BEGIN" if change else "END"
+                    )
+                self.hass.bus.async_fire(EVENT_SITUATION, payload)
+        except Exception:  # noqa: BLE001 - a trigger must never break the stream
+            _LOGGER.exception("Trigger evaluation failed for %s", mask_vin(vin))
+
+    def _fire_zone_left(self, vin: str, zone: tuple[str, str]) -> None:
+        self._zone_left_fired.add(vin)
+        builder = self._trip_builders.get(vin)
+        self.hass.bus.async_fire(
+            EVENT_ZONE_LEFT,
+            {
+                "vin": vin,
+                "entry_id": self.entry_id,
+                "zone": zone[0],
+                "zone_entity_id": zone[1],
+                "trip_start": None if builder is None else builder.start.isoformat(),
+                "soc": self._current_soc(vin),
+            },
+        )
+
+    def _check_zone_left(self, vin: str, latitude: float, longitude: float) -> None:
+        """Fire "left" once per trip, on the first fix outside the start zone."""
+
+        start = self._trip_start_zone.get(vin)
+        if start is None or vin in self._zone_left_fired:
+            return
+        here = self._zone_at(latitude, longitude)
+        if here is not None and here[1] == start[1]:
+            return
+        self._fire_zone_left(vin, start)
 
     # --- trips (roadmap Phase 3) -------------------------------------------
 
@@ -2318,6 +2471,7 @@ class CardataCoordinator:
                     # Record the route point too, stamped with this fix's time
                     # (opt-in; a no-op otherwise).
                     builder.add_track_point(latitude, longitude, now)
+                    self._check_zone_left(vin, latitude, longitude)
                 # The fixes are back and the car has moved on: the drive never
                 # ended, so drop any hold and keep going as one trip.
                 self._trip_held_since.pop(vin, None)
@@ -2535,6 +2689,14 @@ class CardataCoordinator:
         # recording is off or no position is available.
         if seed is not None:
             builder.add_track_point(seed[0], seed[1], started_at)
+        # Where "left a zone" is measured from: the parked spot, not the first
+        # fix that registered as movement (already on its way out).
+        self._zone_left_fired.discard(vin)
+        self._trip_start_zone.pop(vin, None)
+        if seed is not None:
+            start_zone = self._zone_at(seed[0], seed[1])
+            if start_zone is not None:
+                self._trip_start_zone[vin] = start_zone
         # Start the per-trip capture stats (a no-op cost when capture is off, but
         # cheap and it means _note_capture_fix needn't check the mode).
         self._trip_capture[vin] = {
@@ -2582,9 +2744,16 @@ class CardataCoordinator:
             return now
         return max(start, min(last_move, now))
 
-    async def _close_trip(self, vin: str, now: datetime, *, reason: str = "stationary") -> None:
+    async def _close_trip(
+        self, vin: str, now: datetime, *, reason: str = "stationary", announce: bool = True
+    ) -> None:
+        """Close the open trip. ``announce=False`` (the stop flush) fires no events."""
+
         builder = self._trip_builders.pop(vin, None)
         cap_stats = self._trip_capture.pop(vin, None)
+        start_zone = self._trip_start_zone.pop(vin, None)
+        left_fired = vin in self._zone_left_fired
+        self._zone_left_fired.discard(vin)
         self._cancel_trip_close_timer(vin)
         self._trip_close_due.pop(vin, None)
         self._trip_held_since.pop(vin, None)
@@ -2593,6 +2762,8 @@ class CardataCoordinator:
             # the no-history and dropped-as-noise paths, which never reach
             # ``signal_trips`` -- so the "under way" flag has to be told here.
             async_dispatcher_send(self.hass, self.signal_trip_active, vin)
+            if announce:
+                self._evaluate_situations(vin, now)
         if builder is None or self.history is None:
             return
 
@@ -2682,6 +2853,8 @@ class CardataCoordinator:
         if classification is not None:
             trip.classification = classification
             trip.classification_source = SOURCE_AUTO
+        if announce:
+            self._announce_arrival(vin, trip, start_zone, left_fired)
         self._cap(
             "[trip] %s RECORDED id=%s class=%s chain=%s track=%d pts (home=%s work=%s)",
             vin,
@@ -2701,6 +2874,41 @@ class CardataCoordinator:
             _LOGGER.exception("Could not record trip for %s", mask_vin(vin))
             return
         async_dispatcher_send(self.hass, self.signal_trips, vin)
+
+    def _announce_arrival(
+        self,
+        vin: str,
+        trip: Trip,
+        start_zone: Optional[tuple[str, str]],
+        left_fired: bool,
+    ) -> None:
+        """Fire "left" (if the fixes were too sparse to catch it) and "arrived"."""
+
+        try:
+            end_zone = self._current_zone(vin)
+            if start_zone is not None and not left_fired:
+                if end_zone is None or end_zone[1] != start_zone[1]:
+                    self._fire_zone_left(vin, start_zone)
+            if end_zone is None:
+                return
+            self.hass.bus.async_fire(
+                EVENT_ZONE_ARRIVED,
+                {
+                    "vin": vin,
+                    "entry_id": self.entry_id,
+                    "zone": end_zone[0],
+                    "zone_entity_id": end_zone[1],
+                    "trip_id": trip.id,
+                    "trip_start": trip.start.isoformat(),
+                    "distance_km": trip.distance_km,
+                    "duration_s": trip.duration_s,
+                    "energy_kwh": trip.energy_kwh,
+                    "soc": trip.soc_end,
+                    "from": (trip.start_place or {}).get("label"),
+                },
+            )
+        except Exception:  # noqa: BLE001 - a trigger must never break the stream
+            _LOGGER.exception("Arrival trigger failed for %s", mask_vin(vin))
 
     def _commute_chain(
         self,
@@ -2859,7 +3067,9 @@ class CardataCoordinator:
         for vin in list(self._trip_builders):
             reason = "silent" if vin in self._trip_held_since else "unload"
             with suppress(Exception):
-                await self._close_trip(vin, datetime.now(timezone.utc), reason=reason)
+                await self._close_trip(
+                    vin, datetime.now(timezone.utc), reason=reason, announce=False
+                )
 
     def async_flush_charging(self) -> None:
         """Preserve every in-flight charge on the way out (unload or shutdown).

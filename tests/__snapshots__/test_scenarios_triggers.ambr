@@ -1,0 +1,62 @@
+# serializer version: 1
+# name: test_a_charge_that_stops_short_with_the_cable_in_is_interrupted
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+      1.0  wait 1                   est=     - rate=    - charging=off open=n sessions=0
+      1.0  send soc=50,target=80,plug=CONNECTED,status=CHARGINGACTIVE,power=11000 est= 50.00 rate=14.67 charging=on  open=y sessions=0 charging_started
+     30.0  wait 30                  est= 57.09 rate=14.67 charging=on  open=y sessions=0
+     30.0  send status=NOCHARGING,power=0 est= 57.09 rate=    - charging=off open=y sessions=0 situation
+     35.0  advance 35               est= 57.09 rate=    - charging=off open=n sessions=1 charging_stopped,charging_interrupted
+  '''
+# ---
+# name: test_arriving_home_fires_once_the_car_has_parked
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+      7.0  wait 7                   est=     - rate=    - charging=off open=n sessions=0
+      7.0  fix 48.1400,16.3400      est=     - rate=    - charging=off open=n sessions=0
+      7.0  wait 7.01667             est=     - rate=    - charging=off open=n sessions=0
+      7.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+      9.0  wait 9                   est=     - rate=    - charging=off open=n sessions=0
+      9.0  fix 48.1300,16.3300      est=     - rate=    - charging=off open=n sessions=0
+      9.0  wait 9.01667             est=     - rate=    - charging=off open=n sessions=0
+      9.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     11.0  wait 11                  est=     - rate=    - charging=off open=n sessions=0
+     11.0  fix 48.1200,16.3200      est=     - rate=    - charging=off open=n sessions=0
+     11.0  wait 11.0167             est=     - rate=    - charging=off open=n sessions=0
+     11.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     13.0  wait 13                  est=     - rate=    - charging=off open=n sessions=0
+     13.0  fix 48.1100,16.3100      est=     - rate=    - charging=off open=n sessions=0
+     13.0  wait 13.0167             est=     - rate=    - charging=off open=n sessions=0
+     13.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     15.0  wait 15                  est=     - rate=    - charging=off open=n sessions=0
+     15.0  fix 48.1000,16.3000      est=     - rate=    - charging=off open=n sessions=0
+     15.0  wait 15.0167             est=     - rate=    - charging=off open=n sessions=0
+     15.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     20.0  wait 20                  est=     - rate=    - charging=off open=n sessions=0
+     20.0  fix 48.1000,16.3000      est=     - rate=    - charging=off open=n sessions=0
+     20.0  wait 20.0167             est=     - rate=    - charging=off open=n sessions=0
+     20.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0 zone_arrived
+     40.0  advance 40               est=     - rate=    - charging=off open=n sessions=0
+  '''
+# ---
+# name: test_plugged_in_and_waiting_is_a_situation
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+      1.0  wait 1                   est=     - rate=    - charging=off open=n sessions=0
+      1.0  send soc=50,target=80,plug=CONNECTED,status=NOCHARGING est= 50.00 rate=    - charging=off open=n sessions=0 situation
+     20.0  wait 20                  est= 50.00 rate=    - charging=off open=n sessions=0
+     20.0  send status=CHARGINGACTIVE,power=11000 est= 50.00 rate=14.67 charging=on  open=y sessions=0 charging_started,situation
+  '''
+# ---
+# name: test_unlocked_begins_and_ends_with_the_lock
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+      1.0  wait 1                   est=     - rate=    - charging=off open=n sessions=0
+      1.0  send                     est=     - rate=    - charging=off open=n sessions=0 situation
+      2.0  wait 2                   est=     - rate=    - charging=off open=n sessions=0
+      2.0  send                     est=     - rate=    - charging=off open=n sessions=0 situation
+      3.0  wait 3                   est=     - rate=    - charging=off open=n sessions=0
+      3.0  send                     est=     - rate=    - charging=off open=n sessions=0 situation
+     20.0  advance 20               est=     - rate=    - charging=off open=n sessions=0
+  '''
+# ---
