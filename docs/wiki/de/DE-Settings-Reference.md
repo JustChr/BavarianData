@@ -50,21 +50,23 @@ erscheinen (der Screenshot zeigt die englische).
 Bildschirm: **Konfigurieren → Automatische Aktualisierung**.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-data-refresh.png" alt="Einstellungen der automatischen Aktualisierung: ein Schalter, Catch up after Home Assistant starts, eingeschaltet (Screenshot englisch)" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-data-refresh.png" alt="Einstellungen der automatischen Aktualisierung: ein Schalter, Catch up after a restart or an outage, eingeschaltet (Screenshot englisch)" width="460" />
 </p>
 
 Der Live-Stream überträgt nur, was sich ändert, während Home Assistant zuhört. Was
-ein Auto gemeldet hat, während Home Assistant aus war — ein beendeter Ladevorgang,
-das Verriegeln, eine Fahrt —, wird beim Wiederverbinden nicht nachgeliefert, und
-ein Auto, das mit gleichbleibender Leistung lädt, kann danach stundenlang
-schweigen. Deshalb fragt die Integration zwei Minuten nach dem Start einmal pro
-Auto den aktuellen Stand bei BMW ab. BMW liefert den letzten Wert, den jedes Auto
+ein Auto gemeldet hat, während Home Assistant aus war oder eine Netzstörung die
+Verbindung zu BMW unterbrochen hat — ein beendeter Ladevorgang, das Verriegeln,
+eine Fahrt —, wird beim Wiederverbinden nicht nachgeliefert, und ein Auto, das mit
+gleichbleibender Leistung lädt, kann danach stundenlang schweigen. Deshalb fragt
+die Integration einmal pro Auto den aktuellen Stand bei BMW ab: zwei Minuten nach
+dem Start und wenn die Verbindung nach einer Unterbrechung von fünf Minuten oder
+mehr zurückkommt. BMW liefert den letzten Wert, den jedes Auto
 geschickt hat; so wird aufgeholt, ohne das Auto aufzuwecken — einen neueren Wert
 als den zuletzt gesendeten kann das nicht liefern.
 
 | Option | Werte | Bedeutung |
 | --- | --- | --- |
-| **Nach dem Start von Home Assistant aufholen** | an/aus | Standardmäßig **an**. Eine Abfrage pro Auto von deinen [50 pro Tag](DE-Feature-API-Quota). Entfällt, wenn BMW in der letzten Stunde schon gefragt wurde (die tägliche Aktualisierung und manuelle Abrufe zählen mit), wiederholte Neustarts kosten also nichts zusätzlich; ein Ladevorgang, der beim Neustart lief, wird trotzdem geprüft, wenn die letzte Abfrage älter als eine halbe Stunde ist. Lässt immer 10 Abfragen für deine eigenen Dienstaufrufe übrig. Wirkt ab dem nächsten Start. |
+| **Nach Neustart oder Unterbrechung aufholen** | an/aus | Standardmäßig **an**. Eine Abfrage pro Auto von deinen [50 pro Tag](DE-Feature-API-Quota). Entfällt, wenn BMW in der letzten Stunde schon gefragt wurde (die tägliche Aktualisierung und manuelle Abrufe zählen mit), wiederholte Neustarts oder eine immer wieder abreißende Verbindung kosten also nichts zusätzlich; ein Ladevorgang, der beim Neustart lief, wird trotzdem geprüft, wenn die letzte Abfrage älter als eine halbe Stunde ist. Lässt immer 10 Abfragen für deine eigenen Dienstaufrufe übrig. Wirkt sofort. |
 
 Ein Ladevorgang, der beim Neustart lief, wird durch diese Antwort geklärt: lädt
 das Auto noch, läuft derselbe Ladevorgang weiter, ist es fertig, wird er als

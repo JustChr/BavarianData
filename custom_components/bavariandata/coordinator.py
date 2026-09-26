@@ -333,6 +333,10 @@ class CardataCoordinator:
     # from that one REST call. Set by the setup path; never fires for a VIN the
     # bootstrap already seeded.
     on_new_vehicle: Optional[Callable[[str], None]] = field(default=None, repr=False)
+    # Called with the outage's length in seconds when the stream connects again
+    # after having been connected before, so ``__init__.py`` can fetch what the
+    # cars reported while nobody was listening (see ``startup_refresh.py``).
+    on_reconnect_after_outage: Optional[Callable[[float], None]] = field(default=None, repr=False)
     last_message_at: Optional[datetime] = None
     last_telematic_api_at: Optional[datetime] = None
     connection_status: str = "connecting"
@@ -342,6 +346,8 @@ class CardataCoordinator:
     # Wall-clock the watchdog started, so "no data in 48h" has a baseline on a
     # stream that has never delivered a single message.
     stream_started_at: Optional[datetime] = field(default=None, init=False)
+    # When the stream last stopped being connected; None while connected.
+    _stream_down_since: Optional[datetime] = field(default=None, init=False, repr=False)
     # When a message last arrived per VIN (the global ``last_message_at`` can't
     # tell a healthy car from a silent one when several are configured).
     last_message_by_vin: Dict[str, datetime] = field(default_factory=dict, init=False)
@@ -3128,6 +3134,15 @@ class CardataCoordinator:
         self, status: str, *, reason: Optional[str] = None
     ) -> None:
         now = datetime.now(timezone.utc)
+        # How long the stream was away, measured from the first event that was
+        # not "connected". The very first connect after setup has no outage
+        # behind it; the startup catch-up covers that one.
+        if status == "connected":
+            down_since, self._stream_down_since = self._stream_down_since, None
+            if down_since is not None and self.on_reconnect_after_outage is not None:
+                self.on_reconnect_after_outage((now - down_since).total_seconds())
+        elif self._stream_down_since is None and self.connection_status == "connected":
+            self._stream_down_since = now
         self.connection_status = status
         if reason:
             self.last_disconnect_reason = reason

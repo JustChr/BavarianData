@@ -257,12 +257,12 @@
       },
       "action_data_refresh": {
         "title": "Automatic data refresh",
-        "description": "The live stream only carries what changes while Home Assistant is listening. Whatever the car reported while Home Assistant was down (a charge that ended, the doors being locked, a drive) is not replayed when it reconnects.\n\nWith this on, two minutes after Home Assistant starts, the integration asks BMW once per car for its current state. BMW returns the last values each car sent, so you catch up without waking the car. It uses one of the 50 daily requests per car. It is skipped if BMW was already asked within the last hour, unless a charge was running at the restart, and it always leaves 10 requests for your own service calls.",
+        "description": "The live stream only carries what changes while Home Assistant is listening. Whatever the car reported while Home Assistant was down or the connection to BMW was cut off (a charge that ended, the doors being locked, a drive) is not replayed when it reconnects.\n\nWith this on, the integration asks BMW once per car for its current state two minutes after Home Assistant starts, and again when the connection comes back after an outage of five minutes or more. BMW returns the last values each car sent, so you catch up without waking the car. It uses one of the 50 daily requests per car. It is skipped if BMW was already asked within the last hour, unless a charge was running at the restart, and it always leaves 10 requests for your own service calls.",
         "data": {
-          "refresh_on_start": "Catch up after Home Assistant starts"
+          "refresh_on_start": "Catch up after a restart or an outage"
         },
         "data_description": {
-          "refresh_on_start": "Takes effect at the next start."
+          "refresh_on_start": "Takes effect immediately."
         }
       },
       "action_debug_logging": {

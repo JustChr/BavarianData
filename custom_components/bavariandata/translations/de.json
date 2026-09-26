@@ -257,12 +257,12 @@
       },
       "action_data_refresh": {
         "title": "Automatische Aktualisierung",
-        "description": "Der Live-Stream überträgt nur, was sich ändert, während Home Assistant zuhört. Was das Auto gemeldet hat, während Home Assistant aus war (ein beendeter Ladevorgang, das Verriegeln, eine Fahrt), wird beim Wiederverbinden nicht nachgeliefert.\n\nIst diese Option an, fragt die Integration zwei Minuten nach dem Start von Home Assistant einmal pro Auto den aktuellen Stand bei BMW ab. BMW liefert die letzten Werte, die jedes Auto geschickt hat, so holst du den Rückstand auf, ohne das Auto aufzuwecken. Das kostet pro Auto eine der 50 täglichen Abfragen. Die Abfrage entfällt, wenn BMW in der letzten Stunde schon gefragt wurde, außer beim Neustart lief ein Ladevorgang, und sie lässt immer 10 Abfragen für deine eigenen Dienstaufrufe übrig.",
+        "description": "Der Live-Stream überträgt nur, was sich ändert, während Home Assistant zuhört. Was das Auto gemeldet hat, während Home Assistant aus war oder die Verbindung zu BMW unterbrochen war (ein beendeter Ladevorgang, das Verriegeln, eine Fahrt), wird beim Wiederverbinden nicht nachgeliefert.\n\nIst diese Option an, fragt die Integration einmal pro Auto den aktuellen Stand bei BMW ab: zwei Minuten nach dem Start von Home Assistant und wenn die Verbindung nach einer Unterbrechung von fünf Minuten oder mehr zurückkommt. BMW liefert die letzten Werte, die jedes Auto geschickt hat, so holst du den Rückstand auf, ohne das Auto aufzuwecken. Das kostet pro Auto eine der 50 täglichen Abfragen. Die Abfrage entfällt, wenn BMW in der letzten Stunde schon gefragt wurde, außer beim Neustart lief ein Ladevorgang, und sie lässt immer 10 Abfragen für deine eigenen Dienstaufrufe übrig.",
         "data": {
-          "refresh_on_start": "Nach dem Start von Home Assistant aufholen"
+          "refresh_on_start": "Nach Neustart oder Unterbrechung aufholen"
         },
         "data_description": {
-          "refresh_on_start": "Wirkt ab dem nächsten Start."
+          "refresh_on_start": "Wirkt sofort."
         }
       },
       "action_debug_logging": {

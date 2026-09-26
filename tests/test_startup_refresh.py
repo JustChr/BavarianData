@@ -75,3 +75,13 @@ def test_the_answer_lands_before_the_restored_session_gives_up() -> None:
         if line.startswith("RESTORED_SESSION_GRACE_S =")
     )
     assert refresh.STARTUP_REFRESH_DELAY_S < grace
+
+
+def test_a_long_outage_earns_the_same_catch_up_as_a_start():
+    needs = refresh.outage_needs_catch_up
+    after = refresh.OUTAGE_CATCH_UP_AFTER_S
+
+    assert needs(after)
+    assert needs(9 * 60 * 60)  # the DNS outage that motivated the stream fixes
+    assert not needs(after - 1)  # the stream's own reconnects
+    assert not needs(None)  # the first connect after setup

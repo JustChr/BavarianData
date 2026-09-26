@@ -9,6 +9,36 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The stream now recovers on its own after a network outage.** A DNS outage
+  once left the streams of two BMW accounts disconnected for nine hours — until
+  Home Assistant was restarted — although the network was back after two. Two
+  gaps did that: a failed reconnect was logged but never tried again, and a
+  token refresh that failed on the network rather than on the login quietly
+  ended token renewal for good. Both now keep retrying: the stream backs off
+  from 10 seconds to 2 minutes, with a random spread so every installation does
+  not hammer BMW at the same moment, and a token refresh is retried within
+  minutes instead of waiting for the next regular one. Recovery can no longer
+  open a second connection for the same account (BMW allows one, and two keep
+  pushing each other off), and an outage now logs one warning and one line when
+  it ends instead of an error for every attempt. Found, fixed and tested by
+  [@netbasebe](https://github.com/netbasebe) (TomDS) — thank you.
+- **A BMW hiccup no longer asks you to re-authorize.** When BMW's login service
+  answered with a server error while the stream was being reconnected, that was
+  taken for a rejected login and a *Re-authorize* prompt appeared for a login
+  that was fine. It is now retried. A login BMW really no longer accepts still
+  asks you once — and no longer fills the log with an error every few minutes
+  until you do.
+
+### Changed
+- **Automatic data refresh also runs after an outage.** Whatever the cars
+  reported while the connection to BMW was down never arrives on its own, just
+  as after a restart. When the connection comes back after five minutes or
+  more, the integration catches up the same way, under the same rules — one
+  request per car, skipped when BMW was asked within the last hour, never into
+  the last 10 requests of the day. The setting is renamed *Catch up after a
+  restart or an outage*, and a change to it now takes effect immediately.
+
 ## [0.9.13-beta.1] - 2026-09-26
 
 ### Added

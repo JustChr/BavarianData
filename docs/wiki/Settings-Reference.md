@@ -47,20 +47,22 @@ The menu labels below are exactly as they appear in the UI.
 Screen: **Configure → Automatic data refresh**.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-data-refresh.png" alt="Automatic data refresh settings: one toggle, Catch up after Home Assistant starts, switched on" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-data-refresh.png" alt="Automatic data refresh settings: one toggle, Catch up after a restart or an outage, switched on" width="460" />
 </p>
 
 The live stream only carries what changes while Home Assistant is listening.
-Whatever a car reported while Home Assistant was down — a charge that ended, the
-doors being locked, a drive — is not replayed on reconnect, and a car charging at
-steady power can stay silent for hours afterwards. So two minutes after a start,
-the integration asks BMW once per car for its current state. BMW returns the last
+Whatever a car reported while Home Assistant was down, or while a network outage
+cut the connection to BMW — a charge that ended, the doors being locked, a drive —
+is not replayed on reconnect, and a car charging at steady power can stay silent
+for hours afterwards. So the integration asks BMW once per car for its current
+state: two minutes after a start, and when the connection comes back after an
+outage of five minutes or more. BMW returns the last
 value each car sent, so this catches up without waking the car; it cannot produce
 a newer reading than the car last sent.
 
 | Option | Values | Meaning |
 | --- | --- | --- |
-| **Catch up after Home Assistant starts** | on/off | Default **on**. One request per car of your [50 a day](Feature-API-Quota). Skipped when BMW was asked within the last hour (the daily refresh or a manual fetch count too), so restarting repeatedly costs nothing more; a charge that was running at the restart is still checked if the last request is over half an hour old. Always leaves 10 requests for your own service calls. Takes effect at the next start. |
+| **Catch up after a restart or an outage** | on/off | Default **on**. One request per car of your [50 a day](Feature-API-Quota). Skipped when BMW was asked within the last hour (the daily refresh or a manual fetch count too), so restarting repeatedly, or a connection that keeps dropping, costs nothing more; a charge that was running at a restart is still checked if the last request is over half an hour old. Always leaves 10 requests for your own service calls. Takes effect immediately. |
 
 A charge running at the restart is settled by this answer: still charging and it
 carries on as the same session, stopped and it is recorded as ended — see

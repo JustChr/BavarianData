@@ -96,7 +96,11 @@ from .stream_activation import (
     PortalStreamClient,
     StreamActivationError,
 )
-from .startup_refresh import STARTUP_REFRESH_DELAY_S, startup_refresh_vins
+from .startup_refresh import (
+    STARTUP_REFRESH_DELAY_S,
+    outage_needs_catch_up,
+    startup_refresh_vins,
+)
 from .tyre_store import TyreStore
 from .vehicles import known_vins
 from .history.backfill import StatisticsPublisher
@@ -607,6 +611,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     # A car added to the account after setup has no bootstrap of its own; this
     # is what gives it a name, a model and a device entry.
     coordinator.on_new_vehicle = partial(_async_on_new_vehicle, hass, entry)
+    # A stream outage loses whatever the cars sent meanwhile, exactly like a
+    # restart does, so a long one ends with the same catch-up.
+    coordinator.on_reconnect_after_outage = partial(_async_on_reconnect, hass, entry)
     coordinator.pricing = PricingConfig.from_options(options)
     # A charge that was still running when we last stopped is picked up here --
     # after the tariff is known (the restored cost is only kept if its currency
@@ -2589,6 +2596,23 @@ async def _async_adopt_new_vehicle(hass: HomeAssistant, entry_id: str, vin: str)
 
 
 @callback
+def _async_on_reconnect(hass: HomeAssistant, entry: CardataConfigEntry, down_s: float) -> None:
+    """Schedule a catch-up when the stream comes back from a long outage.
+
+    Called from the connection-event path, so it only schedules; the rules that
+    decide whether a request is actually made live in ``_async_catch_up``.
+    """
+
+    if not outage_needs_catch_up(down_s):
+        return
+    _LOGGER.info("BMW stream back after %d minutes offline", round(down_s / 60))
+    entry.async_create_background_task(
+        hass,
+        _async_catch_up(hass, entry.entry_id, "after a stream outage"),
+        f"{DOMAIN}_outage_catch_up",
+    )
+
+
 def _async_on_new_vehicle(hass: HomeAssistant, entry: CardataConfigEntry, vin: str) -> None:
     """Schedule :func:`_async_adopt_new_vehicle`, at most once per car per run.
 
@@ -2781,20 +2805,26 @@ async def _async_perform_tyre_fetch(
 
 
 async def _async_startup_refresh(hass: HomeAssistant, entry_id: str) -> None:
-    """Catch up with what the cars reported while Home Assistant was down.
-
-    One container fetch per car, subject to the rules in ``startup_refresh.py``
-    (skipped when BMW was asked within the hour, charges the restart left
-    unconfirmed first, never into the last of the quota). The answers go through
-    the ordinary message path, so a CHARGINGACTIVE resumes a restored session and
-    a NOCHARGING closes it -- before its grace timer would have filed it as ended
-    by the restart.
-    """
+    """Catch up after a start, once the stream has had its head start."""
 
     try:
         await asyncio.sleep(STARTUP_REFRESH_DELAY_S)
     except asyncio.CancelledError:
         return
+    await _async_catch_up(hass, entry_id, "after startup")
+
+
+async def _async_catch_up(hass: HomeAssistant, entry_id: str, occasion: str) -> None:
+    """Fetch what the cars reported while nobody was listening.
+
+    Runs after a start and after a stream outage. One container fetch per car,
+    subject to the rules in ``startup_refresh.py`` (skipped when BMW was asked
+    within the hour, charges a restart left unconfirmed first, never into the
+    last of the quota). The answers go through the ordinary message path, so a
+    CHARGINGACTIVE resumes a restored session and a NOCHARGING closes it --
+    before its grace timer would have filed it as ended by the restart.
+    """
+
     entry = hass.config_entries.async_get_entry(entry_id)
     runtime: CardataRuntimeData | None = getattr(entry, "runtime_data", None) if entry else None
     if entry is None or runtime is None:
@@ -2828,8 +2858,9 @@ async def _async_startup_refresh(hass: HomeAssistant, entry_id: str) -> None:
     updated[LAST_STARTUP_REFRESH] = now
     hass.config_entries.async_update_entry(entry, data=updated)
     _LOGGER.info(
-        "Catching up after startup: fetching the current state of %d vehicle(s) "
+        "Catching up %s: fetching the current state of %d vehicle(s) "
         "(one request each of the daily quota)",
+        occasion,
         len(vins),
     )
     for vin in vins:
