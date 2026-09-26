@@ -97,6 +97,7 @@
           "action_fetch_tyre": "Reifendiagnose abrufen",
           "action_fetch_location_charging": "Ladeeinstellungen abrufen",
           "action_fetch_image": "Fahrzeugbild abrufen",
+          "action_data_refresh": "Automatische Aktualisierung",
           "action_charging_costs": "Ladekosten & Verlauf",
           "action_energy_sources": "Solar & Energiequellen",
           "action_evcc_bridge": "evcc-/Wallbox-Brücke",
@@ -185,8 +186,7 @@
           "grid_energy_entity": "Wallbox-Energiesensor",
           "charging_loss_percent": "Ladeverluste (%)",
           "history_retain_months": "Verlauf aufbewahren (Monate)",
-          "statistics_import": "In Langzeitstatistiken übernehmen",
-          "refresh_on_start": "Laufenden Ladevorgang nach einem Neustart prüfen"
+          "statistics_import": "In Langzeitstatistiken übernehmen"
         },
         "data_description": {
           "price_mode": "Wähle „Keine“, um Ladevorgänge aufzuzeichnen, ohne sie zu bepreisen.",
@@ -196,8 +196,7 @@
           "grid_energy_entity": "Optional. Der kumulative Energiezähler deiner Wallbox (einer, der nur hochzählt – kein Zähler, der pro Ladevorgang zurücksetzt). Wh, kWh und MWh werden umgerechnet; ohne Einheit wird kWh angenommen. Er wird nur für Ladevorgänge in deiner Zone „Zuhause“ gelesen, weil der Zähler nicht weiß, welches Auto er geladen hat. Ein gemessener Netzwert schlägt immer unsere batterieseitige Schätzung – und ein Wert, der nicht stimmen kann, etwa ein Hauszähler mit weit mehr als die Batterie aufgenommen hat, wird ignoriert statt geglaubt.",
           "charging_loss_percent": "Optional. Rechnet die batterieseitige Energie in Richtung Netzenergie hoch.",
           "history_retain_months": "0 behält alles. Ältere Ladevorgänge werden verworfen.",
-          "statistics_import": "Spiegelt Energie, Kosten und Strecke in Statistiken, die du im Energie-Dashboard hinzufügen kannst. Bleibt lokal; beim Ausschalten werden sie wieder gelöscht.",
-          "refresh_on_start": "Lief beim Neustart von Home Assistant ein Ladevorgang und hat sich das Auto zwei Minuten später noch nicht gemeldet, wird BMW einmal gefragt, ob er noch läuft. Kostet eine der 50 täglichen Abfragen, und nur in diesem Fall. Ohne diese Abfrage bleibt ein Ladevorgang, der endete, während Home Assistant aus war, offen, bis das Auto wieder Daten sendet – das kann Stunden dauern."
+          "statistics_import": "Spiegelt Energie, Kosten und Strecke in Statistiken, die du im Energie-Dashboard hinzufügen kannst. Bleibt lokal; beim Ausschalten werden sie wieder gelöscht."
         }
       },
       "action_energy_sources": {
@@ -254,6 +253,16 @@
           "trip_geocode": "Optional. Sendet Endpunkte außerhalb von Zonen an OpenStreetMap; gespeichert wird nur die Adresse, nie die Koordinaten.",
           "trip_track": "Optional. Speichert den GPS-Verlauf jeder Fahrt — die Koordinaten entlang der Fahrt und jeweils den Zeitpunkt — damit eine Karte die Route zeichnen und abspielen kann. Die einzige Einstellung, die rohe Koordinaten dauerhaft speichert (deine genauen Start-/Zielpunkte eingeschlossen), daher zum Schutz der Privatsphäre standardmäßig aus.",
           "trip_debug": "Nur zur Diagnose. Protokolliert die rohe Grundlage der Fahrterkennung (jeden GPS-Punkt, Schließ-Timer, Segment-Batch und jede Nachricht) und schreibt bavariandata_trip_capture.ndjson in deinen Konfigurationsordner. Sehr ausführlich und enthält GPS/FIN — für eine Testfahrt einschalten und danach wieder aus."
+        }
+      },
+      "action_data_refresh": {
+        "title": "Automatische Aktualisierung",
+        "description": "Der Live-Stream überträgt nur, was sich ändert, während Home Assistant zuhört. Was das Auto gemeldet hat, während Home Assistant aus war (ein beendeter Ladevorgang, das Verriegeln, eine Fahrt), wird beim Wiederverbinden nicht nachgeliefert.\n\nIst diese Option an, fragt die Integration zwei Minuten nach dem Start von Home Assistant einmal pro Auto den aktuellen Stand bei BMW ab. BMW liefert die letzten Werte, die jedes Auto geschickt hat, so holst du den Rückstand auf, ohne das Auto aufzuwecken. Das kostet pro Auto eine der 50 täglichen Abfragen. Die Abfrage entfällt, wenn BMW in der letzten Stunde schon gefragt wurde, außer beim Neustart lief ein Ladevorgang, und sie lässt immer 10 Abfragen für deine eigenen Dienstaufrufe übrig.",
+        "data": {
+          "refresh_on_start": "Nach dem Start von Home Assistant aufholen"
+        },
+        "data_description": {
+          "refresh_on_start": "Wirkt ab dem nächsten Start."
         }
       },
       "action_debug_logging": {

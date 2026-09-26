@@ -2726,12 +2726,13 @@ async def _async_perform_tyre_fetch(
 
 
 async def _async_startup_refresh(hass: HomeAssistant, entry_id: str) -> None:
-    """Ask BMW once whether a charge a restart interrupted is still running.
+    """Catch up with what the cars reported while Home Assistant was down.
 
-    Costs a request only when a restored charge is still unconfirmed after the
-    stream's head start (see ``startup_refresh.py``). The answer goes through the
-    ordinary message path, so a CHARGINGACTIVE resumes the restored session and a
-    NOCHARGING closes it -- before its grace timer would have filed it as ended
+    One container fetch per car, subject to the rules in ``startup_refresh.py``
+    (skipped when BMW was asked within the hour, charges the restart left
+    unconfirmed first, never into the last of the quota). The answers go through
+    the ordinary message path, so a CHARGINGACTIVE resumes a restored session and
+    a NOCHARGING closes it -- before its grace timer would have filed it as ended
     by the restart.
     """
 
@@ -2743,26 +2744,40 @@ async def _async_startup_refresh(hass: HomeAssistant, entry_id: str) -> None:
     runtime: CardataRuntimeData | None = getattr(entry, "runtime_data", None) if entry else None
     if entry is None or runtime is None:
         return
+    # The daily refresh counts as asking BMW too: right after it ran, a catch-up
+    # would fetch the same snapshot again.
+    stamps = [
+        value
+        for value in (entry.data.get(LAST_STARTUP_REFRESH), entry.data.get("last_telematic_poll"))
+        if isinstance(value, (int, float))
+    ]
     now = time.time()
+    coordinator = runtime.coordinator
     vins = startup_refresh_vins(
         enabled=bool(entry.options.get(OPTION_REFRESH_ON_START, DEFAULT_REFRESH_ON_START)),
-        unconfirmed=runtime.coordinator.unconfirmed_restored_charges(),
-        last_refresh_at=entry.data.get(LAST_STARTUP_REFRESH),
+        vins=known_vins(
+            stored_metadata=entry.data.get(VEHICLE_METADATA),
+            coordinator_data=coordinator.data,
+            configured_vin=entry.data.get("vin"),
+        ),
+        unconfirmed=coordinator.unconfirmed_restored_charges(),
+        last_fetch_at=max(stamps) if stamps else None,
         now=now,
+        remaining=runtime.quota_manager.remaining if runtime.quota_manager else None,
     )
     if not vins:
         return
-    # Stamped before the request, so a restart loop that crashes mid-fetch is
+    # Stamped before the requests, so a restart loop that crashes mid-fetch is
     # still spaced out.
     updated = dict(entry.data)
     updated[LAST_STARTUP_REFRESH] = now
     hass.config_entries.async_update_entry(entry, data=updated)
+    _LOGGER.info(
+        "Catching up after startup: fetching the current state of %d vehicle(s) "
+        "(one request each of the daily quota)",
+        len(vins),
+    )
     for vin in vins:
-        _LOGGER.info(
-            "A charge was running on %s when Home Assistant restarted; asking BMW "
-            "whether it still is (one request of the daily quota)",
-            mask_vin(vin),
-        )
         await _async_perform_telematic_fetch(hass, entry, runtime, vin_override=vin)
 
 

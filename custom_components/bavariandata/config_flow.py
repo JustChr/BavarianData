@@ -946,6 +946,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 "action_fetch_tyre",
                 "action_fetch_location_charging",
                 "action_fetch_image",
+                "action_data_refresh",
                 "action_charging_costs",
                 "action_energy_sources",
                 "action_evcc_bridge",
@@ -1182,11 +1183,6 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 vol.Required(
                     OPTION_STATISTICS_IMPORT,
                     default=options.get(OPTION_STATISTICS_IMPORT, DEFAULT_STATISTICS_IMPORT),
-                ): selector.BooleanSelector(),
-                # Read at the next startup; nothing to apply now.
-                vol.Required(
-                    OPTION_REFRESH_ON_START,
-                    default=options.get(OPTION_REFRESH_ON_START, DEFAULT_REFRESH_ON_START),
                 ): selector.BooleanSelector(),
             }
         )
@@ -1508,6 +1504,29 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
             coordinator.record_trip_track = bool(user_input.get(OPTION_TRIP_TRACK))
             # Trip-capture diagnostics apply immediately (next message onward).
             coordinator.trip_debug = bool(user_input.get(OPTION_TRIP_DEBUG))
+        return self.async_create_entry(title="", data=options)
+
+    async def async_step_action_data_refresh(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Choose whether to catch up over REST after Home Assistant starts.
+
+        The rules that keep it cheap live in ``startup_refresh.py``. Read once per
+        start, so there is nothing to apply now.
+        """
+
+        options = dict(self._config_entry.options)
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    OPTION_REFRESH_ON_START,
+                    default=options.get(OPTION_REFRESH_ON_START, DEFAULT_REFRESH_ON_START),
+                ): selector.BooleanSelector(),
+            }
+        )
+        if user_input is None:
+            return self.async_show_form(step_id="action_data_refresh", data_schema=schema)
+        options[OPTION_REFRESH_ON_START] = bool(user_input.get(OPTION_REFRESH_ON_START))
         return self.async_create_entry(title="", data=options)
 
     async def async_step_action_debug_logging(

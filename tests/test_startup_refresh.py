@@ -1,8 +1,8 @@
-"""When a restart may spend a REST request on an unconfirmed charge.
+"""Which cars a start may spend REST requests on.
 
-The request is on by default, so what keeps it cheap is that it is *usually
-not made*: only for a car whose restored charge the stream has not confirmed,
-and never twice inside the spacing window however often Home Assistant restarts.
+The catch-up is on by default and fetches every car, so what keeps it from
+eating the 50-a-day quota is when it is *not* made: not again within the hour,
+not into the reserve, and a charge the restart left unconfirmed first in line.
 """
 
 from __future__ import annotations
@@ -10,33 +10,57 @@ from __future__ import annotations
 from tests.conftest import load_module
 
 refresh = load_module("startup_refresh")
-pick = refresh.startup_refresh_vins
-SPACING = refresh.STARTUP_REFRESH_MIN_SPACING_S
+FRESH = refresh.STARTUP_REFRESH_FRESH_S
+CHARGE = refresh.STARTUP_CHARGE_REFRESH_SPACING_S
+RESERVE = refresh.STARTUP_REFRESH_RESERVE
 NOW = 1_800_000_000.0
+CARS = ["VIN1", "VIN2"]
 
 
-def test_no_open_charge_costs_nothing() -> None:
-    assert pick(enabled=True, unconfirmed=[], last_refresh_at=None, now=NOW) == []
+def pick(*, enabled=True, vins=CARS, unconfirmed=(), last_fetch_at=None, remaining=50):
+    return refresh.startup_refresh_vins(
+        enabled=enabled,
+        vins=vins,
+        unconfirmed=unconfirmed,
+        last_fetch_at=last_fetch_at,
+        now=NOW,
+        remaining=remaining,
+    )
 
 
-def test_an_unconfirmed_charge_is_checked() -> None:
-    assert pick(enabled=True, unconfirmed=["VIN1"], last_refresh_at=None, now=NOW) == ["VIN1"]
-
-
-def test_every_unconfirmed_car_is_checked_once() -> None:
-    got = pick(enabled=True, unconfirmed=["VIN1", "VIN2", "VIN1"], last_refresh_at=None, now=NOW)
-    assert got == ["VIN1", "VIN2"]
+def test_every_car_catches_up_after_a_start() -> None:
+    assert pick() == CARS
 
 
 def test_switched_off_means_never() -> None:
-    assert pick(enabled=False, unconfirmed=["VIN1"], last_refresh_at=None, now=NOW) == []
+    assert pick(enabled=False, unconfirmed=["VIN1"]) == []
 
 
-def test_a_restart_loop_is_spaced_out() -> None:
-    recent = NOW - SPACING + 60
-    assert pick(enabled=True, unconfirmed=["VIN1"], last_refresh_at=recent, now=NOW) == []
-    old = NOW - SPACING - 1
-    assert pick(enabled=True, unconfirmed=["VIN1"], last_refresh_at=old, now=NOW) == ["VIN1"]
+def test_an_unconfirmed_charge_goes_first() -> None:
+    assert pick(unconfirmed=["VIN2"]) == ["VIN2", "VIN1"]
+
+
+def test_a_recent_fetch_skips_the_catch_up() -> None:
+    """A restart loop costs nothing after the first start in an hour."""
+
+    assert pick(last_fetch_at=NOW - FRESH + 60) == []
+    assert pick(last_fetch_at=NOW - FRESH) == CARS
+
+
+def test_an_unconfirmed_charge_is_asked_about_sooner() -> None:
+    between = NOW - CHARGE - 1  # older than the charge spacing, inside the hour
+    assert pick(unconfirmed=["VIN1"], last_fetch_at=between) == ["VIN1"]
+    assert pick(unconfirmed=["VIN1"], last_fetch_at=NOW - CHARGE + 60) == []
+
+
+def test_the_reserve_is_never_spent() -> None:
+    assert pick(remaining=RESERVE + 1) == ["VIN1"]
+    assert pick(remaining=RESERVE) == []
+    assert pick(unconfirmed=["VIN2"], remaining=RESERVE + 1) == ["VIN2"]
+
+
+def test_a_car_seen_only_as_unconfirmed_is_still_fetched() -> None:
+    assert pick(vins=[], unconfirmed=["VIN1"]) == ["VIN1"]
 
 
 def test_the_answer_lands_before_the_restored_session_gives_up() -> None:

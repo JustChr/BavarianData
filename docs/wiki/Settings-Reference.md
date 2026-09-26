@@ -33,6 +33,7 @@ The menu labels below are exactly as they appear in the UI.
 | **Fetch tire diagnosis** | action ⚡ | " |
 | **Fetch charging settings** | action ⚡ | Location-based charging settings. " |
 | **Fetch vehicle image** | action ⚡ | " |
+| **Automatic data refresh** | settings ⚡ | Catch up with BMW after Home Assistant starts — below. |
 | **Charging costs & history** | settings | Price source, retention, statistics — below. |
 | **Solar & energy sources** | settings | Where each charge's energy came from: PV, house battery, grid — below. |
 | **evcc / wallbox bridge** | settings | Publish the car's live state to MQTT for a charge controller — below. |
@@ -40,6 +41,26 @@ The menu labels below are exactly as they appear in the UI.
 | **Debug logging** | settings | Verbose logging toggle — below. |
 
 ⚡ = spends one (or more) of your [50 requests / 24 h](Feature-API-Quota).
+
+## Automatic data refresh
+
+Screen: **Configure → Automatic data refresh**.
+
+The live stream only carries what changes while Home Assistant is listening.
+Whatever a car reported while Home Assistant was down — a charge that ended, the
+doors being locked, a drive — is not replayed on reconnect, and a car charging at
+steady power can stay silent for hours afterwards. So two minutes after a start,
+the integration asks BMW once per car for its current state. BMW returns the last
+value each car sent, so this catches up without waking the car; it cannot produce
+a newer reading than the car last sent.
+
+| Option | Values | Meaning |
+| --- | --- | --- |
+| **Catch up after Home Assistant starts** | on/off | Default **on**. One request per car of your [50 a day](Feature-API-Quota). Skipped when BMW was asked within the last hour (the daily refresh or a manual fetch count too), so restarting repeatedly costs nothing more; a charge that was running at the restart is still checked if the last request is over half an hour old. Always leaves 10 requests for your own service calls. Takes effect at the next start. |
+
+A charge running at the restart is settled by this answer: still charging and it
+carries on as the same session, stopped and it is recorded as ended — see
+[Restarting while the car is charging](Feature-Charging-History-and-Cost#restarting-while-the-car-is-charging).
 
 ## Charging costs & history
 

@@ -1,14 +1,14 @@
-"""Whether to ask BMW's REST API about a charge a restart left unconfirmed.
+"""Which cars to fetch over REST right after Home Assistant starts.
 
-A charge running when Home Assistant stopped is restored as *unconfirmed* and
-waits for the stream to say whether it is still going. BMW may not say so for
-hours: a car charging at steady power can stay silent, and a car that stopped
-while we were away already reported it -- to nobody. One container call answers
-both, because BMW's backend returns the last status the car sent. It cannot wake
-the car, so it never yields a fresher SoC; it settles *whether* it is charging,
-which is what the session record and the SoC estimate need.
+The stream only carries what changes while we are listening. Whatever the car
+reported while Home Assistant was down -- a charge that ended, doors locked, a
+drive -- went to nobody, and BMW does not replay it on reconnect. One container
+call per car catches up, because BMW's backend returns the last value the car
+sent for every field. It cannot wake the car, so it never yields a newer reading
+than the car last sent; it closes the gap in what *we* heard.
 
-Kept free of Home Assistant imports so the decision can be unit-tested.
+The quota (50 requests a day) is what shapes the rules below. Kept free of Home
+Assistant imports so they can be unit-tested.
 """
 
 from __future__ import annotations
@@ -16,35 +16,56 @@ from __future__ import annotations
 from typing import Iterable, List, Optional
 
 # Give the stream a head start: BMW often republishes the charging status soon
-# after a reconnect, which answers the question for free. Well inside the
+# after a reconnect, which settles a restored charge for free. Well inside the
 # restored session's grace (``coordinator.RESTORED_SESSION_GRACE_S``), so the
-# answer lands before the session would be filed as ended by the restart.
+# answer lands before that session would be filed as ended by the restart.
 STARTUP_REFRESH_DELAY_S = 120
 
-# A restart loop (config edits, a crashing custom component) must not drain the
-# 50-a-day quota: at most one startup refresh per half hour.
-STARTUP_REFRESH_MIN_SPACING_S = 30 * 60
+# A catch-up is pointless when BMW was asked this recently -- and it is what
+# stops a restart loop (config edits, a crashing custom component) from
+# spending a request per car on every restart.
+STARTUP_REFRESH_FRESH_S = 60 * 60
+
+# A charge the restart left unconfirmed is worth asking about sooner: until
+# it is settled the session record and the SoC estimate are guesses.
+STARTUP_CHARGE_REFRESH_SPACING_S = 30 * 60
+
+# Never spend the last of the day's quota on a catch-up: leave room for the
+# daily refresh and for the user's own service calls.
+STARTUP_REFRESH_RESERVE = 10
+
+
+def _unique(values: Iterable[str]) -> List[str]:
+    return list(dict.fromkeys(values))
 
 
 def startup_refresh_vins(
     *,
     enabled: bool,
+    vins: Iterable[str],
     unconfirmed: Iterable[str],
-    last_refresh_at: Optional[float],
+    last_fetch_at: Optional[float],
     now: float,
+    remaining: Optional[int],
 ) -> List[str]:
-    """The cars to fetch after a restart -- usually none, so usually free.
+    """The cars to fetch after a start, most urgent first.
 
-    Only cars whose restored charge the stream has not confirmed yet: a car that
-    was not charging, or whose status arrived during the head start, costs no
-    request at all.
+    Every car, unless BMW was asked within the last hour; even then, a car whose
+    charge the restart left unconfirmed, unless it was asked within the last
+    half hour. Whatever is picked is cut to the quota left above the reserve.
     """
 
     if not enabled:
         return []
-    vins = list(dict.fromkeys(unconfirmed))
-    if not vins:
-        return []
-    if last_refresh_at is not None and now - last_refresh_at < STARTUP_REFRESH_MIN_SPACING_S:
-        return []
-    return vins
+    urgent = _unique(unconfirmed)
+    everyone = _unique([*urgent, *vins])
+    age = None if last_fetch_at is None else now - last_fetch_at
+    if age is None or age >= STARTUP_REFRESH_FRESH_S:
+        chosen = everyone
+    elif age >= STARTUP_CHARGE_REFRESH_SPACING_S:
+        chosen = urgent
+    else:
+        chosen = []
+    if remaining is not None:
+        chosen = chosen[: max(remaining - STARTUP_REFRESH_RESERVE, 0)]
+    return chosen

@@ -97,6 +97,7 @@
           "action_fetch_tyre": "Fetch tire diagnosis",
           "action_fetch_location_charging": "Fetch charging settings",
           "action_fetch_image": "Fetch vehicle image",
+          "action_data_refresh": "Automatic data refresh",
           "action_charging_costs": "Charging costs & history",
           "action_energy_sources": "Solar & energy sources",
           "action_evcc_bridge": "evcc / wallbox bridge",
@@ -185,8 +186,7 @@
           "grid_energy_entity": "Wallbox energy sensor",
           "charging_loss_percent": "Charging losses (%)",
           "history_retain_months": "Keep history for (months)",
-          "statistics_import": "Publish to long-term statistics",
-          "refresh_on_start": "Check a running charge after a restart"
+          "statistics_import": "Publish to long-term statistics"
         },
         "data_description": {
           "price_mode": "Choose 'None' to record sessions without costing them.",
@@ -196,8 +196,7 @@
           "grid_energy_entity": "Optional. Your wallbox's cumulative energy total (one that only ever counts up, not a per-session counter that resets). Wh, kWh and MWh are handled; no unit at all is read as kWh. It is read only for charges in your Home zone, since the meter cannot tell which car it charged. A measured grid figure always beats our battery-side estimate — and one that cannot be right, such as a house meter reading far more than the pack absorbed, is ignored rather than believed.",
           "charging_loss_percent": "Optional. Grosses battery-side energy up towards grid energy.",
           "history_retain_months": "0 keeps everything. Sessions older than this are discarded.",
-          "statistics_import": "Mirrors energy, cost and distance into statistics you can add to the Energy dashboard. Stays local; turning it off deletes them again.",
-          "refresh_on_start": "If a charge was running when Home Assistant restarted and the car has not spoken up two minutes later, ask BMW once whether it still is. Uses one of the 50 daily requests, and only in that case. Without it, a charge that ended while Home Assistant was down stays open until the car next sends data, which can take hours."
+          "statistics_import": "Mirrors energy, cost and distance into statistics you can add to the Energy dashboard. Stays local; turning it off deletes them again."
         }
       },
       "action_energy_sources": {
@@ -254,6 +253,16 @@
           "trip_geocode": "Optional. Sends non-zone endpoints to OpenStreetMap; only the resulting address is stored, never the coordinates.",
           "trip_track": "Optional. Stores each trip's GPS track — the coordinates along the drive and, for each, the time — so a map can draw the route and play it back. The only setting that saves raw coordinates to disk (your exact start/end included), so it is off by default for privacy.",
           "trip_debug": "Diagnostic only. Logs the raw trip-detection substrate (every GPS fix, close timer, segment batch and message) and writes bavariandata_trip_capture.ndjson to your config folder. Very verbose and contains GPS/VIN, so switch it on for a test drive and back off afterwards."
+        }
+      },
+      "action_data_refresh": {
+        "title": "Automatic data refresh",
+        "description": "The live stream only carries what changes while Home Assistant is listening. Whatever the car reported while Home Assistant was down (a charge that ended, the doors being locked, a drive) is not replayed when it reconnects.\n\nWith this on, two minutes after Home Assistant starts, the integration asks BMW once per car for its current state. BMW returns the last values each car sent, so you catch up without waking the car. It uses one of the 50 daily requests per car. It is skipped if BMW was already asked within the last hour, unless a charge was running at the restart, and it always leaves 10 requests for your own service calls.",
+        "data": {
+          "refresh_on_start": "Catch up after Home Assistant starts"
+        },
+        "data_description": {
+          "refresh_on_start": "Takes effect at the next start."
         }
       },
       "action_debug_logging": {

@@ -34,6 +34,7 @@ erscheinen (der Screenshot zeigt die englische).
 | **Reifendiagnose abrufen** | Aktion ⚡ | " |
 | **Ladeeinstellungen abrufen** | Aktion ⚡ | Standortbasierte Ladeeinstellungen. " |
 | **Fahrzeugbild abrufen** | Aktion ⚡ | " |
+| **Automatische Aktualisierung** | Einstellungen ⚡ | Nach dem Start von Home Assistant bei BMW aufholen — unten. |
 | **Ladekosten & Verlauf** | Einstellungen | Preisquelle, Aufbewahrung, Statistiken — unten. |
 | **Solar & Energiequellen** | Einstellungen | Woher die Energie jeder Ladung kam: PV, Hausspeicher, Netz — unten. |
 | **evcc-/Wallbox-Brücke** | Einstellungen | Den Live-Zustand des Autos für eine Ladesteuerung per MQTT veröffentlichen — unten. |
@@ -41,6 +42,29 @@ erscheinen (der Screenshot zeigt die englische).
 | **Debug-Protokollierung** | Einstellungen | Schalter für ausführliche Protokollierung — unten. |
 
 ⚡ = verbraucht eine (oder mehrere) deiner [50 Anfragen / 24 h](DE-Feature-API-Quota).
+
+## Automatische Aktualisierung
+
+<a id="automatic-data-refresh"></a>
+
+Bildschirm: **Konfigurieren → Automatische Aktualisierung**.
+
+Der Live-Stream überträgt nur, was sich ändert, während Home Assistant zuhört. Was
+ein Auto gemeldet hat, während Home Assistant aus war — ein beendeter Ladevorgang,
+das Verriegeln, eine Fahrt —, wird beim Wiederverbinden nicht nachgeliefert, und
+ein Auto, das mit gleichbleibender Leistung lädt, kann danach stundenlang
+schweigen. Deshalb fragt die Integration zwei Minuten nach dem Start einmal pro
+Auto den aktuellen Stand bei BMW ab. BMW liefert den letzten Wert, den jedes Auto
+geschickt hat; so wird aufgeholt, ohne das Auto aufzuwecken — einen neueren Wert
+als den zuletzt gesendeten kann das nicht liefern.
+
+| Option | Werte | Bedeutung |
+| --- | --- | --- |
+| **Nach dem Start von Home Assistant aufholen** | an/aus | Standardmäßig **an**. Eine Abfrage pro Auto von deinen [50 pro Tag](DE-Feature-API-Quota). Entfällt, wenn BMW in der letzten Stunde schon gefragt wurde (die tägliche Aktualisierung und manuelle Abrufe zählen mit), wiederholte Neustarts kosten also nichts zusätzlich; ein Ladevorgang, der beim Neustart lief, wird trotzdem geprüft, wenn die letzte Abfrage älter als eine halbe Stunde ist. Lässt immer 10 Abfragen für deine eigenen Dienstaufrufe übrig. Wirkt ab dem nächsten Start. |
+
+Ein Ladevorgang, der beim Neustart lief, wird durch diese Antwort geklärt: lädt
+das Auto noch, läuft derselbe Ladevorgang weiter, ist es fertig, wird er als
+beendet abgelegt — siehe [Neustart während das Auto lädt](DE-Feature-Charging-History-and-Cost#restarting-while-the-car-is-charging).
 
 ## Ladekosten & Verlauf
 

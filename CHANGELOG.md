@@ -10,20 +10,25 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [Unreleased]
 
 ### Added
-- **A charge running during a restart is checked with BMW instead of guessed
-  at.** Restarting Home Assistant mid-charge left the charge waiting for the car
-  to speak up, and a car charging at steady power can stay silent for hours:
-  after 15 minutes the charge was filed as ended by the restart while it carried
-  on, and a charge that really had ended while Home Assistant was down was only
-  noticed whenever the car next sent anything. Now, if the car has not reported
-  within two minutes of a restart, the integration asks BMW once — BMW's servers
-  keep the last status the car sent, including a stop that happened while
-  nobody was listening. It costs one of the 50 daily requests, **only when a
-  charge was actually running**, and at most once per half hour however often
-  you restart. On by default; switch it off with *Check a running charge after
-  a restart* under **Configure → Charging costs & history**. It cannot wake the
-  car, so it settles whether the car is charging, not a fresher state of charge —
-  the estimate keeps covering that.
+- **Catch up with BMW after every start.** The live stream only carries what
+  changes while Home Assistant is listening, so whatever the car reported while
+  it was down — a charge that ended, the doors being locked, a drive — never
+  arrived, and a car charging at steady power can stay silent for hours
+  afterwards. Two minutes after a start, the integration now asks BMW once per
+  car for its current state; BMW's servers return the last value each car sent,
+  so this catches up without waking the car. It costs one of the 50 daily
+  requests per car, is skipped when BMW was asked within the last hour — so
+  restarting repeatedly costs nothing more — and always leaves 10 requests for
+  your own service calls. On by default; switch it off under the new
+  **Configure → Automatic data refresh**.
+- **A charge running during a restart is settled by that answer instead of
+  guessed at.** It used to wait for the car, and after 15 minutes of silence it
+  was filed as ended by the restart while the car charged on (a real charge on
+  26 September was split this way); a charge that really had ended was only
+  noticed whenever the car next sent anything. Now a running charge carries on
+  as the same session, and a finished one is recorded as ended — checked even
+  when the rest of the catch-up is skipped as recent, provided the last request
+  is over half an hour old.
 
 ## [0.9.12] - 2026-09-26
 
