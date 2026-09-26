@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.12] - 2026-09-26
+
 Promotes 0.9.12-beta.1 unchanged, plus one fix for the charging display: the
 estimated state of charge no longer freezes when Home Assistant restarts in the
 middle of a charge.
