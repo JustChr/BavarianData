@@ -65,6 +65,7 @@ from .history.trip_builder import (
     silence_implies_stop,
 )
 from .coverage import is_combustion_only, is_plug_in_hybrid
+from .soc_tracking import SocTracking
 from .tyre import parse_tyre_diagnosis
 from .units import normalize_unit
 from .vehicle_support import is_motorcycle, motorcycle_issue_id
@@ -311,135 +312,6 @@ class DescriptorState:
     value: Any
     unit: Optional[str]
     timestamp: Optional[str]
-
-
-@dataclass
-class SocTracking:
-    energy_kwh: Optional[float] = None
-    max_energy_kwh: Optional[float] = None
-    last_update: Optional[datetime] = None
-    last_power_w: Optional[float] = None
-    last_power_time: Optional[datetime] = None
-    charging_active: bool = False
-    last_soc_percent: Optional[float] = None
-    rate_per_hour: Optional[float] = None
-    estimated_percent: Optional[float] = None
-    last_estimate_time: Optional[datetime] = None
-    target_soc_percent: Optional[float] = None
-    # Last SoC seen while not charging -- the reference a new session is checked
-    # against to tell whether it caught the whole charge.
-    soc_before_charge: Optional[float] = None
-
-    def update_max_energy(self, value: Optional[float]) -> None:
-        if value is None:
-            return
-        self.max_energy_kwh = value
-        if self.last_soc_percent is not None and self.energy_kwh is None:
-            self.energy_kwh = value * self.last_soc_percent / 100.0
-        self._recalculate_rate()
-
-    def update_actual_soc(self, percent: float, timestamp: Optional[datetime]) -> None:
-        # Remember the last reading taken while the car was *not* charging. A
-        # session that opens well above it caught only part of a charge already
-        # under way (see ``sessions._is_late_start``); it is never used to
-        # backdate ``soc_start``, only to judge whether the record is whole.
-        if not self.charging_active:
-            self.soc_before_charge = percent
-        self.last_soc_percent = percent
-        ts = timestamp or datetime.now(timezone.utc)
-        self.last_update = ts
-        if self.max_energy_kwh:
-            self.energy_kwh = self.max_energy_kwh * percent / 100.0
-        else:
-            self.energy_kwh = None
-        self.estimated_percent = percent
-        self.last_estimate_time = ts
-
-    def update_power(self, power_w: Optional[float], timestamp: Optional[datetime]) -> None:
-        if power_w is None:
-            return
-        target_time = timestamp or datetime.now(timezone.utc)
-        # Advance the running estimate to the moment this power sample was taken
-        # so the previous charging rate is accounted for before we swap in the
-        # new value.
-        self.estimate(target_time)
-        self.last_power_w = power_w
-        self.last_power_time = target_time
-        self._recalculate_rate()
-
-    def update_status(self, status: Optional[str]) -> None:
-        if status is None:
-            return
-        self.charging_active = status in {"CHARGINGACTIVE", "CHARGING_IN_PROGRESS"}
-        self._recalculate_rate()
-
-    def update_target_soc(
-        self, percent: Optional[float], timestamp: Optional[datetime] = None
-    ) -> None:
-        if percent is None:
-            self.target_soc_percent = None
-            return
-        self.target_soc_percent = percent
-        if (
-            self.estimated_percent is not None
-            and self.last_soc_percent is not None
-            and self.last_soc_percent <= percent
-            and self.estimated_percent > percent
-        ):
-            self.estimated_percent = percent
-            self.last_estimate_time = timestamp or datetime.now(timezone.utc)
-
-    def estimate(self, now: datetime) -> Optional[float]:
-        if self.estimated_percent is None:
-            base = self.last_soc_percent
-            if base is None:
-                return None
-            self.estimated_percent = base
-            self.last_estimate_time = self.last_update or now
-            return self.estimated_percent
-
-        if self.last_estimate_time is None:
-            self.last_estimate_time = now
-            return self.estimated_percent
-
-        delta_seconds = (now - self.last_estimate_time).total_seconds()
-        if delta_seconds <= 0:
-            return self.estimated_percent
-
-        rate = self.current_rate_per_hour()
-        if not self.charging_active or rate in (None, 0):
-            self.last_estimate_time = now
-            return self.estimated_percent
-
-        previous_estimate = self.estimated_percent
-        increment = rate * (delta_seconds / 3600.0)
-        self.estimated_percent = (self.estimated_percent or 0.0) + increment
-        if (
-            self.target_soc_percent is not None
-            and rate > 0
-            and previous_estimate is not None
-            and previous_estimate <= self.target_soc_percent <= self.estimated_percent
-        ):
-            self.estimated_percent = self.target_soc_percent
-        if self.estimated_percent > 100.0:
-            self.estimated_percent = 100.0
-        elif self.estimated_percent < 0.0:
-            self.estimated_percent = 0.0
-        self.last_estimate_time = now
-        return self.estimated_percent
-
-    def current_rate_per_hour(self) -> Optional[float]:
-        if not self.charging_active:
-            return None
-        return self.rate_per_hour
-
-    def _recalculate_rate(self) -> None:
-        if not self.charging_active:
-            self.rate_per_hour = None
-            return
-        if self.last_power_w in (None, 0) or self.max_energy_kwh in (None, 0):
-            return
-        self.rate_per_hour = (self.last_power_w / 1000.0) / self.max_energy_kwh * 100.0
 
 
 @dataclass
@@ -3548,8 +3420,8 @@ class CardataCoordinator:
                 percent = float(value)
             except TypeError, ValueError:
                 return
-            tracking.update_actual_soc(percent, parsed_ts)
-            testing_tracking.update_actual_soc(percent, parsed_ts)
+            tracking.update_actual_soc(percent, parsed_ts, restored=True)
+            testing_tracking.update_actual_soc(percent, parsed_ts, restored=True)
             updated = True
         elif descriptor == "vehicle.drivetrain.batteryManagement.maxEnergy":
             try:
@@ -3569,8 +3441,18 @@ class CardataCoordinator:
             updated = True
         elif descriptor == "vehicle.drivetrain.electricEngine.charging.status":
             if isinstance(value, str):
-                tracking.update_status(value)
-                testing_tracking.update_status(value)
+                # A restored status may be hours old, so it only keeps the SoC
+                # estimate climbing, and only while a restored charge agrees the
+                # car was charging. Without this the estimate froze at its
+                # restored value until BMW next woke up -- two hours, on the i5.
+                builder = self._session_builders.get(vin)
+                since = (
+                    builder.start
+                    if builder is not None and vin in self._restored_open_sessions
+                    else None
+                )
+                tracking.restore_status(value, since)
+                testing_tracking.restore_status(value, since)
                 updated = True
         elif descriptor == "vehicle.powertrain.electric.battery.stateOfCharge.target":
             try:
@@ -3648,10 +3530,11 @@ class CardataCoordinator:
     ) -> None:
         tracking = self._soc_tracking.setdefault(vin, SocTracking())
         reference_time = timestamp or datetime.now(timezone.utc)
-        if estimate is not None:
-            tracking.estimated_percent = estimate
-            tracking.last_estimate_time = reference_time
-            self._soc_estimate[vin] = round(estimate, 2)
+        # Entities restore in no fixed order, so a restored estimate competes
+        # with the restored SoC reading on age, not on who came first.
+        if estimate is not None and (timestamp is not None or tracking.estimated_percent is None):
+            if tracking.adopt_estimate(estimate, reference_time):
+                self._soc_estimate[vin] = round(estimate, 2)
         if rate is not None:
             tracking.rate_per_hour = rate if rate not in (None, 0) else None
             if tracking.rate_per_hour:
@@ -3682,9 +3565,10 @@ class CardataCoordinator:
         reference_time = timestamp or datetime.now(timezone.utc)
         if estimate is None:
             return
-        tracking.estimated_percent = estimate
-        tracking.last_estimate_time = reference_time
-        self._testing_soc_estimate[vin] = round(estimate, 2)
+        if timestamp is None and tracking.estimated_percent is not None:
+            return
+        if tracking.adopt_estimate(estimate, reference_time):
+            self._testing_soc_estimate[vin] = round(estimate, 2)
 
     @staticmethod
     def _build_device_metadata(vin: str, payload: Dict[str, Any]) -> Dict[str, Any]:

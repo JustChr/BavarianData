@@ -9,6 +9,45 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+Promotes 0.9.12-beta.1 unchanged, plus one fix for the charging display: the
+estimated state of charge no longer freezes when Home Assistant restarts in the
+middle of a charge.
+
+### Added
+- **British English.** Setting Home Assistant's language to *English (UK)* now
+  gives British entity names and card labels — *Tyre pressure (front left)*,
+  *Tyre Condition*, *Check tyres*, *Authorisation* — while plain *English* stays
+  US. Entity IDs are untouched in both: they come from the descriptor BMW sends
+  (`sensor.…_tire_pressure_front_left`), so automations, templates and
+  dashboards keep working whichever you pick. Thanks to
+  [@thebertster](https://github.com/thebertster) for spotting it and for
+  [#24](https://github.com/JustChr/BavarianData/pull/24).
+
+### Fixed
+- **The estimated state of charge froze after a restart mid-charge.** BMW can
+  stay silent for hours while a car charges, which is what the integration's
+  own estimate is for — it climbs at the rate the charging power implies. After
+  a Home Assistant restart it stopped climbing and sat at its last value until
+  the car next woke up: on the maintainer's i5 it showed 39 % for two hours
+  while the car reached 47 %. The restored charging status came back in a
+  different letter case and was read as "not charging". The estimate now keeps
+  climbing across a restart, but only while the charge that was running is
+  still the one on record, and never from before that charge began. Session
+  recording, energy counting and what a charge controller is told still wait
+  for the car's own word, as before.
+- **English was a mixture of US and British spellings.** *Tire pressure (front
+  left)* sat next to *Tyre Condition*; the charging state read *Initialising*
+  and the distance unit *Kilometres*; the Configure menu offered *Fetch tyre
+  diagnosis* while the card's cluster was *Tire data*. BMW is the origin — its
+  descriptor paths are US (`…wheel.left.tire.pressure`) while the English titles
+  in the same catalogue export say "tyre", so both arrived together and four of
+  our own files picked sides independently. English is now consistently US
+  throughout, with British English as a proper language rather than a spelling
+  that leaked through.
+- Five tyre entities and two enum labels are renamed by the above. **Only the
+  display names change** — no entity ID, service name or option key moves, so
+  nothing needs adjusting. A German install is unaffected.
+
 ## [0.9.12-beta.1] - 2026-09-20
 
 ### Added

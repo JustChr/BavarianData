@@ -466,12 +466,13 @@ class CardataSocEstimateSensor(CardataRestoreSensor):
                     reference = last_state.last_changed
                 if reference is not None:
                     reference = dt_util.as_utc(reference)
-                if self._coordinator.get_soc_estimate(self.vin) is None:
-                    self._coordinator.restore_soc_cache(
-                        self.vin,
-                        estimate=self._attr_native_value,
-                        timestamp=reference,
-                    )
+                # Always offered: the coordinator keeps whichever of this and
+                # the restored SoC reading is newer (see ``adopt_estimate``).
+                self._coordinator.restore_soc_cache(
+                    self.vin,
+                    estimate=self._attr_native_value,
+                    timestamp=reference,
+                )
         self._unsubscribe = async_dispatcher_connect(
             self.hass,
             self._coordinator.signal_soc_estimate,
@@ -522,12 +523,11 @@ class CardataTestingSocEstimateSensor(CardataRestoreSensor):
                     reference = last_state.last_changed
                 if reference is not None:
                     reference = dt_util.as_utc(reference)
-                if self._coordinator.get_testing_soc_estimate(self.vin) is None:
-                    self._coordinator.restore_testing_soc_cache(
-                        self.vin,
-                        estimate=self._attr_native_value,
-                        timestamp=reference,
-                    )
+                self._coordinator.restore_testing_soc_cache(
+                    self.vin,
+                    estimate=self._attr_native_value,
+                    timestamp=reference,
+                )
         self._unsubscribe = async_dispatcher_connect(
             self.hass,
             self._coordinator.signal_soc_estimate,
