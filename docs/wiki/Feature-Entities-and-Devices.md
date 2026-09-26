@@ -18,6 +18,9 @@ Every descriptor BMW streams becomes a native entity:
 - Numeric fields get sensible **device classes**; distances use
   `device_class: distance`, and odometer/mileage uses
   `state_class: total_increasing` so long-term statistics work.
+- Percentages are measurements with long-term statistics too, including those
+  without a device class: the tank level in %, seat and steering-wheel heating,
+  sunroof and door positions, preconditioning progress.
 - Every entity exposes its **source timestamp** plus its catalogue `cluster` and
   `category` as attributes — the [dashboard card](The-Dashboard-Card) uses these
   to group values regardless of the user's HA language.

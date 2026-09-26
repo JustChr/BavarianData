@@ -10,6 +10,19 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [Unreleased]
 
 ### Fixed
+- **The tank level in % lost its long-term statistics in 0.9.10** (#25).
+  Taking away its battery device class, so the card's ring could no longer
+  show the tank as a battery, also took away its state class, and Home
+  Assistant raised the repair "The entity no longer has a state class". It is
+  back. **If you see that repair, do not delete the statistics** — ignore it,
+  or leave it until it clears; recording resumes on your existing history. Thanks
+  @JohannBlais for the precise diagnosis.
+- **Percentages without a device class now keep long-term statistics too** —
+  seat and steering-wheel heating, door and sunroof positions, preconditioning
+  progress, the 48 V battery's health and the eco-driving shares, 24 sensors in
+  all. They were always meant to be measurements but never got the state
+  class, for the same reason as the tank level. Home Assistant starts recording
+  them now, which adds a little to its database.
 - **The card's ring showed BMW's last reading while the car charged.** It
   preferred the measured state of charge, which stands still whenever BMW goes
   quiet mid-charge, so the ring could sit on 38 % while the car had reached

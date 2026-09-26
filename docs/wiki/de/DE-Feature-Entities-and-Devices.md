@@ -20,6 +20,9 @@ Jeder Deskriptor, den BMW streamt, wird zu einer eigenen Entität:
 - Zahlenfelder bekommen passende **Geräteklassen**; Strecken nutzen
   `device_class: distance`, der Kilometerstand nutzt
   `state_class: total_increasing`, damit Langzeitstatistiken funktionieren.
+- Prozentwerte sind ebenfalls Messwerte mit Langzeitstatistiken, auch ohne
+  Geräteklasse: der Tankfüllstand in %, Sitz- und Lenkradheizung, Schiebedach-
+  und Türstellungen, der Fortschritt der Vorklimatisierung.
 - Jede Entität hat ihren **Quell-Zeitstempel** sowie `cluster` und `category` aus
   dem Katalog als Attribute — die [Dashboard-Karte](DE-The-Dashboard-Card)
   gruppiert die Werte darüber, unabhängig von der Sprache in Home Assistant.

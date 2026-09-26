@@ -39,6 +39,7 @@ from .history.summary import (
     trips_in_month,
 )
 from .restore_units import restore_native
+from .sensor_classes import sensor_classes
 from .structured_values import ITEMS_ATTRIBUTE, restored_items, structured_state
 
 
@@ -134,21 +135,26 @@ class CardataSensor(CardataRestoreSensor):
 
         meta = DESCRIPTOR_META.get(descriptor)
         if meta:
-            device_class = _DEVICE_CLASS_MAP.get(meta.get("device_class"))
-            options = meta.get("options") or []
+            # Which classes and unit apply is decided in sensor_classes, where
+            # the test suite can check it for every descriptor (issue #25).
+            classes = sensor_classes(meta)
+            if classes.is_enum:
+                # Enum sensor: translated states come from the translation key.
+                self._attr_device_class = SensorDeviceClass.ENUM
+                self._attr_options = list(classes.options)
+                self._is_enum = True
+            else:
+                self._attr_state_class = _STATE_CLASS_MAP.get(classes.state_class)
+                if classes.unit:
+                    self._attr_native_unit_of_measurement = classes.unit
+                    self._fixed_unit = True
+            device_class = _DEVICE_CLASS_MAP.get(classes.device_class)
             if device_class is not None:
                 self._attr_device_class = device_class
-                self._attr_state_class = _STATE_CLASS_MAP.get(meta.get("state_class"))
-                if meta.get("unit"):
-                    self._attr_native_unit_of_measurement = meta["unit"]
-                    self._fixed_unit = True
                 if (
-                    (
-                        device_class is SensorDeviceClass.DISTANCE
-                        and meta.get("unit") in ("km", "mi")
-                    )
-                    or (device_class is SensorDeviceClass.PRESSURE and meta.get("unit") == "kPa")
-                    or (device_class is SensorDeviceClass.VOLUME_STORAGE and not meta.get("unit"))
+                    (device_class is SensorDeviceClass.DISTANCE and classes.unit in ("km", "mi"))
+                    or (device_class is SensorDeviceClass.PRESSURE and classes.unit == "kPa")
+                    or (device_class is SensorDeviceClass.VOLUME_STORAGE and not classes.unit)
                 ):
                     # BMW streams whole kilometres for every one of these -- a
                     # range, an odometer, a trip length. Left unsaid, Home
@@ -163,11 +169,6 @@ class CardataSensor(CardataRestoreSensor):
                     # litres, so decimals there are noise; the lifetime fuel
                     # totals keep theirs.
                     self._attr_suggested_display_precision = 0
-            elif options:
-                # Enum sensor: translated states come from the translation key.
-                self._attr_device_class = SensorDeviceClass.ENUM
-                self._attr_options = list(options)
-                self._is_enum = True
         elif self._descriptor == "vehicle.vehicle.travelledDistance":
             self._attr_state_class = SensorStateClass.TOTAL_INCREASING
 
