@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.13-beta.5] - 2026-09-27
+
 ### Fixed
 - **Plug-in hybrid trips showed an unchanged battery charge.** The X3 30e
   never streams its state of charge; it arrives only when fetched over the
