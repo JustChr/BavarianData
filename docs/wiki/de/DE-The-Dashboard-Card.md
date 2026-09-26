@@ -62,6 +62,12 @@ ableitet:
 | Benzin / Diesel | Tankfüllstand — oder der Tankinhalt, bei einem Auto, das keinen Prozentwert streamt | Reichweite, dazu Tankinhalt oder Kilometerstand | Kilometerstand |
 | Keines, erwiesen | Reichweite | Kilometerstand | — |
 
+Der Ladezustand im Ring ist die Schätzung der Integration. Steht das Auto, ist
+das einfach BMWs letzter Messwert; lädt es, steigt sie mit der Rate weiter, die
+die Ladeleistung ergibt — denn BMW kann mitten im Laden stundenlang schweigen, und
+sein eigener Wert steht dann still. Der nächste echte Messwert ersetzt sie. Siehe
+[die Ladeseite](DE-Feature-Charging-History-and-Cost).
+
 Ein Auto, das Daten der Hochvoltbatterie *und* Kraftstoffdaten sendet, ist ein
 Plug-in-Hybrid; Kraftstoffdaten allein machen es zum Benziner oder Diesel. Manche
 Benziner streamen trotzdem ein E-Ladeziel, das lässt ein Auto aber nie elektrisch

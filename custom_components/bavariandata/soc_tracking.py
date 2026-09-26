@@ -71,6 +71,11 @@ class SocTracking:
     def update_actual_soc(
         self, percent: float, timestamp: Optional[datetime], *, restored: bool = False
     ) -> None:
+        if not 0.0 <= percent <= 100.0:
+            # Not a state of charge: a sentinel or a corrupt value. The raw
+            # sensor still shows what BMW sent; the estimate and every session
+            # boundary read from here, so it must not become their anchor.
+            return
         # Remember the last reading taken while the car was *not* charging. A
         # session that opens well above it caught only part of a charge already
         # under way (see ``sessions._is_late_start``); it is never used to

@@ -82,7 +82,27 @@ def _picks(states: dict) -> dict:
 
 def test_electric_car_gauge_skips_the_12v_battery_registered_first():
     # Dict order is registry order: the impostors come first on purpose.
-    picks = _picks({TWELVE_VOLT: _TWELVE_VOLT, ESTIMATE: _ESTIMATE, HV_SOC: _HV})
+    picks = _picks({TWELVE_VOLT: _TWELVE_VOLT, HV_SOC: _HV})
+    assert picks.get("soc") == HV_SOC
+
+
+def test_the_gauge_shows_the_estimate_so_a_silent_charge_still_climbs():
+    """26 September 2026: the ring sat on BMW's 38 % while the car reached 47 %.
+
+    BMW's measured SoC stops moving whenever the car goes quiet mid-charge; the
+    integration's estimate keeps climbing, and while parked it equals the last
+    reading anyway.
+    """
+
+    measured = _sensor("vehicle.drivetrain.batteryManagement.header", state="38")
+    estimate = _sensor("soc_estimate", state="45.8")
+    picks = _picks({TWELVE_VOLT: _TWELVE_VOLT, HV_SOC: measured, ESTIMATE: estimate})
+    assert picks.get("soc") == ESTIMATE
+
+
+def test_the_gauge_falls_back_to_the_measured_soc_without_an_estimate():
+    estimate = _sensor("soc_estimate", state="unavailable")
+    picks = _picks({TWELVE_VOLT: _TWELVE_VOLT, ESTIMATE: estimate, HV_SOC: _HV})
     assert picks.get("soc") == HV_SOC
 
 

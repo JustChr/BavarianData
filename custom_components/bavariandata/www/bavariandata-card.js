@@ -13,7 +13,7 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.15.0";
+const CARD_VERSION = "1.15.1";
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -908,7 +908,15 @@ class BavarianDataCard extends HTMLElement {
         // English, and a German install picked it up. Both remain available to
         // the fallback below, where they are chosen knowingly.
         //
-        // The measured HV state of charge is named outright first: the other
+        // The integration's own estimate comes first. While the car is parked
+        // it *is* the last measured reading; while it charges it is the live
+        // figure, because BMW can go silent for hours mid-charge and the
+        // measured SoC then sits on its last value -- the ring showed 38 % for
+        // two hours on a car that had reached 47 % (26 September 2026). It only
+        // exists on a car with a high-voltage battery, so a combustion car never
+        // gets here.
+        //
+        // Next, the measured HV state of charge is named outright: the other
         // battery-class percentages all score zero, so without a preference the
         // tie went to entity-registry order -- and every car also carries its
         // 12 V battery, and older installs the fuel tank tagged as a battery. A
@@ -921,6 +929,7 @@ class BavarianDataCard extends HTMLElement {
         // integration's own estimate (whose English name says "Predicted", so the
         // avoid-list skips it) held the right figure. Only when nothing has a
         // value does the gauge bind to the measured SoC, to fill in when it lands.
+        this._pick(entities, { unit: "%", prefer: ["soc_estimate"], avoid: ["testing"], usable: true }) ||
         this._pick(entities, {
           deviceClass: "battery",
           unit: "%",
@@ -933,7 +942,6 @@ class BavarianDataCard extends HTMLElement {
           avoid: ["target", "predicted", "health", "testing", "trip", "charging.level", ...NOT_HV_BATTERY],
           usable: true,
         }) ||
-        this._pick(entities, { unit: "%", prefer: ["soc_estimate"], avoid: ["testing"], usable: true }) ||
         this._pick(entities, {
           deviceClass: "battery",
           unit: "%",

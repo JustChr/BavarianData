@@ -127,3 +127,16 @@ def test_live_nocharging_stops_the_restored_extrapolation() -> None:
     held = tracking.estimate(stopped)
     tracking.update_status("NOCHARGING")
     assert tracking.estimate(APP_OPENED) == held
+
+
+def test_an_impossible_reading_is_not_a_state_of_charge() -> None:
+    """Found by the coordinator fuzzer: -5 % became the estimate's anchor."""
+
+    tracking = SocTracking()
+    tracking.update_actual_soc(50.0, READING_AT)
+    for garbage in (-5.0, 100.5, 255.0):
+        tracking.update_actual_soc(garbage, READING_AT + timedelta(minutes=1))
+    assert tracking.estimated_percent == 50.0
+    assert tracking.last_soc_percent == 50.0
+    tracking.update_actual_soc(0.0, READING_AT + timedelta(minutes=2))
+    assert tracking.estimated_percent == 0.0  # the boundaries themselves are real

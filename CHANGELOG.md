@@ -9,6 +9,17 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The card's ring showed BMW's last reading while the car charged.** It
+  preferred the measured state of charge, which stands still whenever BMW goes
+  quiet mid-charge, so the ring could sit on 38 % while the car had reached
+  47 %. It now shows the integration's estimate, which is the same number while
+  the car is parked and keeps climbing while it charges (card 1.15.1).
+- **An impossible state-of-charge reading no longer moves the estimate.** A
+  value below 0 % or above 100 % — a sentinel or a corrupt message — became the
+  estimate's anchor and a session's start or end. BMW's raw sensor still shows
+  what was sent. Found by the new coordinator test harness.
+
 ## [0.9.13-beta.2] - 2026-09-26
 
 ### Fixed
