@@ -67,12 +67,11 @@ class _Flows:
 
 def _compile_handle_stream_error(refresh_error: Exception, notifications: _Notifications):
     tree = ast.parse(_INIT.read_text(encoding="utf-8"), filename=str(_INIT))
+    names = ("_handle_stream_error", "_async_request_reauth")
     wanted = [
-        node
-        for node in tree.body
-        if isinstance(node, ast.AsyncFunctionDef) and node.name == "_handle_stream_error"
+        node for node in tree.body if isinstance(node, ast.AsyncFunctionDef) and node.name in names
     ]
-    assert len(wanted) == 1, "_handle_stream_error moved"
+    assert len(wanted) == len(names), "_handle_stream_error or _async_request_reauth moved"
     code = compile(
         ast.Module(body=wanted, type_ignores=[]),
         str(_INIT),
@@ -91,6 +90,7 @@ def _compile_handle_stream_error(refresh_error: Exception, notifications: _Notif
         "suppress": suppress,
         "_LOGGER": logging.getLogger(__name__),
         "CardataAuthError": _DEVICE_FLOW.CardataAuthError,
+        "refresh_rejected": _DEVICE_FLOW.refresh_rejected,
         "persistent_notification": notifications,
         "_refresh_tokens": _refresh_tokens,
     }
@@ -131,9 +131,27 @@ def test_a_network_error_during_the_refresh_asks_for_a_retry_instead_of_reauth()
 
 def test_a_refresh_bmw_rejects_still_starts_reauth():
     notifications, flows, runtime = _scenario(
-        _DEVICE_FLOW.CardataAuthError("Token refresh failed (invalid_grant)")
+        _DEVICE_FLOW.CardataAuthError(
+            "Token refresh failed (400: invalid_grant)", status=400, error_code="invalid_grant"
+        )
     )
 
     assert len(flows.started) == 1
     assert len(notifications.created) == 1
     assert not runtime.refresh_wake.is_set()
+
+
+def test_bmw_having_a_bad_moment_is_retried_not_reauthorized():
+    """A 503 from the token endpoint says nothing about the login.
+
+    Before refresh errors carried a status it looked like a rejection, and a
+    stream refused during a BMW hiccup sent the user off to re-authorize.
+    """
+
+    notifications, flows, runtime = _scenario(
+        _DEVICE_FLOW.CardataAuthError("Token refresh failed (503: unavailable)", status=503)
+    )
+
+    assert flows.started == []
+    assert notifications.created == []
+    assert runtime.refresh_wake.is_set()

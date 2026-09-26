@@ -238,3 +238,23 @@ class _RaisingResponse:
 
     async def __aexit__(self, *exc) -> bool:
         return False
+
+
+def _refresh_failure(status: int, body: Any) -> Exception:
+    session = _PollSession([_PollResponse(status, body, {"x-correlation-id": "ref-1"})])
+    with pytest.raises(device_flow.CardataAuthError) as caught:
+        asyncio.run(device_flow.refresh_tokens(session, client_id="cid", refresh_token="rt"))
+    return caught.value
+
+
+def test_a_refresh_error_carries_what_bmw_said():
+    """The retry-or-reauth decision rests on these fields, so they must be set."""
+
+    err = _refresh_failure(400, {"error": "invalid_grant", "error_description": "revoked"})
+    assert (err.status, err.error_code, err.correlation_id) == (400, "invalid_grant", "ref-1")
+    assert device_flow.refresh_rejected(err)
+
+
+def test_a_bmw_outage_during_refresh_is_not_a_rejected_login():
+    assert not device_flow.refresh_rejected(_refresh_failure(503, None))
+    assert not device_flow.refresh_rejected(_refresh_failure(502, {"error": "bad_gateway"}))

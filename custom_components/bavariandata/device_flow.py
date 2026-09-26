@@ -35,6 +35,23 @@ class CardataAuthError(Exception):
         self.correlation_id = correlation_id
 
 
+def refresh_rejected(err: BaseException) -> bool:
+    """Whether a failed token refresh means BMW no longer accepts the login.
+
+    Such a failure only goes away when the user authorizes again, so it asks for
+    that once instead of retrying. Everything else -- no network, a timeout, an
+    unreadable body, BMW answering 5xx or 429 -- is BMW or the connection having a
+    bad moment, and is retried. Those looked the same before refresh errors
+    carried a status, so a 503 from the token endpoint sent users off to
+    re-authorize a login that was fine.
+    """
+
+    if not isinstance(err, CardataAuthError):
+        return False
+    status = err.status
+    return not (status is not None and (status >= 500 or status == 429))
+
+
 # Network timeout for individual OAuth requests. A single poll/refresh must never
 # hang the event loop indefinitely.
 HTTP_TIMEOUT = aiohttp.ClientTimeout(total=30)
@@ -284,5 +301,11 @@ async def refresh_tokens(
     async with session.post(token_url, data=payload, timeout=HTTP_TIMEOUT) as resp:
         data = await resp.json(content_type=None)
         if resp.status != 200:
-            raise CardataAuthError(f"Token refresh failed ({_safe_error(resp.status, data)})")
+            raise CardataAuthError(
+                f"Token refresh failed ({_safe_error(resp.status, data, headers=resp.headers)})",
+                status=resp.status,
+                error_code=data.get("error") if isinstance(data, dict) else None,
+                error_description=data.get("error_description") if isinstance(data, dict) else None,
+                correlation_id=_correlation_id(resp.headers),
+            )
         return data

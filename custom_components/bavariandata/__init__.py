@@ -76,7 +76,7 @@ from .const import (
     LOVELACE_CARD_FILENAME,
     LOVELACE_CARD_URL,
 )
-from .device_flow import CardataAuthError, refresh_tokens
+from .device_flow import CardataAuthError, refresh_rejected, refresh_tokens
 from .api import (
     CardataApiError,
     async_get_basic_data,
@@ -2073,23 +2073,23 @@ async def _handle_stream_error(hass: HomeAssistant, entry: CardataConfigEntry, r
                 runtime.last_reauth_attempt = 0.0
                 runtime.reauth_pending = False
                 return
-            except CardataAuthError as err:
+            except Exception as err:  # pylint: disable=broad-except
+                if not refresh_rejected(err):
+                    # The network or BMW failed, not the credentials: no reauth.
+                    # Have the refresh loop retry soon, or the stream waiting for
+                    # a new token would sit idle until the next regular refresh.
+                    _LOGGER.warning(
+                        "Token refresh after unauthorized failed for entry %s, retrying: %s",
+                        entry.entry_id,
+                        err,
+                    )
+                    runtime.refresh_wake.set()
+                    return
                 _LOGGER.warning(
                     "Token refresh after unauthorized failed for entry %s: %s",
                     entry.entry_id,
                     err,
                 )
-            except Exception as err:  # pylint: disable=broad-except
-                # The network failed, not the credentials: no reauth. Have the
-                # refresh loop retry soon, or the stream waiting for a new token
-                # would sit idle until the next regular refresh.
-                _LOGGER.warning(
-                    "Token refresh after unauthorized failed for entry %s, retrying: %s",
-                    entry.entry_id,
-                    err,
-                )
-                runtime.refresh_wake.set()
-                return
         else:
             runtime.reauth_pending = True
             _LOGGER.debug(
@@ -2097,34 +2097,7 @@ async def _handle_stream_error(hass: HomeAssistant, entry: CardataConfigEntry, r
                 entry.entry_id,
             )
 
-        if now - runtime.last_reauth_attempt < 30:
-            _LOGGER.debug(
-                "Recent reauth already attempted for entry %s; skipping new flow",
-                entry.entry_id,
-            )
-            return
-
-        runtime.reauth_in_progress = True
-        runtime.last_reauth_attempt = now
-        runtime.reauth_pending = False
-        _LOGGER.error("BMW stream unauthorized; starting reauth flow")
-        if runtime.reauth_flow_id:
-            with suppress(Exception):
-                await hass.config_entries.flow.async_abort(runtime.reauth_flow_id)
-            runtime.reauth_flow_id = None
-        persistent_notification.async_create(
-            hass,
-            "Authorization failed for BMW CarData. Please reauthorize the integration.",
-            title="BavarianData: Connect Home Assistant to BMW CarData",
-            notification_id=notification_id,
-        )
-        flow_result = await hass.config_entries.flow.async_init(
-            DOMAIN,
-            context={"source": SOURCE_REAUTH, "entry_id": entry.entry_id},
-            data={**entry.data, "entry_id": entry.entry_id},
-        )
-        if isinstance(flow_result, dict):
-            runtime.reauth_flow_id = flow_result.get("flow_id")
+        await _async_request_reauth(hass, entry, "BMW stream unauthorized")
     elif reason == "recovered":
         if runtime.reauth_in_progress:
             runtime.reauth_in_progress = False
@@ -2136,6 +2109,41 @@ async def _handle_stream_error(hass: HomeAssistant, entry: CardataConfigEntry, r
                 runtime.reauth_flow_id = None
         runtime.reauth_pending = False
         runtime.last_reauth_attempt = 0.0
+
+
+async def _async_request_reauth(hass: HomeAssistant, entry: CardataConfigEntry, why: str) -> None:
+    """Ask the user to authorize again, unless that is already under way."""
+
+    runtime: CardataRuntimeData = entry.runtime_data
+    now = time.time()
+    if runtime.reauth_in_progress or now - runtime.last_reauth_attempt < 30:
+        _LOGGER.debug(
+            "Reauth already requested for entry %s; skipping new flow",
+            entry.entry_id,
+        )
+        return
+
+    runtime.reauth_in_progress = True
+    runtime.last_reauth_attempt = now
+    runtime.reauth_pending = False
+    _LOGGER.error("%s; starting reauth flow", why)
+    if runtime.reauth_flow_id:
+        with suppress(Exception):
+            await hass.config_entries.flow.async_abort(runtime.reauth_flow_id)
+        runtime.reauth_flow_id = None
+    persistent_notification.async_create(
+        hass,
+        "Authorization failed for BMW CarData. Please reauthorize the integration.",
+        title="BavarianData: Connect Home Assistant to BMW CarData",
+        notification_id=f"{DOMAIN}_reauth_{entry.entry_id}",
+    )
+    flow_result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": SOURCE_REAUTH, "entry_id": entry.entry_id},
+        data={**entry.data, "entry_id": entry.entry_id},
+    )
+    if isinstance(flow_result, dict):
+        runtime.reauth_flow_id = flow_result.get("flow_id")
 
 
 async def _wait_for_refresh(wake: asyncio.Event, delay: float) -> None:
@@ -2173,10 +2181,15 @@ async def _refresh_loop(
                     container_manager,
                 )
             except Exception as err:  # pylint: disable=broad-except
-                if isinstance(err, CardataAuthError):
-                    _LOGGER.error("Token refresh failed, retrying in %ss: %s", retry_delay, err)
-                else:
-                    _LOGGER.warning("Token refresh failed, retrying in %ss: %s", retry_delay, err)
+                if refresh_rejected(err):
+                    # Retrying cannot fix a login BMW no longer accepts, so ask
+                    # the user once and go back to the regular cadence instead
+                    # of logging an error every few minutes until they do.
+                    await _async_request_reauth(hass, entry, f"Token refresh rejected ({err})")
+                    delay = DEFAULT_REFRESH_INTERVAL
+                    retry_delay = TOKEN_REFRESH_RETRY_DELAY
+                    continue
+                _LOGGER.warning("Token refresh failed, retrying in %ss: %s", retry_delay, err)
                 delay = retry_delay
                 retry_delay = min(retry_delay * 2, TOKEN_REFRESH_RETRY_MAX)
             else:

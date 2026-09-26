@@ -67,6 +67,10 @@ def _compile_from_init(name: str, **namespace) -> object:
     return namespace[name]
 
 
+async def _no_reauth(hass, entry, why) -> None:
+    raise AssertionError(f"reauth requested for a transient failure: {why}")
+
+
 def _loop_namespace(**overrides) -> dict:
     namespace: dict = {name: value for name, value in vars(_CONST).items() if name.isupper()}
     namespace.update(
@@ -75,6 +79,8 @@ def _loop_namespace(**overrides) -> dict:
             "aiohttp": aiohttp,
             "_LOGGER": logging.getLogger(__name__),
             "CardataAuthError": _DEVICE_FLOW.CardataAuthError,
+            "refresh_rejected": _DEVICE_FLOW.refresh_rejected,
+            "_async_request_reauth": _no_reauth,
         }
     )
     namespace.update(overrides)
@@ -98,7 +104,13 @@ def _non_json_response() -> Exception:
 
 
 def _token_endpoint_unavailable() -> Exception:
-    return _DEVICE_FLOW.CardataAuthError("Token refresh failed (HTTP 503)")
+    return _DEVICE_FLOW.CardataAuthError("Token refresh failed (503: unavailable)", status=503)
+
+
+def _login_rejected() -> Exception:
+    return _DEVICE_FLOW.CardataAuthError(
+        "Token refresh failed (400: invalid_grant)", status=400, error_code="invalid_grant"
+    )
 
 
 class _RecordingWait:
@@ -117,14 +129,24 @@ class _RecordingWait:
             raise asyncio.CancelledError
 
 
-def _run_refresh_loop(outcomes: list[Exception | None]) -> tuple[list[float], int]:
+def _run_refresh_loop(
+    outcomes: list[Exception | None], reauths: list[str] | None = None
+) -> tuple[list[float], int]:
     """Run the real loop for one refresh per outcome (``None`` = success).
 
     Returns every wait the loop asked for and how many refreshes it attempted.
+    Pass ``reauths`` to allow re-authorization requests and collect them.
     """
 
     script = list(outcomes)
     refreshes = 0
+    overrides: dict = {}
+    if reauths is not None:
+
+        async def _async_request_reauth(hass, entry, why) -> None:
+            reauths.append(why)
+
+        overrides["_async_request_reauth"] = _async_request_reauth
 
     async def _refresh_tokens(entry, session, manager, container_manager=None) -> None:
         nonlocal refreshes
@@ -138,7 +160,7 @@ def _run_refresh_loop(outcomes: list[Exception | None]) -> tuple[list[float], in
         wait = _RecordingWait(wake, stop_after=len(outcomes))
         refresh_loop = _compile_from_init(
             "_refresh_loop",
-            **_loop_namespace(_refresh_tokens=_refresh_tokens, _wait_for_refresh=wait),
+            **_loop_namespace(_refresh_tokens=_refresh_tokens, _wait_for_refresh=wait, **overrides),
         )
         await refresh_loop(None, None, None, None, None, wake)
         return wait.waits
@@ -272,3 +294,27 @@ def test_without_a_request_the_full_delay_is_waited():
     elapsed = asyncio.run(scenario())
 
     assert 0.05 <= elapsed < 1
+
+
+def test_a_rejected_login_asks_the_user_once_instead_of_retrying_every_few_minutes():
+    """Retrying cannot fix a login BMW no longer accepts; only the user can."""
+
+    reauths: list[str] = []
+    waits, refreshes = _run_refresh_loop([_login_rejected() for _ in range(4)], reauths)
+
+    assert refreshes == 4
+    assert len(reauths) == 4  # each is a no-op while a reauth is already open
+    # Back on the regular cadence rather than a five-minute error loop.
+    assert waits[1:] == [_CONST.DEFAULT_REFRESH_INTERVAL] * 4
+
+
+def test_the_classifier_matches_what_the_loop_retries():
+    rejected = _DEVICE_FLOW.refresh_rejected
+
+    assert rejected(_login_rejected())
+    assert rejected(_DEVICE_FLOW.CardataAuthError("Missing credentials for refresh"))
+    assert not rejected(_token_endpoint_unavailable())
+    assert not rejected(_DEVICE_FLOW.CardataAuthError("slow down", status=429))
+    assert not rejected(_dns_outage())
+    assert not rejected(_timeout())
+    assert not rejected(_non_json_response())
