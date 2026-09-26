@@ -68,9 +68,7 @@ def _compile_from_init(name: str, **namespace) -> object:
 
 
 def _loop_namespace(**overrides) -> dict:
-    namespace: dict = {
-        name: value for name, value in vars(_CONST).items() if name.isupper()
-    }
+    namespace: dict = {name: value for name, value in vars(_CONST).items() if name.isupper()}
     namespace.update(
         {
             "asyncio": asyncio,

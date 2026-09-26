@@ -2174,13 +2174,9 @@ async def _refresh_loop(
                 )
             except Exception as err:  # pylint: disable=broad-except
                 if isinstance(err, CardataAuthError):
-                    _LOGGER.error(
-                        "Token refresh failed, retrying in %ss: %s", retry_delay, err
-                    )
+                    _LOGGER.error("Token refresh failed, retrying in %ss: %s", retry_delay, err)
                 else:
-                    _LOGGER.warning(
-                        "Token refresh failed, retrying in %ss: %s", retry_delay, err
-                    )
+                    _LOGGER.warning("Token refresh failed, retrying in %ss: %s", retry_delay, err)
                 delay = retry_delay
                 retry_delay = min(retry_delay * 2, TOKEN_REFRESH_RETRY_MAX)
             else:

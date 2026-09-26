@@ -604,7 +604,9 @@ def test_every_new_outage_is_announced_again(instant_backoff, monkeypatch, caplo
 
     async def scenario():
         manager = _new_manager()
-        broker = _ScriptedBroker(manager, ["outage", "outage", "accept", "outage", "outage", "accept"])
+        broker = _ScriptedBroker(
+            manager, ["outage", "outage", "accept", "outage", "outage", "accept"]
+        )
         manager._start_client = broker.start_client
         manager._schedule_retry()
         first = await _eventually(lambda: broker.confirmed == 1)
