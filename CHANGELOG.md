@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.13-beta.2] - 2026-09-26
+
 ### Fixed
 - **The stream now recovers on its own after a network outage.** A DNS outage
   once left the streams of two BMW accounts disconnected for nine hours — until
