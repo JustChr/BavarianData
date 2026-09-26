@@ -255,6 +255,8 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Energy dashboard & long-term statistics | 🟡 |
 | Export (CSV / HTML report) | 🟡 |
 | Charging events (`bavariandata_charging_*`) | 🟡 |
+| Device triggers (arrived at / left a zone, parked unlocked, plugged in but not charging, charging started / completed / stopped before the target) — offered only when the car can fire them; live values only, nothing fires from a restart; `trigger.data` per type | 🟢 Feature-Automations → "Device triggers" (both languages); 📷 owed: the trigger list in the automation editor |
+| Trigger events (`bavariandata_zone_*`, `bavariandata_situation`, `bavariandata_charging_interrupted`) | 🟢 Feature-Automations → "Events" |
 | Automation blueprints (2) | 🟡 |
 | API quota + Repairs issue | 🟡 |
 | Daily REST refresh (container + tire, 2 req/day **per vehicle**) | 🟢 Feature-API-Quota → "The daily refresh" + Services-Reference |

@@ -9,6 +9,23 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **Device triggers for automations.** Create an automation, choose *Device*,
+  pick your car, and choose what should happen: **arrived at a zone**, **left
+  a zone**, **parked and left unlocked** (for 10 minutes, or how long you
+  choose), **plugged in but not charging** (15 minutes by default), **charging
+  started**, **charging completed**, and **charging stopped before the target
+  with the cable still in**. No YAML, no entity names. Only the triggers your
+  car can fire are listed. They are built to fire once and never falsely:
+  nothing fires from a restart or from a value Home Assistant restored, the car
+  unlocking to let you in doesn't count, a car that is done charging isn't
+  "not charging", and unplugging early isn't an interruption. Arrival fires
+  when the drive ends, not when the car crosses the zone edge. Every trigger
+  hands its details to the automation (distance, SoC, zone, BMW's reason for
+  the stop…). The same moments are fired as events for YAML and Node-RED:
+  `bavariandata_zone_arrived`, `bavariandata_zone_left`,
+  `bavariandata_charging_interrupted` and `bavariandata_situation`.
+
 ## [0.9.13-beta.5] - 2026-09-27
 
 ### Fixed

@@ -316,6 +316,21 @@
       }
     }
   },
+  "device_automation": {
+    "trigger_type": {
+      "zone_arrived": "Arrived at a zone",
+      "zone_left": "Left a zone",
+      "parked_unlocked": "Parked and left unlocked",
+      "plugged_not_charging": "Plugged in but not charging",
+      "charging_started": "Charging started",
+      "charging_complete": "Charging completed (target reached)",
+      "charging_interrupted": "Charging stopped before the target, cable still in"
+    },
+    "extra_fields": {
+      "zone": "Zone (empty: any zone)",
+      "for": "For at least"
+    }
+  },
   "entity": {
     "sensor": {
       "vehicle_body_chargingport_combinedstatus": {
