@@ -41,12 +41,13 @@ docstring-code-format = false
 
 # Coverage is measured and reported, never gated.
 #
-# The number to read is not the total. Roughly 6,100 of the ~6,400 uncovered
-# lines are in the modules that import Home Assistant -- coordinator, sensor,
-# config_flow, stream, the entity platforms -- which the suite cannot execute
-# at all (tests/conftest.py loads modules in isolation, HA-free). Those sit at
-# 0% by construction, not by neglect, and a gate would only measure how much
-# HA-coupled code exists.
+# The number to read is not the total. Most uncovered lines are in modules that
+# import Home Assistant -- sensor, config_flow, the entity platforms, most of
+# __init__ -- which the suite cannot execute (HA cannot even be imported on
+# Windows). Those sit near 0% by construction, not by neglect, and a gate would
+# only measure how much HA-coupled code exists. The coordinator is the
+# exception: tests/fake_ha.py stands in for the few HA names it needs, and the
+# scenario, fuzz and replay suites run it (tests/harness.py).
 #
 # What the report is actually for is the other column: an HA-free module that
 # has drifted below its neighbours is a real gap and is cheap to close.

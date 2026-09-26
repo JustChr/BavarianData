@@ -1,0 +1,131 @@
+# serializer version: 1
+# name: test_a_charge_that_ended_during_the_restart_is_filed_where_it_was_last_seen
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est=     - rate=    - charging=off open=n sessions=0
+     10.0  target 100               est=     - rate=    - charging=off open=n sessions=0
+     10.0  send soc=38,status=CHARGINGACTIVE,power=3480 est= 38.00 rate= 4.64 charging=on  open=y sessions=0 charging_started
+     20.0  wait 20                  est= 38.77 rate= 4.64 charging=on  open=y sessions=0
+     20.0  send soc=39,status=CHARGINGACTIVE,power=3480 est= 39.00 rate= 4.64 charging=on  open=y sessions=0
+     27.7  advance 27.7             est= 39.58 rate= 4.64 charging=on  open=y sessions=0
+     37.7  restart (descriptors-first) est= 39.58 rate= 4.64 charging=off open=y sessions=0
+     40.0  wait 40                  est= 40.52 rate= 4.64 charging=off open=y sessions=0
+     40.0  catch-up: it ended       est= 40.52 rate=    - charging=off open=n sessions=1 charging_stopped
+  '''
+# ---
+# name: test_a_real_reading_replaces_the_estimate
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est=     - rate=    - charging=off open=n sessions=0
+     10.0  target 100               est=     - rate=    - charging=off open=n sessions=0
+     10.0  send soc=38,status=CHARGINGACTIVE,power=3480 est= 38.00 rate= 4.64 charging=on  open=y sessions=0 charging_started
+    142.0  advance 142              est= 48.21 rate= 4.64 charging=on  open=y sessions=0
+    142.4  wait 142.4               est= 48.21 rate= 4.64 charging=on  open=y sessions=0
+    142.4  app wakes the car        est= 47.00 rate= 4.69 charging=on  open=y sessions=0
+  '''
+# ---
+# name: test_a_restart_mid_charge_keeps_the_estimate_climbing[derived-first]
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est=     - rate=    - charging=off open=n sessions=0
+     10.0  target 100               est=     - rate=    - charging=off open=n sessions=0
+     10.0  send soc=38,status=CHARGINGACTIVE,power=3480 est= 38.00 rate= 4.64 charging=on  open=y sessions=0 charging_started
+     27.7  advance 27.7             est= 39.35 rate= 4.64 charging=on  open=y sessions=0
+     29.0  restart (derived-first)  est= 39.35 rate= 4.64 charging=off open=y sessions=0
+     60.0  advance 60               est= 41.83 rate= 4.64 charging=off open=n sessions=1 charging_stopped
+  '''
+# ---
+# name: test_a_restart_mid_charge_keeps_the_estimate_climbing[descriptors-first]
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est=     - rate=    - charging=off open=n sessions=0
+     10.0  target 100               est=     - rate=    - charging=off open=n sessions=0
+     10.0  send soc=38,status=CHARGINGACTIVE,power=3480 est= 38.00 rate= 4.64 charging=on  open=y sessions=0 charging_started
+     27.7  advance 27.7             est= 39.35 rate= 4.64 charging=on  open=y sessions=0
+     29.0  restart (descriptors-first) est= 39.35 rate= 4.64 charging=off open=y sessions=0
+     60.0  advance 60               est= 41.83 rate= 4.64 charging=off open=n sessions=1 charging_stopped
+  '''
+# ---
+# name: test_a_restart_mid_charge_that_the_catch_up_confirms_stays_one_session
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est=     - rate=    - charging=off open=n sessions=0
+     10.0  target 100               est=     - rate=    - charging=off open=n sessions=0
+     10.0  send soc=38,status=CHARGINGACTIVE,power=3480 est= 38.00 rate= 4.64 charging=on  open=y sessions=0 charging_started
+     12.8  wait 12.8                est= 38.19 rate= 4.64 charging=on  open=y sessions=0
+     12.8  send power=3480          est= 38.22 rate= 4.64 charging=on  open=y sessions=0
+     27.7  advance 27.7             est= 39.35 rate= 4.64 charging=on  open=y sessions=0
+     29.0  restart (descriptors-first) est= 39.35 rate= 4.64 charging=off open=y sessions=0
+     31.0  wait 31                  est= 39.58 rate= 4.64 charging=off open=y sessions=0
+     31.0  catch-up                 est= 39.41 rate= 4.64 charging=on  open=y sessions=0
+    120.0  advance 120              est= 46.25 rate= 4.64 charging=on  open=y sessions=0
+    120.0  unplugged                est= 46.25 rate=    - charging=off open=y sessions=0
+    125.0  advance 125              est= 46.25 rate=    - charging=off open=n sessions=1 charging_stopped
+  '''
+# ---
+# name: test_a_restart_the_stream_never_answers_splits_the_charge
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est=     - rate=    - charging=off open=n sessions=0
+     10.0  target 100               est=     - rate=    - charging=off open=n sessions=0
+     10.0  send soc=38,status=CHARGINGACTIVE,power=3480 est= 38.00 rate= 4.64 charging=on  open=y sessions=0 charging_started
+     27.7  advance 27.7             est= 39.35 rate= 4.64 charging=on  open=y sessions=0
+     29.0  restart (descriptors-first) est= 39.35 rate= 4.64 charging=off open=y sessions=0
+    142.0  advance 142              est= 48.17 rate= 4.64 charging=off open=n sessions=1 charging_stopped
+    142.4  wait 142.4               est= 48.21 rate= 4.64 charging=off open=n sessions=1
+    142.4  app wakes the car        est= 47.00 rate= 4.69 charging=on  open=y sessions=1 charging_started
+  '''
+# ---
+# name: test_a_silent_charge_keeps_the_estimate_climbing
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est=     - rate=    - charging=off open=n sessions=0
+     10.0  target 100               est=     - rate=    - charging=off open=n sessions=0
+     10.0  send soc=38,status=CHARGINGACTIVE,power=3480 est= 38.00 rate= 4.64 charging=on  open=y sessions=0 charging_started
+    142.0  advance 142              est= 48.21 rate= 4.64 charging=on  open=y sessions=0
+  '''
+# ---
+# name: test_a_status_flap_inside_the_debounce_is_one_session
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est=     - rate=    - charging=off open=n sessions=0
+     10.0  target 100               est=     - rate=    - charging=off open=n sessions=0
+     10.0  send soc=38,status=CHARGINGACTIVE,power=3480 est= 38.00 rate= 4.64 charging=on  open=y sessions=0 charging_started
+     30.0  wait 30                  est= 39.55 rate= 4.64 charging=on  open=y sessions=0
+     30.0  flap off                 est= 39.55 rate=    - charging=off open=y sessions=0
+     31.0  wait 31                  est= 39.55 rate=    - charging=off open=y sessions=0
+     31.0  flap on                  est= 39.55 rate= 4.64 charging=on  open=y sessions=0
+     60.0  wait 60                  est= 41.79 rate= 4.64 charging=on  open=y sessions=0
+     60.0  unplugged                est= 41.79 rate=    - charging=off open=y sessions=0
+     65.0  advance 65               est= 41.79 rate=    - charging=off open=n sessions=1 charging_stopped
+  '''
+# ---
+# name: test_an_unplug_files_the_session_after_the_debounce
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est=     - rate=    - charging=off open=n sessions=0
+     10.0  target 100               est=     - rate=    - charging=off open=n sessions=0
+     10.0  send soc=38,status=CHARGINGACTIVE,power=3480 est= 38.00 rate= 4.64 charging=on  open=y sessions=0 charging_started
+     40.0  wait 40                  est= 40.32 rate= 4.64 charging=on  open=y sessions=0
+     40.0  send soc=40,status=CHARGINGACTIVE,power=3480 est= 40.00 rate= 4.64 charging=on  open=y sessions=0
+     60.0  wait 60                  est= 41.55 rate= 4.64 charging=on  open=y sessions=0
+     60.0  unplugged                est= 41.55 rate=    - charging=off open=y sessions=0
+     63.0  advance 63               est= 41.55 rate=    - charging=off open=n sessions=1 charging_stopped
+  '''
+# ---
+# name: test_the_estimate_stops_at_the_charge_target
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est=     - rate=    - charging=off open=n sessions=0
+     10.0  target 50                est=     - rate=    - charging=off open=n sessions=0
+     10.0  send soc=45,status=CHARGINGACTIVE,power=3480 est= 45.00 rate= 4.64 charging=on  open=y sessions=0 charging_started
+    300.0  advance 300              est= 50.00 rate= 4.64 charging=on  open=y sessions=0
+  '''
+# ---
+# name: test_without_a_capacity_there_is_no_rate_to_extrapolate
+  '''
+     10.0  wait 10                  est=     - rate=    - charging=?   open=n sessions=0
+     10.0  send soc=38,status=CHARGINGACTIVE,power=3480 est= 38.00 rate=    - charging=on  open=y sessions=0 charging_started
+    100.0  advance 100              est= 38.00 rate=    - charging=on  open=y sessions=0
+  '''
+# ---

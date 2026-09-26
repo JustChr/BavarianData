@@ -60,8 +60,29 @@ paho-mqtt so `stream.py` imports, plus a pinned `ruff`); nothing there pulls in
 Home Assistant. `tests/conftest.py`
 loads integration modules in isolation via a synthetic package so nothing
 imports Home Assistant — keep new test targets HA-import-free, or they won't be
-testable here. There is no HA test harness in this repo; config-flow/entity
-behavior is verified against a live HA instance manually.
+testable here. Home Assistant itself cannot be imported on Windows, so there is
+no real-HA harness; config-flow/entity behavior is verified against a live HA
+instance manually.
+
+**The coordinator does run under test**, against `tests/fake_ha.py` — seven
+small stand-ins for the HA names it imports, plus a virtual clock. Drive it with
+`tests/harness.py`: `send()` batches in BMW's wire shape, `advance_to()` fires
+timers and the 30 s watchdog, `restart()` replays HA's stop flush and the entity
+restore (lowercase enum slugs, either order), `fix()` sends GPS halves the way
+BMW does. After **every** step it checks invariants and fails on any error the
+integration logged and swallowed. On top of it:
+
+- `test_scenarios_charging.py` / `test_scenarios_trips.py` — named scenarios
+  that assert their point and snapshot their timeline;
+- `test_coordinator_robustness.py` — malformed input and a seeded fuzzer
+  (a failure prints its seed; replay with `_fuzz(seed)`);
+- `test_replays.py` — every `tests/replays/*.ndjson` (a trip capture, run
+  through `tools/anonymize_capture.py` first — this repo is public) replayed
+  and snapshotted.
+
+**Every coordinator bug fix adds a scenario or a replay** that fails without
+the fix — prove it by reverting the fix once. A known bug not yet fixed is
+pinned with `xfail(strict=True)`, so the fix has to remove the marker.
 
 Some tests run the shipped card under Node and skip themselves when it is
 absent; CI pins Node 24 so that coverage cannot silently disappear.
