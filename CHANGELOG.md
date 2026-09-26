@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.13-beta.1] - 2026-09-26
+
 ### Added
 - **Catch up with BMW after every start.** The live stream only carries what
   changes while Home Assistant is listening, so whatever the car reported while
