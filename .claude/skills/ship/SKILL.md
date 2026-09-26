@@ -32,7 +32,12 @@ git status --porcelain     # look hard at every ?? line
 ```bash
 python -m pytest tests/ -q
 python -m ruff check custom_components/bavariandata tests
+python -m ruff format --check custom_components/bavariandata tests tools
 ```
+
+These are CI's exact commands (`.github/workflows/test.yml`). The format check is
+separate from the lint and is easy to skip: v0.9.13-beta.3 went out with CI red
+over one line wrapped wrong in a new test file.
 
 ## 4. Release
 

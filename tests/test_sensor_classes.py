@@ -120,9 +120,13 @@ def test_the_sensor_platform_decides_through_sensor_classes() -> None:
     calls = [
         n
         for n in ast.walk(init)
-        if isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id == "sensor_classes"
+        if isinstance(n, ast.Call)
+        and isinstance(n.func, ast.Name)
+        and n.func.id == "sensor_classes"
     ]
-    assert calls, f"sensor.py:{init.lineno}: CardataSensor.__init__ no longer calls sensor_classes()"
+    assert calls, (
+        f"sensor.py:{init.lineno}: CardataSensor.__init__ no longer calls sensor_classes()"
+    )
 
     fields = {"device_class", "state_class", "unit", "options"}
     for node in ast.walk(init):
