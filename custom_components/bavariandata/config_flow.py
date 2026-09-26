@@ -55,6 +55,8 @@ from .const import (
     OPTION_STREAM_SECTIONS,
     OPTION_STATISTICS_IMPORT,
     DEFAULT_STATISTICS_IMPORT,
+    OPTION_REFRESH_ON_START,
+    DEFAULT_REFRESH_ON_START,
     OPTION_TRIP_COMMUTE_GAP,
     DEFAULT_TRIP_COMMUTE_GAP_MIN,
     OPTION_TRIP_DEBUG,
@@ -1180,6 +1182,11 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 vol.Required(
                     OPTION_STATISTICS_IMPORT,
                     default=options.get(OPTION_STATISTICS_IMPORT, DEFAULT_STATISTICS_IMPORT),
+                ): selector.BooleanSelector(),
+                # Read at the next startup; nothing to apply now.
+                vol.Required(
+                    OPTION_REFRESH_ON_START,
+                    default=options.get(OPTION_REFRESH_ON_START, DEFAULT_REFRESH_ON_START),
                 ): selector.BooleanSelector(),
             }
         )

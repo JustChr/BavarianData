@@ -156,6 +156,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `charging_loss_percent` | Charging costs & history | 🟡 |
 | `history_retain_months` | Charging costs & history | 🟡 |
 | `statistics_import` | Charging costs & history | 🟡 |
+| `refresh_on_start` | Charging costs & history | 🟢 Feature-Charging-History-and-Cost → "Restarting while the car is charging" |
 | `bridge_enabled` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |
 | `bridge_topic_prefix` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |
 | `bridge_retain` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |

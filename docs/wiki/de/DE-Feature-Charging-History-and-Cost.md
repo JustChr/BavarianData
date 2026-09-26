@@ -84,6 +84,18 @@ In beiden Fällen wird der Ladevorgang als **`interrupted`** markiert, sichtbar 
 solchen Ladevorgang (siehe [Batteriezustand](DE-Feature-Battery-Health)); Energie
 und Kosten zählen überall sonst weiter.
 
+Welcher der beiden Fälle vorliegt, weiß man erst, wenn das Auto es meldet — und
+ein Auto, das mit gleichbleibender Leistung lädt, kann stundenlang schweigen.
+Hat sich das Auto zwei Minuten nach dem Neustart noch nicht gemeldet, **fragt die
+Integration deshalb einmal bei BMW nach** — BMWs Server kennen den letzten Status,
+den das Auto geschickt hat, auch ein Ladeende, während Home Assistant aus war.
+Das kostet eine der 50 täglichen Abfragen, nur wenn tatsächlich geladen wurde,
+und höchstens einmal pro halbe Stunde, egal wie oft du neu startest. Abschalten
+lässt sich das mit **`refresh_on_start`** unter **Konfigurieren → Ladekosten &
+Verlauf**; der Ladevorgang wartet dann auf das Auto und wird als durch den
+Neustart beendet abgelegt, wenn das Auto 15 Minuten lang schweigt. Der geschätzte
+Ladezustand steigt währenddessen mit der zuletzt gemessenen Rate weiter.
+
 Vor v0.9.9 ging eine laufende Ladung bei einem Neustart ganz verloren, weshalb
 hin und wieder eine Ladung im Verlauf fehlen und die Monatssummen zu niedrig sein
 konnten.

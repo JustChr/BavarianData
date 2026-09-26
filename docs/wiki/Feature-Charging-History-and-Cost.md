@@ -74,6 +74,17 @@ Either way the session is flagged **`interrupted`**, which is visible in
 (see [Battery health](Feature-Battery-Health)); energy and cost still count
 everywhere else.
 
+Which of the two it was is only known once the car says so, and a car charging
+at steady power can stay silent for hours. So if the car has not reported within
+two minutes of the restart, the integration **asks BMW once** — BMW's servers
+keep the last status the car sent, including a stop that happened while Home
+Assistant was down. That costs one of the 50 daily requests, only when a charge
+was actually running, and at most once per half hour however often you restart.
+Switch it off with **`refresh_on_start`** under **Configure → Charging costs &
+history**; the charge then waits for the car, and is filed as ended by the
+restart if the car stays quiet for 15 minutes. Meanwhile the estimated state of
+charge keeps climbing at the rate the charge was running at.
+
 Before v0.9.9 an in-progress charge was dropped outright on a restart, which is
 why the odd charge could be missing from the ledger and monthly totals could
 read low.

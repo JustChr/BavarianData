@@ -109,6 +109,15 @@ OPTION_TRIP_DEBUG = "trip_debug"
 OPTION_STATISTICS_IMPORT = "statistics_import"
 DEFAULT_STATISTICS_IMPORT = True
 
+# One REST request after a restart that interrupted a charge, to learn whether it
+# is still running (see startup_refresh.py). On by default: it costs nothing
+# unless a charge was actually open, and it is the only way to hear about a
+# charge that ended -- or carried on silently -- while Home Assistant was down.
+OPTION_REFRESH_ON_START = "refresh_on_start"
+DEFAULT_REFRESH_ON_START = True
+# entry.data: epoch seconds of the last such request, to space out restart loops.
+LAST_STARTUP_REFRESH = "last_startup_refresh"
+
 # Dispatcher signal fired when a vehicle render is (re)cached, carrying the VIN.
 SIGNAL_VEHICLE_IMAGE = f"{DOMAIN}_vehicle_image_updated"
 

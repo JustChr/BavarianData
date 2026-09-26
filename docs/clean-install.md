@@ -34,7 +34,7 @@ whether a "fresh" install is really fresh:
 | Diagnostics | `debug_log`, `trip_debug` |
 | Hidden overrides | `mqtt_keepalive`, `diagnostic_log_interval` |
 | Charging costs | `price_mode`, `price_fixed`, `price_entity`, `price_currency`, `grid_energy_entity`, `charging_loss_percent` |
-| History | `history_retain_months`, `statistics_import` |
+| History | `history_retain_months`, `statistics_import`, `refresh_on_start` |
 | Solar & energy sources | `pv_power_entity`, `grid_power_entity`, `battery_power_entity`, `battery_power_invert`, `price_solar` |
 | evcc / wallbox bridge | `bridge_enabled`, `bridge_topic_prefix`, `bridge_retain` |
 | Trips | `trip_work_zone`, `trip_geocode`, `trip_track` |

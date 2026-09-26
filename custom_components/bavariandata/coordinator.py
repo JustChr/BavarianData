@@ -1461,6 +1461,11 @@ class CardataCoordinator:
                     builder.soc_end,
                 )
 
+    def unconfirmed_restored_charges(self) -> list[str]:
+        """VINs whose charge was restored across a restart and not yet confirmed."""
+
+        return list(self._restored_open_sessions)
+
     def _arm_restored_open_timer(self, vin: str) -> None:
         """Close a restored session the stream never confirmed either way."""
 

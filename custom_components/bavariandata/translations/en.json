@@ -185,7 +185,8 @@
           "grid_energy_entity": "Wallbox energy sensor",
           "charging_loss_percent": "Charging losses (%)",
           "history_retain_months": "Keep history for (months)",
-          "statistics_import": "Publish to long-term statistics"
+          "statistics_import": "Publish to long-term statistics",
+          "refresh_on_start": "Check a running charge after a restart"
         },
         "data_description": {
           "price_mode": "Choose 'None' to record sessions without costing them.",
@@ -195,7 +196,8 @@
           "grid_energy_entity": "Optional. Your wallbox's cumulative energy total (one that only ever counts up, not a per-session counter that resets). Wh, kWh and MWh are handled; no unit at all is read as kWh. It is read only for charges in your Home zone, since the meter cannot tell which car it charged. A measured grid figure always beats our battery-side estimate — and one that cannot be right, such as a house meter reading far more than the pack absorbed, is ignored rather than believed.",
           "charging_loss_percent": "Optional. Grosses battery-side energy up towards grid energy.",
           "history_retain_months": "0 keeps everything. Sessions older than this are discarded.",
-          "statistics_import": "Mirrors energy, cost and distance into statistics you can add to the Energy dashboard. Stays local; turning it off deletes them again."
+          "statistics_import": "Mirrors energy, cost and distance into statistics you can add to the Energy dashboard. Stays local; turning it off deletes them again.",
+          "refresh_on_start": "If a charge was running when Home Assistant restarted and the car has not spoken up two minutes later, ask BMW once whether it still is. Uses one of the 50 daily requests, and only in that case. Without it, a charge that ended while Home Assistant was down stays open until the car next sends data, which can take hours."
         }
       },
       "action_energy_sources": {

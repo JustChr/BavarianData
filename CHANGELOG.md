@@ -9,6 +9,22 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **A charge running during a restart is checked with BMW instead of guessed
+  at.** Restarting Home Assistant mid-charge left the charge waiting for the car
+  to speak up, and a car charging at steady power can stay silent for hours:
+  after 15 minutes the charge was filed as ended by the restart while it carried
+  on, and a charge that really had ended while Home Assistant was down was only
+  noticed whenever the car next sent anything. Now, if the car has not reported
+  within two minutes of a restart, the integration asks BMW once — BMW's servers
+  keep the last status the car sent, including a stop that happened while
+  nobody was listening. It costs one of the 50 daily requests, **only when a
+  charge was actually running**, and at most once per half hour however often
+  you restart. On by default; switch it off with *Check a running charge after
+  a restart* under **Configure → Charging costs & history**. It cannot wake the
+  car, so it settles whether the car is charging, not a fresher state of charge —
+  the estimate keeps covering that.
+
 ## [0.9.12] - 2026-09-26
 
 Promotes 0.9.12-beta.1 unchanged, plus one fix for the charging display: the

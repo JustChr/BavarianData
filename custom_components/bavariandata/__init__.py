@@ -66,6 +66,9 @@ from .const import (
     DEFAULT_TRIP_COMMUTE_GAP_MIN,
     OPTION_STATISTICS_IMPORT,
     DEFAULT_STATISTICS_IMPORT,
+    OPTION_REFRESH_ON_START,
+    DEFAULT_REFRESH_ON_START,
+    LAST_STARTUP_REFRESH,
     OPTION_STREAM_SECTIONS,
     DEBUG_LOG,
     LOVELACE_CARD_FILENAME,
@@ -91,6 +94,7 @@ from .stream_activation import (
     PortalStreamClient,
     StreamActivationError,
 )
+from .startup_refresh import STARTUP_REFRESH_DELAY_S, startup_refresh_vins
 from .tyre_store import TyreStore
 from .vehicles import known_vins
 from .history.backfill import StatisticsPublisher
@@ -1870,6 +1874,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     runtime_data.telematic_task = entry.async_create_background_task(
         hass, _telematic_poll_loop(hass, entry.entry_id), f"{DOMAIN}_telematic_poll"
     )
+    entry.async_create_background_task(
+        hass, _async_startup_refresh(hass, entry.entry_id), f"{DOMAIN}_startup_refresh"
+    )
 
     async def _flush_on_stop(_event) -> None:
         """Save in-flight records when Home Assistant shuts down.
@@ -2716,6 +2723,47 @@ async def _async_perform_tyre_fetch(
         refreshed = True
 
     return refreshed
+
+
+async def _async_startup_refresh(hass: HomeAssistant, entry_id: str) -> None:
+    """Ask BMW once whether a charge a restart interrupted is still running.
+
+    Costs a request only when a restored charge is still unconfirmed after the
+    stream's head start (see ``startup_refresh.py``). The answer goes through the
+    ordinary message path, so a CHARGINGACTIVE resumes the restored session and a
+    NOCHARGING closes it -- before its grace timer would have filed it as ended
+    by the restart.
+    """
+
+    try:
+        await asyncio.sleep(STARTUP_REFRESH_DELAY_S)
+    except asyncio.CancelledError:
+        return
+    entry = hass.config_entries.async_get_entry(entry_id)
+    runtime: CardataRuntimeData | None = getattr(entry, "runtime_data", None) if entry else None
+    if entry is None or runtime is None:
+        return
+    now = time.time()
+    vins = startup_refresh_vins(
+        enabled=bool(entry.options.get(OPTION_REFRESH_ON_START, DEFAULT_REFRESH_ON_START)),
+        unconfirmed=runtime.coordinator.unconfirmed_restored_charges(),
+        last_refresh_at=entry.data.get(LAST_STARTUP_REFRESH),
+        now=now,
+    )
+    if not vins:
+        return
+    # Stamped before the request, so a restart loop that crashes mid-fetch is
+    # still spaced out.
+    updated = dict(entry.data)
+    updated[LAST_STARTUP_REFRESH] = now
+    hass.config_entries.async_update_entry(entry, data=updated)
+    for vin in vins:
+        _LOGGER.info(
+            "A charge was running on %s when Home Assistant restarted; asking BMW "
+            "whether it still is (one request of the daily quota)",
+            mask_vin(vin),
+        )
+        await _async_perform_telematic_fetch(hass, entry, runtime, vin_override=vin)
 
 
 async def _telematic_poll_loop(hass: HomeAssistant, entry_id: str) -> None:
