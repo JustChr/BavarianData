@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.13-beta.4] - 2026-09-26
+
 ### Fixed
 - **Plug-in hybrids were shown a real range far beyond what the battery
   reaches.** Consumption is measured by dividing the energy charged by the
