@@ -19,6 +19,21 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   value below 0 % or above 100 % — a sentinel or a corrupt message — became the
   estimate's anchor and a session's start or end. BMW's raw sensor still shows
   what was sent. Found by the new coordinator test harness.
+- **A drive after a restart started one position late, and not at Home.** The
+  last known position was restored but not used, so the first position report
+  of the next drive only served as a starting point: the trip began a report
+  later, somewhere down the road, and lost that first stretch. A drive out of
+  your Home zone was therefore not recognised as starting at Home, which is what
+  commute detection needs. It now starts where the car stood.
+- **On a fresh install, every position was plotted from mismatched halves.** BMW
+  sends a position as latitude and longitude one second apart; the very first
+  latitude was dropped before it was counted, and from then on every position
+  paired a new latitude with the previous longitude — zig-zag tracks and inflated
+  distances until the next restart.
+- **The charging-started event could miss the charge target and the state of
+  charge.** When they arrived in the same message as the charging status, the
+  event had already fired without them. Automations using `target_soc` on
+  `bavariandata_charging_started` now get it.
 
 ## [0.9.13-beta.2] - 2026-09-26
 

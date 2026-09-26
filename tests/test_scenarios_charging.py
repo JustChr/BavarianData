@@ -132,18 +132,19 @@ def test_the_same_batch_twice_changes_nothing(h):
     assert (h.estimate(), h.rate(), list(h.hass.events)) == before
 
 
-def test_the_started_event_knows_the_target_sent_alongside(h):
-    """Found by this harness: a target in the same batch as the status is lost.
+def test_the_started_event_knows_what_arrived_alongside_the_status(h):
+    """Found by this harness: the event fired mid-batch and missed the target.
 
-    ``charging.status`` fires the event while the batch is still being read, so
-    a target further down the same batch is not known yet. Pinned as current
-    behaviour; flip the assertion when it is fixed.
+    ``charging.status`` used to open the session and fire the event while the
+    batch was still being read, so a target -- or the SoC -- later in the same
+    batch was not known yet. Both are acted on once the batch is read now.
     """
 
-    h.send(10, soc=38, status="CHARGINGACTIVE", power=3480, target=80)
+    h.send(10, status="CHARGINGACTIVE", power=3480, target=80, soc=38)
 
     (_name, data), *_ = h.events()
-    assert data["target_soc"] is None
+    assert data["target_soc"] == 80
+    assert data["soc"] == 38
 
 
 # --- restarts -----------------------------------------------------------------

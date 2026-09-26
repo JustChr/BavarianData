@@ -790,6 +790,7 @@ class CardataCoordinator:
         gps_parts: set[str] = set()
         gps_ts: Optional[datetime] = None
 
+        status_change: Optional[tuple[bool, str]] = None
         for descriptor, descriptor_payload in data.items():
             if not isinstance(descriptor_payload, dict):
                 continue
@@ -855,7 +856,10 @@ class CardataCoordinator:
                     was_charging = tracking.charging_active
                     tracking.update_status(value)
                     testing_tracking.update_status(value)
-                    self._fire_charging_event(vin, was_charging, tracking, value)
+                    # Acted on once the whole batch is read: the target, the SoC
+                    # and the power may come after the status in the same batch,
+                    # and the session and its event must see them.
+                    status_change = (was_charging, value)
             elif descriptor == "vehicle.powertrain.electric.battery.stateOfCharge.target":
                 try:
                     target = float(value)
@@ -917,6 +921,9 @@ class CardataCoordinator:
                     segment_fresh = True
 
             async_dispatcher_send(self.hass, self.signal_update, vin, descriptor)
+
+        if status_change is not None:
+            self._fire_charging_event(vin, status_change[0], tracking, status_change[1])
 
         for descriptor in new_sensor:
             async_dispatcher_send(self.hass, self.signal_new_sensor, vin, descriptor)
@@ -2138,6 +2145,27 @@ class CardataCoordinator:
         except Exception:  # noqa: BLE001 - never let trip logic break the stream
             _LOGGER.exception("Door trip detection failed for %s", mask_vin(vin))
 
+    def _seed_gps_from_restore(self, vin: str) -> None:
+        """Start GPS tracking from where the car stood when we last stopped.
+
+        Without it, the first fix after a restart is only a starting point: a
+        car that set off meanwhile has its trip opened one fix late, from that
+        already-moved-on fix -- so a drive out of the Home zone no longer starts
+        at Home, and commute classification loses it. Only a fresh tracker is
+        seeded; a live fix always wins over a restored one.
+        """
+
+        if vin in self._gps_trackers:
+            return
+        try:
+            latitude = float(self.get_state(vin, DESC_GPS_LAT).value)
+            longitude = float(self.get_state(vin, DESC_GPS_LON).value)
+        except AttributeError, TypeError, ValueError:
+            return  # the other half has not been restored yet
+        tracker = self._gps_trackers[vin] = GpsTracker()
+        tracker.last_lat, tracker.last_lon = latitude, longitude
+        self._last_gps_position.setdefault(vin, (latitude, longitude))
+
     def _gps_fix_ready(self, vin: str, now: datetime, parts: set[str]) -> bool:
         """True when a complete lat+lon fix is ready to process.
 
@@ -2221,17 +2249,20 @@ class CardataCoordinator:
 
         if self.history is None:
             return
-        latitude = self._coordinate(vin, "latitude")
-        longitude = self._coordinate(vin, "longitude")
-        if latitude is None or longitude is None:
-            return
         # BMW sends latitude and longitude as two separate messages ~1 s apart.
         # Acting on each pairs a fresh component with a stale one, so the first
         # message plots a phantom right-angle point (and doubles the distance)
         # that the second never gets to correct. Wait until *both* halves of the
         # fix have arrived, so the tracker only ever sees a settled position --
-        # unless a half has frozen long enough to risk a stall.
+        # unless a half has frozen long enough to risk a stall. The half is
+        # registered *before* asking whether both coordinates are known: on a
+        # fresh install the very first latitude has no longitude yet, and
+        # dropping it unregistered left every later fix paired one behind.
         if not self._gps_fix_ready(vin, now, set(parts or GPS_PAIR_PARTS)):
+            return
+        latitude = self._coordinate(vin, "latitude")
+        longitude = self._coordinate(vin, "longitude")
+        if latitude is None or longitude is None:
             return
         try:
             tracker = self._gps_trackers.get(vin)
@@ -3431,6 +3462,8 @@ class CardataCoordinator:
             unit=unit,
             timestamp=timestamp,
         )
+        if descriptor in (DESC_GPS_LAT, DESC_GPS_LON):
+            self._seed_gps_from_restore(vin)
         tracking = self._soc_tracking.setdefault(vin, SocTracking())
         testing_tracking = self._get_testing_tracking(vin)
 

@@ -11,10 +11,10 @@ drive ends with a *stationary* fix, as a real parked car keeps reporting where
 it stands: that is the stop evidence a close needs. Without it the close is held
 (up to ``TRIP_SILENT_HOLD_MAX_S``), which has its own scenario below.
 
-Pinned as found, not fixed: after a restart the GPS tracker starts empty, so
-the first fix of a drive is not counted as movement -- the trip opens one fix
-late and the first leg's GPS distance is lost (an odometer, when streamed,
-still measures the whole drive). It shows in the snapshots' start times.
+The fixture restores a parked position at Home, as the device tracker does on
+a real install. Until 0.9.13-beta.3 that restored position was ignored: the
+first fix of a drive only seeded the tracker, so the trip opened one fix late,
+away from Home -- see ``test_a_drive_out_of_home_starts_at_home``.
 """
 
 from __future__ import annotations
@@ -66,6 +66,18 @@ def test_a_drive_is_one_trip_ending_at_the_last_movement(h, snapshot):
     (trip,) = h.trips()
     assert trip.end < h.at(26)  # the last moving fix, not when the timer fired
     assert _record(h) == snapshot
+
+
+def test_a_drive_out_of_home_starts_at_home(h):
+    """The first fix after a restart is already movement from the parked spot."""
+
+    _drive(h, 5, 5)
+    h.fix(17, HOME[0] + 5 * STEP, HOME[1] + 5 * STEP)
+    h.advance_to(40)
+
+    (trip,) = h.trips()
+    assert trip.start_place["label"] == "Home"
+    assert trip.start <= h.at(7.1)  # the first moving fix, not the second
 
 
 def test_a_close_without_stop_evidence_is_held_not_guessed(h, snapshot):
@@ -139,18 +151,15 @@ def test_a_restart_mid_drive_does_not_lose_the_trip(h, snapshot):
     assert _record(h) == snapshot
 
 
-@pytest.mark.xfail(strict=True, reason="first-ever fix pairs one behind; see docstring")
 def test_a_fresh_install_pairs_its_gps_halves_correctly():
-    """Found by this harness: without a restored position, pairing drifts.
+    """Found by this harness: without a restored position, pairing drifted.
 
     BMW sends a fix as latitude then longitude. With no position known yet (a
     fresh install, or a device tracker that never saved one), the first
-    latitude is dropped before its arrival is registered -- the longitude
-    check returns early -- so every later fix pairs the new latitude with the
-    previous longitude, the L-shaped track ``_gps_fix_ready`` documents as
-    impossible. Real installs mostly escape it because the device tracker
-    restores the last position at startup. ``strict`` makes this fail loudly
-    once fixed, so the marker gets removed.
+    latitude was dropped before its arrival was registered -- the longitude
+    check returned early -- so every later fix paired the new latitude with
+    the previous longitude: the L-shaped track ``_gps_fix_ready`` exists to
+    prevent.
     """
 
     with CoordinatorHarness() as fresh:

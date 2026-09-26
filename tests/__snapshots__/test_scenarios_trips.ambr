@@ -1,7 +1,7 @@
 # serializer version: 1
 # name: test_a_close_without_stop_evidence_is_held_not_guessed
   '''
-  08:09:01 -> 08:15:01  5.3 km  Unknown -> Unknown
+  08:07:01 -> 08:15:01  6.7 km  Home -> Unknown
   --
       0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
       7.0  wait 7                   est=     - rate=    - charging=off open=n sessions=0
@@ -30,7 +30,7 @@
 # ---
 # name: test_a_drive_is_one_trip_ending_at_the_last_movement
   '''
-  08:09:01 -> 08:25:01  12.0 km  Unknown -> Unknown
+  08:07:01 -> 08:25:01  13.4 km  Home -> Unknown
   --
       0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
       7.0  wait 7                   est=     - rate=    - charging=off open=n sessions=0
@@ -82,7 +82,7 @@
 # ---
 # name: test_a_garage_that_swallows_the_fix_closes_at_the_arrival
   '''
-  08:09:01 -> 08:15:01  5.3 km  Unknown -> Unknown
+  08:07:01 -> 08:15:01  6.7 km  Home -> Unknown
   --
       0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
       7.0  wait 7                   est=     - rate=    - charging=off open=n sessions=0
@@ -114,8 +114,8 @@
 # ---
 # name: test_a_restart_mid_drive_does_not_lose_the_trip
   '''
-  08:20:02 -> 08:26:02  5.3 km  Unknown -> Unknown
-  08:09:01 -> 08:15:01  5.3 km  Unknown -> Unknown
+  08:18:02 -> 08:26:02  6.7 km  Unknown -> Unknown
+  08:07:01 -> 08:15:01  6.7 km  Home -> Unknown
   --
       0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
       7.0  wait 7                   est=     - rate=    - charging=off open=n sessions=0
@@ -168,7 +168,7 @@
 # ---
 # name: test_a_tunnel_does_not_split_the_drive
   '''
-  08:09:01 -> 08:35:01  18.7 km  Unknown -> Unknown
+  08:07:01 -> 08:35:01  20.0 km  Home -> Unknown
   --
       0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
       7.0  wait 7                   est=     - rate=    - charging=off open=n sessions=0
@@ -221,7 +221,7 @@
 # name: test_two_drives_with_a_stop_between_are_two_trips
   '''
   09:02:01 -> 09:10:01  6.7 km  Unknown -> Unknown
-  08:09:01 -> 08:15:01  5.3 km  Unknown -> Unknown
+  08:07:01 -> 08:15:01  6.7 km  Home -> Unknown
   --
       0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
       7.0  wait 7                   est=     - rate=    - charging=off open=n sessions=0
