@@ -230,6 +230,13 @@ don't count toward the battery-side average. The month's consumption measured at
 the plug is withheld too, for the same reason
 ([more](Feature-Efficiency-and-Range#plug-in-hybrids)).
 
+**A hybrid trip records no end SoC when none arrived during it.** Some plug-in
+hybrids never stream their state of charge; the only reading is the one from
+before the drive. Rather than store that as the end too, a battery that apparently
+never moved, the trip keeps its start SoC and leaves the end, the SoC used and the
+energy blank, and the card shows no SoC line for it. A battery car streams its SoC
+whenever it changes, so on a short hop an unchanged SoC is real and is kept.
+
 > **Recuperation** is likewise shown in **kWh/100 km**, not kWh: BMW's
 > `recuperationTotal` is documented as an average per 100 km, so a month is a
 > distance-weighted mean of it, never a sum.

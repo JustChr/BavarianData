@@ -592,7 +592,7 @@ class CardataCoordinator:
         builder = self._trip_builders.get(vin)
         if builder is None:
             return None
-        soc_now = self._current_soc(vin)
+        soc_now = self._trip_soc_end(vin, builder.start)
         progress = builder.progress(
             dt_util.utcnow(),
             mileage_now=self._odometer_km(vin),
@@ -2597,7 +2597,7 @@ class CardataCoordinator:
             return
 
         end_place = await self._resolve_place(vin)
-        soc_end = self._current_soc(vin)
+        soc_end = self._trip_soc_end(vin, builder.start)
         stats, travelled_km = self._read_trip_segment(vin)
         energy_kwh = self._trip_energy_kwh(vin, builder.soc_start, soc_end)
         ended_at = self._trip_end_time(vin, now, builder.start, reason)
@@ -2927,6 +2927,23 @@ class CardataCoordinator:
         if tracking.last_soc_percent is not None:
             return round(tracking.last_soc_percent, 1)
         return None
+
+    def _trip_soc_end(self, vin: str, started: datetime) -> Optional[float]:
+        """The SoC at the end of a drive; on a hybrid, only if read during it.
+
+        Issue #25's X3 30e never streams its SoC (it arrives only with a REST
+        catch-up), so the reading from before a drive was still the latest at its
+        end, and every trip was stored as a battery that never moved: "38 → 38 %".
+        Only on a plug-in hybrid, though. A battery car streams its SoC on
+        change, so no reading during a short hop means it genuinely didn't drop
+        a whole percent -- about half the i5's trips -- and that end is true.
+        """
+
+        if self.is_plug_in_hybrid(vin):
+            tracking = self._soc_tracking.get(vin)
+            if tracking is None or tracking.last_update is None or tracking.last_update <= started:
+                return None
+        return self._current_soc(vin)
 
     def _trip_energy_kwh(
         self, vin: str, soc_start: Optional[float], soc_end: Optional[float]

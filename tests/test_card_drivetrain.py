@@ -131,10 +131,13 @@ def _named(descriptor: str, state: str, name: str, unit: str | None = None, **at
 # two of them are lock states. It has no `isPlugged` binary sensor, and BMW's
 # basic data spells it PHEV but with the same "BE" propulsion as a battery car.
 # The charge had finished at its target, which BMW reports as `chargingended`.
+# The post-charge lock state streams as a plain boolean, so it is a *binary*
+# sensor with no device class: it reads "off" while the cable is in (the second
+# report on #25, where a keyword pick showed it as the plug).
 PHEV = {
-    "sensor.x3_30e_xdrive_charging_port_plug_post_charge_lock_state": _named(
+    "binary_sensor.x3_30e_xdrive_charging_port_plug_post_charge_lock_state": _named(
         "vehicle.body.chargingPort.isHospitalityActive",
-        "hospitality_inactive",
+        "off",
         "Charging Port plug post-charge lock state",
     ),
     "sensor.x3_30e_xdrive_charging_port_plug_lock_state": _named(
@@ -264,16 +267,34 @@ def test_the_plug_tile_reads_the_plug_state_not_a_lock():
     assert "mdi:power-plug-off" not in html
 
 
+def test_a_real_is_plugged_sensor_still_wins():
+    """The plug-class binary sensor outranks the charging port's enum."""
+
+    plugged = "binary_sensor.x3_30e_xdrive_charging_port_plugged_any_position"
+    states = {
+        **PHEV,
+        plugged: _named(
+            "vehicle.powertrain.tractionBattery.charging.port.anyPosition.isPlugged",
+            "on",
+            "Charging Port plugged (any position)",
+            device_class="plug",
+        ),
+    }
+    html = _render(states)["html"]
+    assert f'data-entity="{plugged}"' in html
+    assert "mdi:power-plug-off" not in html
+
+
 def test_the_plug_tile_survives_a_german_install():
     """No German name contains "plug", so only the descriptor can find it."""
 
     # Neutral ids and a German name, so only the descriptor carries English.
     german = {
-        f"sensor.x3_{index}": {
+        f"{entity_id.split('.')[0]}.x3_{index}": {
             **st,
             "attributes": {**st["attributes"], "friendly_name": "X3 Ladeanschluss"},
         }
-        for index, st in enumerate(PHEV.values())
+        for index, (entity_id, st) in enumerate(PHEV.items())
     }
     plug_id = f"sensor.x3_{list(PHEV).index(PLUG_STATE)}"
     html = _render(german)["html"]

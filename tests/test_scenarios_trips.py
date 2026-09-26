@@ -166,3 +166,56 @@ def test_a_fresh_install_pairs_its_gps_halves_correctly():
         for i in range(4):
             fresh.fix(5 + i * 2, HOME[0] + i * STEP, HOME[1] + i * STEP)
         assert fresh.coordinator._gps_pending_parts.get(fresh.vin, set()) == set()
+
+
+# What makes the harness car a plug-in hybrid: fuel data beside its battery.
+FUEL = {"vehicle.drivetrain.fuelSystem.level": 95}
+
+
+def test_a_hybrid_drive_without_a_soc_reading_records_no_soc_end(h):
+    """Issue #25's X3 30e never streams its state of charge.
+
+    The SoC arrives only with a REST catch-up, so the reading from before the
+    drive was still the only one at its end, and every trip was stored as
+    "38 → 38 %": a battery that apparently never moved. With nothing read after
+    the trip started, there is no end to report.
+    """
+
+    h.send(1, soc=38.0, extra=FUEL)
+    here = _drive(h, 5, 5)
+    h.fix(17, *here)  # parked
+    h.advance_to(40)
+
+    (trip,) = h.trips()
+    assert trip.soc_start == 38.0
+    assert trip.soc_end is None
+    assert trip.soc_drop is None
+
+
+def test_a_hybrid_drive_with_a_soc_reading_keeps_its_soc_end(h):
+    """The counterpart: a hybrid that does send its SoC keeps the whole delta."""
+
+    h.send(1, soc=72.0, extra=FUEL)
+    here = _drive(h, 5, 5)
+    h.send(16, soc=68.0)
+    h.fix(17, *here)  # parked
+    h.advance_to(40)
+
+    (trip,) = h.trips()
+    assert (trip.soc_start, trip.soc_end) == (72.0, 68.0)
+
+
+def test_a_battery_car_hop_without_a_soc_reading_keeps_its_soc_end(h):
+    """A battery car streams its SoC on change: silence means it didn't drop.
+
+    About half the i5's trips are short hops like this, stored as "47 → 47 %".
+    That is true, and the hybrid rule above must not blank them.
+    """
+
+    h.send(1, soc=47.0)
+    here = _drive(h, 5, 5)
+    h.fix(17, *here)  # parked
+    h.advance_to(40)
+
+    (trip,) = h.trips()
+    assert (trip.soc_start, trip.soc_end) == (47.0, 47.0)

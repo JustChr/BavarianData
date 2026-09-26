@@ -248,6 +248,14 @@ behalten daher ihre Energie, der Verbrauchswert bleibt leer, und sie zählen nic
 batterieseitigen Durchschnitt. Auch der am Stecker gemessene Monatsverbrauch wird aus
 demselben Grund zurückgehalten ([mehr](DE-Feature-Efficiency-and-Range#plug-in-hybride)).
 
+**Eine Hybrid-Fahrt speichert keinen End-Ladezustand, wenn währenddessen keiner kam.**
+Manche Plug-in-Hybride senden ihren Ladezustand nie; der einzige Wert ist dann der
+von vor der Fahrt. Statt ihn auch als Ende zu speichern, als hätte sich die Batterie
+nie bewegt, behält die Fahrt ihren Start-Ladezustand und lässt Ende, verbrauchten
+Ladezustand und Energie leer; die Karte zeigt dafür keine Ladezustandszeile. Ein
+Elektroauto sendet seinen Ladezustand bei jeder Änderung, daher ist ein
+unveränderter Wert auf einer kurzen Fahrt echt und bleibt erhalten.
+
 > Auch die **Rekuperation** wird in **kWh/100 km** gezeigt, nicht in kWh: BMWs
 > `recuperationTotal` ist als Durchschnitt pro 100 km dokumentiert, ein Monat ist
 > also ein nach Strecke gewichtetes Mittel davon, nie eine Summe.

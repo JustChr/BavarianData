@@ -9,6 +9,22 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Plug-in hybrid trips showed an unchanged battery charge.** The X3 30e
+  never streams its state of charge; it arrives only when fetched over the
+  REST API. So the reading from before a drive was still the latest at its
+  end, and every trip read like "38 → 38 %". A hybrid's trip now records an
+  end charge only when one arrived after it started; otherwise the end is left
+  blank and the card shows no charge line for it. Battery cars are unchanged:
+  they stream their charge whenever it changes, so a short hop that shows
+  "47 → 47 %" really didn't use a whole percent. Trips already stored keep
+  their figures (#25).
+- **The card's Plug tile still showed a lock state on the X3.** Its
+  post-charge lock state arrives as a plain on/off value, which makes it a
+  binary sensor, and any binary sensor with "plug" in its name won the tile,
+  reading "Off" beside a connected cable. Only a genuine "plugged in" sensor
+  is taken now; otherwise the charging port's plug state (card 1.15.3).
+
 ## [0.9.13-beta.4] - 2026-09-26
 
 ### Fixed

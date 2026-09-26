@@ -13,7 +13,7 @@
  * config is just `type: custom:bavariandata-card`.
  */
 
-const CARD_VERSION = "1.15.2";
+const CARD_VERSION = "1.15.3";
 
 // Classification -> colour, shared by the trips legend and the trip map so a
 // route drawn on the map matches the colour of its row in the Trips view.
@@ -1016,7 +1016,11 @@ class BavarianDataCard extends HTMLElement {
         this._pick(entities, { prefer: ["mileage", "odometer", "travelled", "traveled"] }),
       plug:
         cfg.plug ||
-        this._pick(entities, { domain: "binary_sensor", prefer: ["plug", "connector"] }) ||
+        // Only a real `isPlugged` (the one boolean given the plug class). A
+        // keyword match also caught `isHospitalityActive`, which issue #25's X3
+        // streams as a boolean -- a binary sensor named "...plug post-charge
+        // lock state" -- and showed it as the plug: "Off" beside a cable in.
+        this._pick(entities, { domain: "binary_sensor", deviceClass: "plug" }) ||
         // A car without the `isPlugged` binary sensor (issue #25's X3) says it
         // on the charging port instead, and three of its English names contain
         // "plug" -- the plug state and two *lock* states -- so the keyword pick
@@ -2730,7 +2734,9 @@ class BavarianDataCard extends HTMLElement {
         `${this._dec(recup, 1)} kWh/100km`,
       ]);
     }
-    const soc = this._socArc(trip);
+    // Both ends or nothing. A car that never streams its SoC while driving
+    // (issue #25's X3) records no end, and "38→?%" on every trip says nothing.
+    const soc = trip.soc_start != null && trip.soc_end != null ? this._socArc(trip) : "";
 
     const factRow = facts
       .map(
