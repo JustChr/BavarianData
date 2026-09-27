@@ -32,14 +32,28 @@ if (process.argv.includes("--dry-run")) {
   process.exit(0);
 }
 
-const res = await fetch("https://api.indexnow.org/indexnow", {
-  method: "POST",
-  headers: { "Content-Type": "application/json; charset=utf-8" },
-  body: JSON.stringify({ host: new URL(SITE_URL).host, key, keyLocation: `${root}/${keyFile}`, urlList: urls }),
-});
-// 200 = accepted, 202 = accepted, key validation pending.
-console.log(`IndexNow: HTTP ${res.status} for ${urls.length} URLs`);
-if (res.status >= 300) {
-  console.log(await res.text());
+const body = JSON.stringify({ host: new URL(SITE_URL).host, key, keyLocation: `${root}/${keyFile}`, urlList: urls });
+// The first submission for a key starts an asynchronous check of the key file
+// and is answered 403 "SiteVerificationNotCompleted" meanwhile: wait, retry.
+for (let attempt = 1; ; attempt++) {
+  const res = await fetch("https://api.indexnow.org/indexnow", {
+    method: "POST",
+    headers: { "Content-Type": "application/json; charset=utf-8" },
+    body,
+  });
+  // 200 = accepted, 202 = accepted, key validation pending.
+  console.log(`IndexNow: HTTP ${res.status} for ${urls.length} URLs`);
+  if (res.status < 300) break;
+  const text = await res.text();
+  console.log(text);
+  if (res.status === 403 && text.includes("SiteVerificationNotCompleted")) {
+    if (attempt < 3) {
+      await new Promise((r) => setTimeout(r, 60_000));
+      continue;
+    }
+    // Their check of the key file can take hours; the next deploy resubmits.
+    console.log("::warning::IndexNow is still verifying the key file; the next deploy will resubmit.");
+    break;
+  }
   process.exit(1);
 }
