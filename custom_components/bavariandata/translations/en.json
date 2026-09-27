@@ -3098,7 +3098,7 @@
         },
         "language": {
           "name": "Language",
-          "description": "Report language (en or de). Defaults to Home Assistant's own language. Only affects the HTML report -- CSV headers are always machine-readable English."
+          "description": "Report language, as a code such as en, de or fr. Defaults to Home Assistant's own language. Only affects the HTML report -- CSV headers are always machine-readable English."
         }
       }
     },

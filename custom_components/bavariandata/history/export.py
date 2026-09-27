@@ -9,7 +9,7 @@ dependency to every install for a feature few users touch; a self-contained HTML
 report prints to PDF from any browser and can be made to look considerably
 better than anything we would draw by hand.
 
-Labels are baked in here for both languages rather than threaded through
+Labels are baked in here for every language rather than threaded through
 ``translations/``: the same choice the bundled Lovelace card makes, and it keeps
 the module a pure function of its arguments.
 """
@@ -134,6 +134,403 @@ STRINGS: dict[str, dict[str, str]] = {
             "Energie wurde geladen, während kein Preis bekannt war."
         ),
         "source": "Aufgezeichnet von BavarianData aus dem BMW-CarData-Stream.",
+    },
+    "fr": {
+        "report_title": "Rapport de conduite et de recharge",
+        "month": "Mois",
+        "vehicle": "Véhicule",
+        "generated": "Généré le",
+        "charging": "Recharge",
+        "trips": "Trajets",
+        "no_charging": "Aucune session de recharge enregistrée pour ce mois.",
+        "no_trips": "Aucun trajet enregistré pour ce mois.",
+        "sessions": "Sessions",
+        "energy": "Énergie",
+        "solar": "Solaire autoproduit",
+        "cost": "Coût",
+        "distance": "Distance",
+        "trip_count": "Trajets",
+        "consumption": "Conso. moyenne",
+        "consumption_col": "Consommation (kWh/100 km)",
+        "at_the_plug": "à la prise",
+        "at_the_battery": "à la batterie",
+        "recuperation": "Récupéré",
+        "cost_per_100km": "Coût aux 100 km",
+        "business": "Professionnel",
+        "private": "Privé",
+        "commute": "Domicile-travail",
+        "unclassified": "Non classé",
+        "date": "Date",
+        "start": "Départ",
+        "end": "Fin",
+        "duration": "Durée",
+        "location": "Lieu",
+        "soc": "Charge",
+        "peak": "Pic",
+        "from": "De",
+        "to": "À",
+        "class": "Type",
+        "assumed": "supposé",
+        "estimated": "estimé",
+        "total": "Total",
+        "disclaimer": (
+            "Ceci est un journal de trajets et une aide aux frais, pas un "
+            "carnet de bord conforme aux exigences fiscales. Il n'offre aucune "
+            "des garanties d'inaltérabilité ni de saisie en temps utile qu'exige "
+            "une administration fiscale."
+        ),
+        "footnote_partial": (
+            "Au moins un coût est un minimum : une partie de l'énergie de cette "
+            "session a été chargée alors qu'aucun prix n'était connu."
+        ),
+        "source": "Enregistré par BavarianData à partir du flux BMW CarData.",
+    },
+    "it": {
+        "report_title": "Report di guida e ricarica",
+        "month": "Mese",
+        "vehicle": "Veicolo",
+        "generated": "Generato",
+        "charging": "Ricarica",
+        "trips": "Viaggi",
+        "no_charging": "Nessuna sessione di ricarica registrata per questo mese.",
+        "no_trips": "Nessun viaggio registrato per questo mese.",
+        "sessions": "Sessioni",
+        "energy": "Energia",
+        "solar": "Dal proprio fotovoltaico",
+        "cost": "Costo",
+        "distance": "Distanza",
+        "trip_count": "Viaggi",
+        "consumption": "Consumo medio",
+        "consumption_col": "Consumo (kWh/100 km)",
+        "at_the_plug": "alla presa",
+        "at_the_battery": "alla batteria",
+        "recuperation": "Recuperato",
+        "cost_per_100km": "Costo per 100 km",
+        "business": "Lavoro",
+        "private": "Privato",
+        "commute": "Pendolarismo",
+        "unclassified": "Non classificato",
+        "date": "Data",
+        "start": "Inizio",
+        "end": "Fine",
+        "duration": "Durata",
+        "location": "Luogo",
+        "soc": "Carica",
+        "peak": "Picco",
+        "from": "Da",
+        "to": "A",
+        "class": "Tipo",
+        "assumed": "presunto",
+        "estimated": "stimato",
+        "total": "Totale",
+        "disclaimer": (
+            "Questo è un diario di viaggio e un aiuto per le spese, non un "
+            "registro di bordo valido ai fini fiscali. Non offre alcuna delle "
+            "garanzie di inalterabilità e tempestività richieste da "
+            "un'autorità fiscale."
+        ),
+        "footnote_partial": (
+            "Almeno un costo è un valore minimo: parte dell'energia di quella "
+            "sessione è stata caricata quando nessun prezzo era noto."
+        ),
+        "source": "Registrato da BavarianData dallo stream BMW CarData.",
+    },
+    "es": {
+        "report_title": "Informe de conducción y carga",
+        "month": "Mes",
+        "vehicle": "Vehículo",
+        "generated": "Generado",
+        "charging": "Carga",
+        "trips": "Trayectos",
+        "no_charging": "No hay sesiones de carga registradas en este mes.",
+        "no_trips": "No hay trayectos registrados en este mes.",
+        "sessions": "Sesiones",
+        "energy": "Energía",
+        "solar": "Solar propia",
+        "cost": "Coste",
+        "distance": "Distancia",
+        "trip_count": "Trayectos",
+        "consumption": "Consumo medio",
+        "consumption_col": "Consumo (kWh/100 km)",
+        "at_the_plug": "en el enchufe",
+        "at_the_battery": "en la batería",
+        "recuperation": "Recuperado",
+        "cost_per_100km": "Coste por 100 km",
+        "business": "Trabajo",
+        "private": "Privado",
+        "commute": "Desplazamiento",
+        "unclassified": "Sin clasificar",
+        "date": "Fecha",
+        "start": "Inicio",
+        "end": "Fin",
+        "duration": "Duración",
+        "location": "Lugar",
+        "soc": "Carga",
+        "peak": "Pico",
+        "from": "Desde",
+        "to": "Hasta",
+        "class": "Tipo",
+        "assumed": "supuesto",
+        "estimated": "estimado",
+        "total": "Total",
+        "disclaimer": (
+            "Esto es un diario de trayectos y una ayuda para gastos, no un "
+            "libro de registro válido a efectos fiscales. No ofrece ninguna de "
+            "las garantías de inalterabilidad y puntualidad que exige una "
+            "autoridad tributaria."
+        ),
+        "footnote_partial": (
+            "Al menos un coste es un mínimo: parte de la energía de esa sesión "
+            "se cargó cuando no se conocía ningún precio."
+        ),
+        "source": "Registrado por BavarianData a partir del stream de BMW CarData.",
+    },
+    "nl": {
+        "report_title": "Rij- en laadrapport",
+        "month": "Maand",
+        "vehicle": "Voertuig",
+        "generated": "Gemaakt",
+        "charging": "Laden",
+        "trips": "Ritten",
+        "no_charging": "Geen laadsessies geregistreerd in deze maand.",
+        "no_trips": "Geen ritten geregistreerd in deze maand.",
+        "sessions": "Sessies",
+        "energy": "Energie",
+        "solar": "Uit eigen zonnestroom",
+        "cost": "Kosten",
+        "distance": "Afstand",
+        "trip_count": "Ritten",
+        "consumption": "Gem. verbruik",
+        "consumption_col": "Verbruik (kWh/100 km)",
+        "at_the_plug": "aan de stekker",
+        "at_the_battery": "aan de accu",
+        "recuperation": "Teruggewonnen",
+        "cost_per_100km": "Kosten per 100 km",
+        "business": "Zakelijk",
+        "private": "Privé",
+        "commute": "Woon-werk",
+        "unclassified": "Niet ingedeeld",
+        "date": "Datum",
+        "start": "Start",
+        "end": "Einde",
+        "duration": "Duur",
+        "location": "Locatie",
+        "soc": "Laadniveau",
+        "peak": "Piek",
+        "from": "Van",
+        "to": "Naar",
+        "class": "Type",
+        "assumed": "aangenomen",
+        "estimated": "geschat",
+        "total": "Totaal",
+        "disclaimer": (
+            "Dit is een rittenjournaal en onkostenhulp, geen fiscaal "
+            "geldige rittenadministratie. Het biedt geen van de garanties op "
+            "onveranderbaarheid en tijdigheid die een belastingdienst eist."
+        ),
+        "footnote_partial": (
+            "Minstens één kostenbedrag is een ondergrens: een deel van de "
+            "energie van die sessie is geladen terwijl er geen prijs bekend was."
+        ),
+        "source": "Vastgelegd door BavarianData uit de BMW CarData-stream.",
+    },
+    "pl": {
+        "report_title": "Raport jazdy i ładowania",
+        "month": "Miesiąc",
+        "vehicle": "Pojazd",
+        "generated": "Utworzono",
+        "charging": "Ładowanie",
+        "trips": "Przejazdy",
+        "no_charging": "W tym miesiącu nie zarejestrowano żadnych sesji ładowania.",
+        "no_trips": "W tym miesiącu nie zarejestrowano żadnych przejazdów.",
+        "sessions": "Sesje",
+        "energy": "Energia",
+        "solar": "Z własnej fotowoltaiki",
+        "cost": "Koszt",
+        "distance": "Dystans",
+        "trip_count": "Przejazdy",
+        "consumption": "Śr. zużycie",
+        "consumption_col": "Zużycie (kWh/100 km)",
+        "at_the_plug": "przy gniazdku",
+        "at_the_battery": "przy akumulatorze",
+        "recuperation": "Odzyskano",
+        "cost_per_100km": "Koszt na 100 km",
+        "business": "Służbowy",
+        "private": "Prywatny",
+        "commute": "Dojazd",
+        "unclassified": "Niesklasyfikowany",
+        "date": "Data",
+        "start": "Start",
+        "end": "Koniec",
+        "duration": "Czas",
+        "location": "Miejsce",
+        "soc": "Naładowanie",
+        "peak": "Szczyt",
+        "from": "Skąd",
+        "to": "Dokąd",
+        "class": "Typ",
+        "assumed": "założono",
+        "estimated": "szacunkowo",
+        "total": "Razem",
+        "disclaimer": (
+            "To jest dziennik przejazdów i pomoc w rozliczaniu kosztów, a nie "
+            "kilometrówka uznawana przez urząd skarbowy. Nie zapewnia żadnych "
+            "gwarancji niezmienności ani terminowości wymaganych przez organy "
+            "podatkowe."
+        ),
+        "footnote_partial": (
+            "Co najmniej jeden koszt jest wartością minimalną: część energii tej "
+            "sesji została naładowana, gdy żadna cena nie była znana."
+        ),
+        "source": "Zarejestrowane przez BavarianData ze strumienia BMW CarData.",
+    },
+    "pt": {
+        "report_title": "Relatório de condução e carregamento",
+        "month": "Mês",
+        "vehicle": "Veículo",
+        "generated": "Gerado",
+        "charging": "Carregamento",
+        "trips": "Viagens",
+        "no_charging": "Nenhuma sessão de carregamento registada neste mês.",
+        "no_trips": "Nenhuma viagem registada neste mês.",
+        "sessions": "Sessões",
+        "energy": "Energia",
+        "solar": "Da própria energia solar",
+        "cost": "Custo",
+        "distance": "Distância",
+        "trip_count": "Viagens",
+        "consumption": "Consumo médio",
+        "consumption_col": "Consumo (kWh/100 km)",
+        "at_the_plug": "na tomada",
+        "at_the_battery": "na bateria",
+        "recuperation": "Recuperado",
+        "cost_per_100km": "Custo por 100 km",
+        "business": "Profissional",
+        "private": "Particular",
+        "commute": "Casa-trabalho",
+        "unclassified": "Não classificado",
+        "date": "Data",
+        "start": "Início",
+        "end": "Fim",
+        "duration": "Duração",
+        "location": "Local",
+        "soc": "Carga",
+        "peak": "Pico",
+        "from": "De",
+        "to": "Para",
+        "class": "Tipo",
+        "assumed": "presumido",
+        "estimated": "estimado",
+        "total": "Total",
+        "disclaimer": (
+            "Isto é um diário de viagens e uma ajuda para despesas, não um "
+            "registo de quilometragem válido para efeitos fiscais. Não oferece "
+            "nenhuma das garantias de inalterabilidade e atualidade que uma "
+            "autoridade tributária exige."
+        ),
+        "footnote_partial": (
+            "Pelo menos um custo é um valor mínimo: parte da energia dessa "
+            "sessão foi carregada quando nenhum preço era conhecido."
+        ),
+        "source": "Registado pelo BavarianData a partir do stream BMW CarData.",
+    },
+    "cs": {
+        "report_title": "Přehled jízd a nabíjení",
+        "month": "Měsíc",
+        "vehicle": "Vozidlo",
+        "generated": "Vytvořeno",
+        "charging": "Nabíjení",
+        "trips": "Jízdy",
+        "no_charging": "Za tento měsíc nejsou zaznamenány žádné relace nabíjení.",
+        "no_trips": "Za tento měsíc nejsou zaznamenány žádné jízdy.",
+        "sessions": "Relace",
+        "energy": "Energie",
+        "solar": "Z vlastní FVE",
+        "cost": "Náklady",
+        "distance": "Vzdálenost",
+        "trip_count": "Jízdy",
+        "consumption": "Prům. spotřeba",
+        "consumption_col": "Spotřeba (kWh/100 km)",
+        "at_the_plug": "ze zásuvky",
+        "at_the_battery": "z baterie",
+        "recuperation": "Rekuperováno",
+        "cost_per_100km": "Náklady na 100 km",
+        "business": "Služební",
+        "private": "Soukromá",
+        "commute": "Dojíždění",
+        "unclassified": "Nezařazeno",
+        "date": "Datum",
+        "start": "Začátek",
+        "end": "Konec",
+        "duration": "Doba",
+        "location": "Místo",
+        "soc": "Nabití",
+        "peak": "Špička",
+        "from": "Odkud",
+        "to": "Kam",
+        "class": "Typ",
+        "assumed": "předpokládáno",
+        "estimated": "odhadnuto",
+        "total": "Celkem",
+        "disclaimer": (
+            "Toto je deník jízd a pomůcka pro výdaje, nikoli kniha jízd "
+            "uznávaná finančním úřadem. Neposkytuje žádné ze záruk "
+            "neměnnosti a včasnosti, které daňová správa vyžaduje."
+        ),
+        "footnote_partial": (
+            "Alespoň jedna částka je spodní hranicí: část energie této relace "
+            "byla nabita v době, kdy nebyla známa žádná cena."
+        ),
+        "source": "Zaznamenáno BavarianData ze streamu BMW CarData.",
+    },
+    "sv": {
+        "report_title": "Kör- och laddrapport",
+        "month": "Månad",
+        "vehicle": "Fordon",
+        "generated": "Skapad",
+        "charging": "Laddning",
+        "trips": "Resor",
+        "no_charging": "Inga laddningssessioner registrerade för den här månaden.",
+        "no_trips": "Inga resor registrerade för den här månaden.",
+        "sessions": "Sessioner",
+        "energy": "Energi",
+        "solar": "Från egen solel",
+        "cost": "Kostnad",
+        "distance": "Sträcka",
+        "trip_count": "Resor",
+        "consumption": "Snittförbrukning",
+        "consumption_col": "Förbrukning (kWh/100 km)",
+        "at_the_plug": "vid uttaget",
+        "at_the_battery": "vid batteriet",
+        "recuperation": "Återvunnet",
+        "cost_per_100km": "Kostnad per 100 km",
+        "business": "Tjänst",
+        "private": "Privat",
+        "commute": "Pendling",
+        "unclassified": "Oklassad",
+        "date": "Datum",
+        "start": "Start",
+        "end": "Slut",
+        "duration": "Varaktighet",
+        "location": "Plats",
+        "soc": "Laddnivå",
+        "peak": "Topp",
+        "from": "Från",
+        "to": "Till",
+        "class": "Typ",
+        "assumed": "antaget",
+        "estimated": "uppskattat",
+        "total": "Totalt",
+        "disclaimer": (
+            "Detta är en resedagbok och ett stöd för utlägg, inte en körjournal "
+            "som godtas av Skatteverket. Den ger inga av de garantier för "
+            "oföränderlighet och löpande förande som en skattemyndighet kräver."
+        ),
+        "footnote_partial": (
+            "Minst en kostnad är ett minimivärde: en del av den sessionens "
+            "energi laddades medan inget pris var känt."
+        ),
+        "source": "Registrerat av BavarianData från BMW CarData-strömmen.",
     },
 }
 

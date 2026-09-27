@@ -272,7 +272,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | What appears in logs — masked VIN at default level, full VIN only under debug | 🟢 Troubleshooting → "Debug logging" + Settings-Reference → "Debug logging" |
 | Display units are the user's choice; values are stored as the car sends them (issue #7) | 🟢 Troubleshooting → "A sensor shows an absurd value, or reads unknown after an update" |
 | Which lock entity to automate on — streamed `door.status` vs REST-only `door.lock.status` (issue #8) | 🟢 Feature-Entities-and-Devices → "Which lock entity to use" |
-| Three shipped languages (English, English (UK), Deutsch): names follow HA's language, entity IDs never do; English is US because BMW's field names are (PR #24) | 🟢 Feature-Entities-and-Devices → "Entity names and your language" (EN + DE) |
+| Eleven shipped languages (English, English (UK), Deutsch, Français, Italiano, Español, Nederlands, Polski, Português, Čeština, Svenska): names follow HA's language, entity IDs never do; field names outside English are BMW's own per-language catalogue names; English is US because BMW's field names are (PR #24) | 🟢 Feature-Entities-and-Devices → "Entity names and your language" (EN + DE) |
 
 ## Conventions
 

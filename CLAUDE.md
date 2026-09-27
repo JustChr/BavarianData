@@ -29,9 +29,11 @@ the project-authored `tools/curated_titles.json` and
 
 - `custom_components/bavariandata/catalogue.json`
 - `custom_components/bavariandata/descriptor_metadata.py`
-- `custom_components/bavariandata/translations/en.json` and `de.json` —
-  **only the `entity` block**; `config`/`options` sections are hand-maintained
-  and preserved by the generator
+- `custom_components/bavariandata/translations/<lang>.json` (en, de, fr, it,
+  es, nl, pl, pt, cs, sv) — **only the `entity` block**; every other section
+  (`config`/`options`/`services`/`issues`…) is hand-maintained and preserved by
+  the generator. Outside English, entity names are BMW's own, from its
+  per-language catalogue exports in `tools/catalogue_i18n/`
 - `custom_components/bavariandata/translations/en-GB.json` — fully generated,
   a *delta* over `en.json` (HA overlays a language on top of `en` key by key, so
   only the ~75 differing strings exist). `en.json` is **US English**; the US/UK
@@ -41,7 +43,7 @@ the project-authored `tools/curated_titles.json` and
 
 Entities without a BMW descriptor (derived/diagnostic sensors, device tracker,
 vehicle image) are named from `tools/derived_entities.json` — never a hardcoded
-`_attr_name`, or German installs silently fall back to English.
+`_attr_name`, or non-English installs silently fall back to English.
 
 To change an entity name, edit `title_en` in `tools/curated_titles.json`, then
 re-run steps 1–5 from `tools/README.md` (`build_catalogue.py`,
@@ -201,10 +203,14 @@ zip asset).
   match the existing style. Logging via module loggers; debug logging is
   opt-in (`debug_log` option) because it can contain VIN/GPS.
 - User-facing strings live in `translations/`: the `entity` block is generated
-  by the pipeline; the `config`/`options` (flow) sections are hand-edited
-  directly in `en.json`/`de.json`.
-- English and German are both first-class: entity naming changes must land in
-  both languages (the pipeline handles this). English itself is **US English**
+  by the pipeline; the flow sections are hand-edited directly in **every** full
+  language file. `tests/test_translations_parity.py` fails until a new or
+  reworded English string exists in all of them with the same `{placeholders}`;
+  the card's tables and `history/export.py`'s `STRINGS` are held to the same.
+- Ten full languages ship (en, de, fr, it, es, nl, pl, pt, cs, sv — the eight
+  largest European languages BMW localizes its catalogue into, after en/de).
+  English and German stay first-class for the **wiki**; the others cover the
+  product only. English itself is **US English**
   (`tire`, `color`, `authorize`) — `en-GB.json` and the card's `en-GB` table are
   generated deltas over it, and `tests/test_translations_dialect.py` fails on a
   British spelling in `en.json` or in the card's `en` table.

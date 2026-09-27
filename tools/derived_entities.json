@@ -1,8 +1,8 @@
 {
   "_comment": [
-    "Bilingual names for entities that have NO BMW catalogue descriptor: the",
+    "Translated names for entities that have NO BMW catalogue descriptor: the",
     "integration's own derived/diagnostic entities. Catalogue-backed entities get",
-    "their names from catalogue.json (title_en / name_de) instead.",
+    "their names from catalogue.json (title_en / name_de / names_i18n) instead.",
     "",
     "Keys must match the entity's translation_key at runtime, and must not",
     "collide with any key derived from a descriptor (tests/test_catalogue.py",
@@ -15,105 +15,297 @@
   "sensor": {
     "soc_estimate": {
       "en": "State Of Charge (Predicted on Integration side)",
-      "de": "Ladezustand (integrationsseitig vorhergesagt)"
+      "de": "Ladezustand (integrationsseitig vorhergesagt)",
+      "fr": "État de charge (prédit par l'intégration)",
+      "it": "Stato di carica (previsto dall'integrazione)",
+      "es": "Estado de carga (previsto por la integración)",
+      "nl": "Laadtoestand (voorspeld door de integratie)",
+      "pl": "Stan naładowania (prognoza integracji)",
+      "pt": "Estado de carga (previsto pela integração)",
+      "cs": "Stav nabití (predikce integrace)",
+      "sv": "Laddningsnivå (förutsagd av integrationen)"
     },
     "soc_estimate_testing": {
       "en": "New Extrapolation Testing sensor",
-      "de": "Neuer Extrapolations-Testsensor"
+      "de": "Neuer Extrapolations-Testsensor",
+      "fr": "Nouveau capteur de test d'extrapolation",
+      "it": "Nuovo sensore di test dell'estrapolazione",
+      "es": "Nuevo sensor de prueba de extrapolación",
+      "nl": "Nieuwe testsensor voor extrapolatie",
+      "pl": "Nowy czujnik testowy ekstrapolacji",
+      "pt": "Novo sensor de teste de extrapolação",
+      "cs": "Nový testovací senzor extrapolace",
+      "sv": "Ny testsensor för extrapolering"
     },
     "soc_rate": {
       "en": "Predicted charge speed",
-      "de": "Vorhergesagte Ladegeschwindigkeit"
+      "de": "Vorhergesagte Ladegeschwindigkeit",
+      "fr": "Vitesse de charge prédite",
+      "it": "Velocità di ricarica prevista",
+      "es": "Velocidad de carga prevista",
+      "nl": "Voorspelde laadsnelheid",
+      "pl": "Prognozowana prędkość ładowania",
+      "pt": "Velocidade de carregamento prevista",
+      "cs": "Predikovaná rychlost nabíjení",
+      "sv": "Förutsagd laddhastighet"
     },
     "charged_energy_total": {
       "en": "Charged Energy (Total)",
-      "de": "Geladene Energie (gesamt)"
+      "de": "Geladene Energie (gesamt)",
+      "fr": "Énergie chargée (totale)",
+      "it": "Energia caricata (totale)",
+      "es": "Energía cargada (total)",
+      "nl": "Geladen energie (totaal)",
+      "pl": "Naładowana energia (łącznie)",
+      "pt": "Energia carregada (total)",
+      "cs": "Nabitá energie (celkem)",
+      "sv": "Laddad energi (totalt)"
     },
     "charged_energy_session": {
       "en": "Charged Energy (Session)",
-      "de": "Geladene Energie (Ladevorgang)"
+      "de": "Geladene Energie (Ladevorgang)",
+      "fr": "Énergie chargée (session)",
+      "it": "Energia caricata (sessione)",
+      "es": "Energía cargada (sesión)",
+      "nl": "Geladen energie (sessie)",
+      "pl": "Naładowana energia (sesja)",
+      "pt": "Energia carregada (sessão)",
+      "cs": "Nabitá energie (relace)",
+      "sv": "Laddad energi (session)"
     },
     "last_message": {
       "en": "Last Message Received",
-      "de": "Letzte empfangene Nachricht"
+      "de": "Letzte empfangene Nachricht",
+      "fr": "Dernier message reçu",
+      "it": "Ultimo messaggio ricevuto",
+      "es": "Último mensaje recibido",
+      "nl": "Laatst ontvangen bericht",
+      "pl": "Ostatnia odebrana wiadomość",
+      "pt": "Última mensagem recebida",
+      "cs": "Poslední přijatá zpráva",
+      "sv": "Senast mottagna meddelande"
     },
     "last_telematic_api": {
       "en": "Last Telematics API Call",
-      "de": "Letzter Telematik-API-Aufruf"
+      "de": "Letzter Telematik-API-Aufruf",
+      "fr": "Dernier appel à l'API télématique",
+      "it": "Ultima chiamata all'API telematica",
+      "es": "Última llamada a la API telemática",
+      "nl": "Laatste telematica-API-aanroep",
+      "pl": "Ostatnie wywołanie API telematyki",
+      "pt": "Última chamada à API telemática",
+      "cs": "Poslední volání telematického API",
+      "sv": "Senaste anrop till telematik-API"
     },
     "connection_status": {
       "en": "Stream Connection Status",
-      "de": "Stream-Verbindungsstatus"
+      "de": "Stream-Verbindungsstatus",
+      "fr": "État de la connexion du flux",
+      "it": "Stato della connessione dello stream",
+      "es": "Estado de la conexión del stream",
+      "nl": "Status streamverbinding",
+      "pl": "Stan połączenia strumienia",
+      "pt": "Estado da ligação do stream",
+      "cs": "Stav připojení streamu",
+      "sv": "Status för strömanslutning"
     },
     "api_quota_remaining": {
       "en": "API Quota Remaining",
-      "de": "Verbleibendes API-Kontingent"
+      "de": "Verbleibendes API-Kontingent",
+      "fr": "Quota API restant",
+      "it": "Quota API rimanente",
+      "es": "Cuota de API restante",
+      "nl": "Resterend API-quotum",
+      "pl": "Pozostały limit API",
+      "pt": "Quota de API restante",
+      "cs": "Zbývající kvóta API",
+      "sv": "Återstående API-kvot"
     },
     "charging_cost_month": {
       "en": "Charging Cost (This Month)",
-      "de": "Ladekosten (dieser Monat)"
+      "de": "Ladekosten (dieser Monat)",
+      "fr": "Coût de recharge (ce mois-ci)",
+      "it": "Costo di ricarica (questo mese)",
+      "es": "Coste de carga (este mes)",
+      "nl": "Laadkosten (deze maand)",
+      "pl": "Koszt ładowania (ten miesiąc)",
+      "pt": "Custo de carregamento (este mês)",
+      "cs": "Náklady na nabíjení (tento měsíc)",
+      "sv": "Laddkostnad (denna månad)"
     },
     "charging_cost_session": {
       "en": "Charging Cost (Last Session)",
-      "de": "Ladekosten (letzter Ladevorgang)"
+      "de": "Ladekosten (letzter Ladevorgang)",
+      "fr": "Coût de recharge (dernière session)",
+      "it": "Costo di ricarica (ultima sessione)",
+      "es": "Coste de carga (última sesión)",
+      "nl": "Laadkosten (laatste sessie)",
+      "pl": "Koszt ładowania (ostatnia sesja)",
+      "pt": "Custo de carregamento (última sessão)",
+      "cs": "Náklady na nabíjení (poslední relace)",
+      "sv": "Laddkostnad (senaste session)"
     },
     "charging_energy_month": {
       "en": "Charging Energy (This Month)",
-      "de": "Geladene Energie (dieser Monat)"
+      "de": "Geladene Energie (dieser Monat)",
+      "fr": "Énergie chargée (ce mois-ci)",
+      "it": "Energia caricata (questo mese)",
+      "es": "Energía cargada (este mes)",
+      "nl": "Geladen energie (deze maand)",
+      "pl": "Naładowana energia (ten miesiąc)",
+      "pt": "Energia carregada (este mês)",
+      "cs": "Nabitá energie (tento měsíc)",
+      "sv": "Laddad energi (denna månad)"
     },
     "charging_cost_per_100km": {
       "en": "Charging Cost per 100 km",
-      "de": "Ladekosten pro 100 km"
+      "de": "Ladekosten pro 100 km",
+      "fr": "Coût de recharge aux 100 km",
+      "it": "Costo di ricarica per 100 km",
+      "es": "Coste de carga por 100 km",
+      "nl": "Laadkosten per 100 km",
+      "pl": "Koszt ładowania na 100 km",
+      "pt": "Custo de carregamento por 100 km",
+      "cs": "Náklady na nabíjení na 100 km",
+      "sv": "Laddkostnad per 100 km"
     },
     "battery_health": {
       "en": "Battery Health",
-      "de": "Batteriezustand"
+      "de": "Batteriezustand",
+      "fr": "État de santé de la batterie",
+      "it": "Stato di salute della batteria",
+      "es": "Estado de salud de la batería",
+      "nl": "Accugezondheid",
+      "pl": "Kondycja akumulatora",
+      "pt": "Estado de saúde da bateria",
+      "cs": "Stav baterie",
+      "sv": "Batterihälsa"
     },
     "driving_distance_month": {
       "en": "Driving Distance (This Month)",
-      "de": "Fahrstrecke (dieser Monat)"
+      "de": "Fahrstrecke (dieser Monat)",
+      "fr": "Distance parcourue (ce mois-ci)",
+      "it": "Distanza percorsa (questo mese)",
+      "es": "Distancia recorrida (este mes)",
+      "nl": "Gereden afstand (deze maand)",
+      "pl": "Przejechany dystans (ten miesiąc)",
+      "pt": "Distância percorrida (este mês)",
+      "cs": "Ujetá vzdálenost (tento měsíc)",
+      "sv": "Körsträcka (denna månad)"
     },
     "real_range": {
       "en": "Real Range",
-      "de": "Reale Reichweite"
+      "de": "Reale Reichweite",
+      "fr": "Autonomie réelle",
+      "it": "Autonomia reale",
+      "es": "Autonomía real",
+      "nl": "Werkelijke actieradius",
+      "pl": "Rzeczywisty zasięg",
+      "pt": "Autonomia real",
+      "cs": "Skutečný dojezd",
+      "sv": "Verklig räckvidd"
     },
     "tyre_status": {
       "en": "Tire Condition",
-      "de": "Reifenzustand"
+      "de": "Reifenzustand",
+      "fr": "État des pneus",
+      "it": "Stato degli pneumatici",
+      "es": "Estado de los neumáticos",
+      "nl": "Bandenconditie",
+      "pl": "Stan opon",
+      "pt": "Estado dos pneus",
+      "cs": "Stav pneumatik",
+      "sv": "Däckstatus"
     },
     "tyre_front_left": {
       "en": "Tire Front Left",
-      "de": "Reifen vorne links"
+      "de": "Reifen vorne links",
+      "fr": "Pneu avant gauche",
+      "it": "Pneumatico anteriore sinistro",
+      "es": "Neumático delantero izquierdo",
+      "nl": "Band linksvoor",
+      "pl": "Opona przednia lewa",
+      "pt": "Pneu dianteiro esquerdo",
+      "cs": "Pneumatika přední levá",
+      "sv": "Däck vänster fram"
     },
     "tyre_front_right": {
       "en": "Tire Front Right",
-      "de": "Reifen vorne rechts"
+      "de": "Reifen vorne rechts",
+      "fr": "Pneu avant droit",
+      "it": "Pneumatico anteriore destro",
+      "es": "Neumático delantero derecho",
+      "nl": "Band rechtsvoor",
+      "pl": "Opona przednia prawa",
+      "pt": "Pneu dianteiro direito",
+      "cs": "Pneumatika přední pravá",
+      "sv": "Däck höger fram"
     },
     "tyre_rear_left": {
       "en": "Tire Rear Left",
-      "de": "Reifen hinten links"
+      "de": "Reifen hinten links",
+      "fr": "Pneu arrière gauche",
+      "it": "Pneumatico posteriore sinistro",
+      "es": "Neumático trasero izquierdo",
+      "nl": "Band linksachter",
+      "pl": "Opona tylna lewa",
+      "pt": "Pneu traseiro esquerdo",
+      "cs": "Pneumatika zadní levá",
+      "sv": "Däck vänster bak"
     },
     "tyre_rear_right": {
       "en": "Tire Rear Right",
-      "de": "Reifen hinten rechts"
+      "de": "Reifen hinten rechts",
+      "fr": "Pneu arrière droit",
+      "it": "Pneumatico posteriore destro",
+      "es": "Neumático trasero derecho",
+      "nl": "Band rechtsachter",
+      "pl": "Opona tylna prawa",
+      "pt": "Pneu traseiro direito",
+      "cs": "Pneumatika zadní pravá",
+      "sv": "Däck höger bak"
     }
   },
   "binary_sensor": {
     "trip_in_progress": {
       "en": "Trip in Progress",
-      "de": "Fahrt aktiv"
+      "de": "Fahrt aktiv",
+      "fr": "Trajet en cours",
+      "it": "Viaggio in corso",
+      "es": "Trayecto en curso",
+      "nl": "Rit bezig",
+      "pl": "Trwa jazda",
+      "pt": "Viagem em curso",
+      "cs": "Probíhá jízda",
+      "sv": "Resa pågår"
     }
   },
   "device_tracker": {
     "car": {
       "en": "Location",
-      "de": "Standort"
+      "de": "Standort",
+      "fr": "Position",
+      "it": "Posizione",
+      "es": "Ubicación",
+      "nl": "Locatie",
+      "pl": "Lokalizacja",
+      "pt": "Localização",
+      "cs": "Poloha",
+      "sv": "Plats"
     }
   },
   "image": {
     "vehicle_image": {
       "en": "Vehicle Image",
-      "de": "Fahrzeugbild"
+      "de": "Fahrzeugbild",
+      "fr": "Image du véhicule",
+      "it": "Immagine del veicolo",
+      "es": "Imagen del vehículo",
+      "nl": "Voertuigafbeelding",
+      "pl": "Zdjęcie pojazdu",
+      "pt": "Imagem do veículo",
+      "cs": "Obrázek vozidla",
+      "sv": "Fordonsbild"
     }
   }
 }

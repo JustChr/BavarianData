@@ -11,7 +11,7 @@ a partial run leaves the tree self-consistent but wrong.
 ```bash
 python tools/build_catalogue.py        # -> catalogue.json
 python tools/generate_metadata.py      # -> descriptor_metadata.py
-python tools/generate_translations.py  # -> translations/{en,de}.json (entity block only)
+python tools/generate_translations.py  # -> translations/<lang>.json, every language (entity block only)
 python tools/generate_reference_doc.py # -> docs/reference/telematics-fields.md
 python tools/generate_en_gb.py         # -> translations/en-GB.json (delta over en.json)
 python -m pytest tests/test_catalogue.py tests/test_translations_dialect.py
@@ -35,12 +35,12 @@ A hook refuses writes to the four generated files. What to edit instead:
 | --- | --- |
 | An entity's English name | `title_en` in `tools/curated_titles.json` |
 | A derived/diagnostic sensor, the device tracker, the vehicle image | `tools/derived_entities.json` |
-| The flow strings (`config` / `options`) | `translations/en.json` **and** `de.json` by hand — these are not generated (then re-run step 5) |
+| The flow strings (`config` / `options` / `services` / `issues` …) | `translations/en.json` **and every other full language file** by hand — these are not generated (then re-run step 5; `tests/test_translations_parity.py` names any language left behind) |
 | A US/UK spelling pair | `tools/spelling_en_gb.json` — never `en-GB.json`, which is fully generated |
 
 Entities with no BMW descriptor **must** have a `derived_entities.json` entry
 with a `_attr_translation_key` identical to the code's. A hardcoded
-`_attr_name` makes German installs silently fall back to English.
+`_attr_name` makes every non-English install silently fall back to English.
 
 ## When step 2 stops with an unknown unit
 

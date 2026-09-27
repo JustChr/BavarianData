@@ -1,0 +1,2938 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connecter BMW CarData",
+        "description": "Cette intégration transmet en continu les données de votre BMW ou Mini à Home Assistant.\n\n**D'abord, dans le portail BMW — nécessaire pour les deux méthodes :** créez un **CarData Client** et abonnez-le aux **deux** services, **CarData API** et **CarData Streaming**. Ne cochez encore rien sous Sélection des données.\n\nChoisissez ensuite comment terminer ici :\n\n- **Guidée (recommandée)** — vous exécutez un snippet sur le portail BMW ; il trouve ce Client ID, vérifie votre véhicule et active le flux de données pour vous. Aucun identifiant à recopier.\n- **Manuelle** — la méthode classique, si vous préférez copier le Client ID vous-même.",
+        "menu_options": {
+          "guided": "Configuration guidée (recommandée)",
+          "manual": "Je colle le Client ID moi-même"
+        }
+      },
+      "manual": {
+        "title": "Connecter BMW CarData",
+        "description": "Cette intégration transmet en continu les données de votre BMW ou Mini à Home Assistant.\n\n**D'abord, configurez CarData dans le portail BMW** (à ignorer si vous avez déjà un Client ID) :\n\n1. Ouvrez le [portail BMW CarData]({portal_url}) et connectez-vous. Si CarData n'est pas disponible dans votre pays, connectez-vous via le portail [britannique]({portal_uk}) ou [allemand]({portal_de}) — le Client ID fonctionne partout.\n2. Créez un **CarData Client** et copiez le **Client ID** affiché.\n3. Abonnez le client aux **deux** services : **CarData API** et **CarData Streaming**.\n\nNe cochez encore rien sous **Sélection des données** — après l'autorisation, les écrans suivants vous permettent de choisir les données à transmettre et de les activer avec un favori en un clic.\n\nCollez ensuite le **Client ID** ci-dessous.",
+        "data": {
+          "client_id": "Client ID"
+        },
+        "data_description": {
+          "client_id": "Le Client ID CarData du portail BMW — une longue chaîne au format UUID."
+        }
+      },
+      "guided_paste": {
+        "title": "Activez vos données, puis collez le résultat",
+        "description": "Assurez-vous d'abord d'avoir créé dans le portail BMW un **CarData Client** abonné à **CarData API et CarData Streaming** — l'activateur trouve ce client, il n'en crée pas.\n\n1. Ouvrez la **[page de configuration BavarianData]({url})**.\n2. Faites glisser le bouton **Activate BMW data** dans votre barre de favoris (une seule fois).\n3. Ouvrez le **portail BMW ou MINI**, connectez-vous et allez sur la page **stream setup** d'un véhicule.\n4. Cliquez sur le favori **Activate BMW data**. Une fois terminé, appuyez sur **Copy** dans la fenêtre qui s'affiche.\n5. Collez ce résultat ci-dessous et appuyez sur **Valider**.\n\nTout se passe dans votre propre navigateur — aucun mot de passe ni aucune session n'en sort.\n\n{error}",
+        "data": {
+          "result": "Résultat de la configuration"
+        },
+        "data_description": {
+          "result": "Le texte BAVARIANDATA… que le bouton Copy a placé dans votre presse-papiers."
+        }
+      },
+      "guided_done": {
+        "title": "Flux activé",
+        "description": "Terminé — **{field_count}** champs sont maintenant transmis pour **{vehicle}**, et votre Client ID est enregistré. Appuyez sur **Valider** pour terminer, puis verrouillez/déverrouillez le véhicule dans l'application MyBMW pour déclencher la première mise à jour."
+      },
+      "authorize_failed": {
+        "title": "L'autorisation n'a pas abouti",
+        "description": "L'autorisation de l'appareil n'a pas pu être finalisée.\n\n**Détails**\n```\n{error}\n```\n\n**À vérifier**\n- **declined / access_denied (403) :** le serveur de BMW signale souvent un refus même après votre approbation — un problème connu côté BMW. Réessayez dans une **fenêtre privée** : ouvrez vous-même le portail BMW CarData (ne suivez pas un lien contenant déjà le code), connectez-vous, choisissez *Authentifier l'appareil* et **saisissez le code à la main**. Vérifiez aussi que le Client ID est abonné à **CarData API et CarData Streaming** avant l'autorisation, et que vous êtes l'utilisateur **principal** du véhicule.\n- **expired / timeout :** le code n'a pas été approuvé à temps.\n\nAppuyez sur **Valider** pour obtenir un nouveau code et réessayer. Si l'échec persiste, supprimez le CarData Client dans le portail BMW, créez-en un nouveau et autorisez à nouveau avec le nouveau Client ID — ou écrivez au support BMW (bmwcardata-b2c-support@bmwgroup.com) en indiquant la **référence BMW** ci-dessus.\n\nUn guide complet se trouve dans le README de l'intégration, sous *Troubleshooting → Onboarding fails with \"access denied\"*."
+      },
+      "select_clusters": {
+        "title": "Choisir les données transmises",
+        "description": "Vous êtes connecté. Choisissez maintenant les groupes de données du véhicule à transmettre. BMW ne propose aucune API pour cela — le réglage se trouve derrière la session de navigateur du portail — l'écran suivant vous donne donc le même favori en un clic **Activate BMW data** que la configuration guidée. Vous l'exécutez sur la page stream setup du portail et il active exactement ces groupes. Les champs de diagnostic et techniques restent masqués par défaut une fois les données arrivées.\n\nVous pouvez modifier ce choix à tout moment sous Configurer → Choisir les données transmises.",
+        "data": {
+          "sections": "Groupes de données"
+        },
+        "data_description": {
+          "sections": "Laissez la sélection par défaut pour l'ensemble recommandé, ou limitez-la aux données qui vous intéressent (p. ex. seulement Véhicule électrique et État du véhicule)."
+        }
+      },
+      "activate_stream_paste": {
+        "title": "Activez vos données, puis collez le résultat",
+        "description": "1. Ouvrez la **[page d'activation BavarianData]({url})**.\n2. Faites glisser le bouton **Activate BMW data** dans votre barre de favoris (une seule fois).\n3. Ouvrez le **portail BMW ou MINI**, connectez-vous et allez sur la page **stream setup** d'un véhicule.\n4. Cliquez sur le favori **Activate BMW data**. Une fois terminé, appuyez sur **Copy** dans la fenêtre qui s'affiche.\n5. Collez ce résultat ci-dessous et appuyez sur **Valider**.\n\nTout se passe dans votre propre navigateur — aucun mot de passe ni aucune session n'en sort. Vous avez déjà coché ces champs vous-même dans le portail ? Laissez le champ vide et appuyez sur **Valider** pour terminer.\n\n{error}",
+        "data": {
+          "result": "Résultat de l'activation"
+        },
+        "data_description": {
+          "result": "Le texte BAVARIANDATA… que le bouton Copy a placé dans votre presse-papiers. Laissez vide pour terminer sans activer."
+        }
+      },
+      "activate_stream_done": {
+        "title": "Flux activé",
+        "description": "Terminé — l'activateur a activé **{added_count}** nouveau(x) champ(s) ; **{field_count}** champs sont maintenant transmis pour ce véhicule.{error}\n\nAppuyez sur **Valider** pour terminer la configuration, puis verrouillez/déverrouillez le véhicule dans l'application MyBMW pour déclencher la première mise à jour."
+      }
+    },
+    "progress": {
+      "wait_for_activation": "**Activez vos données dans le navigateur**\n\nAssurez-vous d'avoir déjà créé dans le portail BMW un **CarData Client** abonné à **CarData API et CarData Streaming** — l'activateur trouve ce client, il n'en crée pas.\n\n1. Ouvrez la **[page de configuration BavarianData]({url})**.\n2. Faites glisser le bouton **Activate BMW data** dans votre barre de favoris (une seule fois).\n3. Ouvrez le **portail BMW ou MINI**, connectez-vous et allez sur la page **stream setup** d'un véhicule.\n4. Cliquez sur le favori **Activate BMW data**.\n\nIl trouve votre Client ID, vérifie votre véhicule et active le flux de données — le tout dans votre propre navigateur, rien à copier. Cette fenêtre continue automatiquement dès qu'il renvoie son résultat. Il n'y a rien à cliquer ici.",
+      "wait_for_authorization": "**Approuvez Home Assistant sur la page de connexion BMW/MINI**\n\n1. Ouvrez la **[page d'autorisation]({verification_url})** et connectez-vous avec votre compte BMW/MINI.\n2. Saisissez ce code lorsqu'il vous est demandé : **{user_code}**\n3. Confirmez l'appareil.\n\n**Saisissez le code à la main** — n'utilisez pas de lien contenant déjà le code et vérifiez qu'aucun ancien code n'est prérempli. Le serveur de BMW enregistre souvent à tort un *refus* pour les codes préremplis. Si cela échoue malgré tout, réessayez dans une fenêtre privée.\n\nLaissez cette fenêtre ouverte — elle continue automatiquement dès que vous avez approuvé. Il n'y a rien à cliquer ici.",
+      "wait_for_stream_activation": "**Activez les données sélectionnées dans votre navigateur**\n\n1. Ouvrez la **[page d'activation BavarianData]({url})**.\n2. Faites glisser le bouton **Activate BMW data** dans votre barre de favoris (une seule fois).\n3. Ouvrez le **portail BMW ou MINI**, connectez-vous et allez sur la page **stream setup** d'un véhicule.\n4. Cliquez sur le favori **Activate BMW data**.\n\nIl active les champs des groupes choisis — le tout dans votre propre navigateur, rien à copier. Cette fenêtre continue automatiquement dès qu'il renvoie son résultat. Il n'y a rien à cliquer ici."
+    },
+    "error": {
+      "device_code_failed": "BMW a refusé la demande d'autorisation de l'appareil ({error}). Vérifiez que le Client ID est correct et abonné aux deux services CarData, puis réessayez.",
+      "invalid_result": "Ce résultat est illisible. Exécutez le favori Activate BMW data sur la page du portail BMW et collez exactement ce qu'il a copié dans votre presse-papiers.",
+      "no_client_id": "Aucun client API n'a été trouvé sur votre compte. Créez un CarData Client dans le portail BMW, puis exécutez à nouveau le favori Activate BMW data."
+    },
+    "abort": {
+      "account_already_configured": "Ce compte BMW est déjà configuré dans Home Assistant. Une seule entrée couvre tout le compte, y compris chacun de ses véhicules — ajouter un deuxième Client ID pour le même compte interromprait le flux des deux, car BMW n'autorise qu'une connexion par compte. Utilisez l'entrée existante ou supprimez-la d'abord.",
+      "reauth_successful": "Nouvelle autorisation réussie — BMW CarData est de nouveau connecté.",
+      "reauth_device_code_failed": "BMW a refusé la demande d'autorisation de l'appareil ({error}). Mettez à jour le Client ID sous Configurer → Autoriser à nouveau auprès de BMW, ou supprimez puis ajoutez de nouveau l'intégration.",
+      "reauth_missing_client_id": "Le Client ID manque pour cette entrée d'intégration. Supprimez puis ajoutez de nouveau l'intégration pour l'autoriser à nouveau.",
+      "reauth_failed": "La nouvelle autorisation n'a pas pu démarrer. Réessayez depuis les options de l'intégration."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options de BavarianData",
+        "description": "Choisissez une action. Les actions de jeton et d'autorisation maintiennent votre connexion ; les actions de données interrogent l'API REST de BMW à la demande (chacune compte dans la limite quotidienne de 50 requêtes).",
+        "menu_options": {
+          "action_select_clusters": "Choisir les données transmises",
+          "action_refresh_tokens": "Renouveler les jetons maintenant",
+          "action_reauth": "Autoriser à nouveau auprès de BMW",
+          "action_reset_container": "Réinitialiser le conteneur de télémétrie",
+          "action_fetch_mappings": "Rechercher les véhicules",
+          "action_fetch_basic": "Récupérer les infos de base du véhicule",
+          "action_fetch_telematic": "Récupérer les données télématiques",
+          "action_fetch_charging_history": "Récupérer l'historique de recharge",
+          "action_fetch_tyre": "Récupérer le diagnostic des pneus",
+          "action_fetch_location_charging": "Récupérer les réglages de recharge",
+          "action_fetch_image": "Récupérer l'image du véhicule",
+          "action_data_refresh": "Actualisation automatique des données",
+          "action_charging_costs": "Coûts et historique de recharge",
+          "action_energy_sources": "Solaire et sources d'énergie",
+          "action_evcc_bridge": "Passerelle evcc / borne de recharge",
+          "action_trips": "Trajets",
+          "action_debug_logging": "Journalisation de débogage"
+        }
+      },
+      "action_select_clusters": {
+        "title": "Choisir les données transmises",
+        "description": "Choisissez les groupes de données du véhicule à transmettre. BMW ne propose aucune API pour cela — le réglage se trouve derrière la session de navigateur du portail — l'écran suivant vous donne donc un favori en un clic **Activate BMW data** à exécuter sur la page stream setup du portail, puis Home Assistant continue automatiquement.\n\nCela **ajoute** les groupes sélectionnés à votre flux actif ; cela ne retire jamais les champs déjà transmis. Pour arrêter de transmettre un champ, décochez-le sous Sélection des données dans le portail. Les champs de diagnostic et techniques restent masqués par défaut une fois les données arrivées.",
+        "data": {
+          "sections": "Groupes de données"
+        },
+        "data_description": {
+          "sections": "Laissez la sélection par défaut pour l'ensemble recommandé, ou limitez-la aux données qui vous intéressent (p. ex. seulement Véhicule électrique et État du véhicule)."
+        }
+      },
+      "activate_stream_paste": {
+        "title": "Activez vos données, puis collez le résultat",
+        "description": "1. Ouvrez la **[page d'activation BavarianData]({url})**.\n2. Faites glisser le bouton **Activate BMW data** dans votre barre de favoris (une seule fois).\n3. Ouvrez le **portail BMW ou MINI**, connectez-vous et allez sur la page **stream setup** d'un véhicule.\n4. Cliquez sur le favori **Activate BMW data**. Une fois terminé, appuyez sur **Copy** dans la fenêtre qui s'affiche.\n5. Collez ce résultat ci-dessous et appuyez sur **Valider**.\n\nTout se passe dans votre propre navigateur — aucun mot de passe ni aucune session n'en sort.\n\n{error}",
+        "data": {
+          "result": "Résultat de l'activation"
+        },
+        "data_description": {
+          "result": "Le texte BAVARIANDATA… que le bouton Copy a placé dans votre presse-papiers."
+        }
+      },
+      "activate_stream_done": {
+        "title": "Champs du flux activés",
+        "description": "Terminé — l'activateur a activé **{added_count}** nouveau(x) champ(s) ; **{field_count}** champs sont maintenant transmis pour ce véhicule.{error}\n\nAppuyez sur **Valider** pour enregistrer votre sélection. Verrouillez/déverrouillez le véhicule dans l'application MyBMW pour déclencher la prochaine mise à jour."
+      },
+      "action_refresh_tokens": {
+        "title": "Renouveler les jetons maintenant",
+        "description": "Renouvelle les jetons d'accès et d'identité enregistrés sans repasser par la connexion BMW. Utilisez cette action si les données ne se mettent plus à jour. Si le problème persiste, redémarrez ensuite Home Assistant.\n\nAppuyez sur Valider pour continuer."
+      },
+      "action_reauth": {
+        "title": "Autoriser à nouveau auprès de BMW",
+        "description": "Relance l'autorisation d'appareil de BMW — par exemple après l'expiration du jeton de rafraîchissement (toutes les 2 semaines) ou si vous avez généré un nouveau Client ID. Vous approuverez ensuite Home Assistant sur le site de BMW.",
+        "data": {
+          "client_id": "Client ID"
+        },
+        "data_description": {
+          "client_id": "Laissez tel quel pour réutiliser le Client ID actuel, ou collez-en un nouveau depuis le portail BMW."
+        }
+      },
+      "action_reset_container": {
+        "title": "Réinitialiser le conteneur de télémétrie",
+        "description": "Supprime les conteneurs de télémétrie CarData créés par cette intégration et en recrée un neuf. Utilisez cette action si les données transmises semblent incorrectes ou après avoir modifié votre Sélection des données dans le portail BMW.\n\nAppuyez sur Valider pour continuer."
+      },
+      "action_fetch_mappings": {
+        "title": "Rechercher les véhicules",
+        "description": "Demande à BMW quels véhicules (VIN) sont associés à votre compte et crée leurs appareils. Exécutez-la une fois après la configuration si vos voitures ne sont pas encore apparues.\n\nAppuyez sur Valider pour continuer."
+      },
+      "action_fetch_basic": {
+        "title": "Récupérer les infos de base du véhicule",
+        "description": "Récupère les informations fixes (modèle, couleur, options) de chaque véhicule connu.\n\nAppuyez sur Valider pour continuer."
+      },
+      "action_fetch_telematic": {
+        "title": "Récupérer les données télématiques",
+        "description": "Récupère maintenant le dernier instantané télématique depuis l'API REST de BMW au lieu d'attendre la prochaine interrogation planifiée.\n\nAppuyez sur Valider pour continuer."
+      },
+      "action_fetch_charging_history": {
+        "title": "Récupérer l'historique de recharge",
+        "description": "Récupère les sessions de recharge les plus récentes de vos véhicules.\n\nAppuyez sur Valider pour continuer."
+      },
+      "action_fetch_tyre": {
+        "title": "Récupérer le diagnostic des pneus",
+        "description": "Récupère le dernier diagnostic de pression des pneus de vos véhicules.\n\nAppuyez sur Valider pour continuer."
+      },
+      "action_fetch_location_charging": {
+        "title": "Récupérer les réglages de recharge",
+        "description": "Récupère les réglages de recharge liés au lieu de vos véhicules.\n\nAppuyez sur Valider pour continuer."
+      },
+      "action_fetch_image": {
+        "title": "Récupérer l'image du véhicule",
+        "description": "Récupère l'image actuelle de vos véhicules.\n\nAppuyez sur Valider pour continuer."
+      },
+      "action_charging_costs": {
+        "title": "Coûts et historique de recharge",
+        "description": "Transforme les recharges enregistrées en argent. Tant qu'aucune source de prix n'est définie, aucune entité de coût n'est créée — un prix faux est pire que pas de prix du tout.\n\n**Prix fixe** facture chaque kWh au même tarif. **Entité de prix** suit un tarif en direct (Tibber, Nordpool, aWATTar, …) échantillonné pendant la recharge, de sorte qu'une session traversant un changement de prix est facturée correctement.\n\nL'énergie est mesurée au niveau de la batterie ; elle est donc légèrement inférieure à ce que le réseau a fourni. Si vous avez un compteur, indiquez-le dans **Capteur d'énergie de la borne** — c'est exact. Sinon, vous pouvez majorer le chiffre de vos pertes de recharge ; la valeur reste à 0 % par défaut, car une correction inventée ressemblerait à une mesure.\n\n**Statistiques à long terme** publie l'historique enregistré dans les statistiques propres à Home Assistant, de sorte que les recharges antérieures à l'installation — ou survenues pendant une coupure de Home Assistant — apparaissent tout de même dans le tableau de bord Énergie.",
+        "data": {
+          "price_mode": "Source du prix",
+          "price_fixed": "Prix fixe par kWh",
+          "price_entity": "Entité de prix",
+          "price_currency": "Devise",
+          "grid_energy_entity": "Capteur d'énergie de la borne",
+          "charging_loss_percent": "Pertes de recharge (%)",
+          "history_retain_months": "Conserver l'historique (mois)",
+          "statistics_import": "Publier dans les statistiques à long terme"
+        },
+        "data_description": {
+          "price_mode": "Choisissez « Aucune » pour enregistrer les sessions sans les chiffrer.",
+          "price_fixed": "Utilisé uniquement lorsque la source du prix est « Prix fixe ».",
+          "price_entity": "Utilisée uniquement lorsque la source du prix est « Entité de prix ». Son état doit être un prix par kWh.",
+          "price_currency": "Code ISO affiché sur les capteurs de coût, p. ex. EUR, GBP, CHF.",
+          "grid_energy_entity": "Facultatif. Le total cumulé d'énergie de votre borne (un compteur qui ne fait qu'augmenter, pas un compteur par session remis à zéro). Wh, kWh et MWh sont pris en charge ; une valeur sans unité est lue comme des kWh. Il n'est lu que pour les recharges dans votre zone Domicile, car le compteur ne sait pas quelle voiture il a chargée. Une valeur réseau mesurée l'emporte toujours sur notre estimation côté batterie — et une valeur impossible, comme un compteur de maison indiquant bien plus que ce que la batterie a absorbé, est ignorée plutôt que crue.",
+          "charging_loss_percent": "Facultatif. Majore l'énergie côté batterie pour se rapprocher de l'énergie réseau.",
+          "history_retain_months": "0 conserve tout. Les sessions plus anciennes sont supprimées.",
+          "statistics_import": "Reproduit l'énergie, le coût et la distance dans des statistiques que vous pouvez ajouter au tableau de bord Énergie. Reste local ; la désactivation les supprime à nouveau."
+        }
+      },
+      "action_energy_sources": {
+        "title": "Solaire et sources d'énergie",
+        "description": "Enregistre l'origine de l'énergie de chaque recharge : votre toit, votre batterie domestique ou le réseau.\n\n**Puissance PV** et **Puissance réseau** sont toutes deux nécessaires. Elles sont échantillonnées pendant la recharge et l'énergie est attribuée au fil de son arrivée : une recharge qui commence au soleil et se termine à la nuit tombée est répartie entre les deux plutôt que classée selon la dernière source. La voiture est traitée comme une charge parmi d'autres et reçoit le même mélange que le reste de la maison à ce moment-là — aucune convention qui la charge avec l'import réseau, ni aucune qui lui donne le soleil en priorité.\n\nLa puissance réseau doit être **positive lors de l'import**. La batterie domestique est facultative ; sans elle, vous obtenez une répartition en deux. Les capteurs en kW sont convertis automatiquement, et un capteur sans unité est lu en watts.\n\n**Valeur du solaire autoproduit** est ce que vaut pour vous un kWh de votre propre toit — généralement votre tarif de rachat, l'argent auquel vous renoncez en ne l'injectant pas. Laissez vide et le solaire est chiffré à votre prix d'achat, comme avant ; seul le mélange est nouveau. L'énergie de la batterie domestique est toujours chiffrée au prix d'achat : son contenu peut venir du toit à midi ou d'une recharge réseau bon marché à trois heures du matin, et cette intégration ne peut pas le savoir.",
+        "data": {
+          "pv_power_entity": "Puissance PV",
+          "grid_power_entity": "Puissance réseau (+ import / − export)",
+          "battery_power_entity": "Puissance de la batterie domestique (facultatif)",
+          "battery_power_invert": "Mon capteur de batterie est positif en charge",
+          "price_solar": "Valeur du solaire autoproduit par kWh"
+        },
+        "data_description": {
+          "pv_power_entity": "Production totale de votre ou vos onduleurs.",
+          "grid_power_entity": "Puissance signée au compteur : positive lors du soutirage au réseau, négative lors de l'injection.",
+          "battery_power_entity": "Laissez vide si vous n'avez pas de stockage domestique. Attendu positif en décharge — cochez la case ci-dessous si le vôtre fonctionne à l'inverse.",
+          "battery_power_invert": "De nombreuses intégrations publient une puissance de batterie positive en charge. La valeur seule ne permet pas de le savoir, alors indiquez le cas du vôtre.",
+          "price_solar": "Laissez vide pour chiffrer le solaire au prix d'achat. Indiquez votre tarif de rachat pour voir ce qu'une recharge vous a réellement coûté."
+        }
+      },
+      "action_evcc_bridge": {
+        "title": "Passerelle evcc / borne de recharge",
+        "description": "Publie l'état en direct de cette voiture sur votre broker MQTT pour qu'un gestionnaire de recharge puisse le lire.\n\nC'est ce que BavarianData offre et qu'evcc, openWB et consorts n'ont pas : un **état de charge issu directement du flux BMW, sans coût d'API**. Leurs propres intégrations BMW interrogent une API constructeur à intervalles réguliers et sont limitées pour cela ; ici, la valeur arrive dès que la voiture la transmet et ne consomme aucune de vos 50 requêtes quotidiennes.\n\nLa publication passe par **l'intégration MQTT de Home Assistant**, elle arrive donc exactement sur le broker qu'evcc lit déjà, sans hôte, port ni mot de passe à saisir ici. L'intégration MQTT doit être configurée au préalable.\n\nPar véhicule, sous `PREFIX/VIN/` : `soc`, `status` (A/B/C d'evcc), `range`, `odometer`, `limitSoc`, `chargePower`, `plugged`, `charging`, `updated`, et `state` sous forme d'un document JSON. **Tout ce que la voiture ne transmet pas n'est pas publié** plutôt qu'envoyé comme zéro — un gestionnaire de recharge agit sur ces chiffres, et un chiffre faux est pire qu'un chiffre manquant. Tout est renvoyé toutes les cinq minutes même sans changement, afin que l'état de charge d'une voiture garée ne devienne jamais obsolète sur le broker.\n\nDésactiver cette option supprime ce qui a été publié, afin que rien ne continue à charger sur la base d'un état de charge figé.\n\nL'écran suivant vous donne la configuration evcc à coller.",
+        "data": {
+          "bridge_enabled": "Publier cette voiture sur MQTT",
+          "bridge_topic_prefix": "Préfixe des topics",
+          "bridge_retain": "Publier en mode retained"
+        },
+        "data_description": {
+          "bridge_enabled": "Désactivé par défaut : cela place le VIN et l'état de la voiture sur un broker lisible par d'autres.",
+          "bridge_topic_prefix": "Les topics deviennent `PREFIX/VIN/soc` et ainsi de suite. Laissez bavariandata sauf en cas de conflit.",
+          "bridge_retain": "Laissez activé. C'est ce qui permet à evcc de trouver l'état de charge dès son démarrage, au lieu d'attendre que la voiture se manifeste — ce qui peut prendre des heures pour une voiture garée. Ne le désactivez que si votre broker refuse les messages retained."
+        }
+      },
+      "evcc_snippet": {
+        "title": "Configuration evcc",
+        "description": "Ajoutez ceci à votre `evcc.yaml` sous une clé `vehicles:` (fusionnez-le avec les véhicules existants — la clé ne peut apparaître qu'une fois) :\n\n```\n{snippet}\n```\n\nevcc doit aussi connaître votre broker, dans sa propre section `mqtt:` — le même que celui qu'utilise Home Assistant. Attribuez ensuite le véhicule à un point de charge et redémarrez evcc.\n\nSeuls les champs que cette voiture transmet réellement sont listés : un plugin pointé vers un topic qui ne reçoit jamais de message fait journaliser à evcc une erreur de lecture à chaque cycle. Aucun `timeout` n'est défini volontairement — les valeurs sont republiées régulièrement, de sorte qu'une voiture garée garde un état de charge valide au lieu de devenir vide.\n\nVous pouvez récupérer cette configuration à tout moment avec l'action **Obtenir la configuration evcc**."
+      },
+      "action_trips": {
+        "title": "Trajets (journal de conduite)",
+        "description": "Reconstitue vos trajets à partir du flux, sans coût d'API — distance, répartition professionnel/privé/domicile-travail, consommation et bilan mensuel.\n\nDéfinissez la **Zone de travail** pour que les trajets domicile ↔ travail soient reconnus automatiquement ; vous pouvez toujours corriger un trajet ensuite. Tout ce qui n'est pas un trajet domicile-travail est classé selon le **Type par défaut** (Privé d'origine). Un trajet domicile-travail survit aussi à un arrêt en route : si la voiture reste à l'arrêt moins longtemps que la **Tolérance d'arrêt domicile-travail**, l'aller jusqu'à l'arrêt et la suite sont tous deux comptés comme domicile-travail. **Résoudre les adresses** est désactivé par défaut : une fois activé, un point de départ ou d'arrivée hors de toute zone Home Assistant est recherché via OpenStreetMap et enregistré comme adresse — les coordonnées sont envoyées pour la recherche mais jamais enregistrées.\n\n**Enregistrer l'itinéraire** est aussi désactivé par défaut : une fois activé, chaque trajet enregistre sa trace GPS — où la voiture est allée et quand — afin qu'une carte puisse afficher et rejouer le trajet. C'est le seul réglage qui enregistre des coordonnées brutes sur le disque, y compris vos points de départ et d'arrivée exacts.\n\n**Diagnostic de capture des trajets** est une aide au dépannage : une fois activé, chaque position GPS, minuterie et message est journalisé en détail et un fichier de capture est écrit, afin d'améliorer la détection des trajets. Activez-le uniquement pour un trajet de test, puis désactivez-le.",
+        "data": {
+          "trip_work_zone": "Zone de travail",
+          "trip_default_class": "Type par défaut",
+          "trip_commute_gap": "Tolérance d'arrêt domicile-travail",
+          "trip_geocode": "Résoudre les adresses",
+          "trip_track": "Enregistrer l'itinéraire",
+          "trip_debug": "Diagnostic de capture des trajets"
+        },
+        "data_description": {
+          "trip_work_zone": "Facultatif. Un trajet entre cette zone et le domicile est classé comme domicile-travail.",
+          "trip_default_class": "Classement de chaque trajet qui n'est pas un domicile ↔ travail. Ce n'est qu'un point de départ — une correction sur la carte l'emporte toujours et n'est jamais écrasée.",
+          "trip_commute_gap": "Durée pendant laquelle la voiture peut rester à l'arrêt entre deux trajets pour qu'ils comptent encore comme un seul trajet domicile-travail — le supermarché sur le chemin du travail. Mettez 0 pour désactiver. Les arrêts de moins de cinq minutes environ ne coupent jamais un trajet.",
+          "trip_geocode": "Facultatif. Envoie les points hors zone à OpenStreetMap ; seule l'adresse obtenue est enregistrée, jamais les coordonnées.",
+          "trip_track": "Facultatif. Enregistre la trace GPS de chaque trajet — les coordonnées le long du parcours et, pour chacune, l'heure — afin qu'une carte puisse tracer l'itinéraire et le rejouer. Seul réglage qui enregistre des coordonnées brutes sur le disque (départ/arrivée exacts compris), il est donc désactivé par défaut pour la vie privée.",
+          "trip_debug": "Diagnostic uniquement. Journalise les données brutes de détection des trajets (chaque position GPS, minuterie de clôture, lot de segments et message) et écrit bavariandata_trip_capture.ndjson dans votre dossier de configuration. Très verbeux et contient GPS/VIN : activez-le pour un trajet de test, puis désactivez-le."
+        }
+      },
+      "action_data_refresh": {
+        "title": "Actualisation automatique des données",
+        "description": "Le flux en direct ne transporte que ce qui change pendant que Home Assistant écoute. Ce que la voiture a transmis pendant que Home Assistant était arrêté ou que la connexion à BMW était coupée (une recharge terminée, le verrouillage des portes, un trajet) n'est pas rejoué à la reconnexion.\n\nAvec cette option, l'intégration demande à BMW l'état actuel de chaque voiture deux minutes après le démarrage de Home Assistant, puis à nouveau lorsque la connexion revient après une coupure de cinq minutes ou plus. BMW renvoie les dernières valeurs transmises par chaque voiture ; vous rattrapez donc le retard sans réveiller la voiture. Cela consomme une des 50 requêtes quotidiennes par voiture. L'appel est ignoré si BMW a déjà été interrogé au cours de la dernière heure, sauf si une recharge était en cours au redémarrage, et il laisse toujours 10 requêtes pour vos propres appels de service.",
+        "data": {
+          "refresh_on_start": "Rattraper le retard après un redémarrage ou une coupure"
+        },
+        "data_description": {
+          "refresh_on_start": "Prend effet immédiatement."
+        }
+      },
+      "action_debug_logging": {
+        "title": "Journalisation de débogage",
+        "description": "Active la journalisation détaillée de cette intégration (connexion MQTT, topics souscrits et chaque message entrant). C'est distinct du réglage de débogage générique de Home Assistant — le niveau de journalisation et ce commutateur doivent tous deux être activés pour voir les lignes détaillées. C'est verbeux et peut contenir des données du véhicule comme des coordonnées GPS ; laissez-le désactivé en usage normal. La modification s'applique immédiatement. Avec plusieurs comptes BMW configurés, le niveau de journalisation est partagé : la journalisation détaillée reste active tant qu'un compte l'a activée.",
+        "data": {
+          "debug_log": "Activer la journalisation de débogage"
+        },
+        "data_description": {
+          "debug_log": "Reste active après les redémarrages jusqu'à ce que vous la désactiviez ici."
+        }
+      }
+    },
+    "progress": {
+      "wait_for_stream_activation": "**Activez les données sélectionnées dans votre navigateur**\n\n1. Ouvrez la **[page d'activation BavarianData]({url})**.\n2. Faites glisser le bouton **Activate BMW data** dans votre barre de favoris (une seule fois).\n3. Ouvrez le **portail BMW ou MINI**, connectez-vous et allez sur la page **stream setup** d'un véhicule.\n4. Cliquez sur le favori **Activate BMW data**.\n\nIl active les champs des groupes choisis — le tout dans votre propre navigateur, rien à copier. Cette fenêtre continue automatiquement dès qu'il renvoie son résultat. Il n'y a rien à cliquer ici."
+    },
+    "error": {
+      "mix_needs_both": "L'attribution de l'énergie nécessite à la fois un capteur de puissance PV et un capteur de puissance réseau. Avec un seul des deux, la répartition devrait supposer l'autre.",
+      "refresh_failed": "Le renouvellement des jetons a échoué : {error}",
+      "reset_failed": "La réinitialisation du conteneur de télémétrie a échoué : {error}",
+      "missing_token": "Aucun jeton d'accès valide n'est disponible. Essayez d'abord « Renouveler les jetons maintenant » ou une nouvelle autorisation.",
+      "runtime_missing": "L'intégration n'est pas encore prête. Réessayez une fois la configuration terminée.",
+      "no_vins": "Aucun véhicule n'est encore connu. Exécutez d'abord « Rechercher les véhicules » ou attendez que le flux en signale un.",
+      "invalid_int": "Saisissez un nombre entier positif.",
+      "invalid_client_id": "Saisissez le Client ID BMW CarData.",
+      "invalid_result": "Ce résultat est illisible. Exécutez le favori Activate BMW data sur la page stream setup du portail BMW et collez exactement ce qu'il a copié dans votre presse-papiers.",
+      "price_required": "Saisissez un prix fixe par kWh ou choisissez une autre source de prix.",
+      "price_entity_required": "Choisissez l'entité qui indique votre prix par kWh ou choisissez une autre source de prix.",
+      "mqtt_missing": "La passerelle publie via l'intégration MQTT de Home Assistant, et aucune n'est configurée. Ajoutez-la sous Paramètres → Appareils et services (le module complémentaire Mosquitto broker est le choix habituel), puis revenez."
+    },
+    "abort": {
+      "reauth_started": "Autorisation relancée. Terminez la nouvelle connexion depuis la notification qui vient d'apparaître.",
+      "reauth_device_code_failed": "BMW a refusé la demande d'autorisation de l'appareil ({error}). Vérifiez le Client ID et réessayez.",
+      "reauth_missing_client_id": "Le Client ID manque pour cette entrée d'intégration. Supprimez puis ajoutez de nouveau l'intégration pour l'autoriser à nouveau.",
+      "reauth_failed": "La nouvelle autorisation n'a pas pu démarrer. Réessayez depuis les options de l'intégration."
+    }
+  },
+  "selector": {
+    "price_mode": {
+      "options": {
+        "none": "Aucune",
+        "fixed": "Prix fixe",
+        "entity": "Entité de prix"
+      }
+    },
+    "trip_default_class": {
+      "options": {
+        "private": "Privé",
+        "business": "Professionnel",
+        "unclassified": "Laisser non classé"
+      }
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "zone_arrived": "Arrivé dans une zone",
+      "zone_left": "A quitté une zone",
+      "parked_unlocked": "Garé et laissé déverrouillé",
+      "plugged_not_charging": "Branché mais pas en charge",
+      "charging_started": "Recharge démarrée",
+      "charging_complete": "Recharge terminée (objectif atteint)",
+      "charging_interrupted": "Recharge arrêtée avant l'objectif, câble toujours branché"
+    },
+    "extra_fields": {
+      "zone": "Zone (vide : n'importe quelle zone)",
+      "for": "Pendant au moins"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "vehicle_body_chargingport_combinedstatus": {
+        "name": "État de connexion du port de charge",
+        "state": {
+          "disconnected": "Déconnecté",
+          "connected": "Connecté",
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_body_chargingport_dcstatus": {
+        "name": "État de la connexion de la prise de charge (CC uniquement)",
+        "state": {
+          "disconnected": "Déconnecté",
+          "connected": "Connecté",
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_body_chargingport_ishospitalityactive": {
+        "name": "État de verrouillage de la prise de charge après une charge complète",
+        "state": {
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_body_chargingport_isosessionid": {
+        "name": "Identifiant de session de charge"
+      },
+      "vehicle_body_chargingport_lockedstatus": {
+        "name": "État verrouillé du port de charge",
+        "state": {
+          "unknown": "Inconnu"
+        }
+      },
+      "vehicle_body_chargingport_plugeventid": {
+        "name": "ID du branchement au port de charge"
+      },
+      "vehicle_body_chargingport_status": {
+        "name": "Statut du connecteur de chargement",
+        "state": {
+          "connected": "Connecté",
+          "disconnected": "Déconnecté",
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_body_chargingport_statuscleartext": {
+        "name": "Texte de l'état du port de charge",
+        "state": {
+          "disconnected": "Déconnecté",
+          "connected": "Connecté"
+        }
+      },
+      "vehicle_body_flap_islocked": {
+        "name": "État du clapet de chargement",
+        "state": {
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_body_flap_ispermanentlyunlocked": {
+        "name": "État de fermeture de la trappe de chargement",
+        "state": {
+          "no_action": "Aucune action",
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_body_hood_isopen": {
+        "name": "Statut du capot du moteur",
+        "state": {
+          "closed": "Fermé",
+          "open": "Ouvert",
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_body_lights_isrunningon": {
+        "name": "État des phares"
+      },
+      "vehicle_body_trunk_door_isopen": {
+        "name": "État d'ouverture de la porte du coffre"
+      },
+      "vehicle_body_trunk_islocked": {
+        "name": "État de verrouillage du coffre"
+      },
+      "vehicle_body_trunk_isopen": {
+        "name": "Statut du haillon du coffre",
+        "state": {
+          "closed": "Fermé",
+          "open": "Ouvert",
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_body_trunk_left_door_isopen": {
+        "name": "Porte gauche du coffre ouverte"
+      },
+      "vehicle_body_trunk_lower_door_isopen": {
+        "name": "Porte inférieure du coffre ouverte"
+      },
+      "vehicle_body_trunk_right_door_isopen": {
+        "name": "Porte droite du coffre ouverte"
+      },
+      "vehicle_body_trunk_upper_door_isopen": {
+        "name": "Porte supérieure du coffre ouverte"
+      },
+      "vehicle_body_trunk_window_isopen": {
+        "name": "Déverrouillage de la lunette arrière",
+        "state": {
+          "closed": "Fermé",
+          "open": "Ouvert",
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_action": {
+        "name": "Action de remplacement de la minuterie climatique",
+        "state": {
+          "activate": "Activer",
+          "deactivate": "Désactiver",
+          "no_action": "Aucune action"
+        }
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_hour": {
+        "name": "Heure de remplacement de la minuterie climatique"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_minute": {
+        "name": "Minute de remplacement de la minuterie climatique"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_action": {
+        "name": "Action de la minuterie 1 en semaine",
+        "state": {
+          "activate": "Activer",
+          "deactivate": "Désactiver",
+          "no_action": "Aucune action"
+        }
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_hour": {
+        "name": "Heure de la minuterie 1 en semaine"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_minute": {
+        "name": "Minute de la minuterie 1 en semaine"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_action": {
+        "name": "Action de la minuterie 2 en semaine",
+        "state": {
+          "activate": "Activer",
+          "deactivate": "Désactiver",
+          "no_action": "Aucune action"
+        }
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_hour": {
+        "name": "Heure de la minuterie 2 en semaine"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_minute": {
+        "name": "Minute de la minuterie 2 en semaine"
+      },
+      "vehicle_cabin_convertible_roofretractablestatus": {
+        "name": "État du toit cabriolet"
+      },
+      "vehicle_cabin_convertible_roofstatus": {
+        "name": "Statut de la capote du cabriolet"
+      },
+      "vehicle_cabin_door_lock_status": {
+        "name": "Statut des portières",
+        "state": {
+          "secured": "Sécurisé",
+          "unlocked": "Déverrouillé",
+          "selective-locked": "Partiellement verrouillé",
+          "locked": "Verrouillé",
+          "invalid": "Non valide",
+          "unknown": "Inconnu"
+        }
+      },
+      "vehicle_cabin_door_row1_driver_isopen": {
+        "name": "Statut de la portière avant gauche",
+        "state": {
+          "open": "Ouvert",
+          "closed": "Fermé",
+          "invalid": "Non valide",
+          "unknown": "Inconnu"
+        }
+      },
+      "vehicle_cabin_door_row1_driver_position": {
+        "name": "Position de la porte avant côté conducteur"
+      },
+      "vehicle_cabin_door_row1_passenger_isopen": {
+        "name": "Statut de la portière avant droite",
+        "state": {
+          "open": "Ouvert",
+          "closed": "Fermé",
+          "invalid": "Non valide",
+          "unknown": "Inconnu"
+        }
+      },
+      "vehicle_cabin_door_row1_passenger_position": {
+        "name": "Position de la porte avant côté passager"
+      },
+      "vehicle_cabin_door_row2_driver_isopen": {
+        "name": "Statut de la portière arrière gauche",
+        "state": {
+          "open": "Ouvert",
+          "closed": "Fermé",
+          "invalid": "Non valide",
+          "unknown": "Inconnu"
+        }
+      },
+      "vehicle_cabin_door_row2_driver_position": {
+        "name": "Position de la porte arrière côté conducteur"
+      },
+      "vehicle_cabin_door_row2_passenger_isopen": {
+        "name": "Statut de la portière arrière droite",
+        "state": {
+          "open": "Ouvert",
+          "closed": "Fermé",
+          "invalid": "Non valide",
+          "unknown": "Inconnu"
+        }
+      },
+      "vehicle_cabin_door_row2_passenger_position": {
+        "name": "Position de la porte arrière côté passager"
+      },
+      "vehicle_cabin_door_status": {
+        "name": "État des portières",
+        "state": {
+          "secured": "Sécurisé",
+          "locked": "Verrouillé",
+          "selectivelocked": "Partiellement verrouillé",
+          "unlocked": "Déverrouillé",
+          "unknown": "Inconnu"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_cooling": {
+        "name": "Refroidissement par défaut du siège conducteur avant",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_heating": {
+        "name": "Chauffage par défaut du siège conducteur avant",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_cooling": {
+        "name": "Refroidissement par défaut du siège passager avant",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_heating": {
+        "name": "Chauffage par défaut du siège passager avant",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_cooling": {
+        "name": "Refroidissement par défaut du siège conducteur arrière",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_heating": {
+        "name": "Chauffage par défaut du siège conducteur arrière",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_cooling": {
+        "name": "Refroidissement par défaut du siège passager arrière",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_heating": {
+        "name": "Chauffage par défaut du siège passager arrière",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_cooling": {
+        "name": "Refroidissement par défaut du siège conducteur à la troisième rangée",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_heating": {
+        "name": "Chauffage par défaut du siège conducteur à la troisième rangée",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_cooling": {
+        "name": "Refroidissement par défaut du siège passager à la troisième rangée",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_heating": {
+        "name": "Chauffage par défaut du siège passager à la troisième rangée",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_steeringwheel_heating": {
+        "name": "Chauffage par défaut du volant",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_targettemperature": {
+        "name": "Température cible"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_cooling": {
+        "name": "Refroidissement direct du siège conducteur avant",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_heating": {
+        "name": "Chauffage direct du siège conducteur avant",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_cooling": {
+        "name": "Refroidissement direct du siège passager avant",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_heating": {
+        "name": "Chauffage direct pour le siège passager avant",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_cooling": {
+        "name": "Refroidissement direct pour le siège conducteur arrière",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_heating": {
+        "name": "Chauffage direct pour le siège conducteur arrière",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_cooling": {
+        "name": "Refroidissement direct pour le siège passager arrière",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_heating": {
+        "name": "Chauffage direct pour le siège passager arrière",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_cooling": {
+        "name": "Refroidissement direct du siège conducteur à la troisième rangée",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_heating": {
+        "name": "Chauffage direct du siège conducteur à la troisième rangée",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_cooling": {
+        "name": "Refroidissement direct du siège passager à la troisième rangée",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_heating": {
+        "name": "Chauffage direct du siège passager à la troisième rangée",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_steeringwheel_heating": {
+        "name": "Chauffage direct du volant",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "automatic": "Automatique",
+          "no_change": "Aucun changement"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_targettemperature": {
+        "name": "Température cible DirectStart"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_isremoteenginestartdisclaimer": {
+        "name": "Avertissement relatif à la climatisation à distance"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_comfortstate": {
+        "name": "État de confort de la préclimatisation"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_isexteriormirrorheatingactive": {
+        "name": "Chauffage de rétroviseur extérieur actif"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_progress": {
+        "name": "Progression de la préclimatisation"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_reardefrostactive": {
+        "name": "Dégivrage arrière actif"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_remainingrunningtime": {
+        "name": "Temps résiduel de la préclimatisation"
+      },
+      "vehicle_cabin_hvac_statusairpurification": {
+        "name": "État de la purification de l'air du système CVC",
+        "state": {
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_cabin_infotainment_displayunit_distance": {
+        "name": "Unité d'affichage des instruments du véhicule",
+        "state": {
+          "km": "Kilomètres",
+          "miles": "Miles"
+        }
+      },
+      "vehicle_cabin_infotainment_hmi_distanceunit": {
+        "name": "Unité de distance de l'infodivertissement",
+        "state": {
+          "miles": "Miles",
+          "kilometers": "Kilomètres"
+        }
+      },
+      "vehicle_cabin_infotainment_ismobilephoneconnected": {
+        "name": "Jumelage avec un téléphone mobile"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_altitude": {
+        "name": "Position du véhicule au-dessus du niveau de la mer"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_fixstatus": {
+        "name": "État du correctif de navigation"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_heading": {
+        "name": "Orientation du véhicule"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_latitude": {
+        "name": "Position du véhicule – latitude"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_longitude": {
+        "name": "Position du véhicule – longitude"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_numberofsatellites": {
+        "name": "Nombre de satellites de navigation"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_arrivaltime": {
+        "name": "Temps restant jusqu'à destination"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_distance": {
+        "name": "Distance jusqu'à la destination enregistrée dans le système de navigation"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_latitude": {
+        "name": "Destination de navigation : latitude"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_longitude": {
+        "name": "Destination de navigation : longitude"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_available": {
+        "name": "Nombre de POI libres dans le système de navigation"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_max": {
+        "name": "Nombre maximal d'enregistrements POI dans l'appareil de navigation"
+      },
+      "vehicle_cabin_infotainment_navigation_remainingrange": {
+        "name": "Autonomie résiduelle"
+      },
+      "vehicle_cabin_seat_row1_driverside_cooling": {
+        "name": "Refroidissement du siège du conducteur avant"
+      },
+      "vehicle_cabin_seat_row1_driverside_heating": {
+        "name": "Chauffage du siège conducteur avant"
+      },
+      "vehicle_cabin_seat_row1_passengerside_cooling": {
+        "name": "Refroidissement du siège passager avant"
+      },
+      "vehicle_cabin_seat_row1_passengerside_heating": {
+        "name": "Chauffage du siège passager avant"
+      },
+      "vehicle_cabin_seat_row2_driverside_cooling": {
+        "name": "Refroidissement du siège conducteur arrière"
+      },
+      "vehicle_cabin_seat_row2_driverside_heating": {
+        "name": "Chauffage du siège conducteur arrière"
+      },
+      "vehicle_cabin_seat_row2_passengerside_cooling": {
+        "name": "Refroidissement du siège passager arrière"
+      },
+      "vehicle_cabin_seat_row2_passengerside_heating": {
+        "name": "Chauffage du siège passager arrière"
+      },
+      "vehicle_cabin_seat_row3_driverside_cooling": {
+        "name": "Refroidissement du siège conducteur à la troisième rangée"
+      },
+      "vehicle_cabin_seat_row3_driverside_heating": {
+        "name": "Chauffage du siège conducteur à la troisième rangée"
+      },
+      "vehicle_cabin_seat_row3_passengerside_cooling": {
+        "name": "Refroidissement du siège passager à la troisième rangée"
+      },
+      "vehicle_cabin_seat_row3_passengerside_heating": {
+        "name": "Chauffage du siège passager à la troisième rangée"
+      },
+      "vehicle_cabin_steeringwheel_heating": {
+        "name": "Chauffage du volant"
+      },
+      "vehicle_cabin_sunroof_overallstatus": {
+        "name": "État général du toit ouvrant",
+        "state": {
+          "invalid": "Non valide",
+          "open": "Ouvert",
+          "closed": "Fermé"
+        }
+      },
+      "vehicle_cabin_sunroof_relativeposition": {
+        "name": "Position relative du toit ouvrant"
+      },
+      "vehicle_cabin_sunroof_shade_position": {
+        "name": "Position du pare-soleil"
+      },
+      "vehicle_cabin_sunroof_status": {
+        "name": "Statut du toit ouvrant",
+        "state": {
+          "closed": "Fermé",
+          "intermediate": "Partiellement ouvert",
+          "open": "Ouvert",
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_cabin_sunroof_tiltstatus": {
+        "name": "Ouverture du toit ouvrant",
+        "state": {
+          "closed": "Fermé",
+          "intermediate": "Partiellement ouvert",
+          "open": "Ouvert",
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_cabin_window_row1_driver_status": {
+        "name": "Statut de la fenêtre avant gauche",
+        "state": {
+          "closed": "Fermé",
+          "intermediate": "Partiellement ouvert",
+          "open": "Ouvert",
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_cabin_window_row1_passenger_status": {
+        "name": "Statut de la fenêtre avant droite",
+        "state": {
+          "closed": "Fermé",
+          "intermediate": "Partiellement ouvert",
+          "open": "Ouvert",
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_cabin_window_row2_driver_status": {
+        "name": "Statut de la fenêtre arrière gauche",
+        "state": {
+          "closed": "Fermé",
+          "intermediate": "Partiellement ouvert",
+          "open": "Ouvert",
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_cabin_window_row2_passenger_status": {
+        "name": "Statut de la fenêtre arrière droite",
+        "state": {
+          "closed": "Fermé",
+          "intermediate": "Partiellement ouvert",
+          "open": "Ouvert",
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
+        "name": "Information d'état sur la dernière transmission des valeurs OBFCM*",
+        "state": {
+          "ok": "OK"
+        }
+      },
+      "vehicle_channel_ngtp_timevehicle": {
+        "name": "Date et heure au niveau du véhicule"
+      },
+      "vehicle_channel_teleservice_lastautomaticservicecalltime": {
+        "name": "Appel automatique téléservice"
+      },
+      "vehicle_channel_teleservice_lastbreakdowncalltime": {
+        "name": "Heure du dernier appel en cas de panne de téléservice"
+      },
+      "vehicle_channel_teleservice_lastmanualcalltime": {
+        "name": "Heure du dernier appel manuel de téléservice"
+      },
+      "vehicle_channel_teleservice_lastteleservicereporttime": {
+        "name": "Rapport de téléservice"
+      },
+      "vehicle_channel_teleservice_status": {
+        "name": "Disponibilité des téléservices"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressure": {
+        "name": "Pression mesurée du pneu avant gauche"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressuretarget": {
+        "name": "Pression de consigne du pneu avant gauche"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_temperature": {
+        "name": "Température du pneu en degrés Celsius, avant gauche"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressure": {
+        "name": "Pression mesurée du pneu avant droit"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressuretarget": {
+        "name": "Pression de consigne du pneu avant droit"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_temperature": {
+        "name": "Température du pneu en degrés Celsius, avant droite"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressure": {
+        "name": "Pression mesurée du pneu arrière gauche"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressuretarget": {
+        "name": "Pression de consigne du pneu arrière gauche"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_temperature": {
+        "name": "Température du pneu en degrés Celsius, arrière gauche"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressure": {
+        "name": "Pression mesurée du pneu arrière droit"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressuretarget": {
+        "name": "Pression de consigne du pneu arrière droit"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_temperature": {
+        "name": "Température du pneu en degrés Celsius, arrière droite"
+      },
+      "vehicle_chassis_axle_wheel_tire_diagnosis": {
+        "name": "Maintenance intelligente : Diagnostic numérique des pneus"
+      },
+      "vehicle_drivetrain_avgelectricrangeconsumption": {
+        "name": "Consommation électrique moyenne"
+      },
+      "vehicle_drivetrain_batterymanagement_batterysizemax": {
+        "name": "Taille de la batterie haute tension"
+      },
+      "vehicle_drivetrain_batterymanagement_header": {
+        "name": "Statut de chargement de la batterie haut voltage"
+      },
+      "vehicle_drivetrain_batterymanagement_maxenergy": {
+        "name": "Énergie utilisable provenant de la batterie haute tension (à pleine charge, prévisionnelle)"
+      },
+      "vehicle_drivetrain_electricengine_charging_acampere": {
+        "name": "Courant de charge CA"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_factor": {
+        "name": "Facteur de restriction de la charge en courant alternatif"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_ischosen": {
+        "name": "Limitation et sélection du courant de charge AC",
+        "state": {
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_acvoltage": {
+        "name": "Tension de charge CA"
+      },
+      "vehicle_drivetrain_electricengine_charging_authentication_status": {
+        "name": "État de l'authentification de la recharge"
+      },
+      "vehicle_drivetrain_electricengine_charging_chargingmode": {
+        "name": "Mode de charge"
+      },
+      "vehicle_drivetrain_electricengine_charging_connectiontype": {
+        "name": "Méthode de chargement de la batterie haute tension (inductive/conductive)"
+      },
+      "vehicle_drivetrain_electricengine_charging_connectorstatus": {
+        "name": "État du connecteur de charge",
+        "state": {
+          "connected": "Connecté",
+          "disconnected": "Déconnecté"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_gridenergy": {
+        "name": "Énergie totale du réseau consommée lorsque le moteur à combustion n'était pas actif"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_referencedistance": {
+        "name": "Distance de référence pour la mesure de l'énergie fournie par le réseau lorsque le moteur à combustion n'était pas actif"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_gridenergy": {
+        "name": "Énergie totale du réseau consommée pendant que le moteur à combustion était actif"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_referencedistance": {
+        "name": "Distance de référence pour la mesure de l'énergie fournie par le réseau lorsque le moteur à combustion était actif"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_gridenergy": {
+        "name": "Énergie totale du réseau fournie au véhicule (PHEV uniquement)"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_referencedistance": {
+        "name": "Distance de référence OBFCM* pour la mesure de l'énergie fournie par le réseau"
+      },
+      "vehicle_drivetrain_electricengine_charging_hvstatus": {
+        "name": "État du système de charge HT",
+        "state": {
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_hvpmfinishreason": {
+        "name": "Cause de la fin d'un processus de chargement",
+        "state": {
+          "unknown": "Inconnu",
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_isimmediatechargingsystemreason": {
+        "name": "Raison du système justifiant la charge immédiate"
+      },
+      "vehicle_drivetrain_electricengine_charging_issingleimmediatecharging": {
+        "name": "État de la fonction de charge instantanée",
+        "state": {
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingreason": {
+        "name": "Motif de la dernière charge",
+        "state": {
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingresult": {
+        "name": "Résultat de la dernière charge",
+        "state": {
+          "unknown": "Inconnu"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_level": {
+        "name": "Niveau de charge actuel prédit"
+      },
+      "vehicle_drivetrain_electricengine_charging_method": {
+        "name": "Méthode de chargement et type de prise",
+        "state": {
+          "nocharging": "Pas en charge"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_modedeviation": {
+        "name": "Écart par rapport au mode de charge",
+        "state": {
+          "no_action": "Aucune action",
+          "unknown": "Inconnu"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_phasenumber": {
+        "name": "Méthode de chargement de la batterie haute tension (phases)",
+        "state": {
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_climatizationactive": {
+        "name": "Climatisation active"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_isrcpconfigcomplete": {
+        "name": "Configuration RCP terminée"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_mode": {
+        "name": "Profil de chargement"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_preference": {
+        "name": "Préférence du profil de charge"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_departuretimerelevant": {
+        "name": "Heure de départ pertinente"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_dischargeallowed": {
+        "name": "Décharge autorisée"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_timertype": {
+        "name": "Type de minuterie de charge"
+      },
+      "vehicle_drivetrain_electricengine_charging_reasonchargingend": {
+        "name": "Motif de la fin de la charge"
+      },
+      "vehicle_drivetrain_electricengine_charging_routeoptimizedchargingstatus": {
+        "name": "État de la charge optimisée pour le trajet"
+      },
+      "vehicle_drivetrain_electricengine_charging_smeenergydeltafullycharged": {
+        "name": "Énergie utilisable provenant de la batterie haute tension (à pleine charge, prévisionnelle)"
+      },
+      "vehicle_drivetrain_electricengine_charging_status": {
+        "name": "Statut de chargement",
+        "state": {
+          "nocharging": "Pas en charge",
+          "initialization": "Initialisation",
+          "chargingactive": "En charge",
+          "chargingpaused": "Charge en pause",
+          "chargingended": "Charge terminée",
+          "chargingerror": "Erreur de charge"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_timeremaining": {
+        "name": "Prévision du temps de charge restant"
+      },
+      "vehicle_drivetrain_electricengine_charging_timetofullycharged": {
+        "name": "Durée de charge restante calculée de la batterie haute tension"
+      },
+      "vehicle_drivetrain_electricengine_charging_windowselection": {
+        "name": "Sélection de la fenêtre de charge la plus favorable (Charging Window Selection)"
+      },
+      "vehicle_drivetrain_electricengine_hvsmaxenergyabsolute": {
+        "name": "Contenu énergétique maximal de la batterie haute tension"
+      },
+      "vehicle_drivetrain_electricengine_kombiremainingelectricrange": {
+        "name": "Autonomie électrique restante en km"
+      },
+      "vehicle_drivetrain_electricengine_remainingelectricrange": {
+        "name": "Prévision de l'autonomie électrique pendant la charge"
+      },
+      "vehicle_drivetrain_engine_isactive": {
+        "name": "État de l'allumage"
+      },
+      "vehicle_drivetrain_engine_isignitionon": {
+        "name": "État du moteur (allumé/éteint)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_fuel": {
+        "name": "Consommation totale de carburant OBFCM* en fonctionnement lorsque la batterie est déchargée (PHEV uniquement)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineoff": {
+        "name": "Distance de référence OBFCM* en mode électrique avec le moteur à combustion inactif (PHEV uniquement)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineon": {
+        "name": "Distance de référence OBFCM* en mode électrique avec le moteur à combustion actif (PHEV uniquement)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_fuel": {
+        "name": "Consommation totale de carburant OBFCM* en mode de charge (PHEV uniquement)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_referencedistance": {
+        "name": "Distance de référence OBFCM* en mode de charge"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_fuel": {
+        "name": "Consommation totale de carburant conformément aux prescriptions légales de l'OBFCM* (compteur de consommation de carburant embarqué)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_referencedistance": {
+        "name": "Distance de référence OBFCM* pour la mesure de la consommation de carburant"
+      },
+      "vehicle_drivetrain_fuelsystem_level": {
+        "name": "Niveau de remplissage du réservoir en %"
+      },
+      "vehicle_drivetrain_fuelsystem_remainingfuel": {
+        "name": "Réservoir"
+      },
+      "vehicle_drivetrain_internalcombustionengine_engine_ect": {
+        "name": "Température du liquide de refroidissement"
+      },
+      "vehicle_drivetrain_lastremainingrange": {
+        "name": "Dernière autonomie restante envoyée"
+      },
+      "vehicle_drivetrain_totalremainingrange": {
+        "name": "Prévision de l'autonomie totale pendant la charge"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_recharge": {
+        "name": "Nécessité de recharger la batterie"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_replace": {
+        "name": "État de santé de la batterie"
+      },
+      "vehicle_electricalsystem_battery_stateofcharge": {
+        "name": "Batterie bas voltage"
+      },
+      "vehicle_electricalsystem_battery_stateofchargeplausibility": {
+        "name": "Plausibilité de la batterie basse tension"
+      },
+      "vehicle_electricalsystem_battery_voltage": {
+        "name": "Tension de la batterie"
+      },
+      "vehicle_electricalsystem_battery48v_stateofhealth_displayed": {
+        "name": "État de santé de la batterie 48 V"
+      },
+      "vehicle_electroniccontrolunit_diagnostictroublecodes_raw": {
+        "name": "Mémoire des défauts"
+      },
+      "vehicle_extras_optionalequipment_code": {
+        "name": "Liste des équipements en option"
+      },
+      "vehicle_ismoving": {
+        "name": "Mouvement du véhicule"
+      },
+      "vehicle_learningnavigation": {
+        "name": "GPS Learning navigation data"
+      },
+      "vehicle_look_image": {
+        "name": "Image du véhicule"
+      },
+      "vehicle_powertrain_electric_battery_bidirectionalcharging_availability": {
+        "name": "Capacité de charge bidirectionnelle"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_isactive": {
+        "name": "État de la limitation de charge",
+        "state": {
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_max": {
+        "name": "Intensité de charge maximale"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_min": {
+        "name": "Intensité de charge maximale"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_selected": {
+        "name": "Limitation du courant de charge"
+      },
+      "vehicle_powertrain_electric_battery_charging_acousticlimit": {
+        "name": "Limitation acoustique du processus de chargement",
+        "state": {
+          "no_action": "Aucune action",
+          "automatic": "Automatique"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_authenticationstatus": {
+        "name": "État de l'authentification de la recharge",
+        "state": {
+          "unknown": "Inconnu"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isactive": {
+        "name": "Mode d’entretien de la batterie actif"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_ispreservingchargingmode": {
+        "name": "Mode de charge d’entretien de la batterie"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isreducedtargetsoe": {
+        "name": "État énergétique cible réduit"
+      },
+      "vehicle_powertrain_electric_battery_charging_cablecheckvoltage": {
+        "name": "Tension de contrôle du câble"
+      },
+      "vehicle_powertrain_electric_battery_charging_dcchargingmodeactive": {
+        "name": "Mode de charge CC actif"
+      },
+      "vehicle_powertrain_electric_battery_charging_history_sessionslist": {
+        "name": "Historique des chargements"
+      },
+      "vehicle_powertrain_electric_battery_charging_power": {
+        "name": "Puissance de charge"
+      },
+      "vehicle_powertrain_electric_battery_charging_preferencesmartcharging": {
+        "name": "Option de charge « Smart Charging »",
+        "state": {
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_settingslist": {
+        "name": "Réglages de charge en fonction du site"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_automaticmode_statusfeedback": {
+        "name": "Feedback sur l'état de la préclimatisation automatique",
+        "state": {
+          "off": "Désactivé",
+          "on": "Activé",
+          "unknown": "Inconnu"
+        }
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_manualmode_statusfeedback": {
+        "name": "Feedback sur l'état de la préclimatisation manuelle",
+        "state": {
+          "off": "Désactivé",
+          "unknown": "Inconnu"
+        }
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_state": {
+        "name": "État de la préclimatisation",
+        "state": {
+          "off": "Désactivé",
+          "unknown": "Inconnu"
+        }
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_displayed": {
+        "name": "Affichage de l'état de charge"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_target": {
+        "name": "Valeur cible de l'état de charge de la batterie haute tension"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetmin": {
+        "name": "Niveau de charge minimal cible"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetsocforprofessionalmode": {
+        "name": "Niveau de charge cible pour le mode professionnel"
+      },
+      "vehicle_powertrain_electric_battery_stateofhealth_displayed": {
+        "name": "État de santé de la batterie haute tension (SOCE)"
+      },
+      "vehicle_powertrain_electric_chargingduration_displaycontrol": {
+        "name": "Affichage du temps de chargement",
+        "state": {
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_powertrain_electric_departuretime_displaycontrol": {
+        "name": "Affichage de l'heure de départ",
+        "state": {
+          "unknown": "Inconnu"
+        }
+      },
+      "vehicle_powertrain_electric_range_displaycontrol": {
+        "name": "Contrôle de l'affichage de l'autonomie électrique"
+      },
+      "vehicle_powertrain_electric_range_target": {
+        "name": "Autonomie électrique restante en fonction de la valeur cible de l'état de charge"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isautomaticopenandcloseactive": {
+        "name": "Ouverture/fermeture automatiques du volet du port de charge de la batterie"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isopen": {
+        "name": "Port de charge de la batterie, toutes positions, volet ouvert"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_isplugged": {
+        "name": "Port de charge de la batterie, toutes positions, branché"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isautomaticopenandcloseactive": {
+        "name": "Ouverture/fermeture automatiques du volet avant gauche du port de charge de la batterie"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isopen": {
+        "name": "Port de charge de la batterie, volet avant gauche ouvert"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_isplugged": {
+        "name": "Port de charge avant gauche de la batterie branché"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Ouverture/fermeture automatiques du volet avant central du port de charge de la batterie"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isopen": {
+        "name": "Port de charge de la batterie, volet avant central ouvert"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_isplugged": {
+        "name": "Port de charge avant central de la batterie branché"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isautomaticopenandcloseactive": {
+        "name": "Ouverture/fermeture automatiques du volet avant droit du port de charge de la batterie"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isopen": {
+        "name": "Port de charge de la batterie, volet avant droit ouvert"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_isplugged": {
+        "name": "Port de charge avant droit de la batterie branché"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isautomaticopenandcloseactive": {
+        "name": "Ouverture/fermeture automatiques du volet arrière gauche du port de charge de la batterie"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isopen": {
+        "name": "Port de charge de la batterie, volet arrière gauche ouvert"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_isplugged": {
+        "name": "Port de charge arrière gauche de la batterie branché"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Ouverture/fermeture automatiques du volet arrière central du port de charge de la batterie"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isopen": {
+        "name": "Port de charge de la batterie, volet arrière central ouvert"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_isplugged": {
+        "name": "Port de charge arrière central de la batterie branché"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isautomaticopenandcloseactive": {
+        "name": "Ouverture/fermeture automatiques du volet arrière droit du port de charge de la batterie"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isopen": {
+        "name": "Port de charge de la batterie, volet arrière droit ouvert"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_isplugged": {
+        "name": "Port de charge arrière droit de la batterie branché"
+      },
+      "vehicle_privacysettings_datacollection_regulations_obfcm": {
+        "name": "Consentement au transfert de données OBFCM* vers l'UE"
+      },
+      "vehicle_servicedemand_defect_id": {
+        "name": "Maintenance intelligente : Diagnostic en direct"
+      },
+      "vehicle_sevice_preferredsevicepartner": {
+        "name": "Partenaire de service privilégié"
+      },
+      "vehicle_sim_status": {
+        "name": "État d'activation de la carte SIM intégrée"
+      },
+      "vehicle_status_checkcontrolmessages": {
+        "name": "Messages de contrôle Check Control"
+      },
+      "vehicle_status_conditionbasedservices": {
+        "name": "Condition Based Service"
+      },
+      "vehicle_status_conditionbasedservicesaveragedistanceperday": {
+        "name": "Distance moyenne par jour"
+      },
+      "vehicle_status_conditionbasedservicescount": {
+        "name": "Nombre de messages CBS"
+      },
+      "vehicle_status_servicedistance_next": {
+        "name": "Distance jusqu'au prochain service d'entretien"
+      },
+      "vehicle_status_servicedistance_yellow": {
+        "name": "Distance valeur seuil pour information service"
+      },
+      "vehicle_status_servicetime_huandauserviceyellow": {
+        "name": "Temps valeur seuil pour inspection générale et contrôle des gaz d'échappement"
+      },
+      "vehicle_status_servicetime_inspectiondatelegal": {
+        "name": "Date de la prochaine inspection"
+      },
+      "vehicle_status_servicetime_yellow": {
+        "name": "Temps valeur seuil pour information service"
+      },
+      "vehicle_trip_segment_accumulated_acceleration_starsaverage": {
+        "name": "Évaluation du style de conduite « comportement en matière d'accélération »"
+      },
+      "vehicle_trip_segment_accumulated_chassis_brake_starsaverage": {
+        "name": "Évaluation du style de conduite « Conduite prévoyante »"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_energyconsumptioncomfort": {
+        "name": "Consommation électrique en mode CONFORT au cours du dernier trajet"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_recuperationtotal": {
+        "name": "Quantité d'énergie récupérée au cours du dernier trajet"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecopro": {
+        "name": "Durée d'activation du mode ÉCO lors du dernier trajet"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecoproplus": {
+        "name": "Durée d'activation du mode ÉCO PLUS lors du dernier trajet"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveelectric": {
+        "name": "Part de l'électricité lors du dernier trajet"
+      },
+      "vehicle_trip_segment_end_drivetrain_batterymanagement_hvsoc": {
+        "name": "État de chargement de la batterie"
+      },
+      "vehicle_trip_segment_end_time": {
+        "name": "Date et heure du dernier trajet"
+      },
+      "vehicle_trip_segment_end_travelleddistance": {
+        "name": "Kilométrage lors du dernier trajet"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_activationtime": {
+        "name": "Durée d'activation de l'alarme antivol"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_armstatus": {
+        "name": "État d'activation de l'alarme antivol",
+        "state": {
+          "unarmed": "Désarmé",
+          "doorsonly": "Portes uniquement",
+          "doorstiltcabin": "Portes, inclinaison et habitacle"
+        }
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_ison": {
+        "name": "L'alarme antivol est activée"
+      },
+      "vehicle_vehicle_averageweeklydistancelongterm": {
+        "name": "Distance moyenne par semaine (long terme)"
+      },
+      "vehicle_vehicle_averageweeklydistanceshortterm": {
+        "name": "Distance moyenne par semaine"
+      },
+      "vehicle_vehicle_avgauxpower": {
+        "name": "Puissance des consommateurs auxiliaires (puissance consommée des composants électriques)"
+      },
+      "vehicle_vehicle_avgspeed": {
+        "name": "Vitesse de conduite moyenne"
+      },
+      "vehicle_vehicle_deepsleepmodeactive": {
+        "name": "Mode de veille profonde (Deep Sleep Mode)"
+      },
+      "vehicle_vehicle_preconditioning_activity": {
+        "name": "Statut du préconditionnement de la climatisation à l’arrêt",
+        "state": {
+          "standby": "Veille",
+          "heating": "Chauffage",
+          "cooling": "Refroidissement",
+          "ventilation": "Ventilation",
+          "inactive": "Inactif"
+        }
+      },
+      "vehicle_vehicle_preconditioning_error": {
+        "name": "Motif de non-exécution du préconditionnement de la climatisation à l’arrêt",
+        "state": {
+          "lowfuel": "Niveau de carburant bas",
+          "lowbattery": "Batterie faible",
+          "quotaexceeded": "Quota dépassé",
+          "heaterfailure": "Panne du chauffage",
+          "componentfailure": "Panne d'un composant",
+          "openorunlocked": "Ouvert ou déverrouillé",
+          "ok": "OK",
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginerunning": {
+        "name": "Utilisation du moteur pour le préconditionnement"
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginestartallowed": {
+        "name": "Permission d’utilisation du moteur pour le préconditionnement."
+      },
+      "vehicle_vehicle_preconditioning_remainingtime": {
+        "name": "Temps restant du préconditionnement"
+      },
+      "vehicle_vehicle_speedrange_lowerbound": {
+        "name": "Plage de vitesses inférieure"
+      },
+      "vehicle_vehicle_speedrange_upperbound": {
+        "name": "Plage de vitesse supérieure"
+      },
+      "vehicle_vehicle_timesetting": {
+        "name": "Réglage du fuseau horaire dans le véhicule",
+        "state": {
+          "wintertime": "Heure d'hiver",
+          "summertime": "Heure d'été",
+          "utc": "UTC",
+          "manual": "Manuel",
+          "invalid": "Non valide"
+        }
+      },
+      "vehicle_vehicle_travelleddistance": {
+        "name": "Kilométrage"
+      },
+      "vehicle_vehicleidentification_basicvehicledata": {
+        "name": "Données de base du véhicule"
+      },
+      "vehicle_vehicleidentification_connecteddrivecontractlist": {
+        "name": "Contrats ConnectedDrive actifs"
+      },
+      "soc_estimate": {
+        "name": "État de charge (prédit par l'intégration)"
+      },
+      "soc_estimate_testing": {
+        "name": "Nouveau capteur de test d'extrapolation"
+      },
+      "soc_rate": {
+        "name": "Vitesse de charge prédite"
+      },
+      "charged_energy_total": {
+        "name": "Énergie chargée (totale)"
+      },
+      "charged_energy_session": {
+        "name": "Énergie chargée (session)"
+      },
+      "last_message": {
+        "name": "Dernier message reçu"
+      },
+      "last_telematic_api": {
+        "name": "Dernier appel à l'API télématique"
+      },
+      "connection_status": {
+        "name": "État de la connexion du flux"
+      },
+      "api_quota_remaining": {
+        "name": "Quota API restant"
+      },
+      "charging_cost_month": {
+        "name": "Coût de recharge (ce mois-ci)"
+      },
+      "charging_cost_session": {
+        "name": "Coût de recharge (dernière session)"
+      },
+      "charging_energy_month": {
+        "name": "Énergie chargée (ce mois-ci)"
+      },
+      "charging_cost_per_100km": {
+        "name": "Coût de recharge aux 100 km"
+      },
+      "battery_health": {
+        "name": "État de santé de la batterie"
+      },
+      "driving_distance_month": {
+        "name": "Distance parcourue (ce mois-ci)"
+      },
+      "real_range": {
+        "name": "Autonomie réelle"
+      },
+      "tyre_status": {
+        "name": "État des pneus"
+      },
+      "tyre_front_left": {
+        "name": "Pneu avant gauche"
+      },
+      "tyre_front_right": {
+        "name": "Pneu avant droit"
+      },
+      "tyre_rear_left": {
+        "name": "Pneu arrière gauche"
+      },
+      "tyre_rear_right": {
+        "name": "Pneu arrière droit"
+      }
+    },
+    "binary_sensor": {
+      "vehicle_body_chargingport_combinedstatus": {
+        "name": "État de connexion du port de charge"
+      },
+      "vehicle_body_chargingport_dcstatus": {
+        "name": "État de la connexion de la prise de charge (CC uniquement)"
+      },
+      "vehicle_body_chargingport_ishospitalityactive": {
+        "name": "État de verrouillage de la prise de charge après une charge complète"
+      },
+      "vehicle_body_chargingport_isosessionid": {
+        "name": "Identifiant de session de charge"
+      },
+      "vehicle_body_chargingport_lockedstatus": {
+        "name": "État verrouillé du port de charge"
+      },
+      "vehicle_body_chargingport_plugeventid": {
+        "name": "ID du branchement au port de charge"
+      },
+      "vehicle_body_chargingport_status": {
+        "name": "Statut du connecteur de chargement"
+      },
+      "vehicle_body_chargingport_statuscleartext": {
+        "name": "Texte de l'état du port de charge"
+      },
+      "vehicle_body_flap_islocked": {
+        "name": "État du clapet de chargement"
+      },
+      "vehicle_body_flap_ispermanentlyunlocked": {
+        "name": "État de fermeture de la trappe de chargement"
+      },
+      "vehicle_body_hood_isopen": {
+        "name": "Statut du capot du moteur"
+      },
+      "vehicle_body_lights_isrunningon": {
+        "name": "État des phares"
+      },
+      "vehicle_body_trunk_door_isopen": {
+        "name": "État d'ouverture de la porte du coffre"
+      },
+      "vehicle_body_trunk_islocked": {
+        "name": "État de verrouillage du coffre"
+      },
+      "vehicle_body_trunk_isopen": {
+        "name": "Statut du haillon du coffre"
+      },
+      "vehicle_body_trunk_left_door_isopen": {
+        "name": "Porte gauche du coffre ouverte"
+      },
+      "vehicle_body_trunk_lower_door_isopen": {
+        "name": "Porte inférieure du coffre ouverte"
+      },
+      "vehicle_body_trunk_right_door_isopen": {
+        "name": "Porte droite du coffre ouverte"
+      },
+      "vehicle_body_trunk_upper_door_isopen": {
+        "name": "Porte supérieure du coffre ouverte"
+      },
+      "vehicle_body_trunk_window_isopen": {
+        "name": "Déverrouillage de la lunette arrière"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_action": {
+        "name": "Action de remplacement de la minuterie climatique"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_hour": {
+        "name": "Heure de remplacement de la minuterie climatique"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_minute": {
+        "name": "Minute de remplacement de la minuterie climatique"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_action": {
+        "name": "Action de la minuterie 1 en semaine"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_hour": {
+        "name": "Heure de la minuterie 1 en semaine"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_minute": {
+        "name": "Minute de la minuterie 1 en semaine"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_action": {
+        "name": "Action de la minuterie 2 en semaine"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_hour": {
+        "name": "Heure de la minuterie 2 en semaine"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_minute": {
+        "name": "Minute de la minuterie 2 en semaine"
+      },
+      "vehicle_cabin_convertible_roofretractablestatus": {
+        "name": "État du toit cabriolet"
+      },
+      "vehicle_cabin_convertible_roofstatus": {
+        "name": "Statut de la capote du cabriolet"
+      },
+      "vehicle_cabin_door_lock_status": {
+        "name": "Statut des portières"
+      },
+      "vehicle_cabin_door_row1_driver_isopen": {
+        "name": "Statut de la portière avant gauche"
+      },
+      "vehicle_cabin_door_row1_driver_position": {
+        "name": "Position de la porte avant côté conducteur"
+      },
+      "vehicle_cabin_door_row1_passenger_isopen": {
+        "name": "Statut de la portière avant droite"
+      },
+      "vehicle_cabin_door_row1_passenger_position": {
+        "name": "Position de la porte avant côté passager"
+      },
+      "vehicle_cabin_door_row2_driver_isopen": {
+        "name": "Statut de la portière arrière gauche"
+      },
+      "vehicle_cabin_door_row2_driver_position": {
+        "name": "Position de la porte arrière côté conducteur"
+      },
+      "vehicle_cabin_door_row2_passenger_isopen": {
+        "name": "Statut de la portière arrière droite"
+      },
+      "vehicle_cabin_door_row2_passenger_position": {
+        "name": "Position de la porte arrière côté passager"
+      },
+      "vehicle_cabin_door_status": {
+        "name": "État des portières"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_cooling": {
+        "name": "Refroidissement par défaut du siège conducteur avant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_heating": {
+        "name": "Chauffage par défaut du siège conducteur avant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_cooling": {
+        "name": "Refroidissement par défaut du siège passager avant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_heating": {
+        "name": "Chauffage par défaut du siège passager avant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_cooling": {
+        "name": "Refroidissement par défaut du siège conducteur arrière"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_heating": {
+        "name": "Chauffage par défaut du siège conducteur arrière"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_cooling": {
+        "name": "Refroidissement par défaut du siège passager arrière"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_heating": {
+        "name": "Chauffage par défaut du siège passager arrière"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_cooling": {
+        "name": "Refroidissement par défaut du siège conducteur à la troisième rangée"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_heating": {
+        "name": "Chauffage par défaut du siège conducteur à la troisième rangée"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_cooling": {
+        "name": "Refroidissement par défaut du siège passager à la troisième rangée"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_heating": {
+        "name": "Chauffage par défaut du siège passager à la troisième rangée"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_steeringwheel_heating": {
+        "name": "Chauffage par défaut du volant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_targettemperature": {
+        "name": "Température cible"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_cooling": {
+        "name": "Refroidissement direct du siège conducteur avant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_heating": {
+        "name": "Chauffage direct du siège conducteur avant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_cooling": {
+        "name": "Refroidissement direct du siège passager avant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_heating": {
+        "name": "Chauffage direct pour le siège passager avant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_cooling": {
+        "name": "Refroidissement direct pour le siège conducteur arrière"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_heating": {
+        "name": "Chauffage direct pour le siège conducteur arrière"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_cooling": {
+        "name": "Refroidissement direct pour le siège passager arrière"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_heating": {
+        "name": "Chauffage direct pour le siège passager arrière"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_cooling": {
+        "name": "Refroidissement direct du siège conducteur à la troisième rangée"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_heating": {
+        "name": "Chauffage direct du siège conducteur à la troisième rangée"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_cooling": {
+        "name": "Refroidissement direct du siège passager à la troisième rangée"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_heating": {
+        "name": "Chauffage direct du siège passager à la troisième rangée"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_steeringwheel_heating": {
+        "name": "Chauffage direct du volant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_targettemperature": {
+        "name": "Température cible DirectStart"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_isremoteenginestartdisclaimer": {
+        "name": "Avertissement relatif à la climatisation à distance"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_comfortstate": {
+        "name": "État de confort de la préclimatisation"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_isexteriormirrorheatingactive": {
+        "name": "Chauffage de rétroviseur extérieur actif"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_progress": {
+        "name": "Progression de la préclimatisation"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_reardefrostactive": {
+        "name": "Dégivrage arrière actif"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_remainingrunningtime": {
+        "name": "Temps résiduel de la préclimatisation"
+      },
+      "vehicle_cabin_hvac_statusairpurification": {
+        "name": "État de la purification de l'air du système CVC"
+      },
+      "vehicle_cabin_infotainment_displayunit_distance": {
+        "name": "Unité d'affichage des instruments du véhicule"
+      },
+      "vehicle_cabin_infotainment_hmi_distanceunit": {
+        "name": "Unité de distance de l'infodivertissement"
+      },
+      "vehicle_cabin_infotainment_ismobilephoneconnected": {
+        "name": "Jumelage avec un téléphone mobile"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_altitude": {
+        "name": "Position du véhicule au-dessus du niveau de la mer"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_fixstatus": {
+        "name": "État du correctif de navigation"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_heading": {
+        "name": "Orientation du véhicule"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_latitude": {
+        "name": "Position du véhicule – latitude"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_longitude": {
+        "name": "Position du véhicule – longitude"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_numberofsatellites": {
+        "name": "Nombre de satellites de navigation"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_arrivaltime": {
+        "name": "Temps restant jusqu'à destination"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_distance": {
+        "name": "Distance jusqu'à la destination enregistrée dans le système de navigation"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_latitude": {
+        "name": "Destination de navigation : latitude"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_longitude": {
+        "name": "Destination de navigation : longitude"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_available": {
+        "name": "Nombre de POI libres dans le système de navigation"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_max": {
+        "name": "Nombre maximal d'enregistrements POI dans l'appareil de navigation"
+      },
+      "vehicle_cabin_infotainment_navigation_remainingrange": {
+        "name": "Autonomie résiduelle"
+      },
+      "vehicle_cabin_seat_row1_driverside_cooling": {
+        "name": "Refroidissement du siège du conducteur avant"
+      },
+      "vehicle_cabin_seat_row1_driverside_heating": {
+        "name": "Chauffage du siège conducteur avant"
+      },
+      "vehicle_cabin_seat_row1_passengerside_cooling": {
+        "name": "Refroidissement du siège passager avant"
+      },
+      "vehicle_cabin_seat_row1_passengerside_heating": {
+        "name": "Chauffage du siège passager avant"
+      },
+      "vehicle_cabin_seat_row2_driverside_cooling": {
+        "name": "Refroidissement du siège conducteur arrière"
+      },
+      "vehicle_cabin_seat_row2_driverside_heating": {
+        "name": "Chauffage du siège conducteur arrière"
+      },
+      "vehicle_cabin_seat_row2_passengerside_cooling": {
+        "name": "Refroidissement du siège passager arrière"
+      },
+      "vehicle_cabin_seat_row2_passengerside_heating": {
+        "name": "Chauffage du siège passager arrière"
+      },
+      "vehicle_cabin_seat_row3_driverside_cooling": {
+        "name": "Refroidissement du siège conducteur à la troisième rangée"
+      },
+      "vehicle_cabin_seat_row3_driverside_heating": {
+        "name": "Chauffage du siège conducteur à la troisième rangée"
+      },
+      "vehicle_cabin_seat_row3_passengerside_cooling": {
+        "name": "Refroidissement du siège passager à la troisième rangée"
+      },
+      "vehicle_cabin_seat_row3_passengerside_heating": {
+        "name": "Chauffage du siège passager à la troisième rangée"
+      },
+      "vehicle_cabin_steeringwheel_heating": {
+        "name": "Chauffage du volant"
+      },
+      "vehicle_cabin_sunroof_overallstatus": {
+        "name": "État général du toit ouvrant"
+      },
+      "vehicle_cabin_sunroof_relativeposition": {
+        "name": "Position relative du toit ouvrant"
+      },
+      "vehicle_cabin_sunroof_shade_position": {
+        "name": "Position du pare-soleil"
+      },
+      "vehicle_cabin_sunroof_status": {
+        "name": "Statut du toit ouvrant"
+      },
+      "vehicle_cabin_sunroof_tiltstatus": {
+        "name": "Ouverture du toit ouvrant"
+      },
+      "vehicle_cabin_window_row1_driver_status": {
+        "name": "Statut de la fenêtre avant gauche"
+      },
+      "vehicle_cabin_window_row1_passenger_status": {
+        "name": "Statut de la fenêtre avant droite"
+      },
+      "vehicle_cabin_window_row2_driver_status": {
+        "name": "Statut de la fenêtre arrière gauche"
+      },
+      "vehicle_cabin_window_row2_passenger_status": {
+        "name": "Statut de la fenêtre arrière droite"
+      },
+      "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
+        "name": "Information d'état sur la dernière transmission des valeurs OBFCM*"
+      },
+      "vehicle_channel_ngtp_timevehicle": {
+        "name": "Date et heure au niveau du véhicule"
+      },
+      "vehicle_channel_teleservice_lastautomaticservicecalltime": {
+        "name": "Appel automatique téléservice"
+      },
+      "vehicle_channel_teleservice_lastbreakdowncalltime": {
+        "name": "Heure du dernier appel en cas de panne de téléservice"
+      },
+      "vehicle_channel_teleservice_lastmanualcalltime": {
+        "name": "Heure du dernier appel manuel de téléservice"
+      },
+      "vehicle_channel_teleservice_lastteleservicereporttime": {
+        "name": "Rapport de téléservice"
+      },
+      "vehicle_channel_teleservice_status": {
+        "name": "Disponibilité des téléservices"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressure": {
+        "name": "Pression mesurée du pneu avant gauche"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressuretarget": {
+        "name": "Pression de consigne du pneu avant gauche"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_temperature": {
+        "name": "Température du pneu en degrés Celsius, avant gauche"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressure": {
+        "name": "Pression mesurée du pneu avant droit"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressuretarget": {
+        "name": "Pression de consigne du pneu avant droit"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_temperature": {
+        "name": "Température du pneu en degrés Celsius, avant droite"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressure": {
+        "name": "Pression mesurée du pneu arrière gauche"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressuretarget": {
+        "name": "Pression de consigne du pneu arrière gauche"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_temperature": {
+        "name": "Température du pneu en degrés Celsius, arrière gauche"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressure": {
+        "name": "Pression mesurée du pneu arrière droit"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressuretarget": {
+        "name": "Pression de consigne du pneu arrière droit"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_temperature": {
+        "name": "Température du pneu en degrés Celsius, arrière droite"
+      },
+      "vehicle_chassis_axle_wheel_tire_diagnosis": {
+        "name": "Maintenance intelligente : Diagnostic numérique des pneus"
+      },
+      "vehicle_drivetrain_avgelectricrangeconsumption": {
+        "name": "Consommation électrique moyenne"
+      },
+      "vehicle_drivetrain_batterymanagement_batterysizemax": {
+        "name": "Taille de la batterie haute tension"
+      },
+      "vehicle_drivetrain_batterymanagement_header": {
+        "name": "Statut de chargement de la batterie haut voltage"
+      },
+      "vehicle_drivetrain_batterymanagement_maxenergy": {
+        "name": "Énergie utilisable provenant de la batterie haute tension (à pleine charge, prévisionnelle)"
+      },
+      "vehicle_drivetrain_electricengine_charging_acampere": {
+        "name": "Courant de charge CA"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_factor": {
+        "name": "Facteur de restriction de la charge en courant alternatif"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_ischosen": {
+        "name": "Limitation et sélection du courant de charge AC"
+      },
+      "vehicle_drivetrain_electricengine_charging_acvoltage": {
+        "name": "Tension de charge CA"
+      },
+      "vehicle_drivetrain_electricengine_charging_authentication_status": {
+        "name": "État de l'authentification de la recharge"
+      },
+      "vehicle_drivetrain_electricengine_charging_chargingmode": {
+        "name": "Mode de charge"
+      },
+      "vehicle_drivetrain_electricengine_charging_connectiontype": {
+        "name": "Méthode de chargement de la batterie haute tension (inductive/conductive)"
+      },
+      "vehicle_drivetrain_electricengine_charging_connectorstatus": {
+        "name": "État du connecteur de charge"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_gridenergy": {
+        "name": "Énergie totale du réseau consommée lorsque le moteur à combustion n'était pas actif"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_referencedistance": {
+        "name": "Distance de référence pour la mesure de l'énergie fournie par le réseau lorsque le moteur à combustion n'était pas actif"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_gridenergy": {
+        "name": "Énergie totale du réseau consommée pendant que le moteur à combustion était actif"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_referencedistance": {
+        "name": "Distance de référence pour la mesure de l'énergie fournie par le réseau lorsque le moteur à combustion était actif"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_gridenergy": {
+        "name": "Énergie totale du réseau fournie au véhicule (PHEV uniquement)"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_referencedistance": {
+        "name": "Distance de référence OBFCM* pour la mesure de l'énergie fournie par le réseau"
+      },
+      "vehicle_drivetrain_electricengine_charging_hvstatus": {
+        "name": "État du système de charge HT"
+      },
+      "vehicle_drivetrain_electricengine_charging_hvpmfinishreason": {
+        "name": "Cause de la fin d'un processus de chargement"
+      },
+      "vehicle_drivetrain_electricengine_charging_isimmediatechargingsystemreason": {
+        "name": "Raison du système justifiant la charge immédiate"
+      },
+      "vehicle_drivetrain_electricengine_charging_issingleimmediatecharging": {
+        "name": "État de la fonction de charge instantanée"
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingreason": {
+        "name": "Motif de la dernière charge"
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingresult": {
+        "name": "Résultat de la dernière charge"
+      },
+      "vehicle_drivetrain_electricengine_charging_level": {
+        "name": "Niveau de charge actuel prédit"
+      },
+      "vehicle_drivetrain_electricengine_charging_method": {
+        "name": "Méthode de chargement et type de prise"
+      },
+      "vehicle_drivetrain_electricengine_charging_modedeviation": {
+        "name": "Écart par rapport au mode de charge"
+      },
+      "vehicle_drivetrain_electricengine_charging_phasenumber": {
+        "name": "Méthode de chargement de la batterie haute tension (phases)"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_climatizationactive": {
+        "name": "Climatisation active"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_isrcpconfigcomplete": {
+        "name": "Configuration RCP terminée"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_mode": {
+        "name": "Profil de chargement"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_preference": {
+        "name": "Préférence du profil de charge"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_departuretimerelevant": {
+        "name": "Heure de départ pertinente"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_dischargeallowed": {
+        "name": "Décharge autorisée"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_timertype": {
+        "name": "Type de minuterie de charge"
+      },
+      "vehicle_drivetrain_electricengine_charging_reasonchargingend": {
+        "name": "Motif de la fin de la charge"
+      },
+      "vehicle_drivetrain_electricengine_charging_routeoptimizedchargingstatus": {
+        "name": "État de la charge optimisée pour le trajet"
+      },
+      "vehicle_drivetrain_electricengine_charging_smeenergydeltafullycharged": {
+        "name": "Énergie utilisable provenant de la batterie haute tension (à pleine charge, prévisionnelle)"
+      },
+      "vehicle_drivetrain_electricengine_charging_status": {
+        "name": "Statut de chargement"
+      },
+      "vehicle_drivetrain_electricengine_charging_timeremaining": {
+        "name": "Prévision du temps de charge restant"
+      },
+      "vehicle_drivetrain_electricengine_charging_timetofullycharged": {
+        "name": "Durée de charge restante calculée de la batterie haute tension"
+      },
+      "vehicle_drivetrain_electricengine_charging_windowselection": {
+        "name": "Sélection de la fenêtre de charge la plus favorable (Charging Window Selection)"
+      },
+      "vehicle_drivetrain_electricengine_hvsmaxenergyabsolute": {
+        "name": "Contenu énergétique maximal de la batterie haute tension"
+      },
+      "vehicle_drivetrain_electricengine_kombiremainingelectricrange": {
+        "name": "Autonomie électrique restante en km"
+      },
+      "vehicle_drivetrain_electricengine_remainingelectricrange": {
+        "name": "Prévision de l'autonomie électrique pendant la charge"
+      },
+      "vehicle_drivetrain_engine_isactive": {
+        "name": "État de l'allumage"
+      },
+      "vehicle_drivetrain_engine_isignitionon": {
+        "name": "État du moteur (allumé/éteint)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_fuel": {
+        "name": "Consommation totale de carburant OBFCM* en fonctionnement lorsque la batterie est déchargée (PHEV uniquement)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineoff": {
+        "name": "Distance de référence OBFCM* en mode électrique avec le moteur à combustion inactif (PHEV uniquement)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineon": {
+        "name": "Distance de référence OBFCM* en mode électrique avec le moteur à combustion actif (PHEV uniquement)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_fuel": {
+        "name": "Consommation totale de carburant OBFCM* en mode de charge (PHEV uniquement)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_referencedistance": {
+        "name": "Distance de référence OBFCM* en mode de charge"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_fuel": {
+        "name": "Consommation totale de carburant conformément aux prescriptions légales de l'OBFCM* (compteur de consommation de carburant embarqué)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_referencedistance": {
+        "name": "Distance de référence OBFCM* pour la mesure de la consommation de carburant"
+      },
+      "vehicle_drivetrain_fuelsystem_level": {
+        "name": "Niveau de remplissage du réservoir en %"
+      },
+      "vehicle_drivetrain_fuelsystem_remainingfuel": {
+        "name": "Réservoir"
+      },
+      "vehicle_drivetrain_internalcombustionengine_engine_ect": {
+        "name": "Température du liquide de refroidissement"
+      },
+      "vehicle_drivetrain_lastremainingrange": {
+        "name": "Dernière autonomie restante envoyée"
+      },
+      "vehicle_drivetrain_totalremainingrange": {
+        "name": "Prévision de l'autonomie totale pendant la charge"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_recharge": {
+        "name": "Nécessité de recharger la batterie"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_replace": {
+        "name": "État de santé de la batterie"
+      },
+      "vehicle_electricalsystem_battery_stateofcharge": {
+        "name": "Batterie bas voltage"
+      },
+      "vehicle_electricalsystem_battery_stateofchargeplausibility": {
+        "name": "Plausibilité de la batterie basse tension"
+      },
+      "vehicle_electricalsystem_battery_voltage": {
+        "name": "Tension de la batterie"
+      },
+      "vehicle_electricalsystem_battery48v_stateofhealth_displayed": {
+        "name": "État de santé de la batterie 48 V"
+      },
+      "vehicle_electroniccontrolunit_diagnostictroublecodes_raw": {
+        "name": "Mémoire des défauts"
+      },
+      "vehicle_extras_optionalequipment_code": {
+        "name": "Liste des équipements en option"
+      },
+      "vehicle_ismoving": {
+        "name": "Mouvement du véhicule"
+      },
+      "vehicle_learningnavigation": {
+        "name": "GPS Learning navigation data"
+      },
+      "vehicle_look_image": {
+        "name": "Image du véhicule"
+      },
+      "vehicle_powertrain_electric_battery_bidirectionalcharging_availability": {
+        "name": "Capacité de charge bidirectionnelle"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_isactive": {
+        "name": "État de la limitation de charge"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_max": {
+        "name": "Intensité de charge maximale"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_min": {
+        "name": "Intensité de charge maximale"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_selected": {
+        "name": "Limitation du courant de charge"
+      },
+      "vehicle_powertrain_electric_battery_charging_acousticlimit": {
+        "name": "Limitation acoustique du processus de chargement"
+      },
+      "vehicle_powertrain_electric_battery_charging_authenticationstatus": {
+        "name": "État de l'authentification de la recharge"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isactive": {
+        "name": "Mode d’entretien de la batterie actif"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_ispreservingchargingmode": {
+        "name": "Mode de charge d’entretien de la batterie"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isreducedtargetsoe": {
+        "name": "État énergétique cible réduit"
+      },
+      "vehicle_powertrain_electric_battery_charging_cablecheckvoltage": {
+        "name": "Tension de contrôle du câble"
+      },
+      "vehicle_powertrain_electric_battery_charging_dcchargingmodeactive": {
+        "name": "Mode de charge CC actif"
+      },
+      "vehicle_powertrain_electric_battery_charging_history_sessionslist": {
+        "name": "Historique des chargements"
+      },
+      "vehicle_powertrain_electric_battery_charging_power": {
+        "name": "Puissance de charge"
+      },
+      "vehicle_powertrain_electric_battery_charging_preferencesmartcharging": {
+        "name": "Option de charge « Smart Charging »"
+      },
+      "vehicle_powertrain_electric_battery_charging_settingslist": {
+        "name": "Réglages de charge en fonction du site"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_automaticmode_statusfeedback": {
+        "name": "Feedback sur l'état de la préclimatisation automatique"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_manualmode_statusfeedback": {
+        "name": "Feedback sur l'état de la préclimatisation manuelle"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_state": {
+        "name": "État de la préclimatisation"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_displayed": {
+        "name": "Affichage de l'état de charge"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_target": {
+        "name": "Valeur cible de l'état de charge de la batterie haute tension"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetmin": {
+        "name": "Niveau de charge minimal cible"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetsocforprofessionalmode": {
+        "name": "Niveau de charge cible pour le mode professionnel"
+      },
+      "vehicle_powertrain_electric_battery_stateofhealth_displayed": {
+        "name": "État de santé de la batterie haute tension (SOCE)"
+      },
+      "vehicle_powertrain_electric_chargingduration_displaycontrol": {
+        "name": "Affichage du temps de chargement"
+      },
+      "vehicle_powertrain_electric_departuretime_displaycontrol": {
+        "name": "Affichage de l'heure de départ"
+      },
+      "vehicle_powertrain_electric_range_displaycontrol": {
+        "name": "Contrôle de l'affichage de l'autonomie électrique"
+      },
+      "vehicle_powertrain_electric_range_target": {
+        "name": "Autonomie électrique restante en fonction de la valeur cible de l'état de charge"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isautomaticopenandcloseactive": {
+        "name": "Ouverture/fermeture automatiques du volet du port de charge de la batterie"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isopen": {
+        "name": "Port de charge de la batterie, toutes positions, volet ouvert"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_isplugged": {
+        "name": "Port de charge de la batterie, toutes positions, branché"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isautomaticopenandcloseactive": {
+        "name": "Ouverture/fermeture automatiques du volet avant gauche du port de charge de la batterie"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isopen": {
+        "name": "Port de charge de la batterie, volet avant gauche ouvert"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_isplugged": {
+        "name": "Port de charge avant gauche de la batterie branché"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Ouverture/fermeture automatiques du volet avant central du port de charge de la batterie"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isopen": {
+        "name": "Port de charge de la batterie, volet avant central ouvert"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_isplugged": {
+        "name": "Port de charge avant central de la batterie branché"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isautomaticopenandcloseactive": {
+        "name": "Ouverture/fermeture automatiques du volet avant droit du port de charge de la batterie"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isopen": {
+        "name": "Port de charge de la batterie, volet avant droit ouvert"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_isplugged": {
+        "name": "Port de charge avant droit de la batterie branché"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isautomaticopenandcloseactive": {
+        "name": "Ouverture/fermeture automatiques du volet arrière gauche du port de charge de la batterie"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isopen": {
+        "name": "Port de charge de la batterie, volet arrière gauche ouvert"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_isplugged": {
+        "name": "Port de charge arrière gauche de la batterie branché"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Ouverture/fermeture automatiques du volet arrière central du port de charge de la batterie"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isopen": {
+        "name": "Port de charge de la batterie, volet arrière central ouvert"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_isplugged": {
+        "name": "Port de charge arrière central de la batterie branché"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isautomaticopenandcloseactive": {
+        "name": "Ouverture/fermeture automatiques du volet arrière droit du port de charge de la batterie"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isopen": {
+        "name": "Port de charge de la batterie, volet arrière droit ouvert"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_isplugged": {
+        "name": "Port de charge arrière droit de la batterie branché"
+      },
+      "vehicle_privacysettings_datacollection_regulations_obfcm": {
+        "name": "Consentement au transfert de données OBFCM* vers l'UE"
+      },
+      "vehicle_servicedemand_defect_id": {
+        "name": "Maintenance intelligente : Diagnostic en direct"
+      },
+      "vehicle_sevice_preferredsevicepartner": {
+        "name": "Partenaire de service privilégié"
+      },
+      "vehicle_sim_status": {
+        "name": "État d'activation de la carte SIM intégrée"
+      },
+      "vehicle_status_checkcontrolmessages": {
+        "name": "Messages de contrôle Check Control"
+      },
+      "vehicle_status_conditionbasedservices": {
+        "name": "Condition Based Service"
+      },
+      "vehicle_status_conditionbasedservicesaveragedistanceperday": {
+        "name": "Distance moyenne par jour"
+      },
+      "vehicle_status_conditionbasedservicescount": {
+        "name": "Nombre de messages CBS"
+      },
+      "vehicle_status_servicedistance_next": {
+        "name": "Distance jusqu'au prochain service d'entretien"
+      },
+      "vehicle_status_servicedistance_yellow": {
+        "name": "Distance valeur seuil pour information service"
+      },
+      "vehicle_status_servicetime_huandauserviceyellow": {
+        "name": "Temps valeur seuil pour inspection générale et contrôle des gaz d'échappement"
+      },
+      "vehicle_status_servicetime_inspectiondatelegal": {
+        "name": "Date de la prochaine inspection"
+      },
+      "vehicle_status_servicetime_yellow": {
+        "name": "Temps valeur seuil pour information service"
+      },
+      "vehicle_trip_segment_accumulated_acceleration_starsaverage": {
+        "name": "Évaluation du style de conduite « comportement en matière d'accélération »"
+      },
+      "vehicle_trip_segment_accumulated_chassis_brake_starsaverage": {
+        "name": "Évaluation du style de conduite « Conduite prévoyante »"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_energyconsumptioncomfort": {
+        "name": "Consommation électrique en mode CONFORT au cours du dernier trajet"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_recuperationtotal": {
+        "name": "Quantité d'énergie récupérée au cours du dernier trajet"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecopro": {
+        "name": "Durée d'activation du mode ÉCO lors du dernier trajet"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecoproplus": {
+        "name": "Durée d'activation du mode ÉCO PLUS lors du dernier trajet"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveelectric": {
+        "name": "Part de l'électricité lors du dernier trajet"
+      },
+      "vehicle_trip_segment_end_drivetrain_batterymanagement_hvsoc": {
+        "name": "État de chargement de la batterie"
+      },
+      "vehicle_trip_segment_end_time": {
+        "name": "Date et heure du dernier trajet"
+      },
+      "vehicle_trip_segment_end_travelleddistance": {
+        "name": "Kilométrage lors du dernier trajet"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_activationtime": {
+        "name": "Durée d'activation de l'alarme antivol"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_armstatus": {
+        "name": "État d'activation de l'alarme antivol"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_ison": {
+        "name": "L'alarme antivol est activée"
+      },
+      "vehicle_vehicle_averageweeklydistancelongterm": {
+        "name": "Distance moyenne par semaine (long terme)"
+      },
+      "vehicle_vehicle_averageweeklydistanceshortterm": {
+        "name": "Distance moyenne par semaine"
+      },
+      "vehicle_vehicle_avgauxpower": {
+        "name": "Puissance des consommateurs auxiliaires (puissance consommée des composants électriques)"
+      },
+      "vehicle_vehicle_avgspeed": {
+        "name": "Vitesse de conduite moyenne"
+      },
+      "vehicle_vehicle_deepsleepmodeactive": {
+        "name": "Mode de veille profonde (Deep Sleep Mode)"
+      },
+      "vehicle_vehicle_preconditioning_activity": {
+        "name": "Statut du préconditionnement de la climatisation à l’arrêt"
+      },
+      "vehicle_vehicle_preconditioning_error": {
+        "name": "Motif de non-exécution du préconditionnement de la climatisation à l’arrêt"
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginerunning": {
+        "name": "Utilisation du moteur pour le préconditionnement"
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginestartallowed": {
+        "name": "Permission d’utilisation du moteur pour le préconditionnement."
+      },
+      "vehicle_vehicle_preconditioning_remainingtime": {
+        "name": "Temps restant du préconditionnement"
+      },
+      "vehicle_vehicle_speedrange_lowerbound": {
+        "name": "Plage de vitesses inférieure"
+      },
+      "vehicle_vehicle_speedrange_upperbound": {
+        "name": "Plage de vitesse supérieure"
+      },
+      "vehicle_vehicle_timesetting": {
+        "name": "Réglage du fuseau horaire dans le véhicule"
+      },
+      "vehicle_vehicle_travelleddistance": {
+        "name": "Kilométrage"
+      },
+      "vehicle_vehicleidentification_basicvehicledata": {
+        "name": "Données de base du véhicule"
+      },
+      "vehicle_vehicleidentification_connecteddrivecontractlist": {
+        "name": "Contrats ConnectedDrive actifs"
+      },
+      "trip_in_progress": {
+        "name": "Trajet en cours"
+      }
+    },
+    "device_tracker": {
+      "car": {
+        "name": "Position"
+      }
+    },
+    "image": {
+      "vehicle_image": {
+        "name": "Image du véhicule"
+      }
+    }
+  },
+  "issues": {
+    "api_quota_exhausted": {
+      "title": "Quota de l'API BMW CarData épuisé",
+      "description": "La limite REST BMW CarData de {limit} requêtes par 24 h est atteinte ; les données à la demande (infos de base, historique de recharge, diagnostic des pneus, image du véhicule) ne peuvent donc pas être actualisées pour l'instant. Les données du flux continuent d'arriver. Le quota se libère à nouveau à {next_reset}."
+    },
+    "motorcycle_unsupported": {
+      "title": "Les motos BMW ne peuvent pas transmettre leurs données",
+      "description": "{vehicle} est une BMW Motorrad. BMW CarData liste les motos sur le compte, mais BMW ne transmet aucune donnée pour elles ; BavarianData n'a donc rien à afficher et ses entités restent vides. C'est une limite côté BMW, pas une erreur de configuration. Vous pouvez supprimer l'entrée d'intégration de ce véhicule, ou ignorer cet avis si le compte comporte aussi une voiture."
+    },
+    "stream_coverage_gaps": {
+      "title": "Un groupe de données sélectionné n'a jamais été transmis",
+      "description": "Pour {vehicle}, rien du tout de {clusters} n'est arrivé en {days} jours ({count} descripteur(s), p. ex. {descriptors}). Un groupe totalement silencieux signifie généralement qu'il n'est pas coché et enregistré dans la Sélection des données du portail BMW, ou que votre voiture ne produit pas ces données. Réactivez-le sous Configurer → Choisir les données transmises, ou désélectionnez le groupe. Les groupes qui ne livrent qu'une partie de leurs champs sont normaux et ne déclenchent jamais cet avis. Exécutez le service get_coverage_report pour la liste complète."
+    },
+    "stream_no_data": {
+      "title": "Aucune donnée reçue du flux BMW CarData",
+      "description": "Aucune donnée du véhicule n'est arrivée par le flux depuis plus de {hours} heures. Le flux s'est peut-être arrêté, ou les données n'ont jamais été sélectionnées. Vérifiez que votre Sélection des données est enregistrée dans le portail BMW (étape 4 de la configuration), verrouillez/déverrouillez le véhicule dans l'application MyBMW pour déclencher une mise à jour, et assurez-vous qu'aucun autre client CarData n'est connecté — BMW n'autorise qu'un flux par compte. Exécutez le service get_coverage_report pour voir quels descripteurs manquent."
+    },
+    "stream_unauthorized": {
+      "title": "Flux BMW CarData non autorisé",
+      "description": "BMW refuse la connexion du flux comme non autorisée (MQTT rc=5) depuis plus de {minutes} minutes et elle ne s'est pas rétablie d'elle-même. Cela signifie généralement que les jetons doivent être renouvelés, ou qu'un autre client CarData occupe l'unique flux du compte. Essayez Configurer → Renouveler les jetons maintenant, puis Autoriser à nouveau auprès de BMW si l'échec persiste, et déconnectez tout autre client CarData."
+    }
+  },
+  "services": {
+    "fetch_telematic_data": {
+      "name": "Récupérer les données télématiques",
+      "description": "Récupère les données télématiques de chaque véhicule du compte via le conteneur enregistré et journalise la réponse. Une requête par véhicule.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif à interroger. Laissez vide pour actualiser tous les véhicules du compte."
+        }
+      }
+    },
+    "fetch_vehicle_mappings": {
+      "name": "Récupérer les associations de véhicules",
+      "description": "Récupère les informations d'association du compte configuré et journalise la réponse.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+        }
+      }
+    },
+    "fetch_basic_data": {
+      "name": "Récupérer les données de base du véhicule",
+      "description": "Récupère les métadonnées fixes du véhicule (nom du modèle, série, etc.) pour un VIN et journalise la réponse.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif à interroger. Par défaut, le VIN enregistré dans l'entrée de configuration."
+        }
+      }
+    },
+    "fetch_charging_history": {
+      "name": "Récupérer l'historique de recharge",
+      "description": "Récupère auprès de BMW l'historique des sessions de recharge d'un VIN (paginé) et l'importe dans l'historique local, afin que les recharges passées apparaissent sur la carte et dans les bilans mensuels. Les sessions enregistrées en direct qui se chevauchent sont enrichies sur place avec l'énergie réseau mesurée par BMW. Compte pour un ou plusieurs appels d'API sur le quota de 50/24 h.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif à interroger. Par défaut, le premier VIN connu."
+        },
+        "from": {
+          "name": "Du",
+          "description": "Début de la période à récupérer. Par défaut, il y a 30 jours si laissé vide."
+        },
+        "to": {
+          "name": "Au",
+          "description": "Fin de la période à récupérer. Par défaut, maintenant si laissé vide."
+        }
+      }
+    },
+    "fetch_tyre_diagnosis": {
+      "name": "Récupérer le diagnostic des pneus Smart Maintenance",
+      "description": "Récupère le diagnostic des pneus Smart Maintenance pour un VIN et journalise la réponse.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif à interroger. Par défaut, le premier VIN connu."
+        }
+      }
+    },
+    "fetch_location_charging_settings": {
+      "name": "Récupérer les réglages de recharge liés au lieu",
+      "description": "Récupère les réglages de recharge liés au lieu pour un VIN (paginé) et journalise la réponse.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif à interroger. Par défaut, le premier VIN connu."
+        }
+      }
+    },
+    "fetch_vehicle_image": {
+      "name": "Récupérer l'image du véhicule",
+      "description": "Récupère l'image du véhicule pour un VIN et journalise sa taille et son type de contenu.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif à interroger. Par défaut, le premier VIN connu."
+        }
+      }
+    },
+    "get_charging_sessions": {
+      "name": "Obtenir les sessions de recharge",
+      "description": "Renvoie les sessions de recharge enregistrées, les plus récentes d'abord. Lit l'historique propre à l'intégration ; contrairement aux actions de récupération, cela ne consomme aucun quota d'API BMW.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif pour filtrer. Par défaut, tous les véhicules connus."
+        },
+        "from": {
+          "name": "Du",
+          "description": "Uniquement les sessions commencées à cette date/heure ou après."
+        },
+        "to": {
+          "name": "Au",
+          "description": "Uniquement les sessions commencées à cette date/heure ou avant."
+        },
+        "limit": {
+          "name": "Limite",
+          "description": "Nombre maximal de sessions à renvoyer."
+        }
+      }
+    },
+    "get_trips": {
+      "name": "Obtenir les trajets",
+      "description": "Renvoie les trajets enregistrés, les plus récents d'abord. Lit l'historique propre à l'intégration ; comme les sessions de recharge, cela ne consomme aucun quota d'API BMW. Les points de départ et d'arrivée sont enregistrés comme noms de lieux, jamais comme coordonnées. Un trajet encore en cours est renvoyé séparément comme trajet ouvert (il n'a pas de fin et sa distance est provisoire), sauf si une période from/to a été indiquée.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif pour filtrer. Par défaut, tous les véhicules connus."
+        },
+        "from": {
+          "name": "Du",
+          "description": "Uniquement les trajets commencés à cette date/heure ou après."
+        },
+        "to": {
+          "name": "Au",
+          "description": "Uniquement les trajets commencés à cette date/heure ou avant."
+        },
+        "limit": {
+          "name": "Limite",
+          "description": "Nombre maximal de trajets à renvoyer."
+        }
+      }
+    },
+    "get_driving_summary": {
+      "name": "Obtenir le bilan de conduite",
+      "description": "Renvoie le bilan mensuel des trajets : distance, répartition professionnel/privé/domicile-travail, consommation, récupération, note de style de conduite, destinations principales et (avec un tarif) un coût de conduite estimé. Lit le stockage local ; cela ne consomme donc aucun quota d'API BMW.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif. Par défaut, l'unique véhicule configuré."
+        },
+        "month": {
+          "name": "Mois",
+          "description": "Mois à résumer au format YYYY-MM. Par défaut, le mois en cours."
+        }
+      }
+    },
+    "get_efficiency": {
+      "name": "Obtenir l'efficacité et l'autonomie réelle",
+      "description": "Renvoie la consommation mesurée (kWh/100 km), l'autonomie réelle qu'elle implique à l'état de charge actuel, la perte de recharge entre le réseau et la batterie, et une tendance d'efficacité mois par mois. Tout est déduit du registre de recharge ; cela ne consomme donc aucun quota d'API BMW.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif. Par défaut, l'unique véhicule configuré."
+        }
+      }
+    },
+    "get_evcc_config": {
+      "name": "Obtenir la configuration evcc",
+      "description": "Renvoie la configuration de véhicule « custom » d'evcc pour cette voiture, prête à coller dans evcc.yaml, ainsi que les topics MQTT publiés par la passerelle et ceux qui sont actuellement actifs. Lit uniquement l'état local ; cela ne consomme donc aucun quota d'API BMW.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif. Par défaut, l'unique véhicule configuré."
+        }
+      }
+    },
+    "set_trip_class": {
+      "name": "Définir la classification d'un trajet",
+      "description": "Remplace la classification d'un trajet (business, private ou commute). Utilisez-la pour corriger la déduction automatique par paire de zones. Écrit uniquement dans le stockage local.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif. Par défaut, l'unique véhicule configuré."
+        },
+        "trip_id": {
+          "name": "ID du trajet",
+          "description": "L'identifiant du trajet, tel que renvoyé par l'action Obtenir les trajets."
+        },
+        "classification": {
+          "name": "Classification",
+          "description": "business, private ou commute."
+        }
+      }
+    },
+    "export_history": {
+      "name": "Exporter l'historique",
+      "description": "Renvoie un mois de sessions de recharge et/ou de trajets enregistrés sous forme de fichiers : CSV pour les tableurs, ou un rapport HTML autonome que vous pouvez imprimer en PDF depuis le navigateur. Le contenu des fichiers est renvoyé dans la réponse ; rien n'est écrit sur le disque. Lit le stockage local ; cela ne consomme donc aucun quota d'API BMW.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif. Par défaut, l'unique véhicule configuré."
+        },
+        "month": {
+          "name": "Mois",
+          "description": "Mois à exporter au format YYYY-MM. Par défaut, le mois en cours."
+        },
+        "type": {
+          "name": "Type",
+          "description": "Enregistrements à inclure."
+        },
+        "format": {
+          "name": "Format",
+          "description": "CSV renvoie un fichier par type d'enregistrement ; HTML renvoie un seul rapport mensuel imprimable."
+        },
+        "language": {
+          "name": "Langue",
+          "description": "Langue du rapport, sous forme de code comme en, de ou fr. Par défaut, la langue de Home Assistant. Ne concerne que le rapport HTML -- les en-têtes CSV restent toujours en anglais lisible par machine."
+        }
+      }
+    },
+    "get_coverage_report": {
+      "name": "Obtenir le rapport de couverture des descripteurs",
+      "description": "Exécute l'autotest de couverture des descripteurs : pour chaque véhicule, compare les descripteurs que vos groupes de flux sélectionnés devraient livrer à ceux réellement arrivés, et liste ceux qui manquent. Répond à « J'ai activé un groupe mais aucune entité n'est apparue -- est-ce ma sélection, ma voiture ou un bug ? ». Lit uniquement le stockage local et le flux en direct ; cela ne consomme donc aucun quota d'API BMW.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif à analyser. Par défaut, tous les véhicules connus."
+        }
+      }
+    },
+    "activate_stream_fields": {
+      "name": "Activer des champs du flux",
+      "description": "Remplace les attributs CarData que BMW transmet par MQTT pour un véhicule, en envoyant la même requête que la page stream setup du portail BMW lorsque vous enregistrez la sélection des données. La sélection du flux n'a pas d'API CarData ; il faut donc une session de navigateur du portail capturée (elle ne peut pas être renouvelée automatiquement -- la session est de courte durée). Ne consomme aucun quota d'API BMW. Renvoie le nombre d'attributs demandés/acceptés.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+        },
+        "base_url": {
+          "name": "URL de base du portail",
+          "description": "L'origine du portail de votre marché, tirée de l'adresse de la page stream setup (sans barre oblique finale)."
+        },
+        "locale": {
+          "name": "Paramètre régional",
+          "description": "Le segment de langue du chemin de l'adresse de la page stream setup."
+        },
+        "mapped_vehicle_id": {
+          "name": "ID du véhicule associé",
+          "description": "L'identifiant du véhicule associé du portail (un hachage, PAS le VIN), tiré de l'adresse de la page stream setup."
+        },
+        "cookie": {
+          "name": "En-tête Cookie",
+          "description": "L'en-tête Cookie brut d'une requête authentifiée au portail (DevTools, Réseau, la requête du flux, copiez la valeur de l'en-tête Cookie). Un secret ; il n'est jamais journalisé. Expire au bout d'un moment -- recapturez-le si l'appel signale que la session a été refusée."
+        },
+        "attributes": {
+          "name": "Attributs",
+          "description": "Liste explicite des descripteurs techniques à transmettre (remplace toute la sélection). Prioritaire sur sections. Par défaut, vos groupes de données transmises choisis, ou l'ensemble de groupes par défaut."
+        },
+        "sections": {
+          "name": "Sections",
+          "description": "Identifiants des groupes à transmettre (p. ex. electric, status, tire). Utilisé lorsque attributes est omis."
+        }
+      }
+    },
+    "import_statistics": {
+      "name": "Importer dans les statistiques à long terme",
+      "description": "Reconstruit les statistiques à long terme de cette intégration à partir de l'historique enregistré, afin que les recharges et trajets antérieurs à l'installation (ou survenus pendant une coupure de Home Assistant) apparaissent dans le tableau de bord Énergie. Cela s'exécute automatiquement au fil des enregistrements ; utilisez-le après la restauration d'une sauvegarde ou pour vérifier le nombre de lignes. Local uniquement -- aucun quota d'API BMW.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif à reconstruire. Par défaut, tous les véhicules connus."
+        }
+      }
+    }
+  }
+}

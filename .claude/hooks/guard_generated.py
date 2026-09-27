@@ -6,7 +6,7 @@ only thing enforcing that was ``test_generators_are_idempotent``, which fails
 that produced it has scrolled away. This turns the rule into a refusal at the
 moment of the write, and names the input file to edit instead.
 
-``translations/en.json`` and ``de.json`` are only half generated -- the ``entity``
+``translations/<lang>.json`` (bar ``en-GB``) are only half generated -- the ``entity``
 block comes from the pipeline, the ``config``/``options`` flow strings are
 hand-maintained -- so those get a warning rather than a refusal.
 ``translations/en-GB.json`` has no hand-maintained half at all and is refused
@@ -40,8 +40,8 @@ GENERATED = {
 }
 
 PARTLY_GENERATED = {
-    f"{_PKG}/translations/en.json",
-    f"{_PKG}/translations/de.json",
+    f"{_PKG}/translations/{lang}.json"
+    for lang in ("en", "de", "fr", "it", "es", "nl", "pl", "pt", "cs", "sv")
 }
 
 
@@ -76,8 +76,8 @@ def main() -> None:
                 "systemMessage": (
                     f"{rel}: the `entity` block is generated -- edit "
                     "tools/curated_titles.json and re-run the pipeline instead. "
-                    "Only `config`/`options` are hand-maintained here, and a change "
-                    "to one language needs the same change in the other."
+                    "Everything outside `entity` is hand-maintained here, and a change "
+                    "to one language needs the same change in every other."
                 )
             }
         )

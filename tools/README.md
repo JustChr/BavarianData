@@ -6,9 +6,9 @@ export; each writes into `custom_components/bavariandata/`.
 
 | Step | Command | Input | Output |
 | --- | --- | --- | --- |
-| 1. Canonical dataset | `python tools/build_catalogue.py` | `CustomerTelematicsDataCatalogue.html` (German export, provides BMW's sections + German text), `descriptor-list.csv` (English export, provides sub-category + English text + raw enum values) and `curated_titles.json` (our curated English display names) | `catalogue.json` |
+| 1. Canonical dataset | `python tools/build_catalogue.py` | `CustomerTelematicsDataCatalogue.html` (German export, provides BMW's sections + German text), `descriptor-list.csv` (English export, provides sub-category + English text + raw enum values), `catalogue_i18n/<lang>.html` (the same portal export in further languages; only names are read) and `curated_titles.json` (our curated English display names) | `catalogue.json` |
 | 2. Metadata registry | `python tools/generate_metadata.py` | `catalogue.json` | `descriptor_metadata.py` (device/state class, unit, enum options, entity category, enabled-by-default, streamable) |
-| 3. Translations | `python tools/generate_translations.py` | `catalogue.json` + `derived_entities.json` | `translations/en.json`, `translations/de.json` (entity names + enum state labels) |
+| 3. Translations | `python tools/generate_translations.py` | `catalogue.json` + `derived_entities.json` | the `entity` block (names + enum state labels) of `translations/<lang>.json` for English and every language in `LANGUAGES` |
 | 4. Reference doc | `python tools/generate_reference_doc.py` | `catalogue.json` + `descriptor_metadata.py` | `docs/reference/telematics-fields.md` |
 | 5. British English | `python tools/generate_en_gb.py` | `translations/en.json` + `spelling_en_gb.json` (our curated US/UK word list) | `translations/en-GB.json` (a delta, not a full language) |
 
@@ -41,11 +41,11 @@ reasoning still agree.
 Entities with **no BMW descriptor** — the integration's own derived and
 diagnostic sensors, the device tracker, the vehicle image — are named from
 `tools/derived_entities.json` (also project-authored) and merged into the same
-generated `entity` block, so they stay bilingual instead of carrying a hardcoded
+generated `entity` block, so they stay translated instead of carrying a hardcoded
 English `_attr_name`. Add a key there whenever you add such an entity, keep its
 `_attr_translation_key` identical, and re-run steps 3 and 5; `tests/test_catalogue.py`
 fails if a literal translation key has no entry, if a key collides with a
-descriptor's, or if a German name is missing.
+descriptor's, or if a name is missing in any language.
 
 `keys.py` (shipped in the integration, not a tool) derives the Home Assistant
 `translation_key` from a descriptor and is shared by the generators and the
@@ -62,8 +62,24 @@ output looks wrong afterwards. Add the spelling to `UNIT_ALIASES` in
 `device_and_state_class` should classify it.
 
 `tests/test_catalogue.py` checks the outputs stay consistent (every descriptor
-has metadata + bilingual translations, enum options have labels, generators are
+has metadata + a name in every language, enum options have labels, generators are
 idempotent). Run `python -m pytest tests/test_catalogue.py`.
+
+## Languages
+
+Outside English, entity names are **BMW's own** field names in that language.
+German comes from the main export; the others from `catalogue_i18n/<lang>.html`,
+the same portal export fetched with that market's locale (below). BMW localizes
+the catalogue for `de fr it es nl pl pt cs sv da fi`; other locales (`ro-ro`,
+`el-gr`, `hu-hu`) come back in English, which is why those are not shipped.
+
+To add a language: drop its export into `catalogue_i18n/`, add it to `LANGUAGES`
+and a column to `_STATE_ROWS` in `generate_translations.py`, add it to
+`derived_entities.json`, write its hand-maintained flow sections (copy `en.json`
+minus `entity`), add a card table in `www/bavariandata-card.js`, a `STRINGS`
+block in `history/export.py` and an option in `services.yaml`. The tests name
+each of those that is missing: `tests/test_translations_parity.py` holds every
+language to English's keys and `{placeholders}`.
 
 ## Refreshing from BMW
 

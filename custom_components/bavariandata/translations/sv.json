@@ -1,0 +1,2938 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Anslut BMW CarData",
+        "description": "Den här integrationen strömmar data från din BMW eller Mini live till Home Assistant.\n\n**Först, i BMW-portalen — behövs för båda vägarna:** skapa en **CarData Client** och prenumerera den på **båda** tjänsterna, **CarData API** och **CarData Streaming**. Kryssa inte i något under Dataurval än.\n\nVälj sedan hur du slutför här:\n\n- **Guidad (rekommenderas)** — du kör ett snippet i BMW-portalen; det hittar ditt Client ID, kontrollerar fordonet och slår på dataströmmen åt dig. Inga ID:n att skriva av.\n- **Manuell** — den klassiska vägen, om du hellre kopierar Client ID själv.",
+        "menu_options": {
+          "guided": "Guidad installation (rekommenderas)",
+          "manual": "Jag klistrar in Client ID själv"
+        }
+      },
+      "manual": {
+        "title": "Anslut BMW CarData",
+        "description": "Den här integrationen strömmar data från din BMW eller Mini live till Home Assistant.\n\n**Konfigurera först CarData i BMW-portalen** (hoppa över om du redan har ett Client ID):\n\n1. Öppna [BMW CarData-portalen]({portal_url}) och logga in. Om CarData inte finns i ditt land, logga in via den [brittiska]({portal_uk}) eller [tyska]({portal_de}) portalen — Client ID fungerar överallt.\n2. Skapa en **CarData Client** och kopiera det **Client ID** som visas.\n3. Prenumerera klienten på **båda** tjänsterna: **CarData API** och **CarData Streaming**.\n\nKryssa inte i något under **Dataurval** än — efter auktoriseringen väljer du på nästa skärmar vilka data som ska strömmas och slår på dem med ett bokmärke med ett klick.\n\nKlistra sedan in **Client ID** nedan.",
+        "data": {
+          "client_id": "Client ID"
+        },
+        "data_description": {
+          "client_id": "CarData Client ID från BMW-portalen — en lång sträng i UUID-format."
+        }
+      },
+      "guided_paste": {
+        "title": "Aktivera dina data och klistra sedan in resultatet",
+        "description": "Kontrollera först att du har skapat en **CarData Client** i BMW-portalen som prenumererar på **CarData API och CarData Streaming** — aktiveraren hittar den klienten, den skapar ingen.\n\n1. Öppna **[BavarianDatas installationssida]({url})**.\n2. Dra knappen **Activate BMW data** till bokmärkesfältet (en gång).\n3. Öppna **BMW- eller MINI-portalen**, logga in och gå till ett fordons **stream setup**-sida.\n4. Klicka på bokmärket **Activate BMW data**. När det är klart trycker du på **Copy** i rutan som visas.\n5. Klistra in resultatet nedan och tryck på **Skicka**.\n\nAllt körs i din egen webbläsare — inget lösenord och ingen session lämnar den någonsin.\n\n{error}",
+        "data": {
+          "result": "Installationsresultat"
+        },
+        "data_description": {
+          "result": "BAVARIANDATA…-texten som Copy-knappen lade i urklipp."
+        }
+      },
+      "guided_done": {
+        "title": "Ström aktiverad",
+        "description": "Klart — **{field_count}** fält strömmas nu för **{vehicle}** och ditt Client ID är inställt. Tryck på **Skicka** för att slutföra och lås/lås sedan upp bilen i MyBMW-appen för att framkalla den första uppdateringen."
+      },
+      "authorize_failed": {
+        "title": "Auktoriseringen slutfördes inte",
+        "description": "Enhetsauktoriseringen kunde inte slutföras.\n\n**Detaljer**\n```\n{error}\n```\n\n**Att kontrollera**\n- **declined / access_denied (403):** BMW:s server rapporterar ofta ett avslag även efter att du har godkänt — ett känt problem hos BMW. Försök igen i ett **privat/inkognitofönster**: öppna BMW CarData-portalen själv (följ inte en länk med koden i adressen), logga in, välj *Autentisera enhet* och **skriv in koden för hand**. Kontrollera också att Client ID prenumererar på **CarData API och CarData Streaming** innan du auktoriserar, och att du är fordonets **primära** användare.\n- **expired / timeout:** koden godkändes inte i tid.\n\nTryck på **Skicka** för att få en ny kod och försöka igen. Om det fortsätter att misslyckas, ta bort CarData Client i BMW-portalen, skapa en ny och auktorisera igen med det nya Client ID — eller mejla BMW-supporten (bmwcardata-b2c-support@bmwgroup.com) och ange **BMW-referensen** ovan.\n\nEn fullständig genomgång finns i integrationens README under *Troubleshooting → Onboarding fails with \"access denied\"*."
+      },
+      "select_clusters": {
+        "title": "Välj strömmade data",
+        "description": "Du är ansluten. Välj nu vilka grupper av fordonsdata du vill strömma. BMW har inget API för detta — det ligger bakom portalens webbläsarsession — så nästa skärm ger dig samma bokmärke med ett klick, **Activate BMW data**, som den guidade installationen använder. Du kör det på portalens stream setup-sida och det slår på exakt dessa grupper. Diagnostik- och tekniska fält förblir dolda som standard när data börjar komma.\n\nDu kan ändra detta när som helst under Konfigurera → Välj strömmade data.",
+        "data": {
+          "sections": "Datagrupper"
+        },
+        "data_description": {
+          "sections": "Behåll standardvalen för den rekommenderade uppsättningen, eller begränsa den till de data du bryr dig om (t.ex. bara Elfordon och Fordonsstatus)."
+        }
+      },
+      "activate_stream_paste": {
+        "title": "Aktivera dina data och klistra sedan in resultatet",
+        "description": "1. Öppna **[BavarianDatas aktiveringssida]({url})**.\n2. Dra knappen **Activate BMW data** till bokmärkesfältet (en gång).\n3. Öppna **BMW- eller MINI-portalen**, logga in och gå till ett fordons **stream setup**-sida.\n4. Klicka på bokmärket **Activate BMW data**. När det är klart trycker du på **Copy** i rutan som visas.\n5. Klistra in resultatet nedan och tryck på **Skicka**.\n\nAllt körs i din egen webbläsare — inget lösenord och ingen session lämnar den någonsin. Har du redan kryssat i dessa fält i portalen själv? Lämna rutan tom och tryck på **Skicka** för att slutföra.\n\n{error}",
+        "data": {
+          "result": "Aktiveringsresultat"
+        },
+        "data_description": {
+          "result": "BAVARIANDATA…-texten som Copy-knappen lade i urklipp. Lämna tom för att slutföra utan att aktivera."
+        }
+      },
+      "activate_stream_done": {
+        "title": "Ström aktiverad",
+        "description": "Klart — aktiveraren slog på **{added_count}** nya fält; **{field_count}** fält strömmas nu för det här fordonet.{error}\n\nTryck på **Skicka** för att slutföra installationen och lås/lås sedan upp bilen i MyBMW-appen för att framkalla den första uppdateringen."
+      }
+    },
+    "progress": {
+      "wait_for_activation": "**Aktivera dina data i webbläsaren**\n\nKontrollera att du redan har skapat en **CarData Client** i BMW-portalen som prenumererar på **CarData API och CarData Streaming** — aktiveraren hittar den klienten, den skapar ingen.\n\n1. Öppna **[BavarianDatas installationssida]({url})**.\n2. Dra knappen **Activate BMW data** till bokmärkesfältet (en gång).\n3. Öppna **BMW- eller MINI-portalen**, logga in och gå till ett fordons **stream setup**-sida.\n4. Klicka på bokmärket **Activate BMW data**.\n\nDet hittar ditt Client ID, kontrollerar fordonet och slår på dataströmmen — allt i din egen webbläsare, inget att kopiera. Den här dialogen fortsätter automatiskt så snart svaret kommer. Här finns inget att klicka på.",
+      "wait_for_authorization": "**Godkänn Home Assistant på BMW/MINI:s inloggningssida**\n\n1. Öppna **[auktoriseringssidan]({verification_url})** och logga in med ditt BMW-/MINI-konto.\n2. Skriv in den här koden när du blir ombedd: **{user_code}**\n3. Bekräfta enheten.\n\n**Skriv in koden för hand** — använd inte en länk där koden redan står i adressen, och se till att ingen gammal kod är förifylld. BMW:s server registrerar ofta felaktigt ett *avslag* för förifyllda koder. Om det ändå misslyckas, försök igen i ett privat/inkognitofönster.\n\nLåt den här dialogen vara öppen — den fortsätter automatiskt så snart du godkänner. Här finns inget att klicka på.",
+      "wait_for_stream_activation": "**Aktivera valda data i webbläsaren**\n\n1. Öppna **[BavarianDatas aktiveringssida]({url})**.\n2. Dra knappen **Activate BMW data** till bokmärkesfältet (en gång).\n3. Öppna **BMW- eller MINI-portalen**, logga in och gå till ett fordons **stream setup**-sida.\n4. Klicka på bokmärket **Activate BMW data**.\n\nDet slår på fälten för dina valda grupper — allt i din egen webbläsare, inget att kopiera. Den här dialogen fortsätter automatiskt så snart svaret kommer. Här finns inget att klicka på."
+    },
+    "error": {
+      "device_code_failed": "BMW avvisade begäran om enhetsauktorisering ({error}). Kontrollera att Client ID är korrekt och prenumererar på båda CarData-tjänsterna, och försök sedan igen.",
+      "invalid_result": "Resultatet kunde inte läsas. Kör bokmärket Activate BMW data på BMW-portalens sida och klistra in exakt det som det kopierade till urklipp.",
+      "no_client_id": "Ingen API-klient hittades på ditt konto. Skapa en CarData Client i BMW-portalen och kör sedan bokmärket Activate BMW data igen."
+    },
+    "abort": {
+      "account_already_configured": "Det här BMW-kontot är redan konfigurerat i Home Assistant. En post täcker hela kontot, inklusive alla bilar på det — att lägga till ett andra Client ID för samma konto skulle bryta strömmen för båda, eftersom BMW bara tillåter en anslutning per konto. Använd den befintliga posten eller ta bort den först.",
+      "reauth_successful": "Omauktoriseringen lyckades — BMW CarData är anslutet igen.",
+      "reauth_device_code_failed": "BMW avvisade begäran om enhetsauktorisering ({error}). Uppdatera Client ID under Konfigurera → Auktorisera igen hos BMW, eller ta bort och lägg till integrationen igen.",
+      "reauth_missing_client_id": "Client ID saknas för den här integrationsposten. Ta bort och lägg till integrationen igen för att auktorisera på nytt.",
+      "reauth_failed": "Omauktoriseringen kunde inte startas. Försök igen från integrationens alternativ."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "BavarianData-alternativ",
+        "description": "Välj en åtgärd. Token- och auktoriseringsåtgärderna håller anslutningen vid liv; dataåtgärderna anropar BMW:s REST-API på begäran (var och en räknas mot den dagliga gränsen på 50 anrop).",
+        "menu_options": {
+          "action_select_clusters": "Välj strömmade data",
+          "action_refresh_tokens": "Förnya token nu",
+          "action_reauth": "Auktorisera igen hos BMW",
+          "action_reset_container": "Återställ telemetribehållaren",
+          "action_fetch_mappings": "Sök efter fordon",
+          "action_fetch_basic": "Hämta fordonets grunddata",
+          "action_fetch_telematic": "Hämta telematikdata",
+          "action_fetch_charging_history": "Hämta laddningshistorik",
+          "action_fetch_tyre": "Hämta däckdiagnos",
+          "action_fetch_location_charging": "Hämta laddningsinställningar",
+          "action_fetch_image": "Hämta fordonsbild",
+          "action_data_refresh": "Automatisk datauppdatering",
+          "action_charging_costs": "Laddkostnader och historik",
+          "action_energy_sources": "Sol och energikällor",
+          "action_evcc_bridge": "evcc-/laddboxbrygga",
+          "action_trips": "Resor",
+          "action_debug_logging": "Felsökningsloggning"
+        }
+      },
+      "action_select_clusters": {
+        "title": "Välj strömmade data",
+        "description": "Välj vilka grupper av fordonsdata du vill strömma. BMW har inget API för detta — det ligger bakom portalens webbläsarsession — så nästa skärm ger dig ett bokmärke med ett klick, **Activate BMW data**, som du kör på portalens stream setup-sida, och Home Assistant fortsätter automatiskt.\n\nDetta **lägger till** de valda grupperna i din pågående ström; det tar aldrig bort fält du redan strömmar. För att sluta strömma ett fält, avmarkera det under Dataurval i portalen. Diagnostik- och tekniska fält förblir dolda som standard när data börjar komma.",
+        "data": {
+          "sections": "Datagrupper"
+        },
+        "data_description": {
+          "sections": "Behåll standardvalen för den rekommenderade uppsättningen, eller begränsa den till de data du bryr dig om (t.ex. bara Elfordon och Fordonsstatus)."
+        }
+      },
+      "activate_stream_paste": {
+        "title": "Aktivera dina data och klistra sedan in resultatet",
+        "description": "1. Öppna **[BavarianDatas aktiveringssida]({url})**.\n2. Dra knappen **Activate BMW data** till bokmärkesfältet (en gång).\n3. Öppna **BMW- eller MINI-portalen**, logga in och gå till ett fordons **stream setup**-sida.\n4. Klicka på bokmärket **Activate BMW data**. När det är klart trycker du på **Copy** i rutan som visas.\n5. Klistra in resultatet nedan och tryck på **Skicka**.\n\nAllt körs i din egen webbläsare — inget lösenord och ingen session lämnar den någonsin.\n\n{error}",
+        "data": {
+          "result": "Aktiveringsresultat"
+        },
+        "data_description": {
+          "result": "BAVARIANDATA…-texten som Copy-knappen lade i urklipp."
+        }
+      },
+      "activate_stream_done": {
+        "title": "Strömfält aktiverade",
+        "description": "Klart — aktiveraren slog på **{added_count}** nya fält; **{field_count}** fält strömmas nu för det här fordonet.{error}\n\nTryck på **Skicka** för att spara ditt val. Lås/lås upp bilen i MyBMW-appen för att framkalla nästa uppdatering."
+      },
+      "action_refresh_tokens": {
+        "title": "Förnya token nu",
+        "description": "Förnya de sparade åtkomst- och ID-token utan att gå igenom BMW:s inloggning igen. Använd detta om data slutat uppdateras. Om problemen kvarstår, starta om Home Assistant efteråt.\n\nTryck på Skicka för att fortsätta."
+      },
+      "action_reauth": {
+        "title": "Auktorisera igen hos BMW",
+        "description": "Kör BMW:s enhetsauktorisering igen — till exempel efter att uppdateringstoken har gått ut (varannan vecka) eller om du har skapat ett nytt Client ID. Därefter godkänner du Home Assistant på BMW:s webbplats.",
+        "data": {
+          "client_id": "Client ID"
+        },
+        "data_description": {
+          "client_id": "Lämna som det är för att återanvända nuvarande Client ID, eller klistra in ett nytt från BMW-portalen."
+        }
+      },
+      "action_reset_container": {
+        "title": "Återställ telemetribehållaren",
+        "description": "Ta bort de CarData-telemetribehållare som den här integrationen skapat och skapa en ny. Använd detta om de strömmade data ser fel ut eller efter att du ändrat ditt Dataurval i BMW-portalen.\n\nTryck på Skicka för att fortsätta."
+      },
+      "action_fetch_mappings": {
+        "title": "Sök efter fordon",
+        "description": "Fråga BMW vilka fordon (VIN) som är kopplade till ditt konto och skapa deras enheter. Kör detta en gång efter installationen om dina bilar inte har dykt upp än.\n\nTryck på Skicka för att fortsätta."
+      },
+      "action_fetch_basic": {
+        "title": "Hämta fordonets grunddata",
+        "description": "Hämta fasta uppgifter (modell, färg, tillval) för varje känt fordon.\n\nTryck på Skicka för att fortsätta."
+      },
+      "action_fetch_telematic": {
+        "title": "Hämta telematikdata",
+        "description": "Hämta den senaste telematikögonblicksbilden från BMW:s REST-API nu i stället för att vänta på nästa schemalagda hämtning.\n\nTryck på Skicka för att fortsätta."
+      },
+      "action_fetch_charging_history": {
+        "title": "Hämta laddningshistorik",
+        "description": "Hämta de senaste laddningssessionerna för dina fordon.\n\nTryck på Skicka för att fortsätta."
+      },
+      "action_fetch_tyre": {
+        "title": "Hämta däckdiagnos",
+        "description": "Hämta den senaste däcktrycksdiagnosen för dina fordon.\n\nTryck på Skicka för att fortsätta."
+      },
+      "action_fetch_location_charging": {
+        "title": "Hämta laddningsinställningar",
+        "description": "Hämta de platsbaserade laddningsinställningarna för dina fordon.\n\nTryck på Skicka för att fortsätta."
+      },
+      "action_fetch_image": {
+        "title": "Hämta fordonsbild",
+        "description": "Hämta den aktuella fordonsbilden för dina fordon.\n\nTryck på Skicka för att fortsätta."
+      },
+      "action_charging_costs": {
+        "title": "Laddkostnader och historik",
+        "description": "Gör om registrerade laddningar till pengar. Så länge ingen priskälla är inställd skapas inga kostnadsentiteter alls — ett felaktigt pris är värre än inget.\n\n**Fast pris** debiterar varje kWh till samma taxa. **Prisentitet** följer en realtidstaxa (Tibber, Nordpool, aWATTar, …) som samplas medan bilen laddar, så en session som sträcker sig över en prisändring debiteras korrekt.\n\nEnergin mäts vid batteriet och är därför något mindre än vad elnätet levererade. Peka **Laddboxens energisensor** mot en mätare om du har en — den är exakt. Annars kan du räkna upp värdet med dina laddförluster; det ligger på 0 % som standard, eftersom en påhittad korrigering skulle se ut som en mätning.\n\n**Långtidsstatistik** publicerar den registrerade historiken i Home Assistants egen statistik, så att laddningar från före installationen — eller från när Home Assistant var nere — ändå syns i energipanelen.",
+        "data": {
+          "price_mode": "Priskälla",
+          "price_fixed": "Fast pris per kWh",
+          "price_entity": "Prisentitet",
+          "price_currency": "Valuta",
+          "grid_energy_entity": "Laddboxens energisensor",
+          "charging_loss_percent": "Laddförluster (%)",
+          "history_retain_months": "Behåll historik i (månader)",
+          "statistics_import": "Publicera till långtidsstatistik"
+        },
+        "data_description": {
+          "price_mode": "Välj 'Ingen' för att registrera sessioner utan att prissätta dem.",
+          "price_fixed": "Används bara när priskällan är 'Fast pris'.",
+          "price_entity": "Används bara när priskällan är 'Prisentitet'. Dess tillstånd måste vara ett pris per kWh.",
+          "price_currency": "ISO-kod som visas på kostnadssensorerna, t.ex. EUR, GBP, CHF, SEK.",
+          "grid_energy_entity": "Valfritt. Laddboxens ackumulerade energisumma (en som bara räknar uppåt, inte en räknare per session som nollställs). Wh, kWh och MWh hanteras; utan enhet tolkas den som kWh. Den läses bara för laddningar i din Hem-zon, eftersom mätaren inte vet vilken bil den laddade. Ett uppmätt nätvärde vinner alltid över vår uppskattning på batterisidan — och ett som inte kan stämma, som en husmätare som visar långt mer än batteriet tog emot, ignoreras i stället för att tros på.",
+          "charging_loss_percent": "Valfritt. Räknar upp energin på batterisidan mot nätenergin.",
+          "history_retain_months": "0 behåller allt. Äldre sessioner kasseras.",
+          "statistics_import": "Speglar energi, kostnad och sträcka i statistik som du kan lägga till i energipanelen. Stannar lokalt; om du stänger av det raderas den igen."
+        }
+      },
+      "action_energy_sources": {
+        "title": "Sol och energikällor",
+        "description": "Registrera varifrån varje laddnings energi kom: ditt tak, ditt hembatteri eller elnätet.\n\nBåde **Solcellseffekt** och **Näteffekt** behövs. De samplas medan bilen laddar och energin fördelas allteftersom den kommer, så en laddning som börjar i solsken och slutar efter mörkrets inbrott delas mellan båda i stället för att hamna under den sista. Bilen behandlas som vilken last som helst och får samma mix som resten av huset just då — ingen konvention som laddar den med nätimporten, och ingen som ger den solen först.\n\nNäteffekten måste vara **positiv vid import**. Hembatteriet är valfritt; utan det får du en tvådelning. Sensorer i kW omvandlas automatiskt och en utan enhet tolkas som watt.\n\n**Värde av egen solel** är vad en kWh från ditt eget tak är värd för dig — oftast din ersättning för inmatning, pengarna du avstår genom att inte sälja den. Lämna tomt så prissätts solel till ditt inköpspris, precis som tidigare; bara mixen är ny. Energi från hembatteriet prissätts alltid till inköpspriset: innehållet kan ha kommit från taket mitt på dagen eller från en billig nätladdning klockan tre på natten, och den här integrationen kan inte avgöra vilket.",
+        "data": {
+          "pv_power_entity": "Solcellseffekt",
+          "grid_power_entity": "Näteffekt (+ import / − export)",
+          "battery_power_entity": "Hembatteriets effekt (valfritt)",
+          "battery_power_invert": "Min batterisensor är positiv vid laddning",
+          "price_solar": "Värde av egen solel per kWh"
+        },
+        "data_description": {
+          "pv_power_entity": "Total produktion från din/dina växelriktare.",
+          "grid_power_entity": "Effekt med tecken vid mätaren: positiv när du köper från nätet, negativ när du matar ut.",
+          "battery_power_entity": "Lämna tomt om du inte har något hemlager. Förväntas vara positiv vid urladdning — kryssa i rutan nedan om din är tvärtom.",
+          "battery_power_invert": "Många integrationer publicerar batterieffekt som positiv vid laddning. Det går inte att avgöra från själva värdet, så ange hur din fungerar.",
+          "price_solar": "Lämna tomt för att prissätta solel till inköpspriset. Ange din inmatningsersättning för att se vad en laddning verkligen kostade dig."
+        }
+      },
+      "action_evcc_bridge": {
+        "title": "evcc-/laddboxbrygga",
+        "description": "Publicera bilens live-tillstånd på din MQTT-broker så att en laddstyrning kan läsa det.\n\nDetta är det enda BavarianData har som evcc, openWB med flera saknar: en **laddningsnivå direkt från BMW:s ström, utan API-kostnad**. Deras egna BMW-integrationer frågar ett tillverkar-API med jämna mellanrum och begränsas för det; det här kommer när bilen rapporterar och förbrukar inget av dina 50 dagliga anrop.\n\nPublicering sker via **Home Assistants MQTT-integration**, så det hamnar på exakt den broker som evcc redan läser och det finns ingen värd, port eller lösenord att ange här. MQTT-integrationen måste vara konfigurerad först.\n\nPer fordon, under `PREFIX/VIN/`: `soc`, `status` (evccs A/B/C), `range`, `odometer`, `limitSoc`, `chargePower`, `plugged`, `charging`, `updated` och `state` som ett enda JSON-dokument. **Det bilen inte rapporterar publiceras inte** i stället för att skickas som noll — en laddstyrning agerar på dessa siffror, så en felaktig är värre än en som saknas. Allt skickas om var femte minut även utan ändring, så en parkerad bils laddningsnivå blir aldrig inaktuell på brokern.\n\nNär du stänger av detta igen tas det publicerade bort, så att inget fortsätter ladda mot en frusen laddningsnivå.\n\nNästa skärm ger dig evcc-konfigurationen att klistra in.",
+        "data": {
+          "bridge_enabled": "Publicera den här bilen till MQTT",
+          "bridge_topic_prefix": "Topic-prefix",
+          "bridge_retain": "Publicera som retained"
+        },
+        "data_description": {
+          "bridge_enabled": "Av som standard: det lägger VIN och bilens tillstånd på en broker som andra kan läsa.",
+          "bridge_topic_prefix": "Topics blir `PREFIX/VIN/soc` och så vidare. Behåll bavariandata om det inte krockar med något.",
+          "bridge_retain": "Behåll detta på. Det är det som låter evcc hitta laddningsnivån direkt när det startar, i stället för att vänta på att bilen säger något nästa gång — vilket för en parkerad bil kan dröja timmar. Stäng bara av det om din broker vägrar retained-meddelanden."
+        }
+      },
+      "evcc_snippet": {
+        "title": "evcc-konfiguration",
+        "description": "Lägg till detta i din `evcc.yaml` under en `vehicles:`-nyckel (slå ihop det med fordon du redan har — nyckeln får bara förekomma en gång):\n\n```\n{snippet}\n```\n\nevcc behöver också känna till din broker, i sin egen `mqtt:`-sektion — samma som Home Assistant använder. Tilldela sedan fordonet till en laddpunkt och starta om evcc.\n\nBara de fält som den här bilen faktiskt rapporterar listas: ett plugin som pekar på ett topic som aldrig får något meddelande får evcc att logga ett läsfel varje cykel. Ingen `timeout` är satt med avsikt — värdena publiceras om regelbundet, så en parkerad bil behåller en giltig laddningsnivå i stället för att bli tom.\n\nDu kan hämta detta igen när som helst med åtgärden **Hämta evcc-konfiguration**."
+      },
+      "action_trips": {
+        "title": "Resor (körjournal)",
+        "description": "Rekonstruerar dina resor från strömmen utan API-kostnad — sträcka, fördelningen tjänst/privat/pendling, förbrukning och en månadsöversikt.\n\nAnge **Arbetszon** så att pendlingsresor (hem ↔ arbete) känns igen automatiskt; du kan alltid rätta en resa i efterhand. Allt som inte är pendling klassas som **Standardtyp** (Privat från början). En pendling klarar också ett stopp på vägen: om bilen står stilla högst **Stopptolerans för pendling** räknas både resan dit och resan vidare som pendling. **Slå upp adresser** är av som standard: med det på slås en start- eller slutpunkt utanför alla Home Assistant-zoner upp via OpenStreetMap och sparas som adress — koordinaterna skickas för uppslagningen men sparas aldrig.\n\n**Registrera rutt** är också av som standard: med det på sparar varje resa sitt GPS-spår — var bilen körde och när — så att en karta kan visa och spela upp resan. Det är den enda inställningen som sparar råa koordinater på disk, inklusive dina exakta start- och slutpunkter.\n\n**Diagnostik för resregistrering** är ett felsökningshjälpmedel: med det på loggas varje GPS-position, timer och meddelande i detalj och en registreringsfil skrivs, för att hjälpa till att förbättra resdetekteringen. Slå bara på det för en testkörning och stäng sedan av det igen.",
+        "data": {
+          "trip_work_zone": "Arbetszon",
+          "trip_default_class": "Standardtyp",
+          "trip_commute_gap": "Stopptolerans för pendling",
+          "trip_geocode": "Slå upp adresser",
+          "trip_track": "Registrera rutt",
+          "trip_debug": "Diagnostik för resregistrering"
+        },
+        "data_description": {
+          "trip_work_zone": "Valfritt. En resa mellan den här zonen och hemmet klassas som pendling.",
+          "trip_default_class": "Hur varje resa som inte är en pendling hem ↔ arbete klassas. Bara en utgångspunkt — en rättning på kortet vinner alltid, och en rättning skrivs aldrig över.",
+          "trip_commute_gap": "Hur länge bilen får stå mellan två resor för att båda fortfarande ska räknas som en pendling — mataffären på vägen till jobbet. Ange 0 för att stänga av. Stopp kortare än ungefär fem minuter delar aldrig en resa.",
+          "trip_geocode": "Valfritt. Skickar punkter utanför zoner till OpenStreetMap; bara den resulterande adressen sparas, aldrig koordinaterna.",
+          "trip_track": "Valfritt. Sparar varje resas GPS-spår — koordinaterna längs vägen och för var och en tidpunkten — så att en karta kan rita rutten och spela upp den. Den enda inställningen som sparar råa koordinater på disk (exakt start och slut inräknade), så den är av som standard av integritetsskäl.",
+          "trip_debug": "Endast diagnostik. Loggar rådata för resdetekteringen (varje GPS-position, stängningstimer, segmentbatch och meddelande) och skriver bavariandata_trip_capture.ndjson till din konfigurationsmapp. Mycket utförligt och innehåller GPS/VIN, så slå på det för en testkörning och av igen efteråt."
+        }
+      },
+      "action_data_refresh": {
+        "title": "Automatisk datauppdatering",
+        "description": "Live-strömmen innehåller bara det som ändras medan Home Assistant lyssnar. Det bilen rapporterade medan Home Assistant var nere eller anslutningen till BMW var bruten (en laddning som avslutades, dörrar som låstes, en resa) spelas inte upp igen när den återansluter.\n\nMed detta på frågar integrationen BMW en gång per bil om dess aktuella tillstånd två minuter efter att Home Assistant startat, och igen när anslutningen kommer tillbaka efter ett avbrott på fem minuter eller mer. BMW returnerar de senaste värdena varje bil skickade, så du kommer ikapp utan att väcka bilen. Det förbrukar ett av de 50 dagliga anropen per bil. Det hoppas över om BMW redan frågats under den senaste timmen, såvida inte en laddning pågick vid omstarten, och det lämnar alltid 10 anrop kvar för dina egna tjänsteanrop.",
+        "data": {
+          "refresh_on_start": "Kom ikapp efter en omstart eller ett avbrott"
+        },
+        "data_description": {
+          "refresh_on_start": "Gäller omedelbart."
+        }
+      },
+      "action_debug_logging": {
+        "title": "Felsökningsloggning",
+        "description": "Slå på utförlig loggning för den här integrationen (MQTT-anslutning, prenumererade topics och varje inkommande meddelande). Detta är separat från Home Assistants allmänna felsökningsreglage — både loggnivån och detta reglage måste vara på för att de detaljerade raderna ska synas. Det är utförligt och kan innehålla fordonsdata som GPS-koordinater, så låt det vara av vid normal användning. Ändringen gäller omedelbart. Med mer än ett BMW-konto konfigurerat delas loggnivån: utförlig loggning förblir på så länge något konto har detta påslaget.",
+        "data": {
+          "debug_log": "Aktivera felsökningsloggning"
+        },
+        "data_description": {
+          "debug_log": "Förblir på över omstarter tills du stänger av det här."
+        }
+      }
+    },
+    "progress": {
+      "wait_for_stream_activation": "**Aktivera valda data i webbläsaren**\n\n1. Öppna **[BavarianDatas aktiveringssida]({url})**.\n2. Dra knappen **Activate BMW data** till bokmärkesfältet (en gång).\n3. Öppna **BMW- eller MINI-portalen**, logga in och gå till ett fordons **stream setup**-sida.\n4. Klicka på bokmärket **Activate BMW data**.\n\nDet slår på fälten för dina valda grupper — allt i din egen webbläsare, inget att kopiera. Den här dialogen fortsätter automatiskt så snart svaret kommer. Här finns inget att klicka på."
+    },
+    "error": {
+      "mix_needs_both": "Att fördela energi kräver både en solcellseffektsensor och en näteffektsensor. Med bara en av dem skulle fördelningen behöva anta den andra.",
+      "refresh_failed": "Förnyelse av token misslyckades: {error}",
+      "reset_failed": "Återställning av telemetribehållaren misslyckades: {error}",
+      "missing_token": "Ingen giltig åtkomsttoken finns. Prova \"Förnya token nu\" eller auktorisera igen först.",
+      "runtime_missing": "Integrationen är inte redo än. Försök igen när installationen är klar.",
+      "no_vins": "Inga fordon är kända än. Kör \"Sök efter fordon\" först, eller vänta tills strömmen rapporterar ett.",
+      "invalid_int": "Ange ett positivt heltal.",
+      "invalid_client_id": "Ange BMW CarData Client ID.",
+      "invalid_result": "Resultatet kunde inte läsas. Kör bokmärket Activate BMW data på BMW-portalens stream setup-sida och klistra in exakt det som det kopierade till urklipp.",
+      "price_required": "Ange ett fast pris per kWh, eller välj en annan priskälla.",
+      "price_entity_required": "Välj den entitet som rapporterar ditt pris per kWh, eller välj en annan priskälla.",
+      "mqtt_missing": "Bryggan publicerar via Home Assistants MQTT-integration, och du har ingen konfigurerad. Lägg till den under Inställningar → Enheter och tjänster (tillägget Mosquitto broker är det vanliga valet) och kom sedan tillbaka."
+    },
+    "abort": {
+      "reauth_started": "Auktoriseringen har startats om. Slutför den nya inloggningen från aviseringen som just dök upp.",
+      "reauth_device_code_failed": "BMW avvisade begäran om enhetsauktorisering ({error}). Kontrollera Client ID och försök igen.",
+      "reauth_missing_client_id": "Client ID saknas för den här integrationsposten. Ta bort och lägg till integrationen igen för att auktorisera på nytt.",
+      "reauth_failed": "Omauktoriseringen kunde inte startas. Försök igen från integrationens alternativ."
+    }
+  },
+  "selector": {
+    "price_mode": {
+      "options": {
+        "none": "Ingen",
+        "fixed": "Fast pris",
+        "entity": "Prisentitet"
+      }
+    },
+    "trip_default_class": {
+      "options": {
+        "private": "Privat",
+        "business": "Tjänst",
+        "unclassified": "Lämna oklassad"
+      }
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "zone_arrived": "Anlände till en zon",
+      "zone_left": "Lämnade en zon",
+      "parked_unlocked": "Parkerad och lämnad olåst",
+      "plugged_not_charging": "Ansluten men laddar inte",
+      "charging_started": "Laddning startad",
+      "charging_complete": "Laddning klar (målet nått)",
+      "charging_interrupted": "Laddning stoppad före målet, kabeln fortfarande ansluten"
+    },
+    "extra_fields": {
+      "zone": "Zon (tom: valfri zon)",
+      "for": "I minst"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "vehicle_body_chargingport_combinedstatus": {
+        "name": "Anslutningsstatus för laddningsport",
+        "state": {
+          "disconnected": "Frånkopplad",
+          "connected": "Ansluten",
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_body_chargingport_dcstatus": {
+        "name": "Status för laddningskontakten (endast DC)",
+        "state": {
+          "disconnected": "Frånkopplad",
+          "connected": "Ansluten",
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_body_chargingport_ishospitalityactive": {
+        "name": "Låst tillstånd för laddningskontakt efter full laddning",
+        "state": {
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_body_chargingport_isosessionid": {
+        "name": "Laddningssesions-ID"
+      },
+      "vehicle_body_chargingport_lockedstatus": {
+        "name": "Laddningsportens låsta läge",
+        "state": {
+          "unknown": "Okänd"
+        }
+      },
+      "vehicle_body_chargingport_plugeventid": {
+        "name": "Händelse-ID för laddningskontaktens händelse-ID"
+      },
+      "vehicle_body_chargingport_status": {
+        "name": "Laddningskontaktens tillstånd",
+        "state": {
+          "connected": "Ansluten",
+          "disconnected": "Frånkopplad",
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_body_chargingport_statuscleartext": {
+        "name": "Laddstationens statustext",
+        "state": {
+          "disconnected": "Frånkopplad",
+          "connected": "Ansluten"
+        }
+      },
+      "vehicle_body_flap_islocked": {
+        "name": "Lastklaffens tillstånd",
+        "state": {
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_body_flap_ispermanentlyunlocked": {
+        "name": "Stängningsläge för lastklaff",
+        "state": {
+          "no_action": "Ingen åtgärd",
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_body_hood_isopen": {
+        "name": "Motorhuvens tillstånd",
+        "state": {
+          "closed": "Stängd",
+          "open": "Öppen",
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_body_lights_isrunningon": {
+        "name": "Belysningens tillstånd"
+      },
+      "vehicle_body_trunk_door_isopen": {
+        "name": "Bagagedörr öppen status"
+      },
+      "vehicle_body_trunk_islocked": {
+        "name": "Status för låst bagageutrymme"
+      },
+      "vehicle_body_trunk_isopen": {
+        "name": "Bakluckans tillstånd",
+        "state": {
+          "closed": "Stängd",
+          "open": "Öppen",
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_body_trunk_left_door_isopen": {
+        "name": "Bagageutrymme vänster dörr öppen"
+      },
+      "vehicle_body_trunk_lower_door_isopen": {
+        "name": "Bagageutrymmets nedre dörr öppen"
+      },
+      "vehicle_body_trunk_right_door_isopen": {
+        "name": "Bagageutrymme höger dörr öppen"
+      },
+      "vehicle_body_trunk_upper_door_isopen": {
+        "name": "Bagageutrymmets övre dörr öppen"
+      },
+      "vehicle_body_trunk_window_isopen": {
+        "name": "Upplåsning av bakruta",
+        "state": {
+          "closed": "Stängd",
+          "open": "Öppen",
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_action": {
+        "name": "Åtgärd för att skriva över klimattimer",
+        "state": {
+          "activate": "Aktivera",
+          "deactivate": "Inaktivera",
+          "no_action": "Ingen åtgärd"
+        }
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_hour": {
+        "name": "Klimattimern skriver över timmen"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_minute": {
+        "name": "Klimattimern skriver över minuten"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_action": {
+        "name": "Veckodagstimer 1 åtgärd",
+        "state": {
+          "activate": "Aktivera",
+          "deactivate": "Inaktivera",
+          "no_action": "Ingen åtgärd"
+        }
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_hour": {
+        "name": "Veckodagstimer 1 timme"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_minute": {
+        "name": "Veckodagstimer 1 minut"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_action": {
+        "name": "Veckodagstimer 2 åtgärd",
+        "state": {
+          "activate": "Aktivera",
+          "deactivate": "Inaktivera",
+          "no_action": "Ingen åtgärd"
+        }
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_hour": {
+        "name": "Veckodagstimer 2 timme"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_minute": {
+        "name": "Veckodagstimer 2 minut"
+      },
+      "vehicle_cabin_convertible_roofretractablestatus": {
+        "name": "Status för konvertibelt tak"
+      },
+      "vehicle_cabin_convertible_roofstatus": {
+        "name": "Cabriolettakets tillstånd"
+      },
+      "vehicle_cabin_door_lock_status": {
+        "name": "Dörrarnas tillstånd",
+        "state": {
+          "secured": "Säkrad",
+          "unlocked": "Olåst",
+          "selective-locked": "Delvis låst",
+          "locked": "Låst",
+          "invalid": "Ogiltig",
+          "unknown": "Okänd"
+        }
+      },
+      "vehicle_cabin_door_row1_driver_isopen": {
+        "name": "Vänster fram dörrens tillstånd",
+        "state": {
+          "open": "Öppen",
+          "closed": "Stängd",
+          "invalid": "Ogiltig",
+          "unknown": "Okänd"
+        }
+      },
+      "vehicle_cabin_door_row1_driver_position": {
+        "name": "Position för främre förardörr"
+      },
+      "vehicle_cabin_door_row1_passenger_isopen": {
+        "name": "Höger fram dörrens tillstånd",
+        "state": {
+          "open": "Öppen",
+          "closed": "Stängd",
+          "invalid": "Ogiltig",
+          "unknown": "Okänd"
+        }
+      },
+      "vehicle_cabin_door_row1_passenger_position": {
+        "name": "Position för främre passagerardörr"
+      },
+      "vehicle_cabin_door_row2_driver_isopen": {
+        "name": "Vänster bak dörrens tillstånd",
+        "state": {
+          "open": "Öppen",
+          "closed": "Stängd",
+          "invalid": "Ogiltig",
+          "unknown": "Okänd"
+        }
+      },
+      "vehicle_cabin_door_row2_driver_position": {
+        "name": "Bakre dörrposition förare"
+      },
+      "vehicle_cabin_door_row2_passenger_isopen": {
+        "name": "Höger bak dörrens tillstånd",
+        "state": {
+          "open": "Öppen",
+          "closed": "Stängd",
+          "invalid": "Ogiltig",
+          "unknown": "Okänd"
+        }
+      },
+      "vehicle_cabin_door_row2_passenger_position": {
+        "name": "Position för bakre passagerardörr"
+      },
+      "vehicle_cabin_door_status": {
+        "name": "Dörrarnas tillstånd",
+        "state": {
+          "secured": "Säkrad",
+          "locked": "Låst",
+          "selectivelocked": "Delvis låst",
+          "unlocked": "Olåst",
+          "unknown": "Okänd"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_cooling": {
+        "name": "Standardkylning av främre förarstolens kylning",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_heating": {
+        "name": "Standard uppvärmning av främre förarstolen",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_cooling": {
+        "name": "Standardkylning av främre passagerarstolens kylning",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_heating": {
+        "name": "Standard uppvärmning av främre passagerarstolen",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_cooling": {
+        "name": "Standardkylning av bakre förarstolens kylning",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_heating": {
+        "name": "Standarduppvärmning av bakre förarstolens kylning",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_cooling": {
+        "name": "Standardkylning av bakre passagerarstolens kylning",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_heating": {
+        "name": "Standarduppvärmning av bakre passagerarstolens kylning",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_cooling": {
+        "name": "Standard tredje radens förarstolskylning",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_heating": {
+        "name": "Standard tredje radens förarstolsuppvärmning",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_cooling": {
+        "name": "Standard tredje radens passagerarstolskylning",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_heating": {
+        "name": "Standard tredje radens passagerarstolsuppvärmning",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_steeringwheel_heating": {
+        "name": "Standard rattvärme",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_targettemperature": {
+        "name": "Måltemperatur"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_cooling": {
+        "name": "Främre förarstolen direktkylning.",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_heating": {
+        "name": "Främre förarstolen direktvärme.",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_cooling": {
+        "name": "Passagerarstolens direktkylning",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_heating": {
+        "name": "Direktvärme för främre passagerare",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_cooling": {
+        "name": "Direktkylning för bakre förare",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_heating": {
+        "name": "Direktvärme för bakre förare",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_cooling": {
+        "name": "Direktkylning för bakre passagerare",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_heating": {
+        "name": "Direktvärme för bakre passagerare",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_cooling": {
+        "name": "Direktkylning för tredje radens förare",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_heating": {
+        "name": "Direktvärme för tredje radens förare",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_cooling": {
+        "name": "Direktkylning för tredje radens passagerare",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_heating": {
+        "name": "Direktvärme för tredje radens passagerare",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_steeringwheel_heating": {
+        "name": "Direktvärme på ratten",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "automatic": "Automatiskt",
+          "no_change": "Ingen ändring"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_targettemperature": {
+        "name": "Måltemperatur för direktstart"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_isremoteenginestartdisclaimer": {
+        "name": "Disclaimer för fjärrklimatisering"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_comfortstate": {
+        "name": "Komforttillstånd för klimatförkonditionering"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_isexteriormirrorheatingactive": {
+        "name": "Ytterbackspegelvärme på"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_progress": {
+        "name": "Framsteg klimatförkonditionering"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_reardefrostactive": {
+        "name": "Bakre avfrostning på"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_remainingrunningtime": {
+        "name": "Förkonditionering resttid"
+      },
+      "vehicle_cabin_hvac_statusairpurification": {
+        "name": "HVAC-luftreningsstatus",
+        "state": {
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_cabin_infotainment_displayunit_distance": {
+        "name": "Visningsenhet på fordonets instrument",
+        "state": {
+          "km": "Kilometer",
+          "miles": "Engelska mil"
+        }
+      },
+      "vehicle_cabin_infotainment_hmi_distanceunit": {
+        "name": "Infotainment-vägmätare",
+        "state": {
+          "miles": "Engelska mil",
+          "kilometers": "Kilometer"
+        }
+      },
+      "vehicle_cabin_infotainment_ismobilephoneconnected": {
+        "name": "Koppling Mobiltelefon"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_altitude": {
+        "name": "Fordonets position över havsytan"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_fixstatus": {
+        "name": "Status för navigeringsfix"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_heading": {
+        "name": "Fordonets inriktning"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_latitude": {
+        "name": "Fordonets position – geografisk breddgrad"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_longitude": {
+        "name": "Fordonets position – geografisk längdgrad"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_numberofsatellites": {
+        "name": "Antal satellitnavigationer"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_arrivaltime": {
+        "name": "Tid till navigationsmål"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_distance": {
+        "name": "Körsträcka till navigationsmålet"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_latitude": {
+        "name": "Navigationsresmål — latitud"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_longitude": {
+        "name": "Navigationsresmål — longitud"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_available": {
+        "name": "Antal lediga POI (Points of Interest) -platser i navigationssystemet"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_max": {
+        "name": "Maximalt antal POI som kan sparas i navigationssystemet"
+      },
+      "vehicle_cabin_infotainment_navigation_remainingrange": {
+        "name": "Återstående räckvidd"
+      },
+      "vehicle_cabin_seat_row1_driverside_cooling": {
+        "name": "Främre förarsäte kylning."
+      },
+      "vehicle_cabin_seat_row1_driverside_heating": {
+        "name": "Uppvärmning av främre förarsätet"
+      },
+      "vehicle_cabin_seat_row1_passengerside_cooling": {
+        "name": "Passagerarstol kyldrift"
+      },
+      "vehicle_cabin_seat_row1_passengerside_heating": {
+        "name": "Passagerarstolsvärme"
+      },
+      "vehicle_cabin_seat_row2_driverside_cooling": {
+        "name": "Kylning av Bakre förarsäte"
+      },
+      "vehicle_cabin_seat_row2_driverside_heating": {
+        "name": "Uppvärmning av bakre förarsäte"
+      },
+      "vehicle_cabin_seat_row2_passengerside_cooling": {
+        "name": "Bakre passagerarsäte kylning"
+      },
+      "vehicle_cabin_seat_row2_passengerside_heating": {
+        "name": "Uppvärmning av bakre passagerarsätet"
+      },
+      "vehicle_cabin_seat_row3_driverside_cooling": {
+        "name": "Tredje radens förarsäteskylning"
+      },
+      "vehicle_cabin_seat_row3_driverside_heating": {
+        "name": "Tredje radens förarsätesuppvärmning"
+      },
+      "vehicle_cabin_seat_row3_passengerside_cooling": {
+        "name": "Tredje radens kylning av passagerarsätet"
+      },
+      "vehicle_cabin_seat_row3_passengerside_heating": {
+        "name": "Tredje radens uppvärmning av passagersätet"
+      },
+      "vehicle_cabin_steeringwheel_heating": {
+        "name": "Rattvärme"
+      },
+      "vehicle_cabin_sunroof_overallstatus": {
+        "name": "Övergripande status för soltaket",
+        "state": {
+          "invalid": "Ogiltig",
+          "open": "Öppen",
+          "closed": "Stängd"
+        }
+      },
+      "vehicle_cabin_sunroof_relativeposition": {
+        "name": "Soltakets relativa position"
+      },
+      "vehicle_cabin_sunroof_shade_position": {
+        "name": "Solskyddsposition"
+      },
+      "vehicle_cabin_sunroof_status": {
+        "name": "Takluckans tillstånd",
+        "state": {
+          "closed": "Stängd",
+          "intermediate": "Delvis öppen",
+          "open": "Öppen",
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_cabin_sunroof_tiltstatus": {
+        "name": "Takluckans ställning",
+        "state": {
+          "closed": "Stängd",
+          "intermediate": "Delvis öppen",
+          "open": "Öppen",
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_cabin_window_row1_driver_status": {
+        "name": "Vänster fram fönstrets tillstånd",
+        "state": {
+          "closed": "Stängd",
+          "intermediate": "Delvis öppen",
+          "open": "Öppen",
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_cabin_window_row1_passenger_status": {
+        "name": "Höger fram fönstrets tillstånd",
+        "state": {
+          "closed": "Stängd",
+          "intermediate": "Delvis öppen",
+          "open": "Öppen",
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_cabin_window_row2_driver_status": {
+        "name": "Vänster bak fönstrets tillstånd",
+        "state": {
+          "closed": "Stängd",
+          "intermediate": "Delvis öppen",
+          "open": "Öppen",
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_cabin_window_row2_passenger_status": {
+        "name": "Höger bak fönstrets tillstånd",
+        "state": {
+          "closed": "Stängd",
+          "intermediate": "Delvis öppen",
+          "open": "Öppen",
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
+        "name": "Statusinformation om senaste överföring av OBFCM*-värden",
+        "state": {
+          "ok": "OK"
+        }
+      },
+      "vehicle_channel_ngtp_timevehicle": {
+        "name": "Datum och tid i fordonet"
+      },
+      "vehicle_channel_teleservice_lastautomaticservicecalltime": {
+        "name": "Automatiskt Teleservice Call"
+      },
+      "vehicle_channel_teleservice_lastbreakdowncalltime": {
+        "name": "Senaste Teleservice Breakdown Call-tid"
+      },
+      "vehicle_channel_teleservice_lastmanualcalltime": {
+        "name": "Senaste teleservice manuell samtalstid"
+      },
+      "vehicle_channel_teleservice_lastteleservicereporttime": {
+        "name": "Teleservice Report"
+      },
+      "vehicle_channel_teleservice_status": {
+        "name": "Teleservices tillgänglighet"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressure": {
+        "name": "Uppmätt däcktryck vänster fram"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressuretarget": {
+        "name": "Däckbörtryck vänster fram"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_temperature": {
+        "name": "Däcktemperatur i Celsius, vänster fram"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressure": {
+        "name": "Uppmätt däcktryck höger fram"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressuretarget": {
+        "name": "Däckbörtryck höger fram"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_temperature": {
+        "name": "Däcktemperatur i Celsius, höger fram"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressure": {
+        "name": "Uppmätt däcktryck vänster bak"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressuretarget": {
+        "name": "Däckbörtryck vänster bak"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_temperature": {
+        "name": "Däcktemperatur i Celsius, vänster bak"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressure": {
+        "name": "Uppmätt däcktryck höger bak"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressuretarget": {
+        "name": "Däckbörtryck höger bak"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_temperature": {
+        "name": "Däcktemperatur i Celsius, höger bak"
+      },
+      "vehicle_chassis_axle_wheel_tire_diagnosis": {
+        "name": "Smart Maintenance: Digital däckdiagnos"
+      },
+      "vehicle_drivetrain_avgelectricrangeconsumption": {
+        "name": "Genomsnittlig elektrisk förbrukning"
+      },
+      "vehicle_drivetrain_batterymanagement_batterysizemax": {
+        "name": "Storleken på högspänningsbatteriet"
+      },
+      "vehicle_drivetrain_batterymanagement_header": {
+        "name": "Högspänningsbatteriets laddningstillstånd"
+      },
+      "vehicle_drivetrain_batterymanagement_maxenergy": {
+        "name": "Användbar energi från högspänningsbatteri (fulladdat, prognostiserat)"
+      },
+      "vehicle_drivetrain_electricengine_charging_acampere": {
+        "name": "AC-laddningsström"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_factor": {
+        "name": "Begränsningsfaktor AC-laddning"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_ischosen": {
+        "name": "AC -laddningsströmbegränsning och val",
+        "state": {
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_acvoltage": {
+        "name": "AC-laddningsspänning"
+      },
+      "vehicle_drivetrain_electricengine_charging_authentication_status": {
+        "name": "Autentiseringsstatus laddning"
+      },
+      "vehicle_drivetrain_electricengine_charging_chargingmode": {
+        "name": "Laddningssätt"
+      },
+      "vehicle_drivetrain_electricengine_charging_connectiontype": {
+        "name": "Laddningsmetod för högspänningsbatteriet (induktivt/ledande)"
+      },
+      "vehicle_drivetrain_electricengine_charging_connectorstatus": {
+        "name": "Laddningsstatus för kontakt",
+        "state": {
+          "connected": "Ansluten",
+          "disconnected": "Frånkopplad"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_gridenergy": {
+        "name": "Total nätenergi som förbrukats när förbränningsmotorn inte var aktiv"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_referencedistance": {
+        "name": "Referenssträcka för mätning av levererad nätenergi när förbränningsmotorn inte var aktiv"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_gridenergy": {
+        "name": "Total nätenergi som förbrukats när förbränningsmotorn var aktiv"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_referencedistance": {
+        "name": "Referenssträcka för mätning av levererad nätenergi när förbränningsmotorn var aktiv"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_gridenergy": {
+        "name": "Total nätenergi som levererats till fordonet (endast PHEV)"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_referencedistance": {
+        "name": "OBFCM*-referenssträcka för mätning av levererad nätenergi"
+      },
+      "vehicle_drivetrain_electricengine_charging_hvstatus": {
+        "name": "HV-laddningssystemstatus",
+        "state": {
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_hvpmfinishreason": {
+        "name": "Anledning för att avsluta en laddningsprocess",
+        "state": {
+          "unknown": "Okänd",
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_isimmediatechargingsystemreason": {
+        "name": "Omedelbart laddningssystemskäl"
+      },
+      "vehicle_drivetrain_electricengine_charging_issingleimmediatecharging": {
+        "name": "Status för omedelbar laddningsfunktion",
+        "state": {
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingreason": {
+        "name": "Sista laddningsskäl",
+        "state": {
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingresult": {
+        "name": "Senaste laddningsresultat",
+        "state": {
+          "unknown": "Okänd"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_level": {
+        "name": "Aktuell prognostiserad laddningsnivå"
+      },
+      "vehicle_drivetrain_electricengine_charging_method": {
+        "name": "Laddningsmetod och kontakttyp",
+        "state": {
+          "nocharging": "Laddar inte"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_modedeviation": {
+        "name": "Avvikande laddningssätt",
+        "state": {
+          "no_action": "Ingen åtgärd",
+          "unknown": "Okänd"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_phasenumber": {
+        "name": "Laddningsmetod för högspänningsbatteriet (faser)",
+        "state": {
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_climatizationactive": {
+        "name": "Klimatisering aktiv"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_isrcpconfigcomplete": {
+        "name": "RCP-konfigurationen är klar"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_mode": {
+        "name": "Laddningsprofil"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_preference": {
+        "name": "Inställning av laddningsprofil"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_departuretimerelevant": {
+        "name": "Relevant starttid"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_dischargeallowed": {
+        "name": "Urladdning tillåten"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_timertype": {
+        "name": "Typ av laddningstimer"
+      },
+      "vehicle_drivetrain_electricengine_charging_reasonchargingend": {
+        "name": "Skäl till att laddningen upphörde"
+      },
+      "vehicle_drivetrain_electricengine_charging_routeoptimizedchargingstatus": {
+        "name": "Ruttoptimerad laddningsstatus"
+      },
+      "vehicle_drivetrain_electricengine_charging_smeenergydeltafullycharged": {
+        "name": "Användbar energi från högspänningsbatteri (fulladdat, prognostiserat)"
+      },
+      "vehicle_drivetrain_electricengine_charging_status": {
+        "name": "Laddningstillstånd",
+        "state": {
+          "nocharging": "Laddar inte",
+          "initialization": "Initierar",
+          "chargingactive": "Laddar",
+          "chargingpaused": "Laddning pausad",
+          "chargingended": "Laddning avslutad",
+          "chargingerror": "Laddningsfel"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_timeremaining": {
+        "name": "Prognos av återstående laddningstid"
+      },
+      "vehicle_drivetrain_electricengine_charging_timetofullycharged": {
+        "name": "Beräknad återstående laddningstid för högspänningsbatteriet"
+      },
+      "vehicle_drivetrain_electricengine_charging_windowselection": {
+        "name": "Val av det lämpligaste laddningsfönstret (Charging Window Selection)"
+      },
+      "vehicle_drivetrain_electricengine_hvsmaxenergyabsolute": {
+        "name": "Maximalt energiinnehåll i högspänningsbatteriet"
+      },
+      "vehicle_drivetrain_electricengine_kombiremainingelectricrange": {
+        "name": "Återstående elektrisk räckvidd i km"
+      },
+      "vehicle_drivetrain_electricengine_remainingelectricrange": {
+        "name": "Prognos av e-räckvidd under laddningsförloppet"
+      },
+      "vehicle_drivetrain_engine_isactive": {
+        "name": "Tändningens tillstånd"
+      },
+      "vehicle_drivetrain_engine_isignitionon": {
+        "name": "Motorns tillstånd (på/av)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_fuel": {
+        "name": "Total OBFCM*-bränsleförbrukning under körning med batteri som laddas ur (endast PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineoff": {
+        "name": "OBFCM*-referenssträcka med eldrift och inaktiv förbränningsmotor (endast PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineon": {
+        "name": "OBFCM*-referenssträcka med eldrift och aktiv förbränningsmotor (endast PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_fuel": {
+        "name": "Total OBFCM*-bränsleförbrukning i laddningsläge (endast PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_referencedistance": {
+        "name": "OBFCM*-referenssträcka i laddningsläge"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_fuel": {
+        "name": "Total bränsleförbrukning enligt lagstadgade OBFCM*-specifikationer"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_referencedistance": {
+        "name": "OBFCM*-referenssträcka för mätning av bränsleförbrukning"
+      },
+      "vehicle_drivetrain_fuelsystem_level": {
+        "name": "Tankens fyllnadsnivå i %"
+      },
+      "vehicle_drivetrain_fuelsystem_remainingfuel": {
+        "name": "Tankinnehåll"
+      },
+      "vehicle_drivetrain_internalcombustionengine_engine_ect": {
+        "name": "Kylarvätskans temperatur"
+      },
+      "vehicle_drivetrain_lastremainingrange": {
+        "name": "Senast skickade återstående räckvidd"
+      },
+      "vehicle_drivetrain_totalremainingrange": {
+        "name": "Prognos av total räckvidd under laddningsförloppet"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_recharge": {
+        "name": "Behov av batteriladdning"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_replace": {
+        "name": "Batteriets hälsotillstånd"
+      },
+      "vehicle_electricalsystem_battery_stateofcharge": {
+        "name": "Lågspänningsbatteri"
+      },
+      "vehicle_electricalsystem_battery_stateofchargeplausibility": {
+        "name": "Lågspänningsbatteriets sannolikhet"
+      },
+      "vehicle_electricalsystem_battery_voltage": {
+        "name": "Batterispänning"
+      },
+      "vehicle_electricalsystem_battery48v_stateofhealth_displayed": {
+        "name": "48 V-batteriets hälsotillstånd"
+      },
+      "vehicle_electroniccontrolunit_diagnostictroublecodes_raw": {
+        "name": "Felminne"
+      },
+      "vehicle_extras_optionalequipment_code": {
+        "name": "Lista på tilläggsutrustning"
+      },
+      "vehicle_ismoving": {
+        "name": "Fordonets rörelsetillstånd"
+      },
+      "vehicle_learningnavigation": {
+        "name": "GPS Learning navigation data"
+      },
+      "vehicle_look_image": {
+        "name": "Fordonsbild"
+      },
+      "vehicle_powertrain_electric_battery_bidirectionalcharging_availability": {
+        "name": "Kapacitet för tvåvägsladdning"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_isactive": {
+        "name": "Status laddningsgräns",
+        "state": {
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_max": {
+        "name": "Maximal laddningsströmstyrka"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_min": {
+        "name": "Minsta laddningsströmstyrka"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_selected": {
+        "name": "Begränsning av laddningsströmmen"
+      },
+      "vehicle_powertrain_electric_battery_charging_acousticlimit": {
+        "name": "Akustisk begränsning av laddningsprocessen",
+        "state": {
+          "no_action": "Ingen åtgärd",
+          "automatic": "Automatiskt"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_authenticationstatus": {
+        "name": "Autentiseringsstatus laddning",
+        "state": {
+          "unknown": "Okänd"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isactive": {
+        "name": "Battery Care-läge active"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_ispreservingchargingmode": {
+        "name": "Battery Care-laddningsläge"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isreducedtargetsoe": {
+        "name": "Reducerat mål-energitillstånd"
+      },
+      "vehicle_powertrain_electric_battery_charging_cablecheckvoltage": {
+        "name": "Kabelkontrollspänning"
+      },
+      "vehicle_powertrain_electric_battery_charging_dcchargingmodeactive": {
+        "name": "Likströmsladdningssätt active"
+      },
+      "vehicle_powertrain_electric_battery_charging_history_sessionslist": {
+        "name": "Laddningshistorik"
+      },
+      "vehicle_powertrain_electric_battery_charging_power": {
+        "name": "Laddningseffekt"
+      },
+      "vehicle_powertrain_electric_battery_charging_preferencesmartcharging": {
+        "name": "”Smart Charging” laddningsalternativ",
+        "state": {
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_settingslist": {
+        "name": "Platsbaserade laddningsinställningar"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_automaticmode_statusfeedback": {
+        "name": "Automatisk återkoppling av status för förkonditionering",
+        "state": {
+          "off": "Av",
+          "on": "På",
+          "unknown": "Okänd"
+        }
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_manualmode_statusfeedback": {
+        "name": "Manuell återkoppling av status för förkonditionering",
+        "state": {
+          "off": "Av",
+          "unknown": "Okänd"
+        }
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_state": {
+        "name": "Förkonditioneringstillstånd",
+        "state": {
+          "off": "Av",
+          "unknown": "Okänd"
+        }
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_displayed": {
+        "name": "Visning av laddningsstatus"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_target": {
+        "name": "Målvärde för högspänningsbatteriets laddningstillstånd"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetmin": {
+        "name": "Mål lägsta laddningsnivå"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetsocforprofessionalmode": {
+        "name": "Mål SOC för professionellt läge"
+      },
+      "vehicle_powertrain_electric_battery_stateofhealth_displayed": {
+        "name": "Högspänningsbatteriets hälsotillstånd (SOCE)"
+      },
+      "vehicle_powertrain_electric_chargingduration_displaycontrol": {
+        "name": "Visning av laddningstiden",
+        "state": {
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_powertrain_electric_departuretime_displaycontrol": {
+        "name": "Visning av avresetid",
+        "state": {
+          "unknown": "Okänd"
+        }
+      },
+      "vehicle_powertrain_electric_range_displaycontrol": {
+        "name": "Displaystyrning för elektrisk räckvidd"
+      },
+      "vehicle_powertrain_electric_range_target": {
+        "name": "Återstående elektrisk räckvidd beroende på målvärdet för laddningstillståndet"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isautomaticopenandcloseactive": {
+        "name": "Batteriladdningsport valfri positionslucka automatisk öppning/stängning"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isopen": {
+        "name": "Batteriladdningsport valfri positionslucka öppen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_isplugged": {
+        "name": "Batteriladdningsport valfri position ansluten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isautomaticopenandcloseactive": {
+        "name": "Batteriladdningsport positionslucka vänster fram automatisk öppning/stängning"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isopen": {
+        "name": "Batteriladdningsport positionslucka vänster fram öppen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_isplugged": {
+        "name": "Batteriladdningsport vänster fram ansluten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Batteriladdningsport positionslucka vänster mitten automatisk öppning/stängning"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isopen": {
+        "name": "Batteriladdningsport lucka mitten fram öppen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_isplugged": {
+        "name": "Batteriladdningsport mitten fram ansluten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isautomaticopenandcloseactive": {
+        "name": "Batteriladdningsport positionslucka höger fram automatisk öppning/stängning"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isopen": {
+        "name": "Batteriladdningsport lucka höger fram öppen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_isplugged": {
+        "name": "Batteriladdningsport höger fram ansluten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isautomaticopenandcloseactive": {
+        "name": "Batteriladdningsport positionslucka vänster bak automatisk öppning/stängning"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isopen": {
+        "name": "Batteriladdningsport positionslucka vänster bak öppen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_isplugged": {
+        "name": "Batteriladdningsport bak vänster ansluten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Batteriladdningsport positionslucka mitten bak automatisk öppning/stängning"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isopen": {
+        "name": "Batteriladdningsport positionslucka mitten bak öppen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_isplugged": {
+        "name": "Batteriladdningsport bak mitten ansluten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isautomaticopenandcloseactive": {
+        "name": "Batteriladdningsport positionslucka höger bak automatisk öppning/stängning"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isopen": {
+        "name": "Batteriladdningsport positionslucka höger bak öppen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_isplugged": {
+        "name": "Batteriladdningsport bak höger ansluten"
+      },
+      "vehicle_privacysettings_datacollection_regulations_obfcm": {
+        "name": "Samtycke till överföring av OBFCM*-uppgifter till EU"
+      },
+      "vehicle_servicedemand_defect_id": {
+        "name": "Smart Maintenance: Realtidsdiagnos"
+      },
+      "vehicle_sevice_preferredsevicepartner": {
+        "name": "Prioriterad servicepartner"
+      },
+      "vehicle_sim_status": {
+        "name": "Aktiveringsstatus för installerat SIM-kort"
+      },
+      "vehicle_status_checkcontrolmessages": {
+        "name": "Check Control meddelanden"
+      },
+      "vehicle_status_conditionbasedservices": {
+        "name": "Condition Based Service"
+      },
+      "vehicle_status_conditionbasedservicesaveragedistanceperday": {
+        "name": "Genomsnittligt avstånd per dag"
+      },
+      "vehicle_status_conditionbasedservicescount": {
+        "name": "Antal CBS-meddelanden"
+      },
+      "vehicle_status_servicedistance_next": {
+        "name": "Körsträcka till nästa service"
+      },
+      "vehicle_status_servicedistance_yellow": {
+        "name": "Gränsvärde för körsträcka innan serviceinformation ges"
+      },
+      "vehicle_status_servicetime_huandauserviceyellow": {
+        "name": "Tidsmässigt gränsvärde för besiktning och avgasundersökning"
+      },
+      "vehicle_status_servicetime_inspectiondatelegal": {
+        "name": "Datumet för nästa inspektion"
+      },
+      "vehicle_status_servicetime_yellow": {
+        "name": "Tidsmässigt gränsvärde för serviceinformation"
+      },
+      "vehicle_trip_segment_accumulated_acceleration_starsaverage": {
+        "name": "Utvärdering av körstil 'Accelerationsbeteende'"
+      },
+      "vehicle_trip_segment_accumulated_chassis_brake_starsaverage": {
+        "name": "Utvärderingen av körstil 'Förutseende körning'"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_energyconsumptioncomfort": {
+        "name": "Förbrukning av elektrisk energi i COMFORT läge vid senaste körning"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_recuperationtotal": {
+        "name": "Återvunnen energimängd vid senaste körning"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecopro": {
+        "name": "Tid som ECO läget var aktivt under föregående körning"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecoproplus": {
+        "name": "Tid som ECO PLUS läget var aktivt under föregående körning"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveelectric": {
+        "name": "Andel av den senaste körningen som har körts elektriskt"
+      },
+      "vehicle_trip_segment_end_drivetrain_batterymanagement_hvsoc": {
+        "name": "Batteriets laddningstillstånd"
+      },
+      "vehicle_trip_segment_end_time": {
+        "name": "Tidpunkten för den senaste körningen"
+      },
+      "vehicle_trip_segment_end_travelleddistance": {
+        "name": "Mätarställning för senaste körning"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_activationtime": {
+        "name": "AntiTheftAlarm aktiveringstid"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_armstatus": {
+        "name": "AntiTheftAlarm-larmstatus",
+        "state": {
+          "unarmed": "Avlarmat",
+          "doorsonly": "Endast dörrar",
+          "doorstiltcabin": "Dörrar, lutning och kupé"
+        }
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_ison": {
+        "name": "AntitheftAlarm är på"
+      },
+      "vehicle_vehicle_averageweeklydistancelongterm": {
+        "name": "Genomsnittlig körsträcka per vecka (långtidsvärde)"
+      },
+      "vehicle_vehicle_averageweeklydistanceshortterm": {
+        "name": "Genomsnittlig körsträcka per vecka"
+      },
+      "vehicle_vehicle_avgauxpower": {
+        "name": "Sekundära förbrukares effekt (Elektriska komponenters effektförbrukning)"
+      },
+      "vehicle_vehicle_avgspeed": {
+        "name": "Genomsnittlig körd hastighet"
+      },
+      "vehicle_vehicle_deepsleepmodeactive": {
+        "name": "Djupviloläge (Deep Sleep Mode)"
+      },
+      "vehicle_vehicle_preconditioning_activity": {
+        "name": "Standard-klimatiseringens förkonditioneringsstatus",
+        "state": {
+          "standby": "Standby",
+          "heating": "Värmer",
+          "cooling": "Kyler",
+          "ventilation": "Ventilerar",
+          "inactive": "Inaktiv"
+        }
+      },
+      "vehicle_vehicle_preconditioning_error": {
+        "name": "Orsaken till att förkonditionering av standard-klimatiseringen inte har utförts",
+        "state": {
+          "lowfuel": "Låg bränslenivå",
+          "lowbattery": "Lågt batteri",
+          "quotaexceeded": "Kvot överskriden",
+          "heaterfailure": "Värmarfel",
+          "componentfailure": "Komponentfel",
+          "openorunlocked": "Öppen eller olåst",
+          "ok": "OK",
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginerunning": {
+        "name": "Användning av motorn för förkonditionering."
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginestartallowed": {
+        "name": "Tillåtelse att använda motorn för förkonditionering."
+      },
+      "vehicle_vehicle_preconditioning_remainingtime": {
+        "name": "Återstående förkonditioneringstid."
+      },
+      "vehicle_vehicle_speedrange_lowerbound": {
+        "name": "Hastighetsområde lägre"
+      },
+      "vehicle_vehicle_speedrange_upperbound": {
+        "name": "Hastighetsområde övre"
+      },
+      "vehicle_vehicle_timesetting": {
+        "name": "Tidszoninställning i fordonet",
+        "state": {
+          "wintertime": "Vintertid",
+          "summertime": "Sommartid",
+          "utc": "UTC",
+          "manual": "Manuell",
+          "invalid": "Ogiltig"
+        }
+      },
+      "vehicle_vehicle_travelleddistance": {
+        "name": "Mätarställning"
+      },
+      "vehicle_vehicleidentification_basicvehicledata": {
+        "name": "Gunduppgifter om fordonet"
+      },
+      "vehicle_vehicleidentification_connecteddrivecontractlist": {
+        "name": "Aktiva ConnectedDrive-avtal"
+      },
+      "soc_estimate": {
+        "name": "Laddningsnivå (förutsagd av integrationen)"
+      },
+      "soc_estimate_testing": {
+        "name": "Ny testsensor för extrapolering"
+      },
+      "soc_rate": {
+        "name": "Förutsagd laddhastighet"
+      },
+      "charged_energy_total": {
+        "name": "Laddad energi (totalt)"
+      },
+      "charged_energy_session": {
+        "name": "Laddad energi (session)"
+      },
+      "last_message": {
+        "name": "Senast mottagna meddelande"
+      },
+      "last_telematic_api": {
+        "name": "Senaste anrop till telematik-API"
+      },
+      "connection_status": {
+        "name": "Status för strömanslutning"
+      },
+      "api_quota_remaining": {
+        "name": "Återstående API-kvot"
+      },
+      "charging_cost_month": {
+        "name": "Laddkostnad (denna månad)"
+      },
+      "charging_cost_session": {
+        "name": "Laddkostnad (senaste session)"
+      },
+      "charging_energy_month": {
+        "name": "Laddad energi (denna månad)"
+      },
+      "charging_cost_per_100km": {
+        "name": "Laddkostnad per 100 km"
+      },
+      "battery_health": {
+        "name": "Batterihälsa"
+      },
+      "driving_distance_month": {
+        "name": "Körsträcka (denna månad)"
+      },
+      "real_range": {
+        "name": "Verklig räckvidd"
+      },
+      "tyre_status": {
+        "name": "Däckstatus"
+      },
+      "tyre_front_left": {
+        "name": "Däck vänster fram"
+      },
+      "tyre_front_right": {
+        "name": "Däck höger fram"
+      },
+      "tyre_rear_left": {
+        "name": "Däck vänster bak"
+      },
+      "tyre_rear_right": {
+        "name": "Däck höger bak"
+      }
+    },
+    "binary_sensor": {
+      "vehicle_body_chargingport_combinedstatus": {
+        "name": "Anslutningsstatus för laddningsport"
+      },
+      "vehicle_body_chargingport_dcstatus": {
+        "name": "Status för laddningskontakten (endast DC)"
+      },
+      "vehicle_body_chargingport_ishospitalityactive": {
+        "name": "Låst tillstånd för laddningskontakt efter full laddning"
+      },
+      "vehicle_body_chargingport_isosessionid": {
+        "name": "Laddningssesions-ID"
+      },
+      "vehicle_body_chargingport_lockedstatus": {
+        "name": "Laddningsportens låsta läge"
+      },
+      "vehicle_body_chargingport_plugeventid": {
+        "name": "Händelse-ID för laddningskontaktens händelse-ID"
+      },
+      "vehicle_body_chargingport_status": {
+        "name": "Laddningskontaktens tillstånd"
+      },
+      "vehicle_body_chargingport_statuscleartext": {
+        "name": "Laddstationens statustext"
+      },
+      "vehicle_body_flap_islocked": {
+        "name": "Lastklaffens tillstånd"
+      },
+      "vehicle_body_flap_ispermanentlyunlocked": {
+        "name": "Stängningsläge för lastklaff"
+      },
+      "vehicle_body_hood_isopen": {
+        "name": "Motorhuvens tillstånd"
+      },
+      "vehicle_body_lights_isrunningon": {
+        "name": "Belysningens tillstånd"
+      },
+      "vehicle_body_trunk_door_isopen": {
+        "name": "Bagagedörr öppen status"
+      },
+      "vehicle_body_trunk_islocked": {
+        "name": "Status för låst bagageutrymme"
+      },
+      "vehicle_body_trunk_isopen": {
+        "name": "Bakluckans tillstånd"
+      },
+      "vehicle_body_trunk_left_door_isopen": {
+        "name": "Bagageutrymme vänster dörr öppen"
+      },
+      "vehicle_body_trunk_lower_door_isopen": {
+        "name": "Bagageutrymmets nedre dörr öppen"
+      },
+      "vehicle_body_trunk_right_door_isopen": {
+        "name": "Bagageutrymme höger dörr öppen"
+      },
+      "vehicle_body_trunk_upper_door_isopen": {
+        "name": "Bagageutrymmets övre dörr öppen"
+      },
+      "vehicle_body_trunk_window_isopen": {
+        "name": "Upplåsning av bakruta"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_action": {
+        "name": "Åtgärd för att skriva över klimattimer"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_hour": {
+        "name": "Klimattimern skriver över timmen"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_minute": {
+        "name": "Klimattimern skriver över minuten"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_action": {
+        "name": "Veckodagstimer 1 åtgärd"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_hour": {
+        "name": "Veckodagstimer 1 timme"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_minute": {
+        "name": "Veckodagstimer 1 minut"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_action": {
+        "name": "Veckodagstimer 2 åtgärd"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_hour": {
+        "name": "Veckodagstimer 2 timme"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_minute": {
+        "name": "Veckodagstimer 2 minut"
+      },
+      "vehicle_cabin_convertible_roofretractablestatus": {
+        "name": "Status för konvertibelt tak"
+      },
+      "vehicle_cabin_convertible_roofstatus": {
+        "name": "Cabriolettakets tillstånd"
+      },
+      "vehicle_cabin_door_lock_status": {
+        "name": "Dörrarnas tillstånd"
+      },
+      "vehicle_cabin_door_row1_driver_isopen": {
+        "name": "Vänster fram dörrens tillstånd"
+      },
+      "vehicle_cabin_door_row1_driver_position": {
+        "name": "Position för främre förardörr"
+      },
+      "vehicle_cabin_door_row1_passenger_isopen": {
+        "name": "Höger fram dörrens tillstånd"
+      },
+      "vehicle_cabin_door_row1_passenger_position": {
+        "name": "Position för främre passagerardörr"
+      },
+      "vehicle_cabin_door_row2_driver_isopen": {
+        "name": "Vänster bak dörrens tillstånd"
+      },
+      "vehicle_cabin_door_row2_driver_position": {
+        "name": "Bakre dörrposition förare"
+      },
+      "vehicle_cabin_door_row2_passenger_isopen": {
+        "name": "Höger bak dörrens tillstånd"
+      },
+      "vehicle_cabin_door_row2_passenger_position": {
+        "name": "Position för bakre passagerardörr"
+      },
+      "vehicle_cabin_door_status": {
+        "name": "Dörrarnas tillstånd"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_cooling": {
+        "name": "Standardkylning av främre förarstolens kylning"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_heating": {
+        "name": "Standard uppvärmning av främre förarstolen"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_cooling": {
+        "name": "Standardkylning av främre passagerarstolens kylning"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_heating": {
+        "name": "Standard uppvärmning av främre passagerarstolen"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_cooling": {
+        "name": "Standardkylning av bakre förarstolens kylning"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_heating": {
+        "name": "Standarduppvärmning av bakre förarstolens kylning"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_cooling": {
+        "name": "Standardkylning av bakre passagerarstolens kylning"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_heating": {
+        "name": "Standarduppvärmning av bakre passagerarstolens kylning"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_cooling": {
+        "name": "Standard tredje radens förarstolskylning"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_heating": {
+        "name": "Standard tredje radens förarstolsuppvärmning"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_cooling": {
+        "name": "Standard tredje radens passagerarstolskylning"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_heating": {
+        "name": "Standard tredje radens passagerarstolsuppvärmning"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_steeringwheel_heating": {
+        "name": "Standard rattvärme"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_targettemperature": {
+        "name": "Måltemperatur"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_cooling": {
+        "name": "Främre förarstolen direktkylning."
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_heating": {
+        "name": "Främre förarstolen direktvärme."
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_cooling": {
+        "name": "Passagerarstolens direktkylning"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_heating": {
+        "name": "Direktvärme för främre passagerare"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_cooling": {
+        "name": "Direktkylning för bakre förare"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_heating": {
+        "name": "Direktvärme för bakre förare"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_cooling": {
+        "name": "Direktkylning för bakre passagerare"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_heating": {
+        "name": "Direktvärme för bakre passagerare"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_cooling": {
+        "name": "Direktkylning för tredje radens förare"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_heating": {
+        "name": "Direktvärme för tredje radens förare"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_cooling": {
+        "name": "Direktkylning för tredje radens passagerare"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_heating": {
+        "name": "Direktvärme för tredje radens passagerare"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_steeringwheel_heating": {
+        "name": "Direktvärme på ratten"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_targettemperature": {
+        "name": "Måltemperatur för direktstart"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_isremoteenginestartdisclaimer": {
+        "name": "Disclaimer för fjärrklimatisering"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_comfortstate": {
+        "name": "Komforttillstånd för klimatförkonditionering"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_isexteriormirrorheatingactive": {
+        "name": "Ytterbackspegelvärme på"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_progress": {
+        "name": "Framsteg klimatförkonditionering"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_reardefrostactive": {
+        "name": "Bakre avfrostning på"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_remainingrunningtime": {
+        "name": "Förkonditionering resttid"
+      },
+      "vehicle_cabin_hvac_statusairpurification": {
+        "name": "HVAC-luftreningsstatus"
+      },
+      "vehicle_cabin_infotainment_displayunit_distance": {
+        "name": "Visningsenhet på fordonets instrument"
+      },
+      "vehicle_cabin_infotainment_hmi_distanceunit": {
+        "name": "Infotainment-vägmätare"
+      },
+      "vehicle_cabin_infotainment_ismobilephoneconnected": {
+        "name": "Koppling Mobiltelefon"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_altitude": {
+        "name": "Fordonets position över havsytan"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_fixstatus": {
+        "name": "Status för navigeringsfix"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_heading": {
+        "name": "Fordonets inriktning"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_latitude": {
+        "name": "Fordonets position – geografisk breddgrad"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_longitude": {
+        "name": "Fordonets position – geografisk längdgrad"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_numberofsatellites": {
+        "name": "Antal satellitnavigationer"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_arrivaltime": {
+        "name": "Tid till navigationsmål"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_distance": {
+        "name": "Körsträcka till navigationsmålet"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_latitude": {
+        "name": "Navigationsresmål — latitud"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_longitude": {
+        "name": "Navigationsresmål — longitud"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_available": {
+        "name": "Antal lediga POI (Points of Interest) -platser i navigationssystemet"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_max": {
+        "name": "Maximalt antal POI som kan sparas i navigationssystemet"
+      },
+      "vehicle_cabin_infotainment_navigation_remainingrange": {
+        "name": "Återstående räckvidd"
+      },
+      "vehicle_cabin_seat_row1_driverside_cooling": {
+        "name": "Främre förarsäte kylning."
+      },
+      "vehicle_cabin_seat_row1_driverside_heating": {
+        "name": "Uppvärmning av främre förarsätet"
+      },
+      "vehicle_cabin_seat_row1_passengerside_cooling": {
+        "name": "Passagerarstol kyldrift"
+      },
+      "vehicle_cabin_seat_row1_passengerside_heating": {
+        "name": "Passagerarstolsvärme"
+      },
+      "vehicle_cabin_seat_row2_driverside_cooling": {
+        "name": "Kylning av Bakre förarsäte"
+      },
+      "vehicle_cabin_seat_row2_driverside_heating": {
+        "name": "Uppvärmning av bakre förarsäte"
+      },
+      "vehicle_cabin_seat_row2_passengerside_cooling": {
+        "name": "Bakre passagerarsäte kylning"
+      },
+      "vehicle_cabin_seat_row2_passengerside_heating": {
+        "name": "Uppvärmning av bakre passagerarsätet"
+      },
+      "vehicle_cabin_seat_row3_driverside_cooling": {
+        "name": "Tredje radens förarsäteskylning"
+      },
+      "vehicle_cabin_seat_row3_driverside_heating": {
+        "name": "Tredje radens förarsätesuppvärmning"
+      },
+      "vehicle_cabin_seat_row3_passengerside_cooling": {
+        "name": "Tredje radens kylning av passagerarsätet"
+      },
+      "vehicle_cabin_seat_row3_passengerside_heating": {
+        "name": "Tredje radens uppvärmning av passagersätet"
+      },
+      "vehicle_cabin_steeringwheel_heating": {
+        "name": "Rattvärme"
+      },
+      "vehicle_cabin_sunroof_overallstatus": {
+        "name": "Övergripande status för soltaket"
+      },
+      "vehicle_cabin_sunroof_relativeposition": {
+        "name": "Soltakets relativa position"
+      },
+      "vehicle_cabin_sunroof_shade_position": {
+        "name": "Solskyddsposition"
+      },
+      "vehicle_cabin_sunroof_status": {
+        "name": "Takluckans tillstånd"
+      },
+      "vehicle_cabin_sunroof_tiltstatus": {
+        "name": "Takluckans ställning"
+      },
+      "vehicle_cabin_window_row1_driver_status": {
+        "name": "Vänster fram fönstrets tillstånd"
+      },
+      "vehicle_cabin_window_row1_passenger_status": {
+        "name": "Höger fram fönstrets tillstånd"
+      },
+      "vehicle_cabin_window_row2_driver_status": {
+        "name": "Vänster bak fönstrets tillstånd"
+      },
+      "vehicle_cabin_window_row2_passenger_status": {
+        "name": "Höger bak fönstrets tillstånd"
+      },
+      "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
+        "name": "Statusinformation om senaste överföring av OBFCM*-värden"
+      },
+      "vehicle_channel_ngtp_timevehicle": {
+        "name": "Datum och tid i fordonet"
+      },
+      "vehicle_channel_teleservice_lastautomaticservicecalltime": {
+        "name": "Automatiskt Teleservice Call"
+      },
+      "vehicle_channel_teleservice_lastbreakdowncalltime": {
+        "name": "Senaste Teleservice Breakdown Call-tid"
+      },
+      "vehicle_channel_teleservice_lastmanualcalltime": {
+        "name": "Senaste teleservice manuell samtalstid"
+      },
+      "vehicle_channel_teleservice_lastteleservicereporttime": {
+        "name": "Teleservice Report"
+      },
+      "vehicle_channel_teleservice_status": {
+        "name": "Teleservices tillgänglighet"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressure": {
+        "name": "Uppmätt däcktryck vänster fram"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressuretarget": {
+        "name": "Däckbörtryck vänster fram"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_temperature": {
+        "name": "Däcktemperatur i Celsius, vänster fram"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressure": {
+        "name": "Uppmätt däcktryck höger fram"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressuretarget": {
+        "name": "Däckbörtryck höger fram"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_temperature": {
+        "name": "Däcktemperatur i Celsius, höger fram"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressure": {
+        "name": "Uppmätt däcktryck vänster bak"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressuretarget": {
+        "name": "Däckbörtryck vänster bak"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_temperature": {
+        "name": "Däcktemperatur i Celsius, vänster bak"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressure": {
+        "name": "Uppmätt däcktryck höger bak"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressuretarget": {
+        "name": "Däckbörtryck höger bak"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_temperature": {
+        "name": "Däcktemperatur i Celsius, höger bak"
+      },
+      "vehicle_chassis_axle_wheel_tire_diagnosis": {
+        "name": "Smart Maintenance: Digital däckdiagnos"
+      },
+      "vehicle_drivetrain_avgelectricrangeconsumption": {
+        "name": "Genomsnittlig elektrisk förbrukning"
+      },
+      "vehicle_drivetrain_batterymanagement_batterysizemax": {
+        "name": "Storleken på högspänningsbatteriet"
+      },
+      "vehicle_drivetrain_batterymanagement_header": {
+        "name": "Högspänningsbatteriets laddningstillstånd"
+      },
+      "vehicle_drivetrain_batterymanagement_maxenergy": {
+        "name": "Användbar energi från högspänningsbatteri (fulladdat, prognostiserat)"
+      },
+      "vehicle_drivetrain_electricengine_charging_acampere": {
+        "name": "AC-laddningsström"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_factor": {
+        "name": "Begränsningsfaktor AC-laddning"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_ischosen": {
+        "name": "AC -laddningsströmbegränsning och val"
+      },
+      "vehicle_drivetrain_electricengine_charging_acvoltage": {
+        "name": "AC-laddningsspänning"
+      },
+      "vehicle_drivetrain_electricengine_charging_authentication_status": {
+        "name": "Autentiseringsstatus laddning"
+      },
+      "vehicle_drivetrain_electricengine_charging_chargingmode": {
+        "name": "Laddningssätt"
+      },
+      "vehicle_drivetrain_electricengine_charging_connectiontype": {
+        "name": "Laddningsmetod för högspänningsbatteriet (induktivt/ledande)"
+      },
+      "vehicle_drivetrain_electricengine_charging_connectorstatus": {
+        "name": "Laddningsstatus för kontakt"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_gridenergy": {
+        "name": "Total nätenergi som förbrukats när förbränningsmotorn inte var aktiv"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_referencedistance": {
+        "name": "Referenssträcka för mätning av levererad nätenergi när förbränningsmotorn inte var aktiv"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_gridenergy": {
+        "name": "Total nätenergi som förbrukats när förbränningsmotorn var aktiv"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_referencedistance": {
+        "name": "Referenssträcka för mätning av levererad nätenergi när förbränningsmotorn var aktiv"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_gridenergy": {
+        "name": "Total nätenergi som levererats till fordonet (endast PHEV)"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_referencedistance": {
+        "name": "OBFCM*-referenssträcka för mätning av levererad nätenergi"
+      },
+      "vehicle_drivetrain_electricengine_charging_hvstatus": {
+        "name": "HV-laddningssystemstatus"
+      },
+      "vehicle_drivetrain_electricengine_charging_hvpmfinishreason": {
+        "name": "Anledning för att avsluta en laddningsprocess"
+      },
+      "vehicle_drivetrain_electricengine_charging_isimmediatechargingsystemreason": {
+        "name": "Omedelbart laddningssystemskäl"
+      },
+      "vehicle_drivetrain_electricengine_charging_issingleimmediatecharging": {
+        "name": "Status för omedelbar laddningsfunktion"
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingreason": {
+        "name": "Sista laddningsskäl"
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingresult": {
+        "name": "Senaste laddningsresultat"
+      },
+      "vehicle_drivetrain_electricengine_charging_level": {
+        "name": "Aktuell prognostiserad laddningsnivå"
+      },
+      "vehicle_drivetrain_electricengine_charging_method": {
+        "name": "Laddningsmetod och kontakttyp"
+      },
+      "vehicle_drivetrain_electricengine_charging_modedeviation": {
+        "name": "Avvikande laddningssätt"
+      },
+      "vehicle_drivetrain_electricengine_charging_phasenumber": {
+        "name": "Laddningsmetod för högspänningsbatteriet (faser)"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_climatizationactive": {
+        "name": "Klimatisering aktiv"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_isrcpconfigcomplete": {
+        "name": "RCP-konfigurationen är klar"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_mode": {
+        "name": "Laddningsprofil"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_preference": {
+        "name": "Inställning av laddningsprofil"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_departuretimerelevant": {
+        "name": "Relevant starttid"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_dischargeallowed": {
+        "name": "Urladdning tillåten"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_timertype": {
+        "name": "Typ av laddningstimer"
+      },
+      "vehicle_drivetrain_electricengine_charging_reasonchargingend": {
+        "name": "Skäl till att laddningen upphörde"
+      },
+      "vehicle_drivetrain_electricengine_charging_routeoptimizedchargingstatus": {
+        "name": "Ruttoptimerad laddningsstatus"
+      },
+      "vehicle_drivetrain_electricengine_charging_smeenergydeltafullycharged": {
+        "name": "Användbar energi från högspänningsbatteri (fulladdat, prognostiserat)"
+      },
+      "vehicle_drivetrain_electricengine_charging_status": {
+        "name": "Laddningstillstånd"
+      },
+      "vehicle_drivetrain_electricengine_charging_timeremaining": {
+        "name": "Prognos av återstående laddningstid"
+      },
+      "vehicle_drivetrain_electricengine_charging_timetofullycharged": {
+        "name": "Beräknad återstående laddningstid för högspänningsbatteriet"
+      },
+      "vehicle_drivetrain_electricengine_charging_windowselection": {
+        "name": "Val av det lämpligaste laddningsfönstret (Charging Window Selection)"
+      },
+      "vehicle_drivetrain_electricengine_hvsmaxenergyabsolute": {
+        "name": "Maximalt energiinnehåll i högspänningsbatteriet"
+      },
+      "vehicle_drivetrain_electricengine_kombiremainingelectricrange": {
+        "name": "Återstående elektrisk räckvidd i km"
+      },
+      "vehicle_drivetrain_electricengine_remainingelectricrange": {
+        "name": "Prognos av e-räckvidd under laddningsförloppet"
+      },
+      "vehicle_drivetrain_engine_isactive": {
+        "name": "Tändningens tillstånd"
+      },
+      "vehicle_drivetrain_engine_isignitionon": {
+        "name": "Motorns tillstånd (på/av)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_fuel": {
+        "name": "Total OBFCM*-bränsleförbrukning under körning med batteri som laddas ur (endast PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineoff": {
+        "name": "OBFCM*-referenssträcka med eldrift och inaktiv förbränningsmotor (endast PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineon": {
+        "name": "OBFCM*-referenssträcka med eldrift och aktiv förbränningsmotor (endast PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_fuel": {
+        "name": "Total OBFCM*-bränsleförbrukning i laddningsläge (endast PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_referencedistance": {
+        "name": "OBFCM*-referenssträcka i laddningsläge"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_fuel": {
+        "name": "Total bränsleförbrukning enligt lagstadgade OBFCM*-specifikationer"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_referencedistance": {
+        "name": "OBFCM*-referenssträcka för mätning av bränsleförbrukning"
+      },
+      "vehicle_drivetrain_fuelsystem_level": {
+        "name": "Tankens fyllnadsnivå i %"
+      },
+      "vehicle_drivetrain_fuelsystem_remainingfuel": {
+        "name": "Tankinnehåll"
+      },
+      "vehicle_drivetrain_internalcombustionengine_engine_ect": {
+        "name": "Kylarvätskans temperatur"
+      },
+      "vehicle_drivetrain_lastremainingrange": {
+        "name": "Senast skickade återstående räckvidd"
+      },
+      "vehicle_drivetrain_totalremainingrange": {
+        "name": "Prognos av total räckvidd under laddningsförloppet"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_recharge": {
+        "name": "Behov av batteriladdning"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_replace": {
+        "name": "Batteriets hälsotillstånd"
+      },
+      "vehicle_electricalsystem_battery_stateofcharge": {
+        "name": "Lågspänningsbatteri"
+      },
+      "vehicle_electricalsystem_battery_stateofchargeplausibility": {
+        "name": "Lågspänningsbatteriets sannolikhet"
+      },
+      "vehicle_electricalsystem_battery_voltage": {
+        "name": "Batterispänning"
+      },
+      "vehicle_electricalsystem_battery48v_stateofhealth_displayed": {
+        "name": "48 V-batteriets hälsotillstånd"
+      },
+      "vehicle_electroniccontrolunit_diagnostictroublecodes_raw": {
+        "name": "Felminne"
+      },
+      "vehicle_extras_optionalequipment_code": {
+        "name": "Lista på tilläggsutrustning"
+      },
+      "vehicle_ismoving": {
+        "name": "Fordonets rörelsetillstånd"
+      },
+      "vehicle_learningnavigation": {
+        "name": "GPS Learning navigation data"
+      },
+      "vehicle_look_image": {
+        "name": "Fordonsbild"
+      },
+      "vehicle_powertrain_electric_battery_bidirectionalcharging_availability": {
+        "name": "Kapacitet för tvåvägsladdning"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_isactive": {
+        "name": "Status laddningsgräns"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_max": {
+        "name": "Maximal laddningsströmstyrka"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_min": {
+        "name": "Minsta laddningsströmstyrka"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_selected": {
+        "name": "Begränsning av laddningsströmmen"
+      },
+      "vehicle_powertrain_electric_battery_charging_acousticlimit": {
+        "name": "Akustisk begränsning av laddningsprocessen"
+      },
+      "vehicle_powertrain_electric_battery_charging_authenticationstatus": {
+        "name": "Autentiseringsstatus laddning"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isactive": {
+        "name": "Battery Care-läge active"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_ispreservingchargingmode": {
+        "name": "Battery Care-laddningsläge"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isreducedtargetsoe": {
+        "name": "Reducerat mål-energitillstånd"
+      },
+      "vehicle_powertrain_electric_battery_charging_cablecheckvoltage": {
+        "name": "Kabelkontrollspänning"
+      },
+      "vehicle_powertrain_electric_battery_charging_dcchargingmodeactive": {
+        "name": "Likströmsladdningssätt active"
+      },
+      "vehicle_powertrain_electric_battery_charging_history_sessionslist": {
+        "name": "Laddningshistorik"
+      },
+      "vehicle_powertrain_electric_battery_charging_power": {
+        "name": "Laddningseffekt"
+      },
+      "vehicle_powertrain_electric_battery_charging_preferencesmartcharging": {
+        "name": "”Smart Charging” laddningsalternativ"
+      },
+      "vehicle_powertrain_electric_battery_charging_settingslist": {
+        "name": "Platsbaserade laddningsinställningar"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_automaticmode_statusfeedback": {
+        "name": "Automatisk återkoppling av status för förkonditionering"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_manualmode_statusfeedback": {
+        "name": "Manuell återkoppling av status för förkonditionering"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_state": {
+        "name": "Förkonditioneringstillstånd"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_displayed": {
+        "name": "Visning av laddningsstatus"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_target": {
+        "name": "Målvärde för högspänningsbatteriets laddningstillstånd"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetmin": {
+        "name": "Mål lägsta laddningsnivå"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetsocforprofessionalmode": {
+        "name": "Mål SOC för professionellt läge"
+      },
+      "vehicle_powertrain_electric_battery_stateofhealth_displayed": {
+        "name": "Högspänningsbatteriets hälsotillstånd (SOCE)"
+      },
+      "vehicle_powertrain_electric_chargingduration_displaycontrol": {
+        "name": "Visning av laddningstiden"
+      },
+      "vehicle_powertrain_electric_departuretime_displaycontrol": {
+        "name": "Visning av avresetid"
+      },
+      "vehicle_powertrain_electric_range_displaycontrol": {
+        "name": "Displaystyrning för elektrisk räckvidd"
+      },
+      "vehicle_powertrain_electric_range_target": {
+        "name": "Återstående elektrisk räckvidd beroende på målvärdet för laddningstillståndet"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isautomaticopenandcloseactive": {
+        "name": "Batteriladdningsport valfri positionslucka automatisk öppning/stängning"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isopen": {
+        "name": "Batteriladdningsport valfri positionslucka öppen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_isplugged": {
+        "name": "Batteriladdningsport valfri position ansluten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isautomaticopenandcloseactive": {
+        "name": "Batteriladdningsport positionslucka vänster fram automatisk öppning/stängning"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isopen": {
+        "name": "Batteriladdningsport positionslucka vänster fram öppen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_isplugged": {
+        "name": "Batteriladdningsport vänster fram ansluten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Batteriladdningsport positionslucka vänster mitten automatisk öppning/stängning"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isopen": {
+        "name": "Batteriladdningsport lucka mitten fram öppen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_isplugged": {
+        "name": "Batteriladdningsport mitten fram ansluten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isautomaticopenandcloseactive": {
+        "name": "Batteriladdningsport positionslucka höger fram automatisk öppning/stängning"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isopen": {
+        "name": "Batteriladdningsport lucka höger fram öppen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_isplugged": {
+        "name": "Batteriladdningsport höger fram ansluten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isautomaticopenandcloseactive": {
+        "name": "Batteriladdningsport positionslucka vänster bak automatisk öppning/stängning"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isopen": {
+        "name": "Batteriladdningsport positionslucka vänster bak öppen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_isplugged": {
+        "name": "Batteriladdningsport bak vänster ansluten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Batteriladdningsport positionslucka mitten bak automatisk öppning/stängning"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isopen": {
+        "name": "Batteriladdningsport positionslucka mitten bak öppen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_isplugged": {
+        "name": "Batteriladdningsport bak mitten ansluten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isautomaticopenandcloseactive": {
+        "name": "Batteriladdningsport positionslucka höger bak automatisk öppning/stängning"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isopen": {
+        "name": "Batteriladdningsport positionslucka höger bak öppen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_isplugged": {
+        "name": "Batteriladdningsport bak höger ansluten"
+      },
+      "vehicle_privacysettings_datacollection_regulations_obfcm": {
+        "name": "Samtycke till överföring av OBFCM*-uppgifter till EU"
+      },
+      "vehicle_servicedemand_defect_id": {
+        "name": "Smart Maintenance: Realtidsdiagnos"
+      },
+      "vehicle_sevice_preferredsevicepartner": {
+        "name": "Prioriterad servicepartner"
+      },
+      "vehicle_sim_status": {
+        "name": "Aktiveringsstatus för installerat SIM-kort"
+      },
+      "vehicle_status_checkcontrolmessages": {
+        "name": "Check Control meddelanden"
+      },
+      "vehicle_status_conditionbasedservices": {
+        "name": "Condition Based Service"
+      },
+      "vehicle_status_conditionbasedservicesaveragedistanceperday": {
+        "name": "Genomsnittligt avstånd per dag"
+      },
+      "vehicle_status_conditionbasedservicescount": {
+        "name": "Antal CBS-meddelanden"
+      },
+      "vehicle_status_servicedistance_next": {
+        "name": "Körsträcka till nästa service"
+      },
+      "vehicle_status_servicedistance_yellow": {
+        "name": "Gränsvärde för körsträcka innan serviceinformation ges"
+      },
+      "vehicle_status_servicetime_huandauserviceyellow": {
+        "name": "Tidsmässigt gränsvärde för besiktning och avgasundersökning"
+      },
+      "vehicle_status_servicetime_inspectiondatelegal": {
+        "name": "Datumet för nästa inspektion"
+      },
+      "vehicle_status_servicetime_yellow": {
+        "name": "Tidsmässigt gränsvärde för serviceinformation"
+      },
+      "vehicle_trip_segment_accumulated_acceleration_starsaverage": {
+        "name": "Utvärdering av körstil 'Accelerationsbeteende'"
+      },
+      "vehicle_trip_segment_accumulated_chassis_brake_starsaverage": {
+        "name": "Utvärderingen av körstil 'Förutseende körning'"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_energyconsumptioncomfort": {
+        "name": "Förbrukning av elektrisk energi i COMFORT läge vid senaste körning"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_recuperationtotal": {
+        "name": "Återvunnen energimängd vid senaste körning"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecopro": {
+        "name": "Tid som ECO läget var aktivt under föregående körning"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecoproplus": {
+        "name": "Tid som ECO PLUS läget var aktivt under föregående körning"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveelectric": {
+        "name": "Andel av den senaste körningen som har körts elektriskt"
+      },
+      "vehicle_trip_segment_end_drivetrain_batterymanagement_hvsoc": {
+        "name": "Batteriets laddningstillstånd"
+      },
+      "vehicle_trip_segment_end_time": {
+        "name": "Tidpunkten för den senaste körningen"
+      },
+      "vehicle_trip_segment_end_travelleddistance": {
+        "name": "Mätarställning för senaste körning"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_activationtime": {
+        "name": "AntiTheftAlarm aktiveringstid"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_armstatus": {
+        "name": "AntiTheftAlarm-larmstatus"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_ison": {
+        "name": "AntitheftAlarm är på"
+      },
+      "vehicle_vehicle_averageweeklydistancelongterm": {
+        "name": "Genomsnittlig körsträcka per vecka (långtidsvärde)"
+      },
+      "vehicle_vehicle_averageweeklydistanceshortterm": {
+        "name": "Genomsnittlig körsträcka per vecka"
+      },
+      "vehicle_vehicle_avgauxpower": {
+        "name": "Sekundära förbrukares effekt (Elektriska komponenters effektförbrukning)"
+      },
+      "vehicle_vehicle_avgspeed": {
+        "name": "Genomsnittlig körd hastighet"
+      },
+      "vehicle_vehicle_deepsleepmodeactive": {
+        "name": "Djupviloläge (Deep Sleep Mode)"
+      },
+      "vehicle_vehicle_preconditioning_activity": {
+        "name": "Standard-klimatiseringens förkonditioneringsstatus"
+      },
+      "vehicle_vehicle_preconditioning_error": {
+        "name": "Orsaken till att förkonditionering av standard-klimatiseringen inte har utförts"
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginerunning": {
+        "name": "Användning av motorn för förkonditionering."
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginestartallowed": {
+        "name": "Tillåtelse att använda motorn för förkonditionering."
+      },
+      "vehicle_vehicle_preconditioning_remainingtime": {
+        "name": "Återstående förkonditioneringstid."
+      },
+      "vehicle_vehicle_speedrange_lowerbound": {
+        "name": "Hastighetsområde lägre"
+      },
+      "vehicle_vehicle_speedrange_upperbound": {
+        "name": "Hastighetsområde övre"
+      },
+      "vehicle_vehicle_timesetting": {
+        "name": "Tidszoninställning i fordonet"
+      },
+      "vehicle_vehicle_travelleddistance": {
+        "name": "Mätarställning"
+      },
+      "vehicle_vehicleidentification_basicvehicledata": {
+        "name": "Gunduppgifter om fordonet"
+      },
+      "vehicle_vehicleidentification_connecteddrivecontractlist": {
+        "name": "Aktiva ConnectedDrive-avtal"
+      },
+      "trip_in_progress": {
+        "name": "Resa pågår"
+      }
+    },
+    "device_tracker": {
+      "car": {
+        "name": "Plats"
+      }
+    },
+    "image": {
+      "vehicle_image": {
+        "name": "Fordonsbild"
+      }
+    }
+  },
+  "issues": {
+    "api_quota_exhausted": {
+      "title": "BMW CarData API-kvoten är slut",
+      "description": "BMW CarData:s REST-gräns på {limit} anrop per 24 h har nåtts, så data på begäran (grunddata, laddningshistorik, däckdiagnos, fordonsbild) kan inte uppdateras just nu. Strömmade data fortsätter att komma. Kvoten frigörs igen {next_reset}."
+    },
+    "motorcycle_unsupported": {
+      "title": "BMW-motorcyklar kan inte strömma sina data",
+      "description": "{vehicle} är en BMW Motorrad. BMW CarData listar motorcyklar på kontot, men BMW strömmar inga data för dem, så BavarianData har inget att visa och dess entiteter förblir tomma. Detta är en begränsning hos BMW, inte ett installationsfel. Du kan ta bort integrationsposten för det här fordonet, eller ignorera meddelandet om kontot också har en bil."
+    },
+    "stream_coverage_gaps": {
+      "title": "En vald datagrupp har aldrig strömmats",
+      "description": "För {vehicle} har ingenting alls från {clusters} kommit på {days} dagar ({count} deskriptor(er), t.ex. {descriptors}). En grupp som är helt tyst betyder oftast att den inte är ikryssad och sparad i BMW-portalens Dataurval, eller att din bil inte producerar de data. Aktivera den igen under Konfigurera → Välj strömmade data, eller avmarkera gruppen. Grupper som bara levererar en del av sina fält är normala och ger aldrig detta meddelande. Kör tjänsten get_coverage_report för hela listan."
+    },
+    "stream_no_data": {
+      "title": "Inga strömdata från BMW CarData har tagits emot",
+      "description": "Inga strömmade fordonsdata har kommit på över {hours} timmar. Strömmen kan ha stoppats, eller så valdes data aldrig från början. Kontrollera att ditt Dataurval är sparat i BMW-portalen (steg 4 i installationen), lås/lås upp bilen i MyBMW-appen för att framkalla en uppdatering, och se till att ingen annan CarData-klient är ansluten — BMW tillåter bara en ström per konto. Kör tjänsten get_coverage_report för att se vilka deskriptorer som saknas."
+    },
+    "stream_unauthorized": {
+      "title": "BMW CarData-strömmen är inte auktoriserad",
+      "description": "BMW har avvisat strömanslutningen som obehörig (MQTT rc=5) i över {minutes} minuter och den har inte återhämtat sig av sig själv. Det betyder oftast att token behöver förnyas, eller att en annan CarData-klient håller kontots enda ström. Prova Konfigurera → Förnya token nu, sedan Auktorisera igen hos BMW om det fortsätter att misslyckas, och koppla från alla andra CarData-klienter."
+    }
+  },
+  "services": {
+    "fetch_telematic_data": {
+      "name": "Hämta telematikdata",
+      "description": "Hämta telematikdata för varje fordon på kontot med den sparade behållaren och logga svaret. Ett anrop per fordon.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN att fråga efter. Lämna tomt för att uppdatera varje fordon på kontot."
+        }
+      }
+    },
+    "fetch_vehicle_mappings": {
+      "name": "Hämta fordonskopplingar",
+      "description": "Hämta kopplingsinformation för det konfigurerade kontot och logga svaret.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+        }
+      }
+    },
+    "fetch_basic_data": {
+      "name": "Hämta fordonets grunddata",
+      "description": "Hämta fasta fordonsmetadata (modellnamn, serie m.m.) för ett VIN och logga svaret.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN att fråga efter. Standard är det VIN som är sparat i konfigurationsposten."
+        }
+      }
+    },
+    "fetch_charging_history": {
+      "name": "Hämta laddningshistorik",
+      "description": "Hämta laddningssessionshistoriken för ett VIN (sidindelad) från BMW och importera den till den lokala historiken, så att tidigare laddningar visas på kortet och i månadsöversikterna. Överlappande live-registrerade sessioner kompletteras på plats med BMW:s uppmätta nätenergi. Räknas som ett eller flera API-anrop mot kvoten 50/24 h.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN att fråga efter. Standard är det första kända VIN."
+        },
+        "from": {
+          "name": "Från",
+          "description": "Början av perioden att hämta. Standard är för 30 dagar sedan om fältet lämnas tomt."
+        },
+        "to": {
+          "name": "Till",
+          "description": "Slutet av perioden att hämta. Standard är nu om fältet lämnas tomt."
+        }
+      }
+    },
+    "fetch_tyre_diagnosis": {
+      "name": "Hämta Smart Maintenance-däckdiagnos",
+      "description": "Hämta Smart Maintenance-däckdiagnosen för ett VIN och logga svaret.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN att fråga efter. Standard är det första kända VIN."
+        }
+      }
+    },
+    "fetch_location_charging_settings": {
+      "name": "Hämta platsbaserade laddningsinställningar",
+      "description": "Hämta de platsbaserade laddningsinställningarna för ett VIN (sidindelat) och logga svaret.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN att fråga efter. Standard är det första kända VIN."
+        }
+      }
+    },
+    "fetch_vehicle_image": {
+      "name": "Hämta fordonsbild",
+      "description": "Hämta fordonsbilden för ett VIN och logga dess storlek och innehållstyp.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN att fråga efter. Standard är det första kända VIN."
+        }
+      }
+    },
+    "get_charging_sessions": {
+      "name": "Hämta laddningssessioner",
+      "description": "Returnera registrerade laddningssessioner, nyaste först. Läser integrationens egen historik, så till skillnad från hämtningsåtgärderna kostar det ingen BMW API-kvot.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN att filtrera på. Standard är alla kända fordon."
+        },
+        "from": {
+          "name": "Från",
+          "description": "Bara sessioner som startade vid eller efter detta datum/klockslag."
+        },
+        "to": {
+          "name": "Till",
+          "description": "Bara sessioner som startade vid eller före detta datum/klockslag."
+        },
+        "limit": {
+          "name": "Gräns",
+          "description": "Högsta antal sessioner att returnera."
+        }
+      }
+    },
+    "get_trips": {
+      "name": "Hämta resor",
+      "description": "Returnera registrerade resor, nyaste först. Läser integrationens egen historik, så precis som laddningssessionerna kostar det ingen BMW API-kvot. Start- och slutpunkter sparas som platsnamn, aldrig som koordinater. En resa som fortfarande pågår returneras separat som öppen resa (den har inget slut och dess sträcka är preliminär), såvida inte en from/to-period angavs.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN att filtrera på. Standard är alla kända fordon."
+        },
+        "from": {
+          "name": "Från",
+          "description": "Bara resor som startade vid eller efter detta datum/klockslag."
+        },
+        "to": {
+          "name": "Till",
+          "description": "Bara resor som startade vid eller före detta datum/klockslag."
+        },
+        "limit": {
+          "name": "Gräns",
+          "description": "Högsta antal resor att returnera."
+        }
+      }
+    },
+    "get_driving_summary": {
+      "name": "Hämta körsammanfattning",
+      "description": "Returnera månadssammanställningen för resor: sträcka, fördelningen tjänst/privat/pendling, förbrukning, återvinning, körstilspoäng, vanligaste mål och (med en taxa) en uppskattad körkostnad. Läser det lokala lagret, så det kostar ingen BMW API-kvot.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN. Standard är det enda konfigurerade fordonet."
+        },
+        "month": {
+          "name": "Månad",
+          "description": "Månad att sammanfatta som YYYY-MM. Standard är innevarande månad."
+        }
+      }
+    },
+    "get_efficiency": {
+      "name": "Hämta effektivitet och verklig räckvidd",
+      "description": "Returnera uppmätt förbrukning (kWh/100 km), den verkliga räckvidd den ger vid nuvarande laddningsnivå, laddförlusten mellan nät och batteri samt en effektivitetstrend månad för månad. Allt härleds från laddningsliggaren, så det kostar ingen BMW API-kvot.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN. Standard är det enda konfigurerade fordonet."
+        }
+      }
+    },
+    "get_evcc_config": {
+      "name": "Hämta evcc-konfiguration",
+      "description": "Returnera evccs 'custom'-fordonskonfiguration för den här bilen, klar att klistra in i evcc.yaml, tillsammans med de MQTT-topics som bryggan publicerar och vilka av dem som är aktiva just nu. Läser bara lokalt tillstånd, så det kostar ingen BMW API-kvot.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN. Standard är det enda konfigurerade fordonet."
+        }
+      }
+    },
+    "set_trip_class": {
+      "name": "Ange resans klassning",
+      "description": "Skriv över en resas klassning (business, private eller commute). Använd detta för att rätta den automatiska gissningen utifrån zonparet. Skriver bara till det lokala lagret.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN. Standard är det enda konfigurerade fordonet."
+        },
+        "trip_id": {
+          "name": "Res-ID",
+          "description": "Resans ID, som det returneras av åtgärden Hämta resor."
+        },
+        "classification": {
+          "name": "Klassning",
+          "description": "En av business, private eller commute."
+        }
+      }
+    },
+    "export_history": {
+      "name": "Exportera historik",
+      "description": "Returnera en månads registrerade laddningssessioner och/eller resor som filer: CSV för kalkylblad, eller en fristående HTML-rapport som du kan skriva ut till PDF från webbläsaren. Filernas innehåll kommer tillbaka i svaret; inget skrivs till disk. Läser det lokala lagret, så det kostar ingen BMW API-kvot.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN. Standard är det enda konfigurerade fordonet."
+        },
+        "month": {
+          "name": "Månad",
+          "description": "Månad att exportera som YYYY-MM. Standard är innevarande månad."
+        },
+        "type": {
+          "name": "Typ",
+          "description": "Vilka poster som ska tas med."
+        },
+        "format": {
+          "name": "Format",
+          "description": "CSV returnerar en fil per posttyp; HTML returnerar en enda utskrivbar månadsrapport."
+        },
+        "language": {
+          "name": "Språk",
+          "description": "Rapportens språk, som en kod som en, de eller fr. Standard är Home Assistants eget språk. Påverkar bara HTML-rapporten -- CSV-rubriker är alltid maskinläsbar engelska."
+        }
+      }
+    },
+    "get_coverage_report": {
+      "name": "Hämta täckningsrapport för deskriptorer",
+      "description": "Kör självtestet för deskriptortäckning: jämför för varje fordon de deskriptorer som dina valda strömgrupper borde leverera med dem som faktiskt har kommit, och lista de som saknas. Besvarar \"Jag aktiverade en grupp men inga entiteter dök upp -- är det mitt val, min bil eller en bugg?\". Läser bara det lokala lagret och live-strömmen, så det kostar ingen BMW API-kvot.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN att rapportera om. Standard är alla kända fordon."
+        }
+      }
+    },
+    "activate_stream_fields": {
+      "name": "Aktivera strömfält",
+      "description": "Ersätt vilka CarData-attribut BMW strömmar över MQTT för ett fordon, genom att skicka samma begäran som BMW-portalens stream setup-sida skickar när du sparar dataurvalet. Strömurvalet har inget CarData-API, så detta kräver en fångad webbläsarsession från portalen (den kan inte förnyas automatiskt -- sessionen är kortlivad). Kostar ingen BMW API-kvot. Returnerar antalet begärda/accepterade attribut.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+        },
+        "base_url": {
+          "name": "Portalens bas-URL",
+          "description": "Ditt marknadsportals ursprung, från stream setup-sidans adress (utan avslutande snedstreck)."
+        },
+        "locale": {
+          "name": "Språkinställning",
+          "description": "Språksegmentet i sökvägen från stream setup-sidans adress."
+        },
+        "mapped_vehicle_id": {
+          "name": "Kopplat fordons-ID",
+          "description": "Portalens ID för det kopplade fordonet (en hash, INTE VIN) från stream setup-sidans adress."
+        },
+        "cookie": {
+          "name": "Cookie-header",
+          "description": "Den råa Cookie-headern från en autentiserad portalbegäran (DevTools, Nätverk, strömbegäran, kopiera värdet på Cookie-headern). En hemlighet; den loggas aldrig. Går ut efter en stund -- fånga den igen om anropet rapporterar att sessionen avvisades."
+        },
+        "attributes": {
+          "name": "Attribut",
+          "description": "Uttrycklig lista över tekniska deskriptorer att strömma (ersätter hela urvalet). Har företräde före sections. Standard är dina valda grupper av strömmade data, eller standarduppsättningen grupper."
+        },
+        "sections": {
+          "name": "Sektioner",
+          "description": "Gruppnamn att strömma (t.ex. electric, status, tire). Används när attributes utelämnas."
+        }
+      }
+    },
+    "import_statistics": {
+      "name": "Importera till långtidsstatistik",
+      "description": "Bygg om den här integrationens långtidsstatistik från den registrerade historiken, så att laddning och körning från före installationen (eller från när Home Assistant var nere) syns i energipanelen. Detta körs automatiskt allteftersom poster skapas; använd det efter att ha återställt en säkerhetskopia eller för att kontrollera antalet rader. Endast lokalt -- ingen BMW API-kvot.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN att bygga om. Standard är alla kända fordon."
+        }
+      }
+    }
+  }
+}

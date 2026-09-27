@@ -14,7 +14,8 @@ Every descriptor BMW streams becomes a native entity:
 
 - Streamed descriptors become **sensors** and **binary sensors**, named from a
   curated English title set (baked into the catalogue and the HA translations).
-  German names ship too — open an issue or PR if a name looks off.
+  Nine more languages ship too, using BMW's own names for each field — open an
+  issue or PR if a name looks off.
 - Numeric fields get sensible **device classes**; distances use
   `device_class: distance`, and odometer/mileage uses
   `state_class: total_increasing` so long-term statistics work.
@@ -41,7 +42,7 @@ The full field-per-cluster catalogue lives in
 ## Derived & diagnostic entities
 
 These aren't sent by BMW — the integration derives them. They are named from the
-integration's own translations (so German installs get German names too).
+integration's own translations (so they are named in your language too).
 
 | Entity | What it is |
 | --- | --- |
@@ -123,13 +124,28 @@ Per-door **open/closed** state is separate again, and streamed: the four
 
 <a id="entity-names-and-your-language"></a>
 
-Entity names follow Home Assistant's own language setting. Three are shipped:
+Entity names follow Home Assistant's own language setting. Eleven are shipped:
 
 | HA language | What you get |
 | --- | --- |
 | **English** | US spellings — *Tire pressure (front left)*, *Tire Condition* |
 | **English (UK)** | British spellings — *Tyre pressure (front left)*, *Tyre Condition* |
-| **Deutsch** | BMW's own German names — *Reifendruck (vorne links)*, *Reifenzustand* |
+| **Deutsch** | *Gemessener Reifendruck vorne links*, *Reifenzustand* |
+| **Français** | *Pression mesurée du pneu avant gauche*, *État des pneus* |
+| **Italiano** | *Pressione misurata pneumatico anteriore sinistro*, *Stato degli pneumatici* |
+| **Español** | *Presión medida del neumático delantero izquierdo*, *Estado de los neumáticos* |
+| **Nederlands** | *Gemeten bandspanning linksvoor*, *Bandenconditie* |
+| **Polski** | *Zmierzone ciśnienie w oponach przód lewo*, *Stan opon* |
+| **Português** | *Pressão do pneu medida no pneu dianteiro esquerdo*, *Estado dos pneus* |
+| **Čeština** | *Změřený tlak v pneumatice vpředu vlevo*, *Stav pneumatik* |
+| **Svenska** | *Uppmätt däcktryck vänster fram*, *Däckstatus* |
+
+Outside English, the names of BMW's fields are **BMW's own**, from the catalogue
+BMW publishes in each language — so they match the wording in the BMW portal, not
+a translation of our English titles. The setup screens, options, services, repair
+notices, the month report and the dashboard card are translated too. Portuguese is
+European Portuguese; a Brazilian Portuguese install falls back to English in
+Home Assistant, while the card still shows Portuguese.
 
 Switch under *Profile → Language*; the names change on the next reload. The
 bundled card follows the same setting.

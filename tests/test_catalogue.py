@@ -28,7 +28,13 @@ CATALOGUE = json.loads((_PKG / "catalogue.json").read_text(encoding="utf-8"))
 META = _load("descriptor_metadata", "descriptor_metadata.py").DESCRIPTOR_META
 KEYS = _load("keys", "keys.py")
 EN = json.loads((_PKG / "translations" / "en.json").read_text(encoding="utf-8"))
-DE = json.loads((_PKG / "translations" / "de.json").read_text(encoding="utf-8"))
+# Every full language the generator writes (a regional delta like en-GB only
+# overlays en, so it is not one of them).
+LANGUAGES = {
+    path.stem: json.loads(path.read_text(encoding="utf-8"))
+    for path in sorted((_PKG / "translations").glob("*.json"))
+    if "-" not in path.stem
+}
 
 DESCRIPTORS = [e["descriptor"] for e in CATALOGUE["descriptors"]]
 
@@ -57,12 +63,41 @@ def test_translation_keys_are_unique_and_slugified():
         assert key and all(c.islower() or c.isdigit() or c == "_" for c in key)
 
 
-def test_every_descriptor_is_translated_in_both_languages():
+def test_every_descriptor_is_translated_in_every_language():
     for descriptor in DESCRIPTORS:
         key = KEYS.translation_key(descriptor)
-        for lang in (EN, DE):
-            sensor = lang["entity"]["sensor"]
-            assert key in sensor and sensor[key]["name"], f"missing {key}"
+        for lang, doc in LANGUAGES.items():
+            sensor = doc["entity"]["sensor"]
+            assert key in sensor and sensor[key]["name"], f"{lang}: missing {key}"
+
+
+def test_generator_writes_exactly_the_languages_on_disk():
+    """A language file nothing regenerates would keep stale entity names."""
+
+    gen = _load("generate_translations", str(_TOOLS / "generate_translations.py"))
+    assert set(LANGUAGES) == {"en", *gen.LANGUAGES}
+
+
+def test_bmw_names_every_descriptor_in_every_localized_export():
+    """The localized catalogue exports are what name entities outside en/de.
+
+    A descriptor missing from one falls back to English there, which is harmless
+    once but silent -- so a fresh export that drops names shows up here.
+    """
+
+    gen = _load("generate_translations", str(_TOOLS / "generate_translations.py"))
+    exports = {p.stem for p in (_TOOLS / "catalogue_i18n").glob("*.html")}
+    assert exports == set(gen.LANGUAGES) - {"de"}
+    for entry in CATALOGUE["descriptors"]:
+        if entry["name_de"]:  # only in the English CSV otherwise
+            assert set(entry["names_i18n"]) == exports, entry["descriptor"]
+
+
+def test_curated_state_labels_cover_every_language():
+    gen = _load("generate_translations", str(_TOOLS / "generate_translations.py"))
+    for raw, labels in gen.COMMON_STATES.items():
+        assert set(labels) == {"en", *gen.LANGUAGES}, raw
+        assert all(labels.values()), raw
 
 
 def test_derived_keys_do_not_collide_with_descriptors():
@@ -74,14 +109,13 @@ def test_derived_keys_do_not_collide_with_descriptors():
             assert key not in descriptor_keys, f"{platform}.{key} collides"
 
 
-def test_derived_entities_are_translated_in_both_languages():
+def test_derived_entities_are_translated_in_every_language():
     for platform, entries in DERIVED.items():
         for key, names in entries.items():
-            assert names.get("en"), f"{platform}.{key} missing English name"
-            assert names.get("de"), f"{platform}.{key} missing German name"
-            for lang in (EN, DE):
-                block = lang["entity"][platform]
-                assert key in block and block[key]["name"], f"missing {platform}.{key}"
+            for lang, doc in LANGUAGES.items():
+                assert names.get(lang), f"{platform}.{key} missing {lang} name"
+                block = doc["entity"][platform]
+                assert key in block and block[key]["name"], f"{lang}: missing {platform}.{key}"
 
 
 def test_literal_translation_keys_are_declared_in_derived_entities():
@@ -249,7 +283,7 @@ def test_generators_are_idempotent(tmp_path):
     before_meta = (_PKG / "descriptor_metadata.py").read_text(encoding="utf-8")
     before_trans = {
         name: (_PKG / "translations" / name).read_text(encoding="utf-8")
-        for name in ("en.json", "de.json", "en-GB.json")
+        for name in [*(f"{lang}.json" for lang in LANGUAGES), "en-GB.json"]
     }
     build.main()
     meta_gen.main()

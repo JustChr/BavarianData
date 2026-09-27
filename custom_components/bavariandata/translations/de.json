@@ -2868,7 +2868,7 @@
         },
         "language": {
           "name": "Sprache",
-          "description": "Sprache des Berichts (en oder de). Standardmäßig die Sprache von Home Assistant. Betrifft nur den HTML-Bericht – CSV-Kopfzeilen sind immer maschinenlesbar englisch."
+          "description": "Sprache des Berichts als Code wie en, de oder fr. Standardmäßig die Sprache von Home Assistant. Betrifft nur den HTML-Bericht – CSV-Kopfzeilen sind immer maschinenlesbar englisch."
         }
       }
     },

@@ -1,0 +1,1851 @@
+<html>
+    <head>
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Customer Telematics Data Catalogue</title>
+        <style>
+                    @font-face {
+                    font-family: 'DTDC Light';
+                    src: url(https://bmwcardata.bmwgroup.com/fonts/BMWTypeNext-Light.ttf);
+                    font-style: normal;
+                    }
+
+                    @font-face {
+                    font-family: 'DTDC Regular';
+                    src: url(https://bmwcardata.bmwgroup.com/fonts/BMWTypeNext-Regular.ttf);
+                    font-weight: bold;
+                    font-style: normal;
+                    }
+
+                    @font-face {
+                    font-family: 'DTDC Thin';
+                    src: url(https://bmwcardata.bmwgroup.com/fonts/BMWTypeNext-Thin.ttf);
+                    font-weight: bold;
+                    font-style: normal;
+                    }
+
+                    @font-face {
+                    font-family: 'DTDC Bold';
+                    src: url(https://bmwcardata.bmwgroup.com/fonts/BMWTypeNext-Bold.ttf);
+                    font-weight: bold;
+                    font-style: normal;
+                    }
+
+                    body {
+                    margin-top: 50px;
+                    margin-left: 10%;
+                    margin-right: 10%;
+                    text-align: left;
+
+                    font-family: 'DTDC Thin', Arial, sans-serif;
+                    }
+
+                    h1 {
+                    font-family: 'DTDC Light', Arial, sans-serif;
+                    font-size: 64px;
+                    }
+
+                    h2 {
+                    font-family: 'DTDC Light', Arial, sans-serif;
+                    font-size: 32px;
+                    }
+
+                    h3 {
+                    font-family: 'DTDC Regular', Arial, sans-serif;
+                    padding-top: 40px;
+                    padding-bottom: 8px;
+                    }
+
+                    p {
+                    line-height: 24px;
+                    }
+
+                    table {
+                    border-collapse: collapse;
+                    border: 0;
+                    padding: 0;
+                    margin: 0;
+                    table-layout: auto;
+                    width: 100%;
+                    }
+
+                    th {
+                    text-align: left;
+                    vertical-align: middle;
+                    padding-left: 5px;
+                    padding-right: 10px;
+                    padding-top: 15px;
+                    padding-bottom: 15px;
+                    white-space: nowrap;
+                    font-size: smaller;
+                    }
+
+                    td {
+                    text-align: left;
+                    vertical-align: top;
+                    padding-left: 5px;
+                    padding-right: 10px;
+                    padding-top: 10px;
+                    padding-bottom: 10px;
+                    font-size: 16px;
+                    line-height: 24px;
+                    word-break: break-word;
+                    overflow-wrap: break-word;
+                    hyphens: none;
+                    }
+
+                    a:link, a:visited, a:active {
+                    color: black;
+                    }
+
+                    a:hover {
+                    color: black;
+                    background-color: #AACBE8;
+                    }
+
+                    .header-row {
+                    background-color: #F6F6F6;
+                    }
+
+                    .top-column {
+                    vertical-align: top;
+                    }
+
+                    .col1-emea {
+                    width: 20%;
+                    }
+
+                    .col1-us {
+                    width: 30%;
+                    }
+
+                    .col2-emea {
+                    width: 30%;
+                    }
+
+                    .col2-us {
+                    width: 60%;
+                    }
+
+                    .col3 {
+                    width: 20%;
+                    word-break: break-word;
+                    white-space: normal;
+                    }
+
+                    .col4 {
+                    width: 7%;
+                    }
+
+                    .col5 {
+                    width: 11%;
+                    word-break: break-all;
+                    white-space: normal;
+                    }
+
+                    .col6-emea {
+                    width: 7%;
+                    }
+
+                    .col6-us {
+                    width: 10%;
+                    }
+
+                    .col7 {
+                    width: 5%;
+                    }
+
+                    .true-tick {
+                    margin: auto;
+                    width: 24px;
+                    height: 24px;
+                    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAeElEQVRIie2SwQmAMBAELcOnLxGsJGGWtOXPsqxExAb8KgFFEBQR7yFmIN/Z3O1lWSLxH4AmPjO5pBlofyAPIRRAdUPePvo50EkarkJ4Ko8450qgB0ZJtcnOz0J4s9BjCBbXEntY+5jMTtHtk7wv3/De52byxPdZAAQtTejm9NIfAAAAAElFTkSuQmCC) no-repeat;
+                    }
+
+                    .false-tick {
+                    margin: auto;
+                    width: 24px;
+                    height: 24px;
+                    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAd0lEQVRIie2UMQ7AIAwDmfhL1Wd0s5LR//9KRUWlTii0GHXAE0N8RgkkpaVfimSWeUhmMzvcfY/CS23xhEMAbGbmkZCe2m4j3sIjAHyFt0AYBb9Vh3gBn+c0Uqi3lsDlAa5sEZRDlj5T6UeDclVwxrKjcl0vTdcJThVb9wK+hIAAAAAASUVORK5CYII=) no-repeat;
+                    }
+
+                    .icon {
+                    text-align: right;
+                    }
+
+                    .logo {
+                    float: right;
+                    width: 120px;
+                    height: 120px;
+                    }
+                </style>
+    </head>
+    <body>
+        <table>
+            <tr>
+                <td>
+                    <h1>BMW</h1>
+                </td><td class="icon"><img class="logo" alt="logo" src="https://bmwcardata.bmwgroup.com/images/logo.png"></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <h2>CATALOGUS VAN BMW CARDATA-TELEMATICAGEGEVENS.</h2>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <p>BMW CarData stelt relevante telematicagegevens ter beschikking die voertuigen door het gebruik van BMW 
+ConnectedDrive- services naar de BMW Group zenden en die daar worden opgeslagen.
+Daartoe behoren waarden zoals de kilometerstand.
+In deze catalogus van BMW CarData-telematicagegevens worden alle in principe beschikbare, voor het gebruik van 
+BMW CarData relevante voertuiggegevens toegelicht &ndash; overzichtelijk onderverdeeld in afzonderlijke categorie&euml;n.
+De telematicagegevens vari&euml;ren qua aantal en soort afhankelijk van het soort voertuig en type aandrijving, het model, 
+het bouwjaar en speciale uitrusting.</p>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <p>
+                        Voor een interactieve versie kunt u terecht op onze online <a href="https://www.bmw.nl/nl-nl/mybmw/public/cardata-telematic-catalogue/">catalogus van telematicagegevens.</a>
+                    </p>
+                </td>
+            </tr>
+        </table>
+        <h3>BASISGEGEVENS VAN HET VOERTUIG</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData-element</th><th class="col2-emea">Beschrijving</th><th class="col3">Technische beschrijving</th><th class="col4">Gegevenstype </th><th class="col5">Typisch waardebereik</th><th class="col6-emea">Eenheid</th><th class="col7">Streambaar</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Activeringsstatus van de ingebouwde SIM-kaart</td><td class="col2-emea">Deze waarde geeft aan of de in de wagen ingebouwde SIM-kaart geactiveerd is.&nbsp;</td><td class="col3">vehicle.​sim.​status</td><td class="col4">-</td><td class="col5">true, false</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Basisvoertuiggegevens</td><td class="col2-emea">Deze waarde specificeert een lijst met basisvoertuiggegevens, bijvoorbeeld voertuigmerk en volledige modelnaam.</td><td class="col3">vehicle.​vehicleIdentification.​basicVehicleData</td><td class="col4">-</td><td class="col5">Details zijn te vinden in de bijbehorende Swagger-documentatie: ../basicData</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Grootte van de hoogvoltage-accu</td><td class="col2-emea">De waarde geeft de grootte aan van de ge&iuml;nstalleerde hoogvoltage-accu.&nbsp;</td><td class="col3">vehicle.​drivetrain.​batteryManagement.​batterySizeMax</td><td class="col4">float</td><td class="col5">0 - 300 kWh, INVALID</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Lijst met optionele uitrusting</td><td class="col2-emea">Deze waarde specificeert een lijst met informatie over de&nbsp;optionele uitrusting&nbsp;van het voertuig.</td><td class="col3">vehicle.​extras.​optionalEquipment.​code</td><td class="col4">-</td><td class="col5">4-cijferig nummer en/of lettercode, door een komma van elkaar gescheiden</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Maximale energie-inhoud van de hoogvoltage-accu</td><td class="col2-emea">De waarde geeft de maximale energie-inhoud van de hoogvoltage-accu aan die door de klant kan worden gebruikt.&nbsp;&nbsp;</td><td class="col3">vehicle.​drivetrain.​electricEngine.​hvsMaxEnergyAbsolute</td><td class="col4">-</td><td class="col5">0 - 300 kWh, INVALID</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Voertuigafbeelding</td><td class="col2-emea">De waarde levert een afbeelding van de auto als PNG-bestand.</td><td class="col3">vehicle.​look.​image</td><td class="col4">-</td><td class="col5">PNG-bestand</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>GEGEVENS OVER DE STATUS VAN HET VOERTUIG</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData-element</th><th class="col2-emea">Beschrijving</th><th class="col3">Technische beschrijving</th><th class="col4">Gegevenstype </th><th class="col5">Typisch waardebereik</th><th class="col6-emea">Eenheid</th><th class="col7">Streambaar</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Aantal Condition Based Service-meldingen (CBS)</td><td class="col2-emea">De waarde specificeert hoeveel meldingen voor behoefte aan service er maximaal door het voertuig naar BMW worden overgedragen via telematica. De daadwerkelijke hoeveelheid overgedragen meldingen voor behoefte aan service (zie aparte key CBS) varieert afhankelijk van hoe het voertuig wordt gebruikt en of servicerelevante drempelwaarden werden bereikt. Aanwijzing: Niet alle Condition Based Service-meldingen die in het voertuig optreden, worden ook overgedragen. </td><td class="col3">vehicle.​status.​conditionBasedServicesCount</td><td class="col4">uint16</td><td class="col5">0 tot 60
+Meldingen</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Aantal vrije POI-geheugenplaatsen in het navigatiesysteem</td><td class="col2-emea">De waarde specificeert voor hoeveel POI&rsquo;s (Points of Interest) er nog vrije geheugenruimte beschikbaar is in het navigatiesysteem. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​pointsOfInterests.​available</td><td class="col4">uint16</td><td class="col5">25</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Accuspanning</td><td class="col2-emea">De waarde specificeert de op het tijdstip van de gegevensregistratie actuele accuspanning in het boordnet. 
+De waarde wordt telkens in volt gespecificeerd, bijvoorbeeld 14,4&nbsp;V. </td><td class="col3">vehicle.​electricalSystem.​battery.​voltage</td><td class="col4">float</td><td class="col5">5 V tot 20 V</td><td class="col6-emea">V</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Activeringsstatus AntiTheftAlarm</td><td class="col2-emea">Antidiefstalalarm. Activeringsstatus.</td><td class="col3">vehicle.​vehicle.​antiTheftAlarmSystem.​alarm.​armStatus</td><td class="col4">string</td><td class="col5">unarmed, doorsOnly, doorsTiltCabin</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Activeringstijd AntiTheftalarm</td><td class="col2-emea">Tijdstempel van de activeringstijd van het laatste alarm. De waarde wordt geleverd zonder informatie over de tijdzone.</td><td class="col3">vehicle.​vehicle.​antiTheftAlarmSystem.​alarm.​activationTime</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Afstandsdrempelwaarde voor service-informatie</td><td class="col2-emea">De gespecificeerde statische waarde wordt in het voertuig toegevoegd en vertelt wanneer de klant voor de eerste keer een kilometergebonden aanwijzing in het voertuig ontvangt dat het binnenkort tijd is voor een servicebeurt. 
+De waarde wordt gespecificeerd in kilometers (bijvoorbeeld 2000). </td><td class="col3">vehicle.​status.​serviceDistance.​yellow</td><td class="col4">uint16</td><td class="col5">2000 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Afstand tot de navigatiebestemming</td><td class="col2-emea">De waarde specificeert in kilometers de op het tijdstip van de gegevensregistratie gemeten afstand tot de actieve navigatiebestemming. 
+Het spectrum aan waarden reikt van 0 tot 100000. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​destinationSet.​distance</td><td class="col4">uint16</td><td class="col5">0 km tot
+100000 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Afstand tot de volgende servicebeurt</td><td class="col2-emea">De waarde specificeert hoeveel kilometers er op het tijdstip van de gegevensregistratie nog resteren tot de volgende servicebeurt. 
+Aanwijzing: Deze waarde wordt berekend op basis van de individuele CBS-omvangen en wordt niet bij elke gegevensoverdracht bepaald.
+Zie &lsquo;Condition Based Service&rsquo; voor meer informatie.</td><td class="col3">vehicle.​status.​serviceDistance.​next</td><td class="col4">uint16</td><td class="col5">0 km tot
+100.000 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Algemene status zonnedak</td><td class="col2-emea">Algemene status van het zonnedak van het voertuig.</td><td class="col3">vehicle.​cabin.​sunroof.​overallStatus</td><td class="col4">string</td><td class="col5">INVALID, OPEN, OPEN_TILT, INTERMEDIATE_TILT, CLOSED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">AntiTheftAlarm is ingeschakeld</td><td class="col2-emea">Antidiefstalalarm is actief (auto claxonneert).</td><td class="col3">vehicle.​vehicle.​antiTheftAlarmSystem.​alarm.​isOn</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Beschikbaarheid van Teleservices</td><td class="col2-emea">De waarde specificeert of BMW Teleservices voor dit voertuig beschikbaar zijn. </td><td class="col3">vehicle.​channel.​teleservice.​status</td><td class="col4">string</td><td class="col5">PENDING, IDLE, SUCCESSFUL, ERROR</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bestuurdersstoelverwarming</td><td class="col2-emea">Bestuurdersstoelverwarming. 0 = uit. +100 = maximale verwarming.</td><td class="col3">vehicle.​cabin.​seat.​row2.​driverSide.​heating</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bewegingstoestand van het voertuig</td><td class="col2-emea">De waarde specificeert of het voertuig op het tijdstip van de gegevensregistratie in beweging was. </td><td class="col3">vehicle.​isMoving</td><td class="col4">boolean</td><td class="col5">ASN_isFalse, ASN_isTrue, ASN_isUnknown</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bovenste deur kofferbak open</td><td class="col2-emea">Status bovenste deur van kofferbak.</td><td class="col3">vehicle.​body.​trunk.​upper.​door.​isOpen</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Buitenspiegelverwarming actief</td><td class="col2-emea">Huidige status van de buitenspiegelverwarming.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​status.​isExteriorMirrorHeatingActive</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Comforttoestand voorklimatisering</td><td class="col2-emea">Status van de comforttoestand van de voorklimatisering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​status.​comfortState</td><td class="col4">string</td><td class="col5">NOT_ACTIVE, COMFORT_HEATING, COMFORT_COOLING, COMFORT_VENTILATION, DEFROST, COMFORT_UNDEFINED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Datum en tijd in het voertuig</td><td class="col2-emea">De waarde specificeert de tijd die op het tijdstip van de gegevensregistratie in het voertuig werd weergegeven. </td><td class="col3">vehicle.​channel.​ngtp.​timeVehicle</td><td class="col4">string</td><td class="col5">00:00 uur tot
+23:59 uur</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Datum van de volgende keuring</td><td class="col2-emea">De waarde specificeert wanneer het tijd is voor de volgende keuring. 
+De waarde wordt telkens als datum weergegeven, bijvoorbeeld 30.09.2018 23:00 UTC. </td><td class="col3">vehicle.​status.​serviceTime.​inspectionDateLegal</td><td class="col4">string</td><td class="col5">dd.mm.yyyy hh:mm UTC</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Diepe slaapstand (Deep Sleep Mode)</td><td class="col2-emea">De waarde bevat de informatie of op het moment van de opvraging de diepe slaapstand (Deep Sleep Mode) geactiveerd ("true") of gedeactiveerd ("false") is.
+Als de klant de diepe slaapstand (Deep Sleep Mode) heeft geactiveerd, kan hij zijn voertuig voor langere tijd parkeren zonder de accu te hoeven opladen. De meeste verbruikers zijn in deze modus gedeactiveerd om energie te besparen. De klant kan de diepe slaapstand (Deep Sleep Mode) afsluiten door deze te deactiveren of het voertuig te starten.</td><td class="col3">vehicle.​vehicle.​deepSleepModeActive</td><td class="col4">boolean</td><td class="col5">true, false</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Directe koeling bestuurder aan de achterkant</td><td class="col2-emea">DirectStart-instellingen voor het koelen/ventileren van de bestuurdersstoel aan de achterkant in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row2.​driverSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Directe koeling derde rij aan de kant van de bestuurder</td><td class="col2-emea">DirectStart-instellingen voor het koelen/ventileren van de derde rij aan de kant van de bestuurder in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row3.​driverSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Directe koeling derde rij aan de kant van de passagier</td><td class="col2-emea">DirectStart-instellingen voor het koelen/ventileren van de derde rij aan de kant van de passagier in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row3.​passengerSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Directe koeling passagier aan de achterkant</td><td class="col2-emea">DirectStart-instellingen voor het koelen/ventileren van de passagiersstoel aan de achterkant in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row2.​passengerSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Directe koeling passagier aan de voorkant</td><td class="col2-emea">DirectStart-instellingen voor het koelen/ventileren van de passagiersstoel aan de voorkant in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row1.​passengerSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Directe stoelkoeling voorkant bestuurdersstoel</td><td class="col2-emea">DirectStart-instellingen voor het koelen/ventileren van de bestuurdersstoel aan de voorkant in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row1.​driverSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Directe verwarming bestuurder aan de achterkant</td><td class="col2-emea">DirectStart-instellingen voor het verwarmen van de bestuurdersstoel aan de achterkant in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row2.​driverSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Directe verwarming derde rij aan de kant van de bestuurder</td><td class="col2-emea">DirectStart-instellingen voor het verwarmen van de derde rij aan de kant van de bestuurder in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row3.​driverSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Directe verwarming derde rij aan de kant van de passagier</td><td class="col2-emea">DirectStart-instellingen voor het verwarmen van de derde rij aan de kant van de passagier in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row3.​passengerSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Directe verwarming passagier aan de achterkant</td><td class="col2-emea">DirectStart-instellingen voor het verwarmen van de passagiersstoel aan de achterkant in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row2.​passengerSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Directe verwarming passagier aan de voorkant</td><td class="col2-emea">DirectStart-instellingen voor het verwarmen van de passagiersstoel aan de voorkant in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row1.​passengerSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Directe verwarming voorkant bestuurdersstoel</td><td class="col2-emea">DirectStart-instellingen voor het verwarmen van de bestuurdersstoel aan de voorkant in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row1.​driverSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">DirectStart doeltemperatuur</td><td class="col2-emea">Instellingen DirectStart voor de doeltemperatuur voor voorklimatisering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​targetTemperature</td><td class="col4">float</td><td class="col5">0 &deg;C tot 50 &deg;C</td><td class="col6-emea">celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Disclaimer klimaatregeling op afstand</td><td class="col2-emea">Waar als de optie starten van de motor op afstand is ingesteld, anders onwaar.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​isRemoteEngineStartDisclaimer</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Doeltemperatuur</td><td class="col2-emea">Standaardinstellingen voor de doeltemperatuur voor voorklimatisering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​targetTemperature</td><td class="col4">float</td><td class="col5">0 &deg;C tot 50 &deg;C</td><td class="col6-emea">celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gebruik van de motor voor de preconditioning</td><td class="col2-emea">Deze waarde specificeert of op het tijdstip van de gegevensregistratie de motor actief was tijdens de standklimaatregeling. De waarde "Inactive" kan worden verzonden als de preconditionering niet geboekt is of ook worden verzonden als de preconditionering op het tijdstip van de gegevensregistratie niet actief is.</td><td class="col3">vehicle.​vehicle.​preConditioning.​isRemoteEngineRunning</td><td class="col4">boolean</td><td class="col5">true, false</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gezondheidstoestand van de accu</td><td class="col2-emea">Deze waarde geeft de gezondheidstoestand van de accu van de wagen aan.
+
+200 = Gezondheidstoestand van de accu voldoende
+140 = Beperkt - Vervanging van de accu aanbevolen
+110 = Onvoldoende - Vervanging van de accu vereist
+80 = Slecht - Vervanging van de accu dringend vereist</td><td class="col3">vehicle.​electricalSystem.​battery.​serviceDemand.​replace</td><td class="col4">-</td><td class="col5">200
+140
+110
+80</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Kilometerstand</td><td class="col2-emea">De waarde specificeert de op het tijdstip van de gegevensregistratie actuele kilometerstand. </td><td class="col3">vehicle.​vehicle.​travelledDistance</td><td class="col4">float</td><td class="col5">0 km tot
+500000 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Koelvloeistoftemperatuur</td><td class="col2-emea">De waarde specificeert in graden Celsius de op het tijdstip van de gegevensregistratie actuele koelvloeistoftemperatuur. </td><td class="col3">vehicle.​drivetrain.​internalCombustionEngine.​engine.​ect</td><td class="col4">int16</td><td class="col5">0 &deg;C tot 150 &deg;C</td><td class="col6-emea">Celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Koppeling mobiele telefoon</td><td class="col2-emea">De waarde specificeert of er op het tijdstip van de gegevensregistratie een mobiele telefoon gekoppeld was aan het voertuig of dat de koppelingsstatus onbekend is. </td><td class="col3">vehicle.​cabin.​infotainment.​isMobilePhoneConnected</td><td class="col4">boolean</td><td class="col5">ASN_isFalse, ASN_isTrue, ASN_isUnknown</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadprofiel</td><td class="col2-emea">Het laadprofiel informeert welke laadmodus in het voertuig het laatst geselecteerd was. Dit CarData-element wordt eventueel ook bij voertuigen zonder elektrische aandrijving gebruikt om individuele attributen weer te geven, zoals de instelling van de voorairconditioning.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​mode</td><td class="col4">string</td><td class="col5">De XML-structuur is aan het einde van de tabel bijgevoegd (1).</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laagspanningsaccu</td><td class="col2-emea">De waarde specificeert in procenten de op het tijdstip van de gegevensregistratie gemeten laadtoestand van de laagvoltaccu.</td><td class="col3">vehicle.​electricalSystem.​battery.​stateOfCharge</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">%</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laatste teleservice handmatige gesprekstijd</td><td class="col2-emea">De klant activeert een handmatig servicegesprek via de HMI van het voertuig (iDrive). Servicerelevante gegevens worden door het voertuig overgedragen naar het backendsysteem van de Teleservices. Er wordt een nieuw Teleservice-ticket aangemaakt en toegewezen aan de favoriete servicepartner van de klant. Het Teleservice-ticket wordt overgedragen naar het servicepartnersysteem om het volgens het betreffende bedrijfsproces te verwerken</td><td class="col3">vehicle.​channel.​teleservice.​lastManualCallTime</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Linkerdeur kofferbak open</td><td class="col2-emea">Status linkerdeur van kofferbak.</td><td class="col3">vehicle.​body.​trunk.​left.​door.​isOpen</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Maximaal aantal op te slaan POI&rsquo;s in het navigatiesysteem</td><td class="col2-emea">De waarde specificeert hoeveel POI&rsquo;s (Points of Interest) er maximaal kunnen worden opgeslagen in het navigatiesysteem. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​pointsOfInterests.​max</td><td class="col4">uint16</td><td class="col5">25</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Navigatiebestemming - geografische breedte</td><td class="col2-emea">Deze waarde geeft de co&ouml;rdinaten aan van de actieve navigatiebestemming - breedtegraad op het tijdstip van de gegevensregistratie in miljardste seconden.</td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​destinationSet.​latitude</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Navigatiebestemming - geografische lengte</td><td class="col2-emea">Deze waarde geeft de co&ouml;rdinaten weer van de actieve navigatiebestemming - lengtegraad op het tijdstip van de gegevensregistratie in miljardste seconden.</td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​destinationSet.​longitude</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Noodzaak om de accu op te laden</td><td class="col2-emea">De waarde specificeert of het opladen van de accu vereist is.
+
+1 = Opladen vereist
+0 = Opladen niet vereist</td><td class="col3">vehicle.​electricalSystem.​battery.​serviceDemand.​recharge</td><td class="col4">-</td><td class="col5">1
+0</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Onderste deur kofferbak open</td><td class="col2-emea">Status onderste deur kofferbak.</td><td class="col3">vehicle.​body.​trunk.​lower.​door.​isOpen</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ontdooiing achterkant actief</td><td class="col2-emea">Huidige status van de achterruitverwarming.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​status.​rearDefrostActive</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ontgrendeling van de achterruit</td><td class="col2-emea">De waarde geeft aan of de achterruit ontgrendeld (TRUE) of gesloten (FALSE) is. </td><td class="col3">vehicle.​body.​trunk.​window.​isOpen</td><td class="col4">boolean</td><td class="col5">CLOSED, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Optilstatus van het schuifdak</td><td class="col2-emea">De waarde specificeert of het schuifdak (voor zover voorhanden) op het tijdstip van de gegevensregistratie opgetild (OPEN), half opgetild (INTERMEDIATE) of gesloten (CLOSED) was. </td><td class="col3">vehicle.​cabin.​sunroof.​tiltStatus</td><td class="col4">string</td><td class="col5">CLOSED, INTERMEDIATE, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Passagiersstoelverwarming</td><td class="col2-emea">Passagiersstoelverwarming. 0 = uit. +100 = maximale verwarming.</td><td class="col3">vehicle.​cabin.​seat.​row1.​passengerSide.​heating</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Pechhulptijd laatste teleservice</td><td class="col2-emea">Automatische pechhulp. Met de pechhulp kan de klant contact opnemen met een medewerker van het Roadside Assistance Call Center (RSA CC) in geval van een pechgeval, die de bestuurder zal helpen bij het oplossen van problemen of het wegslepen van het voertuig. Met de pechhulp kan de klant contact opnemen met een medewerker van het Roadside Assistance Call Center (RSA CC) in geval van een pechgeval, die de bestuurder zal helpen bij het oplossen van problemen of het wegslepen van het voertuig. Het onderhoud kan worden gestart via het iDrive-menu van het voertuig en is beschikbaar in 3 niveaus, afhankelijk van de beschikbaarheid en uitrol in de markt.</td><td class="col3">vehicle.​channel.​teleservice.​lastBreakdownCallTime</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Plausibiliteit laagvoltaccu</td><td class="col2-emea">Deze waarde geeft aan of de gemeten laadtoestand van de laagvoltaccu in procenten plausibel is.</td><td class="col3">vehicle.​electricalSystem.​battery.​stateOfChargePlausibility</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Positie portier aan de achterkant van de bestuurder</td><td class="col2-emea">Openingspositie van het achterportier aan de kant van de bestuurder in procenten. 0% staat voor volledig gesloten en 100% voor volledig geopend.</td><td class="col3">vehicle.​cabin.​door.​row2.​driver.​position</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Positie portier aan de achterkant van de passagier</td><td class="col2-emea">Openingspositie van het achterportier aan de kant van de passagier in procenten. 0% staat voor volledig gesloten en 100% voor volledig geopend.</td><td class="col3">vehicle.​cabin.​door.​row2.​passenger.​position</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Positie portier aan de kant van de bestuurder</td><td class="col2-emea">Openingspositie van het voorportier aan de kant van de bestuurder in procenten. 0% staat voor volledig gesloten en 100% voor volledig geopend.</td><td class="col3">vehicle.​cabin.​door.​row1.​driver.​position</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Positie portier aan de kant van de passagier</td><td class="col2-emea">Openingspositie van het voorportier aan de kant van de passagier in procenten. 0% staat voor volledig gesloten en 100% voor volledig geopend.</td><td class="col3">vehicle.​cabin.​door.​row1.​passenger.​position</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Positie van het voertuig boven zeeniveau</td><td class="col2-emea">De waarde specificeert in meter de hoogte boven de zeespiegel waarop het voertuig zich bevond op het tijdstip van de gegevensregistratie. 
+Het spectrum aan waarden reikt van -100 tot 6000. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​currentLocation.​altitude</td><td class="col4">double</td><td class="col5">-100 m tot 6000 m of &ndash;NA-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Positie van het voertuig &ndash; geografische breedtegraad</td><td class="col2-emea">De waarde specificeert de geografische breedtegraad van de positie waar het voertuig zich bevond op het tijdstip van de gegevensregistratie. 
+De breedtegraad bereikt waarden in graden van 0 (aan de evenaar) tot maximaal +90 op het noordelijke halfrond en -90 op het zuidelijke halfrond. De overdracht van de GPS-positie gebeurt onafhankelijk van de activatie of deactivatie van de GPS-plaatsbepaling in uw voertuig via het instellingenmenu. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​currentLocation.​latitude</td><td class="col4">double</td><td class="col5">-90.0000 tot
++90.0000</td><td class="col6-emea">degrees</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Positie van het voertuig &ndash; geografische lengtegraad</td><td class="col2-emea">De waarde specificeert de geografische lengtegraad van de positie waar het voertuig zich bevond op het tijdstip van de gegevensregistratie. 
+De lengtegraad bereikt waarden in graden van 0 (op de nulmeridiaan in Greenwich/Groot-Brittanni&euml;) tot maximaal +180 ten oosten van de nulmeridiaan en -180 ten westen van de nulmeridiaan. De overdracht van de GPS-positie gebeurt onafhankelijk van de activatie of deactivatie van de GPS-plaatsbepaling in uw voertuig via het instellingenmenu. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​currentLocation.​longitude</td><td class="col4">double</td><td class="col5">-180.0000 tot
+ +180.0000</td><td class="col6-emea">degrees</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Positie van het zonnescherm</td><td class="col2-emea">Positie van het item. 0 = Startpositie 100 = Eindpositie.</td><td class="col3">vehicle.​cabin.​sunroof.​shade.​position</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Preconditioningstatus van de standklimaatregeling</td><td class="col2-emea">Huidige status van de preconditionering van de standklimaatregeling v&oacute;&oacute;r aanvang van de rit op het tijdstip van de gegevensregistratie. De waarde "Inactive" kan worden verzonden als de preconditionering niet geboekt is of ook worden verzonden als de preconditionering op het tijdstip van de gegevensregistratie niet actief is.</td><td class="col3">vehicle.​vehicle.​preConditioning.​activity</td><td class="col4">string</td><td class="col5">standby,
+heating,
+cooling,
+ventilation,
+inactive</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Rechterdeur kofferbak open</td><td class="col2-emea">Status rechterdeur van kofferbak.</td><td class="col3">vehicle.​body.​trunk.​right.​door.​isOpen</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Reden voor nietuitvoering van de preconditioning van de standklimaatregeling</td><td class="col2-emea">Reden voor niet-uitvoering van de standklimaatregeling op het tijdstip van de gegevensregistratie. </td><td class="col3">vehicle.​vehicle.​preConditioning.​error</td><td class="col4">string</td><td class="col5">LowFuel,
+LowBattery,
+QuotaExceeded,
+HeaterFailure,
+ComponentFailure,
+OpenOrUnlocked,
+OK,
+INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Relatieve positie zonnedak</td><td class="col2-emea">Openingstoestand van het zonnedak in procenten. -100 betekent volledige kantelpositie. 0% staat voor volledig gesloten en 100% voor volledig geopend.</td><td class="col3">vehicle.​cabin.​sunroof.​relativePosition</td><td class="col4">int8</td><td class="col5">-100% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Resterende actieradius</td><td class="col2-emea">De waarde specificeert in kilometers de op het tijdstip van de gegevensregistratie gemeten resterende actieradius van de tankinhoud. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​remainingRange</td><td class="col4">uint16</td><td class="col5">0 km tot
+100000 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Resterende duur van de preconditioning</td><td class="col2-emea">De waarde specificeert de resterende duur van de preconditionering van de standklimaatregeling op het tijdstip van de gegevensregistratie in minuten. De waarde kan ook worden verzonden als de preconditionering niet geboekt is of ook worden verzonden als de preconditioneringsstatus van de standklimaatregeling op het tijdstip van de gegevensregistratie niet actief ("Inactive") is.</td><td class="col3">vehicle.​vehicle.​preConditioning.​remainingTime</td><td class="col4">uint8</td><td class="col5">0-60 min,&nbsp; INVALID</td><td class="col6-emea">min</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Resterende tijd voorklimatisering</td><td class="col2-emea">Resterende looptijd van de voorklimatisering binnen enkele seconden.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​status.​remainingRunningTime</td><td class="col4">uint32</td><td class="col5">0 - 10.000.000</td><td class="col6-emea">s</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Richting van het voertuig</td><td class="col2-emea">De waarde specificeert in graden de richting van het voertuig op het tijdstip van de gegevensregistratie. Als de waarde 180 bedraagt, is het voertuig pal naar het zuiden gericht. Als de waarde 0 bedraagt, is het voertuig pal naar het noorden gericht. De waarden reiken van 0 tot 359. De geregistreerde richting van het voertuig kan wegens de onnauwkeurigheid van de GPS-plaatsbepaling afwijken van de daadwerkelijke richting. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​currentLocation.​heading</td><td class="col4">double</td><td class="col5">0&deg; tot 359&deg;</td><td class="col6-emea">degrees</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Smart maintenance: Digitale bandendiagnose</td><td class="col2-emea">De waarde bevat informatie over de huidige en de vorige gemonteerde bandenset van het voertuig. Deze gegevens worden door het voertuig geregistreerd en volgens vastgelegde cycli automatisch verstuurd.&nbsp;</td><td class="col3">vehicle.​chassis.​axle.​wheel.​tire.​diagnosis</td><td class="col4">-</td><td class="col5">Details zijn te vinden in de bijbehorende Swagger-documentatie: ../smartMaintenanceTyreDiagnosis</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Smart maintenance: Live-diagnose</td><td class="col2-emea">De waarde bevat de informatie over de voor het voertuig benodigde service, die op basis van de live-diagnose werd vastgesteld. Deze bestaat uit nummer, categorie en huidige status van de benodigde service. Het voertuig verzamelt de foutgegevens voor de benodigde service en verstuurt deze automatisch volgens vastgelegde cycli.</td><td class="col3">vehicle.​serviceDemand.​defect.​id</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standaard koeling van de bestuurdersstoel aan de achterkant</td><td class="col2-emea">Standaardinstellingen voor het koelen/ventileren van de bestuurdersstoel aan de achterkant in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row2.​driverSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standaard koeling van de bestuurdersstoel aan de voorkant</td><td class="col2-emea">Standaardinstellingen voor het koelen/ventileren van de bestuurdersstoel aan de voorkant in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row1.​driverSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standaard koeling van de passagiersstoel aan de achterkant</td><td class="col2-emea">Standaardinstellingen voor het koelen/ventileren van de passagiersstoel aan de achterkant in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row2.​passengerSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standaard koeling van de passagiersstoel aan de voorkant</td><td class="col2-emea">Standaardinstellingen voor het koelen/ventileren van de passagiersstoel aan de voorkant in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row1.​passengerSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standaard stoelkoeling derde rij aan de kant van de bestuurder</td><td class="col2-emea">Standaardinstellingen voor het koelen/ventileren van de derde rij aan de kant van de bestuurder in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row3.​driverSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standaard stoelkoeling derde rij aan de kant van de passagier</td><td class="col2-emea">Standaardinstellingen voor het koelen/ventileren van de derde rij aan de kant van de passagier in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row3.​passengerSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standaard stoelverwarming achterkant bestuurdersstoel</td><td class="col2-emea">Standaardinstellingen voor het verwarmen van de bestuurdersstoel aan de achterkant in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row2.​driverSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standaard stoelverwarming achterkant passagiersstoel</td><td class="col2-emea">Standaardinstellingen voor het verwarmen van de passagiersstoel aan de achterkant in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row2.​passengerSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standaard stoelverwarming derde rij aan de kant van de bestuurder</td><td class="col2-emea">Standaardinstellingen voor het verwarmen van de derde rij aan de kant van de bestuurder in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row3.​driverSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standaard stoelverwarming derde rij aan de kant van de passagier</td><td class="col2-emea">Standaardinstellingen voor het verwarmen van de derde rij aan de kant van de passagier in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row3.​passengerSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standaard stoelverwarming voorkant bestuurdersstoel</td><td class="col2-emea">Standaardinstellingen voor het verwarmen van de bestuurdersstoel aan de voorkant in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row1.​driverSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standaard stoelverwarming voorkant passagiersstoel</td><td class="col2-emea">Standaardinstellingen voor het verwarmen van de passagiersstoel aan de voorkant in verband met voorklimatiseren.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row1.​passengerSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standaard stuurverwarming</td><td class="col2-emea">Standaardinstellingen voor stuurverwarming en voorklimatisering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​steeringWheel.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status cabriodak</td><td class="col2-emea">Status uitschuifbaar cabriodak. BMW Mini-voertuigen hebben de extra optie om alleen het vouwdak te openen. Dit signaal geeft de status van het vouwdak van de Mini weer. Het moet ook samen met de status van het cabriodak worden gelezen, zie Vehicle.Cabin.Convertible.RoofStatus.</td><td class="col3">vehicle.​cabin.​convertible.​roofRetractableStatus</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status HVAC-luchtverfrisser</td><td class="col2-emea">De huidige status van de luchtverfrisser.</td><td class="col3">vehicle.​cabin.​hvac.​statusAirPurification</td><td class="col4">string</td><td class="col5">UNFILTERED, PURIFYING_ONGOING, PURIFIED, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Statusinformatie over de laatste overdracht van OBFCM*-waarden&nbsp;</td><td class="col2-emea">Deze waarde geeft de statusinformatie aan over de laatste overdracht van OBFCM*-waarden die in een werkplaats is uitgevoerd (d.w.z. bedraad). (OK voor een geldige overdracht waarbij de OBFCM-waarden bijgewerkt zijn, ECU_COMMUNICATION_ERROR voor fouten bij het verzamelen van gegevens van de regeleenheden, VEHICLE_MANIPULATION_DETECTED als een manipulatie van de wagen werd vastgesteld, en MANUFACTURER_EXCLUDED als de voertuigfabrikant van de OBFCM*-verzameling is uitgesloten (bijv. Alpina, Toyota Supra).</td><td class="col3">vehicle.​channel.​ista.​obfcm.​lastTransmissionStatus</td><td class="col4">string</td><td class="col5">OK, ECU_COMMUNICATION_ERROR, VEHICLE_MANIPULATION_DETECTED, MANUFACTURER_EXCLUDED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status kofferbak vergrendeld</td><td class="col2-emea">Aangegeven of de kofferbak vergrendeld is of niet.</td><td class="col3">vehicle.​body.​trunk.​isLocked</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status open kofferklep</td><td class="col2-emea">Status kofferklep.</td><td class="col3">vehicle.​body.​trunk.​door.​isOpen</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status van de achterruit aan bestuurderszijde</td><td class="col2-emea">De waarde specificeert of de achterruit aan bestuurderszijde op het tijdstip van de gegevensregistratie geopend (OPEN), half geopend (INTERMEDIATE) of gesloten (CLOSED) was. </td><td class="col3">vehicle.​cabin.​window.​row2.​driver.​status</td><td class="col4">string</td><td class="col5">CLOSED, INTERMEDIATE, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status van de achterruit aan passagierszijde</td><td class="col2-emea">De waarde specificeert of de achterruit aan passagierszijde op het tijdstip van de gegevensregistratie geopend (OPEN), half geopend (INTERMEDIATE) of gesloten (CLOSED) was. </td><td class="col3">vehicle.​cabin.​window.​row2.​passenger.​status</td><td class="col4">string</td><td class="col5">CLOSED, INTERMEDIATE, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status van de motorkap (voorkap)</td><td class="col2-emea">De waarde specificeert of de motorkap (voorkap) op het tijdstip van de gegevensregistratie gesloten (CLOSED) of geopend (OPEN) was. </td><td class="col3">vehicle.​body.​hood.​isOpen</td><td class="col4">boolean</td><td class="col5">CLOSED, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status van de portieren</td><td class="col2-emea">Specificeert of de portieren op het tijdstip van de gegevensregistratie vergrendeld (LOCKED) of ontgrendeld (UNLOCKED) waren. 
+Andere mogelijke waarden luiden als volgt: 
+SELECTIVELOCKED = voertuig vergrendeld met uitzondering van het voorportier aan bestuurderszijde (wordt verkregen bij de eerste uitvoering van een Remote Services Door Unlock-handeling) 
+SECURED = voertuig is beveiligd = alle portieren vergrendeld en alarminstallatie ingeschakeld</td><td class="col3">vehicle.​cabin.​door.​lock.​status</td><td class="col4">-</td><td class="col5">SECURED, UNLOCKED, SELECTIVE-LOCKED, LOCKED, INVALID, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status van de voorruit aan bestuurderszijde</td><td class="col2-emea">De waarde specificeert of de ruit van het portier aan bestuurderszijde op het tijdstip van de gegevensregistratie geopend (OPEN), half geopend (INTERMEDIATE) of gesloten (CLOSED) was. </td><td class="col3">vehicle.​cabin.​window.​row1.​driver.​status</td><td class="col4">string</td><td class="col5">CLOSED, INTERMEDIATE, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status van de voorruit aan passagierszijde</td><td class="col2-emea">De waarde specificeert of de ruit van het portier aan passagierszijde op het tijdstip van de gegevensregistratie geopend (OPEN), half geopend (INTERMEDIATE) of gesloten (CLOSED) was. </td><td class="col3">vehicle.​cabin.​window.​row1.​passenger.​status</td><td class="col4">string</td><td class="col5">CLOSED, INTERMEDIATE, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status van het achterportier aan bestuurderszijde</td><td class="col2-emea">De waarde specificeert of het achterportier aan bestuurderszijde op het tijdstip van de gegevensregistratie gesloten (CLOSED) of geopend (OPEN) was. </td><td class="col3">vehicle.​cabin.​door.​row2.​driver.​isOpen</td><td class="col4">boolean</td><td class="col5">OPEN, CLOSED, INVALID, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status van het achterportier aan passagierszijde</td><td class="col2-emea">De waarde specificeert of het achterportier aan passagierszijde op het tijdstip van de gegevensregistratie gesloten (CLOSED) of geopend (OPEN) was. </td><td class="col3">vehicle.​cabin.​door.​row2.​passenger.​isOpen</td><td class="col4">boolean</td><td class="col5">OPEN, CLOSED, INVALID, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status van het cabriodak</td><td class="col2-emea">Specificeert de op het tijdstip van de gegevensregistratie actuele status van het cabriodak, dus bijvoorbeeld of het gesloten (CLOSED) is, geopend (OPEN) of &ndash; in een noodgeval &ndash; vergrendeld (EMERGENCYLOCKED). 
+De volgende andere statuswaarden zijn mogelijk: 
+CLOSEDSECURED = cabriodak gesloten, voertuig beveiligd 
+OPENSECURED = cabriodak open, voertuig beveiligd 
+HARDTOPMOUNTED = hardtop gemonteerd en gesloten (afneembare hardtop) 
+INTERMEDIATEPOSITION = cabriokap in tussenstand 
+LOADINGPOSITION = kap bevindt zich in een stand die het beladen van de bagageruimte vergemakkelijkt 
+LOADINGPOSITIONIMMEDIATE = kap bevindt zich in een stand die het beladen van de bagageruimte vergemakkelijkt</td><td class="col3">vehicle.​cabin.​convertible.​roofStatus</td><td class="col4">string</td><td class="col5">CLOSEDSECURED, OPENSECURED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status van het kofferdeksel/de achterklep</td><td class="col2-emea">De waarde specificeert of het kofferdeksel/de achterklep op het tijdstip van de gegevensregistratie geopend (OPEN), half geopend (INTERMEDIATE) of gesloten (CLOSED) was. </td><td class="col3">vehicle.​body.​trunk.​isOpen</td><td class="col4">boolean</td><td class="col5">CLOSED, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status van het schuifdak</td><td class="col2-emea">De waarde specificeert of het schuifdak (voor zover voorhanden) op het tijdstip van de gegevensregistratie geopend (OPEN), half geopend (INTERMEDIATE) of gesloten (CLOSED) was. </td><td class="col3">vehicle.​cabin.​sunroof.​status</td><td class="col4">string</td><td class="col5">CLOSED, INTERMEDIATE, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status van het voorportier aan bestuurderszijde</td><td class="col2-emea">De waarde specificeert of het portier aan bestuurderszijde op het tijdstip van de gegevensregistratie gesloten (CLOSED) of geopend (OPEN) was. </td><td class="col3">vehicle.​cabin.​door.​row1.​driver.​isOpen</td><td class="col4">boolean</td><td class="col5">OPEN, CLOSED, INVALID, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status van het voorportier aan passagierszijde</td><td class="col2-emea">De waarde specificeert of het portier aan passagierszijde op het tijdstip van de gegevensregistratie gesloten (CLOSED) of geopend (OPEN) was. </td><td class="col3">vehicle.​cabin.​door.​row1.​passenger.​isOpen</td><td class="col4">boolean</td><td class="col5">OPEN, CLOSED, INVALID, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stoelkoeling achterkant bestuurdersstoel</td><td class="col2-emea">Stoelkoeling achterkant bestuurdersstoel. 0 = uit. +100 = maximale koeling.</td><td class="col3">vehicle.​cabin.​seat.​row2.​driverSide.​cooling</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stoelkoeling achterkant passagiersstoel</td><td class="col2-emea">Stoelkoeling achterkant passagiersstoel. 0 = uit. +100 = maximale koeling.</td><td class="col3">vehicle.​cabin.​seat.​row2.​passengerSide.​cooling</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stoelkoeling derde rij aan de kant van de bestuurder</td><td class="col2-emea">Stoelkoeling derde rij aan de kant van de bestuurder. 0 = uit. +100 = maximale koeling.</td><td class="col3">vehicle.​cabin.​seat.​row3.​driverSide.​cooling</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stoelkoeling derde rij aan de kant van de passagier</td><td class="col2-emea">Stoelkoeling derde rij aan de kant van de passagier. 0 = uit. +100 = maximale koeling.</td><td class="col3">vehicle.​cabin.​seat.​row3.​passengerSide.​cooling</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stoelkoeling voorkant bestuurdersstoel</td><td class="col2-emea">Stoelkoeling voorkant bestuurdersstoel. 0 = uit. +100 = maximale koeling.</td><td class="col3">vehicle.​cabin.​seat.​row1.​driverSide.​cooling</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stoelkoeling voorkant passagiersstoel</td><td class="col2-emea">Stoelkoeling voorkant passagiersstoel. 0 = uit. +100 = maximale koeling.</td><td class="col3">vehicle.​cabin.​seat.​row1.​passengerSide.​cooling</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stoelverwarming achterkant passagiersstoel</td><td class="col2-emea">Stoelverwarming achterkant passagiersstoel. 0 = uit. +100 = maximale verwarming.</td><td class="col3">vehicle.​cabin.​seat.​row2.​passengerSide.​heating</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stoelverwarming derde rij aan de kant van de bestuurder</td><td class="col2-emea">Stoelverwarming derde rij aan de kant van de bestuurder. 0 = uit. +100 = maximale verwarming.</td><td class="col3">vehicle.​cabin.​seat.​row3.​driverSide.​heating</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stoelverwarming derde rij aan de kant van de passagier</td><td class="col2-emea">Stoelverwarming derde rij aan de kant van de passagier. 0 = uit. +100 = maximale verwarming.</td><td class="col3">vehicle.​cabin.​seat.​row3.​passengerSide.​heating</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stoelverwarming voorkant bestuurdersstoel</td><td class="col2-emea">Stoelverwarming voorkant bestuurdersstoel. 0 = uit. +100 = maximale verwarming.</td><td class="col3">vehicle.​cabin.​seat.​row1.​driverSide.​heating</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Storingengeheugen</td><td class="col2-emea">Het storingengeheugen biedt informatie over potenti&euml;le storingen of technische defecten in het voertuig. Deze informatie is bedoeld voor werkplaatsen. Klantrelevante storingen die aan de bestuurder in het voertuig worden gepresenteerd, worden vermeld onder CarData-element &ldquo;Check Control Meldingen". De details hierover zijn gedocumenteerd in de handleiding van het voertuig.</td><td class="col3">vehicle.​electronicControlUnit.​diagnosticTroubleCodes.​raw</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stuurverwarming</td><td class="col2-emea">Werkelijke waarde van de stuurverwarming in procenten.</td><td class="col3">vehicle.​cabin.​steeringWheel.​heating</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Stuurwiel directe verwarming</td><td class="col2-emea">Instellingen DirectStart voor stuurverwarming en voorklimatisering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​steeringWheel.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tankinhoud</td><td class="col2-emea">De waarde specificeert in liters de op het tijdstip van de gegevensregistratie actuele tankinhoud. Afhankelijk van de positie van de tankvlotter kunnen afwijkingen optreden van tot 6&nbsp;liter ten opzichte van de gespecificeerde waarde. </td><td class="col3">vehicle.​drivetrain.​fuelSystem.​remainingFuel</td><td class="col4">float</td><td class="col5">0 l tot 100 l</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tijdelijke drempelwaarde voor hoofd- en uitlaatgasonderzoek autokeuring (APK)</td><td class="col2-emea">De drempelwaarde specificeert hoeveel maanden v&oacute;&oacute;r het vervallen van de termijn voor het hoofd- en uitlaatgasonderzoek autokeuring (APK) een melding aan de serviceadviseur wordt gestuurd. </td><td class="col3">vehicle.​status.​serviceTime.​hUandAuServiceYellow</td><td class="col4">uint16</td><td class="col5">0 tot 10
+maanden</td><td class="col6-emea">months</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tijdsdrempelwaarde voor service-informatie</td><td class="col2-emea">De gespecificeerde statische waarde wordt in het voertuig toegevoegd en vertelt wanneer de klant voor de eerste keer een tijdgebaseerde aanwijzing in het voertuig ontvangt dat het binnenkort tijd is voor een servicebeurt. 
+De waarde wordt gespecificeerd in weken (bijvoorbeeld 4). </td><td class="col3">vehicle.​status.​serviceTime.​yellow</td><td class="col4">uint16</td><td class="col5">4 weken</td><td class="col6-emea">weeks</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tijd voorafgaand aan de navigatiebestemming</td><td class="col2-emea">De waarde specificeert de aankomsttijd voorafgaand aan het bereiken van de navigatiebestemming en wordt gespecificeerd in uren en minuten. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​destinationSet.​arrivalTime</td><td class="col4">string</td><td class="col5">hh:mm </td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tijdzone-instelling in het voertuig</td><td class="col2-emea">De waarde specificeert de actuele instelling voor de weergave van de tijd op het tijdstip van de gegevensregistratie in het voertuig. Dit kan bijvoorbeeld wintertijd, zomertijd, UTC of handmatig zijn. </td><td class="col3">vehicle.​vehicle.​timeSetting</td><td class="col4">string</td><td class="col5">wintertime,
+summertime,
+utc,
+manual,
+INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Toestand van de lichten</td><td class="col2-emea">De waarde specificeert of het voertuiglicht op het tijdstip van de gegevensregistratie uit of aan stond of dat de status onbekend is. </td><td class="col3">vehicle.​body.​lights.​isRunningOn</td><td class="col4">boolean</td><td class="col5">ASN_isFalse, ASN_isTrue, ASN_isUnknown</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Toestand van de motor (aan/uit)</td><td class="col2-emea">De waarde specificeert of de motor op het tijdstip van de gegevensregistratie uit of aan stond of dat de status onbekend is. </td><td class="col3">vehicle.​drivetrain.​engine.​isIgnitionOn</td><td class="col4">boolean</td><td class="col5">ASN_isFalse, ASN_isTrue, ASN_isUnknown</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Toestand van de portieren</td><td class="col2-emea">Deze waarde specificeert de status van de portieren maar wordt alleen sporadisch weggeschreven en doorgestuurd. 
+Aanwijzing: Het is raadzaam om in plaats van deze waarde alleen de status van de afzonderlijke portieren te gebruiken. </td><td class="col3">vehicle.​cabin.​door.​status</td><td class="col4">string</td><td class="col5">oldDoorStatus: ASN_secured
+ASN_unlocked
+ASN_unknown
+ASN_selective-Locked
+
+newDoorStatus:
+ASN_locked
+ASN_unlocked
+ASN_selective-Locked
+ASN_unknown
+
+allDoorsLocked:
+ASN_isUnknown
+ASN_isTrue
+ASN_isFalse
+
+trunkLocked:
+ASN_isUnknown
+ASN_isTrue
+ASN_isFalse</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Toestand van het contact</td><td class="col2-emea">De waarde specificeert of het contact op het tijdstip van de gegevensregistratie uit of aan stond of dat de status onbekend is. </td><td class="col3">vehicle.​drivetrain.​engine.​isActive</td><td class="col4">boolean</td><td class="col5">ASN_isFalse, ASN_isTrue, ASN_isUnknown</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Toestemming voor het gebruik van de motor voor de preconditioning.</td><td class="col2-emea">Deze waarde specificeert of motorgebruik voor de preconditioning van de standklimaatregeling mag op het tijdstip van de gegevensregistratie. Dit wordt ingesteld door de klant. </td><td class="col3">vehicle.​vehicle.​preConditioning.​isRemoteEngineStartAllowed</td><td class="col4">boolean</td><td class="col5">true, false, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Voorkeursservicepartner</td><td class="col2-emea">Geeft aan, aan welke servicepartner de wagen momenteel is toegewezen. </td><td class="col3">vehicle.​sevice.​preferredSevicePartner</td><td class="col4">-</td><td class="col5">string</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Voortgang voorklimatisering</td><td class="col2-emea">Voortgang van de momenteel actieve voorklimatisering in procenten.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​status.​progress</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Vulpeil van de tank in %</td><td class="col2-emea">De waarde specificeert in procent de tankinhoud op het tijdstip van de gegevensregistratie. </td><td class="col3">vehicle.​drivetrain.​fuelSystem.​level</td><td class="col4">uint8</td><td class="col5">0 % tot 100 %,
+INVALID</td><td class="col6-emea">%</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Weergave-eenheid van het instrumentenpaneel in het voertuig</td><td class="col2-emea">De waarde specificeert de eenheid (kilometers) van de gemeten afstandswaarden op het instrumentenpaneel van het voertuig. </td><td class="col3">vehicle.​cabin.​infotainment.​displayUnit.​distance</td><td class="col4">string</td><td class="col5">km, miles</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>GEBRUIKSGEBASEERDE VOERTUIGGEGEVENS</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData-element</th><th class="col2-emea">Beschrijving</th><th class="col3">Technische beschrijving</th><th class="col4">Gegevenstype </th><th class="col5">Typisch waardebereik</th><th class="col6-emea">Eenheid</th><th class="col7">Streambaar</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Check Control-meldingen</td><td class="col2-emea">De waarde specificeert de laatste relevante Check Control-meldingen die in het voertuig weergegeven zijn en overgedragen zijn naar BMW. Check Control bewaakt functies in het voertuig en meldt wanneer in bewaakte systemen een storing optreedt. Een Check Control-melding wordt weergegeven als combinatie van controle- en waarschuwingslampjes en tekstmeldingen op het instrumentenpaneel en eventueel op het Head-Up Display. Aanwijzing: Niet alle Check Control-meldingen die in het voertuig worden weergegeven, worden overgedragen naar BMW.</td><td class="col3">vehicle.​status.​checkControlMessages</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Condition Based Service (CBS)</td><td class="col2-emea">Sensoren en speciale algoritmen houden rekening met de bedrijfsomstandigheden van het voertuig. CBS bepaalt hiermee de noodzaak van onderhoud. Het systeem maakt het dus mogelijk om de onderhoudswerkzaamheden aan te passen aan het individuele gebruiksprofiel. </td><td class="col3">vehicle.​status.​conditionBasedServices</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gemiddelde afstand per dag</td><td class="col2-emea">Diensten op basis van conditie. Schatting van de dagelijkse afgelegde afstand van het voertuig, maar sterk afgestemd op gebruik in de context van diensten op basis van conditie.</td><td class="col3">vehicle.​status.​conditionBasedServicesAverageDistancePerDay</td><td class="col4">int32</td><td class="col5">None</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gemiddelde afstand per week</td><td class="col2-emea">Specificeert in kilometers de gereden afstand per week. Dit is een gemiddelde waarde. </td><td class="col3">vehicle.​vehicle.​averageWeeklyDistanceShortTerm</td><td class="col4">float</td><td class="col5">1 km tot 3000 km </td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gemiddelde afstand per week (lange termijn)</td><td class="col2-emea">De waarde specificeert in kilometers telkens het weekgemiddelde van de in een periode van 2&nbsp;maanden gereden afstand. </td><td class="col3">vehicle.​vehicle.​averageWeeklyDistanceLongTerm</td><td class="col4">float</td><td class="col5">1 km tot 3000 km </td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laatst verzonden resterende actieradius</td><td class="col2-emea">Laatst verzonden resterende actieradius elektrisch + brandstof verzonden door het voertuig. Actieradius van voertuig Kombi (opgevraagd voor PHEV- en CE-voertuigen). Levert e-actieradius + ce-actieradius voor PHEV. Ce-actieradius voor CE-voertuigen. Waarschijnlijk 0 voor BEV-voertuigen. Deze waarde mag alleen worden gebruikt voor auto's met een verbrandingsmotor. Elektrische auto's zouden moeten lezen Vehicle.Drivetrain.ElectricEngine.KombiRemainingElectricRange.</td><td class="col3">vehicle.​drivetrain.​lastRemainingRange</td><td class="col4">float</td><td class="col5">0-6500</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-referentieafstand in de oplaadmodus</td><td class="col2-emea">Deze waarde geeft de afstand aan die is gereden in de oplaadmodus, d.w.z. dat de PHEV&nbsp;de hoogvoltage-accu oplaadt.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​inChargeIncreasing.​referenceDistance</td><td class="col4">float</td><td class="col5">0.0 km - 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-referentieafstand met elektrische aandrijving en actieve verbrandingsmotor (alleen PHEV)</td><td class="col2-emea">Deze waarde geeft de afgelegde afstand aan met elektrische aandrijving en actieve verbrandingsmotor.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​inChargeDepleting.​referenceDistanceEngineOn</td><td class="col4">float</td><td class="col5">0.0 km - 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-referentieafstand met elektrische aandrijving en inactieve verbrandingsmotor (alleen PHEV)</td><td class="col2-emea">Deze waarde geeft de afstand aan die is afgelegd met elektrische aandrijving en inactieve verbrandingsmotor.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​inChargeDepleting.​referenceDistanceEngineOff</td><td class="col4">float</td><td class="col5">0.0 km - 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-referentieafstand voor het meten van het brandstofverbruik</td><td class="col2-emea">Deze waarde geeft de referentieafstand voor het meten van het brandstofverbruik aan.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​overall.​referenceDistance</td><td class="col4">float</td><td class="col5">0.0 km - 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-totaal brandstofverbruik in de oplaadmodus (alleen PHEV)</td><td class="col2-emea">Deze waarde beschrijft de brandstof die wordt verbruikt in de oplaadmodus, d.w.z. dat de PHEV de hoogvoltage-accu oplaadt via de verbrandingsmotor.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​inChargeIncreasing.​fuel</td><td class="col4">float</td><td class="col5">0.00 l - 30000.00 l</td><td class="col6-emea">l</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-totaal brandstofverbruik tijdens gebruik bij het ontladen van de accu (alleen PHEV)</td><td class="col2-emea">Deze waarde geeft de hoeveelheid brandstof aan die wordt verbruikt wanneer de verbrandingsmotor wordt ingeschakeld, ook al is accu niet leeg.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​inChargeDepleting.​fuel</td><td class="col4">float</td><td class="col5">0.00 l - 30000.00 l</td><td class="col6-emea">l</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Snelheidsbereik boven</td><td class="col2-emea">Bovengrens van het snelheidsbereik in km/u. Het bereik is exclusief de bovengrens. Om privacyredenen zijn sommige functies niet toegestaan om de huidige rijsnelheid over te dragen en moeten de attribuut SpeedRange gebruiken.</td><td class="col3">vehicle.​vehicle.​speedRange.​upperBound</td><td class="col4">int16</td><td class="col5">-100 km/u - 500 km/u</td><td class="col6-emea">km/h</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Snelheidsbereik lager</td><td class="col2-emea">Ondergrens van het snelheidsbereik in km/u. Het bereik bevat de ondergrens. Om privacyredenen zijn sommige functies niet toegestaan om de huidige rijsnelheid over te dragen en moeten de attribuut SpeedRange gebruiken.</td><td class="col3">vehicle.​vehicle.​speedRange.​lowerBound</td><td class="col4">int16</td><td class="col5">-100 km/u - 500 km/u</td><td class="col6-emea">km/h</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Toestemming voor OBFCM*-gegevensoverdracht naar de EU</td><td class="col2-emea">Deze waarde geeft aan of de klant toestemming heeft gegeven voor de overdracht van OBFCM*-gegevens aan de EU-Commissie.</td><td class="col3">vehicle.​privacySettings.​dataCollection.​regulations.​obfcm</td><td class="col4">boolean</td><td class="col5">True   
+False  </td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Totaal brandstofverbruik volgens wettelijke OBFCM*-specificaties&nbsp;</td><td class="col2-emea">Deze waarde geeft de hoeveelheid verbruikte brandstof in liters aan,&nbsp;gemeten over de referentieafstand.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​overall.​fuel</td><td class="col4">float</td><td class="col5">0.00 l - 30000.00 l</td><td class="col6-emea">l</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>GEGEVENS OVER DE GEBEURTENISSEN VAN EEN VOERTUIG</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData-element</th><th class="col2-emea">Beschrijving</th><th class="col3">Technische beschrijving</th><th class="col4">Gegevenstype </th><th class="col5">Typisch waardebereik</th><th class="col6-emea">Eenheid</th><th class="col7">Streambaar</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Automatische Teleservice Call</td><td class="col2-emea">De waarde bevat de informatie op welk tijdstip een Automatische Service Call (ASC) door de auto werd geactiveerd.</td><td class="col3">vehicle.​channel.​teleservice.​lastAutomaticServiceCallTime</td><td class="col4">string</td><td class="col5">dd.mm.yyyy hh:mm UTC</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Teleservice Report</td><td class="col2-emea">De waarde bevat de informatie op welk tijdstip de Teleservice Report Call in het voertuig werd geactiveerd. Het voertuig verzamelt voor de Teleservice Report Call meetwaarden en foutgegevens, en verstuurt deze automatisch volgens vastgelegde cycli.</td><td class="col3">vehicle.​channel.​teleservice.​lastTeleserviceReportTime</td><td class="col4">string</td><td class="col5">dd.mm.yyyy hh:mm:ss UTC</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>GEGEVENS OVER ELEKTRISCHE VOERTUIGEN</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData-element</th><th class="col2-emea">Beschrijving</th><th class="col3">Technische beschrijving</th><th class="col4">Gegevenstype </th><th class="col5">Typisch waardebereik</th><th class="col6-emea">Eenheid</th><th class="col7">Streambaar</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Accuonderhoudsmodus actief</td><td class="col2-emea">Indicator als de permanente accuonderhoudsmodus actief is.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​batteryCarePersisted.​isActive</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">AC-laadspanning</td><td class="col2-emea">De waarde specificeert in volt de laadspanning van het laatste laadproces (alleen bij opladen met wisselstroom). 
+Doorgaans stabiliseert de waarde zich bij 230&nbsp;V. 
+Er kunnen echter laadspanningen van 0 tot 300 optreden. </td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​acVoltage</td><td class="col4">float</td><td class="col5">0 V tot 300 V of
+-NA-</td><td class="col6-emea">V</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">AC-laadstroom</td><td class="col2-emea">De waarde specificeert in amp&egrave;re (A) de maximale laadstroom van het laatste laadproces (alleen bij opladen met wisselstroom). 
+Er zijn waarden van 0 tot 25 mogelijk. Zowel voertuig als laadstation kunnen afzonderlijk laden met een bepaalde maximale laadstroom. De waarde die hier wordt weergegeven, is de grootste van die beide getallen. </td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​acAmpere</td><td class="col4">uint8</td><td class="col5">0 A tot 25 A of
+-NA-</td><td class="col6-emea">A</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">AC-laadstroombegrenzing en -selectie</td><td class="col2-emea">De eerste waarde geeft aan of de laadstroom waarmee het wagen wordt opgeladen, wordt begrensd.&nbsp;
+
+De tweede waarde beschrijft het type begrenzing (gereduceerd of minimaal).</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​acRestriction.​isChosen</td><td class="col4">boolean</td><td class="col5">NOTCHOSEN, CHOSEN, INVALID; MAXCHARGING, REDUCEDCHARGING, MINCHARGING, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Activatieduur ECO-modus tijdens de laatste rit</td><td class="col2-emea">Specificeert hoelang de ECO-modus tijdens de op het tijdstip van de gegevensregistratie laatste rit geactiveerd was. 
+Het bereik aan waarden gaat van 0 tot 100. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​drivetrain.​transmission.​setting.​fractionDriveEcoPro</td><td class="col4">float</td><td class="col5">0 % tot 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Activatieduur ECO PLUS-modus tijdens de laatste rit</td><td class="col2-emea">De waarde specificeert hoelang de ECO PLUS-modus tijdens de op het tijdstip van de gegevensregistratie laatste rit geactiveerd was. 
+Het bereik aan waarden gaat van 0 tot 100. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​drivetrain.​transmission.​setting.​fractionDriveEcoProPlus</td><td class="col4">float</td><td class="col5">0 % tot 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Afwijking laadmodus</td><td class="col2-emea">Deze parameter bevat informatie over de afwijking van de door de klant geselecteerde laadmodus vanwege systeemredenen.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​modeDeviation</td><td class="col4">string</td><td class="col5">NO_DEVIATION, DC_DYNAMIC_MALIBU, DC_DYNAMIC_MIN_SOE_PROTECTION, IMMEDIATE_CHARGING_NOT_SUPPORTED_BY_EVSE, IMMEDIATE_CHARGING_WAKE_UP_LIMIT_REACHED, IMMEDIATE_CHARGING, CHARGING_TIMESLOT, CHARGING_IN_TIMESLOT, SMART_CHARGING, DC_DYNAMIC, BIDIRECTIONAL_CHARGING, NO_ACTION, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Airconditioning actief</td><td class="col2-emea">Inschakeling airconditioning van voertuig in laadprofiel, het voertuiginterieur wordt geklimatiseerd voor de volgende vertrektijd.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​climatizationActive</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Akoestische begrenzing van het laadproces</td><td class="col2-emea">De waarde geeft aan of het laden al dan niet wordt beperkt vanwege geluidsemissie.&nbsp;</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​acousticLimit</td><td class="col4">string</td><td class="col5">NO_ACTION, AUTOMATIC, UNLIMITED,LIMITED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Authentificatiestatus laden</td><td class="col2-emea">Plug &amp; Charge (Automatische betaling van laadservices) autorisatiestatus van een laadsessie. "AUTHORIZATION_SUCCESSFUL" - Authentificatie met PlugAndCharge succesvol, "TRANSPORT_LAYER_ERROR" - TLS verbinding naar EVSE niet mogelijk, "HIGH_LEVEL_COMMUNICATION_ERROR" - High-niveaucommunicatie met ISO15118 fout, "CONTRACT_SERVICE_NOT_SUPPORTED_ERROR" - EVSE ondersteunt niet authentificatie via PlugAndCharge, "AUTHORIZATION_TIMEOUT" - Autorisatie draait in een fout, "AUTHORIZATION_TIMEOUT" - Authentificatie niet voltooid na 120s, "NVM_READ_CERTIFICATE_ERROR" - Certificaten konden niet worden gelezen door de opslag van de laadregeleenheid, "CERTIFICATE_UPDATE_ERROR" - update van contract via elektrische leiding mislukt, "XML_SECURITY_ERROR" - Validatiefout schema van overgedragen gegevens.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​authentication.​status</td><td class="col4">string</td><td class="col5">AUTHORIZATION_SUCCESSFUL, TRANSPORT_LAYER_ERROR, HIGH_LEVEL_COMMUNICATION_ERROR, CONTRACT_SERVICE_NOT_SUPPORTED_ERROR, AUTHORIZATION_ERROR, AUTHORIZATION_TIMEOUT, NVM_READ_CERTIFICATE_ERROR, CERTIFICATE_UPDATE_ERROR, XML_SECURITY_ERROR</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Authentificatiestatus laden</td><td class="col2-emea">Dit veld geeft de status van de authentificatie aan met het laadstation.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​authenticationStatus</td><td class="col4">string</td><td class="col5">NOT_STARTED, STARTED_EIM, STARTED_PNC, STARTED_PLC_EIM, DONE_EIM, DONE_PLC_EIM, DONE_PNC, FAILED_PLC_EIM, FAILED_PNC, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Begrenzing van de laadstroom</td><td class="col2-emea">De waarde geeft de ingestelde begrenzing van de laadstroom aan in amp&egrave;re (A).&nbsp;</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​acLimit.​selected</td><td class="col4">uint8</td><td class="col5">0-252 A, INVALID</td><td class="col6-emea">A</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Beperkingsfactor AC-laden</td><td class="col2-emea">Reactie op een AC-beperking.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​acRestriction.​factor</td><td class="col4">string</td><td class="col5">MAXCHARGING, REDUCEDCHARGING, MINCHARGING</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Berekende resterende laadtijd van de hoogvoltage-accu</td><td class="col2-emea">De waarde geeft de berekende duur (in minuten) aan totdat de hoogvoltage-accu volledig is opgeladen. Als een navigatiebestemming is ingesteld, wordt de resterende laadtijd weergegeven totdat deze bestemming is bereikt.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​timeToFullyCharged</td><td class="col4">uint16</td><td class="col5">0 &ndash; 65500 Min, INVALID</td><td class="col6-emea">min</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bidirectionele laadmogelijkheid</td><td class="col2-emea">Bevat de informatie over de huidige beschikbaarheid van de BPT-functie (Bidirectional Power Transfer).</td><td class="col3">vehicle.​powertrain.​electric.​battery.​biDirectionalCharging.​availability</td><td class="col4">string</td><td class="col5">AVAILABLE, NOT_AVAILABLE, DISABLED_MALIBU, DISABLED_HVS, BPT_AND_IMO_DISABLED, BPT_ONLY_FOR_EMERGENCY_POWER_SUPPLY, DISABLED_IMO_POSSIBLE, DISABLED_LONG_TERM</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Brukbar energi fra h&oslash;yspenningsbatteri (fulladet, prognostisert)</td><td class="col2-emea">For standard utladning, prognostisert brukbar energi fra fulladet h&oslash;yspenningsakkumulator under gjeldende forhold (f.eks. aldringstilstand, temperatur).</td><td class="col3">vehicle.​drivetrain.​batteryManagement.​maxEnergy</td><td class="col4">float</td><td class="col5">0 - 300 kWh, INVALID</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">DC-oplaadmodus actief</td><td class="col2-emea">Actieve gelijkstroomlaadmodus (prestatie versus effici&euml;ntie).</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​dcChargingModeActive</td><td class="col4">string</td><td class="col5">EFFICIENT, STANDARD, PERFORMANCE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Elektrisch energieverbruik in de COMFORT-modus tijdens de laatste rit</td><td class="col2-emea">Specificeert het op het tijdstip van de gegevensregistratie gemeten elektrische energieverbruik (kWh) in de COMFORT-modus. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​drivetrain.​electricEngine.​energyConsumptionComfort</td><td class="col4">double</td><td class="col5">0 kWh tot 10 kWh </td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Elektrisch gereden aandeel van de afstand van de laatste rit</td><td class="col2-emea">De waarde specificeert in procent het met elektrische energie afgelegde aandeel van de afstand van de laatst geregistreerde rit. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​drivetrain.​transmission.​setting.​fractionDriveElectric</td><td class="col4">float</td><td class="col5">0 % tot 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Feedback status automatische voorklimatisering</td><td class="col2-emea">Huidige status van de tuimelschakelaar voor automatische voorklimatisering van de accu. AAN betekent dat de automatische modus (op basis van de navigatie) van het voorspellend thermisch beheer (vWM) is geactiveerd. UIT betekent dat de automatische modus (op basis van de navigatie) van het voorspellende thermische beheer (vWM) is gedeactiveerd. TEMP_OFF staat voor tijdelijke deactivering voor de huidige trip van het automatische voorspellende thermische beheer.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​preconditioning.​automaticMode.​statusFeedback</td><td class="col4">string</td><td class="col5">OFF, ON, TEMP_OFF, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Feedback status handmatige voorklimatisering</td><td class="col2-emea">Huidige status van de knop voor handmatige voorklimatisering van de accu. Hetzij voor laden of rijden.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​preconditioning.​manualMode.​statusFeedback</td><td class="col4">string</td><td class="col5">OFF, ON_CHARGE, ON_DRIVE, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gebeurtenis-ID laadpoortstekker</td><td class="col2-emea">Unieke identificatiecode die telkens toeneemt wanneer de klant zijn elektrisch voertuig aansluit (BEHALVE als de tijd tussen het loskoppelen en aankoppelen minder dan 90 seconden bedraagt). Deze waarde zou uniek moeten zijn voor elke laadsessie. Zie ElectricEngine.Charging.plugStatus.</td><td class="col3">vehicle.​body.​chargingPort.​plugEventId</td><td class="col4">uint32</td><td class="col5">0 - 131068</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gemiddelde gereden snelheid</td><td class="col2-emea">De waarde specificeert in km/h de op het tijdstip van de gegevensregistratie gemiddelde gereden snelheid. </td><td class="col3">vehicle.​vehicle.​avgSpeed</td><td class="col4">uint16</td><td class="col5">0 km/h tot
+300 km/h,
+INVALID</td><td class="col6-emea">km/h</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gemiddeld elektrisch verbruik</td><td class="col2-emea">Deze waarde specificeert in [kWh/100 km] het gemiddelde elektrische verbruik op het tijdstip van de gegevensregistratie.
+Aanwijzing: Niet beschikbaar voor de modellen i3 en i8.</td><td class="col3">vehicle.​drivetrain.​avgElectricRangeConsumption</td><td class="col4">float</td><td class="col5">0 kWh/100 km tot 100 kWh/100 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gereduceerd doel State of Energy</td><td class="col2-emea">Verlaag de doel-SoE (State of Energy) tot een gedefinieerde waarde, zodat de accu geen hoge SoE's bereikt, waardoor de levensduur van de accu afneemt.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​batteryCarePersisted.​isReducedTargetSoe</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gezondheidstoestand van de 48V-accu</td><td class="col2-emea">SoH (State of Health) van de 48V-accu die aan de klant wordt getoond. Gemaakt om te voldoen aan de EU-accuvoorschrift.</td><td class="col3">vehicle.​electricalSystem.​battery48V.​stateOfHealth.​displayed</td><td class="col4">uint16</td><td class="col5">0% tot 250%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gezondheidstoestand van de hoogvoltaccu (SOCE)</td><td class="col2-emea">Deze waarde geeft de gezondheidstoestand van de hoogvoltaccu aan (SOCE, State of Certified Energy).</td><td class="col3">vehicle.​powertrain.​electric.​battery.​stateOfHealth.​displayed</td><td class="col4">-</td><td class="col5">0 - 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Huidige voorspelde laadstatus</td><td class="col2-emea">Deze waarde geeft de huidige voorspelde laadstatus in procenten aan.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​level</td><td class="col4">float</td><td class="col5">0 % tot 100 %</td><td class="col6-emea">%</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Kabelcontrolespanning</td><td class="col2-emea">De spanning bereikt tijdens de initialisatie van de kabelcontrole.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​cableCheckVoltage</td><td class="col4">uint16</td><td class="col5">None</td><td class="col6-emea">V</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Kilometerstand van de laatste rit</td><td class="col2-emea">De waarde geeft de kilometerstand aan van de laatst geregistreerde rit. </td><td class="col3">vehicle.​trip.​segment.​end.​travelledDistance</td><td class="col4">float</td><td class="col5">0 km tot
+999999 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadmethode en type stekker</td><td class="col2-emea">De waarde beschrijft of het voertuig met gelijkstroom (DC) of wisselstroom (AC) werd opgeladen en welke laadstekker daarbij werd gebruikt. 
+Zo specificeert de weergave van de technische waarde AC_TYPE1PLUG dat het HV-systeem (High Voltage) in de wisselstroommodus werd opgeladen en dat daarbij een laadstekker van Type&nbsp;1 werd gebruikt. </td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​method</td><td class="col4">string</td><td class="col5">AC_TYPE1PLUG, AC_TYPE2PLUG, NOCHARGING</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadmethode van de hoogvoltage-accu (fasen)	</td><td class="col2-emea">De waarde geeft het aantal fasen aan waarmee de hoogvoltage-accu wordt opgeladen.
+</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​phaseNumber</td><td class="col4">string</td><td class="col5">NO_CHARGING, 1-PHASES, 2-PHASES, 3-PHASES, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadmethode van de hoogvoltage-accu (inductief/conductief)</td><td class="col2-emea">De waarde geeft het laadmethode (CONDUCTIVE, INDUCTIVE) aan waarmee de wagen wordt opgeladen op het moment dat de gegevens worden verzameld.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​connectionType</td><td class="col4">string</td><td class="col5">CONDUCTIVE, INDUCTIVE, SIGNAL_INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadmodus</td><td class="col2-emea">Huidige laadmodus.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​chargingMode</td><td class="col4">string</td><td class="col5">NORMAL_PROGNOSE_BASED, STEP_BASED, PLC_MODE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadmodus accuonderhoud</td><td class="col2-emea">Opladen tot de vertrektijd zo laat mogelijk begint, om de tijd te verkorten waarbij het voertuig een hoge SoE (State of Energy) heeft.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​batteryCarePersisted.​isPreservingChargingMode</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort achter de accu kan middenachter worden aangesloten</td><td class="col2-emea">Dit signaal geeft aan of er een laadkabel is aangesloten op de laadpoort middenachter.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearMiddle.​isPlugged</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan linksachter worden aangesloten</td><td class="col2-emea">Dit signaal geeft aan of er een laadkabel is aangesloten op de laadpoort linksachter.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearLeft.​isPlugged</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan linksvoor worden aangesloten</td><td class="col2-emea">Dit signaal geeft aan of er een laadkabel is aangesloten op de laadpoort linksvoor.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontLeft.​isPlugged</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan middenvoor worden aangesloten</td><td class="col2-emea">Dit signaal geeft aan of er een laadkabel is aangesloten op de laadpoort middenvoor.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontMiddle.​isPlugged</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan rechtsachter worden aangesloten</td><td class="col2-emea">Dit signaal geeft aan of er een laadkabel is aangesloten op de laadpoort rechtsachter.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearRight.​isPlugged</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan rechtsvoor worden aangesloten</td><td class="col2-emea">Dit signaal geeft aan of er een laadkabel is aangesloten op de laadpoort rechtsvoor.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontRight.​isPlugged</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan vanuit iedere kleppositie automatisch openen/sluiten</td><td class="col2-emea">Dit veld geeft aan of de instelling van de klant voor het openen van de klep via de myWay-functie (schuif in de mobiele app) actief is. Als dit het geval is, gaat de klep automatisch open met de digitale sleutel in de zak, wanneer het voertuig zich in de buurt van een laadstation bevindt, en sluit weer automatisch nadat de kabel is losgekoppeld.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​anyPosition.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan vanuit iedere kleppositie openen</td><td class="col2-emea">Dit signaal geeft aan of de laadpoort in het voertuig open is.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​anyPosition.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan vanuit iedere positie worden benaderd</td><td class="col2-emea">Dit signaal geeft aan of er een laadkabel is aangesloten op de laadpoort.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​anyPosition.​isPlugged</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan via de klep linksachter automatisch openen/sluiten</td><td class="col2-emea">Dit veld geeft aan of de instelling van de klant voor het openen van de klep linksachter via de myWay-functie (schuif in de mobiele app) actief is. Als dit het geval is, gaat de klep automatisch open met de digitale sleutel in de zak, wanneer het voertuig zich in de buurt van een laadstation bevindt, en sluit weer automatisch nadat de kabel is losgekoppeld.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearLeft.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan via de klep linksachter worden geopend</td><td class="col2-emea">Dit signaal geeft aan of de laadpoort linksachter in het voertuig open is.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearLeft.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan via de klep linksvoor automatisch openen/sluiten</td><td class="col2-emea">Dit veld geeft aan of de instelling van de klant voor het openen van de klep linksvoor via de myWay-functie (schuif in de mobiele app) actief is. Als dit het geval is, gaat de klep automatisch open met de digitale sleutel in de zak, wanneer het voertuig zich in de buurt van een laadstation bevindt, en sluit weer automatisch nadat de kabel is losgekoppeld.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontLeft.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan via de klep linksvoor worden geopend</td><td class="col2-emea">Dit signaal geeft aan of de laadpoort linksvoor in het voertuig open is.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontLeft.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan via de klep middenachter automatisch openen/sluiten</td><td class="col2-emea">Dit veld geeft aan of de instelling van de klant voor het openen van de klep middenachter via de myWay-functie (schuif in de mobiele app) actief is. Als dit het geval is, gaat de klep automatisch open met de digitale sleutel in de zak, wanneer het voertuig zich in de buurt van een laadstation bevindt, en sluit weer automatisch nadat de kabel is losgekoppeld.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearMiddle.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan via de klep middenvoor automatisch openen/sluiten</td><td class="col2-emea">Dit veld geeft aan of de instelling van de klant voor het openen van de klep middenvoor via de myWay-functie (schuif in de mobiele app) actief is. Als dit het geval is, gaat de klep automatisch open met de digitale sleutel in de zak, wanneer het voertuig zich in de buurt van een laadstation bevindt, en sluit weer automatisch nadat de kabel is losgekoppeld.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontMiddle.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan via de klep middenvoor worden geopend</td><td class="col2-emea">Dit signaal geeft aan of de laadpoort middenvoor in het voertuig open is.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontMiddle.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan via de klep rechtsachter automatisch openen/sluiten</td><td class="col2-emea">Dit veld geeft aan of de instelling van de klant voor het openen van de klep rechtsachter via de myWay-functie (schuif in de mobiele app) actief is. Als dit het geval is, gaat de klep automatisch open met de digitale sleutel in de zak, wanneer het voertuig zich in de buurt van een laadstation bevindt, en sluit weer automatisch nadat de kabel is losgekoppeld.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearRight.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan via de klep rechtsachter worden geopend</td><td class="col2-emea">Dit signaal geeft aan of de laadpoort rechtsachter in het voertuig open is.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearRight.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan via de klep rechtsvoor automatisch openen/sluiten</td><td class="col2-emea">Dit veld geeft aan of de instelling van de klant voor het openen van de klep rechtsvoor via de myWay-functie (schuif in de mobiele app) actief is. Als dit het geval is, gaat de klep automatisch open met de digitale sleutel in de zak, wanneer het voertuig zich in de buurt van een laadstation bevindt, en sluit weer automatisch nadat de kabel is losgekoppeld.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontRight.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu kan via de klep rechtsvoor worden geopend</td><td class="col2-emea">Dit signaal geeft aan of de laadpoort rechtsvoor in het voertuig open is.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontRight.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadpoort voor de accu, middelste klep aan de achterkant, open</td><td class="col2-emea">Dit signaal geeft aan of de laadpoort middenachter in het voertuig open is.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearMiddle.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadsessie-ID</td><td class="col2-emea">Het veld bevat de waarde van de ISO 15118 sessieID volgens ASCII.</td><td class="col3">vehicle.​body.​chargingPort.​isoSessionId</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadstatus geoptimaliseerd voor de route</td><td class="col2-emea">Geeft de laadstatus aan in gevallen waarin e-route-laden wordt gebruikt door de klant voor zijn reis. E-route-laadsessies bestaan uit twee verschillende fasen. Laadsessies die zijn geoptimaliseerd voor de route, hebben tijdelijk voorrang op de doellaadstatus van de klant.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​routeOptimizedChargingStatus</td><td class="col4">string</td><td class="col5">ROUTE_OPTIMIZED_CHARGING_IN_PROGRESS, ROUTE_OPTIMIZED_SOC_TARGET_REACHED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laadstatus van de accu</td><td class="col2-emea">De waarde specificeert (in procent) de laadstatus van de hoogspanningsaccu aan het einde van de laatst geregistreerde rit. </td><td class="col3">vehicle.​trip.​segment.​end.​drivetrain.​batteryManagement.​hvSoc</td><td class="col4">float</td><td class="col5">0 % tot 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laatste laadresultaat</td><td class="col2-emea">Resultaat van het laatste laadproces.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​lastChargingResult</td><td class="col4">string</td><td class="col5">SUCCESS, FAILED, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laatste reden voor opladen</td><td class="col2-emea">De reden van het laatste laadproces.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​lastChargingReason</td><td class="col4">string</td><td class="col5">CHARGING_GOAL_REACHED, END_REQUESTED_BY_DRIVER, CONNECTOR_REMOVED, POWERGRID_FAILED, HV_SYSTEM_FAILURE, CHARGING_STATION_FAILURE, PARKING_LOCK_FAILED, NO_PARKING_LOCK, INVALID, -NA-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Maximale laadstroom</td><td class="col2-emea">De waarde geeft de maximaal te selecteren laadstroom aan afhankelijk van de infrastructuur en de gebruikte kabel.&nbsp;	</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​acLimit.​max</td><td class="col4">uint8</td><td class="col5">0-250 A, INVALID</td><td class="col6-emea">A</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Minimale laadstroom</td><td class="col2-emea">De waarde geeft de minimaal te selecteren laadstroom aan afhankelijk van de infrastructuur en de gebruikte kabel.&nbsp;</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​acLimit.​min</td><td class="col4">uint8</td><td class="col5">0-250 A, INVALID</td><td class="col6-emea">A</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Nevenverbruikersvermogen (vermogensverbruik van elektrische componenten)</td><td class="col2-emea">Deze waarde specificeert in kW het nevenverbruikersvermogen op het tijdstip van de gegevensregistratie. Dit is het boordnetverbruik inclusief het vermogen voor de airconditioning. </td><td class="col3">vehicle.​vehicle.​avgAuxPower</td><td class="col4">float</td><td class="col5">0 kW tot 655,34 kW,
+INVALID</td><td class="col6-emea">kW</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-referentieafstand voor het meten van de geleverde netenergie</td><td class="col2-emea">Deze waarde geeft de referentieafstand aan voor het meten van de energie&nbsp;die wordt geleverd via de laadkabel.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​consumptionOverLifeTime.​overall.​referenceDistance</td><td class="col4">float</td><td class="col5">0.0 km - 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ontladen toegestaan</td><td class="col2-emea">Het toestaan van het ontladen in de professionele modus voor de bidirectionele vermogensoverdrachtsfunctie (BPT) wordt door de klant geselecteerd of niet (AAN/UIT).</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​settings.​biDirectionalCharging.​dischargeAllowed</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Oorzaak voor de be&euml;indiging van een laadproces	</td><td class="col2-emea">De waarde geeft de oorzaak aan voor de be&euml;indiging van een laadproces.&nbsp;	</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​hvpmFinishReason</td><td class="col4">string</td><td class="col5">UNKNOWN, CHARGING_GOAL_REACHED, END_REQUESTED_BY_DRIVER, CONNECTOR_REMOVED, POWERGRID_FAILED, HV_SYSTEM_FAILURE, CHARGING_STATION_FAILURE, PARKING_LOCK_FAILED, NO_PARKING_LOCK, SIGNAL_INVALID, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Oplaadgeschiedenis</td><td class="col2-emea">De waarde geeft een lijst weer van de oplaadverrichtingen die op het voertuig zijn uitgevoerd en die zijn geregistreerd in het kader van de dienst "Oplaadgeschiedenis".</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​history.​sessionsList</td><td class="col4">-</td><td class="col5">Details zijn te vinden in de bijbehorende Swagger-documentatie: ../chargingHistory</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Oplaadstatus</td><td class="col2-emea">Deze waarde specificeert de op het tijdstip van de gegevensregistratie actuele oplaadstatus van het voertuig. 
+Zo betekent de waarde NOCHARGING dat het HV-systeem (High Voltage) van het voertuig momenteel niet wordt opgeladen. 
+INITIALIZATION betekent dat het laadproces momenteel wordt voorbereid en CHARGINGACTIVE dat de accu momenteel wordt opgeladen. 
+Andere mogelijke waarden zijn: 
+CHARGINGPAUSED (laadproces gepauzeerd), 
+CHARGINGENDED (laadproces be&euml;indigd) en
+CHARGINGERROR (laadfout). </td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​status</td><td class="col4">string</td><td class="col5">NOCHARGING, INITIALIZATION, CHARGINGACTIVE, CHARGINGPAUSED, CHARGINGENDED, CHARGINGERROR, CHARGINGINTERRUPTED, CHARGINGDISRUPTED, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Oplaadstatus van de hoogspanningsaccu</td><td class="col2-emea">De waarde specificeert in procent de op het tijdstip van de gegevensregistratie actuele oplaadstatus van de hoogspanningsaccu. </td><td class="col3">vehicle.​drivetrain.​batteryManagement.​header</td><td class="col4">float</td><td class="col5">0 % tot 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Oplaadvermogen</td><td class="col2-emea">Het huidige oplaadvermogen in watt. Deze waarde moet alleen worden beschouwd met betrekking tot de huidige tijdstempel.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​power</td><td class="col4">int32</td><td class="col5">20 W tot 80 W</td><td class="col6-emea">W</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Op locatie gebaseerde laadinstellingen</td><td class="col2-emea">De waarde geeft een lijst van de actueel opgeslagen op locatie gebaseerde laadinstellingen van het voertuig weer, die in het kader van de dienst "Op locatie gebaseerde laadinstellingen" zijn geregistreerd.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​settingsList</td><td class="col4">-</td><td class="col5">Details zijn te vinden in de bijbehorende Swagger-documentatie: ../locationBasedChargingSettings</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Prognose van de elektrische actieradius tijdens het opladen</td><td class="col2-emea"> Deze waarde geeft de elektrische actieradius aan die wordt voorspeld tijdens het opladen.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​remainingElectricRange</td><td class="col4">float</td><td class="col5">0 - 1000 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Prognose van de resterende laadtijd</td><td class="col2-emea">Deze waarde geeft de voorspelde resterende laadtijd in minuten aan.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​timeRemaining</td><td class="col4">uint16</td><td class="col5">0 - 200 Min</td><td class="col6-emea">min</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">RCP-configuratie voltooid</td><td class="col2-emea">Voertuigen met een volledige RCP-configuratie (Remote Charging Profile) verzenden expliciet waarden voor alle kenmerken van het laadprofiel. Voor voertuigen zonder een volledige RCP-configuratie worden enkele standaardinstellingen toegepast.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​isRcpConfigComplete</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Reden direct laadsysteem</td><td class="col2-emea">Deze parameter bevat de informatie dat de door de klant geselecteerde laadmodus wordt overschreven vanwege systeemredenen.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​isImmediateChargingSystemReason</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Reden waarom het opladen is be&euml;indigd</td><td class="col2-emea">Reden voor het einde van het opladen, vanaf SP25.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​reasonChargingEnd</td><td class="col4">string</td><td class="col5">NO_CHARGING_END_SINCE_IPF_WAKEUP, CUSTOMER_INTERACTION_HMI_UNPLUG_CABLE_ONCE, CUSTOMER_INTERACTION_HMI_CHARGING_TARGET_REACHED, CUSTOMER_INTERACTION_APP_UNPLUG_CABLE_ONCE, CUSTOMER_INTERACTION_APP_CHARGING_TARGET_REACHED, CUSTOMER_INTERACTION_CHARGING_STOP_VIA_CHARGING_STOP_BUTTON_SOCKET, CUSTOMER_INTERACTION_AC_CHARGING_STOP_VIA_KEY, CUSTOMER_INTERACTION_AC_CHARGING_STOP_WALLBOX, CUSTOMER_INTERACTION_AC_CHARGING_STOP_LATCH, HV_BATTERY_FULLY_CHARGED, INFRASTRUCTURE_PHYSICAL_LIMITS_REACHED_TARGET_SOE_NOT_REACHABLE, INFRASTRUCTURE_DC_CCS_EVSE_SHUTDOWN, INFRASTRUCTURE_DC_GBT_CST_MESSAGE, INFRASTRUCTURE_DC_CCS_STATIC_PILOT, INFRASTRUCTURE_DC_CCS_COMMUNICATION_ERROR_FAILED_RESPONSE_CODE, INFRASTRUCTURE_DC_CCS_COMMUNICATION_ERROR, INFRASTRUCTURE_NO_ENERGY_TRANSFER, INFRASTRUCTURE_DC_CCS_PRECHARGE_ERROR, INFRASTRUCTURE_DC_CCS_EVSE_MALFUNCTION_EMERGENCY_SHUTDOWN, INFRASTRUCTURE_STATION_NOT_COMPATIBLE, INFRASTRUCTURE_CHARGE_READINESS_TIMEOUT, INFRASTRUCTURE_AC_MAXIMUM_GRID_ERROR_REACHED, INFRASTRUCTURE_DC_GBT_ISOLATION_ERROR_DETECTED, INFRASTRUCTURE_AUTHENTIFICATION_ERROR, VEHICLE_HV_BATTERY_ERROR, VEHICLE_HV_BATTERY_COMMUNICATION_ERROR, VEHICLE_DCDC_ERROR, VEHICLE_PLC_BOOTUP_ERROR, VEHICLE_HV_BATTERY_MAXIMAL_CURRENT_OVERSHOOT, VEHICLE_ISOLATION_ERROR, VEHICLE_MAXIMUM_TEMPERATURE_CHARGING_SOCKET_OVERSHOOT, VEHICLE_LT3_OVERSHOOT, VEHICLE_FUSI_CABLE_LOCK_ERROR, VEHICLE_PLC_COMMUNICATION_NOT_POSSIBLE, FLEXCHARGER_GRID_ERROR, FLEXCHARGER_GRID_TEMPERATURE_ERROR, FLEXCHARGER_EVSE_TEMPERATURE_ERROR, FLEXCHARGER_EVSE_INTERNAL_ERROR, FLEXCHARGER_AC_DC_FAULT_CURRENT, FLEXCHARGER_INCORRECT_REACTION_TIME_PWM, FLEXCHARGER_CHARGING_CURRENT_TOO_HIGH, FLEXCHARGER_PE_FAULT, INFRASTRUCTURE_INEFFICIENT_CHARGING_LOW_POWER, VEHICLE_CABLE_LOCKING_ERROR, VEHICLE_CONFIGURATION_ERROR_400V_800V, INFRASTRUCTURE_NO_AC_VOLTAGE, PLUG_AND_CHARGE_TLS_ERROR, PLUG_AND_CHARGE_CONTRACT_ERROR, SMART_CHARGING_TARIFF_SELECTION_INVALID, SMART_CHARGING_CHARGING_PROFILE_INVALID, CUSTOMER_INTERACTION_AC_CHARGING_STOP_VIA_APP, CHARGING_PAUSED, DISCHARGE_NOT_POSSIBLE_VOLTAGE_TOO_HIGH, DISCHARGE_NOT_POSSIBLE_SOE_TOO_LOW, DISCHARGE_NOT_POSSIBLE_INTERNAL_ERROR, DISCHARGE_NOT_POSSIBLE_INCOMPATIBLE_ADAPTER, DISCHARGE_NOT_POSSIBLE_INCOMPATIBLE_CONSUMER</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Referentieafstand voor het meten van de geleverde netenergie terwijl de verbrandingsmotor actief was</td><td class="col2-emea">Deze waarde geeft de referentieafstand aan voor het meten van de energie die via de laadkabel is geleverd terwijl de verbrandingsmotor actief was (bijv. gebruikt door OBFCM*).</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​consumptionOverLifeTime.​engineOn.​referenceDistance</td><td class="col4">float</td><td class="col5">0.0 km - 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Referentieafstand voor het meten van de geleverde netenergie terwijl de verbrandingsmotor niet actief was</td><td class="col2-emea">Deze waarde geeft de referentieafstand aan voor het meten van de energie die via de laadkabel is geleverd terwijl de verbrandingsmotor niet actief was (bijv. gebruikt door OBFCM*).</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​consumptionOverLifeTime.​engineOff.​referenceDistance</td><td class="col4">float</td><td class="col5">0.0 km - 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Relevante vertrektijd</td><td class="col2-emea">Informatie of de komende vertrektijd relevant is voor de professionele modus (bidirectioneel/unidirectioneel) en de beoogde energietoestand op dit moment moet worden bereikt.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​settings.​biDirectionalCharging.​departureTimeRelevant</td><td class="col4">boolean</td><td class="col5">waar, onwaar</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Resterende elektrische actieradius afhankelijk van de streefwaarde van de oplaadstatus	</td><td class="col2-emea">De waarde geeft in kilometers de resterende elektrische actieradius aan op het moment dat de gegevens worden verzameld. Deze is afhankelijk van ingestelde streefwaarde van de oplaadstatus.
+</td><td class="col3">vehicle.​powertrain.​electric.​range.​target</td><td class="col4">float</td><td class="col5">0-4000 KM oder MI, INVALID</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Resterende elektrische actieradius in km</td><td class="col2-emea">De waarde specificeert in kilometers de resterende elektrische actieradius op het tijdstip van de gegevensregistratie. </td><td class="col3">vehicle.​drivetrain.​electricEngine.​kombiRemainingElectricRange</td><td class="col4">float</td><td class="col5">0 km tot 4000 km,
+INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Rijstijlbeoordeling &ldquo;acceleratiegedrag&rdquo;</td><td class="col2-emea">De waarde specificeert het aantal sterren waarmee de rijstijlanalyse op het tijdstip van de gegevensregistratie het acceleratiegedrag van de bestuurder heeft beoordeeld. 
+Het systeem kent daarvoor 0 tot 5&nbsp;sterren toe. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​acceleration.​starsAverage</td><td class="col4">float</td><td class="col5">0 tot 5
+sterren</td><td class="col6-emea">stars</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Rijstijlbeoordeling &ldquo;anticiperend rijden&rdquo;</td><td class="col2-emea">De waarde specificeert het aantal sterren waarmee de rijstijlanalyse op het tijdstip van de gegevensregistratie het criterium &ldquo;anticiperend rijden&rdquo; heeft beoordeeld. 
+Het systeem kent daarvoor 0 tot 5&nbsp;sterren toe. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​chassis.​brake.​starsAverage</td><td class="col4">float</td><td class="col5">0 tot 5
+sterren</td><td class="col6-emea">stars</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Selectie van het gunstige tijdsbestek voor het opladen (Charging Window Selection)</td><td class="col2-emea">Specificeert een eerder gedefinieerd tijdsbestek waarin de hoogspanningsaccu van het voertuig dient te worden opgeladen. 
+De mogelijke waarden luiden als volgt: NOTCHOSEN en CHOSEN. </td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​windowSelection</td><td class="col4">string</td><td class="col5">CHOSEN, NOTCHOSEN, 
+-NA-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Sluitingsstatus van de laadklep</td><td class="col2-emea">De waarde geeft aan of de laadklep onafhankelijk van de centrale vergrendeling is vergrendeld op het moment dat de gegevens worden verzameld.</td><td class="col3">vehicle.​body.​flap.​isPermanentlyUnlocked</td><td class="col4">boolean</td><td class="col5">NO_ACTION, FLAP_UNLOCKED, FLAP_LOCKED, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">"Smart Charging" oplaadoptie</td><td class="col2-emea">De waarde geeft aan welke "Smart Charging"-laadoptie wordt gebruikt.
+</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​preferenceSmartCharging</td><td class="col4">string</td><td class="col5">PRICE_OPTIMIZED, RENEWABLE_ENERGEY, CO2_OPTIMIZED, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status HV-laadsysteem</td><td class="col2-emea">Status HV-laden.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​hvStatus</td><td class="col4">string</td><td class="col5">INVALID, CHARGING, ERROR, NOT_CHARGING, WAITING_FOR_CHARGING, FINISHED_FULLY_CHARGED, FINISHED_NOT_FULL</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status laadstekker</td><td class="col2-emea">Huidige staat van de laadstekker voor alle typen (inductief, geleidend), modi (AC, DC) en servicepakketten.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​connectorStatus</td><td class="col4">string</td><td class="col5">CONNECTED, DISCONNECTED, ERROR</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status van de functie voor direct opladen</td><td class="col2-emea">De waarde geeft aan of de functie "Direct opladen" al dan niet is geactiveerd.&nbsp;</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​isSingleImmediateCharging</td><td class="col4">boolean</td><td class="col5">DIRECT_CHG_ONCE_NOT_ACTIVE, DIRECT_CHG_ONCE_ACTIVE, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status van de laadklep</td><td class="col2-emea">De waarde geeft aan of de laadklep vergrendeld is op het moment dat de gegevens worden verzameld.</td><td class="col3">vehicle.​body.​flap.​isLocked</td><td class="col4">boolean</td><td class="col5">FLAP_UNLOCKED, FLAP_LOCKED, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status van de laadstekkerverbinding</td><td class="col2-emea">De waarde specificeert of het voertuig op het tijdstip van de gegevensregistratie met een laadstekker verbonden was (CONNECTED) of niet (DISCONNECTED). </td><td class="col3">vehicle.​body.​chargingPort.​status</td><td class="col4">string</td><td class="col5">CONNECTED, DISCONNECTED, INVALID, -NA- </td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status van de laadstekkerverbinding (alleen DC)	</td><td class="col2-emea">De waarde geeft aan of de wagen op het moment dat de gegevens werden verzameld met een DC-laadstekker verbonden was (CONNECTED) of niet (DISCONNECTED).
+</td><td class="col3">vehicle.​body.​chargingPort.​dcStatus</td><td class="col4">string</td><td class="col5">DISCONNECTED, CONNECTED, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status van de oplaadbegrenzing</td><td class="col2-emea">De waarde geeft aan of op het moment dat de gegevens worden verzameld een laadstroombegrenzing actief is geweest.&nbsp;</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​acLimit.​isActive</td><td class="col4">boolean</td><td class="col5">AC_LIMIT_INACTIVE, AC_LIMIT_ACTIVE, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status voorklimatisering</td><td class="col2-emea">Status activiteit voorklimatisering van de accu. De legacy-waarde is alleen geldig voor het legacy-project SP2021plus.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​preconditioning.​state</td><td class="col4">string</td><td class="col5">OFF, ON_LEGACY, MANUAL_ON_CHARGE, AUTOMATIC_ON, REMOTE_ON_CHARGE, REMOTE_ON_DRIVE, REMOTE_OFF, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Streefwaarde minimale laadtoestand</td><td class="col2-emea">Minimale streefwaarde laadtoestand aangevraagd door klant voor slim laden en V2X.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​stateOfCharge.​targetMin</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Streefwaarde SOC voor professionele modus</td><td class="col2-emea">Bevat de streefwaarde van de laadtoestand die als streefwaarde wordt gebruikt in de professionele modus. Deze streefwaarde van de laadtoestand moet minimaal worden bereikt tijdens de vertrektijd.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​stateOfCharge.​targetSoCForProfessionalMode</td><td class="col4">uint8</td><td class="col5">0% tot 100%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Streefwaarde van de oplaadstatus van de hoogvoltage-accu</td><td class="col2-emea">De waarde geeft de ingestelde streefwaarde van de oplaadstatus van de hoogvoltage-accu aan in procenten. Dit wordt weergegeven in stappen van 10%.&nbsp;</td><td class="col3">vehicle.​powertrain.​electric.​battery.​stateOfCharge.​target</td><td class="col4">uint8</td><td class="col5">0-100 [10% Schritte], INVALID</td><td class="col6-emea">%</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tekst status laadpoort</td><td class="col2-emea">Vereist naast Vehicle.Body.ChargingPort.Status om ervoor te zorgen dat de laadsessies voor G08 BEV-voertuigen correct worden afgehandeld.</td><td class="col3">vehicle.​body.​chargingPort.​statusClearText</td><td class="col4">string</td><td class="col5">DISCONNECTED, CONNECTED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Teruggewonnen hoeveelheid energie tijdens de laatste rit</td><td class="col2-emea">De waarde specificeert in kilowattuur de per 100&nbsp;kilometer (kWh/100&nbsp;km) teruggewonnen elektrische energie tijdens de laatste rit. Dit is een gemiddelde. Het spectrum aan waarden reikt van 0 tot 254. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​drivetrain.​electricEngine.​recuperationTotal</td><td class="col4">float</td><td class="col5">0 kWh/100 km tot 170 kWh/100 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tijdstip van de laatste rit</td><td class="col2-emea">De tijdsstempel bevat de datum en de plaatselijke tijd van de laatst geregistreerde en doorgestuurde rit, bijvoorbeeld 15.05.2017 15:51:00 UTC. </td><td class="col3">vehicle.​trip.​segment.​end.​time</td><td class="col4">int32</td><td class="col5">dd.mm.yyyy hh:mm:ss UTC</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Totale netenergie die aan de wagen is geleverd (alleen PHEV)</td><td class="col2-emea">Deze waarde geeft de totale energie aan die via de laadkabel wordt geleverd.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​consumptionOverLifeTime.​overall.​gridEnergy</td><td class="col4">float</td><td class="col5">0.0 kWh - 30000.0 kWh</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Totale netenergie die is verbruikt&nbsp;terwijl de verbrandingsmotor actief was</td><td class="col2-emea">Deze waarde geeft de totale energie aan die via de laadkabel is geleverd terwijl de verbrandingsmotor actief was (bijv. gebruikt door OBFCM*).</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​consumptionOverLifeTime.​engineOn.​gridEnergy</td><td class="col4">float</td><td class="col5">kWh</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Totale netenergie die is verbruikt&nbsp;terwijl de verbrandingsmotor niet actief was</td><td class="col2-emea">Deze waarde geeft de totale energie aan die via de laadkabel is geleverd terwijl de verbrandingsmotor niet actief was (bijv. gebruikt door OBFCM*).</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​consumptionOverLifeTime.​engineOff.​gridEnergy</td><td class="col4">float</td><td class="col5">kWh</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Type laadtimer</td><td class="col2-emea">Type timer (bijvoorbeeld Weekdays of TwoTimeTimer)</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​timerType</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Verbindingsstatus laadpoort</td><td class="col2-emea">De huidige toestand voor de laadstekker in alle laadmodi geeft aan of er momenteel een stekker is aangesloten. De waarde INVALID kan redenen hebben zoals bijvoorbeeld geen sensor, defecte sensor, geen waarde, decoderingsfouten enz. Combineert Vehicle.Body.ChargingPort.Status/.DcStatus.</td><td class="col3">vehicle.​body.​chargingPort.​combinedStatus</td><td class="col4">string</td><td class="col5">DISCONNECTED, CONNECTED, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Vereiste energie voor de volledige restlading van de hoogvoltage-accu</td><td class="col2-emea">De waarde geeft de energie aan die nodig is om de hoogvoltage-accu volledig op te laden.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​smeEnergyDeltaFullyCharged</td><td class="col4">float</td><td class="col5">0 - 1310 kWh</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Vergrendelingsstatus van de oplaadstekker na volledig opladen	</td><td class="col2-emea">De waarde geeft aan of de laadstekker na volledig opladen automatisch wordt ontgrendeld (HOSPITALITY_ACTIVE) of vergrendeld blijft (HOSPITALITY_INACTIVE).&nbsp;	</td><td class="col3">vehicle.​body.​chargingPort.​isHospitalityActive</td><td class="col4">boolean</td><td class="col5">HOSPITALITY_INACTIVE, HOSPITALITY_ACTIVE, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Vergrendelstatus laadpoort</td><td class="col2-emea">Dit signaal geeft aan of de laadstekker is vergrendeld, ontgrendeld, een fout is verzonden of geen actie is uitgevoerd. Als u deze waarde gebruikt, zie dan ook Vehicle.Body.ChargingPort.plugStatus.</td><td class="col3">vehicle.​body.​chargingPort.​lockedStatus</td><td class="col4">string</td><td class="col5">CHARGING_CABLE_NOT_LOCKED, CHARGING_CABLE_LOCKED, CHARGING_CABLE_LOCKING_ERROR_DETECTED, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Voorkeur laadprofiel</td><td class="col2-emea">Laadvoorkeur van het huidige laadprofiel. Deze waarde is afhankelijk van de keuze van de laadmodus. Voor Vehicle.ElectricEngine.Charging.Profile.Mode being "DELAYED_CHARGING", Vehicle.ElectricEngine.Charging.Profile.Preference is "SMART_CHARGING" of "CHARGING_WINDOW". In het geval Vehicle.ElectricEngine.Charging.Profile.mode "IMMEDIATE_CHARGING", Vehicle.ElectricEngine.Charging.Profile.Preference wordt ingesteld op "NO_PRESELECTION".</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​preference</td><td class="col4">string</td><td class="col5">CHARGING_WINDOW, SMART_CHARGING, NO_PRESELECTION</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Voorspelling van de totale actieradius tijdens het opladen</td><td class="col2-emea">Deze waarde geeft de totale actieradius aan die tijdens het opladen wordt voorspeld (som van de actieradius van de elektrische en de verbrandingsmotor).</td><td class="col3">vehicle.​drivetrain.​totalRemainingRange</td><td class="col4">float</td><td class="col5">0 - 2000 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Weergave van de laadstatus</td><td class="col2-emea">Deze waarde geeft de in het voertuig weergegeven laadstatus aan. </td><td class="col3">vehicle.​powertrain.​electric.​battery.​stateOfCharge.​displayed</td><td class="col4">float</td><td class="col5">0 - 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Weergave van de oplaadtijd</td><td class="col2-emea">De waarde geeft aan of de oplaadtijd wordt weergegeven in de wagen.&nbsp;&nbsp;</td><td class="col3">vehicle.​powertrain.​electric.​chargingDuration.​displayControl</td><td class="col4">string</td><td class="col5">NO_DISPLAY_TIME_FOR_CHARGING, DISPLAY_CHARGING_DURATION, NO_DISPLAY_CHARGING_DURATION, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Weergave van de vertrektijd</td><td class="col2-emea">De waarde geeft aan of de vertrektijd wordt weergegeven in de wagen.&nbsp;&nbsp;</td><td class="col3">vehicle.​powertrain.​electric.​departureTime.​displayControl</td><td class="col4">string</td><td class="col5">DONT_DISPLAY, DISPLAY_DEPARTURE_TIME, DISPLAY_DEPARTURE_TIME_WITH_V2XSOE, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>METAGEGEVENS</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData-element</th><th class="col2-emea">Beschrijving</th><th class="col3">Technische beschrijving</th><th class="col4">Gegevenstype </th><th class="col5">Typisch waardebereik</th><th class="col6-emea">Eenheid</th><th class="col7">Streambaar</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Aantal navigatiesatellieten</td><td class="col2-emea">Het aantal GPS-satellieten dat voor de positionering is gebruikt en betrekking heeft op de betrouwbaarheid van de positionering.</td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​currentLocation.​numberOfSatellites</td><td class="col4">uint8</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Displayregeling E-actieradius</td><td class="col2-emea">Geeft aan of en hoe de E-actieradius in het voertuig moet worden weergegeven.</td><td class="col3">vehicle.​powertrain.​electric.​range.​displayControl</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Infotainment eenheid afgelegde afstand</td><td class="col2-emea">Eenheid afgelegde afstand in de huidige HMI</td><td class="col3">vehicle.​cabin.​infotainment.​hmi.​distanceUnit</td><td class="col4">string</td><td class="col5">MILES, KILOMETERS</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Klimaattimer overschrijft actie</td><td class="col2-emea">Timerstatus/actie met de statussen Activeren (Aan), Deactiveren (Uit) en Geen Actie (wordt alleen gebruikt wanneer de timer aan het voertuig wordt doorgegeven).</td><td class="col3">vehicle.​cabin.​climate.​timers.​overwriteTimer.​action</td><td class="col4">string</td><td class="col5">ACTIVATE, DEACTIVATE, NO_ACTION</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Klimaattimer overschrijft minuut</td><td class="col2-emea">Minuutinstelling van de klimaattimer volgens de geconfigureerde tijdzone van het voertuig.</td><td class="col3">vehicle.​cabin.​climate.​timers.​overwriteTimer.​minute</td><td class="col4">uint8</td><td class="col5">0 - 59</td><td class="col6-emea">min</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Klimaattimer overschrijft uur</td><td class="col2-emea">Uurinstelling van de klimaattimer volgens de geconfigureerde tijdzone van het voertuig.</td><td class="col3">vehicle.​cabin.​climate.​timers.​overwriteTimer.​hour</td><td class="col4">uint8</td><td class="col5">0 - 23</td><td class="col6-emea">h</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status navigatiebepaling</td><td class="col2-emea">Status GPS-bepaling. "NO FIX" betekent wanneer er minder dan 3 satellieten zijn gevonden. "2D_GPS_FIX" wordt verkregen als er minstens 3 satellieten zijn gevonden. "3D_GPS_FIX" wordt verkregen als er minstens 4 satellieten zijn gevonden.</td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​currentLocation.​fixStatus</td><td class="col4">string</td><td class="col5">NO_FIX, GPS_FIX_2D, GPS_FIX_3D</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Weekdagtimer 1 actie</td><td class="col2-emea">Timer 1 status/actie met de statussen Activeren (Aan), Deactiveren (Uit) en Geen Actie (wordt alleen gebruikt wanneer de timer 1 aan het voertuig wordt doorgegeven).</td><td class="col3">vehicle.​cabin.​climate.​timers.​weekdaysTimer1.​action</td><td class="col4">string</td><td class="col5">ACTIVATE, DEACTIVATE, NO_ACTION</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Weekdagtimer 1 minuut</td><td class="col2-emea">Minuutinstelling van de klimaattimer 1 volgens de geconfigureerde tijdzone van het voertuig.</td><td class="col3">vehicle.​cabin.​climate.​timers.​weekdaysTimer1.​minute</td><td class="col4">uint8</td><td class="col5">0 - 59</td><td class="col6-emea">min</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Weekdagtimer 1 uur</td><td class="col2-emea">Uurinstelling van de klimaattimer 1 volgens de geconfigureerde tijdzone van het voertuig.</td><td class="col3">vehicle.​cabin.​climate.​timers.​weekdaysTimer1.​hour</td><td class="col4">uint8</td><td class="col5">0 - 23</td><td class="col6-emea">h</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Weekdagtimer 2 actie</td><td class="col2-emea">Timer 2 status/actie met de statussen Activeren (Aan), Deactiveren (Uit) en Geen Actie (wordt alleen gebruikt wanneer de timer 2 aan het voertuig wordt doorgegeven).</td><td class="col3">vehicle.​cabin.​climate.​timers.​weekdaysTimer2.​action</td><td class="col4">string</td><td class="col5">ACTIVATE, DEACTIVATE, NO_ACTION</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Weekdagtimer 2 minuut</td><td class="col2-emea">Minuutinstelling van de klimaattimer 2 volgens de geconfigureerde tijdzone van het voertuig.</td><td class="col3">vehicle.​cabin.​climate.​timers.​weekdaysTimer2.​minute</td><td class="col4">uint8</td><td class="col5">0 - 59</td><td class="col6-emea">min</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Weekdagtimer 2 uur</td><td class="col2-emea">Uurinstelling van de klimaattimer 2 volgens de geconfigureerde tijdzone van het voertuig.</td><td class="col3">vehicle.​cabin.​climate.​timers.​weekdaysTimer2.​hour</td><td class="col4">uint8</td><td class="col5">0 - 23</td><td class="col6-emea">h</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>GEGEVENS OVER DE BANDEN</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData-element</th><th class="col2-emea">Beschrijving</th><th class="col3">Technische beschrijving</th><th class="col4">Gegevenstype </th><th class="col5">Typisch waardebereik</th><th class="col6-emea">Eenheid</th><th class="col7">Streambaar</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bandentemperatuur in Celsius, linksachter</td><td class="col2-emea">Bandentemperatuur in Celsius linksachter.</td><td class="col3">vehicle.​chassis.​axle.​row2.​wheel.​left.​tire.​temperature</td><td class="col4">float</td><td class="col5">0 &deg;C tot 50 &deg;C</td><td class="col6-emea">Celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bandentemperatuur in Celsius, linksvoor</td><td class="col2-emea">Bandentemperatuur in Celsius linksvoor.</td><td class="col3">vehicle.​chassis.​axle.​row1.​wheel.​left.​tire.​temperature</td><td class="col4">float</td><td class="col5">0 &deg;C tot 50 &deg;C</td><td class="col6-emea">Celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bandentemperatuur in Celsius, rechtsachter</td><td class="col2-emea">Bandentemperatuur in Celsius rechtsachter.</td><td class="col3">vehicle.​chassis.​axle.​row2.​wheel.​right.​tire.​temperature</td><td class="col4">float</td><td class="col5">0 &deg;C tot 50 &deg;C</td><td class="col6-emea">Celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bandentemperatuur in Celsius, rechtsvoor</td><td class="col2-emea">Bandentemperatuur in Celsius rechtsvoor.</td><td class="col3">vehicle.​chassis.​axle.​row1.​wheel.​right.​tire.​temperature</td><td class="col4">float</td><td class="col5">0 &deg;C tot 50 &deg;C</td><td class="col6-emea">Celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gemeten bandspanning linksachter</td><td class="col2-emea">Deze waarde geeft de linksachter gemeten bandenspanning in kPa aan.</td><td class="col3">vehicle.​chassis.​axle.​row2.​wheel.​left.​tire.​pressure</td><td class="col4">uint16</td><td class="col5">0-1000 kPa of
+-NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gemeten bandspanning linksvoor</td><td class="col2-emea">Deze waarde geeft de linksvoor gemeten bandenspanning in kPa aan.</td><td class="col3">vehicle.​chassis.​axle.​row1.​wheel.​left.​tire.​pressure</td><td class="col4">uint16</td><td class="col5">0-1000 kPa of
+-NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gemeten bandspanning rechtsachter</td><td class="col2-emea">Deze waarde geeft de rechtsachter gemeten bandenspanning in kPa aan.</td><td class="col3">vehicle.​chassis.​axle.​row2.​wheel.​right.​tire.​pressure</td><td class="col4">uint16</td><td class="col5">0-1000 kPa of
+-NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gemeten bandspanning rechtsvoor</td><td class="col2-emea">Deze waarde geeft de rechtsvoor gemeten bandenspanning in kPa aan.</td><td class="col3">vehicle.​chassis.​axle.​row1.​wheel.​right.​tire.​pressure</td><td class="col4">uint16</td><td class="col5">0-1000 kPa of
+-NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Richtwaarde bandenspanning linksachter</td><td class="col2-emea">Dit is de richtwaarde voor de bandenspanning linksachter in kPa.</td><td class="col3">vehicle.​chassis.​axle.​row2.​wheel.​left.​tire.​pressureTarget</td><td class="col4">uint16</td><td class="col5">0-1000 kPa of
+-NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Richtwaarde bandenspanning linksvoor</td><td class="col2-emea">Dit is de richtwaarde voor de bandenspanning linksvoor in kPa. </td><td class="col3">vehicle.​chassis.​axle.​row1.​wheel.​left.​tire.​pressureTarget</td><td class="col4">uint16</td><td class="col5">0-1000 kPa of
+-NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Richtwaarde bandenspanning rechtsachter</td><td class="col2-emea">Dit is de richtwaarde voor de bandenspanning rechtsachter in kPa.</td><td class="col3">vehicle.​chassis.​axle.​row2.​wheel.​right.​tire.​pressureTarget</td><td class="col4">uint16</td><td class="col5">0-1000 kPa of
+-NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Richtwaarde bandenspanning rechtsvoor</td><td class="col2-emea">Dit is de richtwaarde voor de bandenspanning rechtsvoor in kPa.</td><td class="col3">vehicle.​chassis.​axle.​row1.​wheel.​right.​tire.​pressureTarget</td><td class="col4">uint16</td><td class="col5">0-1000 kPa of
+-NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>INFORMATIE OVER DE DETAILS VAN DE CONNECTEDDRIVE OVEREENKOMST</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData-element</th><th class="col2-emea">Beschrijving</th><th class="col3">Technische beschrijving</th><th class="col4">Gegevenstype </th><th class="col5">Typisch waardebereik</th><th class="col6-emea">Eenheid</th><th class="col7">Streambaar</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Actieve ConnectedDrive-contracten</td><td class="col2-emea">De waarde bevat een overzicht van alle actieve ConnectedDrive-contracten en het einde van de betreffende contracttermijn.</td><td class="col3">vehicle.​vehicleIdentification.​connectedDriveContractList</td><td class="col4">-</td><td class="col5">yyyy-mm-dd hh:mm:ss UTC</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

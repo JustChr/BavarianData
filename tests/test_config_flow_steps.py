@@ -5,8 +5,8 @@ is only ever exercised on a live instance, by hand. A step id with no entry in
 ``translations/`` does not fail loudly there either: Home Assistant shows the
 raw key and an empty dialog. So this reads the flows with ``ast`` and checks the
 shape instead: each ``step_id`` / ``progress_action`` a class passes to Home
-Assistant exists in the translation section that class belongs to, in English
-and German.
+Assistant exists in the translation section that class belongs to, in every
+full language.
 
 The shared activator mixin shows its screens from both flows, so its steps must
 exist in both sections -- which is exactly what manual first-time setup needed
@@ -23,6 +23,9 @@ import pytest
 
 _PKG = pathlib.Path(__file__).resolve().parents[1] / "custom_components" / "bavariandata"
 _FLOW = _PKG / "config_flow.py"
+# Every full language (a regional delta like en-GB carries no flow text of its
+# own and falls back to en key by key).
+_LANGUAGES = sorted(p.stem for p in (_PKG / "translations").glob("*.json") if "-" not in p.stem)
 
 # Which translation sections a class's screens are looked up in.
 _SECTIONS = {
@@ -62,7 +65,7 @@ def _shown(kind: str) -> dict[str, set[str]]:
     return found
 
 
-@pytest.mark.parametrize("language", ["en", "de"])
+@pytest.mark.parametrize("language", _LANGUAGES)
 def test_every_step_shown_has_translated_text(language: str) -> None:
     translations = json.loads(
         (_PKG / "translations" / f"{language}.json").read_text(encoding="utf-8")
@@ -81,7 +84,7 @@ def test_every_step_shown_has_translated_text(language: str) -> None:
     assert not missing, f"{language}.json lacks: {missing}"
 
 
-@pytest.mark.parametrize("language", ["en", "de"])
+@pytest.mark.parametrize("language", _LANGUAGES)
 def test_no_translation_is_left_for_a_step_that_no_longer_exists(language: str) -> None:
     translations = json.loads(
         (_PKG / "translations" / f"{language}.json").read_text(encoding="utf-8")

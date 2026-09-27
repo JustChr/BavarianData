@@ -149,7 +149,7 @@ Siehe [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge).
 ### `export_history`
 
 `vin`, `month` (`YYYY-MM`), `type` (`charging` · `trips` · `both`), `format`
-(`csv` · `html`), `language` (`en` · `de`, nur HTML-Bericht). Liefert den
+(`csv` · `html`), `language` (`en` · `de` · `fr` · `it` · `es` · `nl` · `pl` · `pt` · `cs` · `sv`, nur HTML-Bericht). Liefert den
 Dateiinhalt als Antwortdaten; auf die Festplatte wird nichts geschrieben. Siehe
 [Export](DE-Feature-Export).
 

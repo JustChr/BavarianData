@@ -36,7 +36,7 @@ data:
   month: "2026-07"     # defaults to the current month
   type: both           # charging · trips · both
   format: csv          # csv · html
-  language: de          # en · de (HTML report only; defaults to HA's language)
+  language: de          # en · de · fr · it · es · nl · pl · pt · cs · sv (HTML report only; defaults to HA's language)
 ```
 
 See the [Services reference](Services-Reference#export_history) for the full

@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+
+- **Eight more languages: French, Italian, Spanish, Dutch, Polish, Portuguese,
+  Czech and Swedish.** Everything is translated — entity names, the setup and
+  options screens, services, repair notices, device triggers, the printable
+  month report and the dashboard card. The names of BMW's fields are BMW's own,
+  taken from the catalogue BMW publishes in each language, so they match the
+  wording in the BMW portal. Portuguese is European Portuguese. The export
+  service's `language` field accepts the new codes. Entity IDs do not change.
+
 ## [0.9.14-beta.1] - 2026-09-27
 
 ### Fixed

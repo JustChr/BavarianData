@@ -148,8 +148,11 @@ def test_setup_refuses_a_second_entry_for_the_same_account() -> None:
 def test_the_duplicate_account_abort_is_translated() -> None:
     import json
 
-    for lang in ("en", "de"):
-        doc = json.loads((_PKG / "translations" / f"{lang}.json").read_text(encoding="utf-8"))
+    for path in sorted((_PKG / "translations").glob("*.json")):
+        if "-" in path.stem:  # a regional delta falls back to its base language
+            continue
+        lang = path.stem
+        doc = json.loads(path.read_text(encoding="utf-8"))
         assert "account_already_configured" in doc["config"]["abort"], lang
 
 

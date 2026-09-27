@@ -58,7 +58,9 @@ EN_GB = json.loads((_TRANS / "en-GB.json").read_text(encoding="utf-8"))
 # one. Adding a file forces a choice here, because the two are tested — and
 # loaded by Home Assistant — differently: a full language must cover every flow
 # step, a delta must cover none of them.
-FULL_LANGUAGES = {"en.json", "de.json"}
+FULL_LANGUAGES = {
+    f"{lang}.json" for lang in ("en", "de", "fr", "it", "es", "nl", "pl", "pt", "cs", "sv")
+}
 DELTA_LANGUAGES = {"en-GB.json"}
 
 
@@ -303,7 +305,34 @@ def test_the_card_en_gb_table_is_exactly_the_delta_of_its_en_table() -> None:
 @pytest.mark.skipif(NODE is None, reason="Node.js is not installed")
 def test_the_card_offers_the_same_languages_as_the_integration() -> None:
     tables = _card_translations()
-    assert set(tables) == {"en", "en-GB", "de"}, (
+    assert set(tables) == {p.stem for p in _TRANS.glob("*.json")}, (
         "the card and translations/ must offer the same languages, or a user "
         "gets a German card with English tiles (or the reverse)"
     )
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is not installed")
+def test_every_full_card_table_has_every_english_string() -> None:
+    """`t()` falls back to English per key, silently -- so check the tables here.
+
+    A full language must carry every key, and each string the same `{vars}` as
+    English: `t()` substitutes by name, so a translated `{n}` that went missing
+    shows the reader a sentence with a hole in it.
+    """
+
+    tables = _card_translations()
+    en = tables["en"]
+    placeholders = re.compile(r"\{[a-z_]+\}")
+    for lang, table in tables.items():
+        if "-" in lang or lang == "en":
+            continue
+        assert set(table) == set(en), (
+            f"TRANSLATIONS.{lang}: missing {sorted(set(en) - set(table))}, "
+            f"extra {sorted(set(table) - set(en))}"
+        )
+        wrong = [
+            key
+            for key, text in en.items()
+            if sorted(placeholders.findall(text)) != sorted(placeholders.findall(table[key]))
+        ]
+        assert not wrong, f"TRANSLATIONS.{lang}: placeholders differ at {wrong}"

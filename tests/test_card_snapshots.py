@@ -131,3 +131,38 @@ def test_rendering_is_deterministic() -> None:
     first = _render(I5, SCREENS["overview"])
     second = _render(I5, SCREENS["overview"])
     assert first == second
+
+
+# The snapshots above are English only, so a translated table is never rendered
+# by them. This renders every screen in every language the card ships and only
+# asserts that nothing throws: a locale-dependent formatter (a month label, a
+# number) is the kind of thing that works in "en" and breaks in "pt".
+_EVERY_LANGUAGE = _HARNESS.replace(
+    "let error = null;\ntry { card._render(); } catch (e) { error = String((e && e.message) || e); }\n"
+    "process.stdout.write(JSON.stringify({ html: card.shadowRoot.innerHTML, error }));",
+    'const T = new Function(src + "\\nreturn TRANSLATIONS;")();\n'
+    "const errors = {};\n"
+    "for (const lang of Object.keys(T)) {\n"
+    "  card._hass.language = lang;\n"
+    "  card._hass.locale = { language: lang };\n"
+    "  try { card._render(); } catch (e) { errors[lang] = String((e && e.message) || e); }\n"
+    "}\n"
+    "process.stdout.write(JSON.stringify(errors));",
+)
+
+
+@pytest.mark.parametrize("car", sorted(CARS))
+@pytest.mark.parametrize("screen", sorted(SCREENS))
+def test_every_screen_renders_in_every_language(car: str, screen: str) -> None:
+    assert _EVERY_LANGUAGE != _HARNESS, "the harness changed; update the replacement"
+    states = {eid: {**st, "entity_id": eid} for eid, st in CARS[car].items()}
+    result = subprocess.run(
+        [NODE, "-e", _EVERY_LANGUAGE, str(_CARD)],
+        input=json.dumps({"states": states, "config": SCREENS[screen]}),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+        timeout=60,
+    )
+    assert json.loads(result.stdout) == {}

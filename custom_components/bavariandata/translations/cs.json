@@ -1,0 +1,2938 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Připojit BMW CarData",
+        "description": "Tato integrace živě přenáší data vašeho BMW nebo Mini do Home Assistant.\n\n**Nejprve v portálu BMW — nutné pro obě cesty:** vytvořte **CarData Client** a přihlaste jej k odběru **obou** služeb, **CarData API** a **CarData Streaming**. V Výběru dat zatím nic nezaškrtávejte.\n\nPoté zvolte, jak zde dokončit:\n\n- **S průvodcem (doporučeno)** — spustíte jeden snippet v portálu BMW; najde tento Client ID, zkontroluje vozidlo a zapne za vás datový stream. Žádné ruční opisování ID.\n- **Ručně** — klasická cesta, pokud chcete Client ID zkopírovat sami.",
+        "menu_options": {
+          "guided": "Nastavení s průvodcem (doporučeno)",
+          "manual": "Client ID vložím sám"
+        }
+      },
+      "manual": {
+        "title": "Připojit BMW CarData",
+        "description": "Tato integrace živě přenáší data vašeho BMW nebo Mini do Home Assistant.\n\n**Nejprve nastavte CarData v portálu BMW** (přeskočte, pokud už Client ID máte):\n\n1. Otevřete [portál BMW CarData]({portal_url}) a přihlaste se. Pokud CarData ve vaší zemi není k dispozici, přihlaste se přes [britský]({portal_uk}) nebo [německý]({portal_de}) portál — Client ID funguje všude.\n2. Vytvořte **CarData Client** a zkopírujte zobrazený **Client ID**.\n3. Přihlaste klienta k odběru **obou** služeb: **CarData API** a **CarData Streaming**.\n\nV **Výběru dat** zatím nic nezaškrtávejte — po autorizaci si na dalších obrazovkách vyberete, která data přenášet, a zapnete je záložkou na jedno kliknutí.\n\nPoté níže vložte **Client ID**.",
+        "data": {
+          "client_id": "Client ID"
+        },
+        "data_description": {
+          "client_id": "CarData Client ID z portálu BMW — dlouhý řetězec ve formátu UUID."
+        }
+      },
+      "guided_paste": {
+        "title": "Aktivujte data a vložte výsledek",
+        "description": "Nejprve se ujistěte, že jste v portálu BMW vytvořili **CarData Client** přihlášený k odběru **CarData API a CarData Streaming** — aktivátor tohoto klienta najde, nevytváří ho.\n\n1. Otevřete **[stránku nastavení BavarianData]({url})**.\n2. Přetáhněte tlačítko **Activate BMW data** na lištu záložek (jednou).\n3. Otevřete **portál BMW nebo MINI**, přihlaste se a přejděte na stránku **stream setup** vozidla.\n4. Klikněte na záložku **Activate BMW data**. Až skončí, stiskněte **Copy** v zobrazeném okně.\n5. Vložte výsledek níže a stiskněte **Odeslat**.\n\nVše běží ve vašem vlastním prohlížeči — žádné heslo ani relace jej neopustí.\n\n{error}",
+        "data": {
+          "result": "Výsledek nastavení"
+        },
+        "data_description": {
+          "result": "Text BAVARIANDATA…, který tlačítko Copy vložilo do schránky."
+        }
+      },
+      "guided_done": {
+        "title": "Stream aktivován",
+        "description": "Hotovo — pro **{vehicle}** se nyní přenáší **{field_count}** polí a váš Client ID je nastaven. Stiskněte **Odeslat** pro dokončení a poté v aplikaci MyBMW vůz zamkněte/odemkněte, aby se vyvolala první aktualizace."
+      },
+      "authorize_failed": {
+        "title": "Autorizace nebyla dokončena",
+        "description": "Autorizaci zařízení se nepodařilo dokončit.\n\n**Podrobnosti**\n```\n{error}\n```\n\n**Co zkontrolovat**\n- **declined / access_denied (403):** server BMW často hlásí odmítnutí i poté, co jste souhlasili — známý problém na straně BMW. Zkuste to znovu v **soukromém/anonymním okně**: portál BMW CarData otevřete sami (nepoužívejte odkaz s kódem v adrese), přihlaste se, zvolte *Ověřit zařízení* a **kód zadejte ručně**. Ujistěte se také, že je Client ID před autorizací přihlášen k odběru **CarData API i CarData Streaming** a že jste **primárním** uživatelem vozidla.\n- **expired / timeout:** kód nebyl schválen včas.\n\nStiskněte **Odeslat** pro nový kód a zkuste to znovu. Pokud to stále selhává, smažte CarData Client v portálu BMW, vytvořte nový a autorizujte znovu s novým Client ID — nebo napište podpoře BMW (bmwcardata-b2c-support@bmwgroup.com) a uveďte výše uvedenou **referenci BMW**.\n\nPodrobný návod je v README integrace v části *Troubleshooting → Onboarding fails with \"access denied\"*."
+      },
+      "select_clusters": {
+        "title": "Vybrat přenášená data",
+        "description": "Jste připojeni. Nyní vyberte, které skupiny dat vozidla chcete přenášet. BMW pro to nemá API — nastavení je dostupné jen v relaci prohlížeče v portálu — proto vám další obrazovka dá stejnou záložku na jedno kliknutí **Activate BMW data**, jakou používá nastavení s průvodcem. Spustíte ji na stránce stream setup v portálu a ona zapne přesně tyto skupiny. Diagnostická a technická pole zůstávají po příchodu dat ve výchozím stavu skrytá.\n\nKdykoli později to můžete změnit v Konfigurovat → Vybrat přenášená data.",
+        "data": {
+          "sections": "Skupiny dat"
+        },
+        "data_description": {
+          "sections": "Ponechte výchozí výběr pro doporučenou sadu, nebo ji omezte jen na data, která vás zajímají (např. jen Elektrické vozidlo a Stav vozidla)."
+        }
+      },
+      "activate_stream_paste": {
+        "title": "Aktivujte data a vložte výsledek",
+        "description": "1. Otevřete **[aktivační stránku BavarianData]({url})**.\n2. Přetáhněte tlačítko **Activate BMW data** na lištu záložek (jednou).\n3. Otevřete **portál BMW nebo MINI**, přihlaste se a přejděte na stránku **stream setup** vozidla.\n4. Klikněte na záložku **Activate BMW data**. Až skončí, stiskněte **Copy** v zobrazeném okně.\n5. Vložte výsledek níže a stiskněte **Odeslat**.\n\nVše běží ve vašem vlastním prohlížeči — žádné heslo ani relace jej neopustí. Tato pole jste v portálu už zaškrtli sami? Nechte pole prázdné a stiskněte **Odeslat** pro dokončení.\n\n{error}",
+        "data": {
+          "result": "Výsledek aktivace"
+        },
+        "data_description": {
+          "result": "Text BAVARIANDATA…, který tlačítko Copy vložilo do schránky. Nechte prázdné pro dokončení bez aktivace."
+        }
+      },
+      "activate_stream_done": {
+        "title": "Stream aktivován",
+        "description": "Hotovo — aktivátor zapnul **{added_count}** nových polí; pro toto vozidlo se nyní přenáší **{field_count}** polí.{error}\n\nStiskněte **Odeslat** pro dokončení nastavení a poté v aplikaci MyBMW vůz zamkněte/odemkněte, aby se vyvolala první aktualizace."
+      }
+    },
+    "progress": {
+      "wait_for_activation": "**Aktivujte data v prohlížeči**\n\nUjistěte se, že jste v portálu BMW už vytvořili **CarData Client** přihlášený k odběru **CarData API a CarData Streaming** — aktivátor tohoto klienta najde, nevytváří ho.\n\n1. Otevřete **[stránku nastavení BavarianData]({url})**.\n2. Přetáhněte tlačítko **Activate BMW data** na lištu záložek (jednou).\n3. Otevřete **portál BMW nebo MINI**, přihlaste se a přejděte na stránku **stream setup** vozidla.\n4. Klikněte na záložku **Activate BMW data**.\n\nNajde váš Client ID, zkontroluje vozidlo a zapne datový stream — vše ve vašem vlastním prohlížeči, nic ke kopírování. Tento dialog pokračuje automaticky, jakmile přijde odpověď. Zde není nic potřeba klikat.",
+      "wait_for_authorization": "**Schvalte Home Assistant na přihlašovací stránce BMW/MINI**\n\n1. Otevřete **[autorizační stránku]({verification_url})** a přihlaste se svým účtem BMW/MINI.\n2. Po vyzvání zadejte tento kód: **{user_code}**\n3. Potvrďte zařízení.\n\n**Kód zadejte ručně** — nepoužívejte odkaz, který už kód obsahuje v adrese, a ujistěte se, že není předvyplněn starý kód. Server BMW u předvyplněných kódů často chybně zaznamená *odmítnutí*. Pokud to přesto selže, zkuste to znovu v soukromém/anonymním okně.\n\nNechte tento dialog otevřený — pokračuje automaticky, jakmile schválíte. Zde není nic potřeba klikat.",
+      "wait_for_stream_activation": "**Aktivujte vybraná data v prohlížeči**\n\n1. Otevřete **[aktivační stránku BavarianData]({url})**.\n2. Přetáhněte tlačítko **Activate BMW data** na lištu záložek (jednou).\n3. Otevřete **portál BMW nebo MINI**, přihlaste se a přejděte na stránku **stream setup** vozidla.\n4. Klikněte na záložku **Activate BMW data**.\n\nZapne pole zvolených skupin — vše ve vašem vlastním prohlížeči, nic ke kopírování. Tento dialog pokračuje automaticky, jakmile přijde odpověď. Zde není nic potřeba klikat."
+    },
+    "error": {
+      "device_code_failed": "BMW odmítlo žádost o autorizaci zařízení ({error}). Zkontrolujte, že je Client ID správný a přihlášený k odběru obou služeb CarData, a zkuste to znovu.",
+      "invalid_result": "Výsledek se nepodařilo přečíst. Spusťte záložku Activate BMW data na stránce portálu BMW a vložte přesně to, co zkopírovala do schránky.",
+      "no_client_id": "Na vašem účtu nebyl nalezen žádný API klient. Vytvořte CarData Client v portálu BMW a poté znovu spusťte záložku Activate BMW data."
+    },
+    "abort": {
+      "account_already_configured": "Tento účet BMW je v Home Assistant už nastaven. Jeden záznam pokrývá celý účet včetně všech jeho vozů — přidání druhého Client ID pro stejný účet by přerušilo stream u obou, protože BMW povoluje jen jedno připojení na účet. Použijte existující záznam, nebo jej nejprve odstraňte.",
+      "reauth_successful": "Opětovná autorizace proběhla úspěšně — BMW CarData je opět připojeno.",
+      "reauth_device_code_failed": "BMW odmítlo žádost o autorizaci zařízení ({error}). Aktualizujte Client ID v Konfigurovat → Znovu autorizovat u BMW, nebo integraci odstraňte a přidejte znovu.",
+      "reauth_missing_client_id": "U tohoto záznamu integrace chybí Client ID. Odstraňte integraci a přidejte ji znovu, abyste ji znovu autorizovali.",
+      "reauth_failed": "Opětovnou autorizaci se nepodařilo spustit. Zkuste to znovu z možností integrace."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Možnosti BavarianData",
+        "description": "Vyberte akci. Akce tokenů a autorizace udržují připojení; datové akce volají na požádání REST API BMW (každá se započítává do denního limitu 50 požadavků).",
+        "menu_options": {
+          "action_select_clusters": "Vybrat přenášená data",
+          "action_refresh_tokens": "Obnovit tokeny nyní",
+          "action_reauth": "Znovu autorizovat u BMW",
+          "action_reset_container": "Resetovat telemetrický kontejner",
+          "action_fetch_mappings": "Vyhledat vozidla",
+          "action_fetch_basic": "Načíst základní údaje o vozidle",
+          "action_fetch_telematic": "Načíst telematická data",
+          "action_fetch_charging_history": "Načíst historii nabíjení",
+          "action_fetch_tyre": "Načíst diagnostiku pneumatik",
+          "action_fetch_location_charging": "Načíst nastavení nabíjení",
+          "action_fetch_image": "Načíst obrázek vozidla",
+          "action_data_refresh": "Automatická obnova dat",
+          "action_charging_costs": "Náklady a historie nabíjení",
+          "action_energy_sources": "Solár a zdroje energie",
+          "action_evcc_bridge": "Most evcc / wallbox",
+          "action_trips": "Jízdy",
+          "action_debug_logging": "Ladicí protokolování"
+        }
+      },
+      "action_select_clusters": {
+        "title": "Vybrat přenášená data",
+        "description": "Vyberte, které skupiny dat vozidla chcete přenášet. BMW pro to nemá API — nastavení je dostupné jen v relaci prohlížeče v portálu — proto vám další obrazovka dá záložku na jedno kliknutí **Activate BMW data**, kterou spustíte na stránce stream setup v portálu, a Home Assistant pak pokračuje automaticky.\n\nTímto se vybrané skupiny **přidají** k běžícímu streamu; nikdy se neodstraní pole, která už přenášíte. Chcete-li pole přestat přenášet, odškrtněte ho ve Výběru dat v portálu. Diagnostická a technická pole zůstávají po příchodu dat ve výchozím stavu skrytá.",
+        "data": {
+          "sections": "Skupiny dat"
+        },
+        "data_description": {
+          "sections": "Ponechte výchozí výběr pro doporučenou sadu, nebo ji omezte jen na data, která vás zajímají (např. jen Elektrické vozidlo a Stav vozidla)."
+        }
+      },
+      "activate_stream_paste": {
+        "title": "Aktivujte data a vložte výsledek",
+        "description": "1. Otevřete **[aktivační stránku BavarianData]({url})**.\n2. Přetáhněte tlačítko **Activate BMW data** na lištu záložek (jednou).\n3. Otevřete **portál BMW nebo MINI**, přihlaste se a přejděte na stránku **stream setup** vozidla.\n4. Klikněte na záložku **Activate BMW data**. Až skončí, stiskněte **Copy** v zobrazeném okně.\n5. Vložte výsledek níže a stiskněte **Odeslat**.\n\nVše běží ve vašem vlastním prohlížeči — žádné heslo ani relace jej neopustí.\n\n{error}",
+        "data": {
+          "result": "Výsledek aktivace"
+        },
+        "data_description": {
+          "result": "Text BAVARIANDATA…, který tlačítko Copy vložilo do schránky."
+        }
+      },
+      "activate_stream_done": {
+        "title": "Pole streamu aktivována",
+        "description": "Hotovo — aktivátor zapnul **{added_count}** nových polí; pro toto vozidlo se nyní přenáší **{field_count}** polí.{error}\n\nStiskněte **Odeslat** pro uložení výběru. V aplikaci MyBMW vůz zamkněte/odemkněte, aby se vyvolala další aktualizace."
+      },
+      "action_refresh_tokens": {
+        "title": "Obnovit tokeny nyní",
+        "description": "Obnoví uložené přístupové a ID tokeny bez nového přihlášení k BMW. Použijte, pokud se data přestala aktualizovat. Pokud problémy přetrvávají, poté restartujte Home Assistant.\n\nStiskněte Odeslat pro pokračování."
+      },
+      "action_reauth": {
+        "title": "Znovu autorizovat u BMW",
+        "description": "Znovu spustí autorizaci zařízení BMW — například po vypršení obnovovacího tokenu (každé 2 týdny) nebo pokud jste vygenerovali nový Client ID. Poté schválíte Home Assistant na webu BMW.",
+        "data": {
+          "client_id": "Client ID"
+        },
+        "data_description": {
+          "client_id": "Ponechte beze změny pro použití současného Client ID, nebo vložte nový z portálu BMW."
+        }
+      },
+      "action_reset_container": {
+        "title": "Resetovat telemetrický kontejner",
+        "description": "Smaže telemetrické kontejnery CarData vytvořené touto integrací a vytvoří nový. Použijte, pokud přenášená data vypadají chybně, nebo po změně Výběru dat v portálu BMW.\n\nStiskněte Odeslat pro pokračování."
+      },
+      "action_fetch_mappings": {
+        "title": "Vyhledat vozidla",
+        "description": "Zeptá se BMW, která vozidla (VIN) jsou přiřazena k vašemu účtu, a vytvoří jejich zařízení. Spusťte jednou po nastavení, pokud se vaše vozy ještě neobjevily.\n\nStiskněte Odeslat pro pokračování."
+      },
+      "action_fetch_basic": {
+        "title": "Načíst základní údaje o vozidle",
+        "description": "Načte pevné údaje (model, barva, výbava) každého známého vozidla.\n\nStiskněte Odeslat pro pokračování."
+      },
+      "action_fetch_telematic": {
+        "title": "Načíst telematická data",
+        "description": "Stáhne nyní nejnovější telematický snímek z REST API BMW místo čekání na další plánovaný dotaz.\n\nStiskněte Odeslat pro pokračování."
+      },
+      "action_fetch_charging_history": {
+        "title": "Načíst historii nabíjení",
+        "description": "Načte nejnovější relace nabíjení vašich vozidel.\n\nStiskněte Odeslat pro pokračování."
+      },
+      "action_fetch_tyre": {
+        "title": "Načíst diagnostiku pneumatik",
+        "description": "Načte nejnovější diagnostiku tlaku v pneumatikách vašich vozidel.\n\nStiskněte Odeslat pro pokračování."
+      },
+      "action_fetch_location_charging": {
+        "title": "Načíst nastavení nabíjení",
+        "description": "Načte nastavení nabíjení vázaná na místo pro vaše vozidla.\n\nStiskněte Odeslat pro pokračování."
+      },
+      "action_fetch_image": {
+        "title": "Načíst obrázek vozidla",
+        "description": "Načte aktuální obrázek vašich vozidel.\n\nStiskněte Odeslat pro pokračování."
+      },
+      "action_charging_costs": {
+        "title": "Náklady a historie nabíjení",
+        "description": "Převádí zaznamenaná nabíjení na peníze. Dokud není nastaven zdroj ceny, nevytvoří se žádné entity nákladů — špatná cena je horší než žádná.\n\n**Pevná cena** účtuje každou kWh stejnou sazbou. **Entita ceny** sleduje živý tarif (Tibber, Nordpool, aWATTar, …) vzorkovaný během nabíjení, takže relace přes změnu ceny se vyúčtuje správně.\n\nEnergie se měří u baterie, takže je o něco menší, než kolik dodala síť. Pokud máte elektroměr, nastavte ho v **Senzor energie wallboxu** — to je přesné. Jinak můžete hodnotu navýšit o ztráty nabíjení; ve výchozím stavu zůstávají 0 %, protože vymyšlená korekce by vypadala jako měření.\n\n**Dlouhodobé statistiky** publikuje zaznamenanou historii do vlastních statistik Home Assistant, takže nabíjení z doby před instalací — nebo z doby, kdy byl Home Assistant vypnutý — se přesto objeví na panelu Energie.",
+        "data": {
+          "price_mode": "Zdroj ceny",
+          "price_fixed": "Pevná cena za kWh",
+          "price_entity": "Entita ceny",
+          "price_currency": "Měna",
+          "grid_energy_entity": "Senzor energie wallboxu",
+          "charging_loss_percent": "Ztráty nabíjení (%)",
+          "history_retain_months": "Uchovávat historii (měsíce)",
+          "statistics_import": "Publikovat do dlouhodobých statistik"
+        },
+        "data_description": {
+          "price_mode": "Zvolte 'Žádný' pro záznam relací bez výpočtu nákladů.",
+          "price_fixed": "Použije se jen tehdy, když je zdrojem ceny 'Pevná cena'.",
+          "price_entity": "Použije se jen tehdy, když je zdrojem ceny 'Entita ceny'. Její stav musí být cena za kWh.",
+          "price_currency": "Kód ISO zobrazený u senzorů nákladů, např. EUR, GBP, CHF, CZK.",
+          "grid_energy_entity": "Volitelné. Kumulativní součet energie vašeho wallboxu (takový, který jen roste, ne počítadlo za relaci, které se nuluje). Podporovány jsou Wh, kWh a MWh; bez jednotky se čte jako kWh. Čte se jen pro nabíjení ve vaší zóně Domov, protože elektroměr neví, které auto nabíjel. Naměřená hodnota ze sítě vždy vítězí nad naším odhadem na straně baterie — a hodnota, která nemůže být pravdivá, například domovní elektroměr ukazující mnohem víc, než baterie přijala, se ignoruje místo toho, aby se jí věřilo.",
+          "charging_loss_percent": "Volitelné. Navyšuje energii na straně baterie směrem k energii ze sítě.",
+          "history_retain_months": "0 uchová vše. Starší relace se zahazují.",
+          "statistics_import": "Zrcadlí energii, náklady a vzdálenost do statistik, které můžete přidat na panel Energie. Zůstává lokálně; vypnutí je opět smaže."
+        }
+      },
+      "action_energy_sources": {
+        "title": "Solár a zdroje energie",
+        "description": "Zaznamenává, odkud pocházela energie každého nabíjení: z vaší střechy, z domácí baterie, nebo ze sítě.\n\nPotřebné jsou jak **Výkon FV**, tak **Výkon sítě**. Vzorkují se během nabíjení a energie se přiřazuje průběžně, takže nabíjení začaté za slunce a dokončené po setmění se rozdělí mezi obě, místo aby připadlo tomu poslednímu. Auto se bere jako další spotřebič a dostává stejný mix jako zbytek domu v danou chvíli — žádná konvence, která ho nabíjí ze sítě, ani taková, která mu dává slunce přednostně.\n\nVýkon sítě musí být **kladný při odběru**. Domácí baterie je volitelná; bez ní dostanete rozdělení na dvě části. Senzory v kW se převádějí automaticky a senzor bez jednotky se čte ve wattech.\n\n**Hodnota vlastní solární energie** je, kolik pro vás má cenu kWh z vlastní střechy — obvykle výkupní cena, peníze, o které přicházíte tím, že ji nedodáte do sítě. Nechte prázdné a solár se ocení nákupní cenou, přesně jako dřív; nový je jen mix. Energie z domácí baterie se vždy oceňuje nákupní cenou: její obsah mohl pocházet ze střechy v poledne nebo z levného nabíjení ze sítě ve tři ráno, a tato integrace to nedokáže rozlišit.",
+        "data": {
+          "pv_power_entity": "Výkon FV",
+          "grid_power_entity": "Výkon sítě (+ odběr / − dodávka)",
+          "battery_power_entity": "Výkon domácí baterie (volitelné)",
+          "battery_power_invert": "Můj senzor baterie je při nabíjení kladný",
+          "price_solar": "Hodnota vlastní solární energie za kWh"
+        },
+        "data_description": {
+          "pv_power_entity": "Celková výroba vašeho střídače (střídačů).",
+          "grid_power_entity": "Výkon se znaménkem na elektroměru: kladný při odběru ze sítě, záporný při dodávce.",
+          "battery_power_entity": "Nechte prázdné, pokud nemáte domácí úložiště. Očekává se kladný při vybíjení — zaškrtněte pole níže, pokud je to u vás naopak.",
+          "battery_power_invert": "Mnoho integrací publikuje výkon baterie kladný při nabíjení. Ze samotné hodnoty to nelze poznat, proto uveďte, jak je to u vás.",
+          "price_solar": "Nechte prázdné pro ocenění soláru nákupní cenou. Nastavte výkupní cenu, abyste viděli, kolik vás nabíjení skutečně stálo."
+        }
+      },
+      "action_evcc_bridge": {
+        "title": "Most evcc / wallbox",
+        "description": "Publikuje živý stav tohoto auta na váš MQTT broker, aby jej mohl číst řadič nabíjení.\n\nTo je jediná věc, kterou BavarianData má a evcc, openWB a spol. ne: **stav nabití přímo ze streamu BMW, bez nákladů na API**. Jejich vlastní integrace BMW periodicky dotazují API výrobce a jsou za to omezovány; zde hodnota dorazí, jakmile ji auto nahlásí, a nespotřebuje žádný z vašich 50 denních požadavků.\n\nPublikuje přes **integraci MQTT v Home Assistant**, takže dorazí přesně na broker, který evcc už čte, a není třeba zde zadávat hostitele, port ani heslo. Nejprve musíte mít nastavenou integraci MQTT.\n\nPro každé vozidlo pod `PREFIX/VIN/`: `soc`, `status` (A/B/C v evcc), `range`, `odometer`, `limitSoc`, `chargePower`, `plugged`, `charging`, `updated` a `state` jako jeden dokument JSON. **Co auto nehlásí, se nepublikuje**, místo odeslání nuly — řadič nabíjení jedná podle těchto čísel, takže chybné je horší než chybějící. Vše se znovu odesílá každých pět minut i beze změny, takže stav nabití zaparkovaného auta na brokeru nikdy nezastará.\n\nOpětovné vypnutí odstraní, co bylo publikováno, aby se nic dál nenabíjelo podle zamrzlého stavu nabití.\n\nNa další obrazovce dostanete konfiguraci evcc ke vložení.",
+        "data": {
+          "bridge_enabled": "Publikovat toto auto do MQTT",
+          "bridge_topic_prefix": "Prefix témat",
+          "bridge_retain": "Publikovat jako retained"
+        },
+        "data_description": {
+          "bridge_enabled": "Ve výchozím stavu vypnuto: umístí VIN a stav auta na broker, který mohou číst i jiné systémy.",
+          "bridge_topic_prefix": "Témata budou `PREFIX/VIN/soc` a tak dále. Ponechte bavariandata, pokud to s něčím nekoliduje.",
+          "bridge_retain": "Ponechte zapnuté. Díky tomu evcc najde stav nabití hned po spuštění, místo aby čekalo, až auto něco řekne — což u zaparkovaného auta může trvat hodiny. Vypněte jen tehdy, pokud váš broker odmítá retained zprávy."
+        }
+      },
+      "evcc_snippet": {
+        "title": "Konfigurace evcc",
+        "description": "Přidejte toto do svého `evcc.yaml` pod klíč `vehicles:` (sloučte s vozidly, která už máte — klíč se smí objevit jen jednou):\n\n```\n{snippet}\n```\n\nevcc také musí znát váš broker, ve vlastní sekci `mqtt:` — tentýž, který používá Home Assistant. Poté přiřaďte vozidlo k nabíjecímu bodu a restartujte evcc.\n\nUvedena jsou jen pole, která toto auto skutečně hlásí: plugin nasměrovaný na téma, na které nikdy nepřijde zpráva, způsobí, že evcc v každém cyklu zaloguje chybu čtení. Záměrně není nastaven `timeout` — hodnoty se pravidelně publikují znovu, takže zaparkované auto si udrží platný stav nabití, místo aby zůstalo prázdné.\n\nKdykoli si to můžete znovu načíst akcí **Získat konfiguraci evcc**."
+      },
+      "action_trips": {
+        "title": "Jízdy (kniha jízd)",
+        "description": "Rekonstruuje vaše jízdy ze streamu bez nákladů na API — vzdálenost, rozdělení služební/soukromé/dojíždění, spotřebu a měsíční přehled.\n\nNastavte **Pracovní zónu**, aby se dojíždění (domov ↔ práce) rozpoznávalo automaticky; jízdu můžete kdykoli opravit později. Vše, co není dojíždění, se zařadí jako **Výchozí typ** (ve výchozím stavu Soukromá). Dojíždění přežije i zastávku po cestě: pokud auto stojí nejvýše po dobu **Tolerance zastávky při dojíždění**, jízda k zastávce i jízda dál se počítají jako dojíždění. **Vyhledávat adresy** je ve výchozím stavu vypnuto: po zapnutí se koncový bod jízdy mimo jakoukoli zónu Home Assistant vyhledá přes OpenStreetMap a uloží jako adresa — souřadnice se k vyhledání odešlou, ale nikdy se neukládají.\n\n**Zaznamenávat trasu** je také ve výchozím stavu vypnuto: po zapnutí každá jízda uloží svou GPS stopu — kudy a kdy auto jelo — aby mapa mohla jízdu zobrazit a přehrát. Je to jediné nastavení, které ukládá surové souřadnice na disk, včetně vašich přesných počátečních a koncových bodů.\n\n**Diagnostika záznamu jízd** je pomůcka při řešení potíží: po zapnutí se každá poloha GPS, časovač i zpráva podrobně zaznamenává a zapisuje se soubor záznamu, který pomáhá zlepšit rozpoznávání jízd. Zapněte ji jen na testovací jízdu a pak ji zase vypněte.",
+        "data": {
+          "trip_work_zone": "Pracovní zóna",
+          "trip_default_class": "Výchozí typ",
+          "trip_commute_gap": "Tolerance zastávky při dojíždění",
+          "trip_geocode": "Vyhledávat adresy",
+          "trip_track": "Zaznamenávat trasu",
+          "trip_debug": "Diagnostika záznamu jízd"
+        },
+        "data_description": {
+          "trip_work_zone": "Volitelné. Jízda mezi touto zónou a domovem se zařadí jako dojíždění.",
+          "trip_default_class": "Jak se zařadí každá jízda, která není dojíždění domov ↔ práce. Je to jen výchozí bod — oprava jízdy na kartě má vždy přednost a nikdy se nepřepíše.",
+          "trip_commute_gap": "Jak dlouho smí auto mezi dvěma jízdami stát, aby se obě stále počítaly jako jedno dojíždění — supermarket cestou do práce. Nastavte 0 pro vypnutí. Zastávky kratší než zhruba pět minut jízdu nikdy nerozdělí.",
+          "trip_geocode": "Volitelné. Odesílá body mimo zóny do OpenStreetMap; ukládá se jen výsledná adresa, nikdy souřadnice.",
+          "trip_track": "Volitelné. Ukládá GPS stopu každé jízdy — souřadnice podél trasy a u každé čas — aby mapa mohla trasu vykreslit a přehrát. Jediné nastavení, které ukládá surové souřadnice na disk (včetně přesného začátku a konce), proto je z důvodu soukromí ve výchozím stavu vypnuté.",
+          "trip_debug": "Pouze pro diagnostiku. Zaznamenává surová data rozpoznávání jízd (každou polohu GPS, časovač uzavření, dávku segmentů a zprávu) a zapisuje bavariandata_trip_capture.ndjson do vaší konfigurační složky. Velmi podrobné a obsahuje GPS/VIN, proto zapněte na testovací jízdu a pak zase vypněte."
+        }
+      },
+      "action_data_refresh": {
+        "title": "Automatická obnova dat",
+        "description": "Živý stream přenáší jen to, co se změní, zatímco Home Assistant naslouchá. Co auto hlásilo, když byl Home Assistant vypnutý nebo bylo přerušeno spojení s BMW (dokončené nabíjení, zamčení dveří, jízda), se po opětovném připojení nepřehraje.\n\nPo zapnutí se integrace dvě minuty po startu Home Assistant zeptá BMW na aktuální stav každého auta a znovu, když se spojení obnoví po výpadku trvajícím pět minut nebo déle. BMW vrátí poslední hodnoty, které každé auto odeslalo, takže doženete zmeškané, aniž byste auto probudili. Spotřebuje to jeden z 50 denních požadavků na auto. Přeskočí se, pokud byl BMW dotázán během poslední hodiny, ledaže při restartu probíhalo nabíjení, a vždy ponechá 10 požadavků pro vaše vlastní volání služeb.",
+        "data": {
+          "refresh_on_start": "Dohnat zmeškané po restartu nebo výpadku"
+        },
+        "data_description": {
+          "refresh_on_start": "Projeví se okamžitě."
+        }
+      },
+      "action_debug_logging": {
+        "title": "Ladicí protokolování",
+        "description": "Zapne podrobné protokolování této integrace (připojení MQTT, odebíraná témata a každá příchozí zpráva). Je to nezávislé na obecném přepínači ladění v Home Assistant — pro zobrazení podrobných řádků musí být zapnutá jak úroveň protokolování, tak tento přepínač. Je to rozsáhlé a může obsahovat data vozidla, například souřadnice GPS, proto jej při běžném používání nechte vypnutý. Změna platí okamžitě. S více nastavenými účty BMW je úroveň protokolování sdílená: podrobné protokolování zůstává zapnuté, dokud jej má zapnutý kterýkoli účet.",
+        "data": {
+          "debug_log": "Zapnout ladicí protokolování"
+        },
+        "data_description": {
+          "debug_log": "Zůstává zapnuté i po restartech, dokud jej zde nevypnete."
+        }
+      }
+    },
+    "progress": {
+      "wait_for_stream_activation": "**Aktivujte vybraná data v prohlížeči**\n\n1. Otevřete **[aktivační stránku BavarianData]({url})**.\n2. Přetáhněte tlačítko **Activate BMW data** na lištu záložek (jednou).\n3. Otevřete **portál BMW nebo MINI**, přihlaste se a přejděte na stránku **stream setup** vozidla.\n4. Klikněte na záložku **Activate BMW data**.\n\nZapne pole zvolených skupin — vše ve vašem vlastním prohlížeči, nic ke kopírování. Tento dialog pokračuje automaticky, jakmile přijde odpověď. Zde není nic potřeba klikat."
+    },
+    "error": {
+      "mix_needs_both": "Přiřazení energie vyžaduje senzor výkonu FV i senzor výkonu sítě. S jen jedním z nich by rozdělení muselo ten druhý odhadovat.",
+      "refresh_failed": "Obnova tokenů selhala: {error}",
+      "reset_failed": "Reset telemetrického kontejneru selhal: {error}",
+      "missing_token": "Není k dispozici žádný platný přístupový token. Zkuste nejprve \"Obnovit tokeny nyní\" nebo znovu autorizovat.",
+      "runtime_missing": "Integrace ještě není připravena. Zkuste to znovu po dokončení nastavení.",
+      "no_vins": "Zatím nejsou známa žádná vozidla. Nejprve spusťte \"Vyhledat vozidla\", nebo počkejte, až stream nějaké nahlásí.",
+      "invalid_int": "Zadejte kladné celé číslo.",
+      "invalid_client_id": "Zadejte Client ID BMW CarData.",
+      "invalid_result": "Výsledek se nepodařilo přečíst. Spusťte záložku Activate BMW data na stránce stream setup v portálu BMW a vložte přesně to, co zkopírovala do schránky.",
+      "price_required": "Zadejte pevnou cenu za kWh, nebo zvolte jiný zdroj ceny.",
+      "price_entity_required": "Vyberte entitu, která hlásí vaši cenu za kWh, nebo zvolte jiný zdroj ceny.",
+      "mqtt_missing": "Most publikuje přes integraci MQTT v Home Assistant a tu nemáte nastavenou. Přidejte ji v Nastavení → Zařízení a služby (obvyklou volbou je doplněk Mosquitto broker) a pak se vraťte."
+    },
+    "abort": {
+      "reauth_started": "Autorizace byla znovu spuštěna. Dokončete nové přihlášení z oznámení, které se právě objevilo.",
+      "reauth_device_code_failed": "BMW odmítlo žádost o autorizaci zařízení ({error}). Zkontrolujte Client ID a zkuste to znovu.",
+      "reauth_missing_client_id": "U tohoto záznamu integrace chybí Client ID. Odstraňte integraci a přidejte ji znovu, abyste ji znovu autorizovali.",
+      "reauth_failed": "Opětovnou autorizaci se nepodařilo spustit. Zkuste to znovu z možností integrace."
+    }
+  },
+  "selector": {
+    "price_mode": {
+      "options": {
+        "none": "Žádný",
+        "fixed": "Pevná cena",
+        "entity": "Entita ceny"
+      }
+    },
+    "trip_default_class": {
+      "options": {
+        "private": "Soukromá",
+        "business": "Služební",
+        "unclassified": "Nechat nezařazené"
+      }
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "zone_arrived": "Přijelo do zóny",
+      "zone_left": "Opustilo zónu",
+      "parked_unlocked": "Zaparkováno a ponecháno odemčené",
+      "plugged_not_charging": "Připojeno, ale nenabíjí se",
+      "charging_started": "Nabíjení zahájeno",
+      "charging_complete": "Nabíjení dokončeno (cíl dosažen)",
+      "charging_interrupted": "Nabíjení zastaveno před cílem, kabel stále připojen"
+    },
+    "extra_fields": {
+      "zone": "Zóna (prázdné: libovolná zóna)",
+      "for": "Alespoň po dobu"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "vehicle_body_chargingport_combinedstatus": {
+        "name": "Stav připojení nabíjecího portu",
+        "state": {
+          "disconnected": "Odpojeno",
+          "connected": "Připojeno",
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_body_chargingport_dcstatus": {
+        "name": "Stav konektoru nabíjení (pouze DC)",
+        "state": {
+          "disconnected": "Odpojeno",
+          "connected": "Připojeno",
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_body_chargingport_ishospitalityactive": {
+        "name": "Stav uzamčení nabíjecího konektoru po úplném nabití",
+        "state": {
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_body_chargingport_isosessionid": {
+        "name": "ID relace nabíjení"
+      },
+      "vehicle_body_chargingport_lockedstatus": {
+        "name": "Stav uzamknutí nabíjecího portu",
+        "state": {
+          "unknown": "Neznámé"
+        }
+      },
+      "vehicle_body_chargingport_plugeventid": {
+        "name": "ID události zástrčky nabíjecího portu"
+      },
+      "vehicle_body_chargingport_status": {
+        "name": "Stav konektoru nabíjení",
+        "state": {
+          "connected": "Připojeno",
+          "disconnected": "Odpojeno",
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_body_chargingport_statuscleartext": {
+        "name": "Text stavu nabíjecího portu",
+        "state": {
+          "disconnected": "Odpojeno",
+          "connected": "Připojeno"
+        }
+      },
+      "vehicle_body_flap_islocked": {
+        "name": "Stav nabíjecí klapky",
+        "state": {
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_body_flap_ispermanentlyunlocked": {
+        "name": "Stav uzamčení nabíjecí klapky",
+        "state": {
+          "no_action": "Žádná akce",
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_body_hood_isopen": {
+        "name": "Stav kapoty motoru",
+        "state": {
+          "closed": "Zavřeno",
+          "open": "Otevřeno",
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_body_lights_isrunningon": {
+        "name": "Stav světel"
+      },
+      "vehicle_body_trunk_door_isopen": {
+        "name": "Stav otevřených dveří zavazadlového prostoru"
+      },
+      "vehicle_body_trunk_islocked": {
+        "name": "Stav uzamknutého zavazadlového prostoru"
+      },
+      "vehicle_body_trunk_isopen": {
+        "name": "Stav víka zavazadlového prostoru",
+        "state": {
+          "closed": "Zavřeno",
+          "open": "Otevřeno",
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_body_trunk_left_door_isopen": {
+        "name": "Levé dveře zavazadlového prostoru otevřené"
+      },
+      "vehicle_body_trunk_lower_door_isopen": {
+        "name": "Dolní dveře zavazadlového prostoru otevřené"
+      },
+      "vehicle_body_trunk_right_door_isopen": {
+        "name": "Pravé dveře zavazadlového prostoru otevřené"
+      },
+      "vehicle_body_trunk_upper_door_isopen": {
+        "name": "Horní dveře zavazadlového prostoru otevřené"
+      },
+      "vehicle_body_trunk_window_isopen": {
+        "name": "Odblokování zadního okna",
+        "state": {
+          "closed": "Zavřeno",
+          "open": "Otevřeno",
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_action": {
+        "name": "Akce přepsání časovače klimatizace",
+        "state": {
+          "activate": "Aktivovat",
+          "deactivate": "Deaktivovat",
+          "no_action": "Žádná akce"
+        }
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_hour": {
+        "name": "Přepsání hodin časovače klimatizace"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_minute": {
+        "name": "Přepsání minut časovače klimatizace"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_action": {
+        "name": "Akce časovače všedního dne 1",
+        "state": {
+          "activate": "Aktivovat",
+          "deactivate": "Deaktivovat",
+          "no_action": "Žádná akce"
+        }
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_hour": {
+        "name": "Hodina časovače všedního dne 1"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_minute": {
+        "name": "Minuta časovače všedního dne 1"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_action": {
+        "name": "Akce časovače všedního dne 2",
+        "state": {
+          "activate": "Aktivovat",
+          "deactivate": "Deaktivovat",
+          "no_action": "Žádná akce"
+        }
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_hour": {
+        "name": "Hodina časovače všedního dne 2"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_minute": {
+        "name": "Minuta časovače všedního dne 2"
+      },
+      "vehicle_cabin_convertible_roofretractablestatus": {
+        "name": "Stav střechy kabrioletu"
+      },
+      "vehicle_cabin_convertible_roofstatus": {
+        "name": "Stav střechy kabrioletu"
+      },
+      "vehicle_cabin_door_lock_status": {
+        "name": "Stav dveří",
+        "state": {
+          "secured": "Zajištěno",
+          "unlocked": "Odemčeno",
+          "selective-locked": "Částečně zamčeno",
+          "locked": "Zamčeno",
+          "invalid": "Neplatné",
+          "unknown": "Neznámé"
+        }
+      },
+      "vehicle_cabin_door_row1_driver_isopen": {
+        "name": "Stav dveří vpředu vlevo",
+        "state": {
+          "open": "Otevřeno",
+          "closed": "Zavřeno",
+          "invalid": "Neplatné",
+          "unknown": "Neznámé"
+        }
+      },
+      "vehicle_cabin_door_row1_driver_position": {
+        "name": "Poloha předních dveří na straně řidiče"
+      },
+      "vehicle_cabin_door_row1_passenger_isopen": {
+        "name": "Stav dveří vpředu vpravo",
+        "state": {
+          "open": "Otevřeno",
+          "closed": "Zavřeno",
+          "invalid": "Neplatné",
+          "unknown": "Neznámé"
+        }
+      },
+      "vehicle_cabin_door_row1_passenger_position": {
+        "name": "Poloha předních dveří na straně spolujezdce"
+      },
+      "vehicle_cabin_door_row2_driver_isopen": {
+        "name": "Stav dveří vzadu vlevo",
+        "state": {
+          "open": "Otevřeno",
+          "closed": "Zavřeno",
+          "invalid": "Neplatné",
+          "unknown": "Neznámé"
+        }
+      },
+      "vehicle_cabin_door_row2_driver_position": {
+        "name": "Poloha zadních dveří na straně řidiče"
+      },
+      "vehicle_cabin_door_row2_passenger_isopen": {
+        "name": "Stav dveří vzadu vpravo",
+        "state": {
+          "open": "Otevřeno",
+          "closed": "Zavřeno",
+          "invalid": "Neplatné",
+          "unknown": "Neznámé"
+        }
+      },
+      "vehicle_cabin_door_row2_passenger_position": {
+        "name": "Poloha zadních dveří na straně spolujezdce"
+      },
+      "vehicle_cabin_door_status": {
+        "name": "Stav dveří",
+        "state": {
+          "secured": "Zajištěno",
+          "locked": "Zamčeno",
+          "selectivelocked": "Částečně zamčeno",
+          "unlocked": "Odemčeno",
+          "unknown": "Neznámé"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_cooling": {
+        "name": "Výchozí chlazení předního sedadla na straně řidiče",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_heating": {
+        "name": "Výchozí vyhřívání předního sedadla na straně řidiče",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_cooling": {
+        "name": "Výchozí chlazení předního sedadla na straně spolujezdce",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_heating": {
+        "name": "Výchozí vyhřívání předního sedadla na straně spolujezdce",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_cooling": {
+        "name": "Výchozí chlazení zadního sedadla na straně řidiče",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_heating": {
+        "name": "Výchozí vyhřívání zadního sedadla na straně řidiče",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_cooling": {
+        "name": "Výchozí chlazení zadního sedadla na straně spolujezdce",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_heating": {
+        "name": "Výchozí vyhřívání zadního sedadla na straně spolujezdce",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_cooling": {
+        "name": "Výchozí chlazení sedadla na straně řidiče ve třetí řadě",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_heating": {
+        "name": "Výchozí vyhřívání sedadla na straně řidiče ve třetí řadě",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_cooling": {
+        "name": "Výchozí chlazení sedadla na straně spolujezdce ve třetí řadě",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_heating": {
+        "name": "Výchozí vyhřívání sedadla na straně spolujezdce ve třetí řadě",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_steeringwheel_heating": {
+        "name": "Výchozí vyhřívání volantu",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_targettemperature": {
+        "name": "Cílová teplota"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_cooling": {
+        "name": "Přímé chlazení předního sedadla na straně řidiče",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_heating": {
+        "name": "Přímé vyhřívání předního sedadla na straně řidiče",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_cooling": {
+        "name": "Přímé chlazení předního sedadla na straně spolujezdce",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_heating": {
+        "name": "Přímé vyhřívání předního sedadla na straně spolujezdce",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_cooling": {
+        "name": "Přímé chlazení zadního sedadla na straně řidiče",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_heating": {
+        "name": "Přímé vyhřívání zadního sedadla na straně řidiče",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_cooling": {
+        "name": "Přímé chlazení zadního sedadla na straně spolujezdce",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_heating": {
+        "name": "Přímé vyhřívání zadního sedadla na straně spolujezdce",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_cooling": {
+        "name": "Přímé chlazeí sedadla na straně řidiče ve třetí řadě",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_heating": {
+        "name": "Přímé vyhřívání sedadla na straně řidiče ve třetí řadě",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_cooling": {
+        "name": "Přímé chlazení sedadla na straně spolujezdce ve třetí řadě",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_heating": {
+        "name": "Přímé vyhřívání sedadla na straně spolujezdce ve třetí řadě",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_steeringwheel_heating": {
+        "name": "Přímé zahřívání volantu",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "automatic": "Automaticky",
+          "no_change": "Beze změny"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_targettemperature": {
+        "name": "Cílová teplota přímého startu"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_isremoteenginestartdisclaimer": {
+        "name": "Zřeknutí se odpovědnosti ohledně dálkového ovládání klimatizace"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_comfortstate": {
+        "name": "Stav předúpravy klimatu"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_isexteriormirrorheatingactive": {
+        "name": "Vyhřívání vnějších zpětných zrcátek aktivní"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_progress": {
+        "name": "Průběh předúpravy klimatu"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_reardefrostactive": {
+        "name": "Zadní odmrazování aktivní"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_remainingrunningtime": {
+        "name": "Zbývající čas předúpravy klimatu"
+      },
+      "vehicle_cabin_hvac_statusairpurification": {
+        "name": "Stav čištění vzduchu HVAC",
+        "state": {
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_cabin_infotainment_displayunit_distance": {
+        "name": "Displej hlavních přístrojů",
+        "state": {
+          "km": "Kilometry",
+          "miles": "Míle"
+        }
+      },
+      "vehicle_cabin_infotainment_hmi_distanceunit": {
+        "name": "Jednotka ujeté vzdálenosti systému infotainmentu",
+        "state": {
+          "miles": "Míle",
+          "kilometers": "Kilometry"
+        }
+      },
+      "vehicle_cabin_infotainment_ismobilephoneconnected": {
+        "name": "Připojení mobilního telefonu"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_altitude": {
+        "name": "Nadmořská výška vozidla"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_fixstatus": {
+        "name": "Stav určování polohy navigace"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_heading": {
+        "name": "Orientace vozidla"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_latitude": {
+        "name": "Pozice vozidla – zeměpisná šířka"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_longitude": {
+        "name": "Pozice vozidla – zeměpisná délka"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_numberofsatellites": {
+        "name": "Počet navigačních satelitů"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_arrivaltime": {
+        "name": "Doba do dosažení cíle zadaného do navigace"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_distance": {
+        "name": "Vzdálenost od navigačního cíle"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_latitude": {
+        "name": "Cíl navigace — zeměpisná šířka"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_longitude": {
+        "name": "Cíl navigace — zeměpisná délka"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_available": {
+        "name": "Počet volných míst POI v navigačním systému"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_max": {
+        "name": "Maximální počet ukládání POI v navigačním systému"
+      },
+      "vehicle_cabin_infotainment_navigation_remainingrange": {
+        "name": "Zbývající dojezd"
+      },
+      "vehicle_cabin_seat_row1_driverside_cooling": {
+        "name": "Chlazení předního sedadla řidiče"
+      },
+      "vehicle_cabin_seat_row1_driverside_heating": {
+        "name": "Vyhřívání předního sedadla řidiče"
+      },
+      "vehicle_cabin_seat_row1_passengerside_cooling": {
+        "name": "Chlazení sedadla spolujezdce"
+      },
+      "vehicle_cabin_seat_row1_passengerside_heating": {
+        "name": "Vyhřívání sedadla spolujezdce"
+      },
+      "vehicle_cabin_seat_row2_driverside_cooling": {
+        "name": "Chlazení zadního sedadla na straně řidiče"
+      },
+      "vehicle_cabin_seat_row2_driverside_heating": {
+        "name": "Vyhřívání zadního sedadla na straně řidiče"
+      },
+      "vehicle_cabin_seat_row2_passengerside_cooling": {
+        "name": "Chlazení zadního sedadla na straně spolujezdce"
+      },
+      "vehicle_cabin_seat_row2_passengerside_heating": {
+        "name": "Vyhřívání zadního sedadla na straně spolujezdce"
+      },
+      "vehicle_cabin_seat_row3_driverside_cooling": {
+        "name": "Chlazení sedadla na straně řidiče ve třetí řadě"
+      },
+      "vehicle_cabin_seat_row3_driverside_heating": {
+        "name": "Vyhřívání sedadla na straně řidiče ve třetí řadě"
+      },
+      "vehicle_cabin_seat_row3_passengerside_cooling": {
+        "name": "Chlazení sedadla na straně spolujezdce ve třetí řadě"
+      },
+      "vehicle_cabin_seat_row3_passengerside_heating": {
+        "name": "Vyhřívání sedadla na straně spolujezdce ve třetí řadě"
+      },
+      "vehicle_cabin_steeringwheel_heating": {
+        "name": "Vyhřívání volantu"
+      },
+      "vehicle_cabin_sunroof_overallstatus": {
+        "name": "Celkový stav střešního okna",
+        "state": {
+          "invalid": "Neplatné",
+          "open": "Otevřeno",
+          "closed": "Zavřeno"
+        }
+      },
+      "vehicle_cabin_sunroof_relativeposition": {
+        "name": "Relativní poloha střešního okna"
+      },
+      "vehicle_cabin_sunroof_shade_position": {
+        "name": "Poloha sluneční clony"
+      },
+      "vehicle_cabin_sunroof_status": {
+        "name": "Stav střešního okna",
+        "state": {
+          "closed": "Zavřeno",
+          "intermediate": "Částečně otevřeno",
+          "open": "Otevřeno",
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_cabin_sunroof_tiltstatus": {
+        "name": "Stav sklopení střešního okna",
+        "state": {
+          "closed": "Zavřeno",
+          "intermediate": "Částečně otevřeno",
+          "open": "Otevřeno",
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_cabin_window_row1_driver_status": {
+        "name": "Stav okna vpředu vlevo",
+        "state": {
+          "closed": "Zavřeno",
+          "intermediate": "Částečně otevřeno",
+          "open": "Otevřeno",
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_cabin_window_row1_passenger_status": {
+        "name": "Stav okna vpředu vpravo",
+        "state": {
+          "closed": "Zavřeno",
+          "intermediate": "Částečně otevřeno",
+          "open": "Otevřeno",
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_cabin_window_row2_driver_status": {
+        "name": "Stav okna vzadu vlevo",
+        "state": {
+          "closed": "Zavřeno",
+          "intermediate": "Částečně otevřeno",
+          "open": "Otevřeno",
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_cabin_window_row2_passenger_status": {
+        "name": "Stav okna vzadu vpravo",
+        "state": {
+          "closed": "Zavřeno",
+          "intermediate": "Částečně otevřeno",
+          "open": "Otevřeno",
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
+        "name": "Stavová informace o posledním přenosu hodnot OBFCM*",
+        "state": {
+          "ok": "OK"
+        }
+      },
+      "vehicle_channel_ngtp_timevehicle": {
+        "name": "Datum a čas ve vozidle"
+      },
+      "vehicle_channel_teleservice_lastautomaticservicecalltime": {
+        "name": "Automatické volání Teleservice"
+      },
+      "vehicle_channel_teleservice_lastbreakdowncalltime": {
+        "name": "Čas posledního volání Teleservice Breakdown Call"
+      },
+      "vehicle_channel_teleservice_lastmanualcalltime": {
+        "name": "Poslední čas ručního volání Teleservice"
+      },
+      "vehicle_channel_teleservice_lastteleservicereporttime": {
+        "name": "Teleservice Report"
+      },
+      "vehicle_channel_teleservice_status": {
+        "name": "Dostupnost služeb vzdálené obsluhy"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressure": {
+        "name": "Změřený tlak v pneumatice vpředu vlevo"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressuretarget": {
+        "name": "Požadovaný tlak v pneumatice vpředu vlevo"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_temperature": {
+        "name": "Teplota pneumatiky ve stupních Celsia, vpředu vlevo"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressure": {
+        "name": "Změřený tlak v pneumatice vpředu vpravo"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressuretarget": {
+        "name": "Požadovaný tlak v pneumatice vpředu vpravo"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_temperature": {
+        "name": "Teplota pneumatiky ve stupních Celsia, vpředu vpravo"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressure": {
+        "name": "Změřený tlak v pneumatice vzadu vlevo"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressuretarget": {
+        "name": "Požadovaný tlak v pneumatice vzadu vlevo"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_temperature": {
+        "name": "Teplota pneumatiky ve stupních Celsia, vzadu vlevo"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressure": {
+        "name": "Změřený tlak v pneumatice vzadu vpravo"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressuretarget": {
+        "name": "Požadovaný tlak v pneumatice vzadu vpravo"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_temperature": {
+        "name": "Teplota pneumatiky ve stupních Celsia, vzadu vpravo"
+      },
+      "vehicle_chassis_axle_wheel_tire_diagnosis": {
+        "name": "Smart maintenance: Digitální diagnostika pneumatik"
+      },
+      "vehicle_drivetrain_avgelectricrangeconsumption": {
+        "name": "Průměrná elektrická spotřeba"
+      },
+      "vehicle_drivetrain_batterymanagement_batterysizemax": {
+        "name": "Velikost vysokonapěťového akumulátoru"
+      },
+      "vehicle_drivetrain_batterymanagement_header": {
+        "name": "Stav nabíjení vysokonapěťového akumulátoru"
+      },
+      "vehicle_drivetrain_batterymanagement_maxenergy": {
+        "name": "Využitelné energie z vysokonapěťové baterie (plně nabitá, předpokládaná)"
+      },
+      "vehicle_drivetrain_electricengine_charging_acampere": {
+        "name": "Nabíjecí střídaný proud"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_factor": {
+        "name": "Faktor omezení AC nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_ischosen": {
+        "name": "Omezení a výběr nabíjecího AC proudu",
+        "state": {
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_acvoltage": {
+        "name": "Nabíjecí napětí (při střídavém proudu)"
+      },
+      "vehicle_drivetrain_electricengine_charging_authentication_status": {
+        "name": "Stav ověření nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_chargingmode": {
+        "name": "Režim nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_connectiontype": {
+        "name": "Proces nabíjení vysokonapěťového akumulátoru (indukční/kondukční)"
+      },
+      "vehicle_drivetrain_electricengine_charging_connectorstatus": {
+        "name": "Stav nabíjecího konektoru",
+        "state": {
+          "connected": "Připojeno",
+          "disconnected": "Odpojeno"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_gridenergy": {
+        "name": "Celková síťová energie, která byla spotřebována, zatímco nebyl aktivní spalovací motor"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_referencedistance": {
+        "name": "Referenční trasa pro měření přivedené síťové energie, zatímco spalovací motor nebyl aktivní"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_gridenergy": {
+        "name": "Celková síťová energie, která byla spotřebována, zatímco byl aktivní spalovací motor"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_referencedistance": {
+        "name": "Referenční trasa pro měření přivedené síťové energie, zatímco spalovací motor byl aktivní"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_gridenergy": {
+        "name": "Celková síťová energie, která byla přiváděna do vozidla (pouze PHEV)"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_referencedistance": {
+        "name": "Referenční trasa OBFCM* pro měření přiváděné síťové energie"
+      },
+      "vehicle_drivetrain_electricengine_charging_hvstatus": {
+        "name": "Stav vysokonapěťového nabíjecího systému",
+        "state": {
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_hvpmfinishreason": {
+        "name": "Příčina pro ukončení procesu nabíjení",
+        "state": {
+          "unknown": "Neznámé",
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_isimmediatechargingsystemreason": {
+        "name": "Systémový důvod okamžitého nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_issingleimmediatecharging": {
+        "name": "Stav funkce okamžitého nabíjení",
+        "state": {
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingreason": {
+        "name": "Důvod posledního nabíjení",
+        "state": {
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingresult": {
+        "name": "Výsledek posledního nabíjení",
+        "state": {
+          "unknown": "Neznámé"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_level": {
+        "name": "Aktuální předpokládaný stav nabití"
+      },
+      "vehicle_drivetrain_electricengine_charging_method": {
+        "name": "Metoda nabíjení a typ zástrčky",
+        "state": {
+          "nocharging": "Nenabíjí se"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_modedeviation": {
+        "name": "Odchylka režimu nabíjení",
+        "state": {
+          "no_action": "Žádná akce",
+          "unknown": "Neznámé"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_phasenumber": {
+        "name": "Proces nabíjení vysokonapěťového akumulátoru (fáze)",
+        "state": {
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_climatizationactive": {
+        "name": "Klimatizace aktivní"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_isrcpconfigcomplete": {
+        "name": "Konfigurace RCP dokončena"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_mode": {
+        "name": "Režim nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_preference": {
+        "name": "Předvolby nabíjecího profilu"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_departuretimerelevant": {
+        "name": "Relevantní čas odjezdu"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_dischargeallowed": {
+        "name": "Vybíjení povoleno"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_timertype": {
+        "name": "Typ časovače nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_reasonchargingend": {
+        "name": "Důvod, proč nabíjení skončilo"
+      },
+      "vehicle_drivetrain_electricengine_charging_routeoptimizedchargingstatus": {
+        "name": "Stav nabíjení optimalizovaný podle trasy"
+      },
+      "vehicle_drivetrain_electricengine_charging_smeenergydeltafullycharged": {
+        "name": "Využitelné energie z vysokonapěťové baterie (plně nabitá, předpokládaná)"
+      },
+      "vehicle_drivetrain_electricengine_charging_status": {
+        "name": "Stav nabíjení",
+        "state": {
+          "nocharging": "Nenabíjí se",
+          "initialization": "Inicializace",
+          "chargingactive": "Nabíjí se",
+          "chargingpaused": "Nabíjení pozastaveno",
+          "chargingended": "Nabíjení ukončeno",
+          "chargingerror": "Chyba nabíjení"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_timeremaining": {
+        "name": "Predikce zbývající doby dobíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_timetofullycharged": {
+        "name": "Vypočítaná zbývající doba nabíjení vysokonapěťového akumulátoru"
+      },
+      "vehicle_drivetrain_electricengine_charging_windowselection": {
+        "name": "Nastavení časového intervalu pro nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_hvsmaxenergyabsolute": {
+        "name": "Maximální obsah energie vysokonapěťového akumulátoru"
+      },
+      "vehicle_drivetrain_electricengine_kombiremainingelectricrange": {
+        "name": "Zbývající elektrický dojezd v km"
+      },
+      "vehicle_drivetrain_electricengine_remainingelectricrange": {
+        "name": "Predikce elektrického dojezdu při dobíjení"
+      },
+      "vehicle_drivetrain_engine_isactive": {
+        "name": "Stav zapalování"
+      },
+      "vehicle_drivetrain_engine_isignitionon": {
+        "name": "Stav motoru (zapnutý/vypnutý)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_fuel": {
+        "name": "Celková spotřeba paliva OBFCM* v provozu při vybití baterie (pouze PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineoff": {
+        "name": "Referenční trasa OBFCM* při elektrickém provozu a neaktivním spalovacím motoru (pouze PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineon": {
+        "name": "Referenční trasa OBFCM* při elektrickém provozu a aktivním spalovacím motoru (pouze PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_fuel": {
+        "name": "Celková spotřeba OBFCM* během režimu nabíjení (pouze PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_referencedistance": {
+        "name": "Referenční trasa OBFCM* v režimu nabíjení"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_fuel": {
+        "name": "Celková spotřeba paliva podle legislativních požadavků OBFCM*"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_referencedistance": {
+        "name": "Referenční trasa OBFCM* pro měření spotřeby paliva"
+      },
+      "vehicle_drivetrain_fuelsystem_level": {
+        "name": "Stav nádrže v %"
+      },
+      "vehicle_drivetrain_fuelsystem_remainingfuel": {
+        "name": "Obsah palivové nádrže"
+      },
+      "vehicle_drivetrain_internalcombustionengine_engine_ect": {
+        "name": "Teplota chladicí kapaliny"
+      },
+      "vehicle_drivetrain_lastremainingrange": {
+        "name": "Poslední odeslaný zbývající dojezd"
+      },
+      "vehicle_drivetrain_totalremainingrange": {
+        "name": "Predikce celkového dojezdu při dobíjení"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_recharge": {
+        "name": "Baterii je nutné dobít"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_replace": {
+        "name": "Kondice baterie"
+      },
+      "vehicle_electricalsystem_battery_stateofcharge": {
+        "name": "Nízkonapěťový akumulátor"
+      },
+      "vehicle_electricalsystem_battery_stateofchargeplausibility": {
+        "name": "Věrohodnost nízkonapěťového akumulátoru"
+      },
+      "vehicle_electricalsystem_battery_voltage": {
+        "name": "Napětí baterie"
+      },
+      "vehicle_electricalsystem_battery48v_stateofhealth_displayed": {
+        "name": "Stav zdraví 48V akumulátoru"
+      },
+      "vehicle_electroniccontrolunit_diagnostictroublecodes_raw": {
+        "name": "Paměť chyb"
+      },
+      "vehicle_extras_optionalequipment_code": {
+        "name": "Seznam volitelného vybavení"
+      },
+      "vehicle_ismoving": {
+        "name": "Stav pohybu vozidla"
+      },
+      "vehicle_learningnavigation": {
+        "name": "GPS Learning navigation data"
+      },
+      "vehicle_look_image": {
+        "name": "Obrázek vozidla"
+      },
+      "vehicle_powertrain_electric_battery_bidirectionalcharging_availability": {
+        "name": "Možnost obousměrného nabíjení"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_isactive": {
+        "name": "Stav omezení nabíjení",
+        "state": {
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_max": {
+        "name": "Maximální intenzita nabíjecího proudu"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_min": {
+        "name": "Minimální intenzita nabíjecího proudu"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_selected": {
+        "name": "Omezení nabíjecího proudu"
+      },
+      "vehicle_powertrain_electric_battery_charging_acousticlimit": {
+        "name": "Akustické omezení procesu nabíjení",
+        "state": {
+          "no_action": "Žádná akce",
+          "automatic": "Automaticky"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_authenticationstatus": {
+        "name": "Stav ověření nabíjení",
+        "state": {
+          "unknown": "Neznámé"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isactive": {
+        "name": "Režim Battery Care aktivní"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_ispreservingchargingmode": {
+        "name": "Režim nabíjení Battery Care"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isreducedtargetsoe": {
+        "name": "Snížený cílový stav akumulátoru"
+      },
+      "vehicle_powertrain_electric_battery_charging_cablecheckvoltage": {
+        "name": "Kontrolní napětí kabelu"
+      },
+      "vehicle_powertrain_electric_battery_charging_dcchargingmodeactive": {
+        "name": "Režim nabíjení DC aktivní"
+      },
+      "vehicle_powertrain_electric_battery_charging_history_sessionslist": {
+        "name": "Historie nabíjení"
+      },
+      "vehicle_powertrain_electric_battery_charging_power": {
+        "name": "Nabíjecí výkon"
+      },
+      "vehicle_powertrain_electric_battery_charging_preferencesmartcharging": {
+        "name": "Volba nabíjení „Smart Charging“",
+        "state": {
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_settingslist": {
+        "name": "Nastavení nabíjení podle polohy"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_automaticmode_statusfeedback": {
+        "name": "Automatická zpětná vazba stavu předúpravy",
+        "state": {
+          "off": "Vypnuto",
+          "on": "Zapnuto",
+          "unknown": "Neznámé"
+        }
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_manualmode_statusfeedback": {
+        "name": "Ruční zpětná vazba stavu předúpravy",
+        "state": {
+          "off": "Vypnuto",
+          "unknown": "Neznámé"
+        }
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_state": {
+        "name": "Stav předúpravy",
+        "state": {
+          "off": "Vypnuto",
+          "unknown": "Neznámé"
+        }
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_displayed": {
+        "name": "Zobrazení stavu nabíjení"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_target": {
+        "name": "Cílová hodnota stavu nabití vysokonapěťového akumulátoru"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetmin": {
+        "name": "Cílový minimální stav nabití"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetsocforprofessionalmode": {
+        "name": "Cílový stav nabití pro profesionální režim"
+      },
+      "vehicle_powertrain_electric_battery_stateofhealth_displayed": {
+        "name": "Kondice vysokonapěťového akumulátoru (SOCE)"
+      },
+      "vehicle_powertrain_electric_chargingduration_displaycontrol": {
+        "name": "Zobrazení doby nabíjení",
+        "state": {
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_powertrain_electric_departuretime_displaycontrol": {
+        "name": "Zobrazení času odjezdu",
+        "state": {
+          "unknown": "Neznámé"
+        }
+      },
+      "vehicle_powertrain_electric_range_displaycontrol": {
+        "name": "Řízení zobrazení elektrického dojezdu"
+      },
+      "vehicle_powertrain_electric_range_target": {
+        "name": "Zbývající dojezd vozidla na elektřinu v závislosti na cílové hodnotě stavu nabití"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isautomaticopenandcloseactive": {
+        "name": "Automatické otevření/zavření klapky nabíjecího portu akumulátoru v kterékoli poloze"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isopen": {
+        "name": "Klapka nabíjecího portu akumulátoru otevřená v kterékoli poloze"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_isplugged": {
+        "name": "Nabíjecí port akumulátoru v kterékoli poloze připojen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isautomaticopenandcloseactive": {
+        "name": "Automatické otevření/zavření přední levé klapky nabíjecího portu akumulátoru"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isopen": {
+        "name": "Přední levá klapka nabíjecího portu akumulátoru otevřená"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_isplugged": {
+        "name": "Přední levý nabíjecí port akumulátoru zapojen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Automatické otevírání/zavírání přední středové klapky nabíjecího portu akumulátoru"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isopen": {
+        "name": "Přední středová klapka nabíjecího portu akumulátoru otevřená"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_isplugged": {
+        "name": "Přední středový nabíjecí port akumulátoru zapojený"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isautomaticopenandcloseactive": {
+        "name": "Automatické otevírání/zavírání přední pravé klapky nabíjecího portu akumulátoru"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isopen": {
+        "name": "Přední pravá klapka nabíjecího portu akumulátoru otevřená"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_isplugged": {
+        "name": "Přední pravý nabíjecí port akumulátoru zapojen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isautomaticopenandcloseactive": {
+        "name": "Automatické otevření/zavření zadní levé klapky nabíjecího portu akumulátoru"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isopen": {
+        "name": "Zadní levá klapka nabíjecího portu akumulátoru otevřená"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_isplugged": {
+        "name": "Zadní levý nabíjecí port akumulátoru zapojen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Automatické otevření/zavření zadní středové klapky nabíjecího portu akumulátoru"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isopen": {
+        "name": "Zadní středová klapka nabíjecího portu akumulátoru otevřená"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_isplugged": {
+        "name": "Zadní středový nabíjecí port akumulátoru zapojen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isautomaticopenandcloseactive": {
+        "name": "Automatické otevření/zavření zadní pravé klapky nabíjecího portu akumulátoru"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isopen": {
+        "name": "Zadní pravá klapka nabíjecího portu akumulátoru otevřená"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_isplugged": {
+        "name": "Zadní pravý nabíjecí port akumulátoru zapojen"
+      },
+      "vehicle_privacysettings_datacollection_regulations_obfcm": {
+        "name": "Souhlas s přenosem dat OBFCM* pro EU"
+      },
+      "vehicle_servicedemand_defect_id": {
+        "name": "Smart maintenance: Živá diagnostika"
+      },
+      "vehicle_sevice_preferredsevicepartner": {
+        "name": "Upřednostňovaný servisní partner"
+      },
+      "vehicle_sim_status": {
+        "name": "Stav aktivace instalované karty SIM"
+      },
+      "vehicle_status_checkcontrolmessages": {
+        "name": "Check Control"
+      },
+      "vehicle_status_conditionbasedservices": {
+        "name": "Condition Based Service"
+      },
+      "vehicle_status_conditionbasedservicesaveragedistanceperday": {
+        "name": "Průměrná vzdálenost za den"
+      },
+      "vehicle_status_conditionbasedservicescount": {
+        "name": "Počet hlášení CBS"
+      },
+      "vehicle_status_servicedistance_next": {
+        "name": "Vzdálenost do příštího servisu"
+      },
+      "vehicle_status_servicedistance_yellow": {
+        "name": "Vzdálenost – mezní hodnota pro servisní informace"
+      },
+      "vehicle_status_servicetime_huandauserviceyellow": {
+        "name": "Časová mezní hodnota hlavní prohlídky a kontroly emisí"
+      },
+      "vehicle_status_servicetime_inspectiondatelegal": {
+        "name": "Datum nejbližší kontroly"
+      },
+      "vehicle_status_servicetime_yellow": {
+        "name": "Čas – mezní hodnota pro servisní informace"
+      },
+      "vehicle_trip_segment_accumulated_acceleration_starsaverage": {
+        "name": "Vyhodnocení stylu jízdy „akcelerace“"
+      },
+      "vehicle_trip_segment_accumulated_chassis_brake_starsaverage": {
+        "name": "Vyhodnocení stylu jízdy „předvídavá jízda“"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_energyconsumptioncomfort": {
+        "name": "Spotřeba elektrické energie v režimu COMFORT během poslední jízdy"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_recuperationtotal": {
+        "name": "Rekuperované množství energie za poslední jízdu"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecopro": {
+        "name": "Doba aktivace režimu ECO během poslední jízdy"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecoproplus": {
+        "name": "Doba aktivace režimu ECO PLUS během poslední jízdy"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveelectric": {
+        "name": "Podíl trasy ujeté na elektřinu"
+      },
+      "vehicle_trip_segment_end_drivetrain_batterymanagement_hvsoc": {
+        "name": "Stav nabití akumulátoru"
+      },
+      "vehicle_trip_segment_end_time": {
+        "name": "Okamžik poslední jízdy"
+      },
+      "vehicle_trip_segment_end_travelleddistance": {
+        "name": "Stav kilometrů u poslední jízdy"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_activationtime": {
+        "name": "Čas aktivace AntiTheftAlarm"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_armstatus": {
+        "name": "Stav aktivace AntiTheftAlarm",
+        "state": {
+          "unarmed": "Nestřeženo",
+          "doorsonly": "Pouze dveře",
+          "doorstiltcabin": "Dveře, náklon a interiér"
+        }
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_ison": {
+        "name": "AntiTheftAlarm je zapnutý"
+      },
+      "vehicle_vehicle_averageweeklydistancelongterm": {
+        "name": "Průměrně ujetá trasa za týden (dlouhodobě)"
+      },
+      "vehicle_vehicle_averageweeklydistanceshortterm": {
+        "name": "Průměrně ujetá trasa za týden"
+      },
+      "vehicle_vehicle_avgauxpower": {
+        "name": "Výkon vedlejších spotřebičů (spotřeba elektrických komponent)"
+      },
+      "vehicle_vehicle_avgspeed": {
+        "name": "Průměrná rychlost"
+      },
+      "vehicle_vehicle_deepsleepmodeactive": {
+        "name": "Režim hlubokého spánku (Deep Sleep Mode)"
+      },
+      "vehicle_vehicle_preconditioning_activity": {
+        "name": "Vstupní nastavení nezávislé klimatizace",
+        "state": {
+          "standby": "Pohotovost",
+          "heating": "Topení",
+          "cooling": "Chlazení",
+          "ventilation": "Větrání",
+          "inactive": "Neaktivní"
+        }
+      },
+      "vehicle_vehicle_preconditioning_error": {
+        "name": "Důvod nerealizace vstupního nastavení nezávislé klimatizace",
+        "state": {
+          "lowfuel": "Nízká hladina paliva",
+          "lowbattery": "Slabá baterie",
+          "quotaexceeded": "Kvóta překročena",
+          "heaterfailure": "Porucha topení",
+          "componentfailure": "Porucha součásti",
+          "openorunlocked": "Otevřeno nebo odemčeno",
+          "ok": "OK",
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginerunning": {
+        "name": "Použití motoru ke vstupnímu nastavení klimatizace"
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginestartallowed": {
+        "name": "Souhlas k použití motoru k vstupnímu nastavení klimatizace."
+      },
+      "vehicle_vehicle_preconditioning_remainingtime": {
+        "name": "Zbývající doba vstupní úpravy klimatizace"
+      },
+      "vehicle_vehicle_speedrange_lowerbound": {
+        "name": "Nízký rozsah otáček"
+      },
+      "vehicle_vehicle_speedrange_upperbound": {
+        "name": "Horní rozsah otáček"
+      },
+      "vehicle_vehicle_timesetting": {
+        "name": "Nastavení časového pásma ve vozidle",
+        "state": {
+          "wintertime": "Zimní čas",
+          "summertime": "Letní čas",
+          "utc": "UTC",
+          "manual": "Ručně",
+          "invalid": "Neplatné"
+        }
+      },
+      "vehicle_vehicle_travelleddistance": {
+        "name": "Stav kilometrů"
+      },
+      "vehicle_vehicleidentification_basicvehicledata": {
+        "name": "Základní údaje o vozidle"
+      },
+      "vehicle_vehicleidentification_connecteddrivecontractlist": {
+        "name": "Aktivní smlouvy ConnectedDrive"
+      },
+      "soc_estimate": {
+        "name": "Stav nabití (predikce integrace)"
+      },
+      "soc_estimate_testing": {
+        "name": "Nový testovací senzor extrapolace"
+      },
+      "soc_rate": {
+        "name": "Predikovaná rychlost nabíjení"
+      },
+      "charged_energy_total": {
+        "name": "Nabitá energie (celkem)"
+      },
+      "charged_energy_session": {
+        "name": "Nabitá energie (relace)"
+      },
+      "last_message": {
+        "name": "Poslední přijatá zpráva"
+      },
+      "last_telematic_api": {
+        "name": "Poslední volání telematického API"
+      },
+      "connection_status": {
+        "name": "Stav připojení streamu"
+      },
+      "api_quota_remaining": {
+        "name": "Zbývající kvóta API"
+      },
+      "charging_cost_month": {
+        "name": "Náklady na nabíjení (tento měsíc)"
+      },
+      "charging_cost_session": {
+        "name": "Náklady na nabíjení (poslední relace)"
+      },
+      "charging_energy_month": {
+        "name": "Nabitá energie (tento měsíc)"
+      },
+      "charging_cost_per_100km": {
+        "name": "Náklady na nabíjení na 100 km"
+      },
+      "battery_health": {
+        "name": "Stav baterie"
+      },
+      "driving_distance_month": {
+        "name": "Ujetá vzdálenost (tento měsíc)"
+      },
+      "real_range": {
+        "name": "Skutečný dojezd"
+      },
+      "tyre_status": {
+        "name": "Stav pneumatik"
+      },
+      "tyre_front_left": {
+        "name": "Pneumatika přední levá"
+      },
+      "tyre_front_right": {
+        "name": "Pneumatika přední pravá"
+      },
+      "tyre_rear_left": {
+        "name": "Pneumatika zadní levá"
+      },
+      "tyre_rear_right": {
+        "name": "Pneumatika zadní pravá"
+      }
+    },
+    "binary_sensor": {
+      "vehicle_body_chargingport_combinedstatus": {
+        "name": "Stav připojení nabíjecího portu"
+      },
+      "vehicle_body_chargingport_dcstatus": {
+        "name": "Stav konektoru nabíjení (pouze DC)"
+      },
+      "vehicle_body_chargingport_ishospitalityactive": {
+        "name": "Stav uzamčení nabíjecího konektoru po úplném nabití"
+      },
+      "vehicle_body_chargingport_isosessionid": {
+        "name": "ID relace nabíjení"
+      },
+      "vehicle_body_chargingport_lockedstatus": {
+        "name": "Stav uzamknutí nabíjecího portu"
+      },
+      "vehicle_body_chargingport_plugeventid": {
+        "name": "ID události zástrčky nabíjecího portu"
+      },
+      "vehicle_body_chargingport_status": {
+        "name": "Stav konektoru nabíjení"
+      },
+      "vehicle_body_chargingport_statuscleartext": {
+        "name": "Text stavu nabíjecího portu"
+      },
+      "vehicle_body_flap_islocked": {
+        "name": "Stav nabíjecí klapky"
+      },
+      "vehicle_body_flap_ispermanentlyunlocked": {
+        "name": "Stav uzamčení nabíjecí klapky"
+      },
+      "vehicle_body_hood_isopen": {
+        "name": "Stav kapoty motoru"
+      },
+      "vehicle_body_lights_isrunningon": {
+        "name": "Stav světel"
+      },
+      "vehicle_body_trunk_door_isopen": {
+        "name": "Stav otevřených dveří zavazadlového prostoru"
+      },
+      "vehicle_body_trunk_islocked": {
+        "name": "Stav uzamknutého zavazadlového prostoru"
+      },
+      "vehicle_body_trunk_isopen": {
+        "name": "Stav víka zavazadlového prostoru"
+      },
+      "vehicle_body_trunk_left_door_isopen": {
+        "name": "Levé dveře zavazadlového prostoru otevřené"
+      },
+      "vehicle_body_trunk_lower_door_isopen": {
+        "name": "Dolní dveře zavazadlového prostoru otevřené"
+      },
+      "vehicle_body_trunk_right_door_isopen": {
+        "name": "Pravé dveře zavazadlového prostoru otevřené"
+      },
+      "vehicle_body_trunk_upper_door_isopen": {
+        "name": "Horní dveře zavazadlového prostoru otevřené"
+      },
+      "vehicle_body_trunk_window_isopen": {
+        "name": "Odblokování zadního okna"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_action": {
+        "name": "Akce přepsání časovače klimatizace"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_hour": {
+        "name": "Přepsání hodin časovače klimatizace"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_minute": {
+        "name": "Přepsání minut časovače klimatizace"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_action": {
+        "name": "Akce časovače všedního dne 1"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_hour": {
+        "name": "Hodina časovače všedního dne 1"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_minute": {
+        "name": "Minuta časovače všedního dne 1"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_action": {
+        "name": "Akce časovače všedního dne 2"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_hour": {
+        "name": "Hodina časovače všedního dne 2"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_minute": {
+        "name": "Minuta časovače všedního dne 2"
+      },
+      "vehicle_cabin_convertible_roofretractablestatus": {
+        "name": "Stav střechy kabrioletu"
+      },
+      "vehicle_cabin_convertible_roofstatus": {
+        "name": "Stav střechy kabrioletu"
+      },
+      "vehicle_cabin_door_lock_status": {
+        "name": "Stav dveří"
+      },
+      "vehicle_cabin_door_row1_driver_isopen": {
+        "name": "Stav dveří vpředu vlevo"
+      },
+      "vehicle_cabin_door_row1_driver_position": {
+        "name": "Poloha předních dveří na straně řidiče"
+      },
+      "vehicle_cabin_door_row1_passenger_isopen": {
+        "name": "Stav dveří vpředu vpravo"
+      },
+      "vehicle_cabin_door_row1_passenger_position": {
+        "name": "Poloha předních dveří na straně spolujezdce"
+      },
+      "vehicle_cabin_door_row2_driver_isopen": {
+        "name": "Stav dveří vzadu vlevo"
+      },
+      "vehicle_cabin_door_row2_driver_position": {
+        "name": "Poloha zadních dveří na straně řidiče"
+      },
+      "vehicle_cabin_door_row2_passenger_isopen": {
+        "name": "Stav dveří vzadu vpravo"
+      },
+      "vehicle_cabin_door_row2_passenger_position": {
+        "name": "Poloha zadních dveří na straně spolujezdce"
+      },
+      "vehicle_cabin_door_status": {
+        "name": "Stav dveří"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_cooling": {
+        "name": "Výchozí chlazení předního sedadla na straně řidiče"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_heating": {
+        "name": "Výchozí vyhřívání předního sedadla na straně řidiče"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_cooling": {
+        "name": "Výchozí chlazení předního sedadla na straně spolujezdce"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_heating": {
+        "name": "Výchozí vyhřívání předního sedadla na straně spolujezdce"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_cooling": {
+        "name": "Výchozí chlazení zadního sedadla na straně řidiče"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_heating": {
+        "name": "Výchozí vyhřívání zadního sedadla na straně řidiče"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_cooling": {
+        "name": "Výchozí chlazení zadního sedadla na straně spolujezdce"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_heating": {
+        "name": "Výchozí vyhřívání zadního sedadla na straně spolujezdce"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_cooling": {
+        "name": "Výchozí chlazení sedadla na straně řidiče ve třetí řadě"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_heating": {
+        "name": "Výchozí vyhřívání sedadla na straně řidiče ve třetí řadě"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_cooling": {
+        "name": "Výchozí chlazení sedadla na straně spolujezdce ve třetí řadě"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_heating": {
+        "name": "Výchozí vyhřívání sedadla na straně spolujezdce ve třetí řadě"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_steeringwheel_heating": {
+        "name": "Výchozí vyhřívání volantu"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_targettemperature": {
+        "name": "Cílová teplota"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_cooling": {
+        "name": "Přímé chlazení předního sedadla na straně řidiče"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_heating": {
+        "name": "Přímé vyhřívání předního sedadla na straně řidiče"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_cooling": {
+        "name": "Přímé chlazení předního sedadla na straně spolujezdce"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_heating": {
+        "name": "Přímé vyhřívání předního sedadla na straně spolujezdce"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_cooling": {
+        "name": "Přímé chlazení zadního sedadla na straně řidiče"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_heating": {
+        "name": "Přímé vyhřívání zadního sedadla na straně řidiče"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_cooling": {
+        "name": "Přímé chlazení zadního sedadla na straně spolujezdce"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_heating": {
+        "name": "Přímé vyhřívání zadního sedadla na straně spolujezdce"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_cooling": {
+        "name": "Přímé chlazeí sedadla na straně řidiče ve třetí řadě"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_heating": {
+        "name": "Přímé vyhřívání sedadla na straně řidiče ve třetí řadě"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_cooling": {
+        "name": "Přímé chlazení sedadla na straně spolujezdce ve třetí řadě"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_heating": {
+        "name": "Přímé vyhřívání sedadla na straně spolujezdce ve třetí řadě"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_steeringwheel_heating": {
+        "name": "Přímé zahřívání volantu"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_targettemperature": {
+        "name": "Cílová teplota přímého startu"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_isremoteenginestartdisclaimer": {
+        "name": "Zřeknutí se odpovědnosti ohledně dálkového ovládání klimatizace"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_comfortstate": {
+        "name": "Stav předúpravy klimatu"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_isexteriormirrorheatingactive": {
+        "name": "Vyhřívání vnějších zpětných zrcátek aktivní"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_progress": {
+        "name": "Průběh předúpravy klimatu"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_reardefrostactive": {
+        "name": "Zadní odmrazování aktivní"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_remainingrunningtime": {
+        "name": "Zbývající čas předúpravy klimatu"
+      },
+      "vehicle_cabin_hvac_statusairpurification": {
+        "name": "Stav čištění vzduchu HVAC"
+      },
+      "vehicle_cabin_infotainment_displayunit_distance": {
+        "name": "Displej hlavních přístrojů"
+      },
+      "vehicle_cabin_infotainment_hmi_distanceunit": {
+        "name": "Jednotka ujeté vzdálenosti systému infotainmentu"
+      },
+      "vehicle_cabin_infotainment_ismobilephoneconnected": {
+        "name": "Připojení mobilního telefonu"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_altitude": {
+        "name": "Nadmořská výška vozidla"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_fixstatus": {
+        "name": "Stav určování polohy navigace"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_heading": {
+        "name": "Orientace vozidla"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_latitude": {
+        "name": "Pozice vozidla – zeměpisná šířka"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_longitude": {
+        "name": "Pozice vozidla – zeměpisná délka"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_numberofsatellites": {
+        "name": "Počet navigačních satelitů"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_arrivaltime": {
+        "name": "Doba do dosažení cíle zadaného do navigace"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_distance": {
+        "name": "Vzdálenost od navigačního cíle"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_latitude": {
+        "name": "Cíl navigace — zeměpisná šířka"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_longitude": {
+        "name": "Cíl navigace — zeměpisná délka"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_available": {
+        "name": "Počet volných míst POI v navigačním systému"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_max": {
+        "name": "Maximální počet ukládání POI v navigačním systému"
+      },
+      "vehicle_cabin_infotainment_navigation_remainingrange": {
+        "name": "Zbývající dojezd"
+      },
+      "vehicle_cabin_seat_row1_driverside_cooling": {
+        "name": "Chlazení předního sedadla řidiče"
+      },
+      "vehicle_cabin_seat_row1_driverside_heating": {
+        "name": "Vyhřívání předního sedadla řidiče"
+      },
+      "vehicle_cabin_seat_row1_passengerside_cooling": {
+        "name": "Chlazení sedadla spolujezdce"
+      },
+      "vehicle_cabin_seat_row1_passengerside_heating": {
+        "name": "Vyhřívání sedadla spolujezdce"
+      },
+      "vehicle_cabin_seat_row2_driverside_cooling": {
+        "name": "Chlazení zadního sedadla na straně řidiče"
+      },
+      "vehicle_cabin_seat_row2_driverside_heating": {
+        "name": "Vyhřívání zadního sedadla na straně řidiče"
+      },
+      "vehicle_cabin_seat_row2_passengerside_cooling": {
+        "name": "Chlazení zadního sedadla na straně spolujezdce"
+      },
+      "vehicle_cabin_seat_row2_passengerside_heating": {
+        "name": "Vyhřívání zadního sedadla na straně spolujezdce"
+      },
+      "vehicle_cabin_seat_row3_driverside_cooling": {
+        "name": "Chlazení sedadla na straně řidiče ve třetí řadě"
+      },
+      "vehicle_cabin_seat_row3_driverside_heating": {
+        "name": "Vyhřívání sedadla na straně řidiče ve třetí řadě"
+      },
+      "vehicle_cabin_seat_row3_passengerside_cooling": {
+        "name": "Chlazení sedadla na straně spolujezdce ve třetí řadě"
+      },
+      "vehicle_cabin_seat_row3_passengerside_heating": {
+        "name": "Vyhřívání sedadla na straně spolujezdce ve třetí řadě"
+      },
+      "vehicle_cabin_steeringwheel_heating": {
+        "name": "Vyhřívání volantu"
+      },
+      "vehicle_cabin_sunroof_overallstatus": {
+        "name": "Celkový stav střešního okna"
+      },
+      "vehicle_cabin_sunroof_relativeposition": {
+        "name": "Relativní poloha střešního okna"
+      },
+      "vehicle_cabin_sunroof_shade_position": {
+        "name": "Poloha sluneční clony"
+      },
+      "vehicle_cabin_sunroof_status": {
+        "name": "Stav střešního okna"
+      },
+      "vehicle_cabin_sunroof_tiltstatus": {
+        "name": "Stav sklopení střešního okna"
+      },
+      "vehicle_cabin_window_row1_driver_status": {
+        "name": "Stav okna vpředu vlevo"
+      },
+      "vehicle_cabin_window_row1_passenger_status": {
+        "name": "Stav okna vpředu vpravo"
+      },
+      "vehicle_cabin_window_row2_driver_status": {
+        "name": "Stav okna vzadu vlevo"
+      },
+      "vehicle_cabin_window_row2_passenger_status": {
+        "name": "Stav okna vzadu vpravo"
+      },
+      "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
+        "name": "Stavová informace o posledním přenosu hodnot OBFCM*"
+      },
+      "vehicle_channel_ngtp_timevehicle": {
+        "name": "Datum a čas ve vozidle"
+      },
+      "vehicle_channel_teleservice_lastautomaticservicecalltime": {
+        "name": "Automatické volání Teleservice"
+      },
+      "vehicle_channel_teleservice_lastbreakdowncalltime": {
+        "name": "Čas posledního volání Teleservice Breakdown Call"
+      },
+      "vehicle_channel_teleservice_lastmanualcalltime": {
+        "name": "Poslední čas ručního volání Teleservice"
+      },
+      "vehicle_channel_teleservice_lastteleservicereporttime": {
+        "name": "Teleservice Report"
+      },
+      "vehicle_channel_teleservice_status": {
+        "name": "Dostupnost služeb vzdálené obsluhy"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressure": {
+        "name": "Změřený tlak v pneumatice vpředu vlevo"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressuretarget": {
+        "name": "Požadovaný tlak v pneumatice vpředu vlevo"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_temperature": {
+        "name": "Teplota pneumatiky ve stupních Celsia, vpředu vlevo"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressure": {
+        "name": "Změřený tlak v pneumatice vpředu vpravo"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressuretarget": {
+        "name": "Požadovaný tlak v pneumatice vpředu vpravo"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_temperature": {
+        "name": "Teplota pneumatiky ve stupních Celsia, vpředu vpravo"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressure": {
+        "name": "Změřený tlak v pneumatice vzadu vlevo"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressuretarget": {
+        "name": "Požadovaný tlak v pneumatice vzadu vlevo"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_temperature": {
+        "name": "Teplota pneumatiky ve stupních Celsia, vzadu vlevo"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressure": {
+        "name": "Změřený tlak v pneumatice vzadu vpravo"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressuretarget": {
+        "name": "Požadovaný tlak v pneumatice vzadu vpravo"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_temperature": {
+        "name": "Teplota pneumatiky ve stupních Celsia, vzadu vpravo"
+      },
+      "vehicle_chassis_axle_wheel_tire_diagnosis": {
+        "name": "Smart maintenance: Digitální diagnostika pneumatik"
+      },
+      "vehicle_drivetrain_avgelectricrangeconsumption": {
+        "name": "Průměrná elektrická spotřeba"
+      },
+      "vehicle_drivetrain_batterymanagement_batterysizemax": {
+        "name": "Velikost vysokonapěťového akumulátoru"
+      },
+      "vehicle_drivetrain_batterymanagement_header": {
+        "name": "Stav nabíjení vysokonapěťového akumulátoru"
+      },
+      "vehicle_drivetrain_batterymanagement_maxenergy": {
+        "name": "Využitelné energie z vysokonapěťové baterie (plně nabitá, předpokládaná)"
+      },
+      "vehicle_drivetrain_electricengine_charging_acampere": {
+        "name": "Nabíjecí střídaný proud"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_factor": {
+        "name": "Faktor omezení AC nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_ischosen": {
+        "name": "Omezení a výběr nabíjecího AC proudu"
+      },
+      "vehicle_drivetrain_electricengine_charging_acvoltage": {
+        "name": "Nabíjecí napětí (při střídavém proudu)"
+      },
+      "vehicle_drivetrain_electricengine_charging_authentication_status": {
+        "name": "Stav ověření nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_chargingmode": {
+        "name": "Režim nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_connectiontype": {
+        "name": "Proces nabíjení vysokonapěťového akumulátoru (indukční/kondukční)"
+      },
+      "vehicle_drivetrain_electricengine_charging_connectorstatus": {
+        "name": "Stav nabíjecího konektoru"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_gridenergy": {
+        "name": "Celková síťová energie, která byla spotřebována, zatímco nebyl aktivní spalovací motor"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_referencedistance": {
+        "name": "Referenční trasa pro měření přivedené síťové energie, zatímco spalovací motor nebyl aktivní"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_gridenergy": {
+        "name": "Celková síťová energie, která byla spotřebována, zatímco byl aktivní spalovací motor"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_referencedistance": {
+        "name": "Referenční trasa pro měření přivedené síťové energie, zatímco spalovací motor byl aktivní"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_gridenergy": {
+        "name": "Celková síťová energie, která byla přiváděna do vozidla (pouze PHEV)"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_referencedistance": {
+        "name": "Referenční trasa OBFCM* pro měření přiváděné síťové energie"
+      },
+      "vehicle_drivetrain_electricengine_charging_hvstatus": {
+        "name": "Stav vysokonapěťového nabíjecího systému"
+      },
+      "vehicle_drivetrain_electricengine_charging_hvpmfinishreason": {
+        "name": "Příčina pro ukončení procesu nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_isimmediatechargingsystemreason": {
+        "name": "Systémový důvod okamžitého nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_issingleimmediatecharging": {
+        "name": "Stav funkce okamžitého nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingreason": {
+        "name": "Důvod posledního nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingresult": {
+        "name": "Výsledek posledního nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_level": {
+        "name": "Aktuální předpokládaný stav nabití"
+      },
+      "vehicle_drivetrain_electricengine_charging_method": {
+        "name": "Metoda nabíjení a typ zástrčky"
+      },
+      "vehicle_drivetrain_electricengine_charging_modedeviation": {
+        "name": "Odchylka režimu nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_phasenumber": {
+        "name": "Proces nabíjení vysokonapěťového akumulátoru (fáze)"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_climatizationactive": {
+        "name": "Klimatizace aktivní"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_isrcpconfigcomplete": {
+        "name": "Konfigurace RCP dokončena"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_mode": {
+        "name": "Režim nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_preference": {
+        "name": "Předvolby nabíjecího profilu"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_departuretimerelevant": {
+        "name": "Relevantní čas odjezdu"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_dischargeallowed": {
+        "name": "Vybíjení povoleno"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_timertype": {
+        "name": "Typ časovače nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_reasonchargingend": {
+        "name": "Důvod, proč nabíjení skončilo"
+      },
+      "vehicle_drivetrain_electricengine_charging_routeoptimizedchargingstatus": {
+        "name": "Stav nabíjení optimalizovaný podle trasy"
+      },
+      "vehicle_drivetrain_electricengine_charging_smeenergydeltafullycharged": {
+        "name": "Využitelné energie z vysokonapěťové baterie (plně nabitá, předpokládaná)"
+      },
+      "vehicle_drivetrain_electricengine_charging_status": {
+        "name": "Stav nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_timeremaining": {
+        "name": "Predikce zbývající doby dobíjení"
+      },
+      "vehicle_drivetrain_electricengine_charging_timetofullycharged": {
+        "name": "Vypočítaná zbývající doba nabíjení vysokonapěťového akumulátoru"
+      },
+      "vehicle_drivetrain_electricengine_charging_windowselection": {
+        "name": "Nastavení časového intervalu pro nabíjení"
+      },
+      "vehicle_drivetrain_electricengine_hvsmaxenergyabsolute": {
+        "name": "Maximální obsah energie vysokonapěťového akumulátoru"
+      },
+      "vehicle_drivetrain_electricengine_kombiremainingelectricrange": {
+        "name": "Zbývající elektrický dojezd v km"
+      },
+      "vehicle_drivetrain_electricengine_remainingelectricrange": {
+        "name": "Predikce elektrického dojezdu při dobíjení"
+      },
+      "vehicle_drivetrain_engine_isactive": {
+        "name": "Stav zapalování"
+      },
+      "vehicle_drivetrain_engine_isignitionon": {
+        "name": "Stav motoru (zapnutý/vypnutý)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_fuel": {
+        "name": "Celková spotřeba paliva OBFCM* v provozu při vybití baterie (pouze PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineoff": {
+        "name": "Referenční trasa OBFCM* při elektrickém provozu a neaktivním spalovacím motoru (pouze PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineon": {
+        "name": "Referenční trasa OBFCM* při elektrickém provozu a aktivním spalovacím motoru (pouze PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_fuel": {
+        "name": "Celková spotřeba OBFCM* během režimu nabíjení (pouze PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_referencedistance": {
+        "name": "Referenční trasa OBFCM* v režimu nabíjení"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_fuel": {
+        "name": "Celková spotřeba paliva podle legislativních požadavků OBFCM*"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_referencedistance": {
+        "name": "Referenční trasa OBFCM* pro měření spotřeby paliva"
+      },
+      "vehicle_drivetrain_fuelsystem_level": {
+        "name": "Stav nádrže v %"
+      },
+      "vehicle_drivetrain_fuelsystem_remainingfuel": {
+        "name": "Obsah palivové nádrže"
+      },
+      "vehicle_drivetrain_internalcombustionengine_engine_ect": {
+        "name": "Teplota chladicí kapaliny"
+      },
+      "vehicle_drivetrain_lastremainingrange": {
+        "name": "Poslední odeslaný zbývající dojezd"
+      },
+      "vehicle_drivetrain_totalremainingrange": {
+        "name": "Predikce celkového dojezdu při dobíjení"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_recharge": {
+        "name": "Baterii je nutné dobít"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_replace": {
+        "name": "Kondice baterie"
+      },
+      "vehicle_electricalsystem_battery_stateofcharge": {
+        "name": "Nízkonapěťový akumulátor"
+      },
+      "vehicle_electricalsystem_battery_stateofchargeplausibility": {
+        "name": "Věrohodnost nízkonapěťového akumulátoru"
+      },
+      "vehicle_electricalsystem_battery_voltage": {
+        "name": "Napětí baterie"
+      },
+      "vehicle_electricalsystem_battery48v_stateofhealth_displayed": {
+        "name": "Stav zdraví 48V akumulátoru"
+      },
+      "vehicle_electroniccontrolunit_diagnostictroublecodes_raw": {
+        "name": "Paměť chyb"
+      },
+      "vehicle_extras_optionalequipment_code": {
+        "name": "Seznam volitelného vybavení"
+      },
+      "vehicle_ismoving": {
+        "name": "Stav pohybu vozidla"
+      },
+      "vehicle_learningnavigation": {
+        "name": "GPS Learning navigation data"
+      },
+      "vehicle_look_image": {
+        "name": "Obrázek vozidla"
+      },
+      "vehicle_powertrain_electric_battery_bidirectionalcharging_availability": {
+        "name": "Možnost obousměrného nabíjení"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_isactive": {
+        "name": "Stav omezení nabíjení"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_max": {
+        "name": "Maximální intenzita nabíjecího proudu"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_min": {
+        "name": "Minimální intenzita nabíjecího proudu"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_selected": {
+        "name": "Omezení nabíjecího proudu"
+      },
+      "vehicle_powertrain_electric_battery_charging_acousticlimit": {
+        "name": "Akustické omezení procesu nabíjení"
+      },
+      "vehicle_powertrain_electric_battery_charging_authenticationstatus": {
+        "name": "Stav ověření nabíjení"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isactive": {
+        "name": "Režim Battery Care aktivní"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_ispreservingchargingmode": {
+        "name": "Režim nabíjení Battery Care"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isreducedtargetsoe": {
+        "name": "Snížený cílový stav akumulátoru"
+      },
+      "vehicle_powertrain_electric_battery_charging_cablecheckvoltage": {
+        "name": "Kontrolní napětí kabelu"
+      },
+      "vehicle_powertrain_electric_battery_charging_dcchargingmodeactive": {
+        "name": "Režim nabíjení DC aktivní"
+      },
+      "vehicle_powertrain_electric_battery_charging_history_sessionslist": {
+        "name": "Historie nabíjení"
+      },
+      "vehicle_powertrain_electric_battery_charging_power": {
+        "name": "Nabíjecí výkon"
+      },
+      "vehicle_powertrain_electric_battery_charging_preferencesmartcharging": {
+        "name": "Volba nabíjení „Smart Charging“"
+      },
+      "vehicle_powertrain_electric_battery_charging_settingslist": {
+        "name": "Nastavení nabíjení podle polohy"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_automaticmode_statusfeedback": {
+        "name": "Automatická zpětná vazba stavu předúpravy"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_manualmode_statusfeedback": {
+        "name": "Ruční zpětná vazba stavu předúpravy"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_state": {
+        "name": "Stav předúpravy"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_displayed": {
+        "name": "Zobrazení stavu nabíjení"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_target": {
+        "name": "Cílová hodnota stavu nabití vysokonapěťového akumulátoru"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetmin": {
+        "name": "Cílový minimální stav nabití"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetsocforprofessionalmode": {
+        "name": "Cílový stav nabití pro profesionální režim"
+      },
+      "vehicle_powertrain_electric_battery_stateofhealth_displayed": {
+        "name": "Kondice vysokonapěťového akumulátoru (SOCE)"
+      },
+      "vehicle_powertrain_electric_chargingduration_displaycontrol": {
+        "name": "Zobrazení doby nabíjení"
+      },
+      "vehicle_powertrain_electric_departuretime_displaycontrol": {
+        "name": "Zobrazení času odjezdu"
+      },
+      "vehicle_powertrain_electric_range_displaycontrol": {
+        "name": "Řízení zobrazení elektrického dojezdu"
+      },
+      "vehicle_powertrain_electric_range_target": {
+        "name": "Zbývající dojezd vozidla na elektřinu v závislosti na cílové hodnotě stavu nabití"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isautomaticopenandcloseactive": {
+        "name": "Automatické otevření/zavření klapky nabíjecího portu akumulátoru v kterékoli poloze"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isopen": {
+        "name": "Klapka nabíjecího portu akumulátoru otevřená v kterékoli poloze"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_isplugged": {
+        "name": "Nabíjecí port akumulátoru v kterékoli poloze připojen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isautomaticopenandcloseactive": {
+        "name": "Automatické otevření/zavření přední levé klapky nabíjecího portu akumulátoru"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isopen": {
+        "name": "Přední levá klapka nabíjecího portu akumulátoru otevřená"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_isplugged": {
+        "name": "Přední levý nabíjecí port akumulátoru zapojen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Automatické otevírání/zavírání přední středové klapky nabíjecího portu akumulátoru"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isopen": {
+        "name": "Přední středová klapka nabíjecího portu akumulátoru otevřená"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_isplugged": {
+        "name": "Přední středový nabíjecí port akumulátoru zapojený"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isautomaticopenandcloseactive": {
+        "name": "Automatické otevírání/zavírání přední pravé klapky nabíjecího portu akumulátoru"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isopen": {
+        "name": "Přední pravá klapka nabíjecího portu akumulátoru otevřená"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_isplugged": {
+        "name": "Přední pravý nabíjecí port akumulátoru zapojen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isautomaticopenandcloseactive": {
+        "name": "Automatické otevření/zavření zadní levé klapky nabíjecího portu akumulátoru"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isopen": {
+        "name": "Zadní levá klapka nabíjecího portu akumulátoru otevřená"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_isplugged": {
+        "name": "Zadní levý nabíjecí port akumulátoru zapojen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Automatické otevření/zavření zadní středové klapky nabíjecího portu akumulátoru"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isopen": {
+        "name": "Zadní středová klapka nabíjecího portu akumulátoru otevřená"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_isplugged": {
+        "name": "Zadní středový nabíjecí port akumulátoru zapojen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isautomaticopenandcloseactive": {
+        "name": "Automatické otevření/zavření zadní pravé klapky nabíjecího portu akumulátoru"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isopen": {
+        "name": "Zadní pravá klapka nabíjecího portu akumulátoru otevřená"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_isplugged": {
+        "name": "Zadní pravý nabíjecí port akumulátoru zapojen"
+      },
+      "vehicle_privacysettings_datacollection_regulations_obfcm": {
+        "name": "Souhlas s přenosem dat OBFCM* pro EU"
+      },
+      "vehicle_servicedemand_defect_id": {
+        "name": "Smart maintenance: Živá diagnostika"
+      },
+      "vehicle_sevice_preferredsevicepartner": {
+        "name": "Upřednostňovaný servisní partner"
+      },
+      "vehicle_sim_status": {
+        "name": "Stav aktivace instalované karty SIM"
+      },
+      "vehicle_status_checkcontrolmessages": {
+        "name": "Check Control"
+      },
+      "vehicle_status_conditionbasedservices": {
+        "name": "Condition Based Service"
+      },
+      "vehicle_status_conditionbasedservicesaveragedistanceperday": {
+        "name": "Průměrná vzdálenost za den"
+      },
+      "vehicle_status_conditionbasedservicescount": {
+        "name": "Počet hlášení CBS"
+      },
+      "vehicle_status_servicedistance_next": {
+        "name": "Vzdálenost do příštího servisu"
+      },
+      "vehicle_status_servicedistance_yellow": {
+        "name": "Vzdálenost – mezní hodnota pro servisní informace"
+      },
+      "vehicle_status_servicetime_huandauserviceyellow": {
+        "name": "Časová mezní hodnota hlavní prohlídky a kontroly emisí"
+      },
+      "vehicle_status_servicetime_inspectiondatelegal": {
+        "name": "Datum nejbližší kontroly"
+      },
+      "vehicle_status_servicetime_yellow": {
+        "name": "Čas – mezní hodnota pro servisní informace"
+      },
+      "vehicle_trip_segment_accumulated_acceleration_starsaverage": {
+        "name": "Vyhodnocení stylu jízdy „akcelerace“"
+      },
+      "vehicle_trip_segment_accumulated_chassis_brake_starsaverage": {
+        "name": "Vyhodnocení stylu jízdy „předvídavá jízda“"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_energyconsumptioncomfort": {
+        "name": "Spotřeba elektrické energie v režimu COMFORT během poslední jízdy"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_recuperationtotal": {
+        "name": "Rekuperované množství energie za poslední jízdu"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecopro": {
+        "name": "Doba aktivace režimu ECO během poslední jízdy"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecoproplus": {
+        "name": "Doba aktivace režimu ECO PLUS během poslední jízdy"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveelectric": {
+        "name": "Podíl trasy ujeté na elektřinu"
+      },
+      "vehicle_trip_segment_end_drivetrain_batterymanagement_hvsoc": {
+        "name": "Stav nabití akumulátoru"
+      },
+      "vehicle_trip_segment_end_time": {
+        "name": "Okamžik poslední jízdy"
+      },
+      "vehicle_trip_segment_end_travelleddistance": {
+        "name": "Stav kilometrů u poslední jízdy"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_activationtime": {
+        "name": "Čas aktivace AntiTheftAlarm"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_armstatus": {
+        "name": "Stav aktivace AntiTheftAlarm"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_ison": {
+        "name": "AntiTheftAlarm je zapnutý"
+      },
+      "vehicle_vehicle_averageweeklydistancelongterm": {
+        "name": "Průměrně ujetá trasa za týden (dlouhodobě)"
+      },
+      "vehicle_vehicle_averageweeklydistanceshortterm": {
+        "name": "Průměrně ujetá trasa za týden"
+      },
+      "vehicle_vehicle_avgauxpower": {
+        "name": "Výkon vedlejších spotřebičů (spotřeba elektrických komponent)"
+      },
+      "vehicle_vehicle_avgspeed": {
+        "name": "Průměrná rychlost"
+      },
+      "vehicle_vehicle_deepsleepmodeactive": {
+        "name": "Režim hlubokého spánku (Deep Sleep Mode)"
+      },
+      "vehicle_vehicle_preconditioning_activity": {
+        "name": "Vstupní nastavení nezávislé klimatizace"
+      },
+      "vehicle_vehicle_preconditioning_error": {
+        "name": "Důvod nerealizace vstupního nastavení nezávislé klimatizace"
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginerunning": {
+        "name": "Použití motoru ke vstupnímu nastavení klimatizace"
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginestartallowed": {
+        "name": "Souhlas k použití motoru k vstupnímu nastavení klimatizace."
+      },
+      "vehicle_vehicle_preconditioning_remainingtime": {
+        "name": "Zbývající doba vstupní úpravy klimatizace"
+      },
+      "vehicle_vehicle_speedrange_lowerbound": {
+        "name": "Nízký rozsah otáček"
+      },
+      "vehicle_vehicle_speedrange_upperbound": {
+        "name": "Horní rozsah otáček"
+      },
+      "vehicle_vehicle_timesetting": {
+        "name": "Nastavení časového pásma ve vozidle"
+      },
+      "vehicle_vehicle_travelleddistance": {
+        "name": "Stav kilometrů"
+      },
+      "vehicle_vehicleidentification_basicvehicledata": {
+        "name": "Základní údaje o vozidle"
+      },
+      "vehicle_vehicleidentification_connecteddrivecontractlist": {
+        "name": "Aktivní smlouvy ConnectedDrive"
+      },
+      "trip_in_progress": {
+        "name": "Probíhá jízda"
+      }
+    },
+    "device_tracker": {
+      "car": {
+        "name": "Poloha"
+      }
+    },
+    "image": {
+      "vehicle_image": {
+        "name": "Obrázek vozidla"
+      }
+    }
+  },
+  "issues": {
+    "api_quota_exhausted": {
+      "title": "Kvóta API BMW CarData vyčerpána",
+      "description": "Byl dosažen REST limit BMW CarData {limit} požadavků za 24 h, takže data na požádání (základní údaje, historie nabíjení, diagnostika pneumatik, obrázek vozidla) nyní nelze obnovit. Data ze streamu dál přicházejí. Kvóta se znovu uvolní v {next_reset}."
+    },
+    "motorcycle_unsupported": {
+      "title": "Motocykly BMW nemohou přenášet svá data",
+      "description": "{vehicle} je BMW Motorrad. BMW CarData uvádí motocykly na účtu, ale BMW pro ně nepřenáší žádná data, takže BavarianData nemá co zobrazit a jeho entity zůstávají prázdné. Jde o omezení na straně BMW, ne o chybu nastavení. Záznam integrace pro toto vozidlo můžete odstranit, nebo toto upozornění ignorovat, pokud je na účtu i auto."
+    },
+    "stream_coverage_gaps": {
+      "title": "Vybraná skupina dat se nikdy nepřenesla",
+      "description": "Pro {vehicle} za {days} dní nedorazilo vůbec nic ze skupiny {clusters} ({count} deskriptorů, např. {descriptors}). Skupina, která úplně mlčí, obvykle znamená, že není zaškrtnutá a uložená ve Výběru dat v portálu BMW, nebo že vaše auto tato data neposkytuje. Znovu ji aktivujte v Konfigurovat → Vybrat přenášená data, nebo skupinu odznačte. Skupiny, které dodávají jen část svých polí, jsou normální a toto upozornění nikdy nevyvolají. Spusťte službu get_coverage_report pro úplný seznam."
+    },
+    "stream_no_data": {
+      "title": "Nebyla přijata žádná data ze streamu BMW CarData",
+      "description": "Již více než {hours} hodin nedorazila žádná přenášená data vozidla. Stream se možná zastavil, nebo data nebyla nikdy vybrána. Zkontrolujte, že je Výběr dat uložen v portálu BMW (krok 4 nastavení), zamkněte/odemkněte vůz v aplikaci MyBMW pro vyvolání aktualizace a ujistěte se, že není připojen žádný jiný klient CarData — BMW povoluje jen jeden stream na účet. Spusťte službu get_coverage_report a zjistěte, které deskriptory chybí."
+    },
+    "stream_unauthorized": {
+      "title": "Stream BMW CarData není autorizován",
+      "description": "BMW již více než {minutes} minut odmítá připojení streamu jako neautorizované (MQTT rc=5) a samo se neobnovilo. Obvykle to znamená, že je třeba obnovit tokeny, nebo že jediný stream účtu drží jiný klient CarData. Zkuste Konfigurovat → Obnovit tokeny nyní, pak Znovu autorizovat u BMW, pokud to stále selhává, a odpojte jakéhokoli jiného klienta CarData."
+    }
+  },
+  "services": {
+    "fetch_telematic_data": {
+      "name": "Načíst telematická data",
+      "description": "Načte telematická data každého vozidla na účtu pomocí uloženého kontejneru a zaloguje odpověď. Jeden požadavek na vozidlo.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN k dotazu. Nechte prázdné pro obnovu všech vozidel na účtu."
+        }
+      }
+    },
+    "fetch_vehicle_mappings": {
+      "name": "Načíst přiřazení vozidel",
+      "description": "Načte informace o přiřazení pro nastavený účet a zaloguje odpověď.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+        }
+      }
+    },
+    "fetch_basic_data": {
+      "name": "Načíst základní údaje o vozidle",
+      "description": "Načte pevná metadata vozidla (název modelu, řada atd.) pro VIN a zaloguje odpověď.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN k dotazu. Výchozí je VIN uložený v konfiguračním záznamu."
+        }
+      }
+    },
+    "fetch_charging_history": {
+      "name": "Načíst historii nabíjení",
+      "description": "Načte z BMW historii relací nabíjení pro VIN (stránkovanou) a importuje ji do místní historie, aby se minulá nabíjení objevila na kartě a v měsíčních přehledech. Překrývající se relace zaznamenané živě se na místě doplní o energii ze sítě naměřenou BMW. Počítá se jako jedno či více volání API v rámci kvóty 50/24 h.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN k dotazu. Výchozí je první známý VIN."
+        },
+        "from": {
+          "name": "Od",
+          "description": "Začátek období k načtení. Pokud zůstane prázdné, před 30 dny."
+        },
+        "to": {
+          "name": "Do",
+          "description": "Konec období k načtení. Pokud zůstane prázdné, nyní."
+        }
+      }
+    },
+    "fetch_tyre_diagnosis": {
+      "name": "Načíst diagnostiku pneumatik Smart Maintenance",
+      "description": "Načte diagnostiku pneumatik Smart Maintenance pro VIN a zaloguje odpověď.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN k dotazu. Výchozí je první známý VIN."
+        }
+      }
+    },
+    "fetch_location_charging_settings": {
+      "name": "Načíst nastavení nabíjení vázaná na místo",
+      "description": "Načte nastavení nabíjení vázaná na místo pro VIN (stránkovaná) a zaloguje odpověď.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN k dotazu. Výchozí je první známý VIN."
+        }
+      }
+    },
+    "fetch_vehicle_image": {
+      "name": "Načíst obrázek vozidla",
+      "description": "Načte obrázek vozidla pro VIN a zaloguje jeho velikost a typ obsahu.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN k dotazu. Výchozí je první známý VIN."
+        }
+      }
+    },
+    "get_charging_sessions": {
+      "name": "Získat relace nabíjení",
+      "description": "Vrátí zaznamenané relace nabíjení, od nejnovějších. Čte vlastní historii integrace, takže na rozdíl od akcí načítání nespotřebuje kvótu API BMW.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN pro filtrování. Výchozí jsou všechna známá vozidla."
+        },
+        "from": {
+          "name": "Od",
+          "description": "Jen relace zahájené v tomto datu/čase nebo později."
+        },
+        "to": {
+          "name": "Do",
+          "description": "Jen relace zahájené v tomto datu/čase nebo dříve."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "Maximální počet vrácených relací."
+        }
+      }
+    },
+    "get_trips": {
+      "name": "Získat jízdy",
+      "description": "Vrátí zaznamenané jízdy, od nejnovějších. Čte vlastní historii integrace, takže stejně jako relace nabíjení nespotřebuje kvótu API BMW. Počáteční a koncové body se ukládají jako názvy míst, nikdy jako souřadnice. Právě probíhající jízda se vrací zvlášť jako otevřená jízda (nemá konec a její vzdálenost je předběžná), pokud nebylo zadáno období from/to.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN pro filtrování. Výchozí jsou všechna známá vozidla."
+        },
+        "from": {
+          "name": "Od",
+          "description": "Jen jízdy zahájené v tomto datu/čase nebo později."
+        },
+        "to": {
+          "name": "Do",
+          "description": "Jen jízdy zahájené v tomto datu/čase nebo dříve."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "Maximální počet vrácených jízd."
+        }
+      }
+    },
+    "get_driving_summary": {
+      "name": "Získat přehled jízd",
+      "description": "Vrátí měsíční přehled jízd: vzdálenost, rozdělení služební/soukromé/dojíždění, spotřebu, rekuperaci, hodnocení stylu jízdy, nejčastější cíle a (s tarifem) odhadované náklady na jízdu. Čte místní úložiště, takže nespotřebuje kvótu API BMW.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN. Výchozí je jediné nastavené vozidlo."
+        },
+        "month": {
+          "name": "Měsíc",
+          "description": "Měsíc k shrnutí ve formátu YYYY-MM. Výchozí je aktuální měsíc."
+        }
+      }
+    },
+    "get_efficiency": {
+      "name": "Získat účinnost a skutečný dojezd",
+      "description": "Vrátí naměřenou spotřebu (kWh/100 km), skutečný dojezd, který z ní vyplývá při aktuálním stavu nabití, ztráty nabíjení mezi sítí a baterií a vývoj účinnosti po měsících. Vše je odvozeno z knihy nabíjení, takže nespotřebuje kvótu API BMW.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN. Výchozí je jediné nastavené vozidlo."
+        }
+      }
+    },
+    "get_evcc_config": {
+      "name": "Získat konfiguraci evcc",
+      "description": "Vrátí konfiguraci vozidla 'custom' pro evcc pro toto auto, připravenou ke vložení do evcc.yaml, spolu s tématy MQTT, která most publikuje, a informací, která z nich jsou právě živá. Čte jen místní stav, takže nespotřebuje kvótu API BMW.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN. Výchozí je jediné nastavené vozidlo."
+        }
+      }
+    },
+    "set_trip_class": {
+      "name": "Nastavit zařazení jízdy",
+      "description": "Přepíše zařazení jízdy (business, private nebo commute). Použijte k opravě automatického odhadu podle dvojice zón. Zapisuje jen do místního úložiště.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN. Výchozí je jediné nastavené vozidlo."
+        },
+        "trip_id": {
+          "name": "ID jízdy",
+          "description": "ID jízdy, jak ho vrací akce Získat jízdy."
+        },
+        "classification": {
+          "name": "Zařazení",
+          "description": "Jedno z: business, private nebo commute."
+        }
+      }
+    },
+    "export_history": {
+      "name": "Exportovat historii",
+      "description": "Vrátí jeden měsíc zaznamenaných relací nabíjení a/nebo jízd jako soubory: CSV pro tabulkové procesory, nebo samostatný HTML report, který můžete z prohlížeče vytisknout do PDF. Obsah souborů se vrací v odpovědi; nic se nezapisuje na disk. Čte místní úložiště, takže nespotřebuje kvótu API BMW.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN. Výchozí je jediné nastavené vozidlo."
+        },
+        "month": {
+          "name": "Měsíc",
+          "description": "Měsíc k exportu ve formátu YYYY-MM. Výchozí je aktuální měsíc."
+        },
+        "type": {
+          "name": "Typ",
+          "description": "Které záznamy zahrnout."
+        },
+        "format": {
+          "name": "Formát",
+          "description": "CSV vrací jeden soubor na typ záznamu; HTML vrací jeden tisknutelný měsíční report."
+        },
+        "language": {
+          "name": "Jazyk",
+          "description": "Jazyk reportu jako kód, např. en, de nebo fr. Výchozí je jazyk Home Assistant. Týká se jen HTML reportu -- záhlaví CSV jsou vždy ve strojově čitelné angličtině."
+        }
+      }
+    },
+    "get_coverage_report": {
+      "name": "Získat report pokrytí deskriptorů",
+      "description": "Spustí autotest pokrytí deskriptorů: pro každé vozidlo porovná deskriptory, které by měly dodávat vybrané skupiny streamu, s těmi, které skutečně dorazily, a vypíše chybějící. Odpovídá na otázku \"Zapnul jsem skupinu, ale neobjevily se žádné entity -- je to můj výběr, moje auto, nebo chyba?\". Čte jen místní úložiště a živý stream, takže nespotřebuje kvótu API BMW.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN, o kterém se má reportovat. Výchozí jsou všechna známá vozidla."
+        }
+      }
+    },
+    "activate_stream_fields": {
+      "name": "Aktivovat pole streamu",
+      "description": "Nahradí atributy CarData, které BMW pro vozidlo přenáší přes MQTT, odesláním stejného požadavku, jaký odesílá stránka stream setup v portálu BMW při uložení výběru dat. Výběr streamu nemá API CarData, proto je potřeba zachycená relace prohlížeče z portálu (nelze ji automaticky obnovit -- relace je krátkodobá). Nespotřebuje kvótu API BMW. Vrací počty požadovaných/přijatých atributů.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+        },
+        "base_url": {
+          "name": "Základní URL portálu",
+          "description": "Původ portálu vašeho trhu z adresy stránky stream setup (bez koncového lomítka)."
+        },
+        "locale": {
+          "name": "Národní prostředí",
+          "description": "Jazykový segment cesty z adresy stránky stream setup."
+        },
+        "mapped_vehicle_id": {
+          "name": "ID přiřazeného vozidla",
+          "description": "ID přiřazeného vozidla v portálu (hash, NE VIN) z adresy stránky stream setup."
+        },
+        "cookie": {
+          "name": "Hlavička Cookie",
+          "description": "Surová hlavička Cookie z ověřeného požadavku na portál (DevTools, Síť, požadavek streamu, zkopírujte hodnotu hlavičky Cookie). Je to tajemství; nikdy se neloguje. Po čase vyprší -- zachyťte ji znovu, pokud volání ohlásí odmítnutí relace."
+        },
+        "attributes": {
+          "name": "Atributy",
+          "description": "Explicitní seznam technických deskriptorů k přenosu (nahradí celý výběr). Má přednost před sections. Výchozí jsou vámi zvolené skupiny přenášených dat, nebo výchozí sada skupin."
+        },
+        "sections": {
+          "name": "Sekce",
+          "description": "Identifikátory skupin k přenosu (např. electric, status, tire). Použije se, když je attributes vynecháno."
+        }
+      }
+    },
+    "import_statistics": {
+      "name": "Importovat do dlouhodobých statistik",
+      "description": "Znovu sestaví dlouhodobé statistiky této integrace ze zaznamenané historie, aby se nabíjení a jízdy z doby před instalací (nebo z doby, kdy byl Home Assistant vypnutý) objevily na panelu Energie. Probíhá automaticky při vzniku záznamů; použijte po obnovení zálohy nebo k ověření počtu řádků. Jen lokálně -- bez kvóty API BMW.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN k přestavění. Výchozí jsou všechna známá vozidla."
+        }
+      }
+    }
+  }
+}

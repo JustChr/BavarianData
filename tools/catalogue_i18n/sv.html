@@ -1,0 +1,1842 @@
+<html>
+    <head>
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Customer Telematics Data Catalogue</title>
+        <style>
+                    @font-face {
+                    font-family: 'DTDC Light';
+                    src: url(https://bmwcardata.bmwgroup.com/fonts/BMWTypeNext-Light.ttf);
+                    font-style: normal;
+                    }
+
+                    @font-face {
+                    font-family: 'DTDC Regular';
+                    src: url(https://bmwcardata.bmwgroup.com/fonts/BMWTypeNext-Regular.ttf);
+                    font-weight: bold;
+                    font-style: normal;
+                    }
+
+                    @font-face {
+                    font-family: 'DTDC Thin';
+                    src: url(https://bmwcardata.bmwgroup.com/fonts/BMWTypeNext-Thin.ttf);
+                    font-weight: bold;
+                    font-style: normal;
+                    }
+
+                    @font-face {
+                    font-family: 'DTDC Bold';
+                    src: url(https://bmwcardata.bmwgroup.com/fonts/BMWTypeNext-Bold.ttf);
+                    font-weight: bold;
+                    font-style: normal;
+                    }
+
+                    body {
+                    margin-top: 50px;
+                    margin-left: 10%;
+                    margin-right: 10%;
+                    text-align: left;
+
+                    font-family: 'DTDC Thin', Arial, sans-serif;
+                    }
+
+                    h1 {
+                    font-family: 'DTDC Light', Arial, sans-serif;
+                    font-size: 64px;
+                    }
+
+                    h2 {
+                    font-family: 'DTDC Light', Arial, sans-serif;
+                    font-size: 32px;
+                    }
+
+                    h3 {
+                    font-family: 'DTDC Regular', Arial, sans-serif;
+                    padding-top: 40px;
+                    padding-bottom: 8px;
+                    }
+
+                    p {
+                    line-height: 24px;
+                    }
+
+                    table {
+                    border-collapse: collapse;
+                    border: 0;
+                    padding: 0;
+                    margin: 0;
+                    table-layout: auto;
+                    width: 100%;
+                    }
+
+                    th {
+                    text-align: left;
+                    vertical-align: middle;
+                    padding-left: 5px;
+                    padding-right: 10px;
+                    padding-top: 15px;
+                    padding-bottom: 15px;
+                    white-space: nowrap;
+                    font-size: smaller;
+                    }
+
+                    td {
+                    text-align: left;
+                    vertical-align: top;
+                    padding-left: 5px;
+                    padding-right: 10px;
+                    padding-top: 10px;
+                    padding-bottom: 10px;
+                    font-size: 16px;
+                    line-height: 24px;
+                    word-break: break-word;
+                    overflow-wrap: break-word;
+                    hyphens: none;
+                    }
+
+                    a:link, a:visited, a:active {
+                    color: black;
+                    }
+
+                    a:hover {
+                    color: black;
+                    background-color: #AACBE8;
+                    }
+
+                    .header-row {
+                    background-color: #F6F6F6;
+                    }
+
+                    .top-column {
+                    vertical-align: top;
+                    }
+
+                    .col1-emea {
+                    width: 20%;
+                    }
+
+                    .col1-us {
+                    width: 30%;
+                    }
+
+                    .col2-emea {
+                    width: 30%;
+                    }
+
+                    .col2-us {
+                    width: 60%;
+                    }
+
+                    .col3 {
+                    width: 20%;
+                    word-break: break-word;
+                    white-space: normal;
+                    }
+
+                    .col4 {
+                    width: 7%;
+                    }
+
+                    .col5 {
+                    width: 11%;
+                    word-break: break-all;
+                    white-space: normal;
+                    }
+
+                    .col6-emea {
+                    width: 7%;
+                    }
+
+                    .col6-us {
+                    width: 10%;
+                    }
+
+                    .col7 {
+                    width: 5%;
+                    }
+
+                    .true-tick {
+                    margin: auto;
+                    width: 24px;
+                    height: 24px;
+                    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAeElEQVRIie2SwQmAMBAELcOnLxGsJGGWtOXPsqxExAb8KgFFEBQR7yFmIN/Z3O1lWSLxH4AmPjO5pBlofyAPIRRAdUPePvo50EkarkJ4Ko8450qgB0ZJtcnOz0J4s9BjCBbXEntY+5jMTtHtk7wv3/De52byxPdZAAQtTejm9NIfAAAAAElFTkSuQmCC) no-repeat;
+                    }
+
+                    .false-tick {
+                    margin: auto;
+                    width: 24px;
+                    height: 24px;
+                    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAd0lEQVRIie2UMQ7AIAwDmfhL1Wd0s5LR//9KRUWlTii0GHXAE0N8RgkkpaVfimSWeUhmMzvcfY/CS23xhEMAbGbmkZCe2m4j3sIjAHyFt0AYBb9Vh3gBn+c0Uqi3lsDlAa5sEZRDlj5T6UeDclVwxrKjcl0vTdcJThVb9wK+hIAAAAAASUVORK5CYII=) no-repeat;
+                    }
+
+                    .icon {
+                    text-align: right;
+                    }
+
+                    .logo {
+                    float: right;
+                    width: 120px;
+                    height: 120px;
+                    }
+                </style>
+    </head>
+    <body>
+        <table>
+            <tr>
+                <td>
+                    <h1>BMW</h1>
+                </td><td class="icon"><img class="logo" alt="logo" src="https://bmwcardata.bmwgroup.com/images/logo.png"></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <h2>BMW CARDATA TELEMATIKDATAKATALOG.</h2>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <p>BMW CarData st&auml;ller viktig telematikdata till f&ouml;rfogande, som fordon genom att anv&auml;nda BMW ConnectedDrive tj&auml;nsterna skickar till BMW Group och som sparas d&auml;r.
+Till detta h&ouml;r v&auml;rden som exempelvis m&auml;tarst&auml;llningen.
+I denna BMW CarData telematikdatakatalog f&ouml;rklaras alla principiellt tillg&auml;ngliga fordonsuppgifter som &auml;r relevanta f&ouml;r 
+anv&auml;ndningen av BMW CarData &ndash; &ouml;versiktligt indelade i enskilda kategorier.
+Telematikuppgifternas antal och typ kan variera beroende p&aring; fordons- och drivningstyp, modell, tillverknings&aring;r och 
+befintlig extrautrustning.</p>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <p>
+                        F&ouml;r en interaktiv version, bes&ouml;k v&aring;r online <a href="https://www.bmw.se/sv-se/mybmw/public/cardata-telematic-catalogue/">Telematikdatakatalogen.</a>
+                    </p>
+                </td>
+            </tr>
+        </table>
+        <h3>FORDONSGRUNDDATA</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData element</th><th class="col2-emea">Beskrivning</th><th class="col3">Teknisk beskrivning</th><th class="col4">Datatyp </th><th class="col5">Typiskt v&auml;rdeintervall</th><th class="col6-emea">Enhet</th><th class="col7">Str&ouml;mningsbar</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Aktiveringsstatus f&ouml;r installerat SIM-kort</td><td class="col2-emea">Detta v&auml;rde anger om det SIM-kort som installerats i fordonet &auml;r aktiverat.&nbsp;</td><td class="col3">vehicle.​sim.​status</td><td class="col4">-</td><td class="col5">true, false</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Fordonsbild</td><td class="col2-emea">V&auml;rdet levererar en bild av fordonet som PNG-fil.</td><td class="col3">vehicle.​look.​image</td><td class="col4">-</td><td class="col5">PNG-fil</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gunduppgifter om fordonet</td><td class="col2-emea">Detta v&auml;rde representerar en lista med grunduppgifter om fordonet, t.ex. fordonsm&auml;rke och fullst&auml;ndigt modellnamn.</td><td class="col3">vehicle.​vehicleIdentification.​basicVehicleData</td><td class="col4">-</td><td class="col5">Detaljer finns i motsvarande Swagger-dokumentation: ../basicData</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Lista p&aring; till&auml;ggsutrustning</td><td class="col2-emea">Detta v&auml;rde representerar en lista med information om&nbsp;fordonets till&auml;ggsutrustning.</td><td class="col3">vehicle.​extras.​optionalEquipment.​code</td><td class="col4">-</td><td class="col5">4-teckens kommaseparerad siffer- och/eller bokstavskod</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Maximalt energiinneh&aring;ll i h&ouml;gsp&auml;nningsbatteriet</td><td class="col2-emea">V&auml;rdet anger det maximala energiinneh&aring;llet i h&ouml;gsp&auml;nningsbatteriet som kan anv&auml;ndas av kunden.&nbsp;</td><td class="col3">vehicle.​drivetrain.​electricEngine.​hvsMaxEnergyAbsolute</td><td class="col4">-</td><td class="col5">0 - 300 kWh, INVALID</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Storleken p&aring; h&ouml;gsp&auml;nningsbatteriet</td><td class="col2-emea">V&auml;rdet anger storleken p&aring; det inbyggda h&ouml;gsp&auml;nningsbatteriet.&nbsp;</td><td class="col3">vehicle.​drivetrain.​batteryManagement.​batterySizeMax</td><td class="col4">float</td><td class="col5">0 - 300 kWh, INVALID</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>DATA OM FORDONSSTATUSEN</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData element</th><th class="col2-emea">Beskrivning</th><th class="col3">Teknisk beskrivning</th><th class="col4">Datatyp </th><th class="col5">Typiskt v&auml;rdeintervall</th><th class="col6-emea">Enhet</th><th class="col7">Str&ouml;mningsbar</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Antal CBS-meddelanden</td><td class="col2-emea">V&auml;rdet anger hur m&aring;nga servicebehovsmeddelanden som maximalt &ouml;verf&ouml;rs fr&aring;n fordonet till BMW per telematik. Den faktiska m&auml;ngden &ouml;verf&ouml;rda servicebehovsmeddelanden (se separat Key CBS) varierar beroende p&aring; hur fordonet anv&auml;nds och om gr&auml;nsv&auml;rden som &auml;r relevanta f&ouml;r servicen uppn&aring;s. Anm&auml;rkning: Inte alla Condition Based Service-meddelanden som uppst&aring;r i fordonet, &ouml;verf&ouml;rs ocks&aring;. </td><td class="col3">vehicle.​status.​conditionBasedServicesCount</td><td class="col4">uint16</td><td class="col5">0 till 60
+Meddelanden</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Antal lediga POI (Points of Interest) -platser i navigationssystemet</td><td class="col2-emea">V&auml;rdet anger hur m&aring;nga POI (Points of Interest) -platser som fortfarande &auml;r lediga i navigationssystemet. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​pointsOfInterests.​available</td><td class="col4">uint16</td><td class="col5">25</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">AntiTheftAlarm aktiveringstid</td><td class="col2-emea">Tidsst&auml;mpel f&ouml;r den senaste larmutl&ouml;sningstiden. V&auml;rdet kommer utan information om tidszon.</td><td class="col3">vehicle.​vehicle.​antiTheftAlarmSystem.​alarm.​activationTime</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">AntitheftAlarm &auml;r p&aring;</td><td class="col2-emea">St&ouml;ldlarmet &auml;r aktivt (bilen tutar).</td><td class="col3">vehicle.​vehicle.​antiTheftAlarmSystem.​alarm.​isOn</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">AntiTheftAlarm-larmstatus</td><td class="col2-emea">St&ouml;ldlarm. Aktiveringsstatus.</td><td class="col3">vehicle.​vehicle.​antiTheftAlarmSystem.​alarm.​armStatus</td><td class="col4">string</td><td class="col5">unarmed, doorsOnly, doorsTiltCabin</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Anv&auml;ndning av motorn f&ouml;r f&ouml;rkonditionering.</td><td class="col2-emea">Detta v&auml;rde anger om motorn vid tidpunkten f&ouml;r dataregistreringen var startad under parkeringsklimatiseringen. V&auml;rdet "Inactive" kan &ouml;verf&ouml;ras om f&ouml;rkonditioneringen inte &auml;r bokad eller om f&ouml;rkonditioneringen inte &auml;r aktiv vid tidpunkten f&ouml;r dataregistreringen.</td><td class="col3">vehicle.​vehicle.​preConditioning.​isRemoteEngineRunning</td><td class="col4">boolean</td><td class="col5">true, false</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">&Aring;terst&aring;ende f&ouml;rkonditioneringstid.</td><td class="col2-emea">V&auml;rdet anger parkeringsklimatiseringens &aring;terst&aring;ende f&ouml;rkonditioneringstid i minuter vid tidpunkten f&ouml;r dataregistreringen. V&auml;rdet kan ocks&aring; &ouml;verf&ouml;ras om f&ouml;rkonditioneringen inte &auml;r bokad eller om parkeringsklimatiseringens f&ouml;rkonditioneringsstatus inte &auml;r aktiv ("Inactive") vid tidpunkten f&ouml;r dataregistreringen.</td><td class="col3">vehicle.​vehicle.​preConditioning.​remainingTime</td><td class="col4">uint8</td><td class="col5">0-60 min,&nbsp; INVALID</td><td class="col6-emea">min</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">&Aring;terst&aring;ende r&auml;ckvidd</td><td class="col2-emea">V&auml;rdet anger i kilometer den &aring;terst&aring;ende r&auml;ckvidden med det tankinneh&aring;ll som har uppm&auml;tts vid tidpunkten f&ouml;r dataregistreringen. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​remainingRange</td><td class="col4">uint16</td><td class="col5">0 km till
+100000 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bagaged&ouml;rr &ouml;ppen status</td><td class="col2-emea">Bagaged&ouml;rrens tillst&aring;nd.</td><td class="col3">vehicle.​body.​trunk.​door.​isOpen</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bagageutrymme h&ouml;ger d&ouml;rr &ouml;ppen</td><td class="col2-emea">Tillst&aring;nd h&ouml;ger d&ouml;rr i bagageutrymmet.</td><td class="col3">vehicle.​body.​trunk.​right.​door.​isOpen</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bagageutrymmets nedre d&ouml;rr &ouml;ppen</td><td class="col2-emea">Tillst&aring;nd nedre d&ouml;rr i bagageutrymmet.</td><td class="col3">vehicle.​body.​trunk.​lower.​door.​isOpen</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bagageutrymmets &ouml;vre d&ouml;rr &ouml;ppen</td><td class="col2-emea">&Ouml;vre d&ouml;rr i bagageutrymmet.</td><td class="col3">vehicle.​body.​trunk.​upper.​door.​isOpen</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bagageutrymme v&auml;nster d&ouml;rr &ouml;ppen</td><td class="col2-emea">V&auml;nster d&ouml;rr i bagageutrymmet.</td><td class="col3">vehicle.​body.​trunk.​left.​door.​isOpen</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bakluckans tillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger, om bakluckan vid tidpunkten f&ouml;r dataregistreringen var &ouml;ppen (OPEN), till h&auml;lften &ouml;ppen (INTERMEDIATE) eller st&auml;ngd (CLOSED).</td><td class="col3">vehicle.​body.​trunk.​isOpen</td><td class="col4">boolean</td><td class="col5">CLOSED, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bakre avfrostning p&aring;</td><td class="col2-emea">Aktuell status f&ouml;r bakruteuppv&auml;rmningen.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​status.​rearDefrostActive</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bakre d&ouml;rrposition f&ouml;rare</td><td class="col2-emea">Bakre d&ouml;rr&ouml;ppningsposition p&aring; f&ouml;rarsidan i procent. 0&nbsp;% inneb&auml;r helt st&auml;ngt och 100&nbsp;% helt &ouml;ppet.</td><td class="col3">vehicle.​cabin.​door.​row2.​driver.​position</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Bakre passagerars&auml;te kylning</td><td class="col2-emea">Bakre passagerars&auml;te Kylning. 0 = av. +100 = max. kyla.</td><td class="col3">vehicle.​cabin.​seat.​row2.​passengerSide.​cooling</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriets h&auml;lsotillst&aring;nd</td><td class="col2-emea">Detta v&auml;rde anger batteriets h&auml;lsotillst&aring;nd.
+
+200 = Batteriets h&auml;lsotillst&aring;nd &auml;r tillr&auml;ckligt bra
+140 = Begr&auml;nsat &ndash; Batteribyte rekommenderas
+110 = Otillr&auml;ckligt &ndash; Batteribyte kr&auml;vs
+80 = F&ouml;rs&auml;mrat &ndash; Batteribyte kr&auml;vs omg&aring;ende</td><td class="col3">vehicle.​electricalSystem.​battery.​serviceDemand.​replace</td><td class="col4">-</td><td class="col5">200
+140
+110
+80</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batterisp&auml;nning</td><td class="col2-emea">V&auml;rdet anger batterisp&auml;nningen i fordonets eln&auml;t vid tidpunkten f&ouml;r dataregistreringen. 
+V&auml;rdet anges alltid i Volt, exempelvis 14,4 V. </td><td class="col3">vehicle.​electricalSystem.​battery.​voltage</td><td class="col4">float</td><td class="col5">5 V till 20 V</td><td class="col6-emea">V</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Behov av batteriladdning</td><td class="col2-emea">V&auml;rdet anger om en batteriladdning beh&ouml;vs.
+
+1 = laddning n&ouml;dv&auml;ndig
+0 = laddning ej n&ouml;dv&auml;ndig</td><td class="col3">vehicle.​electricalSystem.​battery.​serviceDemand.​recharge</td><td class="col4">-</td><td class="col5">1
+0</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Belysningens tillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger om fordonsbelysningen vid tidpunkten f&ouml;r dataregistreringen var t&auml;nd eller sl&auml;kt eller om tillst&aring;ndet &auml;r ok&auml;nt. </td><td class="col3">vehicle.​body.​lights.​isRunningOn</td><td class="col4">boolean</td><td class="col5">ASN_isFalse, ASN_isTrue, ASN_isUnknown</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Cabriolettakets tillst&aring;nd</td><td class="col2-emea">Anger cabriolettakets aktuella tillst&aring;nd vid tidpunkten f&ouml;r dataregistreringen, allts&aring; om det t. ex. &auml;r st&auml;ngt (CLOSED), &ouml;ppet (OPEN) eller &ndash; l&aring;st i n&ouml;dfall (EMERGENCYLOCKED)
+F&ouml;ljande &ouml;vriga tillst&aring;ndsv&auml;rden &auml;r m&ouml;jliga: 
+CLOSEDSECURED = Cabriolettaket st&auml;ngt, fordon s&auml;krat 
+OPENSECURED = Cabriolettaket &ouml;ppet, fordon s&auml;krat 
+HARDTOPMOUNTED = Hardtop monterad och st&auml;ngd (borttagabar Hardtop) 
+INTERMEDIATEPOSITION = Cabriolettaket i mellanl&auml;ge  
+LOADINGPOSITION = Taket befinner som sig i en position som underl&auml;ttar lastningen av bagageutrymmet  
+LOADINGPOSITIONIMMEDIATE = Taket befinner som sig i en position som underl&auml;ttar lastningen av bagageutrymmet</td><td class="col3">vehicle.​cabin.​convertible.​roofStatus</td><td class="col4">string</td><td class="col5">CLOSEDSECURED, OPENSECURED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Datumet f&ouml;r n&auml;sta inspektion</td><td class="col2-emea">V&auml;rdet anger n&auml;r det &auml;r dags f&ouml;r n&auml;sta inspektion. 
+Detta visas alltid som ett datum, exempelvis 30.09.2018 23:00UTC.</td><td class="col3">vehicle.​status.​serviceTime.​inspectionDateLegal</td><td class="col4">string</td><td class="col5">dd.mm.yyyy hh:mm UTC</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Datum och tid i fordonet</td><td class="col2-emea">V&auml;rdetanger tiden som visas i fordonet vid tidpunkten f&ouml;r dataregistreringen. </td><td class="col3">vehicle.​channel.​ngtp.​timeVehicle</td><td class="col4">string</td><td class="col5">00:00 Uhr till
+23:59 Uhr</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktkylning f&ouml;r bakre f&ouml;rare</td><td class="col2-emea">DirectStart-inst&auml;llningar f&ouml;r bakre f&ouml;rarstolens kylning/ventilation av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row2.​driverSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktkylning f&ouml;r bakre passagerare</td><td class="col2-emea">DirectStart-inst&auml;llningar f&ouml;r bakre passagerarstolens kylning/ventilation av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row2.​passengerSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktkylning f&ouml;r tredje radens f&ouml;rare</td><td class="col2-emea">DirectStart-inst&auml;llningar f&ouml;r tredje radens f&ouml;rarstolskylning/ventilation av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row3.​driverSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktkylning f&ouml;r tredje radens passagerare</td><td class="col2-emea">DirectStart-inst&auml;llningar f&ouml;r tredje radens passagerarstolskylning/ventilation av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row3.​passengerSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktv&auml;rme f&ouml;r bakre f&ouml;rare</td><td class="col2-emea">DirectStart-inst&auml;llningar f&ouml;r bakre f&ouml;rarstolens uppv&auml;rmning av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row2.​driverSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktv&auml;rme f&ouml;r bakre passagerare</td><td class="col2-emea">DirectStart-inst&auml;llningar f&ouml;r bakre passagerarstolens uppv&auml;rmning av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row2.​passengerSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktv&auml;rme f&ouml;r fr&auml;mre passagerare</td><td class="col2-emea">DirectStart-inst&auml;llningar f&ouml;r fr&auml;mre passagerarstolens uppv&auml;rmning av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row1.​passengerSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktv&auml;rme f&ouml;r tredje radens f&ouml;rare</td><td class="col2-emea">DirectStart-inst&auml;llningar f&ouml;r tredje radens f&ouml;rarstolsuppv&auml;rmning av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row3.​driverSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktv&auml;rme f&ouml;r tredje radens passagerare</td><td class="col2-emea">DirectStart-inst&auml;llningar f&ouml;r tredje radens passagerarstolsuppv&auml;rmning av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row3.​passengerSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Direktv&auml;rme p&aring; ratten</td><td class="col2-emea">DirectStart-inst&auml;llningar f&ouml;r rattv&auml;rme f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​steeringWheel.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Disclaimer f&ouml;r fj&auml;rrklimatisering</td><td class="col2-emea">Sant om alternativet fj&auml;rrstyrd motorstart &auml;r inst&auml;llt, annars falskt.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​isRemoteEngineStartDisclaimer</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Djupvilol&auml;ge (Deep Sleep Mode)</td><td class="col2-emea">V&auml;rdet anger om djupvilol&auml;get (Deep Sleep Mode) &auml;r aktiverat (&rdquo;true&rdquo;) eller avaktiverat (&rdquo;false&rdquo;) vid tidpunkten f&ouml;r f&ouml;rfr&aring;gan.
+Om kunden har aktiverat djupvilol&auml;get (Deep Sleep Mode) kan kunden parkera sitt fordon en l&auml;ngre tid utan att beh&ouml;va ladda batteriet. De flesta f&ouml;rbrukare &auml;r avaktiverade i det h&auml;r l&auml;get f&ouml;r att spara energi. Kunden kan avsluta djupvilol&auml;get (Deep Sleep Mode) genom att avaktivera det eller genom att starta fordonet.</td><td class="col3">vehicle.​vehicle.​deepSleepModeActive</td><td class="col4">boolean</td><td class="col5">true, false</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">D&ouml;rrarnas tillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger om d&ouml;rrarna vid tidpunkten f&ouml;r dataregistreringen var st&auml;ngda (CLOSED) eller &ouml;ppna (OPEN)
+&Ouml;vriga potentiella v&auml;rden &auml;r: 
+SELECTIVELOCKED = Fordonet &auml;r l&aring;st f&ouml;rutom den fr&auml;mre v&auml;nsterd&ouml;rren (uppst&aring;r n&auml;r Remote Services Door Unlock utf&ouml;rs f&ouml;r f&ouml;rsta g&aring;ngen)
+SECURED = Fordonet &auml;r s&auml;krat = Alla d&ouml;rrar &auml;r l&aring;sta och larmet p&aring;</td><td class="col3">vehicle.​cabin.​door.​lock.​status</td><td class="col4">-</td><td class="col5">SECURED, UNLOCKED, SELECTIVE-LOCKED, LOCKED, INVALID, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">D&ouml;rrarnas tillst&aring;nd</td><td class="col2-emea">Detta v&auml;rde anger d&ouml;rrarnas tillst&aring;nd, men det skrivs och &ouml;verf&ouml;rs endast sporadiskt
+Anm&auml;rkning: Det l&ouml;nar sig att anv&auml;nda de enskilda d&ouml;rrarnas status ist&auml;llet f&ouml;r detta v&auml;rde. </td><td class="col3">vehicle.​cabin.​door.​status</td><td class="col4">string</td><td class="col5">oldDoorStatus: ASN_secured
+ASN_unlocked
+ASN_unknown
+ASN_selective-Locked
+
+newDoorStatus:
+ASN_locked
+ASN_unlocked
+ASN_selective-Locked
+ASN_unknown
+
+allDoorsLocked:
+ASN_isUnknown
+ASN_isTrue
+ASN_isFalse
+
+trunkLocked:
+ASN_isUnknown
+ASN_isTrue
+ASN_isFalse</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Felminne</td><td class="col2-emea">Felminnet ger information om potentiella st&ouml;rningar eller tekniska defekter i fordonet. Denna information &auml;r avsedd f&ouml;r verkst&auml;der.  Kundrelevanta st&ouml;rningar som visas f&ouml;r f&ouml;raren i fordonet, finns tillg&auml;ngliga i CarData-elementet &rdquo;Check Control-meddelanden&rdquo;. N&auml;rmare information om detta finns dokumenterat i fordonets bruksanvisning.</td><td class="col3">vehicle.​electronicControlUnit.​diagnosticTroubleCodes.​raw</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Fordonets inriktning</td><td class="col2-emea">V&auml;rdet anger fordonets inriktning i grader vid tidpunkten f&ouml;r dataregistreringen. Om v&auml;rdet &auml;r 180 &auml;r fordonet riktat exakt mot s&ouml;der. Om v&auml;rdet &auml;r 0 &auml;r fordonet riktat exakt mot norr. S&aring;ledes str&auml;cker sig v&auml;rdena mellan 0 och 359. Fordonets ber&auml;knade inriktning kan p&aring; grund av GPS-lokaliseringens precision avvika fr&aring;n den verkliga inriktningen. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​currentLocation.​heading</td><td class="col4">double</td><td class="col5">0&deg; till 359&deg;</td><td class="col6-emea">degrees</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Fordonets position &ndash; geografisk breddgrad</td><td class="col2-emea">V&auml;rdet anger den geografiska breddgraden f&ouml;r positionen som fordonet befinner sig p&aring; vid tidpunkten f&ouml;r dataregistreringen. 
+Breddgraden har v&auml;rden i grader fr&aring;n 0 (vid ekvatorn) till maximalt +90 p&aring; det norra respektive-90 p&aring; det s&ouml;dra halvklotet. &Ouml;verf&ouml;ringen av GPS-positionen sker oberoende av om GPS-lokaliseringen av ditt fordon &auml;r aktiverad eller avaktiverad i inst&auml;llningsmenyn. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​currentLocation.​latitude</td><td class="col4">double</td><td class="col5">-90.0000 till
++ 90.0000</td><td class="col6-emea">degrees</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Fordonets position &ndash; geografisk l&auml;ngdgrad</td><td class="col2-emea">V&auml;rdet anger den geografiska l&auml;ngdgraden f&ouml;r positionen som fordonet befinner sig p&aring; vid tidpunkten f&ouml;r dataregistreringen. 
+L&auml;ngdgraden uppn&aring;r v&auml;rden i grader fr&aring;n 0 (p&aring; nollmeridianen i Greenwich/Storbritannien) till maximalt +180 &ouml;ster om respektive 
+-180 v&auml;ster om nollmeridianen. &Ouml;verf&ouml;ringen av GPS-positionen sker oberoende av om GPS-lokaliseringen av ditt fordon &auml;r aktiverad eller avaktiverad i inst&auml;llningsmenyn. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​currentLocation.​longitude</td><td class="col4">double</td><td class="col5">-180.0000 till
+ + 180.0000</td><td class="col6-emea">degrees</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Fordonets position &ouml;ver havsytan</td><td class="col2-emea">V&auml;rdet anger h&ouml;jden i meter &ouml;ver havsytan som fordonet befinner sig p&aring; vid tidpunkten f&ouml;r dataregistreringen. 
+V&auml;rdeomr&aring;det str&auml;cker sig fr&aring;n -100 till 6000. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​currentLocation.​altitude</td><td class="col4">double</td><td class="col5">-100 m till 6000 m eller -NA-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Fordonets r&ouml;relsetillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger om fordonet befann sig i r&ouml;relse vid tidpunkten f&ouml;r dataregistreringen. </td><td class="col3">vehicle.​isMoving</td><td class="col4">boolean</td><td class="col5">ASN_isFalse, ASN_isTrue, ASN_isUnknown</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">F&ouml;rkonditionering resttid</td><td class="col2-emea">&Aring;terst&aring;ende k&ouml;rtid f&ouml;r klimatf&ouml;rkonditionering i sekunder.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​status.​remainingRunningTime</td><td class="col4">uint32</td><td class="col5">0&ndash;10&nbsp;000&nbsp;000</td><td class="col6-emea">s</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Fr&auml;mre f&ouml;rars&auml;te kylning.</td><td class="col2-emea">Fr&auml;mre f&ouml;rars&auml;te Kylning. 0 = av. +100 = max. kyla.</td><td class="col3">vehicle.​cabin.​seat.​row1.​driverSide.​cooling</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Fr&auml;mre f&ouml;rarstolen direktkylning.</td><td class="col2-emea">DirectStart-inst&auml;llningar f&ouml;r fr&auml;mre f&ouml;rarstolens kylning/ventilation av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row1.​driverSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Fr&auml;mre f&ouml;rarstolen direktv&auml;rme.</td><td class="col2-emea">DirectStart-inst&auml;llningar f&ouml;r fr&auml;mre f&ouml;rarstolens uppv&auml;rmning av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row1.​driverSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Framsteg klimatf&ouml;rkonditionering</td><td class="col2-emea">Framsteg f&ouml;r den aktuella aktiva klimatf&ouml;rkonditionering i procent.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​status.​progress</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Gr&auml;nsv&auml;rde f&ouml;r k&ouml;rstr&auml;cka innan serviceinformation ges</td><td class="col2-emea">Det angivna statiska v&auml;rdet sparas i fordonet och anger n&auml;r kunden f&ouml;r f&ouml;rsta g&aring;ngen i fordonet ska f&aring; kilometerbaserad information om att det snart &auml;r dags f&ouml;r n&auml;sta service. 
+Detta anges i kilometer (exempelvis 2000). </td><td class="col3">vehicle.​status.​serviceDistance.​yellow</td><td class="col4">uint16</td><td class="col5">2000 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">H&ouml;ger bak d&ouml;rrens tillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger om d&ouml;rren h&ouml;ger bak vid tidpunkten f&ouml;r dataregistreringen var st&auml;ngd (CLOSED) eller &ouml;ppen (OPEN).</td><td class="col3">vehicle.​cabin.​door.​row2.​passenger.​isOpen</td><td class="col4">boolean</td><td class="col5">OPEN, CLOSED, INVALID, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">H&ouml;ger bak f&ouml;nstrets tillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger, om f&ouml;nstret h&ouml;ger bak vid tidpunkten f&ouml;r dataregistreringen var &ouml;ppet (OPEN), till h&auml;lften &ouml;ppet (INTERMEDIATE) eller st&auml;ngt (CLOSED).</td><td class="col3">vehicle.​cabin.​window.​row2.​passenger.​status</td><td class="col4">string</td><td class="col5">CLOSED, INTERMEDIATE, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">H&ouml;ger fram d&ouml;rrens tillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger om h&ouml;ger d&ouml;rr vid tidpunkten f&ouml;r dataregistreringen var st&auml;ngd (CLOSED) eller &ouml;ppen (OPEN).</td><td class="col3">vehicle.​cabin.​door.​row1.​passenger.​isOpen</td><td class="col4">boolean</td><td class="col5">OPEN, CLOSED, INVALID, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">H&ouml;ger fram f&ouml;nstrets tillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger, om f&ouml;nstret i h&ouml;ger d&ouml;rr vid tidpunkten f&ouml;r dataregistreringen var &ouml;ppet (OPEN), till h&auml;lften &ouml;ppet (INTERMEDIATE) eller st&auml;ngt (CLOSED).</td><td class="col3">vehicle.​cabin.​window.​row1.​passenger.​status</td><td class="col4">string</td><td class="col5">CLOSED, INTERMEDIATE, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">HVAC-luftreningsstatus</td><td class="col2-emea">Faktiska status f&ouml;r luftrening.</td><td class="col3">vehicle.​cabin.​hvac.​statusAirPurification</td><td class="col4">string</td><td class="col5">UNFILTERED, PURIFYING_ONGOING, PURIFIED, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Komforttillst&aring;nd f&ouml;r klimatf&ouml;rkonditionering</td><td class="col2-emea">Status f&ouml;r komforttillst&aring;ndet f&ouml;r klimatf&ouml;rkonditioneringen.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​status.​comfortState</td><td class="col4">string</td><td class="col5">NOT_ACTIVE, COMFORT_HEATING, COMFORT_COOLING, COMFORT_VENTILATION, DEFROST, COMFORT_UNDEFINED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Koppling Mobiltelefon</td><td class="col2-emea">V&auml;rdet anger om en mobiltelefon var kopplad till fordonet vid tidpunkten f&ouml;r dataregistreringen eller om kopplingsstatusen &auml;r ok&auml;nd. </td><td class="col3">vehicle.​cabin.​infotainment.​isMobilePhoneConnected</td><td class="col4">boolean</td><td class="col5">ASN_isFalse, ASN_isTrue, ASN_isUnknown</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">K&ouml;rstr&auml;cka till n&auml;sta service</td><td class="col2-emea">V&auml;rdet anger hur m&aring;nga kilometer det &auml;r kvar till n&auml;sta service vid tidpunkten f&ouml;r dataregistreringen. 
+Anm&auml;rkning: Detta v&auml;rde ber&auml;knas utifr&aring;n de enskilda CBS-tj&auml;nsterna och fastst&auml;lls inte med varje data&ouml;verf&ouml;ring.
+Se &rdquo;Condition Based Service&rdquo; f&ouml;r detaljerad information.</td><td class="col3">vehicle.​status.​serviceDistance.​next</td><td class="col4">uint16</td><td class="col5">0 km till
+100 000 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">K&ouml;rstr&auml;cka till navigationsm&aring;let</td><td class="col2-emea">V&auml;rdet anger i kilometer avst&aring;ndet till det aktiva navigationsm&aring;let som har uppm&auml;tts vid tidpunkten f&ouml;r dataregistreringen. 
+V&auml;rdena str&auml;cker sig fr&aring;n 0 till 100000. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​destinationSet.​distance</td><td class="col4">uint16</td><td class="col5">0 km till
+100000 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Kylarv&auml;tskans temperatur</td><td class="col2-emea">V&auml;rdet anger kylarv&auml;tskans aktuella temperatur i grader Celsius vid tidpunkten f&ouml;r dataregistreringen. </td><td class="col3">vehicle.​drivetrain.​internalCombustionEngine.​engine.​ect</td><td class="col4">int16</td><td class="col5">0 &deg;C till 150 &deg;C</td><td class="col6-emea">Celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Kylning av Bakre f&ouml;rars&auml;te</td><td class="col2-emea">Bakre f&ouml;rars&auml;te Kylning. 0 = av. +100 = max. kyla.</td><td class="col3">vehicle.​cabin.​seat.​row2.​driverSide.​cooling</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laddningsprofil</td><td class="col2-emea">Laddningsprofilen informerar om vilket laddningsl&auml;ge som senast har valts i fordonet. Vid behov anv&auml;nds detta CarData-element &auml;ven f&ouml;r fordon utan elektrisk drivning f&ouml;r att visa enskilda attribut, som t.ex. f&ouml;rtempereringens inst&auml;llning.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​mode</td><td class="col4">string</td><td class="col5">XML strukturen &auml;r tillfogad i slutet av tabellen (1).</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">L&aring;gsp&auml;nningsbatteri</td><td class="col2-emea">V&auml;rdet anger l&aring;gsp&auml;nningsbatteriets aktuella laddningsniv&aring; i procent vid tidpunkten f&ouml;r datainsamlingen.</td><td class="col3">vehicle.​electricalSystem.​battery.​stateOfCharge</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">%</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">L&aring;gsp&auml;nningsbatteriets sannolikhet</td><td class="col2-emea">Detta v&auml;rde anger om den uppm&auml;tta laddningsniv&aring;n f&ouml;r l&aring;gsp&auml;nningsbatteriet &auml;r sannolik i procent.</td><td class="col3">vehicle.​electricalSystem.​battery.​stateOfChargePlausibility</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">M&aring;ltemperatur</td><td class="col2-emea">Standardinst&auml;llningar f&ouml;r m&aring;ltemperatur f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​targetTemperature</td><td class="col4">float</td><td class="col5">0&nbsp;&deg;C till 50&nbsp;&deg;C</td><td class="col6-emea">celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">M&aring;ltemperatur f&ouml;r direktstart</td><td class="col2-emea">DirectStart-inst&auml;llningar f&ouml;r m&aring;ltemperatur f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​targetTemperature</td><td class="col4">float</td><td class="col5">0&nbsp;&deg;C till 50&nbsp;&deg;C</td><td class="col6-emea">celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">M&auml;tarst&auml;llning</td><td class="col2-emea">V&auml;rdet anger den aktuella m&auml;tarst&auml;llningen vid tidpunkten f&ouml;r dataregistreringen. </td><td class="col3">vehicle.​vehicle.​travelledDistance</td><td class="col4">float</td><td class="col5">0 km till
+500000 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Maximalt antal POI som kan sparas i navigationssystemet</td><td class="col2-emea">V&auml;rdet anger hur m&aring;nga POI (Points of Interest) som maximalt kan sparas i navigationssystemet. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​pointsOfInterests.​max</td><td class="col4">uint16</td><td class="col5">25</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Motorhuvens tillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger om motorhuven vid tidpunkten f&ouml;r dataregistreringen var st&auml;ngd (CLOSED) eller &ouml;ppen (OPEN)</td><td class="col3">vehicle.​body.​hood.​isOpen</td><td class="col4">boolean</td><td class="col5">CLOSED, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Motorns tillst&aring;nd (p&aring;/av)</td><td class="col2-emea">V&auml;rdet anger om motorn vid tidpunkten f&ouml;r dataregistreringen var av eller p&aring; eller om tillst&aring;ndet &auml;r ok&auml;nt. </td><td class="col3">vehicle.​drivetrain.​engine.​isIgnitionOn</td><td class="col4">boolean</td><td class="col5">ASN_isFalse, ASN_isTrue, ASN_isUnknown</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Navigationsresm&aring;l &mdash; latitud</td><td class="col2-emea">Detta v&auml;rde anger koordinaterna f&ouml;r det aktiva navigationsresm&aring;let - latitud vid tidpunkten f&ouml;r datainsamling i nanosekunder.</td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​destinationSet.​latitude</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Navigationsresm&aring;l &mdash; longitud</td><td class="col2-emea">Detta v&auml;rde anger koordinaterna f&ouml;r det aktiva navigationsresm&aring;let - longitud vid tidpunkten f&ouml;r datainsamling i nanosekunder. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​destinationSet.​longitude</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Orsaken till att f&ouml;rkonditionering av standard-klimatiseringen inte har utf&ouml;rts</td><td class="col2-emea">Anger orsaken till att f&ouml;rkonditionering av standard-klimatiseringen inte har utf&ouml;rts vid tidpunkten f&ouml;r dataregistreringen. </td><td class="col3">vehicle.​vehicle.​preConditioning.​error</td><td class="col4">string</td><td class="col5">LowFuel,
+LowBattery,
+QuotaExceeded,
+HeaterFailure,
+ComponentFailure,
+OpenOrUnlocked,
+OK,
+INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">&Ouml;vergripande status f&ouml;r soltaket</td><td class="col2-emea">&Ouml;vergripande status f&ouml;r fordonets taklucka.</td><td class="col3">vehicle.​cabin.​sunroof.​overallStatus</td><td class="col4">string</td><td class="col5">INVALID, OPEN, OPEN_TILT, INTERMEDIATE_TILT, CLOSED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Passagerarstolens direktkylning</td><td class="col2-emea">DirectStart-inst&auml;llningar f&ouml;r fr&auml;mre passagerarstolens kylning/ventilation av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​directStartSettings.​seat.​row1.​passengerSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Passagerarstol kyldrift</td><td class="col2-emea">Passagerarstol Kyldrift. 0 = av. +100 = max. kyla.</td><td class="col3">vehicle.​cabin.​seat.​row1.​passengerSide.​cooling</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Passagerarstolsv&auml;rme</td><td class="col2-emea">Passagerarstolsv&auml;rme. 0 = av. +100 = max. v&auml;rme.</td><td class="col3">vehicle.​cabin.​seat.​row1.​passengerSide.​heating</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Position f&ouml;r bakre passagerard&ouml;rr</td><td class="col2-emea">Bakre d&ouml;rr&ouml;ppningsposition p&aring; passagerarsidan i procent. 0&nbsp;% inneb&auml;r helt st&auml;ngt och 100&nbsp;% helt &ouml;ppet.</td><td class="col3">vehicle.​cabin.​door.​row2.​passenger.​position</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Position f&ouml;r fr&auml;mre f&ouml;rard&ouml;rr</td><td class="col2-emea">Fr&auml;mre d&ouml;rr&ouml;ppningsposition p&aring; f&ouml;rarsidan i procent. 0&nbsp;% inneb&auml;r helt st&auml;ngt och 100&nbsp;% helt &ouml;ppet.</td><td class="col3">vehicle.​cabin.​door.​row1.​driver.​position</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Position f&ouml;r fr&auml;mre passagerard&ouml;rr</td><td class="col2-emea">Passagerarsidans framd&ouml;rr&ouml;ppningsposition i procent. 0&nbsp;% inneb&auml;r helt st&auml;ngt och 100&nbsp;% helt &ouml;ppet.</td><td class="col3">vehicle.​cabin.​door.​row1.​passenger.​position</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Prioriterad servicepartner</td><td class="col2-emea">Anger vilken servicepartner som fordonet f&ouml;r n&auml;rvarande &auml;r tilldelat. </td><td class="col3">vehicle.​sevice.​preferredSevicePartner</td><td class="col4">-</td><td class="col5">string</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Rattv&auml;rme</td><td class="col2-emea">&Auml;rv&auml;rde f&ouml;r rattv&auml;rmen i procent.</td><td class="col3">vehicle.​cabin.​steeringWheel.​heating</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Senaste Teleservice Breakdown Call-tid</td><td class="col2-emea">Automatiskt fordonshaveri. Med haverianropet kan kunden kontakta ett ombud f&ouml;r ett BMW V&auml;gassistans-samtalscenter (RSA CC) i h&auml;ndelse av fordonshaveri s&aring; att f&ouml;raren f&aring;r hj&auml;lp med fels&ouml;kning eller att bogsera fordonet. Med haverianropet kan kunden kontakta ett ombud f&ouml;r ett BMW V&auml;gassistans-samtalscenter (RSA CC) i h&auml;ndelse av fordonshaveri s&aring; att f&ouml;raren f&aring;r hj&auml;lp med fels&ouml;kning eller att bogsera fordonet. Servicen kan startas fr&aring;n bilens iDrive-menu och finns tillg&auml;nglig p&aring; tre niv&aring;er beroende p&aring; tillg&auml;nglighet och lansering p&aring; marknaden.</td><td class="col3">vehicle.​channel.​teleservice.​lastBreakdownCallTime</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Senaste teleservice manuell samtalstid</td><td class="col2-emea">Kunden l&ouml;ser ut ett manuellt servicesamtal via fordonets HMI (iDrive). Fordonet skickar servicerelevant data till Teleservices backend systemA, ett nytt Teleservice-&auml;rende skapas och tilldelas den servicepartner som kunden f&ouml;redrar. Teleservice-&auml;rendet skickas till servicepartnersystemet f&ouml;r bearbetning enligt respektive verkstadsprocess.</td><td class="col3">vehicle.​channel.​teleservice.​lastManualCallTime</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Smart Maintenance: Digital d&auml;ckdiagnos</td><td class="col2-emea">V&auml;rdet inneh&aring;ller information om fordonets aktuella och tidigare monterade d&auml;cksats. Dessa data fastst&auml;lls av fordonet och skickas automatiskt efter definierade cykler.&nbsp;</td><td class="col3">vehicle.​chassis.​axle.​wheel.​tire.​diagnosis</td><td class="col4">-</td><td class="col5">Detaljer finns i motsvarande Swagger-dokumentation: ../smartMaintenanceTyreDiagnosis</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Smart Maintenance: Realtidsdiagnos</td><td class="col2-emea">V&auml;rdet inneh&aring;ller information om vilka servicebehov som fastst&auml;llts f&ouml;r fordonet p&aring; grundval av realtidsdiagnosen. Informationen best&aring;r av servicebehovets titel, kategori och aktuella status. Fordonet samlar in feldata f&ouml;r servicebehovet och skickar dem automatiskt efter definierade cykler.</td><td class="col3">vehicle.​serviceDemand.​defect.​id</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Solskyddsposition</td><td class="col2-emea">Artikelposition. 0 = startposition 100 = slutposition</td><td class="col3">vehicle.​cabin.​sunroof.​shade.​position</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Soltakets relativa position</td><td class="col2-emea">&Ouml;ppningstillst&aring;nd f&ouml;r soltaket i procent. -100 betyder full lutningsposition. 0&nbsp;% inneb&auml;r helt st&auml;ngt och 100&nbsp;% helt &ouml;ppet.</td><td class="col3">vehicle.​cabin.​sunroof.​relativePosition</td><td class="col4">int8</td><td class="col5">-100% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard-klimatiseringens f&ouml;rkonditioneringsstatus</td><td class="col2-emea">Aktuell status f&ouml;r parkeringsklimatiseringens f&ouml;rkonditionering f&ouml;re f&auml;rdstart vid tidpunkten f&ouml;r dataregistreringen. V&auml;rdet "Inactive" kan &ouml;verf&ouml;ras om f&ouml;rkonditioneringen inte &auml;r bokad eller om f&ouml;rkonditioneringen inte &auml;r aktiv vid tidpunkten f&ouml;r dataregistreringen.</td><td class="col3">vehicle.​vehicle.​preConditioning.​activity</td><td class="col4">string</td><td class="col5">standby,
+heating,
+cooling,
+ventilation,
+inactive</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standardkylning av bakre f&ouml;rarstolens kylning</td><td class="col2-emea">Standardinst&auml;llningar f&ouml;r bakre f&ouml;rarstolens kylning/ventilation av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row2.​driverSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standardkylning av bakre passagerarstolens kylning</td><td class="col2-emea">Standardinst&auml;llningar f&ouml;r bakre passagerarstolens kylning/ventilation av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row2.​passengerSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standardkylning av fr&auml;mre f&ouml;rarstolens kylning</td><td class="col2-emea">Standardinst&auml;llningar f&ouml;r fr&auml;mre f&ouml;rarstolens kylning/ventilation av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row1.​driverSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standardkylning av fr&auml;mre passagerarstolens kylning</td><td class="col2-emea">Standardinst&auml;llningar f&ouml;r fr&auml;mre passagerarstolens kylning/ventilation av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row1.​passengerSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard rattv&auml;rme</td><td class="col2-emea">Standardinst&auml;llningar f&ouml;r rattv&auml;rme f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​steeringWheel.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard tredje radens f&ouml;rarstolskylning</td><td class="col2-emea">Standardinst&auml;llningar f&ouml;r tredje radens f&ouml;rarstolskylning/ventilation av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row3.​driverSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard tredje radens f&ouml;rarstolsuppv&auml;rmning</td><td class="col2-emea">Standardinst&auml;llningar f&ouml;r tredje radens f&ouml;rarstolsuppv&auml;rmning av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row3.​driverSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard tredje radens passagerarstolskylning</td><td class="col2-emea">Standardinst&auml;llningar f&ouml;r tredje radens passagerarstolskylning/ventilation av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row3.​passengerSide.​cooling</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard tredje radens passagerarstolsuppv&auml;rmning</td><td class="col2-emea">Standardinst&auml;llningar f&ouml;r tredje radens passagerarstolsuppv&auml;rmning av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row3.​passengerSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standarduppv&auml;rmning av bakre f&ouml;rarstolens kylning</td><td class="col2-emea">Standardinst&auml;llningar f&ouml;r bakre f&ouml;rarstolens uppv&auml;rmning av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row2.​driverSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standarduppv&auml;rmning av bakre passagerarstolens kylning</td><td class="col2-emea">Standardinst&auml;llningar f&ouml;r bakre passagerarstolens uppv&auml;rmning av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row2.​passengerSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard uppv&auml;rmning av fr&auml;mre f&ouml;rarstolen</td><td class="col2-emea">Standardinst&auml;llningar f&ouml;r fr&auml;mre f&ouml;rarstolens uppv&auml;rmning av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row1.​driverSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Standard uppv&auml;rmning av fr&auml;mre passagerarstolen</td><td class="col2-emea">Standardinst&auml;llningar f&ouml;r fr&auml;mre passagerarstolens uppv&auml;rmning av stolen f&ouml;r klimatf&ouml;rkonditionering.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​configuration.​defaultSettings.​seat.​row1.​passengerSide.​heating</td><td class="col4">string</td><td class="col5">OFF, ON, AUTOMATIC, NO_CHANGE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status f&ouml;r konvertibelt tak</td><td class="col2-emea">Konvertibelt tak inf&auml;llbart tillst&aring;nd. P&aring; BMW Mini-bilar har dessutom m&ouml;jlighet att bara &ouml;ppna det f&auml;llbara taket. Denna signal betyder Mini-f&auml;llbart taktillst&aring;nd. Det b&ouml;r ocks&aring; l&auml;sas tillsammans med det konvertibla taktillst&aring;ndet, se Vehicle.cabin.Convertible.RoofStatus.</td><td class="col3">vehicle.​cabin.​convertible.​roofRetractableStatus</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status f&ouml;r l&aring;st bagageutrymme</td><td class="col2-emea">Angivet v&auml;der bagageutrymmet &auml;r l&aring;st eller inte.</td><td class="col3">vehicle.​body.​trunk.​isLocked</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Statusinformation om senaste &ouml;verf&ouml;ring av OBFCM*-v&auml;rden&nbsp;</td><td class="col2-emea">Detta v&auml;rde anger statusinformationen om den senaste &ouml;verf&ouml;ring av OBFCM*-v&auml;rden som genomf&ouml;rdes i en verkstad (dvs. tr&aring;dbunden). (OK f&ouml;r en godk&auml;nd &ouml;verf&ouml;ring d&auml;r OBFCM*-v&auml;rdena uppdaterades, ECU_COMMUNICATION_ERROR f&ouml;r fel vid insamling av uppgifter fr&aring;n styrenheterna, VEHICLE_MANIPULATION_DETECTED om en manipulering av fordonet fastst&auml;lldes, samt MANUFACTURER_EXCLUDED om fordonstillverkaren &auml;r utesluten fr&aring;n OBFCM*-insamlingen (t.ex. Alpina, Toyoya Supra).</td><td class="col3">vehicle.​channel.​ista.​obfcm.​lastTransmissionStatus</td><td class="col4">string</td><td class="col5">OK, ECU_COMMUNICATION_ERROR, VEHICLE_MANIPULATION_DETECTED, MANUFACTURER_EXCLUDED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Takluckans st&auml;llning</td><td class="col2-emea">V&auml;rdet anger, om takluckan (om en s&aring;dan finns) vid tidpunkten f&ouml;r dataregistreringen var uppf&auml;lld (OPEN), till h&auml;lften uppf&auml;lld (INTERMEDIATE) eller st&auml;ngd (CLOSED).</td><td class="col3">vehicle.​cabin.​sunroof.​tiltStatus</td><td class="col4">string</td><td class="col5">CLOSED, INTERMEDIATE, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Takluckans tillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger, om takluckan (om en s&aring;dan finns) vid tidpunkten f&ouml;r dataregistreringen var &ouml;ppen (OPEN), till h&auml;lften &ouml;ppen (INTERMEDIATE) eller st&auml;ngd (CLOSED).</td><td class="col3">vehicle.​cabin.​sunroof.​status</td><td class="col4">string</td><td class="col5">CLOSED, INTERMEDIATE, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">T&auml;ndningens tillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger om t&auml;ndningen vid tidpunkten f&ouml;r dataregistreringen var av eller p&aring; eller om tillst&aring;ndet &auml;r ok&auml;nt. </td><td class="col3">vehicle.​drivetrain.​engine.​isActive</td><td class="col4">boolean</td><td class="col5">ASN_isFalse, ASN_isTrue, ASN_isUnknown</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tankens fyllnadsniv&aring; i %</td><td class="col2-emea">V&auml;rdet anger tankinneh&aring;llet i procent vid tidpunkten f&ouml;r dataregistreringen. </td><td class="col3">vehicle.​drivetrain.​fuelSystem.​level</td><td class="col4">uint8</td><td class="col5">0 % till 100 %,
+INVALID</td><td class="col6-emea">%</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tankinneh&aring;ll</td><td class="col2-emea">V&auml;rdet anger tankens aktuella inneh&aring;ll i liter vid tidpunkten f&ouml;r dataregistreringen. Beroende p&aring; tankflott&ouml;rens position kan avvikelser p&aring; upp till 6 liter fr&aring;n det angivna v&auml;rdet f&ouml;rekomma. </td><td class="col3">vehicle.​drivetrain.​fuelSystem.​remainingFuel</td><td class="col4">float</td><td class="col5">0 L till 100 L</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Teleservices tillg&auml;nglighet</td><td class="col2-emea">V&auml;rdet anger om Teleservices finns tillg&auml;ngliga f&ouml;r detta fordon. </td><td class="col3">vehicle.​channel.​teleservice.​status</td><td class="col4">string</td><td class="col5">PENDING, IDLE, SUCCESSFUL, ERROR</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tidsm&auml;ssigt gr&auml;nsv&auml;rde f&ouml;r besiktning och avgasunders&ouml;kning</td><td class="col2-emea">Gr&auml;nsv&auml;rdet anger hur m&aring;nga m&aring;nader innan det &auml;r dags f&ouml;r besiktning och avgasunders&ouml;kning som ett meddelande ska ges ut till servicer&aring;dgivaren. </td><td class="col3">vehicle.​status.​serviceTime.​hUandAuServiceYellow</td><td class="col4">uint16</td><td class="col5">0 till 10
+m&aring;nader</td><td class="col6-emea">months</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tidsm&auml;ssigt gr&auml;nsv&auml;rde f&ouml;r serviceinformation</td><td class="col2-emea">Det angivna statiska v&auml;rdet sparas i fordonet och anger n&auml;r kunden f&ouml;r f&ouml;rsta g&aring;ngen i fordonet ska f&aring; tidsbaserad information om att det snart &auml;r dags f&ouml;r n&auml;sta service. 
+Detta anges i veckor (exempelvis 4). </td><td class="col3">vehicle.​status.​serviceTime.​yellow</td><td class="col4">uint16</td><td class="col5">4 weeks</td><td class="col6-emea">weeks</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tidszoninst&auml;llning i fordonet</td><td class="col2-emea">V&auml;rdet anger den aktuella inst&auml;llningen f&ouml;r visning av tiden i fordonet vid tidpunkten f&ouml;r dataregistreringen. Detta kan exempelvis vara vintertid, sommartid, UTC eller manuellt. </td><td class="col3">vehicle.​vehicle.​timeSetting</td><td class="col4">string</td><td class="col5">wintertime,
+summertime,
+utc,
+manual,
+INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tid till navigationsm&aring;l</td><td class="col2-emea">V&auml;rdet anger ankomsttiden till navigationsm&aring;let och visas i timmar och minuter. </td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​destinationSet.​arrivalTime</td><td class="col4">string</td><td class="col5">hh:mm</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Till&aring;telse att anv&auml;nda motorn f&ouml;r f&ouml;rkonditionering.</td><td class="col2-emea">Detta v&auml;rde anger om det &auml;r till&aring;tet att anv&auml;nda motorn f&ouml;r f&ouml;rkonditionering av standard-klimatiseringen vid tidpunkten f&ouml;r dataregistreringen. Detta fastst&auml;lls av kunden. </td><td class="col3">vehicle.​vehicle.​preConditioning.​isRemoteEngineStartAllowed</td><td class="col4">boolean</td><td class="col5">true, false, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tredje radens f&ouml;rars&auml;teskylning</td><td class="col2-emea">Tredje raden f&ouml;rars&auml;te Kylning. 0 = av. +100 = max. kyla.</td><td class="col3">vehicle.​cabin.​seat.​row3.​driverSide.​cooling</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tredje radens f&ouml;rars&auml;tesuppv&auml;rmning</td><td class="col2-emea">Tredje raden f&ouml;rars&auml;tesuppv&auml;rmning. 0 = av. +100 = max. v&auml;rme.</td><td class="col3">vehicle.​cabin.​seat.​row3.​driverSide.​heating</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tredje radens kylning av passagerars&auml;tet</td><td class="col2-emea">Tredje radens passagerars&auml;te Kylning. 0 = av. +100 = max. kyla.</td><td class="col3">vehicle.​cabin.​seat.​row3.​passengerSide.​cooling</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tredje radens uppv&auml;rmning av passagers&auml;tet</td><td class="col2-emea">Tredje radens uppv&auml;rmning av passagers&auml;tet. 0 = av. +100 = max. v&auml;rme.</td><td class="col3">vehicle.​cabin.​seat.​row3.​passengerSide.​heating</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Uppl&aring;sning av bakruta</td><td class="col2-emea">V&auml;rdet anger om bakrutan &auml;r uppl&aring;st (TRUE) eller st&auml;ngd (FALSE). </td><td class="col3">vehicle.​body.​trunk.​window.​isOpen</td><td class="col4">boolean</td><td class="col5">CLOSED, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Uppv&auml;rmning av bakre f&ouml;rars&auml;te</td><td class="col2-emea">Uppv&auml;rmning av bakre f&ouml;rars&auml;te. 0 = av. +100 = max. v&auml;rme.</td><td class="col3">vehicle.​cabin.​seat.​row2.​driverSide.​heating</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Uppv&auml;rmning av bakre passagerars&auml;tet</td><td class="col2-emea">Uppv&auml;rmning av bakre passagerars&auml;tet. 0 = av. +100 = max. v&auml;rme.</td><td class="col3">vehicle.​cabin.​seat.​row2.​passengerSide.​heating</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Uppv&auml;rmning av fr&auml;mre f&ouml;rars&auml;tet</td><td class="col2-emea">Uppv&auml;rmning av fr&auml;mre f&ouml;rars&auml;tet. 0 = av. +100 = max. v&auml;rme.</td><td class="col3">vehicle.​cabin.​seat.​row1.​driverSide.​heating</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">V&auml;nster bak d&ouml;rrens tillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger om d&ouml;rren v&auml;nster bak vid tidpunkten f&ouml;r dataregistreringen var st&auml;ngd (CLOSED) eller &ouml;ppen (OPEN)</td><td class="col3">vehicle.​cabin.​door.​row2.​driver.​isOpen</td><td class="col4">boolean</td><td class="col5">OPEN, CLOSED, INVALID, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">V&auml;nster bak f&ouml;nstrets tillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger, om f&ouml;nstret v&auml;nster bak vid tidpunkten f&ouml;r dataregistreringen var &ouml;ppet (OPEN), till h&auml;lften &ouml;ppet (INTERMEDIATE) eller st&auml;ngt (CLOSED).</td><td class="col3">vehicle.​cabin.​window.​row2.​driver.​status</td><td class="col4">string</td><td class="col5">CLOSED, INTERMEDIATE, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">V&auml;nster fram d&ouml;rrens tillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger om v&auml;nster d&ouml;rr vid tidpunkten f&ouml;r dataregistreringen var st&auml;ngd (CLOSED) eller &ouml;ppen (OPEN)</td><td class="col3">vehicle.​cabin.​door.​row1.​driver.​isOpen</td><td class="col4">boolean</td><td class="col5">OPEN, CLOSED, INVALID, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">V&auml;nster fram f&ouml;nstrets tillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger, om f&ouml;nstret i v&auml;nster d&ouml;rr vid tidpunkten f&ouml;r dataregistreringen var &ouml;ppet (OPEN), till h&auml;lften &ouml;ppet (INTERMEDIATE) eller st&auml;ngt (CLOSED).</td><td class="col3">vehicle.​cabin.​window.​row1.​driver.​status</td><td class="col4">string</td><td class="col5">CLOSED, INTERMEDIATE, OPEN, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Visningsenhet p&aring; fordonets instrument</td><td class="col2-emea">V&auml;rdet anger enheten (kilometer eller miles) som uppm&auml;tta distanser visas i p&aring; fordonets instrument. </td><td class="col3">vehicle.​cabin.​infotainment.​displayUnit.​distance</td><td class="col4">string</td><td class="col5">km, miles</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ytterbackspegelv&auml;rme p&aring;</td><td class="col2-emea">Aktuell status f&ouml;r ytterbackspegelv&auml;rmen.</td><td class="col3">vehicle.​cabin.​hvac.​preconditioning.​status.​isExteriorMirrorHeatingActive</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>ANV&Auml;NDNINGSBASERAD DATA F&Ouml;R ETT FORDON</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData element</th><th class="col2-emea">Beskrivning</th><th class="col3">Teknisk beskrivning</th><th class="col4">Datatyp </th><th class="col5">Typiskt v&auml;rdeintervall</th><th class="col6-emea">Enhet</th><th class="col7">Str&ouml;mningsbar</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Check Control meddelanden</td><td class="col2-emea">V&auml;rdet anger de senaste relevanta Check Control-meddelanden som visades i fordonet och &ouml;verf&ouml;rdes till BMW. Check-Control &ouml;vervakar funktioner i fordonet och meddelar n&auml;r en st&ouml;rning uppst&aring;r i systemet som &ouml;vervakas. Ett Check Control meddelande visas som en kombination av kontroll- eller varningslampor och textmeddelande p&aring; instrumentkombinationen och i till&auml;mpliga fall p&aring; Head-Up displayen. Anm&auml;rkning: Inte alla Check Control-meddelanden som visas i fordonet &ouml;verf&ouml;rs till BMW.</td><td class="col3">vehicle.​status.​checkControlMessages</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Condition Based Service</td><td class="col2-emea">Sensorer och speciella algoritmer tar fordonets anv&auml;ndningsf&ouml;rh&aring;llanden i beaktande. D&auml;rmed utreder CBS servicebehovet. Systemet g&ouml;r det allts&aring; m&ouml;jligt att anpassa servicebehovet till den individuella anv&auml;ndningsprofilen. </td><td class="col3">vehicle.​status.​conditionBasedServices</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Genomsnittlig k&ouml;rstr&auml;cka per vecka</td><td class="col2-emea">Anger i kilometer den genomsnittliga k&ouml;rstr&auml;ckan per vecka. </td><td class="col3">vehicle.​vehicle.​averageWeeklyDistanceShortTerm</td><td class="col4">float</td><td class="col5">1 km till 3000 km </td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Genomsnittlig k&ouml;rstr&auml;cka per vecka (l&aring;ngtidsv&auml;rde)</td><td class="col2-emea">V&auml;rdet anger medeltalet per vecka av en str&auml;cka som &auml;r k&ouml;rd under en tidsperiod p&aring; 2 m&aring;nader. </td><td class="col3">vehicle.​vehicle.​averageWeeklyDistanceLongTerm</td><td class="col4">float</td><td class="col5">1 km till 3000 km </td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Genomsnittligt avst&aring;nd per dag</td><td class="col2-emea">Condition Based Services. Uppskattning av fordonets dagliga k&ouml;rstr&auml;cka men starkt skr&auml;ddarsydd f&ouml;r anv&auml;ndning i samband med Condition Based Services.</td><td class="col3">vehicle.​status.​conditionBasedServicesAverageDistancePerDay</td><td class="col4">int32</td><td class="col5">None</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Hastighetsomr&aring;de l&auml;gre</td><td class="col2-emea">Nedre gr&auml;ns f&ouml;r hastighetsomr&aring;det i km/h. Omr&aring;det inbegriper den nedre gr&auml;nsen. P&aring; grund av sekretessk&auml;l &auml;r det inte till&aring;tet att &ouml;verf&ouml;ra aktuell k&ouml;rhastighet via vissa funktioner och attributet SpeedRange b&ouml;r anv&auml;ndas.</td><td class="col3">vehicle.​vehicle.​speedRange.​lowerBound</td><td class="col4">int16</td><td class="col5">-100&nbsp;km/h - 500&nbsp;km/h</td><td class="col6-emea">km/h</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Hastighetsomr&aring;de &ouml;vre</td><td class="col2-emea">&Ouml;vre gr&auml;ns f&ouml;r hastighetsomr&aring;det i km/h. Omr&aring;det utesluter den &ouml;vre gr&auml;nsen. P&aring; grund av sekretessk&auml;l &auml;r det inte till&aring;tet att &ouml;verf&ouml;ra aktuell k&ouml;rhastighet via vissa funktioner och attributet SpeedRange b&ouml;r anv&auml;ndas.</td><td class="col3">vehicle.​vehicle.​speedRange.​upperBound</td><td class="col4">int16</td><td class="col5">-100&nbsp;km/h - 500&nbsp;km/h</td><td class="col6-emea">km/h</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-referensstr&auml;cka f&ouml;r m&auml;tning av br&auml;nslef&ouml;rbrukning</td><td class="col2-emea">Detta v&auml;rde anger referensstr&auml;ckan f&ouml;r m&auml;tningen av br&auml;nslef&ouml;rbrukningen.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​overall.​referenceDistance</td><td class="col4">float</td><td class="col5">0.0 km - 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-referensstr&auml;cka i laddningsl&auml;ge</td><td class="col2-emea">Detta v&auml;rde anger den k&ouml;rda str&auml;ckan i laddningsl&auml;ge, dvs. n&auml;r PHEV laddar h&ouml;gsp&auml;nningsbatteriet.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​inChargeIncreasing.​referenceDistance</td><td class="col4">float</td><td class="col5">0.0 km - 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-referensstr&auml;cka med eldrift och aktiv f&ouml;rbr&auml;nningsmotor (endast PHEV)</td><td class="col2-emea">Detta v&auml;rde anger den k&ouml;rda str&auml;ckan med eldrift och aktiv f&ouml;rbr&auml;nningsmotor.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​inChargeDepleting.​referenceDistanceEngineOn</td><td class="col4">float</td><td class="col5">0.0 km - 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-referensstr&auml;cka med eldrift och inaktiv f&ouml;rbr&auml;nningsmotor (endast PHEV)</td><td class="col2-emea">Detta v&auml;rde anger den k&ouml;rda str&auml;ckan med eldrift och inaktiv f&ouml;rbr&auml;nningsmotor.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​inChargeDepleting.​referenceDistanceEngineOff</td><td class="col4">float</td><td class="col5">0.0 km - 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Samtycke till &ouml;verf&ouml;ring av OBFCM*-uppgifter till EU</td><td class="col2-emea">Detta v&auml;rde anger om kunden har samtyckt till &ouml;verf&ouml;ringen av OBFCM*-uppgifter till EU-kommissionen.</td><td class="col3">vehicle.​privacySettings.​dataCollection.​regulations.​obfcm</td><td class="col4">boolean</td><td class="col5">True   
+False  </td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Senast skickade &aring;terst&aring;ende r&auml;ckvidd</td><td class="col2-emea">Senast skickade &aring;terst&aring;ende elektrisk r&auml;ckvidd + drivmedel som skickats av fordonet. R&auml;ckvidd fr&aring;n Kombi-fordon (Har beg&auml;rts f&ouml;r PHEV- och CE-fordon). Levererar e-r&auml;ckvidd + ce-r&auml;ckvidd f&ouml;r PHEV. Ce-r&auml;ckvidd f&ouml;r CE-fordon. Troligtvis 0 f&ouml;r BEV-fordon. Detta v&auml;rde b&ouml;r endast anv&auml;ndas f&ouml;r f&ouml;rbr&auml;nningsbilar. Elbilar ska l&auml;sa Vehicle.Drivetrain.ElectricEngine.KombiRemainingElectricRange.</td><td class="col3">vehicle.​drivetrain.​lastRemainingRange</td><td class="col4">float</td><td class="col5">0-6500</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Total br&auml;nslef&ouml;rbrukning enligt lagstadgade OBFCM*-specifikationer&nbsp;</td><td class="col2-emea">Detta v&auml;rde anger m&auml;ngden f&ouml;rbrukat br&auml;nsle i liter, uppm&auml;tt &ouml;ver referensstr&auml;ckan.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​overall.​fuel</td><td class="col4">float</td><td class="col5">0.00 l - 30000.00 l</td><td class="col6-emea">l</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Total OBFCM*-br&auml;nslef&ouml;rbrukning i laddningsl&auml;ge (endast PHEV)</td><td class="col2-emea">Detta v&auml;rde beskriver det f&ouml;rbrukade br&auml;nslet under laddningsl&auml;get, dvs. PHEV laddar h&ouml;gsp&auml;nningsbatteriet via f&ouml;rbr&auml;nningsmotorn.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​inChargeIncreasing.​fuel</td><td class="col4">float</td><td class="col5">0.00 l - 30000.00 l</td><td class="col6-emea">l</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Total OBFCM*-br&auml;nslef&ouml;rbrukning under k&ouml;rning med batteri som laddas ur (endast PHEV)</td><td class="col2-emea">Detta v&auml;rde anger m&auml;ngden br&auml;nslef&ouml;rbrukning n&auml;r f&ouml;rbr&auml;nningsmotorn startar trots att batteriet inte &auml;r tomt.</td><td class="col3">vehicle.​drivetrain.​fuelSystem.​consumptionOverLifeTime.​inChargeDepleting.​fuel</td><td class="col4">float</td><td class="col5">0.00 l - 30000.00 l</td><td class="col6-emea">l</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>DATA OM H&Auml;NDELSERNA F&Ouml;R ETT FORDON</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData element</th><th class="col2-emea">Beskrivning</th><th class="col3">Teknisk beskrivning</th><th class="col4">Datatyp </th><th class="col5">Typiskt v&auml;rdeintervall</th><th class="col6-emea">Enhet</th><th class="col7">Str&ouml;mningsbar</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Automatiskt Teleservice Call</td><td class="col2-emea">V&auml;rdet anger vid vilken tidpunkt ett Automatiskt Service Call (ASC) utl&ouml;stes av fordonet.</td><td class="col3">vehicle.​channel.​teleservice.​lastAutomaticServiceCallTime</td><td class="col4">string</td><td class="col5">dd.mm.yyyy hh:mm UTC</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Teleservice Report</td><td class="col2-emea">V&auml;rdet anger vid vilken tidpunkt ett Teleservice Report Call utl&ouml;stes i fordonet. Fordonet samlar in m&auml;tv&auml;rden eller feldata f&ouml;r Teleservice Report Call och skickar dem automatiskt efter definierade cykler.</td><td class="col3">vehicle.​channel.​teleservice.​lastTeleserviceReportTime</td><td class="col4">string</td><td class="col5">dd.mm.yyyy hh:mm:ss UTC</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>UPPGIFTER OM ELFORDON</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData element</th><th class="col2-emea">Beskrivning</th><th class="col3">Teknisk beskrivning</th><th class="col4">Datatyp </th><th class="col5">Typiskt v&auml;rdeintervall</th><th class="col6-emea">Enhet</th><th class="col7">Str&ouml;mningsbar</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">48&nbsp;V-batteriets h&auml;lsotillst&aring;nd</td><td class="col2-emea">SoH (h&auml;lsotillst&aring;nd) f&ouml;r 48&nbsp;V-batteriet som visas f&ouml;r kunden. Skapat f&ouml;r att uppfylla EU: s batterif&ouml;rordning.</td><td class="col3">vehicle.​electricalSystem.​battery48V.​stateOfHealth.​displayed</td><td class="col4">uint16</td><td class="col5">0&nbsp;% till 250%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">AC-laddningssp&auml;nning</td><td class="col2-emea">V&auml;rdet anger laddningssp&auml;nningen vid den senaste laddningen i Volt (endast vid laddning med v&auml;xelstr&ouml;m). 
+I allm&auml;nhet pendlar v&auml;rdet in vid 230 V. 
+Men laddningssp&auml;nningar fr&aring;n 0 till 300 kan f&ouml;rekomma. </td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​acVoltage</td><td class="col4">float</td><td class="col5">0 V till 300 V eller
+-NA-</td><td class="col6-emea">V</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">AC-laddningsstr&ouml;m</td><td class="col2-emea">V&auml;rdet anger laddningsstr&ouml;mmen vid den senaste laddningen i Ampere (A) (endast vid laddning med v&auml;xelstr&ouml;m). 
+V&auml;rden mellan 0 och 25 &auml;r m&ouml;jliga. B&aring;de fordon och laddningsstolpe kunde individuellt ladda med en viss maximal laddningsstr&ouml;m. Det v&auml;rde som visas h&auml;r &auml;r det st&ouml;rre av dessa b&aring;da tal. </td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​acAmpere</td><td class="col4">uint8</td><td class="col5">0 A till 25 A eller
+-NA-</td><td class="col6-emea">A</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">AC -laddningsstr&ouml;mbegr&auml;nsning och val</td><td class="col2-emea">Det f&ouml;rsta v&auml;rdet anger om laddningsstr&ouml;mmen som fordonet laddas med &auml;r begr&auml;nsad.&nbsp;
+
+Det andra v&auml;rdet beskriver typen av begr&auml;nsning (reducerad eller minimal).</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​acRestriction.​isChosen</td><td class="col4">boolean</td><td class="col5">NOTCHOSEN, CHOSEN, INVALID; MAXCHARGING, REDUCEDCHARGING, MINCHARGING, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Aktuell prognostiserad laddningsniv&aring;</td><td class="col2-emea">Detta v&auml;rde anger den aktuella prognostiserade laddningsniv&aring;n i procent.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​level</td><td class="col4">float</td><td class="col5">0 % till 100 %</td><td class="col6-emea">%</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Akustisk begr&auml;nsning av laddningsprocessen</td><td class="col2-emea">V&auml;rdet anger om laddningen &auml;r begr&auml;nsad p&aring; grund av buller eller inte.&nbsp;</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​acousticLimit</td><td class="col4">string</td><td class="col5">NO_ACTION, AUTOMATIC, UNLIMITED,LIMITED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Andel av den senaste k&ouml;rningen som har k&ouml;rts elektriskt</td><td class="col2-emea">V&auml;rdet anger i procent andelen av den senast registrerade k&ouml;rningen som har k&ouml;rts med elektrisk energi. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​drivetrain.​transmission.​setting.​fractionDriveElectric</td><td class="col4">float</td><td class="col5">0 % till 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Anledning f&ouml;r att avsluta en laddningsprocess	</td><td class="col2-emea">V&auml;rdet anger orsaken till att en laddningsprocess avslutas.&nbsp;	</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​hvpmFinishReason</td><td class="col4">string</td><td class="col5">UNKNOWN, CHARGING_GOAL_REACHED, END_REQUESTED_BY_DRIVER, CONNECTOR_REMOVED, POWERGRID_FAILED, HV_SYSTEM_FAILURE, CHARGING_STATION_FAILURE, PARKING_LOCK_FAILED, NO_PARKING_LOCK, SIGNAL_INVALID, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Anslutningsstatus f&ouml;r laddningsport</td><td class="col2-emea">Str&ouml;mtillst&aring;nd f&ouml;r laddningskontakt i alla laddningss&auml;tt med information om n&aring;gon plugg &auml;r ansluten f&ouml;r n&auml;rvarande. V&auml;rdet INVALID kan till exempel beror p&aring; ingen sensor, trasig sensor, inget v&auml;rde, avkodningsfel osv. Kombinerar Vehicle.Body.ChargingPort.Status/.DcStatus.</td><td class="col3">vehicle.​body.​chargingPort.​combinedStatus</td><td class="col4">string</td><td class="col5">DISCONNECTED, CONNECTED, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Anv&auml;ndbar energi fr&aring;n h&ouml;gsp&auml;nningsbatteri (fulladdat, prognostiserat)</td><td class="col2-emea">F&ouml;r standardurladdning prognostiserad anv&auml;ndbar energi fr&aring;n fulladdat h&ouml;gsp&auml;nningsbatteri under aktuella f&ouml;rh&aring;llanden (t.ex. &aring;ldringstillst&aring;nd, temperatur).</td><td class="col3">vehicle.​drivetrain.​batteryManagement.​maxEnergy</td><td class="col4">float</td><td class="col5">0 - 300 kWh, INVALID</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Anv&auml;ndbar energi fr&aring;n h&ouml;gsp&auml;nningsbatteri (fulladdat, prognostiserat)</td><td class="col2-emea">F&ouml;r standardurladdning prognostiserad anv&auml;ndbar energi fr&aring;n fulladdat h&ouml;gsp&auml;nningsbatteri under aktuella f&ouml;rh&aring;llanden (t.ex. &aring;ldringstillst&aring;nd, temperatur).</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​smeEnergyDeltaFullyCharged</td><td class="col4">float</td><td class="col5">0 - 1310 kWh</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">&Aring;terst&aring;ende elektrisk r&auml;ckvidd beroende p&aring; m&aring;lv&auml;rdet f&ouml;r laddningstillst&aring;ndet	</td><td class="col2-emea">V&auml;rdet anger fordonets &aring;terst&aring;ende elektriska r&auml;ckvidd i km vid tidpunkten f&ouml;r dataregistreringen. Detta beror p&aring; laddningstillst&aring;ndets inst&auml;llda m&aring;lv&auml;rde.
+</td><td class="col3">vehicle.​powertrain.​electric.​range.​target</td><td class="col4">float</td><td class="col5">0-4000 KM oder MI, INVALID</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">&Aring;terst&aring;ende elektrisk r&auml;ckvidd i km</td><td class="col2-emea">V&auml;rdet anger fordonets &aring;terst&aring;ende elektriska r&auml;ckvidd i km vid tidpunkten f&ouml;r dataregistreringen. </td><td class="col3">vehicle.​drivetrain.​electricEngine.​kombiRemainingElectricRange</td><td class="col4">float</td><td class="col5">0 km till 4000 km,
+INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">&Aring;tervunnen energim&auml;ngd vid senaste k&ouml;rning</td><td class="col2-emea">V&auml;rdet anger den elektriska energi som i genomsnitt har &aring;tervunnits per 100 kilometer i kilowattimmar (kWh/100 km) under den senaste registrerade k&ouml;rningen. V&auml;rdena str&auml;cker sig fr&aring;n 0 till 254. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​drivetrain.​electricEngine.​recuperationTotal</td><td class="col4">float</td><td class="col5">0 kWh/100 km till 170 kWh/100 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Autentiseringsstatus laddning</td><td class="col2-emea">Det h&auml;r f&auml;ltet signalerar status f&ouml;r autentisering med laddstationen.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​authenticationStatus</td><td class="col4">string</td><td class="col5">NOT_STARTED, STARTED_EIM, STARTED_PNC, STARTED_PLC_EIM, DONE_EIM, DONE_PLC_EIM, DONE_PNC, FAILED_PLC_EIM, FAILED_PNC, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Autentiseringsstatus laddning</td><td class="col2-emea">Plug &amp; Charge- (automatisk betalning av laddservice) autentiseringsstatus f&ouml;r en laddsession. "AUTHORIZATION_SUCCESSFUL" - Autentisering med PlugAndCharge klar "TRANSPORT_LAYER_ERROR" - TLS-anslutning till EVSE inte m&ouml;jlig, "HIGH_LEVEL_COMMUNICATION_ERROR" - H&ouml;g kommunikationsniv&aring; med ISO15118 fel, "CONTRACT_SERVICE_NOT_SUPPORTED_ERROR" - EVSE har inte st&ouml;d f&ouml;r autentisering via PlugAndCharge, "AUTHORIZATION_TIMEOUT" - N&aring;got gick snett med autentiseringen, "AUTHORIZATION_TIMEOUT" - autentiseringen inte klar efter 120&nbsp;s, "NVM_READ_CERTIFICATE_ERROR" - Certifikat kunde inte l&auml;sas fr&aring;n minne f&ouml;r laddningsstyrenhet, "CERTIFICATE_UPDATE_ERROR" - uppdatering av avtal via eln&auml;t fungerade inte, "XML_SECURITY_ERROR" - Valideringsfel f&ouml;r schema av &ouml;verf&ouml;rd data.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​authentication.​status</td><td class="col4">string</td><td class="col5">AUTHORIZATION_SUCCESSFUL, TRANSPORT_LAYER_ERROR, HIGH_LEVEL_COMMUNICATION_ERROR, CONTRACT_SERVICE_NOT_SUPPORTED_ERROR, AUTHORIZATION_ERROR, AUTHORIZATION_TIMEOUT, NVM_READ_CERTIFICATE_ERROR, CERTIFICATE_UPDATE_ERROR, XML_SECURITY_ERROR</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Automatisk &aring;terkoppling av status f&ouml;r f&ouml;rkonditionering</td><td class="col2-emea">Aktuellt l&auml;ge f&ouml;r vippstr&ouml;mbrytare f&ouml;r automatisk batterif&ouml;rkonditionering. ON inneb&auml;r att automatiskt l&auml;ge (navigationsbaserat) f&ouml;r den prediktiva termiska hanteringen (vWM) sl&aring;s p&aring;. OFF inneb&auml;r att automatiskt l&auml;ge (navigationsbaserat) f&ouml;r den prediktiva termiska hanteringen (vWM) &auml;r avslaget. Med TEMP_OFF menas tillf&auml;llig inaktivering f&ouml;r utl&ouml;st str&ouml;m f&ouml;r den prediktiva termiska hanteringen.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​preconditioning.​automaticMode.​statusFeedback</td><td class="col4">string</td><td class="col5">OFF, ON, TEMP_OFF, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Avvikande laddningss&auml;tt</td><td class="col2-emea">Denna parameter inneh&aring;ller information om avvikelse till kundens valda laddningss&auml;tt p&aring; grund av systemsk&auml;l.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​modeDeviation</td><td class="col4">string</td><td class="col5">NO_DEVIATION, DC_DYNAMIC_MALIBU, DC_DYNAMIC_MIN_SOE_PROTECTION, IMMEDIATE_CHARGING_NOT_SUPPORTED_BY_EVSE, IMMEDIATE_CHARGING_WAKE_UP_LIMIT_REACHED, IMMEDIATE_CHARGING, CHARGING_TIMESLOT, CHARGING_IN_TIMESLOT, SMART_CHARGING, DC_DYNAMIC, BIDIRECTIONAL_CHARGING, NO_ACTION, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriets laddningstillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger h&ouml;gsp&auml;nningsbatteriets laddningstillst&aring;nd vid slutet av den senaste registrerade k&ouml;rningen (i procent). </td><td class="col3">vehicle.​trip.​segment.​end.​drivetrain.​batteryManagement.​hvSoc</td><td class="col4">float</td><td class="col5">0 % till 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport bak h&ouml;ger ansluten</td><td class="col2-emea">Denna signal anger om en laddningskabel &auml;r ansluten till laddningsporten h&ouml;ger bak.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearRight.​isPlugged</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport bak mitten ansluten</td><td class="col2-emea">Denna signal anger om en laddningskabel &auml;r ansluten till laddningsporten mitten bak.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearMiddle.​isPlugged</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport bak v&auml;nster ansluten</td><td class="col2-emea">Denna signal anger om en laddningskabel &auml;r ansluten till laddningsporten v&auml;nster bak.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearLeft.​isPlugged</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport h&ouml;ger fram ansluten</td><td class="col2-emea">Denna signal anger om en laddningskabel &auml;r ansluten till laddningsporten h&ouml;ger fram.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontRight.​isPlugged</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport lucka h&ouml;ger fram &ouml;ppen</td><td class="col2-emea">Denna signal anger om laddningsporten h&ouml;ger fram &auml;r &ouml;ppen i fordonet.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontRight.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport lucka mitten fram &ouml;ppen</td><td class="col2-emea">Denna signal anger om laddningsporten v&auml;nster mitten &auml;r &ouml;ppen i fordonet.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontMiddle.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport mitten fram ansluten</td><td class="col2-emea">Denna signal anger om en laddningskabel &auml;r ansluten till laddningsporten mitten fram.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontMiddle.​isPlugged</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport positionslucka h&ouml;ger bak automatisk &ouml;ppning/st&auml;ngning</td><td class="col2-emea">I det h&auml;r f&auml;ltet anges om kundens inst&auml;llning f&ouml;r att &ouml;ppna lucka h&ouml;ger bak med MyWay-funktionen (glidstycke i mobil-appen) &auml;r aktiv. Om det &auml;r s&aring; &ouml;ppnas luckan automatiskt n&auml;r fordonet n&auml;rmar sig laddstationen och digital key ligger i fickan och st&auml;ngs automatiskt n&auml;r kabeln har kopplats bort.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearRight.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport positionslucka h&ouml;ger bak &ouml;ppen</td><td class="col2-emea">Denna signal anger om laddningsporten h&ouml;ger bak &auml;r &ouml;ppen i fordonet.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearRight.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport positionslucka h&ouml;ger fram automatisk &ouml;ppning/st&auml;ngning</td><td class="col2-emea">I det h&auml;r f&auml;ltet anges om kundens inst&auml;llning f&ouml;r att &ouml;ppna lucka h&ouml;ger fram med MyWay-funktionen (glidstycke i mobil-appen) &auml;r aktiv. Om det &auml;r s&aring; &ouml;ppnas luckan automatiskt n&auml;r fordonet n&auml;rmar sig laddstationen och digital key ligger i fickan och st&auml;ngs automatiskt n&auml;r kabeln har kopplats bort.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontRight.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport positionslucka mitten bak automatisk &ouml;ppning/st&auml;ngning</td><td class="col2-emea">I det h&auml;r f&auml;ltet anges om kundens inst&auml;llning f&ouml;r att &ouml;ppna lucka mitten bak med MyWay-funktionen (glidstycke i mobil-appen) &auml;r aktiv. Om det &auml;r s&aring; &ouml;ppnas luckan automatiskt n&auml;r fordonet n&auml;rmar sig laddstationen och digital key ligger i fickan och st&auml;ngs automatiskt n&auml;r kabeln har kopplats bort.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearMiddle.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport positionslucka mitten bak &ouml;ppen</td><td class="col2-emea">Denna signal anger om laddningsporten mitten bak &auml;r &ouml;ppen i fordonet.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearMiddle.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport positionslucka v&auml;nster bak automatisk &ouml;ppning/st&auml;ngning</td><td class="col2-emea">I det h&auml;r f&auml;ltet anges om kundens inst&auml;llning f&ouml;r att &ouml;ppna lucka v&auml;nster bak med MyWay-funktionen (glidstycke i mobil-appen) &auml;r aktiv. Om det &auml;r s&aring; &ouml;ppnas luckan automatiskt n&auml;r fordonet n&auml;rmar sig laddstationen och digital key ligger i fickan och st&auml;ngs automatiskt n&auml;r kabeln har kopplats bort.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearLeft.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport positionslucka v&auml;nster bak &ouml;ppen</td><td class="col2-emea">Denna signal anger om laddningsporten v&auml;nster bak &auml;r &ouml;ppen i fordonet.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​rearLeft.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport positionslucka v&auml;nster fram automatisk &ouml;ppning/st&auml;ngning</td><td class="col2-emea">I det h&auml;r f&auml;ltet anges om kundens inst&auml;llning f&ouml;r att &ouml;ppna lucka v&auml;nster fram med MyWay-funktionen (glidstycke i mobil-appen) &auml;r aktiv. Om det &auml;r s&aring; &ouml;ppnas luckan automatiskt n&auml;r fordonet n&auml;rmar sig laddstationen och digital key ligger i fickan och st&auml;ngs automatiskt n&auml;r kabeln har kopplats bort.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontLeft.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport positionslucka v&auml;nster fram &ouml;ppen</td><td class="col2-emea">Denna signal anger om laddningsporten v&auml;nster fram &auml;r &ouml;ppen i fordonet.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontLeft.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport positionslucka v&auml;nster mitten automatisk &ouml;ppning/st&auml;ngning</td><td class="col2-emea">I det h&auml;r f&auml;ltet anges om kundens inst&auml;llning f&ouml;r att &ouml;ppna lucka mitten fram med MyWay-funktionen (glidstycke i mobil-appen) &auml;r aktiv. Om det &auml;r s&aring; &ouml;ppnas luckan automatiskt n&auml;r fordonet n&auml;rmar sig laddstationen och digital key ligger i fickan och st&auml;ngs automatiskt n&auml;r kabeln har kopplats bort.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontMiddle.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport valfri position ansluten</td><td class="col2-emea">Denna signal anger om en laddningskabel &auml;r ansluten till laddningsporten.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​anyPosition.​isPlugged</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport valfri positionslucka automatisk &ouml;ppning/st&auml;ngning</td><td class="col2-emea">I det h&auml;r f&auml;ltet anges om kundens inst&auml;llning f&ouml;r att &ouml;ppna lucka med MyWay-funktionen (glidstycke i mobil-appen) &auml;r aktiv. Om det &auml;r s&aring; &ouml;ppnas luckan automatiskt n&auml;r fordonet n&auml;rmar sig laddstationen och digital key ligger i fickan och st&auml;ngs automatiskt n&auml;r kabeln har kopplats bort.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​anyPosition.​flap.​isAutomaticOpenAndCloseActive</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport valfri positionslucka &ouml;ppen</td><td class="col2-emea">Denna signal anger om laddningsporten &auml;r &ouml;ppen i fordonet.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​anyPosition.​flap.​isOpen</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Batteriladdningsport v&auml;nster fram ansluten</td><td class="col2-emea">Denna signal anger om en laddningskabel &auml;r ansluten till laddningsporten v&auml;nster fram.</td><td class="col3">vehicle.​powertrain.​tractionBattery.​charging.​port.​frontLeft.​isPlugged</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Battery Care-laddningsl&auml;ge</td><td class="col2-emea">Laddning till starttid startar s&aring; sent som m&ouml;jligt f&ouml;r att reducera tiden d&aring; bilen har h&ouml;g SoE (State of Energy).</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​batteryCarePersisted.​isPreservingChargingMode</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Battery Care-l&auml;ge active</td><td class="col2-emea">Indikatorn f&ouml;r Battery Care &auml;r active.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​batteryCarePersisted.​isActive</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Begr&auml;nsning av laddningsstr&ouml;mmen</td><td class="col2-emea">V&auml;rdet anger den inst&auml;llda begr&auml;nsningen f&ouml;r laddningsstr&ouml;mmen i ampere (A).&nbsp;</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​acLimit.​selected</td><td class="col4">uint8</td><td class="col5">0-252 A, INVALID</td><td class="col6-emea">A</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Begr&auml;nsningsfaktor AC-laddning</td><td class="col2-emea">Svar p&aring; AC-begr&auml;nsning.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​acRestriction.​factor</td><td class="col4">string</td><td class="col5">MAXCHARGING, REDUCEDCHARGING, MINCHARGING</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ber&auml;knad &aring;terst&aring;ende laddningstid f&ouml;r h&ouml;gsp&auml;nningsbatteriet</td><td class="col2-emea">V&auml;rdet anger den ber&auml;knade tiden tills h&ouml;gsp&auml;nningsbatteriet &auml;r fulladdat (i minuter). Om en navigationsdestination &auml;r inst&auml;lld visas &aring;terst&aring;ende laddningstid tills denna destination n&aring;s.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​timeToFullyCharged</td><td class="col4">uint16</td><td class="col5">0 &ndash; 65500 Min, INVALID</td><td class="col6-emea">min</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">F&ouml;rbrukning av elektrisk energi i COMFORT l&auml;ge vid senaste k&ouml;rning</td><td class="col2-emea">Anger f&ouml;rbrukningen av elektrisk energi (kWh) i COMFORT l&auml;ge som uppm&auml;tts vid tidpunkten f&ouml;r dataregistreringen. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​drivetrain.​electricEngine.​energyConsumptionComfort</td><td class="col4">double</td><td class="col5">0 kWh till 10 kWh </td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">F&ouml;rkonditioneringstillst&aring;nd</td><td class="col2-emea">Status f&ouml;r batterif&ouml;rkonditioneringsaktivitet. P&aring; &auml;ldre v&auml;rde g&auml;ller endast f&ouml;r &auml;ldre projekt SP2021plus.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​preconditioning.​state</td><td class="col4">string</td><td class="col5">OFF, ON_LEGACY, MANUAL_ON_CHARGE, AUTOMATIC_ON, REMOTE_ON_CHARGE, REMOTE_ON_DRIVE, REMOTE_OFF, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Genomsnittlig elektrisk f&ouml;rbrukning</td><td class="col2-emea">Detta v&auml;rde anger den genomsnittliga elektriska f&ouml;rbrukningen i [kWh/100 km] vid tidpunkten f&ouml;r dataregistreringen. 
+Anm&auml;rkning: Finns ej f&ouml;r modellerna i3 och i8.</td><td class="col3">vehicle.​drivetrain.​avgElectricRangeConsumption</td><td class="col4">float</td><td class="col5">0 kWh/100 km till 100 kWh/100 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Genomsnittlig k&ouml;rd hastighet</td><td class="col2-emea">V&auml;rdet anger den genomsnittliga k&ouml;rda hastigheten i km/h vid tidpunkten f&ouml;r dataregistreringen. </td><td class="col3">vehicle.​vehicle.​avgSpeed</td><td class="col4">uint16</td><td class="col5">0 km/h till
+300 km/h,
+INVALID</td><td class="col6-emea">km/h</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">H&auml;ndelse-ID f&ouml;r laddningskontaktens h&auml;ndelse-ID</td><td class="col2-emea">Unik identifiering som &ouml;kar varje g&aring;ng kunden ansluter sitt elfordon (UTOM om tiden mellan urkoppling och anslutning &auml;r mindre &auml;n 90&nbsp;sekunder). Detta v&auml;rde b&ouml;r vara unikt f&ouml;r varje laddningssession. Se ElectricEngine.Charging.PlugStatus.</td><td class="col3">vehicle.​body.​chargingPort.​plugEventId</td><td class="col4">uint32</td><td class="col5">0 - 131068</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">H&ouml;gsp&auml;nningsbatteriets h&auml;lsotillst&aring;nd (SOCE)</td><td class="col2-emea">Detta v&auml;rde anger h&ouml;gsp&auml;nningsbatteriets h&auml;lsotillst&aring;nd (SOCE, State of Certified Energy).</td><td class="col3">vehicle.​powertrain.​electric.​battery.​stateOfHealth.​displayed</td><td class="col4">-</td><td class="col5">0 - 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">H&ouml;gsp&auml;nningsbatteriets laddningstillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger h&ouml;gsp&auml;nningsbatteriets aktuella laddningstillst&aring;nd i procent vid tidpunkten f&ouml;r dataregistreringen. </td><td class="col3">vehicle.​drivetrain.​batteryManagement.​header</td><td class="col4">float</td><td class="col5">0 % till 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">HV-laddningssystemstatus</td><td class="col2-emea">HV-laddningsstatus</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​hvStatus</td><td class="col4">string</td><td class="col5">INVALID, CHARGING, ERROR, NOT_CHARGING, WAITING_FOR_CHARGING, FINISHED_FULLY_CHARGED, FINISHED_NOT_FULL</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Inst&auml;llning av laddningsprofil</td><td class="col2-emea">Laddningsinst&auml;llning f&ouml;r aktuell laddningsprofil. Detta v&auml;rde beror p&aring; valet av laddningsl&auml;ge. F&ouml;r Vehicle.ElectricEngine.Charging.Profile.Mode som &auml;r &rdquo;F&Ouml;RDR&Ouml;JD LADDNING&rdquo;, Vehicle.ElectricEngine.Charging.Profile.Preference &auml;r antingen &rdquo;SMART_CHARGING&rdquo; eller &rdquo;CHARGING_WINDOW&rdquo;. Om Vehicle.ElectricEngine.Charging.Profile.Mode &auml;r &rdquo;IMMEDIATE_CHARGING&rdquo;, Vehicle.ElectricEngine.Charging.Profile.Preference inst&auml;lld p&aring; &rdquo;NO_PRESELECTION&rdquo;.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​preference</td><td class="col4">string</td><td class="col5">CHARGING_WINDOW, SMART_CHARGING, NO_PRESELECTION</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Kabelkontrollsp&auml;nning</td><td class="col2-emea">Sp&auml;nningen som uppn&aring;ddes under initialiseringskabelkontrollen.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​cableCheckVoltage</td><td class="col4">uint16</td><td class="col5">None</td><td class="col6-emea">V</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Kapacitet f&ouml;r tv&aring;v&auml;gsladdning</td><td class="col2-emea">Inneh&aring;ller information om aktuell tillg&auml;nglighet f&ouml;r BPT-funktionen (dubbelriktad str&ouml;m&ouml;verf&ouml;ring).</td><td class="col3">vehicle.​powertrain.​electric.​battery.​biDirectionalCharging.​availability</td><td class="col4">string</td><td class="col5">AVAILABLE, NOT_AVAILABLE, DISABLED_MALIBU, DISABLED_HVS, BPT_AND_IMO_DISABLED, BPT_ONLY_FOR_EMERGENCY_POWER_SUPPLY, DISABLED_IMO_POSSIBLE, DISABLED_LONG_TERM</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Klimatisering aktiv</td><td class="col2-emea">Klimatisering Aktivering av fordon i laddningsprofil, fordonskup&eacute;n f&ouml;rkonditioneras inf&ouml;r n&auml;sta starttid.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​climatizationActive</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laddningseffekt</td><td class="col2-emea">Den aktuella laddningseffekten i watt. Detta v&auml;rde b&ouml;r endast beaktas med avseende p&aring; den aktuella tidsst&auml;mpeln.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​power</td><td class="col4">int32</td><td class="col5">20&nbsp;W till 80&nbsp;W</td><td class="col6-emea">W</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laddningshistorik</td><td class="col2-emea">V&auml;rdet visar en lista &ouml;ver fordonets genomf&ouml;rda laddningsf&ouml;rlopp som har registrerats i samband med tj&auml;nsten &rdquo;Laddningshistorik&rdquo;.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​history.​sessionsList</td><td class="col4">-</td><td class="col5">Detaljer finns i motsvarande Swagger-dokumentation: ../chargingHistory</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laddningskontaktens tillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger om fordonet vid tidpunkten f&ouml;r dataregistreringen var ansluten med en laddningskontakt (CONNECTED) eller inte (DISCONNECTED). </td><td class="col3">vehicle.​body.​chargingPort.​status</td><td class="col4">string</td><td class="col5">CONNECTED, DISCONNECTED,  INVALID, -NA-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laddningsmetod f&ouml;r h&ouml;gsp&auml;nningsbatteriet (faser)	</td><td class="col2-emea">V&auml;rdet anger antalet faser som h&ouml;gsp&auml;nningsbatteriet laddas med.
+</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​phaseNumber</td><td class="col4">string</td><td class="col5">NO_CHARGING, 1-PHASES, 2-PHASES, 3-PHASES, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laddningsmetod f&ouml;r h&ouml;gsp&auml;nningsbatteriet (induktivt/ledande)</td><td class="col2-emea">V&auml;rdet anger vilken laddningsmetod (CONDUCTIVE, INDUCTIVE) som fordonet laddas med vid tidpunkten f&ouml;r datainsamling.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​connectionType</td><td class="col4">string</td><td class="col5">CONDUCTIVE, INDUCTIVE, SIGNAL_INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laddningsmetod och kontakttyp</td><td class="col2-emea">V&auml;rdet beskriver om fordonet har laddats med likstr&ouml;m (DC) eller v&auml;xelstr&ouml;m (AC) och vilken laddningskontakt som anv&auml;ndes d&aring;. 
+Det visade tekniska v&auml;rdet AC_TYPE1PLUG anger exempelvis att h&ouml;gsp&auml;nningsbatteriet laddades i v&auml;xelstr&ouml;msl&auml;ge och att en laddningskontakt av Typ 1 Plug anv&auml;ndes. </td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​method</td><td class="col4">string</td><td class="col5">AC_TYPE1PLUG, AC_TYPE2PLUG, NOCHARGING</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laddningsportens l&aring;sta l&auml;ge</td><td class="col2-emea">Denna signal signalerar om laddningskontakten &auml;r l&aring;st, uppl&aring;st, ett fel skickas eller ingen &aring;tg&auml;rd utf&ouml;rs. N&auml;r du anv&auml;nder det h&auml;r v&auml;rdet, se &auml;ven Vehicle.Body.ChargingPort.PlugStatus.</td><td class="col3">vehicle.​body.​chargingPort.​lockedStatus</td><td class="col4">string</td><td class="col5">CHARGING_CABLE_NOT_LOCKED, CHARGING_CABLE_LOCKED, CHARGING_CABLE_LOCKING_ERROR_DETECTED, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laddningss&auml;tt</td><td class="col2-emea">Aktuellt laddningss&auml;tt.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​chargingMode</td><td class="col4">string</td><td class="col5">NORMAL_PROGNOSE_BASED, STEP_BASED, PLC_MODE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laddningssesions-ID</td><td class="col2-emea">F&auml;ltet inneh&aring;ller v&auml;rdet ISO 15118 sessionID enligt ASCII.</td><td class="col3">vehicle.​body.​chargingPort.​isoSessionId</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laddningsstatus f&ouml;r kontakt</td><td class="col2-emea">Aktuellt skick f&ouml;r laddningskontakt i alla typer (induktiv, ledande), l&auml;gen (AC, DC) och service pack.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​connectorStatus</td><td class="col4">string</td><td class="col5">CONNECTED, DISCONNECTED, ERROR</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laddningstillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger fordonets aktuella laddningstillst&aring;nd vid tidpunkten f&ouml;r dataregistreringen. 
+V&auml;rdet NOCHARGING betyder exempelvis att fordonets h&ouml;gsp&auml;nningsbatteri inte laddas f&ouml;r tillf&auml;llet. 
+INITIALIZATION betyder att laddningsprocessen &auml;r i f&ouml;rberedelse och CHARGINGACTIVE att batteriet laddas f&ouml;rtillf&auml;llet. 
+Andra m&ouml;jliga v&auml;rden &auml;r: 
+CHARGINGPAUSED (Laddningen &auml;r pausad), 
+CHARGINGENDED (Laddningen &auml;r avslutad) och
+CHARGINGERROR (Laddningsfel). </td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​status</td><td class="col4">string</td><td class="col5">NOCHARGING, INITIALIZATION, CHARGINGACTIVE, CHARGINGPAUSED, CHARGINGENDED, CHARGINGERROR, CHARGINGINTERRUPTED, CHARGINGDISRUPTED, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Laddstationens statustext</td><td class="col2-emea">Kr&auml;vs tillsammans med Vehicle.Body.ChargingPort.Status f&ouml;r att s&auml;kerst&auml;lla korrekt hantering av laddningssessioner f&ouml;r G08 BEV-fordon.</td><td class="col3">vehicle.​body.​chargingPort.​statusClearText</td><td class="col4">string</td><td class="col5">DISCONNECTED, CONNECTED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Lastklaffens tillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger om lastklaffen &auml;r l&aring;st vid tidpunkten f&ouml;r datainsamling.</td><td class="col3">vehicle.​body.​flap.​isLocked</td><td class="col4">boolean</td><td class="col5">FLAP_UNLOCKED, FLAP_LOCKED, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">L&aring;st tillst&aring;nd f&ouml;r laddningskontakt efter full laddning	</td><td class="col2-emea">V&auml;rdet anger om laddningskontakten blir uppl&aring;st automatiskt (HOSPITALITY_ACTIVE) eller f&ouml;rblir l&aring;st (HOSPITALITY_INACTIVE) efter att den &auml;r fulladdat.&nbsp;	</td><td class="col3">vehicle.​body.​chargingPort.​isHospitalityActive</td><td class="col4">boolean</td><td class="col5">HOSPITALITY_INACTIVE, HOSPITALITY_ACTIVE, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Likstr&ouml;msladdningss&auml;tt active</td><td class="col2-emea">Active likstr&ouml;msladdningss&auml;tt (motorbeteende kontra Efficient Mode).</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​dcChargingModeActive</td><td class="col4">string</td><td class="col5">EFFICIENT, STANDARD, PERFORMANCE</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">M&aring;l l&auml;gsta laddningsniv&aring;</td><td class="col2-emea">L&auml;gsta m&aring;lladdningsniv&aring; som kunden har beg&auml;rt f&ouml;r smart laddning och V2X.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​stateOfCharge.​targetMin</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">M&aring;l SOC f&ouml;r professionellt l&auml;ge</td><td class="col2-emea">Inneh&aring;ller den m&aring;lladdningsniv&aring; som ska anv&auml;ndas so m&aring;l i professionellt l&auml;ge. &Aring;tminstone denna m&aring;lladdningsniv&aring; kommer att n&aring;s vid starttiden.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​stateOfCharge.​targetSoCForProfessionalMode</td><td class="col4">uint8</td><td class="col5">0&nbsp;% till 100&nbsp;%</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">M&aring;lv&auml;rde f&ouml;r h&ouml;gsp&auml;nningsbatteriets laddningstillst&aring;nd</td><td class="col2-emea">V&auml;rdet anger det inst&auml;llda m&aring;lv&auml;rdet f&ouml;r h&ouml;gsp&auml;nningsbatteriets laddningsstatus i procent. Detta visas i 10&nbsp;% -steg.&nbsp;</td><td class="col3">vehicle.​powertrain.​electric.​battery.​stateOfCharge.​target</td><td class="col4">uint8</td><td class="col5">0-100 [10% Schritte], INVALID</td><td class="col6-emea">%</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Manuell &aring;terkoppling av status f&ouml;r f&ouml;rkonditionering</td><td class="col2-emea">Aktuellt l&auml;ge f&ouml;r knapp f&ouml;r manuell batterif&ouml;rkonditionering. Antingen f&ouml;r laddning eller k&ouml;rning.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​preconditioning.​manualMode.​statusFeedback</td><td class="col4">string</td><td class="col5">OFF, ON_CHARGE, ON_DRIVE, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">M&auml;tarst&auml;llning f&ouml;r senaste k&ouml;rning</td><td class="col2-emea">V&auml;rdet anger m&auml;tarst&auml;llningen efter den senast registrerade k&ouml;rningen. </td><td class="col3">vehicle.​trip.​segment.​end.​travelledDistance</td><td class="col4">float</td><td class="col5">0 km till 999999 km</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Maximal laddningsstr&ouml;mstyrka</td><td class="col2-emea">V&auml;rdet indikerar maximal laddningsstr&ouml;mstyrka som kan v&auml;ljas beroende p&aring; infrastruktur och kabeln som anv&auml;nds.&nbsp;	</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​acLimit.​max</td><td class="col4">uint8</td><td class="col5">0-250 A, INVALID</td><td class="col6-emea">A</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Minsta laddningsstr&ouml;mstyrka</td><td class="col2-emea">V&auml;rdet indikerar minimal laddningsstr&ouml;mstyrka som kan v&auml;ljas beroende p&aring; infrastruktur och kabeln som anv&auml;nds.&nbsp;</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​acLimit.​min</td><td class="col4">uint8</td><td class="col5">0-250 A, INVALID</td><td class="col6-emea">A</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">OBFCM*-referensstr&auml;cka f&ouml;r m&auml;tning av levererad n&auml;tenergi</td><td class="col2-emea">Detta v&auml;rde anger referensstr&auml;ckan f&ouml;r m&auml;tningen av den energi som levererats via laddningskablar.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​consumptionOverLifeTime.​overall.​referenceDistance</td><td class="col4">float</td><td class="col5">0.0 km - 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Omedelbart laddningssystemsk&auml;l</td><td class="col2-emea">Den h&auml;r parametern inneh&aring;ller information som kunden valde med ersatt laddningss&auml;tt till f&ouml;ljd av systemsk&auml;l.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​isImmediateChargingSystemReason</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Platsbaserade laddningsinst&auml;llningar</td><td class="col2-emea">V&auml;rdet visar en lista &ouml;ver fordonets aktuella, lagrade platsbaserade laddningsinst&auml;llningar som har registrerats inom ramen f&ouml;r tj&auml;nsten &rdquo;Platsbaserade laddningsinst&auml;llningar&rdquo;.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​settingsList</td><td class="col4">-</td><td class="col5">Detaljer finns i motsvarande Swagger-dokumentation: ../locationBasedChargingSettings</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Prognos av &aring;terst&aring;ende laddningstid</td><td class="col2-emea">Detta v&auml;rde anger den prognostiserade &aring;terst&aring;ende laddningstiden i minuter.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​timeRemaining</td><td class="col4">uint16</td><td class="col5">0 - 200 Min</td><td class="col6-emea">min</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Prognos av e-r&auml;ckvidd under laddningsf&ouml;rloppet</td><td class="col2-emea"> Detta v&auml;rde anger den prognostiserade e-r&auml;ckvidden under laddningsf&ouml;rloppet.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​remainingElectricRange</td><td class="col4">float</td><td class="col5">0 - 1000 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Prognos av total r&auml;ckvidd under laddningsf&ouml;rloppet</td><td class="col2-emea">Detta v&auml;rde anger den prognostiserade totala r&auml;ckvidden under laddningsf&ouml;rloppet (summa av e-r&auml;ckvidd och r&auml;ckvidd med f&ouml;rbr&auml;nningsmotor).</td><td class="col3">vehicle.​drivetrain.​totalRemainingRange</td><td class="col4">float</td><td class="col5">0 - 2000 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">RCP-konfigurationen &auml;r klar</td><td class="col2-emea">Fordon med en fullst&auml;ndig RCP-konfiguration (Remote Charging Profile) skickar uttryckligen v&auml;rden f&ouml;r alla laddningsprofilattribut. F&ouml;r fordon utan fullst&auml;ndig RCP-konfiguration till&auml;mpas vissa standardv&auml;rden.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​isRcpConfigComplete</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Reducerat m&aring;l-energitillst&aring;nd</td><td class="col2-emea">Reducera m&aring;l-SoE (energitillst&aring;nd) till ett definierat v&auml;rde s&aring; att batteriet inte n&aring;r h&ouml;g SoE. P&aring; s&aring; vis &aring;ldras batteriet l&aring;ngsammare.</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​batteryCarePersisted.​isReducedTargetSoe</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Referensstr&auml;cka f&ouml;r m&auml;tning av levererad n&auml;tenergi n&auml;r f&ouml;rbr&auml;nningsmotorn inte var aktiv</td><td class="col2-emea">Detta v&auml;rde anger referensstr&auml;ckan f&ouml;r m&auml;tningen av den energi som levererats via laddningskablar n&auml;r f&ouml;rbr&auml;nningsmotorn inte var aktiv (anv&auml;nds t.ex. av OBFCM*).</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​consumptionOverLifeTime.​engineOff.​referenceDistance</td><td class="col4">float</td><td class="col5">0.0 km - 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Referensstr&auml;cka f&ouml;r m&auml;tning av levererad n&auml;tenergi n&auml;r f&ouml;rbr&auml;nningsmotorn var aktiv</td><td class="col2-emea">Detta v&auml;rde anger referensstr&auml;ckan f&ouml;r m&auml;tningen av den energi som levererats via laddningskablar n&auml;r f&ouml;rbr&auml;nningsmotorn var aktiv (anv&auml;nds t.ex. av OBFCM*).</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​consumptionOverLifeTime.​engineOn.​referenceDistance</td><td class="col4">float</td><td class="col5">0.0 km - 250000.0 km</td><td class="col6-emea">km</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Relevant starttid</td><td class="col2-emea">Information om den kommande starttiden &auml;r relevant f&ouml;r det professionella l&auml;get (dubbelriktat/enkelriktat) och b&ouml;rstatusen f&ouml;r att energi ska uppn&aring;s vid denna tid.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​settings.​biDirectionalCharging.​departureTimeRelevant</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Ruttoptimerad laddningsstatus</td><td class="col2-emea">Anger laddningsstatus i de fall n&auml;r kunden anv&auml;nder laddning f&ouml;r e-f&auml;rdv&auml;g f&ouml;r sin resa. Laddningssessioner f&ouml;r e-f&auml;rdv&auml;g har tv&aring; olika faser. Ruttoptimerade laddningssessioner &aring;sidos&auml;tter tillf&auml;lligt kundens b&ouml;rladdningsniv&aring;.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​routeOptimizedChargingStatus</td><td class="col4">string</td><td class="col5">ROUTE_OPTIMIZED_CHARGING_IN_PROGRESS, ROUTE_OPTIMIZED_SOC_TARGET_REACHED</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Sekund&auml;ra f&ouml;rbrukares effekt (Elektriska komponenters effektf&ouml;rbrukning)</td><td class="col2-emea">Detta v&auml;rde anger de sekund&auml;ra f&ouml;rbrukarnas effekt i kW vid tidpunkten f&ouml;r dataregistreringen. Detta &auml;r det interna eln&auml;tets f&ouml;rbrukning inklusive effekten f&ouml;r klimatanl&auml;ggningen. </td><td class="col3">vehicle.​vehicle.​avgAuxPower</td><td class="col4">float</td><td class="col5">0 kW till 655,34 kW,
+INVALID</td><td class="col6-emea">kW</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Senaste laddningsresultat</td><td class="col2-emea">Resultat av den senaste laddningsprocessen.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​lastChargingResult</td><td class="col4">string</td><td class="col5">SUCCESS, FAILED, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Sista laddningssk&auml;l</td><td class="col2-emea">Sk&auml;l till den senaste laddningsprocessen.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​lastChargingReason</td><td class="col4">string</td><td class="col5">CHARGING_GOAL_REACHED, END_REQUESTED_BY_DRIVER, CONNECTOR_REMOVED, POWERGRID_FAILED, HV_SYSTEM_FAILURE, CHARGING_STATION_FAILURE, PARKING_LOCK_FAILED, NO_PARKING_LOCK, INVALID, -NA-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Sk&auml;l till att laddningen upph&ouml;rde</td><td class="col2-emea">Sk&auml;l till att laddningen upph&ouml;r, fr&aring;n SP25 och fram&aring;t.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​reasonChargingEnd</td><td class="col4">string</td><td class="col5">NO_CHARGING_END_SINCE_IPF_WAKEUP, CUSTOMER_INTERACTION_HMI_UNPLUG_CABLE_ONCE, CUSTOMER_INTERACTION_HMI_CHARGING_TARGET_REACHED, CUSTOMER_INTERACTION_APP_UNPLUG_CABLE_ONCE, CUSTOMER_INTERACTION_APP_CHARGING_TARGET_REACHED, CUSTOMER_INTERACTION_CHARGING_STOP_VIA_CHARGING_STOP_BUTTON_SOCKET, CUSTOMER_INTERACTION_AC_CHARGING_STOP_VIA_KEY, CUSTOMER_INTERACTION_AC_CHARGING_STOP_WALLBOX, CUSTOMER_INTERACTION_AC_CHARGING_STOP_LATCH, HV_BATTERY_FULLY_CHARGED, INFRASTRUCTURE_PHYSICAL_LIMITS_REACHED_TARGET_SOE_NOT_REACHABLE, INFRASTRUCTURE_DC_CCS_EVSE_SHUTDOWN, INFRASTRUCTURE_DC_GBT_CST_MESSAGE, INFRASTRUCTURE_DC_CCS_STATIC_PILOT, INFRASTRUCTURE_DC_CCS_COMMUNICATION_ERROR_FAILED_RESPONSE_CODE, INFRASTRUCTURE_DC_CCS_COMMUNICATION_ERROR, INFRASTRUCTURE_NO_ENERGY_TRANSFER, INFRASTRUCTURE_DC_CCS_PRECHARGE_ERROR, INFRASTRUCTURE_DC_CCS_EVSE_MALFUNCTION_EMERGENCY_SHUTDOWN, INFRASTRUCTURE_STATION_NOT_COMPATIBLE, INFRASTRUCTURE_CHARGE_READINESS_TIMEOUT, INFRASTRUCTURE_AC_MAXIMUM_GRID_ERROR_REACHED, INFRASTRUCTURE_DC_GBT_ISOLATION_ERROR_DETECTED, INFRASTRUCTURE_AUTHENTIFICATION_ERROR, VEHICLE_HV_BATTERY_ERROR, VEHICLE_HV_BATTERY_COMMUNICATION_ERROR, VEHICLE_DCDC_ERROR, VEHICLE_PLC_BOOTUP_ERROR, VEHICLE_HV_BATTERY_MAXIMAL_CURRENT_OVERSHOOT, VEHICLE_ISOLATION_ERROR, VEHICLE_MAXIMUM_TEMPERATURE_CHARGING_SOCKET_OVERSHOOT, VEHICLE_LT3_OVERSHOOT, VEHICLE_FUSI_CABLE_LOCK_ERROR, VEHICLE_PLC_COMMUNICATION_NOT_POSSIBLE, FLEXCHARGER_GRID_ERROR, FLEXCHARGER_GRID_TEMPERATURE_ERROR, FLEXCHARGER_EVSE_TEMPERATURE_ERROR, FLEXCHARGER_EVSE_INTERNAL_ERROR, FLEXCHARGER_AC_DC_FAULT_CURRENT, FLEXCHARGER_INCORRECT_REACTION_TIME_PWM, FLEXCHARGER_CHARGING_CURRENT_TOO_HIGH, FLEXCHARGER_PE_FAULT, INFRASTRUCTURE_INEFFICIENT_CHARGING_LOW_POWER, VEHICLE_CABLE_LOCKING_ERROR, VEHICLE_CONFIGURATION_ERROR_400V_800V, INFRASTRUCTURE_NO_AC_VOLTAGE, PLUG_AND_CHARGE_TLS_ERROR, PLUG_AND_CHARGE_CONTRACT_ERROR, SMART_CHARGING_TARIFF_SELECTION_INVALID, SMART_CHARGING_CHARGING_PROFILE_INVALID, CUSTOMER_INTERACTION_AC_CHARGING_STOP_VIA_APP, CHARGING_PAUSED, DISCHARGE_NOT_POSSIBLE_VOLTAGE_TOO_HIGH, DISCHARGE_NOT_POSSIBLE_SOE_TOO_LOW, DISCHARGE_NOT_POSSIBLE_INTERNAL_ERROR, DISCHARGE_NOT_POSSIBLE_INCOMPATIBLE_ADAPTER, DISCHARGE_NOT_POSSIBLE_INCOMPATIBLE_CONSUMER</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">&rdquo;Smart Charging&rdquo; laddningsalternativ</td><td class="col2-emea">V&auml;rdet indikerar vilket "Smart Charging" laddningsalternativ som anv&auml;nds f&ouml;r laddning.
+</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​preferenceSmartCharging</td><td class="col4">string</td><td class="col5">PRICE_OPTIMIZED, RENEWABLE_ENERGEY, CO2_OPTIMIZED, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">St&auml;ngningsl&auml;ge f&ouml;r lastklaff</td><td class="col2-emea">V&auml;rdet anger om lastklaffen &auml;r l&aring;st oberoende av centrall&aring;set vid&nbsp;tidpunkten f&ouml;r datainsamlingen.</td><td class="col3">vehicle.​body.​flap.​isPermanentlyUnlocked</td><td class="col4">boolean</td><td class="col5">NO_ACTION, FLAP_UNLOCKED, FLAP_LOCKED, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status f&ouml;r laddningskontakten (endast DC)	</td><td class="col2-emea">V&auml;rdet anger om fordonet vid tidpunkten f&ouml;r datainsamling var ansluten med en laddningskontakt (CONNECTED) eller inte (DISCONNECTED).
+</td><td class="col3">vehicle.​body.​chargingPort.​dcStatus</td><td class="col4">string</td><td class="col5">DISCONNECTED, CONNECTED, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status f&ouml;r omedelbar laddningsfunktion&nbsp;</td><td class="col2-emea">V&auml;rdet anger om funktionen &rdquo;Omedelbar laddning&rdquo; &auml;r aktiverad eller inte.&nbsp;</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​isSingleImmediateCharging</td><td class="col4">boolean</td><td class="col5">DIRECT_CHG_ONCE_NOT_ACTIVE, DIRECT_CHG_ONCE_ACTIVE, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status laddningsgr&auml;ns</td><td class="col2-emea">Detta v&auml;rde anger om en begr&auml;nsning f&ouml;r laddningsstr&ouml;m var aktiv vid tidpunkten f&ouml;r datainsamling.&nbsp;</td><td class="col3">vehicle.​powertrain.​electric.​battery.​charging.​acLimit.​isActive</td><td class="col4">boolean</td><td class="col5">AC_LIMIT_INACTIVE, AC_LIMIT_ACTIVE, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tidpunkten f&ouml;r den senaste k&ouml;rningen</td><td class="col2-emea">Tidsst&auml;mpeln inneh&aring;ller datum och lokal tid f&ouml;r den senaste registrerade och &ouml;verf&ouml;rda k&ouml;rningen, exempelvis 15.05.2017 15:51:00 UTC.</td><td class="col3">vehicle.​trip.​segment.​end.​time</td><td class="col4">int32</td><td class="col5">dd.mm.yyyy hh:mm:ss UTC</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tid som ECO l&auml;get var aktivt under f&ouml;reg&aring;ende k&ouml;rning</td><td class="col2-emea">Anger hur l&auml;nge &auml;r ECO l&auml;get var aktiv vid den senaste k&ouml;rningen f&ouml;re tidpunkten f&ouml;r dataregistreringen. 
+V&auml;rdeomr&aring;det str&auml;cker sig fr&aring;n 0 till 100. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​drivetrain.​transmission.​setting.​fractionDriveEcoPro</td><td class="col4">float</td><td class="col5">0 % till 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Tid som ECO PLUS l&auml;get var aktivt under f&ouml;reg&aring;ende k&ouml;rning</td><td class="col2-emea">Anger hur l&auml;nge &auml;r ECO PLUS l&auml;get var aktiv vid den senaste k&ouml;rningen vid tidpunkten f&ouml;r dataregistreringen. 
+V&auml;rdeomr&aring;det str&auml;cker sig fr&aring;n 0 till 100. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​drivetrain.​transmission.​setting.​fractionDriveEcoProPlus</td><td class="col4">float</td><td class="col5">0 % till 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Total n&auml;tenergi som f&ouml;rbrukats n&auml;r f&ouml;rbr&auml;nningsmotorn inte var aktiv</td><td class="col2-emea">Detta v&auml;rde anger den totala energi som levererats via laddningskablar n&auml;r f&ouml;rbr&auml;nningsmotorn inte var aktiv (anv&auml;nds t.ex. av OBFCM*).</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​consumptionOverLifeTime.​engineOff.​gridEnergy</td><td class="col4">float</td><td class="col5">kWh</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Total n&auml;tenergi som f&ouml;rbrukats n&auml;r f&ouml;rbr&auml;nningsmotorn var aktiv</td><td class="col2-emea">Detta v&auml;rde anger den totala energi som levererats via laddningskablar n&auml;r f&ouml;rbr&auml;nningsmotorn var aktiv (anv&auml;nds t.ex. av OBFCM*).</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​consumptionOverLifeTime.​engineOn.​gridEnergy</td><td class="col4">float</td><td class="col5">kWh</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Total n&auml;tenergi som levererats till fordonet (endast PHEV)</td><td class="col2-emea">Detta v&auml;rde anger den totala energi som levererats via laddningskablar.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​consumptionOverLifeTime.​overall.​gridEnergy</td><td class="col4">float</td><td class="col5">0.0 kWh - 30000.0 kWh</td><td class="col6-emea">kWh</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Typ av laddningstimer</td><td class="col2-emea">Typ av laddningsprofiltimer (t.ex. Veckodagar eller TwoTimeTimer)</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​timerType</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Urladdning till&aring;ten</td><td class="col2-emea">Att till&aring;ta urladdning i professionellt l&auml;ge f&ouml;r dubbelriktad effekt&ouml;verf&ouml;ringsfunktion (BPT) v&auml;ljs fr&aring;n kunden eller inte (ON/OFF).</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​profile.​settings.​biDirectionalCharging.​dischargeAllowed</td><td class="col4">boolean</td><td class="col5">sant, falskt</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Utv&auml;rdering av k&ouml;rstil 'Accelerationsbeteende'</td><td class="col2-emea">V&auml;rdet anger antalet stj&auml;rnor, som k&ouml;rstilsanalysen vid tidpunkten f&ouml;r dataregistreringen har v&auml;rderat f&ouml;rarens accelerationsbeteende till. 
+Systemet ger f&ouml;r detta 0 till 5 stj&auml;rnor. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​acceleration.​starsAverage</td><td class="col4">float</td><td class="col5">0 till 5
+stj&auml;rnor</td><td class="col6-emea">stars</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Utv&auml;rderingen av k&ouml;rstil 'F&ouml;rutseende k&ouml;rning'</td><td class="col2-emea">V&auml;rdet anger antalet stj&auml;rnor, som k&ouml;rstilsanalysen vid tidpunkten f&ouml;r dataregistreringen har v&auml;rderat f&ouml;rarens 'F&ouml;rutseende k&ouml;rning' till. 
+Systemet ger f&ouml;r detta 0 till 5 stj&auml;rnor. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​chassis.​brake.​starsAverage</td><td class="col4">float</td><td class="col5">0 till 5
+stj&auml;rnor</td><td class="col6-emea">stars</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Val av det l&auml;mpligaste laddningsf&ouml;nstret (Charging Window Selection)</td><td class="col2-emea">Anger en tidigare definierad tidsperiod, inom vilken fordonets h&ouml;gsp&auml;nningsbatteri b&ouml;r laddas. 
+De m&ouml;jliga v&auml;rdena &auml;r NOTCHOSEN och CHOSEN. </td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​windowSelection</td><td class="col4">string</td><td class="col5">CHOSEN, NOTCHOSEN, 
+-NA-</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Visning av avresetid</td><td class="col2-emea">V&auml;rdet anger om avresetid finns tillg&auml;ngliga f&ouml;r detta fordon.&nbsp;&nbsp;</td><td class="col3">vehicle.​powertrain.​electric.​departureTime.​displayControl</td><td class="col4">string</td><td class="col5">DONT_DISPLAY, DISPLAY_DEPARTURE_TIME, DISPLAY_DEPARTURE_TIME_WITH_V2XSOE, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Visning av laddningsstatus</td><td class="col2-emea">Detta v&auml;rde anger den laddningsniv&aring; som visas i fordonet. </td><td class="col3">vehicle.​powertrain.​electric.​battery.​stateOfCharge.​displayed</td><td class="col4">float</td><td class="col5">0 - 100 %</td><td class="col6-emea">percent</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Visning av laddningstiden</td><td class="col2-emea">V&auml;rdet anger om laddningstid finns tillg&auml;ngliga f&ouml;r detta fordon.&nbsp;&nbsp;</td><td class="col3">vehicle.​powertrain.​electric.​chargingDuration.​displayControl</td><td class="col4">string</td><td class="col5">NO_DISPLAY_TIME_FOR_CHARGING, DISPLAY_CHARGING_DURATION, NO_DISPLAY_CHARGING_DURATION, INVALID</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>METADATA</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData element</th><th class="col2-emea">Beskrivning</th><th class="col3">Teknisk beskrivning</th><th class="col4">Datatyp </th><th class="col5">Typiskt v&auml;rdeintervall</th><th class="col6-emea">Enhet</th><th class="col7">Str&ouml;mningsbar</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Antal satellitnavigationer</td><td class="col2-emea">Antal GPS-satelliter som anv&auml;nds f&ouml;r positionering och som har samband med positioneringens p&aring;litlitlighet.</td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​currentLocation.​numberOfSatellites</td><td class="col4">uint8</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">&Aring;tg&auml;rd f&ouml;r att skriva &ouml;ver klimattimer</td><td class="col2-emea">Timerstatus/&aring;tg&auml;rd med positionerna Aktivera (P&aring;), Inaktivera (Av) och NoAction (Anv&auml;nds endast n&auml;r timern kommuniceras till fordonet).</td><td class="col3">vehicle.​cabin.​climate.​timers.​overwriteTimer.​action</td><td class="col4">string</td><td class="col5">ACTIVATE, DEACTIVATE, NO_ACTION</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Displaystyrning f&ouml;r elektrisk r&auml;ckvidd</td><td class="col2-emea">Anger om och hur den elektriska r&auml;ckvidden ska visas i fordonet.</td><td class="col3">vehicle.​powertrain.​electric.​range.​displayControl</td><td class="col4">string</td><td class="col5">None</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Infotainment-v&auml;gm&auml;tare</td><td class="col2-emea">V&auml;gm&auml;tare som anv&auml;nds i den aktuella HMI</td><td class="col3">vehicle.​cabin.​infotainment.​hmi.​distanceUnit</td><td class="col4">string</td><td class="col5">MILES, KILOMETERS</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Klimattimern skriver &ouml;ver minuten</td><td class="col2-emea">Minutinst&auml;llning av klimattimer enligt fordonskonfigurerad tidszon.</td><td class="col3">vehicle.​cabin.​climate.​timers.​overwriteTimer.​minute</td><td class="col4">uint8</td><td class="col5">0 - 59</td><td class="col6-emea">min</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Klimattimern skriver &ouml;ver timmen</td><td class="col2-emea">Timinst&auml;llning f&ouml;r klimattimer enligt fordonskonfigurerad tidszon.</td><td class="col3">vehicle.​cabin.​climate.​timers.​overwriteTimer.​hour</td><td class="col4">uint8</td><td class="col5">0 - 23</td><td class="col6-emea">h</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Status f&ouml;r navigeringsfix</td><td class="col2-emea">GPS-fixstatus. Med "NO_FIX" menas att f&auml;rre &auml;n 3 satellitter har hittats. "2D_GPS_FIX" erh&aring;lls n&auml;r minst 3 satelliter hittas. "3D_GPS_FIX" erh&aring;lls n&auml;r minst 4 satelliter hittas.</td><td class="col3">vehicle.​cabin.​infotainment.​navigation.​currentLocation.​fixStatus</td><td class="col4">string</td><td class="col5">NO_FIX, GPS_FIX_2D, GPS_FIX_3D</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Veckodagstimer 1 &aring;tg&auml;rd</td><td class="col2-emea">Timerstatus 1/&aring;tg&auml;rd med positionerna Aktivera (P&aring;), Inaktivera (Av) och NoAction (Anv&auml;nds endast n&auml;r timern 1 kommuniceras till fordonet).</td><td class="col3">vehicle.​cabin.​climate.​timers.​weekdaysTimer1.​action</td><td class="col4">string</td><td class="col5">ACTIVATE, DEACTIVATE, NO_ACTION</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Veckodagstimer 1 minut</td><td class="col2-emea">Minutinst&auml;llning av klimattimer 1 enligt fordonskonfigurerad tidszon.</td><td class="col3">vehicle.​cabin.​climate.​timers.​weekdaysTimer1.​minute</td><td class="col4">uint8</td><td class="col5">0 - 59</td><td class="col6-emea">min</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Veckodagstimer 1 timme</td><td class="col2-emea">Timinst&auml;llning av klimattimer 1 enligt fordonskonfigurerad tidszon.</td><td class="col3">vehicle.​cabin.​climate.​timers.​weekdaysTimer1.​hour</td><td class="col4">uint8</td><td class="col5">0 - 23</td><td class="col6-emea">h</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Veckodagstimer 2 &aring;tg&auml;rd</td><td class="col2-emea">Timerstatus 2/&aring;tg&auml;rd med positionerna Aktivera (P&aring;), Inaktivera (Av) och NoAction (Anv&auml;nds endast n&auml;r timern 2 kommuniceras till fordonet).</td><td class="col3">vehicle.​cabin.​climate.​timers.​weekdaysTimer2.​action</td><td class="col4">string</td><td class="col5">ACTIVATE, DEACTIVATE, NO_ACTION</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Veckodagstimer 2 minut</td><td class="col2-emea">Minutinst&auml;llning av klimattimer 2 enligt fordonskonfigurerad tidszon.</td><td class="col3">vehicle.​cabin.​climate.​timers.​weekdaysTimer2.​minute</td><td class="col4">uint8</td><td class="col5">0 - 59</td><td class="col6-emea">min</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Veckodagstimer 2 timme</td><td class="col2-emea">Timinst&auml;llning av klimattimer 2 enligt fordonskonfigurerad tidszon.</td><td class="col3">vehicle.​cabin.​climate.​timers.​weekdaysTimer2.​hour</td><td class="col4">uint8</td><td class="col5">0 - 23</td><td class="col6-emea">h</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>D&Auml;CKDATA</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData element</th><th class="col2-emea">Beskrivning</th><th class="col3">Teknisk beskrivning</th><th class="col4">Datatyp </th><th class="col5">Typiskt v&auml;rdeintervall</th><th class="col6-emea">Enhet</th><th class="col7">Str&ouml;mningsbar</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">D&auml;ckb&ouml;rtryck h&ouml;ger bak</td><td class="col2-emea">Detta v&auml;rde anger d&auml;ckb&ouml;rtrycket h&ouml;ger bak i kPa.</td><td class="col3">vehicle.​chassis.​axle.​row2.​wheel.​right.​tire.​pressureTarget</td><td class="col4">uint16</td><td class="col5">0-1000 kPa eller -NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">D&auml;ckb&ouml;rtryck h&ouml;ger fram</td><td class="col2-emea">Detta v&auml;rde anger d&auml;ckb&ouml;rtrycket h&ouml;ger fram i kPa.</td><td class="col3">vehicle.​chassis.​axle.​row1.​wheel.​right.​tire.​pressureTarget</td><td class="col4">uint16</td><td class="col5">0-1000 kPa eller -NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">D&auml;ckb&ouml;rtryck v&auml;nster bak</td><td class="col2-emea">Detta v&auml;rde anger d&auml;ckb&ouml;rtrycket v&auml;nster bak i kPa.</td><td class="col3">vehicle.​chassis.​axle.​row2.​wheel.​left.​tire.​pressureTarget</td><td class="col4">uint16</td><td class="col5">0-1000 kPa eller -NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">D&auml;ckb&ouml;rtryck v&auml;nster fram</td><td class="col2-emea">Detta v&auml;rde anger d&auml;ckb&ouml;rtrycket v&auml;nster fram i kPa. </td><td class="col3">vehicle.​chassis.​axle.​row1.​wheel.​left.​tire.​pressureTarget</td><td class="col4">uint16</td><td class="col5">0-1000 kPa eller -NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">D&auml;cktemperatur i Celsius, h&ouml;ger bak</td><td class="col2-emea">D&auml;cktemperatur i Celsius h&ouml;ger bak.</td><td class="col3">vehicle.​chassis.​axle.​row2.​wheel.​right.​tire.​temperature</td><td class="col4">float</td><td class="col5">0&nbsp;&nbsp;C till 50&nbsp;&deg;C</td><td class="col6-emea">Celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">D&auml;cktemperatur i Celsius, h&ouml;ger fram</td><td class="col2-emea">D&auml;cktemperatur i Celsius h&ouml;ger fram.</td><td class="col3">vehicle.​chassis.​axle.​row1.​wheel.​right.​tire.​temperature</td><td class="col4">float</td><td class="col5">0&nbsp;&nbsp;C till 50&nbsp;&deg;C</td><td class="col6-emea">Celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">D&auml;cktemperatur i Celsius, v&auml;nster bak</td><td class="col2-emea">D&auml;cktemperatur i Celsius v&auml;nster bak.</td><td class="col3">vehicle.​chassis.​axle.​row2.​wheel.​left.​tire.​temperature</td><td class="col4">float</td><td class="col5">0&nbsp;&nbsp;C till 50&nbsp;&deg;C</td><td class="col6-emea">Celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">D&auml;cktemperatur i Celsius, v&auml;nster fram</td><td class="col2-emea">D&auml;cktemperatur i Celsius v&auml;nster fram.</td><td class="col3">vehicle.​chassis.​axle.​row1.​wheel.​left.​tire.​temperature</td><td class="col4">float</td><td class="col5">0&nbsp;&nbsp;C till 50&nbsp;&deg;C</td><td class="col6-emea">Celsius</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Uppm&auml;tt d&auml;cktryck h&ouml;ger bak</td><td class="col2-emea">Detta v&auml;rde anger det uppm&auml;tta d&auml;cktrycket h&ouml;ger bak i kPa.</td><td class="col3">vehicle.​chassis.​axle.​row2.​wheel.​right.​tire.​pressure</td><td class="col4">uint16</td><td class="col5">0-1000 kPa eller -NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Uppm&auml;tt d&auml;cktryck h&ouml;ger fram</td><td class="col2-emea">Detta v&auml;rde anger det uppm&auml;tta d&auml;cktrycket h&ouml;ger fram i kPa.</td><td class="col3">vehicle.​chassis.​axle.​row1.​wheel.​right.​tire.​pressure</td><td class="col4">uint16</td><td class="col5">0-1000 kPa eller -NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Uppm&auml;tt d&auml;cktryck v&auml;nster bak</td><td class="col2-emea">Detta v&auml;rde anger det uppm&auml;tta d&auml;cktrycket v&auml;nster bak i kPa.</td><td class="col3">vehicle.​chassis.​axle.​row2.​wheel.​left.​tire.​pressure</td><td class="col4">uint16</td><td class="col5">0-1000 kPa eller -NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Uppm&auml;tt d&auml;cktryck v&auml;nster fram</td><td class="col2-emea">Detta v&auml;rde anger det uppm&auml;tta d&auml;cktrycket v&auml;nster fram i kPa.</td><td class="col3">vehicle.​chassis.​axle.​row1.​wheel.​left.​tire.​pressure</td><td class="col4">uint16</td><td class="col5">0-1000 kPa eller -NA-</td><td class="col6-emea">kPa</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+        </table>
+        <h3>INFORMATION OM CONNECTEDDRIVE-AVTALET</h3>
+        <table>
+            <tr class="header-row">
+                <th class="col1-emea">CarData element</th><th class="col2-emea">Beskrivning</th><th class="col3">Teknisk beskrivning</th><th class="col4">Datatyp </th><th class="col5">Typiskt v&auml;rdeintervall</th><th class="col6-emea">Enhet</th><th class="col7">Str&ouml;mningsbar</th>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Aktiva ConnectedDrive-avtal</td><td class="col2-emea">V&auml;rdet inneh&aring;ller en &ouml;versikt &ouml;ver alla aktiva ConnectedDrive-avtal och utg&aring;ngen av respektive l&ouml;ptid.</td><td class="col3">vehicle.​vehicleIdentification.​connectedDriveContractList</td><td class="col4">-</td><td class="col5">yyyy-mm-dd hh:mm:ss UTC</td><td class="col6-emea">-</td><td class="col7">
+                    <div class="false-tick"></div>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

@@ -1,0 +1,2938 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "BMW CarData koppelen",
+        "description": "Hiermee worden de gegevens van je BMW of Mini live naar Home Assistant gestreamd.\n\n**Eerst in het BMW-portaal — nodig voor beide routes:** maak een **CarData Client** aan en abonneer die op **beide** diensten, **CarData API** en **CarData Streaming**. Vink onder Gegevensselectie nog niets aan.\n\nKies daarna hoe je het hier afrondt:\n\n- **Begeleid (aanbevolen)** — je voert één snippet uit in het BMW-portaal; die vindt de Client ID, controleert je voertuig en zet de datastream voor je aan. Geen ID's overtypen.\n- **Handmatig** — de klassieke route, als je de Client ID liever zelf overneemt.",
+        "menu_options": {
+          "guided": "Begeleide installatie (aanbevolen)",
+          "manual": "Ik plak de Client ID zelf"
+        }
+      },
+      "manual": {
+        "title": "BMW CarData koppelen",
+        "description": "Hiermee worden de gegevens van je BMW of Mini live naar Home Assistant gestreamd.\n\n**Richt eerst CarData in via het BMW-portaal** (overslaan als je al een Client ID hebt):\n\n1. Open het [BMW CarData-portaal]({portal_url}) en log in. Is CarData in jouw land niet beschikbaar, log dan in via het [Britse]({portal_uk}) of [Duitse]({portal_de}) portaal — de Client ID werkt overal.\n2. Maak een **CarData Client** aan en kopieer de **Client ID** die wordt getoond.\n3. Abonneer de client op **beide** diensten: **CarData API** en **CarData Streaming**.\n\nVink onder **Gegevensselectie** nog niets aan — na het autoriseren kies je op de volgende schermen welke gegevens je streamt en zet je ze aan met een bladwijzer van één klik.\n\nPlak daarna hieronder de **Client ID**.",
+        "data": {
+          "client_id": "Client ID"
+        },
+        "data_description": {
+          "client_id": "De CarData Client ID uit het BMW-portaal — een lange tekenreeks in UUID-formaat."
+        }
+      },
+      "guided_paste": {
+        "title": "Activeer je gegevens en plak het resultaat",
+        "description": "Zorg eerst dat je in het BMW-portaal een **CarData Client** hebt aangemaakt die geabonneerd is op **CarData API en CarData Streaming** — de activator vindt die client, hij maakt er geen aan.\n\n1. Open de **[BavarianData-installatiepagina]({url})**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**. Druk als hij klaar is op **Copy** in het venster dat verschijnt.\n5. Plak dat resultaat hieronder en druk op **Verzenden**.\n\nAlles draait in je eigen browser — geen wachtwoord of sessie verlaat die ooit.\n\n{error}",
+        "data": {
+          "result": "Installatieresultaat"
+        },
+        "data_description": {
+          "result": "De BAVARIANDATA…-tekst die de Copy-knop op je klembord heeft gezet."
+        }
+      },
+      "guided_done": {
+        "title": "Stream geactiveerd",
+        "description": "Klaar — er worden nu **{field_count}** velden gestreamd voor **{vehicle}** en je Client ID is ingesteld. Druk op **Verzenden** om af te ronden en vergrendel/ontgrendel daarna de auto in de MyBMW-app om de eerste update op te wekken."
+      },
+      "authorize_failed": {
+        "title": "Autorisatie niet voltooid",
+        "description": "De apparaatautorisatie kon niet worden voltooid.\n\n**Details**\n```\n{error}\n```\n\n**Wat je kunt controleren**\n- **declined / access_denied (403):** de server van BMW meldt vaak een weigering, ook nadat je hebt goedgekeurd — een bekend probleem aan de kant van BMW. Probeer het opnieuw in een **privé-/incognitovenster**: open zelf het BMW CarData-portaal (volg geen link waarin de code al staat), log in, kies *Apparaat verifiëren* en **typ de code met de hand**. Zorg ook dat de Client ID vóór het autoriseren geabonneerd is op **CarData API en CarData Streaming**, en dat je de **primaire** gebruiker van het voertuig bent.\n- **expired / timeout:** de code is niet op tijd goedgekeurd.\n\nDruk op **Verzenden** voor een nieuwe code en probeer het opnieuw. Blijft het mislukken, verwijder dan de CarData Client in het BMW-portaal, maak een nieuwe aan en autoriseer opnieuw met de nieuwe Client ID — of mail de BMW-support (bmwcardata-b2c-support@bmwgroup.com) met vermelding van de **BMW-referentie** hierboven.\n\nEen volledige uitleg staat in de README van de integratie onder *Troubleshooting → Onboarding fails with \"access denied\"*."
+      },
+      "select_clusters": {
+        "title": "Gestreamde gegevens kiezen",
+        "description": "Je bent verbonden. Kies nu welke gegevensgroepen van het voertuig je wilt streamen. BMW heeft hiervoor geen API — het zit achter de browsersessie van het portaal — dus het volgende scherm geeft je dezelfde bladwijzer van één klik **Activate BMW data** die de begeleide installatie gebruikt. Je voert hem uit op de stream setup-pagina van het portaal en hij zet precies deze groepen aan. Diagnose- en technische velden blijven standaard verborgen zodra er gegevens binnenkomen.\n\nJe kunt dit later altijd wijzigen via Configureren → Gestreamde gegevens kiezen.",
+        "data": {
+          "sections": "Gegevensgroepen"
+        },
+        "data_description": {
+          "sections": "Laat de standaardselectie staan voor de aanbevolen set, of beperk die tot de gegevens die je interesseren (bijv. alleen Elektrisch voertuig en Voertuigstatus)."
+        }
+      },
+      "activate_stream_paste": {
+        "title": "Activeer je gegevens en plak het resultaat",
+        "description": "1. Open de **[BavarianData-activeringspagina]({url})**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**. Druk als hij klaar is op **Copy** in het venster dat verschijnt.\n5. Plak dat resultaat hieronder en druk op **Verzenden**.\n\nAlles draait in je eigen browser — geen wachtwoord of sessie verlaat die ooit. Heb je deze velden zelf al aangevinkt in het portaal? Laat het vak dan leeg en druk op **Verzenden** om af te ronden.\n\n{error}",
+        "data": {
+          "result": "Activeringsresultaat"
+        },
+        "data_description": {
+          "result": "De BAVARIANDATA…-tekst die de Copy-knop op je klembord heeft gezet. Laat leeg om af te ronden zonder te activeren."
+        }
+      },
+      "activate_stream_done": {
+        "title": "Stream geactiveerd",
+        "description": "Klaar — de activator heeft **{added_count}** nieuw(e) veld(en) aangezet; er worden nu **{field_count}** velden gestreamd voor dit voertuig.{error}\n\nDruk op **Verzenden** om de installatie af te ronden en vergrendel/ontgrendel daarna de auto in de MyBMW-app om de eerste update op te wekken."
+      }
+    },
+    "progress": {
+      "wait_for_activation": "**Activeer je gegevens in de browser**\n\nZorg dat je in het BMW-portaal al een **CarData Client** hebt aangemaakt die geabonneerd is op **CarData API en CarData Streaming** — de activator vindt die client, hij maakt er geen aan.\n\n1. Open de **[BavarianData-installatiepagina]({url})**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**.\n\nHij vindt je Client ID, controleert je voertuig en zet de datastream aan — alles in je eigen browser, niets te kopiëren. Dit venster gaat automatisch verder zodra hij terugmeldt. Je hoeft hier niets aan te klikken.",
+      "wait_for_authorization": "**Keur Home Assistant goed op de aanmeldpagina van BMW/MINI**\n\n1. Open de **[autorisatiepagina]({verification_url})** en log in met je BMW-/MINI-account.\n2. Voer deze code in wanneer daarom wordt gevraagd: **{user_code}**\n3. Bevestig het apparaat.\n\n**Typ de code met de hand** — gebruik geen link waarin de code al staat, en controleer dat er geen oude code vooraf is ingevuld. De server van BMW registreert bij vooraf ingevulde codes vaak ten onrechte een *weigering*. Mislukt het toch, probeer het dan opnieuw in een privé-/incognitovenster.\n\nLaat dit venster open — het gaat automatisch verder zodra je goedkeurt. Je hoeft hier niets aan te klikken.",
+      "wait_for_stream_activation": "**Activeer de geselecteerde gegevens in je browser**\n\n1. Open de **[BavarianData-activeringspagina]({url})**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**.\n\nHij zet de velden van je gekozen groepen aan — alles in je eigen browser, niets te kopiëren. Dit venster gaat automatisch verder zodra hij terugmeldt. Je hoeft hier niets aan te klikken."
+    },
+    "error": {
+      "device_code_failed": "BMW heeft het verzoek om apparaatautorisatie geweigerd ({error}). Controleer of de Client ID klopt en geabonneerd is op beide CarData-diensten, en probeer het opnieuw.",
+      "invalid_result": "Dat resultaat kon niet worden gelezen. Voer de bladwijzer Activate BMW data uit op de pagina van het BMW-portaal en plak precies wat hij naar je klembord heeft gekopieerd.",
+      "no_client_id": "Er is geen API-client op je account gevonden. Maak een CarData Client aan in het BMW-portaal en voer daarna de bladwijzer Activate BMW data opnieuw uit."
+    },
+    "abort": {
+      "account_already_configured": "Dit BMW-account is al ingesteld in Home Assistant. Eén item dekt het hele account, inclusief elke auto erop — een tweede Client ID voor hetzelfde account toevoegen zou de stream voor beide breken, omdat BMW maar één verbinding per account toestaat. Gebruik het bestaande item of verwijder het eerst.",
+      "reauth_successful": "Opnieuw autoriseren gelukt — BMW CarData is weer verbonden.",
+      "reauth_device_code_failed": "BMW heeft het verzoek om apparaatautorisatie geweigerd ({error}). Werk de Client ID bij via Configureren → Opnieuw autoriseren bij BMW, of verwijder de integratie en voeg haar opnieuw toe.",
+      "reauth_missing_client_id": "De Client ID ontbreekt voor dit integratie-item. Verwijder de integratie en voeg haar opnieuw toe om opnieuw te autoriseren.",
+      "reauth_failed": "Opnieuw autoriseren kon niet worden gestart. Probeer het opnieuw via de opties van de integratie."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "BavarianData-opties",
+        "description": "Kies een actie. De token- en autorisatieacties houden je verbinding in leven; de gegevensacties roepen op verzoek de REST-API van BMW aan (elke actie telt mee voor de dagelijkse limiet van 50 verzoeken).",
+        "menu_options": {
+          "action_select_clusters": "Gestreamde gegevens kiezen",
+          "action_refresh_tokens": "Tokens nu vernieuwen",
+          "action_reauth": "Opnieuw autoriseren bij BMW",
+          "action_reset_container": "Telemetriecontainer resetten",
+          "action_fetch_mappings": "Voertuigen zoeken",
+          "action_fetch_basic": "Basisgegevens van het voertuig ophalen",
+          "action_fetch_telematic": "Telematicagegevens ophalen",
+          "action_fetch_charging_history": "Laadgeschiedenis ophalen",
+          "action_fetch_tyre": "Bandendiagnose ophalen",
+          "action_fetch_location_charging": "Laadinstellingen ophalen",
+          "action_fetch_image": "Voertuigafbeelding ophalen",
+          "action_data_refresh": "Automatisch gegevens vernieuwen",
+          "action_charging_costs": "Laadkosten en -geschiedenis",
+          "action_energy_sources": "Zonne-energie en energiebronnen",
+          "action_evcc_bridge": "evcc-/laadpaalbrug",
+          "action_trips": "Ritten",
+          "action_debug_logging": "Debuglogboek"
+        }
+      },
+      "action_select_clusters": {
+        "title": "Gestreamde gegevens kiezen",
+        "description": "Kies welke gegevensgroepen van het voertuig je wilt streamen. BMW heeft hiervoor geen API — het zit achter de browsersessie van het portaal — dus het volgende scherm geeft je een bladwijzer van één klik **Activate BMW data** die je uitvoert op de stream setup-pagina van het portaal, waarna Home Assistant automatisch verdergaat.\n\nDit **voegt** de geselecteerde groepen toe aan je lopende stream; het verwijdert nooit velden die je al streamt. Wil je een veld niet meer streamen, vink het dan uit onder Gegevensselectie in het portaal. Diagnose- en technische velden blijven standaard verborgen zodra er gegevens binnenkomen.",
+        "data": {
+          "sections": "Gegevensgroepen"
+        },
+        "data_description": {
+          "sections": "Laat de standaardselectie staan voor de aanbevolen set, of beperk die tot de gegevens die je interesseren (bijv. alleen Elektrisch voertuig en Voertuigstatus)."
+        }
+      },
+      "activate_stream_paste": {
+        "title": "Activeer je gegevens en plak het resultaat",
+        "description": "1. Open de **[BavarianData-activeringspagina]({url})**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**. Druk als hij klaar is op **Copy** in het venster dat verschijnt.\n5. Plak dat resultaat hieronder en druk op **Verzenden**.\n\nAlles draait in je eigen browser — geen wachtwoord of sessie verlaat die ooit.\n\n{error}",
+        "data": {
+          "result": "Activeringsresultaat"
+        },
+        "data_description": {
+          "result": "De BAVARIANDATA…-tekst die de Copy-knop op je klembord heeft gezet."
+        }
+      },
+      "activate_stream_done": {
+        "title": "Streamvelden geactiveerd",
+        "description": "Klaar — de activator heeft **{added_count}** nieuw(e) veld(en) aangezet; er worden nu **{field_count}** velden gestreamd voor dit voertuig.{error}\n\nDruk op **Verzenden** om je selectie op te slaan. Vergrendel/ontgrendel de auto in de MyBMW-app om de volgende update op te wekken."
+      },
+      "action_refresh_tokens": {
+        "title": "Tokens nu vernieuwen",
+        "description": "Vernieuw de opgeslagen toegangs- en ID-tokens zonder opnieuw via de BMW-aanmelding te gaan. Gebruik dit als de gegevens niet meer bijwerken. Blijven de problemen, herstart Home Assistant daarna.\n\nDruk op Verzenden om door te gaan."
+      },
+      "action_reauth": {
+        "title": "Opnieuw autoriseren bij BMW",
+        "description": "Voer de apparaatautorisatie van BMW opnieuw uit — bijvoorbeeld nadat de refresh token is verlopen (elke 2 weken) of als je een nieuwe Client ID hebt aangemaakt. Daarna keur je Home Assistant goed op de website van BMW.",
+        "data": {
+          "client_id": "Client ID"
+        },
+        "data_description": {
+          "client_id": "Laat staan om de huidige Client ID te hergebruiken, of plak een nieuwe uit het BMW-portaal."
+        }
+      },
+      "action_reset_container": {
+        "title": "Telemetriecontainer resetten",
+        "description": "Verwijder de CarData-telemetriecontainers die deze integratie heeft aangemaakt en maak een nieuwe aan. Gebruik dit als de gestreamde gegevens niet kloppen of nadat je je Gegevensselectie in het BMW-portaal hebt gewijzigd.\n\nDruk op Verzenden om door te gaan."
+      },
+      "action_fetch_mappings": {
+        "title": "Voertuigen zoeken",
+        "description": "Vraag BMW welke voertuigen (VIN's) aan je account gekoppeld zijn en maak hun apparaten aan. Voer dit na de installatie één keer uit als je auto's nog niet verschenen zijn.\n\nDruk op Verzenden om door te gaan."
+      },
+      "action_fetch_basic": {
+        "title": "Basisgegevens van het voertuig ophalen",
+        "description": "Haal vaste gegevens (model, kleur, opties) op voor elk bekend voertuig.\n\nDruk op Verzenden om door te gaan."
+      },
+      "action_fetch_telematic": {
+        "title": "Telematicagegevens ophalen",
+        "description": "Haal nu de nieuwste telematica-momentopname op uit de REST-API van BMW in plaats van te wachten op de volgende geplande opvraging.\n\nDruk op Verzenden om door te gaan."
+      },
+      "action_fetch_charging_history": {
+        "title": "Laadgeschiedenis ophalen",
+        "description": "Haal de meest recente laadsessies van je voertuigen op.\n\nDruk op Verzenden om door te gaan."
+      },
+      "action_fetch_tyre": {
+        "title": "Bandendiagnose ophalen",
+        "description": "Haal de nieuwste bandenspanningsdiagnose van je voertuigen op.\n\nDruk op Verzenden om door te gaan."
+      },
+      "action_fetch_location_charging": {
+        "title": "Laadinstellingen ophalen",
+        "description": "Haal de locatiegebonden laadinstellingen van je voertuigen op.\n\nDruk op Verzenden om door te gaan."
+      },
+      "action_fetch_image": {
+        "title": "Voertuigafbeelding ophalen",
+        "description": "Haal de huidige voertuigafbeelding van je voertuigen op.\n\nDruk op Verzenden om door te gaan."
+      },
+      "action_charging_costs": {
+        "title": "Laadkosten en -geschiedenis",
+        "description": "Zet geregistreerde laadbeurten om in geld. Zolang er geen prijsbron is ingesteld, worden er helemaal geen kostenentiteiten aangemaakt — een verkeerde prijs is erger dan geen prijs.\n\n**Vaste prijs** rekent elke kWh tegen één tarief af. **Prijsentiteit** volgt een live tarief (Tibber, Nordpool, aWATTar, …) en wordt bemonsterd terwijl de auto laadt, zodat een sessie over een prijswijziging heen correct wordt afgerekend.\n\nEnergie wordt gemeten bij de accu en is dus iets minder dan wat het net heeft geleverd. Wijs **Energiesensor laadpaal** toe aan een meter als je die hebt — dat is exact. Anders kun je het getal ophogen met je laadverliezen; dat blijft standaard op 0 %, omdat een verzonnen correctie op een meting zou lijken.\n\n**Langetermijnstatistieken** publiceert de geregistreerde geschiedenis in de eigen statistieken van Home Assistant, zodat laadbeurten van vóór de installatie — of van toen Home Assistant uit stond — toch in het Energie-dashboard verschijnen.",
+        "data": {
+          "price_mode": "Prijsbron",
+          "price_fixed": "Vaste prijs per kWh",
+          "price_entity": "Prijsentiteit",
+          "price_currency": "Valuta",
+          "grid_energy_entity": "Energiesensor laadpaal",
+          "charging_loss_percent": "Laadverliezen (%)",
+          "history_retain_months": "Geschiedenis bewaren (maanden)",
+          "statistics_import": "Publiceren naar langetermijnstatistieken"
+        },
+        "data_description": {
+          "price_mode": "Kies 'Geen' om sessies te registreren zonder ze te beprijzen.",
+          "price_fixed": "Alleen gebruikt als de prijsbron 'Vaste prijs' is.",
+          "price_entity": "Alleen gebruikt als de prijsbron 'Prijsentiteit' is. De status moet een prijs per kWh zijn.",
+          "price_currency": "ISO-code die op de kostensensoren wordt getoond, bijv. EUR, GBP, CHF.",
+          "grid_energy_entity": "Optioneel. Het cumulatieve energietotaal van je laadpaal (een dat alleen oploopt, geen teller per sessie die terugspringt). Wh, kWh en MWh worden ondersteund; zonder eenheid wordt kWh aangenomen. Wordt alleen gelezen voor laadbeurten in je Thuis-zone, omdat de meter niet weet welke auto hij laadde. Een gemeten netwaarde wint altijd van onze schatting aan de accukant — en een die niet kan kloppen, zoals een huismeter die veel meer aangeeft dan de accu opnam, wordt genegeerd in plaats van geloofd.",
+          "charging_loss_percent": "Optioneel. Hoogt de energie aan de accukant op richting de netenergie.",
+          "history_retain_months": "0 bewaart alles. Oudere sessies worden verwijderd.",
+          "statistics_import": "Spiegelt energie, kosten en afstand naar statistieken die je aan het Energie-dashboard kunt toevoegen. Blijft lokaal; uitzetten verwijdert ze weer."
+        }
+      },
+      "action_energy_sources": {
+        "title": "Zonne-energie en energiebronnen",
+        "description": "Registreer waar de energie van elke laadbeurt vandaan kwam: je dak, je thuisaccu of het net.\n\nZowel **PV-vermogen** als **Netvermogen** zijn nodig. Ze worden bemonsterd terwijl de auto laadt en de energie wordt toegerekend terwijl die binnenkomt, zodat een laadbeurt die in de zon begint en na zonsondergang eindigt over beide wordt verdeeld in plaats van onder de laatste te vallen. De auto wordt behandeld als gewoon een verbruiker en krijgt dezelfde mix als de rest van het huis op dat moment — geen conventie die de auto met de netafname laadt, en geen die hem als eerste de zon geeft.\n\nNetvermogen moet **positief zijn bij afname**. De thuisaccu is optioneel; zonder krijg je een tweedeling. Sensoren in kW worden automatisch omgerekend en een sensor zonder eenheid wordt als watt gelezen.\n\n**Waarde van eigen zonnestroom** is wat een kWh van je eigen dak jou waard is — meestal je terugleververgoeding, het geld dat je misloopt door niet terug te leveren. Laat leeg en zonnestroom wordt tegen je afnameprijs gewaardeerd, precies zoals voorheen; alleen de mix is nieuw. Energie uit de thuisaccu wordt altijd tegen de afnameprijs gewaardeerd: de inhoud kan om 12 uur van het dak komen of om drie uur 's nachts goedkoop van het net, en deze integratie kan dat niet zien.",
+        "data": {
+          "pv_power_entity": "PV-vermogen",
+          "grid_power_entity": "Netvermogen (+ afname / − teruglevering)",
+          "battery_power_entity": "Vermogen thuisaccu (optioneel)",
+          "battery_power_invert": "Mijn accusensor is positief tijdens laden",
+          "price_solar": "Waarde van eigen zonnestroom per kWh"
+        },
+        "data_description": {
+          "pv_power_entity": "Totale opwekking van je omvormer(s).",
+          "grid_power_entity": "Vermogen met teken bij de meter: positief bij afname van het net, negatief bij teruglevering.",
+          "battery_power_entity": "Laat leeg als je geen thuisopslag hebt. Verwacht positief bij ontladen — vink het vakje hieronder aan als de jouwe andersom werkt.",
+          "battery_power_invert": "Veel integraties publiceren accuvermogen positief tijdens laden. Aan de waarde zelf is dat niet te zien, dus geef aan hoe het bij jou zit.",
+          "price_solar": "Laat leeg om zonnestroom tegen de afnameprijs te waarderen. Vul je terugleververgoeding in om te zien wat een laadbeurt je echt kostte."
+        }
+      },
+      "action_evcc_bridge": {
+        "title": "evcc-/laadpaalbrug",
+        "description": "Publiceer de live status van deze auto op je MQTT-broker zodat een laadregelaar die kan lezen.\n\nDit is het enige wat BavarianData heeft en evcc, openWB en consorten niet: een **laadtoestand rechtstreeks uit de stream van BMW, zonder API-kosten**. Hun eigen BMW-integraties vragen periodiek een fabrikant-API op en worden daarvoor begrensd; dit komt binnen zodra de auto het meldt en kost geen van je 50 dagelijkse verzoeken.\n\nPublicatie verloopt via **de MQTT-integratie van Home Assistant**, dus het komt precies op de broker die evcc al leest en je hoeft hier geen host, poort of wachtwoord in te vullen. De MQTT-integratie moet eerst zijn ingesteld.\n\nPer voertuig, onder `PREFIX/VIN/`: `soc`, `status` (A/B/C van evcc), `range`, `odometer`, `limitSoc`, `chargePower`, `plugged`, `charging`, `updated`, en `state` als één JSON-document. **Wat de auto niet meldt, wordt niet gepubliceerd** in plaats van als nul verstuurd — een laadregelaar handelt op deze getallen, dus een verkeerd getal is erger dan een ontbrekend. Alles wordt elke vijf minuten opnieuw verstuurd, ook als het niet verandert, zodat de laadtoestand van een geparkeerde auto nooit verouderd raakt op de broker.\n\nDit weer uitzetten verwijdert wat is gepubliceerd, zodat niets blijft laden op basis van een bevroren laadtoestand.\n\nHet volgende scherm geeft je de evcc-configuratie om te plakken.",
+        "data": {
+          "bridge_enabled": "Deze auto naar MQTT publiceren",
+          "bridge_topic_prefix": "Topic-voorvoegsel",
+          "bridge_retain": "Retained publiceren"
+        },
+        "data_description": {
+          "bridge_enabled": "Standaard uit: het zet de VIN en de status van de auto op een broker die anderen kunnen lezen.",
+          "bridge_topic_prefix": "Topics worden `PREFIX/VIN/soc` enzovoort. Laat het op bavariandata staan, tenzij het ergens mee botst.",
+          "bridge_retain": "Laat dit aan. Hierdoor vindt evcc de laadtoestand zodra het start, in plaats van te wachten tot de auto weer iets zegt — wat bij een geparkeerde auto uren kan duren. Zet het alleen uit als je broker retained-berichten weigert."
+        }
+      },
+      "evcc_snippet": {
+        "title": "evcc-configuratie",
+        "description": "Voeg dit toe aan je `evcc.yaml` onder een `vehicles:`-sleutel (voeg het samen met voertuigen die je al hebt — de sleutel mag maar één keer voorkomen):\n\n```\n{snippet}\n```\n\nevcc moet ook je broker kennen, in zijn eigen `mqtt:`-sectie — dezelfde die Home Assistant gebruikt. Wijs het voertuig daarna toe aan een laadpunt en herstart evcc.\n\nAlleen de velden die deze auto echt meldt worden vermeld: een plugin die naar een topic wijst dat nooit een bericht krijgt, laat evcc elke cyclus een leesfout loggen. Er is bewust geen `timeout` ingesteld — de waarden worden periodiek opnieuw gepubliceerd, zodat een geparkeerde auto een geldige laadtoestand houdt in plaats van leeg te worden.\n\nJe kunt dit altijd opnieuw ophalen met de actie **evcc-configuratie ophalen**."
+      },
+      "action_trips": {
+        "title": "Ritten (rittenlogboek)",
+        "description": "Reconstrueert je ritten uit de stream zonder API-kosten — afstand, de verdeling zakelijk/privé/woon-werk, verbruik en een maandoverzicht.\n\nStel een **Werkzone** in zodat woon-werkritten (thuis ↔ werk) automatisch worden herkend; je kunt een rit achteraf altijd corrigeren. Alles wat geen woon-werkrit is, wordt ingedeeld als **Standaardtype** (standaard Privé). Een woon-werkrit overleeft ook een tussenstop: staat de auto niet langer stil dan de **Stoptolerantie woon-werk**, dan tellen de rit ernaartoe en de rit erna allebei als woon-werk. **Adressen opzoeken** staat standaard uit: staat het aan, dan wordt een begin- of eindpunt buiten elke Home Assistant-zone via OpenStreetMap opgezocht en als adres opgeslagen — de coördinaten worden voor het opzoeken verstuurd maar nooit opgeslagen.\n\n**Route vastleggen** staat ook standaard uit: staat het aan, dan slaat elke rit zijn GPS-spoor op — waar de auto reed en wanneer — zodat een kaart de rit kan tonen en afspelen. Dit is de enige instelling die ruwe coördinaten op schijf opslaat, inclusief je exacte begin- en eindpunt.\n\n**Diagnose ritregistratie** is een hulpmiddel bij problemen: staat het aan, dan wordt elke GPS-positie, timer en elk bericht gedetailleerd gelogd en een opnamebestand geschreven, om de ritdetectie te helpen verbeteren. Zet het alleen aan voor een testrit en daarna weer uit.",
+        "data": {
+          "trip_work_zone": "Werkzone",
+          "trip_default_class": "Standaardtype",
+          "trip_commute_gap": "Stoptolerantie woon-werk",
+          "trip_geocode": "Adressen opzoeken",
+          "trip_track": "Route vastleggen",
+          "trip_debug": "Diagnose ritregistratie"
+        },
+        "data_description": {
+          "trip_work_zone": "Optioneel. Een rit tussen deze zone en thuis wordt als woon-werk ingedeeld.",
+          "trip_default_class": "Hoe elke rit die geen thuis ↔ werk-rit is, wordt ingedeeld. Alleen een startpunt — een correctie op de kaart wint altijd, en een correctie wordt nooit overschreven.",
+          "trip_commute_gap": "Hoe lang de auto tussen twee ritten mag stilstaan zodat ze samen nog als één woon-werkrit tellen — de supermarkt op weg naar het werk. Zet op 0 om dit uit te schakelen. Stops korter dan ongeveer vijf minuten splitsen een rit sowieso nooit.",
+          "trip_geocode": "Optioneel. Stuurt punten buiten een zone naar OpenStreetMap; alleen het gevonden adres wordt opgeslagen, nooit de coördinaten.",
+          "trip_track": "Optioneel. Slaat het GPS-spoor van elke rit op — de coördinaten langs de route en voor elk het tijdstip — zodat een kaart de route kan tekenen en afspelen. De enige instelling die ruwe coördinaten op schijf opslaat (je exacte begin en eind inbegrepen), daarom staat ze voor je privacy standaard uit.",
+          "trip_debug": "Alleen voor diagnose. Logt de ruwe basis van de ritdetectie (elke GPS-positie, sluittimer, segmentbatch en elk bericht) en schrijft bavariandata_trip_capture.ndjson naar je configuratiemap. Zeer uitgebreid en bevat GPS/VIN, dus zet het aan voor een testrit en daarna weer uit."
+        }
+      },
+      "action_data_refresh": {
+        "title": "Automatisch gegevens vernieuwen",
+        "description": "De live stream bevat alleen wat verandert terwijl Home Assistant luistert. Wat de auto meldde terwijl Home Assistant uit stond of de verbinding met BMW verbroken was (een laadbeurt die eindigde, deuren die vergrendeld werden, een rit), wordt bij het herverbinden niet opnieuw afgespeeld.\n\nMet deze optie aan vraagt de integratie BMW twee minuten na het starten van Home Assistant één keer per auto om de huidige status, en opnieuw wanneer de verbinding terugkomt na een onderbreking van vijf minuten of langer. BMW geeft de laatste waarden terug die elke auto stuurde, zodat je bijgewerkt bent zonder de auto te wekken. Het kost één van de 50 dagelijkse verzoeken per auto. Het wordt overgeslagen als BMW het afgelopen uur al is gevraagd, tenzij er bij de herstart een laadbeurt liep, en het laat altijd 10 verzoeken over voor je eigen serviceaanroepen.",
+        "data": {
+          "refresh_on_start": "Bijwerken na een herstart of onderbreking"
+        },
+        "data_description": {
+          "refresh_on_start": "Werkt direct."
+        }
+      },
+      "action_debug_logging": {
+        "title": "Debuglogboek",
+        "description": "Zet uitgebreide logging aan voor deze integratie (MQTT-verbinding, geabonneerde topics en elk binnenkomend bericht). Dit staat los van de algemene debugschakelaar van Home Assistant — zowel het logniveau als deze schakelaar moeten aan staan om de gedetailleerde regels te zien. Het is uitgebreid en kan voertuiggegevens zoals GPS-coördinaten bevatten, dus laat het bij normaal gebruik uit. De wijziging geldt direct. Met meer dan één BMW-account ingesteld wordt het logniveau gedeeld: uitgebreide logging blijft aan zolang een account dit heeft aangezet.",
+        "data": {
+          "debug_log": "Debuglogboek inschakelen"
+        },
+        "data_description": {
+          "debug_log": "Blijft aan na herstarts totdat je het hier uitzet."
+        }
+      }
+    },
+    "progress": {
+      "wait_for_stream_activation": "**Activeer de geselecteerde gegevens in je browser**\n\n1. Open de **[BavarianData-activeringspagina]({url})**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**.\n\nHij zet de velden van je gekozen groepen aan — alles in je eigen browser, niets te kopiëren. Dit venster gaat automatisch verder zodra hij terugmeldt. Je hoeft hier niets aan te klikken."
+    },
+    "error": {
+      "mix_needs_both": "Voor het toerekenen van energie zijn zowel een PV-vermogenssensor als een netvermogenssensor nodig. Met maar één van beide zou de verdeling de andere moeten aannemen.",
+      "refresh_failed": "Tokens vernieuwen mislukt: {error}",
+      "reset_failed": "Resetten van de telemetriecontainer mislukt: {error}",
+      "missing_token": "Er is geen geldige toegangstoken beschikbaar. Probeer eerst \"Tokens nu vernieuwen\" of autoriseer opnieuw.",
+      "runtime_missing": "De integratie is nog niet klaar. Probeer het opnieuw zodra de installatie is afgerond.",
+      "no_vins": "Er zijn nog geen voertuigen bekend. Voer eerst \"Voertuigen zoeken\" uit of wacht tot de stream er een meldt.",
+      "invalid_int": "Voer een positief geheel getal in.",
+      "invalid_client_id": "Voer de BMW CarData Client ID in.",
+      "invalid_result": "Dat resultaat kon niet worden gelezen. Voer de bladwijzer Activate BMW data uit op de stream setup-pagina van het BMW-portaal en plak precies wat hij naar je klembord heeft gekopieerd.",
+      "price_required": "Voer een vaste prijs per kWh in, of kies een andere prijsbron.",
+      "price_entity_required": "Kies de entiteit die je prijs per kWh meldt, of kies een andere prijsbron.",
+      "mqtt_missing": "De brug publiceert via de MQTT-integratie van Home Assistant, en die heb je niet ingesteld. Voeg haar toe via Instellingen → Apparaten en diensten (de add-on Mosquitto broker is de gebruikelijke keuze) en kom dan terug."
+    },
+    "abort": {
+      "reauth_started": "Autorisatie opnieuw gestart. Rond de nieuwe aanmelding af via de melding die zojuist is verschenen.",
+      "reauth_device_code_failed": "BMW heeft het verzoek om apparaatautorisatie geweigerd ({error}). Controleer de Client ID en probeer het opnieuw.",
+      "reauth_missing_client_id": "De Client ID ontbreekt voor dit integratie-item. Verwijder de integratie en voeg haar opnieuw toe om opnieuw te autoriseren.",
+      "reauth_failed": "Opnieuw autoriseren kon niet worden gestart. Probeer het opnieuw via de opties van de integratie."
+    }
+  },
+  "selector": {
+    "price_mode": {
+      "options": {
+        "none": "Geen",
+        "fixed": "Vaste prijs",
+        "entity": "Prijsentiteit"
+      }
+    },
+    "trip_default_class": {
+      "options": {
+        "private": "Privé",
+        "business": "Zakelijk",
+        "unclassified": "Niet indelen"
+      }
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "zone_arrived": "Aangekomen in een zone",
+      "zone_left": "Zone verlaten",
+      "parked_unlocked": "Geparkeerd en onvergrendeld achtergelaten",
+      "plugged_not_charging": "Aangesloten maar laadt niet",
+      "charging_started": "Laden gestart",
+      "charging_complete": "Laden voltooid (doel bereikt)",
+      "charging_interrupted": "Laden gestopt voor het doel, kabel nog aangesloten"
+    },
+    "extra_fields": {
+      "zone": "Zone (leeg: elke zone)",
+      "for": "Minstens gedurende"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "vehicle_body_chargingport_combinedstatus": {
+        "name": "Verbindingsstatus laadpoort",
+        "state": {
+          "disconnected": "Losgekoppeld",
+          "connected": "Verbonden",
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_body_chargingport_dcstatus": {
+        "name": "Status van de laadstekkerverbinding (alleen DC)",
+        "state": {
+          "disconnected": "Losgekoppeld",
+          "connected": "Verbonden",
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_body_chargingport_ishospitalityactive": {
+        "name": "Vergrendelingsstatus van de oplaadstekker na volledig opladen",
+        "state": {
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_body_chargingport_isosessionid": {
+        "name": "Laadsessie-ID"
+      },
+      "vehicle_body_chargingport_lockedstatus": {
+        "name": "Vergrendelstatus laadpoort",
+        "state": {
+          "unknown": "Onbekend"
+        }
+      },
+      "vehicle_body_chargingport_plugeventid": {
+        "name": "Gebeurtenis-ID laadpoortstekker"
+      },
+      "vehicle_body_chargingport_status": {
+        "name": "Status van de laadstekkerverbinding",
+        "state": {
+          "connected": "Verbonden",
+          "disconnected": "Losgekoppeld",
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_body_chargingport_statuscleartext": {
+        "name": "Tekst status laadpoort",
+        "state": {
+          "disconnected": "Losgekoppeld",
+          "connected": "Verbonden"
+        }
+      },
+      "vehicle_body_flap_islocked": {
+        "name": "Status van de laadklep",
+        "state": {
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_body_flap_ispermanentlyunlocked": {
+        "name": "Sluitingsstatus van de laadklep",
+        "state": {
+          "no_action": "Geen actie",
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_body_hood_isopen": {
+        "name": "Status van de motorkap (voorkap)",
+        "state": {
+          "closed": "Gesloten",
+          "open": "Open",
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_body_lights_isrunningon": {
+        "name": "Toestand van de lichten"
+      },
+      "vehicle_body_trunk_door_isopen": {
+        "name": "Status open kofferklep"
+      },
+      "vehicle_body_trunk_islocked": {
+        "name": "Status kofferbak vergrendeld"
+      },
+      "vehicle_body_trunk_isopen": {
+        "name": "Status van het kofferdeksel/de achterklep",
+        "state": {
+          "closed": "Gesloten",
+          "open": "Open",
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_body_trunk_left_door_isopen": {
+        "name": "Linkerdeur kofferbak open"
+      },
+      "vehicle_body_trunk_lower_door_isopen": {
+        "name": "Onderste deur kofferbak open"
+      },
+      "vehicle_body_trunk_right_door_isopen": {
+        "name": "Rechterdeur kofferbak open"
+      },
+      "vehicle_body_trunk_upper_door_isopen": {
+        "name": "Bovenste deur kofferbak open"
+      },
+      "vehicle_body_trunk_window_isopen": {
+        "name": "Ontgrendeling van de achterruit",
+        "state": {
+          "closed": "Gesloten",
+          "open": "Open",
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_action": {
+        "name": "Klimaattimer overschrijft actie",
+        "state": {
+          "activate": "Activeren",
+          "deactivate": "Deactiveren",
+          "no_action": "Geen actie"
+        }
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_hour": {
+        "name": "Klimaattimer overschrijft uur"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_minute": {
+        "name": "Klimaattimer overschrijft minuut"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_action": {
+        "name": "Weekdagtimer 1 actie",
+        "state": {
+          "activate": "Activeren",
+          "deactivate": "Deactiveren",
+          "no_action": "Geen actie"
+        }
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_hour": {
+        "name": "Weekdagtimer 1 uur"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_minute": {
+        "name": "Weekdagtimer 1 minuut"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_action": {
+        "name": "Weekdagtimer 2 actie",
+        "state": {
+          "activate": "Activeren",
+          "deactivate": "Deactiveren",
+          "no_action": "Geen actie"
+        }
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_hour": {
+        "name": "Weekdagtimer 2 uur"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_minute": {
+        "name": "Weekdagtimer 2 minuut"
+      },
+      "vehicle_cabin_convertible_roofretractablestatus": {
+        "name": "Status cabriodak"
+      },
+      "vehicle_cabin_convertible_roofstatus": {
+        "name": "Status van het cabriodak"
+      },
+      "vehicle_cabin_door_lock_status": {
+        "name": "Status van de portieren",
+        "state": {
+          "secured": "Beveiligd",
+          "unlocked": "Ontgrendeld",
+          "selective-locked": "Gedeeltelijk vergrendeld",
+          "locked": "Vergrendeld",
+          "invalid": "Ongeldig",
+          "unknown": "Onbekend"
+        }
+      },
+      "vehicle_cabin_door_row1_driver_isopen": {
+        "name": "Status van het voorportier aan bestuurderszijde",
+        "state": {
+          "open": "Open",
+          "closed": "Gesloten",
+          "invalid": "Ongeldig",
+          "unknown": "Onbekend"
+        }
+      },
+      "vehicle_cabin_door_row1_driver_position": {
+        "name": "Positie portier aan de kant van de bestuurder"
+      },
+      "vehicle_cabin_door_row1_passenger_isopen": {
+        "name": "Status van het voorportier aan passagierszijde",
+        "state": {
+          "open": "Open",
+          "closed": "Gesloten",
+          "invalid": "Ongeldig",
+          "unknown": "Onbekend"
+        }
+      },
+      "vehicle_cabin_door_row1_passenger_position": {
+        "name": "Positie portier aan de kant van de passagier"
+      },
+      "vehicle_cabin_door_row2_driver_isopen": {
+        "name": "Status van het achterportier aan bestuurderszijde",
+        "state": {
+          "open": "Open",
+          "closed": "Gesloten",
+          "invalid": "Ongeldig",
+          "unknown": "Onbekend"
+        }
+      },
+      "vehicle_cabin_door_row2_driver_position": {
+        "name": "Positie portier aan de achterkant van de bestuurder"
+      },
+      "vehicle_cabin_door_row2_passenger_isopen": {
+        "name": "Status van het achterportier aan passagierszijde",
+        "state": {
+          "open": "Open",
+          "closed": "Gesloten",
+          "invalid": "Ongeldig",
+          "unknown": "Onbekend"
+        }
+      },
+      "vehicle_cabin_door_row2_passenger_position": {
+        "name": "Positie portier aan de achterkant van de passagier"
+      },
+      "vehicle_cabin_door_status": {
+        "name": "Toestand van de portieren",
+        "state": {
+          "secured": "Beveiligd",
+          "locked": "Vergrendeld",
+          "selectivelocked": "Gedeeltelijk vergrendeld",
+          "unlocked": "Ontgrendeld",
+          "unknown": "Onbekend"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_cooling": {
+        "name": "Standaard koeling van de bestuurdersstoel aan de voorkant",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_heating": {
+        "name": "Standaard stoelverwarming voorkant bestuurdersstoel",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_cooling": {
+        "name": "Standaard koeling van de passagiersstoel aan de voorkant",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_heating": {
+        "name": "Standaard stoelverwarming voorkant passagiersstoel",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_cooling": {
+        "name": "Standaard koeling van de bestuurdersstoel aan de achterkant",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_heating": {
+        "name": "Standaard stoelverwarming achterkant bestuurdersstoel",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_cooling": {
+        "name": "Standaard koeling van de passagiersstoel aan de achterkant",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_heating": {
+        "name": "Standaard stoelverwarming achterkant passagiersstoel",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_cooling": {
+        "name": "Standaard stoelkoeling derde rij aan de kant van de bestuurder",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_heating": {
+        "name": "Standaard stoelverwarming derde rij aan de kant van de bestuurder",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_cooling": {
+        "name": "Standaard stoelkoeling derde rij aan de kant van de passagier",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_heating": {
+        "name": "Standaard stoelverwarming derde rij aan de kant van de passagier",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_steeringwheel_heating": {
+        "name": "Standaard stuurverwarming",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_targettemperature": {
+        "name": "Doeltemperatuur"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_cooling": {
+        "name": "Directe stoelkoeling voorkant bestuurdersstoel",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_heating": {
+        "name": "Directe verwarming voorkant bestuurdersstoel",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_cooling": {
+        "name": "Directe koeling passagier aan de voorkant",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_heating": {
+        "name": "Directe verwarming passagier aan de voorkant",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_cooling": {
+        "name": "Directe koeling bestuurder aan de achterkant",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_heating": {
+        "name": "Directe verwarming bestuurder aan de achterkant",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_cooling": {
+        "name": "Directe koeling passagier aan de achterkant",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_heating": {
+        "name": "Directe verwarming passagier aan de achterkant",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_cooling": {
+        "name": "Directe koeling derde rij aan de kant van de bestuurder",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_heating": {
+        "name": "Directe verwarming derde rij aan de kant van de bestuurder",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_cooling": {
+        "name": "Directe koeling derde rij aan de kant van de passagier",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_heating": {
+        "name": "Directe verwarming derde rij aan de kant van de passagier",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_steeringwheel_heating": {
+        "name": "Stuurwiel directe verwarming",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "automatic": "Automatisch",
+          "no_change": "Geen wijziging"
+        }
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_targettemperature": {
+        "name": "DirectStart doeltemperatuur"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_isremoteenginestartdisclaimer": {
+        "name": "Disclaimer klimaatregeling op afstand"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_comfortstate": {
+        "name": "Comforttoestand voorklimatisering"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_isexteriormirrorheatingactive": {
+        "name": "Buitenspiegelverwarming actief"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_progress": {
+        "name": "Voortgang voorklimatisering"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_reardefrostactive": {
+        "name": "Ontdooiing achterkant actief"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_remainingrunningtime": {
+        "name": "Resterende tijd voorklimatisering"
+      },
+      "vehicle_cabin_hvac_statusairpurification": {
+        "name": "Status HVAC-luchtverfrisser",
+        "state": {
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_cabin_infotainment_displayunit_distance": {
+        "name": "Weergave-eenheid van het instrumentenpaneel in het voertuig",
+        "state": {
+          "km": "Kilometer",
+          "miles": "Mijl"
+        }
+      },
+      "vehicle_cabin_infotainment_hmi_distanceunit": {
+        "name": "Infotainment eenheid afgelegde afstand",
+        "state": {
+          "miles": "Mijl",
+          "kilometers": "Kilometer"
+        }
+      },
+      "vehicle_cabin_infotainment_ismobilephoneconnected": {
+        "name": "Koppeling mobiele telefoon"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_altitude": {
+        "name": "Positie van het voertuig boven zeeniveau"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_fixstatus": {
+        "name": "Status navigatiebepaling"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_heading": {
+        "name": "Richting van het voertuig"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_latitude": {
+        "name": "Positie van het voertuig – geografische breedtegraad"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_longitude": {
+        "name": "Positie van het voertuig – geografische lengtegraad"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_numberofsatellites": {
+        "name": "Aantal navigatiesatellieten"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_arrivaltime": {
+        "name": "Tijd voorafgaand aan de navigatiebestemming"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_distance": {
+        "name": "Afstand tot de navigatiebestemming"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_latitude": {
+        "name": "Navigatiebestemming - geografische breedte"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_longitude": {
+        "name": "Navigatiebestemming - geografische lengte"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_available": {
+        "name": "Aantal vrije POI-geheugenplaatsen in het navigatiesysteem"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_max": {
+        "name": "Maximaal aantal op te slaan POI’s in het navigatiesysteem"
+      },
+      "vehicle_cabin_infotainment_navigation_remainingrange": {
+        "name": "Resterende actieradius"
+      },
+      "vehicle_cabin_seat_row1_driverside_cooling": {
+        "name": "Stoelkoeling voorkant bestuurdersstoel"
+      },
+      "vehicle_cabin_seat_row1_driverside_heating": {
+        "name": "Stoelverwarming voorkant bestuurdersstoel"
+      },
+      "vehicle_cabin_seat_row1_passengerside_cooling": {
+        "name": "Stoelkoeling voorkant passagiersstoel"
+      },
+      "vehicle_cabin_seat_row1_passengerside_heating": {
+        "name": "Passagiersstoelverwarming"
+      },
+      "vehicle_cabin_seat_row2_driverside_cooling": {
+        "name": "Stoelkoeling achterkant bestuurdersstoel"
+      },
+      "vehicle_cabin_seat_row2_driverside_heating": {
+        "name": "Bestuurdersstoelverwarming"
+      },
+      "vehicle_cabin_seat_row2_passengerside_cooling": {
+        "name": "Stoelkoeling achterkant passagiersstoel"
+      },
+      "vehicle_cabin_seat_row2_passengerside_heating": {
+        "name": "Stoelverwarming achterkant passagiersstoel"
+      },
+      "vehicle_cabin_seat_row3_driverside_cooling": {
+        "name": "Stoelkoeling derde rij aan de kant van de bestuurder"
+      },
+      "vehicle_cabin_seat_row3_driverside_heating": {
+        "name": "Stoelverwarming derde rij aan de kant van de bestuurder"
+      },
+      "vehicle_cabin_seat_row3_passengerside_cooling": {
+        "name": "Stoelkoeling derde rij aan de kant van de passagier"
+      },
+      "vehicle_cabin_seat_row3_passengerside_heating": {
+        "name": "Stoelverwarming derde rij aan de kant van de passagier"
+      },
+      "vehicle_cabin_steeringwheel_heating": {
+        "name": "Stuurverwarming"
+      },
+      "vehicle_cabin_sunroof_overallstatus": {
+        "name": "Algemene status zonnedak",
+        "state": {
+          "invalid": "Ongeldig",
+          "open": "Open",
+          "closed": "Gesloten"
+        }
+      },
+      "vehicle_cabin_sunroof_relativeposition": {
+        "name": "Relatieve positie zonnedak"
+      },
+      "vehicle_cabin_sunroof_shade_position": {
+        "name": "Positie van het zonnescherm"
+      },
+      "vehicle_cabin_sunroof_status": {
+        "name": "Status van het schuifdak",
+        "state": {
+          "closed": "Gesloten",
+          "intermediate": "Gedeeltelijk open",
+          "open": "Open",
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_cabin_sunroof_tiltstatus": {
+        "name": "Optilstatus van het schuifdak",
+        "state": {
+          "closed": "Gesloten",
+          "intermediate": "Gedeeltelijk open",
+          "open": "Open",
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_cabin_window_row1_driver_status": {
+        "name": "Status van de voorruit aan bestuurderszijde",
+        "state": {
+          "closed": "Gesloten",
+          "intermediate": "Gedeeltelijk open",
+          "open": "Open",
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_cabin_window_row1_passenger_status": {
+        "name": "Status van de voorruit aan passagierszijde",
+        "state": {
+          "closed": "Gesloten",
+          "intermediate": "Gedeeltelijk open",
+          "open": "Open",
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_cabin_window_row2_driver_status": {
+        "name": "Status van de achterruit aan bestuurderszijde",
+        "state": {
+          "closed": "Gesloten",
+          "intermediate": "Gedeeltelijk open",
+          "open": "Open",
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_cabin_window_row2_passenger_status": {
+        "name": "Status van de achterruit aan passagierszijde",
+        "state": {
+          "closed": "Gesloten",
+          "intermediate": "Gedeeltelijk open",
+          "open": "Open",
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
+        "name": "Statusinformatie over de laatste overdracht van OBFCM*-waarden",
+        "state": {
+          "ok": "OK"
+        }
+      },
+      "vehicle_channel_ngtp_timevehicle": {
+        "name": "Datum en tijd in het voertuig"
+      },
+      "vehicle_channel_teleservice_lastautomaticservicecalltime": {
+        "name": "Automatische Teleservice Call"
+      },
+      "vehicle_channel_teleservice_lastbreakdowncalltime": {
+        "name": "Pechhulptijd laatste teleservice"
+      },
+      "vehicle_channel_teleservice_lastmanualcalltime": {
+        "name": "Laatste teleservice handmatige gesprekstijd"
+      },
+      "vehicle_channel_teleservice_lastteleservicereporttime": {
+        "name": "Teleservice Report"
+      },
+      "vehicle_channel_teleservice_status": {
+        "name": "Beschikbaarheid van Teleservices"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressure": {
+        "name": "Gemeten bandspanning linksvoor"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressuretarget": {
+        "name": "Richtwaarde bandenspanning linksvoor"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_temperature": {
+        "name": "Bandentemperatuur in Celsius, linksvoor"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressure": {
+        "name": "Gemeten bandspanning rechtsvoor"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressuretarget": {
+        "name": "Richtwaarde bandenspanning rechtsvoor"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_temperature": {
+        "name": "Bandentemperatuur in Celsius, rechtsvoor"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressure": {
+        "name": "Gemeten bandspanning linksachter"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressuretarget": {
+        "name": "Richtwaarde bandenspanning linksachter"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_temperature": {
+        "name": "Bandentemperatuur in Celsius, linksachter"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressure": {
+        "name": "Gemeten bandspanning rechtsachter"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressuretarget": {
+        "name": "Richtwaarde bandenspanning rechtsachter"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_temperature": {
+        "name": "Bandentemperatuur in Celsius, rechtsachter"
+      },
+      "vehicle_chassis_axle_wheel_tire_diagnosis": {
+        "name": "Smart maintenance: Digitale bandendiagnose"
+      },
+      "vehicle_drivetrain_avgelectricrangeconsumption": {
+        "name": "Gemiddeld elektrisch verbruik"
+      },
+      "vehicle_drivetrain_batterymanagement_batterysizemax": {
+        "name": "Grootte van de hoogvoltage-accu"
+      },
+      "vehicle_drivetrain_batterymanagement_header": {
+        "name": "Oplaadstatus van de hoogspanningsaccu"
+      },
+      "vehicle_drivetrain_batterymanagement_maxenergy": {
+        "name": "Brukbar energi fra høyspenningsbatteri (fulladet, prognostisert)"
+      },
+      "vehicle_drivetrain_electricengine_charging_acampere": {
+        "name": "AC-laadstroom"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_factor": {
+        "name": "Beperkingsfactor AC-laden"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_ischosen": {
+        "name": "AC-laadstroombegrenzing en -selectie",
+        "state": {
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_acvoltage": {
+        "name": "AC-laadspanning"
+      },
+      "vehicle_drivetrain_electricengine_charging_authentication_status": {
+        "name": "Authentificatiestatus laden"
+      },
+      "vehicle_drivetrain_electricengine_charging_chargingmode": {
+        "name": "Laadmodus"
+      },
+      "vehicle_drivetrain_electricengine_charging_connectiontype": {
+        "name": "Laadmethode van de hoogvoltage-accu (inductief/conductief)"
+      },
+      "vehicle_drivetrain_electricengine_charging_connectorstatus": {
+        "name": "Status laadstekker",
+        "state": {
+          "connected": "Verbonden",
+          "disconnected": "Losgekoppeld"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_gridenergy": {
+        "name": "Totale netenergie die is verbruikt terwijl de verbrandingsmotor niet actief was"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_referencedistance": {
+        "name": "Referentieafstand voor het meten van de geleverde netenergie terwijl de verbrandingsmotor niet actief was"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_gridenergy": {
+        "name": "Totale netenergie die is verbruikt terwijl de verbrandingsmotor actief was"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_referencedistance": {
+        "name": "Referentieafstand voor het meten van de geleverde netenergie terwijl de verbrandingsmotor actief was"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_gridenergy": {
+        "name": "Totale netenergie die aan de wagen is geleverd (alleen PHEV)"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_referencedistance": {
+        "name": "OBFCM*-referentieafstand voor het meten van de geleverde netenergie"
+      },
+      "vehicle_drivetrain_electricengine_charging_hvstatus": {
+        "name": "Status HV-laadsysteem",
+        "state": {
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_hvpmfinishreason": {
+        "name": "Oorzaak voor de beëindiging van een laadproces",
+        "state": {
+          "unknown": "Onbekend",
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_isimmediatechargingsystemreason": {
+        "name": "Reden direct laadsysteem"
+      },
+      "vehicle_drivetrain_electricengine_charging_issingleimmediatecharging": {
+        "name": "Status van de functie voor direct opladen",
+        "state": {
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingreason": {
+        "name": "Laatste reden voor opladen",
+        "state": {
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingresult": {
+        "name": "Laatste laadresultaat",
+        "state": {
+          "unknown": "Onbekend"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_level": {
+        "name": "Huidige voorspelde laadstatus"
+      },
+      "vehicle_drivetrain_electricengine_charging_method": {
+        "name": "Laadmethode en type stekker",
+        "state": {
+          "nocharging": "Laadt niet"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_modedeviation": {
+        "name": "Afwijking laadmodus",
+        "state": {
+          "no_action": "Geen actie",
+          "unknown": "Onbekend"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_phasenumber": {
+        "name": "Laadmethode van de hoogvoltage-accu (fasen)",
+        "state": {
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_climatizationactive": {
+        "name": "Airconditioning actief"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_isrcpconfigcomplete": {
+        "name": "RCP-configuratie voltooid"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_mode": {
+        "name": "Laadprofiel"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_preference": {
+        "name": "Voorkeur laadprofiel"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_departuretimerelevant": {
+        "name": "Relevante vertrektijd"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_dischargeallowed": {
+        "name": "Ontladen toegestaan"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_timertype": {
+        "name": "Type laadtimer"
+      },
+      "vehicle_drivetrain_electricengine_charging_reasonchargingend": {
+        "name": "Reden waarom het opladen is beëindigd"
+      },
+      "vehicle_drivetrain_electricengine_charging_routeoptimizedchargingstatus": {
+        "name": "Laadstatus geoptimaliseerd voor de route"
+      },
+      "vehicle_drivetrain_electricengine_charging_smeenergydeltafullycharged": {
+        "name": "Vereiste energie voor de volledige restlading van de hoogvoltage-accu"
+      },
+      "vehicle_drivetrain_electricengine_charging_status": {
+        "name": "Oplaadstatus",
+        "state": {
+          "nocharging": "Laadt niet",
+          "initialization": "Initialiseren",
+          "chargingactive": "Laden",
+          "chargingpaused": "Laden gepauzeerd",
+          "chargingended": "Laden beëindigd",
+          "chargingerror": "Laadfout"
+        }
+      },
+      "vehicle_drivetrain_electricengine_charging_timeremaining": {
+        "name": "Prognose van de resterende laadtijd"
+      },
+      "vehicle_drivetrain_electricengine_charging_timetofullycharged": {
+        "name": "Berekende resterende laadtijd van de hoogvoltage-accu"
+      },
+      "vehicle_drivetrain_electricengine_charging_windowselection": {
+        "name": "Selectie van het gunstige tijdsbestek voor het opladen (Charging Window Selection)"
+      },
+      "vehicle_drivetrain_electricengine_hvsmaxenergyabsolute": {
+        "name": "Maximale energie-inhoud van de hoogvoltage-accu"
+      },
+      "vehicle_drivetrain_electricengine_kombiremainingelectricrange": {
+        "name": "Resterende elektrische actieradius in km"
+      },
+      "vehicle_drivetrain_electricengine_remainingelectricrange": {
+        "name": "Prognose van de elektrische actieradius tijdens het opladen"
+      },
+      "vehicle_drivetrain_engine_isactive": {
+        "name": "Toestand van het contact"
+      },
+      "vehicle_drivetrain_engine_isignitionon": {
+        "name": "Toestand van de motor (aan/uit)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_fuel": {
+        "name": "OBFCM*-totaal brandstofverbruik tijdens gebruik bij het ontladen van de accu (alleen PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineoff": {
+        "name": "OBFCM*-referentieafstand met elektrische aandrijving en inactieve verbrandingsmotor (alleen PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineon": {
+        "name": "OBFCM*-referentieafstand met elektrische aandrijving en actieve verbrandingsmotor (alleen PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_fuel": {
+        "name": "OBFCM*-totaal brandstofverbruik in de oplaadmodus (alleen PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_referencedistance": {
+        "name": "OBFCM*-referentieafstand in de oplaadmodus"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_fuel": {
+        "name": "Totaal brandstofverbruik volgens wettelijke OBFCM*-specificaties"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_referencedistance": {
+        "name": "OBFCM*-referentieafstand voor het meten van het brandstofverbruik"
+      },
+      "vehicle_drivetrain_fuelsystem_level": {
+        "name": "Vulpeil van de tank in %"
+      },
+      "vehicle_drivetrain_fuelsystem_remainingfuel": {
+        "name": "Tankinhoud"
+      },
+      "vehicle_drivetrain_internalcombustionengine_engine_ect": {
+        "name": "Koelvloeistoftemperatuur"
+      },
+      "vehicle_drivetrain_lastremainingrange": {
+        "name": "Laatst verzonden resterende actieradius"
+      },
+      "vehicle_drivetrain_totalremainingrange": {
+        "name": "Voorspelling van de totale actieradius tijdens het opladen"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_recharge": {
+        "name": "Noodzaak om de accu op te laden"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_replace": {
+        "name": "Gezondheidstoestand van de accu"
+      },
+      "vehicle_electricalsystem_battery_stateofcharge": {
+        "name": "Laagspanningsaccu"
+      },
+      "vehicle_electricalsystem_battery_stateofchargeplausibility": {
+        "name": "Plausibiliteit laagvoltaccu"
+      },
+      "vehicle_electricalsystem_battery_voltage": {
+        "name": "Accuspanning"
+      },
+      "vehicle_electricalsystem_battery48v_stateofhealth_displayed": {
+        "name": "Gezondheidstoestand van de 48V-accu"
+      },
+      "vehicle_electroniccontrolunit_diagnostictroublecodes_raw": {
+        "name": "Storingengeheugen"
+      },
+      "vehicle_extras_optionalequipment_code": {
+        "name": "Lijst met optionele uitrusting"
+      },
+      "vehicle_ismoving": {
+        "name": "Bewegingstoestand van het voertuig"
+      },
+      "vehicle_learningnavigation": {
+        "name": "GPS Learning navigation data"
+      },
+      "vehicle_look_image": {
+        "name": "Voertuigafbeelding"
+      },
+      "vehicle_powertrain_electric_battery_bidirectionalcharging_availability": {
+        "name": "Bidirectionele laadmogelijkheid"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_isactive": {
+        "name": "Status van de oplaadbegrenzing",
+        "state": {
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_max": {
+        "name": "Maximale laadstroom"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_min": {
+        "name": "Minimale laadstroom"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_selected": {
+        "name": "Begrenzing van de laadstroom"
+      },
+      "vehicle_powertrain_electric_battery_charging_acousticlimit": {
+        "name": "Akoestische begrenzing van het laadproces",
+        "state": {
+          "no_action": "Geen actie",
+          "automatic": "Automatisch"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_authenticationstatus": {
+        "name": "Authentificatiestatus laden",
+        "state": {
+          "unknown": "Onbekend"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isactive": {
+        "name": "Accuonderhoudsmodus actief"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_ispreservingchargingmode": {
+        "name": "Laadmodus accuonderhoud"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isreducedtargetsoe": {
+        "name": "Gereduceerd doel State of Energy"
+      },
+      "vehicle_powertrain_electric_battery_charging_cablecheckvoltage": {
+        "name": "Kabelcontrolespanning"
+      },
+      "vehicle_powertrain_electric_battery_charging_dcchargingmodeactive": {
+        "name": "DC-oplaadmodus actief"
+      },
+      "vehicle_powertrain_electric_battery_charging_history_sessionslist": {
+        "name": "Oplaadgeschiedenis"
+      },
+      "vehicle_powertrain_electric_battery_charging_power": {
+        "name": "Oplaadvermogen"
+      },
+      "vehicle_powertrain_electric_battery_charging_preferencesmartcharging": {
+        "name": "\"Smart Charging\" oplaadoptie",
+        "state": {
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_powertrain_electric_battery_charging_settingslist": {
+        "name": "Op locatie gebaseerde laadinstellingen"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_automaticmode_statusfeedback": {
+        "name": "Feedback status automatische voorklimatisering",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "unknown": "Onbekend"
+        }
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_manualmode_statusfeedback": {
+        "name": "Feedback status handmatige voorklimatisering",
+        "state": {
+          "off": "Uit",
+          "unknown": "Onbekend"
+        }
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_state": {
+        "name": "Status voorklimatisering",
+        "state": {
+          "off": "Uit",
+          "unknown": "Onbekend"
+        }
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_displayed": {
+        "name": "Weergave van de laadstatus"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_target": {
+        "name": "Streefwaarde van de oplaadstatus van de hoogvoltage-accu"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetmin": {
+        "name": "Streefwaarde minimale laadtoestand"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetsocforprofessionalmode": {
+        "name": "Streefwaarde SOC voor professionele modus"
+      },
+      "vehicle_powertrain_electric_battery_stateofhealth_displayed": {
+        "name": "Gezondheidstoestand van de hoogvoltaccu (SOCE)"
+      },
+      "vehicle_powertrain_electric_chargingduration_displaycontrol": {
+        "name": "Weergave van de oplaadtijd",
+        "state": {
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_powertrain_electric_departuretime_displaycontrol": {
+        "name": "Weergave van de vertrektijd",
+        "state": {
+          "unknown": "Onbekend"
+        }
+      },
+      "vehicle_powertrain_electric_range_displaycontrol": {
+        "name": "Displayregeling E-actieradius"
+      },
+      "vehicle_powertrain_electric_range_target": {
+        "name": "Resterende elektrische actieradius afhankelijk van de streefwaarde van de oplaadstatus"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isautomaticopenandcloseactive": {
+        "name": "Laadpoort voor de accu kan vanuit iedere kleppositie automatisch openen/sluiten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isopen": {
+        "name": "Laadpoort voor de accu kan vanuit iedere kleppositie openen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_isplugged": {
+        "name": "Laadpoort voor de accu kan vanuit iedere positie worden benaderd"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isautomaticopenandcloseactive": {
+        "name": "Laadpoort voor de accu kan via de klep linksvoor automatisch openen/sluiten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isopen": {
+        "name": "Laadpoort voor de accu kan via de klep linksvoor worden geopend"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_isplugged": {
+        "name": "Laadpoort voor de accu kan linksvoor worden aangesloten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Laadpoort voor de accu kan via de klep middenvoor automatisch openen/sluiten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isopen": {
+        "name": "Laadpoort voor de accu kan via de klep middenvoor worden geopend"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_isplugged": {
+        "name": "Laadpoort voor de accu kan middenvoor worden aangesloten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isautomaticopenandcloseactive": {
+        "name": "Laadpoort voor de accu kan via de klep rechtsvoor automatisch openen/sluiten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isopen": {
+        "name": "Laadpoort voor de accu kan via de klep rechtsvoor worden geopend"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_isplugged": {
+        "name": "Laadpoort voor de accu kan rechtsvoor worden aangesloten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isautomaticopenandcloseactive": {
+        "name": "Laadpoort voor de accu kan via de klep linksachter automatisch openen/sluiten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isopen": {
+        "name": "Laadpoort voor de accu kan via de klep linksachter worden geopend"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_isplugged": {
+        "name": "Laadpoort voor de accu kan linksachter worden aangesloten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Laadpoort voor de accu kan via de klep middenachter automatisch openen/sluiten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isopen": {
+        "name": "Laadpoort voor de accu, middelste klep aan de achterkant, open"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_isplugged": {
+        "name": "Laadpoort achter de accu kan middenachter worden aangesloten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isautomaticopenandcloseactive": {
+        "name": "Laadpoort voor de accu kan via de klep rechtsachter automatisch openen/sluiten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isopen": {
+        "name": "Laadpoort voor de accu kan via de klep rechtsachter worden geopend"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_isplugged": {
+        "name": "Laadpoort voor de accu kan rechtsachter worden aangesloten"
+      },
+      "vehicle_privacysettings_datacollection_regulations_obfcm": {
+        "name": "Toestemming voor OBFCM*-gegevensoverdracht naar de EU"
+      },
+      "vehicle_servicedemand_defect_id": {
+        "name": "Smart maintenance: Live-diagnose"
+      },
+      "vehicle_sevice_preferredsevicepartner": {
+        "name": "Voorkeursservicepartner"
+      },
+      "vehicle_sim_status": {
+        "name": "Activeringsstatus van de ingebouwde SIM-kaart"
+      },
+      "vehicle_status_checkcontrolmessages": {
+        "name": "Check Control-meldingen"
+      },
+      "vehicle_status_conditionbasedservices": {
+        "name": "Condition Based Service (CBS)"
+      },
+      "vehicle_status_conditionbasedservicesaveragedistanceperday": {
+        "name": "Gemiddelde afstand per dag"
+      },
+      "vehicle_status_conditionbasedservicescount": {
+        "name": "Aantal Condition Based Service-meldingen (CBS)"
+      },
+      "vehicle_status_servicedistance_next": {
+        "name": "Afstand tot de volgende servicebeurt"
+      },
+      "vehicle_status_servicedistance_yellow": {
+        "name": "Afstandsdrempelwaarde voor service-informatie"
+      },
+      "vehicle_status_servicetime_huandauserviceyellow": {
+        "name": "Tijdelijke drempelwaarde voor hoofd- en uitlaatgasonderzoek autokeuring (APK)"
+      },
+      "vehicle_status_servicetime_inspectiondatelegal": {
+        "name": "Datum van de volgende keuring"
+      },
+      "vehicle_status_servicetime_yellow": {
+        "name": "Tijdsdrempelwaarde voor service-informatie"
+      },
+      "vehicle_trip_segment_accumulated_acceleration_starsaverage": {
+        "name": "Rijstijlbeoordeling “acceleratiegedrag”"
+      },
+      "vehicle_trip_segment_accumulated_chassis_brake_starsaverage": {
+        "name": "Rijstijlbeoordeling “anticiperend rijden”"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_energyconsumptioncomfort": {
+        "name": "Elektrisch energieverbruik in de COMFORT-modus tijdens de laatste rit"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_recuperationtotal": {
+        "name": "Teruggewonnen hoeveelheid energie tijdens de laatste rit"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecopro": {
+        "name": "Activatieduur ECO-modus tijdens de laatste rit"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecoproplus": {
+        "name": "Activatieduur ECO PLUS-modus tijdens de laatste rit"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveelectric": {
+        "name": "Elektrisch gereden aandeel van de afstand van de laatste rit"
+      },
+      "vehicle_trip_segment_end_drivetrain_batterymanagement_hvsoc": {
+        "name": "Laadstatus van de accu"
+      },
+      "vehicle_trip_segment_end_time": {
+        "name": "Tijdstip van de laatste rit"
+      },
+      "vehicle_trip_segment_end_travelleddistance": {
+        "name": "Kilometerstand van de laatste rit"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_activationtime": {
+        "name": "Activeringstijd AntiTheftalarm"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_armstatus": {
+        "name": "Activeringsstatus AntiTheftAlarm",
+        "state": {
+          "unarmed": "Uitgeschakeld",
+          "doorsonly": "Alleen deuren",
+          "doorstiltcabin": "Deuren, kanteling en interieur"
+        }
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_ison": {
+        "name": "AntiTheftAlarm is ingeschakeld"
+      },
+      "vehicle_vehicle_averageweeklydistancelongterm": {
+        "name": "Gemiddelde afstand per week (lange termijn)"
+      },
+      "vehicle_vehicle_averageweeklydistanceshortterm": {
+        "name": "Gemiddelde afstand per week"
+      },
+      "vehicle_vehicle_avgauxpower": {
+        "name": "Nevenverbruikersvermogen (vermogensverbruik van elektrische componenten)"
+      },
+      "vehicle_vehicle_avgspeed": {
+        "name": "Gemiddelde gereden snelheid"
+      },
+      "vehicle_vehicle_deepsleepmodeactive": {
+        "name": "Diepe slaapstand (Deep Sleep Mode)"
+      },
+      "vehicle_vehicle_preconditioning_activity": {
+        "name": "Preconditioningstatus van de standklimaatregeling",
+        "state": {
+          "standby": "Stand-by",
+          "heating": "Verwarmen",
+          "cooling": "Koelen",
+          "ventilation": "Ventileren",
+          "inactive": "Inactief"
+        }
+      },
+      "vehicle_vehicle_preconditioning_error": {
+        "name": "Reden voor nietuitvoering van de preconditioning van de standklimaatregeling",
+        "state": {
+          "lowfuel": "Weinig brandstof",
+          "lowbattery": "Accu bijna leeg",
+          "quotaexceeded": "Quotum overschreden",
+          "heaterfailure": "Storing verwarming",
+          "componentfailure": "Storing onderdeel",
+          "openorunlocked": "Open of ontgrendeld",
+          "ok": "OK",
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginerunning": {
+        "name": "Gebruik van de motor voor de preconditioning"
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginestartallowed": {
+        "name": "Toestemming voor het gebruik van de motor voor de preconditioning."
+      },
+      "vehicle_vehicle_preconditioning_remainingtime": {
+        "name": "Resterende duur van de preconditioning"
+      },
+      "vehicle_vehicle_speedrange_lowerbound": {
+        "name": "Snelheidsbereik lager"
+      },
+      "vehicle_vehicle_speedrange_upperbound": {
+        "name": "Snelheidsbereik boven"
+      },
+      "vehicle_vehicle_timesetting": {
+        "name": "Tijdzone-instelling in het voertuig",
+        "state": {
+          "wintertime": "Wintertijd",
+          "summertime": "Zomertijd",
+          "utc": "UTC",
+          "manual": "Handmatig",
+          "invalid": "Ongeldig"
+        }
+      },
+      "vehicle_vehicle_travelleddistance": {
+        "name": "Kilometerstand"
+      },
+      "vehicle_vehicleidentification_basicvehicledata": {
+        "name": "Basisvoertuiggegevens"
+      },
+      "vehicle_vehicleidentification_connecteddrivecontractlist": {
+        "name": "Actieve ConnectedDrive-contracten"
+      },
+      "soc_estimate": {
+        "name": "Laadtoestand (voorspeld door de integratie)"
+      },
+      "soc_estimate_testing": {
+        "name": "Nieuwe testsensor voor extrapolatie"
+      },
+      "soc_rate": {
+        "name": "Voorspelde laadsnelheid"
+      },
+      "charged_energy_total": {
+        "name": "Geladen energie (totaal)"
+      },
+      "charged_energy_session": {
+        "name": "Geladen energie (sessie)"
+      },
+      "last_message": {
+        "name": "Laatst ontvangen bericht"
+      },
+      "last_telematic_api": {
+        "name": "Laatste telematica-API-aanroep"
+      },
+      "connection_status": {
+        "name": "Status streamverbinding"
+      },
+      "api_quota_remaining": {
+        "name": "Resterend API-quotum"
+      },
+      "charging_cost_month": {
+        "name": "Laadkosten (deze maand)"
+      },
+      "charging_cost_session": {
+        "name": "Laadkosten (laatste sessie)"
+      },
+      "charging_energy_month": {
+        "name": "Geladen energie (deze maand)"
+      },
+      "charging_cost_per_100km": {
+        "name": "Laadkosten per 100 km"
+      },
+      "battery_health": {
+        "name": "Accugezondheid"
+      },
+      "driving_distance_month": {
+        "name": "Gereden afstand (deze maand)"
+      },
+      "real_range": {
+        "name": "Werkelijke actieradius"
+      },
+      "tyre_status": {
+        "name": "Bandenconditie"
+      },
+      "tyre_front_left": {
+        "name": "Band linksvoor"
+      },
+      "tyre_front_right": {
+        "name": "Band rechtsvoor"
+      },
+      "tyre_rear_left": {
+        "name": "Band linksachter"
+      },
+      "tyre_rear_right": {
+        "name": "Band rechtsachter"
+      }
+    },
+    "binary_sensor": {
+      "vehicle_body_chargingport_combinedstatus": {
+        "name": "Verbindingsstatus laadpoort"
+      },
+      "vehicle_body_chargingport_dcstatus": {
+        "name": "Status van de laadstekkerverbinding (alleen DC)"
+      },
+      "vehicle_body_chargingport_ishospitalityactive": {
+        "name": "Vergrendelingsstatus van de oplaadstekker na volledig opladen"
+      },
+      "vehicle_body_chargingport_isosessionid": {
+        "name": "Laadsessie-ID"
+      },
+      "vehicle_body_chargingport_lockedstatus": {
+        "name": "Vergrendelstatus laadpoort"
+      },
+      "vehicle_body_chargingport_plugeventid": {
+        "name": "Gebeurtenis-ID laadpoortstekker"
+      },
+      "vehicle_body_chargingport_status": {
+        "name": "Status van de laadstekkerverbinding"
+      },
+      "vehicle_body_chargingport_statuscleartext": {
+        "name": "Tekst status laadpoort"
+      },
+      "vehicle_body_flap_islocked": {
+        "name": "Status van de laadklep"
+      },
+      "vehicle_body_flap_ispermanentlyunlocked": {
+        "name": "Sluitingsstatus van de laadklep"
+      },
+      "vehicle_body_hood_isopen": {
+        "name": "Status van de motorkap (voorkap)"
+      },
+      "vehicle_body_lights_isrunningon": {
+        "name": "Toestand van de lichten"
+      },
+      "vehicle_body_trunk_door_isopen": {
+        "name": "Status open kofferklep"
+      },
+      "vehicle_body_trunk_islocked": {
+        "name": "Status kofferbak vergrendeld"
+      },
+      "vehicle_body_trunk_isopen": {
+        "name": "Status van het kofferdeksel/de achterklep"
+      },
+      "vehicle_body_trunk_left_door_isopen": {
+        "name": "Linkerdeur kofferbak open"
+      },
+      "vehicle_body_trunk_lower_door_isopen": {
+        "name": "Onderste deur kofferbak open"
+      },
+      "vehicle_body_trunk_right_door_isopen": {
+        "name": "Rechterdeur kofferbak open"
+      },
+      "vehicle_body_trunk_upper_door_isopen": {
+        "name": "Bovenste deur kofferbak open"
+      },
+      "vehicle_body_trunk_window_isopen": {
+        "name": "Ontgrendeling van de achterruit"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_action": {
+        "name": "Klimaattimer overschrijft actie"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_hour": {
+        "name": "Klimaattimer overschrijft uur"
+      },
+      "vehicle_cabin_climate_timers_overwritetimer_minute": {
+        "name": "Klimaattimer overschrijft minuut"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_action": {
+        "name": "Weekdagtimer 1 actie"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_hour": {
+        "name": "Weekdagtimer 1 uur"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer1_minute": {
+        "name": "Weekdagtimer 1 minuut"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_action": {
+        "name": "Weekdagtimer 2 actie"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_hour": {
+        "name": "Weekdagtimer 2 uur"
+      },
+      "vehicle_cabin_climate_timers_weekdaystimer2_minute": {
+        "name": "Weekdagtimer 2 minuut"
+      },
+      "vehicle_cabin_convertible_roofretractablestatus": {
+        "name": "Status cabriodak"
+      },
+      "vehicle_cabin_convertible_roofstatus": {
+        "name": "Status van het cabriodak"
+      },
+      "vehicle_cabin_door_lock_status": {
+        "name": "Status van de portieren"
+      },
+      "vehicle_cabin_door_row1_driver_isopen": {
+        "name": "Status van het voorportier aan bestuurderszijde"
+      },
+      "vehicle_cabin_door_row1_driver_position": {
+        "name": "Positie portier aan de kant van de bestuurder"
+      },
+      "vehicle_cabin_door_row1_passenger_isopen": {
+        "name": "Status van het voorportier aan passagierszijde"
+      },
+      "vehicle_cabin_door_row1_passenger_position": {
+        "name": "Positie portier aan de kant van de passagier"
+      },
+      "vehicle_cabin_door_row2_driver_isopen": {
+        "name": "Status van het achterportier aan bestuurderszijde"
+      },
+      "vehicle_cabin_door_row2_driver_position": {
+        "name": "Positie portier aan de achterkant van de bestuurder"
+      },
+      "vehicle_cabin_door_row2_passenger_isopen": {
+        "name": "Status van het achterportier aan passagierszijde"
+      },
+      "vehicle_cabin_door_row2_passenger_position": {
+        "name": "Positie portier aan de achterkant van de passagier"
+      },
+      "vehicle_cabin_door_status": {
+        "name": "Toestand van de portieren"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_cooling": {
+        "name": "Standaard koeling van de bestuurdersstoel aan de voorkant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_driverside_heating": {
+        "name": "Standaard stoelverwarming voorkant bestuurdersstoel"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_cooling": {
+        "name": "Standaard koeling van de passagiersstoel aan de voorkant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row1_passengerside_heating": {
+        "name": "Standaard stoelverwarming voorkant passagiersstoel"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_cooling": {
+        "name": "Standaard koeling van de bestuurdersstoel aan de achterkant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_driverside_heating": {
+        "name": "Standaard stoelverwarming achterkant bestuurdersstoel"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_cooling": {
+        "name": "Standaard koeling van de passagiersstoel aan de achterkant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row2_passengerside_heating": {
+        "name": "Standaard stoelverwarming achterkant passagiersstoel"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_cooling": {
+        "name": "Standaard stoelkoeling derde rij aan de kant van de bestuurder"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_driverside_heating": {
+        "name": "Standaard stoelverwarming derde rij aan de kant van de bestuurder"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_cooling": {
+        "name": "Standaard stoelkoeling derde rij aan de kant van de passagier"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_seat_row3_passengerside_heating": {
+        "name": "Standaard stoelverwarming derde rij aan de kant van de passagier"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_steeringwheel_heating": {
+        "name": "Standaard stuurverwarming"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_defaultsettings_targettemperature": {
+        "name": "Doeltemperatuur"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_cooling": {
+        "name": "Directe stoelkoeling voorkant bestuurdersstoel"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_driverside_heating": {
+        "name": "Directe verwarming voorkant bestuurdersstoel"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_cooling": {
+        "name": "Directe koeling passagier aan de voorkant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_heating": {
+        "name": "Directe verwarming passagier aan de voorkant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_cooling": {
+        "name": "Directe koeling bestuurder aan de achterkant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_driverside_heating": {
+        "name": "Directe verwarming bestuurder aan de achterkant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_cooling": {
+        "name": "Directe koeling passagier aan de achterkant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row2_passengerside_heating": {
+        "name": "Directe verwarming passagier aan de achterkant"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_cooling": {
+        "name": "Directe koeling derde rij aan de kant van de bestuurder"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_driverside_heating": {
+        "name": "Directe verwarming derde rij aan de kant van de bestuurder"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_cooling": {
+        "name": "Directe koeling derde rij aan de kant van de passagier"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row3_passengerside_heating": {
+        "name": "Directe verwarming derde rij aan de kant van de passagier"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_steeringwheel_heating": {
+        "name": "Stuurwiel directe verwarming"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_targettemperature": {
+        "name": "DirectStart doeltemperatuur"
+      },
+      "vehicle_cabin_hvac_preconditioning_configuration_isremoteenginestartdisclaimer": {
+        "name": "Disclaimer klimaatregeling op afstand"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_comfortstate": {
+        "name": "Comforttoestand voorklimatisering"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_isexteriormirrorheatingactive": {
+        "name": "Buitenspiegelverwarming actief"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_progress": {
+        "name": "Voortgang voorklimatisering"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_reardefrostactive": {
+        "name": "Ontdooiing achterkant actief"
+      },
+      "vehicle_cabin_hvac_preconditioning_status_remainingrunningtime": {
+        "name": "Resterende tijd voorklimatisering"
+      },
+      "vehicle_cabin_hvac_statusairpurification": {
+        "name": "Status HVAC-luchtverfrisser"
+      },
+      "vehicle_cabin_infotainment_displayunit_distance": {
+        "name": "Weergave-eenheid van het instrumentenpaneel in het voertuig"
+      },
+      "vehicle_cabin_infotainment_hmi_distanceunit": {
+        "name": "Infotainment eenheid afgelegde afstand"
+      },
+      "vehicle_cabin_infotainment_ismobilephoneconnected": {
+        "name": "Koppeling mobiele telefoon"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_altitude": {
+        "name": "Positie van het voertuig boven zeeniveau"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_fixstatus": {
+        "name": "Status navigatiebepaling"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_heading": {
+        "name": "Richting van het voertuig"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_latitude": {
+        "name": "Positie van het voertuig – geografische breedtegraad"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_longitude": {
+        "name": "Positie van het voertuig – geografische lengtegraad"
+      },
+      "vehicle_cabin_infotainment_navigation_currentlocation_numberofsatellites": {
+        "name": "Aantal navigatiesatellieten"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_arrivaltime": {
+        "name": "Tijd voorafgaand aan de navigatiebestemming"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_distance": {
+        "name": "Afstand tot de navigatiebestemming"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_latitude": {
+        "name": "Navigatiebestemming - geografische breedte"
+      },
+      "vehicle_cabin_infotainment_navigation_destinationset_longitude": {
+        "name": "Navigatiebestemming - geografische lengte"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_available": {
+        "name": "Aantal vrije POI-geheugenplaatsen in het navigatiesysteem"
+      },
+      "vehicle_cabin_infotainment_navigation_pointsofinterests_max": {
+        "name": "Maximaal aantal op te slaan POI’s in het navigatiesysteem"
+      },
+      "vehicle_cabin_infotainment_navigation_remainingrange": {
+        "name": "Resterende actieradius"
+      },
+      "vehicle_cabin_seat_row1_driverside_cooling": {
+        "name": "Stoelkoeling voorkant bestuurdersstoel"
+      },
+      "vehicle_cabin_seat_row1_driverside_heating": {
+        "name": "Stoelverwarming voorkant bestuurdersstoel"
+      },
+      "vehicle_cabin_seat_row1_passengerside_cooling": {
+        "name": "Stoelkoeling voorkant passagiersstoel"
+      },
+      "vehicle_cabin_seat_row1_passengerside_heating": {
+        "name": "Passagiersstoelverwarming"
+      },
+      "vehicle_cabin_seat_row2_driverside_cooling": {
+        "name": "Stoelkoeling achterkant bestuurdersstoel"
+      },
+      "vehicle_cabin_seat_row2_driverside_heating": {
+        "name": "Bestuurdersstoelverwarming"
+      },
+      "vehicle_cabin_seat_row2_passengerside_cooling": {
+        "name": "Stoelkoeling achterkant passagiersstoel"
+      },
+      "vehicle_cabin_seat_row2_passengerside_heating": {
+        "name": "Stoelverwarming achterkant passagiersstoel"
+      },
+      "vehicle_cabin_seat_row3_driverside_cooling": {
+        "name": "Stoelkoeling derde rij aan de kant van de bestuurder"
+      },
+      "vehicle_cabin_seat_row3_driverside_heating": {
+        "name": "Stoelverwarming derde rij aan de kant van de bestuurder"
+      },
+      "vehicle_cabin_seat_row3_passengerside_cooling": {
+        "name": "Stoelkoeling derde rij aan de kant van de passagier"
+      },
+      "vehicle_cabin_seat_row3_passengerside_heating": {
+        "name": "Stoelverwarming derde rij aan de kant van de passagier"
+      },
+      "vehicle_cabin_steeringwheel_heating": {
+        "name": "Stuurverwarming"
+      },
+      "vehicle_cabin_sunroof_overallstatus": {
+        "name": "Algemene status zonnedak"
+      },
+      "vehicle_cabin_sunroof_relativeposition": {
+        "name": "Relatieve positie zonnedak"
+      },
+      "vehicle_cabin_sunroof_shade_position": {
+        "name": "Positie van het zonnescherm"
+      },
+      "vehicle_cabin_sunroof_status": {
+        "name": "Status van het schuifdak"
+      },
+      "vehicle_cabin_sunroof_tiltstatus": {
+        "name": "Optilstatus van het schuifdak"
+      },
+      "vehicle_cabin_window_row1_driver_status": {
+        "name": "Status van de voorruit aan bestuurderszijde"
+      },
+      "vehicle_cabin_window_row1_passenger_status": {
+        "name": "Status van de voorruit aan passagierszijde"
+      },
+      "vehicle_cabin_window_row2_driver_status": {
+        "name": "Status van de achterruit aan bestuurderszijde"
+      },
+      "vehicle_cabin_window_row2_passenger_status": {
+        "name": "Status van de achterruit aan passagierszijde"
+      },
+      "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
+        "name": "Statusinformatie over de laatste overdracht van OBFCM*-waarden"
+      },
+      "vehicle_channel_ngtp_timevehicle": {
+        "name": "Datum en tijd in het voertuig"
+      },
+      "vehicle_channel_teleservice_lastautomaticservicecalltime": {
+        "name": "Automatische Teleservice Call"
+      },
+      "vehicle_channel_teleservice_lastbreakdowncalltime": {
+        "name": "Pechhulptijd laatste teleservice"
+      },
+      "vehicle_channel_teleservice_lastmanualcalltime": {
+        "name": "Laatste teleservice handmatige gesprekstijd"
+      },
+      "vehicle_channel_teleservice_lastteleservicereporttime": {
+        "name": "Teleservice Report"
+      },
+      "vehicle_channel_teleservice_status": {
+        "name": "Beschikbaarheid van Teleservices"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressure": {
+        "name": "Gemeten bandspanning linksvoor"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_pressuretarget": {
+        "name": "Richtwaarde bandenspanning linksvoor"
+      },
+      "vehicle_chassis_axle_row1_wheel_left_tire_temperature": {
+        "name": "Bandentemperatuur in Celsius, linksvoor"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressure": {
+        "name": "Gemeten bandspanning rechtsvoor"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_pressuretarget": {
+        "name": "Richtwaarde bandenspanning rechtsvoor"
+      },
+      "vehicle_chassis_axle_row1_wheel_right_tire_temperature": {
+        "name": "Bandentemperatuur in Celsius, rechtsvoor"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressure": {
+        "name": "Gemeten bandspanning linksachter"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_pressuretarget": {
+        "name": "Richtwaarde bandenspanning linksachter"
+      },
+      "vehicle_chassis_axle_row2_wheel_left_tire_temperature": {
+        "name": "Bandentemperatuur in Celsius, linksachter"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressure": {
+        "name": "Gemeten bandspanning rechtsachter"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_pressuretarget": {
+        "name": "Richtwaarde bandenspanning rechtsachter"
+      },
+      "vehicle_chassis_axle_row2_wheel_right_tire_temperature": {
+        "name": "Bandentemperatuur in Celsius, rechtsachter"
+      },
+      "vehicle_chassis_axle_wheel_tire_diagnosis": {
+        "name": "Smart maintenance: Digitale bandendiagnose"
+      },
+      "vehicle_drivetrain_avgelectricrangeconsumption": {
+        "name": "Gemiddeld elektrisch verbruik"
+      },
+      "vehicle_drivetrain_batterymanagement_batterysizemax": {
+        "name": "Grootte van de hoogvoltage-accu"
+      },
+      "vehicle_drivetrain_batterymanagement_header": {
+        "name": "Oplaadstatus van de hoogspanningsaccu"
+      },
+      "vehicle_drivetrain_batterymanagement_maxenergy": {
+        "name": "Brukbar energi fra høyspenningsbatteri (fulladet, prognostisert)"
+      },
+      "vehicle_drivetrain_electricengine_charging_acampere": {
+        "name": "AC-laadstroom"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_factor": {
+        "name": "Beperkingsfactor AC-laden"
+      },
+      "vehicle_drivetrain_electricengine_charging_acrestriction_ischosen": {
+        "name": "AC-laadstroombegrenzing en -selectie"
+      },
+      "vehicle_drivetrain_electricengine_charging_acvoltage": {
+        "name": "AC-laadspanning"
+      },
+      "vehicle_drivetrain_electricengine_charging_authentication_status": {
+        "name": "Authentificatiestatus laden"
+      },
+      "vehicle_drivetrain_electricengine_charging_chargingmode": {
+        "name": "Laadmodus"
+      },
+      "vehicle_drivetrain_electricengine_charging_connectiontype": {
+        "name": "Laadmethode van de hoogvoltage-accu (inductief/conductief)"
+      },
+      "vehicle_drivetrain_electricengine_charging_connectorstatus": {
+        "name": "Status laadstekker"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_gridenergy": {
+        "name": "Totale netenergie die is verbruikt terwijl de verbrandingsmotor niet actief was"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineoff_referencedistance": {
+        "name": "Referentieafstand voor het meten van de geleverde netenergie terwijl de verbrandingsmotor niet actief was"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_gridenergy": {
+        "name": "Totale netenergie die is verbruikt terwijl de verbrandingsmotor actief was"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_engineon_referencedistance": {
+        "name": "Referentieafstand voor het meten van de geleverde netenergie terwijl de verbrandingsmotor actief was"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_gridenergy": {
+        "name": "Totale netenergie die aan de wagen is geleverd (alleen PHEV)"
+      },
+      "vehicle_drivetrain_electricengine_charging_consumptionoverlifetime_overall_referencedistance": {
+        "name": "OBFCM*-referentieafstand voor het meten van de geleverde netenergie"
+      },
+      "vehicle_drivetrain_electricengine_charging_hvstatus": {
+        "name": "Status HV-laadsysteem"
+      },
+      "vehicle_drivetrain_electricengine_charging_hvpmfinishreason": {
+        "name": "Oorzaak voor de beëindiging van een laadproces"
+      },
+      "vehicle_drivetrain_electricengine_charging_isimmediatechargingsystemreason": {
+        "name": "Reden direct laadsysteem"
+      },
+      "vehicle_drivetrain_electricengine_charging_issingleimmediatecharging": {
+        "name": "Status van de functie voor direct opladen"
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingreason": {
+        "name": "Laatste reden voor opladen"
+      },
+      "vehicle_drivetrain_electricengine_charging_lastchargingresult": {
+        "name": "Laatste laadresultaat"
+      },
+      "vehicle_drivetrain_electricengine_charging_level": {
+        "name": "Huidige voorspelde laadstatus"
+      },
+      "vehicle_drivetrain_electricengine_charging_method": {
+        "name": "Laadmethode en type stekker"
+      },
+      "vehicle_drivetrain_electricengine_charging_modedeviation": {
+        "name": "Afwijking laadmodus"
+      },
+      "vehicle_drivetrain_electricengine_charging_phasenumber": {
+        "name": "Laadmethode van de hoogvoltage-accu (fasen)"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_climatizationactive": {
+        "name": "Airconditioning actief"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_isrcpconfigcomplete": {
+        "name": "RCP-configuratie voltooid"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_mode": {
+        "name": "Laadprofiel"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_preference": {
+        "name": "Voorkeur laadprofiel"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_departuretimerelevant": {
+        "name": "Relevante vertrektijd"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_settings_bidirectionalcharging_dischargeallowed": {
+        "name": "Ontladen toegestaan"
+      },
+      "vehicle_drivetrain_electricengine_charging_profile_timertype": {
+        "name": "Type laadtimer"
+      },
+      "vehicle_drivetrain_electricengine_charging_reasonchargingend": {
+        "name": "Reden waarom het opladen is beëindigd"
+      },
+      "vehicle_drivetrain_electricengine_charging_routeoptimizedchargingstatus": {
+        "name": "Laadstatus geoptimaliseerd voor de route"
+      },
+      "vehicle_drivetrain_electricengine_charging_smeenergydeltafullycharged": {
+        "name": "Vereiste energie voor de volledige restlading van de hoogvoltage-accu"
+      },
+      "vehicle_drivetrain_electricengine_charging_status": {
+        "name": "Oplaadstatus"
+      },
+      "vehicle_drivetrain_electricengine_charging_timeremaining": {
+        "name": "Prognose van de resterende laadtijd"
+      },
+      "vehicle_drivetrain_electricengine_charging_timetofullycharged": {
+        "name": "Berekende resterende laadtijd van de hoogvoltage-accu"
+      },
+      "vehicle_drivetrain_electricengine_charging_windowselection": {
+        "name": "Selectie van het gunstige tijdsbestek voor het opladen (Charging Window Selection)"
+      },
+      "vehicle_drivetrain_electricengine_hvsmaxenergyabsolute": {
+        "name": "Maximale energie-inhoud van de hoogvoltage-accu"
+      },
+      "vehicle_drivetrain_electricengine_kombiremainingelectricrange": {
+        "name": "Resterende elektrische actieradius in km"
+      },
+      "vehicle_drivetrain_electricengine_remainingelectricrange": {
+        "name": "Prognose van de elektrische actieradius tijdens het opladen"
+      },
+      "vehicle_drivetrain_engine_isactive": {
+        "name": "Toestand van het contact"
+      },
+      "vehicle_drivetrain_engine_isignitionon": {
+        "name": "Toestand van de motor (aan/uit)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_fuel": {
+        "name": "OBFCM*-totaal brandstofverbruik tijdens gebruik bij het ontladen van de accu (alleen PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineoff": {
+        "name": "OBFCM*-referentieafstand met elektrische aandrijving en inactieve verbrandingsmotor (alleen PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargedepleting_referencedistanceengineon": {
+        "name": "OBFCM*-referentieafstand met elektrische aandrijving en actieve verbrandingsmotor (alleen PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_fuel": {
+        "name": "OBFCM*-totaal brandstofverbruik in de oplaadmodus (alleen PHEV)"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_inchargeincreasing_referencedistance": {
+        "name": "OBFCM*-referentieafstand in de oplaadmodus"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_fuel": {
+        "name": "Totaal brandstofverbruik volgens wettelijke OBFCM*-specificaties"
+      },
+      "vehicle_drivetrain_fuelsystem_consumptionoverlifetime_overall_referencedistance": {
+        "name": "OBFCM*-referentieafstand voor het meten van het brandstofverbruik"
+      },
+      "vehicle_drivetrain_fuelsystem_level": {
+        "name": "Vulpeil van de tank in %"
+      },
+      "vehicle_drivetrain_fuelsystem_remainingfuel": {
+        "name": "Tankinhoud"
+      },
+      "vehicle_drivetrain_internalcombustionengine_engine_ect": {
+        "name": "Koelvloeistoftemperatuur"
+      },
+      "vehicle_drivetrain_lastremainingrange": {
+        "name": "Laatst verzonden resterende actieradius"
+      },
+      "vehicle_drivetrain_totalremainingrange": {
+        "name": "Voorspelling van de totale actieradius tijdens het opladen"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_recharge": {
+        "name": "Noodzaak om de accu op te laden"
+      },
+      "vehicle_electricalsystem_battery_servicedemand_replace": {
+        "name": "Gezondheidstoestand van de accu"
+      },
+      "vehicle_electricalsystem_battery_stateofcharge": {
+        "name": "Laagspanningsaccu"
+      },
+      "vehicle_electricalsystem_battery_stateofchargeplausibility": {
+        "name": "Plausibiliteit laagvoltaccu"
+      },
+      "vehicle_electricalsystem_battery_voltage": {
+        "name": "Accuspanning"
+      },
+      "vehicle_electricalsystem_battery48v_stateofhealth_displayed": {
+        "name": "Gezondheidstoestand van de 48V-accu"
+      },
+      "vehicle_electroniccontrolunit_diagnostictroublecodes_raw": {
+        "name": "Storingengeheugen"
+      },
+      "vehicle_extras_optionalequipment_code": {
+        "name": "Lijst met optionele uitrusting"
+      },
+      "vehicle_ismoving": {
+        "name": "Bewegingstoestand van het voertuig"
+      },
+      "vehicle_learningnavigation": {
+        "name": "GPS Learning navigation data"
+      },
+      "vehicle_look_image": {
+        "name": "Voertuigafbeelding"
+      },
+      "vehicle_powertrain_electric_battery_bidirectionalcharging_availability": {
+        "name": "Bidirectionele laadmogelijkheid"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_isactive": {
+        "name": "Status van de oplaadbegrenzing"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_max": {
+        "name": "Maximale laadstroom"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_min": {
+        "name": "Minimale laadstroom"
+      },
+      "vehicle_powertrain_electric_battery_charging_aclimit_selected": {
+        "name": "Begrenzing van de laadstroom"
+      },
+      "vehicle_powertrain_electric_battery_charging_acousticlimit": {
+        "name": "Akoestische begrenzing van het laadproces"
+      },
+      "vehicle_powertrain_electric_battery_charging_authenticationstatus": {
+        "name": "Authentificatiestatus laden"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isactive": {
+        "name": "Accuonderhoudsmodus actief"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_ispreservingchargingmode": {
+        "name": "Laadmodus accuonderhoud"
+      },
+      "vehicle_powertrain_electric_battery_charging_batterycarepersisted_isreducedtargetsoe": {
+        "name": "Gereduceerd doel State of Energy"
+      },
+      "vehicle_powertrain_electric_battery_charging_cablecheckvoltage": {
+        "name": "Kabelcontrolespanning"
+      },
+      "vehicle_powertrain_electric_battery_charging_dcchargingmodeactive": {
+        "name": "DC-oplaadmodus actief"
+      },
+      "vehicle_powertrain_electric_battery_charging_history_sessionslist": {
+        "name": "Oplaadgeschiedenis"
+      },
+      "vehicle_powertrain_electric_battery_charging_power": {
+        "name": "Oplaadvermogen"
+      },
+      "vehicle_powertrain_electric_battery_charging_preferencesmartcharging": {
+        "name": "\"Smart Charging\" oplaadoptie"
+      },
+      "vehicle_powertrain_electric_battery_charging_settingslist": {
+        "name": "Op locatie gebaseerde laadinstellingen"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_automaticmode_statusfeedback": {
+        "name": "Feedback status automatische voorklimatisering"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_manualmode_statusfeedback": {
+        "name": "Feedback status handmatige voorklimatisering"
+      },
+      "vehicle_powertrain_electric_battery_preconditioning_state": {
+        "name": "Status voorklimatisering"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_displayed": {
+        "name": "Weergave van de laadstatus"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_target": {
+        "name": "Streefwaarde van de oplaadstatus van de hoogvoltage-accu"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetmin": {
+        "name": "Streefwaarde minimale laadtoestand"
+      },
+      "vehicle_powertrain_electric_battery_stateofcharge_targetsocforprofessionalmode": {
+        "name": "Streefwaarde SOC voor professionele modus"
+      },
+      "vehicle_powertrain_electric_battery_stateofhealth_displayed": {
+        "name": "Gezondheidstoestand van de hoogvoltaccu (SOCE)"
+      },
+      "vehicle_powertrain_electric_chargingduration_displaycontrol": {
+        "name": "Weergave van de oplaadtijd"
+      },
+      "vehicle_powertrain_electric_departuretime_displaycontrol": {
+        "name": "Weergave van de vertrektijd"
+      },
+      "vehicle_powertrain_electric_range_displaycontrol": {
+        "name": "Displayregeling E-actieradius"
+      },
+      "vehicle_powertrain_electric_range_target": {
+        "name": "Resterende elektrische actieradius afhankelijk van de streefwaarde van de oplaadstatus"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isautomaticopenandcloseactive": {
+        "name": "Laadpoort voor de accu kan vanuit iedere kleppositie automatisch openen/sluiten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_flap_isopen": {
+        "name": "Laadpoort voor de accu kan vanuit iedere kleppositie openen"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_anyposition_isplugged": {
+        "name": "Laadpoort voor de accu kan vanuit iedere positie worden benaderd"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isautomaticopenandcloseactive": {
+        "name": "Laadpoort voor de accu kan via de klep linksvoor automatisch openen/sluiten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_flap_isopen": {
+        "name": "Laadpoort voor de accu kan via de klep linksvoor worden geopend"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontleft_isplugged": {
+        "name": "Laadpoort voor de accu kan linksvoor worden aangesloten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Laadpoort voor de accu kan via de klep middenvoor automatisch openen/sluiten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_flap_isopen": {
+        "name": "Laadpoort voor de accu kan via de klep middenvoor worden geopend"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontmiddle_isplugged": {
+        "name": "Laadpoort voor de accu kan middenvoor worden aangesloten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isautomaticopenandcloseactive": {
+        "name": "Laadpoort voor de accu kan via de klep rechtsvoor automatisch openen/sluiten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_flap_isopen": {
+        "name": "Laadpoort voor de accu kan via de klep rechtsvoor worden geopend"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_frontright_isplugged": {
+        "name": "Laadpoort voor de accu kan rechtsvoor worden aangesloten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isautomaticopenandcloseactive": {
+        "name": "Laadpoort voor de accu kan via de klep linksachter automatisch openen/sluiten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_flap_isopen": {
+        "name": "Laadpoort voor de accu kan via de klep linksachter worden geopend"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearleft_isplugged": {
+        "name": "Laadpoort voor de accu kan linksachter worden aangesloten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isautomaticopenandcloseactive": {
+        "name": "Laadpoort voor de accu kan via de klep middenachter automatisch openen/sluiten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_flap_isopen": {
+        "name": "Laadpoort voor de accu, middelste klep aan de achterkant, open"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearmiddle_isplugged": {
+        "name": "Laadpoort achter de accu kan middenachter worden aangesloten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isautomaticopenandcloseactive": {
+        "name": "Laadpoort voor de accu kan via de klep rechtsachter automatisch openen/sluiten"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_flap_isopen": {
+        "name": "Laadpoort voor de accu kan via de klep rechtsachter worden geopend"
+      },
+      "vehicle_powertrain_tractionbattery_charging_port_rearright_isplugged": {
+        "name": "Laadpoort voor de accu kan rechtsachter worden aangesloten"
+      },
+      "vehicle_privacysettings_datacollection_regulations_obfcm": {
+        "name": "Toestemming voor OBFCM*-gegevensoverdracht naar de EU"
+      },
+      "vehicle_servicedemand_defect_id": {
+        "name": "Smart maintenance: Live-diagnose"
+      },
+      "vehicle_sevice_preferredsevicepartner": {
+        "name": "Voorkeursservicepartner"
+      },
+      "vehicle_sim_status": {
+        "name": "Activeringsstatus van de ingebouwde SIM-kaart"
+      },
+      "vehicle_status_checkcontrolmessages": {
+        "name": "Check Control-meldingen"
+      },
+      "vehicle_status_conditionbasedservices": {
+        "name": "Condition Based Service (CBS)"
+      },
+      "vehicle_status_conditionbasedservicesaveragedistanceperday": {
+        "name": "Gemiddelde afstand per dag"
+      },
+      "vehicle_status_conditionbasedservicescount": {
+        "name": "Aantal Condition Based Service-meldingen (CBS)"
+      },
+      "vehicle_status_servicedistance_next": {
+        "name": "Afstand tot de volgende servicebeurt"
+      },
+      "vehicle_status_servicedistance_yellow": {
+        "name": "Afstandsdrempelwaarde voor service-informatie"
+      },
+      "vehicle_status_servicetime_huandauserviceyellow": {
+        "name": "Tijdelijke drempelwaarde voor hoofd- en uitlaatgasonderzoek autokeuring (APK)"
+      },
+      "vehicle_status_servicetime_inspectiondatelegal": {
+        "name": "Datum van de volgende keuring"
+      },
+      "vehicle_status_servicetime_yellow": {
+        "name": "Tijdsdrempelwaarde voor service-informatie"
+      },
+      "vehicle_trip_segment_accumulated_acceleration_starsaverage": {
+        "name": "Rijstijlbeoordeling “acceleratiegedrag”"
+      },
+      "vehicle_trip_segment_accumulated_chassis_brake_starsaverage": {
+        "name": "Rijstijlbeoordeling “anticiperend rijden”"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_energyconsumptioncomfort": {
+        "name": "Elektrisch energieverbruik in de COMFORT-modus tijdens de laatste rit"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_electricengine_recuperationtotal": {
+        "name": "Teruggewonnen hoeveelheid energie tijdens de laatste rit"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecopro": {
+        "name": "Activatieduur ECO-modus tijdens de laatste rit"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveecoproplus": {
+        "name": "Activatieduur ECO PLUS-modus tijdens de laatste rit"
+      },
+      "vehicle_trip_segment_accumulated_drivetrain_transmission_setting_fractiondriveelectric": {
+        "name": "Elektrisch gereden aandeel van de afstand van de laatste rit"
+      },
+      "vehicle_trip_segment_end_drivetrain_batterymanagement_hvsoc": {
+        "name": "Laadstatus van de accu"
+      },
+      "vehicle_trip_segment_end_time": {
+        "name": "Tijdstip van de laatste rit"
+      },
+      "vehicle_trip_segment_end_travelleddistance": {
+        "name": "Kilometerstand van de laatste rit"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_activationtime": {
+        "name": "Activeringstijd AntiTheftalarm"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_armstatus": {
+        "name": "Activeringsstatus AntiTheftAlarm"
+      },
+      "vehicle_vehicle_antitheftalarmsystem_alarm_ison": {
+        "name": "AntiTheftAlarm is ingeschakeld"
+      },
+      "vehicle_vehicle_averageweeklydistancelongterm": {
+        "name": "Gemiddelde afstand per week (lange termijn)"
+      },
+      "vehicle_vehicle_averageweeklydistanceshortterm": {
+        "name": "Gemiddelde afstand per week"
+      },
+      "vehicle_vehicle_avgauxpower": {
+        "name": "Nevenverbruikersvermogen (vermogensverbruik van elektrische componenten)"
+      },
+      "vehicle_vehicle_avgspeed": {
+        "name": "Gemiddelde gereden snelheid"
+      },
+      "vehicle_vehicle_deepsleepmodeactive": {
+        "name": "Diepe slaapstand (Deep Sleep Mode)"
+      },
+      "vehicle_vehicle_preconditioning_activity": {
+        "name": "Preconditioningstatus van de standklimaatregeling"
+      },
+      "vehicle_vehicle_preconditioning_error": {
+        "name": "Reden voor nietuitvoering van de preconditioning van de standklimaatregeling"
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginerunning": {
+        "name": "Gebruik van de motor voor de preconditioning"
+      },
+      "vehicle_vehicle_preconditioning_isremoteenginestartallowed": {
+        "name": "Toestemming voor het gebruik van de motor voor de preconditioning."
+      },
+      "vehicle_vehicle_preconditioning_remainingtime": {
+        "name": "Resterende duur van de preconditioning"
+      },
+      "vehicle_vehicle_speedrange_lowerbound": {
+        "name": "Snelheidsbereik lager"
+      },
+      "vehicle_vehicle_speedrange_upperbound": {
+        "name": "Snelheidsbereik boven"
+      },
+      "vehicle_vehicle_timesetting": {
+        "name": "Tijdzone-instelling in het voertuig"
+      },
+      "vehicle_vehicle_travelleddistance": {
+        "name": "Kilometerstand"
+      },
+      "vehicle_vehicleidentification_basicvehicledata": {
+        "name": "Basisvoertuiggegevens"
+      },
+      "vehicle_vehicleidentification_connecteddrivecontractlist": {
+        "name": "Actieve ConnectedDrive-contracten"
+      },
+      "trip_in_progress": {
+        "name": "Rit bezig"
+      }
+    },
+    "device_tracker": {
+      "car": {
+        "name": "Locatie"
+      }
+    },
+    "image": {
+      "vehicle_image": {
+        "name": "Voertuigafbeelding"
+      }
+    }
+  },
+  "issues": {
+    "api_quota_exhausted": {
+      "title": "API-quotum van BMW CarData opgebruikt",
+      "description": "De REST-limiet van BMW CarData van {limit} verzoeken per 24 uur is bereikt, dus gegevens op verzoek (basisgegevens, laadgeschiedenis, bandendiagnose, voertuigafbeelding) kunnen nu niet worden vernieuwd. De streamgegevens blijven binnenkomen. Het quotum komt weer vrij om {next_reset}."
+    },
+    "motorcycle_unsupported": {
+      "title": "BMW-motoren kunnen hun gegevens niet streamen",
+      "description": "{vehicle} is een BMW Motorrad. BMW CarData toont motoren op het account, maar BMW streamt er geen gegevens voor, dus BavarianData heeft niets te tonen en de entiteiten blijven leeg. Dit is een beperking aan de kant van BMW, geen installatiefout. Je kunt het integratie-item voor dit voertuig verwijderen, of deze melding negeren als het account ook een auto heeft."
+    },
+    "stream_coverage_gaps": {
+      "title": "Een geselecteerde gegevensgroep is nooit gestreamd",
+      "description": "Voor {vehicle} is er in {days} dagen helemaal niets van {clusters} binnengekomen ({count} descriptor(en), bijv. {descriptors}). Een groep die volledig stil blijft, betekent meestal dat hij niet is aangevinkt en opgeslagen in de Gegevensselectie van het BMW-portaal, of dat je auto die gegevens niet levert. Activeer hem opnieuw via Configureren → Gestreamde gegevens kiezen, of deselecteer de groep. Groepen die maar een deel van hun velden leveren zijn normaal en geven deze melding nooit. Voer de service get_coverage_report uit voor de volledige lijst."
+    },
+    "stream_no_data": {
+      "title": "Geen streamgegevens van BMW CarData ontvangen",
+      "description": "Er zijn al meer dan {hours} uur geen gestreamde voertuiggegevens binnengekomen. De stream is misschien gestopt, of de gegevens zijn nooit geselecteerd. Controleer of je Gegevensselectie is opgeslagen in het BMW-portaal (stap 4 van de installatie), vergrendel/ontgrendel de auto in de MyBMW-app om een update op te wekken, en zorg dat er geen andere CarData-client verbonden is — BMW staat maar één stream per account toe. Voer de service get_coverage_report uit om te zien welke descriptoren ontbreken."
+    },
+    "stream_unauthorized": {
+      "title": "BMW CarData-stream niet geautoriseerd",
+      "description": "BMW weigert de streamverbinding al meer dan {minutes} minuten als niet geautoriseerd (MQTT rc=5) en die heeft zich niet vanzelf hersteld. Meestal betekent dit dat de tokens vernieuwd moeten worden, of dat een andere CarData-client de enige stream van het account bezet houdt. Probeer Configureren → Tokens nu vernieuwen, daarna Opnieuw autoriseren bij BMW als het blijft mislukken, en verbreek de verbinding van elke andere CarData-client."
+    }
+  },
+  "services": {
+    "fetch_telematic_data": {
+      "name": "Telematicagegevens ophalen",
+      "description": "Haal telematicagegevens op voor elk voertuig op het account met de opgeslagen container en log het antwoord. Eén verzoek per voertuig.",
+      "fields": {
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionele VIN om op te vragen. Laat leeg om elk voertuig op het account te vernieuwen."
+        }
+      }
+    },
+    "fetch_vehicle_mappings": {
+      "name": "Voertuigkoppelingen ophalen",
+      "description": "Haal de koppelingsinformatie van het ingestelde account op en log het antwoord.",
+      "fields": {
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+        }
+      }
+    },
+    "fetch_basic_data": {
+      "name": "Basisgegevens van het voertuig ophalen",
+      "description": "Haal vaste voertuigmetadata (modelnaam, serie, enz.) op voor een VIN en log het antwoord.",
+      "fields": {
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionele VIN om op te vragen. Standaard de VIN die in het configuratie-item is opgeslagen."
+        }
+      }
+    },
+    "fetch_charging_history": {
+      "name": "Laadgeschiedenis ophalen",
+      "description": "Haal de geschiedenis van laadsessies voor een VIN (gepagineerd) op bij BMW en importeer die in de lokale geschiedenis, zodat eerdere laadbeurten op de kaart en in de maandoverzichten verschijnen. Overlappende, live geregistreerde sessies worden ter plekke aangevuld met de door BMW gemeten netenergie. Telt als één of meer API-aanroepen binnen het quotum van 50/24 u.",
+      "fields": {
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionele VIN om op te vragen. Standaard de eerste bekende VIN."
+        },
+        "from": {
+          "name": "Van",
+          "description": "Begin van de periode om op te halen. Standaard 30 dagen geleden als je het leeg laat."
+        },
+        "to": {
+          "name": "Tot",
+          "description": "Einde van de periode om op te halen. Standaard nu als je het leeg laat."
+        }
+      }
+    },
+    "fetch_tyre_diagnosis": {
+      "name": "Smart Maintenance-bandendiagnose ophalen",
+      "description": "Haal de Smart Maintenance-bandendiagnose voor een VIN op en log het antwoord.",
+      "fields": {
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionele VIN om op te vragen. Standaard de eerste bekende VIN."
+        }
+      }
+    },
+    "fetch_location_charging_settings": {
+      "name": "Locatiegebonden laadinstellingen ophalen",
+      "description": "Haal de locatiegebonden laadinstellingen voor een VIN (gepagineerd) op en log het antwoord.",
+      "fields": {
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionele VIN om op te vragen. Standaard de eerste bekende VIN."
+        }
+      }
+    },
+    "fetch_vehicle_image": {
+      "name": "Voertuigafbeelding ophalen",
+      "description": "Haal de voertuigafbeelding voor een VIN op en log de grootte en het inhoudstype.",
+      "fields": {
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionele VIN om op te vragen. Standaard de eerste bekende VIN."
+        }
+      }
+    },
+    "get_charging_sessions": {
+      "name": "Laadsessies opvragen",
+      "description": "Geef geregistreerde laadsessies terug, nieuwste eerst. Leest de eigen geschiedenis van de integratie, dus anders dan de ophaalacties kost dit geen BMW-API-quotum.",
+      "fields": {
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionele VIN om op te filteren. Standaard elk bekend voertuig."
+        },
+        "from": {
+          "name": "Van",
+          "description": "Alleen sessies die op of na deze datum/tijd begonnen."
+        },
+        "to": {
+          "name": "Tot",
+          "description": "Alleen sessies die op of vóór deze datum/tijd begonnen."
+        },
+        "limit": {
+          "name": "Limiet",
+          "description": "Maximaal aantal sessies om terug te geven."
+        }
+      }
+    },
+    "get_trips": {
+      "name": "Ritten opvragen",
+      "description": "Geef geregistreerde ritten terug, nieuwste eerst. Leest de eigen geschiedenis van de integratie, dus net als de laadsessies kost dit geen BMW-API-quotum. Begin- en eindpunten worden als plaatsnamen opgeslagen, nooit als coördinaten. Een rit die nog bezig is, wordt apart teruggegeven als open rit (zonder einde, met een voorlopige afstand), tenzij een from/to-periode is opgegeven.",
+      "fields": {
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionele VIN om op te filteren. Standaard elk bekend voertuig."
+        },
+        "from": {
+          "name": "Van",
+          "description": "Alleen ritten die op of na deze datum/tijd begonnen."
+        },
+        "to": {
+          "name": "Tot",
+          "description": "Alleen ritten die op of vóór deze datum/tijd begonnen."
+        },
+        "limit": {
+          "name": "Limiet",
+          "description": "Maximaal aantal ritten om terug te geven."
+        }
+      }
+    },
+    "get_driving_summary": {
+      "name": "Rijoverzicht opvragen",
+      "description": "Geef het maandoverzicht van ritten terug: afstand, de verdeling zakelijk/privé/woon-werk, verbruik, terugwinning, rijstijlscore, topbestemmingen en (met een tarief) geschatte rijkosten. Leest de lokale opslag, dus kost geen BMW-API-quotum.",
+      "fields": {
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionele VIN. Standaard het enige ingestelde voertuig."
+        },
+        "month": {
+          "name": "Maand",
+          "description": "Samen te vatten maand als YYYY-MM. Standaard de huidige maand."
+        }
+      }
+    },
+    "get_efficiency": {
+      "name": "Efficiëntie en werkelijke actieradius opvragen",
+      "description": "Geef het gemeten verbruik (kWh/100 km) terug, de werkelijke actieradius die dat bij de huidige laadtoestand oplevert, het laadverlies tussen net en accu, en een efficiëntietrend per maand. Alles wordt afgeleid uit het laadlogboek, dus kost geen BMW-API-quotum.",
+      "fields": {
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionele VIN. Standaard het enige ingestelde voertuig."
+        }
+      }
+    },
+    "get_evcc_config": {
+      "name": "evcc-configuratie ophalen",
+      "description": "Geef de 'custom'-voertuigconfiguratie van evcc voor deze auto terug, klaar om in evcc.yaml te plakken, samen met de MQTT-topics die de brug publiceert en welke daarvan nu live zijn. Leest alleen lokale status, dus kost geen BMW-API-quotum.",
+      "fields": {
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionele VIN. Standaard het enige ingestelde voertuig."
+        }
+      }
+    },
+    "set_trip_class": {
+      "name": "Ritindeling instellen",
+      "description": "Overschrijf de indeling van een rit (business, private of commute). Gebruik dit om de automatische inschatting op basis van het zonepaar te corrigeren. Schrijft alleen naar de lokale opslag.",
+      "fields": {
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionele VIN. Standaard het enige ingestelde voertuig."
+        },
+        "trip_id": {
+          "name": "Rit-ID",
+          "description": "De ID van de rit, zoals teruggegeven door de actie Ritten opvragen."
+        },
+        "classification": {
+          "name": "Indeling",
+          "description": "Een van business, private of commute."
+        }
+      }
+    },
+    "export_history": {
+      "name": "Geschiedenis exporteren",
+      "description": "Geef één maand aan geregistreerde laadsessies en/of ritten terug als bestanden: CSV voor spreadsheets, of een zelfstandig HTML-rapport dat je vanuit de browser als PDF kunt afdrukken. De bestandsinhoud komt terug in het antwoord; er wordt niets naar schijf geschreven. Leest de lokale opslag, dus kost geen BMW-API-quotum.",
+      "fields": {
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionele VIN. Standaard het enige ingestelde voertuig."
+        },
+        "month": {
+          "name": "Maand",
+          "description": "Te exporteren maand als YYYY-MM. Standaard de huidige maand."
+        },
+        "type": {
+          "name": "Type",
+          "description": "Welke records worden opgenomen."
+        },
+        "format": {
+          "name": "Formaat",
+          "description": "CSV geeft één bestand per recordtype terug; HTML geeft één afdrukbaar maandrapport terug."
+        },
+        "language": {
+          "name": "Taal",
+          "description": "Taal van het rapport, als code zoals en, de of fr. Standaard de taal van Home Assistant. Geldt alleen voor het HTML-rapport -- CSV-kopteksten zijn altijd machineleesbaar Engels."
+        }
+      }
+    },
+    "get_coverage_report": {
+      "name": "Dekkingsrapport van descriptoren opvragen",
+      "description": "Voer de zelftest voor descriptordekking uit: vergelijk per voertuig de descriptoren die je geselecteerde streamgroepen zouden moeten leveren met de descriptoren die echt zijn binnengekomen, en toon de ontbrekende. Beantwoordt \"Ik heb een groep aangezet maar er verschenen geen entiteiten -- ligt het aan mijn selectie, mijn auto of een bug?\". Leest alleen de lokale opslag en de live stream, dus kost geen BMW-API-quotum.",
+      "fields": {
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionele VIN om over te rapporteren. Standaard elk bekend voertuig."
+        }
+      }
+    },
+    "activate_stream_fields": {
+      "name": "Streamvelden activeren",
+      "description": "Vervang welke CarData-attributen BMW voor een voertuig via MQTT streamt, door hetzelfde verzoek te sturen dat de stream setup-pagina van het BMW-portaal stuurt wanneer je de gegevensselectie opslaat. Voor de streamselectie bestaat geen CarData-API, dus hiervoor is een vastgelegde browsersessie van het portaal nodig (die kan niet automatisch worden vernieuwd -- de sessie is kortlevend). Kost geen BMW-API-quotum. Geeft het aantal gevraagde/geaccepteerde attributen terug.",
+      "fields": {
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+        },
+        "base_url": {
+          "name": "Basis-URL van het portaal",
+          "description": "De oorsprong van het portaal van je markt, uit het adres van de stream setup-pagina (zonder afsluitende schuine streep)."
+        },
+        "locale": {
+          "name": "Landinstelling",
+          "description": "Het taalsegment in het pad van het adres van de stream setup-pagina."
+        },
+        "mapped_vehicle_id": {
+          "name": "ID van gekoppeld voertuig",
+          "description": "De ID van het gekoppelde voertuig in het portaal (een hash, NIET de VIN) uit het adres van de stream setup-pagina."
+        },
+        "cookie": {
+          "name": "Cookie-header",
+          "description": "De ruwe Cookie-header van een geauthenticeerd portaalverzoek (DevTools, Netwerk, het streamverzoek, kopieer de waarde van de Cookie-header). Een geheim; wordt nooit gelogd. Verloopt na een tijdje -- leg hem opnieuw vast als de aanroep meldt dat de sessie is geweigerd."
+        },
+        "attributes": {
+          "name": "Attributen",
+          "description": "Expliciete lijst van technische descriptoren om te streamen (vervangt de hele selectie). Gaat voor sections. Standaard je gekozen groepen gestreamde gegevens, of de standaardset groepen."
+        },
+        "sections": {
+          "name": "Secties",
+          "description": "Groepsnamen om te streamen (bijv. electric, status, tire). Gebruikt als attributes is weggelaten."
+        }
+      }
+    },
+    "import_statistics": {
+      "name": "Importeren in langetermijnstatistieken",
+      "description": "Bouw de langetermijnstatistieken van deze integratie opnieuw op uit de geregistreerde geschiedenis, zodat laden en rijden van vóór de installatie (of van toen Home Assistant uit stond) in het Energie-dashboard verschijnen. Dit gebeurt automatisch terwijl records worden aangemaakt; gebruik het na het terugzetten van een back-up of om de aantallen rijen te controleren. Alleen lokaal -- geen BMW-API-quotum.",
+      "fields": {
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionele VIN om opnieuw op te bouwen. Standaard elk bekend voertuig."
+        }
+      }
+    }
+  }
+}
