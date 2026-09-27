@@ -84,7 +84,8 @@ integration logged and swallowed. On top of it:
 
 **Every coordinator bug fix adds a scenario or a replay** that fails without
 the fix — prove it by reverting the fix once. A known bug not yet fixed is
-pinned with `xfail(strict=True)`, so the fix has to remove the marker.
+pinned with `xfail(strict=True)`, so the fix has to remove the marker. `python scripts/prove_fix.py <tests>` does
+the revert-and-rerun.
 
 Some tests run the shipped card under Node and skip themselves when it is
 absent; CI pins Node 24 so that coverage cannot silently disappear.
@@ -138,12 +139,17 @@ living only in prose.
 - **Skills** (`.claude/skills/`): `regen` (the generators, in order),
   `ship` (release), `land` (check → PR → green CI → rebase-merge; not a
   release), `translate` (carry English text into all ten languages, with the
-  glossary and what stays English), `triage` (read a user's diagnostics), `live`
+  glossary and what stays English), `review-pr` (reproduce a contributor's PR
+  in a worktree, prove its test, judge it, report before acting), `triage` (read a user's diagnostics), `live`
   (zero-quota reads against the live instance), `shoot` (Playwright screenshots).
 - **Scripts:** `bash scripts/check.sh` runs CI's gates with CI's exact paths and
   ends GREEN/RED (`--no-tests` for lint only); `python tools/i18n_gaps.py` lists
   every missing, broken or stale translation across `translations/`, the card
-  and the month report, grouped by language.
+  and the month report, grouped by language; `python scripts/prove_fix.py
+  <tests>` reverts the non-test changes, requires the tests to fail, then
+  restores; `python tools/fetch_catalogues.py` fetches BMW's nine catalogue
+  exports and reports changes by descriptor; `python tools/stable_changelog.py`
+  drafts a stable's consolidated `[Unreleased]` from its betas.
 - **Agent** (`.claude/agents/docs-lockstep.md`): reads a diff and reports which
   wiki pages, German counterparts, matrix rows and screenshots went stale.
 

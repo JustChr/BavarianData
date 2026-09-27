@@ -19,6 +19,20 @@ summary of commits.
 git log --oneline "$(git describe --tags --abbrev=0)"..HEAD
 ```
 
+### A stable release: consolidate the betas first
+
+```bash
+python tools/stable_changelog.py           # draft + the judgment calls, prints only
+python tools/stable_changelog.py --write   # put the draft into ## [Unreleased]
+```
+
+It gathers every beta section since the last **stable** (not the last beta
+series) plus anything unreleased, tags each bullet with its beta
+(`**Lead** (beta.3).`) and lists what needs a human: the preamble's summary,
+bullets repeated across betas (fold intra-beta churn into the final state), and
+every Fixed bullet (keep it only if the bug was in the last stable). Edit the
+result; never rewrite an already-released section.
+
 ## 2. Check for strays before the script stages everything
 
 `release.sh` runs `git add .`. Anything untracked ships.

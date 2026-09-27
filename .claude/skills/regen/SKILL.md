@@ -54,9 +54,14 @@ stream than in the catalogue (`kpa`, `degrees`) — that is the usual cause.
 ## Refreshing from BMW
 
 ```bash
-curl -s https://mybmwweb-utilities.api.bmw/de-at/utilities/bmw/api/cd/catalogue/file \
-  -o tools/CustomerTelematicsDataCatalogue.html
+python tools/fetch_catalogues.py           # fetch all nine exports, report changes
+python tools/fetch_catalogues.py --write   # then take them
 ```
+
+The report compares by descriptor: added/removed fields, renames in any
+language, and a changed data type, unit, section or streamable flag in the
+German export. A changed **unit** is the one to read twice: device and state
+class come from it.
 
 Market-scoped: the locale in the path picks the language. Then run all five
 steps and the tests. The catalogue — not the Swagger — is the stream's contract.
