@@ -123,6 +123,9 @@ User-facing docs live in three tiers — keep them **in lockstep with the code**
   search title and meta description, EN + DE; `tests/test_site_pages.py`
   enforces it). Build and check with `cd site && npm ci && npm run build &&
   npm run check` (every link, anchor and head tag); it deploys on push to `main`.
+  After each deploy the workflow announces every sitemap URL to IndexNow (Bing,
+  Yandex, …; key file `site/public/<32 hex>.txt` — don't delete it). Google needs
+  Search Console: its token goes in the repo variable `GOOGLE_SITE_VERIFICATION`.
 
 **A feature isn't done until its docs are updated in the same change.** Any new
 config-flow step, Configure/options screen, card view, service (`services.yaml`),

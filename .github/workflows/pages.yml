@@ -85,3 +85,23 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v5
+
+  # Announce the deployed pages to IndexNow engines (Bing and friends); no
+  # account involved -- the key file in site/public proves ownership.
+  indexnow:
+    if: github.event_name != 'pull_request'
+    needs: deploy
+    runs-on: ubuntu-latest
+    env:
+      SITE_URL: ${{ vars.SITE_URL || 'https://justchr.github.io' }}
+      SITE_BASE: ${{ vars.SITE_BASE || '/BavarianData' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: site
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - name: Submit URLs
+        working-directory: site
+        run: node scripts/indexnow.mjs
