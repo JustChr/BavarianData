@@ -404,7 +404,7 @@ eigene Datengruppe *Fahrzeugereignisse* enthält nur zwei Teleservice-Zeitstempe
 die unter den Meldungen stehen, wenn das Fahrzeug sie sendet.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-events.png" alt="Karte Fahrzeugereignisse mit einer Check-Control-Meldung zu wenig Waschwasser, aufgeklappt mit dem Kilometerstand der letzten Anzeige, wie lange es her ist, dass das Fahrzeug sie gesendet hat, und dem Code" width="420" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-events.png" alt="Karte Fahrzeugereignisse ohne aktuelle Check-Control-Meldungen; die Frühere-Meldungen-Liste ist aufgeklappt und zeigt die erledigte Meldung zu wenig Waschwasser mit dem Kilometerstand der letzten Anzeige, dem Tag der letzten Meldung, dem Tag, seit dem sie fehlt, und dem Code" width="420" />
 </p>
 
 ---
