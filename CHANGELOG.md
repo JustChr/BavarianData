@@ -9,6 +9,119 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.13] - 2026-09-27
+
+Promotes 0.9.13-beta.1 to beta.6. Two new features: **device triggers** for
+automations, and the integration **catching up with BMW** after a restart or
+an outage. Also the first round of fixes for **plug-in hybrids**, from the
+diagnostics of an X3 30e, and a stream that now recovers from network
+outages on its own.
+
+### Added
+- **Device triggers for automations** (beta.6). Create an automation, choose
+  *Device*, pick your car, and choose what should happen: **arrived at a
+  zone**, **left a zone**, **parked and left unlocked** (for 10 minutes, or how
+  long you choose), **plugged in but not charging** (15 minutes by default),
+  **charging started**, **charging completed**, and **charging stopped before
+  the target with the cable still in**. No YAML, no entity names. Only the
+  triggers your car can fire are listed. They are built to fire once and never
+  falsely: nothing fires from a restart or from a value Home Assistant
+  restored, the car unlocking to let you in doesn't count, a car that is done
+  charging isn't "not charging", and unplugging early isn't an interruption.
+  Arrival fires when the drive ends, not when the car crosses the zone edge.
+  Every trigger hands its details to the automation as `trigger.data`
+  (distance, SoC, zone, BMW's reason for the stop…). The same moments are fired
+  as events for YAML and Node-RED: `bavariandata_zone_arrived`,
+  `bavariandata_zone_left`, `bavariandata_charging_interrupted` and
+  `bavariandata_situation`.
+- **Catch up with BMW after a restart or an outage** (beta.1, beta.2). The live
+  stream only carries what changes while Home Assistant is listening, so
+  whatever the car reported in the meantime (a charge that ended, the doors
+  being locked, a drive) never arrived, and a car charging at steady power can
+  stay silent for hours afterwards. Two minutes after a start, and when the
+  connection to BMW comes back after five minutes or more, the integration now
+  asks BMW once per car for its current state. BMW's servers return the last
+  value each car sent, so this catches up without waking the car. It costs one
+  of the 50 daily requests per car, is skipped when BMW was asked within the
+  last hour (so restarting repeatedly costs nothing more), and always leaves 10
+  requests for your own service calls. On by default; switch it off under
+  **Configure → Automatic data refresh** (*Catch up after a restart or an
+  outage*).
+- **A charge running during a restart is settled by that answer instead of
+  guessed at** (beta.1). It used to wait for the car, and after 15 minutes of
+  silence it was filed as ended by the restart while the car charged on; a
+  charge that really had ended was only noticed whenever the car next sent
+  anything. Now a running charge carries on as the same session, and a
+  finished one is recorded as ended.
+
+### Fixed
+- **The stream now recovers on its own after a network outage** (beta.2). A DNS
+  outage once left the streams of two BMW accounts disconnected for nine hours,
+  until Home Assistant was restarted, although the network was back after two.
+  A failed reconnect was never tried again, and a token refresh that failed on
+  the network quietly ended token renewal for good. Both now keep retrying (the
+  stream backs off from 10 seconds to 2 minutes, with a random spread), recovery
+  can no longer open a second connection for the same account, and an outage
+  logs one warning and one line when it ends instead of an error for every
+  attempt. Found, fixed and tested by
+  [@netbasebe](https://github.com/netbasebe) (TomDS). Thank you.
+- **A BMW hiccup no longer asks you to re-authorize** (beta.2). A server error
+  from BMW's login service during a reconnect was taken for a rejected login.
+  It is now retried. A login BMW really no longer accepts still asks you once,
+  and no longer fills the log with an error every few minutes until you do.
+- **The tank level in % lost its long-term statistics in 0.9.10** (beta.3,
+  #25). Home Assistant raised the repair "The entity no longer has a state
+  class". It is back, and the repair clears by itself after updating. **Do not
+  delete the statistics**: recording resumes on your existing history. Thanks
+  @JohannBlais for the precise diagnosis.
+- **Percentages without a device class now keep long-term statistics too**
+  (beta.3): seat and steering-wheel heating, door and sunroof positions,
+  preconditioning progress, the 48 V battery's health and the eco-driving
+  shares, 24 sensors in all. Home Assistant starts recording them now, which
+  adds a little to its database.
+- **Plug-in hybrids were shown a real range far beyond what the battery
+  reaches** (beta.4, #25). Consumption is measured by dividing the energy
+  charged by the distance on the odometer, but a hybrid's odometer also counts
+  the kilometers the engine drove, so the real range read high by the share
+  driven on fuel: roughly double for a car driven half on fuel. A hybrid now
+  gets no measured consumption, real range, consumption trend or charging cost
+  per 100 km, and the efficiency view says why. The **Real Range** and
+  **Charging Cost per 100 km** sensors a hybrid was given are removed at the
+  next restart. Battery health, the charging history and its costs are
+  unaffected.
+- **Plug-in hybrid trips showed an unchanged battery charge** (beta.5, #25).
+  The X3 30e never streams its state of charge, so every trip read like
+  "38 → 38 %". A hybrid's trip now records an end charge only when one arrived
+  during the drive; otherwise the card shows no charge line for it. Battery
+  cars are unchanged. Trips already stored keep their figures.
+- **The card kept saying "charging" after a charge had finished** (beta.4).
+  BMW reports a charge that stopped at its target as `chargingended` (also
+  `chargingpaused`, `chargingerror`), and the card read anything beginning with
+  "charging" as active.
+- **The card's Plug tile could show the wrong sensor** (beta.4, beta.5). On a
+  car without the "plugged in" sensor, a lock state could win the tile, and on
+  a German install the tile could be missing. The card now looks the plug state
+  up by what it is, and its icon follows whether a cable is in rather than
+  whether the car is charging.
+- **The card's ring showed BMW's last reading while the car charged** (beta.3).
+  That reading stands still whenever BMW goes quiet mid-charge, so the ring
+  could sit on 38 % while the car had reached 47 %. It now shows the
+  integration's estimate, which keeps climbing while the car charges (card
+  1.15.3 with the fixes above).
+- **A drive after a restart started one position late, and not at Home**
+  (beta.3). The restored position was not used, so the trip began a report
+  later and a drive out of your Home zone was not recognised as starting at
+  Home, which commute detection needs.
+- **On a fresh install, every position was plotted from mismatched halves**
+  (beta.3): zig-zag tracks and inflated distances until the next restart.
+- **An impossible state-of-charge reading no longer moves the estimate**
+  (beta.3). A value below 0 % or above 100 % became the estimate's anchor and a
+  charging session's start or end.
+- **The charging-started event could miss the charge target and the state of
+  charge** (beta.3) when they arrived in the same message as the charging
+  status. Automations using `target_soc` on `bavariandata_charging_started` now
+  get it.
+
 ## [0.9.13-beta.6] - 2026-09-27
 
 ### Added
