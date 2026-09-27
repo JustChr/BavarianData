@@ -1,0 +1,310 @@
+---
+// One descriptor: what it means (BMW's own description), how it arrives, what
+// it becomes in Home Assistant, and its name in every shipped language.
+import Base from "../layouts/Base.astro";
+import { DESCRIPTORS, SECTION_LABELS, LANGUAGE_NAMES, nameOf, descriptionOf, summary, type Descriptor } from "../lib/catalogue";
+import { url, localized, absolute, type Lang } from "../lib/site";
+
+interface Props {
+  lang: Lang;
+  d: Descriptor;
+}
+const { lang, d } = Astro.props;
+const de = lang === "de";
+const name = nameOf(d, lang);
+const text = descriptionOf(d, lang);
+const values = (de ? d.value_range_de : d.value_range_en) || "";
+const path = `data/${d.descriptor}`;
+const related = DESCRIPTORS.filter((x) => x.category === d.category && x.descriptor !== d.descriptor).slice(0, 12);
+const names: [string, string][] = [
+  ["en", d.title_en],
+  ["de", d.name_de],
+  ...Object.entries(d.names_i18n || {}),
+].filter(([, n]) => n) as [string, string][];
+
+const t = de
+  ? {
+      suffix: "BMW-CarData-Deskriptor",
+      what: "Was BMW dazu sagt",
+      facts: "Auf einen Blick",
+      section: "Bereich",
+      category: "Kategorie",
+      type: "Datentyp",
+      unit: "Einheit",
+      values: "Werte",
+      delivery: "Lieferung",
+      live: "Live über den MQTT-Stream, sobald das Auto den Wert sendet",
+      rest: "Nicht über den Stream; die Integration holt den Wert einmal täglich per REST",
+      inHa: "In Home Assistant",
+      inHaBody: `BavarianData legt dafür eine Entität namens „${name}“ an, mit passender Einheit und Geräteklasse. ` +
+        (d.streamable
+          ? "Damit sie Werte bekommt, muss der Deskriptor in BMWs Datenauswahl aktiviert sein; der Einrichtungsassistent erledigt das mit einem Klick."
+          : "BMW kann diesen Wert nicht streamen, deshalb holt ihn die tägliche Aktualisierung, die alle solchen Felder mit einer einzigen Anfrage abdeckt."),
+      setup: "So richtest du es ein",
+      names: "Name in jeder Sprache",
+      related: "Mehr aus dieser Kategorie",
+      back: "Alle Deskriptoren",
+      source: "Beschreibung aus BMWs CarData-Katalog.",
+    }
+  : {
+      suffix: "BMW CarData descriptor",
+      what: "What BMW says about it",
+      facts: "At a glance",
+      section: "Section",
+      category: "Category",
+      type: "Data type",
+      unit: "Unit",
+      values: "Values",
+      delivery: "Delivery",
+      live: "Live over the MQTT stream, as soon as the car sends it",
+      rest: "Not on the stream; the integration fetches it once a day over REST",
+      inHa: "In Home Assistant",
+      inHaBody: `BavarianData creates an entity called “${name}” for it, with the right unit and device class. ` +
+        (d.streamable
+          ? "For it to receive values, the descriptor has to be switched on in BMW's Data Selection; the setup wizard does that in one click."
+          : "BMW can't stream this one, so the integration's daily refresh fetches it, covering all such fields in a single request."),
+      setup: "How to set it up",
+      names: "Its name in every language",
+      related: "More from this category",
+      back: "All descriptors",
+      source: "Description from BMW's CarData catalogue.",
+    };
+const title = `${name}: ${d.descriptor}`;
+// BMW's own text is sometimes a few words; a search result needs a full line.
+const extra = de
+  ? `${name} in Home Assistant: ${d.streamable ? "live über den CarData-Stream" : "täglich per REST"}${d.unit ? `, in ${d.unit}` : ""}, mit Namen in zehn Sprachen.`
+  : `${name} in Home Assistant: ${d.streamable ? "live over the CarData stream" : "fetched daily over REST"}${d.unit ? `, in ${d.unit}` : ""}, named in ten languages.`;
+const base = text ? (/[.!?]$/.test(text) ? text : `${text}.`) : "";
+const description = summary(base.length >= 110 ? base : `${base} ${extra}`.trim());
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "DefinedTerm",
+    name,
+    alternateName: d.descriptor,
+    termCode: d.descriptor,
+    description: text || undefined,
+    url: absolute(localized(path, lang)),
+    inLanguage: lang,
+    inDefinedTermSet: { "@type": "DefinedTermSet", name: "BMW CarData telematics descriptors", url: absolute(localized("data", lang)) },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "BavarianData", item: absolute(localized("", lang)) },
+      { "@type": "ListItem", position: 2, name: t.back, item: absolute(localized("data", lang)) },
+      { "@type": "ListItem", position: 3, name, item: absolute(localized(path, lang)) },
+    ],
+  },
+];
+---
+<Base lang={lang} title={`${title} | ${t.suffix}`} rawTitle description={description} path={path} jsonLd={jsonLd} ogType="article">
+  <main id="main" class="wrap entry" data-pagefind-body>
+    <p class="entry__crumb"><a href={url(localized("data", lang))}>{t.back}</a> / {SECTION_LABELS[lang][d.section] || d.section_label}</p>
+    <h1>{name}</h1>
+    <p class="entry__code"><code>{d.descriptor}</code></p>
+
+    <div class="entry__grid">
+      <div class="entry__main">
+        {text && (
+          <section>
+            <h2>{t.what}</h2>
+            <p class="entry__desc">{text}</p>
+            <p class="entry__src">{t.source}</p>
+          </section>
+        )}
+        <section>
+          <h2>{t.inHa}</h2>
+          <p>{t.inHaBody}</p>
+          <p><a href={url(localized(d.streamable ? "docs/choose-data" : "docs/api-quota", lang))}>{t.setup}</a></p>
+        </section>
+        <section>
+          <h2>{t.names}</h2>
+          <dl class="entry__names">
+            {names.map(([code, n]) => (
+              <div><dt lang={code}>{LANGUAGE_NAMES[code] || code}</dt><dd lang={code}>{n}</dd></div>
+            ))}
+          </dl>
+        </section>
+      </div>
+
+      <aside class="entry__facts">
+        <h2>{t.facts}</h2>
+        <dl>
+          <div><dt>{t.delivery}</dt><dd><span class:list={["pill", d.streamable ? "pill--live" : "pill--rest"]}>{d.streamable ? "Stream" : "REST"}</span> {d.streamable ? t.live : t.rest}</dd></div>
+          <div><dt>{t.section}</dt><dd>{SECTION_LABELS[lang][d.section] || d.section_label}</dd></div>
+          {d.category && <div><dt>{t.category}</dt><dd>{d.category}</dd></div>}
+          {d.data_type && <div><dt>{t.type}</dt><dd><code>{d.data_type}</code></dd></div>}
+          {d.unit && <div><dt>{t.unit}</dt><dd>{d.unit}</dd></div>}
+          {values && <div><dt>{t.values}</dt><dd class="entry__values">{values}</dd></div>}
+        </dl>
+      </aside>
+    </div>
+
+    {related.length > 0 && (
+      <nav class="entry__related" aria-label={t.related}>
+        <h2>{t.related}</h2>
+        <ul>
+          {related.map((r) => (
+            <li><a href={url(localized(`data/${r.descriptor}`, lang))}>{nameOf(r, lang)}</a><code>{r.descriptor}</code></li>
+          ))}
+        </ul>
+      </nav>
+    )}
+  </main>
+</Base>
+
+<style>
+  .entry {
+    padding-top: 40px;
+  }
+  .entry__crumb {
+    margin: 0 0 14px;
+    color: var(--slate);
+    font-size: 0.92rem;
+  }
+  .entry h1 {
+    font-size: var(--step-3);
+    max-width: 24ch;
+  }
+  .entry__code {
+    margin: 12px 0 0;
+  }
+  .entry__code code {
+    font-size: 0.95rem;
+    color: var(--brand);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 4px 10px;
+    border-radius: 8px;
+    overflow-wrap: anywhere;
+  }
+  .entry__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 56px;
+    margin-top: 40px;
+    align-items: start;
+  }
+  .entry h2 {
+    font-size: 1.15rem;
+    font-stretch: 106%;
+    margin-bottom: 10px;
+  }
+  .entry section + section {
+    margin-top: 36px;
+  }
+  .entry__main p {
+    color: var(--ink-soft);
+    max-width: 66ch;
+    margin: 0 0 10px;
+  }
+  .entry__desc {
+    font-size: var(--step-1);
+    line-height: 1.55;
+  }
+  .entry__src {
+    font-size: 0.85rem;
+    color: var(--slate) !important;
+  }
+  .entry__names {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 10px;
+    margin: 0;
+  }
+  .entry__names div {
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  .entry__names dt {
+    font-size: 0.8rem;
+    color: var(--slate);
+  }
+  .entry__names dd {
+    margin: 2px 0 0;
+    color: var(--ink);
+  }
+  .entry__facts {
+    position: sticky;
+    top: 88px;
+    padding: 22px;
+    border-radius: var(--radius-l);
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  .entry__facts dl {
+    margin: 0;
+    display: grid;
+    gap: 14px;
+  }
+  .entry__facts dt {
+    font-size: 0.82rem;
+    color: var(--slate);
+  }
+  .entry__facts dd {
+    margin: 3px 0 0;
+    color: var(--ink);
+    font-size: 0.95rem;
+  }
+  .entry__values {
+    overflow-wrap: anywhere;
+    font-family: var(--mono);
+    font-size: 0.82rem !important;
+  }
+  .pill {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 650;
+    padding: 1px 9px;
+    border-radius: 999px;
+    margin-right: 4px;
+  }
+  .pill--live {
+    color: var(--charge);
+    background: color-mix(in oklab, var(--charge) 14%, transparent);
+  }
+  .pill--rest {
+    color: var(--slate);
+    background: var(--surface-2);
+  }
+  .entry__related {
+    margin-top: 64px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+  }
+  .entry__related ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 4px 24px;
+  }
+  .entry__related li {
+    display: grid;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .entry__related a {
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .entry__related code {
+    font-size: 0.76rem;
+    color: var(--slate);
+    overflow-wrap: anywhere;
+  }
+  @media (max-width: 900px) {
+    .entry__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .entry__facts {
+      position: static;
+      order: -1;
+    }
+  }
+</style>

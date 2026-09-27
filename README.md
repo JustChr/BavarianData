@@ -52,13 +52,17 @@ charge really drew from the grid.
 > as the trigger for a safety-critical automation. Track `main`; other branches
 > may be broken at any time.
 
-## 📖 Full documentation → the [Wiki](https://github.com/JustChr/BavarianData/wiki)
+## 📖 Full documentation → [justchr.github.io/BavarianData](https://justchr.github.io/BavarianData/)
 
 The complete manual — every screen, card view, setting, service and feature —
-lives in the **[Wiki](https://github.com/JustChr/BavarianData/wiki)**. This
-README is the quick overview.
+lives on the **[website](https://justchr.github.io/BavarianData/docs/)** (also in the
+[Wiki](https://github.com/JustChr/BavarianData/wiki); German:
+[Handbuch](https://justchr.github.io/BavarianData/de/docs/)). The website also runs the real card on a demo car
+and lists [every descriptor BMW CarData can send](https://justchr.github.io/BavarianData/data/). This README is
+the quick overview.
 
-- [Getting started](https://github.com/JustChr/BavarianData/wiki/Home#start-here) · [The dashboard card](https://github.com/JustChr/BavarianData/wiki/The-Dashboard-Card) · [Settings](https://github.com/JustChr/BavarianData/wiki/Settings-Reference) · [Services](https://github.com/JustChr/BavarianData/wiki/Services-Reference) · [Troubleshooting](https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ)
+- [Getting started](https://justchr.github.io/BavarianData/docs/bmw-portal-setup/) · [The dashboard card](https://justchr.github.io/BavarianData/docs/dashboard-card/) · [Settings](https://justchr.github.io/BavarianData/docs/settings/) · [Services](https://justchr.github.io/BavarianData/docs/services/) · [Troubleshooting](https://justchr.github.io/BavarianData/docs/troubleshooting/)
+- Coming from the old **BMW Connected Drive** integration? → [Switching to BMW CarData](https://justchr.github.io/BavarianData/docs/coming-from-bimmer-connected/)
 
 ## Requirements
 

@@ -16,6 +16,9 @@ see the [README](https://github.com/JustChr/BavarianData#readme).
 
 ## Start here
 
+Used the old *BMW Connected Drive* integration? Read
+[Coming from bimmer_connected](Coming-from-bimmer_connected) first.
+
 New install? Follow the five steps in order:
 
 1. [BMW portal setup](Getting-Started-1-BMW-Portal-Setup) — client ID + scopes

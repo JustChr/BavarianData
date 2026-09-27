@@ -17,6 +17,9 @@ die Installation auf einen Blick findest du in der
 
 ## Hier starten
 
+Bisher die alte Integration *BMW Connected Drive* genutzt? Lies zuerst
+[Umstieg von bimmer_connected](DE-Coming-from-bimmer_connected).
+
 Neu installiert? Folge den fünf Schritten der Reihe nach:
 
 1. [Einrichtung im BMW-Portal](DE-Getting-Started-1-BMW-Portal-Setup) — Client-ID und Berechtigungen

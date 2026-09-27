@@ -1,0 +1,300 @@
+---
+// Every descriptor in BMW's catalogue, server-rendered (so it's all crawlable)
+// with a filter that only hides rows.
+import Base from "../layouts/Base.astro";
+import { DESCRIPTORS, SECTION_ORDER, SECTION_LABELS, nameOf } from "../lib/catalogue";
+import { url, localized, absolute, type Lang } from "../lib/site";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const de = lang === "de";
+const count = DESCRIPTORS.length;
+const live = DESCRIPTORS.filter((d) => d.streamable).length;
+const t = de
+  ? {
+      title: "BMW-CarData-Datenkatalog: alle Telematik-Deskriptoren",
+      description: `Alle ${count} Deskriptoren, die BMW CarData liefert, mit Namen, Einheit, Wertebereich und ob sie live gestreamt werden. Durchsuchbar, auf Deutsch und Englisch.`,
+      h1: "Was dein BMW senden kann",
+      lead: `BMWs CarData-Katalog beschreibt ${count} Deskriptoren. ${live} davon kommen live über den Stream, der Rest nur per REST-Abfrage. BavarianData macht aus jedem eine Home-Assistant-Entität.`,
+      filter: "Filtern",
+      placeholder: "Name oder Deskriptor, z. B. Reifendruck",
+      all: "Alle",
+      name: "Name",
+      code: "Deskriptor",
+      unit: "Einheit",
+      delivery: "Lieferung",
+      stream: "Stream",
+      rest: "Nur REST",
+      none: "Kein Deskriptor passt. Versuch einen kürzeren Suchbegriff.",
+      shown: "angezeigt",
+    }
+  : {
+      title: "BMW CarData data reference: every telematics descriptor",
+      description: `All ${count} descriptors BMW CarData delivers, with their names, units, value ranges and whether they are streamed live. Searchable, in English and German.`,
+      h1: "What your BMW can send",
+      lead: `BMW's CarData catalogue describes ${count} descriptors. ${live} of them arrive live over the stream; the rest only through a REST request. BavarianData turns each one into a Home Assistant entity.`,
+      filter: "Filter",
+      placeholder: "Name or descriptor, e.g. tire pressure",
+      all: "All",
+      name: "Name",
+      code: "Descriptor",
+      unit: "Unit",
+      delivery: "Delivery",
+      stream: "Stream",
+      rest: "REST only",
+      none: "No descriptor matches. Try a shorter search.",
+      shown: "shown",
+    };
+const sections = SECTION_ORDER.filter((s) => DESCRIPTORS.some((d) => d.section === s));
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "DefinedTermSet",
+    name: t.title,
+    description: t.description,
+    url: absolute(localized("data", lang)),
+    inLanguage: lang,
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "BavarianData", item: absolute(localized("", lang)) },
+      { "@type": "ListItem", position: 2, name: t.h1, item: absolute(localized("data", lang)) },
+    ],
+  },
+];
+---
+<Base lang={lang} title={t.title} description={t.description} path="data" jsonLd={jsonLd}>
+  <main id="main" class="wrap data" data-pagefind-body>
+    <h1>{t.h1}</h1>
+    <p class="data__lead">{t.lead}</p>
+
+    <div class="data__tools" data-filter-root>
+      <label class="data__search">
+        <span class="visually-hidden">{t.filter}</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg>
+        <input type="search" placeholder={t.placeholder} data-filter-input autocomplete="off" />
+      </label>
+      <div class="data__chips" role="group" aria-label={t.filter}>
+        <button type="button" data-section="" aria-pressed="true">{t.all}</button>
+        {sections.map((s) => (
+          <button type="button" data-section={s} aria-pressed="false">{SECTION_LABELS[lang][s]}</button>
+        ))}
+      </div>
+      <p class="data__count" aria-live="polite"><span data-filter-count>{count}</span> {t.shown}</p>
+    </div>
+
+    <div class="data__table">
+      <table>
+        <thead>
+          <tr><th>{t.name}</th><th>{t.code}</th><th>{t.unit}</th><th>{t.delivery}</th></tr>
+        </thead>
+        <tbody>
+          {DESCRIPTORS.map((d) => (
+            <tr data-row data-section={d.section} data-text={`${d.descriptor} ${d.title_en} ${d.name_de} ${Object.values(d.names_i18n || {}).join(" ")}`.toLowerCase()}>
+              <td><a href={url(localized(`data/${d.descriptor}`, lang))}>{nameOf(d, lang)}</a></td>
+              <td><code>{d.descriptor}</code></td>
+              <td>{d.unit || "—"}</td>
+              <td><span class:list={["pill", d.streamable ? "pill--live" : "pill--rest"]}>{d.streamable ? t.stream : t.rest}</span></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p class="data__none" data-filter-none hidden>{t.none}</p>
+    </div>
+  </main>
+</Base>
+
+<script>
+  const root = document.querySelector<HTMLElement>("[data-filter-root]");
+  if (root) {
+    const input = root.querySelector<HTMLInputElement>("[data-filter-input]")!;
+    const rows = [...document.querySelectorAll<HTMLTableRowElement>("[data-row]")];
+    const count = root.querySelector("[data-filter-count]")!;
+    const none = document.querySelector<HTMLElement>("[data-filter-none]")!;
+    let section = "";
+    const apply = () => {
+      const words = input.value.toLowerCase().split(/\s+/).filter(Boolean);
+      let shown = 0;
+      for (const row of rows) {
+        const text = row.dataset.text || "";
+        const ok = (!section || row.dataset.section === section) && words.every((w) => text.includes(w));
+        row.hidden = !ok;
+        if (ok) shown++;
+      }
+      count.textContent = String(shown);
+      none.hidden = shown > 0;
+    };
+    input.addEventListener("input", apply);
+    root.querySelectorAll<HTMLButtonElement>("[data-section]").forEach((b) =>
+      b.addEventListener("click", () => {
+        section = b.dataset.section || "";
+        root.querySelectorAll("[data-section]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+        apply();
+      })
+    );
+    const q = new URLSearchParams(location.search).get("q");
+    if (q) {
+      input.value = q;
+      apply();
+    }
+  }
+</script>
+
+<style>
+  .data {
+    padding-top: 48px;
+  }
+  .data h1 {
+    font-size: var(--step-4);
+    max-width: 16ch;
+  }
+  .data__lead {
+    font-size: var(--step-1);
+    color: var(--ink-soft);
+    max-width: 58ch;
+    margin: 20px 0 0;
+  }
+  .data__tools {
+    position: sticky;
+    top: 64px;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px 20px;
+    align-items: center;
+    margin-top: 40px;
+    padding: 16px 0;
+    background: var(--frost);
+  }
+  .data__search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 16px;
+    height: 48px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .data__search:focus-within {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand) 25%, transparent);
+  }
+  .data__search svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: var(--slate);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+  }
+  .data__search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    color: var(--ink);
+    outline: none;
+  }
+  .data__count {
+    margin: 0;
+    color: var(--slate);
+    font-size: 0.92rem;
+  }
+  .data__chips {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .data__chips button {
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 550;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-soft);
+    border-radius: 999px;
+    padding: 5px 12px;
+    cursor: pointer;
+  }
+  .data__chips button[aria-pressed="true"] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--frost);
+  }
+  .data__table {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface);
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.94rem;
+  }
+  th,
+  td {
+    text-align: left;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: baseline;
+  }
+  th {
+    font-size: 0.84rem;
+    color: var(--slate);
+    font-weight: 600;
+    background: var(--surface-2);
+  }
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  td a {
+    font-weight: 600;
+    text-decoration: none;
+  }
+  td a:hover {
+    text-decoration: underline;
+  }
+  td code {
+    font-size: 0.8rem;
+    color: var(--slate);
+    overflow-wrap: anywhere;
+  }
+  .pill {
+    display: inline-block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .pill--live {
+    color: var(--charge);
+    background: color-mix(in oklab, var(--charge) 14%, transparent);
+  }
+  .pill--rest {
+    color: var(--slate);
+    background: var(--surface-2);
+  }
+  .data__none {
+    padding: 24px 16px;
+    margin: 0;
+    color: var(--slate);
+  }
+  @media (max-width: 700px) {
+    .data__tools {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    th:nth-child(3),
+    td:nth-child(3) {
+      display: none;
+    }
+  }
+</style>

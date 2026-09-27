@@ -30,3 +30,15 @@ updates:
       interval: monthly
     commit-message:
       prefix: "ci"
+
+  # The website (site/). Grouped so a month of Astro/Leaflet/font bumps is one
+  # PR; the Website workflow builds and link-checks it before merge.
+  - package-ecosystem: npm
+    directory: "/site"
+    schedule:
+      interval: monthly
+    groups:
+      site:
+        patterns: ["*"]
+    commit-message:
+      prefix: "site"

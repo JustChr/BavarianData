@@ -3,6 +3,7 @@
 [Home](Home)
 
 **Getting started**
+- [Coming from bimmer_connected](Coming-from-bimmer_connected)
 - [1. BMW portal setup](Getting-Started-1-BMW-Portal-Setup)
 - [2. Install](Getting-Started-2-Install)
 - [3. Add & authorize](Getting-Started-3-Add-and-Authorize)
@@ -37,6 +38,7 @@
 [Startseite](DE-Home)
 
 **Erste Schritte**
+- [Umstieg von bimmer_connected](DE-Coming-from-bimmer_connected)
 - [1. Einrichtung im BMW-Portal](DE-Getting-Started-1-BMW-Portal-Setup)
 - [2. Installation](DE-Getting-Started-2-Install)
 - [3. Hinzufügen & autorisieren](DE-Getting-Started-3-Add-and-Authorize)

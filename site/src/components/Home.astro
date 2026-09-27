@@ -1,0 +1,626 @@
+---
+import Base from "../layouts/Base.astro";
+import CardDemo from "./CardDemo.astro";
+import Stream from "./Stream.astro";
+import Flow from "./Flow.astro";
+import LiveCard from "./LiveCard.astro";
+import { url, localized, absolute, RELEASE, HA_MIN, DESCRIPTOR_COUNT, HACS_REDIRECT, REPO, SITE_URL, type Lang } from "../lib/site";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const de = lang === "de";
+const L = (path: string) => url(localized(path, lang));
+const copy = de
+  ? {
+      title: "BavarianData: BMW CarData live in Home Assistant einbinden",
+      description:
+        "Home-Assistant-Integration für BMW CarData: Live-Daten deines BMW oder MINI per MQTT-Stream, Ladeverlauf mit Kosten, Fahrtenbuch und Batteriezustand. Kostenlos, aus HACS.",
+      h1: "Dein BMW, live in Home Assistant.",
+      lead: "BavarianData verbindet Home Assistant direkt mit BMW CarData, BMWs offiziellem Datendienst. Ladezustand, Türen, Reifen und Position kommen über einen Live-Stream binnen Sekunden an, und daraus entstehen Ladeverlauf, Fahrtenbuch und Batteriezustand.",
+      install: "Aus HACS installieren",
+      guide: "Einrichtung lesen",
+      facts: ["Im HACS-Standard-Store", "Kostenlos, MIT-Lizenz", "Nur lesend: steuert nie das Auto", "BMW und MINI"],
+      switchTitle: "Die Connected-Drive-Integration zeigt nur noch „nicht verfügbar“?",
+      switchBody:
+        "BMW hat sie am 29. September 2025 gesperrt. BMW CarData ist der offizielle Nachfolger. So ziehst du Dashboards und Automationen um.",
+      switchCta: "Zum Umstieg",
+      flowTitle: "Direkt vom Auto in dein Zuhause",
+      flowPoints: [
+        ["Keine Cloud dazwischen", "Home Assistant hält die Tokens und ist der einzige Client. Kein fremder Server sieht deine Daten."],
+        ["Deine eigene Client-ID", "Du legst sie im BMW-Portal an und autorisierst sie einmal im Browser. Home Assistant speichert kein Passwort."],
+        ["Live statt abgefragt", "Der MQTT-Stream liefert jeden Wert, sobald das Auto ihn sendet, und kostet kein API-Kontingent."],
+        ["Nur lesend", "CarData hat keine Befehlsschnittstelle. Verriegeln oder Klimatisieren bleibt in der MyBMW-App."],
+      ],
+      moreTitle: "Mehr als die Rohdaten",
+      moreLead: "Alles hier wird aus dem Stream berechnet, in Home Assistant gespeichert und verbraucht keine einzige API-Anfrage.",
+      features: [
+        {
+          title: "Ladeverlauf und Kosten",
+          body: "Jeder Ladevorgang mit Energie, Kosten aus deinem Tarif, Leistungskurve und woher der Strom kam: Solar, Hausbatterie oder Netz.",
+          link: "docs/charging-history-and-cost",
+          view: "charging",
+        },
+        {
+          title: "Fahrtenbuch",
+          body: "Jede Fahrt erkannt, mit Strecke, Energie, Start und Ziel, eingeteilt in geschäftlich, privat oder Arbeitsweg, und auf einer Karte.",
+          link: "docs/trips",
+          view: "trips",
+        },
+        {
+          title: "Reale Reichweite",
+          body: "Verbrauch aus deinem eigenen Fahren gemessen, und die Reichweite, die daraus folgt, direkt neben der Prognose des Autos.",
+          link: "docs/efficiency-and-range",
+          view: "efficiency",
+        },
+      ],
+      extras: [
+        ["Batteriezustand", "Die nutzbare Kapazität, gelernt aus echten Ladevorgängen, mit Trend über die Laufleistung.", "docs/battery-health"],
+        ["Energie-Dashboard", "Ladeenergie, Kosten und Strecke als Langzeitstatistik, auch rückwirkend.", "docs/energy-and-statistics"],
+        ["evcc- und Wallbox-Brücke", "Der Live-Ladezustand per MQTT für evcc oder openWB.", "docs/evcc-and-wallbox-bridge"],
+        ["Export als CSV oder PDF", "Ein Monat Laden oder Fahren, als Tabelle oder druckbarer Bericht.", "docs/export"],
+        ["Automationen", "Trigger für Ladebeginn, -ende und Ankunft, dazu fertige Blueprints.", "docs/automations"],
+        ["In deiner Sprache", "Entitätsnamen in zehn Sprachen, direkt aus BMWs eigenem Katalog.", "docs/entities-and-devices"],
+      ],
+      streamTitle: "Was das Auto sendet",
+      streamBody: `Jede Zeile ist ein Wert aus BMWs CarData-Stream. BavarianData macht aus jedem eine Home-Assistant-Entität mit passender Einheit, Geräteklasse und einem Namen in deiner Sprache.`,
+      streamLink: `Alle ${DESCRIPTOR_COUNT} Deskriptoren ansehen`,
+      setupTitle: "In vier Schritten eingerichtet",
+      steps: [
+        ["CarData-Client anlegen", "Im BMW- oder MINI-Portal einen Client erstellen und CarData API und Streaming abonnieren.", "docs/bmw-portal-setup"],
+        ["Aus HACS installieren", `BavarianData im HACS-Standard-Store suchen, installieren, Home Assistant neu starten. Ab Home Assistant ${HA_MIN}.`, "docs/install"],
+        ["Hinzufügen und autorisieren", "Integration hinzufügen und dein BMW-Konto einmal im Browser freigeben.", "docs/add-and-authorize"],
+        ["Daten wählen, Karte platzieren", "Festlegen, was das Auto streamt, und die Karte auf ein Dashboard legen.", "docs/choose-data"],
+      ],
+      faqTitle: "Häufige Fragen",
+      faq: [
+        ["Was kostet das?", "Nichts. BavarianData ist Open Source unter der MIT-Lizenz, und BMW CarData ist für dein eigenes Auto kostenlos."],
+        ["Kann es das Auto verriegeln oder die Klimatisierung starten?", "Nein. CarData ist nur lesend und hat keine Befehlsschnittstelle, keine CarData-Integration kann das Auto steuern. Dafür bleibt die MyBMW-App."],
+        ["Welche Autos funktionieren?", "BMW- und MINI-Autos, die CarData unterstützen, elektrisch, als Plug-in-Hybrid oder mit Verbrenner. Die Karte passt sich dem Antrieb an. BMW-Motorräder streamen keine Daten."],
+        ["Wo ist es verfügbar?", "Überall dort, wo BMW das CarData-Portal für dein Konto anbietet. Die Client-ID gilt für das ganze Konto und jedes Auto darin."],
+        ["Braucht es mein MyBMW-Passwort?", "Nein. Du autorisierst deinen eigenen Client einmal im Browser, Home Assistant bekommt nur Tokens und erneuert sie selbst."],
+        ["Gibt es ein Limit?", "BMW erlaubt 50 REST-Anfragen pro 24 Stunden. Der Live-Stream zählt nicht dazu, und die Integration geht sparsam mit dem Rest um."],
+        ["Kann ich es neben einer anderen CarData-Integration nutzen?", "BMW erlaubt einen Stream pro Konto. Zwei Stream-Clients am selben Konto werfen sich gegenseitig hinaus, also entscheide dich für einen."],
+      ],
+      demoLabel: "Probier die Karte aus",
+    }
+  : {
+      title: "BavarianData: BMW CarData in Home Assistant, live",
+      description:
+        "Home Assistant integration for BMW CarData: live data from your BMW or MINI over MQTT, charging history with cost, a trip journal and battery health. Free, from HACS.",
+      h1: "Your BMW, live in Home Assistant.",
+      lead: "BavarianData connects Home Assistant directly to BMW CarData, BMW's official data service. Charge level, doors, tires and position arrive over a live stream within seconds, and a charging history, trip journal and battery-health figure are built from it.",
+      install: "Install from HACS",
+      guide: "Read the setup guide",
+      facts: ["In the HACS default store", "Free, MIT licensed", "Read-only: never commands the car", "BMW and MINI"],
+      switchTitle: "Is the Connected Drive integration stuck on “unavailable”?",
+      switchBody:
+        "BMW blocked it on 29 September 2025. BMW CarData is the official successor. Here's how to move your dashboards and automations across.",
+      switchCta: "See how to switch",
+      flowTitle: "Straight from the car to your home",
+      flowPoints: [
+        ["No cloud in between", "Home Assistant holds the tokens and is the only client. No third-party server ever sees your data."],
+        ["Your own client ID", "You create it in the BMW portal and authorize it once in the browser. Home Assistant stores no password."],
+        ["Live, not polled", "The MQTT stream delivers each value as soon as the car sends it, and costs no API quota."],
+        ["Read-only", "CarData has no command interface. Locking or climate control stays in the MyBMW app."],
+      ],
+      moreTitle: "More than the raw data",
+      moreLead: "Everything here is computed from the stream, stored in Home Assistant, and spends not a single API request.",
+      features: [
+        {
+          title: "Charging history and cost",
+          body: "Every charge with its energy, cost from your tariff, power curve, and where the electricity came from: solar, house battery or grid.",
+          link: "docs/charging-history-and-cost",
+          view: "charging",
+        },
+        {
+          title: "Trip journal",
+          body: "Every drive detected, with distance, energy, where it started and ended, sorted into business, private or commute, and drawn on a map.",
+          link: "docs/trips",
+          view: "trips",
+        },
+        {
+          title: "Real range",
+          body: "Consumption measured from your own driving, and the range that follows from it, right next to the car's own prediction.",
+          link: "docs/efficiency-and-range",
+          view: "efficiency",
+        },
+      ],
+      extras: [
+        ["Battery health", "Usable capacity learned from real charging sessions, with its trend over mileage.", "docs/battery-health"],
+        ["Energy dashboard", "Charging energy, cost and distance as long-term statistics, back-filled too.", "docs/energy-and-statistics"],
+        ["evcc and wallbox bridge", "The live charge level over MQTT for evcc or openWB.", "docs/evcc-and-wallbox-bridge"],
+        ["Export to CSV or PDF", "A month of charging or driving, as a spreadsheet or a printable report.", "docs/export"],
+        ["Automations", "Triggers for charging started, finished and arrivals, plus ready-made blueprints.", "docs/automations"],
+        ["In your language", "Entity names in ten languages, straight from BMW's own catalogue.", "docs/entities-and-devices"],
+      ],
+      streamTitle: "What the car sends",
+      streamBody: `Each line is a value from BMW's CarData stream. BavarianData turns every one of them into a Home Assistant entity with the right unit, device class and a name in your language.`,
+      streamLink: `Browse all ${DESCRIPTOR_COUNT} descriptors`,
+      setupTitle: "Set up in four steps",
+      steps: [
+        ["Create a CarData client", "In the BMW or MINI portal, create a client and subscribe it to CarData API and Streaming.", "docs/bmw-portal-setup"],
+        ["Install from HACS", `Find BavarianData in the HACS default store, install it, restart Home Assistant. Needs Home Assistant ${HA_MIN} or newer.`, "docs/install"],
+        ["Add and authorize", "Add the integration and approve your BMW account once in the browser.", "docs/add-and-authorize"],
+        ["Pick data, place the card", "Choose what the car streams and put the card on a dashboard.", "docs/choose-data"],
+      ],
+      faqTitle: "Questions people ask",
+      faq: [
+        ["What does it cost?", "Nothing. BavarianData is open source under the MIT license, and BMW CarData is free for your own car."],
+        ["Can it lock the car or start the climate?", "No. CarData is read-only and has no command interface, so no CarData integration can control the car. Use the MyBMW app for that."],
+        ["Which cars work?", "BMW and MINI cars that support CarData: electric, plug-in hybrid or combustion. The card adapts to the drivetrain. BMW motorcycles stream no data."],
+        ["Where is it available?", "Wherever BMW offers the CarData portal for your account. The client ID is account-wide and covers every car on it."],
+        ["Does it need my MyBMW password?", "No. You authorize your own client once in the browser; Home Assistant only receives tokens and refreshes them itself."],
+        ["Is there a limit?", "BMW allows 50 REST requests per 24 hours. The live stream doesn't count against it, and the integration spends the rest sparingly."],
+        ["Can I run it next to another CarData integration?", "BMW allows one stream per account. Two stream clients on the same account keep knocking each other off, so pick one."],
+      ],
+      demoLabel: "Try the card",
+    };
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "BavarianData",
+    alternateName: "BavarianData: Connect Home Assistant to BMW CarData",
+    description: copy.description,
+    url: absolute(localized("", lang)),
+    applicationCategory: "Home automation",
+    applicationSubCategory: "Home Assistant integration",
+    operatingSystem: `Home Assistant ${HA_MIN} or newer`,
+    ...(RELEASE.version ? { softwareVersion: RELEASE.version, datePublished: RELEASE.date } : {}),
+    offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+    isAccessibleForFree: true,
+    license: "https://opensource.org/licenses/MIT",
+    codeRepository: REPO,
+    downloadUrl: `${REPO}/releases`,
+    installUrl: HACS_REDIRECT,
+    screenshot: `${SITE_URL}${url("screenshots/wattfried-car.webp")}`,
+    inLanguage: ["en", "de", "fr", "it", "es", "nl", "pl", "pt", "cs", "sv"],
+    author: { "@type": "Person", name: "JustChr", url: "https://github.com/JustChr" },
+    featureList: [...copy.features.map((f) => f.title), ...copy.extras.map((e) => e[0])],
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "BavarianData",
+    url: absolute(localized("", lang)),
+    inLanguage: lang,
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: copy.faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
+  },
+];
+---
+<Base lang={lang} title={copy.title} description={copy.description} path="" jsonLd={jsonLd} rawTitle>
+  <main id="main" data-pagefind-body>
+    <section class="hero">
+      <div class="hero__waves" aria-hidden="true">
+        <svg viewBox="0 0 1440 600" preserveAspectRatio="none">
+          <path class="w1" d="M-40 360 C 240 250, 480 470, 760 370 S 1220 250, 1480 330" />
+          <path class="w2" d="M-40 420 C 240 310, 480 530, 760 430 S 1220 310, 1480 390" />
+        </svg>
+      </div>
+      <div class="wrap hero__grid">
+        <div class="hero__copy">
+          <h1 class="display">{copy.h1}</h1>
+          <p class="hero__lead">{copy.lead}</p>
+          <div class="hero__cta">
+            <a class="btn btn--primary" href={HACS_REDIRECT}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3 2 11h3v9h5v-6h4v6h5v-9h3L12 3Z" /></svg>
+              {copy.install}
+            </a>
+            <a class="btn btn--quiet" href={L("docs/bmw-portal-setup")}>{copy.guide}</a>
+          </div>
+          <ul class="hero__facts">
+            {copy.facts.map((f) => <li>{f}</li>)}
+          </ul>
+        </div>
+        <div class="hero__demo">
+          <CardDemo lang={lang} />
+        </div>
+      </div>
+    </section>
+
+    <Stream lang={lang} title={copy.streamTitle} body={copy.streamBody} link={copy.streamLink} />
+
+    <section class="wrap switch">
+      <div>
+        <h2>{copy.switchTitle}</h2>
+        <p>{copy.switchBody}</p>
+      </div>
+      <a class="btn btn--quiet" href={L("docs/coming-from-bimmer-connected")}>{copy.switchCta}</a>
+    </section>
+
+    <section class="wrap flow">
+      <h2>{copy.flowTitle}</h2>
+      <Flow lang={lang} />
+      <dl class="flow__points">
+        {copy.flowPoints.map(([t, d]) => (
+          <div>
+            <dt>{t}</dt>
+            <dd>{d}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+
+    <section class="wrap more">
+      <h2>{copy.moreTitle}</h2>
+      <p class="more__lead">{copy.moreLead}</p>
+      {copy.features.map((f, i) => (
+        <article class:list={["feature", { "feature--flip": i % 2 === 1 }]}>
+          <div class="feature__text">
+            <h3>{f.title}</h3>
+            <p>{f.body}</p>
+            <a href={L(f.link)}>{de ? "So funktioniert es" : "How it works"}</a>
+          </div>
+          <div class="feature__shot">
+            <LiveCard lang={lang} config={{ view: f.view }} label={f.title} minHeight={420} maxHeight={f.view === "efficiency" ? undefined : 640} />
+          </div>
+        </article>
+      ))}
+      <ul class="extras">
+        {copy.extras.map(([t, d, link]) => (
+          <li>
+            <a href={L(link)}><strong>{t}</strong></a>
+            <span>{d}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="wrap setup">
+      <h2>{copy.setupTitle}</h2>
+      <ol class="steps">
+        {copy.steps.map(([t, d, link]) => (
+          <li>
+            <h3><a href={L(link)}>{t}</a></h3>
+            <p>{d}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="wrap faq">
+      <h2>{copy.faqTitle}</h2>
+      <div class="faq__list">
+        {copy.faq.map(([q, a]) => (
+          <details>
+            <summary>{q}</summary>
+            <p>{a}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .hero {
+    position: relative;
+    padding-block: clamp(36px, 6vw, 80px) 56px;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .hero__waves {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .hero__waves svg {
+    width: 100%;
+    height: 100%;
+  }
+  .hero__waves path {
+    fill: none;
+    stroke-linecap: round;
+  }
+  .hero__waves .w1 {
+    stroke: color-mix(in oklab, var(--ink) 7%, transparent);
+    stroke-width: 34;
+  }
+  .hero__waves .w2 {
+    stroke: color-mix(in oklab, var(--sky) 38%, transparent);
+    stroke-width: 42;
+  }
+  .hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 540px);
+    gap: clamp(32px, 5vw, 72px);
+    align-items: start;
+  }
+  .hero__copy {
+    padding-top: clamp(8px, 4vw, 56px);
+  }
+  .hero h1 {
+    font-size: var(--step-4);
+    line-height: 1.02;
+    max-width: 12ch;
+  }
+  .hero__lead {
+    margin: 24px 0 0;
+    font-size: var(--step-1);
+    line-height: 1.5;
+    color: var(--ink-soft);
+    max-width: 38ch;
+  }
+  .hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 32px;
+  }
+  .hero__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+    margin: 28px 0 0;
+  }
+  .hero__facts li {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    background: color-mix(in oklab, var(--surface) 80%, transparent);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 12px;
+  }
+
+  .switch {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px 40px;
+    margin-top: 72px;
+    padding-block: 28px;
+    border-block: 1px solid var(--line);
+  }
+  .switch h2 {
+    font-size: var(--step-1);
+    font-stretch: 106%;
+  }
+  .switch p {
+    margin: 8px 0 0;
+    color: var(--slate);
+    max-width: 62ch;
+  }
+  .switch .btn {
+    flex: none;
+  }
+
+  section > h2,
+  .flow > h2 {
+    font-size: var(--step-3);
+    max-width: 20ch;
+  }
+  .flow,
+  .more,
+  .setup,
+  .faq {
+    margin-top: clamp(80px, 10vw, 128px);
+  }
+  .flow__points {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 28px;
+    margin: 40px 0 0;
+  }
+  .flow__points dt {
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .flow__points dd {
+    margin: 6px 0 0;
+    color: var(--slate);
+    font-size: 0.97rem;
+  }
+
+  .more__lead {
+    color: var(--slate);
+    font-size: var(--step-1);
+    max-width: 48ch;
+    margin: 14px 0 0;
+  }
+  .feature {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(28px, 6vw, 96px);
+    align-items: center;
+    margin-top: 72px;
+  }
+  .feature--flip .feature__text {
+    order: 2;
+  }
+  .feature h3 {
+    font-size: var(--step-2);
+    font-stretch: 112%;
+  }
+  .feature p {
+    color: var(--ink-soft);
+    font-size: var(--step-1);
+    line-height: 1.5;
+    max-width: 34ch;
+    margin: 14px 0 18px;
+  }
+  .feature a {
+    font-weight: 600;
+  }
+  .feature__shot {
+    margin: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: clamp(16px, 3vw, 36px);
+    border-radius: 28px;
+    background:
+      radial-gradient(120% 80% at 20% 0%, color-mix(in oklab, var(--sky) 30%, transparent), transparent 60%),
+      var(--surface-2);
+  }
+  .extras {
+    list-style: none;
+    padding: 0;
+    margin: 88px 0 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--line);
+  }
+  .extras li {
+    padding: 24px 24px 24px 0;
+    border-bottom: 1px solid var(--line);
+    display: grid;
+    gap: 6px;
+  }
+  .extras a {
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 1.08rem;
+  }
+  .extras a:hover strong {
+    color: var(--brand);
+  }
+  .extras span {
+    color: var(--slate);
+    font-size: 0.95rem;
+  }
+
+  .steps {
+    list-style: none;
+    counter-reset: step;
+    padding: 0;
+    margin: 40px 0 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+  .steps li {
+    counter-increment: step;
+    position: relative;
+    padding: 64px 22px 24px;
+    border-radius: var(--radius-l);
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    top: 18px;
+    left: 22px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    font-stretch: 125%;
+    color: var(--brand);
+  }
+  .steps li + li::after {
+    content: "";
+    position: absolute;
+    top: 34px;
+    left: -21px;
+    width: 21px;
+    height: 1.5px;
+    background: var(--line);
+  }
+  .steps h3 {
+    font-size: 1.12rem;
+  }
+  .steps h3 a {
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .steps h3 a:hover {
+    color: var(--brand);
+  }
+  .steps p {
+    margin: 8px 0 0;
+    color: var(--slate);
+    font-size: 0.95rem;
+  }
+
+  .faq__list {
+    margin-top: 32px;
+    max-width: 78ch;
+    border-top: 1px solid var(--line);
+  }
+  .faq details {
+    border-bottom: 1px solid var(--line);
+  }
+  .faq summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 18px 40px 18px 0;
+    font-weight: 650;
+    font-size: 1.08rem;
+    position: relative;
+  }
+  .faq summary::-webkit-details-marker {
+    display: none;
+  }
+  .faq summary::after {
+    content: "";
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid var(--slate);
+    border-bottom: 2px solid var(--slate);
+    transform: translateY(-70%) rotate(45deg);
+    transition: transform 0.2s;
+  }
+  .faq details[open] summary::after {
+    transform: translateY(-30%) rotate(225deg);
+  }
+  .faq details p {
+    margin: 0 0 20px;
+    color: var(--ink-soft);
+    max-width: 68ch;
+  }
+
+  @media (max-width: 1000px) {
+    .hero__waves {
+      inset: 120px 0 auto;
+      height: 480px;
+    }
+    .hero__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .hero__demo {
+      max-width: 520px;
+    }
+    .flow__points,
+    .steps {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .steps li + li::after {
+      display: none;
+    }
+    .extras {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 700px) {
+    .feature {
+      grid-template-columns: minmax(0, 1fr);
+      margin-top: 56px;
+    }
+    .feature--flip .feature__text {
+      order: 0;
+    }
+    .switch {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+  @media (max-width: 560px) {
+    .flow__points,
+    .steps,
+    .extras {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

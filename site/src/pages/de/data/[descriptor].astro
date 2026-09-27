@@ -1,0 +1,10 @@
+---
+import DataEntry from "../../../components/DataEntry.astro";
+import { DESCRIPTORS } from "../../../lib/catalogue";
+
+export function getStaticPaths() {
+  return DESCRIPTORS.map((d) => ({ params: { descriptor: d.descriptor }, props: { d } }));
+}
+const { d } = Astro.props;
+---
+<DataEntry lang="de" d={d} />

@@ -20,6 +20,12 @@ user's personal BMW client ID. Domain: `bavariandata`. Repo:
 - `tests/` — pytest, **no Home Assistant required** (see below).
 - `docs/reference/` — BMW API notes + generated field reference.
 - `blueprints/automation/bavariandata/` — shipped automation blueprints.
+- `site/` — the website (Astro, GitHub Pages via `.github/workflows/pages.yml`).
+  Renders `docs/wiki` (never write site-only manual pages), the descriptor
+  catalogue, and the **shipped card, unmodified**, on a scrubbed capture of a
+  real car (`site/src/demo/i5.json`, made by `site/scripts/capture_demo.py`
+  from the live instance — read its output before committing; this repo is
+  public). Own `package.json`; nothing from it ships to users.
 
 ## Generated files — never hand-edit
 
@@ -111,6 +117,12 @@ User-facing docs live in three tiers — keep them **in lockstep with the code**
   `raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/…`, so
   screenshot files must be committed to `main` for the images to load.
 - `docs/reference/*` — generated deep reference; never hand-edit generated files.
+- **The website** (`site/`) publishes the same `docs/wiki` pages where search
+  engines and AI assistants can see them — GitHub serves the wiki `noindex`.
+  A new wiki page needs one entry in `site/src/data/pages.json` (URL slug,
+  search title and meta description, EN + DE; `tests/test_site_pages.py`
+  enforces it). Build and check with `cd site && npm ci && npm run build &&
+  npm run check` (every link, anchor and head tag); it deploys on push to `main`.
 
 **A feature isn't done until its docs are updated in the same change.** Any new
 config-flow step, Configure/options screen, card view, service (`services.yaml`),

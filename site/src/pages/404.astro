@@ -1,0 +1,40 @@
+---
+import Base from "../layouts/Base.astro";
+import { ui } from "../i18n";
+import { url } from "../lib/site";
+const t = ui.en;
+---
+<Base lang="en" title={t.notFoundTitle} description={t.notFoundBody} path="404" alternate={false} noindex>
+  <main id="main" class="wrap missing">
+    <h1>{t.notFoundTitle}</h1>
+    <p>{t.notFoundBody}</p>
+    <p lang="de">{ui.de.notFoundBody}</p>
+    <div class="missing__cta">
+      <a class="btn btn--primary" href={url("docs")}>{t.nav.docs}</a>
+      <a class="btn btn--quiet" href={url("de/docs")}>{ui.de.nav.docs}</a>
+      <button class="btn btn--quiet" type="button" data-search-open>{t.search}</button>
+    </div>
+  </main>
+</Base>
+<style>
+  .missing {
+    padding-top: 96px;
+    min-height: 50vh;
+  }
+  .missing h1 {
+    font-size: var(--step-4);
+    max-width: 14ch;
+  }
+  .missing p {
+    color: var(--ink-soft);
+    font-size: var(--step-1);
+    max-width: 52ch;
+    margin: 18px 0 0;
+  }
+  .missing__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 32px;
+  }
+</style>

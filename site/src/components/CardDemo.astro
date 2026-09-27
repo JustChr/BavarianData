@@ -1,0 +1,227 @@
+---
+// The real card, running in the page on one real car's (scrubbed) data.
+import { url, type Lang } from "../lib/site";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const de = lang === "de";
+const views = [
+  { id: "overview", label: de ? "Übersicht" : "Overview", config: {} },
+  { id: "charging", label: de ? "Laden" : "Charging", config: { view: "charging" } },
+  { id: "trips", label: de ? "Fahrten" : "Trips", config: { view: "trips" } },
+  { id: "map", label: de ? "Karte" : "Map", config: { view: "map" } },
+  { id: "efficiency", label: de ? "Effizienz" : "Efficiency", config: { view: "efficiency" } },
+  { id: "health", label: de ? "Batterie" : "Battery", config: { view: "health" } },
+  { id: "tires", label: de ? "Reifen" : "Tires", config: { cluster: "tire" } },
+];
+---
+<section
+  class="demo"
+  data-demo
+  data-lang={lang}
+  data-src={url("demo/i5.json")}
+  data-card={url("demo/bavariandata-card.js")}
+  data-image={url("demo/i5.webp")}
+  data-data-base={url(de ? "de/data" : "data")}
+  aria-label={de ? "Live-Vorschau der Dashboard-Karte" : "Live preview of the dashboard card"}
+>
+  <div class="demo__tabs" role="tablist" aria-label={de ? "Kartenansicht" : "Card view"}>
+    {views.map((v, i) => (
+      <button
+        type="button"
+        role="tab"
+        id={`demo-tab-${v.id}`}
+        data-view={v.id}
+        data-config={JSON.stringify(v.config)}
+        aria-selected={i === 0 ? "true" : "false"}
+        tabindex={i === 0 ? 0 : -1}
+      >{v.label}</button>
+    ))}
+  </div>
+  <div class="demo__stage" role="tabpanel" data-stage aria-live="polite">
+    <div class="demo__placeholder">
+      <img src={url("demo/i5.webp")} alt="" width="360" height="180" />
+      <noscript>{de ? "Die Live-Vorschau braucht JavaScript." : "The live preview needs JavaScript."}</noscript>
+    </div>
+  </div>
+  <p class="demo__note">
+    {de
+      ? "Das ist die echte Karte aus der Integration, mit den Daten eines echten i5 eDrive40. Orte und Strecken sind erfunden. Tippe auf eine Kachel."
+      : "This is the real card from the integration, running on a real i5 eDrive40's data. Places and routes are made up. Tap a tile."}
+  </p>
+  <dialog class="demo__info" data-info>
+    <form method="dialog">
+      <p class="demo__info-name" data-info-name></p>
+      <p class="demo__info-state" data-info-state></p>
+      <p class="demo__info-desc"><code data-info-descriptor></code></p>
+      <div class="demo__info-actions">
+        <a data-info-link>{de ? "Was BMW dazu sendet" : "What BMW sends for this"}</a>
+        <button>{de ? "Schließen" : "Close"}</button>
+      </div>
+    </form>
+  </dialog>
+</section>
+
+<script>
+  import { mountDemo } from "../demo/runtime";
+
+  for (const host of document.querySelectorAll<HTMLElement>("[data-demo]")) {
+    const start = () =>
+      mountDemo(host).catch((err) => {
+        console.error(err);
+        host.dataset.failed = "true";
+      });
+    // Above the fold on the home page: start once the page is idle.
+    if ("requestIdleCallback" in window) requestIdleCallback(start, { timeout: 1500 });
+    else setTimeout(start, 200);
+
+    // The card asks Home Assistant for its "more info" dialog; answer with ours.
+    const dialog = host.querySelector<HTMLDialogElement>("[data-info]")!;
+    host.addEventListener("hass-more-info", (e) => {
+      const id = (e as CustomEvent).detail?.entityId;
+      const card = host.querySelector<any>("bavariandata-card");
+      const st = card?._hass?.states?.[id];
+      if (!st) return;
+      const descriptor = st.attributes.descriptor || "";
+      dialog.querySelector("[data-info-name]")!.textContent = st.attributes.friendly_name;
+      dialog.querySelector("[data-info-state]")!.textContent = card._hass.formatEntityState(st);
+      dialog.querySelector("[data-info-descriptor]")!.textContent = descriptor.includes(".") ? descriptor : id;
+      const link = dialog.querySelector<HTMLAnchorElement>("[data-info-link]")!;
+      link.hidden = !descriptor.includes(".");
+      link.href = `${host.dataset.dataBase}/${descriptor}/`;
+      dialog.showModal();
+    });
+    dialog.addEventListener("click", (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+  }
+</script>
+
+<style>
+  .demo {
+    /* Home Assistant's theme variables, mapped onto the site's palette. */
+    --primary-text-color: var(--ink);
+    --secondary-text-color: var(--slate);
+    --disabled-text-color: color-mix(in oklab, var(--slate) 60%, transparent);
+    --primary-color: var(--brand);
+    --accent-color: var(--brand);
+    --card-background-color: var(--surface);
+    --ha-card-background: var(--surface);
+    --ha-card-border-radius: 18px;
+    --ha-card-border-color: var(--line);
+    --secondary-background-color: var(--surface-2);
+    --divider-color: var(--line);
+    --text-primary-color: #fff;
+    --error-color: #db4437;
+    --warning-color: #e59100;
+    --success-color: var(--charge);
+    --info-color: var(--brand);
+    --state-icon-color: var(--brand);
+    --code-font-family: var(--mono);
+    --mdc-icon-size: 22px;
+    position: relative;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .demo__tabs {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    margin-bottom: 12px;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--surface) 70%, transparent);
+    border: 1px solid var(--line);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .demo__tabs button {
+    flex: 1 0 auto;
+    font: inherit;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--slate);
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+    padding: 7px 9px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .demo__tabs button:hover {
+    color: var(--ink);
+  }
+  .demo__tabs button[aria-selected="true"] {
+    color: var(--brand-ink);
+    background: var(--brand);
+  }
+
+  .demo__stage :global(bavariandata-card) {
+    display: block;
+    box-shadow: var(--shadow);
+    border-radius: 18px;
+  }
+  .demo__placeholder {
+    display: grid;
+    place-items: center;
+    min-height: 520px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .demo__placeholder img {
+    opacity: 0.35;
+  }
+  .demo__note {
+    margin: 12px 4px 0;
+    font-size: 0.84rem;
+    color: var(--slate);
+  }
+  .demo__info {
+    width: min(420px, 92vw);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
+    color: var(--ink);
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+  }
+  .demo__info::backdrop {
+    background: rgb(4 10 26 / 45%);
+  }
+  .demo__info p {
+    margin: 0;
+  }
+  .demo__info-name {
+    font-weight: 650;
+    font-size: 1.02rem;
+  }
+  .demo__info-state {
+    font-size: 1.9rem;
+    font-weight: 700;
+    font-stretch: 112%;
+    margin: 6px 0 10px !important;
+  }
+  .demo__info-desc code {
+    font-size: 0.78rem;
+    color: var(--slate);
+    overflow-wrap: anywhere;
+  }
+  .demo__info-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .demo__info-actions button {
+    font: inherit;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 6px 14px;
+    cursor: pointer;
+  }
+</style>

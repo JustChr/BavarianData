@@ -30,13 +30,25 @@ screenshots, requirements, the project-status note, the start-to-finish
 quick path (the 4 setup steps), and a prominent link into the manual.
 Everything else moves to Tier 2.
 
-### Tier 2 — The manual (GitHub Wiki)
+### Tier 2 — The manual (`docs/wiki/`, published twice)
 
-Chosen over a `docs/` site or MkDocs/Pages because it needs no build step
-(matches the project's no-bundler ethos), is editable without a PR cycle,
-renders images natively, and keeps the repo clean. Tradeoff — wiki content is
-not versioned with releases — is acceptable for a read-only integration whose
-docs describe current `main`.
+The Markdown in `docs/wiki/` is the manual's single source, published to two
+places:
+
+- **The GitHub Wiki** (`bash scripts/publish-wiki.sh`), chosen first because it
+  needs no build step and renders images natively.
+- **The website** (`site/`, GitHub Pages, deployed by `.github/workflows/pages.yml`
+  on every push to `main`). It exists because GitHub serves wikis with
+  `X-Robots-Tag: none`: search engines and AI assistants never see the wiki, so
+  a user searching for the problem this integration solves could not find it.
+  The site renders the same files (links, screenshots and anchors rewritten on
+  the way through) and adds only what the wiki can't hold — clean URLs, a search
+  title and meta description per page (`site/src/data/pages.json`), hreflang,
+  structured data, a sitemap, `llms.txt`, a page per BMW descriptor, and the
+  real card running on a scrubbed capture of a real car.
+
+Never write a page only for the site: a new wiki page needs its
+`pages.json` entry (`tests/test_site_pages.py` fails without it), and that's all.
 
 Organized on the **Diátaxis** model (Tutorial / How-to / Reference /
 Explanation):
@@ -272,6 +284,8 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | What appears in logs — masked VIN at default level, full VIN only under debug | 🟢 Troubleshooting → "Debug logging" + Settings-Reference → "Debug logging" |
 | Display units are the user's choice; values are stored as the car sends them (issue #7) | 🟢 Troubleshooting → "A sensor shows an absurd value, or reads unknown after an update" |
 | Which lock entity to automate on — streamed `door.status` vs REST-only `door.lock.status` (issue #8) | 🟢 Feature-Entities-and-Devices → "Which lock entity to use" |
+| Switching from the dead BMW Connected Drive integration (bimmer_connected, blocked by BMW on 29 Sep 2025): what replaces it, what's lost (commands), entity equivalents | 🟢 Coming-from-bimmer_connected (EN + DE) + website home ("Switching from Connected Drive") |
+| The website: live card demo on a scrubbed real car, per-descriptor data reference, search | 🟢 `site/` (renders `docs/wiki`; demo data from `site/scripts/capture_demo.py`) |
 | Eleven shipped languages (English, English (UK), Deutsch, Français, Italiano, Español, Nederlands, Polski, Português, Čeština, Svenska): names follow HA's language, entity IDs never do; field names outside English are BMW's own per-language catalogue names; English is US because BMW's field names are (PR #24) | 🟢 Feature-Entities-and-Devices → "Entity names and your language" (EN + DE) |
 
 ## Conventions

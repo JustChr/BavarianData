@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.astro/
+# Written by scripts/prepare.mjs on every build
+src/generated/
+public/demo/
+public/screenshots/
+public/favicon-32.png
+public/apple-touch-icon.png
+public/icon-512.png
+public/logo.png
+public/og.png
+public/og-de.png

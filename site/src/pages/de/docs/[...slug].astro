@@ -1,0 +1,17 @@
+---
+import { getCollection } from "astro:content";
+import DocPage from "../../../components/DocPage.astro";
+import { PAGES } from "../../../lib/site";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("wiki", (e) => e.id.startsWith("DE-"));
+  return entries.map((entry) => {
+    const page = entry.id.slice(3);
+    const meta = PAGES[page];
+    if (!meta) throw new Error(`docs/wiki/de/${entry.id}.md has no entry in site/src/data/pages.json`);
+    return { params: { slug: meta.slug || undefined }, props: { entry, page } };
+  });
+}
+const { entry, page } = Astro.props;
+---
+<DocPage lang="de" page={page} entry={entry} />

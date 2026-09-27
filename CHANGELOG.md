@@ -9,6 +9,23 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+
+- **A website: [justchr.github.io/BavarianData](https://justchr.github.io/BavarianData/)**,
+  in English and German. It runs the real dashboard card on a demo car you can
+  click through, carries the full manual, and has a searchable page for every
+  descriptor BMW CarData can send. The wiki stays the source; the website
+  renders it, because GitHub keeps wikis out of search engines.
+- **Coming from bimmer_connected**: a manual page for everyone whose *BMW
+  Connected Drive* integration went `unavailable` when BMW blocked it on
+  29 September 2025 — what replaces it, what you lose (remote commands), and
+  which BavarianData entity stands in for each old one.
+
+### Changed
+
+- The integration's **Documentation** link in Home Assistant now opens the
+  manual on the website.
+
 ## [0.9.14-beta.2] - 2026-09-27
 
 ### Added

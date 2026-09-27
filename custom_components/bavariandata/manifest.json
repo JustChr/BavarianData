@@ -14,7 +14,7 @@
     "frontend",
     "webhook"
   ],
-  "documentation": "https://github.com/JustChr/BavarianData",
+  "documentation": "https://justchr.github.io/BavarianData/docs/",
   "integration_type": "device",
   "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/JustChr/BavarianData/issues",
