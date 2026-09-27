@@ -1,0 +1,78 @@
+---
+// One live view of the real card, mounted when it scrolls into view.
+import { url, type Lang } from "../lib/site";
+
+interface Props {
+  lang: Lang;
+  config: Record<string, string>;
+  label: string;
+  minHeight?: number;
+  /** Long views (a month of charging) scroll inside this height. */
+  maxHeight?: number;
+}
+const { lang, config, label, minHeight = 420, maxHeight } = Astro.props;
+---
+<div
+  class="live"
+  data-live-card
+  data-lang={lang}
+  data-config={JSON.stringify(config)}
+  data-src={url("demo/i5.json")}
+  data-card={url("demo/bavariandata-card.js")}
+  data-image={url("demo/i5.webp")}
+  role="region"
+  aria-label={label}
+  style={`min-height:${minHeight}px;${maxHeight ? `max-height:${maxHeight}px;overflow-y:auto;` : ""}`}
+  tabindex={maxHeight ? 0 : undefined}
+></div>
+
+<script>
+  import { mountSingle } from "../demo/runtime";
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        observer.unobserve(e.target);
+        mountSingle(e.target as HTMLElement).catch((err) => console.error(err));
+      }
+    },
+    { rootMargin: "300px 0px" }
+  );
+  document.querySelectorAll("[data-live-card]").forEach((el) => observer.observe(el));
+</script>
+
+<style>
+  .live {
+    --primary-text-color: var(--ink);
+    --secondary-text-color: var(--slate);
+    --disabled-text-color: color-mix(in oklab, var(--slate) 60%, transparent);
+    --primary-color: var(--brand);
+    --accent-color: var(--brand);
+    --card-background-color: var(--surface);
+    --ha-card-background: var(--surface);
+    --ha-card-border-radius: 18px;
+    --ha-card-border-color: var(--line);
+    --secondary-background-color: var(--surface-2);
+    --divider-color: var(--line);
+    --text-primary-color: #fff;
+    --error-color: #db4437;
+    --warning-color: #e59100;
+    --success-color: var(--charge);
+    --info-color: var(--brand);
+    --state-icon-color: var(--brand);
+    --code-font-family: var(--mono);
+    --mdc-icon-size: 22px;
+    width: 100%;
+    max-width: 460px;
+    font-size: 14px;
+    line-height: 1.4;
+    border-radius: 18px;
+    scrollbar-width: thin;
+  }
+  .live :global(bavariandata-card) {
+    display: block;
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+  }
+</style>

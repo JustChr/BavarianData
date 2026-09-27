@@ -1,0 +1,27 @@
+{
+  "name": "bavariandata-site",
+  "private": true,
+  "type": "module",
+  "description": "The BavarianData website (GitHub Pages). Content comes from ../docs/wiki; nothing here ships to Home Assistant users.",
+  "scripts": {
+    "dev": "node scripts/prepare.mjs && astro dev",
+    "build": "node scripts/prepare.mjs && astro build && pagefind --site dist",
+    "preview": "astro preview",
+    "check": "node scripts/check-site.mjs"
+  },
+  "dependencies": {
+    "@astrojs/markdown-remark": "^7.3.1",
+    "@astrojs/sitemap": "^3.7.4",
+    "@fontsource-variable/archivo": "^5.3.0",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@mdi/js": "^7.4.47",
+    "astro": "^7.3.5",
+    "leaflet": "^1.9.4",
+    "leaflet.markercluster": "^1.5.3",
+    "rehype-raw": "^7.0.0",
+    "unist-util-visit": "^5.1.0"
+  },
+  "devDependencies": {
+    "pagefind": "^1.5.2"
+  }
+}

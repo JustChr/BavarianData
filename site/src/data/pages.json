@@ -1,0 +1,245 @@
+{
+  "_comment": "One entry per wiki page (docs/wiki/<page>.md and its de/DE-<page>.md). The site renders the wiki; this adds only what a search engine needs and the wiki cannot hold: a clean URL, a search title and a meta description in both languages. Navigation order and labels come from docs/wiki/_Sidebar.md. tests/test_site_pages.py fails when a wiki page has no entry here.",
+  "Home": {
+    "slug": "",
+    "en": {
+      "title": "BavarianData manual: BMW CarData in Home Assistant",
+      "description": "The complete manual for BavarianData, the Home Assistant integration for BMW CarData: setup, the dashboard card, every feature, settings, services and troubleshooting."
+    },
+    "de": {
+      "title": "BavarianData-Handbuch: BMW CarData in Home Assistant",
+      "description": "Das vollständige Handbuch zu BavarianData, der Home-Assistant-Integration für BMW CarData: Einrichtung, Dashboard-Karte, alle Funktionen, Einstellungen, Dienste und Fehlerbehebung."
+    }
+  },
+  "Coming-from-bimmer_connected": {
+    "slug": "coming-from-bimmer-connected",
+    "en": {
+      "title": "BMW Connected Drive stopped working in Home Assistant? Switch to BMW CarData",
+      "description": "BMW blocked bimmer_connected on 29 September 2025. What replaces the BMW Connected Drive integration, what changes, and how to move your automations to BMW CarData."
+    },
+    "de": {
+      "title": "BMW Connected Drive in Home Assistant funktioniert nicht mehr? Umstieg auf BMW CarData",
+      "description": "BMW hat bimmer_connected am 29. September 2025 gesperrt. Was die BMW-Connected-Drive-Integration ersetzt, was sich ändert und wie du Automationen auf BMW CarData umziehst."
+    }
+  },
+  "Getting-Started-1-BMW-Portal-Setup": {
+    "slug": "bmw-portal-setup",
+    "en": {
+      "title": "Set up BMW CarData in the BMW portal (client ID and scopes)",
+      "description": "Step 1: create a BMW CarData client in the BMW or MINI portal, subscribe CarData API and CarData Streaming, and get the client ID Home Assistant needs."
+    },
+    "de": {
+      "title": "BMW CarData im BMW-Portal einrichten (Client-ID und Berechtigungen)",
+      "description": "Schritt 1: im BMW- oder MINI-Portal einen CarData-Client anlegen, CarData API und CarData Streaming abonnieren und die Client-ID für Home Assistant holen."
+    }
+  },
+  "Getting-Started-2-Install": {
+    "slug": "install",
+    "en": {
+      "title": "Install the BMW CarData integration via HACS",
+      "description": "Step 2: install BavarianData from the HACS default store, restart Home Assistant, and check the requirements (Home Assistant 2026.3 or newer)."
+    },
+    "de": {
+      "title": "BMW-CarData-Integration über HACS installieren",
+      "description": "Schritt 2: BavarianData aus dem HACS-Standard-Store installieren, Home Assistant neu starten und die Voraussetzungen prüfen (Home Assistant 2026.3 oder neuer)."
+    }
+  },
+  "Getting-Started-3-Add-and-Authorize": {
+    "slug": "add-and-authorize",
+    "en": {
+      "title": "Add and authorize BMW CarData in Home Assistant",
+      "description": "Step 3: add the integration, choose the guided or manual path, authorize your BMW account with the device flow, and switch on the stream with one click."
+    },
+    "de": {
+      "title": "BMW CarData in Home Assistant hinzufügen und autorisieren",
+      "description": "Schritt 3: die Integration hinzufügen, geführten oder manuellen Weg wählen, das BMW-Konto per Geräte-Autorisierung freigeben und den Stream mit einem Klick einschalten."
+    }
+  },
+  "Getting-Started-4-Choose-Data": {
+    "slug": "choose-data",
+    "en": {
+      "title": "Choose which BMW CarData fields to stream",
+      "description": "Step 4: pick the data clusters your BMW streams to Home Assistant with the cluster picker and the one-click activator, and change them later from Configure."
+    },
+    "de": {
+      "title": "Festlegen, welche BMW-CarData-Felder gestreamt werden",
+      "description": "Schritt 4: mit Cluster-Auswahl und Ein-Klick-Aktivierung festlegen, welche Daten dein BMW an Home Assistant streamt, und sie später unter Konfigurieren ändern."
+    }
+  },
+  "The-Dashboard-Card": {
+    "slug": "dashboard-card",
+    "en": {
+      "title": "BMW dashboard card for Home Assistant: every view and option",
+      "description": "The bundled Lovelace card: overview, charging history, trips, trip map, battery health, efficiency and cluster views, with the full YAML reference."
+    },
+    "de": {
+      "title": "BMW-Dashboard-Karte für Home Assistant: alle Ansichten und Optionen",
+      "description": "Die mitgelieferte Lovelace-Karte: Übersicht, Ladeverlauf, Fahrten, Fahrtenkarte, Batteriezustand, Effizienz und Cluster-Ansichten, mit vollständiger YAML-Referenz."
+    }
+  },
+  "Feature-Entities-and-Devices": {
+    "slug": "entities-and-devices",
+    "en": {
+      "title": "BMW entities and devices in Home Assistant",
+      "description": "What appears in Home Assistant for each BMW: one device per car, native sensors with device classes and units, derived sensors, and how entities are named."
+    },
+    "de": {
+      "title": "BMW-Entitäten und -Geräte in Home Assistant",
+      "description": "Was für jeden BMW in Home Assistant erscheint: ein Gerät pro Auto, native Sensoren mit Geräteklassen und Einheiten, abgeleitete Sensoren und die Benennung."
+    }
+  },
+  "Feature-Charging-History-and-Cost": {
+    "slug": "charging-history-and-cost",
+    "en": {
+      "title": "BMW charging history and charging cost in Home Assistant",
+      "description": "Every charging session recorded from the stream: energy, cost from your tariff, where the energy came from (solar, house battery, grid), the power curve and monthly totals."
+    },
+    "de": {
+      "title": "BMW-Ladeverlauf und Ladekosten in Home Assistant",
+      "description": "Jeder Ladevorgang aus dem Stream erfasst: Energie, Kosten aus deinem Tarif, Herkunft der Energie (Solar, Hausbatterie, Netz), Leistungskurve und Monatssummen."
+    }
+  },
+  "Feature-Battery-Health": {
+    "slug": "battery-health",
+    "en": {
+      "title": "BMW EV battery health (usable capacity) in Home Assistant",
+      "description": "How BavarianData learns your BMW's usable battery capacity from real charging sessions, how confident the figure is, and how it trends over mileage."
+    },
+    "de": {
+      "title": "Batteriezustand deines BMW-Elektroautos (nutzbare Kapazität) in Home Assistant",
+      "description": "Wie BavarianData die nutzbare Batteriekapazität deines BMW aus echten Ladevorgängen lernt, wie belastbar der Wert ist und wie er sich über die Laufleistung entwickelt."
+    }
+  },
+  "Feature-Efficiency-and-Range": {
+    "slug": "efficiency-and-range",
+    "en": {
+      "title": "Real range and measured consumption for your BMW",
+      "description": "Consumption measured from your own driving and charging, and a real range computed from it, next to the car's own prediction."
+    },
+    "de": {
+      "title": "Reale Reichweite und gemessener Verbrauch deines BMW",
+      "description": "Verbrauch, gemessen aus deinem eigenen Fahren und Laden, und eine daraus berechnete reale Reichweite neben der Prognose des Autos."
+    }
+  },
+  "Feature-Trips": {
+    "slug": "trips",
+    "en": {
+      "title": "BMW trip journal and driving log in Home Assistant",
+      "description": "Trips detected from the BMW CarData stream: distance, energy, places, business/private/commute classification, the trip map, and the Fahrtenbuch caveat."
+    },
+    "de": {
+      "title": "BMW-Fahrtenbuch in Home Assistant",
+      "description": "Fahrten aus dem BMW-CarData-Stream erkannt: Strecke, Energie, Orte, Einteilung in geschäftlich/privat/Arbeitsweg, die Fahrtenkarte und der Hinweis zum Fahrtenbuch."
+    }
+  },
+  "Feature-evcc-and-Wallbox-Bridge": {
+    "slug": "evcc-and-wallbox-bridge",
+    "en": {
+      "title": "BMW state of charge for evcc and openWB via MQTT",
+      "description": "Hand your BMW's live state of charge to evcc, openWB or any wallbox controller over MQTT, at no API cost, and read the wallbox meter back into the charging history."
+    },
+    "de": {
+      "title": "BMW-Ladezustand für evcc und openWB über MQTT",
+      "description": "Den Live-Ladezustand deines BMW über MQTT an evcc, openWB oder jede Wallbox-Steuerung geben, ohne API-Kosten, und den Wallbox-Zähler in den Ladeverlauf zurücklesen."
+    }
+  },
+  "Feature-Energy-and-Statistics": {
+    "slug": "energy-and-statistics",
+    "en": {
+      "title": "BMW charging in the Home Assistant Energy dashboard",
+      "description": "Charging energy, charging cost and driving distance as long-term statistics for the Home Assistant Energy dashboard, including charges from before you installed it."
+    },
+    "de": {
+      "title": "BMW-Laden im Energie-Dashboard von Home Assistant",
+      "description": "Ladeenergie, Ladekosten und Fahrstrecke als Langzeitstatistiken fürs Energie-Dashboard von Home Assistant, auch für Ladevorgänge vor der Installation."
+    }
+  },
+  "Feature-Export": {
+    "slug": "export",
+    "en": {
+      "title": "Export BMW charging and trips to CSV or PDF",
+      "description": "Download a month of charging sessions or trips as CSV, or as a printable HTML report you can save as PDF, from the card or a service call."
+    },
+    "de": {
+      "title": "BMW-Ladevorgänge und Fahrten als CSV oder PDF exportieren",
+      "description": "Einen Monat Ladevorgänge oder Fahrten als CSV herunterladen, oder als druckbaren HTML-Bericht, den du als PDF speicherst, aus der Karte oder per Dienst."
+    }
+  },
+  "Feature-Automations": {
+    "slug": "automations",
+    "en": {
+      "title": "BMW automations: charging triggers, events and blueprints",
+      "description": "Device triggers and events for charging started, stopped, interrupted and complete and for zone arrivals, plus starter automation blueprints for Home Assistant."
+    },
+    "de": {
+      "title": "BMW-Automationen: Ladetrigger, Ereignisse und Blueprints",
+      "description": "Gerätetrigger und Ereignisse für Ladebeginn, -stopp, -unterbrechung und -ende und für Zonenankünfte, dazu fertige Automations-Blueprints für Home Assistant."
+    }
+  },
+  "Feature-API-Quota": {
+    "slug": "api-quota",
+    "en": {
+      "title": "BMW CarData API quota: 50 requests per day",
+      "description": "How BMW's 50 requests per 24 hours limit works, what spends it, what doesn't, and why the live stream costs nothing."
+    },
+    "de": {
+      "title": "BMW-CarData-API-Kontingent: 50 Anfragen pro Tag",
+      "description": "Wie BMWs Grenze von 50 Anfragen pro 24 Stunden funktioniert, was sie verbraucht, was nicht, und warum der Live-Stream nichts kostet."
+    }
+  },
+  "Feature-Multiple-Cars-and-Accounts": {
+    "slug": "multiple-cars-and-accounts",
+    "en": {
+      "title": "Multiple BMW and MINI cars and accounts in Home Assistant",
+      "description": "Run several cars on one BMW account, or several accounts side by side, and tell services and the card which car you mean."
+    },
+    "de": {
+      "title": "Mehrere BMW- und MINI-Fahrzeuge und Konten in Home Assistant",
+      "description": "Mehrere Autos an einem BMW-Konto oder mehrere Konten nebeneinander betreiben, und Diensten und der Karte sagen, welches Auto gemeint ist."
+    }
+  },
+  "Settings-Reference": {
+    "slug": "settings",
+    "en": {
+      "title": "BavarianData settings reference",
+      "description": "Every Configure screen of the BMW CarData integration: streamed data, automatic refresh, charging costs, solar sources, the evcc bridge, trips and debug logging."
+    },
+    "de": {
+      "title": "BavarianData-Einstellungen",
+      "description": "Jeder Konfigurieren-Bildschirm der BMW-CarData-Integration: gestreamte Daten, automatische Aktualisierung, Ladekosten, Solarquellen, evcc-Brücke, Fahrten und Debug-Protokoll."
+    }
+  },
+  "Services-Reference": {
+    "slug": "services",
+    "en": {
+      "title": "BavarianData services reference",
+      "description": "Every Home Assistant service the BMW CarData integration offers, with fields, examples and whether it spends API quota."
+    },
+    "de": {
+      "title": "BavarianData-Dienste",
+      "description": "Jeder Home-Assistant-Dienst der BMW-CarData-Integration, mit Feldern, Beispielen und ob er API-Kontingent verbraucht."
+    }
+  },
+  "Troubleshooting-and-FAQ": {
+    "slug": "troubleshooting",
+    "en": {
+      "title": "BMW CarData Home Assistant troubleshooting and FAQ",
+      "description": "Fixes for access_denied during authorization, no data arriving, the one-stream-per-account limit, exhausted quota, missing dashboards and odd sensor values."
+    },
+    "de": {
+      "title": "BMW CarData in Home Assistant: Fehlerbehebung und FAQ",
+      "description": "Lösungen für access_denied bei der Autorisierung, fehlende Daten, die Grenze von einem Stream pro Konto, erschöpftes Kontingent, fehlende Dashboards und seltsame Werte."
+    }
+  },
+  "Reference": {
+    "slug": "reference",
+    "en": {
+      "title": "BMW CarData technical reference",
+      "description": "The descriptor catalogue, BMW API and streaming notes, and the design investigations behind the integration."
+    },
+    "de": {
+      "title": "Technische Referenz zu BMW CarData",
+      "description": "Der Deskriptor-Katalog, Notizen zu BMWs API und Streaming und die Untersuchungen hinter dem Design der Integration."
+    }
+  }
+}

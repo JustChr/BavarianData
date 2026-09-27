@@ -1,0 +1,302 @@
+---
+// One page of the manual: the wiki page rendered, with the sidebar as
+// navigation, an on-page table of contents, and previous/next in wiki order.
+import { render, type CollectionEntry } from "astro:content";
+import Base from "../layouts/Base.astro";
+import { ui } from "../i18n";
+import { url, docPath, sidebar, PAGES, REPO, lastModified, absolute, localized, type Lang } from "../lib/site";
+
+interface Props {
+  lang: Lang;
+  page: string;
+  entry: CollectionEntry<"wiki">;
+}
+const { lang, page, entry } = Astro.props;
+const t = ui[lang];
+const meta = PAGES[page][lang];
+const { Content, headings, remarkPluginFrontmatter } = await render(entry);
+const heading: string = remarkPluginFrontmatter.heading ?? meta.title;
+const path = docPath(page, "en")!;
+const file = lang === "de" ? `docs/wiki/de/DE-${page}.md` : `docs/wiki/${page}.md`;
+const modified = lastModified(file);
+
+const sections = sidebar(lang);
+const order = [{ page: "Home", label: lang === "de" ? "Startseite" : "Home" }, ...sections.flatMap((s) => s.items)];
+const at = order.findIndex((i) => i.page === page);
+const prev = at > 0 ? order[at - 1] : null;
+const next = at >= 0 && at < order.length - 1 ? order[at + 1] : null;
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const section = sections.find((s) => s.items.some((i) => i.page === page));
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    headline: meta.title,
+    description: meta.description,
+    inLanguage: lang,
+    url: absolute(localized(path, lang)),
+    ...(modified ? { dateModified: modified } : {}),
+    isPartOf: { "@type": "WebSite", name: "BavarianData", url: absolute(localized("", lang)) },
+    about: { "@type": "SoftwareApplication", name: "BavarianData", applicationCategory: "Home automation" },
+    author: { "@type": "Person", name: "JustChr", url: "https://github.com/JustChr" },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "BavarianData", item: absolute(localized("", lang)) },
+      { "@type": "ListItem", position: 2, name: t.nav.docs, item: absolute(localized("docs", lang)) },
+      ...(page === "Home" ? [] : [{ "@type": "ListItem", position: 3, name: heading, item: absolute(localized(path, lang)) }]),
+    ],
+  },
+];
+const formatted = modified
+  ? new Intl.DateTimeFormat(lang === "de" ? "de-DE" : "en-US", { dateStyle: "long" }).format(new Date(modified))
+  : null;
+---
+<Base lang={lang} title={meta.title} description={meta.description} path={path} jsonLd={jsonLd} ogType="article" modified={modified}>
+  <div class="wrap doc">
+    <aside class="doc__nav">
+      <details class="doc__navbox" open>
+        <summary>{t.contents}</summary>
+        <nav aria-label={t.contents}>
+          <a class="doc__home" href={url(docPath("Home", lang)!)} aria-current={page === "Home" ? "page" : undefined}>
+            {lang === "de" ? "Startseite" : "Home"}
+          </a>
+          {sections.map((s) => (
+            <div class="doc__group">
+              <h2>{s.title}</h2>
+              <ul>
+                {s.items.map((i) => {
+                  const p = docPath(i.page, lang);
+                  return p ? (
+                    <li><a href={url(p)} aria-current={i.page === page ? "page" : undefined}>{i.label}</a></li>
+                  ) : null;
+                })}
+              </ul>
+            </div>
+          ))}
+        </nav>
+      </details>
+    </aside>
+
+    <main id="main" class="doc__main">
+      <article data-pagefind-body>
+        <p class="doc__crumb">
+          <a href={url(localized("docs", lang))}>{t.nav.docs}</a>{section && <span> / {section.title}</span>}
+        </p>
+        <h1>{heading}</h1>
+        <div class="prose">
+          <Content />
+        </div>
+      </article>
+
+      <nav class="doc__pager" aria-label={`${t.previous} / ${t.next}`}>
+        {prev ? (
+          <a href={url(docPath(prev.page, lang)!)} rel="prev"><small>{t.previous}</small>{prev.label}</a>
+        ) : <span />}
+        {next ? (
+          <a class="next" href={url(docPath(next.page, lang)!)} rel="next"><small>{t.next}</small>{next.label}</a>
+        ) : <span />}
+      </nav>
+      <p class="doc__meta">
+        {formatted && <span>{t.updated} <time datetime={modified}>{formatted}</time></span>}
+        <a href={`${REPO}/blob/main/${file}`}>{t.edit}</a>
+      </p>
+    </main>
+
+    {toc.length > 1 && (
+      <aside class="doc__toc">
+        <h2>{t.onThisPage}</h2>
+        <ul>
+          {toc.map((h) => (
+            <li class={`d${h.depth}`}><a href={`#${h.slug}`}>{h.text.replace(/#$/, "")}</a></li>
+          ))}
+        </ul>
+      </aside>
+    )}
+  </div>
+</Base>
+
+<script>
+  // The table of contents follows the reader.
+  const links = new Map<string, HTMLAnchorElement>();
+  document.querySelectorAll<HTMLAnchorElement>(".doc__toc a").forEach((a) => links.set(a.hash.slice(1), a));
+  if (links.size) {
+    const seen = new Set<string>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) e.isIntersecting ? seen.add(e.target.id) : seen.delete(e.target.id);
+        const first = [...links.keys()].find((id) => seen.has(id));
+        if (!first) return;
+        links.forEach((a, id) => a.toggleAttribute("aria-current", id === first));
+      },
+      { rootMargin: "-80px 0px -65% 0px" }
+    );
+    links.forEach((_, id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+  }
+  // On narrow screens the contents list starts closed.
+  if (matchMedia("(max-width: 900px)").matches) {
+    document.querySelector<HTMLDetailsElement>(".doc__navbox")?.removeAttribute("open");
+  }
+</script>
+
+<style>
+  .doc {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr) 220px;
+    gap: 48px;
+    padding-top: 36px;
+    align-items: start;
+  }
+  .doc__nav,
+  .doc__toc {
+    position: sticky;
+    top: 88px;
+    max-height: calc(100vh - 110px);
+    overflow-y: auto;
+    font-size: 0.92rem;
+    scrollbar-width: thin;
+  }
+  .doc__navbox summary {
+    display: none;
+  }
+  .doc__home {
+    display: block;
+    font-weight: 650;
+  }
+  .doc__group {
+    margin-top: 20px;
+  }
+  .doc__group h2,
+  .doc__toc h2 {
+    font-size: 0.8rem;
+    font-stretch: 100%;
+    color: var(--slate);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .doc__nav ul,
+  .doc__toc ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .doc__nav a,
+  .doc__toc a {
+    display: block;
+    padding: 5px 10px;
+    margin-left: -10px;
+    border-radius: 8px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    line-height: 1.35;
+  }
+  .doc__nav a:hover,
+  .doc__toc a:hover {
+    color: var(--ink);
+    background: var(--surface-2);
+  }
+  .doc__nav a[aria-current="page"] {
+    color: var(--brand);
+    background: var(--surface);
+    box-shadow: inset 2px 0 0 var(--brand);
+    font-weight: 600;
+  }
+  .doc__toc li.d3 a {
+    padding-left: 22px;
+    font-size: 0.87rem;
+  }
+  .doc__toc a[aria-current] {
+    color: var(--brand);
+  }
+  .doc__main {
+    min-width: 0;
+  }
+  .doc__crumb {
+    margin: 0 0 12px;
+    font-size: 0.9rem;
+    color: var(--slate);
+  }
+  .doc__crumb a {
+    color: var(--slate);
+  }
+  .doc__main h1 {
+    font-size: var(--step-3);
+    margin-bottom: 28px;
+    max-width: 22ch;
+  }
+  .doc__pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 64px;
+    max-width: var(--measure);
+  }
+  .doc__pager a {
+    display: grid;
+    gap: 2px;
+    padding: 14px 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .doc__pager a:hover {
+    border-color: var(--brand);
+  }
+  .doc__pager small {
+    color: var(--slate);
+    font-weight: 500;
+  }
+  .doc__pager .next {
+    text-align: right;
+  }
+  .doc__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    margin-top: 24px;
+    font-size: 0.88rem;
+    color: var(--slate);
+  }
+  @media (max-width: 1200px) {
+    .doc {
+      grid-template-columns: 220px minmax(0, 1fr);
+    }
+    .doc__toc {
+      display: none;
+    }
+  }
+  @media (max-width: 900px) {
+    .doc {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 20px;
+      padding-top: 20px;
+    }
+    .doc__nav {
+      position: static;
+      max-height: none;
+    }
+    .doc__navbox {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-m);
+      background: var(--surface);
+      padding: 12px 16px;
+    }
+    .doc__navbox summary {
+      display: list-item;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .doc__navbox[open] nav {
+      margin-top: 10px;
+    }
+  }
+</style>

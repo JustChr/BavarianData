@@ -335,9 +335,11 @@ def test_manifest_carries_what_hacs_requires() -> None:
     assert re.fullmatch(r"\d+\.\d+\.\d+(?:-[\w.]+)?", MANIFEST["version"]), (
         f"version {MANIFEST['version']!r} is not semver; HACS sorts releases by it"
     )
+    # The repo itself, or its own GitHub Pages site (the manual lives there).
+    ours = re.compile(r"^https://(github\.com/JustChr|justchr\.github\.io)/BavarianData(/|$)")
     for key in ("documentation", "issue_tracker"):
-        assert "JustChr/BavarianData" in MANIFEST[key], (
-            f"manifest.json {key} must point at this repo, not someone else's"
+        assert ours.match(MANIFEST[key]), (
+            f"manifest.json {key} must point at this project, not someone else's"
         )
 
 

@@ -1,0 +1,116 @@
+---
+// Every page's <head>: the title and description a search result shows, the
+// canonical URL, hreflang pairs, social previews and structured data.
+import "../styles/global.css";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { ui } from "../i18n";
+import { url, localized, absolute, SITE_URL, type Lang } from "../lib/site";
+
+interface Props {
+  lang: Lang;
+  title: string;
+  description: string;
+  /** Language-neutral path, e.g. `docs/trips` ("" for the home page). */
+  path: string;
+  /** Whether the other language has this page too (hreflang + switcher). */
+  alternate?: boolean;
+  /** Structured data objects, each emitted as its own JSON-LD block. */
+  jsonLd?: object[];
+  /** Replace the default title suffix. */
+  rawTitle?: boolean;
+  noindex?: boolean;
+  ogType?: "website" | "article";
+  modified?: string;
+}
+const {
+  lang,
+  title,
+  description,
+  path,
+  alternate = true,
+  jsonLd = [],
+  rawTitle = false,
+  noindex = false,
+  ogType = "website",
+  modified,
+} = Astro.props;
+const t = ui[lang];
+const fullTitle = rawTitle ? title : `${title} | BavarianData`;
+const canonical = absolute(localized(path, lang));
+const en = absolute(localized(path, "en"));
+const de = absolute(localized(path, "de"));
+const ogImage = `${SITE_URL}${url(lang === "de" ? "og-de.png" : "og.png")}`;
+const google = import.meta.env.GOOGLE_SITE_VERIFICATION || process.env.GOOGLE_SITE_VERIFICATION;
+const bing = import.meta.env.BING_SITE_VERIFICATION || process.env.BING_SITE_VERIFICATION;
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    {alternate && !noindex && (
+      <>
+        <link rel="alternate" hreflang="en" href={en} />
+        <link rel="alternate" hreflang="de" href={de} />
+        <link rel="alternate" hreflang="x-default" href={en} />
+      </>
+    )}
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3f6fb" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#08142e" />
+    <link rel="icon" type="image/png" sizes="32x32" href={url("favicon-32.png")} />
+    <link rel="apple-touch-icon" href={url("apple-touch-icon.png")} />
+    <link rel="manifest" href={url("site.webmanifest")} />
+    <link rel="sitemap" href={url("sitemap-index.xml")} />
+
+    <meta property="og:site_name" content="BavarianData" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content={lang === "de" ? "de_DE" : "en_US"} />
+    {alternate && <meta property="og:locale:alternate" content={lang === "de" ? "en_US" : "de_DE"} />}
+    {modified && <meta property="article:modified_time" content={modified} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    {google && <meta name="google-site-verification" content={google} />}
+    {bing && <meta name="msvalidate.01" content={bing} />}
+
+    {jsonLd.map((data) => <script type="application/ld+json" set:html={JSON.stringify(data)} />)}
+
+    <script is:inline>
+      try {
+        const saved = localStorage.getItem("theme");
+        if (saved === "dark" || saved === "light") document.documentElement.dataset.theme = saved;
+      } catch {}
+    </script>
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip" href="#main">{t.skip}</a>
+    <Header lang={lang} path={path} alternate={alternate} />
+    <slot />
+    <Footer lang={lang} />
+    <dialog class="zoom" data-zoom-dialog><img alt="" /></dialog>
+    <script>
+      // Screenshots open full size on click; Esc or a click closes them.
+      const dialog = document.querySelector<HTMLDialogElement>("[data-zoom-dialog]");
+      document.addEventListener("click", (e) => {
+        const img = (e.target as HTMLElement).closest<HTMLImageElement>("img[data-zoom]");
+        if (!img || !dialog) return;
+        const big = dialog.querySelector("img")!;
+        big.src = img.dataset.zoom!;
+        big.alt = img.alt;
+        dialog.showModal();
+      });
+      dialog?.addEventListener("click", () => dialog.close());
+    </script>
+  </body>
+</html>

@@ -1,0 +1,113 @@
+---
+import Mark from "./Mark.astro";
+import { ui } from "../i18n";
+import { url, localized, sidebar, docPath, REPO, RELEASE, type Lang } from "../lib/site";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = ui[lang];
+const sections = sidebar(lang);
+---
+<footer class="foot">
+  <div class="wrap foot__grid">
+    <div class="foot__brand">
+      <a class="foot__logo" href={url(localized("", lang))}>
+        <Mark size={28} />
+        <span>BavarianData</span>
+      </a>
+      <p>{t.siteTagline}{RELEASE.version && <>. v{RELEASE.version}</>}</p>
+      <ul class="foot__meta">
+        <li><a href={REPO}>{t.footerLinks.source}</a></li>
+        <li><a href={`${REPO}/issues`}>{t.footerLinks.issues}</a></li>
+        <li><a href={`${REPO}/discussions`}>{t.footerLinks.discussions}</a></li>
+        <li><a href={`${REPO}/blob/main/LICENSE`}>{t.footerLinks.license}</a></li>
+      </ul>
+    </div>
+    {sections.map((s) => (
+      <nav class="foot__col" aria-label={s.title}>
+        <h2>{s.title}</h2>
+        <ul>
+          {s.items.map((i) => {
+            const path = docPath(i.page, lang);
+            return path ? <li><a href={url(path)}>{i.label}</a></li> : null;
+          })}
+        </ul>
+      </nav>
+    ))}
+  </div>
+  <div class="wrap">
+    <p class="foot__note">{t.footerNote}</p>
+  </div>
+</footer>
+
+<style>
+  .foot {
+    margin-top: 120px;
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+    padding-block: 56px 40px;
+    font-size: 0.92rem;
+  }
+  .foot__grid {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(4, 1fr);
+    gap: 32px;
+  }
+  .foot__logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 700;
+    font-stretch: 116%;
+  }
+  .foot__brand p {
+    color: var(--slate);
+    margin: 12px 0 16px;
+  }
+  .foot h2 {
+    font-size: 0.92rem;
+    font-stretch: 100%;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .foot ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 7px;
+  }
+  .foot a {
+    color: var(--slate);
+    text-decoration: none;
+  }
+  .foot a:hover {
+    color: var(--brand);
+    text-decoration: underline;
+  }
+  .foot__note {
+    margin: 40px 0 0;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    color: var(--slate);
+    font-size: 0.82rem;
+    max-width: 90ch;
+  }
+  @media (max-width: 1000px) {
+    .foot__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .foot__brand {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 520px) {
+    .foot__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

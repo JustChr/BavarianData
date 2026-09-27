@@ -1,0 +1,21 @@
+---
+// The brand icon as SVG: a stream (two waves) inside a ring, on the navy tile.
+interface Props {
+  size?: number;
+  class?: string;
+}
+const { size = 32, class: className } = Astro.props;
+const id = `m${Math.random().toString(36).slice(2, 8)}`;
+---
+<svg class={className} width={size} height={size} viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1c46" />
+      <stop offset="1" stop-color="#1f5ad0" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill={`url(#${id})`} />
+  <circle cx="32" cy="32" r="17" fill="none" stroke="#fff" stroke-width="3.6" />
+  <path d="M17 26.5c6-4 10 0 15 3.5s9 2.5 15-.5" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" />
+  <path d="M15.5 36.5c7 1.5 11-3.5 16.5-5s10 .5 16-1.5" fill="none" stroke="#7ccbf6" stroke-width="4.2" stroke-linecap="round" />
+</svg>

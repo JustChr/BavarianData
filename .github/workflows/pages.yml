@@ -1,0 +1,87 @@
+name: Website
+
+# Builds the website (site/) from the wiki source, the descriptor catalogue and
+# the shipped card, checks every link and head tag, and publishes it to GitHub
+# Pages. Pull requests build and check only.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "docs/wiki/**"
+      - "screenshots/**"
+      - "logo.png"
+      - "hacs.json"
+      - "CHANGELOG.md"
+      - "custom_components/bavariandata/www/**"
+      - "custom_components/bavariandata/catalogue.json"
+      - "custom_components/bavariandata/translations/**"
+      - "custom_components/bavariandata/brand/**"
+      - ".github/workflows/pages.yml"
+  pull_request:
+    paths:
+      - "site/**"
+      - "docs/wiki/**"
+      - "custom_components/bavariandata/www/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # Repository variables (Settings -> Secrets and variables -> Variables).
+      # For a custom domain set SITE_URL (https://example.org) and SITE_BASE
+      # to "/". The verification tokens come from Google Search Console and
+      # Bing Webmaster Tools.
+      SITE_URL: ${{ vars.SITE_URL || 'https://justchr.github.io' }}
+      SITE_BASE: ${{ vars.SITE_BASE || '/BavarianData' }}
+      GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
+      BING_SITE_VERIFICATION: ${{ vars.BING_SITE_VERIFICATION }}
+      ASTRO_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Full history: each manual page shows (and tells search engines)
+          # when its wiki source last changed.
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - name: Install
+        working-directory: site
+        run: npm ci
+      - name: Build
+        working-directory: site
+        run: npm run build
+      - name: Check links, anchors and head tags
+        working-directory: site
+        run: npm run check
+      - uses: actions/upload-pages-artifact@v5
+        if: github.event_name != 'pull_request'
+        with:
+          path: site/dist
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

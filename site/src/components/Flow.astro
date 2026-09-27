@@ -1,0 +1,145 @@
+---
+// How data travels: car -> BMW CarData (stream + REST) -> Home Assistant.
+// Drawn in SVG so it scales, reads in both themes, and carries real labels.
+import type { Lang } from "../lib/site";
+
+interface Props {
+  lang: Lang;
+}
+const de = Astro.props.lang === "de";
+const t = de
+  ? {
+      car: "Dein BMW oder MINI",
+      carSub: "sendet, wenn sich etwas ändert",
+      bmw: "BMW CarData",
+      stream: "MQTT-Stream",
+      streamSub: "live, ohne Kontingent",
+      rest: "REST-API",
+      restSub: "50 Anfragen / 24 h",
+      ha: "Home Assistant",
+      haSub: "BavarianData: Entitäten, Verlauf, Karte",
+      label: "Datenfluss vom Auto über BMW CarData zu Home Assistant",
+    }
+  : {
+      car: "Your BMW or MINI",
+      carSub: "reports when something changes",
+      bmw: "BMW CarData",
+      stream: "MQTT stream",
+      streamSub: "live, no quota",
+      rest: "REST API",
+      restSub: "50 requests / 24 h",
+      ha: "Home Assistant",
+      haSub: "BavarianData: entities, history, card",
+      label: "Data flow from the car through BMW CarData to Home Assistant",
+    };
+---
+<figure class="flowchart">
+  <svg viewBox="0 0 1000 260" role="img" aria-label={t.label}>
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10z" class="arrowhead" />
+      </marker>
+    </defs>
+
+    <g class="node">
+      <rect x="10" y="80" width="230" height="100" rx="18" />
+      <text x="125" y="125" class="title">{t.car}</text>
+      <text x="125" y="152" class="sub">{t.carSub}</text>
+    </g>
+
+    <g class="node node--bmw">
+      <rect x="360" y="20" width="280" height="220" rx="22" />
+      <text x="500" y="56" class="title">{t.bmw}</text>
+      <rect x="385" y="76" width="230" height="68" rx="12" class="inner inner--live" />
+      <text x="500" y="106" class="title small">{t.stream}</text>
+      <text x="500" y="128" class="sub">{t.streamSub}</text>
+      <rect x="385" y="156" width="230" height="68" rx="12" class="inner" />
+      <text x="500" y="186" class="title small">{t.rest}</text>
+      <text x="500" y="208" class="sub">{t.restSub}</text>
+    </g>
+
+    <g class="node node--ha">
+      <rect x="760" y="80" width="230" height="100" rx="18" />
+      <text x="875" y="125" class="title">{t.ha}</text>
+      <text x="875" y="152" class="sub">{t.haSub}</text>
+    </g>
+
+    <path d="M240 130 H 352" class="link" marker-end="url(#arrow)" />
+    <path d="M615 110 C 690 110, 690 118, 752 118" class="link link--live" marker-end="url(#arrow)" />
+    <path d="M623 190 C 690 190, 690 152, 752 152" class="link link--quiet" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+  </svg>
+</figure>
+
+<style>
+  .flowchart {
+    margin: 40px 0 0;
+    padding: clamp(16px, 3vw, 32px);
+    border-radius: 24px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    overflow-x: auto;
+  }
+  svg {
+    display: block;
+    width: 100%;
+    min-width: 640px;
+    height: auto;
+  }
+  .node rect {
+    fill: var(--surface-2);
+    stroke: var(--line);
+    stroke-width: 1.5;
+  }
+  .node--bmw > rect:first-of-type {
+    fill: color-mix(in oklab, var(--surface-2) 60%, var(--surface));
+  }
+  .node--ha rect {
+    fill: color-mix(in oklab, var(--brand) 12%, var(--surface));
+    stroke: color-mix(in oklab, var(--brand) 45%, var(--line));
+  }
+  .inner {
+    fill: var(--surface) !important;
+  }
+  .inner--live {
+    stroke: color-mix(in oklab, var(--charge) 60%, var(--line)) !important;
+  }
+  text {
+    text-anchor: middle;
+    font-family: var(--font);
+  }
+  .title {
+    fill: var(--ink);
+    font-size: 19px;
+    font-weight: 700;
+    font-stretch: 110%;
+  }
+  .title.small {
+    font-size: 16px;
+  }
+  .sub {
+    fill: var(--slate);
+    font-size: 13.5px;
+  }
+  .link {
+    fill: none;
+    stroke: var(--slate);
+    stroke-width: 2;
+  }
+  .link--live {
+    stroke: var(--charge);
+    stroke-width: 3;
+    stroke-dasharray: 8 7;
+    animation: flow 1.4s linear infinite;
+  }
+  .link--quiet {
+    stroke-dasharray: 3 5;
+  }
+  .arrowhead {
+    fill: var(--slate);
+  }
+  @keyframes flow {
+    to {
+      stroke-dashoffset: -30;
+    }
+  }
+</style>
