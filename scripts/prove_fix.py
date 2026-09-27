@@ -27,6 +27,7 @@ Exit status: 0 proven; 1 not proven (passes without the fix, or fails with it);
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 import tempfile
@@ -69,10 +70,28 @@ def base_content(repo: Path, base: str, path: str) -> Optional[bytes]:
     return git(repo, "show", f"{base}:{path}", binary=True) if listed else None
 
 
+def drop_bytecode(repo: Path, paths: list[str]) -> None:
+    """Delete cached bytecode for the files being swapped.
+
+    Python trusts a ``.pyc`` whose recorded source mtime and size match. A fix
+    that keeps the file's length (``41`` -> ``42``), swapped within the same
+    second, therefore runs the *cached* fix while the fix is reverted -- a false
+    "passes without the fix". CI caught exactly that.
+    """
+
+    for path in paths:
+        source = repo / path
+        if source.suffix == ".py":
+            for cached in (source.parent / "__pycache__").glob(f"{source.stem}.*.pyc"):
+                cached.unlink(missing_ok=True)
+
+
 def run_tests(repo: Path, tests: list[str]) -> tuple[bool, str]:
+    env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
     out = subprocess.run(
         [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", *tests],
         cwd=repo,
+        env=env,
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -96,6 +115,7 @@ def prove(repo: Path, tests: list[str], base: str, revert: Optional[list[str]]) 
     for path in fix:
         print(f"  {path}")
 
+    drop_bytecode(repo, fix)
     ok, tail = run_tests(repo, tests)
     if not ok:
         print("\nNOT PROVEN: the tests fail *with* the fix.\n" + tail)
@@ -122,6 +142,7 @@ def prove(repo: Path, tests: list[str], base: str, revert: Optional[list[str]]) 
             else:
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(old)
+        drop_bytecode(repo, fix)
         failed_without, tail_without = run_tests(repo, tests)
         failed_without = not failed_without
     finally:
@@ -148,6 +169,7 @@ def prove(repo: Path, tests: list[str], base: str, revert: Optional[list[str]]) 
     print("2/3 without the fix: fail (as it should)")
     print("--- what failed without the fix ---\n" + tail_without + "\n---")
 
+    drop_bytecode(repo, fix)
     ok, tail = run_tests(repo, tests)
     if not ok:
         print("\nThe tests fail after restoring the working tree:\n" + tail)

@@ -78,3 +78,24 @@ def test_a_fix_in_a_new_file_is_removed_for_the_run_and_put_back(repo: pathlib.P
 def test_nothing_to_revert_is_a_usage_error(repo: pathlib.Path) -> None:
     test = _write_test(repo, "def test_it():\n    assert True\n")
     assert prove_fix.main([test, "--repo", str(repo)]) == 2
+
+
+def test_cached_bytecode_of_swapped_files_is_dropped(repo: pathlib.Path) -> None:
+    """A same-length fix swapped within one second would otherwise run cached.
+
+    CI on Linux reported a real guard as NOT PROVEN: ``41`` -> ``42`` keeps the
+    file's size, both writes landed in the same second, and Python reused the
+    ``.pyc`` of the fixed module while the fix was reverted.
+    """
+
+    import py_compile
+
+    mod = repo / "pkg" / "mod.py"
+    other = repo / "pkg" / "__init__.py"
+    cached_mod = pathlib.Path(py_compile.compile(str(mod)))
+    cached_other = pathlib.Path(py_compile.compile(str(other)))
+
+    prove_fix.drop_bytecode(repo, ["pkg/mod.py"])
+
+    assert not cached_mod.exists()
+    assert cached_other.exists(), "only the swapped files' bytecode goes"
