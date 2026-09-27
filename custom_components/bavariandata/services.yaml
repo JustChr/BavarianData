@@ -206,6 +206,14 @@ export_history:
           options:
             - en
             - de
+            - fr
+            - it
+            - es
+            - nl
+            - pl
+            - pt
+            - cs
+            - sv
 get_coverage_report:
   fields:
     entry_id:

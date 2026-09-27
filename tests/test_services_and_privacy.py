@@ -8,7 +8,7 @@ Two classes of regression, both Home Assistant-free:
   read by anyone reviewing the repo, so a VIN-shaped literal is a leak. Only the
   documented synthetic placeholder is allowed.
 * **Translation coverage.** ``services.yaml`` carries schemas only; every
-  user-facing name and description lives in ``translations/{en,de}.json``. If a
+  user-facing name and description lives in ``translations/<lang>.json``. If a
   new action lands without both languages, German installs silently fall back to
   the raw action key -- the same failure mode the entity pipeline exists to
   prevent.
@@ -30,7 +30,6 @@ _PKG = _ROOT / "custom_components" / "bavariandata"
 
 SERVICES = yaml.safe_load((_PKG / "services.yaml").read_text(encoding="utf-8"))
 EN = json.loads((_PKG / "translations" / "en.json").read_text(encoding="utf-8"))
-DE = json.loads((_PKG / "translations" / "de.json").read_text(encoding="utf-8"))
 
 # hassfest validates *every* file in translations/, so the two rules below are
 # discovered rather than listed: a regional delta like en-GB.json is small enough
@@ -74,7 +73,9 @@ def test_no_real_vehicle_identifiers_are_shipped(path: pathlib.Path) -> None:
     )
 
 
-@pytest.mark.parametrize("lang,doc", [("en", EN), ("de", DE)])
+@pytest.mark.parametrize(
+    "lang,doc", [(lang, doc) for lang, doc in ALL_TRANSLATIONS if "-" not in lang]
+)
 def test_every_action_is_translated(lang: str, doc: dict) -> None:
     translated = doc.get("services", {})
     assert set(translated) == set(SERVICES), (

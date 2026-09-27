@@ -40,7 +40,7 @@ data:
   month: "2026-07"     # Standard: der aktuelle Monat
   type: both           # charging · trips · both
   format: csv          # csv · html
-  language: de          # en · de (nur HTML-Bericht; Standard: Sprache von HA)
+  language: de          # en · de · fr · it · es · nl · pl · pt · cs · sv (nur HTML-Bericht; Standard: Sprache von HA)
 ```
 
 Die vollständige Liste der Felder steht unter

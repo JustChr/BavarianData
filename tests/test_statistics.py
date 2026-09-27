@@ -281,3 +281,21 @@ def test_report_omits_cost_it_does_not_have():
 def test_report_handles_an_empty_month():
     html = export.month_report_html(month="2026-07", vehicle="i5", sessions=[], trips=[])
     assert "No charging sessions" in html and "No trips" in html
+
+
+def test_report_has_every_label_in_every_language():
+    # A missing label raises KeyError mid-render, so a partial table would only
+    # surface when a user in that language exported a month.
+    for lang, labels in export.STRINGS.items():
+        assert set(labels) == set(export.STRINGS["en"]), lang
+
+
+def test_report_languages_match_the_service_selector():
+    import pathlib
+
+    import yaml
+
+    pkg = pathlib.Path(__file__).resolve().parents[1] / "custom_components" / "bavariandata"
+    services = yaml.safe_load((pkg / "services.yaml").read_text(encoding="utf-8"))
+    options = services["export_history"]["fields"]["language"]["selector"]["select"]["options"]
+    assert set(options) == set(export.STRINGS)

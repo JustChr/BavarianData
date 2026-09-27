@@ -9,6 +9,11 @@ Two BMW source exports are joined on the technical descriptor:
 * ``descriptor-list.csv`` — the English export. Provides English names and
   descriptions, the finer sub-category, and the raw (untranslated) enum value
   ranges we need for state options.
+* ``catalogue_i18n/<lang>.html`` — the same portal export in further languages
+  (BMW localizes it per market). Only the element *names* are read from these,
+  into ``names_i18n``; sections, types and units come from the German export.
+  A language is added by dropping its export into that folder -- the set is
+  discovered, never listed.
 
 A third, project-authored input — ``curated_titles.json`` — supplies the curated
 English display names shown in Home Assistant (``title_en``). These are our own
@@ -30,6 +35,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 HTML_FILE = REPO_ROOT / "tools" / "CustomerTelematicsDataCatalogue.html"
+I18N_DIR = REPO_ROOT / "tools" / "catalogue_i18n"
 CSV_FILE = REPO_ROOT / "tools" / "descriptor-list.csv"
 TITLES_FILE = REPO_ROOT / "tools" / "curated_titles.json"
 OUTPUT_FILE = REPO_ROOT / "custom_components" / "bavariandata" / "catalogue.json"
@@ -79,8 +85,8 @@ def parse_streamable(cell_html: str) -> bool:
     return match.group(1) == "true" if match else True
 
 
-def parse_html() -> "OrderedDict[str, dict]":
-    raw = HTML_FILE.read_text(encoding="utf-8")
+def parse_html(path: Path = HTML_FILE) -> "OrderedDict[str, dict]":
+    raw = path.read_text(encoding="utf-8")
     entries: "OrderedDict[str, dict]" = OrderedDict()
     # Split the document into (heading, table-body) chunks in document order.
     parts = re.split(r"<h3>(.*?)</h3>", raw, flags=re.S)
@@ -146,9 +152,25 @@ def load_curated_titles() -> dict[str, str]:
     return data.get("titles", {})
 
 
+def parse_i18n_names() -> dict[str, dict[str, str]]:
+    """``{descriptor: {lang: name}}`` from every export in ``catalogue_i18n/``.
+
+    The exports share the German one's markup, so the same parser reads them;
+    its ``name_de`` field simply holds that language's name.
+    """
+
+    names: dict[str, dict[str, str]] = {}
+    for path in sorted(I18N_DIR.glob("*.html")):
+        for descriptor, entry in parse_html(path).items():
+            if entry["name_de"]:
+                names.setdefault(descriptor, {})[path.stem] = entry["name_de"]
+    return names
+
+
 def main() -> None:
     de = parse_html()
     en = parse_csv()
+    i18n = parse_i18n_names()
     titles = load_curated_titles()
     descriptors = list(OrderedDict.fromkeys(list(de) + list(en)))
 
@@ -166,6 +188,7 @@ def main() -> None:
             "name_en": e.get("name_en", ""),
             "element_en": e.get("element_en", ""),
             "name_de": d.get("name_de", ""),
+            "names_i18n": i18n.get(descriptor, {}),
             "description_en": e.get("description_en", ""),
             "description_de": d.get("description_de", ""),
             "data_type": d.get("data_type") or e.get("data_type") or "",
