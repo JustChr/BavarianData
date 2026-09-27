@@ -30,12 +30,12 @@ git status --porcelain     # look hard at every ?? line
 ## 3. Confirm the gates are green
 
 ```bash
-python -m pytest tests/ -q
-python -m ruff check custom_components/bavariandata tests
-python -m ruff format --check custom_components/bavariandata tests tools
+bash scripts/check.sh
 ```
 
-These are CI's exact commands (`.github/workflows/test.yml`). The format check is
+It runs CI's exact commands and paths (`.github/workflows/test.yml`) — ruff,
+the format check, ESLint, pytest — and ends `GREEN` or `RED`. Its stale-translation
+list is advisory; clear it with the `translate` skill before a release. The format check is
 separate from the lint and is easy to skip: v0.9.13-beta.3 went out with CI red
 over one line wrapped wrong in a new test file.
 

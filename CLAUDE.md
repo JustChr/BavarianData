@@ -135,9 +135,15 @@ living only in prose.
   `node --check` on the card right after it is written; `commit_guard.py` asks
   before a commit that changes an English wiki page without its German
   counterpart, or that ships code while `## [Unreleased]` is empty.
-- **Skills** (`.claude/skills/`): `regen` (the four generators, in order),
-  `ship` (release), `triage` (read a user's diagnostics), `live` (zero-quota
-  reads against the live instance), `shoot` (Playwright screenshots).
+- **Skills** (`.claude/skills/`): `regen` (the generators, in order),
+  `ship` (release), `land` (check → PR → green CI → rebase-merge; not a
+  release), `translate` (carry English text into all ten languages, with the
+  glossary and what stays English), `triage` (read a user's diagnostics), `live`
+  (zero-quota reads against the live instance), `shoot` (Playwright screenshots).
+- **Scripts:** `bash scripts/check.sh` runs CI's gates with CI's exact paths and
+  ends GREEN/RED (`--no-tests` for lint only); `python tools/i18n_gaps.py` lists
+  every missing, broken or stale translation across `translations/`, the card
+  and the month report, grouped by language.
 - **Agent** (`.claude/agents/docs-lockstep.md`): reads a diff and reports which
   wiki pages, German counterparts, matrix rows and screenshots went stale.
 
