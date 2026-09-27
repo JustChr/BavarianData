@@ -79,7 +79,9 @@ and a column to `_STATE_ROWS` in `generate_translations.py`, add it to
 minus `entity`), add a card table in `www/bavariandata-card.js`, a `STRINGS`
 block in `history/export.py` and an option in `services.yaml`. The tests name
 each of those that is missing: `tests/test_translations_parity.py` holds every
-language to English's keys and `{placeholders}`.
+language to English's keys and `{placeholders}`. `python tools/i18n_gaps.py` lists
+every gap across all four places at once, including **stale** translations
+(English changed since the branch point, the translation did not).
 
 ## Refreshing from BMW
 
