@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.14-beta.1] - 2026-09-27
+
 ### Fixed
 
 - **A Check Control warning stayed on after it was dealt with.** Topping up the
