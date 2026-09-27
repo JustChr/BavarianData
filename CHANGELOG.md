@@ -33,6 +33,12 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   lists two more charging states, *interrupted* and *disrupted*. Both would
   have shown a green ring and *Time to full* on the card. They now read as
   stopped, and have names in every language.
+- **A refused login could leave two connections to BMW open.** When BMW
+  refused the stream's login and the token was renewed at once, a busy system
+  could lose track of the new connection and open another one: two streams on
+  one account, which BMW does not allow and which makes the connections drop
+  each other. The refused connection is now shut down before anything else
+  reacts to the refusal.
 
 ## [0.9.14-beta.1] - 2026-09-27
 
