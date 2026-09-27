@@ -31,7 +31,11 @@ Jeder Deskriptor, den BMW streamt, wird zu einer eigenen Entität:
   Meldungen** (die Warnungen des Autos). Ihr Zustand ist die **Anzahl der
   Einträge**, die ganze Liste steht im Attribut **`items`**, z. B.
   `{{ state_attr('sensor.<auto>_check_control_meldungen', 'items') }}` in einem
-  Template. Ein Zustand `0` bedeutet, dass das Auto eine leere Liste gemeldet hat.
+  Template. Ein Zustand `0` bedeutet, dass das Auto eine leere Liste gemeldet hat —
+  oder, bei Check Control, dass BMW gar keine Meldungen geliefert hat, so kommt
+  eine erledigte Warnung an. Erledigte Check-Control-Meldungen bleiben im Attribut
+  **`resolved`** erhalten (die letzten zehn, neueste zuerst), jeweils mit
+  `last_reported` und `resolved_at`.
 
 Der vollständige Katalog der Felder nach Datengruppe steht in
 [telematics-fields.md](https://github.com/JustChr/BavarianData/blob/main/docs/reference/telematics-fields.md).

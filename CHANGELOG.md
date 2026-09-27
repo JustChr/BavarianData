@@ -9,6 +9,21 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- **A Check Control warning stayed on after it was dealt with.** Topping up the
+  washer fluid did not clear "washer fluid level is low": once the car has no
+  messages, BMW reports the list as *null* rather than as an empty list, and the integration read that as "no news" and kept the old warning for
+  good. It now reads it as "no messages", so the sensor drops to 0 at the next
+  daily refresh after a drive.
+
+### Changed
+
+- **The card's *Vehicle events* view shows only current Check Control
+  messages.** Messages the car no longer reports fold away under **Earlier
+  messages**, with the day each was last reported and the day it stopped. The
+  sensor keeps the last ten in a new `resolved` attribute.
+
 ## [0.9.13] - 2026-09-27
 
 Promotes 0.9.13-beta.1 to beta.6. Two new features: **device triggers** for

@@ -21,8 +21,19 @@ from a run that stored the rejected string as the native value. Text that parses
 to a list or mapping is treated as that structure; any other string is a plain
 value.
 
-Home Assistant-free on purpose, so the rule is unit-tested; ``sensor.py`` applies
-it.
+**A cleared Check Control list arrives as null, not as ``[]``.** The car uploads
+its messages at drive start, and once the last one is gone BMW's REST reply
+carries the key with value, unit and timestamp all null -- measured on the i5 on
+2026-09-27, a day after its washer fluid was topped up. Skipped like any other
+null, it left the old warning showing for good; :data:`EMPTY_WHEN_NULL` names the
+descriptors for which null means "none".
+
+Messages that leave the list are kept for a while as the ``resolved`` attribute
+(:class:`MessageHistory`), so the card can show what the car complained about
+without showing it as current.
+
+Home Assistant-free on purpose, so the rules are unit-tested; ``sensor.py`` and
+the coordinator apply them.
 """
 
 from __future__ import annotations
@@ -31,6 +42,16 @@ import json
 from typing import Any, Mapping, Optional, Tuple, Union
 
 ITEMS_ATTRIBUTE = "items"
+RESOLVED_ATTRIBUTE = "resolved"
+
+CHECK_CONTROL = "vehicle.status.checkControlMessages"
+
+# Descriptors whose null value is an empty list. Only Check Control: it is
+# REST-only, so a null can only be BMW's answer, never a stream gap.
+EMPTY_WHEN_NULL: frozenset[str] = frozenset({CHECK_CONTROL})
+
+# How many resolved messages the attribute keeps, newest first.
+RESOLVED_LIMIT = 10
 
 Structure = Union[list, dict]
 
@@ -74,3 +95,56 @@ def restored_items(attributes: Optional[Mapping[str, Any]]) -> Optional[Structur
         return None
     items = attributes.get(ITEMS_ATTRIBUTE)
     return items if isinstance(items, (list, dict)) else None
+
+
+def _message_key(item: Mapping[str, Any]) -> tuple:
+    """What makes two list entries the same message: its type and id, or text."""
+
+    ident = item.get("id")
+    return (item.get("messageType"), ident if ident is not None else item.get("text"))
+
+
+def _messages(items: Any) -> list[dict]:
+    return [item for item in items if isinstance(item, dict)] if isinstance(items, list) else []
+
+
+class MessageHistory:
+    """The messages a list sensor showed, and the ones that have since gone.
+
+    ``update`` is handed every list the sensor shows. A message in the previous
+    list but not in the new one is resolved: it moves to :attr:`resolved` with
+    ``last_reported`` (the timestamp of the last list that held it) and
+    ``resolved_at`` (when the list without it reached us -- BMW gives a cleared
+    list no timestamp of its own). A message that comes back leaves the history,
+    so it is never shown as current and past at once.
+    """
+
+    def __init__(self) -> None:
+        self._shown: Optional[list[dict]] = None
+        self._shown_at: Optional[str] = None
+        self.resolved: list[dict] = []
+
+    def restore(self, attributes: Optional[Mapping[str, Any]]) -> None:
+        """Pick up where the previous run stopped: its list and its history."""
+
+        if not attributes:
+            return
+        if isinstance(attributes.get(ITEMS_ATTRIBUTE), list):
+            self._shown = _messages(attributes[ITEMS_ATTRIBUTE])
+            self._shown_at = attributes.get("timestamp")
+        self.resolved = _messages(attributes.get(RESOLVED_ATTRIBUTE))[:RESOLVED_LIMIT]
+
+    def update(self, items: Any, reported_at: Optional[str], now: str) -> None:
+        """Record the list now shown; ``items`` that are not a list are ignored."""
+
+        if not isinstance(items, list):
+            return
+        current = _messages(items)
+        if self._shown is not None:
+            active = {_message_key(item) for item in current}
+            gone = [item for item in self._shown if _message_key(item) not in active]
+            kept = [item for item in self.resolved if _message_key(item) not in active]
+            fresh = [{**item, "last_reported": self._shown_at, "resolved_at": now} for item in gone]
+            self.resolved = (fresh + kept)[:RESOLVED_LIMIT]
+        self._shown = current
+        self._shown_at = reported_at

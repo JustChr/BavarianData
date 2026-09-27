@@ -55,7 +55,8 @@ if (op === "stub") {
   card._config = config;
   card.shadowRoot = { innerHTML: "", querySelectorAll: () => [] };
   card._render();
-  for (const key of expand) card._toggleCc(key);  // what a tap on the row does
+  // What a tap does: on a message row, or on the "Earlier messages" fold.
+  for (const key of expand) key === "earlier" ? card._toggleCcEarlier() : card._toggleCc(key);
   out = card.shadowRoot.innerHTML;
 } else if (op === "editor") {
   const editor = Object.create(Editor.prototype);
@@ -94,6 +95,7 @@ def _hass(
     cc_state: str = "1",
     teleservice: bool = False,
     car: bool = True,
+    resolved: list | None = None,
 ) -> dict:
     states = {
         "sensor.cardata_api_quota": {
@@ -135,6 +137,7 @@ def _hass(
                 "category": "Service",
                 "friendly_name": "i5 eDrive40 Check Control messages",
                 "items": items,
+                **({"resolved": resolved} if resolved is not None else {}),
             },
         }
         entities[CC] = {"entity_id": CC, "platform": "bavariandata", "device_id": CAR}
@@ -282,3 +285,65 @@ def test_detail_text_is_escaped():
     html = _run("render", _hass([item]), {"cluster": "events"}, expand=("164",))
     assert "<b>x</b>" not in html
     assert "&lt;b&gt;x" in html
+
+
+# ---- a message the car no longer reports ------------------------------------
+# The i5, 2026-09-27: washer fluid topped up, BMW's next reply held no messages.
+# The warning leaves the list, folded away under "Earlier messages".
+
+_WASHER_GONE = dict(
+    _WASHER_ITEM,
+    unitOfLengthRemaining="20039",
+    last_reported="2026-09-26T10:54:19.664Z",
+    resolved_at="2026-09-27T17:00:00+00:00",
+)
+
+
+def test_a_cleared_message_is_not_shown_as_current():
+    html = _run("render", _hass([], cc_state="0", resolved=[_WASHER_GONE]), {"cluster": "events"})
+    assert "No Check Control messages reported." in html
+    assert "washer fluid level is low" not in html
+    assert "Earlier messages (1)" in html
+    assert "0 values" in html  # the header counts current messages only
+
+
+def test_the_earlier_fold_opens_on_tap():
+    html = _run(
+        "render",
+        _hass([], cc_state="0", resolved=[_WASHER_GONE]),
+        {"cluster": "events"},
+        expand=("earlier",),
+    )
+    assert "washer fluid level is low" in html
+    assert "mdi:check-circle-outline" in html
+    assert "mdi:alert-circle-outline" not in html
+
+
+def test_a_cleared_message_shows_when_it_was_last_reported():
+    key = "past:164:2026-09-27T17:00:00+00:00"
+    html = _run(
+        "render",
+        _hass([], cc_state="0", resolved=[_WASHER_GONE]),
+        {"cluster": "events"},
+        expand=("earlier", key),
+    )
+    assert "Last reported" in html and "No longer reported" in html
+    assert "Sent by the car" not in html  # that stamp belongs to the current list
+    assert "20,039 km" in html
+
+
+def test_no_fold_without_history():
+    html = _run("render", _hass([_WASHER_ITEM], resolved=[]), {"cluster": "events"})
+    assert "Earlier messages" not in html
+
+
+def test_a_cleared_message_is_escaped():
+    item = dict(_WASHER_GONE, text='<img src=x onerror="alert(1)">', resolved_at='"><b>')
+    html = _run(
+        "render",
+        _hass([], cc_state="0", resolved=[item]),
+        {"cluster": "events"},
+        expand=("earlier",),
+    )
+    assert "<img src=x" not in html
+    assert '"><b>' not in html

@@ -187,6 +187,9 @@ const TRANSLATIONS = {
     cc_mileage: "Last shown at",
     cc_sent: "Sent by the car",
     cc_code: "Code",
+    cc_earlier: "Earlier messages ({n})",
+    cc_reported: "Last reported",
+    cc_gone: "No longer reported",
     // messages
     no_vehicle_title: "No BMW CarData vehicle found",
     no_vehicle_body:
@@ -471,6 +474,9 @@ const TRANSLATIONS = {
     cc_mileage: "Zuletzt angezeigt bei",
     cc_sent: "Vom Fahrzeug gesendet",
     cc_code: "Code",
+    cc_earlier: "Frühere Meldungen ({n})",
+    cc_reported: "Zuletzt gemeldet",
+    cc_gone: "Nicht mehr gemeldet seit",
     // messages
     no_vehicle_title: "Kein BMW-CarData-Fahrzeug gefunden",
     no_vehicle_body:
@@ -1553,7 +1559,7 @@ class BavarianDataCard extends HTMLElement {
       lang: _lang(this._hass),
       slug,
       rows: rows.map((s) => [s.entity_id, s.state]),
-      cc: cc && [cc.id, cc.items, cc.updated, cc.unit, this._ccExpanded],
+      cc: cc && [cc.id, cc.items, cc.resolved, cc.updated, cc.unit, this._ccExpanded, this._ccEarlier],
     });
     if (sig === this._sig) return;
     this._sig = sig;
@@ -1576,6 +1582,7 @@ class BavarianDataCard extends HTMLElement {
                   ? `<div class="list">${messages.map((msg) => this._ccRow(cc, msg)).join("")}</div>`
                   : `<div class="empty empty--inline">${this._t("cc_none")}</div>`
               }
+              ${this._ccEarlierBlock(cc)}
               ${rows.length ? `<div class="list__head">${this._t("cc_teleservice")}</div>` : ""}`
             : ""
         }
@@ -1603,6 +1610,27 @@ class BavarianDataCard extends HTMLElement {
     this.shadowRoot.querySelectorAll("[data-cc]").forEach((el) => {
       el.addEventListener("click", () => this._toggleCc(el.getAttribute("data-cc")));
     });
+    this.shadowRoot.querySelectorAll("[data-cc-earlier]").forEach((el) => {
+      el.addEventListener("click", () => this._toggleCcEarlier());
+    });
+  }
+
+  _toggleCcEarlier() {
+    this._ccEarlier = !this._ccEarlier;
+    this._sig = null;
+    this._render();
+  }
+
+  /** Messages the car no longer reports: folded away behind one row, so a
+   * cleared warning stops looking current but can still be looked up. */
+  _ccEarlierBlock(cc) {
+    if (!cc.resolved.length) return "";
+    const open = !!this._ccEarlier;
+    return `<button class="cc-earlier" data-cc-earlier aria-expanded="${open}">
+        <ha-icon icon="${open ? "mdi:chevron-up" : "mdi:chevron-down"}"></ha-icon>
+        <span>${this._t("cc_earlier", { n: cc.resolved.length })}</span>
+      </button>
+      ${open ? `<div class="list list--past">${cc.resolved.map((msg) => this._ccRow(cc, msg, true)).join("")}</div>` : ""}`;
   }
 
   _toggleCc(key) {
@@ -1617,11 +1645,12 @@ class BavarianDataCard extends HTMLElement {
     if (!st) return null;
     const attrs = st.attributes || {};
     const odometer = this._byDescriptor(entities, "vehicle.vehicle.travelledDistance");
+    const messages = (list) =>
+      Array.isArray(list) ? list.filter((msg) => msg && typeof msg === "object") : [];
     return {
       id: st.entity_id,
-      items: Array.isArray(attrs.items)
-        ? attrs.items.filter((msg) => msg && typeof msg === "object")
-        : [],
+      items: messages(attrs.items),
+      resolved: messages(attrs.resolved),
       updated: attrs.timestamp,
       unit: (odometer && odometer.attributes && odometer.attributes.unit_of_measurement) || "km",
     };
@@ -1636,27 +1665,32 @@ class BavarianDataCard extends HTMLElement {
 
   /** One Check Control message. BMW sends the text in English on every install,
    * and on the maintainer's i5 with no title and no date. */
-  _ccRow(cc, msg) {
-    const key = String(msg.id != null ? msg.id : msg.text || "");
+  _ccRow(cc, msg, past = false) {
+    const ident = String(msg.id != null ? msg.id : msg.text || "");
+    // A message can be current and in the history of an earlier occurrence
+    // only in turn, never at once -- but keep the keys apart all the same.
+    const key = past ? `past:${ident}:${msg.resolved_at || ""}` : ident;
     const isOpen = this._ccExpanded === key;
     const title = this._ccField(msg.title);
     const text = this._ccField(msg.text);
     const head = title || text || this._ccField(msg.messageType) || "—";
-    const when = this._ccField(msg.date) ? this._fmtDay(msg.date) : "";
-    return `<div class="cc${isOpen ? " is-open" : ""}">
+    const day = past ? msg.resolved_at : this._ccField(msg.date);
+    const when = day ? this._fmtDay(day) : "";
+    const icon = past ? "mdi:check-circle-outline" : "mdi:alert-circle-outline";
+    return `<div class="cc${past ? " cc--past" : ""}${isOpen ? " is-open" : ""}">
       <button class="item item--msg" data-cc="${this._attr(key)}" aria-expanded="${isOpen}">
-        <ha-icon class="item__icon" icon="mdi:alert-circle-outline"></ha-icon>
+        <ha-icon class="item__icon" icon="${icon}"></ha-icon>
         <span class="item__body">
           <span class="item__text${isOpen ? "" : " item__clamp"}">${this._esc(head)}</span>
           ${title && text && !isOpen ? `<span class="item__sub item__clamp">${this._esc(text)}</span>` : ""}
         </span>
         ${when ? `<span class="item__val">${when}</span>` : ""}
       </button>
-      ${isOpen ? this._ccDetail(cc, msg, title && text ? text : "") : ""}
+      ${isOpen ? this._ccDetail(cc, msg, title && text ? text : "", past) : ""}
     </div>`;
   }
 
-  _ccDetail(cc, msg, body) {
+  _ccDetail(cc, msg, body, past = false) {
     const description = this._ccField(msg.description);
     const facts = [];
     // Despite its name this is no distance left: on the maintainer's i5 it was
@@ -1666,8 +1700,14 @@ class BavarianDataCard extends HTMLElement {
     if (mileage && Number.isFinite(Number(mileage))) {
       facts.push([this._t("cc_mileage"), `${this._dec(Number(mileage), 0)} ${this._esc(cc.unit)}`]);
     }
-    const sent = this._relTime(cc.updated);
-    if (sent) facts.push([this._t("cc_sent"), sent]);
+    if (past) {
+      // The sensor's own timestamp belongs to the current list, not to this one.
+      if (msg.last_reported) facts.push([this._t("cc_reported"), this._fmtDay(msg.last_reported)]);
+      if (msg.resolved_at) facts.push([this._t("cc_gone"), this._fmtDay(msg.resolved_at)]);
+    } else {
+      const sent = this._relTime(cc.updated);
+      if (sent) facts.push([this._t("cc_sent"), sent]);
+    }
     const code = [this._ccField(msg.messageType), this._ccField(msg.id)].filter(Boolean).join(" ");
     if (code) facts.push([this._t("cc_code"), this._esc(code)]);
 
@@ -5041,6 +5081,15 @@ class BavarianDataCard extends HTMLElement {
         width: 100%; background: none; border: none; color: inherit; font: inherit; cursor: pointer;
       }
       .cc.is-open > .item--msg:hover { background: transparent; }
+      .cc--past .item__icon { color: var(--secondary-text-color); }
+      .cc--past .item__text { color: var(--secondary-text-color); }
+      .cc-earlier {
+        display: flex; align-items: center; gap: 6px; width: 100%; padding: 4px 20px 10px;
+        background: none; border: none; cursor: pointer; font: inherit; text-align: left;
+        color: var(--secondary-text-color); font-size: 0.85rem;
+      }
+      .cc-earlier ha-icon { --mdc-icon-size: 18px; }
+      .cc-earlier:hover { color: var(--primary-text-color); }
       .cc__text { margin: 0 0 8px; color: var(--primary-text-color); font-size: 0.86rem; line-height: 1.4; }
       .empty, .msg__body { color: var(--secondary-text-color); font-size: 0.9rem; }
       .empty { padding: 22px 18px; }

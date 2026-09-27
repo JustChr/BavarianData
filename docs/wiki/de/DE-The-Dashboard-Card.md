@@ -392,7 +392,13 @@ Warnungen, die das Auto selbst im Display anzeigt, etwa zu wenig Waschwasser —
 sagt es, wenn keine vorliegen. Tippe auf eine Meldung, um sie aufzuklappen: der
 Kilometerstand, bei dem das Fahrzeug sie zuletzt angezeigt hat, wie lange es her
 ist, dass das Fahrzeug sie gesendet hat, und BMWs Meldungscode. Der Text erscheint so, wie BMW ihn sendet, also auf
-Englisch, egal welche Sprache eingestellt ist. Die Meldungen stammen vom Sensor
+Englisch, egal welche Sprache eingestellt ist. Eine Meldung, die das Fahrzeug nicht
+mehr meldet — das Waschwasser ist nachgefüllt —, verlässt die Liste und wandert unter
+**Frühere Meldungen**, zugeklappt, bis du darauf tippst, mit dem Tag, an dem sie
+zuletzt gemeldet wurde, und dem, seit dem sie fehlt. Das Fahrzeug sendet seine
+Meldungen beim Losfahren, und die Integration liest sie einmal am Tag — eine
+erledigte Warnung kann also bis zu einem Tag und eine Fahrt brauchen, bis sie
+wandert. Die Meldungen stammen vom Sensor
 *Check Control Meldungen*, den BMW unter den nutzungsbasierten Daten führt; BMWs
 eigene Datengruppe *Fahrzeugereignisse* enthält nur zwei Teleservice-Zeitstempel,
 die unter den Meldungen stehen, wenn das Fahrzeug sie sendet.

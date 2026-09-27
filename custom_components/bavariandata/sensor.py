@@ -40,7 +40,14 @@ from .history.summary import (
 )
 from .restore_units import restore_native
 from .sensor_classes import sensor_classes
-from .structured_values import ITEMS_ATTRIBUTE, restored_items, structured_state
+from .structured_values import (
+    CHECK_CONTROL,
+    ITEMS_ATTRIBUTE,
+    RESOLVED_ATTRIBUTE,
+    MessageHistory,
+    restored_items,
+    structured_state,
+)
 
 
 # String metadata values -> Home Assistant sensor enums.
@@ -128,6 +135,9 @@ class CardataSensor(CardataRestoreSensor):
         super().__init__(coordinator, vin, descriptor)
         self._attr_should_poll = False
         self._unsubscribe = None
+        # Check Control keeps the messages that have since cleared, so the card
+        # can list them apart from the current ones (see structured_values).
+        self._history = MessageHistory() if descriptor == CHECK_CONTROL else None
         # ``True`` when the catalogue pins the unit/device class, so runtime unit
         # strings from BMW (e.g. "percent") must not override it.
         self._fixed_unit = False
@@ -176,6 +186,8 @@ class CardataSensor(CardataRestoreSensor):
         await super().async_added_to_hass()
         if getattr(self, "_attr_native_value", None) is None:
             restored, unit, last_state = await self.async_restored_native()
+            if self._history is not None and last_state is not None:
+                self._history.restore(last_state.attributes)
             if last_state is not None:
                 # A list-valued descriptor saved its count as the state; the
                 # list itself is in the attributes (see structured_values).
@@ -249,7 +261,9 @@ class CardataSensor(CardataRestoreSensor):
         # A list (service items, Check Control messages) is shown as its count:
         # stringified it overflows Home Assistant's 255-character state limit
         # and is recorded as unknown. The list itself goes out as an attribute.
-        self._attr_native_value, _items = structured_state(value)
+        self._attr_native_value, items = structured_state(value)
+        if self._history is not None:
+            self._history.update(items, state.timestamp, dt_util.utcnow().isoformat())
         if not self._fixed_unit:
             self._attr_native_unit_of_measurement = state.unit
 
@@ -263,6 +277,8 @@ class CardataSensor(CardataRestoreSensor):
             _native, items = structured_state(state.value)
             if items is not None:
                 attrs[ITEMS_ATTRIBUTE] = items
+        if self._history is not None:
+            attrs[RESOLVED_ATTRIBUTE] = self._history.resolved
         return attrs
 
 

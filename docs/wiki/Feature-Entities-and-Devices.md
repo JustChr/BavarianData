@@ -29,7 +29,11 @@ Every descriptor BMW streams becomes a native entity:
   (the warnings the car raised). Their state is the **number of entries** and the
   full list is in the **`items`** attribute, e.g.
   `{{ state_attr('sensor.<car>_check_control_messages', 'items') }}` in a
-  template. A state of `0` means the car reported an empty list.
+  template. A state of `0` means the car reported an empty list — or, for Check
+  Control, that BMW reported no messages at all, which is how a cleared warning
+  arrives. Check Control messages that have cleared stay in a **`resolved`**
+  attribute (the last ten, newest first), each with `last_reported` and
+  `resolved_at`.
 
 The full field-per-cluster catalogue lives in
 [telematics-fields.md](https://github.com/JustChr/BavarianData/blob/main/docs/reference/telematics-fields.md).

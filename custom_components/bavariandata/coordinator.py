@@ -70,6 +70,7 @@ from .history.trip_builder import (
 )
 from .coverage import is_combustion_only, is_plug_in_hybrid
 from .soc_tracking import SocTracking
+from .structured_values import EMPTY_WHEN_NULL
 from .tyre import parse_tyre_diagnosis
 from .units import normalize_unit
 from .vehicle_support import is_motorcycle, motorcycle_issue_id
@@ -825,6 +826,9 @@ class CardataCoordinator:
             unit = normalize_unit(descriptor_payload.get("unit"))
             timestamp = descriptor_payload.get("timestamp")
             parsed_ts = dt_util.parse_datetime(timestamp) if timestamp else None
+            if value is None and descriptor in EMPTY_WHEN_NULL:
+                # BMW's word for "no Check Control messages" (structured_values).
+                value = []
             if value is None:
                 if descriptor == "vehicle.powertrain.electric.battery.stateOfCharge.target":
                     tracking.update_target_soc(None, parsed_ts)

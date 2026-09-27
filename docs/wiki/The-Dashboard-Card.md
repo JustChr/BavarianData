@@ -366,7 +366,11 @@ names — so it works regardless of the user's Home Assistant language.
 the car shows on its own display, such as low washer fluid — and says so when
 there are none. Tap a message to expand it: the mileage at which the car last
 showed it, how long ago the car sent it, and BMW's message code. The text is shown as BMW sends it, which is English whatever your
-language. The messages come from the *Check Control messages* sensor, which BMW
+language. A message the car no longer reports — the washer fluid has been topped
+up — leaves the list and moves under **Earlier messages**, folded away until you tap
+it, with the day it was last reported and the day it stopped. The car sends its
+messages when a drive starts and the integration reads them once a day, so a
+cleared warning can take up to a day and a drive to move. The messages come from the *Check Control messages* sensor, which BMW
 files under usage-based data; BMW's own *Vehicle events* cluster holds only two
 teleservice timestamps, listed below the messages when the car sends them.
 
