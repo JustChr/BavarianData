@@ -402,9 +402,12 @@ class _Broker:
     "Unspecified error", which is what paho 2.1 does after a refused connect.
     """
 
-    def __init__(self, manager, valid_tokens: set[str]) -> None:
+    def __init__(
+        self, manager, valid_tokens: set[str], *, stall_refused_teardown: bool = False
+    ) -> None:
         self._manager = manager
         self._valid_tokens = valid_tokens
+        self._stall_refused_teardown = stall_refused_teardown
         self.registry = _Registry()
         self.attempts = 0
         self.accepted = 0
@@ -415,6 +418,28 @@ class _Broker:
         client = _ConnectedClient(self.registry, manager)
         manager._client = client
         accepted = manager._password in self._valid_tokens
+        if not accepted and self._stall_refused_teardown:
+            # Hold the refused client's network thread inside its teardown until
+            # the event loop has put the next client in place -- what a thread
+            # descheduled under load does. Bounded, so a fixed stream (which
+            # never lets the loop get that far first) only waits it out. Only
+            # that thread stalls: the event loop tears the same client down
+            # too, and stalling *it* would block the very thing it waits for.
+            stop = client.loop_stop
+
+            def stalled_loop_stop(force: bool = False) -> None:
+                if threading.current_thread() is threading.main_thread():
+                    stop(force)
+                    return
+                deadline = time.monotonic() + 1.0
+                while time.monotonic() < deadline and (
+                    manager._client in (client, None) or self.accepted < 1
+                ):
+                    time.sleep(0.005)
+                time.sleep(0.05)  # let the loop finish installing it
+                stop(force)
+
+            client.loop_stop = stalled_loop_stop
 
         def network_loop() -> None:
             if accepted:
@@ -436,9 +461,9 @@ class _Broker:
         threading.Thread(target=network_loop, daemon=True).start()
 
 
-def _manager_with_broker(*, valid_tokens: set[str]):
+def _manager_with_broker(*, valid_tokens: set[str], stall_refused_teardown: bool = False):
     manager, _network = _manager_behind(failures=0)
-    broker = _Broker(manager, valid_tokens)
+    broker = _Broker(manager, valid_tokens, stall_refused_teardown=stall_refused_teardown)
     manager._start_client = broker.start_client
     return manager, broker
 
@@ -455,6 +480,43 @@ def test_a_refused_login_followed_by_a_renewed_token_leaves_one_stream(instant_b
         await manager.async_start()  # with the ID token that has expired
         connected = await _eventually(lambda: broker.accepted >= 1)
         await asyncio.sleep(0.2)  # room for a second client to show up
+        return connected, broker.registry.max_live, broker.registry.live, broker.attempts
+
+    connected, max_live, live, attempts = asyncio.run(scenario())
+
+    assert connected
+    assert (max_live, live, attempts) == (1, 1, 2)
+
+
+def test_a_refused_client_torn_down_late_does_not_orphan_its_successor(instant_backoff):
+    """The refused client's callback must not clear a client that replaced it.
+
+    ``_handle_connect`` hands the refusal to the event loop, which renews the
+    token and opens the next client -- while paho's network thread is still
+    tearing the refused one down. When that thread cleared ``_client`` after the
+    loop had set it, the live successor was orphaned: still connected, but no
+    longer the stream's client. The refused client's disconnect then found the
+    stream "idle" and opened a second live connection -- two streams on one
+    account, which BMW does not allow. Under CPU load this failed about 1 run in
+    20 as ``test_a_refused_login_followed_by_a_renewed_token_leaves_one_stream``;
+    holding the thread in its teardown makes it happen every time.
+    """
+
+    async def scenario():
+        manager, broker = _manager_with_broker(
+            valid_tokens={"renewed-id-token"}, stall_refused_teardown=True
+        )
+
+        async def refresh_tokens(reason: str) -> None:
+            if reason == "unauthorized":
+                await manager.async_update_credentials(id_token="renewed-id-token")
+
+        manager._error_callback = refresh_tokens
+        await manager.async_start()
+        # The fixed stream stops the refused loop before acting on the refusal,
+        # so the stall runs out its full second before the successor starts.
+        connected = await _eventually(lambda: broker.accepted >= 1, timeout=3.0)
+        await asyncio.sleep(0.3)  # room for a second client to show up
         return connected, broker.registry.max_live, broker.registry.live, broker.attempts
 
     connected, max_live, live, attempts = asyncio.run(scenario())

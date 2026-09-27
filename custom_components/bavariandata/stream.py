@@ -8,6 +8,7 @@ import json
 import logging
 import random
 import ssl
+import threading
 import time
 from typing import Any, Awaitable, Callable, Coroutine, Optional
 
@@ -103,6 +104,8 @@ class CardataStreamManager:
         self._closed = False
         self._min_reconnect_interval = 10.0
         self._connect_lock = asyncio.Lock()
+        # Guards ``_client`` between paho's network thread and the loop's executor.
+        self._client_lock = threading.Lock()
 
     async def async_start(self) -> None:
         async with self._connect_lock:
@@ -277,8 +280,12 @@ class CardataStreamManager:
                 _LOGGER.debug("Unable to connect to BMW MQTT: %s", err)
             client.loop_stop()
             raise
+        # Install it before its network loop starts: paho can deliver the
+        # CONNACK the moment the loop runs, and a refusal handled before this
+        # assignment would find a client that is not ours yet and leave it here.
+        with self._client_lock:
+            self._client = client
         client.loop_start()
-        self._client = client
 
     def _handle_connect(
         self, client: mqtt.Client, userdata, flags, reason_code, properties=None
@@ -306,6 +313,14 @@ class CardataStreamManager:
             if self._status_callback:
                 self._run_coro(self._status_callback("connected"))
         elif reason_code.value in (_RC_BAD_CREDENTIALS, _RC_NOT_AUTHORIZED):
+            # Forget the refused client first, and only if it is still ours.
+            # This runs on paho's network thread, and the refusal is about to be
+            # handed to the event loop, which may renew the token and open the
+            # next client before this thread gets to run again. Clearing after
+            # that orphaned the live successor, and the refused client's
+            # disconnect then found the stream idle and opened a second one --
+            # two streams on one account.
+            self._release_client(client)
             now = time.monotonic()
             if (
                 reason_code.value == _RC_NOT_AUTHORIZED
@@ -317,16 +332,28 @@ class CardataStreamManager:
                         "BMW MQTT connection refused shortly after disconnect; scheduling retry"
                     )
                 client.loop_stop(force=True)
-                self._client = None
                 self._schedule_retry()
                 return
             _LOGGER.error("BMW MQTT connection failed: rc=%s", reason_code)
-            self._run_coro(self._handle_unauthorized())
+            # Stop its loop before the loop thread can act on the refusal, so the
+            # next client never starts while this one's network loop still runs.
             client.loop_stop()
-            self._client = None
+            self._run_coro(self._handle_unauthorized())
             return
         elif self._status_callback:
             self._run_coro(self._status_callback("connection_failed", reason=str(reason_code)))
+
+    def _release_client(self, client: mqtt.Client) -> None:
+        """Drop ``client`` as the stream's client -- unless it was already replaced.
+
+        Called from paho's network thread. The lock makes the check and the
+        clear one step against the loop installing a successor in
+        ``_start_client``.
+        """
+
+        with self._client_lock:
+            if self._client is client:
+                self._client = None
 
     def _handle_subscribe(
         self, client: mqtt.Client, userdata, mid, reason_code_list, properties=None
