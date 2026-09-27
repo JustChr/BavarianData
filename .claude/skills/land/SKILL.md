@@ -26,7 +26,9 @@ bash scripts/check.sh
 ```
 
 It runs CI's exact commands and paths and ends `GREEN` or `RED — …`. Do not
-continue on red. One known flake:
+continue on red. **Run it as its own command and read its exit status** — never
+`check.sh | tail … && git commit`: the pipe hands `&&` the exit status of `tail`,
+so a red run commits anyway (it happened on PR #31). One known flake:
 `test_stream_reconnect.py::test_a_refused_login_followed_by_a_renewed_token_leaves_one_stream`
 can fail under load — rerun that file alone before investigating.
 
