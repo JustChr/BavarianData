@@ -80,6 +80,8 @@ _STATE_ROWS: dict[str, tuple[str, ...]] = {
     "CHARGINGPAUSED": ("Charging paused", "Ladevorgang pausiert", "Charge en pause", "Ricarica in pausa", "Carga en pausa", "Laden gepauzeerd", "Ładowanie wstrzymane", "Carregamento em pausa", "Nabíjení pozastaveno", "Laddning pausad"),
     "CHARGINGENDED": ("Charging ended", "Ladevorgang beendet", "Charge terminée", "Ricarica terminata", "Carga finalizada", "Laden beëindigd", "Ładowanie zakończone", "Carregamento concluído", "Nabíjení ukončeno", "Laddning avslutad"),
     "CHARGINGERROR": ("Charging error", "Ladefehler", "Erreur de charge", "Errore di ricarica", "Error de carga", "Laadfout", "Błąd ładowania", "Erro de carregamento", "Chyba nabíjení", "Laddningsfel"),
+    "CHARGINGINTERRUPTED": ("Charging interrupted", "Ladevorgang unterbrochen", "Charge interrompue", "Ricarica interrotta", "Carga interrumpida", "Laden onderbroken", "Ładowanie przerwane", "Carregamento interrompido", "Nabíjení přerušeno", "Laddning avbruten"),
+    "CHARGINGDISRUPTED": ("Charging disrupted", "Ladevorgang gestört", "Charge perturbée", "Ricarica disturbata", "Carga perturbada", "Laden verstoord", "Ładowanie zakłócone", "Carregamento perturbado", "Nabíjení narušeno", "Laddning störd"),
     "NOCHARGING": ("Not charging", "Lädt nicht", "Pas en charge", "Non in carica", "Sin cargar", "Laadt niet", "Brak ładowania", "Sem carregar", "Nenabíjí se", "Laddar inte"),
     "INITIALIZATION": ("Initializing", "Initialisierung", "Initialisation", "Inizializzazione", "Inicialización", "Initialiseren", "Inicjalizacja", "Inicialização", "Inicializace", "Initierar"),
     "OK": ("OK",) * 10,

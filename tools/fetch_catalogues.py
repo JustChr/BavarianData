@@ -8,7 +8,8 @@ downloads all of them to a temporary folder and compares them *by descriptor*
 with the committed copies, so a reformatted page reads as "no change":
 
 * descriptors BMW **added** or **removed**,
-* a changed data type, unit, section or **streamable** flag (German export),
+* a changed data type, unit, section, value range or **streamable** flag
+  (German export),
 * a renamed field, in any language.
 
     python tools/fetch_catalogues.py           # report only; touches nothing
@@ -50,7 +51,9 @@ EXPORTS: dict[str, str] = {
 }
 MAIN = "CustomerTelematicsDataCatalogue.html"
 # Fields of the German export whose change alters what the integration builds.
-TRACKED = ("data_type", "unit", "section", "streamable")
+# ``value_range_de`` matters because enum options fall back to it, and it is
+# where BMW corrected charging.status's copy-pasted list in 2026-09.
+TRACKED = ("data_type", "unit", "section", "streamable", "value_range_de")
 
 
 def _load_builder():

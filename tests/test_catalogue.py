@@ -296,3 +296,21 @@ def test_generators_are_idempotent(tmp_path):
         # Catches an edit to derived_entities.json that was never regenerated,
         # and a hand-edit of the generated entity block.
         assert (_PKG / "translations" / name).read_text(encoding="utf-8") == before
+
+
+def test_battery_health_soce_is_a_percentage_with_statistics():
+    """BMW's catalogue gave SOCE a unit (`percent`) in its 2026-09 revision.
+
+    Before that the entity already showed `%` -- the unit came with the value --
+    but carried no state class, so it kept no long-term statistics. The live
+    value is numeric (`100` on the i5), which a state class requires.
+    """
+
+    meta = META["vehicle.powertrain.electric.battery.stateOfHealth.displayed"]
+    assert (meta["unit"], meta["state_class"], meta["device_class"]) == ("%", "measurement", None)
+
+
+def test_charging_status_knows_every_state_bmw_documents():
+    options = META["vehicle.drivetrain.electricEngine.charging.status"]["options"]
+    for state in ("chargingactive", "chargingended", "charginginterrupted", "chargingdisrupted"):
+        assert state in options

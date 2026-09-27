@@ -133,7 +133,15 @@ const CHARGING_ACTIVE_STATES = new Set([
 // NOT_CHARGING_STATES so the label still shows Home Assistant's own translation
 // ("Charging ended", "Paused") rather than a generic "not charging". Agrees with
 // the integration (soc_tracking.is_charging_status), which counts none of these.
-const CHARGING_STOPPED_STATES = new Set(["chargingended", "chargingpaused", "chargingerror"]);
+// BMW's catalogue added `charginginterrupted` and `chargingdisrupted` in its
+// 2026-09 revision: stopped too, and prefixed the same way.
+const CHARGING_STOPPED_STATES = new Set([
+  "chargingended",
+  "chargingpaused",
+  "chargingerror",
+  "charginginterrupted",
+  "chargingdisrupted",
+]);
 
 /* ------------------------------------------------------------------------- *
  * Localization                                                              *
