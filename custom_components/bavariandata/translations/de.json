@@ -1057,7 +1057,7 @@
         "name": "Ladestatus der Hochvoltbatterie"
       },
       "vehicle_drivetrain_batterymanagement_maxenergy": {
-        "name": "Energieinhalt der Hochvoltbatterie"
+        "name": "Nutzbare Energie aus Hochvoltbatterie (vollgeladen, prognostiziert)"
       },
       "vehicle_drivetrain_electricengine_charging_acampere": {
         "name": "AC-Ladestrom"
@@ -1202,7 +1202,9 @@
           "chargingactive": "Lädt",
           "chargingpaused": "Ladevorgang pausiert",
           "chargingended": "Ladevorgang beendet",
-          "chargingerror": "Ladefehler"
+          "chargingerror": "Ladefehler",
+          "charginginterrupted": "Ladevorgang unterbrochen",
+          "chargingdisrupted": "Ladevorgang gestört"
         }
       },
       "vehicle_drivetrain_electricengine_charging_timeremaining": {
@@ -2109,7 +2111,7 @@
         "name": "Ladestatus der Hochvoltbatterie"
       },
       "vehicle_drivetrain_batterymanagement_maxenergy": {
-        "name": "Energieinhalt der Hochvoltbatterie"
+        "name": "Nutzbare Energie aus Hochvoltbatterie (vollgeladen, prognostiziert)"
       },
       "vehicle_drivetrain_electricengine_charging_acampere": {
         "name": "AC-Ladestrom"

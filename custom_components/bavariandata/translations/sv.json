@@ -1202,7 +1202,9 @@
           "chargingactive": "Laddar",
           "chargingpaused": "Laddning pausad",
           "chargingended": "Laddning avslutad",
-          "chargingerror": "Laddningsfel"
+          "chargingerror": "Laddningsfel",
+          "charginginterrupted": "Laddning avbruten",
+          "chargingdisrupted": "Laddning störd"
         }
       },
       "vehicle_drivetrain_electricengine_charging_timeremaining": {

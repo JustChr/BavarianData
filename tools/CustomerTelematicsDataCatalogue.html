@@ -455,7 +455,7 @@ INVALID    </td><td class="col6-emea">-</td><td class="col7">
                 </td>
             </tr>
             <tr>
-                <td class="col1-emea top-column">Kilometerstand</td><td class="col2-emea">Der Wert gibt den zum Zeitpunkt der Datenerfassung aktuellen Kilometerstand an. </td><td class="col3">vehicle.​vehicle.​travelledDistance</td><td class="col4">float</td><td class="col5">0 km bis 500000 km</td><td class="col6-emea">null</td><td class="col7">
+                <td class="col1-emea top-column">Kilometerstand</td><td class="col2-emea">Der Wert gibt den zum Zeitpunkt der Datenerfassung aktuellen Kilometerstand an. </td><td class="col3">vehicle.​vehicle.​travelledDistance</td><td class="col4">float</td><td class="col5">0 km bis 500000 km</td><td class="col6-emea">km</td><td class="col7">
                     <div class="true-tick"></div>
                 </td>
             </tr>
@@ -1282,7 +1282,7 @@ Die m&ouml;glichen Werte lauten NOTCHOSEN und CHOSEN. </td><td class="col3">vehi
                 </td>
             </tr>
             <tr>
-                <td class="col1-emea top-column">Ben&ouml;tigte Energie f&uuml;r die vollst&auml;ndige Restladung der Hochvoltbatterie</td><td class="col2-emea">Der Wert gibt die Energie an, die ben&ouml;tigt wird, um die Hochvoltbatterie vollst&auml;ndig aufzuladen.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​smeEnergyDeltaFullyCharged</td><td class="col4">float</td><td class="col5">0 - 300 kWh, INVALID</td><td class="col6-emea">kWh</td><td class="col7">
+                <td class="col1-emea top-column">Ben&ouml;tigte Energie f&uuml;r die vollst&auml;ndige Restladung der Hochvoltbatterie</td><td class="col2-emea">Der Wert gibt die Energie an, die ben&ouml;tigt wird, um die Hochvoltbatterie vollst&auml;ndig aufzuladen.</td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​smeEnergyDeltaFullyCharged</td><td class="col4">float</td><td class="col5">0 - 1310 kWh</td><td class="col6-emea">kWh</td><td class="col7">
                     <div class="true-tick"></div>
                 </td>
             </tr>
@@ -1320,11 +1320,6 @@ INVALID</td><td class="col6-emea">km/h</td><td class="col7">
             </tr>
             <tr>
                 <td class="col1-emea top-column">Elektrisch gefahrener Streckenanteil der letzten Fahrt</td><td class="col2-emea">Der Wert gibt den mit elektrischer Energie zur&uuml;ckgelegten Streckenanteil der letzten erfassten Fahrt in Prozent an. </td><td class="col3">vehicle.​trip.​segment.​accumulated.​drivetrain.​transmission.​setting.​fractionDriveElectric</td><td class="col4">float</td><td class="col5">0 % bis 100 %</td><td class="col6-emea">percent</td><td class="col7">
-                    <div class="true-tick"></div>
-                </td>
-            </tr>
-            <tr>
-                <td class="col1-emea top-column">Energieinhalt der Hochvoltbatterie</td><td class="col2-emea"> Der Wert gibt den aktuellen Energieinhalt&nbsp;der Hochvoltbatterie an.</td><td class="col3">vehicle.​drivetrain.​batteryManagement.​maxEnergy</td><td class="col4">float</td><td class="col5">0 - 300 kWh, INVALID</td><td class="col6-emea">kWh</td><td class="col7">
                     <div class="true-tick"></div>
                 </td>
             </tr>
@@ -1368,7 +1363,7 @@ Sterne</td><td class="col6-emea">stars</td><td class="col7">
                 </td>
             </tr>
             <tr>
-                <td class="col1-emea top-column">Gesundheitszustand der Hochvoltbatterie (SOCE)</td><td class="col2-emea">Dieser Wert gibt den Gesundheitszustand der Hochvoltbatterie an (SOCE, State of Certified Energy).</td><td class="col3">vehicle.​powertrain.​electric.​battery.​stateOfHealth.​displayed</td><td class="col4">-</td><td class="col5">-</td><td class="col6-emea">-</td><td class="col7">
+                <td class="col1-emea top-column">Gesundheitszustand der Hochvoltbatterie (SOCE)</td><td class="col2-emea">Dieser Wert gibt den Gesundheitszustand der Hochvoltbatterie an (SOCE, State of Certified Energy).</td><td class="col3">vehicle.​powertrain.​electric.​battery.​stateOfHealth.​displayed</td><td class="col4">-</td><td class="col5">0 - 100 %</td><td class="col6-emea">percent</td><td class="col7">
                     <div class="false-tick"></div>
                 </td>
             </tr>
@@ -1445,7 +1440,7 @@ INITIALIZATION meint, der Ladevorgang wird gerade vorbereitet, CHARGINGACTIVE he
 Weitere m&ouml;gliche Werte sind: 
 CHARGINGPAUSED (Ladevorgang pausiert), 
 CHARGINGENDED (Ladevorgang beendet) und 
-CHARGINGERROR (Ladefehler). </td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​status</td><td class="col4">string</td><td class="col5">MANUAL_SELECTION, AUTOMATIC_SELECTION, AUTOMATIC_SELECTION_20, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
+CHARGINGERROR (Ladefehler). </td><td class="col3">vehicle.​drivetrain.​electricEngine.​charging.​status</td><td class="col4">string</td><td class="col5">NOCHARGING, INITIALIZATION, CHARGINGACTIVE, CHARGINGPAUSED, CHARGINGENDED, CHARGINGERROR, CHARGINGINTERRUPTED, CHARGINGDISRUPTED, UNKNOWN</td><td class="col6-emea">-</td><td class="col7">
                     <div class="true-tick"></div>
                 </td>
             </tr>
@@ -1492,6 +1487,11 @@ CHARGINGERROR (Ladefehler). </td><td class="col3">vehicle.​drivetrain.​elect
             <tr>
                 <td class="col1-emea top-column">Nebenverbraucherleistung (Leistungsverbrauch elektrischer Komponenten)</td><td class="col2-emea">Dieser Wert gibt die Nebenverbraucherleistung zum Zeitpunkt der Datenerfassung in kW an. Dies ist der Bordnetzverbrauch inklusive der Leistung f&uuml;r die Klimaanlage. </td><td class="col3">vehicle.​vehicle.​avgAuxPower</td><td class="col4">float</td><td class="col5">0   &ndash; 655.34,
 INVALID</td><td class="col6-emea">kW</td><td class="col7">
+                    <div class="true-tick"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col1-emea top-column">Nutzbare Energie aus Hochvoltbatterie (vollgeladen, prognostiziert)</td><td class="col2-emea">F&uuml;r Standard-Entladung prognostizierte nutzbare Energie aus dem vollgeladenen Hochvoltspeicher unter aktuellen Bedingungen (z.B. Alterungszustand, Temperatur).</td><td class="col3">vehicle.​drivetrain.​batteryManagement.​maxEnergy</td><td class="col4">float</td><td class="col5">0 - 300 kWh, INVALID</td><td class="col6-emea">kWh</td><td class="col7">
                     <div class="true-tick"></div>
                 </td>
             </tr>

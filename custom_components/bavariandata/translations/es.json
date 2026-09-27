@@ -1202,7 +1202,9 @@
           "chargingactive": "Cargando",
           "chargingpaused": "Carga en pausa",
           "chargingended": "Carga finalizada",
-          "chargingerror": "Error de carga"
+          "chargingerror": "Error de carga",
+          "charginginterrupted": "Carga interrumpida",
+          "chargingdisrupted": "Carga perturbada"
         }
       },
       "vehicle_drivetrain_electricengine_charging_timeremaining": {

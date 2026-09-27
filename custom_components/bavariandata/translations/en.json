@@ -1382,7 +1382,9 @@
           "chargingactive": "Charging",
           "chargingpaused": "Charging paused",
           "chargingended": "Charging ended",
-          "chargingerror": "Charging error"
+          "chargingerror": "Charging error",
+          "charginginterrupted": "Charging interrupted",
+          "chargingdisrupted": "Charging disrupted"
         }
       },
       "vehicle_drivetrain_electricengine_charging_timeremaining": {

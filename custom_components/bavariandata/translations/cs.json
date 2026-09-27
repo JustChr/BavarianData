@@ -1202,7 +1202,9 @@
           "chargingactive": "Nabíjí se",
           "chargingpaused": "Nabíjení pozastaveno",
           "chargingended": "Nabíjení ukončeno",
-          "chargingerror": "Chyba nabíjení"
+          "chargingerror": "Chyba nabíjení",
+          "charginginterrupted": "Nabíjení přerušeno",
+          "chargingdisrupted": "Nabíjení narušeno"
         }
       },
       "vehicle_drivetrain_electricengine_charging_timeremaining": {

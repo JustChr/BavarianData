@@ -3718,7 +3718,7 @@
       "title_en": "Battery HV Energy content",
       "name_en": "Energy content",
       "element_en": "Energy content of the high-voltage battery",
-      "name_de": "Energieinhalt der Hochvoltbatterie",
+      "name_de": "Nutzbare Energie aus Hochvoltbatterie (vollgeladen, prognostiziert)",
       "names_i18n": {
         "cs": "Využitelné energie z vysokonapěťové baterie (plně nabitá, předpokládaná)",
         "es": "Energía útil de la batería de alto voltaje (completamente cargada, prevista)",
@@ -3730,7 +3730,7 @@
         "sv": "Användbar energi från högspänningsbatteri (fulladdat, prognostiserat)"
       },
       "description_en": "This value indicates the current energy content of the high-voltage battery.",
-      "description_de": "Der Wert gibt den aktuellen Energieinhalt der Hochvoltbatterie an.",
+      "description_de": "Für Standard-Entladung prognostizierte nutzbare Energie aus dem vollgeladenen Hochvoltspeicher unter aktuellen Bedingungen (z.B. Alterungszustand, Temperatur).",
       "data_type": "float",
       "value_range_en": "0 - 300 kWh, INVALID",
       "value_range_de": "0 - 300 kWh, INVALID",
@@ -4651,7 +4651,7 @@
       "description_de": "Der Wert gibt die Energie an, die benötigt wird, um die Hochvoltbatterie vollständig aufzuladen.",
       "data_type": "float",
       "value_range_en": "0 - 300 kWh, INVALID",
-      "value_range_de": "0 - 300 kWh, INVALID",
+      "value_range_de": "0 - 1310 kWh",
       "unit": "kWh",
       "streamable": true
     },
@@ -4678,7 +4678,7 @@
       "description_de": "Dieser Wert gibt den zum Zeitpunkt der Datenerfassung aktuellen Ladestatus des Fahrzeugs an. Der Wert NOCHARGING beispielsweise bedeutet, dass der Hochvolt-Speicher des Fahrzeugs derzeit nicht geladen wird. INITIALIZATION meint, der Ladevorgang wird gerade vorbereitet, CHARGINGACTIVE heißt, der Akku wird gerade aufgeladen. Weitere mögliche Werte sind: CHARGINGPAUSED (Ladevorgang pausiert), CHARGINGENDED (Ladevorgang beendet) und CHARGINGERROR (Ladefehler).",
       "data_type": "string",
       "value_range_en": "MANUAL_SELECTION, AUTOMATIC_SELECTION, AUTOMATIC_SELECTION_20, UNKNOWN",
-      "value_range_de": "MANUAL_SELECTION, AUTOMATIC_SELECTION, AUTOMATIC_SELECTION_20, UNKNOWN",
+      "value_range_de": "NOCHARGING, INITIALIZATION, CHARGINGACTIVE, CHARGINGPAUSED, CHARGINGENDED, CHARGINGERROR, CHARGINGINTERRUPTED, CHARGINGDISRUPTED, UNKNOWN",
       "unit": "",
       "streamable": true
     },
@@ -6154,8 +6154,8 @@
       "description_de": "Dieser Wert gibt den Gesundheitszustand der Hochvoltbatterie an (SOCE, State of Certified Energy).",
       "data_type": "-",
       "value_range_en": "-",
-      "value_range_de": "-",
-      "unit": "",
+      "value_range_de": "0 - 100 %",
+      "unit": "percent",
       "streamable": false
     },
     {
@@ -7910,7 +7910,7 @@
       "data_type": "float",
       "value_range_en": "0 km to 500000 km or 0 mi to 310686 mi",
       "value_range_de": "0 km bis 500000 km",
-      "unit": "null",
+      "unit": "km",
       "streamable": true
     },
     {

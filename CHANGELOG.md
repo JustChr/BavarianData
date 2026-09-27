@@ -19,6 +19,21 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   wording in the BMW portal. Portuguese is European Portuguese. The export
   service's `language` field accepts the new codes. Entity IDs do not change.
 
+### Changed
+
+- **Updated to BMW's latest data catalogue.** The *State of health (SOCE)*
+  sensor now keeps long-term statistics, so its trend shows in the history
+  graphs. In German, *Energieinhalt der Hochvoltbatterie* is now called what
+  BMW calls it: *Nutzbare Energie aus Hochvoltbatterie (vollgeladen,
+  prognostiziert)*. The entity ID does not change.
+
+### Fixed
+
+- **The card could show a stopped charge as charging.** BMW's catalogue now
+  lists two more charging states, *interrupted* and *disrupted*. Both would
+  have shown a green ring and *Time to full* on the card. They now read as
+  stopped, and have names in every language.
+
 ## [0.9.14-beta.1] - 2026-09-27
 
 ### Fixed

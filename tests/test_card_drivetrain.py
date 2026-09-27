@@ -307,7 +307,17 @@ def _with_status(status: str) -> dict:
 
 
 @pytest.mark.parametrize(
-    "status", ["chargingended", "chargingpaused", "chargingerror", "nocharging"]
+    "status",
+    [
+        "chargingended",
+        "chargingpaused",
+        "chargingerror",
+        "nocharging",
+        # Documented by BMW's catalogue since its 2026-09 revision; not yet seen
+        # on a car here, and both start with "charging" like issue #25's.
+        "charginginterrupted",
+        "chargingdisrupted",
+    ],
 )
 def test_a_charge_that_has_stopped_is_not_shown_as_charging(status: str):
     """Issue #25: `chargingended` starts with "charging", and the heuristic

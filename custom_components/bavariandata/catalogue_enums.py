@@ -44,6 +44,11 @@ _DESCRIPTOR_ENUM_OVERRIDES: dict[str, tuple[str, ...]] = {
         "CHARGINGPAUSED",
         "CHARGINGENDED",
         "CHARGINGERROR",
+        # Added by BMW's catalogue revision of 2026-09, whose German export now
+        # lists the real states (the English value_range still has the
+        # charging-mode list). Not yet observed on a car here.
+        "CHARGINGINTERRUPTED",
+        "CHARGINGDISRUPTED",
     ),
     # value_range documents the raw signal's four sub-fields with ASN_ prefixes
     # ("oldDoorStatus: ASN_secured ... allDoorsLocked: ASN_isTrue"), which is not
