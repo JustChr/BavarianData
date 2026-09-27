@@ -93,9 +93,14 @@ The portal page renders it from a direct download URL, which is easier to script
 It is market-scoped — the locale in the path decides the language:
 
 ```bash
-curl -s https://mybmwweb-utilities.api.bmw/de-at/utilities/bmw/api/cd/catalogue/file \
-  -o tools/CustomerTelematicsDataCatalogue.html
+python tools/fetch_catalogues.py           # all nine exports; reports changes by descriptor
+python tools/fetch_catalogues.py --write   # replace the committed copies, then steps 1-5
 ```
+
+It fetches `de-at` for the main export and each shipped language's market for
+`catalogue_i18n/`, refuses anything that is not a catalogue page, and writes
+nothing if any download failed. `descriptor-list.csv` (English) is a separate
+portal download.
 
 Checked 2026-07-27: identical to the committed copy apart from indentation
 (294 descriptors, 8 sections).
