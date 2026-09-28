@@ -50,8 +50,9 @@ const isCurrent = (match: string) =>
         <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" /><path d="M12 2.5v2.2M12 19.3v2.2M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6" /></svg>
         <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10Z" /></svg>
       </button>
-      <a class="tool tool--gh" href={REPO} aria-label="GitHub">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="none" d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.15-1.11-1.46-1.11-1.46-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2Z" /></svg>
+      <a class="tool tool--gh" href={REPO} aria-label={t.starLabel}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.6 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.6 9.7l5.8-.8L12 3.6Z" /></svg>
+        <span class="tool__star">{t.star}</span>
       </a>
       <a class="btn btn--primary top__cta" href={url(localized("docs/install", lang))}>{t.nav.install}</a>
       <details class="top__menu">
@@ -61,7 +62,7 @@ const isCurrent = (match: string) =>
         <nav class="top__sheet" aria-label={t.menu}>
           {links.map((l) => <a href={l.href}>{l.label}</a>)}
           <a href={url(localized("docs/install", lang))}>{t.nav.install}</a>
-          <a href={REPO}>GitHub</a>
+          <a href={REPO}>★ {t.starLabel}</a>
         </nav>
       </details>
     </div>
@@ -230,6 +231,13 @@ const isCurrent = (match: string) =>
     font-weight: 500;
     padding-right: 18px;
   }
+  .tool__star {
+    padding-right: 4px;
+  }
+  .tool--gh:hover svg {
+    fill: #f2b01e;
+    stroke: #f2b01e;
+  }
   .tool__kbd {
     font-size: 0.75rem;
     color: var(--slate);
@@ -308,6 +316,7 @@ const isCurrent = (match: string) =>
   }
   @media (max-width: 1080px) {
     .tool__label,
+    .tool__star,
     .tool__kbd {
       display: none;
     }
