@@ -84,6 +84,10 @@ const copy = de
         ["Kann ich es neben einer anderen CarData-Integration nutzen?", "BMW erlaubt einen Stream pro Konto. Zwei Stream-Clients am selben Konto werfen sich gegenseitig hinaus, also entscheide dich für einen."],
       ],
       demoLabel: "Probier die Karte aus",
+      starTitle: "Läuft es bei dir?",
+      starBody:
+        "BavarianData ist ein Freizeitprojekt. Ein Stern auf GitHub kostet dich einen Klick und hilft anderen BMW-Fahrern, es zu finden.",
+      starCta: "Auf GitHub einen Stern geben",
     }
   : {
       title: "BavarianData: BMW CarData in Home Assistant, live",
@@ -156,6 +160,10 @@ const copy = de
         ["Can I run it next to another CarData integration?", "BMW allows one stream per account. Two stream clients on the same account keep knocking each other off, so pick one."],
       ],
       demoLabel: "Try the card",
+      starTitle: "Is it working for you?",
+      starBody:
+        "BavarianData is a spare-time project. A star on GitHub costs you one click and helps other BMW owners find it.",
+      starCta: "Star it on GitHub",
     };
 
 const jsonLd = [
@@ -294,6 +302,18 @@ const jsonLd = [
             <p>{a}</p>
           </details>
         ))}
+      </div>
+    </section>
+    <section class="wrap star-wrap">
+      <div class="star">
+      <div>
+        <h2>{copy.starTitle}</h2>
+        <p>{copy.starBody}</p>
+      </div>
+      <a class="btn btn--quiet" href={REPO}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#f2b01e" d="m12 3.6 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.6 9.7l5.8-.8L12 3.6Z" /></svg>
+        {copy.starCta}
+      </a>
       </div>
     </section>
   </main>
@@ -581,6 +601,33 @@ const jsonLd = [
     max-width: 68ch;
   }
 
+  .star-wrap {
+    margin-top: clamp(64px, 8vw, 96px);
+  }
+  .star {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px 40px;
+    padding: 28px 32px;
+    border-radius: var(--radius-l);
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  .star h2 {
+    font-size: var(--step-1);
+    font-stretch: 106%;
+    max-width: none;
+  }
+  .star p {
+    margin: 8px 0 0;
+    color: var(--slate);
+    max-width: 62ch;
+  }
+  .star .btn {
+    flex: none;
+  }
+
   @media (max-width: 1000px) {
     .hero__waves {
       inset: 120px 0 auto;
@@ -611,7 +658,8 @@ const jsonLd = [
     .feature--flip .feature__text {
       order: 0;
     }
-    .switch {
+    .switch,
+    .star {
       flex-direction: column;
       align-items: flex-start;
     }
