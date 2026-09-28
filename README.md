@@ -135,6 +135,8 @@ no API quota. See
 - Bugs in the integration → [Issues](https://github.com/JustChr/BavarianData/issues).
 - BMW-side registration trouble, setup help, or general questions →
   [Discussions](https://github.com/JustChr/BavarianData/discussions).
+- Enjoying it? BavarianData is a spare-time project: a ⭐ star here or a
+  coffee on [Ko-fi](https://ko-fi.com/justchr) keeps it going.
 
 The descriptor catalogue, metadata, translations and reference docs are all
 generated from BMW's exports by the pipeline in [`tools/`](tools/) — see

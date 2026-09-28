@@ -128,6 +128,13 @@ fi
 # the new version, leaving a fresh, empty [Unreleased] behind.
 notes_file="$(mktemp)"
 awk '/^## \[Unreleased\]/{c=1;next} c&&/^## /{c=0} c{print}' "$changelog_file" > "$notes_file"
+# A support footer on the GitHub release only (not CHANGELOG.md): HACS shows
+# these notes in Home Assistant's update dialog, where happy users already are.
+cat >> "$notes_file" <<'EOF'
+
+---
+Enjoying BavarianData? It's a spare-time project: a ⭐ on [GitHub](https://github.com/JustChr/BavarianData) or a coffee on [Ko-fi](https://ko-fi.com/justchr) keeps it going.
+EOF
 
 release_date="$(date +%Y-%m-%d)"
 python3 - "$changelog_file" "$new_version" "$release_date" <<'PY'
