@@ -1,7 +1,7 @@
 ---
 import Mark from "./Mark.astro";
 import { ui } from "../i18n";
-import { url, localized, REPO, type Lang } from "../lib/site";
+import { url, localized, REPO, STARS, type Lang } from "../lib/site";
 
 interface Props {
   lang: Lang;
@@ -12,6 +12,7 @@ interface Props {
 }
 const { lang, path, alternate } = Astro.props;
 const t = ui[lang];
+const stars = STARS === null ? null : STARS.toLocaleString(lang);
 const other: Lang = lang === "en" ? "de" : "en";
 const otherHref = url(localized(alternate ? path : "", other));
 const home = url(localized("", lang));
@@ -53,6 +54,7 @@ const isCurrent = (match: string) =>
       <a class="tool tool--gh" href={REPO} aria-label={t.starLabel}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.6 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.6 9.7l5.8-.8L12 3.6Z" /></svg>
         <span class="tool__star">{t.star}</span>
+        <span class="tool__count" data-stars hidden={!stars}>{stars}</span>
       </a>
       <a class="btn btn--primary top__cta" href={url(localized("docs/install", lang))}>{t.nav.install}</a>
       <details class="top__menu">
@@ -62,7 +64,7 @@ const isCurrent = (match: string) =>
         <nav class="top__sheet" aria-label={t.menu}>
           {links.map((l) => <a href={l.href}>{l.label}</a>)}
           <a href={url(localized("docs/install", lang))}>{t.nav.install}</a>
-          <a href={REPO}>★ {t.starLabel}</a>
+          <a href={REPO}>★ {t.starLabel} <span data-stars data-stars-wrap hidden={!stars}>({stars})</span></a>
         </nav>
       </details>
     </div>
@@ -77,6 +79,32 @@ const isCurrent = (match: string) =>
 </dialog>
 
 <script>
+  // Star count: the build's number is the first paint (and the no-JS value);
+  // the browser then asks GitHub for the current one, at most once an hour.
+  const starEls = document.querySelectorAll<HTMLElement>("[data-stars]");
+  const showStars = (n: number) =>
+    starEls.forEach((el) => {
+      const v = n.toLocaleString(document.documentElement.lang || "en");
+      el.textContent = el.hasAttribute("data-stars-wrap") ? `(${v})` : v;
+      el.hidden = false;
+    });
+  (async () => {
+    const KEY = "stars";
+    try {
+      const cached = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (cached && Date.now() - cached.at < 3600_000) return showStars(cached.n);
+    } catch {}
+    try {
+      const res = await fetch("https://api.github.com/repos/JustChr/BavarianData");
+      const n = res.ok ? (await res.json()).stargazers_count : null;
+      if (typeof n !== "number") return;
+      showStars(n);
+      try {
+        localStorage.setItem(KEY, JSON.stringify({ n, at: Date.now() }));
+      } catch {}
+    } catch {}
+  })();
+
   // Theme: explicit choice wins over the OS; stored per viewer only.
   const root = document.documentElement;
   document.querySelector("[data-theme-toggle]")?.addEventListener("click", () => {
@@ -234,6 +262,13 @@ const isCurrent = (match: string) =>
   .tool__star {
     padding-right: 4px;
   }
+  .tool__count {
+    margin-left: -2px;
+    padding-left: 8px;
+    border-left: 1px solid var(--line);
+    color: var(--slate);
+    font-variant-numeric: tabular-nums;
+  }
   .tool--gh:hover svg {
     fill: #f2b01e;
     stroke: #f2b01e;
@@ -317,6 +352,7 @@ const isCurrent = (match: string) =>
   @media (max-width: 1080px) {
     .tool__label,
     .tool__star,
+    .tool__count,
     .tool__kbd {
       display: none;
     }

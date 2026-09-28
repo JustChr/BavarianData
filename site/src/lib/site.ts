@@ -23,6 +23,26 @@ export const HA_MIN = JSON.parse(read("hacs.json")).homeassistant.replace(/\.0$/
 export const DESCRIPTOR_COUNT = JSON.parse(read("custom_components", "bavariandata", "catalogue.json")).descriptors
   .length as number;
 
+/**
+ * GitHub stars at build time: the first paint and the no-JS value. The header
+ * script refreshes it in the browser, so no rebuild is needed to keep it
+ * current. Null when GitHub is unreachable -- a count is never worth failing a
+ * build over.
+ */
+export const STARS: number | null = await (async () => {
+  try {
+    const token = process.env.GITHUB_TOKEN;
+    const res = await fetch("https://api.github.com/repos/JustChr/BavarianData", {
+      headers: { Accept: "application/vnd.github+json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      signal: AbortSignal.timeout(5000),
+    });
+    const count = res.ok ? (await res.json()).stargazers_count : null;
+    return typeof count === "number" ? count : null;
+  } catch {
+    return null;
+  }
+})();
+
 /** The last commit that touched a file, as an ISO date (the page's dateModified). */
 export function lastModified(relativePath: string): string | undefined {
   try {
