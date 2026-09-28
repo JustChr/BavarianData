@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.14-beta.3] - 2026-09-28
+
 ### Added
 
 - **A website: [justchr.github.io/BavarianData](https://justchr.github.io/BavarianData/)**,
