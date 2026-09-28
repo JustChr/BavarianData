@@ -22,7 +22,7 @@ export const ui = {
     updated: "Updated",
     footerNote:
       "BavarianData is an independent, community-built integration and is not affiliated with, endorsed by, or sponsored by BMW Group. BMW, MINI and CarData are trademarks of their respective owners.",
-    footerLinks: { source: "Source code", issues: "Report a problem", discussions: "Discussions", license: "MIT license" },
+    footerLinks: { source: "Source code", issues: "Report a problem", discussions: "Discussions", license: "MIT license", support: "Support on Ko-fi" },
     notFoundTitle: "This page doesn't exist",
     notFoundBody: "The link may be old, or the page may have moved. Start from the manual or search it.",
   },
@@ -46,7 +46,7 @@ export const ui = {
     updated: "Aktualisiert",
     footerNote:
       "BavarianData ist eine unabhängige Community-Integration und steht in keiner Verbindung zur BMW Group, wird von ihr weder unterstützt noch gesponsert. BMW, MINI und CarData sind Marken ihrer jeweiligen Inhaber.",
-    footerLinks: { source: "Quellcode", issues: "Problem melden", discussions: "Diskussionen", license: "MIT-Lizenz" },
+    footerLinks: { source: "Quellcode", issues: "Problem melden", discussions: "Diskussionen", license: "MIT-Lizenz", support: "Auf Ko-fi unterstützen" },
     notFoundTitle: "Diese Seite gibt es nicht",
     notFoundBody: "Der Link ist vielleicht alt, oder die Seite ist umgezogen. Starte im Handbuch oder durchsuche es.",
   },

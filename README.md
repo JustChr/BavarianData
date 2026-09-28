@@ -24,6 +24,7 @@
   <a href="https://github.com/JustChr/BavarianData/releases"><img src="https://img.shields.io/github/downloads/JustChr/BavarianData/total" alt="Downloads" /></a>
   <a href="https://github.com/JustChr/BavarianData/stargazers"><img src="https://img.shields.io/github/stars/JustChr/BavarianData?style=flat" alt="GitHub stars" /></a>
   <a href="https://github.com/JustChr/BavarianData/blob/main/LICENSE"><img src="https://img.shields.io/github/license/JustChr/BavarianData" alt="MIT license" /></a>
+  <a href="https://ko-fi.com/justchr"><img src="https://img.shields.io/badge/Ko--fi-support-FF5E5B?logo=kofi&logoColor=white" alt="Support on Ko-fi" /></a>
 </p>
 
 <p align="center">
