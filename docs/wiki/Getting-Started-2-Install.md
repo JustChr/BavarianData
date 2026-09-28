@@ -12,6 +12,13 @@ integration — no custom repository needed.
 
 ## Steps
 
+The quickest way is this button. It opens BavarianData directly in HACS on
+your own Home Assistant:
+
+[![Open your Home Assistant instance and open BavarianData in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=JustChr&repository=BavarianData&category=integration)
+
+Or do it by hand:
+
 1. Open **HACS** and search for **BavarianData**.
 2. Open **BavarianData: Connect Home Assistant to BMW CarData** and install it.
 3. **Restart Home Assistant.**

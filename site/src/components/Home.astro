@@ -4,7 +4,7 @@ import CardDemo from "./CardDemo.astro";
 import Stream from "./Stream.astro";
 import Flow from "./Flow.astro";
 import LiveCard from "./LiveCard.astro";
-import { url, localized, absolute, RELEASE, HA_MIN, DESCRIPTOR_COUNT, HACS_REDIRECT, REPO, SITE_URL, type Lang } from "../lib/site";
+import { url, localized, absolute, RELEASE, HA_MIN, DESCRIPTOR_COUNT, HACS_REDIRECT, REPO, STARS, SITE_URL, type Lang } from "../lib/site";
 
 interface Props {
   lang: Lang;
@@ -217,9 +217,8 @@ const jsonLd = [
           <h1 class="display">{copy.h1}</h1>
           <p class="hero__lead">{copy.lead}</p>
           <div class="hero__cta">
-            <a class="btn btn--primary" href={HACS_REDIRECT}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3 2 11h3v9h5v-6h4v6h5v-9h3L12 3Z" /></svg>
-              {copy.install}
+            <a class="hacs" href={HACS_REDIRECT} title={copy.install}>
+              <img src={url("badges/hacs-repository.svg")} alt={copy.install} width="363" height="50" />
             </a>
             <a class="btn btn--quiet" href={L("docs/bmw-portal-setup")}>{copy.guide}</a>
           </div>
@@ -313,6 +312,7 @@ const jsonLd = [
       <a class="btn btn--quiet" href={REPO}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#f2b01e" d="m12 3.6 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.6 9.7l5.8-.8L12 3.6Z" /></svg>
         {copy.starCta}
+        <span class="star__count" data-stars hidden={STARS === null}>{STARS?.toLocaleString(lang)}</span>
       </a>
       </div>
     </section>
@@ -372,8 +372,29 @@ const jsonLd = [
   .hero__cta {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 12px;
     margin-top: 32px;
+  }
+  /* The official My Home Assistant badge, unaltered, so it's recognised on sight. */
+  .hacs {
+    display: inline-block;
+    border-radius: 999px;
+    line-height: 0;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .hacs img {
+    height: 50px;
+    width: auto;
+    max-width: 100%;
+  }
+  .hacs:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgb(24 188 242 / 35%);
+  }
+  .hacs:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 3px;
   }
   .hero__facts {
     display: flex;
@@ -623,6 +644,12 @@ const jsonLd = [
     margin: 8px 0 0;
     color: var(--slate);
     max-width: 62ch;
+  }
+  .star__count {
+    padding-left: 0.6em;
+    border-left: 1px solid var(--line);
+    color: var(--slate);
+    font-variant-numeric: tabular-nums;
   }
   .star .btn {
     flex: none;

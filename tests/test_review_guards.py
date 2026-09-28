@@ -352,6 +352,17 @@ def test_hacs_json_matches_the_release_artifact() -> None:
         )
 
 
+def test_readme_states_the_hacs_json_floor() -> None:
+    """The README's Home Assistant badge and requirement line are hand-written;
+    they must move with ``hacs.json`` or the shop window advertises a floor
+    HACS no longer enforces."""
+
+    floor = HACS["homeassistant"].removesuffix(".0")
+    readme = (_ROOT / "README.md").read_text(encoding="utf-8")
+    assert f"Home%20Assistant-{floor}%2B" in readme, "README badge floor != hacs.json"
+    assert f"Home Assistant **{floor}** or newer" in readme, "README requirement floor != hacs.json"
+
+
 def test_brand_assets_ship_with_the_integration() -> None:
     """Self-served since the brands repo stopped accepting custom integrations."""
 

@@ -47,6 +47,9 @@ jobs:
       GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
       BING_SITE_VERIFICATION: ${{ vars.BING_SITE_VERIFICATION }}
       ASTRO_TELEMETRY_DISABLED: "1"
+      # Read-only, for the star count (unauthenticated calls share a small
+      # per-IP limit with every other job on the runner).
+      GITHUB_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v7
         with:
