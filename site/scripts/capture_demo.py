@@ -14,7 +14,9 @@ rule: an attribute nobody listed here never reaches the file.
   place is swapped for a fictional one around Munich, matched by how far it was
   from home, and every route is drawn fresh between those places -- a real
   route, even shifted, still has the shape of someone's commute.
-* Charging sessions keep zones named ``Home``/``Work`` only.
+* The charging history is not the real one: ``demo_charging.py`` rebuilds it
+  around the captured trips, so one SoC chain and one odometer run through
+  both, and the summary sensors are recomputed to match.
 
 Read the output before committing it.
 
@@ -38,6 +40,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 import aiohttp
+from demo_charging import rebuild  # this directory is on sys.path when run as a script
 
 _ROOT = pathlib.Path(__file__).resolve().parents[2]
 _OUT = _ROOT / "site" / "src" / "demo" / "i5.json"
@@ -380,6 +383,7 @@ def build(raw: dict[str, Any]) -> dict[str, Any]:
         "states": out_states,
         "services": services,
     }
+    rebuild(out)
     text = json.dumps(out, ensure_ascii=False)
     for secret in (vin, device["id"], device["primary_config_entry"]):
         if secret and secret in text:

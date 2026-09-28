@@ -75,3 +75,8 @@ def test_the_demo_capture_names_only_fictional_places() -> None:
     summary = demo["services"]["get_driving_summary"]["summary"]
     for dest in summary.get("top_destinations", []):
         assert dest["label"] in allowed, dest
+    for sess in demo["services"]["get_charging_sessions"]["sessions"]:
+        place = sess["location"]
+        assert place.get("zone") in {"Home", "Work", None}, place
+        address = place.get("address")
+        assert address is None or address.removeprefix("HPC · ") in allowed, place

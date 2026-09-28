@@ -6,9 +6,9 @@
 // site/scripts/capture_demo.py). Service calls the card makes are answered from
 // that capture, the way the integration's own services would.
 //
-// Every timestamp in the capture is moved forward by the same amount, so the
-// newest reading is always "a moment ago" and the latest charge and trip land
-// in the current month.
+// Every timestamp in the capture is moved forward, so the newest reading is
+// always "a moment ago" and the latest charge and trip land in the current
+// month. The history moves by whole days, so it keeps its time of day.
 
 import assets from "../generated/assets.json";
 
@@ -141,11 +141,20 @@ async function loadDemo(src: string): Promise<{ demo: Demo; shift: number }> {
       .filter(Number.isFinite)
   );
   const now = Date.now();
-  const shift = now - newest - 2 * 60 * 1000;
+  const exact = now - newest - 2 * 60 * 1000;
+  // The history (trips, charges) moves by whole days only, so it keeps its
+  // time of day: a charge on surplus sun stays at midday, a night-tariff charge
+  // stays at night.
+  const DAY = 24 * 60 * 60 * 1000;
+  const shift = Math.floor(exact / DAY) * DAY;
   // Anything the integration derived after that reading would land in the
   // future; it happened "just now" instead.
-  const moved = text.replace(ISO, (s) => new Date(Math.min(Date.parse(s) + shift, now)).toISOString());
-  return { demo: JSON.parse(moved), shift };
+  const move = (json: string, by: number) =>
+    json.replace(ISO, (s) => new Date(Math.min(Date.parse(s) + by, now)).toISOString());
+  const { services, ...live } = raw;
+  const demo: Demo = JSON.parse(move(JSON.stringify(live), exact));
+  demo.services = JSON.parse(move(JSON.stringify(services), shift));
+  return { demo, shift };
 }
 
 const shiftMonth = (key: string, shift: number) => {
