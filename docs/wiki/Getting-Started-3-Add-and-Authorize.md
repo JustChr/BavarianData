@@ -117,7 +117,8 @@ reliable workaround — see
 ## Re-authorizing later
 
 If BMW later invalidates the token, run **Configure → Re-authorize with BMW**.
-Removing and re-adding the integration with the same client ID also works — the
-previous entry is cleaned up automatically.
+Running **Add device** again with the same client ID also works — the existing
+entry is re-authorized in place and keeps its history. (Removing the integration
+yourself deletes its recorded history.)
 
 **Next:** [4. Choose which data to stream →](Getting-Started-4-Choose-Data)

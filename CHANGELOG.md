@@ -9,6 +9,23 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+
+- **Discover vehicles now adds the cars it finds.** It used to fetch BMW's list
+  of mapped cars and only write their count to the log, so a car this entry had
+  never seen stayed invisible. A primary car that is new to the entry now becomes
+  a device (one request against the day's quota, once per car). Streaming still
+  has to be switched on for it in the portal, under **Configure → Choose
+  streamed data**. ([#44](https://github.com/JustChr/BavarianData/issues/44))
+
+### Fixed
+
+- **Adding the same BMW account again no longer wipes its history.** Running
+  *Add device* with a Client ID that is already set up (for example to pick up a
+  second car) used to delete the existing entry first, and with it every stored
+  trip and charge. The existing entry is now re-authorized in place, keeping its
+  history. ([#44](https://github.com/JustChr/BavarianData/issues/44))
+
 ## [0.9.14-beta.3] - 2026-09-28
 
 ### Added

@@ -116,3 +116,39 @@ def test_refresh_paths_never_pick_an_arbitrary_vin(name: str) -> None:
     assert "next(iter(" not in source, (
         f"{name} resolves a single arbitrary VIN again -- see issue #13"
     )
+
+
+def test_primary_vins_reads_both_payload_shapes_and_skips_secondary() -> None:
+    listed = [
+        {"vin": "WBA1", "mappingType": "PRIMARY"},
+        {"vin": "WBA2", "mappingType": "SECONDARY"},
+        {"vin": "WBA3"},
+        {"vin": "WBA1", "mappingType": "primary"},
+        {"vin": ""},
+        "junk",
+    ]
+    assert vehicles.primary_vins(listed) == ["WBA1", "WBA3"]
+    assert vehicles.primary_vins({"mappings": listed}) == ["WBA1", "WBA3"]
+    assert vehicles.primary_vins({"vehicles": [{"vin": "WBA9"}]}) == ["WBA9"]
+    assert vehicles.primary_vins(None) == []
+    assert vehicles.primary_vins({"mappings": "nope"}) == []
+
+
+def test_discover_vehicles_adopts_unknown_cars() -> None:
+    """The service used to fetch the mappings and only log their count, so it
+    could never add a car (#44)."""
+
+    import ast
+    import pathlib
+
+    path = (
+        pathlib.Path(__file__).resolve().parents[1] / "custom_components/bavariandata/__init__.py"
+    )
+    source = path.read_text(encoding="utf-8")
+    node = next(
+        n
+        for n in ast.walk(ast.parse(source))
+        if isinstance(n, ast.AsyncFunctionDef) and n.name == "async_handle_fetch_mappings"
+    )
+    body = ast.get_source_segment(source, node) or ""
+    assert "primary_vins(" in body and "_async_on_new_vehicle(" in body

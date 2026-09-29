@@ -27,7 +27,7 @@ erscheinen (der Screenshot zeigt die englische).
 | **Token jetzt erneuern** | Aktion | Erzwingt eine Erneuerung des OAuth-Tokens. |
 | **Neu bei BMW autorisieren** | Aktion | Führt die Geräteautorisierung erneut aus (nachdem BMW das Token ungültig gemacht hat). |
 | **Telemetrie-Container zurücksetzen** | Aktion | Löscht ID und Signatur des gespeicherten Containers, damit er beim nächsten Abruf neu angelegt wird. Nutze das, wenn Telematik-Abrufe nach einer Änderung der Deskriptoren fehlschlagen. |
-| **Fahrzeuge suchen** | Aktion ⚡ | Ruft die Fahrzeugzuordnungen ab. Siehe [Dienste](DE-Services-Reference). |
+| **Fahrzeuge suchen** | Aktion ⚡ | Ruft die Fahrzeugzuordnungen ab und legt noch unbekannte Fahrzeuge als Gerät an. Siehe [Dienste](DE-Services-Reference). |
 | **Fahrzeug-Basisdaten abrufen** | Aktion ⚡ | Siehe [Dienste](DE-Services-Reference). |
 | **Telematikdaten abrufen** | Aktion ⚡ | " |
 | **Ladehistorie abrufen** | Aktion ⚡ | " |

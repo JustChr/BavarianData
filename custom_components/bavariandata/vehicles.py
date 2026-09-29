@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional
 
-__all__ = ["known_vins"]
+__all__ = ["known_vins", "primary_vins"]
 
 
 def known_vins(
@@ -58,3 +58,32 @@ def known_vins(
                 _add(vin)
 
     return ordered
+
+
+def primary_vins(payload: Any) -> list[str]:
+    """The cars BMW's mapping endpoint lists for which the caller is the primary user.
+
+    The endpoint answers with a list, or an object holding one under
+    ``mappings`` / ``vehicles``. A mapping without a ``mappingType`` counts as
+    primary (models without co-users have no such concept); a SECONDARY one is
+    left out, because CarData only serves data for the primary user.
+    """
+
+    if isinstance(payload, list):
+        items = payload
+    elif isinstance(payload, Mapping):
+        items = payload.get("mappings") or payload.get("vehicles") or []
+    else:
+        return []
+
+    found: list[str] = []
+    for item in items if isinstance(items, list) else []:
+        if not isinstance(item, Mapping):
+            continue
+        mapping_type = item.get("mappingType")
+        if isinstance(mapping_type, str) and mapping_type.upper() != "PRIMARY":
+            continue
+        vin = item.get("vin")
+        if isinstance(vin, str) and vin.strip() and vin.strip() not in found:
+            found.append(vin.strip())
+    return found

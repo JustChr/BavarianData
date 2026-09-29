@@ -102,7 +102,7 @@ from .startup_refresh import (
     startup_refresh_vins,
 )
 from .tyre_store import TyreStore
-from .vehicles import known_vins
+from .vehicles import known_vins, primary_vins
 from .history.backfill import StatisticsPublisher
 from .bridge import REPUBLISH_INTERVAL_S, VehicleBridge, async_clear_published
 from .descriptor_metadata import DESCRIPTOR_META
@@ -930,7 +930,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             prepared = await _prepare_api_call(call, "fetch_vehicle_mappings", require_vin=False)
             if not prepared:
                 return
-            _entry, runtime, _vin, access_token = prepared
+            target_entry, runtime, _vin, access_token = prepared
             try:
                 payload = await async_get_vehicle_mappings(runtime.session, access_token)
             except CardataApiError as err:
@@ -939,6 +939,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             count = len(payload) if isinstance(payload, (list, dict)) else 0
             _LOGGER.info("Fetched %s vehicle mapping(s)", count)
             _LOGGER.debug("Cardata vehicle mappings: %s", payload)
+            # Discovery, not just a log line: a car the account lists but this
+            # entry has never seen becomes a device. The adopt path spends one
+            # request per new car, once; an explicit call retries a car whose
+            # earlier attempt failed, so the guard is lifted first.
+            known = set(
+                known_vins(
+                    stored_metadata=target_entry.data.get(VEHICLE_METADATA),
+                    coordinator_data=runtime.coordinator.data,
+                )
+            )
+            for vin in primary_vins(payload):
+                if vin not in known:
+                    runtime.basic_data_attempted.discard(vin)
+                    _async_on_new_vehicle(hass, target_entry, vin)
 
         async def async_handle_fetch_basic_data(call) -> None:
             prepared = await _prepare_api_call(call, "fetch_basic_data", require_vin=True)
@@ -2439,23 +2453,7 @@ async def _async_fetch_primary_vins(
         )
         return []
 
-    mappings: List[Dict[str, Any]]
-    if isinstance(payload, list):
-        mappings = [item for item in payload if isinstance(item, dict)]
-    elif isinstance(payload, dict):
-        possible = payload.get("mappings") or payload.get("vehicles") or []
-        mappings = [item for item in possible if isinstance(item, dict)]
-    else:
-        mappings = []
-
-    vins: List[str] = []
-    for mapping in mappings:
-        mapping_type = mapping.get("mappingType")
-        if mapping_type and mapping_type.upper() != "PRIMARY":
-            continue
-        vin = mapping.get("vin")
-        if isinstance(vin, str):
-            vins.append(vin)
+    vins = primary_vins(payload)
 
     if not vins:
         _LOGGER.info("Bootstrap mapping for entry %s returned no primary vehicles", entry_id)

@@ -119,7 +119,9 @@ kein Fehler der Integration**, und es gibt einen verlässlichen Umweg — siehe
 ## Später neu autorisieren
 
 Macht BMW das Token später ungültig, führe **Konfigurieren → Neu bei BMW
-autorisieren** aus. Die Integration mit derselben Client-ID zu entfernen und neu
-hinzuzufügen funktioniert auch — der alte Eintrag wird automatisch aufgeräumt.
+autorisieren** aus. **Gerät hinzufügen** erneut mit derselben Client-ID auszuführen funktioniert
+auch — der bestehende Eintrag wird an Ort und Stelle neu autorisiert und behält
+seinen Verlauf. (Entfernst du die Integration selbst, wird ihr aufgezeichneter
+Verlauf gelöscht.)
 
 **Weiter:** [4. Gestreamte Daten auswählen →](DE-Getting-Started-4-Choose-Data)
