@@ -9,6 +9,17 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+
+- **A second car no longer needs "the dance".** Finishing **Configure → Choose
+  streamed data**, or re-authorizing the account, now looks for cars the entry
+  has not met (one request, only when one is found), and a car found that way
+  gets its entities from one telematics fetch instead of staying an empty
+  device until it next streams. Before, a parked car stayed invisible until it
+  happened to send something, or until **Discover vehicles** and **Fetch
+  telematics** were pressed by hand.
+  ([#44](https://github.com/JustChr/BavarianData/issues/44))
+
 ## [0.9.14-beta.4] - 2026-09-29
 
 ### Changed

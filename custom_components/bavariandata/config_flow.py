@@ -182,6 +182,28 @@ def _generate_code_challenge(code_verifier: str) -> str:
     return base64.urlsafe_b64encode(digest).decode("ascii").rstrip("=")
 
 
+def _schedule_vehicle_discovery(hass: HomeAssistant, entry_id: str) -> None:
+    """Look for cars on the account that the entry has not met, in the background.
+
+    Bootstrap runs once per entry and BMW replays nothing, so a car mapped later
+    stays invisible until it happens to stream. Both flows that can change which
+    cars are mapped (re-authorizing, choosing streamed data) call this once they
+    finish; the service only spends a request when it finds a car.
+    """
+
+    async def _run() -> None:
+        if not hass.services.has_service(DOMAIN, "fetch_vehicle_mappings"):
+            return
+        try:
+            await hass.services.async_call(
+                DOMAIN, "fetch_vehicle_mappings", {"entry_id": entry_id}, blocking=True
+            )
+        except Exception:  # noqa: BLE001 - a finished flow is not worth failing on this
+            LOGGER.debug("Vehicle discovery after flow failed", exc_info=True)
+
+    hass.async_create_background_task(_run(), f"{DOMAIN}_discover_after_flow")
+
+
 class _StreamActivatorFlow:
     """Shared plumbing for the in-browser stream-field activator.
 
@@ -802,6 +824,7 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
                     )
             notification_id = f"{DOMAIN}_reauth_{self._reauth_entry.entry_id}"
             persistent_notification.async_dismiss(self.hass, notification_id)
+            _schedule_vehicle_discovery(self.hass, self._reauth_entry.entry_id)
             return self.async_abort(reason="reauth_successful")
 
         self._entry_title = (
@@ -1649,8 +1672,13 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         return await self._begin_activation(attributes)
 
     async def _activation_finished(self) -> FlowResult:
-        """The selection was already saved; close the options flow."""
+        """The selection was already saved; close the options flow.
 
+        The portal step is what maps a second car, so look for it now instead of
+        leaving it invisible until it streams.
+        """
+
+        _schedule_vehicle_discovery(self.hass, self._config_entry.entry_id)
         return self._finish()
 
     async def async_step_action_reset_container(

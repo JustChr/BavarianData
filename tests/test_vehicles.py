@@ -152,3 +152,37 @@ def test_discover_vehicles_adopts_unknown_cars() -> None:
     )
     body = ast.get_source_segment(source, node) or ""
     assert "primary_vins(" in body and "_async_on_new_vehicle(" in body
+
+
+def _function_body(relative: str, name: str) -> str:
+    path = pathlib.Path(__file__).resolve().parents[1] / "custom_components/bavariandata" / relative
+    source = path.read_text(encoding="utf-8")
+    node = next(
+        n
+        for n in ast.walk(ast.parse(source))
+        if isinstance(n, (ast.AsyncFunctionDef, ast.FunctionDef)) and n.name == name
+    )
+    return ast.get_source_segment(source, node) or ""
+
+
+def test_adopted_car_gets_its_entities_seeded() -> None:
+    """A car found by Discover is a bare device: BMW replays nothing and a parked
+    car may not stream for days, so adopting it also seeds its entities (#44)."""
+
+    assert "_async_seed_telematic_data(" in _function_body(
+        "__init__.py", "_async_adopt_new_vehicle"
+    )
+
+
+def test_flows_that_map_cars_look_for_them_afterwards() -> None:
+    """Bootstrap runs once. Re-authorizing an account and choosing streamed data
+    are the two moments a car gets mapped, so both must run discovery (#44)."""
+
+    source = (
+        pathlib.Path(__file__).resolve().parents[1]
+        / "custom_components/bavariandata/config_flow.py"
+    ).read_text(encoding="utf-8")
+    assert source.count("_schedule_vehicle_discovery(") == 3  # definition + two callers
+    assert "fetch_vehicle_mappings" in _function_body(
+        "config_flow.py", "_schedule_vehicle_discovery"
+    )
