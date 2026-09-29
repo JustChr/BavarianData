@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.14-beta.4] - 2026-09-29
+
 ### Changed
 
 - **Discover vehicles now adds the cars it finds.** It used to fetch BMW's list
