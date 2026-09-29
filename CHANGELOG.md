@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.14-beta.5] - 2026-09-29
+
 ### Changed
 
 - **A second car no longer needs "the dance".** Finishing **Configure → Choose
