@@ -60,7 +60,10 @@ Die Felder des neuen Fahrzeugs musst du weiterhin **im BMW-Portal** ankreuzen:
 Die Datenauswahl gilt je Fahrzeug und hat keine API. Rufe dafür erneut
 **Konfigurieren → Gestreamte Daten auswählen** auf und wähle auf der
 Portalseite, die der Aktivator öffnet, das neue Auto
-([Schritt 4](DE-Getting-Started-4-Choose-Data)).
+([Schritt 4](DE-Getting-Started-4-Choose-Data)). Danach sucht die Integration
+das Auto selbst und legt es samt Entitäten an — du musst weder auf eine Fahrt
+warten noch **Fahrzeuge suchen** drücken. (Eine erneute Autorisierung des Kontos
+tut dasselbe.)
 
 ## Kontingent mit mehreren Fahrzeugen
 

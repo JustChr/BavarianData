@@ -49,7 +49,10 @@ Two things used to be missed and are handled from **v0.9.11-beta.4**:
 You still have to tick the new car's fields in **BMW's portal**: Data Selection
 is per vehicle and has no API. Run **Configure → Choose streamed data** again and
 select the new car on the portal page the activator opens
-([step 4](Getting-Started-4-Choose-Data)).
+([step 4](Getting-Started-4-Choose-Data)). When that finishes, the integration
+looks for the car itself and adds it with its entities — you do not have to wait
+for it to drive, or press **Discover vehicles**. (Re-authorizing the account does
+the same.)
 
 ## Quota with several cars
 

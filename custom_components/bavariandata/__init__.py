@@ -2609,6 +2609,19 @@ async def _async_adopt_new_vehicle(hass: HomeAssistant, entry_id: str, vin: str)
         label="New vehicle",
     )
 
+    # A car found by Discover (rather than by its own first message) has no
+    # entities yet, and a parked car may not stream for days. Seed them from one
+    # telematics fetch; a car that already streamed has data and is skipped.
+    if container_id := entry.data.get("hv_container_id"):
+        await _async_seed_telematic_data(
+            runtime,
+            entry_id,
+            access_token,
+            container_id,
+            [vin],
+            runtime.quota_manager,
+        )
+
 
 @callback
 def _async_on_reconnect(hass: HomeAssistant, entry: CardataConfigEntry, down_s: float) -> None:
