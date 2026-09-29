@@ -65,6 +65,39 @@ das Auto selbst und legt es samt Entitäten an — du musst weder auf eine Fahrt
 warten noch **Fahrzeuge suchen** drücken. (Eine erneute Autorisierung des Kontos
 tut dasselbe.)
 
+<a id="adding-a-car-corner-cases"></a>
+
+### Sonderfälle
+
+- **Ein geparktes Auto kann tagelang unsichtbar bleiben.** Der Stream von BMW
+  enthält nur, was das Auto *jetzt* sendet, und hebt nichts für später auf. Ein
+  schlafendes Auto sagt also nichts, bis etwas es weckt — eine Tür, das Laden,
+  eine Fahrt. Deshalb fragt die Integration BMW nach der Fahrzeugliste des Kontos,
+  statt zu warten: beim Abschluss von **Gestreamte Daten auswählen**, bei einer
+  erneuten Autorisierung und auf Abruf mit **Fahrzeuge suchen**.
+- **Ein gefundenes Auto startet mit REST-Werten, nicht mit Live-Werten.** Die
+  Suche legt das Auto als Gerät an und füllt seine Entitäten aus einem
+  Telematik-Abruf (Name und Modell aus einer zweiten Anfrage). Live-Werte —
+  Position, Türen, Ladeleistung — kommen erst, wenn das Auto streamt, und nur
+  wenn seine Felder im Portal angekreuzt sind.
+- **Nur primäre Fahrzeuge werden hinzugefügt.** Ein Auto, das BMW für das Konto mit dem
+  Status SECONDARY führt, wird nicht übernommen.
+- **Es kostet Kontingent, einmal pro Auto.** Zwei Anfragen aus den 50 pro 24 h,
+  nur wenn ein neues Auto gefunden wird; ohne neues Auto wird nichts verbraucht.
+  Ist das Kontingent aufgebraucht, wird das Auto übersprungen; **Fahrzeuge
+  suchen** versucht es später erneut.
+- **Ein fehlgeschlagener Versuch wird nicht von selbst wiederholt.** Hat BMW für
+  ein Auto noch keine Daten, versucht die Integration es bis zum nächsten Neustart
+  von Home Assistant nicht erneut, damit ein Auto, für das BMW nicht antworten
+  kann, das Kontingent nicht leert. Mit **Fahrzeuge suchen** stößt du es neu an.
+- **Ein Auto, das bereits streamt, wird nicht noch einmal abgerufen.** Hat es
+  zuerst gesendet, wird es durch diese Nachricht angelegt und der zusätzliche
+  Abruf entfällt.
+- **Dasselbe Konto erneut hinzuzufügen behält alles.** **Gerät hinzufügen** mit
+  einer bereits eingerichteten Client-ID autorisiert den vorhandenen Eintrag an
+  Ort und Stelle neu, samt Verlauf (seit v0.9.14-beta.4); zuvor löschte es den
+  Eintrag samt aufgezeichneter Fahrten und Ladevorgänge.
+
 ## Kontingent mit mehreren Fahrzeugen
 
 <a id="quota-with-several-cars"></a>

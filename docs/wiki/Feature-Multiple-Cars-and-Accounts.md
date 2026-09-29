@@ -54,6 +54,38 @@ looks for the car itself and adds it with its entities — you do not have to wa
 for it to drive, or press **Discover vehicles**. (Re-authorizing the account does
 the same.)
 
+<a id="adding-a-car-corner-cases"></a>
+
+### Corner cases
+
+- **A parked car can stay invisible for days.** BMW's stream carries only what
+  the car sends *now* and keeps nothing for later, so a car that is asleep says
+  nothing until something wakes it — a door, charging, a drive. That is why the
+  integration asks BMW for the account's car list instead of waiting: it does so
+  when you finish **Choose streamed data** or re-authorize, and on demand with
+  **Discover vehicles**.
+- **A found car starts with REST values, not live ones.** Discovery adds the car
+  as a device and fills its entities from one telematics fetch (its name and
+  model from a second request). Live values — position, doors, charging power —
+  arrive only once the car streams, and only if its fields are ticked in the
+  portal.
+- **Only primary cars are added.** A car BMW lists for the account with
+  the status SECONDARY is not adopted.
+- **It costs quota, once per car.** Two requests against the account's 50 per
+  24 h, only when a new car is found; nothing is spent when there is none. If the
+  quota is used up, the car is skipped, and **Discover vehicles** tries again
+  later.
+- **A failed attempt is not repeated by itself.** If BMW has no data for a car
+  yet, the integration does not retry on its own until the next Home Assistant
+  restart, so a car BMW cannot answer for cannot drain the quota. Press
+  **Discover vehicles** to retry it.
+- **A car that is already streaming is not fetched again.** If it spoke first,
+  it is added by that message and the extra fetch is skipped.
+- **Adding the same account again keeps everything.** Running **Add device** with
+  a Client ID that is already set up re-authorizes the existing entry in place,
+  history included (since v0.9.14-beta.4); before that, it deleted the entry and
+  its recorded trips and charging sessions.
+
 ## Quota with several cars
 
 The 50 requests per 24 h belong to the **account**, and the daily refresh costs
