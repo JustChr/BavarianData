@@ -26,7 +26,7 @@ The menu labels below are exactly as they appear in the UI.
 | **Refresh tokens now** | action | Force an OAuth token refresh. |
 | **Re-authorize with BMW** | action | Re-run device auth (after BMW invalidates the token). |
 | **Reset telemetry container** | action | Clear the stored HV container id/signature so it's rebuilt on the next fetch. Use if telematics fetches start failing after a descriptor change. |
-| **Discover vehicles** | action ⚡ | Fetch vehicle mappings. See [Services](Services-Reference). |
+| **Discover vehicles** | action ⚡ | Fetch vehicle mappings and add any car not yet known as a device. See [Services](Services-Reference). |
 | **Fetch basic vehicle info** | action ⚡ | See [Services](Services-Reference). |
 | **Fetch telematics data** | action ⚡ | " |
 | **Fetch charging history** | action ⚡ | " |

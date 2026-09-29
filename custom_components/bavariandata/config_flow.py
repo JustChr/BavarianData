@@ -477,14 +477,7 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
 
         client_id = user_input["client_id"].strip()
 
-        for entry in list(self._async_current_entries()):
-            existing_client_id = entry.data.get("client_id") if hasattr(entry, "data") else None
-            if entry.unique_id == client_id or existing_client_id == client_id:
-                await self.hass.config_entries.async_remove(entry.entry_id)
-
-        await self.async_set_unique_id(client_id)
-
-        self._client_id = client_id
+        await self._adopt_client_id(client_id)
 
         try:
             await self._request_device_code()
@@ -608,12 +601,20 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
         return await self.async_step_authorize()
 
     async def _adopt_client_id(self, client_id: str) -> None:
-        """Remove any duplicate entry for this client id and claim it as unique id."""
+        """Claim the client id; an entry that already has it is updated, not replaced.
+
+        Removing the old entry used to be the way to "re-add" one, but removal
+        deletes the entry's recorded history (see ``async_remove_entry``), so
+        adding the same account again -- typically to pick up a second car --
+        wiped every stored trip and charge. The existing entry is instead
+        re-authorized in place at the token step, keeping its id and its store.
+        """
 
         for entry in list(self._async_current_entries()):
             existing_client_id = entry.data.get("client_id") if hasattr(entry, "data") else None
             if entry.unique_id == client_id or existing_client_id == client_id:
-                await self.hass.config_entries.async_remove(entry.entry_id)
+                self._reauth_entry = entry
+                break
         await self.async_set_unique_id(client_id)
         self._client_id = client_id
 
@@ -775,6 +776,12 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
         if self._reauth_entry:
             merged = dict(self._reauth_entry.data)
             merged.update(entry_data)
+            if self._guided:
+                # Re-added through the guided path: the portal stream was just
+                # re-activated for these clusters, so record them.
+                merged[OPTION_STREAM_SECTIONS] = self._guided_sections
+                if self._onboarding and self._onboarding.mapped_vehicle_id:
+                    merged["mapped_vehicle_id"] = self._onboarding.mapped_vehicle_id
             merged.pop("reauth_pending", None)
             self.hass.config_entries.async_update_entry(self._reauth_entry, data=merged)
             runtime = getattr(self._reauth_entry, "runtime_data", None)

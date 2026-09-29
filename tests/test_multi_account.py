@@ -254,3 +254,19 @@ def test_a_known_first_sighting_is_never_overwritten() -> None:
 
 def test_a_car_that_has_sent_nothing_gets_no_invented_sighting() -> None:
     assert coverage.backfill_first_seen({"WBAEXAMPLE0000000": {}}, {}) == {}
+
+
+# --- re-adding an account keeps its history ---------------------------------
+
+
+def test_readding_the_same_client_id_does_not_remove_the_entry() -> None:
+    """Removing an entry deletes its recorded history (``async_remove_entry``).
+    Adding the same account again -- to pick up a second car -- used to remove
+    the old entry first and so wiped every stored trip and charge. It has to be
+    re-authorized in place instead."""
+
+    flow_path = _PKG / "config_flow.py"
+    for name in ("_adopt_client_id", "async_step_manual"):
+        body = _function_source(flow_path, name)
+        assert "async_remove(" not in body, f"{name} must not remove the existing entry"
+    assert "_reauth_entry = entry" in _function_source(flow_path, "_adopt_client_id")
