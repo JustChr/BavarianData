@@ -9,6 +9,7 @@ data has been redacted.
 Verbindung zur BMW Group, wird von ihr weder unterstützt noch gesponsert.
 Screenshots des MyBMW- / BMW-CarData-Portals sind © BMW AG und werden nur zur
 Erklärung der Einrichtung gezeigt; persönliche Daten sind geschwärzt.*
-Released under the [MIT License](https://github.com/JustChr/BavarianData/blob/main/LICENSE).
+Released under the [MIT License](https://github.com/JustChr/BavarianData/blob/main/LICENSE);
+the name and logo are not covered ([NOTICE](https://github.com/JustChr/BavarianData/blob/main/NOTICE)).
 · [Issues](https://github.com/JustChr/BavarianData/issues)
 · [Discussions](https://github.com/JustChr/BavarianData/discussions)

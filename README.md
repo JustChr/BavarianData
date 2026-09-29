@@ -150,6 +150,10 @@ continuation of the public-domain
 that project carried no licensing restrictions, and the original author is
 credited in [`NOTICE`](NOTICE) out of respect for their work.
 
+The MIT License covers the code, not the name "BavarianData" or its logo. A
+modified copy published as its own project needs its own name, domain and logo;
+see [`NOTICE`](NOTICE).
+
 "BMW", "Mini", "Rolls-Royce", and "CarData" are trademarks of their respective
 owners. This is an independent, community-built integration and is **not**
 affiliated with, endorsed by, or sponsored by BMW Group. Use at your own risk;
