@@ -21,6 +21,25 @@ with alignment to the published BMW CarData API specification, additional API
 endpoints, a bundled Lovelace card and vehicle image, a regenerated descriptor
 catalogue, and a security and code-quality review.
 
+Name and logo
+-------------
+
+The MIT License covers the source code. It does not grant any right to the
+name "BavarianData" or to the project's logo and icons (logo.png,
+brands/bavariandata/ and custom_components/bavariandata/brand/). Both identify
+this project and its maintainer.
+
+You are welcome to:
+
+  - fork the repository to contribute changes back;
+  - say that your work is "based on BavarianData" or "works with BavarianData",
+    with a link to https://github.com/JustChr/BavarianData.
+
+If you publish a modified copy as a separate project (on HACS, GitHub or
+anywhere else), it must use a different name, integration domain and logo, and
+must not suggest that it is BavarianData or endorsed by its maintainer. Keep
+this NOTICE and the LICENSE file with the code, as the MIT License requires.
+
 Trademark note: "BMW", "Mini", "Rolls-Royce" and "CarData" are trademarks of
 their respective owners. This project is an independent, community-built Home
 Assistant integration and is not affiliated with, endorsed by, or sponsored by
