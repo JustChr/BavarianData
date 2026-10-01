@@ -17,8 +17,9 @@ const sections = sidebar(lang);
         <Mark size={28} />
         <span>BavarianData</span>
       </a>
-      <p>{t.siteTagline}{RELEASE.version && <>. v{RELEASE.version}</>}</p>
+      <p>{t.siteTagline}{RELEASE.version && <>. <a href={url("changelog")}>v{RELEASE.version}</a></>}</p>
       <ul class="foot__meta">
+        <li><a href={url("changelog")}>{t.footerLinks.changelog}</a></li>
         <li><a href={REPO}>{t.footerLinks.source}</a></li>
         <li><a href={`${REPO}/issues`}>{t.footerLinks.issues}</a></li>
         <li><a href={`${REPO}/discussions`}>{t.footerLinks.discussions}</a></li>

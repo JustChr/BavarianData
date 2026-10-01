@@ -24,6 +24,7 @@ export const GET: APIRoute = () => {
     lines.push("");
   }
   lines.push("## Reference", "", `- [Every BMW CarData descriptor](${absolute("data")}): names, units, value ranges, streamed or REST-only`, "");
+  lines.push("## Releases", "", `- [What's new](${absolute("changelog")}): every stable release, newest first, with what was added, changed and fixed`, "");
   lines.push("## Optional", "", `- [German manual](${absolute("de/docs")})`, "");
   return new Response(lines.join("\n"), { headers: { "Content-Type": "text/plain; charset=utf-8" } });
 };

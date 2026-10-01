@@ -104,8 +104,42 @@ for (const [file, title, line] of [
     .toFile(join(PUBLIC, file));
 }
 
+// --- the changelog ------------------------------------------------------------
+// CHANGELOG.md stays the one source. The site shows stable releases only
+// (betas are working steps toward them and are folded into the stable's entry),
+// newest first, with every release linked to its GitHub page. Relative links
+// are pointed at the repository, where those files live.
+const REPO_URL = "https://github.com/JustChr/BavarianData";
+const log = readFileSync(join(ROOT, "CHANGELOG.md"), "utf8").replace(/\r\n/g, "\n");
+const releases = [...log.matchAll(/^## \[(\d+\.\d+\.\d+)\] - (\d{4}-\d{2}-\d{2})\n([\s\S]*?)(?=^## \[|(?![\s\S]))/gm)].map(
+  ([, version, date, body]) => ({ version, date, body: body.trim() })
+);
+const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const longDate = (iso) => {
+  const [y, m, d] = iso.split("-").map(Number);
+  return `${d} ${months[m - 1]} ${y}`;
+};
+const fixLinks = (md) =>
+  md.replace(/\]\((?!https?:|#|mailto:)([^)\s]+)\)/g, (_, path) => `](${REPO_URL}/blob/main/${path.replace(/^\.?\//, "")})`);
+writeFileSync(
+  join(GEN, "changelog.md"),
+  [
+    "# What's new",
+    "",
+    ...releases.flatMap((r) => [
+      `<h2 id="v${r.version}">${r.version} <small>${longDate(r.date)}</small></h2>`,
+      "",
+      `[Release on GitHub](${REPO_URL}/releases/tag/v${r.version})`,
+      "",
+      fixLinks(r.body),
+      "",
+    ]),
+  ].join("\n")
+);
+writeFileSync(join(GEN, "releases.json"), JSON.stringify(releases.map(({ version, date }) => ({ version, date }))) + "\n");
+
 writeFileSync(
   join(GEN, "assets.json"),
   JSON.stringify({ cardVersion, icons, screenshots: shots }, null, 1) + "\n"
 );
-console.log(`prepare: card ${cardVersion}, ${Object.keys(icons).length} icons, ${Object.keys(shots).length} screenshots`);
+console.log(`prepare: ${releases.length} releases in the changelog, card ${cardVersion}, ${Object.keys(icons).length} icons, ${Object.keys(shots).length} screenshots`);

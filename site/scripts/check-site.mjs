@@ -81,6 +81,17 @@ for (const [file, html] of pages) {
   }
 }
 
+// The changelog page is generated from CHANGELOG.md; an empty or stale one
+// would otherwise pass every check above.
+const changelogFile = join(DIST, "changelog", "index.html");
+const stable = /^## \[(\d+\.\d+\.\d+)\] - /m.exec(
+  readFileSync(fileURLToPath(new URL("../../CHANGELOG.md", import.meta.url)), "utf8")
+);
+if (!existsSync(changelogFile)) problems.push("changelog/index.html was not built");
+else if (stable && !readFileSync(changelogFile, "utf8").includes(`id="v${stable[1]}"`)) {
+  problems.push(`changelog/index.html does not list the newest stable release, ${stable[1]}`);
+}
+
 if (problems.length) {
   console.error(`check-site: ${problems.length} problem(s)\n  ${[...new Set(problems)].join("\n  ")}`);
   process.exit(1);
