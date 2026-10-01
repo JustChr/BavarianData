@@ -39,11 +39,12 @@ globalThis.window = globalThis;
 console.info = () => {};  // the card's version banner would precede the JSON
 const src = fs.readFileSync(process.argv[1], "utf8");
 const Card = new Function(src + "\nreturn BavarianDataCard;")();
-const states = JSON.parse(fs.readFileSync(0, "utf8"));
 const card = Object.create(Card.prototype);
 card._config = {};
+const input = JSON.parse(fs.readFileSync(0, "utf8"));
+const states = input.states;
 card._hass = { states };
-process.stdout.write(JSON.stringify(card._overviewEntities(Object.keys(states))));
+process.stdout.write(JSON.stringify(card._overviewEntities(Object.keys(states), input.vehicle || "")));
 """
 
 HV_SOC = "sensor.car_hv_soc"
@@ -67,10 +68,10 @@ _HV = _sensor("vehicle.drivetrain.batteryManagement.header", name="HV battery st
 _ESTIMATE = _sensor("soc_estimate", name="State of charge estimate")
 
 
-def _picks(states: dict) -> dict:
+def _picks(states: dict, vehicle: str = "") -> dict:
     result = subprocess.run(
         [NODE, "-e", _HARNESS, str(_CARD)],
-        input=json.dumps(states),
+        input=json.dumps({"states": states, "vehicle": vehicle}),
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -144,3 +145,29 @@ def test_combustion_car_fallback_pick_skips_the_12v_battery():
     tank = _sensor("vehicle.drivetrain.fuelSystem.level", battery=False)
     picks = _picks({TWELVE_VOLT: twelve_volt, TANK: tank})
     assert picks.get("soc") is None
+
+
+def test_vehicle_name_does_not_hide_the_charging_sensor():
+    """Issue #51: an "iX3 M Sport" lost its charging status to the avoid-list.
+
+    The entity id and friendly name both lead with the vehicle's name, and
+    "sport" contains "port" -- the avoid-list word for the charging *port*.
+    """
+
+    status = _sensor(
+        "vehicle.drivetrain.electricEngine.charging.status",
+        battery=False,
+        name="iX3 M Sport Charging status",
+        state="chargingactive",
+    )
+    status["attributes"].pop("unit_of_measurement")
+    states = {"sensor.ix3_m_sport_charging_status": status}
+    assert _picks(states, "iX3 M Sport").get("charging") == "sensor.ix3_m_sport_charging_status"
+
+
+def test_charging_port_sensor_is_still_not_the_charging_status():
+    port = _sensor(
+        "vehicle.body.chargingPort.status", battery=False, name="Charging port status", state="x"
+    )
+    port["attributes"].pop("unit_of_measurement")
+    assert _picks({"sensor.car_charging_port_status": port}, "Car").get("charging") is None

@@ -9,6 +9,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.15-beta.1] - 2026-10-01
+
+### Fixed
+- **The card showed "Not charging" on a car whose name contains "port"** (such
+  as an iX3 "M Sport", issue #51). The card's automatic sensor picks skip
+  entities that mention words like "port" (the charging port), and it matched
+  them against the vehicle's name too, so "Sport" hid the charging status.
+  The vehicle's name is now ignored when picking sensors.
+
 ## [0.9.14] - 2026-10-01
 
 Ten languages, a website, a fix for Check Control warnings that never cleared, and an easier way to add a second car without losing history.

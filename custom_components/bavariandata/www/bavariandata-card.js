@@ -3083,6 +3083,14 @@ class BavarianDataCard extends HTMLElement {
     return entityId ? this._hass.states[entityId] : undefined;
   }
 
+  /** `text` without the vehicle's name (`slug`: as it appears in an entity_id). */
+  _unnamed(text, slug = false) {
+    let name = (this._pickVehicle || "").toLowerCase().trim();
+    if (!name) return text;
+    if (slug) name = name.replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+    return name ? text.toLowerCase().split(name).join(" ") : text;
+  }
+
   /** Rank candidate entities by keyword preference; return the best entity_id. */
   _pick(entities, { domain = "sensor", prefer = [], avoid = [], deviceClass, unit, usable = false } = {}) {
     const scored = [];
@@ -3106,10 +3114,13 @@ class BavarianDataCard extends HTMLElement {
       const descriptorWords = descriptor
         .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
         .replace(/[._]/g, " ");
+      // The vehicle's own name leads both the entity_id and the friendly name,
+      // so it is not evidence about the sensor: "M Sport" contains "port" and
+      // hid the charging status behind the avoid-list (issue #51).
       const hay = (
-        id +
+        this._unnamed(id, true) +
         " " +
-        (attrs.friendly_name || "") +
+        this._unnamed(attrs.friendly_name || "") +
         " " +
         descriptor +
         " " +
@@ -3127,8 +3138,9 @@ class BavarianDataCard extends HTMLElement {
     return scored.length ? scored[0].id : undefined;
   }
 
-  _overviewEntities(entities) {
+  _overviewEntities(entities, vehicleName = "") {
     const cfg = this._config || {};
+    this._pickVehicle = vehicleName;
     return {
       image: cfg.image || entities.find((id) => id.startsWith("image.")),
       soc:
@@ -3459,7 +3471,7 @@ class BavarianDataCard extends HTMLElement {
     // charging tiles, nothing electric -- except that it has no tank either, so
     // the ring falls through to empty and the lead row shows what it does have.
     const bare = drivetrain === "unknown";
-    const picks = this._overviewEntities(entities);
+    const picks = this._overviewEntities(entities, this._deviceName(deviceId));
     const byDesc = (descriptor) => this._idByDescriptor(entities, descriptor);
     const name = cfg.title || this._deviceName(deviceId);
     const trip = this._openTrip(entities);
