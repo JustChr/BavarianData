@@ -133,7 +133,7 @@ awk '/^## \[Unreleased\]/{c=1;next} c&&/^## /{c=0} c{print}' "$changelog_file" >
 cat >> "$notes_file" <<'EOF'
 
 ---
-Enjoying BavarianData? It's a spare-time project: a ⭐ on [GitHub](https://github.com/JustChr/BavarianData) or a coffee on [Ko-fi](https://ko-fi.com/justchr) keeps it going.
+Enjoying BavarianData? It's a spare-time project: a ⭐ on [GitHub](https://github.com/JustChr/BavarianData) [GitHub Sponsors](https://github.com/sponsors/JustChr) or a coffee on [Ko-fi](https://ko-fi.com/justchr) keeps it going.
 EOF
 
 release_date="$(date +%Y-%m-%d)"

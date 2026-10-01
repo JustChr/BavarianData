@@ -88,6 +88,7 @@ const copy = de
       starBody:
         "BavarianData ist ein Freizeitprojekt. Ein Stern auf GitHub kostet dich einen Klick und hilft anderen BMW-Fahrern, es zu finden.",
       starCta: "Auf GitHub einen Stern geben",
+      sponsorCta: "Auf GitHub sponsern",
       coffeeCta: "Kaffee auf Ko-fi spendieren",
     }
   : {
@@ -165,6 +166,7 @@ const copy = de
       starBody:
         "BavarianData is a spare-time project. A star on GitHub costs you one click and helps other BMW owners find it.",
       starCta: "Star it on GitHub",
+      sponsorCta: "Sponsor on GitHub",
       coffeeCta: "Buy me a coffee on Ko-fi",
     };
 
@@ -316,6 +318,10 @@ const jsonLd = [
         <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#f2b01e" d="m12 3.6 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.6 9.7l5.8-.8L12 3.6Z" /></svg>
         {copy.starCta}
         <span class="star__count" data-stars hidden={STARS === null}>{STARS?.toLocaleString(lang)}</span>
+      </a>
+      <a class="btn btn--quiet" href="https://github.com/sponsors/JustChr">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#ea4aaa" d="M12 20.3 4.6 13.2a4.6 4.6 0 0 1 6.5-6.6l.9.9.9-.9a4.6 4.6 0 0 1 6.5 6.6L12 20.3Z" /></svg>
+        {copy.sponsorCta}
       </a>
       <a class="btn btn--quiet" href="https://ko-fi.com/justchr">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#ff5e5b" d="M12 20.3 4.6 13.2a4.6 4.6 0 0 1 6.5-6.6l.9.9.9-.9a4.6 4.6 0 0 1 6.5 6.6L12 20.3Z" /></svg>
