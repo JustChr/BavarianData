@@ -84,6 +84,7 @@ and lists [every descriptor BMW CarData can send](https://justchr.github.io/Bava
 the quick overview.
 
 - [Getting started](https://justchr.github.io/BavarianData/docs/bmw-portal-setup/) · [The dashboard card](https://justchr.github.io/BavarianData/docs/dashboard-card/) · [Settings](https://justchr.github.io/BavarianData/docs/settings/) · [Services](https://justchr.github.io/BavarianData/docs/services/) · [Troubleshooting](https://justchr.github.io/BavarianData/docs/troubleshooting/)
+- **[What's new](https://justchr.github.io/BavarianData/changelog/)** — every stable release, newest first.
 - Coming from the old **BMW Connected Drive** integration? → [Switching to BMW CarData](https://justchr.github.io/BavarianData/docs/coming-from-bimmer-connected/)
 
 ## Requirements

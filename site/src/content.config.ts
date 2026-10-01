@@ -11,4 +11,9 @@ const wiki = defineCollection({
   }),
 });
 
-export const collections = { wiki };
+// The changelog: CHANGELOG.md's stable releases, written by scripts/prepare.mjs.
+const changelog = defineCollection({
+  loader: glob({ base: "./src/generated", pattern: "changelog.md" }),
+});
+
+export const collections = { wiki, changelog };
