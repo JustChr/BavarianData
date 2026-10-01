@@ -1,0 +1,153 @@
+{
+ "name": "M240i xDrive",
+ "descriptors": [
+  {
+   "descriptor": "vehicle.cabin.door.lock.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.door.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.altitude",
+   "unit": "m"
+  },
+  {
+   "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.latitude",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.longitude",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.sunroof.overallStatus",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.sunroof.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.sunroof.tiltStatus",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.window.row1.driver.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.window.row1.passenger.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row1.wheel.left.tire.pressure",
+   "unit": "bar"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row1.wheel.left.tire.pressureTarget",
+   "unit": "bar"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row1.wheel.right.tire.pressure",
+   "unit": "bar"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row1.wheel.right.tire.pressureTarget",
+   "unit": "bar"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row2.wheel.left.tire.pressure",
+   "unit": "bar"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row2.wheel.left.tire.pressureTarget",
+   "unit": "bar"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row2.wheel.right.tire.pressure",
+   "unit": "bar"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row2.wheel.right.tire.pressureTarget",
+   "unit": "bar"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.engineOff.gridEnergy",
+   "unit": "kWh"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.engineOn.gridEnergy",
+   "unit": "kWh"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.consumptionOverLifeTime.overall.gridEnergy",
+   "unit": "kWh"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeDepleting.fuel",
+   "unit": "L"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeIncreasing.fuel",
+   "unit": "L"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.overall.fuel",
+   "unit": "L"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.fuelSystem.level",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.lastRemainingRange",
+   "unit": "km"
+  },
+  {
+   "descriptor": "vehicle.electricalSystem.battery.serviceDemand.recharge",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.electricalSystem.battery.serviceDemand.replace",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.powertrain.electric.battery.stateOfCharge.target",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveEcoPro",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveEcoProPlus",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveElectric",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.trip.segment.end.drivetrain.batteryManagement.hvSoc",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.vehicle.preConditioning.activity",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.vehicle.preConditioning.error",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.vehicle.preConditioning.remainingTime",
+   "unit": "min"
+  },
+  {
+   "descriptor": "vehicle.vehicle.travelledDistance",
+   "unit": "km"
+  }
+ ]
+}

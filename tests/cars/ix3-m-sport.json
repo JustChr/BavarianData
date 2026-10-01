@@ -1,0 +1,249 @@
+{
+ "name": "iX3 M Sport",
+ "descriptors": [
+  {
+   "descriptor": "vehicle.body.chargingPort.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.door.lock.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.door.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.altitude",
+   "unit": "m"
+  },
+  {
+   "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.latitude",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.longitude",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.sunroof.overallStatus",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.sunroof.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.sunroof.tiltStatus",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.window.row1.driver.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.window.row1.passenger.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.window.row2.driver.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.window.row2.passenger.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row1.wheel.left.tire.pressure",
+   "unit": "kPa"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row1.wheel.left.tire.pressureTarget",
+   "unit": "kPa"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row1.wheel.right.tire.pressure",
+   "unit": "kPa"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row1.wheel.right.tire.pressureTarget",
+   "unit": "kPa"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row2.wheel.left.tire.pressure",
+   "unit": "kPa"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row2.wheel.left.tire.pressureTarget",
+   "unit": "kPa"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row2.wheel.right.tire.pressure",
+   "unit": "kPa"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row2.wheel.right.tire.pressureTarget",
+   "unit": "kPa"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.avgElectricRangeConsumption",
+   "unit": "kWh/100km"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.batteryManagement.batterySizeMax",
+   "unit": "kWh"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.batteryManagement.header",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.batteryManagement.maxEnergy",
+   "unit": "kWh"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.acAmpere",
+   "unit": "A"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.acRestriction.factor",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.acVoltage",
+   "unit": "V"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.chargingMode",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.connectionType",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.hvStatus",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.lastChargingReason",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.lastChargingResult",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.level",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.method",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.phaseNumber",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.profile.timerType",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.timeRemaining",
+   "unit": "min"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.timeToFullyCharged",
+   "unit": "min"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.kombiRemainingElectricRange",
+   "unit": "km"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.remainingElectricRange",
+   "unit": "km"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.fuelSystem.level",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.fuelSystem.remainingFuel",
+   "unit": "L"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.lastRemainingRange",
+   "unit": "km"
+  },
+  {
+   "descriptor": "vehicle.electricalSystem.battery.serviceDemand.recharge",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.electricalSystem.battery.serviceDemand.replace",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.powertrain.electric.battery.stateOfCharge.displayed",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.powertrain.electric.battery.stateOfCharge.target",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.status.checkControlMessages",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.status.conditionBasedServices",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveEcoPro",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveEcoProPlus",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveElectric",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.trip.segment.end.drivetrain.batteryManagement.hvSoc",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.vehicle.avgAuxPower",
+   "unit": "kW"
+  },
+  {
+   "descriptor": "vehicle.vehicle.avgSpeed",
+   "unit": "km/h"
+  },
+  {
+   "descriptor": "vehicle.vehicle.preConditioning.activity",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.vehicle.preConditioning.error",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.vehicle.preConditioning.remainingTime",
+   "unit": "min"
+  },
+  {
+   "descriptor": "vehicle.vehicle.travelledDistance",
+   "unit": "km"
+  }
+ ]
+}

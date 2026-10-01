@@ -1,0 +1,125 @@
+{
+ "name": "M2 Competition",
+ "descriptors": [
+  {
+   "descriptor": "vehicle.body.hood.isOpen",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.body.trunk.door.isOpen",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.body.trunk.isOpen",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.door.lock.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.door.row1.driver.isOpen",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.door.row1.passenger.isOpen",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.door.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.altitude",
+   "unit": "m"
+  },
+  {
+   "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.heading",
+   "unit": "degrees"
+  },
+  {
+   "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.latitude",
+   "unit": "degrees"
+  },
+  {
+   "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.longitude",
+   "unit": "degrees"
+  },
+  {
+   "descriptor": "vehicle.cabin.window.row1.driver.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.window.row1.passenger.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.channel.teleservice.lastTeleserviceReportTime",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.channel.teleservice.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.fuelSystem.remainingFuel",
+   "unit": "l"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.internalCombustionEngine.engine.ect",
+   "unit": "°C"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.lastRemainingRange",
+   "unit": "km"
+  },
+  {
+   "descriptor": "vehicle.electricalSystem.battery.serviceDemand.recharge",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.electricalSystem.battery.serviceDemand.replace",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.electricalSystem.battery.voltage",
+   "unit": "V"
+  },
+  {
+   "descriptor": "vehicle.powertrain.electric.battery.stateOfCharge.target",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.status.conditionBasedServicesCount",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.status.serviceDistance.next",
+   "unit": "km"
+  },
+  {
+   "descriptor": "vehicle.status.serviceDistance.yellow",
+   "unit": "km"
+  },
+  {
+   "descriptor": "vehicle.status.serviceTime.hUandAuServiceYellow",
+   "unit": "months"
+  },
+  {
+   "descriptor": "vehicle.status.serviceTime.yellow",
+   "unit": "weeks"
+  },
+  {
+   "descriptor": "vehicle.vehicle.averageWeeklyDistanceLongTerm",
+   "unit": "km"
+  },
+  {
+   "descriptor": "vehicle.vehicle.averageWeeklyDistanceShortTerm",
+   "unit": "km"
+  },
+  {
+   "descriptor": "vehicle.vehicle.travelledDistance",
+   "unit": "km"
+  }
+ ]
+}

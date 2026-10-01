@@ -1,0 +1,201 @@
+{
+ "name": "i3s 120",
+ "descriptors": [
+  {
+   "descriptor": "vehicle.body.chargingPort.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.body.hood.isOpen",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.body.trunk.door.isOpen",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.body.trunk.isOpen",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.door.lock.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.door.row1.driver.isOpen",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.door.row1.passenger.isOpen",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.door.row2.driver.isOpen",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.door.row2.passenger.isOpen",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.door.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.altitude",
+   "unit": "m"
+  },
+  {
+   "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.heading",
+   "unit": "°"
+  },
+  {
+   "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.latitude",
+   "unit": "°"
+  },
+  {
+   "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.longitude",
+   "unit": "°"
+  },
+  {
+   "descriptor": "vehicle.cabin.sunroof.overallStatus",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.sunroof.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.sunroof.tiltStatus",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.window.row1.driver.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.window.row1.passenger.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.batteryManagement.batterySizeMax",
+   "unit": "kWh"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.batteryManagement.header",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.batteryManagement.maxEnergy",
+   "unit": "kWh"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.acAmpere",
+   "unit": "A"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.acRestriction.factor",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.acRestriction.isChosen",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.acVoltage",
+   "unit": "V"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.chargingMode",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.connectionType",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.hvStatus",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.isSingleImmediateCharging",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.level",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.method",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.phaseNumber",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.profile.climatizationActive",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.profile.timerType",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.timeToFullyCharged",
+   "unit": "min"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.windowSelection",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.kombiRemainingElectricRange",
+   "unit": "km"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.remainingElectricRange",
+   "unit": "km"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.fuelSystem.remainingFuel",
+   "unit": "L"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.lastRemainingRange",
+   "unit": "km"
+  },
+  {
+   "descriptor": "vehicle.electricalSystem.battery.serviceDemand.recharge",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.electricalSystem.battery.serviceDemand.replace",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.powertrain.electric.battery.stateOfCharge.displayed",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.powertrain.electric.battery.stateOfCharge.target",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.status.conditionBasedServices",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.vehicle.avgAuxPower",
+   "unit": "kW"
+  },
+  {
+   "descriptor": "vehicle.vehicle.travelledDistance",
+   "unit": "km"
+  }
+ ]
+}

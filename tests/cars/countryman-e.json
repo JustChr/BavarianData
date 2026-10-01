@@ -1,0 +1,177 @@
+{
+ "name": "Countryman E",
+ "descriptors": [
+  {
+   "descriptor": "vehicle.body.chargingPort.lockedStatus",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.body.chargingPort.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.door.lock.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.door.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.altitude",
+   "unit": "m"
+  },
+  {
+   "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.latitude",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.infotainment.navigation.currentLocation.longitude",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.window.row1.driver.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.window.row1.passenger.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.window.row2.driver.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.cabin.window.row2.passenger.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row1.wheel.left.tire.pressure",
+   "unit": "kPa"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row1.wheel.left.tire.pressureTarget",
+   "unit": "kPa"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row1.wheel.right.tire.pressure",
+   "unit": "kPa"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row1.wheel.right.tire.pressureTarget",
+   "unit": "kPa"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row2.wheel.left.tire.pressure",
+   "unit": "kPa"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row2.wheel.left.tire.pressureTarget",
+   "unit": "kPa"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row2.wheel.right.tire.pressure",
+   "unit": "kPa"
+  },
+  {
+   "descriptor": "vehicle.chassis.axle.row2.wheel.right.tire.pressureTarget",
+   "unit": "kPa"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.batteryManagement.maxEnergy",
+   "unit": "kWh"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.chargingMode",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.hvStatus",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.lastChargingReason",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.lastChargingResult",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.level",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.method",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.profile.timerType",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.charging.status",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.kombiRemainingElectricRange",
+   "unit": "km"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.electricEngine.remainingElectricRange",
+   "unit": "km"
+  },
+  {
+   "descriptor": "vehicle.drivetrain.lastRemainingRange",
+   "unit": "km"
+  },
+  {
+   "descriptor": "vehicle.electricalSystem.battery.serviceDemand.recharge",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.electricalSystem.battery.serviceDemand.replace",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.powertrain.electric.battery.charging.acLimit.selected",
+   "unit": "A"
+  },
+  {
+   "descriptor": "vehicle.powertrain.electric.battery.charging.power",
+   "unit": "W"
+  },
+  {
+   "descriptor": "vehicle.powertrain.electric.battery.stateOfCharge.target",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.powertrain.electric.battery.stateOfHealth.displayed",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveEcoPro",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveEcoProPlus",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveElectric",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.trip.segment.end.drivetrain.batteryManagement.hvSoc",
+   "unit": "%"
+  },
+  {
+   "descriptor": "vehicle.vehicle.antiTheftAlarmSystem.alarm.armStatus",
+   "unit": null
+  },
+  {
+   "descriptor": "vehicle.vehicle.travelledDistance",
+   "unit": "km"
+  }
+ ]
+}
