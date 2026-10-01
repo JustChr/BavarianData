@@ -24,6 +24,7 @@
   <a href="https://github.com/JustChr/BavarianData/releases"><img src="https://img.shields.io/github/downloads/JustChr/BavarianData/total" alt="Downloads" /></a>
   <a href="https://github.com/JustChr/BavarianData/stargazers"><img src="https://img.shields.io/github/stars/JustChr/BavarianData?style=flat" alt="GitHub stars" /></a>
   <a href="https://github.com/JustChr/BavarianData/blob/main/LICENSE"><img src="https://img.shields.io/github/license/JustChr/BavarianData" alt="MIT license" /></a>
+  <a href="https://github.com/sponsors/JustChr"><img src="https://img.shields.io/badge/Sponsor-GitHub-EA4AAA?logo=githubsponsors&logoColor=white" alt="Sponsor on GitHub" /></a>
   <a href="https://ko-fi.com/justchr"><img src="https://img.shields.io/badge/Ko--fi-support-FF5E5B?logo=kofi&logoColor=white" alt="Support on Ko-fi" /></a>
 </p>
 
@@ -136,8 +137,9 @@ no API quota. See
 - Bugs in the integration → [Issues](https://github.com/JustChr/BavarianData/issues).
 - BMW-side registration trouble, setup help, or general questions →
   [Discussions](https://github.com/JustChr/BavarianData/discussions).
-- Enjoying it? BavarianData is a spare-time project: a ⭐ star here or a
-  coffee on [Ko-fi](https://ko-fi.com/justchr) keeps it going.
+- Enjoying it? BavarianData is a spare-time project: a ⭐ star here, a
+  [GitHub Sponsors](https://github.com/sponsors/JustChr) contribution or a coffee
+  on [Ko-fi](https://ko-fi.com/justchr) keeps it going.
 
 The descriptor catalogue, metadata, translations and reference docs are all
 generated from BMW's exports by the pipeline in [`tools/`](tools/) — see
