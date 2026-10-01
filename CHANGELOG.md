@@ -9,6 +9,77 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.14] - 2026-10-01
+
+Ten languages, a website, a fix for Check Control warnings that never cleared, and an easier way to add a second car without losing history.
+
+### Added
+- **Eight more languages: French, Italian, Spanish, Dutch, Polish, Portuguese,
+  Czech and Swedish**. Everything is translated — entity names, the setup and
+  options screens, services, repair notices, device triggers, the printable
+  month report and the dashboard card. The names of BMW's fields are BMW's own,
+  taken from the catalogue BMW publishes in each language, so they match the
+  wording in the BMW portal. Portuguese is European Portuguese. The export
+  service's `language` field accepts the new codes. Entity IDs do not change.
+- **A website: [justchr.github.io/BavarianData](https://justchr.github.io/BavarianData/)**,
+  in English and German. It runs the real dashboard card on a demo car you can
+  click through, carries the full manual, and has a searchable page for every
+  descriptor BMW CarData can send. The wiki stays the source; the website
+  renders it, because GitHub keeps wikis out of search engines.
+- **Coming from bimmer_connected**: a manual page for everyone whose *BMW
+  Connected Drive* integration went `unavailable` when BMW blocked it on
+  29 September 2025 — what replaces it, what you lose (remote commands), and
+  which BavarianData entity stands in for each old one.
+
+### Changed
+- **The card's *Vehicle events* view shows only current Check Control
+  messages**. Messages the car no longer reports fold away under **Earlier
+  messages**, with the day each was last reported and the day it stopped. The
+  sensor keeps the last ten in a new `resolved` attribute.
+- **Updated to BMW's latest data catalogue**. The *State of health (SOCE)*
+  sensor now keeps long-term statistics, so its trend shows in the history
+  graphs. In German, *Energieinhalt der Hochvoltbatterie* is now called what
+  BMW calls it: *Nutzbare Energie aus Hochvoltbatterie (vollgeladen,
+  prognostiziert)*. The entity ID does not change.
+- The integration's **Documentation** link in Home Assistant now opens the
+  manual on the website.
+- **Discover vehicles now adds the cars it finds**. It used to fetch BMW's list
+  of mapped cars and only write their count to the log, so a car this entry had
+  never seen stayed invisible. A primary car that is new to the entry now becomes
+  a device (one request against the day's quota, once per car). Streaming still
+  has to be switched on for it in the portal, under **Configure → Choose
+  streamed data**. ([#44](https://github.com/JustChr/BavarianData/issues/44))
+- **A second car no longer needs "the dance"**. Finishing **Configure → Choose
+  streamed data**, or re-authorizing the account, now looks for cars the entry
+  has not met (one request, only when one is found), and a car found that way
+  gets its entities from one telematics fetch instead of staying an empty
+  device until it next streams. Before, a parked car stayed invisible until it
+  happened to send something, or until **Discover vehicles** and **Fetch
+  telematics** were pressed by hand.
+  ([#44](https://github.com/JustChr/BavarianData/issues/44))
+
+### Fixed
+- **A Check Control warning stayed on after it was dealt with**. Topping up the
+  washer fluid did not clear "washer fluid level is low": once the car has no
+  messages, BMW reports the list as *null* rather than as an empty list, and the integration read that as "no news" and kept the old warning for
+  good. It now reads it as "no messages", so the sensor drops to 0 at the next
+  daily refresh after a drive.
+- **The card could show a stopped charge as charging**. BMW's catalogue now
+  lists two more charging states, *interrupted* and *disrupted*. Both would
+  have shown a green ring and *Time to full* on the card. They now read as
+  stopped, and have names in every language.
+- **A refused login could leave two connections to BMW open**. When BMW
+  refused the stream's login and the token was renewed at once, a busy system
+  could lose track of the new connection and open another one: two streams on
+  one account, which BMW does not allow and which makes the connections drop
+  each other. The refused connection is now shut down before anything else
+  reacts to the refusal.
+- **Adding the same BMW account again no longer wipes its history**. Running
+  *Add device* with a Client ID that is already set up (for example to pick up a
+  second car) used to delete the existing entry first, and with it every stored
+  trip and charge. The existing entry is now re-authorized in place, keeping its
+  history. ([#44](https://github.com/JustChr/BavarianData/issues/44))
+
 ## [0.9.14-beta.5] - 2026-09-29
 
 ### Changed
