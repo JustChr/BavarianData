@@ -9,6 +9,23 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.15] - 2026-10-04
+
+Two small fixes for the card and for the i4: a car whose name contains "Sport" no longer loses its charging status, and a BMW i4 is no longer mistaken for a plug-in hybrid.
+
+### Fixed
+- **The card showed "Not charging" on a car whose name contains "port"** (such
+  as an iX3 "M Sport", issue #51). The card's automatic sensor picks skip
+  entities that mention words like "port" (the charging port), and it matched
+  them against the vehicle's name too, so "Sport" hid the charging status.
+  The vehicle's name is now ignored when picking sensors.
+- **A BMW i4 was treated as a plug-in hybrid** (issue #53). The i4 eDrive35
+  streams a fuel-tank level even though BMW's own vehicle data calls it a
+  battery-electric car, and the integration took the tank as proof of a hybrid:
+  the card showed a 0 % tank and no total range, and the Efficiency & range
+  view refused to work out a consumption. BMW's `BEV` now outranks a stray fuel
+  field, in the card and in the integration's own consumption and range logic.
+
 ## [0.9.15-beta.2] - 2026-10-04
 
 ### Fixed
