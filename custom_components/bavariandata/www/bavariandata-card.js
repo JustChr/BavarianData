@@ -3303,7 +3303,8 @@ class BavarianDataCard extends HTMLElement {
       const bd = attrs.vehicle_basic_data;
       if (!basic && bd && bd.drive_train) basic = String(bd.drive_train).toUpperCase();
     }
-    if (hv && fuel) return "phev";
+    // An i4 streams a tank level although BMW's basic data calls it BEV (#53).
+    if (hv && fuel && basic !== "BEV") return "phev";
     if (fuel && basic !== "BEV") return "ice";
     if (hv || basic === "BEV") return "bev";
     // Neither proved, on a car that has plenty else to say: a petrol MINI

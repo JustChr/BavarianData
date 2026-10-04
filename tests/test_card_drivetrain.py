@@ -346,6 +346,21 @@ def test_basic_data_bev_outranks_a_stray_fuel_field():
     assert _render(states)["drivetrain"] == "bev"
 
 
+def test_an_i4_streaming_a_tank_level_is_still_electric():
+    # Issue #53: BMW calls it BEV yet streams fuelSystem.level next to the
+    # high-voltage battery, which used to read as a plug-in hybrid.
+    states = {
+        key: {
+            **st,
+            "attributes": {**st["attributes"], "vehicle_basic_data": {"drive_train": "BEV"}},
+        }
+        for key, st in PHEV.items()
+    }
+    rendered = _render(states)
+    assert rendered["drivetrain"] == "bev"
+    assert "Tank" not in rendered["html"]
+
+
 def test_nothing_streamed_yet_keeps_the_electric_layout():
     assert _render({"sensor.odometer": ODOMETER})["drivetrain"] == "bev"
 

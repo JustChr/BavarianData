@@ -3391,7 +3391,8 @@ class CardataCoordinator:
         return is_combustion_only(self.seen_descriptors(vin))
 
     def is_plug_in_hybrid(self, vin: str) -> bool:
-        return is_plug_in_hybrid(self.seen_descriptors(vin))
+        extra = (self.device_metadata.get(vin) or {}).get("extra_attributes") or {}
+        return is_plug_in_hybrid(self.seen_descriptors(vin), extra.get("drive_train"))
 
     async def async_handle_connection_event(
         self, status: str, *, reason: Optional[str] = None

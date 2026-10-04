@@ -135,9 +135,18 @@ def is_combustion_only(seen: Collection[str]) -> bool:
     return has_combustion(seen_set) and not has_high_voltage(seen_set)
 
 
-def is_plug_in_hybrid(seen: Collection[str]) -> bool:
-    """Whether the car has shown both a high-voltage battery and a fuel system."""
+def is_plug_in_hybrid(seen: Collection[str], drive_train: Optional[str] = None) -> bool:
+    """Whether the car has shown both a high-voltage battery and a fuel system.
 
+    BMW's basic data wins when it says ``BEV``: an i4 eDrive35 streams
+    ``fuelSystem.level`` all the same (issue #53), so a fuel descriptor alone
+    cannot make a battery car a hybrid. Basic data only ever confirms electric --
+    its other spellings are unknown -- so anything else falls back to the
+    descriptors.
+    """
+
+    if str(drive_train or "").upper() == "BEV":
+        return False
     seen_set = set(seen)
     return has_high_voltage(seen_set) and has_combustion(seen_set)
 

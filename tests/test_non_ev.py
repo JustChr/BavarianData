@@ -57,6 +57,17 @@ def test_drivetrain_needs_positive_evidence():
     assert not coverage.is_plug_in_hybrid(set())
 
 
+def test_basic_data_bev_outranks_a_streamed_tank_level():
+    # Issue #53: an i4 eDrive35 is a BEV by BMW's own basic data and streams
+    # fuelSystem.level anyway.
+    assert coverage.is_plug_in_hybrid(PHEV_SEEN)
+    assert not coverage.is_plug_in_hybrid(PHEV_SEEN, "BEV")
+    assert not coverage.is_plug_in_hybrid(PHEV_SEEN, "bev")
+    # Any other spelling, or none, leaves the descriptors to decide.
+    assert coverage.is_plug_in_hybrid(PHEV_SEEN, "PHEV")
+    assert coverage.is_plug_in_hybrid(PHEV_SEEN, None)
+
+
 def test_the_m2s_ev_charge_target_is_not_a_battery():
     assert not coverage.has_high_voltage({EV_TARGET})
 

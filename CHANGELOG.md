@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.15-beta.2] - 2026-10-04
+
+### Fixed
+- **A BMW i4 was treated as a plug-in hybrid** (issue #53). The i4 eDrive35
+  streams a fuel-tank level even though BMW's own vehicle data calls it a
+  battery-electric car, and the integration took the tank as proof of a hybrid:
+  the card showed a 0 % tank and no total range, and the Efficiency & range
+  view refused to work out a consumption. BMW's `BEV` now outranks a stray fuel
+  field, in the card and in the integration's own consumption and range logic.
+
 ## [0.9.15-beta.1] - 2026-10-01
 
 ### Fixed
