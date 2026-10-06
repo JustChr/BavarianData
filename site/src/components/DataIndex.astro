@@ -3,6 +3,7 @@
 // with a filter that only hides rows.
 import Base from "../layouts/Base.astro";
 import { DESCRIPTORS, SECTION_ORDER, SECTION_LABELS, nameOf } from "../lib/catalogue";
+import { NOTES } from "../lib/notes";
 import { url, localized, absolute, type Lang } from "../lib/site";
 
 interface Props {
@@ -18,6 +19,8 @@ const t = de
       description: `Alle ${count} Deskriptoren, die BMW CarData liefert, mit Namen, Einheit, Wertebereich und ob sie live gestreamt werden. Durchsuchbar, auf Deutsch und Englisch.`,
       h1: "Was dein BMW senden kann",
       lead: `BMWs CarData-Katalog beschreibt ${count} Deskriptoren. ${live} davon kommen live über den Stream, der Rest nur per REST-Abfrage. BavarianData macht aus jedem eine Home-Assistant-Entität.`,
+      featured: "Die meistgefragten",
+      featuredLead: "Wo der Name allein in die Irre führt oder sich Autos unterscheiden, steht auf der Seite, was wir von echten Autos wissen.",
       filter: "Filtern",
       placeholder: "Name oder Deskriptor, z. B. Reifendruck",
       all: "Alle",
@@ -35,6 +38,8 @@ const t = de
       description: `All ${count} descriptors BMW CarData delivers, with their names, units, value ranges and whether they are streamed live. Searchable, in English and German.`,
       h1: "What your BMW can send",
       lead: `BMW's CarData catalogue describes ${count} descriptors. ${live} of them arrive live over the stream; the rest only through a REST request. BavarianData turns each one into a Home Assistant entity.`,
+      featured: "The ones people ask about",
+      featuredLead: "Where the name alone misleads, or cars differ, the page says what we have learned from real cars.",
       filter: "Filter",
       placeholder: "Name or descriptor, e.g. tire pressure",
       all: "All",
@@ -47,6 +52,7 @@ const t = de
       none: "No descriptor matches. Try a shorter search.",
       shown: "shown",
     };
+const featured = [...NOTES.keys()].map((key) => DESCRIPTORS.find((d) => d.descriptor === key)!);
 const sections = SECTION_ORDER.filter((s) => DESCRIPTORS.some((d) => d.section === s));
 const jsonLd = [
   {
@@ -71,6 +77,16 @@ const jsonLd = [
   <main id="main" class="wrap data" data-pagefind-body>
     <h1>{t.h1}</h1>
     <p class="data__lead">{t.lead}</p>
+
+    <section class="data__featured" aria-labelledby="featured">
+      <h2 id="featured">{t.featured}</h2>
+      <p>{t.featuredLead}</p>
+      <ul>
+        {featured.map((d) => (
+          <li><a href={url(localized(`data/${d.descriptor}`, lang))}>{nameOf(d, lang)}</a><code>{d.descriptor}</code></li>
+        ))}
+      </ul>
+    </section>
 
     <div class="data__tools" data-filter-root>
       <label class="data__search">
@@ -157,6 +173,40 @@ const jsonLd = [
     color: var(--ink-soft);
     max-width: 58ch;
     margin: 20px 0 0;
+  }
+  .data__featured {
+    margin-top: 40px;
+  }
+  .data__featured h2 {
+    font-size: 1.15rem;
+    font-stretch: 106%;
+  }
+  .data__featured p {
+    color: var(--ink-soft);
+    max-width: 66ch;
+    margin: 8px 0 14px;
+  }
+  .data__featured ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 2px 24px;
+  }
+  .data__featured li {
+    display: grid;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .data__featured a {
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .data__featured code {
+    font-size: 0.76rem;
+    color: var(--slate);
+    overflow-wrap: anywhere;
   }
   .data__tools {
     position: sticky;

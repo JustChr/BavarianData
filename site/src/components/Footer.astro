@@ -30,7 +30,7 @@ const sections = sidebar(lang);
     </div>
     {sections.map((s) => (
       <nav class="foot__col" aria-label={s.title}>
-        <h2>{s.title}</h2>
+        <p class="foot__title">{s.title}</p>
         <ul>
           {s.items.map((i) => {
             const path = docPath(i.page, lang);
@@ -71,11 +71,13 @@ const sections = sidebar(lang);
     color: var(--slate);
     margin: 12px 0 16px;
   }
-  .foot h2 {
+  .foot__title {
+    margin: 0 0 10px;
+    line-height: 1.15;
+    font-weight: 700;
     font-size: 0.92rem;
     font-stretch: 100%;
     color: var(--ink);
-    margin-bottom: 10px;
   }
   .foot ul {
     list-style: none;

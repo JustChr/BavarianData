@@ -51,6 +51,8 @@ Lücke hinweg zu summieren.
 
 ## Reale Reichweite
 
+<a id="real-range"></a>
+
 ```
 Reichweite mit vollem Akku = nutzbare Kapazität ÷ Verbrauch × 100
 Reichweite von hier        = das, skaliert mit dem aktuellen Ladezustand
@@ -96,6 +98,8 @@ oder `no_capacity`.
 > Zahl, die du eingetragen hast.
 
 ## Plug-in-Hybride
+
+<a id="plug-in-hybrids"></a>
 
 Ein Plug-in-Hybrid bekommt **keinen Verbrauchswert und keine reale Reichweite** — und
 auch keine [Ladekosten pro 100 km](DE-Feature-Charging-History-and-Cost#kosten-einrichten).

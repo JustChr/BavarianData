@@ -103,6 +103,8 @@ nicht bei jedem Start Kontingent; manuell aktualisieren kannst du es mit
 
 ## Geräte-Tracker
 
+<a id="device-tracker"></a>
+
 Jede FIN bekommt einen **device_tracker** („Standort“) mit der Position des
 Fahrzeugs aus dem GPS-Stream, nutzbar auf der HA-Karte und in zonenbasierten
 Automationen.

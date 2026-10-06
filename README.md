@@ -91,7 +91,7 @@ the quick overview.
 ## Requirements
 
 - A BMW account with a **car** that supports CarData (BMW streams no data for
-  BMW Motorrad motorcycles).
+  BMW Motorrad motorcycles). See [which cars work](https://justchr.github.io/BavarianData/docs/supported-cars/).
 - **CarData API** and **CarData Streaming** subscribed in the BMW portal, and a
   **client ID** generated for this integration.
 - Home Assistant **2026.3** or newer, with [HACS](https://hacs.xyz/).

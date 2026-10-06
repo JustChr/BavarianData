@@ -1,0 +1,309 @@
+{
+  "_comment": "What we know about a descriptor beyond BMW's one-line description: how it behaves on real cars, what BavarianData does with it, which look-alike to use instead. A descriptor listed here gets these notes on its /data/ page and is the only kind of descriptor page search engines are asked to index; the rest stay reachable but noindex, because a page that only restates BMW's catalogue line adds nothing a search result needs. Each language is a list of paragraphs. Inline: `code`, **bold**, [text](Wiki-Page#anchor) for a manual page (resolved per language), [text](data:descriptor) for another descriptor (empty text = its name in the page's language), and full https links. Every claim here must hold on a real car; tests/test_site_pages.py checks the keys and links.",
+  "vehicle.drivetrain.batteryManagement.header": {
+    "en": [
+      "This is the car's **live state of charge**, the number to build automations on. It is the only `.header` descriptor in BMW's catalogue, which makes it easy to miss in the portal's Data Selection.",
+      "Two other descriptors look like the same thing and aren't: [](data:vehicle.drivetrain.electricEngine.charging.level) is a server-side prediction that BMW refreshes only on a REST request, and [](data:vehicle.trip.segment.end.drivetrain.batteryManagement.hvSoc) only moves when a drive ends.",
+      "If this one isn't selected, the state of charge in Home Assistant stops updating and charging sessions are recorded without their start and end level. The setup wizard selects it for you. Some plug-in hybrids (an X3 30e, for one) never stream it; there it arrives only with the [daily REST refresh](Feature-API-Quota#the-daily-refresh).",
+      "Between readings BavarianData extrapolates from the charging power, so the card and the [evcc bridge](Feature-evcc-and-Wallbox-Bridge) keep moving during a charge even when BMW goes quiet for hours."
+    ],
+    "de": [
+      "Das ist der **Live-Ladestand** des Autos, die Zahl, auf die man Automationen baut. Er ist der einzige `.header`-Deskriptor in BMWs Katalog und geht deshalb in der Datenauswahl im Portal leicht unter.",
+      "Zwei andere Deskriptoren sehen nach demselben aus und sind es nicht: [](data:vehicle.drivetrain.electricEngine.charging.level) ist eine Vorhersage von BMWs Server, die nur bei einer REST-Abfrage aktualisiert wird, und [](data:vehicle.trip.segment.end.drivetrain.batteryManagement.hvSoc) ändert sich erst, wenn eine Fahrt endet.",
+      "Ist dieser Deskriptor nicht ausgewählt, bleibt der Ladestand in Home Assistant stehen, und Ladevorgänge werden ohne Start- und Endstand aufgezeichnet. Der Einrichtungsassistent wählt ihn für dich aus. Manche Plug-in-Hybride (etwa ein X3 30e) streamen ihn nie; dort kommt er nur mit der [täglichen REST-Aktualisierung](Feature-API-Quota#the-daily-refresh).",
+      "Zwischen zwei Messwerten rechnet BavarianData aus der Ladeleistung weiter, damit Karte und [evcc-Brücke](Feature-evcc-and-Wallbox-Bridge) während des Ladens mitlaufen, auch wenn BMW stundenlang nichts sendet."
+    ]
+  },
+  "vehicle.drivetrain.electricEngine.charging.level": {
+    "en": [
+      "Despite the name, this is **not a live reading**. It is BMW's server-side prediction of the state of charge, and BMW doesn't put it on the stream: it changes only when the integration makes a REST request, normally once a day.",
+      "For anything live (automations, a charge controller, the dashboard) use [](data:vehicle.drivetrain.batteryManagement.header) instead. BavarianData's charging history and the card already do."
+    ],
+    "de": [
+      "Trotz des Namens ist das **kein Live-Wert**. Es ist eine Vorhersage des Ladestands von BMWs Server, und BMW streamt sie nicht: Sie ändert sich nur, wenn die Integration eine REST-Abfrage macht, normalerweise einmal am Tag.",
+      "Für alles, was live sein soll (Automationen, eine Ladesteuerung, das Dashboard), nimm stattdessen [](data:vehicle.drivetrain.batteryManagement.header). Der Ladeverlauf von BavarianData und die Karte tun das bereits."
+    ]
+  },
+  "vehicle.powertrain.electric.battery.stateOfCharge.target": {
+    "en": [
+      "The charge target set in the car or the MyBMW app. The card draws it as the target on the overview, and the [evcc bridge](Feature-evcc-and-Wallbox-Bridge) publishes it as `limitSoc`, so a charge controller stops where the car would.",
+      "Two caveats. A petrol or diesel BMW can stream this descriptor too, so its arrival says nothing about the drivetrain. And the new iX3 streams a repeating 100 % on top of the real setting ([issue #52](https://github.com/JustChr/BavarianData/issues/52)); there the value from a REST request is the right one."
+    ],
+    "de": [
+      "Das Ladeziel, das im Auto oder in der MyBMW-App eingestellt ist. Die Karte zeigt es in der Übersicht als Ziel, und die [evcc-Brücke](Feature-evcc-and-Wallbox-Bridge) veröffentlicht es als `limitSoc`, damit eine Ladesteuerung dort aufhört, wo es auch das Auto täte.",
+      "Zwei Einschränkungen. Auch ein Benziner oder Diesel kann diesen Deskriptor streamen; dass er ankommt, sagt also nichts über den Antrieb. Und der neue iX3 streamt zusätzlich zur echten Einstellung immer wieder 100 % ([Issue #52](https://github.com/JustChr/BavarianData/issues/52)); dort stimmt der Wert aus einer REST-Abfrage."
+    ]
+  },
+  "vehicle.drivetrain.batteryManagement.maxEnergy": {
+    "en": [
+      "The energy BMW says the full battery holds today, in kWh. BavarianData uses it to turn the state of charge into energy, and as the capacity behind the [real range](Feature-Efficiency-and-Range) until its own learned [battery health](Feature-Battery-Health) figure is confident.",
+      "Compare it with [](data:vehicle.drivetrain.batteryManagement.batterySizeMax), the size of the battery when new."
+    ],
+    "de": [
+      "Die Energie, die laut BMW heute in die volle Batterie passt, in kWh. BavarianData rechnet damit den Ladestand in Energie um und nutzt sie als Kapazität für die [echte Reichweite](Feature-Efficiency-and-Range), bis der selbst gelernte Wert für den [Batteriezustand](Feature-Battery-Health) sicher ist.",
+      "Vergleiche ihn mit [](data:vehicle.drivetrain.batteryManagement.batterySizeMax), der Größe der Batterie im Neuzustand."
+    ]
+  },
+  "vehicle.drivetrain.batteryManagement.batterySizeMax": {
+    "en": [
+      "The size of the battery when new, in kWh. [Battery health](Feature-Battery-Health) compares the capacity it learns from your charging against this figure for its percentage of the as-new pack.",
+      "Before the car knows the value it can send 0; BavarianData ignores that rather than compare against it. For what the pack holds today, see [](data:vehicle.drivetrain.batteryManagement.maxEnergy)."
+    ],
+    "de": [
+      "Die Größe der Batterie im Neuzustand, in kWh. Der [Batteriezustand](Feature-Battery-Health) vergleicht die Kapazität, die er aus deinen Ladevorgängen lernt, mit diesem Wert und zeigt so den Anteil am Neuzustand.",
+      "Solange das Auto den Wert nicht kennt, kann es 0 senden; BavarianData ignoriert das, statt damit zu vergleichen. Was die Batterie heute fasst, steht in [](data:vehicle.drivetrain.batteryManagement.maxEnergy)."
+    ]
+  },
+  "vehicle.powertrain.electric.battery.stateOfHealth.displayed": {
+    "en": [
+      "BMW's own state-of-health percentage for the high-voltage battery, on cars that report one. It isn't streamed, so it changes at most with the [daily REST refresh](Feature-API-Quota#the-daily-refresh).",
+      "BavarianData also learns the usable capacity itself, from wide charging sessions: see [Battery health](Feature-Battery-Health). The two come from different measurements, so don't expect them to match to the percent."
+    ],
+    "de": [
+      "BMWs eigener Gesundheitswert der Hochvoltbatterie in Prozent, bei Autos, die ihn melden. Er wird nicht gestreamt und ändert sich deshalb höchstens mit der [täglichen REST-Aktualisierung](Feature-API-Quota#the-daily-refresh).",
+      "BavarianData lernt die nutzbare Kapazität außerdem selbst, aus Ladevorgängen über einen weiten Bereich: siehe [Batteriezustand](Feature-Battery-Health). Beide beruhen auf unterschiedlichen Messungen; erwarte also keine Übereinstimmung aufs Prozent."
+    ]
+  },
+  "vehicle.drivetrain.electricEngine.charging.status": {
+    "en": [
+      "What the car says its charging is doing. BavarianData opens and closes its [charging sessions](Feature-Charging-History-and-Cost) on changes of this value and fires the `bavariandata_charging_*` [events](Feature-Automations) from them, after reading the state of charge, target and power that arrived in the same message.",
+      "For an automation that reacts to a charge starting or finishing, those events are easier to use than this raw state: they already carry the session's energy and levels."
+    ],
+    "de": [
+      "Was das Auto über den Ladevorgang meldet. BavarianData beginnt und beendet seine [Ladevorgänge](Feature-Charging-History-and-Cost) bei Änderungen dieses Werts und löst daraus die `bavariandata_charging_*`-[Ereignisse](Feature-Automations) aus, nachdem es Ladestand, Ziel und Leistung aus derselben Nachricht gelesen hat.",
+      "Für eine Automation, die auf Ladebeginn oder Ladeende reagiert, sind diese Ereignisse einfacher als der rohe Zustand: Sie bringen Energie und Ladestände des Vorgangs gleich mit."
+    ]
+  },
+  "vehicle.powertrain.electric.battery.charging.power": {
+    "en": [
+      "Charging power at the battery, in watts. Every session's energy and the state-of-charge estimate between readings are built on it.",
+      "BMW sends it in bursts rather than evenly: a charge following solar surplus has been seen with only 26 updates in four and a half hours. Energy added up from such readings came out about 20 % below what the grid delivered. If your wallbox has an energy meter in Home Assistant, [give it to BavarianData](Feature-evcc-and-Wallbox-Bridge#inbound-your-wallboxs-meter-for-the-charging-history) and the history uses the measured figure.",
+      "On a car that doesn't stream this, the integration multiplies [](data:vehicle.drivetrain.electricEngine.charging.acVoltage), [](data:vehicle.drivetrain.electricEngine.charging.acAmpere) and [](data:vehicle.drivetrain.electricEngine.charging.phaseNumber) instead."
+    ],
+    "de": [
+      "Die Ladeleistung an der Batterie, in Watt. Die Energie jedes Ladevorgangs und der geschätzte Ladestand zwischen zwei Messwerten beruhen darauf.",
+      "BMW sendet sie schubweise statt gleichmäßig: Bei einem Ladevorgang, der dem Solarüberschuss folgte, kamen in viereinhalb Stunden nur 26 Werte. Die daraus addierte Energie lag rund 20 % unter dem, was aus dem Netz kam. Hat deine Wallbox einen Energiezähler in Home Assistant, [gib ihn BavarianData](Feature-evcc-and-Wallbox-Bridge#inbound-your-wallboxs-meter-for-the-charging-history), dann nutzt der Verlauf den gemessenen Wert.",
+      "Bei einem Auto, das diesen Wert nicht streamt, multipliziert die Integration stattdessen [](data:vehicle.drivetrain.electricEngine.charging.acVoltage), [](data:vehicle.drivetrain.electricEngine.charging.acAmpere) und [](data:vehicle.drivetrain.electricEngine.charging.phaseNumber)."
+    ]
+  },
+  "vehicle.drivetrain.electricEngine.charging.acVoltage": {
+    "en": [
+      "The AC voltage while charging. Where a car doesn't stream [](data:vehicle.powertrain.electric.battery.charging.power), BavarianData works the charging power out as voltage × [current](data:vehicle.drivetrain.electricEngine.charging.acAmpere) × [phases](data:vehicle.drivetrain.electricEngine.charging.phaseNumber), so all three need to be selected for that to work."
+    ],
+    "de": [
+      "Die Wechselspannung beim Laden. Streamt ein Auto keine [](data:vehicle.powertrain.electric.battery.charging.power), berechnet BavarianData die Ladeleistung als Spannung × [Strom](data:vehicle.drivetrain.electricEngine.charging.acAmpere) × [Phasen](data:vehicle.drivetrain.electricEngine.charging.phaseNumber); dafür müssen alle drei ausgewählt sein."
+    ]
+  },
+  "vehicle.drivetrain.electricEngine.charging.acAmpere": {
+    "en": [
+      "The AC charging current. Where a car doesn't stream [](data:vehicle.powertrain.electric.battery.charging.power), BavarianData works the charging power out as [voltage](data:vehicle.drivetrain.electricEngine.charging.acVoltage) × current × [phases](data:vehicle.drivetrain.electricEngine.charging.phaseNumber), so all three need to be selected for that to work.",
+      "The current limit you set for AC charging is a different descriptor: [](data:vehicle.powertrain.electric.battery.charging.acLimit.selected)."
+    ],
+    "de": [
+      "Der Ladestrom beim Wechselstromladen. Streamt ein Auto keine [](data:vehicle.powertrain.electric.battery.charging.power), berechnet BavarianData die Ladeleistung als [Spannung](data:vehicle.drivetrain.electricEngine.charging.acVoltage) × Strom × [Phasen](data:vehicle.drivetrain.electricEngine.charging.phaseNumber); dafür müssen alle drei ausgewählt sein.",
+      "Die Stromgrenze, die du fürs AC-Laden einstellst, ist ein anderer Deskriptor: [](data:vehicle.powertrain.electric.battery.charging.acLimit.selected)."
+    ]
+  },
+  "vehicle.drivetrain.electricEngine.charging.phaseNumber": {
+    "en": [
+      "How many phases the car charges on. Where a car doesn't stream [](data:vehicle.powertrain.electric.battery.charging.power), BavarianData works the charging power out as [voltage](data:vehicle.drivetrain.electricEngine.charging.acVoltage) × [current](data:vehicle.drivetrain.electricEngine.charging.acAmpere) × phases, so all three need to be selected for that to work."
+    ],
+    "de": [
+      "Auf wie vielen Phasen das Auto lädt. Streamt ein Auto keine [](data:vehicle.powertrain.electric.battery.charging.power), berechnet BavarianData die Ladeleistung als [Spannung](data:vehicle.drivetrain.electricEngine.charging.acVoltage) × [Strom](data:vehicle.drivetrain.electricEngine.charging.acAmpere) × Phasen; dafür müssen alle drei ausgewählt sein."
+    ]
+  },
+  "vehicle.powertrain.tractionBattery.charging.port.anyPosition.isPlugged": {
+    "en": [
+      "Whether a charging cable is in the car, on cars that report it this way. Not all do: an i5 reports only [](data:vehicle.body.chargingPort.status), and a plug-in hybrid X3 reports the port's status and lock instead of this one.",
+      "The [evcc bridge](Feature-evcc-and-Wallbox-Bridge) checks this one first and then falls back to the others in a fixed order, so its plug state works whichever one your car sends."
+    ],
+    "de": [
+      "Ob ein Ladekabel steckt, bei Autos, die das so melden. Nicht alle tun das: Ein i5 meldet nur [](data:vehicle.body.chargingPort.status), und ein X3 Plug-in-Hybrid meldet statt dieses Werts Zustand und Verriegelung des Ladeanschlusses.",
+      "Die [evcc-Brücke](Feature-evcc-and-Wallbox-Bridge) prüft diesen Wert zuerst und weicht dann in fester Reihenfolge auf die anderen aus; ihr Steckerstatus funktioniert also mit dem Wert, den dein Auto sendet."
+    ]
+  },
+  "vehicle.body.chargingPort.status": {
+    "en": [
+      "Whether a cable is plugged into the charging port. On an i5 this is the only plug state the car streams; other cars send [](data:vehicle.powertrain.tractionBattery.charging.port.anyPosition.isPlugged) as well, or instead.",
+      "The [evcc bridge](Feature-evcc-and-Wallbox-Bridge) reads whichever plug state your car sends, in a fixed order, so you don't have to pick one."
+    ],
+    "de": [
+      "Ob ein Kabel im Ladeanschluss steckt. Beim i5 ist das der einzige Steckerstatus, den das Auto streamt; andere Autos senden zusätzlich oder stattdessen [](data:vehicle.powertrain.tractionBattery.charging.port.anyPosition.isPlugged).",
+      "Die [evcc-Brücke](Feature-evcc-and-Wallbox-Bridge) liest in fester Reihenfolge den Steckerstatus, den dein Auto sendet; du musst also keinen auswählen."
+    ]
+  },
+  "vehicle.drivetrain.electricEngine.kombiRemainingElectricRange": {
+    "en": [
+      "The **remaining electric range shown in the instrument cluster**, the one to display and compare against. BMW sends it without a unit; it is kilometers, and BavarianData sets that for you.",
+      "Several range descriptors look alike. [](data:vehicle.drivetrain.electricEngine.remainingElectricRange) is an estimate from charging that lingers afterwards, [](data:vehicle.drivetrain.lastRemainingRange) includes fuel on a plug-in hybrid, and [](data:vehicle.powertrain.electric.range.target) is the range you'd have at the charge target.",
+      "BavarianData's [real range](Feature-Efficiency-and-Range#real-range) puts this figure next to one measured from your own driving."
+    ],
+    "de": [
+      "Die **elektrische Restreichweite aus dem Kombiinstrument**, die man anzeigen und mit der man vergleichen will. BMW sendet sie ohne Einheit; es sind Kilometer, und BavarianData setzt das für dich.",
+      "Mehrere Reichweiten-Deskriptoren sehen ähnlich aus. [](data:vehicle.drivetrain.electricEngine.remainingElectricRange) ist eine Schätzung vom Laden, die danach stehen bleibt, [](data:vehicle.drivetrain.lastRemainingRange) enthält beim Plug-in-Hybrid den Kraftstoff, und [](data:vehicle.powertrain.electric.range.target) ist die Reichweite beim Ladeziel.",
+      "Die [echte Reichweite](Feature-Efficiency-and-Range#real-range) von BavarianData stellt diesen Wert neben einen, der aus deinem eigenen Fahren gemessen ist."
+    ]
+  },
+  "vehicle.drivetrain.electricEngine.remainingElectricRange": {
+    "en": [
+      "An estimate BMW calculates while charging. It isn't updated once the charge ends, so it can stay far below the real range: 128 km while the car's display showed 379 km has been seen on an i5.",
+      "For the range in the instrument cluster use [](data:vehicle.drivetrain.electricEngine.kombiRemainingElectricRange)."
+    ],
+    "de": [
+      "Eine Schätzung, die BMW während des Ladens berechnet. Nach dem Laden wird sie nicht mehr aktualisiert und kann weit unter der echten Reichweite stehen bleiben: Bei einem i5 standen hier 128 km, während das Auto 379 km anzeigte.",
+      "Für die Reichweite aus dem Kombiinstrument nimm [](data:vehicle.drivetrain.electricEngine.kombiRemainingElectricRange)."
+    ]
+  },
+  "vehicle.drivetrain.lastRemainingRange": {
+    "en": [
+      "The total remaining range, as last sent by the car. On a plug-in hybrid that is the combined range, **fuel included**, so it is no stand-in for the electric range: use [](data:vehicle.drivetrain.electricEngine.kombiRemainingElectricRange) for that."
+    ],
+    "de": [
+      "Die gesamte Restreichweite, wie das Auto sie zuletzt gesendet hat. Beim Plug-in-Hybrid ist das die kombinierte Reichweite **samt Kraftstoff**, also kein Ersatz für die elektrische Reichweite: Dafür gibt es [](data:vehicle.drivetrain.electricEngine.kombiRemainingElectricRange)."
+    ]
+  },
+  "vehicle.powertrain.electric.range.target": {
+    "en": [
+      "The range BMW expects once the battery reaches your [charge target](data:vehicle.powertrain.electric.battery.stateOfCharge.target), not the range you have now. For the current range use [](data:vehicle.drivetrain.electricEngine.kombiRemainingElectricRange)."
+    ],
+    "de": [
+      "Die Reichweite, die BMW erwartet, sobald die Batterie dein [Ladeziel](data:vehicle.powertrain.electric.battery.stateOfCharge.target) erreicht, nicht die aktuelle. Für die aktuelle Reichweite nimm [](data:vehicle.drivetrain.electricEngine.kombiRemainingElectricRange)."
+    ]
+  },
+  "vehicle.drivetrain.fuelSystem.level": {
+    "en": [
+      "Fuel level as a percentage of the tank, from petrol, diesel and plug-in hybrid cars. The card's overview shows it as the tank level; a car that streams no percentage gets the [volume in the tank](data:vehicle.drivetrain.fuelSystem.remainingFuel) instead.",
+      "It is recorded as a measurement, so Home Assistant keeps long-term statistics for it."
+    ],
+    "de": [
+      "Der Tankfüllstand in Prozent, von Benzinern, Diesel und Plug-in-Hybriden. Die Übersicht der Karte zeigt ihn als Tankstand; ein Auto, das keinen Prozentwert streamt, bekommt stattdessen die [Menge im Tank](data:vehicle.drivetrain.fuelSystem.remainingFuel).",
+      "Er wird als Messwert erfasst, Home Assistant führt also Langzeitstatistiken dafür."
+    ]
+  },
+  "vehicle.drivetrain.fuelSystem.remainingFuel": {
+    "en": [
+      "The fuel in the tank, in liters. Not every car sends it: a plug-in hybrid X3 30e streams only the [percentage](data:vehicle.drivetrain.fuelSystem.level). The card uses this one when the percentage is missing."
+    ],
+    "de": [
+      "Der Kraftstoff im Tank, in Litern. Nicht jedes Auto sendet ihn: Ein X3 30e Plug-in-Hybrid streamt nur den [Prozentwert](data:vehicle.drivetrain.fuelSystem.level). Die Karte nutzt diesen Wert, wenn der Prozentwert fehlt."
+    ]
+  },
+  "vehicle.vehicle.travelledDistance": {
+    "en": [
+      "The odometer. Trip distances, the [charging cost per 100 km](Feature-Charging-History-and-Cost#setting-up-cost) and the [real range](Feature-Efficiency-and-Range) are measured from it, and the [evcc bridge](Feature-evcc-and-Wallbox-Bridge) publishes it as `odometer`. Some cars send `vehicle.vehicle.mileage` instead; BavarianData reads whichever arrives.",
+      "It is recorded as a total that only grows, so Home Assistant keeps long-term statistics for it. Some older cars send it only when a trip ends; see [older cars](Feature-Trips#older-cars-that-report-only-at-the-end-of-a-trip)."
+    ],
+    "de": [
+      "Der Kilometerstand. Fahrtstrecken, die [Ladekosten pro 100 km](Feature-Charging-History-and-Cost#setting-up-cost) und die [echte Reichweite](Feature-Efficiency-and-Range) werden daraus gemessen, und die [evcc-Brücke](Feature-evcc-and-Wallbox-Bridge) veröffentlicht ihn als `odometer`. Manche Autos senden stattdessen `vehicle.vehicle.mileage`; BavarianData liest, was ankommt.",
+      "Er wird als stetig wachsende Summe erfasst, Home Assistant führt also Langzeitstatistiken dafür. Manche älteren Autos senden ihn nur am Ende einer Fahrt; siehe [ältere Autos](Feature-Trips#older-cars-that-report-only-at-the-end-of-a-trip)."
+    ]
+  },
+  "vehicle.cabin.door.status": {
+    "en": [
+      "The **live lock state** of the car: streamed, and it follows every lock and unlock within seconds. Use this one, not [](data:vehicle.cabin.door.lock.status), which BMW refreshes only on a REST request.",
+      "For a “car left unlocked” automation, add a delay: an i5 locks itself again about two minutes after an unlock when no door is opened. On a MINI this descriptor reports open and closed doors instead of a lock state. More in [which lock entity to use](Feature-Entities-and-Devices#which-lock-entity-to-use)."
+    ],
+    "de": [
+      "Der **Live-Verriegelungszustand** des Autos: gestreamt, und er folgt jedem Ver- und Entriegeln innerhalb von Sekunden. Nimm diesen, nicht [](data:vehicle.cabin.door.lock.status), den BMW nur bei einer REST-Abfrage aktualisiert.",
+      "Gib einer Automation „Auto nicht abgeschlossen“ eine Verzögerung: Ein i5 verriegelt sich etwa zwei Minuten nach dem Entriegeln von selbst wieder, wenn keine Tür geöffnet wurde. Bei einem MINI meldet dieser Deskriptor offene und geschlossene Türen statt eines Verriegelungszustands. Mehr unter [welche Schloss-Entität](Feature-Entities-and-Devices#which-lock-entity-to-use)."
+    ]
+  },
+  "vehicle.cabin.door.lock.status": {
+    "en": [
+      "BMW doesn't stream this one: it refreshes only on a REST request, so it shows the lock state at the last [daily refresh](Feature-API-Quota#the-daily-refresh) and can be days out of date.",
+      "Use [](data:vehicle.cabin.door.status) instead. It is streamed, follows every lock and unlock within seconds, and reports the same values."
+    ],
+    "de": [
+      "Diesen Wert streamt BMW nicht: Er wird nur bei einer REST-Abfrage aktualisiert, zeigt also den Stand der letzten [täglichen Aktualisierung](Feature-API-Quota#the-daily-refresh) und kann Tage alt sein.",
+      "Nimm stattdessen [](data:vehicle.cabin.door.status). Der wird gestreamt, folgt jedem Ver- und Entriegeln innerhalb von Sekunden und meldet dieselben Werte."
+    ]
+  },
+  "vehicle.drivetrain.engine.isIgnitionOn": {
+    "en": [
+      "The descriptor path and BMW's description disagree here: BMW describes `engine.isIgnitionOn` as the engine and [](data:vehicle.drivetrain.engine.isActive) as the ignition. BavarianData keeps BMW's descriptions as the entity names. Before building on either, check on your own car which one changes when you start it.",
+      "Trip detection uses this one to confirm that a drive has started."
+    ],
+    "de": [
+      "Pfad und BMWs Beschreibung widersprechen sich hier: BMW beschreibt `engine.isIgnitionOn` als Motor und [](data:vehicle.drivetrain.engine.isActive) als Zündung. BavarianData übernimmt BMWs Beschreibungen als Entitätsnamen. Bevor du auf einen der beiden baust, prüfe an deinem Auto, welcher sich beim Starten ändert.",
+      "Die Fahrterkennung bestätigt damit, dass eine Fahrt begonnen hat."
+    ]
+  },
+  "vehicle.drivetrain.engine.isActive": {
+    "en": [
+      "The descriptor path and BMW's description disagree here: BMW describes `engine.isActive` as the ignition and [](data:vehicle.drivetrain.engine.isIgnitionOn) as the engine. BavarianData keeps BMW's descriptions as the entity names. Before building on either, check on your own car which one changes when you start it."
+    ],
+    "de": [
+      "Pfad und BMWs Beschreibung widersprechen sich hier: BMW beschreibt `engine.isActive` als Zündung und [](data:vehicle.drivetrain.engine.isIgnitionOn) als Motor. BavarianData übernimmt BMWs Beschreibungen als Entitätsnamen. Bevor du auf einen der beiden baust, prüfe an deinem Auto, welcher sich beim Starten ändert."
+    ]
+  },
+  "vehicle.cabin.infotainment.navigation.currentLocation.latitude": {
+    "en": [
+      "BMW sends latitude and [longitude](data:vehicle.cabin.infotainment.navigation.currentLocation.longitude) as **separate messages** with the same timestamp. BavarianData pairs them into one position for the car's device tracker, which is what the map, zones and trips use.",
+      "There are also plain GPS latitude and longitude sensors, **disabled by default** because every fix would be written to the recorder; enable them only if another integration needs `sensor.*` entities ([how](Feature-Entities-and-Devices#device-tracker)). Some older cars send their position only when a trip ends."
+    ],
+    "de": [
+      "BMW sendet Breitengrad und [Längengrad](data:vehicle.cabin.infotainment.navigation.currentLocation.longitude) als **getrennte Nachrichten** mit demselben Zeitstempel. BavarianData fügt sie zu einer Position für den Device Tracker des Autos zusammen; den nutzen Karte, Zonen und Fahrten.",
+      "Es gibt außerdem einfache Sensoren für Breiten- und Längengrad, **standardmäßig deaktiviert**, weil sonst jede Position im Recorder landet; aktiviere sie nur, wenn eine andere Integration `sensor.*`-Entitäten braucht ([so geht's](Feature-Entities-and-Devices#device-tracker)). Manche älteren Autos senden ihre Position nur am Ende einer Fahrt."
+    ]
+  },
+  "vehicle.cabin.infotainment.navigation.currentLocation.longitude": {
+    "en": [
+      "BMW sends [latitude](data:vehicle.cabin.infotainment.navigation.currentLocation.latitude) and longitude as **separate messages** with the same timestamp. BavarianData pairs them into one position for the car's device tracker, which is what the map, zones and trips use.",
+      "There are also plain GPS latitude and longitude sensors, **disabled by default** because every fix would be written to the recorder; enable them only if another integration needs `sensor.*` entities ([how](Feature-Entities-and-Devices#device-tracker)). Some older cars send their position only when a trip ends."
+    ],
+    "de": [
+      "BMW sendet [Breitengrad](data:vehicle.cabin.infotainment.navigation.currentLocation.latitude) und Längengrad als **getrennte Nachrichten** mit demselben Zeitstempel. BavarianData fügt sie zu einer Position für den Device Tracker des Autos zusammen; den nutzen Karte, Zonen und Fahrten.",
+      "Es gibt außerdem einfache Sensoren für Breiten- und Längengrad, **standardmäßig deaktiviert**, weil sonst jede Position im Recorder landet; aktiviere sie nur, wenn eine andere Integration `sensor.*`-Entitäten braucht ([so geht's](Feature-Entities-and-Devices#device-tracker)). Manche älteren Autos senden ihre Position nur am Ende einer Fahrt."
+    ]
+  },
+  "vehicle.chassis.axle.row1.wheel.left.tire.pressure": "tire-pressure",
+  "vehicle.chassis.axle.row1.wheel.right.tire.pressure": "tire-pressure",
+  "vehicle.chassis.axle.row2.wheel.left.tire.pressure": "tire-pressure",
+  "vehicle.chassis.axle.row2.wheel.right.tire.pressure": "tire-pressure",
+  "tire-pressure": {
+    "en": [
+      "The car sends tire pressure in kPa, and that is how BavarianData stores it; you can display it in bar or psi under the entity's settings without affecting the stored value. It updates mostly around drives, so a fresh reading can take until the end of your next trip.",
+      "The card's tire view judges each wheel against its own target: low from 8 % under, high only past 15 % over, because the target is a cold pressure and a tire you have just driven on reads higher. Versions up to 0.9.6 drifted the value on every restart when a unit had been changed ([issue #7](https://github.com/JustChr/BavarianData/issues/7)); that is fixed."
+    ],
+    "de": [
+      "Das Auto sendet den Reifendruck in kPa, und so speichert ihn BavarianData; in den Einstellungen der Entität kannst du ihn in bar oder psi anzeigen, ohne den gespeicherten Wert zu verändern. Er wird vor allem rund um Fahrten aktualisiert; ein neuer Wert kann also bis zum Ende der nächsten Fahrt dauern.",
+      "Die Reifenansicht der Karte misst jedes Rad an seinem eigenen Sollwert: zu niedrig ab 8 % darunter, zu hoch erst ab 15 % darüber, weil der Sollwert ein Kaltdruck ist und ein gerade gefahrener Reifen höher liegt. Bis Version 0.9.6 verschob sich der Wert bei jedem Neustart, wenn eine Einheit geändert worden war ([Issue #7](https://github.com/JustChr/BavarianData/issues/7)); das ist behoben."
+    ]
+  },
+  "vehicle.status.checkControlMessages": {
+    "en": [
+      "The car's Check Control warnings. BMW doesn't stream them: the car uploads them when a drive starts, and BavarianData sees the newest upload at its next REST request, so a new or cleared warning can take up to a day and a drive to show.",
+      "Warnings that have cleared stay listed in a `resolved` attribute, and the card's [vehicle events view](The-Dashboard-Card) shows both. The mileage that comes with a message is the odometer when the car recorded it, not the distance left."
+    ],
+    "de": [
+      "Die Check-Control-Meldungen des Autos. BMW streamt sie nicht: Das Auto lädt sie zu Beginn einer Fahrt hoch, und BavarianData sieht den neuesten Stand bei der nächsten REST-Abfrage. Eine neue oder erledigte Meldung kann also bis zu einem Tag und eine Fahrt brauchen.",
+      "Erledigte Meldungen bleiben im Attribut `resolved` erhalten, und die [Fahrzeugereignisse der Karte](The-Dashboard-Card) zeigen beides. Der Kilometerstand bei einer Meldung ist der Stand, als das Auto sie aufgezeichnet hat, nicht die verbleibende Strecke."
+    ]
+  },
+  "vehicle.status.conditionBasedServices": {
+    "en": [
+      "BMW's Condition Based Service list: each service item (oil, brakes, inspection and so on) with its due date. BavarianData turns it into a **Service** sensor that lists every item. BMW doesn't stream it, so it refreshes with the [daily REST refresh](Feature-API-Quota#the-daily-refresh)."
+    ],
+    "de": [
+      "BMWs Liste der bedarfsorientierten Wartung (Condition Based Service): jeder Wartungspunkt (Öl, Bremsen, Inspektion und so weiter) mit seinem Fälligkeitsdatum. BavarianData macht daraus einen **Service**-Sensor, der alle Punkte auflistet. BMW streamt sie nicht; sie wird mit der [täglichen REST-Aktualisierung](Feature-API-Quota#the-daily-refresh) aufgefrischt."
+    ]
+  },
+  "vehicle.trip.segment.end.drivetrain.batteryManagement.hvSoc": {
+    "en": [
+      "The state of charge at the end of the last drive. It changes only when a drive ends, so it is **not a live reading**: for that use [](data:vehicle.drivetrain.batteryManagement.header)."
+    ],
+    "de": [
+      "Der Ladestand am Ende der letzten Fahrt. Er ändert sich nur, wenn eine Fahrt endet, ist also **kein Live-Wert**: Dafür gibt es [](data:vehicle.drivetrain.batteryManagement.header)."
+    ]
+  },
+  "vehicle.trip.segment.end.travelledDistance": {
+    "en": [
+      "The distance of the last drive, sent by the car when the drive ends. BMW's end-of-trip batch is what closes a trip in BavarianData's [trip journal](Feature-Trips) and supplies its statistics.",
+      "Some older cars report only when a drive ends, and on those the trip journal stays empty; see [older cars](Feature-Trips#older-cars-that-report-only-at-the-end-of-a-trip)."
+    ],
+    "de": [
+      "Die Strecke der letzten Fahrt, vom Auto am Ende der Fahrt gesendet. BMWs Datenpaket zum Fahrtende schließt eine Fahrt im [Fahrtenbuch](Feature-Trips) von BavarianData ab und liefert ihre Statistik.",
+      "Manche älteren Autos melden sich nur am Ende einer Fahrt, und dort bleibt das Fahrtenbuch leer; siehe [ältere Autos](Feature-Trips#older-cars-that-report-only-at-the-end-of-a-trip)."
+    ]
+  }
+}

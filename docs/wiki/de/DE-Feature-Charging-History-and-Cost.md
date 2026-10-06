@@ -186,6 +186,8 @@ du kannst diese Rechnung also jederzeit selbst anders aufmachen.
 
 ## Kosten einrichten
 
+<a id="setting-up-cost"></a>
+
 Das richtest du unter **Konfigurieren → Ladekosten & Verlauf** ein
 ([Einstellungen](DE-Settings-Reference#charging-costs--history)). Wähle eine
 **Preisquelle**:

@@ -88,7 +88,14 @@ const isCurrent = (match: string) =>
       el.textContent = el.hasAttribute("data-stars-wrap") ? `(${v})` : v;
       el.hidden = false;
     });
-  (async () => {
+  // Not on the critical path: the count is decoration, so it waits until the
+  // page has loaded and the browser is idle.
+  const starsWhenIdle = (run: () => void) => {
+    const idle = () => ("requestIdleCallback" in window ? requestIdleCallback(run) : setTimeout(run, 200));
+    if (document.readyState === "complete") idle();
+    else addEventListener("load", idle, { once: true });
+  };
+  starsWhenIdle(async () => {
     const KEY = "stars";
     try {
       const cached = JSON.parse(localStorage.getItem(KEY) || "null");
@@ -103,7 +110,7 @@ const isCurrent = (match: string) =>
         localStorage.setItem(KEY, JSON.stringify({ n, at: Date.now() }));
       } catch {}
     } catch {}
-  })();
+  });
 
   // Theme: explicit choice wins over the OS; stored per viewer only.
   const root = document.documentElement;

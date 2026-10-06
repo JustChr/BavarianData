@@ -2,12 +2,14 @@
 
 > 🇬🇧 [English version](Troubleshooting-and-FAQ)
 
-## Die Einrichtung scheitert mit „access denied“
+## „Autorisierung nicht abgeschlossen“: access_denied bei der Einrichtung
 
 <a id="onboarding-fails-with-access-denied"></a>
 
-BMWs Backend für die Geräteautorisierung kann `access_denied` („The user has declined
-authorization“) melden, **obwohl du nie eine Zustimmungsseite gesehen hast und die
+Home Assistant zeigt das als **„Autorisierung nicht abgeschlossen“**, mit *„Die
+Geräteautorisierung konnte nicht abgeschlossen werden“* und `access_denied` in den
+Details. BMWs Backend für die Geräteautorisierung kann `access_denied` („The user
+has declined authorization“) melden, **obwohl du nie eine Zustimmungsseite gesehen hast und die
 Anmeldung offensichtlich geklappt hat**. Das ist Unzuverlässigkeit auf BMW-Seite,
 nicht die Integration — der BMW-Support hat (auf ein Ticket hin) bestätigt, dass der
 Device-Code-Ablauf von einem internen Partnersystem mit „Synchronisationsproblemen“
@@ -55,7 +57,7 @@ funktioniert, gibt es nicht. Für die hartnäckigsten Fälle bleibt nur der BMW-
 **bmwcardata-b2c-support@bmwgroup.com** (mit der Referenz-ID aus der Fehlermeldung,
 falls BMW eine gezeigt hat).
 
-## Es kommen keine Daten an
+## Es kommen keine Daten an („Keine BMW CarData Stream-Daten empfangen“)
 
 <a id="no-data-arriving"></a>
 
@@ -72,7 +74,12 @@ falls BMW eine gezeigt hat).
    Auswahlproblem.
 
 Streamt **48 Stunden** lang nichts, erscheint unter **Einstellungen → Reparaturen**
-ein Hinweis, der hierher verweist.
+der Hinweis **„Keine BMW CarData Stream-Daten empfangen“**, der hierher verweist.
+Läuft der Stream, aber von einem ausgewählten Cluster kommt seit Tagen gar nichts,
+heißt der Hinweis stattdessen **„Ein ausgewählter Daten-Cluster hat nie
+gestreamt“**: Dieser Cluster ist in der Datenauswahl im Portal nicht gespeichert,
+oder dein Auto liefert diese Daten nicht. Aktiviere ihn erneut unter
+**Konfigurieren → Gestreamte Daten auswählen** oder wähle ihn ab.
 
 ## Ein Sensor zeigt einen absurden Wert oder nach einem Update „unbekannt“
 
@@ -148,7 +155,9 @@ Fahrzeug und nur im Portal. Kreuze die Felder des neuen Autos über
 **Konfigurieren → Gestreamte Daten auswählen** an. Siehe
 [Mehrere Fahrzeuge & Konten](DE-Feature-Multiple-Cars-and-Accounts#adding-a-car-later).
 
-## Die Einrichtung meldet, dieses BMW-Konto sei bereits eingerichtet
+## „Dieses BMW-Konto ist in Home Assistant bereits eingerichtet“
+
+<a id="setup-says-this-bmw-account-is-already-set-up"></a>
 
 Ein Konfigurationseintrag deckt ein ganzes CarData-Konto ab, **einschließlich
 aller Fahrzeuge darin** — ein zweiter Eintrag je Auto ist nicht nötig, und seit
@@ -163,12 +172,13 @@ und füge dann die neue Client-ID hinzu. Zwei *verschiedene* Konten dürfen
 problemlos nebeneinander bestehen — siehe
 [Mehrere Fahrzeuge & Konten](DE-Feature-Multiple-Cars-and-Accounts).
 
-## Stream-Autorisierung schlägt fehl (MQTT rc=5)
+## „BMW CarData Stream nicht autorisiert“ (MQTT rc=5, Not authorized)
 
 <a id="stream-authorization-failing"></a>
 
-Wird der Stream als **nicht autorisiert** (`MQTT rc=5`) abgelehnt und bleibt es dabei,
-erscheint unter **Einstellungen → Reparaturen** ein Hinweis. Die Integration versucht es
+Wird der Stream als **nicht autorisiert** (`MQTT rc=5`, im Protokoll `Not authorized`)
+abgelehnt und bleibt es dabei, erscheint unter **Einstellungen → Reparaturen** der
+Hinweis **„BMW CarData Stream nicht autorisiert“**. Die Integration versucht es
 zuerst selbst erneut und autorisiert sich neu; der Hinweis erscheint erst, wenn das eine
 Weile nichts gebracht hat. Zwei übliche Ursachen:
 
@@ -202,8 +212,8 @@ Geräte als Reaktion auf die Daten des Autos — siehe
 Nein. Laut BMWs CarData-Leitfaden ist Streaming für **BMW Motorrad** nicht verfügbar. Ein
 Motorrad kann trotzdem dem Konto zugeordnet sein und die Einrichtung durchlaufen, sein
 Gerät bliebe dann einfach leer. Erkennt die Integration in den Basisdaten des Fahrzeugs
-ein Motorrad, zeigt sie unter **Einstellungen → Reparaturen** eine Warnung, die genau das
-sagt. Auf deiner Seite gibt es nichts zu beheben; entferne den Eintrag, wenn zum Konto
+ein Motorrad, zeigt sie unter **Einstellungen → Reparaturen** die Warnung **„BMW-Motorräder
+können ihre Daten nicht streamen“**. Auf deiner Seite gibt es nichts zu beheben; entferne den Eintrag, wenn zum Konto
 kein Auto gehört.
 
 ## Diagnosedaten herunterladen
@@ -398,12 +408,13 @@ angezeigt wird.
 
 [fe18728]: https://github.com/home-assistant/frontend/issues/18728
 
-## Kontingent aufgebraucht
+## „BMW CarData API-Kontingent aufgebraucht“
 
 <a id="quota-exhausted"></a>
 
 Hast du alle [50 REST-Anfragen](DE-Feature-API-Quota) in 24 h verbraucht, erscheint unter
-**Einstellungen → Reparaturen** ein Hinweis, wann es zurückgesetzt wird. **Der Stream
+**Einstellungen → Reparaturen** der Hinweis **„BMW CarData API-Kontingent aufgebraucht“**
+mit dem Zeitpunkt, wann es zurückgesetzt wird. **Der Stream
 fließt die ganze Zeit weiter** — nur `fetch_*`-Aufrufe pausieren.
 
 ## BavarianData vollständig entfernen

@@ -56,6 +56,7 @@ Explanation):
 ```
 Home  (landing / nav)
 ├─ Getting started            [Tutorial]
+│   ├─ Which cars work (by drivetrain, owner-confirmed models)
 │   ├─ 1. BMW portal setup (client ID + scopes)
 │   ├─ 2. Install via HACS
 │   ├─ 3. Add & authorize the integration
@@ -287,7 +288,8 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Display units are the user's choice; values are stored as the car sends them (issue #7) | 🟢 Troubleshooting → "A sensor shows an absurd value, or reads unknown after an update" |
 | Which lock entity to automate on — streamed `door.status` vs REST-only `door.lock.status` (issue #8) | 🟢 Feature-Entities-and-Devices → "Which lock entity to use" |
 | Switching from the dead BMW Connected Drive integration (bimmer_connected, blocked by BMW on 29 Sep 2025): what replaces it, what's lost (commands), entity equivalents | 🟢 Coming-from-bimmer_connected (EN + DE) + website home ("Switching from Connected Drive") |
-| The website: live card demo on a scrubbed real car, per-descriptor data reference, search | 🟢 `site/` (renders `docs/wiki`; demo data from `site/scripts/capture_demo.py`) |
+| Which cars work: no model list, the portal-tile check, what each drivetrain gets, models owners have confirmed | 🟢 Supported-Cars (EN + DE) + README requirements |
+| The website: live card demo on a scrubbed real car, per-descriptor data reference (curated notes on the featured descriptors in `site/src/data/descriptor-notes.json`; the rest noindex), search | 🟢 `site/` (renders `docs/wiki`; demo data from `site/scripts/capture_demo.py`) |
 | Eleven shipped languages (English, English (UK), Deutsch, Français, Italiano, Español, Nederlands, Polski, Português, Čeština, Svenska): names follow HA's language, entity IDs never do; field names outside English are BMW's own per-language catalogue names; English is US because BMW's field names are (PR #24) | 🟢 Feature-Entities-and-Devices → "Entity names and your language" (EN + DE) |
 
 ## Conventions

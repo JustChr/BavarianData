@@ -18,11 +18,12 @@ die Installation auf einen Blick findest du in der
 ## Hier starten
 
 Bisher die alte Integration *BMW Connected Drive* genutzt? Lies zuerst
-[Umstieg von bimmer_connected](DE-Coming-from-bimmer_connected).
+[Umstieg von bimmer_connected](DE-Coming-from-bimmer_connected). Unsicher, ob
+dein Auto unterstützt wird? Siehe [welche Autos funktionieren](DE-Supported-Cars).
 
 Neu installiert? Folge den fünf Schritten der Reihe nach:
 
-1. [Einrichtung im BMW-Portal](DE-Getting-Started-1-BMW-Portal-Setup) — Client-ID und Berechtigungen
+1. [Einrichtung im BMW-Portal](DE-Getting-Started-1-BMW-Portal-Setup) — deine Client-ID erstellen
 2. [Installation über HACS](DE-Getting-Started-2-Install)
 3. [Integration hinzufügen und autorisieren](DE-Getting-Started-3-Add-and-Authorize)
 4. [Gestreamte Daten auswählen](DE-Getting-Started-4-Choose-Data) — die Datengruppen-Auswahl

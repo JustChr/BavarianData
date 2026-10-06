@@ -2,10 +2,12 @@
 
 > 🇩🇪 [Deutsch](DE-Troubleshooting-and-FAQ)
 
-## Onboarding fails with "access denied"
+## "Authorization didn't finish": access_denied during setup
 
 <a id="onboarding-fails-with-access-denied"></a>
 
+Home Assistant shows this as **"Authorization didn't finish"**, with *"We
+couldn't complete the device authorization"* and `access_denied` in the details.
 BMW's device-authorization backend can return `access_denied` ("The user has
 declined authorization") **even though you never saw a consent page and the
 login clearly worked**. This is flakiness on BMW's side, not the integration —
@@ -57,7 +59,7 @@ works for everyone. For the hardest cases the only lever left is BMW support:
 **bmwcardata-b2c-support@bmwgroup.com** (include your reference ID from the
 error, if BMW showed one).
 
-## No data arriving
+## No data arriving ("No BMW CarData stream data received")
 
 <a id="no-data-arriving"></a>
 
@@ -70,8 +72,13 @@ error, if BMW showed one).
    problem from a car-doesn't-send-it problem. A cluster with *some* fields
    arriving is healthy; one with none is the selection problem.
 
-If nothing streams for **48 hours**, a repair issue appears under **Settings →
-Repairs** pointing back here.
+If nothing streams for **48 hours**, a repair issue titled **"No BMW CarData
+stream data received"** appears under **Settings → Repairs**, pointing back here.
+If the stream works but one cluster you selected has sent nothing at all for
+days, the repair is **"A selected data cluster has never streamed"** instead: that
+cluster isn't saved in the portal's Data Selection, or your car doesn't produce
+that data. Re-activate it under **Configure → Choose streamed data**, or unselect
+it.
 
 ## A sensor shows an absurd value, or reads unknown after an update
 
@@ -142,7 +149,9 @@ Its streamed fields are a separate matter: BMW's Data Selection is per vehicle
 and portal-only, so tick the new car's fields via **Configure → Choose streamed
 data**. See [Multiple cars & accounts](Feature-Multiple-Cars-and-Accounts#adding-a-car-later).
 
-## Setup says this BMW account is already set up
+## "This BMW account is already set up in Home Assistant"
+
+<a id="setup-says-this-bmw-account-is-already-set-up"></a>
 
 One config entry covers a whole CarData account, **including every car on it** —
 there is no need for a second entry per car, and since **v0.9.11-beta.4** setup
@@ -155,12 +164,13 @@ one you no longer want, remove it first and then add the new Client ID. Two
 *different* accounts are fine side by side — see
 [Multiple cars & accounts](Feature-Multiple-Cars-and-Accounts).
 
-## Stream authorization failing (MQTT rc=5)
+## "BMW CarData stream not authorized" (MQTT rc=5, Not authorized)
 
 <a id="stream-authorization-failing"></a>
 
-If the stream is rejected as **unauthorized** (`MQTT rc=5`) and stays that way,
-a repair issue appears under **Settings → Repairs**. The integration retries and
+If the stream is rejected as **unauthorized** (`MQTT rc=5`, logged as
+`Not authorized`) and stays that way, a repair issue titled **"BMW CarData stream
+not authorized"** appears under **Settings → Repairs**. The integration retries and
 re-authorizes on its own first; the repair only appears once that hasn't
 recovered it for a while. Two usual causes:
 
@@ -192,7 +202,8 @@ in response to the car's data — see [Events & blueprints](Feature-Automations)
 No. BMW's CarData guide says streaming is not available for **BMW Motorrad**. A
 motorcycle can still be mapped to the account and pass setup, so its device would
 simply stay empty. When the integration sees a motorcycle in the vehicle's basic
-data, it raises a warning under **Settings → Repairs** that says so. There is
+data, it raises a warning under **Settings → Repairs**: **"BMW motorcycles can't
+stream their data"**. There is
 nothing to fix on your side; remove the entry if the account has no car.
 
 ## Download diagnostics
@@ -385,12 +396,13 @@ any dashboard renders.
 
 [fe18728]: https://github.com/home-assistant/frontend/issues/18728
 
-## Quota exhausted
+## "BMW CarData API quota exhausted"
 
 <a id="quota-exhausted"></a>
 
 If you've spent all [50 REST requests](Feature-API-Quota) in 24 h, a repair
-issue appears under **Settings → Repairs** telling you when it resets.
+issue titled **"BMW CarData API quota exhausted"** appears under **Settings →
+Repairs**, telling you when it resets.
 **Streaming keeps flowing throughout** — only `fetch_*` calls pause.
 
 ## Removing BavarianData completely

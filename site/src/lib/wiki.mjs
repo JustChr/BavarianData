@@ -41,12 +41,18 @@ export const REPO = "https://github.com/JustChr/BavarianData";
 const PAGES = JSON.parse(readFileSync(join(SITE_ROOT, "src", "data", "pages.json"), "utf8"));
 delete PAGES._comment;
 
+/** A path to a file rather than a page. Only real file types count: a
+ * descriptor page (`data/vehicle.body.hood.isOpen`) ends in something that
+ * looks like an extension too, and treating it as one left every canonical and
+ * internal link to it without the slash -- one 301 away from the real page. */
+const FILE = /\.(png|jpe?g|webp|gif|svg|ico|js|mjs|css|json|xml|txt|webmanifest|pdf|woff2?)$/i;
+
 /** Site path for a path inside the site, with the base and a trailing slash. */
 export function url(path = "") {
   const clean = path.replace(/^\/+/, "");
   if (!clean) return `${BASE}/`;
   const [pathname, hash] = clean.split("#");
-  const withSlash = /\.[a-z0-9]+$/i.test(pathname) || pathname.endsWith("/") ? pathname : `${pathname}/`;
+  const withSlash = FILE.test(pathname) || pathname.endsWith("/") ? pathname : `${pathname}/`;
   return `${BASE}/${withSlash}${hash !== undefined ? `#${hash}` : ""}`;
 }
 
@@ -154,7 +160,9 @@ export function rehypeWiki() {
           type: "element",
           tagName: "a",
           properties: { className: ["anchor"], href: `#${p.id}`, ariaLabel: "Link to this section", "data-pagefind-ignore": "all" },
-          children: [{ type: "text", value: "#" }],
+          // The "#" is drawn by CSS: as text it became part of the heading
+          // for search engines ("What happened#") and the table of contents.
+          children: [],
         });
       }
       if (node.tagName === "a" && /^https?:/.test(String(p.href || "")) && !String(p.href).startsWith(SITE_URL)) {

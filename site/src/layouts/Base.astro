@@ -6,6 +6,10 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import { ui } from "../i18n";
 import { url, localized, absolute, SITE_URL, type Lang } from "../lib/site";
+// The body font, preloaded: otherwise it is only discovered after the CSS is
+// parsed, and it is the largest request on the critical path. Same file the
+// @font-face in global.css points at, so Vite gives it the same hashed URL.
+import archivo from "@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2?url";
 
 interface Props {
   lang: Lang;
@@ -52,6 +56,7 @@ const bing = import.meta.env.BING_SITE_VERIFICATION || process.env.BING_SITE_VER
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    <link rel="preload" href={archivo} as="font" type="font/woff2" crossorigin />
     {noindex && <meta name="robots" content="noindex" />}
     {alternate && !noindex && (
       <>
