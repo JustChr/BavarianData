@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.16-beta.1] - 2026-10-06
+
 ### Added
 - **The car's position as plain sensors, opt-in.** Each car now has *GPS
   latitude* and *GPS longitude* sensors for add-ons whose entity picker only
