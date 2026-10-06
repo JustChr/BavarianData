@@ -9,6 +9,11 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The "Authorization didn't finish" screen pointed to a README section that no
+  longer exists.** It now names the right place: *Troubleshooting & FAQ →
+  "Authorization didn't finish"* in the manual, which is in English and German.
+
 ## [0.9.16-beta.2] - 2026-10-06
 
 ### Fixed
