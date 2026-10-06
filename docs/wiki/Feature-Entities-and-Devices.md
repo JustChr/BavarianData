@@ -97,6 +97,17 @@ refresh it manually with `bavariandata.fetch_vehicle_image`.
 Each VIN gets a **device_tracker** ("car") carrying the vehicle's location from
 the GPS stream, usable on the HA map and in zone-based automations.
 
+**Need the position as plain sensors?** Some add-ons only let you pick
+`sensor.*` entities, not a tracker's attributes (DriveLoom's vehicle setup, for
+example). Each car also has **GPS latitude** and **GPS longitude** sensors, but
+they are **disabled by default**: every fix is written to the recorder as a
+state, and the tracker already covers the map and zones. To use them, open
+*Settings → Devices & Services → BavarianData → your car → disabled entities*,
+enable the two and wait for Home Assistant to reload the integration. They
+update with the stream, latitude and longitude as separate messages, like the
+tracker does. If you only need them for another integration, exclude them from
+the recorder.
+
 ## Which lock entity to use
 
 The car reports its central lock through **two** descriptors, and they behave

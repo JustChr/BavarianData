@@ -30,6 +30,7 @@ from .coordinator import (
 )
 from .coverage import HIGH_VOLTAGE_SIGNALS
 from .descriptor_metadata import DESCRIPTOR_META, SECTIONS
+from .descriptors import OPT_IN_LOCATION_DESCRIPTORS, TRACKER_ONLY_LOCATION_DESCRIPTORS
 from .entity import CardataEntity
 from .history.health import MIN_SAMPLES, degradation_series, usable_capacity
 from .history.summary import (
@@ -1609,13 +1610,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         if (vin, descriptor) in entities:
             return
 
-        # Filter out location descriptors - these are used by device_tracker only
-        location_descriptors = [
-            "vehicle.cabin.infotainment.navigation.currentLocation.latitude",
-            "vehicle.cabin.infotainment.navigation.currentLocation.longitude",
-            "vehicle.cabin.infotainment.navigation.currentLocation.heading",
-        ]
-        if descriptor in location_descriptors:
+        # The position belongs to the device tracker. Heading never becomes a
+        # sensor; latitude and longitude do, but disabled, so the user opts in.
+        if descriptor in TRACKER_ONLY_LOCATION_DESCRIPTORS:
             return
 
         state = coordinator.get_state(vin, descriptor)
@@ -1625,6 +1622,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         elif not assume_sensor:
             return
         entity = CardataSensor(coordinator, vin, descriptor)
+        if descriptor in OPT_IN_LOCATION_DESCRIPTORS:
+            # Not the metadata's ``enabled_default`` -- that flag also decides
+            # what the stream is asked for, and the position must stay in it.
+            entity._attr_entity_registry_enabled_default = False
         entities[(vin, descriptor)] = entity
         async_add_entities([entity])
 

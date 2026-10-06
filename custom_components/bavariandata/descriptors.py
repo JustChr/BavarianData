@@ -114,6 +114,18 @@ DEDICATED_ENDPOINT_DESCRIPTORS: frozenset[str] = frozenset(
 _BASIC_DATA_SECTION = "basic"
 
 
+# The vehicle's position. The device tracker is the entity for it; these exist
+# as plain sensors only for consumers that cannot read a tracker's attributes
+# (anything whose entity picker is limited to ``sensor``). A sensor writes every
+# fix to the recorder as a state, so the two coordinates are created *disabled*
+# and the user switches them on. Heading stays tracker-only.
+_LOCATION_PREFIX = "vehicle.cabin.infotainment.navigation.currentLocation."
+OPT_IN_LOCATION_DESCRIPTORS: frozenset[str] = frozenset(
+    {_LOCATION_PREFIX + "latitude", _LOCATION_PREFIX + "longitude"}
+)
+TRACKER_ONLY_LOCATION_DESCRIPTORS: frozenset[str] = frozenset({_LOCATION_PREFIX + "heading"})
+
+
 def container_retrievable(descriptor: str) -> bool:
     """Whether ``GET /telematicData`` can actually return this descriptor."""
 

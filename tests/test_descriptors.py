@@ -122,3 +122,39 @@ def test_base_scopes_keep_coarse_streaming_scope():
     # coarse read scope, so granular selections must keep it.
     assert "cardata:streaming:read" in D.BASE_SCOPES
     assert "cardata:streaming:read" in D.build_scope(["tire"]).split(" ")
+
+
+# --- position as an opt-in sensor ------------------------------------------------
+
+_SENSOR_SRC = (_PKG / "sensor.py").read_text(encoding="utf-8")
+
+
+def test_opt_in_location_is_the_two_coordinates_only():
+    lat, lon = sorted(D.OPT_IN_LOCATION_DESCRIPTORS)
+    assert lat.endswith("currentLocation.latitude")
+    assert lon.endswith("currentLocation.longitude")
+    # Heading stays on the device tracker; nothing is in both sets.
+    assert all(d.endswith("currentLocation.heading") for d in D.TRACKER_ONLY_LOCATION_DESCRIPTORS)
+    assert not D.OPT_IN_LOCATION_DESCRIPTORS & D.TRACKER_ONLY_LOCATION_DESCRIPTORS
+    assert (D.OPT_IN_LOCATION_DESCRIPTORS | D.TRACKER_ONLY_LOCATION_DESCRIPTORS) <= set(META)
+
+
+def test_position_stays_in_the_stream_request():
+    """The opt-in is the *entity's* registry default, never the metadata flag.
+
+    ``enabled_default`` also selects what Data Selection and the stream ask BMW
+    for (see ``descriptors_for_sections``); clearing it would stop the position
+    streaming and break trips, charge zones and the device tracker.
+    """
+
+    requested = set(D.descriptors_for_sections(D.default_sections()))
+    for descriptor in D.OPT_IN_LOCATION_DESCRIPTORS:
+        assert META[descriptor]["enabled_default"] is True
+        assert descriptor in requested
+
+
+def test_sensor_platform_disables_the_coordinates_but_not_by_metadata():
+    # sensor.py imports Home Assistant, so it is read, not run.
+    assert "OPT_IN_LOCATION_DESCRIPTORS" in _SENSOR_SRC
+    assert "_attr_entity_registry_enabled_default = False" in _SENSOR_SRC
+    assert "descriptor in TRACKER_ONLY_LOCATION_DESCRIPTORS" in _SENSOR_SRC
