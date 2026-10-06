@@ -208,6 +208,10 @@ const jsonLd = [
 ];
 ---
 <Base lang={lang} title={copy.title} description={copy.description} path="" jsonLd={jsonLd} rawTitle>
+  {/* The hero card needs both; started here they load alongside the page
+      instead of after the demo runtime asks for them. */}
+  <link slot="head" rel="preload" href={url("demo/i5.json")} as="fetch" crossorigin="anonymous" />
+  <link slot="head" rel="preload" href={url("demo/bavariandata-card.js")} as="script" />
   <main id="main" data-pagefind-body>
     <section class="hero">
       <div class="hero__waves" aria-hidden="true">

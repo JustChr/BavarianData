@@ -1,8 +1,12 @@
 ---
 // One descriptor: what it means (BMW's own description), how it arrives, what
-// it becomes in Home Assistant, and its name in every shipped language.
+// it becomes in Home Assistant, and its name in every shipped language. A
+// featured descriptor (one with notes) adds what we know from real cars and is
+// indexable; the rest are noindex -- BMW's catalogue line alone, repeated over
+// hundreds of near-identical pages, is the thin content search engines discount.
 import Base from "../layouts/Base.astro";
 import { DESCRIPTORS, SECTION_LABELS, LANGUAGE_NAMES, nameOf, descriptionOf, summary, type Descriptor } from "../lib/catalogue";
+import { NOTES, renderNote, plainNote } from "../lib/notes";
 import { url, localized, absolute, type Lang } from "../lib/site";
 
 interface Props {
@@ -15,6 +19,8 @@ const name = nameOf(d, lang);
 const text = descriptionOf(d, lang);
 const values = (de ? d.value_range_de : d.value_range_en) || "";
 const path = `data/${d.descriptor}`;
+const notes = NOTES.get(d.descriptor)?.[lang] ?? [];
+const featured = notes.length > 0;
 const related = DESCRIPTORS.filter((x) => x.category === d.category && x.descriptor !== d.descriptor).slice(0, 12);
 const names: [string, string][] = [
   ["en", d.title_en],
@@ -26,6 +32,8 @@ const t = de
   ? {
       suffix: "BMW-CarData-Deskriptor",
       what: "Was BMW dazu sagt",
+      know: "Gut zu wissen",
+      suffixFeatured: "BMW CarData in Home Assistant",
       facts: "Auf einen Blick",
       section: "Bereich",
       category: "Kategorie",
@@ -49,6 +57,8 @@ const t = de
   : {
       suffix: "BMW CarData descriptor",
       what: "What BMW says about it",
+      know: "Worth knowing",
+      suffixFeatured: "BMW CarData in Home Assistant",
       facts: "At a glance",
       section: "Section",
       category: "Category",
@@ -75,7 +85,9 @@ const extra = de
   ? `${name} in Home Assistant: ${d.streamable ? "live über den CarData-Stream" : "täglich per REST"}${d.unit ? `, in ${d.unit}` : ""}, mit Namen in zehn Sprachen.`
   : `${name} in Home Assistant: ${d.streamable ? "live over the CarData stream" : "fetched daily over REST"}${d.unit ? `, in ${d.unit}` : ""}, named in ten languages.`;
 const base = text ? (/[.!?]$/.test(text) ? text : `${text}.`) : "";
-const description = summary(base.length >= 110 ? base : `${base} ${extra}`.trim());
+const description = featured
+  ? summary(plainNote(notes[0], lang))
+  : summary(base.length >= 110 ? base : `${base} ${extra}`.trim());
 const jsonLd = [
   {
     "@context": "https://schema.org",
@@ -99,7 +111,16 @@ const jsonLd = [
   },
 ];
 ---
-<Base lang={lang} title={`${title} | ${t.suffix}`} rawTitle description={description} path={path} jsonLd={jsonLd} ogType="article">
+<Base
+  lang={lang}
+  title={featured ? `${name} (${d.descriptor}) | ${t.suffixFeatured}` : `${title} | ${t.suffix}`}
+  rawTitle
+  description={description}
+  path={path}
+  jsonLd={jsonLd}
+  ogType="article"
+  noindex={!featured}
+>
   <main id="main" class="wrap entry" data-pagefind-body>
     <p class="entry__crumb"><a href={url(localized("data", lang))}>{t.back}</a> / {SECTION_LABELS[lang][d.section] || d.section_label}</p>
     <h1>{name}</h1>
@@ -112,6 +133,12 @@ const jsonLd = [
             <h2>{t.what}</h2>
             <p class="entry__desc">{text}</p>
             <p class="entry__src">{t.source}</p>
+          </section>
+        )}
+        {featured && (
+          <section class="entry__notes">
+            <h2>{t.know}</h2>
+            {notes.map((n) => <p set:html={renderNote(n, lang)} />)}
           </section>
         )}
         <section>

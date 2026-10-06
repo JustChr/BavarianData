@@ -1,4 +1,4 @@
-# 1. BMW CarData im Portal einrichten
+# 1. Deine BMW-CarData-Client-ID erstellen
 
 > 🇬🇧 [English version](Getting-Started-1-BMW-Portal-Setup)
 
@@ -26,6 +26,8 @@ zu überfliegen — die Schritte unten folgen ihr.
 
 ## Das CarData-Portal öffnen
 
+<a id="open-the-cardata-portal"></a>
+
 Melde dich in deinem BMW-Konto an und öffne **Meine Fahrzeuge →
 Fahrzeugübersicht**:
 
@@ -40,7 +42,9 @@ Direktlinks zur Fahrzeugübersicht je Markt:
 | BMW   | [vehicle overview](https://www.bmw.co.uk/en-gb/mybmw/vehicle-overview) | [Fahrzeugübersicht](https://www.bmw.de/de-de/mybmw/vehicle-overview) | [Fahrzeugübersicht](https://www.bmw.at/de-at/mybmw/vehicle-overview) |
 | Mini  | [vehicle overview](https://www.mini.co.uk/en-gb/mymini/vehicle-overview) | [Fahrzeugübersicht](https://www.mini.de/de-de/mymini/vehicle-overview) | [Fahrzeugübersicht](https://www.mini.at/de-at/mymini/vehicle-overview) |
 
-## Schritte
+## Die Client-ID erstellen
+
+<a id="steps"></a>
 
 1. Wähle dein Fahrzeug und öffne die Kachel **BMW CarData** / **Mini CarData**.
 
@@ -82,5 +86,22 @@ Das ist die ganze Portal-Einrichtung. In
 [Schritt 3](DE-Getting-Started-3-Add-and-Authorize) lässt du diese Client-ID
 entweder vom **geführten** Weg finden oder fügst sie auf dem **manuellen** Weg
 selbst ein — halte die Client-ID also bereit, wenn du manuell vorgehen willst.
+
+## Die Client-ID später wiederfinden
+
+<a id="finding-your-client-id-again"></a>
+
+Die Client-ID steht im Bildschirm **Technischer Zugriff auf BMW CarData**
+(Fahrzeugübersicht → dein Auto → Kachel **BMW CarData**), solange der Client
+existiert.
+
+- **Eine Client-ID gilt für das ganze Konto**, für jedes Auto darin. Du brauchst
+  keine pro Auto, und Home Assistant lehnt eine zweite für dasselbe Konto ab.
+- **Löschst du den Client** im Portal, lege einen neuen an (wieder mit beiden
+  Abos) und gib Home Assistant die neue ID unter **Konfigurieren → Neu bei BMW
+  autorisieren**.
+- **Meldet die Einrichtung „BMW hat die Anfrage zur Geräteautorisierung
+  abgelehnt“?** Prüfe, ob die ID vollständig kopiert ist und für den Client sowohl
+  **CarData API** als auch **CarData Stream** eingeschaltet sind.
 
 **Weiter:** [2. Installation über HACS →](DE-Getting-Started-2-Install)

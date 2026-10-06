@@ -3,7 +3,17 @@ import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import rehypeRaw from "rehype-raw";
 import { rehypeHeadingIds, unified } from "@astrojs/markdown-remark";
+import { readFileSync } from "node:fs";
 import { remarkWiki, rehypeWiki, SITE_URL, BASE } from "./src/lib/wiki.mjs";
+
+// Only descriptor pages with notes are indexable (see DataEntry.astro); a
+// sitemap that listed the noindex ones would contradict them.
+const FEATURED = new Set(
+  Object.keys(JSON.parse(readFileSync(new URL("./src/data/descriptor-notes.json", import.meta.url), "utf8"))).filter(
+    (key) => key.startsWith("vehicle.")
+  )
+);
+const descriptorPage = /\/data\/([^/]+)\/$/;
 
 // SITE_URL / SITE_BASE switch the site to a custom domain without code changes
 // (e.g. SITE_URL=https://bavariandata.example SITE_BASE=).
@@ -11,11 +21,17 @@ export default defineConfig({
   site: SITE_URL,
   base: BASE || "/",
   trailingSlash: "always",
-  build: { format: "directory" },
+  // Inline stylesheets: the CSS is ~9 KB, and as separate files it was the only
+  // thing blocking the first render (PageSpeed: ~750 ms on mobile).
+  build: { format: "directory", inlineStylesheets: "always" },
   integrations: [
     sitemap({
       i18n: { defaultLocale: "en", locales: { en: "en", de: "de" } },
-      filter: (page) => !page.includes("/404"),
+      filter: (page) => {
+        if (page.includes("/404")) return false;
+        const descriptor = descriptorPage.exec(page)?.[1];
+        return !descriptor || FEATURED.has(descriptor);
+      },
     }),
   ],
   markdown: {

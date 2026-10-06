@@ -1,4 +1,4 @@
-# 1. Set up BMW CarData in the portal
+# 1. Create your BMW CarData client ID
 
 > 🇩🇪 [Deutsch](DE-Getting-Started-1-BMW-Portal-Setup)
 
@@ -36,7 +36,9 @@ Direct links to the vehicle overview per market:
 | BMW   | [vehicle overview](https://www.bmw.co.uk/en-gb/mybmw/vehicle-overview) | [Fahrzeugübersicht](https://www.bmw.de/de-de/mybmw/vehicle-overview) | [Fahrzeugübersicht](https://www.bmw.at/de-at/mybmw/vehicle-overview) |
 | Mini  | [vehicle overview](https://www.mini.co.uk/en-gb/mymini/vehicle-overview) | [Fahrzeugübersicht](https://www.mini.de/de-de/mymini/vehicle-overview) | [Fahrzeugübersicht](https://www.mini.at/de-at/mymini/vehicle-overview) |
 
-## Steps
+## Create the client ID
+
+<a id="steps"></a>
 
 1. Select your vehicle and open the **BMW CarData** / **Mini CarData** tile.
 
@@ -75,5 +77,21 @@ That's the whole portal setup. In [step 3](Getting-Started-3-Add-and-Authorize)
 you'll either let the **guided** path discover this client ID for you, or paste it
 in yourself on the **manual** path — so keep the client ID handy if you plan to go
 manual.
+
+## Finding your client ID again
+
+<a id="finding-your-client-id-again"></a>
+
+The client ID stays on the **Technical access to BMW CarData** screen (vehicle
+overview → your car → **BMW CarData** tile) for as long as the client exists.
+
+- **One client ID covers the whole account**, every car on it. You don't need one
+  per car, and Home Assistant refuses a second one for the same account.
+- **If you delete the client** in the portal, create a new one (both
+  subscriptions again) and give Home Assistant the new ID under **Configure →
+  Re-authorize with BMW**.
+- **Setup says "BMW rejected the device authorization request"?** Check that the
+  ID was copied completely and that both **CarData API** and **CarData Stream**
+  are switched on for the client.
 
 **Next:** [2. Install via HACS →](Getting-Started-2-Install)

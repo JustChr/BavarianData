@@ -66,7 +66,7 @@ const formatted = modified
           </a>
           {sections.map((s) => (
             <div class="doc__group">
-              <h2>{s.title}</h2>
+              <p class="doc__grouptitle">{s.title}</p>
               <ul>
                 {s.items.map((i) => {
                   const p = docPath(i.page, lang);
@@ -108,10 +108,10 @@ const formatted = modified
 
     {toc.length > 1 && (
       <aside class="doc__toc">
-        <h2>{t.onThisPage}</h2>
+        <p class="doc__toctitle">{t.onThisPage}</p>
         <ul>
           {toc.map((h) => (
-            <li class={`d${h.depth}`}><a href={`#${h.slug}`}>{h.text.replace(/#$/, "")}</a></li>
+            <li class={`d${h.depth}`}><a href={`#${h.slug}`}>{h.text}</a></li>
           ))}
         </ul>
       </aside>
@@ -172,8 +172,10 @@ const formatted = modified
   .doc__group {
     margin-top: 20px;
   }
-  .doc__group h2,
-  .doc__toc h2 {
+  .doc__grouptitle,
+  .doc__toctitle {
+    margin: 0;
+    line-height: 1.15;
     font-size: 0.8rem;
     font-stretch: 100%;
     color: var(--slate);

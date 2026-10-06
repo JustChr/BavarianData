@@ -17,11 +17,12 @@ see the [README](https://github.com/JustChr/BavarianData#readme).
 ## Start here
 
 Used the old *BMW Connected Drive* integration? Read
-[Coming from bimmer_connected](Coming-from-bimmer_connected) first.
+[Coming from bimmer_connected](Coming-from-bimmer_connected) first. Not sure
+your car is supported? See [which cars work](Supported-Cars).
 
 New install? Follow the five steps in order:
 
-1. [BMW portal setup](Getting-Started-1-BMW-Portal-Setup) — client ID + scopes
+1. [BMW portal setup](Getting-Started-1-BMW-Portal-Setup) — create your client ID
 2. [Install via HACS](Getting-Started-2-Install)
 3. [Add & authorize the integration](Getting-Started-3-Add-and-Authorize)
 4. [Choose which data to stream](Getting-Started-4-Choose-Data) — the cluster picker

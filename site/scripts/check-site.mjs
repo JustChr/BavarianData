@@ -3,7 +3,10 @@
 // * every internal link and image resolves to a built file;
 // * every `#anchor` on an internal link exists on the page it points at;
 // * every page has one <h1>, a <title>, a meta description and a canonical URL,
-//   and no two indexable pages share a title.
+//   and no two indexable pages share a title;
+// * canonicals and internal links to pages end in a slash -- GitHub Pages
+//   answers the slash-less form with a 301, and a canonical that redirects
+//   contradicts the sitemap.
 //
 // The wiki is written for GitHub; this is what proves it survived the trip.
 
@@ -47,7 +50,9 @@ for (const [file, html] of pages) {
   const title = /<title>([^<]*)<\/title>/.exec(html)?.[1];
   if (!title) problems.push(`${where}: no <title>`);
   if (!/<meta name="description" content="[^"]{50,}"/.test(html)) problems.push(`${where}: missing or short meta description`);
-  if (!/<link rel="canonical"/.test(html)) problems.push(`${where}: no canonical`);
+  const canonical = /<link rel="canonical" href="([^"]+)"/.exec(html)?.[1];
+  if (!canonical) problems.push(`${where}: no canonical`);
+  else if (!canonical.endsWith("/")) problems.push(`${where}: canonical without a trailing slash: ${canonical}`);
   if (title && !/name="robots" content="noindex"/.test(html)) {
     if (titles.has(title)) problems.push(`${where}: same <title> as ${titles.get(title)}`);
     titles.set(title, where);
@@ -72,6 +77,10 @@ for (const [file, html] of pages) {
     if (!hit) {
       problems.push(`${where}: broken link ${target}`);
       continue;
+    }
+    const pathPart = target.split("#")[0].split("?")[0];
+    if (hit.endsWith("index.html") && !pathPart.endsWith("/") && !pathPart.endsWith(".html")) {
+      problems.push(`${where}: link without a trailing slash (a 301 on GitHub Pages): ${target}`);
     }
     const hash = target.split("#")[1];
     if (hash && hit.endsWith(".html")) {

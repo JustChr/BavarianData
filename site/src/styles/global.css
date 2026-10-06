@@ -368,6 +368,9 @@ img {
   font-weight: 400;
   transition: opacity 0.15s;
 }
+.prose .anchor::before {
+  content: "#";
+}
 .prose h2:hover .anchor,
 .prose h3:hover .anchor,
 .prose h4:hover .anchor,

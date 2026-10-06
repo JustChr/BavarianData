@@ -22,15 +22,26 @@
       "description": "BMW hat bimmer_connected am 29. September 2025 gesperrt. Was die BMW-Connected-Drive-Integration ersetzt, was sich ändert und wie du Automationen auf BMW CarData umziehst."
     }
   },
+  "Supported-Cars": {
+    "slug": "supported-cars",
+    "en": {
+      "title": "Which BMW and MINI models work with BMW CarData in Home Assistant",
+      "description": "Every BMW and MINI with CarData works: electric, plug-in hybrid, petrol and diesel. What you get per drivetrain, and the models owners have confirmed."
+    },
+    "de": {
+      "title": "Welche BMW- und MINI-Modelle mit BMW CarData in Home Assistant funktionieren",
+      "description": "Jeder BMW und MINI mit CarData funktioniert: elektrisch, Plug-in-Hybrid, Benzin und Diesel. Was du je Antrieb bekommst und welche Modelle Besitzer bestätigt haben."
+    }
+  },
   "Getting-Started-1-BMW-Portal-Setup": {
     "slug": "bmw-portal-setup",
     "en": {
-      "title": "Set up BMW CarData in the BMW portal (client ID and scopes)",
-      "description": "Step 1: create a BMW CarData client in the BMW or MINI portal, subscribe CarData API and CarData Streaming, and get the client ID Home Assistant needs."
+      "title": "How to get your BMW CarData client ID (BMW and MINI portal)",
+      "description": "Step 1: create a CarData client in the BMW or MINI portal, switch on CarData API and CarData Stream, and copy the client ID that Home Assistant asks for."
     },
     "de": {
-      "title": "BMW CarData im BMW-Portal einrichten (Client-ID und Berechtigungen)",
-      "description": "Schritt 1: im BMW- oder MINI-Portal einen CarData-Client anlegen, CarData API und CarData Streaming abonnieren und die Client-ID für Home Assistant holen."
+      "title": "BMW-CarData-Client-ID erstellen (BMW- und MINI-Portal)",
+      "description": "Schritt 1: im BMW- oder MINI-Portal einen CarData-Client anlegen, CarData API und CarData Stream einschalten und die Client-ID für Home Assistant kopieren."
     }
   },
   "Getting-Started-2-Install": {
@@ -224,11 +235,11 @@
     "slug": "troubleshooting",
     "en": {
       "title": "BMW CarData Home Assistant troubleshooting and FAQ",
-      "description": "Fixes for access_denied during authorization, no data arriving, the one-stream-per-account limit, exhausted quota, missing dashboards and odd sensor values."
+      "description": "Fixes for \"Authorization didn't finish\" (access_denied), \"No BMW CarData stream data received\", MQTT rc=5 not authorized, an exhausted API quota and missing dashboards."
     },
     "de": {
       "title": "BMW CarData in Home Assistant: Fehlerbehebung und FAQ",
-      "description": "Lösungen für access_denied bei der Autorisierung, fehlende Daten, die Grenze von einem Stream pro Konto, erschöpftes Kontingent, fehlende Dashboards und seltsame Werte."
+      "description": "Lösungen für „Autorisierung nicht abgeschlossen“ (access_denied), „Keine BMW CarData Stream-Daten empfangen“, MQTT rc=5, ein aufgebrauchtes API-Kontingent und fehlende Dashboards."
     }
   },
   "Reference": {
