@@ -153,8 +153,16 @@ def test_position_stays_in_the_stream_request():
         assert descriptor in requested
 
 
-def test_sensor_platform_disables_the_coordinates_but_not_by_metadata():
+def test_sensor_platform_creates_the_coordinates_per_car_and_disabled():
     # sensor.py imports Home Assistant, so it is read, not run.
-    assert "OPT_IN_LOCATION_DESCRIPTORS" in _SENSOR_SRC
+    assert "def ensure_location_entities(vin: str)" in _SENSOR_SRC
     assert "_attr_entity_registry_enabled_default = False" in _SENSOR_SRC
-    assert "descriptor in TRACKER_ONLY_LOCATION_DESCRIPTORS" in _SENSOR_SRC
+    # Per car, not per descriptor: a restored position is never a *new*
+    # descriptor, so creation keyed on lat/lon arriving never fires. It runs
+    # from every ensure_entity and from the setup loop over known cars.
+    body = _SENSOR_SRC.split("def ensure_entity(", 1)[1][:400]
+    assert "ensure_location_entities(vin)" in body
+    setup_loop = _SENSOR_SRC.split("for vin in list(coordinator.data.keys()):", 1)[1][:300]
+    assert "ensure_location_entities(vin)" in setup_loop
+    # And the generic path must not also mint them (duplicate unique_id).
+    assert "TRACKER_ONLY_LOCATION_DESCRIPTORS | OPT_IN_LOCATION_DESCRIPTORS" in _SENSOR_SRC

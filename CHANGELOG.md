@@ -9,6 +9,12 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The new GPS latitude/longitude sensors were never created** (beta.1). They
+  were only made when a position first arrived, and the device tracker restores
+  the last position at startup, so a position never counted as new. They are now
+  created, disabled, as soon as the car sends anything, so they can be enabled.
+
 ## [0.9.16-beta.1] - 2026-10-06
 
 ### Added
