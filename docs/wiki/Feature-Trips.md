@@ -48,6 +48,27 @@ where it vanished, it really was parked and the trip ends back at the last
 movement. A stream that never comes back closes the trip after half an hour, and
 because the end is backdated either way, a late close costs no accuracy.
 
+### Older cars that report only at the end of a trip
+
+<a id="older-cars-that-report-only-at-the-end-of-a-trip"></a>
+
+Trip detection needs the car to stream its position **while it drives**. Owners
+report that some older cars do not: a G31 530d with iDrive 6, for example, sends
+mileage, fuel level and position only when a trip ends, and a BMW i3 is reported to
+send only the spot where it was parked. On such a car the trip journal stays empty,
+because there is no drive to reconstruct. Everything else works as usual: the
+odometer, the fuel level and the device tracker's position update at the end of each
+trip.
+
+One owner of an iDrive 6 car built a driving logbook on top of BavarianData. It
+takes the trip end from the car and the trip start from the phone's Bluetooth
+connection, and writes one row per trip to Google Sheets: [BMW logbook for
+iDrive 6](https://github.com/ursubey/Home-Assistant-BMW-CarData-Logbook-iDrive6) by @ursubey. It is an independent community project, not
+maintained or tested by BavarianData.
+
+If your car behaves like this, a [diagnostics download](Troubleshooting-and-FAQ)
+shows which fields it really sends, and helps us see how common this is.
+
 ## Seeing the drive that's happening now
 
 A drive in progress is not in the journal yet — it has no end, no final distance
