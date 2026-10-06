@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.16-beta.2] - 2026-10-06
+
 ### Fixed
 - **The new GPS latitude/longitude sensors were never created** (beta.1). They
   were only made when a position first arrived, and the device tracker restores
