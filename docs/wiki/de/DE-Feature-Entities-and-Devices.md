@@ -107,6 +107,18 @@ Jede FIN bekommt einen **device_tracker** („Standort“) mit der Position des
 Fahrzeugs aus dem GPS-Stream, nutzbar auf der HA-Karte und in zonenbasierten
 Automationen.
 
+**Die Position als normale Sensoren?** Manche Erweiterungen lassen nur
+`sensor.*`-Entitäten zu, nicht die Attribute eines Trackers (etwa die
+Fahrzeug-Einrichtung von DriveLoom). Jedes Auto hat deshalb auch die Sensoren
+**Position des Fahrzeugs – geographische Breite** und **– geographische Länge**,
+sie sind aber **standardmäßig deaktiviert**: Jede Position landet als Zustand im
+Recorder, und Karte und Zonen deckt der Tracker bereits ab. Zum Verwenden unter
+*Einstellungen → Geräte & Dienste → BavarianData → dein Auto → deaktivierte
+Entitäten* beide aktivieren und warten, bis Home Assistant die Integration neu
+lädt. Sie folgen dem Stream, Breite und Länge als getrennte Nachrichten, wie der
+Tracker. Brauchst du sie nur für eine andere Integration, nimm sie vom Recorder
+aus.
+
 ## Welche Verriegelungs-Entität verwenden
 
 <a id="which-lock-entity-to-use"></a>

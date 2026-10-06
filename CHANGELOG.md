@@ -9,6 +9,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **The car's position as plain sensors, opt-in.** Each car now has *GPS
+  latitude* and *GPS longitude* sensors for add-ons whose entity picker only
+  offers `sensor.*` and cannot read a device tracker's attributes (found through
+  DriveLoom, discussion #54, thanks to @lemuba). They are created **disabled**: every fix goes to
+  the recorder as a state, and the device tracker already covers the map and
+  zones. Enable them under the car's disabled entities. Nothing changes for
+  anyone who doesn't. Heading stays on the tracker.
+
 ## [0.9.15] - 2026-10-04
 
 Two small fixes for the card and for the i4: a car whose name contains "Sport" no longer loses its charging status, and a BMW i4 is no longer mistaken for a plug-in hybrid.

@@ -242,6 +242,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | `api_quota_remaining` | Diagnostic | 🟡 |
 | `connection_status`, `last_message`, `last_telematic_api` | Diagnostics | ❌ |
 | `car` (device_tracker) | Location | ❌ |
+| GPS latitude / longitude sensors (disabled by default, opt-in for add-ons that only take `sensor.*`) | Position as plain sensors | 🟢 Feature-Entities-and-Devices → "Device tracker" (EN + DE) |
 | `vehicle_image` (image) | Cached render | 🟡 |
 
 ### Cross-cutting features
