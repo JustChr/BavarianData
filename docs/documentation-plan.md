@@ -262,6 +262,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Month window on the trips & charging card views | 🟢 The-Dashboard-Card → "One month at a time" (both views) |
 | Commute chains (a stop on the way) + default type | 🟢 Feature-Trips → "Classification" + Settings-Reference → "Trips" |
 | Deferred close when the position stream goes quiet | 🟢 Feature-Trips → "When the position stream goes quiet" |
+| Older cars that report only at trip end (iDrive 6, i3): no trips, other values still update; community logbook linked | 🟢 Feature-Trips → "Older cars that report only at the end of a trip" (EN + DE) |
 | Live "trip in progress" (entity + hero badge + trips row) | 🟢 Feature-Trips → "Seeing the drive that's happening now" + The-Dashboard-Card |
 | Petrol / diesel / plug-in hybrid: battery-only entities not created (and removed on upgrade), battery card views explain themselves, fuel volume with statistics, hybrid trips withhold kWh/100 km, hybrids get no ledger consumption / real range / cost per 100 km (entities removed on upgrade, `status: plug_in_hybrid`) | 🟢 Feature-Entities-and-Devices → "Derived & diagnostic entities" + The-Dashboard-Card → "Overview" + Feature-Trips → "How consumption is measured" + Feature-Efficiency-and-Range → "Plug-in hybrids" |
 | BMW Motorrad unsupported (Repairs warning) | 🟢 Troubleshooting-and-FAQ → "Does BavarianData work with a BMW motorcycle?" + Getting-Started-1 → "Requirements" + README |

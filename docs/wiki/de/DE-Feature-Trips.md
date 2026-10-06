@@ -52,6 +52,29 @@ die Fahrt endet rückwirkend bei der letzten Bewegung. Kommt der Stream nie zur�
 schließt die Fahrt nach einer halben Stunde, und weil das Ende in jedem Fall
 rückdatiert wird, kostet ein spätes Schließen keine Genauigkeit.
 
+### Ältere Autos, die nur am Fahrtende melden
+
+<a id="older-cars-that-report-only-at-the-end-of-a-trip"></a>
+
+Die Fahrtenerkennung setzt voraus, dass das Auto seine Position **während der
+Fahrt** streamt. Nutzer berichten, dass manche ältere Autos das nicht tun: Ein G31
+530d mit iDrive 6 sendet Kilometerstand, Tankfüllstand und Position nur am Ende
+einer Fahrt, und bei einem BMW i3 wird berichtet, dass er nur den Parkplatz meldet.
+Bei so einem Auto bleibt das Fahrtenbuch leer, weil es keine Fahrt zu
+rekonstruieren gibt. Alles andere funktioniert wie gewohnt: Kilometerstand,
+Tankfüllstand und die Position des Geräte-Trackers aktualisieren sich am Ende jeder
+Fahrt.
+
+Ein Besitzer eines iDrive-6-Autos hat auf BavarianData ein eigenes Fahrtenbuch
+aufgebaut. Das Fahrtende kommt vom Auto, der Fahrtbeginn von der
+Bluetooth-Verbindung des Handys, und jede Fahrt wird als Zeile in Google Sheets
+geschrieben: [BMW-Fahrtenbuch für iDrive 6](https://github.com/ursubey/Home-Assistant-BMW-CarData-Logbook-iDrive6) von @ursubey. Es ist ein
+unabhängiges Community-Projekt und wird von BavarianData weder gepflegt noch
+getestet.
+
+Verhält sich dein Auto so, zeigt ein [Diagnose-Download](DE-Troubleshooting-and-FAQ),
+welche Felder es wirklich sendet, und hilft uns einzuschätzen, wie verbreitet das ist.
+
 ## Die Fahrt, die gerade läuft
 
 <a id="seeing-the-drive-thats-happening-now"></a>
