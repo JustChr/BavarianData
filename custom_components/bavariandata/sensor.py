@@ -1601,8 +1601,32 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         if new_entities:
             async_add_entities(new_entities, True)
 
+    def ensure_location_entities(vin: str) -> None:
+        """Create the opt-in latitude/longitude sensors, disabled, once per car.
+
+        Per car rather than per descriptor: a descriptor only reaches
+        ``ensure_entity`` when it is *new* to the coordinator, and the device
+        tracker restores the last position into it at startup, so a live fix is
+        never new and the sensors would never be created. Creating them from any
+        message puts them in the registry (disabled) right away, ready to enable.
+        """
+
+        new_entities: list = []
+        for descriptor in sorted(OPT_IN_LOCATION_DESCRIPTORS):
+            if (vin, descriptor) in entities:
+                continue
+            entity = CardataSensor(coordinator, vin, descriptor)
+            # Not the metadata's ``enabled_default``: that flag also decides
+            # what the stream is asked for, and the position must stay in it.
+            entity._attr_entity_registry_enabled_default = False
+            entities[(vin, descriptor)] = entity
+            new_entities.append(entity)
+        if new_entities:
+            async_add_entities(new_entities)
+
     def ensure_entity(vin: str, descriptor: str, *, assume_sensor: bool = False) -> None:
         ensure_soc_tracking_entities(vin)
+        ensure_location_entities(vin)
         ensure_charging_summary_entities(vin)
         ensure_battery_health_entity(vin)
         ensure_driving_entity(vin)
@@ -1611,8 +1635,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
             return
 
         # The position belongs to the device tracker. Heading never becomes a
-        # sensor; latitude and longitude do, but disabled, so the user opts in.
-        if descriptor in TRACKER_ONLY_LOCATION_DESCRIPTORS:
+        # sensor; latitude and longitude are made by ensure_location_entities.
+        if descriptor in TRACKER_ONLY_LOCATION_DESCRIPTORS | OPT_IN_LOCATION_DESCRIPTORS:
             return
 
         state = coordinator.get_state(vin, descriptor)
@@ -1622,10 +1646,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         elif not assume_sensor:
             return
         entity = CardataSensor(coordinator, vin, descriptor)
-        if descriptor in OPT_IN_LOCATION_DESCRIPTORS:
-            # Not the metadata's ``enabled_default`` -- that flag also decides
-            # what the stream is asked for, and the position must stay in it.
-            entity._attr_entity_registry_enabled_default = False
         entities[(vin, descriptor)] = entity
         async_add_entities([entity])
 
@@ -1704,6 +1724,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 
     for vin in list(coordinator.data.keys()):
         ensure_soc_tracking_entities(vin)
+        ensure_location_entities(vin)
         ensure_battery_health_entity(vin)
         ensure_driving_entity(vin)
         ensure_real_range_entity(vin)
