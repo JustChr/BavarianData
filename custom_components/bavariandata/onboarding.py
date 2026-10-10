@@ -339,6 +339,24 @@ _HELPER_PAGE_TEMPLATE = """<!doctype html>
 </body></html>"""
 
 
+def activation_link_placeholders(url: str) -> dict[str, str]:
+    """Flow-text placeholders that open the activation page in a new tab.
+
+    A Markdown ``[label](url)`` in a flow dialog is routed *inside* the frontend
+    whenever the link is on Home Assistant's own host -- which this one always
+    is -- and ``/bavariandata/onboarding`` is no panel, so the click landed on
+    the dashboard (issue #61). Home Assistant only adds ``target="_blank"`` to
+    links on another host. The anchor therefore comes in through placeholders:
+    tags inside a translation string break ``intl-messageformat``, and keeping
+    the markup out of the translations leaves the translators only the label.
+    """
+
+    return {
+        "link_open": f'<a href="{escape(url, quote=True)}" target="_blank" rel="noopener">',
+        "link_close": "</a>",
+    }
+
+
 def build_helper_page(*, bookmarklet: str, console_js: str, attribute_count: int) -> str:
     """Return the self-contained HTML helper page hosting the bookmarklet.
 

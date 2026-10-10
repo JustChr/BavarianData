@@ -78,6 +78,7 @@ from .descriptors import (
 from .onboarding import (
     OnboardingParseError,
     OnboardingResult,
+    activation_link_placeholders,
     build_bookmarklet,
     build_console_snippet,
     build_helper_page,
@@ -382,7 +383,7 @@ class _StreamActivatorFlow:
             return self.async_show_progress(
                 step_id="activate_stream_wait",
                 progress_action="wait_for_stream_activation",
-                description_placeholders={"url": self._onboarding_page_url},
+                description_placeholders=activation_link_placeholders(self._onboarding_page_url),
                 progress_task=self._onboarding_wait_task,
             )
 
@@ -409,7 +410,10 @@ class _StreamActivatorFlow:
             return self.async_show_form(
                 step_id="activate_stream_paste",
                 data_schema=schema,
-                description_placeholders={"url": self._onboarding_page_url, "error": ""},
+                description_placeholders={
+                    **activation_link_placeholders(self._onboarding_page_url),
+                    "error": "",
+                },
             )
 
         raw = (user_input.get("result") or "").strip()
@@ -423,7 +427,10 @@ class _StreamActivatorFlow:
                 step_id="activate_stream_paste",
                 data_schema=schema,
                 errors={"result": "invalid_result"},
-                description_placeholders={"url": self._onboarding_page_url, "error": str(err)},
+                description_placeholders={
+                    **activation_link_placeholders(self._onboarding_page_url),
+                    "error": str(err),
+                },
             )
         self._onboarding = result
         return await self.async_step_activate_stream_done()
@@ -545,7 +552,7 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
             return self.async_show_progress(
                 step_id="guided_wait",
                 progress_action="wait_for_activation",
-                description_placeholders={"url": self._onboarding_page_url},
+                description_placeholders=activation_link_placeholders(self._onboarding_page_url),
                 progress_task=self._onboarding_wait_task,
             )
 
@@ -587,7 +594,10 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
             return self.async_show_form(
                 step_id="guided_paste",
                 data_schema=schema,
-                description_placeholders={"url": self._onboarding_page_url, "error": ""},
+                description_placeholders={
+                    **activation_link_placeholders(self._onboarding_page_url),
+                    "error": "",
+                },
             )
 
         try:
@@ -597,7 +607,10 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
                 step_id="guided_paste",
                 data_schema=schema,
                 errors={"result": "invalid_result"},
-                description_placeholders={"url": self._onboarding_page_url, "error": str(err)},
+                description_placeholders={
+                    **activation_link_placeholders(self._onboarding_page_url),
+                    "error": str(err),
+                },
             )
         client_id = result.primary_client_id
         if not client_id:
@@ -605,7 +618,10 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
                 step_id="guided_paste",
                 data_schema=schema,
                 errors={"result": "no_client_id"},
-                description_placeholders={"url": self._onboarding_page_url, "error": ""},
+                description_placeholders={
+                    **activation_link_placeholders(self._onboarding_page_url),
+                    "error": "",
+                },
             )
 
         self._onboarding = result
@@ -618,7 +634,10 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
                 step_id="guided_paste",
                 data_schema=schema,
                 errors={"base": "device_code_failed"},
-                description_placeholders={"url": self._onboarding_page_url, "error": str(err)},
+                description_placeholders={
+                    **activation_link_placeholders(self._onboarding_page_url),
+                    "error": str(err),
+                },
             )
         return await self.async_step_authorize()
 

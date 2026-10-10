@@ -21,7 +21,7 @@
       },
       "guided_paste": {
         "title": "Activeer je gegevens en plak het resultaat",
-        "description": "Zorg eerst dat je in het BMW-portaal een **CarData Client** hebt aangemaakt die geabonneerd is op **CarData API en CarData Streaming** — de activator vindt die client, hij maakt er geen aan.\n\n1. Open de **[BavarianData-installatiepagina]({url})**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**. Druk als hij klaar is op **Copy** in het venster dat verschijnt.\n5. Plak dat resultaat hieronder en druk op **Verzenden**.\n\nAlles draait in je eigen browser — geen wachtwoord of sessie verlaat die ooit.\n\n{error}",
+        "description": "Zorg eerst dat je in het BMW-portaal een **CarData Client** hebt aangemaakt die geabonneerd is op **CarData API en CarData Streaming** — de activator vindt die client, hij maakt er geen aan.\n\n1. Open de **{link_open}BavarianData-installatiepagina{link_close}**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**. Druk als hij klaar is op **Copy** in het venster dat verschijnt.\n5. Plak dat resultaat hieronder en druk op **Verzenden**.\n\nAlles draait in je eigen browser — geen wachtwoord of sessie verlaat die ooit.\n\n{error}",
         "data": {
           "result": "Installatieresultaat"
         },
@@ -49,7 +49,7 @@
       },
       "activate_stream_paste": {
         "title": "Activeer je gegevens en plak het resultaat",
-        "description": "1. Open de **[BavarianData-activeringspagina]({url})**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**. Druk als hij klaar is op **Copy** in het venster dat verschijnt.\n5. Plak dat resultaat hieronder en druk op **Verzenden**.\n\nAlles draait in je eigen browser — geen wachtwoord of sessie verlaat die ooit. Heb je deze velden zelf al aangevinkt in het portaal? Laat het vak dan leeg en druk op **Verzenden** om af te ronden.\n\n{error}",
+        "description": "1. Open de **{link_open}BavarianData-activeringspagina{link_close}**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**. Druk als hij klaar is op **Copy** in het venster dat verschijnt.\n5. Plak dat resultaat hieronder en druk op **Verzenden**.\n\nAlles draait in je eigen browser — geen wachtwoord of sessie verlaat die ooit. Heb je deze velden zelf al aangevinkt in het portaal? Laat het vak dan leeg en druk op **Verzenden** om af te ronden.\n\n{error}",
         "data": {
           "result": "Activeringsresultaat"
         },
@@ -63,9 +63,9 @@
       }
     },
     "progress": {
-      "wait_for_activation": "**Activeer je gegevens in de browser**\n\nZorg dat je in het BMW-portaal al een **CarData Client** hebt aangemaakt die geabonneerd is op **CarData API en CarData Streaming** — de activator vindt die client, hij maakt er geen aan.\n\n1. Open de **[BavarianData-installatiepagina]({url})**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**.\n\nHij vindt je Client ID, controleert je voertuig en zet de datastream aan — alles in je eigen browser, niets te kopiëren. Dit venster gaat automatisch verder zodra hij terugmeldt. Je hoeft hier niets aan te klikken.",
+      "wait_for_activation": "**Activeer je gegevens in de browser**\n\nZorg dat je in het BMW-portaal al een **CarData Client** hebt aangemaakt die geabonneerd is op **CarData API en CarData Streaming** — de activator vindt die client, hij maakt er geen aan.\n\n1. Open de **{link_open}BavarianData-installatiepagina{link_close}**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**.\n\nHij vindt je Client ID, controleert je voertuig en zet de datastream aan — alles in je eigen browser, niets te kopiëren. Dit venster gaat automatisch verder zodra hij terugmeldt. Je hoeft hier niets aan te klikken.",
       "wait_for_authorization": "**Keur Home Assistant goed op de aanmeldpagina van BMW/MINI**\n\n1. Open de **[autorisatiepagina]({verification_url})** en log in met je BMW-/MINI-account.\n2. Voer deze code in wanneer daarom wordt gevraagd: **{user_code}**\n3. Bevestig het apparaat.\n\n**Typ de code met de hand** — gebruik geen link waarin de code al staat, en controleer dat er geen oude code vooraf is ingevuld. De server van BMW registreert bij vooraf ingevulde codes vaak ten onrechte een *weigering*. Mislukt het toch, probeer het dan opnieuw in een privé-/incognitovenster.\n\nLaat dit venster open — het gaat automatisch verder zodra je goedkeurt. Je hoeft hier niets aan te klikken.",
-      "wait_for_stream_activation": "**Activeer de geselecteerde gegevens in je browser**\n\n1. Open de **[BavarianData-activeringspagina]({url})**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**.\n\nHij zet de velden van je gekozen groepen aan — alles in je eigen browser, niets te kopiëren. Dit venster gaat automatisch verder zodra hij terugmeldt. Je hoeft hier niets aan te klikken."
+      "wait_for_stream_activation": "**Activeer de geselecteerde gegevens in je browser**\n\n1. Open de **{link_open}BavarianData-activeringspagina{link_close}**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**.\n\nHij zet de velden van je gekozen groepen aan — alles in je eigen browser, niets te kopiëren. Dit venster gaat automatisch verder zodra hij terugmeldt. Je hoeft hier niets aan te klikken."
     },
     "error": {
       "device_code_failed": "BMW heeft het verzoek om apparaatautorisatie geweigerd ({error}). Controleer of de Client ID klopt en geabonneerd is op beide CarData-diensten, en probeer het opnieuw.",
@@ -117,7 +117,7 @@
       },
       "activate_stream_paste": {
         "title": "Activeer je gegevens en plak het resultaat",
-        "description": "1. Open de **[BavarianData-activeringspagina]({url})**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**. Druk als hij klaar is op **Copy** in het venster dat verschijnt.\n5. Plak dat resultaat hieronder en druk op **Verzenden**.\n\nAlles draait in je eigen browser — geen wachtwoord of sessie verlaat die ooit.\n\n{error}",
+        "description": "1. Open de **{link_open}BavarianData-activeringspagina{link_close}**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**. Druk als hij klaar is op **Copy** in het venster dat verschijnt.\n5. Plak dat resultaat hieronder en druk op **Verzenden**.\n\nAlles draait in je eigen browser — geen wachtwoord of sessie verlaat die ooit.\n\n{error}",
         "data": {
           "result": "Activeringsresultaat"
         },
@@ -277,7 +277,7 @@
       }
     },
     "progress": {
-      "wait_for_stream_activation": "**Activeer de geselecteerde gegevens in je browser**\n\n1. Open de **[BavarianData-activeringspagina]({url})**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**.\n\nHij zet de velden van je gekozen groepen aan — alles in je eigen browser, niets te kopiëren. Dit venster gaat automatisch verder zodra hij terugmeldt. Je hoeft hier niets aan te klikken."
+      "wait_for_stream_activation": "**Activeer de geselecteerde gegevens in je browser**\n\n1. Open de **{link_open}BavarianData-activeringspagina{link_close}**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**.\n\nHij zet de velden van je gekozen groepen aan — alles in je eigen browser, niets te kopiëren. Dit venster gaat automatisch verder zodra hij terugmeldt. Je hoeft hier niets aan te klikken."
     },
     "error": {
       "mix_needs_both": "Voor het toerekenen van energie zijn zowel een PV-vermogenssensor als een netvermogenssensor nodig. Met maar één van beide zou de verdeling de andere moeten aannemen.",
