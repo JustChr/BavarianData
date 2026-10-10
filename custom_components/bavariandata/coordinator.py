@@ -72,7 +72,7 @@ from .coverage import is_combustion_only, is_plug_in_hybrid
 from .soc_tracking import SocTracking
 from .structured_values import EMPTY_WHEN_NULL
 from .tyre import parse_tyre_diagnosis
-from .units import normalize_unit
+from .units import miles_to_km, normalize_unit
 from .vehicle_support import is_motorcycle, motorcycle_issue_id
 from .vehicle_triggers import (
     LOCK_DESCRIPTORS,
@@ -823,7 +823,9 @@ class CardataCoordinator:
             if not isinstance(descriptor_payload, dict):
                 continue
             value = descriptor_payload.get("value")
-            unit = normalize_unit(descriptor_payload.get("unit"))
+            # The integration speaks kilometres: a car that sends miles for one
+            # descriptor (issue #62) must not have the number shown as km.
+            value, unit = miles_to_km(value, normalize_unit(descriptor_payload.get("unit")))
             timestamp = descriptor_payload.get("timestamp")
             parsed_ts = dt_util.parse_datetime(timestamp) if timestamp else None
             if value is None and descriptor in EMPTY_WHEN_NULL:
