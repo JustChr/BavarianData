@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.17-beta.2] - 2026-10-10
+
 ### Added
 - **Your wallbox meter now drives the state-of-charge estimate while the car
   charges at home.** Between BMW's readings the estimate used to climb at the
