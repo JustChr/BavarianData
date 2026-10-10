@@ -123,6 +123,11 @@ der Fahrt nichts. Es löst einmal pro neuem Kilometerstand aus, nachdem der Wert
   aus — und ein zweites Mal, wenn das Auto zwischendurch 5 Minuten oder länger
   stand, etwa in einem langen Stau. Jedes Ereignis bringt sein eigenes
   `distance_km` mit, die Strecken gehen also trotzdem auf.
+- **Ein Wert, den das Auto nicht gefahren sein kann, wird nicht gemeldet.** Einer,
+  der rückwärts läuft oder weiter voraus liegt, als 250 km/h seit der letzten
+  Meldung zulassen, wird beiseitegelegt. Schließt der nächste Wert daran an, war
+  der frühere falsch, und die Meldungen gehen von dort aus weiter. So oder so
+  fehlt womöglich eine Fahrt — eine erfundene gibt es nie.
 - **Der Kilometerstand zählt ganze Kilometer**, eine Fahrt unter einem Kilometer
   ändert ihn womöglich nicht und löst dann nichts aus.
 - Felder, die das Auto nicht sendet, sind `null`. Die Position kommt mit dem

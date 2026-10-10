@@ -11,7 +11,7 @@ from collections import deque
 from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Any, Callable, Deque, Dict, Iterable, Optional
+from typing import Any, Callable, Deque, Dict, Iterable, Mapping, Optional
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
@@ -74,7 +74,15 @@ from .soc_tracking import SocTracking
 from .structured_values import EMPTY_WHEN_NULL
 from .tyre import parse_tyre_diagnosis
 from .units import miles_to_km, normalize_unit
-from .vehicle_report import ARM, REPORT_QUIET_S, SEED, report_decision, report_payload
+from .vehicle_report import (
+    ARM,
+    CANDIDATE,
+    REPORT_QUIET_S,
+    SEED,
+    ReportDecision,
+    report_decision,
+    report_payload,
+)
 from .vehicle_support import is_motorcycle, motorcycle_issue_id
 from .vehicle_triggers import (
     LOCK_DESCRIPTORS,
@@ -1804,14 +1812,17 @@ class CardataCoordinator:
             return
         odometer_km = self._odometer_km(vin)
         last = self.history.last_report(vin)
-        decision = report_decision(odometer_km, last)
-        if decision == SEED:
+        decision = self._report_decision(vin, odometer_km)
+        if decision.kind == SEED:
+            self.history.async_set_last_report(vin, self._report_record(vin, odometer_km))
+            return
+        if decision.kind == CANDIDATE:
+            # Kept beside the record, never in it: see ``vehicle_report.py``.
             self.history.async_set_last_report(
-                vin,
-                {"odometer_km": odometer_km, "timestamp": self._odometer_timestamp(vin)},
+                vin, {**(last or {}), "candidate": self._report_record(vin, odometer_km)}
             )
             return
-        if decision != ARM or self._report_pending.get(vin) == odometer_km:
+        if decision.kind != ARM or self._report_pending.get(vin) == odometer_km:
             return
         self._cancel_report_timer(vin)
         self._report_pending[vin] = odometer_km
@@ -1822,10 +1833,32 @@ class CardataCoordinator:
             armed = self._report_pending.pop(vin, None)
             # A newer reading would have re-armed the timer; anything else is a
             # value that has gone away again, and is not announced.
-            if armed is not None and self._odometer_km(vin) == armed:
-                self._fire_vehicle_report(vin, armed)
+            if armed is None or self._odometer_km(vin) != armed:
+                return
+            # Decided again, against the record as it is now: what the report
+            # is measured from may have changed while it held.
+            decision = self._report_decision(vin, armed)
+            if decision.kind == ARM and decision.baseline is not None:
+                self._fire_vehicle_report(vin, armed, decision.baseline)
 
         self._report_timers[vin] = async_call_later(self.hass, REPORT_QUIET_S, _fire)
+
+    def _report_decision(self, vin: str, odometer_km: Optional[float]) -> ReportDecision:
+        return report_decision(
+            odometer_km,
+            self.history.last_report(vin) if self.history is not None else None,
+            timestamp=self._odometer_timestamp(vin),
+            now=datetime.now(timezone.utc),
+        )
+
+    def _report_record(self, vin: str, odometer_km: float) -> dict[str, Any]:
+        """A reading as the record keeps it: by the car's clock and by ours."""
+
+        return {
+            "odometer_km": odometer_km,
+            "timestamp": self._odometer_timestamp(vin),
+            "recorded_at": datetime.now(timezone.utc).isoformat(),
+        }
 
     def _cancel_report_timer(self, vin: str) -> None:
         cancel = self._report_timers.pop(vin, None)
@@ -1833,16 +1866,17 @@ class CardataCoordinator:
             cancel()
         self._report_pending.pop(vin, None)
 
-    def _fire_vehicle_report(self, vin: str, odometer_km: float) -> None:
+    def _fire_vehicle_report(
+        self, vin: str, odometer_km: float, baseline: Mapping[str, Any]
+    ) -> None:
         if self.history is None:
             return
-        last = self.history.last_report(vin) or {}
         timestamp = self._odometer_timestamp(vin)
         payload = report_payload(
             vin,
             odometer_km=odometer_km,
             timestamp=timestamp,
-            last=last,
+            last=baseline,
             values={
                 "fuel_l": self._numeric(vin, "vehicle.drivetrain.fuelSystem.remainingFuel"),
                 "fuel_percent": self._numeric(vin, "vehicle.drivetrain.fuelSystem.level"),
@@ -1858,10 +1892,9 @@ class CardataCoordinator:
         )
         payload["entry_id"] = self.entry_id
         # Recorded before firing: an automation that raises must not leave the
-        # reading unrecorded, to be announced a second time.
-        self.history.async_set_last_report(
-            vin, {"odometer_km": odometer_km, "timestamp": timestamp}
-        )
+        # reading unrecorded, to be announced a second time. A fresh record
+        # also drops any candidate: this reading has settled the question.
+        self.history.async_set_last_report(vin, self._report_record(vin, odometer_km))
         self.hass.bus.async_fire(EVENT_VEHICLE_REPORT, payload)
 
     def _numeric(self, vin: str, descriptor: str) -> Optional[float]:

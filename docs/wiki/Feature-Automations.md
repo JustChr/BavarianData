@@ -119,6 +119,11 @@ so the burst is complete by then. Things to know:
   and a second time if the car stood still for 5 minutes or more in between,
   in a long traffic jam for example. Each event carries its own `distance_km`,
   so the distances still add up.
+- **A reading the car could not have driven is not announced.** One that runs
+  backwards, or lies further ahead than 250 km/h would cover since the last
+  report, is set aside. If the next reading follows on from it, it was the
+  earlier one that was wrong, and the reports carry on from there. Either way
+  one drive may go unannounced — a made-up one never is.
 - **The odometer counts whole kilometres**, so a drive shorter than one
   kilometre may not change it and then fires nothing.
 - Fields the car does not send are `null`. The position comes with the event,

@@ -9,6 +9,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **A wrong odometer reading can no longer silence `bavariandata_vehicle_report`
+  for good.** A reading the car could not have driven since the last report — one
+  off by a unit, say, landing thousands of kilometers ahead — was announced as one
+  huge trip, and every true reading after it was then ignored as the odometer
+  running backwards, until history was deleted. Such a reading is now set aside;
+  if the next one follows on from it, the earlier reading was the wrong one and
+  reports carry on from there. One drive may go unannounced; none is made up.
+
 ## [0.9.17-beta.1] - 2026-10-10
 
 ### Added
