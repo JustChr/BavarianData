@@ -101,8 +101,15 @@ class CoordinatorHarness:
         history: bool = True,
         start: datetime = START,
         home: Optional[tuple[float, float]] = None,
+        wallbox_meter: Optional[str] = None,
     ) -> None:
         self.vin = vin
+        # A bound wallbox energy meter (the ``grid_energy_entity`` option);
+        # move it with :meth:`meter`.
+        self.wallbox_meter = wallbox_meter
+        # The estimate entity's last written ``meter_reading_kwh`` attribute --
+        # what HA hands back with the restored state.
+        self._meter_attribute: Optional[float] = None
         self.clock = Clock(start)
         self.start = start
         self.hass = FakeHass(self.clock)
@@ -155,6 +162,10 @@ class CoordinatorHarness:
 
     def _boot(self):
         coordinator = coordinator_mod.CardataCoordinator(hass=self.hass, entry_id="entry")
+        if self.wallbox_meter is not None:
+            coordinator.pricing = coordinator_mod.PricingConfig(
+                grid_energy_entity=self.wallbox_meter
+            )
         if self.history_enabled:
             store = store_mod.HistoryStore(self.hass, "entry")
             self._run(store.async_load())
@@ -246,6 +257,17 @@ class CoordinatorHarness:
         # Both halves carry the fix's own timestamp; only the arrival differs.
         self.send(minute + 1 / 60, stamped=minute, lon=lon, step="  (longitude)")
 
+    def meter(self, minute: Optional[float], kwh: Optional[float], *, unit: str = "kWh") -> None:
+        """Set the wallbox meter's running total (``None`` = unavailable)."""
+
+        if self.wallbox_meter is None:
+            raise ValueError("no wallbox meter bound")
+        if minute is not None and self.at(minute) > self.clock.now:
+            self.advance_to(minute, step=f"wait {minute:g}")
+        state = "unavailable" if kwh is None else kwh
+        self.hass.set_state(self.wallbox_meter, state, unit_of_measurement=unit)
+        self._observe(f"meter {state}")
+
     def trips(self) -> list:
         if self.coordinator.history is None:
             return []
@@ -305,6 +327,7 @@ class CoordinatorHarness:
             for descriptor, state in (old.data.get(self.vin) or {}).items()
         }
         derived = dict(self._derived_changed)
+        meter_attribute = self._meter_attribute
         # Nothing of the old instance survives but storage -- its timers die too.
         for timer in self.hass.timers:
             timer.cancelled = True
@@ -324,7 +347,9 @@ class CoordinatorHarness:
             if "estimate" in derived:
                 value, changed = derived["estimate"]
                 if value is not None:
-                    self.coordinator.restore_soc_cache(self.vin, estimate=value, timestamp=changed)
+                    self.coordinator.restore_soc_cache(
+                        self.vin, estimate=value, timestamp=changed, meter_kwh=meter_attribute
+                    )
             if "rate" in derived:
                 value, changed = derived["rate"]
                 if value is not None and self.coordinator.get_soc_rate(self.vin) is None:
@@ -363,6 +388,9 @@ class CoordinatorHarness:
             previous = self._derived_changed.get(key)
             if previous is None or previous[0] != value:
                 self._derived_changed[key] = (value, self.clock.now)
+        self._meter_attribute = self.coordinator.soc_estimate_attributes(self.vin).get(
+            "meter_reading_kwh"
+        )
 
     def _observe(self, step: str) -> None:
         tracking = self.coordinator._soc_tracking.get(self.vin)

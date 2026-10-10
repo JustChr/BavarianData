@@ -60,8 +60,10 @@ streams:
 The state of charge on the ring is the integration's own estimate. While the car
 is parked that is simply BMW's last reading; while it charges it keeps climbing at
 the rate the charging power implies, because BMW can go silent for hours
-mid-charge and its own figure then stands still. The next real reading replaces
-it. See [the charging page](Feature-Charging-History-and-Cost).
+mid-charge and its own figure then stands still. With a wallbox meter bound,
+[the meter drives it at home](Feature-evcc-and-Wallbox-Bridge#it-also-drives-the-state-of-charge-estimate).
+The next real reading replaces it. See
+[the charging page](Feature-Charging-History-and-Cost).
 
 A car that sends high-voltage battery data *and* fuel data is a plug-in hybrid;
 fuel data alone makes it petrol or diesel. Some petrol cars stream an EV charge

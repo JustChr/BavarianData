@@ -166,7 +166,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `price_fixed` | Charging costs & history | 🟡 |
 | `price_entity` | Charging costs & history | 🟡 |
 | `price_currency` | Charging costs & history | ❌ |
-| `grid_energy_entity` (wallbox) | Charging costs & history | 🟢 Feature-Charging-History-and-Cost → "Grid energy vs. battery energy" + Feature-evcc-and-Wallbox-Bridge (inbound half, incl. when a reading is refused) |
+| `grid_energy_entity` (wallbox) | Charging costs & history | 🟢 Feature-Charging-History-and-Cost → "Grid energy vs. battery energy" + Feature-evcc-and-Wallbox-Bridge (inbound half, incl. when a reading is refused, and "It also drives the state-of-charge estimate") |
 | `charging_loss_percent` | Charging costs & history | 🟡 |
 | `history_retain_months` | Charging costs & history | 🟡 |
 | `statistics_import` | Charging costs & history | 🟡 |
@@ -230,7 +230,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 
 | Entity | Kind | Status |
 | --- | --- | --- |
-| `soc_estimate`, `soc_rate` | Extrapolated SoC helpers | 🟡 |
+| `soc_estimate`, `soc_rate` | Extrapolated SoC helpers | 🟡 — the wallbox-meter mode and its attributes (`estimate_source`, `meter_sessions`, `meter_percent_per_kwh`, `meter_overhead_kw`) are 🟢 in Feature-evcc-and-Wallbox-Bridge → "It also drives the state-of-charge estimate" |
 | `soc_estimate_testing` | Diagnostic variant | ❌ |
 | `charged_energy_total`, `charged_energy_session` | Energy integration | 🟡 |
 | `charging_energy_month` | Monthly total | 🟡 |

@@ -1,0 +1,57 @@
+# serializer version: 1
+# name: test_a_restart_adds_what_the_meter_counted_while_ha_was_down[derived-first]
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est=     - rate=    - charging=off open=n sessions=3
+     10.0  target 100               est=     - rate=    - charging=off open=n sessions=3
+     10.0  meter 1000.0             est=     - rate=    - charging=off open=n sessions=3
+     10.0  send soc=38,status=CHARGINGACTIVE,power=3480 est= 38.00 rate= 4.64 charging=on  open=y sessions=3 charging_started
+     70.0  wait 70                  est= 38.00 rate=    - charging=on  open=y sessions=3
+     70.0  meter 1007.4             est= 38.00 rate=    - charging=on  open=y sessions=3
+     70.5  advance 70.5             est= 47.25 rate= 9.17 charging=on  open=y sessions=3
+    100.5  restart (derived-first)  est= 47.25 rate= 4.64 charging=off open=y sessions=3
+    101.0  advance 101              est= 51.88 rate= 9.10 charging=off open=y sessions=3
+  '''
+# ---
+# name: test_a_restart_adds_what_the_meter_counted_while_ha_was_down[descriptors-first]
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est=     - rate=    - charging=off open=n sessions=3
+     10.0  target 100               est=     - rate=    - charging=off open=n sessions=3
+     10.0  meter 1000.0             est=     - rate=    - charging=off open=n sessions=3
+     10.0  send soc=38,status=CHARGINGACTIVE,power=3480 est= 38.00 rate= 4.64 charging=on  open=y sessions=3 charging_started
+     70.0  wait 70                  est= 38.00 rate=    - charging=on  open=y sessions=3
+     70.0  meter 1007.4             est= 38.00 rate=    - charging=on  open=y sessions=3
+     70.5  advance 70.5             est= 47.25 rate= 9.17 charging=on  open=y sessions=3
+    100.5  restart (descriptors-first) est= 47.25 rate= 4.64 charging=off open=y sessions=3
+    101.0  advance 101              est= 51.88 rate= 9.10 charging=off open=y sessions=3
+  '''
+# ---
+# name: test_an_unavailable_meter_hands_back_to_the_stream_without_a_jump
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est=     - rate=    - charging=off open=n sessions=3
+     10.0  target 100               est=     - rate=    - charging=off open=n sessions=3
+     10.0  meter 1000.0             est=     - rate=    - charging=off open=n sessions=3
+     10.0  send soc=38,status=CHARGINGACTIVE,power=3480 est= 38.00 rate= 4.64 charging=on  open=y sessions=3 charging_started
+     70.0  wait 70                  est= 38.00 rate=    - charging=on  open=y sessions=3
+     70.0  meter 1007.4             est= 38.00 rate=    - charging=on  open=y sessions=3
+     70.5  advance 70.5             est= 47.25 rate= 9.17 charging=on  open=y sessions=3
+     70.5  meter unavailable        est= 47.25 rate= 9.17 charging=on  open=y sessions=3
+    130.0  advance 130              est= 51.81 rate= 4.64 charging=on  open=y sessions=3
+  '''
+# ---
+# name: test_the_meter_drives_a_silent_charge
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est=     - rate=    - charging=off open=n sessions=3
+     10.0  target 100               est=     - rate=    - charging=off open=n sessions=3
+     10.0  meter 1000.0             est=     - rate=    - charging=off open=n sessions=3
+     10.0  send soc=38,status=CHARGINGACTIVE,power=3480 est= 38.00 rate= 4.64 charging=on  open=y sessions=3 charging_started
+     70.0  wait 70                  est= 38.00 rate=    - charging=on  open=y sessions=3
+     70.0  meter 1007.4             est= 38.00 rate=    - charging=on  open=y sessions=3
+    130.0  wait 130                 est= 47.25 rate=    - charging=on  open=y sessions=3
+    130.0  meter 1014.8             est= 47.25 rate=    - charging=on  open=y sessions=3
+    140.0  advance 140              est= 56.50 rate= 9.25 charging=on  open=y sessions=3
+  '''
+# ---

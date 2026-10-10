@@ -13,10 +13,31 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, Optional, Protocol
+
+
+class MeterModel(Protocol):
+    """What the tracker needs of ``history.meter_rate.MeterRate``."""
+
+    def points(self, kwh: float, hours: float) -> float: ...
+
 
 # ``charging.status`` tokens that mean energy is flowing into the pack.
 CHARGING_ACTIVE_STATUSES = frozenset({"CHARGINGACTIVE", "CHARGING_IN_PROGRESS"})
+
+# The fastest a home wallbox can advance its meter: 22 kW is the AC ceiling
+# (three phases at 32 A). A larger step is not this car charging -- a meter
+# replaced or reset to some other count, or a reading after a long outage that
+# covers more than the charge -- and is taken as a new baseline instead.
+METER_MAX_KW = 22.0
+# ...plus a fixed allowance, because a meter that reports in coarse steps can
+# land one step "early" relative to our clock.
+METER_SLACK_KWH = 0.5
+# The least time the meter's charging rate is measured over (``_note_meter_rate``).
+METER_RATE_WINDOW_S = 300.0
+# A meter that has not moved for this long is a paused charge, rate zero. Long
+# enough that a wallbox reporting in coarse steps is not mistaken for one.
+METER_IDLE_S = 900.0
 
 
 def is_charging_status(status: Any) -> bool:
@@ -59,6 +80,20 @@ class SocTracking:
     # reading, which would otherwise rewind the estimate to the last SoC BMW
     # happened to send (see ``update_actual_soc``).
     restored_estimate_at: Optional[datetime] = None
+    # The bound wallbox meter, while it drives the estimate (``follow_meter``).
+    # ``meter_kwh`` is the reading the current estimate already accounts for,
+    # ``meter_at`` when it was last accepted, ``meter_model`` what turns its
+    # kWh into points (``history.meter_rate.MeterRate``) -- ``None`` whenever
+    # the stream's power drives instead.
+    meter_kwh: Optional[float] = None
+    meter_at: Optional[datetime] = None
+    meter_model: Optional[MeterModel] = None
+    # The charging rate as the meter measures it (``_note_meter_rate``);
+    # ``None`` until enough time is covered, and the stream's rate is shown
+    # meanwhile.
+    meter_rate_per_hour: Optional[float] = None
+    meter_window_points: float = 0.0
+    meter_window_hours: float = 0.0
 
     def update_max_energy(self, value: Optional[float]) -> None:
         if value is None:
@@ -95,16 +130,122 @@ class SocTracking:
             return
         self.estimated_percent = percent
         self.last_estimate_time = ts
+        # The estimate starts again from a measurement; the meter's next reading
+        # becomes its new baseline, so nothing it counted before is added twice.
+        self.meter_kwh = None
+        self.meter_at = None
 
-    def adopt_estimate(self, percent: float, at: datetime) -> bool:
-        """Take a restored estimate as the anchor, unless a reading is newer."""
+    def adopt_estimate(
+        self, percent: float, at: datetime, *, meter_kwh: Optional[float] = None
+    ) -> bool:
+        """Take a restored estimate as the anchor, unless a reading is newer.
+
+        ``meter_kwh`` is the wallbox reading that estimate accounted for, when
+        the meter was driving it. Restoring it is what lets the first reading
+        after a restart add exactly what the car took while Home Assistant was
+        down, instead of guessing at it.
+        """
 
         if self.last_update is not None and at <= self.last_update:
             return False
         self.estimated_percent = percent
         self.last_estimate_time = at
         self.restored_estimate_at = at
+        if meter_kwh is not None:
+            self.meter_kwh = meter_kwh
+            self.meter_at = at
         return True
+
+    def follow_meter(
+        self, meter_kwh: Optional[float], model: Optional[MeterModel], now: datetime
+    ) -> None:
+        """Drive the estimate from the wallbox meter, or hand it back to the stream.
+
+        ``model`` is what the ledger learned (``history.meter_rate``); the
+        caller passes ``None`` for either argument whenever the meter may not
+        be trusted for this car right now -- not charging, unplugged, away from
+        home, another car charging, too few sessions learned, the meter
+        unavailable. The meter then lets go, and the stream's power takes over
+        *from now*: the time the meter drove is already in the estimate and
+        must not be extrapolated a second time.
+
+        While it drives, the estimate moves by what the meter counted, less the
+        car's own overhead for the time it took. That covers what BMW's power
+        stream misses -- hours of silence, a solar-following charge -- and,
+        with ``meter_kwh`` restored, a restart.
+        """
+
+        if meter_kwh is None or model is None or self.estimated_percent is None:
+            if self.meter_model is not None:
+                self.last_estimate_time = now
+            self.meter_model = None
+            self.meter_kwh = None
+            self.meter_at = None
+            self._reset_meter_window(None)
+            return
+        if self.meter_model is None and self.meter_kwh is None:
+            # Taking over from the stream: account for its stretch up to now.
+            # Not after a restart that restored a meter reading -- the meter's
+            # own advance covers that stretch, and both would count it twice.
+            self.estimate(now)
+        if self.meter_model is None:
+            self._reset_meter_window(now)
+        self.meter_model = model
+        self.last_estimate_time = now
+        if self.meter_kwh is None or self.meter_at is None:
+            self.meter_kwh = meter_kwh
+            self.meter_at = now
+            return
+        delta = meter_kwh - self.meter_kwh
+        if delta != 0:
+            hours = max((now - self.meter_at).total_seconds(), 0.0) / 3600.0
+            if delta < 0 or delta > METER_MAX_KW * hours + METER_SLACK_KWH:
+                # A reset, a replaced meter, or a jump no wallbox can make: start
+                # counting from here rather than add a figure that isn't this charge.
+                self.meter_kwh = meter_kwh
+                self.meter_at = now
+                self._reset_meter_window(now)
+                return
+            previous = self.estimated_percent
+            # ``hours`` runs from the last reading that *moved*, so a pause is
+            # inside it; the model only charges overhead for time energy flowed.
+            gained = model.points(delta, hours)
+            estimate = previous + gained
+            target = self.target_soc_percent
+            if target is not None and previous <= target <= estimate:
+                estimate = target
+            self.estimated_percent = min(estimate, 100.0)
+            self.meter_kwh = meter_kwh
+            self.meter_at = now
+            self._note_meter_rate(gained, hours)
+        elif (now - self.meter_at).total_seconds() >= METER_IDLE_S:
+            # Nothing has flowed for a while: a paused solar charge adds nothing.
+            self.meter_rate_per_hour = 0.0
+            self._reset_meter_window(now)
+
+    def _reset_meter_window(self, now: Optional[datetime]) -> None:
+        self.meter_window_points = 0.0
+        self.meter_window_hours = 0.0
+        if now is None:
+            self.meter_rate_per_hour = None
+
+    def _note_meter_rate(self, gained: float, hours: float) -> None:
+        """Publish the meter's charging rate once enough time is covered.
+
+        Each step's points are set against the time since the *previous*
+        change, so a wallbox that reports once an hour gives its hourly rate,
+        not one step's worth packed into a few minutes. Steps are pooled until
+        :data:`METER_RATE_WINDOW_S` is covered, so a wallbox reporting every few
+        seconds does not make the rate jump on every tick.
+        """
+
+        self.meter_window_points += gained
+        self.meter_window_hours += hours
+        if self.meter_window_hours * 3600.0 < METER_RATE_WINDOW_S:
+            return
+        self.meter_rate_per_hour = self.meter_window_points / self.meter_window_hours
+        self.meter_window_points = 0.0
+        self.meter_window_hours = 0.0
 
     def update_power(self, power_w: Optional[float], timestamp: Optional[datetime]) -> None:
         if power_w is None:
@@ -166,7 +307,8 @@ class SocTracking:
             self.last_estimate_time = self.last_update or now
             return self.estimated_percent
 
-        if self.last_estimate_time is None:
+        if self.last_estimate_time is None or self.meter_model is not None:
+            # While the meter drives, only ``follow_meter`` moves the estimate.
             self.last_estimate_time = now
             return self.estimated_percent
 
@@ -202,6 +344,9 @@ class SocTracking:
     def current_rate_per_hour(self) -> Optional[float]:
         if not self._extrapolating():
             return None
+        if self.meter_model is not None and self.meter_rate_per_hour is not None:
+            # The rate the estimate is actually climbing at, not BMW's power.
+            return self.meter_rate_per_hour
         return self.rate_per_hour
 
     def _extrapolating(self) -> bool:

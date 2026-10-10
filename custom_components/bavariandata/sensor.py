@@ -486,10 +486,12 @@ class CardataSocEstimateSensor(CardataRestoreSensor):
                     reference = dt_util.as_utc(reference)
                 # Always offered: the coordinator keeps whichever of this and
                 # the restored SoC reading is newer (see ``adopt_estimate``).
+                meter_kwh = last_state.attributes.get("meter_reading_kwh") if last_state else None
                 self._coordinator.restore_soc_cache(
                     self.vin,
                     estimate=self._attr_native_value,
                     timestamp=reference,
+                    meter_kwh=meter_kwh if isinstance(meter_kwh, (int, float)) else None,
                 )
         self._unsubscribe = async_dispatcher_connect(
             self.hass,
@@ -505,6 +507,12 @@ class CardataSocEstimateSensor(CardataRestoreSensor):
         if self._unsubscribe:
             self._unsubscribe()
             self._unsubscribe = None
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        attrs = dict(super().extra_state_attributes)
+        attrs.update(self._coordinator.soc_estimate_attributes(self.vin))
+        return attrs
 
     def _handle_update(self, vin: str) -> None:
         if vin != self.vin:
