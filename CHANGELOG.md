@@ -9,6 +9,19 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.16] - 2026-10-10
+
+Your car's position is now available as plain sensors for add-ons that can't read a device tracker, and three setup and range fixes.
+
+### Added
+- **The car's position as plain sensors, opt-in.** Each car now has *GPS
+  latitude* and *GPS longitude* sensors for add-ons whose entity picker only
+  offers `sensor.*` and cannot read a device tracker's attributes (found through
+  DriveLoom, discussion #54, thanks to @lemuba). They are created **disabled**: every fix goes to
+  the recorder as a state, and the device tracker already covers the map and
+  zones. Enable them under the car's disabled entities. Nothing changes for
+  anyone who doesn't. Heading stays on the tracker.
+
 ### Fixed
 - **A range that BMW sends in miles showed the miles as kilometres.** A UK iX1 streams
   *EV range estimate during charging* in miles while the other ranges stay in
