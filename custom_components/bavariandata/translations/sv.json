@@ -193,7 +193,7 @@
           "price_fixed": "Används bara när priskällan är 'Fast pris'.",
           "price_entity": "Används bara när priskällan är 'Prisentitet'. Dess tillstånd måste vara ett pris per kWh.",
           "price_currency": "ISO-kod som visas på kostnadssensorerna, t.ex. EUR, GBP, CHF, SEK.",
-          "grid_energy_entity": "Valfritt. Laddboxens ackumulerade energisumma (en som bara räknar uppåt, inte en räknare per session som nollställs). Wh, kWh och MWh hanteras; utan enhet tolkas den som kWh. Den läses bara för laddningar i din Hem-zon, eftersom mätaren inte vet vilken bil den laddade. Ett uppmätt nätvärde vinner alltid över vår uppskattning på batterisidan — och ett som inte kan stämma, som en husmätare som visar långt mer än batteriet tog emot, ignoreras i stället för att tros på.",
+          "grid_energy_entity": "Valfritt. Laddboxens ackumulerade energisumma (en som bara räknar uppåt, inte en räknare per session som nollställs). Wh, kWh och MWh hanteras; utan enhet tolkas den som kWh. Den läses bara för laddningar i din Hem-zon, eftersom mätaren inte vet vilken bil den laddade. Ett uppmätt nätvärde vinner alltid över vår uppskattning på batterisidan — och ett som inte kan stämma, som en husmätare som visar långt mer än batteriet tog emot, ignoreras i stället för att tros på. Efter tre laddningar hemma driver den också den uppskattade laddnivån medan bilen laddar hemma.",
           "charging_loss_percent": "Valfritt. Räknar upp energin på batterisidan mot nätenergin.",
           "history_retain_months": "0 behåller allt. Äldre sessioner kasseras.",
           "statistics_import": "Speglar energi, kostnad och sträcka i statistik som du kan lägga till i energipanelen. Stannar lokalt; om du stänger av det raderas den igen."

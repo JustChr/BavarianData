@@ -9,6 +9,28 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **Your wallbox meter now drives the state-of-charge estimate while the car
+  charges at home.** Between BMW's readings the estimate used to climb at the
+  rate of BMW's last charging power, which can be hours old, so on a
+  solar-following or interrupted charge it drifted. With a wallbox energy sensor
+  bound (**Configure → Charging costs & history**), the estimate now moves by
+  exactly what the meter counted, including what it counted while Home Assistant
+  was restarting. How the meter's kWh turn into battery percent is worked out
+  from your last ten home charges as an efficiency plus the car's own overhead
+  while charging (about 0.3 kW on an i5). That overhead is why solar-surplus
+  charging is less efficient than 11 kW, and the model gets both right. It starts
+  once three home charges qualify. Replayed against ten days of a real i5's
+  charges, it halved the estimate's error during long silences on solar charges
+  and removed its habit of running about half a point high. Nothing new to set
+  up, and nothing to reset. It stands aside, and BMW's power takes over again
+  without a jump, whenever it can't be sure which car it's counting: away from
+  home, with the car reporting its cable out, while a second car on the same
+  entry is charging, or when the meter is unavailable or jumps. The estimate
+  sensor's `estimate_source` attribute says which one is in charge. The
+  charging-rate sensor follows the meter too, so it shows the rate the estimate
+  really climbs at, and nothing while a solar charge is paused.
+
 ### Fixed
 - **A wrong odometer reading can no longer silence `bavariandata_vehicle_report`
   for good.** A reading the car could not have driven since the last report — one

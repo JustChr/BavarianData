@@ -65,7 +65,9 @@ ableitet:
 Der Ladezustand im Ring ist die Schätzung der Integration. Steht das Auto, ist
 das einfach BMWs letzter Messwert; lädt es, steigt sie mit der Rate weiter, die
 die Ladeleistung ergibt — denn BMW kann mitten im Laden stundenlang schweigen, und
-sein eigener Wert steht dann still. Der nächste echte Messwert ersetzt sie. Siehe
+sein eigener Wert steht dann still. Mit einem verknüpften Wallbox-Zähler
+[treibt zu Hause dieser die Schätzung](DE-Feature-evcc-and-Wallbox-Bridge#it-also-drives-the-state-of-charge-estimate).
+Der nächste echte Messwert ersetzt sie. Siehe
 [die Ladeseite](DE-Feature-Charging-History-and-Cost).
 
 Ein Auto, das Daten der Hochvoltbatterie *und* Kraftstoffdaten sendet, ist ein

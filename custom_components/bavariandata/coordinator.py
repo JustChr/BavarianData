@@ -41,6 +41,7 @@ from .history.classify import (
 )
 from .history.efficiency import TREND_MONTHS, efficiency_profile
 from .history.health import usable_capacity
+from .history.meter_rate import MeterRate, meter_rate
 from .history.pricing import (
     MODE_FIXED,
     CostAccumulator,
@@ -400,6 +401,9 @@ class CardataCoordinator:
     _soc_tracking: Dict[str, SocTracking] = field(default_factory=dict, init=False)
     _soc_rate: Dict[str, float] = field(default_factory=dict, init=False)
     _soc_estimate: Dict[str, float] = field(default_factory=dict, init=False)
+    # What drives each estimate right now, "meter" or "stream" -- kept so a
+    # switch alone, with the figure unchanged, still updates the entity.
+    _soc_source: Dict[str, str] = field(default_factory=dict, init=False)
     _testing_soc_tracking: Dict[str, SocTracking] = field(default_factory=dict, init=False)
     _testing_soc_estimate: Dict[str, float] = field(default_factory=dict, init=False)
     _avg_aux_power_w: Dict[str, float] = field(default_factory=dict, init=False)
@@ -3739,10 +3743,22 @@ class CardataCoordinator:
             self._ac_voltage_v.pop(vin, None)
             self._ac_current_a.pop(vin, None)
             self._ac_phase_count.pop(vin, None)
+            self._soc_source.pop(vin, None)
             changed = removed_estimate or removed_rate or testing_removed
             if notify and changed:
                 async_dispatcher_send(self.hass, self.signal_soc_estimate, vin)
             return changed
+        learned = self._meter_rate_if_driving(vin)
+        tracking.follow_meter(
+            None
+            if learned is None
+            else self._session_grid_meter_kwh(self._session_builders.get(vin)),
+            learned,
+            now,
+        )
+        source = "meter" if tracking.meter_model is not None else "stream"
+        source_changed = self._soc_source.get(vin) != source
+        self._soc_source[vin] = source
         percent = tracking.estimate(now)
         rate = tracking.current_rate_per_hour()
 
@@ -3767,7 +3783,7 @@ class CardataCoordinator:
             if self._soc_estimate.get(vin) != rounded_percent:
                 self._soc_estimate[vin] = rounded_percent
                 estimate_changed = True
-        updated = rate_changed or estimate_changed
+        updated = rate_changed or estimate_changed or source_changed
 
         testing_changed = False
         if testing_tracking:
@@ -3796,6 +3812,66 @@ class CardataCoordinator:
 
     def get_soc_estimate(self, vin: str) -> Optional[float]:
         return self._soc_estimate.get(vin)
+
+    def learned_meter_rate(self, vin: str) -> Optional[MeterRate]:
+        """What wallbox kWh do to this car's SoC, from its home charges in the ledger."""
+
+        if self.history is None or not self.pricing.grid_energy_entity:
+            return None
+        return meter_rate(self.history.sessions(vin), self._home_zone_name())
+
+    def _meter_rate_if_driving(self, vin: str) -> Optional[MeterRate]:
+        """The learned rate, if the wallbox meter may drive this car's estimate now.
+
+        Every condition is one the meter itself cannot check, because nothing
+        it reports says which car it charged: this car must be charging, not
+        reporting its cable out, at home by the ledger's own rule
+        (:func:`meter_counts_this_session`), and the only car of this entry
+        charging -- with two, the meter's advance is both of theirs and neither
+        may claim it. The cable check is for a charging status BMW forgot to
+        end: unplugged, the car cannot be what the wallbox is charging. Anything
+        else, and the stream drives exactly as it did before a meter was bound.
+        """
+
+        tracking = self._soc_tracking.get(vin)
+        if tracking is None or not (tracking.charging_active or tracking.restored_charging):
+            return None
+        if self._plug_state(vin) is False:
+            return None
+        for other, other_tracking in self._soc_tracking.items():
+            if other != vin and (
+                other_tracking.charging_active or other_tracking.restored_charging
+            ):
+                return None
+        builder = self._session_builders.get(vin)
+        location = builder.location if builder is not None else self._charging_location(vin)
+        if not meter_counts_this_session(location, self._home_zone_name()):
+            return None
+        return self.learned_meter_rate(vin)
+
+    def soc_estimate_attributes(self, vin: str) -> Dict[str, Any]:
+        """What drives the estimate, for the entity's attributes.
+
+        Empty without a bound wallbox meter: the stream is then the only source
+        there is, and saying so on every install would be noise.
+        ``meter_reading_kwh`` is also what the entity hands back on restore
+        (see :meth:`restore_soc_cache`).
+        """
+
+        if not self.pricing.grid_energy_entity:
+            return {}
+        tracking = self._soc_tracking.get(vin)
+        learned = self.learned_meter_rate(vin)
+        driving = tracking is not None and tracking.meter_model is not None
+        attrs: Dict[str, Any] = {
+            "estimate_source": "meter" if driving else "stream",
+            "meter_sessions": 0 if learned is None else learned.samples,
+            "meter_percent_per_kwh": None if learned is None else learned.percent_per_kwh,
+            "meter_overhead_kw": None if learned is None else learned.overhead_kw,
+        }
+        if driving and tracking.meter_kwh is not None:
+            attrs["meter_reading_kwh"] = round(tracking.meter_kwh, 3)
+        return attrs
 
     def get_testing_soc_estimate(self, vin: str) -> Optional[float]:
         return self._testing_soc_estimate.get(vin)
@@ -3964,13 +4040,18 @@ class CardataCoordinator:
         estimate: Optional[float] = None,
         rate: Optional[float] = None,
         timestamp: Optional[datetime] = None,
+        meter_kwh: Optional[float] = None,
     ) -> None:
         tracking = self._soc_tracking.setdefault(vin, SocTracking())
         reference_time = timestamp or datetime.now(timezone.utc)
         # Entities restore in no fixed order, so a restored estimate competes
         # with the restored SoC reading on age, not on who came first.
         if estimate is not None and (timestamp is not None or tracking.estimated_percent is None):
-            if tracking.adopt_estimate(estimate, reference_time):
+            # The meter reading only means something next to the moment it
+            # was taken; without a timestamp it cannot be placed.
+            if tracking.adopt_estimate(
+                estimate, reference_time, meter_kwh=meter_kwh if timestamp is not None else None
+            ):
                 self._soc_estimate[vin] = round(estimate, 2)
         if rate is not None:
             tracking.rate_per_hour = rate if rate not in (None, 0) else None

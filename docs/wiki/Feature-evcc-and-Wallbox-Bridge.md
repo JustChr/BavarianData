@@ -98,7 +98,9 @@ truth for those few seconds.)
 
 The same figure the card and the **State Of Charge (Predicted on Integration
 side)** sensor show: BMW's last reading, extrapolated forward while charging
-from the charging power. evcc and your dashboard can never disagree about the
+from the charging power — or from your
+[wallbox meter](#it-also-drives-the-state-of-charge-estimate), once one is bound
+and has learned. evcc and your dashboard can never disagree about the
 percentage. The `updated` topic carries when BMW last actually *measured* it, so
 you can see how old the underlying reading is.
 
@@ -167,6 +169,69 @@ whose own energy is already known to be short — one interrupted by a Home
 Assistant restart, or one that started before we noticed — because there the
 meter is the only thing that saw the missing part, and that's precisely where it
 earns its keep.
+
+### It also drives the state-of-charge estimate
+
+Between BMW's readings, the estimated state of charge normally climbs at the rate
+BMW's last charging power implies. That power arrives in bursts and can be hours
+old, so on a solar-following or interrupted charge the estimate drifts. Once the
+meter has seen **three home charges**, it moves the estimate instead, by exactly
+what it counted.
+
+How far the meter's kilowatt-hours move the battery is worked out from your own
+charging history, the **last ten home charges** the meter measured:
+
+> points gained = efficiency × (kWh from the meter − overhead × hours charging)
+
+The **overhead** is what the car draws while charging that never reaches the
+battery: the onboard charger, the 12 V system, battery management. On the
+maintainer's i5 it is about 0.3 kW. It's why a 2 kW solar-surplus charge is
+visibly less efficient than an 11 kW one, and why one fixed percentage per kWh
+gets either of them wrong. Fitted on solar charges alone, the model predicted an
+11 kW charge from 8 to 80 % to within 0.8 %. Phase count needed no extra term.
+
+A charge teaches if it gained at least 5 points and didn't start before we
+noticed it. A charge interrupted by a Home Assistant restart still counts: the
+meter's total runs on across a restart. A charge whose energy was replaced by
+BMW's charging history doesn't, because that figure is BMW's, not your meter's.
+One charge far off the rest (BMW's SoC near 100 % can do that) is left out. If
+all your charges run at the same power, efficiency and overhead can't be told
+apart, and a plain percentage per kWh is used, which is exact at that power.
+
+Nothing is learned separately, so there is nothing to reset. Change your wallbox
+and the newer charges take over within a couple of weeks. The pack size cancels
+out of the calculation, so a wrong capacity from BMW can't skew it.
+
+The meter drives only while it can't be wrong about which car it's counting:
+
+- **this car is charging, at home** (the same zone rule as above);
+- **its cable is in** — if BMW forgets to end a charge and the car reports itself
+  unplugged, whatever the wallbox charges now is another car;
+- **no other car on this entry is charging** at the same time — with two, the
+  meter's advance belongs to both and neither gets it;
+- **the reading is plausible** — a meter that goes backwards starts a new count,
+  and a jump faster than any 22 kW wallbox could deliver is ignored.
+
+Otherwise the estimate falls back to BMW's charging power, carrying on from where
+the meter left it, without a jump. A real reading from BMW still always replaces
+the estimate, and it still stops at the car's charge target. If Home Assistant
+restarts mid-charge, the meter's advance covers the time it was down, so the
+estimate comes back where the battery actually is.
+
+The **charging rate** follows the meter too: the %/h the estimate is actually
+climbing at, measured over at least five minutes. If the meter hasn't moved for
+15 minutes, a paused solar charge, it shows no rate. A wallbox that reports less
+often than that will show no rate between its reports.
+
+The **State Of Charge (Predicted on Integration side)** sensor shows what is
+driving it: `estimate_source` (`meter` or `stream`), `meter_sessions` (the charges
+it learned from, 0 until three qualify), `meter_percent_per_kwh` and
+`meter_overhead_kw`.
+
+DC charging is never metered at home, so it always uses BMW's power, as before.
+A wallbox that only gives you **power**, not an energy total: create a Home
+Assistant **Integral** helper (*Settings → Devices & services → Helpers*,
+"Integral sensor", Left Riemann, unit prefix k) on its power sensor and bind that.
 
 ---
 

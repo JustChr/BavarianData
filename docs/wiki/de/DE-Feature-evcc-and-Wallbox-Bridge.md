@@ -99,7 +99,9 @@ das *nicht* — der letzte bekannte Wert stimmt für diese paar Sekunden noch.)
 
 Derselbe Wert, den die Karte und der Sensor **Ladezustand (integrationsseitig
 vorhergesagt)** zeigen: BMWs letzte Messung, beim Laden anhand der Ladeleistung
-hochgerechnet. evcc und dein Dashboard können sich beim Prozentwert also nie
+hochgerechnet — oder anhand deines
+[Wallbox-Zählers](#it-also-drives-the-state-of-charge-estimate), sobald einer
+verknüpft ist und gelernt hat. evcc und dein Dashboard können sich beim Prozentwert also nie
 widersprechen. Das Topic `updated` trägt, wann BMW ihn zuletzt tatsächlich
 *gemessen* hat, damit du siehst, wie alt die zugrunde liegende Messung ist.
 
@@ -171,6 +173,78 @@ bei Ladevorgängen, deren eigene Energie bekanntermaßen zu kurz ist — einer, 
 durch einen Neustart von Home Assistant unterbrochen wurde, oder einer, der begann,
 bevor wir es bemerkten —, denn dort ist der Zähler das Einzige, was den fehlenden
 Teil gesehen hat, und genau dort ist er am wertvollsten.
+
+### Er treibt auch den geschätzten Ladezustand
+
+<a id="it-also-drives-the-state-of-charge-estimate"></a>
+
+Zwischen BMWs Messungen steigt der geschätzte Ladezustand normalerweise mit der
+Rate, die BMWs letzte Ladeleistung ergibt. Diese Leistung kommt schubweise und kann
+Stunden alt sein, bei einer PV-geführten oder unterbrochenen Ladung läuft die
+Schätzung daher davon. Hat der Zähler **drei Ladungen zu Hause** gesehen, bewegt
+stattdessen er die Schätzung, um genau das, was er gezählt hat.
+
+Wie weit die Kilowattstunden des Zählers den Akku bewegen, wird aus deinem eigenen
+Ladeverlauf berechnet, aus den **letzten zehn Ladungen zu Hause**, die der Zähler
+gemessen hat:
+
+> gewonnene Prozentpunkte = Wirkungsgrad × (kWh vom Zähler − Grundlast × Ladestunden)
+
+Die **Grundlast** ist, was das Auto beim Laden zieht, ohne dass es im Akku ankommt:
+das Bordladegerät, das 12-V-System, das Batteriemanagement. Beim i5 des Maintainers
+sind das rund 0,3 kW. Deshalb ist eine PV-Überschussladung mit 2 kW sichtbar
+weniger effizient als eine mit 11 kW, und ein fester Prozentsatz pro kWh liegt bei
+einer der beiden daneben. Nur aus PV-Ladungen gelernt, sagte das Modell eine
+11-kW-Ladung von 8 auf 80 % auf 0,8 % genau voraus. Die Zahl der Phasen brauchte
+keinen eigenen Term.
+
+Eine Ladung zählt, wenn sie mindestens 5 Punkte gebracht hat und nicht vor unserem
+Bemerken begann. Eine durch einen Neustart von Home Assistant unterbrochene Ladung
+zählt weiter: Der Zählerstand läuft über einen Neustart hinweg. Eine Ladung, deren
+Energie durch BMWs Ladehistorie ersetzt wurde, zählt nicht, denn dieser Wert stammt
+von BMW, nicht von deinem Zähler. Eine einzelne Ladung, die weit neben den anderen
+liegt (BMWs Ladezustand nahe 100 % kann das), bleibt außen vor. Laufen alle deine
+Ladungen mit derselben Leistung, lassen sich Wirkungsgrad und Grundlast nicht
+trennen, und es gilt ein einfacher Prozentsatz pro kWh, der bei dieser Leistung
+genau ist.
+
+Nichts wird separat gelernt, es gibt also nichts zurückzusetzen. Wechselst du die
+Wallbox, übernehmen die neueren Ladungen innerhalb von ein, zwei Wochen. Die
+Akkugröße kürzt sich aus der Rechnung heraus, eine falsche Kapazität von BMW kann
+sie also nicht verfälschen.
+
+Der Zähler treibt nur, solange er sich nicht irren kann, welches Auto er zählt:
+
+- **dieses Auto lädt, und zwar zu Hause** (dieselbe Zonenregel wie oben);
+- **sein Kabel steckt** — vergisst BMW, eine Ladung zu beenden, und meldet das
+  Auto sich als ausgesteckt, lädt die Wallbox jetzt ein anderes Auto;
+- **kein anderes Auto dieses Eintrags lädt** gleichzeitig — bei zweien gehört der
+  Fortschritt des Zählers beiden, und keines bekommt ihn;
+- **der Wert ist plausibel** — ein Zähler, der zurückgeht, beginnt eine neue
+  Zählung, und ein Sprung, schneller als jede 22-kW-Wallbox liefern könnte, wird
+  ignoriert.
+
+Sonst fällt die Schätzung auf BMWs Ladeleistung zurück und macht dort weiter, wo
+der Zähler sie gelassen hat, ohne Sprung. Eine echte Messung von BMW ersetzt die
+Schätzung weiterhin immer, und sie hält weiter am Ladeziel des Autos an. Startet
+Home Assistant mitten in der Ladung neu, deckt der Fortschritt des Zählers die
+Ausfallzeit ab, und die Schätzung kommt dort zurück, wo der Akku wirklich steht.
+
+Auch die **Laderate** folgt dem Zähler: die %/h, mit denen die Schätzung tatsächlich
+steigt, gemessen über mindestens fünf Minuten. Hat sich der Zähler 15 Minuten lang
+nicht bewegt, eine pausierte PV-Ladung, zeigt sie keine Rate. Eine Wallbox, die
+seltener meldet, zeigt zwischen ihren Meldungen keine Rate.
+
+Der Sensor **Ladezustand (integrationsseitig vorhergesagt)** zeigt, was ihn treibt:
+`estimate_source` (`meter` oder `stream`), `meter_sessions` (die Ladungen, aus
+denen gelernt wurde, 0, bis drei zählen), `meter_percent_per_kwh` und
+`meter_overhead_kw`.
+
+DC-Laden wird zu Hause nie gezählt und nutzt daher wie bisher BMWs Leistung. Gibt
+deine Wallbox nur eine **Leistung** her, keinen Energiezähler: Lege in Home
+Assistant einen **Integral**-Helfer an (*Einstellungen → Geräte & Dienste →
+Helfer*, „Integralsensor“, Riemann links, Präfix k) auf ihren Leistungssensor und
+verknüpfe diesen.
 
 ---
 

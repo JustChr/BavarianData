@@ -87,11 +87,13 @@ class FakeHass:
     # Zones for ``homeassistant.components.zone.async_active_zone``.
     zones: list[Any] = field(default_factory=list)
     tasks: list[Any] = field(default_factory=list)
+    # Entity states a test sets (a wallbox meter): ``entity_id -> State``-alike.
+    entity_states: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         self.bus = types.SimpleNamespace(async_fire=self._fire)
         # ``zone_at`` and friends read entity states; no zones exist here.
-        self.states = types.SimpleNamespace(get=lambda entity_id: None, async_all=lambda *a: [])
+        self.states = types.SimpleNamespace(get=self.entity_states.get, async_all=lambda *a: [])
         self.config = types.SimpleNamespace(latitude=None, longitude=None, config_dir=".")
 
     def _fire(self, event_type: str, data: Optional[dict] = None, **_kw) -> None:
@@ -119,6 +121,11 @@ class FakeHass:
         for timer in due:
             timer.cancelled = True  # a timer fires once
         return due
+
+    def set_state(self, entity_id: str, state: Any, **attributes: Any) -> None:
+        self.entity_states[entity_id] = types.SimpleNamespace(
+            entity_id=entity_id, state=str(state), attributes=attributes, name=entity_id
+        )
 
     def event_types(self) -> list[str]:
         return [name for name, _data in self.events]
