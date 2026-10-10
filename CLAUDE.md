@@ -159,7 +159,9 @@ living only in prose.
   release), `translate` (carry English text into all ten languages, with the
   glossary and what stays English), `review-pr` (reproduce a contributor's PR
   in a worktree, prove its test, judge it, report before acting), `triage` (read a user's diagnostics), `live`
-  (zero-quota reads against the live instance), `shoot` (Playwright screenshots).
+  (zero-quota reads against the live instance), `shoot` (Playwright screenshots),
+  `close` (end every session with it: park or land the work, gates if code
+  changed, docs and wiki in line, memory pruned, close marker set).
 - **Scripts:** `bash scripts/check.sh` runs CI's gates with CI's exact paths and
   ends GREEN/RED (`--no-tests` for lint only); `python tools/i18n_gaps.py` lists
   every missing, broken or stale translation across `translations/`, the card
@@ -167,7 +169,10 @@ living only in prose.
   <tests>` reverts the non-test changes, requires the tests to fail, then
   restores; `python tools/fetch_catalogues.py` fetches BMW's nine catalogue
   exports and reports changes by descriptor; `python tools/stable_changelog.py`
-  drafts a stable's consolidated `[Unreleased]` from its betas.
+  drafts a stable's consolidated `[Unreleased]` from its betas;
+  `python scripts/close_check.py` is the read-only report the `close` skill
+  starts from (git leftovers, changes since the last close, changelog, wiki
+  drift, memory budgets and stale paths).
 - **Agent** (`.claude/agents/docs-lockstep.md`): reads a diff and reports which
   wiki pages, German counterparts, matrix rows and screenshots went stale.
 
