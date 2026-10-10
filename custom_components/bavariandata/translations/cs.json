@@ -21,7 +21,7 @@
       },
       "guided_paste": {
         "title": "Aktivujte data a vložte výsledek",
-        "description": "Nejprve se ujistěte, že jste v portálu BMW vytvořili **CarData Client** přihlášený k odběru **CarData API a CarData Streaming** — aktivátor tohoto klienta najde, nevytváří ho.\n\n1. Otevřete **[stránku nastavení BavarianData]({url})**.\n2. Přetáhněte tlačítko **Activate BMW data** na lištu záložek (jednou).\n3. Otevřete **portál BMW nebo MINI**, přihlaste se a přejděte na stránku **stream setup** vozidla.\n4. Klikněte na záložku **Activate BMW data**. Až skončí, stiskněte **Copy** v zobrazeném okně.\n5. Vložte výsledek níže a stiskněte **Odeslat**.\n\nVše běží ve vašem vlastním prohlížeči — žádné heslo ani relace jej neopustí.\n\n{error}",
+        "description": "Nejprve se ujistěte, že jste v portálu BMW vytvořili **CarData Client** přihlášený k odběru **CarData API a CarData Streaming** — aktivátor tohoto klienta najde, nevytváří ho.\n\n1. Otevřete **{link_open}stránku nastavení BavarianData{link_close}**.\n2. Přetáhněte tlačítko **Activate BMW data** na lištu záložek (jednou).\n3. Otevřete **portál BMW nebo MINI**, přihlaste se a přejděte na stránku **stream setup** vozidla.\n4. Klikněte na záložku **Activate BMW data**. Až skončí, stiskněte **Copy** v zobrazeném okně.\n5. Vložte výsledek níže a stiskněte **Odeslat**.\n\nVše běží ve vašem vlastním prohlížeči — žádné heslo ani relace jej neopustí.\n\n{error}",
         "data": {
           "result": "Výsledek nastavení"
         },
@@ -49,7 +49,7 @@
       },
       "activate_stream_paste": {
         "title": "Aktivujte data a vložte výsledek",
-        "description": "1. Otevřete **[aktivační stránku BavarianData]({url})**.\n2. Přetáhněte tlačítko **Activate BMW data** na lištu záložek (jednou).\n3. Otevřete **portál BMW nebo MINI**, přihlaste se a přejděte na stránku **stream setup** vozidla.\n4. Klikněte na záložku **Activate BMW data**. Až skončí, stiskněte **Copy** v zobrazeném okně.\n5. Vložte výsledek níže a stiskněte **Odeslat**.\n\nVše běží ve vašem vlastním prohlížeči — žádné heslo ani relace jej neopustí. Tato pole jste v portálu už zaškrtli sami? Nechte pole prázdné a stiskněte **Odeslat** pro dokončení.\n\n{error}",
+        "description": "1. Otevřete **{link_open}aktivační stránku BavarianData{link_close}**.\n2. Přetáhněte tlačítko **Activate BMW data** na lištu záložek (jednou).\n3. Otevřete **portál BMW nebo MINI**, přihlaste se a přejděte na stránku **stream setup** vozidla.\n4. Klikněte na záložku **Activate BMW data**. Až skončí, stiskněte **Copy** v zobrazeném okně.\n5. Vložte výsledek níže a stiskněte **Odeslat**.\n\nVše běží ve vašem vlastním prohlížeči — žádné heslo ani relace jej neopustí. Tato pole jste v portálu už zaškrtli sami? Nechte pole prázdné a stiskněte **Odeslat** pro dokončení.\n\n{error}",
         "data": {
           "result": "Výsledek aktivace"
         },
@@ -63,9 +63,9 @@
       }
     },
     "progress": {
-      "wait_for_activation": "**Aktivujte data v prohlížeči**\n\nUjistěte se, že jste v portálu BMW už vytvořili **CarData Client** přihlášený k odběru **CarData API a CarData Streaming** — aktivátor tohoto klienta najde, nevytváří ho.\n\n1. Otevřete **[stránku nastavení BavarianData]({url})**.\n2. Přetáhněte tlačítko **Activate BMW data** na lištu záložek (jednou).\n3. Otevřete **portál BMW nebo MINI**, přihlaste se a přejděte na stránku **stream setup** vozidla.\n4. Klikněte na záložku **Activate BMW data**.\n\nNajde váš Client ID, zkontroluje vozidlo a zapne datový stream — vše ve vašem vlastním prohlížeči, nic ke kopírování. Tento dialog pokračuje automaticky, jakmile přijde odpověď. Zde není nic potřeba klikat.",
+      "wait_for_activation": "**Aktivujte data v prohlížeči**\n\nUjistěte se, že jste v portálu BMW už vytvořili **CarData Client** přihlášený k odběru **CarData API a CarData Streaming** — aktivátor tohoto klienta najde, nevytváří ho.\n\n1. Otevřete **{link_open}stránku nastavení BavarianData{link_close}**.\n2. Přetáhněte tlačítko **Activate BMW data** na lištu záložek (jednou).\n3. Otevřete **portál BMW nebo MINI**, přihlaste se a přejděte na stránku **stream setup** vozidla.\n4. Klikněte na záložku **Activate BMW data**.\n\nNajde váš Client ID, zkontroluje vozidlo a zapne datový stream — vše ve vašem vlastním prohlížeči, nic ke kopírování. Tento dialog pokračuje automaticky, jakmile přijde odpověď. Zde není nic potřeba klikat.",
       "wait_for_authorization": "**Schvalte Home Assistant na přihlašovací stránce BMW/MINI**\n\n1. Otevřete **[autorizační stránku]({verification_url})** a přihlaste se svým účtem BMW/MINI.\n2. Po vyzvání zadejte tento kód: **{user_code}**\n3. Potvrďte zařízení.\n\n**Kód zadejte ručně** — nepoužívejte odkaz, který už kód obsahuje v adrese, a ujistěte se, že není předvyplněn starý kód. Server BMW u předvyplněných kódů často chybně zaznamená *odmítnutí*. Pokud to přesto selže, zkuste to znovu v soukromém/anonymním okně.\n\nNechte tento dialog otevřený — pokračuje automaticky, jakmile schválíte. Zde není nic potřeba klikat.",
-      "wait_for_stream_activation": "**Aktivujte vybraná data v prohlížeči**\n\n1. Otevřete **[aktivační stránku BavarianData]({url})**.\n2. Přetáhněte tlačítko **Activate BMW data** na lištu záložek (jednou).\n3. Otevřete **portál BMW nebo MINI**, přihlaste se a přejděte na stránku **stream setup** vozidla.\n4. Klikněte na záložku **Activate BMW data**.\n\nZapne pole zvolených skupin — vše ve vašem vlastním prohlížeči, nic ke kopírování. Tento dialog pokračuje automaticky, jakmile přijde odpověď. Zde není nic potřeba klikat."
+      "wait_for_stream_activation": "**Aktivujte vybraná data v prohlížeči**\n\n1. Otevřete **{link_open}aktivační stránku BavarianData{link_close}**.\n2. Přetáhněte tlačítko **Activate BMW data** na lištu záložek (jednou).\n3. Otevřete **portál BMW nebo MINI**, přihlaste se a přejděte na stránku **stream setup** vozidla.\n4. Klikněte na záložku **Activate BMW data**.\n\nZapne pole zvolených skupin — vše ve vašem vlastním prohlížeči, nic ke kopírování. Tento dialog pokračuje automaticky, jakmile přijde odpověď. Zde není nic potřeba klikat."
     },
     "error": {
       "device_code_failed": "BMW odmítlo žádost o autorizaci zařízení ({error}). Zkontrolujte, že je Client ID správný a přihlášený k odběru obou služeb CarData, a zkuste to znovu.",
@@ -117,7 +117,7 @@
       },
       "activate_stream_paste": {
         "title": "Aktivujte data a vložte výsledek",
-        "description": "1. Otevřete **[aktivační stránku BavarianData]({url})**.\n2. Přetáhněte tlačítko **Activate BMW data** na lištu záložek (jednou).\n3. Otevřete **portál BMW nebo MINI**, přihlaste se a přejděte na stránku **stream setup** vozidla.\n4. Klikněte na záložku **Activate BMW data**. Až skončí, stiskněte **Copy** v zobrazeném okně.\n5. Vložte výsledek níže a stiskněte **Odeslat**.\n\nVše běží ve vašem vlastním prohlížeči — žádné heslo ani relace jej neopustí.\n\n{error}",
+        "description": "1. Otevřete **{link_open}aktivační stránku BavarianData{link_close}**.\n2. Přetáhněte tlačítko **Activate BMW data** na lištu záložek (jednou).\n3. Otevřete **portál BMW nebo MINI**, přihlaste se a přejděte na stránku **stream setup** vozidla.\n4. Klikněte na záložku **Activate BMW data**. Až skončí, stiskněte **Copy** v zobrazeném okně.\n5. Vložte výsledek níže a stiskněte **Odeslat**.\n\nVše běží ve vašem vlastním prohlížeči — žádné heslo ani relace jej neopustí.\n\n{error}",
         "data": {
           "result": "Výsledek aktivace"
         },
@@ -277,7 +277,7 @@
       }
     },
     "progress": {
-      "wait_for_stream_activation": "**Aktivujte vybraná data v prohlížeči**\n\n1. Otevřete **[aktivační stránku BavarianData]({url})**.\n2. Přetáhněte tlačítko **Activate BMW data** na lištu záložek (jednou).\n3. Otevřete **portál BMW nebo MINI**, přihlaste se a přejděte na stránku **stream setup** vozidla.\n4. Klikněte na záložku **Activate BMW data**.\n\nZapne pole zvolených skupin — vše ve vašem vlastním prohlížeči, nic ke kopírování. Tento dialog pokračuje automaticky, jakmile přijde odpověď. Zde není nic potřeba klikat."
+      "wait_for_stream_activation": "**Aktivujte vybraná data v prohlížeči**\n\n1. Otevřete **{link_open}aktivační stránku BavarianData{link_close}**.\n2. Přetáhněte tlačítko **Activate BMW data** na lištu záložek (jednou).\n3. Otevřete **portál BMW nebo MINI**, přihlaste se a přejděte na stránku **stream setup** vozidla.\n4. Klikněte na záložku **Activate BMW data**.\n\nZapne pole zvolených skupin — vše ve vašem vlastním prohlížeči, nic ke kopírování. Tento dialog pokračuje automaticky, jakmile přijde odpověď. Zde není nic potřeba klikat."
     },
     "error": {
       "mix_needs_both": "Přiřazení energie vyžaduje senzor výkonu FV i senzor výkonu sítě. S jen jedním z nich by rozdělení muselo ten druhý odhadovat.",

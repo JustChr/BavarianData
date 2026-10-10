@@ -224,3 +224,24 @@ def test_bad_input_raises_parse_error(bad):
 def test_wrong_version_is_rejected():
     with pytest.raises(OB.OnboardingParseError):
         OB.parse_onboarding_result(_make_blob(_sample(v=99)))
+
+
+# --- the link in the flow dialog (issue #61) ------------------------------------
+
+
+def test_activation_link_opens_in_a_new_tab() -> None:
+    """Home Assistant routes a same-host Markdown link inside the frontend, and
+    the activation page is no panel -- so the click landed on the dashboard."""
+    ph = OB.activation_link_placeholders(
+        "http://192.168.1.2:8123/bavariandata/onboarding?token=a&b=c"
+    )
+    assert ph["link_open"].startswith('<a href="http://192.168.1.2:8123/')
+    assert 'target="_blank"' in ph["link_open"]
+    assert 'rel="noopener"' in ph["link_open"]
+    assert "&amp;b=c" in ph["link_open"]  # escaped, so the attribute can't be broken out of
+    assert ph["link_close"] == "</a>"
+
+
+def test_activation_link_url_cannot_break_out_of_the_attribute() -> None:
+    ph = OB.activation_link_placeholders('/x"><script>alert(1)</script>')
+    assert "<script>" not in ph["link_open"]

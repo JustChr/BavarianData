@@ -21,7 +21,7 @@
       },
       "guided_paste": {
         "title": "Attiva i dati, poi incolla il risultato",
-        "description": "Assicurati prima di aver creato nel portale BMW un **CarData Client** abbonato a **CarData API e CarData Streaming** — l'attivatore trova quel client, non ne crea uno.\n\n1. Apri la **[pagina di configurazione BavarianData]({url})**.\n2. Trascina il pulsante **Activate BMW data** nella barra dei segnalibri (una sola volta).\n3. Apri il **portale BMW o MINI**, accedi e vai alla pagina **stream setup** di un veicolo.\n4. Fai clic sul segnalibro **Activate BMW data**. Al termine, premi **Copy** nel riquadro che compare.\n5. Incolla il risultato qui sotto e premi **Invia**.\n\nTutto avviene nel tuo browser — nessuna password o sessione ne esce mai.\n\n{error}",
+        "description": "Assicurati prima di aver creato nel portale BMW un **CarData Client** abbonato a **CarData API e CarData Streaming** — l'attivatore trova quel client, non ne crea uno.\n\n1. Apri la **{link_open}pagina di configurazione BavarianData{link_close}**.\n2. Trascina il pulsante **Activate BMW data** nella barra dei segnalibri (una sola volta).\n3. Apri il **portale BMW o MINI**, accedi e vai alla pagina **stream setup** di un veicolo.\n4. Fai clic sul segnalibro **Activate BMW data**. Al termine, premi **Copy** nel riquadro che compare.\n5. Incolla il risultato qui sotto e premi **Invia**.\n\nTutto avviene nel tuo browser — nessuna password o sessione ne esce mai.\n\n{error}",
         "data": {
           "result": "Risultato della configurazione"
         },
@@ -49,7 +49,7 @@
       },
       "activate_stream_paste": {
         "title": "Attiva i dati, poi incolla il risultato",
-        "description": "1. Apri la **[pagina di attivazione BavarianData]({url})**.\n2. Trascina il pulsante **Activate BMW data** nella barra dei segnalibri (una sola volta).\n3. Apri il **portale BMW o MINI**, accedi e vai alla pagina **stream setup** di un veicolo.\n4. Fai clic sul segnalibro **Activate BMW data**. Al termine, premi **Copy** nel riquadro che compare.\n5. Incolla il risultato qui sotto e premi **Invia**.\n\nTutto avviene nel tuo browser — nessuna password o sessione ne esce mai. Hai già selezionato tu questi campi nel portale? Lascia vuota la casella e premi **Invia** per terminare.\n\n{error}",
+        "description": "1. Apri la **{link_open}pagina di attivazione BavarianData{link_close}**.\n2. Trascina il pulsante **Activate BMW data** nella barra dei segnalibri (una sola volta).\n3. Apri il **portale BMW o MINI**, accedi e vai alla pagina **stream setup** di un veicolo.\n4. Fai clic sul segnalibro **Activate BMW data**. Al termine, premi **Copy** nel riquadro che compare.\n5. Incolla il risultato qui sotto e premi **Invia**.\n\nTutto avviene nel tuo browser — nessuna password o sessione ne esce mai. Hai già selezionato tu questi campi nel portale? Lascia vuota la casella e premi **Invia** per terminare.\n\n{error}",
         "data": {
           "result": "Risultato dell'attivazione"
         },
@@ -63,9 +63,9 @@
       }
     },
     "progress": {
-      "wait_for_activation": "**Attiva i dati nel browser**\n\nAssicurati di aver già creato nel portale BMW un **CarData Client** abbonato a **CarData API e CarData Streaming** — l'attivatore trova quel client, non ne crea uno.\n\n1. Apri la **[pagina di configurazione BavarianData]({url})**.\n2. Trascina il pulsante **Activate BMW data** nella barra dei segnalibri (una sola volta).\n3. Apri il **portale BMW o MINI**, accedi e vai alla pagina **stream setup** di un veicolo.\n4. Fai clic sul segnalibro **Activate BMW data**.\n\nTrova il tuo Client ID, controlla il veicolo e attiva lo stream dei dati — tutto nel tuo browser, niente da copiare. Questa finestra prosegue automaticamente non appena riceve la risposta. Qui non c'è nulla da cliccare.",
+      "wait_for_activation": "**Attiva i dati nel browser**\n\nAssicurati di aver già creato nel portale BMW un **CarData Client** abbonato a **CarData API e CarData Streaming** — l'attivatore trova quel client, non ne crea uno.\n\n1. Apri la **{link_open}pagina di configurazione BavarianData{link_close}**.\n2. Trascina il pulsante **Activate BMW data** nella barra dei segnalibri (una sola volta).\n3. Apri il **portale BMW o MINI**, accedi e vai alla pagina **stream setup** di un veicolo.\n4. Fai clic sul segnalibro **Activate BMW data**.\n\nTrova il tuo Client ID, controlla il veicolo e attiva lo stream dei dati — tutto nel tuo browser, niente da copiare. Questa finestra prosegue automaticamente non appena riceve la risposta. Qui non c'è nulla da cliccare.",
       "wait_for_authorization": "**Approva Home Assistant nella pagina di accesso BMW/MINI**\n\n1. Apri la **[pagina di autorizzazione]({verification_url})** e accedi con il tuo account BMW/MINI.\n2. Quando richiesto, inserisci questo codice: **{user_code}**\n3. Conferma il dispositivo.\n\n**Digita il codice a mano** — non usare un link con il codice già nell'indirizzo e assicurati che non sia precompilato un vecchio codice. Il server BMW registra spesso per errore un *rifiuto* per i codici precompilati. Se non funziona comunque, riprova in una finestra privata/in incognito.\n\nLascia aperta questa finestra — prosegue automaticamente non appena approvi. Qui non c'è nulla da cliccare.",
-      "wait_for_stream_activation": "**Attiva i dati selezionati nel browser**\n\n1. Apri la **[pagina di attivazione BavarianData]({url})**.\n2. Trascina il pulsante **Activate BMW data** nella barra dei segnalibri (una sola volta).\n3. Apri il **portale BMW o MINI**, accedi e vai alla pagina **stream setup** di un veicolo.\n4. Fai clic sul segnalibro **Activate BMW data**.\n\nAttiva i campi dei gruppi scelti — tutto nel tuo browser, niente da copiare. Questa finestra prosegue automaticamente non appena riceve la risposta. Qui non c'è nulla da cliccare."
+      "wait_for_stream_activation": "**Attiva i dati selezionati nel browser**\n\n1. Apri la **{link_open}pagina di attivazione BavarianData{link_close}**.\n2. Trascina il pulsante **Activate BMW data** nella barra dei segnalibri (una sola volta).\n3. Apri il **portale BMW o MINI**, accedi e vai alla pagina **stream setup** di un veicolo.\n4. Fai clic sul segnalibro **Activate BMW data**.\n\nAttiva i campi dei gruppi scelti — tutto nel tuo browser, niente da copiare. Questa finestra prosegue automaticamente non appena riceve la risposta. Qui non c'è nulla da cliccare."
     },
     "error": {
       "device_code_failed": "BMW ha rifiutato la richiesta di autorizzazione del dispositivo ({error}). Verifica che il Client ID sia corretto e abbonato a entrambi i servizi CarData, poi riprova.",
@@ -117,7 +117,7 @@
       },
       "activate_stream_paste": {
         "title": "Attiva i dati, poi incolla il risultato",
-        "description": "1. Apri la **[pagina di attivazione BavarianData]({url})**.\n2. Trascina il pulsante **Activate BMW data** nella barra dei segnalibri (una sola volta).\n3. Apri il **portale BMW o MINI**, accedi e vai alla pagina **stream setup** di un veicolo.\n4. Fai clic sul segnalibro **Activate BMW data**. Al termine, premi **Copy** nel riquadro che compare.\n5. Incolla il risultato qui sotto e premi **Invia**.\n\nTutto avviene nel tuo browser — nessuna password o sessione ne esce mai.\n\n{error}",
+        "description": "1. Apri la **{link_open}pagina di attivazione BavarianData{link_close}**.\n2. Trascina il pulsante **Activate BMW data** nella barra dei segnalibri (una sola volta).\n3. Apri il **portale BMW o MINI**, accedi e vai alla pagina **stream setup** di un veicolo.\n4. Fai clic sul segnalibro **Activate BMW data**. Al termine, premi **Copy** nel riquadro che compare.\n5. Incolla il risultato qui sotto e premi **Invia**.\n\nTutto avviene nel tuo browser — nessuna password o sessione ne esce mai.\n\n{error}",
         "data": {
           "result": "Risultato dell'attivazione"
         },
@@ -277,7 +277,7 @@
       }
     },
     "progress": {
-      "wait_for_stream_activation": "**Attiva i dati selezionati nel browser**\n\n1. Apri la **[pagina di attivazione BavarianData]({url})**.\n2. Trascina il pulsante **Activate BMW data** nella barra dei segnalibri (una sola volta).\n3. Apri il **portale BMW o MINI**, accedi e vai alla pagina **stream setup** di un veicolo.\n4. Fai clic sul segnalibro **Activate BMW data**.\n\nAttiva i campi dei gruppi scelti — tutto nel tuo browser, niente da copiare. Questa finestra prosegue automaticamente non appena riceve la risposta. Qui non c'è nulla da cliccare."
+      "wait_for_stream_activation": "**Attiva i dati selezionati nel browser**\n\n1. Apri la **{link_open}pagina di attivazione BavarianData{link_close}**.\n2. Trascina il pulsante **Activate BMW data** nella barra dei segnalibri (una sola volta).\n3. Apri il **portale BMW o MINI**, accedi e vai alla pagina **stream setup** di un veicolo.\n4. Fai clic sul segnalibro **Activate BMW data**.\n\nAttiva i campi dei gruppi scelti — tutto nel tuo browser, niente da copiare. Questa finestra prosegue automaticamente non appena riceve la risposta. Qui non c'è nulla da cliccare."
     },
     "error": {
       "mix_needs_both": "Per attribuire l'energia servono sia un sensore di potenza FV sia un sensore di potenza di rete. Con uno solo dei due la ripartizione dovrebbe supporre l'altro.",

@@ -10,6 +10,11 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [Unreleased]
 
 ### Fixed
+- **The setup link opened the Home Assistant dashboard.** On an install reached by a local address
+  (`http://…:8123`) a left click on *BavarianData activation page* in the setup and
+  Configure dialogs landed on the dashboard instead of the page with the *Activate BMW data*
+  button; only Ctrl/Cmd-click worked. The link now opens in a new tab. Thanks to
+  @Speedy1991 for the diagnosis (#61).
 - **The "Authorization didn't finish" screen pointed to a README section that no
   longer exists.** It now names the right place: *Troubleshooting & FAQ →
   "Authorization didn't finish"* in the manual, which is in English and German.
