@@ -1696,6 +1696,9 @@
       },
       "tyre_rear_right": {
         "name": "Opona tylna prawa"
+      },
+      "last_vehicle_report": {
+        "name": "Ostatni raport pojazdu"
       }
     },
     "binary_sensor": {

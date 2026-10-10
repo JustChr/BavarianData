@@ -99,10 +99,30 @@ Events**). Each carries `vin` and `entry_id`.
 | `bavariandata_zone_arrived` | a drive ends inside a zone | as the *Arrived at a zone* trigger |
 | `bavariandata_zone_left` | a drive leaves the zone it started in | as the *Left a zone* trigger |
 | `bavariandata_situation` | a situation begins (`active: true`) or ends (`active: false`) | `situation` (`parked_unlocked` or `plugged_not_charging`), `active`, `since`, … |
+| `bavariandata_vehicle_report` | the odometer has a new reading and it has not changed for 5 minutes | `timestamp` (the car's own time), `odometer_km`, `previous_odometer_km`, `previous_timestamp`, `distance_km`, `fuel_l`, `fuel_percent`, `range_km`, `soc_percent`, `latitude`, `longitude`, `altitude_m`, `heading` |
 
 `bavariandata_situation` fires at the moment a situation starts, with no waiting
 time — the device triggers add the "for N minutes". In YAML, the same effect
 needs a `wait_for_trigger` on the matching `active: false` event.
+
+`bavariandata_vehicle_report` is made for **logbooks**, above all on older cars
+that send their data in one burst when parked and nothing while driving. It
+fires once per new odometer reading, after the reading has held for 5 minutes,
+so the burst is complete by then. Things to know:
+
+- **It does not fire for a repeated reading.** Some cars repeat their unchanged
+  odometer every few minutes; that is not a report. Neither is the catch-up
+  after a restart, which hands back the car's last values.
+- **The first reading after installing or updating only sets the starting
+  point.** The first event comes with the second new reading.
+- **On a car that streams while driving** it fires at the end of the drive —
+  and a second time if the car stood still for 5 minutes or more in between,
+  in a long traffic jam for example. Each event carries its own `distance_km`,
+  so the distances still add up.
+- **The odometer counts whole kilometres**, so a drive shorter than one
+  kilometre may not change it and then fires nothing.
+- Fields the car does not send are `null`. The position comes with the event,
+  as on the device tracker.
 
 ## Starter blueprints
 

@@ -264,6 +264,18 @@
       "pt": "Pneu traseiro direito",
       "cs": "Pneumatika zadní pravá",
       "sv": "Däck höger bak"
+    },
+    "last_vehicle_report": {
+      "en": "Last Vehicle Report",
+      "de": "Letzte Fahrzeugmeldung",
+      "fr": "Dernier rapport du véhicule",
+      "it": "Ultimo rapporto del veicolo",
+      "es": "Último informe del vehículo",
+      "nl": "Laatste voertuigmelding",
+      "pl": "Ostatni raport pojazdu",
+      "pt": "Último relatório do veículo",
+      "cs": "Poslední hlášení vozidla",
+      "sv": "Senaste fordonsrapport"
     }
   },
   "binary_sensor": {

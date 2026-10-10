@@ -243,6 +243,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | `api_quota_remaining` | Diagnostic | 🟡 |
 | `connection_status`, `last_message`, `last_telematic_api` | Diagnostics | ❌ |
 | `car` (device_tracker) | Location | ❌ |
+| `last_vehicle_report` (disabled by default; the car's own time of its last odometer report) | Diagnostic for logbooks | 🟢 Feature-Entities-and-Devices → derived table (EN + DE) |
 | GPS latitude / longitude sensors (disabled by default, opt-in for add-ons that only take `sensor.*`) | Position as plain sensors | 🟢 Feature-Entities-and-Devices → "Device tracker" (EN + DE) |
 | `vehicle_image` (image) | Cached render | 🟡 |
 
@@ -272,6 +273,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Charging events (`bavariandata_charging_*`) | 🟡 |
 | Device triggers (arrived at / left a zone, parked unlocked, plugged in but not charging, charging started / completed / stopped before the target) — offered only when the car can fire them; live values only, nothing fires from a restart; `trigger.data` per type | 🟢 Feature-Automations → "Device triggers" (both languages); 📷 owed: the trigger list in the automation editor |
 | Trigger events (`bavariandata_zone_*`, `bavariandata_situation`, `bavariandata_charging_interrupted`) | 🟢 Feature-Automations → "Events" |
+| Vehicle-report event (`bavariandata_vehicle_report`: new odometer reading held 5 min; first reading only seeds; no repeat, no restart replay) | 🟢 Feature-Automations → "Events" (EN + DE) |
 | Automation blueprints (2) | 🟡 |
 | API quota + Repairs issue | 🟡 |
 | Daily REST refresh (container + tire, 2 req/day **per vehicle**) | 🟢 Feature-API-Quota → "The daily refresh" + Services-Reference |

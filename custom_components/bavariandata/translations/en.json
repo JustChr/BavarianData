@@ -1926,6 +1926,9 @@
       },
       "tyre_rear_right": {
         "name": "Tire Rear Right"
+      },
+      "last_vehicle_report": {
+        "name": "Last Vehicle Report"
       }
     },
     "binary_sensor": {

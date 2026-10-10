@@ -1285,6 +1285,45 @@ class CardataDrivingDistanceMonthSensor(CardataEntity, SensorEntity):
         self.schedule_update_ha_state()
 
 
+class CardataLastVehicleReportSensor(CardataEntity, SensorEntity):
+    """When the car last reported its odometer, by the car's own clock.
+
+    "Last Message Received" is when Home Assistant heard from BMW; this is when
+    the car spoke. The two part ways for a car parked without reception, whose
+    report arrives hours late (discussion #56). Created disabled: on a car with
+    a heartbeat it changes every few minutes, and only a logbook needs it.
+    """
+
+    _attr_should_poll = False
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
+    _attr_translation_key = "last_vehicle_report"
+
+    def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
+        super().__init__(coordinator, vin, "last_vehicle_report")
+        self._unsubscribe = None
+
+    @property
+    def native_value(self):
+        return self._coordinator.last_vehicle_report(self.vin)
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self._unsubscribe = async_dispatcher_connect(
+            self.hass, self._coordinator.signal_update, self._handle_update
+        )
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._unsubscribe:
+            self._unsubscribe()
+            self._unsubscribe = None
+
+    def _handle_update(self, vin: str, descriptor: str) -> None:
+        if vin == self.vin and descriptor in DESC_ODOMETER:
+            self.schedule_update_ha_state()
+
+
 # Our wheel slugs -> the axle token BMW's streamed tire descriptors use, so a
 # diagnosis entity and a pressure entity for the same wheel share a card slot.
 _AXLE_ROWS = {"front": "row1", "rear": "row2"}
@@ -1426,6 +1465,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     battery_health_entities: Dict[str, CardataBatteryHealthSensor] = {}
     driving_entities: Dict[str, CardataDrivingDistanceMonthSensor] = {}
     real_range_entities: Dict[str, CardataRealRangeSensor] = {}
+    report_entities: Dict[str, CardataLastVehicleReportSensor] = {}
     # vin -> {"status"|<wheel position>: entity}
     tyre_entities: Dict[str, Dict[str, CardataTyreEntity]] = {}
 
@@ -1624,9 +1664,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         if new_entities:
             async_add_entities(new_entities)
 
+    def ensure_report_entity(vin: str, *, force: bool = False) -> None:
+        """Create the last-vehicle-report sensor, disabled, once the car has an odometer.
+
+        Disabled in the registry from the start, like the GPS sensors: nothing
+        changes for anyone who doesn't enable it. ``force`` re-creates one
+        restored from the registry before the odometer has reported.
+        """
+
+        if vin in report_entities:
+            return
+        if not (force or _has_odometer(vin)):
+            return
+        entity = CardataLastVehicleReportSensor(coordinator, vin)
+        report_entities[vin] = entity
+        async_add_entities([entity])
+
     def ensure_entity(vin: str, descriptor: str, *, assume_sensor: bool = False) -> None:
         ensure_soc_tracking_entities(vin)
         ensure_location_entities(vin)
+        ensure_report_entity(vin)
         ensure_charging_summary_entities(vin)
         ensure_battery_health_entity(vin)
         ensure_driving_entity(vin)
@@ -1697,6 +1754,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         if descriptor == "real_range":
             ensure_real_range_entity(vin, force=True)
             continue
+        if descriptor == "last_vehicle_report":
+            # Routed, or the generic path would mint a CardataSensor on its id.
+            ensure_report_entity(vin, force=True)
+            continue
         if descriptor.startswith("tyre_"):
             # Re-create what the car had before today's fetch lands, so the
             # entity keeps its id and history instead of the generic path
@@ -1725,6 +1786,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     for vin in list(coordinator.data.keys()):
         ensure_soc_tracking_entities(vin)
         ensure_location_entities(vin)
+        ensure_report_entity(vin)
         ensure_battery_health_entity(vin)
         ensure_driving_entity(vin)
         ensure_real_range_entity(vin)

@@ -29,6 +29,7 @@ from .const import (
     EVENT_CHARGING_COMPLETE,
     EVENT_CHARGING_INTERRUPTED,
     EVENT_SITUATION,
+    EVENT_VEHICLE_REPORT,
     EVENT_ZONE_ARRIVED,
     EVENT_ZONE_LEFT,
 )
@@ -73,6 +74,7 @@ from .soc_tracking import SocTracking
 from .structured_values import EMPTY_WHEN_NULL
 from .tyre import parse_tyre_diagnosis
 from .units import miles_to_km, normalize_unit
+from .vehicle_report import ARM, REPORT_QUIET_S, SEED, report_decision, report_payload
 from .vehicle_support import is_motorcycle, motorcycle_issue_id
 from .vehicle_triggers import (
     LOCK_DESCRIPTORS,
@@ -473,6 +475,10 @@ class CardataCoordinator:
     # pending timer means charging just stopped and we're waiting to see whether
     # it resumes (a status flap) before committing the close.
     _charge_close_timers: Dict[str, Any] = field(default_factory=dict, init=False)
+    # The vehicle-report debounce, per VIN: the cancel callback, and the
+    # odometer reading it is waiting on (``vehicle_report.py``).
+    _report_timers: Dict[str, Any] = field(default_factory=dict, init=False)
+    _report_pending: Dict[str, float] = field(default_factory=dict, init=False)
     # Per-VIN GPS movement trackers. Trips are detected from the live position
     # stream because the i5 streams no motion/ignition and its ``trip.segment``
     # batches are not trip-end markers -- it emits them repeatedly *mid-drive*
@@ -957,6 +963,9 @@ class CardataCoordinator:
 
         if status_change is not None:
             self._fire_charging_event(vin, status_change[0], tracking, status_change[1])
+
+        if any(descriptor in data for descriptor in DESC_ODOMETER):
+            self._note_odometer_report(vin)
 
         for descriptor in new_sensor:
             async_dispatcher_send(self.hass, self.signal_new_sensor, vin, descriptor)
@@ -1761,6 +1770,108 @@ class CardataCoordinator:
             except TypeError, ValueError:
                 continue
         return None
+
+    def _odometer_timestamp(self, vin: str) -> Optional[str]:
+        """The car's own timestamp on the odometer reading ``_odometer_km`` uses."""
+
+        for descriptor in DESC_ODOMETER:
+            state = self.get_state(vin, descriptor)
+            if state is not None and state.value is not None:
+                return state.timestamp
+        return None
+
+    def last_vehicle_report(self, vin: str) -> Optional[datetime]:
+        """When the car last reported its odometer, by the car's clock.
+
+        The odometer rather than the newest timestamp of anything: a parked car's
+        service-demand and Check Control fields arrive on BMW's own schedule, some
+        with dates months old, so "anything" would say the car reported at 9 pm
+        when its last drive ended at 9 am (discussion #56).
+        """
+
+        timestamp = self._odometer_timestamp(vin)
+        return dt_util.parse_datetime(timestamp) if timestamp else None
+
+    def _note_odometer_report(self, vin: str) -> None:
+        """Arm the vehicle-report debounce when the odometer reached a new reading.
+
+        Re-armed only by a *new* value: the heartbeat repeats of an unchanged
+        reading must not hold the event back, and must never fire it either
+        (``vehicle_report.py``).
+        """
+
+        if self.history is None:
+            return
+        odometer_km = self._odometer_km(vin)
+        last = self.history.last_report(vin)
+        decision = report_decision(odometer_km, last)
+        if decision == SEED:
+            self.history.async_set_last_report(
+                vin,
+                {"odometer_km": odometer_km, "timestamp": self._odometer_timestamp(vin)},
+            )
+            return
+        if decision != ARM or self._report_pending.get(vin) == odometer_km:
+            return
+        self._cancel_report_timer(vin)
+        self._report_pending[vin] = odometer_km
+
+        @callback
+        def _fire(_now) -> None:
+            self._report_timers.pop(vin, None)
+            armed = self._report_pending.pop(vin, None)
+            # A newer reading would have re-armed the timer; anything else is a
+            # value that has gone away again, and is not announced.
+            if armed is not None and self._odometer_km(vin) == armed:
+                self._fire_vehicle_report(vin, armed)
+
+        self._report_timers[vin] = async_call_later(self.hass, REPORT_QUIET_S, _fire)
+
+    def _cancel_report_timer(self, vin: str) -> None:
+        cancel = self._report_timers.pop(vin, None)
+        if cancel is not None:
+            cancel()
+        self._report_pending.pop(vin, None)
+
+    def _fire_vehicle_report(self, vin: str, odometer_km: float) -> None:
+        if self.history is None:
+            return
+        last = self.history.last_report(vin) or {}
+        timestamp = self._odometer_timestamp(vin)
+        payload = report_payload(
+            vin,
+            odometer_km=odometer_km,
+            timestamp=timestamp,
+            last=last,
+            values={
+                "fuel_l": self._numeric(vin, "vehicle.drivetrain.fuelSystem.remainingFuel"),
+                "fuel_percent": self._numeric(vin, "vehicle.drivetrain.fuelSystem.level"),
+                "range_km": self._numeric(vin, "vehicle.drivetrain.lastRemainingRange"),
+                "soc_percent": self._numeric(vin, "vehicle.drivetrain.batteryManagement.header"),
+                "latitude": self._numeric(vin, DESC_GPS_LAT),
+                "longitude": self._numeric(vin, DESC_GPS_LON),
+                "altitude_m": self._numeric(
+                    vin, "vehicle.cabin.infotainment.navigation.currentLocation.altitude"
+                ),
+                "heading": self._numeric(vin, DESC_GPS_HEADING),
+            },
+        )
+        payload["entry_id"] = self.entry_id
+        # Recorded before firing: an automation that raises must not leave the
+        # reading unrecorded, to be announced a second time.
+        self.history.async_set_last_report(
+            vin, {"odometer_km": odometer_km, "timestamp": timestamp}
+        )
+        self.hass.bus.async_fire(EVENT_VEHICLE_REPORT, payload)
+
+    def _numeric(self, vin: str, descriptor: str) -> Optional[float]:
+        state = self.get_state(vin, descriptor)
+        if state is None or isinstance(state.value, bool):
+            return None
+        try:
+            return float(state.value)
+        except TypeError, ValueError:
+            return None
 
     def _battery_kwh(self, vin: str, descriptor: str) -> Optional[float]:
         state = self.get_state(vin, descriptor)
@@ -3070,6 +3181,11 @@ class CardataCoordinator:
         for cancel in list(self._trip_close_timers.values()):
             cancel()
         self._trip_close_timers.clear()
+        # A pending vehicle report is dropped, not fired: the reading is newer
+        # than the persisted record, so the first batch after the restart -- the
+        # stream's or the REST catch-up's -- re-arms it.
+        for vin in list(self._report_timers):
+            self._cancel_report_timer(vin)
         for vin in list(self._trip_builders):
             reason = "silent" if vin in self._trip_held_since else "unload"
             with suppress(Exception):

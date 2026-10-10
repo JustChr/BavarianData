@@ -68,6 +68,11 @@ class HistoryStore:
         # sums, exports or backfills history may see a record that is still
         # moving. The coordinator drains this at startup.
         self._open_sessions: dict[str, dict[str, Any]] = {}
+        # The last odometer reading announced as a vehicle report, one per VIN
+        # (``vehicle_report.py``). Persisted because a restart's REST catch-up
+        # replays the car's last values, and only a record that survives the
+        # restart can tell that replay from a new report.
+        self._reports: dict[str, dict[str, Any]] = {}
         self._loaded = False
 
     async def async_load(self) -> None:
@@ -111,6 +116,11 @@ class HistoryStore:
         for vin, snapshot in (data.get("open_sessions") or {}).items():
             if isinstance(snapshot, dict):
                 self._open_sessions[vin] = snapshot
+
+        # Additive, like ``open_sessions``: absent in every older store.
+        for vin, report in (data.get("reports") or {}).items():
+            if isinstance(report, dict):
+                self._reports[vin] = report
 
         # ``trips`` is absent in schema-1 stores; a plain ``.get`` handles the
         # upgrade with no migration step.
@@ -252,6 +262,19 @@ class HistoryStore:
         self.async_schedule_save()
         return True
 
+    def last_report(self, vin: str) -> Optional[dict[str, Any]]:
+        """The last odometer reading announced for one VIN, or ``None``."""
+
+        report = self._reports.get(vin)
+        return dict(report) if report is not None else None
+
+    @callback
+    def async_set_last_report(self, vin: str, report: dict[str, Any]) -> None:
+        """Record the reading just announced (or seeded) for one VIN."""
+
+        self._reports[vin] = dict(report)
+        self.async_schedule_save()
+
     def import_cardata_sessions(
         self,
         vin: str,
@@ -352,6 +375,7 @@ class HistoryStore:
                 vin: [trip.to_dict() for trip in trips] for vin, trips in self._trips.items()
             },
             "open_sessions": dict(self._open_sessions),
+            "reports": dict(self._reports),
         }
 
     async def async_save_now(self) -> None:
@@ -366,4 +390,7 @@ class HistoryStore:
         self._sessions = {}
         self._trips = {}
         self._open_sessions = {}
+        # Emptied with the rest: the next reading then only seeds the record,
+        # so deleting history can never announce a report that is a replay.
+        self._reports = {}
         await self._store.async_remove()

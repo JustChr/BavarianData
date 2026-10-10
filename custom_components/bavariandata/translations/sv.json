@@ -1696,6 +1696,9 @@
       },
       "tyre_rear_right": {
         "name": "Däck höger bak"
+      },
+      "last_vehicle_report": {
+        "name": "Senaste fordonsrapport"
       }
     },
     "binary_sensor": {

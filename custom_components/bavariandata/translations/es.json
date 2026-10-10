@@ -1696,6 +1696,9 @@
       },
       "tyre_rear_right": {
         "name": "Neumático trasero derecho"
+      },
+      "last_vehicle_report": {
+        "name": "Último informe del vehículo"
       }
     },
     "binary_sensor": {

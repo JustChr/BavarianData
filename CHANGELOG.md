@@ -9,6 +9,17 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **An event for logbooks: `bavariandata_vehicle_report`.** It fires once when the
+  car reports a new odometer reading and the reading has held for 5 minutes, with
+  the distance since the last report, fuel, range, charge and position. Made for
+  older cars that send everything in one burst when parked; a repeated reading or
+  the catch-up after a restart never fires it. The first reading after updating only
+  sets the starting point. Suggested by @ursubey (discussion #56).
+- **A *Last Vehicle Report* sensor, disabled by default:** when the car last reported
+  its odometer, by the car's own clock, for a car whose report arrives late after
+  parking without reception (#56).
+
 ## [0.9.16] - 2026-10-10
 
 Your car's position is now available as plain sensors for add-ons that can't read a device tracker, and three setup and range fixes.
