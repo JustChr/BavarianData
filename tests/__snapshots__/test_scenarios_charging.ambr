@@ -58,7 +58,7 @@
     195.0  advance 195              est= 80.00 rate=    - charging=off open=n sessions=1 charging_stopped
     300.0  wait 300                 est= 80.00 rate=    - charging=off open=n sessions=1
     300.0  back from 100 km         est= 25.00 rate=    - charging=off open=n sessions=1
-    400.0  wait 400                 est= 25.00 rate=    - charging=off open=n sessions=1
+    400.0  wait 400                 est= 25.00 rate=    - charging=off open=n sessions=1 vehicle_report
     400.0  plug in 400              est= 25.00 rate=18.78 charging=on  open=y sessions=1 charging_started
     410.0  wait 410                 est= 28.13 rate=18.78 charging=on  open=y sessions=1
     410.0  charging 410             est= 28.00 rate=18.78 charging=on  open=y sessions=1

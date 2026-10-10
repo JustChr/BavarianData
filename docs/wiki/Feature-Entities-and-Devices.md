@@ -22,8 +22,9 @@ Every descriptor BMW streams becomes a native entity:
 - Percentages are measurements with long-term statistics too, including those
   without a device class: the tank level in %, seat and steering-wheel heating,
   sunroof and door positions, preconditioning progress.
-- Every entity exposes its **source timestamp** plus its catalogue `cluster` and
-  `category` as attributes — the [dashboard card](The-Dashboard-Card) uses these
+- Every entity exposes its **source timestamp** (`timestamp`: when the car
+  measured the value, not when Home Assistant received it) plus its catalogue
+  `cluster` and `category` as attributes — the [dashboard card](The-Dashboard-Card) uses these
   to group values regardless of the user's HA language.
 - A few descriptors are **lists** rather than single values — **Condition Based
   Service** (each service item with its due date) and **Check Control messages**
@@ -62,6 +63,7 @@ integration's own translations (so they are named in your language too).
 | **State-of-charge estimate / rate** | Extrapolated SoC helpers (need the Electric vehicle cluster). |
 | **Stream Connection Status** | Diagnostic: MQTT connection state. |
 | **Last Message Received** | Diagnostic: timestamp of the last stream payload. |
+| **Last Vehicle Report** | Diagnostic, **disabled by default**: when the car last reported its odometer, by the car's own clock. Differs from *Last Message Received* when a car parked without reception reports late. |
 | **Last Telematics API Call** | Diagnostic: timestamp of the last REST call. |
 
 The charging, state-of-charge, battery-health and real-range entities only exist

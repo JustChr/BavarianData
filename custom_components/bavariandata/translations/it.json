@@ -1696,6 +1696,9 @@
       },
       "tyre_rear_right": {
         "name": "Pneumatico posteriore destro"
+      },
+      "last_vehicle_report": {
+        "name": "Ultimo rapporto del veicolo"
       }
     },
     "binary_sensor": {

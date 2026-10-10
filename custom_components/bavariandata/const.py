@@ -144,6 +144,9 @@ EVENT_ZONE_LEFT = f"{DOMAIN}_zone_left"
 # "active", "since"}. The device triggers turn "began, and lasted N minutes"
 # into one firing; the raw pair is there for YAML users too.
 EVENT_SITUATION = f"{DOMAIN}_situation"
+# The car reported a new odometer reading and it has held for a while: the
+# moment an end-of-trip car's burst is complete (``vehicle_report.py``).
+EVENT_VEHICLE_REPORT = f"{DOMAIN}_vehicle_report"
 
 # Bundled Lovelace card. The JS is served as a static path and auto-registered as
 # a frontend resource so users don't have to add it manually.

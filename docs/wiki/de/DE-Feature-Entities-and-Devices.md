@@ -24,8 +24,9 @@ Jeder Deskriptor, den BMW streamt, wird zu einer eigenen Entität:
 - Prozentwerte sind ebenfalls Messwerte mit Langzeitstatistiken, auch ohne
   Geräteklasse: der Tankfüllstand in %, Sitz- und Lenkradheizung, Schiebedach-
   und Türstellungen, der Fortschritt der Vorklimatisierung.
-- Jede Entität hat ihren **Quell-Zeitstempel** sowie `cluster` und `category` aus
-  dem Katalog als Attribute — die [Dashboard-Karte](DE-The-Dashboard-Card)
+- Jede Entität hat ihren **Quell-Zeitstempel** (`timestamp`: wann das Auto den
+  Wert gemessen hat, nicht wann Home Assistant ihn empfing) sowie `cluster` und
+  `category` aus dem Katalog als Attribute — die [Dashboard-Karte](DE-The-Dashboard-Card)
   gruppiert die Werte darüber, unabhängig von der Sprache in Home Assistant.
 - Einige Deskriptoren sind **Listen** statt einzelner Werte — **Condition Based
   Service** (jede Serviceposition mit Fälligkeitsdatum) und **Check Control
@@ -67,6 +68,7 @@ passend).
 | **Ladezustand (integrationsseitig vorhergesagt) / Vorhergesagte Ladegeschwindigkeit** | Hochgerechnete Ladezustands-Helfer (brauchen die Datengruppe Elektrofahrzeug). |
 | **Stream-Verbindungsstatus** | Diagnose: Zustand der MQTT-Verbindung. |
 | **Letzte empfangene Nachricht** | Diagnose: Zeitstempel der letzten Stream-Nachricht. |
+| **Letzte Fahrzeugmeldung** | Diagnose, **standardmäßig deaktiviert**: wann das Auto zuletzt seinen Kilometerstand gemeldet hat, nach der Uhr des Autos. Weicht von *Letzte empfangene Nachricht* ab, wenn ein Auto ohne Empfang geparkt war und verspätet meldet. |
 | **Letzter Telematik-API-Aufruf** | Diagnose: Zeitstempel des letzten REST-Aufrufs. |
 
 Die Entitäten für Laden, Ladezustand, Batteriezustand und reale Reichweite gibt es

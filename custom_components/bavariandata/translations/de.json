@@ -1696,6 +1696,9 @@
       },
       "tyre_rear_right": {
         "name": "Reifen hinten rechts"
+      },
+      "last_vehicle_report": {
+        "name": "Letzte Fahrzeugmeldung"
       }
     },
     "binary_sensor": {

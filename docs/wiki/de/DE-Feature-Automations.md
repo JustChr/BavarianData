@@ -102,10 +102,31 @@ ausgelöst, für YAML-Automationen und Node-RED (beobachten kannst du sie unter
 | `bavariandata_zone_arrived` | eine Fahrt in einer Zone endet | wie beim Auslöser *In einer Zone angekommen* |
 | `bavariandata_zone_left` | eine Fahrt die Zone verlässt, in der sie begann | wie beim Auslöser *Eine Zone verlassen* |
 | `bavariandata_situation` | eine Situation beginnt (`active: true`) oder endet (`active: false`) | `situation` (`parked_unlocked` oder `plugged_not_charging`), `active`, `since`, … |
+| `bavariandata_vehicle_report` | der Kilometerstand hat einen neuen Wert und hat sich 5 Minuten nicht verändert | `timestamp` (die Zeit des Autos), `odometer_km`, `previous_odometer_km`, `previous_timestamp`, `distance_km`, `fuel_l`, `fuel_percent`, `range_km`, `soc_percent`, `latitude`, `longitude`, `altitude_m`, `heading` |
 
 `bavariandata_situation` löst im Moment des Beginns aus, ohne Wartezeit — das
 „für N Minuten“ fügen die Geräte-Auslöser hinzu. In YAML braucht derselbe Effekt
 ein `wait_for_trigger` auf das passende Ereignis mit `active: false`.
+
+`bavariandata_vehicle_report` ist für **Fahrtenbücher** gedacht, vor allem bei
+älteren Autos, die ihre Daten beim Abstellen in einem Schwung senden und während
+der Fahrt nichts. Es löst einmal pro neuem Kilometerstand aus, nachdem der Wert
+5 Minuten gleich geblieben ist — dann ist der Schwung vollständig. Gut zu wissen:
+
+- **Ein wiederholter Wert löst nichts aus.** Manche Autos wiederholen ihren
+  unveränderten Kilometerstand alle paar Minuten; das ist keine Meldung. Ebenso
+  wenig das Nachholen nach einem Neustart, das die letzten Werte des Autos
+  zurückgibt.
+- **Der erste Wert nach Installation oder Update legt nur den Startpunkt fest.**
+  Das erste Ereignis kommt mit dem zweiten neuen Wert.
+- **Bei einem Auto, das während der Fahrt streamt,** löst es am Ende der Fahrt
+  aus — und ein zweites Mal, wenn das Auto zwischendurch 5 Minuten oder länger
+  stand, etwa in einem langen Stau. Jedes Ereignis bringt sein eigenes
+  `distance_km` mit, die Strecken gehen also trotzdem auf.
+- **Der Kilometerstand zählt ganze Kilometer**, eine Fahrt unter einem Kilometer
+  ändert ihn womöglich nicht und löst dann nichts aus.
+- Felder, die das Auto nicht sendet, sind `null`. Die Position kommt mit dem
+  Ereignis, wie beim Device Tracker.
 
 ## Blueprints für den Einstieg
 
