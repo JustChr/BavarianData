@@ -1274,6 +1274,17 @@ class CardataCoordinator:
             # left restored and the grace timer keeps the deadline.
             return
         if was_charging == now_charging:
+            if (
+                not now_charging
+                and str(status).strip().upper() in CHARGE_TERMINAL_STATUSES
+                and vin not in self._charge_close_timers
+                and vin not in self._session_builders
+            ):
+                # The car says no charge is running and none is open here: any
+                # progress figure still standing is one whose close we never saw
+                # -- the charge ended while Home Assistant was down, or before
+                # an update that clears them -- and came back with the restore.
+                self._clear_charge_progress(vin)
             return
         soc = (
             tracking.estimated_percent

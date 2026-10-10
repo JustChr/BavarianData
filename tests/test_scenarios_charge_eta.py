@@ -195,3 +195,33 @@ def test_a_restart_that_never_hears_back_leaves_them_alone():
         h.advance_to(40)  # past the 15-minute grace, and BMW said nothing
 
         assert _value(h, TTF) == 32
+
+
+def test_figures_restored_after_an_unseen_close_clear_on_the_next_report():
+    """Live on 2026-10-10: the charge ended before the update, the restart
+    restored 32 min and 10.56 kW, and no close was left to clear them."""
+
+    with CoordinatorHarness() as h:
+        h.send(10, soc=80, target=80, status="CHARGINGENDED", power=10560)
+        h.send(11, extra={TTF: 32, REMAINING: 118}, step="BMW's leftovers")
+        assert not h.has_open_session()
+        assert _value(h, TTF) == 32
+
+        h.restart(downtime_s=60)
+        assert _value(h, TTF) == 32  # restored as they were
+
+        h.send(30, status="CHARGINGENDED", step="BMW republishes the status")
+        assert _value(h, TTF) == 0
+        assert _value(h, REMAINING) == 0
+        assert _value(h, POWER) == 0
+
+
+def test_a_repeated_stop_inside_the_debounce_leaves_them_to_the_close():
+    with CoordinatorHarness() as h:
+        _bmw_charge(h)
+        h.send(40, status="NOCHARGING")
+        h.send(41, status="NOCHARGING")  # inside the 2-minute debounce
+        assert _value(h, TTF) == 32
+        h.send(41.5, status="CHARGINGACTIVE")  # it was a flap after all
+        h.advance_to(50)
+        assert _value(h, TTF) == 32

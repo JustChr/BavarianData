@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Leftover charging figures from a charge that ended unseen now clear too.**
+  Beta 2 zeroes BMW's *time to full*, *remaining time* and *charging power* when
+  it sees a charge end. A charge that ended while Home Assistant was down, or
+  before you updated, kept its last values, because Home Assistant restored them
+  at startup. They now clear the next time the car reports that it isn't
+  charging.
+
 ## [0.9.17-beta.2] - 2026-10-10
 
 ### Added
