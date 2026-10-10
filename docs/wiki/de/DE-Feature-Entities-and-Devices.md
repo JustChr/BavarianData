@@ -59,13 +59,13 @@ passend).
 | **Ladekosten (letzter Ladevorgang)** | Kosten des letzten Ladevorgangs — nur mit Preisquelle. |
 | **Ladekosten pro 100 km** | Braucht den Kilometerstand und zwei Ladevorgänge, um eine Strecke zu messen. Nicht bei einem [Plug-in-Hybrid](DE-Feature-Efficiency-and-Range#plug-in-hybride). |
 | **Batteriezustand** | Gelernte nutzbare Kapazität (kWh), mit Prozent vom Neuwert, Zahl der Proben und einem Verlauf der Kapazität über die Laufleistung. |
-| **Reale Reichweite** | Wie weit das Auto mit der aktuellen Ladung wirklich kommt (km), aus gemessenem Verbrauch und nutzbarer Kapazität — mit der Prognose des Autos und der Abweichung als Attribute. Nicht bei einem [Plug-in-Hybrid](DE-Feature-Efficiency-and-Range#plug-in-hybride). |
+| **Reale Reichweite** | Wie weit das Auto mit der aktuellen Ladung wirklich kommt (km), aus gemessenem Verbrauch und nutzbarer Kapazität — mit der Prognose des Autos und der Abweichung als Attribute. Zeigt `unknown`, bis dein Ladeverlauf einen Wert trägt; das Attribut `status` sagt, warum ([Details](DE-Feature-Efficiency-and-Range#the-real-range-sensor)). Nicht bei einem [Plug-in-Hybrid](DE-Feature-Efficiency-and-Range#plug-in-hybride). |
 | **Fahrstrecke (dieser Monat)** | Strecke im Monat plus Aufteilung geschäftlich/privat/Pendeln. |
 | **Fahrt aktiv** | Binärsensor: `an`, solange eine Fahrt läuft, mit der bisherigen Fahrt als Attributen. Bewusst *kein* „bewegt sich“-Sensor — er bleibt nach der Ankunft noch eine Weile an; siehe [Fahrten](DE-Feature-Trips#seeing-the-drive-thats-happening-now). |
 | **Reifenzustand** | BMWs Gesamturteil zum montierten Satz, plus etwaige Fehler der Gegenseite. |
 | **Reifen vorne links / vorne rechts / hinten links / hinten rechts** | Verschleiß-Ampel pro Rad (`green`/`yellow`/`red`/`grey`), mit Restlaufleistung bis zum Wechsel, Defektstatus, Saison, Dimension, Profil und Montagedatum als Attributen. |
 | **Verbleibendes API-Kontingent** | Diagnose: übrige Anfragen im Fenster von 50 pro 24 h. |
-| **Ladezustand (integrationsseitig vorhergesagt) / Vorhergesagte Ladegeschwindigkeit** | Hochgerechnete Ladezustands-Helfer (brauchen die Datengruppe Elektrofahrzeug). |
+| **Ladezustand (integrationsseitig vorhergesagt) / Vorhergesagte Ladegeschwindigkeit** | Hochgerechnete Ladezustands-Helfer (brauchen die Datengruppe Elektrofahrzeug) — siehe [welche Ladezustands-Entität verwenden](#which-state-of-charge-entity-to-use). |
 | **Vorhergesagte Zeit bis zum Ladeziel** | Minuten, bis eine Ladung **zu Hause** das Ladeziel des Autos erreicht, berechnet aus dem [Wallbox-Zähler](DE-Feature-evcc-and-Wallbox-Bridge#time-to-the-charge-target). `0`, wenn nicht geladen wird; unbekannt unterwegs, in den ersten Minuten einer Ladung und während eine PV-Ladung pausiert. Nur mit verknüpftem Wallbox-Zähler. |
 | **Stream-Verbindungsstatus** | Diagnose: Zustand der MQTT-Verbindung. |
 | **Letzte empfangene Nachricht** | Diagnose: Zeitstempel der letzten Stream-Nachricht. |
@@ -150,6 +150,46 @@ Fahrertür verriegelt ist — der Zustand nach einem Entriegeln aus der Ferne.
 Der Zustand **offen/geschlossen** jeder Tür ist wiederum getrennt und gestreamt:
 die vier Binärsensoren `Status der Tür …`.
 
+## Welche Reichweiten-Entität verwenden
+
+<a id="which-range-entity-to-use"></a>
+
+Ein Elektroauto kann bis zu fünf Reichweiten-Sensoren von BMW haben und einen von
+uns — und BMW hat dem am wenigsten nützlichen den naheliegendsten Namen gegeben:
+
+| Entität | Deskriptor | Was sie ist |
+| --- | --- | --- |
+| **Verbleibende elektrische Reichweite in km** | `electricEngine.kombiRemainingElectricRange` | Die elektrische Reichweite im **Kombiinstrument**. Die richtige. |
+| **Zuletzt gesendete Restreichweite** | `lastRemainingRange` | Gesamtreichweite. Beim reinen E-Auto derselbe Wert; beim Plug-in-Hybrid **mit Tankinhalt**. |
+| **Prognose der elektrischen Reichweite während des Ladevorgangs** | `electricEngine.remainingElectricRange` | Eine Prognose **während des Ladens**. Sie kommt ein paar Mal am Tag und bleibt dann stehen; bei einem geparkten Auto kann sie weit daneben liegen — 128 km bei einem Auto, das 379 anzeigt. |
+| **Verbleibende elektrische Reichweite in Abhängigkeit vom Zielwert des Ladezustands** | `range.target` | Die Reichweite, wenn das Auto sein **Ladeziel** erreicht hat, nicht die jetzige. |
+| **Restreichweite** | `navigation.remainingRange` | Der Wert des Navigationssystems. |
+| **Reale Reichweite** | — (berechnet) | Unsere: wie weit dein **gemessener** Verbrauch mit der aktuellen Ladung reicht. Siehe [Effizienz & reale Reichweite](DE-Feature-Efficiency-and-Range). |
+
+Welche davon ankommen, hängt vom Auto ab — nicht jedes Modell streamt alle. Die
+[Dashboard-Karte](DE-The-Dashboard-Card) zeigt *Verbleibende elektrische
+Reichweite in km* und greift nur bei einem Auto, das sie nicht sendet, auf die
+anderen zurück.
+
+## Welche Ladezustands-Entität verwenden
+
+<a id="which-state-of-charge-entity-to-use"></a>
+
+Dieselbe Falle beim Akkustand:
+
+| Entität | Deskriptor | Was sie ist |
+| --- | --- | --- |
+| **Ladestatus der Hochvoltbatterie** | `batteryManagement.header` | Der **gemessene** Ladezustand der Hochvoltbatterie, gestreamt. Trotz des Deskriptornamens die richtige. |
+| **Ladezustand (integrationsseitig vorhergesagt)** | — (berechnet) | Unsere. Im Stand gleich dem gemessenen Wert; beim Laden **zählt sie weiter**, wenn BMW mitten in der Ladung verstummt, was stundenlang dauern kann. Die Karte zeigt diese. |
+| **Anzeige des Ladezustands** | `stateOfCharge.displayed` | BMWs Anzeigewert, bei Autos, die ihn streamen. |
+| **Aktueller vorhergesagter Ladezustand** | `electricEngine.charging.level` | BMWs serverseitige Prognose (das, was die MyBMW App zeigt). **Nur REST**, aktualisiert sich also nie über den Stream. |
+| **Ladezustand der Batterie** (Fahrt) | `trip.segment.end…hvSoc` | Ändert sich nur am Ende einer Fahrt. |
+| **Niedervoltbatterie** | `electricalSystem.battery.stateOfCharge` | Die kleine 12-V-Batterie, nicht der Antriebsakku. |
+
+Füllt sich *Ladestatus der Hochvoltbatterie* nie, ist der Deskriptor in deiner
+Datenauswahl nicht eingeschaltet — siehe
+[Ladeverlauf](DE-Feature-Charging-History-and-Cost#no-startend-soc-on-a-session).
+
 ## Entitätsnamen und deine Sprache
 
 <a id="entity-names-and-your-language"></a>
@@ -193,10 +233,31 @@ damit zur getippten ID. Britisches Englisch überschreibt nur die Wörter, die s
 tatsächlich unterscheiden, und erbt alles andere; deshalb erscheint eine neue
 Bezeichnung dort sofort mit, ohne auf eine Übersetzung zu warten.
 
-## Warum manche Entitäten „nicht verfügbar“ sind
+## Unbekannt oder nicht verfügbar?
 
-Entitäten behalten ihre Attribute `cluster`/`category` auch wiederhergestellt oder
-nicht verfügbar, weil die Datengruppen-Ansichten der Karte davon abhängen. Eine
-Entität kann nicht verfügbar sein, bis das Auto diesen Deskriptor das nächste Mal
-streamt — löse in der MyBMW App ein Ver- oder Entriegeln aus, um eine
-Aktualisierung anzustoßen.
+<a id="unknown-or-unavailable"></a>
+<a id="why-some-entities-are-unavailable"></a>
+
+Die beiden bedeuten hier Verschiedenes.
+
+**`unbekannt`: Es gibt noch keinen Wert.** Entweder hat BMW dieses Feld seit der
+Installation nicht gesendet, oder eine berechnete Entität wartet noch auf genug
+Daten:
+
+| Entität | Worauf sie wartet |
+| --- | --- |
+| Ein BMW-Feld | Die nächste Meldung des Autos. Gestreamte Felder füllen sich von selbst; ein Ver- oder Entriegeln in der MyBMW App stößt meist eine an. **Nur-REST**-Felder ([welche](DE-Getting-Started-4-Choose-Data#some-fields-never-arrive-on-the-stream)) brauchen die tägliche Aktualisierung oder einen `fetch_*`-Dienst. Ein Feld, das dein Auto nicht hat, bleibt dauerhaft `unbekannt`. |
+| **Reale Reichweite** | Mindestens ~50 km zwischen zwei aufgezeichneten Ladungen und eine Akkukapazität vom Auto. Das Attribut `status` nennt, was fehlt: `not_enough_history` oder `no_capacity`. |
+| **Ladekosten pro 100 km** | Eine [Preisquelle](DE-Feature-Charging-History-and-Cost#setting-up-cost) und zwei Ladungen mit einer Fahrt dazwischen. |
+| **Batteriezustand** | Nicht `unbekannt`: Er zeigt `Learning (n/10)`, bis er zehn gute Ladungen hat ([warum](DE-Feature-Battery-Health)). |
+| **Vorhergesagte Zeit bis zum Ladeziel** | Eine Ladung zu Hause mit verknüpftem Wallbox-Zähler ([Details](DE-Feature-evcc-and-Wallbox-Bridge#time-to-the-charge-target)). |
+
+**`nicht verfügbar`: Die Integration läuft für diese Entität nicht.** BavarianData
+setzt die eigenen Entitäten nie auf nicht verfügbar. Es heißt also: Die
+Integration ist nicht gestartet oder muss neu autorisiert werden (siehe
+*Einstellungen → Geräte & Dienste* und *Reparaturen*), oder die Entität ist ein
+Überbleibsel von etwas, das die Integration nicht mehr anlegt — dann kannst du sie
+löschen.
+
+In beiden Fällen behalten Entitäten ihre Attribute `cluster`/`category`, weil die
+Datengruppen-Ansichten der Karte davon abhängen.

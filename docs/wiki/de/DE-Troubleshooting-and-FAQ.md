@@ -81,6 +81,26 @@ gestreamt“**: Dieser Cluster ist in der Datenauswahl im Portal nicht gespeiche
 oder dein Auto liefert diese Daten nicht. Aktiviere ihn erneut unter
 **Konfigurieren → Gestreamte Daten auswählen** oder wähle ihn ab.
 
+## Ein Sensor bleibt „unbekannt“ oder hängt, während der Rest aktualisiert
+
+<a id="one-sensor-reads-unknown"></a>
+
+Meist kein Fehler. Prüfe drei Dinge:
+
+1. **Wird er berechnet statt von BMW gesendet?** *Reale Reichweite*, die
+   Ladekosten-Sensoren und *Batteriezustand* brauchen erst etwas Ladeverlauf. Das
+   Attribut `status` der Realen Reichweite sagt, worauf sie wartet. Siehe
+   [Unbekannt oder nicht verfügbar?](DE-Feature-Entities-and-Devices#unknown-or-unavailable)
+2. **Ist es der richtige Sensor?** Mehrere Reichweiten- und Ladezustands-Sensoren
+   sehen ähnlich aus, und manche ändern sich nur beim Laden oder am Ende einer
+   Fahrt. Siehe [welche Reichweiten-Entität](DE-Feature-Entities-and-Devices#which-range-entity-to-use)
+   und [welche Ladezustands-Entität](DE-Feature-Entities-and-Devices#which-state-of-charge-entity-to-use)
+   verwenden.
+3. **Sendet BMW ihn noch?** Die [Diagnosedaten](#download-diagnostics) listen jedes
+   Feld mit Anzahl und Zeitpunkt der letzten Ankunft. Kommt ein Feld weiter an,
+   aber seine Entität folgt nicht, ist das ein Fehler — öffne ein Issue mit den
+   Diagnosedaten im Anhang.
+
 ## Ein Sensor zeigt einen absurden Wert oder nach einem Update „unbekannt“
 
 <a id="sensor-value-looks-wrong"></a>

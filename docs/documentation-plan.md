@@ -230,7 +230,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 
 | Entity | Kind | Status |
 | --- | --- | --- |
-| `soc_estimate`, `soc_rate` | Extrapolated SoC helpers | 🟡 — the wallbox-meter mode and its attributes (`estimate_source`, `meter_sessions`, `meter_percent_per_kwh`, `meter_overhead_kw`) are 🟢 in Feature-evcc-and-Wallbox-Bridge → "It also drives the state-of-charge estimate" |
+| `soc_estimate`, `soc_rate` | Extrapolated SoC helpers | 🟡 — what it is vs BMW's SoC fields is 🟢 in Feature-Entities-and-Devices → "Which state-of-charge entity to use"; the wallbox-meter mode and its attributes (`estimate_source`, `meter_sessions`, `meter_percent_per_kwh`, `meter_overhead_kw`) are 🟢 in Feature-evcc-and-Wallbox-Bridge → "It also drives the state-of-charge estimate" |
 | `charge_eta` | Minutes to the charge target at home, from the wallbox meter | 🟢 Feature-evcc-and-Wallbox-Bridge → "Time to the charge target" + Feature-Entities-and-Devices + The-Dashboard-Card |
 | `soc_estimate_testing` | Diagnostic variant | ❌ |
 | `charged_energy_total`, `charged_energy_session` | Energy integration | 🟡 |
@@ -238,6 +238,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | `charging_cost_month`, `charging_cost_session`, `charging_cost_per_100km` | Cost | 🟡 |
 | `battery_health` | Learned capacity | 🟡 |
 | `real_range` | Measured consumption → range now, vs BMW's own estimate | 🟢 Feature-Efficiency-and-Range + Feature-Entities-and-Devices + The-Dashboard-Card |
+| Look-alike BMW fields: which range and which state-of-charge entity to use; `unknown` (no value yet, what each derived entity waits for, Real Range's `status`) vs `unavailable` (integration not running) | 🟢 Feature-Entities-and-Devices → "Which range entity to use" + "Which state-of-charge entity to use" + "Unknown or unavailable?" + Feature-Efficiency-and-Range → "The Real Range sensor" + Troubleshooting-and-FAQ → "One sensor reads unknown or looks stuck" (EN + DE; issue #62) |
 | `driving_distance_month` | Monthly distance + split | 🟡 |
 | `trip_in_progress` (binary_sensor) | The drive under way, with live attributes | 🟢 Feature-Trips → "Seeing the drive that's happening now" + Feature-Entities-and-Devices + The-Dashboard-Card |
 | `tyre_status`, `tyre_<position>` (×4) | Tire wear / condition from the REST diagnosis | 🟢 Feature-Entities-and-Devices + The-Dashboard-Card |

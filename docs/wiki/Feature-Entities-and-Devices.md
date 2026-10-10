@@ -54,13 +54,13 @@ integration's own translations (so they are named in your language too).
 | **Charging Cost (Last Session)** | Cost of the most recent session — only with a price source. |
 | **Charging Cost per 100 km** | Needs the odometer and two sessions to measure a distance. Not created for a [plug-in hybrid](Feature-Efficiency-and-Range#plug-in-hybrids). |
 | **Battery Health** | Learned usable capacity (kWh), with vs-new %, sample count and a capacity-vs-mileage trend. |
-| **Real Range** | How far the car really goes from its current charge (km), from measured consumption and usable capacity — with the car's own prediction and the difference as attributes. Not created for a [plug-in hybrid](Feature-Efficiency-and-Range#plug-in-hybrids). |
+| **Real Range** | How far the car really goes from its current charge (km), from measured consumption and usable capacity — with the car's own prediction and the difference as attributes. Reads `unknown` until your charging history can support a figure; the `status` attribute says why ([details](Feature-Efficiency-and-Range#the-real-range-sensor)). Not created for a [plug-in hybrid](Feature-Efficiency-and-Range#plug-in-hybrids). |
 | **Driving Distance (This Month)** | Monthly distance + business/private/commute split. |
 | **Trip in Progress** | Binary sensor: `on` while a drive is under way, with the trip so far as attributes. Deliberately *not* a "moving" sensor — it lingers after an arrival; see [Trips](Feature-Trips#seeing-the-drive-thats-happening-now). |
 | **Tire Condition** | BMW's overall verdict on the mounted set, plus any upstream errors. |
 | **Tire Front Left / Front Right / Rear Left / Rear Right** | Per-wheel wear traffic light (`green`/`yellow`/`red`/`grey`), with the mileage until a change is due, defect status, season, dimension, tread pattern and fitting date as attributes. |
 | **API Quota Remaining** | Diagnostic: requests left in the 50/24 h window. |
-| **State-of-charge estimate / rate** | Extrapolated SoC helpers (need the Electric vehicle cluster). |
+| **State-of-charge estimate / rate** | Extrapolated SoC helpers (need the Electric vehicle cluster) — see [which state-of-charge entity to use](#which-state-of-charge-entity-to-use). |
 | **Predicted time to charge target** | Minutes until a **home** charge reaches the car's target, worked out from the [wallbox meter](Feature-evcc-and-Wallbox-Bridge#time-to-the-charge-target). `0` when not charging; unknown away from home, in a charge's first minutes or while a solar charge is paused. Only with a wallbox meter bound. |
 | **Stream Connection Status** | Diagnostic: MQTT connection state. |
 | **Last Message Received** | Diagnostic: timestamp of the last stream payload. |
@@ -134,6 +134,41 @@ the driver's — the state a car lands in after a remote unlock.
 Per-door **open/closed** state is separate again, and streamed: the four
 `Door state (…)` binary sensors.
 
+## Which range entity to use
+
+An electric car can have up to five range sensors from BMW plus one of ours, and
+BMW gave the least useful one the most obvious name:
+
+| Entity | Descriptor | What it is |
+| --- | --- | --- |
+| **Range EV Remaining range** | `electricEngine.kombiRemainingElectricRange` | The electric range in the **instrument cluster**. The one to use. |
+| **Range Total range (last sent)** | `lastRemainingRange` | Total range. The same figure on a pure EV; on a plug-in hybrid it **includes the fuel**. |
+| **Range EV Estimate during charging** | `electricEngine.remainingElectricRange` | A prediction made **while charging**. It arrives a few times a day and then sits on that value, so on a parked car it can be far off — 128 km on a car showing 379. |
+| **Range EV Remaining (set target based)** | `range.target` | The range once the car reaches its **charge target**, not the range now. |
+| **GPS remaining range** | `navigation.remainingRange` | The navigation system's figure. |
+| **Real Range** | — (calculated) | Ours: how far your **measured** consumption reaches on the current charge. See [Efficiency & real range](Feature-Efficiency-and-Range). |
+
+Which of BMW's arrive depends on the car — not every model streams all of them.
+The [dashboard card](The-Dashboard-Card) shows *Range EV Remaining range* and
+only falls back to the others on a car that doesn't send it.
+
+## Which state-of-charge entity to use
+
+The same trap, with the battery level:
+
+| Entity | Descriptor | What it is |
+| --- | --- | --- |
+| **Battery HV State Of Charge** | `batteryManagement.header` | The high-voltage battery's **measured** charge level, streamed. Despite the descriptor name, this is the one. |
+| **State Of Charge (Predicted on Integration side)** | — (calculated) | Ours. While parked it equals the measured value; while charging it **keeps counting** when BMW goes quiet mid-charge, which it can for hours. The card shows this one. |
+| **Battery EV Displayed state of charge** | `stateOfCharge.displayed` | BMW's display figure, on cars that stream it. |
+| **Charging EV Predicted State Of Charge** | `electricEngine.charging.level` | BMW's server-side prediction (what the MyBMW app shows). **REST only**, so it never updates on the stream. |
+| **Trip Battery charge level at end of trip** | `trip.segment.end…hvSoc` | Only changes when a drive ends. |
+| **Battery charge level (12V)** | `electricalSystem.battery.stateOfCharge` | The small 12 V battery, not the drive battery. |
+
+If *Battery HV State Of Charge* never fills in, the descriptor isn't switched on
+in your Data Selection — see
+[Charging history](Feature-Charging-History-and-Cost#no-startend-soc-on-a-session).
+
 ## Entity names and your language
 
 <a id="entity-names-and-your-language"></a>
@@ -175,9 +210,28 @@ matches the ID you type. British English overrides only the words that actually
 differ and inherits everything else, which is why a new label appears in both
 without waiting for a translation.
 
-## Why some entities are "unavailable"
+## Unknown or unavailable?
 
-Entities keep exposing their `cluster`/`category` attributes even when restored
-or unavailable, because the card's cluster views depend on them. An entity may
-read unavailable until the car next streams that descriptor — trigger a
-lock/unlock in the MyBMW app to prompt an update.
+<a id="why-some-entities-are-unavailable"></a>
+
+The two mean different things here.
+
+**`unknown`: there is no value yet.** Either BMW hasn't sent this field since
+you installed, or a calculated entity is still waiting for enough data:
+
+| Entity | What it waits for |
+| --- | --- |
+| A BMW field | The car's next report of it. Streamed fields fill in on their own; a lock/unlock in the MyBMW app usually prompts one. **REST-only** fields ([which](Getting-Started-4-Choose-Data#some-fields-never-arrive-on-the-stream)) need the daily refresh or a `fetch_*` service. A field your car doesn't have stays `unknown` for good. |
+| **Real Range** | At least ~50 km driven between two recorded charges, and a battery capacity from the car. Its `status` attribute names the missing one: `not_enough_history` or `no_capacity`. |
+| **Charging Cost per 100 km** | A [price source](Feature-Charging-History-and-Cost#setting-up-cost) and two charges with driving in between. |
+| **Battery Health** | Not `unknown`: it reads `Learning (n/10)` until it has ten good charges ([why](Feature-Battery-Health)). |
+| **Predicted time to charge target** | A home charge with a wallbox meter bound ([details](Feature-evcc-and-Wallbox-Bridge#time-to-the-charge-target)). |
+
+**`unavailable`: the integration isn't running for that entity.** BavarianData
+never marks its own entities unavailable, so this means the integration failed to
+start or needs re-authorizing (check *Settings → Devices & services* and
+*Repairs*), or the entity is left over from something the integration no longer
+creates — then you can delete it.
+
+Either way, entities keep their `cluster`/`category` attributes, because the
+card's cluster views depend on them.

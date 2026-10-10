@@ -80,6 +80,26 @@ cluster isn't saved in the portal's Data Selection, or your car doesn't produce
 that data. Re-activate it under **Configure → Choose streamed data**, or unselect
 it.
 
+## One sensor reads unknown or looks stuck while the rest update
+
+<a id="one-sensor-reads-unknown"></a>
+
+Usually not a fault. Check three things:
+
+1. **Is it calculated rather than sent by BMW?** *Real Range*, the charging-cost
+   sensors and *Battery Health* need some charging history first. Real Range's
+   `status` attribute says what it is waiting for. See
+   [Unknown or unavailable?](Feature-Entities-and-Devices#unknown-or-unavailable).
+2. **Is it the right sensor?** Several range and state-of-charge sensors look
+   alike, and some only change while charging or at the end of a drive. See
+   [which range entity](Feature-Entities-and-Devices#which-range-entity-to-use)
+   and [which state-of-charge entity](Feature-Entities-and-Devices#which-state-of-charge-entity-to-use)
+   to use.
+3. **Is BMW still sending it?** [Diagnostics](#download-diagnostics) list every
+   field with how often it arrived and when it last did. If a field keeps arriving
+   but its entity doesn't follow, that's a bug — open an issue with the
+   diagnostics attached.
+
 ## A sensor shows an absurd value, or reads unknown after an update
 
 <a id="sensor-value-looks-wrong"></a>

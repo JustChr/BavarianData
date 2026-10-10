@@ -72,11 +72,19 @@ Die Karte zeigt die Abweichung zu BMWs Restreichweiten-Prognose
 (`kombiRemainingElectricRange` — die Zahl im Kombiinstrument). Positiv heißt: Dein
 gemessener Verbrauch reicht *weiter*, als das Auto verspricht.
 
+Ein Auto, das diesen Deskriptor nicht streamt, bekommt keinen Vergleich — die reale
+Reichweite erscheint trotzdem. *Zuletzt gesendete Restreichweite* springt nicht
+ein: Beim Plug-in-Hybrid enthält sie den Tankinhalt. Die übrigen
+Reichweiten-Sensoren erklärt
+[Welche Reichweiten-Entität verwenden](DE-Feature-Entities-and-Devices#which-range-entity-to-use).
+
 BMWs Wert wird nur über **20 % Ladung** auf einen vollen Akku hochgerechnet:
 Darunter vervielfacht die Division einer kleinen Restreichweite durch einen kleinen
 Prozentwert auch ihren eigenen Fehler.
 
 ## Der Sensor Reale Reichweite
+
+<a id="the-real-range-sensor"></a>
 
 Pro E-Auto ein Sensor **Reale Reichweite**:
 
@@ -87,8 +95,19 @@ Pro E-Auto ein Sensor **Reale Reichweite**:
 
 Er wird für ein E-Auto angelegt, das einen Kilometerstand streamt — nicht für einen
 [Plug-in-Hybrid](#plug-in-hybride). Bis der Verlauf einen Wert trägt, zeigt er
-`unknown`, und das Attribut `status` sagt, welche Hälfte fehlt: `not_enough_history`
-oder `no_capacity`.
+`unknown`, und das Attribut `status` sagt, welche Hälfte fehlt:
+
+- `not_enough_history` — noch kein [Fenster](#das-verwendete-fenster) hat zwei
+  Ladungen mit ~50 km dazwischen. Normal bei einer neuen Installation; er füllt
+  sich von selbst nach ein paar weiteren Ladungen mit Fahrten dazwischen.
+- `no_capacity` — das Auto hat seine nutzbare Kapazität (`maxEnergy`) nicht
+  gesendet. Prüfe, ob die Datengruppe Elektrofahrzeug ausgewählt ist.
+- `ok` und trotzdem `unknown` — es fehlt ein aktueller Ladezustand zum Skalieren;
+  `range_full_km` hat den Wert bereits. Siehe
+  [welche Ladezustands-Entität verwenden](DE-Feature-Entities-and-Devices#which-state-of-charge-entity-to-use).
+
+`unknown` ist hier nie ein Fehler im Stream: BMWs Reichweiten-Sensoren
+aktualisieren sich so oder so.
 
 > **Zum hier gezeigten Ladeverlust.** Er ist *gemessen* — netzseitiger gegen
 > batterieseitigen Verbrauch über dasselbe Fenster — und etwas anderes als die

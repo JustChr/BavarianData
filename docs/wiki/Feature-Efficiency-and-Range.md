@@ -68,6 +68,11 @@ The card shows the difference against BMW's remaining-range prediction
 (`kombiRemainingElectricRange` — the number in the instrument cluster). Positive
 means your measured consumption reaches *further* than the car promises.
 
+A car that doesn't stream that descriptor gets no comparison, and the real range
+still shows. *Range Total range (last sent)* is not used in its place: on a
+plug-in hybrid it includes the fuel. The other range sensors are explained in
+[Which range entity to use](Feature-Entities-and-Devices#which-range-entity-to-use).
+
 BMW's figure is scaled up to a full battery only above **20 % charge**: below
 that, dividing a small remaining range by a small percentage multiplies its own
 error with it.
@@ -85,7 +90,18 @@ One **Real Range** sensor per EV:
 It is created for an EV that streams an odometer — not for a
 [plug-in hybrid](#plug-in-hybrids). Until the ledger can support a figure it
 reads `unknown`, and the `status` attribute says which half is missing:
-`not_enough_history` or `no_capacity`.
+
+- `not_enough_history` — no [window](#the-window-it-uses) has two charges with
+  ~50 km between them yet. Normal on a new install; it fills in by itself after a
+  few more charges with driving in between.
+- `no_capacity` — the car hasn't sent its usable capacity (`maxEnergy`). Check
+  that the Electric vehicle cluster is selected.
+- `ok` and still `unknown` — there's no current state of charge to scale by;
+  `range_full_km` already has the figure. See
+  [which state-of-charge entity to use](Feature-Entities-and-Devices#which-state-of-charge-entity-to-use).
+
+`unknown` here is never a fault in the stream: the BMW range sensors keep
+updating either way.
 
 > **Note on the charging loss shown here.** It is *measured* — grid-side
 > consumption against battery-side consumption over the same window — and is a
