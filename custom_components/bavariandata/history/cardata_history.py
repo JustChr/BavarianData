@@ -204,6 +204,7 @@ def session_from_cardata(
         soc_start=_as_float(raw.get("displayedStartSoc")),
         soc_end=_as_float(raw.get("displayedSoc")),
         grid_kwh=grid_kwh,
+        grid_source=None if grid_kwh is None else "bmw",
         peak_power_kw=peak,
         power_curve=curve,
         location=_location(raw.get("chargingLocation"), zone_fn),
@@ -306,6 +307,11 @@ def _absorb_fragments(
     for source in (inc, *victims):
         if len(source.power_curve) > len(keep.power_curve):
             keep.power_curve = source.power_curve
+    # The meter measured only ``keep``'s own stretch; widened past it, BMW's
+    # figure is the one that covers the whole charge.
+    if keep.grid_source == "meter" and inc.grid_kwh is not None:
+        keep.grid_kwh = inc.grid_kwh
+        keep.grid_source = inc.grid_source or "bmw"
 
     for victim in victims:
         result.remove(victim)
@@ -340,8 +346,16 @@ def _enrich_in_place(
     incoming: ChargingSession,
     pad: timedelta = timedelta(seconds=FRAGMENT_PAD_S),
 ) -> None:
-    """Fold BMW's measured figures into an existing session, keeping its id."""
+    """Fold BMW's measured figures into an existing session, keeping its id.
 
+    A grid figure the bound wallbox measured is kept over BMW's: it is the
+    exact one, over exactly this record's span, and the only kind the meter
+    model may learn from -- overwriting it is what used to cost every enriched
+    home charge its place among the charges that teach it. The cost billed
+    from it stays with it, unless BMW's is its own billed amount.
+    """
+
+    metered = target.grid_source == "meter" and target.grid_kwh is not None
     if _soc_arc_was_frozen(target, incoming, pad):
         target.soc_start = incoming.soc_start
         target.soc_end = incoming.soc_end
@@ -351,11 +365,15 @@ def _enrich_in_place(
         # than stay wrong; the cost is kept but flagged, and a fixed tariff
         # below replaces it outright.
         target.energy_kwh = None
-        target.energy_mix = None
-        if target.cost and target.cost.get("source") != "bmw":
-            target.cost = {**target.cost, "partial": True}
-    if incoming.grid_kwh is not None:
+        # Billed and attributed from the meter's own steps, the cost and mix
+        # never saw the capped figure.
+        if not metered:
+            target.energy_mix = None
+            if target.cost and target.cost.get("source") != "bmw":
+                target.cost = {**target.cost, "partial": True}
+    if incoming.grid_kwh is not None and not metered:
         target.grid_kwh = incoming.grid_kwh
+        target.grid_source = incoming.grid_source or "bmw"
     if target.soc_start is None:
         target.soc_start = incoming.soc_start
     if target.soc_end is None:
@@ -379,7 +397,11 @@ def _enrich_in_place(
         target.end = incoming.end
     # BMW's own billed cost (source "bmw") outranks a tariff estimate; otherwise
     # adopt the backfilled tariff cost so an imported session isn't left blank.
-    if incoming.cost and (not target.cost or target.cost.get("source") != "bmw"):
+    if incoming.cost and (
+        incoming.cost.get("source") == "bmw"
+        if metered and target.cost
+        else not target.cost or target.cost.get("source") != "bmw"
+    ):
         target.cost = incoming.cost
     target.enriched = True
 

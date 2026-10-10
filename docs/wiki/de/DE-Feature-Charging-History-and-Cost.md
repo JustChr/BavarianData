@@ -245,7 +245,11 @@ Der Dienst **`bavariandata.fetch_charging_history`** holt BMWs eigene
 aufgezeichnete Ladevorgänge und importiert sie in den lokalen Verlauf, sodass
 Ladungen von vor der Installation auf der Karte und in den Monatsübersichten
 erscheinen. Überlappende live aufgezeichnete Ladevorgänge werden an Ort und Stelle
-um BMWs **gemessene Netzenergie** ergänzt. Dieser Dienst **verbraucht**
+um BMWs **gemessene Netzenergie** ergänzt, außer dein Wallbox-Zähler hat die
+Ladung schon gemessen: Dann bleiben sein Wert und die daraus berechneten Kosten
+erhalten. BMWs eigene abgerechnete Kosten ersetzen sie trotzdem. Schließt BMWs
+Eintrag auch kurze Teile derselben Ladung ein, die der Zähler nicht gemessen hat,
+gilt BMWs Wert für die ganze Ladung. Dieser Dienst **verbraucht**
 API-Kontingent (eine oder mehrere deiner 50 pro 24 h). Ohne **Von** und **Bis**
 holt er die letzten 30 Tage.
 

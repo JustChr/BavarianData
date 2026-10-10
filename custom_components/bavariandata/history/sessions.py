@@ -489,6 +489,7 @@ class SessionBuilder:
         # stop early when the final samples fell inside the downsample window.
         if self._last_power is not None and (not self._curve or self._curve[-1][0] < end_offset):
             self._curve.append([end_offset, self._last_power])
+        grid_kwh = self.measured_grid_kwh(battery_kwh=energy_kwh)
 
         return ChargingSession(
             vin=self.vin,
@@ -508,5 +509,6 @@ class SessionBuilder:
             interrupted=self.interrupted,
             # Measured, not derived: only ever set from the bound wallbox meter
             # (or later, from BMW's own charging history during enrichment).
-            grid_kwh=self.measured_grid_kwh(battery_kwh=energy_kwh),
+            grid_kwh=grid_kwh,
+            grid_source=None if grid_kwh is None else "meter",
         )

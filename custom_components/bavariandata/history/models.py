@@ -99,6 +99,12 @@ class ChargingSession:
     # which is deliberately distinct from a mix that says none of it was solar.
     # Built by ``energy_mix.MixAccumulator`` as the energy arrives.
     energy_mix: Optional[dict[str, Any]] = None
+    # Who measured ``grid_kwh``: "meter" (the bound wallbox, over exactly this
+    # record's span) or "bmw" (its charging history). The meter's figure is the
+    # exact one and survives a merge with BMW's; only a "meter" figure may teach
+    # the meter model (``meter_rate``). ``None`` when there is no grid figure, or
+    # on a record enriched before this was kept, whose figure may be either.
+    grid_source: Optional[str] = None
 
     @property
     def id(self) -> str:
@@ -169,6 +175,7 @@ class ChargingSession:
             "late_start": self.late_start,
             "interrupted": self.interrupted,
             "energy_mix": self.energy_mix,
+            "grid_source": self.grid_source,
         }
 
     @classmethod
@@ -203,7 +210,25 @@ class ChargingSession:
             late_start=bool(data.get("late_start")),
             interrupted=bool(data.get("interrupted")),
             energy_mix=data.get("energy_mix") or None,
+            grid_source=_grid_source(data),
         )
+
+
+def _grid_source(data: dict[str, Any]) -> Optional[str]:
+    """Who measured a stored record's ``grid_kwh``, inferring it for old ones.
+
+    Before the source was kept, a live record only ever got ``grid_kwh`` from
+    the bound meter, so an un-enriched one with a figure is the meter's. An
+    enriched one may carry either -- the merge used to overwrite the meter's
+    figure with BMW's -- so it stays unknown and teaches nothing.
+    """
+
+    source = data.get("grid_source")
+    if source in ("meter", "bmw"):
+        return source
+    if data.get("grid_kwh") is not None and not data.get("enriched"):
+        return "meter"
+    return None
 
 
 def prune_sessions(

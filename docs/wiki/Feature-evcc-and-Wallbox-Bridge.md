@@ -192,8 +192,10 @@ gets either of them wrong. Fitted on solar charges alone, the model predicted an
 
 A charge teaches if it gained at least 5 points and didn't start before we
 noticed it. A charge interrupted by a Home Assistant restart still counts: the
-meter's total runs on across a restart. A charge whose energy was replaced by
-BMW's charging history doesn't, because that figure is BMW's, not your meter's.
+meter's total runs on across a restart. So does a charge that BMW's charging
+history was later merged into: the merge keeps your meter's figure. A charge
+merged before v0.9.17 doesn't, because its figure may have been replaced with
+BMW's, which comes from a different instrument.
 One charge far off the rest (BMW's SoC near 100 % can do that) is left out. If
 all your charges run at the same power, efficiency and overhead can't be told
 apart, and a plain percentage per kWh is used, which is exact at that power.

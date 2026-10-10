@@ -40,6 +40,7 @@ def _charge(day: int, kw: float, hours: float, *, soc_start: float = 30.0, **kw_
         "soc_start": soc_start,
         "soc_end": soc_start + gained,
         "grid_kwh": kwh,
+        "grid_source": "meter",
     }
     fields.update(kw_args)
     return models.ChargingSession(**fields)
@@ -109,7 +110,8 @@ def test_only_the_newest_ten_count():
     "spoiler",
     [
         {"late_start": True},  # the SoC span missed the start
-        {"enriched": True},  # BMW's history replaced the meter's figure
+        {"grid_source": "bmw"},  # BMW's history measured it, not this meter
+        {"grid_source": None, "enriched": True},  # enriched before the source was kept
         {"end": None},  # still open
         {"grid_kwh": None},  # no meter
         {"soc_end": 33.0},  # a 3-point top-up: whole-percent noise
@@ -121,6 +123,13 @@ def test_only_the_newest_ten_count():
 def test_a_charge_that_cannot_teach_is_left_out(spoiler):
     sessions = _mixed(2) + [_charge(5, 2.5, 8.0, **spoiler)]
     assert _rate(sessions) is None
+
+
+def test_an_enriched_charge_that_kept_the_meters_figure_still_teaches():
+    """Merging BMW's history no longer costs a home charge its place."""
+
+    sessions = _mixed(2) + [_charge(5, 2.5, 8.0, enriched=True)]
+    assert _rate(sessions) is not None
 
 
 def test_an_interrupted_charge_still_teaches():

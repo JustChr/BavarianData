@@ -42,6 +42,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   "0 min" outside a charge.
 
 ### Fixed
+- **Fetching BMW's charging history no longer overwrites what your wallbox
+  measured.** Merging BMW's record into a home charge replaced the meter's grid
+  energy with BMW's figure, and the cost billed from the meter with a price on
+  BMW's kWh. The meter's figure is the exact one, so it now stays, along with its
+  cost; BMW's own billed cost still wins. The charge also keeps teaching the
+  state-of-charge estimate, which used to skip every merged charge because it
+  couldn't tell whose figure it held. Each charge now records whose figure it is.
+  Charges merged before this update can't be told apart, so they still sit out.
 - **BMW's time to full and charging power no longer stay stuck after a charge.**
   BMW stops sending them when a charge ends instead of sending zero, so a car
   that had reached its target could show "1 h" to go and 10.56 kW for good. Once

@@ -40,6 +40,7 @@ def _seed(h: CoordinatorHarness, count: int = 3, *, location=None) -> None:
                 soc_end=60.0,
                 energy_kwh=22.0,
                 grid_kwh=24.0,
+                grid_source="meter",
                 location=location,
             )
         )
