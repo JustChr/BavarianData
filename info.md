@@ -29,16 +29,16 @@ with it, so a usable dashboard exists out of the box.
    triggers an update).
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-car.png" alt="Bundled Lovelace card showing a BMW i5 eDrive40 with charge level, range, charging status and odometer" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-car.png?v=2026-10-10" alt="Bundled Lovelace card showing a BMW i5 eDrive40 with charge level, range, charging status and odometer" width="360" />
 </p>
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-security.png" alt="Security &amp; closures card with a top-down car diagram, anti-theft alarm armed and all closures closed" width="300" />
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-tires.png" alt="Tire card with the pressure and wear summary above a top-down car, every tire OK" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-security.png?v=2026-10-10" alt="Security &amp; closures card with a top-down car diagram, anti-theft alarm armed and all closures closed" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-tires.png?v=2026-10-10" alt="Tire card with the pressure and wear summary above a top-down car, every tire OK" width="300" />
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-trips.png" alt="Trips card: the month's distance and average consumption, the commute and private split, top destinations and the latest trips" width="300" />
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-efficiency.png" alt="Efficiency and range card: real range now against the car's prediction, measured consumption, usable capacity, cost per 100 km and consumption by month" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-trips.png?v=2026-10-10" alt="Trips card: the month's distance and average consumption, the commute and private split, top destinations and the latest trips" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-efficiency.png?v=2026-10-10" alt="Efficiency and range card: real range now against the car's prediction, measured consumption, usable capacity, cost per 100 km and consumption by month" width="300" />
 </p>
 <p align="center"><sub>The overview, trips and efficiency are from the <a href="https://justchr.github.io/BavarianData/">website's live demo</a>: a real i5's data, made-up places.</sub></p>
 
