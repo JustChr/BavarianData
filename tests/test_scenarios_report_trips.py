@@ -162,3 +162,62 @@ def test_the_live_mode_ignores_reports(h) -> None:
 
     assert all(not trip.duration_unknown for trip in h.trips())
     assert all(trip.start != h.at(100) for trip in h.trips())
+
+
+@pytest.fixture
+def bev():
+    """An electric car on the report mode -- an older i3, say."""
+
+    harness = CoordinatorHarness(capacity_kwh=75.0)
+    harness.hass.add_zone("Home", *HOME, radius_m=150)
+    harness.hass.add_zone("Work", *WORK, radius_m=150)
+    harness.coordinator.trip_detection = "reports"
+    yield harness
+    harness.close()
+
+
+def _ev_burst(h: CoordinatorHarness, minute: float, km: int, where, **values) -> None:
+    h.send(minute, odometer=km, lat=where[0], lon=where[1], **values)
+
+
+def test_a_charge_between_drives_is_not_part_of_the_trip(bev) -> None:
+    """The previous report's SoC predates the charge: 60 -> 82 % was stored."""
+
+    _ev_burst(bev, 0, 50_000, HOME, soc=60)
+    bev.send(60, soc=75)
+    bev.send(120, soc=90)  # charged at home overnight
+    _ev_burst(bev, 300, 50_030, WORK, soc=82)
+    _settle(bev)
+
+    (trip,) = bev.trips()
+    assert (trip.soc_start, trip.soc_end) == (90, 82)
+    assert trip.energy_kwh == 6.0
+
+
+def test_the_charge_set_off_with_survives_a_restart_mid_report(bev) -> None:
+    """The restart's replay of the burst must not become the starting SoC."""
+
+    _ev_burst(bev, 0, 50_000, HOME, soc=60)
+    bev.send(120, soc=90)
+    _ev_burst(bev, 300, 50_030, WORK, soc=82)
+    bev.advance_to(301)
+    bev.restart()
+    bev.coordinator.trip_detection = "reports"
+    _ev_burst(bev, bev.minute + 2, 50_030, WORK, soc=82)
+    _settle(bev)
+
+    (trip,) = bev.trips()
+    assert (trip.soc_start, trip.soc_end) == (90, 82)
+
+
+def test_a_hybrid_burst_without_a_charge_reading_has_no_end_soc(bev) -> None:
+    """A hybrid that sent no SoC with its burst: "90 -> 90 %" would be made up."""
+
+    _ev_burst(bev, 0, 50_000, HOME, soc=90, extra={FUEL: 40})
+    _ev_burst(bev, 300, 50_030, WORK, extra={FUEL: 38})
+    _settle(bev)
+
+    (trip,) = bev.trips()
+    assert trip.hybrid
+    assert (trip.soc_start, trip.soc_end) == (90, None)
+    assert trip.stats["fuel_used_l"] == 2.0

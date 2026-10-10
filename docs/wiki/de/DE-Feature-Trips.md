@@ -76,6 +76,10 @@ lang gleich geblieben ist) zu einer Fahrt:
 - **Kraftstoff:** die `stats` der Fahrt enthalten `fuel_start_l`, `fuel_end_l` und,
   sofern unterwegs nicht getankt wurde, `fuel_used_l`. Kurze Fahrten zeigen oft
   0 L, weil diese Autos den Tank in ganzen Litern melden.
+- **Ladestand (Elektroautos und Plug-in-Hybride):** Die Fahrt reicht vom
+  Akkustand, mit dem das Auto losgefahren ist (einschließlich jeder Ladung seit dem
+  vorigen Bericht), bis zum Stand in seinem Bericht, und die Energie wird daraus
+  berechnet, wie bei jeder anderen Fahrt.
 - **Startzeit:** Der Schwung sagt, wann das Auto *geparkt* hat, nie, wann es
   losgefahren ist. Eine Fahrt bekommt deshalb nur dann eine echte Startzeit, wenn
   BavarianData erfährt, wann die Fahrt begann: Ruf in diesem Moment

@@ -70,6 +70,10 @@ minutes) becomes one trip:
 - **Fuel:** the trip's `stats` carry `fuel_start_l`, `fuel_end_l` and, unless the
   car was refuelled on the way, `fuel_used_l`. Short trips often show 0 L,
   because these cars report the tank in whole litres.
+- **Charge (electric cars and plug-in hybrids):** the trip runs from the battery
+  level the car had when it set off (including any charging since the previous
+  report) to the level in its report, and the energy is worked out from that,
+  as on any other trip.
 - **Start time:** the burst says when the car *parked*, never when it set off. So
   a trip only gets a real start time if something tells BavarianData when the
   drive began: call `bavariandata.mark_trip_start` at that moment, for example

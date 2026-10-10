@@ -9,6 +9,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Trips from end-of-trip reports now start with the right charge on electric
+  cars and plug-in hybrids.** Beta 3 took the battery level from the car's
+  previous report. If the car had charged since, a drive from 90 % down to 82 %
+  was stored as 60 → 82 %, with no energy. The trip now starts at the charge
+  the car actually had when it set off. On a plug-in hybrid whose report carries
+  no battery reading, the trip's end charge stays empty rather than repeating
+  the start.
+
 ## [0.9.17-beta.3] - 2026-10-11
 
 ### Added

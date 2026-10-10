@@ -850,6 +850,14 @@ class CardataCoordinator:
         tracking = self._soc_tracking.setdefault(vin, SocTracking())
         testing_tracking = self._get_testing_tracking(vin)
         now = datetime.now(timezone.utc)
+        # The charge the car set off with, for a report trip: read before this
+        # batch lands, because a burst carries the SoC it *arrived* with, and the
+        # previous report's reading predates any charge in between.
+        parked_soc: Optional[tuple[float, Optional[datetime]]] = None
+        if self.report_trips and any(descriptor in data for descriptor in DESC_ODOMETER):
+            soc_now = self._current_soc(vin)
+            if soc_now is not None:
+                parked_soc = (soc_now, tracking.last_update)
 
         # Trip signals seen in this batch; acted on after the loop so opening or
         # closing a trip (which may await a geocode) never re-enters mid-iteration.
@@ -1001,7 +1009,7 @@ class CardataCoordinator:
             self._fire_charging_event(vin, status_change[0], tracking, status_change[1])
 
         if any(descriptor in data for descriptor in DESC_ODOMETER):
-            self._note_odometer_report(vin)
+            self._note_odometer_report(vin, parked_soc=parked_soc)
 
         for descriptor in new_sensor:
             async_dispatcher_send(self.hass, self.signal_new_sensor, vin, descriptor)
@@ -1870,7 +1878,9 @@ class CardataCoordinator:
         timestamp = self._odometer_timestamp(vin)
         return dt_util.parse_datetime(timestamp) if timestamp else None
 
-    def _note_odometer_report(self, vin: str) -> None:
+    def _note_odometer_report(
+        self, vin: str, *, parked_soc: Optional[tuple[float, Optional[datetime]]] = None
+    ) -> None:
         """Arm the vehicle-report debounce when the odometer reached a new reading.
 
         Re-armed only by a *new* value: the heartbeat repeats of an unchanged
@@ -1897,6 +1907,19 @@ class CardataCoordinator:
                 vin, {**(last or {}), "candidate": self._report_record(vin, odometer_km)}
             )
             return
+        if decision.kind == ARM and parked_soc is not None and "soc_parked" not in (last or {}):
+            # The first new reading of a drive: what the car stood with before
+            # it. Kept in the record, so a restart's replay of the burst can't
+            # overwrite it with the SoC the car arrived with.
+            soc, soc_at = parked_soc
+            self.history.async_set_last_report(
+                vin,
+                {
+                    **(last or {}),
+                    "soc_parked": soc,
+                    "soc_parked_at": soc_at.isoformat() if soc_at else None,
+                },
+            )
         if decision.kind != ARM or self._report_pending.get(vin) == odometer_km:
             return
         self._cancel_report_timer(vin)
@@ -1994,7 +2017,9 @@ class CardataCoordinator:
         if self.history is None:
             return
         timestamp = self._odometer_timestamp(vin)
-        starts = (self.history.last_report(vin) or {}).get("starts")
+        record = self.history.last_report(vin) or {}
+        starts = record.get("starts")
+        parked = {key: record.get(key) for key in ("soc_parked", "soc_parked_at")}
         start: Optional[datetime] = None
         end_at = dt_util.parse_datetime(timestamp) if timestamp else None
         if end_at is None:
@@ -2031,7 +2056,7 @@ class CardataCoordinator:
         self.hass.bus.async_fire(EVENT_VEHICLE_REPORT, payload)
         if self.report_trips:
             self.hass.async_create_task(
-                self._record_report_trip(vin, odometer_km, baseline, start, end_at)
+                self._record_report_trip(vin, odometer_km, {**baseline, **parked}, start, end_at)
             )
 
     async def _record_report_trip(
@@ -2058,7 +2083,11 @@ class CardataCoordinator:
             start_place = baseline.get("place")
             if not isinstance(start_place, Mapping):
                 start_place = None
-            soc_start = baseline.get("soc")
+            # The SoC just before the burst; the previous report's own reading
+            # only when there is none (a car charged in between left with more).
+            soc_start = baseline.get("soc_parked")
+            if isinstance(soc_start, bool) or not isinstance(soc_start, (int, float)):
+                soc_start = baseline.get("soc")
             if isinstance(soc_start, bool) or not isinstance(soc_start, (int, float)):
                 soc_start = None
             mileage_start = baseline.get("odometer_km")
@@ -2073,6 +2102,15 @@ class CardataCoordinator:
                 location_assumed=start_place is None or start_place.get("label") == "Unknown",
             )
             soc_end = self._current_soc(vin)
+            if self.is_plug_in_hybrid(vin):
+                # As on a live trip (``_trip_soc_end``): a hybrid that sent no
+                # SoC with its burst still shows the one it set off with, and
+                # "38 -> 38 %" would claim the battery never moved.
+                tracking = self._soc_tracking.get(vin)
+                before = dt_util.parse_datetime(baseline.get("soc_parked_at") or "")
+                last = tracking.last_update if tracking is not None else None
+                if last is None or (before is not None and last <= before):
+                    soc_end = None
             trip = builder.close(
                 end_at,
                 end_place=end_place,
