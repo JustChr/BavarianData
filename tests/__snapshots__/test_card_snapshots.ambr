@@ -193,92 +193,115 @@
   </span>All closed</span>
         </div>
           <div class="closcar">
-        <svg class="carsvg" viewBox="0 0 130 228" xmlns="http://www.w3.org/2000/svg">
-          <rect x="13" y="40" width="13" height="34" rx="6" class="carsvg__wheel" style="stroke:var(--divider-color)"/>
-  <rect x="104" y="40" width="13" height="34" rx="6" class="carsvg__wheel" style="stroke:var(--divider-color)"/>
-  <rect x="13" y="160" width="13" height="34" rx="6" class="carsvg__wheel" style="stroke:var(--divider-color)"/>
-  <rect x="104" y="160" width="13" height="34" rx="6" class="carsvg__wheel" style="stroke:var(--divider-color)"/>
+        <svg class="carsvg" viewBox="0 0 948 1659" xmlns="http://www.w3.org/2000/svg">
           
           <defs>
-            <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stop-color="var(--body-lo)"/>
-              <stop offset=".5" stop-color="var(--body-hi)"/>
-              <stop offset="1" stop-color="var(--body-lo)"/>
+            <linearGradient id="carBody" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#bcc2ca"/>
+              <stop offset=".5" stop-color="#dde1e6"/>
+              <stop offset="1" stop-color="#bcc2ca"/>
             </linearGradient>
-            <linearGradient id="roofGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stop-color="var(--roof-lo)"/>
-              <stop offset=".5" stop-color="var(--roof-hi)"/>
-              <stop offset="1" stop-color="var(--roof-lo)"/>
+            <linearGradient id="carRoof" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#7c828b"/>
+              <stop offset=".5" stop-color="#969ca4"/>
+              <stop offset="1" stop-color="#7c828b"/>
             </linearGradient>
-            <linearGradient id="glassGrad" x1="0" y1="0" x2=".35" y2="1">
-              <stop offset="0" stop-color="var(--glass-hi)"/>
-              <stop offset="1" stop-color="var(--glass-lo)"/>
+            <linearGradient id="carGlass" x1="0" y1="0" x2=".4" y2="1">
+              <stop offset="0" stop-color="#43515f"/>
+              <stop offset="1" stop-color="#26313c"/>
             </linearGradient>
+            <linearGradient id="carTail" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#8e1b17"/>
+              <stop offset=".6" stop-color="#e4382b"/>
+              <stop offset="1" stop-color="#ff7a5c"/>
+            </linearGradient>
+            <filter id="carGlow" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="b"/>
+              <feMerge>
+  <feMergeNode in="b"/>
+  <feMergeNode in="SourceGraphic"/>
+  </feMerge>
+            </filter>
+            <clipPath id="carClipWs">
+  <path d="M474 386 C578 386 648 402 704 446 L668 606 C600 597 348 597 280 606 L244 446 C300 402 370 386 474 386 Z"/>
+  </clipPath>
+  <clipPath id="carClipRw">
+  <path d="M298 1190 C400 1182 548 1182 650 1190 L684 1388 C600 1426 348 1426 264 1388 Z"/>
+  </clipPath>
+  <clipPath id="carClipSr">
+  <path d="M358 712 H590 Q598 712 598 720 V1038 Q598 1046 590 1046 H358 Q348 1046 348 1038 V720 Q348 712 358 712 Z"/>
+  </clipPath>
+  <clipPath id="carClipWf">
+  <path d="M221 474 C244 520 272 620 284 720 L288 806 L211 806 L211 620 C212 560 215 512 221 474 Z"/>
+  </clipPath>
+  <clipPath id="carClipWr">
+  <path d="M211 834 L289 834 L289 1040 C286 1130 262 1210 230 1268 L220 1268 C214 1150 211 1000 211 834 Z"/>
+  </clipPath>
           </defs>
-  
-          <!-- fender flares over each wheel -->
-          <rect x="20" y="39" width="5" height="34" rx="2.5" class="carsvg__flare"/>
-          <rect x="105" y="39" width="5" height="34" rx="2.5" class="carsvg__flare"/>
-          <rect x="20" y="159" width="5" height="34" rx="2.5" class="carsvg__flare"/>
-          <rect x="105" y="159" width="5" height="34" rx="2.5" class="carsvg__flare"/>
-  
-          <!-- taut body: wider stance, squarer bumpers, straight flanks -->
-          <path d="M40 6 L90 6 C99 6 107 12 108 24 L108 198 C107 211 103 219 94 222 L36 222 C27 219 23 211 22 198 L22 24 C23 12 31 6 40 6 Z" class="carsvg__body"/>
-  
-          <!-- side mirrors at the cowl -->
-          <path d="M22 88 L14 84 L12 90 L21 94 Z" class="carsvg__mirror"/>
-          <path d="M108 88 L116 84 L118 90 L109 94 Z" class="carsvg__mirror"/>
-  
-          <!-- bumper/hood seam + hood centreline + hood shut lines -->
-          <path d="M38 22 C52 20.5 78 20.5 92 22" class="carsvg__seam"/>
-          <path d="M65 24 L65 86" class="carsvg__crease"/>
-          <path d="M32 38 C29 55 29 74 34 88 M98 38 C101 55 101 74 96 88" class="carsvg__seam"/>
-  
-          <!-- twin kidneys at the very front of the bumper -->
-          <rect x="54" y="6.5" width="22" height="13" rx="2" class="carsvg__chrome"/>
-          <rect x="55" y="7.5" width="9.3" height="11" rx="1.5" class="carsvg__kidney"/>
-          <rect x="65.7" y="7.5" width="9.3" height="11" rx="1.5" class="carsvg__kidney"/>
-          <path d="M57 8.5 V17.5 M60 8.5 V17.5 M67.5 8.5 V17.5 M70.5 8.5 V17.5" class="carsvg__kbar"/>
-  
-          <!-- headlights: fat at the outer bumper corner, tapering inward -->
-          <path d="M22.5 23 C21 11 29 6.5 40 6.5 L47 7 C50.5 8.5 50 10.5 47.5 11.5 C39 12.5 30 15.5 22.5 23 Z" class="carsvg__light"/>
-          <path d="M107.5 23 C109 11 101 6.5 90 6.5 L83 7 C79.5 8.5 80 10.5 82.5 11.5 C91 12.5 100 15.5 107.5 23 Z" class="carsvg__light"/>
-  
-          <!-- windshield -->
-          <path d="M31 88 L99 88 L87 112 L43 112 Z" class="carsvg__glass"/>
-  
-          <!-- roof + sunroof -->
-          <path d="M43 112 L87 112 L86 164 L44 164 Z" class="carsvg__roof"/>
-          <rect x="53" y="120" width="24" height="28" rx="2" class="carsvg__glassdk"/>
-  
-          <!-- side windows: front pair butts the windshield; rear pair matched in length -->
-          <path d="M33 98 L43 112 L43 136 L35 136 Z" class="carsvg__glass"/>
-          <path d="M35 140 L43 140 L43 162 L37 162 Z" class="carsvg__glass"/>
-          <path d="M97 98 L87 112 L87 136 L95 136 Z" class="carsvg__glass"/>
-          <path d="M95 140 L87 140 L87 162 L93 162 Z" class="carsvg__glass"/>
-  
-          <!-- door shut seams + handles (4 doors) -->
-          <path d="M22 138 L43 138 M108 138 L87 138" class="carsvg__seam"/>
-          <rect x="26" y="122" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
-          <rect x="27" y="150" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
-          <rect x="98" y="122" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
-          <rect x="97" y="150" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
-  
-          <!-- rear window -->
-          <path d="M43 164 L87 164 L97 182 L33 182 Z" class="carsvg__glass"/>
-  
-          <!-- rear deck: trunk seam + corner-wrapping tail lights + diffuser -->
-          <path d="M33 187 C48 190 82 190 97 187" class="carsvg__seam"/>
-          <path d="M22.5 205 C21 217 29 221.5 40 221.5 L47 221 C49.5 219.5 49 218.5 47 217.8 C39 217 30 214.5 22.5 205 Z" class="carsvg__tail"/>
-          <path d="M107.5 205 C109 217 101 221.5 90 221.5 L83 221 C80.5 219.5 81 218.5 83 217.8 C91 217 100 214.5 107.5 205 Z" class="carsvg__tail"/>
-          <path d="M52 217 L78 217" class="carsvg__crease"/>
-          <path d="M38 26 H92 L96 88 H34 Z" class="cldiag__hit" data-entity="sensor.mini_hood"/>
-          <path d="M34 184 H96 L93 218 H37 Z" class="cldiag__hit" data-entity="sensor.mini_trunk"/>
-          <path d="M33 98 L43 112 L43 136 L35 136 Z" class="cldiag__hit" data-entity="sensor.mini_window"/>
-          <path d="M53 120 H77 V148 H53 Z" class="cldiag__hit" data-entity="sensor.mini_sunroof"/>
+          <rect x="158" y="195" width="27" height="200" rx="13" class="carsvg__wheel"/>
+  <rect x="158" y="195" width="27" height="200" rx="13" class="carsvg__wheel" transform="matrix(-1 0 0 1 948 0)"/>
+  <rect x="150" y="1255" width="27" height="206" rx="13" class="carsvg__wheel"/>
+  <rect x="150" y="1255" width="27" height="206" rx="13" class="carsvg__wheel" transform="matrix(-1 0 0 1 948 0)"/>
+          
+          <path d="M222 496 C198 504 166 522 151 538 C144 547 147 561 158 563 C180 557 206 549 222 546 Z" class="carsvg__mirror"/>
+  <path d="M222 496 C198 504 166 522 151 538 C144 547 147 561 158 563 C180 557 206 549 222 546 Z" class="carsvg__mirror" transform="matrix(-1 0 0 1 948 0)"/>
+          <path d="M474 12 C420 12 386 16 366 25 C300 52 228 104 202 150 C186 178 180 205 179 245 L177 1120 C176 1180 171 1225 168 1270 L168 1440 C170 1458 176 1474 181 1495 C190 1545 214 1592 258 1620 C318 1644 420 1648 474 1648 C528 1648 630 1644 690 1620 C734 1592 758 1545 767 1495 C772 1474 778 1458 780 1440 L780 1270 C777 1225 772 1180 771 1120 L769 245 C768 205 762 178 746 150 C720 104 648 52 582 25 C562 16 528 12 474 12 Z" class="carsvg__body"/>
+          <path d="M178 466 L222 466 C250 530 280 640 292 760 L294 818 L178 818 Z" class="carsvg__shut"/>
+  <path d="M178 466 L222 466 C250 530 280 640 292 760 L294 818 L178 818 Z" class="carsvg__shut" transform="matrix(-1 0 0 1 948 0)"/>
+          <path d="M178 822 L294 822 L294 1040 C291 1110 274 1160 254 1186 L177 1186 Z" class="carsvg__shut"/>
+  <path d="M178 822 L294 822 L294 1040 C291 1110 274 1160 254 1186 L177 1186 Z" class="carsvg__shut" transform="matrix(-1 0 0 1 948 0)"/>
+          <path d="M330 54 C400 46 548 46 618 54 C676 120 708 260 712 432 C640 398 560 380 474 380 C388 380 308 398 236 432 C240 260 272 120 330 54 Z" class="carsvg__hood"/>
+          <path d="M392 56 C356 160 330 280 318 392 M556 56 C592 160 618 280 630 392" class="carsvg__crease"/>
+          <path d="M262 1402 C348 1436 600 1436 686 1402 L693 1512 C600 1532 348 1532 255 1512 Z" class="carsvg__shut"/>
+          <path d="M178 820 L212 820 M179 466 L220 466 M177 1186 L232 1186 M255 1512 L262 1574 C380 1594 568 1594 686 1574 L693 1512" class="carsvg__shut"/>
+  <path d="M178 820 L212 820 M179 466 L220 466 M177 1186 L232 1186 M255 1512 L262 1574 C380 1594 568 1594 686 1574 L693 1512" class="carsvg__shut" transform="matrix(-1 0 0 1 948 0)"/>
+          <g>
+  <rect x="181" y="704" width="7" height="44" rx="3.5" class="carsvg__handle"/>
+  <rect x="181" y="1004" width="7" height="44" rx="3.5" class="carsvg__handle"/>
+  </g>
+  <g transform="matrix(-1 0 0 1 948 0)">
+  <rect x="181" y="704" width="7" height="44" rx="3.5" class="carsvg__handle"/>
+  <rect x="181" y="1004" width="7" height="44" rx="3.5" class="carsvg__handle"/>
+  </g>
+          <path d="M338 50 C292 70 240 112 204 170 L213 174 C248 124 296 84 342 59 Z" class="carsvg__light"/>
+  <path d="M338 50 C292 70 240 112 204 170 L213 174 C248 124 296 84 342 59 Z" class="carsvg__light" transform="matrix(-1 0 0 1 948 0)"/>
+          <path d="M334 56 C292 76 246 114 210 168" class="carsvg__drl"/>
+  <path d="M334 56 C292 76 246 114 210 168" class="carsvg__drl" transform="matrix(-1 0 0 1 948 0)"/>
+          <path d="M197 1460 C203 1503 230 1538 288 1553 L346 1559 C352 1561 352 1569 346 1570 L284 1568 C220 1556 194 1518 189 1470 C189 1462 195 1456 197 1460 Z" class="carsvg__tail"/>
+  <path d="M197 1460 C203 1503 230 1538 288 1553 L346 1559 C352 1561 352 1569 346 1570 L284 1568 C220 1556 194 1518 189 1470 C189 1462 195 1456 197 1460 Z" class="carsvg__tail" transform="matrix(-1 0 0 1 948 0)"/>
+          <path d="M195 1472 C202 1512 228 1545 292 1560 L340 1564" class="carsvg__tailcore"/>
+  <path d="M195 1472 C202 1512 228 1545 292 1560 L340 1564" class="carsvg__tailcore" transform="matrix(-1 0 0 1 948 0)"/>
+          <g>
+  <rect x="366" y="12" width="104" height="38" rx="16" class="carsvg__chrome"/>
+  <rect x="371" y="17" width="94" height="28" rx="12" class="carsvg__kidney"/>
+  <path d="M382 21 V43 M393 21 V43 M404 21 V43 M415 21 V43 M426 21 V43 M437 21 V43 M448 21 V43 M459 21 V43" class="carsvg__kbar"/>
+  </g>
+  <g transform="matrix(-1 0 0 1 948 0)">
+  <rect x="366" y="12" width="104" height="38" rx="16" class="carsvg__chrome"/>
+  <rect x="371" y="17" width="94" height="28" rx="12" class="carsvg__kidney"/>
+  <path d="M382 21 V43 M393 21 V43 M404 21 V43 M415 21 V43 M426 21 V43 M437 21 V43 M448 21 V43 M459 21 V43" class="carsvg__kbar"/>
+  </g>
+          <path d="M474 386 C578 386 648 402 704 446 L668 606 C600 597 348 597 280 606 L244 446 C300 402 370 386 474 386 Z" class="carsvg__glass carsvg__frame"/>
+          <path d="M284 614 C380 604 568 604 664 614 C650 720 648 1000 652 1186 C560 1177 388 1177 296 1186 C300 1000 298 720 284 614 Z" class="carsvg__roof"/>
+          <path d="M358 712 H590 Q598 712 598 720 V1038 Q598 1046 590 1046 H358 Q348 1046 348 1038 V720 Q348 712 358 712 Z" class="carsvg__glass"/>
+          <path d="M221 474 C244 520 272 620 284 720 L288 806 L211 806 L211 620 C212 560 215 512 221 474 Z" class="carsvg__glass"/>
+  <path d="M221 474 C244 520 272 620 284 720 L288 806 L211 806 L211 620 C212 560 215 512 221 474 Z" class="carsvg__glass" transform="matrix(-1 0 0 1 948 0)"/>
+          <path d="M211 834 L289 834 L289 1040 C286 1130 262 1210 230 1268 L220 1268 C214 1150 211 1000 211 834 Z" class="carsvg__glass"/>
+  <path d="M211 834 L289 834 L289 1040 C286 1130 262 1210 230 1268 L220 1268 C214 1150 211 1000 211 834 Z" class="carsvg__glass" transform="matrix(-1 0 0 1 948 0)"/>
+          <path d="M298 1190 C400 1182 548 1182 650 1190 L684 1388 C600 1426 348 1426 264 1388 Z" class="carsvg__glass carsvg__frame"/>
+          <path d="M211 806 L288 806 L289 834 L211 834 Z" class="carsvg__pillar"/>
+  <path d="M211 806 L288 806 L289 834 L211 834 Z" class="carsvg__pillar" transform="matrix(-1 0 0 1 948 0)"/>
+          <path d="M560 370 L650 370 L440 620 L350 620 Z" class="carsvg__sheen" clip-path="url(#carClipWs)"/>
+  <path d="M670 370 L700 370 L500 620 L470 620 Z" class="carsvg__sheen" clip-path="url(#carClipWs)"/>
+  <path d="M530 1170 L600 1170 L420 1440 L350 1440 Z" class="carsvg__sheen" clip-path="url(#carClipRw)"/>
+  <path d="M520 700 L572 700 L420 1060 L368 1060 Z" class="carsvg__sheen" clip-path="url(#carClipSr)"/>
+          <path d="M330 54 C400 46 548 46 618 54 C676 120 708 260 712 432 C640 398 560 380 474 380 C388 380 308 398 236 432 C240 260 272 120 330 54 Z" class="cldiag__hit" data-entity="sensor.mini_hood"/>
+          <path d="M262 1402 C348 1436 600 1436 686 1402 L693 1512 C600 1532 348 1532 255 1512 Z" class="cldiag__hit" data-entity="sensor.mini_trunk"/>
+          <path d="M221 474 C244 520 272 620 284 720 L288 806 L211 806 L211 620 C212 560 215 512 221 474 Z" class="cldiag__hit" data-entity="sensor.mini_window"/>
+          <path d="M358 712 H590 Q598 712 598 720 V1038 Q598 1046 590 1046 H358 Q348 1046 348 1038 V720 Q348 712 358 712 Z" class="cldiag__hit" data-entity="sensor.mini_sunroof"/>
           <g class="cldiag__lock" data-entity="sensor.mini_doors" style="--c:var(--divider-color)">
-             <path d="M61 134 V130 a4 4 0 0 1 8 0" class="cldiag__shackle"/>
-             <rect x="58" y="134" width="14" height="10" rx="1.8" class="cldiag__lockbody"/>
+             <path d="M447 880 V850 a27 27 0 0 1 54 0" class="cldiag__shackle"/>
+             <rect x="422" y="880" width="104" height="76" rx="14" class="cldiag__lockbody"/>
            </g>
         </svg>
   </div>
