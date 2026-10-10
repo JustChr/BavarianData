@@ -10,6 +10,10 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [Unreleased]
 
 ### Fixed
+- **A range that BMW sends in miles showed the miles as kilometres.** A UK iX1 streams
+  *EV range estimate during charging* in miles while the other ranges stay in
+  kilometres; the number is now converted on arrival, so every distance is kilometres
+  and Home Assistant converts it for display as usual (#62).
 - **The setup link opened the Home Assistant dashboard.** On an install reached by a local address
   (`http://…:8123`) a left click on *BavarianData activation page* in the setup and
   Configure dialogs landed on the dashboard instead of the page with the *Activate BMW data*

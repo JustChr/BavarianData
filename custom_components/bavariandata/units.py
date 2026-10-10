@@ -25,7 +25,7 @@ unit here is the deliberate act of deciding what it means.
 
 from __future__ import annotations
 
-from typing import Dict, FrozenSet, Optional
+from typing import Any, Dict, FrozenSet, Optional, Tuple
 
 # Every unit symbol the project emits. Anything reaching an entity or the
 # metadata registry is one of these -- or an unrecognised string that survived
@@ -72,6 +72,13 @@ UNIT_ALIASES: Dict[str, str] = {
     # ``kpa`` while the catalogue for the same descriptors says ``kPa``).
     "kpa": "kPa",
 }
+
+# A distance BMW reports in miles. Seen on a UK iX1 (issue #62): one range
+# descriptor arrived as ``miles`` while its neighbours stayed ``km``, so the car
+# decides per descriptor. Everything downstream -- the catalogue's unit, the
+# trips, the ledger, the card -- speaks kilometres.
+MILE_UNITS: FrozenSet[str] = frozenset({"mi", "mile", "miles"})
+KM_PER_MILE = 1.609344
 
 # Unit fields that mean "this reading has no unit". BMW uses all three.
 NO_UNIT_TOKENS: FrozenSet[str] = frozenset({"", "-", "null"})
@@ -139,3 +146,20 @@ def is_known(unit: Optional[str]) -> bool:
 
     canonical = normalize_unit(unit)
     return canonical is None or canonical in CANONICAL_UNITS
+
+
+def miles_to_km(value: Any, unit: Optional[str]) -> Tuple[Any, Optional[str]]:
+    """Return ``(value, unit)`` in kilometres when the car sent miles.
+
+    Anything else -- another unit, or a miles label on a value that is not a
+    plain number -- comes back untouched, so the caller can apply it blindly.
+    """
+
+    if (
+        isinstance(unit, str)
+        and unit.strip().casefold() in MILE_UNITS
+        and isinstance(value, (int, float))
+        and not isinstance(value, bool)
+    ):
+        return round(value * KM_PER_MILE, 3), "km"
+    return value, unit
