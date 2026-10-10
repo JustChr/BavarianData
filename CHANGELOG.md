@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.17-beta.1] - 2026-10-10
+
 ### Added
 - **An event for logbooks: `bavariandata_vehicle_report`.** It fires once when the
   car reports a new odometer reading and the reading has held for 5 minutes, with
