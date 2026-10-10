@@ -68,6 +68,13 @@ charge really drew from the grid.
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-tires.png" alt="Tire card with the pressure and wear summary above a top-down car, every tire OK" width="300" />
 </p>
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-trips.png" alt="Trips card: the month's distance and average consumption, the commute and private split, top destinations and the latest trips" width="300" />
+  &nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-efficiency.png" alt="Efficiency and range card: real range now against the car's prediction, measured consumption, usable capacity, cost per 100 km and consumption by month" width="300" />
+</p>
+<p align="center"><sub>Trips and efficiency from the <a href="https://justchr.github.io/BavarianData/">website's live demo</a>: a real i5's data, made-up places.</sub></p>
+
 > **Status — actively developed.** A spare-time project, verified against a
 > limited number of vehicles and Home Assistant versions, so expect the odd
 > rough edge on a model it hasn't met yet. It is read-only by design — CarData
