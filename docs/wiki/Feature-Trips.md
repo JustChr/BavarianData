@@ -52,22 +52,48 @@ because the end is backdated either way, a late close costs no accuracy.
 
 <a id="older-cars-that-report-only-at-the-end-of-a-trip"></a>
 
-Trip detection needs the car to stream its position **while it drives**. Owners
-report that some older cars do not: a G31 530d with iDrive 6, for example, sends
-mileage, fuel level and position only when a trip ends, and a BMW i3 is reported to
-send only the spot where it was parked. On such a car the trip journal stays empty,
-because there is no drive to reconstruct. Everything else works as usual: the
-odometer, the fuel level and the device tracker's position update at the end of each
-trip.
+The detection above needs the car to stream its position **while it drives**.
+Owners report that some older cars do not: a G31 530d with iDrive 6, for example,
+sends mileage, fuel level and position in one burst when a trip ends, and nothing
+while driving. Read live, that burst looks like a jump of many kilometres in one
+step, so the live detection can't make a trip journal out of it.
 
-One owner of an iDrive 6 car built a driving logbook on top of BavarianData. It
-takes the trip end from the car and the trip start from the phone's Bluetooth
-connection, and writes one row per trip to Google Sheets: [BMW logbook for
-iDrive 6](https://github.com/ursubey/Home-Assistant-BMW-CarData-Logbook-iDrive6) by @ursubey. It is an independent community project, not
-maintained or tested by BavarianData.
+For these cars, set **Configure → Trips → Trip detection** to **End-of-trip
+reports**. The live detection is then off. Instead, every
+[vehicle report](Feature-Automations) (a new odometer reading that has held for 5
+minutes) becomes one trip:
 
-If your car behaves like this, a [diagnostics download](Troubleshooting-and-FAQ)
-shows which fields it really sends, and helps us see how common this is.
+- **From where to where:** from the place the car stood at the previous report to
+  the place it stands now (zone name, or an address with **Resolve addresses** on).
+- **Distance:** the odometer difference, in whole kilometres, as the car reports
+  it.
+- **Fuel:** the trip's `stats` carry `fuel_start_l`, `fuel_end_l` and, unless the
+  car was refuelled on the way, `fuel_used_l`. Short trips often show 0 L,
+  because these cars report the tank in whole litres.
+- **Start time:** the burst says when the car *parked*, never when it set off. So
+  a trip only gets a real start time if something tells BavarianData when the
+  drive began: call `bavariandata.mark_trip_start` at that moment, for example
+  from an automation that runs when your phone connects to the car's Bluetooth.
+  If several marks arrive for one drive (a phone that reconnects), the earliest
+  counts. A mark that arrives after the car's report belongs to the next trip,
+  and a mark more than 12 hours before the report is ignored.
+- **Without a mark** the trip is stored at its arrival time with **no duration**:
+  the card shows no minutes for it, and the export leaves the duration empty.
+  This is deliberate. The previous report is when the car last parked, maybe
+  days earlier, so using it as the start would give a duration that is not true.
+
+The first report after you switch the mode only sets the starting point, so the
+first trip comes with the second drive. Classification, commute chains and the
+*arrived in zone* trigger work as for any other trip. There is no *trip in
+progress* and no route on these cars, because nothing arrives during the drive.
+
+One owner of an iDrive 6 car built a driving logbook on top of BavarianData before
+this mode existed. It takes the trip end from the car and the trip start from the
+phone's Bluetooth connection, and writes one row per trip to Google Sheets: [BMW
+logbook for iDrive
+6](https://github.com/ursubey/Home-Assistant-BMW-CarData-Logbook-iDrive6) by
+@ursubey. It is an independent community project, not maintained or tested by
+BavarianData.
 
 ## Seeing the drive that's happening now
 

@@ -173,3 +173,86 @@ def report_payload(
         "distance_km": distance,
         **dict(values),
     }
+
+
+# --- Trips from reports ------------------------------------------------------
+#
+# The end-of-trip trip mode (``trip_detection: reports``) builds one trip per
+# announced report: from where the car stood at the previous report to where it
+# stands now, the odometer difference in between. The burst says where the car
+# went, never when it set off -- the previous report is when it *parked* there,
+# and the car may have stood for days. So the start time comes from outside, if
+# at all: ``bavariandata.mark_trip_start``, called by whatever knows the driver
+# got in (a phone joining the car's Bluetooth, in discussion #56). Without a mark
+# the trip is recorded without a duration rather than with an invented one.
+
+# How long before a report a start mark may lie and still belong to its trip.
+# Longer than any drive; it stops a Bluetooth connect with no drive after it from
+# turning the next trip, days later, into a three-day one.
+MARK_MAX_AGE_S = 12 * 3600
+# Marks kept per car. A trip needs one; the rest only guard against a phone
+# that reconnects mid-drive, or a webhook that arrives twice.
+MAX_MARKS = 10
+
+
+def add_start_mark(record: Optional[Mapping[str, Any]], at: datetime) -> dict[str, Any]:
+    """The report record with a start mark added, in time order, bounded.
+
+    Kept in the record so a mark survives a restart between the driver getting
+    in and the car's report; a record that does not exist yet is started with
+    the mark alone, and the first reading seeds it as usual.
+    """
+
+    marks = {at.isoformat(): at}
+    for mark in (record or {}).get("starts") or ():
+        if isinstance(mark, str) and (parsed := _parse(mark)) is not None:
+            marks[mark] = parsed
+    ordered = sorted(marks, key=marks.__getitem__)
+    return {**(record or {}), "starts": ordered[-MAX_MARKS:]}
+
+
+def take_start_mark(
+    marks: Any, *, previous_at: Optional[datetime], end_at: datetime
+) -> tuple[Optional[datetime], list[str]]:
+    """The trip's start from the marks, and the marks left for later trips.
+
+    A trip ends at ``end_at`` (the report, by the car's clock) and cannot have
+    started before the car was last seen parked (``previous_at``). The earliest
+    mark between the two is the start: a second Bluetooth connect during the
+    drive is a reconnect, not a departure. A mark after ``end_at`` is already the
+    next trip -- the driver set off again before this report was announced -- and
+    is kept; every other one is spent.
+    """
+
+    parsed = [(p, m) for m in marks or () if isinstance(m, str) and (p := _parse(m)) is not None]
+    earliest = end_at.timestamp() - MARK_MAX_AGE_S
+    floor = max(earliest, previous_at.timestamp()) if previous_at is not None else earliest
+    inside = [p for p, _m in parsed if floor < p.timestamp() <= end_at.timestamp()]
+    later = [m for p, m in sorted(parsed) if p > end_at]
+    return (min(inside) if inside else None), later
+
+
+def report_time(record: Optional[Mapping[str, Any]]) -> Optional[datetime]:
+    """When a recorded reading was taken: by the car's clock, else by ours."""
+
+    if record is None:
+        return None
+    return _parse(record.get("timestamp")) or _parse(record.get("recorded_at"))
+
+
+def fuel_stats(start_l: Any, end_l: Any) -> dict[str, float]:
+    """The fuel figures a report trip carries in its ``stats``.
+
+    ``fuel_used_l`` only when the level fell: a rise means the car was refuelled
+    on the way, and the difference then says nothing about the drive.
+    """
+
+    stats: dict[str, float] = {}
+    numbers = []
+    for key, value in (("fuel_start_l", start_l), ("fuel_end_l", end_l)):
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            stats[key] = float(value)
+            numbers.append(float(value))
+    if len(numbers) == 2 and numbers[0] >= numbers[1]:
+        stats["fuel_used_l"] = round(numbers[0] - numbers[1], 1)
+    return stats

@@ -66,6 +66,9 @@ from .const import (
     DEFAULT_TRIP_DEFAULT_CLASS,
     OPTION_TRIP_COMMUTE_GAP,
     DEFAULT_TRIP_COMMUTE_GAP_MIN,
+    OPTION_TRIP_DETECTION,
+    TRIP_DETECTION_CHOICES,
+    TRIP_DETECTION_LIVE,
     OPTION_STATISTICS_IMPORT,
     DEFAULT_STATISTICS_IMPORT,
     OPTION_REFRESH_ON_START,
@@ -635,6 +638,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     )
     coordinator.record_trip_track = bool(options.get(OPTION_TRIP_TRACK))
     coordinator.trip_debug = bool(options.get(OPTION_TRIP_DEBUG))
+    # Anything unrecognised -- a hand-edited option, say -- is the default.
+    coordinator.trip_detection = (
+        options.get(OPTION_TRIP_DETECTION)
+        if options.get(OPTION_TRIP_DETECTION) in TRIP_DETECTION_CHOICES
+        else TRIP_DETECTION_LIVE
+    )
     coordinator.diagnostic_interval = diagnostic_interval
 
     # Statistics backfill (roadmap Phase 4). Publishes the recorded history into
@@ -1278,6 +1287,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             }
         )
         get_evcc_config_schema = get_efficiency_schema
+        mark_trip_start_schema = vol.Schema(
+            {
+                vol.Optional("entry_id"): str,
+                vol.Optional("vin"): str,
+                vol.Optional("at"): str,
+            }
+        )
         set_trip_class_schema = vol.Schema(
             {
                 vol.Optional("entry_id"): str,
@@ -1468,6 +1484,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             trip.classification_source = SOURCE_USER
             runtime.history.add_trip(trip)
             async_dispatcher_send(hass, coordinator.signal_trips, vin)
+
+        async def async_handle_mark_trip_start(call: Any) -> None:
+            """Note when a drive began, for a car that reports only once parked.
+
+            Local only -- no quota. Refused outside the ``reports`` trip mode
+            rather than stored for nothing: the live detector never reads it.
+            """
+
+            target = _resolve_target(call)
+            if target is None or target[2].history is None:
+                raise ServiceValidationError("Trip history is not available")
+            _entry_id, _entry, runtime = target
+            coordinator = runtime.coordinator
+            if not coordinator.report_trips:
+                raise ServiceValidationError(
+                    "mark_trip_start is used only when trips are detected from the "
+                    "car's reports (Configure -> Trips -> Trip detection)"
+                )
+            vin = _default_vin(runtime, call.data.get("vin"))
+            if vin is None:
+                raise ServiceValidationError("No vehicle to mark a trip start for")
+            at = _service_bound(call, "at") or dt_util.utcnow()
+            coordinator.mark_trip_start(vin, at)
 
         # --- Phase 4: statistics backfill and export ------------------------
 
@@ -1800,6 +1839,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             async_handle_set_trip_class,
             schema=set_trip_class_schema,
         )
+        hass.services.async_register(
+            DOMAIN,
+            "mark_trip_start",
+            async_handle_mark_trip_start,
+            schema=mark_trip_start_schema,
+        )
         # Export (roadmap Phase 4). Returns file contents; the card downloads
         # them. Local store only -- no quota.
         hass.services.async_register(
@@ -1853,6 +1898,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 "get_efficiency",
                 "get_evcc_config",
                 "set_trip_class",
+                "mark_trip_start",
                 "export_history",
                 "import_statistics",
                 "get_coverage_report",

@@ -179,6 +179,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `trip_commute_gap` (commute stop tolerance) | Trips | ✅ |
 | `trip_geocode` | Trips | 🟡 |
 | `trip_track` (route recording) | Trips | ✅ |
+| `trip_detection` (live / end-of-trip reports) | Trips | 🟢 Settings-Reference + Feature-Trips → "Older cars…" (EN + DE) |
 | `trip_debug` (trip-capture diagnostics) | Trips | ✅ |
 | `debug_log` | Debug logging | 🟡 |
 | `mqtt_keepalive` (hidden override) | — | ❌ |
@@ -217,6 +218,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `get_efficiency` | free | 🟢 Services-Reference + Feature-Efficiency-and-Range |
 | `get_evcc_config` | free | 🟢 Services-Reference + Feature-evcc-and-Wallbox-Bridge |
 | `set_trip_class` | free | 🟡 |
+| `mark_trip_start` | free | 🟢 Services-Reference + Feature-Trips → "Older cars…" (EN + DE) |
 | `export_history` | free | 🟡 |
 | `import_statistics` | free | 🟡 |
 | **`get_coverage_report`** | free | ❌ **missing from README** |

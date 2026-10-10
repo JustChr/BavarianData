@@ -237,12 +237,13 @@
       },
       "action_trips": {
         "title": "Jízdy (kniha jízd)",
-        "description": "Rekonstruuje vaše jízdy ze streamu bez nákladů na API — vzdálenost, rozdělení služební/soukromé/dojíždění, spotřebu a měsíční přehled.\n\nNastavte **Pracovní zónu**, aby se dojíždění (domov ↔ práce) rozpoznávalo automaticky; jízdu můžete kdykoli opravit později. Vše, co není dojíždění, se zařadí jako **Výchozí typ** (ve výchozím stavu Soukromá). Dojíždění přežije i zastávku po cestě: pokud auto stojí nejvýše po dobu **Tolerance zastávky při dojíždění**, jízda k zastávce i jízda dál se počítají jako dojíždění. **Vyhledávat adresy** je ve výchozím stavu vypnuto: po zapnutí se koncový bod jízdy mimo jakoukoli zónu Home Assistant vyhledá přes OpenStreetMap a uloží jako adresa — souřadnice se k vyhledání odešlou, ale nikdy se neukládají.\n\n**Zaznamenávat trasu** je také ve výchozím stavu vypnuto: po zapnutí každá jízda uloží svou GPS stopu — kudy a kdy auto jelo — aby mapa mohla jízdu zobrazit a přehrát. Je to jediné nastavení, které ukládá surové souřadnice na disk, včetně vašich přesných počátečních a koncových bodů.\n\n**Diagnostika záznamu jízd** je pomůcka při řešení potíží: po zapnutí se každá poloha GPS, časovač i zpráva podrobně zaznamenává a zapisuje se soubor záznamu, který pomáhá zlepšit rozpoznávání jízd. Zapněte ji jen na testovací jízdu a pak ji zase vypněte.",
+        "description": "Rekonstruuje vaše jízdy ze streamu bez nákladů na API — vzdálenost, rozdělení služební/soukromé/dojíždění, spotřebu a měsíční přehled.\n\nNastavte **Pracovní zónu**, aby se dojíždění (domov ↔ práce) rozpoznávalo automaticky; jízdu můžete kdykoli opravit později. Vše, co není dojíždění, se zařadí jako **Výchozí typ** (ve výchozím stavu Soukromá). Dojíždění přežije i zastávku po cestě: pokud auto stojí nejvýše po dobu **Tolerance zastávky při dojíždění**, jízda k zastávce i jízda dál se počítají jako dojíždění. **Vyhledávat adresy** je ve výchozím stavu vypnuto: po zapnutí se koncový bod jízdy mimo jakoukoli zónu Home Assistant vyhledá přes OpenStreetMap a uloží jako adresa — souřadnice se k vyhledání odešlou, ale nikdy se neukládají.\n\n**Detekce jízd** je nastavena na **Živě** pro každé auto, které vysílá během jízdy. Zvolte **Hlášení na konci jízdy** pro auto, které se hlásí až po zaparkování (iDrive 6 a starší): každé hlášení se pak stane jednou jízdou, z místa předchozího hlášení. Takové auto nikdy neřekne, kdy vyjelo, takže jízda dostane čas začátku jen tehdy, když automatizace při vyjetí zavolá akci **Označit začátek jízdy**.\n\n**Zaznamenávat trasu** je také ve výchozím stavu vypnuto: po zapnutí každá jízda uloží svou GPS stopu — kudy a kdy auto jelo — aby mapa mohla jízdu zobrazit a přehrát. Je to jediné nastavení, které ukládá surové souřadnice na disk, včetně vašich přesných počátečních a koncových bodů.\n\n**Diagnostika záznamu jízd** je pomůcka při řešení potíží: po zapnutí se každá poloha GPS, časovač i zpráva podrobně zaznamenává a zapisuje se soubor záznamu, který pomáhá zlepšit rozpoznávání jízd. Zapněte ji jen na testovací jízdu a pak ji zase vypněte.",
         "data": {
           "trip_work_zone": "Pracovní zóna",
           "trip_default_class": "Výchozí typ",
           "trip_commute_gap": "Tolerance zastávky při dojíždění",
           "trip_geocode": "Vyhledávat adresy",
+          "trip_detection": "Detekce jízd",
           "trip_track": "Zaznamenávat trasu",
           "trip_debug": "Diagnostika záznamu jízd"
         },
@@ -251,6 +252,7 @@
           "trip_default_class": "Jak se zařadí každá jízda, která není dojíždění domov ↔ práce. Je to jen výchozí bod — oprava jízdy na kartě má vždy přednost a nikdy se nepřepíše.",
           "trip_commute_gap": "Jak dlouho smí auto mezi dvěma jízdami stát, aby se obě stále počítaly jako jedno dojíždění — supermarket cestou do práce. Nastavte 0 pro vypnutí. Zastávky kratší než zhruba pět minut jízdu nikdy nerozdělí.",
           "trip_geocode": "Volitelné. Odesílá body mimo zóny do OpenStreetMap; ukládá se jen výsledná adresa, nikdy souřadnice.",
+          "trip_detection": "Živě sleduje polohu auta během jízdy. Hlášení na konci jízdy vytvoří jednu jízdu na hlášení, pro auta, která během jízdy nic neposílají; živá detekce je pak vypnutá.",
           "trip_track": "Volitelné. Ukládá GPS stopu každé jízdy — souřadnice podél trasy a u každé čas — aby mapa mohla trasu vykreslit a přehrát. Jediné nastavení, které ukládá surové souřadnice na disk (včetně přesného začátku a konce), proto je z důvodu soukromí ve výchozím stavu vypnuté.",
           "trip_debug": "Pouze pro diagnostiku. Zaznamenává surová data rozpoznávání jízd (každou polohu GPS, časovač uzavření, dávku segmentů a zprávu) a zapisuje bavariandata_trip_capture.ndjson do vaší konfigurační složky. Velmi podrobné a obsahuje GPS/VIN, proto zapněte na testovací jízdu a pak zase vypněte."
         }
@@ -313,6 +315,12 @@
         "private": "Soukromá",
         "business": "Služební",
         "unclassified": "Nechat nezařazené"
+      }
+    },
+    "trip_detection": {
+      "options": {
+        "live": "Živě (auto vysílá během jízdy)",
+        "reports": "Hlášení na konci jízdy (auto se hlásí po zaparkování)"
       }
     }
   },
@@ -2847,6 +2855,24 @@
         "classification": {
           "name": "Zařazení",
           "description": "Jedno z: business, private nebo commute."
+        }
+      }
+    },
+    "mark_trip_start": {
+      "name": "Označit začátek jízdy",
+      "description": "Zaznamená, že právě začíná jízda, pro auto, které se hlásí až po zaparkování: jízda, kterou ukončí jeho další hlášení, pak začíná v tento čas. Použije se jen tehdy, když je detekce jízd nastavena na Hlášení na konci jízdy. Zapisuje pouze do místního úložiště.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN. Výchozí je jediné nastavené vozidlo."
+        },
+        "at": {
+          "name": "Čas",
+          "description": "Volitelné. Kdy jízda začala; výchozí je teď."
         }
       }
     },

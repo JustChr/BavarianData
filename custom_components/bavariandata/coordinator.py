@@ -32,6 +32,8 @@ from .const import (
     EVENT_VEHICLE_REPORT,
     EVENT_ZONE_ARRIVED,
     EVENT_ZONE_LEFT,
+    TRIP_DETECTION_LIVE,
+    TRIP_DETECTION_REPORTS,
 )
 from .debug import debug_enabled, mask_vin
 from .history.classify import (
@@ -81,8 +83,12 @@ from .vehicle_report import (
     REPORT_QUIET_S,
     SEED,
     ReportDecision,
+    add_start_mark,
+    fuel_stats,
     report_decision,
     report_payload,
+    report_time,
+    take_start_mark,
 )
 from .vehicle_support import is_motorcycle, motorcycle_issue_id
 from .vehicle_triggers import (
@@ -112,6 +118,8 @@ DESC_GPS_LON = "vehicle.cabin.infotainment.navigation.currentLocation.longitude"
 # distance and charging-cost mileage come from BMW's own figure wherever either
 # is present, falling back to the GPS track only when neither is.
 DESC_ODOMETER = ("vehicle.vehicle.mileage", "vehicle.vehicle.travelledDistance")
+# The fuel left, in litres: what a report trip's fuel figures are read from.
+DESC_FUEL_L = "vehicle.drivetrain.fuelSystem.remainingFuel"
 DESC_SEG_PREFIX = "vehicle.trip.segment.end."
 DESC_SEG_DISTANCE = "vehicle.trip.segment.end.travelledDistance"
 DESC_SEG_RECUP = "vehicle.trip.segment.accumulated.drivetrain.electricEngine.recuperationTotal"
@@ -465,6 +473,8 @@ class CardataCoordinator:
     # Trip-capture diagnostic mode (opt-in, off by default). Emits the rich
     # ``[trip.*]`` capture and the NDJSON file; refreshed from options like above.
     trip_debug: bool = False
+    # ``live`` or ``reports`` (see ``OPTION_TRIP_DETECTION``); refreshed like above.
+    trip_detection: str = TRIP_DETECTION_LIVE
     _session_builders: Dict[str, SessionBuilder] = field(default_factory=dict, init=False)
     _session_costs: Dict[str, CostAccumulator] = field(default_factory=dict, init=False)
     # Running source mix per open session (PV / house battery / grid). Separate
@@ -1021,11 +1031,17 @@ class CardataCoordinator:
         if lock is None:
             lock = self._trip_locks[vin] = asyncio.Lock()
         async with lock:
-            await self._process_trip_signals(vin, now, motion_value, ignition_value, segment_fresh)
-            if door_value is not None:
-                await self._process_door_signal(vin, now, door_value)
-            if gps_parts:
-                await self._process_gps_signal(vin, now, gps_ts, gps_parts)
+            # A car that reports only once parked has its trips built from the
+            # reports instead: its burst's position jump, read live, would be a
+            # drive of no duration, ending wherever the timers left it.
+            if not self.report_trips:
+                await self._process_trip_signals(
+                    vin, now, motion_value, ignition_value, segment_fresh
+                )
+                if door_value is not None:
+                    await self._process_door_signal(vin, now, door_value)
+                if gps_parts:
+                    await self._process_gps_signal(vin, now, gps_ts, gps_parts)
             # After the trip logic: a trip opening ends "parked unlocked".
             self._evaluate_situations(vin, now)
 
@@ -1868,7 +1884,12 @@ class CardataCoordinator:
         last = self.history.last_report(vin)
         decision = self._report_decision(vin, odometer_km)
         if decision.kind == SEED:
-            self.history.async_set_last_report(vin, self._report_record(vin, odometer_km))
+            self.history.async_set_last_report(
+                vin, self._report_record(vin, odometer_km, starts=(last or {}).get("starts"))
+            )
+            if self.report_trips:
+                # Where the car stands now is where its first trip will start.
+                self.hass.async_create_task(self._remember_report_place(vin, odometer_km))
             return
         if decision.kind == CANDIDATE:
             # Kept beside the record, never in it: see ``vehicle_report.py``.
@@ -1905,14 +1926,61 @@ class CardataCoordinator:
             now=datetime.now(timezone.utc),
         )
 
-    def _report_record(self, vin: str, odometer_km: float) -> dict[str, Any]:
-        """A reading as the record keeps it: by the car's clock and by ours."""
+    def _report_record(
+        self, vin: str, odometer_km: float, *, starts: Optional[list[str]] = None
+    ) -> dict[str, Any]:
+        """A reading as the record keeps it: by the car's clock and by ours.
 
-        return {
+        With the fuel and charge that came with it, which the next report trip
+        starts from, and any start marks still waiting for their trip. The
+        place is added once resolved (:meth:`_remember_report_place`).
+        """
+
+        record: dict[str, Any] = {
             "odometer_km": odometer_km,
             "timestamp": self._odometer_timestamp(vin),
             "recorded_at": datetime.now(timezone.utc).isoformat(),
+            "fuel_l": self._numeric(vin, DESC_FUEL_L),
+            "soc": self._current_soc(vin),
         }
+        if starts:
+            record["starts"] = list(starts)
+        return record
+
+    @property
+    def report_trips(self) -> bool:
+        """True when trips are built from vehicle reports, not the live stream."""
+
+        return self.trip_detection == TRIP_DETECTION_REPORTS
+
+    @callback
+    def mark_trip_start(self, vin: str, at: datetime) -> None:
+        """Note that a drive began at ``at`` (``bavariandata.mark_trip_start``).
+
+        Kept with the report record, so a restart before the car reports loses
+        nothing; the report that ends the drive spends it (``vehicle_report.py``).
+        """
+
+        if self.history is None:
+            return
+        self.history.async_set_last_report(vin, add_start_mark(self.history.last_report(vin), at))
+        self._cap("[trip.report] %s start marked at %s", vin, at.isoformat())
+
+    async def _remember_report_place(self, vin: str, odometer_km: float) -> None:
+        """Add where the car stands to the record of the reading it just gave.
+
+        The next report trip starts there. Written only while the record is still
+        that reading's: a newer one may have landed during the geocode.
+        """
+
+        try:
+            resolved = await self._resolve_place(vin)
+            record = self.history.last_report(vin) if self.history is not None else None
+            if resolved is None or record is None or record.get("odometer_km") != odometer_km:
+                return
+            self.history.async_set_last_report(vin, {**record, "place": resolved})
+        except Exception:  # noqa: BLE001 - bookkeeping must not break the stream
+            _LOGGER.exception("Could not place the vehicle report for %s", mask_vin(vin))
 
     def _cancel_report_timer(self, vin: str) -> None:
         cancel = self._report_timers.pop(vin, None)
@@ -1926,13 +1994,22 @@ class CardataCoordinator:
         if self.history is None:
             return
         timestamp = self._odometer_timestamp(vin)
+        starts = (self.history.last_report(vin) or {}).get("starts")
+        start: Optional[datetime] = None
+        end_at = dt_util.parse_datetime(timestamp) if timestamp else None
+        if end_at is None:
+            end_at = datetime.now(timezone.utc)
+        if self.report_trips:
+            start, starts = take_start_mark(
+                starts, previous_at=report_time(baseline), end_at=end_at
+            )
         payload = report_payload(
             vin,
             odometer_km=odometer_km,
             timestamp=timestamp,
             last=baseline,
             values={
-                "fuel_l": self._numeric(vin, "vehicle.drivetrain.fuelSystem.remainingFuel"),
+                "fuel_l": self._numeric(vin, DESC_FUEL_L),
                 "fuel_percent": self._numeric(vin, "vehicle.drivetrain.fuelSystem.level"),
                 "range_km": self._numeric(vin, "vehicle.drivetrain.lastRemainingRange"),
                 "soc_percent": self._numeric(vin, "vehicle.drivetrain.batteryManagement.header"),
@@ -1948,8 +2025,75 @@ class CardataCoordinator:
         # Recorded before firing: an automation that raises must not leave the
         # reading unrecorded, to be announced a second time. A fresh record
         # also drops any candidate: this reading has settled the question.
-        self.history.async_set_last_report(vin, self._report_record(vin, odometer_km))
+        self.history.async_set_last_report(
+            vin, self._report_record(vin, odometer_km, starts=starts)
+        )
         self.hass.bus.async_fire(EVENT_VEHICLE_REPORT, payload)
+        if self.report_trips:
+            self.hass.async_create_task(
+                self._record_report_trip(vin, odometer_km, baseline, start, end_at)
+            )
+
+    async def _record_report_trip(
+        self,
+        vin: str,
+        odometer_km: float,
+        baseline: Mapping[str, Any],
+        start: Optional[datetime],
+        end_at: datetime,
+    ) -> None:
+        """One trip from a vehicle report: from the previous report to this one.
+
+        Where it went and how far are the car's own: the place it stood at the
+        previous report, the place it stands now, the odometer between them.
+        When it set off is a start mark's, or unknown -- then the trip is stored
+        at its arrival with no duration (``Trip.duration_unknown``).
+        """
+
+        try:
+            end_place = await self._resolve_place(vin)
+            record = self.history.last_report(vin) if self.history is not None else None
+            if end_place is not None and record and record.get("odometer_km") == odometer_km:
+                self.history.async_set_last_report(vin, {**record, "place": end_place})
+            start_place = baseline.get("place")
+            if not isinstance(start_place, Mapping):
+                start_place = None
+            soc_start = baseline.get("soc")
+            if isinstance(soc_start, bool) or not isinstance(soc_start, (int, float)):
+                soc_start = None
+            mileage_start = baseline.get("odometer_km")
+            if isinstance(mileage_start, bool) or not isinstance(mileage_start, (int, float)):
+                mileage_start = None
+            builder = TripBuilder(
+                vin,
+                start or end_at,
+                start_place=dict(start_place) if start_place else None,
+                soc_start=soc_start,
+                mileage_start=mileage_start,
+                location_assumed=start_place is None or start_place.get("label") == "Unknown",
+            )
+            soc_end = self._current_soc(vin)
+            trip = builder.close(
+                end_at,
+                end_place=end_place,
+                soc_end=soc_end,
+                mileage_end=odometer_km,
+                energy_kwh=self._trip_energy_kwh(vin, soc_start, soc_end),
+                stats=fuel_stats(baseline.get("fuel_l"), self._numeric(vin, DESC_FUEL_L)),
+                hybrid=self.is_plug_in_hybrid(vin),
+            )
+            trip.duration_unknown = start is None
+            self._cap(
+                "[trip.report] %s %s -> %s dist=%s start=%s",
+                vin,
+                (trip.start_place or {}).get("label"),
+                (trip.end_place or {}).get("label"),
+                trip.distance_km,
+                "marked" if start is not None else "unknown",
+            )
+            self._store_trip(vin, trip, start_zone=None, left_fired=False, announce=True)
+        except Exception:  # noqa: BLE001 - bookkeeping must not break the stream
+            _LOGGER.exception("Could not record the report trip for %s", mask_vin(vin))
 
     def _numeric(self, vin: str, descriptor: str) -> Optional[float]:
         state = self.get_state(vin, descriptor)
@@ -3028,7 +3172,26 @@ class CardataCoordinator:
                 trip.duration_s,
                 substrate=True,
             )
-        if dropped:
+        self._store_trip(vin, trip, start_zone=start_zone, left_fired=left_fired, announce=announce)
+
+    def _store_trip(
+        self,
+        vin: str,
+        trip: Trip,
+        *,
+        start_zone: Optional[tuple[str, str]],
+        left_fired: bool,
+        announce: bool,
+    ) -> None:
+        """Drop a noise trip, else classify it, announce the arrival and store it.
+
+        Shared by the live detector's close and the report trips, so a trip is
+        dropped, classified and chained by the same rules whichever built it.
+        """
+
+        if self.history is None:
+            return
+        if is_noise_trip(trip):
             # A parking manoeuvre or a spurious blip, not a drive worth logging.
             self._cap(
                 "[trip] %s DROPPED as noise (dist=%s, duration=%ss)",

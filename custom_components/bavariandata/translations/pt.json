@@ -237,12 +237,13 @@
       },
       "action_trips": {
         "title": "Viagens (diário de condução)",
-        "description": "Reconstrói as suas viagens a partir do stream sem custo de API — distância, a divisão profissional/particular/casa-trabalho, consumo e um resumo mensal.\n\nDefina a **Zona de trabalho** para que as deslocações casa ↔ trabalho sejam reconhecidas automaticamente; pode sempre corrigir uma viagem depois. Tudo o que não é casa-trabalho é classificado com o **Tipo predefinido** (Particular de origem). Uma deslocação casa-trabalho também sobrevive a uma paragem pelo caminho: se o carro parar não mais do que a **Tolerância de paragem casa-trabalho**, o percurso até lá e o seguinte contam ambos como casa-trabalho. **Resolver moradas** está desativado por predefinição: se ativado, um ponto de partida ou chegada fora de qualquer zona do Home Assistant é procurado através do OpenStreetMap e guardado como morada — as coordenadas são enviadas para a pesquisa mas nunca guardadas.\n\n**Gravar percurso** também está desativado por predefinição: se ativado, cada viagem guarda o seu trajeto GPS — por onde o carro andou e quando — para que um mapa possa mostrar e reproduzir a viagem. É a única definição que guarda coordenadas em bruto no disco, incluindo os seus pontos exatos de partida e chegada.\n\n**Diagnóstico de captura de viagens** é uma ajuda na resolução de problemas: se ativado, cada posição GPS, temporizador e mensagem é registado em detalhe e é escrito um ficheiro de captura, para ajudar a melhorar a deteção de viagens. Ative-o apenas para uma viagem de teste e depois desative-o.",
+        "description": "Reconstrói as suas viagens a partir do stream sem custo de API — distância, a divisão profissional/particular/casa-trabalho, consumo e um resumo mensal.\n\nDefina a **Zona de trabalho** para que as deslocações casa ↔ trabalho sejam reconhecidas automaticamente; pode sempre corrigir uma viagem depois. Tudo o que não é casa-trabalho é classificado com o **Tipo predefinido** (Particular de origem). Uma deslocação casa-trabalho também sobrevive a uma paragem pelo caminho: se o carro parar não mais do que a **Tolerância de paragem casa-trabalho**, o percurso até lá e o seguinte contam ambos como casa-trabalho. **Resolver moradas** está desativado por predefinição: se ativado, um ponto de partida ou chegada fora de qualquer zona do Home Assistant é procurado através do OpenStreetMap e guardado como morada — as coordenadas são enviadas para a pesquisa mas nunca guardadas.\n\n**Deteção de viagens** está em **Em direto** para qualquer carro que transmite durante a condução. Escolha **Relatórios de fim de viagem** para um carro que só comunica depois de estacionado (iDrive 6 e anteriores): cada relatório passa então a ser uma viagem, a partir do local do relatório anterior. Um carro assim nunca diz quando partiu, por isso uma viagem só tem hora de início se uma automatização chamar a ação **Marcar início da viagem** à partida.\n\n**Gravar percurso** também está desativado por predefinição: se ativado, cada viagem guarda o seu trajeto GPS — por onde o carro andou e quando — para que um mapa possa mostrar e reproduzir a viagem. É a única definição que guarda coordenadas em bruto no disco, incluindo os seus pontos exatos de partida e chegada.\n\n**Diagnóstico de captura de viagens** é uma ajuda na resolução de problemas: se ativado, cada posição GPS, temporizador e mensagem é registado em detalhe e é escrito um ficheiro de captura, para ajudar a melhorar a deteção de viagens. Ative-o apenas para uma viagem de teste e depois desative-o.",
         "data": {
           "trip_work_zone": "Zona de trabalho",
           "trip_default_class": "Tipo predefinido",
           "trip_commute_gap": "Tolerância de paragem casa-trabalho",
           "trip_geocode": "Resolver moradas",
+          "trip_detection": "Deteção de viagens",
           "trip_track": "Gravar percurso",
           "trip_debug": "Diagnóstico de captura de viagens"
         },
@@ -251,6 +252,7 @@
           "trip_default_class": "Como é classificada cada viagem que não é casa ↔ trabalho. É apenas um ponto de partida — corrigir uma viagem no cartão prevalece sempre, e uma correção nunca é substituída.",
           "trip_commute_gap": "Quanto tempo o carro pode estar parado entre duas viagens para que ambas contem ainda como uma única deslocação casa-trabalho — o supermercado a caminho do trabalho. Defina 0 para desativar. Paragens inferiores a cerca de cinco minutos nunca dividem uma viagem.",
           "trip_geocode": "Opcional. Envia os pontos fora de zonas para o OpenStreetMap; só a morada resultante é guardada, nunca as coordenadas.",
+          "trip_detection": "Em direto segue a posição do carro durante a condução. Relatórios de fim de viagem cria uma viagem por relatório, para carros que nada enviam durante a condução; a deteção em direto fica então desligada.",
           "trip_track": "Opcional. Guarda o trajeto GPS de cada viagem — as coordenadas ao longo do percurso e, para cada uma, a hora — para que um mapa possa desenhar o percurso e reproduzi-lo. É a única definição que guarda coordenadas em bruto no disco (incluindo partida/chegada exatas), por isso está desativada por predefinição por privacidade.",
           "trip_debug": "Apenas diagnóstico. Regista os dados em bruto da deteção de viagens (cada posição GPS, temporizador de fecho, lote de segmentos e mensagem) e escreve bavariandata_trip_capture.ndjson na sua pasta de configuração. Muito detalhado e contém GPS/VIN, por isso ative-o para uma viagem de teste e depois desative-o."
         }
@@ -313,6 +315,12 @@
         "private": "Particular",
         "business": "Profissional",
         "unclassified": "Deixar por classificar"
+      }
+    },
+    "trip_detection": {
+      "options": {
+        "live": "Em direto (o carro transmite durante a condução)",
+        "reports": "Relatórios de fim de viagem (o carro comunica depois de estacionado)"
       }
     }
   },
@@ -2847,6 +2855,24 @@
         "classification": {
           "name": "Classificação",
           "description": "Um de business, private ou commute."
+        }
+      }
+    },
+    "mark_trip_start": {
+      "name": "Marcar início da viagem",
+      "description": "Regista que uma viagem começa agora, para um carro que só comunica depois de estacionado: a viagem que o seu próximo relatório termina começa então a esta hora. Só é usado quando a deteção de viagens está em Relatórios de fim de viagem. Escreve apenas no armazenamento local.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrada de configuração",
+          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN opcional. Por predefinição, o único veículo configurado."
+        },
+        "at": {
+          "name": "Hora",
+          "description": "Opcional. Quando a viagem começou; por predefinição, agora."
         }
       }
     },

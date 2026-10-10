@@ -41,6 +41,7 @@ Diese lesen (oder schreiben) den eigenen Speicher der Integration und kosten
 | `bavariandata.get_efficiency` | Gemessener Verbrauch, die daraus folgende reale Reichweite, der Ladeverlust und der Monatsverlauf — siehe unten. |
 | `bavariandata.get_evcc_config` | Die evcc-Fahrzeugkonfiguration `custom` für ein Auto, dazu die MQTT-Topics der Brücke — siehe unten. |
 | `bavariandata.set_trip_class` | Korrigiert die Zuordnung einer Fahrt (geschäftlich/privat/Pendeln). |
+| `bavariandata.mark_trip_start` | Vermerkt, wann eine Fahrt begann, für ein Auto, das erst nach dem Parken meldet — siehe unten. |
 | `bavariandata.export_history` | Liefert einen Monat als CSV oder druckbaren HTML-Bericht. |
 | `bavariandata.get_coverage_report` | Selbsttest der Deskriptor-Abdeckung — siehe unten. |
 | `bavariandata.import_statistics` | Baut die Langzeitstatistiken aus dem Speicher neu auf. |
@@ -145,6 +146,16 @@ Siehe [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge).
 
 `vin`, `trip_id` (wie von `get_trips` geliefert), `classification`
 (`business` · `private` · `commute`). Schreibt nur den lokalen Speicher.
+
+### `mark_trip_start`
+
+`vin`, `at` (optional; standardmäßig jetzt). Für ein Auto, das erst nach dem Parken
+meldet, mit **Fahrterkennung** auf **Berichte am Fahrtende**: Die Fahrt, die der
+nächste Bericht des Autos beendet, beginnt zu dieser Zeit. Ruf die Aktion auf, wenn
+die Fahrt beginnt, zum Beispiel wenn sich dein Handy mit dem Bluetooth des Autos
+verbindet. Im Live-Modus wird sie abgelehnt, weil dort nichts sie liest. Schreibt
+nur den lokalen Speicher. Siehe
+[Fahrten](DE-Feature-Trips#older-cars-that-report-only-at-the-end-of-a-trip).
 
 ### `export_history`
 

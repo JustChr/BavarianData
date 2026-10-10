@@ -237,12 +237,13 @@
       },
       "action_trips": {
         "title": "Przejazdy (dziennik jazdy)",
-        "description": "Odtwarza przejazdy ze strumienia bez kosztów API — dystans, podział służbowe/prywatne/dojazdy, zużycie i podsumowanie miesiąca.\n\nUstaw **Strefę pracy**, aby dojazdy (dom ↔ praca) były rozpoznawane automatycznie; przejazd zawsze można potem poprawić. Wszystko, co nie jest dojazdem, jest klasyfikowane jako **Typ domyślny** (domyślnie Prywatny). Dojazd przetrwa też postój po drodze: jeśli auto stoi nie dłużej niż **Tolerancja postoju przy dojazdach**, zarówno przejazd do postoju, jak i dalszy liczą się jako dojazd. **Rozpoznawanie adresów** jest domyślnie wyłączone: po włączeniu punkt początkowy lub końcowy poza strefami Home Assistant jest wyszukiwany w OpenStreetMap i zapisywany jako adres — współrzędne są wysyłane do wyszukiwania, ale nigdy nie są zapisywane.\n\n**Zapis trasy** jest również domyślnie wyłączony: po włączeniu każdy przejazd zapisuje ślad GPS — dokąd i kiedy jechało auto — aby mapa mogła pokazać i odtworzyć przejazd. To jedyne ustawienie, które zapisuje surowe współrzędne na dysku, łącznie z dokładnymi punktami początkowym i końcowym.\n\n**Diagnostyka rejestrowania przejazdów** to pomoc przy rozwiązywaniu problemów: po włączeniu każda pozycja GPS, timer i wiadomość są szczegółowo logowane i zapisywany jest plik przechwytywania, aby pomóc ulepszyć wykrywanie przejazdów. Włącz ją tylko na jazdę testową, a potem wyłącz.",
+        "description": "Odtwarza przejazdy ze strumienia bez kosztów API — dystans, podział służbowe/prywatne/dojazdy, zużycie i podsumowanie miesiąca.\n\nUstaw **Strefę pracy**, aby dojazdy (dom ↔ praca) były rozpoznawane automatycznie; przejazd zawsze można potem poprawić. Wszystko, co nie jest dojazdem, jest klasyfikowane jako **Typ domyślny** (domyślnie Prywatny). Dojazd przetrwa też postój po drodze: jeśli auto stoi nie dłużej niż **Tolerancja postoju przy dojazdach**, zarówno przejazd do postoju, jak i dalszy liczą się jako dojazd. **Rozpoznawanie adresów** jest domyślnie wyłączone: po włączeniu punkt początkowy lub końcowy poza strefami Home Assistant jest wyszukiwany w OpenStreetMap i zapisywany jako adres — współrzędne są wysyłane do wyszukiwania, ale nigdy nie są zapisywane.\n\n**Wykrywanie przejazdów** jest ustawione na **Na żywo** dla każdego auta, które przesyła dane w trakcie jazdy. Wybierz **Raporty po zakończeniu jazdy** dla auta, które melduje się dopiero po zaparkowaniu (iDrive 6 i starsze): każdy raport staje się wtedy jednym przejazdem, od miejsca poprzedniego raportu. Takie auto nigdy nie podaje, kiedy ruszyło, więc przejazd ma godzinę rozpoczęcia tylko wtedy, gdy automatyzacja wywoła akcję **Oznacz początek przejazdu** przy ruszaniu.\n\n**Zapis trasy** jest również domyślnie wyłączony: po włączeniu każdy przejazd zapisuje ślad GPS — dokąd i kiedy jechało auto — aby mapa mogła pokazać i odtworzyć przejazd. To jedyne ustawienie, które zapisuje surowe współrzędne na dysku, łącznie z dokładnymi punktami początkowym i końcowym.\n\n**Diagnostyka rejestrowania przejazdów** to pomoc przy rozwiązywaniu problemów: po włączeniu każda pozycja GPS, timer i wiadomość są szczegółowo logowane i zapisywany jest plik przechwytywania, aby pomóc ulepszyć wykrywanie przejazdów. Włącz ją tylko na jazdę testową, a potem wyłącz.",
         "data": {
           "trip_work_zone": "Strefa pracy",
           "trip_default_class": "Typ domyślny",
           "trip_commute_gap": "Tolerancja postoju przy dojazdach",
           "trip_geocode": "Rozpoznawanie adresów",
+          "trip_detection": "Wykrywanie przejazdów",
           "trip_track": "Zapis trasy",
           "trip_debug": "Diagnostyka rejestrowania przejazdów"
         },
@@ -251,6 +252,7 @@
           "trip_default_class": "Jak klasyfikowany jest każdy przejazd, który nie jest dojazdem dom ↔ praca. To tylko punkt wyjścia — poprawka na karcie zawsze wygrywa i nigdy nie jest nadpisywana.",
           "trip_commute_gap": "Jak długo auto może stać między dwoma przejazdami, aby oba nadal liczyły się jako jeden dojazd — supermarket po drodze do pracy. Ustaw 0, aby to wyłączyć. Postoje krótsze niż około pięć minut i tak nigdy nie dzielą przejazdu.",
           "trip_geocode": "Opcjonalnie. Wysyła punkty spoza stref do OpenStreetMap; zapisywany jest tylko uzyskany adres, nigdy współrzędne.",
+          "trip_detection": "Na żywo śledzi pozycję auta w trakcie jazdy. Raporty po zakończeniu jazdy tworzą jeden przejazd na raport, dla aut, które w trakcie jazdy nic nie wysyłają; wykrywanie na żywo jest wtedy wyłączone.",
           "trip_track": "Opcjonalnie. Zapisuje ślad GPS każdego przejazdu — współrzędne wzdłuż trasy i dla każdej z nich czas — aby mapa mogła narysować trasę i ją odtworzyć. Jedyne ustawienie, które zapisuje surowe współrzędne na dysku (łącznie z dokładnym początkiem i końcem), dlatego ze względu na prywatność jest domyślnie wyłączone.",
           "trip_debug": "Tylko diagnostyka. Loguje surowe dane wykrywania przejazdów (każdą pozycję GPS, timer zamknięcia, paczkę segmentów i wiadomość) i zapisuje bavariandata_trip_capture.ndjson w folderze konfiguracji. Bardzo obszerne i zawiera GPS/VIN, więc włącz na jazdę testową, a potem wyłącz."
         }
@@ -313,6 +315,12 @@
         "private": "Prywatny",
         "business": "Służbowy",
         "unclassified": "Pozostaw niesklasyfikowany"
+      }
+    },
+    "trip_detection": {
+      "options": {
+        "live": "Na żywo (auto przesyła dane w trakcie jazdy)",
+        "reports": "Raporty po zakończeniu jazdy (auto melduje się po zaparkowaniu)"
       }
     }
   },
@@ -2847,6 +2855,24 @@
         "classification": {
           "name": "Klasyfikacja",
           "description": "Jedno z: business, private lub commute."
+        }
+      }
+    },
+    "mark_trip_start": {
+      "name": "Oznacz początek przejazdu",
+      "description": "Zapisuje, że właśnie zaczyna się przejazd, dla auta, które melduje się dopiero po zaparkowaniu: przejazd zamknięty jego następnym raportem zaczyna się wtedy o tej godzinie. Używane tylko, gdy wykrywanie przejazdów jest ustawione na Raporty po zakończeniu jazdy. Zapisuje tylko do lokalnego magazynu.",
+      "fields": {
+        "entry_id": {
+          "name": "Wpis konfiguracji",
+          "description": "Opcjonalny identyfikator docelowego wpisu konfiguracji. Wymagany, jeśli skonfigurowano kilka wpisów."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Opcjonalny VIN. Domyślnie jedyny skonfigurowany pojazd."
+        },
+        "at": {
+          "name": "Czas",
+          "description": "Opcjonalnie. Kiedy przejazd się zaczął; domyślnie teraz."
         }
       }
     },

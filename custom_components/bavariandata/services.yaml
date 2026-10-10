@@ -169,6 +169,19 @@ set_trip_class:
             - business
             - private
             - commute
+mark_trip_start:
+  fields:
+    entry_id:
+      selector:
+        text:
+    vin:
+      example: WBAEXAMPLE0000000
+      selector:
+        text:
+    at:
+      example: "2026-07-06T08:00:00+02:00"
+      selector:
+        datetime:
 export_history:
   fields:
     entry_id:

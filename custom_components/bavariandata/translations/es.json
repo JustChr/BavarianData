@@ -237,12 +237,13 @@
       },
       "action_trips": {
         "title": "Trayectos (diario de conducción)",
-        "description": "Reconstruye tus trayectos a partir del stream sin coste de API — distancia, reparto trabajo/privado/desplazamiento, consumo y un resumen mensual.\n\nDefine la **Zona de trabajo** para que los desplazamientos (casa ↔ trabajo) se reconozcan automáticamente; siempre puedes corregir un trayecto después. Todo lo que no es un desplazamiento se clasifica como **Tipo predeterminado** (Privado de serie). Un desplazamiento también sobrevive a una parada en el camino: si el coche se detiene no más que la **Tolerancia de parada en desplazamientos**, el tramo hasta allí y el siguiente cuentan como desplazamiento. **Resolver direcciones** está desactivado por defecto: si se activa, un extremo del trayecto fuera de cualquier zona de Home Assistant se busca mediante OpenStreetMap y se guarda como dirección — las coordenadas se envían para la búsqueda pero nunca se guardan.\n\n**Registrar ruta** también está desactivado por defecto: si se activa, cada trayecto guarda su traza GPS — por dónde fue el coche y cuándo — para que un mapa pueda mostrar y reproducir el trayecto. Es el único ajuste que guarda coordenadas en bruto en el disco, incluidos tus puntos exactos de inicio y fin.\n\n**Diagnóstico de captura de trayectos** es una ayuda para resolver problemas: si se activa, cada posición GPS, temporizador y mensaje se registra en detalle y se escribe un archivo de captura, para ayudar a mejorar la detección de trayectos. Actívalo solo para un trayecto de prueba y luego desactívalo.",
+        "description": "Reconstruye tus trayectos a partir del stream sin coste de API — distancia, reparto trabajo/privado/desplazamiento, consumo y un resumen mensual.\n\nDefine la **Zona de trabajo** para que los desplazamientos (casa ↔ trabajo) se reconozcan automáticamente; siempre puedes corregir un trayecto después. Todo lo que no es un desplazamiento se clasifica como **Tipo predeterminado** (Privado de serie). Un desplazamiento también sobrevive a una parada en el camino: si el coche se detiene no más que la **Tolerancia de parada en desplazamientos**, el tramo hasta allí y el siguiente cuentan como desplazamiento. **Resolver direcciones** está desactivado por defecto: si se activa, un extremo del trayecto fuera de cualquier zona de Home Assistant se busca mediante OpenStreetMap y se guarda como dirección — las coordenadas se envían para la búsqueda pero nunca se guardan.\n\n**Detección de trayectos** está en **En directo** para cualquier coche que transmite mientras conduce. Elige **Informes de fin de trayecto** para un coche que solo informa una vez aparcado (iDrive 6 y anteriores): cada informe se convierte entonces en un trayecto, desde donde estaba el coche en el informe anterior. Un coche así nunca dice cuándo salió, así que un trayecto solo tiene hora de inicio si una automatización llama a la acción **Marcar inicio del trayecto** al salir.\n\n**Registrar ruta** también está desactivado por defecto: si se activa, cada trayecto guarda su traza GPS — por dónde fue el coche y cuándo — para que un mapa pueda mostrar y reproducir el trayecto. Es el único ajuste que guarda coordenadas en bruto en el disco, incluidos tus puntos exactos de inicio y fin.\n\n**Diagnóstico de captura de trayectos** es una ayuda para resolver problemas: si se activa, cada posición GPS, temporizador y mensaje se registra en detalle y se escribe un archivo de captura, para ayudar a mejorar la detección de trayectos. Actívalo solo para un trayecto de prueba y luego desactívalo.",
         "data": {
           "trip_work_zone": "Zona de trabajo",
           "trip_default_class": "Tipo predeterminado",
           "trip_commute_gap": "Tolerancia de parada en desplazamientos",
           "trip_geocode": "Resolver direcciones",
+          "trip_detection": "Detección de trayectos",
           "trip_track": "Registrar ruta",
           "trip_debug": "Diagnóstico de captura de trayectos"
         },
@@ -251,6 +252,7 @@
           "trip_default_class": "Cómo se clasifica cada trayecto que no es un desplazamiento casa ↔ trabajo. Solo es un punto de partida — corregir un trayecto en la tarjeta siempre prevalece y una corrección nunca se sobrescribe.",
           "trip_commute_gap": "Cuánto tiempo puede estar parado el coche entre dos trayectos para que ambos sigan contando como un único desplazamiento — el supermercado de camino al trabajo. Pon 0 para desactivarlo. Las paradas de menos de unos cinco minutos nunca dividen un trayecto.",
           "trip_geocode": "Opcional. Envía los extremos fuera de zona a OpenStreetMap; solo se guarda la dirección resultante, nunca las coordenadas.",
+          "trip_detection": "En directo sigue la posición del coche mientras conduce. Informes de fin de trayecto crea un trayecto por informe, para coches que no envían nada mientras conducen; la detección en directo queda desactivada.",
           "trip_track": "Opcional. Guarda la traza GPS de cada trayecto — las coordenadas a lo largo del recorrido y, para cada una, la hora — para que un mapa pueda dibujar la ruta y reproducirla. Es el único ajuste que guarda coordenadas en bruto en el disco (incluidos tu inicio y fin exactos), por eso está desactivado por defecto por privacidad.",
           "trip_debug": "Solo diagnóstico. Registra los datos en bruto de la detección de trayectos (cada posición GPS, temporizador de cierre, lote de segmentos y mensaje) y escribe bavariandata_trip_capture.ndjson en tu carpeta de configuración. Muy detallado y contiene GPS/VIN, así que actívalo para un trayecto de prueba y desactívalo después."
         }
@@ -313,6 +315,12 @@
         "private": "Privado",
         "business": "Trabajo",
         "unclassified": "Dejar sin clasificar"
+      }
+    },
+    "trip_detection": {
+      "options": {
+        "live": "En directo (el coche transmite mientras conduce)",
+        "reports": "Informes de fin de trayecto (el coche informa una vez aparcado)"
       }
     }
   },
@@ -2847,6 +2855,24 @@
         "classification": {
           "name": "Clasificación",
           "description": "Uno de business, private o commute."
+        }
+      }
+    },
+    "mark_trip_start": {
+      "name": "Marcar inicio del trayecto",
+      "description": "Anota que ahora empieza un trayecto, para un coche que solo informa una vez aparcado: el trayecto que cierra su próximo informe empieza entonces a esta hora. Solo se usa si la detección de trayectos está en Informes de fin de trayecto. Solo escribe en el almacenamiento local.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrada de configuración",
+          "description": "ID opcional de la entrada de configuración a usar. Obligatorio si hay varias entradas configuradas."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN opcional. Por defecto, el único vehículo configurado."
+        },
+        "at": {
+          "name": "Hora",
+          "description": "Opcional. Cuándo empezó el trayecto; por defecto, ahora."
         }
       }
     },

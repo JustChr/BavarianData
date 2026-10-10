@@ -4438,7 +4438,9 @@ class BavarianDataCard extends HTMLElement {
   }
 
   _durationLabel(session) {
-    if (!session.start || !session.end) return null;
+    // A car that reports only once parked says where a trip went, never when
+    // it set off: its start is the arrival, and "0 min" would be made up.
+    if (!session.start || !session.end || session.duration_unknown) return null;
     const ms = new Date(session.end).getTime() - new Date(session.start).getTime();
     if (!(ms > 0)) return null;
     const mins = Math.round(ms / 60000);

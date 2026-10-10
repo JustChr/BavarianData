@@ -237,12 +237,13 @@
       },
       "action_trips": {
         "title": "Resor (körjournal)",
-        "description": "Rekonstruerar dina resor från strömmen utan API-kostnad — sträcka, fördelningen tjänst/privat/pendling, förbrukning och en månadsöversikt.\n\nAnge **Arbetszon** så att pendlingsresor (hem ↔ arbete) känns igen automatiskt; du kan alltid rätta en resa i efterhand. Allt som inte är pendling klassas som **Standardtyp** (Privat från början). En pendling klarar också ett stopp på vägen: om bilen står stilla högst **Stopptolerans för pendling** räknas både resan dit och resan vidare som pendling. **Slå upp adresser** är av som standard: med det på slås en start- eller slutpunkt utanför alla Home Assistant-zoner upp via OpenStreetMap och sparas som adress — koordinaterna skickas för uppslagningen men sparas aldrig.\n\n**Registrera rutt** är också av som standard: med det på sparar varje resa sitt GPS-spår — var bilen körde och när — så att en karta kan visa och spela upp resan. Det är den enda inställningen som sparar råa koordinater på disk, inklusive dina exakta start- och slutpunkter.\n\n**Diagnostik för resregistrering** är ett felsökningshjälpmedel: med det på loggas varje GPS-position, timer och meddelande i detalj och en registreringsfil skrivs, för att hjälpa till att förbättra resdetekteringen. Slå bara på det för en testkörning och stäng sedan av det igen.",
+        "description": "Rekonstruerar dina resor från strömmen utan API-kostnad — sträcka, fördelningen tjänst/privat/pendling, förbrukning och en månadsöversikt.\n\nAnge **Arbetszon** så att pendlingsresor (hem ↔ arbete) känns igen automatiskt; du kan alltid rätta en resa i efterhand. Allt som inte är pendling klassas som **Standardtyp** (Privat från början). En pendling klarar också ett stopp på vägen: om bilen står stilla högst **Stopptolerans för pendling** räknas både resan dit och resan vidare som pendling. **Slå upp adresser** är av som standard: med det på slås en start- eller slutpunkt utanför alla Home Assistant-zoner upp via OpenStreetMap och sparas som adress — koordinaterna skickas för uppslagningen men sparas aldrig.\n\n**Reseidentifiering** står på **Live** för varje bil som strömmar under körning. Välj **Rapporter vid resans slut** för en bil som rapporterar först när den parkerats (iDrive 6 och äldre): varje rapport blir då en resa, från platsen för den förra rapporten. En sådan bil säger aldrig när den åkte iväg, så en resa får en starttid bara om en automation anropar åtgärden **Markera resans start** när du kör iväg.\n\n**Registrera rutt** är också av som standard: med det på sparar varje resa sitt GPS-spår — var bilen körde och när — så att en karta kan visa och spela upp resan. Det är den enda inställningen som sparar råa koordinater på disk, inklusive dina exakta start- och slutpunkter.\n\n**Diagnostik för resregistrering** är ett felsökningshjälpmedel: med det på loggas varje GPS-position, timer och meddelande i detalj och en registreringsfil skrivs, för att hjälpa till att förbättra resdetekteringen. Slå bara på det för en testkörning och stäng sedan av det igen.",
         "data": {
           "trip_work_zone": "Arbetszon",
           "trip_default_class": "Standardtyp",
           "trip_commute_gap": "Stopptolerans för pendling",
           "trip_geocode": "Slå upp adresser",
+          "trip_detection": "Reseidentifiering",
           "trip_track": "Registrera rutt",
           "trip_debug": "Diagnostik för resregistrering"
         },
@@ -251,6 +252,7 @@
           "trip_default_class": "Hur varje resa som inte är en pendling hem ↔ arbete klassas. Bara en utgångspunkt — en rättning på kortet vinner alltid, och en rättning skrivs aldrig över.",
           "trip_commute_gap": "Hur länge bilen får stå mellan två resor för att båda fortfarande ska räknas som en pendling — mataffären på vägen till jobbet. Ange 0 för att stänga av. Stopp kortare än ungefär fem minuter delar aldrig en resa.",
           "trip_geocode": "Valfritt. Skickar punkter utanför zoner till OpenStreetMap; bara den resulterande adressen sparas, aldrig koordinaterna.",
+          "trip_detection": "Live följer bilens position medan den kör. Rapporter vid resans slut skapar en resa per rapport, för bilar som inte skickar något under körning; live-identifieringen är då av.",
           "trip_track": "Valfritt. Sparar varje resas GPS-spår — koordinaterna längs vägen och för var och en tidpunkten — så att en karta kan rita rutten och spela upp den. Den enda inställningen som sparar råa koordinater på disk (exakt start och slut inräknade), så den är av som standard av integritetsskäl.",
           "trip_debug": "Endast diagnostik. Loggar rådata för resdetekteringen (varje GPS-position, stängningstimer, segmentbatch och meddelande) och skriver bavariandata_trip_capture.ndjson till din konfigurationsmapp. Mycket utförligt och innehåller GPS/VIN, så slå på det för en testkörning och av igen efteråt."
         }
@@ -313,6 +315,12 @@
         "private": "Privat",
         "business": "Tjänst",
         "unclassified": "Lämna oklassad"
+      }
+    },
+    "trip_detection": {
+      "options": {
+        "live": "Live (bilen strömmar under körning)",
+        "reports": "Rapporter vid resans slut (bilen rapporterar när den parkerats)"
       }
     }
   },
@@ -2847,6 +2855,24 @@
         "classification": {
           "name": "Klassning",
           "description": "En av business, private eller commute."
+        }
+      }
+    },
+    "mark_trip_start": {
+      "name": "Markera resans start",
+      "description": "Noterar att en resa börjar nu, för en bil som rapporterar först när den parkerats: resan som dess nästa rapport avslutar börjar då vid denna tid. Används bara när reseidentifieringen står på Rapporter vid resans slut. Skriver bara till den lokala lagringen.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN. Standard är det enda konfigurerade fordonet."
+        },
+        "at": {
+          "name": "Tid",
+          "description": "Valfritt. När resan började; standard är nu."
         }
       }
     },

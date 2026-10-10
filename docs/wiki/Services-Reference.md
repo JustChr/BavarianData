@@ -40,6 +40,7 @@ These read (or write) the integration's own store and cost **no** quota.
 | `bavariandata.get_efficiency` | Measured consumption, the real range it implies, the charging loss and the monthly trend — see below. |
 | `bavariandata.get_evcc_config` | The evcc `custom` vehicle configuration for a car, plus the bridge's MQTT topics — see below. |
 | `bavariandata.set_trip_class` | Corrects a trip's business/private/commute class. |
+| `bavariandata.mark_trip_start` | Notes when a drive began, for a car that reports only once parked — see below. |
 | `bavariandata.export_history` | Returns a month as CSV or a printable HTML report. |
 | `bavariandata.get_coverage_report` | Descriptor-coverage self-test — see below. |
 | `bavariandata.import_statistics` | Rebuilds the long-term statistics from the store. |
@@ -138,6 +139,14 @@ See [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge).
 ### `set_trip_class`
 `vin`, `trip_id` (as returned by `get_trips`), `classification`
 (`business` · `private` · `commute`). Writes the local store only.
+
+### `mark_trip_start`
+`vin`, `at` (optional; defaults to now). For a car that reports only once parked,
+with **Trip detection** set to **End-of-trip reports**: the trip that the car's
+next report ends starts at this time. Call it when the drive begins, for example
+when your phone connects to the car's Bluetooth. Refused in the live mode, where
+nothing would read it. Writes the local store only. See
+[Trips](Feature-Trips#older-cars-that-report-only-at-the-end-of-a-trip).
 
 ### `export_history`
 `vin`, `month` (`YYYY-MM`), `type` (`charging` · `trips` · `both`), `format`

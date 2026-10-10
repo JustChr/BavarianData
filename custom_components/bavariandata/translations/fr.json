@@ -237,12 +237,13 @@
       },
       "action_trips": {
         "title": "Trajets (journal de conduite)",
-        "description": "Reconstitue vos trajets à partir du flux, sans coût d'API — distance, répartition professionnel/privé/domicile-travail, consommation et bilan mensuel.\n\nDéfinissez la **Zone de travail** pour que les trajets domicile ↔ travail soient reconnus automatiquement ; vous pouvez toujours corriger un trajet ensuite. Tout ce qui n'est pas un trajet domicile-travail est classé selon le **Type par défaut** (Privé d'origine). Un trajet domicile-travail survit aussi à un arrêt en route : si la voiture reste à l'arrêt moins longtemps que la **Tolérance d'arrêt domicile-travail**, l'aller jusqu'à l'arrêt et la suite sont tous deux comptés comme domicile-travail. **Résoudre les adresses** est désactivé par défaut : une fois activé, un point de départ ou d'arrivée hors de toute zone Home Assistant est recherché via OpenStreetMap et enregistré comme adresse — les coordonnées sont envoyées pour la recherche mais jamais enregistrées.\n\n**Enregistrer l'itinéraire** est aussi désactivé par défaut : une fois activé, chaque trajet enregistre sa trace GPS — où la voiture est allée et quand — afin qu'une carte puisse afficher et rejouer le trajet. C'est le seul réglage qui enregistre des coordonnées brutes sur le disque, y compris vos points de départ et d'arrivée exacts.\n\n**Diagnostic de capture des trajets** est une aide au dépannage : une fois activé, chaque position GPS, minuterie et message est journalisé en détail et un fichier de capture est écrit, afin d'améliorer la détection des trajets. Activez-le uniquement pour un trajet de test, puis désactivez-le.",
+        "description": "Reconstitue vos trajets à partir du flux, sans coût d'API — distance, répartition professionnel/privé/domicile-travail, consommation et bilan mensuel.\n\nDéfinissez la **Zone de travail** pour que les trajets domicile ↔ travail soient reconnus automatiquement ; vous pouvez toujours corriger un trajet ensuite. Tout ce qui n'est pas un trajet domicile-travail est classé selon le **Type par défaut** (Privé d'origine). Un trajet domicile-travail survit aussi à un arrêt en route : si la voiture reste à l'arrêt moins longtemps que la **Tolérance d'arrêt domicile-travail**, l'aller jusqu'à l'arrêt et la suite sont tous deux comptés comme domicile-travail. **Résoudre les adresses** est désactivé par défaut : une fois activé, un point de départ ou d'arrivée hors de toute zone Home Assistant est recherché via OpenStreetMap et enregistré comme adresse — les coordonnées sont envoyées pour la recherche mais jamais enregistrées.\n\n**Détection des trajets** est sur **En direct** pour toute voiture qui transmet pendant la conduite. Choisissez **Rapports de fin de trajet** pour une voiture qui ne transmet qu'une fois garée (iDrive 6 et plus ancien) : chaque rapport devient alors un trajet, depuis l'endroit du rapport précédent. Une telle voiture n'indique jamais quand elle est partie ; un trajet n'a donc une heure de départ que si une automatisation appelle l'action **Marquer le début du trajet** au départ.\n\n**Détection des trajets** est sur **En direct** pour toute voiture qui transmet pendant la conduite. Choisissez **Rapports de fin de trajet** pour une voiture qui ne transmet qu'une fois garée (iDrive 6 et plus ancien) : chaque rapport devient alors un trajet, depuis l'endroit du rapport précédent. Une telle voiture n'indique jamais quand elle est partie ; un trajet n'a donc une heure de départ que si une automatisation appelle l'action **Marquer le début du trajet** au départ.\n\n**Enregistrer l'itinéraire** est aussi désactivé par défaut : une fois activé, chaque trajet enregistre sa trace GPS — où la voiture est allée et quand — afin qu'une carte puisse afficher et rejouer le trajet. C'est le seul réglage qui enregistre des coordonnées brutes sur le disque, y compris vos points de départ et d'arrivée exacts.\n\n**Diagnostic de capture des trajets** est une aide au dépannage : une fois activé, chaque position GPS, minuterie et message est journalisé en détail et un fichier de capture est écrit, afin d'améliorer la détection des trajets. Activez-le uniquement pour un trajet de test, puis désactivez-le.",
         "data": {
           "trip_work_zone": "Zone de travail",
           "trip_default_class": "Type par défaut",
           "trip_commute_gap": "Tolérance d'arrêt domicile-travail",
           "trip_geocode": "Résoudre les adresses",
+          "trip_detection": "Détection des trajets",
           "trip_track": "Enregistrer l'itinéraire",
           "trip_debug": "Diagnostic de capture des trajets"
         },
@@ -251,6 +252,7 @@
           "trip_default_class": "Classement de chaque trajet qui n'est pas un domicile ↔ travail. Ce n'est qu'un point de départ — une correction sur la carte l'emporte toujours et n'est jamais écrasée.",
           "trip_commute_gap": "Durée pendant laquelle la voiture peut rester à l'arrêt entre deux trajets pour qu'ils comptent encore comme un seul trajet domicile-travail — le supermarché sur le chemin du travail. Mettez 0 pour désactiver. Les arrêts de moins de cinq minutes environ ne coupent jamais un trajet.",
           "trip_geocode": "Facultatif. Envoie les points hors zone à OpenStreetMap ; seule l'adresse obtenue est enregistrée, jamais les coordonnées.",
+          "trip_detection": "En direct suit la position de la voiture pendant qu'elle roule. Rapports de fin de trajet crée un trajet par rapport, pour les voitures qui n'envoient rien en roulant ; la détection en direct est alors désactivée.",
           "trip_track": "Facultatif. Enregistre la trace GPS de chaque trajet — les coordonnées le long du parcours et, pour chacune, l'heure — afin qu'une carte puisse tracer l'itinéraire et le rejouer. Seul réglage qui enregistre des coordonnées brutes sur le disque (départ/arrivée exacts compris), il est donc désactivé par défaut pour la vie privée.",
           "trip_debug": "Diagnostic uniquement. Journalise les données brutes de détection des trajets (chaque position GPS, minuterie de clôture, lot de segments et message) et écrit bavariandata_trip_capture.ndjson dans votre dossier de configuration. Très verbeux et contient GPS/VIN : activez-le pour un trajet de test, puis désactivez-le."
         }
@@ -313,6 +315,12 @@
         "private": "Privé",
         "business": "Professionnel",
         "unclassified": "Laisser non classé"
+      }
+    },
+    "trip_detection": {
+      "options": {
+        "live": "En direct (la voiture transmet en roulant)",
+        "reports": "Rapports de fin de trajet (la voiture transmet une fois garée)"
       }
     }
   },
@@ -2847,6 +2855,24 @@
         "classification": {
           "name": "Classification",
           "description": "business, private ou commute."
+        }
+      }
+    },
+    "mark_trip_start": {
+      "name": "Marquer le début du trajet",
+      "description": "Indique qu'un trajet commence maintenant, pour une voiture qui ne transmet qu'une fois garée : le trajet que clôt son prochain rapport commence alors à cette heure. Utilisé uniquement si la détection des trajets est réglée sur Rapports de fin de trajet. Écrit uniquement dans le stockage local.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif. Par défaut, l'unique véhicule configuré."
+        },
+        "at": {
+          "name": "Heure",
+          "description": "Facultatif. Quand le trajet a commencé ; par défaut, maintenant."
         }
       }
     },

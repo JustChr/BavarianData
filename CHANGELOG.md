@@ -9,6 +9,21 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **A trip journal for older cars that report only once parked** (discussion
+  #56). Cars with iDrive 6 and older send odometer, fuel and position in one burst
+  when a drive ends, and nothing while driving, so their trip journal stayed
+  empty. Set **Configure → Trips → Trip detection** to **End-of-trip reports**:
+  every vehicle report then becomes one trip, from where the car stood at the
+  previous report to where it stands now, with the odometer distance and the fuel
+  used. The live detection is off in this mode, so cars that stream while driving
+  are not affected unless you switch it on.
+- **New action `bavariandata.mark_trip_start`.** The car's report says when a
+  drive ended, never when it began. Call this action when you set off, for
+  example from an automation that runs when your phone connects to the car's
+  Bluetooth, and the trip gets its real start time and duration. Without it, the
+  trip is stored at its arrival with no duration rather than a made-up one.
+
 ### Fixed
 - **Leftover charging figures from a charge that ended unseen now clear too.**
   Beta 2 zeroes BMW's *time to full*, *remaining time* and *charging power* when

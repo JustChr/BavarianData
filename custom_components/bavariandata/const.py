@@ -99,6 +99,16 @@ DEFAULT_TRIP_COMMUTE_GAP_MIN = 30
 # coordinates to disk, so it stays strictly opt-in. When off, trips keep storing
 # named places only -- never coordinates.
 OPTION_TRIP_TRACK = "trip_track"
+# How trips are detected. ``live`` follows the position stream while the car
+# drives -- what every car that streams while driving needs. ``reports`` is for
+# cars that report only once parked (iDrive 6 and older, discussion #56): one
+# trip per vehicle report, from where the car stood at the previous one, with
+# the live detectors off so the burst's position jump can't open a trip of its
+# own. Per entry, not per car: a mixed account picks the mode of its older car.
+OPTION_TRIP_DETECTION = "trip_detection"
+TRIP_DETECTION_LIVE = "live"
+TRIP_DETECTION_REPORTS = "reports"
+TRIP_DETECTION_CHOICES = (TRIP_DETECTION_LIVE, TRIP_DETECTION_REPORTS)
 # Trip-capture debug mode (diagnostic, off by default). Independent of the
 # generic ``debug_log`` toggle: when on, the coordinator emits a rich, greppable
 # capture of the trip detector's raw substrate (every GPS fix, the close-timer

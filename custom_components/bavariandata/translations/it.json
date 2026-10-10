@@ -237,12 +237,13 @@
       },
       "action_trips": {
         "title": "Viaggi (diario di guida)",
-        "description": "Ricostruisce i tuoi viaggi dallo stream senza costi di API — distanza, ripartizione lavoro/privato/pendolarismo, consumi e un riepilogo mensile.\n\nImposta la **Zona lavoro** perché i tragitti casa ↔ lavoro vengano riconosciuti automaticamente; puoi sempre correggere un viaggio in seguito. Tutto ciò che non è pendolarismo viene classificato come **Tipo predefinito** (Privato di serie). Un tragitto casa-lavoro sopravvive anche a una sosta lungo la strada: se l'auto resta ferma non più della **Tolleranza sosta pendolarismo**, il tratto fin lì e quello successivo contano entrambi come pendolarismo. **Risolvi indirizzi** è disattivato per impostazione predefinita: se attivo, un punto di partenza o arrivo fuori da qualsiasi zona di Home Assistant viene cercato tramite OpenStreetMap e salvato come indirizzo — le coordinate vengono inviate per la ricerca ma mai salvate.\n\nAnche **Registra percorso** è disattivato per impostazione predefinita: se attivo, ogni viaggio salva la sua traccia GPS — dove è andata l'auto e quando — così una mappa può mostrare e riprodurre il viaggio. È l'unica impostazione che salva coordinate grezze su disco, inclusi i punti esatti di partenza e arrivo.\n\n**Diagnostica cattura viaggi** è un aiuto alla risoluzione dei problemi: se attiva, ogni posizione GPS, timer e messaggio viene registrato nel dettaglio e viene scritto un file di cattura, per aiutare a migliorare il rilevamento dei viaggi. Attivala solo per un viaggio di prova, poi disattivala.",
+        "description": "Ricostruisce i tuoi viaggi dallo stream senza costi di API — distanza, ripartizione lavoro/privato/pendolarismo, consumi e un riepilogo mensile.\n\nImposta la **Zona lavoro** perché i tragitti casa ↔ lavoro vengano riconosciuti automaticamente; puoi sempre correggere un viaggio in seguito. Tutto ciò che non è pendolarismo viene classificato come **Tipo predefinito** (Privato di serie). Un tragitto casa-lavoro sopravvive anche a una sosta lungo la strada: se l'auto resta ferma non più della **Tolleranza sosta pendolarismo**, il tratto fin lì e quello successivo contano entrambi come pendolarismo. **Risolvi indirizzi** è disattivato per impostazione predefinita: se attivo, un punto di partenza o arrivo fuori da qualsiasi zona di Home Assistant viene cercato tramite OpenStreetMap e salvato come indirizzo — le coordinate vengono inviate per la ricerca ma mai salvate.\n\n**Rilevamento viaggi** è su **Dal vivo** per ogni auto che trasmette durante la guida. Scegli **Report di fine viaggio** per un'auto che trasmette solo da parcheggiata (iDrive 6 e precedenti): ogni report diventa allora un viaggio, dal luogo del report precedente. Un'auto così non dice mai quando è partita, quindi un viaggio ha un orario di partenza solo se un'automazione chiama l'azione **Segna inizio viaggio** alla partenza.\n\nAnche **Registra percorso** è disattivato per impostazione predefinita: se attivo, ogni viaggio salva la sua traccia GPS — dove è andata l'auto e quando — così una mappa può mostrare e riprodurre il viaggio. È l'unica impostazione che salva coordinate grezze su disco, inclusi i punti esatti di partenza e arrivo.\n\n**Diagnostica cattura viaggi** è un aiuto alla risoluzione dei problemi: se attiva, ogni posizione GPS, timer e messaggio viene registrato nel dettaglio e viene scritto un file di cattura, per aiutare a migliorare il rilevamento dei viaggi. Attivala solo per un viaggio di prova, poi disattivala.",
         "data": {
           "trip_work_zone": "Zona lavoro",
           "trip_default_class": "Tipo predefinito",
           "trip_commute_gap": "Tolleranza sosta pendolarismo",
           "trip_geocode": "Risolvi indirizzi",
+          "trip_detection": "Rilevamento viaggi",
           "trip_track": "Registra percorso",
           "trip_debug": "Diagnostica cattura viaggi"
         },
@@ -251,6 +252,7 @@
           "trip_default_class": "Come viene classificato ogni viaggio che non è un tragitto casa ↔ lavoro. È solo un punto di partenza — una correzione sulla scheda vince sempre e non viene mai sovrascritta.",
           "trip_commute_gap": "Per quanto tempo l'auto può restare ferma tra due viaggi perché contino ancora come un unico tragitto casa-lavoro — il supermercato sulla strada per il lavoro. Imposta 0 per disattivare. Le soste inferiori a circa cinque minuti non spezzano mai un viaggio.",
           "trip_geocode": "Facoltativo. Invia i punti fuori zona a OpenStreetMap; viene salvato solo l'indirizzo risultante, mai le coordinate.",
+          "trip_detection": "Dal vivo segue la posizione dell'auto mentre guida. Report di fine viaggio crea un viaggio per report, per le auto che non inviano nulla durante la guida; il rilevamento dal vivo è allora spento.",
           "trip_track": "Facoltativo. Salva la traccia GPS di ogni viaggio — le coordinate lungo il percorso e, per ciascuna, l'ora — così una mappa può disegnare il percorso e riprodurlo. È l'unica impostazione che salva coordinate grezze su disco (inclusi partenza e arrivo esatti), quindi è disattivata per impostazione predefinita per la privacy.",
           "trip_debug": "Solo diagnostica. Registra i dati grezzi del rilevamento viaggi (ogni posizione GPS, timer di chiusura, lotto di segmenti e messaggio) e scrive bavariandata_trip_capture.ndjson nella cartella di configurazione. Molto prolisso e contiene GPS/VIN: attivalo per un viaggio di prova e poi disattivalo."
         }
@@ -313,6 +315,12 @@
         "private": "Privato",
         "business": "Lavoro",
         "unclassified": "Lascia non classificato"
+      }
+    },
+    "trip_detection": {
+      "options": {
+        "live": "Dal vivo (l'auto trasmette durante la guida)",
+        "reports": "Report di fine viaggio (l'auto trasmette da parcheggiata)"
       }
     }
   },
@@ -2847,6 +2855,24 @@
         "classification": {
           "name": "Classificazione",
           "description": "Uno tra business, private o commute."
+        }
+      }
+    },
+    "mark_trip_start": {
+      "name": "Segna inizio viaggio",
+      "description": "Annota che un viaggio inizia adesso, per un'auto che trasmette solo da parcheggiata: il viaggio chiuso dal suo prossimo report inizia allora a quest'ora. Usato solo se il rilevamento viaggi è impostato su Report di fine viaggio. Scrive solo nell'archivio locale.",
+      "fields": {
+        "entry_id": {
+          "name": "Voce di configurazione",
+          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facoltativo. Predefinito: l'unico veicolo configurato."
+        },
+        "at": {
+          "name": "Ora",
+          "description": "Facoltativo. Quando è iniziato il viaggio; predefinito: adesso."
         }
       }
     },

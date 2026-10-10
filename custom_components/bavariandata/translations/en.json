@@ -237,12 +237,13 @@
       },
       "action_trips": {
         "title": "Trips (driving journal)",
-        "description": "Reconstructs your drives from the stream at no API cost — distance, the business/private/commute split, consumption and a monthly review.\n\nSet **Work zone** so commutes (home ↔ work) are recognized automatically; you can always correct a trip afterwards. Everything that isn't a commute is filed as the **Default type** (Private out of the box). A commute also survives a stop on the way: if the car stands no longer than the **Commute stop tolerance**, the drive there and the drive on are both counted as commuting. **Resolve addresses** is off by default: with it on, a trip endpoint outside any Home Assistant zone is looked up via OpenStreetMap and stored as an address — the coordinates are sent for the lookup but never saved.\n\n**Record route** is also off by default: with it on, each trip stores its GPS track — where the car went and when — so a map can show and replay the drive. This is the only setting that saves raw coordinates to disk, including your exact start and end points.\n\n**Trip-capture diagnostics** is a troubleshooting aid: with it on, every GPS fix, timer and message is logged in detail and a capture file is written, to help improve trip detection. Turn it on only for a test drive, then off again.",
+        "description": "Reconstructs your drives from the stream at no API cost — distance, the business/private/commute split, consumption and a monthly review.\n\nSet **Work zone** so commutes (home ↔ work) are recognized automatically; you can always correct a trip afterwards. Everything that isn't a commute is filed as the **Default type** (Private out of the box). A commute also survives a stop on the way: if the car stands no longer than the **Commute stop tolerance**, the drive there and the drive on are both counted as commuting. **Resolve addresses** is off by default: with it on, a trip endpoint outside any Home Assistant zone is looked up via OpenStreetMap and stored as an address — the coordinates are sent for the lookup but never saved.\n\n**Trip detection** is **Live** for every car that streams while driving. Choose **End-of-trip reports** for a car that reports only once parked (iDrive 6 and older): each report then becomes one trip, from where the car stood at the previous one. Such a car never says when it set off, so a trip gets a start time only if an automation calls the **Mark trip start** action when the drive begins.\n\n**Record route** is also off by default: with it on, each trip stores its GPS track — where the car went and when — so a map can show and replay the drive. This is the only setting that saves raw coordinates to disk, including your exact start and end points.\n\n**Trip-capture diagnostics** is a troubleshooting aid: with it on, every GPS fix, timer and message is logged in detail and a capture file is written, to help improve trip detection. Turn it on only for a test drive, then off again.",
         "data": {
           "trip_work_zone": "Work zone",
           "trip_default_class": "Default type",
           "trip_commute_gap": "Commute stop tolerance",
           "trip_geocode": "Resolve addresses",
+          "trip_detection": "Trip detection",
           "trip_track": "Record route",
           "trip_debug": "Trip-capture diagnostics"
         },
@@ -251,6 +252,7 @@
           "trip_default_class": "What every trip that isn't a home ↔ work commute is filed as. Only a starting point — correcting a trip on the card always wins, and a correction is never overwritten.",
           "trip_commute_gap": "How long the car may stand between two drives for both to still count as one commute — the supermarket on the way to work. Set 0 to switch this off. Stops shorter than about five minutes never split a drive in the first place.",
           "trip_geocode": "Optional. Sends non-zone endpoints to OpenStreetMap; only the resulting address is stored, never the coordinates.",
+          "trip_detection": "Live follows the car's position while it drives. End-of-trip reports builds one trip per report, for cars that send nothing while driving; the live detection is then off.",
           "trip_track": "Optional. Stores each trip's GPS track — the coordinates along the drive and, for each, the time — so a map can draw the route and play it back. The only setting that saves raw coordinates to disk (your exact start/end included), so it is off by default for privacy.",
           "trip_debug": "Diagnostic only. Logs the raw trip-detection substrate (every GPS fix, close timer, segment batch and message) and writes bavariandata_trip_capture.ndjson to your config folder. Very verbose and contains GPS/VIN, so switch it on for a test drive and back off afterwards."
         }
@@ -313,6 +315,12 @@
         "private": "Private",
         "business": "Business",
         "unclassified": "Leave unclassified"
+      }
+    },
+    "trip_detection": {
+      "options": {
+        "live": "Live (car streams while driving)",
+        "reports": "End-of-trip reports (car reports once parked)"
       }
     }
   },
@@ -3077,6 +3085,24 @@
         "classification": {
           "name": "Classification",
           "description": "One of business, private or commute."
+        }
+      }
+    },
+    "mark_trip_start": {
+      "name": "Mark trip start",
+      "description": "Note that a drive is starting now, for a car that reports only once parked: the trip its next report ends then starts at this time. Used only when Trip detection is set to End-of-trip reports. Writes the local store only.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN. Defaults to the single configured vehicle."
+        },
+        "at": {
+          "name": "Time",
+          "description": "Optional. When the drive started; defaults to now."
         }
       }
     },

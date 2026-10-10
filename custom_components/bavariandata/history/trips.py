@@ -107,6 +107,11 @@ class Trip:
     # drop, but the distance may have been driven partly on fuel, so dividing
     # one by the other reads low -- see ``consumption_kwh_per_100km``.
     hybrid: bool = False
+    # True when nothing said when the drive began: a car that reports only once
+    # parked gives the arrival, and its previous report is when it last parked,
+    # not when it set off. Such a trip is stored at its arrival with no duration
+    # rather than an invented one (``vehicle_report.py``).
+    duration_unknown: bool = False
 
     @property
     def id(self) -> str:
@@ -116,7 +121,7 @@ class Trip:
 
     @property
     def duration_s(self) -> Optional[int]:
-        if self.end is None:
+        if self.end is None or self.duration_unknown:
             return None
         return max(0, int((self.end - self.start).total_seconds()))
 
@@ -192,6 +197,7 @@ class Trip:
             "location_assumed": self.location_assumed,
             "track": [list(point) for point in self.track],
             "hybrid": self.hybrid,
+            "duration_unknown": self.duration_unknown,
         }
 
     @classmethod
@@ -221,6 +227,7 @@ class Trip:
             location_assumed=bool(data.get("location_assumed")),
             track=[list(point) for point in data.get("track") or []],
             hybrid=bool(data.get("hybrid")),
+            duration_unknown=bool(data.get("duration_unknown")),
         )
 
 

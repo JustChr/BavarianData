@@ -66,6 +66,9 @@ from .const import (
     OPTION_TRIP_TRACK,
     OPTION_TRIP_WORK_ZONE,
     VEHICLE_METADATA,
+    OPTION_TRIP_DETECTION,
+    TRIP_DETECTION_CHOICES,
+    TRIP_DETECTION_LIVE,
 )
 from .debug import set_debug_enabled
 from .history.classify import DEFAULT_CLASS_CHOICES, trip_class_setting
@@ -1517,6 +1520,16 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                     default=options.get(OPTION_TRIP_GEOCODE, False),
                 ): selector.BooleanSelector(),
                 vol.Required(
+                    OPTION_TRIP_DETECTION,
+                    default=options.get(OPTION_TRIP_DETECTION, TRIP_DETECTION_LIVE),
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=list(TRIP_DETECTION_CHOICES),
+                        translation_key=OPTION_TRIP_DETECTION,
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+                vol.Required(
                     OPTION_TRIP_TRACK,
                     default=options.get(OPTION_TRIP_TRACK, False),
                 ): selector.BooleanSelector(),
@@ -1553,6 +1566,9 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
             coordinator.record_trip_track = bool(user_input.get(OPTION_TRIP_TRACK))
             # Trip-capture diagnostics apply immediately (next message onward).
             coordinator.trip_debug = bool(user_input.get(OPTION_TRIP_DEBUG))
+            # From the next report or fix on. A live trip already open still
+            # closes on its timers; in ``reports`` mode no new one opens.
+            coordinator.trip_detection = user_input.get(OPTION_TRIP_DETECTION, TRIP_DETECTION_LIVE)
         return self.async_create_entry(title="", data=options)
 
     async def async_step_action_data_refresh(

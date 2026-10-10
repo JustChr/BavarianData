@@ -56,24 +56,52 @@ rückdatiert wird, kostet ein spätes Schließen keine Genauigkeit.
 
 <a id="older-cars-that-report-only-at-the-end-of-a-trip"></a>
 
-Die Fahrtenerkennung setzt voraus, dass das Auto seine Position **während der
-Fahrt** streamt. Nutzer berichten, dass manche ältere Autos das nicht tun: Ein G31
-530d mit iDrive 6 sendet Kilometerstand, Tankfüllstand und Position nur am Ende
-einer Fahrt, und bei einem BMW i3 wird berichtet, dass er nur den Parkplatz meldet.
-Bei so einem Auto bleibt das Fahrtenbuch leer, weil es keine Fahrt zu
-rekonstruieren gibt. Alles andere funktioniert wie gewohnt: Kilometerstand,
-Tankfüllstand und die Position des Geräte-Trackers aktualisieren sich am Ende jeder
-Fahrt.
+Die Erkennung oben setzt voraus, dass das Auto seine Position **während der Fahrt**
+streamt. Nutzer berichten, dass manche ältere Autos das nicht tun: Ein G31 530d mit
+iDrive 6 zum Beispiel sendet Kilometerstand, Tankfüllstand und Position in einem
+Schwung am Ende einer Fahrt und während der Fahrt nichts. Live gelesen sieht dieser
+Schwung aus wie ein Sprung über viele Kilometer in einem Schritt, daraus kann die
+Live-Erkennung kein Fahrtenbuch machen.
+
+Stell für diese Autos **Konfigurieren → Fahrten → Fahrterkennung** auf **Berichte am
+Fahrtende**. Die Live-Erkennung ist dann aus. Stattdessen wird jeder
+[Fahrzeugbericht](DE-Feature-Automations) (ein neuer Kilometerstand, der 5 Minuten
+lang gleich geblieben ist) zu einer Fahrt:
+
+- **Von wo nach wo:** von dem Ort, an dem das Auto beim vorigen Bericht stand, zu dem
+  Ort, an dem es jetzt steht (Zonenname oder, mit **Adressen auflösen**, eine
+  Adresse).
+- **Strecke:** die Differenz des Kilometerstands, in ganzen Kilometern, wie das Auto
+  sie meldet.
+- **Kraftstoff:** die `stats` der Fahrt enthalten `fuel_start_l`, `fuel_end_l` und,
+  sofern unterwegs nicht getankt wurde, `fuel_used_l`. Kurze Fahrten zeigen oft
+  0 L, weil diese Autos den Tank in ganzen Litern melden.
+- **Startzeit:** Der Schwung sagt, wann das Auto *geparkt* hat, nie, wann es
+  losgefahren ist. Eine Fahrt bekommt deshalb nur dann eine echte Startzeit, wenn
+  BavarianData erfährt, wann die Fahrt begann: Ruf in diesem Moment
+  `bavariandata.mark_trip_start` auf, zum Beispiel aus einer Automation, die läuft,
+  wenn sich dein Handy mit dem Bluetooth des Autos verbindet. Kommen für eine Fahrt
+  mehrere Markierungen an (ein Handy, das sich neu verbindet), zählt die früheste.
+  Eine Markierung, die nach dem Bericht des Autos ankommt, gehört zur nächsten
+  Fahrt, und eine Markierung mehr als 12 Stunden vor dem Bericht wird ignoriert.
+- **Ohne Markierung** wird die Fahrt zu ihrer Ankunftszeit **ohne Dauer**
+  gespeichert: Die Karte zeigt für sie keine Minuten, und der Export lässt die Dauer
+  leer. Das ist Absicht. Der vorige Bericht ist der Zeitpunkt, an dem das Auto
+  zuletzt geparkt hat, vielleicht Tage vorher. Als Start genommen ergäbe er eine
+  Dauer, die nicht stimmt.
+
+Der erste Bericht nach dem Umstellen setzt nur den Ausgangspunkt, die erste Fahrt
+kommt also mit der zweiten Fahrt. Zuordnung, Pendelketten und der Auslöser *in Zone
+angekommen* funktionieren wie bei jeder anderen Fahrt. Eine *laufende Fahrt* und
+eine Route gibt es bei diesen Autos nicht, weil während der Fahrt nichts ankommt.
 
 Ein Besitzer eines iDrive-6-Autos hat auf BavarianData ein eigenes Fahrtenbuch
-aufgebaut. Das Fahrtende kommt vom Auto, der Fahrtbeginn von der
-Bluetooth-Verbindung des Handys, und jede Fahrt wird als Zeile in Google Sheets
-geschrieben: [BMW-Fahrtenbuch für iDrive 6](https://github.com/ursubey/Home-Assistant-BMW-CarData-Logbook-iDrive6) von @ursubey. Es ist ein
-unabhängiges Community-Projekt und wird von BavarianData weder gepflegt noch
-getestet.
-
-Verhält sich dein Auto so, zeigt ein [Diagnose-Download](DE-Troubleshooting-and-FAQ),
-welche Felder es wirklich sendet, und hilft uns einzuschätzen, wie verbreitet das ist.
+aufgebaut, bevor es diesen Modus gab. Das Fahrtende kommt vom Auto, der Fahrtbeginn
+von der Bluetooth-Verbindung des Handys, und jede Fahrt wird als Zeile in Google
+Sheets geschrieben: [BMW-Fahrtenbuch für iDrive
+6](https://github.com/ursubey/Home-Assistant-BMW-CarData-Logbook-iDrive6) von
+@ursubey. Es ist ein unabhängiges Community-Projekt und wird von BavarianData weder
+gepflegt noch getestet.
 
 ## Die Fahrt, die gerade läuft
 
