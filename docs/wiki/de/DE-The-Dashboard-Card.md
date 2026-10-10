@@ -70,6 +70,12 @@ sein eigener Wert steht dann still. Mit einem verknüpften Wallbox-Zähler
 Der nächste echte Messwert ersetzt sie. Siehe
 [die Ladeseite](DE-Feature-Charging-History-and-Cost).
 
+**Bis voll** ist
+[der eigene Wert der Integration](DE-Feature-evcc-and-Wallbox-Bridge#time-to-the-charge-target),
+solange das Auto zu Hause mit verknüpftem Wallbox-Zähler lädt, und sonst BMWs.
+Außerhalb einer Ladung heißt die Kachel *Ladezeit*, und sie wird ausgeblendet,
+wenn diese 0 ist.
+
 Ein Auto, das Daten der Hochvoltbatterie *und* Kraftstoffdaten sendet, ist ein
 Plug-in-Hybrid; Kraftstoffdaten allein machen es zum Benziner oder Diesel. Manche
 Benziner streamen trotzdem ein E-Ladeziel, das lässt ein Auto aber nie elektrisch

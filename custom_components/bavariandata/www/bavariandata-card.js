@@ -3236,6 +3236,14 @@ class BavarianDataCard extends HTMLElement {
         this._pick(entities, { deviceClass: "battery", unit: "%", prefer: ["target"] }),
       timeToFull:
         cfg.time_to_full ||
+        // The integration's own figure while it has one: at home it follows
+        // the wallbox meter and lands within minutes, where BMW's ran up to
+        // half an hour long and kept its last value after the charge ended.
+        // Unknown away from home, which leaves BMW's.
+        this._idByDescriptor(
+          entities.filter((id) => !isNaN(parseFloat((this._st(id) || {}).state))),
+          "charge_eta"
+        ) ||
         this._pick(entities, { prefer: ["fully charged", "time remaining", "timetofully"] }),
       odometer:
         cfg.odometer ||
@@ -3533,6 +3541,9 @@ class BavarianDataCard extends HTMLElement {
 
     const tile = (key, label, st, icon) => ({ key, label, st, icon });
     const plugSt = this._st(picks.plug);
+    // "0 min" outside a charge is no charge time, only the end of the last one.
+    const ttfRaw = this._st(picks.timeToFull);
+    const ttfSt = !charging && ttfRaw && parseFloat(ttfRaw.state) === 0 ? null : ttfRaw;
     const rangeRow = {
       entity: rangeId,
       icon: "mdi:map-marker-distance",
@@ -3581,7 +3592,7 @@ class BavarianDataCard extends HTMLElement {
           : []),
         tile("target", this._t("target"), this._st(picks.target), "mdi:target"),
         tile("plug", this._t("plug"), plugSt, charging || this._isPlugged(plugSt) ? "mdi:power-plug" : "mdi:power-plug-off"),
-        tile("ttf", charging ? this._t("time_to_full") : this._t("charge_time"), this._st(picks.timeToFull), "mdi:timer-sand"),
+        tile("ttf", charging ? this._t("time_to_full") : this._t("charge_time"), ttfSt, "mdi:timer-sand"),
         tile("odo", this._t("odometer"), odometerSt, "mdi:counter"),
       ];
     }

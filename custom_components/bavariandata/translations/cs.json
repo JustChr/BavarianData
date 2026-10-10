@@ -1643,6 +1643,9 @@
       "soc_rate": {
         "name": "Predikovaná rychlost nabíjení"
       },
+      "charge_eta": {
+        "name": "Predikovaný čas do cíle nabití"
+      },
       "charged_energy_total": {
         "name": "Nabitá energie (celkem)"
       },

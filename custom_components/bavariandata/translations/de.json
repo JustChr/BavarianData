@@ -1643,6 +1643,9 @@
       "soc_rate": {
         "name": "Vorhergesagte Ladegeschwindigkeit"
       },
+      "charge_eta": {
+        "name": "Vorhergesagte Zeit bis zum Ladeziel"
+      },
       "charged_energy_total": {
         "name": "Geladene Energie (gesamt)"
       },

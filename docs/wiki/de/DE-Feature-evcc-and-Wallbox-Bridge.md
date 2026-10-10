@@ -235,6 +235,24 @@ steigt, gemessen über mindestens fünf Minuten. Hat sich der Zähler 15 Minuten
 nicht bewegt, eine pausierte PV-Ladung, zeigt sie keine Rate. Eine Wallbox, die
 seltener meldet, zeigt zwischen ihren Meldungen keine Rate.
 
+<a id="time-to-the-charge-target"></a>
+Aus beidem berechnet der Sensor **Vorhergesagte Zeit bis zum Ladeziel**, wie lange
+es noch dauert: (Ladeziel − Schätzung) ÷ Laderate, in Minuten. Beim i5 des
+Maintainers lag eine 11-kW-Ladung auf 80 % jedes Mal 1–3 Minuten daneben, BMWs
+eigene *Restladedauer* dagegen 7–26 Minuten zu lang, und sie änderte sich nur etwa
+alle 40 Minuten. Einen Wert gibt es nur, solange der Zähler treibt, also nur zu
+Hause; `0`, wenn das Auto nicht lädt, und unbekannt in den ersten fünf Minuten
+einer Ladung oder während eine PV-Ladung pausiert (wann sie endet, hängt an der
+Sonne). Unterwegs ist BMWs Wert der bessere: Eine DC-Schnellladung wird zum Ende
+hin stark langsamer, was BMW weiß und eine gerade Linie aus der aktuellen Rate
+nicht. Die Dashboard-Karte zeigt diesen Wert, wenn es einen gibt, sonst BMWs.
+Auch AC-Laden wird kurz vor 100 % langsamer, dort kommt er also etwas zu früh.
+
+BMW hört am Ende einer Ladung auf, *Restladedauer*, *verbleibende Ladezeit* und
+*Ladeleistung* zu senden, statt null zu senden; deshalb blieben sie bisher für
+immer auf ihrem letzten Wert. Jetzt werden sie auf 0 gesetzt, sobald die Ladung
+zwei Minuten lang beendet ist.
+
 Der Sensor **Ladezustand (integrationsseitig vorhergesagt)** zeigt, was ihn treibt:
 `estimate_source` (`meter` oder `stream`), `meter_sessions` (die Ladungen, aus
 denen gelernt wurde, 0, bis drei zählen), `meter_percent_per_kwh` und

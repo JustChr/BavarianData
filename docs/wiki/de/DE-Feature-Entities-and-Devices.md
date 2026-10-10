@@ -66,6 +66,7 @@ passend).
 | **Reifen vorne links / vorne rechts / hinten links / hinten rechts** | Verschleiß-Ampel pro Rad (`green`/`yellow`/`red`/`grey`), mit Restlaufleistung bis zum Wechsel, Defektstatus, Saison, Dimension, Profil und Montagedatum als Attributen. |
 | **Verbleibendes API-Kontingent** | Diagnose: übrige Anfragen im Fenster von 50 pro 24 h. |
 | **Ladezustand (integrationsseitig vorhergesagt) / Vorhergesagte Ladegeschwindigkeit** | Hochgerechnete Ladezustands-Helfer (brauchen die Datengruppe Elektrofahrzeug). |
+| **Vorhergesagte Zeit bis zum Ladeziel** | Minuten, bis eine Ladung **zu Hause** das Ladeziel des Autos erreicht, berechnet aus dem [Wallbox-Zähler](DE-Feature-evcc-and-Wallbox-Bridge#time-to-the-charge-target). `0`, wenn nicht geladen wird; unbekannt unterwegs, in den ersten Minuten einer Ladung und während eine PV-Ladung pausiert. Nur mit verknüpftem Wallbox-Zähler. |
 | **Stream-Verbindungsstatus** | Diagnose: Zustand der MQTT-Verbindung. |
 | **Letzte empfangene Nachricht** | Diagnose: Zeitstempel der letzten Stream-Nachricht. |
 | **Letzte Fahrzeugmeldung** | Diagnose, **standardmäßig deaktiviert**: wann das Auto zuletzt seinen Kilometerstand gemeldet hat, nach der Uhr des Autos. Weicht von *Letzte empfangene Nachricht* ab, wenn ein Auto ohne Empfang geparkt war und verspätet meldet. |

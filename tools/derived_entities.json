@@ -49,6 +49,18 @@
       "cs": "Predikovaná rychlost nabíjení",
       "sv": "Förutsagd laddhastighet"
     },
+    "charge_eta": {
+      "en": "Predicted time to charge target",
+      "de": "Vorhergesagte Zeit bis zum Ladeziel",
+      "fr": "Temps prévu jusqu'à l'objectif de charge",
+      "it": "Tempo previsto fino all'obiettivo di carica",
+      "es": "Tiempo previsto hasta el objetivo de carga",
+      "nl": "Voorspelde tijd tot laaddoel",
+      "pl": "Prognozowany czas do docelowego naładowania",
+      "pt": "Tempo previsto até ao objetivo de carga",
+      "cs": "Predikovaný čas do cíle nabití",
+      "sv": "Förutsagd tid till laddmål"
+    },
     "charged_energy_total": {
       "en": "Charged Energy (Total)",
       "de": "Geladene Energie (gesamt)",

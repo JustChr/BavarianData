@@ -244,6 +244,18 @@ RESTORED_SESSION_GRACE_S = 900
 # as transient and waits for the grace timer instead.
 CHARGE_TERMINAL_STATUSES = frozenset({"NOCHARGING", "CHARGINGENDED", "CHARGINGERROR"})
 
+# BMW's in-charge progress figures, which it simply stops sending when a charge
+# ends instead of sending a zero: on the i5 the time to full stayed at 32 min and
+# the power at 10.56 kW for good after a charge reached its target (2026-10-10).
+# Zeroed when our own session closes on the car's word -- after the flap
+# debounce, so a blip that comes straight back never zeroes a value BMW may not
+# send again; and never on a restart's timeout, which can't know the charge ended.
+CHARGE_PROGRESS_DESCRIPTORS = (
+    "vehicle.drivetrain.electricEngine.charging.timeToFullyCharged",
+    "vehicle.drivetrain.electricEngine.charging.timeRemaining",
+    "vehicle.powertrain.electric.battery.charging.power",
+)
+
 # A ``trip.segment.end.*`` field is only a completed-trip signal if its own
 # timestamp is recent: BMW ships the "last trip end" fields (e.g. ``hvSoc``) in
 # every telematic snapshot with the *previous* drive's timestamp, so an old one
@@ -404,6 +416,8 @@ class CardataCoordinator:
     # What drives each estimate right now, "meter" or "stream" -- kept so a
     # switch alone, with the figure unchanged, still updates the entity.
     _soc_source: Dict[str, str] = field(default_factory=dict, init=False)
+    # Whole minutes until a home charge reaches its target (``charge_eta``).
+    _charge_eta: Dict[str, int] = field(default_factory=dict, init=False)
     _testing_soc_tracking: Dict[str, SocTracking] = field(default_factory=dict, init=False)
     _testing_soc_estimate: Dict[str, float] = field(default_factory=dict, init=False)
     _avg_aux_power_w: Dict[str, float] = field(default_factory=dict, init=False)
@@ -1254,6 +1268,7 @@ class CardataCoordinator:
                 self._resume_restored_session(vin)
             elif str(status).strip().upper() in CHARGE_TERMINAL_STATUSES:
                 self._close_restored_session(vin, status)
+                self._clear_charge_progress(vin)
             # Anything else -- initialization, a pause, a status we don't know --
             # says nothing about whether this charge is over, so the session is
             # left restored and the grace timer keeps the deadline.
@@ -1350,6 +1365,7 @@ class CardataCoordinator:
         # Close the record first so its summary can ride along on the event --
         # automations then get the cost without a second lookup.
         session = self._close_session_record(vin, status)
+        self._clear_charge_progress(vin)
         if session is not None:
             payload["energy_kwh"] = session.energy_kwh
             payload["cost"] = session.cost
@@ -1736,6 +1752,29 @@ class CardataCoordinator:
         async_dispatcher_send(self.hass, self.signal_history, vin)
         self._log_battery_health(vin)
         return session
+
+    def _clear_charge_progress(self, vin: str) -> None:
+        """Zero BMW's progress figures for a charge that is over.
+
+        Only the ones the car has sent at all, and only when not already zero,
+        so a car that never streams them gains no entity and nothing re-renders
+        for nothing (see :data:`CHARGE_PROGRESS_DESCRIPTORS`).
+        """
+
+        vehicle_state = self.data.get(vin)
+        if not vehicle_state:
+            return
+        now = datetime.now(timezone.utc)
+        for descriptor in CHARGE_PROGRESS_DESCRIPTORS:
+            state = vehicle_state.get(descriptor)
+            if state is None or state.value in (0, 0.0):
+                continue
+            vehicle_state[descriptor] = DescriptorState(
+                value=0, unit=state.unit, timestamp=now.isoformat()
+            )
+            if descriptor == "vehicle.powertrain.electric.battery.charging.power":
+                self._set_direct_power(vin, 0.0, now)
+            async_dispatcher_send(self.hass, self.signal_update, vin, descriptor)
 
     def _log_battery_health(self, vin: str) -> None:
         """Explain the battery-health estimate after each charge (debug only).
@@ -3734,6 +3773,7 @@ class CardataCoordinator:
         if not tracking:
             removed_estimate = self._soc_estimate.pop(vin, None) is not None
             removed_rate = self._soc_rate.pop(vin, None) is not None
+            removed_eta = self._charge_eta.pop(vin, None) is not None
             testing_removed = self._testing_soc_estimate.pop(vin, None) is not None
             if vin in self._testing_soc_tracking:
                 self._testing_soc_tracking.pop(vin, None)
@@ -3744,7 +3784,7 @@ class CardataCoordinator:
             self._ac_current_a.pop(vin, None)
             self._ac_phase_count.pop(vin, None)
             self._soc_source.pop(vin, None)
-            changed = removed_estimate or removed_rate or testing_removed
+            changed = removed_estimate or removed_rate or removed_eta or testing_removed
             if notify and changed:
                 async_dispatcher_send(self.hass, self.signal_soc_estimate, vin)
             return changed
@@ -3783,7 +3823,13 @@ class CardataCoordinator:
             if self._soc_estimate.get(vin) != rounded_percent:
                 self._soc_estimate[vin] = rounded_percent
                 estimate_changed = True
-        updated = rate_changed or estimate_changed or source_changed
+        eta = self._charge_eta_minutes(tracking)
+        eta_changed = self._charge_eta.get(vin) != eta
+        if eta is None:
+            self._charge_eta.pop(vin, None)
+        else:
+            self._charge_eta[vin] = eta
+        updated = rate_changed or estimate_changed or source_changed or eta_changed
 
         testing_changed = False
         if testing_tracking:
@@ -3812,6 +3858,27 @@ class CardataCoordinator:
 
     def get_soc_estimate(self, vin: str) -> Optional[float]:
         return self._soc_estimate.get(vin)
+
+    def get_charge_eta(self, vin: str) -> Optional[int]:
+        return self._charge_eta.get(vin)
+
+    def _charge_eta_minutes(self, tracking: SocTracking) -> Optional[int]:
+        """Minutes to the charge target, for the ``charge_eta`` sensor.
+
+        Nothing without a bound wallbox meter: the figure is the meter's, and
+        without one the sensor would only ever say 0 or nothing. With one, a
+        car that isn't charging needs no time (0), and a charge the meter isn't
+        driving -- away from home, the first minutes before its rate settles,
+        a paused solar charge -- is ``None``, which leaves the card on BMW's
+        own figure (:meth:`SocTracking.minutes_to_target`).
+        """
+
+        if not self.pricing.grid_energy_entity:
+            return None
+        if not (tracking.charging_active or tracking.restored_charging):
+            return 0
+        minutes = tracking.minutes_to_target()
+        return None if minutes is None else round(minutes)
 
     def learned_meter_rate(self, vin: str) -> Optional[MeterRate]:
         """What wallbox kWh do to this car's SoC, from its home charges in the ledger."""

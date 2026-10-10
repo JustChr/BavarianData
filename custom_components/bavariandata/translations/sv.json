@@ -1643,6 +1643,9 @@
       "soc_rate": {
         "name": "Förutsagd laddhastighet"
       },
+      "charge_eta": {
+        "name": "Förutsagd tid till laddmål"
+      },
       "charged_energy_total": {
         "name": "Laddad energi (totalt)"
       },

@@ -61,6 +61,7 @@ integration's own translations (so they are named in your language too).
 | **Tire Front Left / Front Right / Rear Left / Rear Right** | Per-wheel wear traffic light (`green`/`yellow`/`red`/`grey`), with the mileage until a change is due, defect status, season, dimension, tread pattern and fitting date as attributes. |
 | **API Quota Remaining** | Diagnostic: requests left in the 50/24 h window. |
 | **State-of-charge estimate / rate** | Extrapolated SoC helpers (need the Electric vehicle cluster). |
+| **Predicted time to charge target** | Minutes until a **home** charge reaches the car's target, worked out from the [wallbox meter](Feature-evcc-and-Wallbox-Bridge#time-to-the-charge-target). `0` when not charging; unknown away from home, in a charge's first minutes or while a solar charge is paused. Only with a wallbox meter bound. |
 | **Stream Connection Status** | Diagnostic: MQTT connection state. |
 | **Last Message Received** | Diagnostic: timestamp of the last stream payload. |
 | **Last Vehicle Report** | Diagnostic, **disabled by default**: when the car last reported its odometer, by the car's own clock. Differs from *Last Message Received* when a car parked without reception reports late. |

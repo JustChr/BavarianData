@@ -223,6 +223,24 @@ climbing at, measured over at least five minutes. If the meter hasn't moved for
 15 minutes, a paused solar charge, it shows no rate. A wallbox that reports less
 often than that will show no rate between its reports.
 
+<a id="time-to-the-charge-target"></a>
+From the two, the **Predicted time to charge target** sensor works out how long
+is left: (charge target − estimate) ÷ charging rate, in minutes. On the
+maintainer's i5, an 11 kW charge to 80 % came in within 1–3 minutes of it every
+time, where BMW's own *time to full* ran 7–26 minutes long and changed only about
+every 40 minutes. It shows a figure only while the meter drives, so only at
+home; `0` when the car isn't charging, and unknown in a charge's first five
+minutes or while a solar charge is paused (when it ends depends on the sun).
+Away from home, BMW's figure is the better one: a DC fast charge slows down
+sharply as the battery fills, which BMW knows and a straight line from the
+current rate doesn't. The dashboard card shows this figure when there is one and
+BMW's otherwise. Charging near 100 % slows down on AC too, so expect it to come
+out a little early there.
+
+BMW stops sending its *time to full*, *remaining time* and *charging power* when
+a charge ends, rather than sending zero, so they used to stay at their last value
+for good. They are now set to 0 once the charge has stayed ended for two minutes.
+
 The **State Of Charge (Predicted on Integration side)** sensor shows what is
 driving it: `estimate_source` (`meter` or `stream`), `meter_sessions` (the charges
 it learned from, 0 until three qualify), `meter_percent_per_kwh` and

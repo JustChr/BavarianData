@@ -1873,6 +1873,9 @@
       "soc_rate": {
         "name": "Predicted charge speed"
       },
+      "charge_eta": {
+        "name": "Predicted time to charge target"
+      },
       "charged_energy_total": {
         "name": "Charged Energy (Total)"
       },
