@@ -31,7 +31,7 @@ from typing import Any
 _OUT = pathlib.Path(__file__).resolve().parents[1] / "src" / "demo" / "i5.json"
 
 CAPACITY_KWH = 76.0
-LOCAL = timezone(timedelta(hours=2))  # Munich summer time; the history is Jul-Sep
+LOCAL = timezone(timedelta(hours=2))  # Munich summer time (to late October)
 HISTORY_START = datetime(2026, 7, 1, tzinfo=LOCAL)
 KWH_PER_KM = 0.2  # for the short hops BMW reports no energy for
 AC_EFFICIENCY = 0.92  # battery-side / grid-side for the wallbox
@@ -156,8 +156,18 @@ def _phantom_drives(until: datetime, rng: random.Random) -> list[_Drive]:
 
 
 class _Sim:
-    def __init__(self, drives: list[_Drive], rng_seed: int, overrides: dict[int, float]):
+    def __init__(
+        self,
+        drives: list[_Drive],
+        rng_seed: int,
+        overrides: dict[int, float],
+        until: datetime | None = None,
+    ):
         self.drives = drives
+        # The capture time: a car that came home after its last drive and
+        # charged since (it reads higher now than the chain leaves it) gets
+        # that charge too, or the chain could never reach today's reading.
+        self.until = until
         self.rng = random.Random(rng_seed)
         self.overrides = overrides
         self.sessions: list[dict[str, Any]] = []
@@ -332,6 +342,8 @@ class _Sim:
                 drive.trip["soc_end"] = float(round(self.soc))
             nxt = self.drives[i + 1] if i + 1 < len(self.drives) else None
             if nxt is None:
+                if drive.home and self.until is not None and self.until > drive.end:
+                    self.ac(drive.end + timedelta(minutes=5), self.until, solar=False)
                 return
             park, leave = drive.end, nxt.start
             if self.overrides and len(self.sessions) > max(self.overrides):
@@ -344,6 +356,23 @@ class _Sim:
                 continue
             if drive.home:
                 self.plan_home(park, leave)
+            elif drive.place and leave - park >= timedelta(minutes=30):
+                # Away, and the drives ahead would run the pack nearly flat:
+                # charge where it is parked, as a driver would.
+                ahead = (
+                    sum(
+                        d.kwh for d in self.drives if leave <= d.start < leave + timedelta(hours=36)
+                    )
+                    / CAPACITY_KWH
+                    * 100
+                )
+                if self.soc - ahead < 10:
+                    self.dc(
+                        park + timedelta(minutes=4),
+                        leave - timedelta(minutes=3),
+                        f"HPC · {drive.place}",
+                        150.0,
+                    )
 
     def plan_home(self, park: datetime, leave: datetime) -> None:
         dc_next = next(
@@ -373,7 +402,15 @@ class _Sim:
         ):
             self.ac(sol_from, sol_to, solar=True)
             return
-        if self.soc >= 32 and not dc_soon:
+        # What the next day and a half of driving takes: a long day out must
+        # not run the pack below zero (the i5's real chain did reach 8 %).
+        ahead = (
+            sum(d.kwh for d in self.drives if leave <= d.start < leave + timedelta(hours=36))
+            / CAPACITY_KWH
+            * 100
+        )
+        short = self.soc - ahead < 15
+        if self.soc >= 32 and not dc_soon and not short:
             return  # the weekend sun will do it
         # Price-optimised: the cheap hours after midnight, if the car is home then.
         night = local_park.replace(hour=0, minute=40) + timedelta(minutes=self.rng.randint(0, 90))
@@ -382,7 +419,7 @@ class _Sim:
         target = round(needed + 25) if dc_soon else None
         if park < night and leave - night > timedelta(hours=3):
             self.ac(night, leave - timedelta(minutes=15), solar=False, target=target)
-        elif self.soc < 25 and leave - park > timedelta(hours=1):
+        elif (self.soc < 25 or short) and leave - park > timedelta(hours=1):
             self.ac(
                 park + timedelta(minutes=5),
                 leave - timedelta(minutes=10),
@@ -391,8 +428,10 @@ class _Sim:
             )
 
 
-def _simulate(drives: list[_Drive], overrides: dict[int, float]) -> _Sim:
-    sim = _Sim(drives, 11, overrides)
+def _simulate(
+    drives: list[_Drive], overrides: dict[int, float], until: datetime | None = None
+) -> _Sim:
+    sim = _Sim(drives, 11, overrides, until)
     sim.run()
     return sim
 
@@ -417,14 +456,17 @@ def rebuild(out: dict[str, Any]) -> dict[str, Any]:
     ]
     drives = _phantom_drives(real[0].start, random.Random(3)) + real
     final_soc = float(states["sensor.i5_soc_estimate"]["state"])
+    captured = _parse(out["captured"])
 
-    sim = _simulate(drives, {})
+    sim = _simulate(drives, {}, captured)
     # Land exactly on the car's current SoC: the last charge stops where the
     # trips after it leave the battery at today's reading.
     last = sim.sessions[-1]
     after = sum(d.kwh for d in drives if d.start >= last["end"])
     sim = _simulate(
-        drives, {len(sim.sessions) - 1: round(final_soc + after / CAPACITY_KWH * 100, 1)}
+        drives,
+        {len(sim.sessions) - 1: round(final_soc + after / CAPACITY_KWH * 100, 1)},
+        captured,
     )
     assert round(sim.soc) == round(final_soc), (sim.soc, final_soc)
 
@@ -460,7 +502,6 @@ def rebuild(out: dict[str, Any]) -> dict[str, Any]:
     sessions.reverse()  # newest first, as the service returns them
     services["get_charging_sessions"]["sessions"] = sessions
 
-    captured = _parse(out["captured"])
     _summaries(out, sessions, drives, captured, final_soc)
     return out
 

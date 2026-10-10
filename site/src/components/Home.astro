@@ -54,6 +54,12 @@ const copy = de
           link: "docs/efficiency-and-range",
           view: "efficiency",
         },
+        {
+          title: "Türen, Fenster und Reifen auf einen Blick",
+          body: "Dein Auto von oben: Eine offene Tür schwingt auf, ein offenes Fenster leuchtet, und jeder Reifen zeigt Druck und Verschleiß. Tippe auf ein Teil für seine Details.",
+          link: "docs/dashboard-card",
+          cluster: "closures",
+        },
       ],
       extras: [
         ["Batteriezustand", "Die nutzbare Kapazität, gelernt aus echten Ladevorgängen, mit Trend über die Laufleistung.", "docs/battery-health"],
@@ -131,6 +137,12 @@ const copy = de
           body: "Consumption measured from your own driving, and the range that follows from it, right next to the car's own prediction.",
           link: "docs/efficiency-and-range",
           view: "efficiency",
+        },
+        {
+          title: "Doors, windows and tires at a glance",
+          body: "Your car from above: an open door swings out, an open window glows, and every tire shows its pressure and wear. Tap any part for its details.",
+          link: "docs/dashboard-card",
+          cluster: "closures",
         },
       ],
       extras: [
@@ -274,7 +286,13 @@ const jsonLd = [
             <a href={L(f.link)}>{de ? "So funktioniert es" : "How it works"}</a>
           </div>
           <div class="feature__shot">
-            <LiveCard lang={lang} config={{ view: f.view }} label={f.title} minHeight={420} maxHeight={f.view === "efficiency" ? undefined : 640} />
+            <LiveCard
+              lang={lang}
+              config={f.cluster ? { cluster: f.cluster } : { view: f.view }}
+              label={f.title}
+              minHeight={420}
+              maxHeight={f.view === "efficiency" || f.cluster ? undefined : 640}
+            />
           </div>
         </article>
       ))}

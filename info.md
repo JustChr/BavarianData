@@ -40,7 +40,7 @@ with it, so a usable dashboard exists out of the box.
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-trips.png" alt="Trips card: the month's distance and average consumption, the commute and private split, top destinations and the latest trips" width="300" />
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-efficiency.png" alt="Efficiency and range card: real range now against the car's prediction, measured consumption, usable capacity, cost per 100 km and consumption by month" width="300" />
 </p>
-<p align="center"><sub>Trips and efficiency from the <a href="https://justchr.github.io/BavarianData/">website's live demo</a>: a real i5's data, made-up places.</sub></p>
+<p align="center"><sub>The overview, trips and efficiency are from the <a href="https://justchr.github.io/BavarianData/">website's live demo</a>: a real i5's data, made-up places.</sub></p>
 
 See the [README](https://github.com/JustChr/BavarianData) for the full BMW
 portal setup, the descriptor-selection helper, and troubleshooting.

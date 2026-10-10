@@ -22,7 +22,7 @@ Read the output before committing it.
 
 Usage (host and login come from the environment, never from this repo)::
 
-    HA_URL=http://homeassistant.local:8123 HA_USER=... HA_PASSWORD=... \
+    HA_URL=http://homeassistant.local:8123 HA_TOKEN=<long-lived token> \
         python site/scripts/capture_demo.py
 """
 
@@ -185,9 +185,11 @@ async def _token(session: aiohttp.ClientSession, url: str, user: str, password: 
         return (await r.json())["access_token"]
 
 
-async def _fetch(url: str, user: str, password: str) -> dict[str, Any]:
+async def _fetch(url: str, user: str, password: str, token: str | None = None) -> dict[str, Any]:
     async with aiohttp.ClientSession() as session:
-        token = await _token(session, url, user, password)
+        # A long-lived token (Profile -> Security) is the simple way in; a
+        # username and password still work where the login form is enabled.
+        token = token or await _token(session, url, user, password)
         auth = {"Authorization": f"Bearer {token}"}
         async with session.get(f"{url}/api/states", headers=auth) as r:
             states = await r.json()
@@ -248,7 +250,17 @@ class Places:
                 self.by_label[key] = PLACES[0]
             else:
                 dist = _km(self.real_home, point) if point else 5.0
-                self.by_label[key] = min(self.pool[1:], key=lambda p: abs(p[1] - dist))[0]
+                nearest = sorted(self.pool[1:], key=lambda p: abs(p[1] - dist))
+                taken = {v[0] for v in self.by_label.values()}
+                # Two real places at the same distance must not become one
+                # fictional place, or a drive between them reads "A -> A".
+                # A free place wins while it is about as far out.
+                free = [
+                    p
+                    for p in nearest
+                    if p[0][0] not in taken and abs(p[1] - dist) <= max(5.0, dist * 0.4)
+                ]
+                self.by_label[key] = (free or nearest)[0][0]
         label, zone, coords = self.by_label[key]
         return {"zone": zone, "address": None if zone else label, "label": label}, coords
 
@@ -275,6 +287,27 @@ def _route(
         lon += (b[0] - a[0]) * offset + rng.uniform(-0.0006, 0.0006) * (0 < i < n)
         out.append([round(lat, 5), round(lon, 5), round(seconds * f)])
     return out
+
+
+_FINISHED = {"nocharging", "chargingended", "chargingerror"}
+_PROGRESS = ("charging.timeToFullyCharged", "charging.timeRemaining", "battery.charging.power")
+
+
+def _clear_finished_charge(states: dict[str, Any]) -> None:
+    """Zero BMW's progress figures once the charge is over, as the integration does.
+
+    BMW stops sending them rather than sending zero, and an install that has
+    not seen the charge close since updating still holds the last values: a
+    demo of a parked, full car would show 10 kW going in.
+    """
+
+    by = {st["attributes"].get("descriptor", ""): st for st in states.values()}
+    status = by.get("vehicle.drivetrain.electricEngine.charging.status")
+    if status is None or status["state"] not in _FINISHED:
+        return
+    for descriptor, st in by.items():
+        if descriptor.endswith(_PROGRESS):
+            st["state"] = "0"
 
 
 def build(raw: dict[str, Any]) -> dict[str, Any]:
@@ -320,8 +353,14 @@ def build(raw: dict[str, Any]) -> dict[str, Any]:
         if "tread_manufacturer" in attrs:
             attrs.pop("tread_manufacturer")
         state = st["state"]
-        if attrs.get("descriptor", "").endswith("currentLocation.altitude"):
+        descriptor = attrs.get("descriptor", "")
+        if descriptor.endswith("currentLocation.altitude"):
             state = PARKED_ALTITUDE_M
+        # The opt-in GPS sensors (0.9.16) carry the position as their state.
+        elif descriptor.endswith("currentLocation.latitude"):
+            state = str(PARKED[0])
+        elif descriptor.endswith("currentLocation.longitude"):
+            state = str(PARKED[1])
         out_states[eid] = {
             "state": state,
             "attributes": _scrub_text(attrs, vin),
@@ -383,6 +422,7 @@ def build(raw: dict[str, Any]) -> dict[str, Any]:
         "states": out_states,
         "services": services,
     }
+    _clear_finished_charge(out_states)
     rebuild(out)
     text = json.dumps(out, ensure_ascii=False)
     for secret in (vin, device["id"], device["primary_config_entry"]):
@@ -397,10 +437,12 @@ def build(raw: dict[str, Any]) -> dict[str, Any]:
 
 
 def main() -> None:
-    url, user, password = (os.environ.get(k) for k in ("HA_URL", "HA_USER", "HA_PASSWORD"))
-    if not (url and user and password):
-        sys.exit("set HA_URL, HA_USER and HA_PASSWORD")
-    raw = asyncio.run(_fetch(url.rstrip("/"), user, password))
+    url, user, password, token = (
+        os.environ.get(k) for k in ("HA_URL", "HA_USER", "HA_PASSWORD", "HA_TOKEN")
+    )
+    if not (url and (token or (user and password))):
+        sys.exit("set HA_URL and HA_TOKEN (or HA_USER and HA_PASSWORD)")
+    raw = asyncio.run(_fetch(url.rstrip("/"), user or "", password or "", token))
     out = build(raw)
     _OUT.parent.mkdir(parents=True, exist_ok=True)
     _OUT.write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")

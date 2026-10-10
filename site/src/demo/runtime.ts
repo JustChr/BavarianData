@@ -99,7 +99,7 @@ class DemoMap extends HTMLElement {
   async connectedCallback() {
     const { L, css } = await loadLeaflet();
     if (!this.isConnected || this.leafletMap) return;
-    this.#root.innerHTML = `<style>${css}:host{display:block;position:relative}#m{height:100%;min-height:inherit;border-radius:inherit;background:var(--secondary-background-color)}#m.dark .leaflet-tile-pane{filter:grayscale(.85) invert(1) hue-rotate(200deg) brightness(.85) contrast(.9)}</style><div id="m"></div>`;
+    this.#root.innerHTML = `<style>${css}:host{display:block;position:relative}#m{height:100%;min-height:inherit;border-radius:inherit;background:var(--secondary-background-color)}#m img.leaflet-tile{mix-blend-mode:normal}#m.dark .leaflet-tile-pane{filter:grayscale(.85) invert(1) hue-rotate(200deg) brightness(.85) contrast(.9)}</style><div id="m"></div>`;
     const div = this.#root.getElementById("m")!;
     div.style.height = this.style.height || "100%";
     const map = L.map(div, { zoomControl: true, attributionControl: true }).setView([48.1642, 11.5864], this.zoom);
@@ -237,6 +237,57 @@ function summarize(trips: Trip[], month: string, previous: Trip[]) {
   };
 }
 
+// The "this month" sensors hold the capture's month. Once the history is moved
+// to now, a different set of charges and trips falls in the current month, and
+// the card would show one charge beside a whole month's kWh. So they are worked
+// out again from what the visitor's month actually holds, the way the
+// integration sums its ledger.
+function recomputeMonth(states: Record<string, State>, sessions: Trip[], trips: Trip[]) {
+  const month = monthOf(new Date().toISOString());
+  const charges = sessions.filter((s) => monthOf(s.start) === month);
+  const drives = trips.filter((t) => monthOf(t.start) === month);
+  const byDescriptor = (d: string) => Object.values(states).find((s) => s.attributes.descriptor === d);
+  const round = (v: number, places: number) => Math.round(v * 10 ** places) / 10 ** places;
+
+  const kwh = round(charges.reduce((s, c) => s + (c.grid_kwh ?? c.energy_kwh ?? 0), 0), 3);
+  const mix: Record<string, number> = {};
+  for (const c of charges) {
+    for (const [k, v] of Object.entries(c.energy_mix || {})) {
+      if (k !== "solar_percent" && typeof v === "number") mix[k] = (mix[k] || 0) + v;
+    }
+  }
+  const mixed = Object.values(mix).reduce((s, v) => s + v, 0);
+  const solar = mixed ? round(((mix.pv || 0) / mixed) * 100, 1) : 0;
+  const energy = byDescriptor("charging_energy_month");
+  if (energy) {
+    energy.state = String(kwh);
+    energy.attributes = {
+      ...energy.attributes,
+      energy_mix: { ...Object.fromEntries(Object.entries(mix).map(([k, v]) => [k, round(v, 3)])), solar_percent: solar },
+      solar_percent: solar,
+    };
+  }
+  const cost = byDescriptor("charging_cost_month");
+  if (cost) {
+    cost.state = String(round(charges.reduce((s, c) => s + (c.cost?.amount || 0), 0), 2));
+    cost.attributes = { ...cost.attributes, sessions: charges.length, energy_kwh: kwh };
+  }
+  const distance = byDescriptor("driving_distance_month");
+  if (distance) {
+    const km = (cls?: string) =>
+      round(drives.filter((t) => !cls || (t.classification || "unclassified") === cls).reduce((s, t) => s + (t.distance_km || 0), 0), 1);
+    distance.state = String(km());
+    distance.attributes = {
+      ...distance.attributes,
+      trip_count: drives.length,
+      business_km: km("business"),
+      private_km: km("private"),
+      commute_km: km("commute"),
+      unclassified_km: km("unclassified"),
+    };
+  }
+}
+
 function csv(rows: Record<string, unknown>[]) {
   if (!rows.length) return "";
   const cols = Object.keys(rows[0]);
@@ -264,6 +315,7 @@ export function makeHass(demo: Demo, shift: number, lang: Lang, image?: string) 
   const sessions: Trip[] = demo.services.get_charging_sessions.sessions;
   const efficiency = structuredClone(demo.services.get_efficiency);
   for (const row of efficiency.efficiency?.trend || []) row.month = shiftMonth(row.month, shift);
+  recomputeMonth(states, sessions, trips);
 
   const numberLocale = lang === "de" ? "de-DE" : "en-US";
   const blankBeforePercent = lang === "de" ? " " : "";
