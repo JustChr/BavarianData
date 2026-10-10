@@ -68,6 +68,10 @@ Fahrtende**. Die Live-Erkennung ist dann aus. Stattdessen wird jeder
 [Fahrzeugbericht](DE-Feature-Automations) (ein neuer Kilometerstand, der 5 Minuten
 lang gleich geblieben ist) zu einer Fahrt:
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trip-detection.png?v=2026-10-11" alt="Die Einstellung Fahrterkennung unter Konfigurieren, Fahrten, mit ihren zwei Möglichkeiten: Live und Berichte am Fahrtende (Screenshot auf Englisch)" width="460" />
+</p>
+
 - **Von wo nach wo:** von dem Ort, an dem das Auto beim vorigen Bericht stand, zu dem
   Ort, an dem es jetzt steht (Zonenname oder, mit **Adressen auflösen**, eine
   Adresse).

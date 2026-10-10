@@ -63,6 +63,10 @@ reports**. The live detection is then off. Instead, every
 [vehicle report](Feature-Automations) (a new odometer reading that has held for 5
 minutes) becomes one trip:
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trip-detection.png?v=2026-10-11" alt="The Trip detection setting under Configure, Trips, with its two choices: Live (car streams while driving) and End-of-trip reports (car reports once parked)" width="460" />
+</p>
+
 - **From where to where:** from the place the car stood at the previous report to
   the place it stands now (zone name, or an address with **Resolve addresses** on).
 - **Distance:** the odometer difference, in whole kilometres, as the car reports

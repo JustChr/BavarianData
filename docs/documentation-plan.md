@@ -179,7 +179,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `trip_commute_gap` (commute stop tolerance) | Trips | ✅ |
 | `trip_geocode` | Trips | 🟡 |
 | `trip_track` (route recording) | Trips | ✅ |
-| `trip_detection` (live / end-of-trip reports) | Trips | 🟢 Settings-Reference + Feature-Trips → "Older cars…" (EN + DE) |
+| `trip_detection` (live / end-of-trip reports) | Trips | 🟢 Settings-Reference + Feature-Trips → "Older cars…" (EN + DE), screenshot `bavariandata-configure-trip-detection.png` |
 | `trip_debug` (trip-capture diagnostics) | Trips | ✅ |
 | `debug_log` | Debug logging | 🟡 |
 | `mqtt_keepalive` (hidden override) | — | ❌ |
