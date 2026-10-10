@@ -2967,6 +2967,62 @@ function t(hass, key, vars, dflt) {
   return s;
 }
 
+// Top-down car art shared by the tire and closures diagrams. viewBox 948x1659,
+// centreline x=474; right-hand parts are the left ones mirrored by CAR_FLIP.
+// Each door row ("f"/"r") also carries its swung-open drawing: the sill left
+// behind, and a door skin/trim/edge drawn closed and rotated on its hinge.
+const CAR_FLIP = "matrix(-1 0 0 1 948 0)";
+const CAR = {
+  body:
+    "M474 12 C420 12 386 16 366 25 C300 52 228 104 202 150 C186 178 180 205 179 245 L177 1120 C176 1180 171 1225 168 1270 L168 1440 C170 1458 176 1474 181 1495 C190 1545 214 1592 258 1620 C318 1644 420 1648 474 1648 C528 1648 630 1644 690 1620 C734 1592 758 1545 767 1495 C772 1474 778 1458 780 1440 L780 1270 C777 1225 772 1180 771 1120 L769 245 C768 205 762 178 746 150 C720 104 648 52 582 25 C562 16 528 12 474 12 Z",
+  hood: "M330 54 C400 46 548 46 618 54 C676 120 708 260 712 432 C640 398 560 380 474 380 C388 380 308 398 236 432 C240 260 272 120 330 54 Z",
+  windshield: "M474 386 C578 386 648 402 704 446 L668 606 C600 597 348 597 280 606 L244 446 C300 402 370 386 474 386 Z",
+  roof: "M284 614 C380 604 568 604 664 614 C650 720 648 1000 652 1186 C560 1177 388 1177 296 1186 C300 1000 298 720 284 614 Z",
+  sunroof: "M358 712 H590 Q598 712 598 720 V1038 Q598 1046 590 1046 H358 Q348 1046 348 1038 V720 Q348 712 358 712 Z",
+  rearWindow: "M298 1190 C400 1182 548 1182 650 1190 L684 1388 C600 1426 348 1426 264 1388 Z",
+  trunk: "M262 1402 C348 1436 600 1436 686 1402 L693 1512 C600 1532 348 1532 255 1512 Z",
+  mirror: "M222 496 C198 504 166 522 151 538 C144 547 147 561 158 563 C180 557 206 549 222 546 Z",
+  headlight: "M338 50 C292 70 240 112 204 170 L213 174 C248 124 296 84 342 59 Z",
+  drl: "M334 56 C292 76 246 114 210 168",
+  tail: "M197 1460 C203 1503 230 1538 288 1553 L346 1559 C352 1561 352 1569 346 1570 L284 1568 C220 1556 194 1518 189 1470 C189 1462 195 1456 197 1460 Z",
+  tailCore: "M195 1472 C202 1512 228 1545 292 1560 L340 1564",
+  bPillar: "M211 806 L288 806 L289 834 L211 834 Z",
+  shuts: "M178 820 L212 820 M179 466 L220 466 M177 1186 L232 1186 M255 1512 L262 1574 C380 1594 568 1594 686 1574 L693 1512",
+  creases: "M392 56 C356 160 330 280 318 392 M556 56 C592 160 618 280 630 392",
+  sheen: {
+    carClipWs: ["M560 370 L650 370 L440 620 L350 620 Z", "M670 370 L700 370 L500 620 L470 620 Z"],
+    carClipRw: ["M530 1170 L600 1170 L420 1440 L350 1440 Z"],
+    carClipSr: ["M520 700 L572 700 L420 1060 L368 1060 Z"],
+  },
+  tyreFront: [158, 195, 27, 200],
+  tyreRear: [150, 1255, 27, 206],
+  handles: [[181, 704], [181, 1004]],
+  window: {
+    f: { d: "M221 474 C244 520 272 620 284 720 L288 806 L211 806 L211 620 C212 560 215 512 221 474 Z", clip: "carClipWf", drop: 540 },
+    r: { d: "M211 834 L289 834 L289 1040 C286 1130 262 1210 230 1268 L220 1268 C214 1150 211 1000 211 834 Z", clip: "carClipWr", drop: 904 },
+  },
+  door: {
+    f: {
+      d: "M178 466 L222 466 C250 530 280 640 292 760 L294 818 L178 818 Z",
+      hinge: "rotate(30 186 466)",
+      sill: "M178 470 L220 470 C213 536 211 636 211 816 L178 816 Z",
+      shadow: "M212 476 L211 812",
+      skin: "M176 466 C152 554 146 695 152 802 Q155 818 170 818 L208 812 C214 695 222 554 228 474 Z",
+      trim: "M178 512 C166 572 163 695 168 778 L198 774 C202 695 208 572 214 512 Z",
+      edge: "M170 484 C154 572 151 695 158 798",
+    },
+    r: {
+      d: "M178 822 L294 822 L294 1040 C291 1110 274 1160 254 1186 L177 1186 Z",
+      hinge: "rotate(30 186 822)",
+      sill: "M178 826 L212 826 C213 892 211 992 211 1184 L178 1184 Z",
+      shadow: "M212 832 L211 1180",
+      skin: "M176 822 C152 913 146 1059 152 1170 Q155 1186 170 1186 L208 1180 C214 1059 222 913 228 830 Z",
+      trim: "M178 868 C166 931 163 1059 168 1146 L198 1142 C202 1059 208 931 214 868 Z",
+      edge: "M170 840 C154 931 151 1059 158 1166",
+    },
+  },
+};
+
 class BavarianDataCard extends HTMLElement {
   setConfig(config) {
     this._config = { ...config };
@@ -6388,104 +6444,112 @@ class BavarianDataCard extends HTMLElement {
   }
 
   _carSvg(c) {
-    // Top-down BMW sedan with each wheel stroked in its tire-status colour.
+    // Top-down BMW sedan with each tyre outlined in its tire-status colour.
     return `
-      <svg class="carsvg" viewBox="0 0 130 228" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <svg class="carsvg" viewBox="0 0 948 1659" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        ${this._carDefs()}
         ${this._carWheels(c)}
         ${this._carBody()}
       </svg>`;
   }
 
-  // Four wheels, each stroked in its colour (falls back to the neutral divider
-  // colour when a caller doesn't care about per-wheel status, e.g. closures).
-  // Tucked under the flared arches so the tyre reads as a wheel, not a block.
-  _carWheels(c = {}) {
-    const n = "var(--divider-color)";
-    const wheel = (x, y, color) =>
-      `<rect x="${x}" y="${y}" width="13" height="34" rx="6" class="carsvg__wheel" style="stroke:${color || n}"/>`;
-    return `${wheel(13, 40, c.fl)}${wheel(104, 40, c.fr)}${wheel(13, 160, c.rl)}${wheel(104, 160, c.rr)}`;
-  }
-
-  // Static body art. Shared by the tire diagram and the closures diagram; the
-  // latter layers overlays on top. Design language: taut rectilinear silhouette,
-  // gradient-modelled sheet metal (no cartoon keyline), long-hood / cab-rearward
-  // stance, and correctly-scaled BMW cues (twin front-of-bumper kidneys, swept
-  // corner-wrapping lamps). viewBox 130x228, centreline x=65.
-  _carBody() {
+  // Gradients, the status glow and the clip paths the art and overlays use.
+  _carDefs() {
+    const clips = {
+      carClipWs: CAR.windshield,
+      carClipRw: CAR.rearWindow,
+      carClipSr: CAR.sunroof,
+      carClipWf: CAR.window.f.d,
+      carClipWr: CAR.window.r.d,
+    };
     return `
         <defs>
-          <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="var(--body-lo)"/>
-            <stop offset=".5" stop-color="var(--body-hi)"/>
-            <stop offset="1" stop-color="var(--body-lo)"/>
+          <linearGradient id="carBody" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#bcc2ca"/>
+            <stop offset=".5" stop-color="#dde1e6"/>
+            <stop offset="1" stop-color="#bcc2ca"/>
           </linearGradient>
-          <linearGradient id="roofGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="var(--roof-lo)"/>
-            <stop offset=".5" stop-color="var(--roof-hi)"/>
-            <stop offset="1" stop-color="var(--roof-lo)"/>
+          <linearGradient id="carRoof" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#7c828b"/>
+            <stop offset=".5" stop-color="#969ca4"/>
+            <stop offset="1" stop-color="#7c828b"/>
           </linearGradient>
-          <linearGradient id="glassGrad" x1="0" y1="0" x2=".35" y2="1">
-            <stop offset="0" stop-color="var(--glass-hi)"/>
-            <stop offset="1" stop-color="var(--glass-lo)"/>
+          <linearGradient id="carGlass" x1="0" y1="0" x2=".4" y2="1">
+            <stop offset="0" stop-color="#43515f"/>
+            <stop offset="1" stop-color="#26313c"/>
           </linearGradient>
-        </defs>
+          <linearGradient id="carTail" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#8e1b17"/>
+            <stop offset=".6" stop-color="#e4382b"/>
+            <stop offset="1" stop-color="#ff7a5c"/>
+          </linearGradient>
+          <filter id="carGlow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          ${Object.entries(clips)
+            .map(([id, d]) => `<clipPath id="${id}"><path d="${d}"/></clipPath>`)
+            .join("")}
+        </defs>`;
+  }
 
-        <!-- fender flares over each wheel -->
-        <rect x="20" y="39" width="5" height="34" rx="2.5" class="carsvg__flare"/>
-        <rect x="105" y="39" width="5" height="34" rx="2.5" class="carsvg__flare"/>
-        <rect x="20" y="159" width="5" height="34" rx="2.5" class="carsvg__flare"/>
-        <rect x="105" y="159" width="5" height="34" rx="2.5" class="carsvg__flare"/>
+  // Four tyres peeking out under the body, each outlined (and glowing) in its
+  // colour; without a colour (closures) they stay plain rubber.
+  _carWheels(c = {}) {
+    const wheel = ([x, y, w, h], color, flip) =>
+      `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="13" class="carsvg__wheel${color ? " carsvg__wheel--lit" : ""}"${
+        color ? ` style="stroke:${color}"` : ""
+      }${flip ? ` transform="${CAR_FLIP}"` : ""}/>`;
+    return (
+      wheel(CAR.tyreFront, c.fl) +
+      wheel(CAR.tyreFront, c.fr, true) +
+      wheel(CAR.tyreRear, c.rl) +
+      wheel(CAR.tyreRear, c.rr, true)
+    );
+  }
 
-        <!-- taut body: wider stance, squarer bumpers, straight flanks -->
-        <path d="M40 6 L90 6 C99 6 107 12 108 24 L108 198 C107 211 103 219 94 222 L36 222 C27 219 23 211 22 198 L22 24 C23 12 31 6 40 6 Z" class="carsvg__body"/>
-
-        <!-- side mirrors at the cowl -->
-        <path d="M22 88 L14 84 L12 90 L21 94 Z" class="carsvg__mirror"/>
-        <path d="M108 88 L116 84 L118 90 L109 94 Z" class="carsvg__mirror"/>
-
-        <!-- bumper/hood seam + hood centreline + hood shut lines -->
-        <path d="M38 22 C52 20.5 78 20.5 92 22" class="carsvg__seam"/>
-        <path d="M65 24 L65 86" class="carsvg__crease"/>
-        <path d="M32 38 C29 55 29 74 34 88 M98 38 C101 55 101 74 96 88" class="carsvg__seam"/>
-
-        <!-- twin kidneys at the very front of the bumper -->
-        <rect x="54" y="6.5" width="22" height="13" rx="2" class="carsvg__chrome"/>
-        <rect x="55" y="7.5" width="9.3" height="11" rx="1.5" class="carsvg__kidney"/>
-        <rect x="65.7" y="7.5" width="9.3" height="11" rx="1.5" class="carsvg__kidney"/>
-        <path d="M57 8.5 V17.5 M60 8.5 V17.5 M67.5 8.5 V17.5 M70.5 8.5 V17.5" class="carsvg__kbar"/>
-
-        <!-- headlights: fat at the outer bumper corner, tapering inward -->
-        <path d="M22.5 23 C21 11 29 6.5 40 6.5 L47 7 C50.5 8.5 50 10.5 47.5 11.5 C39 12.5 30 15.5 22.5 23 Z" class="carsvg__light"/>
-        <path d="M107.5 23 C109 11 101 6.5 90 6.5 L83 7 C79.5 8.5 80 10.5 82.5 11.5 C91 12.5 100 15.5 107.5 23 Z" class="carsvg__light"/>
-
-        <!-- windshield -->
-        <path d="M31 88 L99 88 L87 112 L43 112 Z" class="carsvg__glass"/>
-
-        <!-- roof + sunroof -->
-        <path d="M43 112 L87 112 L86 164 L44 164 Z" class="carsvg__roof"/>
-        <rect x="53" y="120" width="24" height="28" rx="2" class="carsvg__glassdk"/>
-
-        <!-- side windows: front pair butts the windshield; rear pair matched in length -->
-        <path d="M33 98 L43 112 L43 136 L35 136 Z" class="carsvg__glass"/>
-        <path d="M35 140 L43 140 L43 162 L37 162 Z" class="carsvg__glass"/>
-        <path d="M97 98 L87 112 L87 136 L95 136 Z" class="carsvg__glass"/>
-        <path d="M95 140 L87 140 L87 162 L93 162 Z" class="carsvg__glass"/>
-
-        <!-- door shut seams + handles (4 doors) -->
-        <path d="M22 138 L43 138 M108 138 L87 138" class="carsvg__seam"/>
-        <rect x="26" y="122" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
-        <rect x="27" y="150" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
-        <rect x="98" y="122" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
-        <rect x="97" y="150" width="6" height="1.8" rx=".9" class="carsvg__handle"/>
-
-        <!-- rear window -->
-        <path d="M43 164 L87 164 L97 182 L33 182 Z" class="carsvg__glass"/>
-
-        <!-- rear deck: trunk seam + corner-wrapping tail lights + diffuser -->
-        <path d="M33 187 C48 190 82 190 97 187" class="carsvg__seam"/>
-        <path d="M22.5 205 C21 217 29 221.5 40 221.5 L47 221 C49.5 219.5 49 218.5 47 217.8 C39 217 30 214.5 22.5 205 Z" class="carsvg__tail"/>
-        <path d="M107.5 205 C109 217 101 221.5 90 221.5 L83 221 C80.5 219.5 81 218.5 83 217.8 C91 217 100 214.5 107.5 205 Z" class="carsvg__tail"/>
-        <path d="M52 217 L78 217" class="carsvg__crease"/>`;
+  // Static body art, shared by the tire and closures diagrams; the closures
+  // view layers overlays on top. `hide.l`/`hide.r` drop a side mirror whose
+  // front door is drawn swung open (the mirror rides on the door).
+  _carBody(hide = {}) {
+    const both = (d, cls) =>
+      `<path d="${d}" class="${cls}"/><path d="${d}" class="${cls}" transform="${CAR_FLIP}"/>`;
+    const mirrorL = hide.l ? "" : `<path d="${CAR.mirror}" class="carsvg__mirror"/>`;
+    const mirrorR = hide.r ? "" : `<path d="${CAR.mirror}" class="carsvg__mirror" transform="${CAR_FLIP}"/>`;
+    const handles = CAR.handles
+      .map(([x, y]) => `<rect x="${x}" y="${y}" width="7" height="44" rx="3.5" class="carsvg__handle"/>`)
+      .join("");
+    const bars = [16, 27, 38, 49, 60, 71, 82, 93].map((i) => `M${366 + i} 21 V43`).join(" ");
+    const kidney =
+      `<rect x="366" y="12" width="104" height="38" rx="16" class="carsvg__chrome"/>` +
+      `<rect x="371" y="17" width="94" height="28" rx="12" class="carsvg__kidney"/>` +
+      `<path d="${bars}" class="carsvg__kbar"/>`;
+    const sheens = Object.entries(CAR.sheen)
+      .flatMap(([clip, ds]) => ds.map((d) => `<path d="${d}" class="carsvg__sheen" clip-path="url(#${clip})"/>`))
+      .join("");
+    return `
+        ${mirrorL}${mirrorR}
+        <path d="${CAR.body}" class="carsvg__body"/>
+        ${both(CAR.door.f.d, "carsvg__shut")}
+        ${both(CAR.door.r.d, "carsvg__shut")}
+        <path d="${CAR.hood}" class="carsvg__hood"/>
+        <path d="${CAR.creases}" class="carsvg__crease"/>
+        <path d="${CAR.trunk}" class="carsvg__shut"/>
+        ${both(CAR.shuts, "carsvg__shut")}
+        <g>${handles}</g><g transform="${CAR_FLIP}">${handles}</g>
+        ${both(CAR.headlight, "carsvg__light")}
+        ${both(CAR.drl, "carsvg__drl")}
+        ${both(CAR.tail, "carsvg__tail")}
+        ${both(CAR.tailCore, "carsvg__tailcore")}
+        <g>${kidney}</g><g transform="${CAR_FLIP}">${kidney}</g>
+        <path d="${CAR.windshield}" class="carsvg__glass carsvg__frame"/>
+        <path d="${CAR.roof}" class="carsvg__roof"/>
+        <path d="${CAR.sunroof}" class="carsvg__glass"/>
+        ${both(CAR.window.f.d, "carsvg__glass")}
+        ${both(CAR.window.r.d, "carsvg__glass")}
+        <path d="${CAR.rearWindow}" class="carsvg__glass carsvg__frame"/>
+        ${both(CAR.bPillar, "carsvg__pillar")}
+        ${sheens}`;
   }
 
   // One wheel: pressure headline, then that wheel's own fitment. BMW reports
@@ -6866,74 +6930,75 @@ class BavarianDataCard extends HTMLElement {
   }
 
   // Same top-down car as the tire view, with closure overlays layered on top:
-  // open doors sprout a coloured flap, open glass is tinted, hood/trunk shade,
-  // and a central padlock reflects the lock state. Every part is tappable.
+  // an open door swings out on its hinge (mirror and all), open glass glows
+  // amber, an open hood/trunk glows red, and a padlock on the roof reflects
+  // the lock state. Every part is tappable.
   _carSvgClosures(d) {
     const { ALERT, WARN } = d.colors;
-    const doorGeo = {
-      lf: { flap: "M22 116 L5 110 L7 128 L22 134 Z", hit: "22 112 21 27" },
-      lr: { flap: "M22 142 L5 136 L7 154 L22 160 Z", hit: "22 139 21 25" },
-      rf: { flap: "M108 116 L125 110 L123 128 L108 134 Z", hit: "87 112 21 27" },
-      rr: { flap: "M108 142 L125 136 L123 154 L108 160 Z", hit: "87 139 21 25" },
-    };
-    const winGeo = {
-      lf: "M33 98 L43 112 L43 136 L35 136 Z",
-      lr: "M35 140 L43 140 L43 162 L37 162 Z",
-      rf: "M97 98 L87 112 L87 136 L95 136 Z",
-      rr: "M95 140 L87 140 L87 162 L93 162 Z",
-    };
-    const hit = (spec, id) => {
-      const [x, y, w, h] = spec.split(" ");
-      return `<rect x="${x}" y="${y}" width="${w}" height="${h}" class="cldiag__hit" data-entity="${id}"/>`;
-    };
+    // Keys are side + row: "lf" = left front, "rr" = right rear.
+    const flip = (k) => (k && k[0] === "r" ? ` transform="${CAR_FLIP}"` : "");
+    const hit = (path, id, k) => `<path d="${path}" class="cldiag__hit" data-entity="${id}"${flip(k)}/>`;
+    const lit = (path, color, k, extra = "") =>
+      `<g class="cldiag__lit" style="--c:${color}"${flip(k)}>` +
+      `<path d="${path}" class="cldiag__zone"/><path d="${path}" class="cldiag__core"/>${extra}</g>`;
     const parts = [];
 
-    // Doors: flap when open, always a tap zone.
+    // Doors: swung open when open, always a tap zone.
     for (const k of ["lf", "rf", "lr", "rr"]) {
       const door = d.doors[k];
       if (!door) continue;
+      const g = CAR.door[k[1]];
       if (door.open) {
-        parts.push(`<path d="${doorGeo[k].flap}" class="cldiag__flap" style="fill:${ALERT};stroke:${ALERT}"/>`);
+        const mirror = k[1] === "f" ? `<path d="${CAR.mirror}" class="carsvg__mirror"/>` : "";
+        parts.push(
+          `<g class="cldiag__lit" style="--c:${ALERT}"${flip(k)}>` +
+            `<path d="${g.sill}" class="cldiag__sill"/><path d="${g.shadow}" class="cldiag__sillshadow"/>` +
+            `<g transform="${g.hinge}">` +
+            `<path d="${g.skin}" class="cldiag__door"/><path d="${g.trim}" class="cldiag__doortrim"/>` +
+            `<path d="${g.edge}" class="cldiag__dooredge"/>${mirror}</g></g>`
+        );
       }
-      parts.push(hit(doorGeo[k].hit, door.id));
+      parts.push(hit(g.d, door.id, k));
     }
-    // Zones (hood / trunk) shaded when open.
+    // Hood / trunk glow red when open.
     const zone = (part, path) => {
       if (!part) return;
-      if (part.open) parts.push(`<path d="${path}" class="cldiag__zone" style="fill:${ALERT}"/>`);
-      parts.push(`<path d="${path}" class="cldiag__hit" data-entity="${part.id}"/>`);
+      if (part.open) parts.push(lit(path, ALERT));
+      parts.push(hit(path, part.id));
     };
-    zone(d.hood, "M38 26 H92 L96 88 H34 Z");
-    zone(d.trunk, "M34 184 H96 L93 218 H37 Z");
-    // Glass (windows / sunroof / rear window) tinted amber when open.
-    const glass = (part, path) => {
+    zone(d.hood, CAR.hood);
+    zone(d.trunk, CAR.trunk);
+    // Glass (windows / sunroof / rear window) glows amber when open; a side
+    // window also shows the lowered pane's top edge.
+    const glass = (part, path, k, extra) => {
       if (!part) return;
-      if (part.open) parts.push(`<path d="${path}" class="cldiag__glass-open" style="fill:${WARN}"/>`);
-      parts.push(`<path d="${path}" class="cldiag__hit" data-entity="${part.id}"/>`);
+      if (part.open) parts.push(lit(path, WARN, k, extra));
+      parts.push(hit(path, part.id, k));
     };
     for (const k of ["lf", "rf", "lr", "rr"]) {
       const w = d.windows[k];
-      if (w) glass(w, winGeo[k]);
+      const g = CAR.window[k[1]];
+      if (w) glass(w, g.d, k, `<path d="M200 ${g.drop} L300 ${g.drop}" class="cldiag__drop" clip-path="url(#${g.clip})"/>`);
     }
-    glass(d.sunroof, "M53 120 H77 V148 H53 Z");
-    glass(d.rearWindow, "M43 164 L87 164 L97 182 L33 182 Z");
+    glass(d.sunroof, CAR.sunroof);
+    glass(d.rearWindow, CAR.rearWindow);
 
-    // Central padlock (open shackle when unlocked/unknown).
+    // Padlock on the sunroof (open shackle when unlocked/unknown).
     const locked = d.lock.key === "locked" || d.lock.key === "secured";
-    const shackle = locked
-      ? "M61 134 V130 a4 4 0 0 1 8 0 V134"
-      : "M61 134 V130 a4 4 0 0 1 8 0";
+    const shackle = locked ? "M447 880 V850 a27 27 0 0 1 54 0 V880" : "M447 880 V850 a27 27 0 0 1 54 0";
     const padlock = d.lockId
       ? `<g class="cldiag__lock" data-entity="${d.lockId}" style="--c:${d.lock.color}">
            <path d="${shackle}" class="cldiag__shackle"/>
-           <rect x="58" y="134" width="14" height="10" rx="1.8" class="cldiag__lockbody"/>
+           <rect x="422" y="880" width="104" height="76" rx="14" class="cldiag__lockbody"/>
          </g>`
       : "";
 
+    const hide = { l: d.doors.lf && d.doors.lf.open, r: d.doors.rf && d.doors.rf.open };
     return `
-      <svg class="carsvg" viewBox="0 0 130 228" xmlns="http://www.w3.org/2000/svg">
+      <svg class="carsvg" viewBox="0 0 948 1659" xmlns="http://www.w3.org/2000/svg">
+        ${this._carDefs()}
         ${this._carWheels()}
-        ${this._carBody()}
+        ${this._carBody(hide)}
         ${parts.join("\n        ")}
         ${padlock}
       </svg>`;
@@ -7392,46 +7457,51 @@ class BavarianDataCard extends HTMLElement {
         height: auto;
         margin: 0 auto;
         overflow: visible;
-        /* Surface-modelling tokens derived from the active HA theme, so the
-           metal/glass sheen holds up in both light and dark. */
-        --body-hi: color-mix(in srgb, var(--secondary-background-color), white 20%);
-        --body-lo: color-mix(in srgb, var(--secondary-background-color), black 14%);
-        --roof-hi: color-mix(in srgb, var(--card-background-color), white 12%);
-        --roof-lo: color-mix(in srgb, var(--card-background-color), black 6%);
-        --glass-hi: color-mix(in srgb, var(--divider-color) 66%, #4c5c6e);
-        --glass-lo: color-mix(in srgb, var(--divider-color) 50%, #0e141b);
-        --chrome: color-mix(in srgb, var(--secondary-text-color), white 22%);
-        --edge: var(--divider-color);
-        --seam-c: var(--secondary-text-color);
-        --tire: #14171b;
+        --tire: #1d2228;
       }
-      .carsvg__body { fill: url(#bodyGrad); stroke: var(--edge); stroke-width: 0.7; }
-      .carsvg__flare { fill: var(--secondary-text-color); opacity: 0.26; }
-      .carsvg__crease { stroke: var(--seam-c); stroke-width: 0.7; opacity: 0.35; fill: none; stroke-linecap: round; }
-      .carsvg__seam { stroke: var(--seam-c); stroke-width: 0.8; opacity: 0.55; fill: none; stroke-linecap: round; }
-      .carsvg__roof { fill: url(#roofGrad); }
-      .carsvg__glassdk { fill: var(--glass-lo); opacity: 0.85; }
-      .carsvg__glass { fill: url(#glassGrad); }
-      .carsvg__handle { fill: var(--seam-c); opacity: 0.55; }
-      .carsvg__mirror { fill: url(#bodyGrad); stroke: var(--edge); stroke-width: 0.6; }
-      .carsvg__chrome { fill: var(--chrome); }
-      .carsvg__kidney { fill: #0c0f13; }
-      .carsvg__kbar { stroke: var(--chrome); stroke-width: 0.5; opacity: 0.55; }
-      .carsvg__light { fill: var(--secondary-text-color); opacity: 0.7; }
-      .carsvg__tail { fill: #c0392b; opacity: 0.82; }
-      .carsvg__wheel { fill: var(--tire); stroke-width: 3.4; stroke-linejoin: round; }
+      /* The car is a fixed light-grey picture in both themes; strokes are in
+         drawing units (948 wide), so ~6 units is one pixel on a card. */
+      .carsvg__body, .carsvg__mirror { fill: url(#carBody); stroke: #a3abb4; stroke-width: 4; }
+      .carsvg__hood { fill: url(#carBody); stroke: #b4bbc3; stroke-width: 3; }
+      .carsvg__shut { fill: none; stroke: #b0b7bf; stroke-width: 3; }
+      .carsvg__crease { fill: none; stroke: #f7f9fb; stroke-width: 4; opacity: 0.9; }
+      .carsvg__roof { fill: url(#carRoof); stroke: #858c95; stroke-width: 3; }
+      .carsvg__glass { fill: url(#carGlass); stroke: #1a2128; stroke-width: 6; stroke-linejoin: round; }
+      .carsvg__frame { stroke-width: 10; }
+      .carsvg__sheen { fill: #ffffff; opacity: 0.055; }
+      .carsvg__pillar { fill: #232a31; }
+      .carsvg__light { fill: #2a323b; }
+      .carsvg__drl { fill: none; stroke: #ffffff; stroke-width: 4; stroke-linecap: round; }
+      .carsvg__tail { fill: url(#carTail); stroke: #5a0f0b; stroke-width: 2.5; }
+      .carsvg__tailcore { fill: none; stroke: #ffb199; stroke-width: 3.5; stroke-linecap: round; opacity: 0.9; }
+      .carsvg__chrome { fill: #e9edf0; stroke: #8f979f; stroke-width: 2.5; }
+      .carsvg__kidney { fill: #262c33; }
+      .carsvg__kbar { fill: none; stroke: #59616a; stroke-width: 3; }
+      .carsvg__handle { fill: #d6dbe0; stroke: #9aa2aa; stroke-width: 2; }
+      .carsvg__wheel { fill: var(--tire); stroke: var(--tire); stroke-width: 14; stroke-linejoin: round; }
+      .carsvg__wheel--lit { filter: url(#carGlow); }
 
       /* closures / security diagram */
       .closcar { padding: 10px 12px 4px; display: flex; justify-content: center; }
       .closcar .carsvg { width: 50%; min-width: 138px; max-width: 196px; margin: 0; }
       .cldiag__hit { fill: transparent; cursor: pointer; }
       .cldiag__hit:hover { fill: rgba(127, 127, 127, 0.14); }
-      .cldiag__flap { stroke-width: 1.2; opacity: 0.92; stroke-linejoin: round; }
-      .cldiag__zone { opacity: 0.42; pointer-events: none; }
-      .cldiag__glass-open { opacity: 0.7; pointer-events: none; }
+      .cldiag__lit { pointer-events: none; }
+      .cldiag__zone {
+        fill: var(--c); fill-opacity: 0.5;
+        stroke: var(--c); stroke-width: 14; stroke-linejoin: round;
+        filter: url(#carGlow);
+      }
+      .cldiag__core { fill: none; stroke: rgba(255, 255, 255, 0.55); stroke-width: 3.5; stroke-linejoin: round; }
+      .cldiag__drop { fill: none; stroke: var(--c); stroke-width: 10; }
+      .cldiag__sill { fill: #a2a9b1; }
+      .cldiag__sillshadow { fill: none; stroke: #3b434c; stroke-width: 5; opacity: 0.55; }
+      .cldiag__door { fill: var(--c); stroke: var(--c); stroke-width: 8; stroke-linejoin: round; filter: url(#carGlow); }
+      .cldiag__doortrim { fill: rgba(0, 0, 0, 0.45); }
+      .cldiag__dooredge { fill: none; stroke: rgba(255, 255, 255, 0.5); stroke-width: 4; stroke-linecap: round; }
       .cldiag__lock { cursor: pointer; }
       .cldiag__lockbody { fill: var(--c); }
-      .cldiag__shackle { fill: none; stroke: var(--c); stroke-width: 2.2; stroke-linecap: round; }
+      .cldiag__shackle { fill: none; stroke: var(--c); stroke-width: 16; stroke-linecap: round; }
       .item__dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
 
       .wlabel {

@@ -41,6 +41,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   new figure when there is one and BMW's otherwise, and it no longer shows
   "0 min" outside a charge.
 
+### Changed
+- **A new car on the dashboard card.** The tire and *Security & closures* views
+  draw a more detailed top-down BMW. Each tire glows in its own status color. In
+  the closures view an open door swings out on its hinge, mirror and all, open
+  glass glows amber, an open hood or trunk glows red, and the padlock sits on
+  the roof. The car is the same light silver in light and dark themes.
+
 ### Fixed
 - **Fetching BMW's charging history no longer overwrites what your wallbox
   measured.** Merging BMW's record into a home charge replaced the meter's grid
