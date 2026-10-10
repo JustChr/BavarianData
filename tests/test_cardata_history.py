@@ -419,3 +419,115 @@ def test_a_record_reaching_outside_bmws_window_is_left_alone():
 
 def test_bmw_without_soc_is_left_alone():
     _assert_untouched(_frozen_session(), _raw(displayedStartSoc=None, displayedSoc=None))
+
+
+# --- the wallbox meter's figure survives the merge -------------------------
+#
+# Merging BMW's history used to replace a home charge's meter-measured
+# ``grid_kwh`` with BMW's own figure. The meter's is the exact one, and the
+# only kind the meter model may learn from (``history/meter_rate.py``), so every
+# enriched home charge silently dropped out of what teaches it.
+
+_TARIFF_COST = {"amount": 3.81, "currency": "EUR", "source": "tariff"}
+
+
+def _metered_session(**overrides) -> ChargingSession:
+    data = {
+        "grid_kwh": 15.31,
+        "grid_source": "meter",
+        "cost": dict(_TARIFF_COST),
+        "location": {"zone": "Home"},
+    }
+    data.update(overrides)
+    return _live_session(**data)
+
+
+def test_the_meters_grid_figure_survives_enrichment():
+    imported = session_from_cardata("WBY1", _raw())
+    assert imported.grid_source == "bmw"
+
+    result, _, updated = merge_cardata_sessions([_metered_session()], [imported])
+
+    assert updated == 1
+    survivor = result[0]
+    assert survivor.grid_kwh == 15.31
+    assert survivor.grid_source == "meter"
+    assert survivor.enriched is True
+    # The rest of BMW's record still lands.
+    assert survivor.mileage_km == 17796
+    assert survivor.soc_end == 82
+
+
+def test_the_cost_billed_from_the_meter_stays_with_it():
+    """BMW's tariff cost is priced on BMW's kWh; the meter's is the matching one."""
+
+    priced = session_from_cardata(
+        "WBY1", _raw(), cost_fn=lambda kwh: {**_TARIFF_COST, "amount": 9.0}
+    )
+    result, _, _ = merge_cardata_sessions([_metered_session()], [priced])
+    assert result[0].cost == _TARIFF_COST
+
+
+def test_bmws_own_billed_cost_still_wins():
+    billed = {"amount": 5.5, "currency": "EUR", "source": "bmw"}
+    priced = session_from_cardata("WBY1", _raw(), cost_fn=lambda kwh: billed)
+    result, _, _ = merge_cardata_sessions([_metered_session()], [priced])
+    assert result[0].cost == billed
+
+
+def test_a_charge_without_a_meter_figure_takes_bmws():
+    result, _, _ = merge_cardata_sessions([_live_session()], [session_from_cardata("WBY1", _raw())])
+    assert result[0].grid_kwh == 15.92
+    assert result[0].grid_source == "bmw"
+
+
+def test_a_frozen_arc_keeps_the_meters_cost_and_mix():
+    """Billed and attributed from the meter's steps, they never saw the cap."""
+
+    mix = {"pv": 4.0, "grid": 11.31, "solar_percent": 26.1}
+    frozen = _frozen_session(grid_kwh=15.31, grid_source="meter", energy_mix=mix)
+    result, _, _ = merge_cardata_sessions([frozen], [session_from_cardata("WBY1", _raw())])
+
+    survivor = result[0]
+    assert (survivor.soc_start, survivor.soc_end) == (66, 82)
+    assert survivor.energy_kwh is None  # the battery side was capped all the same
+    assert survivor.grid_kwh == 15.31
+    assert survivor.energy_mix == mix
+    assert "partial" not in survivor.cost
+
+
+def test_folded_fragments_hand_the_whole_charge_to_bmws_figure():
+    """The meter measured one fragment; widened past it, it no longer covers the record."""
+
+    metered = _metered_session(end=START_DT + timedelta(minutes=40))
+    fragment = _live_session(
+        start=START_DT + timedelta(minutes=42),
+        end=START_DT + timedelta(minutes=58),
+        energy_kwh=3.0,
+    )
+    result, _, _ = merge_cardata_sessions(
+        [metered, fragment], [session_from_cardata("WBY1", _raw())]
+    )
+
+    assert len(result) == 1
+    assert result[0].id == metered.id
+    assert result[0].grid_kwh == 15.92
+    assert result[0].grid_source == "bmw"
+
+
+def test_grid_source_round_trips_and_is_inferred_for_old_records():
+    metered = _metered_session(end=START_DT + timedelta(hours=1))
+    assert ChargingSession.from_dict(metered.to_dict()).grid_source == "meter"
+
+    old_live = _live_session(grid_kwh=12.0).to_dict()
+    old_live.pop("grid_source")
+    assert ChargingSession.from_dict(old_live).grid_source == "meter"
+
+    # Enriched before the source was kept: the figure may be either.
+    old_enriched = _live_session(grid_kwh=12.0, enriched=True).to_dict()
+    old_enriched.pop("grid_source")
+    assert ChargingSession.from_dict(old_enriched).grid_source is None
+
+    no_figure = _live_session().to_dict()
+    no_figure.pop("grid_source")
+    assert ChargingSession.from_dict(no_figure).grid_source is None

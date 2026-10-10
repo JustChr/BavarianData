@@ -216,7 +216,10 @@ The **`bavariandata.fetch_charging_history`** service pulls BMW's own recorded
 sessions and imports them into the local history, so charges from before you
 installed the integration appear on the card and in the monthly summaries.
 Overlapping live-recorded sessions are enriched in place with BMW's **measured
-grid energy**. This one **does** spend API quota (one or more of your 50/24 h).
+grid energy**, unless your wallbox meter already measured the charge: its figure,
+and the cost billed from it, are kept. BMW's own billed cost still replaces it.
+If BMW's record also takes in short pieces of the same charge that the meter
+didn't measure, BMW's figure is used for the whole charge. This one **does** spend API quota (one or more of your 50/24 h).
 Without **From** and **To** it fetches the last 30 days.
 
 ### Repairing charges from before v0.9.6

@@ -200,9 +200,11 @@ keinen eigenen Term.
 
 Eine Ladung zählt, wenn sie mindestens 5 Punkte gebracht hat und nicht vor unserem
 Bemerken begann. Eine durch einen Neustart von Home Assistant unterbrochene Ladung
-zählt weiter: Der Zählerstand läuft über einen Neustart hinweg. Eine Ladung, deren
-Energie durch BMWs Ladehistorie ersetzt wurde, zählt nicht, denn dieser Wert stammt
-von BMW, nicht von deinem Zähler. Eine einzelne Ladung, die weit neben den anderen
+zählt weiter: Der Zählerstand läuft über einen Neustart hinweg. Ebenso eine
+Ladung, in die später BMWs Ladehistorie eingeflossen ist: Dabei bleibt der Wert
+deines Zählers erhalten. Eine vor v0.9.17 zusammengeführte Ladung zählt nicht,
+weil ihr Wert durch BMWs ersetzt worden sein kann, der von einem anderen
+Messgerät stammt. Eine einzelne Ladung, die weit neben den anderen
 liegt (BMWs Ladezustand nahe 100 % kann das), bleibt außen vor. Laufen alle deine
 Ladungen mit derselben Leistung, lassen sich Wirkungsgrad und Grundlast nicht
 trennen, und es gilt ein einfacher Prozentsatz pro kWh, der bei dieser Leistung

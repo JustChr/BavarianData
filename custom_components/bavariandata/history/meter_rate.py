@@ -103,9 +103,9 @@ def meter_rate(
 
     A session qualifies only when its two ends and its meter delta describe the
     same stretch of this car charging on this wallbox: closed, not
-    ``late_start``, not ``enriched`` (merging BMW's charging history replaces
-    ``grid_kwh`` with BMW's own figure, which is not this meter), with a
-    measured ``grid_kwh``, a gain of at least :data:`MIN_SOC_DELTA`, and a place
+    ``late_start``, with a ``grid_kwh`` this meter measured (``grid_source``;
+    BMW's charging history is another instrument, and an old enriched record
+    may carry either), a gain of at least :data:`MIN_SOC_DELTA`, and a place
     the meter could have measured (:func:`meter_counts_this_session`).
     ``interrupted`` sessions do qualify: a restart leaves a hole in the
     battery-side integration, but the meter is a running total, so its delta
@@ -114,7 +114,7 @@ def meter_rate(
 
     samples: list[_Sample] = []
     for session in sessions:
-        if session.end is None or session.late_start or session.enriched:
+        if session.end is None or session.late_start or session.grid_source != "meter":
             continue
         kwh = session.grid_kwh
         delta = session.soc_delta
