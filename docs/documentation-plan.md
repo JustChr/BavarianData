@@ -231,6 +231,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Entity | Kind | Status |
 | --- | --- | --- |
 | `soc_estimate`, `soc_rate` | Extrapolated SoC helpers | 🟡 — the wallbox-meter mode and its attributes (`estimate_source`, `meter_sessions`, `meter_percent_per_kwh`, `meter_overhead_kw`) are 🟢 in Feature-evcc-and-Wallbox-Bridge → "It also drives the state-of-charge estimate" |
+| `charge_eta` | Minutes to the charge target at home, from the wallbox meter | 🟢 Feature-evcc-and-Wallbox-Bridge → "Time to the charge target" + Feature-Entities-and-Devices + The-Dashboard-Card |
 | `soc_estimate_testing` | Diagnostic variant | ❌ |
 | `charged_energy_total`, `charged_energy_session` | Energy integration | 🟡 |
 | `charging_energy_month` | Monthly total | 🟡 |

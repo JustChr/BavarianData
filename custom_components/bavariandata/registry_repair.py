@@ -25,7 +25,7 @@ from __future__ import annotations
 from typing import Any, Callable, Iterable, Mapping, Optional
 
 # The integration's own entities that only mean something with a high-voltage
-# battery: the state-of-charge estimate and its rate, the charged-energy
+# battery: the state-of-charge estimate, its rate and time to target, the charged-energy
 # counters, the charging ledger and cost sensors, battery health and real range.
 # Up to v0.9.9-beta.9 the first ten were created for every car, so a petrol or
 # diesel install carries them stuck at "unknown" -- and, because they are
@@ -35,6 +35,7 @@ EV_ONLY_SUFFIXES = frozenset(
         "soc_estimate",
         "soc_estimate_testing",
         "soc_rate",
+        "charge_eta",
         "charged_energy_total",
         "charged_energy_session",
         "charging_energy_month",

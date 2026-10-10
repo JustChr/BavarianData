@@ -1643,6 +1643,9 @@
       "soc_rate": {
         "name": "Voorspelde laadsnelheid"
       },
+      "charge_eta": {
+        "name": "Voorspelde tijd tot laaddoel"
+      },
       "charged_energy_total": {
         "name": "Geladen energie (totaal)"
       },

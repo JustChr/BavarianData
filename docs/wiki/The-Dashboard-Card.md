@@ -65,6 +65,12 @@ mid-charge and its own figure then stands still. With a wallbox meter bound,
 The next real reading replaces it. See
 [the charging page](Feature-Charging-History-and-Cost).
 
+**Time to full** is
+[the integration's own figure](Feature-evcc-and-Wallbox-Bridge#time-to-the-charge-target)
+while the car charges at home with a wallbox meter bound, and BMW's anywhere
+else. Outside a charge it is labelled *Charge time*, and it is hidden when that
+time is 0.
+
 A car that sends high-voltage battery data *and* fuel data is a plug-in hybrid;
 fuel data alone makes it petrol or diesel. Some petrol cars stream an EV charge
 target anyway, so that never makes a car look electric.

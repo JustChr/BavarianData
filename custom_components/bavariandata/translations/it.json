@@ -1643,6 +1643,9 @@
       "soc_rate": {
         "name": "Velocità di ricarica prevista"
       },
+      "charge_eta": {
+        "name": "Tempo previsto fino all'obiettivo di carica"
+      },
       "charged_energy_total": {
         "name": "Energia caricata (totale)"
       },

@@ -878,14 +878,6 @@
                         <span class="cell__lbl">Plug</span>
                       </div>
                     </button>
-                    <button class="cell" data-entity="sensor.x3_30e_xdrive_charging_ev_time_to_full_charge">
-                      <ha-icon icon="mdi:timer-sand">
-  </ha-icon>
-                      <div class="cell__body">
-                        <span class="cell__val">0 min</span>
-                        <span class="cell__lbl">Charge time</span>
-                      </div>
-                    </button>
                     <button class="cell" data-entity="sensor.x3_30e_xdrive_mileage">
                       <ha-icon icon="mdi:counter">
   </ha-icon>

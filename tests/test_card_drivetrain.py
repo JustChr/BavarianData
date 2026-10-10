@@ -301,9 +301,14 @@ def test_the_plug_tile_survives_a_german_install():
     assert f'data-entity="{plug_id}"' in html
 
 
-def _with_status(status: str) -> dict:
+def _with_status(status: str, time_to_full: str = "0") -> dict:
     key = "sensor.x3_30e_xdrive_charging_ev_charging_state"
-    return {**PHEV, key: {**PHEV[key], "state": status}}
+    ttf = "sensor.x3_30e_xdrive_charging_ev_time_to_full_charge"
+    return {
+        **PHEV,
+        key: {**PHEV[key], "state": status},
+        ttf: {**PHEV[ttf], "state": time_to_full},
+    }
 
 
 @pytest.mark.parametrize(
@@ -323,7 +328,9 @@ def test_a_charge_that_has_stopped_is_not_shown_as_charging(status: str):
     """Issue #25: `chargingended` starts with "charging", and the heuristic
     read that as active -- a finished car sat under a green ring and a bolt."""
 
-    html = _render(_with_status(status))["html"]
+    # A leftover figure, so the tile renders and its label can be read; a zero
+    # hides it (``test_a_finished_charge_shows_no_zero_charge_time``).
+    html = _render(_with_status(status, "45"))["html"]
     assert "gauge__bolt" not in html
     assert "Time to full" not in html
     assert "Charge time" in html
@@ -333,6 +340,60 @@ def test_an_active_charge_is_still_shown_as_charging():
     html = _render(_with_status("chargingactive"))["html"]
     assert "gauge__bolt" in html
     assert "Time to full" in html
+
+
+_BMW_TTF = "sensor.i5_bmw_time_to_full"
+_OUR_ETA = "sensor.i5_charge_eta"
+
+
+def _charging_i5(bmw: str, ours: str | None, status: str = "chargingactive") -> dict:
+    states = {
+        **I5,
+        "sensor.i5_charging": _sensor("vehicle.drivetrain.electricEngine.charging.status", status),
+        _BMW_TTF: _sensor(
+            "vehicle.drivetrain.electricEngine.charging.timeToFullyCharged",
+            bmw,
+            "min",
+            device_class="duration",
+            friendly_name="i5 Charging EV Time to full charge",
+        ),
+    }
+    if ours is not None:
+        states[_OUR_ETA] = _sensor(
+            "charge_eta",
+            ours,
+            "min",
+            device_class="duration",
+            friendly_name="i5 Predicted time to charge target",
+        )
+    return states
+
+
+def test_the_time_tile_prefers_the_meter_driven_estimate():
+    """At home the integration's own figure beats BMW's (7-26 min long on the
+    i5's 11 kW charge, where ours was 1-3 min off)."""
+
+    html = _render(_charging_i5("32", "12"))["html"]
+    assert f'data-entity="{_OUR_ETA}"' in html
+    assert f'data-entity="{_BMW_TTF}"' not in html
+
+
+@pytest.mark.parametrize("ours", ["unknown", "unavailable", None])
+def test_the_time_tile_falls_back_to_bmw_without_an_estimate(ours):
+    """Away from home, or with no wallbox meter, there is only BMW's."""
+
+    html = _render(_charging_i5("32", ours))["html"]
+    assert f'data-entity="{_BMW_TTF}"' in html
+
+
+@pytest.mark.parametrize("ours", ["0", None])
+def test_a_finished_charge_shows_no_zero_charge_time(ours):
+    """BMW's figure is zeroed when the charge closes, ours is 0 outside one:
+    neither is a charge time worth a tile."""
+
+    html = _render(_charging_i5("0", ours, status="chargingended"))["html"]
+    assert "Charge time" not in html
+    assert "Time to full" not in html
 
 
 def test_basic_data_bev_outranks_a_stray_fuel_field():

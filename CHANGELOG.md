@@ -30,8 +30,24 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   sensor's `estimate_source` attribute says which one is in charge. The
   charging-rate sensor follows the meter too, so it shows the rate the estimate
   really climbs at, and nothing while a solar charge is paused.
+- **A time to the charge target you can trust, at home.** The new *Predicted
+  time to charge target* sensor works it out from the wallbox meter: what's left
+  to the target divided by the rate the meter measures. On an i5 charging at
+  11 kW to 80 % it was 1–3 minutes off, where BMW's own *time to full* ran 7–26
+  minutes long and moved only every 40 minutes or so. It needs a wallbox meter
+  bound and only gives a figure at home: on a DC fast charge, BMW knows how the
+  charge slows as the battery fills and a straight line doesn't, so BMW's figure
+  stays the one to use there. The dashboard card's *time to full* tile uses the
+  new figure when there is one and BMW's otherwise, and it no longer shows
+  "0 min" outside a charge.
 
 ### Fixed
+- **BMW's time to full and charging power no longer stay stuck after a charge.**
+  BMW stops sending them when a charge ends instead of sending zero, so a car
+  that had reached its target could show "1 h" to go and 10.56 kW for good. Once
+  the charge has stayed ended for two minutes, *time to full*, *remaining time*
+  and *charging power* are set to 0. A charge that only blinks off and straight
+  back on is left alone, because BMW might not send those values again.
 - **A wrong odometer reading can no longer silence `bavariandata_vehicle_report`
   for good.** A reading the car could not have driven since the last report — one
   off by a unit, say, landing thousands of kilometers ahead — was announced as one

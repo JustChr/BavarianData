@@ -632,6 +632,44 @@ class CardataSocRateSensor(CardataRestoreSensor):
         self.schedule_update_ha_state()
 
 
+class CardataChargeEtaSensor(CardataEntity, SensorEntity):
+    """Minutes until a home charge reaches its target, from the wallbox meter.
+
+    Recomputed from the SoC estimate every tick, so nothing is restored: a stale
+    figure is exactly what this replaces (see ``_charge_eta_minutes``).
+    """
+
+    _attr_should_poll = False
+    _attr_device_class = SensorDeviceClass.DURATION
+    _attr_native_unit_of_measurement = "min"
+    _attr_icon = "mdi:timer-sand"
+    _attr_translation_key = "charge_eta"
+
+    def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
+        super().__init__(coordinator, vin, "charge_eta")
+        self._unsubscribe = None
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self._unsubscribe = async_dispatcher_connect(
+            self.hass,
+            self._coordinator.signal_soc_estimate,
+            self._handle_update,
+        )
+        self._attr_native_value = self._coordinator.get_charge_eta(self.vin)
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._unsubscribe:
+            self._unsubscribe()
+            self._unsubscribe = None
+
+    def _handle_update(self, vin: str) -> None:
+        if vin != self.vin:
+            return
+        self._attr_native_value = self._coordinator.get_charge_eta(vin)
+        self.schedule_update_ha_state()
+
+
 class CardataChargedEnergySensor(CardataRestoreSensor):
     """Lifetime energy delivered to the battery, for the HA Energy dashboard.
 
@@ -1467,6 +1505,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     soc_estimate_entities: Dict[str, CardataSocEstimateSensor] = {}
     soc_estimate_testing_entities: Dict[str, CardataTestingSocEstimateSensor] = {}
     soc_rate_entities: Dict[str, CardataSocRateSensor] = {}
+    charge_eta_entities: Dict[str, CardataChargeEtaSensor] = {}
     charged_energy_entities: Dict[str, CardataChargedEnergySensor] = {}
     session_energy_entities: Dict[str, CardataSessionEnergySensor] = {}
     charging_summary_entities: Dict[str, list] = {}
@@ -1614,6 +1653,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
             rate = CardataSocRateSensor(coordinator, vin)
             soc_rate_entities[vin] = rate
             new_entities.append(rate)
+        if vin not in charge_eta_entities:
+            eta = CardataChargeEtaSensor(coordinator, vin)
+            charge_eta_entities[vin] = eta
+            new_entities.append(eta)
         if vin not in charged_energy_entities:
             charged = CardataChargedEnergySensor(coordinator, vin)
             charged_energy_entities[vin] = charged
@@ -1745,6 +1788,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         if descriptor in {
             "soc_estimate",
             "soc_rate",
+            "charge_eta",
             "soc_estimate_testing",
             "charged_energy_total",
             "charged_energy_session",
