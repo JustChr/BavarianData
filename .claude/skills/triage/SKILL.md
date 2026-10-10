@@ -50,3 +50,17 @@ Read the reporter's numbers as arithmetic: two metrics off by *different*
 powers of the *same* factor means one mechanism applied a different number of
 times — which is what restarts do. That names the mechanism before any code is
 read.
+
+## Check the entity before the stream
+
+Before suspecting the pipeline, check which entity the report is about. Its
+`descriptor` attribute says whether BMW sends it or we calculate it. A
+calculated one (`real_range`, the cost sensors) reading `unknown` is usually
+waiting for history, and its `status` attribute says so. Several BMW fields
+also look alike: five range sensors, six charge levels. #62 was both of these.
+
+## The reply should be a link
+
+If the answer isn't already in the wiki, the wiki has a gap. Write it (EN +
+DE, the `close` skill checks for it) and answer with the link, not with an
+explanation that only exists in the issue thread.

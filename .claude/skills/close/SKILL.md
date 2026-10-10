@@ -50,8 +50,8 @@ park the failing work on a branch (step 2) and say so.
 
 ## 4. Docs in lockstep
 
-Walk the session's changes (`git log --oneline <last close>..HEAD`), not the
-whole repo:
+Walk the session's changes (`git log --oneline <last close>..HEAD`) and the
+support threads it handled, not the whole repo:
 
 - every user-visible change has its line under `## [Unreleased]` in
   `CHANGELOG.md`;
@@ -66,6 +66,21 @@ whole repo:
 
 For a large or unfamiliar diff, the `docs-lockstep` agent reports what went
 stale; for a small one, check by hand.
+
+The list above catches what is **missing**. Two more checks catch what is
+**wrong**:
+
+- **Changed behavior falsifies old text.** For every behavior this session
+  changed or removed, grep `docs/wiki/` (both languages) for the entity,
+  option, service or attribute name, and read each hit: does it still hold?
+  A new row next to a now-false paragraph is still a stale wiki.
+- **Support answers belong in the wiki.** For every issue, discussion or
+  diagnostics read this session: if the answer had to come from the code or
+  from memory rather than a wiki link, the wiki has a gap. Write the page
+  (EN + DE) so the next reply can be a link. If a wiki statement turned out
+  wrong while answering, fix it here too. (#62: nothing said which of five
+  range sensors is the cluster figure, and the "unavailable" section described
+  behavior the integration never had.)
 
 ## 5. Wiki
 
