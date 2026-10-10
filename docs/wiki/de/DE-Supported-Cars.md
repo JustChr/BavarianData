@@ -48,7 +48,7 @@ CarData sollte funktionieren; die Liste zeigt nur, was schon gesehen wurde.
 | BMW X3 30e xDrive | Plug-in-Hybrid | Streamt den Ladestand nicht; er kommt mit der [täglichen REST-Aktualisierung](DE-Feature-API-Quota#the-daily-refresh). |
 | BMW X3 M40d (G01) | Diesel | — |
 | BMW M240i xDrive (G42) | Benzin | Vor 0.9.7 verschob sich der Reifendruck nach Neustarts ([#7](https://github.com/JustChr/BavarianData/issues/7)). |
-| BMW 530d Touring (G31, iDrive 6) | Diesel | Sendet Kilometerstand, Tankstand und Position nur am Ende einer Fahrt; das Fahrtenbuch bleibt deshalb leer ([mehr](DE-Feature-Trips#older-cars-that-report-only-at-the-end-of-a-trip)). |
+| BMW 530d Touring (G31, iDrive 6) | Diesel | Sendet Kilometerstand, Tankstand und Position nur am Ende einer Fahrt. Für ein Fahrtenbuch **Fahrterkennung** auf **Berichte am Fahrtende** stellen (seit 0.9.17-beta.3; [mehr](DE-Feature-Trips#older-cars-that-report-only-at-the-end-of-a-trip)). |
 | MINI (Benziner) | Benzin | Über das MINI-Portal eingerichtet. Sendet weniger Felder als ein BMW, zum Beispiel keine Zähler für den Kraftstoffverbrauch über die Lebensdauer. |
 
 ## Was sich von Auto zu Auto unterscheidet
