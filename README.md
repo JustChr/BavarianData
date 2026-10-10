@@ -65,7 +65,7 @@ charge really drew from the grid.
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-security.png" alt="Security &amp; closures card with a top-down car diagram, anti-theft alarm armed and all closures closed" width="300" />
   &nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-tires.png" alt="Tire pressure card flagging slightly high pressures on all four tires on a top-down car diagram" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-tires.png" alt="Tire card with the pressure and wear summary above a top-down car, every tire OK" width="300" />
 </p>
 
 > **Status — actively developed.** A spare-time project, verified against a
