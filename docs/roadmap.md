@@ -403,6 +403,60 @@ Ideas worth keeping but not scheduled:
   model-compatibility matrix; nobody knows what their car actually streams, and
   we could become the authority on that.
 
+## Scheduled next (decided 2026-10-11)
+
+Picked after a second look at the other car integrations (the BMW CarData
+competitors, TeslaMate, Teslemetry) and at what we could feed (evcc, ABRP,
+EMHASS). Every new entity here ships **disabled by default**, like the GPS
+sensors and *Last Vehicle Report*; the budget of eight stays as it is.
+
+### Service calendar
+
+- One `calendar` entity per car, disabled by default. Source: the dated
+  `conditionBasedServices` items the daily container already delivers (the i5
+  sends four: brake fluid, vehicle check, statutory inspection, bonnet gas
+  springs). **No extra quota.**
+- BMW gives a month only (`"2027-10"`): each item is an **all-day event on the
+  1st**, titled with BMW's text, the description saying "due by the end of
+  October 2027". An event moves when BMW's date moves.
+- Distance-only items: projected from the car's own km/day (90-day window,
+  odometer), and marked as an estimate in the event. No projection without
+  enough driving history — a wrong date is worse than none.
+- If a lease is configured, its end date is an event in the same calendar.
+
+### Lease / mileage allowance
+
+- Per car, under **Configure → Lease**: start date, end date, km allowance, and
+  the odometer at handover (prefilled with today's reading — our history rarely
+  reaches back to a lease's start).
+- Answers: km used vs. allowance to date, projected km/year at the current pace,
+  projected over/under at the end, km/day still available.
+- Surfaces: the card, a zero-quota `get_lease_status` service, and **one sensor,
+  disabled by default** — *Lease km balance* (+ ahead / − behind plan), the rest
+  as attributes.
+
+### ABRP live push
+
+- Opt-in, outbound, built like the evcc bridge: **unknown sends nothing**,
+  heartbeat while parked, off clears nothing remote (ABRP keeps no retained
+  state we own).
+- Sends SoC, charging / parked / DC, power, outside temperature, range.
+  **Position only with a second toggle, off by default.**
+- Credentials: a **project telemetry key** requested from Iternio and shipped in
+  the integration, with an optional field for the user's own key should ours be
+  revoked; plus the user's per-car ABRP token (ABRP app → Generic → Link).
+- Nothing else pushes BMW CarData into ABRP today (`hass-abrp` mainly reads
+  from it).
+
+### Waiting for data, not scheduled
+
+- **evcc charge plan from the car's own departure time** (`planSoc/set`): the
+  i5 streams the timer *type* only, not the times. Also makes the bridge write,
+  one of the car-forecast drawer's open questions.
+- **12 V battery trend** (repair issue on a sliding voltage): the i5 doesn't
+  stream `electricalSystem.battery.voltage`. Needs a reporter's diagnostics.
+- Standby drain and DC charge-curve analytics were considered and not picked.
+
 ## Standing risks
 
 - **Entity sprawl.** The entity budget above is a cap, not a starting point.
