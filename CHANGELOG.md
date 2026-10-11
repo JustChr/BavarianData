@@ -9,6 +9,94 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+Promotes 0.9.17-beta.1 to beta.5. Older cars that report only once parked get a trip journal and a logbook event. At home, your wallbox meter now drives the state-of-charge estimate and a new time-to-target prediction. The card draws a new car, and its maps work again on Home Assistant 2026.10.
+
+### Added
+- **An event for logbooks: `bavariandata_vehicle_report`** (beta.1). It fires once when the
+  car reports a new odometer reading and the reading has held for 5 minutes, with
+  the distance since the last report, fuel, range, charge and position. Made for
+  older cars that send everything in one burst when parked; a repeated reading or
+  the catch-up after a restart never fires it, and a reading the car could not
+  have driven since the last report is set aside rather than announced. The first
+  reading after updating only sets the starting point. Suggested by @ursubey
+  (discussion #56).
+- **A *Last Vehicle Report* sensor, disabled by default** (beta.1): when the car last reported
+  its odometer, by the car's own clock, for a car whose report arrives late after
+  parking without reception (#56).
+- **Your wallbox meter now drives the state-of-charge estimate while the car
+  charges at home** (beta.2). Between BMW's readings the estimate used to climb at the
+  rate of BMW's last charging power, which can be hours old, so on a
+  solar-following or interrupted charge it drifted. With a wallbox energy sensor
+  bound (**Configure → Charging costs & history**), the estimate now moves by
+  exactly what the meter counted, including what it counted while Home Assistant
+  was restarting. How the meter's kWh turn into battery percent is worked out
+  from your last ten home charges as an efficiency plus the car's own overhead
+  while charging (about 0.3 kW on an i5). That overhead is why solar-surplus
+  charging is less efficient than 11 kW, and the model gets both right. It starts
+  once three home charges qualify. Replayed against ten days of a real i5's
+  charges, it halved the estimate's error during long silences on solar charges
+  and removed its habit of running about half a point high. Nothing new to set
+  up, and nothing to reset. It stands aside, and BMW's power takes over again
+  without a jump, whenever it can't be sure which car it's counting: away from
+  home, with the car reporting its cable out, while a second car on the same
+  entry is charging, or when the meter is unavailable or jumps. The estimate
+  sensor's `estimate_source` attribute says which one is in charge. The
+  charging-rate sensor follows the meter too, so it shows the rate the estimate
+  really climbs at, and nothing while a solar charge is paused.
+- **A time to the charge target you can trust, at home** (beta.2). The new *Predicted
+  time to charge target* sensor works it out from the wallbox meter: what's left
+  to the target divided by the rate the meter measures. On an i5 charging at
+  11 kW to 80 % it was 1–3 minutes off, where BMW's own *time to full* ran 7–26
+  minutes long and moved only every 40 minutes or so. It needs a wallbox meter
+  bound and only gives a figure at home: on a DC fast charge, BMW knows how the
+  charge slows as the battery fills and a straight line doesn't, so BMW's figure
+  stays the one to use there. The dashboard card's *time to full* tile uses the
+  new figure when there is one and BMW's otherwise, and it no longer shows
+  "0 min" outside a charge.
+- **A trip journal for older cars that report only once parked** (beta.3, beta.4)
+  (discussion #56). Cars with iDrive 6 and older send odometer, fuel and position
+  in one burst when a drive ends, and nothing while driving, so their trip journal
+  stayed empty. Set **Configure → Trips → Trip detection** to **End-of-trip
+  reports**: every vehicle report then becomes one trip, from where the car stood
+  at the previous report to where it stands now, with the odometer distance, the
+  fuel used and, on electric cars and plug-in hybrids, the charge the car set off
+  with. The live detection is off in this mode, so cars that stream while driving
+  are not affected unless you switch it on.
+- **New action `bavariandata.mark_trip_start`** (beta.3). The car's report says when a
+  drive ended, never when it began. Call this action when you set off, for
+  example from an automation that runs when your phone connects to the car's
+  Bluetooth, and the trip gets its real start time and duration. Without it, the
+  trip is stored at its arrival with no duration rather than a made-up one.
+
+### Changed
+- **A new car on the dashboard card** (beta.2). The tire and *Security & closures* views
+  draw a more detailed top-down BMW. Each tire glows in its own status color. In
+  the closures view an open door swings out on its hinge, mirror and all, open
+  glass glows amber, an open hood or trunk glows red, and the padlock sits on
+  the roof. The car is the same light silver in light and dark themes.
+
+### Fixed
+- **The card's maps show their routes and destinations again on Home Assistant
+  2026.10** (beta.5). Home Assistant 2026.10 redrew its maps, and the card's overlays
+  stopped appearing on them: the route of an expanded trip and the clustered
+  destinations on the trip map. Both now draw on the new maps and on the old
+  ones, so earlier Home Assistant versions keep working.
+- **Fetching BMW's charging history no longer overwrites what your wallbox
+  measured** (beta.2). Merging BMW's record into a home charge replaced the meter's grid
+  energy with BMW's figure, and the cost billed from the meter with a price on
+  BMW's kWh. The meter's figure is the exact one, so it now stays, along with its
+  cost; BMW's own billed cost still wins. Each charge now records whose figure it
+  is, so merged charges keep teaching the state-of-charge estimate. Charges merged
+  before this update can't be told apart, so they sit out.
+- **BMW's time to full and charging power no longer stay stuck after a charge**
+  (beta.2, beta.3). BMW stops sending them when a charge ends instead of sending
+  zero, so a car that had reached its target could show "1 h" to go and 10.56 kW
+  for good. Once the charge has stayed ended for two minutes, *time to full*,
+  *remaining time* and *charging power* are set to 0. A charge that only blinks
+  off and straight back on is left alone, because BMW might not send those values
+  again. Leftovers from a charge that ended while Home Assistant was down, or
+  before you updated, clear the next time the car reports that it isn't charging.
+
 ## [0.9.17-beta.5] - 2026-10-11
 
 ### Fixed
