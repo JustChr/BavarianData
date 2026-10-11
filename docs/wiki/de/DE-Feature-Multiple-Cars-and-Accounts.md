@@ -123,6 +123,15 @@ Konten haben je 50, weil BMW pro Konto zählt. Siehe
 | **Debug-Protokollierung** | Der Log-Level ist ein Schalter für die ganze Integration — er kann nicht je Konto gelten. Die ausführliche Protokollierung bleibt aktiv, solange **irgendein** Eintrag sie anhat, und protokolliert währenddessen die Daten aller Konten. |
 | **Reparaturen & Hinweise** | Abdeckungs- und Stream-Reparaturen nennen das Fahrzeug. Die Kontingent-Reparatur nennt kein Konto — prüfe bei zwei Einträgen die Diagnose-Entität **Verbleibendes API-Kontingent** am jeweiligen Debug-Gerät. |
 
+**Einstellungen je Fahrzeug.** Fahrten, Ladekosten und die evcc-Brücke fragen
+zuerst nach dem Fahrzeug; die nächste Seite beginnt mit den eigenen
+Einstellungen dieses Autos, die gemeinsamen folgen unter **Alle Fahrzeuge**.
+Siehe [Einstellungen](DE-Settings-Reference#trips).
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-vehicle-picker.png?v=2026-10-11b" alt="Die Fahrzeugabfrage bei zwei Autos: eine Fahrzeug-Auswahl und die Schaltfläche Weiter" width="460" />
+</p>
+
 ## Einen Eintrag entfernen
 
 <a id="removing-an-entry"></a>

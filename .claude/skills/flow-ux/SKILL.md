@@ -125,8 +125,9 @@ only after Chris has picked one.**
    `real` shoots the screen as the instance shows it). It answers the
    options-flow REST calls in the browser the way the integration would, so
    HA's real dialog renders the step with the installed build's translations
-   (so new strings need a beta first). Entity pickers holding a value are
-   blurred: they show the user's own names.
+   (so new strings need a beta first). Entity pickers are shown empty: their
+   values are the user's own zone and sensor names, so the pictures can go in
+   the wiki as they are.
    Nothing reaches HA (other calls are aborted, the flow is abandoned). Build
    the fake step from the real one the server returns, so its schema is HA's
    own. A section serializes as `{"type": "expandable", "name", "expanded",

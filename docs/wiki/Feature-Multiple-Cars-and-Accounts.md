@@ -108,6 +108,15 @@ each, because BMW counts per account. See [API quota](Feature-API-Quota).
 | **Debug logging** | The log level is one switch for the whole integration — it cannot be per account. Verbose logging stays on while **any** entry has it enabled, and logs every account's data while it is on. |
 | **Repairs & notifications** | Coverage and stream repairs name the car. The quota repair names neither account — with two set up, check the **API Quota Remaining** diagnostic entity on each debug device. |
 
+**Settings per car.** Trips, Charging costs and the evcc bridge ask which
+vehicle first; the next screen starts with that car's own settings, and the
+ones every car shares follow under **All vehicles**. See
+[Settings](Settings-Reference#trips).
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-vehicle-picker.png?v=2026-10-11b" alt="The vehicle question with two cars: a Vehicle dropdown and a Next button" width="460" />
+</p>
+
 ## Removing an entry
 
 Removing one entry leaves the other running: its stream, services and card are

@@ -152,13 +152,13 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `action_fetch_location_charging` | Fetch location charging settings | 🟡 | — |
 | `action_fetch_image` | Fetch vehicle image | 🟡 | — |
 | `action_data_refresh` | Automatic data refresh | 🟢 Settings-Reference → "Automatic data refresh" | 📷 |
-| `charging_vehicle` | Charging costs: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Charging costs & history" + Feature-Multiple-Cars-and-Accounts (EN + DE) | 📷 **owed** — stage it with `.claude/skills/flow-ux/mock_flow.js` |
-| `action_charging_costs` | Charging costs & history (per car with 2+ cars: meter and losses; price etc. in "All vehicles") | 🟡 | 📷 |
-| `bridge_vehicle` | evcc bridge: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "evcc / wallbox bridge" + Feature-Multiple-Cars-and-Accounts (EN + DE) | 📷 **owed** — stage it with `.claude/skills/flow-ux/mock_flow.js` |
-| `action_evcc_bridge` | evcc / wallbox bridge (per car with 2+ cars: publish on/off; prefix and retained in "All vehicles") | 🟢 Feature-evcc-and-Wallbox-Bridge + Settings-Reference → "evcc / wallbox bridge" | 📷 **owed** — needs the build installed |
+| `charging_vehicle` | Charging costs: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Charging costs & history" + Feature-Multiple-Cars-and-Accounts (EN + DE) | 📷 (have, staged two-car: `bavariandata-charging-costs-second-car.png`; picker shared) |
+| `action_charging_costs` | Charging costs & history (per car with 2+ cars: meter and losses; price etc. in "All vehicles") | 🟡 | 📷 (have, 2026-10-11: `bavariandata-charging-costs.png`) |
+| `bridge_vehicle` | evcc bridge: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "evcc / wallbox bridge" + Feature-Multiple-Cars-and-Accounts (EN + DE) | 📷 (have, staged two-car: `bavariandata-evcc-bridge-second-car.png`; picker shared) |
+| `action_evcc_bridge` | evcc / wallbox bridge (per car with 2+ cars: publish on/off; prefix and retained in "All vehicles") | 🟢 Feature-evcc-and-Wallbox-Bridge + Settings-Reference → "evcc / wallbox bridge" | 📷 (have, 2026-10-11: `bavariandata-evcc-bridge.png`) |
 | `evcc_snippet` | evcc configuration (generated, paste-ready) | 🟢 Feature-evcc-and-Wallbox-Bridge → "Setting it up" | 📷 **owed** — needs the build installed |
-| `trips_vehicle` | Trips: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Trips" + Feature-Multiple-Cars-and-Accounts → "Telling the cars apart" (EN + DE) | 📷 **owed** — stage it with `.claude/skills/flow-ux/mock_flow.js` (no second car needed) |
-| `action_trips` | Trips (per car with 2+ cars; shared settings in the collapsed "All vehicles" section) | 🟡 | 📷 |
+| `trips_vehicle` | Trips: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Trips" + Feature-Multiple-Cars-and-Accounts → "Telling the cars apart" (EN + DE) | 📷 (have, staged two-car: `bavariandata-vehicle-picker.png`) |
+| `action_trips` | Trips (per car with 2+ cars; shared settings in the collapsed "All vehicles" section) | 🟡 | 📷 (have, 2026-10-11: `bavariandata-configure-trips.png`) |
 | `action_debug_logging` | Debug logging toggle | 🟡 | 📷 |
 
 ### Settings (option keys) — the fields inside those screens

@@ -73,6 +73,10 @@ carries on as the same session, stopped and it is recorded as ended — see
 Screen: **Configure → Charging costs & history**. See
 [Charging history & cost](Feature-Charging-History-and-Cost) for the concepts.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-charging-costs.png?v=2026-10-11b" alt="Charging costs & history settings: price source, fixed price, price entity, currency, wallbox energy sensor, charging losses and retention" width="460" />
+</p>
+
 **Several cars on the account?** The screen first asks which vehicle. Each car
 keeps its own **Wallbox energy sensor** and **Charging losses**: two cars can
 charge at two wallboxes, through two different chargers. The price, currency,
@@ -81,7 +85,7 @@ vehicles** section below the car's own. With one car there is no vehicle
 question.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-charging-costs.png?v=2026-10-11" alt="Charging costs & history settings: price source, fixed price, price entity, currency, wallbox energy sensor, charging losses and retention" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-charging-costs-second-car.png?v=2026-10-11b" alt="Charging costs for a second car: its own wallbox sensor and charging losses on top, the shared price settings in the All vehicles section below" width="460" />
 </p>
 
 | Option | Values | Meaning |
@@ -127,11 +131,19 @@ Screen: **Configure → evcc / wallbox bridge**. See
 [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge) for the concepts, the
 topic table and the troubleshooting.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-evcc-bridge.png?v=2026-10-11b" alt="evcc / wallbox bridge with one car: publish this car to MQTT, topic prefix and publish retained" width="460" />
+</p>
+
 **Several cars on the account?** The screen first asks which vehicle, and
 **Publish this car to MQTT** is per car, so a car charged elsewhere can stay
 off the broker, VIN included. Switching one car off removes that car's topics.
 **Topic prefix** and **Publish retained** apply to every car, in the collapsed
 **All vehicles** section.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-evcc-bridge-second-car.png?v=2026-10-11b" alt="evcc / wallbox bridge for a second car: its own publish switch, the shared topic prefix and retained setting in the All vehicles section" width="460" />
+</p>
 
 Publishes the car's live state onto your MQTT broker so evcc, openWB or a
 Node-RED flow can read a state of charge that costs no
@@ -150,6 +162,10 @@ ready-to-paste evcc configuration.
 
 Screen: **Configure → Trips**. See [Trips](Feature-Trips) for the concepts.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trips.png?v=2026-10-11b" alt="Configure, Trips with one car: work zone, default type, commute stop tolerance, trip detection, record route, resolve addresses and trip-capture diagnostics" width="460" />
+</p>
+
 **Several cars on the account?** Trips first asks which vehicle, and each car
 keeps its own **Work zone**, **Default type**, **Commute stop tolerance**,
 **Trip detection** and **Record route**: a company car and a private one, or an
@@ -158,6 +174,14 @@ older car next to one that streams while driving. **Resolve addresses** and
 **All vehicles** section at the bottom of each car's form. A car added later
 starts with the settings that were in use before it arrived. With one car
 there is no vehicle question.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-vehicle-picker.png?v=2026-10-11b" alt="The vehicle question with two cars: a Vehicle dropdown and a Next button" width="460" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trips-second-car.png?v=2026-10-11b" alt="Trips settings for a second car on End-of-trip reports, with the shared All vehicles section opened below" width="460" />
+</p>
 
 | Option | Values | Meaning |
 | --- | --- | --- |

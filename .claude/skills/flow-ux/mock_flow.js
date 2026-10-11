@@ -6,7 +6,8 @@
 // build's translations. The staged submit never reaches Home Assistant, any
 // other flow call is aborted, and closing the browser abandons the flow:
 // nothing can be saved, in either mode (the real form is never submitted).
-// Entity pickers holding a value are blurred: they show the user's own names.
+// Entity pickers are shown empty: their values are the user's own entity and
+// zone names, so they are dropped from the step before HA draws it.
 //
 // Run from a directory with playwright-core installed (see the shoot skill):
 //   HA_URL=http://<host> HA_TOKEN=<token> \
@@ -63,6 +64,19 @@ const NEXT = { en: "Next", de: "Weiter" };
 
 let realStep = null;
 let phase = "menu";
+
+// Drop the user's entity choices (zone, meter, price sensor) from a step, in
+// sections too, so a picture can be published without them.
+function withoutEntities(schema) {
+  return schema.map((field) => {
+    if (field.type === "expandable") return { ...field, schema: withoutEntities(field.schema) };
+    if (!field.selector || !field.selector.entity) return field;
+    const copy = { ...field };
+    delete copy.description;
+    delete copy.default;
+    return copy;
+  });
+}
 
 function pickerStep(base) {
   const first = base.description_placeholders.vehicle;
@@ -138,22 +152,8 @@ async function dialogRect(page) {
   });
 }
 
-async function blurValuedPickers(page) {
-  await page.evaluate(() => {
-    const walk = (root) => {
-      for (const el of root.querySelectorAll("*")) {
-        if (el.tagName.toLowerCase() === "ha-selector-entity" && el.value) el.style.filter = "blur(7px)";
-        if (el.shadowRoot) walk(el.shadowRoot);
-      }
-    };
-    walk(document);
-  });
-}
-
 async function shot(page, name) {
   await page.waitForTimeout(1200);
-  await blurValuedPickers(page);
-  await page.waitForTimeout(300);
   const clip = await dialogRect(page);
   if (!clip) throw new Error("no dialog for " + name);
   const file = path.join(outdir, `${screenName}-${mode}-${lang}-${width}-${name}.png`);
@@ -187,6 +187,7 @@ async function shot(page, name) {
       if (phase === "menu" && body.next_step_id === screen.step) {
         const response = await route.fetch();
         realStep = await response.json();
+        realStep.data_schema = withoutEntities(realStep.data_schema);
         fs.writeFileSync(path.join(outdir, `real-${screenName}-step.json`), JSON.stringify(realStep, null, 2));
         phase = "picker";
         return route.fulfill({ json: pickerStep(realStep) });
@@ -199,12 +200,17 @@ async function shot(page, name) {
       return route.abort();
     });
   } else {
-    // The real form is shown, never submitted; refuse a submit all the same.
+    // The real form, minus the user's entity choices; never submitted, and a
+    // submit is refused all the same.
     await page.route("**/api/config/config_entries/options/flow/*", async (route) => {
       const request = route.request();
-      const body = request.method() === "POST" ? JSON.parse(request.postData() || "{}") : {};
-      if (request.method() === "POST" && !("next_step_id" in body)) return route.abort();
-      return route.continue();
+      if (request.method() !== "POST") return route.continue();
+      const body = JSON.parse(request.postData() || "{}");
+      if (!("next_step_id" in body)) return route.abort();
+      const response = await route.fetch();
+      const step = await response.json();
+      if (step.data_schema) step.data_schema = withoutEntities(step.data_schema);
+      return route.fulfill({ json: step });
     });
   }
 

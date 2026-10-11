@@ -79,6 +79,10 @@ beendet abgelegt — siehe [Neustart während das Auto lädt](DE-Feature-Chargin
 Bildschirm: **Konfigurieren → Ladekosten & Verlauf**. Die Konzepte stehen unter
 [Ladeverlauf & Kosten](DE-Feature-Charging-History-and-Cost).
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-charging-costs.png?v=2026-10-11b" alt="Einstellungen Ladekosten & Verlauf: Preisquelle, fester Preis, Preis-Entität, Währung, Wallbox-Energiesensor, Ladeverluste und Aufbewahrung" width="460" />
+</p>
+
 **Mehrere Fahrzeuge im Konto?** Der Bildschirm fragt zuerst nach dem Fahrzeug.
 Jedes Auto behält seinen eigenen **Wallbox-Energiesensor** und seine eigenen
 **Ladeverluste**: Zwei Autos können an zwei Wallboxen laden, über zwei
@@ -87,7 +91,7 @@ alle Autos; sie stehen im Abschnitt **Alle Fahrzeuge** unter den Einstellungen
 des Autos. Mit nur einem Auto gibt es keine Fahrzeugabfrage.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-charging-costs.png?v=2026-10-11" alt="Einstellungen Ladekosten & Verlauf: Preisquelle, fester Preis, Preis-Entität, Währung, Wallbox-Energiesensor, Ladeverluste und Aufbewahrung" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-charging-costs-second-car.png?v=2026-10-11b" alt="Ladekosten für ein zweites Auto: oben sein eigener Wallbox-Sensor und seine Ladeverluste, darunter die gemeinsamen Preiseinstellungen im Abschnitt Alle Fahrzeuge" width="460" />
 </p>
 
 | Option | Werte | Bedeutung |
@@ -135,11 +139,19 @@ Template-Sensor nicht angeboten, gib ihm `device_class: power` (und eine
 Bildschirm: **Konfigurieren → evcc-/Wallbox-Brücke**. Konzepte, Topic-Tabelle und
 Fehlerbehebung stehen unter [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge).
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-evcc-bridge.png?v=2026-10-11b" alt="evcc-/Wallbox-Brücke mit einem Auto: dieses Auto per MQTT veröffentlichen, Topic-Prefix und mit Retain veröffentlichen" width="460" />
+</p>
+
 **Mehrere Fahrzeuge im Konto?** Der Bildschirm fragt zuerst nach dem Fahrzeug,
 und **Dieses Auto per MQTT veröffentlichen** gilt je Auto, sodass ein Auto, das
 woanders lädt, samt FIN vom Broker fernbleiben kann. Schaltest du ein Auto aus,
 werden seine Topics entfernt. **Topic-Prefix** und **Mit Retain veröffentlichen**
 gelten für alle Autos, im eingeklappten Abschnitt **Alle Fahrzeuge**.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-evcc-bridge-second-car.png?v=2026-10-11b" alt="evcc-/Wallbox-Brücke für ein zweites Auto: sein eigener Schalter, darunter Topic-Prefix und Retain gemeinsam im Abschnitt Alle Fahrzeuge" width="460" />
+</p>
 
 Veröffentlicht den Live-Zustand des Autos auf deinem MQTT-Broker, sodass evcc, openWB
 oder ein Node-RED-Flow einen Ladezustand lesen kann, der kein
@@ -161,6 +173,10 @@ evcc-Konfiguration zum Einfügen.
 Bildschirm: **Konfigurieren → Fahrten**. Die Konzepte stehen unter
 [Fahrten](DE-Feature-Trips).
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trips.png?v=2026-10-11b" alt="Konfigurieren, Fahrten mit einem Auto: Arbeitszone, Standard-Typ, Toleranz für Zwischenstopps, Fahrterkennung, Route aufzeichnen, Adressen auflösen und Fahrt-Diagnoseaufzeichnung" width="460" />
+</p>
+
 **Mehrere Fahrzeuge im Konto?** Fahrten fragt zuerst nach dem Fahrzeug, und jedes
 Auto behält seine eigene **Arbeitszone**, seinen **Standard-Typ**, seine
 **Toleranz für Zwischenstopps**, **Fahrterkennung** und **Route aufzeichnen**:
@@ -170,6 +186,14 @@ während der Fahrt streamt. **Adressen auflösen** und die
 eingeklappten Abschnitt **Alle Fahrzeuge** unten im Formular jedes Autos. Ein
 später hinzugekommenes Auto startet mit den Einstellungen, die vorher galten.
 Mit nur einem Auto gibt es keine Fahrzeugabfrage.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-vehicle-picker.png?v=2026-10-11b" alt="Die Fahrzeugabfrage bei zwei Autos: eine Fahrzeug-Auswahl und die Schaltfläche Weiter" width="460" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trips-second-car.png?v=2026-10-11b" alt="Fahrteinstellungen für ein zweites Auto mit Berichten am Fahrtende, darunter der geöffnete gemeinsame Abschnitt Alle Fahrzeuge" width="460" />
+</p>
 
 | Option | Werte | Bedeutung |
 | --- | --- | --- |
