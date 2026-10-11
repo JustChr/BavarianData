@@ -104,7 +104,8 @@ OPTION_TRIP_TRACK = "trip_track"
 # cars that report only once parked (iDrive 6 and older, discussion #56): one
 # trip per vehicle report, from where the car stood at the previous one, with
 # the live detectors off so the burst's position jump can't open a trip of its
-# own. Per entry, not per car: a mixed account picks the mode of its older car.
+# own. Per car (see ``OPTION_VEHICLES``), so a mixed account runs each car in
+# the mode it needs.
 OPTION_TRIP_DETECTION = "trip_detection"
 TRIP_DETECTION_LIVE = "live"
 TRIP_DETECTION_REPORTS = "reports"
@@ -117,6 +118,12 @@ TRIP_DETECTION_CHOICES = (TRIP_DETECTION_LIVE, TRIP_DETECTION_REPORTS)
 # single test drive yields the data to design a better detector. Verbose and
 # PII-heavy (raw GPS/VIN) -- meant to be switched on for a drive and back off.
 OPTION_TRIP_DEBUG = "trip_debug"
+# Per-car settings, stored in the options as ``{"vehicles": {VIN: {key: value}}}``.
+# Only an account with more than one car writes here: a car with no entry of its
+# own uses the account-wide keys, which is what a single-car account keeps
+# editing -- so a second car added later starts from the settings already in use.
+# Which keys may live here is ``trip_settings.PER_VEHICLE_TRIP_OPTIONS``.
+OPTION_VEHICLES = "vehicles"
 
 # Statistics backfill (roadmap Phase 4). On by default: it writes only into this
 # integration's own "bavariandata:" statistic namespace, stays local, and is what

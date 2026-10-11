@@ -235,9 +235,19 @@
         "title": "Konfigurace evcc",
         "description": "Přidejte toto do svého `evcc.yaml` pod klíč `vehicles:` (sloučte s vozidly, která už máte — klíč se smí objevit jen jednou):\n\n```\n{snippet}\n```\n\nevcc také musí znát váš broker, ve vlastní sekci `mqtt:` — tentýž, který používá Home Assistant. Poté přiřaďte vozidlo k nabíjecímu bodu a restartujte evcc.\n\nUvedena jsou jen pole, která toto auto skutečně hlásí: plugin nasměrovaný na téma, na které nikdy nepřijde zpráva, způsobí, že evcc v každém cyklu zaloguje chybu čtení. Záměrně není nastaven `timeout` — hodnoty se pravidelně publikují znovu, takže zaparkované auto si udrží platný stav nabití, místo aby zůstalo prázdné.\n\nKdykoli si to můžete znovu načíst akcí **Získat konfiguraci evcc**."
       },
+      "trips_vehicle": {
+        "title": "Jízdy (kniha jízd)",
+        "description": "Každé vozidlo má vlastní nastavení jízd. Vyberte to, které chcete změnit.",
+        "data": {
+          "vehicle": "Vozidlo"
+        },
+        "data_description": {
+          "vehicle": "Nastavení na další obrazovce platí pouze pro toto vozidlo."
+        }
+      },
       "action_trips": {
         "title": "Jízdy (kniha jízd)",
-        "description": "Rekonstruuje vaše jízdy ze streamu bez nákladů na API — vzdálenost, rozdělení služební/soukromé/dojíždění, spotřebu a měsíční přehled.\n\nNastavte **Pracovní zónu**, aby se dojíždění (domov ↔ práce) rozpoznávalo automaticky; jízdu můžete kdykoli opravit později. Vše, co není dojíždění, se zařadí jako **Výchozí typ** (ve výchozím stavu Soukromá). Dojíždění přežije i zastávku po cestě: pokud auto stojí nejvýše po dobu **Tolerance zastávky při dojíždění**, jízda k zastávce i jízda dál se počítají jako dojíždění. **Vyhledávat adresy** je ve výchozím stavu vypnuto: po zapnutí se koncový bod jízdy mimo jakoukoli zónu Home Assistant vyhledá přes OpenStreetMap a uloží jako adresa — souřadnice se k vyhledání odešlou, ale nikdy se neukládají.\n\n**Detekce jízd** je nastavena na **Živě** pro každé auto, které vysílá během jízdy. Zvolte **Hlášení na konci jízdy** pro auto, které se hlásí až po zaparkování (iDrive 6 a starší): každé hlášení se pak stane jednou jízdou, z místa předchozího hlášení. Takové auto nikdy neřekne, kdy vyjelo, takže jízda dostane čas začátku jen tehdy, když automatizace při vyjetí zavolá akci **Označit začátek jízdy**.\n\n**Zaznamenávat trasu** je také ve výchozím stavu vypnuto: po zapnutí každá jízda uloží svou GPS stopu — kudy a kdy auto jelo — aby mapa mohla jízdu zobrazit a přehrát. Je to jediné nastavení, které ukládá surové souřadnice na disk, včetně vašich přesných počátečních a koncových bodů.\n\n**Diagnostika záznamu jízd** je pomůcka při řešení potíží: po zapnutí se každá poloha GPS, časovač i zpráva podrobně zaznamenává a zapisuje se soubor záznamu, který pomáhá zlepšit rozpoznávání jízd. Zapněte ji jen na testovací jízdu a pak ji zase vypněte.",
+        "description": "Nastavení pro **{vehicle}**. Jízdy se skládají ze streamu bez nákladů na API. Změny platí od příští jízdy a každou jízdu můžete opravit na kartě.",
         "data": {
           "trip_work_zone": "Pracovní zóna",
           "trip_default_class": "Výchozí typ",
@@ -253,8 +263,22 @@
           "trip_commute_gap": "Jak dlouho smí auto mezi dvěma jízdami stát, aby se obě stále počítaly jako jedno dojíždění — supermarket cestou do práce. Nastavte 0 pro vypnutí. Zastávky kratší než zhruba pět minut jízdu nikdy nerozdělí.",
           "trip_geocode": "Volitelné. Odesílá body mimo zóny do OpenStreetMap; ukládá se jen výsledná adresa, nikdy souřadnice.",
           "trip_detection": "Živě sleduje polohu auta během jízdy. Hlášení na konci jízdy vytvoří jednu jízdu na hlášení, pro auta, která během jízdy nic neposílají; živá detekce je pak vypnutá.",
-          "trip_track": "Volitelné. Ukládá GPS stopu každé jízdy — souřadnice podél trasy a u každé čas — aby mapa mohla trasu vykreslit a přehrát. Jediné nastavení, které ukládá surové souřadnice na disk (včetně přesného začátku a konce), proto je z důvodu soukromí ve výchozím stavu vypnuté.",
-          "trip_debug": "Pouze pro diagnostiku. Zaznamenává surová data rozpoznávání jízd (každou polohu GPS, časovač uzavření, dávku segmentů a zprávu) a zapisuje bavariandata_trip_capture.ndjson do vaší konfigurační složky. Velmi podrobné a obsahuje GPS/VIN, proto zapněte na testovací jízdu a pak zase vypněte."
+          "trip_track": "Volitelné. Ukládá GPS stopu každé jízdy, aby mapa mohla trasu vykreslit a přehrát. Jediné nastavení, které ukládá surové souřadnice na disk, včetně přesného začátku a konce.",
+          "trip_debug": "Pouze pro řešení potíží. Zaznamenává každou polohu GPS, časovač a zprávu a zapisuje bavariandata_trip_capture.ndjson do vaší konfigurační složky. Obsahuje GPS a VIN: zapněte jen na jednu testovací jízdu."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Všechna vozidla",
+            "description": "Tato nastavení platí pro všechna vozidla tohoto účtu.",
+            "data": {
+              "trip_geocode": "Vyhledávat adresy",
+              "trip_debug": "Diagnostika záznamu jízd"
+            },
+            "data_description": {
+              "trip_geocode": "Volitelné. Odesílá body mimo zóny do OpenStreetMap; ukládá se jen výsledná adresa, nikdy souřadnice.",
+              "trip_debug": "Pouze pro řešení potíží. Zaznamenává každou polohu GPS, časovač a zprávu a zapisuje bavariandata_trip_capture.ndjson do vaší konfigurační složky. Obsahuje GPS a VIN: zapněte jen na jednu testovací jízdu."
+            }
+          }
         }
       },
       "action_data_refresh": {

@@ -157,7 +157,8 @@ living only in prose.
 - **Skills** (`.claude/skills/`): `regen` (the generators, in order),
   `ship` (release), `land` (check → PR → green CI → rebase-merge; not a
   release), `translate` (carry English text into all ten languages, with the
-  glossary and what stays English), `review-pr` (reproduce a contributor's PR
+  glossary and what stays English), `flow-ux` (mock up and check any setup or
+  Configure screen against plain-language rules before building it), `review-pr` (reproduce a contributor's PR
   in a worktree, prove its test, judge it, report before acting), `triage` (read a user's diagnostics), `live`
   (zero-quota reads against the live instance), `shoot` (Playwright screenshots),
   `close` (end every session with it: park or land the work, gates if code

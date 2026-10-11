@@ -235,9 +235,19 @@
         "title": "Konfiguracja evcc",
         "description": "Dodaj to do pliku `evcc.yaml` pod kluczem `vehicles:` (połącz z pojazdami, które już masz — klucz może wystąpić tylko raz):\n\n```\n{snippet}\n```\n\nevcc musi też znać Twój broker, we własnej sekcji `mqtt:` — ten sam, którego używa Home Assistant. Następnie przypisz pojazd do punktu ładowania i uruchom ponownie evcc.\n\nWymienione są tylko pola, które to auto faktycznie zgłasza: wtyczka wskazująca temat, który nigdy nie otrzymuje wiadomości, powoduje, że evcc w każdym cyklu zapisuje błąd odczytu. Celowo nie ustawiono `timeout` — wartości są cyklicznie publikowane ponownie, więc zaparkowane auto zachowuje prawidłowy stan naładowania, zamiast zostać puste.\n\nTę konfigurację możesz w każdej chwili pobrać ponownie działaniem **Pobierz konfigurację evcc**."
       },
+      "trips_vehicle": {
+        "title": "Przejazdy (dziennik jazdy)",
+        "description": "Każdy pojazd ma własne ustawienia przejazdów. Wybierz ten, który chcesz zmienić.",
+        "data": {
+          "vehicle": "Pojazd"
+        },
+        "data_description": {
+          "vehicle": "Ustawienia na następnym ekranie dotyczą tylko tego pojazdu."
+        }
+      },
       "action_trips": {
         "title": "Przejazdy (dziennik jazdy)",
-        "description": "Odtwarza przejazdy ze strumienia bez kosztów API — dystans, podział służbowe/prywatne/dojazdy, zużycie i podsumowanie miesiąca.\n\nUstaw **Strefę pracy**, aby dojazdy (dom ↔ praca) były rozpoznawane automatycznie; przejazd zawsze można potem poprawić. Wszystko, co nie jest dojazdem, jest klasyfikowane jako **Typ domyślny** (domyślnie Prywatny). Dojazd przetrwa też postój po drodze: jeśli auto stoi nie dłużej niż **Tolerancja postoju przy dojazdach**, zarówno przejazd do postoju, jak i dalszy liczą się jako dojazd. **Rozpoznawanie adresów** jest domyślnie wyłączone: po włączeniu punkt początkowy lub końcowy poza strefami Home Assistant jest wyszukiwany w OpenStreetMap i zapisywany jako adres — współrzędne są wysyłane do wyszukiwania, ale nigdy nie są zapisywane.\n\n**Wykrywanie przejazdów** jest ustawione na **Na żywo** dla każdego auta, które przesyła dane w trakcie jazdy. Wybierz **Raporty po zakończeniu jazdy** dla auta, które melduje się dopiero po zaparkowaniu (iDrive 6 i starsze): każdy raport staje się wtedy jednym przejazdem, od miejsca poprzedniego raportu. Takie auto nigdy nie podaje, kiedy ruszyło, więc przejazd ma godzinę rozpoczęcia tylko wtedy, gdy automatyzacja wywoła akcję **Oznacz początek przejazdu** przy ruszaniu.\n\n**Zapis trasy** jest również domyślnie wyłączony: po włączeniu każdy przejazd zapisuje ślad GPS — dokąd i kiedy jechało auto — aby mapa mogła pokazać i odtworzyć przejazd. To jedyne ustawienie, które zapisuje surowe współrzędne na dysku, łącznie z dokładnymi punktami początkowym i końcowym.\n\n**Diagnostyka rejestrowania przejazdów** to pomoc przy rozwiązywaniu problemów: po włączeniu każda pozycja GPS, timer i wiadomość są szczegółowo logowane i zapisywany jest plik przechwytywania, aby pomóc ulepszyć wykrywanie przejazdów. Włącz ją tylko na jazdę testową, a potem wyłącz.",
+        "description": "Ustawienia dla **{vehicle}**. Przejazdy są odtwarzane ze strumienia bez kosztów API. Zmiany obowiązują od następnego przejazdu, a każdy przejazd można poprawić na karcie.",
         "data": {
           "trip_work_zone": "Strefa pracy",
           "trip_default_class": "Typ domyślny",
@@ -253,8 +263,22 @@
           "trip_commute_gap": "Jak długo auto może stać między dwoma przejazdami, aby oba nadal liczyły się jako jeden dojazd — supermarket po drodze do pracy. Ustaw 0, aby to wyłączyć. Postoje krótsze niż około pięć minut i tak nigdy nie dzielą przejazdu.",
           "trip_geocode": "Opcjonalnie. Wysyła punkty spoza stref do OpenStreetMap; zapisywany jest tylko uzyskany adres, nigdy współrzędne.",
           "trip_detection": "Na żywo śledzi pozycję auta w trakcie jazdy. Raporty po zakończeniu jazdy tworzą jeden przejazd na raport, dla aut, które w trakcie jazdy nic nie wysyłają; wykrywanie na żywo jest wtedy wyłączone.",
-          "trip_track": "Opcjonalnie. Zapisuje ślad GPS każdego przejazdu — współrzędne wzdłuż trasy i dla każdej z nich czas — aby mapa mogła narysować trasę i ją odtworzyć. Jedyne ustawienie, które zapisuje surowe współrzędne na dysku (łącznie z dokładnym początkiem i końcem), dlatego ze względu na prywatność jest domyślnie wyłączone.",
-          "trip_debug": "Tylko diagnostyka. Loguje surowe dane wykrywania przejazdów (każdą pozycję GPS, timer zamknięcia, paczkę segmentów i wiadomość) i zapisuje bavariandata_trip_capture.ndjson w folderze konfiguracji. Bardzo obszerne i zawiera GPS/VIN, więc włącz na jazdę testową, a potem wyłącz."
+          "trip_track": "Opcjonalnie. Zapisuje ślad GPS każdego przejazdu, aby mapa mogła narysować i odtworzyć trasę. Jedyne ustawienie, które zapisuje surowe współrzędne na dysku, łącznie z dokładnym początkiem i końcem.",
+          "trip_debug": "Tylko do rozwiązywania problemów. Loguje każdą pozycję GPS, timer i wiadomość oraz zapisuje bavariandata_trip_capture.ndjson w folderze konfiguracji. Zawiera GPS i VIN: włącz tylko na jedną jazdę testową."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Wszystkie pojazdy",
+            "description": "Te ustawienia dotyczą wszystkich pojazdów na tym koncie.",
+            "data": {
+              "trip_geocode": "Rozpoznawanie adresów",
+              "trip_debug": "Diagnostyka rejestrowania przejazdów"
+            },
+            "data_description": {
+              "trip_geocode": "Opcjonalnie. Wysyła punkty spoza stref do OpenStreetMap; zapisywany jest tylko uzyskany adres, nigdy współrzędne.",
+              "trip_debug": "Tylko do rozwiązywania problemów. Loguje każdą pozycję GPS, timer i wiadomość oraz zapisuje bavariandata_trip_capture.ndjson w folderze konfiguracji. Zawiera GPS i VIN: włącz tylko na jedną jazdę testową."
+            }
+          }
         }
       },
       "action_data_refresh": {

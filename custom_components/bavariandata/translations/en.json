@@ -235,9 +235,19 @@
         "title": "evcc configuration",
         "description": "Add this to your `evcc.yaml` under a `vehicles:` key (merge it with any vehicles you already have — the key may only appear once):\n\n```\n{snippet}\n```\n\nevcc also needs to know your broker, in its own `mqtt:` section — the same one Home Assistant uses. Then assign the vehicle to a loadpoint and restart evcc.\n\nOnly the fields this car actually reports are listed: a plugin pointed at a topic that never gets a message makes evcc log a read error on every cycle. No `timeout` is set on purpose — the values are republished on a heartbeat, so a parked car keeps a valid state of charge instead of going blank.\n\nYou can fetch this again at any time with the **Get evcc configuration** action."
       },
+      "trips_vehicle": {
+        "title": "Trips (driving journal)",
+        "description": "Each vehicle has its own trip settings. Pick the one to change.",
+        "data": {
+          "vehicle": "Vehicle"
+        },
+        "data_description": {
+          "vehicle": "The settings on the next screen apply to this vehicle only."
+        }
+      },
       "action_trips": {
         "title": "Trips (driving journal)",
-        "description": "Reconstructs your drives from the stream at no API cost — distance, the business/private/commute split, consumption and a monthly review.\n\nSet **Work zone** so commutes (home ↔ work) are recognized automatically; you can always correct a trip afterwards. Everything that isn't a commute is filed as the **Default type** (Private out of the box). A commute also survives a stop on the way: if the car stands no longer than the **Commute stop tolerance**, the drive there and the drive on are both counted as commuting. **Resolve addresses** is off by default: with it on, a trip endpoint outside any Home Assistant zone is looked up via OpenStreetMap and stored as an address — the coordinates are sent for the lookup but never saved.\n\n**Trip detection** is **Live** for every car that streams while driving. Choose **End-of-trip reports** for a car that reports only once parked (iDrive 6 and older): each report then becomes one trip, from where the car stood at the previous one. Such a car never says when it set off, so a trip gets a start time only if an automation calls the **Mark trip start** action when the drive begins.\n\n**Record route** is also off by default: with it on, each trip stores its GPS track — where the car went and when — so a map can show and replay the drive. This is the only setting that saves raw coordinates to disk, including your exact start and end points.\n\n**Trip-capture diagnostics** is a troubleshooting aid: with it on, every GPS fix, timer and message is logged in detail and a capture file is written, to help improve trip detection. Turn it on only for a test drive, then off again.",
+        "description": "Settings for **{vehicle}**. Trips are built from the stream at no API cost. Changes apply from the next trip on, and you can correct any trip on the card.",
         "data": {
           "trip_work_zone": "Work zone",
           "trip_default_class": "Default type",
@@ -253,8 +263,22 @@
           "trip_commute_gap": "How long the car may stand between two drives for both to still count as one commute — the supermarket on the way to work. Set 0 to switch this off. Stops shorter than about five minutes never split a drive in the first place.",
           "trip_geocode": "Optional. Sends non-zone endpoints to OpenStreetMap; only the resulting address is stored, never the coordinates.",
           "trip_detection": "Live follows the car's position while it drives. End-of-trip reports builds one trip per report, for cars that send nothing while driving; the live detection is then off.",
-          "trip_track": "Optional. Stores each trip's GPS track — the coordinates along the drive and, for each, the time — so a map can draw the route and play it back. The only setting that saves raw coordinates to disk (your exact start/end included), so it is off by default for privacy.",
-          "trip_debug": "Diagnostic only. Logs the raw trip-detection substrate (every GPS fix, close timer, segment batch and message) and writes bavariandata_trip_capture.ndjson to your config folder. Very verbose and contains GPS/VIN, so switch it on for a test drive and back off afterwards."
+          "trip_track": "Optional. Stores each trip's GPS track so a map can draw and replay the route. The only setting that saves raw coordinates to disk, your exact start and end included.",
+          "trip_debug": "Troubleshooting only. Logs every GPS fix, timer and message and writes bavariandata_trip_capture.ndjson to your config folder. Contains GPS and VIN: turn it on for one test drive."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "All vehicles",
+            "description": "These settings apply to every vehicle on this account.",
+            "data": {
+              "trip_geocode": "Resolve addresses",
+              "trip_debug": "Trip-capture diagnostics"
+            },
+            "data_description": {
+              "trip_geocode": "Optional. Sends non-zone endpoints to OpenStreetMap; only the resulting address is stored, never the coordinates.",
+              "trip_debug": "Troubleshooting only. Logs every GPS fix, timer and message and writes bavariandata_trip_capture.ndjson to your config folder. Contains GPS and VIN: turn it on for one test drive."
+            }
+          }
         }
       },
       "action_data_refresh": {

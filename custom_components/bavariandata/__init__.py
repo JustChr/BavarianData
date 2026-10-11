@@ -58,17 +58,8 @@ from .const import (
     OPTION_DIAGNOSTIC_INTERVAL,
     OPTION_HISTORY_RETAIN_MONTHS,
     DEFAULT_HISTORY_RETAIN_MONTHS,
-    OPTION_TRIP_WORK_ZONE,
     OPTION_TRIP_GEOCODE,
     OPTION_TRIP_DEBUG,
-    OPTION_TRIP_TRACK,
-    OPTION_TRIP_DEFAULT_CLASS,
-    DEFAULT_TRIP_DEFAULT_CLASS,
-    OPTION_TRIP_COMMUTE_GAP,
-    DEFAULT_TRIP_COMMUTE_GAP_MIN,
-    OPTION_TRIP_DETECTION,
-    TRIP_DETECTION_CHOICES,
-    TRIP_DETECTION_LIVE,
     OPTION_STATISTICS_IMPORT,
     DEFAULT_STATISTICS_IMPORT,
     OPTION_REFRESH_ON_START,
@@ -104,6 +95,7 @@ from .startup_refresh import (
     outage_needs_catch_up,
     startup_refresh_vins,
 )
+from .trip_settings import account_trip_settings, vehicle_trip_settings
 from .tyre_store import TyreStore
 from .vehicles import known_vins, primary_vins
 from .history.backfill import StatisticsPublisher
@@ -118,7 +110,6 @@ from .history.export import (
     sessions_csv,
     trips_csv,
 )
-from .history.classify import trip_class_setting
 from .history.geocoding import ReverseGeocoder
 from .history.pricing import MODE_FIXED, PricingConfig, fixed_cost
 from .history.store import HistoryStore
@@ -629,21 +620,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         async_get_clientsession(hass),
         enabled=bool(options.get(OPTION_TRIP_GEOCODE)),
     )
-    coordinator.work_zone_entity = options.get(OPTION_TRIP_WORK_ZONE) or None
-    coordinator.trip_default_class = trip_class_setting(
-        options.get(OPTION_TRIP_DEFAULT_CLASS, DEFAULT_TRIP_DEFAULT_CLASS)
-    )
-    coordinator.trip_commute_gap_s = (
-        int(options.get(OPTION_TRIP_COMMUTE_GAP, DEFAULT_TRIP_COMMUTE_GAP_MIN) or 0) * 60
-    )
-    coordinator.record_trip_track = bool(options.get(OPTION_TRIP_TRACK))
+    # Per car (trip_settings.py): every car without settings of its own uses
+    # the account-wide ones.
+    coordinator.trip_settings = account_trip_settings(options)
+    coordinator.vehicle_trip_settings = vehicle_trip_settings(options)
     coordinator.trip_debug = bool(options.get(OPTION_TRIP_DEBUG))
-    # Anything unrecognised -- a hand-edited option, say -- is the default.
-    coordinator.trip_detection = (
-        options.get(OPTION_TRIP_DETECTION)
-        if options.get(OPTION_TRIP_DETECTION) in TRIP_DETECTION_CHOICES
-        else TRIP_DETECTION_LIVE
-    )
     coordinator.diagnostic_interval = diagnostic_interval
 
     # Statistics backfill (roadmap Phase 4). Publishes the recorded history into
@@ -1497,14 +1478,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 raise ServiceValidationError("Trip history is not available")
             _entry_id, _entry, runtime = target
             coordinator = runtime.coordinator
-            if not coordinator.report_trips:
+            vin = _default_vin(runtime, call.data.get("vin"))
+            if vin is None:
+                raise ServiceValidationError("No vehicle to mark a trip start for")
+            if not coordinator.report_trips(vin):
                 raise ServiceValidationError(
                     "mark_trip_start is used only when trips are detected from the "
                     "car's reports (Configure -> Trips -> Trip detection)"
                 )
-            vin = _default_vin(runtime, call.data.get("vin"))
-            if vin is None:
-                raise ServiceValidationError("No vehicle to mark a trip start for")
             at = _service_bound(call, "at") or dt_util.utcnow()
             coordinator.mark_trip_start(vin, at)
 

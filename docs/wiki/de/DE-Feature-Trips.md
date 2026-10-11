@@ -64,7 +64,9 @@ Schwung aus wie ein Sprung über viele Kilometer in einem Schritt, daraus kann d
 Live-Erkennung kein Fahrtenbuch machen.
 
 Stell für diese Autos **Konfigurieren → Fahrten → Fahrterkennung** auf **Berichte am
-Fahrtende**. Die Live-Erkennung ist dann aus. Stattdessen wird jeder
+Fahrtende**. Die Live-Erkennung ist dann aus. Sind mehrere Autos im Konto, wähle
+zuerst dieses Auto: Die Einstellung gilt je Fahrzeug, ein Auto, das während der
+Fahrt streamt, bleibt also auf **Live**. Stattdessen wird jeder
 [Fahrzeugbericht](DE-Feature-Automations) (ein neuer Kilometerstand, der 5 Minuten
 lang gleich geblieben ist) zu einer Fahrt:
 

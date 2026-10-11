@@ -30,6 +30,7 @@ from .const import (
     DOMAIN,
     OPTION_GRID_ENERGY_ENTITY,
     OPTION_PRICE_ENTITY,
+    OPTION_VEHICLES,
     OPTION_STREAM_SECTIONS,
     REQUEST_LIMIT,
 )
@@ -90,7 +91,12 @@ def _safe_options(options: Any) -> dict[str, Any]:
 
     safe: dict[str, Any] = {}
     for key, value in dict(options or {}).items():
-        if key in ENTITY_ID_OPTIONS and isinstance(value, str) and value:
+        if key == OPTION_VEHICLES and isinstance(value, dict):
+            # Keyed by VIN, which ``async_redact_data`` never sees (it redacts
+            # values, not keys): each car is filed under its fingerprint, the
+            # same one its entry in ``vehicles`` carries.
+            safe[key] = {_fingerprint(vin): _safe_options(own) for vin, own in value.items()}
+        elif key in ENTITY_ID_OPTIONS and isinstance(value, str) and value:
             domain = value.split(".", 1)[0]
             safe[key] = f"{domain}.**REDACTED**" if "." in value else "**REDACTED**"
         else:
@@ -142,6 +148,8 @@ async def async_get_config_entry_diagnostics(
         vehicles.append(
             {
                 "vin": vin,
+                # Matches this car's settings in ``options.vehicles``.
+                "vin_fingerprint": _fingerprint(vin),
                 "name": coordinator.names.get(vin),
                 "descriptor_count": len(coordinator.data.get(vin, {})),
                 "arrivals_total": sum(counts.values()),

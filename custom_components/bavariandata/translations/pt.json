@@ -235,9 +235,19 @@
         "title": "Configuração do evcc",
         "description": "Adicione isto ao seu `evcc.yaml` sob uma chave `vehicles:` (junte-o aos veículos que já tem — a chave só pode aparecer uma vez):\n\n```\n{snippet}\n```\n\nO evcc também precisa de conhecer o seu broker, na sua própria secção `mqtt:` — o mesmo que o Home Assistant usa. Depois atribua o veículo a um ponto de carregamento e reinicie o evcc.\n\nSó são listados os campos que este carro comunica realmente: um plugin apontado para um tópico que nunca recebe mensagens faz com que o evcc registe um erro de leitura em cada ciclo. Não é definido nenhum `timeout` de propósito — os valores são republicados periodicamente, para que um carro estacionado mantenha um estado de carga válido em vez de ficar em branco.\n\nPode obter isto de novo a qualquer momento com a ação **Obter a configuração do evcc**."
       },
+      "trips_vehicle": {
+        "title": "Viagens (diário de condução)",
+        "description": "Cada veículo tem as suas próprias definições de viagens. Escolha o que pretende alterar.",
+        "data": {
+          "vehicle": "Veículo"
+        },
+        "data_description": {
+          "vehicle": "As definições do ecrã seguinte aplicam-se apenas a este veículo."
+        }
+      },
       "action_trips": {
         "title": "Viagens (diário de condução)",
-        "description": "Reconstrói as suas viagens a partir do stream sem custo de API — distância, a divisão profissional/particular/casa-trabalho, consumo e um resumo mensal.\n\nDefina a **Zona de trabalho** para que as deslocações casa ↔ trabalho sejam reconhecidas automaticamente; pode sempre corrigir uma viagem depois. Tudo o que não é casa-trabalho é classificado com o **Tipo predefinido** (Particular de origem). Uma deslocação casa-trabalho também sobrevive a uma paragem pelo caminho: se o carro parar não mais do que a **Tolerância de paragem casa-trabalho**, o percurso até lá e o seguinte contam ambos como casa-trabalho. **Resolver moradas** está desativado por predefinição: se ativado, um ponto de partida ou chegada fora de qualquer zona do Home Assistant é procurado através do OpenStreetMap e guardado como morada — as coordenadas são enviadas para a pesquisa mas nunca guardadas.\n\n**Deteção de viagens** está em **Em direto** para qualquer carro que transmite durante a condução. Escolha **Relatórios de fim de viagem** para um carro que só comunica depois de estacionado (iDrive 6 e anteriores): cada relatório passa então a ser uma viagem, a partir do local do relatório anterior. Um carro assim nunca diz quando partiu, por isso uma viagem só tem hora de início se uma automatização chamar a ação **Marcar início da viagem** à partida.\n\n**Gravar percurso** também está desativado por predefinição: se ativado, cada viagem guarda o seu trajeto GPS — por onde o carro andou e quando — para que um mapa possa mostrar e reproduzir a viagem. É a única definição que guarda coordenadas em bruto no disco, incluindo os seus pontos exatos de partida e chegada.\n\n**Diagnóstico de captura de viagens** é uma ajuda na resolução de problemas: se ativado, cada posição GPS, temporizador e mensagem é registado em detalhe e é escrito um ficheiro de captura, para ajudar a melhorar a deteção de viagens. Ative-o apenas para uma viagem de teste e depois desative-o.",
+        "description": "Definições para **{vehicle}**. As viagens são reconstruídas a partir do stream sem custos de API. As alterações aplicam-se a partir da próxima viagem, e pode corrigir qualquer viagem no cartão.",
         "data": {
           "trip_work_zone": "Zona de trabalho",
           "trip_default_class": "Tipo predefinido",
@@ -253,8 +263,22 @@
           "trip_commute_gap": "Quanto tempo o carro pode estar parado entre duas viagens para que ambas contem ainda como uma única deslocação casa-trabalho — o supermercado a caminho do trabalho. Defina 0 para desativar. Paragens inferiores a cerca de cinco minutos nunca dividem uma viagem.",
           "trip_geocode": "Opcional. Envia os pontos fora de zonas para o OpenStreetMap; só a morada resultante é guardada, nunca as coordenadas.",
           "trip_detection": "Em direto segue a posição do carro durante a condução. Relatórios de fim de viagem cria uma viagem por relatório, para carros que nada enviam durante a condução; a deteção em direto fica então desligada.",
-          "trip_track": "Opcional. Guarda o trajeto GPS de cada viagem — as coordenadas ao longo do percurso e, para cada uma, a hora — para que um mapa possa desenhar o percurso e reproduzi-lo. É a única definição que guarda coordenadas em bruto no disco (incluindo partida/chegada exatas), por isso está desativada por predefinição por privacidade.",
-          "trip_debug": "Apenas diagnóstico. Regista os dados em bruto da deteção de viagens (cada posição GPS, temporizador de fecho, lote de segmentos e mensagem) e escreve bavariandata_trip_capture.ndjson na sua pasta de configuração. Muito detalhado e contém GPS/VIN, por isso ative-o para uma viagem de teste e depois desative-o."
+          "trip_track": "Opcional. Guarda o trajeto GPS de cada viagem para que um mapa possa desenhar e reproduzir o percurso. A única definição que guarda coordenadas em bruto no disco, incluindo partida e chegada exatas.",
+          "trip_debug": "Apenas para resolução de problemas. Regista cada posição GPS, temporizador e mensagem e escreve bavariandata_trip_capture.ndjson na sua pasta de configuração. Contém GPS e VIN: ative-o apenas para uma viagem de teste."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Todos os veículos",
+            "description": "Estas definições aplicam-se a todos os veículos desta conta.",
+            "data": {
+              "trip_geocode": "Resolver moradas",
+              "trip_debug": "Diagnóstico de captura de viagens"
+            },
+            "data_description": {
+              "trip_geocode": "Opcional. Envia os pontos fora de zonas para o OpenStreetMap; só a morada resultante é guardada, nunca as coordenadas.",
+              "trip_debug": "Apenas para resolução de problemas. Regista cada posição GPS, temporizador e mensagem e escreve bavariandata_trip_capture.ndjson na sua pasta de configuração. Contém GPS e VIN: ative-o apenas para uma viagem de teste."
+            }
+          }
         }
       },
       "action_data_refresh": {

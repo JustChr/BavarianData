@@ -9,6 +9,21 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **Trip settings are now per car.** With more than one car on the account,
+  **Configure → Trips** first asks which vehicle, and each car keeps its own work
+  zone, default type, commute stop tolerance, trip detection and route recording.
+  A company car and a private one can be filed differently, and an older car that
+  reports only once parked no longer forces every car on the account into
+  **End-of-trip reports** (discussion #56). **Resolve addresses** and
+  **Trip-capture diagnostics** stay shared, in a collapsed **All vehicles** section.
+  Single-car accounts see the same form as before, with a much shorter
+  description, and your current settings carry over unchanged.
+
+### Fixed
+- **Clearing the work zone under Configure → Trips now clears it.** The old zone
+  came back after the next restart.
+
 ## [0.9.17] - 2026-10-11
 
 Promotes 0.9.17-beta.1 to beta.5. Older cars that report only once parked get a trip journal and a logbook event. At home, your wallbox meter now drives the state-of-charge estimate and a new time-to-target prediction. The card draws a new car, and its maps work again on Home Assistant 2026.10.

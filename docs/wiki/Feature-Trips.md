@@ -59,7 +59,9 @@ while driving. Read live, that burst looks like a jump of many kilometres in one
 step, so the live detection can't make a trip journal out of it.
 
 For these cars, set **Configure → Trips → Trip detection** to **End-of-trip
-reports**. The live detection is then off. Instead, every
+reports**. The live detection is then off. On an account with more than one
+car, pick that car first: the setting is per car, so a car that streams while
+driving keeps **Live**. Instead, every
 [vehicle report](Feature-Automations) (a new odometer reading that has held for 5
 minutes) becomes one trip:
 

@@ -235,9 +235,19 @@
         "title": "evcc-Konfiguration",
         "description": "Füge das in deine `evcc.yaml` unter einem `vehicles:`-Schlüssel ein (mit bereits vorhandenen Fahrzeugen zusammenführen – der Schlüssel darf nur einmal vorkommen):\n\n```\n{snippet}\n```\n\nevcc muss zusätzlich deinen Broker kennen, in seinem eigenen `mqtt:`-Abschnitt – denselben, den Home Assistant nutzt. Danach das Fahrzeug einem Ladepunkt zuweisen und evcc neu starten.\n\nAufgeführt sind nur die Felder, die dieses Auto wirklich meldet: ein Plugin auf einem Topic, auf dem nie eine Nachricht ankommt, lässt evcc in jedem Zyklus einen Lesefehler protokollieren. Ein `timeout` wird absichtlich nicht gesetzt – die Werte werden zyklisch erneut gesendet, damit ein geparktes Auto einen gültigen Ladezustand behält statt leer zu laufen.\n\nDu kannst das jederzeit erneut abrufen – mit der Aktion **evcc-Konfiguration abrufen**."
       },
+      "trips_vehicle": {
+        "title": "Fahrten (Fahrtenbuch)",
+        "description": "Jedes Fahrzeug hat eigene Fahrteinstellungen. Wähle das Fahrzeug, das du ändern möchtest.",
+        "data": {
+          "vehicle": "Fahrzeug"
+        },
+        "data_description": {
+          "vehicle": "Die Einstellungen auf der nächsten Seite gelten nur für dieses Fahrzeug."
+        }
+      },
       "action_trips": {
         "title": "Fahrten (Fahrtenbuch)",
-        "description": "Rekonstruiert deine Fahrten aus dem Stream ohne API-Kosten — Strecke, die Aufteilung geschäftlich/privat/Pendeln, Verbrauch und eine Monatsübersicht.\n\nLege **Arbeitszone** fest, damit Pendelfahrten (Zuhause ↔ Arbeit) automatisch erkannt werden; du kannst eine Fahrt jederzeit nachträglich korrigieren. Alles, was keine Pendelfahrt ist, wird als **Standard-Typ** eingeordnet (voreingestellt Privat). Eine Pendelfahrt übersteht auch einen Zwischenstopp: Steht das Auto nicht länger als die **Toleranz für Zwischenstopps**, zählen die Hinfahrt und die Weiterfahrt beide als Pendeln. **Adressen auflösen** ist standardmäßig aus: Ist es an, wird ein Fahrt-Endpunkt außerhalb jeder Home-Assistant-Zone über OpenStreetMap nachgeschlagen und als Adresse gespeichert — die Koordinaten werden für die Abfrage gesendet, aber nie gespeichert.\n\n**Fahrterkennung** steht auf **Live** für jedes Auto, das während der Fahrt streamt. Wähle **Berichte am Fahrtende** für ein Auto, das erst nach dem Parken meldet (iDrive 6 und älter): Jeder Bericht wird dann zu einer Fahrt, ab dem Ort des vorigen Berichts. Ein solches Auto sagt nie, wann es losgefahren ist, daher bekommt eine Fahrt nur dann eine Startzeit, wenn eine Automation beim Losfahren die Aktion **Fahrtbeginn markieren** aufruft.\n\n**Fahrterkennung** steht auf **Live** für jedes Auto, das während der Fahrt streamt. Wähle **Berichte am Fahrtende** für ein Auto, das erst nach dem Parken meldet (iDrive 6 und älter): Jeder Bericht wird dann zu einer Fahrt, ab dem Ort des vorigen Berichts. Ein solches Auto sagt nie, wann es losgefahren ist, daher bekommt eine Fahrt nur dann eine Startzeit, wenn eine Automation beim Losfahren die Aktion **Fahrtbeginn markieren** aufruft.\n\n**Route aufzeichnen** ist ebenfalls standardmäßig aus: Ist es an, speichert jede Fahrt ihren GPS-Verlauf — wo das Auto gefahren ist und wann — damit eine Karte die Fahrt zeigen und abspielen kann. Dies ist die einzige Einstellung, die rohe Koordinaten dauerhaft speichert, einschließlich deiner genauen Start- und Zielpunkte.\n\n**Fahrt-Diagnoseaufzeichnung** ist eine Fehlersuche-Hilfe: Ist sie an, werden jeder GPS-Punkt, Timer und jede Nachricht ausführlich protokolliert und eine Aufzeichnungsdatei geschrieben, um die Fahrterkennung zu verbessern. Nur für eine Testfahrt einschalten und danach wieder aus.",
+        "description": "Einstellungen für **{vehicle}**. Fahrten entstehen ohne API-Kosten aus dem Stream. Änderungen gelten ab der nächsten Fahrt, und jede Fahrt kannst du auf der Karte korrigieren.",
         "data": {
           "trip_work_zone": "Arbeitszone",
           "trip_default_class": "Standard-Typ",
@@ -253,8 +263,22 @@
           "trip_commute_gap": "Wie lange das Auto zwischen zwei Fahrten stehen darf, damit beide noch als eine Pendelfahrt gelten — der Supermarkt auf dem Weg zur Arbeit. 0 schaltet das ab. Stopps unter etwa fünf Minuten teilen eine Fahrt ohnehin nicht auf.",
           "trip_geocode": "Optional. Sendet Endpunkte außerhalb von Zonen an OpenStreetMap; gespeichert wird nur die Adresse, nie die Koordinaten.",
           "trip_detection": "Live verfolgt die Position des Autos während der Fahrt. Berichte am Fahrtende erzeugt eine Fahrt pro Bericht, für Autos, die während der Fahrt nichts senden; die Live-Erkennung ist dann aus.",
-          "trip_track": "Optional. Speichert den GPS-Verlauf jeder Fahrt — die Koordinaten entlang der Fahrt und jeweils den Zeitpunkt — damit eine Karte die Route zeichnen und abspielen kann. Die einzige Einstellung, die rohe Koordinaten dauerhaft speichert (deine genauen Start-/Zielpunkte eingeschlossen), daher zum Schutz der Privatsphäre standardmäßig aus.",
-          "trip_debug": "Nur zur Diagnose. Protokolliert die rohe Grundlage der Fahrterkennung (jeden GPS-Punkt, Schließ-Timer, Segment-Batch und jede Nachricht) und schreibt bavariandata_trip_capture.ndjson in deinen Konfigurationsordner. Sehr ausführlich und enthält GPS/FIN — für eine Testfahrt einschalten und danach wieder aus."
+          "trip_track": "Optional. Speichert den GPS-Verlauf jeder Fahrt, damit eine Karte die Route zeichnen und abspielen kann. Die einzige Einstellung, die rohe Koordinaten speichert, deine genauen Start- und Zielpunkte eingeschlossen.",
+          "trip_debug": "Nur zur Fehlersuche. Protokolliert jeden GPS-Punkt, Timer und jede Nachricht und schreibt bavariandata_trip_capture.ndjson in deinen Konfigurationsordner. Enthält GPS und FIN: nur für eine Testfahrt einschalten."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Alle Fahrzeuge",
+            "description": "Diese Einstellungen gelten für alle Fahrzeuge dieses Kontos.",
+            "data": {
+              "trip_geocode": "Adressen auflösen",
+              "trip_debug": "Fahrt-Diagnoseaufzeichnung"
+            },
+            "data_description": {
+              "trip_geocode": "Optional. Sendet Endpunkte außerhalb von Zonen an OpenStreetMap; gespeichert wird nur die Adresse, nie die Koordinaten.",
+              "trip_debug": "Nur zur Fehlersuche. Protokolliert jeden GPS-Punkt, Timer und jede Nachricht und schreibt bavariandata_trip_capture.ndjson in deinen Konfigurationsordner. Enthält GPS und FIN: nur für eine Testfahrt einschalten."
+            }
+          }
         }
       },
       "action_data_refresh": {

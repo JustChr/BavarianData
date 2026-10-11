@@ -21,8 +21,6 @@ from homeassistant.util import dt as dt_util
 
 from .const import (
     DOMAIN,
-    DEFAULT_TRIP_COMMUTE_GAP_MIN,
-    DEFAULT_TRIP_DEFAULT_CLASS,
     DIAGNOSTIC_LOG_INTERVAL,
     EVENT_CHARGING_STARTED,
     EVENT_CHARGING_STOPPED,
@@ -32,8 +30,6 @@ from .const import (
     EVENT_VEHICLE_REPORT,
     EVENT_ZONE_ARRIVED,
     EVENT_ZONE_LEFT,
-    TRIP_DETECTION_LIVE,
-    TRIP_DETECTION_REPORTS,
 )
 from .debug import debug_enabled, mask_vin
 from .history.classify import (
@@ -75,6 +71,7 @@ from .history.trip_builder import (
 from .coverage import is_combustion_only, is_plug_in_hybrid
 from .soc_tracking import SocTracking
 from .structured_values import EMPTY_WHEN_NULL
+from .trip_settings import TripSettings
 from .tyre import parse_tyre_diagnosis
 from .units import miles_to_km, normalize_unit
 from .vehicle_report import (
@@ -458,23 +455,19 @@ class CardataCoordinator:
     # setup. Optional: without it the diagnosis is simply not remembered.
     tyre_store: Optional[Any] = None
     pricing: PricingConfig = field(default_factory=PricingConfig)
-    # Trip recording (roadmap Phase 3). ``geocoder`` and ``work_zone_entity`` are
-    # injected/updated from options; both are optional and degrade quietly.
+    # Trip recording (roadmap Phase 3). ``geocoder`` is injected/updated from
+    # options; optional, degrades quietly.
     geocoder: Optional[Any] = None
-    work_zone_entity: Optional[str] = None
-    # What a non-commute trip is classified as, and how long the car may stand
-    # between two legs for both to still count as one commute (0 = never). Both
-    # come from options; see ``history/classify.py`` for the rules they feed.
-    trip_default_class: Optional[str] = DEFAULT_TRIP_DEFAULT_CLASS
-    trip_commute_gap_s: int = DEFAULT_TRIP_COMMUTE_GAP_MIN * 60
-    # Record each trip's GPS route (opt-in, off by default). The only setting that
-    # persists raw coordinates; refreshed from options on reload / options change.
-    record_trip_track: bool = False
+    # How each car's trips are detected, recorded and classified (work zone,
+    # default type, commute stop tolerance, detection mode, route recording).
+    # ``trip_settings`` is every car without settings of its own; a car in
+    # ``vehicle_trip_settings`` uses those instead. Both come from options; see
+    # ``trip_settings.py``. Read through ``trip_settings_for``.
+    trip_settings: TripSettings = field(default_factory=TripSettings)
+    vehicle_trip_settings: Dict[str, TripSettings] = field(default_factory=dict)
     # Trip-capture diagnostic mode (opt-in, off by default). Emits the rich
-    # ``[trip.*]`` capture and the NDJSON file; refreshed from options like above.
+    # ``[trip.*]`` capture and the NDJSON file; account-wide, refreshed from options.
     trip_debug: bool = False
-    # ``live`` or ``reports`` (see ``OPTION_TRIP_DETECTION``); refreshed like above.
-    trip_detection: str = TRIP_DETECTION_LIVE
     _session_builders: Dict[str, SessionBuilder] = field(default_factory=dict, init=False)
     _session_costs: Dict[str, CostAccumulator] = field(default_factory=dict, init=False)
     # Running source mix per open session (PV / house battery / grid). Separate
@@ -854,7 +847,7 @@ class CardataCoordinator:
         # batch lands, because a burst carries the SoC it *arrived* with, and the
         # previous report's reading predates any charge in between.
         parked_soc: Optional[tuple[float, Optional[datetime]]] = None
-        if self.report_trips and any(descriptor in data for descriptor in DESC_ODOMETER):
+        if self.report_trips(vin) and any(descriptor in data for descriptor in DESC_ODOMETER):
             soc_now = self._current_soc(vin)
             if soc_now is not None:
                 parked_soc = (soc_now, tracking.last_update)
@@ -1042,7 +1035,7 @@ class CardataCoordinator:
             # A car that reports only once parked has its trips built from the
             # reports instead: its burst's position jump, read live, would be a
             # drive of no duration, ending wherever the timers left it.
-            if not self.report_trips:
+            if not self.report_trips(vin):
                 await self._process_trip_signals(
                     vin, now, motion_value, ignition_value, segment_fresh
                 )
@@ -1897,7 +1890,7 @@ class CardataCoordinator:
             self.history.async_set_last_report(
                 vin, self._report_record(vin, odometer_km, starts=(last or {}).get("starts"))
             )
-            if self.report_trips:
+            if self.report_trips(vin):
                 # Where the car stands now is where its first trip will start.
                 self.hass.async_create_task(self._remember_report_place(vin, odometer_km))
             return
@@ -1970,11 +1963,15 @@ class CardataCoordinator:
             record["starts"] = list(starts)
         return record
 
-    @property
-    def report_trips(self) -> bool:
-        """True when trips are built from vehicle reports, not the live stream."""
+    def trip_settings_for(self, vin: str) -> TripSettings:
+        """The trip settings in force for ``vin``."""
 
-        return self.trip_detection == TRIP_DETECTION_REPORTS
+        return self.vehicle_trip_settings.get(vin, self.trip_settings)
+
+    def report_trips(self, vin: str) -> bool:
+        """True when ``vin``'s trips are built from vehicle reports, not the live stream."""
+
+        return self.trip_settings_for(vin).report_trips
 
     @callback
     def mark_trip_start(self, vin: str, at: datetime) -> None:
@@ -2024,7 +2021,7 @@ class CardataCoordinator:
         end_at = dt_util.parse_datetime(timestamp) if timestamp else None
         if end_at is None:
             end_at = datetime.now(timezone.utc)
-        if self.report_trips:
+        if self.report_trips(vin):
             start, starts = take_start_mark(
                 starts, previous_at=report_time(baseline), end_at=end_at
             )
@@ -2054,7 +2051,7 @@ class CardataCoordinator:
             vin, self._report_record(vin, odometer_km, starts=starts)
         )
         self.hass.bus.async_fire(EVENT_VEHICLE_REPORT, payload)
-        if self.report_trips:
+        if self.report_trips(vin):
             self.hass.async_create_task(
                 self._record_report_trip(vin, odometer_km, {**baseline, **parked}, start, end_at)
             )
@@ -3067,7 +3064,7 @@ class CardataCoordinator:
             soc_start=self._current_soc(vin),
             mileage_start=self._odometer_km(vin),
             location_assumed=start_place is None or start_place.get("label") == "Unknown",
-            record_track=self.record_trip_track,
+            record_track=self.trip_settings_for(vin).record_track,
         )
         # Seed the route from where the drive actually started (see
         # _trip_start_seed), stamped t=0 -- the seed is that moment's position, so
@@ -3240,13 +3237,13 @@ class CardataCoordinator:
             return
 
         home_zone = self._home_zone_name()
-        work_zone = self._work_zone_name()
+        work_zone = self._work_zone_name(vin)
         classification = classify_trip(
             trip.start_place,
             trip.end_place,
             home=home_zone,
             work=work_zone,
-            default_class=self.trip_default_class,
+            default_class=self.trip_settings_for(vin).default_class,
         )
         # Not a commute on its own: it may still be the last leg of one that a
         # stop on the way split in two (groceries between home and work).
@@ -3330,7 +3327,8 @@ class CardataCoordinator:
         failure block the record being written.
         """
 
-        if self.history is None or self.trip_commute_gap_s <= 0:
+        gap_s = self.trip_settings_for(vin).commute_gap_s
+        if self.history is None or gap_s <= 0:
             return None
         try:
             previous = self.history.trips(vin, limit=COMMUTE_CHAIN_MAX_LEGS + 1)
@@ -3342,7 +3340,7 @@ class CardataCoordinator:
             previous,
             home=home,
             work=work,
-            gap_s=self.trip_commute_gap_s,
+            gap_s=gap_s,
         )
 
     def _promote_chain_legs(self, vin: str, legs: list) -> None:
@@ -3623,10 +3621,11 @@ class CardataCoordinator:
         state = self.hass.states.get("zone.home")
         return state.name if state is not None else "Home"
 
-    def _work_zone_name(self) -> Optional[str]:
-        if not self.work_zone_entity:
+    def _work_zone_name(self, vin: str) -> Optional[str]:
+        entity_id = self.trip_settings_for(vin).work_zone_entity
+        if not entity_id:
             return None
-        state = self.hass.states.get(self.work_zone_entity)
+        state = self.hass.states.get(entity_id)
         return state.name if state is not None else None
 
     def _current_price(self) -> Optional[float]:

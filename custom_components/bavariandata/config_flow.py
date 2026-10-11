@@ -21,7 +21,7 @@ from homeassistant import config_entries
 from homeassistant.components import persistent_notification, webhook
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.data_entry_flow import FlowResult, FlowResultType
+from homeassistant.data_entry_flow import FlowResult, FlowResultType, section
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 from homeassistant.helpers.network import NoURLAvailableError, get_url
@@ -71,7 +71,13 @@ from .const import (
     TRIP_DETECTION_LIVE,
 )
 from .debug import set_debug_enabled
-from .history.classify import DEFAULT_CLASS_CHOICES, trip_class_setting
+from .history.classify import DEFAULT_CLASS_CHOICES
+from .trip_settings import (
+    account_trip_settings,
+    store_trip_values,
+    vehicle_trip_settings,
+    vehicle_trip_values,
+)
 from .history.pricing import DEFAULT_CURRENCY, MODE_ENTITY, MODE_FIXED, MODE_NONE, PricingConfig
 from .descriptors import (
     default_sections,
@@ -971,6 +977,12 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
 LOGGER = logging.getLogger(__name__)
 
 
+# Trips form keys that are not options: the car picker's field, and the
+# collapsed section holding the settings every car shares.
+_TRIP_VEHICLE = "vehicle"
+_TRIP_SHARED_SECTION = "all_vehicles"
+
+
 class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow):
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         self._config_entry = config_entry
@@ -979,6 +991,8 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         # so the snippet describes the settings just submitted rather than the
         # ones still on disk.
         self._bridge_options: Optional[Dict[str, Any]] = None
+        # The car whose trip settings are being edited (multi-car accounts).
+        self._trip_vin: Optional[str] = None
         self._init_activator_state()
 
     async def async_step_init(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
@@ -1469,10 +1483,46 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         )
         return joined.strip()
 
+    def _trip_vehicles(self) -> list[tuple[str, str]]:
+        """``(vin, label)`` for each car on the account, in name order.
+
+        Two cars of the same model share a name, so a repeated name gets the
+        end of its VIN -- the picker must never offer two identical entries.
+        """
+
+        runtime = self._get_runtime()
+        if runtime is None:
+            return []
+        coordinator = runtime.coordinator
+        named = [
+            (
+                vin,
+                (coordinator.device_metadata.get(vin) or {}).get("name")
+                or coordinator.names.get(vin)
+                or vin,
+            )
+            for vin in coordinator.data
+        ]
+        counts: Dict[str, int] = {}
+        for _vin, name in named:
+            counts[name] = counts.get(name, 0) + 1
+        labelled = [
+            (vin, f"{name} (…{vin[-4:]})" if counts[name] > 1 else name) for vin, name in named
+        ]
+        return sorted(labelled, key=lambda item: item[1].casefold())
+
     async def async_step_action_trips(
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> FlowResult:
-        """Configure trip classification and address resolution.
+        """Configure trip classification, detection and address resolution.
+
+        Most trip settings describe a car (or whoever drives it), so an account
+        with more than one car picks the car first (``trips_vehicle``) and its
+        form stores a complete set for that car alone (see
+        ``trip_settings.py``). A single-car account sees no picker and keeps
+        editing the account-wide keys. Address resolution and the trip-capture
+        diagnostics stay account-wide; with several cars they sit in a
+        collapsed "All vehicles" section, so it is plain they are shared.
 
         The work zone drives commute classification (home <-> work); the default
         type is what every other trip gets, and the commute stop tolerance lets a
@@ -1486,90 +1536,141 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         coordinates to disk.
         """
 
+        vehicles = self._trip_vehicles()
+        per_vehicle = len(vehicles) > 1
+        vin = self._trip_vin
+        if per_vehicle and vin not in dict(vehicles):
+            return await self.async_step_trips_vehicle()
+        if not per_vehicle:
+            vin = vehicles[0][0] if vehicles else None
+
         options = dict(self._config_entry.options)
-        schema = vol.Schema(
-            {
-                vol.Optional(
-                    OPTION_TRIP_WORK_ZONE,
-                    description={"suggested_value": options.get(OPTION_TRIP_WORK_ZONE)},
-                ): selector.EntitySelector(selector.EntitySelectorConfig(domain="zone")),
-                vol.Required(
-                    OPTION_TRIP_DEFAULT_CLASS,
-                    default=options.get(OPTION_TRIP_DEFAULT_CLASS, DEFAULT_TRIP_DEFAULT_CLASS),
-                ): selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=list(DEFAULT_CLASS_CHOICES),
-                        translation_key=OPTION_TRIP_DEFAULT_CLASS,
-                        mode=selector.SelectSelectorMode.DROPDOWN,
-                    )
-                ),
-                vol.Required(
-                    OPTION_TRIP_COMMUTE_GAP,
-                    default=options.get(OPTION_TRIP_COMMUTE_GAP, DEFAULT_TRIP_COMMUTE_GAP_MIN),
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=0,
-                        max=180,
-                        step=5,
-                        unit_of_measurement="min",
-                        mode=selector.NumberSelectorMode.BOX,
-                    )
-                ),
-                vol.Required(
-                    OPTION_TRIP_GEOCODE,
-                    default=options.get(OPTION_TRIP_GEOCODE, False),
-                ): selector.BooleanSelector(),
-                vol.Required(
-                    OPTION_TRIP_DETECTION,
-                    default=options.get(OPTION_TRIP_DETECTION, TRIP_DETECTION_LIVE),
-                ): selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=list(TRIP_DETECTION_CHOICES),
-                        translation_key=OPTION_TRIP_DETECTION,
-                        mode=selector.SelectSelectorMode.DROPDOWN,
-                    )
-                ),
-                vol.Required(
-                    OPTION_TRIP_TRACK,
-                    default=options.get(OPTION_TRIP_TRACK, False),
-                ): selector.BooleanSelector(),
-                vol.Required(
-                    OPTION_TRIP_DEBUG,
-                    default=options.get(OPTION_TRIP_DEBUG, False),
-                ): selector.BooleanSelector(),
-            }
-        )
+        # What applies to this car right now: its own settings if it has any.
+        values = vehicle_trip_values(options, vin)
+        car_fields = {
+            vol.Optional(
+                OPTION_TRIP_WORK_ZONE,
+                description={"suggested_value": values.get(OPTION_TRIP_WORK_ZONE)},
+            ): selector.EntitySelector(selector.EntitySelectorConfig(domain="zone")),
+            vol.Required(
+                OPTION_TRIP_DEFAULT_CLASS,
+                default=values.get(OPTION_TRIP_DEFAULT_CLASS, DEFAULT_TRIP_DEFAULT_CLASS),
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=list(DEFAULT_CLASS_CHOICES),
+                    translation_key=OPTION_TRIP_DEFAULT_CLASS,
+                    mode=selector.SelectSelectorMode.DROPDOWN,
+                )
+            ),
+            vol.Required(
+                OPTION_TRIP_COMMUTE_GAP,
+                default=values.get(OPTION_TRIP_COMMUTE_GAP, DEFAULT_TRIP_COMMUTE_GAP_MIN),
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=0,
+                    max=180,
+                    step=5,
+                    unit_of_measurement="min",
+                    mode=selector.NumberSelectorMode.BOX,
+                )
+            ),
+            vol.Required(
+                OPTION_TRIP_DETECTION,
+                default=values.get(OPTION_TRIP_DETECTION, TRIP_DETECTION_LIVE),
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=list(TRIP_DETECTION_CHOICES),
+                    translation_key=OPTION_TRIP_DETECTION,
+                    mode=selector.SelectSelectorMode.DROPDOWN,
+                )
+            ),
+            vol.Required(
+                OPTION_TRIP_TRACK,
+                default=values.get(OPTION_TRIP_TRACK, False),
+            ): selector.BooleanSelector(),
+        }
+        shared_fields = {
+            vol.Required(
+                OPTION_TRIP_GEOCODE,
+                default=options.get(OPTION_TRIP_GEOCODE, False),
+            ): selector.BooleanSelector(),
+            vol.Required(
+                OPTION_TRIP_DEBUG,
+                default=options.get(OPTION_TRIP_DEBUG, False),
+            ): selector.BooleanSelector(),
+        }
+        if per_vehicle:
+            schema = vol.Schema(
+                {
+                    **car_fields,
+                    vol.Required(_TRIP_SHARED_SECTION): section(
+                        vol.Schema(shared_fields), {"collapsed": True}
+                    ),
+                }
+            )
+        else:
+            schema = vol.Schema({**car_fields, **shared_fields})
 
         if user_input is None:
-            return self.async_show_form(step_id="action_trips", data_schema=schema)
+            return self.async_show_form(
+                step_id="action_trips",
+                data_schema=schema,
+                description_placeholders={
+                    "vehicle": dict(vehicles).get(vin) or self._config_entry.title
+                },
+            )
 
-        options.update(user_input)
+        submitted = dict(user_input)
+        shared = submitted.pop(_TRIP_SHARED_SECTION, None) or {
+            key: submitted[key]
+            for key in (OPTION_TRIP_GEOCODE, OPTION_TRIP_DEBUG)
+            if key in submitted
+        }
+        options = store_trip_values(options, submitted, vin=vin, per_vehicle=per_vehicle)
+        options[OPTION_TRIP_GEOCODE] = bool(shared.get(OPTION_TRIP_GEOCODE))
+        options[OPTION_TRIP_DEBUG] = bool(shared.get(OPTION_TRIP_DEBUG))
         # Apply immediately rather than reloading (one concurrent stream per
         # account means a reload risks racing the reconnect).
-        runtime = getattr(self._config_entry, "runtime_data", None)
+        runtime = self._get_runtime()
         if runtime is not None:
             coordinator = runtime.coordinator
-            coordinator.work_zone_entity = user_input.get(OPTION_TRIP_WORK_ZONE) or None
             # Classification settings apply to the next trip that closes; already
             # stored trips keep the class they were recorded with (correct them
-            # from the card).
-            coordinator.trip_default_class = trip_class_setting(
-                user_input.get(OPTION_TRIP_DEFAULT_CLASS, DEFAULT_TRIP_DEFAULT_CLASS)
-            )
-            coordinator.trip_commute_gap_s = (
-                int(user_input.get(OPTION_TRIP_COMMUTE_GAP, DEFAULT_TRIP_COMMUTE_GAP_MIN) or 0) * 60
-            )
+            # from the card). Route recording takes effect on the next trip that
+            # opens. Detection applies from the next report or fix on: a live
+            # trip already open still closes on its timers; in ``reports`` mode
+            # no new one opens.
+            coordinator.trip_settings = account_trip_settings(options)
+            coordinator.vehicle_trip_settings = vehicle_trip_settings(options)
             if coordinator.geocoder is not None:
-                coordinator.geocoder.enabled = bool(user_input.get(OPTION_TRIP_GEOCODE))
-            # Takes effect on the next trip that opens; an in-progress trip keeps
-            # whatever setting it started with.
-            coordinator.record_trip_track = bool(user_input.get(OPTION_TRIP_TRACK))
+                coordinator.geocoder.enabled = options[OPTION_TRIP_GEOCODE]
             # Trip-capture diagnostics apply immediately (next message onward).
-            coordinator.trip_debug = bool(user_input.get(OPTION_TRIP_DEBUG))
-            # From the next report or fix on. A live trip already open still
-            # closes on its timers; in ``reports`` mode no new one opens.
-            coordinator.trip_detection = user_input.get(OPTION_TRIP_DETECTION, TRIP_DETECTION_LIVE)
+            coordinator.trip_debug = options[OPTION_TRIP_DEBUG]
         return self.async_create_entry(title="", data=options)
+
+    async def async_step_trips_vehicle(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Which car's trip settings to edit (only shown with two or more cars)."""
+
+        vehicles = self._trip_vehicles()
+        if user_input is not None and user_input.get(_TRIP_VEHICLE) in dict(vehicles):
+            self._trip_vin = user_input[_TRIP_VEHICLE]
+            return await self.async_step_action_trips()
+        schema = vol.Schema(
+            {
+                vol.Required(_TRIP_VEHICLE, default=vehicles[0][0]): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=[
+                            selector.SelectOptionDict(value=vin, label=label)
+                            for vin, label in vehicles
+                        ],
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    )
+                )
+            }
+        )
+        return self.async_show_form(step_id="trips_vehicle", data_schema=schema)
 
     async def async_step_action_data_refresh(
         self, user_input: Optional[Dict[str, Any]] = None

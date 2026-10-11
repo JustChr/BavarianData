@@ -137,6 +137,15 @@ ready-to-paste evcc configuration.
 
 Screen: **Configure → Trips**. See [Trips](Feature-Trips) for the concepts.
 
+**Several cars on the account?** Trips first asks which vehicle, and each car
+keeps its own **Work zone**, **Default type**, **Commute stop tolerance**,
+**Trip detection** and **Record route**: a company car and a private one, or an
+older car next to one that streams while driving. **Resolve addresses** and
+**Trip-capture diagnostics** apply to every car; they sit in the collapsed
+**All vehicles** section at the bottom of each car's form. A car added later
+starts with the settings that were in use before it arrived. With one car
+there is no vehicle question.
+
 | Option | Values | Meaning |
 | --- | --- | --- |
 | **Work zone** | zone entity | Drives commute classification (home↔work). |

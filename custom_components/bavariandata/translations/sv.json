@@ -235,9 +235,19 @@
         "title": "evcc-konfiguration",
         "description": "Lägg till detta i din `evcc.yaml` under en `vehicles:`-nyckel (slå ihop det med fordon du redan har — nyckeln får bara förekomma en gång):\n\n```\n{snippet}\n```\n\nevcc behöver också känna till din broker, i sin egen `mqtt:`-sektion — samma som Home Assistant använder. Tilldela sedan fordonet till en laddpunkt och starta om evcc.\n\nBara de fält som den här bilen faktiskt rapporterar listas: ett plugin som pekar på ett topic som aldrig får något meddelande får evcc att logga ett läsfel varje cykel. Ingen `timeout` är satt med avsikt — värdena publiceras om regelbundet, så en parkerad bil behåller en giltig laddningsnivå i stället för att bli tom.\n\nDu kan hämta detta igen när som helst med åtgärden **Hämta evcc-konfiguration**."
       },
+      "trips_vehicle": {
+        "title": "Resor (körjournal)",
+        "description": "Varje fordon har egna reseinställningar. Välj det du vill ändra.",
+        "data": {
+          "vehicle": "Fordon"
+        },
+        "data_description": {
+          "vehicle": "Inställningarna på nästa skärm gäller bara det här fordonet."
+        }
+      },
       "action_trips": {
         "title": "Resor (körjournal)",
-        "description": "Rekonstruerar dina resor från strömmen utan API-kostnad — sträcka, fördelningen tjänst/privat/pendling, förbrukning och en månadsöversikt.\n\nAnge **Arbetszon** så att pendlingsresor (hem ↔ arbete) känns igen automatiskt; du kan alltid rätta en resa i efterhand. Allt som inte är pendling klassas som **Standardtyp** (Privat från början). En pendling klarar också ett stopp på vägen: om bilen står stilla högst **Stopptolerans för pendling** räknas både resan dit och resan vidare som pendling. **Slå upp adresser** är av som standard: med det på slås en start- eller slutpunkt utanför alla Home Assistant-zoner upp via OpenStreetMap och sparas som adress — koordinaterna skickas för uppslagningen men sparas aldrig.\n\n**Reseidentifiering** står på **Live** för varje bil som strömmar under körning. Välj **Rapporter vid resans slut** för en bil som rapporterar först när den parkerats (iDrive 6 och äldre): varje rapport blir då en resa, från platsen för den förra rapporten. En sådan bil säger aldrig när den åkte iväg, så en resa får en starttid bara om en automation anropar åtgärden **Markera resans start** när du kör iväg.\n\n**Registrera rutt** är också av som standard: med det på sparar varje resa sitt GPS-spår — var bilen körde och när — så att en karta kan visa och spela upp resan. Det är den enda inställningen som sparar råa koordinater på disk, inklusive dina exakta start- och slutpunkter.\n\n**Diagnostik för resregistrering** är ett felsökningshjälpmedel: med det på loggas varje GPS-position, timer och meddelande i detalj och en registreringsfil skrivs, för att hjälpa till att förbättra resdetekteringen. Slå bara på det för en testkörning och stäng sedan av det igen.",
+        "description": "Inställningar för **{vehicle}**. Resor byggs upp från strömmen utan API-kostnad. Ändringar gäller från nästa resa, och du kan rätta varje resa på kortet.",
         "data": {
           "trip_work_zone": "Arbetszon",
           "trip_default_class": "Standardtyp",
@@ -253,8 +263,22 @@
           "trip_commute_gap": "Hur länge bilen får stå mellan två resor för att båda fortfarande ska räknas som en pendling — mataffären på vägen till jobbet. Ange 0 för att stänga av. Stopp kortare än ungefär fem minuter delar aldrig en resa.",
           "trip_geocode": "Valfritt. Skickar punkter utanför zoner till OpenStreetMap; bara den resulterande adressen sparas, aldrig koordinaterna.",
           "trip_detection": "Live följer bilens position medan den kör. Rapporter vid resans slut skapar en resa per rapport, för bilar som inte skickar något under körning; live-identifieringen är då av.",
-          "trip_track": "Valfritt. Sparar varje resas GPS-spår — koordinaterna längs vägen och för var och en tidpunkten — så att en karta kan rita rutten och spela upp den. Den enda inställningen som sparar råa koordinater på disk (exakt start och slut inräknade), så den är av som standard av integritetsskäl.",
-          "trip_debug": "Endast diagnostik. Loggar rådata för resdetekteringen (varje GPS-position, stängningstimer, segmentbatch och meddelande) och skriver bavariandata_trip_capture.ndjson till din konfigurationsmapp. Mycket utförligt och innehåller GPS/VIN, så slå på det för en testkörning och av igen efteråt."
+          "trip_track": "Valfritt. Sparar varje resas GPS-spår så att en karta kan rita och spela upp rutten. Den enda inställningen som sparar råa koordinater på disk, exakt start och slut inräknade.",
+          "trip_debug": "Endast för felsökning. Loggar varje GPS-position, timer och meddelande och skriver bavariandata_trip_capture.ndjson till din konfigurationsmapp. Innehåller GPS och VIN: slå bara på det för en testkörning."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Alla fordon",
+            "description": "Dessa inställningar gäller alla fordon på det här kontot.",
+            "data": {
+              "trip_geocode": "Slå upp adresser",
+              "trip_debug": "Diagnostik för resregistrering"
+            },
+            "data_description": {
+              "trip_geocode": "Valfritt. Skickar punkter utanför zoner till OpenStreetMap; bara den resulterande adressen sparas, aldrig koordinaterna.",
+              "trip_debug": "Endast för felsökning. Loggar varje GPS-position, timer och meddelande och skriver bavariandata_trip_capture.ndjson till din konfigurationsmapp. Innehåller GPS och VIN: slå bara på det för en testkörning."
+            }
+          }
         }
       },
       "action_data_refresh": {

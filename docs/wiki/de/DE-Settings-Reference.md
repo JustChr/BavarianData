@@ -148,6 +148,16 @@ evcc-Konfiguration zum Einfügen.
 Bildschirm: **Konfigurieren → Fahrten**. Die Konzepte stehen unter
 [Fahrten](DE-Feature-Trips).
 
+**Mehrere Fahrzeuge im Konto?** Fahrten fragt zuerst nach dem Fahrzeug, und jedes
+Auto behält seine eigene **Arbeitszone**, seinen **Standard-Typ**, seine
+**Toleranz für Zwischenstopps**, **Fahrterkennung** und **Route aufzeichnen**:
+ein Dienstwagen und ein privates Auto, oder ein älteres Auto neben einem, das
+während der Fahrt streamt. **Adressen auflösen** und die
+**Fahrt-Diagnoseaufzeichnung** gelten für alle Autos; sie stehen im
+eingeklappten Abschnitt **Alle Fahrzeuge** unten im Formular jedes Autos. Ein
+später hinzugekommenes Auto startet mit den Einstellungen, die vorher galten.
+Mit nur einem Auto gibt es keine Fahrzeugabfrage.
+
 | Option | Werte | Bedeutung |
 | --- | --- | --- |
 | **Arbeitszone** | Zonen-Entität | Steuert die Erkennung von Pendelfahrten (Zuhause↔Arbeit). |

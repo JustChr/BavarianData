@@ -235,9 +235,19 @@
         "title": "Configuración de evcc",
         "description": "Añade esto a tu `evcc.yaml` bajo una clave `vehicles:` (combínalo con los vehículos que ya tengas — la clave solo puede aparecer una vez):\n\n```\n{snippet}\n```\n\nevcc también necesita conocer tu broker, en su propia sección `mqtt:` — el mismo que usa Home Assistant. Después asigna el vehículo a un punto de carga y reinicia evcc.\n\nSolo se listan los campos que este coche informa realmente: un plugin que apunta a un topic que nunca recibe mensajes hace que evcc registre un error de lectura en cada ciclo. No se define ningún `timeout` a propósito — los valores se vuelven a publicar periódicamente, así que un coche aparcado mantiene un estado de carga válido en lugar de quedarse en blanco.\n\nPuedes volver a obtener esto en cualquier momento con la acción **Obtener la configuración de evcc**."
       },
+      "trips_vehicle": {
+        "title": "Trayectos (diario de conducción)",
+        "description": "Cada vehículo tiene sus propios ajustes de trayectos. Elige el que quieres cambiar.",
+        "data": {
+          "vehicle": "Vehículo"
+        },
+        "data_description": {
+          "vehicle": "Los ajustes de la siguiente pantalla se aplican solo a este vehículo."
+        }
+      },
       "action_trips": {
         "title": "Trayectos (diario de conducción)",
-        "description": "Reconstruye tus trayectos a partir del stream sin coste de API — distancia, reparto trabajo/privado/desplazamiento, consumo y un resumen mensual.\n\nDefine la **Zona de trabajo** para que los desplazamientos (casa ↔ trabajo) se reconozcan automáticamente; siempre puedes corregir un trayecto después. Todo lo que no es un desplazamiento se clasifica como **Tipo predeterminado** (Privado de serie). Un desplazamiento también sobrevive a una parada en el camino: si el coche se detiene no más que la **Tolerancia de parada en desplazamientos**, el tramo hasta allí y el siguiente cuentan como desplazamiento. **Resolver direcciones** está desactivado por defecto: si se activa, un extremo del trayecto fuera de cualquier zona de Home Assistant se busca mediante OpenStreetMap y se guarda como dirección — las coordenadas se envían para la búsqueda pero nunca se guardan.\n\n**Detección de trayectos** está en **En directo** para cualquier coche que transmite mientras conduce. Elige **Informes de fin de trayecto** para un coche que solo informa una vez aparcado (iDrive 6 y anteriores): cada informe se convierte entonces en un trayecto, desde donde estaba el coche en el informe anterior. Un coche así nunca dice cuándo salió, así que un trayecto solo tiene hora de inicio si una automatización llama a la acción **Marcar inicio del trayecto** al salir.\n\n**Registrar ruta** también está desactivado por defecto: si se activa, cada trayecto guarda su traza GPS — por dónde fue el coche y cuándo — para que un mapa pueda mostrar y reproducir el trayecto. Es el único ajuste que guarda coordenadas en bruto en el disco, incluidos tus puntos exactos de inicio y fin.\n\n**Diagnóstico de captura de trayectos** es una ayuda para resolver problemas: si se activa, cada posición GPS, temporizador y mensaje se registra en detalle y se escribe un archivo de captura, para ayudar a mejorar la detección de trayectos. Actívalo solo para un trayecto de prueba y luego desactívalo.",
+        "description": "Ajustes para **{vehicle}**. Los trayectos se reconstruyen a partir del stream sin coste de API. Los cambios se aplican desde el próximo trayecto, y puedes corregir cualquier trayecto en la tarjeta.",
         "data": {
           "trip_work_zone": "Zona de trabajo",
           "trip_default_class": "Tipo predeterminado",
@@ -253,8 +263,22 @@
           "trip_commute_gap": "Cuánto tiempo puede estar parado el coche entre dos trayectos para que ambos sigan contando como un único desplazamiento — el supermercado de camino al trabajo. Pon 0 para desactivarlo. Las paradas de menos de unos cinco minutos nunca dividen un trayecto.",
           "trip_geocode": "Opcional. Envía los extremos fuera de zona a OpenStreetMap; solo se guarda la dirección resultante, nunca las coordenadas.",
           "trip_detection": "En directo sigue la posición del coche mientras conduce. Informes de fin de trayecto crea un trayecto por informe, para coches que no envían nada mientras conducen; la detección en directo queda desactivada.",
-          "trip_track": "Opcional. Guarda la traza GPS de cada trayecto — las coordenadas a lo largo del recorrido y, para cada una, la hora — para que un mapa pueda dibujar la ruta y reproducirla. Es el único ajuste que guarda coordenadas en bruto en el disco (incluidos tu inicio y fin exactos), por eso está desactivado por defecto por privacidad.",
-          "trip_debug": "Solo diagnóstico. Registra los datos en bruto de la detección de trayectos (cada posición GPS, temporizador de cierre, lote de segmentos y mensaje) y escribe bavariandata_trip_capture.ndjson en tu carpeta de configuración. Muy detallado y contiene GPS/VIN, así que actívalo para un trayecto de prueba y desactívalo después."
+          "trip_track": "Opcional. Guarda la traza GPS de cada trayecto para que un mapa pueda dibujar y reproducir la ruta. Es el único ajuste que guarda coordenadas en bruto en el disco, incluidos tu inicio y fin exactos.",
+          "trip_debug": "Solo para resolver problemas. Registra cada posición GPS, temporizador y mensaje y escribe bavariandata_trip_capture.ndjson en tu carpeta de configuración. Contiene GPS y VIN: actívalo solo para un trayecto de prueba."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Todos los vehículos",
+            "description": "Estos ajustes se aplican a todos los vehículos de esta cuenta.",
+            "data": {
+              "trip_geocode": "Resolver direcciones",
+              "trip_debug": "Diagnóstico de captura de trayectos"
+            },
+            "data_description": {
+              "trip_geocode": "Opcional. Envía los extremos fuera de zona a OpenStreetMap; solo se guarda la dirección resultante, nunca las coordenadas.",
+              "trip_debug": "Solo para resolver problemas. Registra cada posición GPS, temporizador y mensaje y escribe bavariandata_trip_capture.ndjson en tu carpeta de configuración. Contiene GPS y VIN: actívalo solo para un trayecto de prueba."
+            }
+          }
         }
       },
       "action_data_refresh": {

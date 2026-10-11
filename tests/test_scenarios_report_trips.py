@@ -21,6 +21,8 @@ from .conftest import load_module
 from .harness import VIN, CoordinatorHarness
 
 REPORT = load_module("vehicle_report")
+REPORTS = load_module("trip_settings").TripSettings(detection="reports")
+LIVE = load_module("trip_settings").TripSettings(detection="live")
 QUIET_MIN = REPORT.REPORT_QUIET_S / 60
 FUEL = "vehicle.drivetrain.fuelSystem.remainingFuel"
 
@@ -34,7 +36,7 @@ def h():
     harness = CoordinatorHarness(capacity_kwh=None)
     harness.hass.add_zone("Home", *HOME, radius_m=150)
     harness.hass.add_zone("Work", *WORK, radius_m=150)
-    harness.coordinator.trip_detection = "reports"
+    harness.coordinator.trip_settings = REPORTS
     yield harness
     harness.close()
 
@@ -129,7 +131,7 @@ def test_a_mark_survives_a_restart_before_the_report(h) -> None:
     _burst(h, 0, 50_000, HOME, 50)
     _mark(h, 100)
     h.restart()
-    h.coordinator.trip_detection = "reports"  # read from the options at setup
+    h.coordinator.trip_settings = REPORTS  # read from the options at setup
     _burst(h, 120, 50_012, WORK, 49)
     _settle(h)
 
@@ -154,7 +156,7 @@ def test_the_live_detectors_stay_out_of_it(h) -> None:
 def test_the_live_mode_ignores_reports(h) -> None:
     """The default mode builds nothing from a report; the GPS detector decides."""
 
-    h.coordinator.trip_detection = "live"
+    h.coordinator.trip_settings = LIVE
     _burst(h, 0, 50_000, HOME, 50)
     _mark(h, 100)
     _burst(h, 120, 50_012, WORK, 49)
@@ -171,7 +173,7 @@ def bev():
     harness = CoordinatorHarness(capacity_kwh=75.0)
     harness.hass.add_zone("Home", *HOME, radius_m=150)
     harness.hass.add_zone("Work", *WORK, radius_m=150)
-    harness.coordinator.trip_detection = "reports"
+    harness.coordinator.trip_settings = REPORTS
     yield harness
     harness.close()
 
@@ -202,7 +204,7 @@ def test_the_charge_set_off_with_survives_a_restart_mid_report(bev) -> None:
     _ev_burst(bev, 300, 50_030, WORK, soc=82)
     bev.advance_to(301)
     bev.restart()
-    bev.coordinator.trip_detection = "reports"
+    bev.coordinator.trip_settings = REPORTS
     _ev_burst(bev, bev.minute + 2, 50_030, WORK, soc=82)
     _settle(bev)
 
@@ -221,3 +223,29 @@ def test_a_hybrid_burst_without_a_charge_reading_has_no_end_soc(bev) -> None:
     assert trip.hybrid
     assert (trip.soc_start, trip.soc_end) == (90, None)
     assert trip.stats["fuel_used_l"] == 2.0
+
+
+def test_a_mixed_account_runs_each_car_in_its_own_mode(h) -> None:
+    """The G31 on reports, a car that streams while driving on live, one account.
+
+    Trip detection used to be one setting per account, so a mixed account had to
+    run every car in the mode of its oldest. The streaming car's report must not
+    become a report trip of its own.
+    """
+
+    streaming = "WBATEST0000000002"
+    h.coordinator.vehicle_trip_settings = {streaming: LIVE}
+    _burst(h, 0, 50_000, HOME, 50)
+    h.vin = streaming
+    _burst(h, 10, 20_000, HOME, 40)
+    h.vin = VIN
+    _burst(h, 120, 50_012, WORK, 49)
+    h.vin = streaming
+    _burst(h, 130, 20_012, WORK, 39)
+    _settle(h)
+
+    assert all(not trip.duration_unknown for trip in h.trips())
+    h.vin = VIN
+    (trip,) = h.trips()
+    assert trip.duration_unknown
+    assert trip.end_place["label"] == "Work"

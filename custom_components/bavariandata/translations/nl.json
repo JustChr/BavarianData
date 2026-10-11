@@ -235,9 +235,19 @@
         "title": "evcc-configuratie",
         "description": "Voeg dit toe aan je `evcc.yaml` onder een `vehicles:`-sleutel (voeg het samen met voertuigen die je al hebt — de sleutel mag maar één keer voorkomen):\n\n```\n{snippet}\n```\n\nevcc moet ook je broker kennen, in zijn eigen `mqtt:`-sectie — dezelfde die Home Assistant gebruikt. Wijs het voertuig daarna toe aan een laadpunt en herstart evcc.\n\nAlleen de velden die deze auto echt meldt worden vermeld: een plugin die naar een topic wijst dat nooit een bericht krijgt, laat evcc elke cyclus een leesfout loggen. Er is bewust geen `timeout` ingesteld — de waarden worden periodiek opnieuw gepubliceerd, zodat een geparkeerde auto een geldige laadtoestand houdt in plaats van leeg te worden.\n\nJe kunt dit altijd opnieuw ophalen met de actie **evcc-configuratie ophalen**."
       },
+      "trips_vehicle": {
+        "title": "Ritten (rittenlogboek)",
+        "description": "Elk voertuig heeft eigen ritinstellingen. Kies het voertuig dat je wilt wijzigen.",
+        "data": {
+          "vehicle": "Voertuig"
+        },
+        "data_description": {
+          "vehicle": "De instellingen op het volgende scherm gelden alleen voor dit voertuig."
+        }
+      },
       "action_trips": {
         "title": "Ritten (rittenlogboek)",
-        "description": "Reconstrueert je ritten uit de stream zonder API-kosten — afstand, de verdeling zakelijk/privé/woon-werk, verbruik en een maandoverzicht.\n\nStel een **Werkzone** in zodat woon-werkritten (thuis ↔ werk) automatisch worden herkend; je kunt een rit achteraf altijd corrigeren. Alles wat geen woon-werkrit is, wordt ingedeeld als **Standaardtype** (standaard Privé). Een woon-werkrit overleeft ook een tussenstop: staat de auto niet langer stil dan de **Stoptolerantie woon-werk**, dan tellen de rit ernaartoe en de rit erna allebei als woon-werk. **Adressen opzoeken** staat standaard uit: staat het aan, dan wordt een begin- of eindpunt buiten elke Home Assistant-zone via OpenStreetMap opgezocht en als adres opgeslagen — de coördinaten worden voor het opzoeken verstuurd maar nooit opgeslagen.\n\n**Ritdetectie** staat op **Live** voor elke auto die tijdens het rijden streamt. Kies **Rapporten aan het einde van de rit** voor een auto die pas na het parkeren meldt (iDrive 6 en ouder): elk rapport wordt dan één rit, vanaf de plek van het vorige rapport. Zo'n auto zegt nooit wanneer hij vertrok, dus een rit krijgt alleen een starttijd als een automatisering bij vertrek de actie **Ritstart markeren** aanroept.\n\n**Route vastleggen** staat ook standaard uit: staat het aan, dan slaat elke rit zijn GPS-spoor op — waar de auto reed en wanneer — zodat een kaart de rit kan tonen en afspelen. Dit is de enige instelling die ruwe coördinaten op schijf opslaat, inclusief je exacte begin- en eindpunt.\n\n**Diagnose ritregistratie** is een hulpmiddel bij problemen: staat het aan, dan wordt elke GPS-positie, timer en elk bericht gedetailleerd gelogd en een opnamebestand geschreven, om de ritdetectie te helpen verbeteren. Zet het alleen aan voor een testrit en daarna weer uit.",
+        "description": "Instellingen voor **{vehicle}**. Ritten worden zonder API-kosten uit de stream opgebouwd. Wijzigingen gelden vanaf de volgende rit, en elke rit kun je op de kaart corrigeren.",
         "data": {
           "trip_work_zone": "Werkzone",
           "trip_default_class": "Standaardtype",
@@ -253,8 +263,22 @@
           "trip_commute_gap": "Hoe lang de auto tussen twee ritten mag stilstaan zodat ze samen nog als één woon-werkrit tellen — de supermarkt op weg naar het werk. Zet op 0 om dit uit te schakelen. Stops korter dan ongeveer vijf minuten splitsen een rit sowieso nooit.",
           "trip_geocode": "Optioneel. Stuurt punten buiten een zone naar OpenStreetMap; alleen het gevonden adres wordt opgeslagen, nooit de coördinaten.",
           "trip_detection": "Live volgt de positie van de auto tijdens het rijden. Rapporten aan het einde van de rit maakt één rit per rapport, voor auto's die tijdens het rijden niets sturen; de live-detectie staat dan uit.",
-          "trip_track": "Optioneel. Slaat het GPS-spoor van elke rit op — de coördinaten langs de route en voor elk het tijdstip — zodat een kaart de route kan tekenen en afspelen. De enige instelling die ruwe coördinaten op schijf opslaat (je exacte begin en eind inbegrepen), daarom staat ze voor je privacy standaard uit.",
-          "trip_debug": "Alleen voor diagnose. Logt de ruwe basis van de ritdetectie (elke GPS-positie, sluittimer, segmentbatch en elk bericht) en schrijft bavariandata_trip_capture.ndjson naar je configuratiemap. Zeer uitgebreid en bevat GPS/VIN, dus zet het aan voor een testrit en daarna weer uit."
+          "trip_track": "Optioneel. Slaat het GPS-spoor van elke rit op zodat een kaart de route kan tekenen en afspelen. De enige instelling die ruwe coördinaten op schijf opslaat, je exacte begin en eind inbegrepen.",
+          "trip_debug": "Alleen voor probleemoplossing. Logt elke GPS-positie, timer en elk bericht en schrijft bavariandata_trip_capture.ndjson naar je configuratiemap. Bevat GPS en VIN: zet het alleen aan voor één testrit."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Alle voertuigen",
+            "description": "Deze instellingen gelden voor alle voertuigen van dit account.",
+            "data": {
+              "trip_geocode": "Adressen opzoeken",
+              "trip_debug": "Diagnose ritregistratie"
+            },
+            "data_description": {
+              "trip_geocode": "Optioneel. Stuurt punten buiten een zone naar OpenStreetMap; alleen het gevonden adres wordt opgeslagen, nooit de coördinaten.",
+              "trip_debug": "Alleen voor probleemoplossing. Logt elke GPS-positie, timer en elk bericht en schrijft bavariandata_trip_capture.ndjson naar je configuratiemap. Bevat GPS en VIN: zet het alleen aan voor één testrit."
+            }
+          }
         }
       },
       "action_data_refresh": {
