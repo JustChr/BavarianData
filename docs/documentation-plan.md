@@ -155,7 +155,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `action_charging_costs` | Charging costs & history | 🟡 | 📷 |
 | `action_evcc_bridge` | evcc / wallbox bridge | 🟢 Feature-evcc-and-Wallbox-Bridge + Settings-Reference → "evcc / wallbox bridge" | 📷 **owed** — needs the build installed |
 | `evcc_snippet` | evcc configuration (generated, paste-ready) | 🟢 Feature-evcc-and-Wallbox-Bridge → "Setting it up" | 📷 **owed** — needs the build installed |
-| `trips_vehicle` | Trips: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Trips" + Feature-Multiple-Cars-and-Accounts → "Telling the cars apart" (EN + DE) | 📷 **owed** — needs a second car |
+| `trips_vehicle` | Trips: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Trips" + Feature-Multiple-Cars-and-Accounts → "Telling the cars apart" (EN + DE) | 📷 **owed** — stage it with `.claude/skills/flow-ux/mock_flow.js` (no second car needed) |
 | `action_trips` | Trips (per car with 2+ cars; shared settings in the collapsed "All vehicles" section) | 🟡 | 📷 |
 | `action_debug_logging` | Debug logging toggle | 🟡 | 📷 |
 

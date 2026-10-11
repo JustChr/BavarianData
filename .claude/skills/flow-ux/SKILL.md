@@ -119,6 +119,17 @@ only after Chris has picked one.**
 2. Shoot the real screens on the live instance (`shoot` skill), in **English
    and German**, because German is where labels wrap or overflow. Read each
    one as a newcomer would: is anything unclear without the wiki?
+   **A branch your setup can't reach** (a second car, a hybrid, an error
+   state): stage it with `mock_flow.js` next to this file. It answers the
+   options-flow REST calls in the browser the way the integration would, so
+   HA's real dialog renders the step with the installed build's translations.
+   Nothing reaches HA (other calls are aborted, the flow is abandoned). Build
+   the fake step from the real one the server returns, so its schema is HA's
+   own. A section serializes as `{"type": "expandable", "name", "expanded",
+   "schema"}`. It proves how a screen looks and reads, never what the
+   backend does: that is the tests' job.
+   - A step that more steps follow sets `last_step=False`, so the button says
+     *Next* and not *Submit*. Found this way on the car picker.
 3. Measure the text against the budgets above:
    ```bash
    python -c "import json;d=json.load(open('custom_components/bavariandata/translations/en.json',encoding='utf-8'));[print(s,k,len(v.get('description',''))) for s in ('config','options') for k,v in d[s]['step'].items()]"

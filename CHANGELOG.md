@@ -9,6 +9,10 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **The vehicle question under Configure → Trips now says *Next*,** not *Submit*:
+  nothing is saved until you submit the car's own settings.
+
 ## [0.9.18-beta.1] - 2026-10-11
 
 ### Changed
