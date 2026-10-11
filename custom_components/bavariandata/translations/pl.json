@@ -175,9 +175,19 @@
         "title": "Pobierz zdjęcie pojazdu",
         "description": "Pobiera aktualne zdjęcie Twoich pojazdów.\n\nNaciśnij Zatwierdź, aby kontynuować."
       },
+      "charging_vehicle": {
+        "title": "Koszty i historia ładowania",
+        "description": "Każdy pojazd ma własny licznik wallboxa i własne straty ładowania; cena dotyczy wszystkich. Wybierz pojazd, który chcesz zmienić.",
+        "data": {
+          "vehicle": "Pojazd"
+        },
+        "data_description": {
+          "vehicle": "Ustawienia na następnym ekranie dotyczą tylko tego pojazdu."
+        }
+      },
       "action_charging_costs": {
         "title": "Koszty i historia ładowania",
-        "description": "Przelicza zarejestrowane ładowania na pieniądze. Dopóki nie ustawiono źródła ceny, nie jest tworzona żadna encja kosztów — błędna cena jest gorsza niż żadna.\n\n**Stała cena** rozlicza każdą kWh według jednej stawki. **Encja ceny** śledzi taryfę na żywo (Tibber, Nordpool, aWATTar, …) próbkowaną podczas ładowania, dzięki czemu sesja obejmująca zmianę ceny jest rozliczana poprawnie.\n\nEnergia jest mierzona przy akumulatorze, więc jest nieco mniejsza niż ta dostarczona z sieci. Jeśli masz licznik, wskaż go w **Czujnik energii wallboxa** — to jest dokładne. W przeciwnym razie możesz powiększyć wartość o straty ładowania; domyślnie wynoszą 0 %, ponieważ zmyślona korekta wyglądałaby jak pomiar.\n\n**Statystyki długoterminowe** publikuje zarejestrowaną historię we własnych statystykach Home Assistant, dzięki czemu ładowania sprzed instalacji — lub z czasu, gdy Home Assistant był wyłączony — i tak pojawiają się w panelu Energia.",
+        "description": "Zamienia ładowania **{vehicle}** na koszty. Dopóki nie ustawisz źródła ceny, nie powstają żadne encje kosztów: zła cena jest gorsza niż żadna.",
         "data": {
           "price_mode": "Źródło ceny",
           "price_fixed": "Stała cena za kWh",
@@ -189,14 +199,36 @@
           "statistics_import": "Publikuj w statystykach długoterminowych"
         },
         "data_description": {
-          "price_mode": "Wybierz 'Brak', aby rejestrować sesje bez wyceny.",
+          "price_mode": "Brak zapisuje sesje bez kosztów. Stała cena rozlicza każdą kWh po jednej stawce; Encja ceny śledzi taryfę na żywo (Tibber, Nordpool, …) podczas ładowania.",
           "price_fixed": "Używana tylko, gdy źródłem ceny jest 'Stała cena'.",
           "price_entity": "Używana tylko, gdy źródłem ceny jest 'Encja ceny'. Jej stan musi być ceną za kWh.",
           "price_currency": "Kod ISO wyświetlany na czujnikach kosztów, np. EUR, GBP, CHF, PLN.",
-          "grid_energy_entity": "Opcjonalnie. Łączny, narastający licznik energii wallboxa (taki, który tylko rośnie, a nie licznik na sesję, który się zeruje). Obsługiwane są Wh, kWh i MWh; bez jednostki odczytywany jest jako kWh. Jest odczytywany tylko dla ładowań w Twojej strefie Dom, ponieważ licznik nie wie, które auto ładował. Zmierzona wartość z sieci zawsze wygrywa z naszym szacunkiem po stronie akumulatora — a wartość niemożliwa, np. licznik domowy wskazujący znacznie więcej, niż przyjął akumulator, jest ignorowana, a nie brana za prawdę. Po trzech ładowaniach w domu napędza też szacowany stan naładowania, gdy samochód ładuje się w domu.",
-          "charging_loss_percent": "Opcjonalnie. Powiększa energię po stronie akumulatora w kierunku energii z sieci.",
+          "grid_energy_entity": "Opcjonalnie. Licznik całkowity wallboxa, który tylko rośnie. Odczytywany tylko dla ładowań w strefie Dom. Zmierzona wartość ma pierwszeństwo przed szacunkiem po stronie akumulatora i poprawia też szacunek naładowania w domu.",
+          "charging_loss_percent": "Opcjonalnie. Energia jest mierzona na akumulatorze, nieco poniżej tego, co dostarczyła sieć; to ją przelicza w górę. Zostaw 0, jeśli masz licznik wallboxa.",
           "history_retain_months": "0 zachowuje wszystko. Starsze sesje są usuwane.",
           "statistics_import": "Odzwierciedla energię, koszt i dystans w statystykach, które możesz dodać do panelu Energia. Pozostaje lokalnie; wyłączenie ponownie je usuwa."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Wszystkie pojazdy",
+            "description": "Te ustawienia dotyczą wszystkich pojazdów na tym koncie.",
+            "data": {
+              "price_mode": "Źródło ceny",
+              "price_fixed": "Stała cena za kWh",
+              "price_entity": "Encja ceny",
+              "price_currency": "Waluta",
+              "history_retain_months": "Przechowuj historię przez (miesiące)",
+              "statistics_import": "Publikuj w statystykach długoterminowych"
+            },
+            "data_description": {
+              "price_mode": "Brak zapisuje sesje bez kosztów. Stała cena rozlicza każdą kWh po jednej stawce; Encja ceny śledzi taryfę na żywo (Tibber, Nordpool, …) podczas ładowania.",
+              "price_fixed": "Używana tylko, gdy źródłem ceny jest 'Stała cena'.",
+              "price_entity": "Używana tylko, gdy źródłem ceny jest 'Encja ceny'. Jej stan musi być ceną za kWh.",
+              "price_currency": "Kod ISO wyświetlany na czujnikach kosztów, np. EUR, GBP, CHF, PLN.",
+              "history_retain_months": "0 zachowuje wszystko. Starsze sesje są usuwane.",
+              "statistics_import": "Odzwierciedla energię, koszt i dystans w statystykach, które możesz dodać do panelu Energia. Pozostaje lokalnie; wyłączenie ponownie je usuwa."
+            }
+          }
         }
       },
       "action_energy_sources": {
@@ -217,9 +249,19 @@
           "price_solar": "Pozostaw puste, aby wyceniać energię słoneczną po cenie zakupu. Ustaw stawkę za oddanie do sieci, aby zobaczyć, ile naprawdę kosztowało ładowanie."
         }
       },
+      "bridge_vehicle": {
+        "title": "Most evcc / wallbox",
+        "description": "Każdy pojazd można publikować osobno. Wybierz pojazd, który chcesz zmienić.",
+        "data": {
+          "vehicle": "Pojazd"
+        },
+        "data_description": {
+          "vehicle": "Ustawienia na następnym ekranie dotyczą tylko tego pojazdu."
+        }
+      },
       "action_evcc_bridge": {
         "title": "Most evcc / wallbox",
-        "description": "Publikuje bieżący stan tego auta w Twoim brokerze MQTT, aby sterownik ładowania mógł go odczytać.\n\nTo jedyna rzecz, którą ma BavarianData, a nie mają evcc, openWB i podobne: **stan naładowania prosto ze strumienia BMW, bez kosztów API**. Ich własne integracje BMW odpytują API producenta cyklicznie i są za to ograniczane; tutaj wartość przychodzi, gdy auto ją zgłasza, i nie zużywa żadnego z 50 dziennych żądań.\n\nPublikacja odbywa się przez **integrację MQTT Home Assistant**, więc trafia dokładnie do brokera, którego evcc już używa, i nie trzeba tu podawać hosta, portu ani hasła. Najpierw musi być skonfigurowana integracja MQTT.\n\nDla każdego pojazdu, pod `PREFIX/VIN/`: `soc`, `status` (A/B/C w evcc), `range`, `odometer`, `limitSoc`, `chargePower`, `plugged`, `charging`, `updated` oraz `state` jako jeden dokument JSON. **Czego auto nie zgłasza, to nie jest publikowane**, zamiast wysyłania zera — sterownik ładowania działa na podstawie tych liczb, więc błędna jest gorsza niż brakująca. Wszystko jest wysyłane ponownie co pięć minut, nawet bez zmian, więc stan naładowania zaparkowanego auta nigdy się nie przedawnia w brokerze.\n\nPonowne wyłączenie usuwa opublikowane dane, aby nic nie ładowało dalej według zamrożonego stanu naładowania.\n\nNa następnym ekranie otrzymasz konfigurację evcc do wklejenia.",
+        "description": "Publikuje bieżący stan **{vehicle}** w brokerze MQTT dla evcc i podobnych sterowników ładowania: stan naładowania prosto ze strumienia BMW, bez kosztów API. Wymaga integracji MQTT w Home Assistant. Wyłączenie usuwa to, co zostało opublikowane; następny ekran zawiera konfigurację evcc do wklejenia.",
         "data": {
           "bridge_enabled": "Publikuj to auto w MQTT",
           "bridge_topic_prefix": "Prefiks tematów",
@@ -228,7 +270,21 @@
         "data_description": {
           "bridge_enabled": "Domyślnie wyłączone: umieszcza VIN i stan auta w brokerze, który mogą czytać inni.",
           "bridge_topic_prefix": "Tematy mają postać `PREFIX/VIN/soc` itd. Pozostaw bavariandata, chyba że koliduje z czymś innym.",
-          "bridge_retain": "Pozostaw włączone. Dzięki temu evcc znajduje stan naładowania zaraz po starcie, zamiast czekać, aż auto coś zgłosi — co przy zaparkowanym aucie może trwać godzinami. Wyłącz tylko wtedy, gdy broker odrzuca wiadomości retained."
+          "bridge_retain": "Zostaw włączone: dzięki temu evcc zna stan naładowania od razu po starcie. Wyłącz tylko wtedy, gdy broker odrzuca wiadomości retained."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Wszystkie pojazdy",
+            "description": "Te ustawienia dotyczą wszystkich pojazdów na tym koncie.",
+            "data": {
+              "bridge_topic_prefix": "Prefiks tematów",
+              "bridge_retain": "Publikuj jako retained"
+            },
+            "data_description": {
+              "bridge_topic_prefix": "Tematy mają postać `PREFIX/VIN/soc` itd. Pozostaw bavariandata, chyba że koliduje z czymś innym.",
+              "bridge_retain": "Zostaw włączone: dzięki temu evcc zna stan naładowania od razu po starcie. Wyłącz tylko wtedy, gdy broker odrzuca wiadomości retained."
+            }
+          }
         }
       },
       "evcc_snippet": {

@@ -175,9 +175,19 @@
         "title": "Fahrzeugbild abrufen",
         "description": "Ruft das aktuelle Fahrzeugbild deiner Fahrzeuge ab.\n\nKlicke auf **Absenden**, um fortzufahren."
       },
+      "charging_vehicle": {
+        "title": "Ladekosten & Verlauf",
+        "description": "Jedes Fahrzeug hat seinen eigenen Wallbox-Zähler und eigene Ladeverluste; der Preis gilt für alle. Wähle das Fahrzeug, das du ändern möchtest.",
+        "data": {
+          "vehicle": "Fahrzeug"
+        },
+        "data_description": {
+          "vehicle": "Die Einstellungen auf der nächsten Seite gelten nur für dieses Fahrzeug."
+        }
+      },
       "action_charging_costs": {
         "title": "Ladekosten & Verlauf",
-        "description": "Rechnet aufgezeichnete Ladevorgänge in Geld um. Solange keine Preisquelle eingestellt ist, werden gar keine Kosten-Entitäten angelegt — ein falscher Preis ist schlimmer als keiner.\n\n**Fester Preis** rechnet jede kWh mit demselben Satz ab. **Preis-Entität** folgt einem dynamischen Tarif (Tibber, Nordpool, aWATTar, …) und wird während des Ladens laufend abgetastet, sodass ein Ladevorgang über einen Preiswechsel hinweg korrekt abgerechnet wird.\n\nDie Energie wird an der Batterie gemessen und liegt damit etwas unter dem, was das Netz geliefert hat. Wenn du einen Zähler hast, wähle ihn unter **Wallbox-Energiesensor** aus — dieser Wert ist exakt. Andernfalls kannst du den Wert um deine Ladeverluste hochrechnen; die Vorgabe ist 0 %, weil eine erfundene Korrektur wie eine Messung aussähe.\n\n**Langzeitstatistiken** überträgt den aufgezeichneten Verlauf in die Statistiken von Home Assistant — so erscheinen auch Ladevorgänge im Energie-Dashboard, die vor der Installation lagen oder während Home Assistant aus war.",
+        "description": "Macht aus den Ladevorgängen von **{vehicle}** Kosten. Solange keine Preisquelle gesetzt ist, entstehen keine Kosten-Entitäten: Ein falscher Preis ist schlimmer als keiner.",
         "data": {
           "price_mode": "Preisquelle",
           "price_fixed": "Fester Preis pro kWh",
@@ -189,14 +199,36 @@
           "statistics_import": "In Langzeitstatistiken übernehmen"
         },
         "data_description": {
-          "price_mode": "Wähle „Keine“, um Ladevorgänge aufzuzeichnen, ohne sie zu bepreisen.",
+          "price_mode": "Keine zeichnet Ladevorgänge ohne Kosten auf. Fester Preis berechnet jede kWh zum selben Satz; Preis-Entität folgt einem Live-Tarif (Tibber, Nordpool, …), während das Auto lädt.",
           "price_fixed": "Wird nur bei der Preisquelle „Fester Preis“ verwendet.",
           "price_entity": "Wird nur bei der Preisquelle „Preis-Entität“ verwendet. Ihr Zustand muss ein Preis pro kWh sein.",
           "price_currency": "ISO-Code für die Kosten-Sensoren, z. B. EUR, GBP, CHF.",
-          "grid_energy_entity": "Optional. Der kumulative Energiezähler deiner Wallbox (einer, der nur hochzählt – kein Zähler, der pro Ladevorgang zurücksetzt). Wh, kWh und MWh werden umgerechnet; ohne Einheit wird kWh angenommen. Er wird nur für Ladevorgänge in deiner Zone „Zuhause“ gelesen, weil der Zähler nicht weiß, welches Auto er geladen hat. Ein gemessener Netzwert schlägt immer unsere batterieseitige Schätzung – und ein Wert, der nicht stimmen kann, etwa ein Hauszähler mit weit mehr als die Batterie aufgenommen hat, wird ignoriert statt geglaubt. Nach drei Ladungen zu Hause treibt er außerdem den geschätzten Ladezustand, während das Auto zu Hause lädt.",
-          "charging_loss_percent": "Optional. Rechnet die batterieseitige Energie in Richtung Netzenergie hoch.",
+          "grid_energy_entity": "Optional. Der Gesamtzähler deiner Wallbox, der nur aufwärts zählt. Wird nur für Ladevorgänge in deiner Zone Zuhause gelesen. Ein gemessener Wert schlägt die Schätzung auf Akkuseite und verbessert auch die Ladestand-Schätzung zu Hause.",
+          "charging_loss_percent": "Optional. Die Energie wird am Akku gemessen, etwas unter dem, was das Netz geliefert hat; das rechnet sie hoch. Mit Wallbox-Zähler bei 0 lassen.",
           "history_retain_months": "0 behält alles. Ältere Ladevorgänge werden verworfen.",
           "statistics_import": "Spiegelt Energie, Kosten und Strecke in Statistiken, die du im Energie-Dashboard hinzufügen kannst. Bleibt lokal; beim Ausschalten werden sie wieder gelöscht."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Alle Fahrzeuge",
+            "description": "Diese Einstellungen gelten für alle Fahrzeuge dieses Kontos.",
+            "data": {
+              "price_mode": "Preisquelle",
+              "price_fixed": "Fester Preis pro kWh",
+              "price_entity": "Preis-Entität",
+              "price_currency": "Währung",
+              "history_retain_months": "Verlauf aufbewahren (Monate)",
+              "statistics_import": "In Langzeitstatistiken übernehmen"
+            },
+            "data_description": {
+              "price_mode": "Keine zeichnet Ladevorgänge ohne Kosten auf. Fester Preis berechnet jede kWh zum selben Satz; Preis-Entität folgt einem Live-Tarif (Tibber, Nordpool, …), während das Auto lädt.",
+              "price_fixed": "Wird nur bei der Preisquelle „Fester Preis“ verwendet.",
+              "price_entity": "Wird nur bei der Preisquelle „Preis-Entität“ verwendet. Ihr Zustand muss ein Preis pro kWh sein.",
+              "price_currency": "ISO-Code für die Kosten-Sensoren, z. B. EUR, GBP, CHF.",
+              "history_retain_months": "0 behält alles. Ältere Ladevorgänge werden verworfen.",
+              "statistics_import": "Spiegelt Energie, Kosten und Strecke in Statistiken, die du im Energie-Dashboard hinzufügen kannst. Bleibt lokal; beim Ausschalten werden sie wieder gelöscht."
+            }
+          }
         }
       },
       "action_energy_sources": {
@@ -217,9 +249,19 @@
           "price_solar": "Leer lassen, um Solarstrom mit dem Bezugspreis zu bewerten. Mit der Einspeisevergütung zeigt die Ladung, was sie wirklich gekostet hat."
         }
       },
+      "bridge_vehicle": {
+        "title": "evcc-/Wallbox-Brücke",
+        "description": "Jedes Fahrzeug kann einzeln veröffentlicht werden. Wähle das Fahrzeug, das du ändern möchtest.",
+        "data": {
+          "vehicle": "Fahrzeug"
+        },
+        "data_description": {
+          "vehicle": "Die Einstellungen auf der nächsten Seite gelten nur für dieses Fahrzeug."
+        }
+      },
       "action_evcc_bridge": {
         "title": "evcc-/Wallbox-Brücke",
-        "description": "Veröffentlicht den Live-Zustand dieses Autos auf deinem MQTT-Broker, damit eine Ladesteuerung ihn lesen kann.\n\nDas ist der eine Vorteil, den BavarianData gegenüber evcc, openWB & Co. hat: ein **Ladezustand direkt aus BMWs Stream, ohne API-Kosten**. Deren eigene BMW-Anbindungen fragen zyklisch eine Hersteller-API ab und laufen dafür ins Limit; hier kommt der Wert, sobald das Auto ihn meldet, und verbraucht keine deiner 50 täglichen Anfragen.\n\nVeröffentlicht wird über **die MQTT-Integration von Home Assistant** – also genau auf dem Broker, den evcc schon liest, und ohne dass hier Host, Port oder Passwort eingetragen werden müssen. Die MQTT-Integration muss dafür eingerichtet sein.\n\nPro Fahrzeug unter `PREFIX/VIN/`: `soc`, `status` (evccs A/B/C), `range`, `odometer`, `limitSoc`, `chargePower`, `plugged`, `charging`, `updated` sowie `state` als ein JSON-Dokument. **Was das Auto nicht meldet, wird nicht veröffentlicht** – statt als Null gesendet: eine Ladesteuerung handelt nach diesen Werten, und ein falscher ist schlimmer als ein fehlender. Alles wird alle fünf Minuten erneut gesendet, auch unverändert, damit der Ladezustand eines geparkten Autos auf dem Broker nicht veraltet.\n\nWird die Brücke wieder abgeschaltet, werden die veröffentlichten Werte entfernt – damit niemand weiter gegen einen eingefrorenen Ladezustand lädt.\n\nDer nächste Schritt liefert die evcc-Konfiguration zum Einfügen.",
+        "description": "Veröffentlicht den Live-Zustand von **{vehicle}** auf deinem MQTT-Broker für evcc und ähnliche Laderegler: den Ladestand direkt aus BMWs Stream, ohne API-Kosten. Braucht die MQTT-Integration von Home Assistant. Ausschalten entfernt, was veröffentlicht wurde; die nächste Seite zeigt die evcc-Konfiguration zum Einfügen.",
         "data": {
           "bridge_enabled": "Dieses Auto per MQTT veröffentlichen",
           "bridge_topic_prefix": "Topic-Prefix",
@@ -228,7 +270,21 @@
         "data_description": {
           "bridge_enabled": "Standardmäßig aus: es legt VIN und Fahrzeugzustand auf einen Broker, den auch anderes lesen kann.",
           "bridge_topic_prefix": "Die Topics lauten dann `PREFIX/VIN/soc` usw. Lass bavariandata stehen, sofern es nicht mit etwas kollidiert.",
-          "bridge_retain": "Am besten aktiviert lassen. Nur so findet evcc den Ladezustand sofort beim Start, statt zu warten, bis das Auto sich das nächste Mal meldet – bei einem geparkten Auto können das Stunden sein. Nur abschalten, wenn dein Broker Retain-Nachrichten ablehnt."
+          "bridge_retain": "Lass das an: So findet evcc den Ladestand sofort beim Start. Nur ausschalten, wenn dein Broker Retained-Nachrichten ablehnt."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Alle Fahrzeuge",
+            "description": "Diese Einstellungen gelten für alle Fahrzeuge dieses Kontos.",
+            "data": {
+              "bridge_topic_prefix": "Topic-Prefix",
+              "bridge_retain": "Mit Retain veröffentlichen"
+            },
+            "data_description": {
+              "bridge_topic_prefix": "Die Topics lauten dann `PREFIX/VIN/soc` usw. Lass bavariandata stehen, sofern es nicht mit etwas kollidiert.",
+              "bridge_retain": "Lass das an: So findet evcc den Ladestand sofort beim Start. Nur ausschalten, wenn dein Broker Retained-Nachrichten ablehnt."
+            }
+          }
         }
       },
       "evcc_snippet": {

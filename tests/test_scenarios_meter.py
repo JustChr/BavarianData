@@ -18,7 +18,10 @@ from datetime import timedelta
 
 import pytest
 
+from .conftest import load_module
 from .harness import START, CoordinatorHarness, store_mod
+
+PricingConfig = load_module("history.pricing").PricingConfig
 
 METER = "sensor.wallbox_energy"
 STREAM_RATE = 3.48 / 75 * 100  # %/h, what BMW's power implies
@@ -241,6 +244,51 @@ def test_two_cars_charging_leave_the_meter_to_neither(h):
     h.meter(130, 1014.8)
 
     assert _source(h) == "stream"
+
+
+def test_a_second_car_on_its_own_meter_leaves_this_one_on_its_meter(h):
+    """Two wallboxes, a meter each: the other car's charge counts on its meter.
+
+    Only a meter two charging cars share is a meter neither may claim.
+    """
+
+    h.coordinator.vehicle_pricing = {
+        "WBATEST0000000002": PricingConfig(grid_energy_entity="sensor.wallbox_drive_energy")
+    }
+    _charge(h)
+    other = {
+        "vehicle.drivetrain.electricEngine.charging.status": {"value": "CHARGINGACTIVE"},
+        "vehicle.drivetrain.batteryManagement.header": {"value": 50},
+    }
+    h._run(h.coordinator.async_handle_message({"vin": "WBATEST0000000002", "data": other}))
+    h.meter(70, 1007.4)
+    h.meter(130, 1014.8)
+    h.advance_to(140)
+
+    assert _source(h) == "meter"
+    assert h.estimate() == pytest.approx(38 + 14.8 * PER_KWH, abs=0.01)
+
+
+def test_a_car_with_its_own_meter_reads_that_one():
+    """Not the account-wide meter, which belongs to the other wallbox."""
+
+    harness = CoordinatorHarness(wallbox_meter="sensor.wallbox_drive_energy")
+    try:
+        harness.coordinator.pricing = PricingConfig(grid_energy_entity=METER)
+        harness.coordinator.vehicle_pricing = {
+            harness.vin: PricingConfig(grid_energy_entity="sensor.wallbox_drive_energy")
+        }
+        harness.hass.set_state(METER, "500.0", unit_of_measurement="kWh")
+        _seed(harness)
+        _charge(harness)
+        harness.meter(70, 1007.4)
+        harness.meter(130, 1014.8)
+        harness.advance_to(140)
+
+        assert _source(harness) == "meter"
+        assert harness.estimate() == pytest.approx(38 + 14.8 * PER_KWH, abs=0.01)
+    finally:
+        harness.close()
 
 
 def test_an_unplugged_car_never_follows_the_meter(h):

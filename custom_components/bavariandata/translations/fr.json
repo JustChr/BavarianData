@@ -175,9 +175,19 @@
         "title": "Récupérer l'image du véhicule",
         "description": "Récupère l'image actuelle de vos véhicules.\n\nAppuyez sur Valider pour continuer."
       },
+      "charging_vehicle": {
+        "title": "Coûts et historique de recharge",
+        "description": "Chaque véhicule a son propre compteur de borne et ses propres pertes de recharge ; le prix s'applique à tous. Choisissez le véhicule à modifier.",
+        "data": {
+          "vehicle": "Véhicule"
+        },
+        "data_description": {
+          "vehicle": "Les réglages de l'écran suivant s'appliquent uniquement à ce véhicule."
+        }
+      },
       "action_charging_costs": {
         "title": "Coûts et historique de recharge",
-        "description": "Transforme les recharges enregistrées en argent. Tant qu'aucune source de prix n'est définie, aucune entité de coût n'est créée — un prix faux est pire que pas de prix du tout.\n\n**Prix fixe** facture chaque kWh au même tarif. **Entité de prix** suit un tarif en direct (Tibber, Nordpool, aWATTar, …) échantillonné pendant la recharge, de sorte qu'une session traversant un changement de prix est facturée correctement.\n\nL'énergie est mesurée au niveau de la batterie ; elle est donc légèrement inférieure à ce que le réseau a fourni. Si vous avez un compteur, indiquez-le dans **Capteur d'énergie de la borne** — c'est exact. Sinon, vous pouvez majorer le chiffre de vos pertes de recharge ; la valeur reste à 0 % par défaut, car une correction inventée ressemblerait à une mesure.\n\n**Statistiques à long terme** publie l'historique enregistré dans les statistiques propres à Home Assistant, de sorte que les recharges antérieures à l'installation — ou survenues pendant une coupure de Home Assistant — apparaissent tout de même dans le tableau de bord Énergie.",
+        "description": "Convertit les recharges de **{vehicle}** en coûts. Tant qu'aucune source de prix n'est définie, aucune entité de coût n'est créée : un prix faux est pire que pas de prix.",
         "data": {
           "price_mode": "Source du prix",
           "price_fixed": "Prix fixe par kWh",
@@ -189,14 +199,36 @@
           "statistics_import": "Publier dans les statistiques à long terme"
         },
         "data_description": {
-          "price_mode": "Choisissez « Aucune » pour enregistrer les sessions sans les chiffrer.",
+          "price_mode": "Aucune enregistre les sessions sans coût. Prix fixe facture chaque kWh au même tarif ; Entité de prix suit un tarif en direct (Tibber, Nordpool, …) pendant la recharge.",
           "price_fixed": "Utilisé uniquement lorsque la source du prix est « Prix fixe ».",
           "price_entity": "Utilisée uniquement lorsque la source du prix est « Entité de prix ». Son état doit être un prix par kWh.",
           "price_currency": "Code ISO affiché sur les capteurs de coût, p. ex. EUR, GBP, CHF.",
-          "grid_energy_entity": "Facultatif. Le total cumulé d'énergie de votre borne (un compteur qui ne fait qu'augmenter, pas un compteur par session remis à zéro). Wh, kWh et MWh sont pris en charge ; une valeur sans unité est lue comme des kWh. Il n'est lu que pour les recharges dans votre zone Domicile, car le compteur ne sait pas quelle voiture il a chargée. Une valeur réseau mesurée l'emporte toujours sur notre estimation côté batterie — et une valeur impossible, comme un compteur de maison indiquant bien plus que ce que la batterie a absorbé, est ignorée plutôt que crue. Après trois recharges à domicile, il fait aussi avancer l'estimation de l'état de charge pendant que la voiture recharge à domicile.",
-          "charging_loss_percent": "Facultatif. Majore l'énergie côté batterie pour se rapprocher de l'énergie réseau.",
+          "grid_energy_entity": "Facultatif. Le compteur total de votre borne, qui ne fait que monter. Lu uniquement pour les recharges dans votre zone Domicile. Une valeur mesurée l'emporte sur l'estimation côté batterie et affine aussi l'estimation de charge à domicile.",
+          "charging_loss_percent": "Facultatif. L'énergie est mesurée à la batterie, un peu en dessous de ce que le réseau a fourni ; ceci la majore. Laissez 0 si vous avez un compteur de borne.",
           "history_retain_months": "0 conserve tout. Les sessions plus anciennes sont supprimées.",
           "statistics_import": "Reproduit l'énergie, le coût et la distance dans des statistiques que vous pouvez ajouter au tableau de bord Énergie. Reste local ; la désactivation les supprime à nouveau."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Tous les véhicules",
+            "description": "Ces réglages s'appliquent à tous les véhicules de ce compte.",
+            "data": {
+              "price_mode": "Source du prix",
+              "price_fixed": "Prix fixe par kWh",
+              "price_entity": "Entité de prix",
+              "price_currency": "Devise",
+              "history_retain_months": "Conserver l'historique (mois)",
+              "statistics_import": "Publier dans les statistiques à long terme"
+            },
+            "data_description": {
+              "price_mode": "Aucune enregistre les sessions sans coût. Prix fixe facture chaque kWh au même tarif ; Entité de prix suit un tarif en direct (Tibber, Nordpool, …) pendant la recharge.",
+              "price_fixed": "Utilisé uniquement lorsque la source du prix est « Prix fixe ».",
+              "price_entity": "Utilisée uniquement lorsque la source du prix est « Entité de prix ». Son état doit être un prix par kWh.",
+              "price_currency": "Code ISO affiché sur les capteurs de coût, p. ex. EUR, GBP, CHF.",
+              "history_retain_months": "0 conserve tout. Les sessions plus anciennes sont supprimées.",
+              "statistics_import": "Reproduit l'énergie, le coût et la distance dans des statistiques que vous pouvez ajouter au tableau de bord Énergie. Reste local ; la désactivation les supprime à nouveau."
+            }
+          }
         }
       },
       "action_energy_sources": {
@@ -217,9 +249,19 @@
           "price_solar": "Laissez vide pour chiffrer le solaire au prix d'achat. Indiquez votre tarif de rachat pour voir ce qu'une recharge vous a réellement coûté."
         }
       },
+      "bridge_vehicle": {
+        "title": "Passerelle evcc / borne de recharge",
+        "description": "Chaque véhicule peut être publié séparément. Choisissez le véhicule à modifier.",
+        "data": {
+          "vehicle": "Véhicule"
+        },
+        "data_description": {
+          "vehicle": "Les réglages de l'écran suivant s'appliquent uniquement à ce véhicule."
+        }
+      },
       "action_evcc_bridge": {
         "title": "Passerelle evcc / borne de recharge",
-        "description": "Publie l'état en direct de cette voiture sur votre broker MQTT pour qu'un gestionnaire de recharge puisse le lire.\n\nC'est ce que BavarianData offre et qu'evcc, openWB et consorts n'ont pas : un **état de charge issu directement du flux BMW, sans coût d'API**. Leurs propres intégrations BMW interrogent une API constructeur à intervalles réguliers et sont limitées pour cela ; ici, la valeur arrive dès que la voiture la transmet et ne consomme aucune de vos 50 requêtes quotidiennes.\n\nLa publication passe par **l'intégration MQTT de Home Assistant**, elle arrive donc exactement sur le broker qu'evcc lit déjà, sans hôte, port ni mot de passe à saisir ici. L'intégration MQTT doit être configurée au préalable.\n\nPar véhicule, sous `PREFIX/VIN/` : `soc`, `status` (A/B/C d'evcc), `range`, `odometer`, `limitSoc`, `chargePower`, `plugged`, `charging`, `updated`, et `state` sous forme d'un document JSON. **Tout ce que la voiture ne transmet pas n'est pas publié** plutôt qu'envoyé comme zéro — un gestionnaire de recharge agit sur ces chiffres, et un chiffre faux est pire qu'un chiffre manquant. Tout est renvoyé toutes les cinq minutes même sans changement, afin que l'état de charge d'une voiture garée ne devienne jamais obsolète sur le broker.\n\nDésactiver cette option supprime ce qui a été publié, afin que rien ne continue à charger sur la base d'un état de charge figé.\n\nL'écran suivant vous donne la configuration evcc à coller.",
+        "description": "Publie l'état en direct de **{vehicle}** sur votre broker MQTT pour evcc et les gestionnaires de recharge similaires : l'état de charge directement depuis le flux de BMW, sans coût d'API. Nécessite l'intégration MQTT de Home Assistant. La désactivation supprime ce qui a été publié ; l'écran suivant fournit la configuration evcc à coller.",
         "data": {
           "bridge_enabled": "Publier cette voiture sur MQTT",
           "bridge_topic_prefix": "Préfixe des topics",
@@ -228,7 +270,21 @@
         "data_description": {
           "bridge_enabled": "Désactivé par défaut : cela place le VIN et l'état de la voiture sur un broker lisible par d'autres.",
           "bridge_topic_prefix": "Les topics deviennent `PREFIX/VIN/soc` et ainsi de suite. Laissez bavariandata sauf en cas de conflit.",
-          "bridge_retain": "Laissez activé. C'est ce qui permet à evcc de trouver l'état de charge dès son démarrage, au lieu d'attendre que la voiture se manifeste — ce qui peut prendre des heures pour une voiture garée. Ne le désactivez que si votre broker refuse les messages retained."
+          "bridge_retain": "Laissez activé : evcc trouve ainsi l'état de charge dès son démarrage. Désactivez-le uniquement si votre broker refuse les messages retained."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Tous les véhicules",
+            "description": "Ces réglages s'appliquent à tous les véhicules de ce compte.",
+            "data": {
+              "bridge_topic_prefix": "Préfixe des topics",
+              "bridge_retain": "Publier en mode retained"
+            },
+            "data_description": {
+              "bridge_topic_prefix": "Les topics deviennent `PREFIX/VIN/soc` et ainsi de suite. Laissez bavariandata sauf en cas de conflit.",
+              "bridge_retain": "Laissez activé : evcc trouve ainsi l'état de charge dès son démarrage. Désactivez-le uniquement si votre broker refuse les messages retained."
+            }
+          }
         }
       },
       "evcc_snippet": {

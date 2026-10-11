@@ -455,6 +455,11 @@ class CardataCoordinator:
     # setup. Optional: without it the diagnosis is simply not remembered.
     tyre_store: Optional[Any] = None
     pricing: PricingConfig = field(default_factory=PricingConfig)
+    # A car with its own wallbox meter or charging losses (see
+    # ``vehicle_options.py``); every other car uses ``pricing``. Read through
+    # ``pricing_for``. The tariff, currency and energy sources are the
+    # house's, so they are the same in both.
+    vehicle_pricing: Dict[str, PricingConfig] = field(default_factory=dict)
     # Trip recording (roadmap Phase 3). ``geocoder`` is injected/updated from
     # options; optional, degrades quietly.
     geocoder: Optional[Any] = None
@@ -1193,12 +1198,12 @@ class CardataCoordinator:
         # to move the session's running total. ``_grid_meter_step`` advances the
         # billing cursor, so it is called on its own line rather than inline --
         # a side effect buried in an argument list is how one gets called twice.
-        meter_now = self._session_grid_meter_kwh(self._session_builders.get(vin))
+        meter_now = self._session_grid_meter_kwh(vin, self._session_builders.get(vin))
         metered_kwh = self._grid_meter_step(vin, meter_now)
         billable, _source = billable_energy(
             battery_kwh=kwh,
             grid_kwh=metered_kwh,
-            loss_percent=self.pricing.loss_percent,
+            loss_percent=self.pricing_for(vin).loss_percent,
         )
         # One sample of the house's meters serves both the mix and the cost, so
         # the two can never describe different instants.
@@ -1440,7 +1445,7 @@ class CardataCoordinator:
         # hours this session would then not be credited with. The billing cursor
         # starts in the same place, so the very first increment is billed at the
         # meter rather than being skipped for want of a baseline.
-        meter_at_open = self._session_grid_meter_kwh(self._session_builders[vin])
+        meter_at_open = self._session_grid_meter_kwh(vin, self._session_builders[vin])
         self._session_builders[vin].note_grid_meter(meter_at_open)
         if meter_at_open is None:
             self._grid_meter_billed.pop(vin, None)
@@ -1746,7 +1751,7 @@ class CardataCoordinator:
         # One last look at the wallbox meter. The final energy deltas and the
         # close can be minutes apart on a charge that tapers, and those are
         # kilowatt-hours the meter did count.
-        builder.note_grid_meter(self._session_grid_meter_kwh(builder))
+        builder.note_grid_meter(self._session_grid_meter_kwh(vin, builder))
         session = builder.close(
             at or datetime.now(timezone.utc),
             soc_end=self._session_soc_percent(vin),
@@ -1962,6 +1967,11 @@ class CardataCoordinator:
         if starts:
             record["starts"] = list(starts)
         return record
+
+    def pricing_for(self, vin: str) -> PricingConfig:
+        """The pricing in force for ``vin``: its own meter and losses, if any."""
+
+        return self.vehicle_pricing.get(vin, self.pricing)
 
     def trip_settings_for(self, vin: str) -> TripSettings:
         """The trip settings in force for ``vin``."""
@@ -3675,8 +3685,10 @@ class CardataCoordinator:
             return value * 1_000_000.0
         return value
 
-    def _session_grid_meter_kwh(self, builder: Optional[SessionBuilder]) -> Optional[float]:
-        """The wallbox meter as a charge may see it -- ``None`` away from home.
+    def _session_grid_meter_kwh(
+        self, vin: str, builder: Optional[SessionBuilder]
+    ) -> Optional[float]:
+        """``vin``'s wallbox meter as a charge may see it -- ``None`` away from home.
 
         Every read of the meter on behalf of a session goes through here, so the
         location rule in :func:`meter_counts_this_session` cannot be skipped by a
@@ -3688,10 +3700,10 @@ class CardataCoordinator:
             builder.location, self._home_zone_name()
         ):
             return None
-        return self._grid_meter_kwh()
+        return self._grid_meter_kwh(vin)
 
-    def _grid_meter_kwh(self) -> Optional[float]:
-        """The bound wallbox energy meter's cumulative total, in kWh.
+    def _grid_meter_kwh(self, vin: str) -> Optional[float]:
+        """The cumulative total of ``vin``'s wallbox energy meter, in kWh.
 
         The wallbox is the only thing in this integration that can *measure*
         what a charge drew from the grid; everything else derives it. Read as a
@@ -3706,7 +3718,7 @@ class CardataCoordinator:
         and is what an energy sensor without a unit almost always is.
         """
 
-        entity_id = self.pricing.grid_energy_entity
+        entity_id = self.pricing_for(vin).grid_energy_entity
         if not entity_id:
             return None
         state = self.hass.states.get(entity_id)
@@ -4003,7 +4015,7 @@ class CardataCoordinator:
         tracking.follow_meter(
             None
             if learned is None
-            else self._session_grid_meter_kwh(self._session_builders.get(vin)),
+            else self._session_grid_meter_kwh(vin, self._session_builders.get(vin)),
             learned,
             now,
         )
@@ -4034,7 +4046,7 @@ class CardataCoordinator:
             if self._soc_estimate.get(vin) != rounded_percent:
                 self._soc_estimate[vin] = rounded_percent
                 estimate_changed = True
-        eta = self._charge_eta_minutes(tracking)
+        eta = self._charge_eta_minutes(vin, tracking)
         eta_changed = self._charge_eta.get(vin) != eta
         if eta is None:
             self._charge_eta.pop(vin, None)
@@ -4073,7 +4085,7 @@ class CardataCoordinator:
     def get_charge_eta(self, vin: str) -> Optional[int]:
         return self._charge_eta.get(vin)
 
-    def _charge_eta_minutes(self, tracking: SocTracking) -> Optional[int]:
+    def _charge_eta_minutes(self, vin: str, tracking: SocTracking) -> Optional[int]:
         """Minutes to the charge target, for the ``charge_eta`` sensor.
 
         Nothing without a bound wallbox meter: the figure is the meter's, and
@@ -4084,7 +4096,7 @@ class CardataCoordinator:
         own figure (:meth:`SocTracking.minutes_to_target`).
         """
 
-        if not self.pricing.grid_energy_entity:
+        if not self.pricing_for(vin).grid_energy_entity:
             return None
         if not (tracking.charging_active or tracking.restored_charging):
             return 0
@@ -4094,7 +4106,7 @@ class CardataCoordinator:
     def learned_meter_rate(self, vin: str) -> Optional[MeterRate]:
         """What wallbox kWh do to this car's SoC, from its home charges in the ledger."""
 
-        if self.history is None or not self.pricing.grid_energy_entity:
+        if self.history is None or not self.pricing_for(vin).grid_energy_entity:
             return None
         return meter_rate(self.history.sessions(vin), self._home_zone_name())
 
@@ -4104,9 +4116,9 @@ class CardataCoordinator:
         Every condition is one the meter itself cannot check, because nothing
         it reports says which car it charged: this car must be charging, not
         reporting its cable out, at home by the ledger's own rule
-        (:func:`meter_counts_this_session`), and the only car of this entry
-        charging -- with two, the meter's advance is both of theirs and neither
-        may claim it. The cable check is for a charging status BMW forgot to
+        (:func:`meter_counts_this_session`), and the only car charging on its
+        meter -- with two on one meter, its advance is both of theirs and
+        neither may claim it. Cars with a meter each don't get in each other's way. The cable check is for a charging status BMW forgot to
         end: unplugged, the car cannot be what the wallbox is charging. Anything
         else, and the stream drives exactly as it did before a meter was bound.
         """
@@ -4116,9 +4128,12 @@ class CardataCoordinator:
             return None
         if self._plug_state(vin) is False:
             return None
+        meter = self.pricing_for(vin).grid_energy_entity
         for other, other_tracking in self._soc_tracking.items():
-            if other != vin and (
-                other_tracking.charging_active or other_tracking.restored_charging
+            if (
+                other != vin
+                and (other_tracking.charging_active or other_tracking.restored_charging)
+                and self.pricing_for(other).grid_energy_entity == meter
             ):
                 return None
         builder = self._session_builders.get(vin)
@@ -4136,7 +4151,7 @@ class CardataCoordinator:
         (see :meth:`restore_soc_cache`).
         """
 
-        if not self.pricing.grid_energy_entity:
+        if not self.pricing_for(vin).grid_energy_entity:
             return {}
         tracking = self._soc_tracking.get(vin)
         learned = self.learned_meter_rate(vin)

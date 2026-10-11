@@ -19,6 +19,7 @@ from typing import Any, Optional
 
 # The option keys are read here and written by the options flow; sharing the
 # constants keeps a rename from silently reverting everyone to the defaults.
+from ..vehicle_options import CHARGING_OPTIONS, cars_with_own
 from ..const import (
     OPTION_BATTERY_POWER_ENTITY,
     OPTION_BATTERY_POWER_INVERT,
@@ -113,6 +114,20 @@ class PricingConfig:
             battery_power_invert=bool(options.get(OPTION_BATTERY_POWER_INVERT)),
             solar_price=_float(OPTION_PRICE_SOLAR),
         )
+
+
+def vehicle_pricing(options: dict[str, Any]) -> dict[str, PricingConfig]:
+    """The pricing of each car with its own wallbox meter or losses, by VIN.
+
+    Only those two are per car (``vehicle_options.CHARGING_OPTIONS``); the
+    tariff, currency and energy sources are the house's and come from the
+    account-wide keys as before.
+    """
+
+    return {
+        vin: PricingConfig.from_options({**options, **own})
+        for vin, own in cars_with_own(options, CHARGING_OPTIONS).items()
+    }
 
 
 @dataclass

@@ -111,7 +111,7 @@ from .history.export import (
     trips_csv,
 )
 from .history.geocoding import ReverseGeocoder
-from .history.pricing import MODE_FIXED, PricingConfig, fixed_cost
+from .history.pricing import MODE_FIXED, PricingConfig, fixed_cost, vehicle_pricing
 from .history.store import HistoryStore
 from .history.summary import (
     driving_summary,
@@ -609,6 +609,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     # restart does, so a long one ends with the same catch-up.
     coordinator.on_reconnect_after_outage = partial(_async_on_reconnect, hass, entry)
     coordinator.pricing = PricingConfig.from_options(options)
+    coordinator.vehicle_pricing = vehicle_pricing(options)
     # A charge that was still running when we last stopped is picked up here --
     # after the tariff is known (the restored cost is only kept if its currency
     # still matches) and before the platforms load, so the session-energy sensor
@@ -1434,7 +1435,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             metadata = coordinator.device_metadata.get(vin, {})
             return {
                 "vin": vin,
-                "enabled": config.enabled,
+                "enabled": config.publishes(vin),
                 # Stated plainly: the snippet is useless without a broker, and
                 # this is the one thing a user cannot tell from the YAML itself.
                 "mqtt_available": bridge is not None and bridge.available(),
@@ -2079,7 +2080,7 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         # their service dates, so it goes with everything else.
         await TyreStore(hass, entry.entry_id).async_clear()
     bridge_config = BridgeConfig.from_options(dict(entry.options))
-    if bridge_config.enabled:
+    if bridge_config.any_enabled:
         with suppress(Exception):
             # ...and anything the evcc bridge published. Retained MQTT messages
             # are held by the broker, not by us, so they are the one thing this

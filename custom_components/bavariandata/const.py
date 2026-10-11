@@ -122,7 +122,7 @@ OPTION_TRIP_DEBUG = "trip_debug"
 # Only an account with more than one car writes here: a car with no entry of its
 # own uses the account-wide keys, which is what a single-car account keeps
 # editing -- so a second car added later starts from the settings already in use.
-# Which keys may live here is ``trip_settings.PER_VEHICLE_TRIP_OPTIONS``.
+# Which keys may live here, and the rules, are in ``vehicle_options.py``.
 OPTION_VEHICLES = "vehicles"
 
 # Statistics backfill (roadmap Phase 4). On by default: it writes only into this

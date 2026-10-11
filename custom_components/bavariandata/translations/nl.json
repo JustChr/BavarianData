@@ -175,9 +175,19 @@
         "title": "Voertuigafbeelding ophalen",
         "description": "Haal de huidige voertuigafbeelding van je voertuigen op.\n\nDruk op Verzenden om door te gaan."
       },
+      "charging_vehicle": {
+        "title": "Laadkosten en -geschiedenis",
+        "description": "Elk voertuig heeft een eigen laadpaalmeter en eigen laadverliezen; de prijs geldt voor allemaal. Kies het voertuig dat je wilt wijzigen.",
+        "data": {
+          "vehicle": "Voertuig"
+        },
+        "data_description": {
+          "vehicle": "De instellingen op het volgende scherm gelden alleen voor dit voertuig."
+        }
+      },
       "action_charging_costs": {
         "title": "Laadkosten en -geschiedenis",
-        "description": "Zet geregistreerde laadbeurten om in geld. Zolang er geen prijsbron is ingesteld, worden er helemaal geen kostenentiteiten aangemaakt — een verkeerde prijs is erger dan geen prijs.\n\n**Vaste prijs** rekent elke kWh tegen één tarief af. **Prijsentiteit** volgt een live tarief (Tibber, Nordpool, aWATTar, …) en wordt bemonsterd terwijl de auto laadt, zodat een sessie over een prijswijziging heen correct wordt afgerekend.\n\nEnergie wordt gemeten bij de accu en is dus iets minder dan wat het net heeft geleverd. Wijs **Energiesensor laadpaal** toe aan een meter als je die hebt — dat is exact. Anders kun je het getal ophogen met je laadverliezen; dat blijft standaard op 0 %, omdat een verzonnen correctie op een meting zou lijken.\n\n**Langetermijnstatistieken** publiceert de geregistreerde geschiedenis in de eigen statistieken van Home Assistant, zodat laadbeurten van vóór de installatie — of van toen Home Assistant uit stond — toch in het Energie-dashboard verschijnen.",
+        "description": "Zet het laden van **{vehicle}** om in kosten. Zolang er geen prijsbron is ingesteld, worden er geen kostenentiteiten gemaakt: een verkeerde prijs is erger dan geen.",
         "data": {
           "price_mode": "Prijsbron",
           "price_fixed": "Vaste prijs per kWh",
@@ -189,14 +199,36 @@
           "statistics_import": "Publiceren naar langetermijnstatistieken"
         },
         "data_description": {
-          "price_mode": "Kies 'Geen' om sessies te registreren zonder ze te beprijzen.",
+          "price_mode": "Geen legt sessies vast zonder kosten. Vaste prijs rekent elke kWh tegen één tarief; Prijsentiteit volgt een live tarief (Tibber, Nordpool, …) terwijl de auto laadt.",
           "price_fixed": "Alleen gebruikt als de prijsbron 'Vaste prijs' is.",
           "price_entity": "Alleen gebruikt als de prijsbron 'Prijsentiteit' is. De status moet een prijs per kWh zijn.",
           "price_currency": "ISO-code die op de kostensensoren wordt getoond, bijv. EUR, GBP, CHF.",
-          "grid_energy_entity": "Optioneel. Het cumulatieve energietotaal van je laadpaal (een dat alleen oploopt, geen teller per sessie die terugspringt). Wh, kWh en MWh worden ondersteund; zonder eenheid wordt kWh aangenomen. Wordt alleen gelezen voor laadbeurten in je Thuis-zone, omdat de meter niet weet welke auto hij laadde. Een gemeten netwaarde wint altijd van onze schatting aan de accukant — en een die niet kan kloppen, zoals een huismeter die veel meer aangeeft dan de accu opnam, wordt genegeerd in plaats van geloofd. Na drie laadbeurten thuis stuurt hij ook de geschatte laadtoestand terwijl de auto thuis laadt.",
-          "charging_loss_percent": "Optioneel. Hoogt de energie aan de accukant op richting de netenergie.",
+          "grid_energy_entity": "Optioneel. De totaalteller van je laadpaal, die alleen oploopt. Wordt alleen gelezen voor laadsessies in je zone Thuis. Een gemeten waarde gaat voor de schatting aan accuzijde en verbetert ook de laadschatting thuis.",
+          "charging_loss_percent": "Optioneel. Energie wordt aan de accu gemeten, iets onder wat het net leverde; dit rekent ze op. Laat op 0 staan als je een laadpaalmeter hebt.",
           "history_retain_months": "0 bewaart alles. Oudere sessies worden verwijderd.",
           "statistics_import": "Spiegelt energie, kosten en afstand naar statistieken die je aan het Energie-dashboard kunt toevoegen. Blijft lokaal; uitzetten verwijdert ze weer."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Alle voertuigen",
+            "description": "Deze instellingen gelden voor alle voertuigen van dit account.",
+            "data": {
+              "price_mode": "Prijsbron",
+              "price_fixed": "Vaste prijs per kWh",
+              "price_entity": "Prijsentiteit",
+              "price_currency": "Valuta",
+              "history_retain_months": "Geschiedenis bewaren (maanden)",
+              "statistics_import": "Publiceren naar langetermijnstatistieken"
+            },
+            "data_description": {
+              "price_mode": "Geen legt sessies vast zonder kosten. Vaste prijs rekent elke kWh tegen één tarief; Prijsentiteit volgt een live tarief (Tibber, Nordpool, …) terwijl de auto laadt.",
+              "price_fixed": "Alleen gebruikt als de prijsbron 'Vaste prijs' is.",
+              "price_entity": "Alleen gebruikt als de prijsbron 'Prijsentiteit' is. De status moet een prijs per kWh zijn.",
+              "price_currency": "ISO-code die op de kostensensoren wordt getoond, bijv. EUR, GBP, CHF.",
+              "history_retain_months": "0 bewaart alles. Oudere sessies worden verwijderd.",
+              "statistics_import": "Spiegelt energie, kosten en afstand naar statistieken die je aan het Energie-dashboard kunt toevoegen. Blijft lokaal; uitzetten verwijdert ze weer."
+            }
+          }
         }
       },
       "action_energy_sources": {
@@ -217,9 +249,19 @@
           "price_solar": "Laat leeg om zonnestroom tegen de afnameprijs te waarderen. Vul je terugleververgoeding in om te zien wat een laadbeurt je echt kostte."
         }
       },
+      "bridge_vehicle": {
+        "title": "evcc-/laadpaalbrug",
+        "description": "Elk voertuig kan apart gepubliceerd worden. Kies het voertuig dat je wilt wijzigen.",
+        "data": {
+          "vehicle": "Voertuig"
+        },
+        "data_description": {
+          "vehicle": "De instellingen op het volgende scherm gelden alleen voor dit voertuig."
+        }
+      },
       "action_evcc_bridge": {
         "title": "evcc-/laadpaalbrug",
-        "description": "Publiceer de live status van deze auto op je MQTT-broker zodat een laadregelaar die kan lezen.\n\nDit is het enige wat BavarianData heeft en evcc, openWB en consorten niet: een **laadtoestand rechtstreeks uit de stream van BMW, zonder API-kosten**. Hun eigen BMW-integraties vragen periodiek een fabrikant-API op en worden daarvoor begrensd; dit komt binnen zodra de auto het meldt en kost geen van je 50 dagelijkse verzoeken.\n\nPublicatie verloopt via **de MQTT-integratie van Home Assistant**, dus het komt precies op de broker die evcc al leest en je hoeft hier geen host, poort of wachtwoord in te vullen. De MQTT-integratie moet eerst zijn ingesteld.\n\nPer voertuig, onder `PREFIX/VIN/`: `soc`, `status` (A/B/C van evcc), `range`, `odometer`, `limitSoc`, `chargePower`, `plugged`, `charging`, `updated`, en `state` als één JSON-document. **Wat de auto niet meldt, wordt niet gepubliceerd** in plaats van als nul verstuurd — een laadregelaar handelt op deze getallen, dus een verkeerd getal is erger dan een ontbrekend. Alles wordt elke vijf minuten opnieuw verstuurd, ook als het niet verandert, zodat de laadtoestand van een geparkeerde auto nooit verouderd raakt op de broker.\n\nDit weer uitzetten verwijdert wat is gepubliceerd, zodat niets blijft laden op basis van een bevroren laadtoestand.\n\nHet volgende scherm geeft je de evcc-configuratie om te plakken.",
+        "description": "Publiceert de live status van **{vehicle}** op je MQTT-broker voor evcc en vergelijkbare laadregelaars: de laadtoestand rechtstreeks uit BMW's stream, zonder API-kosten. Vereist de MQTT-integratie van Home Assistant. Uitzetten verwijdert wat gepubliceerd was; het volgende scherm geeft de evcc-configuratie om te plakken.",
         "data": {
           "bridge_enabled": "Deze auto naar MQTT publiceren",
           "bridge_topic_prefix": "Topic-voorvoegsel",
@@ -228,7 +270,21 @@
         "data_description": {
           "bridge_enabled": "Standaard uit: het zet de VIN en de status van de auto op een broker die anderen kunnen lezen.",
           "bridge_topic_prefix": "Topics worden `PREFIX/VIN/soc` enzovoort. Laat het op bavariandata staan, tenzij het ergens mee botst.",
-          "bridge_retain": "Laat dit aan. Hierdoor vindt evcc de laadtoestand zodra het start, in plaats van te wachten tot de auto weer iets zegt — wat bij een geparkeerde auto uren kan duren. Zet het alleen uit als je broker retained-berichten weigert."
+          "bridge_retain": "Laat dit aan: zo vindt evcc de laadtoestand zodra het start. Zet het alleen uit als je broker retained-berichten weigert."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Alle voertuigen",
+            "description": "Deze instellingen gelden voor alle voertuigen van dit account.",
+            "data": {
+              "bridge_topic_prefix": "Topic-voorvoegsel",
+              "bridge_retain": "Retained publiceren"
+            },
+            "data_description": {
+              "bridge_topic_prefix": "Topics worden `PREFIX/VIN/soc` enzovoort. Laat het op bavariandata staan, tenzij het ergens mee botst.",
+              "bridge_retain": "Laat dit aan: zo vindt evcc de laadtoestand zodra het start. Zet het alleen uit als je broker retained-berichten weigert."
+            }
+          }
         }
       },
       "evcc_snippet": {

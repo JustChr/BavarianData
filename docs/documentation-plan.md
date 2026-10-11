@@ -152,8 +152,10 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `action_fetch_location_charging` | Fetch location charging settings | 🟡 | — |
 | `action_fetch_image` | Fetch vehicle image | 🟡 | — |
 | `action_data_refresh` | Automatic data refresh | 🟢 Settings-Reference → "Automatic data refresh" | 📷 |
-| `action_charging_costs` | Charging costs & history | 🟡 | 📷 |
-| `action_evcc_bridge` | evcc / wallbox bridge | 🟢 Feature-evcc-and-Wallbox-Bridge + Settings-Reference → "evcc / wallbox bridge" | 📷 **owed** — needs the build installed |
+| `charging_vehicle` | Charging costs: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Charging costs & history" + Feature-Multiple-Cars-and-Accounts (EN + DE) | 📷 **owed** — stage it with `.claude/skills/flow-ux/mock_flow.js` |
+| `action_charging_costs` | Charging costs & history (per car with 2+ cars: meter and losses; price etc. in "All vehicles") | 🟡 | 📷 |
+| `bridge_vehicle` | evcc bridge: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "evcc / wallbox bridge" + Feature-Multiple-Cars-and-Accounts (EN + DE) | 📷 **owed** — stage it with `.claude/skills/flow-ux/mock_flow.js` |
+| `action_evcc_bridge` | evcc / wallbox bridge (per car with 2+ cars: publish on/off; prefix and retained in "All vehicles") | 🟢 Feature-evcc-and-Wallbox-Bridge + Settings-Reference → "evcc / wallbox bridge" | 📷 **owed** — needs the build installed |
 | `evcc_snippet` | evcc configuration (generated, paste-ready) | 🟢 Feature-evcc-and-Wallbox-Bridge → "Setting it up" | 📷 **owed** — needs the build installed |
 | `trips_vehicle` | Trips: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Trips" + Feature-Multiple-Cars-and-Accounts → "Telling the cars apart" (EN + DE) | 📷 **owed** — stage it with `.claude/skills/flow-ux/mock_flow.js` (no second car needed) |
 | `action_trips` | Trips (per car with 2+ cars; shared settings in the collapsed "All vehicles" section) | 🟡 | 📷 |
@@ -182,7 +184,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `trip_track` (route recording) | Trips | ✅ |
 | `trip_detection` (live / end-of-trip reports) | Trips | 🟢 Settings-Reference + Feature-Trips → "Older cars…" (EN + DE), screenshot `bavariandata-configure-trip-detection.png` |
 | `trip_debug` (trip-capture diagnostics) | Trips | ✅ |
-| `vehicles` (per-car trip settings, by VIN) | Trips | 🟢 Settings-Reference → "Trips" (EN + DE) |
+| `vehicles` (per-car settings by VIN: trips, wallbox meter + losses, evcc publish) | Trips, Charging costs, evcc bridge | 🟢 Settings-Reference → "Trips", "Charging costs & history", "evcc / wallbox bridge" (EN + DE) |
 | `debug_log` | Debug logging | 🟡 |
 | `mqtt_keepalive` (hidden override) | — | ❌ |
 | `diagnostic_log_interval` (hidden override) | — | ❌ |

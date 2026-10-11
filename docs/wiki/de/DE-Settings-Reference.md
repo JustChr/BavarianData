@@ -79,6 +79,13 @@ beendet abgelegt — siehe [Neustart während das Auto lädt](DE-Feature-Chargin
 Bildschirm: **Konfigurieren → Ladekosten & Verlauf**. Die Konzepte stehen unter
 [Ladeverlauf & Kosten](DE-Feature-Charging-History-and-Cost).
 
+**Mehrere Fahrzeuge im Konto?** Der Bildschirm fragt zuerst nach dem Fahrzeug.
+Jedes Auto behält seinen eigenen **Wallbox-Energiesensor** und seine eigenen
+**Ladeverluste**: Zwei Autos können an zwei Wallboxen laden, über zwei
+verschiedene Ladegeräte. Preis, Währung, Verlauf und Statistiken gelten für
+alle Autos; sie stehen im Abschnitt **Alle Fahrzeuge** unter den Einstellungen
+des Autos. Mit nur einem Auto gibt es keine Fahrzeugabfrage.
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-charging-costs.png" alt="Einstellungen Ladekosten & Verlauf: Preisquelle, fester Preis, Preis-Entität, Währung, Wallbox-Energiesensor, Ladeverluste und Aufbewahrung" width="460" />
 </p>
@@ -127,6 +134,12 @@ Template-Sensor nicht angeboten, gib ihm `device_class: power` (und eine
 
 Bildschirm: **Konfigurieren → evcc-/Wallbox-Brücke**. Konzepte, Topic-Tabelle und
 Fehlerbehebung stehen unter [evcc- & Wallbox-Brücke](DE-Feature-evcc-and-Wallbox-Bridge).
+
+**Mehrere Fahrzeuge im Konto?** Der Bildschirm fragt zuerst nach dem Fahrzeug,
+und **Dieses Auto per MQTT veröffentlichen** gilt je Auto, sodass ein Auto, das
+woanders lädt, samt FIN vom Broker fernbleiben kann. Schaltest du ein Auto aus,
+werden seine Topics entfernt. **Topic-Prefix** und **Mit Retain veröffentlichen**
+gelten für alle Autos, im eingeklappten Abschnitt **Alle Fahrzeuge**.
 
 Veröffentlicht den Live-Zustand des Autos auf deinem MQTT-Broker, sodass evcc, openWB
 oder ein Node-RED-Flow einen Ladezustand lesen kann, der kein

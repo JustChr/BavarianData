@@ -10,8 +10,21 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [Unreleased]
 
 ### Changed
+- **The wallbox meter, charging losses and evcc publishing are now per car too.**
+  With more than one car on the account, **Configure → Charging costs & history**
+  and **Configure → evcc / wallbox bridge** first ask which vehicle. Each car can
+  have its own wallbox meter, so two cars charging at once at two wallboxes each
+  follow their own meter; two cars sharing one meter still leave it to neither.
+  A car charged elsewhere can stay off the MQTT broker, and switching one car off
+  removes its topics. The price and the bridge's topic settings stay shared.
+  Both screens have much shorter descriptions; the details moved under the
+  fields they belong to. Single-car accounts keep their settings unchanged.
 - **The vehicle question under Configure → Trips now says *Next*,** not *Submit*:
   nothing is saved until you submit the car's own settings.
+
+### Fixed
+- **Clearing the wallbox energy sensor under Configure → Charging costs now
+  clears it.** The old meter stayed bound.
 
 ## [0.9.18-beta.1] - 2026-10-11
 

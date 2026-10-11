@@ -175,9 +175,19 @@
         "title": "Načíst obrázek vozidla",
         "description": "Načte aktuální obrázek vašich vozidel.\n\nStiskněte Odeslat pro pokračování."
       },
+      "charging_vehicle": {
+        "title": "Náklady a historie nabíjení",
+        "description": "Každé vozidlo má vlastní měřič wallboxu a vlastní ztráty nabíjení; cena platí pro všechna. Vyberte vozidlo, které chcete změnit.",
+        "data": {
+          "vehicle": "Vozidlo"
+        },
+        "data_description": {
+          "vehicle": "Nastavení na další obrazovce platí pouze pro toto vozidlo."
+        }
+      },
       "action_charging_costs": {
         "title": "Náklady a historie nabíjení",
-        "description": "Převádí zaznamenaná nabíjení na peníze. Dokud není nastaven zdroj ceny, nevytvoří se žádné entity nákladů — špatná cena je horší než žádná.\n\n**Pevná cena** účtuje každou kWh stejnou sazbou. **Entita ceny** sleduje živý tarif (Tibber, Nordpool, aWATTar, …) vzorkovaný během nabíjení, takže relace přes změnu ceny se vyúčtuje správně.\n\nEnergie se měří u baterie, takže je o něco menší, než kolik dodala síť. Pokud máte elektroměr, nastavte ho v **Senzor energie wallboxu** — to je přesné. Jinak můžete hodnotu navýšit o ztráty nabíjení; ve výchozím stavu zůstávají 0 %, protože vymyšlená korekce by vypadala jako měření.\n\n**Dlouhodobé statistiky** publikuje zaznamenanou historii do vlastních statistik Home Assistant, takže nabíjení z doby před instalací — nebo z doby, kdy byl Home Assistant vypnutý — se přesto objeví na panelu Energie.",
+        "description": "Převádí nabíjení **{vehicle}** na náklady. Dokud není nastaven zdroj ceny, nevznikají žádné entity nákladů: špatná cena je horší než žádná.",
         "data": {
           "price_mode": "Zdroj ceny",
           "price_fixed": "Pevná cena za kWh",
@@ -189,14 +199,36 @@
           "statistics_import": "Publikovat do dlouhodobých statistik"
         },
         "data_description": {
-          "price_mode": "Zvolte 'Žádný' pro záznam relací bez výpočtu nákladů.",
+          "price_mode": "Žádný zaznamenává relace bez nákladů. Pevná cena účtuje každou kWh jednou sazbou; Entita ceny sleduje živý tarif (Tibber, Nordpool, …) během nabíjení.",
           "price_fixed": "Použije se jen tehdy, když je zdrojem ceny 'Pevná cena'.",
           "price_entity": "Použije se jen tehdy, když je zdrojem ceny 'Entita ceny'. Její stav musí být cena za kWh.",
           "price_currency": "Kód ISO zobrazený u senzorů nákladů, např. EUR, GBP, CHF, CZK.",
-          "grid_energy_entity": "Volitelné. Kumulativní součet energie vašeho wallboxu (takový, který jen roste, ne počítadlo za relaci, které se nuluje). Podporovány jsou Wh, kWh a MWh; bez jednotky se čte jako kWh. Čte se jen pro nabíjení ve vaší zóně Domov, protože elektroměr neví, které auto nabíjel. Naměřená hodnota ze sítě vždy vítězí nad naším odhadem na straně baterie — a hodnota, která nemůže být pravdivá, například domovní elektroměr ukazující mnohem víc, než baterie přijala, se ignoruje místo toho, aby se jí věřilo. Po třech nabíjeních doma také řídí odhad stavu nabití, zatímco auto nabíjí doma.",
-          "charging_loss_percent": "Volitelné. Navyšuje energii na straně baterie směrem k energii ze sítě.",
+          "grid_energy_entity": "Volitelné. Celkový čítač vašeho wallboxu, který jen přibývá. Čte se jen pro nabíjení v zóně Domov. Naměřená hodnota má přednost před odhadem na straně baterie a zpřesňuje i odhad nabití doma.",
+          "charging_loss_percent": "Volitelné. Energie se měří na baterii, o něco méně, než dodala síť; toto ji navýší. Máte-li měřič wallboxu, nechte 0.",
           "history_retain_months": "0 uchová vše. Starší relace se zahazují.",
           "statistics_import": "Zrcadlí energii, náklady a vzdálenost do statistik, které můžete přidat na panel Energie. Zůstává lokálně; vypnutí je opět smaže."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Všechna vozidla",
+            "description": "Tato nastavení platí pro všechna vozidla tohoto účtu.",
+            "data": {
+              "price_mode": "Zdroj ceny",
+              "price_fixed": "Pevná cena za kWh",
+              "price_entity": "Entita ceny",
+              "price_currency": "Měna",
+              "history_retain_months": "Uchovávat historii (měsíce)",
+              "statistics_import": "Publikovat do dlouhodobých statistik"
+            },
+            "data_description": {
+              "price_mode": "Žádný zaznamenává relace bez nákladů. Pevná cena účtuje každou kWh jednou sazbou; Entita ceny sleduje živý tarif (Tibber, Nordpool, …) během nabíjení.",
+              "price_fixed": "Použije se jen tehdy, když je zdrojem ceny 'Pevná cena'.",
+              "price_entity": "Použije se jen tehdy, když je zdrojem ceny 'Entita ceny'. Její stav musí být cena za kWh.",
+              "price_currency": "Kód ISO zobrazený u senzorů nákladů, např. EUR, GBP, CHF, CZK.",
+              "history_retain_months": "0 uchová vše. Starší relace se zahazují.",
+              "statistics_import": "Zrcadlí energii, náklady a vzdálenost do statistik, které můžete přidat na panel Energie. Zůstává lokálně; vypnutí je opět smaže."
+            }
+          }
         }
       },
       "action_energy_sources": {
@@ -217,9 +249,19 @@
           "price_solar": "Nechte prázdné pro ocenění soláru nákupní cenou. Nastavte výkupní cenu, abyste viděli, kolik vás nabíjení skutečně stálo."
         }
       },
+      "bridge_vehicle": {
+        "title": "Most evcc / wallbox",
+        "description": "Každé vozidlo lze publikovat samostatně. Vyberte vozidlo, které chcete změnit.",
+        "data": {
+          "vehicle": "Vozidlo"
+        },
+        "data_description": {
+          "vehicle": "Nastavení na další obrazovce platí pouze pro toto vozidlo."
+        }
+      },
       "action_evcc_bridge": {
         "title": "Most evcc / wallbox",
-        "description": "Publikuje živý stav tohoto auta na váš MQTT broker, aby jej mohl číst řadič nabíjení.\n\nTo je jediná věc, kterou BavarianData má a evcc, openWB a spol. ne: **stav nabití přímo ze streamu BMW, bez nákladů na API**. Jejich vlastní integrace BMW periodicky dotazují API výrobce a jsou za to omezovány; zde hodnota dorazí, jakmile ji auto nahlásí, a nespotřebuje žádný z vašich 50 denních požadavků.\n\nPublikuje přes **integraci MQTT v Home Assistant**, takže dorazí přesně na broker, který evcc už čte, a není třeba zde zadávat hostitele, port ani heslo. Nejprve musíte mít nastavenou integraci MQTT.\n\nPro každé vozidlo pod `PREFIX/VIN/`: `soc`, `status` (A/B/C v evcc), `range`, `odometer`, `limitSoc`, `chargePower`, `plugged`, `charging`, `updated` a `state` jako jeden dokument JSON. **Co auto nehlásí, se nepublikuje**, místo odeslání nuly — řadič nabíjení jedná podle těchto čísel, takže chybné je horší než chybějící. Vše se znovu odesílá každých pět minut i beze změny, takže stav nabití zaparkovaného auta na brokeru nikdy nezastará.\n\nOpětovné vypnutí odstraní, co bylo publikováno, aby se nic dál nenabíjelo podle zamrzlého stavu nabití.\n\nNa další obrazovce dostanete konfiguraci evcc ke vložení.",
+        "description": "Publikuje živý stav **{vehicle}** do vašeho MQTT brokeru pro evcc a podobné regulátory nabíjení: stav nabití přímo ze streamu BMW, bez nákladů na API. Vyžaduje integraci MQTT v Home Assistantu. Vypnutí odstraní, co bylo publikováno; další obrazovka obsahuje konfiguraci evcc ke vložení.",
         "data": {
           "bridge_enabled": "Publikovat toto auto do MQTT",
           "bridge_topic_prefix": "Prefix témat",
@@ -228,7 +270,21 @@
         "data_description": {
           "bridge_enabled": "Ve výchozím stavu vypnuto: umístí VIN a stav auta na broker, který mohou číst i jiné systémy.",
           "bridge_topic_prefix": "Témata budou `PREFIX/VIN/soc` a tak dále. Ponechte bavariandata, pokud to s něčím nekoliduje.",
-          "bridge_retain": "Ponechte zapnuté. Díky tomu evcc najde stav nabití hned po spuštění, místo aby čekalo, až auto něco řekne — což u zaparkovaného auta může trvat hodiny. Vypněte jen tehdy, pokud váš broker odmítá retained zprávy."
+          "bridge_retain": "Nechte zapnuté: evcc tak zná stav nabití hned po startu. Vypněte jen tehdy, když váš broker odmítá zprávy retained."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Všechna vozidla",
+            "description": "Tato nastavení platí pro všechna vozidla tohoto účtu.",
+            "data": {
+              "bridge_topic_prefix": "Prefix témat",
+              "bridge_retain": "Publikovat jako retained"
+            },
+            "data_description": {
+              "bridge_topic_prefix": "Témata budou `PREFIX/VIN/soc` a tak dále. Ponechte bavariandata, pokud to s něčím nekoliduje.",
+              "bridge_retain": "Nechte zapnuté: evcc tak zná stav nabití hned po startu. Vypněte jen tehdy, když váš broker odmítá zprávy retained."
+            }
+          }
         }
       },
       "evcc_snippet": {

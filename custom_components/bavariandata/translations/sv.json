@@ -175,9 +175,19 @@
         "title": "Hämta fordonsbild",
         "description": "Hämta den aktuella fordonsbilden för dina fordon.\n\nTryck på Skicka för att fortsätta."
       },
+      "charging_vehicle": {
+        "title": "Laddkostnader och historik",
+        "description": "Varje fordon har sin egen laddboxmätare och egna laddförluster; priset gäller alla. Välj det fordon du vill ändra.",
+        "data": {
+          "vehicle": "Fordon"
+        },
+        "data_description": {
+          "vehicle": "Inställningarna på nästa skärm gäller bara det här fordonet."
+        }
+      },
       "action_charging_costs": {
         "title": "Laddkostnader och historik",
-        "description": "Gör om registrerade laddningar till pengar. Så länge ingen priskälla är inställd skapas inga kostnadsentiteter alls — ett felaktigt pris är värre än inget.\n\n**Fast pris** debiterar varje kWh till samma taxa. **Prisentitet** följer en realtidstaxa (Tibber, Nordpool, aWATTar, …) som samplas medan bilen laddar, så en session som sträcker sig över en prisändring debiteras korrekt.\n\nEnergin mäts vid batteriet och är därför något mindre än vad elnätet levererade. Peka **Laddboxens energisensor** mot en mätare om du har en — den är exakt. Annars kan du räkna upp värdet med dina laddförluster; det ligger på 0 % som standard, eftersom en påhittad korrigering skulle se ut som en mätning.\n\n**Långtidsstatistik** publicerar den registrerade historiken i Home Assistants egen statistik, så att laddningar från före installationen — eller från när Home Assistant var nere — ändå syns i energipanelen.",
+        "description": "Gör om laddningen av **{vehicle}** till kostnader. Tills en priskälla är vald skapas inga kostnadsentiteter: ett felaktigt pris är värre än inget.",
         "data": {
           "price_mode": "Priskälla",
           "price_fixed": "Fast pris per kWh",
@@ -189,14 +199,36 @@
           "statistics_import": "Publicera till långtidsstatistik"
         },
         "data_description": {
-          "price_mode": "Välj 'Ingen' för att registrera sessioner utan att prissätta dem.",
+          "price_mode": "Ingen registrerar sessioner utan kostnad. Fast pris debiterar varje kWh med ett pris; Prisentitet följer en live-tariff (Tibber, Nordpool, …) medan bilen laddar.",
           "price_fixed": "Används bara när priskällan är 'Fast pris'.",
           "price_entity": "Används bara när priskällan är 'Prisentitet'. Dess tillstånd måste vara ett pris per kWh.",
           "price_currency": "ISO-kod som visas på kostnadssensorerna, t.ex. EUR, GBP, CHF, SEK.",
-          "grid_energy_entity": "Valfritt. Laddboxens ackumulerade energisumma (en som bara räknar uppåt, inte en räknare per session som nollställs). Wh, kWh och MWh hanteras; utan enhet tolkas den som kWh. Den läses bara för laddningar i din Hem-zon, eftersom mätaren inte vet vilken bil den laddade. Ett uppmätt nätvärde vinner alltid över vår uppskattning på batterisidan — och ett som inte kan stämma, som en husmätare som visar långt mer än batteriet tog emot, ignoreras i stället för att tros på. Efter tre laddningar hemma driver den också den uppskattade laddnivån medan bilen laddar hemma.",
-          "charging_loss_percent": "Valfritt. Räknar upp energin på batterisidan mot nätenergin.",
+          "grid_energy_entity": "Valfritt. Laddboxens totalmätare, en som bara räknar uppåt. Läses bara för laddningar i din zon Hem. Ett uppmätt värde går före uppskattningen på batterisidan och skärper även laddningsuppskattningen hemma.",
+          "charging_loss_percent": "Valfritt. Energin mäts vid batteriet, något under vad elnätet levererade; detta räknar upp den. Låt stå på 0 om du har en laddboxmätare.",
           "history_retain_months": "0 behåller allt. Äldre sessioner kasseras.",
           "statistics_import": "Speglar energi, kostnad och sträcka i statistik som du kan lägga till i energipanelen. Stannar lokalt; om du stänger av det raderas den igen."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Alla fordon",
+            "description": "Dessa inställningar gäller alla fordon på det här kontot.",
+            "data": {
+              "price_mode": "Priskälla",
+              "price_fixed": "Fast pris per kWh",
+              "price_entity": "Prisentitet",
+              "price_currency": "Valuta",
+              "history_retain_months": "Behåll historik i (månader)",
+              "statistics_import": "Publicera till långtidsstatistik"
+            },
+            "data_description": {
+              "price_mode": "Ingen registrerar sessioner utan kostnad. Fast pris debiterar varje kWh med ett pris; Prisentitet följer en live-tariff (Tibber, Nordpool, …) medan bilen laddar.",
+              "price_fixed": "Används bara när priskällan är 'Fast pris'.",
+              "price_entity": "Används bara när priskällan är 'Prisentitet'. Dess tillstånd måste vara ett pris per kWh.",
+              "price_currency": "ISO-kod som visas på kostnadssensorerna, t.ex. EUR, GBP, CHF, SEK.",
+              "history_retain_months": "0 behåller allt. Äldre sessioner kasseras.",
+              "statistics_import": "Speglar energi, kostnad och sträcka i statistik som du kan lägga till i energipanelen. Stannar lokalt; om du stänger av det raderas den igen."
+            }
+          }
         }
       },
       "action_energy_sources": {
@@ -217,9 +249,19 @@
           "price_solar": "Lämna tomt för att prissätta solel till inköpspriset. Ange din inmatningsersättning för att se vad en laddning verkligen kostade dig."
         }
       },
+      "bridge_vehicle": {
+        "title": "evcc-/laddboxbrygga",
+        "description": "Varje fordon kan publiceras för sig. Välj det fordon du vill ändra.",
+        "data": {
+          "vehicle": "Fordon"
+        },
+        "data_description": {
+          "vehicle": "Inställningarna på nästa skärm gäller bara det här fordonet."
+        }
+      },
       "action_evcc_bridge": {
         "title": "evcc-/laddboxbrygga",
-        "description": "Publicera bilens live-tillstånd på din MQTT-broker så att en laddstyrning kan läsa det.\n\nDetta är det enda BavarianData har som evcc, openWB med flera saknar: en **laddningsnivå direkt från BMW:s ström, utan API-kostnad**. Deras egna BMW-integrationer frågar ett tillverkar-API med jämna mellanrum och begränsas för det; det här kommer när bilen rapporterar och förbrukar inget av dina 50 dagliga anrop.\n\nPublicering sker via **Home Assistants MQTT-integration**, så det hamnar på exakt den broker som evcc redan läser och det finns ingen värd, port eller lösenord att ange här. MQTT-integrationen måste vara konfigurerad först.\n\nPer fordon, under `PREFIX/VIN/`: `soc`, `status` (evccs A/B/C), `range`, `odometer`, `limitSoc`, `chargePower`, `plugged`, `charging`, `updated` och `state` som ett enda JSON-dokument. **Det bilen inte rapporterar publiceras inte** i stället för att skickas som noll — en laddstyrning agerar på dessa siffror, så en felaktig är värre än en som saknas. Allt skickas om var femte minut även utan ändring, så en parkerad bils laddningsnivå blir aldrig inaktuell på brokern.\n\nNär du stänger av detta igen tas det publicerade bort, så att inget fortsätter ladda mot en frusen laddningsnivå.\n\nNästa skärm ger dig evcc-konfigurationen att klistra in.",
+        "description": "Publicerar live-läget för **{vehicle}** till din MQTT-broker för evcc och liknande laddstyrningar: laddnivån direkt från BMW:s ström, utan API-kostnad. Kräver Home Assistants MQTT-integration. Att stänga av tar bort det som publicerats; nästa skärm har evcc-konfigurationen att klistra in.",
         "data": {
           "bridge_enabled": "Publicera den här bilen till MQTT",
           "bridge_topic_prefix": "Topic-prefix",
@@ -228,7 +270,21 @@
         "data_description": {
           "bridge_enabled": "Av som standard: det lägger VIN och bilens tillstånd på en broker som andra kan läsa.",
           "bridge_topic_prefix": "Topics blir `PREFIX/VIN/soc` och så vidare. Behåll bavariandata om det inte krockar med något.",
-          "bridge_retain": "Behåll detta på. Det är det som låter evcc hitta laddningsnivån direkt när det startar, i stället för att vänta på att bilen säger något nästa gång — vilket för en parkerad bil kan dröja timmar. Stäng bara av det om din broker vägrar retained-meddelanden."
+          "bridge_retain": "Låt det vara på: då hittar evcc laddnivån direkt när det startar. Stäng bara av om din broker vägrar retained-meddelanden."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Alla fordon",
+            "description": "Dessa inställningar gäller alla fordon på det här kontot.",
+            "data": {
+              "bridge_topic_prefix": "Topic-prefix",
+              "bridge_retain": "Publicera som retained"
+            },
+            "data_description": {
+              "bridge_topic_prefix": "Topics blir `PREFIX/VIN/soc` och så vidare. Behåll bavariandata om det inte krockar med något.",
+              "bridge_retain": "Låt det vara på: då hittar evcc laddnivån direkt när det startar. Stäng bara av om din broker vägrar retained-meddelanden."
+            }
+          }
         }
       },
       "evcc_snippet": {

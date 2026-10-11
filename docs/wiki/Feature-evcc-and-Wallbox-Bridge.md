@@ -209,8 +209,10 @@ The meter drives only while it can't be wrong about which car it's counting:
 - **this car is charging, at home** (the same zone rule as above);
 - **its cable is in** — if BMW forgets to end a charge and the car reports itself
   unplugged, whatever the wallbox charges now is another car;
-- **no other car on this entry is charging** at the same time — with two, the
-  meter's advance belongs to both and neither gets it;
+- **no other car on the same meter is charging** at the same time — with two,
+  the meter's advance belongs to both and neither gets it. Cars with a meter
+  each (set per car under Configure → Charging costs) don't get in each other's
+  way;
 - **the reading is plausible** — a meter that goes backwards starts a new count,
   and a jump faster than any 22 kW wallbox could deliver is ignored.
 

@@ -122,7 +122,7 @@ class VehicleBridge:
 
     @property
     def enabled(self) -> bool:
-        return self._config.enabled and not self._closed
+        return self._config.any_enabled and not self._closed
 
     def available(self) -> bool:
         """Whether Home Assistant has a working MQTT integration to publish via.
@@ -161,7 +161,7 @@ class VehicleBridge:
             return
         vins = [vin] if vin else list(self._coordinator.data.keys())
         for target in vins:
-            if not target or target in self._timers:
+            if not target or target in self._timers or not self._config.publishes(target):
                 continue
 
             @callback
@@ -202,7 +202,7 @@ class VehicleBridge:
         moving on the broker.
         """
 
-        if not self.enabled:
+        if not self.enabled or not self._config.publishes(vin):
             return
         if not self.available():
             if not self._warned_unavailable:
@@ -286,6 +286,19 @@ class VehicleBridge:
             await self._async_clear(vin, prefix, ALL_TOPICS)
         self._published.clear()
         self._prefixes.clear()
+
+    async def async_clear_vehicle(self, vin: str) -> None:
+        """Remove one car's retained topics, when that car is switched off.
+
+        Every topic, not only the ones this run published: after a restart
+        nothing is remembered, yet the broker still holds what an earlier run
+        retained -- and a charge controller would go on reading it.
+        """
+
+        prefix = self._prefixes.get(vin, self._config.prefix)
+        await self._async_clear(vin, prefix, ALL_TOPICS)
+        self._published.pop(vin, None)
+        self._prefixes.pop(vin, None)
 
     async def _async_clear(self, vin: str, prefix: str, suffixes: tuple[str, ...]) -> None:
         for suffix in suffixes:

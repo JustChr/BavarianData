@@ -175,9 +175,19 @@
         "title": "Fetch vehicle image",
         "description": "Fetch the current vehicle image for your vehicles.\n\nPress Submit to continue."
       },
+      "charging_vehicle": {
+        "title": "Charging costs & history",
+        "description": "Each vehicle has its own wallbox meter and charging losses; the price applies to all of them. Pick the vehicle to change.",
+        "data": {
+          "vehicle": "Vehicle"
+        },
+        "data_description": {
+          "vehicle": "The settings on the next screen apply to this vehicle only."
+        }
+      },
       "action_charging_costs": {
         "title": "Charging costs & history",
-        "description": "Turn recorded charging into money. Until a price source is set, no cost entities are created at all — a wrong price is worse than none.\n\n**Fixed price** bills every kWh at one rate. **Price entity** follows a live tariff (Tibber, Nordpool, aWATTar, …) and is sampled as the car charges, so a session spanning a price change is billed correctly.\n\nEnergy is measured at the battery, so it is slightly less than what the grid delivered. Point **Wallbox energy sensor** at a meter if you have one — that is exact. Otherwise you can gross the figure up by your charging losses; it stays at 0 % by default because an invented correction would look like a measurement.\n\n**Long-term statistics** publishes the recorded history into Home Assistant's own statistics, so charging from before you installed this — or from while Home Assistant was down — still shows up on the Energy dashboard.",
+        "description": "Turns the charging of **{vehicle}** into money. Until a price source is set, no cost entities are created: a wrong price is worse than none.",
         "data": {
           "price_mode": "Price source",
           "price_fixed": "Fixed price per kWh",
@@ -189,14 +199,36 @@
           "statistics_import": "Publish to long-term statistics"
         },
         "data_description": {
-          "price_mode": "Choose 'None' to record sessions without costing them.",
+          "price_mode": "None records sessions without costs. Fixed price bills every kWh at one rate; Price entity follows a live tariff (Tibber, Nordpool, …) while the car charges.",
           "price_fixed": "Only used when the price source is 'Fixed price'.",
           "price_entity": "Only used when the price source is 'Price entity'. Its state must be a price per kWh.",
           "price_currency": "ISO code shown on the cost sensors, e.g. EUR, GBP, CHF.",
-          "grid_energy_entity": "Optional. Your wallbox's cumulative energy total (one that only ever counts up, not a per-session counter that resets). Wh, kWh and MWh are handled; no unit at all is read as kWh. It is read only for charges in your Home zone, since the meter cannot tell which car it charged. A measured grid figure always beats our battery-side estimate — and one that cannot be right, such as a house meter reading far more than the pack absorbed, is ignored rather than believed. After three home charges it also drives the state-of-charge estimate while the car charges at home.",
-          "charging_loss_percent": "Optional. Grosses battery-side energy up towards grid energy.",
+          "grid_energy_entity": "Optional. Your wallbox's lifetime energy total, one that only counts up. Read for charges in your Home zone only. A measured figure beats the battery-side estimate and also sharpens the charge estimate at home.",
+          "charging_loss_percent": "Optional. Energy is measured at the battery, a little below what the grid delivered; this grosses it up. Leave it at 0 if you have a wallbox meter.",
           "history_retain_months": "0 keeps everything. Sessions older than this are discarded.",
           "statistics_import": "Mirrors energy, cost and distance into statistics you can add to the Energy dashboard. Stays local; turning it off deletes them again."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "All vehicles",
+            "description": "These settings apply to every vehicle on this account.",
+            "data": {
+              "price_mode": "Price source",
+              "price_fixed": "Fixed price per kWh",
+              "price_entity": "Price entity",
+              "price_currency": "Currency",
+              "history_retain_months": "Keep history for (months)",
+              "statistics_import": "Publish to long-term statistics"
+            },
+            "data_description": {
+              "price_mode": "None records sessions without costs. Fixed price bills every kWh at one rate; Price entity follows a live tariff (Tibber, Nordpool, …) while the car charges.",
+              "price_fixed": "Only used when the price source is 'Fixed price'.",
+              "price_entity": "Only used when the price source is 'Price entity'. Its state must be a price per kWh.",
+              "price_currency": "ISO code shown on the cost sensors, e.g. EUR, GBP, CHF.",
+              "history_retain_months": "0 keeps everything. Sessions older than this are discarded.",
+              "statistics_import": "Mirrors energy, cost and distance into statistics you can add to the Energy dashboard. Stays local; turning it off deletes them again."
+            }
+          }
         }
       },
       "action_energy_sources": {
@@ -217,9 +249,19 @@
           "price_solar": "Leave empty to cost solar at the import price. Set it to your feed-in tariff to see what a charge really cost you."
         }
       },
+      "bridge_vehicle": {
+        "title": "evcc / wallbox bridge",
+        "description": "Each vehicle can be published on its own. Pick the vehicle to change.",
+        "data": {
+          "vehicle": "Vehicle"
+        },
+        "data_description": {
+          "vehicle": "The settings on the next screen apply to this vehicle only."
+        }
+      },
       "action_evcc_bridge": {
         "title": "evcc / wallbox bridge",
-        "description": "Publish this car's live state onto your MQTT broker so a charge controller can read it.\n\nThis is the one thing BavarianData has that evcc, openWB and friends do not: a **state of charge straight off BMW's stream, at no API cost**. Their own BMW integrations poll a vendor API on a timer and get rate-limited for it; this arrives as the car reports it, and spends none of your 50 daily requests.\n\nIt publishes through **Home Assistant's own MQTT integration**, so it lands on exactly the broker evcc already reads and there is no host, port or password to enter here. You need the MQTT integration set up first.\n\nPer vehicle, under `PREFIX/VIN/`: `soc`, `status` (evcc's A/B/C), `range`, `odometer`, `limitSoc`, `chargePower`, `plugged`, `charging`, `updated`, and `state` as one JSON document. **Anything the car doesn't report is not published** rather than sent as a zero — a charge controller acts on these numbers, so a wrong one is worse than a missing one. Everything is re-sent every five minutes even when unchanged, so a parked car's state of charge never goes stale on the broker.\n\nSwitching this off again removes what was published, so nothing keeps charging against a frozen state of charge.\n\nThe next screen gives you the evcc configuration to paste.",
+        "description": "Publishes the live state of **{vehicle}** to your MQTT broker for evcc and similar charge controllers: the state of charge straight off BMW's stream, at no API cost. Needs Home Assistant's MQTT integration. Switching it off removes what was published; the next screen has the evcc configuration to paste.",
         "data": {
           "bridge_enabled": "Publish this car to MQTT",
           "bridge_topic_prefix": "Topic prefix",
@@ -228,7 +270,21 @@
         "data_description": {
           "bridge_enabled": "Off by default: it puts the VIN and the car's state on a broker other things can read.",
           "bridge_topic_prefix": "Topics become `PREFIX/VIN/soc` and so on. Leave it as bavariandata unless it clashes with something.",
-          "bridge_retain": "Keep this on. It is what lets evcc find the state of charge the moment it starts, instead of waiting for the car to say something next — which on a parked car can be hours. Turn it off only if your broker refuses retained messages."
+          "bridge_retain": "Keep this on: it lets evcc find the state of charge the moment it starts. Turn it off only if your broker refuses retained messages."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "All vehicles",
+            "description": "These settings apply to every vehicle on this account.",
+            "data": {
+              "bridge_topic_prefix": "Topic prefix",
+              "bridge_retain": "Publish retained"
+            },
+            "data_description": {
+              "bridge_topic_prefix": "Topics become `PREFIX/VIN/soc` and so on. Leave it as bavariandata unless it clashes with something.",
+              "bridge_retain": "Keep this on: it lets evcc find the state of charge the moment it starts. Turn it off only if your broker refuses retained messages."
+            }
+          }
         }
       },
       "evcc_snippet": {

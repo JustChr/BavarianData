@@ -6,10 +6,8 @@ describe a car (or the person driving it) are kept per VIN. The two that
 describe the house instead -- address lookup and the trip-capture diagnostics
 -- stay account-wide and are not handled here.
 
-Storage (see ``OPTION_VEHICLES``): a car with an entry under
-``options["vehicles"][VIN]`` uses it; every other car uses the account-wide
-keys. There is no partial inheritance -- the Configure form always writes a
-car's complete set -- so what the form shows is exactly what applies.
+Storage and the per-car rules are ``vehicle_options.py``'s; this module
+turns a car's stored values into the settings the coordinator reads.
 
 No Home Assistant imports: the resolution rules are unit-tested directly.
 """
@@ -27,21 +25,12 @@ from .const import (
     OPTION_TRIP_DETECTION,
     OPTION_TRIP_TRACK,
     OPTION_TRIP_WORK_ZONE,
-    OPTION_VEHICLES,
     TRIP_DETECTION_CHOICES,
     TRIP_DETECTION_LIVE,
     TRIP_DETECTION_REPORTS,
 )
 from .history.classify import trip_class_setting
-
-# The option keys a car can hold for itself, in the order the form shows them.
-PER_VEHICLE_TRIP_OPTIONS = (
-    OPTION_TRIP_WORK_ZONE,
-    OPTION_TRIP_DEFAULT_CLASS,
-    OPTION_TRIP_COMMUTE_GAP,
-    OPTION_TRIP_DETECTION,
-    OPTION_TRIP_TRACK,
-)
+from .vehicle_options import TRIP_OPTIONS, cars_with_own
 
 
 @dataclass(frozen=True)
@@ -82,69 +71,16 @@ class TripSettings:
         )
 
 
-def _own_values(options: Mapping[str, Any], vin: str) -> Optional[Mapping[str, Any]]:
-    vehicles = options.get(OPTION_VEHICLES)
-    if not isinstance(vehicles, Mapping):
-        return None
-    own = vehicles.get(vin)
-    return own if isinstance(own, Mapping) else None
-
-
-def vehicle_trip_values(options: Mapping[str, Any], vin: Optional[str]) -> dict[str, Any]:
-    """The stored per-car option values in force for ``vin`` (what the form shows)."""
-
-    source = (_own_values(options, vin) if vin else None) or options
-    return {key: source[key] for key in PER_VEHICLE_TRIP_OPTIONS if key in source}
-
-
 def account_trip_settings(options: Mapping[str, Any]) -> TripSettings:
-    """The settings of every car without an entry of its own."""
+    """The settings of every car without trip settings of its own."""
 
     return TripSettings.from_values(options)
 
 
 def vehicle_trip_settings(options: Mapping[str, Any]) -> dict[str, TripSettings]:
-    """The settings of each car that has an entry of its own, by VIN."""
+    """The settings of each car that has trip settings of its own, by VIN."""
 
-    vehicles = options.get(OPTION_VEHICLES)
-    if not isinstance(vehicles, Mapping):
-        return {}
     return {
         vin: TripSettings.from_values(values)
-        for vin, values in vehicles.items()
-        if isinstance(values, Mapping)
+        for vin, values in cars_with_own(options, TRIP_OPTIONS).items()
     }
-
-
-def store_trip_values(
-    options: Mapping[str, Any],
-    values: Mapping[str, Any],
-    *,
-    vin: Optional[str],
-    per_vehicle: bool,
-) -> dict[str, Any]:
-    """New options with one form's per-car values stored.
-
-    ``per_vehicle`` is set when the account has more than one car: the values
-    then go under that car alone, as a complete set. Otherwise they are the
-    account-wide keys, and an entry the one car may still carry from a time the
-    account had two is dropped -- it would silently outrank what was just saved.
-    """
-
-    updated = dict(options)
-    picked = {key: values[key] for key in PER_VEHICLE_TRIP_OPTIONS if key in values}
-    if OPTION_TRIP_WORK_ZONE not in values:
-        # A cleared entity selector is left out of the submitted data entirely.
-        picked[OPTION_TRIP_WORK_ZONE] = None
-    vehicles = dict(updated.get(OPTION_VEHICLES) or {})
-    if per_vehicle and vin:
-        vehicles[vin] = picked
-    else:
-        updated.update(picked)
-        if vin:
-            vehicles.pop(vin, None)
-    if vehicles:
-        updated[OPTION_VEHICLES] = vehicles
-    else:
-        updated.pop(OPTION_VEHICLES, None)
-    return updated

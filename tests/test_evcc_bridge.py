@@ -415,7 +415,7 @@ def test_every_session_read_of_the_meter_passes_the_location_rule() -> None:
         / "bavariandata"
         / "coordinator.py"
     ).read_text(encoding="utf-8")
-    assert source.count("self._grid_meter_kwh()") == 1
+    assert source.count("self._grid_meter_kwh(") == 1
     assert "meter_counts_this_session(" in source
 
 

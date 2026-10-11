@@ -175,9 +175,19 @@
         "title": "Recupera l'immagine del veicolo",
         "description": "Recupera l'immagine attuale dei tuoi veicoli.\n\nPremi Invia per continuare."
       },
+      "charging_vehicle": {
+        "title": "Costi e storico di ricarica",
+        "description": "Ogni veicolo ha il proprio contatore della wallbox e le proprie perdite di ricarica; il prezzo vale per tutti. Scegli il veicolo da modificare.",
+        "data": {
+          "vehicle": "Veicolo"
+        },
+        "data_description": {
+          "vehicle": "Le impostazioni della schermata successiva valgono solo per questo veicolo."
+        }
+      },
       "action_charging_costs": {
         "title": "Costi e storico di ricarica",
-        "description": "Trasforma le ricariche registrate in denaro. Finché non è impostata una fonte di prezzo non viene creata alcuna entità di costo — un prezzo sbagliato è peggio di nessun prezzo.\n\n**Prezzo fisso** fattura ogni kWh alla stessa tariffa. **Entità prezzo** segue una tariffa in tempo reale (Tibber, Nordpool, aWATTar, …) campionata durante la ricarica, così una sessione a cavallo di una variazione di prezzo viene fatturata correttamente.\n\nL'energia è misurata alla batteria, quindi è leggermente inferiore a quella fornita dalla rete. Se hai un contatore, indicalo in **Sensore energia della wallbox** — è esatto. Altrimenti puoi maggiorare il valore delle perdite di ricarica; resta allo 0 % per impostazione predefinita perché una correzione inventata sembrerebbe una misura.\n\n**Statistiche a lungo termine** pubblica lo storico registrato nelle statistiche di Home Assistant, così le ricariche precedenti all'installazione — o avvenute mentre Home Assistant era spento — compaiono comunque nella dashboard Energia.",
+        "description": "Trasforma le ricariche di **{vehicle}** in costi. Finché non è impostata una fonte del prezzo non viene creata alcuna entità di costo: un prezzo sbagliato è peggio di nessun prezzo.",
         "data": {
           "price_mode": "Fonte del prezzo",
           "price_fixed": "Prezzo fisso per kWh",
@@ -189,14 +199,36 @@
           "statistics_import": "Pubblica nelle statistiche a lungo termine"
         },
         "data_description": {
-          "price_mode": "Scegli 'Nessuna' per registrare le sessioni senza calcolarne il costo.",
+          "price_mode": "Nessuna registra le sessioni senza costi. Prezzo fisso addebita ogni kWh alla stessa tariffa; Entità prezzo segue una tariffa in tempo reale (Tibber, Nordpool, …) durante la ricarica.",
           "price_fixed": "Usato solo quando la fonte del prezzo è 'Prezzo fisso'.",
           "price_entity": "Usata solo quando la fonte del prezzo è 'Entità prezzo'. Il suo stato deve essere un prezzo per kWh.",
           "price_currency": "Codice ISO mostrato sui sensori di costo, ad es. EUR, GBP, CHF.",
-          "grid_energy_entity": "Facoltativo. Il totale cumulativo di energia della wallbox (uno che conta solo in avanti, non un contatore per sessione che si azzera). Sono gestiti Wh, kWh e MWh; senza unità viene letto come kWh. Viene letto solo per le ricariche nella tua zona Casa, perché il contatore non sa quale auto ha caricato. Un valore di rete misurato batte sempre la nostra stima lato batteria — e uno impossibile, come un contatore di casa che legge molto più di quanto la batteria abbia assorbito, viene ignorato anziché creduto. Dopo tre ricariche a casa, guida anche la stima dello stato di carica mentre l'auto si ricarica a casa.",
-          "charging_loss_percent": "Facoltativo. Maggiora l'energia lato batteria verso l'energia di rete.",
+          "grid_energy_entity": "Facoltativo. Il contatore totale della tua wallbox, che conta solo in avanti. Letto solo per le ricariche nella zona Casa. Un valore misurato prevale sulla stima lato batteria e migliora anche la stima della carica a casa.",
+          "charging_loss_percent": "Facoltativo. L'energia è misurata alla batteria, un po' meno di quanto fornito dalla rete; questo la maggiora. Lascia 0 se hai un contatore della wallbox.",
           "history_retain_months": "0 conserva tutto. Le sessioni più vecchie vengono eliminate.",
           "statistics_import": "Riporta energia, costo e distanza in statistiche che puoi aggiungere alla dashboard Energia. Resta in locale; disattivandolo vengono eliminate di nuovo."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Tutti i veicoli",
+            "description": "Queste impostazioni valgono per tutti i veicoli di questo account.",
+            "data": {
+              "price_mode": "Fonte del prezzo",
+              "price_fixed": "Prezzo fisso per kWh",
+              "price_entity": "Entità prezzo",
+              "price_currency": "Valuta",
+              "history_retain_months": "Conserva lo storico per (mesi)",
+              "statistics_import": "Pubblica nelle statistiche a lungo termine"
+            },
+            "data_description": {
+              "price_mode": "Nessuna registra le sessioni senza costi. Prezzo fisso addebita ogni kWh alla stessa tariffa; Entità prezzo segue una tariffa in tempo reale (Tibber, Nordpool, …) durante la ricarica.",
+              "price_fixed": "Usato solo quando la fonte del prezzo è 'Prezzo fisso'.",
+              "price_entity": "Usata solo quando la fonte del prezzo è 'Entità prezzo'. Il suo stato deve essere un prezzo per kWh.",
+              "price_currency": "Codice ISO mostrato sui sensori di costo, ad es. EUR, GBP, CHF.",
+              "history_retain_months": "0 conserva tutto. Le sessioni più vecchie vengono eliminate.",
+              "statistics_import": "Riporta energia, costo e distanza in statistiche che puoi aggiungere alla dashboard Energia. Resta in locale; disattivandolo vengono eliminate di nuovo."
+            }
+          }
         }
       },
       "action_energy_sources": {
@@ -217,9 +249,19 @@
           "price_solar": "Lascia vuoto per valorizzare il fotovoltaico al prezzo di acquisto. Impostalo sulla tariffa di immissione per vedere quanto ti è costata davvero una ricarica."
         }
       },
+      "bridge_vehicle": {
+        "title": "Bridge evcc / wallbox",
+        "description": "Ogni veicolo può essere pubblicato separatamente. Scegli il veicolo da modificare.",
+        "data": {
+          "vehicle": "Veicolo"
+        },
+        "data_description": {
+          "vehicle": "Le impostazioni della schermata successiva valgono solo per questo veicolo."
+        }
+      },
       "action_evcc_bridge": {
         "title": "Bridge evcc / wallbox",
-        "description": "Pubblica lo stato in tempo reale di questa auto sul tuo broker MQTT, così un gestore di ricarica può leggerlo.\n\nÈ l'unica cosa che BavarianData ha e che evcc, openWB e simili non hanno: uno **stato di carica preso direttamente dallo stream BMW, senza costi di API**. Le loro integrazioni BMW interrogano un'API del costruttore a intervalli e vengono limitate per questo; qui il valore arriva quando l'auto lo comunica e non consuma nessuna delle tue 50 richieste giornaliere.\n\nLa pubblicazione passa per **l'integrazione MQTT di Home Assistant**, quindi arriva esattamente sul broker che evcc già legge e qui non c'è host, porta o password da inserire. Serve prima aver configurato l'integrazione MQTT.\n\nPer veicolo, sotto `PREFIX/VIN/`: `soc`, `status` (A/B/C di evcc), `range`, `odometer`, `limitSoc`, `chargePower`, `plugged`, `charging`, `updated` e `state` come unico documento JSON. **Tutto ciò che l'auto non comunica non viene pubblicato** invece di essere inviato come zero — un gestore di ricarica agisce su questi numeri, quindi uno sbagliato è peggio di uno mancante. Tutto viene reinviato ogni cinque minuti anche se invariato, così lo stato di carica di un'auto parcheggiata non diventa mai obsoleto sul broker.\n\nDisattivando questa opzione, quanto pubblicato viene rimosso, così nulla continua a caricare in base a uno stato di carica congelato.\n\nLa schermata successiva ti fornisce la configurazione evcc da incollare.",
+        "description": "Pubblica lo stato in tempo reale di **{vehicle}** sul tuo broker MQTT per evcc e gestori di ricarica simili: lo stato di carica direttamente dallo stream di BMW, senza costi API. Richiede l'integrazione MQTT di Home Assistant. Disattivarlo rimuove ciò che è stato pubblicato; la schermata successiva mostra la configurazione evcc da incollare.",
         "data": {
           "bridge_enabled": "Pubblica questa auto su MQTT",
           "bridge_topic_prefix": "Prefisso dei topic",
@@ -228,7 +270,21 @@
         "data_description": {
           "bridge_enabled": "Disattivato per impostazione predefinita: mette il VIN e lo stato dell'auto su un broker leggibile da altri.",
           "bridge_topic_prefix": "I topic diventano `PREFIX/VIN/soc` e così via. Lascia bavariandata a meno che non entri in conflitto con qualcosa.",
-          "bridge_retain": "Lascialo attivo. È ciò che permette a evcc di trovare lo stato di carica non appena si avvia, invece di aspettare che l'auto dica qualcosa — il che per un'auto parcheggiata può richiedere ore. Disattivalo solo se il tuo broker rifiuta i messaggi retained."
+          "bridge_retain": "Lascialo attivo: così evcc trova lo stato di carica appena si avvia. Disattivalo solo se il tuo broker rifiuta i messaggi retained."
+        },
+        "sections": {
+          "all_vehicles": {
+            "name": "Tutti i veicoli",
+            "description": "Queste impostazioni valgono per tutti i veicoli di questo account.",
+            "data": {
+              "bridge_topic_prefix": "Prefisso dei topic",
+              "bridge_retain": "Pubblica come retained"
+            },
+            "data_description": {
+              "bridge_topic_prefix": "I topic diventano `PREFIX/VIN/soc` e così via. Lascia bavariandata a meno che non entri in conflitto con qualcosa.",
+              "bridge_retain": "Lascialo attivo: così evcc trova lo stato di carica appena si avvia. Disattivalo solo se il tuo broker rifiuta i messaggi retained."
+            }
+          }
         }
       },
       "evcc_snippet": {

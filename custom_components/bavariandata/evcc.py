@@ -25,7 +25,7 @@ on the broker forever.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Mapping, Optional
 
@@ -36,6 +36,7 @@ from .const import (
     OPTION_BRIDGE_PREFIX,
     OPTION_BRIDGE_RETAIN,
 )
+from .vehicle_options import BRIDGE_OPTIONS, cars_with_own
 
 # evcc's charge-status vocabulary (IEC 61851 states, as used by every evcc
 # charger and vehicle implementation): A = no vehicle connected, B = connected
@@ -372,9 +373,23 @@ class BridgeConfig:
     normalized once, at the edge, instead of on every publish.
     """
 
+    # Whether a car without a setting of its own is published.
     enabled: bool = False
     prefix: str = DEFAULT_BRIDGE_PREFIX
     retain: bool = DEFAULT_BRIDGE_RETAIN
+    # Cars with their own on/off (multi-car accounts, ``vehicle_options.py``).
+    vehicles: dict[str, bool] = field(default_factory=dict)
+
+    def publishes(self, vin: str) -> bool:
+        """Whether ``vin`` is published."""
+
+        return self.vehicles.get(vin, self.enabled)
+
+    @property
+    def any_enabled(self) -> bool:
+        """Whether any car may be published -- the bridge's own on/off."""
+
+        return self.enabled or any(self.vehicles.values())
 
     @classmethod
     def from_options(cls, options: dict[str, Any]) -> "BridgeConfig":
@@ -382,4 +397,8 @@ class BridgeConfig:
             enabled=bool(options.get(OPTION_BRIDGE_ENABLED)),
             prefix=normalize_prefix(options.get(OPTION_BRIDGE_PREFIX)),
             retain=bool(options.get(OPTION_BRIDGE_RETAIN, DEFAULT_BRIDGE_RETAIN)),
+            vehicles={
+                vin: bool(own.get(OPTION_BRIDGE_ENABLED))
+                for vin, own in cars_with_own(options, BRIDGE_OPTIONS).items()
+            },
         )

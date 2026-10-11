@@ -73,6 +73,13 @@ carries on as the same session, stopped and it is recorded as ended — see
 Screen: **Configure → Charging costs & history**. See
 [Charging history & cost](Feature-Charging-History-and-Cost) for the concepts.
 
+**Several cars on the account?** The screen first asks which vehicle. Each car
+keeps its own **Wallbox energy sensor** and **Charging losses**: two cars can
+charge at two wallboxes, through two different chargers. The price, currency,
+history and statistics settings apply to every car; they sit in the **All
+vehicles** section below the car's own. With one car there is no vehicle
+question.
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-charging-costs.png" alt="Charging costs & history settings: price source, fixed price, price entity, currency, wallbox energy sensor, charging losses and retention" width="460" />
 </p>
@@ -119,6 +126,12 @@ of `W` or `kW`) and it will appear.
 Screen: **Configure → evcc / wallbox bridge**. See
 [evcc & wallbox bridge](Feature-evcc-and-Wallbox-Bridge) for the concepts, the
 topic table and the troubleshooting.
+
+**Several cars on the account?** The screen first asks which vehicle, and
+**Publish this car to MQTT** is per car, so a car charged elsewhere can stay
+off the broker, VIN included. Switching one car off removes that car's topics.
+**Topic prefix** and **Publish retained** apply to every car, in the collapsed
+**All vehicles** section.
 
 Publishes the car's live state onto your MQTT broker so evcc, openWB or a
 Node-RED flow can read a state of charge that costs no
