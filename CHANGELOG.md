@@ -9,6 +9,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The card's maps show their routes and destinations again on Home Assistant
+  2026.10.** Home Assistant 2026.10 redrew its maps, and the card's overlays
+  stopped appearing on them: the route of an expanded trip and the clustered
+  destinations on the trip map. Both now draw on the new maps and on the old
+  ones, so earlier Home Assistant versions keep working.
+
 ## [0.9.17-beta.4] - 2026-10-11
 
 ### Fixed

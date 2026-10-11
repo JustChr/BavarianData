@@ -5196,55 +5196,132 @@ class BavarianDataCard extends HTMLElement {
     return this._decimate(raw, 400);
   }
 
-  /** Draw a route as a native Leaflet polyline (via ha-map's Leaflet handle) --
-   * a clean, dot-free line, unlike ha-map `paths` which mark every vertex. Adds
-   * a green start and a red end marker. leafletMap/Leaflet appear only after
-   * ha-map's async init, so retry until they're there. */
+  /** What we can draw on behind an ha-map, whichever generation it is (both
+   * handles are undocumented, so feature-detect). Before HA 2026.10 the
+   * element exposed its Leaflet map (`leafletMap` + `Leaflet`); from 2026.10
+   * it renders through a map engine (MapLibre GL, or Leaflet on devices that
+   * can't do vector) with addPath/addMarker/setClustering and no Leaflet
+   * handle. `id` identifies the live instance: both are rebuilt when the
+   * element reconnects. null until the async init is done. */
+  _mapSurface(mapEl) {
+    const lmap = mapEl.leafletMap;
+    const L = mapEl.Leaflet;
+    if (lmap && L && typeof L.polyline === "function") {
+      return { kind: "leaflet", id: lmap, lmap, L };
+    }
+    const eng = mapEl._engine;
+    if (
+      eng &&
+      typeof eng.addPath === "function" &&
+      typeof eng.addMarker === "function" &&
+      typeof eng.setClustering === "function"
+    ) {
+      return { kind: "engine", id: eng, eng };
+    }
+    return null;
+  }
+
+  /** Fit the map to points. The engine path goes through ha-map's own
+   * fitBounds, which waits for a sized map and maps `zoom` to maxZoom - 1. */
+  _fitMapTo(mapEl, surface, pts, pad, maxZoom) {
+    try {
+      if (surface.kind === "leaflet") {
+        surface.lmap.fitBounds(pts, { padding: [pad, pad], maxZoom });
+      } else if (typeof mapEl.fitBounds === "function") {
+        mapEl.fitBounds(pts, {
+          zoom: maxZoom + 1,
+          pad: 0.1,
+          padding: { top: pad, right: pad, bottom: pad, left: pad },
+        });
+      }
+    } catch (_) {
+      /* transient size race; the next draw re-fits */
+    }
+  }
+
+  /** A small inline-styled dot element for an engine marker. */
+  _dotEl(fill, px) {
+    const el = document.createElement("div");
+    el.style.cssText =
+      `box-sizing:border-box;width:${px}px;height:${px}px;border-radius:50%;` +
+      `background:${fill};border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.45);`;
+    return el;
+  }
+
+  /** Draw a route as a clean, dot-free line, unlike ha-map `paths` which mark
+   * every vertex, with a green start and a red end marker. The surface
+   * appears only after ha-map's async init, so retry until it's there. */
   _drawRoute(mapEl, coords, color) {
     let tries = 0;
     const draw = () => {
       if (!mapEl || !this.shadowRoot.contains(mapEl)) return;
-      const lmap = mapEl.leafletMap;
-      const L = mapEl.Leaflet;
-      if (!lmap || !L || typeof L.polyline !== "function") {
-        if (tries++ < 30) setTimeout(draw, 150);
+      const surface = this._mapSurface(mapEl);
+      if (!surface) {
+        if (tries++ < 60) setTimeout(draw, 150);
         return;
       }
       try {
-        if (mapEl._bdRoute && mapEl._bdRouteMap === lmap) lmap.removeLayer(mapEl._bdRoute);
-        const group = L.layerGroup();
-        L.polyline(coords, {
-          color,
-          weight: 4,
-          opacity: 0.9,
-          lineJoin: "round",
-          lineCap: "round",
-        }).addTo(group);
-        const dot = (fill) => ({
-          radius: 5,
-          color: "#fff",
-          weight: 2,
-          fillColor: fill,
-          fillOpacity: 1,
-        });
-        L.circleMarker(coords[0], dot("#22a06b")).addTo(group); // start
-        L.circleMarker(coords[coords.length - 1], dot("#d1453b")).addTo(group); // end
-        group.addTo(lmap);
-        mapEl._bdRoute = group;
+        if (mapEl._bdRoute && mapEl._bdRouteMap === surface.id) mapEl._bdRoute.remove();
+        mapEl._bdRoute =
+          surface.kind === "leaflet"
+            ? this._routeOnLeaflet(surface, coords, color)
+            : this._routeOnEngine(surface, coords, color);
         // Remember the instance and the inputs, so a torn-down map (tab switch)
         // can be detected and the route re-drawn without a full re-mount.
-        mapEl._bdRouteMap = lmap;
+        mapEl._bdRouteMap = surface.id;
         mapEl._bdRouteSpec = { coords, color };
-        try {
-          lmap.fitBounds(coords, { padding: [16, 16], maxZoom: 16 });
-        } catch (_) {
-          /* transient size race; the next expand re-fits */
-        }
+        this._fitMapTo(mapEl, surface, coords, 16, 16);
       } catch (_) {
-        if (tries++ < 30) setTimeout(draw, 150);
+        if (tries++ < 60) setTimeout(draw, 150);
       }
     };
     draw();
+  }
+
+  _routeOnLeaflet({ lmap, L }, coords, color) {
+    const group = L.layerGroup();
+    L.polyline(coords, {
+      color,
+      weight: 4,
+      opacity: 0.9,
+      lineJoin: "round",
+      lineCap: "round",
+    }).addTo(group);
+    const dot = (fill) => ({
+      radius: 5,
+      color: "#fff",
+      weight: 2,
+      fillColor: fill,
+      fillOpacity: 1,
+    });
+    L.circleMarker(coords[0], dot("#22a06b")).addTo(group); // start
+    L.circleMarker(coords[coords.length - 1], dot("#d1453b")).addTo(group); // end
+    group.addTo(lmap);
+    return { layer: group, remove: () => lmap.removeLayer(group) };
+  }
+
+  _routeOnEngine({ eng }, coords, color) {
+    // One segment carrying the whole track (a single line, joined cleanly);
+    // no path markers, or the engine would dot the vertices like `paths`.
+    const line = eng.addPath({
+      color,
+      segments: [{ points: coords, opacity: 0.9 }],
+      markers: [],
+    });
+    const pin = (fill, at) =>
+      eng.addMarker(this._dotEl(fill, 12), at, { size: [12, 12], interactive: false });
+    const start = pin("#22a06b", coords[0]);
+    const end = pin("#d1453b", coords[coords.length - 1]);
+    let removed = false;
+    return {
+      remove: () => {
+        if (removed) return;
+        removed = true;
+        line.remove();
+        start.remove();
+        end.remove();
+      },
+    };
   }
 
   _tripPlace(place) {
@@ -5594,76 +5671,114 @@ class BavarianDataCard extends HTMLElement {
     }
   }
 
-  /** Add the endpoints to the Leaflet map as a native marker-cluster group.
-   * Reuses the Leaflet + markercluster that Home Assistant's own ha-map loads
-   * (reachable via the mounted element), so clustering, counts, zoom-split and
-   * spiderfy are all native -- no hand-rolled overlay. `leafletMap`/`Leaflet`
-   * appear only after ha-map's async init, so retry until they're there. */
+  /** Add the endpoints to the map as natively clustered markers, reusing
+   * whatever clustering Home Assistant's own ha-map ships -- counts, zoom-split
+   * and spiderfy are native, no hand-rolled overlay. The surface appears only
+   * after ha-map's async init, so retry until it's there. */
   _mountClusters(endpoints) {
     const mapEl = this._mapEl;
     if (!mapEl) return;
     let tries = 0;
     const build = () => {
       if (!mapEl || !this.shadowRoot.contains(mapEl)) return;
-      const lmap = mapEl.leafletMap;
-      const L = mapEl.Leaflet;
-      if (!lmap || !L || typeof L.markerClusterGroup !== "function") {
-        if (tries++ < 30) setTimeout(build, 150);
-        return; // markercluster/Leaflet not ready (or unavailable) yet
+      const surface = this._mapSurface(mapEl);
+      if (
+        !surface ||
+        (surface.kind === "leaflet" && typeof surface.L.markerClusterGroup !== "function")
+      ) {
+        if (tries++ < 60) setTimeout(build, 150);
+        return; // the map (or its markercluster) is not ready yet
       }
       try {
         if (this._clusterLayer) {
-          if (this._clusterMap === lmap) lmap.removeLayer(this._clusterLayer);
+          if (this._clusterMap === surface.id) this._clusterLayer.remove();
           this._clusterLayer = null;
           this._clusterMap = null;
         }
-        const group = L.markerClusterGroup({
-          showCoverageOnHover: false,
-          maxClusterRadius: 48,
-          iconCreateFunction: (c) =>
-            L.divIcon({
-              html: this._clusterBubbleHtml(c.getChildCount()),
-              className: "",
-              iconSize: [40, 40],
-              iconAnchor: [20, 20],
-            }),
-        });
-        const pts = [];
-        for (const ep of endpoints) {
-          const marker = L.marker([ep.lat, ep.lon], {
-            icon: L.divIcon({
-              html: this._pinHtml(),
-              className: "",
-              iconSize: [16, 16],
-              iconAnchor: [8, 8],
-            }),
-          });
-          if (ep.label) marker.bindTooltip(this._esc(ep.label), { direction: "top" });
-          group.addLayer(marker);
-          pts.push([ep.lat, ep.lon]);
-        }
-        lmap.addLayer(group);
-        this._clusterLayer = group;
-        this._clusterMap = lmap; // so a torn-down map is detectable on reconnect
-        if (pts.length) {
-          try {
-            lmap.fitBounds(pts, { padding: [30, 30], maxZoom: 15 });
-          } catch (_) {
-            /* transient size race; the next data change re-fits */
-          }
-        }
+        this._clusterLayer =
+          surface.kind === "leaflet"
+            ? this._clustersOnLeaflet(surface, endpoints)
+            : this._clustersOnEngine(surface, endpoints);
+        this._clusterMap = surface.id; // so a torn-down map is detectable on reconnect
+        const pts = endpoints.map((ep) => [ep.lat, ep.lon]);
+        if (pts.length) this._fitMapTo(mapEl, surface, pts, 30, 15);
       } catch (_) {
-        if (tries++ < 30) setTimeout(build, 150);
+        if (tries++ < 60) setTimeout(build, 150);
       }
     };
     build();
   }
 
-  /** Re-add our Leaflet layers when the map element has been re-created under
-   * them (tab switch -> disconnect -> `leafletMap.remove()` -> new instance).
-   * Only fires for overlays that were actually drawn once, so it never races
-   * an initial draw that is still retrying; cheap enough to call from every
-   * paint as well as from connectedCallback. */
+  _clustersOnLeaflet({ lmap, L }, endpoints) {
+    const group = L.markerClusterGroup({
+      showCoverageOnHover: false,
+      maxClusterRadius: 48,
+      iconCreateFunction: (c) =>
+        L.divIcon({
+          html: this._clusterBubbleHtml(c.getChildCount()),
+          className: "",
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+        }),
+    });
+    for (const ep of endpoints) {
+      const marker = L.marker([ep.lat, ep.lon], {
+        icon: L.divIcon({
+          html: this._pinHtml(),
+          className: "",
+          iconSize: [16, 16],
+          iconAnchor: [8, 8],
+        }),
+      });
+      if (ep.label) marker.bindTooltip(this._esc(ep.label), { direction: "top" });
+      group.addLayer(marker);
+    }
+    lmap.addLayer(group);
+    return { layer: group, remove: () => lmap.removeLayer(group) };
+  }
+
+  _clustersOnEngine({ eng }, endpoints) {
+    // The engine clusters every marker added with `cluster: true`; a group of
+    // more than one gets the element iconBuilder returns.
+    const options = {
+      radius: 48,
+      iconBuilder: (members) => {
+        const el = document.createElement("div");
+        el.innerHTML = this._clusterBubbleHtml(members.length);
+        return { element: el, size: [40, 40] };
+      },
+    };
+    const markers = endpoints.map((ep) => {
+      const el = document.createElement("div");
+      el.innerHTML = this._pinHtml();
+      // `title` lands as a plain attribute (no HTML), so the label goes in raw.
+      return eng.addMarker(el, [ep.lat, ep.lon], {
+        size: [16, 16],
+        cluster: true,
+        title: ep.label || undefined,
+      });
+    });
+    eng.setClustering(options);
+    let removed = false;
+    return {
+      // ha-map resets the engine's clustering when it redraws its own entities
+      // (a theme change, for one) -- treat that as lost so the pins regroup.
+      lost: () => eng._clusterOptions !== undefined && eng._clusterOptions !== options,
+      remove: () => {
+        if (removed) return;
+        removed = true;
+        markers.forEach((m) => m.remove());
+        if (eng._clusterOptions === options) eng.setClustering(null);
+      },
+    };
+  }
+
+  /** Re-add our overlays when the map has been re-created under them (tab
+   * switch -> disconnect -> the old map is destroyed -> new instance) or has
+   * dropped them. Only fires for overlays that were actually drawn once, so it
+   * never races an initial draw that is still retrying; cheap enough to call
+   * from every paint as well as from connectedCallback. The redraw removes the
+   * old overlay itself when it still sits on the live map. */
   _reassertMapOverlays() {
     const shadow = this.shadowRoot;
     if (!shadow) return;
@@ -5676,8 +5791,6 @@ class BavarianDataCard extends HTMLElement {
       this._layerLost(mini, mini._bdRouteMap, mini._bdRoute)
     ) {
       const spec = mini._bdRouteSpec;
-      mini._bdRoute = null;
-      mini._bdRouteMap = null;
       this._drawRoute(mini, spec.coords, spec.color);
     }
 
@@ -5688,19 +5801,20 @@ class BavarianDataCard extends HTMLElement {
       this._clusterMap &&
       this._layerLost(mapEl, this._clusterMap, this._clusterLayer)
     ) {
-      this._clusterLayer = null;
-      this._clusterMap = null;
       this._mountClusters(this._mapEndpoints(this._mapWindowTrips()));
     }
   }
 
-  /** True when a layer we drew is no longer on the element's live Leaflet map:
-   * the map is gone, or was replaced, or dropped the layer. */
-  _layerLost(mapEl, drawnOn, layer) {
-    const lmap = mapEl.leafletMap;
-    if (!lmap) return true; // torn down; the draw retry waits for the new one
-    if (lmap !== drawnOn) return true;
-    return !!layer && typeof lmap.hasLayer === "function" && !lmap.hasLayer(layer);
+  /** True when an overlay we drew is no longer on the element's live map: the
+   * map is gone, or was replaced, or dropped the overlay. */
+  _layerLost(mapEl, drawnOn, overlay) {
+    const surface = this._mapSurface(mapEl);
+    if (!surface) return true; // torn down; the draw retry waits for the new one
+    if (surface.id !== drawnOn) return true;
+    if (!overlay) return false;
+    if (overlay.lost) return overlay.lost();
+    const lmap = surface.lmap;
+    return !!overlay.layer && !!lmap && typeof lmap.hasLayer === "function" && !lmap.hasLayer(overlay.layer);
   }
 
   /** Inline-styled HTML for a cluster bubble (styles must be inline: the marker
