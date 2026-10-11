@@ -21,7 +21,7 @@
   <a href="https://github.com/JustChr/BavarianData/releases/latest"><img src="https://img.shields.io/github/v/release/JustChr/BavarianData" alt="Latest release" /></a>
   <a href="https://github.com/JustChr/BavarianData/wiki/Getting-Started-2-Install"><img src="https://img.shields.io/badge/Home%20Assistant-2026.3%2B-41BDF5.svg" alt="Home Assistant 2026.3 or newer" /></a>
   <a href="https://github.com/JustChr/BavarianData/blob/main/pyproject.toml"><img src="https://img.shields.io/badge/python-3.14%2B-3776AB.svg" alt="Python 3.14 or newer" /></a>
-  <a href="https://github.com/JustChr/BavarianData/releases"><img src="https://img.shields.io/github/downloads/JustChr/BavarianData/total" alt="Downloads" /></a>
+  <a href="https://github.com/JustChr/BavarianData/releases"><img src="https://img.shields.io/endpoint?url=https://justchr.github.io/BavarianData/badges/downloads.json" alt="Downloads" /></a>
   <a href="https://github.com/JustChr/BavarianData/stargazers"><img src="https://img.shields.io/github/stars/JustChr/BavarianData?style=flat" alt="GitHub stars" /></a>
   <a href="https://github.com/JustChr/BavarianData/blob/main/LICENSE"><img src="https://img.shields.io/github/license/JustChr/BavarianData" alt="MIT license" /></a>
   <a href="https://github.com/sponsors/JustChr"><img src="https://img.shields.io/badge/Sponsor-GitHub-EA4AAA?logo=githubsponsors&logoColor=white" alt="Sponsor on GitHub" /></a>

@@ -2,7 +2,8 @@ name: Website
 
 # Builds the website (site/) from the wiki source, the descriptor catalogue and
 # the shipped card, checks every link and head tag, and publishes it to GitHub
-# Pages. Pull requests build and check only.
+# Pages. Pull requests build and check only. A daily run rebuilds the site so
+# the README's download badge (badges/downloads.json) stays current.
 
 on:
   push:
@@ -25,6 +26,8 @@ on:
       - "docs/wiki/**"
       - "custom_components/bavariandata/www/**"
       - ".github/workflows/pages.yml"
+  schedule:
+    - cron: "17 4 * * *"
   workflow_dispatch:
 
 permissions:
@@ -47,8 +50,8 @@ jobs:
       GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
       BING_SITE_VERIFICATION: ${{ vars.BING_SITE_VERIFICATION }}
       ASTRO_TELEMETRY_DISABLED: "1"
-      # Read-only, for the star count (unauthenticated calls share a small
-      # per-IP limit with every other job on the runner).
+      # Read-only, for the star and download counts (unauthenticated calls
+      # share a small per-IP limit with every other job on the runner).
       GITHUB_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v7
@@ -90,9 +93,11 @@ jobs:
         uses: actions/deploy-pages@v5
 
   # Announce the deployed pages to IndexNow engines (Bing and friends); no
-  # account involved -- the key file in site/public proves ownership.
+  # account involved -- the key file in site/public proves ownership. Not on
+  # the daily run: no page changed, and resubmitting unchanged URLs every day
+  # reads as spam.
   indexnow:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.event_name != 'schedule'
     needs: deploy
     runs-on: ubuntu-latest
     env:

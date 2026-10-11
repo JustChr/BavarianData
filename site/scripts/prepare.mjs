@@ -138,8 +138,46 @@ writeFileSync(
 );
 writeFileSync(join(GEN, "releases.json"), JSON.stringify(releases.map(({ version, date }) => ({ version, date }))) + "\n");
 
+// --- the README's download badge ------------------------------------------------
+// shields.io's own all-time downloads badge times out paging through every
+// release, so the total is summed here and served as an endpoint badge
+// (badges/downloads.json). pages.yml also runs daily to keep it current. When
+// GitHub is unreachable the published file is carried over instead -- a count
+// is never worth failing a build over, nor worth breaking the badge.
+const downloads = await (async () => {
+  const token = process.env.GITHUB_TOKEN;
+  const headers = { Accept: "application/vnd.github+json", ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+  let total = 0;
+  for (let page = 1; ; page++) {
+    const res = await fetch(`https://api.github.com/repos/JustChr/BavarianData/releases?per_page=100&page=${page}`, {
+      headers,
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) throw new Error(`GitHub releases: HTTP ${res.status}`);
+    const batch = await res.json();
+    for (const release of batch) for (const asset of release.assets) total += asset.download_count;
+    if (batch.length < 100) return total;
+  }
+})().catch((err) => {
+  console.warn(`prepare: no download count (${err.message})`);
+  return null;
+});
+// shields' own notation: 950, 6.8k, 12k, 1.2M.
+const metric = (n) => {
+  for (const [size, suffix] of [[1e6, "M"], [1e3, "k"]]) {
+    if (n >= size) return `${Number((n / size).toFixed(n < size * 10 ? 1 : 0))}${suffix}`;
+  }
+  return String(n);
+};
+const badge = downloads === null
+  ? await fetch("https://justchr.github.io/BavarianData/badges/downloads.json", { signal: AbortSignal.timeout(10000) })
+      .then((res) => (res.ok ? res.text() : null))
+      .catch(() => null)
+  : JSON.stringify({ schemaVersion: 1, label: "downloads", message: metric(downloads), color: "blue" }) + "\n";
+if (badge) writeFileSync(join(PUBLIC, "badges", "downloads.json"), badge);
+
 writeFileSync(
   join(GEN, "assets.json"),
   JSON.stringify({ cardVersion, icons, screenshots: shots }, null, 1) + "\n"
 );
-console.log(`prepare: ${releases.length} releases in the changelog, card ${cardVersion}, ${Object.keys(icons).length} icons, ${Object.keys(shots).length} screenshots`);
+console.log(`prepare: ${releases.length} releases in the changelog, card ${cardVersion}, ${Object.keys(icons).length} icons, ${Object.keys(shots).length} screenshots, ${downloads ?? "unknown"} downloads`);
