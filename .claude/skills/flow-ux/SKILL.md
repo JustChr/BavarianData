@@ -120,9 +120,13 @@ only after Chris has picked one.**
    and German**, because German is where labels wrap or overflow. Read each
    one as a newcomer would: is anything unclear without the wiki?
    **A branch your setup can't reach** (a second car, a hybrid, an error
-   state): stage it with `mock_flow.js` next to this file. It answers the
+   state): stage it with `mock_flow.js` next to this file
+   (`node mock_flow.js <trips|charging|bridge> <real|staged> <lang> <width> <outdir>`;
+   `real` shoots the screen as the instance shows it). It answers the
    options-flow REST calls in the browser the way the integration would, so
-   HA's real dialog renders the step with the installed build's translations.
+   HA's real dialog renders the step with the installed build's translations
+   (so new strings need a beta first). Entity pickers holding a value are
+   blurred: they show the user's own names.
    Nothing reaches HA (other calls are aborted, the flow is abandoned). Build
    the fake step from the real one the server returns, so its schema is HA's
    own. A section serializes as `{"type": "expandable", "name", "expanded",

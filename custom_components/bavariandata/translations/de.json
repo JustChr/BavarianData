@@ -182,7 +182,7 @@
           "vehicle": "Fahrzeug"
         },
         "data_description": {
-          "vehicle": "Die Einstellungen auf der nächsten Seite gelten nur für dieses Fahrzeug."
+          "vehicle": "Die nächste Seite beginnt mit den eigenen Einstellungen dieses Fahrzeugs."
         }
       },
       "action_charging_costs": {
@@ -256,7 +256,7 @@
           "vehicle": "Fahrzeug"
         },
         "data_description": {
-          "vehicle": "Die Einstellungen auf der nächsten Seite gelten nur für dieses Fahrzeug."
+          "vehicle": "Die nächste Seite beginnt mit den eigenen Einstellungen dieses Fahrzeugs."
         }
       },
       "action_evcc_bridge": {
@@ -298,7 +298,7 @@
           "vehicle": "Fahrzeug"
         },
         "data_description": {
-          "vehicle": "Die Einstellungen auf der nächsten Seite gelten nur für dieses Fahrzeug."
+          "vehicle": "Die nächste Seite beginnt mit den eigenen Einstellungen dieses Fahrzeugs."
         }
       },
       "action_trips": {

@@ -182,7 +182,7 @@
           "vehicle": "Véhicule"
         },
         "data_description": {
-          "vehicle": "Les réglages de l'écran suivant s'appliquent uniquement à ce véhicule."
+          "vehicle": "L'écran suivant commence par les réglages propres à ce véhicule."
         }
       },
       "action_charging_costs": {
@@ -256,7 +256,7 @@
           "vehicle": "Véhicule"
         },
         "data_description": {
-          "vehicle": "Les réglages de l'écran suivant s'appliquent uniquement à ce véhicule."
+          "vehicle": "L'écran suivant commence par les réglages propres à ce véhicule."
         }
       },
       "action_evcc_bridge": {
@@ -298,7 +298,7 @@
           "vehicle": "Véhicule"
         },
         "data_description": {
-          "vehicle": "Les réglages de l'écran suivant s'appliquent uniquement à ce véhicule."
+          "vehicle": "L'écran suivant commence par les réglages propres à ce véhicule."
         }
       },
       "action_trips": {

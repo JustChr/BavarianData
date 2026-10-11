@@ -9,6 +9,11 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **The vehicle question's help is accurate now:** the next screen starts with
+  that car's own settings, and the ones shared by every car follow under **All
+  vehicles**. It used to say every setting on the next screen was the car's own.
+
 ## [0.9.18-beta.2] - 2026-10-11
 
 ### Changed

@@ -87,7 +87,7 @@ alle Autos; sie stehen im Abschnitt **Alle Fahrzeuge** unter den Einstellungen
 des Autos. Mit nur einem Auto gibt es keine Fahrzeugabfrage.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-charging-costs.png" alt="Einstellungen Ladekosten & Verlauf: Preisquelle, fester Preis, Preis-Entität, Währung, Wallbox-Energiesensor, Ladeverluste und Aufbewahrung" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-charging-costs.png?v=2026-10-11" alt="Einstellungen Ladekosten & Verlauf: Preisquelle, fester Preis, Preis-Entität, Währung, Wallbox-Energiesensor, Ladeverluste und Aufbewahrung" width="460" />
 </p>
 
 | Option | Werte | Bedeutung |

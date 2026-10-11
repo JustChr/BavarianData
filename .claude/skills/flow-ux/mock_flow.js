@@ -1,44 +1,85 @@
-// Stage a flow branch the live instance can't reach (here: the two-car Trips
-// screens) in the real HA frontend. The options-flow REST calls are answered the
-// way the integration would answer them; HA's own dialog renders the result
-// with the installed build's translations. The staged submit never reaches
-// Home Assistant, any other flow call is aborted, and closing the browser
-// abandons the flow: nothing can be saved.
+// Shoot a Configure screen in the real HA frontend -- as the live instance shows
+// it, or staged as it would look on a two-car account the instance can't be.
+//
+// Staging answers the options-flow REST calls the way the integration would on
+// a two-car account; HA's own dialog renders the result with the installed
+// build's translations. The staged submit never reaches Home Assistant, any
+// other flow call is aborted, and closing the browser abandons the flow:
+// nothing can be saved, in either mode (the real form is never submitted).
+// Entity pickers holding a value are blurred: they show the user's own names.
 //
 // Run from a directory with playwright-core installed (see the shoot skill):
-//   HA_URL=http://<host> HA_TOKEN=<token> node mock_flow.js <lang> <width> <outdir>
-// PICKER_ONLY=1 stops after the first screen. Adapt pickerStep/secondCarForm
-// for another flow: start from the real step the server returns
-// (real-trips-step.json) so the schema shape is HA's own.
+//   HA_URL=http://<host> HA_TOKEN=<token> \
+//     node mock_flow.js <trips|charging|bridge> <real|staged> <lang> <width> <outdir>
+// A new per-car screen: add it to SCREENS, starting from the real step the
+// server returns (written to real-<screen>-step.json) so the schema is HA's own.
+// A section serializes as {"type": "expandable", "name", "expanded", "schema"}.
 const fs = require("fs");
 const path = require("path");
 const { chromium } = require(require.resolve("playwright-core", { paths: [process.cwd(), __dirname] }));
 
 const URL = process.env.HA_URL;
 if (!URL || !process.env.HA_TOKEN) throw new Error("set HA_URL and HA_TOKEN");
-const EXE = path.join(process.env.LOCALAPPDATA, "ms-playwright", "chromium-1223", "chrome-win64", "chrome.exe");
-const [lang, width, outdir] = process.argv.slice(2);
-const MENU = { en: "Trips", de: "Fahrten" };
-const SECOND = { vin: "WBADEMO0000000002", name: "530d Touring" };
+const BROWSERS = path.join(process.env.LOCALAPPDATA, "ms-playwright");
+const NEWEST = fs.readdirSync(BROWSERS).filter((d) => /^chromium-\d+$/.test(d)).sort().pop();
+const EXE = path.join(BROWSERS, NEWEST, "chrome-win64", "chrome.exe");
 
-let realTrips = null; // the server's own single-car action_trips step
+const SCREENS = {
+  trips: {
+    menu: { en: "Trips", de: "Fahrten" },
+    step: "action_trips",
+    picker: "trips_vehicle",
+    second: { vin: "WBADEMO0000000002", name: "530d Touring" },
+    car: ["trip_work_zone", "trip_default_class", "trip_commute_gap", "trip_detection", "trip_track"],
+    expanded: false,
+    // The older car: no work zone of its own yet, on end-of-trip reports.
+    values: { trip_work_zone: null, trip_default_class: "private", trip_commute_gap: 30, trip_detection: "reports", trip_track: false },
+  },
+  charging: {
+    menu: { en: "Charging costs & history", de: "Ladekosten & Verlauf" },
+    step: "action_charging_costs",
+    picker: "charging_vehicle",
+    second: { vin: "WBADEMO0000000003", name: "iX1 eDrive20" },
+    car: ["grid_energy_entity", "charging_loss_percent"],
+    expanded: true,
+    // Charged elsewhere: no wallbox meter, losses estimated instead.
+    values: { grid_energy_entity: null, charging_loss_percent: 10 },
+  },
+  bridge: {
+    menu: { en: "evcc / wallbox bridge", de: "evcc-/Wallbox-Brücke" },
+    step: "action_evcc_bridge",
+    picker: "bridge_vehicle",
+    second: { vin: "WBADEMO0000000003", name: "iX1 eDrive20" },
+    car: ["bridge_enabled"],
+    expanded: false,
+    values: { bridge_enabled: false },
+  },
+};
+
+const [screenName, mode, lang, width, outdir] = process.argv.slice(2);
+const screen = SCREENS[screenName];
+if (!screen || !["real", "staged"].includes(mode)) throw new Error("usage: <trips|charging|bridge> <real|staged> <lang> <width> <outdir>");
+const NEXT = { en: "Next", de: "Weiter" };
+
+let realStep = null;
 let phase = "menu";
 
-function pickerStep(base, firstVin, firstName) {
+function pickerStep(base) {
+  const first = base.description_placeholders.vehicle;
   return {
     ...base,
-    step_id: "trips_vehicle",
+    step_id: screen.picker,
     last_step: false,
     data_schema: [
       {
         name: "vehicle",
         required: true,
-        default: firstVin,
+        default: "WBAREAL0000000001",
         selector: {
           select: {
             options: [
-              { value: firstVin, label: firstName },
-              { value: SECOND.vin, label: SECOND.name },
+              { value: "WBAREAL0000000001", label: first },
+              { value: screen.second.vin, label: screen.second.name },
             ].sort((a, b) => a.label.localeCompare(b.label)),
             mode: "dropdown",
             multiple: false,
@@ -54,26 +95,25 @@ function pickerStep(base, firstVin, firstName) {
 }
 
 function secondCarForm(base) {
-  const shared = new Set(["trip_geocode", "trip_debug"]);
-  const fields = base.data_schema.filter((field) => !shared.has(field.name));
-  const sharedFields = base.data_schema.filter((field) => shared.has(field.name));
-  // The older car: no work zone of its own yet, on end-of-trip reports.
-  const car = fields.map((field) => {
-    const copy = { ...field };
-    if (copy.name === "trip_work_zone") delete copy.description;
-    if (copy.name === "trip_detection") copy.default = "reports";
-    if (copy.name === "trip_track") copy.default = false;
-    if (copy.name === "trip_default_class") copy.default = "private";
-    if (copy.name === "trip_commute_gap") copy.default = 30;
-    return copy;
-  });
+  const own = new Set(screen.car);
+  const car = base.data_schema
+    .filter((field) => own.has(field.name))
+    .map((field) => {
+      const copy = { ...field };
+      const value = screen.values[field.name];
+      delete copy.description; // a suggested value would be the first car's
+      if (value === null) delete copy.default;
+      else copy.default = value;
+      return copy;
+    });
+  const shared = base.data_schema.filter((field) => !own.has(field.name));
   return {
     ...base,
     data_schema: [
       ...car,
-      { type: "expandable", name: "all_vehicles", required: true, expanded: false, schema: sharedFields },
+      { type: "expandable", name: "all_vehicles", required: true, expanded: screen.expanded, schema: shared },
     ],
-    description_placeholders: { vehicle: SECOND.name },
+    description_placeholders: { vehicle: screen.second.name },
     errors: {},
   };
 }
@@ -98,19 +138,32 @@ async function dialogRect(page) {
   });
 }
 
-async function shot(page, name, pad = 0) {
+async function blurValuedPickers(page) {
+  await page.evaluate(() => {
+    const walk = (root) => {
+      for (const el of root.querySelectorAll("*")) {
+        if (el.tagName.toLowerCase() === "ha-selector-entity" && el.value) el.style.filter = "blur(7px)";
+        if (el.shadowRoot) walk(el.shadowRoot);
+      }
+    };
+    walk(document);
+  });
+}
+
+async function shot(page, name) {
   await page.waitForTimeout(1200);
-  const rect = await dialogRect(page);
-  if (!rect) throw new Error("no dialog for " + name);
-  const clip = { x: rect.x, y: rect.y, width: rect.width, height: rect.height + pad };
-  const file = path.join(outdir, `two-cars-${lang}-${width}-${name}.png`);
+  await blurValuedPickers(page);
+  await page.waitForTimeout(300);
+  const clip = await dialogRect(page);
+  if (!clip) throw new Error("no dialog for " + name);
+  const file = path.join(outdir, `${screenName}-${mode}-${lang}-${width}-${name}.png`);
   await page.screenshot({ path: file, clip });
   console.log("saved", file);
 }
 
 (async () => {
   const browser = await chromium.launch({ executablePath: EXE });
-  const context = await browser.newContext({ viewport: { width: Number(width), height: 1400 }, deviceScaleFactor: 2 });
+  const context = await browser.newContext({ viewport: { width: Number(width), height: 1600 }, deviceScaleFactor: 2 });
   await context.addInitScript(
     ([token, url, language]) => {
       localStorage.setItem(
@@ -126,67 +179,68 @@ async function shot(page, name, pad = 0) {
   );
   const page = await context.newPage();
 
-  await page.route("**/api/config/config_entries/options/flow/*", async (route) => {
-    const request = route.request();
-    if (request.method() !== "POST") return route.continue();
-    const body = JSON.parse(request.postData() || "{}");
-    if (phase === "menu" && body.next_step_id === "action_trips") {
-      // Let the real server open its (single-car) Trips step, keep it as the
-      // template, and show the picker in its place.
-      const response = await route.fetch();
-      realTrips = await response.json();
-      fs.writeFileSync(path.join(outdir, "real-trips-step.json"), JSON.stringify(realTrips, null, 2));
-      phase = "picker";
-      const firstName = realTrips.description_placeholders.vehicle;
-      return route.fulfill({ json: pickerStep(realTrips, "WBAREAL0000000001", firstName) });
-    }
-    if (phase === "picker" && "vehicle" in body) {
-      phase = "form";
-      return route.fulfill({ json: secondCarForm(realTrips) });
-    }
-    // Anything else would reach the server: refuse it rather than risk a save.
-    return route.abort();
-  });
+  if (mode === "staged") {
+    await page.route("**/api/config/config_entries/options/flow/*", async (route) => {
+      const request = route.request();
+      if (request.method() !== "POST") return route.continue();
+      const body = JSON.parse(request.postData() || "{}");
+      if (phase === "menu" && body.next_step_id === screen.step) {
+        const response = await route.fetch();
+        realStep = await response.json();
+        fs.writeFileSync(path.join(outdir, `real-${screenName}-step.json`), JSON.stringify(realStep, null, 2));
+        phase = "picker";
+        return route.fulfill({ json: pickerStep(realStep) });
+      }
+      if (phase === "picker" && "vehicle" in body) {
+        phase = "form";
+        return route.fulfill({ json: secondCarForm(realStep) });
+      }
+      // Anything else would reach the server: refuse it rather than risk a save.
+      return route.abort();
+    });
+  } else {
+    // The real form is shown, never submitted; refuse a submit all the same.
+    await page.route("**/api/config/config_entries/options/flow/*", async (route) => {
+      const request = route.request();
+      const body = request.method() === "POST" ? JSON.parse(request.postData() || "{}") : {};
+      if (request.method() === "POST" && !("next_step_id" in body)) return route.abort();
+      return route.continue();
+    });
+  }
 
   await page.goto(URL + "/config/integrations/integration/bavariandata");
   await page.waitForFunction(() => document.querySelector("home-assistant")?.hass?.states, null, { timeout: 60000 });
   await page.waitForTimeout(3000);
   await page.getByRole("button", { name: lang === "de" ? "Konfigurieren" : "Configure" }).first().click();
   await page.waitForTimeout(2000);
-  await page.getByText(MENU[lang], { exact: true }).first().click();
+  await page.getByText(screen.menu[lang], { exact: true }).first().click();
   await page.waitForTimeout(2500);
-  await shot(page, "1-picker");
-  if (process.env.PICKER_ONLY) { await browser.close(); return; }
 
-  // Open the dropdown to show both cars.
-  const firstName = realTrips.description_placeholders.vehicle;
-  const value = page.getByText(firstName, { exact: true }).first();
-  const box = await value.boundingBox();
-  if (box) {
+  if (mode === "real") {
+    await shot(page, "form");
+  } else {
+    await shot(page, "1-picker");
     const dialog = await dialogRect(page);
-    // The arrow at the right end of the field opens the list.
+    const value = page.getByText(realStep.description_placeholders.vehicle, { exact: true }).first();
+    const box = await value.boundingBox();
     await page.mouse.click(dialog.x + dialog.width - 70, box.y + box.height / 2 - 8);
-    await page.waitForTimeout(1200);
-    await shot(page, "2-picker-open", 160);
-    const option = page.getByRole("option", { name: SECOND.name });
-    if (await option.count()) {
-      await option.first().click();
-    } else {
+    await page.waitForTimeout(1000);
+    const option = page.getByRole("option", { name: screen.second.name });
+    if (await option.count()) await option.first().click();
+    else {
       await page.keyboard.press("ArrowDown");
       await page.keyboard.press("Enter");
     }
     await page.waitForTimeout(800);
-    await shot(page, "2b-picked");
+    await page.getByRole("button", { name: NEXT[lang] }).first().click();
+    await page.waitForTimeout(2500);
+    await shot(page, "2-car-form");
+    if (!screen.expanded) {
+      await page.getByText(lang === "de" ? "Alle Fahrzeuge" : "All vehicles", { exact: true }).first().click();
+      await page.waitForTimeout(1000);
+      await shot(page, "3-all-vehicles");
+    }
   }
-  await page.getByRole("button", { name: lang === "de" ? "Weiter" : "Next" }).first().click();
-  await page.waitForTimeout(2500);
-  await shot(page, "3-car-form");
-
-  // Expand "All vehicles".
-  await page.getByText(lang === "de" ? "Alle Fahrzeuge" : "All vehicles", { exact: true }).first().click();
-  await page.waitForTimeout(1200);
-  await shot(page, "4-car-form-expanded");
-
   await browser.close(); // abandons the flow; nothing was submitted to HA
 })().catch((err) => {
   console.error(err);

@@ -182,7 +182,7 @@
           "vehicle": "Voertuig"
         },
         "data_description": {
-          "vehicle": "De instellingen op het volgende scherm gelden alleen voor dit voertuig."
+          "vehicle": "Het volgende scherm begint met de eigen instellingen van dit voertuig."
         }
       },
       "action_charging_costs": {
@@ -256,7 +256,7 @@
           "vehicle": "Voertuig"
         },
         "data_description": {
-          "vehicle": "De instellingen op het volgende scherm gelden alleen voor dit voertuig."
+          "vehicle": "Het volgende scherm begint met de eigen instellingen van dit voertuig."
         }
       },
       "action_evcc_bridge": {
@@ -298,7 +298,7 @@
           "vehicle": "Voertuig"
         },
         "data_description": {
-          "vehicle": "De instellingen op het volgende scherm gelden alleen voor dit voertuig."
+          "vehicle": "Het volgende scherm begint met de eigen instellingen van dit voertuig."
         }
       },
       "action_trips": {

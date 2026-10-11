@@ -182,7 +182,7 @@
           "vehicle": "Veicolo"
         },
         "data_description": {
-          "vehicle": "Le impostazioni della schermata successiva valgono solo per questo veicolo."
+          "vehicle": "La schermata successiva inizia con le impostazioni proprie di questo veicolo."
         }
       },
       "action_charging_costs": {
@@ -256,7 +256,7 @@
           "vehicle": "Veicolo"
         },
         "data_description": {
-          "vehicle": "Le impostazioni della schermata successiva valgono solo per questo veicolo."
+          "vehicle": "La schermata successiva inizia con le impostazioni proprie di questo veicolo."
         }
       },
       "action_evcc_bridge": {
@@ -298,7 +298,7 @@
           "vehicle": "Veicolo"
         },
         "data_description": {
-          "vehicle": "Le impostazioni della schermata successiva valgono solo per questo veicolo."
+          "vehicle": "La schermata successiva inizia con le impostazioni proprie di questo veicolo."
         }
       },
       "action_trips": {
