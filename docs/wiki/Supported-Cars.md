@@ -40,7 +40,7 @@ Any car with CarData should work; this list is only what has been seen.
 | BMW X3 30e xDrive | Plug-in hybrid | Doesn't stream the state of charge; it arrives with the [daily REST refresh](Feature-API-Quota#the-daily-refresh). |
 | BMW X3 M40d (G01) | Diesel | — |
 | BMW M240i xDrive (G42) | Petrol | Tire pressure drifted after restarts before 0.9.7 ([#7](https://github.com/JustChr/BavarianData/issues/7)). |
-| BMW 530d Touring (G31, iDrive 6) | Diesel | Sends mileage, fuel and position only when a trip ends. Set **Trip detection** to **End-of-trip reports** for a trip journal (since 0.9.17-beta.3; [more](Feature-Trips#older-cars-that-report-only-at-the-end-of-a-trip)). |
+| BMW 530d Touring (G31, iDrive 6) | Diesel | Sends mileage, fuel and position only when a trip ends. Set **Trip detection** to **End-of-trip reports** for a trip journal (since 0.9.17; [more](Feature-Trips#older-cars-that-report-only-at-the-end-of-a-trip)). |
 | MINI (petrol) | Petrol | Set up through the MINI portal. Sends fewer fields than a BMW, for example no lifetime fuel-consumption counters. |
 
 ## What differs from car to car
