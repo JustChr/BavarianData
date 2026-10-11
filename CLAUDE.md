@@ -12,6 +12,7 @@ user's personal BMW client ID. Domain: `bavariandata`. Repo:
   - `device_flow.py` — OAuth 2.0 device-authorization flow (no HA imports; unit-testable).
   - `stream.py` — MQTT streaming client (paho-mqtt).
   - `coordinator.py` — central state: token refresh, stream lifecycle, quota, charging-session tracking + `bavariandata_charging_*` events, derived charged-energy sensors.
+  - `vehicle_options.py` — settings a car holds for itself (`options["vehicles"][VIN]`): trips, wallbox meter + losses, evcc publish. A car holds a screen's group whole or uses the account-wide keys; single-car accounts only ever write the account-wide keys. No HA imports.
   - `config_flow.py` — setup wizard: client ID → device auth → cluster picker → in-browser bookmarklet activator (shared by guided, manual and Configure via `_StreamActivatorFlow`; BMW has **no API** for Data Selection, it's portal-only).
   - `sensor.py` / `binary_sensor.py` / `image.py` / `device_tracker.py` / `entity.py` — entity platforms. One device per VIN.
   - `descriptors.py`, `keys.py`, `units.py` — descriptor → entity mapping; `keys.py` derives the HA `translation_key` and is shared by runtime **and** generators so they can't drift.
@@ -158,7 +159,9 @@ living only in prose.
   `ship` (release), `land` (check → PR → green CI → rebase-merge; not a
   release), `translate` (carry English text into all ten languages, with the
   glossary and what stays English), `flow-ux` (mock up and check any setup or
-  Configure screen against plain-language rules before building it), `review-pr` (reproduce a contributor's PR
+  Configure screen against plain-language rules before building it; its
+  `mock_flow.js` shoots a screen in the real HA dialog, or stages one the
+  live instance can't reach, such as a second car), `review-pr` (reproduce a contributor's PR
   in a worktree, prove its test, judge it, report before acting), `triage` (read a user's diagnostics), `live`
   (zero-quota reads against the live instance), `shoot` (Playwright screenshots),
   `close` (end every session with it: park or land the work, gates if code
