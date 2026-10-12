@@ -16,7 +16,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   UK car, opening the driver's door showed the left door open. The view now reads
   the steering side from BMW's basic data. If that is missing or wrong, set
   **Steering wheel** in the card editor (`steering: left` or `right`). The basic
-  data is already stored, so this needs no new request to BMW.
+  data is already stored, so this needs no new request to BMW. Thanks to
+  @karpilin for the fix (#95).
 - **Door and window names no longer say "left" and "right" for the driver's and
   passenger's side.** BMW's German, French, Italian, Spanish, Polish, Portuguese,
   Czech and Swedish names put the driver's door at the front left. They now say
