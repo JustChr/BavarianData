@@ -58,7 +58,7 @@ Alles unter `<prefix>/<FIN>/`, mit `bavariandata` als Standard-Prefix:
 | Topic | Was es ist | Von evcc genutzt als |
 | --- | --- | --- |
 | `soc` | Ladezustand, % | `soc` |
-| `status` | `A` nicht angesteckt, `B` angesteckt, `C` lädt | `status` |
+| `status` | `A` nicht angesteckt, `B` angesteckt, `C` lädt; `ErrNotAvailable`, solange das Auto [unterwegs angesteckt](#away-from-home-the-status-is-withheld) ist | `status` |
 | `range` | BMWs eigene elektrische Restreichweite, km | `range` |
 | `odometer` | Kilometerstand, km | `odometer` |
 | `limitSoc` | Das Ladeziel des Autos, % | `limitSoc` |
@@ -70,6 +70,24 @@ Alles unter `<prefix>/<FIN>/`, mit `bavariandata` als Standard-Prefix:
 `chargePower`, `plugged`, `charging`, `updated` und `state` nutzt evcc nicht. Sie
 sind für das MQTT-SoC-Modul von openWB, für Node-RED-Flows und zum Nachsehen im MQTT
 Explorer da, wenn etwas nicht funktioniert.
+
+### Unterwegs wird der Status zurückgehalten
+
+<a id="away-from-home-the-status-is-withheld"></a>
+
+evcc liest den `status` eines Autos für genau eine Sache: Steckt ein Auto an einem
+Ladepunkt an und kann die Wallbox nicht sagen, welches es ist, wählt evcc das
+Fahrzeug, das `B` oder `C` meldet. Ein Auto an einer öffentlichen Ladesäule meldet
+genau das, also könnte ein Gastauto an deiner Wallbox dafür gehalten werden, mit
+dessen Ladezustand und Ladeziel.
+
+Solange das Auto an einem Ort angesteckt ist, von dem die Integration weiß, dass er
+außerhalb deiner Zone Home liegt, meldet `status` daher `ErrNotAvailable`. Das ist
+evccs eigenes Wort für „kein Wert“; evcc lässt das Auto dann aus, ohne einen Fehler
+zu protokollieren. Ein nicht angestecktes Auto meldet weiter `A`, und `plugged`,
+`charging` sowie das `state`-Dokument behalten die echten Werte; `state` enthält
+zusätzlich `"away": true`. Ein Auto, das gar keine Position meldet, gilt als zu
+Hause.
 
 ### Drei Dinge, die sie bewusst tut
 

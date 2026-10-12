@@ -57,7 +57,7 @@ Everything under `<prefix>/<VIN>/`, with `bavariandata` as the default prefix:
 | Topic | What it is | Used by evcc as |
 | --- | --- | --- |
 | `soc` | State of charge, % | `soc` |
-| `status` | `A` unplugged, `B` plugged, `C` charging | `status` |
+| `status` | `A` unplugged, `B` plugged, `C` charging; `ErrNotAvailable` while plugged in [away from home](#away-from-home-the-status-is-withheld) | `status` |
 | `range` | BMW's own remaining electric range, km | `range` |
 | `odometer` | Odometer, km | `odometer` |
 | `limitSoc` | The car's own charge target, % | `limitSoc` |
@@ -69,6 +69,21 @@ Everything under `<prefix>/<VIN>/`, with `bavariandata` as the default prefix:
 `chargePower`, `plugged`, `charging`, `updated` and `state` aren't used by evcc.
 They're there for openWB's MQTT SoC module, Node-RED flows, and for looking at
 in MQTT Explorer when something isn't working.
+
+### Away from home, the status is withheld
+
+evcc reads a car's `status` for one thing: when a car plugs into a loadpoint and
+the wallbox can't say which car it is, evcc picks the vehicle reporting `B` or
+`C`. A car plugged in at a public charger reports exactly that, so a guest's car
+at your wallbox could be taken for it, with its state of charge and charge
+target.
+
+So while the car is plugged in somewhere the integration knows is outside your
+Home zone, `status` reads `ErrNotAvailable`. That is evcc's own word for "no
+value", and evcc then leaves the car out without logging an error. An
+unplugged car still reports `A`, and `plugged`, `charging` and the `state`
+document keep the real values; `state` also carries `"away": true`. A car that
+reports no position at all is treated as at home.
 
 ### Three things it does deliberately
 

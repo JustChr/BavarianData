@@ -4,7 +4,8 @@
 
 The recorded history is published into Home Assistant's own **long-term
 statistics**, under this integration's `bavariandata:` namespace: charging
-energy (kWh), charging cost and driving distance — one series per vehicle.
+energy (kWh), charging energy at home (kWh), charging cost and driving
+distance — one series of each per vehicle.
 
 ## Why external statistics
 
@@ -14,8 +15,16 @@ alive for. That means charging from **before you installed this**, or from
 
 ## Adding to the Energy dashboard
 
-**Settings → Dashboards → Energy → Individual devices**, and add the series (or
-the **Charged Energy (Total)** entity).
+**Settings → Dashboards → Energy → Individual devices**, and add the
+**charging energy at home** series (`bavariandata:charging_energy_home_<vin>`).
+
+Use that one, not the plain **charging energy** series or the **Charged Energy
+(Total)** entity. Home Assistant treats an individual device as part of what your
+house used. Those two count every charge, including a fast charge on the
+highway, which would then show up as household use and can push your devices
+above the house's own total. The home series uses the same rule as the
+[energy mix](Feature-Charging-History-and-Cost#where-the-energy-came-from): a
+car that reports no position counts as at home.
 
 ## A mirror, not a second archive
 

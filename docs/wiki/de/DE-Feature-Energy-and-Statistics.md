@@ -4,7 +4,8 @@
 
 Der aufgezeichnete Verlauf wird in die **Langzeitstatistiken** von Home Assistant
 übertragen, unter dem Namensraum `bavariandata:` dieser Integration: geladene
-Energie (kWh), Ladekosten und Fahrstrecke — je eine Reihe pro Fahrzeug.
+Energie (kWh), zu Hause geladene Energie (kWh), Ladekosten und Fahrstrecke — je
+eine Reihe pro Fahrzeug.
 
 ## Warum externe Statistiken
 
@@ -15,8 +16,19 @@ Energie-Dashboard.
 
 ## Zum Energie-Dashboard hinzufügen
 
-**Einstellungen → Dashboards → Energie → Einzelne Geräte**, dann die Reihe (oder
-die Entität **Geladene Energie (gesamt)**) hinzufügen.
+<a id="adding-to-the-energy-dashboard"></a>
+
+**Einstellungen → Dashboards → Energie → Einzelne Geräte**, dann die Reihe
+**charging energy at home** (`bavariandata:charging_energy_home_<fin>`) hinzufügen.
+
+Nimm diese, nicht die einfache Reihe **charging energy** oder die Entität
+**Geladene Energie (gesamt)**. Home Assistant zählt ein einzelnes Gerät zu dem,
+was dein Haus verbraucht hat. Die beiden anderen zählen jede Ladung, auch eine
+Schnellladung an der Autobahn; die erschiene dann als Haushaltsverbrauch und
+kann deine Geräte über den Gesamtverbrauch des Hauses heben. Die Reihe für zu
+Hause folgt derselben Regel wie der
+[Energiemix](DE-Feature-Charging-History-and-Cost#where-the-energy-came-from): Ein
+Auto, das keine Position meldet, gilt als zu Hause.
 
 ## Ein Spiegel, kein zweites Archiv
 

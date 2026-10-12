@@ -12,9 +12,10 @@ BMW sendet nie einen kWh-Zähler, daher integriert die Integration die
 Live-Ladeleistung über die Zeit zu zwei Sensoren pro Fahrzeug:
 
 - **Geladene Energie (gesamt)** — ein nur steigender kWh-Zähler
-  (`device_class: energy` / `state_class: total_increasing`). Füge ihn im
-  **Energie-Dashboard** als „einzelnes Gerät“ hinzu, um das Laden des Autos neben
-  dem restlichen Haushalt zu sehen und zu bepreisen.
+  (`device_class: energy` / `state_class: total_increasing`). Er zählt jede
+  Ladung, ob zu Hause oder nicht. Für das **Energie-Dashboard** nimm stattdessen
+  die Reihe
+  [geladene Energie zu Hause](DE-Feature-Energy-and-Statistics#adding-to-the-energy-dashboard).
 - **Geladene Energie (Ladevorgang)** — setzt sich zu Beginn jedes Ladevorgangs
   zurück.
 
@@ -219,8 +220,10 @@ Danach bekommst du pro Fahrzeug:
   eine Preisquelle gesetzt ist.
 - **Ladekosten pro 100 km** — braucht zusätzlich den Kilometerstand (Datengruppe
   Fahrzeugstatus) und zwei Ladevorgänge, zwischen denen eine Strecke gemessen
-  werden kann. Nicht bei einem Plug-in-Hybrid, dessen Kilometerstand auch die mit
-  Kraftstoff gefahrenen Kilometer zählt
+  werden kann. Jede Ladung des Monats braucht Kosten: Die Strecke umfasst jeden
+  Kilometer, also lässt eine Ladung unterwegs, die keine Kosten hat, den Monat
+  ohne diesen Wert. Nicht bei einem Plug-in-Hybrid, dessen Kilometerstand auch die
+  mit Kraftstoff gefahrenen Kilometer zählt
   ([warum](DE-Feature-Efficiency-and-Range#plug-in-hybride)).
 
 ## Netzenergie oder Batterieenergie
@@ -246,7 +249,9 @@ Netz geliefert hat. Zwei Wege, das auszugleichen:
   das nicht: Der Verlust wird dann gemessen.
 
 Ein Ladevorgang, während dem der Preis kurz unbekannt war, wird als `partial`
-markiert, statt stillschweigend zu niedrig auszufallen.
+markiert, statt stillschweigend zu niedrig auszufallen. Auch die Kosten des Monats
+werden als `partial` markiert, wenn sie eine Ladung ganz ohne Kosten auslassen,
+etwa eine unterwegs.
 
 <a id="importing-past-charges-from-bmw"></a>
 

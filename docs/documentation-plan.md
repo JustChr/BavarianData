@@ -174,7 +174,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `history_retain_months` | Charging costs & history | 🟡 |
 | `statistics_import` | Charging costs & history | 🟡 |
 | `refresh_on_start` | Automatic data refresh | 🟢 Settings-Reference → "Automatic data refresh" + Feature-Charging-History-and-Cost → "Restarting while the car is charging" |
-| `bridge_enabled` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |
+| `bridge_enabled` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge (incl. "Away from home, the status is withheld") |
 | `bridge_topic_prefix` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |
 | `bridge_retain` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |
 | `trip_work_zone` | Trips | 🟡 |
@@ -277,7 +277,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Live "trip in progress" (entity + hero badge + trips row) | 🟢 Feature-Trips → "Seeing the drive that's happening now" + The-Dashboard-Card |
 | Petrol / diesel / plug-in hybrid: battery-only entities not created (and removed on upgrade), battery card views explain themselves, fuel volume with statistics, hybrid trips withhold kWh/100 km, hybrids get no ledger consumption / real range / cost per 100 km (entities removed on upgrade, `status: plug_in_hybrid`) | 🟢 Feature-Entities-and-Devices → "Derived & diagnostic entities" + The-Dashboard-Card → "Overview" + Feature-Trips → "How consumption is measured" + Feature-Efficiency-and-Range → "Plug-in hybrids" |
 | BMW Motorrad unsupported (Repairs warning) | 🟢 Troubleshooting-and-FAQ → "Does BavarianData work with a BMW motorcycle?" + Getting-Started-1 → "Requirements" + README |
-| Energy dashboard & long-term statistics | 🟡 |
+| Energy dashboard & long-term statistics (incl. the home-only `charging_energy_home` series the dashboard should use) | 🟡 Feature-Energy-and-Statistics → "Adding to the Energy dashboard" (EN + DE) |
 | Export (CSV / HTML report) | 🟡 |
 | Charging events (`bavariandata_charging_*`) | 🟡 |
 | Device triggers (arrived at / left a zone, parked unlocked, plugged in but not charging, charging started / completed / stopped before the target) — offered only when the car can fire them; live values only, nothing fires from a restart; `trigger.data` per type | 🟢 Feature-Automations → "Device triggers" (both languages); 📷 owed: the trigger list in the automation editor |

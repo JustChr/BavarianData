@@ -19,6 +19,26 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   counts. Importing BMW's charging history no longer applies a fixed tariff to
   such charges either. Stored charges are repaired when Home Assistant starts.
   Thanks to @erwinweiss1955 for the detailed report (#97).
+- **Charging cost per 100 km is no longer too low when you also charge in
+  public.** Only charges at home have a cost now, but the distance counts every
+  kilometer. The figure is shown only when every charge in the month has a cost,
+  and the month's cost is marked `partial` when it leaves a charge out.
+
+### Added
+- **A home-only charging series for the Energy dashboard:**
+  `bavariandata:charging_energy_home_<vin>` (*charging energy at home*). Home
+  Assistant treats an individual device as part of what your house used, so a
+  fast charge on the highway does not belong there. Switch your Energy
+  dashboard's individual device to this series. The existing series and
+  **Charged Energy (Total)** still count every charge.
+
+### Changed
+- **evcc bridge: away from home, the car's `status` reads `ErrNotAvailable`
+  while it is plugged in.** evcc uses a vehicle's status only to guess which car
+  just plugged into a wallbox, and a car charging at a public charger could be
+  taken for a guest's car at yours. `ErrNotAvailable` is evcc's own "no value",
+  so it leaves the car out quietly. `plugged`, `charging` and the `state`
+  document keep the real values; `state` adds `"away": true`.
 
 ## [0.9.18-beta.4] - 2026-10-12
 

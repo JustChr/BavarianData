@@ -193,6 +193,8 @@ class BridgeSnapshot:
     limit_soc: Optional[float] = None
     charge_power_kw: Optional[float] = None
     updated: Optional[datetime] = None
+    # Known to be somewhere other than home (see ``evcc_status_payload``).
+    away: bool = False
 
     @property
     def status(self) -> Optional[str]:
@@ -208,6 +210,30 @@ class BridgeSnapshot:
         """
 
         return self.soc is None and self.status is None
+
+
+# evcc's own word for "no value": its MQTT plugin turns this payload into
+# ``api.ErrNotAvailable``, which every caller treats as an acceptable error.
+EVCC_NOT_AVAILABLE = "ErrNotAvailable"
+
+
+def evcc_status_payload(snapshot: BridgeSnapshot) -> Optional[str]:
+    """The ``status`` topic's payload: the car's status, unless it is elsewhere.
+
+    evcc reads a vehicle's status for one thing only: when a car plugs into a
+    loadpoint and the wallbox cannot say which, it picks the vehicle that
+    reports ``B`` or ``C`` (``identifyVehicleByStatus``). A car plugged in at a
+    public charger reports exactly that, so a guest's car at the home wallbox
+    would be taken for it -- with its SoC, limit and plan. Away from home the
+    status says nothing about any loadpoint evcc runs, so it is withheld. Not by
+    clearing the topic: evcc ignores an empty payload and keeps the last value.
+    ``A`` stays truthful anywhere, so an unplugged car still says so.
+    """
+
+    status = snapshot.status
+    if snapshot.away and status in (STATUS_CONNECTED, STATUS_CHARGING):
+        return EVCC_NOT_AVAILABLE
+    return status
 
 
 def _number(value: Optional[float], digits: int) -> Optional[str]:
@@ -245,7 +271,7 @@ def bridge_payloads(snapshot: BridgeSnapshot) -> dict[str, str]:
             payloads[topic] = payload
 
     _put(TOPIC_SOC, _number(snapshot.soc, 1))
-    _put(TOPIC_STATUS, snapshot.status)
+    _put(TOPIC_STATUS, evcc_status_payload(snapshot))
     _put(TOPIC_RANGE, _number(snapshot.range_km, 0))
     _put(TOPIC_ODOMETER, _number(snapshot.odometer_km, 0))
     _put(TOPIC_LIMIT_SOC, _number(snapshot.limit_soc, 0))
@@ -275,6 +301,12 @@ def bridge_payloads(snapshot: BridgeSnapshot) -> dict[str, str]:
             raw = payloads.get(topic)
             if raw is not None:
                 document[topic] = raw if topic == TOPIC_STATUS else float(raw)
+        # The document is read by more than evcc, so it keeps the true status
+        # and says where the car is instead.
+        if snapshot.status is not None:
+            document[TOPIC_STATUS] = snapshot.status
+        if snapshot.away:
+            document["away"] = True
         if snapshot.plugged is not None:
             document[TOPIC_PLUGGED] = snapshot.plugged
         if snapshot.charging is not None:

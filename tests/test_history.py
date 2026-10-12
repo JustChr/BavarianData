@@ -337,6 +337,25 @@ def test_summary_ignores_sessions_that_were_never_costed():
     assert result["sessions"] == 2
     assert result["cost"] == 3.0
     assert result["energy_kwh"] == 15.0
+    # ...but the total leaves that charge out, so it is a floor.
+    assert result["partial"] is True
+
+
+def test_a_charge_away_from_home_leaves_no_cost_per_distance():
+    """#97: home cost over every kilometre would read far too cheap."""
+
+    home = _costed(START, 3.0, mileage_km=1000.0, location={"zone": "Home"})
+    public = _session(
+        start=START + timedelta(days=1), energy_kwh=40.0, mileage_km=1300.0, location={"zone": None}
+    )
+    later = _costed(START + timedelta(days=2), 3.0, mileage_km=1400.0)
+    result = summary.summarise([home, public, later])
+    assert result["cost"] == 6.0
+    assert result["partial"] is True
+    assert result["distance_km"] == 400.0
+    assert result["cost_per_100km"] is None
+    # Every charge priced: the figure comes back.
+    assert summary.summarise([home, later])["cost_per_100km"] == 1.5
 
 
 def test_summary_counts_grid_only_imported_sessions():

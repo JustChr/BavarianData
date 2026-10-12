@@ -21,6 +21,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Iterable, Optional
 
 from .models import ChargingSession
+from .sessions import house_supplies_this_session
 from .trips import Trip
 
 HOUR = timedelta(hours=1)
@@ -94,6 +95,24 @@ def hourly_energy(sessions: Iterable[ChargingSession]) -> dict[datetime, float]:
     for session in sessions:
         _accumulate(buckets, spread(session.start, session.end, session_energy_kwh(session)))
     return buckets
+
+
+def hourly_energy_at_home(
+    sessions: Iterable[ChargingSession], home_zone: Optional[str]
+) -> dict[datetime, float]:
+    """Charged energy per UTC hour, in kWh, for charges at home only.
+
+    The series for the Energy dashboard's *individual devices*, which Home
+    Assistant reads as a share of what the house used. A fast charge on the
+    motorway is not, and there it would push the devices past the house itself
+    (#97). Same location rule as the energy mix and the tariff
+    (:func:`sessions.house_supplies_this_session`): a car that reports no
+    position counts as at home.
+    """
+
+    return hourly_energy(
+        session for session in sessions if house_supplies_this_session(session.location, home_zone)
+    )
 
 
 def hourly_cost(

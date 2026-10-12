@@ -299,3 +299,26 @@ def test_report_languages_match_the_service_selector():
     services = yaml.safe_load((pkg / "services.yaml").read_text(encoding="utf-8"))
     options = services["export_history"]["fields"]["language"]["selector"]["select"]["options"]
     assert set(options) == set(export.STRINGS)
+
+
+def test_the_home_series_leaves_out_charges_made_elsewhere():
+    """#97: the Energy dashboard reads a device as part of the house's use."""
+
+    def charge(hours: int, kwh: float, location) -> ChargingSession:
+        start = START + timedelta(hours=hours)
+        return ChargingSession(
+            vin="WBY1",
+            start=start,
+            end=start + timedelta(minutes=20),
+            energy_kwh=kwh,
+            location=location,
+        )
+
+    sessions = [
+        charge(0, 10.0, {"zone": "Home"}),
+        charge(3, 40.0, {"zone": None, "address": "A9 Stammham"}),
+        charge(6, 5.0, {"zone": "Work"}),
+        charge(9, 2.0, None),  # no position: counts as home, like the mix
+    ]
+    assert sum(stats.hourly_energy(sessions).values()) == 57.0
+    assert sum(stats.hourly_energy_at_home(sessions, "Home").values()) == 12.0

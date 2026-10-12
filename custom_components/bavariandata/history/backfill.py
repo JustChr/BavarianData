@@ -35,7 +35,13 @@ from homeassistant.core import HomeAssistant
 
 from ..const import DOMAIN
 from ..debug import debug_enabled
-from .stats import cumulative, hourly_cost, hourly_distance, hourly_energy
+from .stats import (
+    cumulative,
+    hourly_cost,
+    hourly_distance,
+    hourly_energy,
+    hourly_energy_at_home,
+)
 from .store import HistoryStore
 
 _LOGGER = logging.getLogger(__name__)
@@ -43,6 +49,8 @@ _LOGGER = logging.getLogger(__name__)
 # Statistic id suffixes. Kept as constants because they are user-visible forever:
 # renaming one orphans whatever the user selected on their Energy dashboard.
 STAT_CHARGING_ENERGY = "charging_energy"
+# Only charges at home: the one to put on the Energy dashboard (#97).
+STAT_CHARGING_ENERGY_HOME = "charging_energy_home"
 STAT_CHARGING_COST = "charging_cost"
 STAT_DRIVING_DISTANCE = "driving_distance"
 
@@ -153,6 +161,7 @@ class StatisticsPublisher:
             for vin in vins
             for suffix in (
                 STAT_CHARGING_ENERGY,
+                STAT_CHARGING_ENERGY_HOME,
                 STAT_CHARGING_COST,
                 STAT_DRIVING_DISTANCE,
             )
@@ -197,6 +206,8 @@ class StatisticsPublisher:
         trips = self.store.trips(vin)
         cost_buckets, currency = hourly_cost(sessions)
         name = self._name_for(vin)
+        home = self.hass.states.get("zone.home")
+        home_zone = home.name if home is not None else "Home"
 
         series: list[tuple[str, str, Optional[str], list[dict[str, Any]]]] = [
             (
@@ -204,6 +215,12 @@ class StatisticsPublisher:
                 f"{name} charging energy",
                 _KWH,
                 cumulative(hourly_energy(sessions)),
+            ),
+            (
+                STAT_CHARGING_ENERGY_HOME,
+                f"{name} charging energy at home",
+                _KWH,
+                cumulative(hourly_energy_at_home(sessions, home_zone)),
             ),
             (
                 STAT_DRIVING_DISTANCE,
@@ -224,7 +241,7 @@ class StatisticsPublisher:
                 )
             )
 
-        # Clear all three ids, not just the ones about to be rewritten: dropping
+        # Clear every id, not just the ones about to be rewritten: dropping
         # the tariff (or switching currency) removes the cost series from
         # ``series`` entirely, and a stale mirror of it must not survive.
         await self._async_clear(self.statistic_ids([vin]))

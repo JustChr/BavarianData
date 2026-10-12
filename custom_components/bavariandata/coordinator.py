@@ -2386,6 +2386,10 @@ class CardataCoordinator:
 
         tracking = self._soc_tracking.get(vin)
         charging = self._charging_state(vin)
+        # Where the car is, as the charging ledger judges it: the open session's
+        # place, else the current fix. See ``BridgeSnapshot.away``.
+        builder = self._session_builders.get(vin)
+        location = builder.location if builder is not None else self._charging_location(vin)
         power_kw: Optional[float] = None
         if charging is True:
             power_w = self._charging_power_w.get(vin)
@@ -2402,6 +2406,7 @@ class CardataCoordinator:
             limit_soc=None if tracking is None else tracking.target_soc_percent,
             charge_power_kw=power_kw,
             updated=None if tracking is None else tracking.last_update,
+            away=not house_supplies_this_session(location, self._home_zone_name()),
         )
 
     def efficiency(self, vin: str, *, months: int = TREND_MONTHS) -> Dict[str, Any]:

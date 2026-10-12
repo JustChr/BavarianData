@@ -52,7 +52,7 @@ passend).
 
 | Entität | Was sie ist |
 | --- | --- |
-| **Geladene Energie (gesamt)** | Nur steigender kWh-Zähler (`device_class: energy`, `state_class: total_increasing`). Im Energie-Dashboard hinzufügen. |
+| **Geladene Energie (gesamt)** | Nur steigender kWh-Zähler (`device_class: energy`, `state_class: total_increasing`). Zählt jede Ladung; für das Energie-Dashboard die [Reihe für zu Hause](DE-Feature-Energy-and-Statistics#adding-to-the-energy-dashboard) nehmen. |
 | **Geladene Energie (Ladevorgang)** | Setzt sich zu Beginn jedes Ladevorgangs zurück. |
 | **Geladene Energie (dieser Monat)** | Summe der geladenen Energie im Monat. |
 | **Ladekosten (dieser Monat)** | Kosten im Monat — erst, wenn eine Preisquelle gesetzt ist. |

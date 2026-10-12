@@ -860,8 +860,9 @@ class CardataChargingCostMonthSensor(CardataChargingSummarySensor):
         summary = self._summary
         attrs["sessions"] = summary.get("sessions", 0)
         attrs["energy_kwh"] = summary.get("energy_kwh")
-        # Flags a total that is a floor, not a figure: at least one session was
-        # charged while the price was unknown.
+        # Flags a total that is a floor, not a figure: a session was charged
+        # while the price was unknown, or one has no cost at all (charged away
+        # from home, or before a tariff was set).
         attrs["partial"] = summary.get("partial", False)
         return attrs
 

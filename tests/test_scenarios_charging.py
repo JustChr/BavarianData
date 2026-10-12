@@ -370,3 +370,17 @@ def test_a_charge_at_home_keeps_the_house_mix_and_tariff():
         assert session.location == {"zone": "Home"}
         assert session.energy_mix["solar_percent"] > 0
         assert session.cost["source"] == "tariff"
+
+
+def test_the_evcc_bridge_knows_a_charge_elsewhere():
+    """The bridge withholds evcc's status from a car charging away (#97 follow-up)."""
+
+    home = (48.1, 11.5)
+    with _house_harness(home) as h:
+        h.fix(5, 48.3, 11.9)
+        _start_charge(h)
+        assert h.coordinator.bridge_snapshot(h.vin).away is True
+        h.send(70, status="NOCHARGING", power=0, step="unplugged")
+        h.advance_to(73)
+        h.fix(90, *home)  # driven home
+        assert h.coordinator.bridge_snapshot(h.vin).away is False

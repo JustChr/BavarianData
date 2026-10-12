@@ -81,6 +81,10 @@ def summarise(sessions: Iterable[ChargingSession], *, hybrid: bool = False) -> d
     currencies also yield ``None``: summing euros and pounds into one number
     would be worse than showing nothing.
 
+    A session with energy but no cost (charged away from home, or before a
+    tariff was set) makes the total ``partial`` and leaves ``cost_per_100km``
+    ``None``: that figure divides by every kilometre, so it needs every charge.
+
     ``cost_per_100km`` stays ``None`` on a plug-in hybrid (``hybrid``): the
     electricity spread over kilometres partly driven on fuel reads as a running
     cost far below the real one, for the reason ``energy_balance`` gives.
@@ -92,6 +96,9 @@ def summarise(sessions: Iterable[ChargingSession], *, hybrid: bool = False) -> d
     currencies: set[str] = set()
     costed = 0
     partial = False
+    # Sessions that drew energy but carry no cost at all: a charge away from
+    # home (#97), or one from before a tariff was set.
+    unpriced = 0
 
     for session in sessions:
         # Prefer the measured grid figure over the battery-side estimate, and
@@ -102,10 +109,10 @@ def summarise(sessions: Iterable[ChargingSession], *, hybrid: bool = False) -> d
         if effective:
             energy += effective
         entry = session.cost
-        if not entry:
-            continue
-        amount = entry.get("amount")
+        amount = entry.get("amount") if entry else None
         if amount is None:
+            if effective:
+                unpriced += 1
             continue
         cost += float(amount)
         costed += 1
@@ -133,11 +140,17 @@ def summarise(sessions: Iterable[ChargingSession], *, hybrid: bool = False) -> d
     if costed and len(currencies) <= 1:
         summary["cost"] = round(cost, 2)
         summary["currency"] = next(iter(currencies), None)
+        if unpriced:
+            # The total leaves those charges out, so it is a floor.
+            summary["partial"] = True
 
     distance = _distance_km(sessions)
     if distance:
         summary["distance_km"] = round(distance, 1)
-        if summary["cost"] is not None and not hybrid:
+        # The distance covers every kilometre, so the cost has to cover every
+        # charge: home cost over all kilometres reads far too cheap for anyone
+        # who also charges in public.
+        if summary["cost"] is not None and not unpriced and not hybrid:
             summary["cost_per_100km"] = round(summary["cost"] / distance * 100, 2)
 
     return summary

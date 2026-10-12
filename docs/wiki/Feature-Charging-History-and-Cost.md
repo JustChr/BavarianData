@@ -12,9 +12,10 @@ BMW never sends a kWh counter, so the integration integrates the live charging
 power over time into two sensors per vehicle:
 
 - **Charged Energy (Total)** — a monotonic kWh counter
-  (`device_class: energy` / `state_class: total_increasing`). Add it to the
-  **Energy dashboard** as an "individual device" to see and cost your car's
-  charging alongside the rest of the house.
+  (`device_class: energy` / `state_class: total_increasing`). It counts every
+  charge, at home or not. For the **Energy dashboard**, use the
+  [charging energy at home](Feature-Energy-and-Statistics#adding-to-the-energy-dashboard)
+  series instead.
 - **Charged Energy (Session)** — resets at the start of every session.
 
 Both work on any vehicle that streams charging power.
@@ -194,8 +195,10 @@ You then get, per vehicle:
 - **Charging Cost (This Month)** and **Charging Cost (Last Session)** — once a
   price source is set.
 - **Charging Cost per 100 km** — additionally needs the odometer (Vehicle status
-  cluster) and two sessions to measure a distance between. Not on a plug-in
-  hybrid, whose odometer also counts the kilometers driven on fuel
+  cluster) and two sessions to measure a distance between. Every charge in the
+  month must have a cost: the distance covers every kilometer, so a charge
+  away from home, which has no cost, leaves the month without one. Not on a
+  plug-in hybrid, whose odometer also counts the kilometers driven on fuel
   ([why](Feature-Efficiency-and-Range#plug-in-hybrids)).
 
 ## Grid energy vs. battery energy
@@ -218,7 +221,8 @@ delivered. Two ways to reconcile:
   you don't need it: the loss becomes measured.
 
 A session charged while the price was briefly unknown is flagged `partial`
-rather than silently understated.
+rather than silently understated. The month's cost is flagged `partial` too
+when it leaves out a charge with no cost at all, such as one away from home.
 
 ## Importing past charges from BMW
 

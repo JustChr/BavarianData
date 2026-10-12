@@ -610,3 +610,34 @@ def test_every_plug_source_is_streamed() -> None:
 )
 def test_a_genuine_meter_reading_is_not_refused_for_our_own_error(battery, meter) -> None:
     assert sessions.measured_grid_kwh(0.0, meter, battery_kwh=battery) == round(meter, 3)
+
+
+# --- a car plugged in somewhere else ----------------------------------------------
+
+
+def test_a_car_plugged_in_elsewhere_withholds_its_status_from_evcc():
+    """evcc would otherwise take it for the car at the home wallbox."""
+
+    for charging, plugged in ((True, True), (False, True)):
+        snapshot = evcc.BridgeSnapshot(
+            vin=VIN, soc=60, charging=charging, plugged=plugged, away=True
+        )
+        payloads = evcc.bridge_payloads(snapshot)
+        # evcc's own "not available" word: an empty payload it would ignore.
+        assert payloads["status"] == "ErrNotAvailable"
+        # The facts stay on their own topics and in the document.
+        assert payloads["plugged"] == "true"
+        assert json.loads(payloads["state"])["status"] == snapshot.status
+        assert json.loads(payloads["state"])["away"] is True
+
+
+def test_an_unplugged_car_elsewhere_still_says_so():
+    snapshot = evcc.BridgeSnapshot(vin=VIN, soc=60, charging=False, plugged=False, away=True)
+    assert evcc.bridge_payloads(snapshot)["status"] == "A"
+
+
+def test_at_home_the_status_is_published_as_before():
+    snapshot = evcc.BridgeSnapshot(vin=VIN, soc=60, charging=True, plugged=True)
+    payloads = evcc.bridge_payloads(snapshot)
+    assert payloads["status"] == "C"
+    assert "away" not in json.loads(payloads["state"])

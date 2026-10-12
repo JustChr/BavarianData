@@ -47,7 +47,7 @@ integration's own translations (so they are named in your language too).
 
 | Entity | What it is |
 | --- | --- |
-| **Charged Energy (Total)** | Monotonic kWh counter (`device_class: energy`, `state_class: total_increasing`). Add to the Energy dashboard. |
+| **Charged Energy (Total)** | Monotonic kWh counter (`device_class: energy`, `state_class: total_increasing`). Counts every charge; for the Energy dashboard use the [home series](Feature-Energy-and-Statistics#adding-to-the-energy-dashboard). |
 | **Charged Energy (Session)** | Resets at the start of each charging session. |
 | **Charging Energy (This Month)** | Monthly charged-energy total. |
 | **Charging Cost (This Month)** | Monthly cost — only once a price source is set. |
