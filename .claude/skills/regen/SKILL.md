@@ -34,6 +34,7 @@ A hook refuses writes to the four generated files. What to edit instead:
 | Want to change | Edit |
 | --- | --- |
 | An entity's English name | `title_en` in `tools/curated_titles.json` |
+| An entity's name in another language — only where BMW's own is wrong for some cars (a seat-keyed field named by side) | `titles_i18n` in `tools/curated_titles.json` |
 | A derived/diagnostic sensor, the device tracker, the vehicle image | `tools/derived_entities.json` |
 | The flow strings (`config` / `options` / `services` / `issues` …) | `translations/en.json` **and every other full language file** by hand — these are not generated (then re-run step 5; `tests/test_translations_parity.py` names any language left behind) |
 | A US/UK spelling pair | `tools/spelling_en_gb.json` — never `en-GB.json`, which is fully generated |

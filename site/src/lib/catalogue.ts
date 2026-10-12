@@ -14,6 +14,9 @@ export type Descriptor = {
   title_en: string;
   name_de: string;
   names_i18n: Record<string, string>;
+  // Our own name where BMW's is wrong for some cars (tools/curated_titles.json);
+  // it is what the entity is actually called in that language.
+  titles_i18n: Record<string, string>;
   description_en: string;
   description_de: string;
   data_type: string;
@@ -67,7 +70,10 @@ export const LANGUAGE_NAMES: Record<string, string> = {
   sv: "Svenska",
 };
 
-export const nameOf = (d: Descriptor, lang: Lang) => (lang === "de" ? d.name_de || d.title_en : d.title_en);
+/** The descriptor's name in a language, as its Home Assistant entity is named. */
+export const localName = (d: Descriptor, lang: string) =>
+  d.titles_i18n?.[lang] || (lang === "de" ? d.name_de : d.names_i18n?.[lang]) || "";
+export const nameOf = (d: Descriptor, lang: Lang) => (lang === "de" ? localName(d, "de") || d.title_en : d.title_en);
 export const descriptionOf = (d: Descriptor, lang: Lang) =>
   (lang === "de" ? d.description_de || d.description_en : d.description_en || d.description_de || "").trim();
 

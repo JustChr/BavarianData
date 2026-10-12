@@ -601,7 +601,7 @@
         }
       },
       "vehicle_cabin_door_row1_driver_isopen": {
-        "name": "Vänster fram dörrens tillstånd",
+        "name": "Tillstånd för främre dörr på förarsidan",
         "state": {
           "open": "Öppen",
           "closed": "Stängd",
@@ -613,7 +613,7 @@
         "name": "Position för främre förardörr"
       },
       "vehicle_cabin_door_row1_passenger_isopen": {
-        "name": "Höger fram dörrens tillstånd",
+        "name": "Tillstånd för främre dörr på passagerarsidan",
         "state": {
           "open": "Öppen",
           "closed": "Stängd",
@@ -625,7 +625,7 @@
         "name": "Position för främre passagerardörr"
       },
       "vehicle_cabin_door_row2_driver_isopen": {
-        "name": "Vänster bak dörrens tillstånd",
+        "name": "Tillstånd för bakre dörr på förarsidan",
         "state": {
           "open": "Öppen",
           "closed": "Stängd",
@@ -637,7 +637,7 @@
         "name": "Bakre dörrposition förare"
       },
       "vehicle_cabin_door_row2_passenger_isopen": {
-        "name": "Höger bak dörrens tillstånd",
+        "name": "Tillstånd för bakre dörr på passagerarsidan",
         "state": {
           "open": "Öppen",
           "closed": "Stängd",
@@ -1050,7 +1050,7 @@
         }
       },
       "vehicle_cabin_window_row1_driver_status": {
-        "name": "Vänster fram fönstrets tillstånd",
+        "name": "Tillstånd för främre fönster på förarsidan",
         "state": {
           "closed": "Stängd",
           "intermediate": "Delvis öppen",
@@ -1059,7 +1059,7 @@
         }
       },
       "vehicle_cabin_window_row1_passenger_status": {
-        "name": "Höger fram fönstrets tillstånd",
+        "name": "Tillstånd för främre fönster på passagerarsidan",
         "state": {
           "closed": "Stängd",
           "intermediate": "Delvis öppen",
@@ -1068,7 +1068,7 @@
         }
       },
       "vehicle_cabin_window_row2_driver_status": {
-        "name": "Vänster bak fönstrets tillstånd",
+        "name": "Tillstånd för bakre fönster på förarsidan",
         "state": {
           "closed": "Stängd",
           "intermediate": "Delvis öppen",
@@ -1077,7 +1077,7 @@
         }
       },
       "vehicle_cabin_window_row2_passenger_status": {
-        "name": "Höger bak fönstrets tillstånd",
+        "name": "Tillstånd för bakre fönster på passagerarsidan",
         "state": {
           "closed": "Stängd",
           "intermediate": "Delvis öppen",
@@ -1903,25 +1903,25 @@
         "name": "Dörrarnas tillstånd"
       },
       "vehicle_cabin_door_row1_driver_isopen": {
-        "name": "Vänster fram dörrens tillstånd"
+        "name": "Tillstånd för främre dörr på förarsidan"
       },
       "vehicle_cabin_door_row1_driver_position": {
         "name": "Position för främre förardörr"
       },
       "vehicle_cabin_door_row1_passenger_isopen": {
-        "name": "Höger fram dörrens tillstånd"
+        "name": "Tillstånd för främre dörr på passagerarsidan"
       },
       "vehicle_cabin_door_row1_passenger_position": {
         "name": "Position för främre passagerardörr"
       },
       "vehicle_cabin_door_row2_driver_isopen": {
-        "name": "Vänster bak dörrens tillstånd"
+        "name": "Tillstånd för bakre dörr på förarsidan"
       },
       "vehicle_cabin_door_row2_driver_position": {
         "name": "Bakre dörrposition förare"
       },
       "vehicle_cabin_door_row2_passenger_isopen": {
-        "name": "Höger bak dörrens tillstånd"
+        "name": "Tillstånd för bakre dörr på passagerarsidan"
       },
       "vehicle_cabin_door_row2_passenger_position": {
         "name": "Position för bakre passagerardörr"
@@ -2137,16 +2137,16 @@
         "name": "Takluckans ställning"
       },
       "vehicle_cabin_window_row1_driver_status": {
-        "name": "Vänster fram fönstrets tillstånd"
+        "name": "Tillstånd för främre fönster på förarsidan"
       },
       "vehicle_cabin_window_row1_passenger_status": {
-        "name": "Höger fram fönstrets tillstånd"
+        "name": "Tillstånd för främre fönster på passagerarsidan"
       },
       "vehicle_cabin_window_row2_driver_status": {
-        "name": "Vänster bak fönstrets tillstånd"
+        "name": "Tillstånd för bakre fönster på förarsidan"
       },
       "vehicle_cabin_window_row2_passenger_status": {
-        "name": "Höger bak fönstrets tillstånd"
+        "name": "Tillstånd för bakre fönster på passagerarsidan"
       },
       "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
         "name": "Statusinformation om senaste överföring av OBFCM*-värden"

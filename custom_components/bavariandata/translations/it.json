@@ -601,7 +601,7 @@
         }
       },
       "vehicle_cabin_door_row1_driver_isopen": {
-        "name": "Stato dello sportello anteriore sinistro",
+        "name": "Stato dello sportello anteriore lato conducente",
         "state": {
           "open": "Aperto",
           "closed": "Chiuso",
@@ -613,7 +613,7 @@
         "name": "Posizione della portiera del conducente anteriore"
       },
       "vehicle_cabin_door_row1_passenger_isopen": {
-        "name": "Stato dello sportello anteriore destro",
+        "name": "Stato dello sportello anteriore lato passeggero",
         "state": {
           "open": "Aperto",
           "closed": "Chiuso",
@@ -625,7 +625,7 @@
         "name": "Posizione della portiera del passeggero anteriore"
       },
       "vehicle_cabin_door_row2_driver_isopen": {
-        "name": "Stato dello sportello posteriore sinistro",
+        "name": "Stato dello sportello posteriore lato conducente",
         "state": {
           "open": "Aperto",
           "closed": "Chiuso",
@@ -637,7 +637,7 @@
         "name": "Posizione della portiera posteriore del conducente"
       },
       "vehicle_cabin_door_row2_passenger_isopen": {
-        "name": "Stato dello sportello posteriore destro",
+        "name": "Stato dello sportello posteriore lato passeggero",
         "state": {
           "open": "Aperto",
           "closed": "Chiuso",
@@ -1050,7 +1050,7 @@
         }
       },
       "vehicle_cabin_window_row1_driver_status": {
-        "name": "Stato del finestrino anteriore sinistro",
+        "name": "Stato del finestrino anteriore lato conducente",
         "state": {
           "closed": "Chiuso",
           "intermediate": "Parzialmente aperto",
@@ -1059,7 +1059,7 @@
         }
       },
       "vehicle_cabin_window_row1_passenger_status": {
-        "name": "Stato del finestrino anteriore destro",
+        "name": "Stato del finestrino anteriore lato passeggero",
         "state": {
           "closed": "Chiuso",
           "intermediate": "Parzialmente aperto",
@@ -1068,7 +1068,7 @@
         }
       },
       "vehicle_cabin_window_row2_driver_status": {
-        "name": "Stato del finestrino posteriore sinistro",
+        "name": "Stato del finestrino posteriore lato conducente",
         "state": {
           "closed": "Chiuso",
           "intermediate": "Parzialmente aperto",
@@ -1077,7 +1077,7 @@
         }
       },
       "vehicle_cabin_window_row2_passenger_status": {
-        "name": "Stato del finestrino posteriore destro",
+        "name": "Stato del finestrino posteriore lato passeggero",
         "state": {
           "closed": "Chiuso",
           "intermediate": "Parzialmente aperto",
@@ -1903,25 +1903,25 @@
         "name": "Stato degli sportelli"
       },
       "vehicle_cabin_door_row1_driver_isopen": {
-        "name": "Stato dello sportello anteriore sinistro"
+        "name": "Stato dello sportello anteriore lato conducente"
       },
       "vehicle_cabin_door_row1_driver_position": {
         "name": "Posizione della portiera del conducente anteriore"
       },
       "vehicle_cabin_door_row1_passenger_isopen": {
-        "name": "Stato dello sportello anteriore destro"
+        "name": "Stato dello sportello anteriore lato passeggero"
       },
       "vehicle_cabin_door_row1_passenger_position": {
         "name": "Posizione della portiera del passeggero anteriore"
       },
       "vehicle_cabin_door_row2_driver_isopen": {
-        "name": "Stato dello sportello posteriore sinistro"
+        "name": "Stato dello sportello posteriore lato conducente"
       },
       "vehicle_cabin_door_row2_driver_position": {
         "name": "Posizione della portiera posteriore del conducente"
       },
       "vehicle_cabin_door_row2_passenger_isopen": {
-        "name": "Stato dello sportello posteriore destro"
+        "name": "Stato dello sportello posteriore lato passeggero"
       },
       "vehicle_cabin_door_row2_passenger_position": {
         "name": "Posizione della portiera posteriore del passeggero"
@@ -2137,16 +2137,16 @@
         "name": "Stato di ribaltamento del tettuccio apribile"
       },
       "vehicle_cabin_window_row1_driver_status": {
-        "name": "Stato del finestrino anteriore sinistro"
+        "name": "Stato del finestrino anteriore lato conducente"
       },
       "vehicle_cabin_window_row1_passenger_status": {
-        "name": "Stato del finestrino anteriore destro"
+        "name": "Stato del finestrino anteriore lato passeggero"
       },
       "vehicle_cabin_window_row2_driver_status": {
-        "name": "Stato del finestrino posteriore sinistro"
+        "name": "Stato del finestrino posteriore lato conducente"
       },
       "vehicle_cabin_window_row2_passenger_status": {
-        "name": "Stato del finestrino posteriore destro"
+        "name": "Stato del finestrino posteriore lato passeggero"
       },
       "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
         "name": "Informazione di stato sull’ultima trasmissione di valori OBFCM*"

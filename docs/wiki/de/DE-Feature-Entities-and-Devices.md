@@ -213,7 +213,11 @@ Entitätsnamen folgen der Sprache von Home Assistant. Elf werden mitgeliefert:
 Außer im Englischen sind die Namen von BMWs Feldern **BMWs eigene** — aus dem
 Katalog, den BMW in jeder Sprache veröffentlicht. Sie entsprechen also dem
 Wortlaut im BMW-Portal und sind keine Übersetzung unserer englischen Titel.
-Übersetzt sind außerdem die Einrichtungsdialoge, Optionen, Dienste,
+Die einzige Ausnahme sind die seitlichen Türen und Fenster. BMW meldet sie nach
+Sitzplatz, benennt sie in mehreren Sprachen aber nach Seite (*Status der Tür vorn
+links*), und das ist bei einem Rechtslenker die falsche Tür. Sie heißen deshalb
+nach Fahrer- oder Beifahrerseite (*Status der Tür Fahrerseite vorn*), wie die
+englischen Namen auch. Übersetzt sind außerdem die Einrichtungsdialoge, Optionen, Dienste,
 Reparaturhinweise, der Monatsbericht und die Dashboard-Karte. Portugiesisch ist
 europäisches Portugiesisch; eine Installation auf brasilianischem Portugiesisch
 zeigt in Home Assistant Englisch, die Karte aber Portugiesisch.

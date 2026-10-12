@@ -5,7 +5,7 @@
 // indexable; the rest are noindex -- BMW's catalogue line alone, repeated over
 // hundreds of near-identical pages, is the thin content search engines discount.
 import Base from "../layouts/Base.astro";
-import { DESCRIPTORS, SECTION_LABELS, LANGUAGE_NAMES, nameOf, descriptionOf, summary, type Descriptor } from "../lib/catalogue";
+import { DESCRIPTORS, SECTION_LABELS, LANGUAGE_NAMES, localName, nameOf, descriptionOf, summary, type Descriptor } from "../lib/catalogue";
 import { NOTES, renderNote, plainNote } from "../lib/notes";
 import { url, localized, absolute, type Lang } from "../lib/site";
 
@@ -24,8 +24,7 @@ const featured = notes.length > 0;
 const related = DESCRIPTORS.filter((x) => x.category === d.category && x.descriptor !== d.descriptor).slice(0, 12);
 const names: [string, string][] = [
   ["en", d.title_en],
-  ["de", d.name_de],
-  ...Object.entries(d.names_i18n || {}),
+  ...["de", ...Object.keys(d.names_i18n || {})].map((l) => [l, localName(d, l)]),
 ].filter(([, n]) => n) as [string, string][];
 
 const t = de

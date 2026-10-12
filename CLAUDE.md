@@ -43,7 +43,9 @@ the project-authored `tools/curated_titles.json` and
   es, nl, pl, pt, cs, sv) — **only the `entity` block**; every other section
   (`config`/`options`/`services`/`issues`…) is hand-maintained and preserved by
   the generator. Outside English, entity names are BMW's own, from its
-  per-language catalogue exports in `tools/catalogue_i18n/`
+  per-language catalogue exports in `tools/catalogue_i18n/`, except where
+  `titles_i18n` in `tools/curated_titles.json` overrides one (BMW names some
+  driver/passenger fields by side, wrong on right-hand drive)
 - `custom_components/bavariandata/translations/en-GB.json` — fully generated,
   a *delta* over `en.json` (HA overlays a language on top of `en` key by key, so
   only the ~75 differing strings exist). `en.json` is **US English**; the US/UK

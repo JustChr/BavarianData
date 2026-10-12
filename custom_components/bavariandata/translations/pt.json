@@ -601,7 +601,7 @@
         }
       },
       "vehicle_cabin_door_row1_driver_isopen": {
-        "name": "Estado da porta dianteira do lado esquerdo",
+        "name": "Estado da porta dianteira do lado do condutor",
         "state": {
           "open": "Aberto",
           "closed": "Fechado",
@@ -613,7 +613,7 @@
         "name": "Posição da porta do condutor"
       },
       "vehicle_cabin_door_row1_passenger_isopen": {
-        "name": "Estado da porta dianteira do lado direito",
+        "name": "Estado da porta dianteira do lado do passageiro",
         "state": {
           "open": "Aberto",
           "closed": "Fechado",
@@ -625,7 +625,7 @@
         "name": "Posição da porta do passageiro da frente"
       },
       "vehicle_cabin_door_row2_driver_isopen": {
-        "name": "Estado da porta traseira do lado esquerdo",
+        "name": "Estado da porta traseira do lado do condutor",
         "state": {
           "open": "Aberto",
           "closed": "Fechado",
@@ -637,7 +637,7 @@
         "name": "Posição da porta traseira do lado do condutor"
       },
       "vehicle_cabin_door_row2_passenger_isopen": {
-        "name": "Estado da porta traseira do lado direito",
+        "name": "Estado da porta traseira do lado do passageiro",
         "state": {
           "open": "Aberto",
           "closed": "Fechado",
@@ -797,7 +797,7 @@
         }
       },
       "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_cooling": {
-        "name": "Refrigeração direita do banco do passageiro da frente",
+        "name": "Refrigeração direta do banco do passageiro da frente",
         "state": {
           "off": "Desligado",
           "on": "Ligado",
@@ -1050,7 +1050,7 @@
         }
       },
       "vehicle_cabin_window_row1_driver_status": {
-        "name": "Estado da janela dianteira do lado esquerdo",
+        "name": "Estado da janela dianteira do lado do condutor",
         "state": {
           "closed": "Fechado",
           "intermediate": "Parcialmente aberto",
@@ -1059,7 +1059,7 @@
         }
       },
       "vehicle_cabin_window_row1_passenger_status": {
-        "name": "Estado da janela dianteira do lado direito",
+        "name": "Estado da janela dianteira do lado do passageiro",
         "state": {
           "closed": "Fechado",
           "intermediate": "Parcialmente aberto",
@@ -1068,7 +1068,7 @@
         }
       },
       "vehicle_cabin_window_row2_driver_status": {
-        "name": "Estado da janela traseira do lado esquerdo",
+        "name": "Estado da janela traseira do lado do condutor",
         "state": {
           "closed": "Fechado",
           "intermediate": "Parcialmente aberto",
@@ -1077,7 +1077,7 @@
         }
       },
       "vehicle_cabin_window_row2_passenger_status": {
-        "name": "Estado da janela traseira do lado direito",
+        "name": "Estado da janela traseira do lado do passageiro",
         "state": {
           "closed": "Fechado",
           "intermediate": "Parcialmente aberto",
@@ -1903,25 +1903,25 @@
         "name": "Estado das portas"
       },
       "vehicle_cabin_door_row1_driver_isopen": {
-        "name": "Estado da porta dianteira do lado esquerdo"
+        "name": "Estado da porta dianteira do lado do condutor"
       },
       "vehicle_cabin_door_row1_driver_position": {
         "name": "Posição da porta do condutor"
       },
       "vehicle_cabin_door_row1_passenger_isopen": {
-        "name": "Estado da porta dianteira do lado direito"
+        "name": "Estado da porta dianteira do lado do passageiro"
       },
       "vehicle_cabin_door_row1_passenger_position": {
         "name": "Posição da porta do passageiro da frente"
       },
       "vehicle_cabin_door_row2_driver_isopen": {
-        "name": "Estado da porta traseira do lado esquerdo"
+        "name": "Estado da porta traseira do lado do condutor"
       },
       "vehicle_cabin_door_row2_driver_position": {
         "name": "Posição da porta traseira do lado do condutor"
       },
       "vehicle_cabin_door_row2_passenger_isopen": {
-        "name": "Estado da porta traseira do lado direito"
+        "name": "Estado da porta traseira do lado do passageiro"
       },
       "vehicle_cabin_door_row2_passenger_position": {
         "name": "Posição da porta do passageiro traseiro"
@@ -1978,7 +1978,7 @@
         "name": "Aquecimento direto do banco do condutor"
       },
       "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_cooling": {
-        "name": "Refrigeração direita do banco do passageiro da frente"
+        "name": "Refrigeração direta do banco do passageiro da frente"
       },
       "vehicle_cabin_hvac_preconditioning_configuration_directstartsettings_seat_row1_passengerside_heating": {
         "name": "Aquecimento direto do banco do passageiro da frente"
@@ -2137,16 +2137,16 @@
         "name": "Estado de abertura do teto de abrir"
       },
       "vehicle_cabin_window_row1_driver_status": {
-        "name": "Estado da janela dianteira do lado esquerdo"
+        "name": "Estado da janela dianteira do lado do condutor"
       },
       "vehicle_cabin_window_row1_passenger_status": {
-        "name": "Estado da janela dianteira do lado direito"
+        "name": "Estado da janela dianteira do lado do passageiro"
       },
       "vehicle_cabin_window_row2_driver_status": {
-        "name": "Estado da janela traseira do lado esquerdo"
+        "name": "Estado da janela traseira do lado do condutor"
       },
       "vehicle_cabin_window_row2_passenger_status": {
-        "name": "Estado da janela traseira do lado direito"
+        "name": "Estado da janela traseira do lado do passageiro"
       },
       "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
         "name": "Informações de estado relativas à última transmissão de valores da OBFCM*"

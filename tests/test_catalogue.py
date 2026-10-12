@@ -93,6 +93,43 @@ def test_bmw_names_every_descriptor_in_every_localized_export():
             assert set(entry["names_i18n"]) == exports, entry["descriptor"]
 
 
+# "left" and "right" in every shipped language, as BMW's names spell them
+# (Swedish "höger" also covers "högerstyrd"; Polish stems catch every case).
+_SIDE_WORDS = re.compile(
+    r"\b(left|right|links|rechts|gauche|droit|droite|sinistr\w*|destr\w*|izquierd\w*|"
+    r"derech\w*|linker\w*|rechter\w*|lew\w*|praw\w*|esquerd\w*|direit\w*|vlevo|vpravo|"
+    r"lev\w*|prav\w*|vänster|höger)\b",
+    re.IGNORECASE,
+)
+
+
+def test_seat_keyed_names_do_not_assume_left_hand_drive():
+    """A driver's door is not "front left" on a right-hand-drive car.
+
+    BMW keys side doors, windows and seats by seat (``door.row1.driver``), but
+    several of its translations name them by side -- backwards on a UK car.
+    ``titles_i18n`` in curated_titles.json overrides those; a fresh BMW export
+    that names another one by side turns up here.
+    """
+
+    for descriptor in DESCRIPTORS:
+        if not re.search(r"\b(driver|passenger)(Side)?\b", descriptor.replace(".", " ")):
+            continue
+        key = KEYS.translation_key(descriptor)
+        for lang, doc in LANGUAGES.items():
+            name = doc["entity"]["sensor"][key]["name"]
+            assert not _SIDE_WORDS.search(name), f"{lang}: {descriptor} is named {name!r}"
+
+
+def test_curated_local_titles_name_real_descriptors_and_languages():
+    gen = _load("generate_translations", str(_TOOLS / "generate_translations.py"))
+    curated = json.loads((_TOOLS / "curated_titles.json").read_text(encoding="utf-8"))
+    for descriptor, names in curated["titles_i18n"].items():
+        assert descriptor in DESCRIPTORS, descriptor
+        assert set(names) <= set(gen.LANGUAGES), descriptor
+        assert all(names.values()), descriptor
+
+
 def test_curated_state_labels_cover_every_language():
     gen = _load("generate_translations", str(_TOOLS / "generate_translations.py"))
     for raw, labels in gen.COMMON_STATES.items():

@@ -155,8 +155,12 @@ def en_name(descriptor: str, entry: dict) -> str:
 
 
 def local_name(entry: dict, lang: str, fallback: str) -> str:
-    # BMW's own element name in that language, from the German export or one of
-    # the other localized ones; English when BMW has none.
+    # Our curated name in that language where BMW's is wrong for some cars
+    # (``titles_i18n`` in curated_titles.json); otherwise BMW's own element name,
+    # from the German export or one of the other localized ones; English when
+    # BMW has none.
+    if curated := (entry.get("titles_i18n") or {}).get(lang):
+        return curated
     if lang == "de":
         return entry.get("name_de") or fallback
     return (entry.get("names_i18n") or {}).get(lang) or fallback

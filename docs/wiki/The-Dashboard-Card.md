@@ -355,6 +355,18 @@ type: custom:bavariandata-card
 cluster: closures
 ```
 
+BMW reports the side doors and windows by seat (the driver's door, the
+passenger's), not by side. The card therefore places them by the car's
+steering side, which it reads from BMW's basic data, so on a right-hand-drive
+car the driver's door is drawn on the right. If they show up on the wrong side,
+set **Steering wheel** in the visual editor, or:
+
+```yaml
+type: custom:bavariandata-card
+cluster: closures
+steering: right   # left · right — omit to read it from BMW's vehicle data
+```
+
 ---
 
 ## Single-cluster list
@@ -407,6 +419,7 @@ teleservice timestamps, listed below the messages when the car sends them.
 | `odometer` | Override the odometer entity. |
 | `plug` | Override the plug-status entity. |
 | `drivetrain` | `bev`, `phev` or `ice` — the Overview layout. Omit to detect it from what the car streams. |
+| `steering` | `left` or `right` — the side the driver sits on, used to place doors and windows in the closures view. Omit to read it from BMW's basic data; a car whose basic data doesn't say is drawn as left-hand drive. |
 | `fuel` | Override the fuel-tank entity (a percentage or a volume). |
 
 With the integration installed, entity overrides are rarely needed — the card

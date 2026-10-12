@@ -14,6 +14,12 @@ export; each writes into `custom_components/bavariandata/`.
 
 To rename an entity, edit its `title_en` in `tools/curated_titles.json` and
 re-run steps 1–5. (`curated_titles.json` is project-authored, not a BMW export.)
+Its `titles_i18n` block does the same for another language, but only where
+BMW's own name is wrong for some cars. Today that means the side doors and
+windows: BMW keys them by seat (`door.row1.driver`), yet several of its
+translations call the driver's door "front left", which is the wrong door on a
+right-hand-drive car. `tests/test_catalogue.py` fails if a seat-keyed name
+mentions a side again.
 
 ## Dialect
 
@@ -67,7 +73,8 @@ idempotent). Run `python -m pytest tests/test_catalogue.py`.
 
 ## Languages
 
-Outside English, entity names are **BMW's own** field names in that language.
+Outside English, entity names are **BMW's own** field names in that language,
+except the few overridden in `curated_titles.json` → `titles_i18n` (above).
 German comes from the main export; the others from `catalogue_i18n/<lang>.html`,
 the same portal export fetched with that market's locale (below). BMW localizes
 the catalogue for `de fr it es nl pl pt cs sv da fi`; other locales (`ro-ro`,

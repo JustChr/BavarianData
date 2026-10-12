@@ -601,7 +601,7 @@
         }
       },
       "vehicle_cabin_door_row1_driver_isopen": {
-        "name": "Stan drzwi przednich lewych",
+        "name": "Stan drzwi przednich po stronie kierowcy",
         "state": {
           "open": "Otwarte",
           "closed": "Zamknięte",
@@ -613,7 +613,7 @@
         "name": "Pozycja przednich drzwi kierowcy"
       },
       "vehicle_cabin_door_row1_passenger_isopen": {
-        "name": "Stan drzwi przednich prawych",
+        "name": "Stan drzwi przednich po stronie pasażera",
         "state": {
           "open": "Otwarte",
           "closed": "Zamknięte",
@@ -625,7 +625,7 @@
         "name": "Pozycja przednich drzwi pasażera"
       },
       "vehicle_cabin_door_row2_driver_isopen": {
-        "name": "Stan drzwi tylnych lewych",
+        "name": "Stan drzwi tylnych po stronie kierowcy",
         "state": {
           "open": "Otwarte",
           "closed": "Zamknięte",
@@ -637,7 +637,7 @@
         "name": "Pozycja tylnych drzwi kierowcy"
       },
       "vehicle_cabin_door_row2_passenger_isopen": {
-        "name": "Stan drzwi tylnych prawych",
+        "name": "Stan drzwi tylnych po stronie pasażera",
         "state": {
           "open": "Otwarte",
           "closed": "Zamknięte",
@@ -1050,7 +1050,7 @@
         }
       },
       "vehicle_cabin_window_row1_driver_status": {
-        "name": "Stan okna w drzwiach przednich lewych",
+        "name": "Stan okna w drzwiach przednich po stronie kierowcy",
         "state": {
           "closed": "Zamknięte",
           "intermediate": "Częściowo otwarte",
@@ -1059,7 +1059,7 @@
         }
       },
       "vehicle_cabin_window_row1_passenger_status": {
-        "name": "Stan okna w drzwiach przednich prawych",
+        "name": "Stan okna w drzwiach przednich po stronie pasażera",
         "state": {
           "closed": "Zamknięte",
           "intermediate": "Częściowo otwarte",
@@ -1068,7 +1068,7 @@
         }
       },
       "vehicle_cabin_window_row2_driver_status": {
-        "name": "Stan okna w drzwiach tylnych lewych",
+        "name": "Stan okna w drzwiach tylnych po stronie kierowcy",
         "state": {
           "closed": "Zamknięte",
           "intermediate": "Częściowo otwarte",
@@ -1077,7 +1077,7 @@
         }
       },
       "vehicle_cabin_window_row2_passenger_status": {
-        "name": "Stan okna w drzwiach tylnych prawych",
+        "name": "Stan okna w drzwiach tylnych po stronie pasażera",
         "state": {
           "closed": "Zamknięte",
           "intermediate": "Częściowo otwarte",
@@ -1903,25 +1903,25 @@
         "name": "Stan drzwi"
       },
       "vehicle_cabin_door_row1_driver_isopen": {
-        "name": "Stan drzwi przednich lewych"
+        "name": "Stan drzwi przednich po stronie kierowcy"
       },
       "vehicle_cabin_door_row1_driver_position": {
         "name": "Pozycja przednich drzwi kierowcy"
       },
       "vehicle_cabin_door_row1_passenger_isopen": {
-        "name": "Stan drzwi przednich prawych"
+        "name": "Stan drzwi przednich po stronie pasażera"
       },
       "vehicle_cabin_door_row1_passenger_position": {
         "name": "Pozycja przednich drzwi pasażera"
       },
       "vehicle_cabin_door_row2_driver_isopen": {
-        "name": "Stan drzwi tylnych lewych"
+        "name": "Stan drzwi tylnych po stronie kierowcy"
       },
       "vehicle_cabin_door_row2_driver_position": {
         "name": "Pozycja tylnych drzwi kierowcy"
       },
       "vehicle_cabin_door_row2_passenger_isopen": {
-        "name": "Stan drzwi tylnych prawych"
+        "name": "Stan drzwi tylnych po stronie pasażera"
       },
       "vehicle_cabin_door_row2_passenger_position": {
         "name": "Pozycja tylnych drzwi pasażera"
@@ -2137,16 +2137,16 @@
         "name": "Stan wychylenia dachu przesuwnego"
       },
       "vehicle_cabin_window_row1_driver_status": {
-        "name": "Stan okna w drzwiach przednich lewych"
+        "name": "Stan okna w drzwiach przednich po stronie kierowcy"
       },
       "vehicle_cabin_window_row1_passenger_status": {
-        "name": "Stan okna w drzwiach przednich prawych"
+        "name": "Stan okna w drzwiach przednich po stronie pasażera"
       },
       "vehicle_cabin_window_row2_driver_status": {
-        "name": "Stan okna w drzwiach tylnych lewych"
+        "name": "Stan okna w drzwiach tylnych po stronie kierowcy"
       },
       "vehicle_cabin_window_row2_passenger_status": {
-        "name": "Stan okna w drzwiach tylnych prawych"
+        "name": "Stan okna w drzwiach tylnych po stronie pasażera"
       },
       "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
         "name": "Informacje o statusie dotyczące przekazywania wartości OBFCM*"

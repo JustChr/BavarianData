@@ -30,6 +30,7 @@
         "pt": "Estado da ligação da porta de carregamento",
         "sv": "Anslutningsstatus för laddningsport"
       },
+      "titles_i18n": {},
       "description_en": "Current condition for charging plug in all charging modes telling if any plug is currently connected. The value INVALID can have reasons like e.g. no sensor, broken sensor, no value, decoding errors etc. Combines Vehicle.Body.ChargingPort.Status/.DcStatus.",
       "description_de": "Aktueller Zustand des Ladesteckers in allen Ladebetriebsarten, der angibt, ob ein Stecker aktuell angeschlossen ist. Der Wert INVALID kann verschiedene Ursachen haben, z. B. kein Sensor, defekter Sensor, kein Wert, Decodierungsfehler etc. Kombiniert Vehicle.Body.ChargingPort.Status/.DcStatus.",
       "data_type": "string",
@@ -57,6 +58,7 @@
         "pt": "Estado da ligação da ficha de carga (apenas CC)",
         "sv": "Status för laddningskontakten (endast DC)"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the vehicle was connected to a DC charging plug at the time of data collection (CONNECTED) or not (DISCONNECTED).",
       "description_de": "Der Wert gibt an, ob das Fahrzeug zum Zeitpunkt der Datenerfassung mit einem DC-Ladestecker verbunden war (CONNECTED) oder nicht (DISCONNECTED).",
       "data_type": "string",
@@ -84,6 +86,7 @@
         "pt": "Estado de fecho da ficha de carga após carregamento completo",
         "sv": "Låst tillstånd för laddningskontakt efter full laddning"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the charging plug is automatically unlocked (HOSPITALITY_ACTIVE) or remains locked (HOSPITALITY_INACTIVE) after charging is completed.",
       "description_de": "Der Wert gibt an, ob der Ladestecker nach vollständiger Ladung automatisch entriegelt wird (HOSPITALITY_ACTIVE) oder verriegelt bleibt (HOSPITALITY_INACTIVE).",
       "data_type": "boolean",
@@ -111,6 +114,7 @@
         "pt": "ID de sessão carregamento",
         "sv": "Laddningssesions-ID"
       },
+      "titles_i18n": {},
       "description_en": "The Field contains the value of the ISO 15118 sessionID according ASCII.",
       "description_de": "Dieses Feld enthält den Wert der ISO-15118-SessionID im ASCII-Format.",
       "data_type": "string",
@@ -138,6 +142,7 @@
         "pt": "Estado bloqueado da porta de carregamento",
         "sv": "Laddningsportens låsta läge"
       },
+      "titles_i18n": {},
       "description_en": "This signal indicates whether the charging plug is locked, unlocked, an error is send or no aciton is performed. When using this value, also see Vehicle.Body.ChargingPort.PlugStatus.",
       "description_de": "Dieses Signal zeigt an, ob der Ladestecker verriegelt, entriegelt, ein Fehler gesendet wurde oder keine Aktion erfolgt ist. Beim Verwenden dieses Wertes siehe auch Vehicle.Body.ChargingPort.PlugStatus.",
       "data_type": "string",
@@ -165,6 +170,7 @@
         "pt": "ID do evento de ligação da porta de carregamento",
         "sv": "Händelse-ID för laddningskontaktens händelse-ID"
       },
+      "titles_i18n": {},
       "description_en": "Unique identifier which increases each time the customer plugs in his electrified vehicle (EXCEPT if the time between unplug and plug-in is less than 90 seconds). This value should be unique for each charging session. See ElectricEngine.Charging.PlugStatus.",
       "description_de": "Eindeutige Kennung, die bei jedem Einstecken des elektrifizierten Fahrzeugs durch den Kunden erhöht wird (AUSGENOMMEN wenn der Zeitraum zwischen Ausstecken und erneutem Einstecken weniger als 90 Sekunden beträgt). Dieser Wert sollte für jede Ladesitzung eindeutig sein. Siehe ElectricEngine.Charging.PlugStatus.",
       "data_type": "uint32",
@@ -192,6 +198,7 @@
         "pt": "Estado da ligação da ficha de carga",
         "sv": "Laddningskontaktens tillstånd"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the vehicle was connected to a charging plug at the time of data collection (CONNECTED) or not (DISCONNECTED).",
       "description_de": "Der Wert gibt an, ob das Fahrzeug zum Zeitpunkt der Datenerfassung mit einem Ladestecker verbunden war (CONNECTED) oder nicht (DISCONNECTED).",
       "data_type": "string",
@@ -219,6 +226,7 @@
         "pt": "Texto do estado da porta de carregamento",
         "sv": "Laddstationens statustext"
       },
+      "titles_i18n": {},
       "description_en": "Required alongside Vehicle.Body.ChargingPort.Status to ensure correct handling of charging sessions for G08 BEV vehicles (for details, contact DE-3-E; onboard fix expected by 2021-03)",
       "description_de": "Erforderlich zusammen mit Vehicle.Body.ChargingPort.Status, um eine korrekte Handhabbarkeit der Ladesitzungen bei G08 BEV Fahrzeugen sicherzustellen.",
       "data_type": "string",
@@ -246,6 +254,7 @@
         "pt": "Estado da tampa de carregamento",
         "sv": "Lastklaffens tillstånd"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the charging flap is locked at the time of data collection.",
       "description_de": "Der Wert gibt an, ob die Ladeklappe zum Zeitpunkt der Datenerfassung verriegelt ist.",
       "data_type": "boolean",
@@ -273,6 +282,7 @@
         "pt": "Estado de fecho da tampa de carregamento",
         "sv": "Stängningsläge för lastklaff"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the charging flap is locked independently of the central locking at the time of data collection.",
       "description_de": "Der Wert gibt an, ob die Ladeklappe unabhängig von der Zentralverriegelung zum Zeitpunkt der Datenerfassung verriegelt ist.",
       "data_type": "boolean",
@@ -300,6 +310,7 @@
         "pt": "Estado do capô",
         "sv": "Motorhuvens tillstånd"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the vehicle's hood was closed at the time of data collection (CLOSED) or open (OPEN).",
       "description_de": "Der Wert gibt an, ob die Motorhaube zum Zeitpunkt der Datenerfassung geschlossen (CLOSED) oder geöffnet (OPEN) war.",
       "data_type": "boolean",
@@ -327,6 +338,7 @@
         "pt": "Estado das luzes",
         "sv": "Belysningens tillstånd"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the vehicle light was on or off at the time of data collection or whether the status is unknown.",
       "description_de": "Der Wert gibt an, ob das Fahrzeuglicht zum Zeitpunkt der Datenerfassung aus oder an oder ob der Status unbekannt ist.",
       "data_type": "boolean",
@@ -354,6 +366,7 @@
         "pt": "Estado da porta da bagageira aberta",
         "sv": "Bagagedörr öppen status"
       },
+      "titles_i18n": {},
       "description_en": "Trunk door state.",
       "description_de": "Zustand der Kofferraumtür.",
       "data_type": "boolean",
@@ -381,6 +394,7 @@
         "pt": "Estado trancado da porta da bagageira",
         "sv": "Status för låst bagageutrymme"
       },
+      "titles_i18n": {},
       "description_en": "Indicated weather the trunk is locked or not.",
       "description_de": "Gibt an, ob der Kofferraum verriegelt ist oder nicht.",
       "data_type": "boolean",
@@ -408,6 +422,7 @@
         "pt": "Estado da porta da bagageira",
         "sv": "Bakluckans tillstånd"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the boot lid was open (OPEN), half-open (INTERMEDIATE) or closed (CLOSED) at the time of data collection.",
       "description_de": "Der Wert gibt an, ob der Kofferraum Deckel zum Zeitpunkt der Datenerfassung geöffnet (OPEN), halb geöffnet (INTERMEDIATE) oder geschlossen (CLOSED) war.",
       "data_type": "boolean",
@@ -435,6 +450,7 @@
         "pt": "Porta da bagageira à esquerda aberta",
         "sv": "Bagageutrymme vänster dörr öppen"
       },
+      "titles_i18n": {},
       "description_en": "Left door of trunk state.",
       "description_de": "Zustand der linken Kofferraumtür.",
       "data_type": "boolean",
@@ -462,6 +478,7 @@
         "pt": "Porta inferior da bagageira aberta",
         "sv": "Bagageutrymmets nedre dörr öppen"
       },
+      "titles_i18n": {},
       "description_en": "Lower door of trunk state.",
       "description_de": "Zustand der unteren Kofferraumtür.",
       "data_type": "boolean",
@@ -489,6 +506,7 @@
         "pt": "Porta da bagageira à direita aberta",
         "sv": "Bagageutrymme höger dörr öppen"
       },
+      "titles_i18n": {},
       "description_en": "Right door of trunk state.",
       "description_de": "Zustand der rechten Kofferraumtür.",
       "data_type": "boolean",
@@ -516,6 +534,7 @@
         "pt": "Porta superior da bagageira aberta",
         "sv": "Bagageutrymmets övre dörr öppen"
       },
+      "titles_i18n": {},
       "description_en": "Upper door of trunk state.",
       "description_de": "Zustand der oberen Kofferraumtür.",
       "data_type": "boolean",
@@ -543,6 +562,7 @@
         "pt": "Desbloqueio do vidro traseiro",
         "sv": "Upplåsning av bakruta"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the rear window is unlocked (TRUE) or closed (FALSE).",
       "description_de": "Der Wert gibt an, ob die Heckscheibe entriegelt (TRUE) oder geschlossen (FALSE) ist.",
       "data_type": "boolean",
@@ -570,6 +590,7 @@
         "pt": "Ação de substituir o temporizador automático climático",
         "sv": "Åtgärd för att skriva över klimattimer"
       },
+      "titles_i18n": {},
       "description_en": "Timer State/Action with states Activate (On), Deactivate (Off) and NoAction (Only used when communicating timer to the vehicle).",
       "description_de": "Status/Aktion der Zeitautomatik mit den Zuständen Activate (Ein), Deactivate (Aus) und NoAction (wird nur beim Übermitteln der Zeitautomatik an das Fahrzeug verwendet).",
       "data_type": "string",
@@ -597,6 +618,7 @@
         "pt": "Hora substituir o temporizador automático climático",
         "sv": "Klimattimern skriver över timmen"
       },
+      "titles_i18n": {},
       "description_en": "Hour setting of climate timer as per vehicle-configured timezone.",
       "description_de": "Stundeneinstellung der Klimazeitautomatik entsprechend der im Fahrzeug konfigurierten Zeitzone.",
       "data_type": "uint8",
@@ -624,6 +646,7 @@
         "pt": "Minuto substituir o temporizador automático climático",
         "sv": "Klimattimern skriver över minuten"
       },
+      "titles_i18n": {},
       "description_en": "Minute setting of climate timer as per vehicle-configured timezone.",
       "description_de": "Minuteneinstellung der Klimazeitautomatik entsprechend der im Fahrzeug konfigurierten Zeitzone.",
       "data_type": "uint8",
@@ -651,6 +674,7 @@
         "pt": "Ação temporizador automático de dia da semana 1",
         "sv": "Veckodagstimer 1 åtgärd"
       },
+      "titles_i18n": {},
       "description_en": "Timer 1 State/Action with states Activate (On), Deactivate (Off) and NoAction (Only used when communicating timer 1 to the vehicle).",
       "description_de": "Status/Aktion der Zeitautomatik 1 mit den Zuständen Activate (Ein), Deactivate (Aus) und NoAction (wird nur beim Übermitteln der Zeitautomatik 1 an das Fahrzeug verwendet).",
       "data_type": "string",
@@ -678,6 +702,7 @@
         "pt": "Hora temporizador automático de dia da semana 1",
         "sv": "Veckodagstimer 1 timme"
       },
+      "titles_i18n": {},
       "description_en": "Hour setting of climate timer 1 as per vehicle-configured timezone.",
       "description_de": "Stundeneinstellung der Klimazeitautomatik 1 entsprechend der im Fahrzeug konfigurierten Zeitzone.",
       "data_type": "uint8",
@@ -705,6 +730,7 @@
         "pt": "Minutos temporizador automático de dia da semana 1",
         "sv": "Veckodagstimer 1 minut"
       },
+      "titles_i18n": {},
       "description_en": "Minute setting of climate timer 1 as per vehicle-configured timezone.",
       "description_de": "Minuteneinstellung der Klimazeitautomatik 1 entsprechend der im Fahrzeug konfigurierten Zeitzone.",
       "data_type": "uint8",
@@ -732,6 +758,7 @@
         "pt": "Ação temporizador automático de dia da semana 2",
         "sv": "Veckodagstimer 2 åtgärd"
       },
+      "titles_i18n": {},
       "description_en": "Timer 2 State/Action with states Activate (On), Deactivate (Off) and NoAction (Only used when communicating timer 2 to the vehicle).",
       "description_de": "Status/Aktion der Zeitautomatik 2 mit den Zuständen Activate (Ein), Deactivate (Aus) und NoAction (wird nur beim Übermitteln der Zeitautomatik 2 an das Fahrzeug verwendet).",
       "data_type": "string",
@@ -759,6 +786,7 @@
         "pt": "Hora temporizador automático de dia da semana 2",
         "sv": "Veckodagstimer 2 timme"
       },
+      "titles_i18n": {},
       "description_en": "Hour setting of climate timer 2 as per vehicle-configured timezone.",
       "description_de": "Stundeneinstellung der Klimazeitautomatik 2 entsprechend der im Fahrzeug konfigurierten Zeitzone.",
       "data_type": "uint8",
@@ -786,6 +814,7 @@
         "pt": "Minutos temporizador automático de dia da semana 2",
         "sv": "Veckodagstimer 2 minut"
       },
+      "titles_i18n": {},
       "description_en": "Minute setting of climate timer 2 as per vehicle-configured timezone.",
       "description_de": "Minuteneinstellung der Klimazeitautomatik 2 entsprechend der im Fahrzeug konfigurierten Zeitzone.",
       "data_type": "uint8",
@@ -813,6 +842,7 @@
         "pt": "Estado do tejadilho do descapotável",
         "sv": "Status för konvertibelt tak"
       },
+      "titles_i18n": {},
       "description_en": "Convertible Roof Retractable State. BMW Mini vehicles have the additionally option to only open the folding roof. This signal represents the Mini folding roof state. It should be read together with the convertible roof state as well, see Vehicle.Cabin.Convertible.RoofStatus.",
       "description_de": "Zustand des einziehbaren Cabriodachs. Bei BMW Mini-Fahrzeugen besteht zusätzlich die Möglichkeit, nur das Faltdach zu öffnen. Dieses Signal stellt den Zustand des Mini-Faltdachs dar. Es sollte zusammen mit dem Status des Cabriodachs ausgelesen werden, siehe Vehicle.Cabin.Convertible.RoofStatus.",
       "data_type": "string",
@@ -840,6 +870,7 @@
         "pt": "Estado da capota do modelo Cabrio",
         "sv": "Cabriolettakets tillstånd"
       },
+      "titles_i18n": {},
       "description_en": "Indicates the current status of the convertible roof at the time of data collection, e.g. whether it was closed (CLOSED), open (OPEN) or – in an emergency – locked (EMERGENCYLOCKED). The following additional status values are possible: CLOSEDSECURED = convertible roof closed, vehicle secured OPENSECURED = convertible roof open, vehicle secured HARDTOPMOUNTED = hard top mounted and closed (removable hard top) INTERMEDIATEPOSITION = convertible roof in intermediate position LOADINGPOSITION = roof is in a position that allows for easy loading of the boot LOADINGPOSITIONIMMEDIATE = roof is in a position that allows for easy loading of the boot",
       "description_de": "Gibt den zum Zeitpunkt der Datenerfassung aktuellen Status des Cabriodachs an, also ob es beispielsweise geschlossen (CLOSED), geöffnet (OPEN) oder – im Notfall – verriegelt ist (EMERGENCYLOCKED). Folgende weitere Statuswerte sind möglich: CLOSEDSECURED = Cabriodach geschlossen, Fahrzeug gesichert OPENSECURED = Cabriodach offen, Fahrzeug gesichert HARDTOPMOUNTED = Hardtop montiert und geschlossen (abnehmbares Hardtop) INTERMEDIATEPOSITION = Cabrioverdeck in Zwischenstellung LOADINGPOSITION = Verdeck befindet sich in einer Position, die das Beladen des Kofferraums erleichtert LOADINGPOSITIONIMMEDIATE = Verdeck befindet sich in einer Position, die das Beladen des Kofferraums erleichtert",
       "data_type": "string",
@@ -867,6 +898,7 @@
         "pt": "Estado das portas",
         "sv": "Dörrarnas tillstånd"
       },
+      "titles_i18n": {},
       "description_en": "This indicates whether the vehicle's doors were locked (LOCKED) or unlocked (UNLOCKED) at the time of data collection. Other possible values are: SELECTIVELOCKED = vehicle locked with the exception of the left front door (state after a remote service door unlock was first performed) SECURED = vehicle has been secured = all doors locked and alarm system activated",
       "description_de": "Gibt an, ob die Türen zum Zeitpunkt der Datenerfassung verschlossen (LOCKED) oder unverschlossen (UNLOCKED) waren. Weitere möglichen Werte lauten: SELECTIVELOCKED = Fahrzeug bis auf die linke vordere Tür verriegelt (ergibt sich bei der ersten Ausführung eines Remote Services Door Unlock) SECURED = Fahrzeug ist gesichert = alle Türen verriegelt und Alarmanlage geschärft",
       "data_type": "-",
@@ -893,6 +925,16 @@
         "pl": "Stan drzwi przednich lewych",
         "pt": "Estado da porta dianteira do lado esquerdo",
         "sv": "Vänster fram dörrens tillstånd"
+      },
+      "titles_i18n": {
+        "de": "Status der Tür Fahrerseite vorn",
+        "fr": "Statut de la portière avant côté conducteur",
+        "it": "Stato dello sportello anteriore lato conducente",
+        "es": "Estado de la puerta delantera del lado del conductor",
+        "pl": "Stan drzwi przednich po stronie kierowcy",
+        "pt": "Estado da porta dianteira do lado do condutor",
+        "cs": "Stav dveří vpředu na straně řidiče",
+        "sv": "Tillstånd för främre dörr på förarsidan"
       },
       "description_en": "This value indicates whether the front left door was closed at the time of data collection (CLOSED) or open (OPEN).",
       "description_de": "Der Wert gibt an, ob die linke Tür zum Zeitpunkt der Datenerfassung geschlossen (CLOSED) oder geöffnet (OPEN) war.",
@@ -921,6 +963,7 @@
         "pt": "Posição da porta do condutor",
         "sv": "Position för främre förardörr"
       },
+      "titles_i18n": {},
       "description_en": "Driver-side front door opening position in percent. 0% represents fully closed and 100% represents fully opened.",
       "description_de": "Öffnungsstellung der Tür vorn auf der Fahrerseite in Prozent. 0 % entspricht vollständig geschlossen, 100 % entspricht vollständig geöffnet.",
       "data_type": "uint8",
@@ -947,6 +990,16 @@
         "pl": "Stan drzwi przednich prawych",
         "pt": "Estado da porta dianteira do lado direito",
         "sv": "Höger fram dörrens tillstånd"
+      },
+      "titles_i18n": {
+        "de": "Status der Tür Beifahrerseite vorn",
+        "fr": "Statut de la portière avant côté passager",
+        "it": "Stato dello sportello anteriore lato passeggero",
+        "es": "Estado de la puerta delantera del lado del acompañante",
+        "pl": "Stan drzwi przednich po stronie pasażera",
+        "pt": "Estado da porta dianteira do lado do passageiro",
+        "cs": "Stav dveří vpředu na straně spolujezdce",
+        "sv": "Tillstånd för främre dörr på passagerarsidan"
       },
       "description_en": "This value indicates whether the front right door was closed at the time of data collection (CLOSED) or open (OPEN).",
       "description_de": "Der Wert gibt an, ob die rechte Tür zum Zeitpunkt der Datenerfassung geschlossen (CLOSED) oder geöffnet (OPEN) war.",
@@ -975,6 +1028,7 @@
         "pt": "Posição da porta do passageiro da frente",
         "sv": "Position för främre passagerardörr"
       },
+      "titles_i18n": {},
       "description_en": "Passenger-side front door opening position in percent. 0% represents fully closed and 100% represents fully opened.",
       "description_de": "Öffnungsstellung der Tür vorn auf der Beifahrerseite in Prozent. 0 % entspricht vollständig geschlossen, 100 % entspricht vollständig geöffnet.",
       "data_type": "uint8",
@@ -1001,6 +1055,16 @@
         "pl": "Stan drzwi tylnych lewych",
         "pt": "Estado da porta traseira do lado esquerdo",
         "sv": "Vänster bak dörrens tillstånd"
+      },
+      "titles_i18n": {
+        "de": "Status der Tür Fahrerseite hinten",
+        "fr": "Statut de la portière arrière côté conducteur",
+        "it": "Stato dello sportello posteriore lato conducente",
+        "es": "Estado de la puerta trasera del lado del conductor",
+        "pl": "Stan drzwi tylnych po stronie kierowcy",
+        "pt": "Estado da porta traseira do lado do condutor",
+        "cs": "Stav dveří vzadu na straně řidiče",
+        "sv": "Tillstånd för bakre dörr på förarsidan"
       },
       "description_en": "This value indicates whether the rear left door was closed at the time of data collection (CLOSED) or open (OPEN).",
       "description_de": "Der Wert gibt an, ob die Tür hinten links zum Zeitpunkt der Datenerfassung geschlossen (CLOSED) oder geöffnet (OPEN) war.",
@@ -1029,6 +1093,7 @@
         "pt": "Posição da porta traseira do lado do condutor",
         "sv": "Bakre dörrposition förare"
       },
+      "titles_i18n": {},
       "description_en": "Driver-side rear door opening position in percent. 0% represents fully closed and 100% represents fully opened.",
       "description_de": "Öffnungsstellung der Tür hinten auf der Fahrerseite in Prozent. 0 % entspricht vollständig geschlossen, 100 % entspricht vollständig geöffnet.",
       "data_type": "uint8",
@@ -1055,6 +1120,16 @@
         "pl": "Stan drzwi tylnych prawych",
         "pt": "Estado da porta traseira do lado direito",
         "sv": "Höger bak dörrens tillstånd"
+      },
+      "titles_i18n": {
+        "de": "Status der Tür Beifahrerseite hinten",
+        "fr": "Statut de la portière arrière côté passager",
+        "it": "Stato dello sportello posteriore lato passeggero",
+        "es": "Estado de la puerta trasera del lado del acompañante",
+        "pl": "Stan drzwi tylnych po stronie pasażera",
+        "pt": "Estado da porta traseira do lado do passageiro",
+        "cs": "Stav dveří vzadu na straně spolujezdce",
+        "sv": "Tillstånd för bakre dörr på passagerarsidan"
       },
       "description_en": "This value indicates whether the rear right door was closed at the time of data collection (CLOSED) or open (OPEN).",
       "description_de": "Der Wert gibt an, ob die Tür hinten rechts zum Zeitpunkt der Datenerfassung geschlossen (CLOSED) oder geöffnet (OPEN) war.",
@@ -1083,6 +1158,7 @@
         "pt": "Posição da porta do passageiro traseiro",
         "sv": "Position för bakre passagerardörr"
       },
+      "titles_i18n": {},
       "description_en": "Passenger-side rear door opening position in percent. 0% represents fully closed and 100% represents fully opened.",
       "description_de": "Öffnungsstellung der Tür hinten auf der Beifahrerseite in Prozent. 0 % entspricht vollständig geschlossen, 100 % entspricht vollständig geöffnet.",
       "data_type": "uint8",
@@ -1110,6 +1186,7 @@
         "pt": "Estado das portas",
         "sv": "Dörrarnas tillstånd"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the status of the doors, but is only sporadically recorded and transmitted. Note: It is recommended to use only the individual door status instead of this value.",
       "description_de": "Dieser Wert gibt den Status der Türen an, wird jedoch nur sporadisch geschrieben und übermittelt. Hinweis: Es empfiehlt sich, statt diesem Wert nur den einzelnen Türstatus zu verwenden.",
       "data_type": "string",
@@ -1137,6 +1214,7 @@
         "pt": "Refrigeração padrão do banco do condutor",
         "sv": "Standardkylning av främre förarstolens kylning"
       },
+      "titles_i18n": {},
       "description_en": "Default settings for front driver seat cooling/ventilation of the seat for climate preconditioning.",
       "description_de": "Standardeinstellungen der Sitzkühlung/-belüftung auf der Fahrerseite vorn für die Vorklimatisierung.",
       "data_type": "string",
@@ -1164,6 +1242,7 @@
         "pt": "Aquecimento padrão do banco do condutor",
         "sv": "Standard uppvärmning av främre förarstolen"
       },
+      "titles_i18n": {},
       "description_en": "Default settings for front driver seat heating of the seat for climate preconditioning.",
       "description_de": "Standardeinstellungen der Sitzheizung auf der Fahrerseite vorn für die Vorklimatisierung.",
       "data_type": "string",
@@ -1191,6 +1270,7 @@
         "pt": "Refrigeração padrão do banco do passageiro da frente",
         "sv": "Standardkylning av främre passagerarstolens kylning"
       },
+      "titles_i18n": {},
       "description_en": "Default settings for front passenger seat cooling/ventilation of the seat for climate preconditioning.",
       "description_de": "Standardeinstellungen der Sitzkühlung/-belüftung auf der Beifahrerseite vorn für die Vorklimatisierung.",
       "data_type": "string",
@@ -1218,6 +1298,7 @@
         "pt": "Aquecimento padrão do banco do passageiro da frente",
         "sv": "Standard uppvärmning av främre passagerarstolen"
       },
+      "titles_i18n": {},
       "description_en": "Default settings for front passenger seat heating of the seat for climate preconditioning.",
       "description_de": "Standardeinstellungen der Sitzheizung auf der Beifahrerseite vorn für die Vorklimatisierung.",
       "data_type": "string",
@@ -1245,6 +1326,7 @@
         "pt": "Refrigeração padrão do banco atrás do condutor",
         "sv": "Standardkylning av bakre förarstolens kylning"
       },
+      "titles_i18n": {},
       "description_en": "Default settings for rear driver seat cooling/ventilation of the seat for climate preconditioning.",
       "description_de": "Standardeinstellungen der Sitzkühlung/-belüftung auf der Fahrerseite hinten für die Vorklimatisierung.",
       "data_type": "string",
@@ -1272,6 +1354,7 @@
         "pt": "Aquecimento padrão do banco atrás do condutor",
         "sv": "Standarduppvärmning av bakre förarstolens kylning"
       },
+      "titles_i18n": {},
       "description_en": "Default settings for rear driver seat heating of the seat for climate preconditioning.",
       "description_de": "Standardeinstellungen der Sitzheizung auf der Fahrerseite hinten für die Vorklimatisierung.",
       "data_type": "string",
@@ -1299,6 +1382,7 @@
         "pt": "Refrigeração padrão do banco do passageiro traseiro",
         "sv": "Standardkylning av bakre passagerarstolens kylning"
       },
+      "titles_i18n": {},
       "description_en": "Default settings for rear passenger seat cooling/ventilation of the seat for climate preconditioning.",
       "description_de": "Standardeinstellungen der Sitzkühlung/-belüftung auf der Beifahrerseite hinten für die Vorklimatisierung.",
       "data_type": "string",
@@ -1326,6 +1410,7 @@
         "pt": "Aquecimento padrão do banco do passageiro traseiro",
         "sv": "Standarduppvärmning av bakre passagerarstolens kylning"
       },
+      "titles_i18n": {},
       "description_en": "Default settings for rear passenger seat heating of the seat for climate preconditioning.",
       "description_de": "Standardeinstellungen der Sitzheizung auf der Beifahrerseite hinten für die Vorklimatisierung.",
       "data_type": "string",
@@ -1353,6 +1438,7 @@
         "pt": "Refrigeração padrão do banco atrás do condutor, terceira fila",
         "sv": "Standard tredje radens förarstolskylning"
       },
+      "titles_i18n": {},
       "description_en": "Default settings for third row driver seat cooling/ventilation of the seat for climate preconditioning.",
       "description_de": "Standardeinstellungen der Sitzkühlung/-belüftung auf der Fahrerseite dritte Sitzreihe für die Vorklimatisierung.",
       "data_type": "string",
@@ -1380,6 +1466,7 @@
         "pt": "Aquecimento padrão do banco atrás do condutor, terceira fila",
         "sv": "Standard tredje radens förarstolsuppvärmning"
       },
+      "titles_i18n": {},
       "description_en": "Default settings for third row driver seat heating of the seat for climate preconditioning.",
       "description_de": "Standardeinstellungen der Sitzheizung auf der Fahrerseite dritte Sitzreihe für die Vorklimatisierung.",
       "data_type": "string",
@@ -1407,6 +1494,7 @@
         "pt": "Refrigeração padrão do banco do passageiro, terceira fila",
         "sv": "Standard tredje radens passagerarstolskylning"
       },
+      "titles_i18n": {},
       "description_en": "Default settings for third row passenger seat cooling/ventilation of the seat for climate preconditioning.",
       "description_de": "Standardeinstellungen der Sitzkühlung/-belüftung auf der Beifahrerseite dritte Sitzreihe für die Vorklimatisierung.",
       "data_type": "string",
@@ -1434,6 +1522,7 @@
         "pt": "Aquecimento padrão do banco do passageiro, terceira fila",
         "sv": "Standard tredje radens passagerarstolsuppvärmning"
       },
+      "titles_i18n": {},
       "description_en": "Default settings for third row passenger seat heating of the seat for climate preconditioning.",
       "description_de": "Standardeinstellungen der Sitzheizung auf der Beifahrerseite dritte Sitzreihe für die Vorklimatisierung.",
       "data_type": "string",
@@ -1461,6 +1550,7 @@
         "pt": "Aquecimento padrão do volante",
         "sv": "Standard rattvärme"
       },
+      "titles_i18n": {},
       "description_en": "Default settings for steering wheel heating for climate preconditioning.",
       "description_de": "Standardeinstellungen der Lenkradheizung für die Vorklimatisierung.",
       "data_type": "string",
@@ -1488,6 +1578,7 @@
         "pt": "Temperatura alvo",
         "sv": "Måltemperatur"
       },
+      "titles_i18n": {},
       "description_en": "Default settings for target temperature for climate preconditioning.",
       "description_de": "Standardeinstellungen der Solltemperatur für die Vorklimatisierung.",
       "data_type": "float",
@@ -1515,6 +1606,7 @@
         "pt": "Banco do condutor com refrigeração direta",
         "sv": "Främre förarstolen direktkylning."
       },
+      "titles_i18n": {},
       "description_en": "DirectStart settings for front driver seat cooling/ventilation of the seat for climate preconditioning.",
       "description_de": "DirectStart-Einstellungen der Sitzkühlung/-belüftung auf der Fahrerseite vorn für die Vorklimatisierung.",
       "data_type": "string",
@@ -1542,6 +1634,7 @@
         "pt": "Aquecimento direto do banco do condutor",
         "sv": "Främre förarstolen direktvärme."
       },
+      "titles_i18n": {},
       "description_en": "DirectStart settings for front driver seat heating of the seat for climate preconditioning.",
       "description_de": "DirectStart-Einstellungen der Sitzheizung auf der Fahrerseite vorn für die Vorklimatisierung.",
       "data_type": "string",
@@ -1568,6 +1661,9 @@
         "pl": "Bezpośrednie chłodzenie pasażera z przodu",
         "pt": "Refrigeração direita do banco do passageiro da frente",
         "sv": "Passagerarstolens direktkylning"
+      },
+      "titles_i18n": {
+        "pt": "Refrigeração direta do banco do passageiro da frente"
       },
       "description_en": "DirectStart settings for front passenger seat cooling/ventilation of the seat for climate preconditioning.",
       "description_de": "DirectStart-Einstellungen der Sitzkühlung/-belüftung auf der Beifahrerseite vorn für die Vorklimatisierung.",
@@ -1596,6 +1692,7 @@
         "pt": "Aquecimento direto do banco do passageiro da frente",
         "sv": "Direktvärme för främre passagerare"
       },
+      "titles_i18n": {},
       "description_en": "DirectStart settings for front passenger seat heating of the seat for climate preconditioning.",
       "description_de": "DirectStart-Einstellungen der Sitzheizung auf der Beifahrerseite vorn für die Vorklimatisierung.",
       "data_type": "string",
@@ -1623,6 +1720,7 @@
         "pt": "Refrigeração direta do banco atrás do condutor",
         "sv": "Direktkylning för bakre förare"
       },
+      "titles_i18n": {},
       "description_en": "DirectStart settings for rear driver seat cooling/ventilation of the seat for climate preconditioning.",
       "description_de": "DirectStart-Einstellungen der Sitzkühlung/-belüftung auf der Fahrerseite hinten für die Vorklimatisierung.",
       "data_type": "string",
@@ -1650,6 +1748,7 @@
         "pt": "Aquecimento direto do banco atrás do condutor",
         "sv": "Direktvärme för bakre förare"
       },
+      "titles_i18n": {},
       "description_en": "DirectStart settings for rear driver seat heating of the seat for climate preconditioning.",
       "description_de": "DirectStart-Einstellungen der Sitzheizung auf der Fahrerseite hinten für die Vorklimatisierung.",
       "data_type": "string",
@@ -1677,6 +1776,7 @@
         "pt": "Refrigeração direta do banco do passageiro traseiro",
         "sv": "Direktkylning för bakre passagerare"
       },
+      "titles_i18n": {},
       "description_en": "DirectStart settings for rear passenger seat cooling/ventilation of the seat for climate preconditioning.",
       "description_de": "DirectStart-Einstellungen der Sitzkühlung/-belüftung auf der Beifahrerseite hinten für die Vorklimatisierung.",
       "data_type": "string",
@@ -1704,6 +1804,7 @@
         "pt": "Aquecimento direto do banco do passageiro traseiro",
         "sv": "Direktvärme för bakre passagerare"
       },
+      "titles_i18n": {},
       "description_en": "DirectStart settings for rear passenger seat heating of the seat for climate preconditioning.",
       "description_de": "DirectStart-Einstellungen der Sitzheizung auf der Beifahrerseite hinten für die Vorklimatisierung.",
       "data_type": "string",
@@ -1731,6 +1832,7 @@
         "pt": "Refrigeração direta do banco atrás do condutor, terceira fila",
         "sv": "Direktkylning för tredje radens förare"
       },
+      "titles_i18n": {},
       "description_en": "DirectStart settings for third row driver seat cooling/ventilation of the seat for climate preconditioning.",
       "description_de": "DirectStart-Einstellungen der Sitzkühlung/-belüftung auf der Fahrerseite dritte Sitzreihe für die Vorklimatisierung.",
       "data_type": "string",
@@ -1758,6 +1860,7 @@
         "pt": "Aquecimento direto do banco atrás do condutor, terceira fila",
         "sv": "Direktvärme för tredje radens förare"
       },
+      "titles_i18n": {},
       "description_en": "DirectStart settings for third row driver seat heating of the seat for climate preconditioning.",
       "description_de": "DirectStart-Einstellungen der Sitzheizung auf der Fahrerseite dritte Sitzreihe für die Vorklimatisierung.",
       "data_type": "string",
@@ -1785,6 +1888,7 @@
         "pt": "Refrigeração direta do banco do passageiro traseiro, terceira fila",
         "sv": "Direktkylning för tredje radens passagerare"
       },
+      "titles_i18n": {},
       "description_en": "DirectStart settings for third row passenger seat cooling/ventilation of the seat for climate preconditioning.",
       "description_de": "DirectStart-Einstellungen der Sitzkühlung/-belüftung auf der Beifahrerseite dritte Sitzreihe für die Vorklimatisierung.",
       "data_type": "string",
@@ -1812,6 +1916,7 @@
         "pt": "Aquecimento direto do banco do passageiro traseiro, terceira fila",
         "sv": "Direktvärme för tredje radens passagerare"
       },
+      "titles_i18n": {},
       "description_en": "DirectStart settings for third row passenger seat heating of the seat for climate preconditioning.",
       "description_de": "DirectStart-Einstellungen der Sitzheizung auf der Beifahrerseite dritte Sitzreihe für die Vorklimatisierung.",
       "data_type": "string",
@@ -1839,6 +1944,7 @@
         "pt": "Calor direto no volante",
         "sv": "Direktvärme på ratten"
       },
+      "titles_i18n": {},
       "description_en": "DirectStart settings for steering wheel heating for climate preconditioning.",
       "description_de": "DirectStart-Einstellungen der Lenkradheizung für die Vorklimatisierung.",
       "data_type": "string",
@@ -1866,6 +1972,7 @@
         "pt": "Temp alvo DirectStart",
         "sv": "Måltemperatur för direktstart"
       },
+      "titles_i18n": {},
       "description_en": "DirectStart settings for target temperature for climate preconditioning.",
       "description_de": "DirectStart-Einstellungen der Solltemperatur für die Vorklimatisierung.",
       "data_type": "float",
@@ -1893,6 +2000,7 @@
         "pt": "Aviso legal de climatização remota",
         "sv": "Disclaimer för fjärrklimatisering"
       },
+      "titles_i18n": {},
       "description_en": "True if remote engine start option is set, otherwise false.",
       "description_de": "Wahr, wenn die Option Remote Engine Start gesetzt ist, andernfalls falsch.",
       "data_type": "boolean",
@@ -1920,6 +2028,7 @@
         "pt": "Estado de conforto de pré-condicionamento",
         "sv": "Komforttillstånd för klimatförkonditionering"
       },
+      "titles_i18n": {},
       "description_en": "Status of the comfort state of the climate preconditioning.",
       "description_de": "Status des Komfortzustands der Vorklimatisierung.",
       "data_type": "string",
@@ -1947,6 +2056,7 @@
         "pt": "Aquecimento dos retrovisores ativo",
         "sv": "Ytterbackspegelvärme på"
       },
+      "titles_i18n": {},
       "description_en": "Current status of the exterior mirror heating.",
       "description_de": "Aktueller Status der Spiegelheizung.",
       "data_type": "boolean",
@@ -1974,6 +2084,7 @@
         "pt": "Progresso do pré-condicionamento",
         "sv": "Framsteg klimatförkonditionering"
       },
+      "titles_i18n": {},
       "description_en": "Progress of the currently active climate preconditioning in percent.",
       "description_de": "Fortschritt der aktuell aktiven Vorklimatisierung in Prozent.",
       "data_type": "uint8",
@@ -2001,6 +2112,7 @@
         "pt": "Descongelamento traseiro ativo",
         "sv": "Bakre avfrostning på"
       },
+      "titles_i18n": {},
       "description_en": "Current status of the rear window heating.",
       "description_de": "Aktueller Status der Heckscheibenheizung.",
       "data_type": "boolean",
@@ -2028,6 +2140,7 @@
         "pt": "Tempo restante do pré-condicionamento",
         "sv": "Förkonditionering resttid"
       },
+      "titles_i18n": {},
       "description_en": "Remaining runtime of climate preconditioning in seconds.",
       "description_de": "Verbleibende Laufzeit der Vorklimatisierung in Sekunden.",
       "data_type": "uint32",
@@ -2055,6 +2168,7 @@
         "pt": "Estado de purificação de ar HVAC",
         "sv": "HVAC-luftreningsstatus"
       },
+      "titles_i18n": {},
       "description_en": "Actual status of the air purification.",
       "description_de": "Aktueller Status der Luftreinigung.",
       "data_type": "string",
@@ -2082,6 +2196,7 @@
         "pt": "Unidade de indicação do visor dos instrumentos no veículo",
         "sv": "Visningsenhet på fordonets instrument"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the units (kilometres or miles) in which distances are indicated on the vehicle instrument panel.",
       "description_de": "Der Wert gibt die Einheit (Kilometer oder Meilen) der gemessenen Distanzwerte in der Instrumentenanzeige des Fahrzeugs an.",
       "data_type": "string",
@@ -2109,6 +2224,7 @@
         "pt": "Unidade de distância no infotenimento",
         "sv": "Infotainment-vägmätare"
       },
+      "titles_i18n": {},
       "description_en": "Distance unit used in the current HMI",
       "description_de": "In der aktuellen HMI verwendete Wegstreckeneinheit",
       "data_type": "string",
@@ -2136,6 +2252,7 @@
         "pt": "Acoplamento telemóvel",
         "sv": "Koppling Mobiltelefon"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether a mobile phone was linked to the vehicle at the time of data collection or whether the connection status is unknown.",
       "description_de": "Der Wert gibt an, ob zum Zeitpunkt der Datenerfassung ein Mobiltelefon mit dem Fahrzeug gekoppelt war oder der Kopplungsstatus unbekannt ist.",
       "data_type": "boolean",
@@ -2163,6 +2280,7 @@
         "pt": "Posição do veículo acima do nível médio do mar",
         "sv": "Fordonets position över havsytan"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the height of the vehicle above sea-level at the time of data collection. The value range reaches from -100m to 6000m or from -328ft to 19685ft.",
       "description_de": "Der Wert gibt die Höhe in Metern über dem Meeresspiegel an, auf der sich das Fahrzeug zum Zeitpunkt der Datenerfassung befunden hat. Das Wertespektrum reicht von -100 bis 6000.",
       "data_type": "double",
@@ -2190,6 +2308,7 @@
         "pt": "Estado de determinação da posição de navegação",
         "sv": "Status för navigeringsfix"
       },
+      "titles_i18n": {},
       "description_en": "GPS fix status. \"NO_FIX\" means when less than 3 satellites are found. \"2D_GPS_FIX\" is obtained when at least 3 satellites are found. \"3D_GPS_FIX\" is obtained when at least 4 satellites are found.",
       "description_de": "Status der GPS-Fixierung. „NO_FIX“ bedeutet, dass weniger als 3 Satelliten gefunden wurden. „2D_GPS_FIX“ wird ausgegeben, wenn mindestens 3 Satelliten gefunden wurden. „3D_GPS_FIX“ wird ausgegeben, wenn mindestens 4 Satelliten gefunden wurden.",
       "data_type": "string",
@@ -2217,6 +2336,7 @@
         "pt": "Orientação do veículo",
         "sv": "Fordonets inriktning"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the orientation of the vehicle in degrees at the time of data collection. If the value is 180, the vehicle is pointing directly south. If the value is 0, the vehicle is pointing directly north. The values thus range from 0 to 359. The determined orientation of the vehicle may differ from its actual orientation due to inaccuracies in the GPS positioning.",
       "description_de": "Der Wert gibt die Ausrichtung des Fahrzeugs zum Zeitpunkt der Datenerfassung in Grad an. Beträgt der Wert 180, zeigte das Fahrzeug genau nach Süden. Beträgt der Wert 0 zeigte das Fahrzeug genau nach Norden. Demnach reichen die Werte von 0 bis 359. Die ermittelte Ausrichtung des Fahrzeugs kann aufgrund der Ungenauigkeit der GPS Ortung von der tatsächlichen Ausrichtung abweichen.",
       "data_type": "double",
@@ -2244,6 +2364,7 @@
         "pt": "Posição do veículo - latitude",
         "sv": "Fordonets position – geografisk breddgrad"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the degree of latitude at which the vehicle was at the time of data collection. The degree of latitude could range from 0 (at the equator) to a maximum of +90 in the northern hemisphere or respectively -90 in the southern hemisphere. The GPS position is transferred independently of whether the GPS positioning has been activated or deactivated in your vehicle via the settings menu.",
       "description_de": "Der Wert gibt die geographische Breite der Position an, auf der sich das Fahrzeug zum Zeitpunkt der Datenerfassung befunden hat. Die Breite erreicht Werte in Grad von 0 (am Äquator) bis maximal +90 auf der nördlichen respektive -90 auf der südlichen Halbkugel. Die Übertragung der GPS Position erfolgt unabhängig von der Aktivierung oder Deaktivierung der GPS Ortung in ihrem Fahrzeug über das Einstellungsmenü.",
       "data_type": "double",
@@ -2271,6 +2392,7 @@
         "pt": "Posição do veículo - longitude",
         "sv": "Fordonets position – geografisk längdgrad"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the degree of longitude at which the vehicle was at the time of data collection. The degree of longitude could range from 0 (at the Greenwich meridian / Great Britain) to a maximum of +180 east or respectively -180 west of the meridian. The GPS position is transferred independently of whether the GPS positioning has been activated or deactivated in your vehicle via the settings menu.",
       "description_de": "Der Wert gibt die geographische Länge der Position an, auf der sich das Fahrzeug zum Zeitpunkt der Datenerfassung befunden hat. Die Länge erreicht Werte in Grad von 0 (am Nullmeridian in Greenwich/Großbritannien) bis maximal +180 östlich respektive -180 westlich des Nullmeridians. Die Übertragung der GPS Position erfolgt unabhängig von der Aktivierung oder Deaktivierung der GPS Ortung in ihrem Fahrzeug über das Einstellungsmenü.",
       "data_type": "double",
@@ -2298,6 +2420,7 @@
         "pt": "Contagem de satélites de navegação",
         "sv": "Antal satellitnavigationer"
       },
+      "titles_i18n": {},
       "description_en": "Number of GPS satellites used for positioning and relates to the reliability of the positioning.",
       "description_de": "Anzahl der für die Positionsbestimmung verwendeten GPS-Satelliten; beeinflusst die Zuverlässigkeit der Positionsbestimmung.",
       "data_type": "uint8",
@@ -2325,6 +2448,7 @@
         "pt": "Tempo até ao destino da navegação",
         "sv": "Tid till navigationsmål"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the arrival time at the navigation destination and is given in hours and minutes.",
       "description_de": "Der Wert gibt die Ankunftszeit bis zum Erreichen des Navigationsziels an und wird in Stunden und Minuten angegeben.",
       "data_type": "string",
@@ -2352,6 +2476,7 @@
         "pt": "Distância até ao destino da navegação",
         "sv": "Körsträcka till navigationsmålet"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the distance to the active navigation destination in kilometres or miles at the time of data collection. The values range from 0 km to 100000 km or from 0mi to 62137mi.",
       "description_de": "Der Wert gibt die zum Zeitpunkt der Datenerfassung gemessene Distanz zum aktiven Navigationsziel in Kilometern an. Das Wertespektrum reicht von 0 bis 100000.",
       "data_type": "uint16",
@@ -2379,6 +2504,7 @@
         "pt": "Destino de navegação – latitude",
         "sv": "Navigationsresmål — latitud"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the coordinate of the active navigation destination – latitude at the time of data collection in billionths of a second.",
       "description_de": "Dieser Wert gibt die Koordinate des aktiven Navigationsziels an - Breitengrad zum Zeitpunkt der Datenerfassung in Milliardstelsekunden.",
       "data_type": "-",
@@ -2406,6 +2532,7 @@
         "pt": "Destino de navegação – longitude",
         "sv": "Navigationsresmål — longitud"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the coordinate of the active navigation destination – longitude at the time of data collection in billionths of a second.",
       "description_de": "Dieser Wert gibt die Koordinate des aktiven Navigationsziels an - Längengrad zum Zeitpunkt der Datenerfassung in Milliardstelsekunden.",
       "data_type": "-",
@@ -2433,6 +2560,7 @@
         "pt": "Quantidade de lugares livres POI no sistema de navegação",
         "sv": "Antal lediga POI (Points of Interest) -platser i navigationssystemet"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates how many POIs (points of interest) are still open in the navigation system.",
       "description_de": "Der Wert gibt an, wie viele POIs (Points of Interest) im Navigationssystem noch frei sind.",
       "data_type": "uint16",
@@ -2460,6 +2588,7 @@
         "pt": "Quantidade máxima de POIs memorizados no aparelho de navegação",
         "sv": "Maximalt antal POI som kan sparas i navigationssystemet"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates how many POIs (points of interest) can be stored in the navigation system.",
       "description_de": "Der Wert gibt an, wie viele POIs (Points of Interest) maximal im Navigationsgerät gespeichert werden können.",
       "data_type": "uint16",
@@ -2487,6 +2616,7 @@
         "pt": "Autonomia restante",
         "sv": "Återstående räckvidd"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the remaining range of fuel in kilometres or miles at the time of data collection.",
       "description_de": "Der Wert gibt die zum Zeitpunkt der Datenerfassung gemessene Restreichweite des Tankinhalts in Kilometer an.",
       "data_type": "uint16",
@@ -2514,6 +2644,7 @@
         "pt": "Refrigeração do banco do condutor",
         "sv": "Främre förarsäte kylning."
       },
+      "titles_i18n": {},
       "description_en": "Front driver seat Cooling. 0 = off. +100 = max cold.",
       "description_de": "Sitzkühlung auf der Fahrerseite vorn. 0 = aus. +100 = max. Kühlung.",
       "data_type": "uint8",
@@ -2541,6 +2672,7 @@
         "pt": "Aquecimento do banco do condutor",
         "sv": "Uppvärmning av främre förarsätet"
       },
+      "titles_i18n": {},
       "description_en": "Front driver seat heating. 0 = off. +100 = max heat.",
       "description_de": "Sitzheizung auf der Fahrerseite vorn. 0 = aus. +100 = max. Heizung.",
       "data_type": "uint8",
@@ -2568,6 +2700,7 @@
         "pt": "Refrigeração do banco do passageiro da frente",
         "sv": "Passagerarstol kyldrift"
       },
+      "titles_i18n": {},
       "description_en": "Front passenger seat Cooling. 0 = off. +100 = max cold.",
       "description_de": "Sitzkühlung auf der Beifahrerseite vorn. 0 = aus. +100 = max. Kühlung.",
       "data_type": "uint8",
@@ -2595,6 +2728,7 @@
         "pt": "Aquecimento do banco do passageiro da frente",
         "sv": "Passagerarstolsvärme"
       },
+      "titles_i18n": {},
       "description_en": "Front passenger seat heating. 0 = off. +100 = max heat.",
       "description_de": "Sitzheizung auf der Beifahrerseite vorn. 0 = aus. +100 = max. Heizung.",
       "data_type": "uint8",
@@ -2622,6 +2756,7 @@
         "pt": "Refrigeração do banco atrás do condutor",
         "sv": "Kylning av Bakre förarsäte"
       },
+      "titles_i18n": {},
       "description_en": "Rear driver seat Cooling. 0 = off. +100 = max cold.",
       "description_de": "Sitzkühlung auf der Fahrerseite hinten. 0 = aus. +100 = max. Kühlung.",
       "data_type": "uint8",
@@ -2649,6 +2784,7 @@
         "pt": "Aquecimento do banco atrás do condutor",
         "sv": "Uppvärmning av bakre förarsäte"
       },
+      "titles_i18n": {},
       "description_en": "Rear driver seat heating. 0 = off. +100 = max heat.",
       "description_de": "Sitzheizung auf der Fahrerseite hinten. 0 = aus. +100 = max. Heizung.",
       "data_type": "uint8",
@@ -2676,6 +2812,7 @@
         "pt": "Refrigeração do banco atrás do passageiro da frente",
         "sv": "Bakre passagerarsäte kylning"
       },
+      "titles_i18n": {},
       "description_en": "Rear passenger seat Cooling. 0 = off. +100 = max cold.",
       "description_de": "Sitzkühlung auf der Beifahrerseite hinten. 0 = aus. +100 = max. Kühlung.",
       "data_type": "uint8",
@@ -2703,6 +2840,7 @@
         "pt": "Aquecimento do banco atrás do passageiro da frente",
         "sv": "Uppvärmning av bakre passagerarsätet"
       },
+      "titles_i18n": {},
       "description_en": "Rear passenger seat heating. 0 = off. +100 = max heat.",
       "description_de": "Sitzheizung auf der Beifahrerseite hinten. 0 = aus. +100 = max. Heizung.",
       "data_type": "uint8",
@@ -2730,6 +2868,7 @@
         "pt": "Refrigeração do banco atrás do condutor, terceira fila",
         "sv": "Tredje radens förarsäteskylning"
       },
+      "titles_i18n": {},
       "description_en": "Third row driver seat Cooling. 0 = off. +100 = max cold.",
       "description_de": "Sitzkühlung auf der Fahrerseite in der dritten Sitzreihe. 0 = aus. +100 = max. Kühlung.",
       "data_type": "uint8",
@@ -2757,6 +2896,7 @@
         "pt": "Aquecimento do banco atrás do condutor, terceira fila",
         "sv": "Tredje radens förarsätesuppvärmning"
       },
+      "titles_i18n": {},
       "description_en": "Third row driver seat heating. 0 = off. +100 = max heat.",
       "description_de": "Sitzheizung auf der Fahrerseite in der dritten Sitzreihe. 0 = aus. +100 = max. Heizung.",
       "data_type": "uint8",
@@ -2784,6 +2924,7 @@
         "pt": "Refrigeração do banco atrás do passageiro da frente, terceira fila",
         "sv": "Tredje radens kylning av passagerarsätet"
       },
+      "titles_i18n": {},
       "description_en": "Third row passenger seat Cooling. 0 = off. +100 = max cold.",
       "description_de": "Sitzkühlung auf der Beifahrerseite in der dritten Sitzreihe. 0 = aus. +100 = max. Kühlung.",
       "data_type": "uint8",
@@ -2811,6 +2952,7 @@
         "pt": "Aquecimento do banco atrás do passageiro da frente, terceira fila",
         "sv": "Tredje radens uppvärmning av passagersätet"
       },
+      "titles_i18n": {},
       "description_en": "Third row passenger seat heating. 0 = off. +100 = max heat.",
       "description_de": "Sitzheizung auf der Beifahrerseite in der dritten Sitzreihe. 0 = aus. +100 = max. Heizung.",
       "data_type": "uint8",
@@ -2838,6 +2980,7 @@
         "pt": "Aquecimento do volante",
         "sv": "Rattvärme"
       },
+      "titles_i18n": {},
       "description_en": "Actual value of the steering wheel heating in percent.",
       "description_de": "Istwert der Lenkradheizung in Prozent.",
       "data_type": "uint8",
@@ -2865,6 +3008,7 @@
         "pt": "Estado geral do teto de abrir",
         "sv": "Övergripande status för soltaket"
       },
+      "titles_i18n": {},
       "description_en": "Overall status of the vehicle's sunroof.",
       "description_de": "Gesamtstatus des Schiebedachs des Fahrzeugs.",
       "data_type": "string",
@@ -2892,6 +3036,7 @@
         "pt": "Posição relativa do teto de abrir",
         "sv": "Soltakets relativa position"
       },
+      "titles_i18n": {},
       "description_en": "Openingt state of the sunroof in percent. -100 means full tilt position. 0% represents fully closed and 100% represents fully opened.",
       "description_de": "Öffnungszustand des Schiebedachs in Prozent. -100 bedeutet vollständig gekippte Position. 0 % entspricht vollständig geschlossen, 100 % entspricht vollständig geöffnet.",
       "data_type": "int8",
@@ -2919,6 +3064,7 @@
         "pt": "Posição da cortina",
         "sv": "Solskyddsposition"
       },
+      "titles_i18n": {},
       "description_en": "Item position. 0 = Start position 100 = End position.",
       "description_de": "Position des Elements. 0 = Startposition, 100 = Endposition.",
       "data_type": "uint8",
@@ -2946,6 +3092,7 @@
         "pt": "Estado do teto de abrir",
         "sv": "Takluckans tillstånd"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the sunroof (if the vehicle has one) was open (OPEN), half-open (INTERMEDIATE) or closed (CLOSED) at the time of data collection.",
       "description_de": "Der Wert gibt an, ob das Schiebedach (sofern vorhanden) zum Zeitpunkt der Datenerfassung geöffnet (OPEN), halb geöffnet (INTERMEDIATE) oder geschlossen (CLOSED) war.",
       "data_type": "string",
@@ -2973,6 +3120,7 @@
         "pt": "Estado de abertura do teto de abrir",
         "sv": "Takluckans ställning"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the sunroof (if the vehicle has one) was tilted (OPEN), half-tilted (INTERMEDIATE) or closed (CLOSED) at the time of data collection.",
       "description_de": "Der Wert gibt an, ob das Schiebedach (sofern vorhanden) zum Zeitpunkt der Datenerfassung gekippt (OPEN), halb gekippt (INTERMEDIATE) oder geschlossen (CLOSED) war.",
       "data_type": "string",
@@ -2999,6 +3147,16 @@
         "pl": "Stan okna w drzwiach przednich lewych",
         "pt": "Estado da janela dianteira do lado esquerdo",
         "sv": "Vänster fram fönstrets tillstånd"
+      },
+      "titles_i18n": {
+        "de": "Status des Fensters Fahrerseite vorn",
+        "fr": "Statut de la fenêtre avant côté conducteur",
+        "it": "Stato del finestrino anteriore lato conducente",
+        "es": "Estado de la ventanilla delantera del lado del conductor",
+        "pl": "Stan okna w drzwiach przednich po stronie kierowcy",
+        "pt": "Estado da janela dianteira do lado do condutor",
+        "cs": "Stav okna vpředu na straně řidiče",
+        "sv": "Tillstånd för främre fönster på förarsidan"
       },
       "description_en": "This value indicates whether the front left window was open (OPEN), half-open (INTERMEDIATE) or closed (CLOSED) at the time of data collection.",
       "description_de": "Der Wert gibt an, ob das Fenster der linken Tür zum Zeitpunkt der Datenerfassung geöffnet (OPEN), halb geöffnet (INTERMEDIATE) oder geschlossen (CLOSED) war.",
@@ -3027,6 +3185,16 @@
         "pt": "Estado da janela dianteira do lado direito",
         "sv": "Höger fram fönstrets tillstånd"
       },
+      "titles_i18n": {
+        "de": "Status des Fensters Beifahrerseite vorn",
+        "fr": "Statut de la fenêtre avant côté passager",
+        "it": "Stato del finestrino anteriore lato passeggero",
+        "es": "Estado de la ventanilla delantera del lado del acompañante",
+        "pl": "Stan okna w drzwiach przednich po stronie pasażera",
+        "pt": "Estado da janela dianteira do lado do passageiro",
+        "cs": "Stav okna vpředu na straně spolujezdce",
+        "sv": "Tillstånd för främre fönster på passagerarsidan"
+      },
       "description_en": "This value indicates whether the front right window was open (OPEN), half-open (INTERMEDIATE) or closed (CLOSED) at the time of data collection.",
       "description_de": "Der Wert gibt an, ob das Fenster der rechten Tür zum Zeitpunkt der Datenerfassung geöffnet (OPEN), halb geöffnet (INTERMEDIATE) oder geschlossen (CLOSED) war.",
       "data_type": "string",
@@ -3053,6 +3221,16 @@
         "pl": "Stan okna w drzwiach tylnych lewych",
         "pt": "Estado da janela traseira do lado esquerdo",
         "sv": "Vänster bak fönstrets tillstånd"
+      },
+      "titles_i18n": {
+        "de": "Status des Fensters Fahrerseite hinten",
+        "fr": "Statut de la fenêtre arrière côté conducteur",
+        "it": "Stato del finestrino posteriore lato conducente",
+        "es": "Estado de la ventanilla trasera del lado del conductor",
+        "pl": "Stan okna w drzwiach tylnych po stronie kierowcy",
+        "pt": "Estado da janela traseira do lado do condutor",
+        "cs": "Stav okna vzadu na straně řidiče",
+        "sv": "Tillstånd för bakre fönster på förarsidan"
       },
       "description_en": "This value indicates whether the rear left window was open (OPEN), half-open (INTERMEDIATE) or closed (CLOSED) at the time of data collection.",
       "description_de": "Der Wert gibt an, ob das Fenster hinten links zum Zeitpunkt der Datenerfassung geöffnet (OPEN), halb geöffnet (INTERMEDIATE) oder geschlossen (CLOSED) war.",
@@ -3081,6 +3259,16 @@
         "pt": "Estado da janela traseira do lado direito",
         "sv": "Höger bak fönstrets tillstånd"
       },
+      "titles_i18n": {
+        "de": "Status des Fensters Beifahrerseite hinten",
+        "fr": "Statut de la fenêtre arrière côté passager",
+        "it": "Stato del finestrino posteriore lato passeggero",
+        "es": "Estado de la ventanilla trasera del lado del acompañante",
+        "pl": "Stan okna w drzwiach tylnych po stronie pasażera",
+        "pt": "Estado da janela traseira do lado do passageiro",
+        "cs": "Stav okna vzadu na straně spolujezdce",
+        "sv": "Tillstånd för bakre fönster på passagerarsidan"
+      },
       "description_en": "This value indicates whether the rear right window was open (OPEN), half-open (INTERMEDIATE) or closed (CLOSED) at the time of data collection.",
       "description_de": "Der Wert gibt an, ob das Fenster hinten rechts zum Zeitpunkt der Datenerfassung geöffnet (OPEN), halb geöffnet (INTERMEDIATE) oder geschlossen (CLOSED) war.",
       "data_type": "string",
@@ -3108,6 +3296,7 @@
         "pt": "Informações de estado relativas à última transmissão de valores da OBFCM*",
         "sv": "Statusinformation om senaste överföring av OBFCM*-värden"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the status information about the last transfer of OBFCM* values performed in a workshop (i.e. wired). (OK for a valid transfer where the OBFCM values have been updated, ECU_COMMUNICATION_ERROR for errors in collecting data from the control units, VEHICLE_MANIPULATION_DETECTED if vehicle tampering has been detected and MANUFACTURER_EXCLUDED if the vehicle manufacturer is excluded from the OBFCM* collection (e.g. Alpina, Toyota Supra).",
       "description_de": "Dieser Wert gibt die Statusinformation über die letzte Übertragung von OBFCM*-Werten an, die in einer Werkstatt durchgeführt wurde (d.h. kabelgebunden). (OK für eine gültige Übertragung, bei der die OBFCM-Werte aktualisiert wurden, ECU_COMMUNICATION_ERROR für Fehler beim Sammeln von Daten von den Steuergeräten, VEHICLE_MANIPULATION_DETECTED, wenn eine Manipulation des Fahrzeugs festgestellt wurde, und MANUFACTURER_EXCLUDED, wenn der Fahrzeughersteller von der OBFCM*-Sammlung ausgeschlossen ist (z.B. Alpina, Toyota Supra).",
       "data_type": "string",
@@ -3135,6 +3324,7 @@
         "pt": "Data e hora no veículo",
         "sv": "Datum och tid i fordonet"
       },
+      "titles_i18n": {},
       "description_en": "These values indicate the time shown in the vehicle at the time of recording the data.",
       "description_de": "Der Wert gibt die Uhrzeit an, die zum Zeitpunkt der Datenerfassung im Fahrzeug angezeigt wurden.",
       "data_type": "string",
@@ -3162,6 +3352,7 @@
         "pt": "Teleservice Call automático",
         "sv": "Automatiskt Teleservice Call"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates at what time an Automatic Service Call (ASC) was initiated by the vehicle.",
       "description_de": "Der Wert enthält die Information, zu welchem Zeitpunkt ein Automatischer Service Call (ASC) vom Fahrzeug ausgelöst wurde.",
       "data_type": "string",
@@ -3189,6 +3380,7 @@
         "pt": "Último tempo de Teleservice Breakdown Call",
         "sv": "Senaste Teleservice Breakdown Call-tid"
       },
+      "titles_i18n": {},
       "description_en": "Auto break down. The Breakdown Call allows the customer to contact a Roadside Assistance Call Center (RSA CC) Agent in case of a breakdown, which will assist the driver with troubleshooting or towing of the vehicle. The Breakdown Call allows the customer to contact a Roadside Assistance Call Center (RSA CC) Agent in case of a breakdown, which will assist the driver with troubleshooting or towing of the vehicle. The service can be started from the iDrive menu of the vehicle and is available in 3 Levels depending on availability and roll-out in the market.",
       "description_de": "Automatischer Pannenruf. Der Pannenruf ermöglicht es dem Kunden, im Falle einer Panne einen Mitarbeiter des BMW Pannenhilfe-Callcenters (RSA CC) zu kontaktieren, der den Fahrer bei der Fehlersuche bzw. beim Abschleppen des Fahrzeugs unterstützt. Der Pannenruf ermöglicht es dem Kunden, im Falle einer Panne einen Mitarbeiter des BMW Pannenhilfe-Callcenters (RSA CC) zu kontaktieren, der den Fahrer bei der Fehlersuche bzw. beim Abschleppen des Fahrzeugs unterstützt. Der Service kann über das iDrive-Menü des Fahrzeugs gestartet werden und ist je nach Verfügbarkeit und Markteinführung in 3 Stufen verfügbar.",
       "data_type": "string",
@@ -3216,6 +3408,7 @@
         "pt": "Tempo de chamada manual dos últimos Teleservices",
         "sv": "Senaste teleservice manuell samtalstid"
       },
+      "titles_i18n": {},
       "description_en": "Customer triggers a manual service call via the vehicle HMI (iDrive). Service relevant data is transferred by the vehicle to the Teleservices backend systemA new Teleservice ticket is created and assigned to customer's preferred service partner.The Teleservice ticket is transferred to the service partner system to process it according to the respective business process",
       "description_de": "Der Kunde löst über die Fahrzeug-HMI (iDrive) einen manuellen Serviceanruf aus. Servicerelevante Daten werden vom Fahrzeug an das Teleservices-Backendsystem übertragen. Ein neues Teleservice Ticket wird erstellt und dem bevorzugten Service Partner des Kunden zugewiesen. Das Teleservice Ticket wird an das System des Service Partners übertragen, um es gemäß dem jeweiligen Geschäftsprozess zu bearbeiten.",
       "data_type": "string",
@@ -3243,6 +3436,7 @@
         "pt": "Relatório do Teleservice",
         "sv": "Teleservice Report"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates at what time the teleservice report call was initiated by the vehicle. The vehicle collects measured values or error data for the teleservice report call, and automatically sends them according to defined cycles.",
       "description_de": "Der Wert enthält die Information, zu welchem Zeitpunkt der Teleservice Report Call im Fahrzeug ausgelöst wurde. Das Fahrzeug sammelt für den Teleservice Report Call Messwerte oder Fehlerdaten und sendet diese nach festgelegten Zyklen automatisch.",
       "data_type": "string",
@@ -3270,6 +3464,7 @@
         "pt": "Disponibilidade dos Teleservices",
         "sv": "Teleservices tillgänglighet"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether teleservices are available for this vehicle.",
       "description_de": "Der Wert gibt an, ob Teleservices für dieses Fahrzeug verfügbar sind.",
       "data_type": "string",
@@ -3297,6 +3492,7 @@
         "pt": "Pressão do pneu medida no pneu dianteiro esquerdo",
         "sv": "Uppmätt däcktryck vänster fram"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the measured tyre pressure on the front left in kPa",
       "description_de": "Dieser Wert gibt den gemessenen Reifendruck vorne links in kPa an",
       "data_type": "uint16",
@@ -3324,6 +3520,7 @@
         "pt": "Pressão recomendada do pneu dianteiro esquerdo",
         "sv": "Däckbörtryck vänster fram"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the target tyre pressure on the front left in kPa.",
       "description_de": "Dieser Wert gibt den Reifensolldruck vorne links in kPa an.",
       "data_type": "uint16",
@@ -3351,6 +3548,7 @@
         "pt": "Temperatura dos pneus em Celsius, dianteira esquerda",
         "sv": "Däcktemperatur i Celsius, vänster fram"
       },
+      "titles_i18n": {},
       "description_en": "Tire temperature in Celsius on the front left.",
       "description_de": "Reifentemperatur in Celsius vorn links.",
       "data_type": "float",
@@ -3378,6 +3576,7 @@
         "pt": "Pressão do pneu medida no pneu dianteiro direito",
         "sv": "Uppmätt däcktryck höger fram"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the measured tyre pressure on the front right in kPa.",
       "description_de": "Der Wert gibt den gemessenen Reifendruck vorne rechts in kPa an.",
       "data_type": "uint16",
@@ -3405,6 +3604,7 @@
         "pt": "Pressão recomendada do pneu dianteiro direito",
         "sv": "Däckbörtryck höger fram"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the target tyre pressure on the front right in kPa.",
       "description_de": "Dieser Wert gibt den Reifensolldruck vorne rechts in kPa an.",
       "data_type": "uint16",
@@ -3432,6 +3632,7 @@
         "pt": "Temperatura dos pneus em Celsius, dianteira direita",
         "sv": "Däcktemperatur i Celsius, höger fram"
       },
+      "titles_i18n": {},
       "description_en": "Tire temperature in Celsius on the front right.",
       "description_de": "Reifentemperatur in Celsius vorn rechts.",
       "data_type": "float",
@@ -3459,6 +3660,7 @@
         "pt": "Pressão do pneu medida no pneu traseiro esquerdo",
         "sv": "Uppmätt däcktryck vänster bak"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the measured tyre pressure on the rear left in kPa.",
       "description_de": "Der Wert gibt den gemessenen Reifendruck hinten links in kPa an.",
       "data_type": "uint16",
@@ -3486,6 +3688,7 @@
         "pt": "Pressão recomendada do pneu traseiro esquerdo",
         "sv": "Däckbörtryck vänster bak"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the target tyre pressure on the rear left in kPa.",
       "description_de": "Dieser Wert gibt Reifensolldruck hinten links in kPa an.",
       "data_type": "uint16",
@@ -3513,6 +3716,7 @@
         "pt": "Temperatura dos pneus em Celsius, traseira esquerda",
         "sv": "Däcktemperatur i Celsius, vänster bak"
       },
+      "titles_i18n": {},
       "description_en": "Tire temperature in Celsius on the rear left.",
       "description_de": "Reifentemperatur in Celsius hinten links.",
       "data_type": "float",
@@ -3540,6 +3744,7 @@
         "pt": "Pressão do pneu medida no pneu traseiro direito",
         "sv": "Uppmätt däcktryck höger bak"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the measured tyre pressure on the rear right in kPa.",
       "description_de": "Der Wert gibt den gemessenen Reifendruck hinten rechts in kPa an.",
       "data_type": "uint16",
@@ -3567,6 +3772,7 @@
         "pt": "Pressão recomendada do pneu traseiro direito",
         "sv": "Däckbörtryck höger bak"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the target tyre pressure on the rear right in kPa.",
       "description_de": "Dieser Wert gibt den Reifensolldruck hinten rechts in kPa an.",
       "data_type": "uint16",
@@ -3594,6 +3800,7 @@
         "pt": "Temperatura dos pneus em Celsius, traseira direita",
         "sv": "Däcktemperatur i Celsius, höger bak"
       },
+      "titles_i18n": {},
       "description_en": "Tire temperature in Celsius on the rear right.",
       "description_de": "Reifentemperatur in Celsius hinten rechts.",
       "data_type": "float",
@@ -3621,6 +3828,7 @@
         "pt": "Smart Maintenance: Diagnóstico digital dos pneus",
         "sv": "Smart Maintenance: Digital däckdiagnos"
       },
+      "titles_i18n": {},
       "description_en": "This value contains information about the tyres currently and previously installed on the vehicle. This data is collected by the vehicle and automatically sent according to defined cycles.",
       "description_de": "Der Wert enthält Informationen über den aktuellen und zuvor montierten Reifensatz des Fahrzeugs. Diese Daten werden durch das Fahrzeug ermittelt und nach festgelegten Zyklen automatisch gesendet.",
       "data_type": "-",
@@ -3648,6 +3856,7 @@
         "pt": "Consumo elétrico médio",
         "sv": "Genomsnittlig elektrisk förbrukning"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the average electric consumption in [kWh/100 km or mi/kWh] at the time of data collection. Note: Not available for the models i3 and i8.",
       "description_de": "Dieser Wert gibt den durchschnittlichen elektrischen Verbrauch in [kWh/100 km] zum Zeitpunkt der Datenerfassung an. Hinweis: Nicht verfügbar für die Modelle i3 und i8.",
       "data_type": "float",
@@ -3675,6 +3884,7 @@
         "pt": "Tamanho da bateria de alta tensão",
         "sv": "Storleken på högspänningsbatteriet"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the size of the installed high-voltage battery.",
       "description_de": "Der Wert gibt die Größe der verbauten Hochvoltbatterie an.",
       "data_type": "float",
@@ -3702,6 +3912,7 @@
         "pt": "Estado de carga da bateria de alta tensão",
         "sv": "Högspänningsbatteriets laddningstillstånd"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the current charging status of the vehicle at the time of data collection.",
       "description_de": "Der Wert gibt den zum Zeitpunkt der Datenerfassung aktuellen Ladestatus der Hochvoltbatterie in Prozent an.",
       "data_type": "float",
@@ -3729,6 +3940,7 @@
         "pt": "Energia utilizável da bateria de alta tensão (totalmente carregada, prevista)",
         "sv": "Användbar energi från högspänningsbatteri (fulladdat, prognostiserat)"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the current energy content of the high-voltage battery.",
       "description_de": "Für Standard-Entladung prognostizierte nutzbare Energie aus dem vollgeladenen Hochvoltspeicher unter aktuellen Bedingungen (z.B. Alterungszustand, Temperatur).",
       "data_type": "float",
@@ -3756,6 +3968,7 @@
         "pt": "Corrente de carga CA",
         "sv": "AC-laddningsström"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the maximum charging current for the most recent charging process in ampere (A) (only when charging with alternating current). Values between 0 and 25 are possible. Both the vehicle and charging station could be individually charged with a certain maximum charging current. The value displayed here is the greater of these two figures.",
       "description_de": "Der Wert gibt den maximalen Ladestrom des letzten Ladevorgangs in Ampere (A) an (nur bei Laden mit Wechselstrom). Möglich sind Werte zwischen 0 und 25. Sowohl Fahrzeug als auch Ladesäule könnten individuell mit einem bestimmten maximalen Ladestrom laden. Der hier angezeigte Wert ist der größere dieser beiden Zahlen.",
       "data_type": "uint8",
@@ -3783,6 +3996,7 @@
         "pt": "Fator de restrição de carregamento CA",
         "sv": "Begränsningsfaktor AC-laddning"
       },
+      "titles_i18n": {},
       "description_en": "Response of ac restriction.",
       "description_de": "Rückmeldung der AC-Beschränkung.",
       "data_type": "string",
@@ -3810,6 +4024,7 @@
         "pt": "Limitação e seleção da corrente de carga CA",
         "sv": "AC -laddningsströmbegränsning och val"
       },
+      "titles_i18n": {},
       "description_en": "The first value indicates whether the charging current used to charge the vehicle is limited. The second value describes the type of limit (reduced or minimum).",
       "description_de": "Der erste Wert gibt an, ob der Ladestrom, mit dem das Fahrzeug geladen wird, begrenzt wird. Der zweite Wert beschreibt die Art der Begrenzung (reduziert oder minimal)",
       "data_type": "boolean",
@@ -3837,6 +4052,7 @@
         "pt": "Tensão de carga CA",
         "sv": "AC-laddningsspänning"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the charging voltage for the most recent charging process (only when charging with alternating current). This value is usually in the region of 230 V. However, charging voltages may range from 0 to 300.",
       "description_de": "Der Wert gibt die Ladespannung des letzten Ladevorgangs in Volt an (nur bei Laden mit Wechselstrom). In der Regel pendelt sich der Wert bei 230 V ein. Es können jedoch Ladespannungen von 0 bis 300 auftreten.",
       "data_type": "float",
@@ -3864,6 +4080,7 @@
         "pt": "Estado de autenticação de carregamento",
         "sv": "Autentiseringsstatus laddning"
       },
+      "titles_i18n": {},
       "description_en": "Plug & Charge (Automatic Payment of Charging Services) authorization status of a charging session. \"AUTHORIZATION_SUCCESSFUL\" - Authentication with PlugAndCharge successful, \"TRANSPORT_LAYER_ERROR\" - TLS connection to EVSE not possible, \"HIGH_LEVEL_COMMUNICATION_ERROR\" - High Level communication with ISO15118 error, \"CONTRACT_SERVICE_NOT_SUPPORTED_ERROR\" - EVSE doesn't support Authentication via PlugAndCharge, \"AUTHORIZATION_TIMEOUT\" - Authorization run in an error, \"AUTHORIZATION_TIMEOUT\" - authentication not finished after 120s, \"NVM_READ_CERTIFICATE_ERROR\" - Certificates couldn't be red from Charging Control Unit storrage, \"CERTIFICATE_UPDATE_ERROR\" - update of contract via powerline failed, \"XML_SECURITY_ERROR\" - Schema validation error of transfered data.",
       "description_de": "Autorisierungsstatus der Plug & Charge-Funktion (automatische Bezahlung von Ladeservices) einer Ladesitzung. „AUTHORIZATION_SUCCESSFUL“ - Authentifizierung mit PlugAndCharge erfolgreich, „TRANSPORT_LAYER_ERROR“ - TLS-Verbindung zur EVSE nicht möglich, „HIGH_LEVEL_COMMUNICATION_ERROR“ - Fehler bei der High-Pegel-Kommunikation mit ISO15118, „CONTRACT_SERVICE_NOT_SUPPORTED_ERROR“ - EVSE unterstützt keine Authentifizierung über PlugAndCharge, „AUTHORIZATION_TIMEOUT“ - Autorisierung ist mit einem Fehler abgelaufen, „AUTHORIZATION_TIMEOUT“ - Authentifizierung nach 120 s nicht abgeschlossen, „NVM_READ_CERTIFICATE_ERROR“ - Zertifikate konnten nicht aus dem Speicher des Ladesteuergeräts gelesen werden, „CERTIFICATE_UPDATE_ERROR“ - Aktualisierung des Vertrags über Powerline fehlgeschlagen, „XML_SECURITY_ERROR“ - Schema-Validierungsfehler der übertragenen Daten.",
       "data_type": "string",
@@ -3891,6 +4108,7 @@
         "pt": "Modo de carregamento",
         "sv": "Laddningssätt"
       },
+      "titles_i18n": {},
       "description_en": "Current charging mode.",
       "description_de": "Aktuelle Ladebetriebsart.",
       "data_type": "string",
@@ -3918,6 +4136,7 @@
         "pt": "Processo de carregamento da bateria de alta tensão (indutivo/condutor)",
         "sv": "Laddningsmetod för högspänningsbatteriet (induktivt/ledande)"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the charging process (CONDUCTIVE/INDUCTIVE) used to charge the vehicle at the time of data collection.",
       "description_de": "Der Wert gibt das Ladeverfahren (CONDUCTIVE, INDUCTIVE) an, mit dem das Fahrzeug zum Zeitpunkt der Datenerfassung geladen wird.",
       "data_type": "string",
@@ -3945,6 +4164,7 @@
         "pt": "Estado do conector de carregamento",
         "sv": "Laddningsstatus för kontakt"
       },
+      "titles_i18n": {},
       "description_en": "Current condition of charging plug across all types (inductive, conductive), modes (AC, DC) and service packs.",
       "description_de": "Aktueller Zustand des Ladesteckers über alle Typen (induktiv, leitungsgebunden), Betriebsarten (AC, DC) und Servicepacks hinweg.",
       "data_type": "string",
@@ -3972,6 +4192,7 @@
         "pt": "Energia total de rede que foi consumida, enquanto o motor de combustão não se encontrava ativo",
         "sv": "Total nätenergi som förbrukats när förbränningsmotorn inte var aktiv"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the total energy supplied using charging cables while the combustion engine was inactive (used e.g. by OBFCM*).",
       "description_de": "Dieser Wert gibt die gesamte über Ladekabel zugeführte Energie an, während der Verbrennungsmotor nicht aktiv war (wird z.B. von OBFCM* verwendet).",
       "data_type": "float",
@@ -3999,6 +4220,7 @@
         "pt": "Percurso de referência para medição da energia de rede fornecida, enquanto o motor de combustão não se encontrava ativo",
         "sv": "Referenssträcka för mätning av levererad nätenergi när förbränningsmotorn inte var aktiv"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the reference distance for measuring the energy supplied using charging cables while the combustion engine was inactive (used e.g. by OBFCM*).",
       "description_de": "Dieser Wert gibt die Referenzstrecke für die Messung der über Ladekabel zugeführten Energie an, während der Verbrennungsmotor nicht aktiv war (wird z.B. von OBFCM* verwendet).",
       "data_type": "float",
@@ -4026,6 +4248,7 @@
         "pt": "Energia de rede total que foi consumida, enquanto o motor de combustão se encontrava ativo",
         "sv": "Total nätenergi som förbrukats när förbränningsmotorn var aktiv"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the total energy supplied using charging cables while the combustion engine was active (used e.g. by OBFCM*).",
       "description_de": "Dieser Wert gibt die gesamte über Ladekabel zugeführte Energie an, während der Verbrennungsmotor aktiv war (wird z.B. von OBFCM* verwendet).",
       "data_type": "float",
@@ -4053,6 +4276,7 @@
         "pt": "Percurso de referência para medição da energia de rede fornecida, enquanto o motor de combustão se encontrava ativo",
         "sv": "Referenssträcka för mätning av levererad nätenergi när förbränningsmotorn var aktiv"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the reference distance for measuring the energy supplied using charging cables while the combustion engine was active (used e.g. by OBFCM*).",
       "description_de": "Dieser Wert gibt die Referenzstrecke für die Messung der über Ladekabel zugeführten Energie an, während der Verbrennungsmotor aktiv war (wird z.B. von OBFCM* verwendet).",
       "data_type": "float",
@@ -4080,6 +4304,7 @@
         "pt": "Energia total de rede que foi fornecida ao veículo (apenas no PHEV)",
         "sv": "Total nätenergi som levererats till fordonet (endast PHEV)"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the total energy supplied using charging cables.",
       "description_de": "Dieser Wert gibt die gesamte über Ladekabel zugeführte Energie an.",
       "data_type": "float",
@@ -4107,6 +4332,7 @@
         "pt": "Percurso de referência da OBFCM* para medição da energia de rede fornecida",
         "sv": "OBFCM*-referenssträcka för mätning av levererad nätenergi"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the reference distance for measuring the energy supplied using charging cables.",
       "description_de": "Dieser Wert gibt die Referenzstrecke für die Messung der über Ladekabel zugeführten Energie an.",
       "data_type": "float",
@@ -4134,6 +4360,7 @@
         "pt": "Estado do sistema de carregamento HV",
         "sv": "HV-laddningssystemstatus"
       },
+      "titles_i18n": {},
       "description_en": "Charging HV Status.",
       "description_de": "Status des Hochvolt-Ladens.",
       "data_type": "string",
@@ -4161,6 +4388,7 @@
         "pt": "Motivo para cancelamento de um processo de carregamento",
         "sv": "Anledning för att avsluta en laddningsprocess"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the reason why a charging process was ended.",
       "description_de": "Der Wert gibt die Ursache für das Beenden eines Ladevorgangs an.",
       "data_type": "string",
@@ -4188,6 +4416,7 @@
         "pt": "Razão do sistema de carregamento imediata",
         "sv": "Omedelbart laddningssystemskäl"
       },
+      "titles_i18n": {},
       "description_en": "This parameter contains the information that customer selected charging mode is overwritten due to system reasons.",
       "description_de": "Dieser Parameter enthält die Information, dass die vom Kunden gewählte Ladebetriebsart aus Systemgründen überschrieben wurde.",
       "data_type": "boolean",
@@ -4215,6 +4444,7 @@
         "pt": "Estado da função de carregamento imediato",
         "sv": "Status för omedelbar laddningsfunktion"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the “instant charging” function is activated.",
       "description_de": "Der Wert gibt an, ob die Funktion \"Sofortladen\" aktiviert ist oder nicht.",
       "data_type": "boolean",
@@ -4242,6 +4472,7 @@
         "pt": "Último motivo de carregamento",
         "sv": "Sista laddningsskäl"
       },
+      "titles_i18n": {},
       "description_en": "Reason of the last charging process.",
       "description_de": "Grund des letzten Ladevorgangs.",
       "data_type": "string",
@@ -4269,6 +4500,7 @@
         "pt": "Último resultado de carregamento",
         "sv": "Senaste laddningsresultat"
       },
+      "titles_i18n": {},
       "description_en": "Result of the last charging process.",
       "description_de": "Ergebnis des letzten Ladevorgangs.",
       "data_type": "string",
@@ -4296,6 +4528,7 @@
         "pt": "Estado de carga atual previsto",
         "sv": "Aktuell prognostiserad laddningsnivå"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the current predicted charging status in percent.",
       "description_de": "Dieser Wert gibt den aktuellen vorhergesagten Ladezustand in Prozent an.",
       "data_type": "float",
@@ -4323,6 +4556,7 @@
         "pt": "Método de carga e tipo de ficha",
         "sv": "Laddningsmetod och kontakttyp"
       },
+      "titles_i18n": {},
       "description_en": "This value describes whether the vehicle was charged with direct current (DC) or alternating current (AC) and which charging plug was used for this purpose. The indicated technical value AC_TYPE1PLUG, for example, indicates that the high-voltage battery was charged in alternating current mode, making use of a charging plug of Type 1.",
       "description_de": "Der Wert beschreibt, ob das Fahrzeug mit Gleichstrom (DC) oder Wechselstrom (AC) geladen wurde und welcher Ladestecker dabei verwendet wurde. Der angezeigte technische Wert AC_TYPE1PLUG beispielsweise gibt an, dass der Hochvolt-Speicher im Wechelstrommodus geladen wurde und dabei ein Ladestecker vom Typ 1 Plug zum Einsatz kam.",
       "data_type": "string",
@@ -4350,6 +4584,7 @@
         "pt": "Desvio do modo de carregamento",
         "sv": "Avvikande laddningssätt"
       },
+      "titles_i18n": {},
       "description_en": "This parameter contains the information of deviation to the customer selected charging mode due to system reasons.",
       "description_de": "Dieser Parameter enthält Informationen über systembedingte Abweichungen von der vom Kunden ausgewählten Ladebetriebsart.",
       "data_type": "string",
@@ -4377,6 +4612,7 @@
         "pt": "Processo de carregamento da bateria de alta tensão (fases)",
         "sv": "Laddningsmetod för högspänningsbatteriet (faser)"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the number of phases in which the high-voltage battery will be charged.",
       "description_de": "Der Wert gibt die Anzahl der Phasen an, mit denen die Hochvoltbatterie geladen wird.",
       "data_type": "string",
@@ -4404,6 +4640,7 @@
         "pt": "Climatização ativa",
         "sv": "Klimatisering aktiv"
       },
+      "titles_i18n": {},
       "description_en": "Climatization Activation of Vehicle in Charging Profile, vehicle interior gets preconditioned for next departure time.",
       "description_de": "Klimatisierungsaktivierung des Fahrzeugs im Ladeprofil, der Fahrzeuginnenraum wird für die nächste Abfahrtszeit vorklimatisiert.",
       "data_type": "boolean",
@@ -4431,6 +4668,7 @@
         "pt": "Configuração do RCP concluída",
         "sv": "RCP-konfigurationen är klar"
       },
+      "titles_i18n": {},
       "description_en": "Vehicles with a complete RCP (Remote Charging Profile) Configuration explicitly send values for all charging profile attributes. For Vehicles without a complete RCP Configuration, some defaults are applied.",
       "description_de": "Fahrzeuge mit einer vollständigen RCP-Konfiguration (Remote Charging Profile) senden explizit Werte für alle Ladeprofilattribute. Für Fahrzeuge ohne vollständige RCP-Konfiguration werden Standardwerte angewendet.",
       "data_type": "boolean",
@@ -4458,6 +4696,7 @@
         "pt": "Perfil de carga",
         "sv": "Laddningsprofil"
       },
+      "titles_i18n": {},
       "description_en": "The charging profile provides information about the charging mode most recently selected for your vehicle. Where appropriate, CarData element may also be used to display individual attributes in cars without an electric drive, e.g. the preconditioning settings.",
       "description_de": "Das Ladeprofil informiert darüber, welcher Lademodus im Fahrzeug zuletzt ausgewählt war. Gegebenenfalls wird dieses CarData-Element auch für Fahrzeuge ohne elektrischen Antrieb verwendet, um einzelne Attribute, wie z.B. die Einstellung der Vorklimatisierung, anzuzeigen.",
       "data_type": "string",
@@ -4485,6 +4724,7 @@
         "pt": "Preferência de perfil de carregamento",
         "sv": "Inställning av laddningsprofil"
       },
+      "titles_i18n": {},
       "description_en": "Charging preference of current charging profile. This value depends on charge mode selection. For Vehicle.ElectricEngine.Charging.Profile.Mode being \"DELAYED_CHARGING\", Vehicle.ElectricEngine.Charging.Profile.Preference is either \"SMART_CHARGING\" or \"CHARGING_WINDOW\". In case Vehicle.ElectricEngine.Charging.Profile.Mode is \"IMMEDIATE_CHARGING\", Vehicle.ElectricEngine.Charging.Profile.Preference is set to \"NO_PRESELECTION\".",
       "description_de": "Ladepräferenz des aktuellen Ladeprofils. Dieser Wert hängt von der Auswahl des Lademodus ab. Wenn Vehicle.ElectricEngine.Charging.Profile.Mode „DELAYED_CHARGING“ ist, ist Vehicle.ElectricEngine.Charging.Profile.Preference entweder „SMART_CHARGING“ oder „CHARGING_WINDOW“. Wenn Vehicle.ElectricEngine.Charging.Profile.Mode „IMMEDIATE_CHARGING“ ist, ist Vehicle.ElectricEngine.Charging.Profile.Preference auf „NO_PRESELECTION“ gesetzt.",
       "data_type": "string",
@@ -4512,6 +4752,7 @@
         "pt": "Hora de partida relevante",
         "sv": "Relevant starttid"
       },
+      "titles_i18n": {},
       "description_en": "Information if the upcoming departure time is relevant for the professional mode (bidirectional/unidirectional) and the target state of energy shall be reached at this time.",
       "description_de": "Informationen darüber, ob die bevorstehende Abfahrtszeit für den professionellen Modus (bidirektional/unidirektional) relevant ist und der Sollenergiezustand zu diesem Zeitpunkt erreicht werden muss.",
       "data_type": "boolean",
@@ -4539,6 +4780,7 @@
         "pt": "Descarga permitida",
         "sv": "Urladdning tillåten"
       },
+      "titles_i18n": {},
       "description_en": "Allowing discharging in professional mode for the bidirectional power transfer function (BPT) is selected from customer or not (ON/OFF).",
       "description_de": "Das Zulassen der Entladung im professionellen Modus für die bidirektionale Leistungsübertragungsfunktion (BPT) kann vom Kunden ausgewählt werden oder nicht (ON/OFF).",
       "data_type": "boolean",
@@ -4566,6 +4808,7 @@
         "pt": "Tipo de temporizador de carregamento",
         "sv": "Typ av laddningstimer"
       },
+      "titles_i18n": {},
       "description_en": "Charging profile timer type (e.g., Weekdays or TwoTimesTimer)",
       "description_de": "Timer-Typ des Ladeprofils (z. B. Wochentage oder TwoTimesTimer)",
       "data_type": "string",
@@ -4593,6 +4836,7 @@
         "pt": "Razão para o fim do carregamento",
         "sv": "Skäl till att laddningen upphörde"
       },
+      "titles_i18n": {},
       "description_en": "Reason for the end of charging, from SP25 on.",
       "description_de": "Grund für das Ende des Ladens ab SP25.",
       "data_type": "string",
@@ -4620,6 +4864,7 @@
         "pt": "Estado de carregamento otimizado para a rota",
         "sv": "Ruttoptimerad laddningsstatus"
       },
+      "titles_i18n": {},
       "description_en": "Indicates the charging status in cases where e-route charging is used by the customer for his journey. E-route charging sessions have two distinct phases. Route optimzed charging sessions override the customer target state of charge temporarily.",
       "description_de": "Zeigt den Ladestatus in Fällen an, in denen der Kunde das E-Route-Laden für seine Reise nutzt. E-Route-Ladesitzungen bestehen aus zwei verschiedenen Phasen. Routenoptimierte Ladesitzungen setzen den Soll-Ladezustand des Kunden vorübergehend außer Kraft.",
       "data_type": "string",
@@ -4647,6 +4892,7 @@
         "pt": "Energia utilizável da bateria de alta tensão (totalmente carregada, prevista)",
         "sv": "Användbar energi från högspänningsbatteri (fulladdat, prognostiserat)"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the amount of energy required to fully charge the battery.",
       "description_de": "Der Wert gibt die Energie an, die benötigt wird, um die Hochvoltbatterie vollständig aufzuladen.",
       "data_type": "float",
@@ -4674,6 +4920,7 @@
         "pt": "Estado da carga",
         "sv": "Laddningstillstånd"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the current charging status of the vehicle at the time of data collection. For example, NOCHARGING means that the vehicle's high-voltage battery is currently not being charged. INITIALIZATION means that the charging process is just being prepared, while CHARGINGACTIVE means that the battery is just being charged. Other possible values are: CHARGINGPAUSED (charging paused), CHARGINGENDED (charging ended) and CHARGINGERROR (charging error).",
       "description_de": "Dieser Wert gibt den zum Zeitpunkt der Datenerfassung aktuellen Ladestatus des Fahrzeugs an. Der Wert NOCHARGING beispielsweise bedeutet, dass der Hochvolt-Speicher des Fahrzeugs derzeit nicht geladen wird. INITIALIZATION meint, der Ladevorgang wird gerade vorbereitet, CHARGINGACTIVE heißt, der Akku wird gerade aufgeladen. Weitere mögliche Werte sind: CHARGINGPAUSED (Ladevorgang pausiert), CHARGINGENDED (Ladevorgang beendet) und CHARGINGERROR (Ladefehler).",
       "data_type": "string",
@@ -4701,6 +4948,7 @@
         "pt": "Previsão do tempo de carregamento restante",
         "sv": "Prognos av återstående laddningstid"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the estimated remaining charging time in minutes.",
       "description_de": "Dieser Wert gibt die prognostizierte verbleibende Ladezeit in Minuten an.",
       "data_type": "uint16",
@@ -4728,6 +4976,7 @@
         "pt": "Tempo de carregamento restante calculado da bateria de alta tensão",
         "sv": "Beräknad återstående laddningstid för högspänningsbatteriet"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the calculated time (in minutes) until the high-voltage battery is fully charged. If a navigation destination has been set, the time remaining until reaching the destination will be displayed.",
       "description_de": "Der Wert gibt die berechnete Dauer bis zur vollständigen Ladung der Hochvoltbatterie (in Minuten) an. Falls ein Navigationsziel gesetzt ist, wird die Restladedauer bis zur Erreichung dieses Ziels angezeigt.",
       "data_type": "uint16",
@@ -4755,6 +5004,7 @@
         "pt": "Seleção do período de carga preferido (Charging Window Selection)",
         "sv": "Val av det lämpligaste laddningsfönstret (Charging Window Selection)"
       },
+      "titles_i18n": {},
       "description_en": "Indicates a pre-defined time window in which the high-voltage battery of the vehicle should be charged. The value could be either NOTCHOSEN or CHOSEN.",
       "description_de": "Gibt ein zuvor definiertes Zeitfenster an, in dem die Hochvoltbatterie des Fahrzeugs geladen werden sollte. Die möglichen Werte lauten NOTCHOSEN und CHOSEN.",
       "data_type": "string",
@@ -4782,6 +5032,7 @@
         "pt": "Teor energético máximo da bateria de alta tensão",
         "sv": "Maximalt energiinnehåll i högspänningsbatteriet"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the maximum available energy content of the high-voltage battery.",
       "description_de": "Der Wert gibt den maximal kundennutzbaren Energieinhalt der Hochvoltbatterie an.",
       "data_type": "-",
@@ -4809,6 +5060,7 @@
         "pt": "Autonomia elétrica restante em km",
         "sv": "Återstående elektrisk räckvidd i km"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the remaining electric range at the time of data collection.",
       "description_de": "Der Wert gibt die verbleibende elektrische Reichweite zum Zeitpunkt der Datenerfassung in Kilometer an.",
       "data_type": "float",
@@ -4836,6 +5088,7 @@
         "pt": "Previsão do alcance elétrico durante o processo de carregamento",
         "sv": "Prognos av e-räckvidd under laddningsförloppet"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the electric range predicted during charging.",
       "description_de": "Dieser Wert gibt die während des Ladevorgangs vorhergesagte elektrische Reichweite an.",
       "data_type": "float",
@@ -4863,6 +5116,7 @@
         "pt": "Estado da ignição",
         "sv": "Tändningens tillstånd"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the ignition was on or off at the time of data collection or whether the status is unknown.",
       "description_de": "Der Wert gibt an, ob die Zündung zum Zeitpunkt der Datenerfassung aus oder an war oder ob der Status unbekannt ist.",
       "data_type": "boolean",
@@ -4890,6 +5144,7 @@
         "pt": "Estado do motor (on/off)",
         "sv": "Motorns tillstånd (på/av)"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the engine was on or off at the time of data collection or whether the status is unknown.",
       "description_de": "Der Wert gibt an, ob der Motor zum Zeitpunkt der Datenerfassung aus oder an war oder ob der Status unbekannt ist.",
       "data_type": "boolean",
@@ -4917,6 +5172,7 @@
         "pt": "Consumo total de combustível da OBFCM* na operação com a bateria descarregada (apenas no PHEV)",
         "sv": "Total OBFCM*-bränsleförbrukning under körning med batteri som laddas ur (endast PHEV)"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the amount of fuel consumption when the combustion engine switches on even though the battery is not flat.",
       "description_de": "Dieser Wert gibt die Menge des Kraftstoffverbrauchs an, wenn sich der Verbrennungsmotor trotz nicht leerer Batterie zuschaltet.",
       "data_type": "float",
@@ -4944,6 +5200,7 @@
         "pt": "Percurso de referência da OBFCM* na operação elétrica e o motor de combustão inativo (apenas no PHEV)",
         "sv": "OBFCM*-referenssträcka med eldrift och inaktiv förbränningsmotor (endast PHEV)"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the distance travelled during electric mode and when the combustion engine is inactive.",
       "description_de": "Dieser Wert gibt die gefahrene Strecke bei elektrischem Betrieb und inaktivem Verbrennungsmotor an.",
       "data_type": "float",
@@ -4971,6 +5228,7 @@
         "pt": "Percurso de referência da OBFCM* na operação elétrica e o motor de combustão ativo (apenas no PHEV)",
         "sv": "OBFCM*-referenssträcka med eldrift och aktiv förbränningsmotor (endast PHEV)"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the distance travelled during electric mode and when the combustion engine is active.",
       "description_de": "Dieser Wert gibt die gefahrene Strecke bei elektrischem Betrieb und aktivem Verbrennungsmotor an.",
       "data_type": "float",
@@ -4998,6 +5256,7 @@
         "pt": "Consumo total de combustível da OBFCM* na operação de carregamento (apenas no PHEV)",
         "sv": "Total OBFCM*-bränsleförbrukning i laddningsläge (endast PHEV)"
       },
+      "titles_i18n": {},
       "description_en": "This value describes the fuel consumed during charging mode, i.e. PHEV charges the high-voltage battery using the combustion engine.",
       "description_de": "Dieser Wert beschreibt den verbrauchten Kraftstoff während des Ladebetriebs, d.h. PHEV lädt die Hochvoltbatterie über den Verbrennungsmotor auf.",
       "data_type": "float",
@@ -5025,6 +5284,7 @@
         "pt": "Percurso de referência da OBFCM* na operação de carregamento",
         "sv": "OBFCM*-referenssträcka i laddningsläge"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the distance travelled during charging mode, i.e. PHEV charges the high-voltage battery.",
       "description_de": "Dieser Wert gibt die gefahrene Strecke im Ladebetrieb an, d. h. PHEV lädt die Hochvoltbatterie auf.",
       "data_type": "float",
@@ -5052,6 +5312,7 @@
         "pt": "Consumo total de combustível, em conformidade com os requisitos legais da OBFCM*",
         "sv": "Total bränsleförbrukning enligt lagstadgade OBFCM*-specifikationer"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the amount of fuel consumed in litres, measured over the reference distance.",
       "description_de": "Dieser Wert gibt die Menge des verbrauchten Kraftstoffs in Litern an, gemessen über die Referenzstrecke.",
       "data_type": "float",
@@ -5079,6 +5340,7 @@
         "pt": "Percurso de referência da OBFCM* para medição do consumo de combustível",
         "sv": "OBFCM*-referenssträcka för mätning av bränsleförbrukning"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the reference distance for measuring fuel consumption.",
       "description_de": "Dieser Wert gibt die Referenzstrecke für die Messung des Kraftstoffverbrauchs an.",
       "data_type": "float",
@@ -5106,6 +5368,7 @@
         "pt": "Nível de enchimento do depósito em %",
         "sv": "Tankens fyllnadsnivå i %"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the tank level in percent at the time of data collection.",
       "description_de": "Der Wert gibt den Tankinhalt in Prozent zum Zeitpunkt der Datenerfassung an.",
       "data_type": "uint8",
@@ -5133,6 +5396,7 @@
         "pt": "Conteúdo do depósito",
         "sv": "Tankinnehåll"
       },
+      "titles_i18n": {},
       "description_en": "The value indicates the current fuel tank level in litres or gallons at the time of data collection. Depending on the position of the tank float, the specified value may differ by up to 6 litres or 1.6 gallons.",
       "description_de": "Der Wert gibt den zum Zeitpunkt der Datenerfassung aktuellen Tankinhalt in Liter an. Abhängig von der Position des Tankschwimmers können Abweichungen von bis zu 6 Liter zum angegebenen Wert auftreten.",
       "data_type": "float",
@@ -5160,6 +5424,7 @@
         "pt": "Temperatura do líquido de refrigeração",
         "sv": "Kylarvätskans temperatur"
       },
+      "titles_i18n": {},
       "description_en": "The value indicates the current coolant temperature in degrees centigrade or Fahrenheit at the time of data collection.",
       "description_de": "Der Wert gibt die zum Zeitpunkt der Datenerfassung aktuelle Kühlmitteltemperatur in Grad Celsius an.",
       "data_type": "int16",
@@ -5187,6 +5452,7 @@
         "pt": "Última autonomia restante enviada",
         "sv": "Senast skickade återstående räckvidd"
       },
+      "titles_i18n": {},
       "description_en": "Last sent remaining range electric + fuel sent by the vehicle. Range from vehicle Kombi (Queried for PHEV and CE vehicles). Delivers e-range + ce range for PHEV. Ce Range for CE vehicles. Likely 0 for BEV vehicles. This value should only be used for combustion cars. Electric cars should read Vehicle.Drivetrain.ElectricEngine.KombiRemainingElectricRange.",
       "description_de": "Zuletzt vom Fahrzeug gesendete Restreichweite Electric + Kraftstoff. Reichweite von Fahrzeug Kombi (für PHEV- und CE-Fahrzeuge abgefragt). Liefert die E-Reichweite + CE-Reichweite für PHEV. CE-Reichweite für CE-Fahrzeuge. Wahrscheinlich 0 für BEV-Fahrzeuge. Dieser Wert sollte nur für Fahrzeuge mit Verbrennungsmotor verwendet werden. Bei Elektrofahrzeugen sollte Vehicle.Drivetrain.ElectricEngine.KombiRemainingElectricRange angezeigt werden.",
       "data_type": "float",
@@ -5214,6 +5480,7 @@
         "pt": "Previsão do alcance total durante o processo de carregamento",
         "sv": "Prognos av total räckvidd under laddningsförloppet"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the total range predicted during charging (total of electric range and combustion engine range).",
       "description_de": "Dieser Wert gibt die während des Ladevorgangs vorhergesagte Gesamtreichweite an (Summe aus elektrischer und verbrennungsmotorischer Reichweite).",
       "data_type": "float",
@@ -5241,6 +5508,7 @@
         "pt": "Necessidade de recarregar a bateria",
         "sv": "Behov av batteriladdning"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether recharging of the battery is necessary. 1 = Recharging necessary 0 = Recharging not necessary",
       "description_de": "Der Wert gibt an, ob eine Batterienachladung erforderlich ist. 1 = Nachladung notwendig 0 = Nachladung nicht notwendig",
       "data_type": "-",
@@ -5268,6 +5536,7 @@
         "pt": "Estado de saúde da bateria",
         "sv": "Batteriets hälsotillstånd"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the health status of the battery. 200 = Adequate health status of the battery 140 = Limited – Battery replacement recommended 110 = Inadequate – Battery replacement required 80 = Degraded – Battery replacement urgently required",
       "description_de": "Dieser Wert gibt den Gesundheitszustand der Batterie an. 200 = Gesundheitszustand der Batterie ausreichend 140 = Eingeschränkt - Batterietausch empfohlen 110 = Unzureichend - Batterietausch erforderlich 80 = Degradiert - Batterietausch dringend erforderlich",
       "data_type": "-",
@@ -5295,6 +5564,7 @@
         "pt": "Bateria de baixa tensão",
         "sv": "Lågspänningsbatteri"
       },
+      "titles_i18n": {},
       "description_en": "The value indicates the state of charge of the low-voltage battery in percent measured at the time of data collection.",
       "description_de": "Der Wert gibt den zum Zeitpunkt der Datenerfassung gemessenen Ladezustand der Niedervoltbatterie in Prozent an.",
       "data_type": "-",
@@ -5322,6 +5592,7 @@
         "pt": "Plausibilidade da bateria de baixa tensão",
         "sv": "Lågspänningsbatteriets sannolikhet"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the measured state of charge of the low-voltage battery in percent is plausible.",
       "description_de": "Dieser Wert gibt an, ob der gemessene Ladezustand der Niedervoltbatterie in Prozent plausibel ist.",
       "data_type": "-",
@@ -5349,6 +5620,7 @@
         "pt": "Tensão da bateria",
         "sv": "Batterispänning"
       },
+      "titles_i18n": {},
       "description_en": "The value indicates the current battery voltage in the vehicle's electrical system. This value is always given in voltage, e.g. 14.4 V.",
       "description_de": "Der Wert gibt die zum Zeitpunkt der Datenerfassung aktuelle Batteriespannung im Bordnetz an. Der Wert wird jeweils in Volt angegeben, beispielsweise 14,4 V.",
       "data_type": "float",
@@ -5376,6 +5648,7 @@
         "pt": "Estado de saúde da bateria de 48 V",
         "sv": "48 V-batteriets hälsotillstånd"
       },
+      "titles_i18n": {},
       "description_en": "SoH (State of Health) of the 48V Battery that is shown to the customer. Created to fulfill EU Battery Regulation.",
       "description_de": "SoH (State of Health) der 48-V-Batterie, der dem Kunden angezeigt wird. Entwickelt, um die EU-Batterieverordnung zu erfüllen.",
       "data_type": "uint16",
@@ -5403,6 +5676,7 @@
         "pt": "Memória de erros",
         "sv": "Felminne"
       },
+      "titles_i18n": {},
       "description_en": "The fault memory provides information about potential errors or technical faults in the vehicle. This information is intended for workshops. Customer-relevant errors that are displayed to the driver in the vehicle can be found under the CarData Element “Check control messages”. Details about this are documented in the operating manual of the vehicle.",
       "description_de": "Der Fehlerspeicher gibt Auskunft über potenzielle Störungen oder technische Defekte im Fahrzeug. Diese Informationen sind für Werkstätten gedacht. Kundenrelevante Störungen, die dem Fahrer im Fahrzeug angezeigt werden, sind unter dem CarData Element „Check Control Meldungen“ zu finden. Details hierzu sind in der Betriebsanleitung des Fahrzeugs dokumentiert.",
       "data_type": "-",
@@ -5430,6 +5704,7 @@
         "pt": "Lista de equipamento opcional",
         "sv": "Lista på tilläggsutrustning"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates a list with information about the optional equipment of the vehicle.",
       "description_de": "Dieser Wert zeigt eine Liste mit Informationen über die Sonderausstattungen des Fahrzeugs an.",
       "data_type": "-",
@@ -5457,6 +5732,7 @@
         "pt": "Estado de movimento do veículo",
         "sv": "Fordonets rörelsetillstånd"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the vehicle was in motion at the time of data collection.",
       "description_de": "Der Wert gibt an, ob sich das Fahrzeug zum Zeitpunkt der Datenerfassung in Bewegung befand.",
       "data_type": "boolean",
@@ -5475,6 +5751,7 @@
       "element_en": "Learning navigation",
       "name_de": "",
       "names_i18n": {},
+      "titles_i18n": {},
       "description_en": "Displays the learned navigation recommendations (preferred routes and destinations of the customer).",
       "description_de": "",
       "data_type": "-",
@@ -5502,6 +5779,7 @@
         "pt": "Imagem do veículo",
         "sv": "Fordonsbild"
       },
+      "titles_i18n": {},
       "description_en": "This value provides an image of the vehicle as a PNG file.",
       "description_de": "Der Wert liefert ein Bild des Fahrzeugs als PNG-Datei.",
       "data_type": "-",
@@ -5529,6 +5807,7 @@
         "pt": "Capacidade de carregamento bidirecional",
         "sv": "Kapacitet för tvåvägsladdning"
       },
+      "titles_i18n": {},
       "description_en": "Contains the information about the current availability of the BPT (Bidirectional power transfer) function.",
       "description_de": "Enthält die Information über die aktuelle Verfügbarkeit der BPT-Funktion (Bidirectional Power Transfer).",
       "data_type": "string",
@@ -5556,6 +5835,7 @@
         "pt": "Estado da limitação de carga",
         "sv": "Status laddningsgräns"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether a charging current limit was active at the time of data collection.",
       "description_de": "Der Wert gibt an, ob zum Zeitpunkt der Datenerfassung eine Ladestrombegrenzung aktiv war.",
       "data_type": "boolean",
@@ -5583,6 +5863,7 @@
         "pt": "Intensidade máxima da corrente de carga",
         "sv": "Maximal laddningsströmstyrka"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the maximum available charging current, independently of the infrastructure and selected cable.",
       "description_de": "Der Wert gibt die maximal wählbare Ladestromstärke in Abhängigkeit von der Infrastruktur und des verwendeten Kabels an.",
       "data_type": "uint8",
@@ -5610,6 +5891,7 @@
         "pt": "Intensidade mínima da corrente de carga",
         "sv": "Minsta laddningsströmstyrka"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the minimum available charging current, independently of the infrastructure and selected cable.",
       "description_de": "Der Wert gibt die minimal wählbare Ladestromstärke in Abhängigkeit von der Infrastruktur und des verwendeten Kabels an.",
       "data_type": "uint8",
@@ -5637,6 +5919,7 @@
         "pt": "Limitação da corrente de carga",
         "sv": "Begränsning av laddningsströmmen"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the set limit of the charging current in amperes (A).",
       "description_de": "Der Wert gibt die eingestellte Begrenzung des Ladestroms in Ampere (A) an.",
       "data_type": "uint8",
@@ -5664,6 +5947,7 @@
         "pt": "Limitação acústica do processo de carregamento",
         "sv": "Akustisk begränsning av laddningsprocessen"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether charging is limited due to noise emissions.",
       "description_de": "Der Wert gibt an, ob das Laden wegen der Lärmemission begrenzt wird oder nicht.",
       "data_type": "string",
@@ -5691,6 +5975,7 @@
         "pt": "Estado de autenticação de carregamento",
         "sv": "Autentiseringsstatus laddning"
       },
+      "titles_i18n": {},
       "description_en": "",
       "description_de": "Dieses Feld zeigt den Status der Authentifizierung mit der Ladestation an.",
       "data_type": "string",
@@ -5718,6 +6003,7 @@
         "pt": "Modo Battery Care ativo",
         "sv": "Battery Care-läge active"
       },
+      "titles_i18n": {},
       "description_en": "Indicator if the battery care persisted mode is active.",
       "description_de": "Zeigt an, ob der Battery Care-Modus dauerhaft aktiv ist.",
       "data_type": "boolean",
@@ -5745,6 +6031,7 @@
         "pt": "Modo de carregamento Battery Care",
         "sv": "Battery Care-laddningsläge"
       },
+      "titles_i18n": {},
       "description_en": "Charging to departure time starts as late as possible, to reduce the time where the car has a high SoE (State of Energy).",
       "description_de": "Das Laden bis zur Abfahrtszeit beginnt so spät wie möglich, um die Zeit zu minimieren, in der das Fahrzeug einen hohen SoE (State of Energy) hat.",
       "data_type": "boolean",
@@ -5772,6 +6059,7 @@
         "pt": "State of Energy alvo reduzido",
         "sv": "Reducerat mål-energitillstånd"
       },
+      "titles_i18n": {},
       "description_en": "Reduce the target SoE (State of Energy) to a defined value, so that the battery doesn't reach high SoEs thus reducing battery aging.",
       "description_de": "Reduziert den Ziel-SoE (State of Energy) auf einen definierten Wert, damit die Batterie keine hohen SoE-Werte erreicht und somit die Batteriealterung verringert wird.",
       "data_type": "boolean",
@@ -5799,6 +6087,7 @@
         "pt": "Tensão de verificação do cabo",
         "sv": "Kabelkontrollspänning"
       },
+      "titles_i18n": {},
       "description_en": "The voltage reached during intialization cable check.",
       "description_de": "Die bei der initialen Kabelprüfung erreichte Spannung.",
       "data_type": "uint16",
@@ -5826,6 +6115,7 @@
         "pt": "Operação de carga DC ativa",
         "sv": "Likströmsladdningssätt active"
       },
+      "titles_i18n": {},
       "description_en": "Active direct Current Charging mode (performance vs. efficient).",
       "description_de": "Aktive Gleichstrom-Ladebetriebsart (Performance vs. Efficient).",
       "data_type": "string",
@@ -5853,6 +6143,7 @@
         "pt": "Histórico de carregamentos",
         "sv": "Laddningshistorik"
       },
+      "titles_i18n": {},
       "description_en": "This value shows a list of charging processes performed on the vehicle, which were recorded in the course of the “Charging History” service.",
       "description_de": "Der Wert zeigt eine Liste der durchgeführten Ladevorgänge des Fahrzeugs an, welche im Rahmen des Dienstes \"Ladehistorie\" erfasst wurden.",
       "data_type": "-",
@@ -5880,6 +6171,7 @@
         "pt": "Potência de carregamento",
         "sv": "Laddningseffekt"
       },
+      "titles_i18n": {},
       "description_en": "The current charging power in Watt. This value should only be considered with respect to the current timestamp.",
       "description_de": "Die aktuelle Ladeleistung in Watt. Dieser Wert sollte nur in Bezug auf den aktuellen Zeitstempel berücksichtigt werden.",
       "data_type": "int32",
@@ -5907,6 +6199,7 @@
         "pt": "Opção de carregamento “Smart Charging”",
         "sv": "”Smart Charging” laddningsalternativ"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates which “Smart Charging” option is being used to charge with.",
       "description_de": "Der Wert gibt an, mit welcher \"Smart Charging\" Ladeoption geladen wird.",
       "data_type": "string",
@@ -5934,6 +6227,7 @@
         "pt": "Definições de carregamento baseadas na localização",
         "sv": "Platsbaserade laddningsinställningar"
       },
+      "titles_i18n": {},
       "description_en": "The value shows a list of the vehicle's currently stored location-based charging settings, which were recorded as part of the “Location-based charging settings” service.",
       "description_de": "Der Wert zeigt eine Liste der aktuell gespeicherten standortbezogenen Ladeeinstellungen des Fahrzeugs an, welche im Rahmen des Dienstes \"Standortbezogene Ladeeinstellungen\" erfasst wurden.",
       "data_type": "-",
@@ -5961,6 +6255,7 @@
         "pt": "Feedback automático de estado de pré-condicionamento",
         "sv": "Automatisk återkoppling av status för förkonditionering"
       },
+      "titles_i18n": {},
       "description_en": "Current state of toggle switch for automatic battery preconditioning. ON means automatic mode (navigation based) of the predictive thermal management (vWM) is activated. OFF means automatic mode (navigation based) of the predictive thermal management (vWM) is deactivated. TEMP_OFF stands for temporary deactivation for current trip of the automatic predictive thermal management.",
       "description_de": "Aktueller Zustand des Kippschalters für die automatische Batterievorkonditionierung. ON bedeutet, dass der Automatikbetrieb (navigationsbasiert) des vorausschauenden Wärmemanagements (vWM) aktiviert ist. OFF bedeutet, dass der Automatikbetrieb (navigationsbasiert) des vorausschauenden Wärmemanagements (vWM) deaktiviert ist. TEMP\\_OFF steht für die temporäre Deaktivierung des automatischen vorausschauenden Wärmemanagements (vWM) für die aktuelle Fahrt.",
       "data_type": "string",
@@ -5988,6 +6283,7 @@
         "pt": "Feedback manual de estado de pré-condicionamento",
         "sv": "Manuell återkoppling av status för förkonditionering"
       },
+      "titles_i18n": {},
       "description_en": "Current state of button for manual battery preconditioning. Either for charging or driving.",
       "description_de": "Aktueller Zustand des Tasters für die manuelle Batterievorkonditionierung. Entweder zum Laden oder für den Fahrbetrieb.",
       "data_type": "string",
@@ -6015,6 +6311,7 @@
         "pt": "Estado de pré-condicionamento",
         "sv": "Förkonditioneringstillstånd"
       },
+      "titles_i18n": {},
       "description_en": "Status of battery preconditioning activity. On legacy value only valid for legacy-project SP2021plus.",
       "description_de": "Status der Aktivität zur Vorkonditionierung der Batterie. Ein Legacy-Wert, der nur für das Legacy-Projekt SP2021plus gültig ist.",
       "data_type": "string",
@@ -6042,6 +6339,7 @@
         "pt": "Indicação do estado de carregamento",
         "sv": "Visning av laddningsstatus"
       },
+      "titles_i18n": {},
       "description_en": "",
       "description_de": "Dieser Wert gibt den im Fahrzeug angezeigten Ladezustand an.",
       "data_type": "float",
@@ -6069,6 +6367,7 @@
         "pt": "Valor-alvo do estado de carga da bateria de alta tensão",
         "sv": "Målvärde för högspänningsbatteriets laddningstillstånd"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the target charging status of the high-voltage battery in percent. This is displayed in 10% increments.",
       "description_de": "Der Wert gibt den eingestellten Zielwert des Ladezustandes der Hochvoltbatterie in Prozent an. Dieser wird in 10% Schritten angezeigt.",
       "data_type": "uint8",
@@ -6096,6 +6395,7 @@
         "pt": "Estado de carga mín. pretendido",
         "sv": "Mål lägsta laddningsnivå"
       },
+      "titles_i18n": {},
       "description_en": "Min target state of charge requested by customer for smart charging and V2X.",
       "description_de": "Minimaler Soll-Ladezustand, der vom Kunden für intelligentes Laden und V2X angefordert wird.",
       "data_type": "uint8",
@@ -6123,6 +6423,7 @@
         "pt": "SOC pretendido para o modo profissional",
         "sv": "Mål SOC för professionellt läge"
       },
+      "titles_i18n": {},
       "description_en": "Contains the target state of charge that shall be used as target in professional mode. At least this target state of charge will be reached by departure time.",
       "description_de": "Enthält den Soll-Ladezustand, der im professionellen Modus als Sollwert verwendet werden soll. Zumindest dieser Soll-Ladezustand wird bis zur Abfahrtszeit erreicht sein.",
       "data_type": "uint8",
@@ -6150,6 +6451,7 @@
         "pt": "Estado de saúde da bateria de alta voltagem (SOCE)",
         "sv": "Högspänningsbatteriets hälsotillstånd (SOCE)"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the health status of the high-voltage battery (SOCE, State of Certified Energy).",
       "description_de": "Dieser Wert gibt den Gesundheitszustand der Hochvoltbatterie an (SOCE, State of Certified Energy).",
       "data_type": "-",
@@ -6177,6 +6479,7 @@
         "pt": "Indicação do tempo de carregamento",
         "sv": "Visning av laddningstiden"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the charging time is displayed in the vehicle.",
       "description_de": "Der Wert gibt an, ob die Ladedauer im Fahrzeug angezeigt wird.",
       "data_type": "string",
@@ -6204,6 +6507,7 @@
         "pt": "Indicação da hora de partida",
         "sv": "Visning av avresetid"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the departure time is displayed in the vehicle.",
       "description_de": "Der Wert gibt an, ob die Abfahrtszeit im Fahrzeug angezeigt wird.",
       "data_type": "string",
@@ -6231,6 +6535,7 @@
         "pt": "Controlo de display de autonomia elétrica",
         "sv": "Displaystyrning för elektrisk räckvidd"
       },
+      "titles_i18n": {},
       "description_en": "Indicates if and how the electric range shall be displayed in the vehicle.",
       "description_de": "Zeigt an, ob und wie die elektrische Reichweite im Fahrzeug angezeigt werden soll.",
       "data_type": "string",
@@ -6258,6 +6563,7 @@
         "pt": "Autonomia elétrica restante, dependendo do valor-alvo do estado de carga",
         "sv": "Återstående elektrisk räckvidd beroende på målvärdet för laddningstillståndet"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the remaining electric range at the time of data collection. This depends on the set target value of the charging status.",
       "description_de": "Der Wert gibt die verbleibende elektrische Reichweite zum Zeitpunkt der Datenerfassung in Kilometer an. Diese ist abhängig vom eingestellten Zielwert des Ladezustands.",
       "data_type": "float",
@@ -6285,6 +6591,7 @@
         "pt": "Portinhola da entrada de carregamento da bateria, qualquer posição, abrir/fechar automaticamente",
         "sv": "Batteriladdningsport valfri positionslucka automatisk öppning/stängning"
       },
+      "titles_i18n": {},
       "description_en": "This field indicates if customer setting for opening the flap by myWay function (slider in the mobile app) is active. If true, flap opens automatically when the vehicle is close to a charging station with the digital key in the pocket and closes automatically after unplugging the cable.",
       "description_de": "Dieses Feld zeigt an, ob die Kundeneinstellung zum Öffnen der Klappe über die MyWay-Funktion (Schieberegler in der mobilen App) aktiv ist. Wenn ja, öffnet sich die Klappe automatisch, wenn sich das Fahrzeug in der Nähe einer Ladestation mit dem Digital Key in der Tasche befindet, und schließt sich automatisch, nachdem das Kabel abgezogen wurde.",
       "data_type": "boolean",
@@ -6312,6 +6619,7 @@
         "pt": "Portinhola da entrada de carregamento da bateria, qualquer posição, abrir",
         "sv": "Batteriladdningsport valfri positionslucka öppen"
       },
+      "titles_i18n": {},
       "description_en": "This signal indicates, if charging port is open in the vehicle.",
       "description_de": "Dieses Signal zeigt an, ob der Ladeanschluss im Fahrzeug geöffnet ist.",
       "data_type": "boolean",
@@ -6339,6 +6647,7 @@
         "pt": "Entrada de carregamento da bateria, qualquer posição, ligada",
         "sv": "Batteriladdningsport valfri position ansluten"
       },
+      "titles_i18n": {},
       "description_en": "This signal indicates, if a charging cable is plugged in the charging port.",
       "description_de": "Dieses Signal zeigt an, ob ein Ladekabel an den Ladeanschluss angeschlossen ist.",
       "data_type": "boolean",
@@ -6366,6 +6675,7 @@
         "pt": "Portinhola da entrada de carregamento dianteira esquerda da bateria, abrir/fechar automaticamente",
         "sv": "Batteriladdningsport positionslucka vänster fram automatisk öppning/stängning"
       },
+      "titles_i18n": {},
       "description_en": "This field indicates if customer setting for opening the front left flap by myWay function (slider in the mobile app) is active. If true, flap opens automatically when the vehicle is close to a charging station with the digital key in the pocket and closes automatically after unplugging the cable.",
       "description_de": "Dieses Feld zeigt an, ob die Kundeneinstellung zum Öffnen der Klappe vorn links über die MyWay-Funktion (Schieberegler in der mobilen App) aktiv ist. Wenn ja, öffnet sich die Klappe automatisch, wenn sich das Fahrzeug in der Nähe einer Ladestation mit dem Digital Key in der Tasche befindet, und schließt sich automatisch, nachdem das Kabel abgezogen wurde.",
       "data_type": "boolean",
@@ -6393,6 +6703,7 @@
         "pt": "Portinhola da entrada de carregamento dianteira esquerda da bateria aberta",
         "sv": "Batteriladdningsport positionslucka vänster fram öppen"
       },
+      "titles_i18n": {},
       "description_en": "This signal indicates, if front left charging port is open in the vehicle.",
       "description_de": "Dieses Signal zeigt an, ob der Ladeanschluss vorn links im Fahrzeug geöffnet ist.",
       "data_type": "boolean",
@@ -6420,6 +6731,7 @@
         "pt": "Entrada de carregamento dianteira esquerda da bateria ligada",
         "sv": "Batteriladdningsport vänster fram ansluten"
       },
+      "titles_i18n": {},
       "description_en": "This signal indicates, if a charging cable is plugged in the front left charging port.",
       "description_de": "Dieses Signal zeigt an, ob ein Ladekabel an den Ladeanschluss vorn links angeschlossen ist.",
       "data_type": "boolean",
@@ -6447,6 +6759,7 @@
         "pt": "Portinhola da entrada de carregamento dianteira central da bateria, abrir/fechar automaticamente",
         "sv": "Batteriladdningsport positionslucka vänster mitten automatisk öppning/stängning"
       },
+      "titles_i18n": {},
       "description_en": "This field indicates if customer setting for opening the front middle flap by myWay function (slider in the mobile app) is active. If true, flap opens automatically when the vehicle is close to a charging station with the digital key in the pocket and closes automatically after unplugging the cable.",
       "description_de": "Dieses Feld zeigt an, ob die Kundeneinstellung zum Öffnen der Klappe vorn in der Mitte über die MyWay-Funktion (Schieberegler in der mobilen App) aktiv ist. Wenn ja, öffnet sich die Klappe automatisch, wenn sich das Fahrzeug in der Nähe einer Ladestation mit dem Digital Key in der Tasche befindet, und schließt sich automatisch, nachdem das Kabel abgezogen wurde.",
       "data_type": "boolean",
@@ -6474,6 +6787,7 @@
         "pt": "Portinhola da entrada de carregamento dianteira central da bateria aberta",
         "sv": "Batteriladdningsport lucka mitten fram öppen"
       },
+      "titles_i18n": {},
       "description_en": "This signal indicates, if front middle charging port is open in the vehicle.",
       "description_de": "Dieses Signal zeigt an, ob der Ladeanschluss vorn in der Mitte im Fahrzeug geöffnet ist.",
       "data_type": "boolean",
@@ -6501,6 +6815,7 @@
         "pt": "Entrada de carregamento dianteira central da bateria ligada",
         "sv": "Batteriladdningsport mitten fram ansluten"
       },
+      "titles_i18n": {},
       "description_en": "This signal indicates, if a charging cable is plugged in the front middle charging port.",
       "description_de": "Dieses Signal zeigt an, ob ein Ladekabel an den Ladeanschluss vorn in der Mitte angeschlossen ist.",
       "data_type": "boolean",
@@ -6528,6 +6843,7 @@
         "pt": "Portinhola da entrada de carregamento dianteira direita da bateria, abrir/fechar automaticamente",
         "sv": "Batteriladdningsport positionslucka höger fram automatisk öppning/stängning"
       },
+      "titles_i18n": {},
       "description_en": "This field indicates if customer setting for opening the front right flap by myWay function (slider in the mobile app) is active. If true, flap opens automatically when the vehicle is close to a charging station with the digital key in the pocket and closes automatically after unplugging the cable.",
       "description_de": "Dieses Feld zeigt an, ob die Kundeneinstellung zum Öffnen der Klappe vorn rechts über die MyWay-Funktion (Schieberegler in der mobilen App) aktiv ist. Wenn ja, öffnet sich die Klappe automatisch, wenn sich das Fahrzeug in der Nähe einer Ladestation mit dem Digital Key in der Tasche befindet, und schließt sich automatisch, nachdem das Kabel abgezogen wurde.",
       "data_type": "boolean",
@@ -6555,6 +6871,7 @@
         "pt": "Portinhola da entrada de carregamento dianteira direita da bateria aberta",
         "sv": "Batteriladdningsport lucka höger fram öppen"
       },
+      "titles_i18n": {},
       "description_en": "This signal indicates, if front right charging port is open in the vehicle.",
       "description_de": "Dieses Signal zeigt an, ob der Ladeanschluss vorn rechts im Fahrzeug geöffnet ist.",
       "data_type": "boolean",
@@ -6582,6 +6899,7 @@
         "pt": "Entrada de carregamento dianteira direita da bateria ligada",
         "sv": "Batteriladdningsport höger fram ansluten"
       },
+      "titles_i18n": {},
       "description_en": "This signal indicates, if a charging cable is plugged in the front right charging port.",
       "description_de": "Dieses Signal zeigt an, ob ein Ladekabel an den Ladeanschluss vorn rechts angeschlossen ist.",
       "data_type": "boolean",
@@ -6609,6 +6927,7 @@
         "pt": "Portinhola da entrada de carregamento traseira esquerda da bateria, abrir/fechar automaticamente",
         "sv": "Batteriladdningsport positionslucka vänster bak automatisk öppning/stängning"
       },
+      "titles_i18n": {},
       "description_en": "This field indicates if customer setting for opening the rear left flap by myWay function (slider in the mobile app) is active. If true, flap opens automatically when the vehicle is close to a charging station with the digital key in the pocket and closes automatically after unplugging the cable.",
       "description_de": "Dieses Feld zeigt an, ob die Kundeneinstellung zum Öffnen der Klappe hinten links über die MyWay-Funktion (Schieberegler in der mobilen App) aktiv ist. Wenn ja, öffnet sich die Klappe automatisch, wenn sich das Fahrzeug in der Nähe einer Ladestation mit dem Digital Key in der Tasche befindet, und schließt sich automatisch, nachdem das Kabel abgezogen wurde.",
       "data_type": "boolean",
@@ -6636,6 +6955,7 @@
         "pt": "Portinhola da entrada de carregamento traseira esquerda da bateria aberta",
         "sv": "Batteriladdningsport positionslucka vänster bak öppen"
       },
+      "titles_i18n": {},
       "description_en": "This signal indicates, if rear left charging port is open in the vehicle.",
       "description_de": "Dieses Signal zeigt an, ob der Ladeanschluss hinten links im Fahrzeug geöffnet ist.",
       "data_type": "boolean",
@@ -6663,6 +6983,7 @@
         "pt": "Entrada de carregamento traseira esquerda da bateria ligada",
         "sv": "Batteriladdningsport bak vänster ansluten"
       },
+      "titles_i18n": {},
       "description_en": "This signal indicates, if a charging cable is plugged in the rear left charging port.",
       "description_de": "Dieses Signal zeigt an, ob ein Ladekabel an den Ladeanschluss hinten links angeschlossen ist.",
       "data_type": "boolean",
@@ -6690,6 +7011,7 @@
         "pt": "Portinhola da entrada de carregamento traseira central da bateria, abrir/fechar automaticamente",
         "sv": "Batteriladdningsport positionslucka mitten bak automatisk öppning/stängning"
       },
+      "titles_i18n": {},
       "description_en": "This field indicates if customer setting for opening the rear middle flap by myWay function (slider in the mobile app) is active. If true, flap opens automatically when the vehicle is close to a charging station with the digital key in the pocket and closes automatically after unplugging the cable.",
       "description_de": "Dieses Feld zeigt an, ob die Kundeneinstellung zum Öffnen der Klappe hinten in der Mitte über die MyWay-Funktion (Schieberegler in der mobilen App) aktiv ist. Wenn ja, öffnet sich die Klappe automatisch, wenn sich das Fahrzeug in der Nähe einer Ladestation mit dem Digital Key in der Tasche befindet, und schließt sich automatisch, nachdem das Kabel abgezogen wurde.",
       "data_type": "boolean",
@@ -6717,6 +7039,7 @@
         "pt": "Portinhola da entrada de carregamento traseira central da bateria aberta",
         "sv": "Batteriladdningsport positionslucka mitten bak öppen"
       },
+      "titles_i18n": {},
       "description_en": "This signal indicates, if rear middle charging port is open in the vehicle.",
       "description_de": "Dieses Signal zeigt an, ob der Ladeanschluss hinten in der Mitte im Fahrzeug geöffnet ist.",
       "data_type": "boolean",
@@ -6744,6 +7067,7 @@
         "pt": "Entrada de carregamento traseira central da bateria ligada",
         "sv": "Batteriladdningsport bak mitten ansluten"
       },
+      "titles_i18n": {},
       "description_en": "This signal indicates, if a charging cable is plugged in the rear middle charging port.",
       "description_de": "Dieses Signal zeigt an, ob ein Ladekabel an den Ladeanschluss hinten in der Mitte angeschlossen ist.",
       "data_type": "boolean",
@@ -6771,6 +7095,7 @@
         "pt": "Portinhola da entrada de carregamento traseira direita da bateria, abrir/fechar automaticamente",
         "sv": "Batteriladdningsport positionslucka höger bak automatisk öppning/stängning"
       },
+      "titles_i18n": {},
       "description_en": "This field indicates if customer setting for opening the rear right flap by myWay function (slider in the mobile app) is active. If true, flap opens automatically when the vehicle is close to a charging station with the digital key in the pocket and closes automatically after unplugging the cable.",
       "description_de": "Dieses Feld zeigt an, ob die Kundeneinstellung zum Öffnen der Klappe hinten rechts über die MyWay-Funktion (Schieberegler in der mobilen App) aktiv ist. Wenn ja, öffnet sich die Klappe automatisch, wenn sich das Fahrzeug in der Nähe einer Ladestation mit dem Digital Key in der Tasche befindet, und schließt sich automatisch, nachdem das Kabel abgezogen wurde.",
       "data_type": "boolean",
@@ -6798,6 +7123,7 @@
         "pt": "Portinhola da entrada de carregamento traseira direita da bateria aberta",
         "sv": "Batteriladdningsport positionslucka höger bak öppen"
       },
+      "titles_i18n": {},
       "description_en": "This signal indicates, if rear right charging port is open in the vehicle.",
       "description_de": "Dieses Signal zeigt an, ob der Ladeanschluss hinten rechts im Fahrzeug geöffnet ist.",
       "data_type": "boolean",
@@ -6825,6 +7151,7 @@
         "pt": "Entrada de carregamento traseira direita da bateria ligada",
         "sv": "Batteriladdningsport bak höger ansluten"
       },
+      "titles_i18n": {},
       "description_en": "This signal indicates, if a charging cable is plugged in the rear right charging port.",
       "description_de": "Dieses Signal zeigt an, ob ein Ladekabel an den Ladeanschluss hinten rechts angeschlossen ist.",
       "data_type": "boolean",
@@ -6852,6 +7179,7 @@
         "pt": "Autorização para transmissão dos dados da OBFCM à UE",
         "sv": "Samtycke till överföring av OBFCM*-uppgifter till EU"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the client has consented to the transfer of OBFCM* data to the European Commission.",
       "description_de": "Dieser Wert gibt an, ob der Kunde der Übertragung der OBFCM*-Daten an die EU-Kommission zugestimmt hat.",
       "data_type": "boolean",
@@ -6879,6 +7207,7 @@
         "pt": "Smart Maintenance: Diagnóstico ao vivo",
         "sv": "Smart Maintenance: Realtidsdiagnos"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates which service requirements have been determined for the vehicle based on the live diagnostics. These are composed of the title, category and current status of the required service. The vehicle collects error data for the service requirements, and automatically sends them according to defined cycles.",
       "description_de": "Der Wert enthält die Information, welche Servicebedarfe für das Fahrzeug auf Basis der Livediagnose ermittelt wurden. Diese setzt sich aus dem Titel, der Kategorie und dem aktuellen Status des Servicebedarfs zusammen. Das Fahrzeug sammelt für die Servicebedarfe Fehlerdaten und sendet diese nach festgelegten Zyklen automatisch.",
       "data_type": "-",
@@ -6906,6 +7235,7 @@
         "pt": "Parceiro de serviço preferido",
         "sv": "Prioriterad servicepartner"
       },
+      "titles_i18n": {},
       "description_en": "Indicates the current service partner allocation of the vehicle.",
       "description_de": "Gibt an, welchem Service Partner das Fahrzeug aktuell zugeordnet ist.",
       "data_type": "-",
@@ -6933,6 +7263,7 @@
         "pt": "Estado de ativação do cartão SIM integrado",
         "sv": "Aktiveringsstatus för installerat SIM-kort"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the SIM card installed in the vehicle is activated.",
       "description_de": "Dieser Wert gibt an, ob die im Fahrzeug eingebaute SIM-Karte aktiviert ist.",
       "data_type": "-",
@@ -6960,6 +7291,7 @@
         "pt": "Mensagens de Check-Control",
         "sv": "Check Control meddelanden"
       },
+      "titles_i18n": {},
       "description_en": "The value indicates the last relevant Check Control messages that were displayed in the vehicle and transferred to BMW. Check control monitors functions in the vehicle and notifies the user when there is a fault in the monitored system. A check control message is displayed as a combination of indicator lights or warning lights and text messages on the dashboard, and on the head-up display, if applicable. Note: Not all Check Control messages that are displayed in the vehicle are transferred to BMW.",
       "description_de": "Der Wert gibt die letzten relevanten Check-Control-Meldungen an, welche im Fahrzeug angezeigt und an BMW übertragen wurden. Check-Control überwacht Funktionen im Fahrzeug und meldet, wenn in überwachten Systemen eine Störung vorliegt. Eine Check-Control-Meldung wird als Kombination von Kontroll- oder Warnleuchten und Textmeldungen in der Instrumentenkombination und ggf. im Head-Up Display angezeigt. Hinweis: Nicht alle Check-Control-Meldungen, die im Fahrzeug angezeigt werden, werden an BMW übertragen.",
       "data_type": "-",
@@ -6987,6 +7319,7 @@
         "pt": "Condition Based Service",
         "sv": "Condition Based Service"
       },
+      "titles_i18n": {},
       "description_en": "Sensors and special algorithms take into account the operating conditions of the vehicle. CBS uses this to determine the required service. The system hereby adapts the scope of the service to the individual usage profile.",
       "description_de": "Sensoren und spezielle Algorithmen berücksichtigen die Einsatzbedingungen des Fahrzeugs. CBS ermittelt damit den Wartungsbedarf. Das System ermöglicht somit den Wartungsumfang an das individuelle Nutzungsprofil anzupassen.",
       "data_type": "-",
@@ -7014,6 +7347,7 @@
         "pt": "Distância média por dia",
         "sv": "Genomsnittligt avstånd per dag"
       },
+      "titles_i18n": {},
       "description_en": "Condition Based Services. Estimation on the daily travelled distance of the vehicle but heavily tailored for the us in the Condition Based Services context.",
       "description_de": "Condition Based Services. Schätzung der täglich gefahrenen Strecke des Fahrzeugs, stark angepasst für die Nutzung im Kontext der Condition Based Services.",
       "data_type": "int32",
@@ -7041,6 +7375,7 @@
         "pt": "Quantidade de mensagens CBS",
         "sv": "Antal CBS-meddelanden"
       },
+      "titles_i18n": {},
       "description_en": "The value specifies the maximum number of service notifications transmitted from the vehicle to BMW via telematics. The actual number of service notifications transmitted (see separate CBS key) varies depending on how the vehicle is used and whether relevant thresholds have been reached. Note: Not all Condition Based service messages which occur in the vehicle are also transferred.",
       "description_de": "Der Wert gibt an, wie viele Servicebedarfsmeldungen maximal vom Fahrzeug per Telematik an BMW übertragen werden. Die tatsächliche Menge übertragener Servicebedarfsmeldungen (siehe separater Key CBS) variiert, je nachdem wie das Fahrzeug genutzt wird und ob Service relevante Schwellwerte erreicht wurden. Hinweis: Nicht alle Condition Based Service-Meldungen, die im Fahrzeug auftreten, werden auch übertragen.",
       "data_type": "uint16",
@@ -7068,6 +7403,7 @@
         "pt": "Distância até à próxima revisão",
         "sv": "Körsträcka till nästa service"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates how many kilometres or miles remain before the next service at the time of recording the data. Note: This value is calculated based on the individual CBS scopes and is not determined with every data transfer. For more details, see \"Condition Based Service\".",
       "description_de": "Der Wert gibt an, wie viele Kilometer zum Zeitpunkt der Datenerfassung noch zum nächsten Service verbleiben. Hinweis: Dieser Wert wird aus den einzelnen CBS-Umfängen berechnet und nicht bei jeder Datenübertragung ermittelt. Für mehr Details siehe \"Condition Based Service\".",
       "data_type": "uint16",
@@ -7095,6 +7431,7 @@
         "pt": "Distância do valor limiar para o Service Information",
         "sv": "Gränsvärde för körsträcka innan serviceinformation ges"
       },
+      "titles_i18n": {},
       "description_en": "The static value indicated is stored in the vehicle and indicates the first time that the customer receives a mileage-related message to inform him that the vehicle will soon be due for a service. It is given in kilometres or miles (for example 2000 km or 1243 mi).",
       "description_de": "Der angegebene statische Wert ist im Fahrzeug hinterlegt und sagt aus, wann der Kunde das erste Mal einen Kilometer bezogenen Hinweis im Fahrzeug erhält, dass ein Service in Kürze fällig wird. Er wird in Kilometern (beispielsweise 2000) angegeben.",
       "data_type": "uint16",
@@ -7122,6 +7459,7 @@
         "pt": "Valor limiar de tempo para a inspeção principal e para a inspeção dos gases de escape",
         "sv": "Tidsmässigt gränsvärde för besiktning och avgasundersökning"
       },
+      "titles_i18n": {},
       "description_en": "The threshold indicates how many months before the main and exhaust gas inspection is due the service advisor will be notified.",
       "description_de": "Der Schwellwert gibt an, wie viele Monate vor der Fälligkeit des Haupt- und Abgasuntersuchungstermins ein Hinweis an den Serviceberater ausgegeben wird.",
       "data_type": "uint16",
@@ -7149,6 +7487,7 @@
         "pt": "Data da próxima intervenção",
         "sv": "Datumet för nästa inspektion"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates when the next inspection is due. A date will be shown respectively, for example 30.09.2018 23:00 UTC or 09.30.2018 23:00 UTC.",
       "description_de": "Der Wert gibt an, wann die nächste Inspektion fällig ist. Er wird jeweils als Datum dargestellt, beispielsweise 30.09.2018 23:00 UTC.",
       "data_type": "string",
@@ -7176,6 +7515,7 @@
         "pt": "Valor limiar temporal para o Service Information",
         "sv": "Tidsmässigt gränsvärde för serviceinformation"
       },
+      "titles_i18n": {},
       "description_en": "The static value indicated is stored in the vehicle and indicates the first time that the customer receives a message to inform them that the vehicle will soon be due for a service. This is given in weeks (for example 4).",
       "description_de": "Der angegebene statische Wert ist im Fahrzeug hinterlegt und sagt aus, wann der Kunde das erste Mal einen zeitbasierten Hinweis im Fahrzeug erhält, dass ein Service in Kürze fällig wird. Er wird in Wochen (beispielsweise 4) angegeben.",
       "data_type": "uint16",
@@ -7203,6 +7543,7 @@
         "pt": "Avaliação do estilo de condução \"Comportamento de aceleração\"",
         "sv": "Utvärdering av körstil 'Accelerationsbeteende'"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the number of stars which the driving style analysis has given to the acceleration behaviour of the driver at the time of data collection. The system allocates 0 to 5 stars.",
       "description_de": "Der Wert gibt die Anzahl der Sterne an, mit der die Fahrstilanalyse zum Zeitpunkt der Datenerfassung das Beschleunigungsverhalten des Fahrers bewertet hat. Das System vergibt dafür 0 bis 5 Sterne.",
       "data_type": "float",
@@ -7230,6 +7571,7 @@
         "pt": "Avaliação do estilo de condução \"Condução preventiva\"",
         "sv": "Utvärderingen av körstil 'Förutseende körning'"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the number of stars which the driving style analysis has given to the 'pro-active driving' behaviour of the driver at the time of data collection. The system allocates 0 to 5 stars.",
       "description_de": "Der Wert gibt die Anzahl der Sterne an, mit der die Fahrstilanalyse zum Zeitpunkt der Datenerfassung 'Vorausschauendes Fahren' bewertet hat. Das System vergibt dafür 0 bis 5 Sterne.",
       "data_type": "float",
@@ -7257,6 +7599,7 @@
         "pt": "Consumo de energia elétrica no modo CONFORT da última viagem",
         "sv": "Förbrukning av elektrisk energi i COMFORT läge vid senaste körning"
       },
+      "titles_i18n": {},
       "description_en": "This indicates the electrical energy consumption (kWh) in COMFORT mode, measured at the time of data collection.",
       "description_de": "Gibt den zum Zeitpunkt der Datenerfassung gemessenen Verbrauch elektrischer Energie (kWh) im COMFORT Modus an.",
       "data_type": "double",
@@ -7284,6 +7627,7 @@
         "pt": "Quantidade de energia recuperada da última viagem",
         "sv": "Återvunnen energimängd vid senaste körning"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the average electrical energy in kilowatt hours (kWh/100 km or kWh/62 mi) recuperated during the last logged drive per 100 kilometres or 62 miles. The values range from 0 to 254.",
       "description_de": "Der Wert gibt die durchschnittlich je 100 Kilometer zurückgewonnene elektrische Energie in Kilowattstunden (kWh/100 km) der letzten erfassten Fahrt an. Das Wertespektrum reicht von 0 bis 254.",
       "data_type": "float",
@@ -7311,6 +7655,7 @@
         "pt": "Duração da ativação do modo ECO da última viagem",
         "sv": "Tid som ECO läget var aktivt under föregående körning"
       },
+      "titles_i18n": {},
       "description_en": "Indicates the length of time for which ECO mode was activated during the most recent drive when data were recorded. The values range from 0 to 100.",
       "description_de": "Gibt an, wie lange der ECO Modus während der zum Zeitpunkt der Datenerfassung letzten Fahrt aktiviert war. Der Wertebereich geht von 0 bis 100.",
       "data_type": "float",
@@ -7338,6 +7683,7 @@
         "pt": "Duração da ativação do modo ECO PLUS da última viagem",
         "sv": "Tid som ECO PLUS läget var aktivt under föregående körning"
       },
+      "titles_i18n": {},
       "description_en": "Indicates the length of time for which ECO PLUS mode was activated during the most recent drive when data were recorded. The values range from 0 to 100.",
       "description_de": "Der Wert gibt an, wie lange der ECO PLUS Modus während der zum Zeitpunkt der Datenerfassung letzten Fahrt aktiviert war. Der Wertebereich geht von 0 bis 100.",
       "data_type": "float",
@@ -7365,6 +7711,7 @@
         "pt": "Percentagem de trajeto percorrido no modo elétrico durante a última viagem",
         "sv": "Andel av den senaste körningen som har körts elektriskt"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the distance covered with electrical energy during the most recent drive in percentage.",
       "description_de": "Der Wert gibt den mit elektrischer Energie zurückgelegten Streckenanteil der letzten erfassten Fahrt in Prozent an.",
       "data_type": "float",
@@ -7392,6 +7739,7 @@
         "pt": "Estado de carga da bateria",
         "sv": "Batteriets laddningstillstånd"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the charging status of the high-voltage battery at the end of the most recently logged drive (in percentage).",
       "description_de": "Der Wert gibt den Ladezustand der Hochvoltbatterie zum Ende der letzten erfassten Fahrt an (in Prozent).",
       "data_type": "float",
@@ -7419,6 +7767,7 @@
         "pt": "Hora da última viagem",
         "sv": "Tidpunkten för den senaste körningen"
       },
+      "titles_i18n": {},
       "description_en": "The time stamp contains the date and local time of the most recently logged and transmitted drive, for example 15.05.2017 15:51:00 UTC or 05/15/2017 15:51:00 UTC.",
       "description_de": "Der Zeitstempel enthält das Datum und die Ortszeit der letzten erfassten und übermittelten Fahrt, beispielsweise 15.05.2017 15:51:00 UTC.",
       "data_type": "int32",
@@ -7446,6 +7795,7 @@
         "pt": "Quilometragem da última viagem",
         "sv": "Mätarställning för senaste körning"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the total mileage after the last drive logged.",
       "description_de": "Der Wert gibt den Gesamtkilometerstand nach der letzten erfassten Fahrt an.",
       "data_type": "float",
@@ -7473,6 +7823,7 @@
         "pt": "Tempo de ativação de AntiTheftAlarm",
         "sv": "AntiTheftAlarm aktiveringstid"
       },
+      "titles_i18n": {},
       "description_en": "Timestamp of the last alarm activation time. The value comes without timezone information.",
       "description_de": "Zeitstempel mit der Uhrzeit der letzten Alarmauslösung. Der Wert wird ohne Zeitzoneninformationen bereitgestellt.",
       "data_type": "string",
@@ -7500,6 +7851,7 @@
         "pt": "Estado de ativação de AntiTheftAlarm",
         "sv": "AntiTheftAlarm-larmstatus"
       },
+      "titles_i18n": {},
       "description_en": "Anti theft alarm. Arming status.",
       "description_de": "Diebstahlwarnanlage. Schärfungsstatus.",
       "data_type": "string",
@@ -7527,6 +7879,7 @@
         "pt": "O AntiTheftalarm está ligado",
         "sv": "AntitheftAlarm är på"
       },
+      "titles_i18n": {},
       "description_en": "Anti theft alarm is active (car is honking).",
       "description_de": "Die Diebstahlwarnanlage ist aktiv (das Fahrzeug hupt).",
       "data_type": "boolean",
@@ -7554,6 +7907,7 @@
         "pt": "Trajeto médio por semana (longo prazo)",
         "sv": "Genomsnittlig körsträcka per vecka (långtidsvärde)"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the weekly average travelled in kilometres or miles over a period of 2 months.",
       "description_de": "Der Wert gibt den Wochendurchschnitt der jeweils in einem Zeitraum von 2 Monaten gefahrenen Strecke in Kilometern an.",
       "data_type": "float",
@@ -7581,6 +7935,7 @@
         "pt": "Trajeto médio por semana",
         "sv": "Genomsnittlig körsträcka per vecka"
       },
+      "titles_i18n": {},
       "description_en": "This indicates the average volume of the distance travelled in kilometres or miles per week.",
       "description_de": "Gibt den Durchschnittswert der gefahrenen Strecke in Kilometer pro Woche an.",
       "data_type": "float",
@@ -7608,6 +7963,7 @@
         "pt": "Potência dos consumidores secundários (Consumo de potência dos componentes elétricos)",
         "sv": "Sekundära förbrukares effekt (Elektriska komponenters effektförbrukning)"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the power of the auxiliary users in kW at the time of data collection. This is the on-board power consumption including the power for the air conditioning.",
       "description_de": "Dieser Wert gibt die Nebenverbraucherleistung zum Zeitpunkt der Datenerfassung in kW an. Dies ist der Bordnetzverbrauch inklusive der Leistung für die Klimaanlage.",
       "data_type": "float",
@@ -7635,6 +7991,7 @@
         "pt": "Velocidade de condução média",
         "sv": "Genomsnittlig körd hastighet"
       },
+      "titles_i18n": {},
       "description_en": "The value indicates the average speed driven by the vehicle in km/h or mph at the time of data collection.",
       "description_de": "Der Wert gibt die zum Zeitpunkt der Datenerfassung durchschnittlich gefahrene Geschwindigkeit in km/h an.",
       "data_type": "uint16",
@@ -7662,6 +8019,7 @@
         "pt": "Modo de hibernação (Deep Sleep Mode)",
         "sv": "Djupviloläge (Deep Sleep Mode)"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether Deep Sleep Mode is activated (“true”) or deactivated (“false”) at the time of the request. If the customer has activated Deep Sleep Mode, the vehicle can be parked for a longer time without charging the battery. In this mode, most consumers are deactivated to save energy. The customer can end Deep Sleep Mode by deactivating it or starting the vehicle.",
       "description_de": "Der Wert enthält die Information, ob zum Zeitpunkt der Abfrage der Tiefschlafmodus (Deep Sleep Mode) aktiviert (\"true\") oder deaktiviert (\"false\") ist. Wenn der Kunde den Tiefschlafmodus (Deep Sleep Mode) aktiviert hat, kann er sein Fahrzeug längere Zeit parken, ohne die Batterie laden zu müssen. Die meisten Verbraucher sind in diesem Modus deaktiviert, um Energie zu sparen. Der Kunde kann den Tiefschlafmodus (Deep Sleep Mode) beenden, indem er ihn deaktiviert oder das Fahrzeug startet.",
       "data_type": "boolean",
@@ -7689,6 +8047,7 @@
         "pt": "Estado de pré-condicionamento da climatização independente",
         "sv": "Standard-klimatiseringens förkonditioneringsstatus"
       },
+      "titles_i18n": {},
       "description_en": "Current status of the pre-conditioning of the stationary air conditioning before commencing travel at the time of data collection. The value “Inactive” may be transmitted if the pre-conditioning has not been booked or if the pre-conditioning is not active at the time of data collection.",
       "description_de": "Aktueller Status der Vorkonditionierung der Standklimatisierung vor Fahrtantritt zum Zeitpunkt der Datenerfassung. Der Wert \"Inactive\" kann übermittelt werden, wenn die Vorkonditionierung nicht gebucht ist oder auch übermittelt werden, wenn die Vorkonditionierung zum Zeitpunkt der Datenerfassung nicht aktiv ist.",
       "data_type": "string",
@@ -7716,6 +8075,7 @@
         "pt": "Motivo para a não execução do pré-condicionamento da climatização independente",
         "sv": "Orsaken till att förkonditionering av standard-klimatiseringen inte har utförts"
       },
+      "titles_i18n": {},
       "description_en": "Reason for not carrying out pre-conditioning of the stationary air conditioning at the time of data collection.",
       "description_de": "Der Wert gibt den Grund für Nichtausführung der Standklimatisierung zum Zeitpunkt der Datenerfassung an.",
       "data_type": "string",
@@ -7743,6 +8103,7 @@
         "pt": "Utilização do motor para o pré-condicionamento",
         "sv": "Användning av motorn för förkonditionering."
       },
+      "titles_i18n": {},
       "description_en": "This value indicates whether the engine was active during pre-conditioning of the stationary air conditioning at the time of data collection. The value “Inactive” may be transmitted if the pre-conditioning has not been booked or if the pre-conditioning is not active at the time of data collection.",
       "description_de": "Dieser Wert gibt an, ob zum Zeitpunkt der Datenerfassung der Motor während der Standklimatisierung aktiv war. Der Wert \"Inactive\" kann übermittelt werden, wenn die Vorkonditionierung nicht gebucht ist oder auch übermittelt werden, wenn die Vorkonditionierung zum Zeitpunkt der Datenerfassung nicht aktiv ist.",
       "data_type": "boolean",
@@ -7770,6 +8131,7 @@
         "pt": "Autorização para utilização do motor para o pré-condicionamento.",
         "sv": "Tillåtelse att använda motorn för förkonditionering."
       },
+      "titles_i18n": {},
       "description_en": "This value indicated whether permission was granted to use the engine for the pre-conditioning of the stationary air conditioning at the time of data collection. This is determined by the customer.",
       "description_de": "Dieser Wert zeigt an, ob eine Motorennutzung zur Vorkonditionierung der Standklimatisierung zum Zeitpunkt der Datenerfassung genutzt werden darf. Dies wird vom Kunden festgelegt.",
       "data_type": "boolean",
@@ -7797,6 +8159,7 @@
         "pt": "Duração restante do pré-condicionamento",
         "sv": "Återstående förkonditioneringstid."
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the remaining duration for the pre-conditioning of the stationary air conditioning in minutes at the time of data collection. This value may also be transmitted if the pre-conditioning has not been booked or if the pre-conditioning status of the stationary air conditioning is not active (“inactive”) at the time of data collection.",
       "description_de": "Der Wert gibt die verbleibende Dauer der Vorkonditionierung der Standklimatisierung zum Zeitpunkt der Datenerfassung in Minuten an. Der Wert kann auch übermittelt werden, wenn die Vorkonditionierung nicht gebucht ist oder auch übermittelt werden, wenn der Vorkonditionierungsstatus der Standklimatisierung zum Zeitpunkt der Datenerfassung nicht aktiv (\"Inactive\") ist.",
       "data_type": "uint8",
@@ -7824,6 +8187,7 @@
         "pt": "Regime de velocidade inferior",
         "sv": "Hastighetsområde lägre"
       },
+      "titles_i18n": {},
       "description_en": "Lower bound of the speed range in km/h. The Range includes the lower bound. Due to privacy reasons some functions are not allowed to transmit the current driving speed and should use the SpeedRange attribute.",
       "description_de": "Untere Grenze des Geschwindigkeitsbereichs in km/h. Der Bereich umfasst die untere Grenze. Aus Datenschutzgründen dürfen einige Funktionen die aktuelle Fahrgeschwindigkeit nicht übertragen und sollten das SpeedRange-Attribut verwenden.",
       "data_type": "int16",
@@ -7851,6 +8215,7 @@
         "pt": "Regime de velocidade superior",
         "sv": "Hastighetsområde övre"
       },
+      "titles_i18n": {},
       "description_en": "Upper bound of the speed range in km/h. The Range excludes the upper bound. Due to privacy reasons some functions are not allowed to transmit the current driving speed and should use the SpeedRange attribute.",
       "description_de": "Obere Grenze des Geschwindigkeitsbereichs in km/h. Der Bereich schließt die obere Grenze aus. Aus Datenschutzgründen dürfen einige Funktionen die aktuelle Fahrgeschwindigkeit nicht übertragen und sollten das SpeedRange-Attribut verwenden.",
       "data_type": "int16",
@@ -7878,6 +8243,7 @@
         "pt": "Definição do fuso horário no veículo",
         "sv": "Tidszoninställning i fordonet"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates the current setting for the time display in the vehicle at the time of data collection. For example, this may be winter time, summer time, UTC or manual.",
       "description_de": "Der Wert gibt die aktuelle Einstellung zur Anzeige der Uhrzeit zum Zeitpunkt der Datenerfassung im Fahrzeug an. Dies kann zum Beispiel Winterzeit, Sommerzeit, UTC oder manual sein.",
       "data_type": "string",
@@ -7905,6 +8271,7 @@
         "pt": "Quilometragem",
         "sv": "Mätarställning"
       },
+      "titles_i18n": {},
       "description_en": "The value indicates the current mileage at the time of data collection.",
       "description_de": "Der Wert gibt den zum Zeitpunkt der Datenerfassung aktuellen Kilometerstand an.",
       "data_type": "float",
@@ -7932,6 +8299,7 @@
         "pt": "Dados básicos do veículo",
         "sv": "Gunduppgifter om fordonet"
       },
+      "titles_i18n": {},
       "description_en": "This value indicates a list of basic vehicle data, e.g. vehicle brand and full model name.",
       "description_de": "Dieser Wert zeigt eine Liste der grundlegenden Fahrzeugdaten an, z.B. Fahrzeugmarke und vollständige Modellbezeichnung.",
       "data_type": "-",
@@ -7959,6 +8327,7 @@
         "pt": "Contratos ConnectedDrive ativos",
         "sv": "Aktiva ConnectedDrive-avtal"
       },
+      "titles_i18n": {},
       "description_en": "This value provides an overview of all active ConnectedDrive contracts and the end of the respective contract period.",
       "description_de": "Der Wert enthält eine Übersicht über alle aktiven ConnectedDrive-Verträge und das Ende der jeweiligen Vertragslaufzeit.",
       "data_type": "-",

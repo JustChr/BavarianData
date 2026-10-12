@@ -378,6 +378,18 @@ type: custom:bavariandata-card
 cluster: closures
 ```
 
+BMW meldet die seitlichen Türen und Fenster nach Sitzplatz (Fahrertür,
+Beifahrertür), nicht nach Seite. Die Karte ordnet sie deshalb nach der
+Lenkradseite des Autos zu, die sie aus BMWs Fahrzeugbasisdaten liest. Bei einem
+Rechtslenker erscheint die Fahrertür also rechts. Landen sie auf der falschen
+Seite, setze im visuellen Editor **Lenkrad**, oder:
+
+```yaml
+type: custom:bavariandata-card
+cluster: closures
+steering: right   # left · right — weglassen, um es aus BMWs Fahrzeugdaten zu lesen
+```
+
 ---
 
 ## Liste einer Datengruppe
@@ -438,6 +450,7 @@ die unter den Meldungen stehen, wenn das Fahrzeug sie sendet.
 | `odometer` | Überschreibt die Kilometerstand-Entität. |
 | `plug` | Überschreibt die Steckerstatus-Entität. |
 | `drivetrain` | `bev`, `phev` oder `ice` — das Layout der Übersicht. Weglassen, um es aus den gestreamten Daten zu erkennen. |
+| `steering` | `left` oder `right` — auf welcher Seite der Fahrer sitzt; danach ordnet die Öffnungs-Ansicht Türen und Fenster zu. Weglassen, um es aus BMWs Fahrzeugbasisdaten zu lesen; ein Auto, dessen Basisdaten nichts dazu sagen, wird als Linkslenker gezeichnet. |
 | `fuel` | Überschreibt die Tank-Entität (Prozent oder Volumen). |
 
 Mit installierter Integration braucht man Entitäts-Überschreibungen selten — die Karte

@@ -295,5 +295,91 @@
     "vehicle.vehicle.travelledDistance": "Vehicle mileage",
     "vehicle.vehicleIdentification.basicVehicleData": "Vehicle Info Basic vehicle data",
     "vehicle.vehicleIdentification.connectedDriveContractList": "Legal Connected drive contracts"
+  },
+  "_comment_i18n": "Project-authored names outside English, overriding BMW's own localized name for that descriptor and language (merged into catalogue.json as titles_i18n). Only for where BMW's name is wrong for some cars: BMW keys side doors, windows and seats by seat (driver/passenger), but several of its translations name them by side (front left/right), which is backwards on a right-hand-drive car. These use the driver-side/passenger-side wording BMW itself uses for the sibling descriptors in the same language. tests/test_catalogue.py fails if a seat-keyed name mentions a side again.",
+  "titles_i18n": {
+    "vehicle.cabin.door.row1.driver.isOpen": {
+      "de": "Status der Tür Fahrerseite vorn",
+      "fr": "Statut de la portière avant côté conducteur",
+      "it": "Stato dello sportello anteriore lato conducente",
+      "es": "Estado de la puerta delantera del lado del conductor",
+      "pl": "Stan drzwi przednich po stronie kierowcy",
+      "pt": "Estado da porta dianteira do lado do condutor",
+      "cs": "Stav dveří vpředu na straně řidiče",
+      "sv": "Tillstånd för främre dörr på förarsidan"
+    },
+    "vehicle.cabin.door.row1.passenger.isOpen": {
+      "de": "Status der Tür Beifahrerseite vorn",
+      "fr": "Statut de la portière avant côté passager",
+      "it": "Stato dello sportello anteriore lato passeggero",
+      "es": "Estado de la puerta delantera del lado del acompañante",
+      "pl": "Stan drzwi przednich po stronie pasażera",
+      "pt": "Estado da porta dianteira do lado do passageiro",
+      "cs": "Stav dveří vpředu na straně spolujezdce",
+      "sv": "Tillstånd för främre dörr på passagerarsidan"
+    },
+    "vehicle.cabin.door.row2.driver.isOpen": {
+      "de": "Status der Tür Fahrerseite hinten",
+      "fr": "Statut de la portière arrière côté conducteur",
+      "it": "Stato dello sportello posteriore lato conducente",
+      "es": "Estado de la puerta trasera del lado del conductor",
+      "pl": "Stan drzwi tylnych po stronie kierowcy",
+      "pt": "Estado da porta traseira do lado do condutor",
+      "cs": "Stav dveří vzadu na straně řidiče",
+      "sv": "Tillstånd för bakre dörr på förarsidan"
+    },
+    "vehicle.cabin.door.row2.passenger.isOpen": {
+      "de": "Status der Tür Beifahrerseite hinten",
+      "fr": "Statut de la portière arrière côté passager",
+      "it": "Stato dello sportello posteriore lato passeggero",
+      "es": "Estado de la puerta trasera del lado del acompañante",
+      "pl": "Stan drzwi tylnych po stronie pasażera",
+      "pt": "Estado da porta traseira do lado do passageiro",
+      "cs": "Stav dveří vzadu na straně spolujezdce",
+      "sv": "Tillstånd för bakre dörr på passagerarsidan"
+    },
+    "vehicle.cabin.hvac.preconditioning.configuration.directStartSettings.seat.row1.passengerSide.cooling": {
+      "pt": "Refrigeração direta do banco do passageiro da frente"
+    },
+    "vehicle.cabin.window.row1.driver.status": {
+      "de": "Status des Fensters Fahrerseite vorn",
+      "fr": "Statut de la fenêtre avant côté conducteur",
+      "it": "Stato del finestrino anteriore lato conducente",
+      "es": "Estado de la ventanilla delantera del lado del conductor",
+      "pl": "Stan okna w drzwiach przednich po stronie kierowcy",
+      "pt": "Estado da janela dianteira do lado do condutor",
+      "cs": "Stav okna vpředu na straně řidiče",
+      "sv": "Tillstånd för främre fönster på förarsidan"
+    },
+    "vehicle.cabin.window.row1.passenger.status": {
+      "de": "Status des Fensters Beifahrerseite vorn",
+      "fr": "Statut de la fenêtre avant côté passager",
+      "it": "Stato del finestrino anteriore lato passeggero",
+      "es": "Estado de la ventanilla delantera del lado del acompañante",
+      "pl": "Stan okna w drzwiach przednich po stronie pasażera",
+      "pt": "Estado da janela dianteira do lado do passageiro",
+      "cs": "Stav okna vpředu na straně spolujezdce",
+      "sv": "Tillstånd för främre fönster på passagerarsidan"
+    },
+    "vehicle.cabin.window.row2.driver.status": {
+      "de": "Status des Fensters Fahrerseite hinten",
+      "fr": "Statut de la fenêtre arrière côté conducteur",
+      "it": "Stato del finestrino posteriore lato conducente",
+      "es": "Estado de la ventanilla trasera del lado del conductor",
+      "pl": "Stan okna w drzwiach tylnych po stronie kierowcy",
+      "pt": "Estado da janela traseira do lado do condutor",
+      "cs": "Stav okna vzadu na straně řidiče",
+      "sv": "Tillstånd för bakre fönster på förarsidan"
+    },
+    "vehicle.cabin.window.row2.passenger.status": {
+      "de": "Status des Fensters Beifahrerseite hinten",
+      "fr": "Statut de la fenêtre arrière côté passager",
+      "it": "Stato del finestrino posteriore lato passeggero",
+      "es": "Estado de la ventanilla trasera del lado del acompañante",
+      "pl": "Stan okna w drzwiach tylnych po stronie pasażera",
+      "pt": "Estado da janela traseira do lado do passageiro",
+      "cs": "Stav okna vzadu na straně spolujezdce",
+      "sv": "Tillstånd för bakre fönster på passagerarsidan"
+    }
   }
 }

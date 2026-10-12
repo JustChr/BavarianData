@@ -601,7 +601,7 @@
         }
       },
       "vehicle_cabin_door_row1_driver_isopen": {
-        "name": "Stav dveří vpředu vlevo",
+        "name": "Stav dveří vpředu na straně řidiče",
         "state": {
           "open": "Otevřeno",
           "closed": "Zavřeno",
@@ -613,7 +613,7 @@
         "name": "Poloha předních dveří na straně řidiče"
       },
       "vehicle_cabin_door_row1_passenger_isopen": {
-        "name": "Stav dveří vpředu vpravo",
+        "name": "Stav dveří vpředu na straně spolujezdce",
         "state": {
           "open": "Otevřeno",
           "closed": "Zavřeno",
@@ -625,7 +625,7 @@
         "name": "Poloha předních dveří na straně spolujezdce"
       },
       "vehicle_cabin_door_row2_driver_isopen": {
-        "name": "Stav dveří vzadu vlevo",
+        "name": "Stav dveří vzadu na straně řidiče",
         "state": {
           "open": "Otevřeno",
           "closed": "Zavřeno",
@@ -637,7 +637,7 @@
         "name": "Poloha zadních dveří na straně řidiče"
       },
       "vehicle_cabin_door_row2_passenger_isopen": {
-        "name": "Stav dveří vzadu vpravo",
+        "name": "Stav dveří vzadu na straně spolujezdce",
         "state": {
           "open": "Otevřeno",
           "closed": "Zavřeno",
@@ -1050,7 +1050,7 @@
         }
       },
       "vehicle_cabin_window_row1_driver_status": {
-        "name": "Stav okna vpředu vlevo",
+        "name": "Stav okna vpředu na straně řidiče",
         "state": {
           "closed": "Zavřeno",
           "intermediate": "Částečně otevřeno",
@@ -1059,7 +1059,7 @@
         }
       },
       "vehicle_cabin_window_row1_passenger_status": {
-        "name": "Stav okna vpředu vpravo",
+        "name": "Stav okna vpředu na straně spolujezdce",
         "state": {
           "closed": "Zavřeno",
           "intermediate": "Částečně otevřeno",
@@ -1068,7 +1068,7 @@
         }
       },
       "vehicle_cabin_window_row2_driver_status": {
-        "name": "Stav okna vzadu vlevo",
+        "name": "Stav okna vzadu na straně řidiče",
         "state": {
           "closed": "Zavřeno",
           "intermediate": "Částečně otevřeno",
@@ -1077,7 +1077,7 @@
         }
       },
       "vehicle_cabin_window_row2_passenger_status": {
-        "name": "Stav okna vzadu vpravo",
+        "name": "Stav okna vzadu na straně spolujezdce",
         "state": {
           "closed": "Zavřeno",
           "intermediate": "Částečně otevřeno",
@@ -1903,25 +1903,25 @@
         "name": "Stav dveří"
       },
       "vehicle_cabin_door_row1_driver_isopen": {
-        "name": "Stav dveří vpředu vlevo"
+        "name": "Stav dveří vpředu na straně řidiče"
       },
       "vehicle_cabin_door_row1_driver_position": {
         "name": "Poloha předních dveří na straně řidiče"
       },
       "vehicle_cabin_door_row1_passenger_isopen": {
-        "name": "Stav dveří vpředu vpravo"
+        "name": "Stav dveří vpředu na straně spolujezdce"
       },
       "vehicle_cabin_door_row1_passenger_position": {
         "name": "Poloha předních dveří na straně spolujezdce"
       },
       "vehicle_cabin_door_row2_driver_isopen": {
-        "name": "Stav dveří vzadu vlevo"
+        "name": "Stav dveří vzadu na straně řidiče"
       },
       "vehicle_cabin_door_row2_driver_position": {
         "name": "Poloha zadních dveří na straně řidiče"
       },
       "vehicle_cabin_door_row2_passenger_isopen": {
-        "name": "Stav dveří vzadu vpravo"
+        "name": "Stav dveří vzadu na straně spolujezdce"
       },
       "vehicle_cabin_door_row2_passenger_position": {
         "name": "Poloha zadních dveří na straně spolujezdce"
@@ -2137,16 +2137,16 @@
         "name": "Stav sklopení střešního okna"
       },
       "vehicle_cabin_window_row1_driver_status": {
-        "name": "Stav okna vpředu vlevo"
+        "name": "Stav okna vpředu na straně řidiče"
       },
       "vehicle_cabin_window_row1_passenger_status": {
-        "name": "Stav okna vpředu vpravo"
+        "name": "Stav okna vpředu na straně spolujezdce"
       },
       "vehicle_cabin_window_row2_driver_status": {
-        "name": "Stav okna vzadu vlevo"
+        "name": "Stav okna vzadu na straně řidiče"
       },
       "vehicle_cabin_window_row2_passenger_status": {
-        "name": "Stav okna vzadu vpravo"
+        "name": "Stav okna vzadu na straně spolujezdce"
       },
       "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
         "name": "Stavová informace o posledním přenosu hodnot OBFCM*"

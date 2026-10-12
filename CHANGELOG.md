@@ -9,6 +9,21 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Right-hand-drive cars show their doors and windows on the correct side.**
+  BMW reports the side doors and windows by seat (driver, passenger), and the
+  **Security & closures** view always drew the driver's side on the left. On a
+  UK car, opening the driver's door showed the left door open. The view now reads
+  the steering side from BMW's basic data. If that is missing or wrong, set
+  **Steering wheel** in the card editor (`steering: left` or `right`). The basic
+  data is already stored, so this needs no new request to BMW.
+- **Door and window names no longer say "left" and "right" for the driver's and
+  passenger's side.** BMW's German, French, Italian, Spanish, Polish, Portuguese,
+  Czech and Swedish names put the driver's door at the front left. They now say
+  driver or passenger side, as the English names already did, e.g. *Status der
+  Tür Fahrerseite vorn*. Only the displayed names change; entity IDs stay the
+  same.
+
 ## [0.9.18-beta.3] - 2026-10-12
 
 ### Added

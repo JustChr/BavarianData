@@ -110,7 +110,7 @@ const jsonLd = [
         </thead>
         <tbody>
           {DESCRIPTORS.map((d) => (
-            <tr data-row data-section={d.section} data-text={`${d.descriptor} ${d.title_en} ${d.name_de} ${Object.values(d.names_i18n || {}).join(" ")}`.toLowerCase()}>
+            <tr data-row data-section={d.section} data-text={`${d.descriptor} ${d.title_en} ${d.name_de} ${Object.values(d.names_i18n || {}).join(" ")} ${Object.values(d.titles_i18n || {}).join(" ")}`.toLowerCase()}>
               <td><a href={url(localized(`data/${d.descriptor}`, lang))}>{nameOf(d, lang)}</a></td>
               <td><code>{d.descriptor}</code></td>
               <td>{d.unit || "—"}</td>

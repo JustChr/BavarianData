@@ -191,7 +191,11 @@ Entity names follow Home Assistant's own language setting. Eleven are shipped:
 
 Outside English, the names of BMW's fields are **BMW's own**, from the catalogue
 BMW publishes in each language — so they match the wording in the BMW portal, not
-a translation of our English titles. The setup screens, options, services, repair
+a translation of our English titles. The one exception is the side doors and
+windows. BMW reports them by seat, but several of its translations name them by
+side (*Status der Tür vorn links*), which is the wrong door on a right-hand-drive
+car. Those say driver or passenger side instead (*Status der Tür Fahrerseite
+vorn*), as the English names do. The setup screens, options, services, repair
 notices, the month report and the dashboard card are translated too. Portuguese is
 European Portuguese; a Brazilian Portuguese install falls back to English in
 Home Assistant, while the card still shows Portuguese.

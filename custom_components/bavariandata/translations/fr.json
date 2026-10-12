@@ -601,7 +601,7 @@
         }
       },
       "vehicle_cabin_door_row1_driver_isopen": {
-        "name": "Statut de la portière avant gauche",
+        "name": "Statut de la portière avant côté conducteur",
         "state": {
           "open": "Ouvert",
           "closed": "Fermé",
@@ -613,7 +613,7 @@
         "name": "Position de la porte avant côté conducteur"
       },
       "vehicle_cabin_door_row1_passenger_isopen": {
-        "name": "Statut de la portière avant droite",
+        "name": "Statut de la portière avant côté passager",
         "state": {
           "open": "Ouvert",
           "closed": "Fermé",
@@ -625,7 +625,7 @@
         "name": "Position de la porte avant côté passager"
       },
       "vehicle_cabin_door_row2_driver_isopen": {
-        "name": "Statut de la portière arrière gauche",
+        "name": "Statut de la portière arrière côté conducteur",
         "state": {
           "open": "Ouvert",
           "closed": "Fermé",
@@ -637,7 +637,7 @@
         "name": "Position de la porte arrière côté conducteur"
       },
       "vehicle_cabin_door_row2_passenger_isopen": {
-        "name": "Statut de la portière arrière droite",
+        "name": "Statut de la portière arrière côté passager",
         "state": {
           "open": "Ouvert",
           "closed": "Fermé",
@@ -1050,7 +1050,7 @@
         }
       },
       "vehicle_cabin_window_row1_driver_status": {
-        "name": "Statut de la fenêtre avant gauche",
+        "name": "Statut de la fenêtre avant côté conducteur",
         "state": {
           "closed": "Fermé",
           "intermediate": "Partiellement ouvert",
@@ -1059,7 +1059,7 @@
         }
       },
       "vehicle_cabin_window_row1_passenger_status": {
-        "name": "Statut de la fenêtre avant droite",
+        "name": "Statut de la fenêtre avant côté passager",
         "state": {
           "closed": "Fermé",
           "intermediate": "Partiellement ouvert",
@@ -1068,7 +1068,7 @@
         }
       },
       "vehicle_cabin_window_row2_driver_status": {
-        "name": "Statut de la fenêtre arrière gauche",
+        "name": "Statut de la fenêtre arrière côté conducteur",
         "state": {
           "closed": "Fermé",
           "intermediate": "Partiellement ouvert",
@@ -1077,7 +1077,7 @@
         }
       },
       "vehicle_cabin_window_row2_passenger_status": {
-        "name": "Statut de la fenêtre arrière droite",
+        "name": "Statut de la fenêtre arrière côté passager",
         "state": {
           "closed": "Fermé",
           "intermediate": "Partiellement ouvert",
@@ -1903,25 +1903,25 @@
         "name": "Statut des portières"
       },
       "vehicle_cabin_door_row1_driver_isopen": {
-        "name": "Statut de la portière avant gauche"
+        "name": "Statut de la portière avant côté conducteur"
       },
       "vehicle_cabin_door_row1_driver_position": {
         "name": "Position de la porte avant côté conducteur"
       },
       "vehicle_cabin_door_row1_passenger_isopen": {
-        "name": "Statut de la portière avant droite"
+        "name": "Statut de la portière avant côté passager"
       },
       "vehicle_cabin_door_row1_passenger_position": {
         "name": "Position de la porte avant côté passager"
       },
       "vehicle_cabin_door_row2_driver_isopen": {
-        "name": "Statut de la portière arrière gauche"
+        "name": "Statut de la portière arrière côté conducteur"
       },
       "vehicle_cabin_door_row2_driver_position": {
         "name": "Position de la porte arrière côté conducteur"
       },
       "vehicle_cabin_door_row2_passenger_isopen": {
-        "name": "Statut de la portière arrière droite"
+        "name": "Statut de la portière arrière côté passager"
       },
       "vehicle_cabin_door_row2_passenger_position": {
         "name": "Position de la porte arrière côté passager"
@@ -2137,16 +2137,16 @@
         "name": "Ouverture du toit ouvrant"
       },
       "vehicle_cabin_window_row1_driver_status": {
-        "name": "Statut de la fenêtre avant gauche"
+        "name": "Statut de la fenêtre avant côté conducteur"
       },
       "vehicle_cabin_window_row1_passenger_status": {
-        "name": "Statut de la fenêtre avant droite"
+        "name": "Statut de la fenêtre avant côté passager"
       },
       "vehicle_cabin_window_row2_driver_status": {
-        "name": "Statut de la fenêtre arrière gauche"
+        "name": "Statut de la fenêtre arrière côté conducteur"
       },
       "vehicle_cabin_window_row2_passenger_status": {
-        "name": "Statut de la fenêtre arrière droite"
+        "name": "Statut de la fenêtre arrière côté passager"
       },
       "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
         "name": "Information d'état sur la dernière transmission des valeurs OBFCM*"

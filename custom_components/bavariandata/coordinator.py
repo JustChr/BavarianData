@@ -71,6 +71,7 @@ from .history.trip_builder import (
 from .coverage import is_combustion_only, is_plug_in_hybrid
 from .phone_route import PhoneRoute
 from .soc_tracking import SocTracking
+from .steering import steering_side
 from .structured_values import EMPTY_WHEN_NULL
 from .trip_settings import TripSettings
 from .tyre import parse_tyre_diagnosis
@@ -4522,6 +4523,10 @@ class CardataCoordinator:
             "country": raw_payload.get("countryCode"),
             "drive_train": raw_payload.get("driveTrain"),
             "propulsion_type": raw_payload.get("propulsionType"),
+            # "left" / "right": where the driver sits. BMW keys side doors and
+            # windows by seat, so the card needs this to draw them on the
+            # right side of the car (see steering.py).
+            "steering_side": steering_side(raw_payload.get("steering")),
             "engine_code": raw_payload.get("engine"),
             "charging_modes": ", ".join(raw_payload.get("chargingModes") or []),
             "navigation_installed": raw_payload.get("hasNavi"),

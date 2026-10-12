@@ -19,6 +19,10 @@ A third, project-authored input — ``curated_titles.json`` — supplies the cur
 English display names shown in Home Assistant (``title_en``). These are our own
 naming scheme (e.g. cluster-prefixed "Battery EV …") and take precedence over
 BMW's raw ``element_en``/``name_en`` so entities keep stable, friendly names.
+Its ``titles_i18n`` block does the same in other languages, for the few names
+BMW gets wrong for some cars -- a driver's door called "front left" is the
+wrong door on a right-hand-drive car. BMW's own names stay in
+``name_de``/``names_i18n`` either way.
 
 The result is written to ``custom_components/bavariandata/catalogue.json`` and is
 the single source of truth for the metadata registry and translations.
@@ -152,6 +156,13 @@ def load_curated_titles() -> dict[str, str]:
     return data.get("titles", {})
 
 
+def load_curated_local_titles() -> dict[str, dict[str, str]]:
+    """``{descriptor: {lang: name}}`` overriding BMW's localized names."""
+
+    data = json.loads(TITLES_FILE.read_text(encoding="utf-8"))
+    return data.get("titles_i18n", {})
+
+
 def parse_i18n_names() -> dict[str, dict[str, str]]:
     """``{descriptor: {lang: name}}`` from every export in ``catalogue_i18n/``.
 
@@ -172,6 +183,7 @@ def main() -> None:
     en = parse_csv()
     i18n = parse_i18n_names()
     titles = load_curated_titles()
+    local_titles = load_curated_local_titles()
     descriptors = list(OrderedDict.fromkeys(list(de) + list(en)))
 
     catalogue: list[dict] = []
@@ -189,6 +201,7 @@ def main() -> None:
             "element_en": e.get("element_en", ""),
             "name_de": d.get("name_de", ""),
             "names_i18n": i18n.get(descriptor, {}),
+            "titles_i18n": local_titles.get(descriptor, {}),
             "description_en": e.get("description_en", ""),
             "description_de": d.get("description_de", ""),
             "data_type": d.get("data_type") or e.get("data_type") or "",
@@ -218,7 +231,7 @@ def main() -> None:
         print(f"  only in DE export: {sorted(only_de)}")
     if only_en:
         print(f"  only in EN export: {sorted(only_en)}")
-    stray_titles = set(titles) - set(descriptors)
+    stray_titles = (set(titles) | set(local_titles)) - set(descriptors)
     if stray_titles:
         print(f"  curated titles with no descriptor: {sorted(stray_titles)}")
 

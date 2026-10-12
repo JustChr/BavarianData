@@ -101,6 +101,8 @@ const DRIVETRAINS = new Set(["bev", "phev", "ice"]);
 // as evidence. A car mid-bootstrap has sent a handful of fields and proves
 // nothing; the MINI that prompted this had 28.
 const MIN_DESCRIPTORS_TO_JUDGE = 8;
+// Where the driver sits, as `_steering` answers it and `steering:` sets it.
+const STEERING_SIDES = new Set(["left", "right"]);
 
 // BMW reports these charging-status values when nothing is actively charging
 // (e.g. `invalid` when no cable is connected). Show a clean localized "not
@@ -421,6 +423,10 @@ const TRANSLATIONS = {
     dt_bev: "Electric",
     dt_phev: "Plug-in hybrid",
     dt_ice: "Petrol / diesel",
+    ed_steering: "Steering wheel",
+    edh_steering: "Read from BMW's vehicle data. Set it only if doors and windows appear on the wrong side of the car.",
+    st_left: "Left-hand drive",
+    st_right: "Right-hand drive",
     ed_overview_option: "Overview (default)",
     ed_overrides_title: "Entity overrides (optional — leave empty to auto-detect)",
     edh_cluster:
@@ -708,6 +714,10 @@ const TRANSLATIONS = {
     dt_bev: "Elektrisch",
     dt_phev: "Plug-in-Hybrid",
     dt_ice: "Benzin / Diesel",
+    ed_steering: "Lenkrad",
+    edh_steering: "Wird aus BMWs Fahrzeugdaten gelesen. Nur setzen, wenn Türen und Fenster auf der falschen Seite des Autos erscheinen.",
+    st_left: "Linkslenker",
+    st_right: "Rechtslenker",
     ed_overview_option: "Übersicht (Standard)",
     ed_overrides_title: "Entitäten überschreiben (optional — leer lassen für Auto-Erkennung)",
     edh_cluster:
@@ -983,6 +993,10 @@ const TRANSLATIONS = {
     dt_bev: "Électrique",
     dt_phev: "Hybride rechargeable",
     dt_ice: "Essence / diesel",
+    ed_steering: "Volant",
+    edh_steering: "Lu dans les données du véhicule de BMW. Ne le définissez que si les portes et les vitres apparaissent du mauvais côté de la voiture.",
+    st_left: "Conduite à gauche",
+    st_right: "Conduite à droite",
     ed_overview_option: "Aperçu (par défaut)",
     ed_overrides_title: "Remplacement d'entités (facultatif — laisser vide pour la détection automatique)",
     edh_cluster:
@@ -1258,6 +1272,10 @@ const TRANSLATIONS = {
     dt_bev: "Elettrica",
     dt_phev: "Ibrida plug-in",
     dt_ice: "Benzina / diesel",
+    ed_steering: "Volante",
+    edh_steering: "Letto dai dati del veicolo di BMW. Impostalo solo se porte e finestrini compaiono sul lato sbagliato dell'auto.",
+    st_left: "Guida a sinistra",
+    st_right: "Guida a destra",
     ed_overview_option: "Panoramica (predefinita)",
     ed_overrides_title: "Sostituzione entità (facoltativo — lascia vuoto per il rilevamento automatico)",
     edh_cluster:
@@ -1533,6 +1551,10 @@ const TRANSLATIONS = {
     dt_bev: "Eléctrico",
     dt_phev: "Híbrido enchufable",
     dt_ice: "Gasolina / diésel",
+    ed_steering: "Volante",
+    edh_steering: "Se lee de los datos del vehículo de BMW. Defínelo solo si las puertas y las ventanillas aparecen en el lado equivocado del coche.",
+    st_left: "Volante a la izquierda",
+    st_right: "Volante a la derecha",
     ed_overview_option: "Resumen (predeterminado)",
     ed_overrides_title: "Sustitución de entidades (opcional — déjalo vacío para la detección automática)",
     edh_cluster:
@@ -1808,6 +1830,10 @@ const TRANSLATIONS = {
     dt_bev: "Elektrisch",
     dt_phev: "Plug-in hybride",
     dt_ice: "Benzine / diesel",
+    ed_steering: "Stuur",
+    edh_steering: "Gelezen uit de voertuiggegevens van BMW. Stel dit alleen in als portieren en ramen aan de verkeerde kant van de auto verschijnen.",
+    st_left: "Links gestuurd",
+    st_right: "Rechts gestuurd",
     ed_overview_option: "Overzicht (standaard)",
     ed_overrides_title: "Entiteiten overschrijven (optioneel — leeg laten voor automatisch herkennen)",
     edh_cluster:
@@ -2083,6 +2109,10 @@ const TRANSLATIONS = {
     dt_bev: "Elektryczny",
     dt_phev: "Hybryda plug-in",
     dt_ice: "Benzyna / diesel",
+    ed_steering: "Kierownica",
+    edh_steering: "Odczytywana z danych pojazdu BMW. Ustaw tylko wtedy, gdy drzwi i okna pojawiają się po złej stronie auta.",
+    st_left: "Kierownica po lewej",
+    st_right: "Kierownica po prawej",
     ed_overview_option: "Przegląd (domyślnie)",
     ed_overrides_title: "Nadpisanie encji (opcjonalnie — pozostaw puste dla automatycznego wykrywania)",
     edh_cluster:
@@ -2358,6 +2388,10 @@ const TRANSLATIONS = {
     dt_bev: "Elétrico",
     dt_phev: "Híbrido plug-in",
     dt_ice: "Gasolina / gasóleo",
+    ed_steering: "Volante",
+    edh_steering: "Lido a partir dos dados do veículo da BMW. Defina-o apenas se as portas e as janelas aparecerem do lado errado do carro.",
+    st_left: "Volante à esquerda",
+    st_right: "Volante à direita",
     ed_overview_option: "Visão geral (predefinição)",
     ed_overrides_title: "Substituição de entidades (opcional — deixe vazio para deteção automática)",
     edh_cluster:
@@ -2633,6 +2667,10 @@ const TRANSLATIONS = {
     dt_bev: "Elektrický",
     dt_phev: "Plug-in hybrid",
     dt_ice: "Benzín / nafta",
+    ed_steering: "Volant",
+    edh_steering: "Čte se z údajů o vozidle od BMW. Nastavte jen tehdy, pokud se dveře a okna zobrazují na špatné straně vozu.",
+    st_left: "Volant vlevo",
+    st_right: "Volant vpravo",
     ed_overview_option: "Přehled (výchozí)",
     ed_overrides_title: "Přepsání entit (volitelné — ponechte prázdné pro automatické zjištění)",
     edh_cluster:
@@ -2908,6 +2946,10 @@ const TRANSLATIONS = {
     dt_bev: "El",
     dt_phev: "Laddhybrid",
     dt_ice: "Bensin / diesel",
+    ed_steering: "Ratt",
+    edh_steering: "Läses från BMW:s fordonsdata. Ange den bara om dörrar och fönster visas på fel sida av bilen.",
+    st_left: "Vänsterstyrd",
+    st_right: "Högerstyrd",
     ed_overview_option: "Översikt (standard)",
     ed_overrides_title: "Åsidosätt entiteter (valfritt — lämna tomt för automatisk identifiering)",
     edh_cluster:
@@ -3377,6 +3419,24 @@ class BavarianDataCard extends HTMLElement {
     // that has said nothing yet keeps the electric layout this card has always
     // shown, so a fresh install is not rearranged for a few seconds.
     return described >= MIN_DESCRIPTORS_TO_JUDGE ? "unknown" : "bev";
+  }
+
+  /** Which side the driver sits on: "left" or "right".
+   *
+   * BMW keys the side doors and windows by seat (`door.row1.driver`), not by
+   * side, so drawing them needs to know where the steering wheel is. An
+   * explicit `steering:` wins; otherwise BMW's basic data says it. A car whose
+   * basic data has not said keeps the left-hand-drive layout this card has
+   * always drawn. */
+  _steering(entities) {
+    const wanted = String((this._config || {}).steering || "").toLowerCase();
+    if (STEERING_SIDES.has(wanted)) return wanted;
+    for (const id of entities) {
+      const st = this._st(id);
+      const bd = st && st.attributes && st.attributes.vehicle_basic_data;
+      if (bd && STEERING_SIDES.has(bd.steering_side)) return bd.steering_side;
+    }
+    return "left";
   }
 
   /* ---- formatting ------------------------------------------------------- */
@@ -6809,6 +6869,9 @@ class BavarianDataCard extends HTMLElement {
   /* ---- closures / security diagram -------------------------------------- */
 
   // Descriptor paths for every closure signal the card knows how to place.
+  // The side slots are a left-hand-drive car's: BMW names side doors and
+  // windows by seat, so on right-hand drive `_renderClosures` reads each slot
+  // from its mirror image (the driver's door is then the right front one).
   static CLOSURE_PATHS = {
     doorOpen: {
       lf: "vehicle.cabin.door.row1.driver.isOpen",
@@ -6869,10 +6932,16 @@ class BavarianDataCard extends HTMLElement {
     const WARN = "var(--bmw-mid)";
     const OK = "var(--bmw-high)";
 
+    // The descriptor slot each drawn slot reads: itself on left-hand drive, its
+    // mirror image on right-hand drive, where the driver sits on the right.
+    const rhd = this._steering(entities) === "right";
+    const MIRROR = { lf: "rf", rf: "lf", lr: "rr", rr: "lr" };
+    const seat = (k) => (rhd ? MIRROR[k] : k);
+
     // Per-slot doors (prefer isOpen; fall back to position sensor).
     const doors = {};
     for (const k of ["lf", "rf", "lr", "rr"]) {
-      const id = find(P.doorOpen[k]) || find(P.doorPos[k]);
+      const id = find(P.doorOpen[seat(k)]) || find(P.doorPos[seat(k)]);
       if (!id) continue;
       const st = this._st(id);
       doors[k] = { id, open: this._openState(st) };
@@ -6880,7 +6949,7 @@ class BavarianDataCard extends HTMLElement {
     // Per-slot windows.
     const windows = {};
     for (const k of ["lf", "rf", "lr", "rr"]) {
-      const id = find(P.window[k]);
+      const id = find(P.window[seat(k)]);
       if (!id) continue;
       const st = this._st(id);
       windows[k] = { id, open: this._openState(st), partial: this._isPartialState(st) };
@@ -6914,6 +6983,7 @@ class BavarianDataCard extends HTMLElement {
     const sig = this._signature({
       m: "clo",
       lang: _lang(this._hass),
+      rhd,
       doors: Object.fromEntries(Object.entries(doors).map(([k, v]) => [k, stateOf(v.id)])),
       wins: Object.fromEntries(Object.entries(windows).map(([k, v]) => [k, stateOf(v.id)])),
       hood: hood && stateOf(hood.id),
@@ -8111,6 +8181,22 @@ class BavarianDataCardEditor extends HTMLElement {
         ],
       });
     }
+    // The closures view draws the side doors and windows, so it is where the
+    // steering side matters.
+    if (this._config && this._config.cluster === "closures") {
+      schema.push({
+        name: "steering",
+        selector: {
+          select: {
+            mode: "dropdown",
+            options: ["auto", "left", "right"].map((value) => ({
+              value,
+              label: t(this._hass, value === "auto" ? "dt_auto" : "st_" + value),
+            })),
+          },
+        },
+      });
+    }
     return schema;
   }
 
@@ -8131,7 +8217,12 @@ class BavarianDataCardEditor extends HTMLElement {
     const mode = VIEW_MODES.has(this._config.view)
       ? this._config.view
       : this._config.cluster || OVERVIEW;
-    this._form.data = { ...this._config, cluster: mode, drivetrain: this._config.drivetrain || "auto" };
+    this._form.data = {
+      ...this._config,
+      cluster: mode,
+      drivetrain: this._config.drivetrain || "auto",
+      steering: this._config.steering || "auto",
+    };
   }
 
   _valueChanged(ev) {
@@ -8149,6 +8240,7 @@ class BavarianDataCardEditor extends HTMLElement {
     }
     // "Auto-detect" is the absence of the key, not a value to store.
     if (value.drivetrain === "auto") delete value.drivetrain;
+    if (value.steering === "auto") delete value.steering;
     // Drop empties so the stored config stays minimal.
     for (const key of Object.keys(value)) {
       if (value[key] === "" || value[key] === undefined || value[key] === null) {

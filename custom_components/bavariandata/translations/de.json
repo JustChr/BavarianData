@@ -601,7 +601,7 @@
         }
       },
       "vehicle_cabin_door_row1_driver_isopen": {
-        "name": "Status der Tür vorn links",
+        "name": "Status der Tür Fahrerseite vorn",
         "state": {
           "open": "Offen",
           "closed": "Geschlossen",
@@ -613,7 +613,7 @@
         "name": "Stellung der Fahrertür vorn"
       },
       "vehicle_cabin_door_row1_passenger_isopen": {
-        "name": "Status der Tür vorn rechts",
+        "name": "Status der Tür Beifahrerseite vorn",
         "state": {
           "open": "Offen",
           "closed": "Geschlossen",
@@ -625,7 +625,7 @@
         "name": "Stellung der Beifahrertür vorn"
       },
       "vehicle_cabin_door_row2_driver_isopen": {
-        "name": "Status der Tür hinten links",
+        "name": "Status der Tür Fahrerseite hinten",
         "state": {
           "open": "Offen",
           "closed": "Geschlossen",
@@ -637,7 +637,7 @@
         "name": "Stellung der Fahrertür hinten"
       },
       "vehicle_cabin_door_row2_passenger_isopen": {
-        "name": "Status der Tür hinten rechts",
+        "name": "Status der Tür Beifahrerseite hinten",
         "state": {
           "open": "Offen",
           "closed": "Geschlossen",
@@ -1050,7 +1050,7 @@
         }
       },
       "vehicle_cabin_window_row1_driver_status": {
-        "name": "Status des Fensters vorn links",
+        "name": "Status des Fensters Fahrerseite vorn",
         "state": {
           "closed": "Geschlossen",
           "intermediate": "Teilweise offen",
@@ -1059,7 +1059,7 @@
         }
       },
       "vehicle_cabin_window_row1_passenger_status": {
-        "name": "Status des Fensters vorn rechts",
+        "name": "Status des Fensters Beifahrerseite vorn",
         "state": {
           "closed": "Geschlossen",
           "intermediate": "Teilweise offen",
@@ -1068,7 +1068,7 @@
         }
       },
       "vehicle_cabin_window_row2_driver_status": {
-        "name": "Status des Fensters hinten links",
+        "name": "Status des Fensters Fahrerseite hinten",
         "state": {
           "closed": "Geschlossen",
           "intermediate": "Teilweise offen",
@@ -1077,7 +1077,7 @@
         }
       },
       "vehicle_cabin_window_row2_passenger_status": {
-        "name": "Status des Fensters hinten rechts",
+        "name": "Status des Fensters Beifahrerseite hinten",
         "state": {
           "closed": "Geschlossen",
           "intermediate": "Teilweise offen",
@@ -1903,25 +1903,25 @@
         "name": "Status der Türen"
       },
       "vehicle_cabin_door_row1_driver_isopen": {
-        "name": "Status der Tür vorn links"
+        "name": "Status der Tür Fahrerseite vorn"
       },
       "vehicle_cabin_door_row1_driver_position": {
         "name": "Stellung der Fahrertür vorn"
       },
       "vehicle_cabin_door_row1_passenger_isopen": {
-        "name": "Status der Tür vorn rechts"
+        "name": "Status der Tür Beifahrerseite vorn"
       },
       "vehicle_cabin_door_row1_passenger_position": {
         "name": "Stellung der Beifahrertür vorn"
       },
       "vehicle_cabin_door_row2_driver_isopen": {
-        "name": "Status der Tür hinten links"
+        "name": "Status der Tür Fahrerseite hinten"
       },
       "vehicle_cabin_door_row2_driver_position": {
         "name": "Stellung der Fahrertür hinten"
       },
       "vehicle_cabin_door_row2_passenger_isopen": {
-        "name": "Status der Tür hinten rechts"
+        "name": "Status der Tür Beifahrerseite hinten"
       },
       "vehicle_cabin_door_row2_passenger_position": {
         "name": "Stellung der Beifahrertür hinten"
@@ -2137,16 +2137,16 @@
         "name": "Kippstatus des Schiebedachs"
       },
       "vehicle_cabin_window_row1_driver_status": {
-        "name": "Status des Fensters vorn links"
+        "name": "Status des Fensters Fahrerseite vorn"
       },
       "vehicle_cabin_window_row1_passenger_status": {
-        "name": "Status des Fensters vorn rechts"
+        "name": "Status des Fensters Beifahrerseite vorn"
       },
       "vehicle_cabin_window_row2_driver_status": {
-        "name": "Status des Fensters hinten links"
+        "name": "Status des Fensters Fahrerseite hinten"
       },
       "vehicle_cabin_window_row2_passenger_status": {
-        "name": "Status des Fensters hinten rechts"
+        "name": "Status des Fensters Beifahrerseite hinten"
       },
       "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
         "name": "Statusinformation über die letzte Übertragung von OBFCM*-Werten"

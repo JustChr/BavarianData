@@ -601,7 +601,7 @@
         }
       },
       "vehicle_cabin_door_row1_driver_isopen": {
-        "name": "Estado de la puerta delantera izquierda",
+        "name": "Estado de la puerta delantera del lado del conductor",
         "state": {
           "open": "Abierto",
           "closed": "Cerrado",
@@ -613,7 +613,7 @@
         "name": "Posición de la puerta delantera del conductor"
       },
       "vehicle_cabin_door_row1_passenger_isopen": {
-        "name": "Estado de la puerta delantera derecha",
+        "name": "Estado de la puerta delantera del lado del acompañante",
         "state": {
           "open": "Abierto",
           "closed": "Cerrado",
@@ -625,7 +625,7 @@
         "name": "Posición de la puerta delantera del acompañante"
       },
       "vehicle_cabin_door_row2_driver_isopen": {
-        "name": "Estado de la puerta trasera izquierda",
+        "name": "Estado de la puerta trasera del lado del conductor",
         "state": {
           "open": "Abierto",
           "closed": "Cerrado",
@@ -637,7 +637,7 @@
         "name": "Posición de la puerta trasera del lado del conductor"
       },
       "vehicle_cabin_door_row2_passenger_isopen": {
-        "name": "Estado de la puerta trasera derecha",
+        "name": "Estado de la puerta trasera del lado del acompañante",
         "state": {
           "open": "Abierto",
           "closed": "Cerrado",
@@ -1050,7 +1050,7 @@
         }
       },
       "vehicle_cabin_window_row1_driver_status": {
-        "name": "Estado de la ventanilla delantera izquierda",
+        "name": "Estado de la ventanilla delantera del lado del conductor",
         "state": {
           "closed": "Cerrado",
           "intermediate": "Parcialmente abierto",
@@ -1059,7 +1059,7 @@
         }
       },
       "vehicle_cabin_window_row1_passenger_status": {
-        "name": "Estado de la ventanilla delantera derecha",
+        "name": "Estado de la ventanilla delantera del lado del acompañante",
         "state": {
           "closed": "Cerrado",
           "intermediate": "Parcialmente abierto",
@@ -1068,7 +1068,7 @@
         }
       },
       "vehicle_cabin_window_row2_driver_status": {
-        "name": "Estado de la ventanilla trasera izquierda",
+        "name": "Estado de la ventanilla trasera del lado del conductor",
         "state": {
           "closed": "Cerrado",
           "intermediate": "Parcialmente abierto",
@@ -1077,7 +1077,7 @@
         }
       },
       "vehicle_cabin_window_row2_passenger_status": {
-        "name": "Estado de la ventanilla trasera derecha",
+        "name": "Estado de la ventanilla trasera del lado del acompañante",
         "state": {
           "closed": "Cerrado",
           "intermediate": "Parcialmente abierto",
@@ -1903,25 +1903,25 @@
         "name": "Estado de las puertas"
       },
       "vehicle_cabin_door_row1_driver_isopen": {
-        "name": "Estado de la puerta delantera izquierda"
+        "name": "Estado de la puerta delantera del lado del conductor"
       },
       "vehicle_cabin_door_row1_driver_position": {
         "name": "Posición de la puerta delantera del conductor"
       },
       "vehicle_cabin_door_row1_passenger_isopen": {
-        "name": "Estado de la puerta delantera derecha"
+        "name": "Estado de la puerta delantera del lado del acompañante"
       },
       "vehicle_cabin_door_row1_passenger_position": {
         "name": "Posición de la puerta delantera del acompañante"
       },
       "vehicle_cabin_door_row2_driver_isopen": {
-        "name": "Estado de la puerta trasera izquierda"
+        "name": "Estado de la puerta trasera del lado del conductor"
       },
       "vehicle_cabin_door_row2_driver_position": {
         "name": "Posición de la puerta trasera del lado del conductor"
       },
       "vehicle_cabin_door_row2_passenger_isopen": {
-        "name": "Estado de la puerta trasera derecha"
+        "name": "Estado de la puerta trasera del lado del acompañante"
       },
       "vehicle_cabin_door_row2_passenger_position": {
         "name": "Posición de la puerta trasera del lado del acompañante"
@@ -2137,16 +2137,16 @@
         "name": "Estado de inclinación del techo corredizo"
       },
       "vehicle_cabin_window_row1_driver_status": {
-        "name": "Estado de la ventanilla delantera izquierda"
+        "name": "Estado de la ventanilla delantera del lado del conductor"
       },
       "vehicle_cabin_window_row1_passenger_status": {
-        "name": "Estado de la ventanilla delantera derecha"
+        "name": "Estado de la ventanilla delantera del lado del acompañante"
       },
       "vehicle_cabin_window_row2_driver_status": {
-        "name": "Estado de la ventanilla trasera izquierda"
+        "name": "Estado de la ventanilla trasera del lado del conductor"
       },
       "vehicle_cabin_window_row2_passenger_status": {
-        "name": "Estado de la ventanilla trasera derecha"
+        "name": "Estado de la ventanilla trasera del lado del acompañante"
       },
       "vehicle_channel_ista_obfcm_lasttransmissionstatus": {
         "name": "Información de estado sobre la última transmisión de valores OBFCM*"
