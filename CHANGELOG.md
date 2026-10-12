@@ -9,6 +9,17 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Charges away from home no longer get your house's energy mix or your home
+  tariff.** The solar share and the cost were sampled from your PV, house battery
+  and grid sensors and your tariff wherever the car charged. A DC fast charge
+  could show energy "from the house battery", and a public charge was billed at
+  your home price. Now a charge the car places outside your Home zone records no
+  mix and no tariff cost, like the wallbox meter already did. Its energy still
+  counts. Importing BMW's charging history no longer applies a fixed tariff to
+  such charges either. Stored charges are repaired when Home Assistant starts.
+  Thanks to @erwinweiss1955 for the detailed report (#97).
+
 ## [0.9.18-beta.4] - 2026-10-12
 
 ### Fixed

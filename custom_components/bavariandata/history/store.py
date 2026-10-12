@@ -27,6 +27,7 @@ from .cardata_history import (
     merge_cardata_sessions,
     session_from_cardata,
 )
+from .sessions import drop_house_figures_elsewhere
 from .models import SCHEMA_VERSION, ChargingSession, merge_session, prune_sessions
 from .trips import Trip, merge_trip, prune_trips
 
@@ -183,6 +184,27 @@ class HistoryStore:
             self.async_schedule_save()
         return fixed
 
+    @callback
+    def drop_house_figures_elsewhere(self) -> int:
+        """Strip the home mix and tariff cost from stored charges made elsewhere.
+
+        Before #97 a charge at a public charger was given the house's energy
+        mix and billed at the home tariff. Run after :meth:`reresolve_zones`,
+        so a legacy import that now resolves to Home is judged as Home. The
+        rule is :func:`sessions.drop_house_figures_elsewhere`. Idempotent.
+        """
+
+        fixed = sum(
+            drop_house_figures_elsewhere(session)
+            for sessions in self._sessions.values()
+            for session in sessions
+        )
+        if fixed:
+            if debug_enabled():
+                _LOGGER.debug("[history] cleared house mix/cost from %s away charge(s)", fixed)
+            self.async_schedule_save()
+        return fixed
+
     def _prune(self, sessions: list[ChargingSession]) -> list[ChargingSession]:
         return prune_sessions(
             sessions,
@@ -282,6 +304,7 @@ class HistoryStore:
         *,
         cost_fn: Optional[CostFn] = None,
         zone_fn: Optional[ZoneFn] = None,
+        home_zone: Optional[str] = None,
     ) -> tuple[int, int]:
         """Import BMW's REST charging history, returning (added, updated).
 
@@ -294,7 +317,9 @@ class HistoryStore:
         incoming = [
             session
             for session in (
-                session_from_cardata(vin, raw, cost_fn=cost_fn, zone_fn=zone_fn)
+                session_from_cardata(
+                    vin, raw, cost_fn=cost_fn, zone_fn=zone_fn, home_zone=home_zone
+                )
                 for raw in (raw_sessions or [])
             )
             if session is not None

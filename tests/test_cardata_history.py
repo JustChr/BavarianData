@@ -58,6 +58,11 @@ def _raw(**overrides) -> dict:
     return raw
 
 
+# A tariff is only ever applied to a charge at home (#97); the fixture's own
+# address is a public charger.
+_HOME = {"zone_fn": lambda lat, lon: "Home", "home_zone": "Home"}
+
+
 # --- mapping ---------------------------------------------------------------
 
 
@@ -135,8 +140,28 @@ def test_cost_fn_backfills_from_grid_kwh():
     def cost_fn(grid_kwh):
         return pricing.fixed_cost(grid_kwh, 0.30, "EUR")
 
-    session = session_from_cardata("WBY1", _raw(), cost_fn=cost_fn)
+    session = session_from_cardata("WBY1", _raw(), cost_fn=cost_fn, **_HOME)
     assert session.cost == {"amount": round(15.92 * 0.30, 2), "currency": "EUR", "source": "tariff"}
+
+
+def test_no_home_tariff_on_a_charge_elsewhere():
+    """#97: the fixed tariff is the home price, not a public charger's."""
+
+    def cost_fn(grid_kwh):
+        return pricing.fixed_cost(grid_kwh, 0.30, "EUR")
+
+    away = session_from_cardata("WBY1", _raw(), cost_fn=cost_fn, home_zone="Home")
+    assert away.location["zone"] is None
+    assert away.cost is None
+    work = session_from_cardata(
+        "WBY1", _raw(), cost_fn=cost_fn, zone_fn=lambda lat, lon: "Work", home_zone="Home"
+    )
+    assert work.cost is None
+    # No position at all is not "elsewhere": priced as before.
+    unplaced = session_from_cardata(
+        "WBY1", _raw(chargingLocation=None), cost_fn=cost_fn, home_zone="Home"
+    )
+    assert unplaced.cost is not None
 
 
 # --- merge / enrichment ----------------------------------------------------
@@ -339,7 +364,7 @@ def test_repaired_charge_is_costed_again_on_a_fixed_tariff():
         return pricing.fixed_cost(grid_kwh, 0.30, "EUR")
 
     result, _, _ = merge_cardata_sessions(
-        [_frozen_session()], [session_from_cardata("WBY1", _raw(), cost_fn=cost_fn)]
+        [_frozen_session()], [session_from_cardata("WBY1", _raw(), cost_fn=cost_fn, **_HOME)]
     )
     assert result[0].cost == {
         "amount": round(15.92 * 0.30, 2),
@@ -462,7 +487,7 @@ def test_the_cost_billed_from_the_meter_stays_with_it():
     """BMW's tariff cost is priced on BMW's kWh; the meter's is the matching one."""
 
     priced = session_from_cardata(
-        "WBY1", _raw(), cost_fn=lambda kwh: {**_TARIFF_COST, "amount": 9.0}
+        "WBY1", _raw(), cost_fn=lambda kwh: {**_TARIFF_COST, "amount": 9.0}, **_HOME
     )
     result, _, _ = merge_cardata_sessions([_metered_session()], [priced])
     assert result[0].cost == _TARIFF_COST
@@ -470,7 +495,7 @@ def test_the_cost_billed_from_the_meter_stays_with_it():
 
 def test_bmws_own_billed_cost_still_wins():
     billed = {"amount": 5.5, "currency": "EUR", "source": "bmw"}
-    priced = session_from_cardata("WBY1", _raw(), cost_fn=lambda kwh: billed)
+    priced = session_from_cardata("WBY1", _raw(), cost_fn=lambda kwh: billed, **_HOME)
     result, _, _ = merge_cardata_sessions([_metered_session()], [priced])
     assert result[0].cost == billed
 

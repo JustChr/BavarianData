@@ -139,6 +139,17 @@ zusätzlich auf, wie viel ihrer Energie vom eigenen Dach, aus dem Hausspeicher u
 aus dem Netz kam — in netzseitigen kWh, also auf der Seite, die deine Hauszähler
 messen.
 
+Das gilt nur für **Ladungen zu Hause**. An einer öffentlichen Ladesäule, bei der
+Arbeit oder an jedem anderen Ort, den das Auto außerhalb deiner Zone Home meldet,
+sagen deine Hauszähler nichts darüber, was ins Auto geflossen ist; eine solche
+Ladung speichert daher keinen Mix. Dasselbe gilt für die Kosten: Dein Tarif ist
+dein Preis zu Hause, also bekommt eine Ladung woanders daraus keine Kosten. Ihre
+Energie zählt trotzdem überall. Hat BMW die Ladung selbst abgerechnet, ergänzt
+[der Import des BMW-Verlaufs](#importing-past-charges-from-bmw) diese Kosten. Ein
+Auto, das gar keine Position meldet, gilt wie bisher als zu Hause. Ladungen von
+vor v0.9.18, die unterwegs deinen Mix oder Tarif bekommen haben, werden beim
+nächsten Start von Home Assistant bereinigt.
+
 Die Karte zeigt am Ladevorgang ein Etikett **☀ 62 % Solar** und beim Aufklappen
 die ganze Aufteilung; der Anteil des Monats steht als Attribute (`solar_percent`,
 `energy_mix`) am Sensor **Geladene Energie (dieser Monat)**, und Export wie

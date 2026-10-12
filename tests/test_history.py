@@ -888,3 +888,49 @@ def test_a_watched_session_still_records_both_ends():
     session = builder.close(START + timedelta(minutes=25), soc_end=61.0, energy_kwh=17.5)
     assert (session.soc_start, session.soc_end) == (38.0, 61.0)
     assert session.soc_delta == 23.0
+
+
+# --- repairing charges given the house's figures away from home (#97) --------
+
+
+def _stored(location, *, cost=None, mix=None) -> ChargingSession:
+    return models.ChargingSession(
+        vin="WBY1",
+        start=datetime(2026, 10, 9, 5, 46, tzinfo=timezone.utc),
+        end=datetime(2026, 10, 9, 8, 22, tzinfo=timezone.utc),
+        energy_kwh=25.92,
+        location=location,
+        cost=cost,
+        energy_mix=mix,
+    )
+
+
+_MIX = {"pv": 1.932, "grid": 2.401, "solar_percent": 44.6}
+_TARIFF = {"amount": 0.29, "currency": "EUR", "source": "tariff", "partial": True}
+
+
+def test_a_stored_charge_elsewhere_loses_the_house_mix_and_tariff():
+    session = _stored({"zone": None}, cost=_TARIFF, mix=_MIX)
+    assert sessions.drop_house_figures_elsewhere(session) is True
+    assert session.energy_mix is None and session.cost is None
+    assert session.energy_kwh == 25.92
+    assert sessions.drop_house_figures_elsewhere(session) is False  # idempotent
+
+
+def test_the_repair_keeps_what_it_cannot_judge_or_did_not_invent():
+    billed = {"amount": 9.5, "currency": "EUR", "source": "bmw"}
+    kept = [
+        _stored({"zone": "Home"}, cost=_TARIFF, mix=_MIX),
+        # A named zone may be Home before a rename.
+        _stored({"zone": "Work"}, cost=_TARIFF, mix=_MIX),
+        # A legacy import still holding coordinates may resolve to Home later.
+        _stored({"zone": None, "lat": 48.1, "lon": 11.5}, cost=_TARIFF, mix=_MIX),
+        # No position at all.
+        _stored(None, cost=_TARIFF, mix=_MIX),
+    ]
+    for session in kept:
+        assert sessions.drop_house_figures_elsewhere(session) is False
+        assert session.energy_mix == _MIX and session.cost == _TARIFF
+    public = _stored({"zone": None, "address": "A9 Stammham"}, cost=billed)
+    assert sessions.drop_house_figures_elsewhere(public) is False
+    assert public.cost == billed

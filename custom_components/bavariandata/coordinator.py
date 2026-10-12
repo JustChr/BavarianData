@@ -56,6 +56,7 @@ from .history.energy_mix import (
 from .history.sessions import (
     SessionBuilder,
     energy_ceiling_kwh,
+    house_supplies_this_session,
     meter_counts_this_session,
     open_session_is_resumable,
     soc_is_from_session,
@@ -1211,14 +1212,17 @@ class CardataCoordinator:
             grid_kwh=metered_kwh,
             loss_percent=self.pricing_for(vin).loss_percent,
         )
-        # One sample of the house's meters serves both the mix and the cost, so
-        # the two can never describe different instants.
-        mix = self._session_mixes.get(vin)
-        split = {} if mix is None else mix.add(billable, self._supply_shares())
-        accumulator = self._session_costs.get(vin)
-        if accumulator is not None:
-            self._bill_split(accumulator, billable, split)
         builder = self._session_builders.get(vin)
+        # Away from home the house's meters and tariff describe the house, not
+        # this charge: no mix, no cost (see ``house_supplies_this_session``).
+        if builder is None or house_supplies_this_session(builder.location, self._home_zone_name()):
+            # One sample of the house's meters serves both the mix and the cost,
+            # so the two can never describe different instants.
+            mix = self._session_mixes.get(vin)
+            split = {} if mix is None else mix.add(billable, self._supply_shares())
+            accumulator = self._session_costs.get(vin)
+            if accumulator is not None:
+                self._bill_split(accumulator, billable, split)
         if builder is not None:
             builder.note_grid_meter(meter_now)
 
@@ -3752,6 +3756,11 @@ class CardataCoordinator:
     def _home_zone_name(self) -> Optional[str]:
         state = self.hass.states.get("zone.home")
         return state.name if state is not None else "Home"
+
+    def home_zone_name(self) -> Optional[str]:
+        """Public form, for the BMW history import's home-only tariff."""
+
+        return self._home_zone_name()
 
     def _work_zone_name(self, vin: str) -> Optional[str]:
         entity_id = self.trip_settings_for(vin).work_zone_entity

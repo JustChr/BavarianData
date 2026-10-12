@@ -24,6 +24,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Optional
 
 from .models import ChargingSession
+from .sessions import house_supplies_this_session
 
 # Keep the stored curve small: BMW returns one block per power change (hundreds
 # for a long AC charge), but the card only sketches a shape, and the record has
@@ -176,6 +177,7 @@ def session_from_cardata(
     *,
     cost_fn: Optional[CostFn] = None,
     zone_fn: Optional[ZoneFn] = None,
+    home_zone: Optional[str] = None,
 ) -> Optional[ChargingSession]:
     """One BMW history entry -> a ChargingSession, or ``None`` if unusable.
 
@@ -197,6 +199,9 @@ def session_from_cardata(
 
     grid_kwh = _as_float(raw.get("energyConsumedFromPowerGridKwh"))
     curve, peak = _power_curve(raw.get("chargingBlocks"), int(start_epoch))
+    location = _location(raw.get("chargingLocation"), zone_fn)
+    # The tariff is the home one; a public charger's price is BMW's to report.
+    priced = cost_fn is not None and house_supplies_this_session(location, home_zone)
     return ChargingSession(
         vin=vin,
         start=start,
@@ -207,9 +212,9 @@ def session_from_cardata(
         grid_source=None if grid_kwh is None else "bmw",
         peak_power_kw=peak,
         power_curve=curve,
-        location=_location(raw.get("chargingLocation"), zone_fn),
+        location=location,
         location_assumed=False,
-        cost=cost_fn(grid_kwh) if cost_fn else None,
+        cost=cost_fn(grid_kwh) if priced else None,
         mileage_km=_mileage_km(raw.get("mileage"), raw.get("mileageUnits")),
         enriched=True,
     )

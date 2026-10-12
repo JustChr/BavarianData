@@ -120,6 +120,16 @@ With **Configure → Solar & energy sources** set up, every charge also records
 how much of its energy came off your roof, out of your house battery, and off
 the grid — in grid-side kWh, the side your house meters measure.
 
+This only applies to **charges at home**. At a public charger, at work or at any
+other place the car reports outside your Home zone, your house sensors say
+nothing about what went into the car, so such a charge records no mix. The same
+goes for the cost: your tariff is your home price, so a charge elsewhere gets no
+cost from it. Its energy still counts everywhere. If BMW billed the charge
+itself, [importing BMW's history](#importing-past-charges-from-bmw) adds that
+cost. A car that reports no position at all is treated as at home, as before.
+Charges recorded before v0.9.18 that got your home mix or tariff away from home
+are cleared the next time Home Assistant starts.
+
 The card shows a **☀ 62 % solar** tag on the session row and the full breakdown
 when you expand it; the month's share rides as attributes (`solar_percent`,
 `energy_mix`) on the **Charging energy this month** sensor, and the export and

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import pytest
 
+from .conftest import load_module
 from .harness import CoordinatorHarness
 
 RATE = 3.48 / 75 * 100  # %/h
@@ -317,3 +318,55 @@ def test_a_plug_in_hybrid_gets_no_consumption_or_range(snapshot):
         assert profile["trend"] == []
         assert profile["capacity_kwh"] == 19.7
         assert h.render() == snapshot
+
+
+# --- the house's sensors and tariff -------------------------------------------
+
+
+def _house_harness(home: tuple[float, float]) -> CoordinatorHarness:
+    pricing = load_module("history.pricing")
+    harness = CoordinatorHarness(home=home)
+    harness.hass.add_zone("Home", *home, radius_m=100)
+    harness.coordinator.pricing = pricing.PricingConfig(
+        mode=pricing.MODE_FIXED,
+        fixed_price=0.30,
+        pv_power_entity="sensor.pv",
+        grid_power_entity="sensor.grid",
+    )
+    # Sunshine at home: 4 kW off the roof, 2 kW imported.
+    harness.hass.set_state("sensor.pv", 4000, unit_of_measurement="W")
+    harness.hass.set_state("sensor.grid", 2000, unit_of_measurement="W")
+    return harness
+
+
+def _charge_and_unplug(h: CoordinatorHarness) -> None:
+    _start_charge(h)
+    h.send(70, soc=42, status="CHARGINGACTIVE", power=3480)
+    h.send(130, status="NOCHARGING", power=0, step="unplugged")
+    h.advance_to(133)
+
+
+def test_a_charge_elsewhere_gets_no_house_mix_and_no_home_tariff():
+    """#97: at a public charger the house's meters say nothing about the car."""
+
+    with _house_harness((48.1, 11.5)) as h:
+        h.fix(5, 48.3, 11.9)  # a public charger, inside no zone
+        _charge_and_unplug(h)
+
+        (session,) = h.sessions()
+        assert session.location == {"zone": None}
+        assert session.energy_kwh  # the energy itself still counts
+        assert session.energy_mix is None
+        assert session.cost is None
+
+
+def test_a_charge_at_home_keeps_the_house_mix_and_tariff():
+    home = (48.1, 11.5)
+    with _house_harness(home) as h:
+        h.fix(5, *home)
+        _charge_and_unplug(h)
+
+        (session,) = h.sessions()
+        assert session.location == {"zone": "Home"}
+        assert session.energy_mix["solar_percent"] > 0
+        assert session.cost["source"] == "tariff"

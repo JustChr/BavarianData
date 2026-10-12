@@ -161,6 +161,48 @@ def meter_counts_this_session(location: Optional[dict[str, Any]], home_zone: Opt
     return zone == home_zone or zone == "zone.home"
 
 
+def house_supplies_this_session(
+    location: Optional[dict[str, Any]], home_zone: Optional[str]
+) -> bool:
+    """Whether the house's own sensors and tariff describe this charge.
+
+    The energy mix samples the PV, house-battery and grid sensors at home, and
+    the cost bills the home tariff. At a public charger neither says anything
+    about what went into the car: a DC fast charge once came out as 8 kWh from
+    the house battery (#97). The same rule as the meter, for the same reason --
+    only a *known* elsewhere vetoes, so a car that streams no position keeps
+    both, as it always has.
+    """
+
+    return meter_counts_this_session(location, home_zone)
+
+
+def drop_house_figures_elsewhere(session: ChargingSession) -> bool:
+    """Strip the mix and tariff cost a stored charge got away from home.
+
+    The repair for records written before :func:`house_supplies_this_session`
+    gated them. Only ``{"zone": None}`` (with or without BMW's address) is
+    judged: a named zone could be Home before a rename, and a legacy import
+    still holding coordinates may resolve to Home once zones load (see
+    ``HistoryStore.reresolve_zones``). BMW's own billed cost is kept.
+    Returns whether anything changed; idempotent.
+    """
+
+    location = session.location
+    if not isinstance(location, dict) or location.get("zone") is not None:
+        return False
+    if location.get("lat") is not None or location.get("lon") is not None:
+        return False
+    changed = False
+    if session.energy_mix is not None:
+        session.energy_mix = None
+        changed = True
+    if session.cost and session.cost.get("source") == "tariff":
+        session.cost = None
+        changed = True
+    return changed
+
+
 # How stale a snapshotted in-progress session may be and still be picked up as
 # the *same* charge when Home Assistant comes back. A restart takes seconds and
 # an update a few minutes; beyond this the car has very likely been unplugged

@@ -601,6 +601,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     # HistoryStore.reresolve_zones). Now that the coordinator's zone lookup is
     # available, resolve them locally so a charge at Home stops showing "public".
     history_store.reresolve_zones(coordinator.zone_at)
+    # And charges made away from home lose the house mix and tariff cost they
+    # were given before #97. After the line above, so a zone it resolves counts.
+    history_store.drop_house_figures_elsewhere()
     coordinator.coverage = coverage_store
     # A car added to the account after setup has no bootstrap of its own; this
     # is what gives it a name, a model and a device entry.
@@ -1083,6 +1086,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                     sessions,
                     cost_fn=_cost_fn,
                     zone_fn=runtime.coordinator.zone_at,
+                    home_zone=runtime.coordinator.home_zone_name(),
                 )
                 if imported or updated:
                     async_dispatcher_send(hass, runtime.coordinator.signal_history, vin)
