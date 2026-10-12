@@ -102,8 +102,48 @@ lang gleich geblieben ist) zu einer Fahrt:
 
 Der erste Bericht nach dem Umstellen setzt nur den Ausgangspunkt, die erste Fahrt
 kommt also mit der zweiten Fahrt. Zuordnung, Pendelketten und der Auslöser *in Zone
-angekommen* funktionieren wie bei jeder anderen Fahrt. Eine *laufende Fahrt* und
-eine Route gibt es bei diesen Autos nicht, weil während der Fahrt nichts ankommt.
+angekommen* funktionieren wie bei jeder anderen Fahrt. Eine *laufende Fahrt* gibt
+es bei diesen Autos nicht, weil während der Fahrt nichts ankommt, und eine Route
+nur, wenn ein Handy sie liefert (siehe unten).
+
+#### Die Route vom Handy
+
+Ein i3 sendet während der Fahrt keine Position, dein Handy schon: Die Home
+Assistant Companion App meldet seinen Standort als `device_tracker`. Steht
+**Fahrterkennung** auf **Berichte am Fahrtende** und ist **Route aufzeichnen** an,
+zeigt **Konfigurieren → Fahrten** für dieses Auto einen zweiten Bildschirm,
+**Route vom Handy**:
+
+- **Handy**: der `device_tracker` des Handys. Seine Positionen während der Fahrt
+  werden zur Route der Fahrt.
+- **Handy ist im Auto** (optional): ein Binärsensor, der an ist, solange das Handy
+  mit dem Auto verbunden ist, zum Beispiel ein Android-Auto- oder
+  Bluetooth-Sensor der Companion App oder ein Template-Sensor aus dem
+  CarPlay-WLAN-Namen. Schaltet er ein, zählt das wie
+  `bavariandata.mark_trip_start`, die Fahrt bekommt ihre Startzeit also ohne
+  Automation. Behalten werden nur Positionen, solange er an ist. Ohne ihn gelten
+  die Positionen von der Startmarkierung der Fahrt bis zur Ankunft.
+
+Was das Auto sagt, hat Vorrang:
+
+- **Strecke, Dauer und Ladezustand kommen vom Auto.** Das Handy zeichnet nur die
+  Linie. Eine GPS-Spur misst auf kurvigen Straßen zu kurz, der Kilometerstand
+  nicht.
+- **Das Handy muss dort enden, wo das Auto geparkt hat.** Liegt die letzte
+  Position des Handys mehr als 500 m von dem Ort entfernt, den das Auto beim
+  Parken gemeldet hat, war das Handy nicht in diesem Auto (jemand anderes ist
+  gefahren). Die Fahrt behält dann ihre gerade Linie.
+- **Ohne Start keine Route.** Ohne Startmarkierung sagt nichts, welche Positionen
+  des Handys zur Fahrt gehören.
+- Positionen näher als 50 m an der vorigen (Stau) und Standorte ungenauer als
+  100 m werden ausgelassen. Positionen liegen nur im Arbeitsspeicher und landen
+  nur als Teil der Route einer Fahrt auf der Festplatte. Ein Neustart während der
+  Fahrt verliert die bis dahin gesammelten Positionen.
+
+Eine Fahrt mit einer Route vom Handy trägt in `get_trips` `track_source: phone`.
+Wie oft das Handy meldet, legen die Standort-Einstellungen der Companion App
+fest. Häufigere Updates ergeben eine feinere Route und leeren den Handy-Akku
+schneller.
 
 Ein Besitzer eines iDrive-6-Autos hat auf BavarianData ein eigenes Fahrtenbuch
 aufgebaut, bevor es diesen Modus gab. Das Fahrtende kommt vom Auto, der Fahrtbeginn

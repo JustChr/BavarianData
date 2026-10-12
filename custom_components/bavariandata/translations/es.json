@@ -337,6 +337,18 @@
           }
         }
       },
+      "trips_phone": {
+        "title": "Ruta desde un móvil",
+        "description": "**{vehicle}** solo informa al aparcar, así que su ruta puede venir de un móvil que viaja a bordo, con la ubicación de la app de Home Assistant. Distancia, duración y carga siguen viniendo del coche. Se aplica desde el próximo trayecto.",
+        "data": {
+          "trip_phone_tracker": "Móvil",
+          "trip_phone_in_car": "Móvil en el coche"
+        },
+        "data_description": {
+          "trip_phone_tracker": "Opcional. Sus posiciones dibujan la ruta del trayecto, solo se conservan si el móvil termina donde aparcó el coche. Déjalo vacío para una línea recta.",
+          "trip_phone_in_car": "Opcional. Activo mientras el móvil está conectado al coche (CarPlay, Android Auto, Bluetooth). Al activarse empieza un trayecto; sin él, un trayecto necesita «Marcar inicio del trayecto»."
+        }
+      },
       "action_data_refresh": {
         "title": "Actualización automática de datos",
         "description": "El stream en tiempo real solo transporta lo que cambia mientras Home Assistant escucha. Lo que el coche informó mientras Home Assistant estaba apagado o la conexión con BMW estaba cortada (una carga que terminó, el bloqueo de las puertas, un trayecto) no se reproduce al reconectar.\n\nCon esto activado, la integración pide a BMW el estado actual de cada coche dos minutos después de que arranque Home Assistant, y otra vez cuando la conexión vuelve tras un corte de cinco minutos o más. BMW devuelve los últimos valores que envió cada coche, así que te pones al día sin despertar el coche. Usa una de las 50 solicitudes diarias por coche. Se omite si ya se consultó a BMW en la última hora, salvo que hubiera una carga en curso al reiniciar, y siempre deja 10 solicitudes para tus propias llamadas de servicio.",
@@ -373,7 +385,8 @@
       "invalid_result": "No se pudo leer ese resultado. Ejecuta el marcador Activate BMW data en la página stream setup del portal de BMW y pega exactamente lo que copió en tu portapapeles.",
       "price_required": "Introduce un precio fijo por kWh o elige otra fuente de precio.",
       "price_entity_required": "Elige la entidad que informa tu precio por kWh o elige otra fuente de precio.",
-      "mqtt_missing": "El puente publica a través de la integración MQTT de Home Assistant, y no tienes ninguna configurada. Añádela en Ajustes → Dispositivos y servicios (el complemento Mosquitto broker es la opción habitual) y vuelve."
+      "mqtt_missing": "El puente publica a través de la integración MQTT de Home Assistant, y no tienes ninguna configurada. Añádela en Ajustes → Dispositivos y servicios (el complemento Mosquitto broker es la opción habitual) y vuelve.",
+      "phone_required": "Elige también el móvil: este sensor solo indica cuándo está el móvil en el coche."
     },
     "abort": {
       "reauth_started": "Autorización reiniciada. Completa el nuevo inicio de sesión desde la notificación que acaba de aparecer.",

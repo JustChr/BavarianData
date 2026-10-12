@@ -249,3 +249,127 @@ def test_a_mixed_account_runs_each_car_in_its_own_mode(h) -> None:
     (trip,) = h.trips()
     assert trip.duration_unknown
     assert trip.end_place["label"] == "Work"
+
+
+# -- the route from a phone (an i3, discussion #54) ---------------------------
+
+PHONE = "device_tracker.phone"
+IN_CAR = "binary_sensor.phone_android_auto"
+
+
+def _phone_settings(**overrides):
+    values = {
+        "detection": "reports",
+        "record_track": True,
+        "phone_tracker": PHONE,
+        "phone_in_car": IN_CAR,
+        **overrides,
+    }
+    return load_module("trip_settings").TripSettings(**values)
+
+
+@pytest.fixture
+def i3():
+    harness = CoordinatorHarness(capacity_kwh=None)
+    harness.hass.add_zone("Home", *HOME, radius_m=150)
+    harness.hass.add_zone("Work", *WORK, radius_m=150)
+    harness.hass.set_state(IN_CAR, "off")
+    harness.coordinator.trip_settings = _phone_settings()
+    harness.coordinator.watch_phone_routes()
+    yield harness
+    harness.close()
+
+
+def _phone(h: CoordinatorHarness, minute: float, where, accuracy: float = 8) -> None:
+    h.advance_to(minute)
+    h.hass.set_state(
+        PHONE, "not_home", latitude=where[0], longitude=where[1], gps_accuracy=accuracy
+    )
+
+
+def _in_car(h: CoordinatorHarness, minute: float, on: bool) -> None:
+    h.advance_to(minute)
+    h.hass.set_state(IN_CAR, "on" if on else "off")
+
+
+def _between(a, b, share: float) -> tuple[float, float]:
+    return (a[0] + (b[0] - a[0]) * share, a[1] + (b[1] - a[1]) * share)
+
+
+def _drive_with_phone(h: CoordinatorHarness, *, end=WORK) -> None:
+    """Home to ``end`` with the phone on Android Auto from 100 to 120."""
+
+    _burst(h, 0, 50_000, HOME, 50)
+    _phone(h, 99, HOME)  # walking to the car: not held
+    _in_car(h, 100, True)
+    for step in range(1, 20):
+        _phone(h, 100 + step, _between(HOME, end, step / 20))
+    _phone(h, 119.5, end)
+    _in_car(h, 120, False)
+    _burst(h, 120, 50_026, WORK, 49)
+    _phone(h, 121, _between(end, HOME, 0.05))  # walking away: not held
+    _settle(h)
+
+
+def test_the_phone_draws_the_route_and_the_car_keeps_the_numbers(i3) -> None:
+    _drive_with_phone(i3)
+
+    (trip,) = i3.trips()
+    # The in-car sensor turning on was the start mark: no automation needed.
+    assert (trip.start, trip.end) == (i3.at(100), i3.at(120))
+    assert trip.distance_km == 26  # the odometer's, not the phone's
+    assert trip.track_source == "phone"
+    assert trip.to_dict()["track_source"] == "phone"
+    # Where the phone was on getting in and its drive; the car's own fix
+    # closes the line (the same spot as the phone's last, so not twice).
+    assert len(trip.track) == 21
+    assert trip.track[0][:2] == [round(HOME[0], 5), round(HOME[1], 5)]
+    assert trip.track[-1][:2] == [round(WORK[0], 5), round(WORK[1], 5)]
+    assert trip.track[-1][2] == 19.5 * 60  # the phone got there first
+
+
+def test_a_phone_that_was_not_in_the_car_leaves_the_straight_line(i3) -> None:
+    """The partner drove the car to Work; the phone went somewhere else."""
+
+    elsewhere = (50.8500, 6.8000)
+    _drive_with_phone(i3, end=elsewhere)
+
+    (trip,) = i3.trips()
+    assert trip.track == []
+    assert trip.track_source is None
+    assert trip.start == i3.at(100)  # the start mark still stands
+
+
+def test_without_route_recording_nothing_is_kept(i3) -> None:
+    i3.coordinator.trip_settings = _phone_settings(record_track=False)
+    i3.coordinator.watch_phone_routes()
+    _drive_with_phone(i3)
+
+    (trip,) = i3.trips()
+    assert trip.track == []
+    # Nor does the sensor mark a start: the whole phone route is off.
+    assert trip.duration_unknown
+
+
+def test_without_an_in_car_sensor_a_marked_start_opens_the_route(i3) -> None:
+    i3.coordinator.trip_settings = _phone_settings(phone_in_car=None)
+    i3.coordinator.watch_phone_routes()
+    _burst(i3, 0, 50_000, HOME, 50)
+    _phone(i3, 50, _between(HOME, WORK, 0.5))  # earlier errand: before the mark
+    _mark(i3, 100)
+    for step in range(1, 21):
+        _phone(i3, 100 + step, _between(HOME, WORK, step / 20))
+    _burst(i3, 120, 50_026, WORK, 49)
+    _settle(i3)
+
+    (trip,) = i3.trips()
+    assert trip.track_source == "phone"
+    assert len(trip.track) == 20  # the errand before the mark is not in it
+    assert all(point[2] >= 0 for point in trip.track)
+
+
+def test_a_live_car_never_listens_to_the_phone(i3) -> None:
+    i3.coordinator.trip_settings = _phone_settings(detection="live")
+    i3.coordinator.watch_phone_routes()
+
+    assert i3.hass.state_listeners == []

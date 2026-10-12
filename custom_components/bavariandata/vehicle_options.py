@@ -29,6 +29,8 @@ from .const import (
     OPTION_TRIP_COMMUTE_GAP,
     OPTION_TRIP_DEFAULT_CLASS,
     OPTION_TRIP_DETECTION,
+    OPTION_TRIP_PHONE_IN_CAR,
+    OPTION_TRIP_PHONE_TRACKER,
     OPTION_TRIP_TRACK,
     OPTION_TRIP_WORK_ZONE,
     OPTION_VEHICLES,
@@ -41,13 +43,24 @@ TRIP_OPTIONS = (
     OPTION_TRIP_COMMUTE_GAP,
     OPTION_TRIP_DETECTION,
     OPTION_TRIP_TRACK,
+    # On a follow-up screen of Trips's own, shown only to a car that records
+    # its route from end-of-trip reports; still one group with the rest.
+    OPTION_TRIP_PHONE_TRACKER,
+    OPTION_TRIP_PHONE_IN_CAR,
 )
 CHARGING_OPTIONS = (OPTION_GRID_ENERGY_ENTITY, OPTION_CHARGING_LOSS_PERCENT)
 BRIDGE_OPTIONS = (OPTION_BRIDGE_ENABLED,)
 
 # Entity selectors: Home Assistant leaves a cleared one out of the submitted
 # data altogether, so its absence means "none", not "unchanged".
-_CLEARABLE = frozenset({OPTION_TRIP_WORK_ZONE, OPTION_GRID_ENERGY_ENTITY})
+_CLEARABLE = frozenset(
+    {
+        OPTION_TRIP_WORK_ZONE,
+        OPTION_TRIP_PHONE_TRACKER,
+        OPTION_TRIP_PHONE_IN_CAR,
+        OPTION_GRID_ENERGY_ENTITY,
+    }
+)
 
 
 def _vehicles(options: Mapping[str, Any]) -> Mapping[str, Any]:

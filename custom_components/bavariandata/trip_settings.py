@@ -23,6 +23,8 @@ from .const import (
     OPTION_TRIP_COMMUTE_GAP,
     OPTION_TRIP_DEFAULT_CLASS,
     OPTION_TRIP_DETECTION,
+    OPTION_TRIP_PHONE_IN_CAR,
+    OPTION_TRIP_PHONE_TRACKER,
     OPTION_TRIP_TRACK,
     OPTION_TRIP_WORK_ZONE,
     TRIP_DETECTION_CHOICES,
@@ -44,12 +46,23 @@ class TripSettings:
     commute_gap_s: int = DEFAULT_TRIP_COMMUTE_GAP_MIN * 60
     detection: str = TRIP_DETECTION_LIVE
     record_track: bool = False
+    # A phone's ``device_tracker`` and the binary sensor that says it is in the
+    # car (``phone_route.py``). Kept as set even where unused, so switching
+    # back to reports finds them where they were.
+    phone_tracker: Optional[str] = None
+    phone_in_car: Optional[str] = None
 
     @property
     def report_trips(self) -> bool:
         """True when trips are built from vehicle reports, not the live stream."""
 
         return self.detection == TRIP_DETECTION_REPORTS
+
+    @property
+    def phone_route(self) -> bool:
+        """True when the route of a report trip comes from a phone."""
+
+        return self.report_trips and self.record_track and bool(self.phone_tracker)
 
     @classmethod
     def from_values(cls, values: Mapping[str, Any]) -> "TripSettings":
@@ -68,6 +81,8 @@ class TripSettings:
             commute_gap_s=max(gap_min, 0) * 60,
             detection=detection if detection in TRIP_DETECTION_CHOICES else TRIP_DETECTION_LIVE,
             record_track=bool(values.get(OPTION_TRIP_TRACK)),
+            phone_tracker=values.get(OPTION_TRIP_PHONE_TRACKER) or None,
+            phone_in_car=values.get(OPTION_TRIP_PHONE_IN_CAR) or None,
         )
 
 

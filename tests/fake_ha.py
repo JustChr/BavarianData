@@ -2,7 +2,7 @@
 
 Home Assistant cannot be imported on Windows at all (a bare ``import fcntl`` in
 ``homeassistant/runner.py``), so the coordinator -- the integration's central
-state machine -- could never be executed by this suite. It only needs seven
+state machine -- could never be executed by this suite. It only needs eight
 names from Home Assistant, though, and each is small enough to stand in for
 faithfully:
 
@@ -12,6 +12,7 @@ Home Assistant                          Stand-in
 ``core.HomeAssistant`` / ``callback``   a marker class / identity decorator
 ``helpers.dispatcher``                  records every signal on the ``FakeHass``
 ``helpers.event.async_call_later``      a timer on the virtual clock
+``helpers.event.async_track_state_...`` a listener ``FakeHass.set_state`` calls
 ``helpers.issue_registry``              records raised/cleared repair issues
 ``helpers.storage.Store``               an in-memory store on the ``FakeHass``
 ``util.dt``                             the few helpers the code calls
@@ -89,6 +90,8 @@ class FakeHass:
     tasks: list[Any] = field(default_factory=list)
     # Entity states a test sets (a wallbox meter): ``entity_id -> State``-alike.
     entity_states: dict[str, Any] = field(default_factory=dict)
+    # ``async_track_state_change_event`` listeners: ``(entity_ids, action)``.
+    state_listeners: list[tuple[frozenset, Callable[[Any], Any]]] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self.bus = types.SimpleNamespace(async_fire=self._fire)
@@ -123,9 +126,17 @@ class FakeHass:
         return due
 
     def set_state(self, entity_id: str, state: Any, **attributes: Any) -> None:
-        self.entity_states[entity_id] = types.SimpleNamespace(
+        old_state = self.entity_states.get(entity_id)
+        new_state = types.SimpleNamespace(
             entity_id=entity_id, state=str(state), attributes=attributes, name=entity_id
         )
+        self.entity_states[entity_id] = new_state
+        event = types.SimpleNamespace(
+            data={"entity_id": entity_id, "old_state": old_state, "new_state": new_state}
+        )
+        for entity_ids, action in list(self.state_listeners):
+            if entity_id in entity_ids:
+                action(event)
 
     def event_types(self) -> list[str]:
         return [name for name, _data in self.events]
@@ -205,6 +216,11 @@ def _stub_modules() -> dict[str, types.ModuleType]:
     def call_later(hass, delay, callback):
         return hass.call_later(delay, callback)
 
+    def track_state_change_event(hass, entity_ids, action):
+        listener = (frozenset([entity_ids] if isinstance(entity_ids, str) else entity_ids), action)
+        hass.state_listeners.append(listener)
+        return lambda: hass.state_listeners.remove(listener)
+
     def create_issue(hass, domain, issue_id, **kwargs) -> None:
         hass.issues[issue_id] = kwargs
 
@@ -237,7 +253,9 @@ def _stub_modules() -> dict[str, types.ModuleType]:
             "homeassistant.helpers.dispatcher", async_dispatcher_send=dispatcher_send
         ),
         "homeassistant.helpers.event": module(
-            "homeassistant.helpers.event", async_call_later=call_later
+            "homeassistant.helpers.event",
+            async_call_later=call_later,
+            async_track_state_change_event=track_state_change_event,
         ),
         "homeassistant.helpers.issue_registry": module(
             "homeassistant.helpers.issue_registry",

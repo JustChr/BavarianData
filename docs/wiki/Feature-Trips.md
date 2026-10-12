@@ -95,7 +95,42 @@ minutes) becomes one trip:
 The first report after you switch the mode only sets the starting point, so the
 first trip comes with the second drive. Classification, commute chains and the
 *arrived in zone* trigger work as for any other trip. There is no *trip in
-progress* and no route on these cars, because nothing arrives during the drive.
+progress* on these cars, because nothing arrives during the drive, and no route
+unless a phone supplies one (below).
+
+#### The route from a phone
+
+An i3 sends no position while it drives, but your phone does: the Home Assistant
+companion app reports its location as a `device_tracker`. With **Trip detection**
+on **End-of-trip reports** and **Record route** on, **Configure → Trips** shows a
+second screen, **Route from a phone**, for that car:
+
+- **Phone**: the phone's `device_tracker`. Its positions during the drive become
+  the trip's route.
+- **Phone is in the car** (optional): a binary sensor that is on while the phone
+  is connected to the car, such as an Android Auto or Bluetooth sensor from the
+  companion app, or a template sensor built from the CarPlay Wi-Fi name. When it
+  turns on, that counts as `bavariandata.mark_trip_start`, so the trip gets its
+  start time without an automation. Only positions taken while it is on are kept.
+  Without it, positions are held from the trip's start mark to its arrival.
+
+What the car says still wins:
+
+- **Distance, duration and charge come from the car.** The phone only draws the
+  line. A GPS track reads short on a winding road, the odometer doesn't.
+- **The phone has to end where the car parked.** If the phone's last position is
+  more than 500 m from where the car reported it parked, the phone was not in that
+  car (someone else drove it). The trip then keeps its straight line.
+- **No start, no route.** Without a start mark, nothing says which of the phone's
+  positions belong to the drive.
+- Positions closer than 50 m to the previous one (a queue) and fixes less accurate
+  than 100 m are left out. Positions are held in memory only and reach the disk
+  only as part of a trip's route. A restart during the drive loses the positions
+  held so far.
+
+A trip whose route came from a phone has `track_source: phone` in `get_trips`.
+How often the phone reports is up to the companion app's location settings. More
+frequent updates make a finer route and drain the phone's battery faster.
 
 One owner of an iDrive 6 car built a driving logbook on top of BavarianData before
 this mode existed. It takes the trip end from the car and the trip start from the

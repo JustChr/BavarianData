@@ -337,6 +337,18 @@
           }
         }
       },
+      "trips_phone": {
+        "title": "Route van een telefoon",
+        "description": "**{vehicle}** meldt zich pas bij het parkeren, dus de route kan van een meerijdende telefoon komen, via de locatie van de Home Assistant-app. Afstand, duur en lading komen nog steeds van de auto. Geldt vanaf de volgende rit.",
+        "data": {
+          "trip_phone_tracker": "Telefoon",
+          "trip_phone_in_car": "Telefoon is in de auto"
+        },
+        "data_description": {
+          "trip_phone_tracker": "Optioneel. De posities tekenen de route van de rit, alleen bewaard als de telefoon eindigt waar de auto parkeerde. Laat leeg voor een rechte lijn.",
+          "trip_phone_in_car": "Optioneel. Aan zolang de telefoon met de auto verbonden is (CarPlay, Android Auto, Bluetooth). Aanschakelen start een rit; zonder sensor heeft een rit 'Ritstart markeren' nodig."
+        }
+      },
       "action_data_refresh": {
         "title": "Automatisch gegevens vernieuwen",
         "description": "De live stream bevat alleen wat verandert terwijl Home Assistant luistert. Wat de auto meldde terwijl Home Assistant uit stond of de verbinding met BMW verbroken was (een laadbeurt die eindigde, deuren die vergrendeld werden, een rit), wordt bij het herverbinden niet opnieuw afgespeeld.\n\nMet deze optie aan vraagt de integratie BMW twee minuten na het starten van Home Assistant één keer per auto om de huidige status, en opnieuw wanneer de verbinding terugkomt na een onderbreking van vijf minuten of langer. BMW geeft de laatste waarden terug die elke auto stuurde, zodat je bijgewerkt bent zonder de auto te wekken. Het kost één van de 50 dagelijkse verzoeken per auto. Het wordt overgeslagen als BMW het afgelopen uur al is gevraagd, tenzij er bij de herstart een laadbeurt liep, en het laat altijd 10 verzoeken over voor je eigen serviceaanroepen.",
@@ -373,7 +385,8 @@
       "invalid_result": "Dat resultaat kon niet worden gelezen. Voer de bladwijzer Activate BMW data uit op de stream setup-pagina van het BMW-portaal en plak precies wat hij naar je klembord heeft gekopieerd.",
       "price_required": "Voer een vaste prijs per kWh in, of kies een andere prijsbron.",
       "price_entity_required": "Kies de entiteit die je prijs per kWh meldt, of kies een andere prijsbron.",
-      "mqtt_missing": "De brug publiceert via de MQTT-integratie van Home Assistant, en die heb je niet ingesteld. Voeg haar toe via Instellingen → Apparaten en diensten (de add-on Mosquitto broker is de gebruikelijke keuze) en kom dan terug."
+      "mqtt_missing": "De brug publiceert via de MQTT-integratie van Home Assistant, en die heb je niet ingesteld. Voeg haar toe via Instellingen → Apparaten en diensten (de add-on Mosquitto broker is de gebruikelijke keuze) en kom dan terug.",
+      "phone_required": "Kies ook de telefoon: deze sensor zegt alleen wanneer de telefoon in de auto is."
     },
     "abort": {
       "reauth_started": "Autorisatie opnieuw gestart. Rond de nieuwe aanmelding af via de melding die zojuist is verschenen.",

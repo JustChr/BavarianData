@@ -625,6 +625,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     # the account-wide ones.
     coordinator.trip_settings = account_trip_settings(options)
     coordinator.vehicle_trip_settings = vehicle_trip_settings(options)
+    # A car on end-of-trip reports may take its route from a phone.
+    coordinator.watch_phone_routes()
     coordinator.trip_debug = bool(options.get(OPTION_TRIP_DEBUG))
     coordinator.diagnostic_interval = diagnostic_interval
 
@@ -1978,6 +1980,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> 
     # An unloaded entry no longer gets a say in the debug level.
     forget_entry_debug(entry.entry_id)
     await data.coordinator.async_stop_watchdog()
+    data.coordinator.stop_watching_phone_routes()
     # Drop the stream-health repairs this entry raised, so a reconfigure or
     # removal doesn't leave a stale "no data" / "unauthorized" warning behind.
     data.coordinator.async_clear_stream_repairs()

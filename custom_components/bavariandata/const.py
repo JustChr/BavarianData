@@ -110,6 +110,13 @@ OPTION_TRIP_DETECTION = "trip_detection"
 TRIP_DETECTION_LIVE = "live"
 TRIP_DETECTION_REPORTS = "reports"
 TRIP_DETECTION_CHOICES = (TRIP_DETECTION_LIVE, TRIP_DETECTION_REPORTS)
+# The route of a ``reports`` car, from a phone that rides along (an i3 sends
+# nothing while driving). The phone's ``device_tracker`` gives the points; the
+# optional binary sensor says when the phone is in the car -- connected over
+# CarPlay, Android Auto or Bluetooth -- and its turning on marks a trip start.
+# Per car, and used only with ``trip_track`` on (``phone_route.py``).
+OPTION_TRIP_PHONE_TRACKER = "trip_phone_tracker"
+OPTION_TRIP_PHONE_IN_CAR = "trip_phone_in_car"
 # Trip-capture debug mode (diagnostic, off by default). Independent of the
 # generic ``debug_log`` toggle: when on, the coordinator emits a rich, greppable
 # capture of the trip detector's raw substrate (every GPS fix, the close-timer

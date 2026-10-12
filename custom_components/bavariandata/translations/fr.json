@@ -337,6 +337,18 @@
           }
         }
       },
+      "trips_phone": {
+        "title": "Itinéraire depuis un téléphone",
+        "description": "**{vehicle}** ne transmet ses données qu'une fois garé, son itinéraire peut donc venir d'un téléphone à bord, via la localisation de l'application Home Assistant. Distance, durée et charge viennent toujours du véhicule. S'applique dès le prochain trajet.",
+        "data": {
+          "trip_phone_tracker": "Téléphone",
+          "trip_phone_in_car": "Téléphone dans le véhicule"
+        },
+        "data_description": {
+          "trip_phone_tracker": "Facultatif. Ses positions tracent l'itinéraire du trajet, conservées seulement si le téléphone finit là où le véhicule s'est garé. Laissez vide pour une ligne droite.",
+          "trip_phone_in_car": "Facultatif. Activé tant que le téléphone est connecté au véhicule (CarPlay, Android Auto, Bluetooth). Son activation démarre un trajet ; sans lui, un trajet nécessite « Marquer le début du trajet »."
+        }
+      },
       "action_data_refresh": {
         "title": "Actualisation automatique des données",
         "description": "Le flux en direct ne transporte que ce qui change pendant que Home Assistant écoute. Ce que la voiture a transmis pendant que Home Assistant était arrêté ou que la connexion à BMW était coupée (une recharge terminée, le verrouillage des portes, un trajet) n'est pas rejoué à la reconnexion.\n\nAvec cette option, l'intégration demande à BMW l'état actuel de chaque voiture deux minutes après le démarrage de Home Assistant, puis à nouveau lorsque la connexion revient après une coupure de cinq minutes ou plus. BMW renvoie les dernières valeurs transmises par chaque voiture ; vous rattrapez donc le retard sans réveiller la voiture. Cela consomme une des 50 requêtes quotidiennes par voiture. L'appel est ignoré si BMW a déjà été interrogé au cours de la dernière heure, sauf si une recharge était en cours au redémarrage, et il laisse toujours 10 requêtes pour vos propres appels de service.",
@@ -373,7 +385,8 @@
       "invalid_result": "Ce résultat est illisible. Exécutez le favori Activate BMW data sur la page stream setup du portail BMW et collez exactement ce qu'il a copié dans votre presse-papiers.",
       "price_required": "Saisissez un prix fixe par kWh ou choisissez une autre source de prix.",
       "price_entity_required": "Choisissez l'entité qui indique votre prix par kWh ou choisissez une autre source de prix.",
-      "mqtt_missing": "La passerelle publie via l'intégration MQTT de Home Assistant, et aucune n'est configurée. Ajoutez-la sous Paramètres → Appareils et services (le module complémentaire Mosquitto broker est le choix habituel), puis revenez."
+      "mqtt_missing": "La passerelle publie via l'intégration MQTT de Home Assistant, et aucune n'est configurée. Ajoutez-la sous Paramètres → Appareils et services (le module complémentaire Mosquitto broker est le choix habituel), puis revenez.",
+      "phone_required": "Choisissez aussi le téléphone : ce capteur indique seulement quand le téléphone est dans le véhicule."
     },
     "abort": {
       "reauth_started": "Autorisation relancée. Terminez la nouvelle connexion depuis la notification qui vient d'apparaître.",

@@ -76,7 +76,7 @@ testable here. Home Assistant itself cannot be imported on Windows, so there is
 no real-HA harness; config-flow/entity behavior is verified against a live HA
 instance manually.
 
-**The coordinator does run under test**, against `tests/fake_ha.py` — seven
+**The coordinator does run under test**, against `tests/fake_ha.py` — eight
 small stand-ins for the HA names it imports, plus a virtual clock. Drive it with
 `tests/harness.py`: `send()` batches in BMW's wire shape, `advance_to()` fires
 timers and the 30 s watchdog, `restart()` replays HA's stop flush and the entity

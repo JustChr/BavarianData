@@ -16,7 +16,7 @@ from typing import Any, Callable, Deque, Dict, Iterable, Mapping, Optional
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.dispatcher import async_dispatcher_send
-from homeassistant.helpers.event import async_call_later
+from homeassistant.helpers.event import async_call_later, async_track_state_change_event
 from homeassistant.util import dt as dt_util
 
 from .const import (
@@ -69,6 +69,7 @@ from .history.trip_builder import (
     silence_implies_stop,
 )
 from .coverage import is_combustion_only, is_plug_in_hybrid
+from .phone_route import PhoneRoute
 from .soc_tracking import SocTracking
 from .structured_values import EMPTY_WHEN_NULL
 from .trip_settings import TripSettings
@@ -513,6 +514,10 @@ class CardataCoordinator:
     # odometer reading it is waiting on (``vehicle_report.py``).
     _report_timers: Dict[str, Any] = field(default_factory=dict, init=False)
     _report_pending: Dict[str, float] = field(default_factory=dict, init=False)
+    # The phone positions held per VIN for a report trip's route, and the one
+    # state listener feeding them (``phone_route.py``, :meth:`watch_phone_routes`).
+    _phone_routes: Dict[str, PhoneRoute] = field(default_factory=dict, init=False)
+    _phone_unsub: Optional[Callable[[], None]] = field(default=None, init=False)
     # Per-VIN GPS movement trackers. Trips are detected from the live position
     # stream because the i5 streams no motion/ignition and its ``trip.segment``
     # batches are not trip-end markers -- it emits them repeatedly *mid-drive*
@@ -1996,6 +2001,93 @@ class CardataCoordinator:
         self.history.async_set_last_report(vin, add_start_mark(self.history.last_report(vin), at))
         self._cap("[trip.report] %s start marked at %s", vin, at.isoformat())
 
+    def watch_phone_routes(self) -> None:
+        """Listen to every phone and in-car sensor a car's trip settings name.
+
+        Called whenever the trip settings are (re)read. Every car starts over,
+        since its in-car sensor -- what decides which positions are held -- may
+        be a different one now.
+        """
+
+        self.stop_watching_phone_routes()
+        self._phone_routes = {}
+        entities = sorted(
+            {
+                entity_id
+                for settings in (self.trip_settings, *self.vehicle_trip_settings.values())
+                if settings.phone_route
+                for entity_id in (settings.phone_tracker, settings.phone_in_car)
+                if entity_id
+            }
+        )
+        if entities:
+            self._phone_unsub = async_track_state_change_event(
+                self.hass, entities, self._phone_state_changed
+            )
+
+    def stop_watching_phone_routes(self) -> None:
+        if self._phone_unsub is not None:
+            self._phone_unsub()
+            self._phone_unsub = None
+
+    def _phone_route(self, vin: str, settings: TripSettings, in_car_state: Any) -> PhoneRoute:
+        route = self._phone_routes.get(vin)
+        if route is None:
+            route = PhoneRoute(gated=bool(settings.phone_in_car))
+            if settings.phone_in_car:
+                if in_car_state is None:
+                    in_car_state = self.hass.states.get(settings.phone_in_car)
+                route.in_car = in_car_state is not None and in_car_state.state == "on"
+            self._phone_routes[vin] = route
+        return route
+
+    @callback
+    def _phone_state_changed(self, event: Any) -> None:
+        """A phone moved, or got into or out of a car."""
+
+        try:
+            entity_id = event.data.get("entity_id")
+            new_state = event.data.get("new_state")
+            if new_state is None:
+                return
+            now = datetime.now(timezone.utc)
+            for vin in sorted({*self.data, *self.names, *self.vehicle_trip_settings}):
+                settings = self.trip_settings_for(vin)
+                if not settings.phone_route:
+                    continue
+                if entity_id == settings.phone_in_car:
+                    # Created from the state *before* this change, so a car
+                    # first heard of now still sees the sensor turn on.
+                    route = self._phone_route(vin, settings, event.data.get("old_state"))
+                    if route.set_in_car(new_state.state == "on"):
+                        self.mark_trip_start(vin, now)
+                        # The phone may not move again for a while: where it
+                        # is now is where the drive starts.
+                        tracker = self.hass.states.get(settings.phone_tracker)
+                        if tracker is not None:
+                            self._add_phone_position(vin, route, tracker, now)
+                elif entity_id == settings.phone_tracker:
+                    self._add_phone_position(
+                        vin, self._phone_route(vin, settings, None), new_state, now
+                    )
+        except Exception:  # noqa: BLE001 - a phone must not break the stream
+            _LOGGER.exception("Could not follow the phone's position")
+
+    def _add_phone_position(self, vin: str, route: PhoneRoute, state: Any, now: datetime) -> None:
+        attributes = getattr(state, "attributes", None) or {}
+        try:
+            latitude = float(attributes["latitude"])
+            longitude = float(attributes["longitude"])
+        except KeyError, TypeError, ValueError:
+            return
+        accuracy = attributes.get("gps_accuracy")
+        try:
+            accuracy = float(accuracy) if accuracy is not None else None
+        except TypeError, ValueError:
+            accuracy = None
+        if route.add(now, latitude, longitude, accuracy):
+            self._cap("[trip.phone] %s %.5f,%.5f acc=%s", vin, latitude, longitude, accuracy)
+
     async def _remember_report_place(self, vin: str, odometer_km: float) -> None:
         """Add where the car stands to the record of the reading it just gave.
 
@@ -2118,6 +2210,11 @@ class CardataCoordinator:
                 last = tracking.last_update if tracking is not None else None
                 if last is None or (before is not None and last <= before):
                     soc_end = None
+            route = self._phone_report_route(vin, start, end_at)
+            if route:
+                builder.record_track = True
+                for at, latitude, longitude in route:
+                    builder.add_track_point(latitude, longitude, at)
             trip = builder.close(
                 end_at,
                 end_place=end_place,
@@ -2128,17 +2225,41 @@ class CardataCoordinator:
                 hybrid=self.is_plug_in_hybrid(vin),
             )
             trip.duration_unknown = start is None
+            if route:
+                trip.track_source = "phone"
             self._cap(
-                "[trip.report] %s %s -> %s dist=%s start=%s",
+                "[trip.report] %s %s -> %s dist=%s start=%s phone_points=%s",
                 vin,
                 (trip.start_place or {}).get("label"),
                 (trip.end_place or {}).get("label"),
                 trip.distance_km,
                 "marked" if start is not None else "unknown",
+                len(route),
             )
             self._store_trip(vin, trip, start_zone=None, left_fired=False, announce=True)
         except Exception:  # noqa: BLE001 - bookkeeping must not break the stream
             _LOGGER.exception("Could not record the report trip for %s", mask_vin(vin))
+
+    def _phone_report_route(
+        self, vin: str, start: Optional[datetime], end_at: datetime
+    ) -> list[tuple[datetime, float, float]]:
+        """The phone's route for a report trip, ending where the car parked.
+
+        Empty when the car takes no route from a phone, or the phone's does not
+        fit the trip (``phone_route.py``).
+        """
+
+        route = self._phone_routes.get(vin)
+        if route is None or not self.trip_settings_for(vin).phone_route:
+            return []
+        latitude = self._coordinate(vin, "latitude")
+        longitude = self._coordinate(vin, "longitude")
+        end_fix = (latitude, longitude) if latitude is not None and longitude is not None else None
+        points = route.take(start, end_at, end_fix)
+        if not points or end_fix is None:
+            return []
+        # The car's own fix closes the line: it is where the trip ends.
+        return [*points, (end_at, *end_fix)]
 
     def _numeric(self, vin: str, descriptor: str) -> Optional[float]:
         state = self.get_state(vin, descriptor)

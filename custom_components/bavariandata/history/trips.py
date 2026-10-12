@@ -112,6 +112,10 @@ class Trip:
     # not when it set off. Such a trip is stored at its arrival with no duration
     # rather than an invented one (``vehicle_report.py``).
     duration_unknown: bool = False
+    # Where ``track`` came from when it isn't the car's own fixes: ``"phone"``
+    # for a car that reports only once parked, whose route was taken from a
+    # phone that rode along (``phone_route.py``). ``None`` is the car's own.
+    track_source: Optional[str] = None
 
     @property
     def id(self) -> str:
@@ -198,6 +202,7 @@ class Trip:
             "track": [list(point) for point in self.track],
             "hybrid": self.hybrid,
             "duration_unknown": self.duration_unknown,
+            "track_source": self.track_source,
         }
 
     @classmethod
@@ -228,6 +233,7 @@ class Trip:
             track=[list(point) for point in data.get("track") or []],
             hybrid=bool(data.get("hybrid")),
             duration_unknown=bool(data.get("duration_unknown")),
+            track_source=data.get("track_source") if data.get("track_source") == "phone" else None,
         )
 
 

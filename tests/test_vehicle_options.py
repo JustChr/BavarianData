@@ -39,6 +39,8 @@ TRIP_FORM = {
     "trip_detection": "reports",
     "trip_track": False,
 }
+# The entity pickers left empty: stored as "none", never left unchanged.
+CLEARED = {"trip_work_zone": None, "trip_phone_tracker": None, "trip_phone_in_car": None}
 
 
 # --- the shared rules ---------------------------------------------------------
@@ -69,7 +71,7 @@ def test_a_car_with_its_own_group_inherits_nothing_of_it() -> None:
 def test_a_multi_car_screen_stores_its_group_whole_under_that_car() -> None:
     stored = OPTIONS.store_values(ACCOUNT, TRIP_FORM, OPTIONS.TRIP_OPTIONS, vin=B, per_vehicle=True)
 
-    assert stored["vehicles"][B] == {**TRIP_FORM, "trip_work_zone": None}
+    assert stored["vehicles"][B] == {**TRIP_FORM, **CLEARED}
     assert {key: stored[key] for key in ACCOUNT} == ACCOUNT
 
 
@@ -85,10 +87,7 @@ def test_one_screen_never_disturbs_another_screens_settings() -> None:
         per_vehicle=True,
     )
 
-    assert OPTIONS.own_values(stored, B, OPTIONS.TRIP_OPTIONS) == {
-        **TRIP_FORM,
-        "trip_work_zone": None,
-    }
+    assert OPTIONS.own_values(stored, B, OPTIONS.TRIP_OPTIONS) == {**TRIP_FORM, **CLEARED}
     assert OPTIONS.own_values(stored, B, OPTIONS.CHARGING_OPTIONS) == {
         "grid_energy_entity": "sensor.wallbox_drive_total",
         "charging_loss_percent": 5,

@@ -337,6 +337,18 @@
           }
         }
       },
+      "trips_phone": {
+        "title": "Rutt från en telefon",
+        "description": "**{vehicle}** rapporterar först när den parkerar, så rutten kan komma från en telefon som åker med, via Home Assistant-appens plats. Sträcka, tid och laddning kommer fortfarande från bilen. Gäller från nästa resa.",
+        "data": {
+          "trip_phone_tracker": "Telefon",
+          "trip_phone_in_car": "Telefonen är i bilen"
+        },
+        "data_description": {
+          "trip_phone_tracker": "Valfritt. Dess positioner ritar resans rutt, behålls bara om telefonen slutar där bilen parkerade. Lämna tomt för en rak linje.",
+          "trip_phone_in_car": "Valfritt. På medan telefonen är ansluten till bilen (CarPlay, Android Auto, Bluetooth). När den slås på startar en resa; utan den behöver en resa ”Markera resans start”."
+        }
+      },
       "action_data_refresh": {
         "title": "Automatisk datauppdatering",
         "description": "Live-strömmen innehåller bara det som ändras medan Home Assistant lyssnar. Det bilen rapporterade medan Home Assistant var nere eller anslutningen till BMW var bruten (en laddning som avslutades, dörrar som låstes, en resa) spelas inte upp igen när den återansluter.\n\nMed detta på frågar integrationen BMW en gång per bil om dess aktuella tillstånd två minuter efter att Home Assistant startat, och igen när anslutningen kommer tillbaka efter ett avbrott på fem minuter eller mer. BMW returnerar de senaste värdena varje bil skickade, så du kommer ikapp utan att väcka bilen. Det förbrukar ett av de 50 dagliga anropen per bil. Det hoppas över om BMW redan frågats under den senaste timmen, såvida inte en laddning pågick vid omstarten, och det lämnar alltid 10 anrop kvar för dina egna tjänsteanrop.",
@@ -373,7 +385,8 @@
       "invalid_result": "Resultatet kunde inte läsas. Kör bokmärket Activate BMW data på BMW-portalens stream setup-sida och klistra in exakt det som det kopierade till urklipp.",
       "price_required": "Ange ett fast pris per kWh, eller välj en annan priskälla.",
       "price_entity_required": "Välj den entitet som rapporterar ditt pris per kWh, eller välj en annan priskälla.",
-      "mqtt_missing": "Bryggan publicerar via Home Assistants MQTT-integration, och du har ingen konfigurerad. Lägg till den under Inställningar → Enheter och tjänster (tillägget Mosquitto broker är det vanliga valet) och kom sedan tillbaka."
+      "mqtt_missing": "Bryggan publicerar via Home Assistants MQTT-integration, och du har ingen konfigurerad. Lägg till den under Inställningar → Enheter och tjänster (tillägget Mosquitto broker är det vanliga valet) och kom sedan tillbaka.",
+      "phone_required": "Välj även telefonen: sensorn säger bara när telefonen är i bilen."
     },
     "abort": {
       "reauth_started": "Auktoriseringen har startats om. Slutför den nya inloggningen från aviseringen som just dök upp.",

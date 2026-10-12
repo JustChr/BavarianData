@@ -337,6 +337,18 @@
           }
         }
       },
+      "trips_phone": {
+        "title": "Route from a phone",
+        "description": "**{vehicle}** only reports when it parks, so its route can come from a phone that rides along, using the Home Assistant app's location. Distance, duration and charge still come from the car. Applies from the next trip on.",
+        "data": {
+          "trip_phone_tracker": "Phone",
+          "trip_phone_in_car": "Phone is in the car"
+        },
+        "data_description": {
+          "trip_phone_tracker": "Optional. Its positions draw the trip's route, kept only if the phone ends up where the car parked. Leave empty for a straight line.",
+          "trip_phone_in_car": "Optional. On while the phone is connected to the car (CarPlay, Android Auto, Bluetooth). Turning on starts a trip; without it, a trip needs Mark trip start."
+        }
+      },
       "action_data_refresh": {
         "title": "Automatic data refresh",
         "description": "The live stream only carries what changes while Home Assistant is listening. Whatever the car reported while Home Assistant was down or the connection to BMW was cut off (a charge that ended, the doors being locked, a drive) is not replayed when it reconnects.\n\nWith this on, the integration asks BMW once per car for its current state two minutes after Home Assistant starts, and again when the connection comes back after an outage of five minutes or more. BMW returns the last values each car sent, so you catch up without waking the car. It uses one of the 50 daily requests per car. It is skipped if BMW was already asked within the last hour, unless a charge was running at the restart, and it always leaves 10 requests for your own service calls.",
@@ -373,7 +385,8 @@
       "invalid_result": "That result couldn't be read. Run the Activate BMW data bookmarklet on the BMW portal's stream-setup page and paste exactly what it copied to your clipboard.",
       "price_required": "Enter a fixed price per kWh, or choose a different price source.",
       "price_entity_required": "Pick the entity that reports your price per kWh, or choose a different price source.",
-      "mqtt_missing": "The bridge publishes through Home Assistant's MQTT integration, and you don't have one set up. Add it under Settings → Devices & services (the Mosquitto broker add-on is the usual choice), then come back."
+      "mqtt_missing": "The bridge publishes through Home Assistant's MQTT integration, and you don't have one set up. Add it under Settings → Devices & services (the Mosquitto broker add-on is the usual choice), then come back.",
+      "phone_required": "Pick the phone too: this sensor only says when the phone is in the car."
     },
     "abort": {
       "reauth_started": "Authorization restarted. Finish the new login from the notification that just appeared.",

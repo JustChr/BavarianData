@@ -9,7 +9,7 @@ import hashlib
 import secrets
 import string
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Mapping, Optional
 
 import aiohttp
 from aiohttp import web
@@ -67,8 +67,11 @@ from .const import (
     OPTION_TRIP_WORK_ZONE,
     VEHICLE_METADATA,
     OPTION_TRIP_DETECTION,
+    OPTION_TRIP_PHONE_IN_CAR,
+    OPTION_TRIP_PHONE_TRACKER,
     TRIP_DETECTION_CHOICES,
     TRIP_DETECTION_LIVE,
+    TRIP_DETECTION_REPORTS,
 )
 from .debug import set_debug_enabled
 from .history.classify import DEFAULT_CLASS_CHOICES
@@ -995,6 +998,15 @@ _PICK = object()
 _SHARED_SECTION = "all_vehicles"
 
 
+def _phone_route_follows(values: Mapping[str, Any]) -> bool:
+    """True when Trips is followed by the phone screen: a car on end-of-trip
+    reports that records its route, and only such a car."""
+
+    return values.get(OPTION_TRIP_DETECTION) == TRIP_DETECTION_REPORTS and bool(
+        values.get(OPTION_TRIP_TRACK)
+    )
+
+
 class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow):
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         self._config_entry = config_entry
@@ -1005,6 +1017,8 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         self._bridge_options: Optional[Dict[str, Any]] = None
         # The car whose settings are being edited (multi-car accounts).
         self._picked_vin: Optional[str] = None
+        # A Trips form waiting for the phone screen: ``(car values, shared)``.
+        self._trips_pending: tuple[Dict[str, Any], Dict[str, Any]] = ({}, {})
         self._init_activator_state()
 
     async def async_step_init(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
@@ -1701,6 +1715,9 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 step_id="action_trips",
                 data_schema=schema,
                 description_placeholders={"vehicle": self._vehicle_label(vehicles, vin)},
+                # *Next* where the phone screen follows with the settings in
+                # force; a form can't know what is about to be picked.
+                last_step=not _phone_route_follows(values),
             )
 
         submitted = dict(user_input)
@@ -1709,6 +1726,62 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
             for key in (OPTION_TRIP_GEOCODE, OPTION_TRIP_DEBUG)
             if key in submitted
         }
+        # Not on this form: kept as they are unless the phone screen changes them.
+        for key in (OPTION_TRIP_PHONE_TRACKER, OPTION_TRIP_PHONE_IN_CAR):
+            submitted[key] = values.get(key)
+        if _phone_route_follows(submitted):
+            self._trips_pending = (submitted, shared)
+            return await self.async_step_trips_phone()
+        return self._save_trips(submitted, shared)
+
+    async def async_step_trips_phone(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Where the route of a car on end-of-trip reports comes from.
+
+        Shown after Trips only to a car that records its route and reports only
+        once parked: such a car sends nothing while driving, so its route can
+        come from a phone that rides along (``phone_route.py``).
+        """
+
+        vehicles, _per_vehicle, vin = self._vehicle_context()
+        submitted, shared = self._trips_pending
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            tracker = user_input.get(OPTION_TRIP_PHONE_TRACKER) or None
+            in_car = user_input.get(OPTION_TRIP_PHONE_IN_CAR) or None
+            if in_car and not tracker:
+                errors[OPTION_TRIP_PHONE_IN_CAR] = "phone_required"
+            else:
+                submitted = {
+                    **submitted,
+                    OPTION_TRIP_PHONE_TRACKER: tracker,
+                    OPTION_TRIP_PHONE_IN_CAR: in_car,
+                }
+                return self._save_trips(submitted, shared)
+            submitted = {**submitted, OPTION_TRIP_PHONE_TRACKER: tracker}
+        schema = vol.Schema(
+            {
+                vol.Optional(
+                    OPTION_TRIP_PHONE_TRACKER,
+                    description={"suggested_value": submitted.get(OPTION_TRIP_PHONE_TRACKER)},
+                ): selector.EntitySelector(selector.EntitySelectorConfig(domain="device_tracker")),
+                vol.Optional(
+                    OPTION_TRIP_PHONE_IN_CAR,
+                    description={"suggested_value": submitted.get(OPTION_TRIP_PHONE_IN_CAR)},
+                ): selector.EntitySelector(selector.EntitySelectorConfig(domain="binary_sensor")),
+            }
+        )
+        return self.async_show_form(
+            step_id="trips_phone",
+            data_schema=schema,
+            errors=errors,
+            description_placeholders={"vehicle": self._vehicle_label(vehicles, vin)},
+        )
+
+    def _save_trips(self, submitted: Dict[str, Any], shared: Mapping[str, Any]) -> FlowResult:
+        _vehicles, per_vehicle, vin = self._vehicle_context()
+        options = dict(self._config_entry.options)
         options = store_values(options, submitted, TRIP_OPTIONS, vin=vin, per_vehicle=per_vehicle)
         options[OPTION_TRIP_GEOCODE] = bool(shared.get(OPTION_TRIP_GEOCODE))
         options[OPTION_TRIP_DEBUG] = bool(shared.get(OPTION_TRIP_DEBUG))
@@ -1725,6 +1798,9 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
             # no new one opens.
             coordinator.trip_settings = account_trip_settings(options)
             coordinator.vehicle_trip_settings = vehicle_trip_settings(options)
+            # A phone route starts with the next trip; positions held so far
+            # are let go, since they were gathered under the old settings.
+            coordinator.watch_phone_routes()
             if coordinator.geocoder is not None:
                 coordinator.geocoder.enabled = options[OPTION_TRIP_GEOCODE]
             # Trip-capture diagnostics apply immediately (next message onward).

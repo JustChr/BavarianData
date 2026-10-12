@@ -9,6 +9,17 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **A route for cars that report only when parked, from a phone that rides
+  along** (discussion #54). With **Trip detection** on **End-of-trip reports** and
+  **Record route** on, **Configure → Trips** now asks for a **Phone** (its
+  `device_tracker` from the Home Assistant app) and, optionally, a sensor that says
+  the **Phone is in the car** (Android Auto, Bluetooth, CarPlay). The phone's
+  positions draw the trip on the map; distance, duration and charge still come
+  from the car. A phone that doesn't end up where the car parked was not in it,
+  and its positions are dropped. The in-car sensor turning on marks the trip's
+  start, so no automation is needed for it.
+
 ### Changed
 - **The vehicle question's help is accurate now:** the next screen starts with
   that car's own settings, and the ones shared by every car follow under **All

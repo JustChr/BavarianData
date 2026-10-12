@@ -337,6 +337,18 @@
           }
         }
       },
+      "trips_phone": {
+        "title": "Trasa z telefonu",
+        "description": "**{vehicle}** wysyła dane dopiero po zaparkowaniu, więc trasa może pochodzić z telefonu jadącego w aucie, z lokalizacji aplikacji Home Assistant. Dystans, czas i naładowanie nadal pochodzą z auta. Obowiązuje od następnego przejazdu.",
+        "data": {
+          "trip_phone_tracker": "Telefon",
+          "trip_phone_in_car": "Telefon jest w aucie"
+        },
+        "data_description": {
+          "trip_phone_tracker": "Opcjonalne. Jego pozycje rysują trasę przejazdu, zachowane tylko, gdy telefon kończy tam, gdzie auto zaparkowało. Puste oznacza linię prostą.",
+          "trip_phone_in_car": "Opcjonalne. Włączony, gdy telefon jest połączony z autem (CarPlay, Android Auto, Bluetooth). Włączenie rozpoczyna przejazd; bez niego przejazd wymaga „Oznacz początek przejazdu”."
+        }
+      },
       "action_data_refresh": {
         "title": "Automatyczne odświeżanie danych",
         "description": "Strumień na żywo przenosi tylko to, co zmienia się, gdy Home Assistant nasłuchuje. To, co auto zgłosiło, gdy Home Assistant był wyłączony lub połączenie z BMW było przerwane (zakończone ładowanie, zablokowanie drzwi, przejazd), nie jest odtwarzane po ponownym połączeniu.\n\nPo włączeniu integracja pyta BMW o bieżący stan każdego auta dwie minuty po starcie Home Assistant oraz ponownie, gdy połączenie wraca po przerwie trwającej pięć minut lub dłużej. BMW zwraca ostatnie wartości wysłane przez każde auto, więc nadrabiasz zaległości bez budzenia auta. Zużywa to jedno z 50 dziennych żądań na auto. Jest pomijane, jeśli BMW było już pytane w ciągu ostatniej godziny, chyba że w chwili restartu trwało ładowanie, i zawsze zostawia 10 żądań na Twoje własne wywołania usług.",
@@ -373,7 +385,8 @@
       "invalid_result": "Nie udało się odczytać wyniku. Uruchom zakładkę Activate BMW data na stronie stream setup w portalu BMW i wklej dokładnie to, co skopiowała do schowka.",
       "price_required": "Wpisz stałą cenę za kWh lub wybierz inne źródło ceny.",
       "price_entity_required": "Wybierz encję podającą Twoją cenę za kWh lub wybierz inne źródło ceny.",
-      "mqtt_missing": "Most publikuje przez integrację MQTT Home Assistant, a nie masz jej skonfigurowanej. Dodaj ją w Ustawienia → Urządzenia oraz usługi (zwykle wybiera się dodatek Mosquitto broker), a następnie wróć."
+      "mqtt_missing": "Most publikuje przez integrację MQTT Home Assistant, a nie masz jej skonfigurowanej. Dodaj ją w Ustawienia → Urządzenia oraz usługi (zwykle wybiera się dodatek Mosquitto broker), a następnie wróć.",
+      "phone_required": "Wybierz też telefon: ten czujnik mówi tylko, kiedy telefon jest w aucie."
     },
     "abort": {
       "reauth_started": "Autoryzacja uruchomiona ponownie. Dokończ nowe logowanie z powiadomienia, które właśnie się pojawiło.",

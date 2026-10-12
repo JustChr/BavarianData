@@ -337,6 +337,18 @@
           }
         }
       },
+      "trips_phone": {
+        "title": "Route vom Handy",
+        "description": "**{vehicle}** meldet sich erst beim Abstellen, deshalb kann die Route von einem mitfahrenden Handy kommen, über den Standort der Home-Assistant-App. Strecke, Dauer und Ladezustand kommen weiter vom Auto. Gilt ab der nächsten Fahrt.",
+        "data": {
+          "trip_phone_tracker": "Handy",
+          "trip_phone_in_car": "Handy ist im Auto"
+        },
+        "data_description": {
+          "trip_phone_tracker": "Optional. Seine Positionen zeichnen die Route der Fahrt, behalten nur, wenn das Handy dort endet, wo das Auto geparkt hat. Leer lassen für eine gerade Linie.",
+          "trip_phone_in_car": "Optional. An, solange das Handy mit dem Auto verbunden ist (CarPlay, Android Auto, Bluetooth). Beim Einschalten beginnt eine Fahrt; ohne ihn braucht eine Fahrt „Fahrtbeginn markieren“."
+        }
+      },
       "action_data_refresh": {
         "title": "Automatische Aktualisierung",
         "description": "Der Live-Stream überträgt nur, was sich ändert, während Home Assistant zuhört. Was das Auto gemeldet hat, während Home Assistant aus war oder die Verbindung zu BMW unterbrochen war (ein beendeter Ladevorgang, das Verriegeln, eine Fahrt), wird beim Wiederverbinden nicht nachgeliefert.\n\nIst diese Option an, fragt die Integration einmal pro Auto den aktuellen Stand bei BMW ab: zwei Minuten nach dem Start von Home Assistant und wenn die Verbindung nach einer Unterbrechung von fünf Minuten oder mehr zurückkommt. BMW liefert die letzten Werte, die jedes Auto geschickt hat, so holst du den Rückstand auf, ohne das Auto aufzuwecken. Das kostet pro Auto eine der 50 täglichen Abfragen. Die Abfrage entfällt, wenn BMW in der letzten Stunde schon gefragt wurde, außer beim Neustart lief ein Ladevorgang, und sie lässt immer 10 Abfragen für deine eigenen Dienstaufrufe übrig.",
@@ -373,7 +385,8 @@
       "invalid_result": "Das Ergebnis konnte nicht gelesen werden. Führe das Lesezeichen „Activate BMW data“ auf der Stream-Setup-Seite des BMW-Portals aus und füge genau das ein, was es in die Zwischenablage kopiert hat.",
       "price_required": "Gib einen festen Preis pro kWh ein, oder wähle eine andere Preisquelle.",
       "price_entity_required": "Wähle die Entität, die deinen Preis pro kWh liefert, oder wähle eine andere Preisquelle.",
-      "mqtt_missing": "Die Brücke veröffentlicht über die MQTT-Integration von Home Assistant, und die ist bei dir nicht eingerichtet. Füge sie unter Einstellungen → Geräte & Dienste hinzu (üblich ist das Mosquitto-Broker-Add-on) und komm dann zurück."
+      "mqtt_missing": "Die Brücke veröffentlicht über die MQTT-Integration von Home Assistant, und die ist bei dir nicht eingerichtet. Füge sie unter Einstellungen → Geräte & Dienste hinzu (üblich ist das Mosquitto-Broker-Add-on) und komm dann zurück.",
+      "phone_required": "Wähle auch das Handy: Dieser Sensor sagt nur, wann das Handy im Auto ist."
     },
     "abort": {
       "reauth_started": "Autorisierung neu gestartet. Schließe die neue Anmeldung über die soeben erschienene Benachrichtigung ab.",

@@ -337,6 +337,18 @@
           }
         }
       },
+      "trips_phone": {
+        "title": "Trasa z telefonu",
+        "description": "**{vehicle}** posílá data až po zaparkování, proto může trasa pocházet z telefonu, který jede s vámi, z polohy aplikace Home Assistant. Vzdálenost, doba a nabití dál pocházejí z auta. Platí od příští jízdy.",
+        "data": {
+          "trip_phone_tracker": "Telefon",
+          "trip_phone_in_car": "Telefon je v autě"
+        },
+        "data_description": {
+          "trip_phone_tracker": "Volitelné. Jeho polohy vykreslí trasu jízdy, ponechané jen tehdy, když telefon skončí tam, kde auto zaparkovalo. Prázdné znamená přímou čáru.",
+          "trip_phone_in_car": "Volitelné. Zapnuto, dokud je telefon připojen k autu (CarPlay, Android Auto, Bluetooth). Zapnutí zahájí jízdu; bez něj jízda potřebuje „Označit začátek jízdy“."
+        }
+      },
       "action_data_refresh": {
         "title": "Automatická obnova dat",
         "description": "Živý stream přenáší jen to, co se změní, zatímco Home Assistant naslouchá. Co auto hlásilo, když byl Home Assistant vypnutý nebo bylo přerušeno spojení s BMW (dokončené nabíjení, zamčení dveří, jízda), se po opětovném připojení nepřehraje.\n\nPo zapnutí se integrace dvě minuty po startu Home Assistant zeptá BMW na aktuální stav každého auta a znovu, když se spojení obnoví po výpadku trvajícím pět minut nebo déle. BMW vrátí poslední hodnoty, které každé auto odeslalo, takže doženete zmeškané, aniž byste auto probudili. Spotřebuje to jeden z 50 denních požadavků na auto. Přeskočí se, pokud byl BMW dotázán během poslední hodiny, ledaže při restartu probíhalo nabíjení, a vždy ponechá 10 požadavků pro vaše vlastní volání služeb.",
@@ -373,7 +385,8 @@
       "invalid_result": "Výsledek se nepodařilo přečíst. Spusťte záložku Activate BMW data na stránce stream setup v portálu BMW a vložte přesně to, co zkopírovala do schránky.",
       "price_required": "Zadejte pevnou cenu za kWh, nebo zvolte jiný zdroj ceny.",
       "price_entity_required": "Vyberte entitu, která hlásí vaši cenu za kWh, nebo zvolte jiný zdroj ceny.",
-      "mqtt_missing": "Most publikuje přes integraci MQTT v Home Assistant a tu nemáte nastavenou. Přidejte ji v Nastavení → Zařízení a služby (obvyklou volbou je doplněk Mosquitto broker) a pak se vraťte."
+      "mqtt_missing": "Most publikuje přes integraci MQTT v Home Assistant a tu nemáte nastavenou. Přidejte ji v Nastavení → Zařízení a služby (obvyklou volbou je doplněk Mosquitto broker) a pak se vraťte.",
+      "phone_required": "Vyberte i telefon: tento senzor říká jen, kdy je telefon v autě."
     },
     "abort": {
       "reauth_started": "Autorizace byla znovu spuštěna. Dokončete nové přihlášení z oznámení, které se právě objevilo.",
