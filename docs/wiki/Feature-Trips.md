@@ -105,6 +105,10 @@ companion app reports its location as a `device_tracker`. With **Trip detection*
 on **End-of-trip reports** and **Record route** on, **Configure → Trips** shows a
 second screen, **Route from a phone**, for that car:
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trips-phone.png?v=2026-10-12" alt="The Route from a phone screen with its two fields, Phone and Phone is in the car, both empty" width="460" />
+</p>
+
 - **Phone**: the phone's `device_tracker`. Its positions during the drive become
   the trip's route.
 - **Phone is in the car** (optional): a binary sensor that is on while the phone

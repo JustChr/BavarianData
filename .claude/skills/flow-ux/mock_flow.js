@@ -11,7 +11,9 @@
 //
 // Run from a directory with playwright-core installed (see the shoot skill):
 //   HA_URL=http://<host> HA_TOKEN=<token> \
-//     node mock_flow.js <trips|charging|bridge> <real|staged> <lang> <width> <outdir>
+//     node mock_flow.js <trips|charging|bridge|phone> <real|staged> <lang> <width> <outdir>
+// ``phone`` is staged only: Trips for a car on end-of-trip reports with Record
+// route on, and the follow-up Route from a phone screen its submit leads to.
 // A new per-car screen: add it to SCREENS, starting from the real step the
 // server returns (written to real-<screen>-step.json) so the schema is HA's own.
 // A section serializes as {"type": "expandable", "name", "expanded", "schema"}.
@@ -55,11 +57,20 @@ const SCREENS = {
     expanded: false,
     values: { bridge_enabled: false },
   },
+  phone: {
+    menu: { en: "Trips", de: "Fahrten" },
+    step: "action_trips",
+    followup: "trips_phone",
+    name: "i3 120Ah",
+    values: { trip_detection: "reports", trip_track: true },
+    fields: { trip_phone_tracker: "device_tracker", trip_phone_in_car: "binary_sensor" },
+  },
 };
 
 const [screenName, mode, lang, width, outdir] = process.argv.slice(2);
 const screen = SCREENS[screenName];
-if (!screen || !["real", "staged"].includes(mode)) throw new Error("usage: <trips|charging|bridge> <real|staged> <lang> <width> <outdir>");
+if (!screen || !["real", "staged"].includes(mode) || (screen.followup && mode !== "staged"))
+  throw new Error("usage: <trips|charging|bridge|phone> <real|staged> <lang> <width> <outdir>");
 const NEXT = { en: "Next", de: "Weiter" };
 
 let realStep = null;
@@ -132,6 +143,37 @@ function secondCarForm(base) {
   };
 }
 
+// The single car's form, set to the values that lead to the follow-up screen.
+function followupFirstForm(base) {
+  return {
+    ...base,
+    data_schema: base.data_schema.map((field) =>
+      field.name in screen.values ? { ...field, default: screen.values[field.name] } : field
+    ),
+    description_placeholders: { vehicle: screen.name },
+    last_step: false,
+    errors: {},
+  };
+}
+
+// The follow-up step, its entity pickers cloned from the form's own (HA's
+// serialization) with only name and domain changed.
+function followupStep(base) {
+  const template = base.data_schema.find((field) => field.selector && field.selector.entity);
+  return {
+    ...base,
+    step_id: screen.followup,
+    data_schema: Object.entries(screen.fields).map(([name, domain]) => ({
+      ...template,
+      name,
+      selector: { entity: { ...template.selector.entity, domain: [domain] } },
+    })),
+    description_placeholders: { vehicle: screen.name },
+    last_step: null,
+    errors: {},
+  };
+}
+
 async function dialogRect(page) {
   return page.evaluate(() => {
     const found = [];
@@ -179,7 +221,25 @@ async function shot(page, name) {
   );
   const page = await context.newPage();
 
-  if (mode === "staged") {
+  if (screen.followup) {
+    await page.route("**/api/config/config_entries/options/flow/*", async (route) => {
+      const request = route.request();
+      if (request.method() !== "POST") return route.continue();
+      const body = JSON.parse(request.postData() || "{}");
+      if (phase === "menu" && body.next_step_id === screen.step) {
+        const response = await route.fetch();
+        realStep = await response.json();
+        realStep.data_schema = withoutEntities(realStep.data_schema);
+        phase = "form";
+        return route.fulfill({ json: followupFirstForm(realStep) });
+      }
+      if (phase === "form" && !("next_step_id" in body)) {
+        phase = "followup";
+        return route.fulfill({ json: followupStep(realStep) });
+      }
+      return route.abort();
+    });
+  } else if (mode === "staged") {
     await page.route("**/api/config/config_entries/options/flow/*", async (route) => {
       const request = route.request();
       if (request.method() !== "POST") return route.continue();
@@ -222,7 +282,12 @@ async function shot(page, name) {
   await page.getByText(screen.menu[lang], { exact: true }).first().click();
   await page.waitForTimeout(2500);
 
-  if (mode === "real") {
+  if (screen.followup) {
+    await shot(page, "1-form");
+    await page.getByRole("button", { name: NEXT[lang] }).first().click();
+    await page.waitForTimeout(2500);
+    await shot(page, "2-followup");
+  } else if (mode === "real") {
     await shot(page, "form");
   } else {
     await shot(page, "1-picker");

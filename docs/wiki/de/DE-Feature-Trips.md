@@ -114,6 +114,10 @@ Assistant Companion App meldet seinen Standort als `device_tracker`. Steht
 zeigt **Konfigurieren → Fahrten** für dieses Auto einen zweiten Bildschirm,
 **Route vom Handy**:
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trips-phone.png?v=2026-10-12" alt="Der Bildschirm Route vom Handy mit seinen zwei Feldern, Handy und Handy ist im Auto, beide leer" width="460" />
+</p>
+
 - **Handy**: der `device_tracker` des Handys. Seine Positionen während der Fahrt
   werden zur Route der Fahrt.
 - **Handy ist im Auto** (optional): ein Binärsensor, der an ist, solange das Handy

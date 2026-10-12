@@ -183,7 +183,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `trip_geocode` | Trips | 🟡 |
 | `trip_track` (route recording) | Trips | ✅ |
 | `trip_detection` (live / end-of-trip reports) | Trips | 🟢 Settings-Reference + Feature-Trips → "Older cars…" (EN + DE), screenshot `bavariandata-configure-trip-detection.png` |
-| `trip_phone_tracker` / `trip_phone_in_car` (route from a phone) | Trips → Route from a phone | 🟡 Settings-Reference + Feature-Trips → "The route from a phone" (EN + DE); no screenshot yet |
+| `trip_phone_tracker` / `trip_phone_in_car` (route from a phone) | Trips → Route from a phone | 🟢 Settings-Reference + Feature-Trips → "The route from a phone" (EN + DE), screenshot `bavariandata-configure-trips-phone.png` |
 | `trip_debug` (trip-capture diagnostics) | Trips | ✅ |
 | `vehicles` (per-car settings by VIN: trips, wallbox meter + losses, evcc publish) | Trips, Charging costs, evcc bridge | 🟢 Settings-Reference → "Trips", "Charging costs & history", "evcc / wallbox bridge" (EN + DE) |
 | `debug_log` | Debug logging | 🟡 |
