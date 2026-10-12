@@ -165,6 +165,11 @@ seen on the stream (one request against the day's quota, once). On an install
 that already has such a car, or if BMW refused the call, run
 **Configure → Fetch basic vehicle data**, which covers every car on the entry.
 
+The same call tells the integration the drivetrain and which side the driver
+sits on, so without it a right-hand-drive car has its doors drawn on the wrong
+side of the card. Since **v0.9.18** a failed call leaves a warning in the log
+(`basic data request failed`) with BMW's status code.
+
 Its streamed fields are a separate matter: BMW's Data Selection is per vehicle
 and portal-only, so tick the new car's fields via **Configure → Choose streamed
 data**. See [Multiple cars & accounts](Feature-Multiple-Cars-and-Accounts#adding-a-car-later).

@@ -2572,11 +2572,18 @@ async def _async_fetch_basic_data_for_vins(
         try:
             payload = await async_get_basic_data(session, access_token, vin)
         except CardataApiError as err:
-            _LOGGER.debug(
+            # A warning, not debug: without basic data the car has no model
+            # name, drivetrain or steering side, and nothing else says why
+            # (issue #100 surfaced only as empty fields in diagnostics). The
+            # error's own text names the request path, VIN included, so only
+            # its status and BMW's error id are logged.
+            _LOGGER.warning(
                 "%s basic data request failed for %s: %s",
                 label,
-                vin,
-                err,
+                mask_vin(vin),
+                f"HTTP {err.status} {err.error_id or ''}".rstrip()
+                if err.status
+                else "network error",
             )
             continue
 

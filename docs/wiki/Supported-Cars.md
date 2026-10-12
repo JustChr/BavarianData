@@ -41,7 +41,7 @@ Any car with CarData should work; this list is only what has been seen.
 | BMW X3 M40d (G01) | Diesel | — |
 | BMW M240i xDrive (G42) | Petrol | Tire pressure drifted after restarts before 0.9.7 ([#7](https://github.com/JustChr/BavarianData/issues/7)). |
 | BMW 530d Touring (G31, iDrive 6) | Diesel | Sends mileage, fuel and position only when a trip ends. Set **Trip detection** to **End-of-trip reports** for a trip journal (since 0.9.17; [more](Feature-Trips#older-cars-that-report-only-at-the-end-of-a-trip)). |
-| MINI (petrol) | Petrol | Set up through the MINI portal. Sends fewer fields than a BMW, for example no lifetime fuel-consumption counters. |
+| MINI (petrol), incl. Countryman JCW (U25) | Petrol | Set up through the MINI portal. Sends fewer fields than a BMW: no lifetime fuel-consumption counters, and the cars seen so far send **no tank level** either ([#23](https://github.com/JustChr/BavarianData/issues/23), [#100](https://github.com/JustChr/BavarianData/issues/100)). Ticking it in Data Selection doesn't change that. |
 
 ## What differs from car to car
 

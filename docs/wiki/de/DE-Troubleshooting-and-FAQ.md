@@ -170,6 +170,11 @@ ein Fahrzeug bereits hat oder dessen Abruf BMW abgelehnt hat, ruft
 **Konfigurieren → Fahrzeug-Basisdaten abrufen** auf — das deckt alle Fahrzeuge
 des Eintrags ab.
 
+Derselbe Aufruf verrät der Integration auch den Antrieb und auf welcher Seite
+der Fahrer sitzt. Ohne ihn zeichnet die Karte bei einem Rechtslenker die Türen
+auf der falschen Seite. Ab **v0.9.18** hinterlässt ein fehlgeschlagener Aufruf
+eine Warnung im Log (`basic data request failed`) mit BMWs Statuscode.
+
 Die gestreamten Felder sind eine eigene Sache: BMWs Datenauswahl gilt je
 Fahrzeug und nur im Portal. Kreuze die Felder des neuen Autos über
 **Konfigurieren → Gestreamte Daten auswählen** an. Siehe

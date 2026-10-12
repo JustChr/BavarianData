@@ -73,6 +73,7 @@ from .coverage import is_combustion_only, is_plug_in_hybrid
 from .phone_route import PhoneRoute
 from .soc_tracking import SocTracking
 from .steering import steering_side
+from .placeholders import is_placeholder
 from .structured_values import EMPTY_WHEN_NULL
 from .trip_settings import TripSettings
 from .tyre import parse_tyre_diagnosis
@@ -886,6 +887,15 @@ class CardataCoordinator:
             if value is None and descriptor in EMPTY_WHEN_NULL:
                 # BMW's word for "no Check Control messages" (structured_values).
                 value = []
+            if is_placeholder(descriptor, value):
+                # BMW's stand-in for no reading (placeholders): clear what an
+                # entity already shows, but never create one or count it as seen.
+                if descriptor in vehicle_state:
+                    vehicle_state[descriptor] = DescriptorState(
+                        value=None, unit=unit, timestamp=timestamp
+                    )
+                    async_dispatcher_send(self.hass, self.signal_update, vin, descriptor)
+                continue
             if value is None:
                 if descriptor == "vehicle.powertrain.electric.battery.stateOfCharge.target":
                     tracking.update_target_soc(None, parsed_ts)
@@ -4315,6 +4325,8 @@ class CardataCoordinator:
     ) -> None:
         parsed_ts = dt_util.parse_datetime(timestamp) if timestamp else None
         unit = normalize_unit(unit)
+        if is_placeholder(descriptor, value):
+            value = None
         if value is None:
             if descriptor == "vehicle.powertrain.electric.battery.stateOfCharge.target":
                 tracking = self._soc_tracking.setdefault(vin, SocTracking())

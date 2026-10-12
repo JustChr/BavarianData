@@ -39,6 +39,7 @@ from .history.summary import (
     summarise,
     trips_in_month,
 )
+from .placeholders import is_placeholder
 from .restore_units import restore_native
 from .sensor_classes import sensor_classes
 from .structured_values import (
@@ -194,6 +195,9 @@ class CardataSensor(CardataRestoreSensor):
                 # list itself is in the attributes (see structured_values).
                 if (items := restored_items(last_state.attributes)) is not None:
                     restored = items
+            if is_placeholder(self._descriptor, restored):
+                # A zero saved before BMW's "no reading" was recognised.
+                restored = None
             if restored is not None:
                 if self._is_enum and isinstance(restored, str):
                     # Match the lowercase-slug options (old installs stored

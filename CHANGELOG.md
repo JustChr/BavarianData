@@ -9,6 +9,19 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **A petrol car no longer shows a flat battery at the end of each trip.** BMW
+  sends *Battery charge level at end of trip* as 0 to some cars that have no
+  high-voltage battery. As a battery sensor at 0 %, that set off low-battery
+  alerts. A zero there is never a real reading (no car with that battery ends a
+  trip at 0 %), so it is now ignored. A sensor that already shows 0 becomes
+  unknown. Thanks to @BeastleeUK (#100).
+
+### Changed
+- **A failed basic-data request is now logged as a warning.** Without basic data
+  a car has no model name, drivetrain or steering side, and the log said nothing
+  unless debug logging was on.
+
 ## [0.9.18-beta.5] - 2026-10-12
 
 ### Fixed
