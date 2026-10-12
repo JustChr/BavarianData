@@ -266,6 +266,7 @@ Konto stammen — was zählt, weil BMW pro Konto nur einen laufenden Stream erla
 | Verbindungsverlauf mit MQTT-`rc`-Codes | Autorisierungsfehler und ein anderer Client, der den einzigen Stream belegt. |
 | Bootstrap-Zustand und deine Optionen | Eine nie abgeschlossene Einrichtung; eine Einstellung, die nicht ist, was du dachtest. |
 | Modell und Antrieb des Autos | Welches Overview die Karte zeichnen soll und welche reinen E-Entitäten es geben darf. |
+| Wie das Auto meldet, seit dem letzten Neustart (nur Zählungen, keine Werte) | Ob der Ladestand gestreamt wird oder nur mit einem Abruf kommt, ob das Auto während der Fahrt meldet oder einmal nach dem Parken, und welche Felder unverändert wiederkommen. |
 
 ## Debug-Protokollierung
 

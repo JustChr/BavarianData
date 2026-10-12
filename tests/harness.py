@@ -227,12 +227,14 @@ class CoordinatorHarness:
         stamped: Optional[float] = None,
         step: Optional[str] = None,
         extra: Optional[dict[str, Any]] = None,
+        rest: bool = False,
         **values: Any,
     ) -> None:
         """Deliver one batch, as the stream (or a REST fetch) would.
 
         ``stamped`` is the minute BMW's timestamp says, when it differs from the
         arrival -- a REST catch-up hands back the car's last message, hours old.
+        ``rest`` tags the batch the way ``__init__.py`` tags a REST fetch's.
         """
 
         if minute is not None and self.at(minute) > self.clock.now:
@@ -245,7 +247,10 @@ class CoordinatorHarness:
             data[path] = {"value": value, "unit": unit, "timestamp": stamp_text}
         for path, value in (extra or {}).items():
             data[path] = {"value": value, "timestamp": stamp_text}
-        self._run(self.coordinator.async_handle_message({"vin": self.vin, "data": data}))
+        message: dict[str, Any] = {"vin": self.vin, "data": data}
+        if rest:
+            message["source"] = "rest"
+        self._run(self.coordinator.async_handle_message(message))
         self._note_derived()
         label = step or "send " + ",".join(f"{k}={v}" for k, v in values.items())
         self._observe(label)

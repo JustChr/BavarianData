@@ -17,6 +17,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   trip at 0 %), so it is now ignored. A sensor that already shows 0 becomes
   unknown. Thanks to @BeastleeUK (#100).
 
+### Added
+- **The diagnostics download describes how your car reports.** Per car, since the
+  last restart: whether the charge level streams or only comes with a fetch,
+  whether the car reports while driving or once after parking, how often it
+  sends, which fields repeat unchanged, and which arrive stamped days old. Only
+  counts and gaps, no values or positions. Cars differ in all of this, and one
+  download now answers what used to take several questions.
+
 ### Changed
 - **A failed basic-data request is now logged as a warning.** Without basic data
   a car has no model name, drivetrain or steering side, and the log said nothing

@@ -69,6 +69,7 @@ from .history.trip_builder import (
     is_noise_trip,
     silence_implies_stop,
 )
+from .car_profile import REST, STREAM, CarProfile
 from .coverage import is_combustion_only, is_plug_in_hybrid
 from .phone_route import PhoneRoute
 from .soc_tracking import SocTracking
@@ -406,6 +407,9 @@ class CardataCoordinator:
     # Per-VIN, per-descriptor arrival tally for the diagnostics download. Live
     # counters only -- restored state doesn't count as an arrival.
     descriptor_counts: Dict[str, Dict[str, int]] = field(default_factory=dict, init=False)
+    # Per-VIN reporting traits (``car_profile.py``) for the diagnostics
+    # download; live counters too.
+    car_profiles: Dict[str, CarProfile] = field(default_factory=dict, init=False)
     # Recent connection transitions (status + rc/reason + time) for diagnostics.
     connection_history: Deque[Dict[str, Any]] = field(
         default_factory=lambda: deque(maxlen=CONNECTION_HISTORY_LEN),
@@ -856,6 +860,11 @@ class CardataCoordinator:
         tracking = self._soc_tracking.setdefault(vin, SocTracking())
         testing_tracking = self._get_testing_tracking(vin)
         now = datetime.now(timezone.utc)
+        # REST callers tag their batches; the stream sends no ``source``.
+        source = REST if payload.get("source") == REST else STREAM
+        profile = self.car_profiles.get(vin)
+        if profile is None:
+            profile = self.car_profiles[vin] = CarProfile(now)
         # The charge the car set off with, for a report trip: read before this
         # batch lands, because a burst carries the SoC it *arrived* with, and the
         # previous report's reading predates any charge in between.
@@ -890,6 +899,7 @@ class CardataCoordinator:
             if is_placeholder(descriptor, value):
                 # BMW's stand-in for no reading (placeholders): clear what an
                 # entity already shows, but never create one or count it as seen.
+                profile.observe_placeholder(descriptor)
                 if descriptor in vehicle_state:
                     vehicle_state[descriptor] = DescriptorState(
                         value=None, unit=unit, timestamp=timestamp
@@ -913,6 +923,9 @@ class CardataCoordinator:
                     self._set_ac_phase(vin, None, parsed_ts)
                 continue
             is_new = descriptor not in vehicle_state
+            profile.observe(
+                descriptor, value, timestamp, parsed_ts, vehicle_state.get(descriptor), now, source
+            )
             vehicle_state[descriptor] = DescriptorState(value=value, unit=unit, timestamp=timestamp)
             seen_descriptors.append(descriptor)
             vin_counts = self.descriptor_counts.setdefault(vin, {})
@@ -1020,6 +1033,7 @@ class CardataCoordinator:
 
             async_dispatcher_send(self.hass, self.signal_update, vin, descriptor)
 
+        profile.finish_batch(now, source)
         if status_change is not None:
             self._fire_charging_event(vin, status_change[0], tracking, status_change[1])
 

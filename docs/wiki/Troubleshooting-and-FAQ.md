@@ -257,6 +257,7 @@ What's left is exactly what distinguishes the common failures from each other:
 | Connection history with MQTT `rc` codes | Authorization failures, and another client stealing the single stream. |
 | Bootstrap state and your options | Setup that never finished; a setting that isn't what you thought. |
 | The car's model and drivetrain | Which overview the card should draw, and which electric-only entities should exist. |
+| How the car reports, since the last restart (counts only, no values) | Whether the charge level streams or only comes with a fetch, whether the car reports while driving or once after parking, and which fields repeat unchanged. |
 
 ## Debug logging
 

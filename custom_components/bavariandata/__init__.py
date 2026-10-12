@@ -2537,7 +2537,7 @@ async def _async_seed_telematic_data(
             telematic_data = payload.get("telematicData") or payload.get("data")
         if not isinstance(telematic_data, dict) or not telematic_data:
             continue
-        message = {"vin": vin, "data": telematic_data}
+        message = {"vin": vin, "data": telematic_data, "source": "rest"}
         await coordinator.async_handle_message(message)
         created = True
 
@@ -2801,7 +2801,9 @@ async def _async_perform_telematic_fetch(
         if isinstance(payload, dict):
             telematic_payload = payload.get("telematicData") or payload.get("data")
         if isinstance(telematic_payload, dict):
-            await runtime.coordinator.async_handle_message({"vin": vin, "data": telematic_payload})
+            await runtime.coordinator.async_handle_message(
+                {"vin": vin, "data": telematic_payload, "source": "rest"}
+            )
         attempted = True
 
     if not attempted:
