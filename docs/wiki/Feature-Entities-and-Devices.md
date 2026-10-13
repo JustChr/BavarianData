@@ -95,6 +95,10 @@ Each VIN also gets an **image** entity holding BMW's rendered picture of the car
 It is **cached and survives restarts**, so it doesn't burn quota on every boot;
 refresh it manually with `bavariandata.fetch_vehicle_image`.
 
+BMW provides exactly one picture per car, a side view. The API has no option for
+other angles. The top-down car in the card's tire and closure views is not a BMW
+image but a drawing built into the card, the same for every model.
+
 ## Device tracker
 
 Each VIN gets a **device_tracker** ("car") carrying the vehicle's location from

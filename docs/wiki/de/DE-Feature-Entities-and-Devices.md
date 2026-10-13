@@ -104,6 +104,11 @@ Autos. Es wird **zwischengespeichert und übersteht Neustarts**, verbraucht also
 nicht bei jedem Start Kontingent; manuell aktualisieren kannst du es mit
 `bavariandata.fetch_vehicle_image`.
 
+BMW liefert genau ein Bild pro Auto, eine Seitenansicht. Andere Blickwinkel lassen
+sich über die API nicht abrufen. Das Auto von oben in den Reifen- und
+Verschluss-Ansichten der Karte ist kein BMW-Bild, sondern eine Zeichnung in der
+Karte, für jedes Modell dieselbe.
+
 ## Geräte-Tracker
 
 <a id="device-tracker"></a>
