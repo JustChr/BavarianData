@@ -75,7 +75,7 @@ def test_a_german_dashboard_gets_decimal_commas():
         {
             "consumption": ["_dec", 19.84, 1],
             "session": ["_dec", 0.165, 1],
-            "odometer": ["_km", 12345],
+            "odometer": ["_distance", 12345],
         }
     )
     assert out == {"consumption": "19,8", "session": "0,2", "odometer": "12.345 km"}
@@ -83,7 +83,7 @@ def test_a_german_dashboard_gets_decimal_commas():
 
 @needs_node
 def test_an_english_dashboard_keeps_decimal_points():
-    out = _run({"consumption": ["_dec", 19.84, 1], "odometer": ["_km", 12345]}, language="en")
+    out = _run({"consumption": ["_dec", 19.84, 1], "odometer": ["_distance", 12345]}, language="en")
     assert out == {"consumption": "19.8", "odometer": "12,345 km"}
 
 

@@ -103,6 +103,10 @@ const DRIVETRAINS = new Set(["bev", "phev", "ice"]);
 const MIN_DESCRIPTORS_TO_JUDGE = 8;
 // Where the driver sits, as `_steering` answers it and `steering:` sets it.
 const STEERING_SIDES = new Set(["left", "right"]);
+// BMW's two odometer spellings (the coordinator's DESC_ODOMETER); whichever
+// the car streams carries the distance unit its owner chose.
+const DESC_ODOMETER = ["vehicle.vehicle.mileage", "vehicle.vehicle.travelledDistance"];
+const KM_PER_MILE = 1.609344;
 
 // BMW reports these charging-status values when nothing is actively charging
 // (e.g. `invalid` when no cable is connected). Show a clean localized "not
@@ -3462,12 +3466,35 @@ class BavarianDataCard extends HTMLElement {
     return Number.isFinite(n) ? n : null;
   }
 
-  // A raw kilometre figure (not a state object) with locale grouping. The
-  // integration normalises BMW's KILOMETER/MILE unit to km before storing it.
-  _km(v) {
-    const n = Number(v);
+  // A raw kilometre figure (not a state object) with locale grouping, in
+  // `unit` ("km" or "mi"). The integration normalises BMW's KILOMETER/MILE unit
+  // to km before storing it, so a figure in an attribute never passes through
+  // Home Assistant's unit conversion the way a sensor state does.
+  _distance(km, unit = "km") {
+    const n = Number(km);
     if (!Number.isFinite(n)) return "—";
-    return `${this._dec(n, 0)} km`;
+    return unit === "mi" ? `${this._dec(n / KM_PER_MILE, 0)} mi` : `${this._dec(n, 0)} km`;
+  }
+
+  /** "mi" or "km": the unit this car's distances are shown in.
+   *
+   * The odometer's own unit first, because a UK install typically keeps the
+   * metric unit system and switches the distance sensors to miles one by one;
+   * then any other distance sensor of the car's; then the unit system. */
+  _lengthUnit(entities) {
+    const units = [];
+    for (const d of DESC_ODOMETER) {
+      const st = this._byDescriptor(entities, d);
+      if (st) units.push(st.attributes && st.attributes.unit_of_measurement);
+    }
+    for (const id of entities) {
+      const a = (this._st(id) || {}).attributes || {};
+      if (a.device_class === "distance") units.push(a.unit_of_measurement);
+    }
+    const unit = units.find((u) => u === "mi" || u === "km");
+    if (unit) return unit;
+    const system = this._hass && this._hass.config && this._hass.config.unit_system;
+    return system && system.length === "mi" ? "mi" : "km";
   }
 
   _relTime(iso) {
@@ -6450,10 +6477,12 @@ class BavarianDataCard extends HTMLElement {
       { key: "row2_right", label: this._t("rr"), full: this._t("rear_right") },
     ];
     const present = slots.filter((s) => wheels[s.key]);
+    const unit = this._lengthUnit(entities);
 
     const sig = this._signature({
       m: "tire",
       lang: _lang(this._hass),
+      unit,
       w: Object.fromEntries(
         Object.entries(wheels).map(([k, m]) => [
           k,
@@ -6483,7 +6512,7 @@ class BavarianDataCard extends HTMLElement {
       return;
     }
 
-    const summary = this._tireSummary(present.map((s) => wheels[s.key]));
+    const summary = this._tireSummary(present.map((s) => wheels[s.key]), unit);
 
     const colors = {
       fl: this._tireStatus(wheels.row1_left || {}).color,
@@ -6501,10 +6530,10 @@ class BavarianDataCard extends HTMLElement {
           <div class="tirecar">
             <span class="tirecar__front">${this._t("front")}</span>
             <div class="tirecar__svg">${this._carSvg(colors)}</div>
-            ${this._wheelBlock(slots[0], wheels.row1_left, "fl")}
-            ${this._wheelBlock(slots[1], wheels.row1_right, "fr")}
-            ${this._wheelBlock(slots[2], wheels.row2_left, "rl")}
-            ${this._wheelBlock(slots[3], wheels.row2_right, "rr")}
+            ${this._wheelBlock(slots[0], wheels.row1_left, "fl", unit)}
+            ${this._wheelBlock(slots[1], wheels.row1_right, "fr", unit)}
+            ${this._wheelBlock(slots[2], wheels.row2_left, "rl", unit)}
+            ${this._wheelBlock(slots[3], wheels.row2_right, "rr", unit)}
           </div>
         </div>
       </ha-card>`;
@@ -6531,7 +6560,7 @@ class BavarianDataCard extends HTMLElement {
   // remaining life -- summarised across every wheel BMW reports, plus the
   // combined headline for the card header. Kept separate because "check tyres"
   // must never read as "top up the air".
-  _tireSummary(list) {
+  _tireSummary(list, unit = "km") {
     const pressures = list.map((w) => this._pressureStatus(w));
     const cls = pressures.map((p) => p.cls);
     const color = cls.includes("low")
@@ -6572,7 +6601,7 @@ class BavarianDataCard extends HTMLElement {
 
     // The soonest wheel is the one that decides when the car goes in.
     const dues = wears.map((w) => w.dueKm).filter((v) => v != null);
-    const wearSub = dues.length ? `${this._t("wear_due")} ${this._km(Math.min(...dues))}` : "";
+    const wearSub = dues.length ? `${this._t("wear_due")} ${this._distance(Math.min(...dues), unit)}` : "";
 
     const worn = colors.includes("red") || colors.includes("yellow");
     const overall = worn
@@ -6732,7 +6761,7 @@ class BavarianDataCard extends HTMLElement {
   // size and tread per wheel and staggered setups are common (the i5 runs 245
   // front / 275 rear), so these facts belong beside their wheel, not in a
   // single line under the diagram that would have to pick one to show.
-  _wheelBlock(slot, wheel, pos) {
+  _wheelBlock(slot, wheel, pos, unit = "km") {
     const status = wheel ? this._tireStatus(wheel) : { label: "—", color: "var(--divider-color)" };
     const pressure = wheel && wheel.pressure;
     const target = wheel && wheel.pressureTarget;
@@ -6759,7 +6788,7 @@ class BavarianDataCard extends HTMLElement {
       if (fitline) meta.push(fitline);
       if (wear.dueKm != null)
         meta.push(
-          `<b class="wlabel__due">${this._t("wear_due")} ${this._km(wear.dueKm)}</b>`
+          `<b class="wlabel__due">${this._t("wear_due")} ${this._distance(wear.dueKm, unit)}</b>`
         );
     }
 

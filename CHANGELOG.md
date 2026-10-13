@@ -16,6 +16,10 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   alerts. A zero there is never a real reading (no car with that battery ends a
   trip at 0 %), so it is now ignored. A sensor that already shows 0 becomes
   unknown. Thanks to @BeastleeUK (#100).
+- **The tyre view shows remaining tyre life in miles where you use miles.** It
+  always said km. It now follows your odometer's unit, so an install that keeps
+  the metric system but shows distances in miles gets miles too. Thanks to
+  @BeastleeUK (#100).
 
 ### Added
 - **The diagnostics download describes how your car reports.** Per car, since the
