@@ -85,9 +85,7 @@ def test_a_lease_under_plan():
     log = _steady(date(2025, 10, 14), TODAY, 35.0)  # 12,775 km a year against 15,000
     status = mileage.mileage_report(log, TODAY, LEASE)["allowance"]
     assert status["status"] == "ok"
-    assert status["allowance_km"] == round(
-        15000 * (date(2028, 10, 13) - date(2025, 10, 14)).days / 365.25
-    )
+    assert status["allowance_km"] == 45000  # 14 Oct 2025 to 13 Oct 2028: 36 months
     assert status["used_km"] == 35 * 365
     assert status["balance_km"] > 0
     assert status["projected_over_km"] < 0
@@ -172,3 +170,27 @@ def test_the_coordinator_reports_a_car_against_its_lease():
         assert allowance["balance_km"] < 0  # 40 km a day against ~33 planned
         # Another car on the account has no allowance.
         assert h.coordinator.mileage_report("WBA00000000000099")["allowance"] is None
+
+
+def test_a_36_month_lease_is_three_years_of_allowance():
+    # 1 Jul 2025 to 30 Jun 2028 is 36 months, so 3 x 15,000 -- found live: the
+    # day count over 365.25 gave 44,969.
+    lease = {**LEASE, "mileage_start": "2025-07-01", "mileage_end": "2028-06-30"}
+    status = mileage.mileage_report({}, TODAY, lease)["allowance"]
+    assert status["allowance_km"] == 45000
+    half = {**LEASE, "mileage_start": "2025-07-01", "mileage_end": "2025-12-31"}
+    assert mileage.mileage_report({}, TODAY, half)["allowance"]["allowance_km"] == 7500
+
+
+def test_the_restored_odometer_lands_in_the_log():
+    # Found live on beta.2: after a restart the odometer came back through the
+    # entity restore, never through the stream, so the log stopped 70 km short
+    # of the car's reading until it next drove.
+    from .harness import CoordinatorHarness
+
+    with CoordinatorHarness() as h:
+        stamp = h.at(0).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        h.coordinator.restore_descriptor_state(
+            h.vin, "vehicle.vehicle.travelledDistance", 20756, "km", stamp
+        )
+        assert h.coordinator.history.odometer_log(h.vin) == {h.at(0).date().isoformat(): 20756.0}

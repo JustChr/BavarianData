@@ -9,6 +9,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **A lease's allowance counts whole months.** A 36-month lease at 15,000 km a
+  year showed 44,969 km instead of 45,000.
+- **The mileage figures include the odometer from before a restart.** Until the
+  car next reported, *this month* and the allowance ran short of the car's
+  reading.
+- **A new lease form starts with dates that fit together:** today, and the day
+  before the third anniversary. Both fields used to show today.
+
 ## [0.9.19-beta.2] - 2026-10-14
 
 ### Added

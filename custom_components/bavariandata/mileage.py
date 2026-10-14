@@ -53,7 +53,6 @@ KEY_PER_YEAR = OPTION_MILEAGE_ALLOWANCE_KM
 KEY_START_KM = OPTION_MILEAGE_START_KM
 
 MONTHS_SHOWN = 12
-DAYS_PER_YEAR = 365.25
 
 
 def parse_date(value: Any) -> Optional[date]:
@@ -184,22 +183,50 @@ def allowance_settings(values: Mapping[str, Any]) -> Optional[dict[str, Any]]:
     return settings
 
 
-def _anniversary(start: date, year: int) -> date:
+def anniversary(start: date, year: int) -> date:
     try:
         return start.replace(year=year)
     except ValueError:  # 29 February in a common year
         return date(year, 2, 28)
 
 
+def contract_years(start: date, end: date) -> float:
+    """A contract's length in years, counted in months: 1 Jul to 30 Jun is one year.
+
+    The end date is the last day of the contract, so the length runs to the day
+    after it. Whole months first; the days left over are a fraction of the
+    month they fall in. A day count over 365.25 made a 36-month lease 2.998
+    years and its allowance 44,969 km instead of 45,000.
+    """
+
+    stop = end + timedelta(days=1)
+    months = (stop.year - start.year) * 12 + stop.month - start.month
+    anchor = _add_months(start, months)
+    if anchor > stop:
+        months -= 1
+        anchor = _add_months(start, months)
+    following = _add_months(start, months + 1)
+    fraction = (stop - anchor).days / max(1, (following - anchor).days)
+    return (months + fraction) / 12
+
+
+def _add_months(day: date, months: int) -> date:
+    index = day.year * 12 + day.month - 1 + months
+    year, month = index // 12, index % 12 + 1
+    # The 31st of a shorter month falls on its last day.
+    last = (date(year + month // 12, month % 12 + 1, 1) - timedelta(days=1)).day
+    return date(year, month, min(day.day, last))
+
+
 def yearly_period(start: date, today: date) -> tuple[date, date]:
     """The current yearly period: from the latest anniversary of ``start`` on or before today."""
 
-    begin = _anniversary(start, today.year)
+    begin = anniversary(start, today.year)
     if begin > today:
-        begin = _anniversary(start, today.year - 1)
+        begin = anniversary(start, today.year - 1)
     if begin < start:
         begin = start
-    return begin, _anniversary(start, begin.year + 1)
+    return begin, anniversary(start, begin.year + 1)
 
 
 def allowance_status(
@@ -215,7 +242,7 @@ def allowance_status(
     kind = settings["kind"]
     if kind == KIND_LEASE:
         begin, end = settings["start"], settings["end"]
-        total = settings["per_year_km"] * (end - begin).days / DAYS_PER_YEAR
+        total = settings["per_year_km"] * contract_years(begin, end)
         start_km = settings["start_km"]
     else:
         begin, end = yearly_period(settings["start"], today)

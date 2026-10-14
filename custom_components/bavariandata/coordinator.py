@@ -4411,6 +4411,11 @@ class CardataCoordinator:
         )
         if descriptor in (DESC_GPS_LAT, DESC_GPS_LON):
             self._seed_gps_from_restore(vin)
+        if descriptor in DESC_ODOMETER:
+            # The odometer comes back through the entity restore, not the
+            # stream: log it on the day the car reported it, or the mileage
+            # figures stop short of the car's reading until it next drives.
+            self._note_odometer_day(vin, parsed_ts or datetime.now(timezone.utc))
         tracking = self._soc_tracking.setdefault(vin, SocTracking())
         testing_tracking = self._get_testing_tracking(vin)
 

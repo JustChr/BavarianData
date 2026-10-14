@@ -9,6 +9,7 @@ import hashlib
 import secrets
 import string
 import time
+from datetime import timedelta
 from typing import Any, Dict, Mapping, Optional
 
 import aiohttp
@@ -106,6 +107,7 @@ from .mileage import (
     KEY_START as MILEAGE_START,
     KEY_START_KM as MILEAGE_START_KM,
     allowance_settings,
+    anniversary as _anniversary,
     parse_date as _parse_date,
     yearly_period,
 )
@@ -2023,6 +2025,16 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 MILEAGE_PER_YEAR: self._to_km(user_input.get(MILEAGE_PER_YEAR)),
                 MILEAGE_START_KM: self._to_km(user_input.get(MILEAGE_START_KM)),
             }
+        if user_input is None and not values.get(MILEAGE_START):
+            # A fresh form shows dates that make sense together -- an empty date
+            # field reads as today in HA, which made start and end the same day.
+            # Three years is the usual lease; the help lines say what to change.
+            today = dt_util.now().date()
+            values[MILEAGE_START] = today.isoformat()
+            if kind == KIND_LEASE:
+                values[MILEAGE_END] = (
+                    _anniversary(today, today.year + 3) - timedelta(days=1)
+                ).isoformat()
         start_km = values.get(MILEAGE_START_KM)
         if start_km is None and user_input is None:
             # The handover reading is unknown to us; today's is the honest
