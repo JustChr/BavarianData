@@ -22,8 +22,7 @@
     "paho"
   ],
   "requirements": [
-    "paho-mqtt>=2.1.0",
-    "Pillow>=10.0.0"
+    "paho-mqtt>=2.1.0"
   ],
   "version": "0.9.18-beta.7"
 }
