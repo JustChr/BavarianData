@@ -42,6 +42,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "estimate": "Estimated from your driving: {distance} left at about {pace} a day.",
         "due_soon": "{title} (due soon)",
         "overdue": "{title} (overdue)",
+        "lease_end": "Lease ends",
+        "lease_end_desc": "Hand-back day. Mileage allowance: {allowance}.",
     },
     "de": {
         "due_by": "Fällig bis Ende {month}.",
@@ -49,6 +51,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "estimate": "Geschätzt aus deiner Fahrleistung: noch {distance} bei etwa {pace} am Tag.",
         "due_soon": "{title} (bald fällig)",
         "overdue": "{title} (überfällig)",
+        "lease_end": "Leasingende",
+        "lease_end_desc": "Rückgabetag. Kilometerkontingent: {allowance}.",
     },
     "fr": {
         "due_by": "À effectuer avant la fin {month}.",
@@ -56,6 +60,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "estimate": "Estimé d'après votre conduite : encore {distance} à environ {pace} par jour.",
         "due_soon": "{title} (bientôt)",
         "overdue": "{title} (en retard)",
+        "lease_end": "Fin de la location",
+        "lease_end_desc": "Jour de restitution. Kilométrage autorisé : {allowance}.",
     },
     "it": {
         "due_by": "Da eseguire entro la fine di {month}.",
@@ -63,6 +69,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "estimate": "Stimato dalla tua guida: ancora {distance} a circa {pace} al giorno.",
         "due_soon": "{title} (in scadenza)",
         "overdue": "{title} (scaduto)",
+        "lease_end": "Fine del noleggio",
+        "lease_end_desc": "Giorno di restituzione. Chilometraggio consentito: {allowance}.",
     },
     "es": {
         "due_by": "Vence a finales de {month}.",
@@ -70,6 +78,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "estimate": "Estimado según tu conducción: quedan {distance} a unos {pace} al día.",
         "due_soon": "{title} (vence pronto)",
         "overdue": "{title} (vencido)",
+        "lease_end": "Fin del renting",
+        "lease_end_desc": "Día de devolución. Kilometraje permitido: {allowance}.",
     },
     "nl": {
         "due_by": "Uiterlijk eind {month}.",
@@ -77,6 +87,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "estimate": "Geschat op basis van je rijgedrag: nog {distance} bij ongeveer {pace} per dag.",
         "due_soon": "{title} (binnenkort)",
         "overdue": "{title} (te laat)",
+        "lease_end": "Einde lease",
+        "lease_end_desc": "Inleverdag. Kilometerlimiet: {allowance}.",
     },
     "pl": {
         "due_by": "Termin do końca {month}.",
@@ -84,6 +96,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "estimate": "Szacunek na podstawie Twojej jazdy: zostało {distance} przy ok. {pace} dziennie.",
         "due_soon": "{title} (wkrótce)",
         "overdue": "{title} (po terminie)",
+        "lease_end": "Koniec leasingu",
+        "lease_end_desc": "Dzień zwrotu. Limit kilometrów: {allowance}.",
     },
     "pt": {
         "due_by": "Prazo até ao fim de {month}.",
@@ -91,6 +105,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "estimate": "Estimado pela sua condução: faltam {distance} a cerca de {pace} por dia.",
         "due_soon": "{title} (em breve)",
         "overdue": "{title} (em atraso)",
+        "lease_end": "Fim do renting",
+        "lease_end_desc": "Dia de devolução. Quilometragem permitida: {allowance}.",
     },
     "cs": {
         "due_by": "Termín do konce {month}.",
@@ -98,6 +114,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "estimate": "Odhad podle vaší jízdy: zbývá {distance} při zhruba {pace} denně.",
         "due_soon": "{title} (brzy)",
         "overdue": "{title} (po termínu)",
+        "lease_end": "Konec leasingu",
+        "lease_end_desc": "Den vrácení. Limit kilometrů: {allowance}.",
     },
     "sv": {
         "due_by": "Senast i slutet av {month}.",
@@ -105,6 +123,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "estimate": "Uppskattat från din körning: {distance} kvar med cirka {pace} per dag.",
         "due_soon": "{title} (snart)",
         "overdue": "{title} (försenad)",
+        "lease_end": "Leasingen slutar",
+        "lease_end_desc": "Återlämningsdag. Miltak: {allowance}.",
     },
 }
 
@@ -415,3 +435,28 @@ def next_event(events: Iterable[ServiceEvent], today: date) -> Optional[ServiceE
 
     upcoming = [event for event in events if event.end > today]
     return min(upcoming, key=lambda event: event.start, default=None)
+
+
+def lease_end_event(
+    allowance: Optional[dict[str, Any]],
+    *,
+    vin: str,
+    language: Optional[str] = None,
+    miles: bool = False,
+) -> Optional[ServiceEvent]:
+    """The hand-back day of a lease, from ``mileage.allowance_status``; else ``None``."""
+
+    if not allowance or allowance.get("kind") != "lease":
+        return None
+    try:
+        end = date.fromisoformat(str(allowance.get("end")))
+    except TypeError, ValueError:
+        return None
+    strings = STRINGS[_lang(language)]
+    total = allowance.get("allowance_km")
+    description = (
+        strings["lease_end_desc"].format(allowance=format_distance(total, language, miles=miles))
+        if total
+        else ""
+    )
+    return ServiceEvent(f"{vin}-lease-end", strings["lease_end"], end, description)

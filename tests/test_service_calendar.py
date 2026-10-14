@@ -198,3 +198,12 @@ def test_streamed_odometer_feeds_the_log_and_survives_a_restart(h):
     h.restart()
     assert h.coordinator.history.odometer_log(h.vin) == {day: 12035.0}
     assert h.coordinator.km_per_day(h.vin) is None  # one day is no pace
+
+
+def test_a_lease_puts_its_hand_back_day_in_the_calendar():
+    allowance = {"kind": "lease", "end": "2028-08-31", "allowance_km": 45000}
+    event = service_calendar.lease_end_event(allowance, vin=VIN, language="de")
+    assert (event.summary, event.start) == ("Leasingende", date(2028, 8, 31))
+    assert event.description == "Rückgabetag. Kilometerkontingent: 45.000 km."
+    assert service_calendar.lease_end_event({**allowance, "kind": "yearly"}, vin=VIN) is None
+    assert service_calendar.lease_end_event(None, vin=VIN) is None

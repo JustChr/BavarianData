@@ -727,6 +727,66 @@
         </ha-card>
   '''
 # ---
+# name: test_the_card_renders_what_it_rendered_before[mileage-i5]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:counter">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Mileage</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="empty">Adding up your mileage…</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[mileage-m2]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:counter">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Mileage</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="empty">Adding up your mileage…</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[mileage-mini]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:counter">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Mileage</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="empty">Adding up your mileage…</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[mileage-phev]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:counter">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Mileage</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="empty">Adding up your mileage…</div>
+        </ha-card>
+  '''
+# ---
 # name: test_the_card_renders_what_it_rendered_before[overview-i5]
   '''
   <ha-card>
@@ -1150,6 +1210,302 @@
           </button>
         </div>
           <div class="empty">Loading trips…</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_mileage_view_with_figures[km-lease]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:counter">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Mileage</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          
+        <div class="ef">
+          <div class="ef__facts">
+            <div class="ef__fact">
+            <span class="ef__fact-lbl">This month</span>
+            <span class="ef__fact-val">380 km</span>
+            
+          </div>
+            <div class="ef__fact">
+            <span class="ef__fact-lbl">This year</span>
+            <span class="ef__fact-val">10,680 km</span>
+            <span class="ef__fact-note">since recording began</span>
+          </div>
+            <div class="ef__fact">
+               <span class="ef__fact-lbl">Per day</span>
+               <span class="ef__fact-val">41 km</span>
+             </div>
+          </div>
+          <span class="ef__vs">At this pace: about 15,038 km a year</span>
+          <div class="ef__trend">
+  <span class="ef__trend-title">Last 12 months</span>
+  <svg class="ef__chart" viewBox="0 0 280 88" preserveAspectRatio="none">
+  <rect class="ef__bar mi__bar-partial" x="12.3" y="65.3"
+                    width="17.3" height="8.7" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="20.9" y="85"
+                    text-anchor="middle">01</text>
+  <rect class="ef__bar" x="42" y="41.6"
+                    width="17.3" height="32.4" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="50.7" y="85"
+                    text-anchor="middle">02</text>
+  <rect class="ef__bar" x="71.8" y="39.1"
+                    width="17.3" height="34.9" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="80.4" y="85"
+                    text-anchor="middle">03</text>
+  <rect class="ef__bar" x="101.6" y="36.8"
+                    width="17.3" height="37.2" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="110.2" y="85"
+                    text-anchor="middle">04</text>
+  <rect class="ef__bar" x="131.4" y="34.6"
+                    width="17.3" height="39.4" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="140" y="85"
+                    text-anchor="middle">05</text>
+  <rect class="ef__bar" x="161.1" y="40.8"
+                    width="17.3" height="33.2" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="169.8" y="85"
+                    text-anchor="middle">06</text>
+  <rect class="ef__bar" x="190.9" y="28.9"
+                    width="17.3" height="45.1" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="199.6" y="85"
+                    text-anchor="middle">07</text>
+  <rect class="ef__bar" x="220.7" y="14.9"
+                    width="17.3" height="59.1" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="229.3" y="85"
+                    text-anchor="middle">08</text>
+  <rect class="ef__bar mi__bar-partial" x="250.5" y="63.3"
+                    width="17.3" height="10.7" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="259.1" y="85"
+                    text-anchor="middle">09</text>
+  </svg>
+  </div>
+          <div class="mi__allowance">
+          <span class="ef__trend-title">Lease · ends 31 Aug 2028</span>
+          
+          <div class="mi__bar" role="img"
+               aria-label="23,400 km of 45,000 km">
+            <span class="mi__fill" style="width:52%">
+  </span>
+            <span class="mi__plan" style="left:53.8%">
+  </span>
+          </div>
+          <span class="mi__of">23,400 km of 45,000 km</span>
+          <span class="ef__vs">820 km under plan</span>
+  <span class="ef__note">30 km a day left until the end</span>
+  <span class="ef__note">At this pace: 44,100 km at the end (−900 km)</span>
+        </div>
+        </div>
+      
+        </ha-card>
+  '''
+# ---
+# name: test_the_mileage_view_with_figures[km-young]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:counter">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Mileage</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          
+        <div class="ef">
+          <div class="ef__facts">
+            <div class="ef__fact">
+            <span class="ef__fact-lbl">This month</span>
+            <span class="ef__fact-val">380 km</span>
+            
+          </div>
+            <div class="ef__fact">
+            <span class="ef__fact-lbl">This year</span>
+            <span class="ef__fact-val">790 km</span>
+            <span class="ef__fact-note">since recording began</span>
+          </div>
+            
+          </div>
+          <span class="ef__vs">The yearly pace shows after four weeks of readings.</span>
+          <div class="ef__trend">
+  <span class="ef__trend-title">Last 12 months</span>
+  <svg class="ef__chart" viewBox="0 0 280 88" preserveAspectRatio="none">
+  <rect class="ef__bar mi__bar-partial" x="59" y="14.9"
+                    width="28" height="59.1" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="73" y="85"
+                    text-anchor="middle">08</text>
+  <rect class="ef__bar mi__bar-partial" x="193" y="19.2"
+                    width="28" height="54.8" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="207" y="85"
+                    text-anchor="middle">09</text>
+  </svg>
+  </div>
+          <span class="ef__note">Have a lease or an insurance mileage limit? Add it in the integration's settings under Mileage allowance.</span>
+        </div>
+      
+        </ha-card>
+  '''
+# ---
+# name: test_the_mileage_view_with_figures[mi-lease]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:counter">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Mileage</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          
+        <div class="ef">
+          <div class="ef__facts">
+            <div class="ef__fact">
+            <span class="ef__fact-lbl">This month</span>
+            <span class="ef__fact-val">236 mi</span>
+            
+          </div>
+            <div class="ef__fact">
+            <span class="ef__fact-lbl">This year</span>
+            <span class="ef__fact-val">6,636 mi</span>
+            <span class="ef__fact-note">since recording began</span>
+          </div>
+            <div class="ef__fact">
+               <span class="ef__fact-lbl">Per day</span>
+               <span class="ef__fact-val">26 mi</span>
+             </div>
+          </div>
+          <span class="ef__vs">At this pace: about 9,344 mi a year</span>
+          <div class="ef__trend">
+  <span class="ef__trend-title">Last 12 months</span>
+  <svg class="ef__chart" viewBox="0 0 280 88" preserveAspectRatio="none">
+  <rect class="ef__bar mi__bar-partial" x="12.3" y="65.3"
+                    width="17.3" height="8.7" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="20.9" y="85"
+                    text-anchor="middle">01</text>
+  <rect class="ef__bar" x="42" y="41.6"
+                    width="17.3" height="32.4" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="50.7" y="85"
+                    text-anchor="middle">02</text>
+  <rect class="ef__bar" x="71.8" y="39.1"
+                    width="17.3" height="34.9" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="80.4" y="85"
+                    text-anchor="middle">03</text>
+  <rect class="ef__bar" x="101.6" y="36.8"
+                    width="17.3" height="37.2" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="110.2" y="85"
+                    text-anchor="middle">04</text>
+  <rect class="ef__bar" x="131.4" y="34.6"
+                    width="17.3" height="39.4" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="140" y="85"
+                    text-anchor="middle">05</text>
+  <rect class="ef__bar" x="161.1" y="40.8"
+                    width="17.3" height="33.2" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="169.8" y="85"
+                    text-anchor="middle">06</text>
+  <rect class="ef__bar" x="190.9" y="28.9"
+                    width="17.3" height="45.1" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="199.6" y="85"
+                    text-anchor="middle">07</text>
+  <rect class="ef__bar" x="220.7" y="14.9"
+                    width="17.3" height="59.1" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="229.3" y="85"
+                    text-anchor="middle">08</text>
+  <rect class="ef__bar mi__bar-partial" x="250.5" y="63.3"
+                    width="17.3" height="10.7" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="259.1" y="85"
+                    text-anchor="middle">09</text>
+  </svg>
+  </div>
+          <div class="mi__allowance">
+          <span class="ef__trend-title">Lease · ends 31 Aug 2028</span>
+          
+          <div class="mi__bar" role="img"
+               aria-label="14,540 mi of 27,962 mi">
+            <span class="mi__fill" style="width:52%">
+  </span>
+            <span class="mi__plan" style="left:53.8%">
+  </span>
+          </div>
+          <span class="mi__of">14,540 mi of 27,962 mi</span>
+          <span class="ef__vs">510 mi under plan</span>
+  <span class="ef__note">19 mi a day left until the end</span>
+  <span class="ef__note">At this pace: 27,402 mi at the end (−559 mi)</span>
+        </div>
+        </div>
+      
+        </ha-card>
+  '''
+# ---
+# name: test_the_mileage_view_with_figures[mi-young]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:counter">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Mileage</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          
+        <div class="ef">
+          <div class="ef__facts">
+            <div class="ef__fact">
+            <span class="ef__fact-lbl">This month</span>
+            <span class="ef__fact-val">236 mi</span>
+            
+          </div>
+            <div class="ef__fact">
+            <span class="ef__fact-lbl">This year</span>
+            <span class="ef__fact-val">491 mi</span>
+            <span class="ef__fact-note">since recording began</span>
+          </div>
+            
+          </div>
+          <span class="ef__vs">The yearly pace shows after four weeks of readings.</span>
+          <div class="ef__trend">
+  <span class="ef__trend-title">Last 12 months</span>
+  <svg class="ef__chart" viewBox="0 0 280 88" preserveAspectRatio="none">
+  <rect class="ef__bar mi__bar-partial" x="59" y="14.9"
+                    width="28" height="59.1" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="73" y="85"
+                    text-anchor="middle">08</text>
+  <rect class="ef__bar mi__bar-partial" x="193" y="19.2"
+                    width="28" height="54.8" rx="2">
+  </rect>
+  <text class="ef__bar-lbl" x="207" y="85"
+                    text-anchor="middle">09</text>
+  </svg>
+  </div>
+          <span class="ef__note">Have a lease or an insurance mileage limit? Add it in the integration's settings under Mileage allowance.</span>
+        </div>
+      
         </ha-card>
   '''
 # ---

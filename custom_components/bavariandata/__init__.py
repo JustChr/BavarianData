@@ -96,6 +96,7 @@ from .startup_refresh import (
     startup_refresh_vins,
 )
 from .trip_settings import account_trip_settings, vehicle_trip_settings
+from .vehicle_options import mileage_allowances
 from .tyre_store import TyreStore
 from .vehicles import known_vins, primary_vins
 from .history.backfill import StatisticsPublisher
@@ -633,6 +634,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     coordinator.watch_phone_routes()
     coordinator.trip_debug = bool(options.get(OPTION_TRIP_DEBUG))
     coordinator.diagnostic_interval = diagnostic_interval
+    coordinator.mileage_allowances = mileage_allowances(options)
 
     # Statistics backfill (roadmap Phase 4). Publishes the recorded history into
     # Home Assistant's long-term statistics under our own "bavariandata:"
@@ -1276,6 +1278,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             }
         )
         get_evcc_config_schema = get_efficiency_schema
+        get_mileage_report_schema = get_efficiency_schema
         mark_trip_start_schema = vol.Schema(
             {
                 vol.Optional("entry_id"): str,
@@ -1328,6 +1331,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 "trips": [trip.to_dict() for trip in trips],
                 "open_trips": open_trips,
             }
+
+        async def async_handle_get_mileage_report(call: Any) -> dict:
+            """How far the car is driven and where it stands against its allowance.
+
+            Read off the daily odometer log (``mileage.py``); no quota.
+            """
+
+            target = _resolve_target(call)
+            if target is None:
+                return {}
+            runtime = target[2]
+            vin = _default_vin(runtime, call.data.get("vin"))
+            if vin is None:
+                return {}
+            return {"vin": vin, **runtime.coordinator.mileage_report(vin)}
 
         async def async_handle_get_driving_summary(call: Any) -> dict:
             target = _resolve_target(call)
@@ -1808,6 +1826,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         )
         hass.services.async_register(
             DOMAIN,
+            "get_mileage_report",
+            async_handle_get_mileage_report,
+            schema=get_mileage_report_schema,
+            supports_response=SupportsResponse.ONLY,
+        )
+        hass.services.async_register(
+            DOMAIN,
             "get_efficiency",
             async_handle_get_efficiency,
             schema=get_efficiency_schema,
@@ -1884,6 +1909,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 "get_charging_sessions",
                 "get_trips",
                 "get_driving_summary",
+                "get_mileage_report",
                 "get_efficiency",
                 "get_evcc_config",
                 "set_trip_class",

@@ -26,6 +26,11 @@ from .const import (
     OPTION_BRIDGE_ENABLED,
     OPTION_CHARGING_LOSS_PERCENT,
     OPTION_GRID_ENERGY_ENTITY,
+    OPTION_MILEAGE_ALLOWANCE_KM,
+    OPTION_MILEAGE_END,
+    OPTION_MILEAGE_KIND,
+    OPTION_MILEAGE_START,
+    OPTION_MILEAGE_START_KM,
     OPTION_TRIP_COMMUTE_GAP,
     OPTION_TRIP_DEFAULT_CLASS,
     OPTION_TRIP_DETECTION,
@@ -50,6 +55,16 @@ TRIP_OPTIONS = (
 )
 CHARGING_OPTIONS = (OPTION_GRID_ENERGY_ENTITY, OPTION_CHARGING_LOSS_PERCENT)
 BRIDGE_OPTIONS = (OPTION_BRIDGE_ENABLED,)
+# Unlike the groups above, always stored under the car -- even on a single-car
+# account -- and never read from account-wide keys: a lease belongs to one car,
+# and a car added later must not inherit it (``mileage_values``).
+MILEAGE_OPTIONS = (
+    OPTION_MILEAGE_KIND,
+    OPTION_MILEAGE_START,
+    OPTION_MILEAGE_END,
+    OPTION_MILEAGE_ALLOWANCE_KM,
+    OPTION_MILEAGE_START_KM,
+)
 
 # Entity selectors: Home Assistant leaves a cleared one out of the submitted
 # data altogether, so its absence means "none", not "unchanged".
@@ -139,3 +154,42 @@ def store_values(
     else:
         updated.pop(OPTION_VEHICLES, None)
     return updated
+
+
+def mileage_values(options: Mapping[str, Any], vin: Optional[str]) -> dict[str, Any]:
+    """The car's own mileage allowance; empty when it has none."""
+
+    return own_values(options, vin, MILEAGE_OPTIONS) or {}
+
+
+def store_mileage(
+    options: Mapping[str, Any], vin: str, values: Mapping[str, Any]
+) -> dict[str, Any]:
+    """New options with the car's mileage allowance replaced by ``values``.
+
+    The whole group is rewritten, so a key the new kind does not use (a lease's
+    end date after switching to a yearly limit) does not linger.
+    """
+
+    if values.get(OPTION_MILEAGE_KIND) in (None, "none"):
+        # No allowance: the car keeps no mileage keys at all.
+        updated = dict(options)
+        vehicles = {vin_: dict(own) for vin_, own in _vehicles(updated).items()}
+        rest = {k: v for k, v in vehicles.get(vin, {}).items() if k not in MILEAGE_OPTIONS}
+        if rest:
+            vehicles[vin] = rest
+        else:
+            vehicles.pop(vin, None)
+        if vehicles:
+            updated[OPTION_VEHICLES] = vehicles
+        else:
+            updated.pop(OPTION_VEHICLES, None)
+        return updated
+    picked = {key: values.get(key) for key in MILEAGE_OPTIONS}
+    return store_values(options, picked, MILEAGE_OPTIONS, vin=vin, per_vehicle=True)
+
+
+def mileage_allowances(options: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
+    """Every car's own mileage allowance, by VIN (cars without one left out)."""
+
+    return cars_with_own(options, MILEAGE_OPTIONS)

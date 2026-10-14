@@ -20,15 +20,18 @@ import logging
 from homeassistant import config_entries
 from homeassistant.components import persistent_notification, webhook
 from homeassistant.components.http import HomeAssistantView
+from homeassistant.const import UnitOfLength
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult, FlowResultType, section
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.network import NoURLAvailableError, get_url
+from homeassistant.util import dt as dt_util
 
 from . import async_manual_refresh_tokens
 from .container import CardataContainerError
+from .service_calendar import KM_PER_MILE
 from .evcc import BridgeConfig, bridge_payloads, evcc_yaml
 from .const import (
     DEBUG_LOG,
@@ -86,8 +89,25 @@ from .vehicle_options import (
     BRIDGE_OPTIONS,
     CHARGING_OPTIONS,
     TRIP_OPTIONS,
+    mileage_allowances,
+    mileage_values,
+    store_mileage,
     store_values,
     values_for,
+)
+from .mileage import (
+    KIND_LEASE,
+    KIND_NONE,
+    KIND_YEARLY,
+    KINDS as MILEAGE_KINDS,
+    KEY_END as MILEAGE_END,
+    KEY_KIND as MILEAGE_KIND,
+    KEY_PER_YEAR as MILEAGE_PER_YEAR,
+    KEY_START as MILEAGE_START,
+    KEY_START_KM as MILEAGE_START_KM,
+    allowance_settings,
+    parse_date as _parse_date,
+    yearly_period,
 )
 from .history.pricing import (
     DEFAULT_CURRENCY,
@@ -1049,6 +1069,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 "action_energy_sources",
                 "action_evcc_bridge",
                 "action_trips",
+                "action_mileage",
                 "action_debug_logging",
             ],
         )
@@ -1877,6 +1898,183 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
     ) -> FlowResult:
         return await self._vehicle_picker(
             step_id="bridge_vehicle", user_input=user_input, then=self.async_step_action_evcc_bridge
+        )
+
+    async def async_step_mileage_vehicle(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        return await self._vehicle_picker(
+            step_id="mileage_vehicle", user_input=user_input, then=self.async_step_action_mileage
+        )
+
+    # --- Mileage allowance ---------------------------------------------------
+    #
+    # A lease or a yearly limit (insurance) per car, compared with the odometer
+    # log (``mileage.py``). Always the car's own -- even on a single-car account
+    # -- so a car added later never inherits a lease. Two screens: the kind,
+    # then that kind's form (HA forms can't show fields conditionally).
+
+    def _miles(self) -> bool:
+        return self.hass.config.units.length_unit == UnitOfLength.MILES
+
+    def _to_display(self, km: Optional[float]) -> Optional[float]:
+        if km is None:
+            return None
+        return round(km / KM_PER_MILE if self._miles() else km)
+
+    def _to_km(self, value: Any) -> Optional[float]:
+        if value is None or value == "":
+            return None
+        number = float(value)
+        return round(number * KM_PER_MILE if self._miles() else number, 1)
+
+    def _mileage_number(self, *, maximum: int) -> selector.NumberSelector:
+        return selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0,
+                max=maximum,
+                step=1,
+                mode=selector.NumberSelectorMode.BOX,
+                unit_of_measurement="mi" if self._miles() else "km",
+            )
+        )
+
+    def _odometer_now(self, vin: Optional[str]) -> Optional[float]:
+        runtime = self._get_runtime()
+        if runtime is None or vin is None:
+            return None
+        return runtime.coordinator.odometer_km(vin)
+
+    async def async_step_action_mileage(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Which kind of mileage allowance the car has, if any."""
+
+        vehicles, _per_vehicle, vin = self._vehicle_context()
+        if vin is _PICK:
+            return await self.async_step_mileage_vehicle()
+        current = mileage_values(self._config_entry.options, vin)
+        kind = current.get(MILEAGE_KIND) if allowance_settings(current) else KIND_NONE
+        schema = vol.Schema(
+            {
+                vol.Required(MILEAGE_KIND, default=kind): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=list(MILEAGE_KINDS),
+                        mode=selector.SelectSelectorMode.LIST,
+                        translation_key=MILEAGE_KIND,
+                    )
+                )
+            }
+        )
+        placeholders = {"vehicle": self._vehicle_label(vehicles, vin)}
+        errors: Dict[str, str] = {}
+        if user_input is not None:
+            chosen = user_input.get(MILEAGE_KIND)
+            if vin is None:
+                errors["base"] = "no_vins"
+            elif chosen == KIND_LEASE:
+                return await self.async_step_mileage_lease()
+            elif chosen == KIND_YEARLY:
+                return await self.async_step_mileage_yearly()
+            else:
+                return self._save_mileage(vin, {MILEAGE_KIND: KIND_NONE})
+        # Not the last step unless "None" is picked; "Next" fits every choice.
+        return self.async_show_form(
+            step_id="action_mileage",
+            data_schema=schema,
+            description_placeholders=placeholders,
+            errors=errors,
+            last_step=False,
+        )
+
+    def _save_mileage(self, vin: str, values: Dict[str, Any]) -> FlowResult:
+        options = store_mileage(dict(self._config_entry.options), vin, values)
+        runtime = self._get_runtime()
+        if runtime is not None:
+            # Applies at once: the sensor and the card recompute on the signal.
+            runtime.coordinator.mileage_allowances = mileage_allowances(options)
+            async_dispatcher_send(self.hass, runtime.coordinator.signal_mileage, vin)
+        return self.async_create_entry(title="", data=options)
+
+    async def async_step_mileage_lease(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """A lease or financing: start, end, allowance a year, odometer at handover."""
+
+        return await self._mileage_form(user_input, step_id="mileage_lease", kind=KIND_LEASE)
+
+    async def async_step_mileage_yearly(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """A yearly limit: the day it renews, the allowance, the odometer that day."""
+
+        return await self._mileage_form(user_input, step_id="mileage_yearly", kind=KIND_YEARLY)
+
+    async def _mileage_form(
+        self, user_input: Optional[Dict[str, Any]], *, step_id: str, kind: str
+    ) -> FlowResult:
+        vehicles, _per_vehicle, vin = self._vehicle_context()
+        current = mileage_values(self._config_entry.options, vin)
+        values = dict(current) if current.get(MILEAGE_KIND) == kind else {}
+        if user_input is not None:
+            values = {
+                MILEAGE_START: user_input.get(MILEAGE_START),
+                MILEAGE_END: user_input.get(MILEAGE_END),
+                MILEAGE_PER_YEAR: self._to_km(user_input.get(MILEAGE_PER_YEAR)),
+                MILEAGE_START_KM: self._to_km(user_input.get(MILEAGE_START_KM)),
+            }
+        start_km = values.get(MILEAGE_START_KM)
+        if start_km is None and user_input is None:
+            # The handover reading is unknown to us; today's is the honest
+            # prefill, and the field's help line says so.
+            start_km = self._odometer_now(vin)
+        fields: Dict[Any, Any] = {
+            vol.Required(
+                MILEAGE_START, description={"suggested_value": values.get(MILEAGE_START)}
+            ): selector.DateSelector(),
+        }
+        if kind == KIND_LEASE:
+            fields[
+                vol.Required(MILEAGE_END, description={"suggested_value": values.get(MILEAGE_END)})
+            ] = selector.DateSelector()
+        fields[
+            vol.Required(
+                MILEAGE_PER_YEAR,
+                description={"suggested_value": self._to_display(values.get(MILEAGE_PER_YEAR))},
+            )
+        ] = self._mileage_number(maximum=200000)
+        fields[
+            vol.Required(
+                MILEAGE_START_KM, description={"suggested_value": self._to_display(start_km)}
+            )
+        ] = self._mileage_number(maximum=2000000)
+        placeholders = {"vehicle": self._vehicle_label(vehicles, vin)}
+
+        errors: Dict[str, str] = {}
+        if user_input is not None:
+            stored = {MILEAGE_KIND: kind, **values}
+            if kind != KIND_LEASE:
+                stored[MILEAGE_END] = None
+                # The odometer typed in belongs to the latest start of the
+                # year, so that is the start stored; later years read theirs
+                # from the log.
+                if (first := _parse_date(values.get(MILEAGE_START))) is not None:
+                    today = dt_util.now().date()
+                    if first <= today:
+                        stored[MILEAGE_START] = yearly_period(first, today)[0].isoformat()
+            if not values.get(MILEAGE_PER_YEAR):
+                errors[MILEAGE_PER_YEAR] = "invalid_int"
+            elif allowance_settings(stored) is None:
+                errors[MILEAGE_END] = "mileage_end_before_start"
+            elif vin is None:
+                errors["base"] = "no_vins"
+            else:
+                return self._save_mileage(vin, stored)
+        return self.async_show_form(
+            step_id=step_id,
+            data_schema=vol.Schema(fields),
+            description_placeholders=placeholders,
+            errors=errors,
         )
 
     async def async_step_action_data_refresh(

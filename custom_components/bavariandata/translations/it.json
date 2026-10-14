@@ -102,6 +102,7 @@
           "action_energy_sources": "Fotovoltaico e fonti di energia",
           "action_evcc_bridge": "Bridge evcc / wallbox",
           "action_trips": "Viaggi",
+          "action_mileage": "Chilometraggio consentito",
           "action_debug_logging": "Registrazione di debug"
         }
       },
@@ -374,6 +375,56 @@
         "data_description": {
           "debug_log": "Resta attiva anche dopo i riavvii finché non la disattivi qui."
         }
+      },
+      "mileage_vehicle": {
+        "title": "Chilometraggio consentito",
+        "description": "Ogni veicolo ha il proprio chilometraggio consentito. Scegli quello da modificare.",
+        "data": {
+          "vehicle": "Veicolo"
+        },
+        "data_description": {
+          "vehicle": "La schermata successiva mostra il chilometraggio consentito di questo veicolo."
+        }
+      },
+      "action_mileage": {
+        "title": "Chilometraggio consentito",
+        "description": "Confronta **{vehicle}** con un limite di chilometri del noleggio o dell'assicurazione. La vista Chilometri della scheda mostra quanto guidi, con o senza limite.",
+        "data": {
+          "mileage_kind": "Limite"
+        },
+        "data_description": {
+          "mileage_kind": "Un noleggio termina in una data fissa. Un limite annuale riparte ogni anno nello stesso giorno."
+        }
+      },
+      "mileage_lease": {
+        "title": "Noleggio o finanziamento",
+        "description": "I dati del contratto di **{vehicle}**. Valgono subito, nella scheda e nel sensore del chilometraggio consentito.",
+        "data": {
+          "mileage_start": "Data di inizio",
+          "mileage_end": "Data di fine",
+          "mileage_allowance_km": "Chilometri all'anno",
+          "mileage_start_km": "Contachilometri all'inizio"
+        },
+        "data_description": {
+          "mileage_start": "Il giorno in cui hai ricevuto l'auto.",
+          "mileage_end": "Il giorno in cui la restituisci.",
+          "mileage_allowance_km": "Dal tuo contratto. Il totale è questo valore per la durata del contratto.",
+          "mileage_start_km": "Dal verbale di consegna. Precompilato con la lettura di oggi finché non ne è salvata una: correggilo se il contratto è iniziato prima."
+        }
+      },
+      "mileage_yearly": {
+        "title": "Limite annuale",
+        "description": "Un limite per **{vehicle}** che riparte ogni anno, come il chilometraggio annuo dell'assicurazione. Vale subito, nella scheda e nel sensore del chilometraggio consentito.",
+        "data": {
+          "mileage_start": "L'anno inizia il",
+          "mileage_allowance_km": "Chilometri all'anno",
+          "mileage_start_km": "Contachilometri quel giorno"
+        },
+        "data_description": {
+          "mileage_start": "Il primo giorno del tuo anno assicurativo. Il limite riparte ogni anno in questo giorno.",
+          "mileage_allowance_km": "La distanza che la polizza consente ogni anno.",
+          "mileage_start_km": "All'ultimo inizio d'anno. Precompilato con la lettura di oggi finché non ne è salvata una; gli anni successivi si leggono dai dati dell'auto."
+        }
       }
     },
     "progress": {
@@ -396,7 +447,8 @@
       "configurator_unsupported": "Il configuratore BMW non disegna {vehicle}: copre solo auto BMW e MINI. Tieni l'immagine ufficiale.",
       "configurator_no_data": "I dati di base di {vehicle} non sono ancora arrivati. Esegui prima «Recupera i dati di base del veicolo», poi riprova.",
       "configurator_unavailable": "Il configuratore BMW non ha risposto o è cambiato. Riprova più tardi, oppure tieni l'immagine ufficiale.",
-      "configurator_no_render": "Il configuratore BMW non ha un'immagine di {vehicle}. Tieni l'immagine ufficiale."
+      "configurator_no_render": "Il configuratore BMW non ha un'immagine di {vehicle}. Tieni l'immagine ufficiale.",
+      "mileage_end_before_start": "La data di fine deve essere successiva alla data di inizio."
     },
     "abort": {
       "reauth_started": "Autorizzazione riavviata. Completa il nuovo accesso dalla notifica appena comparsa.",
@@ -430,6 +482,13 @@
       "options": {
         "official": "BMW CarData (ufficiale)",
         "configurator": "Configuratore BMW (360°, non ufficiale)"
+      }
+    },
+    "mileage_kind": {
+      "options": {
+        "none": "Nessuno",
+        "lease": "Noleggio o finanziamento",
+        "yearly": "Limite annuale (es. assicurazione)"
       }
     }
   },
@@ -1819,6 +1878,9 @@
       },
       "last_vehicle_report": {
         "name": "Ultimo rapporto del veicolo"
+      },
+      "mileage_allowance": {
+        "name": "Saldo chilometraggio consentito"
       }
     },
     "binary_sensor": {
@@ -2919,6 +2981,20 @@
         "month": {
           "name": "Mese",
           "description": "Mese da riepilogare nel formato YYYY-MM. Predefinito: il mese corrente."
+        }
+      }
+    },
+    "get_mileage_report": {
+      "name": "Ottieni rapporto chilometri",
+      "description": "Restituisce quanto viene guidata l'auto (questo mese, quest'anno, gli ultimi 12 mesi, il ritmo) e, con un chilometraggio consentito, a che punto è. Legge l'archivio locale, quindi non consuma quota dell'API BMW.",
+      "fields": {
+        "entry_id": {
+          "name": "Voce di configurazione",
+          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facoltativo. Predefinito: l'unico veicolo configurato."
         }
       }
     },

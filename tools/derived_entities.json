@@ -288,6 +288,18 @@
       "pt": "Último relatório do veículo",
       "cs": "Poslední hlášení vozidla",
       "sv": "Senaste fordonsrapport"
+    },
+    "mileage_allowance": {
+      "en": "Mileage Allowance Balance",
+      "de": "Kilometerkontingent-Saldo",
+      "fr": "Solde du kilométrage autorisé",
+      "it": "Saldo chilometraggio consentito",
+      "es": "Saldo de kilometraje permitido",
+      "nl": "Saldo kilometerlimiet",
+      "pl": "Saldo limitu kilometrów",
+      "pt": "Saldo da quilometragem permitida",
+      "cs": "Zůstatek limitu kilometrů",
+      "sv": "Saldo miltak"
     }
   },
   "binary_sensor": {

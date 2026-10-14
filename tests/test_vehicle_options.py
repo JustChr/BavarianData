@@ -183,3 +183,46 @@ def test_the_bridge_is_on_while_any_one_car_is_published() -> None:
     assert config.publishes(B)
     assert not config.publishes(A)
     assert not EVCC.BridgeConfig.from_options({"bridge_enabled": False}).any_enabled
+
+
+# --- the mileage allowance: always the car's own -----------------------------
+
+LEASE_VALUES = {
+    "mileage_kind": "lease",
+    "mileage_start": "2025-09-01",
+    "mileage_end": "2028-08-31",
+    "mileage_allowance_km": 15000,
+    "mileage_start_km": 12,
+}
+
+
+def test_a_single_car_account_stores_its_lease_under_the_car():
+    stored = OPTIONS.store_mileage({"trip_work_zone": "zone.work"}, "VIN1", LEASE_VALUES)
+    assert stored["vehicles"]["VIN1"] == LEASE_VALUES
+    assert "mileage_kind" not in stored
+    # A second car starts without one, rather than inheriting the first car's.
+    assert OPTIONS.mileage_values(stored, "VIN2") == {}
+    assert OPTIONS.mileage_values(stored, "VIN1") == LEASE_VALUES
+
+
+def test_switching_kind_drops_the_keys_the_new_kind_does_not_use():
+    stored = OPTIONS.store_mileage({}, "VIN1", LEASE_VALUES)
+    yearly = {**LEASE_VALUES, "mileage_kind": "yearly"}
+    del yearly["mileage_end"]
+    stored = OPTIONS.store_mileage(stored, "VIN1", yearly)
+    assert stored["vehicles"]["VIN1"]["mileage_end"] is None
+
+
+def test_none_removes_the_allowance_and_keeps_the_cars_other_settings():
+    options = {"vehicles": {"VIN1": {"bridge_enabled": True}}}
+    stored = OPTIONS.store_mileage(options, "VIN1", LEASE_VALUES)
+    stored = OPTIONS.store_mileage(stored, "VIN1", {"mileage_kind": "none"})
+    assert stored == options
+    assert (
+        OPTIONS.store_mileage(
+            OPTIONS.store_mileage({}, "VIN1", LEASE_VALUES),
+            "VIN1",
+            {"mileage_kind": "none"},
+        )
+        == {}
+    )

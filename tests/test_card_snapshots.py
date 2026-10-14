@@ -74,6 +74,12 @@ card._wireTaps = () => {};
 card._styles = () => "";
 card._resolveDeviceId = () => "device";
 card._deviceEntities = () => Object.keys(input.states);
+if (input.mileage) {
+  // A view whose figures come from a service: paint it with a response, since
+  // the stubbed callService never answers.
+  card._mil = { vin: "WBS1", trigger: "", data: input.mileage, loading: false };
+  card._render = () => { card._sig = null; card._paintMileage("device", input.unit || "km"); };
+}
 let error = null;
 try { card._render(); } catch (e) { error = String((e && e.message) || e); }
 process.stdout.write(JSON.stringify({ html: card.shadowRoot.innerHTML, error }));
@@ -91,6 +97,7 @@ SCREENS = {
     "map": {"view": "map"},
     "health": {"view": "health"},
     "efficiency": {"view": "efficiency"},
+    "mileage": {"view": "mileage"},
     "equipment": {"view": "equipment"},
     "cluster-tire": {"cluster": "tire"},
     "cluster-closures": {"cluster": "closures"},
@@ -98,13 +105,13 @@ SCREENS = {
 }
 
 
-def _render(states: dict, config: dict) -> str:
+def _render(states: dict, config: dict, **extra) -> str:
     """The card's shadow-root HTML, one tag per line so a diff reads."""
 
     states = {entity_id: {**st, "entity_id": entity_id} for entity_id, st in states.items()}
     result = subprocess.run(
         [NODE, "-e", _HARNESS, str(_CARD)],
-        input=json.dumps({"states": states, "config": config}),
+        input=json.dumps({"states": states, "config": config, **extra}),
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -120,6 +127,60 @@ def _render(states: dict, config: dict) -> str:
 @pytest.mark.parametrize("screen", sorted(SCREENS))
 def test_the_card_renders_what_it_rendered_before(car: str, screen: str, snapshot) -> None:
     assert _render(CARS[car], SCREENS[screen]) == snapshot
+
+
+# What ``get_mileage_report`` answers for a car with a lease, and for one
+# without an allowance whose log is three weeks old.
+_MONTHS = [{"month": f"2025-{m:02d}", "km": None, "partial": False} for m in (10, 11, 12)] + [
+    {"month": f"2026-{m:02d}", "km": km, "partial": m == 1 or m == 9}
+    for m, km in zip(
+        range(1, 10), (310, 1150, 1240, 1320, 1400, 1180, 1600, 2100, 380), strict=True
+    )
+]
+MILEAGE = {
+    "lease": {
+        "odometer_km": 23412.0,
+        "since": "2026-01-12",
+        "this_month": {"km": 380, "partial": False},
+        "this_year": {"km": 10680, "partial": True},
+        "km_per_day": 41.2,
+        "projected_year_km": 15038,
+        "months": _MONTHS,
+        "allowance": {
+            "kind": "lease",
+            "start": "2025-09-01",
+            "end": "2028-08-31",
+            "allowance_km": 45000,
+            "per_year_km": 15000,
+            "status": "ok",
+            "used_km": 23400,
+            "plan_km": 24220,
+            "balance_km": 820,
+            "remaining_km": 21600,
+            "days_left": 722,
+            "km_per_day_left": 29.9,
+            "projected_km": 44100,
+            "projected_over_km": -900,
+        },
+    },
+    "young": {
+        "odometer_km": 812.0,
+        "since": "2026-08-20",
+        "this_month": {"km": 380, "partial": False},
+        "this_year": {"km": 790, "partial": True},
+        "km_per_day": None,
+        "projected_year_km": None,
+        "months": [{"month": "2026-08", "km": 410, "partial": True}]
+        + [{"month": "2026-09", "km": 380, "partial": True}],
+        "allowance": None,
+    },
+}
+
+
+@pytest.mark.parametrize("case", sorted(MILEAGE))
+@pytest.mark.parametrize("unit", ["km", "mi"])
+def test_the_mileage_view_with_figures(case: str, unit: str, snapshot) -> None:
+    assert _render(I5, SCREENS["mileage"], mileage=MILEAGE[case], unit=unit) == snapshot
 
 
 def test_rendering_is_deterministic() -> None:
@@ -150,6 +211,20 @@ _EVERY_LANGUAGE = _HARNESS.replace(
     "}\n"
     "process.stdout.write(JSON.stringify(errors));",
 )
+
+
+def test_the_mileage_figures_render_in_every_language() -> None:
+    for case in MILEAGE.values():
+        result = subprocess.run(
+            [NODE, "-e", _EVERY_LANGUAGE, str(_CARD)],
+            input=json.dumps({"states": {}, "config": SCREENS["mileage"], "mileage": case}),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
+            timeout=60,
+        )
+        assert json.loads(result.stdout) == {}
 
 
 @pytest.mark.parametrize("car", sorted(CARS))

@@ -69,6 +69,7 @@ passend).
 | **Vorhergesagte Zeit bis zum Ladeziel** | Minuten, bis eine Ladung **zu Hause** das Ladeziel des Autos erreicht, berechnet aus dem [Wallbox-Zähler](DE-Feature-evcc-and-Wallbox-Bridge#time-to-the-charge-target). `0`, wenn nicht geladen wird; unbekannt unterwegs, in den ersten Minuten einer Ladung und während eine PV-Ladung pausiert. Nur mit verknüpftem Wallbox-Zähler. |
 | **Stream-Verbindungsstatus** | Diagnose: Zustand der MQTT-Verbindung. |
 | **Letzte empfangene Nachricht** | Diagnose: Zeitstempel der letzten Stream-Nachricht. |
+| **Kilometerkontingent-Saldo** | **Standardmäßig deaktiviert**: wie weit das Auto unter (+) oder über (−) dem Plan seines [Kilometerkontingents](DE-Feature-Mileage) liegt, in km, mit gefahren, verbleibend und erwartetem Ende als Attributen. Unbekannt ohne Kontingent. |
 | **Letzte Fahrzeugmeldung** | Diagnose, **standardmäßig deaktiviert**: wann das Auto zuletzt seinen Kilometerstand gemeldet hat, nach der Uhr des Autos. Weicht von *Letzte empfangene Nachricht* ab, wenn ein Auto ohne Empfang geparkt war und verspätet meldet. |
 | **Letzter Telematik-API-Aufruf** | Diagnose: Zeitstempel des letzten REST-Aufrufs. |
 
@@ -166,6 +167,8 @@ Datenabruf.
   eines geratenen. Die Kilometerstände kommen zuerst aus deinem Ladeverlauf,
   daher haben die meisten Installationen schon am Tag des Updates ein Tempo.
 - Meldet BMW einen Eintrag als bald fällig oder überfällig, steht das im Titel.
+- Ein Auto mit einem Leasing unter [Kilometerkontingent](DE-Feature-Mileage)
+  bekommt zusätzlich seinen **Rückgabetag** als Termin.
 - Die Texte folgen der Sprache von Home Assistant, Strecken seinem
   Einheitensystem.
 

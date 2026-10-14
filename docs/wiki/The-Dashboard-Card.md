@@ -229,6 +229,30 @@ says so rather than showing a number.
 
 ---
 
+## Mileage (`view: mileage`)
+
+How far the car is driven, and how it stands against a lease or insurance
+mileage limit when it has one.
+
+```yaml
+type: custom:bavariandata-card
+view: mileage
+```
+
+It shows this month, this year and the average per day, the yearly pace that
+implies, and a bar per month for the last twelve. A period that began before
+BavarianData started recording is marked *since recording began*, and the pace
+waits for four weeks of readings. With a [mileage allowance](Feature-Mileage#a-mileage-allowance)
+set up, a bar shows what's used of the allowance with a tick where the plan
+stands today, followed by under or over plan, the distance a day left until the
+end, and where the current pace lands. Without one, a line says where to add it.
+
+Everything comes from the car's daily odometer readings, so it spends **no API
+quota** and works for every drivetrain. Distances follow the car's odometer unit
+(km or mi).
+
+---
+
 ## Trips / driving journal (`view: trips`)
 
 Lists your recorded drives, newest first, each showing *from → to*, distance,

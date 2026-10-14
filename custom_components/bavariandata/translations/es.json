@@ -102,6 +102,7 @@
           "action_energy_sources": "Solar y fuentes de energía",
           "action_evcc_bridge": "Puente evcc / wallbox",
           "action_trips": "Trayectos",
+          "action_mileage": "Kilometraje permitido",
           "action_debug_logging": "Registro de depuración"
         }
       },
@@ -374,6 +375,56 @@
         "data_description": {
           "debug_log": "Se mantiene activado tras los reinicios hasta que lo desactives aquí."
         }
+      },
+      "mileage_vehicle": {
+        "title": "Kilometraje permitido",
+        "description": "Cada vehículo tiene su propio kilometraje permitido. Elige el que quieres cambiar.",
+        "data": {
+          "vehicle": "Vehículo"
+        },
+        "data_description": {
+          "vehicle": "La siguiente pantalla muestra el kilometraje permitido de este vehículo."
+        }
+      },
+      "action_mileage": {
+        "title": "Kilometraje permitido",
+        "description": "Compara **{vehicle}** con un límite de kilometraje de tu renting o de tu seguro. La vista Kilometraje de la tarjeta muestra cuánto conduces, con o sin límite.",
+        "data": {
+          "mileage_kind": "Límite"
+        },
+        "data_description": {
+          "mileage_kind": "Un renting termina en una fecha fija. Un límite anual se renueva cada año el mismo día."
+        }
+      },
+      "mileage_lease": {
+        "title": "Renting o financiación",
+        "description": "Los datos del contrato de **{vehicle}**. Se aplican al momento, en la tarjeta y en el sensor de kilometraje permitido.",
+        "data": {
+          "mileage_start": "Fecha de inicio",
+          "mileage_end": "Fecha de fin",
+          "mileage_allowance_km": "Kilómetros al año",
+          "mileage_start_km": "Cuentakilómetros al inicio"
+        },
+        "data_description": {
+          "mileage_start": "El día en que recibiste el coche.",
+          "mileage_end": "El día en que lo devuelves.",
+          "mileage_allowance_km": "Según tu contrato. El total es este valor por la duración del contrato.",
+          "mileage_start_km": "Del acta de entrega. Se rellena con la lectura de hoy mientras no haya una guardada: corrígela si el contrato empezó antes."
+        }
+      },
+      "mileage_yearly": {
+        "title": "Límite anual",
+        "description": "Un límite para **{vehicle}** que se renueva cada año, como el kilometraje anual de tu seguro. Se aplica al momento, en la tarjeta y en el sensor de kilometraje permitido.",
+        "data": {
+          "mileage_start": "El año empieza el",
+          "mileage_allowance_km": "Kilómetros al año",
+          "mileage_start_km": "Cuentakilómetros ese día"
+        },
+        "data_description": {
+          "mileage_start": "El primer día de tu año de seguro. El límite se renueva ese día cada año.",
+          "mileage_allowance_km": "La distancia que tu póliza permite cada año.",
+          "mileage_start_km": "En el último inicio de año. Se rellena con la lectura de hoy mientras no haya una guardada; los años siguientes se leen del registro del coche."
+        }
       }
     },
     "progress": {
@@ -396,7 +447,8 @@
       "configurator_unsupported": "El configurador de BMW no dibuja {vehicle}: solo cubre coches BMW y MINI. Mantén la imagen oficial.",
       "configurator_no_data": "Los datos básicos de {vehicle} aún no han llegado. Ejecuta primero «Obtener los datos básicos del vehículo» y vuelve a intentarlo.",
       "configurator_unavailable": "El configurador de BMW no ha respondido o ha cambiado. Inténtalo más tarde o mantén la imagen oficial.",
-      "configurator_no_render": "El configurador de BMW no tiene imagen de {vehicle}. Mantén la imagen oficial."
+      "configurator_no_render": "El configurador de BMW no tiene imagen de {vehicle}. Mantén la imagen oficial.",
+      "mileage_end_before_start": "La fecha de fin debe ser posterior a la de inicio."
     },
     "abort": {
       "reauth_started": "Autorización reiniciada. Completa el nuevo inicio de sesión desde la notificación que acaba de aparecer.",
@@ -430,6 +482,13 @@
       "options": {
         "official": "BMW CarData (oficial)",
         "configurator": "Configurador de BMW (360°, no oficial)"
+      }
+    },
+    "mileage_kind": {
+      "options": {
+        "none": "Ninguno",
+        "lease": "Renting o financiación",
+        "yearly": "Límite anual (p. ej. seguro)"
       }
     }
   },
@@ -1819,6 +1878,9 @@
       },
       "last_vehicle_report": {
         "name": "Último informe del vehículo"
+      },
+      "mileage_allowance": {
+        "name": "Saldo de kilometraje permitido"
       }
     },
     "binary_sensor": {
@@ -2919,6 +2981,20 @@
         "month": {
           "name": "Mes",
           "description": "Mes a resumir en formato YYYY-MM. Por defecto, el mes actual."
+        }
+      }
+    },
+    "get_mileage_report": {
+      "name": "Obtener informe de kilometraje",
+      "description": "Devuelve cuánto se conduce el coche (este mes, este año, los últimos 12 meses, su ritmo) y, con un kilometraje permitido, cómo va respecto a él. Lee el almacenamiento local, así que no gasta cuota de la API de BMW.",
+      "fields": {
+        "entry_id": {
+          "name": "Entrada de configuración",
+          "description": "ID opcional de la entrada de configuración a usar. Obligatorio si hay varias entradas configuradas."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN opcional. Por defecto, el único vehículo configurado."
         }
       }
     },

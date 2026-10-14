@@ -143,6 +143,17 @@
       "description": "Fahrten aus dem BMW-CarData-Stream erkannt: Strecke, Energie, Orte, Einteilung in geschäftlich/privat/Arbeitsweg, die Fahrtenkarte und der Hinweis zum Fahrtenbuch."
     }
   },
+  "Feature-Mileage": {
+    "slug": "mileage",
+    "en": {
+      "title": "BMW mileage tracker and lease allowance in Home Assistant",
+      "description": "How far your BMW is driven, month by month, from its own odometer, and whether a lease or insurance mileage limit is on plan. No API quota."
+    },
+    "de": {
+      "title": "BMW-Kilometerzähler und Leasing-Kontingent in Home Assistant",
+      "description": "Wie viel dein BMW gefahren wird, Monat für Monat, vom eigenen Kilometerzähler, und ob ein Leasing- oder Versicherungskontingent im Plan liegt. Ohne API-Kontingent."
+    }
+  },
   "Feature-evcc-and-Wallbox-Bridge": {
     "slug": "evcc-and-wallbox-bridge",
     "en": {

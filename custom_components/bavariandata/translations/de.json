@@ -102,6 +102,7 @@
           "action_energy_sources": "Solar & Energiequellen",
           "action_evcc_bridge": "evcc-/Wallbox-Brücke",
           "action_trips": "Fahrten",
+          "action_mileage": "Kilometerkontingent",
           "action_debug_logging": "Debug-Protokollierung"
         }
       },
@@ -374,6 +375,56 @@
         "data_description": {
           "debug_log": "Bleibt über Neustarts hinweg aktiv, bis du sie hier wieder ausschaltest."
         }
+      },
+      "mileage_vehicle": {
+        "title": "Kilometerkontingent",
+        "description": "Jedes Fahrzeug hat sein eigenes Kontingent. Wähle das, das du ändern willst.",
+        "data": {
+          "vehicle": "Fahrzeug"
+        },
+        "data_description": {
+          "vehicle": "Der nächste Schritt zeigt das Kontingent dieses Fahrzeugs."
+        }
+      },
+      "action_mileage": {
+        "title": "Kilometerkontingent",
+        "description": "Vergleiche **{vehicle}** mit einer Kilometergrenze aus Leasing oder Versicherung. Die Ansicht Kilometer in der Karte zeigt deine Fahrleistung auch ohne.",
+        "data": {
+          "mileage_kind": "Kontingent"
+        },
+        "data_description": {
+          "mileage_kind": "Ein Leasing endet an einem festen Datum. Eine Jahresgrenze beginnt jedes Jahr am selben Tag neu."
+        }
+      },
+      "mileage_lease": {
+        "title": "Leasing oder Finanzierung",
+        "description": "Die Werte aus dem Vertrag für **{vehicle}**. Sie gelten sofort, in der Karte und im Kontingent-Sensor.",
+        "data": {
+          "mileage_start": "Beginn",
+          "mileage_end": "Ende",
+          "mileage_allowance_km": "Kilometer pro Jahr",
+          "mileage_start_km": "Kilometerstand bei Beginn"
+        },
+        "data_description": {
+          "mileage_start": "Der Tag, an dem du das Auto bekommen hast.",
+          "mileage_end": "Der Tag, an dem du es zurückgibst.",
+          "mileage_allowance_km": "Aus deinem Vertrag. Das Gesamtkontingent ist dieser Wert mal die Vertragslaufzeit.",
+          "mileage_start_km": "Aus dem Übergabeprotokoll. Vorbelegt mit dem heutigen Stand, solange keiner gespeichert ist: korrigiere ihn, wenn der Vertrag früher begann."
+        }
+      },
+      "mileage_yearly": {
+        "title": "Jahresgrenze",
+        "description": "Eine Grenze für **{vehicle}**, die jedes Jahr neu beginnt, etwa die Jahresfahrleistung deiner Versicherung. Sie gilt sofort, in der Karte und im Kontingent-Sensor.",
+        "data": {
+          "mileage_start": "Jahr beginnt am",
+          "mileage_allowance_km": "Kilometer pro Jahr",
+          "mileage_start_km": "Kilometerstand an dem Tag"
+        },
+        "data_description": {
+          "mileage_start": "Der erste Tag deines Versicherungsjahres. Das Kontingent beginnt jedes Jahr an diesem Tag neu.",
+          "mileage_allowance_km": "Die Strecke, die deine Police pro Jahr erlaubt.",
+          "mileage_start_km": "Am letzten Jahresbeginn. Vorbelegt mit dem heutigen Stand, solange keiner gespeichert ist; spätere Jahre liest BavarianData aus den eigenen Aufzeichnungen."
+        }
       }
     },
     "progress": {
@@ -396,7 +447,8 @@
       "configurator_unsupported": "Der BMW-Konfigurator zeichnet {vehicle} nicht: Er kennt nur BMW- und MINI-Autos. Behalte das offizielle Bild.",
       "configurator_no_data": "Die Fahrzeug-Basisdaten für {vehicle} sind noch nicht da. Führe zuerst „Fahrzeug-Basisdaten abrufen“ aus und versuche es dann erneut.",
       "configurator_unavailable": "Der BMW-Konfigurator hat nicht geantwortet oder sich geändert. Versuche es später erneut oder behalte das offizielle Bild.",
-      "configurator_no_render": "Der BMW-Konfigurator hat kein Bild von {vehicle}. Behalte das offizielle Bild."
+      "configurator_no_render": "Der BMW-Konfigurator hat kein Bild von {vehicle}. Behalte das offizielle Bild.",
+      "mileage_end_before_start": "Das Ende muss nach dem Beginn liegen."
     },
     "abort": {
       "reauth_started": "Autorisierung neu gestartet. Schließe die neue Anmeldung über die soeben erschienene Benachrichtigung ab.",
@@ -430,6 +482,13 @@
       "options": {
         "official": "BMW CarData (offiziell)",
         "configurator": "BMW-Konfigurator (360°, inoffiziell)"
+      }
+    },
+    "mileage_kind": {
+      "options": {
+        "none": "Keins",
+        "lease": "Leasing oder Finanzierung",
+        "yearly": "Jahresgrenze (z. B. Versicherung)"
       }
     }
   },
@@ -1819,6 +1878,9 @@
       },
       "last_vehicle_report": {
         "name": "Letzte Fahrzeugmeldung"
+      },
+      "mileage_allowance": {
+        "name": "Kilometerkontingent-Saldo"
       }
     },
     "binary_sensor": {
@@ -2919,6 +2981,20 @@
         "month": {
           "name": "Monat",
           "description": "Auszuwertender Monat als JJJJ-MM. Standardmäßig der aktuelle Monat."
+        }
+      }
+    },
+    "get_mileage_report": {
+      "name": "Kilometerbericht abrufen",
+      "description": "Liefert die Fahrleistung des Autos (dieser Monat, dieses Jahr, die letzten 12 Monate, das Tempo) und, mit einem Kilometerkontingent, den Stand dazu. Liest den lokalen Speicher und kostet daher kein BMW-API-Kontingent.",
+      "fields": {
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+        },
+        "vin": {
+          "name": "FIN",
+          "description": "Optionale FIN. Standard ist das einzige konfigurierte Fahrzeug."
         }
       }
     },

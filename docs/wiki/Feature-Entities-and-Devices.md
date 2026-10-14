@@ -65,6 +65,7 @@ integration's own translations (so they are named in your language too).
 | **Stream Connection Status** | Diagnostic: MQTT connection state. |
 | **Last Message Received** | Diagnostic: timestamp of the last stream payload. |
 | **Last Vehicle Report** | Diagnostic, **disabled by default**: when the car last reported its odometer, by the car's own clock. Differs from *Last Message Received* when a car parked without reception reports late. |
+| **Mileage Allowance Balance** | **Disabled by default**: how far under (+) or over (−) its [mileage allowance](Feature-Mileage)'s plan the car is, in km, with used, remaining and the projected end as attributes. Unknown without an allowance. |
 | **Last Telematics API Call** | Diagnostic: timestamp of the last REST call. |
 
 The charging, state-of-charge, battery-health and real-range entities only exist
@@ -147,6 +148,8 @@ disabled entities*. It costs no quota: the items come with the daily data fetch.
   such an item, rather than a guess. The readings come from your charging
   history first, so most installs have a pace on the day they upgrade.
 - An item BMW marks as due soon or overdue says so in its title.
+- A car with a lease set up under [mileage allowance](Feature-Mileage) also
+  gets its **hand-back day** as an event.
 - The texts follow Home Assistant's language; distances follow its unit system.
 
 The same items are on the **Service Condition based services** sensor's `items`

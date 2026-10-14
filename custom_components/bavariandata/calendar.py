@@ -22,7 +22,7 @@ from homeassistant.util import dt as dt_util
 
 from .coordinator import CardataCoordinator
 from .entity import CardataEntity
-from .service_calendar import CBS, ServiceEvent, next_event, service_events
+from .service_calendar import CBS, ServiceEvent, lease_end_event, next_event, service_events
 
 PARALLEL_UPDATES = 0
 
@@ -87,19 +87,33 @@ class CardataServiceCalendar(CardataEntity, CalendarEntity):
         self._attr_unique_id = f"{vin}{UNIQUE_SUFFIX}"
         self._attr_entity_registry_enabled_default = False
         self._unsubscribe = None
+        self._unsubscribe_mileage = None
 
     def _events(self) -> list[ServiceEvent]:
+        language = self.hass.config.language
+        miles = self.hass.config.units.length_unit == UnitOfLength.MILES
+        events: list[ServiceEvent] = []
         state = self._coordinator.get_state(self._vin, CBS)
-        if state is None or state.value is None:
-            return []
-        return service_events(
-            state.value,
+        if state is not None and state.value is not None:
+            events = service_events(
+                state.value,
+                vin=self._vin,
+                today=dt_util.now().date(),
+                km_per_day=self._coordinator.km_per_day(self._vin),
+                language=language,
+                miles=miles,
+            )
+        # A lease's hand-back day belongs in the same calendar (Configure ->
+        # Mileage allowance).
+        lease_end = lease_end_event(
+            self._coordinator.mileage_report(self._vin).get("allowance"),
             vin=self._vin,
-            today=dt_util.now().date(),
-            km_per_day=self._coordinator.km_per_day(self._vin),
-            language=self.hass.config.language,
-            miles=self.hass.config.units.length_unit == UnitOfLength.MILES,
+            language=language,
+            miles=miles,
         )
+        if lease_end is not None:
+            events.append(lease_end)
+        return sorted(events, key=lambda event: (event.start, event.summary))
 
     @property
     def event(self) -> Optional[CalendarEvent]:
@@ -120,13 +134,23 @@ class CardataServiceCalendar(CardataEntity, CalendarEntity):
         self._unsubscribe = async_dispatcher_connect(
             self.hass, self._coordinator.signal_update, self._handle_update
         )
+        self._unsubscribe_mileage = async_dispatcher_connect(
+            self.hass, self._coordinator.signal_mileage, self._handle_mileage
+        )
 
     async def async_will_remove_from_hass(self) -> None:
         await super().async_will_remove_from_hass()
         if self._unsubscribe:
             self._unsubscribe()
             self._unsubscribe = None
+        if self._unsubscribe_mileage:
+            self._unsubscribe_mileage()
+            self._unsubscribe_mileage = None
 
     def _handle_update(self, vin: str, descriptor: str) -> None:
         if vin == self._vin and descriptor == CBS:
+            self.schedule_update_ha_state()
+
+    def _handle_mileage(self, vin: str) -> None:
+        if vin == self._vin:
             self.schedule_update_ha_state()

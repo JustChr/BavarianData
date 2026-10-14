@@ -39,6 +39,7 @@ Diese lesen (oder schreiben) den eigenen Speicher der Integration und kosten
 | `bavariandata.get_trips` | Gespeicherte Fahrten als Antwortdaten (Endpunkte als Ortsnamen), dazu eine gerade laufende Fahrt. |
 | `bavariandata.get_driving_summary` | Die Monatsübersicht der Fahrten. |
 | `bavariandata.get_efficiency` | Gemessener Verbrauch, die daraus folgende reale Reichweite, der Ladeverlust und der Monatsverlauf — siehe unten. |
+| `bavariandata.get_mileage_report` | Wie viel das Auto gefahren wird und wie es zu seinem Kilometerkontingent steht — siehe unten. |
 | `bavariandata.get_evcc_config` | Die evcc-Fahrzeugkonfiguration `custom` für ein Auto, dazu die MQTT-Topics der Brücke — siehe unten. |
 | `bavariandata.set_trip_class` | Korrigiert die Zuordnung einer Fahrt (geschäftlich/privat/Pendeln). |
 | `bavariandata.mark_trip_start` | Vermerkt, wann eine Fahrt begann, für ein Auto, das erst nach dem Parken meldet — siehe unten. |
@@ -118,6 +119,27 @@ Speicher und kostet daher kein BMW-API-Kontingent.
 `plug_in_hybrid` (Verbrauch, Reichweite, Verlauf und `cost_per_100km` werden bei einem
 Hybrid alle zurückgehalten).
 Siehe [Effizienz & reale Reichweite](DE-Feature-Efficiency-and-Range).
+
+### `get_mileage_report`
+
+`vin`. Liefert die [Kilometerübersicht](DE-Feature-Mileage) als Antwortdaten, aus
+dem täglichen Kilometerprotokoll des Autos, und kostet daher kein
+BMW-API-Kontingent. Alle Strecken in km.
+
+- **`odometer_km`**, **`since`** — der neueste Stand und der Tag, an dem das
+  Protokoll beginnt.
+- **`this_month`**, **`this_year`** — `{km, partial}`; `partial`, wenn der Zeitraum
+  vor dem Protokoll begann.
+- **`km_per_day`**, **`projected_year_km`** — das 90-Tage-Tempo; `null`, bis die
+  Stände vier Wochen abdecken.
+- **`months`** — die letzten 12 Kalendermonate, ältester zuerst: `{month:
+  "YYYY-MM", km, partial}`, `km` ist `null`, wo das Protokoll nicht hinreicht.
+- **`allowance`** — `null` ohne Kontingent. Sonst `kind` (`lease`/`yearly`),
+  `start`, `end`, `allowance_km`, `per_year_km` und `status`: `ok`, `ended`,
+  `not_started` oder `unknown` (kein Kilometerstand zum Beginn). Bei `ok` oder
+  `ended` außerdem `used_km`, `plan_km`, `balance_km` (Plan minus gefahren,
+  positiv = unter Plan), `remaining_km`, `days_left`, `km_per_day_left`,
+  `projected_km` und `projected_over_km`.
 
 ### `get_evcc_config`
 

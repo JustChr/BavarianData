@@ -38,6 +38,7 @@ The menu labels below are exactly as they appear in the UI.
 | **Solar & energy sources** | settings | Where each charge's energy came from: PV, house battery, grid — below. |
 | **evcc / wallbox bridge** | settings | Publish the car's live state to MQTT for a charge controller — below. |
 | **Trips** | settings | Work zone, default type, commute stop tolerance, address resolution and route recording — below. |
+| **Mileage allowance** | settings | A lease or a yearly mileage limit for each car — below. |
 | **Debug logging** | settings | Verbose logging toggle — below. |
 
 ⚡ = spends one (or more) of your [50 requests / 24 h](Feature-API-Quota).
@@ -221,6 +222,24 @@ there is no vehicle question.
 | **Record route** | on/off | Off by default. When on, each new trip stores its GPS track — coordinates along the drive, each stamped with its time (`[lat, lon, t]`, `t` = seconds since start) — so a map can draw and replay the route. The only setting that persists raw coordinates, your exact start/end included. Served via `get_trips`; never in the export. |
 | **Phone** / **Phone is in the car** | `device_tracker` / binary sensor | Only on the follow-up screen **Route from a phone**, shown for a car on **End-of-trip reports** with **Record route** on. The phone's positions draw the trip's route; distance and times stay the car's. The in-car sensor turning on marks the trip's start. See [Trips](Feature-Trips#the-route-from-a-phone). |
 | **Trip-capture diagnostics** | on/off | Off by default. A troubleshooting aid for improving trip detection: logs the raw substrate (every GPS fix with cadence/latency, the close-timer lifecycle, full segment batches, a per-message descriptor firehose and a per-trip post-mortem) under `[trip.*]` tags, and writes `bavariandata_trip_capture.ndjson` to your config folder. Independent of **Debug logging**. Verbose and contains GPS/VIN — turn it on for a test drive and back off. See [Troubleshooting](Troubleshooting-and-FAQ#capturing-a-drive-for-trip-detection). |
+
+## Mileage allowance
+
+Screen: **Configure → Mileage allowance**. See [Mileage & allowance](Feature-Mileage)
+for what the figures mean.
+
+The first screen asks which kind of limit the car has: **None**, **Lease or
+financing** or **Yearly limit (e.g. insurance)**. **Next** opens that kind's
+form; **None** removes the car's allowance. The allowance is always the car's
+own: with several cars the vehicle question comes first, and a car added later
+starts without one. It applies at once, to the card and the sensor.
+
+| Option | Values | Meaning |
+| --- | --- | --- |
+| **Start date** / **Year starts on** | date | The day the lease began, or the first day of your insurance year (a yearly limit renews on it every year). |
+| **End date** | date | Lease only: the day you hand the car back. Must be after the start. |
+| **Allowance per year** | km (mi with US units) | From the contract or policy. A lease's total is this times its length. |
+| **Odometer at the start** / **Odometer that day** | km (mi) | The reading on the start date, from the handover papers. Filled in with today's reading while none is saved; for a yearly limit, the reading at the most recent start of the year. |
 
 ## Debug logging
 

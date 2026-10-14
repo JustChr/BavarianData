@@ -102,6 +102,7 @@
           "action_energy_sources": "Solar & energy sources",
           "action_evcc_bridge": "evcc / wallbox bridge",
           "action_trips": "Trips",
+          "action_mileage": "Mileage allowance",
           "action_debug_logging": "Debug logging"
         }
       },
@@ -374,6 +375,56 @@
         "data_description": {
           "debug_log": "Stays on across restarts until you turn it off here."
         }
+      },
+      "mileage_vehicle": {
+        "title": "Mileage allowance",
+        "description": "Each vehicle has its own allowance. Pick the one to change.",
+        "data": {
+          "vehicle": "Vehicle"
+        },
+        "data_description": {
+          "vehicle": "The next screen shows this vehicle's allowance."
+        }
+      },
+      "action_mileage": {
+        "title": "Mileage allowance",
+        "description": "Compare **{vehicle}** with a mileage limit from a lease or your insurance. The card's Mileage view shows how far you drive with or without one.",
+        "data": {
+          "mileage_kind": "Allowance"
+        },
+        "data_description": {
+          "mileage_kind": "A lease ends on a set date. A yearly limit renews on the same day every year."
+        }
+      },
+      "mileage_lease": {
+        "title": "Lease or financing",
+        "description": "The figures from the contract for **{vehicle}**. They apply at once, on the card and the allowance sensor.",
+        "data": {
+          "mileage_start": "Start date",
+          "mileage_end": "End date",
+          "mileage_allowance_km": "Allowance per year",
+          "mileage_start_km": "Odometer at the start"
+        },
+        "data_description": {
+          "mileage_start": "The day you got the car.",
+          "mileage_end": "The day you hand it back.",
+          "mileage_allowance_km": "From your contract. The total is this times the contract's length.",
+          "mileage_start_km": "From the handover papers. Filled in with today's reading if none is saved yet: correct it if the contract started earlier."
+        }
+      },
+      "mileage_yearly": {
+        "title": "Yearly limit",
+        "description": "A limit for **{vehicle}** that renews every year, such as your insurance's annual mileage. It applies at once, on the card and the allowance sensor.",
+        "data": {
+          "mileage_start": "Year starts on",
+          "mileage_allowance_km": "Allowance per year",
+          "mileage_start_km": "Odometer that day"
+        },
+        "data_description": {
+          "mileage_start": "The first day of your insurance year. The allowance renews on this day every year.",
+          "mileage_allowance_km": "The distance your policy allows each year.",
+          "mileage_start_km": "On the most recent start of the year. Filled in with today's reading if none is saved yet; later years are read from the car's own record."
+        }
       }
     },
     "progress": {
@@ -396,7 +447,8 @@
       "configurator_unsupported": "BMW's configurator doesn't draw {vehicle}: it covers BMW and MINI cars only. Keep the official picture.",
       "configurator_no_data": "The basic vehicle info for {vehicle} isn't in yet. Run \"Fetch basic vehicle info\" first, then try again.",
       "configurator_unavailable": "BMW's configurator didn't answer, or has changed. Try again later, or keep the official picture.",
-      "configurator_no_render": "BMW's configurator has no picture of {vehicle}. Keep the official picture."
+      "configurator_no_render": "BMW's configurator has no picture of {vehicle}. Keep the official picture.",
+      "mileage_end_before_start": "The end date must be after the start date."
     },
     "abort": {
       "reauth_started": "Authorization restarted. Finish the new login from the notification that just appeared.",
@@ -430,6 +482,13 @@
       "options": {
         "official": "BMW CarData (official)",
         "configurator": "BMW configurator (360°, unofficial)"
+      }
+    },
+    "mileage_kind": {
+      "options": {
+        "none": "None",
+        "lease": "Lease or financing",
+        "yearly": "Yearly limit (e.g. insurance)"
       }
     }
   },
@@ -2049,6 +2108,9 @@
       },
       "last_vehicle_report": {
         "name": "Last Vehicle Report"
+      },
+      "mileage_allowance": {
+        "name": "Mileage Allowance Balance"
       }
     },
     "binary_sensor": {
@@ -3149,6 +3211,20 @@
         "month": {
           "name": "Month",
           "description": "Month to summarize as YYYY-MM. Defaults to the current month."
+        }
+      }
+    },
+    "get_mileage_report": {
+      "name": "Get mileage report",
+      "description": "Return how far the car is driven (this month, this year, the last 12 months, its pace) and, with a mileage allowance, where it stands against it. Reads the local store, so it costs no BMW API quota.",
+      "fields": {
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id to target. Required if multiple entries are configured."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN. Defaults to the single configured vehicle."
         }
       }
     },

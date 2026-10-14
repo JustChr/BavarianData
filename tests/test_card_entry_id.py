@@ -86,6 +86,8 @@ card._mapData = {};
 card._fetchMapTrips(input.vin, entryId);
 card._eff = {};
 card._fetchEfficiency(input.vin, entryId);
+card._mil = {};
+card._fetchMileage(input.vin, entryId);
 // The export button reads the device itself rather than being handed an entry.
 // Its response handling belongs to another test; here it only has to fire.
 card.dispatchEvent = () => {};
@@ -128,6 +130,7 @@ EXPECTED_SERVICES = {
     "get_trips",
     "get_driving_summary",
     "get_efficiency",
+    "get_mileage_report",
     "export_history",
     "set_trip_class",
 }

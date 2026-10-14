@@ -39,6 +39,7 @@ erscheinen (der Screenshot zeigt die englische).
 | **Solar & Energiequellen** | Einstellungen | Woher die Energie jeder Ladung kam: PV, Hausspeicher, Netz — unten. |
 | **evcc-/Wallbox-Brücke** | Einstellungen | Den Live-Zustand des Autos für eine Ladesteuerung per MQTT veröffentlichen — unten. |
 | **Fahrten** | Einstellungen | Arbeitszone, Standard-Typ, Toleranz für Zwischenstopps, Adressauflösung und Routenaufzeichnung — unten. |
+| **Kilometerkontingent** | Einstellungen | Ein Leasing oder eine jährliche Kilometergrenze pro Auto — unten. |
 | **Debug-Protokollierung** | Einstellungen | Schalter für ausführliche Protokollierung — unten. |
 
 ⚡ = verbraucht eine (oder mehrere) deiner [50 Anfragen / 24 h](DE-Feature-API-Quota).
@@ -235,6 +236,27 @@ Mit nur einem Auto gibt es keine Fahrzeugabfrage.
 | **Route aufzeichnen** | an/aus | Standardmäßig aus. Wenn an, speichert jede neue Fahrt ihre GPS-Spur — Koordinaten entlang der Fahrt, jeweils mit Zeitpunkt (`[lat, lon, t]`, `t` = Sekunden seit Start) —, damit eine Karte die Route zeichnen und abspielen kann. Die einzige Einstellung, die rohe Koordinaten dauerhaft speichert, deine genauen Start- und Zielpunkte eingeschlossen. Über `get_trips` abrufbar; nie im Export. |
 | **Handy** / **Handy ist im Auto** | `device_tracker` / Binärsensor | Nur auf dem Folgebildschirm **Route vom Handy**, der für ein Auto mit **Berichte am Fahrtende** und eingeschalteter **Route aufzeichnen** erscheint. Die Positionen des Handys zeichnen die Route der Fahrt; Strecke und Zeiten bleiben die des Autos. Schaltet der Sensor ein, markiert das den Start der Fahrt. Siehe [Fahrten](DE-Feature-Trips#die-route-vom-handy). |
 | **Fahrt-Diagnoseaufzeichnung** | an/aus | Standardmäßig aus. Eine Fehlersuche-Hilfe zur Verbesserung der Fahrterkennung: protokolliert die rohe Grundlage (jeden GPS-Punkt mit Takt und Verzögerung, den Ablauf des Schließ-Timers, vollständige Segment-Batches, einen Strom aller Deskriptoren pro Nachricht und eine Nachbetrachtung pro Fahrt) unter den Kennungen `[trip.*]` und schreibt `bavariandata_trip_capture.ndjson` in deinen Konfigurationsordner. Unabhängig von der **Debug-Protokollierung**. Sehr ausführlich und enthält GPS/FIN — für eine Testfahrt ein- und danach wieder ausschalten. Siehe [Fehlerbehebung](DE-Troubleshooting-and-FAQ#capturing-a-drive-for-trip-detection). |
+
+## Kilometerkontingent
+
+<a id="mileage-allowance"></a>
+
+Maske: **Konfigurieren → Kilometerkontingent**. Was die Werte bedeuten, steht
+unter [Kilometer & Kontingent](DE-Feature-Mileage).
+
+Die erste Maske fragt, welche Art Grenze das Auto hat: **Keins**, **Leasing oder
+Finanzierung** oder **Jahresgrenze (z. B. Versicherung)**. **Weiter** öffnet das
+Formular dieser Art; **Keins** entfernt das Kontingent des Autos. Das Kontingent
+gehört immer dem Auto selbst: Bei mehreren Autos kommt zuerst die Fahrzeugfrage,
+und ein später hinzugefügtes Auto beginnt ohne. Es gilt sofort, in der Karte und
+im Sensor.
+
+| Option | Werte | Bedeutung |
+| --- | --- | --- |
+| **Beginn** / **Jahr beginnt am** | Datum | Der Tag, an dem das Leasing begann, oder der erste Tag deines Versicherungsjahres (eine Jahresgrenze beginnt jedes Jahr an diesem Tag neu). |
+| **Ende** | Datum | Nur Leasing: der Tag der Rückgabe. Muss nach dem Beginn liegen. |
+| **Kilometer pro Jahr** | km (mi bei US-Einheiten) | Aus Vertrag oder Police. Das Gesamtkontingent eines Leasings ist dieser Wert mal die Laufzeit. |
+| **Kilometerstand bei Beginn** / **Kilometerstand an dem Tag** | km (mi) | Der Stand am Starttag, aus dem Übergabeprotokoll. Vorbelegt mit dem heutigen Stand, solange keiner gespeichert ist; bei einer Jahresgrenze der Stand am letzten Jahresbeginn. |
 
 ## Debug-Protokollierung
 

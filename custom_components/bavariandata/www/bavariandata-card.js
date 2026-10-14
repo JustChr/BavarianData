@@ -333,6 +333,29 @@ const TRANSLATIONS = {
     bh_trend_title: "Capacity vs mileage",
     // efficiency and real range
     ef_title: "Efficiency & range",
+    mi_title: "Mileage",
+    mi_loading: "Adding up your mileage…",
+    mi_error: "Couldn't load the mileage data. Reload the page and try again.",
+    mi_empty: "No odometer readings yet. They're recorded as the car reports them.",
+    mi_this_month: "This month",
+    mi_this_year: "This year",
+    mi_per_day: "Per day",
+    mi_partial: "since recording began",
+    mi_pace: "At this pace: about {d} a year",
+    mi_no_pace: "The yearly pace shows after four weeks of readings.",
+    mi_months: "Last 12 months",
+    mi_lease: "Lease · ends {date}",
+    mi_yearly: "Yearly limit · renews {date}",
+    mi_of: "{used} of {total}",
+    mi_under: "{d} under plan",
+    mi_over: "{d} over plan",
+    mi_on_plan: "On plan",
+    mi_left_per_day: "{d} a day left until the end",
+    mi_projected: "At this pace: {d} at the end ({diff})",
+    mi_not_started: "Starts {date}.",
+    mi_unknown: "Waiting for an odometer reading from the start date.",
+    mi_ended: "The lease has ended; these are its final figures.",
+    mi_hint: "Have a lease or an insurance mileage limit? Add it in the integration's settings under Mileage allowance.",
     ef_loading: "Working out your real range…",
     ef_empty:
       "Not enough charging history yet. Once two charges bracket 50 km or so of driving, your real consumption and the range it reaches appear here.",
@@ -645,6 +668,29 @@ const TRANSLATIONS = {
     bh_trend_title: "Kapazität nach Laufleistung",
     // efficiency and real range
     ef_title: "Effizienz & Reichweite",
+    mi_title: "Kilometer",
+    mi_loading: "Kilometer werden zusammengezählt…",
+    mi_error: "Die Kilometerdaten konnten nicht geladen werden. Lade die Seite neu und versuche es noch einmal.",
+    mi_empty: "Noch keine Kilometerstände. Sie werden aufgezeichnet, sobald das Auto sie meldet.",
+    mi_this_month: "Dieser Monat",
+    mi_this_year: "Dieses Jahr",
+    mi_per_day: "Pro Tag",
+    mi_partial: "seit Aufzeichnungsbeginn",
+    mi_pace: "Bei diesem Tempo: etwa {d} im Jahr",
+    mi_no_pace: "Das Jahrestempo erscheint nach vier Wochen Kilometerständen.",
+    mi_months: "Letzte 12 Monate",
+    mi_lease: "Leasing · endet am {date}",
+    mi_yearly: "Jahresgrenze · neu ab {date}",
+    mi_of: "{used} von {total}",
+    mi_under: "{d} unter Plan",
+    mi_over: "{d} über Plan",
+    mi_on_plan: "Im Plan",
+    mi_left_per_day: "Noch {d} pro Tag bis zum Ende",
+    mi_projected: "Bei diesem Tempo: {d} am Ende ({diff})",
+    mi_not_started: "Beginnt am {date}.",
+    mi_unknown: "Wartet auf einen Kilometerstand vom Starttag.",
+    mi_ended: "Das Leasing ist beendet; das sind seine Endwerte.",
+    mi_hint: "Leasing oder eine Kilometergrenze der Versicherung? Trag sie in den Einstellungen der Integration unter Kilometerkontingent ein.",
     ef_loading: "Reale Reichweite wird berechnet…",
     ef_empty:
       "Noch zu wenig Ladehistorie. Sobald zwei Ladevorgänge rund 50 km Fahrt einschließen, erscheinen hier der reale Verbrauch und die Reichweite, die er ergibt.",
@@ -944,6 +990,29 @@ const TRANSLATIONS = {
     bh_trend_title: "Capacité selon le kilométrage",
     // efficiency and real range
     ef_title: "Efficacité et autonomie",
+    mi_title: "Kilométrage",
+    mi_loading: "Calcul de votre kilométrage…",
+    mi_error: "Impossible de charger le kilométrage. Rechargez la page et réessayez.",
+    mi_empty: "Aucun relevé du compteur pour l'instant. Ils sont enregistrés dès que la voiture les envoie.",
+    mi_this_month: "Ce mois-ci",
+    mi_this_year: "Cette année",
+    mi_per_day: "Par jour",
+    mi_partial: "depuis le début de l'enregistrement",
+    mi_pace: "À ce rythme : environ {d} par an",
+    mi_no_pace: "Le rythme annuel apparaît après quatre semaines de relevés.",
+    mi_months: "12 derniers mois",
+    mi_lease: "Location · se termine le {date}",
+    mi_yearly: "Limite annuelle · repart le {date}",
+    mi_of: "{used} sur {total}",
+    mi_under: "{d} sous le prévu",
+    mi_over: "{d} au-dessus du prévu",
+    mi_on_plan: "Dans les prévisions",
+    mi_left_per_day: "Encore {d} par jour jusqu'à la fin",
+    mi_projected: "À ce rythme : {d} à la fin ({diff})",
+    mi_not_started: "Commence le {date}.",
+    mi_unknown: "En attente d'un relevé du compteur à la date de début.",
+    mi_ended: "La location est terminée ; ce sont ses chiffres finaux.",
+    mi_hint: "Une location ou une limite de kilométrage d'assurance ? Ajoutez-la dans les réglages de l'intégration, sous Kilométrage autorisé.",
     ef_loading: "Calcul de votre autonomie réelle…",
     ef_empty:
       "Pas encore assez d'historique de recharge. Dès que deux recharges encadrent environ 50 km de conduite, votre consommation réelle et l'autonomie qu'elle permet apparaissent ici.",
@@ -1243,6 +1312,29 @@ const TRANSLATIONS = {
     bh_trend_title: "Capacità rispetto ai chilometri",
     // efficiency and real range
     ef_title: "Efficienza e autonomia",
+    mi_title: "Chilometri",
+    mi_loading: "Calcolo dei chilometri…",
+    mi_error: "Impossibile caricare i chilometri. Ricarica la pagina e riprova.",
+    mi_empty: "Nessuna lettura del contachilometri finora. Vengono registrate man mano che l'auto le invia.",
+    mi_this_month: "Questo mese",
+    mi_this_year: "Quest'anno",
+    mi_per_day: "Al giorno",
+    mi_partial: "dall'inizio della registrazione",
+    mi_pace: "A questo ritmo: circa {d} all'anno",
+    mi_no_pace: "Il ritmo annuale compare dopo quattro settimane di letture.",
+    mi_months: "Ultimi 12 mesi",
+    mi_lease: "Noleggio · termina il {date}",
+    mi_yearly: "Limite annuale · riparte il {date}",
+    mi_of: "{used} su {total}",
+    mi_under: "{d} sotto il previsto",
+    mi_over: "{d} sopra il previsto",
+    mi_on_plan: "In linea",
+    mi_left_per_day: "Ancora {d} al giorno fino alla fine",
+    mi_projected: "A questo ritmo: {d} alla fine ({diff})",
+    mi_not_started: "Inizia il {date}.",
+    mi_unknown: "In attesa di una lettura del contachilometri dalla data di inizio.",
+    mi_ended: "Il noleggio è terminato; questi sono i dati finali.",
+    mi_hint: "Hai un noleggio o un limite di chilometri dell'assicurazione? Aggiungilo nelle impostazioni dell'integrazione, in Chilometraggio consentito.",
     ef_loading: "Calcolo della tua autonomia reale…",
     ef_empty:
       "Storico di ricarica ancora insufficiente. Quando due ricariche racchiudono circa 50 km di guida, qui compaiono il tuo consumo reale e l'autonomia che ne deriva.",
@@ -1542,6 +1634,29 @@ const TRANSLATIONS = {
     bh_trend_title: "Capacidad frente a kilometraje",
     // efficiency and real range
     ef_title: "Eficiencia y autonomía",
+    mi_title: "Kilometraje",
+    mi_loading: "Sumando tu kilometraje…",
+    mi_error: "No se pudo cargar el kilometraje. Recarga la página e inténtalo de nuevo.",
+    mi_empty: "Aún no hay lecturas del cuentakilómetros. Se registran en cuanto el coche las envía.",
+    mi_this_month: "Este mes",
+    mi_this_year: "Este año",
+    mi_per_day: "Por día",
+    mi_partial: "desde que empezó el registro",
+    mi_pace: "A este ritmo: unos {d} al año",
+    mi_no_pace: "El ritmo anual aparece tras cuatro semanas de lecturas.",
+    mi_months: "Últimos 12 meses",
+    mi_lease: "Renting · termina el {date}",
+    mi_yearly: "Límite anual · se renueva el {date}",
+    mi_of: "{used} de {total}",
+    mi_under: "{d} por debajo del plan",
+    mi_over: "{d} por encima del plan",
+    mi_on_plan: "Según el plan",
+    mi_left_per_day: "Quedan {d} al día hasta el final",
+    mi_projected: "A este ritmo: {d} al final ({diff})",
+    mi_not_started: "Empieza el {date}.",
+    mi_unknown: "Esperando una lectura del cuentakilómetros de la fecha de inicio.",
+    mi_ended: "El renting ha terminado; estas son sus cifras finales.",
+    mi_hint: "¿Tienes un renting o un límite de kilometraje del seguro? Añádelo en los ajustes de la integración, en Kilometraje permitido.",
     ef_loading: "Calculando tu autonomía real…",
     ef_empty:
       "Todavía no hay suficiente historial de carga. Cuando dos cargas abarquen unos 50 km de conducción, aquí aparecerán tu consumo real y la autonomía que ofrece.",
@@ -1841,6 +1956,29 @@ const TRANSLATIONS = {
     bh_trend_title: "Capaciteit tegen kilometerstand",
     // efficiency and real range
     ef_title: "Efficiëntie en actieradius",
+    mi_title: "Kilometers",
+    mi_loading: "Je kilometers worden opgeteld…",
+    mi_error: "De kilometergegevens konden niet worden geladen. Herlaad de pagina en probeer het opnieuw.",
+    mi_empty: "Nog geen kilometerstanden. Ze worden vastgelegd zodra de auto ze meldt.",
+    mi_this_month: "Deze maand",
+    mi_this_year: "Dit jaar",
+    mi_per_day: "Per dag",
+    mi_partial: "sinds het begin van de registratie",
+    mi_pace: "In dit tempo: ongeveer {d} per jaar",
+    mi_no_pace: "Het jaartempo verschijnt na vier weken kilometerstanden.",
+    mi_months: "Laatste 12 maanden",
+    mi_lease: "Lease · eindigt op {date}",
+    mi_yearly: "Jaarlimiet · begint opnieuw op {date}",
+    mi_of: "{used} van {total}",
+    mi_under: "{d} onder planning",
+    mi_over: "{d} boven planning",
+    mi_on_plan: "Op schema",
+    mi_left_per_day: "Nog {d} per dag tot het einde",
+    mi_projected: "In dit tempo: {d} aan het einde ({diff})",
+    mi_not_started: "Begint op {date}.",
+    mi_unknown: "Wacht op een kilometerstand van de startdatum.",
+    mi_ended: "De lease is afgelopen; dit zijn de eindcijfers.",
+    mi_hint: "Een lease of een kilometerlimiet van je verzekering? Voeg die toe in de instellingen van de integratie, onder Kilometerlimiet.",
     ef_loading: "Je werkelijke actieradius wordt berekend…",
     ef_empty:
       "Nog niet genoeg laadgeschiedenis. Zodra twee laadbeurten zo'n 50 km rijden omsluiten, verschijnen hier je werkelijke verbruik en de actieradius die dat oplevert.",
@@ -2140,6 +2278,29 @@ const TRANSLATIONS = {
     bh_trend_title: "Pojemność a przebieg",
     // efficiency and real range
     ef_title: "Wydajność i zasięg",
+    mi_title: "Przebieg",
+    mi_loading: "Liczenie przebiegu…",
+    mi_error: "Nie udało się wczytać przebiegu. Odśwież stronę i spróbuj ponownie.",
+    mi_empty: "Brak odczytów licznika. Są zapisywane, gdy auto je przesyła.",
+    mi_this_month: "Ten miesiąc",
+    mi_this_year: "Ten rok",
+    mi_per_day: "Dziennie",
+    mi_partial: "od początku zapisu",
+    mi_pace: "W tym tempie: ok. {d} rocznie",
+    mi_no_pace: "Tempo roczne pojawi się po czterech tygodniach odczytów.",
+    mi_months: "Ostatnie 12 miesięcy",
+    mi_lease: "Leasing · kończy się {date}",
+    mi_yearly: "Limit roczny · odnawia się {date}",
+    mi_of: "{used} z {total}",
+    mi_under: "{d} poniżej planu",
+    mi_over: "{d} powyżej planu",
+    mi_on_plan: "Zgodnie z planem",
+    mi_left_per_day: "Zostało {d} dziennie do końca",
+    mi_projected: "W tym tempie: {d} na koniec ({diff})",
+    mi_not_started: "Zaczyna się {date}.",
+    mi_unknown: "Czeka na odczyt licznika z dnia rozpoczęcia.",
+    mi_ended: "Leasing się zakończył; to jego końcowe dane.",
+    mi_hint: "Masz leasing lub limit kilometrów w ubezpieczeniu? Dodaj go w ustawieniach integracji, w sekcji Limit kilometrów.",
     ef_loading: "Obliczanie rzeczywistego zasięgu…",
     ef_empty:
       "Za mało historii ładowania. Gdy dwa ładowania obejmą około 50 km jazdy, pojawi się tu Twoje rzeczywiste zużycie i zasięg, jaki daje.",
@@ -2439,6 +2600,29 @@ const TRANSLATIONS = {
     bh_trend_title: "Capacidade vs quilometragem",
     // efficiency and real range
     ef_title: "Eficiência e autonomia",
+    mi_title: "Quilometragem",
+    mi_loading: "A somar a sua quilometragem…",
+    mi_error: "Não foi possível carregar a quilometragem. Recarregue a página e tente novamente.",
+    mi_empty: "Ainda não há leituras do conta-quilómetros. São registadas quando o carro as envia.",
+    mi_this_month: "Este mês",
+    mi_this_year: "Este ano",
+    mi_per_day: "Por dia",
+    mi_partial: "desde o início do registo",
+    mi_pace: "A este ritmo: cerca de {d} por ano",
+    mi_no_pace: "O ritmo anual aparece após quatro semanas de leituras.",
+    mi_months: "Últimos 12 meses",
+    mi_lease: "Renting · termina a {date}",
+    mi_yearly: "Limite anual · renova-se a {date}",
+    mi_of: "{used} de {total}",
+    mi_under: "{d} abaixo do plano",
+    mi_over: "{d} acima do plano",
+    mi_on_plan: "Dentro do plano",
+    mi_left_per_day: "Restam {d} por dia até ao fim",
+    mi_projected: "A este ritmo: {d} no fim ({diff})",
+    mi_not_started: "Começa a {date}.",
+    mi_unknown: "À espera de uma leitura do conta-quilómetros da data de início.",
+    mi_ended: "O renting terminou; estes são os números finais.",
+    mi_hint: "Tem um renting ou um limite de quilometragem do seguro? Adicione-o nas definições da integração, em Quilometragem permitida.",
     ef_loading: "A calcular a sua autonomia real…",
     ef_empty:
       "Ainda não há histórico de carregamento suficiente. Quando dois carregamentos abrangerem cerca de 50 km de condução, o seu consumo real e a autonomia que permite aparecem aqui.",
@@ -2738,6 +2922,29 @@ const TRANSLATIONS = {
     bh_trend_title: "Kapacita vs. nájezd",
     // efficiency and real range
     ef_title: "Účinnost a dojezd",
+    mi_title: "Nájezd",
+    mi_loading: "Sčítám nájezd…",
+    mi_error: "Údaje o nájezdu se nepodařilo načíst. Obnovte stránku a zkuste to znovu.",
+    mi_empty: "Zatím žádné stavy tachometru. Zaznamenávají se, jakmile je auto pošle.",
+    mi_this_month: "Tento měsíc",
+    mi_this_year: "Tento rok",
+    mi_per_day: "Za den",
+    mi_partial: "od začátku záznamu",
+    mi_pace: "Tímto tempem: zhruba {d} za rok",
+    mi_no_pace: "Roční tempo se ukáže po čtyřech týdnech záznamů.",
+    mi_months: "Posledních 12 měsíců",
+    mi_lease: "Leasing · končí {date}",
+    mi_yearly: "Roční limit · začíná znovu {date}",
+    mi_of: "{used} z {total}",
+    mi_under: "{d} pod plánem",
+    mi_over: "{d} nad plánem",
+    mi_on_plan: "Podle plánu",
+    mi_left_per_day: "Zbývá {d} denně do konce",
+    mi_projected: "Tímto tempem: {d} na konci ({diff})",
+    mi_not_started: "Začíná {date}.",
+    mi_unknown: "Čeká na stav tachometru z data začátku.",
+    mi_ended: "Leasing skončil; toto jsou jeho konečné údaje.",
+    mi_hint: "Máte leasing nebo limit kilometrů z pojištění? Přidejte ho v nastavení integrace v části Limit kilometrů.",
     ef_loading: "Výpočet skutečného dojezdu…",
     ef_empty:
       "Zatím není dost historie nabíjení. Jakmile dvě nabití ohraničí zhruba 50 km jízdy, objeví se zde vaše skutečná spotřeba a dojezd, který z ní plyne.",
@@ -3037,6 +3244,29 @@ const TRANSLATIONS = {
     bh_trend_title: "Kapacitet mot miltal",
     // efficiency and real range
     ef_title: "Effektivitet och räckvidd",
+    mi_title: "Körsträcka",
+    mi_loading: "Räknar ihop körsträckan…",
+    mi_error: "Kunde inte läsa in körsträckan. Ladda om sidan och försök igen.",
+    mi_empty: "Inga mätarställningar än. De sparas när bilen rapporterar dem.",
+    mi_this_month: "Den här månaden",
+    mi_this_year: "I år",
+    mi_per_day: "Per dag",
+    mi_partial: "sedan registreringen började",
+    mi_pace: "I den här takten: cirka {d} per år",
+    mi_no_pace: "Årstakten visas efter fyra veckors mätarställningar.",
+    mi_months: "Senaste 12 månaderna",
+    mi_lease: "Leasing · slutar {date}",
+    mi_yearly: "Årligt tak · börjar om {date}",
+    mi_of: "{used} av {total}",
+    mi_under: "{d} under plan",
+    mi_over: "{d} över plan",
+    mi_on_plan: "Enligt plan",
+    mi_left_per_day: "{d} per dag kvar till slutet",
+    mi_projected: "I den här takten: {d} vid slutet ({diff})",
+    mi_not_started: "Börjar {date}.",
+    mi_unknown: "Väntar på en mätarställning från startdagen.",
+    mi_ended: "Leasingen har slutat; detta är dess slutsiffror.",
+    mi_hint: "Har du leasing eller ett miltak i försäkringen? Lägg till det i integrationens inställningar under Miltak.",
     ef_loading: "Räknar ut din verkliga räckvidd…",
     ef_empty:
       "Inte tillräckligt med laddningshistorik än. När två laddningar omsluter ungefär 50 km körning visas din verkliga förbrukning och räckvidden den ger här.",
@@ -3400,6 +3630,7 @@ class BavarianDataCard extends HTMLElement {
     if (this._config && this._config.view === "map") return 10;
     if (this._config && this._config.view === "health") return 7;
     if (this._config && this._config.view === "efficiency") return 8;
+    if (this._config && this._config.view === "mileage") return 8;
     return this._config && this._config.cluster ? 6 : 8;
   }
 
@@ -3887,6 +4118,8 @@ class BavarianDataCard extends HTMLElement {
       this._renderEquipment(deviceId, entities);
     } else if (this._config.view === "efficiency") {
       this._renderEfficiency(deviceId, entities);
+    } else if (this._config.view === "mileage") {
+      this._renderMileage(deviceId, entities);
     } else if (this._config.cluster === "tire") {
       this._renderTires(deviceId, entities);
     } else if (this._config.cluster === "closures") {
@@ -7090,6 +7323,267 @@ class BavarianDataCard extends HTMLElement {
     `;
   }
 
+  /* ---- mileage ---------------------------------------------------------- */
+
+  /** How far the car is driven, and its mileage allowance when it has one.
+   * Everything comes from `get_mileage_report` (the daily odometer log, no
+   * quota). Re-fetched when the odometer moves, on a new day, and every ten
+   * minutes so a freshly configured allowance shows up without a reload. */
+  _renderMileage(deviceId, entities) {
+    const vin = this._deviceVin(deviceId);
+    if (!vin) {
+      this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
+      return;
+    }
+    const entryId = this._deviceEntry(deviceId);
+    const odo = DESC_ODOMETER.map((d) => this._byDescriptor(entities, d)).find(Boolean);
+    const trigger = [
+      odo ? odo.state : "",
+      this._monthKey(),
+      new Date().getDate(),
+      Math.floor(Date.now() / 600000),
+    ].join("|");
+    const cache = this._mil;
+    const current = cache && cache.vin === vin && cache.trigger === trigger;
+    if (!current || (!cache.data && !cache.loading)) {
+      this._mil = {
+        vin,
+        trigger,
+        data: cache && cache.vin === vin ? cache.data : null,
+        loading: true,
+        error: false,
+      };
+      this._fetchMileage(vin, entryId);
+    }
+    this._paintMileage(deviceId, this._lengthUnit(entities));
+  }
+
+  _fetchMileage(vin, entryId) {
+    const req = this._mil;
+    this._hass
+      .callService(
+        "bavariandata",
+        "get_mileage_report",
+        this._withEntry({ vin }, entryId),
+        undefined,
+        false,
+        true
+      )
+      .then((res) => {
+        if (!this._mil || this._mil.vin !== vin || this._mil.trigger !== req.trigger) return;
+        const data = (res && res.response) || null;
+        this._mil = { ...this._mil, data, loading: false, error: false };
+        this._render();
+      })
+      .catch(() => {
+        if (!this._mil || this._mil.vin !== vin || this._mil.trigger !== req.trigger) return;
+        this._mil = { ...this._mil, loading: false, error: true };
+        this._render();
+      });
+  }
+
+  /** "31 Aug 2028" in the viewer's language, from an ISO date. */
+  _isoDay(iso) {
+    if (!iso) return "";
+    const [y, m, d] = String(iso).split("-").map(Number);
+    try {
+      const lang = _lang(this._hass);
+      return new Date(y, m - 1, d).toLocaleDateString(lang === "en" ? "en-GB" : lang, {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    } catch (_e) {
+      return String(iso);
+    }
+  }
+
+  _paintMileage(deviceId, unit) {
+    const name = this._config.title || this._deviceName(deviceId);
+    const state = this._mil || {};
+    const data = state.data;
+    const sig = this._signature({
+      m: "mi",
+      lang: _lang(this._hass),
+      name,
+      unit,
+      loading: state.loading && !data,
+      error: state.error && !data,
+      data,
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    let body;
+    if (state.error && !data) {
+      body = `<div class="empty">${this._t("mi_error")}</div>`;
+    } else if (state.loading && !data) {
+      body = `<div class="empty">${this._t("mi_loading")}</div>`;
+    } else if (!data || data.odometer_km == null) {
+      body = `<div class="empty">${this._t("mi_empty")}</div>`;
+    } else {
+      body = this._miBody(data, unit);
+    }
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <div class="chead">
+          <ha-icon icon="mdi:counter"></ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">${this._esc(this._config.title || this._t("mi_title"))}</span>
+            <span class="chead__sub">${this._esc(name)}</span>
+          </div>
+        </div>
+        ${body}
+      </ha-card>
+    `;
+  }
+
+  _miBody(data, unit) {
+    const dist = (km) => this._distance(km, unit);
+    const tile = (label, part) => {
+      if (!part) return "";
+      return `<div class="ef__fact">
+          <span class="ef__fact-lbl">${label}</span>
+          <span class="ef__fact-val">${dist(part.km)}</span>
+          ${part.partial ? `<span class="ef__fact-note">${this._t("mi_partial")}</span>` : ""}
+        </div>`;
+    };
+    const perDay =
+      data.km_per_day != null
+        ? `<div class="ef__fact">
+             <span class="ef__fact-lbl">${this._t("mi_per_day")}</span>
+             <span class="ef__fact-val">${dist(data.km_per_day)}</span>
+           </div>`
+        : "";
+    const pace =
+      data.projected_year_km != null
+        ? this._t("mi_pace", { d: dist(data.projected_year_km) })
+        : this._t("mi_no_pace");
+    const chart = this._miMonthsSvg(data.months || [], unit);
+    const allowance = data.allowance
+      ? this._miAllowance(data.allowance, dist)
+      : `<span class="ef__note">${this._t("mi_hint")}</span>`;
+    return `
+      <div class="ef">
+        <div class="ef__facts">
+          ${tile(this._t("mi_this_month"), data.this_month)}
+          ${tile(this._t("mi_this_year"), data.this_year)}
+          ${perDay}
+        </div>
+        <span class="ef__vs">${pace}</span>
+        ${
+          chart
+            ? `<div class="ef__trend"><span class="ef__trend-title">${this._t(
+                "mi_months"
+              )}</span>${chart}</div>`
+            : ""
+        }
+        ${allowance}
+      </div>
+    `;
+  }
+
+  _miAllowance(a, dist) {
+    const end = this._isoDay(a.end);
+    const head =
+      a.kind === "lease"
+        ? this._t("mi_lease", { date: end })
+        : this._t("mi_yearly", { date: end });
+    let rows;
+    if (a.status === "not_started") {
+      rows = `<span class="ef__note">${this._t("mi_not_started", {
+        date: this._isoDay(a.start),
+      })}</span>`;
+    } else if (a.status === "unknown") {
+      rows = `<span class="ef__note">${this._t("mi_unknown")}</span>`;
+    } else {
+      const total = a.allowance_km || 0;
+      const used = a.used_km || 0;
+      const pct = total > 0 ? Math.min(100, (used / total) * 100) : 0;
+      const plan = total > 0 ? Math.min(100, ((a.plan_km || 0) / total) * 100) : 0;
+      const over = used > total;
+      const balance = a.balance_km || 0;
+      const tone = balance < 0 ? " ef__vs--over" : "";
+      const balanceText =
+        Math.abs(balance) < 1
+          ? this._t("mi_on_plan")
+          : balance > 0
+          ? this._t("mi_under", { d: dist(balance) })
+          : this._t("mi_over", { d: dist(-balance) });
+      const lines = [`<span class="ef__vs${tone}">${balanceText}</span>`];
+      if (a.status === "ended") {
+        lines.push(`<span class="ef__note">${this._t("mi_ended")}</span>`);
+      } else {
+        if (a.km_per_day_left != null && a.km_per_day_left >= 0) {
+          lines.push(
+            `<span class="ef__note">${this._t("mi_left_per_day", {
+              d: dist(a.km_per_day_left),
+            })}</span>`
+          );
+        }
+        if (a.projected_km != null) {
+          const diff = a.projected_over_km || 0;
+          const sign = diff > 0 ? "+" : diff < 0 ? "−" : "±";
+          lines.push(
+            `<span class="ef__note">${this._t("mi_projected", {
+              d: dist(a.projected_km),
+              diff: `${sign}${dist(Math.abs(diff))}`,
+            })}</span>`
+          );
+        }
+      }
+      rows = `
+        <div class="mi__bar${over ? " mi__bar--over" : ""}" role="img"
+             aria-label="${this._attr(this._t("mi_of", { used: dist(used), total: dist(total) }))}">
+          <span class="mi__fill" style="width:${this._px(pct)}%"></span>
+          <span class="mi__plan" style="left:${this._px(plan)}%"></span>
+        </div>
+        <span class="mi__of">${this._t("mi_of", { used: dist(used), total: dist(total) })}</span>
+        ${lines.join("")}`;
+    }
+    return `<div class="mi__allowance">
+        <span class="ef__trend-title">${head}</span>
+        ${rows}
+      </div>`;
+  }
+
+  /** Distance per month as bars, oldest left. A month the log doesn't reach
+   * draws no bar; the months before the first reading are left out. */
+  _miMonthsSvg(months, unit) {
+    const first = months.findIndex((m) => m.km != null);
+    if (first < 0) return "";
+    const shown = months.slice(first);
+    if (shown.length < 2) return "";
+    const W = 280;
+    const H = 88;
+    const pad = 6;
+    const bottom = 14;
+    const factor = unit === "mi" ? 1 / KM_PER_MILE : 1;
+    const values = shown.map((m) => (m.km || 0) * factor);
+    const max = Math.max(...values) * 1.15 || 1;
+    const slot = (W - 2 * pad) / shown.length;
+    const width = Math.min(28, Math.max(4, slot * 0.58));
+    const bars = shown
+      .map((entry, i) => {
+        const x = pad + i * slot + (slot - width) / 2;
+        const h = ((entry.km || 0) * factor / max) * (H - bottom - pad);
+        const y = H - bottom - h;
+        const label = String(entry.month || "").slice(5);
+        const cls = entry.partial ? "ef__bar mi__bar-partial" : "ef__bar";
+        return `${
+          entry.km != null
+            ? `<rect class="${cls}" x="${this._px(x)}" y="${this._px(y)}"
+                  width="${this._px(width)}" height="${this._px(Math.max(h, 1))}" rx="2"></rect>`
+            : ""
+        }<text class="ef__bar-lbl" x="${this._px(x + width / 2)}" y="${H - 3}"
+                  text-anchor="middle">${this._esc(label)}</text>`;
+      })
+      .join("");
+    return `<svg class="ef__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${bars}</svg>`;
+  }
+
   _round(n, dp) {
     const f = Math.pow(10, dp);
     return Math.round(n * f) / f;
@@ -8814,6 +9308,19 @@ class BavarianDataCard extends HTMLElement {
       .ef__bar { fill: var(--bmw-charge); opacity: 0.85; }
       .ef__bar-lbl { fill: var(--secondary-text-color); font-size: 8px; }
       .ef__note { font-size: 0.72rem; color: var(--secondary-text-color); line-height: 1.35; }
+      .mi__allowance { display: flex; flex-direction: column; gap: 6px; }
+      .mi__bar {
+        position: relative; height: 10px; border-radius: 5px; overflow: hidden;
+        background: var(--divider-color, rgba(127, 127, 127, 0.25));
+      }
+      .mi__fill { position: absolute; inset: 0 auto 0 0; background: var(--bmw-charge); }
+      .mi__bar--over .mi__fill { background: var(--bmw-high); }
+      .mi__plan {
+        position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px;
+        background: var(--primary-text-color); opacity: 0.6;
+      }
+      .mi__of { font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+      .mi__bar-partial { opacity: 0.45; }
 
       /* trips */
       .tr__review { padding: 8px 14px 4px; display: flex; flex-direction: column; gap: 12px; }
@@ -8997,6 +9504,8 @@ const MAP_VIEW = "map";
 const EFFICIENCY_VIEW = "efficiency";
 // The car's factory equipment, named by BMW's configurator (opt-in source).
 const EQUIPMENT_VIEW = "equipment";
+// How far the car is driven, and its mileage allowance.
+const MILEAGE_VIEW = "mileage";
 
 const VIEW_MODES = new Set([
   CHARGING_VIEW,
@@ -9004,6 +9513,7 @@ const VIEW_MODES = new Set([
   MAP_VIEW,
   HEALTH_VIEW,
   EFFICIENCY_VIEW,
+  MILEAGE_VIEW,
   EQUIPMENT_VIEW,
 ]);
 
@@ -9026,6 +9536,7 @@ class BavarianDataCardEditor extends HTMLElement {
       { value: MAP_VIEW, label: t(this._hass, "mp_title") },
       { value: HEALTH_VIEW, label: t(this._hass, "bh_title") },
       { value: EFFICIENCY_VIEW, label: t(this._hass, "ef_title") },
+      { value: MILEAGE_VIEW, label: t(this._hass, "mi_title") },
       { value: EQUIPMENT_VIEW, label: t(this._hass, "eq_title") },
       { value: "closures", label: t(this._hass, "cl_closures") },
       ...CLUSTER_SLUGS.map((slug) => ({

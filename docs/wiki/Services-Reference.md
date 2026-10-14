@@ -38,6 +38,7 @@ These read (or write) the integration's own store and cost **no** quota.
 | `bavariandata.get_trips` | Recorded trips as response data (endpoints as place names), plus any drive still under way. |
 | `bavariandata.get_driving_summary` | The month-in-review aggregation for trips. |
 | `bavariandata.get_efficiency` | Measured consumption, the real range it implies, the charging loss and the monthly trend — see below. |
+| `bavariandata.get_mileage_report` | How far the car is driven and where it stands against its mileage allowance — see below. |
 | `bavariandata.get_evcc_config` | The evcc `custom` vehicle configuration for a car, plus the bridge's MQTT topics — see below. |
 | `bavariandata.set_trip_class` | Corrects a trip's business/private/commute class. |
 | `bavariandata.mark_trip_start` | Notes when a drive began, for a car that reports only once parked — see below. |
@@ -113,6 +114,25 @@ so it costs no BMW API quota.
 `no_capacity`, or `plug_in_hybrid` (consumption, range, trend and
 `cost_per_100km` are all withheld on a hybrid). See
 [Efficiency & real range](Feature-Efficiency-and-Range).
+
+### `get_mileage_report`
+`vin`. Returns the [mileage overview](Feature-Mileage) as response data, read off
+the car's daily odometer log, so it costs no BMW API quota. All distances are in
+km.
+
+- **`odometer_km`**, **`since`** — the newest reading and the day the log starts.
+- **`this_month`**, **`this_year`** — `{km, partial}`; `partial` when the period
+  began before the log did.
+- **`km_per_day`**, **`projected_year_km`** — the 90-day pace; `null` until the
+  readings span four weeks.
+- **`months`** — the last 12 calendar months, oldest first: `{month: "YYYY-MM",
+  km, partial}`, `km` `null` where the log doesn't reach.
+- **`allowance`** — `null` without one. Otherwise `kind` (`lease`/`yearly`),
+  `start`, `end`, `allowance_km`, `per_year_km` and `status`: `ok`, `ended`,
+  `not_started` or `unknown` (no odometer for the start). With `ok` or `ended`
+  also `used_km`, `plan_km`, `balance_km` (plan minus used, positive = under
+  plan), `remaining_km`, `days_left`, `km_per_day_left`, `projected_km` and
+  `projected_over_km`.
 
 ### `get_evcc_config`
 `vin`. Returns the evcc configuration for one car, ready to paste into

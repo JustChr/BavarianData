@@ -78,6 +78,7 @@ from .placeholders import is_placeholder
 from .structured_values import EMPTY_WHEN_NULL
 from .trip_settings import TripSettings
 from .tyre import parse_tyre_diagnosis
+from .mileage import mileage_report
 from .units import miles_to_km, normalize_unit
 from .vehicle_report import (
     ARM,
@@ -481,6 +482,10 @@ class CardataCoordinator:
     # Trip-capture diagnostic mode (opt-in, off by default). Emits the rich
     # ``[trip.*]`` capture and the NDJSON file; account-wide, refreshed from options.
     trip_debug: bool = False
+    # Each car's mileage allowance as stored under Configure -> Mileage
+    # allowance (``vehicle_options.mileage_values``), by VIN; a car without one
+    # is absent. Read through ``mileage_report``.
+    mileage_allowances: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     _session_builders: Dict[str, SessionBuilder] = field(default_factory=dict, init=False)
     _session_costs: Dict[str, CostAccumulator] = field(default_factory=dict, init=False)
     # Running source mix per open session (PV / house battery / grid). Separate
@@ -624,6 +629,11 @@ class CardataCoordinator:
         return f"{DOMAIN}_{self.entry_id}_trips"
 
     @property
+    def signal_mileage(self) -> str:
+        """A car's mileage allowance was changed (Configure -> Mileage allowance)."""
+        return f"{DOMAIN}_{self.entry_id}_mileage"
+
+    @property
     def signal_trip_active(self) -> str:
         """Fired when a trip opens or closes, so the "drive under way" flag flips.
 
@@ -675,7 +685,7 @@ class CardataCoordinator:
         soc_now = self._trip_soc_end(vin, builder.start)
         progress = builder.progress(
             dt_util.utcnow(),
-            mileage_now=self._odometer_km(vin),
+            mileage_now=self.odometer_km(vin),
             soc_now=soc_now,
         )
         energy_kwh = self._trip_energy_kwh(vin, builder.soc_start, soc_now)
@@ -1794,7 +1804,7 @@ class CardataCoordinator:
             cost=resolve_cost(accumulated=accumulator.as_cost() if accumulator else None),
             reason=status,
         )
-        session.mileage_km = self._odometer_km(vin)
+        session.mileage_km = self.odometer_km(vin)
         session.energy_mix = None if mix is None else mix.as_record()
         if debug_enabled():
             _LOGGER.debug(
@@ -1871,7 +1881,7 @@ class CardataCoordinator:
             self.battery_capacity_kwh(vin),
         )
 
-    def _odometer_km(self, vin: str) -> Optional[float]:
+    def odometer_km(self, vin: str) -> Optional[float]:
         """Cumulative odometer in km, for trip distance and distance-based costing.
 
         Reads whichever odometer descriptor the car actually streams (see
@@ -1893,9 +1903,16 @@ class CardataCoordinator:
     def _note_odometer_day(self, vin: str, now: datetime) -> None:
         """Log today's odometer reading -- the car's pace (``history/odometer.py``)."""
 
-        odometer_km = self._odometer_km(vin)
+        odometer_km = self.odometer_km(vin)
         if self.history is not None and odometer_km is not None:
             self.history.async_note_odometer(vin, dt_util.as_local(now).date(), odometer_km)
+
+    def mileage_report(self, vin: str) -> Dict[str, Any]:
+        """How far the car is driven, and where it stands against its allowance."""
+
+        log = self.history.odometer_log(vin) if self.history is not None else {}
+        today = dt_util.as_local(datetime.now(timezone.utc)).date()
+        return mileage_report(log, today, self.mileage_allowances.get(vin))
 
     def km_per_day(self, vin: str) -> Optional[float]:
         """The car's average km a day over the last 90 days, or ``None``."""
@@ -1937,7 +1954,7 @@ class CardataCoordinator:
 
         if self.history is None:
             return
-        odometer_km = self._odometer_km(vin)
+        odometer_km = self.odometer_km(vin)
         last = self.history.last_report(vin)
         decision = self._report_decision(vin, odometer_km)
         if decision.kind == SEED:
@@ -1978,7 +1995,7 @@ class CardataCoordinator:
             armed = self._report_pending.pop(vin, None)
             # A newer reading would have re-armed the timer; anything else is a
             # value that has gone away again, and is not announced.
-            if armed is None or self._odometer_km(vin) != armed:
+            if armed is None or self.odometer_km(vin) != armed:
                 return
             # Decided again, against the record as it is now: what the report
             # is measured from may have changed while it held.
@@ -2441,7 +2458,7 @@ class CardataCoordinator:
             charging=charging,
             plugged=self._plug_state(vin),
             range_km=self.bmw_range_km(vin),
-            odometer_km=self._odometer_km(vin),
+            odometer_km=self.odometer_km(vin),
             limit_soc=None if tracking is None else tracking.target_soc_percent,
             charge_power_kw=power_kw,
             updated=None if tracking is None else tracking.last_update,
@@ -3139,7 +3156,7 @@ class CardataCoordinator:
             None if latency is None else int(latency),
             moving,
             None if since_move is None else int(since_move),
-            self._odometer_km(vin),
+            self.odometer_km(vin),
             self._current_soc(vin),
             builder.gps_km if builder is not None else 0.0,
             open_trip,
@@ -3242,7 +3259,7 @@ class CardataCoordinator:
             started_at,
             start_place=start_place,
             soc_start=self._current_soc(vin),
-            mileage_start=self._odometer_km(vin),
+            mileage_start=self.odometer_km(vin),
             location_assumed=start_place is None or start_place.get("label") == "Unknown",
             record_track=self.trip_settings_for(vin).record_track,
         )
@@ -3340,7 +3357,7 @@ class CardataCoordinator:
             ended_at,
             end_place=end_place,
             soc_end=soc_end,
-            mileage_end=self._odometer_km(vin),
+            mileage_end=self.odometer_km(vin),
             energy_kwh=energy_kwh,
             travelled_km=travelled_km,
             stats=stats,
@@ -3364,7 +3381,7 @@ class CardataCoordinator:
         # cadence, so a bad trip can be diagnosed without scrolling the capture.
         if self.trip_debug:
             odo_start = (cap_stats or {}).get("odo_start")
-            odo_end = self._odometer_km(vin)
+            odo_end = self.odometer_km(vin)
             odo_delta = (
                 round(odo_end - odo_start, 1)
                 if odo_start is not None and odo_end is not None

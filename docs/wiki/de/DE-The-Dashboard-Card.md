@@ -247,6 +247,33 @@ zu zeigen.
 
 ---
 
+## Kilometer (`view: mileage`)
+
+<a id="mileage-view-mileage"></a>
+
+Wie viel das Auto gefahren wird und, falls es eine hat, wie es zu einer
+Kilometergrenze aus Leasing oder Versicherung steht.
+
+```yaml
+type: custom:bavariandata-card
+view: mileage
+```
+
+Sie zeigt diesen Monat, dieses Jahr und den Schnitt pro Tag, das Jahrestempo
+daraus und einen Balken pro Monat für die letzten zwölf. Ein Zeitraum, der vor
+dem Aufzeichnungsbeginn von BavarianData lag, ist mit *seit Aufzeichnungsbeginn*
+markiert, und das Tempo wartet auf vier Wochen Kilometerstände. Mit einem
+[Kilometerkontingent](DE-Feature-Mileage#a-mileage-allowance) zeigt ein Balken,
+wie viel davon verbraucht ist, mit einer Markierung, wo der Plan heute steht;
+darunter unter oder über Plan, die Strecke pro Tag bis zum Ende und wo das
+aktuelle Tempo landet. Ohne Kontingent sagt eine Zeile, wo man es einträgt.
+
+Alles kommt aus den täglichen Kilometerständen des Autos, kostet daher **kein
+API-Kontingent** und funktioniert mit jedem Antrieb. Strecken folgen der Einheit
+des Kilometerzählers (km oder mi).
+
+---
+
 ## Fahrten / Fahrtenbuch (`view: trips`)
 
 <a id="trips--driving-journal-view-trips"></a>

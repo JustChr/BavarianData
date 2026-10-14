@@ -1375,6 +1375,87 @@ class CardataLastVehicleReportSensor(CardataEntity, SensorEntity):
             self.schedule_update_ha_state()
 
 
+class CardataMileageAllowanceSensor(CardataEntity, SensorEntity):
+    """How far the car is under (+) or over (-) its mileage allowance's plan to date.
+
+    The one number of the mileage overview (``mileage.py``); the rest of the
+    allowance -- used, remaining, km a day left, projected end -- rides as
+    attributes, and the full overview is ``get_mileage_report``'s. Unknown
+    while the car has no allowance (Configure -> Mileage allowance). Created
+    disabled, like the roadmap's other additions.
+    """
+
+    _attr_should_poll = False
+    _attr_device_class = SensorDeviceClass.DISTANCE
+    _attr_native_unit_of_measurement = "km"
+    _attr_suggested_display_precision = 0
+    _attr_icon = "mdi:counter"
+    _attr_entity_registry_enabled_default = False
+    _attr_translation_key = "mileage_allowance"
+
+    def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
+        super().__init__(coordinator, vin, "mileage_allowance")
+        self._unsubscribers: list = []
+
+    @property
+    def _allowance(self) -> Dict[str, Any]:
+        return self._coordinator.mileage_report(self.vin).get("allowance") or {}
+
+    @property
+    def native_value(self):
+        return self._allowance.get("balance_km")
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        attrs = dict(super().extra_state_attributes)
+        allowance = self._allowance
+        for key in (
+            "kind",
+            "status",
+            "start",
+            "end",
+            "allowance_km",
+            "used_km",
+            "plan_km",
+            "remaining_km",
+            "days_left",
+            "km_per_day_left",
+            "projected_km",
+            "projected_over_km",
+        ):
+            attrs[key] = allowance.get(key)
+        return attrs
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self._unsubscribers = [
+            async_dispatcher_connect(
+                self.hass, self._coordinator.signal_update, self._handle_update
+            ),
+            async_dispatcher_connect(
+                self.hass, self._coordinator.signal_mileage, self._handle_allowance
+            ),
+            async_track_time_change(self.hass, self._handle_rollover, hour=0, minute=0, second=10),
+        ]
+
+    async def async_will_remove_from_hass(self) -> None:
+        for unsubscribe in self._unsubscribers:
+            unsubscribe()
+        self._unsubscribers = []
+
+    def _handle_update(self, vin: str, descriptor: str) -> None:
+        if vin == self.vin and descriptor in DESC_ODOMETER:
+            self.schedule_update_ha_state()
+
+    def _handle_allowance(self, vin: str) -> None:
+        if vin == self.vin:
+            self.schedule_update_ha_state()
+
+    def _handle_rollover(self, _now) -> None:
+        # The plan to date grows every day even while the car stands still.
+        self.schedule_update_ha_state()
+
+
 # Our wheel slugs -> the axle token BMW's streamed tire descriptors use, so a
 # diagnosis entity and a pressure entity for the same wheel share a card slot.
 _AXLE_ROWS = {"front": "row1", "rear": "row2"}
@@ -1518,6 +1599,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     driving_entities: Dict[str, CardataDrivingDistanceMonthSensor] = {}
     real_range_entities: Dict[str, CardataRealRangeSensor] = {}
     report_entities: Dict[str, CardataLastVehicleReportSensor] = {}
+    mileage_entities: Dict[str, CardataMileageAllowanceSensor] = {}
     # vin -> {"status"|<wheel position>: entity}
     tyre_entities: Dict[str, Dict[str, CardataTyreEntity]] = {}
 
@@ -1736,10 +1818,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         report_entities[vin] = entity
         async_add_entities([entity])
 
+    def ensure_mileage_entity(vin: str, *, force: bool = False) -> None:
+        """The mileage allowance balance, for a car with an odometer.
+
+        Disabled from the start; ``force`` re-creates one restored from the
+        registry before the odometer has reported.
+        """
+
+        if vin in mileage_entities:
+            return
+        if not (force or _has_odometer(vin)):
+            return
+        entity = CardataMileageAllowanceSensor(coordinator, vin)
+        mileage_entities[vin] = entity
+        async_add_entities([entity])
+
     def ensure_entity(vin: str, descriptor: str, *, assume_sensor: bool = False) -> None:
         ensure_soc_tracking_entities(vin)
         ensure_location_entities(vin)
         ensure_report_entity(vin)
+        ensure_mileage_entity(vin)
         ensure_charging_summary_entities(vin)
         ensure_battery_health_entity(vin)
         ensure_driving_entity(vin)
@@ -1815,6 +1913,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
             # Routed, or the generic path would mint a CardataSensor on its id.
             ensure_report_entity(vin, force=True)
             continue
+        if descriptor == "mileage_allowance":
+            ensure_mileage_entity(vin, force=True)
+            continue
         if descriptor.startswith("tyre_"):
             # Re-create what the car had before today's fetch lands, so the
             # entity keeps its id and history instead of the generic path
@@ -1844,6 +1945,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         ensure_soc_tracking_entities(vin)
         ensure_location_entities(vin)
         ensure_report_entity(vin)
+        ensure_mileage_entity(vin)
         ensure_battery_health_entity(vin)
         ensure_driving_entity(vin)
         ensure_real_range_entity(vin)

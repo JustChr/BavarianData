@@ -159,6 +159,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `evcc_snippet` | evcc configuration (generated, paste-ready) | 🟢 Feature-evcc-and-Wallbox-Bridge → "Setting it up" | 📷 **owed** — needs the build installed |
 | `trips_vehicle` | Trips: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Trips" + Feature-Multiple-Cars-and-Accounts → "Telling the cars apart" (EN + DE) | 📷 (have, staged two-car: `bavariandata-vehicle-picker.png`) |
 | `action_trips` | Trips (per car with 2+ cars; shared settings in the collapsed "All vehicles" section) | 🟡 | 📷 (have, 2026-10-11: `bavariandata-configure-trips.png`) |
+| `action_mileage` → `mileage_vehicle` (2+ cars) → `mileage_lease` / `mileage_yearly` | Mileage allowance (always per car, even with one car) | 🟢 Settings-Reference → "Mileage allowance" + Feature-Mileage (EN + DE) | 📷 **owed** — needs the build installed |
 | `action_debug_logging` | Debug logging toggle | 🟡 | 📷 |
 
 ### Settings (option keys) — the fields inside those screens
@@ -175,6 +176,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `statistics_import` | Charging costs & history | 🟡 |
 | `refresh_on_start` | Automatic data refresh | 🟢 Settings-Reference → "Automatic data refresh" + Feature-Charging-History-and-Cost → "Restarting while the car is charging" |
 | `bridge_enabled` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge (incl. "Away from home, the status is withheld") |
+| `mileage_kind`, `mileage_start`, `mileage_end`, `mileage_allowance_km`, `mileage_start_km` | Mileage allowance (stored under `vehicles[VIN]`) | 🟢 Settings-Reference → "Mileage allowance" + Feature-Mileage |
 | `bridge_topic_prefix` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |
 | `bridge_retain` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |
 | `trip_work_zone` | Trips | 🟡 |
@@ -200,6 +202,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `view: map` | Trip map (routes) | 🟡 | 📷 (needs route data) |
 | `view: health` | Battery health | 🟡 | 📷 |
 | `view: efficiency` | Efficiency & real range | 🟢 The-Dashboard-Card + Feature-Efficiency-and-Range | 📷 **owed** — needs the build installed |
+| `view: mileage` | Mileage overview + allowance | 🟢 The-Dashboard-Card → "Mileage" + Feature-Mileage (EN + DE) | 📷 **owed** — needs the build installed |
 | `view: equipment` | Factory equipment by name (from the configurator picture source) | 🟢 The-Dashboard-Card → "Equipment" (EN + DE) | 📷 **owed** — needs the build installed |
 | Overview hero with the configurator picture (spin, lights/night, state badges + top-down inset, interior panorama; angle/mode/look remembered per browser) | Overview | 🟢 The-Dashboard-Card → "Overview" (EN + DE) | 📷 (have: `card-hero-spin.png`; badges/interior **owed**) |
 | `cluster: tire` | Tires (pressure + wear) | 🟡 | 📷 (have) |
@@ -209,7 +212,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `cluster: <other>` | Single-cluster list | 🟡 | 📷 |
 | YAML options (`device`, `vin`, entity overrides) | — | 🟡 | — |
 
-### Services — 17 from `services.yaml`
+### Services — 18 from `services.yaml`
 
 | Service | Quota | Status |
 | --- | --- | --- |
@@ -224,6 +227,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `get_trips` | free | 🟢 Services-Reference (`open_trips`, whole-day `from`/`to`) |
 | `get_driving_summary` | free | 🟢 Services-Reference + Feature-Trips → "How consumption is measured" |
 | `get_efficiency` | free | 🟢 Services-Reference + Feature-Efficiency-and-Range |
+| `get_mileage_report` | free | 🟢 Services-Reference + Feature-Mileage |
 | `get_evcc_config` | free | 🟢 Services-Reference + Feature-evcc-and-Wallbox-Bridge |
 | `set_trip_class` | free | 🟡 |
 | `mark_trip_start` | free | 🟢 Services-Reference + Feature-Trips → "Older cars…" (EN + DE) |
@@ -259,6 +263,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | GPS latitude / longitude sensors (disabled by default, opt-in for add-ons that only take `sensor.*`) | Position as plain sensors | 🟢 Feature-Entities-and-Devices → "Device tracker" (EN + DE) |
 | `vehicle_image` (image) | Cached render | 🟡 |
 | `service` (calendar, disabled by default; service items as all-day events, distance-only items projected from the odometer log's 90-day pace) | Service calendar | 🟢 Feature-Entities-and-Devices → "Service calendar" (EN + DE) | 📷 owed |
+| `mileage_allowance` (sensor, disabled by default; balance against the allowance's plan, km) | Mileage allowance balance | 🟢 Feature-Entities-and-Devices → derived table + Feature-Mileage (EN + DE) |
 
 ### Cross-cutting features
 
@@ -271,6 +276,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Restarting mid-charge (session survives; the `interrupted` flag) | 🟢 Feature-Charging-History-and-Cost → "Restarting while the car is charging" + Feature-Battery-Health → "What counts as a sample" |
 | Solar & energy sources (the PV/battery/grid split, what it costs) | 🟢 Feature-Charging-History-and-Cost → "Where the energy came from" + Settings-Reference → "Solar & energy sources" (screen shot 2026-09-12) + The-Dashboard-Card; the Configure menu shot is refreshed to all fifteen actions (superseded: the bridge makes it sixteen) |
 | Efficiency & real range (the window rule, the two sides of the charger, the measured charging loss) | 🟢 Feature-Efficiency-and-Range + The-Dashboard-Card — the `view: efficiency` card shot 2026-09-12, showing the comparison against the car's own prediction |
+| Mileage & allowance (daily odometer log seeded from charging sessions, month interpolation, 90-day pace, lease vs yearly limit, lease end in the service calendar) | 🟢 Feature-Mileage (EN + DE) |
 | evcc / wallbox bridge — outbound SoC over MQTT (unknown publishes nothing, the heartbeat, switch-off clears) and inbound wallbox metering | 🟢 Feature-evcc-and-Wallbox-Bridge + Settings-Reference → "evcc / wallbox bridge" + Services-Reference → `get_evcc_config`; the Configure menu shot is now owed again (sixteen actions) |
 | Trips / Fahrtenbuch (+ legal caveat) | 🟡 |
 | Consumption: plug-side balance, battery-side average, the 3 % SoC gate | 🟢 Feature-Trips → "How consumption is measured" + The-Dashboard-Card |

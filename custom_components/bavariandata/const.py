@@ -244,3 +244,12 @@ DEFAULT_BRIDGE_PREFIX = "bavariandata"
 # configured to refuse retained messages.
 OPTION_BRIDGE_RETAIN = "bridge_retain"
 DEFAULT_BRIDGE_RETAIN = True
+
+# A car's mileage allowance (Configure -> Mileage allowance; ``mileage.py``).
+# Always stored under the car's VIN, even on a single-car account: a lease
+# belongs to one car, and a car added later must not inherit it.
+OPTION_MILEAGE_KIND = "mileage_kind"  # "none" | "lease" | "yearly"
+OPTION_MILEAGE_START = "mileage_start"  # ISO date
+OPTION_MILEAGE_END = "mileage_end"  # ISO date, lease only
+OPTION_MILEAGE_ALLOWANCE_KM = "mileage_allowance_km"  # per year
+OPTION_MILEAGE_START_KM = "mileage_start_km"  # odometer on the start date

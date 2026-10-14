@@ -16,6 +16,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   with only a distance left is placed by your own average km a day over the
   last 90 days, and says it's an estimate. It's disabled by default (enable
   *Service Calendar* on the car's device) and costs no quota.
+- **How far you drive, and a mileage allowance.** A new **Mileage** view on the
+  card shows this month, this year, your pace and the last twelve months, read
+  off the car's own odometer, for every drivetrain and at no quota. Under
+  Configure → **Mileage allowance** each car can get a **lease** (start, end,
+  allowance per year, odometer at handover) or a **yearly limit** that renews
+  every year, like your insurance's annual mileage. The view then shows whether
+  you're under or over plan, the distance a day left and where your pace lands.
+  A lease's hand-back day goes into the service calendar. There's also a
+  *Mileage Allowance Balance* sensor (disabled by default) and a
+  `get_mileage_report` service.
 
 ## [0.9.19-beta.1] - 2026-10-14
 
