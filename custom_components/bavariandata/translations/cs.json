@@ -96,7 +96,7 @@
           "action_fetch_charging_history": "Načíst historii nabíjení",
           "action_fetch_tyre": "Načíst diagnostiku pneumatik",
           "action_fetch_location_charging": "Načíst nastavení nabíjení",
-          "action_fetch_image": "Načíst obrázek vozidla",
+          "action_fetch_image": "Obrázek vozidla",
           "action_data_refresh": "Automatická obnova dat",
           "action_charging_costs": "Náklady a historie nabíjení",
           "action_energy_sources": "Solár a zdroje energie",
@@ -172,8 +172,14 @@
         "description": "Načte nastavení nabíjení vázaná na místo pro vaše vozidla.\n\nStiskněte Odeslat pro pokračování."
       },
       "action_fetch_image": {
-        "title": "Načíst obrázek vozidla",
-        "description": "Načte aktuální obrázek vašich vozidel.\n\nStiskněte Odeslat pro pokračování."
+        "title": "Obrázek vozidla",
+        "description": "Vyberte, odkud pochází obrázek vašeho auta. Odeslat ho hned načte a ponechá i po restartu.",
+        "data": {
+          "image_source": "Zdroj obrázku"
+        },
+        "data_description": {
+          "image_source": "Oficiální: jeden boční pohled, 1 z vašich 50 denních požadavků na BMW na auto. Konfigurátor: přesně vaše auto ve 360° se skutečným lakem, bez požadavků, ale jde o neoficiální službu BMW, která může přestat fungovat."
+        }
       },
       "charging_vehicle": {
         "title": "Náklady a historie nabíjení",
@@ -386,7 +392,11 @@
       "price_required": "Zadejte pevnou cenu za kWh, nebo zvolte jiný zdroj ceny.",
       "price_entity_required": "Vyberte entitu, která hlásí vaši cenu za kWh, nebo zvolte jiný zdroj ceny.",
       "mqtt_missing": "Most publikuje přes integraci MQTT v Home Assistant a tu nemáte nastavenou. Přidejte ji v Nastavení → Zařízení a služby (obvyklou volbou je doplněk Mosquitto broker) a pak se vraťte.",
-      "phone_required": "Vyberte i telefon: tento senzor říká jen, kdy je telefon v autě."
+      "phone_required": "Vyberte i telefon: tento senzor říká jen, kdy je telefon v autě.",
+      "configurator_unsupported": "Konfigurátor BMW nekreslí {vehicle}: umí jen auta BMW a MINI. Ponechte oficiální obrázek.",
+      "configurator_no_data": "Základní údaje o vozidle {vehicle} ještě nedorazily. Nejprve spusťte „Načíst základní údaje o vozidle“ a pak to zkuste znovu.",
+      "configurator_unavailable": "Konfigurátor BMW neodpověděl nebo se změnil. Zkuste to později, nebo ponechte oficiální obrázek.",
+      "configurator_no_render": "Konfigurátor BMW nemá obrázek {vehicle}. Ponechte oficiální obrázek."
     },
     "abort": {
       "reauth_started": "Autorizace byla znovu spuštěna. Dokončete nové přihlášení z oznámení, které se právě objevilo.",
@@ -414,6 +424,12 @@
       "options": {
         "live": "Živě (auto vysílá během jízdy)",
         "reports": "Hlášení na konci jízdy (auto se hlásí po zaparkování)"
+      }
+    },
+    "image_source": {
+      "options": {
+        "official": "BMW CarData (oficiální)",
+        "configurator": "Konfigurátor BMW (360°, neoficiální)"
       }
     }
   },

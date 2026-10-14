@@ -96,7 +96,7 @@
           "action_fetch_charging_history": "Hämta laddningshistorik",
           "action_fetch_tyre": "Hämta däckdiagnos",
           "action_fetch_location_charging": "Hämta laddningsinställningar",
-          "action_fetch_image": "Hämta fordonsbild",
+          "action_fetch_image": "Fordonsbild",
           "action_data_refresh": "Automatisk datauppdatering",
           "action_charging_costs": "Laddkostnader och historik",
           "action_energy_sources": "Sol och energikällor",
@@ -172,8 +172,14 @@
         "description": "Hämta de platsbaserade laddningsinställningarna för dina fordon.\n\nTryck på Skicka för att fortsätta."
       },
       "action_fetch_image": {
-        "title": "Hämta fordonsbild",
-        "description": "Hämta den aktuella fordonsbilden för dina fordon.\n\nTryck på Skicka för att fortsätta."
+        "title": "Fordonsbild",
+        "description": "Välj var bilden av din bil kommer ifrån. Skicka hämtar den nu och behåller den efter en omstart.",
+        "data": {
+          "image_source": "Bildkälla"
+        },
+        "data_description": {
+          "image_source": "Officiell: en sidovy, 1 av dina 50 dagliga BMW-förfrågningar per bil. Konfigurator: exakt din bil i 360° med riktig lack, inga förfrågningar, men en inofficiell BMW-tjänst som kan sluta fungera."
+        }
       },
       "charging_vehicle": {
         "title": "Laddkostnader och historik",
@@ -386,7 +392,11 @@
       "price_required": "Ange ett fast pris per kWh, eller välj en annan priskälla.",
       "price_entity_required": "Välj den entitet som rapporterar ditt pris per kWh, eller välj en annan priskälla.",
       "mqtt_missing": "Bryggan publicerar via Home Assistants MQTT-integration, och du har ingen konfigurerad. Lägg till den under Inställningar → Enheter och tjänster (tillägget Mosquitto broker är det vanliga valet) och kom sedan tillbaka.",
-      "phone_required": "Välj även telefonen: sensorn säger bara när telefonen är i bilen."
+      "phone_required": "Välj även telefonen: sensorn säger bara när telefonen är i bilen.",
+      "configurator_unsupported": "BMW:s konfigurator ritar inte {vehicle}: den täcker bara BMW- och MINI-bilar. Behåll den officiella bilden.",
+      "configurator_no_data": "Grunddata för {vehicle} har inte kommit än. Kör först ”Hämta fordonets grunddata” och försök sedan igen.",
+      "configurator_unavailable": "BMW:s konfigurator svarade inte eller har ändrats. Försök senare, eller behåll den officiella bilden.",
+      "configurator_no_render": "BMW:s konfigurator har ingen bild av {vehicle}. Behåll den officiella bilden."
     },
     "abort": {
       "reauth_started": "Auktoriseringen har startats om. Slutför den nya inloggningen från aviseringen som just dök upp.",
@@ -414,6 +424,12 @@
       "options": {
         "live": "Live (bilen strömmar under körning)",
         "reports": "Rapporter vid resans slut (bilen rapporterar när den parkerats)"
+      }
+    },
+    "image_source": {
+      "options": {
+        "official": "BMW CarData (officiell)",
+        "configurator": "BMW-konfigurator (360°, inofficiell)"
       }
     }
   },

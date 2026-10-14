@@ -24,6 +24,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult, FlowResultType, section
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.network import NoURLAvailableError, get_url
 
 from . import async_manual_refresh_tokens
@@ -34,6 +35,7 @@ from .const import (
     DEFAULT_HISTORY_RETAIN_MONTHS,
     DEFAULT_SCOPE,
     DOMAIN,
+    SIGNAL_VEHICLE_IMAGE,
     OPTION_BATTERY_POWER_ENTITY,
     OPTION_BATTERY_POWER_INVERT,
     OPTION_CHARGING_LOSS_PERCENT,
@@ -43,6 +45,10 @@ from .const import (
     OPTION_BRIDGE_PREFIX,
     OPTION_BRIDGE_RETAIN,
     OPTION_DEBUG_LOG,
+    DEFAULT_IMAGE_SOURCE,
+    IMAGE_SOURCE_CONFIGURATOR,
+    IMAGE_SOURCE_OFFICIAL,
+    OPTION_IMAGE_SOURCE,
     OPTION_GRID_ENERGY_ENTITY,
     OPTION_GRID_POWER_ENTITY,
     OPTION_PRICE_SOLAR,
@@ -1956,10 +1962,71 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
     async def async_step_action_fetch_image(
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> FlowResult:
-        return await self._run_simple_service(
+        """Choose where the car's picture comes from, and fetch it.
+
+        The official picture is CarData's single side view (one request per
+        car). The configurator draws the exact car as BMW's online configurator
+        does, a 360-degree turntable plus its paint colour for the card: no
+        quota, but an unofficial BMW service (see configurator.py). It is
+        account-wide, and nothing is saved unless every car could be drawn, so
+        the screen never shows a source that isn't actually in use.
+        """
+
+        # The image platform imports Home Assistant's image component; only
+        # pull it in when this screen is actually used.
+        from .image import async_refresh_configurator_render  # noqa: PLC0415
+
+        runtime = self._get_runtime()
+        if runtime is None:
+            return self._show_confirm(
+                step_id="action_fetch_image", errors={"base": "runtime_missing"}
+            )
+        options = dict(self._config_entry.options)
+        source = options.get(OPTION_IMAGE_SOURCE, DEFAULT_IMAGE_SOURCE)
+        errors: Dict[str, str] = {}
+        vehicle = ""
+        if user_input is not None:
+            source = user_input.get(OPTION_IMAGE_SOURCE, source)
+            vins = list(runtime.coordinator.data.keys())
+            if not vins:
+                errors["base"] = "no_vins"
+            elif source == IMAGE_SOURCE_CONFIGURATOR:
+                for vin in vins:
+                    reason = await async_refresh_configurator_render(self.hass, runtime, vin)
+                    if reason:
+                        errors[OPTION_IMAGE_SOURCE] = f"configurator_{reason}"
+                        vehicle = runtime.coordinator.names.get(vin) or ""
+                        break
+            else:
+                await self.hass.services.async_call(
+                    DOMAIN,
+                    "fetch_vehicle_image",
+                    {"entry_id": self._config_entry.entry_id},
+                    blocking=True,
+                )
+            if not errors:
+                options[OPTION_IMAGE_SOURCE] = source
+                # Saved before the entities are told, so they read the new source.
+                self.hass.config_entries.async_update_entry(self._config_entry, options=options)
+                for vin in vins:
+                    async_dispatcher_send(self.hass, SIGNAL_VEHICLE_IMAGE, vin)
+                return self.async_create_entry(title="", data=options)
+        schema = vol.Schema(
+            {
+                vol.Required(OPTION_IMAGE_SOURCE, default=source): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=[IMAGE_SOURCE_OFFICIAL, IMAGE_SOURCE_CONFIGURATOR],
+                        translation_key="image_source",
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+            }
+        )
+        return self.async_show_form(
             step_id="action_fetch_image",
-            service="fetch_vehicle_image",
-            user_input=user_input,
+            data_schema=schema,
+            errors=errors,
+            description_placeholders={"vehicle": vehicle},
         )
 
     async def async_step_action_select_clusters(

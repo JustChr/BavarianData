@@ -32,7 +32,7 @@ The menu labels below are exactly as they appear in the UI.
 | **Fetch charging history** | action ⚡ | " |
 | **Fetch tire diagnosis** | action ⚡ | " |
 | **Fetch charging settings** | action ⚡ | Location-based charging settings. " |
-| **Fetch vehicle image** | action ⚡ | " |
+| **Vehicle image** | settings ⚡ | Where the car's picture comes from: BMW CarData, or BMW's online configurator — below. |
 | **Automatic data refresh** | settings ⚡ | Catch up with BMW after Home Assistant starts — below. |
 | **Charging costs & history** | settings | Price source, retention, statistics — below. |
 | **Solar & energy sources** | settings | Where each charge's energy came from: PV, house battery, grid — below. |
@@ -41,6 +41,25 @@ The menu labels below are exactly as they appear in the UI.
 | **Debug logging** | settings | Verbose logging toggle — below. |
 
 ⚡ = spends one (or more) of your [50 requests / 24 h](Feature-API-Quota).
+
+## Vehicle image
+
+Screen: **Configure → Vehicle image**.
+
+| Option | Values | Meaning |
+| --- | --- | --- |
+| **Picture source** | BMW CarData (official) · BMW configurator (360°, unofficial) | Default **BMW CarData**: BMW's one side view of the car, one of your [50 requests a day](Feature-API-Quota) per car. **BMW configurator** draws your exact car the way BMW's online configurator does, from the model, paint and factory options in its basic vehicle info: a 360° turntable in the [card](The-Dashboard-Card#overview) you can drag to turn, and the real paint on the card's [top-down car](The-Dashboard-Card#the-cars-shape). It spends no requests, but it is not part of CarData: it is the service behind BMW's configurator web page, which BMW can change or block at any time. |
+
+**Submit** fetches the picture straight away and keeps it across restarts. With
+the configurator, nothing is saved unless every car could be drawn; the screen
+then names the car and why (not a BMW or MINI car, its basic vehicle info isn't
+in yet, the configurator didn't answer, or it has no picture of that model), and
+the official picture stays. A car added later is drawn when it first appears.
+
+The configurator draws BMW and MINI cars, including models no longer sold. It
+has no overhead view and no interior trim, because BMW's vehicle data doesn't
+say which upholstery a car has, so only the outside is shown. Whenever there is
+no configurator picture for a car, the card falls back to the official one.
 
 ## Automatic data refresh
 

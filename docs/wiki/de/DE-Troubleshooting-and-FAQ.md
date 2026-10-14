@@ -455,7 +455,8 @@ nicht überleben.
 
 Einiges wird **nicht** automatisch entfernt:
 
-- Das **API-Kontingent-Protokoll** und das **zwischengespeicherte Fahrzeugbild** in
+- Das **API-Kontingent-Protokoll**, das **zwischengespeicherte Fahrzeugbild** und,
+  falls du das Konfigurator-Bild genutzt hast, der Ordner `bavariandata_renders` in
   `.storage`.
 - `bavariandata_trip_capture.ndjson` in deinem Konfigurationsordner, falls du die
   Fahrt-Diagnose je eingeschaltet hattest. **Sie enthält GPS-Koordinaten — lösche sie.**

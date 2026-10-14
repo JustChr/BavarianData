@@ -9,6 +9,19 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **Your exact car, all the way round.** Configure → **Vehicle image** (until now
+  *Fetch vehicle image*) can take the car's picture from BMW's online
+  configurator instead of BMW CarData. The configurator draws your car from the
+  model, paint and factory options in its basic vehicle info, so the wheels,
+  trim packages and paint are yours. The card's overview shows it as a 360°
+  view you turn by dragging, and the top-down car in the tires and closures
+  views takes on its real paint color. It spends none of your 50 daily requests,
+  but it is BMW's configurator service, not part of CarData, so BMW can change
+  or block it at any time. That's why it is off by default, and the official
+  picture comes back whenever the configurator has none. It covers BMW and MINI
+  cars, including models no longer sold.
+
 ## [0.9.18-beta.7] - 2026-10-14
 
 ### Added

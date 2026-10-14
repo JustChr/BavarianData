@@ -96,7 +96,7 @@
           "action_fetch_charging_history": "Obtener el historial de carga",
           "action_fetch_tyre": "Obtener el diagnóstico de neumáticos",
           "action_fetch_location_charging": "Obtener los ajustes de carga",
-          "action_fetch_image": "Obtener la imagen del vehículo",
+          "action_fetch_image": "Imagen del vehículo",
           "action_data_refresh": "Actualización automática de datos",
           "action_charging_costs": "Costes e historial de carga",
           "action_energy_sources": "Solar y fuentes de energía",
@@ -172,8 +172,14 @@
         "description": "Obtiene los ajustes de carga basados en la ubicación de tus vehículos.\n\nPulsa Enviar para continuar."
       },
       "action_fetch_image": {
-        "title": "Obtener la imagen del vehículo",
-        "description": "Obtiene la imagen actual de tus vehículos.\n\nPulsa Enviar para continuar."
+        "title": "Imagen del vehículo",
+        "description": "Elige de dónde viene la imagen de tu coche. Enviar la obtiene ahora y la conserva tras reiniciar.",
+        "data": {
+          "image_source": "Origen de la imagen"
+        },
+        "data_description": {
+          "image_source": "Oficial: una vista lateral, 1 de tus 50 solicitudes diarias a BMW por coche. Configurador: tu coche exacto en 360° con su pintura real, sin solicitudes, pero un servicio de BMW no oficial que puede dejar de funcionar."
+        }
       },
       "charging_vehicle": {
         "title": "Costes e historial de carga",
@@ -386,7 +392,11 @@
       "price_required": "Introduce un precio fijo por kWh o elige otra fuente de precio.",
       "price_entity_required": "Elige la entidad que informa tu precio por kWh o elige otra fuente de precio.",
       "mqtt_missing": "El puente publica a través de la integración MQTT de Home Assistant, y no tienes ninguna configurada. Añádela en Ajustes → Dispositivos y servicios (el complemento Mosquitto broker es la opción habitual) y vuelve.",
-      "phone_required": "Elige también el móvil: este sensor solo indica cuándo está el móvil en el coche."
+      "phone_required": "Elige también el móvil: este sensor solo indica cuándo está el móvil en el coche.",
+      "configurator_unsupported": "El configurador de BMW no dibuja {vehicle}: solo cubre coches BMW y MINI. Mantén la imagen oficial.",
+      "configurator_no_data": "Los datos básicos de {vehicle} aún no han llegado. Ejecuta primero «Obtener los datos básicos del vehículo» y vuelve a intentarlo.",
+      "configurator_unavailable": "El configurador de BMW no ha respondido o ha cambiado. Inténtalo más tarde o mantén la imagen oficial.",
+      "configurator_no_render": "El configurador de BMW no tiene imagen de {vehicle}. Mantén la imagen oficial."
     },
     "abort": {
       "reauth_started": "Autorización reiniciada. Completa el nuevo inicio de sesión desde la notificación que acaba de aparecer.",
@@ -414,6 +424,12 @@
       "options": {
         "live": "En directo (el coche transmite mientras conduce)",
         "reports": "Informes de fin de trayecto (el coche informa una vez aparcado)"
+      }
+    },
+    "image_source": {
+      "options": {
+        "official": "BMW CarData (oficial)",
+        "configurator": "Configurador de BMW (360°, no oficial)"
       }
     }
   },

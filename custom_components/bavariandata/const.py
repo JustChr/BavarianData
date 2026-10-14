@@ -148,6 +148,16 @@ DEFAULT_REFRESH_ON_START = True
 # entry.data: epoch seconds of the last such request, to space out restart loops.
 LAST_STARTUP_REFRESH = "last_startup_refresh"
 
+# Where the car's picture comes from (Configure -> Vehicle image). "official" is
+# CarData's single side view (one request). "configurator" is BMW's online
+# configurator drawing the exact car as a 360-degree turntable, plus its real
+# paint on the card's top-down car: no quota, but an unofficial service, so
+# it is off by default (see configurator.py).
+OPTION_IMAGE_SOURCE = "image_source"
+IMAGE_SOURCE_OFFICIAL = "official"
+IMAGE_SOURCE_CONFIGURATOR = "configurator"
+DEFAULT_IMAGE_SOURCE = IMAGE_SOURCE_OFFICIAL
+
 # Dispatcher signal fired when a vehicle render is (re)cached, carrying the VIN.
 SIGNAL_VEHICLE_IMAGE = f"{DOMAIN}_vehicle_image_updated"
 

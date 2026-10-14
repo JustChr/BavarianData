@@ -62,6 +62,10 @@ ableitet:
 | Benzin / Diesel | Tankfüllstand — oder der Tankinhalt, bei einem Auto, das keinen Prozentwert streamt | Reichweite, dazu Tankinhalt oder Kilometerstand | Kilometerstand |
 | Keines, erwiesen | Reichweite | Kilometerstand | — |
 
+Ist **Konfigurieren → [Fahrzeugbild](DE-Settings-Reference#fahrzeugbild)** auf
+BMWs Konfigurator gestellt, ist das Bild genau dein Auto, und Ziehen darüber (Maus
+oder Finger) dreht es einmal ganz herum.
+
 Der Ladezustand im Ring ist die Schätzung der Integration. Steht das Auto, ist
 das einfach BMWs letzter Messwert; lädt es, steigt sie mit der Rate weiter, die
 die Ladeleistung ergibt — denn BMW kann mitten im Laden stundenlang schweigen, und
@@ -410,6 +414,10 @@ shape: countryman   # sedan · countryman — weglassen, um sie aus BMWs Fahrzeu
 </p>
 
 Andere Modelle, auch die übrigen MINIs, bekommen vorerst die Limousine.
+
+Ist **Konfigurieren → [Fahrzeugbild](DE-Settings-Reference#fahrzeugbild)** auf
+BMWs Konfigurator gestellt, trägt die Zeichnung die echte Lackfarbe deines Autos,
+abgelesen am Bild des Konfigurators.
 
 ---
 

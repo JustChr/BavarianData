@@ -443,7 +443,8 @@ integration.
 
 A few things are **not** removed automatically:
 
-- The **API quota log** and the **cached vehicle image** in `.storage`.
+- The **API quota log**, the **cached vehicle image** and, if you used the
+  configurator picture, the `bavariandata_renders` folder in `.storage`.
 - `bavariandata_trip_capture.ndjson` in your config folder, if you ever enabled
   trip debugging. **It contains GPS coordinates — delete it.**
 - Devices and entities occasionally linger in the registries; delete leftovers

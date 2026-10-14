@@ -96,7 +96,7 @@
           "action_fetch_charging_history": "Laadgeschiedenis ophalen",
           "action_fetch_tyre": "Bandendiagnose ophalen",
           "action_fetch_location_charging": "Laadinstellingen ophalen",
-          "action_fetch_image": "Voertuigafbeelding ophalen",
+          "action_fetch_image": "Voertuigafbeelding",
           "action_data_refresh": "Automatisch gegevens vernieuwen",
           "action_charging_costs": "Laadkosten en -geschiedenis",
           "action_energy_sources": "Zonne-energie en energiebronnen",
@@ -172,8 +172,14 @@
         "description": "Haal de locatiegebonden laadinstellingen van je voertuigen op.\n\nDruk op Verzenden om door te gaan."
       },
       "action_fetch_image": {
-        "title": "Voertuigafbeelding ophalen",
-        "description": "Haal de huidige voertuigafbeelding van je voertuigen op.\n\nDruk op Verzenden om door te gaan."
+        "title": "Voertuigafbeelding",
+        "description": "Kies waar de afbeelding van je auto vandaan komt. Verzenden haalt hem nu op en bewaart hem na een herstart.",
+        "data": {
+          "image_source": "Bron van de afbeelding"
+        },
+        "data_description": {
+          "image_source": "Officieel: één zijaanzicht, 1 van je 50 dagelijkse BMW-verzoeken per auto. Configurator: precies jouw auto in 360° met de echte lak, geen verzoeken, maar een onofficiële BMW-dienst die kan stoppen met werken."
+        }
       },
       "charging_vehicle": {
         "title": "Laadkosten en -geschiedenis",
@@ -386,7 +392,11 @@
       "price_required": "Voer een vaste prijs per kWh in, of kies een andere prijsbron.",
       "price_entity_required": "Kies de entiteit die je prijs per kWh meldt, of kies een andere prijsbron.",
       "mqtt_missing": "De brug publiceert via de MQTT-integratie van Home Assistant, en die heb je niet ingesteld. Voeg haar toe via Instellingen → Apparaten en diensten (de add-on Mosquitto broker is de gebruikelijke keuze) en kom dan terug.",
-      "phone_required": "Kies ook de telefoon: deze sensor zegt alleen wanneer de telefoon in de auto is."
+      "phone_required": "Kies ook de telefoon: deze sensor zegt alleen wanneer de telefoon in de auto is.",
+      "configurator_unsupported": "De BMW-configurator tekent {vehicle} niet: hij kent alleen BMW- en MINI-auto's. Houd de officiële afbeelding.",
+      "configurator_no_data": "De basisgegevens van {vehicle} zijn er nog niet. Voer eerst 'Basisgegevens van het voertuig ophalen' uit en probeer het daarna opnieuw.",
+      "configurator_unavailable": "De BMW-configurator antwoordde niet of is veranderd. Probeer het later opnieuw, of houd de officiële afbeelding.",
+      "configurator_no_render": "De BMW-configurator heeft geen afbeelding van {vehicle}. Houd de officiële afbeelding."
     },
     "abort": {
       "reauth_started": "Autorisatie opnieuw gestart. Rond de nieuwe aanmelding af via de melding die zojuist is verschenen.",
@@ -414,6 +424,12 @@
       "options": {
         "live": "Live (auto streamt tijdens het rijden)",
         "reports": "Rapporten aan het einde van de rit (auto meldt na het parkeren)"
+      }
+    },
+    "image_source": {
+      "options": {
+        "official": "BMW CarData (officieel)",
+        "configurator": "BMW-configurator (360°, onofficieel)"
       }
     }
   },

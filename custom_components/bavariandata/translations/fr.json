@@ -96,7 +96,7 @@
           "action_fetch_charging_history": "Récupérer l'historique de recharge",
           "action_fetch_tyre": "Récupérer le diagnostic des pneus",
           "action_fetch_location_charging": "Récupérer les réglages de recharge",
-          "action_fetch_image": "Récupérer l'image du véhicule",
+          "action_fetch_image": "Image du véhicule",
           "action_data_refresh": "Actualisation automatique des données",
           "action_charging_costs": "Coûts et historique de recharge",
           "action_energy_sources": "Solaire et sources d'énergie",
@@ -172,8 +172,14 @@
         "description": "Récupère les réglages de recharge liés au lieu de vos véhicules.\n\nAppuyez sur Valider pour continuer."
       },
       "action_fetch_image": {
-        "title": "Récupérer l'image du véhicule",
-        "description": "Récupère l'image actuelle de vos véhicules.\n\nAppuyez sur Valider pour continuer."
+        "title": "Image du véhicule",
+        "description": "Choisissez d'où vient l'image de votre voiture. Valider la récupère maintenant et la conserve après un redémarrage.",
+        "data": {
+          "image_source": "Source de l'image"
+        },
+        "data_description": {
+          "image_source": "Officielle : une vue de profil, 1 de vos 50 requêtes BMW quotidiennes par voiture. Configurateur : votre voiture exacte en 360° avec sa vraie teinte, sans requête, mais un service BMW non officiel qui peut cesser de fonctionner."
+        }
       },
       "charging_vehicle": {
         "title": "Coûts et historique de recharge",
@@ -386,7 +392,11 @@
       "price_required": "Saisissez un prix fixe par kWh ou choisissez une autre source de prix.",
       "price_entity_required": "Choisissez l'entité qui indique votre prix par kWh ou choisissez une autre source de prix.",
       "mqtt_missing": "La passerelle publie via l'intégration MQTT de Home Assistant, et aucune n'est configurée. Ajoutez-la sous Paramètres → Appareils et services (le module complémentaire Mosquitto broker est le choix habituel), puis revenez.",
-      "phone_required": "Choisissez aussi le téléphone : ce capteur indique seulement quand le téléphone est dans le véhicule."
+      "phone_required": "Choisissez aussi le téléphone : ce capteur indique seulement quand le téléphone est dans le véhicule.",
+      "configurator_unsupported": "Le configurateur BMW ne dessine pas {vehicle} : il ne couvre que les voitures BMW et MINI. Gardez l'image officielle.",
+      "configurator_no_data": "Les infos de base de {vehicle} ne sont pas encore arrivées. Lancez d'abord « Récupérer les infos de base du véhicule », puis réessayez.",
+      "configurator_unavailable": "Le configurateur BMW n'a pas répondu ou a changé. Réessayez plus tard, ou gardez l'image officielle.",
+      "configurator_no_render": "Le configurateur BMW n'a pas d'image de {vehicle}. Gardez l'image officielle."
     },
     "abort": {
       "reauth_started": "Autorisation relancée. Terminez la nouvelle connexion depuis la notification qui vient d'apparaître.",
@@ -414,6 +424,12 @@
       "options": {
         "live": "En direct (la voiture transmet en roulant)",
         "reports": "Rapports de fin de trajet (la voiture transmet une fois garée)"
+      }
+    },
+    "image_source": {
+      "options": {
+        "official": "BMW CarData (officielle)",
+        "configurator": "Configurateur BMW (360°, non officiel)"
       }
     }
   },

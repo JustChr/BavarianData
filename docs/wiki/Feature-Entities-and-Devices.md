@@ -95,8 +95,13 @@ Each VIN also gets an **image** entity holding BMW's rendered picture of the car
 It is **cached and survives restarts**, so it doesn't burn quota on every boot;
 refresh it manually with `bavariandata.fetch_vehicle_image`.
 
-BMW provides exactly one picture per car, a side view. The API has no option for
-other angles. The top-down car in the card's tire and closure views is not a BMW
+BMW CarData provides exactly one picture per car, a side view, and the API has
+no option for other angles. **Configure → Vehicle image** can switch the picture
+to BMW's online configurator instead: your exact car as a 360° turntable, at no
+request cost, but through an unofficial BMW service
+([more](Settings-Reference#vehicle-image)). The entity then shows the
+configurator's front three-quarter view, and carries `configurator_spin` and
+`paint_color` attributes for the card. The top-down car in the card's tire and closure views is not a BMW
 image but a drawing built into the card: a BMW sedan, or a MINI Countryman for
 that model ([more](The-Dashboard-Card#the-cars-shape)).
 

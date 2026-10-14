@@ -186,6 +186,7 @@ const TRANSLATIONS = {
     charge_time: "Charge time",
     odometer: "Odometer",
     last_update: "Last update",
+    spin_hint: "Drag to turn the car",
     just_now: "just now",
     min_ago: "{n} min ago",
     h_ago: "{n} h ago",
@@ -482,6 +483,7 @@ const TRANSLATIONS = {
     charge_time: "Ladezeit",
     odometer: "Kilometerstand",
     last_update: "Letzte Aktualisierung",
+    spin_hint: "Ziehen, um das Auto zu drehen",
     just_now: "gerade eben",
     min_ago: "vor {n} Min.",
     h_ago: "vor {n} Std.",
@@ -765,6 +767,7 @@ const TRANSLATIONS = {
     charge_time: "Durée de charge",
     odometer: "Kilométrage",
     last_update: "Dernière mise à jour",
+    spin_hint: "Faites glisser pour tourner la voiture",
     just_now: "à l'instant",
     min_ago: "il y a {n} min",
     h_ago: "il y a {n} h",
@@ -1048,6 +1051,7 @@ const TRANSLATIONS = {
     charge_time: "Tempo di ricarica",
     odometer: "Contachilometri",
     last_update: "Ultimo aggiornamento",
+    spin_hint: "Trascina per ruotare l'auto",
     just_now: "proprio ora",
     min_ago: "{n} min fa",
     h_ago: "{n} h fa",
@@ -1331,6 +1335,7 @@ const TRANSLATIONS = {
     charge_time: "Tiempo de carga",
     odometer: "Cuentakilómetros",
     last_update: "Última actualización",
+    spin_hint: "Arrastra para girar el coche",
     just_now: "ahora mismo",
     min_ago: "hace {n} min",
     h_ago: "hace {n} h",
@@ -1614,6 +1619,7 @@ const TRANSLATIONS = {
     charge_time: "Laadtijd",
     odometer: "Kilometerstand",
     last_update: "Laatste update",
+    spin_hint: "Sleep om de auto te draaien",
     just_now: "zojuist",
     min_ago: "{n} min geleden",
     h_ago: "{n} u geleden",
@@ -1897,6 +1903,7 @@ const TRANSLATIONS = {
     charge_time: "Czas ładowania",
     odometer: "Przebieg",
     last_update: "Ostatnia aktualizacja",
+    spin_hint: "Przeciągnij, aby obrócić samochód",
     just_now: "przed chwilą",
     min_ago: "{n} min temu",
     h_ago: "{n} godz. temu",
@@ -2180,6 +2187,7 @@ const TRANSLATIONS = {
     charge_time: "Tempo de carregamento",
     odometer: "Conta-quilómetros",
     last_update: "Última atualização",
+    spin_hint: "Arraste para rodar o carro",
     just_now: "agora mesmo",
     min_ago: "há {n} min",
     h_ago: "há {n} h",
@@ -2463,6 +2471,7 @@ const TRANSLATIONS = {
     charge_time: "Doba nabíjení",
     odometer: "Počet km",
     last_update: "Poslední aktualizace",
+    spin_hint: "Tažením auto otočíte",
     just_now: "právě teď",
     min_ago: "před {n} min",
     h_ago: "před {n} h",
@@ -2746,6 +2755,7 @@ const TRANSLATIONS = {
     charge_time: "Laddtid",
     odometer: "Mätarställning",
     last_update: "Senaste uppdatering",
+    spin_hint: "Dra för att vrida bilen",
     just_now: "nyss",
     min_ago: "för {n} min sedan",
     h_ago: "för {n} h sedan",
@@ -3187,6 +3197,32 @@ const CAR_COUNTRYMAN = {
 // The shapes `shape:` can pick; `_carShape` chooses one from the car's model.
 const CAR_SHAPES = { sedan: CAR, countryman: CAR_COUNTRYMAN };
 
+// The top-down car's body and roof shading. Without a paint colour it is the
+// drawing's own silver; with one (the configurator picture's sampled paint) the
+// same light-to-edge shading is built from that colour, the roof a shade darker.
+const CAR_TONES_DEFAULT = {
+  bodyEdge: "#bcc2ca",
+  bodyMid: "#dde1e6",
+  roofEdge: "#7c828b",
+  roofMid: "#969ca4",
+};
+function carTones(paint) {
+  if (!paint) return CAR_TONES_DEFAULT;
+  const rgb = [1, 3, 5].map((i) => parseInt(paint.slice(i, i + 2), 16));
+  const mix = (target, t) =>
+    "#" +
+    rgb
+      .map((c) => Math.round(c + (target - c) * t))
+      .map((c) => c.toString(16).padStart(2, "0"))
+      .join("");
+  return {
+    bodyEdge: mix(0, 0.12),
+    bodyMid: mix(255, 0.18),
+    roofEdge: mix(0, 0.38),
+    roofMid: mix(0, 0.26),
+  };
+}
+
 class BavarianDataCard extends HTMLElement {
   setConfig(config) {
     this._config = { ...config };
@@ -3564,6 +3600,14 @@ class BavarianDataCard extends HTMLElement {
   /** The top-down drawing for this car: an explicit `shape:` wins, otherwise
    * BMW's basic-data model name picks one, otherwise the BMW saloon. */
   _carShape(entities) {
+    const shape = this._carShapeOnly(entities);
+    // The configurator picture's paint colours the drawing; without it the
+    // shape is returned as is, so the default drawing never changes.
+    const paint = this._carPaint(entities);
+    return paint ? { ...shape, paint } : shape;
+  }
+
+  _carShapeOnly(entities) {
     const wanted = String((this._config || {}).shape || "").toLowerCase();
     if (CAR_SHAPES[wanted]) return CAR_SHAPES[wanted];
     for (const id of entities) {
@@ -3879,6 +3923,7 @@ class BavarianDataCard extends HTMLElement {
       .sort()
       .pop();
 
+    const spin = picks.image ? this._spinInfo(picks.image) : null;
     const sig = this._signature({
       m: "ov",
       dt: drivetrain,
@@ -3886,6 +3931,7 @@ class BavarianDataCard extends HTMLElement {
       name,
       charging,
       img: picks.image,
+      spin: spin && spin.url,
       fresh: freshest,
       gauge: [gaugeId, gaugeVal, gaugeUnitHtml, pct, ringColor, gaugeCap],
       lead: lead.map((r) => [r.entity, r.lbl, r.val]),
@@ -3905,8 +3951,14 @@ class BavarianDataCard extends HTMLElement {
     this.shadowRoot.innerHTML = `
       ${this._styles()}
       <ha-card>
-        <div class="hero ${imgUrl ? "" : "hero--empty"}">
-          ${imgUrl ? `<img class="hero__img" src="${imgUrl}" alt="${this._esc(name)}" />` : `<ha-icon class="hero__placeholder" icon="${ice ? "mdi:car" : "mdi:car-electric"}"></ha-icon>`}
+        <div class="hero ${imgUrl || spin ? "" : "hero--empty"}">
+          ${
+            spin
+              ? this._spinHtml(spin, name)
+              : imgUrl
+                ? `<img class="hero__img" src="${imgUrl}" alt="${this._esc(name)}" />`
+                : `<ha-icon class="hero__placeholder" icon="${ice ? "mdi:car" : "mdi:car-electric"}"></ha-icon>`
+          }
           <div class="hero__scrim"></div>
           <div class="hero__top">
             <div class="hero__name" title="${this._esc(name)}">${this._esc(name)}</div>
@@ -3961,6 +4013,7 @@ class BavarianDataCard extends HTMLElement {
       </ha-card>
     `;
     this._wireTaps();
+    if (spin) this._wireSpin(spin);
   }
 
   /** The drive under way, read off the trip flag entity — or null when parked.
@@ -4035,6 +4088,120 @@ class BavarianDataCard extends HTMLElement {
     if (!st || !st.attributes) return null;
     // entity_picture carries a signed, cache-busted access token URL.
     return st.attributes.entity_picture || null;
+  }
+
+  /** The configurator turntable for the hero, or null until it can be shown.
+   *
+   * Configure -> Vehicle image set to BMW's configurator gives the image entity
+   * a `configurator_spin` attribute: the path of one sprite holding every frame
+   * in a grid, served by the integration behind HA's login. An <img> or CSS
+   * background can't send the login, so the path is signed once
+   * (`auth/sign_path`) and kept until shortly before the signature expires.
+   * Until then the entity's own picture shows, which is a still of the spin. */
+  _spinInfo(entityId) {
+    const st = this._st(entityId);
+    const spin = st && st.attributes && st.attributes.configurator_spin;
+    if (!spin || !spin.path || !(spin.frames > 1) || !(spin.columns > 0)) return null;
+    const signed = (this._spinSigned || {})[spin.path];
+    if (!signed || signed.until < Date.now()) {
+      this._signSpin(spin.path);
+      return null;
+    }
+    return {
+      url: signed.url,
+      columns: Number(spin.columns),
+      rows: Number(spin.rows) || 1,
+      frames: Number(spin.frames),
+    };
+  }
+
+  _signSpin(path) {
+    const hass = this._hass;
+    if (!hass || typeof hass.callWS !== "function") return;
+    this._spinPending = this._spinPending || {};
+    if (this._spinPending[path]) return;
+    this._spinPending[path] = true;
+    const expires = 24 * 3600;
+    hass
+      .callWS({ type: "auth/sign_path", path, expires })
+      .then((res) => {
+        this._spinSigned = this._spinSigned || {};
+        this._spinSigned[path] = {
+          url: hass.hassUrl ? hass.hassUrl(res.path) : res.path,
+          until: Date.now() + (expires - 600) * 1000,
+        };
+        this._sig = null; // repaint with the spin
+        this._render();
+      })
+      .catch(() => {
+        /* the still keeps showing */
+      })
+      .finally(() => {
+        delete this._spinPending[path];
+      });
+  }
+
+  // Frame 4 is BMW's front three-quarter view, the still the entity shows.
+  _spinFrameNow(spin) {
+    const f = Number.isInteger(this._spinFrame) ? this._spinFrame : 4;
+    return ((f % spin.frames) + spin.frames) % spin.frames;
+  }
+
+  _spinPos(spin, frame) {
+    const col = frame % spin.columns;
+    const row = Math.floor(frame / spin.columns);
+    const x = spin.columns > 1 ? (col / (spin.columns - 1)) * 100 : 0;
+    const y = spin.rows > 1 ? (row / (spin.rows - 1)) * 100 : 0;
+    return `${x}% ${y}%`;
+  }
+
+  _spinHtml(spin, name) {
+    const frame = this._spinFrameNow(spin);
+    const style = [
+      `background-image:url('${this._esc(spin.url)}')`,
+      `background-size:${spin.columns * 100}% ${spin.rows * 100}%`,
+      `background-position:${this._spinPos(spin, frame)}`,
+    ].join(";");
+    return `<div class="hero__spin" role="img" aria-label="${this._esc(name)}" title="${this._esc(
+      this._t("spin_hint")
+    )}" style="${style}"></div>
+          <ha-icon class="hero__spin-icon" icon="mdi:rotate-3d-variant"></ha-icon>`;
+  }
+
+  /** Drag (mouse or finger) across the hero to turn the car. The frame lives
+   * on the card, not in the DOM, so a repaint keeps the angle. */
+  _wireSpin(spin) {
+    const el = this.shadowRoot.querySelector(".hero__spin");
+    if (!el) return;
+    const step = 14; // pixels of drag per 10-degree frame
+    let startX = null;
+    let startFrame = 0;
+    el.addEventListener("pointerdown", (ev) => {
+      startX = ev.clientX;
+      startFrame = this._spinFrameNow(spin);
+      if (el.setPointerCapture) el.setPointerCapture(ev.pointerId);
+    });
+    el.addEventListener("pointermove", (ev) => {
+      if (startX === null) return;
+      // Dragging right turns the car to the right, as on BMW's configurator.
+      const frame = startFrame - Math.round((ev.clientX - startX) / step);
+      this._spinFrame = ((frame % spin.frames) + spin.frames) % spin.frames;
+      el.style.backgroundPosition = this._spinPos(spin, this._spinFrame);
+    });
+    const end = () => {
+      startX = null;
+    };
+    el.addEventListener("pointerup", end);
+    el.addEventListener("pointercancel", end);
+  }
+
+  /** The car's real paint as `#rrggbb`, when the configurator picture is on. */
+  _carPaint(entities) {
+    const cfg = this._config || {};
+    const id = cfg.image || entities.find((e) => e.startsWith("image."));
+    const st = id && this._st(id);
+    const paint = st && st.attributes && st.attributes.paint_color;
+    return typeof paint === "string" && /^#[0-9a-f]{6}$/i.test(paint) ? paint.toLowerCase() : null;
   }
 
   _renderCluster(deviceId, entities) {
@@ -6613,6 +6780,7 @@ class BavarianDataCard extends HTMLElement {
     const sig = this._signature({
       m: "tire",
       lang: _lang(this._hass),
+      paint: this._carPaint(entities),
       unit,
       w: Object.fromEntries(
         Object.entries(wheels).map(([k, m]) => [
@@ -6798,17 +6966,18 @@ class BavarianDataCard extends HTMLElement {
       carClipWf: car.window.f.d,
       carClipWr: car.window.r.d,
     };
+    const tone = carTones(car.paint);
     return `
         <defs>
           <linearGradient id="carBody" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="#bcc2ca"/>
-            <stop offset=".5" stop-color="#dde1e6"/>
-            <stop offset="1" stop-color="#bcc2ca"/>
+            <stop offset="0" stop-color="${tone.bodyEdge}"/>
+            <stop offset=".5" stop-color="${tone.bodyMid}"/>
+            <stop offset="1" stop-color="${tone.bodyEdge}"/>
           </linearGradient>
           <linearGradient id="carRoof" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="#7c828b"/>
-            <stop offset=".5" stop-color="#969ca4"/>
-            <stop offset="1" stop-color="#7c828b"/>
+            <stop offset="0" stop-color="${tone.roofEdge}"/>
+            <stop offset=".5" stop-color="${tone.roofMid}"/>
+            <stop offset="1" stop-color="${tone.roofEdge}"/>
           </linearGradient>
           <linearGradient id="carGlass" x1="0" y1="0" x2=".4" y2="1">
             <stop offset="0" stop-color="#43515f"/>
@@ -7138,6 +7307,7 @@ class BavarianDataCard extends HTMLElement {
     const sig = this._signature({
       m: "clo",
       lang: _lang(this._hass),
+      paint: this._carPaint(entities),
       rhd,
       doors: Object.fromEntries(Object.entries(doors).map(([k, v]) => [k, stateOf(v.id)])),
       wins: Object.fromEntries(Object.entries(windows).map(([k, v]) => [k, stateOf(v.id)])),
@@ -7468,6 +7638,21 @@ class BavarianDataCard extends HTMLElement {
         height: 100%;
         object-fit: contain;
         object-position: center 60%;
+      }
+      .hero__spin {
+        position: absolute; inset: 0;
+        background-repeat: no-repeat;
+        cursor: grab;
+        touch-action: pan-y;
+        user-select: none;
+      }
+      .hero__spin:active { cursor: grabbing; }
+      .hero__spin-icon {
+        position: absolute; right: 12px; bottom: 10px;
+        --mdc-icon-size: 20px;
+        color: var(--secondary-text-color);
+        opacity: 0.7;
+        pointer-events: none;
       }
       .hero__placeholder {
         --mdc-icon-size: 72px;

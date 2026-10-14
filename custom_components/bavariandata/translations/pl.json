@@ -96,7 +96,7 @@
           "action_fetch_charging_history": "Pobierz historię ładowania",
           "action_fetch_tyre": "Pobierz diagnozę opon",
           "action_fetch_location_charging": "Pobierz ustawienia ładowania",
-          "action_fetch_image": "Pobierz zdjęcie pojazdu",
+          "action_fetch_image": "Zdjęcie pojazdu",
           "action_data_refresh": "Automatyczne odświeżanie danych",
           "action_charging_costs": "Koszty i historia ładowania",
           "action_energy_sources": "Fotowoltaika i źródła energii",
@@ -172,8 +172,14 @@
         "description": "Pobiera zależne od lokalizacji ustawienia ładowania Twoich pojazdów.\n\nNaciśnij Zatwierdź, aby kontynuować."
       },
       "action_fetch_image": {
-        "title": "Pobierz zdjęcie pojazdu",
-        "description": "Pobiera aktualne zdjęcie Twoich pojazdów.\n\nNaciśnij Zatwierdź, aby kontynuować."
+        "title": "Zdjęcie pojazdu",
+        "description": "Wybierz, skąd pochodzi zdjęcie samochodu. Zatwierdź pobiera je teraz i zachowuje po ponownym uruchomieniu.",
+        "data": {
+          "image_source": "Źródło zdjęcia"
+        },
+        "data_description": {
+          "image_source": "Oficjalne: jeden widok z boku, 1 z 50 dziennych zapytań do BMW na samochód. Konfigurator: dokładnie ten samochód w 360° z prawdziwym lakierem, bez zapytań, ale to nieoficjalna usługa BMW, która może przestać działać."
+        }
       },
       "charging_vehicle": {
         "title": "Koszty i historia ładowania",
@@ -386,7 +392,11 @@
       "price_required": "Wpisz stałą cenę za kWh lub wybierz inne źródło ceny.",
       "price_entity_required": "Wybierz encję podającą Twoją cenę za kWh lub wybierz inne źródło ceny.",
       "mqtt_missing": "Most publikuje przez integrację MQTT Home Assistant, a nie masz jej skonfigurowanej. Dodaj ją w Ustawienia → Urządzenia oraz usługi (zwykle wybiera się dodatek Mosquitto broker), a następnie wróć.",
-      "phone_required": "Wybierz też telefon: ten czujnik mówi tylko, kiedy telefon jest w aucie."
+      "phone_required": "Wybierz też telefon: ten czujnik mówi tylko, kiedy telefon jest w aucie.",
+      "configurator_unsupported": "Konfigurator BMW nie rysuje {vehicle}: obsługuje tylko samochody BMW i MINI. Zostaw oficjalne zdjęcie.",
+      "configurator_no_data": "Podstawowe dane pojazdu {vehicle} jeszcze nie dotarły. Najpierw uruchom „Pobierz podstawowe dane pojazdu”, a potem spróbuj ponownie.",
+      "configurator_unavailable": "Konfigurator BMW nie odpowiedział lub się zmienił. Spróbuj później albo zostaw oficjalne zdjęcie.",
+      "configurator_no_render": "Konfigurator BMW nie ma zdjęcia {vehicle}. Zostaw oficjalne zdjęcie."
     },
     "abort": {
       "reauth_started": "Autoryzacja uruchomiona ponownie. Dokończ nowe logowanie z powiadomienia, które właśnie się pojawiło.",
@@ -414,6 +424,12 @@
       "options": {
         "live": "Na żywo (auto przesyła dane w trakcie jazdy)",
         "reports": "Raporty po zakończeniu jazdy (auto melduje się po zaparkowaniu)"
+      }
+    },
+    "image_source": {
+      "options": {
+        "official": "BMW CarData (oficjalne)",
+        "configurator": "Konfigurator BMW (360°, nieoficjalny)"
       }
     }
   },

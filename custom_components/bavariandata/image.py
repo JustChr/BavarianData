@@ -9,24 +9,43 @@ per day, so the bytes are cached in memory *and* persisted to a Store. That way 
 Home Assistant restart re-uses the stored render instead of spending a quota slot
 on every boot; the picture is only (re)fetched when it is missing or when the
 ``fetch_vehicle_image`` service is called explicitly.
+
+With Configure -> Vehicle image set to the configurator, the picture is instead
+BMW's online configurator drawing the exact car (see ``configurator.py``): a
+36-frame turntable kept as one sprite file under ``.storage`` and served to the
+card through an authenticated view, a still frame as this entity's image, and
+the sampled paint colour for the card's top-down car. The official picture
+stays cached as the fallback.
 """
 
 from __future__ import annotations
 
 import base64
+import hashlib
 import logging
+import re
+from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
+from aiohttp import web
+from homeassistant.components.http import HomeAssistantView
 from homeassistant.components.image import ImageEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.dispatcher import async_dispatcher_connect, async_dispatcher_send
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from .api import CardataApiError, async_get_vehicle_image
-from .const import DOMAIN, SIGNAL_VEHICLE_IMAGE
+from .configurator import ConfiguratorError, async_render
+from .const import (
+    DEFAULT_IMAGE_SOURCE,
+    DOMAIN,
+    IMAGE_SOURCE_CONFIGURATOR,
+    OPTION_IMAGE_SOURCE,
+    SIGNAL_VEHICLE_IMAGE,
+)
 from .coordinator import CardataCoordinator
 from .debug import mask_vin
 from .entity import CardataEntity
@@ -40,6 +59,135 @@ _STORE_KEY = f"{DOMAIN}_vehicle_images"
 # Where the shared image cache / store live on hass.data[DOMAIN].
 _CACHE_KEY = "_vehicle_image_cache"
 _STORE_HANDLE_KEY = "_vehicle_image_store"
+
+# The configurator renders: metadata in a Store, the images as files next to it
+# (a sprite is ~0.5-1 MB, too big to keep base64 in a JSON store).
+_RENDER_STORE_KEY = f"{DOMAIN}_configurator_renders"
+_RENDER_CACHE_KEY = "_configurator_render_cache"
+_RENDER_STORE_HANDLE_KEY = "_configurator_render_store"
+_RENDER_VIEW_KEY = "_configurator_render_view"
+_RENDER_DIR = f"{DOMAIN}_renders"
+SPIN_PATH = f"/api/{DOMAIN}/spin"
+_KEY_RE = re.compile(r"[0-9a-f]{24}")
+
+
+def image_source(entry: ConfigEntry) -> str:
+    """The picture source chosen under Configure -> Vehicle image."""
+
+    return entry.options.get(OPTION_IMAGE_SOURCE, DEFAULT_IMAGE_SOURCE)
+
+
+def _render_key(vin: str) -> str:
+    """A file name for a car's render that doesn't spell out its VIN."""
+
+    return hashlib.sha256(f"{DOMAIN}:render:{vin}".encode()).hexdigest()[:24]
+
+
+def _render_dir(hass: HomeAssistant) -> Path:
+    return Path(hass.config.path(".storage", _RENDER_DIR))
+
+
+async def _async_load_renders(hass: HomeAssistant) -> Dict[str, dict]:
+    """Return the shared ``{vin: {...}}`` configurator-render metadata."""
+
+    domain_data = _domain_data(hass)
+    renders = domain_data.get(_RENDER_CACHE_KEY)
+    if renders is not None:
+        return renders
+    store = domain_data.get(_RENDER_STORE_HANDLE_KEY)
+    if store is None:
+        store = Store(hass, _STORE_VERSION, _RENDER_STORE_KEY)
+        domain_data[_RENDER_STORE_HANDLE_KEY] = store
+    stored = await store.async_load() or {}
+    renders = {vin: dict(record) for vin, record in stored.items() if isinstance(record, dict)}
+    domain_data[_RENDER_CACHE_KEY] = renders
+    return renders
+
+
+class _SpinView(HomeAssistantView):
+    """Serves a car's configurator sprite to the card (signed or logged-in only)."""
+
+    url = SPIN_PATH + "/{key}/{version}"
+    name = f"api:{DOMAIN}:spin"
+    requires_auth = True
+
+    def __init__(self, directory: Path) -> None:
+        self._directory = directory
+
+    async def get(self, request: web.Request, key: str, version: str) -> web.StreamResponse:
+        # ``version`` only busts the browser cache after a refetch.
+        if not _KEY_RE.fullmatch(key):
+            return web.Response(status=404)
+        for suffix in (".webp", ".png"):
+            path = self._directory / f"{key}{suffix}"
+            if await request.app["hass"].async_add_executor_job(path.is_file):
+                return web.FileResponse(path, headers={"Cache-Control": "private, max-age=604800"})
+        return web.Response(status=404)
+
+
+def _ensure_spin_view(hass: HomeAssistant) -> None:
+    domain_data = _domain_data(hass)
+    if not domain_data.get(_RENDER_VIEW_KEY):
+        hass.http.register_view(_SpinView(_render_dir(hass)))
+        domain_data[_RENDER_VIEW_KEY] = True
+
+
+async def async_refresh_configurator_render(
+    hass: HomeAssistant,
+    runtime: Any,
+    vin: str,
+) -> Optional[str]:
+    """Draw ``vin`` with BMW's configurator and keep the result.
+
+    Spends no CarData quota. Returns ``None`` on success, otherwise the
+    :class:`ConfiguratorError` reason (``unsupported``, ``no_data``,
+    ``unavailable``, ``no_render``) so the settings screen can say why.
+    """
+
+    metadata = runtime.coordinator.device_metadata.get(vin) or {}
+    raw = metadata.get("raw_data")
+    if not raw:
+        return "no_data"
+    try:
+        render = await async_render(runtime.session, raw, run_sync=hass.async_add_executor_job)
+    except ConfiguratorError as err:
+        _LOGGER.warning("Configurator picture for %s failed: %s", mask_vin(vin), err)
+        return err.reason
+
+    key = _render_key(vin)
+    directory = _render_dir(hass)
+    suffix = ".webp" if render.sprite_type == "image/webp" else ".png"
+
+    def _write() -> None:
+        directory.mkdir(parents=True, exist_ok=True)
+        for stale in directory.glob(f"{key}.*"):
+            stale.unlink()
+        (directory / f"{key}{suffix}").write_bytes(render.sprite)
+        (directory / f"{key}_still.png").write_bytes(render.still)
+
+    await hass.async_add_executor_job(_write)
+    renders = await _async_load_renders(hass)
+    renders[vin] = {
+        "key": key,
+        "columns": render.columns,
+        "rows": render.rows,
+        "frames": render.frames,
+        "frame_width": render.frame_width,
+        "frame_height": render.frame_height,
+        "paint": render.paint,
+        "brand": render.brand,
+        "updated": dt_util.utcnow().isoformat(),
+    }
+    await _domain_data(hass)[_RENDER_STORE_HANDLE_KEY].async_save(renders)
+    _LOGGER.info(
+        "Configurator: drew %s as %s (%s frames, %s KB)",
+        mask_vin(vin),
+        render.brand,
+        render.frames,
+        len(render.sprite) // 1024,
+    )
+    async_dispatcher_send(hass, SIGNAL_VEHICLE_IMAGE, vin)
+    return None
 
 
 def _domain_data(hass: HomeAssistant) -> dict:
@@ -158,8 +306,6 @@ async def async_refresh_vehicle_image(
         len(data),
         content_type or "unknown type",
     )
-    from homeassistant.helpers.dispatcher import async_dispatcher_send
-
     async_dispatcher_send(hass, SIGNAL_VEHICLE_IMAGE, vin)
     return data, content_type
 
@@ -177,13 +323,15 @@ async def async_setup_entry(
     coordinator: CardataCoordinator = runtime.coordinator
 
     cache = await _async_load_cache(hass)
+    renders = await _async_load_renders(hass)
+    _ensure_spin_view(hass)
     entities: Dict[str, CardataVehicleImage] = {}
 
     @callback
     def ensure_entity(vin: str) -> None:
         if vin in entities:
             return
-        entity = CardataVehicleImage(hass, coordinator, entry, runtime, vin, cache)
+        entity = CardataVehicleImage(hass, coordinator, entry, runtime, vin, cache, renders)
         entities[vin] = entity
         async_add_entities([entity])
 
@@ -198,7 +346,13 @@ async def async_setup_entry(
 
 
 class CardataVehicleImage(CardataEntity, ImageEntity):
-    """The BMW-provided vehicle render for a single VIN."""
+    """The car's picture: BMW CarData's render, or the configurator's.
+
+    Which one follows Configure -> Vehicle image. The configurator picture adds
+    two attributes for the card: ``configurator_spin`` (the sprite's signed-URL
+    path and grid) and ``paint_color``. Whenever there is no configurator
+    render for the car, the official picture is shown.
+    """
 
     _attr_translation_key = "vehicle_image"
     _attr_name = None
@@ -211,29 +365,55 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
         runtime: Any,
         vin: str,
         cache: Dict[str, dict],
+        renders: Dict[str, dict],
     ) -> None:
         CardataEntity.__init__(self, coordinator, vin, "vehicle_image")
         ImageEntity.__init__(self, hass)
         self._entry = entry
         self._runtime = runtime
         self._cache = cache
+        self._renders = renders
+        self._still: Optional[bytes] = None
         self._attr_unique_id = f"{vin}_vehicle_image"
-        record = cache.get(vin)
-        if record:
+        self._sync_picture()
+
+    def _render(self) -> Optional[dict]:
+        """The configurator render, when that is the chosen source and one exists."""
+
+        if image_source(self._entry) != IMAGE_SOURCE_CONFIGURATOR:
+            return None
+        return self._renders.get(self._vin)
+
+    def _sync_picture(self) -> None:
+        render = self._render()
+        record = render or self._cache.get(self._vin)
+        if render:
+            self._attr_content_type = "image/png"
+        elif record:
             self._attr_content_type = record.get("content_type") or "image/png"
-            updated = record.get("updated")
-            self._attr_image_last_updated = (
-                dt_util.parse_datetime(updated) if updated else dt_util.utcnow()
-            )
         else:
             self._attr_content_type = "image/png"
+        updated = record.get("updated") if record else None
+        self._attr_image_last_updated = (
+            dt_util.parse_datetime(updated) if updated else dt_util.utcnow()
+        )
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
         self.async_on_remove(
             async_dispatcher_connect(self.hass, SIGNAL_VEHICLE_IMAGE, self._handle_image_signal)
         )
-        if self._vin not in self._cache:
+        if image_source(self._entry) == IMAGE_SOURCE_CONFIGURATOR:
+            if self._vin not in self._renders:
+                # A car added after the setting was chosen: draw it now (no quota).
+                # Basic data may not be in yet; it arrives with the car's name.
+                self.hass.async_create_task(self._async_initial_render())
+                self.async_on_remove(
+                    async_dispatcher_connect(
+                        self.hass, f"{DOMAIN}_{self._entry.entry_id}_name", self._handle_name
+                    )
+                )
+        elif self._vin not in self._cache:
             # No render yet (fresh install / never fetched): pull it once in the
             # background so the card has a hero image without user action.
             self.hass.async_create_task(self._async_initial_fetch())
@@ -241,20 +421,35 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
     async def _async_initial_fetch(self) -> None:
         await async_refresh_vehicle_image(self.hass, self._entry, self._runtime, self._vin)
 
+    async def _async_initial_render(self) -> None:
+        await async_refresh_configurator_render(self.hass, self._runtime, self._vin)
+
+    @callback
+    def _handle_name(self, vin: str, _name: str) -> None:
+        if vin == self._vin and vin not in self._renders:
+            self.hass.async_create_task(self._async_initial_render())
+
     @callback
     def _handle_image_signal(self, vin: str) -> None:
         if vin != self._vin:
             return
-        record = self._cache.get(vin)
-        if record:
-            self._attr_content_type = record.get("content_type") or "image/png"
-            updated = record.get("updated")
-            self._attr_image_last_updated = (
-                dt_util.parse_datetime(updated) if updated else dt_util.utcnow()
-            )
+        self._still = None
+        self._sync_picture()
         self.async_write_ha_state()
 
     async def async_image(self) -> Optional[bytes]:
+        render = self._render()
+        if render:
+            if self._still is None:
+                path = _render_dir(self.hass) / f"{render['key']}_still.png"
+                try:
+                    self._still = await self.hass.async_add_executor_job(path.read_bytes)
+                except OSError as err:
+                    _LOGGER.warning(
+                        "Configurator still for %s unreadable: %s", mask_vin(self._vin), err
+                    )
+            if self._still is not None:
+                return self._still
         record = self._cache.get(self._vin)
         if record:
             return record.get("data")
@@ -269,4 +464,17 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
         record = self._cache.get(self._vin)
         if record and record.get("updated"):
             attrs["image_fetched_at"] = record["updated"]
+        render = self._render()
+        if render:
+            version = re.sub(r"[^0-9]", "", render.get("updated") or "")[:14] or "0"
+            attrs["configurator_spin"] = {
+                "path": f"{SPIN_PATH}/{render['key']}/{version}",
+                "columns": render["columns"],
+                "rows": render["rows"],
+                "frames": render["frames"],
+                "frame_width": render["frame_width"],
+                "frame_height": render["frame_height"],
+            }
+            if render.get("paint"):
+                attrs["paint_color"] = render["paint"]
         return attrs

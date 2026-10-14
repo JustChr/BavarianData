@@ -96,7 +96,7 @@
           "action_fetch_charging_history": "Fetch charging history",
           "action_fetch_tyre": "Fetch tire diagnosis",
           "action_fetch_location_charging": "Fetch charging settings",
-          "action_fetch_image": "Fetch vehicle image",
+          "action_fetch_image": "Vehicle image",
           "action_data_refresh": "Automatic data refresh",
           "action_charging_costs": "Charging costs & history",
           "action_energy_sources": "Solar & energy sources",
@@ -172,8 +172,14 @@
         "description": "Fetch the location-based charging settings for your vehicles.\n\nPress Submit to continue."
       },
       "action_fetch_image": {
-        "title": "Fetch vehicle image",
-        "description": "Fetch the current vehicle image for your vehicles.\n\nPress Submit to continue."
+        "title": "Vehicle image",
+        "description": "Choose where your car's picture comes from. Submit fetches it now and keeps it across restarts.",
+        "data": {
+          "image_source": "Picture source"
+        },
+        "data_description": {
+          "image_source": "Official: one side view, 1 of your 50 daily BMW requests per car. Configurator: your exact car in 360° with its real paint, no requests, but an unofficial BMW service that may stop working."
+        }
       },
       "charging_vehicle": {
         "title": "Charging costs & history",
@@ -386,7 +392,11 @@
       "price_required": "Enter a fixed price per kWh, or choose a different price source.",
       "price_entity_required": "Pick the entity that reports your price per kWh, or choose a different price source.",
       "mqtt_missing": "The bridge publishes through Home Assistant's MQTT integration, and you don't have one set up. Add it under Settings → Devices & services (the Mosquitto broker add-on is the usual choice), then come back.",
-      "phone_required": "Pick the phone too: this sensor only says when the phone is in the car."
+      "phone_required": "Pick the phone too: this sensor only says when the phone is in the car.",
+      "configurator_unsupported": "BMW's configurator doesn't draw {vehicle}: it covers BMW and MINI cars only. Keep the official picture.",
+      "configurator_no_data": "The basic vehicle info for {vehicle} isn't in yet. Run \"Fetch basic vehicle info\" first, then try again.",
+      "configurator_unavailable": "BMW's configurator didn't answer, or has changed. Try again later, or keep the official picture.",
+      "configurator_no_render": "BMW's configurator has no picture of {vehicle}. Keep the official picture."
     },
     "abort": {
       "reauth_started": "Authorization restarted. Finish the new login from the notification that just appeared.",
@@ -414,6 +424,12 @@
       "options": {
         "live": "Live (car streams while driving)",
         "reports": "End-of-trip reports (car reports once parked)"
+      }
+    },
+    "image_source": {
+      "options": {
+        "official": "BMW CarData (official)",
+        "configurator": "BMW configurator (360°, unofficial)"
       }
     }
   },

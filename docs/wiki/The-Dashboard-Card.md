@@ -57,6 +57,10 @@ streams:
 | Petrol / diesel | Tank level — or the volume in the tank, on a car that doesn't stream a percentage | Remaining range, and the tank volume or the odometer | Odometer |
 | Neither, proved | Remaining range | Odometer | — |
 
+With **Configure → [Vehicle image](Settings-Reference#vehicle-image)** set to
+BMW's configurator, the render is your exact car, and dragging across it (mouse
+or finger) turns it all the way round.
+
 The state of charge on the ring is the integration's own estimate. While the car
 is parked that is simply BMW's last reading; while it charges it keeps climbing at
 the rate the charging power implies, because BMW can go silent for hours
@@ -386,6 +390,10 @@ shape: countryman   # sedan · countryman — omit to pick it from BMW's vehicle
 </p>
 
 Other models, including the other MINIs, use the sedan for now.
+
+With **Configure → [Vehicle image](Settings-Reference#vehicle-image)** set to
+BMW's configurator, the drawing takes your car's real paint color, sampled from
+the configurator's picture.
 
 ---
 

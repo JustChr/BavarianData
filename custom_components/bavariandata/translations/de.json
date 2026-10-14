@@ -96,7 +96,7 @@
           "action_fetch_charging_history": "Ladehistorie abrufen",
           "action_fetch_tyre": "Reifendiagnose abrufen",
           "action_fetch_location_charging": "Ladeeinstellungen abrufen",
-          "action_fetch_image": "Fahrzeugbild abrufen",
+          "action_fetch_image": "Fahrzeugbild",
           "action_data_refresh": "Automatische Aktualisierung",
           "action_charging_costs": "Ladekosten & Verlauf",
           "action_energy_sources": "Solar & Energiequellen",
@@ -172,8 +172,14 @@
         "description": "Ruft die standortbasierten Ladeeinstellungen deiner Fahrzeuge ab.\n\nKlicke auf **Absenden**, um fortzufahren."
       },
       "action_fetch_image": {
-        "title": "Fahrzeugbild abrufen",
-        "description": "Ruft das aktuelle Fahrzeugbild deiner Fahrzeuge ab.\n\nKlicke auf **Absenden**, um fortzufahren."
+        "title": "Fahrzeugbild",
+        "description": "Wähle, woher das Bild deines Autos kommt. Absenden lädt es jetzt und behält es über Neustarts hinweg.",
+        "data": {
+          "image_source": "Bildquelle"
+        },
+        "data_description": {
+          "image_source": "Offiziell: eine Seitenansicht, 1 deiner 50 täglichen BMW-Anfragen pro Auto. Konfigurator: genau dein Auto in 360° mit echter Lackfarbe, keine Anfragen, aber ein inoffizieller BMW-Dienst, der ausfallen kann."
+        }
       },
       "charging_vehicle": {
         "title": "Ladekosten & Verlauf",
@@ -386,7 +392,11 @@
       "price_required": "Gib einen festen Preis pro kWh ein, oder wähle eine andere Preisquelle.",
       "price_entity_required": "Wähle die Entität, die deinen Preis pro kWh liefert, oder wähle eine andere Preisquelle.",
       "mqtt_missing": "Die Brücke veröffentlicht über die MQTT-Integration von Home Assistant, und die ist bei dir nicht eingerichtet. Füge sie unter Einstellungen → Geräte & Dienste hinzu (üblich ist das Mosquitto-Broker-Add-on) und komm dann zurück.",
-      "phone_required": "Wähle auch das Handy: Dieser Sensor sagt nur, wann das Handy im Auto ist."
+      "phone_required": "Wähle auch das Handy: Dieser Sensor sagt nur, wann das Handy im Auto ist.",
+      "configurator_unsupported": "Der BMW-Konfigurator zeichnet {vehicle} nicht: Er kennt nur BMW- und MINI-Autos. Behalte das offizielle Bild.",
+      "configurator_no_data": "Die Fahrzeug-Basisdaten für {vehicle} sind noch nicht da. Führe zuerst „Fahrzeug-Basisdaten abrufen“ aus und versuche es dann erneut.",
+      "configurator_unavailable": "Der BMW-Konfigurator hat nicht geantwortet oder sich geändert. Versuche es später erneut oder behalte das offizielle Bild.",
+      "configurator_no_render": "Der BMW-Konfigurator hat kein Bild von {vehicle}. Behalte das offizielle Bild."
     },
     "abort": {
       "reauth_started": "Autorisierung neu gestartet. Schließe die neue Anmeldung über die soeben erschienene Benachrichtigung ab.",
@@ -414,6 +424,12 @@
       "options": {
         "live": "Live (Auto streamt während der Fahrt)",
         "reports": "Berichte am Fahrtende (Auto meldet nach dem Parken)"
+      }
+    },
+    "image_source": {
+      "options": {
+        "official": "BMW CarData (offiziell)",
+        "configurator": "BMW-Konfigurator (360°, inoffiziell)"
       }
     }
   },

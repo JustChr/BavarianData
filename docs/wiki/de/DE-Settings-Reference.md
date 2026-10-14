@@ -33,7 +33,7 @@ erscheinen (der Screenshot zeigt die englische).
 | **Ladehistorie abrufen** | Aktion ⚡ | " |
 | **Reifendiagnose abrufen** | Aktion ⚡ | " |
 | **Ladeeinstellungen abrufen** | Aktion ⚡ | Standortbasierte Ladeeinstellungen. " |
-| **Fahrzeugbild abrufen** | Aktion ⚡ | " |
+| **Fahrzeugbild** | Einstellungen ⚡ | Woher das Bild des Autos kommt: BMW CarData oder BMWs Online-Konfigurator — unten. |
 | **Automatische Aktualisierung** | Einstellungen ⚡ | Nach dem Start von Home Assistant bei BMW aufholen — unten. |
 | **Ladekosten & Verlauf** | Einstellungen | Preisquelle, Aufbewahrung, Statistiken — unten. |
 | **Solar & Energiequellen** | Einstellungen | Woher die Energie jeder Ladung kam: PV, Hausspeicher, Netz — unten. |
@@ -42,6 +42,26 @@ erscheinen (der Screenshot zeigt die englische).
 | **Debug-Protokollierung** | Einstellungen | Schalter für ausführliche Protokollierung — unten. |
 
 ⚡ = verbraucht eine (oder mehrere) deiner [50 Anfragen / 24 h](DE-Feature-API-Quota).
+
+## Fahrzeugbild
+
+Bildschirm: **Konfigurieren → Fahrzeugbild**.
+
+| Option | Werte | Bedeutung |
+| --- | --- | --- |
+| **Bildquelle** | BMW CarData (offiziell) · BMW-Konfigurator (360°, inoffiziell) | Standard **BMW CarData**: BMWs eine Seitenansicht des Autos, eine deiner [50 Anfragen am Tag](DE-Feature-API-Quota) pro Auto. **BMW-Konfigurator** zeichnet genau dein Auto so, wie es BMWs Online-Konfigurator tut, aus Modell, Lack und Werksausstattung in den Fahrzeug-Basisdaten: eine 360°-Drehansicht in der [Karte](DE-The-Dashboard-Card#übersicht), die du mit der Maus oder dem Finger drehst, und die echte Lackfarbe am [Auto von oben](DE-The-Dashboard-Card#die-form-des-autos). Das kostet keine Anfragen, gehört aber nicht zu CarData: Es ist der Dienst hinter BMWs Konfigurator-Webseite, den BMW jederzeit ändern oder sperren kann. |
+
+**Absenden** lädt das Bild sofort und behält es über Neustarts hinweg. Mit dem
+Konfigurator wird nur gespeichert, wenn sich jedes Auto zeichnen ließ; sonst
+nennt der Bildschirm das Auto und den Grund (kein BMW oder MINI, die
+Fahrzeug-Basisdaten sind noch nicht da, der Konfigurator hat nicht geantwortet
+oder kein Bild dieses Modells), und das offizielle Bild bleibt. Ein später
+hinzukommendes Auto wird gezeichnet, sobald es erscheint.
+
+Der Konfigurator zeichnet BMW- und MINI-Autos, auch Modelle, die nicht mehr
+verkauft werden. Er hat keine Ansicht von oben und keine Innenausstattung, weil
+BMWs Fahrzeugdaten die Polsterung nicht nennen; gezeigt wird deshalb nur das Äußere.
+Gibt es für ein Auto kein Konfigurator-Bild, zeigt die Karte das offizielle.
 
 ## Automatische Aktualisierung
 
