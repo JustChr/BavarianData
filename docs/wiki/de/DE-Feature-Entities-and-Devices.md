@@ -107,7 +107,8 @@ nicht bei jedem Start Kontingent; manuell aktualisieren kannst du es mit
 BMW liefert genau ein Bild pro Auto, eine Seitenansicht. Andere Blickwinkel lassen
 sich über die API nicht abrufen. Das Auto von oben in den Reifen- und
 Verschluss-Ansichten der Karte ist kein BMW-Bild, sondern eine Zeichnung in der
-Karte, für jedes Modell dieselbe.
+Karte: eine BMW-Limousine, bei einem MINI Countryman dessen eigene
+([mehr](DE-The-Dashboard-Card#die-form-des-autos)).
 
 ## Geräte-Tracker
 

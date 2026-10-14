@@ -97,7 +97,8 @@ refresh it manually with `bavariandata.fetch_vehicle_image`.
 
 BMW provides exactly one picture per car, a side view. The API has no option for
 other angles. The top-down car in the card's tire and closure views is not a BMW
-image but a drawing built into the card, the same for every model.
+image but a drawing built into the card: a BMW sedan, or a MINI Countryman for
+that model ([more](The-Dashboard-Card#the-cars-shape)).
 
 ## Device tracker
 
