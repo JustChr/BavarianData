@@ -12,10 +12,11 @@ user's personal BMW client ID. Domain: `bavariandata`. Repo:
   - `device_flow.py` — OAuth 2.0 device-authorization flow (no HA imports; unit-testable).
   - `stream.py` — MQTT streaming client (paho-mqtt).
   - `coordinator.py` — central state: token refresh, stream lifecycle, quota, charging-session tracking + `bavariandata_charging_*` events, derived charged-energy sensors.
-  - `vehicle_options.py` — settings a car holds for itself (`options["vehicles"][VIN]`): trips, wallbox meter + losses, evcc publish. A car holds a screen's group whole or uses the account-wide keys; single-car accounts only ever write the account-wide keys. No HA imports.
+  - `vehicle_options.py` — settings a car holds for itself (`options["vehicles"][VIN]`): trips, wallbox meter + losses, evcc publish, mileage allowance. A car holds a screen's group whole or uses the account-wide keys; single-car accounts write the account-wide keys, except the mileage allowance, which is always the car's own (a car added later must not inherit a lease). No HA imports.
+  - `mileage.py` — the mileage overview and allowance (lease or yearly limit), read off the daily odometer log in `history/odometer.py`; `service_calendar.py` — the car's service items (and a lease's end) as calendar events, with its own per-language texts. Both HA-free.
   - `config_flow.py` — setup wizard: client ID → device auth → cluster picker → in-browser bookmarklet activator (shared by guided, manual and Configure via `_StreamActivatorFlow`; BMW has **no API** for Data Selection, it's portal-only).
   - `configurator.py` — opt-in pictures and equipment names from BMW's online configurator (not CarData, unofficial, no quota): 360° spins (plain/lights/night), interior cube, MINI top view, option names. Keys are read from the configurator's settings file at fetch time. No HA imports; `image.py` stores the files under `.storage/bavariandata_renders` and serves them behind HA's login.
-  - `sensor.py` / `binary_sensor.py` / `image.py` / `device_tracker.py` / `entity.py` — entity platforms. One device per VIN.
+  - `sensor.py` / `binary_sensor.py` / `image.py` / `device_tracker.py` / `calendar.py` / `entity.py` — entity platforms. One device per VIN.
   - `descriptors.py`, `keys.py`, `units.py` — descriptor → entity mapping; `keys.py` derives the HA `translation_key` and is shared by runtime **and** generators so they can't drift.
   - `www/bavariandata-card.js` — bundled Lovelace card (vanilla JS, registered automatically by `__init__.py`; no build step). Groups entities via their `cluster`/`category` attributes, not names.
 - `tools/` — catalogue generation pipeline (see below).
@@ -172,7 +173,7 @@ living only in prose.
 - **Scripts:** `bash scripts/check.sh` runs CI's gates with CI's exact paths and
   ends GREEN/RED (`--no-tests` for lint only); `python tools/i18n_gaps.py` lists
   every missing, broken or stale translation across `translations/`, the card
-  and the month report, grouped by language; `python scripts/prove_fix.py
+  the month report and the service calendar, grouped by language; `python scripts/prove_fix.py
   <tests>` reverts the non-test changes, requires the tests to fail, then
   restores; `python tools/fetch_catalogues.py` fetches BMW's nine catalogue
   exports and reports changes by descriptor; `python tools/stable_changelog.py`
@@ -248,7 +249,8 @@ zip asset).
   by the pipeline; the flow sections are hand-edited directly in **every** full
   language file. `tests/test_translations_parity.py` fails until a new or
   reworded English string exists in all of them with the same `{placeholders}`;
-  the card's tables and `history/export.py`'s `STRINGS` are held to the same.
+  the card's tables and the `STRINGS` of `history/export.py` and
+  `service_calendar.py` are held to the same.
 - Ten full languages ship (en, de, fr, it, es, nl, pl, pt, cs, sv — the eight
   largest European languages BMW localizes its catalogue into, after en/de).
   English and German stay first-class for the **wiki**; the others cover the
