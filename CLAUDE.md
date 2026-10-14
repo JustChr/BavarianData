@@ -172,7 +172,7 @@ living only in prose.
   changed, docs and wiki in line, memory pruned, close marker set).
 - **Scripts:** `bash scripts/check.sh` runs CI's gates with CI's exact paths and
   ends GREEN/RED (`--no-tests` for lint only); `python tools/i18n_gaps.py` lists
-  every missing, broken or stale translation across `translations/`, the card
+  every missing, broken or stale translation across `translations/`, the card,
   the month report and the service calendar, grouped by language; `python scripts/prove_fix.py
   <tests>` reverts the non-test changes, requires the tests to fail, then
   restores; `python tools/fetch_catalogues.py` fetches BMW's nine catalogue
