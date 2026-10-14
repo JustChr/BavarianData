@@ -187,6 +187,22 @@ const TRANSLATIONS = {
     odometer: "Odometer",
     last_update: "Last update",
     spin_hint: "Drag to turn the car",
+    hs_door_open: "Door open",
+    hs_doors_open: "{n} doors open",
+    hs_trunk_open: "Trunk open",
+    hs_hood_open: "Hood open",
+    hs_windows_open: "Windows open",
+    hs_charging: "Charging",
+    hs_interior: "Interior",
+    hs_exterior: "Exterior",
+    hs_default_trim: "BMW's default trim shown",
+    eq_title: "Equipment",
+    eq_count: "{n} items",
+    eq_empty: "Turn on Configure → Vehicle image → BMW configurator to list the car's factory equipment.",
+    eq_looks: "Paint, wheels & trim",
+    eq_packages: "Packages",
+    eq_features: "Features",
+    eq_technical: "Technical codes ({n})",
     just_now: "just now",
     min_ago: "{n} min ago",
     h_ago: "{n} h ago",
@@ -484,6 +500,22 @@ const TRANSLATIONS = {
     odometer: "Kilometerstand",
     last_update: "Letzte Aktualisierung",
     spin_hint: "Ziehen, um das Auto zu drehen",
+    hs_door_open: "Tür offen",
+    hs_doors_open: "{n} Türen offen",
+    hs_trunk_open: "Kofferraum offen",
+    hs_hood_open: "Motorhaube offen",
+    hs_windows_open: "Fenster offen",
+    hs_charging: "Lädt",
+    hs_interior: "Innenraum",
+    hs_exterior: "Außen",
+    hs_default_trim: "BMWs Standard-Ausstattung gezeigt",
+    eq_title: "Ausstattung",
+    eq_count: "{n} Posten",
+    eq_empty: "Schalte Konfigurieren → Fahrzeugbild → BMW-Konfigurator ein, um die Werksausstattung des Autos aufzulisten.",
+    eq_looks: "Lack, Räder & Leisten",
+    eq_packages: "Pakete",
+    eq_features: "Ausstattungsmerkmale",
+    eq_technical: "Technische Codes ({n})",
     just_now: "gerade eben",
     min_ago: "vor {n} Min.",
     h_ago: "vor {n} Std.",
@@ -768,6 +800,22 @@ const TRANSLATIONS = {
     odometer: "Kilométrage",
     last_update: "Dernière mise à jour",
     spin_hint: "Faites glisser pour tourner la voiture",
+    hs_door_open: "Porte ouverte",
+    hs_doors_open: "{n} portes ouvertes",
+    hs_trunk_open: "Coffre ouvert",
+    hs_hood_open: "Capot ouvert",
+    hs_windows_open: "Vitres ouvertes",
+    hs_charging: "En charge",
+    hs_interior: "Intérieur",
+    hs_exterior: "Extérieur",
+    hs_default_trim: "Finition BMW par défaut affichée",
+    eq_title: "Équipement",
+    eq_count: "{n} éléments",
+    eq_empty: "Activez Configurer → Image du véhicule → Configurateur BMW pour lister l'équipement d'usine de la voiture.",
+    eq_looks: "Peinture, jantes et inserts",
+    eq_packages: "Packs",
+    eq_features: "Équipements",
+    eq_technical: "Codes techniques ({n})",
     just_now: "à l'instant",
     min_ago: "il y a {n} min",
     h_ago: "il y a {n} h",
@@ -1052,6 +1100,22 @@ const TRANSLATIONS = {
     odometer: "Contachilometri",
     last_update: "Ultimo aggiornamento",
     spin_hint: "Trascina per ruotare l'auto",
+    hs_door_open: "Porta aperta",
+    hs_doors_open: "{n} porte aperte",
+    hs_trunk_open: "Bagagliaio aperto",
+    hs_hood_open: "Cofano aperto",
+    hs_windows_open: "Finestrini aperti",
+    hs_charging: "In carica",
+    hs_interior: "Interni",
+    hs_exterior: "Esterni",
+    hs_default_trim: "Mostrato l'allestimento BMW standard",
+    eq_title: "Equipaggiamento",
+    eq_count: "{n} voci",
+    eq_empty: "Attiva Configura → Immagine del veicolo → Configuratore BMW per elencare l'equipaggiamento di fabbrica dell'auto.",
+    eq_looks: "Vernice, cerchi e modanature",
+    eq_packages: "Pacchetti",
+    eq_features: "Dotazioni",
+    eq_technical: "Codici tecnici ({n})",
     just_now: "proprio ora",
     min_ago: "{n} min fa",
     h_ago: "{n} h fa",
@@ -1336,6 +1400,22 @@ const TRANSLATIONS = {
     odometer: "Cuentakilómetros",
     last_update: "Última actualización",
     spin_hint: "Arrastra para girar el coche",
+    hs_door_open: "Puerta abierta",
+    hs_doors_open: "{n} puertas abiertas",
+    hs_trunk_open: "Maletero abierto",
+    hs_hood_open: "Capó abierto",
+    hs_windows_open: "Ventanillas abiertas",
+    hs_charging: "Cargando",
+    hs_interior: "Interior",
+    hs_exterior: "Exterior",
+    hs_default_trim: "Se muestra el acabado BMW por defecto",
+    eq_title: "Equipamiento",
+    eq_count: "{n} elementos",
+    eq_empty: "Activa Configurar → Imagen del vehículo → Configurador de BMW para listar el equipamiento de fábrica del coche.",
+    eq_looks: "Pintura, llantas y molduras",
+    eq_packages: "Paquetes",
+    eq_features: "Equipamiento",
+    eq_technical: "Códigos técnicos ({n})",
     just_now: "ahora mismo",
     min_ago: "hace {n} min",
     h_ago: "hace {n} h",
@@ -1620,6 +1700,22 @@ const TRANSLATIONS = {
     odometer: "Kilometerstand",
     last_update: "Laatste update",
     spin_hint: "Sleep om de auto te draaien",
+    hs_door_open: "Deur open",
+    hs_doors_open: "{n} deuren open",
+    hs_trunk_open: "Kofferbak open",
+    hs_hood_open: "Motorkap open",
+    hs_windows_open: "Ramen open",
+    hs_charging: "Laadt",
+    hs_interior: "Interieur",
+    hs_exterior: "Exterieur",
+    hs_default_trim: "Standaardbekleding van BMW getoond",
+    eq_title: "Uitrusting",
+    eq_count: "{n} items",
+    eq_empty: "Zet Configureren → Voertuigafbeelding → BMW-configurator aan om de fabrieksuitrusting van de auto te tonen.",
+    eq_looks: "Lak, velgen en lijsten",
+    eq_packages: "Pakketten",
+    eq_features: "Voorzieningen",
+    eq_technical: "Technische codes ({n})",
     just_now: "zojuist",
     min_ago: "{n} min geleden",
     h_ago: "{n} u geleden",
@@ -1904,6 +2000,22 @@ const TRANSLATIONS = {
     odometer: "Przebieg",
     last_update: "Ostatnia aktualizacja",
     spin_hint: "Przeciągnij, aby obrócić samochód",
+    hs_door_open: "Drzwi otwarte",
+    hs_doors_open: "Otwarte drzwi: {n}",
+    hs_trunk_open: "Bagażnik otwarty",
+    hs_hood_open: "Maska otwarta",
+    hs_windows_open: "Okna otwarte",
+    hs_charging: "Ładowanie",
+    hs_interior: "Wnętrze",
+    hs_exterior: "Nadwozie",
+    hs_default_trim: "Pokazano standardowe wykończenie BMW",
+    eq_title: "Wyposażenie",
+    eq_count: "Pozycje: {n}",
+    eq_empty: "Włącz Konfiguruj → Zdjęcie pojazdu → Konfigurator BMW, aby wyświetlić fabryczne wyposażenie samochodu.",
+    eq_looks: "Lakier, felgi i listwy",
+    eq_packages: "Pakiety",
+    eq_features: "Wyposażenie",
+    eq_technical: "Kody techniczne ({n})",
     just_now: "przed chwilą",
     min_ago: "{n} min temu",
     h_ago: "{n} godz. temu",
@@ -2188,6 +2300,22 @@ const TRANSLATIONS = {
     odometer: "Conta-quilómetros",
     last_update: "Última atualização",
     spin_hint: "Arraste para rodar o carro",
+    hs_door_open: "Porta aberta",
+    hs_doors_open: "{n} portas abertas",
+    hs_trunk_open: "Bagageira aberta",
+    hs_hood_open: "Capô aberto",
+    hs_windows_open: "Janelas abertas",
+    hs_charging: "A carregar",
+    hs_interior: "Interior",
+    hs_exterior: "Exterior",
+    hs_default_trim: "Mostrado o acabamento BMW de série",
+    eq_title: "Equipamento",
+    eq_count: "{n} itens",
+    eq_empty: "Ative Configurar → Imagem do veículo → Configurador BMW para listar o equipamento de fábrica do carro.",
+    eq_looks: "Pintura, jantes e frisos",
+    eq_packages: "Pacotes",
+    eq_features: "Equipamento",
+    eq_technical: "Códigos técnicos ({n})",
     just_now: "agora mesmo",
     min_ago: "há {n} min",
     h_ago: "há {n} h",
@@ -2472,6 +2600,22 @@ const TRANSLATIONS = {
     odometer: "Počet km",
     last_update: "Poslední aktualizace",
     spin_hint: "Tažením auto otočíte",
+    hs_door_open: "Dveře otevřené",
+    hs_doors_open: "Otevřené dveře: {n}",
+    hs_trunk_open: "Kufr otevřený",
+    hs_hood_open: "Kapota otevřená",
+    hs_windows_open: "Okna otevřená",
+    hs_charging: "Nabíjí se",
+    hs_interior: "Interiér",
+    hs_exterior: "Exteriér",
+    hs_default_trim: "Zobrazeno výchozí čalounění BMW",
+    eq_title: "Výbava",
+    eq_count: "Položek: {n}",
+    eq_empty: "Zapněte Konfigurovat → Obrázek vozidla → Konfigurátor BMW a zobrazí se tovární výbava auta.",
+    eq_looks: "Lak, kola a lišty",
+    eq_packages: "Pakety",
+    eq_features: "Výbava",
+    eq_technical: "Technické kódy ({n})",
     just_now: "právě teď",
     min_ago: "před {n} min",
     h_ago: "před {n} h",
@@ -2756,6 +2900,22 @@ const TRANSLATIONS = {
     odometer: "Mätarställning",
     last_update: "Senaste uppdatering",
     spin_hint: "Dra för att vrida bilen",
+    hs_door_open: "Dörr öppen",
+    hs_doors_open: "{n} dörrar öppna",
+    hs_trunk_open: "Bagagelucka öppen",
+    hs_hood_open: "Motorhuv öppen",
+    hs_windows_open: "Fönster öppna",
+    hs_charging: "Laddar",
+    hs_interior: "Interiör",
+    hs_exterior: "Exteriör",
+    hs_default_trim: "BMW:s standardklädsel visas",
+    eq_title: "Utrustning",
+    eq_count: "{n} poster",
+    eq_empty: "Slå på Konfigurera → Fordonsbild → BMW-konfigurator för att lista bilens fabriksutrustning.",
+    eq_looks: "Lack, fälgar och lister",
+    eq_packages: "Paket",
+    eq_features: "Utrustning",
+    eq_technical: "Tekniska koder ({n})",
     just_now: "nyss",
     min_ago: "för {n} min sedan",
     h_ago: "för {n} h sedan",
@@ -3733,6 +3893,8 @@ class BavarianDataCard extends HTMLElement {
       this._renderMap(deviceId, entities);
     } else if (this._config.view === "health") {
       this._renderHealth(deviceId, entities);
+    } else if (this._config.view === "equipment") {
+      this._renderEquipment(deviceId, entities);
     } else if (this._config.view === "efficiency") {
       this._renderEfficiency(deviceId, entities);
     } else if (this._config.cluster === "tire") {
@@ -3923,7 +4085,11 @@ class BavarianDataCard extends HTMLElement {
       .sort()
       .pop();
 
-    const spin = picks.image ? this._spinInfo(picks.image) : null;
+    const spinInfo = picks.image ? this._spinInfo(picks.image, entities) : null;
+    const pano = spinInfo && picks.image ? this._interiorInfo(picks.image) : null;
+    const inside = !!pano && this._heroMode === "interior";
+    const spin = inside ? null : spinInfo;
+    const heroState = spinInfo && !inside ? this._heroState(entities, charging) : null;
     const sig = this._signature({
       m: "ov",
       dt: drivetrain,
@@ -3931,7 +4097,10 @@ class BavarianDataCard extends HTMLElement {
       name,
       charging,
       img: picks.image,
-      spin: spin && spin.url,
+      spin: spinInfo && spinInfo.url,
+      inside,
+      pano: !!pano,
+      hs: heroState && [heroState.chips.map((c) => c.label), heroState.inset.length],
       fresh: freshest,
       gauge: [gaugeId, gaugeVal, gaugeUnitHtml, pct, ringColor, gaugeCap],
       lead: lead.map((r) => [r.entity, r.lbl, r.val]),
@@ -3947,15 +4116,24 @@ class BavarianDataCard extends HTMLElement {
 
     const imgUrl = picks.image ? this._imageUrl(picks.image) : null;
     const rel = this._relTime(freshest);
+    // Only over the configurator photo: badges, the inset and the interior
+    // switch. Empty otherwise, so the plain hero's markup is unchanged.
+    const heroExtras =
+      this._heroStateHtml(heroState) +
+      (pano
+        ? `<button class="hero__mode" data-hero-mode title="${this._esc(this._t(inside ? "hs_exterior" : "hs_interior"))}"><ha-icon icon="${inside ? "mdi:car-side" : "mdi:car-seat"}"></ha-icon></button>`
+        : "");
 
     this.shadowRoot.innerHTML = `
       ${this._styles()}
       <ha-card>
-        <div class="hero ${imgUrl || spin ? "" : "hero--empty"}">
+        <div class="hero ${imgUrl || spinInfo ? "" : "hero--empty"}${heroState && heroState.inset ? " hero--inset" : ""}">
           ${
-            spin
-              ? this._spinHtml(spin, name)
-              : imgUrl
+            inside
+              ? this._panoHtml(pano)
+              : spin
+                ? this._spinHtml(spin, name)
+                : imgUrl
                 ? `<img class="hero__img" src="${imgUrl}" alt="${this._esc(name)}" />`
                 : `<ha-icon class="hero__placeholder" icon="${ice ? "mdi:car" : "mdi:car-electric"}"></ha-icon>`
           }
@@ -3964,7 +4142,7 @@ class BavarianDataCard extends HTMLElement {
             <div class="hero__name" title="${this._esc(name)}">${this._esc(name)}</div>
             ${rel ? `<div class="pill" title="${this._t("last_update")}"><span class="dot ${this._staleClass(freshest)}"></span>${rel}</div>` : ""}
           </div>
-          ${this._tripPill(trip)}
+          ${this._tripPill(trip)}${heroExtras}
         </div>
 
         <div class="band">
@@ -4014,6 +4192,16 @@ class BavarianDataCard extends HTMLElement {
     `;
     this._wireTaps();
     if (spin) this._wireSpin(spin);
+    if (inside) this._wirePano();
+    const mode = pano ? this.shadowRoot.querySelector("[data-hero-mode]") : null;
+    if (mode) {
+      mode.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        this._heroMode = this._heroMode === "interior" ? "exterior" : "interior";
+        this._sig = null;
+        this._render();
+      });
+    }
   }
 
   /** The drive under way, read off the trip flag entity — or null when parked.
@@ -4094,25 +4282,54 @@ class BavarianDataCard extends HTMLElement {
    *
    * Configure -> Vehicle image set to BMW's configurator gives the image entity
    * a `configurator_spin` attribute: the path of one sprite holding every frame
-   * in a grid, served by the integration behind HA's login. An <img> or CSS
-   * background can't send the login, so the path is signed once
-   * (`auth/sign_path`) and kept until shortly before the signature expires.
-   * Until then the entity's own picture shows, which is a still of the spin. */
-  _spinInfo(entityId) {
+   * in a grid, served by the integration behind HA's login, plus the same spin
+   * with the lights on and as the night scene. The hero shows the night scene
+   * after sunset at home, the lights-on spin while the car reports its lights
+   * on, and the plain one otherwise; all three share their frames, so the angle
+   * survives the swap. Until a path is signed, the entity's own picture shows,
+   * which is a still of the spin. */
+  _spinInfo(entityId, entities = []) {
     const st = this._st(entityId);
     const spin = st && st.attributes && st.attributes.configurator_spin;
     if (!spin || !spin.path || !(spin.frames > 1) || !(spin.columns > 0)) return null;
-    const signed = (this._spinSigned || {})[spin.path];
-    if (!signed || signed.until < Date.now()) {
-      this._signSpin(spin.path);
-      return null;
-    }
+    const sun = this._st("sun.sun");
+    const lights = this._byDescriptor(entities, "vehicle.body.lights.isRunningOn");
+    const lightsOn = !!lights && /^(on|true)$/i.test(String(lights.state));
+    let variant = "day";
+    if (spin.night_path && sun && sun.state === "below_horizon") variant = "night";
+    else if (spin.lights_path && lightsOn) variant = "lights";
+    const path = { day: spin.path, lights: spin.lights_path, night: spin.night_path }[variant];
+    const url = this._signedUrl(path) || (variant !== "day" ? this._signedUrl(spin.path) : null);
+    if (!url) return null;
     return {
-      url: signed.url,
+      url,
+      variant,
       columns: Number(spin.columns),
       rows: Number(spin.rows) || 1,
       frames: Number(spin.frames),
     };
+  }
+
+  /** The interior panorama (six cube faces in one image), once signed. */
+  _interiorInfo(entityId) {
+    const st = this._st(entityId);
+    const pano = st && st.attributes && st.attributes.configurator_interior;
+    if (!pano || !pano.path || !Array.isArray(pano.faces) || pano.faces.length !== 6) return null;
+    const url = this._signedUrl(pano.path);
+    return url
+      ? { url, faces: pano.faces, columns: Number(pano.columns) || 3, rows: Number(pano.rows) || 2 }
+      : null;
+  }
+
+  /** A signed URL for one of the integration's picture paths, or null while it
+   * is being signed (an <img> or CSS background can't send HA's login). Kept
+   * until shortly before the signature expires. */
+  _signedUrl(path) {
+    if (!path) return null;
+    const signed = (this._spinSigned || {})[path];
+    if (signed && signed.until >= Date.now()) return signed.url;
+    this._signSpin(path);
+    return null;
   }
 
   _signSpin(path) {
@@ -4130,7 +4347,7 @@ class BavarianDataCard extends HTMLElement {
           url: hass.hassUrl ? hass.hassUrl(res.path) : res.path,
           until: Date.now() + (expires - 600) * 1000,
         };
-        this._sig = null; // repaint with the spin
+        this._sig = null; // repaint with the picture
         this._render();
       })
       .catch(() => {
@@ -4139,6 +4356,136 @@ class BavarianDataCard extends HTMLElement {
       .finally(() => {
         delete this._spinPending[path];
       });
+  }
+
+  /** What the photo should say about the car right now: badges for anything
+   * open, unlocked or charging, and the top-down drawing as an inset when
+   * something is open, so it's clear where. Only drawn over the configurator
+   * photo; the plain picture keeps the hero as it always was. */
+  _heroState(entities, charging) {
+    const m = this._closureModel(entities);
+    const chips = [];
+    const doorsOpen = Object.values(m.doors).filter((d) => d.open).length;
+    if (doorsOpen) {
+      chips.push({
+        icon: "mdi:car-door",
+        color: m.ALERT,
+        label:
+          doorsOpen === 1
+            ? this._t("hs_door_open")
+            : this._t("hs_doors_open", { n: doorsOpen }),
+      });
+    }
+    if (m.trunk && m.trunk.open) {
+      chips.push({ icon: "mdi:car-back", color: m.ALERT, label: this._t("hs_trunk_open") });
+    }
+    if (m.hood && m.hood.open) {
+      chips.push({ icon: "mdi:car-select", color: m.ALERT, label: this._t("hs_hood_open") });
+    }
+    const glassOpen =
+      Object.values(m.windows).some((w) => w.open) ||
+      (m.sunroof && m.sunroof.open) ||
+      (m.rearWindow && m.rearWindow.open);
+    if (glassOpen) {
+      chips.push({ icon: "mdi:window-open-variant", color: m.WARN, label: this._t("hs_windows_open") });
+    }
+    if (m.lockId && m.lock.key === "unlocked") {
+      chips.push({ icon: "mdi:lock-open-variant", color: m.ALERT, label: m.lock.label });
+    }
+    if (charging) {
+      chips.push({ icon: "mdi:ev-station", color: "var(--bmw-high)", label: this._t("hs_charging") });
+    }
+    const inset = m.openItems.length
+      ? this._carSvgClosures({
+          doors: m.doors,
+          windows: m.windows,
+          hood: m.hood,
+          trunk: m.trunk,
+          rearWindow: m.rearWindow,
+          sunroof: m.sunroof,
+          lock: m.lock,
+          lockId: m.lockId,
+          colors: { ALERT: m.ALERT, WARN: m.WARN, OK: m.OK },
+          car: this._carShape(entities),
+        })
+      : "";
+    return { chips, inset };
+  }
+
+  _heroStateHtml(state) {
+    if (!state || (!state.chips.length && !state.inset)) return "";
+    const shown = state.chips.slice(0, 3);
+    const more = state.chips.length - shown.length;
+    return `
+          <div class="hero__chips">
+            ${shown
+              .map(
+                (c) =>
+                  `<span class="hero__chip" style="--chip:${c.color}"><ha-icon icon="${c.icon}"></ha-icon>${this._esc(c.label)}</span>`
+              )
+              .join("")}
+            ${more > 0 ? `<span class="hero__chip">+${more}</span>` : ""}
+          </div>
+          ${state.inset ? `<div class="hero__inset">${state.inset}</div>` : ""}`;
+  }
+
+  /** The interior panorama: six faces on the inside of a CSS cube, turned by
+   * dragging. BMW's interior is its default trim (CarData doesn't say which
+   * upholstery a car has), and the caption says so. */
+  _panoHtml(pano) {
+    const look = this._panoLook || { yaw: 0, pitch: 0 };
+    // The camera sits in the middle of the cube, so every face is pushed half a
+    // side away from it (-Z) and then turned into place, front side inward.
+    const away = "translateZ(calc(var(--half) * -1))";
+    const place = {
+      front: away,
+      back: `rotateY(180deg) ${away}`,
+      left: `rotateY(90deg) ${away}`,
+      right: `rotateY(-90deg) ${away}`,
+      up: `rotateX(-90deg) ${away}`,
+      down: `rotateX(90deg) ${away}`,
+    };
+    const faces = pano.faces
+      .map((face, i) => {
+        const col = i % pano.columns;
+        const row = Math.floor(i / pano.columns);
+        const x = pano.columns > 1 ? (col / (pano.columns - 1)) * 100 : 0;
+        const y = pano.rows > 1 ? (row / (pano.rows - 1)) * 100 : 0;
+        return `<div class="pano__face" style="background-image:url('${this._esc(pano.url)}');background-size:${pano.columns * 100}% ${pano.rows * 100}%;background-position:${x}% ${y}%;transform:${place[face] || ""}"></div>`;
+      })
+      .join("");
+    return `<div class="pano-wrap"><div class="pano" role="img" aria-label="${this._esc(this._t("hs_interior"))}">
+            <div class="pano__cube" style="transform:translateZ(var(--half)) rotateX(${look.pitch}deg) rotateY(${look.yaw}deg)">${faces}</div>
+          </div></div>
+          <span class="hero__caption">${this._esc(this._t("hs_default_trim"))}</span>`;
+  }
+
+  _wirePano() {
+    const el = this.shadowRoot.querySelector(".pano");
+    const cube = el && el.querySelector(".pano__cube");
+    if (!el || !cube) return;
+    // Half the hero's width is the cube's half side and the viewing distance
+    // (a 90-degree view across); CSS works it out (`50cqw`), so nothing here
+    // depends on the card having been laid out yet.
+    const size = () => el.getBoundingClientRect().width;
+    let start = null;
+    el.addEventListener("pointerdown", (ev) => {
+      start = { x: ev.clientX, y: ev.clientY, look: { ...(this._panoLook || { yaw: 0, pitch: 0 }) } };
+      if (el.setPointerCapture) el.setPointerCapture(ev.pointerId);
+    });
+    el.addEventListener("pointermove", (ev) => {
+      if (!start) return;
+      const k = 90 / Math.max(size(), 1); // a hero's width of drag turns 90 degrees
+      const yaw = start.look.yaw + (ev.clientX - start.x) * k;
+      const pitch = Math.max(-80, Math.min(80, start.look.pitch - (ev.clientY - start.y) * k));
+      this._panoLook = { yaw, pitch };
+      cube.style.transform = `translateZ(var(--half)) rotateX(${pitch}deg) rotateY(${yaw}deg)`;
+    });
+    const end = () => {
+      start = null;
+    };
+    el.addEventListener("pointerup", end);
+    el.addEventListener("pointercancel", end);
   }
 
   // Frame 4 is BMW's front three-quarter view, the still the entity shows.
@@ -6777,8 +7124,10 @@ class BavarianDataCard extends HTMLElement {
     const present = slots.filter((s) => wheels[s.key]);
     const unit = this._lengthUnit(entities);
 
+    const topPhoto = this._topPhoto(entities);
     const sig = this._signature({
       m: "tire",
+      top: topPhoto,
       lang: _lang(this._hass),
       paint: this._carPaint(entities),
       unit,
@@ -6828,7 +7177,11 @@ class BavarianDataCard extends HTMLElement {
         <div class="tirewrap">
           <div class="tirecar">
             <span class="tirecar__front">${this._t("front")}</span>
-            <div class="tirecar__svg">${this._carSvg(colors, this._carShape(entities))}</div>
+            <div class="tirecar__svg">${
+              topPhoto
+                ? `<img class="tirecar__photo" src="${this._esc(topPhoto)}" alt="" />`
+                : this._carSvg(colors, this._carShape(entities))
+            }</div>
             ${this._wheelBlock(slots[0], wheels.row1_left, "fl", unit)}
             ${this._wheelBlock(slots[1], wheels.row1_right, "fr", unit)}
             ${this._wheelBlock(slots[2], wheels.row2_left, "rl", unit)}
@@ -7228,7 +7581,9 @@ class BavarianDataCard extends HTMLElement {
     alarmOn: "vehicle.vehicle.antiTheftAlarmSystem.alarm.isOn",
   };
 
-  _renderClosures(deviceId, entities) {
+  /** Everything the car says about its doors, windows, lids, lock and alarm,
+   * read once for the closures view and for the badges on the overview's photo. */
+  _closureModel(entities) {
     const P = BavarianDataCard.CLOSURE_PATHS;
     const byDesc = {};
     for (const id of entities) {
@@ -7251,7 +7606,6 @@ class BavarianDataCard extends HTMLElement {
       return usable || ids[0];
     };
 
-    const name = this._deviceName(deviceId);
     const ALERT = "var(--bmw-low)";
     const WARN = "var(--bmw-mid)";
     const OK = "var(--bmw-high)";
@@ -7302,36 +7656,6 @@ class BavarianDataCard extends HTMLElement {
       (lockId ? 1 : 0) +
       (alarm ? 1 : 0);
 
-    // Change-detection signature.
-    const stateOf = (id) => (id && this._st(id) ? this._st(id).state : null);
-    const sig = this._signature({
-      m: "clo",
-      lang: _lang(this._hass),
-      paint: this._carPaint(entities),
-      rhd,
-      doors: Object.fromEntries(Object.entries(doors).map(([k, v]) => [k, stateOf(v.id)])),
-      wins: Object.fromEntries(Object.entries(windows).map(([k, v]) => [k, stateOf(v.id)])),
-      hood: hood && stateOf(hood.id),
-      trunk: trunk && stateOf(trunk.id),
-      rw: rearWindow && stateOf(rearWindow.id),
-      sr: sunroof && stateOf(sunroof.id),
-      lock: stateOf(lockId),
-      arm: stateOf(armId),
-      on: stateOf(onId),
-    });
-    if (sig === this._sig) return;
-    this._sig = sig;
-
-    if (!present) {
-      this.shadowRoot.innerHTML = `
-        ${this._styles()}
-        <ha-card>
-          ${this._closuresHead(name, null)}
-          <div class="empty">${this._t("closures_none")}</div>
-        </ha-card>`;
-      return;
-    }
-
     // Build the itemised list: lock + alarm always shown; then each open part.
     const openItems = [];
     const slotLabel = { lf: "front_left", rf: "front_right", lr: "rear_left", rr: "rear_right" };
@@ -7376,6 +7700,49 @@ class BavarianDataCard extends HTMLElement {
     const anyGlassOpen =
       Object.values(windows).some((w) => w.open) ||
       (sunroof && sunroof.open) || (rearWindow && rearWindow.open);
+    return {
+      doors, windows, hood, trunk, rearWindow, sunroof, lockId, lock, armId, onId, alarm,
+      present, rhd, openItems, anyBodyOpen, anyGlassOpen, ALERT, WARN, OK,
+    };
+  }
+
+  _renderClosures(deviceId, entities) {
+    const name = this._deviceName(deviceId);
+    const {
+      doors, windows, hood, trunk, rearWindow, sunroof, lockId, lock, armId, onId, alarm,
+      present, rhd, openItems, anyBodyOpen, anyGlassOpen, ALERT, WARN, OK,
+    } = this._closureModel(entities);
+
+    // Change-detection signature.
+    const stateOf = (id) => (id && this._st(id) ? this._st(id).state : null);
+    const sig = this._signature({
+      m: "clo",
+      lang: _lang(this._hass),
+      paint: this._carPaint(entities),
+      rhd,
+      doors: Object.fromEntries(Object.entries(doors).map(([k, v]) => [k, stateOf(v.id)])),
+      wins: Object.fromEntries(Object.entries(windows).map(([k, v]) => [k, stateOf(v.id)])),
+      hood: hood && stateOf(hood.id),
+      trunk: trunk && stateOf(trunk.id),
+      rw: rearWindow && stateOf(rearWindow.id),
+      sr: sunroof && stateOf(sunroof.id),
+      lock: stateOf(lockId),
+      arm: stateOf(armId),
+      on: stateOf(onId),
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    if (!present) {
+      this.shadowRoot.innerHTML = `
+        ${this._styles()}
+        <ha-card>
+          ${this._closuresHead(name, null)}
+          <div class="empty">${this._t("closures_none")}</div>
+        </ha-card>`;
+      return;
+    }
+
     const overall = this._closuresOverall({ anyBodyOpen, anyGlassOpen, count: openItems.length, lock, alarm });
 
     const rows = [];
@@ -7413,6 +7780,83 @@ class BavarianDataCard extends HTMLElement {
         </div>
       </ha-card>`;
     this._wireTaps();
+  }
+
+  /** BMW's real top view of the car (MINIs only), signed, or null. */
+  _topPhoto(entities) {
+    const cfg = this._config || {};
+    const id = cfg.image || entities.find((e) => e.startsWith("image."));
+    const st = id && this._st(id);
+    const top = st && st.attributes && st.attributes.configurator_top;
+    return top && top.path ? this._signedUrl(top.path) : null;
+  }
+
+  /** The factory equipment (`view: equipment`): BMW's configurator names each
+   * option code the car was built with. Paint, wheels and trim lead, then the
+   * packages and the rest; what BMW itself treats as technical (refrigerant,
+   * paperwork language) is folded away. Names come in the language BMW's
+   * market for the car offers, which may not be the dashboard's. */
+  _renderEquipment(deviceId, entities) {
+    const name = this._deviceName(deviceId);
+    const cfg = this._config || {};
+    const id = cfg.image || entities.find((e) => e.startsWith("image."));
+    const st = id && this._st(id);
+    const list = (st && st.attributes && Array.isArray(st.attributes.equipment) && st.attributes.equipment) || [];
+    const items = list.filter((e) => e && typeof e.name === "string" && typeof e.code === "string");
+    const sig = this._signature({
+      m: "eq",
+      lang: _lang(this._hass),
+      name,
+      items: items.map((e) => [e.code, e.name, e.kind, e.shown]),
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    const head = `
+      <div class="chead">
+        <ha-icon icon="mdi:format-list-checks"></ha-icon>
+        <div class="chead__text">
+          <span class="chead__title">${this._t("eq_title")}</span>
+          <span class="chead__sub">${this._esc(name)}</span>
+        </div>
+        ${items.length ? `<span class="tstat" style="--c:var(--secondary-text-color)">${this._t("eq_count", { n: items.filter((e) => e.shown !== false).length })}</span>` : ""}
+      </div>`;
+    if (!items.length) {
+      this.shadowRoot.innerHTML = `
+        ${this._styles()}
+        <ha-card>
+          ${head}
+          <div class="empty">${this._t("eq_empty")}</div>
+        </ha-card>`;
+      return;
+    }
+    const looks = items.filter((e) => e.shown !== false && ["paint", "rim", "trim"].includes(e.kind));
+    const packages = items.filter((e) => e.shown !== false && e.kind === "package");
+    const rest = items.filter((e) => e.shown !== false && !["paint", "rim", "trim", "package"].includes(e.kind));
+    const technical = items.filter((e) => e.shown === false);
+    const rows = (group) =>
+      group
+        .map(
+          (e) => `<div class="eq__row"><span class="eq__name">${this._esc(e.name)}</span><span class="eq__code">${this._esc(e.code)}</span></div>`
+        )
+        .join("");
+    const section = (title, group) =>
+      group.length ? `<div class="eq__group"><div class="eq__title">${title}</div>${rows(group)}</div>` : "";
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        ${head}
+        <div class="eq">
+          ${section(this._t("eq_looks"), looks)}
+          ${section(this._t("eq_packages"), packages)}
+          ${section(this._t("eq_features"), rest)}
+          ${
+            technical.length
+              ? `<details class="eq__more"><summary>${this._t("eq_technical", { n: technical.length })}</summary>${rows(technical)}</details>`
+              : ""
+          }
+        </div>
+      </ha-card>`;
   }
 
   _closuresHead(name, overall) {
@@ -7647,6 +8091,100 @@ class BavarianDataCard extends HTMLElement {
         user-select: none;
       }
       .hero__spin:active { cursor: grabbing; }
+      .tirecar__photo { width: 100%; height: 100%; object-fit: contain; display: block; }
+      .eq { padding: 4px 16px 14px; }
+      .eq__group + .eq__group, .eq__more { margin-top: 12px; }
+      .eq__title {
+        font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+        color: var(--secondary-text-color);
+        margin: 4px 0 4px;
+      }
+      .eq__row {
+        display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+        padding: 5px 0;
+        border-bottom: 1px solid var(--divider-color);
+        font-size: 0.9rem;
+      }
+      .eq__row:last-child { border-bottom: none; }
+      .eq__name { min-width: 0; overflow-wrap: anywhere; }
+      .eq__code { flex: none; font-size: 0.72rem; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
+      .eq__more summary { cursor: pointer; font-size: 0.85rem; color: var(--secondary-text-color); padding: 4px 0; }
+      .hero--inset .hero__spin-icon { display: none; }
+      .hero__chips {
+        position: absolute; left: 16px; top: 52px;
+        display: flex; flex-direction: column; align-items: flex-start; gap: 5px;
+        max-width: 62%;
+        pointer-events: none;
+      }
+      .hero__chip {
+        display: inline-flex; align-items: center; gap: 5px;
+        background: rgba(0,0,0,0.55);
+        color: #fff;
+        border-left: 3px solid var(--chip, transparent);
+        border-radius: 999px;
+        padding: 3px 10px 3px 7px;
+        font-size: 0.74rem;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+      }
+      .hero__chip ha-icon { --mdc-icon-size: 15px; color: var(--chip, #fff); flex: none; }
+      .hero__inset {
+        position: absolute; right: 12px; bottom: 10px;
+        height: 46%;
+        aspect-ratio: 948 / 1659;
+        filter: drop-shadow(0 1px 3px rgba(0,0,0,0.35));
+        pointer-events: none;
+      }
+      .hero__inset svg { width: 100%; height: 100%; display: block; }
+      .hero__mode {
+        position: absolute; right: 14px; top: 56px;
+        width: 34px; height: 34px;
+        display: flex; align-items: center; justify-content: center;
+        border: none; border-radius: 50%;
+        background: rgba(0,0,0,0.46);
+        color: #fff;
+        cursor: pointer;
+        padding: 0;
+      }
+      .hero__mode ha-icon { --mdc-icon-size: 19px; }
+      .pano-wrap { position: absolute; inset: 0; container-type: size; }
+      .pano {
+        --half: 50cqw;
+        position: absolute; inset: 0;
+        overflow: hidden;
+        perspective: var(--half);
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+        background: #111;
+      }
+      .pano:active { cursor: grabbing; }
+      .pano__cube {
+        position: absolute; left: 50%; top: 50%;
+        width: 0; height: 0;
+        transform-style: preserve-3d;
+      }
+      .pano__face {
+        position: absolute;
+        width: calc(var(--half) * 2 + 2px);
+        height: calc(var(--half) * 2 + 2px);
+        left: calc(var(--half) * -1 - 1px);
+        top: calc(var(--half) * -1 - 1px);
+        background-repeat: no-repeat;
+        backface-visibility: hidden;
+      }
+      .hero__caption {
+        position: absolute; left: 16px; bottom: 12px;
+        background: rgba(0,0,0,0.46);
+        color: #fff;
+        border-radius: 999px;
+        padding: 3px 10px;
+        font-size: 0.72rem;
+        pointer-events: none;
+      }
       .hero__spin-icon {
         position: absolute; right: 12px; bottom: 10px;
         --mdc-icon-size: 20px;
@@ -8437,6 +8975,8 @@ const TRIPS_VIEW = "trips";
 const MAP_VIEW = "map";
 // The `view:` values that are layouts in their own right rather than clusters.
 const EFFICIENCY_VIEW = "efficiency";
+// The car's factory equipment, named by BMW's configurator (opt-in source).
+const EQUIPMENT_VIEW = "equipment";
 
 const VIEW_MODES = new Set([
   CHARGING_VIEW,
@@ -8444,6 +8984,7 @@ const VIEW_MODES = new Set([
   MAP_VIEW,
   HEALTH_VIEW,
   EFFICIENCY_VIEW,
+  EQUIPMENT_VIEW,
 ]);
 
 class BavarianDataCardEditor extends HTMLElement {
@@ -8465,6 +9006,7 @@ class BavarianDataCardEditor extends HTMLElement {
       { value: MAP_VIEW, label: t(this._hass, "mp_title") },
       { value: HEALTH_VIEW, label: t(this._hass, "bh_title") },
       { value: EFFICIENCY_VIEW, label: t(this._hass, "ef_title") },
+      { value: EQUIPMENT_VIEW, label: t(this._hass, "eq_title") },
       { value: "closures", label: t(this._hass, "cl_closures") },
       ...CLUSTER_SLUGS.map((slug) => ({
         value: slug,

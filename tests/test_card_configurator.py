@@ -109,3 +109,125 @@ def test_the_top_down_car_wears_the_paint(view):
 def test_a_malformed_paint_is_ignored(junk):
     html = _render({**MINI_WITH_TYRES, "image.car": _image(paint_color=junk)}, {"cluster": "tire"})
     assert 'stop-color="#bcc2ca"' in html
+
+
+# --- Lights, night, badges, interior, top view, equipment --------------------
+
+LIGHTS = {"state": "on", "attributes": {"descriptor": "vehicle.body.lights.isRunningOn"}}
+SPIN_ALL = {**SPIN, "lights_path": SPIN["path"] + "-lights", "night_path": SPIN["path"] + "-night"}
+PANO = {
+    "path": "/api/bavariandata/spin/0123456789abcdef01234567_interior/1",
+    "columns": 3,
+    "rows": 2,
+    "faces": ["down", "front", "back", "up", "left", "right"],
+}
+
+
+def _hero(states: dict) -> str:
+    html = _render_signed(states, {})
+    return html.split('<div class="band">')[0]
+
+
+def test_the_spin_follows_the_lights_and_the_night():
+    day = _hero(
+        {
+            **I5,
+            "image.car": _image(configurator_spin=SPIN_ALL),
+            "sun.sun": {"state": "above_horizon", "attributes": {}},
+        }
+    )
+    assert f"url('{SPIN['path']}?authSig=signed')" in day
+    lights = _hero(
+        {**I5, "image.car": _image(configurator_spin=SPIN_ALL), "binary_sensor.lights": LIGHTS}
+    )
+    assert f"url('{SPIN['path']}-lights?authSig=signed')" in lights
+    night = _hero(
+        {
+            **I5,
+            "image.car": _image(configurator_spin=SPIN_ALL),
+            "binary_sensor.lights": LIGHTS,
+            "sun.sun": {"state": "below_horizon", "attributes": {}},
+        }
+    )
+    assert f"url('{SPIN['path']}-night?authSig=signed')" in night  # night wins over lights
+
+
+def test_an_open_door_and_an_unlocked_car_show_on_the_photo():
+    from .test_card_drivetrain import _sensor
+
+    states = {
+        **I5,
+        "image.car": _image(configurator_spin=SPIN),
+        "sensor.door": _sensor("vehicle.cabin.door.row1.driver.isOpen", "on"),
+        "sensor.lock": _sensor("vehicle.cabin.door.status", "UNLOCKED"),
+    }
+    hero = _hero(states)
+    assert "Door open" in hero and "Unlocked" in hero
+    assert 'class="hero__inset"' in hero and "hero--inset" in hero
+    closed = _hero(
+        {
+            **I5,
+            "image.car": _image(configurator_spin=SPIN),
+            "sensor.door": _sensor("vehicle.cabin.door.row1.driver.isOpen", "off"),
+        }
+    )
+    assert "hero__chip" not in closed and "hero__inset" not in closed
+
+
+def test_badges_need_the_configurator_photo():
+    from .test_card_drivetrain import _sensor
+
+    html = _render_signed(
+        {
+            **I5,
+            "image.car": _image(),
+            "sensor.door": _sensor("vehicle.cabin.door.row1.driver.isOpen", "on"),
+        },
+        {},
+    )
+    assert "hero__chip" not in html
+
+
+def test_the_interior_switch_appears_with_a_panorama():
+    hero = _hero({**I5, "image.car": _image(configurator_spin=SPIN, configurator_interior=PANO)})
+    assert "data-hero-mode" in hero and "mdi:car-seat" in hero
+    assert "data-hero-mode" not in _hero({**I5, "image.car": _image(configurator_spin=SPIN)})
+
+
+def test_the_tire_view_uses_bmws_top_view_where_there_is_one():
+    top = {"path": "/api/bavariandata/spin/0123456789abcdef01234567_top/1"}
+    html = _render_signed(
+        {**MINI_WITH_TYRES, "image.car": _image(configurator_top=top)}, {"cluster": "tire"}
+    )
+    assert f'src="{top["path"]}?authSig=signed"' in html and "carsvg" not in html
+    assert "carsvg" in _render({**MINI_WITH_TYRES, "image.car": _image()}, {"cluster": "tire"})
+
+
+EQUIPMENT = [
+    {"code": "P0C4P", "name": "M Brooklyn Grey metallic", "kind": "paint", "shown": True},
+    {"code": "S0337", "name": "M Sport package", "kind": "package", "shown": True},
+    {"code": "S06F4", "name": "Bowers & Wilkins <Surround>", "kind": "other", "shown": True},
+    {"code": "S08R9", "name": "Refrigerant", "kind": "other", "shown": False},
+]
+
+
+def test_the_equipment_view_groups_and_folds_the_technical_codes():
+    html = _render({**I5, "image.car": _image(equipment=EQUIPMENT)}, {"view": "equipment"})
+    looks, packages, features = (
+        html.index(t) for t in ("Paint, wheels & trim", "Packages", "Features")
+    )
+    assert (
+        looks
+        < html.index("M Brooklyn Grey metallic")
+        < packages
+        < html.index("M Sport package")
+        < features
+    )
+    assert "Bowers &amp; Wilkins &lt;Surround&gt;" in html  # escaped
+    assert "Technical codes (1)" in html and html.index("Refrigerant") > html.index("<details")
+    assert "3 items" in html
+
+
+def test_the_equipment_view_says_how_to_turn_it_on():
+    html = _render({**I5, "image.car": _image()}, {"view": "equipment"})
+    assert "Vehicle image" in html and "eq__row" not in html

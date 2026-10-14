@@ -42,6 +42,7 @@ Dashboard zeigen sie nebeneinander.
 - [Fahrtenkarte](#trip-map-view-map)
 - [Reifen](#tires-cluster-tire)
 - [Sicherheit & Öffnungen](#security--closures-cluster-closures)
+- [Ausstattung](#equipment-view-equipment)
 - [Liste einer Datengruppe](#single-cluster-list)
 - [Vollständige YAML-Referenz](#full-yaml-reference)
 
@@ -64,7 +65,21 @@ ableitet:
 
 Ist **Konfigurieren → [Fahrzeugbild](DE-Settings-Reference#fahrzeugbild)** auf
 BMWs Konfigurator gestellt, ist das Bild genau dein Auto, und Ziehen darüber (Maus
-oder Finger) dreht es einmal ganz herum.
+oder Finger) dreht es einmal ganz herum. Das Bild folgt auch dem Auto:
+
+- **Licht und Tageszeit.** Nach Sonnenuntergang zu Hause zeigt es BMWs
+  Nachtszene, und solange das Auto sein Licht als eingeschaltet meldet
+  (*Fahrzeuglicht-Zustand*), das Auto mit Licht. Beides sind BMWs eigene Bilder
+  deines Autos.
+- **Abzeichen** unter dem Namen für alles, was dich angeht: eine Tür, der
+  Kofferraum oder die Motorhaube offen, Fenster offen, das Auto entriegelt, es
+  lädt.
+- **Wo es offen ist.** Solange etwas offen ist, erscheint die
+  [Zeichnung von oben](#security--closures-cluster-closures) in der Ecke, mit dem
+  offenen Teil hervorgehoben.
+- **Innenraum.** Der Sitz-Knopf wechselt zu einem 360°-Panorama des Innenraums;
+  ziehen, um sich umzusehen. Es zeigt BMWs Standard-Ausstattung, weil BMWs
+  Fahrzeugdaten die Polsterung eines Autos nicht nennen, und das Bild sagt das.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-spin.png" alt="Die Übersichtskarte mit dem Konfigurator-Bild: der i5 Touring von schräg hinten, per Ziehen gedreht (Screenshot englisch)" width="300" />
@@ -421,7 +436,32 @@ Andere Modelle, auch die übrigen MINIs, bekommen vorerst die Limousine.
 
 Ist **Konfigurieren → [Fahrzeugbild](DE-Settings-Reference#fahrzeugbild)** auf
 BMWs Konfigurator gestellt, trägt die Zeichnung die echte Lackfarbe deines Autos,
-abgelesen am Bild des Konfigurators.
+abgelesen am Bild des Konfigurators. Für einen MINI hat BMW auch ein echtes Foto
+von oben, das die Reifen-Ansicht dann statt der Zeichnung zeigt (die
+Reifenwerte bleiben in ihren Ecken). Für kein BMW-Modell gibt es eine solche
+Ansicht.
+
+---
+
+## Ausstattung (`view: equipment`)
+
+<a id="equipment-view-equipment"></a>
+
+Die Werksausstattung des Autos, mit Namen: zuerst Lack, Räder und Leisten, dann
+die Pakete, dann jede weitere Option, mit der das Auto gebaut wurde, jeweils mit
+BMWs Code. Was BMW als technisch behandelt (Kältemittel, die Sprache der
+Unterlagen, Abgassteuerung), ist unter **Technische Codes** eingeklappt.
+
+```yaml
+type: custom:bavariandata-card
+view: equipment
+```
+
+Dafür muss **Konfigurieren → [Fahrzeugbild](DE-Settings-Reference#fahrzeugbild)**
+auf BMWs Konfigurator stehen, der die Codes aus BMWs Fahrzeug-Basisdaten
+benennt; bis dahin sagt die Karte das. Die Namen sind BMWs eigene, in der
+Sprache, die BMWs Markt für dein Auto anbietet: Englisch, wo es das gibt, sonst
+die Sprache des Marktes.
 
 ---
 
@@ -469,7 +509,7 @@ die unter den Meldungen stehen, wenn das Fahrzeug sie sendet.
 | Schlüssel | Zweck |
 | --- | --- |
 | `type` | Immer `custom:bavariandata-card`. |
-| `view` | `charging`, `trips`, `map`, `health` oder `efficiency`. Weglassen für die Übersicht. |
+| `view` | `charging`, `trips`, `map`, `health`, `efficiency` oder `equipment`. Weglassen für die Übersicht. |
 | `cluster` | `electric`, `status`, `tire`, `usage`, `events`, `basic`, `contract`, `metadata`, `other`, `closures`. Zeigt die Liste einer Datengruppe (oder die besonderen Diagramme für Reifen und Öffnungen). |
 | `device` | Geräte-ID, um ein bestimmtes Fahrzeug festzulegen. Der visuelle Editor listet nur deine Fahrzeuge, nie das *CarData Debug Device*; eine Karte, die darauf eingestellt ist, zeigt stattdessen das erste Fahrzeug. |
 | `vin` | FIN, als Alternative zu `device`. |

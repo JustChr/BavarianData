@@ -1974,7 +1974,10 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
 
         # The image platform imports Home Assistant's image component; only
         # pull it in when this screen is actually used.
-        from .image import async_refresh_configurator_render  # noqa: PLC0415
+        from .image import (  # noqa: PLC0415
+            async_refresh_configurator_render,
+            async_schedule_full_render,
+        )
 
         runtime = self._get_runtime()
         if runtime is None:
@@ -1992,7 +1995,11 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 errors["base"] = "no_vins"
             elif source == IMAGE_SOURCE_CONFIGURATOR:
                 for vin in vins:
-                    reason = await async_refresh_configurator_render(self.hass, runtime, vin)
+                    # The plain spin only: the rest (about a minute) follows in
+                    # the background once the setting is saved.
+                    reason = await async_refresh_configurator_render(
+                        self.hass, runtime, vin, full=False
+                    )
                     if reason:
                         errors[OPTION_IMAGE_SOURCE] = f"configurator_{reason}"
                         vehicle = runtime.coordinator.names.get(vin) or ""
@@ -2010,6 +2017,8 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 self.hass.config_entries.async_update_entry(self._config_entry, options=options)
                 for vin in vins:
                     async_dispatcher_send(self.hass, SIGNAL_VEHICLE_IMAGE, vin)
+                    if source == IMAGE_SOURCE_CONFIGURATOR:
+                        async_schedule_full_render(self.hass, runtime, vin)
                 return self.async_create_entry(title="", data=options)
         schema = vol.Schema(
             {

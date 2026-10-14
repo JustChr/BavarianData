@@ -9,6 +9,28 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **The configurator picture now follows the car.** With Configure → **Vehicle
+  image** set to BMW's configurator, the overview's 360° view switches to BMW's
+  night scene after sunset at home, and shows the car with its lights on while
+  it reports them on. Badges under the name say when a door, the trunk or the
+  hood is open, windows are open, the car is unlocked or it is charging; while
+  something is open, the top-down drawing appears in the corner with the open
+  part lit up.
+- **Look inside.** A seat button on the overview switches to a 360° panorama of
+  the interior, turned by dragging. It shows BMW's default trim: BMW's vehicle
+  data doesn't say which upholstery a car has.
+- **Your car's equipment, by name** (`view: equipment`). The card lists the
+  factory options the car was built with, from its paint and wheels to the
+  sound system and driving assistants, named by BMW's configurator in the
+  language BMW's market for the car offers. Technical codes are folded away.
+- **A real top view for MINIs.** BMW draws MINIs from above, so the tires view
+  shows that photo instead of the drawing. There is no such view for BMW models.
+- These come with the same setting and cost no requests. Choosing the
+  configurator now waits only for the 360° view; the rest follows in the
+  background within about a minute. Cars drawn by beta.8 get it once on their
+  own after the update.
+
 ## [0.9.18-beta.8] - 2026-10-14
 
 ### Added

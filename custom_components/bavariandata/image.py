@@ -68,7 +68,12 @@ _RENDER_STORE_HANDLE_KEY = "_configurator_render_store"
 _RENDER_VIEW_KEY = "_configurator_render_view"
 _RENDER_DIR = f"{DOMAIN}_renders"
 SPIN_PATH = f"/api/{DOMAIN}/spin"
-_KEY_RE = re.compile(r"[0-9a-f]{24}")
+# A served file: the plain spin is the bare key, the rest carry a suffix.
+_PARTS = ("lights", "night", "interior", "top")
+_NAME_RE = re.compile(r"[0-9a-f]{24}(?:_(?:lights|night|interior|top))?")
+# Bumped when a render gains parts; an older record is refetched once in the
+# background so cars drawn by an earlier build get them too.
+_RENDER_SCHEMA = 2
 
 
 def image_source(entry: ConfigEntry) -> str:
@@ -105,21 +110,21 @@ async def _async_load_renders(hass: HomeAssistant) -> Dict[str, dict]:
 
 
 class _SpinView(HomeAssistantView):
-    """Serves a car's configurator sprite to the card (signed or logged-in only)."""
+    """Serves a car's configurator pictures to the card (signed or logged-in only)."""
 
-    url = SPIN_PATH + "/{key}/{version}"
+    url = SPIN_PATH + "/{name}/{version}"
     name = f"api:{DOMAIN}:spin"
     requires_auth = True
 
     def __init__(self, directory: Path) -> None:
         self._directory = directory
 
-    async def get(self, request: web.Request, key: str, version: str) -> web.StreamResponse:
+    async def get(self, request: web.Request, name: str, version: str) -> web.StreamResponse:
         # ``version`` only busts the browser cache after a refetch.
-        if not _KEY_RE.fullmatch(key):
+        if not _NAME_RE.fullmatch(name):
             return web.Response(status=404)
         for suffix in (".webp", ".png"):
-            path = self._directory / f"{key}{suffix}"
+            path = self._directory / f"{name}{suffix}"
             if await request.app["hass"].async_add_executor_job(path.is_file):
                 return web.FileResponse(path, headers={"Cache-Control": "private, max-age=604800"})
         return web.Response(status=404)
@@ -136,10 +141,15 @@ async def async_refresh_configurator_render(
     hass: HomeAssistant,
     runtime: Any,
     vin: str,
+    *,
+    full: bool = True,
 ) -> Optional[str]:
     """Draw ``vin`` with BMW's configurator and keep the result.
 
-    Spends no CarData quota. Returns ``None`` on success, otherwise the
+    ``full=False`` fetches only the plain turntable (about 5 s), for the
+    settings screen; the full fetch (lights-on and night spins, interior, top
+    view, equipment names; about a minute) then runs in the background. Spends
+    no CarData quota. Returns ``None`` on success, otherwise the
     :class:`ConfiguratorError` reason (``unsupported``, ``no_data``,
     ``unavailable``, ``no_render``) so the settings screen can say why.
     """
@@ -149,25 +159,42 @@ async def async_refresh_configurator_render(
     if not raw:
         return "no_data"
     try:
-        render = await async_render(runtime.session, raw, run_sync=hass.async_add_executor_job)
+        render = await async_render(
+            runtime.session,
+            raw,
+            run_sync=hass.async_add_executor_job,
+            languages=(hass.config.language,),
+            extras=full,
+        )
     except ConfiguratorError as err:
         _LOGGER.warning("Configurator picture for %s failed: %s", mask_vin(vin), err)
         return err.reason
 
     key = _render_key(vin)
     directory = _render_dir(hass)
-    suffix = ".webp" if render.sprite_type == "image/webp" else ".png"
+    ext = ".webp" if render.sprite_type == "image/webp" else ".png"
+    files = {key: render.sprite}
+    if full:
+        files.update(
+            {f"{key}_{part}": getattr(render, part) for part in _PARTS if getattr(render, part)}
+        )
 
     def _write() -> None:
         directory.mkdir(parents=True, exist_ok=True)
-        for stale in directory.glob(f"{key}.*"):
-            stale.unlink()
-        (directory / f"{key}{suffix}").write_bytes(render.sprite)
+        # A full fetch replaces everything; a quick one only the plain spin.
+        stale = directory.glob(f"{key}*") if full else directory.glob(f"{key}.*")
+        for path in stale:
+            if not path.name.endswith("_still.png"):
+                path.unlink()
+        for name, data in files.items():
+            # The top view and interior are saved in whatever format _save chose.
+            (directory / f"{name}{_ext_of(data, ext)}").write_bytes(data)
         (directory / f"{key}_still.png").write_bytes(render.still)
 
     await hass.async_add_executor_job(_write)
     renders = await _async_load_renders(hass)
-    renders[vin] = {
+    previous = renders.get(vin) or {}
+    record = {
         "key": key,
         "columns": render.columns,
         "rows": render.rows,
@@ -177,17 +204,43 @@ async def async_refresh_configurator_render(
         "paint": render.paint,
         "brand": render.brand,
         "updated": dt_util.utcnow().isoformat(),
+        "schema": _RENDER_SCHEMA if full else previous.get("schema", 1),
+        "parts": [part for part in _PARTS if f"{key}_{part}" in files],
     }
+    if full:
+        record["equipment"] = list(render.equipment)
+        record["equipment_language"] = render.equipment_language
+    renders[vin] = record
     await _domain_data(hass)[_RENDER_STORE_HANDLE_KEY].async_save(renders)
     _LOGGER.info(
-        "Configurator: drew %s as %s (%s frames, %s KB)",
+        "Configurator: drew %s as %s (%s frames, %s KB%s)",
         mask_vin(vin),
         render.brand,
         render.frames,
         len(render.sprite) // 1024,
+        f"; also {', '.join(record['parts']) or 'nothing else'}, {len(render.equipment)} options named"
+        if full
+        else "",
     )
     async_dispatcher_send(hass, SIGNAL_VEHICLE_IMAGE, vin)
     return None
+
+
+def async_schedule_full_render(hass: HomeAssistant, runtime: Any, vin: str) -> None:
+    """Fetch the rest of the configurator's pictures without making anyone wait."""
+
+    hass.async_create_background_task(
+        async_refresh_configurator_render(hass, runtime, vin, full=True),
+        f"{DOMAIN} configurator pictures {mask_vin(vin)}",
+    )
+
+
+def _ext_of(data: bytes, default: str) -> str:
+    if data[:4] == b"RIFF":
+        return ".webp"
+    if data[:4] == bytes((0x89, 0x50, 0x4E, 0x47)):
+        return ".png"
+    return default
 
 
 def _domain_data(hass: HomeAssistant) -> dict:
@@ -356,6 +409,11 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
 
     _attr_translation_key = "vehicle_image"
     _attr_name = None
+    # The equipment list runs to ~5 KB and the picture paths change only on a
+    # refetch: keep them out of the recorder's history of this entity.
+    _unrecorded_attributes = frozenset(
+        {"equipment", "configurator_spin", "configurator_interior", "configurator_top"}
+    )
 
     def __init__(
         self,
@@ -404,7 +462,11 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
             async_dispatcher_connect(self.hass, SIGNAL_VEHICLE_IMAGE, self._handle_image_signal)
         )
         if image_source(self._entry) == IMAGE_SOURCE_CONFIGURATOR:
-            if self._vin not in self._renders:
+            record = self._renders.get(self._vin)
+            if record and record.get("schema", 1) < _RENDER_SCHEMA:
+                # Drawn by an earlier build: fetch the newer parts once, quietly.
+                async_schedule_full_render(self.hass, self._runtime, self._vin)
+            if record is None:
                 # A car added after the setting was chosen: draw it now (no quota).
                 # Basic data may not be in yet; it arrives with the car's name.
                 self.hass.async_create_task(self._async_initial_render())
@@ -467,14 +529,39 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
         render = self._render()
         if render:
             version = re.sub(r"[^0-9]", "", render.get("updated") or "")[:14] or "0"
-            attrs["configurator_spin"] = {
-                "path": f"{SPIN_PATH}/{render['key']}/{version}",
+            key = render["key"]
+            parts = set(render.get("parts") or ())
+
+            def path(part: Optional[str] = None) -> str:
+                return f"{SPIN_PATH}/{key}{'_' + part if part else ''}/{version}"
+
+            spin = {
+                "path": path(),
                 "columns": render["columns"],
                 "rows": render["rows"],
                 "frames": render["frames"],
                 "frame_width": render["frame_width"],
                 "frame_height": render["frame_height"],
             }
+            # Same frames, lights on / the night scene: the card swaps the sprite
+            # and keeps the angle.
+            for part in ("lights", "night"):
+                if part in parts:
+                    spin[f"{part}_path"] = path(part)
+            attrs["configurator_spin"] = spin
+            if "interior" in parts:
+                # Six cube faces, 3 x 2, in BMW's display order.
+                attrs["configurator_interior"] = {
+                    "path": path("interior"),
+                    "columns": 3,
+                    "rows": 2,
+                    "faces": ["down", "front", "back", "up", "left", "right"],
+                }
+            if "top" in parts:
+                attrs["configurator_top"] = {"path": path("top")}
             if render.get("paint"):
                 attrs["paint_color"] = render["paint"]
+            if render.get("equipment"):
+                attrs["equipment"] = render["equipment"]
+                attrs["equipment_language"] = render.get("equipment_language")
         return attrs

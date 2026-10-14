@@ -56,15 +56,21 @@ Bildschirm: **Konfigurieren → Fahrzeugbild**.
 | **Bildquelle** | BMW CarData (offiziell) · BMW-Konfigurator (360°, inoffiziell) | Standard **BMW CarData**: BMWs eine Seitenansicht des Autos, eine deiner [50 Anfragen am Tag](DE-Feature-API-Quota) pro Auto. **BMW-Konfigurator** zeichnet genau dein Auto so, wie es BMWs Online-Konfigurator tut, aus Modell, Lack und Werksausstattung in den Fahrzeug-Basisdaten: eine 360°-Drehansicht in der [Karte](DE-The-Dashboard-Card#übersicht), die du mit der Maus oder dem Finger drehst, und die echte Lackfarbe am [Auto von oben](DE-The-Dashboard-Card#die-form-des-autos). Das kostet keine Anfragen, gehört aber nicht zu CarData: Es ist der Dienst hinter BMWs Konfigurator-Webseite, den BMW jederzeit ändern oder sperren kann. |
 
 **OK** lädt das Bild sofort und behält es über Neustarts hinweg. Mit dem
-Konfigurator wird nur gespeichert, wenn sich jedes Auto zeichnen ließ; sonst
+Konfigurator wartet es nur auf die 360°-Ansicht (einige Sekunden pro Auto); der
+Rest folgt innerhalb etwa einer Minute im Hintergrund: dieselbe Ansicht mit Licht
+und bei Nacht, das Innenraum-Panorama, das Foto von oben (nur MINIs) und die
+Namen der Werksoptionen für die
+[Ausstattungs-Ansicht](DE-The-Dashboard-Card#equipment-view-equipment) der Karte.
+Gespeichert wird nur, wenn sich jedes Auto zeichnen ließ; sonst
 nennt der Bildschirm das Auto und den Grund (kein BMW oder MINI, die
 Fahrzeug-Basisdaten sind noch nicht da, der Konfigurator hat nicht geantwortet
 oder kein Bild dieses Modells), und das offizielle Bild bleibt. Ein später
 hinzukommendes Auto wird gezeichnet, sobald es erscheint.
 
 Der Konfigurator zeichnet BMW- und MINI-Autos, auch Modelle, die nicht mehr
-verkauft werden. Er hat keine Ansicht von oben und keine Innenausstattung, weil
-BMWs Fahrzeugdaten die Polsterung nicht nennen; gezeigt wird deshalb nur das Äußere.
+verkauft werden. Von BMW-Modellen hat er keine Ansicht von oben, und sein
+Innenraum zeigt BMWs Standard-Ausstattung, weil BMWs Fahrzeugdaten die Polsterung
+eines Autos nicht nennen.
 Gibt es für ein Auto kein Konfigurator-Bild, zeigt die Karte das offizielle.
 
 ## Automatische Aktualisierung

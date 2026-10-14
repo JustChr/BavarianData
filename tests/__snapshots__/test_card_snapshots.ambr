@@ -542,6 +542,74 @@
         </ha-card>
   '''
 # ---
+# name: test_the_card_renders_what_it_rendered_before[equipment-i5]
+  '''
+  <ha-card>
+            
+        <div class="chead">
+          <ha-icon icon="mdi:format-list-checks">
+  </ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">Equipment</span>
+            <span class="chead__sub">Car</span>
+          </div>
+          
+        </div>
+            <div class="empty">Turn on Configure → Vehicle image → BMW configurator to list the car's factory equipment.</div>
+          </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[equipment-m2]
+  '''
+  <ha-card>
+            
+        <div class="chead">
+          <ha-icon icon="mdi:format-list-checks">
+  </ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">Equipment</span>
+            <span class="chead__sub">Car</span>
+          </div>
+          
+        </div>
+            <div class="empty">Turn on Configure → Vehicle image → BMW configurator to list the car's factory equipment.</div>
+          </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[equipment-mini]
+  '''
+  <ha-card>
+            
+        <div class="chead">
+          <ha-icon icon="mdi:format-list-checks">
+  </ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">Equipment</span>
+            <span class="chead__sub">Car</span>
+          </div>
+          
+        </div>
+            <div class="empty">Turn on Configure → Vehicle image → BMW configurator to list the car's factory equipment.</div>
+          </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[equipment-phev]
+  '''
+  <ha-card>
+            
+        <div class="chead">
+          <ha-icon icon="mdi:format-list-checks">
+  </ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">Equipment</span>
+            <span class="chead__sub">Car</span>
+          </div>
+          
+        </div>
+            <div class="empty">Turn on Configure → Vehicle image → BMW configurator to list the car's factory equipment.</div>
+          </ha-card>
+  '''
+# ---
 # name: test_the_card_renders_what_it_rendered_before[health-i5]
   '''
   <ha-card>

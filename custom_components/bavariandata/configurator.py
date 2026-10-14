@@ -1,16 +1,21 @@
-"""Pictures of the exact car from BMW's online configurator (opt-in, unofficial).
+"""Pictures and equipment of the exact car from BMW's online configurator (opt-in).
 
 CarData's own vehicle image is a single side view. BMW's configurator draws any
 car it has ever sold from three things the car already reports in its basic
 data: the model code (``modelKey``), the paint (``colourCodeRaw``) and the
-factory options (``fullSAList``). Its image service ("COSY") turns those into a
-36-frame turntable with a transparent background.
+factory options (``fullSAList``). From those this module fetches:
 
-That service is not part of CarData: it is the backend of BMW's public
-configurator web page, so it is opt-in and may change without notice. Nothing
-here spends CarData quota. The key the service wants is the configurator's
-own browser key, read from the configurator's published settings file at fetch
-time, because it changes whenever BMW redeploys the page.
+* a 36-frame turntable with a transparent background, three times over: plain,
+  with the lights on, and as the night scene;
+* a 360-degree interior panorama (six cube faces);
+* a true top view, which BMW draws for MINIs only;
+* the names of the factory options, i.e. the car's equipment list.
+
+None of it is part of CarData: it is the backend of BMW's public configurator
+web page, so it is opt-in and may change without notice. Nothing here spends
+CarData quota. The keys the services want are the configurator's own browser
+keys, read from its published settings file at fetch time, because they change
+whenever BMW redeploys the page.
 
 Known traps, found by probing:
 
@@ -18,12 +23,15 @@ Known traps, found by probing:
   ``bmwi``). The other name still answers with image links, but every one of
   them returns a grey "no picture" placeholder with HTTP 404. So each name is
   tried in turn, as the configurator itself does.
-* ``effectdate`` is ``YYYYMMDD``; it is the build date, which also makes cars
-  that are no longer sold render.
+* ``effectdate`` is ``YYYYMMDD`` for images and ``YYYY-MM-DD`` for option
+  names; it is the build date, which also makes cars no longer sold render.
 * ``background=TRANSPARENT`` only works on the ``dynamic-images`` endpoint.
-* There is no overhead view anywhere; the camera is always at eye level.
-* Basic data carries no upholstery code, so interiors would be a guess. Only
-  exterior frames are fetched.
+* The exterior camera is always at eye level; only MINIs have a top view.
+* Basic data carries no upholstery code, so the interior shows BMW's default
+  trim, which may not be the car's.
+* Option names exist only in the language of the market that sells the model
+  (German for Germany and Austria, French for France); other markets use other
+  model codes, so a German-market car has no English names.
 
 No Home Assistant imports: the rules are unit-tested directly.
 """
@@ -32,10 +40,12 @@ from __future__ import annotations
 
 import asyncio
 import io
+import json
 import logging
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
 from typing import Any, Awaitable, Callable, Mapping, Optional, Sequence
+from urllib.parse import urlencode
 
 import aiohttp
 
@@ -45,7 +55,7 @@ DEFAULT_TIMEOUT = aiohttp.ClientTimeout(total=30)
 
 # Each configurator's public page, and the brand names its image service knows,
 # in the order to try them. The page names its settings file, which holds the
-# image service's address, account name ("mandator") and key.
+# services' addresses, account names and keys.
 _SITES = {
     "bmw": "https://configure.bmw.de",
     "mini": "https://configure.mini.de",
@@ -56,7 +66,9 @@ _BRANDS = {
     "MINI": ("mini", ("mini",)),
 }
 _SETTINGS_RE = re.compile(r"settings\.([0-9a-f]{6,})\.json")
-_COLLECTION = "walkaround-360"
+_SPIN = "walkaround-360"
+_INTERIOR = "interior-mixed"
+_TOP = "roof-and-mirror-caps"
 # The turntable size fetched: BMW's 960x540 frames, scaled down to fit the card.
 _SOURCE_VIEW = "mobile"
 FRAME_SIZE = (640, 360)
@@ -65,7 +77,35 @@ SPRITE_COLUMNS = 6
 # paint is sampled from, frame 4 the front three-quarter view used as the still.
 SIDE_FRAME = 9
 STILL_FRAME = 4
+# The interior's six cube faces, scaled from BMW's 2000 px and laid out 3 x 2.
+FACE_SIZE = 1024
 _CONCURRENCY = 6
+# The language an option name is asked for first in a market, after the
+# caller's own. A market answers in its own language only.
+_MARKET_LANGUAGE = {
+    "at": "de",
+    "ch": "de",
+    "de": "de",
+    "li": "de",
+    "lu": "fr",
+    "be": "fr",
+    "fr": "fr",
+    "it": "it",
+    "es": "es",
+    "nl": "nl",
+    "pl": "pl",
+    "pt": "pt",
+    "cz": "cs",
+    "se": "sv",
+    "dk": "da",
+    "no": "no",
+    "fi": "fi",
+    "gb": "en",
+    "ie": "en",
+    "us": "en",
+    "ca": "en",
+    "au": "en",
+}
 
 
 class ConfiguratorError(Exception):
@@ -84,12 +124,17 @@ class CarSpec:
     brands: tuple[str, ...]
     model: str
     options: tuple[str, ...]
-    effect_date: str
+    effect_date: str  # YYYYMMDD
+
+    @property
+    def iso_date(self) -> str:
+        d = self.effect_date
+        return f"{d[:4]}-{d[4:6]}-{d[6:]}"
 
 
 @dataclass(frozen=True)
 class Render:
-    """A finished turntable: one sprite image, a still and the paint colour."""
+    """Everything fetched for one car. Only the plain turntable is required."""
 
     sprite: bytes
     sprite_type: str
@@ -101,6 +146,14 @@ class Render:
     still: bytes
     paint: Optional[str]
     brand: str
+    lights: Optional[bytes] = None
+    night: Optional[bytes] = None
+    interior: Optional[bytes] = None
+    top: Optional[bytes] = None
+    equipment: tuple[dict, ...] = field(default_factory=tuple)
+    equipment_language: Optional[str] = None
+    # The spin's crop box, so the lights-on and night spins line up with it.
+    crop: Optional[tuple[int, int, int, int]] = None
 
 
 def spec_from_basic_data(raw: Mapping[str, Any]) -> CarSpec:
@@ -153,21 +206,55 @@ def cosy_settings(settings: Mapping[str, Any]) -> dict:
         raise ConfiguratorError("unavailable", f"settings file changed: {err}") from err
 
 
-def frame_urls(response: Mapping[str, Any]) -> list[str]:
-    """The turntable's image links from the image service's answer."""
+def names_settings(settings: Mapping[str, Any]) -> Optional[dict]:
+    """The option-name service's address and key, or None if the file lacks it."""
 
     try:
-        views = response[_COLLECTION]
+        loc = settings["APP"]["backend"]["settingsLocalisation"]
+        return {
+            "base_url": str(loc["baseUrl"]).rstrip("/"),
+            "source": str(loc["source"]),
+            "brand": str(loc["brand"]),
+            "application": str(loc["application"]),
+            "headers": {str(k): str(v) for k, v in (loc.get("headers") or {}).items()},
+        }
+    except KeyError, TypeError:
+        return None
+
+
+def frame_urls(response: Mapping[str, Any], collection: str = _SPIN) -> list[str]:
+    """The image links from the image service's answer, in display order."""
+
+    try:
+        views = response[collection]
         block = views.get(_SOURCE_VIEW) or next(iter(views.values()))
-        return [str(image["viewImage"]) for image in block["images"]]
+        images = sorted(block["images"], key=lambda i: i.get("displayOrder", 0))
+        return [str(image["viewImage"]) for image in images]
     except (KeyError, TypeError, StopIteration, AttributeError) as err:
         raise ConfiguratorError("unavailable", f"unexpected answer: {err}") from err
 
 
-def build_sprite(frames: Sequence[bytes], columns: int = SPRITE_COLUMNS) -> Render:
+def _save(image: Any, *, alpha: bool = True) -> tuple[bytes, str]:
+    out = io.BytesIO()
+    try:
+        image.save(out, "WEBP", quality=82, method=4)
+        return out.getvalue(), "image/webp"
+    except KeyError, OSError:  # a Pillow built without WebP
+        out = io.BytesIO()
+        (image if alpha else image.convert("RGB")).save(out, "PNG", optimize=True)
+        return out.getvalue(), "image/png"
+
+
+def build_sprite(
+    frames: Sequence[bytes],
+    columns: int = SPRITE_COLUMNS,
+    crop: Optional[tuple[int, int, int, int]] = None,
+) -> Render:
     """Scale the frames to ``FRAME_SIZE`` and lay them out in one grid image.
 
     One image means the card signs and loads a single URL for the whole spin.
+    ``crop`` reuses another spin's box, so the lights-on and night spins line up
+    frame for frame with the plain one (their backgrounds aren't transparent).
     """
 
     from PIL import Image  # noqa: PLC0415 - Pillow is only needed once a picture is made
@@ -177,26 +264,19 @@ def build_sprite(frames: Sequence[bytes], columns: int = SPRITE_COLUMNS) -> Rend
     width, height = FRAME_SIZE
     rows = -(-len(frames) // columns)
     sources = [Image.open(io.BytesIO(data)).convert("RGBA") for data in frames]
-    crop = _spin_box(sources, width / height)
+    box = crop or _spin_box(sources, width / height)
     sprite = Image.new("RGBA", (width * columns, height * rows), (0, 0, 0, 0))
     images = []
     for index, source in enumerate(sources):
-        frame = source.crop(crop).resize(FRAME_SIZE, Image.Resampling.LANCZOS)
+        frame = source.crop(box).resize(FRAME_SIZE, Image.Resampling.LANCZOS)
         images.append(frame)
         sprite.paste(frame, ((index % columns) * width, (index // columns) * height))
-    out = io.BytesIO()
-    try:
-        sprite.save(out, "WEBP", quality=82, method=4)
-        sprite_type = "image/webp"
-    except KeyError, OSError:  # a Pillow built without WebP
-        out = io.BytesIO()
-        sprite.save(out, "PNG", optimize=True)
-        sprite_type = "image/png"
+    data, sprite_type = _save(sprite)
     still = io.BytesIO()
-    sources[min(STILL_FRAME, len(sources) - 1)].crop(crop).save(still, "PNG")
+    sources[min(STILL_FRAME, len(sources) - 1)].crop(box).save(still, "PNG")
     side = images[min(SIDE_FRAME, len(images) - 1)]
-    return Render(
-        sprite=out.getvalue(),
+    render = Render(
+        sprite=data,
         sprite_type=sprite_type,
         columns=columns,
         rows=rows,
@@ -206,37 +286,91 @@ def build_sprite(frames: Sequence[bytes], columns: int = SPRITE_COLUMNS) -> Rend
         still=still.getvalue(),
         paint=paint_color(side),
         brand="",
+        crop=box,
     )
+    return render
 
 
-def _spin_box(frames: Sequence[Any], aspect: float) -> tuple[int, int, int, int]:
-    """One crop for every frame: the area the car covers anywhere in the spin.
+def build_interior(faces: Sequence[bytes]) -> bytes:
+    """The six interior cube faces, scaled and laid out 3 x 2 in display order."""
 
-    BMW's frames leave the car small in a wide empty canvas. A shared box (not
-    one per frame) keeps the car from jumping while it turns. It is padded a
-    little, widened or heightened to ``aspect`` and kept inside the canvas.
+    from PIL import Image  # noqa: PLC0415
+
+    if len(faces) != 6:
+        raise ConfiguratorError("no_render", f"{len(faces)} interior faces")
+    sheet = Image.new("RGB", (FACE_SIZE * 3, FACE_SIZE * 2))
+    for index, data in enumerate(faces):
+        face = (
+            Image.open(io.BytesIO(data))
+            .convert("RGB")
+            .resize((FACE_SIZE, FACE_SIZE), Image.Resampling.LANCZOS)
+        )
+        sheet.paste(face, ((index % 3) * FACE_SIZE, (index // 3) * FACE_SIZE))
+    return _save(sheet, alpha=False)[0]
+
+
+def build_top(data: bytes) -> bytes:
+    """A top view on white, cut out, cropped and turned to face up the card.
+
+    BMW draws it nose-left on a white page. The white connected to the edges is
+    made transparent (so the roof's own highlights stay), then the car is
+    cropped to its outline and turned a quarter so the nose points up, as on
+    the card's own top-down drawing.
     """
 
-    canvas_w, canvas_h = frames[0].size
-    boxes = [f.getchannel("A").getbbox() for f in frames]
-    boxes = [b for b in boxes if b]
-    if not boxes:
-        return (0, 0, canvas_w, canvas_h)
-    left = min(b[0] for b in boxes)
-    top = min(b[1] for b in boxes)
-    right = max(b[2] for b in boxes)
-    bottom = max(b[3] for b in boxes)
-    pad = 0.06 * max(right - left, bottom - top)
-    w, h = right - left + 2 * pad, bottom - top + 2 * pad
-    if w / h < aspect:
-        w = h * aspect
-    else:
-        h = w / aspect
-    w, h = min(w, canvas_w), min(h, canvas_h)
-    cx, cy = (left + right) / 2, (top + bottom) / 2
-    x0 = min(max(cx - w / 2, 0), canvas_w - w)
-    y0 = min(max(cy - h / 2, 0), canvas_h - h)
-    return (round(x0), round(y0), round(x0 + w), round(y0 + h))
+    from PIL import Image, ImageChops, ImageDraw  # noqa: PLC0415
+
+    image = Image.open(io.BytesIO(data)).convert("RGBA")
+    width, height = image.size
+    # Flood the page from each white corner with a marker colour, then key the
+    # marker out: what's left opaque is the car, roof highlights included.
+    marker = (255, 0, 255)
+    rgb = image.convert("RGB")
+    for corner in ((0, 0), (width - 1, 0), (0, height - 1), (width - 1, height - 1)):
+        if min(rgb.getpixel(corner)) > 240:
+            ImageDraw.floodfill(rgb, corner, marker, thresh=18)
+    diff = ImageChops.difference(rgb, Image.new("RGB", rgb.size, marker))
+    alpha = diff.convert("L").point(lambda v: 255 if v else 0)
+    image.putalpha(alpha)
+    box = alpha.getbbox()
+    if not box:
+        raise ConfiguratorError("no_render", "empty top view")
+    image = image.crop(box).rotate(-90, expand=True)
+    return _save(image)[0]
+
+
+def equipment_list(names: Mapping[str, Any], spec: CarSpec) -> list[dict]:
+    """The car's options with names, in the car's own order, paint first.
+
+    ``kind`` is BMW's option type (``paint``, ``rim``, ``trim``, ``package`` or
+    ``other``). ``shown`` is False for what BMW itself treats as technical
+    (``displayTypeId`` 2 or 3: refrigerant, paperwork language, emission
+    controls); the card folds those away. Codes the service doesn't know are
+    left out.
+    """
+
+    out = []
+    for code in spec.options:
+        item = names.get(code)
+        if not isinstance(item, Mapping):
+            continue
+        phrases = item.get("phrases") or {}
+        name = phrases.get("longDescription") or phrases.get("shortDescription")
+        if not isinstance(name, str) or not name.strip():
+            continue
+        try:
+            display = int(item.get("displayTypeId") or 1)
+        except TypeError, ValueError:
+            display = 1
+        out.append(
+            {
+                "code": code,
+                "name": " ".join(name.split()),
+                "kind": str(item.get("optionType") or "other"),
+                "shown": display == 1,
+            }
+        )
+    return out
 
 
 def paint_color(side_view: Any) -> Optional[str]:
@@ -274,6 +408,36 @@ def paint_color(side_view: Any) -> Optional[str]:
     return "#{:02x}{:02x}{:02x}".format(*channels)
 
 
+def _spin_box(frames: Sequence[Any], aspect: float) -> tuple[int, int, int, int]:
+    """One crop for every frame: the area the car covers anywhere in the spin.
+
+    BMW's frames leave the car small in a wide empty canvas. A shared box (not
+    one per frame) keeps the car from jumping while it turns. It is padded a
+    little, widened or heightened to ``aspect`` and kept inside the canvas.
+    """
+
+    canvas_w, canvas_h = frames[0].size
+    boxes = [f.getchannel("A").getbbox() for f in frames]
+    boxes = [b for b in boxes if b]
+    if not boxes:
+        return (0, 0, canvas_w, canvas_h)
+    left = min(b[0] for b in boxes)
+    top = min(b[1] for b in boxes)
+    right = max(b[2] for b in boxes)
+    bottom = max(b[3] for b in boxes)
+    pad = 0.06 * max(right - left, bottom - top)
+    w, h = right - left + 2 * pad, bottom - top + 2 * pad
+    if w / h < aspect:
+        w = h * aspect
+    else:
+        h = w / aspect
+    w, h = min(w, canvas_w), min(h, canvas_h)
+    cx, cy = (left + right) / 2, (top + bottom) / 2
+    x0 = min(max(cx - w / 2, 0), canvas_w - w)
+    y0 = min(max(cy - h / 2, 0), canvas_h - h)
+    return (round(x0), round(y0), round(x0 + w), round(y0 + h))
+
+
 async def _get(session: aiohttp.ClientSession, url: str, **kwargs: Any) -> tuple[int, bytes]:
     try:
         async with session.get(url, timeout=DEFAULT_TIMEOUT, **kwargs) as resp:
@@ -283,9 +447,10 @@ async def _get(session: aiohttp.ClientSession, url: str, **kwargs: Any) -> tuple
 
 
 async def async_fetch_settings(session: aiohttp.ClientSession, site: str) -> dict:
-    """Read the image service's current address and key from the configurator."""
+    """Read the services' current addresses and keys from the configurator.
 
-    import json  # noqa: PLC0415
+    Returns ``{"cosy": ..., "names": ... or None}``.
+    """
 
     base = _SITES[site]
     status, body = await _get(session, f"{base}/de_DE/model-ranges")
@@ -296,9 +461,46 @@ async def async_fetch_settings(session: aiohttp.ClientSession, site: str) -> dic
     if status != 200:
         raise ConfiguratorError("unavailable", f"settings file answered {status}")
     try:
-        return cosy_settings(json.loads(body))
+        settings = json.loads(body)
     except ValueError as err:
         raise ConfiguratorError("unavailable", "settings file is not JSON") from err
+    return {"cosy": cosy_settings(settings), "names": names_settings(settings)}
+
+
+async def async_fetch_equipment(
+    session: aiohttp.ClientSession,
+    spec: CarSpec,
+    names: Mapping[str, Any],
+    country: Optional[str],
+    languages: Sequence[str] = (),
+) -> tuple[list[dict], Optional[str]]:
+    """Name the car's options in the first language its market answers in.
+
+    Tries the car's market (from basic data) with the caller's languages first
+    and the market's own language last, then the German market, where the
+    configurator lives. Returns ``([], None)`` when no market knows the model.
+    """
+
+    markets = [c for c in dict.fromkeys([(country or "").lower(), "de"]) if c]
+    for market in markets:
+        wanted = [*languages, _MARKET_LANGUAGE.get(market, "")]
+        for language in [lang for lang in dict.fromkeys(wanted) if lang]:
+            url = (
+                f"{names['base_url']}/localisations/overridden-vehicle-data/sources/{names['source']}"
+                f"/brands/{names['brand']}/countries/{market}/effect-dates/{spec.iso_date}"
+                f"/order-dates/{spec.iso_date}/applications/{names['application']}"
+                f"/models/{spec.model}/options/languages/{language}"
+            )
+            status, body = await _get(session, url, headers=names["headers"])
+            if status != 200:
+                continue
+            try:
+                found = equipment_list(json.loads(body), spec)
+            except ValueError:
+                continue
+            if found:
+                return found, language
+    return [], None
 
 
 async def async_render(
@@ -306,66 +508,146 @@ async def async_render(
     raw_basic_data: Mapping[str, Any],
     settings: Optional[Mapping[str, Any]] = None,
     run_sync: Optional[Callable[..., Awaitable[Any]]] = None,
+    languages: Sequence[str] = (),
+    extras: bool = True,
 ) -> Render:
-    """Fetch the turntable for one car and build its sprite.
+    """Fetch everything for one car: spins, interior, top view, equipment.
 
+    Only the plain turntable must succeed; the rest is added when BMW has it.
     ``settings`` (from :func:`async_fetch_settings`) can be passed in to share
     one lookup across several cars of the same brand. ``run_sync`` runs the
     image work off the event loop (Home Assistant passes
     ``hass.async_add_executor_job``); without it, it runs inline.
+    ``languages`` are tried first for the equipment names. ``extras=False``
+    stops after the plain turntable (about 5 s rather than about a minute), for
+    a settings screen that shouldn't keep the user waiting.
     """
 
-    import json  # noqa: PLC0415
-    from urllib.parse import urlencode  # noqa: PLC0415
-
     spec = spec_from_basic_data(raw_basic_data)
-    cosy = settings or await async_fetch_settings(session, spec.site)
-    query = urlencode(
-        [
-            ("options", ",".join(spec.options)),
-            ("effectdate", spec.effect_date),
-            ("hub", cosy["hub"]),
-            ("imagetype", "PNG"),
-            ("background", "TRANSPARENT"),
-        ]
-    )
+    found = settings or await async_fetch_settings(session, spec.site)
+    cosy = found["cosy"]
     semaphore = asyncio.Semaphore(_CONCURRENCY)
 
-    async def frame(url: str) -> Optional[bytes]:
+    async def run(func: Callable[..., Any], *args: Any) -> Any:
+        try:
+            if run_sync is not None:
+                return await run_sync(func, *args)
+            return func(*args)
+        except (OSError, ValueError) as err:  # an image Pillow cannot read
+            raise ConfiguratorError("no_render", f"unreadable image: {err}") from err
+
+    async def image(url: str) -> Optional[bytes]:
         async with semaphore:
             status, body = await _get(session, url)
         return body if status == 200 else None
 
-    for brand in spec.brands:
+    def query(*extra: tuple[str, str]) -> str:
+        return urlencode(
+            [
+                ("options", ",".join(spec.options)),
+                ("effectdate", spec.effect_date),
+                ("hub", cosy["hub"]),
+                ("imagetype", "PNG"),
+                *extra,
+            ]
+        )
+
+    async def links(
+        endpoint: str, collection: str, brand: str, *extra: tuple[str, str]
+    ) -> Optional[Any]:
         url = (
-            f"{cosy['base_url']}/image-urls/dynamic-images/mandators/{cosy['mandator']}"
-            f"/collections/{_COLLECTION}/brands/{brand}/models/{spec.model}?{query}"
+            f"{cosy['base_url']}/image-urls/{endpoint}/mandators/{cosy['mandator']}"
+            f"/collections/{collection}/brands/{brand}/models/{spec.model}?{query(*extra)}"
         )
         status, body = await _get(session, url, headers=cosy["headers"])
         if status in (401, 403):
             raise ConfiguratorError("unavailable", f"image service refused the key ({status})")
         if status != 200:
-            _LOGGER.debug("Configurator: %s/%s answered %s", brand, spec.model, status)
-            continue
+            _LOGGER.debug(
+                "Configurator: %s %s/%s answered %s", collection, brand, spec.model, status
+            )
+            return None
         try:
-            urls = frame_urls(json.loads(body))
+            return json.loads(body)
         except ValueError as err:
             raise ConfiguratorError("unavailable", "image service answer is not JSON") from err
+
+    async def spin(brand: str, *extra: tuple[str, str]) -> Optional[list[bytes]]:
+        answer = await links("dynamic-images", _SPIN, brand, ("background", "TRANSPARENT"), *extra)
+        urls = frame_urls(answer) if answer else []
         # The placeholder brand returns links that all 404: one probe decides it.
-        first = await frame(urls[0]) if urls else None
+        first = await image(urls[0]) if urls else None
         if first is None:
-            _LOGGER.debug("Configurator: %s/%s draws only placeholders", brand, spec.model)
-            continue
-        rest = await asyncio.gather(*(frame(u) for u in urls[1:]))
+            return None
+        rest = await asyncio.gather(*(image(u) for u in urls[1:]))
         if any(r is None for r in rest):
             raise ConfiguratorError("no_render", "some frames are missing")
-        frames = [first, *[r for r in rest if r is not None]]
-        try:
-            if run_sync is not None:
-                render = await run_sync(build_sprite, frames)
-            else:
-                render = build_sprite(frames)
-        except (OSError, ValueError) as err:  # a frame Pillow cannot read
-            raise ConfiguratorError("no_render", f"unreadable frame: {err}") from err
-        return Render(**{**render.__dict__, "brand": brand})
+        return [first, *[r for r in rest if r is not None]]
+
+    for brand in spec.brands:
+        frames = await spin(brand)
+        if frames is None:
+            _LOGGER.debug("Configurator: %s/%s draws only placeholders", brand, spec.model)
+            continue
+        render = await run(build_sprite, frames)
+        crop = render.crop
+        if not extras:
+            return replace(render, brand=brand)
+        extras_found: dict[str, Any] = {"brand": brand}
+        for name, switch in (("lights", ("lightson", "true")), ("night", ("nightview", "true"))):
+            try:
+                variant = await spin(brand, switch)
+                if variant:
+                    extras_found[name] = (
+                        await run(build_sprite, variant, SPRITE_COLUMNS, crop)
+                    ).sprite
+            except ConfiguratorError as err:
+                _LOGGER.debug("Configurator: no %s spin for %s: %s", name, spec.model, err)
+        extras_found.update(await _optional_extras(spec, brand, links, image, run))
+        names = found.get("names")
+        if names:
+            try:
+                equipment, language = await async_fetch_equipment(
+                    session, spec, names, raw_basic_data.get("countryCode"), languages
+                )
+                extras_found.update(equipment=tuple(equipment), equipment_language=language)
+            except ConfiguratorError as err:
+                _LOGGER.debug("Configurator: no equipment names for %s: %s", spec.model, err)
+        return replace(render, **extras_found)
     raise ConfiguratorError("no_render", f"no picture for model {spec.model}")
+
+
+async def _optional_extras(
+    spec: CarSpec,
+    brand: str,
+    links: Callable[..., Awaitable[Any]],
+    image: Callable[[str], Awaitable[Optional[bytes]]],
+    run: Callable[..., Awaitable[Any]],
+) -> dict:
+    """The interior panorama and the top view, when BMW has them for this car."""
+
+    out: dict[str, Any] = {}
+    try:
+        answer = await links("dynamic-images", _INTERIOR, brand)
+        if answer:
+            views = answer.get(_INTERIOR) or {}
+            block = views.get("res_2000x2000") or {}
+            faces_meta = sorted(block.get("images") or [], key=lambda i: i.get("displayOrder", 0))
+            faces = [await image(str(f["viewImage"])) for f in faces_meta]
+            if len(faces) == 6 and all(faces):
+                out["interior"] = await run(build_interior, faces)
+    except (ConfiguratorError, KeyError, TypeError, AttributeError) as err:
+        _LOGGER.debug("Configurator: no interior for %s: %s", spec.model, err)
+    try:
+        answer = await links("dynamic-named-images", _TOP, brand)
+        views = (answer or {}).get(_TOP) or {}
+        block = views.get("desktop") or next(iter(views.values()), {})
+        for named in block.get("namedImages") or []:
+            for item in named.get("images") or []:
+                if (item.get("distinctionParameters") or {}).get("POV") == "TOP":
+                    data = await image(str(item["viewImage"]))
+                    if data:  # BMWs answer with a placeholder 404 here
+                        out["top"] = await run(build_top, data)
+    except (ConfiguratorError, KeyError, TypeError, AttributeError) as err:
+        _LOGGER.debug("Configurator: no top view for %s: %s", spec.model, err)
+    return out

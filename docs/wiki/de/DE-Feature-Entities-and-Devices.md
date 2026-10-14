@@ -109,8 +109,10 @@ Blickwinkel lassen sich über die API nicht abrufen. **Konfigurieren →
 Fahrzeugbild** kann stattdessen auf BMWs Online-Konfigurator umstellen: genau dein
 Auto als 360°-Drehansicht, ohne Anfragen zu kosten, aber über einen inoffiziellen
 BMW-Dienst ([mehr](DE-Settings-Reference#fahrzeugbild)). Die Entität zeigt dann
-die Dreiviertel-Frontansicht des Konfigurators und trägt die Attribute
-`configurator_spin` und `paint_color` für die Karte. Das Auto von oben in den Reifen- und
+die Dreiviertel-Frontansicht des Konfigurators und trägt Attribute für die
+Karte: `configurator_spin`, `configurator_interior`, `configurator_top` (MINIs),
+`paint_color` und `equipment`, die Werksoptionen des Autos mit Namen (nicht im
+Verlauf des Recorders). Das Auto von oben in den Reifen- und
 Verschluss-Ansichten der Karte ist kein BMW-Bild, sondern eine Zeichnung in der
 Karte: eine BMW-Limousine, bei einem MINI Countryman dessen eigene
 ([mehr](DE-The-Dashboard-Card#die-form-des-autos)).

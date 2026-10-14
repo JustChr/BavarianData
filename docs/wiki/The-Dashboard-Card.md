@@ -39,6 +39,7 @@ dashboard to show them side by side.
 - [Trip map](#trip-map-view-map)
 - [Tires](#tires-cluster-tire)
 - [Security & closures](#security--closures-cluster-closures)
+- [Equipment](#equipment-view-equipment)
 - [Single-cluster list](#single-cluster-list)
 - [Full YAML reference](#full-yaml-reference)
 
@@ -59,7 +60,19 @@ streams:
 
 With **Configure → [Vehicle image](Settings-Reference#vehicle-image)** set to
 BMW's configurator, the render is your exact car, and dragging across it (mouse
-or finger) turns it all the way round.
+or finger) turns it all the way round. The photo also follows the car:
+
+- **Lights and time of day.** After sunset at home the car is shown in BMW's
+  night scene, and while the car reports its lights on (*Vehicle Lights state*),
+  with its lights on. Both are BMW's own renders of your car.
+- **Badges** under the car's name for anything that needs you: a door, the trunk
+  or the hood open, windows open, the car unlocked, charging.
+- **Where it is open.** While something is open, the
+  [top-down drawing](#security--closures-cluster-closures) appears in the corner
+  with the open part lit up.
+- **Interior.** The seat button switches to a 360° panorama of the interior;
+  drag to look around. It shows BMW's default trim, because BMW's vehicle data
+  doesn't say which upholstery a car has, and the picture says so.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-spin.png" alt="The overview card with the configurator picture: the i5 Touring seen from the rear three-quarter, turned by dragging" width="300" />
@@ -397,7 +410,29 @@ Other models, including the other MINIs, use the sedan for now.
 
 With **Configure → [Vehicle image](Settings-Reference#vehicle-image)** set to
 BMW's configurator, the drawing takes your car's real paint color, sampled from
-the configurator's picture.
+the configurator's picture. For a MINI, BMW also has a real photo from above,
+which the tires view then shows instead of the drawing (the tire readings stay
+in their corners). BMW has no such view for any BMW model.
+
+---
+
+## Equipment (`view: equipment`)
+
+The car's factory equipment, named: paint, wheels and trim first, then the
+packages, then every other option the car was built with, each with BMW's code.
+What BMW treats as technical (refrigerant, the language of the paperwork,
+emission controls) is folded away under **Technical codes**.
+
+```yaml
+type: custom:bavariandata-card
+view: equipment
+```
+
+It needs **Configure → [Vehicle image](Settings-Reference#vehicle-image)** set to
+BMW's configurator, which names the codes in BMW's basic vehicle info; until
+then the card says so. The names are BMW's, in the language BMW's market for
+your car offers: English where it has it, otherwise the market's own (a car
+sold in Germany may list in German).
 
 ---
 
@@ -437,7 +472,7 @@ teleservice timestamps, listed below the messages when the car sends them.
 | Key | Purpose |
 | --- | --- |
 | `type` | Always `custom:bavariandata-card`. |
-| `view` | `charging`, `trips`, `map`, `health` or `efficiency`. Omit for the Overview. |
+| `view` | `charging`, `trips`, `map`, `health`, `efficiency` or `equipment`. Omit for the Overview. |
 | `cluster` | `electric`, `status`, `tire`, `usage`, `events`, `basic`, `contract`, `metadata`, `other`, `closures`. Renders a single-cluster list (or the special tire/closures diagrams). |
 | `device` | Device id, to pin a specific vehicle. The visual editor lists your cars only, never the *CarData Debug Device*; a card set to it shows the first car instead. |
 | `vin` | VIN, as an alternative to `device`. |

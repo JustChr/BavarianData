@@ -179,3 +179,157 @@ def test_a_refused_key_is_unavailable():
     with pytest.raises(CONF.ConfiguratorError) as err:
         asyncio.run(CONF.async_render(_FakeBmw(key_ok=False), I5))
     assert err.value.reason == "unavailable"
+
+
+# --- Everything beyond the plain spin ----------------------------------------
+
+NAMES = {
+    "P0C4P": {
+        "optionType": "paint",
+        "displayTypeId": "1",
+        "phrases": {"longDescription": "M Brooklyn Grey metallic"},
+    },
+    "S0230": {
+        "optionType": "other",
+        "displayTypeId": "2",
+        "phrases": {"longDescription": "EU-specific  equipment"},
+    },
+    "S0337": {
+        "optionType": "package",
+        "displayTypeId": "1",
+        "phrases": {"longDescription": "M Sport package"},
+    },
+    "S02PA": {"optionType": "other", "phrases": {}},
+}
+
+
+def test_equipment_keeps_the_cars_order_and_marks_the_technical_codes():
+    spec = CONF.spec_from_basic_data(I5)
+    items = CONF.equipment_list(NAMES, spec)
+    assert [i["code"] for i in items] == ["P0C4P", "S0230", "S0337"]  # S0248 unknown, S02PA unnamed
+    assert items[0] == {
+        "code": "P0C4P",
+        "name": "M Brooklyn Grey metallic",
+        "kind": "paint",
+        "shown": True,
+    }
+    assert items[1]["shown"] is False  # displayTypeId 2: BMW's own "technical"
+    assert items[1]["name"] == "EU-specific equipment"  # whitespace tidied
+
+
+def test_interior_faces_are_laid_out_three_by_two():
+    faces = []
+    for shade in range(6):
+        out = io.BytesIO()
+        Image.new("RGB", (2000, 2000), (shade * 40, 0, 0)).save(out, "PNG")
+        faces.append(out.getvalue())
+    sheet = Image.open(io.BytesIO(CONF.build_interior(faces)))
+    assert sheet.size == (3 * CONF.FACE_SIZE, 2 * CONF.FACE_SIZE)
+    # Face 5 (displayOrder 6) sits bottom right.
+    assert abs(sheet.getpixel((int(2.5 * CONF.FACE_SIZE), int(1.5 * CONF.FACE_SIZE)))[0] - 200) < 6
+    with pytest.raises(CONF.ConfiguratorError):
+        CONF.build_interior(faces[:5])
+
+
+def test_the_top_view_is_cut_out_and_turned_nose_up():
+    # BMW's MINI top view: nose left on a white page, with a white roof stripe
+    # inside the car that must stay opaque.
+    page = Image.new("RGB", (1920, 1000), (255, 255, 255))
+    page.paste(Image.new("RGB", (800, 360), (30, 30, 40)), (500, 320))
+    page.paste(Image.new("RGB", (300, 40), (255, 255, 255)), (700, 480))
+    page.paste(Image.new("RGB", (40, 360), (200, 0, 0)), (500, 320))  # the nose, red
+    out = io.BytesIO()
+    page.save(out, "PNG")
+    top = Image.open(io.BytesIO(CONF.build_top(out.getvalue()))).convert("RGBA")
+    assert top.size == (360, 800)  # cropped to the car, turned upright
+    assert top.getpixel((180, 5))[:3] == (200, 0, 0)  # nose at the top
+    assert top.getpixel((180, 400))[3] == 255  # the roof stripe kept
+    padded = Image.new("RGBA", (top.width + 2, top.height + 2), (0, 0, 0, 0))
+    padded.paste(top, (1, 1))
+    assert padded.getpixel((0, 0))[3] == 0
+
+
+class _FakeBmwFull(_FakeBmw):
+    """Also answers the interior, the top view and the option names."""
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(draws="bmwCar", **kwargs)
+        self.name_calls = []
+
+    def get(self, url: str, **kwargs):
+        if url.endswith("/de_DE/settings.abc123.json"):
+            backend = {
+                "settingsCosy": {
+                    "baseUrl": "https://cosy.test",
+                    "mandator": "connext-bmw",
+                    "hub": "HUB",
+                    "headers": {},
+                },
+                "settingsLocalisation": {
+                    "baseUrl": "https://ucp.test",
+                    "source": "pcaso",
+                    "brand": "bmwCar",
+                    "application": "connext",
+                    "headers": {"x-api-key": "n"},
+                },
+            }
+            return _Resp(200, json.dumps({"APP": {"backend": backend}}).encode())
+        if "/localisations/" in url:
+            self.name_calls.append(url)
+            market, lang = re.search(r"/countries/([^/]+)/.*/languages/([^/]+)$", url).groups()
+            # A German-market car: Austria answers in German only.
+            if market == "at" and lang == "de":
+                return _Resp(200, json.dumps(NAMES).encode())
+            return _Resp(404, b"{}")
+        if "/collections/interior-mixed/" in url:
+            faces = [
+                {"viewImage": f"https://cosy.test/face/{i}", "displayOrder": 6 - i}
+                for i in range(6)
+            ]
+            return _Resp(
+                200, json.dumps({"interior-mixed": {"res_2000x2000": {"images": faces}}}).encode()
+            )
+        if "/collections/roof-and-mirror-caps/" in url:
+            images = [
+                {"viewImage": "https://cosy.test/top", "distinctionParameters": {"POV": "TOP"}}
+            ]
+            body = {
+                "roof-and-mirror-caps": {
+                    "desktop": {"namedImages": [{"name": "POVS", "images": images}]}
+                }
+            }
+            return _Resp(200, json.dumps(body).encode())
+        if url.startswith("https://cosy.test/face/"):
+            out = io.BytesIO()
+            Image.new("RGB", (100, 100), (90, 90, 90)).save(out, "PNG")
+            return _Resp(200, out.getvalue())
+        if url == "https://cosy.test/top":
+            return _Resp(404, b"placeholder")  # what every BMW gets here
+        return super().get(url, **kwargs)
+
+
+def test_the_full_fetch_adds_lights_night_interior_and_names():
+    session = _FakeBmwFull()
+    render = asyncio.run(CONF.async_render(session, {**I5, "countryCode": "AT"}, languages=("en",)))
+    assert render.lights and render.night and render.interior
+    assert render.top is None  # BMW's placeholder for a BMW
+    assert [e["code"] for e in render.equipment] == ["P0C4P", "S0230", "S0337"]
+    assert render.equipment_language == "de"
+    # Asked in the user's language first, then the market's own.
+    assert [c.rsplit("/", 1)[1] for c in session.name_calls] == ["en", "de"]
+    spins = [c for c in session.calls if "/collections/walkaround-360/" in c]
+    assert any("lightson=true" in c for c in spins) and any("nightview=true" in c for c in spins)
+
+
+def test_the_quick_fetch_stops_after_the_plain_spin():
+    session = _FakeBmwFull()
+    render = asyncio.run(CONF.async_render(session, I5, extras=False))
+    assert render.frames == 36 and render.lights is None and render.equipment == ()
+    assert not any("lightson" in c or "interior" in c for c in session.calls)
+
+
+def test_variant_spins_reuse_the_plain_spins_crop():
+    frames = [_frame(200 + 4 * i) for i in range(36)]
+    plain = CONF.build_sprite(frames)
+    dark = [_frame(200 + 4 * i, color=(10, 10, 10)) for i in range(36)]
+    assert CONF.build_sprite(dark, crop=plain.crop).crop == plain.crop

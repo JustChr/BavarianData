@@ -91,6 +91,7 @@ SCREENS = {
     "map": {"view": "map"},
     "health": {"view": "health"},
     "efficiency": {"view": "efficiency"},
+    "equipment": {"view": "equipment"},
     "cluster-tire": {"cluster": "tire"},
     "cluster-closures": {"cluster": "closures"},
     "cluster-electric": {"cluster": "electric"},

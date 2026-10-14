@@ -55,14 +55,19 @@ Screen: **Configure → Vehicle image**.
 | **Picture source** | BMW CarData (official) · BMW configurator (360°, unofficial) | Default **BMW CarData**: BMW's one side view of the car, one of your [50 requests a day](Feature-API-Quota) per car. **BMW configurator** draws your exact car the way BMW's online configurator does, from the model, paint and factory options in its basic vehicle info: a 360° turntable in the [card](The-Dashboard-Card#overview) you can drag to turn, and the real paint on the card's [top-down car](The-Dashboard-Card#the-cars-shape). It spends no requests, but it is not part of CarData: it is the service behind BMW's configurator web page, which BMW can change or block at any time. |
 
 **Submit** fetches the picture straight away and keeps it across restarts. With
-the configurator, nothing is saved unless every car could be drawn; the screen
+the configurator it waits only for the 360° view (a few seconds per car); the
+rest follows in the background within about a minute: the same view with the
+lights on and at night, the interior panorama, the photo from above (MINIs only)
+and the names of the car's factory options for the card's
+[equipment view](The-Dashboard-Card#equipment-view-equipment). Nothing is saved
+unless every car could be drawn; the screen
 then names the car and why (not a BMW or MINI car, its basic vehicle info isn't
 in yet, the configurator didn't answer, or it has no picture of that model), and
 the official picture stays. A car added later is drawn when it first appears.
 
 The configurator draws BMW and MINI cars, including models no longer sold. It
-has no overhead view and no interior trim, because BMW's vehicle data doesn't
-say which upholstery a car has, so only the outside is shown. Whenever there is
+has no overhead view of BMW models, and its interior shows BMW's default trim,
+because BMW's vehicle data doesn't say which upholstery a car has. Whenever there is
 no configurator picture for a car, the card falls back to the official one.
 
 ## Automatic data refresh
