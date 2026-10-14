@@ -201,6 +201,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `view: health` | Battery health | 🟡 | 📷 |
 | `view: efficiency` | Efficiency & real range | 🟢 The-Dashboard-Card + Feature-Efficiency-and-Range | 📷 **owed** — needs the build installed |
 | `cluster: tire` | Tires (pressure + wear) | 🟡 | 📷 (have) |
+| `shape:` (tire + closures) | Top-down car drawn per model — BMW sedan, or MINI Countryman picked from basic data's `model_name`; `shape:` override | 🟢 — The-Dashboard-Card → "The car's shape" + YAML reference | 📷 (have, rendered from the shipped card: no Countryman to capture live) |
 | `cluster: closures` | Security & closures — side doors/windows placed by steering side (BMW basic data, `steering:` override) | 🟡 — the steering side and its override are 🟢 in The-Dashboard-Card → "Security & closures" + YAML reference | 📷 (have, left-hand drive; a right-hand-drive shot is owed: no such car to capture) |
 | `cluster: events` | Vehicle events — current Check Control messages first, cleared ones folded under "Earlier messages", then the teleservice timestamps | 🟢 The-Dashboard-Card → "Single-cluster list" | 📷 (have, 2026-09-27, cleared message under "Earlier messages", expanded) |
 | `cluster: <other>` | Single-cluster list | 🟡 | 📷 |

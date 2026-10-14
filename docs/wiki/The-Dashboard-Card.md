@@ -367,6 +367,26 @@ cluster: closures
 steering: right   # left · right — omit to read it from BMW's vehicle data
 ```
 
+### The car's shape
+
+The tires and closures views draw a BMW sedan, except for a **MINI Countryman**,
+which gets its own drawing: boxier, with a clamshell hood, roof rails and the
+two-panel glass roof. The card picks it from the model name in BMW's basic data,
+so there is nothing to set. To force one shape or the other, set **Car shape** in
+the visual editor, or:
+
+```yaml
+type: custom:bavariandata-card
+cluster: closures
+shape: countryman   # sedan · countryman — omit to pick it from BMW's vehicle data
+```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-shape-countryman.png" alt="The closures diagram drawn as a MINI Countryman, with the front left door open and the right front window down" width="300" />
+</p>
+
+Other models, including the other MINIs, use the sedan for now.
+
 ---
 
 ## Single-cluster list
@@ -420,6 +440,7 @@ teleservice timestamps, listed below the messages when the car sends them.
 | `plug` | Override the plug-status entity. |
 | `drivetrain` | `bev`, `phev` or `ice` — the Overview layout. Omit to detect it from what the car streams. |
 | `steering` | `left` or `right` — the side the driver sits on, used to place doors and windows in the closures view. Omit to read it from BMW's basic data; a car whose basic data doesn't say is drawn as left-hand drive. |
+| `shape` | `sedan` or `countryman` — the car drawn in the tires and closures views. Omit to pick it from the model in BMW's basic data. |
 | `fuel` | Override the fuel-tank entity (a percentage or a volume). |
 
 With the integration installed, entity overrides are rarely needed — the card

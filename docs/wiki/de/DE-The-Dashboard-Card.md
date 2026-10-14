@@ -390,6 +390,27 @@ cluster: closures
 steering: right   # left · right — weglassen, um es aus BMWs Fahrzeugdaten zu lesen
 ```
 
+### Die Form des Autos
+
+Die Reifen- und die Öffnungs-Ansicht zeichnen eine BMW-Limousine, außer bei einem
+**MINI Countryman**: Der bekommt eine eigene Zeichnung, kantiger, mit
+Haubendeckel über die ganze Front, Dachreling und zweiteiligem Glasdach. Die
+Karte erkennt ihn am Modellnamen in BMWs Fahrzeugbasisdaten, einzustellen gibt es
+nichts. Um eine Form zu erzwingen, setze im visuellen Editor **Fahrzeugform**,
+oder:
+
+```yaml
+type: custom:bavariandata-card
+cluster: closures
+shape: countryman   # sedan · countryman — weglassen, um sie aus BMWs Fahrzeugdaten zu wählen
+```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-shape-countryman.png" alt="Die Öffnungs-Ansicht als MINI Countryman gezeichnet, mit offener Fahrertür vorne links und geöffnetem Fenster vorne rechts" width="300" />
+</p>
+
+Andere Modelle, auch die übrigen MINIs, bekommen vorerst die Limousine.
+
 ---
 
 ## Liste einer Datengruppe
@@ -451,6 +472,7 @@ die unter den Meldungen stehen, wenn das Fahrzeug sie sendet.
 | `plug` | Überschreibt die Steckerstatus-Entität. |
 | `drivetrain` | `bev`, `phev` oder `ice` — das Layout der Übersicht. Weglassen, um es aus den gestreamten Daten zu erkennen. |
 | `steering` | `left` oder `right` — auf welcher Seite der Fahrer sitzt; danach ordnet die Öffnungs-Ansicht Türen und Fenster zu. Weglassen, um es aus BMWs Fahrzeugbasisdaten zu lesen; ein Auto, dessen Basisdaten nichts dazu sagen, wird als Linkslenker gezeichnet. |
+| `shape` | `sedan` oder `countryman` — das Auto, das die Reifen- und die Öffnungs-Ansicht zeichnen. Weglassen, um es anhand des Modells in BMWs Fahrzeugbasisdaten zu wählen. |
 | `fuel` | Überschreibt die Tank-Entität (Prozent oder Volumen). |
 
 Mit installierter Integration braucht man Entitäts-Überschreibungen selten — die Karte

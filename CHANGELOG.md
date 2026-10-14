@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **A MINI Countryman is drawn as one.** The tires and closures views drew a BMW
+  sedan for every car. A Countryman now gets its own top-down drawing: boxier,
+  with a clamshell hood, roof rails and the two-panel glass roof. Doors still
+  swing open, glass still lights up and tires still take their color. The card
+  picks it from the model name in BMW's vehicle data. **Car shape** in the card
+  editor (`shape:` in YAML) forces either drawing. Other models, including the
+  other MINIs, keep the sedan for now. Thanks to @BeastleeUK for the drawing it
+  is based on (#100).
+
 ## [0.9.18-beta.6] - 2026-10-13
 
 ### Fixed

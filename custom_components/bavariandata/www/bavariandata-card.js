@@ -431,6 +431,10 @@ const TRANSLATIONS = {
     edh_steering: "Read from BMW's vehicle data. Set it only if doors and windows appear on the wrong side of the car.",
     st_left: "Left-hand drive",
     st_right: "Right-hand drive",
+    ed_shape: "Car shape",
+    edh_shape: "Picked from the model in BMW's vehicle data. Set it only if the drawing does not match your car.",
+    sh_sedan: "BMW sedan",
+    sh_countryman: "MINI Countryman",
     ed_overview_option: "Overview (default)",
     ed_overrides_title: "Entity overrides (optional — leave empty to auto-detect)",
     edh_cluster:
@@ -448,6 +452,7 @@ const TRANSLATIONS = {
     no_tire_data:
       "No tyre data for this vehicle yet. Enable the Tyre data cluster and drive to populate readings.",
     check_tyres: "Check tyres",
+    sh_sedan: "BMW saloon",
   },
   de: {
     // cluster labels
@@ -722,6 +727,10 @@ const TRANSLATIONS = {
     edh_steering: "Wird aus BMWs Fahrzeugdaten gelesen. Nur setzen, wenn Türen und Fenster auf der falschen Seite des Autos erscheinen.",
     st_left: "Linkslenker",
     st_right: "Rechtslenker",
+    ed_shape: "Fahrzeugform",
+    edh_shape: "Wird anhand des Modells in BMWs Fahrzeugdaten gewählt. Nur setzen, wenn die Zeichnung nicht zum Auto passt.",
+    sh_sedan: "BMW-Limousine",
+    sh_countryman: "MINI Countryman",
     ed_overview_option: "Übersicht (Standard)",
     ed_overrides_title: "Entitäten überschreiben (optional — leer lassen für Auto-Erkennung)",
     edh_cluster:
@@ -1001,6 +1010,10 @@ const TRANSLATIONS = {
     edh_steering: "Lu dans les données du véhicule de BMW. Ne le définissez que si les portes et les vitres apparaissent du mauvais côté de la voiture.",
     st_left: "Conduite à gauche",
     st_right: "Conduite à droite",
+    ed_shape: "Silhouette du véhicule",
+    edh_shape: "Choisie d'après le modèle dans les données du véhicule de BMW. Ne la définissez que si le dessin ne correspond pas à votre voiture.",
+    sh_sedan: "Berline BMW",
+    sh_countryman: "MINI Countryman",
     ed_overview_option: "Aperçu (par défaut)",
     ed_overrides_title: "Remplacement d'entités (facultatif — laisser vide pour la détection automatique)",
     edh_cluster:
@@ -1280,6 +1293,10 @@ const TRANSLATIONS = {
     edh_steering: "Letto dai dati del veicolo di BMW. Impostalo solo se porte e finestrini compaiono sul lato sbagliato dell'auto.",
     st_left: "Guida a sinistra",
     st_right: "Guida a destra",
+    ed_shape: "Sagoma dell'auto",
+    edh_shape: "Scelta in base al modello nei dati del veicolo di BMW. Impostala solo se il disegno non corrisponde alla tua auto.",
+    sh_sedan: "Berlina BMW",
+    sh_countryman: "MINI Countryman",
     ed_overview_option: "Panoramica (predefinita)",
     ed_overrides_title: "Sostituzione entità (facoltativo — lascia vuoto per il rilevamento automatico)",
     edh_cluster:
@@ -1559,6 +1576,10 @@ const TRANSLATIONS = {
     edh_steering: "Se lee de los datos del vehículo de BMW. Defínelo solo si las puertas y las ventanillas aparecen en el lado equivocado del coche.",
     st_left: "Volante a la izquierda",
     st_right: "Volante a la derecha",
+    ed_shape: "Silueta del coche",
+    edh_shape: "Se elige según el modelo en los datos del vehículo de BMW. Defínela solo si el dibujo no coincide con tu coche.",
+    sh_sedan: "Berlina BMW",
+    sh_countryman: "MINI Countryman",
     ed_overview_option: "Resumen (predeterminado)",
     ed_overrides_title: "Sustitución de entidades (opcional — déjalo vacío para la detección automática)",
     edh_cluster:
@@ -1838,6 +1859,10 @@ const TRANSLATIONS = {
     edh_steering: "Gelezen uit de voertuiggegevens van BMW. Stel dit alleen in als portieren en ramen aan de verkeerde kant van de auto verschijnen.",
     st_left: "Links gestuurd",
     st_right: "Rechts gestuurd",
+    ed_shape: "Autovorm",
+    edh_shape: "Gekozen op basis van het model in de voertuiggegevens van BMW. Stel dit alleen in als de tekening niet bij je auto past.",
+    sh_sedan: "BMW-sedan",
+    sh_countryman: "MINI Countryman",
     ed_overview_option: "Overzicht (standaard)",
     ed_overrides_title: "Entiteiten overschrijven (optioneel — leeg laten voor automatisch herkennen)",
     edh_cluster:
@@ -2117,6 +2142,10 @@ const TRANSLATIONS = {
     edh_steering: "Odczytywana z danych pojazdu BMW. Ustaw tylko wtedy, gdy drzwi i okna pojawiają się po złej stronie auta.",
     st_left: "Kierownica po lewej",
     st_right: "Kierownica po prawej",
+    ed_shape: "Kształt auta",
+    edh_shape: "Wybierany na podstawie modelu z danych pojazdu BMW. Ustaw tylko wtedy, gdy rysunek nie pasuje do auta.",
+    sh_sedan: "Sedan BMW",
+    sh_countryman: "MINI Countryman",
     ed_overview_option: "Przegląd (domyślnie)",
     ed_overrides_title: "Nadpisanie encji (opcjonalnie — pozostaw puste dla automatycznego wykrywania)",
     edh_cluster:
@@ -2396,6 +2425,10 @@ const TRANSLATIONS = {
     edh_steering: "Lido a partir dos dados do veículo da BMW. Defina-o apenas se as portas e as janelas aparecerem do lado errado do carro.",
     st_left: "Volante à esquerda",
     st_right: "Volante à direita",
+    ed_shape: "Forma do carro",
+    edh_shape: "Escolhida a partir do modelo nos dados do veículo da BMW. Defina-a apenas se o desenho não corresponder ao seu carro.",
+    sh_sedan: "Berlina BMW",
+    sh_countryman: "MINI Countryman",
     ed_overview_option: "Visão geral (predefinição)",
     ed_overrides_title: "Substituição de entidades (opcional — deixe vazio para deteção automática)",
     edh_cluster:
@@ -2675,6 +2708,10 @@ const TRANSLATIONS = {
     edh_steering: "Čte se z údajů o vozidle od BMW. Nastavte jen tehdy, pokud se dveře a okna zobrazují na špatné straně vozu.",
     st_left: "Volant vlevo",
     st_right: "Volant vpravo",
+    ed_shape: "Tvar vozu",
+    edh_shape: "Vybírá se podle modelu v údajích o vozidle od BMW. Nastavte jen tehdy, pokud kresba neodpovídá vašemu vozu.",
+    sh_sedan: "Sedan BMW",
+    sh_countryman: "MINI Countryman",
     ed_overview_option: "Přehled (výchozí)",
     ed_overrides_title: "Přepsání entit (volitelné — ponechte prázdné pro automatické zjištění)",
     edh_cluster:
@@ -2954,6 +2991,10 @@ const TRANSLATIONS = {
     edh_steering: "Läses från BMW:s fordonsdata. Ange den bara om dörrar och fönster visas på fel sida av bilen.",
     st_left: "Vänsterstyrd",
     st_right: "Högerstyrd",
+    ed_shape: "Bilens form",
+    edh_shape: "Väljs utifrån modellen i BMW:s fordonsdata. Ange den bara om ritningen inte stämmer med din bil.",
+    sh_sedan: "BMW sedan",
+    sh_countryman: "MINI Countryman",
     ed_overview_option: "Översikt (standard)",
     ed_overrides_title: "Åsidosätt entiteter (valfritt — lämna tomt för automatisk identifiering)",
     edh_cluster:
@@ -3068,6 +3109,83 @@ const CAR = {
     },
   },
 };
+// The kidney grille, one per side.
+const KIDNEY = (() => {
+  const bars = [16, 27, 38, 49, 60, 71, 82, 93].map((i) => `M${366 + i} 21 V43`).join(" ");
+  const kidney =
+    `<rect x="366" y="12" width="104" height="38" rx="16" class="carsvg__chrome"/>` +
+    `<rect x="371" y="17" width="94" height="28" rx="12" class="carsvg__kidney"/>` +
+    `<path d="${bars}" class="carsvg__kbar"/>`;
+  return `<g>${kidney}</g><g transform="${CAR_FLIP}">${kidney}</g>`;
+})();
+CAR.grille = KIDNEY;
+
+// MINI Countryman (U25): a boxier SUV with a clamshell bonnet, roof rails and
+// a two-panel glass roof, after BeastleeUK's drawing in issue #100. Same
+// frame, centreline and parts as CAR, so every overlay works unchanged.
+const CAR_COUNTRYMAN = {
+  body:
+    "M474 30 C372 30 268 34 206 46 C166 54 148 78 144 124 L141 228 C136 262 134 300 134 360 L134 452 C134 476 138 492 142 506 L142 1176 C136 1196 134 1220 134 1250 L134 1388 C134 1420 138 1440 141 1458 L143 1552 C146 1596 168 1616 214 1624 C290 1634 380 1638 474 1638 C568 1638 658 1634 734 1624 C780 1616 802 1596 805 1552 L807 1458 C810 1440 814 1420 814 1388 L814 1250 C814 1220 812 1196 806 1176 L806 506 C810 492 814 476 814 452 L814 360 C814 300 812 262 807 228 L804 124 C800 78 782 54 742 46 C680 34 576 30 474 30 Z",
+  hood: "M214 52 C300 40 648 40 734 52 C772 60 788 84 790 130 L792 486 C700 448 586 430 474 430 C362 430 248 448 156 486 L158 130 C160 84 176 60 214 52 Z",
+  windshield: "M474 432 C568 432 662 452 744 490 L756 650 C676 628 272 628 192 650 L204 490 C286 452 380 432 474 432 Z",
+  roof: "M232 652 C330 638 618 638 716 652 L718 1392 C620 1402 328 1402 230 1392 Z",
+  sunroof: "M330 760 H618 Q632 760 632 774 V1206 Q632 1220 618 1220 H330 Q316 1220 316 1206 V774 Q316 760 330 760 Z",
+  rearWindow: "M232 1410 C330 1400 618 1400 716 1410 L742 1552 C640 1576 308 1576 206 1552 Z",
+  trunk: "M200 1398 C320 1388 628 1388 748 1398 L780 1556 C770 1590 746 1604 710 1610 C620 1622 328 1622 238 1610 C202 1604 178 1590 168 1556 Z",
+  mirror: "M150 590 C128 596 98 608 84 624 C78 634 82 646 94 648 C114 644 134 638 150 634 Z",
+  headlight: "M206 58 C244 50 290 52 302 64 C310 76 296 98 262 116 C226 134 186 140 170 126 C160 114 172 74 206 58 Z",
+  drl: "M212 68 C250 60 284 62 292 70 C292 84 270 100 244 112",
+  tail: "M150 1500 C152 1552 162 1590 196 1606 L222 1612 C228 1614 228 1622 220 1622 L196 1618 C160 1604 146 1566 144 1506 C144 1496 150 1492 150 1500 Z",
+  tailCore: "M150 1512 C154 1558 166 1592 200 1608 L218 1614",
+  bPillar: "M178 900 L232 900 L232 922 L178 922 Z",
+  shuts: "M160 1592 C240 1606 360 1612 474 1612",
+  creases: "M300 60 C290 180 288 300 292 440 M648 60 C658 180 660 300 656 440",
+  grille:
+    `<path d="M390 30 L558 30 L576 44 L564 60 L384 60 L372 44 Z" class="carsvg__chrome"/>` +
+    `<path d="M396 35 L552 35 L566 44 L558 55 L390 55 L382 44 Z" class="carsvg__kidney"/>` +
+    `<path d="M440 100 L460 96 M508 100 L488 96" class="carsvg__kbar"/>` +
+    `<circle cx="474" cy="96" r="12" class="carsvg__chrome"/>`,
+  // Roof rails and the bar between the two glass panels.
+  roofDetail:
+    `<path d="M252 690 C248 900 248 1200 252 1370" class="carsvg__rail"/>` +
+    `<path d="M252 690 C248 900 248 1200 252 1370" class="carsvg__rail" transform="${CAR_FLIP}"/>` +
+    `<path d="M316 990 H632" class="carsvg__rail carsvg__rail--bar"/>`,
+  sheen: {
+    carClipWs: ["M560 420 L650 420 L440 660 L350 660 Z", "M670 420 L700 420 L500 660 L470 660 Z"],
+    carClipRw: ["M530 1395 L600 1395 L470 1580 L400 1580 Z"],
+    carClipSr: ["M520 750 L572 750 L420 1230 L368 1230 Z"],
+  },
+  tyreFront: [116, 240, 36, 236],
+  tyreRear: [116, 1204, 36, 236],
+  handles: [[138, 820], [138, 1160]],
+  window: {
+    f: { d: "M182 600 C196 620 214 640 228 664 L230 900 L180 900 Z", clip: "carClipWf", drop: 700, dropX: [150, 260] },
+    r: { d: "M180 922 L230 922 L230 1180 C226 1240 210 1300 190 1360 L180 1360 Z", clip: "carClipWr", drop: 990, dropX: [150, 260] },
+  },
+  door: {
+    f: {
+      d: "M140 497 L200 497 C216 560 230 620 236 680 L236 905 L140 905 Z",
+      hinge: "rotate(20 146 497)",
+      sill: "M142 501 L196 501 C192 600 190 760 190 901 L142 901 Z",
+      shadow: "M192 505 L190 897",
+      skin: "M140 497 C130 600 128 760 132 890 Q134 905 148 905 L186 899 C190 760 194 600 198 505 Z",
+      trim: "M148 540 C140 620 138 760 142 860 L172 856 C174 760 178 620 184 540 Z",
+      edge: "M136 515 C128 620 128 760 134 885",
+    },
+    r: {
+      d: "M140 909 L236 909 L236 1190 C232 1230 222 1256 208 1268 L140 1268 Z",
+      hinge: "rotate(20 146 909)",
+      sill: "M142 913 L196 913 C192 1000 190 1140 190 1264 L142 1264 Z",
+      shadow: "M192 917 L190 1260",
+      skin: "M140 909 C130 1000 128 1140 132 1254 Q134 1268 148 1268 L186 1262 C190 1140 194 1000 198 917 Z",
+      trim: "M148 952 C140 1020 138 1140 142 1228 L172 1224 C174 1140 178 1020 184 952 Z",
+      edge: "M136 927 C128 1020 128 1140 134 1249",
+    },
+  },
+};
+
+// The shapes `shape:` can pick; `_carShape` chooses one from the car's model.
+const CAR_SHAPES = { sedan: CAR, countryman: CAR_COUNTRYMAN };
 
 class BavarianDataCard extends HTMLElement {
   setConfig(config) {
@@ -3441,6 +3559,19 @@ class BavarianDataCard extends HTMLElement {
       if (bd && STEERING_SIDES.has(bd.steering_side)) return bd.steering_side;
     }
     return "left";
+  }
+
+  /** The top-down drawing for this car: an explicit `shape:` wins, otherwise
+   * BMW's basic-data model name picks one, otherwise the BMW saloon. */
+  _carShape(entities) {
+    const wanted = String((this._config || {}).shape || "").toLowerCase();
+    if (CAR_SHAPES[wanted]) return CAR_SHAPES[wanted];
+    for (const id of entities) {
+      const st = this._st(id);
+      const bd = st && st.attributes && st.attributes.vehicle_basic_data;
+      if (bd && /countryman/i.test(String(bd.model_name || ""))) return CAR_COUNTRYMAN;
+    }
+    return CAR;
   }
 
   /* ---- formatting ------------------------------------------------------- */
@@ -6529,7 +6660,7 @@ class BavarianDataCard extends HTMLElement {
         <div class="tirewrap">
           <div class="tirecar">
             <span class="tirecar__front">${this._t("front")}</span>
-            <div class="tirecar__svg">${this._carSvg(colors)}</div>
+            <div class="tirecar__svg">${this._carSvg(colors, this._carShape(entities))}</div>
             ${this._wheelBlock(slots[0], wheels.row1_left, "fl", unit)}
             ${this._wheelBlock(slots[1], wheels.row1_right, "fr", unit)}
             ${this._wheelBlock(slots[2], wheels.row2_left, "rl", unit)}
@@ -6648,24 +6779,24 @@ class BavarianDataCard extends HTMLElement {
       </div>`;
   }
 
-  _carSvg(c) {
-    // Top-down BMW sedan with each tyre outlined in its tire-status colour.
+  _carSvg(c, car = CAR) {
+    // Top-down car with each tyre outlined in its tire-status colour.
     return `
       <svg class="carsvg" viewBox="0 0 948 1659" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        ${this._carDefs()}
-        ${this._carWheels(c)}
-        ${this._carBody()}
+        ${this._carDefs(car)}
+        ${this._carWheels(car, c)}
+        ${this._carBody(car)}
       </svg>`;
   }
 
   // Gradients, the status glow and the clip paths the art and overlays use.
-  _carDefs() {
+  _carDefs(car) {
     const clips = {
-      carClipWs: CAR.windshield,
-      carClipRw: CAR.rearWindow,
-      carClipSr: CAR.sunroof,
-      carClipWf: CAR.window.f.d,
-      carClipWr: CAR.window.r.d,
+      carClipWs: car.windshield,
+      carClipRw: car.rearWindow,
+      carClipSr: car.sunroof,
+      carClipWf: car.window.f.d,
+      carClipWr: car.window.r.d,
     };
     return `
         <defs>
@@ -6700,60 +6831,55 @@ class BavarianDataCard extends HTMLElement {
 
   // Four tyres peeking out under the body, each outlined (and glowing) in its
   // colour; without a colour (closures) they stay plain rubber.
-  _carWheels(c = {}) {
+  _carWheels(car, c = {}) {
     const wheel = ([x, y, w, h], color, flip) =>
       `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="13" class="carsvg__wheel${color ? " carsvg__wheel--lit" : ""}"${
         color ? ` style="stroke:${color}"` : ""
       }${flip ? ` transform="${CAR_FLIP}"` : ""}/>`;
     return (
-      wheel(CAR.tyreFront, c.fl) +
-      wheel(CAR.tyreFront, c.fr, true) +
-      wheel(CAR.tyreRear, c.rl) +
-      wheel(CAR.tyreRear, c.rr, true)
+      wheel(car.tyreFront, c.fl) +
+      wheel(car.tyreFront, c.fr, true) +
+      wheel(car.tyreRear, c.rl) +
+      wheel(car.tyreRear, c.rr, true)
     );
   }
 
   // Static body art, shared by the tire and closures diagrams; the closures
   // view layers overlays on top. `hide.l`/`hide.r` drop a side mirror whose
   // front door is drawn swung open (the mirror rides on the door).
-  _carBody(hide = {}) {
+  _carBody(car, hide = {}) {
     const both = (d, cls) =>
       `<path d="${d}" class="${cls}"/><path d="${d}" class="${cls}" transform="${CAR_FLIP}"/>`;
-    const mirrorL = hide.l ? "" : `<path d="${CAR.mirror}" class="carsvg__mirror"/>`;
-    const mirrorR = hide.r ? "" : `<path d="${CAR.mirror}" class="carsvg__mirror" transform="${CAR_FLIP}"/>`;
-    const handles = CAR.handles
+    const mirrorL = hide.l ? "" : `<path d="${car.mirror}" class="carsvg__mirror"/>`;
+    const mirrorR = hide.r ? "" : `<path d="${car.mirror}" class="carsvg__mirror" transform="${CAR_FLIP}"/>`;
+    const handles = car.handles
       .map(([x, y]) => `<rect x="${x}" y="${y}" width="7" height="44" rx="3.5" class="carsvg__handle"/>`)
       .join("");
-    const bars = [16, 27, 38, 49, 60, 71, 82, 93].map((i) => `M${366 + i} 21 V43`).join(" ");
-    const kidney =
-      `<rect x="366" y="12" width="104" height="38" rx="16" class="carsvg__chrome"/>` +
-      `<rect x="371" y="17" width="94" height="28" rx="12" class="carsvg__kidney"/>` +
-      `<path d="${bars}" class="carsvg__kbar"/>`;
-    const sheens = Object.entries(CAR.sheen)
+    const sheens = Object.entries(car.sheen)
       .flatMap(([clip, ds]) => ds.map((d) => `<path d="${d}" class="carsvg__sheen" clip-path="url(#${clip})"/>`))
       .join("");
     return `
         ${mirrorL}${mirrorR}
-        <path d="${CAR.body}" class="carsvg__body"/>
-        ${both(CAR.door.f.d, "carsvg__shut")}
-        ${both(CAR.door.r.d, "carsvg__shut")}
-        <path d="${CAR.hood}" class="carsvg__hood"/>
-        <path d="${CAR.creases}" class="carsvg__crease"/>
-        <path d="${CAR.trunk}" class="carsvg__shut"/>
-        ${both(CAR.shuts, "carsvg__shut")}
+        <path d="${car.body}" class="carsvg__body"/>
+        ${both(car.door.f.d, "carsvg__shut")}
+        ${both(car.door.r.d, "carsvg__shut")}
+        <path d="${car.hood}" class="carsvg__hood"/>
+        <path d="${car.creases}" class="carsvg__crease"/>
+        <path d="${car.trunk}" class="carsvg__shut"/>
+        ${both(car.shuts, "carsvg__shut")}
         <g>${handles}</g><g transform="${CAR_FLIP}">${handles}</g>
-        ${both(CAR.headlight, "carsvg__light")}
-        ${both(CAR.drl, "carsvg__drl")}
-        ${both(CAR.tail, "carsvg__tail")}
-        ${both(CAR.tailCore, "carsvg__tailcore")}
-        <g>${kidney}</g><g transform="${CAR_FLIP}">${kidney}</g>
-        <path d="${CAR.windshield}" class="carsvg__glass carsvg__frame"/>
-        <path d="${CAR.roof}" class="carsvg__roof"/>
-        <path d="${CAR.sunroof}" class="carsvg__glass"/>
-        ${both(CAR.window.f.d, "carsvg__glass")}
-        ${both(CAR.window.r.d, "carsvg__glass")}
-        <path d="${CAR.rearWindow}" class="carsvg__glass carsvg__frame"/>
-        ${both(CAR.bPillar, "carsvg__pillar")}
+        ${both(car.headlight, "carsvg__light")}
+        ${both(car.drl, "carsvg__drl")}
+        ${both(car.tail, "carsvg__tail")}
+        ${both(car.tailCore, "carsvg__tailcore")}
+        ${car.grille}
+        <path d="${car.windshield}" class="carsvg__glass carsvg__frame"/>
+        <path d="${car.roof}" class="carsvg__roof"/>
+        <path d="${car.sunroof}" class="carsvg__glass"/>${car.roofDetail || ""}
+        ${both(car.window.f.d, "carsvg__glass")}
+        ${both(car.window.r.d, "carsvg__glass")}
+        <path d="${car.rearWindow}" class="carsvg__glass carsvg__frame"/>
+        ${both(car.bPillar, "carsvg__pillar")}
         ${sheens}`;
   }
 
@@ -7097,6 +7223,7 @@ class BavarianDataCard extends HTMLElement {
     const diagram = this._carSvgClosures({
       doors, windows, hood, trunk, rearWindow, sunroof, lock, lockId,
       colors: { ALERT, WARN, OK },
+      car: this._carShape(entities),
     });
 
     this.shadowRoot.innerHTML = `
@@ -7150,6 +7277,7 @@ class BavarianDataCard extends HTMLElement {
   // the lock state. Every part is tappable.
   _carSvgClosures(d) {
     const { ALERT, WARN } = d.colors;
+    const car = d.car || CAR;
     // Keys are side + row: "lf" = left front, "rr" = right rear.
     const flip = (k) => (k && k[0] === "r" ? ` transform="${CAR_FLIP}"` : "");
     const hit = (path, id, k) => `<path d="${path}" class="cldiag__hit" data-entity="${id}"${flip(k)}/>`;
@@ -7162,9 +7290,9 @@ class BavarianDataCard extends HTMLElement {
     for (const k of ["lf", "rf", "lr", "rr"]) {
       const door = d.doors[k];
       if (!door) continue;
-      const g = CAR.door[k[1]];
+      const g = car.door[k[1]];
       if (door.open) {
-        const mirror = k[1] === "f" ? `<path d="${CAR.mirror}" class="carsvg__mirror"/>` : "";
+        const mirror = k[1] === "f" ? `<path d="${car.mirror}" class="carsvg__mirror"/>` : "";
         parts.push(
           `<g class="cldiag__lit" style="--c:${ALERT}"${flip(k)}>` +
             `<path d="${g.sill}" class="cldiag__sill"/><path d="${g.shadow}" class="cldiag__sillshadow"/>` +
@@ -7181,8 +7309,8 @@ class BavarianDataCard extends HTMLElement {
       if (part.open) parts.push(lit(path, ALERT));
       parts.push(hit(path, part.id));
     };
-    zone(d.hood, CAR.hood);
-    zone(d.trunk, CAR.trunk);
+    zone(d.hood, car.hood);
+    zone(d.trunk, car.trunk);
     // Glass (windows / sunroof / rear window) glows amber when open; a side
     // window also shows the lowered pane's top edge.
     const glass = (part, path, k, extra) => {
@@ -7192,11 +7320,12 @@ class BavarianDataCard extends HTMLElement {
     };
     for (const k of ["lf", "rf", "lr", "rr"]) {
       const w = d.windows[k];
-      const g = CAR.window[k[1]];
-      if (w) glass(w, g.d, k, `<path d="M200 ${g.drop} L300 ${g.drop}" class="cldiag__drop" clip-path="url(#${g.clip})"/>`);
+      const g = car.window[k[1]];
+      const [x1, x2] = g.dropX || [200, 300];
+      if (w) glass(w, g.d, k, `<path d="M${x1} ${g.drop} L${x2} ${g.drop}" class="cldiag__drop" clip-path="url(#${g.clip})"/>`);
     }
-    glass(d.sunroof, CAR.sunroof);
-    glass(d.rearWindow, CAR.rearWindow);
+    glass(d.sunroof, car.sunroof);
+    glass(d.rearWindow, car.rearWindow);
 
     // Padlock on the sunroof (open shackle when unlocked/unknown).
     const locked = d.lock.key === "locked" || d.lock.key === "secured";
@@ -7211,9 +7340,9 @@ class BavarianDataCard extends HTMLElement {
     const hide = { l: d.doors.lf && d.doors.lf.open, r: d.doors.rf && d.doors.rf.open };
     return `
       <svg class="carsvg" viewBox="0 0 948 1659" xmlns="http://www.w3.org/2000/svg">
-        ${this._carDefs()}
-        ${this._carWheels()}
-        ${this._carBody(hide)}
+        ${this._carDefs(car)}
+        ${this._carWheels(car)}
+        ${this._carBody(car, hide)}
         ${parts.join("\n        ")}
         ${padlock}
       </svg>`;
@@ -7693,6 +7822,8 @@ class BavarianDataCard extends HTMLElement {
       .carsvg__kidney { fill: #262c33; }
       .carsvg__kbar { fill: none; stroke: #59616a; stroke-width: 3; }
       .carsvg__handle { fill: #d6dbe0; stroke: #9aa2aa; stroke-width: 2; }
+      .carsvg__rail { fill: none; stroke: #4c535b; stroke-width: 12; stroke-linecap: round; }
+      .carsvg__rail--bar { stroke: #262c33; stroke-width: 8; stroke-linecap: butt; }
       .carsvg__wheel { fill: var(--tire); stroke: var(--tire); stroke-width: 14; stroke-linejoin: round; }
       .carsvg__wheel--lit { filter: url(#carGlow); }
 
@@ -8226,6 +8357,21 @@ class BavarianDataCardEditor extends HTMLElement {
         },
       });
     }
+    // The tire and closures views draw the car from above.
+    if (this._config && (this._config.cluster === "tire" || this._config.cluster === "closures")) {
+      schema.push({
+        name: "shape",
+        selector: {
+          select: {
+            mode: "dropdown",
+            options: ["auto", ...Object.keys(CAR_SHAPES)].map((value) => ({
+              value,
+              label: t(this._hass, value === "auto" ? "dt_auto" : "sh_" + value),
+            })),
+          },
+        },
+      });
+    }
     return schema;
   }
 
@@ -8251,6 +8397,7 @@ class BavarianDataCardEditor extends HTMLElement {
       cluster: mode,
       drivetrain: this._config.drivetrain || "auto",
       steering: this._config.steering || "auto",
+      shape: this._config.shape || "auto",
     };
   }
 
@@ -8270,6 +8417,7 @@ class BavarianDataCardEditor extends HTMLElement {
     // "Auto-detect" is the absence of the key, not a value to store.
     if (value.drivetrain === "auto") delete value.drivetrain;
     if (value.steering === "auto") delete value.steering;
+    if (value.shape === "auto") delete value.shape;
     // Drop empties so the stored config stays minimal.
     for (const key of Object.keys(value)) {
       if (value[key] === "" || value[key] === undefined || value[key] === null) {
