@@ -73,6 +73,10 @@ or finger) turns it all the way round. The photo also follows the car:
 - **Interior.** The seat button switches to a 360° panorama of the interior;
   drag to look around.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-interior.png" alt="The overview with the interior panorama: the cockpit seen from the driver's seat, the button back to the outside view top right" width="360" />
+</p>
+
 The card remembers the angle you turned the car to, whether you were inside or
 out, and where you were looking inside, so a reload shows the car as you left
 it. That is kept in your browser, so each device has its own.
@@ -208,7 +212,7 @@ view: efficiency
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-efficiency.png" alt="Efficiency and range card: real range now at the current charge, how far that is under the car's own prediction, the measured consumption with the side of the charger and the window it used, the usable capacity and where it came from, and a bar chart of consumption by month" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-efficiency.png" alt="Efficiency and range card: real range now at the current charge, how far that is under the car's own prediction, the measured consumption with the side of the charger and the window it used, the usable capacity and where it came from, and a bar chart of consumption by month" width="360" />
 </p>
 
 It shows the real range from here (and on a full battery), how that compares
@@ -239,10 +243,14 @@ type: custom:bavariandata-card
 view: mileage
 ```
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-mileage.png" alt="Mileage card: this month, this year and per day, the yearly pace, a bar per month, and a lease's progress bar with the distance under plan, the distance a day left and where the pace lands" width="360" />
+</p>
+
 It shows this month, this year and the average per day, the yearly pace that
-implies, and a bar per month for the last twelve. A period that began before
-BavarianData started recording is marked *since recording began*, and the pace
-waits for four weeks of readings. With a [mileage allowance](Feature-Mileage#a-mileage-allowance)
+implies, and a bar per month for the last twelve. If recording began this year,
+*this year* is estimated at your pace, with the recorded distance below it. The
+pace waits for four weeks of readings. With a [mileage allowance](Feature-Mileage#a-mileage-allowance)
 set up, a bar shows what's used of the allowance with a tick where the plan
 stands today, followed by under or over plan, the distance a day left until the
 end, and where the current pace lands. Without one, a line says where to add it.
@@ -454,6 +462,10 @@ emission controls) is folded away under **Technical codes**.
 type: custom:bavariandata-card
 view: equipment
 ```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-equipment.png" alt="Equipment card: paint, wheels and trim, then packages, then every other option with its BMW code, technical codes folded away at the bottom" width="360" />
+</p>
 
 It needs **Configure → [Vehicle image](Settings-Reference#vehicle-image)** set to
 BMW's configurator, which names the codes in BMW's basic vehicle info; until

@@ -9,6 +9,17 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **The Mileage view estimates this year when recording began mid-year.**
+  Instead of only the distance since BavarianData started recording, the
+  *This year* tile shows "≈ 9,640 km": the recorded part plus the days before
+  it at your pace, with the recorded distance underneath.
+
+### Fixed
+- **A lease ending on its anniversary counts whole years.** 16 Oct 2025 to
+  16 Oct 2029 at 30,000 km a year showed 120,081 km instead of 120,000: an end
+  date entered as the hand-back day now counts the same as the day before it.
+
 ## [0.9.19-beta.3] - 2026-10-14
 
 ### Fixed

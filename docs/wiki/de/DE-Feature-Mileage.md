@@ -8,6 +8,10 @@ Versicherung, zeigt BavarianData außerdem, ob du unter oder über Plan liegst u
 was noch übrig ist. Alles kommt vom Kilometerzähler des Autos selbst und kostet
 daher **kein API-Kontingent**.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-mileage.png" alt="Karte Kilometer: dieser Monat, dieses Jahr und pro Tag, das Jahrestempo, ein Balken pro Monat und der Fortschrittsbalken eines Leasings mit der Strecke unter Plan, der Strecke pro Tag bis zum Ende und wo das Tempo landet" width="360" />
+</p>
+
 ## Woher die Zahlen kommen
 
 <a id="where-the-figures-come-from"></a>
@@ -20,8 +24,11 @@ Protokoll mit den Ständen aus deinem Ladeverlauf, daher haben die meisten
 Installationen schon Monate an Daten.
 
 - **Dieser Monat / dieses Jahr:** vom Stand zu Beginn des Zeitraums bis zum
-  letzten Stand. Begann der Zeitraum vor dem Protokoll, steht *seit
-  Aufzeichnungsbeginn* dabei.
+  letzten Stand. Begann das Protokoll erst in diesem Jahr, ist *dieses Jahr*
+  eine Schätzung: die aufgezeichnete Strecke plus die Tage vor dem Protokoll in
+  deinem Tempo, angezeigt als „≈ 9.640 km“ mit dem tatsächlich Aufgezeichneten
+  darunter. Ohne Tempo steht die aufgezeichnete Strecke da, markiert mit *seit
+  Aufzeichnungsbeginn*.
 - **Letzte 12 Monate:** ein Balken pro Kalendermonat, an den Monatsgrenzen
   zwischen den Ständen davor und danach berechnet.
 - **Pro Tag und Jahrestempo:** der Durchschnitt der letzten 90 Tage. Er erscheint,

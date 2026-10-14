@@ -122,7 +122,8 @@ km.
 
 - **`odometer_km`**, **`since`** — the newest reading and the day the log starts.
 - **`this_month`**, **`this_year`** — `{km, partial}`; `partial` when the period
-  began before the log did.
+  began before the log did. A partial `this_year` also carries `estimated_km`
+  once the pace is known: `km` plus the days before the log at that pace.
 - **`km_per_day`**, **`projected_year_km`** — the 90-day pace; `null` until the
   readings span four weeks.
 - **`months`** — the last 12 calendar months, oldest first: `{month: "YYYY-MM",

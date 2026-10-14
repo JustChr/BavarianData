@@ -341,6 +341,7 @@ const TRANSLATIONS = {
     mi_this_year: "This year",
     mi_per_day: "Per day",
     mi_partial: "since recording began",
+    mi_recorded_since: "{d} recorded since {date}",
     mi_pace: "At this pace: about {d} a year",
     mi_no_pace: "The yearly pace shows after four weeks of readings.",
     mi_months: "Last 12 months",
@@ -676,6 +677,7 @@ const TRANSLATIONS = {
     mi_this_year: "Dieses Jahr",
     mi_per_day: "Pro Tag",
     mi_partial: "seit Aufzeichnungsbeginn",
+    mi_recorded_since: "{d} aufgezeichnet seit {date}",
     mi_pace: "Bei diesem Tempo: etwa {d} im Jahr",
     mi_no_pace: "Das Jahrestempo erscheint nach vier Wochen Kilometerständen.",
     mi_months: "Letzte 12 Monate",
@@ -998,6 +1000,7 @@ const TRANSLATIONS = {
     mi_this_year: "Cette année",
     mi_per_day: "Par jour",
     mi_partial: "depuis le début de l'enregistrement",
+    mi_recorded_since: "{d} enregistrés depuis le {date}",
     mi_pace: "À ce rythme : environ {d} par an",
     mi_no_pace: "Le rythme annuel apparaît après quatre semaines de relevés.",
     mi_months: "12 derniers mois",
@@ -1320,6 +1323,7 @@ const TRANSLATIONS = {
     mi_this_year: "Quest'anno",
     mi_per_day: "Al giorno",
     mi_partial: "dall'inizio della registrazione",
+    mi_recorded_since: "{d} registrati dal {date}",
     mi_pace: "A questo ritmo: circa {d} all'anno",
     mi_no_pace: "Il ritmo annuale compare dopo quattro settimane di letture.",
     mi_months: "Ultimi 12 mesi",
@@ -1642,6 +1646,7 @@ const TRANSLATIONS = {
     mi_this_year: "Este año",
     mi_per_day: "Por día",
     mi_partial: "desde que empezó el registro",
+    mi_recorded_since: "{d} registrados desde el {date}",
     mi_pace: "A este ritmo: unos {d} al año",
     mi_no_pace: "El ritmo anual aparece tras cuatro semanas de lecturas.",
     mi_months: "Últimos 12 meses",
@@ -1964,6 +1969,7 @@ const TRANSLATIONS = {
     mi_this_year: "Dit jaar",
     mi_per_day: "Per dag",
     mi_partial: "sinds het begin van de registratie",
+    mi_recorded_since: "{d} vastgelegd sinds {date}",
     mi_pace: "In dit tempo: ongeveer {d} per jaar",
     mi_no_pace: "Het jaartempo verschijnt na vier weken kilometerstanden.",
     mi_months: "Laatste 12 maanden",
@@ -2286,6 +2292,7 @@ const TRANSLATIONS = {
     mi_this_year: "Ten rok",
     mi_per_day: "Dziennie",
     mi_partial: "od początku zapisu",
+    mi_recorded_since: "{d} zapisane od {date}",
     mi_pace: "W tym tempie: ok. {d} rocznie",
     mi_no_pace: "Tempo roczne pojawi się po czterech tygodniach odczytów.",
     mi_months: "Ostatnie 12 miesięcy",
@@ -2608,6 +2615,7 @@ const TRANSLATIONS = {
     mi_this_year: "Este ano",
     mi_per_day: "Por dia",
     mi_partial: "desde o início do registo",
+    mi_recorded_since: "{d} registados desde {date}",
     mi_pace: "A este ritmo: cerca de {d} por ano",
     mi_no_pace: "O ritmo anual aparece após quatro semanas de leituras.",
     mi_months: "Últimos 12 meses",
@@ -2930,6 +2938,7 @@ const TRANSLATIONS = {
     mi_this_year: "Tento rok",
     mi_per_day: "Za den",
     mi_partial: "od začátku záznamu",
+    mi_recorded_since: "{d} zaznamenáno od {date}",
     mi_pace: "Tímto tempem: zhruba {d} za rok",
     mi_no_pace: "Roční tempo se ukáže po čtyřech týdnech záznamů.",
     mi_months: "Posledních 12 měsíců",
@@ -3252,6 +3261,7 @@ const TRANSLATIONS = {
     mi_this_year: "I år",
     mi_per_day: "Per dag",
     mi_partial: "sedan registreringen började",
+    mi_recorded_since: "{d} registrerat sedan {date}",
     mi_pace: "I den här takten: cirka {d} per år",
     mi_no_pace: "Årstakten visas efter fyra veckors mätarställningar.",
     mi_months: "Senaste 12 månaderna",
@@ -7444,10 +7454,17 @@ class BavarianDataCard extends HTMLElement {
     const dist = (km) => this._distance(km, unit);
     const tile = (label, part) => {
       if (!part) return "";
+      // A year begun before the log: the estimate first, what was recorded below.
+      const estimated = part.estimated_km != null;
+      const note = estimated
+        ? this._t("mi_recorded_since", { d: dist(part.km), date: this._isoDay(data.since) })
+        : part.partial
+        ? this._t("mi_partial")
+        : "";
       return `<div class="ef__fact">
           <span class="ef__fact-lbl">${label}</span>
-          <span class="ef__fact-val">${dist(part.km)}</span>
-          ${part.partial ? `<span class="ef__fact-note">${this._t("mi_partial")}</span>` : ""}
+          <span class="ef__fact-val">${estimated ? "≈ " + dist(part.estimated_km) : dist(part.km)}</span>
+          ${note ? `<span class="ef__fact-note">${note}</span>` : ""}
         </div>`;
     };
     const perDay =

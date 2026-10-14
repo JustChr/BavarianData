@@ -80,6 +80,10 @@ oder Finger) dreht es einmal ganz herum. Das Bild folgt auch dem Auto:
 - **Innenraum.** Der Sitz-Knopf wechselt zu einem 360°-Panorama des Innenraums;
   ziehen, um sich umzusehen.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-interior.png" alt="Die Übersicht mit dem Innenraum-Panorama: das Cockpit vom Fahrersitz aus, oben rechts der Knopf zurück zur Außenansicht" width="360" />
+</p>
+
 Die Karte merkt sich, wie weit du das Auto gedreht hast, ob du innen oder außen
 warst und wohin du innen geschaut hast, sodass es nach dem Neuladen so dasteht,
 wie du es verlassen hast. Das liegt in deinem Browser, jedes Gerät hat also
@@ -225,7 +229,7 @@ view: efficiency
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-efficiency.png" alt="Karte Effizienz und Reichweite: reale Reichweite beim aktuellen Ladezustand, Abstand zur Prognose des Autos, gemessener Verbrauch mit Seite des Ladegeräts und Fenster, nutzbare Kapazität und Herkunft sowie ein Balkendiagramm des Verbrauchs nach Monat" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-efficiency.png" alt="Karte Effizienz und Reichweite: reale Reichweite beim aktuellen Ladezustand, Abstand zur Prognose des Autos, gemessener Verbrauch mit Seite des Ladegeräts und Fenster, nutzbare Kapazität und Herkunft sowie ein Balkendiagramm des Verbrauchs nach Monat" width="360" />
 </p>
 
 Sie zeigt die reale Reichweite von hier (und mit vollem Akku), den Vergleich mit der
@@ -259,10 +263,15 @@ type: custom:bavariandata-card
 view: mileage
 ```
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-mileage.png" alt="Karte Kilometer: dieser Monat, dieses Jahr und pro Tag, das Jahrestempo, ein Balken pro Monat und der Fortschrittsbalken eines Leasings mit der Strecke unter Plan, der Strecke pro Tag bis zum Ende und wo das Tempo landet" width="360" />
+</p>
+
 Sie zeigt diesen Monat, dieses Jahr und den Schnitt pro Tag, das Jahrestempo
-daraus und einen Balken pro Monat für die letzten zwölf. Ein Zeitraum, der vor
-dem Aufzeichnungsbeginn von BavarianData lag, ist mit *seit Aufzeichnungsbeginn*
-markiert, und das Tempo wartet auf vier Wochen Kilometerstände. Mit einem
+daraus und einen Balken pro Monat für die letzten zwölf. Begann die Aufzeichnung
+erst in diesem Jahr, ist *dieses Jahr* in deinem Tempo geschätzt, mit der
+aufgezeichneten Strecke darunter. Das Tempo wartet auf vier Wochen
+Kilometerstände. Mit einem
 [Kilometerkontingent](DE-Feature-Mileage#a-mileage-allowance) zeigt ein Balken,
 wie viel davon verbraucht ist, mit einer Markierung, wo der Plan heute steht;
 darunter unter oder über Plan, die Strecke pro Tag bis zum Ende und wo das
@@ -487,6 +496,10 @@ Unterlagen, Abgassteuerung), ist unter **Technische Codes** eingeklappt.
 type: custom:bavariandata-card
 view: equipment
 ```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-equipment.png" alt="Karte Ausstattung: Lack, Räder und Leisten, dann Pakete, dann jede weitere Option mit ihrem BMW-Code, die technischen Codes unten eingeklappt" width="360" />
+</p>
 
 Dafür muss **Konfigurieren → [Fahrzeugbild](DE-Settings-Reference#fahrzeugbild)**
 auf BMWs Konfigurator stehen, der die Codes aus BMWs Fahrzeug-Basisdaten

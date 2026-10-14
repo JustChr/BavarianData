@@ -148,11 +148,18 @@ def overview(log: Mapping[str, float], today: date) -> dict[str, Any]:
 
     pairs = readings(log)
     pace = km_per_day(log, today)
+    this_year = _distance_since(log, date(today.year, 1, 1), today)
+    if this_year and this_year["partial"] and pace is not None:
+        # Most people start mid-year: the days before the log are filled in at
+        # the car's pace, so the tile answers "how far this year" rather than
+        # "how far since I installed this". The recorded figure stays alongside.
+        before = (pairs[0][0] + timedelta(days=1) - date(today.year, 1, 1)).days
+        this_year["estimated_km"] = round(this_year["km"] + pace * max(0, before))
     return {
         "odometer_km": pairs[-1][1] if pairs else None,
         "since": pairs[0][0].isoformat() if pairs else None,
         "this_month": _distance_since(log, _month_start(today), today),
-        "this_year": _distance_since(log, date(today.year, 1, 1), today),
+        "this_year": this_year,
         "km_per_day": round(pace, 1) if pace is not None else None,
         "projected_year_km": round(pace * 365) if pace is not None else None,
         "months": monthly_km(log, today),
@@ -193,8 +200,9 @@ def anniversary(start: date, year: int) -> date:
 def contract_years(start: date, end: date) -> float:
     """A contract's length in years, counted in months: 1 Jul to 30 Jun is one year.
 
-    The end date is the last day of the contract, so the length runs to the day
-    after it. Whole months first; the days left over are a fraction of the
+    The end date is taken as the last day of the contract, so the length runs to
+    the day after it -- unless that leaves exactly one day over a whole month,
+    which is an end entered as the hand-back day. Whole months first; the days left over are a fraction of the
     month they fall in. A day count over 365.25 made a 36-month lease 2.998
     years and its allowance 44,969 km instead of 45,000.
     """
@@ -205,9 +213,13 @@ def contract_years(start: date, end: date) -> float:
     if anchor > stop:
         months -= 1
         anchor = _add_months(start, months)
+    leftover = (stop - anchor).days
+    if leftover == 1 and months:
+        # People write a contract's end both ways: its last day (30 Jun) or the
+        # hand-back day (1 Jul, the anniversary). One stray day is the latter.
+        return months / 12
     following = _add_months(start, months + 1)
-    fraction = (stop - anchor).days / max(1, (following - anchor).days)
-    return (months + fraction) / 12
+    return (months + leftover / max(1, (following - anchor).days)) / 12
 
 
 def _add_months(day: date, months: int) -> date:

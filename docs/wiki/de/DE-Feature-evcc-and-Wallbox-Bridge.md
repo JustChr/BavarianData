@@ -47,6 +47,10 @@ derselbe, den evcc liest.
 5. Sorge dafür, dass evccs eigener Abschnitt `mqtt:` auf denselben Broker zeigt,
    weise das Fahrzeug einem Ladepunkt zu und starte evcc neu.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-evcc-snippet.png" alt="Die Maske evcc-Konfiguration: ein vehicles-Block mit einem MQTT-Topic je Feld (soc, status, range, odometer, limitSoc) unter dem Präfix der Brücke und der FIN des Autos" width="460" />
+</p>
+
 Die Konfiguration kannst du jederzeit erneut mit der Aktion
 [`get_evcc_config`](DE-Services-Reference#get_evcc_config) abrufen, die dir auch
 sagt, welche Topics gerade live sind.

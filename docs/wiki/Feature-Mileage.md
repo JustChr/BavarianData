@@ -7,6 +7,10 @@ If the car has a **mileage limit**, from a lease or from your insurance,
 BavarianData also shows whether you're under or over plan and what's left.
 Everything is read off the car's own odometer, so it costs **no API quota**.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-mileage.png" alt="Mileage card: this month, this year and per day, the yearly pace, a bar per month, and a lease's progress bar with the distance under plan, the distance a day left and where the pace lands" width="360" />
+</p>
+
 ## Where the figures come from
 
 BavarianData keeps **one odometer reading a day** for each car, the highest of
@@ -16,8 +20,10 @@ the day you upgrade, the log starts with the readings stored with your charging
 history, so most installs already have months of data.
 
 - **This month / this year:** from the odometer at the start of the period to
-  the latest reading. A period that started before the log did is marked *since
-  recording began*.
+  the latest reading. If the log started this year, *this year* is an estimate:
+  the recorded distance plus the days before the log at your pace, shown as
+  "≈ 9,640 km" with what was actually recorded below it. Without a pace yet,
+  it shows the recorded distance, marked *since recording began*.
 - **Last 12 months:** one bar per calendar month, worked out at the month
   boundaries between the readings around them.
 - **Per day and the yearly pace:** the average over the last 90 days. It shows

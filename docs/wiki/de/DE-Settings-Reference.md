@@ -15,7 +15,7 @@ Konto erlaubt und ein Neuladen mit dem Wiederverbinden kollidieren könnte.
 ## Das Menü Konfigurieren
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-menu.png" alt="Optionsmenü von BavarianData mit allen Aktionen, von Choose streamed data bis Debug logging" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-menu.png?v=2026-10-14" alt="Optionsmenü von BavarianData mit allen Aktionen, von Choose streamed data bis Debug logging" width="460" />
 </p>
 
 Die Menüeinträge unten sind so geschrieben, wie sie in der deutschen Oberfläche
@@ -244,6 +244,10 @@ Mit nur einem Auto gibt es keine Fahrzeugabfrage.
 Maske: **Konfigurieren → Kilometerkontingent**. Was die Werte bedeuten, steht
 unter [Kilometer & Kontingent](DE-Feature-Mileage).
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-mileage-allowance.png" alt="Kilometerkontingent: None, Lease or financing oder Yearly limit (e.g. insurance), mit einem Next-Knopf" width="460" />
+</p>
+
 Die erste Maske fragt, welche Art Grenze das Auto hat: **Keins**, **Leasing oder
 Finanzierung** oder **Jahresgrenze (z. B. Versicherung)**. **Weiter** öffnet das
 Formular dieser Art; **Keins** entfernt das Kontingent des Autos. Das Kontingent
@@ -253,6 +257,14 @@ im Sensor.
 
 | Option | Werte | Bedeutung |
 | --- | --- | --- |
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-mileage-lease.png" alt="Leasing oder Finanzierung: Beginn, Ende, Kilometer pro Jahr und Kilometerstand bei Beginn, ausgefüllt für ein dreijähriges Leasing mit 15.000 km im Jahr" width="460" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-mileage-yearly.png" alt="Jahresgrenze: der Tag, an dem das Jahr beginnt, die Kilometer pro Jahr und der Kilometerstand an dem Tag" width="460" />
+</p>
+
 | **Beginn** / **Jahr beginnt am** | Datum | Der Tag, an dem das Leasing begann, oder der erste Tag deines Versicherungsjahres (eine Jahresgrenze beginnt jedes Jahr an diesem Tag neu). |
 | **Ende** | Datum | Nur Leasing: der Tag der Rückgabe. Muss nach dem Beginn liegen. |
 | **Kilometer pro Jahr** | km (mi bei US-Einheiten) | Aus Vertrag oder Police. Das Gesamtkontingent eines Leasings ist dieser Wert mal die Laufzeit. |

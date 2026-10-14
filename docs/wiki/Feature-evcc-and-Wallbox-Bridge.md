@@ -46,6 +46,10 @@ same one evcc reads.
 5. Make sure evcc's own `mqtt:` section points at the same broker, assign the
    vehicle to a loadpoint, and restart evcc.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-evcc-snippet.png" alt="The evcc configuration screen: a vehicles block with an MQTT topic per field (soc, status, range, odometer, limitSoc) under the bridge's prefix and the car's VIN" width="460" />
+</p>
+
 You can fetch that configuration again at any time with the
 [`get_evcc_config`](Services-Reference#get_evcc_config) action, which also tells
 you which topics are currently live.

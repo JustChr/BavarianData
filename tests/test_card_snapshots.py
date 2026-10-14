@@ -142,7 +142,7 @@ MILEAGE = {
         "odometer_km": 23412.0,
         "since": "2026-01-12",
         "this_month": {"km": 380, "partial": False},
-        "this_year": {"km": 10680, "partial": True},
+        "this_year": {"km": 10680, "partial": True, "estimated_km": 10910},
         "km_per_day": 41.2,
         "projected_year_km": 15038,
         "months": _MONTHS,

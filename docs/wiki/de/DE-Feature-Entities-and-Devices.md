@@ -156,6 +156,10 @@ Kalenderkarte. Er ist **standardmäßig deaktiviert**; aktivieren unter
 Entitäten*. Er kostet kein Kontingent: Die Einträge kommen mit dem täglichen
 Datenabruf.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-service-calendar.png" alt="Die Kalenderkarte von Home Assistant in der Listenansicht: Bremsflüssigkeit und Fahrzeug-Check als ganztägige Termine am 1. Oktober 2027" width="400" />
+</p>
+
 - BMW nennt einen **Monat**, keinen Tag. Jeder Eintrag ist deshalb ein Termin am
   **1.** dieses Monats, beschrieben als „Fällig bis Ende Oktober 2027“. Verschiebt
   BMW das Datum, wandert der Termin mit.

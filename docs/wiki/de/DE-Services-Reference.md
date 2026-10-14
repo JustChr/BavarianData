@@ -129,7 +129,9 @@ BMW-API-Kontingent. Alle Strecken in km.
 - **`odometer_km`**, **`since`** — der neueste Stand und der Tag, an dem das
   Protokoll beginnt.
 - **`this_month`**, **`this_year`** — `{km, partial}`; `partial`, wenn der Zeitraum
-  vor dem Protokoll begann.
+  vor dem Protokoll begann. Ein unvollständiges `this_year` trägt außerdem
+  `estimated_km`, sobald das Tempo bekannt ist: `km` plus die Tage vor dem
+  Protokoll in diesem Tempo.
 - **`km_per_day`**, **`projected_year_km`** — das 90-Tage-Tempo; `null`, bis die
   Stände vier Wochen abdecken.
 - **`months`** — die letzten 12 Kalendermonate, ältester zuerst: `{month:

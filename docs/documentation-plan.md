@@ -156,10 +156,10 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `action_charging_costs` | Charging costs & history (per car with 2+ cars: meter and losses; price etc. in "All vehicles") | 🟡 | 📷 (have, 2026-10-11: `bavariandata-charging-costs.png`) |
 | `bridge_vehicle` | evcc bridge: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "evcc / wallbox bridge" + Feature-Multiple-Cars-and-Accounts (EN + DE) | 📷 (have, staged two-car: `bavariandata-evcc-bridge-second-car.png`; picker shared) |
 | `action_evcc_bridge` | evcc / wallbox bridge (per car with 2+ cars: publish on/off; prefix and retained in "All vehicles") | 🟢 Feature-evcc-and-Wallbox-Bridge + Settings-Reference → "evcc / wallbox bridge" | 📷 (have, 2026-10-11: `bavariandata-evcc-bridge.png`) |
-| `evcc_snippet` | evcc configuration (generated, paste-ready) | 🟢 Feature-evcc-and-Wallbox-Bridge → "Setting it up" | 📷 **owed** — needs the build installed |
+| `evcc_snippet` | evcc configuration (generated, paste-ready) | 🟢 Feature-evcc-and-Wallbox-Bridge → "Setting it up" | 📷 (have, 2026-10-14: `bavariandata-evcc-snippet.png`, staged from the live YAML with the VIN replaced: the bridge was off) |
 | `trips_vehicle` | Trips: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Trips" + Feature-Multiple-Cars-and-Accounts → "Telling the cars apart" (EN + DE) | 📷 (have, staged two-car: `bavariandata-vehicle-picker.png`) |
 | `action_trips` | Trips (per car with 2+ cars; shared settings in the collapsed "All vehicles" section) | 🟡 | 📷 (have, 2026-10-11: `bavariandata-configure-trips.png`) |
-| `action_mileage` → `mileage_vehicle` (2+ cars) → `mileage_lease` / `mileage_yearly` | Mileage allowance (always per car, even with one car) | 🟢 Settings-Reference → "Mileage allowance" + Feature-Mileage (EN + DE) | 📷 **owed** — needs the build installed |
+| `action_mileage` → `mileage_vehicle` (2+ cars) → `mileage_lease` / `mileage_yearly` | Mileage allowance (always per car, even with one car) | 🟢 Settings-Reference → "Mileage allowance" + Feature-Mileage (EN + DE) | 📷 (have, 2026-10-14: `bavariandata-mileage-allowance.png`, `-lease.png` with example figures, `-yearly.png`) |
 | `action_debug_logging` | Debug logging toggle | 🟡 | 📷 |
 
 ### Settings (option keys) — the fields inside those screens
@@ -201,10 +201,10 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `view: trips` | Driving journal | 🟡 | 📷 |
 | `view: map` | Trip map (routes) | 🟡 | 📷 (needs route data) |
 | `view: health` | Battery health | 🟡 | 📷 |
-| `view: efficiency` | Efficiency & real range | 🟢 The-Dashboard-Card + Feature-Efficiency-and-Range | 📷 **owed** — needs the build installed |
-| `view: mileage` | Mileage overview + allowance | 🟢 The-Dashboard-Card → "Mileage" + Feature-Mileage (EN + DE) | 📷 **owed** — needs the build installed |
-| `view: equipment` | Factory equipment by name (from the configurator picture source) | 🟢 The-Dashboard-Card → "Equipment" (EN + DE) | 📷 **owed** — needs the build installed |
-| Overview hero with the configurator picture (spin, lights/night, state badges + top-down inset, interior panorama; angle/mode/look remembered per browser) | Overview | 🟢 The-Dashboard-Card → "Overview" (EN + DE) | 📷 (have: `card-hero-spin.png`; badges/interior **owed**) |
+| `view: efficiency` | Efficiency & real range | 🟢 The-Dashboard-Card + Feature-Efficiency-and-Range | 📷 (have, 2026-10-14: `card-efficiency.png`) |
+| `view: mileage` | Mileage overview + allowance | 🟢 The-Dashboard-Card → "Mileage" + Feature-Mileage (EN + DE) | 📷 (have, 2026-10-14: `card-mileage.png`, live overview with an example lease) |
+| `view: equipment` | Factory equipment by name (from the configurator picture source) | 🟢 The-Dashboard-Card → "Equipment" (EN + DE) | 📷 (have, 2026-10-14: `card-equipment.png`) |
+| Overview hero with the configurator picture (spin, lights/night, state badges + top-down inset, interior panorama; angle/mode/look remembered per browser) | Overview | 🟢 The-Dashboard-Card → "Overview" (EN + DE) | 📷 (have: `card-hero-spin.png`, `card-hero-interior.png`; badges **owed**: needs the car open or lit) |
 | `cluster: tire` | Tires (pressure + wear) | 🟡 | 📷 (have) |
 | `shape:` (tire + closures) | Top-down car drawn per model — BMW sedan, or MINI Countryman picked from basic data's `model_name`; `shape:` override | 🟢 — The-Dashboard-Card → "The car's shape" + YAML reference | 📷 (have, rendered from the shipped card: no Countryman to capture live) |
 | `cluster: closures` | Security & closures — side doors/windows placed by steering side (BMW basic data, `steering:` override) | 🟡 — the steering side and its override are 🟢 in The-Dashboard-Card → "Security & closures" + YAML reference | 📷 (have, left-hand drive; a right-hand-drive shot is owed: no such car to capture) |
@@ -262,7 +262,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | `last_vehicle_report` (disabled by default; the car's own time of its last odometer report) | Diagnostic for logbooks | 🟢 Feature-Entities-and-Devices → derived table (EN + DE) |
 | GPS latitude / longitude sensors (disabled by default, opt-in for add-ons that only take `sensor.*`) | Position as plain sensors | 🟢 Feature-Entities-and-Devices → "Device tracker" (EN + DE) |
 | `vehicle_image` (image) | Cached render | 🟡 |
-| `service` (calendar, disabled by default; service items as all-day events, distance-only items projected from the odometer log's 90-day pace) | Service calendar | 🟢 Feature-Entities-and-Devices → "Service calendar" (EN + DE) | 📷 owed |
+| `service` (calendar, disabled by default; service items as all-day events, distance-only items projected from the odometer log's 90-day pace) | Service calendar | 🟢 Feature-Entities-and-Devices → "Service calendar" (EN + DE) | 📷 (have, 2026-10-14: `bavariandata-service-calendar.png`) |
 | `mileage_allowance` (sensor, disabled by default; balance against the allowance's plan, km) | Mileage allowance balance | 🟢 Feature-Entities-and-Devices → derived table + Feature-Mileage (EN + DE) |
 
 ### Cross-cutting features
@@ -277,7 +277,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Solar & energy sources (the PV/battery/grid split, what it costs) | 🟢 Feature-Charging-History-and-Cost → "Where the energy came from" + Settings-Reference → "Solar & energy sources" (screen shot 2026-09-12) + The-Dashboard-Card; the Configure menu shot is refreshed to all fifteen actions (superseded: the bridge makes it sixteen) |
 | Efficiency & real range (the window rule, the two sides of the charger, the measured charging loss) | 🟢 Feature-Efficiency-and-Range + The-Dashboard-Card — the `view: efficiency` card shot 2026-09-12, showing the comparison against the car's own prediction |
 | Mileage & allowance (daily odometer log seeded from charging sessions, month interpolation, 90-day pace, lease vs yearly limit, lease end in the service calendar) | 🟢 Feature-Mileage (EN + DE) |
-| evcc / wallbox bridge — outbound SoC over MQTT (unknown publishes nothing, the heartbeat, switch-off clears) and inbound wallbox metering | 🟢 Feature-evcc-and-Wallbox-Bridge + Settings-Reference → "evcc / wallbox bridge" + Services-Reference → `get_evcc_config`; the Configure menu shot is now owed again (sixteen actions) |
+| evcc / wallbox bridge — outbound SoC over MQTT (unknown publishes nothing, the heartbeat, switch-off clears) and inbound wallbox metering | 🟢 Feature-evcc-and-Wallbox-Bridge + Settings-Reference → "evcc / wallbox bridge" + Services-Reference → `get_evcc_config`; the Configure menu shot is current (18 actions, re-shot 2026-10-14) |
 | Trips / Fahrtenbuch (+ legal caveat) | 🟡 |
 | Consumption: plug-side balance, battery-side average, the 3 % SoC gate | 🟢 Feature-Trips → "How consumption is measured" + The-Dashboard-Card |
 | Month window on the trips & charging card views | 🟢 The-Dashboard-Card → "One month at a time" (both views) |

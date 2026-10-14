@@ -194,3 +194,34 @@ def test_the_restored_odometer_lands_in_the_log():
             h.vin, "vehicle.vehicle.travelledDistance", 20756, "km", stamp
         )
         assert h.coordinator.history.odometer_log(h.vin) == {h.at(0).date().isoformat(): 20756.0}
+
+
+def test_a_lease_ending_on_its_anniversary_is_whole_years_too():
+    # Found live: a lease entered as 16 Oct 2025 to 16 Oct 2029 (the hand-back
+    # day, not the last day) came out at 48 months and a day: 120,081 km.
+    lease = {
+        **LEASE,
+        "mileage_start": "2025-10-16",
+        "mileage_end": "2029-10-16",
+        "mileage_allowance_km": 30000,
+    }
+    assert mileage.mileage_report({}, TODAY, lease)["allowance"]["allowance_km"] == 120000
+
+
+def test_a_year_begun_before_the_log_is_estimated_at_the_pace():
+    # Chris, 2026-10-14: most people start mid-year, and "3,340 km since
+    # recording began" doesn't answer "how far this year".
+    log = _steady(date(2026, 7, 1), TODAY, 30.0)
+    year = mileage.mileage_report(log, TODAY)["this_year"]
+    assert year["partial"] and year["km"] == 30 * (TODAY - date(2026, 7, 1)).days
+    # 1 Jan to the end of 1 Jul (the first reading) at 30 km a day.
+    assert year["estimated_km"] == year["km"] + 30 * 182
+    # No pace yet, no estimate; a full year needs none.
+    assert (
+        "estimated_km"
+        not in mileage.mileage_report(_steady(date(2026, 9, 20), TODAY, 30.0), TODAY)["this_year"]
+    )
+    assert (
+        "estimated_km"
+        not in mileage.mileage_report(_steady(date(2025, 6, 1), TODAY, 30.0), TODAY)["this_year"]
+    )

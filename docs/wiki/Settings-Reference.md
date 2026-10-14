@@ -15,7 +15,7 @@ reconnect.
 ## The Configure menu
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-menu.png" alt="BavarianData options menu listing every action, from Choose streamed data to Debug logging" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-menu.png?v=2026-10-14" alt="BavarianData options menu listing every action, from Choose streamed data to Debug logging" width="460" />
 </p>
 
 The menu labels below are exactly as they appear in the UI.
@@ -228,6 +228,10 @@ there is no vehicle question.
 Screen: **Configure → Mileage allowance**. See [Mileage & allowance](Feature-Mileage)
 for what the figures mean.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-mileage-allowance.png" alt="Mileage allowance: None, Lease or financing, or Yearly limit (e.g. insurance), with a Next button" width="460" />
+</p>
+
 The first screen asks which kind of limit the car has: **None**, **Lease or
 financing** or **Yearly limit (e.g. insurance)**. **Next** opens that kind's
 form; **None** removes the car's allowance. The allowance is always the car's
@@ -236,6 +240,14 @@ starts without one. It applies at once, to the card and the sensor.
 
 | Option | Values | Meaning |
 | --- | --- | --- |
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-mileage-lease.png" alt="Lease or financing: start date, end date, allowance per year and odometer at the start, filled in for a three-year lease at 15,000 km a year" width="460" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-mileage-yearly.png" alt="Yearly limit: the day the year starts, the allowance per year and the odometer that day" width="460" />
+</p>
+
 | **Start date** / **Year starts on** | date | The day the lease began, or the first day of your insurance year (a yearly limit renews on it every year). |
 | **End date** | date | Lease only: the day you hand the car back. Must be after the start. |
 | **Allowance per year** | km (mi with US units) | From the contract or policy. A lease's total is this times its length. |

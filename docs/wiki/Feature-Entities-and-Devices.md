@@ -138,6 +138,10 @@ Assistant's calendar and on any calendar card. It's **disabled by default**;
 enable it under *Settings → Devices & Services → BavarianData → your car →
 disabled entities*. It costs no quota: the items come with the daily data fetch.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-service-calendar.png" alt="Home Assistant's calendar card in list view: brake fluid and the vehicle check as all-day events on 1 October 2027" width="400" />
+</p>
+
 - BMW gives a due **month**, not a day, so each item is an event on the **1st**
   of that month, described as "due by the end of October 2027". When BMW moves
   the date, the event moves with it.
