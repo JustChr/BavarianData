@@ -194,6 +194,49 @@ def test_the_interior_switch_appears_with_a_panorama():
     assert "data-hero-mode" not in _hero({**I5, "image.car": _image(configurator_spin=SPIN)})
 
 
+def _hero_with_storage(states: dict, stored: object) -> str:
+    """The hero, rendered in a browser whose storage holds ``stored`` for the
+    image entity (raw text, so junk can be tested too)."""
+    stub = (
+        "const __stored = "
+        + json.dumps({"bavariandata-hero:image.car": stored})
+        + ";\nObject.defineProperty(globalThis, 'localStorage', { configurable: true, "
+        "value: { getItem: (k) => (k in __stored ? __stored[k] : null), setItem() {} } });\n"
+    )
+    states = {entity_id: {**st, "entity_id": entity_id} for entity_id, st in states.items()}
+    result = subprocess.run(
+        [NODE, "-e", stub + _SIGNING, str(_CARD)],
+        input=json.dumps({"states": states, "config": {}}),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+        timeout=60,
+    )
+    payload = json.loads(result.stdout)
+    assert payload["error"] is None, payload["error"]
+    return payload["html"].split('<div class="band">')[0]
+
+
+def test_the_hero_comes_back_as_the_viewer_left_it():
+    states = {**I5, "image.car": _image(configurator_spin=SPIN, configurator_interior=PANO)}
+    # Frame 9: column 3 of 6, second row.
+    turned = _hero_with_storage(states, json.dumps({"frame": 9, "mode": "exterior"}))
+    assert "background-position:60% 20%" in turned
+    inside = _hero_with_storage(
+        states, json.dumps({"frame": 9, "mode": "interior", "yaw": 30, "pitch": -200})
+    )
+    assert 'class="pano"' in inside and "hero__spin" not in inside
+    # A look past straight down is clamped, as dragging would.
+    assert "rotateX(-80deg) rotateY(30deg)" in inside
+
+
+@pytest.mark.parametrize("junk", ["not json", "[1, 2]", json.dumps({"frame": "x", "mode": "up"})])
+def test_junk_in_storage_shows_the_default_view(junk):
+    hero = _hero_with_storage({**I5, "image.car": _image(configurator_spin=SPIN)}, junk)
+    assert "background-position:80% 0%" in hero
+
+
 def test_the_tire_view_uses_bmws_top_view_where_there_is_one():
     top = {"path": "/api/bavariandata/spin/0123456789abcdef01234567_top/1"}
     html = _render_signed(

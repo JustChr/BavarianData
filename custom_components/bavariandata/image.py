@@ -409,10 +409,18 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
 
     _attr_translation_key = "vehicle_image"
     _attr_name = None
-    # The equipment list runs to ~5 KB and the picture paths change only on a
-    # refetch: keep them out of the recorder's history of this entity.
+    # The equipment list runs to ~5 KB, and it, the picture paths and BMW's
+    # basic data change only on a refetch: keep them out of the recorder's
+    # history of this entity.
     _unrecorded_attributes = frozenset(
-        {"equipment", "configurator_spin", "configurator_interior", "configurator_top"}
+        {
+            "equipment",
+            "configurator_spin",
+            "configurator_interior",
+            "configurator_top",
+            "vehicle_basic_data",
+            "vehicle_basic_data_raw",
+        }
     )
 
     def __init__(
@@ -523,6 +531,7 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
     @property
     def extra_state_attributes(self) -> dict:
         attrs = dict(super().extra_state_attributes)
+        attrs.update(self._basic_data_attributes())
         record = self._cache.get(self._vin)
         if record and record.get("updated"):
             attrs["image_fetched_at"] = record["updated"]

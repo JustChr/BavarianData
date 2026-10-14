@@ -95,6 +95,12 @@ Each VIN also gets an **image** entity holding BMW's rendered picture of the car
 It is **cached and survives restarts**, so it doesn't burn quota on every boot;
 refresh it manually with `bavariandata.fetch_vehicle_image`.
 
+The vehicle image and the device tracker also carry BMW's **basic data** for the
+car: `vehicle_basic_data` (model, drivetrain, steering side, sunroof, the
+factory option codes, …) and `vehicle_basic_data_raw` (BMW's answer as sent).
+Use them in templates, e.g. `{{ state_attr('image.my_car', 'vehicle_basic_data').model_name }}`.
+No other entity has them.
+
 BMW CarData provides exactly one picture per car, a side view, and the API has
 no option for other angles. **Configure → Vehicle image** can switch the picture
 to BMW's online configurator instead: your exact car as a 360° turntable, at no

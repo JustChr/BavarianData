@@ -71,8 +71,11 @@ or finger) turns it all the way round. The photo also follows the car:
   [top-down drawing](#security--closures-cluster-closures) appears in the corner
   with the open part lit up.
 - **Interior.** The seat button switches to a 360° panorama of the interior;
-  drag to look around. It shows BMW's default trim, because BMW's vehicle data
-  doesn't say which upholstery a car has, and the picture says so.
+  drag to look around.
+
+The card remembers the angle you turned the car to, whether you were inside or
+out, and where you were looking inside, so a reload shows the car as you left
+it. That is kept in your browser, so each device has its own.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-spin.png" alt="The overview card with the configurator picture: the i5 Touring seen from the rear three-quarter, turned by dragging" width="300" />

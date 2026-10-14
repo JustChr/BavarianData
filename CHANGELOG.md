@@ -9,6 +9,22 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **The card remembers how you left the car.** The angle you turned the 360°
+  picture to, whether you were looking inside or out, and where you were looking
+  inside now survive a reload. It's kept in your browser, so each device keeps
+  its own.
+- **BMW's basic data is on two entities, not all of them** (thanks
+  @BeastleeUK, #100). `vehicle_basic_data` and `vehicle_basic_data_raw` (model,
+  drivetrain, steering side, option codes, …) were attached to every
+  BavarianData entity, a few hundred copies of the same thing in each state
+  update. They now live on the car's **vehicle image** and **device tracker**
+  only, and the image keeps them out of the recorder's history. If a template
+  reads them from a sensor, point it at the image or the tracker instead.
+
+### Fixed
+- The interior panorama no longer claims to show BMW's default trim.
+
 ## [0.9.18-beta.9] - 2026-10-14
 
 ### Added

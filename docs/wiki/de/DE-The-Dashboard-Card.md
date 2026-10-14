@@ -78,8 +78,12 @@ oder Finger) dreht es einmal ganz herum. Das Bild folgt auch dem Auto:
   [Zeichnung von oben](#security--closures-cluster-closures) in der Ecke, mit dem
   offenen Teil hervorgehoben.
 - **Innenraum.** Der Sitz-Knopf wechselt zu einem 360°-Panorama des Innenraums;
-  ziehen, um sich umzusehen. Es zeigt BMWs Standard-Ausstattung, weil BMWs
-  Fahrzeugdaten die Polsterung eines Autos nicht nennen, und das Bild sagt das.
+  ziehen, um sich umzusehen.
+
+Die Karte merkt sich, wie weit du das Auto gedreht hast, ob du innen oder außen
+warst und wohin du innen geschaut hast, sodass es nach dem Neuladen so dasteht,
+wie du es verlassen hast. Das liegt in deinem Browser, jedes Gerät hat also
+sein eigenes.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-spin.png" alt="Die Übersichtskarte mit dem Konfigurator-Bild: der i5 Touring von schräg hinten, per Ziehen gedreht (Screenshot englisch)" width="300" />

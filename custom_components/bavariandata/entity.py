@@ -105,14 +105,19 @@ class CardataEntity(RestoreEntity):
                     attrs["tire_axle"] = tire_match.group(1)
                     attrs["tire_side"] = tire_match.group(2)
                     attrs["tire_metric"] = tire_match.group(3)
+        return attrs
+
+    def _basic_data_attributes(self) -> dict:
+        """BMW's basic data for the car (model, drivetrain, steering side,
+        equipment codes). Only the vehicle image and the device tracker carry
+        it: one copy per car, not one on every entity (#100)."""
+        attrs = {}
         metadata = self._coordinator.device_metadata.get(self._vin)
         if metadata:
-            extra = metadata.get("extra_attributes")
-            if extra:
-                attrs.setdefault("vehicle_basic_data", dict(extra))
-            raw = metadata.get("raw_data")
-            if raw:
-                attrs.setdefault("vehicle_basic_data_raw", dict(raw))
+            if extra := metadata.get("extra_attributes"):
+                attrs["vehicle_basic_data"] = dict(extra)
+            if raw := metadata.get("raw_data"):
+                attrs["vehicle_basic_data_raw"] = dict(raw)
         return attrs
 
     @property

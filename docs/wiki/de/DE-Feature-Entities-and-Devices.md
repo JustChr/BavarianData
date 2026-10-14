@@ -104,6 +104,12 @@ Autos. Es wird **zwischengespeichert und übersteht Neustarts**, verbraucht also
 nicht bei jedem Start Kontingent; manuell aktualisieren kannst du es mit
 `bavariandata.fetch_vehicle_image`.
 
+Fahrzeugbild und Geräte-Tracker tragen außerdem BMWs **Basisdaten** des Autos:
+`vehicle_basic_data` (Modell, Antrieb, Lenkradseite, Schiebedach, die Codes der
+Werksoptionen, …) und `vehicle_basic_data_raw` (BMWs Antwort, wie gesendet).
+Nutzbar in Templates, etwa `{{ state_attr('image.mein_auto', 'vehicle_basic_data').model_name }}`.
+Keine andere Entität hat sie.
+
 BMW CarData liefert genau ein Bild pro Auto, eine Seitenansicht, und andere
 Blickwinkel lassen sich über die API nicht abrufen. **Konfigurieren →
 Fahrzeugbild** kann stattdessen auf BMWs Online-Konfigurator umstellen: genau dein

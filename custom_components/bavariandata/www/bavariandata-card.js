@@ -195,7 +195,6 @@ const TRANSLATIONS = {
     hs_charging: "Charging",
     hs_interior: "Interior",
     hs_exterior: "Exterior",
-    hs_default_trim: "BMW's default trim shown",
     eq_title: "Equipment",
     eq_count: "{n} items",
     eq_empty: "Turn on Configure → Vehicle image → BMW configurator to list the car's factory equipment.",
@@ -508,7 +507,6 @@ const TRANSLATIONS = {
     hs_charging: "Lädt",
     hs_interior: "Innenraum",
     hs_exterior: "Außen",
-    hs_default_trim: "BMWs Standard-Ausstattung gezeigt",
     eq_title: "Ausstattung",
     eq_count: "{n} Posten",
     eq_empty: "Schalte Konfigurieren → Fahrzeugbild → BMW-Konfigurator ein, um die Werksausstattung des Autos aufzulisten.",
@@ -808,7 +806,6 @@ const TRANSLATIONS = {
     hs_charging: "En charge",
     hs_interior: "Intérieur",
     hs_exterior: "Extérieur",
-    hs_default_trim: "Finition BMW par défaut affichée",
     eq_title: "Équipement",
     eq_count: "{n} éléments",
     eq_empty: "Activez Configurer → Image du véhicule → Configurateur BMW pour lister l'équipement d'usine de la voiture.",
@@ -1108,7 +1105,6 @@ const TRANSLATIONS = {
     hs_charging: "In carica",
     hs_interior: "Interni",
     hs_exterior: "Esterni",
-    hs_default_trim: "Mostrato l'allestimento BMW standard",
     eq_title: "Equipaggiamento",
     eq_count: "{n} voci",
     eq_empty: "Attiva Configura → Immagine del veicolo → Configuratore BMW per elencare l'equipaggiamento di fabbrica dell'auto.",
@@ -1408,7 +1404,6 @@ const TRANSLATIONS = {
     hs_charging: "Cargando",
     hs_interior: "Interior",
     hs_exterior: "Exterior",
-    hs_default_trim: "Se muestra el acabado BMW por defecto",
     eq_title: "Equipamiento",
     eq_count: "{n} elementos",
     eq_empty: "Activa Configurar → Imagen del vehículo → Configurador de BMW para listar el equipamiento de fábrica del coche.",
@@ -1708,7 +1703,6 @@ const TRANSLATIONS = {
     hs_charging: "Laadt",
     hs_interior: "Interieur",
     hs_exterior: "Exterieur",
-    hs_default_trim: "Standaardbekleding van BMW getoond",
     eq_title: "Uitrusting",
     eq_count: "{n} items",
     eq_empty: "Zet Configureren → Voertuigafbeelding → BMW-configurator aan om de fabrieksuitrusting van de auto te tonen.",
@@ -2008,7 +2002,6 @@ const TRANSLATIONS = {
     hs_charging: "Ładowanie",
     hs_interior: "Wnętrze",
     hs_exterior: "Nadwozie",
-    hs_default_trim: "Pokazano standardowe wykończenie BMW",
     eq_title: "Wyposażenie",
     eq_count: "Pozycje: {n}",
     eq_empty: "Włącz Konfiguruj → Zdjęcie pojazdu → Konfigurator BMW, aby wyświetlić fabryczne wyposażenie samochodu.",
@@ -2308,7 +2301,6 @@ const TRANSLATIONS = {
     hs_charging: "A carregar",
     hs_interior: "Interior",
     hs_exterior: "Exterior",
-    hs_default_trim: "Mostrado o acabamento BMW de série",
     eq_title: "Equipamento",
     eq_count: "{n} itens",
     eq_empty: "Ative Configurar → Imagem do veículo → Configurador BMW para listar o equipamento de fábrica do carro.",
@@ -2608,7 +2600,6 @@ const TRANSLATIONS = {
     hs_charging: "Nabíjí se",
     hs_interior: "Interiér",
     hs_exterior: "Exteriér",
-    hs_default_trim: "Zobrazeno výchozí čalounění BMW",
     eq_title: "Výbava",
     eq_count: "Položek: {n}",
     eq_empty: "Zapněte Konfigurovat → Obrázek vozidla → Konfigurátor BMW a zobrazí se tovární výbava auta.",
@@ -2908,7 +2899,6 @@ const TRANSLATIONS = {
     hs_charging: "Laddar",
     hs_interior: "Interiör",
     hs_exterior: "Exteriör",
-    hs_default_trim: "BMW:s standardklädsel visas",
     eq_title: "Utrustning",
     eq_count: "{n} poster",
     eq_empty: "Slå på Konfigurera → Fordonsbild → BMW-konfigurator för att lista bilens fabriksutrustning.",
@@ -4085,6 +4075,7 @@ class BavarianDataCard extends HTMLElement {
       .sort()
       .pop();
 
+    if (picks.image) this._heroLoad(picks.image);
     const spinInfo = picks.image ? this._spinInfo(picks.image, entities) : null;
     const pano = spinInfo && picks.image ? this._interiorInfo(picks.image) : null;
     const inside = !!pano && this._heroMode === "interior";
@@ -4198,6 +4189,7 @@ class BavarianDataCard extends HTMLElement {
       mode.addEventListener("click", (ev) => {
         ev.stopPropagation();
         this._heroMode = this._heroMode === "interior" ? "exterior" : "interior";
+        this._heroSave();
         this._sig = null;
         this._render();
       });
@@ -4430,8 +4422,7 @@ class BavarianDataCard extends HTMLElement {
   }
 
   /** The interior panorama: six faces on the inside of a CSS cube, turned by
-   * dragging. BMW's interior is its default trim (CarData doesn't say which
-   * upholstery a car has), and the caption says so. */
+   * dragging. */
   _panoHtml(pano) {
     const look = this._panoLook || { yaw: 0, pitch: 0 };
     // The camera sits in the middle of the cube, so every face is pushed half a
@@ -4456,8 +4447,7 @@ class BavarianDataCard extends HTMLElement {
       .join("");
     return `<div class="pano-wrap"><div class="pano" role="img" aria-label="${this._esc(this._t("hs_interior"))}">
             <div class="pano__cube" style="transform:translateZ(var(--half)) rotateX(${look.pitch}deg) rotateY(${look.yaw}deg)">${faces}</div>
-          </div></div>
-          <span class="hero__caption">${this._esc(this._t("hs_default_trim"))}</span>`;
+          </div></div>`;
   }
 
   _wirePano() {
@@ -4482,10 +4472,48 @@ class BavarianDataCard extends HTMLElement {
       cube.style.transform = `translateZ(var(--half)) rotateX(${pitch}deg) rotateY(${yaw}deg)`;
     });
     const end = () => {
+      if (start) this._heroSave();
       start = null;
     };
     el.addEventListener("pointerup", end);
     el.addEventListener("pointercancel", end);
+  }
+
+  /** The hero view this viewer last chose for this picture: the spin's angle,
+   * inside or out, and where they looked inside. Kept in the browser, so a
+   * reload or another dashboard shows the car as it was left. Read once per
+   * image entity; storage that is blocked or empty just means the defaults. */
+  _heroLoad(entityId) {
+    if (this._heroLoaded === entityId) return;
+    this._heroLoaded = entityId;
+    let saved;
+    try {
+      saved = JSON.parse(window.localStorage.getItem(`bavariandata-hero:${entityId}`) || "null");
+    } catch (e) {
+      return;
+    }
+    if (!saved || typeof saved !== "object") return;
+    if (Number.isInteger(saved.frame)) this._spinFrame = saved.frame;
+    if (saved.mode === "interior" || saved.mode === "exterior") this._heroMode = saved.mode;
+    if (Number.isFinite(saved.yaw) && Number.isFinite(saved.pitch)) {
+      this._panoLook = { yaw: saved.yaw, pitch: Math.max(-80, Math.min(80, saved.pitch)) };
+    }
+  }
+
+  _heroSave() {
+    if (!this._heroLoaded) return;
+    const look = this._panoLook || {};
+    const saved = {
+      frame: Number.isInteger(this._spinFrame) ? this._spinFrame : undefined,
+      mode: this._heroMode,
+      yaw: look.yaw,
+      pitch: look.pitch,
+    };
+    try {
+      window.localStorage.setItem(`bavariandata-hero:${this._heroLoaded}`, JSON.stringify(saved));
+    } catch (e) {
+      /* private window or blocked storage: the view lasts until the page reloads */
+    }
   }
 
   // Frame 4 is BMW's front three-quarter view, the still the entity shows.
@@ -4536,6 +4564,7 @@ class BavarianDataCard extends HTMLElement {
       el.style.backgroundPosition = this._spinPos(spin, this._spinFrame);
     });
     const end = () => {
+      if (startX !== null) this._heroSave();
       startX = null;
     };
     el.addEventListener("pointerup", end);
@@ -8175,15 +8204,6 @@ class BavarianDataCard extends HTMLElement {
         top: calc(var(--half) * -1 - 1px);
         background-repeat: no-repeat;
         backface-visibility: hidden;
-      }
-      .hero__caption {
-        position: absolute; left: 16px; bottom: 12px;
-        background: rgba(0,0,0,0.46);
-        color: #fff;
-        border-radius: 999px;
-        padding: 3px 10px;
-        font-size: 0.72rem;
-        pointer-events: none;
       }
       .hero__spin-icon {
         position: absolute; right: 12px; bottom: 10px;
