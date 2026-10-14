@@ -145,7 +145,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `action_reauth` | Re-authorize with BMW | 🟡 | 📷 |
 | `action_reset_container` | Reset telematics container | ❌ | 📷 |
 | `action_fetch_mappings` | Fetch vehicle mappings | 🟡 | — |
-| `action_fetch_basic` | Fetch basic data | 🟡 | — |
+| `action_fetch_basic` | Fetch basic data (attributes `vehicle_basic_data`/`_raw` on the vehicle image + device tracker only) | 🟡 — the attributes are 🟢 in Feature-Entities-and-Devices (EN + DE) | — |
 | `action_fetch_telematic` | Fetch telematic data | 🟡 | — |
 | `action_fetch_charging_history` | Fetch charging history | 🟡 | — |
 | `action_fetch_tyre` | Fetch tire diagnosis | 🟡 | — |
@@ -201,7 +201,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `view: health` | Battery health | 🟡 | 📷 |
 | `view: efficiency` | Efficiency & real range | 🟢 The-Dashboard-Card + Feature-Efficiency-and-Range | 📷 **owed** — needs the build installed |
 | `view: equipment` | Factory equipment by name (from the configurator picture source) | 🟢 The-Dashboard-Card → "Equipment" (EN + DE) | 📷 **owed** — needs the build installed |
-| Overview hero with the configurator picture (spin, lights/night, state badges + top-down inset, interior panorama) | Overview | 🟢 The-Dashboard-Card → "Overview" (EN + DE) | 📷 (have: `card-hero-spin.png`; badges/interior **owed**) |
+| Overview hero with the configurator picture (spin, lights/night, state badges + top-down inset, interior panorama; angle/mode/look remembered per browser) | Overview | 🟢 The-Dashboard-Card → "Overview" (EN + DE) | 📷 (have: `card-hero-spin.png`; badges/interior **owed**) |
 | `cluster: tire` | Tires (pressure + wear) | 🟡 | 📷 (have) |
 | `shape:` (tire + closures) | Top-down car drawn per model — BMW sedan, or MINI Countryman picked from basic data's `model_name`; `shape:` override | 🟢 — The-Dashboard-Card → "The car's shape" + YAML reference | 📷 (have, rendered from the shipped card: no Countryman to capture live) |
 | `cluster: closures` | Security & closures — side doors/windows placed by steering side (BMW basic data, `steering:` override) | 🟡 — the steering side and its override are 🟢 in The-Dashboard-Card → "Security & closures" + YAML reference | 📷 (have, left-hand drive; a right-hand-drive shot is owed: no such car to capture) |
