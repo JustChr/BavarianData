@@ -2950,6 +2950,11 @@
       "vehicle_image": {
         "name": "Vehicle Image"
       }
+    },
+    "calendar": {
+      "service": {
+        "name": "Service Calendar"
+      }
     }
   },
   "issues": {

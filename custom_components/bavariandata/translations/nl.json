@@ -2720,6 +2720,11 @@
       "vehicle_image": {
         "name": "Voertuigafbeelding"
       }
+    },
+    "calendar": {
+      "service": {
+        "name": "Onderhoudskalender"
+      }
     }
   },
   "issues": {

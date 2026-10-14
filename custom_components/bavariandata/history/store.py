@@ -13,11 +13,12 @@ cache and request log already use.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any, Optional
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.storage import Store
+from homeassistant.util import dt as dt_util
 
 from ..const import DOMAIN
 from ..debug import debug_enabled
@@ -29,6 +30,7 @@ from .cardata_history import (
 )
 from .sessions import drop_house_figures_elsewhere
 from .models import SCHEMA_VERSION, ChargingSession, merge_session, prune_sessions
+from .odometer import km_per_day, note_reading
 from .trips import Trip, merge_trip, prune_trips
 
 _LOGGER = logging.getLogger(__name__)
@@ -74,6 +76,9 @@ class HistoryStore:
         # replays the car's last values, and only a record that survives the
         # restart can tell that replay from a new report.
         self._reports: dict[str, dict[str, Any]] = {}
+        # One odometer reading per local day, per VIN (``odometer.py``): the
+        # car's pace for projected service dates and the mileage overview.
+        self._odometer: dict[str, dict[str, float]] = {}
         self._loaded = False
 
     async def async_load(self) -> None:
@@ -122,6 +127,25 @@ class HistoryStore:
         for vin, report in (data.get("reports") or {}).items():
             if isinstance(report, dict):
                 self._reports[vin] = report
+
+        # Additive as well. Seeded from the charging sessions' odometer, so a
+        # store written before the log existed starts with its charges' readings
+        # rather than empty -- a pace needs four weeks of span.
+        for vin, raw_log in (data.get("odometer") or {}).items():
+            if isinstance(raw_log, dict):
+                self._odometer[vin] = {
+                    str(day): float(km)
+                    for day, km in raw_log.items()
+                    if isinstance(km, (int, float))
+                }
+        for vin, sessions in self._sessions.items():
+            log = self._odometer.setdefault(vin, {})
+            for session in sessions:
+                stamp = session.end or session.start
+                if session.mileage_km is not None and stamp is not None:
+                    note_reading(log, dt_util.as_local(stamp).date(), session.mileage_km)
+            if not log:
+                del self._odometer[vin]
 
         # ``trips`` is absent in schema-1 stores; a plain ``.get`` handles the
         # upgrade with no migration step.
@@ -297,6 +321,23 @@ class HistoryStore:
         self._reports[vin] = dict(report)
         self.async_schedule_save()
 
+    def odometer_log(self, vin: str) -> dict[str, float]:
+        """The daily odometer log for one VIN (a copy), ``{"YYYY-MM-DD": km}``."""
+
+        return dict(self._odometer.get(vin, {}))
+
+    @callback
+    def async_note_odometer(self, vin: str, day: date, km: float) -> None:
+        """Record an odometer reading for ``day``; saved only when it changed."""
+
+        if note_reading(self._odometer.setdefault(vin, {}), day, km):
+            self.async_schedule_save()
+
+    def km_per_day(self, vin: str, today: date) -> Optional[float]:
+        """The car's pace over the last 90 days, or ``None`` until it is known."""
+
+        return km_per_day(self._odometer.get(vin, {}), today)
+
     def import_cardata_sessions(
         self,
         vin: str,
@@ -401,6 +442,7 @@ class HistoryStore:
             },
             "open_sessions": dict(self._open_sessions),
             "reports": dict(self._reports),
+            "odometer": {vin: dict(log) for vin, log in self._odometer.items()},
         }
 
     async def async_save_now(self) -> None:
@@ -418,4 +460,5 @@ class HistoryStore:
         # Emptied with the rest: the next reading then only seeds the record,
         # so deleting history can never announce a report that is a replay.
         self._reports = {}
+        self._odometer = {}
         await self._store.async_remove()

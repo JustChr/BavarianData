@@ -2720,6 +2720,11 @@
       "vehicle_image": {
         "name": "Obrázek vozidla"
       }
+    },
+    "calendar": {
+      "service": {
+        "name": "Servisní kalendář"
+      }
     }
   },
   "issues": {

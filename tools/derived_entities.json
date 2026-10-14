@@ -331,5 +331,19 @@
       "cs": "Obrázek vozidla",
       "sv": "Fordonsbild"
     }
+  },
+  "calendar": {
+    "service": {
+      "en": "Service Calendar",
+      "de": "Servicekalender",
+      "fr": "Calendrier d'entretien",
+      "it": "Calendario manutenzione",
+      "es": "Calendario de mantenimiento",
+      "nl": "Onderhoudskalender",
+      "pl": "Kalendarz serwisowy",
+      "pt": "Calendário de manutenção",
+      "cs": "Servisní kalendář",
+      "sv": "Servicekalender"
+    }
   }
 }

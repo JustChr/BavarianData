@@ -258,6 +258,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | `last_vehicle_report` (disabled by default; the car's own time of its last odometer report) | Diagnostic for logbooks | 🟢 Feature-Entities-and-Devices → derived table (EN + DE) |
 | GPS latitude / longitude sensors (disabled by default, opt-in for add-ons that only take `sensor.*`) | Position as plain sensors | 🟢 Feature-Entities-and-Devices → "Device tracker" (EN + DE) |
 | `vehicle_image` (image) | Cached render | 🟡 |
+| `service` (calendar, disabled by default; service items as all-day events, distance-only items projected from the odometer log's 90-day pace) | Service calendar | 🟢 Feature-Entities-and-Devices → "Service calendar" (EN + DE) | 📷 owed |
 
 ### Cross-cutting features
 

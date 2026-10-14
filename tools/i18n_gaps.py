@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """One to-do list of every translation that is missing, broken or stale.
 
-User-facing text lives in four places, each with its own table per language:
+User-facing text lives in five places, each with its own table per language:
 
 * ``translations/<lang>.json`` -- the hand-maintained sections (everything but
   the generated ``entity`` block, which the pipeline fills from BMW's catalogues);
 * ``TRANSLATIONS`` in ``www/bavariandata-card.js`` -- the dashboard card;
 * ``STRINGS`` in ``history/export.py`` -- the printable month report;
+* ``STRINGS`` in ``service_calendar.py`` -- the service calendar's event texts;
 * the ``language`` options of ``export_history`` in ``services.yaml``.
 
 The parity tests fail on the first gap they meet, one test at a time. This lists
@@ -50,6 +51,7 @@ PKG_REL = "custom_components/bavariandata"
 TRANS_REL = f"{PKG_REL}/translations"
 CARD_REL = f"{PKG_REL}/www/bavariandata-card.js"
 EXPORT_REL = f"{PKG_REL}/history/export.py"
+CALENDAR_REL = f"{PKG_REL}/service_calendar.py"
 SERVICES_REL = f"{PKG_REL}/services.yaml"
 
 PLACEHOLDER = re.compile(r"\{[a-z_]+\}")
@@ -143,7 +145,17 @@ def card_tables(ref: Optional[str]) -> Tables:
 def report_tables(ref: Optional[str]) -> Tables:
     """``STRINGS`` from export.py, read with ``ast`` (the module is not importable alone)."""
 
-    text = _read(EXPORT_REL, ref)
+    return _strings_table(EXPORT_REL, ref)
+
+
+def calendar_tables(ref: Optional[str]) -> Tables:
+    """``STRINGS`` from service_calendar.py, read the same way."""
+
+    return _strings_table(CALENDAR_REL, ref)
+
+
+def _strings_table(rel: str, ref: Optional[str]) -> Tables:
+    text = _read(rel, ref)
     if text is None:
         return {}
     for node in ast.parse(text).body:
@@ -159,6 +171,7 @@ SOURCES: dict[str, tuple[str, Callable[[Optional[str]], Tables]]] = {
     "translations": (TRANS_REL + "/<lang>.json", ha_tables),
     "card": (CARD_REL, card_tables),
     "report": (EXPORT_REL, report_tables),
+    "calendar": (CALENDAR_REL, calendar_tables),
 }
 
 

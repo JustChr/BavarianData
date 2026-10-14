@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **A service calendar for each car.** The service items your car tracks (brake
+  fluid, vehicle check, statutory inspection, …) as all-day events in Home
+  Assistant's calendar, on the 1st of the month BMW says they're due. An item
+  with only a distance left is placed by your own average km a day over the
+  last 90 days, and says it's an estimate. It's disabled by default (enable
+  *Service Calendar* on the car's device) and costs no quota.
+
 ## [0.9.19-beta.1] - 2026-10-14
 
 ### Changed

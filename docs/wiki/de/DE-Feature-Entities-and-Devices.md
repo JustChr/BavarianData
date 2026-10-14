@@ -143,6 +143,35 @@ lädt. Sie folgen dem Stream, Breite und Länge als getrennte Nachrichten, wie d
 Tracker. Brauchst du sie nur für eine andere Integration, nimm sie vom Recorder
 aus.
 
+## Servicekalender
+
+<a id="service-calendar"></a>
+
+Jedes Auto bekommt einen **Servicekalender**: die Serviceumfänge, die das Auto
+verfolgt (Bremsflüssigkeit, Fahrzeug-Check, gesetzliche Hauptuntersuchung, …),
+als ganztägige Termine im Kalender von Home Assistant und auf jeder
+Kalenderkarte. Er ist **standardmäßig deaktiviert**; aktivieren unter
+*Einstellungen → Geräte & Dienste → BavarianData → dein Auto → deaktivierte
+Entitäten*. Er kostet kein Kontingent: Die Einträge kommen mit dem täglichen
+Datenabruf.
+
+- BMW nennt einen **Monat**, keinen Tag. Jeder Eintrag ist deshalb ein Termin am
+  **1.** dieses Monats, beschrieben als „Fällig bis Ende Oktober 2027“. Verschiebt
+  BMW das Datum, wandert der Termin mit.
+- Ein Eintrag, für den nur eine **Strecke** übrig ist (bei manchen Autos der
+  Ölservice), landet dort, wo deine eigene Fahrleistung ihn hinlegt: Reststrecke
+  geteilt durch deine durchschnittlichen Kilometer pro Tag der letzten 90 Tage.
+  Der Termin sagt dazu, dass er geschätzt ist. Solange BavarianData keine vier
+  Wochen Kilometerstände gesehen hat, bekommt so ein Eintrag kein Datum statt
+  eines geratenen. Die Kilometerstände kommen zuerst aus deinem Ladeverlauf,
+  daher haben die meisten Installationen schon am Tag des Updates ein Tempo.
+- Meldet BMW einen Eintrag als bald fällig oder überfällig, steht das im Titel.
+- Die Texte folgen der Sprache von Home Assistant, Strecken seinem
+  Einheitensystem.
+
+Dieselben Einträge stehen auch im Attribut `items` des Sensors **Condition Based
+Service**, falls du sie lieber per Template verwendest.
+
 ## Welche Verriegelungs-Entität verwenden
 
 <a id="which-lock-entity-to-use"></a>

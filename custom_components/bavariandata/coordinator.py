@@ -1039,6 +1039,7 @@ class CardataCoordinator:
 
         if any(descriptor in data for descriptor in DESC_ODOMETER):
             self._note_odometer_report(vin, parked_soc=parked_soc)
+            self._note_odometer_day(vin, now)
 
         for descriptor in new_sensor:
             async_dispatcher_send(self.hass, self.signal_new_sensor, vin, descriptor)
@@ -1888,6 +1889,20 @@ class CardataCoordinator:
             except TypeError, ValueError:
                 continue
         return None
+
+    def _note_odometer_day(self, vin: str, now: datetime) -> None:
+        """Log today's odometer reading -- the car's pace (``history/odometer.py``)."""
+
+        odometer_km = self._odometer_km(vin)
+        if self.history is not None and odometer_km is not None:
+            self.history.async_note_odometer(vin, dt_util.as_local(now).date(), odometer_km)
+
+    def km_per_day(self, vin: str) -> Optional[float]:
+        """The car's average km a day over the last 90 days, or ``None``."""
+
+        if self.history is None:
+            return None
+        return self.history.km_per_day(vin, dt_util.as_local(datetime.now(timezone.utc)).date())
 
     def _odometer_timestamp(self, vin: str) -> Optional[str]:
         """The car's own timestamp on the odometer reading ``_odometer_km`` uses."""

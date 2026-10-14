@@ -129,6 +129,29 @@ update with the stream, latitude and longitude as separate messages, like the
 tracker does. If you only need them for another integration, exclude them from
 the recorder.
 
+## Service calendar
+
+Each car gets a **Service Calendar**: the service items the car tracks (brake
+fluid, vehicle check, statutory inspection, …) as all-day events, in Home
+Assistant's calendar and on any calendar card. It's **disabled by default**;
+enable it under *Settings → Devices & Services → BavarianData → your car →
+disabled entities*. It costs no quota: the items come with the daily data fetch.
+
+- BMW gives a due **month**, not a day, so each item is an event on the **1st**
+  of that month, described as "due by the end of October 2027". When BMW moves
+  the date, the event moves with it.
+- An item with only a **distance** left (an oil service on some cars) is placed
+  where your own driving puts it: the distance left divided by your average km
+  a day over the last 90 days. The event says it's an estimate. Until
+  BavarianData has seen four weeks of odometer readings it shows no date for
+  such an item, rather than a guess. The readings come from your charging
+  history first, so most installs have a pace on the day they upgrade.
+- An item BMW marks as due soon or overdue says so in its title.
+- The texts follow Home Assistant's language; distances follow its unit system.
+
+The same items are on the **Service Condition based services** sensor's `items`
+attribute, if you'd rather template them.
+
 ## Which lock entity to use
 
 The car reports its central lock through **two** descriptors, and they behave
