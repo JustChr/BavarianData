@@ -173,7 +173,7 @@
       },
       "action_fetch_image": {
         "title": "Fahrzeugbild",
-        "description": "Wähle, woher das Bild deines Autos kommt. Absenden lädt es jetzt und behält es über Neustarts hinweg.",
+        "description": "Wähle, woher das Bild deines Autos kommt. OK lädt es jetzt und behält es über Neustarts hinweg.",
         "data": {
           "image_source": "Bildquelle"
         },

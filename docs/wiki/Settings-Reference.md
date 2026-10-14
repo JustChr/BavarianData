@@ -46,6 +46,10 @@ The menu labels below are exactly as they appear in the UI.
 
 Screen: **Configure → Vehicle image**.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-vehicle-image.png" alt="Vehicle image settings: one dropdown, Picture source, set to BMW configurator (360°, unofficial)" width="460" />
+</p>
+
 | Option | Values | Meaning |
 | --- | --- | --- |
 | **Picture source** | BMW CarData (official) · BMW configurator (360°, unofficial) | Default **BMW CarData**: BMW's one side view of the car, one of your [50 requests a day](Feature-API-Quota) per car. **BMW configurator** draws your exact car the way BMW's online configurator does, from the model, paint and factory options in its basic vehicle info: a 360° turntable in the [card](The-Dashboard-Card#overview) you can drag to turn, and the real paint on the card's [top-down car](The-Dashboard-Card#the-cars-shape). It spends no requests, but it is not part of CarData: it is the service behind BMW's configurator web page, which BMW can change or block at any time. |

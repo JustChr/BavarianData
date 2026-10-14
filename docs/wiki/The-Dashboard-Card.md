@@ -61,6 +61,10 @@ With **Configure → [Vehicle image](Settings-Reference#vehicle-image)** set to
 BMW's configurator, the render is your exact car, and dragging across it (mouse
 or finger) turns it all the way round.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-spin.png" alt="The overview card with the configurator picture: the i5 Touring seen from the rear three-quarter, turned by dragging" width="300" />
+</p>
+
 The state of charge on the ring is the integration's own estimate. While the car
 is parked that is simply BMW's last reading; while it charges it keeps climbing at
 the rate the charging power implies, because BMW can go silent for hours

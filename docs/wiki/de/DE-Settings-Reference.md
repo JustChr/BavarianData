@@ -47,11 +47,15 @@ erscheinen (der Screenshot zeigt die englische).
 
 Bildschirm: **Konfigurieren → Fahrzeugbild**.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-vehicle-image.png" alt="Einstellungen zum Fahrzeugbild: ein Auswahlfeld, Picture source, auf BMW configurator (360°, unofficial) gestellt (Screenshot englisch)" width="460" />
+</p>
+
 | Option | Werte | Bedeutung |
 | --- | --- | --- |
 | **Bildquelle** | BMW CarData (offiziell) · BMW-Konfigurator (360°, inoffiziell) | Standard **BMW CarData**: BMWs eine Seitenansicht des Autos, eine deiner [50 Anfragen am Tag](DE-Feature-API-Quota) pro Auto. **BMW-Konfigurator** zeichnet genau dein Auto so, wie es BMWs Online-Konfigurator tut, aus Modell, Lack und Werksausstattung in den Fahrzeug-Basisdaten: eine 360°-Drehansicht in der [Karte](DE-The-Dashboard-Card#übersicht), die du mit der Maus oder dem Finger drehst, und die echte Lackfarbe am [Auto von oben](DE-The-Dashboard-Card#die-form-des-autos). Das kostet keine Anfragen, gehört aber nicht zu CarData: Es ist der Dienst hinter BMWs Konfigurator-Webseite, den BMW jederzeit ändern oder sperren kann. |
 
-**Absenden** lädt das Bild sofort und behält es über Neustarts hinweg. Mit dem
+**OK** lädt das Bild sofort und behält es über Neustarts hinweg. Mit dem
 Konfigurator wird nur gespeichert, wenn sich jedes Auto zeichnen ließ; sonst
 nennt der Bildschirm das Auto und den Grund (kein BMW oder MINI, die
 Fahrzeug-Basisdaten sind noch nicht da, der Konfigurator hat nicht geantwortet

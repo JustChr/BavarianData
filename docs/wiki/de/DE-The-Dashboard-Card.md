@@ -66,6 +66,10 @@ Ist **Konfigurieren → [Fahrzeugbild](DE-Settings-Reference#fahrzeugbild)** auf
 BMWs Konfigurator gestellt, ist das Bild genau dein Auto, und Ziehen darüber (Maus
 oder Finger) dreht es einmal ganz herum.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-spin.png" alt="Die Übersichtskarte mit dem Konfigurator-Bild: der i5 Touring von schräg hinten, per Ziehen gedreht (Screenshot englisch)" width="300" />
+</p>
+
 Der Ladezustand im Ring ist die Schätzung der Integration. Steht das Auto, ist
 das einfach BMWs letzter Messwert; lädt es, steigt sie mit der Rate weiter, die
 die Ladeleistung ergibt — denn BMW kann mitten im Laden stundenlang schweigen, und
