@@ -9,6 +9,12 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **BMW cars get their paint, wheel and trim swatches in the Equipment view.**
+  BMW's configurator names those pictures differently for BMW than for MINI,
+  so a BMW showed an empty tile for them. Press **Submit** under Configure →
+  Vehicle image once to fetch them.
+
 ## [0.9.20-beta.1] - 2026-10-15
 
 ### Added

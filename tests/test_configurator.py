@@ -405,6 +405,33 @@ def test_missing_option_pictures_never_fail_the_render():
     assert render.frames == 36 and render.options is None and render.option_codes == ()
 
 
+def test_a_bmw_swatch_is_read_from_its_square_tile():
+    # BMW names the paint, wheel and trim swatch tile_square; MINI tile_wide.
+    answer = {
+        "collections": {
+            "unified-sgt-options": {
+                "desktop": {
+                    "P0C4P": {
+                        "imageGroups": [
+                            {
+                                "distinctionParams": {"VIEW": view},
+                                "images": [{"viewImage": f"https://cosy.test/opt/P0C4P/{view}"}],
+                            }
+                            for view in ("tile_square", "static_wide")
+                        ]
+                    }
+                }
+            }
+        }
+    }
+    assert CONF.option_image_urls(answer) == {
+        "P0C4P": [
+            "https://cosy.test/opt/P0C4P/static_wide",
+            "https://cosy.test/opt/P0C4P/tile_square",
+        ]
+    }
+
+
 def test_option_links_are_read_per_code_photo_first():
     links = CONF.option_image_urls(_option_links("S0337"))
     assert links == {

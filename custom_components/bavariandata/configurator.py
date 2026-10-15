@@ -35,9 +35,10 @@ Known traps, found by probing:
   (German for Germany and Austria, French for France); other markets use other
   model codes, so a German-market car has no English names.
 * Option pictures: the service refuses an ``options`` list that isn't sorted
-  (HTTP 400). It answers every code with two links, ``tile_wide`` and
+  (HTTP 400). It answers every code with two links, a tile and
   ``static_wide``; at most one is real (a swatch for paint, wheels and roof, a
-  photo for the rest). The other, and both for technical codes, return a brand
+  photo for the rest). The tile is ``tile_wide`` for MINI and ``tile_square``
+  for BMW, though both are the same 168 x 95. The other, and both for technical codes, return a brand
   logo with HTTP 404, which must never be kept as the option's picture.
 
 No Home Assistant imports: the rules are unit-tested directly.
@@ -88,7 +89,7 @@ STILL_FRAME = 4
 FACE_SIZE = 1024
 # The option pictures: BMW's own tile size, laid out in one sheet.
 _OPTIONS = "unified-sgt-options"
-_OPTION_VIEWS = ("static_wide", "tile_wide")
+_OPTION_VIEWS = ("static_wide", "tile_wide", "tile_square")
 OPTION_TILE = (168, 95)
 OPTION_COLUMNS = 8
 _CONCURRENCY = 6
