@@ -150,6 +150,9 @@ def test_the_spin_follows_the_lights_and_the_night():
         }
     )
     assert f"url('{SPIN['path']}-night?authSig=signed')" in night  # night wins over lights
+    # The night spin is a cut-out: the card draws the dark room behind it.
+    assert "hero--night" in night
+    assert "hero--night" not in day and "hero--night" not in lights
 
 
 def test_an_open_door_and_an_unlocked_car_show_on_the_photo():

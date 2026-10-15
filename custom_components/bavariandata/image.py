@@ -72,8 +72,9 @@ SPIN_PATH = f"/api/{DOMAIN}/spin"
 _PARTS = ("lights", "night", "interior", "top", "options")
 _NAME_RE = re.compile(r"[0-9a-f]{24}(?:_(?:lights|night|interior|top|options))?")
 # Bumped when a render gains parts; an older record is refetched once in the
-# background so cars drawn by an earlier build get them too.
-_RENDER_SCHEMA = 2
+# background so cars drawn by an earlier build get them too. 3: the night spin
+# is a cut-out (MINIs in their own night scene) on the card's backdrop.
+_RENDER_SCHEMA = 3
 
 
 def image_source(entry: ConfigEntry) -> str:

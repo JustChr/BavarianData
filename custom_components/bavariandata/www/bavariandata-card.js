@@ -4391,7 +4391,7 @@ class BavarianDataCard extends HTMLElement {
     this.shadowRoot.innerHTML = `
       ${this._styles()}
       <ha-card>
-        <div class="hero ${imgUrl || spinInfo ? "" : "hero--empty"}${heroState && heroState.inset ? " hero--inset" : ""}">
+        <div class="hero ${imgUrl || spinInfo ? "" : "hero--empty"}${heroState && heroState.inset ? " hero--inset" : ""}${spin && spin.variant === "night" ? " hero--night" : ""}">
           ${
             inside
               ? this._panoHtml(pano)
@@ -4564,7 +4564,12 @@ class BavarianDataCard extends HTMLElement {
     if (spin.night_path && sun && sun.state === "below_horizon") variant = "night";
     else if (spin.lights_path && lightsOn) variant = "lights";
     const path = { day: spin.path, lights: spin.lights_path, night: spin.night_path }[variant];
-    const url = this._signedUrl(path) || (variant !== "day" ? this._signedUrl(spin.path) : null);
+    let url = this._signedUrl(path);
+    if (!url && variant !== "day") {
+      // Shown by day until the other sprite is signed, so no night backdrop yet.
+      url = this._signedUrl(spin.path);
+      variant = "day";
+    }
     if (!url) return null;
     return {
       url,
@@ -8693,6 +8698,11 @@ class BavarianDataCard extends HTMLElement {
         user-select: none;
       }
       .hero__spin:active { cursor: grabbing; }
+      /* The night spin is a cut-out: a dark room with a pool of light under the
+         car, the same in light and dark themes, as the night is. */
+      .hero--night {
+        background: radial-gradient(ellipse 52% 30% at 50% 74%, #464a4f 0%, #2c2e32 55%, #18191b 100%);
+      }
       .tirecar__photo { width: 100%; height: 100%; object-fit: contain; display: block; }
       .eq { padding: 4px 16px 14px; }
       .eq__group + .eq__group, .eq__more { margin-top: 12px; }

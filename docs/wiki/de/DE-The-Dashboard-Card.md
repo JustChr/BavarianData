@@ -67,10 +67,12 @@ Ist **Konfigurieren → [Fahrzeugbild](DE-Settings-Reference#fahrzeugbild)** auf
 BMWs Konfigurator gestellt, ist das Bild genau dein Auto, und Ziehen darüber (Maus
 oder Finger) dreht es einmal ganz herum. Das Bild folgt auch dem Auto:
 
-- **Licht und Tageszeit.** Nach Sonnenuntergang zu Hause zeigt es BMWs
-  Nachtszene, und solange das Auto sein Licht als eingeschaltet meldet
-  (*Fahrzeuglicht-Zustand*), das Auto mit Licht. Beides sind BMWs eigene Bilder
-  deines Autos.
+- **Licht und Tageszeit.** Nach Sonnenuntergang zu Hause zeigt es das Auto
+  bei Nacht, in einem dunklen Raum mit einem Lichtkegel darunter, und solange
+  das Auto sein Licht als eingeschaltet meldet (*Fahrzeuglicht-Zustand*), das
+  Auto mit Licht. Das Auto selbst ist immer BMWs eigenes Bild: ein BMW so, wie
+  BMW ihn nachts zeichnet, ein MINI beleuchtet wie in der Nachtszene von MINIs
+  eigenem Konfigurator.
 - **Abzeichen** unter dem Namen für alles, was dich angeht: eine Tür, der
   Kofferraum oder die Motorhaube offen, Fenster offen, das Auto entriegelt, es
   lädt.

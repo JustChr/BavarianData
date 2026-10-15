@@ -62,9 +62,11 @@ With **Configure → [Vehicle image](Settings-Reference#vehicle-image)** set to
 BMW's configurator, the render is your exact car, and dragging across it (mouse
 or finger) turns it all the way round. The photo also follows the car:
 
-- **Lights and time of day.** After sunset at home the car is shown in BMW's
-  night scene, and while the car reports its lights on (*Vehicle Lights state*),
-  with its lights on. Both are BMW's own renders of your car.
+- **Lights and time of day.** After sunset at home the car is shown at night,
+  in a dark room with a pool of light under it, and while the car reports its
+  lights on (*Vehicle Lights state*), with its lights on. The car itself is
+  always BMW's own render: a BMW as BMW draws it at night, a MINI lit as in
+  MINI's own configurator night scene.
 - **Badges** under the car's name for anything that needs you: a door, the trunk
   or the hood open, windows open, the car unlocked, charging.
 - **Where it is open.** While something is open, the

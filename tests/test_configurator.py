@@ -88,6 +88,17 @@ def _frame(x: int, color=(200, 30, 40)) -> bytes:
     return out.getvalue()
 
 
+def _on_studio(frame: bytes, studio=(16, 16, 16)) -> bytes:
+    """``frame`` flattened onto BMW's opaque night studio."""
+
+    car = Image.open(io.BytesIO(frame)).convert("RGBA")
+    out = Image.new("RGBA", car.size, (*studio, 255))
+    out.alpha_composite(car)
+    data = io.BytesIO()
+    out.save(data, "PNG")
+    return data.getvalue()
+
+
 def test_sprite_crops_one_box_for_the_whole_spin_and_samples_the_paint():
     frames = [_frame(200 + 4 * i) for i in range(36)]
     render = CONF.build_sprite(frames)
@@ -145,14 +156,19 @@ class _FakeBmw:
             if not self.key_ok:
                 return _Resp(403, b"{}")
             brand = re.search(r"/brands/([^/]+)/", url).group(1)
-            images = [{"viewImage": f"https://cosy.test/img/{brand}/{i}"} for i in range(36)]
+            # Both night scenes come back on an opaque studio, not transparent.
+            scene = "night" if "nightview=true" in url or "background=night" in url else "img"
+            images = [{"viewImage": f"https://cosy.test/{scene}/{brand}/{i}"} for i in range(36)]
             body = {"walkaround-360": {"mobile": {"images": images}}}
             return _Resp(200, json.dumps(body).encode())
-        if "/img/" in url:
+        if "/img/" in url or "/night/" in url:
             brand, index = url.rsplit("/", 2)[-2:]
             if brand != self.draws:
                 return _Resp(404, b"placeholder png")
-            return _Resp(200, _frame(200 + int(index)))
+            frame = _frame(200 + int(index))
+            if "/night/" in url:
+                frame = _on_studio(frame)
+            return _Resp(200, frame)
         return _Resp(404, b"")
 
 
@@ -371,6 +387,47 @@ def test_the_full_fetch_adds_lights_night_interior_and_names():
     assert [c.rsplit("/", 1)[1] for c in session.name_calls] == ["en", "de"]
     spins = [c for c in session.calls if "/collections/walkaround-360/" in c]
     assert any("lightson=true" in c for c in spins) and any("nightview=true" in c for c in spins)
+
+
+def test_the_night_spin_is_cut_out_so_the_card_draws_the_backdrop():
+    render = asyncio.run(CONF.async_render(_FakeBmwFull(), I5))
+    night = Image.open(io.BytesIO(render.night)).convert("RGBA")
+    day = Image.open(io.BytesIO(render.sprite)).convert("RGBA")
+    assert night.size == day.size
+    # BMW's black studio is gone where the plain spin has no car...
+    assert night.getpixel((2, 2))[3] == 0
+    # ...and the car itself stays, frame for frame.
+    box = day.crop((0, 0, 640, 360)).getchannel("A").getbbox()
+    middle = ((box[0] + box[2]) // 2, (box[1] + box[3]) // 2)
+    assert night.getpixel(middle)[3] == 255
+
+
+def test_a_mini_is_asked_for_its_own_night_scene():
+    class FakeMini(_FakeBmwFull):
+        def __init__(self) -> None:
+            super().__init__()
+            self.draws = "mini"
+
+    session = FakeMini()
+    render = asyncio.run(CONF.async_render(session, {**I5, "brand": "MINI"}))
+    assert render.night
+    night_calls = [c for c in session.calls if "/walkaround-360/" in c and "night" in c]
+    # MINI's configurator lights the car in its night scene; nightview would
+    # leave it a dark shadow.
+    assert night_calls and all(
+        "background=night" in c and "lightson=true" in c and "nightview" not in c
+        for c in night_calls
+    )
+
+
+def test_a_stencil_without_transparency_leaves_the_night_spin_alone():
+    def sprite(rgba):
+        out = io.BytesIO()
+        Image.new("RGBA", (64, 36), rgba).save(out, "PNG")
+        return out.getvalue()
+
+    night = sprite((16, 16, 16, 255))
+    assert CONF.cut_out(night, sprite((255, 255, 255, 255))) == night
 
 
 def test_the_full_fetch_keeps_only_real_option_pictures():

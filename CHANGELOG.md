@@ -40,6 +40,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   optional notify service was never passed through, so the message after the
   charger switched off didn't arrive. Re-import the blueprint to get the fix.
 
+### Changed
+- **The configurator picture at night is lighter, and a MINI keeps its
+  colour.** After sunset the car now stands in a dark room with a pool of light
+  under it, in place of BMW's near-black studio with its rings of floor light.
+  A MINI is now fetched the way MINI's own configurator shows it at night, lit
+  from the front, so a blue car stays blue rather than turning into a dark
+  grey shape (#100, thanks @BeastleeUK). Each car's pictures are fetched again
+  once in the background after updating; it costs no API quota.
+
 ## [0.9.20-beta.2] - 2026-10-15
 
 ### Fixed

@@ -6,7 +6,8 @@ data: the model code (``modelKey``), the paint (``colourCodeRaw``) and the
 factory options (``fullSAList``). From those this module fetches:
 
 * a 36-frame turntable with a transparent background, three times over: plain,
-  with the lights on, and as the night scene;
+  with the lights on, and as the night scene (cut out with the plain spin, so
+  the card draws the night backdrop);
 * a 360-degree interior panorama (six cube faces);
 * a true top view, which BMW draws for MINIs only;
 * the names of the factory options, i.e. the car's equipment list;
@@ -27,7 +28,9 @@ Known traps, found by probing:
   tried in turn, as the configurator itself does.
 * ``effectdate`` is ``YYYYMMDD`` for images and ``YYYY-MM-DD`` for option
   names; it is the build date, which also makes cars no longer sold render.
-* ``background=TRANSPARENT`` only works on the ``dynamic-images`` endpoint.
+* ``background=TRANSPARENT`` only works on the ``dynamic-images`` endpoint,
+  and not for the night scenes. ``background=night`` is MINI-only: a BMW
+  answers it with plain white.
 * The exterior camera is always at eye level; only MINIs have a top view.
 * Basic data carries no upholstery code, so the interior shows BMW's default
   trim, which may not be the car's.
@@ -75,6 +78,15 @@ _BRANDS = {
 }
 _SETTINGS_RE = re.compile(r"settings\.([0-9a-f]{6,})\.json")
 _SPIN = "walkaround-360"
+# The night spin, asked for the way each configurator asks: BMW draws its cars
+# at night only as ``nightview`` (a black studio, the car in shadow), while
+# MINI's own night scene is ``background=night`` with the lights on (the car
+# lit from the front). Both come back on an opaque scene, which ``cut_out``
+# replaces with transparency so the card can draw one backdrop for every car.
+_NIGHT_SCENE: dict[str, tuple[tuple[tuple[str, str], ...], str]] = {
+    "bmw": ((("nightview", "true"),), "TRANSPARENT"),
+    "mini": ((("lightson", "true"),), "night"),
+}
 _INTERIOR = "interior-mixed"
 _TOP = "roof-and-mirror-caps"
 # The turntable size fetched: BMW's 960x540 frames, scaled down to fit the card.
@@ -336,6 +348,28 @@ def build_sprite(
         crop=box,
     )
     return render
+
+
+def cut_out(sprite: bytes, stencil: bytes) -> bytes:
+    """``sprite`` with the transparency of ``stencil``, the plain spin's sprite.
+
+    The night scenes are drawn on an opaque studio (BMW's with stepped rings
+    of floor light), but they share their frames and crop with the plain spin,
+    whose car is already cut out. Taking its alpha leaves the night car alone.
+    A stencil without any transparency (a car BMW draws on white) would blank
+    nothing useful, so the sprite is returned as it was.
+    """
+
+    from PIL import Image  # noqa: PLC0415 - Pillow is only needed once a picture is made
+
+    mask = Image.open(io.BytesIO(stencil)).convert("RGBA").getchannel("A")
+    if mask.getextrema()[0] == 255:
+        return sprite
+    image = Image.open(io.BytesIO(sprite)).convert("RGBA")
+    if image.size != mask.size:
+        return sprite
+    image.putalpha(mask)
+    return _save(image)[0]
 
 
 def build_interior(faces: Sequence[bytes]) -> bytes:
@@ -653,8 +687,10 @@ async def async_render(
         except ValueError as err:
             raise ConfiguratorError("unavailable", "image service answer is not JSON") from err
 
-    async def spin(brand: str, *extra: tuple[str, str]) -> Optional[list[bytes]]:
-        answer = await links("dynamic-images", _SPIN, brand, ("background", "TRANSPARENT"), *extra)
+    async def spin(
+        brand: str, *extra: tuple[str, str], background: str = "TRANSPARENT"
+    ) -> Optional[list[bytes]]:
+        answer = await links("dynamic-images", _SPIN, brand, ("background", background), *extra)
         urls = frame_urls(answer) if answer else []
         # The placeholder brand returns links that all 404: one probe decides it.
         first = await image(urls[0]) if urls else None
@@ -675,15 +711,22 @@ async def async_render(
         if not extras:
             return replace(render, brand=brand)
         extras_found: dict[str, Any] = {"brand": brand}
-        for name, switch in (("lights", ("lightson", "true")), ("night", ("nightview", "true"))):
-            try:
-                variant = await spin(brand, switch)
-                if variant:
-                    extras_found[name] = (
-                        await run(build_sprite, variant, SPRITE_COLUMNS, crop)
-                    ).sprite
-            except ConfiguratorError as err:
-                _LOGGER.debug("Configurator: no %s spin for %s: %s", name, spec.model, err)
+        try:
+            variant = await spin(brand, ("lightson", "true"))
+            if variant:
+                extras_found["lights"] = (
+                    await run(build_sprite, variant, SPRITE_COLUMNS, crop)
+                ).sprite
+        except ConfiguratorError as err:
+            _LOGGER.debug("Configurator: no lights spin for %s: %s", spec.model, err)
+        try:
+            switches, background = _NIGHT_SCENE[spec.site]
+            variant = await spin(brand, *switches, background=background)
+            if variant:
+                night = await run(build_sprite, variant, SPRITE_COLUMNS, crop)
+                extras_found["night"] = await run(cut_out, night.sprite, render.sprite)
+        except ConfiguratorError as err:
+            _LOGGER.debug("Configurator: no night spin for %s: %s", spec.model, err)
         extras_found.update(await _optional_extras(spec, brand, links, image, run))
         extras_found.update(
             await _option_pictures(
