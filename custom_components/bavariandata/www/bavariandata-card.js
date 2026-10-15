@@ -281,6 +281,7 @@ const TRANSLATIONS = {
     state_open: "Open",
     state_closed: "Closed",
     state_tilted: "Tilted",
+    state_partly_open: "Partially open",
     door_word: "Door",
     window_word: "Window",
     hood_word: "Hood",
@@ -617,6 +618,7 @@ const TRANSLATIONS = {
     state_open: "Offen",
     state_closed: "Geschlossen",
     state_tilted: "Gekippt",
+    state_partly_open: "Teilweise offen",
     door_word: "Tür",
     window_word: "Fenster",
     hood_word: "Motorhaube",
@@ -940,6 +942,7 @@ const TRANSLATIONS = {
     state_open: "Ouvert",
     state_closed: "Fermé",
     state_tilted: "Entrouvert",
+    state_partly_open: "Partiellement ouvert",
     door_word: "Porte",
     window_word: "Vitre",
     hood_word: "Capot",
@@ -1263,6 +1266,7 @@ const TRANSLATIONS = {
     state_open: "Aperto",
     state_closed: "Chiuso",
     state_tilted: "Socchiuso",
+    state_partly_open: "Parzialmente aperto",
     door_word: "Porta",
     window_word: "Finestrino",
     hood_word: "Cofano",
@@ -1586,6 +1590,7 @@ const TRANSLATIONS = {
     state_open: "Abierto",
     state_closed: "Cerrado",
     state_tilted: "Entreabierto",
+    state_partly_open: "Parcialmente abierto",
     door_word: "Puerta",
     window_word: "Ventanilla",
     hood_word: "Capó",
@@ -1909,6 +1914,7 @@ const TRANSLATIONS = {
     state_open: "Open",
     state_closed: "Dicht",
     state_tilted: "Op een kier",
+    state_partly_open: "Gedeeltelijk open",
     door_word: "Deur",
     window_word: "Raam",
     hood_word: "Motorkap",
@@ -2232,6 +2238,7 @@ const TRANSLATIONS = {
     state_open: "Otwarte",
     state_closed: "Zamknięte",
     state_tilted: "Uchylone",
+    state_partly_open: "Częściowo otwarte",
     door_word: "Drzwi",
     window_word: "Szyba",
     hood_word: "Maska",
@@ -2555,6 +2562,7 @@ const TRANSLATIONS = {
     state_open: "Aberto",
     state_closed: "Fechado",
     state_tilted: "Entreaberto",
+    state_partly_open: "Parcialmente aberto",
     door_word: "Porta",
     window_word: "Vidro",
     hood_word: "Capô",
@@ -2878,6 +2886,7 @@ const TRANSLATIONS = {
     state_open: "Otevřeno",
     state_closed: "Zavřeno",
     state_tilted: "Pootevřeno",
+    state_partly_open: "Částečně otevřeno",
     door_word: "Dveře",
     window_word: "Okno",
     hood_word: "Kapota",
@@ -3201,6 +3210,7 @@ const TRANSLATIONS = {
     state_open: "Öppen",
     state_closed: "Stängd",
     state_tilted: "På glänt",
+    state_partly_open: "Delvis öppen",
     door_word: "Dörr",
     window_word: "Fönster",
     hood_word: "Motorhuv",
@@ -8214,7 +8224,8 @@ class BavarianDataCard extends HTMLElement {
         openItems.push({
           id: windows[k].id,
           label: `${this._t(slotLabel[k])} · ${this._t("window_word")}`,
-          value: this._t(windows[k].partial ? "state_tilted" : "state_open"),
+          // "Tilted" is the sunroof's word; a side window is partly down.
+          value: this._t(windows[k].partial ? "state_partly_open" : "state_open"),
           color: WARN,
         });
       }
@@ -8435,9 +8446,13 @@ class BavarianDataCard extends HTMLElement {
     // Keys are side + row: "lf" = left front, "rr" = right rear.
     const flip = (k) => (k && k[0] === "r" ? ` transform="${CAR_FLIP}"` : "");
     const hit = (path, id, k) => `<path d="${path}" class="cldiag__hit" data-entity="${id}"${flip(k)}/>`;
-    const lit = (path, color, k, extra = "") =>
+    // `hinge` turns the glow with an open door, so a window rides on it.
+    const lit = (path, color, k, extra = "", hinge = "") =>
       `<g class="cldiag__lit" style="--c:${color}"${flip(k)}>` +
-      `<path d="${path}" class="cldiag__zone"/><path d="${path}" class="cldiag__core"/>${extra}</g>`;
+      (hinge ? `<g transform="${hinge}">` : "") +
+      `<path d="${path}" class="cldiag__zone"/><path d="${path}" class="cldiag__core"/>${extra}` +
+      (hinge ? "</g>" : "") +
+      `</g>`;
     const parts = [];
 
     // Doors: swung open when open, always a tap zone.
@@ -8466,17 +8481,20 @@ class BavarianDataCard extends HTMLElement {
     zone(d.hood, car.hood);
     zone(d.trunk, car.trunk);
     // Glass (windows / sunroof / rear window) glows amber when open; a side
-    // window also shows the lowered pane's top edge.
-    const glass = (part, path, k, extra) => {
+    // window also shows the lowered pane's top edge. The pane is in the door,
+    // so with its door open it is drawn swung out with it, not in the gap.
+    const glass = (part, path, k, extra, hinge) => {
       if (!part) return;
-      if (part.open) parts.push(lit(path, WARN, k, extra));
+      if (part.open) parts.push(lit(path, WARN, k, extra, hinge));
       parts.push(hit(path, part.id, k));
     };
     for (const k of ["lf", "rf", "lr", "rr"]) {
       const w = d.windows[k];
       const g = car.window[k[1]];
       const [x1, x2] = g.dropX || [200, 300];
-      if (w) glass(w, g.d, k, `<path d="M${x1} ${g.drop} L${x2} ${g.drop}" class="cldiag__drop" clip-path="url(#${g.clip})"/>`);
+      const door = d.doors[k];
+      const hinge = door && door.open ? car.door[k[1]].hinge : "";
+      if (w) glass(w, g.d, k, `<path d="M${x1} ${g.drop} L${x2} ${g.drop}" class="cldiag__drop" clip-path="url(#${g.clip})"/>`, hinge);
     }
     glass(d.sunroof, car.sunroof);
     glass(d.rearWindow, car.rearWindow);

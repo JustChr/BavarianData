@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **A partly open side window now says "Partially open", not "Tilted".** The
+  closures list used the sunroof's word for it. The sunroof is still "Tilted".
+  Thanks @BeastleeUK (#100).
+- **An open window on an open door now swings out with the door.** The
+  closures drawing left the window's glow in the gap where the closed door
+  would be. Thanks @BeastleeUK (#100).
+
 ## [0.9.19-beta.4] - 2026-10-14
 
 ### Changed

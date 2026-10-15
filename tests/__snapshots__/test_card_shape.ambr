@@ -127,9 +127,11 @@
           <path d="M214 52 C300 40 648 40 734 52 C772 60 788 84 790 130 L792 486 C700 448 586 430 474 430 C362 430 248 448 156 486 L158 130 C160 84 176 60 214 52 Z" class="cldiag__hit" data-entity="sensor.mini_hood"/>
           <path d="M200 1398 C320 1388 628 1388 748 1398 L780 1556 C770 1590 746 1604 710 1610 C620 1622 328 1622 238 1610 C202 1604 178 1590 168 1556 Z" class="cldiag__hit" data-entity="sensor.mini_trunk"/>
           <g class="cldiag__lit" style="--c:var(--bmw-mid)">
+  <g transform="rotate(20 146 497)">
   <path d="M182 600 C196 620 214 640 228 664 L230 900 L180 900 Z" class="cldiag__zone"/>
   <path d="M182 600 C196 620 214 640 228 664 L230 900 L180 900 Z" class="cldiag__core"/>
   <path d="M150 700 L260 700" class="cldiag__drop" clip-path="url(#carClipWf)"/>
+  </g>
   </g>
           <path d="M182 600 C196 620 214 640 228 664 L230 900 L180 900 Z" class="cldiag__hit" data-entity="sensor.mini_window"/>
           <path d="M330 760 H618 Q632 760 632 774 V1206 Q632 1220 618 1220 H330 Q316 1220 316 1206 V774 Q316 760 330 760 Z" class="cldiag__hit" data-entity="sensor.mini_sunroof"/>
