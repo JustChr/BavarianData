@@ -19,9 +19,21 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   when the cable goes in at home and off when it comes out, for EV Smart
   Charging's *EV connected* switch or any planner that needs it.
 - **Blueprint: car arriving home soon.** Runs your actions once per drive
-  when Waze or Google Maps says the car is less than the minutes you set from
-  home. It can't know where you're going, so pick the zones your drives home
-  start from (Work, for example) to skip drives that only pass nearby.
+  when the car gets closer to home than you set, by Waze or Google Maps travel
+  time or by Home Assistant's own Proximity distance. It can't know where
+  you're going, so pick the zones your drives home start from (Work, for
+  example) to skip drives that only pass nearby.
+- **Blueprint: rain coming, a window is open.** Checks your weather forecast
+  while a window, the sunroof or the tailgate window stays open, and warns
+  before the rain.
+- **Blueprint: frost tonight, the car isn't plugged in.** An evening reminder
+  to plug in when the night drops to your frost limit.
+- **Blueprint: one tire losing pressure.** Compares the tires on each axle and
+  warns when one stays clearly below its partner, usually well before the
+  car's own warning.
+- **Ask Assist about your car.** Three ready-made scripts let an AI
+  conversation agent answer questions about your driving, charging and
+  mileage from BavarianData's history, at no API quota and without the VIN.
 
 ### Fixed
 - **The *Stop charging at target %* blueprint sends its notification.** The

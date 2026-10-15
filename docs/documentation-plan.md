@@ -293,7 +293,8 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Device triggers (arrived at / left a zone, parked unlocked, plugged in but not charging, charging started / completed / stopped before the target) — offered only when the car can fire them; live values only, nothing fires from a restart; `trigger.data` per type | 🟢 Feature-Automations → "Device triggers" (both languages); 📷 `automation-device-triggers.png` (both languages) |
 | Trigger events (`bavariandata_zone_*`, `bavariandata_situation`, `bavariandata_charging_interrupted`) | 🟢 Feature-Automations → "Events" |
 | Vehicle-report event (`bavariandata_vehicle_report`: new odometer reading held 5 min; first reading only seeds; no repeat, no restart replay) | 🟢 Feature-Automations → "Events" (EN + DE) |
-| Automation blueprints (4: stop at target, notify complete, cable → switch, arriving home) | 🟡 Feature-Automations → "Starter blueprints" (EN + DE); arriving home states that intent is unknown and the start-zone filter |
+| Automation blueprints (7: stop at target, notify complete, cable → switch, arriving home, rain + open window, frost + unplugged, tire losing pressure) | 🟡 Feature-Automations → "Starter blueprints" (EN + DE); arriving home states that intent is unknown, the start-zone filter and Waze/Google/Proximity as sources |
+| Assist / LLM: three scripts over `get_driving_summary`, `get_charging_sessions`, `get_mileage_report`; what the AI sees (allow-listed fields, no VIN) | 🟢 Feature-Automations → "Ask Assist about your car" (EN + DE) |
 | Smart charging with other integrations (EV Smart Charging, Predbat: which entity goes where, the predicted SoC as the planner's input, the iX3 target caveat, home-only cable blueprint) | 🟢 Feature-Smart-Charging (EN + DE) |
 | API quota + Repairs issue | 🟡 |
 | Daily REST refresh (container + tire, 2 req/day **per vehicle**) | 🟢 Feature-API-Quota → "The daily refresh" + Services-Reference |

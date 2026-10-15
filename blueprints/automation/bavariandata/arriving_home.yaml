@@ -1,28 +1,29 @@
 blueprint:
   name: "BavarianData: Car arriving home soon"
   description: >
-    Runs your actions once, when the car is on its way home and the remaining
-    drive drops below the minutes you set: open the garage, warm the house,
-    tell the family.
+    Runs your actions once, when the car is on its way home and gets closer
+    than the threshold you set: open the garage, warm the house, tell the
+    family.
 
-    It needs a travel-time sensor from the car to home. Add Home Assistant's
-    Waze Travel Time (or Google Maps Travel Time) integration with the car's
-    location entity as the origin and your home as the destination. This
-    blueprint refreshes that sensor each time the car reports a new position.
-    Turn off polling for that integration (its entry's System options), so
-    only this blueprint updates the figure; otherwise a poll can cross the
-    threshold between two positions and the heads-up is skipped.
+    It needs a figure that falls as the car approaches home, with the car's
+    location entity as its origin. Either of Home Assistant's own:
+
+    - **Waze Travel Time** or **Google Maps Travel Time**: minutes to home,
+    with traffic. The blueprint refreshes it at every new position.
+
+    - **Proximity**: the distance to home, no account or API needed. Pick
+    its distance sensor and set the threshold in its unit (km or mi).
 
     BMW sends the car's position about every one to three minutes while
-    driving, so expect the heads-up within a few minutes of your threshold,
-    not to the second. Driving away from home never fires it, and neither
-    does traffic changing while the car is parked.
+    driving, so expect the heads-up a little after the threshold, not to the
+    second. Driving away from home never fires it, and neither does traffic
+    changing while the car is parked.
   domain: automation
   source_url: https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/arriving_home.yaml
   input:
     car_tracker:
       name: Car location
-      description: The car's location entity, also the travel-time sensor's origin.
+      description: The car's location entity, also the origin of the figure below.
       selector:
         entity:
           filter:
@@ -36,15 +37,27 @@ blueprint:
           filter:
             - integration: bavariandata
               domain: binary_sensor
-    travel_time:
-      name: Travel-time sensor
+    distance_sensor:
+      name: Time or distance to home
       description: >
-        Minutes from the car to home, from Waze Travel Time or Google Maps
-        Travel Time.
+        Minutes from Waze / Google Maps Travel Time, or the distance from
+        Proximity.
       selector:
         entity:
           filter:
             - domain: sensor
+    threshold:
+      name: Threshold
+      description: >
+        Run the actions once the figure above drops to this or below, in its
+        own unit: minutes for Waze or Google, km or mi for Proximity.
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 120
+          step: 1
+          mode: box
     start_zones:
       name: Only trips that start in (optional)
       description: >
@@ -59,17 +72,6 @@ blueprint:
           multiple: true
           filter:
             - domain: zone
-    minutes:
-      name: Minutes before arrival
-      description: Run the actions once the remaining drive is this short.
-      default: 10
-      selector:
-        number:
-          min: 2
-          max: 60
-          step: 1
-          unit_of_measurement: min
-          mode: slider
     arriving_actions:
       name: Actions
       description: What to do when the car is about to arrive.
@@ -77,25 +79,30 @@ blueprint:
       selector:
         action:
 
-# single: after the actions ran, the run waits for the trip to end, so every
-# later position of the same trip is dropped and the actions run once.
-mode: single
+# queued: a refresh and the change it causes run one after the other. After
+# the actions, the run waits for the trip to end; anything queued meanwhile
+# finds the trip over and stops, so the actions run once per drive.
+mode: queued
+max: 10
 max_exceeded: silent
 
 variables:
   car_tracker: !input car_tracker
   trip_sensor: !input trip_sensor
-  travel_time: !input travel_time
+  distance_sensor: !input distance_sensor
+  threshold: !input threshold
   start_zones: !input start_zones
-  minutes: !input minutes
 
 trigger:
+  # A new position: ask the travel-time sensor for a fresh figure.
   - platform: state
     entity_id: !input car_tracker
     attribute: latitude
+    id: moved
+  # The figure changed, by our refresh or on its own.
   - platform: state
-    entity_id: !input car_tracker
-    attribute: longitude
+    entity_id: !input distance_sensor
+    id: figure
 
 condition:
   - condition: state
@@ -112,22 +119,33 @@ condition:
             in zones | map('state_attr', 'friendly_name') | list }}
 
 action:
-  - variables:
-      before: "{{ states(travel_time) | float(none) }}"
-  - service: homeassistant.update_entity
-    target:
-      entity_id: !input travel_time
-  - variables:
-      after: "{{ states(travel_time) | float(none) }}"
-  # Only a fall from above the threshold to at or below it. Leaving home
-  # starts near zero and climbs, so it never crosses downwards.
-  - condition: template
-    value_template: >
-      {{ before is not none and after is not none
-         and before > minutes | float and after <= minutes | float }}
-  - sequence: !input arriving_actions
-  - wait_for_trigger:
-      - platform: state
-        entity_id: !input trip_sensor
-        to: "off"
-    timeout: "06:00:00"
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: moved
+        sequence:
+          - service: homeassistant.update_entity
+            target:
+              entity_id: !input distance_sensor
+      - conditions:
+          - condition: trigger
+            id: figure
+          # Checked again here: a queued run may start after the trip ended.
+          - condition: state
+            entity_id: !input trip_sensor
+            state: "on"
+          # Only a fall from above the threshold to at or below it. Leaving
+          # home starts near zero and climbs, so it never crosses downwards.
+          - condition: template
+            value_template: >
+              {% set old = trigger.from_state.state | float(none) if trigger.from_state else none %}
+              {% set new = trigger.to_state.state | float(none) if trigger.to_state else none %}
+              {{ old is not none and new is not none
+                 and old > threshold | float and new <= threshold | float }}
+        sequence:
+          - sequence: !input arriving_actions
+          - wait_for_trigger:
+              - platform: state
+                entity_id: !input trip_sensor
+                to: "off"
+            timeout: "06:00:00"
