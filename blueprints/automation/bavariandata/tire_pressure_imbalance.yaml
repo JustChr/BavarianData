@@ -1,0 +1,119 @@
+blueprint:
+  name: "BavarianData: One tire losing pressure"
+  description: >
+    Warns you early about a slow puncture. It compares the two tires on each
+    axle: weather, altitude and the warmth of driving move both alike, so when
+    one stays clearly below its partner for an hour, that tire is losing air.
+    This usually shows well before the car's own warning, which waits for a
+    larger loss.
+
+    It fires once when the gap opens, and again only after it has closed.
+  domain: automation
+  source_url: https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/tire_pressure_imbalance.yaml
+  input:
+    front_left:
+      name: Tire pressure (front left)
+      selector:
+        entity:
+          filter:
+            - integration: bavariandata
+              domain: sensor
+              device_class: pressure
+    front_right:
+      name: Tire pressure (front right)
+      selector:
+        entity:
+          filter:
+            - integration: bavariandata
+              domain: sensor
+              device_class: pressure
+    rear_left:
+      name: Tire pressure (rear left)
+      selector:
+        entity:
+          filter:
+            - integration: bavariandata
+              domain: sensor
+              device_class: pressure
+    rear_right:
+      name: Tire pressure (rear right)
+      selector:
+        entity:
+          filter:
+            - integration: bavariandata
+              domain: sensor
+              device_class: pressure
+    limit_kpa:
+      name: Gap
+      description: >
+        Warn when the two tires on an axle differ by this much, in kPa
+        (10 kPa = 0.1 bar = 1.45 psi). Healthy tires stay within about 20 kPa
+        of each other.
+      default: 30
+      selector:
+        number:
+          min: 20
+          max: 100
+          step: 10
+          unit_of_measurement: kPa
+    warn_actions:
+      name: Actions
+      description: >
+        What to do, for example a notification. The variables `low_tire` (its
+        name) and `gap_kpa` are available.
+      default: []
+      selector:
+        action:
+
+mode: single
+max_exceeded: silent
+
+trigger_variables:
+  fl: !input front_left
+  fr: !input front_right
+  rl: !input rear_left
+  rr: !input rear_right
+  limit_kpa: !input limit_kpa
+
+variables:
+  fl: !input front_left
+  fr: !input front_right
+  rl: !input rear_left
+  rr: !input rear_right
+
+trigger:
+  - platform: template
+    value_template: >
+      {% set factor = {'kPa': 1, 'bar': 100, 'mbar': 0.1, 'psi': 6.894757, 'Pa': 0.001} %}
+      {% set ns = namespace(v=[]) %}
+      {% for e in [fl, fr, rl, rr] %}
+        {% set x = states(e) | float(none) %}
+        {% set kpa = x * factor.get(state_attr(e, 'unit_of_measurement'), 1) if x is not none else none %}
+        {% set ns.v = ns.v + [kpa if kpa is not none and kpa > 50 else none] %}
+      {% endfor %}
+      {% set v = ns.v %}
+      {{ (v[0] is not none and v[1] is not none and (v[0] - v[1]) | abs >= limit_kpa | float)
+         or (v[2] is not none and v[3] is not none and (v[2] - v[3]) | abs >= limit_kpa | float) }}
+    for: "01:00:00"
+
+action:
+  - variables:
+      readings: >
+        {% set factor = {'kPa': 1, 'bar': 100, 'mbar': 0.1, 'psi': 6.894757, 'Pa': 0.001} %}
+        {% set ns = namespace(v=[]) %}
+        {% for e in [fl, fr, rl, rr] %}
+          {% set x = states(e) | float(none) %}
+          {% set ns.v = ns.v + [x * factor.get(state_attr(e, 'unit_of_measurement'), 1) if x is not none else 0] %}
+        {% endfor %}
+        {{ ns.v }}
+      front_gap: "{{ (readings[0] - readings[1]) | abs }}"
+      rear_gap: "{{ (readings[2] - readings[3]) | abs }}"
+      low_entity: >
+        {% if front_gap >= rear_gap %}
+          {{ fl if readings[0] < readings[1] else fr }}
+        {% else %}
+          {{ rl if readings[2] < readings[3] else rr }}
+        {% endif %}
+      low_tire: "{{ state_attr(low_entity, 'friendly_name') or low_entity }}"
+      gap_kpa: "{{ [front_gap, rear_gap] | max | round(0) }}"
+  - sequence: !input warn_actions

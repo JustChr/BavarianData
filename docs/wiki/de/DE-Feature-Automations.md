@@ -139,7 +139,7 @@ der Fahrt nichts. Es löst einmal pro neuem Kilometerstand aus, nachdem der Wert
 
 ## Blueprints für den Einstieg
 
-Vier Automationen für den Einstieg liegen der Integration bei. Importiere sie
+Sieben Automationen für den Einstieg liegen der Integration bei. Importiere sie
 über **Einstellungen → Automationen & Szenen → Blueprints → Blueprint
 importieren** mit der Raw-URL von GitHub:
 
@@ -163,12 +163,17 @@ importieren** mit der Raw-URL von GitHub:
   Hause.
 - **Auto kommt gleich heim** —
   [`arriving_home.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/arriving_home.yaml).
-  Führt deine Aktionen einmal pro Fahrt aus, sobald die restliche Fahrzeit nach
-  Hause unter die eingestellten Minuten fällt: Garage öffnen, Haus aufheizen.
-  Es braucht Home Assistants **Waze Travel Time** (oder Google Maps Travel
-  Time) mit dem Standort des Autos als Start und deinem Zuhause als Ziel;
-  schalte dort das Abfragen ab, der Blueprint aktualisiert es bei jeder neuen
-  Position. Gut zu wissen:
+  Führt deine Aktionen einmal pro Fahrt aus, sobald das Auto näher an zu Hause
+  ist als die eingestellte Schwelle: Garage öffnen, Haus aufheizen. Es braucht
+  einen Wert, der fällt, während das Auto heimkommt, mit dem Standort des Autos
+  als Start. Entweder:
+  - **Waze Travel Time** oder **Google Maps Travel Time**: Minuten bis nach
+    Hause, mit Verkehr. Der Blueprint aktualisiert den Wert bei jeder neuen
+    Position.
+  - **Proximity** (in Home Assistant eingebaut, ohne Konto): die Entfernung
+    nach Hause. Die Schwelle dann in seiner Einheit (km oder mi).
+
+  Gut zu wissen:
   - **Es weiß nicht, wohin du fährst.** Es sieht nur, dass das Auto näher
     kommt. Eine Fahrt, die nah an zu Hause vorbei und weiter führt, löst es
     ebenfalls aus. Wähle die Zonen, in denen deine Heimfahrten beginnen
@@ -176,11 +181,166 @@ importieren** mit der Raw-URL von GitHub:
   - **Eine kurze Fahrt löst es womöglich nicht aus.** Wer nie weiter weg war
     als die Schwelle, unterschreitet sie nie; das Losfahren von zu Hause löst
     es ebenfalls nie aus.
-  - **Rechne mit ein paar Minuten Abweichung.** BMW sendet die Position
-    während der Fahrt etwa alle ein bis drei Minuten.
+  - **Rechne damit, dass es etwas nach der Schwelle kommt.** BMW sendet die
+    Position während der Fahrt etwa alle ein bis drei Minuten.
   - Die Navigation des Autos hat ein Feld *Zeit bis zum Navigationsziel*. Ein
     Ziel, das du am Handy über CarPlay oder Android Auto eingibst, kennt das
     Auto nicht, deshalb verlässt sich der Blueprint nicht darauf.
+- **Regen kommt, ein Fenster ist offen** —
+  [`rain_window_open.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/rain_window_open.yaml).
+  Steht ein Fenster, das Schiebedach oder die Heckscheibe 10 Minuten offen,
+  und danach jede Stunde, prüft es deine Wettervorhersage. Regen innerhalb der
+  eingestellten Stunden (nach Wahrscheinlichkeit, wo die Vorhersage eine
+  liefert, sonst jede Regenmenge oder ein Regenzustand) führt deine Aktionen
+  aus, die offenen stehen in `open_names`. Danach bleibt es still, bis alles
+  zu ist.
+- **Frost heute Nacht, das Auto hängt nicht am Kabel** —
+  [`frost_unplugged.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/frost_unplugged.yaml).
+  Prüft zur eingestellten Zeit (standardmäßig 20:00) den Tiefstwert bis 09:00
+  am nächsten Morgen. Liegt er bei oder unter deiner Frostgrenze, steht das Auto
+  zu Hause und steckt das Kabel nicht, führt es deine Aktionen aus, mit dem
+  Tiefstwert in `low`. Eingesteckt kann ein Elektroauto Akku und Innenraum vor
+  der Abfahrt aus dem Netz wärmen.
+- **Ein Reifen verliert Luft** —
+  [`tire_pressure_imbalance.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/tire_pressure_imbalance.yaml).
+  Vergleicht die beiden Reifen jeder Achse. Wetter und die Wärme der Fahrt
+  verändern beide gleich, ein Unterschied, der eine Stunde lang bleibt
+  (standardmäßig 30 kPa, 0,3 bar), heißt also: Einer verliert Luft, meist
+  deutlich vor der Warnung des Autos. Den Reifen nennt `low_tire`; erneut
+  meldet es sich erst, wenn der Unterschied wieder verschwunden ist. Gesunde
+  Reifen liegen höchstens etwa 20 kPa auseinander.
+
+## Assist nach dem Auto fragen
+
+Mit einem KI-Gesprächsagenten hinter Assist (OpenAI, Google, Anthropic oder
+Ollama) beantwortet Assist Fragen wie *„Wie weit bin ich letzten Monat
+gefahren?“*, *„Was hat das Laden diese Woche gekostet?“* oder *„Liege ich beim
+Leasing im Plan?“* aus BavarianDatas eigenem Verlauf. Dafür braucht es drei
+Skripte, die die Antworten übergeben. Sie lesen den lokalen Speicher und kosten
+**kein API-Kontingent**.
+
+1. Die Skripte unten in `scripts.yaml` einfügen (oder jedes unter
+   *Einstellungen → Automationen & Szenen → Skripte* anlegen, *In YAML
+   bearbeiten*), dann die Skripte neu laden.
+2. Für Assist freigeben: *Einstellungen → Sprachassistenten → Freigeben*, die
+   drei Skripte hinzufügen.
+3. Beim Gesprächsagenten *Home Assistant steuern* einschalten, falls es aus ist.
+
+Die Beschreibungen in den Skripten sind englisch; die KI versteht sie trotzdem
+und antwortet auf Deutsch.
+
+```yaml
+car_driving_month:
+  alias: Car driving month
+  description: >-
+    How far the car was driven in a month: distance, number of trips, the
+    private/business/commute split, average consumption and the estimated
+    driving cost. Use it for questions about distance, trips, consumption or
+    what driving cost.
+  fields:
+    month:
+      description: The month as YYYY-MM. Leave empty for the current month.
+      example: "2026-09"
+      selector:
+        text:
+  sequence:
+    - action: bavariandata.get_driving_summary
+      data:
+        month: "{{ month if month | default('') | trim else now().strftime('%Y-%m') }}"
+      response_variable: result
+    - variables:
+        # Named fields only: the trip ids in the raw answer hold the VIN.
+        answer: >
+          {% set s = result.summary %}
+          {% set best = s.best_trip or {} %}
+          {% set worst = s.worst_trip or {} %}
+          {{ {'month': result.month,
+              'total_km': s.total_km, 'trip_count': s.trip_count,
+              'avg_trip_km': s.avg_trip_km, 'longest_trip_km': s.longest_trip_km,
+              'split': s.split,
+              'avg_consumption_kwh_per_100km': s.avg_consumption_kwh_per_100km,
+              'energy_balance': s.energy_balance,
+              'top_destinations': s.top_destinations,
+              'previous_month_km': s.prev_total_km,
+              'change_vs_previous_month_percent': s.mom_delta_percent,
+              'estimated_cost': s.estimated_cost,
+              'most_efficient_trip': {'to': best.get('label'),
+                                      'kwh_per_100km': best.get('consumption'),
+                                      'km': best.get('distance_km')},
+              'least_efficient_trip': {'to': worst.get('label'),
+                                       'kwh_per_100km': worst.get('consumption'),
+                                       'km': worst.get('distance_km')}} }}
+    - stop: Done
+      response_variable: answer
+
+car_charging_history:
+  alias: Car charging history
+  description: >-
+    The car's charging sessions over the last days: when and where, state of
+    charge before and after, energy and cost. Use it for questions about
+    charging, charging cost or energy.
+  fields:
+    days:
+      description: How many days back to look. 30 if not given.
+      example: 30
+      selector:
+        number:
+          min: 1
+          max: 365
+  sequence:
+    - action: bavariandata.get_charging_sessions
+      data:
+        from: "{{ (now() - timedelta(days=days | default(30) | int)).date() | string }}"
+      response_variable: result
+    - variables:
+        answer: >
+          {% set ns = namespace(sessions=[]) %}
+          {% for s in result.sessions %}
+            {% set ns.sessions = ns.sessions + [{
+              'start': s.start, 'end': s.end,
+              'place': (s.location or {}).get('zone'),
+              'soc_before': s.soc_start, 'soc_after': s.soc_end,
+              'kwh_from_grid': s.grid_kwh, 'kwh_into_battery': s.energy_kwh,
+              'cost': (s.cost or {}).get('amount'),
+              'currency': (s.cost or {}).get('currency')}] %}
+          {% endfor %}
+          {{ {'sessions': ns.sessions} }}
+    - stop: Done
+      response_variable: answer
+
+car_mileage:
+  alias: Car mileage
+  description: >-
+    The car's odometer, the distance driven this month and this year, the
+    last twelve months, its pace in km per day and, if one is set, where it
+    stands against its lease or yearly mileage allowance.
+  sequence:
+    - action: bavariandata.get_mileage_report
+      data: {}
+      response_variable: result
+    - variables:
+        answer: >
+          {{ {'odometer_km': result.odometer_km,
+              'this_month_km': result.this_month.km,
+              'this_year_km': result.this_year.km,
+              'km_per_day': result.km_per_day,
+              'projected_year_km': result.projected_year_km,
+              'months': result.months,
+              'allowance': result.allowance} }}
+    - stop: Done
+      response_variable: answer
+```
+
+**Was die KI sieht.** Genau das, was diese Skripte zurückgeben: Strecken,
+Verbrauch, Kosten, Ladezeiten und die Namen von Orten (deine Zonen, oder
+Adressen bei Fahrten, die woanders endeten). Sonst nichts, auch keine FIN: Die
+Skripte nennen jedes Feld einzeln, weil die rohen Antworten der Dienste die FIN
+in ihren IDs tragen. Mit einem Cloud-Agenten verlassen diese Werte dein
+Zuhause; ein lokaler Agent wie Ollama behält sie dort.
+
+Mit mehreren Autos (oder Konten) unter `data:` jedes Skripts `vin:` (und
+`entry_id:`) ergänzen und jedem Auto eigene drei Skripte geben, nach dem Auto
+benannt.
 
 ## Nicht vergessen: nur lesend
 
