@@ -456,7 +456,11 @@ in their corners). BMW has no such view for any BMW model.
 The car's factory equipment, named: paint, wheels and trim first, then the
 packages, then every other option the car was built with, each with BMW's code.
 What BMW treats as technical (refrigerant, the language of the paperwork,
-emission controls) is folded away under **Technical codes**.
+emission controls) is folded away under **Technical codes**. Options BMW has a
+picture for show it in front of the name: a swatch for the paint, wheels and
+roof, a small photo for the rest. Most technical codes have none. To keep a
+plain list, turn off **Show option pictures** in the card editor
+(`pictures: false`).
 
 ```yaml
 type: custom:bavariandata-card
@@ -527,6 +531,7 @@ teleservice timestamps, listed below the messages when the car sends them.
 | `drivetrain` | `bev`, `phev` or `ice` — the Overview layout. Omit to detect it from what the car streams. |
 | `steering` | `left` or `right` — the side the driver sits on, used to place doors and windows in the closures view. Omit to read it from BMW's basic data; a car whose basic data doesn't say is drawn as left-hand drive. |
 | `shape` | `sedan` or `countryman` — the car drawn in the tires and closures views. Omit to pick it from the model in BMW's basic data. |
+| `pictures` | `false` — the Equipment view as a plain list, without the option pictures (**Show option pictures** in the visual editor). Omit to show them. |
 | `fuel` | Override the fuel-tank entity (a percentage or a volume). |
 
 With the integration installed, entity overrides are rarely needed — the card

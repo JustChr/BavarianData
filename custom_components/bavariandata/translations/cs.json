@@ -174,7 +174,7 @@
       },
       "action_fetch_image": {
         "title": "Obrázek vozidla",
-        "description": "Vyberte, odkud pochází obrázek vašeho auta. Odeslat ho hned načte a ponechá i po restartu.",
+        "description": "Vyberte, odkud pochází obrázek vašeho auta. Odeslat ho hned načte a ponechá i po restartu. S konfigurátorem Odeslat načte i obrázky výbavy auta pro zobrazení Výbava na kartě; nic jiného je neobnovuje.",
         "data": {
           "image_source": "Zdroj obrázku"
         },

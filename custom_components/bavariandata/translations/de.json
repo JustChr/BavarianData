@@ -174,7 +174,7 @@
       },
       "action_fetch_image": {
         "title": "Fahrzeugbild",
-        "description": "Wähle, woher das Bild deines Autos kommt. OK lädt es jetzt und behält es über Neustarts hinweg.",
+        "description": "Wähle, woher das Bild deines Autos kommt. OK lädt es jetzt und behält es über Neustarts hinweg. Mit dem Konfigurator lädt OK auch die Bilder der Ausstattung des Autos für die Ansicht Ausstattung der Karte; sonst erneuert sie nichts.",
         "data": {
           "image_source": "Bildquelle"
         },

@@ -174,7 +174,7 @@
       },
       "action_fetch_image": {
         "title": "Imagen del vehículo",
-        "description": "Elige de dónde viene la imagen de tu coche. Enviar la obtiene ahora y la conserva tras reiniciar.",
+        "description": "Elige de dónde viene la imagen de tu coche. Enviar la obtiene ahora y la conserva tras reiniciar. Con el configurador, Enviar también obtiene las imágenes del equipamiento del coche para la vista Equipamiento de la tarjeta; nada más las actualiza.",
         "data": {
           "image_source": "Origen de la imagen"
         },

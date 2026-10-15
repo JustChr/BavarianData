@@ -174,7 +174,7 @@
       },
       "action_fetch_image": {
         "title": "Image du véhicule",
-        "description": "Choisissez d'où vient l'image de votre voiture. Valider la récupère maintenant et la conserve après un redémarrage.",
+        "description": "Choisissez d'où vient l'image de votre voiture. Valider la récupère maintenant et la conserve après un redémarrage. Avec le configurateur, Valider récupère aussi les images des options de la voiture pour la vue Équipement de la carte ; rien d'autre ne les actualise.",
         "data": {
           "image_source": "Source de l'image"
         },

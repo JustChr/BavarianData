@@ -249,12 +249,51 @@ def test_the_top_view_is_cut_out_and_turned_nose_up():
     assert padded.getpixel((0, 0))[3] == 0
 
 
+def _tile(color=(20, 60, 160), size=(168, 95)) -> bytes:
+    out = io.BytesIO()
+    Image.new("RGBA", size, (*color, 255)).save(out, "PNG")
+    return out.getvalue()
+
+
+class _Timeout:
+    async def __aenter__(self):
+        raise asyncio.TimeoutError
+
+    async def __aexit__(self, *exc):
+        return False
+
+
+def _option_links(*codes: str) -> dict:
+    """The option-picture answer: two links per code, as BMW sends them."""
+
+    def group(view, code):
+        return {
+            "distinctionParams": {"VIEW": view},
+            "images": [{"viewImage": f"https://cosy.test/opt/{code}/{view}", "imageNumber": 1}],
+        }
+
+    block = {
+        code: {"imageGroups": [group("tile_wide", code), group("static_wide", code)]}
+        for code in codes
+    }
+    return {"collections": {"unified-sgt-options": {"mobile": block, "desktop": block}}}
+
+
+# Which link of each code is real: paint is a swatch, packages are photos,
+# S0230 has nothing, and S0248's only real picture never answers.
+_OPTION_PICTURES = {
+    "P0C4P/tile_wide": _tile((90, 90, 100)),
+    "S0337/static_wide": _tile((200, 20, 20)),
+}
+
+
 class _FakeBmwFull(_FakeBmw):
-    """Also answers the interior, the top view and the option names."""
+    """Also answers the interior, the top view, the option names and pictures."""
 
     def __init__(self, **kwargs) -> None:
         super().__init__(draws="bmwCar", **kwargs)
         self.name_calls = []
+        self.option_calls = []
 
     def get(self, url: str, **kwargs):
         if url.endswith("/de_DE/settings.abc123.json"):
@@ -263,7 +302,7 @@ class _FakeBmwFull(_FakeBmw):
                     "baseUrl": "https://cosy.test",
                     "mandator": "connext-bmw",
                     "hub": "HUB",
-                    "headers": {},
+                    "headers": {"x-api-key": "k"},
                 },
                 "settingsLocalisation": {
                     "baseUrl": "https://ucp.test",
@@ -305,6 +344,19 @@ class _FakeBmwFull(_FakeBmw):
             return _Resp(200, out.getvalue())
         if url == "https://cosy.test/top":
             return _Resp(404, b"placeholder")  # what every BMW gets here
+        if "/collections/unified-sgt-options/" in url:
+            self.option_calls.append((url, kwargs.get("headers")))
+            codes = re.search(r"options=([^&]+)", url).group(1).split("%2C")
+            if codes != sorted(codes):
+                return _Resp(400, b'{"errorMessage": "options is not sorted"}')
+            return _Resp(200, json.dumps(_option_links(*codes)).encode())
+        if url.startswith("https://cosy.test/opt/"):
+            name = url.removeprefix("https://cosy.test/opt/")
+            if name == "S0248/static_wide":
+                return _Timeout()
+            if name in _OPTION_PICTURES:
+                return _Resp(200, _OPTION_PICTURES[name])
+            return _Resp(404, _tile((0, 0, 0)))  # the brand logo, with a 404
         return super().get(url, **kwargs)
 
 
@@ -321,10 +373,74 @@ def test_the_full_fetch_adds_lights_night_interior_and_names():
     assert any("lightson=true" in c for c in spins) and any("nightview=true" in c for c in spins)
 
 
+def test_the_full_fetch_keeps_only_real_option_pictures():
+    session = _FakeBmwFull()
+    render = asyncio.run(CONF.async_render(session, {**I5, "countryCode": "GB"}))
+    # S0230's links are both placeholders and S0248's never answers: left out.
+    assert render.option_codes == ("P0C4P", "S0337")
+    sheet = Image.open(io.BytesIO(render.options)).convert("RGBA")
+    assert sheet.size == (CONF.OPTION_COLUMNS * 168, 95)
+
+    def near(pixel, rgb):  # WebP is lossy
+        return all(abs(a - b) < 8 for a, b in zip(pixel[:3], rgb, strict=True))
+
+    assert near(sheet.getpixel((10, 10)), (90, 90, 100))  # the paint swatch first
+    assert near(sheet.getpixel((168 + 10, 10)), (200, 20, 20))
+    assert sheet.getpixel((2 * 168 + 10, 10))[3] == 0  # no logo kept
+    ((url, headers),) = session.option_calls
+    assert "options=P0C4P%2CS0230%2CS0248%2CS02PA%2CS0337" in url  # sorted
+    assert "params.market=gb" in url and "imagetype=webp" in url
+    assert "/static-images/mandators/connext-bmw/" in url and "/models/71HH/options?" in url
+    assert headers == {"x-api-key": "k"}
+
+
+def test_missing_option_pictures_never_fail_the_render():
+    class NoPictures(_FakeBmwFull):
+        def get(self, url: str, **kwargs):
+            if "/collections/unified-sgt-options/" in url:
+                return _Resp(500, b"")
+            return super().get(url, **kwargs)
+
+    render = asyncio.run(CONF.async_render(NoPictures(), I5))
+    assert render.frames == 36 and render.options is None and render.option_codes == ()
+
+
+def test_option_links_are_read_per_code_photo_first():
+    links = CONF.option_image_urls(_option_links("S0337"))
+    assert links == {
+        "S0337": [
+            "https://cosy.test/opt/S0337/static_wide",
+            "https://cosy.test/opt/S0337/tile_wide",
+        ]
+    }
+    for junk in (None, {}, {"collections": {}}, {"collections": {"unified-sgt-options": []}}):
+        assert CONF.option_image_urls(junk) == {}
+    broken = {
+        "collections": {
+            "unified-sgt-options": {"desktop": {"S1": None, "S2": {"imageGroups": [1]}}}
+        }
+    }
+    assert CONF.option_image_urls(broken) == {}
+
+
+def test_option_sheet_fits_odd_sizes_and_skips_unreadable_pictures():
+    sheet, codes = CONF.build_option_sheet(
+        [("A", _tile()), ("B", b"not an image"), ("C", _tile(size=(336, 95)))], columns=2
+    )
+    assert codes == ["A", "C"]
+    image = Image.open(io.BytesIO(sheet)).convert("RGBA")
+    assert image.size == (2 * 168, 95)
+    assert image.getpixel((168 + 84, 2))[3] == 0  # halved to 168x47, centred
+    assert image.getpixel((168 + 84, 47))[3] == 255
+    with pytest.raises(CONF.ConfiguratorError):
+        CONF.build_option_sheet([("B", b"junk")])
+
+
 def test_the_quick_fetch_stops_after_the_plain_spin():
     session = _FakeBmwFull()
     render = asyncio.run(CONF.async_render(session, I5, extras=False))
     assert render.frames == 36 and render.lights is None and render.equipment == ()
+    assert render.options is None and session.option_calls == []
     assert not any("lightson" in c or "interior" in c for c in session.calls)
 
 

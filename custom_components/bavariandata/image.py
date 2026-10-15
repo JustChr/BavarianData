@@ -38,7 +38,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from .api import CardataApiError, async_get_vehicle_image
-from .configurator import ConfiguratorError, async_render
+from .configurator import OPTION_COLUMNS, ConfiguratorError, async_render
 from .const import (
     DEFAULT_IMAGE_SOURCE,
     DOMAIN,
@@ -69,8 +69,8 @@ _RENDER_VIEW_KEY = "_configurator_render_view"
 _RENDER_DIR = f"{DOMAIN}_renders"
 SPIN_PATH = f"/api/{DOMAIN}/spin"
 # A served file: the plain spin is the bare key, the rest carry a suffix.
-_PARTS = ("lights", "night", "interior", "top")
-_NAME_RE = re.compile(r"[0-9a-f]{24}(?:_(?:lights|night|interior|top))?")
+_PARTS = ("lights", "night", "interior", "top", "options")
+_NAME_RE = re.compile(r"[0-9a-f]{24}(?:_(?:lights|night|interior|top|options))?")
 # Bumped when a render gains parts; an older record is refetched once in the
 # background so cars drawn by an earlier build get them too.
 _RENDER_SCHEMA = 2
@@ -210,6 +210,13 @@ async def async_refresh_configurator_render(
     if full:
         record["equipment"] = list(render.equipment)
         record["equipment_language"] = render.equipment_language
+        if render.options:
+            # Where each option's picture sits in the sheet, by option code.
+            record["options"] = {
+                "index": {code: n for n, code in enumerate(render.option_codes)},
+                "columns": OPTION_COLUMNS,
+                "rows": -(-len(render.option_codes) // OPTION_COLUMNS),
+            }
     renders[vin] = record
     await _domain_data(hass)[_RENDER_STORE_HANDLE_KEY].async_save(renders)
     _LOGGER.info(
@@ -218,7 +225,8 @@ async def async_refresh_configurator_render(
         render.brand,
         render.frames,
         len(render.sprite) // 1024,
-        f"; also {', '.join(record['parts']) or 'nothing else'}, {len(render.equipment)} options named"
+        f"; also {', '.join(record['parts']) or 'nothing else'}, {len(render.equipment)} options"
+        f" named, {len(render.option_codes)} pictured"
         if full
         else "",
     )
@@ -418,6 +426,7 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
             "configurator_spin",
             "configurator_interior",
             "configurator_top",
+            "configurator_options",
             "vehicle_basic_data",
             "vehicle_basic_data_raw",
         }
@@ -573,4 +582,8 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
             if render.get("equipment"):
                 attrs["equipment"] = render["equipment"]
                 attrs["equipment_language"] = render.get("equipment_language")
+            options = render.get("options")
+            if "options" in parts and isinstance(options, dict):
+                # One sheet of option pictures; the card finds a code's tile by index.
+                attrs["configurator_options"] = {"path": path("options"), **options}
         return attrs

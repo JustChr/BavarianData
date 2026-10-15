@@ -109,8 +109,9 @@ request cost, but through an unofficial BMW service
 ([more](Settings-Reference#vehicle-image)). The entity then shows the
 configurator's front three-quarter view, and carries attributes for the card:
 `configurator_spin`, `configurator_interior`, `configurator_top` (MINIs),
-`paint_color`, and `equipment`, the car's factory options by name (kept out of
-the recorder's history). The top-down car in the card's tire and closure views is not a BMW
+`paint_color`, `equipment`, the car's factory options by name, and
+`configurator_options`, a sheet of the options' pictures (all kept out of the
+recorder's history). The top-down car in the card's tire and closure views is not a BMW
 image but a drawing built into the card: a BMW sedan, or a MINI Countryman for
 that model ([more](The-Dashboard-Card#the-cars-shape)).
 

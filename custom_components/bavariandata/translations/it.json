@@ -174,7 +174,7 @@
       },
       "action_fetch_image": {
         "title": "Immagine del veicolo",
-        "description": "Scegli da dove arriva l'immagine della tua auto. Invia la recupera ora e la conserva anche dopo un riavvio.",
+        "description": "Scegli da dove arriva l'immagine della tua auto. Invia la recupera ora e la conserva anche dopo un riavvio. Con il configuratore, Invia recupera anche le immagini degli optional dell'auto per la vista Equipaggiamento della scheda; nient'altro le aggiorna.",
         "data": {
           "image_source": "Fonte dell'immagine"
         },

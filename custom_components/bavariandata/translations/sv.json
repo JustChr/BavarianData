@@ -174,7 +174,7 @@
       },
       "action_fetch_image": {
         "title": "Fordonsbild",
-        "description": "Välj var bilden av din bil kommer ifrån. Skicka hämtar den nu och behåller den efter en omstart.",
+        "description": "Välj var bilden av din bil kommer ifrån. Skicka hämtar den nu och behåller den efter en omstart. Med konfiguratorn hämtar Skicka även bilderna av bilens tillval till kortets vy Utrustning; inget annat uppdaterar dem.",
         "data": {
           "image_source": "Bildkälla"
         },

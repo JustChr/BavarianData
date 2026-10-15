@@ -9,6 +9,18 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **The Equipment view shows a picture of each option.** With the BMW
+  configurator picture source, the paint, wheels and roof get a color swatch
+  and the rest of the equipment a small photo, wherever BMW has one (about four
+  in five options on a MINI Countryman, 56 of 65 on a BMW i5). They are fetched with the other
+  configurator pictures: when you press **Submit** under Configure → Vehicle
+  image, and once when a car is first added. Nothing fetches them on its own, so
+  press **Submit** once after updating to get them. Prefer the plain list? Turn
+  off **Show option pictures** in the card editor (`pictures: false`). Checked
+  on a MINI Countryman and a BMW i5.
+  Thanks @BeastleeUK (#120).
+
 ## [0.9.19] - 2026-10-15
 
 Promotes 0.9.18-beta.1 to 0.9.19-beta.4. BMW's configurator can now draw your exact car: a 360° view that follows day, night and the lights, the interior and the factory equipment by name. New are a service calendar, a mileage view with lease or yearly allowance, per-car trip and wallbox settings, a phone-drawn route for cars that report only when parked, and a home-only charging series for the Energy dashboard. One breaking change: BMW's basic data now lives on the vehicle image and device tracker only.

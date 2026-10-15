@@ -491,6 +491,10 @@ Die Werksausstattung des Autos, mit Namen: zuerst Lack, Räder und Leisten, dann
 die Pakete, dann jede weitere Option, mit der das Auto gebaut wurde, jeweils mit
 BMWs Code. Was BMW als technisch behandelt (Kältemittel, die Sprache der
 Unterlagen, Abgassteuerung), ist unter **Technische Codes** eingeklappt.
+Optionen, für die BMW ein Bild hat, zeigen es vor dem Namen: ein Farbmuster für
+Lack, Räder und Dach, ein kleines Foto für den Rest. Die meisten technischen
+Codes haben keins. Für eine reine Liste schalte im Karten-Editor **Bilder der
+Optionen zeigen** aus (`pictures: false`).
 
 ```yaml
 type: custom:bavariandata-card
@@ -569,6 +573,7 @@ die unter den Meldungen stehen, wenn das Fahrzeug sie sendet.
 | `drivetrain` | `bev`, `phev` oder `ice` — das Layout der Übersicht. Weglassen, um es aus den gestreamten Daten zu erkennen. |
 | `steering` | `left` oder `right` — auf welcher Seite der Fahrer sitzt; danach ordnet die Öffnungs-Ansicht Türen und Fenster zu. Weglassen, um es aus BMWs Fahrzeugbasisdaten zu lesen; ein Auto, dessen Basisdaten nichts dazu sagen, wird als Linkslenker gezeichnet. |
 | `shape` | `sedan` oder `countryman` — das Auto, das die Reifen- und die Öffnungs-Ansicht zeichnen. Weglassen, um es anhand des Modells in BMWs Fahrzeugbasisdaten zu wählen. |
+| `pictures` | `false` — die Ansicht Ausstattung als reine Liste, ohne die Bilder der Optionen (**Bilder der Optionen zeigen** im visuellen Editor). Weglassen, um sie zu zeigen. |
 | `fuel` | Überschreibt die Tank-Entität (Prozent oder Volumen). |
 
 Mit installierter Integration braucht man Entitäts-Überschreibungen selten — die Karte

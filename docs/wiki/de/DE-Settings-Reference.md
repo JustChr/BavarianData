@@ -60,13 +60,19 @@ Bildschirm: **Konfigurieren → Fahrzeugbild**.
 Konfigurator wartet es nur auf die 360°-Ansicht (einige Sekunden pro Auto); der
 Rest folgt innerhalb etwa einer Minute im Hintergrund: dieselbe Ansicht mit Licht
 und bei Nacht, das Innenraum-Panorama, das Foto von oben (nur MINIs) und die
-Namen der Werksoptionen für die
+Namen und Bilder der Werksoptionen für die
 [Ausstattungs-Ansicht](DE-The-Dashboard-Card#equipment-view-equipment) der Karte.
 Gespeichert wird nur, wenn sich jedes Auto zeichnen ließ; sonst
 nennt der Bildschirm das Auto und den Grund (kein BMW oder MINI, die
 Fahrzeug-Basisdaten sind noch nicht da, der Konfigurator hat nicht geantwortet
 oder kein Bild dieses Modells), und das offizielle Bild bleibt. Ein später
 hinzukommendes Auto wird gezeichnet, sobald es erscheint.
+
+Geladen werden diese Bilder nur dann: wenn du hier **OK** drückst, und einmal für
+ein Auto, wenn es neu hinzukommt. Nichts erneuert sie nach Zeitplan oder nach
+einem Neustart oder Update. Drück also erneut **OK**, um sie neu zu laden (zum
+Beispiel nach einem Update von BavarianData, um Bilder zu bekommen, die eine
+neuere Version hinzufügt).
 
 Der Konfigurator zeichnet BMW- und MINI-Autos, auch Modelle, die nicht mehr
 verkauft werden. Von BMW-Modellen hat er keine Ansicht von oben, und sein

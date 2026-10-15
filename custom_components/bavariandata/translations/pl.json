@@ -174,7 +174,7 @@
       },
       "action_fetch_image": {
         "title": "Zdjęcie pojazdu",
-        "description": "Wybierz, skąd pochodzi zdjęcie samochodu. Zatwierdź pobiera je teraz i zachowuje po ponownym uruchomieniu.",
+        "description": "Wybierz, skąd pochodzi zdjęcie samochodu. Zatwierdź pobiera je teraz i zachowuje po ponownym uruchomieniu. Z konfiguratorem Zatwierdź pobiera też zdjęcia wyposażenia samochodu do widoku Wyposażenie na karcie; nic innego ich nie odświeża.",
         "data": {
           "image_source": "Źródło zdjęcia"
         },

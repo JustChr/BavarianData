@@ -203,7 +203,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `view: health` | Battery health | 🟡 | 📷 |
 | `view: efficiency` | Efficiency & real range | 🟢 The-Dashboard-Card + Feature-Efficiency-and-Range | 📷 (have, 2026-10-14: `card-efficiency.png`) |
 | `view: mileage` | Mileage overview + allowance | 🟢 The-Dashboard-Card → "Mileage" + Feature-Mileage (EN + DE) | 📷 (have, 2026-10-14: `card-mileage.png`, live overview with an example lease) |
-| `view: equipment` | Factory equipment by name (from the configurator picture source) | 🟢 The-Dashboard-Card → "Equipment" (EN + DE) | 📷 (have, 2026-10-14: `card-equipment.png`) |
+| `view: equipment` | Factory equipment by name, with each option's picture where BMW has one (from the configurator picture source) | 🟢 The-Dashboard-Card → "Equipment" (EN + DE) | 📷 owed: `card-equipment.png` predates the option pictures; re-shoot after a Vehicle image → Submit |
 | Overview hero with the configurator picture (spin, lights/night, state badges + top-down inset, interior panorama; angle/mode/look remembered per browser) | Overview | 🟢 The-Dashboard-Card → "Overview" (EN + DE) | 📷 (have: `card-hero-spin.png`, `card-hero-interior.png`; badges **owed**: needs the car open or lit) |
 | `cluster: tire` | Tires (pressure + wear) | 🟡 | 📷 (have) |
 | `shape:` (tire + closures) | Top-down car drawn per model — BMW sedan, or MINI Countryman picked from basic data's `model_name`; `shape:` override | 🟢 — The-Dashboard-Card → "The car's shape" + YAML reference | 📷 (have, rendered from the shipped card: no Countryman to capture live) |

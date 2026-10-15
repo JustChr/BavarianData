@@ -274,3 +274,131 @@ def test_the_equipment_view_groups_and_folds_the_technical_codes():
 def test_the_equipment_view_says_how_to_turn_it_on():
     html = _render({**I5, "image.car": _image()}, {"view": "equipment"})
     assert "Vehicle image" in html and "eq__row" not in html
+
+
+# Paint and the package have pictures (tiles 0 and 9 of an 8 x 2 sheet); the
+# rest have none.
+OPTION_SHEET = {
+    "path": "/api/bavariandata/spin/0123456789abcdef01234567_options/1",
+    "columns": 8,
+    "rows": 2,
+    "index": {"P0C4P": 0, "S0337": 9},
+}
+
+
+def _rows(html: str) -> dict:
+    """Each equipment row's code -> its HTML."""
+    return {
+        row.split('class="eq__code">')[1].split("<")[0]: row
+        for row in html.split('<div class="eq__row">')[1:]
+    }
+
+
+def test_options_with_a_picture_show_it_cut_from_the_signed_sheet():
+    html = _render_signed(
+        {**I5, "image.car": _image(equipment=EQUIPMENT, configurator_options=OPTION_SHEET)},
+        {"view": "equipment"},
+    )
+    rows = _rows(html)
+    sheet = f"url('{OPTION_SHEET['path']}?authSig=signed')"
+    assert sheet in rows["P0C4P"] and sheet in rows["S0337"]
+    assert "background-size:800% 200%" in rows["P0C4P"]
+    assert "background-position:0% 0%" in rows["P0C4P"]
+    # Tile 9: column 1 of 8 (1/7 of the way), second row.
+    assert "background-position:14.285714285714285% 100%" in rows["S0337"]
+    # The rest, technical codes included, get the empty tile so names line up.
+    for code in ("S06F4", "S08R9"):
+        assert (
+            'class="eq__pic eq__pic--none"' in rows[code] and "background-image" not in rows[code]
+        )
+
+
+def test_until_signed_the_equipment_has_no_pictures():
+    html = _render(
+        {**I5, "image.car": _image(equipment=EQUIPMENT, configurator_options=OPTION_SHEET)},
+        {"view": "equipment"},
+    )
+    assert "eq__row" in html and "eq__pic" not in html
+
+
+def test_pictures_false_keeps_the_plain_list():
+    html = _render_signed(
+        {**I5, "image.car": _image(equipment=EQUIPMENT, configurator_options=OPTION_SHEET)},
+        {"view": "equipment", "pictures": False},
+    )
+    assert "M Brooklyn Grey metallic" in html and "eq__pic" not in html
+
+
+# The card editor, driven directly: which fields it offers, and what it stores.
+_EDITOR = r"""
+const fs = require("fs");
+globalThis.HTMLElement = class {};
+globalThis.customElements = { define() {}, get() {}, whenDefined() {} };
+globalThis.window = globalThis;
+console.info = () => {};
+const src = fs.readFileSync(process.argv[1], "utf8");
+const Editor = new Function(src + "\nreturn BavarianDataCardEditor;")();
+const { config, change } = JSON.parse(fs.readFileSync(0, "utf8"));
+const editor = Object.create(Editor.prototype);
+editor._hass = { devices: {}, states: {}, language: "en", locale: { language: "en" } };
+editor._config = config;
+editor._form = {};
+let stored = null;
+editor.dispatchEvent = (ev) => { stored = ev.detail.config; };
+const fields = editor._schema().map((f) => f.name);
+if (change) editor._valueChanged({ stopPropagation() {}, detail: { value: change } });
+process.stdout.write(JSON.stringify({ fields, stored }));
+"""
+
+
+def _editor(config: dict, change: dict | None = None) -> dict:
+    result = subprocess.run(
+        [NODE, "-e", _EDITOR, str(_CARD)],
+        input=json.dumps({"config": config, "change": change}),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+        timeout=60,
+    )
+    return json.loads(result.stdout)
+
+
+def test_the_editor_offers_the_pictures_switch_on_the_equipment_view_only():
+    assert "pictures" in _editor({"view": "equipment"})["fields"]
+    assert "pictures" not in _editor({})["fields"]
+    assert "pictures" not in _editor({"cluster": "tire"})["fields"]
+
+
+@pytest.mark.parametrize(
+    ("change", "stored"),
+    [
+        ({"cluster": "equipment", "pictures": False}, {"view": "equipment", "pictures": False}),
+        ({"cluster": "equipment", "pictures": True}, {"view": "equipment"}),  # the default
+        ({"cluster": "tire", "pictures": False}, {"cluster": "tire"}),  # not its view
+    ],
+)
+def test_the_editor_stores_only_pictures_off(change, stored):
+    result = _editor({"type": "custom:bavariandata-card", "view": "equipment"}, change)
+    assert result["stored"] == {"type": "custom:bavariandata-card", **stored}
+
+
+@pytest.mark.parametrize(
+    "sheet",
+    [
+        {**OPTION_SHEET, "index": {"P0C4P": -1, "S0337": 16}},  # outside the sheet
+        {**OPTION_SHEET, "index": {"P0C4P": "0'); x", "S0337": 1.5}},
+        {**OPTION_SHEET, "index": None},
+        {**OPTION_SHEET, "columns": 0},
+        {**OPTION_SHEET, "path": ""},
+        "junk",
+    ],
+)
+def test_a_malformed_option_sheet_shows_no_pictures(sheet):
+    html = _render_signed(
+        {**I5, "image.car": _image(equipment=EQUIPMENT, configurator_options=sheet)},
+        {"view": "equipment"},
+    )
+    # Bad tiles fall back to the placeholder; a bad sheet means a plain list.
+    assert "M Brooklyn Grey metallic" in html and 'class="eq__pic"' not in html
+    assert "background-image" not in html.split('<div class="eq">')[1]

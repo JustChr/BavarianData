@@ -174,7 +174,7 @@
       },
       "action_fetch_image": {
         "title": "Voertuigafbeelding",
-        "description": "Kies waar de afbeelding van je auto vandaan komt. Verzenden haalt hem nu op en bewaart hem na een herstart.",
+        "description": "Kies waar de afbeelding van je auto vandaan komt. Verzenden haalt hem nu op en bewaart hem na een herstart. Met de configurator haalt Verzenden ook de afbeeldingen van de opties van de auto op voor de weergave Uitrusting van de kaart; niets anders vernieuwt ze.",
         "data": {
           "image_source": "Bron van de afbeelding"
         },

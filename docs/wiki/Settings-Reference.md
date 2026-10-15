@@ -59,12 +59,17 @@ Screen: **Configure → Vehicle image**.
 the configurator it waits only for the 360° view (a few seconds per car); the
 rest follows in the background within about a minute: the same view with the
 lights on and at night, the interior panorama, the photo from above (MINIs only)
-and the names of the car's factory options for the card's
+and the names and pictures of the car's factory options for the card's
 [equipment view](The-Dashboard-Card#equipment-view-equipment). Nothing is saved
 unless every car could be drawn; the screen
 then names the car and why (not a BMW or MINI car, its basic vehicle info isn't
 in yet, the configurator didn't answer, or it has no picture of that model), and
 the official picture stays. A car added later is drawn when it first appears.
+
+These pictures are fetched only then: when you press **Submit** here, and once
+for a car when it is first added. Nothing refreshes them on a schedule or after a
+restart or update, so press **Submit** again to fetch them anew (for example after
+updating BavarianData, to get pictures a newer version adds).
 
 The configurator draws BMW and MINI cars, including models no longer sold. It
 has no overhead view of BMW models, and its interior shows BMW's default trim,

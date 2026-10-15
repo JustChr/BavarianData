@@ -174,7 +174,7 @@
       },
       "action_fetch_image": {
         "title": "Vehicle image",
-        "description": "Choose where your car's picture comes from. Submit fetches it now and keeps it across restarts.",
+        "description": "Choose where your car's picture comes from. Submit fetches it now and keeps it across restarts. With the configurator, Submit also fetches the pictures of the car's options for the card's Equipment view; nothing else refreshes them.",
         "data": {
           "image_source": "Picture source"
         },

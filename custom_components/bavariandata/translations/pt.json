@@ -174,7 +174,7 @@
       },
       "action_fetch_image": {
         "title": "Imagem do veículo",
-        "description": "Escolha de onde vem a imagem do seu carro. Submeter obtém-na agora e mantém-na após reiniciar.",
+        "description": "Escolha de onde vem a imagem do seu carro. Submeter obtém-na agora e mantém-na após reiniciar. Com o configurador, Submeter obtém também as imagens dos opcionais do carro para a vista Equipamento do cartão; nada mais as atualiza.",
         "data": {
           "image_source": "Origem da imagem"
         },

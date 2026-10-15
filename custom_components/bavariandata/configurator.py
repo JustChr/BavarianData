@@ -9,7 +9,9 @@ factory options (``fullSAList``). From those this module fetches:
   with the lights on, and as the night scene;
 * a 360-degree interior panorama (six cube faces);
 * a true top view, which BMW draws for MINIs only;
-* the names of the factory options, i.e. the car's equipment list.
+* the names of the factory options, i.e. the car's equipment list;
+* a small picture of each option that has one (a paint or wheel swatch, a photo
+  of the feature), all in one sheet.
 
 None of it is part of CarData: it is the backend of BMW's public configurator
 web page, so it is opt-in and may change without notice. Nothing here spends
@@ -32,6 +34,11 @@ Known traps, found by probing:
 * Option names exist only in the language of the market that sells the model
   (German for Germany and Austria, French for France); other markets use other
   model codes, so a German-market car has no English names.
+* Option pictures: the service refuses an ``options`` list that isn't sorted
+  (HTTP 400). It answers every code with two links, ``tile_wide`` and
+  ``static_wide``; at most one is real (a swatch for paint, wheels and roof, a
+  photo for the rest). The other, and both for technical codes, return a brand
+  logo with HTTP 404, which must never be kept as the option's picture.
 
 No Home Assistant imports: the rules are unit-tested directly.
 """
@@ -79,6 +86,11 @@ SIDE_FRAME = 9
 STILL_FRAME = 4
 # The interior's six cube faces, scaled from BMW's 2000 px and laid out 3 x 2.
 FACE_SIZE = 1024
+# The option pictures: BMW's own tile size, laid out in one sheet.
+_OPTIONS = "unified-sgt-options"
+_OPTION_VIEWS = ("static_wide", "tile_wide")
+OPTION_TILE = (168, 95)
+OPTION_COLUMNS = 8
 _CONCURRENCY = 6
 # The language an option name is asked for first in a market, after the
 # caller's own. A market answers in its own language only.
@@ -152,6 +164,9 @@ class Render:
     top: Optional[bytes] = None
     equipment: tuple[dict, ...] = field(default_factory=tuple)
     equipment_language: Optional[str] = None
+    # The option pictures' sheet, and the code of each tile in sheet order.
+    options: Optional[bytes] = None
+    option_codes: tuple[str, ...] = ()
     # The spin's crop box, so the lights-on and night spins line up with it.
     crop: Optional[tuple[int, int, int, int]] = None
 
@@ -232,6 +247,37 @@ def frame_urls(response: Mapping[str, Any], collection: str = _SPIN) -> list[str
         return [str(image["viewImage"]) for image in images]
     except (KeyError, TypeError, StopIteration, AttributeError) as err:
         raise ConfiguratorError("unavailable", f"unexpected answer: {err}") from err
+
+
+def option_image_urls(response: Any) -> dict[str, list[str]]:
+    """Each option code's picture links from the image service, likeliest first.
+
+    Both views are kept, because only fetching tells which one is real. A
+    changed or empty answer gives ``{}``: the pictures are an extra.
+    """
+
+    try:
+        views = response["collections"][_OPTIONS]
+        block = views.get("desktop") or next(iter(views.values()))
+        entries = block.items()
+    except KeyError, TypeError, StopIteration, AttributeError:
+        return {}
+    out: dict[str, list[str]] = {}
+    for code, entry in entries:
+        found: dict[str, str] = {}
+        groups = entry.get("imageGroups") if isinstance(entry, Mapping) else None
+        for group in groups if isinstance(groups, list) else []:
+            if not isinstance(group, Mapping):
+                continue
+            view = (group.get("distinctionParams") or {}).get("VIEW")
+            images = group.get("images") or []
+            link = images[0].get("viewImage") if images and isinstance(images[0], Mapping) else None
+            if view in _OPTION_VIEWS and isinstance(link, str) and link:
+                found[view] = link
+        links = [found[view] for view in _OPTION_VIEWS if view in found]
+        if links:
+            out[str(code)] = links
+    return out
 
 
 def _save(image: Any, *, alpha: bool = True) -> tuple[bytes, str]:
@@ -337,6 +383,40 @@ def build_top(data: bytes) -> bytes:
         raise ConfiguratorError("no_render", "empty top view")
     image = image.crop(box).rotate(-90, expand=True)
     return _save(image)[0]
+
+
+def build_option_sheet(
+    pictures: Sequence[tuple[str, bytes]], columns: int = OPTION_COLUMNS
+) -> tuple[bytes, list[str]]:
+    """The option pictures in one sheet, in the order given; returns it and the codes.
+
+    One image means the card signs and loads a single URL for the whole list.
+    BMW's tiles are all ``OPTION_TILE``; any other size is fitted in, centred.
+    A picture Pillow cannot read is left out rather than failing the sheet.
+    """
+
+    from PIL import Image  # noqa: PLC0415
+
+    width, height = OPTION_TILE
+    tiles = []
+    for code, data in pictures:
+        try:
+            image = Image.open(io.BytesIO(data)).convert("RGBA")
+        except OSError, ValueError:
+            continue
+        if image.size != OPTION_TILE:
+            image.thumbnail(OPTION_TILE, Image.Resampling.LANCZOS)
+            tile = Image.new("RGBA", OPTION_TILE, (0, 0, 0, 0))
+            tile.paste(image, ((width - image.width) // 2, (height - image.height) // 2))
+            image = tile
+        tiles.append((code, image))
+    if not tiles:
+        raise ConfiguratorError("no_render", "no option pictures")
+    rows = -(-len(tiles) // columns)
+    sheet = Image.new("RGBA", (width * columns, height * rows), (0, 0, 0, 0))
+    for index, (_code, image) in enumerate(tiles):
+        sheet.paste(image, ((index % columns) * width, (index // columns) * height))
+    return _save(sheet)[0], [code for code, _image in tiles]
 
 
 def equipment_list(names: Mapping[str, Any], spec: CarSpec) -> list[dict]:
@@ -511,7 +591,7 @@ async def async_render(
     languages: Sequence[str] = (),
     extras: bool = True,
 ) -> Render:
-    """Fetch everything for one car: spins, interior, top view, equipment.
+    """Fetch everything for one car: spins, interior, top view, equipment, option pictures.
 
     Only the plain turntable must succeed; the rest is added when BMW has it.
     ``settings`` (from :func:`async_fetch_settings`) can be passed in to share
@@ -604,6 +684,11 @@ async def async_render(
             except ConfiguratorError as err:
                 _LOGGER.debug("Configurator: no %s spin for %s: %s", name, spec.model, err)
         extras_found.update(await _optional_extras(spec, brand, links, image, run))
+        extras_found.update(
+            await _option_pictures(
+                session, cosy, spec, brand, raw_basic_data.get("countryCode"), image, run
+            )
+        )
         names = found.get("names")
         if names:
             try:
@@ -651,3 +736,58 @@ async def _optional_extras(
     except (ConfiguratorError, KeyError, TypeError, AttributeError) as err:
         _LOGGER.debug("Configurator: no top view for %s: %s", spec.model, err)
     return out
+
+
+async def _option_pictures(
+    session: aiohttp.ClientSession,
+    cosy: Mapping[str, Any],
+    spec: CarSpec,
+    brand: str,
+    country: Any,
+    image: Callable[[str], Awaitable[Optional[bytes]]],
+    run: Callable[..., Awaitable[Any]],
+) -> dict:
+    """A small picture of each option BMW has one for, laid out in one sheet."""
+
+    market = str(country or "").strip().lower()
+    query = urlencode(
+        [
+            ("effectdate", spec.effect_date),
+            ("hub", cosy["hub"]),
+            ("imagetype", "webp"),
+            ("options", ",".join(sorted(spec.options))),  # refused unless sorted
+            *([("params.market", market)] if market else []),
+        ]
+    )
+    url = (
+        f"{cosy['base_url']}/image-urls/static-images/mandators/{cosy['mandator']}"
+        f"/collections/{_OPTIONS}/brands/{brand}/models/{spec.model}/options?{query}"
+    )
+
+    async def first_real(code: str, links: Sequence[str]) -> Optional[tuple[str, bytes]]:
+        for link in links:
+            try:
+                data = await image(link)
+            except ConfiguratorError:
+                data = None
+            if data:  # anything but a 200 is BMW's logo placeholder
+                return code, data
+        return None
+
+    try:
+        status, body = await _get(session, url, headers=cosy["headers"])
+        if status != 200:
+            _LOGGER.debug("Configurator: option pictures for %s answered %s", spec.model, status)
+            return {}
+        candidates = option_image_urls(json.loads(body))
+        found = await asyncio.gather(
+            *(first_real(code, candidates[code]) for code in spec.options if code in candidates)
+        )
+        pictures = [picture for picture in found if picture]
+        if not pictures:
+            return {}
+        sheet, codes = await run(build_option_sheet, pictures)
+    except (ConfiguratorError, ValueError) as err:
+        _LOGGER.debug("Configurator: no option pictures for %s: %s", spec.model, err)
+        return {}
+    return {"options": sheet, "option_codes": tuple(codes)}

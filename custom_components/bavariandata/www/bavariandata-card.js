@@ -474,6 +474,8 @@ const TRANSLATIONS = {
     st_right: "Right-hand drive",
     ed_shape: "Car shape",
     edh_shape: "Picked from the model in BMW's vehicle data. Set it only if the drawing does not match your car.",
+    ed_pictures: "Show option pictures",
+    edh_pictures: "A small picture in front of each option BMW has one for. Turn off for a plain list.",
     sh_sedan: "BMW sedan",
     sh_countryman: "MINI Countryman",
     ed_overview_option: "Overview (default)",
@@ -811,6 +813,8 @@ const TRANSLATIONS = {
     st_right: "Rechtslenker",
     ed_shape: "Fahrzeugform",
     edh_shape: "Wird anhand des Modells in BMWs Fahrzeugdaten gewählt. Nur setzen, wenn die Zeichnung nicht zum Auto passt.",
+    ed_pictures: "Bilder der Optionen zeigen",
+    edh_pictures: "Ein kleines Bild vor jeder Option, für die BMW eines hat. Ausschalten für eine reine Liste.",
     sh_sedan: "BMW-Limousine",
     sh_countryman: "MINI Countryman",
     ed_overview_option: "Übersicht (Standard)",
@@ -1135,6 +1139,8 @@ const TRANSLATIONS = {
     st_right: "Conduite à droite",
     ed_shape: "Silhouette du véhicule",
     edh_shape: "Choisie d'après le modèle dans les données du véhicule de BMW. Ne la définissez que si le dessin ne correspond pas à votre voiture.",
+    ed_pictures: "Afficher les images des options",
+    edh_pictures: "Une petite image devant chaque option pour laquelle BMW en a une. Désactivez pour une simple liste.",
     sh_sedan: "Berline BMW",
     sh_countryman: "MINI Countryman",
     ed_overview_option: "Aperçu (par défaut)",
@@ -1459,6 +1465,8 @@ const TRANSLATIONS = {
     st_right: "Guida a destra",
     ed_shape: "Sagoma dell'auto",
     edh_shape: "Scelta in base al modello nei dati del veicolo di BMW. Impostala solo se il disegno non corrisponde alla tua auto.",
+    ed_pictures: "Mostra le immagini degli optional",
+    edh_pictures: "Una piccola immagine davanti a ogni optional per cui BMW ne ha una. Disattiva per un semplice elenco.",
     sh_sedan: "Berlina BMW",
     sh_countryman: "MINI Countryman",
     ed_overview_option: "Panoramica (predefinita)",
@@ -1783,6 +1791,8 @@ const TRANSLATIONS = {
     st_right: "Volante a la derecha",
     ed_shape: "Silueta del coche",
     edh_shape: "Se elige según el modelo en los datos del vehículo de BMW. Defínela solo si el dibujo no coincide con tu coche.",
+    ed_pictures: "Mostrar imágenes del equipamiento",
+    edh_pictures: "Una pequeña imagen delante de cada opción para la que BMW tiene una. Desactívalo para una lista simple.",
     sh_sedan: "Berlina BMW",
     sh_countryman: "MINI Countryman",
     ed_overview_option: "Resumen (predeterminado)",
@@ -2107,6 +2117,8 @@ const TRANSLATIONS = {
     st_right: "Rechts gestuurd",
     ed_shape: "Autovorm",
     edh_shape: "Gekozen op basis van het model in de voertuiggegevens van BMW. Stel dit alleen in als de tekening niet bij je auto past.",
+    ed_pictures: "Afbeeldingen van opties tonen",
+    edh_pictures: "Een kleine afbeelding voor elke optie waarvoor BMW er een heeft. Zet uit voor een gewone lijst.",
     sh_sedan: "BMW-sedan",
     sh_countryman: "MINI Countryman",
     ed_overview_option: "Overzicht (standaard)",
@@ -2431,6 +2443,8 @@ const TRANSLATIONS = {
     st_right: "Kierownica po prawej",
     ed_shape: "Kształt auta",
     edh_shape: "Wybierany na podstawie modelu z danych pojazdu BMW. Ustaw tylko wtedy, gdy rysunek nie pasuje do auta.",
+    ed_pictures: "Pokaż zdjęcia wyposażenia",
+    edh_pictures: "Małe zdjęcie przed każdą opcją, dla której BMW je ma. Wyłącz, aby zobaczyć zwykłą listę.",
     sh_sedan: "Sedan BMW",
     sh_countryman: "MINI Countryman",
     ed_overview_option: "Przegląd (domyślnie)",
@@ -2755,6 +2769,8 @@ const TRANSLATIONS = {
     st_right: "Volante à direita",
     ed_shape: "Forma do carro",
     edh_shape: "Escolhida a partir do modelo nos dados do veículo da BMW. Defina-a apenas se o desenho não corresponder ao seu carro.",
+    ed_pictures: "Mostrar imagens dos opcionais",
+    edh_pictures: "Uma pequena imagem antes de cada opcional para o qual a BMW tem uma. Desative para uma lista simples.",
     sh_sedan: "Berlina BMW",
     sh_countryman: "MINI Countryman",
     ed_overview_option: "Visão geral (predefinição)",
@@ -3079,6 +3095,8 @@ const TRANSLATIONS = {
     st_right: "Volant vpravo",
     ed_shape: "Tvar vozu",
     edh_shape: "Vybírá se podle modelu v údajích o vozidle od BMW. Nastavte jen tehdy, pokud kresba neodpovídá vašemu vozu.",
+    ed_pictures: "Zobrazit obrázky výbavy",
+    edh_pictures: "Malý obrázek před každou položkou, pro kterou má BMW obrázek. Vypněte pro prostý seznam.",
     sh_sedan: "Sedan BMW",
     sh_countryman: "MINI Countryman",
     ed_overview_option: "Přehled (výchozí)",
@@ -3403,6 +3421,8 @@ const TRANSLATIONS = {
     st_right: "Högerstyrd",
     ed_shape: "Bilens form",
     edh_shape: "Väljs utifrån modellen i BMW:s fordonsdata. Ange den bara om ritningen inte stämmer med din bil.",
+    ed_pictures: "Visa bilder av tillval",
+    edh_pictures: "En liten bild framför varje tillval som BMW har en bild för. Stäng av för en enkel lista.",
     sh_sedan: "BMW sedan",
     sh_countryman: "MINI Countryman",
     ed_overview_option: "Översikt (standard)",
@@ -8346,7 +8366,8 @@ class BavarianDataCard extends HTMLElement {
    * option code the car was built with. Paint, wheels and trim lead, then the
    * packages and the rest; what BMW itself treats as technical (refrigerant,
    * paperwork language) is folded away. Names come in the language BMW's
-   * market for the car offers, which may not be the dashboard's. */
+   * market for the car offers, which may not be the dashboard's. Options BMW
+   * has a picture for show it in front of the name, cut from one sheet. */
   _renderEquipment(deviceId, entities) {
     const name = this._deviceName(deviceId);
     const cfg = this._config || {};
@@ -8354,10 +8375,18 @@ class BavarianDataCard extends HTMLElement {
     const st = id && this._st(id);
     const list = (st && st.attributes && Array.isArray(st.attributes.equipment) && st.attributes.equipment) || [];
     const items = list.filter((e) => e && typeof e.name === "string" && typeof e.code === "string");
+    // `pictures: false` keeps the plain list; the sheet then isn't even signed.
+    const pics = cfg.pictures !== false && st && st.attributes && st.attributes.configurator_options;
+    const grid =
+      pics && pics.path && pics.index && typeof pics.index === "object" && Number(pics.columns) > 0
+        ? { columns: Number(pics.columns), rows: Number(pics.rows) || 1 }
+        : null;
+    const sheet = grid ? this._signedUrl(pics.path) : null;
     const sig = this._signature({
       m: "eq",
       lang: _lang(this._hass),
       name,
+      sheet,
       items: items.map((e) => [e.code, e.name, e.kind, e.shown]),
     });
     if (sig === this._sig) return;
@@ -8385,10 +8414,25 @@ class BavarianDataCard extends HTMLElement {
     const packages = items.filter((e) => e.shown !== false && e.kind === "package");
     const rest = items.filter((e) => e.shown !== false && !["paint", "rim", "trim", "package"].includes(e.kind));
     const technical = items.filter((e) => e.shown === false);
+    const pic = (code) => {
+      if (!sheet) return "";
+      const n = Object.prototype.hasOwnProperty.call(pics.index, code) ? Number(pics.index[code]) : -1;
+      if (!Number.isInteger(n) || n < 0 || n >= grid.columns * grid.rows) {
+        // No picture for this option: an empty tile keeps the names in line.
+        return `<span class="eq__pic eq__pic--none"><ha-icon icon="mdi:image-off-outline"></ha-icon></span>`;
+      }
+      const style = [
+        `background-image:url('${this._esc(sheet)}')`,
+        `background-size:${grid.columns * 100}% ${grid.rows * 100}%`,
+        `background-position:${this._spinPos(grid, n)}`,
+      ].join(";");
+      return `<span class="eq__pic" style="${style}"></span>`;
+    };
     const rows = (group) =>
       group
         .map(
-          (e) => `<div class="eq__row"><span class="eq__name">${this._esc(e.name)}</span><span class="eq__code">${this._esc(e.code)}</span></div>`
+          (e) =>
+            `<div class="eq__row">${pic(e.code)}<span class="eq__name">${this._esc(e.name)}</span><span class="eq__code">${this._esc(e.code)}</span></div>`
         )
         .join("");
     const section = (title, group) =>
@@ -8665,6 +8709,19 @@ class BavarianDataCard extends HTMLElement {
       }
       .eq__row:last-child { border-bottom: none; }
       .eq__name { min-width: 0; overflow-wrap: anywhere; }
+      .eq__pic {
+        flex: none; align-self: center;
+        width: 56px; aspect-ratio: 168 / 95;
+        border-radius: 4px;
+        background-repeat: no-repeat;
+        background-color: var(--secondary-background-color);
+      }
+      .eq__pic + .eq__name { flex: 1; }
+      .eq__pic--none {
+        display: flex; align-items: center; justify-content: center;
+        color: var(--disabled-text-color);
+        --mdc-icon-size: 18px;
+      }
       .eq__code { flex: none; font-size: 0.72rem; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
       .eq__more summary { cursor: pointer; font-size: 0.85rem; color: var(--secondary-text-color); padding: 4px 0; }
       .hero--inset .hero__spin-icon { display: none; }
@@ -9650,6 +9707,10 @@ class BavarianDataCardEditor extends HTMLElement {
         },
       });
     }
+    // The equipment view can drop the option pictures for a plain list.
+    if (this._config && this._config.view === EQUIPMENT_VIEW) {
+      schema.push({ name: "pictures", selector: { boolean: {} } });
+    }
     // The tire and closures views draw the car from above.
     if (this._config && (this._config.cluster === "tire" || this._config.cluster === "closures")) {
       schema.push({
@@ -9691,6 +9752,7 @@ class BavarianDataCardEditor extends HTMLElement {
       drivetrain: this._config.drivetrain || "auto",
       steering: this._config.steering || "auto",
       shape: this._config.shape || "auto",
+      pictures: this._config.pictures !== false,
     };
   }
 
@@ -9711,6 +9773,9 @@ class BavarianDataCardEditor extends HTMLElement {
     if (value.drivetrain === "auto") delete value.drivetrain;
     if (value.steering === "auto") delete value.steering;
     if (value.shape === "auto") delete value.shape;
+    // Pictures on is the default; only `false` is worth storing, and only for
+    // the view that has them.
+    if (value.pictures !== false || value.view !== EQUIPMENT_VIEW) delete value.pictures;
     // Drop empties so the stored config stays minimal.
     for (const key of Object.keys(value)) {
       if (value[key] === "" || value[key] === undefined || value[key] === null) {
