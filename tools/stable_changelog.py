@@ -128,17 +128,22 @@ def draft(text: str) -> tuple[str, str, list[str]]:
     if not betas:
         raise SystemExit("No beta sections since the last stable -- nothing to promote.")
     bases = {BETA.match(v)["base"] for v in betas}
-    if len(bases) != 1:
-        raise SystemExit(f"Betas of more than one version since the last stable: {sorted(bases)}")
-    base = bases.pop()
-    numbers = sorted(int(BETA.match(v)["n"]) for v in betas)
+    # A beta series can be dropped for the next one without going stable
+    # (0.9.18's betas went on as 0.9.19's): the stable is the newest base, and
+    # each bullet then names its beta with its version.
+    base = max(bases, key=lambda b: tuple(int(n) for n in b.split(".")))
+    several = len(bases) > 1
+
+    def label_of(version: str) -> str:
+        match = BETA.match(version)
+        return f"{match['base']}-beta.{match['n']}" if several else f"beta.{match['n']}"
 
     merged: dict[str, list[str]] = {}
     seen: dict[str, list[str]] = {}
     fixed: list[str] = []
     # Oldest first, so each heading reads in the order things shipped.
     for version, body in reversed(promoted):
-        label = f"beta.{BETA.match(version)['n']}" if version != "Unreleased" else None
+        label = label_of(version) if version != "Unreleased" else None
         for heading, items in bullets(body).items():
             for item in items:
                 merged.setdefault(heading, []).append(tag(item, label))
@@ -148,8 +153,8 @@ def draft(text: str) -> tuple[str, str, list[str]]:
                 if heading == "Fixed":
                     fixed.append(f"{label or 'unreleased'}: {lead(item) or item[:70]}")
 
-    first, last = numbers[0], numbers[-1]
-    span = f"{base}-beta.{first}" + (f" to beta.{last}" if last != first else "")
+    first, last = betas[-1], betas[0]  # the file runs newest first
+    span = first + (f" to {last if several else label_of(last)}" if last != first else "")
     parts = [f"Promotes {span}. {TODO}", ""]
     for heading in ORDER + sorted(set(merged) - set(ORDER)):
         if heading in merged:

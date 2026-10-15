@@ -78,6 +78,18 @@ def test_nothing_to_promote_is_refused() -> None:
         tool.draft(text)
 
 
+def test_a_stable_can_promote_two_beta_series() -> None:
+    # 0.9.18's betas never went stable; they went on as 0.9.19's.
+    head = CHANGELOG[: CHANGELOG.index("## [Unreleased]")]
+    text = f"{head}## [Unreleased]\n\n{CHANGELOG[CHANGELOG.index('## [0.9.19-beta.4]') :]}"
+    version, body, notes = tool.draft(text)
+    assert version == "0.9.19"
+    assert body.startswith("Promotes 0.9.18-beta.1 to 0.9.19-beta.4.")
+    assert "Last stable: 0.9.17" in notes[0]
+    assert "(0.9.18-beta.1)" in body and "(0.9.19-beta.4)" in body
+    assert not re.search(r"\(beta\.\d+\)", body), "a bare beta.N is ambiguous across series"
+
+
 def test_an_unreleased_bullet_carries_no_beta_tag() -> None:
     assert tool.tag("- **New thing.** More.", None) == "- **New thing.** More."
     assert tool.tag("- **New thing.** More.", "beta.2") == "- **New thing** (beta.2). More."
