@@ -165,6 +165,17 @@
       "description": "Den Live-Ladezustand deines BMW über MQTT an evcc, openWB oder jede Wallbox-Steuerung geben, ohne API-Kosten, und den Wallbox-Zähler in den Ladeverlauf zurücklesen."
     }
   },
+  "Feature-Smart-Charging": {
+    "slug": "smart-charging",
+    "en": {
+      "title": "BMW smart charging with EV Smart Charging and Predbat",
+      "description": "Charge your BMW in the cheapest hours: hand EV Smart Charging or Predbat the live state of charge, target and cable state from BMW CarData, at no API cost."
+    },
+    "de": {
+      "title": "BMW intelligent laden mit EV Smart Charging und Predbat",
+      "description": "Den BMW in den billigsten Stunden laden: EV Smart Charging oder Predbat bekommen Ladezustand, Ladeziel und Kabelstatus live aus BMW CarData, ohne API-Kosten."
+    }
+  },
   "Feature-Energy-and-Statistics": {
     "slug": "energy-and-statistics",
     "en": {

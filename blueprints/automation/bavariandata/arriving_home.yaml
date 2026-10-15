@@ -1,0 +1,133 @@
+blueprint:
+  name: "BavarianData: Car arriving home soon"
+  description: >
+    Runs your actions once, when the car is on its way home and the remaining
+    drive drops below the minutes you set: open the garage, warm the house,
+    tell the family.
+
+    It needs a travel-time sensor from the car to home. Add Home Assistant's
+    Waze Travel Time (or Google Maps Travel Time) integration with the car's
+    location entity as the origin and your home as the destination. This
+    blueprint refreshes that sensor each time the car reports a new position.
+    Turn off polling for that integration (its entry's System options), so
+    only this blueprint updates the figure; otherwise a poll can cross the
+    threshold between two positions and the heads-up is skipped.
+
+    BMW sends the car's position about every one to three minutes while
+    driving, so expect the heads-up within a few minutes of your threshold,
+    not to the second. Driving away from home never fires it, and neither
+    does traffic changing while the car is parked.
+  domain: automation
+  source_url: https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/arriving_home.yaml
+  input:
+    car_tracker:
+      name: Car location
+      description: The car's location entity, also the travel-time sensor's origin.
+      selector:
+        entity:
+          filter:
+            - integration: bavariandata
+              domain: device_tracker
+    trip_sensor:
+      name: Trip in progress
+      description: The car's "Trip in Progress" sensor.
+      selector:
+        entity:
+          filter:
+            - integration: bavariandata
+              domain: binary_sensor
+    travel_time:
+      name: Travel-time sensor
+      description: >
+        Minutes from the car to home, from Waze Travel Time or Google Maps
+        Travel Time.
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+    start_zones:
+      name: Only trips that start in (optional)
+      description: >
+        Nothing tells Home Assistant where a drive is going; this blueprint
+        only sees the car getting close to home. A drive that passes near home
+        and carries on fires it too. Pick the zones your drives home usually
+        start from (Work, for example) to count only those. Empty counts every
+        drive.
+      default: []
+      selector:
+        entity:
+          multiple: true
+          filter:
+            - domain: zone
+    minutes:
+      name: Minutes before arrival
+      description: Run the actions once the remaining drive is this short.
+      default: 10
+      selector:
+        number:
+          min: 2
+          max: 60
+          step: 1
+          unit_of_measurement: min
+          mode: slider
+    arriving_actions:
+      name: Actions
+      description: What to do when the car is about to arrive.
+      default: []
+      selector:
+        action:
+
+# single: after the actions ran, the run waits for the trip to end, so every
+# later position of the same trip is dropped and the actions run once.
+mode: single
+max_exceeded: silent
+
+variables:
+  car_tracker: !input car_tracker
+  trip_sensor: !input trip_sensor
+  travel_time: !input travel_time
+  start_zones: !input start_zones
+  minutes: !input minutes
+
+trigger:
+  - platform: state
+    entity_id: !input car_tracker
+    attribute: latitude
+  - platform: state
+    entity_id: !input car_tracker
+    attribute: longitude
+
+condition:
+  - condition: state
+    entity_id: !input trip_sensor
+    state: "on"
+  - condition: template
+    value_template: "{{ states(car_tracker) != 'home' }}"
+  # The trip records the name of the zone it started in.
+  - condition: template
+    value_template: >
+      {% set zones = [start_zones] if start_zones is string else start_zones %}
+      {{ zones | length == 0
+         or state_attr(trip_sensor, 'start_location')
+            in zones | map('state_attr', 'friendly_name') | list }}
+
+action:
+  - variables:
+      before: "{{ states(travel_time) | float(none) }}"
+  - service: homeassistant.update_entity
+    target:
+      entity_id: !input travel_time
+  - variables:
+      after: "{{ states(travel_time) | float(none) }}"
+  # Only a fall from above the threshold to at or below it. Leaving home
+  # starts near zero and climbs, so it never crosses downwards.
+  - condition: template
+    value_template: >
+      {{ before is not none and after is not none
+         and before > minutes | float and after <= minutes | float }}
+  - sequence: !input arriving_actions
+  - wait_for_trigger:
+      - platform: state
+        entity_id: !input trip_sensor
+        to: "off"
+    timeout: "06:00:00"

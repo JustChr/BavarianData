@@ -9,6 +9,25 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **Smart charging with EV Smart Charging or Predbat.** A new manual page
+  says which BavarianData entities to give a charge planner: the predicted
+  state of charge (it keeps counting when BMW goes quiet mid-charge), the
+  target and the cable. The planner switches your wallbox; the car is never
+  commanded.
+- **Blueprint: mirror the charging cable into a switch.** Turns a switch on
+  when the cable goes in at home and off when it comes out, for EV Smart
+  Charging's *EV connected* switch or any planner that needs it.
+- **Blueprint: car arriving home soon.** Runs your actions once per drive
+  when Waze or Google Maps says the car is less than the minutes you set from
+  home. It can't know where you're going, so pick the zones your drives home
+  start from (Work, for example) to skip drives that only pass nearby.
+
+### Fixed
+- **The *Stop charging at target %* blueprint sends its notification.** The
+  optional notify service was never passed through, so the message after the
+  charger switched off didn't arrive. Re-import the blueprint to get the fix.
+
 ## [0.9.20-beta.2] - 2026-10-15
 
 ### Fixed

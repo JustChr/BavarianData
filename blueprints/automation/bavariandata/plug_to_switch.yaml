@@ -1,0 +1,81 @@
+blueprint:
+  name: "BavarianData: Mirror the charging cable into a switch"
+  description: >
+    Turns a switch on when the car's charging cable is plugged in at home, and
+    off again when it's unplugged. Made for charge planners that need to be
+    told the car is connected: EV Smart Charging's "EV connected" switch, an
+    `input_boolean` that Predbat or EMHASS read, or your own.
+
+    Plugging in away from home does nothing, so a public charger never starts
+    your home charging schedule. A car that sends no position counts as home.
+  domain: automation
+  source_url: https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/plug_to_switch.yaml
+  input:
+    plug_sensor:
+      name: Cable sensor
+      description: >
+        The car's "Charging Port plug state" sensor (states connected /
+        disconnected).
+      selector:
+        entity:
+          filter:
+            - integration: bavariandata
+              domain: sensor
+    car_tracker:
+      name: Car location (optional)
+      description: >
+        The car's location entity. When set, plugging in only counts at home.
+        Leave empty if your car sends no position.
+      default: ""
+      selector:
+        entity:
+          filter:
+            - integration: bavariandata
+              domain: device_tracker
+    target_switch:
+      name: Switch to set
+      description: >
+        For EV Smart Charging, its "EV connected" switch. Any switch or
+        input_boolean works.
+      selector:
+        entity:
+          filter:
+            - domain: [switch, input_boolean]
+
+mode: queued
+max_exceeded: silent
+
+variables:
+  car_tracker: !input car_tracker
+
+trigger:
+  - platform: state
+    entity_id: !input plug_sensor
+    to: "connected"
+    id: plugged
+  - platform: state
+    entity_id: !input plug_sensor
+    to: "disconnected"
+    id: unplugged
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: plugged
+          # A known position away from home vetoes; no position counts as home.
+          - condition: template
+            value_template: >
+              {{ car_tracker | string | trim == ''
+                 or states(car_tracker) in ['home', 'unknown', 'unavailable'] }}
+        sequence:
+          - service: homeassistant.turn_on
+            target:
+              entity_id: !input target_switch
+      - conditions:
+          - condition: trigger
+            id: unplugged
+        sequence:
+          - service: homeassistant.turn_off
+            target:
+              entity_id: !input target_switch

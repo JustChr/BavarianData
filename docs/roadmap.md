@@ -445,8 +445,10 @@ sensors and *Last Vehicle Report*; the budget of eight stays as it is.
 - Credentials: a **project telemetry key** requested from Iternio and shipped in
   the integration, with an optional field for the user's own key should ours be
   revoked; plus the user's per-car ABRP token (ABRP app → Generic → Link).
-- Nothing else pushes BMW CarData into ABRP today (`hass-abrp` mainly reads
-  from it).
+- Generic HACS pushers exist (`samhunt/hass-abrp-push`, `Riffer/abrp_telemetry`;
+  `hass-abrp` mainly reads from ABRP), reviewed 2026-10-15: each needs a manual
+  mapping of about ten entities plus the user's own key, and sends Home
+  Assistant's display units. A built-in push needs none of that.
 
 ### Waiting for data, not scheduled
 

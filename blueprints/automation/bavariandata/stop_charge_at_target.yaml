@@ -51,6 +51,9 @@ blueprint:
 mode: single
 max_exceptions: 3
 
+variables:
+  notify_target: !input notify_target
+
 trigger:
   - platform: numeric_state
     entity_id: !input soc_sensor

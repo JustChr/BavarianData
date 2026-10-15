@@ -135,7 +135,7 @@ so the burst is complete by then. Things to know:
 
 ## Starter blueprints
 
-Two starter automations ship with the integration. Import them via **Settings →
+Four starter automations ship with the integration. Import them via **Settings →
 Automations → Blueprints → Import Blueprint** with the raw GitHub URL:
 
 - **Stop charging at target %** —
@@ -146,6 +146,32 @@ Automations → Blueprints → Import Blueprint** with the raw GitHub URL:
 - **Notify when charging completes** —
   [`notify_charging_complete.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/notify_charging_complete.yaml).
   Pings a notify service on the charging-complete / -stopped events above.
+- **Mirror the charging cable into a switch** —
+  [`plug_to_switch.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/plug_to_switch.yaml).
+  Turns a switch on when the cable goes in at home and off when it comes out.
+  Made for charge planners that need to know the car is connected, such as EV
+  Smart Charging's *EV connected* switch; see
+  [Smart charging](Feature-Smart-Charging). Plugging in away from home does
+  nothing; a car that sends no position counts as home.
+- **Car arriving home soon** —
+  [`arriving_home.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/arriving_home.yaml).
+  Runs your actions once per drive, when the remaining time to home drops
+  below the minutes you set: open the garage, warm the house. It needs Home
+  Assistant's **Waze Travel Time** (or Google Maps Travel Time) with the car's
+  location as the origin and home as the destination; turn off that
+  integration's polling, the blueprint refreshes it at every new position.
+  Things to know:
+  - **It doesn't know where you're going.** It only sees the car getting
+    closer to home. A drive that passes near home and carries on fires it too.
+    Pick the zones your drives home start from (*Only trips that start in*,
+    e.g. Work) to count only those.
+  - **A short drive may not fire it.** One that never got further away than
+    your threshold never crosses it; leaving home never fires it either.
+  - **Expect it within a few minutes of the threshold.** BMW sends the
+    position about every one to three minutes while driving.
+  - The car's own navigation has a *GPS arrival time* field. A destination
+    set on the phone through CarPlay or Android Auto is unknown to the car, so
+    the blueprint doesn't rely on it.
 
 ## Remember: read-only
 

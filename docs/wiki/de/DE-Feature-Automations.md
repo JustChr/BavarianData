@@ -139,7 +139,7 @@ der Fahrt nichts. Es löst einmal pro neuem Kilometerstand aus, nachdem der Wert
 
 ## Blueprints für den Einstieg
 
-Zwei Automationen für den Einstieg liegen der Integration bei. Importiere sie
+Vier Automationen für den Einstieg liegen der Integration bei. Importiere sie
 über **Einstellungen → Automationen & Szenen → Blueprints → Blueprint
 importieren** mit der Raw-URL von GitHub:
 
@@ -153,6 +153,34 @@ importieren** mit der Raw-URL von GitHub:
   [`notify_charging_complete.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/notify_charging_complete.yaml).
   Sendet bei den obigen Ereignissen „complete“ bzw. „stopped“ eine Nachricht über
   einen Benachrichtigungsdienst.
+- **Ladekabel in einen Schalter spiegeln** —
+  [`plug_to_switch.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/plug_to_switch.yaml).
+  Schaltet einen Schalter ein, wenn zu Hause das Kabel eingesteckt wird, und
+  aus, wenn es abgezogen wird. Gedacht für Ladeplaner, die wissen müssen, dass
+  das Auto angesteckt ist, etwa den Schalter *EV connected* von EV Smart
+  Charging; siehe [Intelligent laden](DE-Feature-Smart-Charging). Einstecken
+  außerhalb von zu Hause bewirkt nichts; ein Auto ohne Position gilt als zu
+  Hause.
+- **Auto kommt gleich heim** —
+  [`arriving_home.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/arriving_home.yaml).
+  Führt deine Aktionen einmal pro Fahrt aus, sobald die restliche Fahrzeit nach
+  Hause unter die eingestellten Minuten fällt: Garage öffnen, Haus aufheizen.
+  Es braucht Home Assistants **Waze Travel Time** (oder Google Maps Travel
+  Time) mit dem Standort des Autos als Start und deinem Zuhause als Ziel;
+  schalte dort das Abfragen ab, der Blueprint aktualisiert es bei jeder neuen
+  Position. Gut zu wissen:
+  - **Es weiß nicht, wohin du fährst.** Es sieht nur, dass das Auto näher
+    kommt. Eine Fahrt, die nah an zu Hause vorbei und weiter führt, löst es
+    ebenfalls aus. Wähle die Zonen, in denen deine Heimfahrten beginnen
+    (*Only trips that start in*, z. B. Arbeit), um nur diese zu zählen.
+  - **Eine kurze Fahrt löst es womöglich nicht aus.** Wer nie weiter weg war
+    als die Schwelle, unterschreitet sie nie; das Losfahren von zu Hause löst
+    es ebenfalls nie aus.
+  - **Rechne mit ein paar Minuten Abweichung.** BMW sendet die Position
+    während der Fahrt etwa alle ein bis drei Minuten.
+  - Die Navigation des Autos hat ein Feld *Zeit bis zum Navigationsziel*. Ein
+    Ziel, das du am Handy über CarPlay oder Android Auto eingibst, kennt das
+    Auto nicht, deshalb verlässt sich der Blueprint nicht darauf.
 
 ## Nicht vergessen: nur lesend
 
