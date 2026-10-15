@@ -155,7 +155,8 @@ disabled entities*. It costs no quota: the items come with the daily data fetch.
 - An item BMW marks as due soon or overdue says so in its title.
 - A car with a lease set up under [mileage allowance](Feature-Mileage) also
   gets its **hand-back day** as an event.
-- The texts follow Home Assistant's language; distances follow its unit system.
+- The texts follow Home Assistant's language; distances follow the car's unit
+  ([how it is chosen](Settings-Reference#mileage-allowance)).
 
 The same items are on the **Service Condition based services** sensor's `items`
 attribute, if you'd rather template them.

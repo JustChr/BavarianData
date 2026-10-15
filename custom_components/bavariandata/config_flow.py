@@ -21,7 +21,6 @@ import logging
 from homeassistant import config_entries
 from homeassistant.components import persistent_notification, webhook
 from homeassistant.components.http import HomeAssistantView
-from homeassistant.const import UnitOfLength
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult, FlowResultType, section
 from homeassistant.helpers import config_validation as cv
@@ -84,6 +83,7 @@ from .const import (
     TRIP_DETECTION_REPORTS,
 )
 from .debug import set_debug_enabled
+from .distance import car_distance_unit
 from .history.classify import DEFAULT_CLASS_CHOICES
 from .trip_settings import account_trip_settings, vehicle_trip_settings
 from .vehicle_options import (
@@ -1917,7 +1917,18 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
     # then that kind's form (HA forms can't show fields conditionally).
 
     def _miles(self) -> bool:
-        return self.hass.config.units.length_unit == UnitOfLength.MILES
+        """Whether the car on screen counts in miles (``distance.car_distance_unit``).
+
+        Not Home Assistant's unit system alone: a UK install is metric but its
+        car counts in miles, and typed miles were stored as km (issue #126).
+        """
+
+        runtime = self._get_runtime()
+        coordinator = runtime.coordinator if runtime is not None else None
+        _vehicles, _per_vehicle, vin = self._vehicle_context()
+        if not isinstance(vin, str):  # no car picked yet
+            vin = None
+        return car_distance_unit(self.hass, coordinator, vin) == "mi"
 
     def _to_display(self, km: Optional[float]) -> Optional[float]:
         if km is None:

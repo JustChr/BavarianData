@@ -174,8 +174,8 @@ Datenabruf.
 - Meldet BMW einen Eintrag als bald fällig oder überfällig, steht das im Titel.
 - Ein Auto mit einem Leasing unter [Kilometerkontingent](DE-Feature-Mileage)
   bekommt zusätzlich seinen **Rückgabetag** als Termin.
-- Die Texte folgen der Sprache von Home Assistant, Strecken seinem
-  Einheitensystem.
+- Die Texte folgen der Sprache von Home Assistant, Strecken der Einheit des
+  Autos ([wie sie gewählt wird](DE-Settings-Reference#kilometerkontingent)).
 
 Dieselben Einträge stehen auch im Attribut `items` des Sensors **Condition Based
 Service**, falls du sie lieber per Template verwendest.

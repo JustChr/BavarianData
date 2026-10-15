@@ -13,7 +13,6 @@ from typing import Dict, Optional
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfLength
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -21,6 +20,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
 from .coordinator import CardataCoordinator
+from .distance import car_distance_unit
 from .entity import CardataEntity
 from .service_calendar import CBS, ServiceEvent, lease_end_event, next_event, service_events
 
@@ -91,7 +91,8 @@ class CardataServiceCalendar(CardataEntity, CalendarEntity):
 
     def _events(self) -> list[ServiceEvent]:
         language = self.hass.config.language
-        miles = self.hass.config.units.length_unit == UnitOfLength.MILES
+        # The car's own unit, not just HA's unit system: a UK install is metric (#126).
+        miles = car_distance_unit(self.hass, self._coordinator, self._vin) == "mi"
         events: list[ServiceEvent] = []
         state = self._coordinator.get_state(self._vin, CBS)
         if state is not None and state.value is not None:

@@ -36,6 +36,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   mileage from BavarianData's history, at no API quota and without the VIN.
 
 ### Fixed
+- **A UK install's mileage allowance is entered in miles.** Configure →
+  Mileage allowance and the service calendar followed Home Assistant's unit
+  system alone, so on a metric install (as the UK keeps for °C and litres) an
+  allowance typed in miles was saved as km and the car showed as far over
+  plan. They now use the car's own unit, the same rule as the card: the unit
+  its odometer sensor is shown in, else the car's display setting, else the
+  unit system. If you entered an allowance in miles on a metric install, open
+  the screen once and enter it again (#126).
 - **The *Stop charging at target %* blueprint sends its notification.** The
   optional notify service was never passed through, so the message after the
   charger switched off didn't arrive. Re-import the blueprint to get the fix.

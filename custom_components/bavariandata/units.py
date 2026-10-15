@@ -25,7 +25,7 @@ unit here is the deliberate act of deciding what it means.
 
 from __future__ import annotations
 
-from typing import Any, Dict, FrozenSet, Optional, Tuple
+from typing import Any, Dict, FrozenSet, Iterable, Optional, Tuple
 
 # Every unit symbol the project emits. Anything reaching an entity or the
 # metadata registry is one of these -- or an unrecognised string that survived
@@ -163,3 +163,47 @@ def miles_to_km(value: Any, unit: Optional[str]) -> Tuple[Any, Optional[str]]:
     ):
         return round(value * KM_PER_MILE, 3), "km"
     return value, unit
+
+
+# The car's own display setting for distances, newest descriptor first. BMW
+# spells the values ``km``/``miles`` in one and ``kilometers``/``miles`` in the
+# other.
+DESC_DISPLAY_DISTANCE = (
+    "vehicle.cabin.infotainment.displayUnit.distance",
+    "vehicle.cabin.infotainment.hmi.distanceUnit",
+)
+_KM_UNITS: FrozenSet[str] = frozenset({"km", "kilometer", "kilometers", "kilometre", "kilometres"})
+
+
+def _mi_or_km(unit: Any) -> Optional[str]:
+    if not isinstance(unit, str):
+        return None
+    folded = unit.strip().casefold()
+    if folded in MILE_UNITS:
+        return "mi"
+    if folded in _KM_UNITS:
+        return "km"
+    return None
+
+
+def distance_unit(sensor_units: Iterable[Any], car_setting: Any, system_unit: Any) -> str:
+    """``"mi"`` or ``"km"``: the unit a car's distances are entered and shown in.
+
+    1. The unit the car's distance sensors are displayed in, odometer first. A
+       UK install keeps Home Assistant's metric unit system (Celsius, litres)
+       and switches the distance sensors to miles, so this is the user's own
+       choice for this car.
+    2. The car's own display setting (:data:`DESC_DISPLAY_DISTANCE`), when the
+       car streams it.
+    3. Home Assistant's unit system: miles only for US customary.
+
+    Settings screens, the service calendar and the card all follow this order
+    (the card's ``_lengthUnit`` mirrors it in JavaScript), so a distance is
+    never typed in one unit and stored as another (issue #126).
+    """
+
+    for unit in sensor_units:
+        found = _mi_or_km(unit)
+        if found:
+            return found
+    return _mi_or_km(car_setting) or ("mi" if _mi_or_km(system_unit) == "mi" else "km")

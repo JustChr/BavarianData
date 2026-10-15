@@ -273,8 +273,18 @@ im Sensor.
 
 | **Beginn** / **Jahr beginnt am** | Datum | Der Tag, an dem das Leasing begann, oder der erste Tag deines Versicherungsjahres (eine Jahresgrenze beginnt jedes Jahr an diesem Tag neu). |
 | **Ende** | Datum | Nur Leasing: der Tag der Rückgabe. Muss nach dem Beginn liegen. |
-| **Kilometer pro Jahr** | km (mi bei US-Einheiten) | Aus Vertrag oder Police. Das Gesamtkontingent eines Leasings ist dieser Wert mal die Laufzeit. |
-| **Kilometerstand bei Beginn** / **Kilometerstand an dem Tag** | km (mi) | Der Stand am Starttag, aus dem Übergabeprotokoll. Vorbelegt mit dem heutigen Stand, solange keiner gespeichert ist; bei einer Jahresgrenze der Stand am letzten Jahresbeginn. |
+| **Kilometer pro Jahr** | km oder mi (siehe unten) | Aus Vertrag oder Police. Das Gesamtkontingent eines Leasings ist dieser Wert mal die Laufzeit. |
+| **Kilometerstand bei Beginn** / **Kilometerstand an dem Tag** | km oder mi | Der Stand am Starttag, aus dem Übergabeprotokoll. Vorbelegt mit dem heutigen Stand, solange keiner gespeichert ist; bei einer Jahresgrenze der Stand am letzten Jahresbeginn. |
+
+Die Felder zeigen, welche Einheit sie erwarten. Es ist die des Autos: die
+Einheit, in der sein Kilometerstand-Sensor angezeigt wird (eine britische
+Installation, metrisch mit dem Kilometerstand auf Meilen umgestellt, gibt also
+Meilen ein), sonst die Anzeige-Einstellung des Autos, wenn BMW sie streamt,
+sonst das Einheitensystem von Home Assistant. Karte und Service-Kalender
+nutzen dieselbe Regel. Frühere Versionen folgten nur dem
+Einheitensystem, sodass auf einer metrischen Installation ein in Meilen
+eingegebenes Kontingent als km gespeichert wurde: Wirkt deins zu klein, gib es
+einmal neu ein.
 
 ## Debug-Protokollierung
 

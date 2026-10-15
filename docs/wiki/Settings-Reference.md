@@ -255,8 +255,16 @@ starts without one. It applies at once, to the card and the sensor.
 
 | **Start date** / **Year starts on** | date | The day the lease began, or the first day of your insurance year (a yearly limit renews on it every year). |
 | **End date** | date | Lease only: the day you hand the car back. Must be after the start. |
-| **Allowance per year** | km (mi with US units) | From the contract or policy. A lease's total is this times its length. |
-| **Odometer at the start** / **Odometer that day** | km (mi) | The reading on the start date, from the handover papers. Filled in with today's reading while none is saved; for a yearly limit, the reading at the most recent start of the year. |
+| **Allowance per year** | km or mi (see below) | From the contract or policy. A lease's total is this times its length. |
+| **Odometer at the start** / **Odometer that day** | km or mi | The reading on the start date, from the handover papers. Filled in with today's reading while none is saved; for a yearly limit, the reading at the most recent start of the year. |
+
+The boxes say which unit they take. It is the car's own: the unit its odometer
+sensor is shown in (so a UK install, metric with the odometer switched to
+miles, types miles), else the car's display setting when BMW streams it, else
+Home Assistant's unit system. The card and the service calendar use the same
+rule. Earlier versions followed the unit system alone, so on a metric
+install an allowance typed in miles was saved as km: if yours looks too small,
+enter it once more.
 
 ## Debug logging
 

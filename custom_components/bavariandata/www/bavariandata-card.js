@@ -106,7 +106,21 @@ const STEERING_SIDES = new Set(["left", "right"]);
 // BMW's two odometer spellings (the coordinator's DESC_ODOMETER); whichever
 // the car streams carries the distance unit its owner chose.
 const DESC_ODOMETER = ["vehicle.vehicle.mileage", "vehicle.vehicle.travelledDistance"];
+// The car's own display setting for distances (units.DESC_DISPLAY_DISTANCE).
+const DESC_DISPLAY_DISTANCE = [
+  "vehicle.cabin.infotainment.displayUnit.distance",
+  "vehicle.cabin.infotainment.hmi.distanceUnit",
+];
 const KM_PER_MILE = 1.609344;
+
+/** "mi", "km" or null, from any of the spellings BMW and HA use. */
+function _miOrKm(unit) {
+  if (typeof unit !== "string") return null;
+  const u = unit.trim().toLowerCase();
+  if (["mi", "mile", "miles"].includes(u)) return "mi";
+  if (["km", "kilometer", "kilometers", "kilometre", "kilometres"].includes(u)) return "km";
+  return null;
+}
 
 // BMW reports these charging-status values when nothing is actively charging
 // (e.g. `invalid` when no cable is connected). Show a clean localized "not
@@ -4072,11 +4086,14 @@ class BavarianDataCard extends HTMLElement {
     return unit === "mi" ? `${this._dec(n / KM_PER_MILE, 0)} mi` : `${this._dec(n, 0)} km`;
   }
 
-  /** "mi" or "km": the unit this car's distances are shown in.
+  /** "mi" or "km": the unit this car's distances are shown in. The same rule
+   * as the integration's `units.distance_unit` (issue #126), in the same order:
    *
-   * The odometer's own unit first, because a UK install typically keeps the
-   * metric unit system and switches the distance sensors to miles one by one;
-   * then any other distance sensor of the car's; then the unit system. */
+   * 1. the units the car's distance sensors are displayed in, odometer first,
+   *    because a UK install typically keeps the metric unit system and
+   *    switches the distance sensors to miles one by one;
+   * 2. the car's own display setting, when the car streams it;
+   * 3. Home Assistant's unit system. */
   _lengthUnit(entities) {
     const units = [];
     for (const d of DESC_ODOMETER) {
@@ -4087,8 +4104,14 @@ class BavarianDataCard extends HTMLElement {
       const a = (this._st(id) || {}).attributes || {};
       if (a.device_class === "distance") units.push(a.unit_of_measurement);
     }
-    const unit = units.find((u) => u === "mi" || u === "km");
-    if (unit) return unit;
+    for (const d of DESC_DISPLAY_DISTANCE) {
+      const st = this._byDescriptor(entities, d);
+      if (st) units.push(st.state);
+    }
+    for (const u of units) {
+      const unit = _miOrKm(u);
+      if (unit) return unit;
+    }
     const system = this._hass && this._hass.config && this._hass.config.unit_system;
     return system && system.length === "mi" ? "mi" : "km";
   }
