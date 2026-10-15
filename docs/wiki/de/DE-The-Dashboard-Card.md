@@ -81,6 +81,10 @@ oder Finger) dreht es einmal ganz herum. Das Bild folgt auch dem Auto:
   ziehen, um sich umzusehen.
 
 <p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-badges.png" alt="Die Übersicht bei Nacht mit offener Tür, offenen Fenstern und entriegeltem Auto: Plaketten unter dem Namen, in der Ecke die Draufsicht mit der offenen Tür und den Fenstern hervorgehoben" width="360" />
+</p>
+
+<p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-interior.png" alt="Die Übersicht mit dem Innenraum-Panorama: das Cockpit vom Fahrersitz aus, oben rechts der Knopf zurück zur Außenansicht" width="360" />
 </p>
 
@@ -453,6 +457,10 @@ cluster: closures
 steering: right   # left · right — weglassen, um es aus BMWs Fahrzeugdaten zu lesen
 ```
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-closures-rhd.png" alt="Sicherheit und Verschlüsse bei einem Rechtslenker: die Fahrertür rechts offen, ihr offenes Fenster auf der Tür gezeichnet, ein hinteres Fenster teilweise offen, das Auto entriegelt" width="300" />
+</p>
+
 ### Die Form des Autos
 
 Die Reifen- und die Öffnungs-Ansicht zeichnen eine BMW-Limousine, außer bei einem
@@ -502,7 +510,7 @@ view: equipment
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-equipment.png" alt="Karte Ausstattung: Lack, Räder und Leisten, dann Pakete, dann jede weitere Option mit ihrem BMW-Code, die technischen Codes unten eingeklappt" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-equipment.png" alt="Karte Ausstattung: Lack, Räder und Leisten mit ihren Farbmustern, dann Pakete und die übrigen Optionen, jede mit BMWs Bild und ihrem Options-Code" width="360" />
 </p>
 
 Dafür muss **Konfigurieren → [Fahrzeugbild](DE-Settings-Reference#fahrzeugbild)**

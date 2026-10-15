@@ -10,6 +10,10 @@ die sofort auf eine Änderung reagieren statt auf einen Abfragezyklus zu warten.
 Der einfachste Weg: Automation anlegen, als Auslöser **Gerät** wählen, dein Auto
 auswählen und aus der Liste wählen. Kein YAML, keine Entitätsnamen.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-device-triggers.png" alt="Der Geräte-Auslöser im Automations-Editor mit gewähltem Auto und offener Auslöser-Liste: Arrived at a zone, Charging completed (target reached), Charging started, Charging stopped before the target" width="360" />
+</p>
+
 | Auslöser | Löst aus, wenn | Optionen |
 | --- | --- | --- |
 | **In einer Zone angekommen** | eine Fahrt in einer Zone endet, sobald das Auto steht (meist 1–3 Minuten nach dem Anhalten) | eine Zone, oder leer für jede Zone |

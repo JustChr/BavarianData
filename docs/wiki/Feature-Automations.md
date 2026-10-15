@@ -10,6 +10,10 @@ the instant something changes rather than on a polling cycle.
 The easiest way in: create an automation, choose **Device** as the trigger, pick
 your car, and choose from the list. No YAML and no entity names needed.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-device-triggers.png" alt="The automation editor's device trigger with the car picked and its trigger list open: Arrived at a zone, Charging completed (target reached), Charging started, Charging stopped before the target" width="360" />
+</p>
+
 | Trigger | Fires when | Options |
 | --- | --- | --- |
 | **Arrived at a zone** | a drive ends inside a zone, once the car has parked (usually 1–3 minutes after it stops) | a zone, or empty for any zone |

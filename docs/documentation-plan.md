@@ -203,11 +203,11 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `view: health` | Battery health | 🟡 | 📷 |
 | `view: efficiency` | Efficiency & real range | 🟢 The-Dashboard-Card + Feature-Efficiency-and-Range | 📷 (have, 2026-10-14: `card-efficiency.png`) |
 | `view: mileage` | Mileage overview + allowance | 🟢 The-Dashboard-Card → "Mileage" + Feature-Mileage (EN + DE) | 📷 (have, 2026-10-14: `card-mileage.png`, live overview with an example lease) |
-| `view: equipment` | Factory equipment by name, with each option's picture where BMW has one (from the configurator picture source) | 🟢 The-Dashboard-Card → "Equipment" (EN + DE) | 📷 owed: `card-equipment.png` predates the option pictures; re-shoot after a Vehicle image → Submit |
-| Overview hero with the configurator picture (spin, lights/night, state badges + top-down inset, interior panorama; angle/mode/look remembered per browser) | Overview | 🟢 The-Dashboard-Card → "Overview" (EN + DE) | 📷 (have: `card-hero-spin.png`, `card-hero-interior.png`; badges **owed**: needs the car open or lit) |
+| `view: equipment` | Factory equipment by name, with each option's picture where BMW has one (from the configurator picture source) | 🟢 The-Dashboard-Card → "Equipment" (EN + DE) | 📷 (have: `card-equipment.png`, with the option pictures, i5) |
+| Overview hero with the configurator picture (spin, lights/night, state badges + top-down inset, interior panorama; angle/mode/look remembered per browser) | Overview | 🟢 The-Dashboard-Card → "Overview" (EN + DE) | 📷 (have: `card-hero-spin.png`, `card-hero-interior.png`, `card-hero-badges.png` — door and windows staged open in the browser only) |
 | `cluster: tire` | Tires (pressure + wear) | 🟡 | 📷 (have) |
 | `shape:` (tire + closures) | Top-down car drawn per model — BMW sedan, or MINI Countryman picked from basic data's `model_name`; `shape:` override | 🟢 — The-Dashboard-Card → "The car's shape" + YAML reference | 📷 (have, rendered from the shipped card: no Countryman to capture live) |
-| `cluster: closures` | Security & closures — side doors/windows placed by steering side (BMW basic data, `steering:` override) | 🟡 — the steering side and its override are 🟢 in The-Dashboard-Card → "Security & closures" + YAML reference | 📷 (have, left-hand drive; a right-hand-drive shot is owed: no such car to capture) |
+| `cluster: closures` | Security & closures — side doors/windows placed by steering side (BMW basic data, `steering:` override) | 🟡 — the steering side and its override are 🟢 in The-Dashboard-Card → "Security & closures" + YAML reference | 📷 (have: left-hand drive, and `card-closures-rhd.png` — `steering: right`, door and windows staged open in the browser only) |
 | `cluster: events` | Vehicle events — current Check Control messages first, cleared ones folded under "Earlier messages", then the teleservice timestamps | 🟢 The-Dashboard-Card → "Single-cluster list" | 📷 (have, 2026-09-27, cleared message under "Earlier messages", expanded) |
 | `cluster: <other>` | Single-cluster list | 🟡 | 📷 |
 | YAML options (`device`, `vin`, entity overrides) | — | 🟡 | — |
@@ -290,7 +290,7 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | Energy dashboard & long-term statistics (incl. the home-only `charging_energy_home` series the dashboard should use) | 🟡 Feature-Energy-and-Statistics → "Adding to the Energy dashboard" (EN + DE) |
 | Export (CSV / HTML report) | 🟡 |
 | Charging events (`bavariandata_charging_*`) | 🟡 |
-| Device triggers (arrived at / left a zone, parked unlocked, plugged in but not charging, charging started / completed / stopped before the target) — offered only when the car can fire them; live values only, nothing fires from a restart; `trigger.data` per type | 🟢 Feature-Automations → "Device triggers" (both languages); 📷 owed: the trigger list in the automation editor |
+| Device triggers (arrived at / left a zone, parked unlocked, plugged in but not charging, charging started / completed / stopped before the target) — offered only when the car can fire them; live values only, nothing fires from a restart; `trigger.data` per type | 🟢 Feature-Automations → "Device triggers" (both languages); 📷 `automation-device-triggers.png` (both languages) |
 | Trigger events (`bavariandata_zone_*`, `bavariandata_situation`, `bavariandata_charging_interrupted`) | 🟢 Feature-Automations → "Events" |
 | Vehicle-report event (`bavariandata_vehicle_report`: new odometer reading held 5 min; first reading only seeds; no repeat, no restart replay) | 🟢 Feature-Automations → "Events" (EN + DE) |
 | Automation blueprints (2) | 🟡 |

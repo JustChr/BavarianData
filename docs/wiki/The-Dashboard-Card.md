@@ -74,6 +74,10 @@ or finger) turns it all the way round. The photo also follows the car:
   drag to look around.
 
 <p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-badges.png" alt="The overview at night with a door open, windows open and the car unlocked: badges under the name, and the top-down drawing in the corner with the open door and windows lit up" width="360" />
+</p>
+
+<p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-interior.png" alt="The overview with the interior panorama: the cockpit seen from the driver's seat, the button back to the outside view top right" width="360" />
 </p>
 
@@ -423,6 +427,10 @@ cluster: closures
 steering: right   # left · right — omit to read it from BMW's vehicle data
 ```
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-closures-rhd.png" alt="Security and closures on a right-hand-drive car: the driver's door open on the right with its open window drawn on the door, a rear window partially open, the car unlocked" width="300" />
+</p>
+
 ### The car's shape
 
 The tires and closures views draw a BMW sedan, except for a **MINI Countryman**,
@@ -468,7 +476,7 @@ view: equipment
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-equipment.png" alt="Equipment card: paint, wheels and trim, then packages, then every other option with its BMW code, technical codes folded away at the bottom" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-equipment.png" alt="Equipment card: paint, wheels and trim with their swatches, then packages and the other options, each with BMW's picture and its option code" width="360" />
 </p>
 
 It needs **Configure → [Vehicle image](Settings-Reference#vehicle-image)** set to
