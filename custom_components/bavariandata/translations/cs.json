@@ -454,7 +454,8 @@
       "reauth_started": "Autorizace byla znovu spuštěna. Dokončete nové přihlášení z oznámení, které se právě objevilo.",
       "reauth_device_code_failed": "BMW odmítlo žádost o autorizaci zařízení ({error}). Zkontrolujte Client ID a zkuste to znovu.",
       "reauth_missing_client_id": "U tohoto záznamu integrace chybí Client ID. Odstraňte integraci a přidejte ji znovu, abyste ji znovu autorizovali.",
-      "reauth_failed": "Opětovnou autorizaci se nepodařilo spustit. Zkuste to znovu z možností integrace."
+      "reauth_failed": "Opětovnou autorizaci se nepodařilo spustit. Zkuste to znovu z možností integrace.",
+      "configurator_partial": "Uloženo. Konfigurátor BMW vykreslí vaše ostatní auta, ale ne {vehicles}: ponechají si oficiální obrázek, což stojí 1 z vašich 50 denních požadavků na BMW za každé auto, které ho ještě nemá. Důvod je v protokolu."
     }
   },
   "selector": {

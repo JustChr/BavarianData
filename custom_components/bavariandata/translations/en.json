@@ -454,7 +454,8 @@
       "reauth_started": "Authorization restarted. Finish the new login from the notification that just appeared.",
       "reauth_device_code_failed": "BMW rejected the device authorization request ({error}). Check the Client ID and try again.",
       "reauth_missing_client_id": "Client ID is missing for this integration entry. Remove and re-add the integration to authorize again.",
-      "reauth_failed": "Re-authorization could not be started. Try again from the integration options."
+      "reauth_failed": "Re-authorization could not be started. Try again from the integration options.",
+      "configurator_partial": "Saved. BMW's configurator draws your other cars, but not {vehicles}: they keep the official picture, which costs 1 of your 50 daily BMW requests per car that has none yet. The log says why."
     }
   },
   "selector": {

@@ -60,11 +60,15 @@ the configurator it waits only for the 360° view (a few seconds per car); the
 rest follows in the background within about a minute: the same view with the
 lights on and at night, the interior panorama, the photo from above (MINIs only)
 and the names and pictures of the car's factory options for the card's
-[equipment view](The-Dashboard-Card#equipment-view-equipment). Nothing is saved
-unless every car could be drawn; the screen
-then names the car and why (not a BMW or MINI car, its basic vehicle info isn't
-in yet, the configurator didn't answer, or it has no picture of that model), and
-the official picture stays. A car added later is drawn when it first appears.
+[equipment view](The-Dashboard-Card#equipment-view-equipment). With several
+cars, the setting is saved as long as at least one can be drawn: a car the
+configurator can't draw keeps its official picture, and a closing message names
+it. If that car has no official picture yet, one is fetched (one request). Home
+Assistant's log says why the car couldn't be drawn. If no car can be drawn,
+nothing is saved and the screen names the car and why (not a BMW or MINI car,
+its basic vehicle info isn't in yet, the configurator didn't answer, or it has
+no picture of that model). A car added later is drawn when it first appears,
+or gets its official picture if it can't be.
 
 These pictures are fetched only then: when you press **Submit** here, and once
 for a car when it is first added. Nothing refreshes them on a schedule or after a

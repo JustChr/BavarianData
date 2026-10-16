@@ -454,7 +454,8 @@
       "reauth_started": "Autorisierung neu gestartet. Schließe die neue Anmeldung über die soeben erschienene Benachrichtigung ab.",
       "reauth_device_code_failed": "BMW hat die Anfrage zur Geräteautorisierung abgelehnt ({error}). Prüfe die Client-ID und versuche es erneut.",
       "reauth_missing_client_id": "Für diesen Integrationseintrag fehlt die Client-ID. Entferne die Integration und füge sie neu hinzu, um erneut zu autorisieren.",
-      "reauth_failed": "Die Neuautorisierung konnte nicht gestartet werden. Versuche es erneut über die Optionen der Integration."
+      "reauth_failed": "Die Neuautorisierung konnte nicht gestartet werden. Versuche es erneut über die Optionen der Integration.",
+      "configurator_partial": "Gespeichert. Der BMW-Konfigurator zeichnet deine anderen Autos, aber nicht {vehicles}: Sie behalten das offizielle Bild. Das kostet 1 deiner 50 täglichen BMW-Anfragen pro Auto, das noch keins hat. Das Protokoll sagt, warum."
     }
   },
   "selector": {

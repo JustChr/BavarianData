@@ -13,6 +13,8 @@ import json
 import re
 
 import pytest
+from urllib.parse import parse_qs, urlsplit
+
 from PIL import Image
 
 from .conftest import load_module
@@ -48,6 +50,12 @@ def test_junk_codes_are_dropped_not_sent():
         {**I5, "colourCodeRaw": "", "fullSAList": " 0337 ,,x,TOOLONG,02pa"}
     )
     assert spec.options == ("S0337", "S02PA")
+
+
+def test_a_code_the_car_lists_twice_is_sent_once_in_the_cars_order():
+    spec = CONF.spec_from_basic_data({**I5, "fullSAList": "0337,0258,0337,08S4"})
+    assert spec.options == ("P0C4P", "S0337", "S0258", "S08S4")
+    assert spec.sorted_options == "P0C4P,S0258,S0337,S08S4"
 
 
 @pytest.mark.parametrize(
@@ -155,6 +163,13 @@ class _FakeBmw:
         if "/image-urls/" in url:
             if not self.key_ok:
                 return _Resp(403, b"{}")
+            options = parse_qs(urlsplit(url).query).get("options", [""])[0].split(",")
+            if options != sorted(set(options)):
+                refused = {
+                    "errorCode": "INVALID_PARAMETER_VALUE",
+                    "errorMessage": "options is not sorted",
+                }
+                return _Resp(400, json.dumps(refused).encode())
             brand = re.search(r"/brands/([^/]+)/", url).group(1)
             # Both night scenes come back on an opaque studio, not transparent.
             scene = "night" if "nightview=true" in url or "background=night" in url else "img"
@@ -189,6 +204,26 @@ def test_render_without_any_drawable_brand_is_no_render():
     with pytest.raises(CONF.ConfiguratorError) as err:
         asyncio.run(CONF.async_render(_FakeBmw(draws="nobody"), I5))
     assert err.value.reason == "no_render"
+
+
+def test_a_car_listing_its_options_out_of_order_still_draws():
+    # Issue #130: an F40 118i reports its codes unsorted; BMW refuses that.
+    session = _FakeBmw(draws="bmwCar")
+    raw = {**I5, "fullSAList": "0710,0258,0337,0258"}
+    render = asyncio.run(CONF.async_render(session, raw))
+    assert render.brand == "bmwCar"
+    image_call = next(c for c in session.calls if "/image-urls/" in c)
+    assert "options=P0C4P%2CS0258%2CS0337%2CS0710&" in image_call
+
+
+def test_a_refused_request_says_why_and_skips_the_other_brand(monkeypatch):
+    session = _FakeBmw(draws="bmwi")
+    monkeypatch.setattr(CONF.CarSpec, "sorted_options", property(lambda spec: "S0337,S0258"))
+    with pytest.raises(CONF.ConfiguratorError) as err:
+        asyncio.run(CONF.async_render(session, I5))
+    assert err.value.reason == "no_render"
+    assert "options is not sorted" in str(err.value)
+    assert sum("/image-urls/" in c for c in session.calls) == 1
 
 
 def test_a_refused_key_is_unavailable():

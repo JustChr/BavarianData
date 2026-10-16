@@ -37,8 +37,10 @@ Known traps, found by probing:
 * Option names exist only in the language of the market that sells the model
   (German for Germany and Austria, French for France); other markets use other
   model codes, so a German-market car has no English names.
-* Option pictures: the service refuses an ``options`` list that isn't sorted
-  (HTTP 400). It answers every code with two links, a tile and
+* Every image request refuses an ``options`` list that isn't sorted or names
+  a code twice (HTTP 400, ``options is not sorted``). Cars report theirs in
+  no particular order, so it is sorted on the way out.
+* Option pictures: the service answers every code with two links, a tile and
   ``static_wide``; at most one is real (a swatch for paint, wheels and roof, a
   photo for the rest). The tile is ``tile_wide`` for MINI and ``tile_square``
   for BMW, though both are the same 168 x 95. The other, and both for technical codes, return a brand
@@ -156,6 +158,12 @@ class CarSpec:
         d = self.effect_date
         return f"{d[:4]}-{d[4:6]}-{d[6:]}"
 
+    @property
+    def sorted_options(self) -> str:
+        """The ``options`` parameter as the image service accepts it."""
+
+        return ",".join(sorted(self.options))
+
 
 @dataclass(frozen=True)
 class Render:
@@ -209,7 +217,8 @@ def spec_from_basic_data(raw: Mapping[str, Any]) -> CarSpec:
         code = code.strip().upper()
         if re.fullmatch(r"[0-9A-Z]{4}", code):
             options.append(f"S{code}")
-    return CarSpec(site, brands, model, tuple(options), "".join(date.groups()))
+    # Once each, in the car's order (the equipment list shows them that way).
+    return CarSpec(site, brands, model, tuple(dict.fromkeys(options)), "".join(date.groups()))
 
 
 def settings_path(page_html: str) -> Optional[str]:
@@ -553,6 +562,16 @@ def _spin_box(frames: Sequence[Any], aspect: float) -> tuple[int, int, int, int]
     return (round(x0), round(y0), round(x0 + w), round(y0 + h))
 
 
+def _why(body: bytes) -> str:
+    """The image service's own words for a refused request."""
+
+    try:
+        message = json.loads(body).get("errorMessage")
+    except ValueError, AttributeError:
+        message = None
+    return str(message) if message else body[:120].decode("utf-8", "replace")
+
+
 async def _get(session: aiohttp.ClientSession, url: str, **kwargs: Any) -> tuple[int, bytes]:
     try:
         async with session.get(url, timeout=DEFAULT_TIMEOUT, **kwargs) as resp:
@@ -659,7 +678,7 @@ async def async_render(
     def query(*extra: tuple[str, str]) -> str:
         return urlencode(
             [
-                ("options", ",".join(spec.options)),
+                ("options", spec.sorted_options),
                 ("effectdate", spec.effect_date),
                 ("hub", cosy["hub"]),
                 ("imagetype", "PNG"),
@@ -677,6 +696,9 @@ async def async_render(
         status, body = await _get(session, url, headers=cosy["headers"])
         if status in (401, 403):
             raise ConfiguratorError("unavailable", f"image service refused the key ({status})")
+        if status == 400:
+            # Our request is wrong, not the brand: the other brand would be too.
+            raise ConfiguratorError("no_render", f"image service refused the request: {_why(body)}")
         if status != 200:
             _LOGGER.debug(
                 "Configurator: %s %s/%s answered %s", collection, brand, spec.model, status
@@ -799,7 +821,7 @@ async def _option_pictures(
             ("effectdate", spec.effect_date),
             ("hub", cosy["hub"]),
             ("imagetype", "webp"),
-            ("options", ",".join(sorted(spec.options))),  # refused unless sorted
+            ("options", spec.sorted_options),
             *([("params.market", market)] if market else []),
         ]
     )

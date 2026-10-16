@@ -454,7 +454,8 @@
       "reauth_started": "Autorisation relancée. Terminez la nouvelle connexion depuis la notification qui vient d'apparaître.",
       "reauth_device_code_failed": "BMW a refusé la demande d'autorisation de l'appareil ({error}). Vérifiez le Client ID et réessayez.",
       "reauth_missing_client_id": "Le Client ID manque pour cette entrée d'intégration. Supprimez puis ajoutez de nouveau l'intégration pour l'autoriser à nouveau.",
-      "reauth_failed": "La nouvelle autorisation n'a pas pu démarrer. Réessayez depuis les options de l'intégration."
+      "reauth_failed": "La nouvelle autorisation n'a pas pu démarrer. Réessayez depuis les options de l'intégration.",
+      "configurator_partial": "Enregistré. Le configurateur BMW dessine vos autres voitures, mais pas {vehicles} : elles gardent l'image officielle, ce qui coûte 1 de vos 50 requêtes BMW quotidiennes par voiture qui n'en a pas encore. Le journal indique pourquoi."
     }
   },
   "selector": {

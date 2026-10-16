@@ -372,6 +372,19 @@ async def async_refresh_vehicle_image(
     return data, content_type
 
 
+async def async_official_fallback(
+    hass: HomeAssistant, entry: ConfigEntry, runtime: Any, vin: str
+) -> None:
+    """Give a car the configurator can't draw its official picture.
+
+    The image entity shows the kept official picture whenever there is no
+    render; this fetches one (1 request) only for a car that has none yet.
+    """
+
+    if vin not in await _async_load_cache(hass):
+        await async_refresh_vehicle_image(hass, entry, runtime, vin)
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -502,7 +515,10 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
         await async_refresh_vehicle_image(self.hass, self._entry, self._runtime, self._vin)
 
     async def _async_initial_render(self) -> None:
-        await async_refresh_configurator_render(self.hass, self._runtime, self._vin)
+        reason = await async_refresh_configurator_render(self.hass, self._runtime, self._vin)
+        # Without basic data it is tried again once the car's name arrives.
+        if reason and reason != "no_data":
+            await async_official_fallback(self.hass, self._entry, self._runtime, self._vin)
 
     @callback
     def _handle_name(self, vin: str, _name: str) -> None:

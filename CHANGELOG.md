@@ -9,6 +9,19 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Configurator picture for cars whose options come in a different order.**
+  BMW's configurator refuses a car's factory options unless they are sorted,
+  and some cars (an F40 1 Series, for one) report theirs unsorted, so the
+  configurator said it had no picture of them. They're now sorted, and the log
+  now shows BMW's own reason when it refuses a request (#130, thanks
+  @georgewalley).
+- **One car the configurator can't draw no longer blocks the others.** On
+  Configure → Vehicle image, the configurator is saved when at least one car
+  can be drawn. Any car it can't draw keeps its official picture, and a closing
+  message names it. A car without any picture gets its official one, which
+  costs one request. The same goes for a car added later (#130).
+
 ## [0.9.20-beta.3] - 2026-10-16
 
 ### Added

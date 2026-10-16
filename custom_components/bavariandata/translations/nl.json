@@ -454,7 +454,8 @@
       "reauth_started": "Autorisatie opnieuw gestart. Rond de nieuwe aanmelding af via de melding die zojuist is verschenen.",
       "reauth_device_code_failed": "BMW heeft het verzoek om apparaatautorisatie geweigerd ({error}). Controleer de Client ID en probeer het opnieuw.",
       "reauth_missing_client_id": "De Client ID ontbreekt voor dit integratie-item. Verwijder de integratie en voeg haar opnieuw toe om opnieuw te autoriseren.",
-      "reauth_failed": "Opnieuw autoriseren kon niet worden gestart. Probeer het opnieuw via de opties van de integratie."
+      "reauth_failed": "Opnieuw autoriseren kon niet worden gestart. Probeer het opnieuw via de opties van de integratie.",
+      "configurator_partial": "Opgeslagen. De BMW-configurator tekent je andere auto's, maar niet {vehicles}: die houden de officiële afbeelding. Dat kost 1 van je 50 dagelijkse BMW-verzoeken per auto die er nog geen heeft. Het logboek zegt waarom."
     }
   },
   "selector": {

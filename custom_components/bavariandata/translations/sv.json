@@ -454,7 +454,8 @@
       "reauth_started": "Auktoriseringen har startats om. Slutför den nya inloggningen från aviseringen som just dök upp.",
       "reauth_device_code_failed": "BMW avvisade begäran om enhetsauktorisering ({error}). Kontrollera Client ID och försök igen.",
       "reauth_missing_client_id": "Client ID saknas för den här integrationsposten. Ta bort och lägg till integrationen igen för att auktorisera på nytt.",
-      "reauth_failed": "Omauktoriseringen kunde inte startas. Försök igen från integrationens alternativ."
+      "reauth_failed": "Omauktoriseringen kunde inte startas. Försök igen från integrationens alternativ.",
+      "configurator_partial": "Sparat. BMW:s konfigurator ritar dina andra bilar, men inte {vehicles}: de behåller den officiella bilden, vilket kostar 1 av dina 50 dagliga BMW-förfrågningar per bil som ännu saknar en. Loggen säger varför."
     }
   },
   "selector": {

@@ -454,7 +454,8 @@
       "reauth_started": "Autorizzazione riavviata. Completa il nuovo accesso dalla notifica appena comparsa.",
       "reauth_device_code_failed": "BMW ha rifiutato la richiesta di autorizzazione del dispositivo ({error}). Controlla il Client ID e riprova.",
       "reauth_missing_client_id": "Manca il Client ID per questa voce dell'integrazione. Rimuovi e aggiungi di nuovo l'integrazione per autorizzarla di nuovo.",
-      "reauth_failed": "Impossibile avviare la nuova autorizzazione. Riprova dalle opzioni dell'integrazione."
+      "reauth_failed": "Impossibile avviare la nuova autorizzazione. Riprova dalle opzioni dell'integrazione.",
+      "configurator_partial": "Salvato. Il configuratore BMW disegna le tue altre auto, ma non {vehicles}: tengono l'immagine ufficiale, che costa 1 delle tue 50 richieste BMW giornaliere per ogni auto che non ne ha ancora una. Il log spiega perché."
     }
   },
   "selector": {

@@ -454,7 +454,8 @@
       "reauth_started": "Autoryzacja uruchomiona ponownie. Dokończ nowe logowanie z powiadomienia, które właśnie się pojawiło.",
       "reauth_device_code_failed": "BMW odrzuciło żądanie autoryzacji urządzenia ({error}). Sprawdź Client ID i spróbuj ponownie.",
       "reauth_missing_client_id": "Brak Client ID dla tego wpisu integracji. Usuń i dodaj integrację ponownie, aby ją ponownie autoryzować.",
-      "reauth_failed": "Nie udało się rozpocząć ponownej autoryzacji. Spróbuj ponownie z opcji integracji."
+      "reauth_failed": "Nie udało się rozpocząć ponownej autoryzacji. Spróbuj ponownie z opcji integracji.",
+      "configurator_partial": "Zapisano. Konfigurator BMW rysuje pozostałe samochody, ale nie {vehicles}: zostaje im oficjalne zdjęcie, co kosztuje 1 z 50 dziennych zapytań do BMW na każdy samochód, który go jeszcze nie ma. Przyczyna jest w dzienniku."
     }
   },
   "selector": {

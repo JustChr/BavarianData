@@ -62,11 +62,16 @@ Rest folgt innerhalb etwa einer Minute im Hintergrund: dieselbe Ansicht mit Lich
 und bei Nacht, das Innenraum-Panorama, das Foto von oben (nur MINIs) und die
 Namen und Bilder der Werksoptionen für die
 [Ausstattungs-Ansicht](DE-The-Dashboard-Card#equipment-view-equipment) der Karte.
-Gespeichert wird nur, wenn sich jedes Auto zeichnen ließ; sonst
-nennt der Bildschirm das Auto und den Grund (kein BMW oder MINI, die
-Fahrzeug-Basisdaten sind noch nicht da, der Konfigurator hat nicht geantwortet
-oder kein Bild dieses Modells), und das offizielle Bild bleibt. Ein später
-hinzukommendes Auto wird gezeichnet, sobald es erscheint.
+Bei mehreren Autos wird die Einstellung gespeichert, sobald sich mindestens
+eins zeichnen lässt: Ein Auto, das der Konfigurator nicht zeichnen kann, behält
+sein offizielles Bild, und eine Abschlussmeldung nennt es. Hat dieses Auto noch
+kein offizielles Bild, wird eins geladen (eine Anfrage). Warum es sich nicht
+zeichnen ließ, steht im Protokoll von Home Assistant. Lässt sich kein Auto
+zeichnen, wird nichts gespeichert, und der Bildschirm nennt das Auto und den
+Grund (kein BMW oder MINI, die Fahrzeug-Basisdaten sind noch nicht da, der
+Konfigurator hat nicht geantwortet oder kein Bild dieses Modells). Ein später
+hinzukommendes Auto wird gezeichnet, sobald es erscheint, oder bekommt sein
+offizielles Bild, wenn das nicht geht.
 
 Geladen werden diese Bilder nur dann: wenn du hier **OK** drückst, und einmal für
 ein Auto, wenn es neu hinzukommt. Nichts erneuert sie nach Zeitplan oder nach

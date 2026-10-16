@@ -2189,13 +2189,15 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         car). The configurator draws the exact car as BMW's online configurator
         does, a 360-degree turntable plus its paint colour for the card: no
         quota, but an unofficial BMW service (see configurator.py). It is
-        account-wide, and nothing is saved unless every car could be drawn, so
-        the screen never shows a source that isn't actually in use.
+        account-wide: saved when at least one car could be drawn, and a car the
+        configurator can't draw keeps its official picture, which the closing
+        message names. Nothing is saved when no car could be drawn.
         """
 
         # The image platform imports Home Assistant's image component; only
         # pull it in when this screen is actually used.
         from .image import (  # noqa: PLC0415
+            async_official_fallback,
             async_refresh_configurator_render,
             async_schedule_full_render,
         )
@@ -2209,6 +2211,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         source = options.get(OPTION_IMAGE_SOURCE, DEFAULT_IMAGE_SOURCE)
         errors: Dict[str, str] = {}
         vehicle = ""
+        failed: Dict[str, str] = {}
         if user_input is not None:
             source = user_input.get(OPTION_IMAGE_SOURCE, source)
             vins = list(runtime.coordinator.data.keys())
@@ -2222,9 +2225,11 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                         self.hass, runtime, vin, full=False
                     )
                     if reason:
-                        errors[OPTION_IMAGE_SOURCE] = f"configurator_{reason}"
-                        vehicle = runtime.coordinator.names.get(vin) or ""
-                        break
+                        failed[vin] = reason
+                if len(failed) == len(vins):
+                    first = next(iter(failed))
+                    errors[OPTION_IMAGE_SOURCE] = f"configurator_{failed[first]}"
+                    vehicle = runtime.coordinator.names.get(first) or ""
             else:
                 await self.hass.services.async_call(
                     DOMAIN,
@@ -2237,9 +2242,18 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 # Saved before the entities are told, so they read the new source.
                 self.hass.config_entries.async_update_entry(self._config_entry, options=options)
                 for vin in vins:
+                    if vin in failed:
+                        await async_official_fallback(self.hass, self._config_entry, runtime, vin)
                     async_dispatcher_send(self.hass, SIGNAL_VEHICLE_IMAGE, vin)
-                    if source == IMAGE_SOURCE_CONFIGURATOR:
+                    if source == IMAGE_SOURCE_CONFIGURATOR and vin not in failed:
                         async_schedule_full_render(self.hass, runtime, vin)
+                if failed:
+                    # Saved already; this only closes the dialog with the news.
+                    vehicles = self._vehicles()
+                    names = ", ".join(self._vehicle_label(vehicles, vin) for vin in failed)
+                    return self.async_abort(
+                        reason="configurator_partial", description_placeholders={"vehicles": names}
+                    )
                 return self.async_create_entry(title="", data=options)
         schema = vol.Schema(
             {
