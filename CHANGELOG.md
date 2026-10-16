@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Equipment names for cars missing from their own market's data.** BMW's
+  name data for the UK has no F40 118i, so the Equipment view showed only codes.
+  Now, when the car's market and Germany have no names, the other markets that
+  use the same language are asked too: Malta, Cyprus and South Africa list that
+  car in English (#130, thanks @georgewalley).
+- **Failed BMW requests now say why.** A refused REST call logged only
+  `HTTP 400`, because BMW's error code sat under a key we didn't read. The log
+  now shows BMW's error code and message, with the VIN masked (#130).
+
 ## [0.9.20-beta.4] - 2026-10-16
 
 ### Fixed

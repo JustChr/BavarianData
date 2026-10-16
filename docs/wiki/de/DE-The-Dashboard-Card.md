@@ -519,7 +519,8 @@ Dafür muss **Konfigurieren → [Fahrzeugbild](DE-Settings-Reference#fahrzeugbil
 auf BMWs Konfigurator stehen, der die Codes aus BMWs Fahrzeug-Basisdaten
 benennt; bis dahin sagt die Karte das. Die Namen sind BMWs eigene, in der
 Sprache, die BMWs Markt für dein Auto anbietet: Englisch, wo es das gibt, sonst
-die Sprache des Marktes.
+die Sprache des Marktes. Fehlt dein Modell in BMWs Daten für deinen Markt,
+springt ein anderer Markt mit derselben Sprache ein.
 
 ---
 

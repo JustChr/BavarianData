@@ -40,6 +40,27 @@ def test_request_json_error_raises_with_error_id():
     assert exc.value.error_id == "CU-429"
 
 
+def test_an_error_names_bmws_reason_without_the_vin():
+    # Issue #130: a bare "HTTP 400" left nobody able to say what BMW objected to.
+    body = {
+        "exveErrorId": "CU-105",
+        "exveErrorMsg": "No permission for specified containerId",
+        "exveNote": "Container of WBA12345678901234 is not allocated to the user.",
+    }
+    session = FakeSession([FakeResponse(400, body)])
+    with pytest.raises(api.CardataApiError) as exc:
+        _run(api.async_get_telematic_data(session, "tok", "WBA12345678901234", "c1"))
+    assert exc.value.error_id == "CU-105"
+    assert "(CU-105: No permission for specified containerId) for GET" in str(exc.value)
+
+
+def test_an_error_note_is_shortened_and_masked():
+    detail = api._error_detail({"exveNote": "VIN WBA12345678901234 " + "x" * 300})
+    assert detail.startswith("VIN <VIN> x") and len(detail) == 160
+    assert api._error_detail("  plain\n text  ") == "plain text"
+    assert api._error_detail({}) is None
+
+
 def test_charging_history_follows_pagination():
     session = FakeSession(
         [

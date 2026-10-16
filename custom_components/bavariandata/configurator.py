@@ -36,7 +36,9 @@ Known traps, found by probing:
   trim, which may not be the car's.
 * Option names exist only in the language of the market that sells the model
   (German for Germany and Austria, French for France); other markets use other
-  model codes, so a German-market car has no English names.
+  model codes, so a German-market car has no English names. A market can also
+  lack a model it sold: the UK has no F40 118i (7K32), which Malta, Cyprus and
+  South Africa list in English, so markets of the same language are tried too.
 * Every image request refuses an ``options`` list that isn't sorted or names
   a code twice (HTTP 400, ``options is not sorted``). Cars report theirs in
   no particular order, so it is sorted on the way out.
@@ -129,6 +131,9 @@ _MARKET_LANGUAGE = {
     "fi": "fi",
     "gb": "en",
     "ie": "en",
+    "mt": "en",
+    "cy": "en",
+    "za": "en",
     "us": "en",
     "ca": "en",
     "au": "en",
@@ -612,10 +617,15 @@ async def async_fetch_equipment(
 
     Tries the car's market (from basic data) with the caller's languages first
     and the market's own language last, then the German market, where the
-    configurator lives. Returns ``([], None)`` when no market knows the model.
+    configurator lives, then the other markets that speak the car's market's
+    language, since a market's data can lack a model it sold. Returns
+    ``([], None)`` when no market knows the model.
     """
 
-    markets = [c for c in dict.fromkeys([(country or "").lower(), "de"]) if c]
+    own = (country or "").lower()
+    spoken = _MARKET_LANGUAGE.get(own)
+    kin = [m for m, lang in _MARKET_LANGUAGE.items() if spoken and lang == spoken]
+    markets = [c for c in dict.fromkeys([own, "de", *kin]) if c]
     for market in markets:
         wanted = [*languages, _MARKET_LANGUAGE.get(market, "")]
         for language in [lang for lang in dict.fromkeys(wanted) if lang]:

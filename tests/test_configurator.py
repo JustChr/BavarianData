@@ -424,6 +424,54 @@ def test_the_full_fetch_adds_lights_night_interior_and_names():
     assert any("lightson=true" in c for c in spins) and any("nightview=true" in c for c in spins)
 
 
+class _NamesOnlyIn:
+    """The option-name service, knowing the model in ``markets`` only."""
+
+    def __init__(self, *markets: str) -> None:
+        self.markets, self.calls = markets, []
+
+    def get(self, url: str, **kwargs):
+        market, lang = re.search(r"/countries/([^/]+)/.*/languages/([^/]+)$", url).groups()
+        self.calls.append((market, lang))
+        if market in self.markets and lang == "en":
+            return _Resp(200, json.dumps(NAMES).encode())
+        return _Resp(404, b'{"errorMessage": "No model with modelCode exists in the datasource."}')
+
+
+_NAMES_SETTINGS = {
+    "base_url": "https://ucp.test",
+    "source": "pcaso",
+    "brand": "bmwCar",
+    "application": "connext",
+    "headers": {},
+}
+
+
+def test_names_missing_from_the_cars_market_come_from_one_that_speaks_its_language():
+    # Issue #130: the UK has no F40 118i (7K32); Malta lists it in English.
+    session = _NamesOnlyIn("mt")
+    spec = CONF.spec_from_basic_data({**I5, "modelKey": "7K32"})
+    found, language = asyncio.run(
+        CONF.async_fetch_equipment(session, spec, _NAMES_SETTINGS, "GB", ("en",))
+    )
+    assert [e["code"] for e in found] == ["P0C4P", "S0230", "S0337"]
+    assert language == "en"
+    markets = list(dict.fromkeys(m for m, _ in session.calls))
+    assert markets[:3] == ["gb", "de", "ie"]
+    assert markets[-1] == "mt"  # stops at the first market that knows the car
+
+
+def test_no_market_knowing_the_model_leaves_the_names_out():
+    session = _NamesOnlyIn()
+    spec = CONF.spec_from_basic_data(I5)
+    assert asyncio.run(CONF.async_fetch_equipment(session, spec, _NAMES_SETTINGS, "FR", ())) == (
+        [],
+        None,
+    )
+    # France, then Germany, then the other French-speaking markets.
+    assert list(dict.fromkeys(m for m, _ in session.calls)) == ["fr", "de", "lu", "be"]
+
+
 def test_the_night_spin_is_cut_out_so_the_card_draws_the_backdrop():
     render = asyncio.run(CONF.async_render(_FakeBmwFull(), I5))
     night = Image.open(io.BytesIO(render.night)).convert("RGBA")

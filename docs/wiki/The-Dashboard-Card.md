@@ -485,7 +485,8 @@ It needs **Configure → [Vehicle image](Settings-Reference#vehicle-image)** set
 BMW's configurator, which names the codes in BMW's basic vehicle info; until
 then the card says so. The names are BMW's, in the language BMW's market for
 your car offers: English where it has it, otherwise the market's own (a car
-sold in Germany may list in German).
+sold in Germany may list in German). If BMW's data for your market is missing
+your model, another market in the same language fills in.
 
 ---
 

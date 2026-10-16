@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from typing import Any, Dict, List, Optional, Tuple
 
 import aiohttp
@@ -49,14 +50,50 @@ def _auth_headers(access_token: str, *, accept: str = "application/json") -> Dic
 
 
 def _extract_error_id(payload: Any) -> Optional[str]:
-    """Pull a BMW ``CU-xxx`` error id out of an error body if present."""
+    """Pull a BMW ``CU-xxx`` error id out of an error body if present.
+
+    Read from any key: BMW documents the field only as "ErrorID", and the
+    bodies it sends (``exveErrorId`` among them) aren't all spelled alike.
+    """
 
     if isinstance(payload, dict):
-        for key in ("errorId", "error_id", "code", "errorCode"):
-            value = payload.get(key)
+        for value in payload.values():
             if isinstance(value, str) and value.startswith("CU-"):
                 return value
     return None
+
+
+# BMW's words for why, in the order worth showing; "ExveNote" per its docs.
+_DETAIL_KEYS = ("exveErrorMsg", "errorMessage", "message", "exveNote", "error_description")
+_VIN_RE = re.compile(r"\b[A-HJ-NPR-Z0-9]{17}\b")
+
+
+def _error_detail(payload: Any) -> Optional[str]:
+    """BMW's own reason from an error body, short and without a VIN."""
+
+    detail: Any = None
+    if isinstance(payload, dict):
+        detail = next((payload[k] for k in _DETAIL_KEYS if payload.get(k)), None)
+    elif isinstance(payload, str):
+        detail = payload.strip()
+    if not detail:
+        return None
+    text = _VIN_RE.sub("<VIN>", " ".join(str(detail).split()))
+    return text if len(text) <= 160 else f"{text[:157]}..."
+
+
+def _api_error(status: int, method: str, path: str, text: str) -> "CardataApiError":
+    try:
+        payload: Any = json.loads(text) if text else None
+    except json.JSONDecodeError:
+        payload = text
+    error_id = _extract_error_id(payload)
+    why = ": ".join(part for part in (error_id, _error_detail(payload)) if part)
+    return CardataApiError(
+        f"HTTP {status}" + (f" ({why})" if why else "") + f" for {method} {path}",
+        status=status,
+        error_id=error_id,
+    )
 
 
 async def async_request_json(
@@ -96,18 +133,7 @@ async def async_request_json(
                     return json.loads(text)
                 except json.JSONDecodeError:
                     return text
-            try:
-                error_payload: Any = json.loads(text) if text else None
-            except json.JSONDecodeError:
-                error_payload = text
-            error_id = _extract_error_id(error_payload)
-            raise CardataApiError(
-                f"HTTP {response.status}"
-                + (f" ({error_id})" if error_id else "")
-                + f" for {method} {path}",
-                status=response.status,
-                error_id=error_id,
-            )
+            raise _api_error(response.status, method, path, text)
     except aiohttp.ClientError as err:
         raise CardataApiError(f"Network error for {method} {path}: {err}") from err
 
@@ -129,19 +155,7 @@ async def async_request_bytes(
             if response.status == 200:
                 content_type = response.headers.get("Content-Type")
                 return await response.read(), content_type
-            text = await response.text()
-            error_id = None
-            try:
-                error_id = _extract_error_id(json.loads(text)) if text else None
-            except json.JSONDecodeError:
-                pass
-            raise CardataApiError(
-                f"HTTP {response.status}"
-                + (f" ({error_id})" if error_id else "")
-                + f" for {method} {path}",
-                status=response.status,
-                error_id=error_id,
-            )
+            raise _api_error(response.status, method, path, await response.text())
     except aiohttp.ClientError as err:
         raise CardataApiError(f"Network error for {method} {path}: {err}") from err
 
