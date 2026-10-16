@@ -18,6 +18,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   dashboard used it, switch to the predicted state of charge.
 
 ### Fixed
+- **One field BMW refuses no longer costs a car its whole daily refresh.**
+  Since 16 October BMW refuses the daily data request for some combustion cars
+  with a bare "Bad request" (CU-400), because of one or two fields in it, so
+  service items, door locks and everything else BMW doesn't stream stopped
+  updating. Such a car is now fetched again at once with only the fields BMW
+  can't stream, and stays that way. Cars known to have no high-voltage battery
+  use that smaller set from the start. **Reset telemetry container** gives a
+  refused car another try with the full set (#135, thanks @georgewalley for
+  narrowing it down).
 - **A car whose first data request failed now gets its name and model.** Setup
   asked BMW for a car's basic data (name, model, drivetrain, steering side,
   picture) only if its first telematics fetch had worked. When BMW refused that

@@ -30,7 +30,7 @@ from homeassistant.helpers.network import NoURLAvailableError, get_url
 from homeassistant.util import dt as dt_util
 
 from . import async_manual_refresh_tokens
-from .container import CardataContainerError
+from .container import BASE, FULL, REFUSED_VINS_KEY, CardataContainerError
 from .service_calendar import KM_PER_MILE
 from .evcc import BridgeConfig, bridge_payloads, evcc_yaml
 from .const import (
@@ -2357,23 +2357,30 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 placeholders={"error": str(err)},
             )
 
+        updated = dict(entry.data)
+        # The full container always; the non-streamable one only if there is
+        # one. The cars BMW refused the full set for get another go with it.
+        updated.pop(REFUSED_VINS_KEY, None)
         try:
             async with runtime.container_lock:
-                new_id = await runtime.container_manager.async_reset_hv_container(access_token)
+                for kind in (FULL, BASE):
+                    if kind is BASE and not entry.data.get(kind.id_key):
+                        continue
+                    manager = runtime.containers[kind.key]
+                    new_id = await manager.async_reset_hv_container(access_token)
+                    if new_id:
+                        updated[kind.id_key] = new_id
+                        updated[kind.signature_key] = manager.descriptor_signature
+                    else:
+                        updated.pop(kind.id_key, None)
+                        updated.pop(kind.signature_key, None)
         except CardataContainerError as err:
+            self.hass.config_entries.async_update_entry(entry, data=updated)
             return self._show_confirm(
                 step_id="action_reset_container",
                 errors={"base": "reset_failed"},
                 placeholders={"error": str(err)},
             )
-
-        updated = dict(entry.data)
-        if new_id:
-            updated["hv_container_id"] = new_id
-            updated["hv_descriptor_signature"] = runtime.container_manager.descriptor_signature
-        else:
-            updated.pop("hv_container_id", None)
-            updated.pop("hv_descriptor_signature", None)
         self.hass.config_entries.async_update_entry(entry, data=updated)
 
         return self._finish()

@@ -446,7 +446,7 @@ Versionen nannten nur die Zahl). Die wichtigsten:
 | --- | --- | --- |
 | CU-104 | Keine Berechtigung für dieses Auto | Das Auto ist deinem Konto nicht zugeordnet oder nicht telematikfähig. Prüfe, ob es in BMWs CarData-Portal steht. |
 | CU-105 / CU-121 | Der Telemetrie-Container ist unbekannt oder fehlerhaft | Konfigurieren → **Telemetrie-Container zurücksetzen** ([Einstellungen](DE-Settings-Reference#das-menü-konfigurieren)), dann erneut abrufen. |
-| CU-400 | Fehlerhafte Anfrage | BMW lehnt für dieses Auto eines der Felder im Container ab und damit den ganzen Abruf; Zurücksetzen hilft nicht. Seit dem 16. Okt. 2026 trifft das manche Verbrenner. An einer Lösung wird gearbeitet; melde es in einem Issue. |
+| CU-400 | Fehlerhafte Anfrage | BMW lehnt für dieses Auto eines der Felder im Container ab und damit den ganzen Abruf (seit dem 16. Okt. 2026 bei manchen Verbrennern). Die Integration fängt das ab: Sie ruft das Auto sofort noch einmal nur mit den Feldern ab, die BMW nicht streamen kann, und bleibt dabei (eine zusätzliche Anfrage, einmalig; das Protokoll sagt es). Wird auch das abgelehnt, melde es in einem Issue. |
 | CU-429 | Zu viele Anfragen | Siehe [Kontingent aufgebraucht](#quota-exhausted) unten. |
 
 Der Stream ist von keinem davon betroffen. Bei einem anderen Code oder ohne

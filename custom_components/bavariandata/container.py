@@ -5,7 +5,8 @@ from __future__ import annotations
 import asyncio
 import logging
 import hashlib
-from typing import Any, Awaitable, Callable, Dict, Iterable, List, Optional
+from dataclasses import dataclass
+from typing import Any, Awaitable, Callable, Collection, Dict, Iterable, List, Optional
 
 import aiohttp
 
@@ -33,8 +34,69 @@ class CardataContainerError(Exception):
         self.error_id = error_id
 
 
+@dataclass(frozen=True)
+class ContainerKind:
+    """One of the integration's containers: what it holds and where its id is kept."""
+
+    key: str
+    name: str
+    purpose: str
+    descriptors: tuple[str, ...]
+    # The config entry's keys for the container's id and descriptor signature.
+    id_key: str
+    signature_key: str
+
+
+# Everything BMW cannot stream (the container is those fields' only route into
+# Home Assistant) plus the battery keys, so a fresh install shows values before
+# the first stream message, and a restart's catch-up sees a charge's state.
+# One GET returns the lot.
+FULL = ContainerKind(
+    key="full",
+    name=HV_BATTERY_CONTAINER_NAME,
+    purpose=HV_BATTERY_CONTAINER_PURPOSE,
+    descriptors=tuple(container_descriptors(HV_BATTERY_DESCRIPTORS)),
+    id_key="hv_container_id",
+    signature_key="hv_descriptor_signature",
+)
+# Only what BMW cannot stream: for a car with no battery to report, and for a
+# car BMW refuses the full set for. BMW answers a container it won't serve for
+# a car with a bare ``CU-400`` for the whole request, naming no field (#135:
+# two UK combustion cars, refused from one morning on for any container holding
+# both ``charging.method`` and ``conditionBasedServices``), so a refused car
+# would otherwise lose its whole daily refresh.
+BASE = ContainerKind(
+    key="base",
+    name="BavarianData non-streamable",
+    purpose="Fields BMW cannot stream",
+    descriptors=tuple(container_descriptors()),
+    id_key="base_container_id",
+    signature_key="base_descriptor_signature",
+)
+# The entry's list of cars fetched from ``BASE`` because BMW refused ``FULL``.
+REFUSED_VINS_KEY = "rest_base_vins"
+
+
+def refused_whole(status: Optional[int], error_id: Optional[str]) -> bool:
+    """Whether BMW refused a container for a car outright, rather than the request.
+
+    A bad container id or a spent quota has its own code (CU-105, CU-121,
+    CU-429); a refusal of the container's content is a plain ``CU-400``.
+    """
+
+    return status == 400 and error_id in (None, "CU-400")
+
+
+def kind_for(
+    vin: str, *, refused: Collection[str], combustion_only: Callable[[str], bool]
+) -> ContainerKind:
+    """The container a car is fetched from."""
+
+    return BASE if vin in refused or combustion_only(vin) else FULL
+
+
 class CardataContainerManager:
-    """Ensure containers required for the integration exist."""
+    """Ensure one of the integration's containers exists."""
 
     def __init__(
         self,
@@ -43,18 +105,16 @@ class CardataContainerManager:
         entry_id: str,
         initial_container_id: Optional[str] = None,
         claim: Optional[Callable[[], Awaitable[None]]] = None,
+        kind: ContainerKind = FULL,
     ) -> None:
         self._session = session
         self._entry_id = entry_id
         self._claim = claim
+        self.kind = kind
         self._container_id: Optional[str] = initial_container_id
         self._lock = asyncio.Lock()
-        # Everything BMW cannot stream (the container is those fields' only route
-        # into HA) plus the battery keys, so a fresh install shows values before
-        # the first stream message. One GET returns the lot.
-        descriptors = container_descriptors(HV_BATTERY_DESCRIPTORS)
-        self._desired_descriptors = tuple(descriptors)
-        self._descriptor_signature = self.compute_signature(descriptors)
+        self._desired_descriptors = kind.descriptors
+        self._descriptor_signature = self.compute_signature(kind.descriptors)
 
     @property
     def container_id(self) -> Optional[str]:
@@ -82,7 +142,7 @@ class CardataContainerManager:
         self._container_id = container_id
 
     async def async_ensure_hv_container(self, access_token: Optional[str]) -> Optional[str]:
-        """Ensure the HV battery container exists and is active."""
+        """Ensure the container exists."""
 
         if not access_token:
             if debug_enabled():
@@ -104,11 +164,13 @@ class CardataContainerManager:
 
             created_id = await self._create_container(access_token)
             self._container_id = created_id
-            _LOGGER.info("[%s] Created HV battery container %s", self._entry_id, created_id)
+            _LOGGER.info(
+                "[%s] Created the %s container %s", self._entry_id, self.kind.key, created_id
+            )
             return self._container_id
 
     async def async_reset_hv_container(self, access_token: Optional[str]) -> Optional[str]:
-        """Delete existing HV telemetry containers and create a fresh one."""
+        """Replace this kind's containers with a fresh one."""
 
         if not access_token:
             if debug_enabled():
@@ -128,8 +190,9 @@ class CardataContainerManager:
             new_id = await self._create_container(access_token)
             self._container_id = new_id
             _LOGGER.info(
-                "[%s] Reset HV telemetry container; new container id %s",
+                "[%s] Replaced the %s container; new container id %s",
                 self._entry_id,
+                self.kind.key,
                 new_id,
             )
 
@@ -164,8 +227,8 @@ class CardataContainerManager:
 
     async def _create_container(self, access_token: str) -> str:
         payload = {
-            "name": HV_BATTERY_CONTAINER_NAME,
-            "purpose": HV_BATTERY_CONTAINER_PURPOSE,
+            "name": self.kind.name,
+            "purpose": self.kind.purpose,
             "technicalDescriptors": list(self._desired_descriptors),
         }
         response = await self._request(
@@ -203,8 +266,8 @@ class CardataContainerManager:
             )
         return any(
             [
-                isinstance(purpose, str) and purpose == HV_BATTERY_CONTAINER_PURPOSE,
-                isinstance(name, str) and name == HV_BATTERY_CONTAINER_NAME,
+                isinstance(purpose, str) and purpose == self.kind.purpose,
+                isinstance(name, str) and name == self.kind.name,
                 signature == self._descriptor_signature,
             ]
         )

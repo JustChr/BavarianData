@@ -433,7 +433,7 @@ number). The ones worth knowing:
 | --- | --- | --- |
 | CU-104 | No permission for this car | The car isn't mapped to your account or isn't telematics-capable. Check it is listed at BMW's CarData portal. |
 | CU-105 / CU-121 | The telemetry container is unknown or malformed | Configure → **Reset telemetry container** ([Settings](Settings-Reference#the-configure-menu)), then fetch again. |
-| CU-400 | Bad request | BMW refuses one of the container's fields for this car, and with it the whole fetch; a reset doesn't help. Since 16 Oct 2026 this hits some combustion cars. A fix is being worked on, so report it in an issue. |
+| CU-400 | Bad request | BMW refuses one of the container's fields for this car, and with it the whole fetch (since 16 Oct 2026 for some combustion cars). The integration handles it: it fetches that car again at once with only the fields BMW can't stream, and keeps doing so (one extra request, once; the log says so). If that is refused too, report it in an issue. |
 | CU-429 | Too many requests | See [quota exhausted](#quota-exhausted) below. |
 
 The stream is not affected by any of these. If the code is something else, or

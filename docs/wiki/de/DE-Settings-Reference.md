@@ -26,7 +26,7 @@ erscheinen (der Screenshot zeigt die englische).
 | **Gestreamte Daten auswählen** | Einrichtung | Öffnet die [Auswahl der Datengruppen](DE-Getting-Started-4-Choose-Data) erneut und schaltet die Felder dann mit dem Ein-Klick-Lesezeichen **Activate BMW data** ein (derselbe Aktivator wie bei der geführten Einrichtung). Nur hinzufügend — fügt die gewählten Datengruppen dem laufenden Stream hinzu, entfernt aber nie bereits gestreamte Felder. |
 | **Token jetzt erneuern** | Aktion | Erzwingt eine Erneuerung des OAuth-Tokens. |
 | **Neu bei BMW autorisieren** | Aktion | Führt die Geräteautorisierung erneut aus (nachdem BMW das Token ungültig gemacht hat). |
-| **Telemetrie-Container zurücksetzen** | Aktion | Löscht ID und Signatur des gespeicherten Containers, damit er beim nächsten Abruf neu angelegt wird. Nutze das, wenn Telematik-Abrufe nach einer Änderung der Deskriptoren fehlschlagen. |
+| **Telemetrie-Container zurücksetzen** | Aktion | Ersetzt die REST-Container der Integration durch frische (je etwa drei Anfragen) und gibt Autos, bei denen BMW den vollen Feldsatz abgelehnt hat, damit einen neuen Versuch. Nutze das, wenn Telematik-Abrufe mit CU-105 oder CU-121 fehlschlagen. |
 | **Fahrzeuge suchen** | Aktion ⚡ | Ruft die Fahrzeugzuordnungen ab und legt noch unbekannte Fahrzeuge als Gerät an. Siehe [Dienste](DE-Services-Reference). |
 | **Fahrzeug-Basisdaten abrufen** | Aktion ⚡ | Siehe [Dienste](DE-Services-Reference). |
 | **Telematikdaten abrufen** | Aktion ⚡ | " |

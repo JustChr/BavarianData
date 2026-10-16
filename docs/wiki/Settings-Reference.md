@@ -25,7 +25,7 @@ The menu labels below are exactly as they appear in the UI.
 | **Choose streamed data** | setup | Re-open the [cluster picker](Getting-Started-4-Choose-Data), then activate the fields with the one-click **Activate BMW data** bookmarklet (same activator as guided setup). Additive — it adds the chosen clusters to the live stream but never removes fields you already stream. |
 | **Refresh tokens now** | action | Force an OAuth token refresh. |
 | **Re-authorize with BMW** | action | Re-run device auth (after BMW invalidates the token). |
-| **Reset telemetry container** | action | Clear the stored HV container id/signature so it's rebuilt on the next fetch. Use if telematics fetches start failing after a descriptor change. |
+| **Reset telemetry container** | action | Replace the integration's REST containers with fresh ones (about three requests each), and give cars that BMW refused the full set of fields another try with it. Use if telematics fetches start failing with CU-105 or CU-121. |
 | **Discover vehicles** | action ⚡ | Fetch vehicle mappings and add any car not yet known as a device. See [Services](Services-Reference). |
 | **Fetch basic vehicle info** | action ⚡ | See [Services](Services-Reference). |
 | **Fetch telematics data** | action ⚡ | " |

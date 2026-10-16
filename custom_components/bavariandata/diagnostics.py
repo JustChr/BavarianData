@@ -26,6 +26,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.loader import async_get_integration
 
 from . import CardataConfigEntry, _coverage_reports
+from .container import REFUSED_VINS_KEY, kind_for
 from .const import (
     BOOTSTRAP_COMPLETE,
     DOMAIN,
@@ -49,6 +50,10 @@ TO_REDACT = {
     "password",
     "serial_number",
     "hv_container_id",
+    "base_container_id",
+    # The cars fetched from the non-streamable container, by VIN; each
+    # vehicle entry says ``rest_container`` instead.
+    "rest_base_vins",
     "topic",
     "latitude",
     "longitude",
@@ -155,6 +160,13 @@ async def async_get_config_entry_diagnostics(
                 "descriptor_count": len(coordinator.data.get(vin, {})),
                 "arrivals_total": sum(counts.values()),
                 "last_message_at": _iso(coordinator.last_message_by_vin.get(vin)),
+                # Which REST container the daily refresh reads for this car
+                # (container.py): "base" after BMW refused the full set (#135).
+                "rest_container": kind_for(
+                    vin,
+                    refused=entry.data.get(REFUSED_VINS_KEY) or (),
+                    combustion_only=coordinator.is_combustion_only,
+                ).key,
                 "coverage": None
                 if report is None
                 else {
