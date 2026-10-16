@@ -434,6 +434,24 @@ angezeigt wird.
 
 [fe18728]: https://github.com/home-assistant/frontend/issues/18728
 
+## Ein Abruf schlägt mit „HTTP 400“ oder einem anderen HTTP-Fehler fehl
+
+Ein `fetch_*`-Aufruf oder die tägliche Aktualisierung, die BMW ablehnt,
+schreibt eine Zeile wie
+`HTTP 400 (CU-105: No permission for specified containerId) for GET …` ins
+Protokoll. Der `CU-`-Code ist BMWs eigener (seit v0.9.20-beta.5; ältere
+Versionen nannten nur die Zahl). Die wichtigsten:
+
+| Code | Bedeutung | Was tun |
+| --- | --- | --- |
+| CU-104 | Keine Berechtigung für dieses Auto | Das Auto ist deinem Konto nicht zugeordnet oder nicht telematikfähig. Prüfe, ob es in BMWs CarData-Portal steht. |
+| CU-105 / CU-121 | Der Telemetrie-Container ist unbekannt oder fehlerhaft | Konfigurieren → **Telemetrie-Container zurücksetzen** ([Einstellungen](DE-Settings-Reference#das-menü-konfigurieren)), dann erneut abrufen. |
+| CU-429 | Zu viele Anfragen | Siehe [Kontingent aufgebraucht](#quota-exhausted) unten. |
+
+Der Stream ist von keinem davon betroffen. Bei einem anderen Code oder ohne
+Code [eröffne ein Issue](#wo-es-hilfe-gibt) mit der Zeile; ersetze
+vorher die FIN im Pfad durch `…`.
+
 ## „BMW CarData API-Kontingent aufgebraucht“
 
 <a id="quota-exhausted"></a>

@@ -422,6 +422,23 @@ any dashboard renders.
 
 [fe18728]: https://github.com/home-assistant/frontend/issues/18728
 
+## A fetch fails with "HTTP 400" or another HTTP error
+
+A `fetch_*` call or the daily refresh that BMW refuses logs a line like
+`HTTP 400 (CU-105: No permission for specified containerId) for GET …`. The
+`CU-` code is BMW's (since v0.9.20-beta.5; older versions logged only the
+number). The ones worth knowing:
+
+| Code | Meaning | What to do |
+| --- | --- | --- |
+| CU-104 | No permission for this car | The car isn't mapped to your account or isn't telematics-capable. Check it is listed at BMW's CarData portal. |
+| CU-105 / CU-121 | The telemetry container is unknown or malformed | Configure → **Reset telemetry container** ([Settings](Settings-Reference#the-configure-menu)), then fetch again. |
+| CU-429 | Too many requests | See [quota exhausted](#quota-exhausted) below. |
+
+The stream is not affected by any of these. If the code is something else, or
+there's no code, [open an issue](#where-to-get-help) with the line, after
+replacing the VIN in its path with `…`.
+
 ## "BMW CarData API quota exhausted"
 
 <a id="quota-exhausted"></a>
