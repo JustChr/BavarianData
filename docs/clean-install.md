@@ -108,8 +108,7 @@ removal unless deleted manually.
 - **Diagnostics** (under "CarData Debug Device"): Stream Connection Status, Last
   Message Received, Last Telematics API Call, API Quota Remaining.
 - **Derived sensors** (per VIN — these have no BMW descriptor behind them):
-  - State Of Charge (Predicted on Integration side), New Extrapolation Testing
-    sensor, Predicted charge speed
+  - State Of Charge (Predicted on Integration side), Predicted charge speed
   - Charged Energy (Total), Charged Energy (Session)
   - Charging Cost (This Month), Charging Cost (Last Session), Charging Energy
     (This Month), Charging Cost per 100 km

@@ -1814,9 +1814,6 @@
       "soc_estimate": {
         "name": "Laddningsnivå (förutsagd av integrationen)"
       },
-      "soc_estimate_testing": {
-        "name": "Ny testsensor för extrapolering"
-      },
       "soc_rate": {
         "name": "Förutsagd laddhastighet"
       },

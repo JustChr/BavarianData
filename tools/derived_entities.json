@@ -25,18 +25,6 @@
       "cs": "Stav nabití (predikce integrace)",
       "sv": "Laddningsnivå (förutsagd av integrationen)"
     },
-    "soc_estimate_testing": {
-      "en": "New Extrapolation Testing sensor",
-      "de": "Neuer Extrapolations-Testsensor",
-      "fr": "Nouveau capteur de test d'extrapolation",
-      "it": "Nuovo sensore di test dell'estrapolazione",
-      "es": "Nuevo sensor de prueba de extrapolación",
-      "nl": "Nieuwe testsensor voor extrapolatie",
-      "pl": "Nowy czujnik testowy ekstrapolacji",
-      "pt": "Novo sensor de teste de extrapolação",
-      "cs": "Nový testovací senzor extrapolace",
-      "sv": "Ny testsensor för extrapolering"
-    },
     "soc_rate": {
       "en": "Predicted charge speed",
       "de": "Vorhergesagte Ladegeschwindigkeit",

@@ -246,7 +246,6 @@ entities (from `tools/derived_entities.json`) need explicit prose:
 | --- | --- | --- |
 | `soc_estimate`, `soc_rate` | Extrapolated SoC helpers | 🟡 — what it is vs BMW's SoC fields is 🟢 in Feature-Entities-and-Devices → "Which state-of-charge entity to use"; the wallbox-meter mode and its attributes (`estimate_source`, `meter_sessions`, `meter_percent_per_kwh`, `meter_overhead_kw`) are 🟢 in Feature-evcc-and-Wallbox-Bridge → "It also drives the state-of-charge estimate" |
 | `charge_eta` | Minutes to the charge target at home, from the wallbox meter | 🟢 Feature-evcc-and-Wallbox-Bridge → "Time to the charge target" + Feature-Entities-and-Devices + The-Dashboard-Card |
-| `soc_estimate_testing` | Diagnostic variant | ❌ |
 | `charged_energy_total`, `charged_energy_session` | Energy integration | 🟡 |
 | `charging_energy_month` | Monthly total | 🟡 |
 | `charging_cost_month`, `charging_cost_session`, `charging_cost_per_100km` | Cost | 🟡 |

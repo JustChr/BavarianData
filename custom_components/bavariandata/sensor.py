@@ -526,61 +526,6 @@ class CardataSocEstimateSensor(CardataRestoreSensor):
         self.schedule_update_ha_state()
 
 
-class CardataTestingSocEstimateSensor(CardataRestoreSensor):
-    _attr_should_poll = False
-    _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_native_unit_of_measurement = "%"
-    _attr_icon = "mdi:battery-clock"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-    _attr_translation_key = "soc_estimate_testing"
-
-    def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
-        super().__init__(coordinator, vin, "soc_estimate_testing")
-        self._unsubscribe = None
-
-    async def async_added_to_hass(self) -> None:
-        await super().async_added_to_hass()
-        restored, _unit, last_state = await self.async_restored_native()
-        if restored is not None:
-            try:
-                self._attr_native_value = float(restored)
-            except TypeError, ValueError:
-                self._attr_native_value = None
-            else:
-                restored_ts = last_state.attributes.get("timestamp") if last_state else None
-                reference = dt_util.parse_datetime(restored_ts) if restored_ts else None
-                if reference is None and last_state is not None:
-                    reference = last_state.last_changed
-                if reference is not None:
-                    reference = dt_util.as_utc(reference)
-                self._coordinator.restore_testing_soc_cache(
-                    self.vin,
-                    estimate=self._attr_native_value,
-                    timestamp=reference,
-                )
-        self._unsubscribe = async_dispatcher_connect(
-            self.hass,
-            self._coordinator.signal_soc_estimate,
-            self._handle_update,
-        )
-        existing = self._coordinator.get_testing_soc_estimate(self.vin)
-        if existing is not None:
-            self._attr_native_value = existing
-            self.schedule_update_ha_state()
-
-    async def async_will_remove_from_hass(self) -> None:
-        if self._unsubscribe:
-            self._unsubscribe()
-            self._unsubscribe = None
-
-    def _handle_update(self, vin: str) -> None:
-        if vin != self.vin:
-            return
-        value = self._coordinator.get_testing_soc_estimate(vin)
-        self._attr_native_value = value
-        self.schedule_update_ha_state()
-
-
 class CardataSocRateSensor(CardataRestoreSensor):
     _attr_should_poll = False
     _attr_state_class = SensorStateClass.MEASUREMENT
@@ -1589,7 +1534,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 
     entities: Dict[Tuple[str, str], CardataSensor] = {}
     soc_estimate_entities: Dict[str, CardataSocEstimateSensor] = {}
-    soc_estimate_testing_entities: Dict[str, CardataTestingSocEstimateSensor] = {}
     soc_rate_entities: Dict[str, CardataSocRateSensor] = {}
     charge_eta_entities: Dict[str, CardataChargeEtaSensor] = {}
     charged_energy_entities: Dict[str, CardataChargedEnergySensor] = {}
@@ -1732,10 +1676,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
             estimate = CardataSocEstimateSensor(coordinator, vin)
             soc_estimate_entities[vin] = estimate
             new_entities.append(estimate)
-        if vin not in soc_estimate_testing_entities:
-            testing_estimate = CardataTestingSocEstimateSensor(coordinator, vin)
-            soc_estimate_testing_entities[vin] = testing_estimate
-            new_entities.append(testing_estimate)
         if vin not in soc_rate_entities:
             rate = CardataSocRateSensor(coordinator, vin)
             soc_rate_entities[vin] = rate
@@ -1892,7 +1832,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
             "soc_estimate",
             "soc_rate",
             "charge_eta",
-            "soc_estimate_testing",
             "charged_energy_total",
             "charged_energy_session",
         }:

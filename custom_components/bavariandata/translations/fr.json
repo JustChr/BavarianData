@@ -1814,9 +1814,6 @@
       "soc_estimate": {
         "name": "État de charge (prédit par l'intégration)"
       },
-      "soc_estimate_testing": {
-        "name": "Nouveau capteur de test d'extrapolation"
-      },
       "soc_rate": {
         "name": "Vitesse de charge prédite"
       },

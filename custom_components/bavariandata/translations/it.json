@@ -1814,9 +1814,6 @@
       "soc_estimate": {
         "name": "Stato di carica (previsto dall'integrazione)"
       },
-      "soc_estimate_testing": {
-        "name": "Nuovo sensore di test dell'estrapolazione"
-      },
       "soc_rate": {
         "name": "Velocità di ricarica prevista"
       },

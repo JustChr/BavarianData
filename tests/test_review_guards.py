@@ -573,7 +573,6 @@ def test_the_safe_restore_path_stores_native_data() -> None:
     [
         "CardataSensor",
         "CardataSocEstimateSensor",
-        "CardataTestingSocEstimateSensor",
         "CardataSocRateSensor",
         "CardataChargedEnergySensor",
         "CardataSessionEnergySensor",

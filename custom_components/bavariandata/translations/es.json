@@ -1814,9 +1814,6 @@
       "soc_estimate": {
         "name": "Estado de carga (previsto por la integración)"
       },
-      "soc_estimate_testing": {
-        "name": "Nuevo sensor de prueba de extrapolación"
-      },
       "soc_rate": {
         "name": "Velocidad de carga prevista"
       },

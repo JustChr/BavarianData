@@ -1814,9 +1814,6 @@
       "soc_estimate": {
         "name": "Stav nabití (predikce integrace)"
       },
-      "soc_estimate_testing": {
-        "name": "Nový testovací senzor extrapolace"
-      },
       "soc_rate": {
         "name": "Predikovaná rychlost nabíjení"
       },

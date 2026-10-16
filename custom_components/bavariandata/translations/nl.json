@@ -1814,9 +1814,6 @@
       "soc_estimate": {
         "name": "Laadtoestand (voorspeld door de integratie)"
       },
-      "soc_estimate_testing": {
-        "name": "Nieuwe testsensor voor extrapolatie"
-      },
       "soc_rate": {
         "name": "Voorspelde laadsnelheid"
       },

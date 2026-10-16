@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Removed
+- **The "New Extrapolation Testing sensor".** An experiment from the project
+  this integration grew out of: a second state-of-charge estimate that took the
+  car's average auxiliary power off the charging power. It was never documented
+  and is superseded by *State of charge (predicted by the integration)*. It is
+  removed from existing installs on the first start; if an automation or
+  dashboard used it, switch to the predicted state of charge.
+
 ### Fixed
 - **BMW's pixelated stand-in is no longer taken for the car's picture.** For
   some model keys it has no car for, BMW's configurator answers with a blocky

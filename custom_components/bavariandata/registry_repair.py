@@ -33,7 +33,6 @@ from typing import Any, Callable, Iterable, Mapping, Optional
 EV_ONLY_SUFFIXES = frozenset(
     {
         "soc_estimate",
-        "soc_estimate_testing",
         "soc_rate",
         "charge_eta",
         "charged_energy_total",
@@ -52,6 +51,13 @@ EV_ONLY_SUFFIXES = frozenset(
 # good -- a real range double what the battery reaches -- and both are withheld
 # there (``summary.energy_balance``). Hybrids created before v0.9.13 carry them.
 HYBRID_INVALID_SUFFIXES = frozenset({"real_range", "charging_cost_per_100km"})
+
+# Entities this integration no longer makes. ``soc_estimate_testing`` was an
+# experimental second SoC estimate (charging power less the car's average aux
+# power), inherited from the upstream project and never documented; it was
+# created, enabled, for every battery car until v0.9.20. A leftover registry
+# entry would come back on every start as an empty generic sensor.
+RETIRED_SUFFIXES = frozenset({"soc_estimate_testing"})
 
 # Home Assistant's ``RegistryEntryDisabler.INTEGRATION``, spelled as its string
 # value so this module needs no HA import (the enum is a ``StrEnum``, so it
@@ -120,6 +126,12 @@ def hybrid_entities_to_remove(
     """
 
     return _select(rows, HYBRID_INVALID_SUFFIXES, plug_in_hybrid)
+
+
+def retired_entities_to_remove(rows: Iterable[Any]) -> list[str]:
+    """Entity ids of entities this integration no longer makes, on any car."""
+
+    return _select(rows, RETIRED_SUFFIXES, lambda _vin: True)
 
 
 def _select(

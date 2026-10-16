@@ -1814,9 +1814,6 @@
       "soc_estimate": {
         "name": "Stan naładowania (prognoza integracji)"
       },
-      "soc_estimate_testing": {
-        "name": "Nowy czujnik testowy ekstrapolacji"
-      },
       "soc_rate": {
         "name": "Prognozowana prędkość ładowania"
       },

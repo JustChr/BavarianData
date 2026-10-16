@@ -1814,9 +1814,6 @@
       "soc_estimate": {
         "name": "Ladezustand (integrationsseitig vorhergesagt)"
       },
-      "soc_estimate_testing": {
-        "name": "Neuer Extrapolations-Testsensor"
-      },
       "soc_rate": {
         "name": "Vorhergesagte Ladegeschwindigkeit"
       },

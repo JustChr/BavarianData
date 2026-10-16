@@ -2044,9 +2044,6 @@
       "soc_estimate": {
         "name": "State Of Charge (Predicted on Integration side)"
       },
-      "soc_estimate_testing": {
-        "name": "New Extrapolation Testing sensor"
-      },
       "soc_rate": {
         "name": "Predicted charge speed"
       },

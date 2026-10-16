@@ -102,7 +102,12 @@ from .vehicles import known_vins, primary_vins
 from .history.backfill import StatisticsPublisher
 from .bridge import REPUBLISH_INTERVAL_S, VehicleBridge, async_clear_published
 from .descriptor_metadata import DESCRIPTOR_META
-from .registry_repair import entities_to_reenable, ev_entities_to_remove, hybrid_entities_to_remove
+from .registry_repair import (
+    entities_to_reenable,
+    ev_entities_to_remove,
+    hybrid_entities_to_remove,
+    retired_entities_to_remove,
+)
 from .evcc import ALL_TOPICS, BridgeConfig, bridge_payloads, evcc_yaml
 from .history.export import (
     MIME_CSV,
@@ -1967,6 +1972,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             "be measured from the charging history",
             entity_id,
         )
+        entity_registry.async_remove(entity_id)
+    for entity_id in retired_entities_to_remove(
+        er.async_entries_for_config_entry(entity_registry, entry.entry_id)
+    ):
+        _LOGGER.info("Removing %s: this release no longer makes it", entity_id)
         entity_registry.async_remove(entity_id)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

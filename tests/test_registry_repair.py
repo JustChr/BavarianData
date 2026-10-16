@@ -93,3 +93,20 @@ def test_unique_ids_split_on_the_first_separator_only() -> None:
     assert repair.descriptor_of(f"{VIN}_soc_estimate") == "soc_estimate"
     assert repair.descriptor_of("nounderscore") is None
     assert repair.descriptor_of("_leading") is None
+
+
+def test_the_retired_testing_estimate_is_removed_on_every_car_and_nothing_else() -> None:
+    """The experimental second SoC estimate, created for every EV before v0.9.20.
+
+    Left in the registry it would come back on each start as an empty generic
+    sensor, so it goes -- on any car, whatever its drivetrain.
+    """
+
+    rows = [
+        row("sensor.testing", f"{VIN}_soc_estimate_testing"),
+        row("sensor.testing_2", "WBAEXAMPLE0000002_soc_estimate_testing", Disabler.USER),
+        row("sensor.soc_estimate", f"{VIN}_soc_estimate"),
+        row("sensor.soc_header", f"{VIN}_{HEADER}"),
+        row("sensor.diag", "entry123_diagnostics_soc_estimate_testing"),
+    ]
+    assert repair.retired_entities_to_remove(rows) == ["sensor.testing", "sensor.testing_2"]
