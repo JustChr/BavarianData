@@ -107,6 +107,51 @@ def _on_studio(frame: bytes, studio=(16, 16, 16)) -> bytes:
     return data.getvalue()
 
 
+def _mosaic_frame(seed: int = 0) -> bytes:
+    """BMW's stand-in for a car it can't draw: an SUV shape in flat 20 px blocks."""
+
+    rng = __import__("random").Random(seed)
+    image = Image.new("RGBA", (960, 540), (0, 0, 0, 0))
+    for x in range(100, 500, 20):
+        for y in range(160, 340, 20):
+            grey = rng.randrange(70, 200)
+            tint = (grey, grey + rng.randrange(0, 40), grey + rng.randrange(0, 40), 255)
+            image.paste(Image.new("RGBA", (20, 20), tint), (x, y))
+    out = io.BytesIO()
+    image.save(out, "PNG")
+    return out.getvalue()
+
+
+def _textured_frame() -> bytes:
+    """A car in paint with grain and shading, as every real render has."""
+
+    rng = __import__("random").Random(1)
+    image = Image.new("RGBA", (960, 540), (0, 0, 0, 0))
+    car = Image.new("RGBA", (400, 150))
+    car.putdata(
+        [
+            (240 - y // 3 + rng.randrange(0, 4), 240 - y // 3, 236 - y // 3, 255)
+            for y in range(150)
+            for _x in range(400)
+        ]
+    )
+    image.paste(car, (200, 250))
+    out = io.BytesIO()
+    image.save(out, "PNG")
+    return out.getvalue()
+
+
+def test_bmws_pixelated_stand_in_is_told_from_a_car():
+    # Issue #132: BMW answers some keys it has no car for with HTTP 200 frames
+    # of a blocky grey SUV. A flat shape (one colour) and a real car are not it.
+    assert CONF.is_mosaic(_mosaic_frame())
+    assert not CONF.is_mosaic(_frame(200))
+    assert not CONF.is_mosaic(_textured_frame())
+    empty = io.BytesIO()
+    Image.new("RGBA", (960, 540), (0, 0, 0, 0)).save(empty, "PNG")
+    assert not CONF.is_mosaic(empty.getvalue())
+
+
 def test_sprite_crops_one_box_for_the_whole_spin_and_samples_the_paint():
     frames = [_frame(200 + 4 * i) for i in range(36)]
     render = CONF.build_sprite(frames)
@@ -145,8 +190,10 @@ class _Resp:
 class _FakeBmw:
     """Answers like configure.bmw.de and prod.cosy.bmw.cloud do."""
 
-    def __init__(self, draws: str = "bmwi", key_ok: bool = True) -> None:
+    def __init__(self, draws: str = "bmwi", key_ok: bool = True, mosaic: str = "") -> None:
         self.draws, self.key_ok, self.calls = draws, key_ok, []
+        # A brand name whose frames come back as BMW's pixelated stand-in.
+        self.mosaic = mosaic
 
     def get(self, url: str, **kwargs):
         self.calls.append(url)
@@ -178,6 +225,8 @@ class _FakeBmw:
             return _Resp(200, json.dumps(body).encode())
         if "/img/" in url or "/night/" in url:
             brand, index = url.rsplit("/", 2)[-2:]
+            if brand == self.mosaic:
+                return _Resp(200, _mosaic_frame(int(index)))
             if brand != self.draws:
                 return _Resp(404, b"placeholder png")
             frame = _frame(200 + int(index))
@@ -204,6 +253,20 @@ def test_render_without_any_drawable_brand_is_no_render():
     with pytest.raises(CONF.ConfiguratorError) as err:
         asyncio.run(CONF.async_render(_FakeBmw(draws="nobody"), I5))
     assert err.value.reason == "no_render"
+
+
+def test_bmws_stand_in_is_no_picture_so_the_official_one_stays():
+    session = _FakeBmw(draws="nobody", mosaic="bmwCar")
+    with pytest.raises(CONF.ConfiguratorError) as err:
+        asyncio.run(CONF.async_render(session, I5))
+    assert err.value.reason == "no_render"
+    # Told from its first frame, like the 404 placeholder.
+    assert sum("/img/bmwCar/" in c for c in session.calls) == 1
+
+
+def test_a_car_drawn_under_the_other_brand_name_still_draws_past_a_stand_in():
+    render = asyncio.run(CONF.async_render(_FakeBmw(draws="bmwi", mosaic="bmwCar"), I5))
+    assert render.brand == "bmwi"
 
 
 def test_a_car_listing_its_options_out_of_order_still_draws():

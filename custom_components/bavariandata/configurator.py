@@ -47,6 +47,10 @@ Known traps, found by probing:
   photo for the rest). The tile is ``tile_wide`` for MINI and ``tile_square``
   for BMW, though both are the same 168 x 95. The other, and both for technical codes, return a brand
   logo with HTTP 404, which must never be kept as the option's picture.
+* A model key the service has no car for usually gets links that all 404, but
+  some (``ZZZZ``) get HTTP 200 frames of a pixelated grey SUV, a different
+  picture for every set of options. Only its blockiness gives it away
+  (:func:`is_mosaic`).
 
 No Home Assistant imports: the rules are unit-tested directly.
 """
@@ -109,6 +113,11 @@ _OPTION_VIEWS = ("static_wide", "tile_wide", "tile_square")
 OPTION_TILE = (168, 95)
 OPTION_COLUMNS = 8
 _CONCURRENCY = 6
+# BMW's mosaic stand-in is drawn in flat blocks: about 93 % of neighbouring
+# pixels match exactly, in a couple of hundred colours. Real renders measured
+# 41-69 % (flat white and black paints included), in thousands of colours.
+_MOSAIC_EQUAL_SHARE = 0.85
+_MOSAIC_MIN_COLOURS = 32
 # The language an option name is asked for first in a market, after the
 # caller's own. A market answers in its own language only.
 _MARKET_LANGUAGE = {
@@ -362,6 +371,42 @@ def build_sprite(
         crop=box,
     )
     return render
+
+
+def is_mosaic(frame: bytes) -> bool:
+    """Whether a turntable frame is BMW's pixelated stand-in instead of a car.
+
+    Judged on the opaque pixels only, so it suits the plain spin, never a night
+    scene (whose flat black studio would read as blocks).
+    """
+
+    from PIL import Image, ImageChops  # noqa: PLC0415
+
+    image = Image.open(io.BytesIO(frame)).convert("RGBA")
+    width, height = image.size
+    if width < 2:
+        return False
+    opaque = image.getchannel("A").point(lambda a: 255 if a > 250 else 0)
+    pairs = ImageChops.multiply(
+        opaque.crop((0, 0, width - 1, height)), opaque.crop((1, 0, width, height))
+    )
+    total = pairs.histogram()[255]
+    if not total:
+        return False
+    rgb = image.convert("RGB")
+    diff = ImageChops.difference(
+        rgb.crop((0, 0, width - 1, height)), rgb.crop((1, 0, width, height))
+    )
+    red, green, blue = diff.split()
+    same = ImageChops.lighter(ImageChops.lighter(red, green), blue).point(
+        lambda v: 255 if v == 0 else 0
+    )
+    if ImageChops.multiply(same, pairs).histogram()[255] / total < _MOSAIC_EQUAL_SHARE:
+        return False
+    # Flat, but in many colours: blocks, not one flat shape.
+    car = Image.new("RGB", image.size)
+    car.paste(rgb, mask=opaque)
+    return car.getcolors(_MOSAIC_MIN_COLOURS) is None
 
 
 def cut_out(sprite: bytes, stencil: bytes) -> bytes:
@@ -720,7 +765,10 @@ async def async_render(
             raise ConfiguratorError("unavailable", "image service answer is not JSON") from err
 
     async def spin(
-        brand: str, *extra: tuple[str, str], background: str = "TRANSPARENT"
+        brand: str,
+        *extra: tuple[str, str],
+        background: str = "TRANSPARENT",
+        screen: bool = False,
     ) -> Optional[list[bytes]]:
         answer = await links("dynamic-images", _SPIN, brand, ("background", background), *extra)
         urls = frame_urls(answer) if answer else []
@@ -728,13 +776,15 @@ async def async_render(
         first = await image(urls[0]) if urls else None
         if first is None:
             return None
+        if screen and await run(is_mosaic, first):
+            return None
         rest = await asyncio.gather(*(image(u) for u in urls[1:]))
         if any(r is None for r in rest):
             raise ConfiguratorError("no_render", "some frames are missing")
         return [first, *[r for r in rest if r is not None]]
 
     for brand in spec.brands:
-        frames = await spin(brand)
+        frames = await spin(brand, screen=True)
         if frames is None:
             _LOGGER.debug("Configurator: %s/%s draws only placeholders", brand, spec.model)
             continue

@@ -9,6 +9,12 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **BMW's pixelated stand-in is no longer taken for the car's picture.** For
+  some model keys it has no car for, BMW's configurator answers with a blocky
+  grey SUV that turns like a real one. It's now recognised from the first
+  frame, so the car keeps its official picture instead (#132).
+
 ## [0.9.20-beta.5] - 2026-10-16
 
 ### Fixed
