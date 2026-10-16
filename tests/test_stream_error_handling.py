@@ -80,9 +80,6 @@ def _compile_handle_stream_error(refresh_error: Exception, notifications: _Notif
         dont_inherit=True,
     )
 
-    async def _refresh_tokens(entry, session, manager, container_manager=None) -> None:
-        raise refresh_error
-
     namespace: dict = {
         "DOMAIN": _CONST.DOMAIN,
         "SOURCE_REAUTH": "reauth",
@@ -92,10 +89,19 @@ def _compile_handle_stream_error(refresh_error: Exception, notifications: _Notif
         "CardataAuthError": _DEVICE_FLOW.CardataAuthError,
         "refresh_rejected": _DEVICE_FLOW.refresh_rejected,
         "persistent_notification": notifications,
-        "_refresh_tokens": _refresh_tokens,
     }
     exec(code, namespace)  # noqa: S102 - trusted, shipped source
     return namespace["_handle_stream_error"]
+
+
+class _Tokens:
+    """Stands in for the entry's ``TokenKeeper``, whose renewal fails."""
+
+    def __init__(self, error: Exception) -> None:
+        self._error = error
+
+    async def renew(self) -> None:
+        raise self._error
 
 
 def _scenario(refresh_error: Exception):
@@ -111,7 +117,7 @@ def _scenario(refresh_error: Exception):
         reauth_pending=False,
         session=None,
         stream=None,
-        container_manager=None,
+        tokens=_Tokens(refresh_error),
         refresh_wake=asyncio.Event(),
     )
     entry = types.SimpleNamespace(entry_id="entry-id", data={}, runtime_data=runtime)

@@ -81,6 +81,7 @@ from .api import (
     async_get_vehicle_mappings,
 )
 from .container import CardataContainerError, CardataContainerManager
+from .rest import CardataQuotaError, RestGateway, TokenKeeper
 from .coverage import coverage_issue_id, legacy_coverage_issue_id
 from .coverage_store import CoverageStore
 from .descriptors import descriptors_for_sections
@@ -128,7 +129,12 @@ from .history.summary import (
 from .history.trips import CLASSIFICATIONS, SOURCE_USER
 from .stream import CardataStreamManager
 from .coordinator import CardataCoordinator
-from .debug import forget_entry as forget_entry_debug, mask_vin, set_debug_enabled
+from .debug import (
+    debug_enabled,
+    forget_entry as forget_entry_debug,
+    mask_vin,
+    set_debug_enabled,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -260,9 +266,13 @@ class CardataRuntimeData:
     refresh_task: asyncio.Task
     session: aiohttp.ClientSession
     coordinator: CardataCoordinator
-    container_manager: Optional[CardataContainerManager]
+    container_manager: CardataContainerManager
     # Set to have the token-refresh loop refresh now instead of at its next turn.
     refresh_wake: asyncio.Event
+    # The way into BMW's REST API (rest.py): every request takes its token from
+    # ``tokens`` and its quota slot through ``rest``.
+    tokens: TokenKeeper
+    rest: RestGateway
     history: Optional[HistoryStore] = None
     statistics: Optional[StatisticsPublisher] = None
     coverage: Optional[CoverageStore] = None
@@ -280,6 +290,9 @@ class CardataRuntimeData:
     # loaded, so a car that BMW answers nothing for cannot spend a quota
     # request on every stream message. See _async_on_new_vehicle.
     basic_data_attempted: set[str] = field(default_factory=set)
+    # Held while the container is checked and, if need be, created or replaced,
+    # so two fetches at once cannot both create one.
+    container_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
 
 # Per-entry runtime lives on ``entry.runtime_data`` (HA 2026.3+), so a typed
@@ -288,10 +301,6 @@ class CardataRuntimeData:
 # state (registered services, the shared vehicle-image cache) still lives on
 # ``hass.data[DOMAIN]``.
 CardataConfigEntry = ConfigEntry[CardataRuntimeData]
-
-
-class CardataQuotaError(Exception):
-    """Raised when API quota would be exceeded."""
 
 
 class QuotaManager:
@@ -717,10 +726,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                     serial_number=metadata.get("serial_number"),
                 )
     quota_manager = await QuotaManager.async_create(hass, entry.entry_id)
-    container_manager: Optional[CardataContainerManager] = CardataContainerManager(
+    container_manager = CardataContainerManager(
         session=session,
         entry_id=entry.entry_id,
         initial_container_id=data.get("hv_container_id"),
+        claim=quota_manager.async_claim,
     )
 
     async def handle_stream_error(reason: str) -> None:
@@ -739,10 +749,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     )
     manager.set_message_callback(coordinator.async_handle_message)
     manager.set_status_callback(coordinator.async_handle_connection_event)
+    tokens = TokenKeeper(partial(_refresh_tokens, entry, session, manager), lambda: entry.data)
+    rest = RestGateway(session, tokens, quota_manager.async_claim)
 
     refreshed_token = False
     try:
-        await _refresh_tokens(entry, session, manager, container_manager)
+        await tokens.renew()
         refreshed_token = True
     except CardataAuthError as err:
         _LOGGER.warning(
@@ -753,17 +765,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     except Exception as err:  # pylint: disable=broad-except
         await session.close()
         raise ConfigEntryNotReady(f"Initial token refresh failed: {err}") from err
-
-    if not refreshed_token and container_manager:
-        try:
-            container_manager.sync_from_entry(entry.data.get("hv_container_id"))
-            await container_manager.async_ensure_hv_container(entry.data.get("access_token"))
-        except CardataContainerError as err:
-            _LOGGER.warning(
-                "Unable to ensure HV container for entry %s: %s",
-                entry.entry_id,
-                err,
-            )
 
     if manager.client is None:
         try:
@@ -779,11 +780,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     refresh_wake = asyncio.Event()
     refresh_task = entry.async_create_background_task(
         hass,
-        _refresh_loop(hass, entry, session, manager, container_manager, refresh_wake),
+        _refresh_loop(hass, entry, tokens, refresh_wake),
         f"{DOMAIN}_token_refresh",
     )
-
-    stored_container_manager = container_manager
 
     # evcc / wallbox bridge. Publishes the live state of charge -- the one thing
     # a charge controller cannot get cheaply -- onto Home Assistant's own MQTT
@@ -828,8 +827,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         refresh_task=refresh_task,
         session=session,
         coordinator=coordinator,
-        container_manager=stored_container_manager,
+        container_manager=container_manager,
         refresh_wake=refresh_wake,
+        tokens=tokens,
+        rest=rest,
         history=history_store,
         statistics=statistics,
         coverage=coverage_store,
@@ -999,7 +1000,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         async def _prepare_api_call(
             call, label: str, *, require_vin: bool
         ) -> tuple[ConfigEntry, "CardataRuntimeData", Optional[str], str] | None:
-            """Resolve target, refresh tokens, claim quota and return call context.
+            """Resolve target, take a token, claim quota and return call context.
 
             Shared by the read-only CarData API services. Returns
             ``(entry, runtime, vin, access_token)`` or ``None`` if the call cannot
@@ -1019,33 +1020,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                 return None
 
             try:
-                await _refresh_tokens(
-                    target_entry,
-                    runtime.session,
-                    runtime.stream,
-                    runtime.container_manager,
-                )
+                access_token = await runtime.tokens.access_token()
             except CardataAuthError as err:
                 _LOGGER.error(
-                    "Cardata %s: token refresh failed for entry %s: %s",
+                    "Cardata %s: no valid token for entry %s: %s",
                     label,
                     target_entry_id,
                     err,
                 )
                 return None
-
-            access_token = target_entry.data.get("access_token")
-            if not access_token:
-                _LOGGER.error("Cardata %s: access token missing after refresh", label)
+            try:
+                await runtime.rest.claim()
+            except CardataQuotaError as err:
+                _LOGGER.warning("Cardata %s blocked: %s", label, err)
                 return None
-
-            quota = runtime.quota_manager
-            if quota:
-                try:
-                    await quota.async_claim()
-                except CardataQuotaError as err:
-                    _LOGGER.warning("Cardata %s blocked: %s", label, err)
-                    return None
 
             return target_entry, runtime, vin, access_token
 
@@ -2173,12 +2161,7 @@ async def _handle_stream_error(hass: HomeAssistant, entry: CardataConfigEntry, r
                     "Attempting token refresh after unauthorized response for entry %s",
                     entry.entry_id,
                 )
-                await _refresh_tokens(
-                    entry,
-                    runtime.session,
-                    runtime.stream,
-                    runtime.container_manager,
-                )
+                await runtime.tokens.renew()
                 runtime.reauth_in_progress = False
                 runtime.last_reauth_attempt = 0.0
                 runtime.reauth_pending = False
@@ -2268,9 +2251,7 @@ async def _wait_for_refresh(wake: asyncio.Event, delay: float) -> None:
 async def _refresh_loop(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    session: aiohttp.ClientSession,
-    manager: CardataStreamManager,
-    container_manager: Optional[CardataContainerManager],
+    tokens: TokenKeeper,
     wake: asyncio.Event,
 ) -> None:
     # This loop renews the ID token the stream authenticates with, and restarts a
@@ -2278,18 +2259,15 @@ async def _refresh_loop(
     # exception that escapes a background task, so no failed refresh may end it:
     # retry well within the token's one-hour lifetime, backing off while it fails.
     # ``wake`` lets a stream whose login was refused ask for a refresh right away.
+    # It is also what keeps the access token fresh, so a REST request normally
+    # needs no renewal of its own (rest.py).
     delay = DEFAULT_REFRESH_INTERVAL
     retry_delay = TOKEN_REFRESH_RETRY_DELAY
     try:
         while True:
             await _wait_for_refresh(wake, delay)
             try:
-                await _refresh_tokens(
-                    entry,
-                    session,
-                    manager,
-                    container_manager,
-                )
+                await tokens.renew()
             except Exception as err:  # pylint: disable=broad-except
                 if refresh_rejected(err):
                     # Retrying cannot fix a login BMW no longer accepts, so ask
@@ -2313,8 +2291,13 @@ async def _refresh_tokens(
     entry: ConfigEntry,
     session: aiohttp.ClientSession,
     manager: CardataStreamManager,
-    container_manager: CardataContainerManager | None = None,
 ) -> None:
+    """Renew the tokens, store them and hand the stream its new ID token.
+
+    Called only through the entry's :class:`TokenKeeper`, which serialises
+    renewals and skips them while the access token is still good.
+    """
+
     hass = manager.hass
     data = dict(entry.data)
     refresh_token = data.get("refresh_token")
@@ -2345,46 +2328,6 @@ async def _refresh_tokens(
             "received_at": time.time(),
         }
     )
-
-    if container_manager:
-        # The manager derives the descriptor set from the catalogue, so ask it
-        # rather than recomputing here — the two must never disagree.
-        desired_signature = container_manager.descriptor_signature
-        hv_container_id = data.get("hv_container_id")
-        stored_signature = data.get("hv_descriptor_signature")
-        access_token = data.get("access_token")
-
-        if hv_container_id and stored_signature == desired_signature:
-            container_manager.sync_from_entry(hv_container_id)
-        elif hv_container_id and stored_signature is None:
-            data["hv_descriptor_signature"] = desired_signature
-            container_manager.sync_from_entry(hv_container_id)
-        else:
-            # A container already exists but holds the wrong descriptors (we
-            # widened the set). Reset rather than ensure, so the stale one is
-            # deleted instead of idling against BMW's 10-container limit.
-            stale = bool(hv_container_id)
-            container_manager.sync_from_entry(None)
-            try:
-                if stale:
-                    container_id = await container_manager.async_reset_hv_container(access_token)
-                else:
-                    container_id = await container_manager.async_ensure_hv_container(access_token)
-            except CardataContainerError as err:
-                _LOGGER.warning(
-                    "Unable to ensure HV container for entry %s: %s",
-                    entry.entry_id,
-                    err,
-                )
-            else:
-                if container_id:
-                    data["hv_container_id"] = container_id
-                    data["hv_descriptor_signature"] = desired_signature
-                    container_manager.sync_from_entry(container_id)
-                    runtime = getattr(entry, "runtime_data", None)
-                    if runtime and runtime.container_manager:
-                        runtime.container_manager.sync_from_entry(container_id)
-
     hass.config_entries.async_update_entry(entry, data=data)
     await manager.async_update_credentials(
         gcid=data.get("gcid"),
@@ -2399,12 +2342,61 @@ async def async_manual_refresh_tokens(hass: HomeAssistant, entry: CardataConfigE
     runtime: CardataRuntimeData | None = getattr(entry, "runtime_data", None)
     if runtime is None:
         raise CardataAuthError("Integration runtime not ready")
-    await _refresh_tokens(
-        entry,
-        runtime.session,
-        runtime.stream,
-        runtime.container_manager,
-    )
+    await runtime.tokens.renew()
+
+
+def _async_update_entry_data(hass: HomeAssistant, entry: ConfigEntry, **values: Any) -> None:
+    """Write ``values`` into the entry's data, unless they are there already."""
+
+    if all(entry.data.get(key) == value for key, value in values.items()):
+        return
+    hass.config_entries.async_update_entry(entry, data={**entry.data, **values})
+
+
+async def _async_container_id(
+    hass: HomeAssistant, entry: ConfigEntry, runtime: CardataRuntimeData
+) -> Optional[str]:
+    """The entry's container, created -- or replaced -- first if need be.
+
+    Replaced when the integration now wants a different descriptor set than
+    the stored container holds (``hv_descriptor_signature``), so the old one is
+    deleted instead of idling against BMW's 10-container limit. ``None`` when
+    BMW would not create one (already logged). Raises ``CardataAuthError``
+    when no token can be had.
+    """
+
+    manager = runtime.container_manager
+    async with runtime.container_lock:
+        stored_id = entry.data.get("hv_container_id")
+        stored_signature = entry.data.get("hv_descriptor_signature")
+        if stored_id and stored_signature in (manager.descriptor_signature, None):
+            # An entry from before signatures were stored is taken as current.
+            _async_update_entry_data(
+                hass, entry, hv_descriptor_signature=manager.descriptor_signature
+            )
+            manager.sync_from_entry(stored_id)
+            return stored_id
+        access_token = await runtime.tokens.access_token()
+        manager.sync_from_entry(None)
+        try:
+            if stored_id:
+                container_id = await manager.async_reset_hv_container(access_token)
+            else:
+                container_id = await manager.async_ensure_hv_container(access_token)
+        except CardataContainerError as err:
+            _LOGGER.warning(
+                "Unable to set up the REST container for entry %s: %s", entry.entry_id, err
+            )
+            return None
+        if not container_id:
+            return None
+        _async_update_entry_data(
+            hass,
+            entry,
+            hv_container_id=container_id,
+            hv_descriptor_signature=manager.descriptor_signature,
+        )
+        return container_id
 
 
 async def _async_run_bootstrap(hass: HomeAssistant, entry: CardataConfigEntry) -> None:
@@ -2414,38 +2406,12 @@ async def _async_run_bootstrap(hass: HomeAssistant, entry: CardataConfigEntry) -
 
     _LOGGER.debug("Starting bootstrap sequence for entry %s", entry.entry_id)
 
-    quota = runtime.quota_manager
-
     try:
-        await _refresh_tokens(
-            entry,
-            runtime.session,
-            runtime.stream,
-            runtime.container_manager,
-        )
+        vins = await _async_fetch_primary_vins(runtime, entry.entry_id)
     except CardataAuthError as err:
-        _LOGGER.warning(
-            "Bootstrap token refresh failed for entry %s: %s",
-            entry.entry_id,
-            err,
-        )
+        # Not marked complete: the next start tries again.
+        _LOGGER.warning("Bootstrap for entry %s has no valid token: %s", entry.entry_id, err)
         return
-
-    data = entry.data
-    access_token = data.get("access_token")
-    if not access_token:
-        _LOGGER.debug(
-            "Bootstrap aborted for entry %s due to missing access token",
-            entry.entry_id,
-        )
-        return
-
-    vins = await _async_fetch_primary_vins(
-        runtime.session,
-        access_token,
-        entry.entry_id,
-        quota,
-    )
     if not vins:
         await _async_mark_bootstrap_complete(hass, entry)
         return
@@ -2461,68 +2427,23 @@ async def _async_run_bootstrap(hass: HomeAssistant, entry: CardataConfigEntry) -
             name=coordinator.names.get(vin, vin),
         )
 
-    created_entities = False
-    container_id = entry.data.get("hv_container_id")
-    if container_id:
-        created_entities = await _async_seed_telematic_data(
-            runtime,
-            entry.entry_id,
-            access_token,
-            container_id,
-            vins,
-            quota,
-        )
-    else:
-        _LOGGER.debug(
-            "Bootstrap skipping telematic seed for entry %s due to missing container id",
-            entry.entry_id,
-        )
-
-    if created_entities:
-        await _async_fetch_basic_data_for_vins(
-            hass,
-            entry,
-            access_token,
-            vins,
-            quota,
-        )
+    if await _async_fetch_telematics(hass, entry, runtime, vins, label="Bootstrap", seed=True):
         _async_update_last_telematic_poll(hass, entry, time.time())
-    else:
-        _LOGGER.debug(
-            "Bootstrap did not seed new descriptors for entry %s; basic data fetch skipped",
-            entry.entry_id,
-        )
-    # The initial telematics fetch counts as an API call, but we don't set
-    # last_telematic_poll_time here because the bootstrap should not delay the
-    # first scheduled poll unnecessarily.
-
+    # Whatever the telematics fetch did: the basic data is what names a car and
+    # tells its drivetrain, steering side and picture, and nothing else would
+    # fetch it for a car that already has a device.
+    await _async_fetch_basic_data_for_vins(hass, entry, vins)
     await _async_mark_bootstrap_complete(hass, entry)
 
 
-async def _async_fetch_primary_vins(
-    session: aiohttp.ClientSession,
-    access_token: str,
-    entry_id: str,
-    quota: QuotaManager | None,
-) -> List[str]:
-    if quota:
-        try:
-            await quota.async_claim()
-        except CardataQuotaError as err:
-            _LOGGER.warning(
-                "Bootstrap mapping request skipped for entry %s: %s",
-                entry_id,
-                err,
-            )
-            return []
+async def _async_fetch_primary_vins(runtime: CardataRuntimeData, entry_id: str) -> List[str]:
     try:
-        payload = await async_get_vehicle_mappings(session, access_token)
+        payload = await runtime.rest.call(async_get_vehicle_mappings)
+    except CardataQuotaError as err:
+        _LOGGER.warning("Bootstrap mapping request skipped for entry %s: %s", entry_id, err)
+        return []
     except CardataApiError as err:
-        _LOGGER.warning(
-            "Bootstrap mapping request failed for entry %s: %s",
-            entry_id,
-            err,
-        )
+        _LOGGER.warning("Bootstrap mapping request failed for entry %s: %s", entry_id, err)
         return []
 
     vins = primary_vins(payload)
@@ -2534,80 +2455,88 @@ async def _async_fetch_primary_vins(
     return vins
 
 
-async def _async_seed_telematic_data(
+async def _async_fetch_telematics(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
     runtime: CardataRuntimeData,
-    entry_id: str,
-    access_token: str,
-    container_id: str,
     vins: List[str],
-    quota: QuotaManager | None,
+    *,
+    label: str = "Cardata fetch_telematic_data",
+    seed: bool = False,
 ) -> bool:
-    session = runtime.session
+    """Fetch the container for each car and feed it in like a stream message.
+
+    One request per car. ``seed`` skips a car that already has data (a car
+    found by the bootstrap or Discover gets its entities before it streams).
+    Returns whether BMW was asked at all.
+    """
+
+    try:
+        container_id = await _async_container_id(hass, entry, runtime)
+    except CardataAuthError as err:
+        _LOGGER.error("%s: no valid token for entry %s: %s", label, entry.entry_id, err)
+        return False
+    if not container_id:
+        _LOGGER.error("%s: entry %s has no REST container", label, entry.entry_id)
+        return False
+
     coordinator = runtime.coordinator
-    created = False
-
+    attempted = False
     for vin in vins:
-        if coordinator.data.get(vin):
+        if seed and coordinator.data.get(vin):
             continue
-        if quota:
-            try:
-                await quota.async_claim()
-            except CardataQuotaError as err:
-                _LOGGER.warning(
-                    "Bootstrap telematic request skipped for %s: %s",
-                    mask_vin(vin),
-                    err,
-                )
-                break
         try:
-            payload = await async_get_telematic_data(session, access_token, vin, container_id)
+            payload = await runtime.rest.call(async_get_telematic_data, vin, container_id)
+        except CardataQuotaError as err:
+            # The remaining cars wait for the next round rather than each
+            # logging the same exhaustion.
+            _LOGGER.warning("%s skipped for %s: %s", label, mask_vin(vin), err)
+            break
+        except CardataAuthError as err:
+            _LOGGER.error("%s: no valid token for %s: %s", label, mask_vin(vin), err)
+            break
         except CardataApiError as err:
-            _LOGGER.debug(
-                "Bootstrap telematic request failed for %s: %s",
-                vin,
-                err,
-            )
+            # One car's failure must not cost the others their refresh.
+            _LOGGER.error("%s: request failed for %s: %s", label, mask_vin(vin), err)
+            attempted = True
             continue
-
-        telematic_data = None
+        attempted = True
+        _LOGGER.info("Fetched telematic data for %s", mask_vin(vin))
+        if debug_enabled():
+            _LOGGER.debug("Cardata telematic data for %s: %s", mask_vin(vin), payload)
+        telematic = None
         if isinstance(payload, dict):
-            telematic_data = payload.get("telematicData") or payload.get("data")
-        if not isinstance(telematic_data, dict) or not telematic_data:
-            continue
-        message = {"vin": vin, "data": telematic_data, "source": "rest"}
-        await coordinator.async_handle_message(message)
-        created = True
+            telematic = payload.get("telematicData") or payload.get("data")
+        if isinstance(telematic, dict) and telematic:
+            await coordinator.async_handle_message(
+                {"vin": vin, "data": telematic, "source": "rest"}
+            )
 
-    return created
+    if attempted:
+        coordinator.last_telematic_api_at = datetime.now(timezone.utc)
+        async_dispatcher_send(coordinator.hass, coordinator.signal_diagnostics)
+    return attempted
 
 
 async def _async_fetch_basic_data_for_vins(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    access_token: str,
     vins: List[str],
-    quota: QuotaManager | None,
     label: str = "Bootstrap",
 ) -> None:
     runtime: CardataRuntimeData = entry.runtime_data
-    session = runtime.session
     coordinator = runtime.coordinator
     device_registry = dr.async_get(hass)
 
     for vin in vins:
-        if quota:
-            try:
-                await quota.async_claim()
-            except CardataQuotaError as err:
-                _LOGGER.warning(
-                    "%s basic data request skipped for %s: %s",
-                    label,
-                    mask_vin(vin),
-                    err,
-                )
-                break
         try:
-            payload = await async_get_basic_data(session, access_token, vin)
+            payload = await runtime.rest.call(async_get_basic_data, vin)
+        except CardataQuotaError as err:
+            _LOGGER.warning("%s basic data request skipped for %s: %s", label, mask_vin(vin), err)
+            break
+        except CardataAuthError as err:
+            _LOGGER.warning("%s basic data for %s: no valid token: %s", label, mask_vin(vin), err)
+            break
         except CardataApiError as err:
             # A warning, not debug: without basic data the car has no model
             # name, drivetrain or steering side, and nothing else says why
@@ -2646,19 +2575,20 @@ async def _async_fetch_basic_data_for_vins(
 
 
 async def _async_adopt_new_vehicle(hass: HomeAssistant, entry_id: str, vin: str) -> None:
-    """Fetch the basic data of a car that appeared after setup.
+    """Fetch the basic data of a car that has none.
 
     The bootstrap runs once per entry and is what turns a VIN into a named
     device -- model, software version, the name shown on the dashboard, and the
     Motorrad warning all come from that one REST call. A car added to the
-    account later (a second BMW, or one enrolled in CarData after setup) streams
-    perfectly well, so its entities appear, but it used to stay a bare VIN on
-    the device page for good, because nothing ever revisited the bootstrap.
+    account later (a second BMW, or one enrolled in CarData after setup)
+    streams perfectly well, so its entities appear, but it used to stay a bare
+    VIN on the device page for good, because nothing ever revisited the
+    bootstrap. The same goes for a car whose basic-data request failed then.
 
-    Costs one request against the daily quota per new car, once. Failure is not
-    retried within this Home Assistant run: ``basic_data_attempted`` is claimed
-    before the call, so a car BMW has no basic data for cannot spend the quota
-    over and over as it keeps streaming.
+    Costs one request against the daily quota per car, once per Home Assistant
+    run: ``basic_data_attempted`` is claimed before the call, so a car BMW has
+    no basic data for cannot spend the quota over and over as it keeps
+    streaming.
     """
 
     entry = hass.config_entries.async_get_entry(entry_id)
@@ -2668,38 +2598,28 @@ async def _async_adopt_new_vehicle(hass: HomeAssistant, entry_id: str, vin: str)
     if vin in (entry.data.get(VEHICLE_METADATA) or {}):
         return
 
-    try:
-        await _refresh_tokens(entry, runtime.session, runtime.stream, runtime.container_manager)
-    except CardataAuthError as err:
-        _LOGGER.debug("New vehicle %s: token refresh failed: %s", mask_vin(vin), err)
-        return
-
-    access_token = entry.data.get("access_token")
-    if not access_token:
-        return
-
-    _LOGGER.info("New vehicle %s on this account; fetching its basic data", mask_vin(vin))
-    await _async_fetch_basic_data_for_vins(
-        hass,
-        entry,
-        access_token,
-        [vin],
-        runtime.quota_manager,
-        label="New vehicle",
-    )
+    _LOGGER.info("Vehicle %s has no basic data yet; fetching it", mask_vin(vin))
+    await _async_fetch_basic_data_for_vins(hass, entry, [vin], label="New vehicle")
 
     # A car found by Discover (rather than by its own first message) has no
     # entities yet, and a parked car may not stream for days. Seed them from one
     # telematics fetch; a car that already streamed has data and is skipped.
-    if container_id := entry.data.get("hv_container_id"):
-        await _async_seed_telematic_data(
-            runtime,
-            entry_id,
-            access_token,
-            container_id,
-            [vin],
-            runtime.quota_manager,
-        )
+    await _async_fetch_telematics(hass, entry, runtime, [vin], label="New vehicle", seed=True)
+
+
+def _vins_without_basic_data(
+    hass: HomeAssistant, entry: ConfigEntry, runtime: CardataRuntimeData
+) -> list[str]:
+    """Every car this entry has, by its data or its devices, that has no basic data."""
+
+    vins = known_vins(
+        stored_metadata=entry.data.get(VEHICLE_METADATA),
+        coordinator_data=runtime.coordinator.data,
+        configured_vin=entry.data.get("vin"),
+    )
+    vins.extend(_registered_vins(hass, entry, exclude=set(vins)))
+    have = entry.data.get(VEHICLE_METADATA) or {}
+    return [vin for vin in vins if vin not in have]
 
 
 @callback
@@ -2757,7 +2677,6 @@ async def _async_perform_telematic_fetch(
     *,
     vin_override: Optional[str] = None,
 ) -> bool:
-    target_entry_id = entry.entry_id
     # One account can hold several cars and the container endpoint is per VIN,
     # so a refresh means one request *per vehicle*. Picking a single VIN here
     # left every other car's non-streamable fields frozen at their setup value
@@ -2773,82 +2692,7 @@ async def _async_perform_telematic_fetch(
     if not vins:
         _LOGGER.error("Cardata fetch_telematic_data: no VIN available; provide vin parameter")
         return False
-
-    container_id = entry.data.get("hv_container_id")
-    if not container_id:
-        _LOGGER.error(
-            "Cardata fetch_telematic_data: no container_id stored for entry %s",
-            target_entry_id,
-        )
-        return False
-
-    try:
-        await _refresh_tokens(
-            entry,
-            runtime.session,
-            runtime.stream,
-            runtime.container_manager,
-        )
-    except CardataAuthError as err:
-        _LOGGER.error(
-            "Cardata fetch_telematic_data: token refresh failed for entry %s: %s",
-            target_entry_id,
-            err,
-        )
-        return False
-
-    access_token = entry.data.get("access_token")
-    if not access_token:
-        _LOGGER.error("Cardata fetch_telematic_data: access token missing after refresh")
-        return False
-
-    quota = runtime.quota_manager
-    attempted = False
-    for vin in vins:
-        if quota:
-            try:
-                await quota.async_claim()
-            except CardataQuotaError as err:
-                # The remaining cars have to wait for the next round rather than
-                # each logging the same exhaustion.
-                _LOGGER.warning(
-                    "Cardata fetch_telematic_data blocked for %s: %s",
-                    mask_vin(vin),
-                    err,
-                )
-                break
-
-        try:
-            payload = await async_get_telematic_data(
-                runtime.session, access_token, vin, container_id
-            )
-        except CardataApiError as err:
-            # One car's failure must not cost the others their refresh.
-            _LOGGER.error(
-                "Cardata fetch_telematic_data: request failed for %s: %s",
-                mask_vin(vin),
-                err,
-            )
-            attempted = True
-            continue
-
-        _LOGGER.info("Fetched telematic data for %s", mask_vin(vin))
-        _LOGGER.debug("Cardata telematic data for %s: %s", vin, payload)
-        telematic_payload = None
-        if isinstance(payload, dict):
-            telematic_payload = payload.get("telematicData") or payload.get("data")
-        if isinstance(telematic_payload, dict):
-            await runtime.coordinator.async_handle_message(
-                {"vin": vin, "data": telematic_payload, "source": "rest"}
-            )
-        attempted = True
-
-    if not attempted:
-        return False
-
-    runtime.coordinator.last_telematic_api_at = datetime.now(timezone.utc)
-    async_dispatcher_send(runtime.coordinator.hass, runtime.coordinator.signal_diagnostics)
-    return True
+    return await _async_fetch_telematics(hass, entry, runtime, vins)
 
 
 def _async_update_last_telematic_poll(
@@ -2877,35 +2721,26 @@ async def _async_perform_tyre_fetch(
         coordinator_data=runtime.coordinator.data,
         configured_vin=entry.data.get("vin"),
     )
-    if not vins:
-        return False
-
-    access_token = entry.data.get("access_token")
-    if not access_token:
-        return False
-
-    quota = runtime.quota_manager
     refreshed = False
     for vin in vins:
-        if quota:
-            try:
-                await quota.async_claim()
-            except CardataQuotaError as err:
-                _LOGGER.warning("Daily tyre diagnosis skipped for %s: %s", mask_vin(vin), err)
-                break
-
         try:
-            payload = await async_get_tyre_diagnosis(runtime.session, access_token, vin)
+            payload = await runtime.rest.call(async_get_tyre_diagnosis, vin)
+        except CardataQuotaError as err:
+            _LOGGER.warning("Daily tyre diagnosis skipped for %s: %s", mask_vin(vin), err)
+            break
+        except CardataAuthError as err:
+            _LOGGER.warning("Daily tyre diagnosis: no valid token: %s", err)
+            break
         except CardataApiError as err:
             # Not every vehicle has tyre service data; a failure here must not
             # stop the other cars, nor the container refresh sharing this loop.
-            _LOGGER.debug("Daily tyre diagnosis failed for %s: %s", vin, err)
+            _LOGGER.debug("Daily tyre diagnosis failed for %s: %s", mask_vin(vin), err)
             continue
 
         parsed = runtime.coordinator.apply_tyre_diagnosis(vin, payload)
         _LOGGER.debug(
             "Daily tyre diagnosis for %s: %s wheel(s)",
-            vin,
+            mask_vin(vin),
             len(parsed.get("wheels") or {}),
         )
         refreshed = True
@@ -2920,6 +2755,14 @@ async def _async_startup_refresh(hass: HomeAssistant, entry_id: str) -> None:
         await asyncio.sleep(STARTUP_REFRESH_DELAY_S)
     except asyncio.CancelledError:
         return
+    entry = hass.config_entries.async_get_entry(entry_id)
+    runtime: CardataRuntimeData | None = getattr(entry, "runtime_data", None) if entry else None
+    if entry is not None and runtime is not None:
+        # A car whose basic data never arrived (a failed request at setup, say)
+        # would otherwise stay unnamed for good: nothing else asks again once
+        # it has a device. One request per such car, once per start.
+        for vin in _vins_without_basic_data(hass, entry, runtime):
+            _async_on_new_vehicle(hass, entry, vin)
     await _async_catch_up(hass, entry_id, "after startup")
 
 

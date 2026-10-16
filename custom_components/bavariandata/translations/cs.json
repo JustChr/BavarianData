@@ -434,7 +434,6 @@
       "mix_needs_both": "Přiřazení energie vyžaduje senzor výkonu FV i senzor výkonu sítě. S jen jedním z nich by rozdělení muselo ten druhý odhadovat.",
       "refresh_failed": "Obnova tokenů selhala: {error}",
       "reset_failed": "Reset telemetrického kontejneru selhal: {error}",
-      "missing_token": "Není k dispozici žádný platný přístupový token. Zkuste nejprve \"Obnovit tokeny nyní\" nebo znovu autorizovat.",
       "runtime_missing": "Integrace ještě není připravena. Zkuste to znovu po dokončení nastavení.",
       "no_vins": "Zatím nejsou známa žádná vozidla. Nejprve spusťte \"Vyhledat vozidla\", nebo počkejte, až stream nějaké nahlásí.",
       "invalid_int": "Zadejte kladné celé číslo.",

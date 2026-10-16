@@ -13,6 +13,10 @@ integration tracks and enforces this itself.
   everything BMW cannot stream (see below).
 - One-off fetches at setup (basic vehicle data, the vehicle image), which are
   not repeated because that data does not change.
+- Setting up the telematics container, and replacing it (**Reset telemetry
+  container**, or after an update that changes what it holds): one request each
+  to list, create and delete one, so a reset costs about three. BMW counts these
+  too.
 
 ## The daily refresh
 

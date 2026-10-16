@@ -18,6 +18,20 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   dashboard used it, switch to the predicted state of charge.
 
 ### Fixed
+- **A car whose first data request failed now gets its name and model.** Setup
+  asked BMW for a car's basic data (name, model, drivetrain, steering side,
+  picture) only if its first telematics fetch had worked. When BMW refused that
+  fetch, the car stayed a bare VIN, and nothing asked again. Now setup always
+  asks, and every start asks once more for any car still without it (one
+  request per such car).
+- **Fetching data no longer drops the live stream.** Every REST request renewed
+  the login first, and each renewal makes the stream reconnect, which leaves it
+  deaf for about ten seconds. A manual fetch, or the catch-up after a restart
+  (once per car), cost one such gap each. Requests now use the current login,
+  which the regular 45-minute renewal keeps fresh.
+- **Container requests count against the daily quota.** Setting up or replacing
+  the telematics container took requests BMW counts but the integration didn't,
+  so the quota sensor showed more requests left than BMW allowed.
 - **BMW's pixelated stand-in is no longer taken for the car's picture.** For
   some model keys it has no car for, BMW's configurator answers with a blocky
   grey SUV that turns like a real one. It's now recognised from the first

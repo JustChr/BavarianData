@@ -434,7 +434,6 @@
       "mix_needs_both": "Voor het toerekenen van energie zijn zowel een PV-vermogenssensor als een netvermogenssensor nodig. Met maar één van beide zou de verdeling de andere moeten aannemen.",
       "refresh_failed": "Tokens vernieuwen mislukt: {error}",
       "reset_failed": "Resetten van de telemetriecontainer mislukt: {error}",
-      "missing_token": "Er is geen geldige toegangstoken beschikbaar. Probeer eerst \"Tokens nu vernieuwen\" of autoriseer opnieuw.",
       "runtime_missing": "De integratie is nog niet klaar. Probeer het opnieuw zodra de installatie is afgerond.",
       "no_vins": "Er zijn nog geen voertuigen bekend. Voer eerst \"Voertuigen zoeken\" uit of wacht tot de stream er een meldt.",
       "invalid_int": "Voer een positief geheel getal in.",

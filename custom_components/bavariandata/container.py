@@ -5,13 +5,12 @@ from __future__ import annotations
 import asyncio
 import logging
 import hashlib
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Awaitable, Callable, Dict, Iterable, List, Optional
 
 import aiohttp
 
+from .api import CardataApiError, async_request_json
 from .const import (
-    API_BASE_URL,
-    API_VERSION,
     HV_BATTERY_CONTAINER_NAME,
     HV_BATTERY_CONTAINER_PURPOSE,
     HV_BATTERY_DESCRIPTORS,
@@ -25,9 +24,13 @@ _LOGGER = logging.getLogger(__name__)
 class CardataContainerError(Exception):
     """Raised when BMW CarData container management fails."""
 
-    def __init__(self, message: str, *, status: Optional[int] = None) -> None:
+    def __init__(
+        self, message: str, *, status: Optional[int] = None, error_id: Optional[str] = None
+    ) -> None:
         super().__init__(message)
         self.status = status
+        # BMW's ``CU-xxx`` code, e.g. CU-124 for "maximum number of containers".
+        self.error_id = error_id
 
 
 class CardataContainerManager:
@@ -39,9 +42,11 @@ class CardataContainerManager:
         session: aiohttp.ClientSession,
         entry_id: str,
         initial_container_id: Optional[str] = None,
+        claim: Optional[Callable[[], Awaitable[None]]] = None,
     ) -> None:
         self._session = session
         self._entry_id = entry_id
+        self._claim = claim
         self._container_id: Optional[str] = initial_container_id
         self._lock = asyncio.Lock()
         # Everything BMW cannot stream (the container is those fields' only route
@@ -230,32 +235,18 @@ class CardataContainerManager:
         *,
         json_body: Optional[Dict[str, Any]] = None,
     ) -> Any:
-        headers = {
-            "Authorization": f"Bearer {access_token}",
-            "x-version": API_VERSION,
-            "Accept": "application/json",
-        }
-        if json_body is not None:
-            headers["Content-Type"] = "application/json"
-        url = f"{API_BASE_URL}{path}"
+        # Container calls count against the daily quota like any other
+        # CarData request: BMW's limit covers "the use of the CarData APIs".
+        if self._claim is not None:
+            try:
+                await self._claim()
+            except Exception as err:  # the quota manager's own error type
+                raise CardataContainerError(f"Request not sent: {err}") from err
         if debug_enabled():
-            _LOGGER.debug("[%s] %s %s", self._entry_id, method, url)
+            _LOGGER.debug("[%s] %s %s", self._entry_id, method, path)
         try:
-            async with self._session.request(
-                method,
-                url,
-                headers=headers,
-                json=json_body,
-                timeout=aiohttp.ClientTimeout(total=15),
-            ) as response:
-                if response.status in (200, 201):
-                    return await response.json(content_type=None)
-                if response.status == 204:
-                    return {}
-                text = await response.text()
-                raise CardataContainerError(
-                    f"HTTP {response.status}: {text.strip() or 'no response body'}",
-                    status=response.status,
-                )
-        except aiohttp.ClientError as err:
-            raise CardataContainerError(f"Network error: {err}") from err
+            return await async_request_json(
+                self._session, method, path, access_token, json_body=json_body
+            )
+        except CardataApiError as err:
+            raise CardataContainerError(str(err), status=err.status, error_id=err.error_id) from err

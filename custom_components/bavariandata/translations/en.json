@@ -434,7 +434,6 @@
       "mix_needs_both": "Attributing energy needs both a PV power sensor and a grid power sensor. With only one of them the split would have to assume the other.",
       "refresh_failed": "Token refresh failed: {error}",
       "reset_failed": "Resetting the telemetry container failed: {error}",
-      "missing_token": "No valid access token is available. Try \"Refresh tokens now\" or re-authorize first.",
       "runtime_missing": "The integration isn't ready yet. Try again once setup has finished.",
       "no_vins": "No vehicles are known yet. Run \"Discover vehicles\" first, or wait for the stream to report one.",
       "invalid_int": "Enter a positive whole number.",

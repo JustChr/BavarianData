@@ -96,9 +96,17 @@ def test_refresh_paths_iterate_every_vehicle(name: str) -> None:
         if isinstance(call, ast.Call)
     )
     assert calls_helper, f"{name} must take its VINs from known_vins()"
+    # The container fetch hands its VINs to the one function that fetches the
+    # container for a list of cars; that loop is the one to check then.
+    delegates = any(
+        isinstance(call.func, ast.Name) and call.func.id == "_async_fetch_telematics"
+        for call in ast.walk(node)
+        if isinstance(call, ast.Call)
+    )
+    looper = _function("_async_fetch_telematics") if delegates else node
     loops_over_vins = any(
         isinstance(loop.target, ast.Name) and loop.target.id == "vin"
-        for loop in ast.walk(node)
+        for loop in ast.walk(looper)
         if isinstance(loop, (ast.For, ast.AsyncFor))
     )
     assert loops_over_vins, f"{name} must loop over every VIN, not fetch one"
@@ -169,9 +177,9 @@ def test_adopted_car_gets_its_entities_seeded() -> None:
     """A car found by Discover is a bare device: BMW replays nothing and a parked
     car may not stream for days, so adopting it also seeds its entities (#44)."""
 
-    assert "_async_seed_telematic_data(" in _function_body(
-        "__init__.py", "_async_adopt_new_vehicle"
-    )
+    body = _function_body("__init__.py", "_async_adopt_new_vehicle")
+    assert "_async_fetch_telematics(" in body
+    assert "seed=True" in body
 
 
 def test_flows_that_map_cars_look_for_them_afterwards() -> None:

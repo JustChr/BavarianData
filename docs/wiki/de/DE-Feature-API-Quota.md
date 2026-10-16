@@ -13,6 +13,10 @@ Die Integration zählt und erzwingt das selbst.
   alles, was BMW nicht streamen kann (siehe unten).
 - Einmalige Abrufe bei der Einrichtung (Fahrzeug-Basisdaten, das Fahrzeugbild),
   die nicht wiederholt werden, weil sich diese Daten nicht ändern.
+- Das Einrichten des Telematik-Containers und sein Ersetzen (**Telemetrie-Container
+  zurücksetzen** oder nach einem Update, das seinen Inhalt ändert): je eine
+  Anfrage zum Auflisten, Anlegen und Löschen, ein Zurücksetzen kostet also etwa
+  drei. BMW zählt auch diese.
 
 ## Die tägliche Aktualisierung
 

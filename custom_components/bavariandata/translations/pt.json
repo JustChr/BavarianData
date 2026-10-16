@@ -434,7 +434,6 @@
       "mix_needs_both": "Atribuir a energia requer um sensor de potência FV e um sensor de potência da rede. Com apenas um deles, a repartição teria de presumir o outro.",
       "refresh_failed": "A renovação dos tokens falhou: {error}",
       "reset_failed": "A reposição do contentor de telemetria falhou: {error}",
-      "missing_token": "Não há nenhum token de acesso válido disponível. Experimente primeiro \"Renovar os tokens agora\" ou autorize novamente.",
       "runtime_missing": "A integração ainda não está pronta. Tente novamente quando a configuração terminar.",
       "no_vins": "Ainda não se conhece nenhum veículo. Execute primeiro \"Procurar veículos\" ou aguarde que o stream comunique um.",
       "invalid_int": "Introduza um número inteiro positivo.",

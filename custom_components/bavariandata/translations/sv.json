@@ -434,7 +434,6 @@
       "mix_needs_both": "Att fördela energi kräver både en solcellseffektsensor och en näteffektsensor. Med bara en av dem skulle fördelningen behöva anta den andra.",
       "refresh_failed": "Förnyelse av token misslyckades: {error}",
       "reset_failed": "Återställning av telemetribehållaren misslyckades: {error}",
-      "missing_token": "Ingen giltig åtkomsttoken finns. Prova \"Förnya token nu\" eller auktorisera igen först.",
       "runtime_missing": "Integrationen är inte redo än. Försök igen när installationen är klar.",
       "no_vins": "Inga fordon är kända än. Kör \"Sök efter fordon\" först, eller vänta tills strömmen rapporterar ett.",
       "invalid_int": "Ange ett positivt heltal.",

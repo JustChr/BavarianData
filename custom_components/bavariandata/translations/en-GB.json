@@ -43,9 +43,6 @@
         "description": "Fetch the latest tyre-pressure diagnosis for your vehicles.\n\nPress Submit to continue."
       }
     },
-    "error": {
-      "missing_token": "No valid access token is available. Try \"Refresh tokens now\" or re-authorise first."
-    },
     "abort": {
       "reauth_started": "Authorisation restarted. Finish the new login from the notification that just appeared.",
       "reauth_device_code_failed": "BMW rejected the device authorisation request ({error}). Check the Client ID and try again.",

@@ -434,7 +434,6 @@
       "mix_needs_both": "Przypisanie energii wymaga zarówno czujnika mocy PV, jak i czujnika mocy sieci. Mając tylko jeden z nich, podział musiałby zgadywać drugi.",
       "refresh_failed": "Odświeżenie tokenów nie powiodło się: {error}",
       "reset_failed": "Zresetowanie kontenera telemetrii nie powiodło się: {error}",
-      "missing_token": "Brak ważnego tokenu dostępu. Najpierw spróbuj \"Odśwież tokeny teraz\" lub autoryzuj ponownie.",
       "runtime_missing": "Integracja nie jest jeszcze gotowa. Spróbuj ponownie po zakończeniu konfiguracji.",
       "no_vins": "Nie są jeszcze znane żadne pojazdy. Najpierw uruchom \"Wyszukaj pojazdy\" lub poczekaj, aż strumień zgłosi pojazd.",
       "invalid_int": "Wpisz dodatnią liczbę całkowitą.",

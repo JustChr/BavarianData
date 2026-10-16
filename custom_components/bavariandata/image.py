@@ -48,7 +48,9 @@ from .const import (
 )
 from .coordinator import CardataCoordinator
 from .debug import mask_vin
+from .device_flow import CardataAuthError
 from .entity import CardataEntity
+from .rest import CardataQuotaError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -316,41 +318,20 @@ async def async_refresh_vehicle_image(
 ) -> Optional[Tuple[bytes, Optional[str]]]:
     """Fetch the render for ``vin``, update the shared cache and notify entities.
 
-    Handles the token refresh and quota claim itself (mirroring the read-only
-    service handlers) so it can be called both from the ``fetch_vehicle_image``
-    service and from the image entity's initial lazy load. Returns the
-    ``(bytes, content_type)`` tuple on success, ``None`` otherwise.
+    Takes its token and quota slot through the entry's REST gateway, so it can
+    be called both from the ``fetch_vehicle_image`` service and from the image
+    entity's initial lazy load. Returns the ``(bytes, content_type)`` tuple on
+    success, ``None`` otherwise.
     """
 
-    # Imported lazily: the package __init__ pulls in Home Assistant and is always
-    # loaded by the time a platform runs, but a top-level import would be circular.
-    from . import (  # noqa: PLC0415
-        CardataAuthError,
-        CardataQuotaError,
-        _refresh_tokens,
-    )
-
     try:
-        await _refresh_tokens(entry, runtime.session, runtime.stream, runtime.container_manager)
+        data, content_type = await runtime.rest.call(async_get_vehicle_image, vin)
     except CardataAuthError as err:
-        # A stale-but-valid token may still work; log and try the fetch anyway.
-        _LOGGER.warning("Cardata image: token refresh failed for %s: %s", mask_vin(vin), err)
-
-    access_token = entry.data.get("access_token")
-    if not access_token:
-        _LOGGER.error("Cardata image: no access token available for %s", mask_vin(vin))
+        _LOGGER.error("Cardata image: no valid token for %s: %s", mask_vin(vin), err)
         return None
-
-    quota = runtime.quota_manager
-    if quota:
-        try:
-            await quota.async_claim()
-        except CardataQuotaError as err:
-            _LOGGER.warning("Cardata image fetch for %s blocked: %s", mask_vin(vin), err)
-            return None
-
-    try:
-        data, content_type = await async_get_vehicle_image(runtime.session, access_token, vin)
+    except CardataQuotaError as err:
+        _LOGGER.warning("Cardata image fetch for %s blocked: %s", mask_vin(vin), err)
+        return None
     except CardataApiError as err:
         _LOGGER.error("Cardata image fetch failed for %s: %s", mask_vin(vin), err)
         return None

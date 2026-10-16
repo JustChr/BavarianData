@@ -434,7 +434,6 @@
       "mix_needs_both": "L'attribution de l'énergie nécessite à la fois un capteur de puissance PV et un capteur de puissance réseau. Avec un seul des deux, la répartition devrait supposer l'autre.",
       "refresh_failed": "Le renouvellement des jetons a échoué : {error}",
       "reset_failed": "La réinitialisation du conteneur de télémétrie a échoué : {error}",
-      "missing_token": "Aucun jeton d'accès valide n'est disponible. Essayez d'abord « Renouveler les jetons maintenant » ou une nouvelle autorisation.",
       "runtime_missing": "L'intégration n'est pas encore prête. Réessayez une fois la configuration terminée.",
       "no_vins": "Aucun véhicule n'est encore connu. Exécutez d'abord « Rechercher les véhicules » ou attendez que le flux en signale un.",
       "invalid_int": "Saisissez un nombre entier positif.",

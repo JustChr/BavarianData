@@ -2348,31 +2348,18 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 errors={"base": "runtime_missing"},
             )
 
-        access_token = entry.data.get("access_token")
-        if not access_token:
-            try:
-                await async_manual_refresh_tokens(self.hass, entry)
-            except CardataAuthError as err:
-                return self._show_confirm(
-                    step_id="action_reset_container",
-                    errors={"base": "refresh_failed"},
-                    placeholders={"error": str(err)},
-                )
-            entry = self.hass.config_entries.async_get_entry(entry.entry_id)
-            if entry is None:
-                return self._show_confirm(
-                    step_id="action_reset_container",
-                    errors={"base": "runtime_missing"},
-                )
-            access_token = entry.data.get("access_token")
-            if not access_token:
-                return self._show_confirm(
-                    step_id="action_reset_container",
-                    errors={"base": "missing_token"},
-                )
+        try:
+            access_token = await runtime.tokens.access_token()
+        except CardataAuthError as err:
+            return self._show_confirm(
+                step_id="action_reset_container",
+                errors={"base": "refresh_failed"},
+                placeholders={"error": str(err)},
+            )
 
         try:
-            new_id = await runtime.container_manager.async_reset_hv_container(access_token)
+            async with runtime.container_lock:
+                new_id = await runtime.container_manager.async_reset_hv_container(access_token)
         except CardataContainerError as err:
             return self._show_confirm(
                 step_id="action_reset_container",

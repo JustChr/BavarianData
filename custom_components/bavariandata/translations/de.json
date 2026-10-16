@@ -434,7 +434,6 @@
       "mix_needs_both": "Für die Zuordnung sind beide Sensoren nötig: PV-Leistung und Netzleistung. Mit nur einem müsste der jeweils andere geraten werden.",
       "refresh_failed": "Token-Erneuerung fehlgeschlagen: {error}",
       "reset_failed": "Zurücksetzen des Telemetrie-Containers fehlgeschlagen: {error}",
-      "missing_token": "Es ist kein gültiges Access-Token verfügbar. Versuche zuerst **Token jetzt erneuern** oder autorisiere neu.",
       "runtime_missing": "Die Integration ist noch nicht bereit. Versuche es erneut, sobald die Einrichtung abgeschlossen ist.",
       "no_vins": "Es sind noch keine Fahrzeuge bekannt. Führe zuerst **Fahrzeuge suchen** aus, oder warte, bis der Stream eines meldet.",
       "invalid_int": "Gib eine positive ganze Zahl ein.",

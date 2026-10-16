@@ -434,7 +434,6 @@
       "mix_needs_both": "Per attribuire l'energia servono sia un sensore di potenza FV sia un sensore di potenza di rete. Con uno solo dei due la ripartizione dovrebbe supporre l'altro.",
       "refresh_failed": "Rinnovo dei token non riuscito: {error}",
       "reset_failed": "Reimpostazione del contenitore telemetrico non riuscita: {error}",
-      "missing_token": "Nessun token di accesso valido disponibile. Prova prima \"Rinnova i token ora\" o una nuova autorizzazione.",
       "runtime_missing": "L'integrazione non è ancora pronta. Riprova al termine della configurazione.",
       "no_vins": "Nessun veicolo ancora noto. Esegui prima \"Cerca veicoli\" oppure attendi che lo stream ne segnali uno.",
       "invalid_int": "Inserisci un numero intero positivo.",

@@ -12,8 +12,9 @@ log line, and the streams of both BMW accounts stayed down for nine hours.
 
 ``__init__.py`` imports Home Assistant, so -- like the rest of this suite -- the
 tests compile the real functions out of the shipped source. The loop runs with a
-scripted ``_refresh_tokens`` and a ``_wait_for_refresh`` that records how long
-the loop wanted to wait instead of waiting.
+scripted token keeper (``rest.TokenKeeper``'s ``renew``) and a
+``_wait_for_refresh`` that records how long the loop wanted to wait instead of
+waiting.
 """
 
 from __future__ import annotations
@@ -65,6 +66,13 @@ def _compile_from_init(name: str, **namespace) -> object:
     )
     exec(code, namespace)  # noqa: S102 - trusted, shipped source
     return namespace[name]
+
+
+class _Tokens:
+    """Stands in for the entry's ``TokenKeeper``: the loop only calls ``renew``."""
+
+    def __init__(self, renew) -> None:
+        self.renew = renew
 
 
 async def _no_reauth(hass, entry, why) -> None:
@@ -148,7 +156,7 @@ def _run_refresh_loop(
 
         overrides["_async_request_reauth"] = _async_request_reauth
 
-    async def _refresh_tokens(entry, session, manager, container_manager=None) -> None:
+    async def renew() -> None:
         nonlocal refreshes
         refreshes += 1
         outcome = script.pop(0)
@@ -160,9 +168,9 @@ def _run_refresh_loop(
         wait = _RecordingWait(wake, stop_after=len(outcomes))
         refresh_loop = _compile_from_init(
             "_refresh_loop",
-            **_loop_namespace(_refresh_tokens=_refresh_tokens, _wait_for_refresh=wait, **overrides),
+            **_loop_namespace(_wait_for_refresh=wait, **overrides),
         )
-        await refresh_loop(None, None, None, None, None, wake)
+        await refresh_loop(None, None, _Tokens(renew), wake)
         return wait.waits
 
     waits = asyncio.run(scenario())
@@ -233,7 +241,7 @@ def test_unloading_during_a_refresh_ends_the_loop():
         nonlocal refreshes
         in_flight = asyncio.Event()
 
-        async def _refresh_tokens(entry, session, manager, container_manager=None) -> None:
+        async def renew() -> None:
             nonlocal refreshes
             refreshes += 1
             in_flight.set()
@@ -244,10 +252,10 @@ def test_unloading_during_a_refresh_ends_the_loop():
 
         refresh_loop = _compile_from_init(
             "_refresh_loop",
-            **_loop_namespace(_refresh_tokens=_refresh_tokens, _wait_for_refresh=no_wait),
+            **_loop_namespace(_wait_for_refresh=no_wait),
         )
         task = asyncio.get_running_loop().create_task(
-            refresh_loop(None, None, None, None, None, asyncio.Event())
+            refresh_loop(None, None, _Tokens(renew), asyncio.Event())
         )
         await in_flight.wait()
         task.cancel()  # what unloading the config entry does
