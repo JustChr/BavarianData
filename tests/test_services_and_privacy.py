@@ -198,84 +198,48 @@ def test_the_leaking_id_is_still_derivable_so_it_can_be_deleted() -> None:
 
 # --- service handlers must not close over the entry that registered them ----
 #
-# The services are registered process-wide, exactly once, by whichever config
-# entry sets up first. Every handler therefore has ``async_setup_entry``'s own
-# ``entry``/``runtime_data`` in scope -- and using one silently serves the wrong
-# account (a second car filed under the first account's entry), then fails
-# outright once that first entry is removed while another stays loaded. The
-# handler must work only from what ``_resolve_target`` hands it.
-#
-# Checked on the source rather than at runtime because there is no Home
-# Assistant in this harness, and because the failure is invisible until someone
-# owns two accounts: the reviewable artefact is the name lookup itself.
-
-_SETUP_SCOPE_NAMES = frozenset(
-    {
-        "entry",
-        "runtime_data",
-        "coordinator",
-        "history_store",
-        "coverage_store",
-        "tyre_store",
-        "quota",
-        "session",
-        "client_id",
-        "gcid",
-    }
-)
+# The services are registered process-wide, once. They used to be closures
+# inside ``async_setup_entry`` of whichever account set up first, so every
+# handler had that account's ``entry`` in scope -- and using it once filed a
+# second account's car under the first. They now live in ``services.py`` and
+# are registered from ``async_setup``, where no account is in scope at all; a
+# handler can only work from what ``_resolve_target`` hands it. These pin that
+# shape, since the failure is invisible until someone owns two accounts.
 
 
-def _service_registration_block(tree: "ast.AST") -> "ast.If":
-    """The ``if not domain_data.get("_service_registered"):`` body."""
-
-    for node in ast.walk(tree):
-        if not isinstance(node, ast.If):
-            continue
-        source = ast.dump(node.test)
-        if "_service_registered" in source:
-            return node
-    raise AssertionError("service registration block not found in __init__.py")
-
-
-def _bound_names(node: "ast.AST") -> set[str]:
-    """Names a function binds itself (args, assignments, loops, with, except)."""
-
-    bound: set[str] = set()
-    args = getattr(node, "args", None)
-    if args is not None:
-        for arg in [*args.posonlyargs, *args.args, *args.kwonlyargs]:
-            bound.add(arg.arg)
-        for extra in (args.vararg, args.kwarg):
-            if extra is not None:
-                bound.add(extra.arg)
-    for child in ast.walk(node):
-        if isinstance(child, ast.Name) and isinstance(child.ctx, (ast.Store, ast.Del)):
-            bound.add(child.id)
-        elif isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            bound.add(child.name)
-        elif isinstance(child, ast.ExceptHandler) and child.name:
-            bound.add(child.name)
-        elif isinstance(child, ast.alias):
-            bound.add((child.asname or child.name).split(".")[0])
-    return bound
-
-
-def test_service_handlers_never_read_the_registering_entrys_scope() -> None:
-    tree = ast.parse((_PKG / "__init__.py").read_text(encoding="utf-8"))
-    block = _service_registration_block(tree)
-
-    leaks: list[str] = []
-    for handler in block.body:
-        if not isinstance(handler, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            continue
-        bound = _bound_names(handler)
-        for child in ast.walk(handler):
-            if not isinstance(child, ast.Name) or not isinstance(child.ctx, ast.Load):
-                continue
-            if child.id in _SETUP_SCOPE_NAMES and child.id not in bound:
-                leaks.append(f"{handler.name} reads '{child.id}' (line {child.lineno})")
-
-    assert not leaks, (
-        "service handlers must use only what _resolve_target returns, "
-        "never async_setup_entry's own scope: " + "; ".join(leaks)
+def _registers_services(node: "ast.AST") -> bool:
+    return any(
+        isinstance(call, ast.Call) and ast.unparse(call.func).endswith("services.async_register")
+        for call in ast.walk(node)
     )
+
+
+def test_no_service_is_registered_while_an_account_sets_up() -> None:
+    tree = ast.parse((_PKG / "__init__.py").read_text(encoding="utf-8"))
+    setup_entry = next(
+        node
+        for node in tree.body
+        if isinstance(node, ast.AsyncFunctionDef) and node.name == "async_setup_entry"
+    )
+    assert not _registers_services(setup_entry)
+    setup = next(
+        node
+        for node in tree.body
+        if isinstance(node, ast.AsyncFunctionDef) and node.name == "async_setup"
+    )
+    assert "async_setup_services(hass)" in ast.unparse(setup)
+
+
+def test_every_service_in_services_yaml_is_registered_in_services_py() -> None:
+    import yaml
+
+    declared = set(yaml.safe_load((_PKG / "services.yaml").read_text(encoding="utf-8")))
+    source = (_PKG / "services.py").read_text(encoding="utf-8")
+    registered = {
+        call.args[1].value
+        for call in ast.walk(ast.parse(source))
+        if isinstance(call, ast.Call)
+        and ast.unparse(call.func).endswith("services.async_register")
+        and isinstance(call.args[1], ast.Constant)
+    }
+    assert registered == declared

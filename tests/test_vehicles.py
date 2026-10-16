@@ -150,7 +150,7 @@ def test_discover_vehicles_adopts_unknown_cars() -> None:
     import pathlib
 
     path = (
-        pathlib.Path(__file__).resolve().parents[1] / "custom_components/bavariandata/__init__.py"
+        pathlib.Path(__file__).resolve().parents[1] / "custom_components/bavariandata/services.py"
     )
     source = path.read_text(encoding="utf-8")
     node = next(

@@ -293,7 +293,7 @@ def test_every_ledger_ratio_caller_says_whether_the_car_is_a_hybrid():
 
     package = pathlib.Path(__file__).resolve().parents[1] / "custom_components" / "bavariandata"
     checked = 0
-    for filename in ("__init__.py", "sensor.py", "coordinator.py"):
+    for filename in ("services.py", "sensor.py", "coordinator.py"):
         source = (package / filename).read_text(encoding="utf-8")
         for name in ("summarise", "efficiency_profile", "driving_summary", "energy_balance"):
             for call in _calls(source, name):
