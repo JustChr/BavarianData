@@ -152,7 +152,7 @@ während sein Stream normal weiterlief und die Lücke verdeckte.
 Erkennbar an einem Fahrzeug, dessen übrige Sensoren sekündlich aktualisieren,
 neben einer Handvoll, die sich einen wochenalten Zeitstempel teilen. Die
 [tägliche Aktualisierung](DE-Feature-API-Quota#the-daily-refresh) umfasst jetzt
-alle Fahrzeuge, mit 2 Anfragen pro Auto.
+alle Fahrzeuge, mit 3 Anfragen pro Auto.
 
 Wer die Lücke sofort schließen will, statt auf die nächste Aktualisierung zu
 warten, ruft `bavariandata.fetch_telematic_data` mit der `vin` dieses Autos auf
@@ -446,7 +446,7 @@ Versionen nannten nur die Zahl). Die wichtigsten:
 | --- | --- | --- |
 | CU-104 | Keine Berechtigung für dieses Auto | Das Auto ist deinem Konto nicht zugeordnet oder nicht telematikfähig. Prüfe, ob es in BMWs CarData-Portal steht. |
 | CU-105 / CU-121 | Der Telemetrie-Container ist unbekannt oder fehlerhaft | Konfigurieren → Verbindung → **Telemetrie-Container zurücksetzen** ([Einstellungen](DE-Settings-Reference#das-menü-konfigurieren)), dann erneut abrufen. |
-| CU-400 | Fehlerhafte Anfrage | BMW lehnt für dieses Auto eines der Felder im Container ab und damit den ganzen Abruf (seit dem 16. Okt. 2026 bei manchen Verbrennern). Die Integration fängt das ab: Sie ruft das Auto sofort noch einmal nur mit den Feldern ab, die BMW nicht streamen kann, und bleibt dabei (eine zusätzliche Anfrage, einmalig; das Protokoll sagt es). Wird auch das abgelehnt, melde es in einem Issue. |
+| CU-400 | Fehlerhafte Anfrage | BMW lehnt ein Feld eines Containers ab und damit den ganzen Abruf. Seit dem 16. Okt. 2026 tut es das für die Serviceumfänge (Condition Based Service), bei allen bisher gesehenen Autos. Sie kommen aus einem eigenen Container, also bleiben nur sie veraltet, solange BMW sie ablehnt; das Protokoll meldet es als Warnung. Schlägt ein anderer Abruf mit CU-400 fehl, melde es in einem Issue. |
 | CU-429 | Zu viele Anfragen | Siehe [Kontingent aufgebraucht](#quota-exhausted) unten. |
 
 Der Stream ist von keinem davon betroffen. Bei einem anderen Code oder ohne

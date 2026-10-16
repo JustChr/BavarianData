@@ -10,7 +10,7 @@ user's personal BMW client ID. Domain: `bavariandata`. Repo:
 - `custom_components/bavariandata/` — the integration (everything shipped to users).
   - `api.py` — REST client (auth headers, BMW's `CU-` error codes).
   - `rest.py` — the one way into REST: `TokenKeeper` (renews only near expiry, one renewal at a time; every renewal reconnects the stream) and `RestGateway` (token → quota claim → request). No HA imports. Every REST caller goes through `runtime.rest`.
-  - `container.py` — the two REST containers: `FULL` (non-streamable + battery seed) and `BASE` (non-streamable only, for combustion cars and cars BMW refuses `FULL` for with a bare CU-400, #135).
+  - `container.py` — the two REST containers every car reads: `FULL` (non-streamable + battery seed) and `SERVICE` (`conditionBasedServices` alone: BMW refuses a whole container over that one field since 16 Oct 2026, #142).
   - `services.py` — every service handler, registered once from `async_setup`; a handler finds its account only through `_resolve_target`.
   - `device_flow.py` — OAuth 2.0 device-authorization flow (no HA imports; unit-testable).
   - `stream.py` — MQTT streaming client (paho-mqtt).

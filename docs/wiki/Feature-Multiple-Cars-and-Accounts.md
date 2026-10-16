@@ -89,8 +89,8 @@ the same.)
 ## Quota with several cars
 
 The 50 requests per 24 h belong to the **account**, and the daily refresh costs
-**2 requests per car** (the telematics container, plus the tire diagnosis). Three
-cars on one account is 6 of 50 a day — comfortable. Two separate accounts get 50
+**3 requests per car** (the telematics container, the service items, the tire
+diagnosis). Three cars on one account is 9 of 50 a day — comfortable. Two separate accounts get 50
 each, because BMW counts per account. See [API quota](Feature-API-Quota).
 
 ## Telling the cars apart

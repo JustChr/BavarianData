@@ -148,7 +148,7 @@ kept running normally and hid the gap.
 
 The tell is a car whose other sensors update by the second, next to a handful
 that share one timestamp weeks old. The [daily refresh](Feature-API-Quota#the-daily-refresh)
-now covers every vehicle, at 2 requests per car.
+now covers every vehicle, at 3 requests per car.
 
 To fill the gap immediately rather than waiting for the next refresh, call
 `bavariandata.fetch_telematic_data` with that car's `vin`
@@ -434,7 +434,7 @@ number). The ones worth knowing:
 | --- | --- | --- |
 | CU-104 | No permission for this car | The car isn't mapped to your account or isn't telematics-capable. Check it is listed at BMW's CarData portal. |
 | CU-105 / CU-121 | The telemetry container is unknown or malformed | Configure → Connection → **Reset telemetry container** ([Settings](Settings-Reference#the-configure-menu)), then fetch again. |
-| CU-400 | Bad request | BMW refuses one of the container's fields for this car, and with it the whole fetch (since 16 Oct 2026 for some combustion cars). The integration handles it: it fetches that car again at once with only the fields BMW can't stream, and keeps doing so (one extra request, once; the log says so). If that is refused too, report it in an issue. |
+| CU-400 | Bad request | BMW refuses one field of a container, and with it the whole fetch. Since 16 Oct 2026 it does so for the service items (Condition Based Service), on every car seen so far. They come from a container of their own, so only they stay stale while BMW refuses them; the log says so as a warning. Any other fetch failing with CU-400: report it in an issue. |
 | CU-429 | Too many requests | See [quota exhausted](#quota-exhausted) below. |
 
 The stream is not affected by any of these. If the code is something else, or

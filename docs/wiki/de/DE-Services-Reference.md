@@ -20,7 +20,7 @@ von Hand aufgerufen holen sie nur früher ab und verbrauchen eine Anfrage mehr.
 
 | Dienst | Was er abruft |
 | --- | --- |
-| `bavariandata.fetch_telematic_data` | Aktueller Inhalt des Telematik-Containers — jedes Feld, das BMW nicht streamen kann, in einer Anfrage. Ohne `vin` werden **alle Fahrzeuge des Kontos** aktualisiert, je eine Anfrage. |
+| `bavariandata.fetch_telematic_data` | Aktueller Inhalt der Telematik-Container — jedes Feld, das BMW nicht streamen kann, in zwei Anfragen (die Serviceumfänge haben einen eigenen Container). Ohne `vin` werden **alle Fahrzeuge des Kontos** aktualisiert, je zwei Anfragen. |
 | `bavariandata.fetch_vehicle_mappings` | Mit dem Konto verknüpfte Fahrzeuge und ihr Status PRIMARY/SECONDARY. Ein primäres Fahrzeug, das dieser Eintrag noch nicht kennt, wird als Gerät angelegt (einmalig eine weitere Anfrage). Das Streaming schaltet das nicht ein — hake die Felder des Fahrzeugs im Portal über **Konfigurieren → Gestreamte Daten auswählen** an. |
 | `bavariandata.fetch_basic_data` | Statische Fahrzeugdaten (Modell, Baureihe, …). |
 | `bavariandata.fetch_charging_history` | BMWs Ladevorgänge (seitenweise; optional `from`/`to`), in den lokalen Verlauf importiert und um gemessene Netzenergie ergänzt. |

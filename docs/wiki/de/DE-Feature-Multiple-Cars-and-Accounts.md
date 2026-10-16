@@ -103,8 +103,8 @@ tut dasselbe.)
 <a id="quota-with-several-cars"></a>
 
 Die 50 Anfragen pro 24 h gehören dem **Konto**, und die tägliche Aktualisierung
-kostet **2 Anfragen je Fahrzeug** (Telematik-Container plus Reifendiagnose). Drei
-Autos in einem Konto sind 6 von 50 pro Tag — reichlich Luft. Zwei getrennte
+kostet **3 Anfragen je Fahrzeug** (Telematik-Container, Serviceumfänge,
+Reifendiagnose). Drei Autos in einem Konto sind 9 von 50 pro Tag — reichlich Luft. Zwei getrennte
 Konten haben je 50, weil BMW pro Konto zählt. Siehe
 [API-Kontingent](DE-Feature-API-Quota).
 

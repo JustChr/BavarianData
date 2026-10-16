@@ -79,14 +79,13 @@ from .api import (
     async_get_vehicle_mappings,
 )
 from .container import (
-    BASE,
     FULL,
-    REFUSED_VINS_KEY,
+    KINDS,
+    RETIRED_ENTRY_KEYS,
+    SERVICE,
     CardataContainerError,
     CardataContainerManager,
     ContainerKind,
-    kind_for,
-    refused_whole,
 )
 from .rest import CardataQuotaError, RestGateway, TokenKeeper
 from .coverage import coverage_issue_id, legacy_coverage_issue_id
@@ -693,6 +692,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                     serial_number=metadata.get("serial_number"),
                 )
     quota_manager = await QuotaManager.async_create(hass, entry.entry_id)
+    if any(key in data for key in RETIRED_ENTRY_KEYS):
+        # v0.9.20-beta.6's fallback container. Its BMW side goes when the full
+        # container is next replaced (``retired_names``), which the full set's
+        # new signature makes happen on the first fetch.
+        data = {key: value for key, value in data.items() if key not in RETIRED_ENTRY_KEYS}
+        hass.config_entries.async_update_entry(entry, data=data)
     containers = {
         kind.key: CardataContainerManager(
             session=session,
@@ -701,7 +706,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             claim=quota_manager.async_claim,
             kind=kind,
         )
-        for kind in (FULL, BASE)
+        for kind in KINDS
     }
 
     async def handle_stream_error(reason: str) -> None:
@@ -1367,14 +1372,14 @@ async def _async_fetch_telematics(
     label: str = "Cardata fetch_telematic_data",
     seed: bool = False,
 ) -> bool:
-    """Fetch each car's container and feed it in like a stream message.
+    """Fetch each car's containers and feed them in like a stream message.
 
-    One request per car, from the container that car uses (``kind_for``). A car
-    BMW refuses the full set for is moved to the non-streamable one for good
-    and fetched again at once, so one refused field no longer costs it the
-    whole daily refresh (#135). ``seed`` skips a car that already has data (a
-    car found by the bootstrap or Discover gets its entities before it
-    streams). Returns whether BMW was asked at all.
+    One request per car and container (``KINDS``). Each stands alone: BMW
+    refuses a whole container for one field it won't serve, so the service
+    items, which it refused from 16 Oct 2026 (#142), are fetched apart and cost
+    only themselves. ``seed`` skips a car that already has data (a car found by
+    the bootstrap or Discover gets its entities before it streams). Returns
+    whether BMW was asked at all.
     """
 
     coordinator = runtime.coordinator
@@ -1388,51 +1393,41 @@ async def _async_fetch_telematics(
     async def fetch(vin: str) -> bool:
         """One car; whether BMW was asked."""
 
-        kind = kind_for(
-            vin,
-            refused=entry.data.get(REFUSED_VINS_KEY) or (),
-            combustion_only=coordinator.is_combustion_only,
-        )
         asked = False
-        while True:
+        for kind in KINDS:
             found = await container_id(kind)
             if not found:
                 _LOGGER.error(
                     "%s: entry %s has no %s REST container", label, entry.entry_id, kind.key
                 )
-                return asked
+                continue
+            asked = True
             try:
                 payload = await runtime.rest.call(async_get_telematic_data, vin, found)
             except CardataApiError as err:
-                if kind is FULL and refused_whole(err.status, err.error_id):
+                # Neither another container nor another car pays for it.
+                if kind is SERVICE:
                     _LOGGER.warning(
-                        "%s: BMW refused the full set of REST fields for %s (%s); fetching "
-                        "only the fields it cannot stream for this car from now on",
+                        "%s: BMW did not return the service items for %s (%s); the rest "
+                        "of the refresh is unaffected",
                         label,
                         mask_vin(vin),
                         err,
                     )
-                    refused = set(entry.data.get(REFUSED_VINS_KEY) or ())
-                    _async_update_entry_data(
-                        hass, entry, **{REFUSED_VINS_KEY: sorted(refused | {vin})}
-                    )
-                    kind, asked = BASE, True
-                    continue
-                # One car's failure must not cost the others their refresh.
-                _LOGGER.error("%s: request failed for %s: %s", label, mask_vin(vin), err)
-                return True
-            break
-        _LOGGER.info("Fetched telematic data for %s", mask_vin(vin))
-        if debug_enabled():
-            _LOGGER.debug("Cardata telematic data for %s: %s", mask_vin(vin), payload)
-        telematic = None
-        if isinstance(payload, dict):
-            telematic = payload.get("telematicData") or payload.get("data")
-        if isinstance(telematic, dict) and telematic:
-            await coordinator.async_handle_message(
-                {"vin": vin, "data": telematic, "source": "rest"}
-            )
-        return True
+                else:
+                    _LOGGER.error("%s: request failed for %s: %s", label, mask_vin(vin), err)
+                continue
+            _LOGGER.info("Fetched telematic data (%s) for %s", kind.key, mask_vin(vin))
+            if debug_enabled():
+                _LOGGER.debug("Cardata telematic data for %s: %s", mask_vin(vin), payload)
+            telematic = None
+            if isinstance(payload, dict):
+                telematic = payload.get("telematicData") or payload.get("data")
+            if isinstance(telematic, dict) and telematic:
+                await coordinator.async_handle_message(
+                    {"vin": vin, "data": telematic, "source": "rest"}
+                )
+        return asked
 
     attempted = False
     for vin in vins:

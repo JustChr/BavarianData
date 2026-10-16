@@ -100,7 +100,7 @@
       },
       "fetch_now": {
         "title": "Pobierz teraz z BMW",
-        "description": "Pobierz dane z BMW od razu zamiast czekać na codzienną aktualizację. Każda pozycja zużywa jedno z 50 dziennych zapytań BMW na samochód.",
+        "description": "Pobierz dane z BMW od razu zamiast czekać na codzienną aktualizację. Każda pozycja zużywa jedno z 50 dziennych zapytań BMW na samochód, **Pobierz dane telematyczne** dwa.",
         "menu_options": {
           "action_fetch_mappings": "Wyszukaj pojazdy",
           "action_fetch_telematic": "Pobierz dane telematyczne",
@@ -160,7 +160,7 @@
       },
       "action_reset_container": {
         "title": "Zresetuj kontener telemetrii",
-        "description": "Usuwa kontenery telemetrii CarData utworzone przez tę integrację i tworzy nowy. Użyj tego, jeśli przesyłane dane wyglądają nieprawidłowo lub po zmianie Wyboru danych w portalu BMW.\n\nNaciśnij Zatwierdź, aby kontynuować."
+        "description": "Usuwa kontenery telemetrii CarData utworzone przez tę integrację i tworzy je od nowa. Użyj tego, jeśli przesyłane dane wyglądają nieprawidłowo lub po zmianie Wyboru danych w portalu BMW.\n\nNaciśnij Zatwierdź, aby kontynuować."
       },
       "action_fetch_mappings": {
         "title": "Wyszukaj pojazdy",
@@ -2825,7 +2825,7 @@
   "services": {
     "fetch_telematic_data": {
       "name": "Pobierz dane telematyczne",
-      "description": "Pobiera dane telematyczne każdego pojazdu na koncie przy użyciu zapisanego kontenera i loguje odpowiedź. Jedno żądanie na pojazd.",
+      "description": "Pobiera dane telematyczne każdego pojazdu na koncie przy użyciu zapisanych kontenerów i loguje odpowiedź. Dwa żądania na pojazd.",
       "fields": {
         "entry_id": {
           "name": "Wpis konfiguracji",

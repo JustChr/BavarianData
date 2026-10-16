@@ -51,7 +51,7 @@ erscheinen (der Screenshot zeigt die englische).
 | --- | --- | --- |
 | **Neu bei BMW autorisieren** | Aktion | Führt die Geräteautorisierung erneut aus (nachdem BMW das Token ungültig gemacht hat). |
 | **Token jetzt erneuern** | Aktion | Erzwingt eine Erneuerung des OAuth-Tokens. |
-| **Telemetrie-Container zurücksetzen** | Aktion ⚡ | Ersetzt die REST-Container der Integration durch frische (je etwa drei Anfragen) und gibt Autos, bei denen BMW den vollen Feldsatz abgelehnt hat, damit einen neuen Versuch. Nutze das, wenn Telematik-Abrufe mit CU-105 oder CU-121 fehlschlagen. |
+| **Telemetrie-Container zurücksetzen** | Aktion ⚡ | Ersetzt die beiden REST-Container der Integration durch frische (je etwa drei Anfragen). Nutze das, wenn Telematik-Abrufe mit CU-105 oder CU-121 fehlschlagen. |
 | **Debug-Protokollierung** | Einstellungen | Schalter für ausführliche Protokollierung — unten. |
 
 ⚡ = verbraucht eine (oder mehrere) deiner [50 Anfragen / 24 h](DE-Feature-API-Quota).

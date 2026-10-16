@@ -100,7 +100,7 @@
       },
       "fetch_now": {
         "title": "Jetzt von BMW abrufen",
-        "description": "Fragt Daten sofort bei BMW ab, statt auf die tägliche Aktualisierung zu warten. Jeder Eintrag verbraucht pro Auto eine der 50 täglichen Anfragen bei BMW.",
+        "description": "Fragt Daten sofort bei BMW ab, statt auf die tägliche Aktualisierung zu warten. Jeder Eintrag verbraucht pro Auto eine der 50 täglichen Anfragen bei BMW, **Telematikdaten abrufen** zwei.",
         "menu_options": {
           "action_fetch_mappings": "Fahrzeuge suchen",
           "action_fetch_telematic": "Telematikdaten abrufen",
@@ -160,7 +160,7 @@
       },
       "action_reset_container": {
         "title": "Telemetrie-Container zurücksetzen",
-        "description": "Löscht die von dieser Integration angelegten CarData-Telemetrie-Container und legt einen frischen an. Nutze das, wenn der gestreamte Datensatz nicht stimmt oder nachdem du die Datenauswahl im BMW-Portal geändert hast.\n\nKlicke auf **Absenden**, um fortzufahren."
+        "description": "Löscht die von dieser Integration angelegten CarData-Telemetrie-Container und legt sie frisch an. Nutze das, wenn der gestreamte Datensatz nicht stimmt oder nachdem du die Datenauswahl im BMW-Portal geändert hast.\n\nKlicke auf **Absenden**, um fortzufahren."
       },
       "action_fetch_mappings": {
         "title": "Fahrzeuge suchen",
@@ -2825,7 +2825,7 @@
   "services": {
     "fetch_telematic_data": {
       "name": "Telematikdaten abrufen",
-      "description": "Telematikdaten aller Fahrzeuge des Kontos über den gespeicherten Container abrufen und die Antwort protokollieren. Eine Anfrage pro Fahrzeug.",
+      "description": "Telematikdaten aller Fahrzeuge des Kontos über die gespeicherten Container abrufen und die Antwort protokollieren. Zwei Anfragen pro Fahrzeug.",
       "fields": {
         "entry_id": {
           "name": "Konfigurationseintrag",

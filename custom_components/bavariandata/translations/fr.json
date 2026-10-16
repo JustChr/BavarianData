@@ -100,7 +100,7 @@
       },
       "fetch_now": {
         "title": "Récupérer auprès de BMW",
-        "description": "Demandez des données à BMW maintenant au lieu d'attendre l'actualisation quotidienne. Chaque entrée utilise une des 50 requêtes quotidiennes de BMW par véhicule.",
+        "description": "Demandez des données à BMW maintenant au lieu d'attendre l'actualisation quotidienne. Chaque entrée utilise une des 50 requêtes quotidiennes de BMW par véhicule, **Récupérer les données télématiques** en utilise deux.",
         "menu_options": {
           "action_fetch_mappings": "Rechercher les véhicules",
           "action_fetch_telematic": "Récupérer les données télématiques",
@@ -160,7 +160,7 @@
       },
       "action_reset_container": {
         "title": "Réinitialiser le conteneur de télémétrie",
-        "description": "Supprime les conteneurs de télémétrie CarData créés par cette intégration et en recrée un neuf. Utilisez cette action si les données transmises semblent incorrectes ou après avoir modifié votre Sélection des données dans le portail BMW.\n\nAppuyez sur Valider pour continuer."
+        "description": "Supprime les conteneurs de télémétrie CarData créés par cette intégration et les recrée à neuf. Utilisez cette action si les données transmises semblent incorrectes ou après avoir modifié votre Sélection des données dans le portail BMW.\n\nAppuyez sur Valider pour continuer."
       },
       "action_fetch_mappings": {
         "title": "Rechercher les véhicules",
@@ -2825,7 +2825,7 @@
   "services": {
     "fetch_telematic_data": {
       "name": "Récupérer les données télématiques",
-      "description": "Récupère les données télématiques de chaque véhicule du compte via le conteneur enregistré et journalise la réponse. Une requête par véhicule.",
+      "description": "Récupère les données télématiques de chaque véhicule du compte via les conteneurs enregistrés et journalise la réponse. Deux requêtes par véhicule.",
       "fields": {
         "entry_id": {
           "name": "Entrée de configuration",

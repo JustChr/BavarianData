@@ -100,7 +100,7 @@
       },
       "fetch_now": {
         "title": "Načíst teď z BMW",
-        "description": "Vyžádejte si data od BMW hned, místo čekání na denní aktualizaci. Každá položka spotřebuje jeden z 50 denních požadavků BMW na vůz.",
+        "description": "Vyžádejte si data od BMW hned, místo čekání na denní aktualizaci. Každá položka spotřebuje jeden z 50 denních požadavků BMW na vůz, **Načíst telematická data** dva.",
         "menu_options": {
           "action_fetch_mappings": "Vyhledat vozidla",
           "action_fetch_telematic": "Načíst telematická data",
@@ -160,7 +160,7 @@
       },
       "action_reset_container": {
         "title": "Resetovat telemetrický kontejner",
-        "description": "Smaže telemetrické kontejnery CarData vytvořené touto integrací a vytvoří nový. Použijte, pokud přenášená data vypadají chybně, nebo po změně Výběru dat v portálu BMW.\n\nStiskněte Odeslat pro pokračování."
+        "description": "Smaže telemetrické kontejnery CarData vytvořené touto integrací a vytvoří je znovu. Použijte, pokud přenášená data vypadají chybně, nebo po změně Výběru dat v portálu BMW.\n\nStiskněte Odeslat pro pokračování."
       },
       "action_fetch_mappings": {
         "title": "Vyhledat vozidla",
@@ -2825,7 +2825,7 @@
   "services": {
     "fetch_telematic_data": {
       "name": "Načíst telematická data",
-      "description": "Načte telematická data každého vozidla na účtu pomocí uloženého kontejneru a zaloguje odpověď. Jeden požadavek na vozidlo.",
+      "description": "Načte telematická data každého vozidla na účtu pomocí uložených kontejnerů a zaloguje odpověď. Dva požadavky na vozidlo.",
       "fields": {
         "entry_id": {
           "name": "Konfigurační záznam",

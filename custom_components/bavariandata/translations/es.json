@@ -100,7 +100,7 @@
       },
       "fetch_now": {
         "title": "Obtener de BMW ahora",
-        "description": "Pide los datos a BMW ahora en lugar de esperar a la actualización diaria. Cada entrada usa una de las 50 solicitudes diarias de BMW por coche.",
+        "description": "Pide los datos a BMW ahora en lugar de esperar a la actualización diaria. Cada entrada usa una de las 50 solicitudes diarias de BMW por coche; **Obtener los datos telemáticos** usa dos.",
         "menu_options": {
           "action_fetch_mappings": "Buscar vehículos",
           "action_fetch_telematic": "Obtener los datos telemáticos",
@@ -160,7 +160,7 @@
       },
       "action_reset_container": {
         "title": "Restablecer el contenedor de telemetría",
-        "description": "Elimina los contenedores de telemetría de CarData creados por esta integración y crea uno nuevo. Úsalo si el conjunto de datos transmitido parece incorrecto o después de cambiar tu Selección de datos en el portal de BMW.\n\nPulsa Enviar para continuar."
+        "description": "Elimina los contenedores de telemetría de CarData creados por esta integración y los vuelve a crear. Úsalo si el conjunto de datos transmitido parece incorrecto o después de cambiar tu Selección de datos en el portal de BMW.\n\nPulsa Enviar para continuar."
       },
       "action_fetch_mappings": {
         "title": "Buscar vehículos",
@@ -2825,7 +2825,7 @@
   "services": {
     "fetch_telematic_data": {
       "name": "Obtener datos telemáticos",
-      "description": "Obtiene los datos telemáticos de cada vehículo de la cuenta usando el contenedor guardado y registra la respuesta. Una solicitud por vehículo.",
+      "description": "Obtiene los datos telemáticos de cada vehículo de la cuenta usando los contenedores guardados y registra la respuesta. Dos solicitudes por vehículo.",
       "fields": {
         "entry_id": {
           "name": "Entrada de configuración",

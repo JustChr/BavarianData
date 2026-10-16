@@ -9,7 +9,7 @@ integration tracks and enforces this itself.
 
 - Every manual **`fetch_*`** service call
   ([Services reference](Services-Reference)).
-- The **daily refresh**: **2 requests every 24 h per vehicle**, covering
+- The **daily refresh**: **3 requests every 24 h per vehicle**, covering
   everything BMW cannot stream (see below).
 - One-off fetches at setup (basic vehicle data, the vehicle image), which are
   not repeated because that data does not change.
@@ -27,11 +27,12 @@ Assistant, so the integration fetches them once a day:
 
 | Request | Covers |
 | --- | --- |
-| The telematics **container** | All 41 non-streamable fields the container endpoint can serve — **one request for the lot** |
+| The telematics **container** | 40 of the 41 non-streamable fields the container endpoint can serve — **one request for the lot** |
+| The **service items** container | Condition Based Service alone. Since 16 Oct 2026 BMW refuses any container that holds it, and with it the whole fetch, so it has a container of its own — one request |
 | **Tire diagnosis** | Tread wear and remaining mileage per wheel — its own endpoint, so its own request |
 
-Both endpoints are per vehicle, so the refresh costs **2 requests per car**: 2 a
-day for one car, 4 for two, 6 for three — out of 50. Daily is deliberate: these
+All three are per vehicle, so the refresh costs **3 requests per car**: 3 a
+day for one car, 6 for two, 9 for three — out of 50. Daily is deliberate: these
 values move on the scale of days, not minutes.
 
 ## What does not

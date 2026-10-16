@@ -30,7 +30,7 @@ from homeassistant.helpers.network import NoURLAvailableError, get_url
 from homeassistant.util import dt as dt_util
 
 from . import async_manual_refresh_tokens
-from .container import BASE, FULL, REFUSED_VINS_KEY, CardataContainerError
+from .container import KINDS, CardataContainerError
 from .service_calendar import KM_PER_MILE
 from .evcc import BridgeConfig, bridge_payloads, evcc_yaml
 from .const import (
@@ -2388,14 +2388,9 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
             )
 
         updated = dict(entry.data)
-        # The full container always; the non-streamable one only if there is
-        # one. The cars BMW refused the full set for get another go with it.
-        updated.pop(REFUSED_VINS_KEY, None)
         try:
             async with runtime.container_lock:
-                for kind in (FULL, BASE):
-                    if kind is BASE and not entry.data.get(kind.id_key):
-                        continue
+                for kind in KINDS:
                     manager = runtime.containers[kind.key]
                     new_id = await manager.async_reset_hv_container(access_token)
                     if new_id:

@@ -9,6 +9,25 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The daily refresh works again, for every car.** Since 16 October BMW
+  refuses the service items (Condition Based Service) with a bare "Bad
+  request", and because a refusal of one field fails the whole request, every
+  car lost door locks, charge level and everything else BMW doesn't stream.
+  Testing BMW's API field by field showed that field alone is the cause, on
+  combustion and electric cars alike. The service items now come from a
+  container of their own, fetched in the same refresh. While BMW refuses them,
+  only they stay stale, and the log says so once a day as a warning. The
+  refresh now costs **3 requests per car a day** instead of 2 (#130, #142;
+  thanks @georgewalley for the first narrowing-down and @jla1710 for the
+  report).
+
+### Removed
+- **beta.6's fallback to a smaller container.** It held the refused field too,
+  so it never helped. Installs that created it delete it on their first
+  refresh; the container is replaced once anyway, because what it holds
+  changed.
+
 ## [0.9.20-beta.6] - 2026-10-16
 
 ### Changed

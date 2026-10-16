@@ -100,7 +100,7 @@
       },
       "fetch_now": {
         "title": "Nu ophalen bij BMW",
-        "description": "Vraag gegevens nu op bij BMW in plaats van te wachten op de dagelijkse verversing. Elk item gebruikt per auto één van de 50 dagelijkse verzoeken bij BMW.",
+        "description": "Vraag gegevens nu op bij BMW in plaats van te wachten op de dagelijkse verversing. Elk item gebruikt per auto één van de 50 dagelijkse verzoeken bij BMW, **Telematicagegevens ophalen** er twee.",
         "menu_options": {
           "action_fetch_mappings": "Voertuigen zoeken",
           "action_fetch_telematic": "Telematicagegevens ophalen",
@@ -160,7 +160,7 @@
       },
       "action_reset_container": {
         "title": "Telemetriecontainer resetten",
-        "description": "Verwijder de CarData-telemetriecontainers die deze integratie heeft aangemaakt en maak een nieuwe aan. Gebruik dit als de gestreamde gegevens niet kloppen of nadat je je Gegevensselectie in het BMW-portaal hebt gewijzigd.\n\nDruk op Verzenden om door te gaan."
+        "description": "Verwijder de CarData-telemetriecontainers die deze integratie heeft aangemaakt en maak ze opnieuw aan. Gebruik dit als de gestreamde gegevens niet kloppen of nadat je je Gegevensselectie in het BMW-portaal hebt gewijzigd.\n\nDruk op Verzenden om door te gaan."
       },
       "action_fetch_mappings": {
         "title": "Voertuigen zoeken",
@@ -2825,7 +2825,7 @@
   "services": {
     "fetch_telematic_data": {
       "name": "Telematicagegevens ophalen",
-      "description": "Haal telematicagegevens op voor elk voertuig op het account met de opgeslagen container en log het antwoord. Eén verzoek per voertuig.",
+      "description": "Haal telematicagegevens op voor elk voertuig op het account met de opgeslagen containers en log het antwoord. Twee verzoeken per voertuig.",
       "fields": {
         "entry_id": {
           "name": "Configuratie-item",

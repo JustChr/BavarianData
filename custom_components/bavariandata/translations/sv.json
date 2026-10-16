@@ -100,7 +100,7 @@
       },
       "fetch_now": {
         "title": "Hämta från BMW nu",
-        "description": "Be BMW om data nu i stället för att vänta på den dagliga uppdateringen. Varje post använder en av BMW:s 50 dagliga förfrågningar per bil.",
+        "description": "Be BMW om data nu i stället för att vänta på den dagliga uppdateringen. Varje post använder en av BMW:s 50 dagliga förfrågningar per bil, **Hämta telematikdata** två.",
         "menu_options": {
           "action_fetch_mappings": "Sök efter fordon",
           "action_fetch_telematic": "Hämta telematikdata",
@@ -160,7 +160,7 @@
       },
       "action_reset_container": {
         "title": "Återställ telemetribehållaren",
-        "description": "Ta bort de CarData-telemetribehållare som den här integrationen skapat och skapa en ny. Använd detta om de strömmade data ser fel ut eller efter att du ändrat ditt Dataurval i BMW-portalen.\n\nTryck på Skicka för att fortsätta."
+        "description": "Ta bort de CarData-telemetribehållare som den här integrationen skapat och skapa dem på nytt. Använd detta om de strömmade data ser fel ut eller efter att du ändrat ditt Dataurval i BMW-portalen.\n\nTryck på Skicka för att fortsätta."
       },
       "action_fetch_mappings": {
         "title": "Sök efter fordon",
@@ -2825,7 +2825,7 @@
   "services": {
     "fetch_telematic_data": {
       "name": "Hämta telematikdata",
-      "description": "Hämta telematikdata för varje fordon på kontot med den sparade behållaren och logga svaret. Ett anrop per fordon.",
+      "description": "Hämta telematikdata för varje fordon på kontot med de sparade behållarna och logga svaret. Två anrop per fordon.",
       "fields": {
         "entry_id": {
           "name": "Konfigurationspost",

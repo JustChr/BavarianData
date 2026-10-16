@@ -100,7 +100,7 @@
       },
       "fetch_now": {
         "title": "Scarica ora da BMW",
-        "description": "Chiedi i dati a BMW subito invece di aspettare l'aggiornamento giornaliero. Ogni voce usa una delle 50 richieste giornaliere di BMW per auto.",
+        "description": "Chiedi i dati a BMW subito invece di aspettare l'aggiornamento giornaliero. Ogni voce usa una delle 50 richieste giornaliere di BMW per auto, **Recupera i dati telematici** ne usa due.",
         "menu_options": {
           "action_fetch_mappings": "Cerca veicoli",
           "action_fetch_telematic": "Recupera i dati telematici",
@@ -160,7 +160,7 @@
       },
       "action_reset_container": {
         "title": "Reimposta il contenitore telemetrico",
-        "description": "Elimina i contenitori telemetrici CarData creati da questa integrazione e ne crea uno nuovo. Usalo se i dati trasmessi sembrano errati o dopo aver modificato la Selezione dati nel portale BMW.\n\nPremi Invia per continuare."
+        "description": "Elimina i contenitori telemetrici CarData creati da questa integrazione e li ricrea da zero. Usalo se i dati trasmessi sembrano errati o dopo aver modificato la Selezione dati nel portale BMW.\n\nPremi Invia per continuare."
       },
       "action_fetch_mappings": {
         "title": "Cerca veicoli",
@@ -2825,7 +2825,7 @@
   "services": {
     "fetch_telematic_data": {
       "name": "Recupera i dati telematici",
-      "description": "Recupera i dati telematici di ogni veicolo dell'account usando il contenitore salvato e registra la risposta. Una richiesta per veicolo.",
+      "description": "Recupera i dati telematici di ogni veicolo dell'account usando i contenitori salvati e registra la risposta. Due richieste per veicolo.",
       "fields": {
         "entry_id": {
           "name": "Voce di configurazione",

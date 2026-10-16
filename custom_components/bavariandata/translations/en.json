@@ -100,7 +100,7 @@
       },
       "fetch_now": {
         "title": "Fetch from BMW now",
-        "description": "Ask BMW for data now instead of waiting for the daily refresh. Each entry uses one of BMW's 50 daily requests per car.",
+        "description": "Ask BMW for data now instead of waiting for the daily refresh. Each entry uses one of BMW's 50 daily requests per car, **Fetch telematics data** two.",
         "menu_options": {
           "action_fetch_mappings": "Discover vehicles",
           "action_fetch_telematic": "Fetch telematics data",
@@ -160,7 +160,7 @@
       },
       "action_reset_container": {
         "title": "Reset telemetry container",
-        "description": "Delete the CarData telemetry containers created by this integration and recreate a fresh one. Use this if the streamed data set looks wrong or after changing your Data Selection in the BMW portal.\n\nPress Submit to continue."
+        "description": "Delete the CarData telemetry containers created by this integration and recreate them fresh. Use this if the streamed data set looks wrong or after changing your Data Selection in the BMW portal.\n\nPress Submit to continue."
       },
       "action_fetch_mappings": {
         "title": "Discover vehicles",
@@ -3055,7 +3055,7 @@
   "services": {
     "fetch_telematic_data": {
       "name": "Fetch telematic data",
-      "description": "Fetch telematic data for every vehicle on the account using the stored container and log the response. One request per vehicle.",
+      "description": "Fetch telematic data for every vehicle on the account using the stored containers and log the response. Two requests per vehicle.",
       "fields": {
         "entry_id": {
           "name": "Config entry",

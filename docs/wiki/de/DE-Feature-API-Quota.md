@@ -9,7 +9,7 @@ Die Integration zählt und erzwingt das selbst.
 
 - Jeder manuelle Aufruf eines **`fetch_*`**-Dienstes
   ([Dienste](DE-Services-Reference)).
-- Die **tägliche Aktualisierung**: **2 Anfragen alle 24 h je Fahrzeug** für
+- Die **tägliche Aktualisierung**: **3 Anfragen alle 24 h je Fahrzeug** für
   alles, was BMW nicht streamen kann (siehe unten).
 - Einmalige Abrufe bei der Einrichtung (Fahrzeug-Basisdaten, das Fahrzeugbild),
   die nicht wiederholt werden, weil sich diese Daten nicht ändern.
@@ -30,11 +30,12 @@ einmal am Tag:
 
 | Anfrage | Umfasst |
 | --- | --- |
-| Der Telematik-**Container** | Alle 41 nicht streambaren Felder, die der Container-Endpunkt liefern kann — **eine Anfrage für alles** |
+| Der Telematik-**Container** | 40 der 41 nicht streambaren Felder, die der Container-Endpunkt liefern kann — **eine Anfrage für alles** |
+| Der Container für die **Serviceumfänge** | Nur Condition Based Service. Seit dem 16. Okt. 2026 lehnt BMW jeden Container ab, der es enthält, und damit den ganzen Abruf, daher hat es einen eigenen Container — eine Anfrage |
 | **Reifendiagnose** | Profiltiefe und Restlaufleistung pro Rad — ein eigener Endpunkt, also eine eigene Anfrage |
 
-Beide Endpunkte gelten je Fahrzeug, die Aktualisierung kostet also **2 Anfragen
-pro Auto**: 2 pro Tag bei einem Auto, 4 bei zweien, 6 bei dreien — von 50.
+Alle drei gelten je Fahrzeug, die Aktualisierung kostet also **3 Anfragen
+pro Auto**: 3 pro Tag bei einem Auto, 6 bei zweien, 9 bei dreien — von 50.
 Täglich ist Absicht:
 Diese Werte ändern sich über Tage, nicht über Minuten.
 

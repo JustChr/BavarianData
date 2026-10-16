@@ -6,7 +6,7 @@ import asyncio
 import logging
 import hashlib
 from dataclasses import dataclass
-from typing import Any, Awaitable, Callable, Collection, Dict, Iterable, List, Optional
+from typing import Any, Awaitable, Callable, Dict, Iterable, List, Optional
 
 import aiohttp
 
@@ -45,7 +45,16 @@ class ContainerKind:
     # The config entry's keys for the container's id and descriptor signature.
     id_key: str
     signature_key: str
+    # Names of containers this kind replaced, deleted with its own stale ones.
+    retired_names: tuple[str, ...] = ()
 
+
+# Fields fetched from a container of their own. BMW answers a container holding
+# one field it won't serve with a bare ``CU-400`` for the whole request, naming
+# no field. From 16 Oct 2026 it did so for ``conditionBasedServices`` -- alone
+# refused, the other 65 fields fine (bisected against the live API, #130/#142)
+# -- and every car lost its whole daily refresh to it.
+SERVICE_DESCRIPTORS = ("vehicle.status.conditionBasedServices",)
 
 # Everything BMW cannot stream (the container is those fields' only route into
 # Home Assistant) plus the battery keys, so a fresh install shows values before
@@ -55,44 +64,27 @@ FULL = ContainerKind(
     key="full",
     name=HV_BATTERY_CONTAINER_NAME,
     purpose=HV_BATTERY_CONTAINER_PURPOSE,
-    descriptors=tuple(container_descriptors(HV_BATTERY_DESCRIPTORS)),
+    descriptors=tuple(
+        d for d in container_descriptors(HV_BATTERY_DESCRIPTORS) if d not in SERVICE_DESCRIPTORS
+    ),
     id_key="hv_container_id",
     signature_key="hv_descriptor_signature",
+    # v0.9.20-beta.6's fallback for a refused car, which held the refused field
+    # too, so it never helped.
+    retired_names=("BavarianData non-streamable",),
 )
-# Only what BMW cannot stream: for a car with no battery to report, and for a
-# car BMW refuses the full set for. BMW answers a container it won't serve for
-# a car with a bare ``CU-400`` for the whole request, naming no field (#135:
-# two UK combustion cars, refused from one morning on for any container holding
-# both ``charging.method`` and ``conditionBasedServices``), so a refused car
-# would otherwise lose its whole daily refresh.
-BASE = ContainerKind(
-    key="base",
-    name="BavarianData non-streamable",
-    purpose="Fields BMW cannot stream",
-    descriptors=tuple(container_descriptors()),
-    id_key="base_container_id",
-    signature_key="base_descriptor_signature",
+# The service items, so BMW refusing them costs only them.
+SERVICE = ContainerKind(
+    key="service",
+    name="BavarianData service items",
+    purpose="Service items, fetched apart",
+    descriptors=tuple(d for d in container_descriptors() if d in SERVICE_DESCRIPTORS),
+    id_key="service_container_id",
+    signature_key="service_descriptor_signature",
 )
-# The entry's list of cars fetched from ``BASE`` because BMW refused ``FULL``.
-REFUSED_VINS_KEY = "rest_base_vins"
-
-
-def refused_whole(status: Optional[int], error_id: Optional[str]) -> bool:
-    """Whether BMW refused a container for a car outright, rather than the request.
-
-    A bad container id or a spent quota has its own code (CU-105, CU-121,
-    CU-429); a refusal of the container's content is a plain ``CU-400``.
-    """
-
-    return status == 400 and error_id in (None, "CU-400")
-
-
-def kind_for(
-    vin: str, *, refused: Collection[str], combustion_only: Callable[[str], bool]
-) -> ContainerKind:
-    """The container a car is fetched from."""
-
-    return BASE if vin in refused or combustion_only(vin) else FULL
+KINDS = (FULL, SERVICE)
+# What v0.9.20-beta.6 kept in the entry for its fallback container.
+RETIRED_ENTRY_KEYS = ("base_container_id", "base_descriptor_signature", "rest_base_vins")
 
 
 class CardataContainerManager:
@@ -267,7 +259,7 @@ class CardataContainerManager:
         return any(
             [
                 isinstance(purpose, str) and purpose == self.kind.purpose,
-                isinstance(name, str) and name == self.kind.name,
+                isinstance(name, str) and name in (self.kind.name, *self.kind.retired_names),
                 signature == self._descriptor_signature,
             ]
         )
