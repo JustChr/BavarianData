@@ -398,8 +398,14 @@ class _StreamActivatorFlow:
         )
         return pending.get("result") if pending else None
 
-    async def async_remove(self) -> None:
-        """Flow teardown (abort/cancel/finish): drop the webhook + wait task."""
+    @callback
+    def async_remove(self) -> None:
+        """Flow teardown (abort/cancel/finish): drop the webhook + wait task.
+
+        Home Assistant calls this synchronously and never awaits it: as a
+        coroutine it only raised a "never awaited" warning, and a flow closed
+        mid-wait kept its webhook registered (#142's log).
+        """
 
         self._cleanup_onboarding()
         if self._onboarding_wait_task and not self._onboarding_wait_task.done():

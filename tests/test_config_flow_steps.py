@@ -101,3 +101,21 @@ def test_manual_setup_runs_the_activator_not_a_console_snippet() -> None:
     source = _FLOW.read_text(encoding="utf-8")
     assert "build_portal_snippet" not in source
     assert "cluster_snippet" not in source
+
+
+# Flow hooks Home Assistant calls synchronously. Written as ``async def`` they
+# only build a coroutine nobody awaits: the body never runs, and the only trace
+# is a RuntimeWarning in the log (#142's log showed one for ``async_remove``).
+_SYNC_FLOW_HOOKS = ("async_remove",)
+
+
+def test_sync_flow_hooks_are_not_coroutines() -> None:
+    tree = ast.parse(_FLOW.read_text(encoding="utf-8"))
+    coroutines = sorted(
+        f"{cls.name}.{node.name}"
+        for cls in tree.body
+        if isinstance(cls, ast.ClassDef)
+        for node in cls.body
+        if isinstance(node, ast.AsyncFunctionDef) and node.name in _SYNC_FLOW_HOOKS
+    )
+    assert not coroutines, f"Home Assistant never awaits these: {coroutines}"

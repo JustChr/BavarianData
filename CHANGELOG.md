@@ -26,14 +26,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ### Fixed
 - **One field BMW refuses no longer costs a car its whole daily refresh.**
-  Since 16 October BMW refuses the daily data request for some combustion cars
-  with a bare "Bad request" (CU-400), because of one or two fields in it, so
+  Since 16 October BMW refuses the daily data request for some cars, combustion
+  and electric, with a bare "Bad request" (CU-400), because of one or two fields
+  in it, so
   service items, door locks and everything else BMW doesn't stream stopped
   updating. Such a car is now fetched again at once with only the fields BMW
   can't stream, and stays that way. Cars known to have no high-voltage battery
   use that smaller set from the start. **Reset telemetry container** gives a
-  refused car another try with the full set (#135, thanks @georgewalley for
-  narrowing it down).
+  refused car another try with the full set (#135, #142; thanks @georgewalley
+  for narrowing it down and @jla1710 for the report).
 - **A car whose first data request failed now gets its name and model.** Setup
   asked BMW for a car's basic data (name, model, drivetrain, steering side,
   picture) only if its first telematics fetch had worked. When BMW refused that
@@ -52,6 +53,10 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   some model keys it has no car for, BMW's configurator answers with a blocky
   grey SUV that turns like a real one. It's now recognised from the first
   frame, so the car keeps its official picture instead (#132).
+- **Closing the setup or Configure dialog mid-way now cleans up after itself.**
+  Home Assistant never ran the flow's teardown, so a dialog closed while it
+  waited for the in-browser activator left its one-time link registered and
+  logged a "coroutine was never awaited" warning (seen in #142's log).
 
 ## [0.9.20-beta.5] - 2026-10-16
 
