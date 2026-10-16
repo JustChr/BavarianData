@@ -114,6 +114,22 @@ file under its budget (100 lines). The last line is the marker:
 Last close: <short sha of HEAD on main> (YYYY-MM-DD)
 ```
 
+**Open threads are refreshed from GitHub, never copied forward.** Memory goes stale
+between sessions: someone else, or an earlier session, may have closed an issue,
+merged a PR or answered a thread. For every issue, PR and discussion listed under
+*Open threads* and *In flight*, and every one touched this session, read its live
+state and last comment before rewriting the file:
+
+```bash
+gh issue view <n> --json state,closedAt,comments --jq '{state, closedAt, last: .comments[-1] | {a: .author.login, t: .createdAt, b: .body[0:300]}}'
+gh pr view <n> --json state,mergedAt
+```
+
+Then write what is true now: closed threads leave the list (with the date, if it
+matters), a new reply from the user moves the thread to "owed by us", and a
+release that fixes a thread makes "tell them it shipped" an owed item. Never post
+from close; list it for the user in the report.
+
 **Topic memories.** Anything learned this session that a future session
 needs and the repo can't hold (why a decision went the way it did, a live
 measurement, a trap) goes into the memory it belongs to. A decision the user
