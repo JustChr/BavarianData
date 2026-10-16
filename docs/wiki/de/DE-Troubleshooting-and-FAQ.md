@@ -164,11 +164,11 @@ Alles, was ein Auto benennt — Modell, Baureihe, Softwarestand, der Gerätename
 selbst — stammt aus einem REST-Aufruf, der bisher nur bei der Einrichtung lief.
 Ein später hinzugekommenes Fahrzeug blieb daher eine nackte FIN.
 
-Ab **v0.9.11-beta.4** erfolgt der Abruf automatisch, sobald das Auto zum ersten
-Mal im Stream auftaucht (eine Anfrage aus dem Tageskontingent, einmalig). Wer so
-ein Fahrzeug bereits hat oder dessen Abruf BMW abgelehnt hat, ruft
-**Konfigurieren → Fahrzeug-Basisdaten abrufen** auf — das deckt alle Fahrzeuge
-des Eintrags ab.
+Der Abruf erfolgt automatisch, sobald ein Auto zum ersten Mal im Stream
+auftaucht, und ab **v0.9.20** nach jedem Start von Home Assistant erneut für jedes
+Auto, dem die Daten noch fehlen (eine Anfrage je solchem Auto). Wer nicht warten
+will, ruft **Konfigurieren → Jetzt von BMW abrufen → Fahrzeug-Basisdaten
+abrufen** auf — das deckt alle Fahrzeuge des Eintrags ab.
 
 Derselbe Aufruf verrät der Integration auch den Antrieb und auf welcher Seite
 der Fahrer sitzt. Ohne ihn zeichnet die Karte bei einem Rechtslenker die Türen
@@ -207,8 +207,8 @@ Hinweis **„BMW CarData Stream nicht autorisiert“**. Die Integration versucht
 zuerst selbst erneut und autorisiert sich neu; der Hinweis erscheint erst, wenn das eine
 Weile nichts gebracht hat. Zwei übliche Ursachen:
 
-1. **Veraltete Token.** Führe **Konfigurieren → Token jetzt erneuern** aus. Schlägt es
-   weiter fehl, **Konfigurieren → Neu bei BMW autorisieren** (das Refresh-Token läuft
+1. **Veraltete Token.** Führe **Konfigurieren → Verbindung → Token jetzt erneuern** aus. Schlägt es
+   weiter fehl, **Konfigurieren → Verbindung → Neu bei BMW autorisieren** (das Refresh-Token läuft
    etwa alle zwei Wochen ab — siehe [access denied](#onboarding-fails-with-access-denied),
    falls die Neuautorisierung selbst abgelehnt wird).
 2. **Ein anderer Client hält den Stream.** BMW erlaubt nur
@@ -272,7 +272,7 @@ Konto stammen — was zählt, weil BMW pro Konto nur einen laufenden Stream erla
 
 <a id="debug-logging"></a>
 
-Standardmäßig aus. Schalte sie unter **Konfigurieren → Debug-Protokollierung** ein und lade
+Standardmäßig aus. Schalte sie unter **Konfigurieren → Verbindung → Debug-Protokollierung** ein und lade
 neu. Sie ist ausführlich und kann Fahrzeugdaten wie **GPS und die vollständige FIN**
 enthalten, lass sie also aus, solange du kein Problem jagst. (Getrennt vom allgemeinen
 Log-Level, den Home Assistant pro Integration setzt.)
@@ -445,7 +445,7 @@ Versionen nannten nur die Zahl). Die wichtigsten:
 | Code | Bedeutung | Was tun |
 | --- | --- | --- |
 | CU-104 | Keine Berechtigung für dieses Auto | Das Auto ist deinem Konto nicht zugeordnet oder nicht telematikfähig. Prüfe, ob es in BMWs CarData-Portal steht. |
-| CU-105 / CU-121 | Der Telemetrie-Container ist unbekannt oder fehlerhaft | Konfigurieren → **Telemetrie-Container zurücksetzen** ([Einstellungen](DE-Settings-Reference#das-menü-konfigurieren)), dann erneut abrufen. |
+| CU-105 / CU-121 | Der Telemetrie-Container ist unbekannt oder fehlerhaft | Konfigurieren → Verbindung → **Telemetrie-Container zurücksetzen** ([Einstellungen](DE-Settings-Reference#das-menü-konfigurieren)), dann erneut abrufen. |
 | CU-400 | Fehlerhafte Anfrage | BMW lehnt für dieses Auto eines der Felder im Container ab und damit den ganzen Abruf (seit dem 16. Okt. 2026 bei manchen Verbrennern). Die Integration fängt das ab: Sie ruft das Auto sofort noch einmal nur mit den Feldern ab, die BMW nicht streamen kann, und bleibt dabei (eine zusätzliche Anfrage, einmalig; das Protokoll sagt es). Wird auch das abgelehnt, melde es in einem Issue. |
 | CU-429 | Zu viele Anfragen | Siehe [Kontingent aufgebraucht](#quota-exhausted) unten. |
 

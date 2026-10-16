@@ -318,5 +318,5 @@ BMWs eigene Messung Stunden alt, liegt es am Stream, nicht an der Brücke — da
 meldet sich, wann es will, und die meisten Autos schweigen im geparkten Zustand.
 
 **Eine Ladung hat kein `grid_kwh`.** Siehe *Wenn der Wert abgelehnt wird* oben.
-Schalte die Debug-Protokollierung ein (**Konfigurieren → Debug-Protokollierung**) und
+Schalte die Debug-Protokollierung ein (**Konfigurieren → Verbindung → Debug-Protokollierung**) und
 suche die Zeile `[charge]` zu diesem Ladevorgang.

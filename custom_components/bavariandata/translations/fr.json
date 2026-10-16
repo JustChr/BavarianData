@@ -84,25 +84,39 @@
     "step": {
       "init": {
         "title": "Options de BavarianData",
-        "description": "Choisissez une action. Les actions de jeton et d'autorisation maintiennent votre connexion ; les actions de données interrogent l'API REST de BMW à la demande (chacune compte dans la limite quotidienne de 50 requêtes).",
+        "description": "Choisissez un réglage. **Récupérer auprès de BMW** et **Connexion** regroupent les outils ponctuels.",
         "menu_options": {
           "action_select_clusters": "Choisir les données transmises",
-          "action_refresh_tokens": "Renouveler les jetons maintenant",
-          "action_reauth": "Autoriser à nouveau auprès de BMW",
-          "action_reset_container": "Réinitialiser le conteneur de télémétrie",
-          "action_fetch_mappings": "Rechercher les véhicules",
-          "action_fetch_basic": "Récupérer les infos de base du véhicule",
-          "action_fetch_telematic": "Récupérer les données télématiques",
-          "action_fetch_charging_history": "Récupérer l'historique de recharge",
-          "action_fetch_tyre": "Récupérer le diagnostic des pneus",
-          "action_fetch_location_charging": "Récupérer les réglages de recharge",
           "action_fetch_image": "Image du véhicule",
-          "action_data_refresh": "Actualisation automatique des données",
           "action_charging_costs": "Coûts et historique de recharge",
           "action_energy_sources": "Solaire et sources d'énergie",
           "action_evcc_bridge": "Passerelle evcc / borne de recharge",
           "action_trips": "Trajets",
           "action_mileage": "Kilométrage autorisé",
+          "action_data_refresh": "Actualisation automatique des données",
+          "fetch_now": "Récupérer auprès de BMW",
+          "connection": "Connexion"
+        }
+      },
+      "fetch_now": {
+        "title": "Récupérer auprès de BMW",
+        "description": "Demandez des données à BMW maintenant au lieu d'attendre l'actualisation quotidienne. Chaque entrée utilise une des 50 requêtes quotidiennes de BMW par véhicule.",
+        "menu_options": {
+          "action_fetch_mappings": "Rechercher les véhicules",
+          "action_fetch_telematic": "Récupérer les données télématiques",
+          "action_fetch_basic": "Récupérer les infos de base du véhicule",
+          "action_fetch_charging_history": "Récupérer l'historique de recharge",
+          "action_fetch_tyre": "Récupérer le diagnostic des pneus",
+          "action_fetch_location_charging": "Récupérer les réglages de recharge"
+        }
+      },
+      "connection": {
+        "title": "Connexion",
+        "description": "Maintenez le lien avec BMW, ou activez une journalisation détaillée pour un rapport de bug.",
+        "menu_options": {
+          "action_reauth": "Autoriser à nouveau auprès de BMW",
+          "action_refresh_tokens": "Renouveler les jetons maintenant",
+          "action_reset_container": "Réinitialiser le conteneur de télémétrie",
           "action_debug_logging": "Journalisation de débogage"
         }
       },

@@ -89,7 +89,7 @@ overview → your car → **BMW CarData** tile) for as long as the client exists
   per car, and Home Assistant refuses a second one for the same account.
 - **If you delete the client** in the portal, create a new one (both
   subscriptions again) and give Home Assistant the new ID under **Configure →
-  Re-authorize with BMW**.
+  Connection → Re-authorize with BMW**.
 - **Setup says "BMW rejected the device authorization request"?** Check that the
   ID was copied completely and that both **CarData API** and **CarData Stream**
   are switched on for the client.

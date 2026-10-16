@@ -84,25 +84,39 @@
     "step": {
       "init": {
         "title": "BavarianData options",
-        "description": "Pick an action. The token and authorization actions keep your connection alive; the data actions call BMW's REST API on demand (each counts against the daily 50-request API limit).",
+        "description": "Pick a setting to change. **Fetch from BMW now** and **Connection** hold the one-off tools.",
         "menu_options": {
           "action_select_clusters": "Choose streamed data",
-          "action_refresh_tokens": "Refresh tokens now",
-          "action_reauth": "Re-authorize with BMW",
-          "action_reset_container": "Reset telemetry container",
-          "action_fetch_mappings": "Discover vehicles",
-          "action_fetch_basic": "Fetch basic vehicle info",
-          "action_fetch_telematic": "Fetch telematics data",
-          "action_fetch_charging_history": "Fetch charging history",
-          "action_fetch_tyre": "Fetch tire diagnosis",
-          "action_fetch_location_charging": "Fetch charging settings",
           "action_fetch_image": "Vehicle image",
-          "action_data_refresh": "Automatic data refresh",
           "action_charging_costs": "Charging costs & history",
           "action_energy_sources": "Solar & energy sources",
           "action_evcc_bridge": "evcc / wallbox bridge",
           "action_trips": "Trips",
           "action_mileage": "Mileage allowance",
+          "action_data_refresh": "Automatic data refresh",
+          "fetch_now": "Fetch from BMW now",
+          "connection": "Connection"
+        }
+      },
+      "fetch_now": {
+        "title": "Fetch from BMW now",
+        "description": "Ask BMW for data now instead of waiting for the daily refresh. Each entry uses one of BMW's 50 daily requests per car.",
+        "menu_options": {
+          "action_fetch_mappings": "Discover vehicles",
+          "action_fetch_telematic": "Fetch telematics data",
+          "action_fetch_basic": "Fetch basic vehicle info",
+          "action_fetch_charging_history": "Fetch charging history",
+          "action_fetch_tyre": "Fetch tire diagnosis",
+          "action_fetch_location_charging": "Fetch charging settings"
+        }
+      },
+      "connection": {
+        "title": "Connection",
+        "description": "Keep the link to BMW working, or turn on detailed logging for a bug report.",
+        "menu_options": {
+          "action_reauth": "Re-authorize with BMW",
+          "action_refresh_tokens": "Refresh tokens now",
+          "action_reset_container": "Reset telemetry container",
           "action_debug_logging": "Debug logging"
         }
       },

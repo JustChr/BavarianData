@@ -51,7 +51,7 @@ is per vehicle and has no API. Run **Configure → Choose streamed data** again 
 select the new car on the portal page the activator opens
 ([step 4](Getting-Started-4-Choose-Data)). When that finishes, the integration
 looks for the car itself and adds it with its entities — you do not have to wait
-for it to drive, or press **Discover vehicles**. (Re-authorizing the account does
+for it to drive, or press **Configure → Fetch from BMW now → Discover vehicles**. (Re-authorizing the account does
 the same.)
 
 <a id="adding-a-car-corner-cases"></a>

@@ -301,5 +301,5 @@ BMW's own reading is hours old, that's the stream, not the bridge — the car
 reports when it feels like it, and most cars go quiet when parked.
 
 **A charge recorded no `grid_kwh`.** See *When the reading is refused* above.
-Enable debug logging (**Configure → Debug logging**) and look for the `[charge]`
+Enable debug logging (**Configure → Connection → Debug logging**) and look for the `[charge]`
 line for that session.

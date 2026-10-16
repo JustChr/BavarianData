@@ -84,25 +84,39 @@
     "step": {
       "init": {
         "title": "BavarianData Optionen",
-        "description": "Wähle eine Aktion. Die Token- und Autorisierungsaktionen halten die Verbindung am Leben; die Datenaktionen rufen BMWs REST-API bei Bedarf ab (jede zählt gegen das tägliche Limit von 50 Anfragen).",
+        "description": "Wähle eine Einstellung. **Jetzt von BMW abrufen** und **Verbindung** enthalten die einmaligen Werkzeuge.",
         "menu_options": {
           "action_select_clusters": "Gestreamte Daten auswählen",
-          "action_refresh_tokens": "Token jetzt erneuern",
-          "action_reauth": "Neu bei BMW autorisieren",
-          "action_reset_container": "Telemetrie-Container zurücksetzen",
-          "action_fetch_mappings": "Fahrzeuge suchen",
-          "action_fetch_basic": "Fahrzeug-Basisdaten abrufen",
-          "action_fetch_telematic": "Telematikdaten abrufen",
-          "action_fetch_charging_history": "Ladehistorie abrufen",
-          "action_fetch_tyre": "Reifendiagnose abrufen",
-          "action_fetch_location_charging": "Ladeeinstellungen abrufen",
           "action_fetch_image": "Fahrzeugbild",
-          "action_data_refresh": "Automatische Aktualisierung",
           "action_charging_costs": "Ladekosten & Verlauf",
           "action_energy_sources": "Solar & Energiequellen",
           "action_evcc_bridge": "evcc-/Wallbox-Brücke",
           "action_trips": "Fahrten",
           "action_mileage": "Kilometerkontingent",
+          "action_data_refresh": "Automatische Aktualisierung",
+          "fetch_now": "Jetzt von BMW abrufen",
+          "connection": "Verbindung"
+        }
+      },
+      "fetch_now": {
+        "title": "Jetzt von BMW abrufen",
+        "description": "Fragt Daten sofort bei BMW ab, statt auf die tägliche Aktualisierung zu warten. Jeder Eintrag verbraucht pro Auto eine der 50 täglichen Anfragen bei BMW.",
+        "menu_options": {
+          "action_fetch_mappings": "Fahrzeuge suchen",
+          "action_fetch_telematic": "Telematikdaten abrufen",
+          "action_fetch_basic": "Fahrzeug-Basisdaten abrufen",
+          "action_fetch_charging_history": "Ladehistorie abrufen",
+          "action_fetch_tyre": "Reifendiagnose abrufen",
+          "action_fetch_location_charging": "Ladeeinstellungen abrufen"
+        }
+      },
+      "connection": {
+        "title": "Verbindung",
+        "description": "Hält die Verbindung zu BMW am Laufen oder schaltet ausführliches Protokollieren für einen Fehlerbericht ein.",
+        "menu_options": {
+          "action_reauth": "Neu bei BMW autorisieren",
+          "action_refresh_tokens": "Token jetzt erneuern",
+          "action_reset_container": "Telemetrie-Container zurücksetzen",
           "action_debug_logging": "Debug-Protokollierung"
         }
       },

@@ -116,7 +116,7 @@ reliable workaround — see
 
 ## Re-authorizing later
 
-If BMW later invalidates the token, run **Configure → Re-authorize with BMW**.
+If BMW later invalidates the token, run **Configure → Connection → Re-authorize with BMW**.
 Running **Add device** again with the same client ID also works — the existing
 entry is re-authorized in place and keeps its history. (Removing the integration
 yourself deletes its recorded history.)

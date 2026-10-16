@@ -15,7 +15,7 @@ reconnect.
 ## The Configure menu
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-menu.png?v=2026-10-14" alt="BavarianData options menu listing every action, from Choose streamed data to Debug logging" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-menu.png?v=2026-10-14" alt="BavarianData options menu (before v0.9.20: one flat list of every action)" width="460" />
 </p>
 
 The menu labels below are exactly as they appear in the UI.
@@ -23,22 +23,34 @@ The menu labels below are exactly as they appear in the UI.
 | Menu entry | Kind | What it does |
 | --- | --- | --- |
 | **Choose streamed data** | setup | Re-open the [cluster picker](Getting-Started-4-Choose-Data), then activate the fields with the one-click **Activate BMW data** bookmarklet (same activator as guided setup). Additive — it adds the chosen clusters to the live stream but never removes fields you already stream. |
-| **Refresh tokens now** | action | Force an OAuth token refresh. |
-| **Re-authorize with BMW** | action | Re-run device auth (after BMW invalidates the token). |
-| **Reset telemetry container** | action | Replace the integration's REST containers with fresh ones (about three requests each), and give cars that BMW refused the full set of fields another try with it. Use if telematics fetches start failing with CU-105 or CU-121. |
-| **Discover vehicles** | action ⚡ | Fetch vehicle mappings and add any car not yet known as a device. See [Services](Services-Reference). |
-| **Fetch basic vehicle info** | action ⚡ | See [Services](Services-Reference). |
-| **Fetch telematics data** | action ⚡ | " |
-| **Fetch charging history** | action ⚡ | " |
-| **Fetch tire diagnosis** | action ⚡ | " |
-| **Fetch charging settings** | action ⚡ | Location-based charging settings. " |
 | **Vehicle image** | settings ⚡ | Where the car's picture comes from: BMW CarData, or BMW's online configurator — below. |
-| **Automatic data refresh** | settings ⚡ | Catch up with BMW after Home Assistant starts — below. |
 | **Charging costs & history** | settings | Price source, retention, statistics — below. |
 | **Solar & energy sources** | settings | Where each charge's energy came from: PV, house battery, grid — below. |
 | **evcc / wallbox bridge** | settings | Publish the car's live state to MQTT for a charge controller — below. |
 | **Trips** | settings | Work zone, default type, commute stop tolerance, address resolution and route recording — below. |
 | **Mileage allowance** | settings | A lease or a yearly mileage limit for each car — below. |
+| **Automatic data refresh** | settings ⚡ | Catch up with BMW after Home Assistant starts — below. |
+| **Fetch from BMW now** | menu ⚡ | Ask BMW for data now instead of waiting for the daily refresh — the next table. |
+| **Connection** | menu | Keep the link to BMW working, and debug logging — the table after it. |
+
+**Configure → Fetch from BMW now**
+
+| Menu entry | Kind | What it does |
+| --- | --- | --- |
+| **Discover vehicles** | action ⚡ | Fetch vehicle mappings and add any car not yet known as a device. See [Services](Services-Reference). |
+| **Fetch telematics data** | action ⚡ | See [Services](Services-Reference). |
+| **Fetch basic vehicle info** | action ⚡ | " |
+| **Fetch charging history** | action ⚡ | " |
+| **Fetch tire diagnosis** | action ⚡ | " |
+| **Fetch charging settings** | action ⚡ | Location-based charging settings. " |
+
+**Configure → Connection**
+
+| Menu entry | Kind | What it does |
+| --- | --- | --- |
+| **Re-authorize with BMW** | action | Re-run device auth (after BMW invalidates the token). |
+| **Refresh tokens now** | action | Force an OAuth token refresh. |
+| **Reset telemetry container** | action ⚡ | Replace the integration's REST containers with fresh ones (about three requests each), and give cars that BMW refused the full set of fields another try with it. Use if telematics fetches start failing with CU-105 or CU-121. |
 | **Debug logging** | settings | Verbose logging toggle — below. |
 
 ⚡ = spends one (or more) of your [50 requests / 24 h](Feature-API-Quota).
@@ -272,7 +284,7 @@ enter it once more.
 
 ## Debug logging
 
-Screen: **Configure → Debug logging**.
+Screen: **Configure → Connection → Debug logging**.
 
 | Option | Values | Meaning |
 | --- | --- | --- |

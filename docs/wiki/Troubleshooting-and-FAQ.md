@@ -160,10 +160,11 @@ Everything that names a car — model, series, software version, the device name
 itself — comes from one REST call that used to run only during setup, so a car
 added to the account afterwards stayed a bare VIN.
 
-From **v0.9.11-beta.4** it is fetched automatically the first time that car is
-seen on the stream (one request against the day's quota, once). On an install
-that already has such a car, or if BMW refused the call, run
-**Configure → Fetch basic vehicle data**, which covers every car on the entry.
+It is fetched automatically the first time a car is seen on the stream, and
+from **v0.9.20** again after every Home Assistant start for any car still
+without it (one request per such car). To ask right away, run **Configure →
+Fetch from BMW now → Fetch basic vehicle info**, which covers every car on the
+entry.
 
 The same call tells the integration the drivetrain and which side the driver
 sits on, so without it a right-hand-drive car has its doors drawn on the wrong
@@ -199,8 +200,8 @@ not authorized"** appears under **Settings → Repairs**. The integration retrie
 re-authorizes on its own first; the repair only appears once that hasn't
 recovered it for a while. Two usual causes:
 
-1. **Stale tokens.** Run **Configure → Refresh tokens now**. If it keeps
-   failing, **Configure → Re-authorize with BMW** (the refresh token expires
+1. **Stale tokens.** Run **Configure → Connection → Refresh tokens now**. If it keeps
+   failing, **Configure → Connection → Re-authorize with BMW** (the refresh token expires
    roughly every two weeks — see
    [access denied](#onboarding-fails-with-access-denied) if the re-auth itself
    is rejected).
@@ -261,7 +262,7 @@ What's left is exactly what distinguishes the common failures from each other:
 
 ## Debug logging
 
-Off by default. Turn it on in **Configure → Debug logging** and reload. It's
+Off by default. Turn it on in **Configure → Connection → Debug logging** and reload. It's
 verbose and can include vehicle data such as **GPS and the full VIN**, so leave
 it off unless you're chasing a problem. (Separate from Home Assistant's generic
 per-integration log level.)
@@ -432,7 +433,7 @@ number). The ones worth knowing:
 | Code | Meaning | What to do |
 | --- | --- | --- |
 | CU-104 | No permission for this car | The car isn't mapped to your account or isn't telematics-capable. Check it is listed at BMW's CarData portal. |
-| CU-105 / CU-121 | The telemetry container is unknown or malformed | Configure → **Reset telemetry container** ([Settings](Settings-Reference#the-configure-menu)), then fetch again. |
+| CU-105 / CU-121 | The telemetry container is unknown or malformed | Configure → Connection → **Reset telemetry container** ([Settings](Settings-Reference#the-configure-menu)), then fetch again. |
 | CU-400 | Bad request | BMW refuses one of the container's fields for this car, and with it the whole fetch (since 16 Oct 2026 for some combustion cars). The integration handles it: it fetches that car again at once with only the fields BMW can't stream, and keeps doing so (one extra request, once; the log says so). If that is refused too, report it in an issue. |
 | CU-429 | Too many requests | See [quota exhausted](#quota-exhausted) below. |
 

@@ -84,25 +84,39 @@
     "step": {
       "init": {
         "title": "BavarianData-alternativ",
-        "description": "Välj en åtgärd. Token- och auktoriseringsåtgärderna håller anslutningen vid liv; dataåtgärderna anropar BMW:s REST-API på begäran (var och en räknas mot den dagliga gränsen på 50 anrop).",
+        "description": "Välj en inställning. **Hämta från BMW nu** och **Anslutning** innehåller engångsverktygen.",
         "menu_options": {
           "action_select_clusters": "Välj strömmade data",
-          "action_refresh_tokens": "Förnya token nu",
-          "action_reauth": "Auktorisera igen hos BMW",
-          "action_reset_container": "Återställ telemetribehållaren",
-          "action_fetch_mappings": "Sök efter fordon",
-          "action_fetch_basic": "Hämta fordonets grunddata",
-          "action_fetch_telematic": "Hämta telematikdata",
-          "action_fetch_charging_history": "Hämta laddningshistorik",
-          "action_fetch_tyre": "Hämta däckdiagnos",
-          "action_fetch_location_charging": "Hämta laddningsinställningar",
           "action_fetch_image": "Fordonsbild",
-          "action_data_refresh": "Automatisk datauppdatering",
           "action_charging_costs": "Laddkostnader och historik",
           "action_energy_sources": "Sol och energikällor",
           "action_evcc_bridge": "evcc-/laddboxbrygga",
           "action_trips": "Resor",
           "action_mileage": "Miltak",
+          "action_data_refresh": "Automatisk datauppdatering",
+          "fetch_now": "Hämta från BMW nu",
+          "connection": "Anslutning"
+        }
+      },
+      "fetch_now": {
+        "title": "Hämta från BMW nu",
+        "description": "Be BMW om data nu i stället för att vänta på den dagliga uppdateringen. Varje post använder en av BMW:s 50 dagliga förfrågningar per bil.",
+        "menu_options": {
+          "action_fetch_mappings": "Sök efter fordon",
+          "action_fetch_telematic": "Hämta telematikdata",
+          "action_fetch_basic": "Hämta fordonets grunddata",
+          "action_fetch_charging_history": "Hämta laddningshistorik",
+          "action_fetch_tyre": "Hämta däckdiagnos",
+          "action_fetch_location_charging": "Hämta laddningsinställningar"
+        }
+      },
+      "connection": {
+        "title": "Anslutning",
+        "description": "Håll kopplingen till BMW igång, eller slå på detaljerad loggning för en felrapport.",
+        "menu_options": {
+          "action_reauth": "Auktorisera igen hos BMW",
+          "action_refresh_tokens": "Förnya token nu",
+          "action_reset_container": "Återställ telemetribehållaren",
           "action_debug_logging": "Felsökningsloggning"
         }
       },

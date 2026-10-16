@@ -84,25 +84,39 @@
     "step": {
       "init": {
         "title": "Opcje BavarianData",
-        "description": "Wybierz działanie. Działania dotyczące tokenów i autoryzacji utrzymują połączenie; działania dotyczące danych wywołują na żądanie API REST BMW (każde wlicza się do dziennego limitu 50 żądań).",
+        "description": "Wybierz ustawienie. **Pobierz teraz z BMW** i **Połączenie** zawierają narzędzia jednorazowe.",
         "menu_options": {
           "action_select_clusters": "Wybierz przesyłane dane",
-          "action_refresh_tokens": "Odśwież tokeny teraz",
-          "action_reauth": "Autoryzuj ponownie w BMW",
-          "action_reset_container": "Zresetuj kontener telemetrii",
-          "action_fetch_mappings": "Wyszukaj pojazdy",
-          "action_fetch_basic": "Pobierz podstawowe dane pojazdu",
-          "action_fetch_telematic": "Pobierz dane telematyczne",
-          "action_fetch_charging_history": "Pobierz historię ładowania",
-          "action_fetch_tyre": "Pobierz diagnozę opon",
-          "action_fetch_location_charging": "Pobierz ustawienia ładowania",
           "action_fetch_image": "Zdjęcie pojazdu",
-          "action_data_refresh": "Automatyczne odświeżanie danych",
           "action_charging_costs": "Koszty i historia ładowania",
           "action_energy_sources": "Fotowoltaika i źródła energii",
           "action_evcc_bridge": "Most evcc / wallbox",
           "action_trips": "Przejazdy",
           "action_mileage": "Limit kilometrów",
+          "action_data_refresh": "Automatyczne odświeżanie danych",
+          "fetch_now": "Pobierz teraz z BMW",
+          "connection": "Połączenie"
+        }
+      },
+      "fetch_now": {
+        "title": "Pobierz teraz z BMW",
+        "description": "Pobierz dane z BMW od razu zamiast czekać na codzienną aktualizację. Każda pozycja zużywa jedno z 50 dziennych zapytań BMW na samochód.",
+        "menu_options": {
+          "action_fetch_mappings": "Wyszukaj pojazdy",
+          "action_fetch_telematic": "Pobierz dane telematyczne",
+          "action_fetch_basic": "Pobierz podstawowe dane pojazdu",
+          "action_fetch_charging_history": "Pobierz historię ładowania",
+          "action_fetch_tyre": "Pobierz diagnozę opon",
+          "action_fetch_location_charging": "Pobierz ustawienia ładowania"
+        }
+      },
+      "connection": {
+        "title": "Połączenie",
+        "description": "Utrzymaj połączenie z BMW lub włącz szczegółowe logowanie do zgłoszenia błędu.",
+        "menu_options": {
+          "action_reauth": "Autoryzuj ponownie w BMW",
+          "action_refresh_tokens": "Odśwież tokeny teraz",
+          "action_reset_container": "Zresetuj kontener telemetrii",
           "action_debug_logging": "Rejestrowanie debugowania"
         }
       },

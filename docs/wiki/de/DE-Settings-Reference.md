@@ -15,7 +15,7 @@ Konto erlaubt und ein Neuladen mit dem Wiederverbinden kollidieren könnte.
 ## Das Menü Konfigurieren
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-menu.png?v=2026-10-14" alt="Optionsmenü von BavarianData mit allen Aktionen, von Choose streamed data bis Debug logging" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-menu.png?v=2026-10-14" alt="Optionsmenü von BavarianData (vor v0.9.20: eine flache Liste aller Aktionen)" width="460" />
 </p>
 
 Die Menüeinträge unten sind so geschrieben, wie sie in der deutschen Oberfläche
@@ -24,22 +24,34 @@ erscheinen (der Screenshot zeigt die englische).
 | Menüeintrag | Art | Was er tut |
 | --- | --- | --- |
 | **Gestreamte Daten auswählen** | Einrichtung | Öffnet die [Auswahl der Datengruppen](DE-Getting-Started-4-Choose-Data) erneut und schaltet die Felder dann mit dem Ein-Klick-Lesezeichen **Activate BMW data** ein (derselbe Aktivator wie bei der geführten Einrichtung). Nur hinzufügend — fügt die gewählten Datengruppen dem laufenden Stream hinzu, entfernt aber nie bereits gestreamte Felder. |
-| **Token jetzt erneuern** | Aktion | Erzwingt eine Erneuerung des OAuth-Tokens. |
-| **Neu bei BMW autorisieren** | Aktion | Führt die Geräteautorisierung erneut aus (nachdem BMW das Token ungültig gemacht hat). |
-| **Telemetrie-Container zurücksetzen** | Aktion | Ersetzt die REST-Container der Integration durch frische (je etwa drei Anfragen) und gibt Autos, bei denen BMW den vollen Feldsatz abgelehnt hat, damit einen neuen Versuch. Nutze das, wenn Telematik-Abrufe mit CU-105 oder CU-121 fehlschlagen. |
-| **Fahrzeuge suchen** | Aktion ⚡ | Ruft die Fahrzeugzuordnungen ab und legt noch unbekannte Fahrzeuge als Gerät an. Siehe [Dienste](DE-Services-Reference). |
-| **Fahrzeug-Basisdaten abrufen** | Aktion ⚡ | Siehe [Dienste](DE-Services-Reference). |
-| **Telematikdaten abrufen** | Aktion ⚡ | " |
-| **Ladehistorie abrufen** | Aktion ⚡ | " |
-| **Reifendiagnose abrufen** | Aktion ⚡ | " |
-| **Ladeeinstellungen abrufen** | Aktion ⚡ | Standortbasierte Ladeeinstellungen. " |
 | **Fahrzeugbild** | Einstellungen ⚡ | Woher das Bild des Autos kommt: BMW CarData oder BMWs Online-Konfigurator — unten. |
-| **Automatische Aktualisierung** | Einstellungen ⚡ | Nach dem Start von Home Assistant bei BMW aufholen — unten. |
 | **Ladekosten & Verlauf** | Einstellungen | Preisquelle, Aufbewahrung, Statistiken — unten. |
 | **Solar & Energiequellen** | Einstellungen | Woher die Energie jeder Ladung kam: PV, Hausspeicher, Netz — unten. |
 | **evcc-/Wallbox-Brücke** | Einstellungen | Den Live-Zustand des Autos für eine Ladesteuerung per MQTT veröffentlichen — unten. |
 | **Fahrten** | Einstellungen | Arbeitszone, Standard-Typ, Toleranz für Zwischenstopps, Adressauflösung und Routenaufzeichnung — unten. |
 | **Kilometerkontingent** | Einstellungen | Ein Leasing oder eine jährliche Kilometergrenze pro Auto — unten. |
+| **Automatische Aktualisierung** | Einstellungen ⚡ | Nach dem Start von Home Assistant bei BMW aufholen — unten. |
+| **Jetzt von BMW abrufen** | Menü ⚡ | Daten sofort bei BMW abfragen, statt auf die tägliche Aktualisierung zu warten — nächste Tabelle. |
+| **Verbindung** | Menü | Die Verbindung zu BMW am Laufen halten, dazu die Debug-Protokollierung — die Tabelle danach. |
+
+**Konfigurieren → Jetzt von BMW abrufen**
+
+| Menüeintrag | Art | Was er tut |
+| --- | --- | --- |
+| **Fahrzeuge suchen** | Aktion ⚡ | Ruft die Fahrzeugzuordnungen ab und legt noch unbekannte Fahrzeuge als Gerät an. Siehe [Dienste](DE-Services-Reference). |
+| **Telematikdaten abrufen** | Aktion ⚡ | Siehe [Dienste](DE-Services-Reference). |
+| **Fahrzeug-Basisdaten abrufen** | Aktion ⚡ | " |
+| **Ladehistorie abrufen** | Aktion ⚡ | " |
+| **Reifendiagnose abrufen** | Aktion ⚡ | " |
+| **Ladeeinstellungen abrufen** | Aktion ⚡ | Standortbasierte Ladeeinstellungen. " |
+
+**Konfigurieren → Verbindung**
+
+| Menüeintrag | Art | Was er tut |
+| --- | --- | --- |
+| **Neu bei BMW autorisieren** | Aktion | Führt die Geräteautorisierung erneut aus (nachdem BMW das Token ungültig gemacht hat). |
+| **Token jetzt erneuern** | Aktion | Erzwingt eine Erneuerung des OAuth-Tokens. |
+| **Telemetrie-Container zurücksetzen** | Aktion ⚡ | Ersetzt die REST-Container der Integration durch frische (je etwa drei Anfragen) und gibt Autos, bei denen BMW den vollen Feldsatz abgelehnt hat, damit einen neuen Versuch. Nutze das, wenn Telematik-Abrufe mit CU-105 oder CU-121 fehlschlagen. |
 | **Debug-Protokollierung** | Einstellungen | Schalter für ausführliche Protokollierung — unten. |
 
 ⚡ = verbraucht eine (oder mehrere) deiner [50 Anfragen / 24 h](DE-Feature-API-Quota).
@@ -295,7 +307,7 @@ einmal neu ein.
 
 <a id="debug-logging"></a>
 
-Bildschirm: **Konfigurieren → Debug-Protokollierung**.
+Bildschirm: **Konfigurieren → Verbindung → Debug-Protokollierung**.
 
 | Option | Werte | Bedeutung |
 | --- | --- | --- |

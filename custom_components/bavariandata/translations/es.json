@@ -84,25 +84,39 @@
     "step": {
       "init": {
         "title": "Opciones de BavarianData",
-        "description": "Elige una acción. Las acciones de token y autorización mantienen viva la conexión; las acciones de datos consultan la API REST de BMW bajo demanda (cada una cuenta para el límite diario de 50 solicitudes).",
+        "description": "Elige un ajuste. **Obtener de BMW ahora** y **Conexión** contienen las herramientas puntuales.",
         "menu_options": {
           "action_select_clusters": "Elegir los datos transmitidos",
-          "action_refresh_tokens": "Renovar los tokens ahora",
-          "action_reauth": "Volver a autorizar con BMW",
-          "action_reset_container": "Restablecer el contenedor de telemetría",
-          "action_fetch_mappings": "Buscar vehículos",
-          "action_fetch_basic": "Obtener los datos básicos del vehículo",
-          "action_fetch_telematic": "Obtener los datos telemáticos",
-          "action_fetch_charging_history": "Obtener el historial de carga",
-          "action_fetch_tyre": "Obtener el diagnóstico de neumáticos",
-          "action_fetch_location_charging": "Obtener los ajustes de carga",
           "action_fetch_image": "Imagen del vehículo",
-          "action_data_refresh": "Actualización automática de datos",
           "action_charging_costs": "Costes e historial de carga",
           "action_energy_sources": "Solar y fuentes de energía",
           "action_evcc_bridge": "Puente evcc / wallbox",
           "action_trips": "Trayectos",
           "action_mileage": "Kilometraje permitido",
+          "action_data_refresh": "Actualización automática de datos",
+          "fetch_now": "Obtener de BMW ahora",
+          "connection": "Conexión"
+        }
+      },
+      "fetch_now": {
+        "title": "Obtener de BMW ahora",
+        "description": "Pide los datos a BMW ahora en lugar de esperar a la actualización diaria. Cada entrada usa una de las 50 solicitudes diarias de BMW por coche.",
+        "menu_options": {
+          "action_fetch_mappings": "Buscar vehículos",
+          "action_fetch_telematic": "Obtener los datos telemáticos",
+          "action_fetch_basic": "Obtener los datos básicos del vehículo",
+          "action_fetch_charging_history": "Obtener el historial de carga",
+          "action_fetch_tyre": "Obtener el diagnóstico de neumáticos",
+          "action_fetch_location_charging": "Obtener los ajustes de carga"
+        }
+      },
+      "connection": {
+        "title": "Conexión",
+        "description": "Mantén funcionando el enlace con BMW o activa un registro detallado para un informe de error.",
+        "menu_options": {
+          "action_reauth": "Volver a autorizar con BMW",
+          "action_refresh_tokens": "Renovar los tokens ahora",
+          "action_reset_container": "Restablecer el contenedor de telemetría",
           "action_debug_logging": "Registro de depuración"
         }
       },

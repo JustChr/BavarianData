@@ -1052,26 +1052,50 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
     async def async_step_init(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         # Labels/descriptions come from translations (options.step.init.menu_options),
         # so the menu is localizable and stays in sync with each action step.
+        # Settings first; the one-off tools sit one level down, so the menu
+        # people open to change a setting is a list of settings.
         return self.async_show_menu(
             step_id="init",
             menu_options=[
                 "action_select_clusters",
-                "action_refresh_tokens",
-                "action_reauth",
-                "action_reset_container",
-                "action_fetch_mappings",
-                "action_fetch_basic",
-                "action_fetch_telematic",
-                "action_fetch_charging_history",
-                "action_fetch_tyre",
-                "action_fetch_location_charging",
                 "action_fetch_image",
-                "action_data_refresh",
                 "action_charging_costs",
                 "action_energy_sources",
                 "action_evcc_bridge",
                 "action_trips",
                 "action_mileage",
+                "action_data_refresh",
+                "fetch_now",
+                "connection",
+            ],
+        )
+
+    async def async_step_fetch_now(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+        """Ask BMW for something now; every entry spends quota."""
+
+        return self.async_show_menu(
+            step_id="fetch_now",
+            menu_options=[
+                "action_fetch_mappings",
+                "action_fetch_telematic",
+                "action_fetch_basic",
+                "action_fetch_charging_history",
+                "action_fetch_tyre",
+                "action_fetch_location_charging",
+            ],
+        )
+
+    async def async_step_connection(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Keep the link to BMW working, and log for a bug report."""
+
+        return self.async_show_menu(
+            step_id="connection",
+            menu_options=[
+                "action_reauth",
+                "action_refresh_tokens",
+                "action_reset_container",
                 "action_debug_logging",
             ],
         )

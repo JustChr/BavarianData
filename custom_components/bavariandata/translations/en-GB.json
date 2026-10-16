@@ -24,11 +24,14 @@
   },
   "options": {
     "step": {
-      "init": {
-        "description": "Pick an action. The token and authorisation actions keep your connection alive; the data actions call BMW's REST API on demand (each counts against the daily 50-request API limit).",
+      "fetch_now": {
         "menu_options": {
-          "action_reauth": "Re-authorise with BMW",
           "action_fetch_tyre": "Fetch tyre diagnosis"
+        }
+      },
+      "connection": {
+        "menu_options": {
+          "action_reauth": "Re-authorise with BMW"
         }
       },
       "action_reauth": {

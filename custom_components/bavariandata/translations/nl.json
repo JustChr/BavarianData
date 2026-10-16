@@ -84,25 +84,39 @@
     "step": {
       "init": {
         "title": "BavarianData-opties",
-        "description": "Kies een actie. De token- en autorisatieacties houden je verbinding in leven; de gegevensacties roepen op verzoek de REST-API van BMW aan (elke actie telt mee voor de dagelijkse limiet van 50 verzoeken).",
+        "description": "Kies een instelling. **Nu ophalen bij BMW** en **Verbinding** bevatten de eenmalige hulpmiddelen.",
         "menu_options": {
           "action_select_clusters": "Gestreamde gegevens kiezen",
-          "action_refresh_tokens": "Tokens nu vernieuwen",
-          "action_reauth": "Opnieuw autoriseren bij BMW",
-          "action_reset_container": "Telemetriecontainer resetten",
-          "action_fetch_mappings": "Voertuigen zoeken",
-          "action_fetch_basic": "Basisgegevens van het voertuig ophalen",
-          "action_fetch_telematic": "Telematicagegevens ophalen",
-          "action_fetch_charging_history": "Laadgeschiedenis ophalen",
-          "action_fetch_tyre": "Bandendiagnose ophalen",
-          "action_fetch_location_charging": "Laadinstellingen ophalen",
           "action_fetch_image": "Voertuigafbeelding",
-          "action_data_refresh": "Automatisch gegevens vernieuwen",
           "action_charging_costs": "Laadkosten en -geschiedenis",
           "action_energy_sources": "Zonne-energie en energiebronnen",
           "action_evcc_bridge": "evcc-/laadpaalbrug",
           "action_trips": "Ritten",
           "action_mileage": "Kilometerlimiet",
+          "action_data_refresh": "Automatisch gegevens vernieuwen",
+          "fetch_now": "Nu ophalen bij BMW",
+          "connection": "Verbinding"
+        }
+      },
+      "fetch_now": {
+        "title": "Nu ophalen bij BMW",
+        "description": "Vraag gegevens nu op bij BMW in plaats van te wachten op de dagelijkse verversing. Elk item gebruikt per auto één van de 50 dagelijkse verzoeken bij BMW.",
+        "menu_options": {
+          "action_fetch_mappings": "Voertuigen zoeken",
+          "action_fetch_telematic": "Telematicagegevens ophalen",
+          "action_fetch_basic": "Basisgegevens van het voertuig ophalen",
+          "action_fetch_charging_history": "Laadgeschiedenis ophalen",
+          "action_fetch_tyre": "Bandendiagnose ophalen",
+          "action_fetch_location_charging": "Laadinstellingen ophalen"
+        }
+      },
+      "connection": {
+        "title": "Verbinding",
+        "description": "Houd de koppeling met BMW werkend, of zet uitgebreide logging aan voor een foutmelding.",
+        "menu_options": {
+          "action_reauth": "Opnieuw autoriseren bij BMW",
+          "action_refresh_tokens": "Tokens nu vernieuwen",
+          "action_reset_container": "Telemetriecontainer resetten",
           "action_debug_logging": "Debuglogboek"
         }
       },

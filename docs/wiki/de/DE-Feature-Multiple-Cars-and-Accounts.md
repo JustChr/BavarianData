@@ -62,7 +62,7 @@ Die Datenauswahl gilt je Fahrzeug und hat keine API. Rufe dafür erneut
 Portalseite, die der Aktivator öffnet, das neue Auto
 ([Schritt 4](DE-Getting-Started-4-Choose-Data)). Danach sucht die Integration
 das Auto selbst und legt es samt Entitäten an — du musst weder auf eine Fahrt
-warten noch **Fahrzeuge suchen** drücken. (Eine erneute Autorisierung des Kontos
+warten noch **Konfigurieren → Jetzt von BMW abrufen → Fahrzeuge suchen** drücken. (Eine erneute Autorisierung des Kontos
 tut dasselbe.)
 
 <a id="adding-a-car-corner-cases"></a>

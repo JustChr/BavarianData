@@ -9,6 +9,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **A shorter Configure menu.** It lists the settings, plus two submenus for
+  the one-off tools: **Fetch from BMW now** (Discover vehicles and the five
+  fetches, each of which uses BMW's daily requests) and **Connection**
+  (re-authorize, refresh tokens, reset the telemetry container, debug logging).
+  Nothing else about those screens changed.
+
 ### Removed
 - **The "New Extrapolation Testing sensor".** An experiment from the project
   this integration grew out of: a second state-of-charge estimate that took the

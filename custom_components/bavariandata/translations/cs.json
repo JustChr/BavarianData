@@ -84,25 +84,39 @@
     "step": {
       "init": {
         "title": "Možnosti BavarianData",
-        "description": "Vyberte akci. Akce tokenů a autorizace udržují připojení; datové akce volají na požádání REST API BMW (každá se započítává do denního limitu 50 požadavků).",
+        "description": "Vyberte nastavení. **Načíst teď z BMW** a **Připojení** obsahují jednorázové nástroje.",
         "menu_options": {
           "action_select_clusters": "Vybrat přenášená data",
-          "action_refresh_tokens": "Obnovit tokeny nyní",
-          "action_reauth": "Znovu autorizovat u BMW",
-          "action_reset_container": "Resetovat telemetrický kontejner",
-          "action_fetch_mappings": "Vyhledat vozidla",
-          "action_fetch_basic": "Načíst základní údaje o vozidle",
-          "action_fetch_telematic": "Načíst telematická data",
-          "action_fetch_charging_history": "Načíst historii nabíjení",
-          "action_fetch_tyre": "Načíst diagnostiku pneumatik",
-          "action_fetch_location_charging": "Načíst nastavení nabíjení",
           "action_fetch_image": "Obrázek vozidla",
-          "action_data_refresh": "Automatická obnova dat",
           "action_charging_costs": "Náklady a historie nabíjení",
           "action_energy_sources": "Solár a zdroje energie",
           "action_evcc_bridge": "Most evcc / wallbox",
           "action_trips": "Jízdy",
           "action_mileage": "Limit kilometrů",
+          "action_data_refresh": "Automatická obnova dat",
+          "fetch_now": "Načíst teď z BMW",
+          "connection": "Připojení"
+        }
+      },
+      "fetch_now": {
+        "title": "Načíst teď z BMW",
+        "description": "Vyžádejte si data od BMW hned, místo čekání na denní aktualizaci. Každá položka spotřebuje jeden z 50 denních požadavků BMW na vůz.",
+        "menu_options": {
+          "action_fetch_mappings": "Vyhledat vozidla",
+          "action_fetch_telematic": "Načíst telematická data",
+          "action_fetch_basic": "Načíst základní údaje o vozidle",
+          "action_fetch_charging_history": "Načíst historii nabíjení",
+          "action_fetch_tyre": "Načíst diagnostiku pneumatik",
+          "action_fetch_location_charging": "Načíst nastavení nabíjení"
+        }
+      },
+      "connection": {
+        "title": "Připojení",
+        "description": "Udržujte spojení s BMW funkční, nebo zapněte podrobné protokolování pro hlášení chyby.",
+        "menu_options": {
+          "action_reauth": "Znovu autorizovat u BMW",
+          "action_refresh_tokens": "Obnovit tokeny nyní",
+          "action_reset_container": "Resetovat telemetrický kontejner",
           "action_debug_logging": "Ladicí protokolování"
         }
       },

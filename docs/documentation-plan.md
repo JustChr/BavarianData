@@ -141,6 +141,9 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `activate_stream_wait` | Reconfigure: run activator, waiting (progress) | ❌ new — needs shot | 📷 |
 | `activate_stream_paste` | Reconfigure: paste-result fallback (http HA) | ❌ new — needs shot | 📷 |
 | `activate_stream_done` | Reconfigure: activation confirmation | ❌ new — needs shot | 📷 |
+| `init` | Configure menu: the eight settings + the two submenus below | 🟢 Settings-Reference → "The Configure menu" (EN + DE) | 📷 owed: `bavariandata-configure-menu.png` shows the pre-v0.9.20 flat list of 18; re-shoot once a build with the submenus is installed |
+| `fetch_now` | Submenu "Fetch from BMW now": Discover vehicles + the five fetches (all spend quota) | 🟢 Settings-Reference → "The Configure menu" (EN + DE) | 📷 owed |
+| `connection` | Submenu "Connection": re-authorize, refresh tokens, reset container, debug logging | 🟢 Settings-Reference → "The Configure menu" (EN + DE) | 📷 owed |
 | `action_refresh_tokens` | Refresh tokens | ❌ | 📷 |
 | `action_reauth` | Re-authorize with BMW | 🟡 | 📷 |
 | `action_reset_container` | Reset telematics container | ❌ | 📷 |

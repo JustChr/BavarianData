@@ -84,25 +84,39 @@
     "step": {
       "init": {
         "title": "Opzioni di BavarianData",
-        "description": "Scegli un'azione. Le azioni su token e autorizzazione mantengono attiva la connessione; le azioni sui dati interrogano l'API REST di BMW su richiesta (ciascuna conta nel limite giornaliero di 50 richieste).",
+        "description": "Scegli un'impostazione. **Scarica ora da BMW** e **Connessione** contengono gli strumenti occasionali.",
         "menu_options": {
           "action_select_clusters": "Scegli i dati trasmessi",
-          "action_refresh_tokens": "Rinnova i token ora",
-          "action_reauth": "Autorizza di nuovo con BMW",
-          "action_reset_container": "Reimposta il contenitore telemetrico",
-          "action_fetch_mappings": "Cerca veicoli",
-          "action_fetch_basic": "Recupera i dati di base del veicolo",
-          "action_fetch_telematic": "Recupera i dati telematici",
-          "action_fetch_charging_history": "Recupera lo storico di ricarica",
-          "action_fetch_tyre": "Recupera la diagnosi pneumatici",
-          "action_fetch_location_charging": "Recupera le impostazioni di ricarica",
           "action_fetch_image": "Immagine del veicolo",
-          "action_data_refresh": "Aggiornamento automatico dei dati",
           "action_charging_costs": "Costi e storico di ricarica",
           "action_energy_sources": "Fotovoltaico e fonti di energia",
           "action_evcc_bridge": "Bridge evcc / wallbox",
           "action_trips": "Viaggi",
           "action_mileage": "Chilometraggio consentito",
+          "action_data_refresh": "Aggiornamento automatico dei dati",
+          "fetch_now": "Scarica ora da BMW",
+          "connection": "Connessione"
+        }
+      },
+      "fetch_now": {
+        "title": "Scarica ora da BMW",
+        "description": "Chiedi i dati a BMW subito invece di aspettare l'aggiornamento giornaliero. Ogni voce usa una delle 50 richieste giornaliere di BMW per auto.",
+        "menu_options": {
+          "action_fetch_mappings": "Cerca veicoli",
+          "action_fetch_telematic": "Recupera i dati telematici",
+          "action_fetch_basic": "Recupera i dati di base del veicolo",
+          "action_fetch_charging_history": "Recupera lo storico di ricarica",
+          "action_fetch_tyre": "Recupera la diagnosi pneumatici",
+          "action_fetch_location_charging": "Recupera le impostazioni di ricarica"
+        }
+      },
+      "connection": {
+        "title": "Connessione",
+        "description": "Mantieni attivo il collegamento con BMW o attiva un log dettagliato per una segnalazione di errore.",
+        "menu_options": {
+          "action_reauth": "Autorizza di nuovo con BMW",
+          "action_refresh_tokens": "Rinnova i token ora",
+          "action_reset_container": "Reimposta il contenitore telemetrico",
           "action_debug_logging": "Registrazione di debug"
         }
       },
