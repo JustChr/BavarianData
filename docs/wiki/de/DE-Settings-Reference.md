@@ -15,7 +15,7 @@ Konto erlaubt und ein Neuladen mit dem Wiederverbinden kollidieren könnte.
 ## Das Menü Konfigurieren
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-menu.png?v=2026-10-14" alt="Optionsmenü von BavarianData (vor v0.9.20: eine flache Liste aller Aktionen)" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-menu.png?v=2026-10-17" alt="Optionsmenü von BavarianData (Hauptmenü seit v0.9.20)" width="460" />
 </p>
 
 Die Menüeinträge unten sind so geschrieben, wie sie in der deutschen Oberfläche

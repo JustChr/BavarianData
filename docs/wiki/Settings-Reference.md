@@ -15,7 +15,7 @@ reconnect.
 ## The Configure menu
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-menu.png?v=2026-10-14" alt="BavarianData options menu (before v0.9.20: one flat list of every action)" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-menu.png?v=2026-10-17" alt="BavarianData options menu (the main menu since v0.9.20)" width="460" />
 </p>
 
 The menu labels below are exactly as they appear in the UI.
