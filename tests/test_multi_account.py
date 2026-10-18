@@ -270,3 +270,44 @@ def test_readding_the_same_client_id_does_not_remove_the_entry() -> None:
         body = _function_source(flow_path, name)
         assert "async_remove(" not in body, f"{name} must not remove the existing entry"
     assert "_reauth_entry = entry" in _function_source(flow_path, "_adopt_client_id")
+
+
+# --- a sold car can be deleted, and takes its data along ---------------------
+
+
+def _function(name: str) -> ast.AsyncFunctionDef:
+    tree = ast.parse((_PKG / "__init__.py").read_text(encoding="utf-8"))
+    return next(
+        node for node in tree.body if isinstance(node, ast.AsyncFunctionDef) and node.name == name
+    )
+
+
+def test_a_cars_device_can_be_deleted_but_not_the_accounts() -> None:
+    """Without the hook Home Assistant offers no Delete at all, so a sold car's
+    device, history, pictures and published topics stayed for good."""
+
+    body = ast.unparse(_function("async_remove_config_entry_device"))
+    assert "value != config_entry.entry_id" in body  # the account's own device stays
+    assert "return False" in body
+
+
+def test_deleting_a_car_reaches_every_store_that_holds_it() -> None:
+    body = ast.unparse(_function("_async_forget_vehicles"))
+    for step in (
+        "history.forget_vehicle",
+        "publisher.async_remove_vehicle",
+        "coverage.forget_vehicle",
+        "tyre.forget_vehicle",
+        "async_clear_published",
+        "async_forget_vehicles",
+        "forget_in_entry_data",
+        "without_vehicle",
+        "left_account_issue_id",
+    ):
+        assert step in body, step
+    # Unloaded first, or the coordinator writes the car straight back.
+    assert body.index("async_unload") < body.index("history.forget_vehicle")
+
+
+def test_removing_an_account_deletes_its_pictures() -> None:
+    assert "async_forget_vehicles(hass, cars)" in ast.unparse(_function("async_remove_entry"))

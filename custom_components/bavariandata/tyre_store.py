@@ -101,6 +101,12 @@ class TyreStore:
     def _data_to_save(self) -> Dict[str, Any]:
         return {"vehicles": {vin: dict(record) for vin, record in self._vehicles.items()}}
 
+    def forget_vehicle(self, vin: str) -> None:
+        """Drop one car's diagnosis (its device was deleted)."""
+
+        if self._vehicles.pop(vin, None) is not None:
+            self._store.async_delay_save(self._data_to_save, SAVE_DELAY_S)
+
     async def async_save_now(self) -> None:
         """Flush immediately -- used on unload so a pending debounce isn't lost."""
 

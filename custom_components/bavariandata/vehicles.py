@@ -17,12 +17,16 @@ used to work is not.
 
 from __future__ import annotations
 
+import hashlib
 import re
 from typing import Any, Iterable, Mapping, Optional
 
 __all__ = [
     "account_title",
+    "forget_in_entry_data",
     "known_vins",
+    "left_account_issue_id",
+    "left_account_vins",
     "new_account_title",
     "primary_vins",
     "setup_title",
@@ -130,3 +134,41 @@ def new_account_title(
         return None
     ours = not current or current == last_auto or bool(_SETUP_TITLE.fullmatch(current))
     return wanted if ours else None
+
+
+def left_account_vins(account_vins: Iterable[str], mapping_payload: Any) -> Optional[list[str]]:
+    """The cars this entry has that BMW's mapping no longer lists as primary.
+
+    ``None`` when the payload isn't a mapping answer at all: a malformed reply
+    must never read as "every car left".
+    """
+
+    if isinstance(mapping_payload, Mapping):
+        if not any(key in mapping_payload for key in ("mappings", "vehicles")):
+            return None
+    elif not isinstance(mapping_payload, list):
+        return None
+    listed = set(primary_vins(mapping_payload))
+    return [vin for vin in account_vins if vin not in listed]
+
+
+def left_account_issue_id(entry_id: str, vin: str) -> str:
+    """The "no longer on your account" repair's id, without the VIN in it.
+
+    Repair ids reach a diagnostics download unredacted (``coverage_issue_id``).
+    """
+
+    digest = hashlib.sha256(vin.encode("utf-8")).hexdigest()[:12]
+    return f"vehicle_left_account_{entry_id}_{digest}"
+
+
+def forget_in_entry_data(data: Mapping[str, Any], vin: str, metadata_key: str) -> dict[str, Any]:
+    """The entry's data without ``vin``: its basic data and the legacy key."""
+
+    updated = dict(data)
+    metadata = updated.get(metadata_key)
+    if isinstance(metadata, Mapping) and vin in metadata:
+        updated[metadata_key] = {key: value for key, value in metadata.items() if key != vin}
+    if updated.get("vin") == vin:
+        updated.pop("vin")
+    return updated

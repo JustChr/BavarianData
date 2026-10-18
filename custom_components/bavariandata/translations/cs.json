@@ -2821,6 +2821,10 @@
     "stream_unauthorized": {
       "title": "Stream BMW CarData není autorizován ({account})",
       "description": "BMW již více než {minutes} minut odmítá připojení streamu jako neautorizované (MQTT rc=5) a samo se neobnovilo. Obvykle to znamená, že je třeba obnovit tokeny, nebo že jediný stream účtu drží jiný klient CarData. Zkuste Nastavit → Obnovit tokeny nyní, pak Znovu autorizovat u BMW, pokud to stále selhává, a odpojte jakéhokoli jiného klienta CarData."
+    },
+    "vehicle_left_account": {
+      "title": "{vehicle} už není ve vašem účtu BMW",
+      "description": "BMW CarData už neuvádí {vehicle} jako auto účtu {account}, takže pro něj nic nového nepřijde. Pokud jste ho prodali nebo předali, smažte jeho zařízení v Home Assistant. Tím se odstraní i historie nabíjení a jízd, obrázky a statistiky. Pokud je stále vaše, ověřte v aplikaci MyBMW, že jste jeho hlavním uživatelem."
     }
   },
   "services": {

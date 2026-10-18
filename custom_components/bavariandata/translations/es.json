@@ -2821,6 +2821,10 @@
     "stream_unauthorized": {
       "title": "Stream de BMW CarData no autorizado ({account})",
       "description": "BMW rechaza la conexión del stream como no autorizada (MQTT rc=5) desde hace más de {minutes} minutos y no se ha recuperado sola. Normalmente significa que hay que renovar los tokens, o que otro cliente CarData ocupa el único stream de la cuenta. Prueba Configurar → Renovar los tokens ahora, luego Volver a autorizar con BMW si sigue fallando, y desconecta cualquier otro cliente CarData."
+    },
+    "vehicle_left_account": {
+      "title": "{vehicle} ya no está en tu cuenta de BMW",
+      "description": "BMW CarData ya no incluye {vehicle} entre los coches de {account}, así que no llegará nada nuevo. Si lo vendiste o cediste, elimina su dispositivo en Home Assistant. Eso también borra su historial de cargas y trayectos, sus imágenes y sus estadísticas. Si sigue siendo tuyo, comprueba en la app MyBMW que eres su usuario principal."
     }
   },
   "services": {

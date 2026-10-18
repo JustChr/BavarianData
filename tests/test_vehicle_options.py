@@ -226,3 +226,13 @@ def test_none_removes_the_allowance_and_keeps_the_cars_other_settings():
         )
         == {}
     )
+
+
+def test_a_deleted_car_takes_its_own_settings_along() -> None:
+    options = {"vehicles": {"VIN1": {"x": 1}, "VIN2": {"y": 2}}, "shared": True}
+    assert OPTIONS.without_vehicle(options, "VIN1") == {
+        "vehicles": {"VIN2": {"y": 2}},
+        "shared": True,
+    }
+    assert OPTIONS.without_vehicle({"vehicles": {"VIN1": {}}}, "VIN1") == {}
+    assert OPTIONS.without_vehicle({"shared": True}, "VIN1") == {"shared": True}

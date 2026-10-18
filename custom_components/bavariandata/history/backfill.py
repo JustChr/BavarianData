@@ -273,6 +273,12 @@ class StatisticsPublisher:
         except Exception:  # noqa: BLE001 - statistics must never break setup
             _LOGGER.debug("Could not clear statistics %s", stat_ids, exc_info=True)
 
+    async def async_remove_vehicle(self, vin: str) -> None:
+        """Delete one car's statistics (its device was deleted)."""
+
+        if self.available:
+            await self._async_clear(self.statistic_ids([vin]))
+
     async def async_remove(self) -> None:
         """Delete every statistic we published (option turned off, history wiped)."""
 

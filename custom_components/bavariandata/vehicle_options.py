@@ -193,3 +193,17 @@ def mileage_allowances(options: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
     """Every car's own mileage allowance, by VIN (cars without one left out)."""
 
     return cars_with_own(options, MILEAGE_OPTIONS)
+
+
+def without_vehicle(options: Mapping[str, Any], vin: str) -> dict[str, Any]:
+    """The options without anything ``vin`` holds for itself (its device was deleted)."""
+
+    updated = dict(options)
+    vehicles = dict(_vehicles(options))
+    if vehicles.pop(vin, None) is None:
+        return updated
+    if vehicles:
+        updated[OPTION_VEHICLES] = vehicles
+    else:
+        updated.pop(OPTION_VEHICLES, None)
+    return updated

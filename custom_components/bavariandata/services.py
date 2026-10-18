@@ -23,6 +23,7 @@ from homeassistant.core import HomeAssistant, SupportsResponse, callback
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.dispatcher import (
     async_dispatcher_send,
 )
@@ -51,7 +52,7 @@ from .stream_activation import (
     StreamActivationError,
 )
 from .service_target import TargetError, choose_account, choose_vin, requested_vin
-from .vehicles import known_vins, primary_vins
+from .vehicles import known_vins, left_account_issue_id, left_account_vins, primary_vins
 from .evcc import ALL_TOPICS, BridgeConfig, bridge_payloads, evcc_yaml
 from .history.export import (
     MIME_CSV,
@@ -271,6 +272,35 @@ def async_setup_services(hass: HomeAssistant) -> None:
             if vin not in known:
                 runtime.basic_data_attempted.discard(vin)
                 _async_on_new_vehicle(hass, target_entry, vin)
+        # ...and the other way round: a car the account no longer lists (sold,
+        # or handed to another primary user) sends nothing more, and its
+        # entities would sit frozen with nothing saying why.
+        account_vins = _account_vins(target_entry, runtime)
+        left = left_account_vins(account_vins, payload)
+        if left is None:
+            return
+        for vin in account_vins:
+            issue_id = left_account_issue_id(target_entry.entry_id, vin)
+            if vin not in left:
+                ir.async_delete_issue(hass, DOMAIN, issue_id)
+                continue
+            ir.async_create_issue(
+                hass,
+                DOMAIN,
+                issue_id,
+                is_fixable=False,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key="vehicle_left_account",
+                translation_placeholders={
+                    # A car BMW never named is "named" by its VIN; mask that.
+                    "vehicle": (
+                        name
+                        if (name := runtime.coordinator.names.get(vin)) and name != vin
+                        else mask_vin(vin)
+                    ),
+                    "account": target_entry.title,
+                },
+            )
 
     async def async_handle_fetch_basic_data(call) -> None:
         prepared = await _prepare_api_call(call, "fetch_basic_data", require_vin=True)

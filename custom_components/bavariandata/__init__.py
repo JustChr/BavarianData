@@ -17,7 +17,7 @@ from typing import Any, Deque, Dict, List, Optional
 import aiohttp
 
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP, Platform
-from homeassistant.config_entries import ConfigEntry, SOURCE_REAUTH
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState, SOURCE_REAUTH
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
 
@@ -97,9 +97,16 @@ from .startup_refresh import (
     startup_refresh_vins,
 )
 from .trip_settings import account_trip_settings, vehicle_trip_settings
-from .vehicle_options import mileage_allowances
+from .vehicle_options import mileage_allowances, without_vehicle
+from .vehicle_support import motorcycle_issue_id
 from .tyre_store import TyreStore
-from .vehicles import known_vins, new_account_title, primary_vins
+from .vehicles import (
+    forget_in_entry_data,
+    known_vins,
+    left_account_issue_id,
+    new_account_title,
+    primary_vins,
+)
 from .history.backfill import StatisticsPublisher
 from .bridge import REPUBLISH_INTERVAL_S, VehicleBridge, async_clear_published
 from .descriptor_metadata import DESCRIPTOR_META
@@ -1053,6 +1060,104 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
             )
             vins.extend(_registered_vins(hass, entry, exclude=set(vins)))
             await async_clear_published(hass, prefix=bridge_config.prefix, vins=vins)
+    with suppress(Exception):
+        # The pictures live in stores every account shares, keyed by VIN, so
+        # only these cars' go, the same list of cars as above.
+        from .image import async_forget_vehicles  # noqa: PLC0415 - pulls in HA's image component
+
+        data = entry.data or {}
+        cars = known_vins(
+            stored_metadata=data.get(VEHICLE_METADATA), configured_vin=data.get("vin")
+        )
+        cars.extend(_registered_vins(hass, entry, exclude=set(cars)))
+        await async_forget_vehicles(hass, cars)
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, config_entry: ConfigEntry, device_entry: dr.DeviceEntry
+) -> bool:
+    """Let a car's device be deleted (a car sold or given up), taking its data along.
+
+    The account's own diagnostics device stays: its identifier is the entry id,
+    and the account needs it as long as the entry exists. A car still on the
+    BMW account comes back with its next stream message, starting afresh.
+    """
+
+    vins = [
+        value
+        for domain, value in device_entry.identifiers
+        if domain == DOMAIN and value != config_entry.entry_id
+    ]
+    if not vins:
+        return False
+    hass.async_create_background_task(
+        _async_forget_vehicles(hass, config_entry.entry_id, vins), f"{DOMAIN}_forget_vehicle"
+    )
+    return True
+
+
+async def _async_forget_vehicles(hass: HomeAssistant, entry_id: str, vins: list[str]) -> None:
+    """Delete everything kept for these cars, the way removing the entry does for all.
+
+    The entry is unloaded first: its coordinator and stores hold the cars in
+    memory and would write them straight back on the next save. Each store is
+    then opened with the entry's own settings (a default retention would prune
+    the other cars' history on load), and the entry set up again.
+    """
+
+    entry = hass.config_entries.async_get_entry(entry_id)
+    if entry is None:
+        return
+    reload = entry.state is ConfigEntryState.LOADED
+    if reload and not await hass.config_entries.async_unload(entry_id):
+        _LOGGER.warning("Could not unload entry %s to delete a car's data", entry_id)
+        return
+    with suppress(Exception):
+        history = HistoryStore(hass, entry_id, retain_months=_retain_months(dict(entry.options)))
+        await history.async_load()
+        publisher = StatisticsPublisher(hass, history, name_for=lambda vin: vin)
+        for vin in vins:
+            history.forget_vehicle(vin)
+            await publisher.async_remove_vehicle(vin)
+        await history.async_save_now()
+    with suppress(Exception):
+        coverage = CoverageStore(
+            hass, entry_id, sections=entry.data.get(OPTION_STREAM_SECTIONS) or []
+        )
+        await coverage.async_load()
+        for vin in vins:
+            coverage.forget_vehicle(vin)
+        await coverage.async_save_now()
+    with suppress(Exception):
+        tyre = TyreStore(hass, entry_id)
+        await tyre.async_load()
+        for vin in vins:
+            tyre.forget_vehicle(vin)
+        await tyre.async_save_now()
+    bridge_config = BridgeConfig.from_options(dict(entry.options))
+    if bridge_config.any_enabled:
+        with suppress(Exception):
+            await async_clear_published(hass, prefix=bridge_config.prefix, vins=vins)
+    with suppress(Exception):
+        from .image import async_forget_vehicles  # noqa: PLC0415 - pulls in HA's image component
+
+        await async_forget_vehicles(hass, vins)
+    data: dict = dict(entry.data)
+    options: dict = dict(entry.options)
+    for vin in vins:
+        data = forget_in_entry_data(data, vin, VEHICLE_METADATA)
+        options = without_vehicle(options, vin)
+        for issue_id in (
+            coverage_issue_id(entry_id, vin),
+            legacy_coverage_issue_id(entry_id, vin),
+            motorcycle_issue_id(entry_id, vin),
+            left_account_issue_id(entry_id, vin),
+        ):
+            ir.async_delete_issue(hass, DOMAIN, issue_id)
+    hass.config_entries.async_update_entry(entry, data=data, options=options)
+    _LOGGER.info("Deleted the stored data of %s car(s) on entry %s", len(vins), entry_id)
+    if reload:
+        await hass.config_entries.async_setup(entry_id)
 
 
 async def _handle_stream_error(hass: HomeAssistant, entry: CardataConfigEntry, reason: str) -> None:
