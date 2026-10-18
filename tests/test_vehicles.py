@@ -91,11 +91,11 @@ def test_refresh_paths_iterate_every_vehicle(name: str) -> None:
 
     node = _function(name)
     calls_helper = any(
-        isinstance(call.func, ast.Name) and call.func.id == "known_vins"
+        isinstance(call.func, ast.Name) and call.func.id == "account_vins"
         for call in ast.walk(node)
         if isinstance(call, ast.Call)
     )
-    assert calls_helper, f"{name} must take its VINs from known_vins()"
+    assert calls_helper, f"{name} must take its VINs from account_vins()"
     # The container fetch hands its VINs to the one function that fetches the
     # container for a list of cars; that loop is the one to check then.
     delegates = any(

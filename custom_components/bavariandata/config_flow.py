@@ -30,7 +30,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.network import NoURLAvailableError, get_url
 from homeassistant.util import dt as dt_util
 
-from . import async_manual_refresh_tokens
+from . import account_vins, async_manual_refresh_tokens
 from .container import KINDS, CardataContainerError
 from .service_calendar import KM_PER_MILE
 from .evcc import BridgeConfig, bridge_payloads, evcc_yaml
@@ -76,7 +76,6 @@ from .const import (
     OPTION_TRIP_GEOCODE,
     OPTION_TRIP_TRACK,
     OPTION_TRIP_WORK_ZONE,
-    VEHICLE_METADATA,
     OPTION_TRIP_DETECTION,
     OPTION_TRIP_PHONE_IN_CAR,
     OPTION_TRIP_PHONE_TRACKER,
@@ -1190,15 +1189,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
 
     def _collect_vins(self) -> list[str]:
         runtime = self._get_runtime()
-        vins = set()
-        if runtime:
-            vins.update(runtime.coordinator.data.keys())
-        metadata = self._config_entry.data.get(VEHICLE_METADATA)
-        if isinstance(metadata, dict):
-            vins.update(metadata.keys())
-        if entry_vin := self._config_entry.data.get("vin"):
-            vins.add(entry_vin)
-        return [vin for vin in vins if isinstance(vin, str)]
+        return account_vins(self.hass, self._config_entry, runtime.coordinator if runtime else None)
 
     async def async_step_action_fetch_basic(
         self, user_input: Optional[Dict[str, Any]] = None

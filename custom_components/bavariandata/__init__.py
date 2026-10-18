@@ -1014,6 +1014,26 @@ def _registered_vins(hass: HomeAssistant, entry: ConfigEntry, *, exclude: set[st
     return found
 
 
+@callback
+def account_vins(hass: HomeAssistant, entry: ConfigEntry, coordinator: Any = None) -> list[str]:
+    """Every car of the account: stored, streamed, configured, or only a device.
+
+    The one answer to "which cars does this account have", so a service that
+    refuses to guess between two cars and a fetch that serves each car count
+    the same cars. The registry counts because a car that has sent nothing
+    since the restart is still the account's car; ``coordinator`` is ``None``
+    once the entry is unloaded.
+    """
+
+    vins = known_vins(
+        stored_metadata=entry.data.get(VEHICLE_METADATA),
+        coordinator_data=None if coordinator is None else coordinator.data,
+        configured_vin=entry.data.get("vin"),
+    )
+    vins.extend(_registered_vins(hass, entry, exclude=set(vins)))
+    return vins
+
+
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Delete this entry's recorded history when the integration is removed.
 
@@ -1056,24 +1076,14 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
             # and the whole point here is that nothing is left retained on the
             # broker. The coordinator is gone by now, so the entry's own data
             # plus its devices are what is left to ask.
-            data = entry.data or {}
-            vins = known_vins(
-                stored_metadata=data.get(VEHICLE_METADATA),
-                configured_vin=data.get("vin"),
-            )
-            vins.extend(_registered_vins(hass, entry, exclude=set(vins)))
+            vins = account_vins(hass, entry)
             await async_clear_published(hass, prefix=bridge_config.prefix, vins=vins)
     with suppress(Exception):
         # The pictures live in stores every account shares, keyed by VIN, so
         # only these cars' go, the same list of cars as above.
         from .image import async_forget_vehicles  # noqa: PLC0415 - pulls in HA's image component
 
-        data = entry.data or {}
-        cars = known_vins(
-            stored_metadata=data.get(VEHICLE_METADATA), configured_vin=data.get("vin")
-        )
-        cars.extend(_registered_vins(hass, entry, exclude=set(cars)))
-        await async_forget_vehicles(hass, cars)
+        await async_forget_vehicles(hass, account_vins(hass, entry))
 
 
 async def async_remove_config_entry_device(
@@ -1675,12 +1685,7 @@ def _vins_without_basic_data(
 ) -> list[str]:
     """Every car this entry has, by its data or its devices, that has no basic data."""
 
-    vins = known_vins(
-        stored_metadata=entry.data.get(VEHICLE_METADATA),
-        coordinator_data=runtime.coordinator.data,
-        configured_vin=entry.data.get("vin"),
-    )
-    vins.extend(_registered_vins(hass, entry, exclude=set(vins)))
+    vins = account_vins(hass, entry, runtime.coordinator)
     have = entry.data.get(VEHICLE_METADATA) or {}
     return [vin for vin in vins if vin not in have]
 
@@ -1748,11 +1753,7 @@ async def _async_perform_telematic_fetch(
     if vin_override:
         vins = [vin_override]
     else:
-        vins = known_vins(
-            stored_metadata=entry.data.get(VEHICLE_METADATA),
-            coordinator_data=runtime.coordinator.data,
-            configured_vin=entry.data.get("vin"),
-        )
+        vins = account_vins(hass, entry, runtime.coordinator)
     if not vins:
         _LOGGER.error("Cardata fetch_telematic_data: no VIN available; provide vin parameter")
         if strict:
@@ -1782,11 +1783,7 @@ async def _async_perform_tyre_fetch(
     single VIN, which left a second car's tread wear frozen forever (issue #13).
     """
 
-    vins = known_vins(
-        stored_metadata=entry.data.get(VEHICLE_METADATA),
-        coordinator_data=runtime.coordinator.data,
-        configured_vin=entry.data.get("vin"),
-    )
+    vins = account_vins(hass, entry, runtime.coordinator)
     refreshed = False
     for vin in vins:
         try:
@@ -1858,11 +1855,7 @@ async def _async_catch_up(hass: HomeAssistant, entry_id: str, occasion: str) -> 
     coordinator = runtime.coordinator
     vins = startup_refresh_vins(
         enabled=bool(entry.options.get(OPTION_REFRESH_ON_START, DEFAULT_REFRESH_ON_START)),
-        vins=known_vins(
-            stored_metadata=entry.data.get(VEHICLE_METADATA),
-            coordinator_data=coordinator.data,
-            configured_vin=entry.data.get("vin"),
-        ),
+        vins=account_vins(hass, entry, coordinator),
         unconfirmed=coordinator.unconfirmed_restored_charges(),
         last_fetch_at=max(stamps) if stamps else None,
         now=now,
@@ -1931,11 +1924,7 @@ _AUTO_TITLE = "auto_title"
 def _async_retitle(hass: HomeAssistant, entry: ConfigEntry, coordinator: Any) -> None:
     """Title the entry with its cars' names, unless the user has named it."""
 
-    vins = known_vins(
-        stored_metadata=entry.data.get(VEHICLE_METADATA),
-        coordinator_data=coordinator.data,
-        configured_vin=entry.data.get("vin"),
-    )
+    vins = account_vins(hass, entry, coordinator)
     # A car without basic data is "named" by its VIN; that never goes in a title.
     names = [coordinator.names.get(vin) for vin in vins if coordinator.names.get(vin) != vin]
     title = new_account_title(entry.title, entry.data.get(_AUTO_TITLE), names)

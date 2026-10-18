@@ -80,7 +80,7 @@ from . import (
     _async_store_vehicle_metadata,
     _async_update_last_telematic_poll,
     _coverage_reports,
-    _registered_vins,
+    account_vins,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -196,19 +196,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         return target_entry_id, target_entry, target_entry.runtime_data, vin
 
     def _account_vins(entry: ConfigEntry, runtime: CardataRuntimeData) -> list[str]:
-        """Every car of the account: stored, streamed, or only in the registry.
-
-        The registry counts because a car that has not sent anything since the
-        restart is still that account's car.
-        """
-
-        vins = known_vins(
-            stored_metadata=entry.data.get(VEHICLE_METADATA),
-            coordinator_data=runtime.coordinator.data,
-            configured_vin=entry.data.get("vin"),
-        )
-        vins.extend(_registered_vins(hass, entry, exclude=set(vins)))
-        return vins
+        return account_vins(hass, entry, runtime.coordinator)
 
     def _pick_vin(
         entry: ConfigEntry,

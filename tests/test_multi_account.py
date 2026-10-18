@@ -174,10 +174,34 @@ def test_removal_clears_every_car_the_entry_ever_had() -> None:
     )
     body = ast.get_source_segment(source, remove) or ""
     assert "async_clear_published" in body
-    assert "known_vins(" in body, "the VIN list must come from the shared helper"
-    assert "_registered_vins(" in body, (
+    assert "account_vins(hass, entry)" in body, "the VIN list must come from the shared helper"
+    helper = _function_source(_PKG / "__init__.py", "account_vins")
+    assert "known_vins(" in helper
+    assert "_registered_vins(" in helper, (
         "a car that only ever streamed is in no stored record, but it has a device"
     )
+
+
+def test_one_helper_says_which_cars_an_account_has() -> None:
+    """Five copies of "the account's cars" used to differ: a car with only a
+    device made a service refuse to guess, yet Configure's fetch skipped it."""
+
+    callers = {}
+    for path in _PKG.rglob("*.py"):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for func in ast.walk(tree):
+            if isinstance(func, (ast.FunctionDef, ast.AsyncFunctionDef)) and any(
+                isinstance(call, ast.Call)
+                and ast.unparse(call.func) in ("known_vins", "_registered_vins")
+                for call in ast.walk(func)
+            ):
+                callers.setdefault(func.name, path.name)
+    # The helper itself, and Discover's "never seen" test, which is not a car list.
+    assert callers == {
+        "account_vins": "__init__.py",
+        "async_setup_services": "services.py",
+        "async_handle_fetch_mappings": "services.py",
+    }
 
 
 # --- a car added to the account after setup ---------------------------------
@@ -310,4 +334,6 @@ def test_deleting_a_car_reaches_every_store_that_holds_it() -> None:
 
 
 def test_removing_an_account_deletes_its_pictures() -> None:
-    assert "async_forget_vehicles(hass, cars)" in ast.unparse(_function("async_remove_entry"))
+    assert "async_forget_vehicles(hass, account_vins(hass, entry))" in ast.unparse(
+        _function("async_remove_entry")
+    )

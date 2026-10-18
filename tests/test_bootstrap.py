@@ -130,7 +130,9 @@ def test_every_start_finds_the_cars_still_without_basic_data():
         "_registered_vins": lambda hass, entry, exclude: [
             v for v in ("WBA00000000000003",) if v not in exclude
         ],
+        "callback": lambda func: func,
     }
+    _compile("account_vins", namespace)
     find = _compile("_vins_without_basic_data", namespace)
     entry = types.SimpleNamespace(data={_CONST.VEHICLE_METADATA: {CAR_A: {"brand": "BMW"}}})
     runtime = types.SimpleNamespace(coordinator=types.SimpleNamespace(data={CAR_A: {}, CAR_B: {}}))
