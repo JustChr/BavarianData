@@ -3051,6 +3051,10 @@
     "stream_unauthorized": {
       "title": "BMW CarData stream not authorized ({account})",
       "description": "BMW has rejected the streaming connection as unauthorized (MQTT rc=5) for over {minutes} minutes and it hasn't recovered on its own. This usually means the tokens need renewing, or another CarData client is holding the single per-account stream. Try Configure → Refresh tokens now, then Re-authorize with BMW if it keeps failing, and disconnect any other CarData client."
+    },
+    "vehicle_left_account": {
+      "title": "{vehicle} is no longer on your BMW account",
+      "description": "BMW CarData no longer lists {vehicle} as a car of {account}, so nothing new will arrive for it. If you sold it or gave it up, delete its device in Home Assistant (Settings → Devices & services → Devices, open the car, Delete). That also removes its charging and trip history, its pictures and its statistics. If it's still yours, check in the MyBMW app that you are its primary user."
     }
   },
   "services": {

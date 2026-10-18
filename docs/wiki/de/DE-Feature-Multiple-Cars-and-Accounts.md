@@ -140,4 +140,24 @@ Das Entfernen eines Eintrags lässt den anderen unberührt weiterlaufen: Stream,
 Dienste und Karte bleiben, wie sie sind. Der entfernte Eintrag nimmt seine
 gespeicherte Historie, seinen Abdeckungsstand und seine Reifendaten mit und
 räumt zurückgehaltene evcc-Topics für **jedes** Fahrzeug ab, das er je hatte —
-auch für eines, das nur gestreamt und nie Basisdaten geliefert hat.
+auch für eines, das nur gestreamt und nie Basisdaten geliefert hat. Auch die
+Bilder seiner Autos werden gelöscht.
+
+## Ein Fahrzeug entfernen
+
+<a id="removing-a-car"></a>
+
+Ein verkauftes Auto, oder eines, das jetzt im BMW-Konto eines anderen ist, lässt
+sich einzeln löschen: **Einstellungen → Geräte & Dienste → Geräte**, das Auto
+öffnen und im ⋮-Menü **Löschen** wählen. Das entfernt seine Entitäten und alles,
+was BavarianData dafür gespeichert hat: Lade- und Fahrtenverlauf, das
+Kilometerprotokoll, die Reifendiagnose, seine Langzeitstatistiken, seine Bilder,
+seine eigenen Einstellungen (Fahrten, Wallbox-Zähler, Kilometerbudget) und
+zurückgehaltene evcc-Topics. Die anderen Autos des Kontos bleiben unberührt; das
+Konto wird dabei einmal neu geladen. Das Diagnose-Gerät des Kontos lässt sich so
+nicht löschen, es gehört zum Konto.
+
+Stellt **Fahrzeuge suchen** (oder `fetch_vehicle_mappings`) fest, dass BMW ein
+Auto nicht mehr für das Konto führt, meldet eine Reparatur das und verweist
+hierher. Ein Auto, das noch im Konto ist, kommt mit seiner nächsten
+Stream-Nachricht zurück, mit leerem Verlauf.

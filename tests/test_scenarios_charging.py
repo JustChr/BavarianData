@@ -16,7 +16,7 @@ from __future__ import annotations
 import pytest
 
 from .conftest import load_module
-from .harness import CoordinatorHarness
+from .harness import CoordinatorHarness, store_mod
 
 RATE = 3.48 / 75 * 100  # %/h
 ORDERS = ["descriptors-first", "derived-first"]
@@ -402,3 +402,24 @@ def test_the_evcc_bridge_knows_a_charge_elsewhere():
         h.advance_to(73)
         h.fix(90, *home)  # driven home
         assert h.coordinator.bridge_snapshot(h.vin).away is False
+
+
+def test_a_deleted_car_leaves_the_other_cars_history_alone(h):
+    """Deleting a sold car's device empties its records, and only its."""
+
+    _start_charge(h)
+    h.send(60, status="NOCHARGING", power=0, step="unplugged")
+    h.advance_to(63)
+    store = h.coordinator.history
+    other = store_mod.ChargingSession(
+        vin="WBATEST0000000002", start=h.clock.now, end=h.clock.now, soc_start=40.0, soc_end=50.0
+    )
+    store.add_session(other)
+    store.forget_vehicle(h.vin)
+    h._run(store.async_save_now())
+    h.restart()
+
+    assert h.sessions() == []
+    assert [s.vin for s in h.coordinator.history.sessions("WBATEST0000000002")] == [
+        "WBATEST0000000002"
+    ]

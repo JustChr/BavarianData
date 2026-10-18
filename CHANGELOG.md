@@ -14,6 +14,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   vehicle-report events (and device triggers) carry `vehicle`, the car's name as
   BMW reports it, so a notification can say which car without a lookup.
 
+- **A sold car can be deleted.** Its device now has **Delete** (Settings →
+  Devices & services → Devices → the car → ⋮). Deleting it removes everything
+  BavarianData kept for that car: charging and trip history, odometer log, tire
+  diagnosis, long-term statistics, pictures, its own settings and any retained
+  evcc topics. The other cars are untouched.
+- **A repair tells you when BMW no longer lists a car for your account**, found
+  by *Discover vehicles*, so its frozen entities don't go unexplained.
+
 ### Changed
 - **With two cars, a service that acts on one car asks which.** Calling, say,
   `get_mileage_report` or `fetch_tyre_diagnosis` without naming a car used to
@@ -38,6 +46,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   (CarData account)*, in your language. Entity IDs don't change.
 
 ### Fixed
+- **Removing the integration also deletes its cars' pictures.** They are kept
+  in a store all accounts share, which nothing ever cleaned up.
 - **Two cars charging on one wallbox meter no longer each bill all of it.** The
   state-of-charge estimate already refused a meter two charging cars share, but
   each session still took the meter's whole advance as its energy and cost, so

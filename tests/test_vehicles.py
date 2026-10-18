@@ -228,3 +228,40 @@ def test_a_title_the_user_chose_is_left_alone() -> None:
 def test_no_names_or_no_change_leaves_the_title() -> None:
     assert vehicles.new_account_title("BavarianData (0f3c9a71)", None, []) is None
     assert vehicles.new_account_title("i5", "i5", ["i5"]) is None
+
+
+# --- a car that left the account, and forgetting one -------------------------
+
+I5 = "WBAEXAMPLE0000001"
+IX1 = "WBAEXAMPLE0000002"
+
+
+def test_a_car_missing_from_the_mapping_has_left() -> None:
+    payload = [{"vin": I5, "mappingType": "PRIMARY"}]
+    assert vehicles.left_account_vins([I5, IX1], payload) == [IX1]
+    assert vehicles.left_account_vins([I5], {"mappings": payload}) == []
+
+
+def test_a_car_that_became_secondary_has_left_too() -> None:
+    payload = [{"vin": I5, "mappingType": "PRIMARY"}, {"vin": IX1, "mappingType": "SECONDARY"}]
+    assert vehicles.left_account_vins([I5, IX1], payload) == [IX1]
+
+
+def test_a_malformed_mapping_never_reads_as_every_car_gone() -> None:
+    assert vehicles.left_account_vins([I5], {"error": "oops"}) is None
+    assert vehicles.left_account_vins([I5], None) is None
+    assert vehicles.left_account_vins([I5], "text") is None
+
+
+def test_the_left_account_repair_id_carries_no_vin() -> None:
+    issue_id = vehicles.left_account_issue_id("entry", I5)
+    assert I5 not in issue_id
+    assert issue_id == vehicles.left_account_issue_id("entry", I5)
+    assert issue_id != vehicles.left_account_issue_id("entry", IX1)
+
+
+def test_forgetting_a_car_drops_its_basic_data_and_legacy_key() -> None:
+    data = {"vin": I5, "vehicle_metadata": {I5: {"a": 1}, IX1: {"b": 2}}, "other": 3}
+    forgotten = vehicles.forget_in_entry_data(data, I5, "vehicle_metadata")
+    assert forgotten == {"vehicle_metadata": {IX1: {"b": 2}}, "other": 3}
+    assert data["vin"] == I5  # the original is left alone

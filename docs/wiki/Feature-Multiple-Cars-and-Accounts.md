@@ -123,4 +123,21 @@ Removing one entry leaves the other running: its stream, services and card are
 untouched. The entry being removed takes its own stored history, coverage record
 and tire data with it, and clears any retained evcc topics for **every** car it
 ever had — including one that only ever streamed and never answered a basic-data
-request.
+request. Its cars' pictures go too.
+
+## Removing a car
+
+A car you sold, or that is now on someone else's BMW account, can be deleted on
+its own: **Settings → Devices & services → Devices**, open the car, and choose
+**Delete** from the ⋮ menu. That removes its entities and everything
+BavarianData kept for it: charging and trip history, the odometer log, the tire
+diagnosis, its long-term statistics, its pictures, its own settings (trips,
+wallbox meter, mileage allowance) and any retained evcc topics. The other cars
+on the account are untouched; the account reloads once while this happens. The
+account's diagnostics device can't be deleted this way, since it belongs to the
+account.
+
+When **Discover vehicles** (or `fetch_vehicle_mappings`) finds that BMW no
+longer lists a car for the account, a repair says so and points here. A car that
+is still on the account comes back with its next stream message, starting with
+an empty history.

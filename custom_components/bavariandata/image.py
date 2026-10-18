@@ -254,6 +254,38 @@ def _ext_of(data: bytes, default: str) -> str:
     return default
 
 
+async def async_forget_vehicles(hass: HomeAssistant, vins: list[str]) -> None:
+    """Delete these cars' pictures: the official image, the renders, their files.
+
+    Both stores are shared by every account and keyed by VIN, so nothing else
+    ever empties them: a car whose device is deleted, or an account that is
+    removed, would otherwise leave its pictures in ``.storage`` for good.
+    """
+
+    if not vins:
+        return
+    cache = await _async_load_cache(hass)
+    renders = await _async_load_renders(hass)
+    # Every VIN popped first: ``any`` over the pops would stop at the first.
+    dropped_images = [cache.pop(vin, None) for vin in vins]
+    dropped_renders = [renders.pop(vin, None) for vin in vins]
+    if any(record is not None for record in dropped_images):
+        await _async_persist_cache(hass)
+    if any(record is not None for record in dropped_renders):
+        await _domain_data(hass)[_RENDER_STORE_HANDLE_KEY].async_save(renders)
+    directory = _render_dir(hass)
+    keys = [_render_key(vin) for vin in vins]
+
+    def _delete() -> None:
+        if not directory.is_dir():
+            return
+        for key in keys:
+            for path in directory.glob(f"{key}*"):
+                path.unlink(missing_ok=True)
+
+    await hass.async_add_executor_job(_delete)
+
+
 def _domain_data(hass: HomeAssistant) -> dict:
     return hass.data.setdefault(DOMAIN, {})
 

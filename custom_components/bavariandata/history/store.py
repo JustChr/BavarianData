@@ -451,6 +451,19 @@ class HistoryStore:
         if self._loaded:
             await self._store.async_save(self._data_to_save())
 
+    def forget_vehicle(self, vin: str) -> None:
+        """Drop everything recorded for one car (its device was deleted)."""
+
+        for records in (
+            self._sessions,
+            self._trips,
+            self._open_sessions,
+            self._reports,
+            self._odometer,
+        ):
+            records.pop(vin, None)
+        self.async_schedule_save()
+
     async def async_clear(self) -> None:
         """Delete all stored history (the user-facing 'Delete all history')."""
 

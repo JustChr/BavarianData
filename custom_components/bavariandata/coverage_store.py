@@ -205,6 +205,13 @@ class CoverageStore:
             )
         return out
 
+    def forget_vehicle(self, vin: str) -> None:
+        """Drop one car's sightings (its device was deleted)."""
+
+        self._seen.pop(vin, None)
+        self._first_seen.pop(vin, None)
+        self.async_schedule_save()
+
     @callback
     def async_schedule_save(self) -> None:
         self._store.async_delay_save(self._data_to_save, SAVE_DELAY_S)
