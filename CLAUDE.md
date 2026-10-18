@@ -76,7 +76,11 @@ python -m pytest tests/
 
 Deps: `requirements_test.txt` — light on purpose (aiohttp, pytest, PyYAML,
 paho-mqtt so `stream.py` imports, plus a pinned `ruff`); nothing there pulls in
-Home Assistant. `tests/conftest.py`
+Home Assistant. paho is the one shipped dependency nothing else watches (HA pins
+it): `tests/test_paho_contract.py` pins every paho call the stream makes with real
+clients, and `.github/workflows/paho-canary.yml` runs the stream tests weekly on the
+newest paho, pre-releases included. Test fakes of paho must keep its real
+signatures. `tests/conftest.py`
 loads integration modules in isolation via a synthetic package so nothing
 imports Home Assistant — keep new test targets HA-import-free, or they won't be
 testable here. Home Assistant itself cannot be imported on Windows, so there is
