@@ -867,3 +867,38 @@ def test_the_wallbox_meter_is_billed_on_the_step_that_bills_the_cost() -> None:
         "wallbox meter cannot affect the cost -- which is exactly what the "
         "setting says it does."
     )
+
+
+# Home Assistant's helpers that call a target back. Each one runs a target that
+# is neither a coroutine function nor marked ``@callback`` in the executor --
+# and a lambda can be neither, so it runs on a worker thread, where every
+# ``async_*`` call into Home Assistant (``async_update_entry``, a state write)
+# raises instead of doing its job.
+_LISTENER_HELPERS = {
+    "async_dispatcher_connect": 2,
+    "async_call_later": 2,
+    "async_track_time_interval": 1,
+    "async_track_time_change": 1,
+    "async_track_point_in_utc_time": 1,
+    "async_track_state_change_event": 2,
+    "async_at_started": 1,
+    "async_listen": 1,
+    "async_listen_once": 1,
+}
+
+
+@pytest.mark.parametrize("path", PY_FILES, ids=_rel)
+def test_no_lambda_is_handed_to_a_home_assistant_listener(path: pathlib.Path) -> None:
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        name = func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", None)
+        index = _LISTENER_HELPERS.get(name)
+        if index is None or len(node.args) <= index:
+            continue
+        assert not isinstance(node.args[index], ast.Lambda), (
+            f"{_rel(path)}:{node.lineno} hands a lambda to {name}. Home Assistant "
+            "runs it on a worker thread; use a function marked @callback."
+        )

@@ -706,12 +706,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     # Named after its cars, which is what tells two accounts apart in every
     # list, repair and reauth card; again whenever BMW names a car anew.
     _async_retitle(hass, entry, coordinator)
+
+    @callback
+    def _retitle_on_name(_vin: str, _name: str) -> None:
+        # A callback, not a lambda: the dispatcher runs anything else on a
+        # worker thread, where updating the entry raises.
+        _async_retitle(hass, entry, coordinator)
+
     entry.async_on_unload(
-        async_dispatcher_connect(
-            hass,
-            f"{DOMAIN}_{entry.entry_id}_name",
-            lambda _vin, _name: _async_retitle(hass, entry, coordinator),
-        )
+        async_dispatcher_connect(hass, f"{DOMAIN}_{entry.entry_id}_name", _retitle_on_name)
     )
     quota_manager = await QuotaManager.async_create(hass, entry.entry_id)
     if any(key in data for key in RETIRED_ENTRY_KEYS):
