@@ -75,22 +75,21 @@ _STATE_CLASS_MAP = {
 
 _LOGGER = logging.getLogger(__name__)
 
+ACCOUNT_DEVICE_NAME = "BMW CarData"
 
-def _account_device_info(coordinator: CardataCoordinator, entry_id: str) -> DeviceInfo:
-    """The account's own device, holding its diagnostics, named after the account.
 
-    Every account has one, so a fixed name ("CarData Debug Device", until
-    v0.9.20) gave two accounts two identical devices.
+def _account_device_info(entry_id: str) -> DeviceInfo:
+    """The account's own device, holding its diagnostics.
+
+    "BMW CarData", the service it stands for, in every language: named after
+    the cars it read like one of them. The entry above it carries the cars'
+    names, which is what tells two accounts apart.
     """
 
-    entry = coordinator.hass.config_entries.async_get_entry(entry_id)
     return {
         "identifiers": {(DOMAIN, entry_id)},
         "manufacturer": "BMW",
-        "translation_key": "account",
-        "translation_placeholders": {
-            "account": getattr(entry, "title", None) or "BavarianData",
-        },
+        "name": ACCOUNT_DEVICE_NAME,
     }
 
 
@@ -307,6 +306,9 @@ class CardataSensor(CardataRestoreSensor):
 
 class CardataDiagnosticsSensor(SensorEntity, RestoreEntity):
     _attr_should_poll = False
+    # Without it Home Assistant ignores the translation key, and every
+    # account sensor was named only after its device.
+    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
@@ -344,7 +346,7 @@ class CardataDiagnosticsSensor(SensorEntity, RestoreEntity):
 
     @property
     def device_info(self) -> DeviceInfo:
-        return _account_device_info(self._coordinator, self._entry_id)
+        return _account_device_info(self._entry_id)
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -418,6 +420,9 @@ class CardataQuotaSensor(SensorEntity):
     """
 
     _attr_should_poll = False
+    # Without it Home Assistant ignores the translation key, and every
+    # account sensor was named only after its device.
+    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = "requests"
@@ -433,7 +438,7 @@ class CardataQuotaSensor(SensorEntity):
 
     @property
     def device_info(self) -> DeviceInfo:
-        return _account_device_info(self._coordinator, self._entry_id)
+        return _account_device_info(self._entry_id)
 
     @property
     def native_value(self):

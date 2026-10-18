@@ -5,11 +5,13 @@
 ## Ein Gerät pro FIN
 
 Jede Fahrzeug-Identifizierungsnummer (FIN/VIN) in deinem Konto wird zu einem
-eigenen **Gerät** in Home Assistant. Ein separates Gerät für das Konto, nach ihm
-benannt (**„i5 eDrive40 (CarData-Konto)“**; bis v0.9.20 *CarData Debug Device*),
-trägt die Diagnose-Entitäten (Stream-Verbindung, Kontingent, Zeitstempel der
-letzten Nachricht). Der Integrationseintrag selbst trägt die Namen seiner Autos,
-sobald BMW sie meldet, außer du hast ihn umbenannt.
+eigenen **Gerät** in Home Assistant. Ein separates Gerät für das Konto,
+**BMW CarData** (bis v0.9.20 *CarData Debug Device*), trägt die
+Diagnose-Entitäten: Stream-Verbindungsstatus, letzte empfangene Nachricht,
+letzter Telematik-API-Aufruf und verbleibendes API-Kontingent. Der
+Integrationseintrag, unter dem es steht, trägt die Namen seiner Autos, sobald
+BMW sie meldet, außer du hast ihn umbenannt; zwei Konten unterscheidest du also
+an ihren Einträgen.
 
 ## Deskriptor-Entitäten
 

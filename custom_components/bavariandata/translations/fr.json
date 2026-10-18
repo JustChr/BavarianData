@@ -3250,10 +3250,5 @@
         }
       }
     }
-  },
-  "device": {
-    "account": {
-      "name": "{account} (compte CarData)"
-    }
   }
 }
