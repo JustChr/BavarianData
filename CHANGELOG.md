@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.21-beta.1] - 2026-10-18
+
 ### Added
 - **Every BavarianData event names the car.** The charging, zone, situation and
   vehicle-report events (and device triggers) carry `vehicle`, the car's name as
