@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.21-beta.4] - 2026-10-18
+
 ### Fixed
 - **"Last Telematics API Call" no longer jumps back after a restart.** It
   showed the time of the last daily refresh, so a catch-up fetch after a start
