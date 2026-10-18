@@ -5,10 +5,11 @@
 ## One device per VIN
 
 Each VIN on your account becomes its own Home Assistant **device**. A separate
-device for the account, named after it (**"i5 eDrive40 (CarData account)"**;
-*CarData Debug Device* until v0.9.20), carries the diagnostics entities (stream
-connection, quota, last-message timestamps). The integration entry itself is
-titled with its cars' names once BMW reports them, unless you renamed it.
+device for the account, **BMW CarData** (*CarData Debug Device* until v0.9.20),
+carries the diagnostics entities: stream connection status, last message
+received, last telematics API call and API quota remaining. The integration
+entry it sits under is titled with its cars' names once BMW reports them,
+unless you renamed it, so two accounts are told apart by their entries.
 
 ## Descriptor entities
 

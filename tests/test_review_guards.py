@@ -902,3 +902,30 @@ def test_no_lambda_is_handed_to_a_home_assistant_listener(path: pathlib.Path) ->
             f"{_rel(path)}:{node.lineno} hands a lambda to {name}. Home Assistant "
             "runs it on a worker thread; use a function marked @callback."
         )
+
+
+def test_every_translated_entity_uses_its_translated_name() -> None:
+    """Home Assistant reads ``translation_key`` for the name only with
+    ``has_entity_name``. Without it the account's diagnostic sensors had no name
+    at all and showed four times as their device's name."""
+
+    classes: dict[str, ast.ClassDef] = {}
+    for path in PY_FILES:
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            if isinstance(node, ast.ClassDef):
+                classes[node.name] = node
+
+    def names_itself(name: str) -> bool:
+        node = classes.get(name)
+        if node is None:
+            return False
+        if "_attr_has_entity_name = True" in ast.unparse(node):
+            return True
+        return any(names_itself(ast.unparse(base)) for base in node.bases)
+
+    unnamed = [
+        name
+        for name, node in classes.items()
+        if "_attr_translation_key" in ast.unparse(node) and not names_itself(name)
+    ]
+    assert unnamed == []

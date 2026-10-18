@@ -528,7 +528,7 @@ teleservice timestamps, listed below the messages when the car sends them.
 | `type` | Always `custom:bavariandata-card`. |
 | `view` | `charging`, `trips`, `map`, `health`, `efficiency` or `equipment`. Omit for the Overview. |
 | `cluster` | `electric`, `status`, `tire`, `usage`, `events`, `basic`, `contract`, `metadata`, `other`, `closures`. Renders a single-cluster list (or the special tire/closures diagrams). |
-| `device` | Device id, to pin a specific vehicle. The visual editor lists your cars only, never the account's own diagnostics device (*… (CarData account)*); a card set to it shows the first car instead. |
+| `device` | Device id, to pin a specific vehicle. The visual editor lists your cars only, never the account's own diagnostics device (*BMW CarData*); a card set to it shows the first car instead. |
 | `vin` | VIN, as an alternative to `device`. |
 | `title` | Override the card title entity. |
 | `image` | Override the vehicle-image entity. |

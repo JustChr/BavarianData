@@ -3480,10 +3480,5 @@
         }
       }
     }
-  },
-  "device": {
-    "account": {
-      "name": "{account} (CarData account)"
-    }
   }
 }
