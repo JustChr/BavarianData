@@ -16,9 +16,9 @@ lists the cars to choose from. Until v0.9.20 it quietly took whichever car had
 streamed first. A service that reads every car (`fetch_telematic_data`,
 `get_charging_sessions`, `get_trips`, `get_coverage_report`,
 `import_statistics`) still reads them all when no car is named. A VIN that
-isn't a car of the account is refused before any quota is spent, and so is a
-call that runs out of quota or has no valid token: the automation fails with
-that message instead of looking like it worked.
+isn't a car of the account is refused before any quota is spent. A call that
+runs out of quota, has no valid token or that BMW refuses fails with that
+message, so the automation stops instead of looking like it worked.
 
 ## Fetch services — spend API quota ⚡
 

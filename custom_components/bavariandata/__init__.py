@@ -19,7 +19,7 @@ import aiohttp
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP, Platform
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState, SOURCE_REAUTH
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 
 from homeassistant.components import persistent_notification
 from homeassistant.helpers import issue_registry as ir
@@ -1491,6 +1491,7 @@ async def _async_fetch_telematics(
     *,
     label: str = "Cardata fetch_telematic_data",
     seed: bool = False,
+    strict: bool = False,
 ) -> bool:
     """Fetch each car's containers and feed them in like a stream message.
 
@@ -1499,11 +1500,14 @@ async def _async_fetch_telematics(
     items, which it refused from 16 Oct 2026 (#142), are fetched apart and cost
     only themselves. ``seed`` skips a car that already has data (a car found by
     the bootstrap or Discover gets its entities before it streams). Returns
-    whether BMW was asked at all.
+    whether BMW was asked at all. ``strict`` (a service call) raises
+    :class:`HomeAssistantError` for what it could not fetch, once every car has
+    had its turn; the service items alone never count, BMW refuses those daily.
     """
 
     coordinator = runtime.coordinator
     container_ids: Dict[str, Optional[str]] = {}
+    failures: list[str] = []
 
     async def container_id(kind: ContainerKind) -> Optional[str]:
         if kind.key not in container_ids:
@@ -1520,6 +1524,8 @@ async def _async_fetch_telematics(
                 _LOGGER.error(
                     "%s: entry %s has no %s REST container", label, entry.entry_id, kind.key
                 )
+                if kind is not SERVICE:
+                    failures.append(f"no {kind.key} REST container")
                 continue
             asked = True
             try:
@@ -1536,6 +1542,7 @@ async def _async_fetch_telematics(
                     )
                 else:
                     _LOGGER.error("%s: request failed for %s: %s", label, mask_vin(vin), err)
+                    failures.append(f"{mask_vin(vin)}: {err}")
                 continue
             _LOGGER.info("Fetched telematic data (%s) for %s", kind.key, mask_vin(vin))
             if debug_enabled():
@@ -1559,14 +1566,18 @@ async def _async_fetch_telematics(
             # The remaining cars wait for the next round rather than each
             # logging the same exhaustion.
             _LOGGER.warning("%s skipped for %s: %s", label, mask_vin(vin), err)
+            failures.append(str(err))
             break
         except CardataAuthError as err:
             _LOGGER.error("%s: no valid token for %s: %s", label, mask_vin(vin), err)
+            failures.append("no valid BMW token; reauthorize")
             break
 
     if attempted:
         coordinator.last_telematic_api_at = datetime.now(timezone.utc)
         async_dispatcher_send(coordinator.hass, coordinator.signal_diagnostics)
+    if strict and failures:
+        raise HomeAssistantError(f"{label}: {'; '.join(failures)}")
     return attempted
 
 
@@ -1728,6 +1739,7 @@ async def _async_perform_telematic_fetch(
     runtime: CardataRuntimeData,
     *,
     vin_override: Optional[str] = None,
+    strict: bool = False,
 ) -> bool:
     # One account can hold several cars and the container endpoint is per VIN,
     # so a refresh means one request *per vehicle*. Picking a single VIN here
@@ -1743,8 +1755,10 @@ async def _async_perform_telematic_fetch(
         )
     if not vins:
         _LOGGER.error("Cardata fetch_telematic_data: no VIN available; provide vin parameter")
+        if strict:
+            raise HomeAssistantError("fetch_telematic_data: this account has no car yet")
         return False
-    return await _async_fetch_telematics(hass, entry, runtime, vins)
+    return await _async_fetch_telematics(hass, entry, runtime, vins, strict=strict)
 
 
 def _async_update_last_telematic_poll(

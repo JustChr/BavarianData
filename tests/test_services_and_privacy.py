@@ -304,3 +304,34 @@ def test_every_account_wide_repair_names_its_account() -> None:
         (_PKG / name).read_text(encoding="utf-8") for name in ("__init__.py", "coordinator.py")
     )
     assert sources.count('"account": self._account_name()') == 3
+
+
+def test_a_fetch_service_that_fails_says_so() -> None:
+    """A BMW refusal, no quota or no token used to be a log line while the
+    automation -- and Configure -> Fetch from BMW -- reported success."""
+
+    tree = ast.parse((_PKG / "services.py").read_text(encoding="utf-8"))
+    handlers = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.AsyncFunctionDef) and node.name.startswith("async_handle_fetch")
+    ]
+    assert len(handlers) == 7
+    for handler in handlers:
+        for caught in (n for n in ast.walk(handler) if isinstance(n, ast.ExceptHandler)):
+            assert isinstance(caught.body[-1], ast.Raise), (handler.name, caught.lineno)
+    # The two that go through helpers shared with the background loops (which
+    # must keep going quietly) ask them to raise.
+    for name, helper in (
+        ("async_handle_fetch", "_async_perform_telematic_fetch"),
+        ("async_handle_fetch_vehicle_image", "async_refresh_vehicle_image"),
+    ):
+        calls = [
+            call
+            for call in ast.walk(_service_handler(name))
+            if isinstance(call, ast.Call) and ast.unparse(call.func) == helper
+        ]
+        assert calls and all(
+            any(kw.arg == "strict" and ast.unparse(kw.value) == "True" for kw in call.keywords)
+            for call in calls
+        ), name

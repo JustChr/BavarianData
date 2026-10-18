@@ -243,6 +243,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             target_entry,
             runtime,
             vin_override=vin,
+            strict=True,
         )
         if success:
             _async_update_last_telematic_poll(hass, target_entry, time.time())
@@ -254,7 +255,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             payload = await async_get_vehicle_mappings(runtime.session, access_token)
         except CardataApiError as err:
             _LOGGER.error("Cardata fetch_vehicle_mappings failed: %s", err)
-            return
+            raise HomeAssistantError(f"fetch_vehicle_mappings: {err}") from err
         count = len(payload) if isinstance(payload, (list, dict)) else 0
         _LOGGER.info("Fetched %s vehicle mapping(s)", count)
         _LOGGER.debug("Cardata vehicle mappings: %s", payload)
@@ -314,7 +315,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             payload = await async_get_basic_data(runtime.session, access_token, vin)
         except CardataApiError as err:
             _LOGGER.error("Cardata fetch_basic_data failed for %s: %s", mask_vin(vin), err)
-            return
+            raise HomeAssistantError(f"fetch_basic_data: {err}") from err
         _LOGGER.info("Fetched basic vehicle data for %s", mask_vin(vin))
         _LOGGER.debug("Cardata basic data for %s: %s", vin, payload)
         if isinstance(payload, dict):
@@ -387,7 +388,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             )
         except CardataApiError as err:
             _LOGGER.error("Cardata fetch_charging_history failed for %s: %s", mask_vin(vin), err)
-            return
+            raise HomeAssistantError(f"fetch_charging_history: {err}") from err
         sessions = payload.get("data") if isinstance(payload, dict) else None
         # Import BMW's server-side history into our own store so it shows on
         # the card, enriching any live-recorded session in place. Cost is
@@ -427,7 +428,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             payload = await async_get_tyre_diagnosis(runtime.session, access_token, vin)
         except CardataApiError as err:
             _LOGGER.error("Cardata fetch_tyre_diagnosis failed for %s: %s", mask_vin(vin), err)
-            return
+            raise HomeAssistantError(f"fetch_tyre_diagnosis: {err}") from err
         parsed = runtime.coordinator.apply_tyre_diagnosis(vin, payload)
         _LOGGER.info(
             "Fetched tyre diagnosis for %s (%s wheel(s) reported)",
@@ -449,7 +450,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             _LOGGER.error(
                 "Cardata fetch_location_charging_settings failed for %s: %s", mask_vin(vin), err
             )
-            return
+            raise HomeAssistantError(f"fetch_location_charging_settings: {err}") from err
         settings = payload.get("data") if isinstance(payload, dict) else None
         _LOGGER.info(
             "Fetched location-based charging settings for %s (%s entr(y/ies))",
@@ -471,7 +472,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         _target_id, target_entry, runtime, vin = _target_car(call)
         from .image import async_refresh_vehicle_image
 
-        await async_refresh_vehicle_image(hass, target_entry, runtime, vin)
+        await async_refresh_vehicle_image(hass, target_entry, runtime, vin, strict=True)
 
     telematic_service_schema = vol.Schema(
         {
