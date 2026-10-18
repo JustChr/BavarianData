@@ -46,6 +46,23 @@ def _unique(values: Iterable[str]) -> List[str]:
     return list(dict.fromkeys(values))
 
 
+def last_fetch_at(*stamps: object) -> Optional[float]:
+    """When BMW was last asked, from every stamp a fetch path leaves behind.
+
+    The daily refresh and the services stamp ``last_telematic_poll``; a
+    catch-up stamps ``last_startup_refresh``. Reading only one of them put the
+    "last Telematic API call" sensor back to the daily refresh on every
+    restart, hiding the catch-ups in between.
+    """
+
+    valid = [
+        float(value)
+        for value in stamps
+        if isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0
+    ]
+    return max(valid) if valid else None
+
+
 def startup_refresh_vins(
     *,
     enabled: bool,

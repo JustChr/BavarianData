@@ -32,6 +32,20 @@ def test_every_car_catches_up_after_a_start() -> None:
     assert pick() == CARS
 
 
+def test_a_catch_up_counts_as_the_last_call_after_a_restart() -> None:
+    # Live, 2026-10-18: the daily refresh ran at 07:25, a catch-up at 15:59;
+    # after the next restart the sensor said 07:25.
+    daily, catch_up = NOW - 9 * 3600, NOW - 3 * 3600
+    assert refresh.last_fetch_at(daily, catch_up) == catch_up
+    assert refresh.last_fetch_at(catch_up, daily) == catch_up
+
+
+def test_missing_or_junk_stamps_are_no_fetch() -> None:
+    assert refresh.last_fetch_at(None, None) is None
+    assert refresh.last_fetch_at(None, "07:25", True, 0) is None
+    assert refresh.last_fetch_at(None, NOW) == NOW
+
+
 def test_switched_off_means_never() -> None:
     assert pick(enabled=False, unconfirmed=["VIN1"]) == []
 

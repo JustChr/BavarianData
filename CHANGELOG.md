@@ -9,6 +9,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **"Last Telematics API Call" no longer jumps back after a restart.** It
+  showed the time of the last daily refresh, so a catch-up fetch after a start
+  or a stream outage vanished from it with the next restart. It now shows the
+  latest call of either kind. Nothing was fetched twice; only the sensor was
+  wrong.
+
 ## [0.9.21-beta.3] - 2026-10-18
 
 ### Added
