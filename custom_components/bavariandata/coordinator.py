@@ -3871,7 +3871,12 @@ class CardataCoordinator:
 
         found: list[str] = []
         for vin, tracking in self._soc_tracking.items():
-            if vin == exclude or not (tracking.charging_active or tracking.restored_charging):
+            # A charge restored across a restart counts while its session waits
+            # for the stream's word, not after it is filed unconfirmed: the flag
+            # outlives that until the car speaks, which a car done charging may
+            # not do for hours, keeping the other car off the meter all along.
+            restored = tracking.restored_charging and vin in self._restored_open_sessions
+            if vin == exclude or not (tracking.charging_active or restored):
                 continue
             if self._plug_state(vin) is False or self.pricing_for(vin).grid_energy_entity != meter:
                 continue
