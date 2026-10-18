@@ -331,7 +331,10 @@ class CardataStreamManager:
                     _LOGGER.debug(
                         "BMW MQTT connection refused shortly after disconnect; scheduling retry"
                     )
-                client.loop_stop(force=True)
+                # From paho's own thread this only ends its loop; paho 2.x's
+                # loop_stop takes no arguments (a ``force=True`` here raised and
+                # killed the thread before the retry below was scheduled).
+                client.loop_stop()
                 self._schedule_retry()
                 return
             _LOGGER.error("BMW MQTT connection failed: rc=%s", reason_code)

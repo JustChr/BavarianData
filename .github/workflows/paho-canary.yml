@@ -1,0 +1,33 @@
+name: paho canary
+
+# paho-mqtt is the one dependency we ship that nothing else watches: Home
+# Assistant pins it, so Dependabot never proposes a bump and the regular test
+# run always gets the pinned build. This runs the stream tests against the
+# newest paho on PyPI, pre-releases included, so a breaking release shows up
+# here before Home Assistant moves to it. A red run is a warning, not a release
+# blocker: nothing changes for users until Home Assistant bumps its pin.
+
+on:
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+jobs:
+  canary:
+    name: Stream tests on the newest paho
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: requirements_test.txt
+      - name: Install dependencies with the newest paho
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements_test.txt
+          pip install --upgrade --pre paho-mqtt
+          pip show paho-mqtt | head -2
+      - name: Run the stream tests
+        run: pytest -q tests/test_paho_contract.py tests/test_stream_reconnect.py tests/test_stream_error_handling.py tests/test_stream_activation.py
