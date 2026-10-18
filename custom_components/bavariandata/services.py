@@ -51,7 +51,13 @@ from .stream_activation import (
     PortalStreamClient,
     StreamActivationError,
 )
-from .service_target import TargetError, choose_account, choose_vin, requested_vin
+from .service_target import (
+    TargetError,
+    choose_account,
+    choose_vin,
+    device_owner,
+    requested_vin,
+)
 from .vehicles import known_vins, left_account_issue_id, left_account_vins, primary_vins
 from .evcc import ALL_TOPICS, BridgeConfig, bridge_payloads, evcc_yaml
 from .history.export import (
@@ -138,13 +144,15 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
         if not vin:
             return None
-        device = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, vin)})
-        if device is None:
-            return None
-        primary = getattr(device, "primary_config_entry", None)
-        if primary:
-            return primary
-        return next(iter(device.config_entries), None)
+        # Entry by entry: since HA 2026.10 the same VIN may be a device in two
+        # accounts, and a lookup by identifier alone is deprecated. The first
+        # account holding it wins, as the primary entry did before.
+        registry = dr.async_get(hass)
+        for entry in hass.config_entries.async_entries(DOMAIN):
+            for device in dr.async_entries_for_config_entry(registry, entry.entry_id):
+                if (DOMAIN, vin) in device.identifiers:
+                    return entry.entry_id
+        return None
 
     def _device_target(device_id: Any) -> tuple[Optional[str], Optional[str]]:
         """``(entry_id, vin)`` of a picked device.
@@ -160,12 +168,9 @@ def async_setup_services(hass: HomeAssistant) -> None:
         ours = [value for domain, value in device.identifiers if domain == DOMAIN] if device else []
         if not ours:
             raise TargetError(f"Device {device_id} is not a BavarianData car")
-        entries = set(device.config_entries)
+        entries = {entry.entry_id for entry in hass.config_entries.async_entries(DOMAIN)}
         vin = next((value for value in ours if value not in entries), None)
-        entry_id = getattr(device, "primary_config_entry", None) or next(
-            iter(device.config_entries), None
-        )
-        return entry_id, vin
+        return device_owner(device), vin
 
     def _resolve_target(call: Any) -> tuple[str, ConfigEntry, CardataRuntimeData, Optional[str]]:
         """The account a call acts on, and the car it names, if it names one.

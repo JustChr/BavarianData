@@ -18,11 +18,29 @@ from typing import Any, Mapping, Optional, Sequence
 
 from .debug import mask_vin
 
-__all__ = ["TargetError", "choose_account", "choose_vin", "requested_vin"]
+__all__ = ["TargetError", "choose_account", "choose_vin", "device_owner", "requested_vin"]
 
 
 class TargetError(ValueError):
     """The call cannot be placed; the message says what to pass instead."""
+
+
+def device_owner(device: Any) -> Optional[str]:
+    """The config entry a device registry entry belongs to, on every supported HA.
+
+    Since 2026.10 a device has one owner, ``config_entry_id``, and reading
+    ``primary_config_entry`` or ``config_entries`` logs a deprecation (both stop
+    working in 2027.10). 2026.3 has only those two, so they stay as the
+    fallback, read only when ``config_entry_id`` is missing.
+    """
+
+    owner = getattr(device, "config_entry_id", None)
+    if owner:
+        return owner
+    owner = getattr(device, "primary_config_entry", None)
+    if owner:
+        return owner
+    return next(iter(getattr(device, "config_entries", None) or ()), None)
 
 
 def requested_vin(vin: Any, device_vin: Optional[str]) -> Optional[str]:
