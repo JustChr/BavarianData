@@ -61,7 +61,10 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   This now also covers a car of a second account (a BMW and a MINI on one
   wallbox), and a car charging elsewhere no longer blocks the meter for the one
   at home. One wallbox for several cars stays the normal case: the meter counts
-  for whichever car is charging.
+  for whichever car is charging. A car that was charging when Home Assistant
+  restarted holds the meter for at most 15 minutes if it doesn't confirm,
+  instead of until it next reports, which a car done charging may not do for
+  hours.
 - **Blueprint *Notify when charging completes*: one message, the car named, a
   car filter.** With *Only when target reached* off, a charge that reached its
   target sent two messages. Now it sends one, the title names the car (*i5

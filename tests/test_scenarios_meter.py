@@ -454,3 +454,34 @@ def test_a_car_of_another_account_on_the_same_meter_counts_too(h):
         _stop(h, 140)
         session = max(h.sessions(), key=lambda record: record.start)
         assert session.grid_kwh is None
+
+
+def test_a_restored_charge_no_one_confirms_stops_holding_the_meter(h):
+    """A car charging at the restart counts as on the meter only while its
+    restored charge is still open; once that is filed unconfirmed it no longer
+    keeps another account's car off the meter for hours."""
+
+    import types
+
+    _charge(h)
+    h.advance_to(27.7)
+    h.restart(downtime_s=80)
+    h.advance_to(60)  # past the restored session's grace: filed as "restart"
+    assert max(h.sessions(), key=lambda record: record.start).end_reason == "restart"
+
+    with CoordinatorHarness(vin=OTHER, wallbox_meter=METER) as mini:
+        mini.hass.config_entries = types.SimpleNamespace(
+            async_entries=lambda _domain: [
+                types.SimpleNamespace(runtime_data=types.SimpleNamespace(coordinator=c))
+                for c in (h.coordinator, mini.coordinator)
+            ],
+            async_get_entry=lambda _id: None,
+        )
+        _charge(mini, minute=60, soc=50)
+        for minute in range(70, 190, 10):
+            mini.meter(minute, 1000.0 + 3.7 * (minute - 60) / 60)
+            mini.send(minute, power=3480, soc=round(50 + STREAM_RATE * (minute - 60) / 60, 1))
+        _stop(mini, 190)
+
+        session = max(mini.sessions(), key=lambda record: record.start)
+        assert session.grid_source == "meter"
