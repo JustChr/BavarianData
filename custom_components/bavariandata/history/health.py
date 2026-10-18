@@ -78,10 +78,13 @@ class BatteryHealth:
 def _capacity_sample(session: ChargingSession) -> Optional[float]:
     """The usable-capacity a single session implies, or ``None`` if it can't.
 
-    Uses the battery-side energy on purpose: capacity is what the pack holds, so
-    the grid-side figure (which includes charging losses) would overstate it.
-    That is also why an imported session, which carries only ``grid_kwh``, can
-    never be a capacity sample however wide its SoC span.
+    Uses ``energy_kwh``, the integration's sum of the car's own streamed
+    charging power, never ``grid_kwh``, so an imported session (BMW's grid
+    figure only) can never be a capacity sample however wide its SoC span.
+    BMW calls that power the battery's, but on the i5 it tracks the wallbox
+    meter (56.98 vs 56.85 kWh over a clean 8 -> 80 % charge, 2026-10-18): it is
+    measured at the plug, so the estimate carries the charger's losses and
+    reads a few percent above the pack.
 
     A session that opened mid-charge is rejected outright: its energy and its
     SoC span both start late and by *different* amounts, so dividing one by the

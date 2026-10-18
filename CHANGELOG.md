@@ -37,6 +37,11 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   76 %" sat beside the month's 197 kWh but was a share of only the 99 kWh whose
   source was measured (charges from before the house sensors were set up have
   none). The tile now reads *75 of 99 kWh measured* under the percentage.
+- **The month report writes numbers the way your language does.** It printed
+  energy to three decimals with a dot in every language, so a German report
+  said *297.752 kWh*, which reads as almost three hundred thousand. Figures now
+  have one decimal (money two) and a decimal comma outside English. The CSV
+  files keep the dot, so scripts and spreadsheets read them as before.
 - **Petrol and diesel cars no longer get BMW's battery fields as entities.**
   BMW streams some of them to cars with no high-voltage battery: the battery
   level at each trip's end and the share of electric driving (a G42 M240i), the

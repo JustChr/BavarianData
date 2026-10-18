@@ -10,8 +10,20 @@ recorded charging sessions used for [charging history](Feature-Charging-History-
 
 A **wide-range charge** (say 20 → 80 %) that adds a known number of kWh implies
 the capacity of the whole pack: if 30 % of the battery took *X* kWh, the pack is
-roughly *X / 0.30*. Averaging across many such charges cancels the noise from
-temperature, charging speed and measurement error.
+roughly *X / 0.30*. Taking the median across many such charges cancels the
+noise from temperature, charging speed and measurement error.
+
+### What the figure includes
+
+The kWh are the integration's own sum of the charging power the car streams.
+BMW calls that field the *battery* charging power, but on the one car checked
+against a wallbox meter (an i5 on 11 kW AC) it tracked the meter, not the pack:
+57.0 kWh by the car against 56.9 kWh at the meter over one clean 8 → 80 %
+charge. So it is measured at the plug, and the charger's losses are in it. The
+learned capacity therefore reads a few percent above what the pack itself
+holds: about 80 kWh per 100 % of displayed charge on that car, where BMW's own
+`maxEnergy` said 77. Read it as a trend over the car's life, not as the exact
+pack size.
 
 ## The Battery Health sensor
 
@@ -31,10 +43,10 @@ Not every charge can say something about capacity. A session qualifies only if
   delta. Measured on a real car against BMW's own `maxEnergy` of 78 kWh: a 21 %
   charge implied 77 kWh (0.8 % out), a 12 % charge 82 kWh (5 %), and a 9 % charge
   **123 kWh** (58 %). The error is modest above ~20 % and explodes below ~15 %.
-- **It carries battery-side energy.** Sessions imported from BMW's charging
-  history hold only a *grid* figure, which includes charging losses and would
-  overstate the pack. They are excluded however wide their SoC span — so the
-  first charges after an install, which are usually imported, don't count.
+- **It carries the car's own energy figure.** Sessions imported from BMW's
+  charging history hold only BMW's *grid* figure, measured differently and not
+  comparable. They are excluded however wide their SoC span — so the first
+  charges after an install, which are usually imported, don't count.
 - **It caught the whole charge.** If the car was already charging when the
   integration noticed — a restart mid-charge, or a status transition the stream
   never sent — both the energy and the SoC span start late by *different*
