@@ -10,6 +10,11 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [Unreleased]
 
 ### Fixed
+- **The log no longer shows your full VIN when a BMW request fails.** The
+  message masked it, but the request address quoted after it still carried it,
+  and since BMW refuses the service items (16 October) that warning appears
+  once a day for every car. If you attached a log to an issue, check it for
+  your VIN.
 - **Blueprint *Car arriving home soon* works with Proximity.** Home Assistant's
   Proximity sensor reports in metres, so a threshold of 5 meant 5 m and the
   blueprint fired only on the doorstep, if at all. A distance in metres (or

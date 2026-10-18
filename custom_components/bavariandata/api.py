@@ -82,6 +82,12 @@ def _error_detail(payload: Any) -> Optional[str]:
     return text if len(text) <= 160 else f"{text[:157]}..."
 
 
+def _shown(path: str) -> str:
+    """A request path fit for a log line: the VIN in it masked."""
+
+    return _VIN_RE.sub("<VIN>", path)
+
+
 def _api_error(status: int, method: str, path: str, text: str) -> "CardataApiError":
     try:
         payload: Any = json.loads(text) if text else None
@@ -90,7 +96,7 @@ def _api_error(status: int, method: str, path: str, text: str) -> "CardataApiErr
     error_id = _extract_error_id(payload)
     why = ": ".join(part for part in (error_id, _error_detail(payload)) if part)
     return CardataApiError(
-        f"HTTP {status}" + (f" ({why})" if why else "") + f" for {method} {path}",
+        f"HTTP {status}" + (f" ({why})" if why else "") + f" for {method} {_shown(path)}",
         status=status,
         error_id=error_id,
     )
@@ -135,7 +141,9 @@ async def async_request_json(
                     return text
             raise _api_error(response.status, method, path, text)
     except aiohttp.ClientError as err:
-        raise CardataApiError(f"Network error for {method} {path}: {err}") from err
+        raise CardataApiError(
+            f"Network error for {method} {_shown(path)}: {_VIN_RE.sub('<VIN>', str(err))}"
+        ) from err
 
 
 async def async_request_bytes(
@@ -157,7 +165,9 @@ async def async_request_bytes(
                 return await response.read(), content_type
             raise _api_error(response.status, method, path, await response.text())
     except aiohttp.ClientError as err:
-        raise CardataApiError(f"Network error for {method} {path}: {err}") from err
+        raise CardataApiError(
+            f"Network error for {method} {_shown(path)}: {_VIN_RE.sub('<VIN>', str(err))}"
+        ) from err
 
 
 async def _async_collect_paginated(
