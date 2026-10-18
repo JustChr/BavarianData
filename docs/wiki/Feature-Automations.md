@@ -69,7 +69,8 @@ Every trigger passes its details as `trigger.data`:
 | Charging started / completed | `soc`, `target_soc`, `status` (completed: also `energy_kwh`, `cost`, `session_id`) |
 | Charging stopped before the target | as completed, plus `reason` — BMW's own word for why, when the car sends one |
 
-Every payload also carries `vin` and `entry_id`. An example that warns about a
+Every payload also carries `vin`, `entry_id` and `vehicle`, the car's name as BMW
+reports it (`null` until it does). An example that warns about a
 car left unlocked at home:
 
 ```yaml
@@ -92,7 +93,7 @@ actions:
 
 Everything behind the triggers is also fired on the Home Assistant **event
 bus**, for YAML automations and Node-RED (watch them under **Developer Tools →
-Events**). Each carries `vin` and `entry_id`.
+Events**). Each carries `vin`, `entry_id` and `vehicle` (the car's name).
 
 | Event | Fires when | Data |
 | --- | --- | --- |
@@ -145,7 +146,11 @@ Automations → Blueprints → Import Blueprint** with the raw GitHub URL:
   have — it can't command the car directly.
 - **Notify when charging completes** —
   [`notify_charging_complete.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/notify_charging_complete.yaml).
-  Pings a notify service on the charging-complete / -stopped events above.
+  Sends one message when a session ends, either only when the car reached its
+  target or on any end. The title names the car, and **Cars** limits it to the
+  ones you pick (empty: every car). Re-import it to get the car filter. Until
+  v0.9.20 a charge that reached its target sent two messages when *Only when
+  target reached* was off.
 - **Mirror the charging cable into a switch** —
   [`plug_to_switch.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/plug_to_switch.yaml).
   Turns a switch on when the cable goes in at home and off when it comes out.

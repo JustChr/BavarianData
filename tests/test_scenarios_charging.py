@@ -113,6 +113,24 @@ def test_an_unplug_files_the_session_after_the_debounce(h, snapshot):
     assert h.render() == snapshot
 
 
+def test_every_event_names_the_car(h):
+    """With two cars, "Charging complete" alone doesn't say which one."""
+
+    h.coordinator.names[h.vin] = "i5 eDrive40"
+    _start_charge(h)
+    h.send(60, status="NOCHARGING", power=0, step="unplugged")
+    h.advance_to(63)
+
+    assert [data["vehicle"] for _name, data in h.events()] == ["i5 eDrive40"] * 2
+
+
+def test_an_unnamed_car_is_never_named_by_its_vin(h):
+    h.coordinator.names[h.vin] = h.vin  # what a car without basic data is called
+    _start_charge(h)
+
+    assert [data["vehicle"] for _name, data in h.events()] == [None]
+
+
 def test_a_status_flap_inside_the_debounce_is_one_session(h, snapshot):
     _start_charge(h)
     h.send(30, status="NOCHARGING", step="flap off")

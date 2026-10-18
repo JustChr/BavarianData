@@ -1,10 +1,11 @@
 blueprint:
   name: "BavarianData: Notify when charging completes"
   description: >
-    Sends a notification the moment a charging session ends. Triggers on the
-    `bavariandata_charging_complete` event (target SoC reached) and/or the
-    `bavariandata_charging_stopped` event (session ended for any reason), which
-    BavarianData fires from the live stream — no polling, no template sensors.
+    Sends one notification when a charging session ends: either only when the
+    car reached its target, or on any session end. It reacts to the
+    `bavariandata_charging_stopped` event, which BavarianData fires from the
+    live stream, so there's no polling and no template sensor. The message names
+    the car, and with more than one car you can limit it to the ones you pick.
   domain: automation
   source_url: https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/notify_charging_complete.yaml
   input:
@@ -21,33 +22,54 @@ blueprint:
       default: true
       selector:
         boolean:
+    vehicles:
+      name: Cars
+      description: Only these cars. Leave empty for every car.
+      default: []
+      selector:
+        device:
+          multiple: true
+          filter:
+            - integration: bavariandata
 
 mode: queued
 max: 5
 
-trigger:
-  - platform: event
-    event_type: bavariandata_charging_complete
-    id: complete
-  - platform: event
+# One trigger, not one per event: a charge that reaches its target fires both
+# `charging_complete` and `charging_stopped`, which used to send two messages.
+triggers:
+  - trigger: event
     event_type: bavariandata_charging_stopped
-    id: stopped
 
-condition:
+variables:
+  notify_target: !input notify_target
+  only_on_complete: !input only_on_complete
+  vehicles: !input vehicles
+  soc: "{{ trigger.event.data.soc }}"
+  target: "{{ trigger.event.data.target_soc }}"
+  # The same rule the integration fires `charging_complete` by.
+  complete: "{{ soc is number and target is number and soc >= target - 1 }}"
+  # The picked cars' VINs: each car's device carries it as its identifier.
+  vins: >-
+    {%- set ns = namespace(vins=[]) -%}
+    {%- for device in (vehicles if vehicles is list else [vehicles]) if device -%}
+      {%- for pair in device_attr(device, 'identifiers') or [] -%}
+        {%- if pair[0] == 'bavariandata' -%}{%- set ns.vins = ns.vins + [pair[1]] -%}{%- endif -%}
+      {%- endfor -%}
+    {%- endfor -%}
+    {{ ns.vins }}
+
+conditions:
   - condition: template
-    value_template: >
-      {{ trigger.id == 'complete' or not only_on_complete }}
-    variables:
-      only_on_complete: !input only_on_complete
+    value_template: "{{ complete or not only_on_complete }}"
+  - condition: template
+    value_template: "{{ vins | count == 0 or trigger.event.data.vin in vins }}"
 
-action:
-  - service: "{{ notify_target }}"
+actions:
+  - action: "{{ notify_target }}"
     data:
       title: >
-        {{ 'Charging complete' if trigger.id == 'complete' else 'Charging stopped' }}
+        {% set what = 'charging complete' if complete else 'charging stopped' %}
+        {{ trigger.event.data.vehicle ~ ': ' ~ what if trigger.event.data.vehicle else what | capitalize }}
       message: >
-        {% set soc = trigger.event.data.soc %}
-        {% set target = trigger.event.data.target_soc %}
         Battery at {{ soc if soc is not none else '?' }}%{% if target is not none %} (target {{ target }}%){% endif %}.
-    variables:
-      notify_target: !input notify_target
