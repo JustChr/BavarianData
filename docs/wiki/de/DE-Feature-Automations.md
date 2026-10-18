@@ -11,7 +11,7 @@ Der einfachste Weg: Automation anlegen, als Auslöser **Gerät** wählen, dein A
 auswählen und aus der Liste wählen. Kein YAML, keine Entitätsnamen.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-device-triggers.png" alt="Der Geräte-Auslöser im Automations-Editor mit gewähltem Auto und offener Auslöser-Liste: Arrived at a zone, Charging completed (target reached), Charging started, Charging stopped before the target" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-device-triggers.png" alt="Der Geräte-Auslöser im Automations-Editor mit gewähltem Auto und offener Auslöser-Liste: Alarm went off, Arrived at a zone, Charging completed (target reached), Charging started, Charging stopped before the target" width="360" />
 </p>
 
 | Auslöser | Löst aus, wenn | Optionen |
