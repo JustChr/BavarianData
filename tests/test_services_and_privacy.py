@@ -335,3 +335,14 @@ def test_a_fetch_service_that_fails_says_so() -> None:
             any(kw.arg == "strict" and ast.unparse(kw.value) == "True" for kw in call.keywords)
             for call in calls
         ), name
+
+
+def test_no_service_error_carries_a_whole_vin() -> None:
+    """A service's error reaches the UI and, from an automation, the log."""
+
+    tree = ast.parse((_PKG / "services.py").read_text(encoding="utf-8"))
+    for raised in (node for node in ast.walk(tree) if isinstance(node, ast.Raise)):
+        for value in ast.walk(raised):
+            if isinstance(value, ast.FormattedValue):
+                shown = ast.unparse(value.value)
+                assert shown not in ("vin", "trip_id", "requested"), (raised.lineno, shown)

@@ -767,7 +767,9 @@ def async_setup_services(hass: HomeAssistant) -> None:
         vin = _pick_vin(entry, runtime, vin, required=True)
         trip = runtime.history.find_trip(vin, trip_id)
         if trip is None:
-            raise ServiceValidationError(f"No trip {trip_id!r} found for vehicle {vin}")
+            # A trip id starts with its VIN; neither goes into the message whole.
+            shown = trip_id.replace(vin, mask_vin(vin))
+            raise ServiceValidationError(f"No trip {shown!r} found for {mask_vin(vin)}")
         trip.classification = call.data["classification"]
         trip.classification_source = SOURCE_USER
         runtime.history.add_trip(trip)
