@@ -135,10 +135,10 @@ type: custom:bavariandata-card
 drivetrain: ice   # bev · phev · ice — omit to auto-detect
 ```
 
-The charging, battery-health and efficiency views are built on charging data. On
-a petrol or diesel car they say so — *Nothing to show for this car* — rather than
-sitting empty as if something were broken. If that car does plug in, set
-**Drivetrain**.
+The charging and efficiency views are built on charging data, so on a petrol or
+diesel car they show the [Fuel view](#fuel-view-fuel) instead. Battery health says
+*Nothing to show for this car* rather than sitting empty as if something were
+broken. If that car does plug in, set **Drivetrain**.
 
 While a drive is under way, a **Trip in progress** badge appears at the bottom of
 the vehicle image with the distance and minutes so far; tap it for the full
@@ -231,8 +231,11 @@ side of the charger and the window it came from, the measured charging loss wher
 a grid figure exists, the usable capacity it divided into, your cost per 100 km
 with the month's solar share, and a bar chart of consumption by calendar month —
 the seasonal story, since winter consumption is routinely a third above summer.
-On a plug-in hybrid it explains instead why there is no consumption or range to
-show ([why](Feature-Efficiency-and-Range#plug-in-hybrids)).
+On a plug-in hybrid there is no consumption or range from the charging history
+([why](Feature-Efficiency-and-Range#plug-in-hybrids)); it shows BMW's own lifetime
+figures instead — electric consumption with the engine off, the share driven
+electrically, fuel per 100 km — where the car sends them, and otherwise explains
+why it is empty.
 
 Everything is measured from the charging ledger — two charges bracket a distance
 and the energy that went into it — so it spends **no API quota** and never
@@ -268,6 +271,37 @@ end, and where the current pace lands. Without one, a line says where to add it.
 Everything comes from the car's daily odometer readings, so it spends **no API
 quota** and works for every drivetrain. Distances follow the car's odometer unit
 (km or mi).
+
+---
+
+## Fuel (`view: fuel`)
+
+A petrol, diesel or plug-in hybrid car's refuels and what it burns between them.
+On a petrol or diesel car the charging and efficiency views show this too.
+
+```yaml
+type: custom:bavariandata-card
+view: fuel
+```
+
+It shows the tank now (liters or percent, with the range), the average
+consumption over the last 12 months, the distance and fuel since the last refuel,
+and BMW's own lifetime figure where the car sends its OBFCM counters. Below them,
+every refuel: when, the odometer, how much went in, and the consumption over the
+stretch it closed.
+
+There is no pump receipt to read, so a refuel is recognised by the tank itself:
+a rise of at least 5 L (8 % on a car that only streams a percentage) while the
+car stands still. Between two refuels, what the tank lost over the odometer's
+kilometers is the consumption, shown for stretches of at least 150 km. The car
+reports its tank to within a few liters, so one stretch can be off by a liter or
+so per 100 km; the average over several is the figure to trust. A car that sends
+only a percentage gets its refuels listed but no l/100 km, because a percentage
+can't be turned into liters without the tank size.
+
+The log starts the day you update, so the first figure needs two refuels. It
+spends **no API quota** ([service](Services-Reference#get_fuel_history)).
+Consumption is always in l/100 km, distances follow the car's odometer unit.
 
 ---
 
@@ -530,7 +564,7 @@ teleservice timestamps, listed below the messages when the car sends them.
 | Key | Purpose |
 | --- | --- |
 | `type` | Always `custom:bavariandata-card`. |
-| `view` | `charging`, `trips`, `map`, `health`, `efficiency` or `equipment`. Omit for the Overview. |
+| `view` | `charging`, `trips`, `map`, `health`, `efficiency`, `mileage`, `fuel` or `equipment`. Omit for the Overview. |
 | `cluster` | `electric`, `status`, `tire`, `usage`, `events`, `basic`, `contract`, `metadata`, `other`, `closures`. Renders a single-cluster list (or the special tire/closures diagrams). |
 | `device` | Device id, to pin a specific vehicle. The visual editor lists your cars only, never the account's own diagnostics device (*BMW CarData*); a card set to it shows the first car instead. |
 | `vin` | VIN, as an alternative to `device`. |

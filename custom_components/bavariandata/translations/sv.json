@@ -3076,6 +3076,24 @@
         }
       }
     },
+    "get_fuel_history": {
+      "name": "Hämta bränslehistorik",
+      "description": "Returnerar tankningarna för en bensin-, diesel- eller laddhybridbil, avlästa från tanknivån, med förbrukningen mellan dem, genomsnittet för det senaste året och BMW:s förbrukning under bilens livslängd när bilen skickar den. Kostar ingen BMW API-kvot.",
+      "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Bilen det gäller. Behövs bara om det finns mer än en bil."
+        },
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN, i stället för att välja fordonet. Behövs bara om kontot har mer än en bil."
+        }
+      }
+    },
     "get_evcc_config": {
       "name": "Hämta evcc-konfiguration",
       "description": "Returnera evccs 'custom'-fordonskonfiguration för den här bilen, klar att klistra in i evcc.yaml, tillsammans med de MQTT-topics som bryggan publicerar och vilka av dem som är aktiva just nu. Läser bara lokalt tillstånd, så det kostar ingen BMW API-kvot.",

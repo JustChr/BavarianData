@@ -573,6 +573,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
     )
     get_evcc_config_schema = get_efficiency_schema
     get_mileage_report_schema = get_efficiency_schema
+    get_fuel_history_schema = get_efficiency_schema
     mark_trip_start_schema = vol.Schema(
         {
             vol.Optional("entry_id"): str,
@@ -634,6 +635,15 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
         _entry_id, _entry, runtime, vin = _target_car(call)
         return {"vin": vin, **runtime.coordinator.mileage_report(vin)}
+
+    async def async_handle_get_fuel_history(call: Any) -> dict:
+        """Refuels and fuel consumption, from the tank reading (``history/fuel.py``).
+
+        Plus BMW's lifetime counters where the car sends them. No quota.
+        """
+
+        _entry_id, _entry, runtime, vin = _target_car(call)
+        return {"vin": vin, "fuel": runtime.coordinator.fuel_report(vin)}
 
     async def async_handle_get_driving_summary(call: Any) -> dict:
         _entry_id, _entry, runtime, vin = _target_car(call)
@@ -707,6 +717,9 @@ def async_setup_services(hass: HomeAssistant) -> None:
         profile["cost_per_100km"] = month_summary.get("cost_per_100km")
         profile["currency"] = coordinator.pricing.currency if coordinator.pricing.enabled else None
         profile["energy_mix"] = month_summary.get("energy_mix")
+        # BMW's own lifetime counters: on a plug-in hybrid the only honest
+        # consumption figure there is (``history/obfcm.py``).
+        profile["bmw_lifetime"] = coordinator.obfcm_lifetime(vin)
         return {"efficiency": profile, "vin": vin}
 
     async def async_handle_get_evcc_config(call: Any) -> dict:
@@ -1101,6 +1114,13 @@ def async_setup_services(hass: HomeAssistant) -> None:
         "get_mileage_report",
         async_handle_get_mileage_report,
         schema=get_mileage_report_schema,
+        supports_response=SupportsResponse.ONLY,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "get_fuel_history",
+        async_handle_get_fuel_history,
+        schema=get_fuel_history_schema,
         supports_response=SupportsResponse.ONLY,
     )
     hass.services.async_register(

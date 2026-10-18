@@ -3306,6 +3306,24 @@
         }
       }
     },
+    "get_fuel_history": {
+      "name": "Get fuel history",
+      "description": "Return a petrol, diesel or plug-in hybrid car's refuels, read off its tank level, with the fuel consumption between them, the average over the last year, and BMW's lifetime consumption figures where the car sends them. Costs no BMW API quota.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The car to act on. Only needed when there is more than one car."
+        },
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN, instead of picking the vehicle. Only needed when the account has more than one car."
+        }
+      }
+    },
     "get_evcc_config": {
       "name": "Get evcc configuration",
       "description": "Return the evcc 'custom' vehicle configuration for this car, ready to paste into evcc.yaml, along with the MQTT topics the bridge publishes and which of them are currently live. Reads local state only, so it costs no BMW API quota.",

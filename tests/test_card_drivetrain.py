@@ -525,10 +525,18 @@ def _render_view(
 
 
 def test_battery_views_explain_themselves_on_a_petrol_car():
-    for view in ("charging", "health", "efficiency"):
+    html = _render_view(M2, "health")
+    assert "Nothing to show for this car" in html
+    assert "M2 runs on fuel alone" in html
+
+
+def test_a_petrol_car_charging_and_efficiency_show_its_fuel():
+    # Its tank is the record a petrol car has, so the two views built on
+    # charging show the Fuel view rather than an empty notice.
+    for view in ("charging", "efficiency"):
         html = _render_view(M2, view)
-        assert "Nothing to show for this car" in html, view
-        assert "M2 runs on fuel alone" in html, view
+        assert "Nothing to show for this car" not in html, view
+        assert "mdi:gas-station" in html, view
 
 
 def test_battery_views_are_untouched_on_an_electric_car():

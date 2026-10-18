@@ -128,8 +128,18 @@ geteilt ergibt einen um genau den Kraftstoffanteil zu niedrigen Wert: Ein Auto, 
 zur Hälfte mit Kraftstoff fährt, zeigte die Hälfte seines echten Verbrauchs und eine
 doppelt so große reale Reichweite, wie die Batterie schafft — etwa 186 km aus einem
 19,7-kWh-Akku, der tatsächlich rund 90 schafft. Deshalb werden die Werte
-zurückgehalten, statt falsch angezeigt zu werden. Die Effizienzansicht sagt das, und
-`get_efficiency` liefert `status: plug_in_hybrid`.
+zurückgehalten, statt falsch angezeigt zu werden, und `get_efficiency` liefert
+`status: plug_in_hybrid`.
+
+Stattdessen bekommt ein Hybrid **BMWs eigene Werte**, wo das Auto sie sendet. Autos mit
+EU-Typgenehmigung ab etwa 2021 führen Zähler über die Lebensdauer (OBFCM) für den
+verbrannten Kraftstoff, die geladene Netzenergie und die Strecke dahinter, getrennt
+danach, ob der Motor lief. BMW liefert sie mit der täglichen Abfrage, sie kosten also
+kein Kontingent. Daraus zeigt die Effizienzansicht den **elektrischen Verbrauch**
+(Netz-kWh pro 100 km mit Motor aus), den **elektrisch gefahrenen Anteil**, den
+**Kraftstoff pro 100 km** und die Netzenergie über alle Fahrten. Es sind Werte über die
+Lebensdauer, seit das Auto gebaut wurde, und sie erscheinen ab 500 km. Ein Auto ohne
+diese Zähler behält die Erklärung.
 
 Was bei einem Hybrid weiter funktioniert: der [Batteriezustand](DE-Feature-Battery-Health),
 der [Ladeverlauf](DE-Feature-Charging-History-and-Cost) mit Energie und Kosten und die

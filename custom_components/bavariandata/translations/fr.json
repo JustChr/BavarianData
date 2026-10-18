@@ -3076,6 +3076,24 @@
         }
       }
     },
+    "get_fuel_history": {
+      "name": "Obtenir l'historique de carburant",
+      "description": "Renvoie les pleins d'une voiture essence, diesel ou hybride rechargeable, détectés d'après le niveau du réservoir, avec la consommation entre eux, la moyenne sur la dernière année et les chiffres de consommation sur la durée de vie fournis par BMW lorsque la voiture les envoie. Ne consomme aucun quota de l'API BMW.",
+      "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "La voiture concernée. Nécessaire seulement s'il y a plus d'une voiture."
+        },
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif, au lieu de choisir le véhicule. Nécessaire seulement si le compte a plus d'une voiture."
+        }
+      }
+    },
     "get_evcc_config": {
       "name": "Obtenir la configuration evcc",
       "description": "Renvoie la configuration de véhicule « custom » d'evcc pour cette voiture, prête à coller dans evcc.yaml, ainsi que les topics MQTT publiés par la passerelle et ceux qui sont actuellement actifs. Lit uniquement l'état local ; cela ne consomme donc aucun quota d'API BMW.",

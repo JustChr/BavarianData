@@ -80,6 +80,14 @@ if (input.mileage) {
   card._mil = { vin: "WBS1", trigger: "", data: input.mileage, loading: false };
   card._render = () => { card._sig = null; card._paintMileage("device", input.unit || "km"); };
 }
+if (input.fuel) {
+  card._fuel = { vin: "WBS1", trigger: "", data: input.fuel, loading: false };
+  card._render = () => { card._sig = null; card._paintFuel("device", input.unit || "km"); };
+}
+if (input.efficiency) {
+  card._eff = { vin: "WBS1", trigger: "", data: input.efficiency, loading: false };
+  card._render = () => { card._sig = null; card._paintEfficiency("device", null); };
+}
 let error = null;
 try { card._render(); } catch (e) { error = String((e && e.message) || e); }
 process.stdout.write(JSON.stringify({ html: card.shadowRoot.innerHTML, error }));
@@ -98,6 +106,7 @@ SCREENS = {
     "health": {"view": "health"},
     "efficiency": {"view": "efficiency"},
     "mileage": {"view": "mileage"},
+    "fuel": {"view": "fuel"},
     "equipment": {"view": "equipment"},
     "cluster-tire": {"cluster": "tire"},
     "cluster-closures": {"cluster": "closures"},
@@ -181,6 +190,85 @@ MILEAGE = {
 @pytest.mark.parametrize("unit", ["km", "mi"])
 def test_the_mileage_view_with_figures(case: str, unit: str, snapshot) -> None:
     assert _render(I5, SCREENS["mileage"], mileage=MILEAGE[case], unit=unit) == snapshot
+
+
+# What ``get_fuel_history`` answers for a diesel with three refuels on record,
+# BMW's lifetime counters among them, and for one that has never refuelled here.
+FUEL = {
+    "logged": {
+        "refuels": [
+            {
+                "t": "2026-09-08T17:40:00+00:00",
+                "km": 23_900.0,
+                "added_l": 47.0,
+                "added_percent": None,
+                "after_l": 63.0,
+                "after_percent": None,
+                "l_per_100km": 7.1,
+                "window_km": 480.0,
+            },
+            {
+                "t": "2026-09-01T08:10:00+00:00",
+                "km": 23_420.0,
+                "added_l": 36.0,
+                "added_percent": None,
+                "after_l": 61.0,
+                "after_percent": None,
+                "l_per_100km": None,
+                "window_km": None,
+            },
+        ],
+        "average": {"l_per_100km": 7.1, "km": 480.0, "litres": 34.0, "windows": 1},
+        "since_refuel": {"km": 120.0, "litres": 9.0, "l_per_100km": None},
+        "tank": {"litres": 54.0, "percent": None, "range_km": 720.0},
+        "bmw_lifetime": {"fuel_l_per_100km": 7.4, "distance_km": 23_000.0},
+    },
+    "empty": {
+        "refuels": [],
+        "average": None,
+        "since_refuel": None,
+        "tank": {"litres": 38.0, "percent": None, "range_km": 510.0},
+        "bmw_lifetime": None,
+    },
+}
+
+
+@pytest.mark.parametrize("case", sorted(FUEL))
+@pytest.mark.parametrize("unit", ["km", "mi"])
+def test_the_fuel_view_with_figures(case: str, unit: str, snapshot) -> None:
+    assert _render(M2, SCREENS["fuel"], fuel=FUEL[case], unit=unit) == snapshot
+
+
+# A plug-in hybrid's efficiency view, from BMW's lifetime counters.
+HYBRID_EFFICIENCY = {
+    "status": "plug_in_hybrid",
+    "bmw_lifetime": {
+        "fuel_l_per_100km": 1.5,
+        "distance_km": 20_000.0,
+        "electric_kwh_per_100km": 20.0,
+        "electric_km": 9_000.0,
+        "grid_kwh_per_100km": 10.0,
+        "electric_share_percent": 45.0,
+    },
+}
+
+
+def test_a_hybrid_shows_bmws_lifetime_figures(snapshot) -> None:
+    assert _render(PHEV, SCREENS["efficiency"], efficiency=HYBRID_EFFICIENCY) == snapshot
+
+
+def test_the_fuel_figures_render_in_every_language() -> None:
+    for case in FUEL.values():
+        result = subprocess.run(
+            [NODE, "-e", _EVERY_LANGUAGE, str(_CARD)],
+            input=json.dumps({"states": {}, "config": SCREENS["fuel"], "fuel": case}),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
+            timeout=60,
+        )
+        assert json.loads(result.stdout) == {}
 
 
 def test_rendering_is_deterministic() -> None:

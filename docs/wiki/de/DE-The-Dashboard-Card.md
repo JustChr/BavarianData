@@ -145,10 +145,10 @@ type: custom:bavariandata-card
 drivetrain: ice   # bev · phev · ice — weglassen für automatische Erkennung
 ```
 
-Die Ansichten Ladeverlauf, Batteriezustand und Effizienz beruhen auf Ladedaten. Bei
-einem Benziner oder Diesel sagen sie das — *Für dieses Fahrzeug gibt es hier nichts*
-—, statt leer zu bleiben, als wäre etwas kaputt. Wird das Auto doch geladen, setze
-**Antrieb**.
+Die Ansichten Ladeverlauf und Effizienz beruhen auf Ladedaten, deshalb zeigen sie bei
+einem Benziner oder Diesel stattdessen die [Kraftstoff-Ansicht](#fuel-view-fuel). Der
+Batteriezustand sagt *Für dieses Fahrzeug gibt es hier nichts*, statt leer zu
+bleiben, als wäre etwas kaputt. Wird das Auto doch geladen, setze **Antrieb**.
 
 Während einer Fahrt erscheint unten am Fahrzeugbild ein Abzeichen **Fahrt aktiv**
 mit Strecke und Minuten bisher; antippen für die vollständigen Attribute. Es folgt
@@ -248,8 +248,11 @@ und Fenster, den gemessenen Ladeverlust, wo ein Netzwert existiert, die nutzbare
 Kapazität, durch die geteilt wurde, deine Kosten pro 100 km mit dem Solaranteil des
 Monats und ein Balkendiagramm des Verbrauchs nach Kalendermonat — die Jahreszeiten,
 denn der Winterverbrauch liegt regelmäßig ein Drittel über dem Sommer.
-Bei einem Plug-in-Hybrid erklärt sie stattdessen, warum es keinen Verbrauch und keine
-Reichweite gibt ([warum](DE-Feature-Efficiency-and-Range#plug-in-hybride)).
+Bei einem Plug-in-Hybrid gibt es keinen Verbrauch und keine Reichweite aus dem
+Ladeverlauf ([warum](DE-Feature-Efficiency-and-Range#plug-in-hybride)); sie zeigt
+stattdessen BMWs eigene Werte über die Lebensdauer — den elektrischen Verbrauch mit
+Motor aus, den elektrisch gefahrenen Anteil, den Kraftstoff pro 100 km —, wo das Auto
+sie sendet, und erklärt sonst, warum sie leer ist.
 
 Alles wird aus dem Ladeverlauf gemessen — zwei Ladungen schließen eine Strecke und
 die hineingeflossene Energie ein —, daher verbraucht sie **kein API-Kontingent** und
@@ -290,6 +293,42 @@ aktuelle Tempo landet. Ohne Kontingent sagt eine Zeile, wo man es einträgt.
 Alles kommt aus den täglichen Kilometerständen des Autos, kostet daher **kein
 API-Kontingent** und funktioniert mit jedem Antrieb. Strecken folgen der Einheit
 des Kilometerzählers (km oder mi).
+
+---
+
+## Kraftstoff (`view: fuel`)
+
+<a id="fuel-view-fuel"></a>
+
+Die Tankvorgänge eines Benziners, Diesels oder Plug-in-Hybrids und was er dazwischen
+verbraucht. Bei einem Benziner oder Diesel zeigen die Ansichten Ladeverlauf und
+Effizienz das ebenfalls.
+
+```yaml
+type: custom:bavariandata-card
+view: fuel
+```
+
+Sie zeigt den Tank jetzt (Liter oder Prozent, mit der Reichweite), den
+Durchschnittsverbrauch der letzten 12 Monate, Strecke und Kraftstoff seit dem letzten
+Tanken und BMWs eigenen Wert über die Lebensdauer, wo das Auto seine OBFCM-Zähler
+sendet. Darunter jeder Tankvorgang: wann, der Kilometerstand, wie viel hineinging und
+der Verbrauch auf der Strecke, die er abgeschlossen hat.
+
+Es gibt keinen Tankbeleg zum Ablesen, deshalb erkennt die Karte einen Tankvorgang am
+Tank selbst: ein Anstieg um mindestens 5 L (8 % bei einem Auto, das nur Prozent
+streamt), während das Auto steht. Zwischen zwei Tankvorgängen ist das, was der Tank
+über die Kilometer des Zählers verloren hat, der Verbrauch, gezeigt für Strecken ab
+150 km. Das Auto meldet seinen Tankinhalt auf ein paar Liter genau, eine einzelne
+Strecke kann also um etwa einen Liter pro 100 km danebenliegen; verlässlich ist der
+Durchschnitt über mehrere. Ein Auto, das nur Prozent sendet, bekommt seine
+Tankvorgänge aufgelistet, aber kein l/100 km, weil sich Prozent ohne die Tankgröße
+nicht in Liter umrechnen lassen.
+
+Das Protokoll beginnt mit dem Tag des Updates, der erste Wert braucht also zwei
+Tankvorgänge. Es verbraucht **kein API-Kontingent**
+([Dienst](DE-Services-Reference#get_fuel_history)). Der Verbrauch steht immer in
+l/100 km, Strecken folgen der Einheit des Kilometerzählers.
 
 ---
 
@@ -572,7 +611,7 @@ die unter den Meldungen stehen, wenn das Fahrzeug sie sendet.
 | Schlüssel | Zweck |
 | --- | --- |
 | `type` | Immer `custom:bavariandata-card`. |
-| `view` | `charging`, `trips`, `map`, `health`, `efficiency` oder `equipment`. Weglassen für die Übersicht. |
+| `view` | `charging`, `trips`, `map`, `health`, `efficiency`, `mileage`, `fuel` oder `equipment`. Weglassen für die Übersicht. |
 | `cluster` | `electric`, `status`, `tire`, `usage`, `events`, `basic`, `contract`, `metadata`, `other`, `closures`. Zeigt die Liste einer Datengruppe (oder die besonderen Diagramme für Reifen und Öffnungen). |
 | `device` | Geräte-ID, um ein bestimmtes Fahrzeug festzulegen. Der visuelle Editor listet nur deine Fahrzeuge, nie das Diagnose-Gerät des Kontos (*BMW CarData*); eine Karte, die darauf eingestellt ist, zeigt stattdessen das erste Fahrzeug. |
 | `vin` | FIN, als Alternative zu `device`. |

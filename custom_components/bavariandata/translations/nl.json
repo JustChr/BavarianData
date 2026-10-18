@@ -3076,6 +3076,24 @@
         }
       }
     },
+    "get_fuel_history": {
+      "name": "Brandstofgeschiedenis ophalen",
+      "description": "Geeft de tankbeurten van een benzine-, diesel- of plug-in hybride auto terug, herkend aan het tankniveau, met het verbruik ertussen, het gemiddelde over het afgelopen jaar en BMW's verbruikscijfers over de hele levensduur als de auto die stuurt. Kost geen BMW API-quotum.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "De auto waarom het gaat. Alleen nodig bij meer dan één auto."
+        },
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionele VIN, in plaats van het voertuig te kiezen. Alleen nodig als het account meer dan één auto heeft."
+        }
+      }
+    },
     "get_evcc_config": {
       "name": "evcc-configuratie ophalen",
       "description": "Geef de 'custom'-voertuigconfiguratie van evcc voor deze auto terug, klaar om in evcc.yaml te plakken, samen met de MQTT-topics die de brug publiceert en welke daarvan nu live zijn. Leest alleen lokale status, dus kost geen BMW-API-quotum.",

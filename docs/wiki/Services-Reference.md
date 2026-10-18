@@ -48,6 +48,7 @@ These read (or write) the integration's own store and cost **no** quota.
 | `bavariandata.get_driving_summary` | The month-in-review aggregation for trips. |
 | `bavariandata.get_efficiency` | Measured consumption, the real range it implies, the charging loss and the monthly trend — see below. |
 | `bavariandata.get_mileage_report` | How far the car is driven and where it stands against its mileage allowance — see below. |
+| `bavariandata.get_fuel_history` | A petrol, diesel or plug-in hybrid car's refuels and fuel consumption, read off its tank level — see below. |
 | `bavariandata.get_evcc_config` | The evcc `custom` vehicle configuration for a car, plus the bridge's MQTT topics — see below. |
 | `bavariandata.set_trip_class` | Corrects a trip's business/private/commute class. |
 | `bavariandata.mark_trip_start` | Notes when a drive began, for a car that reports only once parked — see below. |
@@ -119,10 +120,15 @@ so it costs no BMW API quota.
 - **`cost_per_100km` / `currency` / `energy_mix`** — this month's running cost
   and where its energy came from.
 
+- **`bmw_lifetime`** — BMW's own lifetime figures from its OBFCM counters, or
+  `null` when the car sends none: `fuel_l_per_100km` and `distance_km`, and on a
+  plug-in hybrid also `electric_kwh_per_100km` (engine off), `electric_km`,
+  `grid_kwh_per_100km` (all driving) and `electric_share_percent`.
+
 `status` says why a figure is missing: `ok`, `not_enough_history`,
 `no_capacity`, or `plug_in_hybrid` (consumption, range, trend and
-`cost_per_100km` are all withheld on a hybrid). See
-[Efficiency & real range](Feature-Efficiency-and-Range).
+`cost_per_100km` are all withheld on a hybrid; `bmw_lifetime` is what the card
+shows instead). See [Efficiency & real range](Feature-Efficiency-and-Range).
 
 ### `get_mileage_report`
 `vin`. Returns the [mileage overview](Feature-Mileage) as response data, read off
@@ -143,6 +149,28 @@ km.
   also `used_km`, `plan_km`, `balance_km` (plan minus used, positive = under
   plan), `remaining_km`, `days_left`, `km_per_day_left`, `projected_km` and
   `projected_over_km`.
+
+### `get_fuel_history`
+`vin`. Returns the [Fuel view](The-Dashboard-Card#fuel-view-fuel)'s data as response data,
+read off the car's tank level, so it costs no BMW API quota. Only a car with an
+engine keeps a fuel log; a battery car answers with an empty list.
+
+- **`refuels`** — newest first: `t`, `km` (the odometer), `added_l` or, on a car
+  that streams only a percentage, `added_percent`, the level after it, and
+  `l_per_100km` / `window_km` for the stretch it closed, when that could be
+  measured.
+- **`average`** — `{l_per_100km, km, litres, windows}` over the last 12 months:
+  total liters over total km of every measurable stretch between two refuels.
+  `null` until there is one. A stretch counts once it is at least 150 km long,
+  and only if it comes out between 2 and 30 l/100 km.
+- **`since_refuel`** — `{km, litres, l_per_100km}` since the newest refuel;
+  the figure only once the stretch is 150 km long.
+- **`tank`** — `litres`, `percent` and `range_km` now.
+- **`bmw_lifetime`** — as in `get_efficiency`, or `null`.
+
+A refuel is a rise of at least 5 L (8 % on a percentage-only car) while the car
+stands still, within 25 km of driving. The tank reading is accurate to a few
+liters, so a single stretch can be off; the average is the figure to use.
 
 ### `get_evcc_config`
 `vin`. Returns the evcc configuration for one car, ready to paste into

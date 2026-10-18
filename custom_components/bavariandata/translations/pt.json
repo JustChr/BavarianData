@@ -3076,6 +3076,24 @@
         }
       }
     },
+    "get_fuel_history": {
+      "name": "Obter histórico de combustível",
+      "description": "Devolve os abastecimentos de um carro a gasolina, gasóleo ou híbrido plug-in, detetados pelo nível do depósito, com o consumo entre eles, a média do último ano e os valores de consumo de toda a vida útil da BMW quando o carro os envia. Não gasta quota da API da BMW.",
+      "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "O carro em causa. Só é necessário com mais de um carro."
+        },
+        "entry_id": {
+          "name": "Entrada de configuração",
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN opcional, em vez de escolher o veículo. Só é necessário se a conta tiver mais de um carro."
+        }
+      }
+    },
     "get_evcc_config": {
       "name": "Obter a configuração do evcc",
       "description": "Devolve a configuração de veículo 'custom' do evcc para este carro, pronta a colar no evcc.yaml, juntamente com os tópicos MQTT que a ponte publica e quais deles estão ativos agora. Lê apenas o estado local, por isso não gasta quota da API BMW.",

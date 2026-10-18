@@ -3076,6 +3076,24 @@
         }
       }
     },
+    "get_fuel_history": {
+      "name": "Pobierz historię paliwa",
+      "description": "Zwraca tankowania samochodu benzynowego, z silnikiem Diesla lub hybrydy plug-in, rozpoznane po poziomie w zbiorniku, wraz ze zużyciem między nimi, średnią z ostatniego roku oraz danymi BMW o zużyciu przez cały okres eksploatacji, jeśli samochód je wysyła. Nie zużywa limitu API BMW.",
+      "fields": {
+        "device_id": {
+          "name": "Pojazd",
+          "description": "Samochód, którego to dotyczy. Potrzebny tylko przy więcej niż jednym samochodzie."
+        },
+        "entry_id": {
+          "name": "Wpis konfiguracji",
+          "description": "Opcjonalny identyfikator wpisu konfiguracji konta. Potrzebny tylko przy kilku kontach, gdy nie podano pojazdu ani VIN."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Opcjonalny VIN zamiast wyboru pojazdu. Potrzebny tylko, gdy konto ma więcej niż jeden samochód."
+        }
+      }
+    },
     "get_evcc_config": {
       "name": "Pobierz konfigurację evcc",
       "description": "Zwraca konfigurację pojazdu 'custom' evcc dla tego auta, gotową do wklejenia do evcc.yaml, wraz z tematami MQTT publikowanymi przez most i informacją, które z nich są obecnie aktywne. Czyta tylko stan lokalny, więc nie zużywa limitu API BMW.",

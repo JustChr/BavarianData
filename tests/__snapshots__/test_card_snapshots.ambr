@@ -1,4 +1,45 @@
 # serializer version: 1
+# name: test_a_hybrid_shows_bmws_lifetime_figures
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:map-marker-distance">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Efficiency &amp; range</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          
+        <div class="ef">
+          <div class="ef__facts">
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Electric driving</span>
+               <span class="ef__fact-val">20 kWh/100 km</span>
+               <span class="ef__fact-note">engine off, over 9,000 km</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Driven electrically</span>
+               <span class="ef__fact-val">45 %</span>
+               
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">BMW lifetime</span>
+               <span class="ef__fact-val">1.5 l/100 km</span>
+               <span class="ef__fact-note">BMW's own figure, over 20,000 km</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Grid energy, all driving</span>
+               <span class="ef__fact-val">10 kWh/100 km</span>
+               
+             </div>
+  </div>
+          <span class="ef__note">BMW's own lifetime figures, since the car was built. Its counters split the distance by whether the engine ran, which the charging history cannot. A consumption or range from the charging history is still not shown.</span>
+        </div>
+      
+        </ha-card>
+  '''
+# ---
 # name: test_the_card_renders_what_it_rendered_before[charging-i5]
   '''
   <ha-card>
@@ -46,12 +87,15 @@
 # name: test_the_card_renders_what_it_rendered_before[charging-m2]
   '''
   <ha-card>
-          <div class="msg">
-            <ha-icon icon="mdi:car-off">
+          <div class="chead">
+            <ha-icon icon="mdi:gas-station">
   </ha-icon>
-            <div class="msg__title">Nothing to show for this car</div>
-            <div class="msg__body">Car runs on fuel alone, so there is no charging, battery health or electric range to show. If it does plug in, set Drivetrain in the card editor.</div>
+            <div class="chead__text">
+              <span class="chead__title">Fuel</span>
+              <span class="chead__sub">Car</span>
+            </div>
           </div>
+          <div class="empty">Loading the fuel log…</div>
         </ha-card>
   '''
 # ---
@@ -503,12 +547,15 @@
 # name: test_the_card_renders_what_it_rendered_before[efficiency-m2]
   '''
   <ha-card>
-          <div class="msg">
-            <ha-icon icon="mdi:car-off">
+          <div class="chead">
+            <ha-icon icon="mdi:gas-station">
   </ha-icon>
-            <div class="msg__title">Nothing to show for this car</div>
-            <div class="msg__body">Car runs on fuel alone, so there is no charging, battery health or electric range to show. If it does plug in, set Drivetrain in the card editor.</div>
+            <div class="chead__text">
+              <span class="chead__title">Fuel</span>
+              <span class="chead__sub">Car</span>
+            </div>
           </div>
+          <div class="empty">Loading the fuel log…</div>
         </ha-card>
   '''
 # ---
@@ -608,6 +655,66 @@
         </div>
             <div class="empty">Turn on Configure → Vehicle image → BMW configurator to list the car's factory equipment.</div>
           </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[fuel-i5]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:gas-station">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Fuel</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="empty">Loading the fuel log…</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[fuel-m2]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:gas-station">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Fuel</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="empty">Loading the fuel log…</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[fuel-mini]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:gas-station">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Fuel</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="empty">Loading the fuel log…</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_card_renders_what_it_rendered_before[fuel-phev]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:gas-station">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Fuel</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          <div class="empty">Loading the fuel log…</div>
+        </ha-card>
   '''
 # ---
 # name: test_the_card_renders_what_it_rendered_before[health-i5]
@@ -1210,6 +1317,206 @@
           </button>
         </div>
           <div class="empty">Loading trips…</div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_fuel_view_with_figures[km-empty]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:gas-station">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Fuel</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          
+        <div class="ef">
+          <div class="ef__facts">
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Tank</span>
+               <span class="ef__fact-val">38 L</span>
+               <span class="ef__fact-note">510 km range</span>
+             </div>
+  </div>
+          <span class="ef__note">No refuel recorded yet. The next fill-up appears here, and the consumption once two are recorded.</span>
+          <span class="ef__note">Read off the tank level, which the car reports to within a few liters, so each figure is an estimate. The average over several refuels is the one to trust.</span>
+        </div>
+      
+        </ha-card>
+  '''
+# ---
+# name: test_the_fuel_view_with_figures[km-logged]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:gas-station">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Fuel</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          
+        <div class="ef">
+          <div class="ef__facts">
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Tank</span>
+               <span class="ef__fact-val">54 L</span>
+               <span class="ef__fact-note">720 km range</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Average</span>
+               <span class="ef__fact-val">7.1 l/100 km</span>
+               <span class="ef__fact-note">over 480 km, last 12 months</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Since refueling</span>
+               <span class="ef__fact-val">120 km</span>
+               <span class="ef__fact-note">9 L used</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">BMW lifetime</span>
+               <span class="ef__fact-val">7.4 l/100 km</span>
+               <span class="ef__fact-note">BMW's own figure, over 23,000 km</span>
+             </div>
+  </div>
+          <div class="ef__trend">
+  <span class="ef__trend-title">Refuels</span>
+  </div>
+                 <div class="chg__list">
+            <div class="chg__session">
+              <div class="chg__row">
+                <span class="chg__row-main">
+                  <span class="chg__date">Sep 8, 07:40 PM</span>
+                  <span class="chg__meta">
+  <span class="chg__tag">23,900 km</span>
+  <span class="chg__tag">7.1 l/100 km over 480 km</span>
+  </span>
+                </span>
+                <span class="chg__figures">
+                  <span class="chg__energy chg__energy--lead">+47 L</span>
+                </span>
+              </div>
+            </div>
+            <div class="chg__session">
+              <div class="chg__row">
+                <span class="chg__row-main">
+                  <span class="chg__date">Sep 1, 10:10 AM</span>
+                  <span class="chg__meta">
+  <span class="chg__tag">23,420 km</span>
+  </span>
+                </span>
+                <span class="chg__figures">
+                  <span class="chg__energy chg__energy--lead">+36 L</span>
+                </span>
+              </div>
+            </div>
+  </div>
+          <span class="ef__note">Read off the tank level, which the car reports to within a few liters, so each figure is an estimate. The average over several refuels is the one to trust.</span>
+        </div>
+      
+        </ha-card>
+  '''
+# ---
+# name: test_the_fuel_view_with_figures[mi-empty]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:gas-station">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Fuel</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          
+        <div class="ef">
+          <div class="ef__facts">
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Tank</span>
+               <span class="ef__fact-val">38 L</span>
+               <span class="ef__fact-note">317 mi range</span>
+             </div>
+  </div>
+          <span class="ef__note">No refuel recorded yet. The next fill-up appears here, and the consumption once two are recorded.</span>
+          <span class="ef__note">Read off the tank level, which the car reports to within a few liters, so each figure is an estimate. The average over several refuels is the one to trust.</span>
+        </div>
+      
+        </ha-card>
+  '''
+# ---
+# name: test_the_fuel_view_with_figures[mi-logged]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:gas-station">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Fuel</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          
+        <div class="ef">
+          <div class="ef__facts">
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Tank</span>
+               <span class="ef__fact-val">54 L</span>
+               <span class="ef__fact-note">447 mi range</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Average</span>
+               <span class="ef__fact-val">7.1 l/100 km</span>
+               <span class="ef__fact-note">over 298 mi, last 12 months</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Since refueling</span>
+               <span class="ef__fact-val">75 mi</span>
+               <span class="ef__fact-note">9 L used</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">BMW lifetime</span>
+               <span class="ef__fact-val">7.4 l/100 km</span>
+               <span class="ef__fact-note">BMW's own figure, over 14,292 mi</span>
+             </div>
+  </div>
+          <div class="ef__trend">
+  <span class="ef__trend-title">Refuels</span>
+  </div>
+                 <div class="chg__list">
+            <div class="chg__session">
+              <div class="chg__row">
+                <span class="chg__row-main">
+                  <span class="chg__date">Sep 8, 07:40 PM</span>
+                  <span class="chg__meta">
+  <span class="chg__tag">14,851 mi</span>
+  <span class="chg__tag">7.1 l/100 km over 298 mi</span>
+  </span>
+                </span>
+                <span class="chg__figures">
+                  <span class="chg__energy chg__energy--lead">+47 L</span>
+                </span>
+              </div>
+            </div>
+            <div class="chg__session">
+              <div class="chg__row">
+                <span class="chg__row-main">
+                  <span class="chg__date">Sep 1, 10:10 AM</span>
+                  <span class="chg__meta">
+  <span class="chg__tag">14,553 mi</span>
+  </span>
+                </span>
+                <span class="chg__figures">
+                  <span class="chg__energy chg__energy--lead">+36 L</span>
+                </span>
+              </div>
+            </div>
+  </div>
+          <span class="ef__note">Read off the tank level, which the car reports to within a few liters, so each figure is an estimate. The average over several refuels is the one to trust.</span>
+        </div>
+      
         </ha-card>
   '''
 # ---

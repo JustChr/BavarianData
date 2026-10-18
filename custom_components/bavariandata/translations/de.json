@@ -3076,6 +3076,24 @@
         }
       }
     },
+    "get_fuel_history": {
+      "name": "Tankverlauf abrufen",
+      "description": "Gibt die Tankvorgänge eines Benziners, Diesels oder Plug-in-Hybrids zurück, erkannt am Tankinhalt, mit dem Verbrauch zwischen ihnen, dem Durchschnitt des letzten Jahres und BMWs Verbrauch über die Lebensdauer, wo das Auto ihn sendet. Kostet kein BMW-API-Kontingent.",
+      "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Auto, um das es geht. Nur nötig bei mehr als einem Auto."
+        },
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
+        },
+        "vin": {
+          "name": "FIN",
+          "description": "Optionale VIN, statt das Fahrzeug auszuwählen. Nur nötig, wenn das Konto mehr als ein Auto hat."
+        }
+      }
+    },
     "get_evcc_config": {
       "name": "evcc-Konfiguration abrufen",
       "description": "Gibt die evcc-Konfiguration (Fahrzeugtyp 'custom') für dieses Auto zurück, fertig zum Einfügen in die evcc.yaml, dazu die MQTT-Topics der Brücke und welche davon aktuell bespielt werden. Liest nur lokale Daten und verbraucht daher kein BMW-API-Kontingent.",

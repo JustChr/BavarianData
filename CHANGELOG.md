@@ -9,6 +9,26 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **A Fuel view for petrol, diesel and plug-in hybrid cars** (`view: fuel`).
+  It shows the tank now, the average consumption over the last 12 months, the
+  distance and fuel since the last refuel, and every refuel with the
+  consumption over the stretch it closed. There is no pump receipt to read, so
+  a refuel is recognised by the tank itself: a rise of at least 5 L while the
+  car stands still. The tank is only accurate to a few liters, so figures need
+  at least 150 km between refuels, and the average over several is the one to
+  trust. On a petrol or diesel car the Charging and Efficiency views now show
+  it instead of "Nothing to show for this car". The log starts with this
+  update, so the first figure needs two refuels. New service
+  `bavariandata.get_fuel_history`; no API quota.
+- **BMW's own lifetime consumption, where the car sends it.** Cars
+  type-approved in the EU since about 2021 keep counters of fuel burnt and grid
+  energy charged, split by whether the engine ran. A plug-in hybrid's
+  Efficiency view now shows its electric consumption with the engine off, the
+  share driven electrically and its fuel per 100 km from them, instead of only
+  explaining why the charging history can't give one. The Fuel view shows the
+  lifetime l/100 km too. `get_efficiency` returns them as `bmw_lifetime`.
+
 ### Changed
 - **No "☀ 0% solar" tag on a night charge.** A charge with no solar in it
   carries no tag on the card; expanding it still shows where the energy came
