@@ -98,8 +98,8 @@ Events**). Each carries `vin`, `entry_id` and `vehicle` (the car's name).
 | Event | Fires when | Data |
 | --- | --- | --- |
 | `bavariandata_charging_started` | a session begins | `soc`, `target_soc`, `status` |
-| `bavariandata_charging_stopped` | a session ends (any reason) | `soc`, `target_soc`, `status`, `energy_kwh`, `cost`, `session_id` |
-| `bavariandata_charging_complete` | a session ends **at/above** the target SoC | as `charging_stopped` |
+| `bavariandata_charging_stopped` | a session ends (any reason) | `soc`, `target_soc`, `status`, `energy_kwh`, `cost`, `session_id`, `complete` (`true` when it reached its target) |
+| `bavariandata_charging_complete` | a session ends **at/above** the target SoC, also one that finished while Home Assistant was restarting | as `charging_stopped` |
 | `bavariandata_charging_interrupted` | a session ends short of the target with the cable still in | as `charging_stopped`, plus `reason` |
 | `bavariandata_zone_arrived` | a drive ends inside a zone | as the *Arrived at a zone* trigger |
 | `bavariandata_zone_left` | a drive leaves the zone it started in | as the *Left a zone* trigger |

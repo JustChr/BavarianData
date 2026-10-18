@@ -14,6 +14,11 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   vehicle-report events (and device triggers) carry `vehicle`, the car's name as
   BMW reports it, so a notification can say which car without a lookup.
 
+- **`charging_stopped` says whether the charge reached its target**
+  (`complete`), and a charge that reached it while Home Assistant was restarting
+  now fires `charging_complete` too. The blueprint below reads that field, so it
+  and your own automations agree on what "complete" means.
+
 - **A sold car can be deleted.** Its device now has **Delete** (Settings →
   Devices & services → Devices → the car → ⋮). Deleting it removes everything
   BavarianData kept for that car: charging and trip history, odometer log, tire
