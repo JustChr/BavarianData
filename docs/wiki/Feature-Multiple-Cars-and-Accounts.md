@@ -106,7 +106,7 @@ each, because BMW counts per account. See [API quota](Feature-API-Quota).
 | **Wallbox meter & charging losses** | Per car: **Configure → Charging costs & history** asks which vehicle first. Give each car its own meter if each has its own wallbox; then both can charge at once and each estimate follows its own meter. Two cars sharing one meter still can't both claim it: while both charge, neither estimate follows it. The price applies to every car. |
 | **Trip settings** | Per car: **Configure → Trips** asks which vehicle first, and each car keeps its own work zone, default type, commute stop tolerance, trip detection and route recording. Only **Resolve addresses** and **Trip-capture diagnostics** are shared. See [Settings](Settings-Reference#trips). |
 | **Debug logging** | The log level is one switch for the whole integration — it cannot be per account. Verbose logging stays on while **any** entry has it enabled, and logs every account's data while it is on. |
-| **Repairs & notifications** | Coverage and stream repairs name the car. The quota repair names neither account — with two set up, check the **API Quota Remaining** diagnostic entity on each debug device. |
+| **Repairs & notifications** | Coverage repairs name the car; the quota and stream repairs name the account by its title, which is its cars' names (an entry you renamed keeps your name). Each account's diagnostics device is named after it too. |
 
 **Settings per car.** Trips, Charging costs and the evcc bridge ask which
 vehicle first; the next screen starts with that car's own settings, and the

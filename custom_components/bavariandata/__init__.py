@@ -99,7 +99,7 @@ from .startup_refresh import (
 from .trip_settings import account_trip_settings, vehicle_trip_settings
 from .vehicle_options import mileage_allowances
 from .tyre_store import TyreStore
-from .vehicles import known_vins, primary_vins
+from .vehicles import known_vins, new_account_title, primary_vins
 from .history.backfill import StatisticsPublisher
 from .bridge import REPUBLISH_INTERVAL_S, VehicleBridge, async_clear_published
 from .descriptor_metadata import DESCRIPTOR_META
@@ -307,6 +307,10 @@ class QuotaManager:
     def _issue_id(self) -> str:
         return f"api_quota_exhausted_{self._entry_id}"
 
+    def _account_name(self) -> str:
+        entry = self._hass.config_entries.async_get_entry(self._entry_id)
+        return getattr(entry, "title", None) or "BavarianData"
+
     async def async_claim(self) -> None:
         async with self._lock:
             now = time.time()
@@ -323,6 +327,7 @@ class QuotaManager:
                     translation_placeholders={
                         "limit": str(REQUEST_LIMIT),
                         "next_reset": reset,
+                        "account": self._account_name(),
                     },
                     learn_more_url=(
                         "https://github.com/JustChr/BavarianData/wiki/"
@@ -691,6 +696,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
                     hw_version=metadata.get("hw_version"),
                     serial_number=metadata.get("serial_number"),
                 )
+    # Named after its cars, which is what tells two accounts apart in every
+    # list, repair and reauth card; again whenever BMW names a car anew.
+    _async_retitle(hass, entry, coordinator)
+    entry.async_on_unload(
+        async_dispatcher_connect(
+            hass,
+            f"{DOMAIN}_{entry.entry_id}_name",
+            lambda _vin, _name: _async_retitle(hass, entry, coordinator),
+        )
+    )
     quota_manager = await QuotaManager.async_create(hass, entry.entry_id)
     if any(key in data for key in RETIRED_ENTRY_KEYS):
         # v0.9.20-beta.6's fallback container. Its BMW side goes when the full
@@ -1127,12 +1142,9 @@ async def _async_request_reauth(hass: HomeAssistant, entry: CardataConfigEntry, 
         with suppress(Exception):
             await hass.config_entries.flow.async_abort(runtime.reauth_flow_id)
         runtime.reauth_flow_id = None
-    persistent_notification.async_create(
-        hass,
-        "Authorization failed for BMW CarData. Please reauthorize the integration.",
-        title="BavarianData: Connect Home Assistant to BMW CarData",
-        notification_id=f"{DOMAIN}_reauth_{entry.entry_id}",
-    )
+    # No notification of our own: Home Assistant posts one for every reauth
+    # flow, and its card names the entry, whose title is its cars. Ours was a
+    # second, English-only one that said neither which account nor which car.
     flow_result = await hass.config_entries.flow.async_init(
         DOMAIN,
         context={"source": SOURCE_REAUTH, "entry_id": entry.entry_id},
@@ -1786,6 +1798,29 @@ async def _telematic_poll_loop(hass: HomeAssistant, entry_id: str) -> None:
             await asyncio.sleep(TELEMATIC_POLL_INTERVAL)
     except asyncio.CancelledError:
         return
+
+
+# The title we last gave the entry, so a later rename by the user is told apart
+# from ours and left alone (``vehicles.new_account_title``).
+_AUTO_TITLE = "auto_title"
+
+
+@callback
+def _async_retitle(hass: HomeAssistant, entry: ConfigEntry, coordinator: Any) -> None:
+    """Title the entry with its cars' names, unless the user has named it."""
+
+    vins = known_vins(
+        stored_metadata=entry.data.get(VEHICLE_METADATA),
+        coordinator_data=coordinator.data,
+        configured_vin=entry.data.get("vin"),
+    )
+    # A car without basic data is "named" by its VIN; that never goes in a title.
+    names = [coordinator.names.get(vin) for vin in vins if coordinator.names.get(vin) != vin]
+    title = new_account_title(entry.title, entry.data.get(_AUTO_TITLE), names)
+    if title is not None:
+        hass.config_entries.async_update_entry(
+            entry, title=title, data={**entry.data, _AUTO_TITLE: title}
+        )
 
 
 def _async_store_vehicle_metadata(

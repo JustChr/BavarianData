@@ -2803,7 +2803,7 @@
   },
   "issues": {
     "api_quota_exhausted": {
-      "title": "Quota da API BMW CarData esgotada",
+      "title": "Quota da API BMW CarData esgotada ({account})",
       "description": "Foi atingido o limite REST do BMW CarData de {limit} pedidos por 24 h, por isso os dados a pedido (dados básicos, histórico de carregamento, diagnóstico dos pneus, imagem do veículo) não podem ser atualizados agora. Os dados do stream continuam a chegar. A quota volta a libertar-se às {next_reset}."
     },
     "motorcycle_unsupported": {
@@ -2815,11 +2815,11 @@
       "description": "Para {vehicle}, não chegou absolutamente nada de {clusters} em {days} dias ({count} descritor(es), p. ex. {descriptors}). Um grupo totalmente silencioso significa normalmente que não está assinalado e guardado na Seleção de dados do portal BMW, ou que o seu carro não produz esses dados. Volte a ativá-lo em Configurar → Escolher os dados transmitidos, ou desmarque o grupo. Grupos que entregam apenas alguns dos seus campos são normais e nunca geram este aviso. Execute o serviço get_coverage_report para ver a lista completa."
     },
     "stream_no_data": {
-      "title": "Não foram recebidos dados do stream BMW CarData",
+      "title": "Não foram recebidos dados do stream BMW CarData ({account})",
       "description": "Não chegaram dados do veículo pelo stream há mais de {hours} horas. O stream pode ter parado, ou os dados nunca foram selecionados. Verifique se a Seleção de dados está guardada no portal BMW (passo 4 da configuração), tranque/destranque o carro na app MyBMW para provocar uma atualização e confirme que não está ligado nenhum outro cliente CarData — a BMW só permite um stream por conta. Execute o serviço get_coverage_report para ver que descritores faltam."
     },
     "stream_unauthorized": {
-      "title": "Stream BMW CarData não autorizado",
+      "title": "Stream BMW CarData não autorizado ({account})",
       "description": "A BMW recusa a ligação do stream como não autorizada (MQTT rc=5) há mais de {minutes} minutos e ela não recuperou por si. Normalmente significa que os tokens precisam de ser renovados, ou que outro cliente CarData está a ocupar o único stream da conta. Experimente Configurar → Renovar os tokens agora, depois Autorizar novamente na BMW se continuar a falhar, e desligue qualquer outro cliente CarData."
     }
   },
@@ -3245,6 +3245,11 @@
           "description": "VIN opcional a reconstruir. Por predefinição, todos os veículos conhecidos."
         }
       }
+    }
+  },
+  "device": {
+    "account": {
+      "name": "{account} (conta CarData)"
     }
   }
 }

@@ -2803,7 +2803,7 @@
   },
   "issues": {
     "api_quota_exhausted": {
-      "title": "API-quotum van BMW CarData opgebruikt",
+      "title": "API-quotum van BMW CarData opgebruikt ({account})",
       "description": "De REST-limiet van BMW CarData van {limit} verzoeken per 24 uur is bereikt, dus gegevens op verzoek (basisgegevens, laadgeschiedenis, bandendiagnose, voertuigafbeelding) kunnen nu niet worden vernieuwd. De streamgegevens blijven binnenkomen. Het quotum komt weer vrij om {next_reset}."
     },
     "motorcycle_unsupported": {
@@ -2815,11 +2815,11 @@
       "description": "Voor {vehicle} is er in {days} dagen helemaal niets van {clusters} binnengekomen ({count} descriptor(en), bijv. {descriptors}). Een groep die volledig stil blijft, betekent meestal dat hij niet is aangevinkt en opgeslagen in de Gegevensselectie van het BMW-portaal, of dat je auto die gegevens niet levert. Activeer hem opnieuw via Configureer → Gestreamde gegevens kiezen, of deselecteer de groep. Groepen die maar een deel van hun velden leveren zijn normaal en geven deze melding nooit. Voer de service get_coverage_report uit voor de volledige lijst."
     },
     "stream_no_data": {
-      "title": "Geen streamgegevens van BMW CarData ontvangen",
+      "title": "Geen streamgegevens van BMW CarData ontvangen ({account})",
       "description": "Er zijn al meer dan {hours} uur geen gestreamde voertuiggegevens binnengekomen. De stream is misschien gestopt, of de gegevens zijn nooit geselecteerd. Controleer of je Gegevensselectie is opgeslagen in het BMW-portaal (stap 4 van de installatie), vergrendel/ontgrendel de auto in de MyBMW-app om een update op te wekken, en zorg dat er geen andere CarData-client verbonden is — BMW staat maar één stream per account toe. Voer de service get_coverage_report uit om te zien welke descriptoren ontbreken."
     },
     "stream_unauthorized": {
-      "title": "BMW CarData-stream niet geautoriseerd",
+      "title": "BMW CarData-stream niet geautoriseerd ({account})",
       "description": "BMW weigert de streamverbinding al meer dan {minutes} minuten als niet geautoriseerd (MQTT rc=5) en die heeft zich niet vanzelf hersteld. Meestal betekent dit dat de tokens vernieuwd moeten worden, of dat een andere CarData-client de enige stream van het account bezet houdt. Probeer Configureer → Tokens nu vernieuwen, daarna Opnieuw autoriseren bij BMW als het blijft mislukken, en verbreek de verbinding van elke andere CarData-client."
     }
   },
@@ -3245,6 +3245,11 @@
           "description": "Optionele VIN om opnieuw op te bouwen. Standaard elk bekend voertuig."
         }
       }
+    }
+  },
+  "device": {
+    "account": {
+      "name": "{account} (CarData-account)"
     }
   }
 }

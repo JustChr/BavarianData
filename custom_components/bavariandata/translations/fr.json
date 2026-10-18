@@ -2803,7 +2803,7 @@
   },
   "issues": {
     "api_quota_exhausted": {
-      "title": "Quota de l'API BMW CarData épuisé",
+      "title": "Quota de l'API BMW CarData épuisé ({account})",
       "description": "La limite REST BMW CarData de {limit} requêtes par 24 h est atteinte ; les données à la demande (infos de base, historique de recharge, diagnostic des pneus, image du véhicule) ne peuvent donc pas être actualisées pour l'instant. Les données du flux continuent d'arriver. Le quota se libère à nouveau à {next_reset}."
     },
     "motorcycle_unsupported": {
@@ -2815,11 +2815,11 @@
       "description": "Pour {vehicle}, rien du tout de {clusters} n'est arrivé en {days} jours ({count} descripteur(s), p. ex. {descriptors}). Un groupe totalement silencieux signifie généralement qu'il n'est pas coché et enregistré dans la Sélection des données du portail BMW, ou que votre voiture ne produit pas ces données. Réactivez-le sous Configurer → Choisir les données transmises, ou désélectionnez le groupe. Les groupes qui ne livrent qu'une partie de leurs champs sont normaux et ne déclenchent jamais cet avis. Exécutez le service get_coverage_report pour la liste complète."
     },
     "stream_no_data": {
-      "title": "Aucune donnée reçue du flux BMW CarData",
+      "title": "Aucune donnée reçue du flux BMW CarData ({account})",
       "description": "Aucune donnée du véhicule n'est arrivée par le flux depuis plus de {hours} heures. Le flux s'est peut-être arrêté, ou les données n'ont jamais été sélectionnées. Vérifiez que votre Sélection des données est enregistrée dans le portail BMW (étape 4 de la configuration), verrouillez/déverrouillez le véhicule dans l'application MyBMW pour déclencher une mise à jour, et assurez-vous qu'aucun autre client CarData n'est connecté — BMW n'autorise qu'un flux par compte. Exécutez le service get_coverage_report pour voir quels descripteurs manquent."
     },
     "stream_unauthorized": {
-      "title": "Flux BMW CarData non autorisé",
+      "title": "Flux BMW CarData non autorisé ({account})",
       "description": "BMW refuse la connexion du flux comme non autorisée (MQTT rc=5) depuis plus de {minutes} minutes et elle ne s'est pas rétablie d'elle-même. Cela signifie généralement que les jetons doivent être renouvelés, ou qu'un autre client CarData occupe l'unique flux du compte. Essayez Configurer → Renouveler les jetons maintenant, puis Autoriser à nouveau auprès de BMW si l'échec persiste, et déconnectez tout autre client CarData."
     }
   },
@@ -3245,6 +3245,11 @@
           "description": "VIN facultatif à reconstruire. Par défaut, tous les véhicules connus."
         }
       }
+    }
+  },
+  "device": {
+    "account": {
+      "name": "{account} (compte CarData)"
     }
   }
 }

@@ -34,6 +34,7 @@ from . import async_manual_refresh_tokens
 from .container import KINDS, CardataContainerError
 from .service_calendar import KM_PER_MILE
 from .evcc import BridgeConfig, bridge_payloads, evcc_yaml
+from .vehicles import setup_title
 from .const import (
     DEBUG_LOG,
     DEFAULT_HISTORY_RETAIN_MONTHS,
@@ -902,9 +903,8 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
             _schedule_vehicle_discovery(self.hass, self._reauth_entry.entry_id)
             return self.async_abort(reason="reauth_successful")
 
-        self._entry_title = (
-            f"BavarianData: Connect Home Assistant to BMW CarData ({self._client_id[:8]})"
-        )
+        # Replaced by the car names once BMW's basic data names them.
+        self._entry_title = setup_title(self._client_id)
         self._entry_data = entry_data
 
         # Guided path: clusters were already chosen and the snippet already

@@ -570,7 +570,7 @@ die unter den Meldungen stehen, wenn das Fahrzeug sie sendet.
 | `type` | Immer `custom:bavariandata-card`. |
 | `view` | `charging`, `trips`, `map`, `health`, `efficiency` oder `equipment`. Weglassen für die Übersicht. |
 | `cluster` | `electric`, `status`, `tire`, `usage`, `events`, `basic`, `contract`, `metadata`, `other`, `closures`. Zeigt die Liste einer Datengruppe (oder die besonderen Diagramme für Reifen und Öffnungen). |
-| `device` | Geräte-ID, um ein bestimmtes Fahrzeug festzulegen. Der visuelle Editor listet nur deine Fahrzeuge, nie das *CarData Debug Device*; eine Karte, die darauf eingestellt ist, zeigt stattdessen das erste Fahrzeug. |
+| `device` | Geräte-ID, um ein bestimmtes Fahrzeug festzulegen. Der visuelle Editor listet nur deine Fahrzeuge, nie das Diagnose-Gerät des Kontos (*… (CarData-Konto)*); eine Karte, die darauf eingestellt ist, zeigt stattdessen das erste Fahrzeug. |
 | `vin` | FIN, als Alternative zu `device`. |
 | `title` | Überschreibt den Titel der Karte. |
 | `image` | Überschreibt die Bild-Entität des Fahrzeugs. |

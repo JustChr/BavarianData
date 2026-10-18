@@ -194,3 +194,37 @@ def test_flows_that_map_cars_look_for_them_afterwards() -> None:
     assert "fetch_vehicle_mappings" in _function_body(
         "config_flow.py", "_schedule_vehicle_discovery"
     )
+
+
+# --- the entry is titled after its cars --------------------------------------
+
+
+def test_the_setup_title_gives_way_to_the_car_names() -> None:
+    setup = vehicles.setup_title("0f3c9a71-1111-2222-3333-444455556666")
+    assert setup == "BavarianData (0f3c9a71)"
+    assert vehicles.new_account_title(setup, None, ["i5 eDrive40", "iX1 xDrive30"]) == (
+        "i5 eDrive40, iX1 xDrive30"
+    )
+
+
+def test_the_old_setup_title_is_replaced_too() -> None:
+    old = "BavarianData: Connect Home Assistant to BMW CarData (0f3c9a71)"
+    assert vehicles.new_account_title(old, None, ["i5 eDrive40"]) == "i5 eDrive40"
+
+
+def test_a_title_we_set_follows_a_second_car() -> None:
+    assert (
+        vehicles.new_account_title("i5 eDrive40", "i5 eDrive40", ["i5 eDrive40", "iX1"])
+        == "i5 eDrive40, iX1"
+    )
+
+
+def test_a_title_the_user_chose_is_left_alone() -> None:
+    assert vehicles.new_account_title("Family cars", "i5 eDrive40", ["i5", "iX1"]) is None
+    # Even one that looks like ours but isn't the setup pattern.
+    assert vehicles.new_account_title("BavarianData garage", None, ["i5"]) is None
+
+
+def test_no_names_or_no_change_leaves_the_title() -> None:
+    assert vehicles.new_account_title("BavarianData (0f3c9a71)", None, []) is None
+    assert vehicles.new_account_title("i5", "i5", ["i5"]) is None

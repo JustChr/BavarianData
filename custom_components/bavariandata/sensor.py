@@ -76,6 +76,24 @@ _STATE_CLASS_MAP = {
 _LOGGER = logging.getLogger(__name__)
 
 
+def _account_device_info(coordinator: CardataCoordinator, entry_id: str) -> DeviceInfo:
+    """The account's own device, holding its diagnostics, named after the account.
+
+    Every account has one, so a fixed name ("CarData Debug Device", until
+    v0.9.20) gave two accounts two identical devices.
+    """
+
+    entry = coordinator.hass.config_entries.async_get_entry(entry_id)
+    return {
+        "identifiers": {(DOMAIN, entry_id)},
+        "manufacturer": "BMW",
+        "translation_key": "account",
+        "translation_placeholders": {
+            "account": getattr(entry, "title", None) or "BavarianData",
+        },
+    }
+
+
 class CardataRestoreSensor(CardataEntity, RestoreSensor):
     """A sensor that gets its own value back after a restart -- in native units.
 
@@ -326,11 +344,7 @@ class CardataDiagnosticsSensor(SensorEntity, RestoreEntity):
 
     @property
     def device_info(self) -> DeviceInfo:
-        return {
-            "identifiers": {(DOMAIN, self._entry_id)},
-            "manufacturer": "BMW",
-            "name": "CarData Debug Device",
-        }
+        return _account_device_info(self._coordinator, self._entry_id)
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -419,11 +433,7 @@ class CardataQuotaSensor(SensorEntity):
 
     @property
     def device_info(self) -> DeviceInfo:
-        return {
-            "identifiers": {(DOMAIN, self._entry_id)},
-            "manufacturer": "BMW",
-            "name": "CarData Debug Device",
-        }
+        return _account_device_info(self._coordinator, self._entry_id)
 
     @property
     def native_value(self):
