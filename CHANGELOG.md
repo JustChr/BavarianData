@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.21-beta.3] - 2026-10-18
+
 ### Added
 - **A Fuel view for petrol, diesel and plug-in hybrid cars** (`view: fuel`).
   It shows the tank now, the average consumption over the last 12 months, the
