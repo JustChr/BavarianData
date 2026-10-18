@@ -113,3 +113,37 @@ def test_a_lone_account_still_gets_the_vin_checked_later() -> None:
 def test_nothing_loaded_is_refused() -> None:
     with pytest.raises(TargetError, match="No BavarianData account"):
         target.choose_account({})
+
+
+class _NewDevice:
+    """A 2026.10 device: one owner; the old names log a deprecation when read."""
+
+    config_entry_id = "E1"
+
+    @property
+    def primary_config_entry(self) -> str:
+        raise AssertionError("deprecated since 2026.10")
+
+    @property
+    def config_entries(self) -> set[str]:
+        raise AssertionError("deprecated since 2026.10")
+
+
+class _OldDevice:
+    """A 2026.3 device: no ``config_entry_id`` at all."""
+
+    __slots__ = ("primary_config_entry", "config_entries")
+
+    def __init__(self, primary, entries) -> None:
+        self.primary_config_entry = primary
+        self.config_entries = entries
+
+
+def test_the_owner_comes_from_config_entry_id_without_touching_the_old_names() -> None:
+    assert target.device_owner(_NewDevice()) == "E1"
+
+
+def test_an_older_home_assistant_still_names_the_owner() -> None:
+    assert target.device_owner(_OldDevice("E2", {"E3", "E2"})) == "E2"
+    assert target.device_owner(_OldDevice(None, {"E3"})) == "E3"
+    assert target.device_owner(_OldDevice(None, set())) is None

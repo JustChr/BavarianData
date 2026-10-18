@@ -33,6 +33,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   `bavariandata_situation`. A restart, BMW's cached answers and a replayed old
   value start none of them.
 
+### Fixed
+- **No more deprecation warnings from Home Assistant 2026.10 in the log.** A
+  service call that named a car looked its device up in a way Home Assistant
+  now reports (it would stop working in 2027.8 and 2027.10), and a car whose
+  basic data carried a number where text belongs would have been reported too.
+  Older Home Assistant versions keep working as before.
+
 ## [0.9.21-beta.4] - 2026-10-18
 
 ### Fixed

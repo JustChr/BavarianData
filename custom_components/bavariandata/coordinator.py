@@ -4776,9 +4776,9 @@ class CardataCoordinator:
             "special_equipment_codes": raw_payload.get("fullSAList"),
         }
         metadata: Dict[str, Any] = {
-            "name": model_name,
-            "manufacturer": brand,
-            "serial_number": raw_payload.get("vin") or vin,
+            "name": str(model_name),
+            "manufacturer": str(brand),
+            "serial_number": str(raw_payload.get("vin") or vin),
             "extra_attributes": display_attrs,
             "raw_data": raw_payload,
         }
@@ -4787,12 +4787,14 @@ class CardataCoordinator:
             or raw_payload.get("series")
             or raw_payload.get("modelRange")
         )
+        # The device registry takes text only (anything else is reported from HA
+        # 2026.10 and breaks in 2026.12), and BMW's fields are not typed.
         if model:
-            metadata["model"] = model
+            metadata["model"] = str(model)
         if raw_payload.get("puStep"):
-            metadata["sw_version"] = raw_payload["puStep"]
+            metadata["sw_version"] = str(raw_payload["puStep"])
         if raw_payload.get("bodyType"):
-            metadata["hw_version"] = raw_payload["bodyType"]
+            metadata["hw_version"] = str(raw_payload["bodyType"])
         return metadata
 
     def apply_basic_data(self, vin: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
