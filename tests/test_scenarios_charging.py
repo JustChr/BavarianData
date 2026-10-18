@@ -218,6 +218,37 @@ def test_a_charge_that_ended_during_the_restart_is_filed_where_it_was_last_seen(
     assert h.render() == snapshot
 
 
+def test_a_charge_that_reached_its_target_during_the_restart_is_complete(h):
+    """Both stop paths judge "complete" by one rule and say so on the event.
+
+    The blueprint used to judge it itself and called a charge complete that
+    the integration, closing it after a restart, never fired complete for.
+    """
+
+    h.send(10, target=80, step="target 80")
+    h.send(10, soc=78, status="CHARGINGACTIVE", power=3480)
+    h.advance_to(27.7)
+    h.restart(downtime_s=600)
+    h.send(40, stamped=33, soc=80, status="CHARGINGENDED", power=0, step="catch-up: done")
+    h.advance_to(45)
+
+    events = h.events()
+    assert [name for name, _ in events][-2:] == [
+        "bavariandata_charging_stopped",
+        "bavariandata_charging_complete",
+    ]
+    assert events[-2][1]["complete"] is True
+
+
+def test_a_charge_stopped_short_of_its_target_is_not_complete(h):
+    _start_charge(h)
+    h.send(60, status="NOCHARGING", power=0, step="unplugged")
+    h.advance_to(63)
+
+    stopped = [data for name, data in h.events() if name.endswith("_stopped")]
+    assert stopped and stopped[0]["complete"] is False
+
+
 def test_a_restart_the_stream_never_answers_splits_the_charge(h, snapshot):
     """26 September before the catch-up existed: filed as ended, then reopened."""
 

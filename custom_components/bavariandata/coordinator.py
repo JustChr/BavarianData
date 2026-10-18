@@ -368,6 +368,12 @@ class DescriptorState:
     timestamp: Optional[str]
 
 
+def _charge_complete(soc: Optional[float], target: Optional[float]) -> bool:
+    """Whether a charge that stopped reached its target (within the 1 % BMW rounds to)."""
+
+    return target is not None and soc is not None and soc >= target - 1.0
+
+
 @dataclass
 class CardataCoordinator:
     hass: HomeAssistant
@@ -1397,9 +1403,10 @@ class CardataCoordinator:
             payload["energy_kwh"] = session.energy_kwh
             payload["cost"] = session.cost
             payload["session_id"] = session.id
+        payload["complete"] = _charge_complete(soc, tracking.target_soc_percent)
         self._fire(EVENT_CHARGING_STOPPED, payload)
         target = tracking.target_soc_percent
-        if target is not None and soc is not None and soc >= target - 1.0:
+        if payload["complete"]:
             self._fire(EVENT_CHARGING_COMPLETE, payload)
         elif charging_interrupted(
             soc, target, plug_state(self._live_values(vin, PLUG_DESCRIPTORS))
@@ -1682,19 +1689,22 @@ class CardataCoordinator:
         session = self._close_session_record(vin, status, at=end_at)
         if session is None:
             return
-        self._fire(
-            EVENT_CHARGING_STOPPED,
-            {
-                "vin": vin,
-                "entry_id": self.entry_id,
-                "status": status,
-                "soc": session.soc_end,
-                "target_soc": session.target_soc,
-                "energy_kwh": session.energy_kwh,
-                "cost": session.cost,
-                "session_id": session.id,
-            },
-        )
+        payload = {
+            "vin": vin,
+            "entry_id": self.entry_id,
+            "status": status,
+            "soc": session.soc_end,
+            "target_soc": session.target_soc,
+            "energy_kwh": session.energy_kwh,
+            "cost": session.cost,
+            "session_id": session.id,
+            "complete": _charge_complete(session.soc_end, session.target_soc),
+        }
+        self._fire(EVENT_CHARGING_STOPPED, payload)
+        if payload["complete"]:
+            # It reached its target while nobody watched: still the news an
+            # automation waits for, by the same rule as a charge seen ending.
+            self._fire(EVENT_CHARGING_COMPLETE, payload)
 
     def _apply_gap_credit(self, vin: str) -> None:
         """Credit the SoC a resumed session gained while we were not watching.

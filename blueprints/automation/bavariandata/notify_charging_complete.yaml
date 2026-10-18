@@ -47,8 +47,8 @@ variables:
   vehicles: !input vehicles
   soc: "{{ trigger.event.data.soc }}"
   target: "{{ trigger.event.data.target_soc }}"
-  # The same rule the integration fires `charging_complete` by.
-  complete: "{{ soc is number and target is number and soc >= target - 1 }}"
+  # The integration's own verdict, the one it fires `charging_complete` by.
+  complete: "{{ trigger.event.data.complete | default(false) }}"
   # The picked cars' VINs: each car's device carries it as its identifier.
   vins: >-
     {%- set ns = namespace(vins=[]) -%}

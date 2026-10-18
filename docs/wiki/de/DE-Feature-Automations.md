@@ -101,8 +101,8 @@ ausgelöst, für YAML-Automationen und Node-RED (beobachten kannst du sie unter
 | Ereignis | Wird ausgelöst, wenn | Daten |
 | --- | --- | --- |
 | `bavariandata_charging_started` | ein Ladevorgang beginnt | `soc`, `target_soc`, `status` |
-| `bavariandata_charging_stopped` | ein Ladevorgang endet (aus jedem Grund) | `soc`, `target_soc`, `status`, `energy_kwh`, `cost`, `session_id` |
-| `bavariandata_charging_complete` | ein Ladevorgang **bei/über** dem Ziel-Ladezustand endet | wie `charging_stopped` |
+| `bavariandata_charging_stopped` | ein Ladevorgang endet (aus jedem Grund) | `soc`, `target_soc`, `status`, `energy_kwh`, `cost`, `session_id`, `complete` (`true`, wenn er sein Ziel erreicht hat) |
+| `bavariandata_charging_complete` | ein Ladevorgang **bei/über** dem Ziel-Ladezustand endet, auch einer, der während eines Neustarts von Home Assistant fertig wurde | wie `charging_stopped` |
 | `bavariandata_charging_interrupted` | ein Ladevorgang unter dem Ziel endet, während das Kabel noch steckt | wie `charging_stopped`, dazu `reason` |
 | `bavariandata_zone_arrived` | eine Fahrt in einer Zone endet | wie beim Auslöser *In einer Zone angekommen* |
 | `bavariandata_zone_left` | eine Fahrt die Zone verlässt, in der sie begann | wie beim Auslöser *Eine Zone verlassen* |
