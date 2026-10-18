@@ -15,6 +15,9 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   and since BMW refuses the service items (16 October) that warning appears
   once a day for every car. If you attached a log to an issue, check it for
   your VIN.
+- **Fetch vehicle image accepts only a car of your account.** A mistyped VIN
+  was sent to BMW anyway and spent one of the day's 50 requests; it now stops
+  with an error in the log before asking BMW.
 - **Blueprint *Car arriving home soon* works with Proximity.** Home Assistant's
   Proximity sensor reports in metres, so a threshold of 5 meant 5 m and the
   blueprint fired only on the doorstep, if at all. A distance in metres (or
