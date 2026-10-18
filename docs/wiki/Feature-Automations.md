@@ -18,11 +18,22 @@ your car, and choose from the list. No YAML and no entity names needed.
 | --- | --- | --- |
 | **Arrived at a zone** | a drive ends inside a zone, once the car has parked (usually 1–3 minutes after it stops) | a zone, or empty for any zone |
 | **Left a zone** | a drive carries the car out of the zone it started in | a zone, or empty for any zone |
+| **Trip ended (anywhere)** | a drive is recorded in the trip journal, wherever it ended | — |
 | **Parked and left unlocked** | the car stands unlocked for the chosen time | how long (default 10 minutes) |
+| **Parked with a window open** | a window or the sunroof stands open, or partly open, for the chosen time | how long (default 10 minutes) |
 | **Plugged in but not charging** | a cable is in, nothing is charging, and the car is below its charging target, for the chosen time | how long (default 15 minutes) |
 | **Charging started** | a charging session begins | — |
 | **Charging completed (target reached)** | a session ends at or above the target | — |
 | **Charging stopped before the target, cable still in** | a session ends short of the target while the cable is still plugged in | — |
+| **Preconditioning started** | the car starts heating or cooling itself | — |
+| **Preconditioning finished** | the car stops heating or cooling itself | — |
+| **Alarm went off** | the anti-theft alarm starts sounding | — |
+| **New Check Control message** | a warning the car did not show before appears | — |
+
+**"Charging completed" is the "target reached" trigger.** The car stops at its
+charging target, and the session ends there. To act at a different level, say
+70 % on a wallbox with no limit of its own, use a numeric state trigger on the
+battery level entity.
 
 **Only the triggers your car can fire are listed.** A car that never sent a lock
 state gets no *Parked and left unlocked*; the zone triggers need the car's
@@ -55,6 +66,21 @@ These triggers are built to fire exactly once, and never falsely:
   drive ends, so driving past home doesn't trigger it, and GPS jitter at the zone
   edge can't make it flicker. Home Assistant's own zone triggers on the car's
   location entity still exist if you want the moment of crossing.
+- **A window open while driving is not "parked with a window open".** The
+  situation starts once the drive is over. A partly open window counts: a
+  window left open a crack lets the rain in too.
+- **An old value is not news.** The alarm and preconditioning triggers fire only
+  on a change the car streams, and only while the car's own time stamp on it is
+  less than 10 minutes old. Neither the catch-up after a restart (BMW may answer
+  it from its cache) nor the car repeating an old value starts them.
+- **The first Check Control list only sets the starting point.** Warnings the car
+  already showed when you installed the integration are not announced. The car
+  sends these warnings only with the data fetched from BMW, never on the live
+  stream, so a new one shows up at the next fetch (at startup, or when a service
+  fetches), not the moment it appears in the car.
+- **The alarm is not verified on a real alarm.** It is built from BMW's alarm
+  field and tested against recorded data, but no car with this integration has
+  set its alarm off yet. If yours does and nothing fires, please open an issue.
 
 ### What the automation gets
 
@@ -64,10 +90,15 @@ Every trigger passes its details as `trigger.data`:
 | --- | --- |
 | Arrived at a zone | `zone`, `zone_entity_id`, `from`, `distance_km`, `duration_s`, `energy_kwh`, `soc`, `trip_id`, `trip_start` |
 | Left a zone | `zone`, `zone_entity_id`, `soc`, `trip_start` |
+| Trip ended | as *Arrived at a zone* (`zone` and `zone_entity_id` are `null` outside a zone), plus `trip_end`, `to`, `soc_start`, `classification` |
 | Parked and left unlocked | `since`, `zone`, `zone_entity_id` |
+| Parked with a window open | `since`, `windows` (which ones: `front_driver`, `front_passenger`, `rear_driver`, `rear_passenger`, `sunroof`, `sunroof_tilt`, `rear_window`), `zone`, `zone_entity_id` |
 | Plugged in but not charging | `since`, `soc`, `target_soc`, `zone`, `zone_entity_id` |
 | Charging started / completed | `soc`, `target_soc`, `status` (completed: also `energy_kwh`, `cost`, `session_id`) |
 | Charging stopped before the target | as completed, plus `reason` — BMW's own word for why, when the car sends one |
+| Preconditioning started / finished | `activity` (`heating`, `cooling`, … or `inactive`), `error` (BMW's reason when it could not run, such as `lowbattery`; `ok` otherwise), `soc`, `zone`, `zone_entity_id` |
+| Alarm went off | `zone`, `zone_entity_id` |
+| New Check Control message | `id`, `title`, `text`, `message_type`, `message` (the whole entry as BMW sends it), `zone`, `zone_entity_id` |
 
 Every payload also carries `vin`, `entry_id` and `vehicle`, the car's name as BMW
 reports it (`null` until it does). An example that warns about a
@@ -103,7 +134,11 @@ Events**). Each carries `vin`, `entry_id` and `vehicle` (the car's name).
 | `bavariandata_charging_interrupted` | a session ends short of the target with the cable still in | as `charging_stopped`, plus `reason` |
 | `bavariandata_zone_arrived` | a drive ends inside a zone | as the *Arrived at a zone* trigger |
 | `bavariandata_zone_left` | a drive leaves the zone it started in | as the *Left a zone* trigger |
-| `bavariandata_situation` | a situation begins (`active: true`) or ends (`active: false`) | `situation` (`parked_unlocked` or `plugged_not_charging`), `active`, `since`, … |
+| `bavariandata_trip_ended` | a drive is recorded, in a zone or not | as the *Trip ended* trigger |
+| `bavariandata_situation` | a situation begins (`active: true`) or ends (`active: false`) | `situation` (`parked_unlocked`, `parked_window_open` or `plugged_not_charging`), `active`, `since`, … |
+| `bavariandata_preconditioning` | preconditioning starts (`active: true`) or finishes (`active: false`) | `active`, then as the *Preconditioning* triggers |
+| `bavariandata_alarm` | the alarm starts (`active: true`) or stops (`active: false`) | `active`, `zone`, `zone_entity_id` |
+| `bavariandata_check_control` | a Check Control message appears (`active: true`) or is gone (`active: false`) | `active`, then as the *New Check Control message* trigger |
 | `bavariandata_vehicle_report` | the odometer has a new reading and it has not changed for 5 minutes | `timestamp` (the car's own time), `odometer_km`, `previous_odometer_km`, `previous_timestamp`, `distance_km`, `fuel_l`, `fuel_percent`, `range_km`, `soc_percent`, `latitude`, `longitude`, `altitude_m`, `heading` |
 
 `bavariandata_situation` fires at the moment a situation starts, with no waiting

@@ -511,11 +511,17 @@
     "trigger_type": {
       "zone_arrived": "Přijelo do zóny",
       "zone_left": "Opustilo zónu",
+      "trip_ended": "Jízda skončila (kdekoli)",
       "parked_unlocked": "Zaparkováno a ponecháno odemčené",
+      "parked_window_open": "Zaparkováno s otevřeným oknem",
       "plugged_not_charging": "Připojeno, ale nenabíjí se",
       "charging_started": "Nabíjení zahájeno",
       "charging_complete": "Nabíjení dokončeno (cíl dosažen)",
-      "charging_interrupted": "Nabíjení zastaveno před cílem, kabel stále připojen"
+      "charging_interrupted": "Nabíjení zastaveno před cílem, kabel stále připojen",
+      "preconditioning_started": "Předklimatizace spuštěna",
+      "preconditioning_finished": "Předklimatizace dokončena",
+      "alarm": "Spustil se alarm",
+      "check_control": "Nové hlášení Check Control"
     },
     "extra_fields": {
       "zone": "Zóna (prázdné: libovolná zóna)",

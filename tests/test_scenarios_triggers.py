@@ -226,3 +226,203 @@ def test_reaching_the_target_completes_rather_than_interrupts(h):
     h.advance_to(15)
     assert h.events("bavariandata_charging_interrupted") == []
     assert h.events("bavariandata_charging_complete")
+
+
+# -- trip ended ----------------------------------------------------------------------
+
+
+def test_a_trip_ending_outside_any_zone_still_ends(h, snapshot):
+    """``zone_arrived`` needs a zone; ``trip_ended`` fires for every recorded trip."""
+
+    _drive(h, 5, _line(HOME, AWAY, 5))
+    h.fix(20, *AWAY)
+    h.advance_to(40)
+
+    assert h.events("bavariandata_zone_arrived") == []
+    (ended,) = h.events("bavariandata_trip_ended")
+    data = ended[1]
+    assert data["zone"] is None
+    assert data["zone_entity_id"] is None
+    assert data["trip_id"] == h.trips()[0].id
+    assert data["distance_km"] > 0
+    assert data["trip_end"] is not None
+    assert h.render() == snapshot
+
+
+def test_arriving_in_a_zone_fires_both_with_one_trip(h):
+    with _harness(at=AWAY) as h:
+        _drive(h, 5, _line(AWAY, HOME, 5))
+        h.fix(20, *HOME)
+        h.advance_to(40)
+        (arrived,) = h.events("bavariandata_zone_arrived")
+        (ended,) = h.events("bavariandata_trip_ended")
+        assert ended[1]["zone_entity_id"] == "zone.home"
+        assert ended[1]["trip_id"] == arrived[1]["trip_id"]
+
+
+def test_the_stop_flush_ends_no_trip(h):
+    _drive(h, 5, _line(HOME, AWAY, 5))
+    h.restart()
+    assert h.events("bavariandata_trip_ended") == []
+
+
+# -- parked with a window open -------------------------------------------------------
+
+WINDOW = "vehicle.cabin.window.row1.driver.status"
+SUNROOF = "vehicle.cabin.sunroof.status"
+
+
+def test_a_window_left_open_is_a_situation(h, snapshot):
+    h.send(1, extra={WINDOW: "INTERMEDIATE", SUNROOF: "CLOSED"})
+    h.send(30, extra={WINDOW: "CLOSED"})
+
+    assert _situations(h) == [("parked_window_open", True), ("parked_window_open", False)]
+    begin = h.events(SITUATION)[0][1]
+    assert begin["windows"] == ["front_driver"]
+    assert begin["zone"] == "Home"
+    assert h.render() == snapshot
+
+
+def test_driving_off_with_a_window_open_ends_the_situation(h):
+    h.send(1, extra={WINDOW: "OPEN"})
+    h.fix(5, HOME[0] + STEP, HOME[1] + STEP)  # a trip opens
+    assert _situations(h) == [("parked_window_open", True), ("parked_window_open", False)]
+
+
+def test_a_restored_open_window_starts_nothing(h):
+    h.send(1, extra={WINDOW: "OPEN"})
+    h.restart()
+    h.send(5, soc=60)  # the car speaks -- but not about its windows
+    h.advance_to(30)
+    assert _situations(h) == [("parked_window_open", True)]  # only the pre-restart one
+
+
+# -- alarm ---------------------------------------------------------------------------
+
+ALARM = "vehicle.vehicle.antiTheftAlarmSystem.alarm.isOn"
+
+
+def _alarms(h) -> list[bool]:
+    return [data["active"] for _name, data in h.events("bavariandata_alarm")]
+
+
+def test_the_alarm_fires_when_it_goes_off_and_when_it_stops(h, snapshot):
+    h.send(1, extra={ALARM: False})
+    h.send(5, extra={ALARM: True})
+    h.send(6, extra={ALARM: True})  # still sounding: the same alarm
+    h.send(9, extra={ALARM: False})
+
+    assert _alarms(h) == [True, False]
+    assert h.events("bavariandata_alarm")[0][1]["zone_entity_id"] == "zone.home"
+    assert h.render() == snapshot
+
+
+def test_an_alarm_the_stream_replays_from_the_past_is_not_one_now(h):
+    h.send(1, extra={ALARM: False})
+    h.send(60, stamped=10, extra={ALARM: True})  # stamped 50 minutes ago
+    assert _alarms(h) == []
+
+
+def test_a_rest_answer_never_sounds_the_alarm(h):
+    """REST may answer from BMW's cache: it can say what was, not what happens."""
+
+    h.send(1, rest=True, extra={ALARM: True})
+    h.send(2, rest=True, extra={ALARM: False})
+    assert _alarms(h) == []
+
+
+def test_an_alarm_after_a_restart_with_nothing_before_still_fires(h):
+    """Home Assistant restores no flag, so after a restart the alarm has no "before"."""
+
+    h.restart()
+    h.send(5, extra={ALARM: True})
+    assert _alarms(h) == [True]
+
+
+def test_an_alarm_already_on_before_a_restart_does_not_fire_again(h):
+    h.send(1, extra={ALARM: False})
+    h.send(2, extra={ALARM: True})
+    h.restart()
+    h.send(5, extra={ALARM: True})
+    assert _alarms(h) == [True]
+
+
+# -- preconditioning -----------------------------------------------------------------
+
+PRECON = "vehicle.vehicle.preConditioning.activity"
+PRECON_ERROR = "vehicle.vehicle.preConditioning.error"
+
+
+def _preconditioning(h) -> list[bool]:
+    return [data["active"] for _name, data in h.events("bavariandata_preconditioning")]
+
+
+def test_preconditioning_starts_and_finishes(h, snapshot):
+    h.send(1, extra={PRECON: "INACTIVE", PRECON_ERROR: "OK"})
+    h.send(5, soc=70, extra={PRECON: "HEATING"})
+    h.send(25, extra={PRECON: "INACTIVE"})
+
+    assert _preconditioning(h) == [True, False]
+    started, finished = (data for _name, data in h.events("bavariandata_preconditioning"))
+    assert started["activity"] == "heating"
+    assert started["soc"] == 70
+    assert finished["error"] == "ok"
+    assert h.render() == snapshot
+
+
+def test_a_finish_with_no_start_we_saw_is_nothing(h):
+    h.send(1, extra={PRECON: "INACTIVE"})
+    assert _preconditioning(h) == []
+
+
+def test_preconditioning_restored_running_does_not_start_again(h):
+    h.send(1, extra={PRECON: "INACTIVE"})
+    h.send(5, extra={PRECON: "HEATING"})
+    h.restart()  # comes back as the slug "heating"
+    h.send(10, extra={PRECON: "HEATING"})
+    h.send(20, extra={PRECON: "INACTIVE"})
+    assert _preconditioning(h) == [True, False]
+
+
+def test_a_word_we_do_not_know_moves_nothing(h):
+    h.send(1, extra={PRECON: "INACTIVE"})
+    h.send(5, extra={PRECON: "SOMETHING_NEW"})
+    h.send(6, extra={PRECON: "INACTIVE"})
+    assert _preconditioning(h) == []
+
+
+# -- Check Control ---------------------------------------------------------------------
+
+CCM = "vehicle.status.checkControlMessages"
+WASHER = {"messageType": "CCM", "id": 164, "status": "NULL", "text": "Washer fluid low"}
+TYRE = {"messageType": "CCM", "id": 52, "status": "NULL", "text": "Tyre pressure low"}
+
+
+def _messages(h) -> list[tuple[bool, object]]:
+    return [(data["active"], data["id"]) for _name, data in h.events("bavariandata_check_control")]
+
+
+def test_a_new_message_fires_and_its_resolution_too(h, snapshot):
+    h.send(1, rest=True, extra={CCM: []})
+    h.send(60, rest=True, extra={CCM: [WASHER]})
+    h.send(120, rest=True, extra={CCM: [WASHER, TYRE]})
+    h.send(180, rest=True, extra={CCM: None})  # BMW's null: no messages
+
+    assert _messages(h) == [(True, 164), (True, 52), (False, 164), (False, 52)]
+    first = h.events("bavariandata_check_control")[0][1]
+    assert first["text"] == "Washer fluid low"
+    assert first["message"] == WASHER
+    assert h.render() == snapshot
+
+
+def test_the_first_list_only_sets_the_starting_point(h):
+    h.send(1, rest=True, extra={CCM: [WASHER]})
+    assert _messages(h) == []
+
+
+def test_a_restart_does_not_announce_the_messages_again(h):
+    h.send(1, rest=True, extra={CCM: []})
+    h.send(2, rest=True, extra={CCM: [WASHER]})
+    h.restart()
+    h.send(5, rest=True, extra={CCM: [WASHER]})  # the startup fetch
+    assert _messages(h) == [(True, 164)]

@@ -511,11 +511,17 @@
     "trigger_type": {
       "zone_arrived": "Przyjechał do strefy",
       "zone_left": "Opuścił strefę",
+      "trip_ended": "Przejazd zakończony (gdziekolwiek)",
       "parked_unlocked": "Zaparkowany i pozostawiony otwarty",
+      "parked_window_open": "Zaparkowany z otwartą szybą",
       "plugged_not_charging": "Podłączony, ale nie ładuje",
       "charging_started": "Ładowanie rozpoczęte",
       "charging_complete": "Ładowanie zakończone (cel osiągnięty)",
-      "charging_interrupted": "Ładowanie przerwane przed celem, kabel nadal podłączony"
+      "charging_interrupted": "Ładowanie przerwane przed celem, kabel nadal podłączony",
+      "preconditioning_started": "Klimatyzacja postojowa włączona",
+      "preconditioning_finished": "Klimatyzacja postojowa zakończona",
+      "alarm": "Alarm się włączył",
+      "check_control": "Nowy komunikat Check Control"
     },
     "extra_fields": {
       "zone": "Strefa (puste: dowolna strefa)",

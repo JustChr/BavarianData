@@ -511,11 +511,17 @@
     "trigger_type": {
       "zone_arrived": "Arrived at a zone",
       "zone_left": "Left a zone",
+      "trip_ended": "Trip ended (anywhere)",
       "parked_unlocked": "Parked and left unlocked",
+      "parked_window_open": "Parked with a window open",
       "plugged_not_charging": "Plugged in but not charging",
       "charging_started": "Charging started",
       "charging_complete": "Charging completed (target reached)",
-      "charging_interrupted": "Charging stopped before the target, cable still in"
+      "charging_interrupted": "Charging stopped before the target, cable still in",
+      "preconditioning_started": "Preconditioning started",
+      "preconditioning_finished": "Preconditioning finished",
+      "alarm": "Alarm went off",
+      "check_control": "New Check Control message"
     },
     "extra_fields": {
       "zone": "Zone (empty: any zone)",

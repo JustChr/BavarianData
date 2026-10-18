@@ -18,11 +18,22 @@ auswählen und aus der Liste wählen. Kein YAML, keine Entitätsnamen.
 | --- | --- | --- |
 | **In einer Zone angekommen** | eine Fahrt in einer Zone endet, sobald das Auto steht (meist 1–3 Minuten nach dem Anhalten) | eine Zone, oder leer für jede Zone |
 | **Eine Zone verlassen** | eine Fahrt das Auto aus der Zone bringt, in der sie begann | eine Zone, oder leer für jede Zone |
+| **Fahrt beendet (überall)** | eine Fahrt ins Fahrtenbuch eingetragen wird, egal wo sie endete | — |
 | **Geparkt und nicht verriegelt** | das Auto die gewählte Zeit unverriegelt steht | wie lange (Standard 10 Minuten) |
+| **Geparkt mit offenem Fenster** | ein Fenster oder das Schiebedach die gewählte Zeit offen oder halb offen steht | wie lange (Standard 10 Minuten) |
 | **Angesteckt, lädt aber nicht** | ein Kabel steckt, nichts lädt und das Auto unter seinem Ladeziel ist, für die gewählte Zeit | wie lange (Standard 15 Minuten) |
 | **Laden gestartet** | ein Ladevorgang beginnt | — |
 | **Laden abgeschlossen (Ziel erreicht)** | ein Ladevorgang bei oder über dem Ziel endet | — |
 | **Laden vor dem Ziel beendet, Kabel steckt noch** | ein Ladevorgang unter dem Ziel endet, während das Kabel noch steckt | — |
+| **Vorklimatisierung gestartet** | das Auto beginnt, sich zu heizen oder zu kühlen | — |
+| **Vorklimatisierung beendet** | das Auto hört auf, sich zu heizen oder zu kühlen | — |
+| **Alarmanlage ausgelöst** | die Alarmanlage beginnt zu schlagen | — |
+| **Neue Check-Control-Meldung** | eine Warnung erscheint, die das Auto vorher nicht zeigte | — |
+
+**„Laden abgeschlossen“ ist der Auslöser für „Ziel erreicht“.** Das Auto hört bei
+seinem Ladeziel auf, und dort endet der Ladevorgang. Für eine andere Schwelle,
+etwa 70 % an einer Wallbox ohne eigene Grenze, nimm einen numerischen
+Zustands-Auslöser auf der Entität für den Ladezustand.
 
 **Angeboten werden nur die Auslöser, die dein Auto auslösen kann.** Ein Auto,
 das nie einen Verriegelungszustand gesendet hat, bekommt kein *Geparkt und nicht
@@ -58,6 +69,24 @@ Diese Auslöser sollen genau einmal auslösen, und nie fälschlich:
   GPS-Zittern am Zonenrand kann es nicht flackern lassen. Die eigenen
   Zonen-Auslöser von Home Assistant auf der Standort-Entität des Autos gibt es
   weiterhin, wenn du den Moment des Überquerens willst.
+- **Ein offenes Fenster beim Fahren ist nicht „geparkt mit offenem Fenster“.** Die
+  Situation beginnt, wenn die Fahrt vorbei ist. Ein halb offenes Fenster zählt:
+  durch einen Spalt regnet es auch herein.
+- **Ein alter Wert ist keine Neuigkeit.** Die Auslöser für Alarm und
+  Vorklimatisierung lösen nur bei einer Änderung aus, die das Auto streamt, und
+  nur solange der Zeitstempel des Autos darauf weniger als 10 Minuten alt ist.
+  Weder der Abruf nach einem Neustart (BMW kann ihn aus seinem Zwischenspeicher
+  beantworten) noch ein Auto, das einen alten Wert wiederholt, startet sie.
+- **Die erste Check-Control-Liste setzt nur den Ausgangspunkt.** Warnungen, die
+  das Auto schon zeigte, als du die Integration installiert hast, werden nicht
+  gemeldet. Das Auto schickt diese Warnungen nur mit den Daten, die bei BMW
+  abgerufen werden, nie über den Live-Stream: Eine neue erscheint beim nächsten
+  Abruf (beim Start, oder wenn ein Dienst abruft), nicht in dem Moment, in dem
+  sie im Auto erscheint.
+- **Der Alarm ist an keinem echten Alarm geprüft.** Er beruht auf BMWs Alarm-Feld
+  und ist an aufgezeichneten Daten getestet, aber noch kein Auto mit dieser
+  Integration hat seinen Alarm ausgelöst. Wenn das bei dir passiert und nichts
+  auslöst, eröffne bitte ein Issue.
 
 ### Was die Automation bekommt
 
@@ -67,10 +96,15 @@ Jeder Auslöser übergibt seine Details als `trigger.data`:
 | --- | --- |
 | In einer Zone angekommen | `zone`, `zone_entity_id`, `from`, `distance_km`, `duration_s`, `energy_kwh`, `soc`, `trip_id`, `trip_start` |
 | Eine Zone verlassen | `zone`, `zone_entity_id`, `soc`, `trip_start` |
+| Fahrt beendet | wie *In einer Zone angekommen* (`zone` und `zone_entity_id` sind außerhalb einer Zone `null`), dazu `trip_end`, `to`, `soc_start`, `classification` |
 | Geparkt und nicht verriegelt | `since`, `zone`, `zone_entity_id` |
+| Geparkt mit offenem Fenster | `since`, `windows` (welche: `front_driver`, `front_passenger`, `rear_driver`, `rear_passenger`, `sunroof`, `sunroof_tilt`, `rear_window`), `zone`, `zone_entity_id` |
 | Angesteckt, lädt aber nicht | `since`, `soc`, `target_soc`, `zone`, `zone_entity_id` |
 | Laden gestartet / abgeschlossen | `soc`, `target_soc`, `status` (abgeschlossen: auch `energy_kwh`, `cost`, `session_id`) |
 | Laden vor dem Ziel beendet | wie abgeschlossen, dazu `reason` — BMWs eigene Begründung, wenn das Auto eine sendet |
+| Vorklimatisierung gestartet / beendet | `activity` (`heating`, `cooling`, … oder `inactive`), `error` (BMWs Grund, wenn sie nicht laufen konnte, etwa `lowbattery`; sonst `ok`), `soc`, `zone`, `zone_entity_id` |
+| Alarmanlage ausgelöst | `zone`, `zone_entity_id` |
+| Neue Check-Control-Meldung | `id`, `title`, `text`, `message_type`, `message` (der ganze Eintrag, wie BMW ihn schickt), `zone`, `zone_entity_id` |
 
 Jede Nutzlast enthält außerdem `vin`, `entry_id` und `vehicle`, den Namen des Autos,
 wie BMW ihn meldet (`null`, solange BMW keinen meldet). Ein Beispiel, das vor einem
@@ -106,7 +140,11 @@ ausgelöst, für YAML-Automationen und Node-RED (beobachten kannst du sie unter
 | `bavariandata_charging_interrupted` | ein Ladevorgang unter dem Ziel endet, während das Kabel noch steckt | wie `charging_stopped`, dazu `reason` |
 | `bavariandata_zone_arrived` | eine Fahrt in einer Zone endet | wie beim Auslöser *In einer Zone angekommen* |
 | `bavariandata_zone_left` | eine Fahrt die Zone verlässt, in der sie begann | wie beim Auslöser *Eine Zone verlassen* |
-| `bavariandata_situation` | eine Situation beginnt (`active: true`) oder endet (`active: false`) | `situation` (`parked_unlocked` oder `plugged_not_charging`), `active`, `since`, … |
+| `bavariandata_trip_ended` | eine Fahrt eingetragen wird, in einer Zone oder nicht | wie beim Auslöser *Fahrt beendet* |
+| `bavariandata_situation` | eine Situation beginnt (`active: true`) oder endet (`active: false`) | `situation` (`parked_unlocked`, `parked_window_open` oder `plugged_not_charging`), `active`, `since`, … |
+| `bavariandata_preconditioning` | die Vorklimatisierung beginnt (`active: true`) oder endet (`active: false`) | `active`, dann wie bei den Auslösern *Vorklimatisierung* |
+| `bavariandata_alarm` | der Alarm beginnt (`active: true`) oder hört auf (`active: false`) | `active`, `zone`, `zone_entity_id` |
+| `bavariandata_check_control` | eine Check-Control-Meldung erscheint (`active: true`) oder ist weg (`active: false`) | `active`, dann wie beim Auslöser *Neue Check-Control-Meldung* |
 | `bavariandata_vehicle_report` | der Kilometerstand hat einen neuen Wert und hat sich 5 Minuten nicht verändert | `timestamp` (die Zeit des Autos), `odometer_km`, `previous_odometer_km`, `previous_timestamp`, `distance_km`, `fuel_l`, `fuel_percent`, `range_km`, `soc_percent`, `latitude`, `longitude`, `altitude_m`, `heading` |
 
 `bavariandata_situation` löst im Moment des Beginns aus, ohne Wartezeit — das

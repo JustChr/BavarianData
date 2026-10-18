@@ -511,11 +511,17 @@
     "trigger_type": {
       "zone_arrived": "In einer Zone angekommen",
       "zone_left": "Eine Zone verlassen",
+      "trip_ended": "Fahrt beendet (überall)",
       "parked_unlocked": "Geparkt und nicht verriegelt",
+      "parked_window_open": "Geparkt mit offenem Fenster",
       "plugged_not_charging": "Angesteckt, lädt aber nicht",
       "charging_started": "Laden gestartet",
       "charging_complete": "Laden abgeschlossen (Ziel erreicht)",
-      "charging_interrupted": "Laden vor dem Ziel beendet, Kabel steckt noch"
+      "charging_interrupted": "Laden vor dem Ziel beendet, Kabel steckt noch",
+      "preconditioning_started": "Vorklimatisierung gestartet",
+      "preconditioning_finished": "Vorklimatisierung beendet",
+      "alarm": "Alarmanlage ausgelöst",
+      "check_control": "Neue Check-Control-Meldung"
     },
     "extra_fields": {
       "zone": "Zone (leer: jede Zone)",

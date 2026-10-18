@@ -511,11 +511,17 @@
     "trigger_type": {
       "zone_arrived": "Llegó a una zona",
       "zone_left": "Salió de una zona",
+      "trip_ended": "Trayecto terminado (en cualquier lugar)",
       "parked_unlocked": "Aparcado y sin bloquear",
+      "parked_window_open": "Aparcado con una ventanilla abierta",
       "plugged_not_charging": "Enchufado pero sin cargar",
       "charging_started": "Carga iniciada",
       "charging_complete": "Carga completada (objetivo alcanzado)",
-      "charging_interrupted": "Carga detenida antes del objetivo, cable aún conectado"
+      "charging_interrupted": "Carga detenida antes del objetivo, cable aún conectado",
+      "preconditioning_started": "Preacondicionamiento iniciado",
+      "preconditioning_finished": "Preacondicionamiento terminado",
+      "alarm": "La alarma se ha disparado",
+      "check_control": "Nuevo mensaje Check Control"
     },
     "extra_fields": {
       "zone": "Zona (vacío: cualquier zona)",
