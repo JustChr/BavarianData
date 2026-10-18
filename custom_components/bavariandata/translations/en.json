@@ -3033,7 +3033,7 @@
   },
   "issues": {
     "api_quota_exhausted": {
-      "title": "BMW CarData API quota exhausted",
+      "title": "BMW CarData API quota exhausted ({account})",
       "description": "The {limit} requests-per-24h BMW CarData REST limit has been reached, so on-demand data (basic info, charging history, tire diagnosis, vehicle image) can't be refreshed right now. The streaming data keeps flowing. The quota frees up again at {next_reset}."
     },
     "motorcycle_unsupported": {
@@ -3045,11 +3045,11 @@
       "description": "For {vehicle}, nothing at all from {clusters} has arrived in {days} days ({count} descriptor(s), e.g. {descriptors}). A cluster that stays completely silent usually means it isn't ticked and saved in the BMW portal's Data Selection, or your car doesn't produce that data. Re-activate it under Configure → Choose streamed data, or unselect the cluster. Clusters that deliver only some of their fields are normal and never raise this. Run the get_coverage_report service for the full list."
     },
     "stream_no_data": {
-      "title": "No BMW CarData stream data received",
+      "title": "No BMW CarData stream data received ({account})",
       "description": "No streamed vehicle data has arrived for over {hours} hours. The stream may have stopped, or the data was never selected in the first place. Check that your Data Selection is saved in the BMW portal (step 4 of setup), trigger a lock/unlock in the MyBMW app to prompt an update, and make sure no other CarData client is connected — BMW allows only one stream per account. Run the get_coverage_report service to see which descriptors are missing."
     },
     "stream_unauthorized": {
-      "title": "BMW CarData stream not authorized",
+      "title": "BMW CarData stream not authorized ({account})",
       "description": "BMW has rejected the streaming connection as unauthorized (MQTT rc=5) for over {minutes} minutes and it hasn't recovered on its own. This usually means the tokens need renewing, or another CarData client is holding the single per-account stream. Try Configure → Refresh tokens now, then Re-authorize with BMW if it keeps failing, and disconnect any other CarData client."
     }
   },
@@ -3475,6 +3475,11 @@
           "description": "Optional VIN to rebuild. Defaults to every known vehicle."
         }
       }
+    }
+  },
+  "device": {
+    "account": {
+      "name": "{account} (CarData account)"
     }
   }
 }

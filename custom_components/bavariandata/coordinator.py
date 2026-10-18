@@ -4010,6 +4010,13 @@ class CardataCoordinator:
         )
         self._set_no_data_issue(no_data)
 
+    def _account_name(self) -> str:
+        """The account as its repairs name it: the entry's title, its cars."""
+
+        entries = getattr(self.hass, "config_entries", None)
+        entry = entries.async_get_entry(self.entry_id) if entries is not None else None
+        return getattr(entry, "title", None) or "BavarianData"
+
     def _set_unauthorized_issue(self, active: bool) -> None:
         issue_id = f"stream_unauthorized_{self.entry_id}"
         if active == self._unauthorized_issue_active:
@@ -4027,6 +4034,7 @@ class CardataCoordinator:
             translation_key="stream_unauthorized",
             translation_placeholders={
                 "minutes": str(UNAUTHORIZED_REPAIR_AFTER_S // 60),
+                "account": self._account_name(),
             },
             learn_more_url=f"{WIKI_TROUBLESHOOTING}#stream-authorization-failing",
         )
@@ -4048,6 +4056,7 @@ class CardataCoordinator:
             translation_key="stream_no_data",
             translation_placeholders={
                 "hours": str(NO_DATA_REPAIR_AFTER_S // 3600),
+                "account": self._account_name(),
             },
             learn_more_url=f"{WIKI_TROUBLESHOOTING}#no-data-arriving",
         )

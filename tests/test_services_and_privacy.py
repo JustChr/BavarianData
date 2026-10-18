@@ -289,3 +289,18 @@ def test_every_targeted_service_offers_a_device_picker() -> None:
             continue
         picker = fields.get("device_id", {}).get("selector", {}).get("device", {})
         assert picker.get("filter") == [{"integration": "bavariandata"}], name
+
+
+def test_every_account_wide_repair_names_its_account() -> None:
+    """Two accounts raise two of each of these; without the account in the
+    title they are identical and only one of them is true."""
+
+    import json
+
+    en = json.loads((_PKG / "translations" / "en.json").read_text(encoding="utf-8"))
+    for key in ("api_quota_exhausted", "stream_unauthorized", "stream_no_data"):
+        assert "{account}" in en["issues"][key]["title"], key
+    sources = "".join(
+        (_PKG / name).read_text(encoding="utf-8") for name in ("__init__.py", "coordinator.py")
+    )
+    assert sources.count('"account": self._account_name()') == 3

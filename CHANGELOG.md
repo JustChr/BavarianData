@@ -23,8 +23,23 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   used to write a line to the log while the automation carried on as if it had
   worked (the `get_*` services answered with an empty list). The automation now
   stops with that message.
+- **Each account is named after its cars.** The integration entry was titled
+  *BavarianData: Connect Home Assistant to BMW CarData (ab12cd34)*, and eight
+  characters of the client ID were all that told two accounts apart. It now
+  takes its cars' names (*i5 eDrive40, iX1 xDrive30*) once BMW reports them, and
+  follows when a car is added. An entry you renamed keeps your name.
+- **The account's diagnostics device is named after the account.** Every
+  account had one called *CarData Debug Device*; it is now *i5 eDrive40
+  (CarData account)*, in your language. Entity IDs don't change.
 
 ### Fixed
+- **Quota and stream repairs say which account they mean.** With two accounts
+  the *API quota exhausted*, *stream not authorized* and *no stream data*
+  repairs looked identical; their title now names the account.
+- **One reauthorization notice, not two.** Next to Home Assistant's own notice,
+  BavarianData posted a second one in English that named no account. Home
+  Assistant's notice and its reauthorize card (which shows the account's name)
+  remain.
 - **Configure → Fetch from BMW now fetches every car.** The tire diagnosis,
   charging history, location-based charging settings and BMW's own vehicle
   picture were fetched for one car only on an account with two. They now ask

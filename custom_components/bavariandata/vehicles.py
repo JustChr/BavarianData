@@ -17,9 +17,23 @@ used to work is not.
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional
+import re
+from typing import Any, Iterable, Mapping, Optional
 
-__all__ = ["known_vins", "primary_vins"]
+__all__ = [
+    "account_title",
+    "known_vins",
+    "new_account_title",
+    "primary_vins",
+    "setup_title",
+]
+
+# The title setup gives an entry before any car is known, in both spellings it
+# has had: the 8-character client-id fragment was all that told two accounts
+# apart. Matched whole, so a title the user typed is never taken for ours.
+_SETUP_TITLE = re.compile(
+    r"BavarianData(?:: Connect Home Assistant to BMW CarData)? \([^()]{1,8}\)"
+)
 
 
 def known_vins(
@@ -87,3 +101,32 @@ def primary_vins(payload: Any) -> list[str]:
         if isinstance(vin, str) and vin.strip() and vin.strip() not in found:
             found.append(vin.strip())
     return found
+
+
+def setup_title(client_id: str) -> str:
+    """The entry's title until its cars are known."""
+
+    return f"BavarianData ({client_id[:8]})"
+
+
+def account_title(names: Iterable[Any]) -> Optional[str]:
+    """The cars of an account as its title: ``"i5 eDrive40, iX1 xDrive30"``."""
+
+    cleaned = [name.strip() for name in names if isinstance(name, str) and name.strip()]
+    return ", ".join(cleaned) or None
+
+
+def new_account_title(
+    current: Optional[str], last_auto: Optional[str], names: Iterable[Any]
+) -> Optional[str]:
+    """The title to give an entry now, or ``None`` to leave it alone.
+
+    Only a title we set -- the setup one, or the car names we wrote last time
+    (``last_auto``) -- is replaced; one the user renamed stays theirs.
+    """
+
+    wanted = account_title(names)
+    if wanted is None or wanted == current:
+        return None
+    ours = not current or current == last_auto or bool(_SETUP_TITLE.fullmatch(current))
+    return wanted if ours else None

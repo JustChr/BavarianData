@@ -2803,7 +2803,7 @@
   },
   "issues": {
     "api_quota_exhausted": {
-      "title": "Wyczerpano limit API BMW CarData",
+      "title": "Wyczerpano limit API BMW CarData ({account})",
       "description": "Osiągnięto limit REST BMW CarData wynoszący {limit} żądań na 24 h, więc danych na żądanie (dane podstawowe, historia ładowania, diagnoza opon, zdjęcie pojazdu) nie można teraz odświeżyć. Dane ze strumienia nadal napływają. Limit zwolni się ponownie o {next_reset}."
     },
     "motorcycle_unsupported": {
@@ -2815,11 +2815,11 @@
       "description": "Dla {vehicle} przez {days} dni nie nadeszło nic z {clusters} ({count} deskryptor(ów), np. {descriptors}). Grupa, która całkowicie milczy, zwykle oznacza, że nie jest zaznaczona i zapisana w Wyborze danych w portalu BMW lub że Twoje auto nie wytwarza tych danych. Aktywuj ją ponownie w Konfiguruj → Wybierz przesyłane dane albo odznacz grupę. Grupy dostarczające tylko część swoich pól są normalne i nigdy nie wywołują tego powiadomienia. Uruchom usługę get_coverage_report, aby zobaczyć pełną listę."
     },
     "stream_no_data": {
-      "title": "Nie otrzymano danych ze strumienia BMW CarData",
+      "title": "Nie otrzymano danych ze strumienia BMW CarData ({account})",
       "description": "Od ponad {hours} godzin nie nadeszły żadne przesyłane dane pojazdu. Strumień mógł się zatrzymać albo dane nigdy nie zostały wybrane. Sprawdź, czy Wybór danych jest zapisany w portalu BMW (krok 4 konfiguracji), zablokuj/odblokuj auto w aplikacji MyBMW, aby wywołać aktualizację, i upewnij się, że nie jest połączony żaden inny klient CarData — BMW pozwala tylko na jeden strumień na konto. Uruchom usługę get_coverage_report, aby zobaczyć, których deskryptorów brakuje."
     },
     "stream_unauthorized": {
-      "title": "Strumień BMW CarData nieautoryzowany",
+      "title": "Strumień BMW CarData nieautoryzowany ({account})",
       "description": "BMW od ponad {minutes} minut odrzuca połączenie strumienia jako nieautoryzowane (MQTT rc=5) i nie przywróciło się ono samo. Zwykle oznacza to, że trzeba odnowić tokeny lub że inny klient CarData zajmuje jedyny strumień konta. Spróbuj Konfiguruj → Odśwież tokeny teraz, a jeśli nadal się nie udaje, Autoryzuj ponownie w BMW, i odłącz każdego innego klienta CarData."
     }
   },
@@ -3245,6 +3245,11 @@
           "description": "Opcjonalny VIN do odbudowania. Domyślnie każdy znany pojazd."
         }
       }
+    }
+  },
+  "device": {
+    "account": {
+      "name": "{account} (konto CarData)"
     }
   }
 }

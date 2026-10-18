@@ -2803,7 +2803,7 @@
   },
   "issues": {
     "api_quota_exhausted": {
-      "title": "BMW CarData API-kvoten är slut",
+      "title": "BMW CarData API-kvoten är slut ({account})",
       "description": "BMW CarData:s REST-gräns på {limit} anrop per 24 h har nåtts, så data på begäran (grunddata, laddningshistorik, däckdiagnos, fordonsbild) kan inte uppdateras just nu. Strömmade data fortsätter att komma. Kvoten frigörs igen {next_reset}."
     },
     "motorcycle_unsupported": {
@@ -2815,11 +2815,11 @@
       "description": "För {vehicle} har ingenting alls från {clusters} kommit på {days} dagar ({count} deskriptor(er), t.ex. {descriptors}). En grupp som är helt tyst betyder oftast att den inte är ikryssad och sparad i BMW-portalens Dataurval, eller att din bil inte producerar de data. Aktivera den igen under Konfigurera → Välj strömmade data, eller avmarkera gruppen. Grupper som bara levererar en del av sina fält är normala och ger aldrig detta meddelande. Kör tjänsten get_coverage_report för hela listan."
     },
     "stream_no_data": {
-      "title": "Inga strömdata från BMW CarData har tagits emot",
+      "title": "Inga strömdata från BMW CarData har tagits emot ({account})",
       "description": "Inga strömmade fordonsdata har kommit på över {hours} timmar. Strömmen kan ha stoppats, eller så valdes data aldrig från början. Kontrollera att ditt Dataurval är sparat i BMW-portalen (steg 4 i installationen), lås/lås upp bilen i MyBMW-appen för att framkalla en uppdatering, och se till att ingen annan CarData-klient är ansluten — BMW tillåter bara en ström per konto. Kör tjänsten get_coverage_report för att se vilka deskriptorer som saknas."
     },
     "stream_unauthorized": {
-      "title": "BMW CarData-strömmen är inte auktoriserad",
+      "title": "BMW CarData-strömmen är inte auktoriserad ({account})",
       "description": "BMW har avvisat strömanslutningen som obehörig (MQTT rc=5) i över {minutes} minuter och den har inte återhämtat sig av sig själv. Det betyder oftast att token behöver förnyas, eller att en annan CarData-klient håller kontots enda ström. Prova Konfigurera → Förnya token nu, sedan Auktorisera igen hos BMW om det fortsätter att misslyckas, och koppla från alla andra CarData-klienter."
     }
   },
@@ -3245,6 +3245,11 @@
           "description": "Valfritt VIN att bygga om. Standard är alla kända fordon."
         }
       }
+    }
+  },
+  "device": {
+    "account": {
+      "name": "{account} (CarData-konto)"
     }
   }
 }

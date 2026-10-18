@@ -2803,7 +2803,7 @@
   },
   "issues": {
     "api_quota_exhausted": {
-      "title": "Kvóta API BMW CarData vyčerpána",
+      "title": "Kvóta API BMW CarData vyčerpána ({account})",
       "description": "Byl dosažen REST limit BMW CarData {limit} požadavků za 24 h, takže data na požádání (základní údaje, historie nabíjení, diagnostika pneumatik, obrázek vozidla) nyní nelze obnovit. Data ze streamu dál přicházejí. Kvóta se znovu uvolní v {next_reset}."
     },
     "motorcycle_unsupported": {
@@ -2815,11 +2815,11 @@
       "description": "Pro {vehicle} za {days} dní nedorazilo vůbec nic ze skupiny {clusters} ({count} deskriptorů, např. {descriptors}). Skupina, která úplně mlčí, obvykle znamená, že není zaškrtnutá a uložená ve Výběru dat v portálu BMW, nebo že vaše auto tato data neposkytuje. Znovu ji aktivujte v Nastavit → Vybrat přenášená data, nebo skupinu odznačte. Skupiny, které dodávají jen část svých polí, jsou normální a toto upozornění nikdy nevyvolají. Spusťte službu get_coverage_report pro úplný seznam."
     },
     "stream_no_data": {
-      "title": "Nebyla přijata žádná data ze streamu BMW CarData",
+      "title": "Nebyla přijata žádná data ze streamu BMW CarData ({account})",
       "description": "Již více než {hours} hodin nedorazila žádná přenášená data vozidla. Stream se možná zastavil, nebo data nebyla nikdy vybrána. Zkontrolujte, že je Výběr dat uložen v portálu BMW (krok 4 nastavení), zamkněte/odemkněte vůz v aplikaci MyBMW pro vyvolání aktualizace a ujistěte se, že není připojen žádný jiný klient CarData — BMW povoluje jen jeden stream na účet. Spusťte službu get_coverage_report a zjistěte, které deskriptory chybí."
     },
     "stream_unauthorized": {
-      "title": "Stream BMW CarData není autorizován",
+      "title": "Stream BMW CarData není autorizován ({account})",
       "description": "BMW již více než {minutes} minut odmítá připojení streamu jako neautorizované (MQTT rc=5) a samo se neobnovilo. Obvykle to znamená, že je třeba obnovit tokeny, nebo že jediný stream účtu drží jiný klient CarData. Zkuste Nastavit → Obnovit tokeny nyní, pak Znovu autorizovat u BMW, pokud to stále selhává, a odpojte jakéhokoli jiného klienta CarData."
     }
   },
@@ -3245,6 +3245,11 @@
           "description": "Volitelný VIN k přestavění. Výchozí jsou všechna známá vozidla."
         }
       }
+    }
+  },
+  "device": {
+    "account": {
+      "name": "{account} (účet CarData)"
     }
   }
 }

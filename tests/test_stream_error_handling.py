@@ -143,7 +143,9 @@ def test_a_refresh_bmw_rejects_still_starts_reauth():
     )
 
     assert len(flows.started) == 1
-    assert len(notifications.created) == 1
+    # Home Assistant posts the notice for a reauth flow itself, naming the
+    # entry; a second English-only one of ours said neither account nor car.
+    assert notifications.created == []
     assert not runtime.refresh_wake.is_set()
 
 

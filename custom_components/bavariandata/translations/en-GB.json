@@ -201,7 +201,7 @@
       "description": "The {limit} requests-per-24h BMW CarData REST limit has been reached, so on-demand data (basic info, charging history, tyre diagnosis, vehicle image) can't be refreshed right now. The streaming data keeps flowing. The quota frees up again at {next_reset}."
     },
     "stream_unauthorized": {
-      "title": "BMW CarData stream not authorised",
+      "title": "BMW CarData stream not authorised ({account})",
       "description": "BMW has rejected the streaming connection as unauthorised (MQTT rc=5) for over {minutes} minutes and it hasn't recovered on its own. This usually means the tokens need renewing, or another CarData client is holding the single per-account stream. Try Configure → Refresh tokens now, then Re-authorise with BMW if it keeps failing, and disconnect any other CarData client."
     }
   },

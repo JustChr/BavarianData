@@ -2803,7 +2803,7 @@
   },
   "issues": {
     "api_quota_exhausted": {
-      "title": "Cuota de la API de BMW CarData agotada",
+      "title": "Cuota de la API de BMW CarData agotada ({account})",
       "description": "Se ha alcanzado el límite REST de BMW CarData de {limit} solicitudes cada 24 h, así que los datos bajo demanda (datos básicos, historial de carga, diagnóstico de neumáticos, imagen del vehículo) no pueden actualizarse ahora mismo. Los datos del stream siguen llegando. La cuota vuelve a liberarse a las {next_reset}."
     },
     "motorcycle_unsupported": {
@@ -2815,11 +2815,11 @@
       "description": "Para {vehicle}, no ha llegado absolutamente nada de {clusters} en {days} días ({count} descriptor(es), p. ej. {descriptors}). Un grupo completamente silencioso suele significar que no está marcado y guardado en la Selección de datos del portal de BMW, o que tu coche no produce esos datos. Vuelve a activarlo en Configurar → Elegir los datos transmitidos, o desmarca el grupo. Los grupos que entregan solo algunos de sus campos son normales y nunca generan este aviso. Ejecuta el servicio get_coverage_report para ver la lista completa."
     },
     "stream_no_data": {
-      "title": "No se han recibido datos del stream de BMW CarData",
+      "title": "No se han recibido datos del stream de BMW CarData ({account})",
       "description": "No han llegado datos del vehículo por el stream en más de {hours} horas. Puede que el stream se haya detenido, o que los datos nunca se seleccionaran. Comprueba que tu Selección de datos esté guardada en el portal de BMW (paso 4 de la configuración), bloquea/desbloquea el coche en la app MyBMW para provocar una actualización y asegúrate de que no haya otro cliente CarData conectado — BMW solo permite un stream por cuenta. Ejecuta el servicio get_coverage_report para ver qué descriptores faltan."
     },
     "stream_unauthorized": {
-      "title": "Stream de BMW CarData no autorizado",
+      "title": "Stream de BMW CarData no autorizado ({account})",
       "description": "BMW rechaza la conexión del stream como no autorizada (MQTT rc=5) desde hace más de {minutes} minutos y no se ha recuperado sola. Normalmente significa que hay que renovar los tokens, o que otro cliente CarData ocupa el único stream de la cuenta. Prueba Configurar → Renovar los tokens ahora, luego Volver a autorizar con BMW si sigue fallando, y desconecta cualquier otro cliente CarData."
     }
   },
@@ -3245,6 +3245,11 @@
           "description": "VIN opcional a reconstruir. Por defecto, todos los vehículos conocidos."
         }
       }
+    }
+  },
+  "device": {
+    "account": {
+      "name": "{account} (cuenta CarData)"
     }
   }
 }
