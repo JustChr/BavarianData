@@ -370,3 +370,87 @@ def test_three_metered_home_charges_teach_the_fourth():
 
         assert _source(h) == "meter"
         assert h.estimate() == pytest.approx(40 + 8.0 * PER_KWH, abs=0.5)
+
+
+# --- two cars on one meter: billing ------------------------------------------
+
+
+OTHER = "WBATEST0000000002"
+
+
+def _other_charging(h: CoordinatorHarness, vin: str = OTHER) -> None:
+    other = {
+        "vehicle.drivetrain.electricEngine.charging.status": {"value": "CHARGINGACTIVE"},
+        "vehicle.drivetrain.batteryManagement.header": {"value": 50},
+    }
+    h._run(h.coordinator.async_handle_message({"vin": vin, "data": other}))
+
+
+def _wallbox_counts(h: CoordinatorHarness) -> None:
+    """Two hours at BMW's 3.48 kW, the wallbox counting 3.7 kW (94 %)."""
+
+    for minute in range(20, 140, 10):
+        h.meter(minute, 1000.0 + 3.7 * (minute - 10) / 60)
+        h.send(minute, power=3480, soc=round(38 + STREAM_RATE * (minute - 10) / 60, 1))
+
+
+def _stop(h: CoordinatorHarness, minute: float) -> None:
+    h.send(minute, status="NOCHARGING", power=0, step="unplugged")
+    h.advance_to(minute + 5)
+
+
+def test_one_car_on_the_meter_is_billed_from_it(h):
+    """The baseline the two-car case below is measured against."""
+
+    _charge(h)
+    _wallbox_counts(h)
+    _stop(h, 140)
+
+    session = max(h.sessions(), key=lambda record: record.start)
+    assert session.grid_source == "meter"
+    assert session.grid_kwh == pytest.approx(3.7 * 2, abs=0.01)
+
+
+def test_two_cars_charging_on_one_meter_bill_neither_from_it(h):
+    """Both cars used to bill the whole advance: 7.4 kWh counted twice.
+
+    Nothing the meter reports says which car it charged, so while both
+    charge, each falls back to its battery-side figure, and the session keeps
+    no meter verdict (a baseline taken after the other car stopped would cover
+    only part of it).
+    """
+
+    _charge(h)
+    _other_charging(h)
+    _wallbox_counts(h)
+    _stop(h, 140)
+
+    session = max(h.sessions(), key=lambda record: record.start)
+    assert session.grid_source != "meter"
+    assert session.grid_kwh is None
+
+
+def test_a_car_of_another_account_on_the_same_meter_counts_too(h):
+    """A BMW and a MINI on two accounts, one wallbox: each coordinator has to
+    see the other's charge, not only its own cars."""
+
+    import types
+
+    with CoordinatorHarness(vin=OTHER, wallbox_meter=METER) as mini:
+        mini.send(10, soc=50, status="CHARGINGACTIVE", power=3480)
+        entries = [
+            types.SimpleNamespace(
+                entry_id=f"entry_{n}", title=n, runtime_data=types.SimpleNamespace(coordinator=c)
+            )
+            for n, c in (("bmw", h.coordinator), ("mini", mini.coordinator))
+        ]
+        h.hass.config_entries = types.SimpleNamespace(
+            async_entries=lambda _domain: entries, async_get_entry=lambda _id: None
+        )
+        _charge(h)
+        _wallbox_counts(h)
+
+        assert _source(h) == "stream"
+        _stop(h, 140)
+        session = max(h.sessions(), key=lambda record: record.start)
+        assert session.grid_kwh is None

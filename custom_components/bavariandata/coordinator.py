@@ -3841,7 +3841,56 @@ class CardataCoordinator:
             builder.location, self._home_zone_name()
         ):
             return None
+        if self._meter_shared(vin):
+            # Its advance is both cars' now. The billing cursor goes too, or
+            # the first step after the other car stops would bill its energy.
+            if builder is not None:
+                builder.note_meter_shared()
+            self._grid_meter_billed.pop(vin, None)
+            return None
         return self._grid_meter_kwh(vin)
+
+    def cars_charging_on(self, meter: str, *, exclude: Optional[str] = None) -> list[str]:
+        """This account's cars charging at home on ``meter`` right now.
+
+        Asked by every account's coordinator, not just this one: a BMW and a
+        MINI on two accounts share one wallbox as easily as two cars on one.
+        A car charging elsewhere doesn't count, even with the same meter
+        bound (a second car takes the account's meter over by default).
+        """
+
+        found: list[str] = []
+        for vin, tracking in self._soc_tracking.items():
+            if vin == exclude or not (tracking.charging_active or tracking.restored_charging):
+                continue
+            if self._plug_state(vin) is False or self.pricing_for(vin).grid_energy_entity != meter:
+                continue
+            builder = self._session_builders.get(vin)
+            location = builder.location if builder is not None else self._charging_location(vin)
+            if meter_counts_this_session(location, self._home_zone_name()):
+                found.append(vin)
+        return found
+
+    def _meter_shared(self, vin: str) -> bool:
+        """Whether another car, of any account, charges on ``vin``'s meter now."""
+
+        meter = self.pricing_for(vin).grid_energy_entity
+        if not meter:
+            return False
+        if self.cars_charging_on(meter, exclude=vin):
+            return True
+        return any(other.cars_charging_on(meter) for other in self._other_coordinators())
+
+    def _other_coordinators(self) -> list[Any]:
+        entries = getattr(self.hass, "config_entries", None)
+        if entries is None:
+            return []
+        found = []
+        for entry in entries.async_entries(DOMAIN):
+            other = getattr(getattr(entry, "runtime_data", None), "coordinator", None)
+            if other is not None and other is not self:
+                found.append(other)
+        return found
 
     def _grid_meter_kwh(self, vin: str) -> Optional[float]:
         """The cumulative total of ``vin``'s wallbox energy meter, in kWh.
@@ -4266,16 +4315,8 @@ class CardataCoordinator:
         tracking = self._soc_tracking.get(vin)
         if tracking is None or not (tracking.charging_active or tracking.restored_charging):
             return None
-        if self._plug_state(vin) is False:
+        if self._plug_state(vin) is False or self._meter_shared(vin):
             return None
-        meter = self.pricing_for(vin).grid_energy_entity
-        for other, other_tracking in self._soc_tracking.items():
-            if (
-                other != vin
-                and (other_tracking.charging_active or other_tracking.restored_charging)
-                and self.pricing_for(other).grid_energy_entity == meter
-            ):
-                return None
         builder = self._session_builders.get(vin)
         location = builder.location if builder is not None else self._charging_location(vin)
         if not meter_counts_this_session(location, self._home_zone_name()):
