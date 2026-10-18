@@ -5,7 +5,7 @@ description: Query the maintainer's live Home Assistant instance for real stored
 
 # Read the live instance
 
-Host, login and the MQTT broker address are in this project's memory
+Host and the MQTT broker address are in this project's memory
 (`live-ha-instance-access`) — they are deliberately not written into this repo.
 Read them from there.
 
@@ -14,13 +14,22 @@ only spent by calls that reach BMW.
 
 ## Token
 
-No long-lived token needed; three curl calls:
+A long-lived token sits in the Windows **user** environment variable `HA_TOKEN`.
+A session started before it was set won't have it in its process env; read it
+with `[Environment]::GetEnvironmentVariable('HA_TOKEN','User')` in PowerShell and
+pass it on as `$env:HA_TOKEN`. Never print it.
 
-1. `POST /auth/login_flow` `{"client_id":"<URL>/","handler":["homeassistant",null],"redirect_uri":"<URL>/"}` → `flow_id`
-2. `POST /auth/login_flow/<flow_id>` `{"client_id":"<URL>/","username":…,"password":…}` → auth code
-3. `POST /auth/token` (form) `grant_type=authorization_code&code=<code>&client_id=<URL>/` → `access_token` (~30 min)
+Send it as `Authorization: Bearer <token>`; the websocket takes the same token
+(`{"type":"auth","access_token":…}`). The old password login flow is dead
+(`invalid_auth`).
 
-Then `Authorization: Bearer <token>`.
+## Reading the results
+
+- Entity ids are **German** (HA's language at setup), e.g. `sensor.<car>_ladestatus`;
+  find them by their `cluster`/`category` attributes (or the registry's
+  `platform: bavariandata`), not by an English name.
+- Some sensors are **disabled by default** and never appear in `/api/states` —
+  check the registry before calling one missing.
 
 ## The calls worth knowing
 

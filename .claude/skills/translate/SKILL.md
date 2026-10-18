@@ -55,21 +55,24 @@ with `\n` in it (the Bash tool un-escapes it).
   `tire`), `from`/`to`, service ids, `YYYY-MM`, `en`/`de`/`fr` codes.
 - A reference to another screen uses **that language's own label** for it —
   look the menu label up in the same file (`options.step.init.menu_options`),
-  and use HA's word for *Configure* and *Submit* from the table below.
+  and use HA's word for *Configure* and *Submit* from the table below. Those
+  columns are HA's own frontend labels (`ui.panel.config.integrations.config_flow.submit`,
+  `…config_entry.configure` in the `home-assistant-frontend` wheel); a step with
+  `last_step=False` shows *Next* instead (de *Weiter*).
 - Portuguese is **European** (`pt-pt`: *ecrã*, *registar*, *a carregar*,
   *ficheiro*). German is established — match its existing wording.
 
 | | Address | HA "Configure" | HA "Submit" | charging / trip / data group | "stream" |
 | --- | --- | --- | --- | --- | --- |
-| de | du | Konfigurieren | Absenden | Laden / Fahrt / Datengruppe | Stream |
+| de | du | Konfigurieren | OK | Laden / Fahrt / Datengruppe | Stream |
 | fr | vous | Configurer | Valider | recharge / trajet / groupe de données | flux |
 | it | tu | Configura | Invia | ricarica / viaggio / gruppo di dati | stream |
 | es | tú | Configurar | Enviar | carga / trayecto / grupo de datos | stream |
-| nl | je | Configureren | Verzenden | laden / rit / gegevensgroep | stream |
+| nl | je | Configureer | Verzend | laden / rit / gegevensgroep | stream |
 | pl | Ty (impersonal where natural) | Konfiguruj | Zatwierdź | ładowanie / przejazd / grupa danych | strumień |
-| pt | formal (você implied) | Configurar | Submeter | carregamento / viagem / grupo de dados | stream |
-| cs | vy | Konfigurovat | Odeslat | nabíjení / jízda / skupina dat | stream |
-| sv | du | Konfigurera | Skicka | laddning / resa / datagrupp | ström |
+| pt | formal (você implied) | Configurar | Enviar | carregamento / viagem / grupo de dados | stream |
+| cs | vy | Nastavit | Odeslat | nabíjení / jízda / skupina dat | stream |
+| sv | du | Konfigurera | Bekräfta | laddning / resa / datagrupp | ström |
 
 Trip classes: business/private/commute → de Geschäftlich/Privat/Pendeln · fr
 Professionnel/Privé/Domicile-travail · it Lavoro/Privato/Pendolarismo · es

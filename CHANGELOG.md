@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Setup and Configure screens name the right button in five languages.** The
+  text said to press a button Home Assistant doesn't show: German *Absenden*
+  (the button reads **OK**), Dutch *Verzenden* (**Verzend**), Portuguese
+  *Submeter* (**Enviar**) and Swedish *Skicka* (**Bekräfta**). Dutch and Czech
+  hints pointing to the Configure menu now use Home Assistant's own word for it
+  (**Configureer**, **Nastavit**).
+
 ## [0.9.20] - 2026-10-16
 
 Promotes 0.9.20-beta.1 to beta.7. The daily refresh works again for every car after BMW began refusing the service-items field on 16 October, plus option pictures in the Equipment view, new blueprints and a smart-charging guide.

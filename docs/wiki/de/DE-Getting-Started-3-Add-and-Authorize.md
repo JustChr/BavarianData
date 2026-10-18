@@ -105,7 +105,7 @@ Ein-Klick-Aktivator nutzt — siehe [Schritt 4](DE-Getting-Started-4-Choose-Data
 Home Assistant zeigt einen **Link und einen Code**. Öffne den Link, melde dich an
 und bestätige das Gerät auf BMWs Seite. Sobald BMW die Bestätigung annimmt,
 **läuft der Dialog von allein weiter** — in Home Assistant ist nichts anzuklicken.
-Läuft der Code ab, klicke auf **Absenden**, um einen neuen zu bekommen, und
+Läuft der Code ab, klicke auf **OK**, um einen neuen zu bekommen, und
 versuche es erneut.
 
 ## Wenn die Einrichtung mit „access denied“ scheitert

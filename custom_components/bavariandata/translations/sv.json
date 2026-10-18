@@ -21,7 +21,7 @@
       },
       "guided_paste": {
         "title": "Aktivera dina data och klistra sedan in resultatet",
-        "description": "Kontrollera först att du har skapat en **CarData Client** i BMW-portalen som prenumererar på **CarData API och CarData Streaming** — aktiveraren hittar den klienten, den skapar ingen.\n\n1. Öppna **{link_open}BavarianDatas installationssida{link_close}**.\n2. Dra knappen **Activate BMW data** till bokmärkesfältet (en gång).\n3. Öppna **BMW- eller MINI-portalen**, logga in och gå till ett fordons **stream setup**-sida.\n4. Klicka på bokmärket **Activate BMW data**. När det är klart trycker du på **Copy** i rutan som visas.\n5. Klistra in resultatet nedan och tryck på **Skicka**.\n\nAllt körs i din egen webbläsare — inget lösenord och ingen session lämnar den någonsin.\n\n{error}",
+        "description": "Kontrollera först att du har skapat en **CarData Client** i BMW-portalen som prenumererar på **CarData API och CarData Streaming** — aktiveraren hittar den klienten, den skapar ingen.\n\n1. Öppna **{link_open}BavarianDatas installationssida{link_close}**.\n2. Dra knappen **Activate BMW data** till bokmärkesfältet (en gång).\n3. Öppna **BMW- eller MINI-portalen**, logga in och gå till ett fordons **stream setup**-sida.\n4. Klicka på bokmärket **Activate BMW data**. När det är klart trycker du på **Copy** i rutan som visas.\n5. Klistra in resultatet nedan och tryck på **Bekräfta**.\n\nAllt körs i din egen webbläsare — inget lösenord och ingen session lämnar den någonsin.\n\n{error}",
         "data": {
           "result": "Installationsresultat"
         },
@@ -31,11 +31,11 @@
       },
       "guided_done": {
         "title": "Ström aktiverad",
-        "description": "Klart — **{field_count}** fält strömmas nu för **{vehicle}** och ditt Client ID är inställt. Tryck på **Skicka** för att slutföra och lås/lås sedan upp bilen i MyBMW-appen för att framkalla den första uppdateringen."
+        "description": "Klart — **{field_count}** fält strömmas nu för **{vehicle}** och ditt Client ID är inställt. Tryck på **Bekräfta** för att slutföra och lås/lås sedan upp bilen i MyBMW-appen för att framkalla den första uppdateringen."
       },
       "authorize_failed": {
         "title": "Auktoriseringen slutfördes inte",
-        "description": "Enhetsauktoriseringen kunde inte slutföras.\n\n**Detaljer**\n```\n{error}\n```\n\n**Att kontrollera**\n- **declined / access_denied (403):** BMW:s server rapporterar ofta ett avslag även efter att du har godkänt — ett känt problem hos BMW. Försök igen i ett **privat/inkognitofönster**: öppna BMW CarData-portalen själv (följ inte en länk med koden i adressen), logga in, välj *Autentisera enhet* och **skriv in koden för hand**. Kontrollera också att Client ID prenumererar på **CarData API och CarData Streaming** innan du auktoriserar, och att du är fordonets **primära** användare.\n- **expired / timeout:** koden godkändes inte i tid.\n\nTryck på **Skicka** för att få en ny kod och försöka igen. Om det fortsätter att misslyckas, ta bort CarData Client i BMW-portalen, skapa en ny och auktorisera igen med det nya Client ID — eller mejla BMW-supporten (bmwcardata-b2c-support@bmwgroup.com) och ange **BMW-referensen** ovan.\n\nEn fullständig genomgång finns i BavarianDatas handbok (på engelska) under *Troubleshooting & FAQ → \"Authorization didn't finish\"*."
+        "description": "Enhetsauktoriseringen kunde inte slutföras.\n\n**Detaljer**\n```\n{error}\n```\n\n**Att kontrollera**\n- **declined / access_denied (403):** BMW:s server rapporterar ofta ett avslag även efter att du har godkänt — ett känt problem hos BMW. Försök igen i ett **privat/inkognitofönster**: öppna BMW CarData-portalen själv (följ inte en länk med koden i adressen), logga in, välj *Autentisera enhet* och **skriv in koden för hand**. Kontrollera också att Client ID prenumererar på **CarData API och CarData Streaming** innan du auktoriserar, och att du är fordonets **primära** användare.\n- **expired / timeout:** koden godkändes inte i tid.\n\nTryck på **Bekräfta** för att få en ny kod och försöka igen. Om det fortsätter att misslyckas, ta bort CarData Client i BMW-portalen, skapa en ny och auktorisera igen med det nya Client ID — eller mejla BMW-supporten (bmwcardata-b2c-support@bmwgroup.com) och ange **BMW-referensen** ovan.\n\nEn fullständig genomgång finns i BavarianDatas handbok (på engelska) under *Troubleshooting & FAQ → \"Authorization didn't finish\"*."
       },
       "select_clusters": {
         "title": "Välj strömmade data",
@@ -49,7 +49,7 @@
       },
       "activate_stream_paste": {
         "title": "Aktivera dina data och klistra sedan in resultatet",
-        "description": "1. Öppna **{link_open}BavarianDatas aktiveringssida{link_close}**.\n2. Dra knappen **Activate BMW data** till bokmärkesfältet (en gång).\n3. Öppna **BMW- eller MINI-portalen**, logga in och gå till ett fordons **stream setup**-sida.\n4. Klicka på bokmärket **Activate BMW data**. När det är klart trycker du på **Copy** i rutan som visas.\n5. Klistra in resultatet nedan och tryck på **Skicka**.\n\nAllt körs i din egen webbläsare — inget lösenord och ingen session lämnar den någonsin. Har du redan kryssat i dessa fält i portalen själv? Lämna rutan tom och tryck på **Skicka** för att slutföra.\n\n{error}",
+        "description": "1. Öppna **{link_open}BavarianDatas aktiveringssida{link_close}**.\n2. Dra knappen **Activate BMW data** till bokmärkesfältet (en gång).\n3. Öppna **BMW- eller MINI-portalen**, logga in och gå till ett fordons **stream setup**-sida.\n4. Klicka på bokmärket **Activate BMW data**. När det är klart trycker du på **Copy** i rutan som visas.\n5. Klistra in resultatet nedan och tryck på **Bekräfta**.\n\nAllt körs i din egen webbläsare — inget lösenord och ingen session lämnar den någonsin. Har du redan kryssat i dessa fält i portalen själv? Lämna rutan tom och tryck på **Bekräfta** för att slutföra.\n\n{error}",
         "data": {
           "result": "Aktiveringsresultat"
         },
@@ -59,7 +59,7 @@
       },
       "activate_stream_done": {
         "title": "Ström aktiverad",
-        "description": "Klart — aktiveraren slog på **{added_count}** nya fält; **{field_count}** fält strömmas nu för det här fordonet.{error}\n\nTryck på **Skicka** för att slutföra installationen och lås/lås sedan upp bilen i MyBMW-appen för att framkalla den första uppdateringen."
+        "description": "Klart — aktiveraren slog på **{added_count}** nya fält; **{field_count}** fält strömmas nu för det här fordonet.{error}\n\nTryck på **Bekräfta** för att slutföra installationen och lås/lås sedan upp bilen i MyBMW-appen för att framkalla den första uppdateringen."
       }
     },
     "progress": {
@@ -132,7 +132,7 @@
       },
       "activate_stream_paste": {
         "title": "Aktivera dina data och klistra sedan in resultatet",
-        "description": "1. Öppna **{link_open}BavarianDatas aktiveringssida{link_close}**.\n2. Dra knappen **Activate BMW data** till bokmärkesfältet (en gång).\n3. Öppna **BMW- eller MINI-portalen**, logga in och gå till ett fordons **stream setup**-sida.\n4. Klicka på bokmärket **Activate BMW data**. När det är klart trycker du på **Copy** i rutan som visas.\n5. Klistra in resultatet nedan och tryck på **Skicka**.\n\nAllt körs i din egen webbläsare — inget lösenord och ingen session lämnar den någonsin.\n\n{error}",
+        "description": "1. Öppna **{link_open}BavarianDatas aktiveringssida{link_close}**.\n2. Dra knappen **Activate BMW data** till bokmärkesfältet (en gång).\n3. Öppna **BMW- eller MINI-portalen**, logga in och gå till ett fordons **stream setup**-sida.\n4. Klicka på bokmärket **Activate BMW data**. När det är klart trycker du på **Copy** i rutan som visas.\n5. Klistra in resultatet nedan och tryck på **Bekräfta**.\n\nAllt körs i din egen webbläsare — inget lösenord och ingen session lämnar den någonsin.\n\n{error}",
         "data": {
           "result": "Aktiveringsresultat"
         },
@@ -142,7 +142,7 @@
       },
       "activate_stream_done": {
         "title": "Strömfält aktiverade",
-        "description": "Klart — aktiveraren slog på **{added_count}** nya fält; **{field_count}** fält strömmas nu för det här fordonet.{error}\n\nTryck på **Skicka** för att spara ditt val. Lås/lås upp bilen i MyBMW-appen för att framkalla nästa uppdatering."
+        "description": "Klart — aktiveraren slog på **{added_count}** nya fält; **{field_count}** fält strömmas nu för det här fordonet.{error}\n\nTryck på **Bekräfta** för att spara ditt val. Lås/lås upp bilen i MyBMW-appen för att framkalla nästa uppdatering."
       },
       "action_refresh_tokens": {
         "title": "Förnya token nu",
