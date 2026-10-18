@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.21-beta.5] - 2026-10-18
+
 ### Added
 - **Six new automation triggers.** Pick them under **Device** in the
   automation editor. Each is listed only if your car sends what it needs.
