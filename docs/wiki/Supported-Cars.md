@@ -23,8 +23,8 @@ the [dashboard card](The-Dashboard-Card) and the derived sensors to it.
 | Drivetrain | What works |
 | --- | --- |
 | **Electric** | Everything: live state of charge and range, [charging history and cost](Feature-Charging-History-and-Cost), [battery health](Feature-Battery-Health), [efficiency and real range](Feature-Efficiency-and-Range), the [evcc bridge](Feature-evcc-and-Wallbox-Bridge), [trips](Feature-Trips). |
-| **Plug-in hybrid** | All of the above except consumption, real range and charging cost per 100 km, which the odometer can't support on a car that also drives on fuel ([why](Feature-Efficiency-and-Range#plug-in-hybrids)). Adds tank level and combined range. |
-| **Petrol / diesel** | Tank level, range, odometer, doors, windows and locks, tire pressure, service and Check Control messages, location and trips. |
+| **Plug-in hybrid** | All of the above except consumption, real range and charging cost per 100 km, which the odometer can't support on a car that also drives on fuel ([why](Feature-Efficiency-and-Range#plug-in-hybrids)); BMW's own lifetime consumption figures take their place where the car sends them. Adds tank level, combined range and the [Fuel view](The-Dashboard-Card#fuel-view-fuel). |
+| **Petrol / diesel** | Tank level, range, odometer, doors, windows and locks, tire pressure, service and Check Control messages, location and trips, and the [Fuel view](The-Dashboard-Card#fuel-view-fuel): refuels and consumption read off the tank. |
 
 ## Cars owners have confirmed
 

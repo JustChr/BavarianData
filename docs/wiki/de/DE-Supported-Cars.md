@@ -29,8 +29,8 @@ Die Integration erkennt den Antrieb an dem, was das Auto meldet, und passt die
 | Antrieb | Was funktioniert |
 | --- | --- |
 | **Elektrisch** | Alles: Ladestand und Reichweite live, [Ladeverlauf und Kosten](DE-Feature-Charging-History-and-Cost), [Batteriezustand](DE-Feature-Battery-Health), [Effizienz und echte Reichweite](DE-Feature-Efficiency-and-Range), die [evcc-Brücke](DE-Feature-evcc-and-Wallbox-Bridge), [Fahrten](DE-Feature-Trips). |
-| **Plug-in-Hybrid** | Alles oben außer Verbrauch, echter Reichweite und Ladekosten pro 100 km; das gibt der Kilometerstand bei einem Auto, das auch mit Kraftstoff fährt, nicht her ([warum](DE-Feature-Efficiency-and-Range#plug-in-hybrids)). Dazu Tankstand und kombinierte Reichweite. |
-| **Benzin / Diesel** | Tankstand, Reichweite, Kilometerstand, Türen, Fenster und Schlösser, Reifendruck, Service- und Check-Control-Meldungen, Standort und Fahrten. |
+| **Plug-in-Hybrid** | Alles oben außer Verbrauch, echter Reichweite und Ladekosten pro 100 km; das gibt der Kilometerstand bei einem Auto, das auch mit Kraftstoff fährt, nicht her ([warum](DE-Feature-Efficiency-and-Range#plug-in-hybrids)); an ihre Stelle treten BMWs eigene Verbrauchswerte über die Lebensdauer, wo das Auto sie sendet. Dazu Tankstand, kombinierte Reichweite und die [Kraftstoff-Ansicht](DE-The-Dashboard-Card#fuel-view-fuel). |
+| **Benzin / Diesel** | Tankstand, Reichweite, Kilometerstand, Türen, Fenster und Schlösser, Reifendruck, Service- und Check-Control-Meldungen, Standort und Fahrten sowie die [Kraftstoff-Ansicht](DE-The-Dashboard-Card#fuel-view-fuel): Tankvorgänge und Verbrauch, abgelesen am Tank. |
 
 ## Von Besitzern bestätigte Autos
 
