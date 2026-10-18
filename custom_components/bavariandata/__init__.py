@@ -93,6 +93,7 @@ from .coverage_store import CoverageStore
 
 from .startup_refresh import (
     STARTUP_REFRESH_DELAY_S,
+    last_fetch_at,
     outage_needs_catch_up,
     startup_refresh_vins,
 )
@@ -684,9 +685,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     # slow timer -- a "7 days" test does not need a fast cadence.
     entry.async_on_unload(async_at_started(hass, _evaluate_coverage))
     entry.async_on_unload(async_track_time_interval(hass, _evaluate_coverage, timedelta(hours=6)))
-    last_poll_ts = data.get("last_telematic_poll")
-    if isinstance(last_poll_ts, (int, float)) and last_poll_ts > 0:
-        coordinator.last_telematic_api_at = datetime.fromtimestamp(last_poll_ts, timezone.utc)
+    last_fetch_ts = last_fetch_at(data.get("last_telematic_poll"), data.get(LAST_STARTUP_REFRESH))
+    if last_fetch_ts is not None:
+        coordinator.last_telematic_api_at = datetime.fromtimestamp(last_fetch_ts, timezone.utc)
     stored_metadata = data.get(VEHICLE_METADATA, {})
     if isinstance(stored_metadata, dict):
         device_registry = dr.async_get(hass)
@@ -1866,18 +1867,15 @@ async def _async_catch_up(hass: HomeAssistant, entry_id: str, occasion: str) -> 
         return
     # The daily refresh counts as asking BMW too: right after it ran, a catch-up
     # would fetch the same snapshot again.
-    stamps = [
-        value
-        for value in (entry.data.get(LAST_STARTUP_REFRESH), entry.data.get("last_telematic_poll"))
-        if isinstance(value, (int, float))
-    ]
     now = time.time()
     coordinator = runtime.coordinator
     vins = startup_refresh_vins(
         enabled=bool(entry.options.get(OPTION_REFRESH_ON_START, DEFAULT_REFRESH_ON_START)),
         vins=account_vins(hass, entry, coordinator),
         unconfirmed=coordinator.unconfirmed_restored_charges(),
-        last_fetch_at=max(stamps) if stamps else None,
+        last_fetch_at=last_fetch_at(
+            entry.data.get(LAST_STARTUP_REFRESH), entry.data.get("last_telematic_poll")
+        ),
         now=now,
         remaining=runtime.quota_manager.remaining if runtime.quota_manager else None,
     )
