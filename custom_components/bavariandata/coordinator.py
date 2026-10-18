@@ -22,11 +22,15 @@ from homeassistant.util import dt as dt_util
 from .const import (
     DOMAIN,
     DIAGNOSTIC_LOG_INTERVAL,
+    EVENT_ALARM,
     EVENT_CHARGING_STARTED,
     EVENT_CHARGING_STOPPED,
     EVENT_CHARGING_COMPLETE,
     EVENT_CHARGING_INTERRUPTED,
+    EVENT_CHECK_CONTROL,
+    EVENT_PRECONDITIONING,
     EVENT_SITUATION,
+    EVENT_TRIP_ENDED,
     EVENT_VEHICLE_REPORT,
     EVENT_ZONE_ARRIVED,
     EVENT_ZONE_LEFT,
@@ -76,7 +80,7 @@ from .phone_route import PhoneRoute
 from .soc_tracking import SocTracking
 from .steering import steering_side
 from .placeholders import is_placeholder
-from .structured_values import EMPTY_WHEN_NULL
+from .structured_values import EMPTY_WHEN_NULL, structured_state
 from .trip_settings import TripSettings
 from .tyre import parse_tyre_diagnosis
 from .mileage import mileage_report
@@ -96,14 +100,28 @@ from .vehicle_report import (
 )
 from .vehicle_support import is_motorcycle, motorcycle_issue_id
 from .vehicle_triggers import (
+    ALARM_DESCRIPTOR,
+    CHECK_CONTROL_DESCRIPTOR,
     LOCK_DESCRIPTORS,
+    PRECONDITIONING_DESCRIPTOR,
+    PRECONDITIONING_ERROR_DESCRIPTOR,
     SITUATION_PARKED_UNLOCKED,
+    SITUATION_PARKED_WINDOW_OPEN,
     SITUATION_PLUGGED_NOT_CHARGING,
+    WINDOW_DESCRIPTORS,
+    EdgeTracker,
     SituationTracker,
+    alarm_on,
     charging_interrupted,
+    fresh,
     lock_state,
+    message_changes,
+    open_windows,
     parked_unlocked,
+    parked_window_open,
     plugged_not_charging,
+    preconditioning_active,
+    window_open,
 )
 
 # Trip-detection descriptors (roadmap Phase 3). Motion is powertrain-agnostic and
@@ -596,6 +614,9 @@ class CardataCoordinator:
     # entity id, for "left a zone"), and the VINs whose trip already left it.
     _live_descriptors: Dict[str, set[str]] = field(default_factory=dict, init=False)
     _situations: SituationTracker = field(default_factory=SituationTracker, init=False)
+    # The alarm, preconditioning and Check Control as last known: what an edge
+    # event compares against (``vehicle_triggers.EdgeTracker``).
+    _edges: EdgeTracker = field(default_factory=EdgeTracker, init=False)
     _trip_start_zone: Dict[str, tuple[str, str]] = field(default_factory=dict, init=False)
     _zone_left_fired: set[str] = field(default_factory=set, init=False)
 
@@ -1053,6 +1074,7 @@ class CardataCoordinator:
                     await self._process_gps_signal(vin, now, gps_ts, gps_parts)
             # After the trip logic: a trip opening ends "parked unlocked".
             self._evaluate_situations(vin, now)
+        self._note_edges(vin, data, seen_descriptors, now, source)
 
         # Trip-capture diagnostics: the raw firehose + NDJSON file, outside the
         # trip lock (they only read state) and strictly gated on the opt-in.
@@ -2610,6 +2632,7 @@ class CardataCoordinator:
                 charging = tracking.charging_active
             soc = self._current_soc(vin)
             target = None if tracking is None else tracking.target_soc_percent
+            windows = self._live_values(vin, WINDOW_DESCRIPTORS)
             states = {
                 SITUATION_PARKED_UNLOCKED: parked_unlocked(
                     lock_state(self._live_values(vin, LOCK_DESCRIPTORS)),
@@ -2617,6 +2640,10 @@ class CardataCoordinator:
                 ),
                 SITUATION_PLUGGED_NOT_CHARGING: plugged_not_charging(
                     plug_state(self._live_values(vin, PLUG_DESCRIPTORS)), charging, soc, target
+                ),
+                SITUATION_PARKED_WINDOW_OPEN: parked_window_open(
+                    window_open(windows),
+                    vin in self._trip_builders,
                 ),
             }
             for situation, active in states.items():
@@ -2637,6 +2664,8 @@ class CardataCoordinator:
                 if situation == SITUATION_PLUGGED_NOT_CHARGING:
                     payload["soc"] = None if soc is None else round(soc, 1)
                     payload["target_soc"] = target
+                elif situation == SITUATION_PARKED_WINDOW_OPEN:
+                    payload["windows"] = open_windows(windows) if change else []
                 if debug_enabled():
                     _LOGGER.debug(
                         "[trigger] %s %s %s", vin, situation, "BEGIN" if change else "END"
@@ -2644,6 +2673,112 @@ class CardataCoordinator:
                 self._fire(EVENT_SITUATION, payload)
         except Exception:  # noqa: BLE001 - a trigger must never break the stream
             _LOGGER.exception("Trigger evaluation failed for %s", mask_vin(vin))
+
+    def _note_edges(
+        self,
+        vin: str,
+        data: Mapping[str, Any],
+        seen: Iterable[str],
+        now: datetime,
+        source: str,
+    ) -> None:
+        """Fire the alarm, preconditioning and Check Control events on a change.
+
+        The alarm and preconditioning move only on the stream, and only fire on
+        a value stamped fresh: a REST answer may be BMW's cache, and fills a gap
+        at most (``EdgeTracker``). Check Control is REST-only, so its lists are
+        compared whatever brought them; the first list only sets the start.
+        """
+
+        try:
+            seen = set(seen)
+            for descriptor in (ALARM_DESCRIPTOR, PRECONDITIONING_DESCRIPTOR):
+                if descriptor not in seen:
+                    continue
+                reading = self._edge_reading(descriptor, self._value(vin, descriptor))
+                if reading is None:
+                    continue
+                if source == REST:
+                    self._edges.seed(vin, descriptor, reading)
+                    continue
+                before = self._edges.move(vin, descriptor, reading)
+                stamp = (data.get(descriptor) or {}).get("timestamp")
+                if before is reading or not fresh(dt_util.parse_datetime(stamp or ""), now):
+                    continue
+                if not reading and before is None:
+                    # An end with no start we knew of is nothing to announce.
+                    continue
+                if descriptor == ALARM_DESCRIPTOR:
+                    self._fire_edge(EVENT_ALARM, vin, reading, {})
+                else:
+                    error = self._value(vin, PRECONDITIONING_ERROR_DESCRIPTOR)
+                    activity = self._value(vin, PRECONDITIONING_DESCRIPTOR)
+                    self._fire_edge(
+                        EVENT_PRECONDITIONING,
+                        vin,
+                        reading,
+                        {
+                            "activity": activity.lower() if isinstance(activity, str) else None,
+                            "error": error.lower() if isinstance(error, str) else None,
+                            "soc": self._current_soc(vin),
+                        },
+                    )
+            if CHECK_CONTROL_DESCRIPTOR in seen:
+                _count, items = structured_state(self._value(vin, CHECK_CONTROL_DESCRIPTOR))
+                if isinstance(items, list):
+                    before = self._edges.move(vin, CHECK_CONTROL_DESCRIPTOR, items)
+                    new, gone = message_changes(before, items) or ([], [])
+                    for active, message in [(True, m) for m in new] + [(False, m) for m in gone]:
+                        self._fire_edge(
+                            EVENT_CHECK_CONTROL,
+                            vin,
+                            active,
+                            {
+                                "id": message.get("id"),
+                                "title": message.get("title"),
+                                "text": message.get("text"),
+                                "message_type": message.get("messageType"),
+                                "message": message,
+                            },
+                        )
+        except Exception:  # noqa: BLE001 - a trigger must never break the stream
+            _LOGGER.exception("Edge trigger evaluation failed for %s", mask_vin(vin))
+
+    @staticmethod
+    def _edge_reading(descriptor: str, value: Any) -> Optional[bool]:
+        if descriptor == ALARM_DESCRIPTOR:
+            return alarm_on(value)
+        return preconditioning_active(value)
+
+    def _value(self, vin: str, descriptor: str) -> Any:
+        state = self.get_state(vin, descriptor)
+        return None if state is None else state.value
+
+    def _seed_edge(self, vin: str, descriptor: str, value: Any) -> None:
+        """Give an edge its "before" from a restored value (``restore_descriptor_state``)."""
+
+        if descriptor in (ALARM_DESCRIPTOR, PRECONDITIONING_DESCRIPTOR):
+            self._edges.seed(vin, descriptor, self._edge_reading(descriptor, value))
+        elif descriptor == CHECK_CONTROL_DESCRIPTOR:
+            _count, items = structured_state(value)
+            if isinstance(items, list):
+                self._edges.seed(vin, descriptor, items)
+
+    def _fire_edge(self, event_type: str, vin: str, active: bool, extra: Dict[str, Any]) -> None:
+        zone = self._current_zone(vin)
+        if debug_enabled():
+            _LOGGER.debug("[trigger] %s %s %s", vin, event_type, "BEGIN" if active else "END")
+        self._fire(
+            event_type,
+            {
+                "vin": vin,
+                "entry_id": self.entry_id,
+                "active": active,
+                **extra,
+                "zone": None if zone is None else zone[0],
+                "zone_entity_id": None if zone is None else zone[1],
+            },
+        )
 
     def _fire_zone_left(self, vin: str, zone: tuple[str, str]) -> None:
         self._zone_left_fired.add(vin)
@@ -3504,29 +3639,36 @@ class CardataCoordinator:
         start_zone: Optional[tuple[str, str]],
         left_fired: bool,
     ) -> None:
-        """Fire "left" (if the fixes were too sparse to catch it) and "arrived"."""
+        """Fire "left" (if the fixes were too sparse to catch it), "arrived" and "ended"."""
 
         try:
             end_zone = self._current_zone(vin)
             if start_zone is not None and not left_fired:
                 if end_zone is None or end_zone[1] != start_zone[1]:
                     self._fire_zone_left(vin, start_zone)
-            if end_zone is None:
-                return
+            payload = {
+                "vin": vin,
+                "entry_id": self.entry_id,
+                "zone": None if end_zone is None else end_zone[0],
+                "zone_entity_id": None if end_zone is None else end_zone[1],
+                "trip_id": trip.id,
+                "trip_start": trip.start.isoformat(),
+                "distance_km": trip.distance_km,
+                "duration_s": trip.duration_s,
+                "energy_kwh": trip.energy_kwh,
+                "soc": trip.soc_end,
+                "from": (trip.start_place or {}).get("label"),
+            }
+            if end_zone is not None:
+                self._fire(EVENT_ZONE_ARRIVED, payload)
             self._fire(
-                EVENT_ZONE_ARRIVED,
+                EVENT_TRIP_ENDED,
                 {
-                    "vin": vin,
-                    "entry_id": self.entry_id,
-                    "zone": end_zone[0],
-                    "zone_entity_id": end_zone[1],
-                    "trip_id": trip.id,
-                    "trip_start": trip.start.isoformat(),
-                    "distance_km": trip.distance_km,
-                    "duration_s": trip.duration_s,
-                    "energy_kwh": trip.energy_kwh,
-                    "soc": trip.soc_end,
-                    "from": (trip.start_place or {}).get("label"),
+                    **payload,
+                    "trip_end": None if trip.end is None else trip.end.isoformat(),
+                    "to": (trip.end_place or {}).get("label"),
+                    "soc_start": trip.soc_start,
+                    "classification": trip.classification,
                 },
             )
         except Exception:  # noqa: BLE001 - a trigger must never break the stream
@@ -4474,6 +4616,7 @@ class CardataCoordinator:
             unit=unit,
             timestamp=timestamp,
         )
+        self._seed_edge(vin, descriptor, stored_value)
         if descriptor in (DESC_GPS_LAT, DESC_GPS_LON):
             self._seed_gps_from_restore(vin)
         if descriptor in DESC_ODOMETER:

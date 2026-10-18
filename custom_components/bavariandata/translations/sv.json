@@ -511,11 +511,17 @@
     "trigger_type": {
       "zone_arrived": "Anlände till en zon",
       "zone_left": "Lämnade en zon",
+      "trip_ended": "Resa avslutad (var som helst)",
       "parked_unlocked": "Parkerad och lämnad olåst",
+      "parked_window_open": "Parkerad med ett fönster öppet",
       "plugged_not_charging": "Ansluten men laddar inte",
       "charging_started": "Laddning startad",
       "charging_complete": "Laddning klar (målet nått)",
-      "charging_interrupted": "Laddning stoppad före målet, kabeln fortfarande ansluten"
+      "charging_interrupted": "Laddning stoppad före målet, kabeln fortfarande ansluten",
+      "preconditioning_started": "Förkonditionering startad",
+      "preconditioning_finished": "Förkonditionering klar",
+      "alarm": "Larmet gick",
+      "check_control": "Nytt Check Control-meddelande"
     },
     "extra_fields": {
       "zone": "Zon (tom: valfri zon)",

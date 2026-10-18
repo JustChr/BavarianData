@@ -181,6 +181,15 @@ EVENT_SITUATION = f"{DOMAIN}_situation"
 # The car reported a new odometer reading and it has held for a while: the
 # moment an end-of-trip car's burst is complete (``vehicle_report.py``).
 EVENT_VEHICLE_REPORT = f"{DOMAIN}_vehicle_report"
+# A trip was recorded, wherever it ended: the trip's figures, and the zone it
+# ended in or null. ``zone_arrived`` is the same moment, inside a zone only.
+EVENT_TRIP_ENDED = f"{DOMAIN}_trip_ended"
+# Edges the car streams (``vehicle_triggers.EdgeTracker``), each fired on a start
+# and an end with {"active"}: the anti-theft alarm, preconditioning (with its
+# "activity" and "error"), and each Check Control message ("message").
+EVENT_ALARM = f"{DOMAIN}_alarm"
+EVENT_PRECONDITIONING = f"{DOMAIN}_preconditioning"
+EVENT_CHECK_CONTROL = f"{DOMAIN}_check_control"
 
 # Bundled Lovelace card. The JS is served as a static path and auto-registered as
 # a frontend resource so users don't have to add it manually.

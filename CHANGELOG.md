@@ -9,6 +9,30 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **Six new automation triggers.** Pick them under **Device** in the
+  automation editor. Each is listed only if your car sends what it needs.
+  - **Trip ended (anywhere):** fires for every recorded drive, not only for one
+    that ends in a zone, with the drive's distance, duration, energy and where
+    it went.
+  - **Parked with a window open:** a window or the sunroof stands open, or
+    partly open, after the drive is over, for as long as you choose (10
+    minutes unless you change it).
+  - **Preconditioning started / finished:** the car starts or stops heating or
+    cooling itself, with BMW's reason if it could not run (low battery, for
+    example).
+  - **Alarm went off:** the anti-theft alarm starts sounding. Tested against
+    recorded data only, as no car with this integration has set its alarm off
+    yet.
+  - **New Check Control message:** a warning appears that the car did not show
+    before, with its text. These warnings come with the data fetched from BMW,
+    never on the live stream, so a new one shows up at the next fetch.
+- The same moments as events for YAML and Node-RED: `bavariandata_trip_ended`,
+  `bavariandata_preconditioning`, `bavariandata_alarm`,
+  `bavariandata_check_control`, and `parked_window_open` in
+  `bavariandata_situation`. A restart, BMW's cached answers and a replayed old
+  value start none of them.
+
 ## [0.9.21-beta.4] - 2026-10-18
 
 ### Fixed

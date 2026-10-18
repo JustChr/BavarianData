@@ -93,15 +93,35 @@ def test_available_triggers_follow_what_the_car_streams():
     assert vt.available_triggers([gps], lock_known=False, trips_enabled=True) == [
         "zone_arrived",
         "zone_left",
+        "trip_ended",
     ]
     # Trips (history) off: the arrival logic never runs.
     assert vt.available_triggers([gps], lock_known=False, trips_enabled=False) == []
+    # A car that only reports once parked makes trips from its odometer: no zones.
+    assert vt.available_triggers(
+        ["vehicle.vehicle.mileage"], lock_known=False, trips_enabled=True
+    ) == ["trip_ended"]
     assert vt.available_triggers([], lock_known=True, trips_enabled=True) == ["parked_unlocked"]
     assert vt.available_triggers([charge], lock_known=False, trips_enabled=True) == [
         "charging_started",
         "charging_complete",
     ]
-    everything = vt.available_triggers([gps, charge, plug], lock_known=True, trips_enabled=True)
+    assert vt.available_triggers(
+        [vt.PRECONDITIONING_DESCRIPTOR], lock_known=False, trips_enabled=True
+    ) == ["preconditioning_started", "preconditioning_finished"]
+    everything = vt.available_triggers(
+        [
+            gps,
+            charge,
+            plug,
+            "vehicle.cabin.sunroof.status",
+            vt.PRECONDITIONING_DESCRIPTOR,
+            vt.ALARM_DESCRIPTOR,
+            vt.CHECK_CONTROL_DESCRIPTOR,
+        ],
+        lock_known=True,
+        trips_enabled=True,
+    )
     assert set(everything) == set(vt.TRIGGER_TYPES)
 
 
@@ -113,6 +133,104 @@ def test_event_matches():
     assert not vt.event_matches(data, vin="V1", situation="plugged_not_charging")
     assert vt.event_matches(data, vin="V1", zone="zone.home")
     assert not vt.event_matches(data, vin="V1", zone="zone.work")
+    # ``active`` picks the start or the end of a two-sided event.
+    edge = {"vin": "V1", "active": True}
+    assert vt.event_matches(edge, vin="V1", active=True)
+    assert not vt.event_matches(edge, vin="V1", active=False)
+    assert not vt.event_matches({"vin": "V1"}, vin="V1", active=False)  # missing is not False
+
+
+# -- windows ---------------------------------------------------------------------
+
+FRONT = "vehicle.cabin.window.row1.driver.status"
+SUNROOF = "vehicle.cabin.sunroof.status"
+REAR_GLASS = "vehicle.body.trunk.window.isOpen"
+
+
+@pytest.mark.parametrize(
+    ("values", "expected"),
+    [
+        ({}, None),  # the car says nothing about any window
+        ({FRONT: "CLOSED"}, False),
+        ({FRONT: "OPEN"}, True),
+        ({FRONT: "INTERMEDIATE"}, True),  # partly open lets the rain in too
+        ({FRONT: "intermediate"}, True),  # the restored slug
+        ({FRONT: "CLOSED", SUNROOF: "OPEN"}, True),
+        ({FRONT: "CLOSED", REAR_GLASS: True}, True),
+        ({FRONT: "INVALID"}, None),  # a word we don't know says nothing
+        ({FRONT: "INVALID", SUNROOF: "CLOSED"}, False),
+    ],
+)
+def test_window_open(values, expected):
+    assert vt.window_open(values) is expected
+
+
+def test_open_windows_names_each_opening():
+    values = {FRONT: "INTERMEDIATE", SUNROOF: "CLOSED", REAR_GLASS: True}
+    assert vt.open_windows(values) == ["front_driver", "rear_window"]
+
+
+def test_a_window_open_while_driving_is_not_parked_open():
+    assert vt.parked_window_open(True, trip_open=False) is True
+    assert vt.parked_window_open(True, trip_open=True) is False
+    assert vt.parked_window_open(False, trip_open=False) is False
+    assert vt.parked_window_open(None, trip_open=False) is None
+
+
+# -- edges -----------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [(True, True), (False, False), ("on", True), ("OFF", False), ("maybe", None), (None, None)],
+)
+def test_alarm_on(value, expected):
+    assert vt.alarm_on(value) is expected
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("HEATING", True),
+        ("heating", True),  # the restored slug
+        ("COOLING", True),
+        ("VENTILATION", True),
+        ("INACTIVE", False),
+        ("STANDBY", False),
+        ("UNKNOWN", None),
+        (None, None),
+    ],
+)
+def test_preconditioning_active(value, expected):
+    assert vt.preconditioning_active(value) is expected
+
+
+def test_fresh_means_stamped_within_ten_minutes():
+    assert vt.fresh(None, NOW)
+    assert vt.fresh(NOW - timedelta(minutes=10), NOW)
+    assert not vt.fresh(NOW - timedelta(minutes=11), NOW)
+
+
+def test_edge_tracker_seeds_fill_gaps_and_the_stream_moves():
+    edges = vt.EdgeTracker()
+    edges.seed("V", "alarm", False)  # restored
+    edges.seed("V", "alarm", True)  # a later seed (a REST cache) changes nothing
+    assert edges.move("V", "alarm", True) is False
+    assert edges.move("V", "alarm", False) is True
+    assert edges.move("V", "other", True) is None  # never known before
+    assert edges.move("V", "alarm", None) is False  # no reading moves nothing
+    assert edges.move("V", "alarm", True) is False
+
+
+def test_message_changes():
+    washer = {"messageType": "CCM", "id": 164, "text": "Washer fluid low"}
+    tyre = {"messageType": "CCM", "id": 52, "text": "Tyre pressure"}
+    assert vt.message_changes(None, [washer]) is None  # the first list only seeds
+    assert vt.message_changes([], [washer]) == ([washer], [])
+    assert vt.message_changes([washer], [washer, tyre]) == ([tyre], [])
+    assert vt.message_changes([washer, tyre], [tyre]) == ([], [washer])
+    # The same message with a new text or timestamp is still the same message.
+    assert vt.message_changes([washer], [{**washer, "text": "Washer fluid very low"}]) == ([], [])
 
 
 def test_tracker_reports_only_changes():

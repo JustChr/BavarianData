@@ -21,6 +21,12 @@ storage looking current. So the triggers here are built on three rules:
 * **Say "not known", don't guess.** A car that never streamed a lock word has no
   lock state, and none of these triggers are offered for it
   (:func:`available_triggers`).
+
+The alarm and preconditioning triggers are *edges*: a change from the value
+before. Their "before" is kept by :class:`EdgeTracker`, seeded from the restored
+state and from REST answers (which may come from BMW's cache, hours old) but moved
+only by the stream, and a stream value only counts while its own timestamp is
+fresh (:data:`EDGE_FRESH_S`), so a replay of yesterday's alarm is not one now.
 """
 
 from __future__ import annotations
@@ -30,61 +36,104 @@ from datetime import datetime
 from typing import Any, Callable, Iterable, Mapping, Optional
 
 from .evcc import PLUG_DESCRIPTORS
+from .structured_values import CHECK_CONTROL as CHECK_CONTROL_DESCRIPTOR
 
 __all__ = [
+    "ALARM_DESCRIPTOR",
     "CHARGE_DESCRIPTORS",
+    "CHECK_CONTROL_DESCRIPTOR",
     "DEFAULT_DURATION_S",
+    "EDGE_FRESH_S",
     "GPS_DESCRIPTORS",
     "LOCK_DESCRIPTORS",
+    "PRECONDITIONING_DESCRIPTOR",
+    "PRECONDITIONING_ERROR_DESCRIPTOR",
     "SITUATIONS",
     "SITUATION_PARKED_UNLOCKED",
+    "SITUATION_PARKED_WINDOW_OPEN",
     "SITUATION_PLUGGED_NOT_CHARGING",
     "TARGET_TOLERANCE",
+    "TRIGGER_ALARM",
     "TRIGGER_ARRIVED",
     "TRIGGER_CHARGING_COMPLETE",
     "TRIGGER_CHARGING_INTERRUPTED",
     "TRIGGER_CHARGING_STARTED",
+    "TRIGGER_CHECK_CONTROL",
     "TRIGGER_LEFT",
+    "TRIGGER_PRECONDITIONING_FINISHED",
+    "TRIGGER_PRECONDITIONING_STARTED",
+    "TRIGGER_TRIP_ENDED",
     "TRIGGER_TYPES",
+    "TRIP_DESCRIPTORS",
+    "WINDOW_DESCRIPTORS",
+    "EdgeTracker",
     "SituationDelay",
     "SituationTracker",
+    "alarm_on",
     "available_triggers",
     "charging_interrupted",
     "event_matches",
+    "fresh",
     "lock_state",
+    "message_changes",
+    "open_windows",
     "parked_unlocked",
+    "parked_window_open",
     "plugged_not_charging",
+    "preconditioning_active",
+    "window_open",
 ]
 
-# The two situations, which are also trigger types.
+# The situations, which are also trigger types.
 SITUATION_PARKED_UNLOCKED = "parked_unlocked"
 SITUATION_PLUGGED_NOT_CHARGING = "plugged_not_charging"
-SITUATIONS = (SITUATION_PARKED_UNLOCKED, SITUATION_PLUGGED_NOT_CHARGING)
+SITUATION_PARKED_WINDOW_OPEN = "parked_window_open"
+SITUATIONS = (
+    SITUATION_PARKED_UNLOCKED,
+    SITUATION_PLUGGED_NOT_CHARGING,
+    SITUATION_PARKED_WINDOW_OPEN,
+)
 
 # Point triggers: each is one bus event, fired once.
 TRIGGER_ARRIVED = "zone_arrived"
 TRIGGER_LEFT = "zone_left"
+TRIGGER_TRIP_ENDED = "trip_ended"
 TRIGGER_CHARGING_STARTED = "charging_started"
 TRIGGER_CHARGING_COMPLETE = "charging_complete"
 TRIGGER_CHARGING_INTERRUPTED = "charging_interrupted"
+TRIGGER_ALARM = "alarm"
+TRIGGER_CHECK_CONTROL = "check_control"
+TRIGGER_PRECONDITIONING_STARTED = "preconditioning_started"
+TRIGGER_PRECONDITIONING_FINISHED = "preconditioning_finished"
 
 TRIGGER_TYPES = (
     TRIGGER_ARRIVED,
     TRIGGER_LEFT,
+    TRIGGER_TRIP_ENDED,
     SITUATION_PARKED_UNLOCKED,
+    SITUATION_PARKED_WINDOW_OPEN,
     SITUATION_PLUGGED_NOT_CHARGING,
     TRIGGER_CHARGING_STARTED,
     TRIGGER_CHARGING_COMPLETE,
     TRIGGER_CHARGING_INTERRUPTED,
+    TRIGGER_PRECONDITIONING_STARTED,
+    TRIGGER_PRECONDITIONING_FINISHED,
+    TRIGGER_ALARM,
+    TRIGGER_CHECK_CONTROL,
 )
 
 # How long a situation must last when an automation doesn't say. Unlocked: well
 # past the car's own ~2 min relock. Plugged in: past BMW's "initialization" and a
-# charge controller's start-up delay.
+# charge controller's start-up delay. A window: past airing the car out on arrival.
 DEFAULT_DURATION_S = {
     SITUATION_PARKED_UNLOCKED: 10 * 60,
     SITUATION_PLUGGED_NOT_CHARGING: 15 * 60,
+    SITUATION_PARKED_WINDOW_OPEN: 10 * 60,
 }
+
+# A stream value older than this (by its own timestamp) moves an edge's "before"
+# but fires nothing: it is the car repeating the past, not saying what happens.
+EDGE_FRESH_S = 10 * 60
 
 # A charge within this many percent of its target counts as having reached it --
 # the same tolerance as the ``charging_complete`` event.
@@ -104,9 +153,41 @@ GPS_DESCRIPTORS = (
     "vehicle.cabin.infotainment.navigation.currentLocation.longitude",
 )
 CHARGE_DESCRIPTORS = ("vehicle.drivetrain.electricEngine.charging.status",)
+# Any of these makes trips: a position, the motion flag, or (on a car that only
+# reports once parked) the odometer.
+TRIP_DESCRIPTORS = (
+    *GPS_DESCRIPTORS,
+    "vehicle.isMoving",
+    "vehicle.vehicle.mileage",
+    "vehicle.vehicle.travelledDistance",
+)
+
+# Each opening and the name it goes by in an event's ``windows``. BMW says
+# OPEN / INTERMEDIATE / CLOSED for the windows and the sunroof (its tilt too);
+# the rear window is a plain flag.
+WINDOW_DESCRIPTORS = {
+    "vehicle.cabin.window.row1.driver.status": "front_driver",
+    "vehicle.cabin.window.row1.passenger.status": "front_passenger",
+    "vehicle.cabin.window.row2.driver.status": "rear_driver",
+    "vehicle.cabin.window.row2.passenger.status": "rear_passenger",
+    "vehicle.cabin.sunroof.status": "sunroof",
+    "vehicle.cabin.sunroof.tiltStatus": "sunroof_tilt",
+    "vehicle.body.trunk.window.isOpen": "rear_window",
+}
+
+ALARM_DESCRIPTOR = "vehicle.vehicle.antiTheftAlarmSystem.alarm.isOn"
+PRECONDITIONING_DESCRIPTOR = "vehicle.vehicle.preConditioning.activity"
+PRECONDITIONING_ERROR_DESCRIPTOR = "vehicle.vehicle.preConditioning.error"
 
 _LOCKED_WORDS = frozenset({"LOCKED", "SECURED"})
 _UNLOCKED_WORDS = frozenset({"UNLOCKED", "SELECTIVELOCKED"})
+# A partly open window lets the rain in as well as a fully open one.
+_OPEN_WORDS = frozenset({"OPEN", "INTERMEDIATE"})
+_CLOSED_WORDS = frozenset({"CLOSED"})
+# The i5 sends HEATING and INACTIVE; the rest are BMW's other climate words. A
+# word in neither set says nothing and leaves the state where it was.
+_CONDITIONING_WORDS = frozenset({"HEATING", "COOLING", "VENTILATION", "ACTIVE"})
+_IDLE_WORDS = frozenset({"INACTIVE", "STANDBY"})
 
 
 def lock_state(values: Mapping[str, Any]) -> Optional[bool]:
@@ -136,6 +217,12 @@ def _lock_word(value: Any) -> Optional[str]:
         if flag == "ISFALSE":
             return "UNLOCKED"
         return _lock_word(value.get("newDoorStatus"))
+    return _word(value)
+
+
+def _word(value: Any) -> Optional[str]:
+    """A BMW word, compared loosely: case, punctuation and ``ASN_`` don't matter."""
+
     if not isinstance(value, str):
         return None
     word = value.strip().upper()
@@ -150,6 +237,104 @@ def parked_unlocked(locked: Optional[bool], trip_open: bool) -> Optional[bool]:
     if locked is None:
         return None
     return not locked and not trip_open
+
+
+def _opening_open(value: Any) -> Optional[bool]:
+    if isinstance(value, bool):
+        return value
+    word = _word(value)
+    if word in _OPEN_WORDS:
+        return True
+    if word in _CLOSED_WORDS:
+        return False
+    return None
+
+
+def open_windows(values: Mapping[str, Any]) -> list[str]:
+    """The openings standing open (or partly), by their names in ``WINDOW_DESCRIPTORS``."""
+
+    return [
+        name
+        for descriptor, name in WINDOW_DESCRIPTORS.items()
+        if _opening_open(values.get(descriptor)) is True
+    ]
+
+
+def window_open(values: Mapping[str, Any]) -> Optional[bool]:
+    """Whether any window or the sunroof is open. ``None`` when the car says of none.
+
+    One opening the car reports as closed is enough to answer ``False``: a car
+    without a sunroof never says anything about one.
+    """
+
+    states = [_opening_open(values.get(descriptor)) for descriptor in WINDOW_DESCRIPTORS]
+    if any(state is True for state in states):
+        return True
+    if any(state is False for state in states):
+        return False
+    return None
+
+
+def parked_window_open(opened: Optional[bool], trip_open: bool) -> Optional[bool]:
+    """Whether the car stands with a window open. ``None`` when no window is known."""
+
+    if opened is None:
+        return None
+    return opened and not trip_open
+
+
+def alarm_on(value: Any) -> Optional[bool]:
+    """Whether the anti-theft alarm sounds. ``None`` for anything but a flag."""
+
+    if isinstance(value, bool):
+        return value
+    word = _word(value)
+    if word in ("TRUE", "ON"):
+        return True
+    if word in ("FALSE", "OFF"):
+        return False
+    return None
+
+
+def preconditioning_active(value: Any) -> Optional[bool]:
+    """Whether the car is heating or cooling itself. ``None`` for an unknown word."""
+
+    word = _word(value)
+    if word in _CONDITIONING_WORDS:
+        return True
+    if word in _IDLE_WORDS:
+        return False
+    return None
+
+
+def fresh(stamp: Optional[datetime], now: datetime) -> bool:
+    """Whether a value stamped ``stamp`` speaks of now. No stamp counts as now."""
+
+    return stamp is None or (now - stamp).total_seconds() <= EDGE_FRESH_S
+
+
+def _message_key(item: Mapping[str, Any]) -> tuple:
+    # The same identity as the sensor's history (structured_values.MessageHistory).
+    ident = item.get("id")
+    return (item.get("messageType"), ident if ident is not None else item.get("text"))
+
+
+def message_changes(before: Any, after: Any) -> Optional[tuple[list[dict], list[dict]]]:
+    """``(new, gone)`` Check Control messages between two lists.
+
+    ``None`` when either side is not a list: with nothing to compare against,
+    every message would look new -- the first list only sets the starting point.
+    """
+
+    if not isinstance(before, list) or not isinstance(after, list):
+        return None
+    old = [item for item in before if isinstance(item, Mapping)]
+    now = [item for item in after if isinstance(item, Mapping)]
+    old_keys = {_message_key(item) for item in old}
+    now_keys = {_message_key(item) for item in now}
+    new = [dict(item) for item in now if _message_key(item) not in old_keys]
+    gone = [dict(item) for item in old if _message_key(item) not in now_keys]
+    return new, gone
 
 
 def plugged_not_charging(
@@ -206,12 +391,22 @@ def available_triggers(
     offered: list[str] = []
     if trips_enabled and any(d in seen for d in GPS_DESCRIPTORS):
         offered += [TRIGGER_ARRIVED, TRIGGER_LEFT]
+    if trips_enabled and any(d in seen for d in TRIP_DESCRIPTORS):
+        offered.append(TRIGGER_TRIP_ENDED)
     if lock_known:
         offered.append(SITUATION_PARKED_UNLOCKED)
+    if any(d in seen for d in WINDOW_DESCRIPTORS):
+        offered.append(SITUATION_PARKED_WINDOW_OPEN)
     if any(d in seen for d in CHARGE_DESCRIPTORS):
         offered += [TRIGGER_CHARGING_STARTED, TRIGGER_CHARGING_COMPLETE]
         if any(d in seen for d in PLUG_DESCRIPTORS):
             offered += [SITUATION_PLUGGED_NOT_CHARGING, TRIGGER_CHARGING_INTERRUPTED]
+    if PRECONDITIONING_DESCRIPTOR in seen:
+        offered += [TRIGGER_PRECONDITIONING_STARTED, TRIGGER_PRECONDITIONING_FINISHED]
+    if ALARM_DESCRIPTOR in seen:
+        offered.append(TRIGGER_ALARM)
+    if CHECK_CONTROL_DESCRIPTOR in seen:
+        offered.append(TRIGGER_CHECK_CONTROL)
     return offered
 
 
@@ -221,10 +416,12 @@ def event_matches(
     vin: str,
     situation: Optional[str] = None,
     zone: Optional[str] = None,
+    active: Optional[bool] = None,
 ) -> bool:
     """Whether a bus event's data belongs to this trigger.
 
-    ``zone`` is a zone entity id; ``None`` means any zone.
+    ``zone`` is a zone entity id; ``None`` means any zone. ``active`` picks one
+    side of an event that fires on a start and an end alike.
     """
 
     if data.get("vin") != vin:
@@ -233,7 +430,31 @@ def event_matches(
         return False
     if zone is not None and data.get("zone_entity_id") != zone:
         return False
+    if active is not None and data.get("active") is not active:
+        return False
     return True
+
+
+class EdgeTracker:
+    """The value each edge was last at, per vehicle -- the "before" of a change.
+
+    :meth:`seed` (a restored state, a REST answer) only fills a gap: either may be
+    hours old, and must not overwrite what the stream said since. :meth:`move` is
+    the stream's and returns the value it replaces, ``None`` if there was none.
+    """
+
+    def __init__(self) -> None:
+        self._last: dict[tuple[str, str], Any] = {}
+
+    def seed(self, vin: str, key: str, value: Any) -> None:
+        if value is not None:
+            self._last.setdefault((vin, key), value)
+
+    def move(self, vin: str, key: str, value: Any) -> Any:
+        previous = self._last.get((vin, key))
+        if value is not None:
+            self._last[(vin, key)] = value
+        return previous
 
 
 class SituationTracker:

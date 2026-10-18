@@ -9,6 +9,58 @@
      35.0  advance 35               est= 57.09 rate=    - charging=off open=n sessions=1 charging_stopped,charging_interrupted
   '''
 # ---
+# name: test_a_new_message_fires_and_its_resolution_too
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+      1.0  wait 1                   est=     - rate=    - charging=off open=n sessions=0
+      1.0  send                     est=     - rate=    - charging=off open=n sessions=0
+     60.0  wait 60                  est=     - rate=    - charging=off open=n sessions=0
+     60.0  send                     est=     - rate=    - charging=off open=n sessions=0 check_control
+    120.0  wait 120                 est=     - rate=    - charging=off open=n sessions=0
+    120.0  send                     est=     - rate=    - charging=off open=n sessions=0 check_control
+    180.0  wait 180                 est=     - rate=    - charging=off open=n sessions=0
+    180.0  send                     est=     - rate=    - charging=off open=n sessions=0 check_control,check_control
+  '''
+# ---
+# name: test_a_trip_ending_outside_any_zone_still_ends
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+      7.0  wait 7                   est=     - rate=    - charging=off open=n sessions=0
+      7.0  fix 48.1100,16.3100      est=     - rate=    - charging=off open=n sessions=0
+      7.0  wait 7.01667             est=     - rate=    - charging=off open=n sessions=0
+      7.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0 zone_left
+      9.0  wait 9                   est=     - rate=    - charging=off open=n sessions=0
+      9.0  fix 48.1200,16.3200      est=     - rate=    - charging=off open=n sessions=0
+      9.0  wait 9.01667             est=     - rate=    - charging=off open=n sessions=0
+      9.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     11.0  wait 11                  est=     - rate=    - charging=off open=n sessions=0
+     11.0  fix 48.1300,16.3300      est=     - rate=    - charging=off open=n sessions=0
+     11.0  wait 11.0167             est=     - rate=    - charging=off open=n sessions=0
+     11.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     13.0  wait 13                  est=     - rate=    - charging=off open=n sessions=0
+     13.0  fix 48.1400,16.3400      est=     - rate=    - charging=off open=n sessions=0
+     13.0  wait 13.0167             est=     - rate=    - charging=off open=n sessions=0
+     13.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     15.0  wait 15                  est=     - rate=    - charging=off open=n sessions=0
+     15.0  fix 48.1500,16.3500      est=     - rate=    - charging=off open=n sessions=0
+     15.0  wait 15.0167             est=     - rate=    - charging=off open=n sessions=0
+     15.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     20.0  wait 20                  est=     - rate=    - charging=off open=n sessions=0
+     20.0  fix 48.1500,16.3500      est=     - rate=    - charging=off open=n sessions=0
+     20.0  wait 20.0167             est=     - rate=    - charging=off open=n sessions=0
+     20.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0 trip_ended
+     40.0  advance 40               est=     - rate=    - charging=off open=n sessions=0
+  '''
+# ---
+# name: test_a_window_left_open_is_a_situation
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+      1.0  wait 1                   est=     - rate=    - charging=off open=n sessions=0
+      1.0  send                     est=     - rate=    - charging=off open=n sessions=0 situation
+     30.0  wait 30                  est=     - rate=    - charging=off open=n sessions=0
+     30.0  send                     est=     - rate=    - charging=off open=n sessions=0 situation
+  '''
+# ---
 # name: test_arriving_home_fires_once_the_car_has_parked
   '''
       0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
@@ -35,7 +87,7 @@
      20.0  wait 20                  est=     - rate=    - charging=off open=n sessions=0
      20.0  fix 48.1000,16.3000      est=     - rate=    - charging=off open=n sessions=0
      20.0  wait 20.0167             est=     - rate=    - charging=off open=n sessions=0
-     20.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0 zone_arrived
+     20.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0 zone_arrived,trip_ended
      40.0  advance 40               est=     - rate=    - charging=off open=n sessions=0
   '''
 # ---
@@ -46,6 +98,30 @@
       1.0  send soc=50,target=80,plug=CONNECTED,status=NOCHARGING est= 50.00 rate=    - charging=off open=n sessions=0 situation
      20.0  wait 20                  est= 50.00 rate=    - charging=off open=n sessions=0
      20.0  send status=CHARGINGACTIVE,power=11000 est= 50.00 rate=14.67 charging=on  open=y sessions=0 charging_started,situation
+  '''
+# ---
+# name: test_preconditioning_starts_and_finishes
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+      1.0  wait 1                   est=     - rate=    - charging=off open=n sessions=0
+      1.0  send                     est=     - rate=    - charging=off open=n sessions=0
+      5.0  wait 5                   est=     - rate=    - charging=off open=n sessions=0
+      5.0  send soc=70              est= 70.00 rate=    - charging=off open=n sessions=0 preconditioning
+     25.0  wait 25                  est= 70.00 rate=    - charging=off open=n sessions=0
+     25.0  send                     est= 70.00 rate=    - charging=off open=n sessions=0 preconditioning
+  '''
+# ---
+# name: test_the_alarm_fires_when_it_goes_off_and_when_it_stops
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+      1.0  wait 1                   est=     - rate=    - charging=off open=n sessions=0
+      1.0  send                     est=     - rate=    - charging=off open=n sessions=0
+      5.0  wait 5                   est=     - rate=    - charging=off open=n sessions=0
+      5.0  send                     est=     - rate=    - charging=off open=n sessions=0 alarm
+      6.0  wait 6                   est=     - rate=    - charging=off open=n sessions=0
+      6.0  send                     est=     - rate=    - charging=off open=n sessions=0
+      9.0  wait 9                   est=     - rate=    - charging=off open=n sessions=0
+      9.0  send                     est=     - rate=    - charging=off open=n sessions=0 alarm
   '''
 # ---
 # name: test_unlocked_begins_and_ends_with_the_lock

@@ -511,11 +511,17 @@
     "trigger_type": {
       "zone_arrived": "Aangekomen in een zone",
       "zone_left": "Zone verlaten",
+      "trip_ended": "Rit beëindigd (overal)",
       "parked_unlocked": "Geparkeerd en onvergrendeld achtergelaten",
+      "parked_window_open": "Geparkeerd met een raam open",
       "plugged_not_charging": "Aangesloten maar laadt niet",
       "charging_started": "Laden gestart",
       "charging_complete": "Laden voltooid (doel bereikt)",
-      "charging_interrupted": "Laden gestopt voor het doel, kabel nog aangesloten"
+      "charging_interrupted": "Laden gestopt voor het doel, kabel nog aangesloten",
+      "preconditioning_started": "Voorconditionering gestart",
+      "preconditioning_finished": "Voorconditionering voltooid",
+      "alarm": "Alarm ging af",
+      "check_control": "Nieuwe Check Control-melding"
     },
     "extra_fields": {
       "zone": "Zone (leeg: elke zone)",

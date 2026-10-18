@@ -1,4 +1,4 @@
-"""Device triggers: "arrived at a zone", "left unlocked", "plugged in but not charging"...
+"""Device triggers: "arrived at a zone", "left unlocked", "the alarm went off"...
 
 The thin Home Assistant side. Which triggers a car gets, what counts as a
 situation starting or ending, and the per-automation "for N minutes" all live in
@@ -33,10 +33,14 @@ from homeassistant.helpers.typing import ConfigType
 
 from .const import (
     DOMAIN,
+    EVENT_ALARM,
     EVENT_CHARGING_COMPLETE,
     EVENT_CHARGING_INTERRUPTED,
     EVENT_CHARGING_STARTED,
+    EVENT_CHECK_CONTROL,
+    EVENT_PRECONDITIONING,
     EVENT_SITUATION,
+    EVENT_TRIP_ENDED,
     EVENT_ZONE_ARRIVED,
     EVENT_ZONE_LEFT,
 )
@@ -44,11 +48,16 @@ from .vehicle_triggers import (
     DEFAULT_DURATION_S,
     LOCK_DESCRIPTORS,
     SITUATIONS,
+    TRIGGER_ALARM,
     TRIGGER_ARRIVED,
     TRIGGER_CHARGING_COMPLETE,
     TRIGGER_CHARGING_INTERRUPTED,
     TRIGGER_CHARGING_STARTED,
+    TRIGGER_CHECK_CONTROL,
     TRIGGER_LEFT,
+    TRIGGER_PRECONDITIONING_FINISHED,
+    TRIGGER_PRECONDITIONING_STARTED,
+    TRIGGER_TRIP_ENDED,
     TRIGGER_TYPES,
     SituationDelay,
     available_triggers,
@@ -56,13 +65,19 @@ from .vehicle_triggers import (
     lock_state,
 )
 
-# The bus event behind each point trigger. Situations all share EVENT_SITUATION.
-_POINT_EVENTS = {
-    TRIGGER_ARRIVED: EVENT_ZONE_ARRIVED,
-    TRIGGER_LEFT: EVENT_ZONE_LEFT,
-    TRIGGER_CHARGING_STARTED: EVENT_CHARGING_STARTED,
-    TRIGGER_CHARGING_COMPLETE: EVENT_CHARGING_COMPLETE,
-    TRIGGER_CHARGING_INTERRUPTED: EVENT_CHARGING_INTERRUPTED,
+# The bus event behind each point trigger, and which side of a two-sided event
+# it is (``None``: the event has one). Situations all share EVENT_SITUATION.
+_POINT_EVENTS: dict[str, tuple[str, Optional[bool]]] = {
+    TRIGGER_ARRIVED: (EVENT_ZONE_ARRIVED, None),
+    TRIGGER_LEFT: (EVENT_ZONE_LEFT, None),
+    TRIGGER_TRIP_ENDED: (EVENT_TRIP_ENDED, None),
+    TRIGGER_CHARGING_STARTED: (EVENT_CHARGING_STARTED, None),
+    TRIGGER_CHARGING_COMPLETE: (EVENT_CHARGING_COMPLETE, None),
+    TRIGGER_CHARGING_INTERRUPTED: (EVENT_CHARGING_INTERRUPTED, None),
+    TRIGGER_PRECONDITIONING_STARTED: (EVENT_PRECONDITIONING, True),
+    TRIGGER_PRECONDITIONING_FINISHED: (EVENT_PRECONDITIONING, False),
+    TRIGGER_ALARM: (EVENT_ALARM, True),
+    TRIGGER_CHECK_CONTROL: (EVENT_CHECK_CONTROL, True),
 }
 _ZONE_TRIGGERS = (TRIGGER_ARRIVED, TRIGGER_LEFT)
 
@@ -181,13 +196,14 @@ async def async_attach_trigger(
         )
 
     if trigger_type not in SITUATIONS:
+        event_type, active = _POINT_EVENTS[trigger_type]
 
         @callback
         def _point(event: Event) -> None:
-            if vin is not None and event_matches(event.data, vin=vin, zone=zone):
+            if vin is not None and event_matches(event.data, vin=vin, zone=zone, active=active):
                 _run(dict(event.data), event.context)
 
-        return hass.bus.async_listen(_POINT_EVENTS[trigger_type], _point)
+        return hass.bus.async_listen(event_type, _point)
 
     duration = config.get(CONF_FOR)
     seconds = duration.total_seconds() if duration is not None else DEFAULT_DURATION_S[trigger_type]

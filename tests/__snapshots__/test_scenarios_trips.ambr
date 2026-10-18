@@ -25,7 +25,7 @@
      15.0  wait 15.0167             est=     - rate=    - charging=off open=n sessions=0
      15.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
      40.0  advance 40               est=     - rate=    - charging=off open=n sessions=0
-    300.0  advance 300              est=     - rate=    - charging=off open=n sessions=0
+    300.0  advance 300              est=     - rate=    - charging=off open=n sessions=0 trip_ended
   '''
 # ---
 # name: test_a_drive_is_one_trip_ending_at_the_last_movement
@@ -77,7 +77,7 @@
      27.0  fix 48.2000,16.4000      est=     - rate=    - charging=off open=n sessions=0
      27.0  wait 27.0167             est=     - rate=    - charging=off open=n sessions=0
      27.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
-     40.0  advance 40               est=     - rate=    - charging=off open=n sessions=0
+     40.0  advance 40               est=     - rate=    - charging=off open=n sessions=0 trip_ended
   '''
 # ---
 # name: test_a_garage_that_swallows_the_fix_closes_at_the_arrival
@@ -108,7 +108,7 @@
      40.0  wait 40                  est=     - rate=    - charging=off open=n sessions=0
      40.0  fix 48.1500,16.3500      est=     - rate=    - charging=off open=n sessions=0
      40.0  wait 40.0167             est=     - rate=    - charging=off open=n sessions=0
-     40.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     40.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0 trip_ended
      60.0  advance 60               est=     - rate=    - charging=off open=n sessions=0
   '''
 # ---
@@ -163,7 +163,7 @@
      28.0  fix 48.2000,16.4000      est=     - rate=    - charging=off open=n sessions=0
      28.1  wait 28.05               est=     - rate=    - charging=off open=n sessions=0
      28.1    (longitude)            est=     - rate=    - charging=off open=n sessions=0
-     58.0  advance 58.05            est=     - rate=    - charging=off open=n sessions=0
+     58.0  advance 58.05            est=     - rate=    - charging=off open=n sessions=0 trip_ended
   '''
 # ---
 # name: test_a_tunnel_does_not_split_the_drive
@@ -215,7 +215,7 @@
      37.0  fix 48.2500,16.4500      est=     - rate=    - charging=off open=n sessions=0
      37.0  wait 37.0167             est=     - rate=    - charging=off open=n sessions=0
      37.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
-     60.0  advance 60               est=     - rate=    - charging=off open=n sessions=0
+     60.0  advance 60               est=     - rate=    - charging=off open=n sessions=0 trip_ended
   '''
 # ---
 # name: test_two_drives_with_a_stop_between_are_two_trips
@@ -248,7 +248,7 @@
      17.0  fix 48.1500,16.3500      est=     - rate=    - charging=off open=n sessions=0
      17.0  wait 17.0167             est=     - rate=    - charging=off open=n sessions=0
      17.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
-     60.0  advance 60               est=     - rate=    - charging=off open=n sessions=0
+     60.0  advance 60               est=     - rate=    - charging=off open=n sessions=0 trip_ended
      62.0  wait 62                  est=     - rate=    - charging=off open=n sessions=0
      62.0  fix 48.1600,16.3600      est=     - rate=    - charging=off open=n sessions=0
      62.0  wait 62.0167             est=     - rate=    - charging=off open=n sessions=0
@@ -273,6 +273,6 @@
      72.0  fix 48.2000,16.4000      est=     - rate=    - charging=off open=n sessions=0
      72.0  wait 72.0167             est=     - rate=    - charging=off open=n sessions=0
      72.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
-    100.0  advance 100              est=     - rate=    - charging=off open=n sessions=0
+    100.0  advance 100              est=     - rate=    - charging=off open=n sessions=0 trip_ended
   '''
 # ---

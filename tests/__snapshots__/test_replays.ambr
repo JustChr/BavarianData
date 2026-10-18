@@ -5,7 +5,7 @@
     08:07:01 -> 08:35:01  12.6 km  Home -> Unknown
   charging sessions:
     09:00:00 -> 11:02:00  55.0 -> 69.0 %  12.0 kWh  NOCHARGING
-  events: ['zone_left', 'charging_started', 'charging_stopped']
+  events: ['zone_left', 'trip_ended', 'charging_started', 'charging_stopped']
   --
       0.0  replay header,maxEnergy,status est= 62.00 rate=    - charging=off open=n sessions=0
       1.0  wait                     est= 62.00 rate=    - charging=off open=n sessions=0
@@ -56,7 +56,7 @@
      38.0  replay latitude          est= 62.00 rate=    - charging=off open=n sessions=0
      38.0  wait                     est= 62.00 rate=    - charging=off open=n sessions=0
      38.0  replay longitude         est= 62.00 rate=    - charging=off open=n sessions=0
-     60.0  wait                     est= 62.00 rate=    - charging=off open=n sessions=0
+     60.0  wait                     est= 62.00 rate=    - charging=off open=n sessions=0 trip_ended
      60.0  replay header,power,status,target est= 55.00 rate= 9.87 charging=on  open=y sessions=0 charging_started
      62.0  wait                     est= 55.33 rate= 9.87 charging=on  open=y sessions=0
      62.0  replay power             est= 55.33 rate= 9.80 charging=on  open=y sessions=0
