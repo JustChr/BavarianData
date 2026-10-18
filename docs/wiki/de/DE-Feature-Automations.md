@@ -339,9 +339,9 @@ Skripte nennen jedes Feld einzeln, weil die rohen Antworten der Dienste die FIN
 in ihren IDs tragen. Mit einem Cloud-Agenten verlassen diese Werte dein
 Zuhause; ein lokaler Agent wie Ollama behält sie dort.
 
-Mit mehreren Autos (oder Konten) unter `data:` jedes Skripts `vin:` (und
-`entry_id:`) ergänzen und jedem Auto eigene drei Skripte geben, nach dem Auto
-benannt.
+Mit mehreren Autos (oder Konten) unter `data:` jedes Skripts die `device_id:`
+des Autos ergänzen und jedem Auto eigene drei Skripte geben, nach dem Auto
+benannt. Ohne sie wird ein Skript für ein Auto abgelehnt, sobald es zwei gibt.
 
 ## Nicht vergessen: nur lesend
 

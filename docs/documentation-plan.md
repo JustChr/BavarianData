@@ -217,6 +217,8 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 
 ### Services — 18 from `services.yaml`
 
+Targeting (the **Vehicle** picker `device_id`, `vin`, `entry_id`; one-car services refuse a call naming no car once there are two): 🟢 Services-Reference intro + Feature-Multiple-Cars-and-Accounts (EN + DE).
+
 | Service | Quota | Status |
 | --- | --- | --- |
 | `fetch_telematic_data` | spends | 🟡 |

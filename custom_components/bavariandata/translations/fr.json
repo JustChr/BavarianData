@@ -461,7 +461,8 @@
       "configurator_no_data": "Les infos de base de {vehicle} ne sont pas encore arrivées. Lancez d'abord « Récupérer les infos de base du véhicule », puis réessayez.",
       "configurator_unavailable": "Le configurateur BMW n'a pas répondu ou a changé. Réessayez plus tard, ou gardez l'image officielle.",
       "configurator_no_render": "Le configurateur BMW n'a pas d'image de {vehicle}. Gardez l'image officielle.",
-      "mileage_end_before_start": "La date de fin doit être postérieure à la date de début."
+      "mileage_end_before_start": "La date de fin doit être postérieure à la date de début.",
+      "fetch_failed": "La récupération a échoué : {error}"
     },
     "abort": {
       "reauth_started": "Autorisation relancée. Terminez la nouvelle connexion depuis la notification qui vient d'apparaître.",
@@ -2827,9 +2828,13 @@
       "name": "Récupérer les données télématiques",
       "description": "Récupère les données télématiques de chaque véhicule du compte via les conteneurs enregistrés et journalise la réponse. Deux requêtes par véhicule.",
       "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Limite facultativement à cette voiture. Laissez vide pour toutes les voitures du compte."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         },
         "vin": {
           "name": "VIN",
@@ -2841,9 +2846,13 @@
       "name": "Récupérer les associations de véhicules",
       "description": "Récupère les informations d'association du compte configuré et journalise la réponse.",
       "fields": {
+        "device_id": {
+          "name": "Compte",
+          "description": "N'importe quelle voiture du compte, ou son appareil de débogage. Nécessaire seulement avec plusieurs comptes."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         }
       }
     },
@@ -2851,13 +2860,17 @@
       "name": "Récupérer les données de base du véhicule",
       "description": "Récupère les métadonnées fixes du véhicule (nom du modèle, série, etc.) pour un VIN et journalise la réponse.",
       "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "La voiture concernée. Nécessaire seulement s'il y a plus d'une voiture."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facultatif à interroger. Par défaut, le VIN enregistré dans l'entrée de configuration."
+          "description": "VIN facultatif, au lieu de choisir le véhicule. Nécessaire seulement si le compte a plus d'une voiture."
         }
       }
     },
@@ -2865,13 +2878,17 @@
       "name": "Récupérer l'historique de recharge",
       "description": "Récupère auprès de BMW l'historique des sessions de recharge d'un VIN (paginé) et l'importe dans l'historique local, afin que les recharges passées apparaissent sur la carte et dans les bilans mensuels. Les sessions enregistrées en direct qui se chevauchent sont enrichies sur place avec l'énergie réseau mesurée par BMW. Compte pour un ou plusieurs appels d'API sur le quota de 50/24 h.",
       "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "La voiture concernée. Nécessaire seulement s'il y a plus d'une voiture."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facultatif à interroger. Par défaut, le premier VIN connu."
+          "description": "VIN facultatif, au lieu de choisir le véhicule. Nécessaire seulement si le compte a plus d'une voiture."
         },
         "from": {
           "name": "Du",
@@ -2887,13 +2904,17 @@
       "name": "Récupérer le diagnostic des pneus Smart Maintenance",
       "description": "Récupère le diagnostic des pneus Smart Maintenance pour un VIN et journalise la réponse.",
       "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "La voiture concernée. Nécessaire seulement s'il y a plus d'une voiture."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facultatif à interroger. Par défaut, le premier VIN connu."
+          "description": "VIN facultatif, au lieu de choisir le véhicule. Nécessaire seulement si le compte a plus d'une voiture."
         }
       }
     },
@@ -2901,13 +2922,17 @@
       "name": "Récupérer les réglages de recharge liés au lieu",
       "description": "Récupère les réglages de recharge liés au lieu pour un VIN (paginé) et journalise la réponse.",
       "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "La voiture concernée. Nécessaire seulement s'il y a plus d'une voiture."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facultatif à interroger. Par défaut, le premier VIN connu."
+          "description": "VIN facultatif, au lieu de choisir le véhicule. Nécessaire seulement si le compte a plus d'une voiture."
         }
       }
     },
@@ -2915,13 +2940,17 @@
       "name": "Récupérer l'image du véhicule",
       "description": "Récupère l'image du véhicule pour un VIN et journalise sa taille et son type de contenu.",
       "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "La voiture concernée. Nécessaire seulement s'il y a plus d'une voiture."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facultatif à interroger. Par défaut, le premier VIN connu."
+          "description": "VIN facultatif, au lieu de choisir le véhicule. Nécessaire seulement si le compte a plus d'une voiture."
         }
       }
     },
@@ -2929,9 +2958,13 @@
       "name": "Obtenir les sessions de recharge",
       "description": "Renvoie les sessions de recharge enregistrées, les plus récentes d'abord. Lit l'historique propre à l'intégration ; contrairement aux actions de récupération, cela ne consomme aucun quota d'API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Limite facultativement à cette voiture. Laissez vide pour toutes les voitures du compte."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         },
         "vin": {
           "name": "VIN",
@@ -2955,9 +2988,13 @@
       "name": "Obtenir les trajets",
       "description": "Renvoie les trajets enregistrés, les plus récents d'abord. Lit l'historique propre à l'intégration ; comme les sessions de recharge, cela ne consomme aucun quota d'API BMW. Les points de départ et d'arrivée sont enregistrés comme noms de lieux, jamais comme coordonnées. Un trajet encore en cours est renvoyé séparément comme trajet ouvert (il n'a pas de fin et sa distance est provisoire), sauf si une période from/to a été indiquée.",
       "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Limite facultativement à cette voiture. Laissez vide pour toutes les voitures du compte."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         },
         "vin": {
           "name": "VIN",
@@ -2981,13 +3018,17 @@
       "name": "Obtenir le bilan de conduite",
       "description": "Renvoie le bilan mensuel des trajets : distance, répartition professionnel/privé/domicile-travail, consommation, récupération, note de style de conduite, destinations principales et (avec un tarif) un coût de conduite estimé. Lit le stockage local ; cela ne consomme donc aucun quota d'API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "La voiture concernée. Nécessaire seulement s'il y a plus d'une voiture."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facultatif. Par défaut, l'unique véhicule configuré."
+          "description": "VIN facultatif, au lieu de choisir le véhicule. Nécessaire seulement si le compte a plus d'une voiture."
         },
         "month": {
           "name": "Mois",
@@ -2999,13 +3040,17 @@
       "name": "Obtenir le rapport de kilométrage",
       "description": "Renvoie la distance parcourue par la voiture (ce mois-ci, cette année, les 12 derniers mois, son rythme) et, avec un kilométrage autorisé, où elle en est. Lit le stockage local, donc ne consomme aucun quota de l'API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "La voiture concernée. Nécessaire seulement s'il y a plus d'une voiture."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facultatif. Par défaut, l'unique véhicule configuré."
+          "description": "VIN facultatif, au lieu de choisir le véhicule. Nécessaire seulement si le compte a plus d'une voiture."
         }
       }
     },
@@ -3013,13 +3058,17 @@
       "name": "Obtenir l'efficacité et l'autonomie réelle",
       "description": "Renvoie la consommation mesurée (kWh/100 km), l'autonomie réelle qu'elle implique à l'état de charge actuel, la perte de recharge entre le réseau et la batterie, et une tendance d'efficacité mois par mois. Tout est déduit du registre de recharge ; cela ne consomme donc aucun quota d'API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "La voiture concernée. Nécessaire seulement s'il y a plus d'une voiture."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facultatif. Par défaut, l'unique véhicule configuré."
+          "description": "VIN facultatif, au lieu de choisir le véhicule. Nécessaire seulement si le compte a plus d'une voiture."
         }
       }
     },
@@ -3027,13 +3076,17 @@
       "name": "Obtenir la configuration evcc",
       "description": "Renvoie la configuration de véhicule « custom » d'evcc pour cette voiture, prête à coller dans evcc.yaml, ainsi que les topics MQTT publiés par la passerelle et ceux qui sont actuellement actifs. Lit uniquement l'état local ; cela ne consomme donc aucun quota d'API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "La voiture concernée. Nécessaire seulement s'il y a plus d'une voiture."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facultatif. Par défaut, l'unique véhicule configuré."
+          "description": "VIN facultatif, au lieu de choisir le véhicule. Nécessaire seulement si le compte a plus d'une voiture."
         }
       }
     },
@@ -3041,13 +3094,17 @@
       "name": "Définir la classification d'un trajet",
       "description": "Remplace la classification d'un trajet (business, private ou commute). Utilisez-la pour corriger la déduction automatique par paire de zones. Écrit uniquement dans le stockage local.",
       "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "La voiture concernée. Nécessaire seulement s'il y a plus d'une voiture."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facultatif. Par défaut, l'unique véhicule configuré."
+          "description": "VIN facultatif, au lieu de choisir le véhicule. Nécessaire seulement si le compte a plus d'une voiture."
         },
         "trip_id": {
           "name": "ID du trajet",
@@ -3063,13 +3120,17 @@
       "name": "Marquer le début du trajet",
       "description": "Indique qu'un trajet commence maintenant, pour une voiture qui ne transmet qu'une fois garée : le trajet que clôt son prochain rapport commence alors à cette heure. Utilisé uniquement si la détection des trajets est réglée sur Rapports de fin de trajet. Écrit uniquement dans le stockage local.",
       "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "La voiture concernée. Nécessaire seulement s'il y a plus d'une voiture."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facultatif. Par défaut, l'unique véhicule configuré."
+          "description": "VIN facultatif, au lieu de choisir le véhicule. Nécessaire seulement si le compte a plus d'une voiture."
         },
         "at": {
           "name": "Heure",
@@ -3081,13 +3142,17 @@
       "name": "Exporter l'historique",
       "description": "Renvoie un mois de sessions de recharge et/ou de trajets enregistrés sous forme de fichiers : CSV pour les tableurs, ou un rapport HTML autonome que vous pouvez imprimer en PDF depuis le navigateur. Le contenu des fichiers est renvoyé dans la réponse ; rien n'est écrit sur le disque. Lit le stockage local ; cela ne consomme donc aucun quota d'API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "La voiture concernée. Nécessaire seulement s'il y a plus d'une voiture."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facultatif. Par défaut, l'unique véhicule configuré."
+          "description": "VIN facultatif, au lieu de choisir le véhicule. Nécessaire seulement si le compte a plus d'une voiture."
         },
         "month": {
           "name": "Mois",
@@ -3111,9 +3176,13 @@
       "name": "Obtenir le rapport de couverture des descripteurs",
       "description": "Exécute l'autotest de couverture des descripteurs : pour chaque véhicule, compare les descripteurs que vos groupes de flux sélectionnés devraient livrer à ceux réellement arrivés, et liste ceux qui manquent. Répond à « J'ai activé un groupe mais aucune entité n'est apparue -- est-ce ma sélection, ma voiture ou un bug ? ». Lit uniquement le stockage local et le flux en direct ; cela ne consomme donc aucun quota d'API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Limite facultativement à cette voiture. Laissez vide pour toutes les voitures du compte."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         },
         "vin": {
           "name": "VIN",
@@ -3125,9 +3194,13 @@
       "name": "Activer des champs du flux",
       "description": "Remplace les attributs CarData que BMW transmet par MQTT pour un véhicule, en envoyant la même requête que la page stream setup du portail BMW lorsque vous enregistrez la sélection des données. La sélection du flux n'a pas d'API CarData ; il faut donc une session de navigateur du portail capturée (elle ne peut pas être renouvelée automatiquement -- la session est de courte durée). Ne consomme aucun quota d'API BMW. Renvoie le nombre d'attributs demandés/acceptés.",
       "fields": {
+        "device_id": {
+          "name": "Compte",
+          "description": "N'importe quelle voiture du compte, ou son appareil de débogage. Nécessaire seulement avec plusieurs comptes."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         },
         "base_url": {
           "name": "URL de base du portail",
@@ -3159,9 +3232,13 @@
       "name": "Importer dans les statistiques à long terme",
       "description": "Reconstruit les statistiques à long terme de cette intégration à partir de l'historique enregistré, afin que les recharges et trajets antérieurs à l'installation (ou survenus pendant une coupure de Home Assistant) apparaissent dans le tableau de bord Énergie. Cela s'exécute automatiquement au fil des enregistrements ; utilisez-le après la restauration d'une sauvegarde ou pour vérifier le nombre de lignes. Local uniquement -- aucun quota d'API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Limite facultativement à cette voiture. Laissez vide pour toutes les voitures du compte."
+        },
         "entry_id": {
           "name": "Entrée de configuration",
-          "description": "Identifiant facultatif de l'entrée de configuration visée. Requis si plusieurs entrées sont configurées."
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
         },
         "vin": {
           "name": "VIN",

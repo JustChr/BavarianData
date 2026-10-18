@@ -320,8 +320,9 @@ scripts list each field by name, because the raw service answers carry the VIN
 inside their ids. With a cloud agent, these figures leave your home; a local
 agent such as Ollama keeps them there.
 
-With more than one car (or account), add `vin:` (and `entry_id:`) under each
+With more than one car (or account), add the car's `device_id:` under each
 script's `data:` and give each car its own three scripts, named after the car.
+Without it, a script for one car is refused once there are two.
 
 ## Remember: read-only
 

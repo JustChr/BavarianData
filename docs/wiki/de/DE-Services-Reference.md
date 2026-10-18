@@ -5,11 +5,21 @@
 Jeder Dienst ist unter **Entwicklerwerkzeuge → Aktionen** verfügbar und (die
 meisten) auch als Schaltfläche im Menü **Konfigurieren** der Integration.
 
-Alle Dienste akzeptieren eine optionale **`entry_id`** und, wo sinnvoll, eine
-optionale **`vin`** (Standard: das erste bekannte Fahrzeug). Mit einem einzigen
-Konto brauchst du keines von beidem. Bei **zwei Konten** — etwa einem BMW- und
-einem MINI-Konto — muss ein Aufruf sagen, welches gemeint ist: entweder du gibst
-die `entry_id` an oder die `vin`, aus der das Konto des Fahrzeugs ermittelt wird.
+Jeder Dienst, der sich auf ein Auto bezieht, hat eine Auswahl **Fahrzeug**
+(`device_id`), dazu die älteren Felder `vin` und `entry_id`, die weiter
+funktionieren. Mit einem Auto brauchst du keines davon. Wer das Auto wählt,
+wählt damit auch sein Konto; bei **zwei Konten** (etwa einem BMW- und einem
+MINI-Konto) genügt also die Auswahl.
+
+Bei **zwei Autos** lehnt ein Dienst, der für ein Auto arbeitet (Reifendiagnose,
+Kilometerbericht, Export …), **einen Aufruf ohne Auto ab**, und die Fehlermeldung
+nennt die Autos zur Auswahl. Bis v0.9.20 nahm er stillschweigend das Auto, das
+zuerst gestreamt hatte. Dienste, die alle Autos lesen (`fetch_telematic_data`,
+`get_charging_sessions`, `get_trips`, `get_coverage_report`,
+`import_statistics`), lesen ohne Angabe weiterhin alle. Eine VIN, die kein Auto
+des Kontos ist, wird abgelehnt, bevor Kontingent verbraucht wird; ebenso ein
+Aufruf ohne Kontingent oder ohne gültiges Token: Die Automation schlägt mit
+dieser Meldung fehl, statt so auszusehen, als hätte sie funktioniert.
 
 ## Abruf-Dienste — verbrauchen API-Kontingent ⚡
 

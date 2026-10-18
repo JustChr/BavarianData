@@ -461,7 +461,8 @@
       "configurator_no_data": "The basic vehicle info for {vehicle} isn't in yet. Run \"Fetch basic vehicle info\" first, then try again.",
       "configurator_unavailable": "BMW's configurator didn't answer, or has changed. Try again later, or keep the official picture.",
       "configurator_no_render": "BMW's configurator has no picture of {vehicle}. Keep the official picture.",
-      "mileage_end_before_start": "The end date must be after the start date."
+      "mileage_end_before_start": "The end date must be after the start date.",
+      "fetch_failed": "The fetch didn't go through: {error}"
     },
     "abort": {
       "reauth_started": "Authorization restarted. Finish the new login from the notification that just appeared.",
@@ -3057,9 +3058,13 @@
       "name": "Fetch telematic data",
       "description": "Fetch telematic data for every vehicle on the account using the stored containers and log the response. Two requests per vehicle.",
       "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "Optional car to limit this to. Leave empty for every car of the account."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         },
         "vin": {
           "name": "VIN",
@@ -3071,9 +3076,13 @@
       "name": "Fetch vehicle mappings",
       "description": "Fetch mapping information for the configured account and log the response.",
       "fields": {
+        "device_id": {
+          "name": "Account",
+          "description": "Any car of the account, or its debug device. Only needed with more than one account."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         }
       }
     },
@@ -3081,13 +3090,17 @@
       "name": "Fetch basic vehicle data",
       "description": "Fetch static vehicle metadata (model name, series, etc.) for a VIN and log the response.",
       "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The car to act on. Only needed when there is more than one car."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optional VIN to query. Defaults to the VIN stored in the config entry."
+          "description": "Optional VIN, instead of picking the vehicle. Only needed when the account has more than one car."
         }
       }
     },
@@ -3095,13 +3108,17 @@
       "name": "Fetch charging history",
       "description": "Fetch the charging session history for a VIN (paginated) from BMW and import it into the local history, so past charges appear on the card and in the monthly summaries. Overlapping live-recorded sessions are enriched in place with BMW's measured grid energy. Counts as one or more API calls against the 50/24h quota.",
       "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The car to act on. Only needed when there is more than one car."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optional VIN to query. Defaults to the first known VIN."
+          "description": "Optional VIN, instead of picking the vehicle. Only needed when the account has more than one car."
         },
         "from": {
           "name": "From",
@@ -3117,13 +3134,17 @@
       "name": "Fetch smart maintenance tire diagnosis",
       "description": "Fetch the smart-maintenance tire diagnosis for a VIN and log the response.",
       "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The car to act on. Only needed when there is more than one car."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optional VIN to query. Defaults to the first known VIN."
+          "description": "Optional VIN, instead of picking the vehicle. Only needed when the account has more than one car."
         }
       }
     },
@@ -3131,13 +3152,17 @@
       "name": "Fetch location-based charging settings",
       "description": "Fetch the location-based charging settings for a VIN (paginated) and log the response.",
       "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The car to act on. Only needed when there is more than one car."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optional VIN to query. Defaults to the first known VIN."
+          "description": "Optional VIN, instead of picking the vehicle. Only needed when the account has more than one car."
         }
       }
     },
@@ -3145,13 +3170,17 @@
       "name": "Fetch vehicle image",
       "description": "Fetch the vehicle image for a VIN and log its size/content type.",
       "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The car to act on. Only needed when there is more than one car."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optional VIN to query. Defaults to the first known VIN."
+          "description": "Optional VIN, instead of picking the vehicle. Only needed when the account has more than one car."
         }
       }
     },
@@ -3159,9 +3188,13 @@
       "name": "Get charging sessions",
       "description": "Return recorded charging sessions, newest first. Reads the integration's own history, so unlike the fetch actions it costs no BMW API quota.",
       "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "Optional car to limit this to. Leave empty for every car of the account."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         },
         "vin": {
           "name": "VIN",
@@ -3185,9 +3218,13 @@
       "name": "Get trips",
       "description": "Return recorded trips, newest first. Reads the integration's own history, so like the charging sessions it costs no BMW API quota. Endpoints are stored as place names, never coordinates. A drive still under way is returned separately as open trips (it has no end, and its distance is provisional) unless a from/to window was given.",
       "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "Optional car to limit this to. Leave empty for every car of the account."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         },
         "vin": {
           "name": "VIN",
@@ -3211,13 +3248,17 @@
       "name": "Get driving summary",
       "description": "Return the month-in-review aggregation for trips: distance, the business/private/commute split, consumption, recuperation, driving-style score, top destinations and (with a tariff) an estimated driving cost. Reads the local store, so it costs no BMW API quota.",
       "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The car to act on. Only needed when there is more than one car."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optional VIN. Defaults to the single configured vehicle."
+          "description": "Optional VIN, instead of picking the vehicle. Only needed when the account has more than one car."
         },
         "month": {
           "name": "Month",
@@ -3229,13 +3270,17 @@
       "name": "Get mileage report",
       "description": "Return how far the car is driven (this month, this year, the last 12 months, its pace) and, with a mileage allowance, where it stands against it. Reads the local store, so it costs no BMW API quota.",
       "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The car to act on. Only needed when there is more than one car."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optional VIN. Defaults to the single configured vehicle."
+          "description": "Optional VIN, instead of picking the vehicle. Only needed when the account has more than one car."
         }
       }
     },
@@ -3243,13 +3288,17 @@
       "name": "Get efficiency and real range",
       "description": "Return measured consumption (kWh/100 km), the real range it implies at the current state of charge, the charging loss between the grid and the battery, and a month-by-month efficiency trend. Everything is derived from the charging ledger, so it costs no BMW API quota.",
       "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The car to act on. Only needed when there is more than one car."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optional VIN. Defaults to the single configured vehicle."
+          "description": "Optional VIN, instead of picking the vehicle. Only needed when the account has more than one car."
         }
       }
     },
@@ -3257,13 +3306,17 @@
       "name": "Get evcc configuration",
       "description": "Return the evcc 'custom' vehicle configuration for this car, ready to paste into evcc.yaml, along with the MQTT topics the bridge publishes and which of them are currently live. Reads local state only, so it costs no BMW API quota.",
       "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The car to act on. Only needed when there is more than one car."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optional VIN. Defaults to the single configured vehicle."
+          "description": "Optional VIN, instead of picking the vehicle. Only needed when the account has more than one car."
         }
       }
     },
@@ -3271,13 +3324,17 @@
       "name": "Set trip classification",
       "description": "Override a trip's classification (business, private or commute). Use this to correct the automatic zone-pair guess. Writes the local store only.",
       "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The car to act on. Only needed when there is more than one car."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optional VIN. Defaults to the single configured vehicle."
+          "description": "Optional VIN, instead of picking the vehicle. Only needed when the account has more than one car."
         },
         "trip_id": {
           "name": "Trip ID",
@@ -3293,13 +3350,17 @@
       "name": "Mark trip start",
       "description": "Note that a drive is starting now, for a car that reports only once parked: the trip its next report ends then starts at this time. Used only when Trip detection is set to End-of-trip reports. Writes the local store only.",
       "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The car to act on. Only needed when there is more than one car."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optional VIN. Defaults to the single configured vehicle."
+          "description": "Optional VIN, instead of picking the vehicle. Only needed when the account has more than one car."
         },
         "at": {
           "name": "Time",
@@ -3311,13 +3372,17 @@
       "name": "Export history",
       "description": "Return one month of recorded charging sessions and/or trips as files: CSV for spreadsheets, or a self-contained HTML report you can print to PDF from the browser. The file contents come back in the response; nothing is written to disk. Reads the local store, so it costs no BMW API quota.",
       "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The car to act on. Only needed when there is more than one car."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optional VIN. Defaults to the single configured vehicle."
+          "description": "Optional VIN, instead of picking the vehicle. Only needed when the account has more than one car."
         },
         "month": {
           "name": "Month",
@@ -3341,9 +3406,13 @@
       "name": "Get descriptor coverage report",
       "description": "Run the descriptor-coverage self-test: for each vehicle, compare the descriptors your selected stream clusters should deliver against those that have actually arrived, and list any that are missing. Answers \"I enabled a cluster but no entities appeared -- is it my selection, my car, or a bug?\". Reads the local store and live stream only, so it costs no BMW API quota.",
       "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "Optional car to limit this to. Leave empty for every car of the account."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         },
         "vin": {
           "name": "VIN",
@@ -3355,9 +3424,13 @@
       "name": "Activate stream fields",
       "description": "Replace which CarData attributes BMW streams over MQTT for a vehicle, by sending the same request the BMW portal's stream-setup page sends when you save the data selection. Stream selection has no CarData API, so this needs a captured portal browser session (it cannot be refreshed automatically -- the session is short-lived). Costs no BMW API quota. Returns the requested/accepted attribute counts.",
       "fields": {
+        "device_id": {
+          "name": "Account",
+          "description": "Any car of the account, or its debug device. Only needed with more than one account."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         },
         "base_url": {
           "name": "Portal base URL",
@@ -3389,9 +3462,13 @@
       "name": "Import into long-term statistics",
       "description": "Rebuild this integration's long-term statistics from the recorded history, so charging and driving from before the install (or from while Home Assistant was down) appear on the Energy dashboard. This runs automatically as records are made; use it after restoring a backup or to verify the row counts. Local only -- no BMW API quota.",
       "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "Optional car to limit this to. Leave empty for every car of the account."
+        },
         "entry_id": {
           "name": "Config entry",
-          "description": "Optional config entry id to target. Required if multiple entries are configured."
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
         },
         "vin": {
           "name": "VIN",

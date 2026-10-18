@@ -254,21 +254,38 @@ def _service_handler(name: str) -> "ast.AsyncFunctionDef":
     )
 
 
-def test_the_vehicle_image_is_fetched_only_for_a_known_car() -> None:
-    """``vin`` from the call goes into the request path and keys the image Store.
+def test_no_handler_reads_the_vin_past_the_resolver() -> None:
+    """``vin`` from a call goes into request paths and store keys.
 
-    Unchecked, any string was fetched (a slash and a query string included),
-    spent a request and stayed in the Store for good. The account's own list
-    has to be consulted before the fetch is reached.
+    Read straight off ``call.data`` it was fetched unchecked (a slash and a
+    query string included), and with none given most handlers took whichever
+    car had streamed first. Only ``_resolve_target`` may read it; everything
+    else gets the car ``_target_car`` checked against the account.
     """
 
-    body = _service_handler("async_handle_fetch_vehicle_image").body
-    check = next(
-        i
-        for i, stmt in enumerate(body)
-        if isinstance(stmt, ast.If) and "known_vins(" in ast.unparse(stmt.test)
-    )
-    fetch = next(
-        i for i, stmt in enumerate(body) if "async_refresh_vehicle_image(" in ast.unparse(stmt)
-    )
-    assert check < fetch
+    tree = ast.parse((_PKG / "services.py").read_text(encoding="utf-8"))
+    readers = {
+        func.name
+        for func in ast.walk(tree)
+        if isinstance(func, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and func.name.startswith("async_handle_")
+        and any(
+            "call.data" in ast.unparse(node) and "'vin'" in ast.unparse(node)
+            for node in ast.walk(func)
+            if isinstance(node, (ast.Call, ast.Subscript))
+        )
+    }
+    assert readers == set()
+    assert "next(iter(runtime.coordinator.data))" not in ast.unparse(tree)
+
+
+def test_every_targeted_service_offers_a_device_picker() -> None:
+    import yaml
+
+    declared = yaml.safe_load((_PKG / "services.yaml").read_text(encoding="utf-8"))
+    for name, spec in declared.items():
+        fields = (spec or {}).get("fields") or {}
+        if "entry_id" not in fields:
+            continue
+        picker = fields.get("device_id", {}).get("selector", {}).get("device", {})
+        assert picker.get("filter") == [{"integration": "bavariandata"}], name

@@ -1,10 +1,12 @@
 """The integration's services, registered once for the whole Home Assistant run.
 
 Every handler finds the account it acts on through :func:`_resolve_target`
-(an explicit ``entry_id``, the device that owns a ``vin``, or the only loaded
-account), never through the setup that happened to register it. They used to
-be closures inside ``async_setup_entry`` of whichever account loaded first,
-which once filed a second account's car under the first.
+(an explicit ``entry_id``, a picked ``device_id``, the device that owns a
+``vin``, or the only loaded account), never through the setup that happened to
+register it. They used to be closures inside ``async_setup_entry`` of whichever
+account loaded first, which once filed a second account's car under the first.
+A handler that acts on one car takes it from :func:`_target_car`, which refuses
+a call that could mean either of two (``service_target.py`` holds the rules).
 """
 
 from __future__ import annotations
@@ -18,7 +20,7 @@ import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, SupportsResponse, callback
-from homeassistant.exceptions import ServiceValidationError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.dispatcher import (
@@ -48,6 +50,7 @@ from .stream_activation import (
     PortalStreamClient,
     StreamActivationError,
 )
+from .service_target import TargetError, choose_account, choose_vin, requested_vin
 from .vehicles import known_vins, primary_vins
 from .evcc import ALL_TOPICS, BridgeConfig, bridge_payloads, evcc_yaml
 from .history.export import (
@@ -76,6 +79,7 @@ from . import (
     _async_store_vehicle_metadata,
     _async_update_last_telematic_poll,
     _coverage_reports,
+    _registered_vins,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -141,70 +145,109 @@ def async_setup_services(hass: HomeAssistant) -> None:
             return primary
         return next(iter(device.config_entries), None)
 
-    def _resolve_target(call: Any) -> tuple[str, ConfigEntry, CardataRuntimeData] | None:
-        entries = {
-            loaded_entry.entry_id: loaded_entry.runtime_data
+    def _device_target(device_id: Any) -> tuple[Optional[str], Optional[str]]:
+        """``(entry_id, vin)`` of a picked device.
+
+        The VIN is ``None`` for an account's debug device, whose identifier is
+        its entry id: it names an account, not a car, which is all an
+        account-wide service needs.
+        """
+
+        if not device_id:
+            return None, None
+        device = dr.async_get(hass).async_get(str(device_id))
+        ours = [value for domain, value in device.identifiers if domain == DOMAIN] if device else []
+        if not ours:
+            raise TargetError(f"Device {device_id} is not a BavarianData car")
+        entries = set(device.config_entries)
+        vin = next((value for value in ours if value not in entries), None)
+        entry_id = getattr(device, "primary_config_entry", None) or next(
+            iter(device.config_entries), None
+        )
+        return entry_id, vin
+
+    def _resolve_target(call: Any) -> tuple[str, ConfigEntry, CardataRuntimeData, Optional[str]]:
+        """The account a call acts on, and the car it names, if it names one.
+
+        Raises :class:`ServiceValidationError` naming what to pass instead, so
+        an automation that cannot be placed fails visibly rather than logging
+        and reporting success.
+        """
+
+        loaded = {
+            loaded_entry.entry_id: loaded_entry
             for loaded_entry in hass.config_entries.async_entries(DOMAIN)
             if getattr(loaded_entry, "runtime_data", None) is not None
         }
-
-        target_entry_id = call.data.get("entry_id")
-        if target_entry_id:
-            runtime = entries.get(target_entry_id)
-            target_entry = hass.config_entries.async_get_entry(target_entry_id)
-            if runtime is None or target_entry is None:
-                _LOGGER.error(
-                    "Cardata service call: unknown entry_id %s",
-                    target_entry_id,
-                )
-                return None
-            return target_entry_id, target_entry, runtime
-
-        if len(entries) != 1:
-            # Two accounts (a BMW and a MINI, say) mean the call has to say
-            # which one it means -- but a VIN already says it, and every
-            # caller that matters passes one. Read the entry off that
-            # vehicle's device rather than making the user paste an entry
-            # id into an automation they had working before they added
-            # their second car.
-            by_vin = _entry_id_for_vin(call.data.get("vin"))
-            if by_vin is not None and by_vin in entries:
-                target_entry = hass.config_entries.async_get_entry(by_vin)
-                if target_entry is not None:
-                    return by_vin, target_entry, entries[by_vin]
-            _LOGGER.error("Cardata service call: multiple entries configured; specify entry_id")
-            return None
-
-        target_entry_id, runtime = next(iter(entries.items()))
-        target_entry = hass.config_entries.async_get_entry(target_entry_id)
-        if target_entry is None:
-            _LOGGER.error(
-                "Cardata service call: unable to resolve config entry %s",
-                target_entry_id,
+        try:
+            device_entry, device_vin = _device_target(call.data.get("device_id"))
+            vin = requested_vin(call.data.get("vin"), device_vin)
+            target_entry_id = choose_account(
+                {entry_id: entry.title for entry_id, entry in loaded.items()},
+                entry_id=call.data.get("entry_id"),
+                device_entry=device_entry,
+                vin=vin,
+                vin_entry=_entry_id_for_vin(vin),
             )
-            return None
+        except TargetError as err:
+            raise ServiceValidationError(str(err)) from err
+        target_entry = loaded[target_entry_id]
+        return target_entry_id, target_entry, target_entry.runtime_data, vin
 
-        return target_entry_id, target_entry, runtime
+    def _account_vins(entry: ConfigEntry, runtime: CardataRuntimeData) -> list[str]:
+        """Every car of the account: stored, streamed, or only in the registry.
+
+        The registry counts because a car that has not sent anything since the
+        restart is still that account's car.
+        """
+
+        vins = known_vins(
+            stored_metadata=entry.data.get(VEHICLE_METADATA),
+            coordinator_data=runtime.coordinator.data,
+            configured_vin=entry.data.get("vin"),
+        )
+        vins.extend(_registered_vins(hass, entry, exclude=set(vins)))
+        return vins
+
+    def _pick_vin(
+        entry: ConfigEntry,
+        runtime: CardataRuntimeData,
+        vin: Optional[str],
+        *,
+        required: bool,
+    ) -> Optional[str]:
+        try:
+            return choose_vin(
+                vin, _account_vins(entry, runtime), runtime.coordinator.names, required=required
+            )
+        except TargetError as err:
+            raise ServiceValidationError(str(err)) from err
+
+    def _target_car(
+        call: Any, *, required: bool = True
+    ) -> tuple[str, ConfigEntry, CardataRuntimeData, Optional[str]]:
+        """:func:`_resolve_target`, with the car checked against the account.
+
+        ``required`` services act on one car and refuse to guess between
+        several; the others read every car when none is named.
+        """
+
+        entry_id, entry, runtime, vin = _resolve_target(call)
+        return entry_id, entry, runtime, _pick_vin(entry, runtime, vin, required=required)
 
     async def async_handle_fetch(call) -> None:
-        resolved = _resolve_target(call)
-        if not resolved:
-            return
-
-        target_entry_id, target_entry, runtime = resolved
+        _entry_id, target_entry, runtime, vin = _target_car(call, required=False)
         success = await _async_perform_telematic_fetch(
             hass,
             target_entry,
             runtime,
-            vin_override=call.data.get("vin"),
+            vin_override=vin,
         )
         if success:
             _async_update_last_telematic_poll(hass, target_entry, time.time())
 
     async def async_handle_fetch_mappings(call) -> None:
         prepared = await _prepare_api_call(call, "fetch_vehicle_mappings", require_vin=False)
-        if not prepared:
-            return
         target_entry, runtime, _vin, access_token = prepared
         try:
             payload = await async_get_vehicle_mappings(runtime.session, access_token)
@@ -231,8 +274,6 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
     async def async_handle_fetch_basic_data(call) -> None:
         prepared = await _prepare_api_call(call, "fetch_basic_data", require_vin=True)
-        if not prepared:
-            return
         # ``target_entry``, never the ``entry`` this closure was created
         # with: the services are registered once, by whichever entry set up
         # first, so writing to that one files a second account's car under
@@ -269,25 +310,15 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
     async def _prepare_api_call(
         call, label: str, *, require_vin: bool
-    ) -> tuple[ConfigEntry, "CardataRuntimeData", Optional[str], str] | None:
+    ) -> tuple[ConfigEntry, "CardataRuntimeData", Optional[str], str]:
         """Resolve target, take a token, claim quota and return call context.
 
         Shared by the read-only CarData API services. Returns
-        ``(entry, runtime, vin, access_token)`` or ``None`` if the call cannot
-        proceed (already logged).
+        ``(entry, runtime, vin, access_token)``; a call that cannot be placed,
+        has no token or no quota left raises instead of reporting success.
         """
 
-        resolved = _resolve_target(call)
-        if not resolved:
-            return None
-        target_entry_id, target_entry, runtime = resolved
-
-        vin = call.data.get("vin") or target_entry.data.get("vin")
-        if vin is None and runtime.coordinator.data:
-            vin = next(iter(runtime.coordinator.data))
-        if require_vin and not vin:
-            _LOGGER.error("Cardata %s: no VIN available; provide vin parameter", label)
-            return None
+        target_entry_id, target_entry, runtime, vin = _target_car(call, required=require_vin)
 
         try:
             access_token = await runtime.tokens.access_token()
@@ -298,19 +329,17 @@ def async_setup_services(hass: HomeAssistant) -> None:
                 target_entry_id,
                 err,
             )
-            return None
+            raise HomeAssistantError(f"{label}: no valid BMW token; reauthorize") from err
         try:
             await runtime.rest.claim()
         except CardataQuotaError as err:
             _LOGGER.warning("Cardata %s blocked: %s", label, err)
-            return None
+            raise HomeAssistantError(f"{label}: {err}") from err
 
         return target_entry, runtime, vin, access_token
 
     async def async_handle_fetch_charging_history(call) -> None:
         prepared = await _prepare_api_call(call, "fetch_charging_history", require_vin=True)
-        if not prepared:
-            return
         _entry, runtime, vin, access_token = prepared
         # BMW requires both from/to; default to the last 30 days so a bare
         # call from the UI succeeds instead of returning HTTP 400.
@@ -363,8 +392,6 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
     async def async_handle_fetch_tyre_diagnosis(call) -> None:
         prepared = await _prepare_api_call(call, "fetch_tyre_diagnosis", require_vin=True)
-        if not prepared:
-            return
         _entry, runtime, vin, access_token = prepared
         try:
             payload = await async_get_tyre_diagnosis(runtime.session, access_token, vin)
@@ -383,8 +410,6 @@ def async_setup_services(hass: HomeAssistant) -> None:
         prepared = await _prepare_api_call(
             call, "fetch_location_charging_settings", require_vin=True
         )
-        if not prepared:
-            return
         _entry, runtime, vin, access_token = prepared
         try:
             payload = await async_get_location_based_charging_settings(
@@ -409,28 +434,11 @@ def async_setup_services(hass: HomeAssistant) -> None:
         # updates the ``image`` entity's cache + Store so the render shows up in
         # the Lovelace card. Token refresh / quota are handled inside the helper
         # as well, so we resolve the target here without claiming twice.
-        resolved = _resolve_target(call)
-        if not resolved:
-            return
-        _target_id, target_entry, runtime = resolved
-        vin = call.data.get("vin") or target_entry.data.get("vin")
-        if vin is None and runtime.coordinator.data:
-            vin = next(iter(runtime.coordinator.data))
-        if not vin:
-            _LOGGER.error("Cardata fetch_vehicle_image: no VIN available; provide vin parameter")
-            return
         # The VIN goes into the request path and keys the stored picture, so
-        # only a car this account knows: anything else spends a request and
-        # leaves a junk entry in the image Store for good.
-        if vin not in known_vins(
-            stored_metadata=target_entry.data.get(VEHICLE_METADATA),
-            coordinator_data=runtime.coordinator.data,
-            configured_vin=target_entry.data.get("vin"),
-        ):
-            _LOGGER.error(
-                "Cardata fetch_vehicle_image: %s is not a car of this account", mask_vin(vin)
-            )
-            return
+        # only a car this account knows (``_target_car`` refuses anything
+        # else): a stranger spends a request and leaves a junk entry in the
+        # image Store for good.
+        _target_id, target_entry, runtime, vin = _target_car(call)
         from .image import async_refresh_vehicle_image
 
         await async_refresh_vehicle_image(hass, target_entry, runtime, vin)
@@ -438,25 +446,31 @@ def async_setup_services(hass: HomeAssistant) -> None:
     telematic_service_schema = vol.Schema(
         {
             vol.Optional("entry_id"): str,
+            vol.Optional("device_id"): str,
             vol.Optional("vin"): str,
         }
     )
-    mapping_service_schema = vol.Schema({vol.Optional("entry_id"): str})
+    mapping_service_schema = vol.Schema(
+        {vol.Optional("entry_id"): str, vol.Optional("device_id"): str}
+    )
     basic_data_service_schema = vol.Schema(
         {
             vol.Optional("entry_id"): str,
+            vol.Optional("device_id"): str,
             vol.Optional("vin"): str,
         }
     )
     vin_service_schema = vol.Schema(
         {
             vol.Optional("entry_id"): str,
+            vol.Optional("device_id"): str,
             vol.Optional("vin"): str,
         }
     )
     charging_history_schema = vol.Schema(
         {
             vol.Optional("entry_id"): str,
+            vol.Optional("device_id"): str,
             vol.Optional("vin"): str,
             vol.Optional("from"): str,
             vol.Optional("to"): str,
@@ -465,6 +479,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
     get_sessions_schema = vol.Schema(
         {
             vol.Optional("entry_id"): str,
+            vol.Optional("device_id"): str,
             vol.Optional("vin"): str,
             vol.Optional("from"): str,
             vol.Optional("to"): str,
@@ -493,23 +508,16 @@ def async_setup_services(hass: HomeAssistant) -> None:
         return dt_util.as_utc(datetime.combine(parsed, dt_time.max if end_of_day else dt_time.min))
 
     async def async_handle_get_charging_sessions(call: Any) -> dict:
-        target = _resolve_target(call)
-        if target is None or target[2].history is None:
+        _entry_id, _entry, runtime, vin = _target_car(call, required=False)
+        if runtime.history is None:
             return {"sessions": []}
-        _entry_id, _entry, runtime = target
         sessions = runtime.history.sessions(
-            call.data.get("vin"),
+            vin,
             start=_service_bound(call, "from"),
             end=_service_bound(call, "to", end_of_day=True),
             limit=_as_limit(call.data.get("limit")),
         )
         return {"sessions": [session.to_dict() for session in sessions]}
-
-    def _default_vin(runtime: CardataRuntimeData, vin: Optional[str]) -> Optional[str]:
-        if vin is not None:
-            return vin
-        data = runtime.coordinator.data
-        return next(iter(data)) if data else None
 
     def _month_bounds(raw: Optional[str]) -> tuple[int, int]:
         """Parse a 'YYYY-MM' argument, defaulting to the current local month.
@@ -532,6 +540,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
     get_driving_summary_schema = vol.Schema(
         {
             vol.Optional("entry_id"): str,
+            vol.Optional("device_id"): str,
             vol.Optional("vin"): str,
             vol.Optional("month"): str,  # "YYYY-MM"; defaults to this month
         }
@@ -539,6 +548,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
     get_efficiency_schema = vol.Schema(
         {
             vol.Optional("entry_id"): str,
+            vol.Optional("device_id"): str,
             vol.Optional("vin"): str,
         }
     )
@@ -547,6 +557,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
     mark_trip_start_schema = vol.Schema(
         {
             vol.Optional("entry_id"): str,
+            vol.Optional("device_id"): str,
             vol.Optional("vin"): str,
             vol.Optional("at"): str,
         }
@@ -554,6 +565,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
     set_trip_class_schema = vol.Schema(
         {
             vol.Optional("entry_id"): str,
+            vol.Optional("device_id"): str,
             vol.Optional("vin"): str,
             vol.Required("trip_id"): str,
             vol.Required("classification"): vol.In(list(CLASSIFICATIONS)),
@@ -561,13 +573,11 @@ def async_setup_services(hass: HomeAssistant) -> None:
     )
 
     async def async_handle_get_trips(call: Any) -> dict:
-        target = _resolve_target(call)
-        if target is None or target[2].history is None:
+        _entry_id, _entry, runtime, vin_filter = _target_car(call, required=False)
+        if runtime.history is None:
             return {"trips": [], "open_trips": []}
-        _entry_id, _entry, runtime = target
         start = _service_bound(call, "from")
         end = _service_bound(call, "to", end_of_day=True)
-        vin_filter = call.data.get("vin")
         trips = runtime.history.trips(
             vin_filter,
             start=start,
@@ -603,23 +613,15 @@ def async_setup_services(hass: HomeAssistant) -> None:
         Read off the daily odometer log (``mileage.py``); no quota.
         """
 
-        target = _resolve_target(call)
-        if target is None:
-            return {}
-        runtime = target[2]
-        vin = _default_vin(runtime, call.data.get("vin"))
-        if vin is None:
-            return {}
+        _entry_id, _entry, runtime, vin = _target_car(call)
         return {"vin": vin, **runtime.coordinator.mileage_report(vin)}
 
     async def async_handle_get_driving_summary(call: Any) -> dict:
-        target = _resolve_target(call)
-        if target is None or target[2].history is None:
+        _entry_id, _entry, runtime, vin = _target_car(call)
+        if runtime.history is None:
             return {"summary": {}, "month": None}
-        _entry_id, _entry, runtime = target
         coordinator = runtime.coordinator
         history = runtime.history
-        vin = _default_vin(runtime, call.data.get("vin"))
 
         year, month = _month_bounds(call.data.get("month"))
         prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
@@ -664,12 +666,10 @@ def async_setup_services(hass: HomeAssistant) -> None:
         the card and the entity can never quote different numbers.
         """
 
-        target = _resolve_target(call)
-        if target is None or target[2].history is None:
+        _entry_id, _entry, runtime, vin = _target_car(call)
+        if runtime.history is None:
             return {"efficiency": {}}
-        _entry_id, _entry, runtime = target
         coordinator = runtime.coordinator
-        vin = _default_vin(runtime, call.data.get("vin"))
         profile = coordinator.efficiency(vin)
         # The ledger's own cost-per-100 km and the month's solar share are
         # what turn an efficiency view into a running-costs one; they come
@@ -701,16 +701,8 @@ def async_setup_services(hass: HomeAssistant) -> None:
         message makes evcc log a read error on every update cycle.
         """
 
-        target = _resolve_target(call)
-        if target is None:
-            raise ServiceValidationError("No BavarianData config entry found")
-        _entry_id, target_entry, runtime = target
+        _entry_id, target_entry, runtime, vin = _target_car(call)
         coordinator = runtime.coordinator
-        vin = _default_vin(runtime, call.data.get("vin"))
-        if not vin:
-            raise ServiceValidationError(
-                "No vehicle known yet -- wait for the first stream message"
-            )
         bridge = runtime.bridge
         config = (
             bridge.config
@@ -738,13 +730,22 @@ def async_setup_services(hass: HomeAssistant) -> None:
         }
 
     async def async_handle_set_trip_class(call: Any) -> None:
-        target = _resolve_target(call)
-        if target is None or target[2].history is None:
+        _entry_id, entry, runtime, vin = _resolve_target(call)
+        if runtime.history is None:
             raise ServiceValidationError("Trip history is not available")
-        _entry_id, _entry, runtime = target
         coordinator = runtime.coordinator
-        vin = _default_vin(runtime, call.data.get("vin"))
         trip_id = call.data["trip_id"]
+        if vin is None:
+            # A trip id starts with its car's VIN, so it already says which.
+            vin = next(
+                (
+                    known
+                    for known in _account_vins(entry, runtime)
+                    if trip_id.startswith(f"{known}-")
+                ),
+                None,
+            )
+        vin = _pick_vin(entry, runtime, vin, required=True)
         trip = runtime.history.find_trip(vin, trip_id)
         if trip is None:
             raise ServiceValidationError(f"No trip {trip_id!r} found for vehicle {vin}")
@@ -760,14 +761,10 @@ def async_setup_services(hass: HomeAssistant) -> None:
         rather than stored for nothing: the live detector never reads it.
         """
 
-        target = _resolve_target(call)
-        if target is None or target[2].history is None:
+        _entry_id, _entry, runtime, vin = _target_car(call)
+        if runtime.history is None:
             raise ServiceValidationError("Trip history is not available")
-        _entry_id, _entry, runtime = target
         coordinator = runtime.coordinator
-        vin = _default_vin(runtime, call.data.get("vin"))
-        if vin is None:
-            raise ServiceValidationError("No vehicle to mark a trip start for")
         if not coordinator.report_trips(vin):
             raise ServiceValidationError(
                 "mark_trip_start is used only when trips are detected from the "
@@ -781,6 +778,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
     export_schema = vol.Schema(
         {
             vol.Optional("entry_id"): str,
+            vol.Optional("device_id"): str,
             vol.Optional("vin"): str,
             vol.Optional("month"): str,  # "YYYY-MM"; defaults to this month
             vol.Optional("type", default="both"): vol.In(("charging", "trips", "both")),
@@ -791,12 +789,14 @@ def async_setup_services(hass: HomeAssistant) -> None:
     import_statistics_schema = vol.Schema(
         {
             vol.Optional("entry_id"): str,
+            vol.Optional("device_id"): str,
             vol.Optional("vin"): str,
         }
     )
     coverage_report_schema = vol.Schema(
         {
             vol.Optional("entry_id"): str,
+            vol.Optional("device_id"): str,
             vol.Optional("vin"): str,
         }
     )
@@ -808,11 +808,10 @@ def async_setup_services(hass: HomeAssistant) -> None:
         spends no BMW API quota.
         """
 
-        target = _resolve_target(call)
-        if target is None or target[2].coverage is None:
+        _entry_id, _entry, runtime, vin = _target_car(call, required=False)
+        if runtime.coverage is None:
             return {"reports": []}
-        _entry_id, _entry, runtime = target
-        reports = _coverage_reports(runtime, call.data.get("vin"))
+        reports = _coverage_reports(runtime, vin)
         return {"reports": [report.to_dict() for report in reports]}
 
     async def async_handle_export_history(call: Any) -> dict:
@@ -823,12 +822,10 @@ def async_setup_services(hass: HomeAssistant) -> None:
         configuration, no allowlisted directory, and works from a phone.
         """
 
-        target = _resolve_target(call)
-        if target is None or target[2].history is None:
+        _entry_id, _entry, runtime, vin = _target_car(call)
+        if runtime.history is None:
             return {"files": [], "month": None}
-        _entry_id, _entry, runtime = target
         history = runtime.history
-        vin = _default_vin(runtime, call.data.get("vin"))
         year, month = _month_bounds(call.data.get("month"))
         label = f"{year:04d}-{month:02d}"
         wanted = call.data.get("type", "both")
@@ -915,10 +912,9 @@ def async_setup_services(hass: HomeAssistant) -> None:
     async def async_handle_import_statistics(call: Any) -> dict:
         """Force a statistics rebuild, bypassing the change fingerprint."""
 
-        target = _resolve_target(call)
-        if target is None or target[2].statistics is None:
+        _entry_id, _entry, runtime, vin = _target_car(call, required=False)
+        if runtime.statistics is None:
             return {"statistics": {}}
-        _entry_id, _entry, runtime = target
         publisher = runtime.statistics
         if not publisher.enabled:
             raise ServiceValidationError(
@@ -930,13 +926,14 @@ def async_setup_services(hass: HomeAssistant) -> None:
                 "Home Assistant's recorder is not set up, so there are no "
                 "long-term statistics to import into."
             )
-        written = await publisher.async_publish(vin=call.data.get("vin"), force=True)
+        written = await publisher.async_publish(vin=vin, force=True)
         _LOGGER.info("Imported BavarianData statistics: %s", written)
         return {"statistics": written}
 
     activate_stream_fields_schema = vol.Schema(
         {
             vol.Optional("entry_id"): str,
+            vol.Optional("device_id"): str,
             vol.Required("base_url"): str,
             vol.Required("locale"): str,
             vol.Required("mapped_vehicle_id"): str,
@@ -962,10 +959,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
         # Resolve the entry only for its shared HTTP session; the portal call
         # spends no CarData API quota and needs no token.
-        target = _resolve_target(call)
-        if target is None:
-            raise ServiceValidationError("No config entry to run against; specify entry_id.")
-        _entry_id, entry, runtime = target
+        _entry_id, entry, runtime, _vin = _resolve_target(call)
 
         if call.data.get("attributes"):
             attributes = list(call.data["attributes"])

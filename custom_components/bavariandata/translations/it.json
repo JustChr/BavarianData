@@ -461,7 +461,8 @@
       "configurator_no_data": "I dati di base di {vehicle} non sono ancora arrivati. Esegui prima «Recupera i dati di base del veicolo», poi riprova.",
       "configurator_unavailable": "Il configuratore BMW non ha risposto o è cambiato. Riprova più tardi, oppure tieni l'immagine ufficiale.",
       "configurator_no_render": "Il configuratore BMW non ha un'immagine di {vehicle}. Tieni l'immagine ufficiale.",
-      "mileage_end_before_start": "La data di fine deve essere successiva alla data di inizio."
+      "mileage_end_before_start": "La data di fine deve essere successiva alla data di inizio.",
+      "fetch_failed": "Il recupero non è riuscito: {error}"
     },
     "abort": {
       "reauth_started": "Autorizzazione riavviata. Completa il nuovo accesso dalla notifica appena comparsa.",
@@ -2827,9 +2828,13 @@
       "name": "Recupera i dati telematici",
       "description": "Recupera i dati telematici di ogni veicolo dell'account usando i contenitori salvati e registra la risposta. Due richieste per veicolo.",
       "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "Facoltativo: solo questa auto. Lascia vuoto per tutte le auto dell'account."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         },
         "vin": {
           "name": "VIN",
@@ -2841,9 +2846,13 @@
       "name": "Recupera le associazioni dei veicoli",
       "description": "Recupera le informazioni di associazione dell'account configurato e registra la risposta.",
       "fields": {
+        "device_id": {
+          "name": "Account",
+          "description": "Una qualsiasi auto dell'account, o il suo dispositivo di debug. Serve solo con più account."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         }
       }
     },
@@ -2851,13 +2860,17 @@
       "name": "Recupera i dati di base del veicolo",
       "description": "Recupera i metadati fissi del veicolo (nome del modello, serie, ecc.) per un VIN e registra la risposta.",
       "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "L'auto su cui agire. Serve solo se hai più di un'auto."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facoltativo da interrogare. Predefinito: il VIN salvato nella voce di configurazione."
+          "description": "VIN facoltativo, invece di scegliere il veicolo. Serve solo se l'account ha più di un'auto."
         }
       }
     },
@@ -2865,13 +2878,17 @@
       "name": "Recupera lo storico di ricarica",
       "description": "Recupera da BMW lo storico delle sessioni di ricarica di un VIN (paginato) e lo importa nello storico locale, così le ricariche passate compaiono sulla scheda e nei riepiloghi mensili. Le sessioni registrate in tempo reale che si sovrappongono vengono arricchite sul posto con l'energia di rete misurata da BMW. Conta come una o più chiamate API sulla quota di 50/24 h.",
       "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "L'auto su cui agire. Serve solo se hai più di un'auto."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facoltativo da interrogare. Predefinito: il primo VIN noto."
+          "description": "VIN facoltativo, invece di scegliere il veicolo. Serve solo se l'account ha più di un'auto."
         },
         "from": {
           "name": "Da",
@@ -2887,13 +2904,17 @@
       "name": "Recupera la diagnosi pneumatici Smart Maintenance",
       "description": "Recupera la diagnosi pneumatici Smart Maintenance per un VIN e registra la risposta.",
       "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "L'auto su cui agire. Serve solo se hai più di un'auto."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facoltativo da interrogare. Predefinito: il primo VIN noto."
+          "description": "VIN facoltativo, invece di scegliere il veicolo. Serve solo se l'account ha più di un'auto."
         }
       }
     },
@@ -2901,13 +2922,17 @@
       "name": "Recupera le impostazioni di ricarica basate sulla posizione",
       "description": "Recupera le impostazioni di ricarica basate sulla posizione per un VIN (paginato) e registra la risposta.",
       "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "L'auto su cui agire. Serve solo se hai più di un'auto."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facoltativo da interrogare. Predefinito: il primo VIN noto."
+          "description": "VIN facoltativo, invece di scegliere il veicolo. Serve solo se l'account ha più di un'auto."
         }
       }
     },
@@ -2915,13 +2940,17 @@
       "name": "Recupera l'immagine del veicolo",
       "description": "Recupera l'immagine del veicolo per un VIN e registra dimensione e tipo di contenuto.",
       "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "L'auto su cui agire. Serve solo se hai più di un'auto."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facoltativo da interrogare. Predefinito: il primo VIN noto."
+          "description": "VIN facoltativo, invece di scegliere il veicolo. Serve solo se l'account ha più di un'auto."
         }
       }
     },
@@ -2929,9 +2958,13 @@
       "name": "Ottieni le sessioni di ricarica",
       "description": "Restituisce le sessioni di ricarica registrate, dalla più recente. Legge lo storico dell'integrazione, quindi a differenza delle azioni di recupero non consuma quota API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "Facoltativo: solo questa auto. Lascia vuoto per tutte le auto dell'account."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         },
         "vin": {
           "name": "VIN",
@@ -2955,9 +2988,13 @@
       "name": "Ottieni i viaggi",
       "description": "Restituisce i viaggi registrati, dal più recente. Legge lo storico dell'integrazione, quindi come le sessioni di ricarica non consuma quota API BMW. I punti di partenza e arrivo sono salvati come nomi di luoghi, mai come coordinate. Un viaggio ancora in corso viene restituito a parte come viaggio aperto (non ha una fine e la sua distanza è provvisoria), a meno che non sia stato indicato un intervallo from/to.",
       "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "Facoltativo: solo questa auto. Lascia vuoto per tutte le auto dell'account."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         },
         "vin": {
           "name": "VIN",
@@ -2981,13 +3018,17 @@
       "name": "Ottieni il riepilogo di guida",
       "description": "Restituisce il riepilogo mensile dei viaggi: distanza, ripartizione lavoro/privato/pendolarismo, consumi, recupero di energia, punteggio di stile di guida, destinazioni principali e (con una tariffa) un costo di guida stimato. Legge l'archivio locale, quindi non consuma quota API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "L'auto su cui agire. Serve solo se hai più di un'auto."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facoltativo. Predefinito: l'unico veicolo configurato."
+          "description": "VIN facoltativo, invece di scegliere il veicolo. Serve solo se l'account ha più di un'auto."
         },
         "month": {
           "name": "Mese",
@@ -2999,13 +3040,17 @@
       "name": "Ottieni rapporto chilometri",
       "description": "Restituisce quanto viene guidata l'auto (questo mese, quest'anno, gli ultimi 12 mesi, il ritmo) e, con un chilometraggio consentito, a che punto è. Legge l'archivio locale, quindi non consuma quota dell'API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "L'auto su cui agire. Serve solo se hai più di un'auto."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facoltativo. Predefinito: l'unico veicolo configurato."
+          "description": "VIN facoltativo, invece di scegliere il veicolo. Serve solo se l'account ha più di un'auto."
         }
       }
     },
@@ -3013,13 +3058,17 @@
       "name": "Ottieni efficienza e autonomia reale",
       "description": "Restituisce il consumo misurato (kWh/100 km), l'autonomia reale che ne deriva allo stato di carica attuale, la perdita di ricarica tra rete e batteria e l'andamento dell'efficienza mese per mese. Tutto è derivato dal registro di ricarica, quindi non consuma quota API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "L'auto su cui agire. Serve solo se hai più di un'auto."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facoltativo. Predefinito: l'unico veicolo configurato."
+          "description": "VIN facoltativo, invece di scegliere il veicolo. Serve solo se l'account ha più di un'auto."
         }
       }
     },
@@ -3027,13 +3076,17 @@
       "name": "Ottieni la configurazione evcc",
       "description": "Restituisce la configurazione del veicolo 'custom' di evcc per questa auto, pronta da incollare in evcc.yaml, insieme ai topic MQTT pubblicati dal bridge e a quali di essi sono attivi ora. Legge solo lo stato locale, quindi non consuma quota API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "L'auto su cui agire. Serve solo se hai più di un'auto."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facoltativo. Predefinito: l'unico veicolo configurato."
+          "description": "VIN facoltativo, invece di scegliere il veicolo. Serve solo se l'account ha più di un'auto."
         }
       }
     },
@@ -3041,13 +3094,17 @@
       "name": "Imposta la classificazione del viaggio",
       "description": "Sovrascrive la classificazione di un viaggio (business, private o commute). Usala per correggere l'ipotesi automatica basata sulla coppia di zone. Scrive solo nell'archivio locale.",
       "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "L'auto su cui agire. Serve solo se hai più di un'auto."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facoltativo. Predefinito: l'unico veicolo configurato."
+          "description": "VIN facoltativo, invece di scegliere il veicolo. Serve solo se l'account ha più di un'auto."
         },
         "trip_id": {
           "name": "ID viaggio",
@@ -3063,13 +3120,17 @@
       "name": "Segna inizio viaggio",
       "description": "Annota che un viaggio inizia adesso, per un'auto che trasmette solo da parcheggiata: il viaggio chiuso dal suo prossimo report inizia allora a quest'ora. Usato solo se il rilevamento viaggi è impostato su Report di fine viaggio. Scrive solo nell'archivio locale.",
       "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "L'auto su cui agire. Serve solo se hai più di un'auto."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facoltativo. Predefinito: l'unico veicolo configurato."
+          "description": "VIN facoltativo, invece di scegliere il veicolo. Serve solo se l'account ha più di un'auto."
         },
         "at": {
           "name": "Ora",
@@ -3081,13 +3142,17 @@
       "name": "Esporta lo storico",
       "description": "Restituisce un mese di sessioni di ricarica e/o viaggi registrati come file: CSV per i fogli di calcolo, oppure un report HTML autonomo che puoi stampare in PDF dal browser. Il contenuto dei file arriva nella risposta; nulla viene scritto su disco. Legge l'archivio locale, quindi non consuma quota API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "L'auto su cui agire. Serve solo se hai più di un'auto."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN facoltativo. Predefinito: l'unico veicolo configurato."
+          "description": "VIN facoltativo, invece di scegliere il veicolo. Serve solo se l'account ha più di un'auto."
         },
         "month": {
           "name": "Mese",
@@ -3111,9 +3176,13 @@
       "name": "Ottieni il report di copertura dei descrittori",
       "description": "Esegue l'autotest di copertura dei descrittori: per ogni veicolo confronta i descrittori che i gruppi dello stream selezionati dovrebbero fornire con quelli effettivamente arrivati ed elenca quelli mancanti. Risponde a \"Ho attivato un gruppo ma non è comparsa nessuna entità -- è la mia selezione, la mia auto o un bug?\". Legge solo l'archivio locale e lo stream in tempo reale, quindi non consuma quota API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "Facoltativo: solo questa auto. Lascia vuoto per tutte le auto dell'account."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         },
         "vin": {
           "name": "VIN",
@@ -3125,9 +3194,13 @@
       "name": "Attiva campi dello stream",
       "description": "Sostituisce gli attributi CarData che BMW trasmette via MQTT per un veicolo, inviando la stessa richiesta che la pagina stream setup del portale BMW invia quando salvi la selezione dei dati. La selezione dello stream non ha un'API CarData, quindi serve una sessione del browser del portale catturata (non può essere rinnovata automaticamente -- la sessione dura poco). Non consuma quota API BMW. Restituisce il numero di attributi richiesti/accettati.",
       "fields": {
+        "device_id": {
+          "name": "Account",
+          "description": "Una qualsiasi auto dell'account, o il suo dispositivo di debug. Serve solo con più account."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         },
         "base_url": {
           "name": "URL di base del portale",
@@ -3159,9 +3232,13 @@
       "name": "Importa nelle statistiche a lungo termine",
       "description": "Ricostruisce le statistiche a lungo termine di questa integrazione dallo storico registrato, così ricariche e viaggi precedenti all'installazione (o avvenuti mentre Home Assistant era spento) compaiono nella dashboard Energia. Viene eseguito automaticamente man mano che si registrano i dati; usalo dopo il ripristino di un backup o per verificare il numero di righe. Solo locale -- nessuna quota API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "Facoltativo: solo questa auto. Lascia vuoto per tutte le auto dell'account."
+        },
         "entry_id": {
           "name": "Voce di configurazione",
-          "description": "ID facoltativo della voce di configurazione da usare. Obbligatorio se sono configurate più voci."
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
         },
         "vin": {
           "name": "VIN",

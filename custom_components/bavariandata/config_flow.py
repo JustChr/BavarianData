@@ -23,6 +23,7 @@ from homeassistant.components import persistent_notification, webhook
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult, FlowResultType, section
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -1185,13 +1186,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
             )
         if user_input is None:
             return self._show_confirm(step_id="action_fetch_mappings")
-        await self.hass.services.async_call(
-            DOMAIN,
-            "fetch_vehicle_mappings",
-            {"entry_id": self._config_entry.entry_id},
-            blocking=True,
-        )
-        return self._finish()
+        return await self._call_for_each("action_fetch_mappings", "fetch_vehicle_mappings", [None])
 
     def _collect_vins(self) -> list[str]:
         runtime = self._get_runtime()
@@ -1222,14 +1217,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
             )
         if user_input is None:
             return self._show_confirm(step_id="action_fetch_basic")
-        for vin in sorted(vins):
-            await self.hass.services.async_call(
-                DOMAIN,
-                "fetch_basic_data",
-                {"entry_id": self._config_entry.entry_id, "vin": vin},
-                blocking=True,
-            )
-        return self._finish()
+        return await self._call_for_each("action_fetch_basic", "fetch_basic_data", sorted(vins))
 
     async def async_step_action_fetch_telematic(
         self, user_input: Optional[Dict[str, Any]] = None
@@ -1242,12 +1230,30 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
             )
         if user_input is None:
             return self._show_confirm(step_id="action_fetch_telematic")
-        await self.hass.services.async_call(
-            DOMAIN,
-            "fetch_telematic_data",
-            {"entry_id": self._config_entry.entry_id},
-            blocking=True,
-        )
+        return await self._call_for_each("action_fetch_telematic", "fetch_telematic_data", [None])
+
+    async def _call_for_each(
+        self, step_id: str, service: str, vins: list[Optional[str]]
+    ) -> FlowResult:
+        """Call ``service`` once per car (``None``: for the account) and finish.
+
+        One call per car because a call naming none is refused once the account
+        has two. A refused call -- no quota left, no token -- comes back on the
+        form rather than as Home Assistant's "Unknown error".
+        """
+
+        for vin in vins:
+            data: Dict[str, Any] = {"entry_id": self._config_entry.entry_id}
+            if vin is not None:
+                data["vin"] = vin
+            try:
+                await self.hass.services.async_call(DOMAIN, service, data, blocking=True)
+            except HomeAssistantError as err:
+                return self._show_confirm(
+                    step_id=step_id,
+                    errors={"base": "fetch_failed"},
+                    placeholders={"error": str(err)},
+                )
         return self._finish()
 
     async def _run_simple_service(
@@ -1258,15 +1264,12 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         runtime = self._get_runtime()
         if runtime is None:
             return self._show_confirm(step_id=step_id, errors={"base": "runtime_missing"})
+        vins = sorted(self._collect_vins())
+        if not vins:
+            return self._show_confirm(step_id=step_id, errors={"base": "no_vins"})
         if user_input is None:
             return self._show_confirm(step_id=step_id)
-        await self.hass.services.async_call(
-            DOMAIN,
-            service,
-            {"entry_id": self._config_entry.entry_id},
-            blocking=True,
-        )
-        return self._finish()
+        return await self._call_for_each(step_id, service, vins)
 
     async def async_step_action_charging_costs(
         self, user_input: Optional[Dict[str, Any]] = None
@@ -2241,6 +2244,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         source = options.get(OPTION_IMAGE_SOURCE, DEFAULT_IMAGE_SOURCE)
         errors: Dict[str, str] = {}
         vehicle = ""
+        error_text = ""
         failed: Dict[str, str] = {}
         if user_input is not None:
             source = user_input.get(OPTION_IMAGE_SOURCE, source)
@@ -2261,12 +2265,18 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                     errors[OPTION_IMAGE_SOURCE] = f"configurator_{failed[first]}"
                     vehicle = runtime.coordinator.names.get(first) or ""
             else:
-                await self.hass.services.async_call(
-                    DOMAIN,
-                    "fetch_vehicle_image",
-                    {"entry_id": self._config_entry.entry_id},
-                    blocking=True,
-                )
+                for vin in vins:
+                    try:
+                        await self.hass.services.async_call(
+                            DOMAIN,
+                            "fetch_vehicle_image",
+                            {"entry_id": self._config_entry.entry_id, "vin": vin},
+                            blocking=True,
+                        )
+                    except HomeAssistantError as err:
+                        errors["base"] = "fetch_failed"
+                        error_text = str(err)
+                        break
             if not errors:
                 options[OPTION_IMAGE_SOURCE] = source
                 # Saved before the entities are told, so they read the new source.
@@ -2300,7 +2310,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
             step_id="action_fetch_image",
             data_schema=schema,
             errors=errors,
-            description_placeholders={"vehicle": vehicle},
+            description_placeholders={"vehicle": vehicle, "error": error_text},
         )
 
     async def async_step_action_select_clusters(
