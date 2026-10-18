@@ -278,6 +278,24 @@ def test_report_omits_cost_it_does_not_have():
     assert "Cost</div>" not in html
 
 
+def test_report_says_what_the_solar_share_is_a_share_of():
+    # September on the i5: 197 kWh charged, but only 99 kWh of it had a mix
+    # (the rest predates the house sensors). "76 %" beside "197 kWh" read as 76 %
+    # of the month; the note names the measured total it is really a share of.
+    sessions = [
+        _session(energy_kwh=98.0, energy_mix=None),
+        _session(energy_kwh=99.0, energy_mix={"pv": 75.0, "grid": 24.0, "solar_percent": 75.8}),
+    ]
+    html = export.month_report_html(
+        month="2026-09",
+        vehicle="i5",
+        sessions=sessions,
+        trips=[],
+        charging_summary=summary.summarise(sessions),
+    )
+    assert "75.8 % <small>75.0 of 99.0 kWh measured</small>" in html
+
+
 def test_report_handles_an_empty_month():
     html = export.month_report_html(month="2026-07", vehicle="i5", sessions=[], trips=[])
     assert "No charging sessions" in html and "No trips" in html

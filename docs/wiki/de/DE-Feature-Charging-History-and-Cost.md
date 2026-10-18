@@ -154,7 +154,11 @@ nächsten Start von Home Assistant bereinigt.
 Die Karte zeigt am Ladevorgang ein Etikett **☀ 62 % Solar** und beim Aufklappen
 die ganze Aufteilung; der Anteil des Monats steht als Attribute (`solar_percent`,
 `energy_mix`) am Sensor **Geladene Energie (dieser Monat)**, und Export wie
-gedruckter Monatsbericht enthalten die Zahlen.
+gedruckter Monatsbericht enthalten die Zahlen. Eine Ladung ganz ohne Solarstrom
+bekommt kein Etikett. Der Anteil bezieht sich auf die Energie, die gemessen werden
+konnte: Ladungen von vor der Einrichtung der Sensoren zählen zur Energie des Monats,
+aber nicht zu seinem Mix, deshalb sagt der Monatsbericht es ausdrücklich, etwa
+*76 % — 75 von 99 kWh gemessen*.
 
 ### Wie die Aufteilung entschieden wird
 

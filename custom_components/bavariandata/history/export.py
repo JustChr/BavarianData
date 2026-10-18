@@ -48,6 +48,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "sessions": "Sessions",
         "energy": "Energy",
         "solar": "From own solar",
+        "solar_measured": "{pv} of {known} kWh measured",
         "cost": "Cost",
         "distance": "Distance",
         "trip_count": "Trips",
@@ -98,6 +99,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "sessions": "Ladevorgänge",
         "energy": "Energie",
         "solar": "Aus eigenem Solarstrom",
+        "solar_measured": "{pv} von {known} kWh gemessen",
         "cost": "Kosten",
         "distance": "Strecke",
         "trip_count": "Fahrten",
@@ -147,6 +149,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "sessions": "Sessions",
         "energy": "Énergie",
         "solar": "Solaire autoproduit",
+        "solar_measured": "{pv} sur {known} kWh mesurés",
         "cost": "Coût",
         "distance": "Distance",
         "trip_count": "Trajets",
@@ -197,6 +200,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "sessions": "Sessioni",
         "energy": "Energia",
         "solar": "Dal proprio fotovoltaico",
+        "solar_measured": "{pv} su {known} kWh misurati",
         "cost": "Costo",
         "distance": "Distanza",
         "trip_count": "Viaggi",
@@ -247,6 +251,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "sessions": "Sesiones",
         "energy": "Energía",
         "solar": "Solar propia",
+        "solar_measured": "{pv} de {known} kWh medidos",
         "cost": "Coste",
         "distance": "Distancia",
         "trip_count": "Trayectos",
@@ -297,6 +302,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "sessions": "Sessies",
         "energy": "Energie",
         "solar": "Uit eigen zonnestroom",
+        "solar_measured": "{pv} van {known} kWh gemeten",
         "cost": "Kosten",
         "distance": "Afstand",
         "trip_count": "Ritten",
@@ -346,6 +352,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "sessions": "Sesje",
         "energy": "Energia",
         "solar": "Z własnej fotowoltaiki",
+        "solar_measured": "{pv} z {known} kWh zmierzonych",
         "cost": "Koszt",
         "distance": "Dystans",
         "trip_count": "Przejazdy",
@@ -396,6 +403,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "sessions": "Sessões",
         "energy": "Energia",
         "solar": "Da própria energia solar",
+        "solar_measured": "{pv} de {known} kWh medidos",
         "cost": "Custo",
         "distance": "Distância",
         "trip_count": "Viagens",
@@ -446,6 +454,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "sessions": "Relace",
         "energy": "Energie",
         "solar": "Z vlastní FVE",
+        "solar_measured": "{pv} z {known} kWh změřených",
         "cost": "Náklady",
         "distance": "Vzdálenost",
         "trip_count": "Jízdy",
@@ -495,6 +504,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "sessions": "Sessioner",
         "energy": "Energi",
         "solar": "Från egen solel",
+        "solar_measured": "{pv} av {known} kWh uppmätta",
         "cost": "Kostnad",
         "distance": "Sträcka",
         "trip_count": "Resor",
@@ -827,11 +837,17 @@ def month_report_html(
         if mix.get("solar_percent") is not None:
             # The kWh alongside the percentage, because a share on its own says
             # nothing about how much charging it is a share of.
+            # Of the *measured* kWh, which is what the percentage is a share of:
+            # a charge recorded before the house sensors were set up has no mix,
+            # so the measured total can be well short of the month's energy.
+            known = sum(mix.get(source) or 0 for source in ("pv", "battery", "grid"))
             tiles.append(
                 _tile(
                     s["solar"],
                     f"{mix['solar_percent']} %",
-                    f"{mix.get('pv', 0)} kWh",
+                    s["solar_measured"].format(
+                        pv=round(mix.get("pv") or 0, 1), known=round(known, 1)
+                    ),
                 )
             )
         if charging_summary.get("cost") is not None:

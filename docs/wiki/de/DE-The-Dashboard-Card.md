@@ -195,7 +195,9 @@ Ladevorgang zusätzlich ein Etikett **☀ 62 % Solar**, und aufgeklappt kommt ei
 *Energiequelle* mit den kWh je Quelle hinzu
 ([siehe Woher die Energie kam](DE-Feature-Charging-History-and-Cost#where-the-energy-came-from)).
 Ladevorgänge von vor der Einrichtung dieser Sensoren haben einfach kein Etikett — die
-Karte zeigt nie 0 %, wenn es eigentlich „nicht gemessen“ heißt.
+Karte zeigt nie 0 %, wenn es eigentlich „nicht gemessen“ heißt. Eine Ladung ganz ohne
+Solarstrom (etwa nachts) hat ebenfalls kein Etikett; ihre Aufteilung zeigt trotzdem, woher
+die Energie kam.
 
 ---
 

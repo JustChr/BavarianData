@@ -134,7 +134,11 @@ are cleared the next time Home Assistant starts.
 The card shows a **☀ 62 % solar** tag on the session row and the full breakdown
 when you expand it; the month's share rides as attributes (`solar_percent`,
 `energy_mix`) on the **Charging energy this month** sensor, and the export and
-the printed month report both carry the numbers.
+the printed month report both carry the numbers. A charge with no solar in it
+gets no tag. The share is of the energy that could be measured: charges from
+before the sensors were set up count toward the month's energy but not toward
+its mix, so the month report says it outright, e.g. *76 % — 75 of 99 kWh
+measured*.
 
 ### How the split is decided
 
