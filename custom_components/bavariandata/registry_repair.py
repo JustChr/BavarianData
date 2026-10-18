@@ -24,6 +24,8 @@ from __future__ import annotations
 
 from typing import Any, Callable, Iterable, Mapping, Optional
 
+from .coverage import is_ev_only_descriptor
+
 # The integration's own entities that only mean something with a high-voltage
 # battery: the state-of-charge estimate, its rate and time to target, the charged-energy
 # counters, the charging ledger and cost sensors, battery health and real range.
@@ -110,9 +112,20 @@ def ev_entities_to_remove(rows: Iterable[Any], combustion_only: Callable[[str], 
     on a fresh restart. Removed rather than disabled on purpose -- a
     ``disabled_by`` change makes Home Assistant reload the entry, and an entity
     that can never have a value has no customisation worth keeping.
+
+    Covers BMW's own battery fields too (``coverage.is_ev_only_descriptor``):
+    a petrol M240i streams the battery level at each trip's end, and every
+    release before v0.9.21 gave it an entity.
     """
 
-    return _select(rows, EV_ONLY_SUFFIXES, combustion_only)
+    selected = _select(rows, EV_ONLY_SUFFIXES, combustion_only)
+    for row in rows:
+        vin, separator, descriptor = (row.unique_id or "").partition("_")
+        if not (separator and vin) or row.entity_id in selected:
+            continue
+        if is_ev_only_descriptor(descriptor) and combustion_only(vin):
+            selected.append(row.entity_id)
+    return selected
 
 
 def hybrid_entities_to_remove(

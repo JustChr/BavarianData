@@ -17,6 +17,23 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   76 %" sat beside the month's 197 kWh but was a share of only the 99 kWh whose
   source was measured (charges from before the house sensors were set up have
   none). The tile now reads *75 of 99 kWh measured* under the percentage.
+- **Petrol and diesel cars no longer get BMW's battery fields as entities.**
+  BMW streams some of them to cars with no high-voltage battery: the battery
+  level at each trip's end and the share of electric driving (a G42 M240i), the
+  EV charge target (an F87 M2), the charging port. They never mean anything
+  there; existing ones are removed on the first start after updating.
+- **BMW's basic data now names the drivetrain.** It says `CONV` for a combustion
+  car and `PHEV` for a plug-in hybrid, and both now count, not only `BEV`. A
+  petrol MINI that streams no fuel data at all (thanks @BeastleeUK, #100) now
+  gets the combustion layout, its range in the ring, and the battery views tell
+  it why they are empty.
+
+### Fixed
+- **The lifetime fuel counters keep long-term statistics.** They were classed
+  as fuel *in a tank*, a class Home Assistant only allows as a measurement, so
+  it refused their counting-up state class and logged a warning on every start.
+  They are now consumed volumes. The tank's own reading falls back to liters
+  when the car sends no unit, and a spelled-out *liters* is understood.
 
 ## [0.9.21-beta.2] - 2026-10-18
 

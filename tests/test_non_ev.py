@@ -66,6 +66,7 @@ def test_basic_data_bev_outranks_a_streamed_tank_level():
     # Any other spelling, or none, leaves the descriptors to decide.
     assert coverage.is_plug_in_hybrid(PHEV_SEEN, "PHEV")
     assert coverage.is_plug_in_hybrid(PHEV_SEEN, None)
+    assert coverage.is_plug_in_hybrid(PHEV_SEEN, "MHEV")
 
 
 def test_the_m2s_ev_charge_target_is_not_a_battery():
@@ -99,6 +100,80 @@ def test_petrol_car_loses_exactly_its_battery_only_entities():
         "sensor.m2_charged",
         "sensor.m2_month",
     ]
+
+
+TRIP_END_SOC = "vehicle.trip.segment.end.drivetrain.batteryManagement.hvSoc"
+ELECTRIC_SHARE = (
+    "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveElectric"
+)
+
+
+def test_petrol_car_loses_the_battery_fields_bmw_streams_it():
+    # A G42 M240i streams the battery level at each trip's end and a share of
+    # electric driving; an F87 M2 the EV charge target. Each became an entity.
+    rows = [
+        _row("sensor.m240i_trip_soc", f"{PETROL_VIN}_{TRIP_END_SOC}"),
+        _row("sensor.m240i_electric", f"{PETROL_VIN}_{ELECTRIC_SHARE}"),
+        _row("sensor.m2_target", f"{PETROL_VIN}_{EV_TARGET}"),
+        # Kept: the tank, the doors, and the trip's own time.
+        _row("sensor.m2_fuel", f"{PETROL_VIN}_{FUEL}"),
+        _row("sensor.m2_doors", f"{PETROL_VIN}_{DOOR}"),
+        _row("sensor.m2_trip_end", f"{PETROL_VIN}_vehicle.trip.segment.end.time"),
+        # The same fields on the battery car next to it stay.
+        _row("sensor.i5_trip_soc", f"{EV_VIN}_{TRIP_END_SOC}"),
+    ]
+    removed = repair.ev_entities_to_remove(rows, lambda vin: vin == PETROL_VIN)
+    assert removed == ["sensor.m240i_trip_soc", "sensor.m240i_electric", "sensor.m2_target"]
+
+
+def test_ev_only_descriptors_spare_what_any_car_has():
+    for descriptor in (TRIP_END_SOC, ELECTRIC_SHARE, EV_TARGET, HV_SOC):
+        assert coverage.is_ev_only_descriptor(descriptor), descriptor
+    for descriptor in (
+        FUEL,
+        FUEL_LEVEL,
+        DOOR,
+        "vehicle.trip.segment.end.time",
+        "vehicle.trip.segment.accumulated.acceleration.starsAverage",
+        "vehicle.vehicle.avgSpeed",
+        "vehicle.drivetrain.lastRemainingRange",
+        "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.overall.fuel",
+        "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeIncreasing.referenceDistance",
+        "vehicle.electricalSystem.battery.voltage",
+    ):
+        assert not coverage.is_ev_only_descriptor(descriptor), descriptor
+
+
+def test_basic_data_names_the_drivetrain():
+    # Issue #100: a petrol MINI JCW Countryman streams no fuel system at all,
+    # and its basic data says CONV.
+    assert coverage.is_combustion_only({DOOR}, "CONV")
+    assert coverage.is_combustion_only(set(), "conv")
+    assert not coverage.is_plug_in_hybrid(PHEV_SEEN, "CONV")
+    # PHEV and BEV are never combustion-only, whatever has arrived.
+    assert not coverage.is_combustion_only(M2_SEEN, "PHEV")
+    assert not coverage.is_combustion_only(M2_SEEN, "BEV")
+    # A PHEV is one before its tank reports.
+    assert coverage.is_plug_in_hybrid({HV_SOC}, "PHEV")
+    # Unknown spellings leave the descriptors to decide.
+    assert coverage.is_combustion_only(M2_SEEN, "MHEV")
+    assert not coverage.is_combustion_only({DOOR}, None)
+
+
+def test_a_conv_car_has_no_battery_clusters_to_miss():
+    from datetime import datetime, timedelta, timezone
+
+    now = datetime(2026, 10, 18, tzinfo=timezone.utc)
+    report = coverage.analyze_coverage(
+        vin=PETROL_VIN,
+        expected_by_section={"electric": [HV_SOC], "status": [DOOR]},
+        labels={},
+        seen={DOOR},
+        monitoring_since=now - timedelta(days=60),
+        now=now,
+        drive_train="CONV",
+    )
+    assert "electric" in report.not_applicable
 
 
 def test_nothing_is_removed_without_proof_of_a_petrol_car():

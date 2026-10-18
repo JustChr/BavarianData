@@ -105,9 +105,11 @@ while the car charges at home with a wallbox meter bound, and BMW's anywhere
 else. Outside a charge it is labelled *Charge time*, and it is hidden when that
 time is 0.
 
-A car that sends high-voltage battery data *and* fuel data is a plug-in hybrid;
-fuel data alone makes it petrol or diesel. Some petrol cars stream an EV charge
-target anyway, so that never makes a car look electric.
+BMW's basic data decides first: it names the drivetrain as electric, plug-in
+hybrid or combustion. Without it, a car that sends high-voltage battery data *and*
+fuel data is a plug-in hybrid; fuel data alone makes it petrol or diesel. Some
+petrol cars stream an EV charge target anyway, so that never makes a car look
+electric. A petrol car that streams no tank at all rings its range instead.
 
 A car that has only just been set up has proved nothing yet, and keeps the
 electric layout until it does. But a car that has been talking for a while and

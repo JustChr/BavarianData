@@ -2014,7 +2014,7 @@ DESCRIPTOR_META: dict[str, dict] = {
     'vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeDepleting.fuel': {
         "section": 'usage',
         "category": 'OBFCM PHEV',
-        "device_class": 'volume_storage',
+        "device_class": 'volume',
         "state_class": 'total_increasing',
         "unit": 'L',
         "options": [],
@@ -2047,7 +2047,7 @@ DESCRIPTOR_META: dict[str, dict] = {
     'vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeIncreasing.fuel': {
         "section": 'usage',
         "category": 'OBFCM PHEV',
-        "device_class": 'volume_storage',
+        "device_class": 'volume',
         "state_class": 'total_increasing',
         "unit": 'L',
         "options": [],
@@ -2069,7 +2069,7 @@ DESCRIPTOR_META: dict[str, dict] = {
     'vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.overall.fuel': {
         "section": 'usage',
         "category": 'OBFCM',
-        "device_class": 'volume_storage',
+        "device_class": 'volume',
         "state_class": 'total_increasing',
         "unit": 'L',
         "options": [],

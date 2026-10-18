@@ -164,7 +164,13 @@ def _coverage_reports(runtime: "CardataRuntimeData", vin: Optional[str] = None):
     live = {
         known_vin: set(descriptors) for known_vin, descriptors in runtime.coordinator.data.items()
     }
-    reports = runtime.coverage.reports(live)
+    reports = runtime.coverage.reports(
+        live,
+        drive_trains={
+            known_vin: runtime.coordinator.drive_train(known_vin)
+            for known_vin in set(live) | set(runtime.coordinator.device_metadata)
+        },
+    )
     if vin is not None:
         reports = [report for report in reports if report.vin == vin]
     return reports

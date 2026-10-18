@@ -555,3 +555,40 @@ def test_the_petrol_notice_is_escaped():
     html = _render_view(M2, "health", {"title": "<b>M2</b>"})
     assert "<b>" not in html
     assert "&lt;b&gt;M2&lt;/b&gt;" in html
+
+
+def _with_basic_data(states: dict, drive_train: str) -> dict:
+    return {
+        key: {
+            **st,
+            "attributes": {**st["attributes"], "vehicle_basic_data": {"drive_train": drive_train}},
+        }
+        for key, st in states.items()
+    }
+
+
+def test_basic_data_conv_makes_a_bare_mini_a_combustion_car():
+    """Issue #100: a petrol JCW Countryman streams no fuel system, but BMW's
+    basic data says ``CONV``. That is positive evidence, so it leaves the
+    waiting room for the combustion layout."""
+
+    rendered = _render(_with_basic_data(MINI, "CONV"))
+    assert rendered["drivetrain"] == "ice"
+    # Still nothing electric, and the range it does stream is still shown.
+    assert "sensor.mini_trip_hvsoc" not in rendered["html"]
+    assert "233<i>km</i>" in rendered["html"]
+
+
+def test_basic_data_phev_makes_a_hybrid_before_its_tank_reports():
+    # The X3 before its first tank reading, its basic data not loaded yet...
+    no_tank = {
+        key: {
+            **st,
+            "attributes": {k: v for k, v in st["attributes"].items() if k != "vehicle_basic_data"},
+        }
+        for key, st in PHEV.items()
+        if "fuelSystem" not in st["attributes"].get("descriptor", "")
+    }
+    assert _render(no_tank)["drivetrain"] == "bev"
+    # ...and once it has.
+    assert _render(_with_basic_data(no_tank, "PHEV"))["drivetrain"] == "phev"

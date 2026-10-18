@@ -4007,14 +4007,19 @@ class CardataCoordinator:
             seen |= self.coverage.seen_descriptors(vin)
         return seen
 
-    def is_combustion_only(self, vin: str) -> bool:
-        """Positive evidence of a fuel system and none of a high-voltage battery."""
+    def drive_train(self, vin: str) -> Optional[str]:
+        """BMW's basic-data ``driveTrain`` for a car (``BEV``/``PHEV``/``CONV``)."""
 
-        return is_combustion_only(self.seen_descriptors(vin))
+        extra = (self.device_metadata.get(vin) or {}).get("extra_attributes") or {}
+        return extra.get("drive_train")
+
+    def is_combustion_only(self, vin: str) -> bool:
+        """An engine and no high-voltage battery, by basic data or by evidence."""
+
+        return is_combustion_only(self.seen_descriptors(vin), self.drive_train(vin))
 
     def is_plug_in_hybrid(self, vin: str) -> bool:
-        extra = (self.device_metadata.get(vin) or {}).get("extra_attributes") or {}
-        return is_plug_in_hybrid(self.seen_descriptors(vin), extra.get("drive_train"))
+        return is_plug_in_hybrid(self.seen_descriptors(vin), self.drive_train(vin))
 
     async def async_handle_connection_event(
         self, status: str, *, reason: Optional[str] = None

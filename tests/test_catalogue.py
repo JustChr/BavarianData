@@ -232,7 +232,8 @@ UNIT_CRITICAL_DEVICE_CLASSES = {
     "vehicle.powertrain.electric.battery.charging.power": "power",
     "vehicle.drivetrain.electricEngine.charging.acVoltage": "voltage",
     "vehicle.drivetrain.electricEngine.charging.acAmpere": "current",
-    "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.overall.fuel": "volume_storage",
+    "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.overall.fuel": "volume",
+    "vehicle.drivetrain.fuelSystem.remainingFuel": "volume_storage",
     "vehicle.cabin.hvac.preconditioning.configuration.defaultSettings.targetTemperature": "temperature",
 }
 
@@ -244,6 +245,38 @@ def test_unit_critical_device_classes_survive_regeneration():
             f"{descriptor} lost device_class {device_class!r} "
             f"(now {META[descriptor]['device_class']!r}) -- check its unit in "
             "catalogue.json against units.py."
+        )
+
+
+# The state classes Home Assistant accepts per device class, for the classes
+# this catalogue uses (``homeassistant.components.sensor.const``,
+# ``DEVICE_CLASS_STATE_CLASSES``). Anything else is refused with a warning on
+# every start and the entity keeps no long-term statistics.
+HA_STATE_CLASSES = {
+    "battery": {"measurement"},
+    "current": {"measurement"},
+    "distance": {"measurement", "total", "total_increasing"},
+    "duration": {"measurement", "total", "total_increasing"},
+    "energy": {"total", "total_increasing"},
+    "energy_storage": {"measurement"},
+    "power": {"measurement"},
+    "pressure": {"measurement"},
+    "speed": {"measurement"},
+    "temperature": {"measurement"},
+    "voltage": {"measurement"},
+    "volume": {"measurement", "total", "total_increasing"},
+    "volume_storage": {"measurement"},
+}
+
+
+def test_every_state_class_is_one_home_assistant_accepts():
+    for descriptor, meta in META.items():
+        device_class, state_class = meta["device_class"], meta["state_class"]
+        if device_class is None or state_class is None:
+            continue
+        assert device_class in HA_STATE_CLASSES, f"{descriptor}: unlisted {device_class}"
+        assert state_class in HA_STATE_CLASSES[device_class], (
+            f"{descriptor}: Home Assistant refuses {state_class} on {device_class}"
         )
 
 
@@ -284,6 +317,7 @@ def test_device_class_units_are_consistent():
         "speed",
         "pressure",
         "battery",
+        "volume",
         "volume_storage",
     }
     # Classified on purpose with the unit left to the stream: BMW documents the

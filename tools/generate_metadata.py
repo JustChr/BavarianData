@@ -177,7 +177,13 @@ def device_and_state_class(
             return "distance", "total_increasing"
         return "distance", "measurement"
     if unit == "L":
-        return "volume_storage", ("total_increasing" if lifetime else "measurement")
+        # Fuel burnt over the car's life is a consumed volume, which Home
+        # Assistant calls ``volume``; ``volume_storage`` (what is in a tank)
+        # allows only ``measurement``, so the lifetime counters were refused a
+        # state class and logged a warning on every start.
+        if lifetime:
+            return "volume", "total_increasing"
+        return "volume_storage", "measurement"
     if unit in ("min", "s", "h") and not _CLOCK_SUFFIX.search(descriptor):
         return "duration", None
     if unit == "%":
