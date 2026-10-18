@@ -26,6 +26,7 @@ files.
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 import shutil
 import subprocess
@@ -126,6 +127,9 @@ def _render(states: dict, config: dict, **extra) -> str:
         encoding="utf-8",
         check=True,
         timeout=60,
+        # Times render in the machine's zone; pinned, or a snapshot taken in
+        # Vienna fails on CI's UTC runner.
+        env={**os.environ, "TZ": "UTC"},
     )
     payload = json.loads(result.stdout)
     assert payload["error"] is None, f"the card threw while rendering: {payload['error']}"
