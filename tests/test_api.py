@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 
+import aiohttp
 import pytest
 
 from .conftest import FakeResponse, FakeSession, load_module
@@ -52,6 +53,29 @@ def test_an_error_names_bmws_reason_without_the_vin():
         _run(api.async_get_telematic_data(session, "tok", "WBA12345678901234", "c1"))
     assert exc.value.error_id == "CU-105"
     assert "(CU-105: No permission for specified containerId) for GET" in str(exc.value)
+
+
+def test_an_error_leaves_the_vin_out_of_the_path():
+    # The daily service-items warning logs this text; users paste such logs
+    # into public issues, and the request path carries the VIN.
+    vin = "WBA12345678901234"
+    session = FakeSession([FakeResponse(400, {"exveErrorId": "CU-400"})])
+    with pytest.raises(api.CardataApiError) as exc:
+        _run(api.async_get_telematic_data(session, "tok", vin, "c1"))
+    assert vin not in str(exc.value)
+    assert "for GET /customers/vehicles/<VIN>/telematicData" in str(exc.value)
+
+    class OfflineSession:
+        def request(self, *args, **kwargs):
+            raise aiohttp.ClientConnectionError(f"Cannot connect for {vin}")
+
+    for call in (
+        api.async_get_telematic_data(OfflineSession(), "tok", vin, "c1"),
+        api.async_get_vehicle_image(OfflineSession(), "tok", vin),
+    ):
+        with pytest.raises(api.CardataApiError) as exc:
+            _run(call)
+        assert vin not in str(exc.value)
 
 
 def test_an_error_note_is_shortened_and_masked():
