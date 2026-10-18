@@ -112,3 +112,19 @@ def test_canonical_units_are_their_own_canonical_form() -> None:
     for unit in units.CANONICAL_UNITS:
         assert normalize_unit(unit) == unit
         assert normalize_unit(normalize_unit(unit)) == unit
+
+
+@pytest.mark.parametrize("raw", ["liter", "Liters", "litre", "LITRES"])
+def test_a_spelled_out_litre_is_a_litre(raw) -> None:
+    # Unseen so far, but passing it through would hand Home Assistant a volume
+    # in a unit it does not know: no statistics, a warning on every update.
+    assert normalize_unit(raw) == "L"
+
+
+def test_a_tank_with_no_unit_reads_in_litres() -> None:
+    assert units.entity_unit("volume_storage", None) == "L"
+    # A unit the car does send always wins, gallons included.
+    assert units.entity_unit("volume_storage", "gal") == "gal"
+    # Nothing else is given a unit it did not come with.
+    assert units.entity_unit(None, None) is None
+    assert units.entity_unit("distance", None) is None

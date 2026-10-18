@@ -15,6 +15,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers import entity_registry as er
 
 from .coordinator import CardataCoordinator
+from .coverage import is_ev_only_descriptor
 from .entity import CardataEntity
 
 
@@ -211,6 +212,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 
     def ensure_entity(vin: str, descriptor: str, *, assume_binary: bool = False) -> None:
         if (vin, descriptor) in entities:
+            return
+        if is_ev_only_descriptor(descriptor) and coordinator.is_combustion_only(vin):
+            # A charging port or plug on a car with no traction battery.
             return
         state = coordinator.get_state(vin, descriptor)
         if state:

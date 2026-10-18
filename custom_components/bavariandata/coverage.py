@@ -65,6 +65,39 @@ COMBUSTION_PREFIXES = (
     "vehicle.drivetrain.internalCombustionEngine.",
 )
 
+# BMW's basic data ``driveTrain``. Seen: ``BEV`` (i5), ``PHEV`` (X3 30e, #25),
+# ``CONV`` (petrol MINI JCW Countryman, #100). ``propulsionType`` is no help: it
+# reads ``BE`` on all three of those.
+DRIVE_TRAIN_ELECTRIC = "BEV"
+DRIVE_TRAIN_HYBRID = "PHEV"
+DRIVE_TRAIN_COMBUSTION = "CONV"
+
+# Descriptors that describe a traction battery, its charging or electric
+# driving. Deliberately not the whole "electric" cluster, which also carries
+# the trip segment's time, distance, average speed and driving-style stars
+# that any car has; and not ``vehicle.body.flap``, which may be a fuel flap.
+EV_ONLY_PREFIXES = (
+    "vehicle.body.chargingPort.",
+    "vehicle.drivetrain.batteryManagement.",
+    "vehicle.drivetrain.electricEngine.",
+    "vehicle.powertrain.electric.",
+    "vehicle.powertrain.tractionBattery.",
+    "vehicle.trip.segment.accumulated.drivetrain.electricEngine.",
+    "vehicle.trip.segment.end.drivetrain.batteryManagement.",
+    # The OBFCM counters BMW's catalogue files under "OBFCM PHEV": driving
+    # while the battery was being depleted. A G42 M240i sends them too.
+    "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeDepleting.",
+)
+EV_ONLY_DESCRIPTORS = frozenset(
+    {
+        "vehicle.drivetrain.avgElectricRangeConsumption",
+        # Also "OBFCM PHEV"; its sibling ``inChargeIncreasing.referenceDistance``
+        # is plain OBFCM, so it stays.
+        "vehicle.drivetrain.fuelSystem.consumptionOverLifeTime.inChargeIncreasing.fuel",
+        "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveElectric",
+    }
+)
+
 
 def monitoring_since(
     started_at: Optional[datetime], first_seen: Optional[datetime]
@@ -124,31 +157,59 @@ def has_combustion(seen: Collection[str]) -> bool:
     return any(descriptor.startswith(COMBUSTION_PREFIXES) for descriptor in seen)
 
 
-def is_combustion_only(seen: Collection[str]) -> bool:
-    """Whether the car has shown an engine and no high-voltage battery.
+def _basic_drive_train(drive_train: Optional[str]) -> str:
+    return str(drive_train or "").strip().upper()
 
-    Needs positive evidence both ways: a car that has sent neither yet (a fresh
-    install, or the status cluster unselected) is not assumed to be anything.
+
+def is_combustion_only(seen: Collection[str], drive_train: Optional[str] = None) -> bool:
+    """Whether the car has an engine and no high-voltage battery.
+
+    BMW's basic data answers when it has a spelling for it: ``CONV`` is a
+    combustion car (a petrol MINI JCW Countryman, issue #100, which streams no
+    fuel system at all), ``BEV`` and ``PHEV`` are not. Without it, the
+    descriptors decide, and they need positive evidence both ways: a car that
+    has sent neither yet (a fresh install, or the status cluster unselected) is
+    not assumed to be anything.
     """
 
+    basic = _basic_drive_train(drive_train)
+    if basic == DRIVE_TRAIN_COMBUSTION:
+        return True
+    if basic in (DRIVE_TRAIN_ELECTRIC, DRIVE_TRAIN_HYBRID):
+        return False
     seen_set = set(seen)
     return has_combustion(seen_set) and not has_high_voltage(seen_set)
 
 
 def is_plug_in_hybrid(seen: Collection[str], drive_train: Optional[str] = None) -> bool:
-    """Whether the car has shown both a high-voltage battery and a fuel system.
+    """Whether the car has both a high-voltage battery and a fuel system.
 
-    BMW's basic data wins when it says ``BEV``: an i4 eDrive35 streams
+    BMW's basic data wins where it has said something: ``PHEV`` is one (an X3
+    30e, issue #25); ``BEV`` is not, though an i4 eDrive35 streams
     ``fuelSystem.level`` all the same (issue #53), so a fuel descriptor alone
-    cannot make a battery car a hybrid. Basic data only ever confirms electric --
-    its other spellings are unknown -- so anything else falls back to the
-    descriptors.
+    cannot make a battery car a hybrid; nor is ``CONV``. Any other spelling, or
+    none, falls back to the descriptors.
     """
 
-    if str(drive_train or "").upper() == "BEV":
+    basic = _basic_drive_train(drive_train)
+    if basic == DRIVE_TRAIN_HYBRID:
+        return True
+    if basic in (DRIVE_TRAIN_ELECTRIC, DRIVE_TRAIN_COMBUSTION):
         return False
     seen_set = set(seen)
     return has_high_voltage(seen_set) and has_combustion(seen_set)
+
+
+def is_ev_only_descriptor(descriptor: str) -> bool:
+    """Whether a descriptor only means something on a car with a traction battery.
+
+    BMW streams some of these to combustion cars anyway: an F87 M2 sends the EV
+    charge target, a G42 M240i the battery level at the end of each trip and its
+    share of electric driving. On a car with no such battery they are a
+    permanent zero or nonsense, so a combustion car gets no entity for them.
+    """
+
+    return descriptor in EV_ONLY_DESCRIPTORS or descriptor.startswith(EV_ONLY_PREFIXES)
 
 
 def unsupported_sections(
@@ -296,6 +357,7 @@ def analyze_coverage(
     now: datetime,
     grace_days: int = DEFAULT_GRACE_DAYS,
     unsupported_after_days: int = UNSUPPORTED_AFTER_DAYS,
+    drive_train: Optional[str] = None,
 ) -> CoverageReport:
     """Build a :class:`CoverageReport` from the raw inputs.
 
@@ -303,6 +365,8 @@ def analyze_coverage(
     should stream (already narrowed to the non-diagnostic set the picker
     requests). ``seen`` is every descriptor that has actually arrived for this
     vehicle. Cluster order in the report follows ``expected_by_section``.
+    ``drive_train`` is BMW's basic-data spelling, when known (see
+    :func:`is_combustion_only`).
     """
 
     seen_set = set(seen)
@@ -334,7 +398,9 @@ def analyze_coverage(
 
     coverage_percent = round(100.0 * total_seen / total_expected, 1) if total_expected else 100.0
     drivetrain_excluded = (
-        HIGH_VOLTAGE_SECTIONS & set(expected_by_section) if is_combustion_only(seen_set) else set()
+        HIGH_VOLTAGE_SECTIONS & set(expected_by_section)
+        if is_combustion_only(seen_set, drive_train)
+        else set()
     )
     not_applicable = sorted(
         drivetrain_excluded

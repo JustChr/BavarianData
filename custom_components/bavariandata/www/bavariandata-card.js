@@ -3982,9 +3982,9 @@ class BavarianDataCard extends HTMLElement {
    * An explicit `drivetrain:` wins. Otherwise it is read from what the car
    * actually streams -- high-voltage battery data and fuel data together make a
    * plug-in hybrid, fuel data alone a petrol or diesel car. BMW's basic data
-   * spells an electric car "BEV", but its spelling for the others is unknown, so
-   * it only ever confirms electric. A car that has sent neither yet keeps the
-   * electric layout this card has always shown. */
+   * decides where it uses a spelling we have seen ("BEV", "PHEV", "CONV"). A
+   * car that has sent neither yet keeps the electric layout this card has
+   * always shown. */
   _drivetrain(entities) {
     const wanted = String((this._config || {}).drivetrain || "").toLowerCase();
     if (DRIVETRAINS.has(wanted)) return wanted;
@@ -4002,6 +4002,11 @@ class BavarianDataCard extends HTMLElement {
       const bd = attrs.vehicle_basic_data;
       if (!basic && bd && bd.drive_train) basic = String(bd.drive_train).toUpperCase();
     }
+    // BMW's basic data, where it has a spelling: "PHEV" on an X3 30e (#25),
+    // "CONV" on a petrol MINI that streams no fuel system at all (#100), which
+    // otherwise sat in the "unknown" layout for good.
+    if (basic === "PHEV") return "phev";
+    if (basic === "CONV") return "ice";
     // An i4 streams a tank level although BMW's basic data calls it BEV (#53).
     if (hv && fuel && basic !== "BEV") return "phev";
     if (fuel && basic !== "BEV") return "ice";
@@ -4242,10 +4247,6 @@ class BavarianDataCard extends HTMLElement {
     const cfg = this._config || {};
     const drivetrain = this._drivetrain(entities);
     const ice = drivetrain === "ice";
-    // A car that proved no drivetrain is laid out like a combustion one -- no
-    // charging tiles, nothing electric -- except that it has no tank either, so
-    // the ring falls through to empty and the lead row shows what it does have.
-    const bare = drivetrain === "unknown";
     const picks = this._overviewEntities(entities, this._deviceName(deviceId));
     const byDesc = (descriptor) => this._idByDescriptor(entities, descriptor);
     const name = cfg.title || this._deviceName(deviceId);
@@ -4264,6 +4265,11 @@ class BavarianDataCard extends HTMLElement {
       byDesc("vehicle.drivetrain.fuelSystem.level") ||
       byDesc("vehicle.drivetrain.fuelSystem.remainingFuel");
     const fuelSt = this._st(fuelId);
+    // A car that proved no drivetrain is laid out like a combustion one -- no
+    // charging tiles, nothing electric -- except that it has no tank either, so
+    // it rings its range and the lead row shows what it does have. So does a
+    // combustion car that streams no tank: a petrol MINI sends none (#100).
+    const bare = drivetrain === "unknown" || (ice && !fuelId);
     const litresId = byDesc("vehicle.drivetrain.fuelSystem.remainingFuel");
     const litresSt = litresId && litresId !== fuelId ? this._st(litresId) : null;
     const rangeId = ice || bare
@@ -4280,7 +4286,7 @@ class BavarianDataCard extends HTMLElement {
     // ring (a fill level can't be drawn from litres without the tank size).
     // A car that proved no drivetrain has neither, so it rings the one headline
     // number it does have: how far it can still go.
-    const gaugeId = ice ? fuelId : bare ? rangeId : picks.soc;
+    const gaugeId = bare ? rangeId : ice ? fuelId : picks.soc;
     const gaugeSt = this._st(gaugeId);
     const gaugeNum = this._num(gaugeSt);
     const gaugeUnit = (gaugeSt && gaugeSt.attributes && gaugeSt.attributes.unit_of_measurement) || "";
@@ -4297,10 +4303,10 @@ class BavarianDataCard extends HTMLElement {
       : "var(--bmw-high)";
     const gaugeVal = gaugeNum == null ? "—" : String(Math.round(gaugeNum));
     const gaugeUnitHtml = isPct ? "%" : this._esc(gaugeUnit);
-    const gaugeCap = ice
-      ? this._t("fuel")
-      : bare
+    const gaugeCap = bare
       ? this._t("remaining_range")
+      : ice
+      ? this._t("fuel")
       : charging
       ? this._t("charging")
       : this._t("charge");

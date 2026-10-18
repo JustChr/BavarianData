@@ -28,7 +28,7 @@ from .coordinator import (
     EFFICIENCY_LIVE_DESCRIPTORS,
     CardataCoordinator,
 )
-from .coverage import HIGH_VOLTAGE_SIGNALS
+from .coverage import HIGH_VOLTAGE_SIGNALS, is_ev_only_descriptor
 from .descriptor_metadata import DESCRIPTOR_META, SECTIONS
 from .descriptors import OPT_IN_LOCATION_DESCRIPTORS, TRACKER_ONLY_LOCATION_DESCRIPTORS
 from .entity import CardataEntity
@@ -41,6 +41,7 @@ from .history.summary import (
 )
 from .placeholders import is_placeholder
 from .restore_units import restore_native
+from .units import entity_unit
 from .sensor_classes import sensor_classes
 from .structured_values import (
     CHECK_CONTROL,
@@ -65,6 +66,7 @@ _DEVICE_CLASS_MAP = {
     "speed": SensorDeviceClass.SPEED,
     "pressure": SensorDeviceClass.PRESSURE,
     "duration": SensorDeviceClass.DURATION,
+    "volume": SensorDeviceClass.VOLUME,
     "volume_storage": SensorDeviceClass.VOLUME_STORAGE,
 }
 _STATE_CLASS_MAP = {
@@ -287,7 +289,9 @@ class CardataSensor(CardataRestoreSensor):
         if self._history is not None:
             self._history.update(items, state.timestamp, dt_util.utcnow().isoformat())
         if not self._fixed_unit:
-            self._attr_native_unit_of_measurement = state.unit
+            self._attr_native_unit_of_measurement = entity_unit(
+                getattr(self, "_attr_device_class", None), state.unit
+            )
 
         self.schedule_update_ha_state()
 
@@ -1798,6 +1802,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         ensure_driving_entity(vin)
         ensure_real_range_entity(vin)
         if (vin, descriptor) in entities:
+            return
+        if is_ev_only_descriptor(descriptor) and coordinator.is_combustion_only(vin):
+            # BMW streams some battery fields to petrol cars too (a trip-end
+            # battery level, the EV charge target); they never mean anything.
             return
 
         # The position belongs to the device tracker. Heading never becomes a

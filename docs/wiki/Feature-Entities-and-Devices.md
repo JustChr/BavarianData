@@ -78,9 +78,19 @@ an earlier release has them removed on the first start after updating, because
 they could never hold a value — their old history may then be listed under
 **Developer tools → Statistics**, where it can be deleted.
 
+The same goes for BMW's own battery fields on a petrol or diesel car. BMW streams
+some of them to cars with no high-voltage battery — the battery level at the end of
+each trip, the share of electric driving, the EV charge target, the charging
+port — and they never mean anything there, so such a car gets no entity for them,
+and ones an earlier release made are removed the same way. A car counts as petrol
+or diesel when BMW's basic data says so, or when it has sent fuel data and never
+any battery data.
+
 The **fuel in the tank** (*Range Tank level*) is a volume sensor with long-term
 statistics. It takes the unit the car sends — liters, or gallons on a car that
-reports them — and Home Assistant converts it to your display unit like any other.
+reports them; liters when it sends none — and Home Assistant converts it to your
+display unit like any other. The lifetime fuel counters (*fuel consumed over the
+car's life*) are volumes too, counted up rather than measured.
 
 The tire entities only exist for wheels BMW actually reports. Many cars have no
 tire service record on file, in which case none are created — that is BMW having

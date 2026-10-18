@@ -113,10 +113,12 @@ solange das Auto zu Hause mit verknüpftem Wallbox-Zähler lädt, und sonst BMWs
 Außerhalb einer Ladung heißt die Kachel *Ladezeit*, und sie wird ausgeblendet,
 wenn diese 0 ist.
 
-Ein Auto, das Daten der Hochvoltbatterie *und* Kraftstoffdaten sendet, ist ein
-Plug-in-Hybrid; Kraftstoffdaten allein machen es zum Benziner oder Diesel. Manche
-Benziner streamen trotzdem ein E-Ladeziel, das lässt ein Auto aber nie elektrisch
-erscheinen.
+Zuerst entscheiden BMWs Basisdaten: Sie nennen den Antrieb als elektrisch,
+Plug-in-Hybrid oder Verbrenner. Ohne sie ist ein Auto, das Daten der
+Hochvoltbatterie *und* Kraftstoffdaten sendet, ein Plug-in-Hybrid; Kraftstoffdaten
+allein machen es zum Benziner oder Diesel. Manche Benziner streamen trotzdem ein
+E-Ladeziel, das lässt ein Auto aber nie elektrisch erscheinen. Ein Benziner, der
+gar keinen Tank streamt, zeigt stattdessen seine Reichweite im Ring.
 
 Ein frisch eingerichtetes Auto hat noch nichts bewiesen und behält so lange das
 elektrische Layout. Ein Auto, das schon eine Weile sendet und **keine** der

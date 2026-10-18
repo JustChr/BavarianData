@@ -175,13 +175,15 @@ class CoverageStore:
         live_descriptors: Optional[dict[str, Iterable[str]]] = None,
         *,
         now: Optional[datetime] = None,
+        drive_trains: Optional[dict[str, Optional[str]]] = None,
     ) -> list[CoverageReport]:
         """Build a coverage report per known vehicle.
 
         ``live_descriptors`` folds in whatever the coordinator currently holds so
         a wiped store (or a descriptor seen before this store existed) still
         counts. Union with the persisted record keeps a manually disabled entity
-        from re-opening a closed gap.
+        from re-opening a closed gap. ``drive_trains`` is BMW's basic-data
+        ``driveTrain`` per VIN, where loaded.
         """
 
         now = now or datetime.now(timezone.utc)
@@ -201,6 +203,7 @@ class CoverageStore:
                     monitoring_since=self.monitoring_since(vin),
                     now=now,
                     grace_days=self.grace_days,
+                    drive_train=(drive_trains or {}).get(vin),
                 )
             )
         return out

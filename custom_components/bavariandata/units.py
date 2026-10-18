@@ -63,6 +63,10 @@ UNIT_ALIASES: Dict[str, str] = {
     "celsius": "°C",
     "degrees": "°",
     "l": "L",
+    "liter": "L",
+    "liters": "L",
+    "litre": "L",
+    "litres": "L",
     # The catalogue documents the tank in "litres or gallons". Only the litre
     # spelling has been seen (an F87 M2 streams ``l``); these cover the other
     # half without guessing past Home Assistant's own symbols.
@@ -207,3 +211,19 @@ def distance_unit(sensor_units: Iterable[Any], car_setting: Any, system_unit: An
         if found:
             return found
     return _mi_or_km(car_setting) or ("mi" if _mi_or_km(system_unit) == "mi" else "km")
+
+
+# The tank's unit when the car gives none. Every car seen sends ``l`` or ``L``
+# for ``fuelSystem.remainingFuel``; the catalogue allows gallons, but a car in
+# gallons has a unit to say so. Without one, Home Assistant refuses a volume
+# with no unit (no statistics, a warning on every update) and the card cannot
+# tell litres from anything else.
+DEFAULT_FUEL_UNIT = "L"
+
+
+def entity_unit(device_class: Optional[str], unit: Optional[str]) -> Optional[str]:
+    """The unit an entity should carry for a reading whose unit came off the stream."""
+
+    if unit is None and device_class == "volume_storage":
+        return DEFAULT_FUEL_UNIT
+    return unit

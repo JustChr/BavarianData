@@ -85,10 +85,20 @@ Update entfernt, weil sie nie einen Wert haben konnten — ihr alter Verlauf kan
 danach unter **Entwicklerwerkzeuge → Statistiken** aufgeführt sein und lässt sich
 dort löschen.
 
+Dasselbe gilt für BMWs eigene Batteriefelder an einem Benziner oder Diesel. BMW
+streamt manche davon auch an Autos ohne Hochvoltbatterie — den Ladestand am Ende
+jeder Fahrt, den elektrischen Fahranteil, das E-Ladeziel, die Ladebuchse — und dort
+bedeuten sie nie etwas. Ein solches Auto bekommt für sie keine Entität, und solche,
+die eine frühere Version angelegt hat, werden genauso entfernt. Als Benziner oder
+Diesel gilt ein Auto, wenn BMWs Basisdaten es sagen oder wenn es Kraftstoffdaten
+und nie Batteriedaten gesendet hat.
+
 Der **Kraftstoff im Tank** (*Tankinhalt*) ist ein Volumen-Sensor mit
 Langzeitstatistiken. Er übernimmt die Einheit, die das Auto sendet — Liter, oder
-Gallonen bei einem Auto, das sie meldet —, und Home Assistant rechnet ihn wie jeden
-anderen in deine Anzeigeeinheit um.
+Gallonen bei einem Auto, das sie meldet; Liter, wenn es keine mitschickt —, und
+Home Assistant rechnet ihn wie jeden anderen in deine Anzeigeeinheit um. Die
+Kraftstoffzähler über die Lebensdauer des Autos sind ebenfalls Volumen, nur
+hochgezählt statt gemessen.
 
 Die Reifen-Entitäten gibt es nur für Räder, die BMW tatsächlich meldet. Viele Autos
 haben keinen Reifen-Servicedatensatz hinterlegt, dann werden keine angelegt — BMW
