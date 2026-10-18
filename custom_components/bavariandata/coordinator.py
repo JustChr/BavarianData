@@ -1336,7 +1336,7 @@ class CardataCoordinator:
             # is switched off (the record is optional; the counters are not).
             self._energy_session_soc[vin] = tracking.last_soc_percent
             self._open_session_record(vin, tracking, started_at)
-            self.hass.bus.async_fire(EVENT_CHARGING_STARTED, payload)
+            self._fire(EVENT_CHARGING_STARTED, payload)
             return
         # Charging stopped. Debounce the close so a momentary NOCHARGING blip
         # that comes straight back doesn't split one plug-in into two records.
@@ -1397,16 +1397,16 @@ class CardataCoordinator:
             payload["energy_kwh"] = session.energy_kwh
             payload["cost"] = session.cost
             payload["session_id"] = session.id
-        self.hass.bus.async_fire(EVENT_CHARGING_STOPPED, payload)
+        self._fire(EVENT_CHARGING_STOPPED, payload)
         target = tracking.target_soc_percent
         if target is not None and soc is not None and soc >= target - 1.0:
-            self.hass.bus.async_fire(EVENT_CHARGING_COMPLETE, payload)
+            self._fire(EVENT_CHARGING_COMPLETE, payload)
         elif charging_interrupted(
             soc, target, plug_state(self._live_values(vin, PLUG_DESCRIPTORS))
         ):
             # Short of the target with the cable still in, two minutes on (the
             # close debounce) -- not a flap, and not the driver unplugging.
-            self.hass.bus.async_fire(
+            self._fire(
                 EVENT_CHARGING_INTERRUPTED, {**payload, "reason": self._charge_end_reason(vin)}
             )
 
@@ -1682,7 +1682,7 @@ class CardataCoordinator:
         session = self._close_session_record(vin, status, at=end_at)
         if session is None:
             return
-        self.hass.bus.async_fire(
+        self._fire(
             EVENT_CHARGING_STOPPED,
             {
                 "vin": vin,
@@ -2162,7 +2162,7 @@ class CardataCoordinator:
         self.history.async_set_last_report(
             vin, self._report_record(vin, odometer_km, starts=starts)
         )
-        self.hass.bus.async_fire(EVENT_VEHICLE_REPORT, payload)
+        self._fire(EVENT_VEHICLE_REPORT, payload)
         if self.report_trips(vin):
             self.hass.async_create_task(
                 self._record_report_trip(vin, odometer_km, {**baseline, **parked}, start, end_at)
@@ -2567,14 +2567,14 @@ class CardataCoordinator:
                     _LOGGER.debug(
                         "[trigger] %s %s %s", vin, situation, "BEGIN" if change else "END"
                     )
-                self.hass.bus.async_fire(EVENT_SITUATION, payload)
+                self._fire(EVENT_SITUATION, payload)
         except Exception:  # noqa: BLE001 - a trigger must never break the stream
             _LOGGER.exception("Trigger evaluation failed for %s", mask_vin(vin))
 
     def _fire_zone_left(self, vin: str, zone: tuple[str, str]) -> None:
         self._zone_left_fired.add(vin)
         builder = self._trip_builders.get(vin)
-        self.hass.bus.async_fire(
+        self._fire(
             EVENT_ZONE_LEFT,
             {
                 "vin": vin,
@@ -3439,7 +3439,7 @@ class CardataCoordinator:
                     self._fire_zone_left(vin, start_zone)
             if end_zone is None:
                 return
-            self.hass.bus.async_fire(
+            self._fire(
                 EVENT_ZONE_ARRIVED,
                 {
                     "vin": vin,
@@ -4009,6 +4009,20 @@ class CardataCoordinator:
             and (now - reference).total_seconds() >= NO_DATA_REPAIR_AFTER_S
         )
         self._set_no_data_issue(no_data)
+
+    def _fire(self, event_type: str, payload: Dict[str, Any]) -> None:
+        """Fire one of the integration's events, with the car's name on it.
+
+        ``vehicle`` is what a notification says ("i5 eDrive40: charging
+        complete"), so an automation for two cars needs no lookup of its own;
+        ``None`` while BMW hasn't named the car (never the VIN).
+        """
+
+        vin = payload.get("vin")
+        name = self.names.get(vin) if vin else None
+        self.hass.bus.async_fire(
+            event_type, {**payload, "vehicle": name if name and name != vin else None}
+        )
 
     def _account_name(self) -> str:
         """The account as its repairs name it: the entry's title, its cars."""

@@ -9,6 +9,11 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **Every BavarianData event names the car.** The charging, zone, situation and
+  vehicle-report events (and device triggers) carry `vehicle`, the car's name as
+  BMW reports it, so a notification can say which car without a lookup.
+
 ### Changed
 - **With two cars, a service that acts on one car asks which.** Calling, say,
   `get_mileage_report` or `fetch_tyre_diagnosis` without naming a car used to
@@ -33,6 +38,11 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   (CarData account)*, in your language. Entity IDs don't change.
 
 ### Fixed
+- **Blueprint *Notify when charging completes*: one message, the car named, a
+  car filter.** With *Only when target reached* off, a charge that reached its
+  target sent two messages. Now it sends one, the title names the car (*i5
+  eDrive40: charging complete*), and a new **Cars** input limits it to the cars
+  you pick. Re-import the blueprint to get the fix.
 - **Quota and stream repairs say which account they mean.** With two accounts
   the *API quota exhausted*, *stream not authorized* and *no stream data*
   repairs looked identical; their title now names the account.

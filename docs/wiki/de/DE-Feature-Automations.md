@@ -72,7 +72,8 @@ Jeder Auslöser übergibt seine Details als `trigger.data`:
 | Laden gestartet / abgeschlossen | `soc`, `target_soc`, `status` (abgeschlossen: auch `energy_kwh`, `cost`, `session_id`) |
 | Laden vor dem Ziel beendet | wie abgeschlossen, dazu `reason` — BMWs eigene Begründung, wenn das Auto eine sendet |
 
-Jede Nutzlast enthält außerdem `vin` und `entry_id`. Ein Beispiel, das vor einem
+Jede Nutzlast enthält außerdem `vin`, `entry_id` und `vehicle`, den Namen des Autos,
+wie BMW ihn meldet (`null`, solange BMW keinen meldet). Ein Beispiel, das vor einem
 zu Hause unverriegelt abgestellten Auto warnt:
 
 ```yaml
@@ -95,7 +96,7 @@ actions:
 
 Alles hinter den Auslösern wird auch auf dem **Event-Bus** von Home Assistant
 ausgelöst, für YAML-Automationen und Node-RED (beobachten kannst du sie unter
-**Entwicklerwerkzeuge → Ereignisse**). Jedes enthält `vin` und `entry_id`.
+**Entwicklerwerkzeuge → Ereignisse**). Jedes enthält `vin`, `entry_id` und `vehicle` (den Namen des Autos).
 
 | Ereignis | Wird ausgelöst, wenn | Daten |
 | --- | --- | --- |
@@ -151,8 +152,11 @@ importieren** mit der Raw-URL von GitHub:
   steuern.
 - **Benachrichtigen, wenn das Laden fertig ist** —
   [`notify_charging_complete.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/notify_charging_complete.yaml).
-  Sendet bei den obigen Ereignissen „complete“ bzw. „stopped“ eine Nachricht über
-  einen Benachrichtigungsdienst.
+  Sendet eine Nachricht, wenn ein Ladevorgang endet: nur wenn das Auto sein Ziel
+  erreicht hat, oder bei jedem Ende. Der Titel nennt das Auto, und **Cars**
+  beschränkt sie auf die gewählten Autos (leer: alle). Zum Übernehmen des
+  Autofilters neu importieren. Bis v0.9.20 kamen bei einem Ladevorgang bis zum
+  Ziel zwei Nachrichten, wenn *Only when target reached* aus war.
 - **Ladekabel in einen Schalter spiegeln** —
   [`plug_to_switch.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/plug_to_switch.yaml).
   Schaltet einen Schalter ein, wenn zu Hause das Kabel eingesteckt wird, und
