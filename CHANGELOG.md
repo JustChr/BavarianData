@@ -9,6 +9,20 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.21-beta.2] - 2026-10-18
+
+### Changed
+- **The account's device is called *BMW CarData*.** In beta.1 it took the
+  cars' names (*i5 eDrive40 (CarData account)*) and read like a second car. The
+  integration entry keeps its cars' names, which is what tells two accounts
+  apart.
+
+### Fixed
+- **The account's four sensors have names of their own.** They showed only as
+  the device's name, since well before v0.9.20. They are now *Stream connection
+  status*, *Last message received*, *Last telematics API call* and *API quota
+  remaining*, in your language. Entity IDs don't change.
+
 ## [0.9.21-beta.1] - 2026-10-18
 
 ### Added
@@ -48,11 +62,9 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   characters of the client ID were all that told two accounts apart. It now
   takes its cars' names (*i5 eDrive40, iX1 xDrive30*) once BMW reports them, and
   follows when a car is added. An entry you renamed keeps your name.
-- **The account's diagnostics device is called *BMW CarData*, and its sensors
-  have names.** It was *CarData Debug Device*, and its four sensors had no name
-  of their own, so each showed as just the device's name. They are now *Stream
-  connection status*, *Last message received*, *Last telematics API call* and
-  *API quota remaining*, in your language. Entity IDs don't change.
+- **The account's diagnostics device is named after the account.** Every
+  account had one called *CarData Debug Device*; it is now *i5 eDrive40
+  (CarData account)*, in your language. Entity IDs don't change.
 
 ### Fixed
 - **Removing the integration also deletes its cars' pictures.** They are kept
