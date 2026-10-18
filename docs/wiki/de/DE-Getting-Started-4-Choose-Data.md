@@ -42,8 +42,8 @@ lassen dich zuerst die Datengruppen wählen.
      **Copy** und fügst das kurze Ergebnis ein.
 
    Eine Bestätigung zeigt, wie viele Felder jetzt gestreamt werden. Klicke auf
-   **Absenden**. (Nur bei der Ersteinrichtung: Hast du die Felder im Portal schon
-   selbst angehakt, lass das Ergebnisfeld leer und klicke auf **Absenden**, um
+   **OK**. (Nur bei der Ersteinrichtung: Hast du die Felder im Portal schon
+   selbst angehakt, lass das Ergebnisfeld leer und klicke auf **OK**, um
    abzuschließen.)
 5. Löse in der MyBMW App etwas aus (Ver- oder Entriegeln), damit das Auto seine
    erste Aktualisierung sendet.

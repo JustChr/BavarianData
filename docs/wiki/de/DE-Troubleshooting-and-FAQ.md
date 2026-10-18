@@ -42,8 +42,8 @@ Darüber hinaus kann es ein paar Anläufe brauchen. Diese Abfolge hat bei andere
    (achte darauf, dass kein Banner „falscher Code“ erscheint) und bestätige.
    Meist landest du auf einer Seite „Login erfolgreich“ bzw. „im Auto fortfahren“ —
    **im Auto musst du nichts tun**; die Seite ist nur eine Bestätigung. Geh direkt
-   zurück zu Home Assistant und klicke auf **Absenden**.
-4. Ist der Code inzwischen abgelaufen, klicke in Home Assistant auf **Absenden** für
+   zurück zu Home Assistant und klicke auf **OK**.
+4. Ist der Code inzwischen abgelaufen, klicke in Home Assistant auf **OK** für
    einen neuen Code und wiederhole.
 5. Nach mehreren Versuchen immer noch nichts? **Lösche den Client** im BMW-Portal,
    lege einen neuen an (beide Abos anhaken) und autorisiere mit der neuen Client-ID

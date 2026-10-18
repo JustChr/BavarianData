@@ -21,7 +21,7 @@
       },
       "guided_paste": {
         "title": "Daten aktivieren und Ergebnis einfügen",
-        "description": "Stelle zuerst sicher, dass du im BMW-Portal einen **CarData Client** erstellt hast, der für **beide Dienste, CarData API und CarData Streaming**, freigeschaltet ist — der Aktivator findet diesen Client, er erstellt keinen.\n\n1. Öffne die **{link_open}BavarianData-Setup-Seite{link_close}**.\n2. Ziehe die Schaltfläche **Activate BMW data** einmalig in deine Lesezeichenleiste.\n3. Öffne das **BMW- oder MINI-Portal**, melde dich an und gehe zur **Stream-Setup**-Seite eines Fahrzeugs.\n4. Klicke auf das Lesezeichen **Activate BMW data**. Wenn es fertig ist, klicke im angezeigten Feld auf **Copy**.\n5. Füge das Ergebnis unten ein und klicke auf **Absenden**.\n\nAlles läuft in deinem eigenen Browser — kein Passwort und keine Sitzung verlässt ihn.\n\n{error}",
+        "description": "Stelle zuerst sicher, dass du im BMW-Portal einen **CarData Client** erstellt hast, der für **beide Dienste, CarData API und CarData Streaming**, freigeschaltet ist — der Aktivator findet diesen Client, er erstellt keinen.\n\n1. Öffne die **{link_open}BavarianData-Setup-Seite{link_close}**.\n2. Ziehe die Schaltfläche **Activate BMW data** einmalig in deine Lesezeichenleiste.\n3. Öffne das **BMW- oder MINI-Portal**, melde dich an und gehe zur **Stream-Setup**-Seite eines Fahrzeugs.\n4. Klicke auf das Lesezeichen **Activate BMW data**. Wenn es fertig ist, klicke im angezeigten Feld auf **Copy**.\n5. Füge das Ergebnis unten ein und klicke auf **OK**.\n\nAlles läuft in deinem eigenen Browser — kein Passwort und keine Sitzung verlässt ihn.\n\n{error}",
         "data": {
           "result": "Setup-Ergebnis"
         },
@@ -31,11 +31,11 @@
       },
       "guided_done": {
         "title": "Stream aktiviert",
-        "description": "Fertig — **{field_count}** Felder werden jetzt für **{vehicle}** gestreamt, und deine Client-ID ist gesetzt. Klicke auf **Absenden**, um abzuschließen, und löse dann in der MyBMW App einmal Ver- oder Entriegeln aus, damit die erste Aktualisierung gesendet wird."
+        "description": "Fertig — **{field_count}** Felder werden jetzt für **{vehicle}** gestreamt, und deine Client-ID ist gesetzt. Klicke auf **OK**, um abzuschließen, und löse dann in der MyBMW App einmal Ver- oder Entriegeln aus, damit die erste Aktualisierung gesendet wird."
       },
       "authorize_failed": {
         "title": "Autorisierung nicht abgeschlossen",
-        "description": "Die Geräteautorisierung konnte nicht abgeschlossen werden.\n\n**Details**\n```\n{error}\n```\n\n**Das solltest du prüfen**\n- **declined / access_denied (403):** BMWs Server meldet häufig eine Ablehnung, obwohl du zugestimmt hast — ein bekanntes Problem auf BMW-Seite. Versuche es erneut in einem privaten bzw. Inkognito-Fenster: Öffne das BMW CarData Portal selbst (nicht über einen Link, der den Code schon in der Adresse enthält), melde dich an, wähle *Gerät authentifizieren* und **tippe den Code von Hand ein**. Stelle außerdem sicher, dass die Client-ID **sowohl für CarData API als auch für CarData Streaming** freigeschaltet ist und dass du **Primärnutzer** des Fahrzeugs bist.\n- **expired / timeout:** Der Code wurde nicht rechtzeitig bestätigt.\n\nKlicke auf **Absenden**, um einen neuen Code zu erhalten, und versuche es noch einmal. Schlägt es weiterhin fehl: Lösche den CarData Client im BMW-Portal, erstelle einen neuen und autorisiere mit der neuen Client-ID — oder wende dich an den BMW-Support (bmwcardata-b2c-support@bmwgroup.com) und gib die oben genannte **BMW-Referenz** an.\n\nEine ausführliche Anleitung steht im BavarianData-Handbuch unter *Fehlerbehebung & FAQ → „Autorisierung nicht abgeschlossen“*."
+        "description": "Die Geräteautorisierung konnte nicht abgeschlossen werden.\n\n**Details**\n```\n{error}\n```\n\n**Das solltest du prüfen**\n- **declined / access_denied (403):** BMWs Server meldet häufig eine Ablehnung, obwohl du zugestimmt hast — ein bekanntes Problem auf BMW-Seite. Versuche es erneut in einem privaten bzw. Inkognito-Fenster: Öffne das BMW CarData Portal selbst (nicht über einen Link, der den Code schon in der Adresse enthält), melde dich an, wähle *Gerät authentifizieren* und **tippe den Code von Hand ein**. Stelle außerdem sicher, dass die Client-ID **sowohl für CarData API als auch für CarData Streaming** freigeschaltet ist und dass du **Primärnutzer** des Fahrzeugs bist.\n- **expired / timeout:** Der Code wurde nicht rechtzeitig bestätigt.\n\nKlicke auf **OK**, um einen neuen Code zu erhalten, und versuche es noch einmal. Schlägt es weiterhin fehl: Lösche den CarData Client im BMW-Portal, erstelle einen neuen und autorisiere mit der neuen Client-ID — oder wende dich an den BMW-Support (bmwcardata-b2c-support@bmwgroup.com) und gib die oben genannte **BMW-Referenz** an.\n\nEine ausführliche Anleitung steht im BavarianData-Handbuch unter *Fehlerbehebung & FAQ → „Autorisierung nicht abgeschlossen“*."
       },
       "select_clusters": {
         "title": "Gestreamte Daten auswählen",
@@ -49,7 +49,7 @@
       },
       "activate_stream_paste": {
         "title": "Daten aktivieren und Ergebnis einfügen",
-        "description": "1. Öffne die **{link_open}BavarianData-Aktivierungsseite{link_close}**.\n2. Ziehe die Schaltfläche **Activate BMW data** einmalig in deine Lesezeichenleiste.\n3. Öffne das **BMW- oder MINI-Portal**, melde dich an und gehe zur **Stream-Setup**-Seite eines Fahrzeugs.\n4. Klicke auf das Lesezeichen **Activate BMW data**. Wenn es fertig ist, klicke im angezeigten Feld auf **Copy**.\n5. Füge das Ergebnis unten ein und klicke auf **Absenden**.\n\nAlles läuft in deinem eigenen Browser — kein Passwort und keine Sitzung verlässt ihn. Hast du die Felder im Portal schon selbst angehakt? Dann lass das Feld leer und klicke auf **Absenden**, um abzuschließen.\n\n{error}",
+        "description": "1. Öffne die **{link_open}BavarianData-Aktivierungsseite{link_close}**.\n2. Ziehe die Schaltfläche **Activate BMW data** einmalig in deine Lesezeichenleiste.\n3. Öffne das **BMW- oder MINI-Portal**, melde dich an und gehe zur **Stream-Setup**-Seite eines Fahrzeugs.\n4. Klicke auf das Lesezeichen **Activate BMW data**. Wenn es fertig ist, klicke im angezeigten Feld auf **Copy**.\n5. Füge das Ergebnis unten ein und klicke auf **OK**.\n\nAlles läuft in deinem eigenen Browser — kein Passwort und keine Sitzung verlässt ihn. Hast du die Felder im Portal schon selbst angehakt? Dann lass das Feld leer und klicke auf **OK**, um abzuschließen.\n\n{error}",
         "data": {
           "result": "Aktivierungs-Ergebnis"
         },
@@ -59,7 +59,7 @@
       },
       "activate_stream_done": {
         "title": "Stream aktiviert",
-        "description": "Fertig — der Aktivator hat **{added_count}** neue(s) Feld(er) eingeschaltet; **{field_count}** Felder werden jetzt für dieses Fahrzeug gestreamt.{error}\n\nKlicke auf **Absenden**, um die Einrichtung abzuschließen, und löse dann in der MyBMW App einmal Ver- oder Entriegeln aus, damit die erste Aktualisierung gesendet wird."
+        "description": "Fertig — der Aktivator hat **{added_count}** neue(s) Feld(er) eingeschaltet; **{field_count}** Felder werden jetzt für dieses Fahrzeug gestreamt.{error}\n\nKlicke auf **OK**, um die Einrichtung abzuschließen, und löse dann in der MyBMW App einmal Ver- oder Entriegeln aus, damit die erste Aktualisierung gesendet wird."
       }
     },
     "progress": {
@@ -132,7 +132,7 @@
       },
       "activate_stream_paste": {
         "title": "Daten aktivieren und Ergebnis einfügen",
-        "description": "1. Öffne die **{link_open}BavarianData-Aktivierungsseite{link_close}**.\n2. Ziehe die Schaltfläche **Activate BMW data** einmalig in deine Lesezeichenleiste.\n3. Öffne das **BMW- oder MINI-Portal**, melde dich an und gehe zur **Stream-Setup**-Seite eines Fahrzeugs.\n4. Klicke auf das Lesezeichen **Activate BMW data**. Wenn es fertig ist, klicke im angezeigten Feld auf **Copy**.\n5. Füge das Ergebnis unten ein und klicke auf **Absenden**.\n\nAlles läuft in deinem eigenen Browser — kein Passwort und keine Sitzung verlässt ihn.\n\n{error}",
+        "description": "1. Öffne die **{link_open}BavarianData-Aktivierungsseite{link_close}**.\n2. Ziehe die Schaltfläche **Activate BMW data** einmalig in deine Lesezeichenleiste.\n3. Öffne das **BMW- oder MINI-Portal**, melde dich an und gehe zur **Stream-Setup**-Seite eines Fahrzeugs.\n4. Klicke auf das Lesezeichen **Activate BMW data**. Wenn es fertig ist, klicke im angezeigten Feld auf **Copy**.\n5. Füge das Ergebnis unten ein und klicke auf **OK**.\n\nAlles läuft in deinem eigenen Browser — kein Passwort und keine Sitzung verlässt ihn.\n\n{error}",
         "data": {
           "result": "Aktivierungs-Ergebnis"
         },
@@ -142,11 +142,11 @@
       },
       "activate_stream_done": {
         "title": "Stream-Felder aktiviert",
-        "description": "Fertig — der Aktivator hat **{added_count}** neue(s) Feld(er) eingeschaltet; **{field_count}** Felder werden jetzt für dieses Fahrzeug gestreamt.{error}\n\nKlicke auf **Absenden**, um deine Auswahl zu speichern. Löse in der MyBMW App einmal Ver- oder Entriegeln aus, damit die nächste Aktualisierung gesendet wird."
+        "description": "Fertig — der Aktivator hat **{added_count}** neue(s) Feld(er) eingeschaltet; **{field_count}** Felder werden jetzt für dieses Fahrzeug gestreamt.{error}\n\nKlicke auf **OK**, um deine Auswahl zu speichern. Löse in der MyBMW App einmal Ver- oder Entriegeln aus, damit die nächste Aktualisierung gesendet wird."
       },
       "action_refresh_tokens": {
         "title": "Token jetzt erneuern",
-        "description": "Erneuert die gespeicherten Access- und ID-Token, ohne die BMW-Anmeldung erneut zu durchlaufen. Nutze das, wenn keine Daten mehr aktualisiert werden. Bleibt das Problem bestehen, starte Home Assistant anschließend neu.\n\nKlicke auf **Absenden**, um fortzufahren."
+        "description": "Erneuert die gespeicherten Access- und ID-Token, ohne die BMW-Anmeldung erneut zu durchlaufen. Nutze das, wenn keine Daten mehr aktualisiert werden. Bleibt das Problem bestehen, starte Home Assistant anschließend neu.\n\nKlicke auf **OK**, um fortzufahren."
       },
       "action_reauth": {
         "title": "Neu bei BMW autorisieren",
@@ -160,31 +160,31 @@
       },
       "action_reset_container": {
         "title": "Telemetrie-Container zurücksetzen",
-        "description": "Löscht die von dieser Integration angelegten CarData-Telemetrie-Container und legt sie frisch an. Nutze das, wenn der gestreamte Datensatz nicht stimmt oder nachdem du die Datenauswahl im BMW-Portal geändert hast.\n\nKlicke auf **Absenden**, um fortzufahren."
+        "description": "Löscht die von dieser Integration angelegten CarData-Telemetrie-Container und legt sie frisch an. Nutze das, wenn der gestreamte Datensatz nicht stimmt oder nachdem du die Datenauswahl im BMW-Portal geändert hast.\n\nKlicke auf **OK**, um fortzufahren."
       },
       "action_fetch_mappings": {
         "title": "Fahrzeuge suchen",
-        "description": "Fragt bei BMW ab, welche Fahrzeuge (VINs) deinem Konto zugeordnet sind, und legt die zugehörigen Geräte an. Führe das einmal nach der Einrichtung aus, falls deine Fahrzeuge noch nicht aufgetaucht sind.\n\nKlicke auf **Absenden**, um fortzufahren."
+        "description": "Fragt bei BMW ab, welche Fahrzeuge (VINs) deinem Konto zugeordnet sind, und legt die zugehörigen Geräte an. Führe das einmal nach der Einrichtung aus, falls deine Fahrzeuge noch nicht aufgetaucht sind.\n\nKlicke auf **OK**, um fortzufahren."
       },
       "action_fetch_basic": {
         "title": "Fahrzeug-Basisdaten abrufen",
-        "description": "Ruft statische Details (Modell, Farbe, Ausstattung) für alle bekannten Fahrzeuge ab.\n\nKlicke auf **Absenden**, um fortzufahren."
+        "description": "Ruft statische Details (Modell, Farbe, Ausstattung) für alle bekannten Fahrzeuge ab.\n\nKlicke auf **OK**, um fortzufahren."
       },
       "action_fetch_telematic": {
         "title": "Telematikdaten abrufen",
-        "description": "Holt den aktuellen Telematik-Snapshot sofort über BMWs REST-API, statt auf die nächste planmäßige Abfrage zu warten.\n\nKlicke auf **Absenden**, um fortzufahren."
+        "description": "Holt den aktuellen Telematik-Snapshot sofort über BMWs REST-API, statt auf die nächste planmäßige Abfrage zu warten.\n\nKlicke auf **OK**, um fortzufahren."
       },
       "action_fetch_charging_history": {
         "title": "Ladehistorie abrufen",
-        "description": "Ruft die letzten Ladevorgänge deiner Fahrzeuge ab.\n\nKlicke auf **Absenden**, um fortzufahren."
+        "description": "Ruft die letzten Ladevorgänge deiner Fahrzeuge ab.\n\nKlicke auf **OK**, um fortzufahren."
       },
       "action_fetch_tyre": {
         "title": "Reifendiagnose abrufen",
-        "description": "Ruft die aktuelle Reifendruck-Diagnose deiner Fahrzeuge ab.\n\nKlicke auf **Absenden**, um fortzufahren."
+        "description": "Ruft die aktuelle Reifendruck-Diagnose deiner Fahrzeuge ab.\n\nKlicke auf **OK**, um fortzufahren."
       },
       "action_fetch_location_charging": {
         "title": "Ladeeinstellungen abrufen",
-        "description": "Ruft die standortbasierten Ladeeinstellungen deiner Fahrzeuge ab.\n\nKlicke auf **Absenden**, um fortzufahren."
+        "description": "Ruft die standortbasierten Ladeeinstellungen deiner Fahrzeuge ab.\n\nKlicke auf **OK**, um fortzufahren."
       },
       "action_fetch_image": {
         "title": "Fahrzeugbild",

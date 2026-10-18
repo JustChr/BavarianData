@@ -21,7 +21,7 @@
       },
       "guided_paste": {
         "title": "Activeer je gegevens en plak het resultaat",
-        "description": "Zorg eerst dat je in het BMW-portaal een **CarData Client** hebt aangemaakt die geabonneerd is op **CarData API en CarData Streaming** — de activator vindt die client, hij maakt er geen aan.\n\n1. Open de **{link_open}BavarianData-installatiepagina{link_close}**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**. Druk als hij klaar is op **Copy** in het venster dat verschijnt.\n5. Plak dat resultaat hieronder en druk op **Verzenden**.\n\nAlles draait in je eigen browser — geen wachtwoord of sessie verlaat die ooit.\n\n{error}",
+        "description": "Zorg eerst dat je in het BMW-portaal een **CarData Client** hebt aangemaakt die geabonneerd is op **CarData API en CarData Streaming** — de activator vindt die client, hij maakt er geen aan.\n\n1. Open de **{link_open}BavarianData-installatiepagina{link_close}**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**. Druk als hij klaar is op **Copy** in het venster dat verschijnt.\n5. Plak dat resultaat hieronder en druk op **Verzend**.\n\nAlles draait in je eigen browser — geen wachtwoord of sessie verlaat die ooit.\n\n{error}",
         "data": {
           "result": "Installatieresultaat"
         },
@@ -31,15 +31,15 @@
       },
       "guided_done": {
         "title": "Stream geactiveerd",
-        "description": "Klaar — er worden nu **{field_count}** velden gestreamd voor **{vehicle}** en je Client ID is ingesteld. Druk op **Verzenden** om af te ronden en vergrendel/ontgrendel daarna de auto in de MyBMW-app om de eerste update op te wekken."
+        "description": "Klaar — er worden nu **{field_count}** velden gestreamd voor **{vehicle}** en je Client ID is ingesteld. Druk op **Verzend** om af te ronden en vergrendel/ontgrendel daarna de auto in de MyBMW-app om de eerste update op te wekken."
       },
       "authorize_failed": {
         "title": "Autorisatie niet voltooid",
-        "description": "De apparaatautorisatie kon niet worden voltooid.\n\n**Details**\n```\n{error}\n```\n\n**Wat je kunt controleren**\n- **declined / access_denied (403):** de server van BMW meldt vaak een weigering, ook nadat je hebt goedgekeurd — een bekend probleem aan de kant van BMW. Probeer het opnieuw in een **privé-/incognitovenster**: open zelf het BMW CarData-portaal (volg geen link waarin de code al staat), log in, kies *Apparaat verifiëren* en **typ de code met de hand**. Zorg ook dat de Client ID vóór het autoriseren geabonneerd is op **CarData API en CarData Streaming**, en dat je de **primaire** gebruiker van het voertuig bent.\n- **expired / timeout:** de code is niet op tijd goedgekeurd.\n\nDruk op **Verzenden** voor een nieuwe code en probeer het opnieuw. Blijft het mislukken, verwijder dan de CarData Client in het BMW-portaal, maak een nieuwe aan en autoriseer opnieuw met de nieuwe Client ID — of mail de BMW-support (bmwcardata-b2c-support@bmwgroup.com) met vermelding van de **BMW-referentie** hierboven.\n\nEen volledige uitleg staat in de handleiding van BavarianData (in het Engels) onder *Troubleshooting & FAQ → \"Authorization didn't finish\"*."
+        "description": "De apparaatautorisatie kon niet worden voltooid.\n\n**Details**\n```\n{error}\n```\n\n**Wat je kunt controleren**\n- **declined / access_denied (403):** de server van BMW meldt vaak een weigering, ook nadat je hebt goedgekeurd — een bekend probleem aan de kant van BMW. Probeer het opnieuw in een **privé-/incognitovenster**: open zelf het BMW CarData-portaal (volg geen link waarin de code al staat), log in, kies *Apparaat verifiëren* en **typ de code met de hand**. Zorg ook dat de Client ID vóór het autoriseren geabonneerd is op **CarData API en CarData Streaming**, en dat je de **primaire** gebruiker van het voertuig bent.\n- **expired / timeout:** de code is niet op tijd goedgekeurd.\n\nDruk op **Verzend** voor een nieuwe code en probeer het opnieuw. Blijft het mislukken, verwijder dan de CarData Client in het BMW-portaal, maak een nieuwe aan en autoriseer opnieuw met de nieuwe Client ID — of mail de BMW-support (bmwcardata-b2c-support@bmwgroup.com) met vermelding van de **BMW-referentie** hierboven.\n\nEen volledige uitleg staat in de handleiding van BavarianData (in het Engels) onder *Troubleshooting & FAQ → \"Authorization didn't finish\"*."
       },
       "select_clusters": {
         "title": "Gestreamde gegevens kiezen",
-        "description": "Je bent verbonden. Kies nu welke gegevensgroepen van het voertuig je wilt streamen. BMW heeft hiervoor geen API — het zit achter de browsersessie van het portaal — dus het volgende scherm geeft je dezelfde bladwijzer van één klik **Activate BMW data** die de begeleide installatie gebruikt. Je voert hem uit op de stream setup-pagina van het portaal en hij zet precies deze groepen aan. Diagnose- en technische velden blijven standaard verborgen zodra er gegevens binnenkomen.\n\nJe kunt dit later altijd wijzigen via Configureren → Gestreamde gegevens kiezen.",
+        "description": "Je bent verbonden. Kies nu welke gegevensgroepen van het voertuig je wilt streamen. BMW heeft hiervoor geen API — het zit achter de browsersessie van het portaal — dus het volgende scherm geeft je dezelfde bladwijzer van één klik **Activate BMW data** die de begeleide installatie gebruikt. Je voert hem uit op de stream setup-pagina van het portaal en hij zet precies deze groepen aan. Diagnose- en technische velden blijven standaard verborgen zodra er gegevens binnenkomen.\n\nJe kunt dit later altijd wijzigen via Configureer → Gestreamde gegevens kiezen.",
         "data": {
           "sections": "Gegevensgroepen"
         },
@@ -49,7 +49,7 @@
       },
       "activate_stream_paste": {
         "title": "Activeer je gegevens en plak het resultaat",
-        "description": "1. Open de **{link_open}BavarianData-activeringspagina{link_close}**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**. Druk als hij klaar is op **Copy** in het venster dat verschijnt.\n5. Plak dat resultaat hieronder en druk op **Verzenden**.\n\nAlles draait in je eigen browser — geen wachtwoord of sessie verlaat die ooit. Heb je deze velden zelf al aangevinkt in het portaal? Laat het vak dan leeg en druk op **Verzenden** om af te ronden.\n\n{error}",
+        "description": "1. Open de **{link_open}BavarianData-activeringspagina{link_close}**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**. Druk als hij klaar is op **Copy** in het venster dat verschijnt.\n5. Plak dat resultaat hieronder en druk op **Verzend**.\n\nAlles draait in je eigen browser — geen wachtwoord of sessie verlaat die ooit. Heb je deze velden zelf al aangevinkt in het portaal? Laat het vak dan leeg en druk op **Verzend** om af te ronden.\n\n{error}",
         "data": {
           "result": "Activeringsresultaat"
         },
@@ -59,7 +59,7 @@
       },
       "activate_stream_done": {
         "title": "Stream geactiveerd",
-        "description": "Klaar — de activator heeft **{added_count}** nieuw(e) veld(en) aangezet; er worden nu **{field_count}** velden gestreamd voor dit voertuig.{error}\n\nDruk op **Verzenden** om de installatie af te ronden en vergrendel/ontgrendel daarna de auto in de MyBMW-app om de eerste update op te wekken."
+        "description": "Klaar — de activator heeft **{added_count}** nieuw(e) veld(en) aangezet; er worden nu **{field_count}** velden gestreamd voor dit voertuig.{error}\n\nDruk op **Verzend** om de installatie af te ronden en vergrendel/ontgrendel daarna de auto in de MyBMW-app om de eerste update op te wekken."
       }
     },
     "progress": {
@@ -75,7 +75,7 @@
     "abort": {
       "account_already_configured": "Dit BMW-account is al ingesteld in Home Assistant. Eén item dekt het hele account, inclusief elke auto erop — een tweede Client ID voor hetzelfde account toevoegen zou de stream voor beide breken, omdat BMW maar één verbinding per account toestaat. Gebruik het bestaande item of verwijder het eerst.",
       "reauth_successful": "Opnieuw autoriseren gelukt — BMW CarData is weer verbonden.",
-      "reauth_device_code_failed": "BMW heeft het verzoek om apparaatautorisatie geweigerd ({error}). Werk de Client ID bij via Configureren → Opnieuw autoriseren bij BMW, of verwijder de integratie en voeg haar opnieuw toe.",
+      "reauth_device_code_failed": "BMW heeft het verzoek om apparaatautorisatie geweigerd ({error}). Werk de Client ID bij via Configureer → Opnieuw autoriseren bij BMW, of verwijder de integratie en voeg haar opnieuw toe.",
       "reauth_missing_client_id": "De Client ID ontbreekt voor dit integratie-item. Verwijder de integratie en voeg haar opnieuw toe om opnieuw te autoriseren.",
       "reauth_failed": "Opnieuw autoriseren kon niet worden gestart. Probeer het opnieuw via de opties van de integratie."
     }
@@ -132,7 +132,7 @@
       },
       "activate_stream_paste": {
         "title": "Activeer je gegevens en plak het resultaat",
-        "description": "1. Open de **{link_open}BavarianData-activeringspagina{link_close}**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**. Druk als hij klaar is op **Copy** in het venster dat verschijnt.\n5. Plak dat resultaat hieronder en druk op **Verzenden**.\n\nAlles draait in je eigen browser — geen wachtwoord of sessie verlaat die ooit.\n\n{error}",
+        "description": "1. Open de **{link_open}BavarianData-activeringspagina{link_close}**.\n2. Sleep de knop **Activate BMW data** naar je bladwijzerbalk (eenmalig).\n3. Open het **BMW- of MINI-portaal**, log in en ga naar de **stream setup**-pagina van een voertuig.\n4. Klik op de bladwijzer **Activate BMW data**. Druk als hij klaar is op **Copy** in het venster dat verschijnt.\n5. Plak dat resultaat hieronder en druk op **Verzend**.\n\nAlles draait in je eigen browser — geen wachtwoord of sessie verlaat die ooit.\n\n{error}",
         "data": {
           "result": "Activeringsresultaat"
         },
@@ -142,7 +142,7 @@
       },
       "activate_stream_done": {
         "title": "Streamvelden geactiveerd",
-        "description": "Klaar — de activator heeft **{added_count}** nieuw(e) veld(en) aangezet; er worden nu **{field_count}** velden gestreamd voor dit voertuig.{error}\n\nDruk op **Verzenden** om je selectie op te slaan. Vergrendel/ontgrendel de auto in de MyBMW-app om de volgende update op te wekken."
+        "description": "Klaar — de activator heeft **{added_count}** nieuw(e) veld(en) aangezet; er worden nu **{field_count}** velden gestreamd voor dit voertuig.{error}\n\nDruk op **Verzend** om je selectie op te slaan. Vergrendel/ontgrendel de auto in de MyBMW-app om de volgende update op te wekken."
       },
       "action_refresh_tokens": {
         "title": "Tokens nu vernieuwen",
@@ -2811,7 +2811,7 @@
     },
     "stream_coverage_gaps": {
       "title": "Een geselecteerde gegevensgroep is nooit gestreamd",
-      "description": "Voor {vehicle} is er in {days} dagen helemaal niets van {clusters} binnengekomen ({count} descriptor(en), bijv. {descriptors}). Een groep die volledig stil blijft, betekent meestal dat hij niet is aangevinkt en opgeslagen in de Gegevensselectie van het BMW-portaal, of dat je auto die gegevens niet levert. Activeer hem opnieuw via Configureren → Gestreamde gegevens kiezen, of deselecteer de groep. Groepen die maar een deel van hun velden leveren zijn normaal en geven deze melding nooit. Voer de service get_coverage_report uit voor de volledige lijst."
+      "description": "Voor {vehicle} is er in {days} dagen helemaal niets van {clusters} binnengekomen ({count} descriptor(en), bijv. {descriptors}). Een groep die volledig stil blijft, betekent meestal dat hij niet is aangevinkt en opgeslagen in de Gegevensselectie van het BMW-portaal, of dat je auto die gegevens niet levert. Activeer hem opnieuw via Configureer → Gestreamde gegevens kiezen, of deselecteer de groep. Groepen die maar een deel van hun velden leveren zijn normaal en geven deze melding nooit. Voer de service get_coverage_report uit voor de volledige lijst."
     },
     "stream_no_data": {
       "title": "Geen streamgegevens van BMW CarData ontvangen",
@@ -2819,7 +2819,7 @@
     },
     "stream_unauthorized": {
       "title": "BMW CarData-stream niet geautoriseerd",
-      "description": "BMW weigert de streamverbinding al meer dan {minutes} minuten als niet geautoriseerd (MQTT rc=5) en die heeft zich niet vanzelf hersteld. Meestal betekent dit dat de tokens vernieuwd moeten worden, of dat een andere CarData-client de enige stream van het account bezet houdt. Probeer Configureren → Tokens nu vernieuwen, daarna Opnieuw autoriseren bij BMW als het blijft mislukken, en verbreek de verbinding van elke andere CarData-client."
+      "description": "BMW weigert de streamverbinding al meer dan {minutes} minuten als niet geautoriseerd (MQTT rc=5) en die heeft zich niet vanzelf hersteld. Meestal betekent dit dat de tokens vernieuwd moeten worden, of dat een andere CarData-client de enige stream van het account bezet houdt. Probeer Configureer → Tokens nu vernieuwen, daarna Opnieuw autoriseren bij BMW als het blijft mislukken, en verbreek de verbinding van elke andere CarData-client."
     }
   },
   "services": {

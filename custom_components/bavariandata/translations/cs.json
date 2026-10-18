@@ -39,7 +39,7 @@
       },
       "select_clusters": {
         "title": "Vybrat přenášená data",
-        "description": "Jste připojeni. Nyní vyberte, které skupiny dat vozidla chcete přenášet. BMW pro to nemá API — nastavení je dostupné jen v relaci prohlížeče v portálu — proto vám další obrazovka dá stejnou záložku na jedno kliknutí **Activate BMW data**, jakou používá nastavení s průvodcem. Spustíte ji na stránce stream setup v portálu a ona zapne přesně tyto skupiny. Diagnostická a technická pole zůstávají po příchodu dat ve výchozím stavu skrytá.\n\nKdykoli později to můžete změnit v Konfigurovat → Vybrat přenášená data.",
+        "description": "Jste připojeni. Nyní vyberte, které skupiny dat vozidla chcete přenášet. BMW pro to nemá API — nastavení je dostupné jen v relaci prohlížeče v portálu — proto vám další obrazovka dá stejnou záložku na jedno kliknutí **Activate BMW data**, jakou používá nastavení s průvodcem. Spustíte ji na stránce stream setup v portálu a ona zapne přesně tyto skupiny. Diagnostická a technická pole zůstávají po příchodu dat ve výchozím stavu skrytá.\n\nKdykoli později to můžete změnit v Nastavit → Vybrat přenášená data.",
         "data": {
           "sections": "Skupiny dat"
         },
@@ -75,7 +75,7 @@
     "abort": {
       "account_already_configured": "Tento účet BMW je v Home Assistant už nastaven. Jeden záznam pokrývá celý účet včetně všech jeho vozů — přidání druhého Client ID pro stejný účet by přerušilo stream u obou, protože BMW povoluje jen jedno připojení na účet. Použijte existující záznam, nebo jej nejprve odstraňte.",
       "reauth_successful": "Opětovná autorizace proběhla úspěšně — BMW CarData je opět připojeno.",
-      "reauth_device_code_failed": "BMW odmítlo žádost o autorizaci zařízení ({error}). Aktualizujte Client ID v Konfigurovat → Znovu autorizovat u BMW, nebo integraci odstraňte a přidejte znovu.",
+      "reauth_device_code_failed": "BMW odmítlo žádost o autorizaci zařízení ({error}). Aktualizujte Client ID v Nastavit → Znovu autorizovat u BMW, nebo integraci odstraňte a přidejte znovu.",
       "reauth_missing_client_id": "U tohoto záznamu integrace chybí Client ID. Odstraňte integraci a přidejte ji znovu, abyste ji znovu autorizovali.",
       "reauth_failed": "Opětovnou autorizaci se nepodařilo spustit. Zkuste to znovu z možností integrace."
     }
@@ -2811,7 +2811,7 @@
     },
     "stream_coverage_gaps": {
       "title": "Vybraná skupina dat se nikdy nepřenesla",
-      "description": "Pro {vehicle} za {days} dní nedorazilo vůbec nic ze skupiny {clusters} ({count} deskriptorů, např. {descriptors}). Skupina, která úplně mlčí, obvykle znamená, že není zaškrtnutá a uložená ve Výběru dat v portálu BMW, nebo že vaše auto tato data neposkytuje. Znovu ji aktivujte v Konfigurovat → Vybrat přenášená data, nebo skupinu odznačte. Skupiny, které dodávají jen část svých polí, jsou normální a toto upozornění nikdy nevyvolají. Spusťte službu get_coverage_report pro úplný seznam."
+      "description": "Pro {vehicle} za {days} dní nedorazilo vůbec nic ze skupiny {clusters} ({count} deskriptorů, např. {descriptors}). Skupina, která úplně mlčí, obvykle znamená, že není zaškrtnutá a uložená ve Výběru dat v portálu BMW, nebo že vaše auto tato data neposkytuje. Znovu ji aktivujte v Nastavit → Vybrat přenášená data, nebo skupinu odznačte. Skupiny, které dodávají jen část svých polí, jsou normální a toto upozornění nikdy nevyvolají. Spusťte službu get_coverage_report pro úplný seznam."
     },
     "stream_no_data": {
       "title": "Nebyla přijata žádná data ze streamu BMW CarData",
@@ -2819,7 +2819,7 @@
     },
     "stream_unauthorized": {
       "title": "Stream BMW CarData není autorizován",
-      "description": "BMW již více než {minutes} minut odmítá připojení streamu jako neautorizované (MQTT rc=5) a samo se neobnovilo. Obvykle to znamená, že je třeba obnovit tokeny, nebo že jediný stream účtu drží jiný klient CarData. Zkuste Konfigurovat → Obnovit tokeny nyní, pak Znovu autorizovat u BMW, pokud to stále selhává, a odpojte jakéhokoli jiného klienta CarData."
+      "description": "BMW již více než {minutes} minut odmítá připojení streamu jako neautorizované (MQTT rc=5) a samo se neobnovilo. Obvykle to znamená, že je třeba obnovit tokeny, nebo že jediný stream účtu drží jiný klient CarData. Zkuste Nastavit → Obnovit tokeny nyní, pak Znovu autorizovat u BMW, pokud to stále selhává, a odpojte jakéhokoli jiného klienta CarData."
     }
   },
   "services": {
