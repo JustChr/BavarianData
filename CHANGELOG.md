@@ -38,6 +38,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   (CarData account)*, in your language. Entity IDs don't change.
 
 ### Fixed
+- **Two cars charging on one wallbox meter no longer each bill all of it.** The
+  state-of-charge estimate already refused a meter two charging cars share, but
+  each session still took the meter's whole advance as its energy and cost, so
+  the kWh were counted twice. While both charge at home on the same meter, each
+  session now uses its own battery-side figure, as it would without a meter.
+  This now also covers a car of a second account (a BMW and a MINI on one
+  wallbox), and a car charging elsewhere no longer blocks the meter for the one
+  at home. One wallbox for several cars stays the normal case: the meter counts
+  for whichever car is charging.
 - **Blueprint *Notify when charging completes*: one message, the car named, a
   car filter.** With *Only when target reached* off, a charge that reached its
   target sent two messages. Now it sends one, the title names the car (*i5

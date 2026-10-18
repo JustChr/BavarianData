@@ -242,10 +242,13 @@ Der Zähler treibt nur, solange er sich nicht irren kann, welches Auto er zählt
 - **dieses Auto lädt, und zwar zu Hause** (dieselbe Zonenregel wie oben);
 - **sein Kabel steckt** — vergisst BMW, eine Ladung zu beenden, und meldet das
   Auto sich als ausgesteckt, lädt die Wallbox jetzt ein anderes Auto;
-- **kein anderes Auto am selben Zähler lädt** gleichzeitig — bei zweien gehört
-  der Fortschritt des Zählers beiden, und keines bekommt ihn. Autos mit je einem
-  eigenen Zähler (je Auto unter Konfigurieren → Ladekosten) kommen sich nicht in
-  die Quere;
+- **kein anderes Auto am selben Zähler gleichzeitig zu Hause lädt**, auch keines
+  eines anderen BavarianData-Kontos. Bei zweien gehört der Fortschritt des
+  Zählers beiden, und keines bekommt ihn, weder für die Schätzung noch für
+  Energie und Kosten des Ladevorgangs, die dann aus den eigenen Werten des Autos
+  kommen. Ein Auto, das woanders lädt, zählt nicht. Autos mit je einem eigenen
+  Zähler (je Auto unter Konfigurieren → Ladekosten) kommen sich nicht in die
+  Quere;
 - **der Wert ist plausibel** — ein Zähler, der zurückgeht, beginnt eine neue
   Zählung, und ein Sprung, schneller als jede 22-kW-Wallbox liefern könnte, wird
   ignoriert.

@@ -360,6 +360,9 @@ class SessionBuilder:
         # unavailable still has a usable last reading.
         self.grid_meter_start: Optional[float] = None
         self.grid_meter_last: Optional[float] = None
+        # Another car charged on the same meter during this session, so its
+        # advance is both cars' and this session has no measured figure.
+        self.meter_shared = False
 
     def _offset(self, at: datetime) -> int:
         # Clock skew between BMW's timestamps and ours could put a sample before
@@ -408,7 +411,7 @@ class SessionBuilder:
         that spans a discontinuity.
         """
 
-        if reading is None:
+        if reading is None or self.meter_shared:
             return
         if self.grid_meter_start is None:
             self.grid_meter_start = reading
@@ -417,6 +420,19 @@ class SessionBuilder:
             self.grid_meter_last = None
             return
         self.grid_meter_last = reading
+
+    def note_meter_shared(self) -> None:
+        """Another car is charging on this meter: drop the measurement for good.
+
+        Not paused and resumed: a baseline taken once the other car stops would
+        silently shorten the window the delta covers (see
+        :meth:`note_grid_meter`), so the session falls back to its battery-side
+        figure, as it would without a meter.
+        """
+
+        self.meter_shared = True
+        self.grid_meter_start = None
+        self.grid_meter_last = None
 
     def measured_grid_kwh(self, *, battery_kwh: Optional[float] = None) -> Optional[float]:
         """The meter's verdict on this session, or ``None`` if unusable.
@@ -458,6 +474,7 @@ class SessionBuilder:
             "last_sample_at": _iso(self.last_sample_at),
             "grid_meter_start": self.grid_meter_start,
             "grid_meter_last": self.grid_meter_last,
+            "meter_shared": self.meter_shared,
         }
 
     @classmethod
@@ -504,6 +521,7 @@ class SessionBuilder:
         # behaviour it already had.
         builder.grid_meter_start = data.get("grid_meter_start")
         builder.grid_meter_last = data.get("grid_meter_last")
+        builder.meter_shared = bool(data.get("meter_shared"))
         return builder
 
     def close(
