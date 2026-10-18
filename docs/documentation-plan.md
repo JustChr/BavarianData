@@ -206,6 +206,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `view: health` | Battery health | 🟡 | 📷 |
 | `view: efficiency` | Efficiency & real range | 🟢 The-Dashboard-Card + Feature-Efficiency-and-Range | 📷 (have, 2026-10-14: `card-efficiency.png`) |
 | `view: mileage` | Mileage overview + allowance | 🟢 The-Dashboard-Card → "Mileage" + Feature-Mileage (EN + DE) | 📷 (have, 2026-10-14: `card-mileage.png`, live overview with an example lease) |
+| `view: fuel` | Fuel log for petrol/diesel/PHEV: tank now, refuels detected from tank jumps, l/100 km between refuels, BMW OBFCM lifetime figure; shown by `charging`/`efficiency` on a petrol or diesel car | 🟢 The-Dashboard-Card → "Fuel" (EN + DE) | 📷 owed (no fuel car to capture; render from the shipped card) |
 | `view: equipment` | Factory equipment by name, with each option's picture where BMW has one (from the configurator picture source) | 🟢 The-Dashboard-Card → "Equipment" (EN + DE) | 📷 (have: `card-equipment.png`, with the option pictures, i5) |
 | Overview hero with the configurator picture (spin, lights/night, state badges + top-down inset, interior panorama; angle/mode/look remembered per browser) | Overview | 🟢 The-Dashboard-Card → "Overview" (EN + DE) | 📷 (have: `card-hero-spin.png`, `card-hero-interior.png`, `card-hero-badges.png` — door and windows staged open in the browser only) |
 | `cluster: tire` | Tires (pressure + wear) | 🟡 | 📷 (have) |
@@ -233,6 +234,7 @@ Targeting (the **Vehicle** picker `device_id`, `vin`, `entry_id`; one-car servic
 | `get_driving_summary` | free | 🟢 Services-Reference + Feature-Trips → "How consumption is measured" |
 | `get_efficiency` | free | 🟢 Services-Reference + Feature-Efficiency-and-Range |
 | `get_mileage_report` | free | 🟢 Services-Reference + Feature-Mileage |
+| `get_fuel_history` | free | 🟢 Services-Reference + The-Dashboard-Card → "Fuel" |
 | `get_evcc_config` | free | 🟢 Services-Reference + Feature-evcc-and-Wallbox-Bridge |
 | `set_trip_class` | free | 🟡 |
 | `mark_trip_start` | free | 🟢 Services-Reference + Feature-Trips → "Older cars…" (EN + DE) |

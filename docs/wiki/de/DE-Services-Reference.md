@@ -51,6 +51,7 @@ Diese lesen (oder schreiben) den eigenen Speicher der Integration und kosten
 | `bavariandata.get_driving_summary` | Die Monatsübersicht der Fahrten. |
 | `bavariandata.get_efficiency` | Gemessener Verbrauch, die daraus folgende reale Reichweite, der Ladeverlust und der Monatsverlauf — siehe unten. |
 | `bavariandata.get_mileage_report` | Wie viel das Auto gefahren wird und wie es zu seinem Kilometerkontingent steht — siehe unten. |
+| `bavariandata.get_fuel_history` | Tankvorgänge und Kraftstoffverbrauch eines Benziners, Diesels oder Plug-in-Hybrids, abgelesen am Tankinhalt — siehe unten. |
 | `bavariandata.get_evcc_config` | Die evcc-Fahrzeugkonfiguration `custom` für ein Auto, dazu die MQTT-Topics der Brücke — siehe unten. |
 | `bavariandata.set_trip_class` | Korrigiert die Zuordnung einer Fahrt (geschäftlich/privat/Pendeln). |
 | `bavariandata.mark_trip_start` | Vermerkt, wann eine Fahrt begann, für ein Auto, das erst nach dem Parken meldet — siehe unten. |
@@ -126,9 +127,14 @@ Speicher und kostet daher kein BMW-API-Kontingent.
 - **`cost_per_100km` / `currency` / `energy_mix`** — die laufenden Kosten dieses
   Monats und woher seine Energie kam.
 
+- **`bmw_lifetime`** — BMWs eigene Werte über die Lebensdauer aus den OBFCM-Zählern,
+  oder `null`, wenn das Auto keine sendet: `fuel_l_per_100km` und `distance_km`, beim
+  Plug-in-Hybrid außerdem `electric_kwh_per_100km` (Motor aus), `electric_km`,
+  `grid_kwh_per_100km` (alle Fahrten) und `electric_share_percent`.
+
 `status` sagt, warum ein Wert fehlt: `ok`, `not_enough_history`, `no_capacity` oder
 `plug_in_hybrid` (Verbrauch, Reichweite, Verlauf und `cost_per_100km` werden bei einem
-Hybrid alle zurückgehalten).
+Hybrid alle zurückgehalten; stattdessen zeigt die Karte `bmw_lifetime`).
 Siehe [Effizienz & reale Reichweite](DE-Feature-Efficiency-and-Range).
 
 ### `get_mileage_report`
@@ -153,6 +159,31 @@ BMW-API-Kontingent. Alle Strecken in km.
   `ended` außerdem `used_km`, `plan_km`, `balance_km` (Plan minus gefahren,
   positiv = unter Plan), `remaining_km`, `days_left`, `km_per_day_left`,
   `projected_km` und `projected_over_km`.
+
+### `get_fuel_history`
+
+`vin`. Liefert die Daten der [Kraftstoff-Ansicht](DE-The-Dashboard-Card#fuel-view-fuel) als
+Antwortdaten, abgelesen am Tankinhalt des Autos, und kostet daher kein
+BMW-API-Kontingent. Nur ein Auto mit Motor führt ein Tankprotokoll; ein E-Auto
+antwortet mit einer leeren Liste.
+
+- **`refuels`** — neueste zuerst: `t`, `km` (der Kilometerstand), `added_l` oder, bei
+  einem Auto, das nur Prozent streamt, `added_percent`, der Stand danach und
+  `l_per_100km` / `window_km` für die Strecke, die er abgeschlossen hat, wenn sie
+  messbar war.
+- **`average`** — `{l_per_100km, km, litres, windows}` über die letzten 12 Monate:
+  gesamte Liter durch gesamte km aller messbaren Strecken zwischen zwei
+  Tankvorgängen. `null`, bis es eine gibt. Eine Strecke zählt ab 150 km und nur,
+  wenn sie zwischen 2 und 30 l/100 km ergibt.
+- **`since_refuel`** — `{km, litres, l_per_100km}` seit dem neuesten Tankvorgang; der
+  Wert erst, wenn die Strecke 150 km lang ist.
+- **`tank`** — `litres`, `percent` und `range_km` jetzt.
+- **`bmw_lifetime`** — wie bei `get_efficiency`, oder `null`.
+
+Ein Tankvorgang ist ein Anstieg um mindestens 5 L (8 % bei einem Auto, das nur
+Prozent meldet), während das Auto steht, innerhalb von 25 km Fahrt. Der Tankinhalt ist
+auf ein paar Liter genau, eine einzelne Strecke kann also danebenliegen; der
+Durchschnitt ist der Wert, auf den man sich verlassen kann.
 
 ### `get_evcc_config`
 

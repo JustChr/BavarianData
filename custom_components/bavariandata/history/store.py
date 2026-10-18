@@ -13,7 +13,7 @@ cache and request log already use.
 from __future__ import annotations
 
 import logging
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Any, Optional
 
 from homeassistant.core import HomeAssistant, callback
@@ -30,6 +30,9 @@ from .cardata_history import (
 )
 from .sessions import drop_house_figures_elsewhere
 from .models import SCHEMA_VERSION, ChargingSession, merge_session, prune_sessions
+from .fuel import CHANGED_REFUEL
+from .fuel import note_reading as note_fuel_reading
+from .fuel import report as fuel_report
 from .odometer import km_per_day, note_reading
 from .trips import Trip, merge_trip, prune_trips
 
@@ -39,6 +42,8 @@ STORE_VERSION = 1
 # Sessions end minutes apart at worst, so a generous debounce costs nothing and
 # guarantees we never write from the hot stream path.
 SAVE_DELAY_S = 30
+# How often a plain tank reading is worth a save (see ``async_note_fuel``).
+FUEL_SAVE_INTERVAL = timedelta(minutes=15)
 DEFAULT_RETAIN_MONTHS: Optional[int] = 24
 # Backstop against unbounded growth even with retention set to "forever".
 MAX_SESSIONS_PER_VIN = 2000
@@ -79,6 +84,10 @@ class HistoryStore:
         # One odometer reading per local day, per VIN (``odometer.py``): the
         # car's pace for projected service dates and the mileage overview.
         self._odometer: dict[str, dict[str, float]] = {}
+        # The tank's last reading and its refuels, per VIN (``fuel.py``): the
+        # Fuel view of a petrol or diesel car.
+        self._fuel: dict[str, dict[str, Any]] = {}
+        self._fuel_saved_at: dict[str, datetime] = {}
         self._loaded = False
 
     async def async_load(self) -> None:
@@ -146,6 +155,11 @@ class HistoryStore:
                     note_reading(log, dt_util.as_local(stamp).date(), session.mileage_km)
             if not log:
                 del self._odometer[vin]
+
+        # Additive, like ``odometer``: absent in every older store.
+        for vin, raw_fuel in (data.get("fuel") or {}).items():
+            if isinstance(raw_fuel, dict):
+                self._fuel[vin] = raw_fuel
 
         # ``trips`` is absent in schema-1 stores; a plain ``.get`` handles the
         # upgrade with no migration step.
@@ -333,6 +347,44 @@ class HistoryStore:
         if note_reading(self._odometer.setdefault(vin, {}), day, km):
             self.async_schedule_save()
 
+    @callback
+    def async_note_fuel(
+        self,
+        vin: str,
+        when: datetime,
+        *,
+        litres: Optional[float],
+        percent: Optional[float],
+        km: Optional[float],
+    ) -> None:
+        """Feed one tank reading to the fuel log.
+
+        A refuel is saved at once (debounced like everything else); a plain
+        reading only every :data:`FUEL_SAVE_INTERVAL`, because the tank reports
+        every few minutes while driving and the last reading only matters as
+        the "before" of the next refuel.
+        """
+
+        changed = note_fuel_reading(
+            self._fuel.setdefault(vin, {}), when, litres=litres, percent=percent, km=km
+        )
+        if changed is None:
+            return
+        now = datetime.now(timezone.utc)
+        last_saved = self._fuel_saved_at.get(vin)
+        if (
+            changed == CHANGED_REFUEL
+            or last_saved is None
+            or now - last_saved >= FUEL_SAVE_INTERVAL
+        ):
+            self._fuel_saved_at[vin] = now
+            self.async_schedule_save()
+
+    def fuel_report(self, vin: str, now: datetime) -> dict[str, Any]:
+        """Refuels and consumption for one VIN (``fuel.report``)."""
+
+        return fuel_report(self._fuel.get(vin, {}), now)
+
     def km_per_day(self, vin: str, today: date) -> Optional[float]:
         """The car's pace over the last 90 days, or ``None`` until it is known."""
 
@@ -443,6 +495,7 @@ class HistoryStore:
             "open_sessions": dict(self._open_sessions),
             "reports": dict(self._reports),
             "odometer": {vin: dict(log) for vin, log in self._odometer.items()},
+            "fuel": {vin: dict(log) for vin, log in self._fuel.items()},
         }
 
     async def async_save_now(self) -> None:
@@ -460,6 +513,7 @@ class HistoryStore:
             self._open_sessions,
             self._reports,
             self._odometer,
+            self._fuel,
         ):
             records.pop(vin, None)
         self.async_schedule_save()
@@ -474,4 +528,5 @@ class HistoryStore:
         # so deleting history can never announce a report that is a replay.
         self._reports = {}
         self._odometer = {}
+        self._fuel = {}
         await self._store.async_remove()

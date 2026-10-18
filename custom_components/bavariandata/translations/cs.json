@@ -3076,6 +3076,24 @@
         }
       }
     },
+    "get_fuel_history": {
+      "name": "Získat historii paliva",
+      "description": "Vrátí tankování benzinového, naftového nebo plug-in hybridního vozu, rozpoznaná podle stavu nádrže, se spotřebou mezi nimi, průměrem za poslední rok a údaji BMW o spotřebě za celou dobu provozu, pokud je vůz posílá. Nespotřebuje žádnou kvótu BMW API.",
+      "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Auto, kterého se akce týká. Potřeba jen při více než jednom autě."
+        },
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN místo výběru vozidla. Potřeba jen, pokud má účet více než jedno auto."
+        }
+      }
+    },
     "get_evcc_config": {
       "name": "Získat konfiguraci evcc",
       "description": "Vrátí konfiguraci vozidla 'custom' pro evcc pro toto auto, připravenou ke vložení do evcc.yaml, spolu s tématy MQTT, která most publikuje, a informací, která z nich jsou právě živá. Čte jen místní stav, takže nespotřebuje kvótu API BMW.",

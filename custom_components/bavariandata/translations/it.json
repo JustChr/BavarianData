@@ -3076,6 +3076,24 @@
         }
       }
     },
+    "get_fuel_history": {
+      "name": "Ottieni la cronologia del carburante",
+      "description": "Restituisce i rifornimenti di un'auto a benzina, diesel o ibrida plug-in, rilevati dal livello del serbatoio, con il consumo tra un rifornimento e l'altro, la media dell'ultimo anno e i consumi sull'intera vita dell'auto forniti da BMW, se l'auto li invia. Non consuma quota dell'API BMW.",
+      "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "L'auto su cui agire. Serve solo se hai più di un'auto."
+        },
+        "entry_id": {
+          "name": "Voce di configurazione",
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facoltativo, invece di scegliere il veicolo. Serve solo se l'account ha più di un'auto."
+        }
+      }
+    },
     "get_evcc_config": {
       "name": "Ottieni la configurazione evcc",
       "description": "Restituisce la configurazione del veicolo 'custom' di evcc per questa auto, pronta da incollare in evcc.yaml, insieme ai topic MQTT pubblicati dal bridge e a quali di essi sono attivi ora. Legge solo lo stato locale, quindi non consuma quota API BMW.",

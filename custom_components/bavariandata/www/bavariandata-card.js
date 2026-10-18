@@ -106,6 +106,11 @@ const STEERING_SIDES = new Set(["left", "right"]);
 // BMW's two odometer spellings (the coordinator's DESC_ODOMETER); whichever
 // the car streams carries the distance unit its owner chose.
 const DESC_ODOMETER = ["vehicle.vehicle.mileage", "vehicle.vehicle.travelledDistance"];
+// The tank, in litres or as a fill level.
+const FUEL_DESCRIPTORS = [
+  "vehicle.drivetrain.fuelSystem.remainingFuel",
+  "vehicle.drivetrain.fuelSystem.level",
+];
 // The car's own display setting for distances (units.DESC_DISPLAY_DISTANCE).
 const DESC_DISPLAY_DISTANCE = [
   "vehicle.cabin.infotainment.displayUnit.distance",
@@ -352,6 +357,27 @@ const TRANSLATIONS = {
     mi_loading: "Adding up your mileage…",
     mi_error: "Couldn't load the mileage data. Reload the page and try again.",
     mi_empty: "No odometer readings yet. They're recorded as the car reports them.",
+    // fuel view
+    fu_title: "Fuel",
+    fu_loading: "Loading the fuel log…",
+    fu_error: "Couldn't load the fuel log. Reload the page and try again.",
+    fu_tank: "Tank",
+    fu_range: "{d} range",
+    fu_average: "Average",
+    fu_average_note: "over {d}, last 12 months",
+    fu_since: "Since refueling",
+    fu_used: "{l} used",
+    fu_lifetime: "BMW lifetime",
+    fu_lifetime_note: "BMW's own figure, over {d}",
+    fu_window: "{r} over {d}",
+    fu_refuels: "Refuels",
+    fu_no_refuels: "No refuel recorded yet. The next fill-up appears here, and the consumption once two are recorded.",
+    fu_note: "Read off the tank level, which the car reports to within a few liters, so each figure is an estimate. The average over several refuels is the one to trust.",
+    ef_electric: "Electric driving",
+    ef_electric_note: "engine off, over {d}",
+    ef_electric_share: "Driven electrically",
+    ef_grid_lifetime: "Grid energy, all driving",
+    ef_hybrid_lifetime: "BMW's own lifetime figures, since the car was built. Its counters split the distance by whether the engine ran, which the charging history cannot. A consumption or range from the charging history is still not shown.",
     mi_this_month: "This month",
     mi_this_year: "This year",
     mi_per_day: "Per day",
@@ -510,6 +536,9 @@ const TRANSLATIONS = {
       "No tyre data for this vehicle yet. Enable the Tyre data cluster and drive to populate readings.",
     check_tyres: "Check tyres",
     sh_sedan: "BMW saloon",
+    fu_since: "Since refuelling",
+    fu_note:
+      "Read off the tank level, which the car reports to within a few litres, so each figure is an estimate. The average over several refuels is the one to trust.",
   },
   de: {
     // cluster labels
@@ -691,6 +720,27 @@ const TRANSLATIONS = {
     mi_loading: "Kilometer werden zusammengezählt…",
     mi_error: "Die Kilometerdaten konnten nicht geladen werden. Lade die Seite neu und versuche es noch einmal.",
     mi_empty: "Noch keine Kilometerstände. Sie werden aufgezeichnet, sobald das Auto sie meldet.",
+    // fuel view
+    fu_title: "Kraftstoff",
+    fu_loading: "Tankprotokoll wird geladen…",
+    fu_error: "Das Tankprotokoll konnte nicht geladen werden. Lade die Seite neu und versuche es noch einmal.",
+    fu_tank: "Tank",
+    fu_range: "{d} Reichweite",
+    fu_average: "Durchschnitt",
+    fu_average_note: "über {d}, letzte 12 Monate",
+    fu_since: "Seit dem Tanken",
+    fu_used: "{l} verbraucht",
+    fu_lifetime: "BMW Gesamtlaufzeit",
+    fu_lifetime_note: "BMWs eigener Wert, über {d}",
+    fu_window: "{r} auf {d}",
+    fu_refuels: "Tankvorgänge",
+    fu_no_refuels: "Noch kein Tankvorgang erfasst. Der nächste erscheint hier, der Verbrauch, sobald zwei erfasst sind.",
+    fu_note: "Abgelesen am Tankinhalt, den das Auto auf ein paar Liter genau meldet; jeder Wert ist also eine Schätzung. Verlässlich ist der Durchschnitt über mehrere Tankvorgänge.",
+    ef_electric: "Elektrisch gefahren",
+    ef_electric_note: "Motor aus, über {d}",
+    ef_electric_share: "Elektrischer Anteil",
+    ef_grid_lifetime: "Netzstrom, alle Fahrten",
+    ef_hybrid_lifetime: "BMWs eigene Werte über die Lebensdauer, seit das Auto gebaut wurde. Seine Zähler trennen die Strecke danach, ob der Motor lief, was die Ladehistorie nicht kann. Verbrauch oder Reichweite aus der Ladehistorie werden weiterhin nicht gezeigt.",
     mi_this_month: "Dieser Monat",
     mi_this_year: "Dieses Jahr",
     mi_per_day: "Pro Tag",
@@ -1017,6 +1067,27 @@ const TRANSLATIONS = {
     mi_loading: "Calcul de votre kilométrage…",
     mi_error: "Impossible de charger le kilométrage. Rechargez la page et réessayez.",
     mi_empty: "Aucun relevé du compteur pour l'instant. Ils sont enregistrés dès que la voiture les envoie.",
+    // fuel view
+    fu_title: "Carburant",
+    fu_loading: "Chargement du journal de carburant…",
+    fu_error: "Impossible de charger le journal de carburant. Rechargez la page et réessayez.",
+    fu_tank: "Réservoir",
+    fu_range: "{d} d'autonomie",
+    fu_average: "Moyenne",
+    fu_average_note: "sur {d}, 12 derniers mois",
+    fu_since: "Depuis le plein",
+    fu_used: "{l} consommés",
+    fu_lifetime: "BMW, durée de vie",
+    fu_lifetime_note: "chiffre de BMW, sur {d}",
+    fu_window: "{r} sur {d}",
+    fu_refuels: "Pleins",
+    fu_no_refuels: "Aucun plein enregistré pour l'instant. Le prochain apparaîtra ici, et la consommation dès que deux seront enregistrés.",
+    fu_note: "Lu sur le niveau du réservoir, que la voiture indique à quelques litres près ; chaque chiffre est donc une estimation. La moyenne sur plusieurs pleins est la plus fiable.",
+    ef_electric: "Conduite électrique",
+    ef_electric_note: "moteur éteint, sur {d}",
+    ef_electric_share: "Part électrique",
+    ef_grid_lifetime: "Énergie du réseau, tous trajets",
+    ef_hybrid_lifetime: "Chiffres de BMW sur toute la durée de vie, depuis la construction de la voiture. Ses compteurs séparent la distance selon que le moteur tournait ou non, ce que l'historique de recharge ne peut pas faire. Aucune consommation ni autonomie tirée de l'historique de recharge n'est affichée.",
     mi_this_month: "Ce mois-ci",
     mi_this_year: "Cette année",
     mi_per_day: "Par jour",
@@ -1343,6 +1414,27 @@ const TRANSLATIONS = {
     mi_loading: "Calcolo dei chilometri…",
     mi_error: "Impossibile caricare i chilometri. Ricarica la pagina e riprova.",
     mi_empty: "Nessuna lettura del contachilometri finora. Vengono registrate man mano che l'auto le invia.",
+    // fuel view
+    fu_title: "Carburante",
+    fu_loading: "Caricamento del registro carburante…",
+    fu_error: "Impossibile caricare il registro carburante. Ricarica la pagina e riprova.",
+    fu_tank: "Serbatoio",
+    fu_range: "{d} di autonomia",
+    fu_average: "Media",
+    fu_average_note: "su {d}, ultimi 12 mesi",
+    fu_since: "Dal rifornimento",
+    fu_used: "{l} consumati",
+    fu_lifetime: "BMW, intera vita",
+    fu_lifetime_note: "dato di BMW, su {d}",
+    fu_window: "{r} su {d}",
+    fu_refuels: "Rifornimenti",
+    fu_no_refuels: "Nessun rifornimento registrato finora. Il prossimo comparirà qui, e il consumo appena ne saranno registrati due.",
+    fu_note: "Letto dal livello del serbatoio, che l'auto riporta con qualche litro di precisione: ogni valore è quindi una stima. La media su più rifornimenti è quella affidabile.",
+    ef_electric: "Guida elettrica",
+    ef_electric_note: "motore spento, su {d}",
+    ef_electric_share: "Quota elettrica",
+    ef_grid_lifetime: "Energia dalla rete, tutti i percorsi",
+    ef_hybrid_lifetime: "Dati di BMW sull'intera vita dell'auto, da quando è stata costruita. I suoi contatori separano la distanza a seconda che il motore fosse acceso, cosa che la cronologia di ricarica non può fare. Consumo e autonomia dalla cronologia di ricarica restano non mostrati.",
     mi_this_month: "Questo mese",
     mi_this_year: "Quest'anno",
     mi_per_day: "Al giorno",
@@ -1669,6 +1761,27 @@ const TRANSLATIONS = {
     mi_loading: "Sumando tu kilometraje…",
     mi_error: "No se pudo cargar el kilometraje. Recarga la página e inténtalo de nuevo.",
     mi_empty: "Aún no hay lecturas del cuentakilómetros. Se registran en cuanto el coche las envía.",
+    // fuel view
+    fu_title: "Combustible",
+    fu_loading: "Cargando el registro de combustible…",
+    fu_error: "No se pudo cargar el registro de combustible. Recarga la página e inténtalo de nuevo.",
+    fu_tank: "Depósito",
+    fu_range: "{d} de autonomía",
+    fu_average: "Media",
+    fu_average_note: "en {d}, últimos 12 meses",
+    fu_since: "Desde el repostaje",
+    fu_used: "{l} gastados",
+    fu_lifetime: "BMW, vida útil",
+    fu_lifetime_note: "cifra de BMW, en {d}",
+    fu_window: "{r} en {d}",
+    fu_refuels: "Repostajes",
+    fu_no_refuels: "Aún no hay repostajes registrados. El próximo aparecerá aquí, y el consumo en cuanto haya dos.",
+    fu_note: "Leído del nivel del depósito, que el coche indica con unos pocos litros de precisión, así que cada cifra es una estimación. La media de varios repostajes es la fiable.",
+    ef_electric: "Conducción eléctrica",
+    ef_electric_note: "motor apagado, en {d}",
+    ef_electric_share: "Parte eléctrica",
+    ef_grid_lifetime: "Energía de la red, todos los trayectos",
+    ef_hybrid_lifetime: "Cifras propias de BMW de toda la vida útil, desde que se fabricó el coche. Sus contadores separan la distancia según si el motor estaba en marcha, algo que el historial de carga no puede hacer. Sigue sin mostrarse un consumo o una autonomía a partir del historial de carga.",
     mi_this_month: "Este mes",
     mi_this_year: "Este año",
     mi_per_day: "Por día",
@@ -1995,6 +2108,27 @@ const TRANSLATIONS = {
     mi_loading: "Je kilometers worden opgeteld…",
     mi_error: "De kilometergegevens konden niet worden geladen. Herlaad de pagina en probeer het opnieuw.",
     mi_empty: "Nog geen kilometerstanden. Ze worden vastgelegd zodra de auto ze meldt.",
+    // fuel view
+    fu_title: "Brandstof",
+    fu_loading: "Brandstoflogboek laden…",
+    fu_error: "Het brandstoflogboek kon niet worden geladen. Herlaad de pagina en probeer het opnieuw.",
+    fu_tank: "Tank",
+    fu_range: "{d} actieradius",
+    fu_average: "Gemiddeld",
+    fu_average_note: "over {d}, laatste 12 maanden",
+    fu_since: "Sinds tanken",
+    fu_used: "{l} verbruikt",
+    fu_lifetime: "BMW, levensduur",
+    fu_lifetime_note: "BMW's eigen cijfer, over {d}",
+    fu_window: "{r} over {d}",
+    fu_refuels: "Tankbeurten",
+    fu_no_refuels: "Nog geen tankbeurt vastgelegd. De volgende verschijnt hier, en het verbruik zodra er twee zijn.",
+    fu_note: "Afgelezen van het tankniveau, dat de auto tot op een paar liter nauwkeurig meldt; elk cijfer is dus een schatting. Het gemiddelde over meerdere tankbeurten is betrouwbaar.",
+    ef_electric: "Elektrisch rijden",
+    ef_electric_note: "motor uit, over {d}",
+    ef_electric_share: "Elektrisch gereden",
+    ef_grid_lifetime: "Netstroom, alle ritten",
+    ef_hybrid_lifetime: "BMW's eigen cijfers over de hele levensduur, sinds de auto is gebouwd. De tellers splitsen de afstand naar of de motor liep, wat de laadgeschiedenis niet kan. Een verbruik of actieradius uit de laadgeschiedenis wordt nog steeds niet getoond.",
     mi_this_month: "Deze maand",
     mi_this_year: "Dit jaar",
     mi_per_day: "Per dag",
@@ -2321,6 +2455,27 @@ const TRANSLATIONS = {
     mi_loading: "Liczenie przebiegu…",
     mi_error: "Nie udało się wczytać przebiegu. Odśwież stronę i spróbuj ponownie.",
     mi_empty: "Brak odczytów licznika. Są zapisywane, gdy auto je przesyła.",
+    // fuel view
+    fu_title: "Paliwo",
+    fu_loading: "Wczytywanie dziennika paliwa…",
+    fu_error: "Nie udało się wczytać dziennika paliwa. Odśwież stronę i spróbuj ponownie.",
+    fu_tank: "Zbiornik",
+    fu_range: "{d} zasięgu",
+    fu_average: "Średnio",
+    fu_average_note: "na {d}, ostatnie 12 miesięcy",
+    fu_since: "Od tankowania",
+    fu_used: "zużyto {l}",
+    fu_lifetime: "BMW, cały okres",
+    fu_lifetime_note: "dane BMW, na {d}",
+    fu_window: "{r} na {d}",
+    fu_refuels: "Tankowania",
+    fu_no_refuels: "Nie zarejestrowano jeszcze tankowania. Następne pojawi się tutaj, a zużycie, gdy będą dwa.",
+    fu_note: "Odczytane z poziomu paliwa, który samochód podaje z dokładnością do kilku litrów, więc każda wartość jest szacunkiem. Wiarygodna jest średnia z kilku tankowań.",
+    ef_electric: "Jazda elektryczna",
+    ef_electric_note: "silnik wyłączony, na {d}",
+    ef_electric_share: "Udział jazdy elektrycznej",
+    ef_grid_lifetime: "Energia z sieci, wszystkie jazdy",
+    ef_hybrid_lifetime: "Dane BMW z całego okresu eksploatacji, od zbudowania samochodu. Jego liczniki dzielą dystans według tego, czy pracował silnik, czego historia ładowania nie potrafi. Zużycie ani zasięg z historii ładowania nadal nie są pokazywane.",
     mi_this_month: "Ten miesiąc",
     mi_this_year: "Ten rok",
     mi_per_day: "Dziennie",
@@ -2647,6 +2802,27 @@ const TRANSLATIONS = {
     mi_loading: "A somar a sua quilometragem…",
     mi_error: "Não foi possível carregar a quilometragem. Recarregue a página e tente novamente.",
     mi_empty: "Ainda não há leituras do conta-quilómetros. São registadas quando o carro as envia.",
+    // fuel view
+    fu_title: "Combustível",
+    fu_loading: "A carregar o registo de combustível…",
+    fu_error: "Não foi possível carregar o registo de combustível. Recarregue a página e tente novamente.",
+    fu_tank: "Depósito",
+    fu_range: "{d} de autonomia",
+    fu_average: "Média",
+    fu_average_note: "em {d}, últimos 12 meses",
+    fu_since: "Desde o abastecimento",
+    fu_used: "{l} gastos",
+    fu_lifetime: "BMW, vida útil",
+    fu_lifetime_note: "valor da BMW, em {d}",
+    fu_window: "{r} em {d}",
+    fu_refuels: "Abastecimentos",
+    fu_no_refuels: "Ainda não há abastecimentos registados. O próximo aparece aqui, e o consumo quando houver dois.",
+    fu_note: "Lido do nível do depósito, que o carro indica com uma precisão de poucos litros, por isso cada valor é uma estimativa. A média de vários abastecimentos é a fiável.",
+    ef_electric: "Condução elétrica",
+    ef_electric_note: "motor desligado, em {d}",
+    ef_electric_share: "Parte elétrica",
+    ef_grid_lifetime: "Energia da rede, todas as viagens",
+    ef_hybrid_lifetime: "Valores da própria BMW de toda a vida útil, desde que o carro foi construído. Os seus contadores separam a distância consoante o motor estava ligado, o que o histórico de carregamento não consegue. Continua a não ser mostrado um consumo ou autonomia a partir do histórico de carregamento.",
     mi_this_month: "Este mês",
     mi_this_year: "Este ano",
     mi_per_day: "Por dia",
@@ -2973,6 +3149,27 @@ const TRANSLATIONS = {
     mi_loading: "Sčítám nájezd…",
     mi_error: "Údaje o nájezdu se nepodařilo načíst. Obnovte stránku a zkuste to znovu.",
     mi_empty: "Zatím žádné stavy tachometru. Zaznamenávají se, jakmile je auto pošle.",
+    // fuel view
+    fu_title: "Palivo",
+    fu_loading: "Načítá se deník paliva…",
+    fu_error: "Deník paliva se nepodařilo načíst. Obnovte stránku a zkuste to znovu.",
+    fu_tank: "Nádrž",
+    fu_range: "dojezd {d}",
+    fu_average: "Průměr",
+    fu_average_note: "na {d}, posledních 12 měsíců",
+    fu_since: "Od tankování",
+    fu_used: "spotřebováno {l}",
+    fu_lifetime: "BMW, celá životnost",
+    fu_lifetime_note: "údaj BMW, na {d}",
+    fu_window: "{r} na {d}",
+    fu_refuels: "Tankování",
+    fu_no_refuels: "Zatím není zaznamenané žádné tankování. Další se objeví zde a spotřeba, jakmile budou zaznamenána dvě.",
+    fu_note: "Odečteno ze stavu nádrže, který vůz hlásí s přesností na několik litrů, takže každý údaj je odhad. Spolehlivý je průměr z několika tankování.",
+    ef_electric: "Elektrická jízda",
+    ef_electric_note: "motor vypnutý, na {d}",
+    ef_electric_share: "Podíl elektrické jízdy",
+    ef_grid_lifetime: "Energie ze sítě, všechny jízdy",
+    ef_hybrid_lifetime: "Vlastní údaje BMW za celou dobu provozu, od výroby vozu. Jeho počítadla dělí vzdálenost podle toho, zda běžel motor, což historie nabíjení neumí. Spotřeba ani dojezd z historie nabíjení se dál nezobrazují.",
     mi_this_month: "Tento měsíc",
     mi_this_year: "Tento rok",
     mi_per_day: "Za den",
@@ -3299,6 +3496,27 @@ const TRANSLATIONS = {
     mi_loading: "Räknar ihop körsträckan…",
     mi_error: "Kunde inte läsa in körsträckan. Ladda om sidan och försök igen.",
     mi_empty: "Inga mätarställningar än. De sparas när bilen rapporterar dem.",
+    // fuel view
+    fu_title: "Bränsle",
+    fu_loading: "Läser in bränsleloggen…",
+    fu_error: "Det gick inte att läsa in bränsleloggen. Ladda om sidan och försök igen.",
+    fu_tank: "Tank",
+    fu_range: "{d} räckvidd",
+    fu_average: "Genomsnitt",
+    fu_average_note: "över {d}, senaste 12 månaderna",
+    fu_since: "Sedan tankning",
+    fu_used: "{l} förbrukat",
+    fu_lifetime: "BMW, livslängd",
+    fu_lifetime_note: "BMW:s egen siffra, över {d}",
+    fu_window: "{r} över {d}",
+    fu_refuels: "Tankningar",
+    fu_no_refuels: "Ingen tankning registrerad än. Nästa visas här, och förbrukningen när två har registrerats.",
+    fu_note: "Avläst från tanknivån, som bilen anger på några liter när, så varje siffra är en uppskattning. Genomsnittet över flera tankningar är det att lita på.",
+    ef_electric: "Elkörning",
+    ef_electric_note: "motorn av, över {d}",
+    ef_electric_share: "Andel elkörning",
+    ef_grid_lifetime: "Nätel, all körning",
+    ef_hybrid_lifetime: "BMW:s egna siffror under hela livslängden, sedan bilen byggdes. Dess räknare delar upp sträckan efter om motorn gick, vilket laddningshistoriken inte kan. En förbrukning eller räckvidd från laddningshistoriken visas fortfarande inte.",
     mi_this_month: "Den här månaden",
     mi_this_year: "I år",
     mi_per_day: "Per dag",
@@ -3685,6 +3903,7 @@ class BavarianDataCard extends HTMLElement {
     if (this._config && this._config.view === "health") return 7;
     if (this._config && this._config.view === "efficiency") return 8;
     if (this._config && this._config.view === "mileage") return 8;
+    if (this._config && this._config.view === "fuel") return 8;
     return this._config && this._config.cluster ? 6 : 8;
   }
 
@@ -4188,6 +4407,8 @@ class BavarianDataCard extends HTMLElement {
       this._renderEfficiency(deviceId, entities);
     } else if (this._config.view === "mileage") {
       this._renderMileage(deviceId, entities);
+    } else if (this._config.view === "fuel") {
+      this._renderFuel(deviceId, entities);
     } else if (this._config.cluster === "tire") {
       this._renderTires(deviceId, entities);
     } else if (this._config.cluster === "closures") {
@@ -5095,10 +5316,10 @@ class BavarianDataCard extends HTMLElement {
 
   /* ---- charging history ------------------------------------------------- */
 
-  /** Charging, battery health and efficiency all describe a high-voltage
-   * battery. On a petrol or diesel car each would sit empty for good and read
-   * like a fault, so say why instead -- before any service is called. Returns
-   * whether it painted. */
+  /** Battery health describes a high-voltage battery. On a petrol or diesel
+   * car it would sit empty for good and read like a fault, so say why instead
+   * -- before any service is called. (Charging and efficiency show the Fuel
+   * view there.) Returns whether it painted. */
   _renderIceNotice(deviceId, entities) {
     if (this._drivetrain(entities) !== "ice") return false;
     const name = this._config.title || this._deviceName(deviceId);
@@ -5118,7 +5339,11 @@ class BavarianDataCard extends HTMLElement {
       this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
       return;
     }
-    if (this._renderIceNotice(deviceId, entities)) return;
+    // A petrol or diesel car has no charges; its tank is the record.
+    if (this._drivetrain(entities) === "ice") {
+      this._renderFuel(deviceId, entities);
+      return;
+    }
 
     const entryId = this._deviceEntry(deviceId);
 
@@ -7098,7 +7323,10 @@ class BavarianDataCard extends HTMLElement {
       this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
       return;
     }
-    if (this._renderIceNotice(deviceId, entities)) return;
+    if (this._drivetrain(entities) === "ice") {
+      this._renderFuel(deviceId, entities);
+      return;
+    }
 
     const entryId = this._deviceEntry(deviceId);
 
@@ -7204,6 +7432,48 @@ class BavarianDataCard extends HTMLElement {
     };
   }
 
+  /** A plug-in hybrid's consumption, from BMW's lifetime counters. */
+  _efHybridLifetime(life, unit) {
+    const dist = (km) => this._distance(km, unit);
+    const facts = [];
+    if (life.electric_kwh_per_100km != null) {
+      facts.push([
+        this._t("ef_electric"),
+        `${this._dec(life.electric_kwh_per_100km, 1)} kWh/100 km`,
+        life.electric_km != null ? this._t("ef_electric_note", { d: dist(life.electric_km) }) : "",
+      ]);
+    }
+    if (life.electric_share_percent != null) {
+      facts.push([this._t("ef_electric_share"), `${this._dec(life.electric_share_percent, 0)} %`, ""]);
+    }
+    if (life.fuel_l_per_100km != null) {
+      facts.push([
+        this._t("fu_lifetime"),
+        `${this._dec(life.fuel_l_per_100km, 1)} l/100 km`,
+        life.distance_km != null ? this._t("fu_lifetime_note", { d: dist(life.distance_km) }) : "",
+      ]);
+    }
+    if (life.grid_kwh_per_100km != null) {
+      facts.push([this._t("ef_grid_lifetime"), `${this._dec(life.grid_kwh_per_100km, 1)} kWh/100 km`, ""]);
+    }
+    const row = facts
+      .map(
+        ([k, v, note]) =>
+          `<div class="ef__fact">
+             <span class="ef__fact-lbl">${k}</span>
+             <span class="ef__fact-val">${v}</span>
+             ${note ? `<span class="ef__fact-note">${note}</span>` : ""}
+           </div>`
+      )
+      .join("");
+    return `
+      <div class="ef">
+        <div class="ef__facts">${row}</div>
+        <span class="ef__note">${this._t("ef_hybrid_lifetime")}</span>
+      </div>
+    `;
+  }
+
   _paintEfficiency(deviceId, st) {
     const name = this._config.title || this._deviceName(deviceId);
     const state = this._eff || {};
@@ -7222,6 +7492,7 @@ class BavarianDataCard extends HTMLElement {
       cost: profile && profile.cost_per_100km,
       currency: profile && profile.currency,
       mix: profile && profile.energy_mix,
+      life: profile && profile.bmw_lifetime,
     });
     if (sig === this._sig) return;
     this._sig = sig;
@@ -7234,7 +7505,12 @@ class BavarianDataCard extends HTMLElement {
     } else if (f.status === "plug_in_hybrid") {
       // Not "not enough history yet": on a plug-in hybrid no amount of it would
       // do, because the odometer also counts the kilometres driven on fuel.
-      body = `<div class="empty">${this._t("ef_hybrid")}</div>`;
+      // BMW's own counters split the distance by whether the engine ran, so
+      // where the car sends them they are the figure instead.
+      const life = profile && profile.bmw_lifetime;
+      body = life
+        ? this._efHybridLifetime(life, this._lengthUnit(this._deviceEntities(deviceId)))
+        : `<div class="empty">${this._t("ef_hybrid")}</div>`;
     } else if (f.consumption == null) {
       body = `<div class="empty">${this._t("ef_empty")}</div>`;
     } else if (f.fullKm == null) {
@@ -7406,6 +7682,198 @@ class BavarianDataCard extends HTMLElement {
    * Everything comes from `get_mileage_report` (the daily odometer log, no
    * quota). Re-fetched when the odometer moves, on a new day, and every ten
    * minutes so a freshly configured allowance shows up without a reload. */
+  /* ---- fuel (petrol, diesel, plug-in hybrid) --------------------------- */
+
+  /** Refuels and consumption, read off the tank level (``history/fuel.py``),
+   * plus BMW's own lifetime figure where the car sends its counters. The
+   * combustion car's answer to the charging and efficiency views. */
+  _renderFuel(deviceId, entities) {
+    const vin = this._deviceVin(deviceId);
+    if (!vin) {
+      this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
+      return;
+    }
+    const entryId = this._deviceEntry(deviceId);
+    const tank = FUEL_DESCRIPTORS.map((d) => this._byDescriptor(entities, d)).find(Boolean);
+    // A refuel can only appear with a new tank reading, so that is what
+    // re-asks; the ten-minute tick keeps "since the last refuel" moving.
+    const trigger = [tank ? tank.state : "", Math.floor(Date.now() / 600000)].join("|");
+    const cache = this._fuel;
+    const current = cache && cache.vin === vin && cache.trigger === trigger;
+    if (!current || (!cache.data && !cache.loading)) {
+      this._fuel = {
+        vin,
+        trigger,
+        data: cache && cache.vin === vin ? cache.data : null,
+        loading: true,
+        error: false,
+      };
+      this._fetchFuel(vin, entryId);
+    }
+    this._paintFuel(deviceId, this._lengthUnit(entities));
+  }
+
+  _fetchFuel(vin, entryId) {
+    const req = this._fuel;
+    this._hass
+      .callService(
+        "bavariandata",
+        "get_fuel_history",
+        this._withEntry({ vin }, entryId),
+        undefined,
+        false,
+        true
+      )
+      .then((res) => {
+        if (!this._fuel || this._fuel.vin !== vin || this._fuel.trigger !== req.trigger) return;
+        const data = (res && res.response && res.response.fuel) || null;
+        this._fuel = { ...this._fuel, data, loading: false, error: false };
+        this._render();
+      })
+      .catch(() => {
+        if (!this._fuel || this._fuel.vin !== vin || this._fuel.trigger !== req.trigger) return;
+        this._fuel = { ...this._fuel, loading: false, error: true };
+        this._render();
+      });
+  }
+
+  _paintFuel(deviceId, unit) {
+    const name = this._config.title || this._deviceName(deviceId);
+    const state = this._fuel || {};
+    const data = state.data;
+    const sig = this._signature({
+      m: "fu",
+      lang: _lang(this._hass),
+      name,
+      unit,
+      loading: state.loading && !data,
+      error: state.error && !data,
+      data,
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    let body;
+    if (state.error && !data) {
+      body = `<div class="empty">${this._t("fu_error")}</div>`;
+    } else if (state.loading && !data) {
+      body = `<div class="empty">${this._t("fu_loading")}</div>`;
+    } else {
+      body = this._fuBody(data || {}, unit);
+    }
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <div class="chead">
+          <ha-icon icon="mdi:gas-station"></ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">${this._esc(this._config.title || this._t("fu_title"))}</span>
+            <span class="chead__sub">${this._esc(name)}</span>
+          </div>
+        </div>
+        ${body}
+      </ha-card>
+    `;
+  }
+
+  _fuBody(data, unit) {
+    const dist = (km) => this._distance(km, unit);
+    const litres = (l) => `${this._dec(l, 0)} L`;
+    const rate = (r) => `${this._dec(r, 1)} l/100 km`;
+    const fact = (label, value, note) =>
+      value
+        ? `<div class="ef__fact">
+             <span class="ef__fact-lbl">${label}</span>
+             <span class="ef__fact-val">${value}</span>
+             ${note ? `<span class="ef__fact-note">${note}</span>` : ""}
+           </div>`
+        : "";
+
+    const tank = data.tank || {};
+    const tankValue =
+      tank.litres != null ? litres(tank.litres) : tank.percent != null ? `${this._dec(tank.percent, 0)} %` : "";
+    const tankNote =
+      tank.litres != null && tank.percent != null
+        ? `${this._dec(tank.percent, 0)} %`
+        : tank.range_km != null
+        ? this._t("fu_range", { d: dist(tank.range_km) })
+        : "";
+    const avg = data.average;
+    const since = data.since_refuel;
+    const sinceValue =
+      since && since.km != null ? dist(since.km) : "";
+    const sinceNote = since
+      ? since.l_per_100km != null
+        ? rate(since.l_per_100km)
+        : since.litres != null && since.litres > 0
+        ? this._t("fu_used", { l: litres(since.litres) })
+        : ""
+      : "";
+    const life = data.bmw_lifetime;
+    const facts = [
+      fact(this._t("fu_tank"), tankValue, tankNote),
+      fact(
+        this._t("fu_average"),
+        avg ? rate(avg.l_per_100km) : "",
+        avg ? this._t("fu_average_note", { d: dist(avg.km) }) : ""
+      ),
+      fact(this._t("fu_since"), sinceValue, sinceNote),
+      fact(
+        this._t("fu_lifetime"),
+        life && life.fuel_l_per_100km != null ? rate(life.fuel_l_per_100km) : "",
+        life && life.distance_km != null ? this._t("fu_lifetime_note", { d: dist(life.distance_km) }) : ""
+      ),
+    ].join("");
+
+    const refuels = Array.isArray(data.refuels) ? data.refuels : [];
+    const rows = refuels
+      .map((r) => {
+        const added =
+          r.added_l != null
+            ? `+${litres(r.added_l)}`
+            : r.added_percent != null
+            ? `+${this._dec(r.added_percent, 0)} %`
+            : "—";
+        const meta = [];
+        if (r.km != null) meta.push(`<span class="chg__tag">${dist(r.km)}</span>`);
+        if (r.l_per_100km != null) {
+          meta.push(
+            `<span class="chg__tag">${this._t("fu_window", {
+              r: rate(r.l_per_100km),
+              d: dist(r.window_km),
+            })}</span>`
+          );
+        }
+        return `
+          <div class="chg__session">
+            <div class="chg__row">
+              <span class="chg__row-main">
+                <span class="chg__date">${this._fmtSessionDate(r.t)}</span>
+                <span class="chg__meta">${meta.join("")}</span>
+              </span>
+              <span class="chg__figures">
+                <span class="chg__energy chg__energy--lead">${added}</span>
+              </span>
+            </div>
+          </div>`;
+      })
+      .join("");
+
+    return `
+      <div class="ef">
+        <div class="ef__facts">${facts}</div>
+        ${
+          rows
+            ? `<div class="ef__trend"><span class="ef__trend-title">${this._t("fu_refuels")}</span></div>
+               <div class="chg__list">${rows}</div>`
+            : `<span class="ef__note">${this._t("fu_no_refuels")}</span>`
+        }
+        <span class="ef__note">${this._t("fu_note")}</span>
+      </div>
+    `;
+  }
+
   _renderMileage(deviceId, entities) {
     const vin = this._deviceVin(deviceId);
     if (!vin) {
@@ -9640,6 +10108,8 @@ const EFFICIENCY_VIEW = "efficiency";
 const EQUIPMENT_VIEW = "equipment";
 // How far the car is driven, and its mileage allowance.
 const MILEAGE_VIEW = "mileage";
+// Refuels and fuel consumption, for a car with an engine.
+const FUEL_VIEW = "fuel";
 
 const VIEW_MODES = new Set([
   CHARGING_VIEW,
@@ -9648,6 +10118,7 @@ const VIEW_MODES = new Set([
   HEALTH_VIEW,
   EFFICIENCY_VIEW,
   MILEAGE_VIEW,
+  FUEL_VIEW,
   EQUIPMENT_VIEW,
 ]);
 
@@ -9671,6 +10142,7 @@ class BavarianDataCardEditor extends HTMLElement {
       { value: HEALTH_VIEW, label: t(this._hass, "bh_title") },
       { value: EFFICIENCY_VIEW, label: t(this._hass, "ef_title") },
       { value: MILEAGE_VIEW, label: t(this._hass, "mi_title") },
+      { value: FUEL_VIEW, label: t(this._hass, "fu_title") },
       { value: EQUIPMENT_VIEW, label: t(this._hass, "eq_title") },
       { value: "closures", label: t(this._hass, "cl_closures") },
       ...CLUSTER_SLUGS.map((slug) => ({

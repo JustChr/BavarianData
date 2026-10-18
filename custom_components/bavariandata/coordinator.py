@@ -39,6 +39,7 @@ from .history.classify import (
 )
 from .history.efficiency import TREND_MONTHS, efficiency_profile
 from .history.health import usable_capacity
+from .history.obfcm import lifetime as obfcm_lifetime
 from .history.meter_rate import MeterRate, meter_rate
 from .history.pricing import (
     MODE_FIXED,
@@ -123,6 +124,9 @@ DESC_GPS_LON = "vehicle.cabin.infotainment.navigation.currentLocation.longitude"
 DESC_ODOMETER = ("vehicle.vehicle.mileage", "vehicle.vehicle.travelledDistance")
 # The fuel left, in litres: what a report trip's fuel figures are read from.
 DESC_FUEL_L = "vehicle.drivetrain.fuelSystem.remainingFuel"
+DESC_FUEL_LEVEL = "vehicle.drivetrain.fuelSystem.level"
+# A US gallon, for a tank BMW reports in gallons; the fuel log keeps litres.
+LITRES_PER_GALLON = 3.785411784
 DESC_SEG_PREFIX = "vehicle.trip.segment.end."
 DESC_SEG_DISTANCE = "vehicle.trip.segment.end.travelledDistance"
 DESC_SEG_RECUP = "vehicle.trip.segment.accumulated.drivetrain.electricEngine.recuperationTotal"
@@ -1005,6 +1009,8 @@ class CardataCoordinator:
         if any(descriptor in data for descriptor in DESC_ODOMETER):
             self._note_odometer_report(vin, parked_soc=parked_soc)
             self._note_odometer_day(vin, now)
+        if DESC_FUEL_L in data or DESC_FUEL_LEVEL in data:
+            self._note_fuel(vin, now)
 
         for descriptor in new_sensor:
             async_dispatcher_send(self.hass, self.signal_new_sensor, vin, descriptor)
@@ -1858,6 +1864,64 @@ class CardataCoordinator:
             except TypeError, ValueError:
                 continue
         return None
+
+    def _fuel_litres(self, vin: str) -> Optional[float]:
+        """The fuel in the tank, in litres, or ``None``."""
+
+        state = self.get_state(vin, DESC_FUEL_L)
+        litres = self._numeric(vin, DESC_FUEL_L)
+        if litres is not None and state is not None and state.unit == "gal":
+            litres *= LITRES_PER_GALLON
+        return litres
+
+    def _note_fuel(self, vin: str, now: datetime) -> None:
+        """Feed the tank reading to the fuel log (``history/fuel.py``).
+
+        Only for a car with an engine: an iX3 streams a tank level and litres
+        too (#53's i4 a level), and on a battery car a "refuel" in them is noise.
+        Stamped with the car's own time, so a REST catch-up that replays an older
+        reading is recognised as one.
+        """
+
+        if self.history is None:
+            return
+        if not (self.is_combustion_only(vin) or self.is_plug_in_hybrid(vin)):
+            return
+        stamps = []
+        for descriptor in (DESC_FUEL_L, DESC_FUEL_LEVEL):
+            state = self.get_state(vin, descriptor)
+            parsed = dt_util.parse_datetime(state.timestamp) if state and state.timestamp else None
+            if parsed is not None:
+                stamps.append(parsed)
+        self.history.async_note_fuel(
+            vin,
+            max(stamps) if stamps else now,
+            litres=self._fuel_litres(vin),
+            percent=self._numeric(vin, DESC_FUEL_LEVEL),
+            km=self.odometer_km(vin),
+        )
+
+    def fuel_report(self, vin: str) -> Dict[str, Any]:
+        """The Fuel view: tank now, refuels, consumption, BMW's lifetime figures."""
+
+        now = datetime.now(timezone.utc)
+        report = self.history.fuel_report(vin, now) if self.history is not None else {}
+        report = dict(report)
+        report["tank"] = {
+            "litres": self._fuel_litres(vin),
+            "percent": self._numeric(vin, DESC_FUEL_LEVEL),
+            "range_km": self._numeric(vin, "vehicle.drivetrain.lastRemainingRange"),
+        }
+        report["bmw_lifetime"] = self.obfcm_lifetime(vin)
+        return report
+
+    def obfcm_lifetime(self, vin: str) -> Optional[Dict[str, Any]]:
+        """BMW's lifetime consumption counters (``history/obfcm.py``)."""
+
+        return obfcm_lifetime(
+            lambda descriptor: self._numeric(vin, descriptor),
+            hybrid=self.is_plug_in_hybrid(vin),
+        )
 
     def _note_odometer_day(self, vin: str, now: datetime) -> None:
         """Log today's odometer reading -- the car's pace (``history/odometer.py``)."""

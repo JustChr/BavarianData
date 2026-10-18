@@ -119,8 +119,18 @@ drove, and nothing the car streams says how many those were. Dividing the
 charged energy by all of them reads low by exactly the share driven on fuel: a
 car driven half on fuel would show half its real consumption, and a real range
 twice what the battery reaches — say 186 km from a 19.7 kWh pack that really
-manages about 90. So the figures are withheld rather than shown wrong. The
-efficiency view says so, and `get_efficiency` returns `status: plug_in_hybrid`.
+manages about 90. So the figures are withheld rather than shown wrong, and
+`get_efficiency` returns `status: plug_in_hybrid`.
+
+What a hybrid gets instead is **BMW's own figures**, where the car sends them.
+Cars type-approved in the EU since about 2021 keep lifetime counters (OBFCM) of
+the fuel burnt, the grid energy charged and the distance behind each, split by
+whether the engine ran. BMW serves them in the daily refresh, so they cost no
+quota. From them the efficiency view shows the **electric consumption** (grid kWh
+per 100 km with the engine off), the **share driven electrically**, the **fuel per
+100 km** and the grid energy over all driving. They are lifetime figures, since
+the car was built, and appear once they cover 500 km. A car that sends no such
+counters keeps the explanation.
 
 What still works on a hybrid: [battery health](Feature-Battery-Health), the
 [charging history](Feature-Charging-History-and-Cost) with its energy and cost,
