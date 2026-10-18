@@ -32,8 +32,8 @@ Beide Wege brauchen denselben Client im Portal und enden gleich
 | Am besten, wenn | es einfach ohne Kopieren laufen soll | du die Datengruppen gleich zu Beginn wählen willst |
 
 Die gestreamten Datengruppen kannst du danach jederzeit unter
-**Konfigurieren → Gestreamte Daten auswählen** ändern, das wieder denselben
-Ein-Klick-Aktivator nutzt — siehe [Schritt 4](DE-Getting-Started-4-Choose-Data).
+**Konfigurieren → Gestreamte Daten auswählen** ändern; auch dort schaltet sie
+derselbe Ein-Klick-Aktivator ein — siehe [Schritt 4](DE-Getting-Started-4-Choose-Data).
 
 ## Geführte Einrichtung
 
@@ -75,11 +75,11 @@ Ein-Klick-Aktivator nutzt — siehe [Schritt 4](DE-Getting-Started-4-Choose-Data
      <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-setup-guided.png" alt="Geführter Aktivierungsbildschirm: Lesezeichen im Portal ausführen, danach macht Home Assistant von allein weiter oder du fügst das kurze Ergebnis ein" width="520" />
    </p>
 
-   - Bei einem Home Assistant mit **https** meldet der Aktivator sich zurück und
-     die Einrichtung **läuft von allein weiter**.
-   - Bei einem Home Assistant mit **http** klickst du im angezeigten Feld des
-     Aktivators auf **Copy** (siehe oben) und **fügst** das kurze (nicht geheime)
-     Ergebnis in das Feld ein.
+   - Läuft dein Home Assistant über **https**, meldet sich der Aktivator von
+     selbst zurück und die Einrichtung **läuft allein weiter**.
+   - Läuft er über **http**, klickst du im Feld des Aktivators auf **Copy**
+     (siehe oben) und **fügst** das kurze (nicht geheime) Ergebnis in Home
+     Assistant ein.
 
 3. Weiter mit der **Geräteautorisierung** (unten). Ist sie abgeschlossen, werden
    die Standard-Datengruppen bereits gestreamt — feinjustieren kannst du sie
@@ -119,9 +119,9 @@ kein Fehler der Integration**, und es gibt einen verlässlichen Umweg — siehe
 ## Später neu autorisieren
 
 Macht BMW das Token später ungültig, führe **Konfigurieren → Verbindung → Neu bei BMW
-autorisieren** aus. **Gerät hinzufügen** erneut mit derselben Client-ID auszuführen funktioniert
-auch — der bestehende Eintrag wird an Ort und Stelle neu autorisiert und behält
-seinen Verlauf. (Entfernst du die Integration selbst, wird ihr aufgezeichneter
+autorisieren** aus. Du kannst auch **Gerät hinzufügen** noch einmal mit derselben
+Client-ID durchlaufen: Der bestehende Eintrag wird dann neu autorisiert und
+behält seinen Verlauf. (Entfernst du die Integration selbst, wird ihr aufgezeichneter
 Verlauf gelöscht.)
 
 **Weiter:** [4. Gestreamte Daten auswählen →](DE-Getting-Started-4-Choose-Data)

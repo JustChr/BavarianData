@@ -3,8 +3,8 @@
 > 🇬🇧 [English version](The-Dashboard-Card)
 
 Eine eigene **BavarianData Card** liegt der Integration bei und wird automatisch als
-Dashboard-*Ressource* registriert — es gibt keine Ressource von Hand hinzuzufügen,
-und sie wird bei jedem Update erneuert, damit Browser die neue Version laden.
+Dashboard-*Ressource* eingetragen. Von Hand musst du keine Ressource anlegen; bei
+jedem Update wird sie erneuert, damit der Browser die neue Version lädt.
 
 **Die Integration legt kein eigenes Dashboard an.** Die Registrierung macht die
 Karte *verfügbar*; wohin sie kommt, bestimmst du:
@@ -13,8 +13,8 @@ Karte *verfügbar*; wohin sie kommt, bestimmst du:
    hinzufügen**.
 2. Suche nach **BavarianData Card** und wähle sie aus — ein visueller Editor öffnet
    sich.
-3. Speichern. Die minimale Konfiguration findet das Auto selbst, es gibt also nichts
-   auszufüllen:
+3. Speichere. Schon die kürzeste Konfiguration findet das Auto selbst, auszufüllen
+   gibt es also nichts:
 
    ```yaml
    type: custom:bavariandata-card
@@ -80,10 +80,10 @@ oder Finger) dreht es einmal ganz herum. Das Bild folgt auch dem Auto:
   [Zeichnung von oben](#security--closures-cluster-closures) in der Ecke, mit dem
   offenen Teil hervorgehoben.
 - **Innenraum.** Der Sitz-Knopf wechselt zu einem 360°-Panorama des Innenraums;
-  ziehen, um sich umzusehen.
+  zum Umsehen ziehst du darüber.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-badges.png" alt="Die Übersicht bei Nacht mit offener Tür, offenen Fenstern und entriegeltem Auto: Plaketten unter dem Namen, in der Ecke die Draufsicht mit der offenen Tür und den Fenstern hervorgehoben" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-hero-badges.png" alt="Die Übersicht bei Nacht mit offener Tür, offenen Fenstern und entriegeltem Auto: Abzeichen unter dem Namen, in der Ecke die Draufsicht mit der offenen Tür und den Fenstern hervorgehoben" width="360" />
 </p>
 
 <p align="center">
@@ -236,8 +236,8 @@ Werts sicher zu sein, zeigt sie *Lernt (n/10)* statt einer springenden Zahl
 
 <a id="efficiency--range-view-efficiency"></a>
 
-Wie weit das Auto mit der aktuellen Ladung wirklich kommt, über dem Verbrauch, auf
-dem dieser Wert beruht.
+Oben, wie weit das Auto mit der aktuellen Ladung wirklich kommt, darunter der
+Verbrauch, auf dem dieser Wert beruht.
 
 ```yaml
 type: custom:bavariandata-card
@@ -252,16 +252,17 @@ Sie zeigt die reale Reichweite von hier (und mit vollem Akku), den Vergleich mit
 Restreichweiten-Prognose des Autos, den gemessenen Verbrauch mit Seite des Ladegeräts
 und Fenster, den gemessenen Ladeverlust, wo ein Netzwert existiert, die nutzbare
 Kapazität, durch die geteilt wurde, deine Kosten pro 100 km mit dem Solaranteil des
-Monats und ein Balkendiagramm des Verbrauchs nach Kalendermonat — die Jahreszeiten,
-denn der Winterverbrauch liegt regelmäßig ein Drittel über dem Sommer.
+Monats und ein Balkendiagramm des Verbrauchs nach Kalendermonat. Daran siehst du
+die Jahreszeiten: Im Winter liegt der Verbrauch regelmäßig ein Drittel über dem
+Sommer.
 Bei einem Plug-in-Hybrid gibt es keinen Verbrauch und keine Reichweite aus dem
 Ladeverlauf ([warum](DE-Feature-Efficiency-and-Range#plug-in-hybride)); sie zeigt
 stattdessen BMWs eigene Werte über die Lebensdauer — den elektrischen Verbrauch mit
 Motor aus, den elektrisch gefahrenen Anteil, den Kraftstoff pro 100 km —, wo das Auto
 sie sendet, und erklärt sonst, warum sie leer ist.
 
-Alles wird aus dem Ladeverlauf gemessen — zwei Ladungen schließen eine Strecke und
-die hineingeflossene Energie ein —, daher verbraucht sie **kein API-Kontingent** und
+Alles wird aus dem Ladeverlauf gemessen — zwischen zwei Ladungen liegen eine
+Strecke und die Energie, die dafür nachgeladen wurde —, daher verbraucht sie **kein API-Kontingent** und
 übernimmt nie die Prognose des Autos
 ([wie gemessen wird](DE-Feature-Efficiency-and-Range)).
 
@@ -347,9 +348,10 @@ l/100 km, Strecken folgen der Einheit des Kilometerzählers.
 <a id="trips--driving-journal-view-trips"></a>
 
 Listet deine aufgezeichneten Fahrten, neueste zuerst, jeweils mit *von → nach*,
-Strecke, Dauer und einem Abzeichen geschäftlich/privat/Pendeln; tippe eine an für
-Verbrauch, Rekuperation und verbrauchten Ladezustand, zum Umordnen und — bei Fahrten,
-die mit **Route aufzeichnen** gespeichert wurden — für eine kleine Karte der Route
+Strecke, Dauer und einem Abzeichen geschäftlich/privat/Pendeln. Tippst du eine an,
+siehst du Verbrauch, Rekuperation und verbrauchten Ladezustand, kannst sie anders
+einstufen und — bei Fahrten, die mit **Route aufzeichnen** gespeichert wurden —
+eine kleine Karte der Route sehen
 (als saubere Linie mit Start- und Zielmarkierung; zum Zeichnen verlässt nichts deinen
 Browser). Über der Liste fasst eine **Monatsübersicht** die Strecke (mit Differenz zum
 Vormonat), die Aufteilung geschäftlich/privat/Pendeln, den Durchschnittsverbrauch,
@@ -361,7 +363,7 @@ begrenzt Liste, Monatsübersicht und die Schaltflächen **CSV** / **Bericht** au
 Kalendermonat. Blättere zurück für ältere Datensätze — der Verlauf wird standardmäßig
 zwei Jahre aufbewahrt
 ([Aufbewahrung](DE-Settings-Reference#charging-costs--history)), weit mehr, als ein
-Bildschirm auf einmal zeigen sollte. Vorwärts endet beim aktuellen Monat.
+Bildschirm auf einmal zeigen sollte. Vorwärts geht es bis zum aktuellen Monat.
 
 > Der **Durchschnittsverbrauch** wird aus dem Ladeverlauf und dem Kilometerstand
 > gemessen, nicht aus den Fahrten, und ist mit **ab Akku** oder **ab Steckdose**
@@ -401,7 +403,7 @@ Eine **Zielkarte**: Sie zeigt, wo deine Fahrten **enden**, und diese Markierunge
 **fassen sich beim Herauszoomen zu gezählten Blasen zusammen und teilen sich beim
 Hineinzoomen auf** — ein schneller Blick darauf, wohin du am häufigsten fährst. Gezeigt
 wird nur das Ende jeder Fahrt (der Start einer Fahrt ist das Ende der vorigen, beides zu
-zeigen zählte doppelt), was eine ehrliche Zählung „so oft hier angekommen“ ergibt.
+zu zeigen, würde doppelt zählen), was eine ehrliche Zählung „so oft hier angekommen“ ergibt.
 Klicke auf eine Blase, um hineinzuzoomen. Eine Leiste wechselt den Zeitraum — **Dieser
 Monat** (Standard), **3 Monate** oder **Alle**.
 
@@ -513,14 +515,14 @@ steering: right   # left · right — weglassen, um es aus BMWs Fahrzeugdaten zu
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-closures-rhd.png" alt="Sicherheit und Verschlüsse bei einem Rechtslenker: die Fahrertür rechts offen, ihr offenes Fenster auf der Tür gezeichnet, ein hinteres Fenster teilweise offen, das Auto entriegelt" width="300" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-closures-rhd.png" alt="Sicherheit & Öffnungen bei einem Rechtslenker: die Fahrertür rechts offen, ihr offenes Fenster auf der Tür gezeichnet, ein hinteres Fenster teilweise offen, das Auto entriegelt" width="300" />
 </p>
 
 ### Die Form des Autos
 
 Die Reifen- und die Öffnungs-Ansicht zeichnen eine BMW-Limousine, außer bei einem
 **MINI Countryman**: Der bekommt eine eigene Zeichnung, kantiger, mit
-Haubendeckel über die ganze Front, Dachreling und zweiteiligem Glasdach. Die
+einer Motorhaube, die die ganze Front umfasst, Dachreling und zweiteiligem Glasdach. Die
 Karte erkennt ihn am Modellnamen in BMWs Fahrzeugbasisdaten, einzustellen gibt es
 nichts. Um eine Form zu erzwingen, setze im visuellen Editor **Fahrzeugform**,
 oder:
@@ -646,8 +648,8 @@ hast oder die Karte auf einen Helfer zeigen soll.
 
 ---
 
-> **Sieht das an deinem Auto richtig aus?** Die Karte wird hier nur an einem i5
-> gesehen. Ein Screenshot an einem anderen Modell ist das Nützlichste, was du schicken
+> **Sieht das an deinem Auto richtig aus?** Wir sehen die Karte nur an einem
+> i5. Ein Screenshot an einem anderen Modell ist das Nützlichste, was du schicken
 > kannst — besonders, wenn eine Ansicht leer bleibt, ein Wert falsch aussieht oder eine
 > erwartete Datengruppe fehlt.
 > [Poste ihn in den Discussions →](https://github.com/JustChr/BavarianData/discussions)

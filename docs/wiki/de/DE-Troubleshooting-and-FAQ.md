@@ -10,8 +10,8 @@ Home Assistant zeigt das als **„Autorisierung nicht abgeschlossen“**, mit *�
 Geräteautorisierung konnte nicht abgeschlossen werden“* und `access_denied` in den
 Details. BMWs Backend für die Geräteautorisierung kann `access_denied` („The user
 has declined authorization“) melden, **obwohl du nie eine Zustimmungsseite gesehen hast und die
-Anmeldung offensichtlich geklappt hat**. Das ist Unzuverlässigkeit auf BMW-Seite,
-nicht die Integration — der BMW-Support hat (auf ein Ticket hin) bestätigt, dass der
+Anmeldung offensichtlich geklappt hat**. Das liegt an BMW, nicht an der
+Integration — der BMW-Support hat (auf ein Ticket hin) bestätigt, dass der
 Device-Code-Ablauf von einem internen Partnersystem mit „Synchronisationsproblemen“
 abgewickelt wird. Die Integration kann daran nichts ändern.
 
@@ -69,19 +69,19 @@ falls BMW eine gezeigt hat).
 3. Führe **`bavariandata.get_coverage_report`** aus
    ([Dienste](DE-Services-Reference#get_coverage_report)) — er sagt dir genau, welche
    erwarteten Deskriptoren nicht angekommen sind, sodass du ein Auswahlproblem von
-   einem „das Auto sendet es nicht“-Problem unterscheiden kannst. Eine Datengruppe, von
-   der *einige* Felder ankommen, ist gesund; eine, von der keines ankommt, ist das
-   Auswahlproblem.
+   einem „das Auto sendet es nicht“-Problem unterscheiden kannst. Kommen von einer
+   Datengruppe *einige* Felder an, ist sie in Ordnung; kommt keines an, liegt es an
+   der Auswahl.
 
 Streamt **48 Stunden** lang nichts, erscheint unter **Einstellungen → Reparaturen**
 der Hinweis **„Keine BMW CarData Stream-Daten empfangen“**, der hierher verweist.
-Läuft der Stream, aber von einem ausgewählten Cluster kommt seit Tagen gar nichts,
-heißt der Hinweis stattdessen **„Ein ausgewählter Daten-Cluster hat nie
-gestreamt“**: Dieser Cluster ist in der Datenauswahl im Portal nicht gespeichert,
-oder dein Auto liefert diese Daten nicht. Aktiviere ihn erneut unter
-**Konfigurieren → Gestreamte Daten auswählen** oder wähle ihn ab.
+Läuft der Stream, aber von einer ausgewählten Datengruppe kommt seit Tagen gar
+nichts, heißt der Hinweis stattdessen **„Ein ausgewählter Daten-Cluster hat nie
+gestreamt“**: Diese Datengruppe ist in der Datenauswahl im Portal nicht
+gespeichert, oder dein Auto liefert diese Daten nicht. Aktiviere sie erneut unter
+**Konfigurieren → Gestreamte Daten auswählen** oder wähle sie ab.
 
-## Ein Sensor bleibt „unbekannt“ oder hängt, während der Rest aktualisiert
+## Ein Sensor bleibt „unbekannt“ oder hängt, während sich der Rest aktualisiert
 
 <a id="one-sensor-reads-unknown"></a>
 
@@ -149,7 +149,7 @@ Service, Servicebedarfe, Ladezustand der Ladung, Verriegelungsstatus der Türen,
 die Reifendiagnose — blieb auf dem Stand der Einrichtung dieses Autos stehen,
 während sein Stream normal weiterlief und die Lücke verdeckte.
 
-Erkennbar an einem Fahrzeug, dessen übrige Sensoren sekündlich aktualisieren,
+Erkennbar an einem Fahrzeug, dessen übrige Sensoren sich laufend aktualisieren,
 neben einer Handvoll, die sich einen wochenalten Zeitstempel teilen. Die
 [tägliche Aktualisierung](DE-Feature-API-Quota#the-daily-refresh) umfasst jetzt
 alle Fahrzeuge, mit 3 Anfragen pro Auto.
@@ -264,8 +264,8 @@ Konto stammen — was zählt, weil BMW pro Konto nur einen laufenden Stream erla
 | Gewählte Datengruppen + Deskriptor-Abdeckung pro Auto | Ob die Datenauswahl wirklich gespeichert wurde und ob das Auto liefert, was du gewählt hast. |
 | Ankünfte und letzter Zeitpunkt pro Deskriptor | Ob der Stream liefert, und was. |
 | Verbindungsverlauf mit MQTT-`rc`-Codes | Autorisierungsfehler und ein anderer Client, der den einzigen Stream belegt. |
-| Bootstrap-Zustand und deine Optionen | Eine nie abgeschlossene Einrichtung; eine Einstellung, die nicht ist, was du dachtest. |
-| Modell und Antrieb des Autos | Welches Overview die Karte zeichnen soll und welche reinen E-Entitäten es geben darf. |
+| Bootstrap-Zustand und deine Optionen | Eine nie abgeschlossene Einrichtung; eine Einstellung, die anders steht, als du dachtest. |
+| Modell und Antrieb des Autos | Welche Übersicht die Karte zeichnen soll und welche reinen E-Entitäten es geben darf. |
 | Wie das Auto meldet, seit dem letzten Neustart (nur Zählungen, keine Werte) | Ob der Ladestand gestreamt wird oder nur mit einem Abruf kommt, ob das Auto während der Fahrt meldet oder einmal nach dem Parken, und welche Felder unverändert wiederkommen. |
 
 ## Debug-Protokollierung
@@ -274,7 +274,7 @@ Konto stammen — was zählt, weil BMW pro Konto nur einen laufenden Stream erla
 
 Standardmäßig aus. Schalte sie unter **Konfigurieren → Verbindung → Debug-Protokollierung** ein und lade
 neu. Sie ist ausführlich und kann Fahrzeugdaten wie **GPS und die vollständige FIN**
-enthalten, lass sie also aus, solange du kein Problem jagst. (Getrennt vom allgemeinen
+enthalten, lass sie also aus, solange du keinem Problem nachgehst. (Getrennt vom allgemeinen
 Log-Level, den Home Assistant pro Integration setzt.)
 
 Normale Log-Zeilen — die ohne Debug geschriebenen — zeigen die FIN bis auf die letzten
@@ -325,7 +325,7 @@ Sie erzeugt zwei Dinge:
   sich eine Fahrt beim Testen von Änderungen am Erkenner offline abspielen lässt.
 
 Beides enthält **GPS-Koordinaten und deine FIN**. Teile sie nur mit den Maintainern (etwa
-angehängt an ein GitHub-Issue, mit dem du dich wohlfühlst) und lösche die
+als Anhang an ein GitHub-Issue, wenn dir das recht ist) und lösche die
 Aufzeichnungsdatei, wenn du fertig bist. Sie wächst nicht über ~25 MB.
 
 ## Nach der Einrichtung erscheint kein Dashboard
@@ -359,7 +359,7 @@ Fang nicht mit Cache-Leeren an; zwei schnelle Tests grenzen es vorher ein.
 
 **Test 1 — öffne dasselbe Dashboard im Browser des Telefons** (Safari unter iOS, Chrome
 unter Android), nicht in der App. Gleiche Rendering-Engine, anderer Cache und andere
-Verbindungseinstellungen — das halbiert das Problem:
+Verbindungseinstellungen — so trennst du die beiden möglichen Ursachen:
 
 - **Geht im Browser, kaputt in der App** → es ist der eigene Frontend-Cache der App. Ein
   Neustart von Home Assistant oder des Telefons leert ihn *nicht*; das musst du in der App
@@ -384,7 +384,7 @@ Telefons deine Home-Assistant-Adresse mit angehängtem Pfad:
   **Reverse Proxy** (Nginx, Traefik, Caddy, Cloudflare Tunnel …), der nur die bekannten
   Pfade weiterleitet — `/api/`, `/static/`, `/frontend_latest/` und Co. Eigene Karten
   liegen außerhalb davon: die von BavarianData unter `/bavariandata/`, HACS-Karten unter
-  `/hacsfiles/`. Er muss alles weiterleiten. Home Assistant Cloud (Nabu Casa) tut das und
+  `/hacsfiles/`. Der Proxy muss alles weiterleiten. Home Assistant Cloud (Nabu Casa) tut das und
   ist nicht betroffen.
 
 Für beide Tests gut zu wissen: Die Companion App nutzt deine **interne** URL nur, wenn du
@@ -401,7 +401,7 @@ kaputt, liegt es an der Verbindung oder der App, nicht an dieser Integration.
 <a id="config-error-after-reload"></a>
 
 Symptom: Die Karten werden beim ersten Öffnen von Home Assistant richtig angezeigt, und
-nach F5 wird jede zu einem Kasten *Konfigurationsfehler*. Ein hartes Neuladen hilft nicht;
+nach F5 wird jede zu einem Kasten *Konfigurationsfehler*. Ein hartes Neuladen hilft nicht,
 nur eine neue Browsersitzung.
 
 Das ist ab **v0.9.2-beta.8** behoben — aktualisiere die Integration und starte Home
@@ -426,7 +426,7 @@ Assistant neu. Bleibt es:
 
 Ursache war, dass die Karte früher als Frontend-Modul eingebunden wurde, das Home
 Assistant als nicht abgewartetes `import()` in die Seite schreibt. Der Service Worker des
-Frontends kann diese Seite ohne es aus seinem Cache ausliefern, sodass das Element
+Frontends kann diese Seite ohne dieses Modul aus seinem Cache ausliefern, sodass das Element
 `bavariandata-card` nie definiert wurde und jede platzierte Karte auf den Fehlerkasten
 zurückfiel — siehe [home-assistant/frontend#18728][fe18728]. Dashboard-Ressourcen werden
 dagegen mit der Lovelace-Konfiguration ausgeliefert und geladen, bevor ein Dashboard
@@ -459,7 +459,7 @@ vorher die FIN im Pfad durch `…`.
 
 Hast du alle [50 REST-Anfragen](DE-Feature-API-Quota) in 24 h verbraucht, erscheint unter
 **Einstellungen → Reparaturen** der Hinweis **„BMW CarData API-Kontingent aufgebraucht“**
-mit dem Zeitpunkt, wann es zurückgesetzt wird. **Der Stream
+mit dem Zeitpunkt, zu dem es zurückgesetzt wird. **Der Stream
 fließt die ganze Zeit weiter** — nur `fetch_*`-Aufrufe pausieren.
 
 ## BavarianData vollständig entfernen
@@ -506,5 +506,5 @@ Die vollständige Liste der Artefakte und eine Schritt-für-Schritt-Checkliste:
   → [Discussions](https://github.com/JustChr/BavarianData/discussions).
 - **Nichts hier hat gepasst?** Sag es trotzdem — in den
   [Discussions](https://github.com/JustChr/BavarianData/discussions). Ein Problem, das diese
-  Seite nicht beantwortet hat, ist es wert, bekannt zu sein, auch wenn du es umgangen hast,
-  und so wird die Seite fürs nächste Auto besser. Gern auch auf Deutsch.
+  Seite nicht beantwortet hat, wollen wir kennen, auch wenn du es umgangen hast — so
+  wird die Seite fürs nächste Auto besser. Gern auch auf Deutsch.
