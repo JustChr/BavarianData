@@ -150,3 +150,24 @@ def test_raw_rounding_never_reaches_the_page():
         f"bavariandata-card.js calls _round() directly on line(s) {stray}: use "
         "_dec() for text shown to the user, _px() for an SVG coordinate"
     )
+
+
+@needs_node
+def test_a_night_charge_carries_no_solar_tag():
+    # "☀ 0% solar" on every night charge was a sun announcing there was no sun.
+    # A share that rounds to 0 drops the tag; an unattributed charge never had
+    # one; anything the roof did deliver still shows.
+    out = _run(
+        {
+            "night": ["_solarTag", {"energy_mix": {"grid": 11.2, "solar_percent": 0.0}}],
+            "trace": [
+                "_solarTag",
+                {"energy_mix": {"pv": 0.04, "grid": 11.2, "solar_percent": 0.4}},
+            ],
+            "unknown": ["_solarTag", {}],
+            "sunny": ["_solarTag", {"energy_mix": {"pv": 6.0, "grid": 4.0, "solar_percent": 60.0}}],
+        },
+        language="en",
+    )
+    assert out["night"] == out["trace"] == out["unknown"] == ""
+    assert "60% solar" in out["sunny"]

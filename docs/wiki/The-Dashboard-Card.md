@@ -182,7 +182,9 @@ attributed also carries a **☀ 62 % solar** tag, and expanding it adds an
 *Energy source* line with the kWh per source
 ([see Where the energy came from](Feature-Charging-History-and-Cost)). Sessions
 recorded before those sensors were configured simply have no tag — the card
-never shows a 0 % that would really mean "not measured".
+never shows a 0 % that would really mean "not measured". A charge with no solar
+in it (a night charge) has no tag either; its breakdown still says where the
+energy came from.
 
 ---
 

@@ -5320,10 +5320,13 @@ class BavarianDataCard extends HTMLElement {
 
   // How much of this charge came off the roof, as a compact tag. Absent --
   // rather than "0 %" -- when the energy could not be attributed at all: no PV
-  // and grid sensors configured, or a charge from before they were.
+  // and grid sensors configured, or a charge from before they were. Absent
+  // too when nothing came off the roof: on a night charge "☀ 0% solar" is a
+  // sun icon announcing there was no sun, and the detail's breakdown already
+  // says where the energy came from.
   _solarTag(session) {
     const pct = session.energy_mix && session.energy_mix.solar_percent;
-    if (pct == null) return "";
+    if (pct == null || Math.round(pct) === 0) return "";
     return `<span class="chg__tag chg__tag--sun">\u2600 ${this._dec(
       pct,
       0

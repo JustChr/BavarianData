@@ -9,6 +9,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **No "☀ 0% solar" tag on a night charge.** A charge with no solar in it
+  carries no tag on the card; expanding it still shows where the energy came
+  from.
+- **The month report says what its solar share is a share of.** "From own solar
+  76 %" sat beside the month's 197 kWh but was a share of only the 99 kWh whose
+  source was measured (charges from before the house sensors were set up have
+  none). The tile now reads *75 of 99 kWh measured* under the percentage.
+
 ## [0.9.21-beta.2] - 2026-10-18
 
 ### Changed
