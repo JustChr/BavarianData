@@ -461,7 +461,8 @@
       "configurator_no_data": "Grunddata för {vehicle} har inte kommit än. Kör först ”Hämta fordonets grunddata” och försök sedan igen.",
       "configurator_unavailable": "BMW:s konfigurator svarade inte eller har ändrats. Försök senare, eller behåll den officiella bilden.",
       "configurator_no_render": "BMW:s konfigurator har ingen bild av {vehicle}. Behåll den officiella bilden.",
-      "mileage_end_before_start": "Slutdatumet måste ligga efter startdatumet."
+      "mileage_end_before_start": "Slutdatumet måste ligga efter startdatumet.",
+      "fetch_failed": "Hämtningen gick inte igenom: {error}"
     },
     "abort": {
       "reauth_started": "Auktoriseringen har startats om. Slutför den nya inloggningen från aviseringen som just dök upp.",
@@ -2827,9 +2828,13 @@
       "name": "Hämta telematikdata",
       "description": "Hämta telematikdata för varje fordon på kontot med de sparade behållarna och logga svaret. Två anrop per fordon.",
       "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Valfritt: bara den här bilen. Lämna tomt för alla bilar på kontot."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         },
         "vin": {
           "name": "VIN",
@@ -2841,9 +2846,13 @@
       "name": "Hämta fordonskopplingar",
       "description": "Hämta kopplingsinformation för det konfigurerade kontot och logga svaret.",
       "fields": {
+        "device_id": {
+          "name": "Konto",
+          "description": "Valfri bil på kontot, eller dess felsökningsenhet. Behövs bara med mer än ett konto."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         }
       }
     },
@@ -2851,13 +2860,17 @@
       "name": "Hämta fordonets grunddata",
       "description": "Hämta fasta fordonsmetadata (modellnamn, serie m.m.) för ett VIN och logga svaret.",
       "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Bilen det gäller. Behövs bara om det finns mer än en bil."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         },
         "vin": {
           "name": "VIN",
-          "description": "Valfritt VIN att fråga efter. Standard är det VIN som är sparat i konfigurationsposten."
+          "description": "Valfritt VIN, i stället för att välja fordonet. Behövs bara om kontot har mer än en bil."
         }
       }
     },
@@ -2865,13 +2878,17 @@
       "name": "Hämta laddningshistorik",
       "description": "Hämta laddningssessionshistoriken för ett VIN (sidindelad) från BMW och importera den till den lokala historiken, så att tidigare laddningar visas på kortet och i månadsöversikterna. Överlappande live-registrerade sessioner kompletteras på plats med BMW:s uppmätta nätenergi. Räknas som ett eller flera API-anrop mot kvoten 50/24 h.",
       "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Bilen det gäller. Behövs bara om det finns mer än en bil."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         },
         "vin": {
           "name": "VIN",
-          "description": "Valfritt VIN att fråga efter. Standard är det första kända VIN."
+          "description": "Valfritt VIN, i stället för att välja fordonet. Behövs bara om kontot har mer än en bil."
         },
         "from": {
           "name": "Från",
@@ -2887,13 +2904,17 @@
       "name": "Hämta Smart Maintenance-däckdiagnos",
       "description": "Hämta Smart Maintenance-däckdiagnosen för ett VIN och logga svaret.",
       "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Bilen det gäller. Behövs bara om det finns mer än en bil."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         },
         "vin": {
           "name": "VIN",
-          "description": "Valfritt VIN att fråga efter. Standard är det första kända VIN."
+          "description": "Valfritt VIN, i stället för att välja fordonet. Behövs bara om kontot har mer än en bil."
         }
       }
     },
@@ -2901,13 +2922,17 @@
       "name": "Hämta platsbaserade laddningsinställningar",
       "description": "Hämta de platsbaserade laddningsinställningarna för ett VIN (sidindelat) och logga svaret.",
       "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Bilen det gäller. Behövs bara om det finns mer än en bil."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         },
         "vin": {
           "name": "VIN",
-          "description": "Valfritt VIN att fråga efter. Standard är det första kända VIN."
+          "description": "Valfritt VIN, i stället för att välja fordonet. Behövs bara om kontot har mer än en bil."
         }
       }
     },
@@ -2915,13 +2940,17 @@
       "name": "Hämta fordonsbild",
       "description": "Hämta fordonsbilden för ett VIN och logga dess storlek och innehållstyp.",
       "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Bilen det gäller. Behövs bara om det finns mer än en bil."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         },
         "vin": {
           "name": "VIN",
-          "description": "Valfritt VIN att fråga efter. Standard är det första kända VIN."
+          "description": "Valfritt VIN, i stället för att välja fordonet. Behövs bara om kontot har mer än en bil."
         }
       }
     },
@@ -2929,9 +2958,13 @@
       "name": "Hämta laddningssessioner",
       "description": "Returnera registrerade laddningssessioner, nyaste först. Läser integrationens egen historik, så till skillnad från hämtningsåtgärderna kostar det ingen BMW API-kvot.",
       "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Valfritt: bara den här bilen. Lämna tomt för alla bilar på kontot."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         },
         "vin": {
           "name": "VIN",
@@ -2955,9 +2988,13 @@
       "name": "Hämta resor",
       "description": "Returnera registrerade resor, nyaste först. Läser integrationens egen historik, så precis som laddningssessionerna kostar det ingen BMW API-kvot. Start- och slutpunkter sparas som platsnamn, aldrig som koordinater. En resa som fortfarande pågår returneras separat som öppen resa (den har inget slut och dess sträcka är preliminär), såvida inte en from/to-period angavs.",
       "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Valfritt: bara den här bilen. Lämna tomt för alla bilar på kontot."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         },
         "vin": {
           "name": "VIN",
@@ -2981,13 +3018,17 @@
       "name": "Hämta körsammanfattning",
       "description": "Returnera månadssammanställningen för resor: sträcka, fördelningen tjänst/privat/pendling, förbrukning, återvinning, körstilspoäng, vanligaste mål och (med en taxa) en uppskattad körkostnad. Läser det lokala lagret, så det kostar ingen BMW API-kvot.",
       "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Bilen det gäller. Behövs bara om det finns mer än en bil."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         },
         "vin": {
           "name": "VIN",
-          "description": "Valfritt VIN. Standard är det enda konfigurerade fordonet."
+          "description": "Valfritt VIN, i stället för att välja fordonet. Behövs bara om kontot har mer än en bil."
         },
         "month": {
           "name": "Månad",
@@ -2999,13 +3040,17 @@
       "name": "Hämta körsträckerapport",
       "description": "Returnerar hur mycket bilen körs (den här månaden, i år, de senaste 12 månaderna, takten) och, med ett miltak, hur den ligger till. Läser den lokala lagringen och kostar därför ingen BMW API-kvot.",
       "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Bilen det gäller. Behövs bara om det finns mer än en bil."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         },
         "vin": {
           "name": "VIN",
-          "description": "Valfritt VIN. Standard är det enda konfigurerade fordonet."
+          "description": "Valfritt VIN, i stället för att välja fordonet. Behövs bara om kontot har mer än en bil."
         }
       }
     },
@@ -3013,13 +3058,17 @@
       "name": "Hämta effektivitet och verklig räckvidd",
       "description": "Returnera uppmätt förbrukning (kWh/100 km), den verkliga räckvidd den ger vid nuvarande laddningsnivå, laddförlusten mellan nät och batteri samt en effektivitetstrend månad för månad. Allt härleds från laddningsliggaren, så det kostar ingen BMW API-kvot.",
       "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Bilen det gäller. Behövs bara om det finns mer än en bil."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         },
         "vin": {
           "name": "VIN",
-          "description": "Valfritt VIN. Standard är det enda konfigurerade fordonet."
+          "description": "Valfritt VIN, i stället för att välja fordonet. Behövs bara om kontot har mer än en bil."
         }
       }
     },
@@ -3027,13 +3076,17 @@
       "name": "Hämta evcc-konfiguration",
       "description": "Returnera evccs 'custom'-fordonskonfiguration för den här bilen, klar att klistra in i evcc.yaml, tillsammans med de MQTT-topics som bryggan publicerar och vilka av dem som är aktiva just nu. Läser bara lokalt tillstånd, så det kostar ingen BMW API-kvot.",
       "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Bilen det gäller. Behövs bara om det finns mer än en bil."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         },
         "vin": {
           "name": "VIN",
-          "description": "Valfritt VIN. Standard är det enda konfigurerade fordonet."
+          "description": "Valfritt VIN, i stället för att välja fordonet. Behövs bara om kontot har mer än en bil."
         }
       }
     },
@@ -3041,13 +3094,17 @@
       "name": "Ange resans klassning",
       "description": "Skriv över en resas klassning (business, private eller commute). Använd detta för att rätta den automatiska gissningen utifrån zonparet. Skriver bara till det lokala lagret.",
       "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Bilen det gäller. Behövs bara om det finns mer än en bil."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         },
         "vin": {
           "name": "VIN",
-          "description": "Valfritt VIN. Standard är det enda konfigurerade fordonet."
+          "description": "Valfritt VIN, i stället för att välja fordonet. Behövs bara om kontot har mer än en bil."
         },
         "trip_id": {
           "name": "Res-ID",
@@ -3063,13 +3120,17 @@
       "name": "Markera resans start",
       "description": "Noterar att en resa börjar nu, för en bil som rapporterar först när den parkerats: resan som dess nästa rapport avslutar börjar då vid denna tid. Används bara när reseidentifieringen står på Rapporter vid resans slut. Skriver bara till den lokala lagringen.",
       "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Bilen det gäller. Behövs bara om det finns mer än en bil."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         },
         "vin": {
           "name": "VIN",
-          "description": "Valfritt VIN. Standard är det enda konfigurerade fordonet."
+          "description": "Valfritt VIN, i stället för att välja fordonet. Behövs bara om kontot har mer än en bil."
         },
         "at": {
           "name": "Tid",
@@ -3081,13 +3142,17 @@
       "name": "Exportera historik",
       "description": "Returnera en månads registrerade laddningssessioner och/eller resor som filer: CSV för kalkylblad, eller en fristående HTML-rapport som du kan skriva ut till PDF från webbläsaren. Filernas innehåll kommer tillbaka i svaret; inget skrivs till disk. Läser det lokala lagret, så det kostar ingen BMW API-kvot.",
       "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Bilen det gäller. Behövs bara om det finns mer än en bil."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         },
         "vin": {
           "name": "VIN",
-          "description": "Valfritt VIN. Standard är det enda konfigurerade fordonet."
+          "description": "Valfritt VIN, i stället för att välja fordonet. Behövs bara om kontot har mer än en bil."
         },
         "month": {
           "name": "Månad",
@@ -3111,9 +3176,13 @@
       "name": "Hämta täckningsrapport för deskriptorer",
       "description": "Kör självtestet för deskriptortäckning: jämför för varje fordon de deskriptorer som dina valda strömgrupper borde leverera med dem som faktiskt har kommit, och lista de som saknas. Besvarar \"Jag aktiverade en grupp men inga entiteter dök upp -- är det mitt val, min bil eller en bugg?\". Läser bara det lokala lagret och live-strömmen, så det kostar ingen BMW API-kvot.",
       "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Valfritt: bara den här bilen. Lämna tomt för alla bilar på kontot."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         },
         "vin": {
           "name": "VIN",
@@ -3125,9 +3194,13 @@
       "name": "Aktivera strömfält",
       "description": "Ersätt vilka CarData-attribut BMW strömmar över MQTT för ett fordon, genom att skicka samma begäran som BMW-portalens stream setup-sida skickar när du sparar dataurvalet. Strömurvalet har inget CarData-API, så detta kräver en fångad webbläsarsession från portalen (den kan inte förnyas automatiskt -- sessionen är kortlivad). Kostar ingen BMW API-kvot. Returnerar antalet begärda/accepterade attribut.",
       "fields": {
+        "device_id": {
+          "name": "Konto",
+          "description": "Valfri bil på kontot, eller dess felsökningsenhet. Behövs bara med mer än ett konto."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         },
         "base_url": {
           "name": "Portalens bas-URL",
@@ -3159,9 +3232,13 @@
       "name": "Importera till långtidsstatistik",
       "description": "Bygg om den här integrationens långtidsstatistik från den registrerade historiken, så att laddning och körning från före installationen (eller från när Home Assistant var nere) syns i energipanelen. Detta körs automatiskt allteftersom poster skapas; använd det efter att ha återställt en säkerhetskopia eller för att kontrollera antalet rader. Endast lokalt -- ingen BMW API-kvot.",
       "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Valfritt: bara den här bilen. Lämna tomt för alla bilar på kontot."
+        },
         "entry_id": {
           "name": "Konfigurationspost",
-          "description": "Valfritt ID för den konfigurationspost som avses. Krävs om flera poster är konfigurerade."
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
         },
         "vin": {
           "name": "VIN",

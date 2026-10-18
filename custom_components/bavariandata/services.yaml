@@ -6,6 +6,11 @@
 
 fetch_telematic_data:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:
@@ -15,11 +20,21 @@ fetch_telematic_data:
         text:
 fetch_vehicle_mappings:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:
 fetch_basic_data:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:
@@ -29,6 +44,11 @@ fetch_basic_data:
         text:
 fetch_charging_history:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:
@@ -46,6 +66,11 @@ fetch_charging_history:
         datetime:
 fetch_tyre_diagnosis:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:
@@ -55,6 +80,11 @@ fetch_tyre_diagnosis:
         text:
 fetch_location_charging_settings:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:
@@ -64,6 +94,11 @@ fetch_location_charging_settings:
         text:
 fetch_vehicle_image:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:
@@ -73,6 +108,11 @@ fetch_vehicle_image:
         text:
 get_charging_sessions:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:
@@ -96,6 +136,11 @@ get_charging_sessions:
           mode: box
 get_trips:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:
@@ -119,6 +164,11 @@ get_trips:
           mode: box
 get_driving_summary:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:
@@ -132,6 +182,11 @@ get_driving_summary:
         text:
 get_mileage_report:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:
@@ -141,6 +196,11 @@ get_mileage_report:
         text:
 get_efficiency:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:
@@ -150,6 +210,11 @@ get_efficiency:
         text:
 get_evcc_config:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:
@@ -159,6 +224,11 @@ get_evcc_config:
         text:
 set_trip_class:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:
@@ -180,6 +250,11 @@ set_trip_class:
             - commute
 mark_trip_start:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:
@@ -193,6 +268,11 @@ mark_trip_start:
         datetime:
 export_history:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:
@@ -238,6 +318,11 @@ export_history:
             - sv
 get_coverage_report:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:
@@ -247,6 +332,11 @@ get_coverage_report:
         text:
 activate_stream_fields:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:
@@ -281,6 +371,11 @@ activate_stream_fields:
         object:
 import_statistics:
   fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
     entry_id:
       selector:
         text:

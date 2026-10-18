@@ -9,15 +9,35 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **With two cars, a service that acts on one car asks which.** Calling, say,
+  `get_mileage_report` or `fetch_tyre_diagnosis` without naming a car used to
+  answer for whichever car had streamed first since the restart. It now stops
+  with an error that lists your cars. Every such service has a new **Vehicle**
+  picker, and picking a car also picks its account; `vin` and `entry_id` still
+  work. Services that read every car (`fetch_telematic_data`,
+  `get_charging_sessions`, `get_trips`, `get_coverage_report`,
+  `import_statistics`) still read them all. With one car nothing changes.
+- **A service call that can't run now fails instead of looking done.** An
+  unknown VIN, two accounts and no car named, no quota left or no valid token
+  used to write a line to the log while the automation carried on as if it had
+  worked (the `get_*` services answered with an empty list). The automation now
+  stops with that message.
+
 ### Fixed
+- **Configure → Fetch from BMW now fetches every car.** The tire diagnosis,
+  charging history, location-based charging settings and BMW's own vehicle
+  picture were fetched for one car only on an account with two. They now ask
+  for each car (one request per car), and a refusal, such as the day's quota
+  being used up, shows on the screen instead of an unknown error.
 - **The log no longer shows your full VIN when a BMW request fails.** The
   message masked it, but the request address quoted after it still carried it,
   and since BMW refuses the service items (16 October) that warning appears
   once a day for every car. If you attached a log to an issue, check it for
   your VIN.
-- **Fetch vehicle image accepts only a car of your account.** A mistyped VIN
+- **The fetch services accept only a car of your account.** A mistyped VIN
   was sent to BMW anyway and spent one of the day's 50 requests; it now stops
-  with an error in the log before asking BMW.
+  with an error before asking BMW.
 - **Blueprint *Car arriving home soon* works with Proximity.** Home Assistant's
   Proximity sensor reports in metres, so a threshold of 5 meant 5 m and the
   blueprint fired only on the doorstep, if at all. A distance in metres (or

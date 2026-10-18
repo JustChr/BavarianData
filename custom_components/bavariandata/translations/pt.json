@@ -461,7 +461,8 @@
       "configurator_no_data": "Os dados básicos de {vehicle} ainda não chegaram. Execute primeiro «Obter os dados básicos do veículo» e tente novamente.",
       "configurator_unavailable": "O configurador da BMW não respondeu ou mudou. Tente mais tarde, ou mantenha a imagem oficial.",
       "configurator_no_render": "O configurador da BMW não tem imagem de {vehicle}. Mantenha a imagem oficial.",
-      "mileage_end_before_start": "A data de fim tem de ser posterior à data de início."
+      "mileage_end_before_start": "A data de fim tem de ser posterior à data de início.",
+      "fetch_failed": "A obtenção não foi concluída: {error}"
     },
     "abort": {
       "reauth_started": "Autorização reiniciada. Conclua o novo início de sessão a partir da notificação que acabou de aparecer.",
@@ -2827,9 +2828,13 @@
       "name": "Obter dados telemáticos",
       "description": "Obtém os dados telemáticos de cada veículo da conta usando os contentores guardados e regista a resposta. Dois pedidos por veículo.",
       "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "Opcional: apenas este carro. Deixe vazio para todos os carros da conta."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         },
         "vin": {
           "name": "VIN",
@@ -2841,9 +2846,13 @@
       "name": "Obter associações de veículos",
       "description": "Obtém as informações de associação da conta configurada e regista a resposta.",
       "fields": {
+        "device_id": {
+          "name": "Conta",
+          "description": "Qualquer carro da conta, ou o seu dispositivo de depuração. Só é necessário com mais de uma conta."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         }
       }
     },
@@ -2851,13 +2860,17 @@
       "name": "Obter dados básicos do veículo",
       "description": "Obtém os metadados fixos do veículo (nome do modelo, série, etc.) para um VIN e regista a resposta.",
       "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "O carro em causa. Só é necessário com mais de um carro."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN opcional a consultar. Por predefinição, o VIN guardado na entrada de configuração."
+          "description": "VIN opcional, em vez de escolher o veículo. Só é necessário se a conta tiver mais de um carro."
         }
       }
     },
@@ -2865,13 +2878,17 @@
       "name": "Obter histórico de carregamento",
       "description": "Obtém da BMW o histórico de sessões de carregamento de um VIN (paginado) e importa-o para o histórico local, para que os carregamentos passados apareçam no cartão e nos resumos mensais. As sessões registadas em tempo real que se sobreponham são enriquecidas no local com a energia da rede medida pela BMW. Conta como uma ou mais chamadas à API na quota de 50/24 h.",
       "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "O carro em causa. Só é necessário com mais de um carro."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN opcional a consultar. Por predefinição, o primeiro VIN conhecido."
+          "description": "VIN opcional, em vez de escolher o veículo. Só é necessário se a conta tiver mais de um carro."
         },
         "from": {
           "name": "De",
@@ -2887,13 +2904,17 @@
       "name": "Obter diagnóstico dos pneus Smart Maintenance",
       "description": "Obtém o diagnóstico dos pneus Smart Maintenance para um VIN e regista a resposta.",
       "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "O carro em causa. Só é necessário com mais de um carro."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN opcional a consultar. Por predefinição, o primeiro VIN conhecido."
+          "description": "VIN opcional, em vez de escolher o veículo. Só é necessário se a conta tiver mais de um carro."
         }
       }
     },
@@ -2901,13 +2922,17 @@
       "name": "Obter definições de carregamento por localização",
       "description": "Obtém as definições de carregamento baseadas na localização para um VIN (paginado) e regista a resposta.",
       "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "O carro em causa. Só é necessário com mais de um carro."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN opcional a consultar. Por predefinição, o primeiro VIN conhecido."
+          "description": "VIN opcional, em vez de escolher o veículo. Só é necessário se a conta tiver mais de um carro."
         }
       }
     },
@@ -2915,13 +2940,17 @@
       "name": "Obter imagem do veículo",
       "description": "Obtém a imagem do veículo para um VIN e regista o seu tamanho e tipo de conteúdo.",
       "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "O carro em causa. Só é necessário com mais de um carro."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN opcional a consultar. Por predefinição, o primeiro VIN conhecido."
+          "description": "VIN opcional, em vez de escolher o veículo. Só é necessário se a conta tiver mais de um carro."
         }
       }
     },
@@ -2929,9 +2958,13 @@
       "name": "Obter sessões de carregamento",
       "description": "Devolve as sessões de carregamento registadas, das mais recentes para as mais antigas. Lê o histórico da própria integração, por isso, ao contrário das ações de obtenção, não gasta quota da API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "Opcional: apenas este carro. Deixe vazio para todos os carros da conta."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         },
         "vin": {
           "name": "VIN",
@@ -2955,9 +2988,13 @@
       "name": "Obter viagens",
       "description": "Devolve as viagens registadas, das mais recentes para as mais antigas. Lê o histórico da própria integração, por isso, tal como as sessões de carregamento, não gasta quota da API BMW. Os pontos de partida e chegada são guardados como nomes de locais, nunca como coordenadas. Uma viagem ainda em curso é devolvida à parte como viagem aberta (não tem fim e a sua distância é provisória), a menos que tenha sido indicado um período from/to.",
       "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "Opcional: apenas este carro. Deixe vazio para todos os carros da conta."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         },
         "vin": {
           "name": "VIN",
@@ -2981,13 +3018,17 @@
       "name": "Obter resumo de condução",
       "description": "Devolve o resumo mensal das viagens: distância, a divisão profissional/particular/casa-trabalho, consumo, recuperação, pontuação do estilo de condução, destinos principais e (com uma tarifa) um custo de condução estimado. Lê o armazenamento local, por isso não gasta quota da API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "O carro em causa. Só é necessário com mais de um carro."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN opcional. Por predefinição, o único veículo configurado."
+          "description": "VIN opcional, em vez de escolher o veículo. Só é necessário se a conta tiver mais de um carro."
         },
         "month": {
           "name": "Mês",
@@ -2999,13 +3040,17 @@
       "name": "Obter relatório de quilometragem",
       "description": "Devolve quanto o carro é conduzido (este mês, este ano, os últimos 12 meses, o ritmo) e, com uma quilometragem permitida, como está face a ela. Lê o armazenamento local, por isso não gasta quota da API da BMW.",
       "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "O carro em causa. Só é necessário com mais de um carro."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN opcional. Por predefinição, o único veículo configurado."
+          "description": "VIN opcional, em vez de escolher o veículo. Só é necessário se a conta tiver mais de um carro."
         }
       }
     },
@@ -3013,13 +3058,17 @@
       "name": "Obter eficiência e autonomia real",
       "description": "Devolve o consumo medido (kWh/100 km), a autonomia real que ele implica com o estado de carga atual, a perda de carregamento entre a rede e a bateria, e uma tendência de eficiência mês a mês. Tudo é derivado do registo de carregamentos, por isso não gasta quota da API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "O carro em causa. Só é necessário com mais de um carro."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN opcional. Por predefinição, o único veículo configurado."
+          "description": "VIN opcional, em vez de escolher o veículo. Só é necessário se a conta tiver mais de um carro."
         }
       }
     },
@@ -3027,13 +3076,17 @@
       "name": "Obter a configuração do evcc",
       "description": "Devolve a configuração de veículo 'custom' do evcc para este carro, pronta a colar no evcc.yaml, juntamente com os tópicos MQTT que a ponte publica e quais deles estão ativos agora. Lê apenas o estado local, por isso não gasta quota da API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "O carro em causa. Só é necessário com mais de um carro."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN opcional. Por predefinição, o único veículo configurado."
+          "description": "VIN opcional, em vez de escolher o veículo. Só é necessário se a conta tiver mais de um carro."
         }
       }
     },
@@ -3041,13 +3094,17 @@
       "name": "Definir a classificação da viagem",
       "description": "Substitui a classificação de uma viagem (business, private ou commute). Use isto para corrigir a suposição automática pelo par de zonas. Escreve apenas no armazenamento local.",
       "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "O carro em causa. Só é necessário com mais de um carro."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN opcional. Por predefinição, o único veículo configurado."
+          "description": "VIN opcional, em vez de escolher o veículo. Só é necessário se a conta tiver mais de um carro."
         },
         "trip_id": {
           "name": "ID da viagem",
@@ -3063,13 +3120,17 @@
       "name": "Marcar início da viagem",
       "description": "Regista que uma viagem começa agora, para um carro que só comunica depois de estacionado: a viagem que o seu próximo relatório termina começa então a esta hora. Só é usado quando a deteção de viagens está em Relatórios de fim de viagem. Escreve apenas no armazenamento local.",
       "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "O carro em causa. Só é necessário com mais de um carro."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN opcional. Por predefinição, o único veículo configurado."
+          "description": "VIN opcional, em vez de escolher o veículo. Só é necessário se a conta tiver mais de um carro."
         },
         "at": {
           "name": "Hora",
@@ -3081,13 +3142,17 @@
       "name": "Exportar histórico",
       "description": "Devolve um mês de sessões de carregamento e/ou viagens registadas como ficheiros: CSV para folhas de cálculo, ou um relatório HTML autónomo que pode imprimir em PDF a partir do navegador. O conteúdo dos ficheiros regressa na resposta; nada é escrito no disco. Lê o armazenamento local, por isso não gasta quota da API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "O carro em causa. Só é necessário com mais de um carro."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "VIN opcional. Por predefinição, o único veículo configurado."
+          "description": "VIN opcional, em vez de escolher o veículo. Só é necessário se a conta tiver mais de um carro."
         },
         "month": {
           "name": "Mês",
@@ -3111,9 +3176,13 @@
       "name": "Obter relatório de cobertura de descritores",
       "description": "Executa o autoteste de cobertura de descritores: para cada veículo, compara os descritores que os grupos do stream selecionados deviam entregar com os que chegaram realmente, e lista os que faltam. Responde a \"Ativei um grupo mas não apareceu nenhuma entidade -- é a minha seleção, o meu carro ou um bug?\". Lê apenas o armazenamento local e o stream em tempo real, por isso não gasta quota da API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "Opcional: apenas este carro. Deixe vazio para todos os carros da conta."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         },
         "vin": {
           "name": "VIN",
@@ -3125,9 +3194,13 @@
       "name": "Ativar campos do stream",
       "description": "Substitui os atributos do CarData que a BMW transmite por MQTT para um veículo, enviando o mesmo pedido que a página stream setup do portal BMW envia quando guarda a seleção de dados. A seleção do stream não tem API do CarData, por isso é necessária uma sessão do navegador do portal capturada (não pode ser renovada automaticamente -- a sessão é de curta duração). Não gasta quota da API BMW. Devolve o número de atributos pedidos/aceites.",
       "fields": {
+        "device_id": {
+          "name": "Conta",
+          "description": "Qualquer carro da conta, ou o seu dispositivo de depuração. Só é necessário com mais de uma conta."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         },
         "base_url": {
           "name": "URL base do portal",
@@ -3159,9 +3232,13 @@
       "name": "Importar para as estatísticas de longo prazo",
       "description": "Reconstrói as estatísticas de longo prazo desta integração a partir do histórico registado, para que os carregamentos e as viagens anteriores à instalação (ou de quando o Home Assistant estava desligado) apareçam no painel de Energia. Isto corre automaticamente à medida que os registos são criados; use-o depois de restaurar uma cópia de segurança ou para verificar o número de linhas. Apenas local -- sem quota da API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Veículo",
+          "description": "Opcional: apenas este carro. Deixe vazio para todos os carros da conta."
+        },
         "entry_id": {
           "name": "Entrada de configuração",
-          "description": "ID opcional da entrada de configuração a usar. Obrigatório se estiverem configuradas várias entradas."
+          "description": "ID opcional da entrada de configuração da conta. Só é necessário com várias contas, quando não é indicado veículo nem VIN."
         },
         "vin": {
           "name": "VIN",

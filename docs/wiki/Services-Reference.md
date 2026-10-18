@@ -5,11 +5,20 @@
 Every service is available in **Developer Tools → Actions** and (for most) as a
 button in the integration's **Configure** menu.
 
-All services accept an optional **`entry_id`** and, where relevant, an optional
-**`vin`** (defaults to the first known vehicle). With a single account set up
-you need neither. With **two accounts** — a BMW and a MINI, say — a call has to
-say which one it means: either name the `entry_id`, or pass the `vin`, and the
-vehicle's account is looked up from it.
+Every service that acts on a car has a **Vehicle** picker (`device_id`), plus
+the older `vin` and `entry_id` fields, which still work. With one car you need
+none of them. Picking the car also picks its account, so with **two accounts**
+(a BMW and a MINI, say) the picker is all you need.
+
+With **two cars**, a service that acts on one car (a tire diagnosis, a mileage
+report, an export…) **refuses a call that doesn't say which car**, and the error
+lists the cars to choose from. Until v0.9.20 it quietly took whichever car had
+streamed first. A service that reads every car (`fetch_telematic_data`,
+`get_charging_sessions`, `get_trips`, `get_coverage_report`,
+`import_statistics`) still reads them all when no car is named. A VIN that
+isn't a car of the account is refused before any quota is spent, and so is a
+call that runs out of quota or has no valid token: the automation fails with
+that message instead of looking like it worked.
 
 ## Fetch services — spend API quota ⚡
 

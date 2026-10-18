@@ -461,7 +461,8 @@
       "configurator_no_data": "De basisgegevens van {vehicle} zijn er nog niet. Voer eerst 'Basisgegevens van het voertuig ophalen' uit en probeer het daarna opnieuw.",
       "configurator_unavailable": "De BMW-configurator antwoordde niet of is veranderd. Probeer het later opnieuw, of houd de officiële afbeelding.",
       "configurator_no_render": "De BMW-configurator heeft geen afbeelding van {vehicle}. Houd de officiële afbeelding.",
-      "mileage_end_before_start": "De einddatum moet na de startdatum liggen."
+      "mileage_end_before_start": "De einddatum moet na de startdatum liggen.",
+      "fetch_failed": "Het ophalen is niet gelukt: {error}"
     },
     "abort": {
       "reauth_started": "Autorisatie opnieuw gestart. Rond de nieuwe aanmelding af via de melding die zojuist is verschenen.",
@@ -2827,9 +2828,13 @@
       "name": "Telematicagegevens ophalen",
       "description": "Haal telematicagegevens op voor elk voertuig op het account met de opgeslagen containers en log het antwoord. Twee verzoeken per voertuig.",
       "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Optioneel alleen deze auto. Laat leeg voor alle auto's van het account."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         },
         "vin": {
           "name": "VIN",
@@ -2841,9 +2846,13 @@
       "name": "Voertuigkoppelingen ophalen",
       "description": "Haal de koppelingsinformatie van het ingestelde account op en log het antwoord.",
       "fields": {
+        "device_id": {
+          "name": "Account",
+          "description": "Een willekeurige auto van het account, of zijn debugapparaat. Alleen nodig bij meer dan één account."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         }
       }
     },
@@ -2851,13 +2860,17 @@
       "name": "Basisgegevens van het voertuig ophalen",
       "description": "Haal vaste voertuigmetadata (modelnaam, serie, enz.) op voor een VIN en log het antwoord.",
       "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "De auto waarom het gaat. Alleen nodig bij meer dan één auto."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optionele VIN om op te vragen. Standaard de VIN die in het configuratie-item is opgeslagen."
+          "description": "Optionele VIN, in plaats van het voertuig te kiezen. Alleen nodig als het account meer dan één auto heeft."
         }
       }
     },
@@ -2865,13 +2878,17 @@
       "name": "Laadgeschiedenis ophalen",
       "description": "Haal de geschiedenis van laadsessies voor een VIN (gepagineerd) op bij BMW en importeer die in de lokale geschiedenis, zodat eerdere laadbeurten op de kaart en in de maandoverzichten verschijnen. Overlappende, live geregistreerde sessies worden ter plekke aangevuld met de door BMW gemeten netenergie. Telt als één of meer API-aanroepen binnen het quotum van 50/24 u.",
       "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "De auto waarom het gaat. Alleen nodig bij meer dan één auto."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optionele VIN om op te vragen. Standaard de eerste bekende VIN."
+          "description": "Optionele VIN, in plaats van het voertuig te kiezen. Alleen nodig als het account meer dan één auto heeft."
         },
         "from": {
           "name": "Van",
@@ -2887,13 +2904,17 @@
       "name": "Smart Maintenance-bandendiagnose ophalen",
       "description": "Haal de Smart Maintenance-bandendiagnose voor een VIN op en log het antwoord.",
       "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "De auto waarom het gaat. Alleen nodig bij meer dan één auto."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optionele VIN om op te vragen. Standaard de eerste bekende VIN."
+          "description": "Optionele VIN, in plaats van het voertuig te kiezen. Alleen nodig als het account meer dan één auto heeft."
         }
       }
     },
@@ -2901,13 +2922,17 @@
       "name": "Locatiegebonden laadinstellingen ophalen",
       "description": "Haal de locatiegebonden laadinstellingen voor een VIN (gepagineerd) op en log het antwoord.",
       "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "De auto waarom het gaat. Alleen nodig bij meer dan één auto."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optionele VIN om op te vragen. Standaard de eerste bekende VIN."
+          "description": "Optionele VIN, in plaats van het voertuig te kiezen. Alleen nodig als het account meer dan één auto heeft."
         }
       }
     },
@@ -2915,13 +2940,17 @@
       "name": "Voertuigafbeelding ophalen",
       "description": "Haal de voertuigafbeelding voor een VIN op en log de grootte en het inhoudstype.",
       "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "De auto waarom het gaat. Alleen nodig bij meer dan één auto."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optionele VIN om op te vragen. Standaard de eerste bekende VIN."
+          "description": "Optionele VIN, in plaats van het voertuig te kiezen. Alleen nodig als het account meer dan één auto heeft."
         }
       }
     },
@@ -2929,9 +2958,13 @@
       "name": "Laadsessies opvragen",
       "description": "Geef geregistreerde laadsessies terug, nieuwste eerst. Leest de eigen geschiedenis van de integratie, dus anders dan de ophaalacties kost dit geen BMW-API-quotum.",
       "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Optioneel alleen deze auto. Laat leeg voor alle auto's van het account."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         },
         "vin": {
           "name": "VIN",
@@ -2955,9 +2988,13 @@
       "name": "Ritten opvragen",
       "description": "Geef geregistreerde ritten terug, nieuwste eerst. Leest de eigen geschiedenis van de integratie, dus net als de laadsessies kost dit geen BMW-API-quotum. Begin- en eindpunten worden als plaatsnamen opgeslagen, nooit als coördinaten. Een rit die nog bezig is, wordt apart teruggegeven als open rit (zonder einde, met een voorlopige afstand), tenzij een from/to-periode is opgegeven.",
       "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Optioneel alleen deze auto. Laat leeg voor alle auto's van het account."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         },
         "vin": {
           "name": "VIN",
@@ -2981,13 +3018,17 @@
       "name": "Rijoverzicht opvragen",
       "description": "Geef het maandoverzicht van ritten terug: afstand, de verdeling zakelijk/privé/woon-werk, verbruik, terugwinning, rijstijlscore, topbestemmingen en (met een tarief) geschatte rijkosten. Leest de lokale opslag, dus kost geen BMW-API-quotum.",
       "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "De auto waarom het gaat. Alleen nodig bij meer dan één auto."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optionele VIN. Standaard het enige ingestelde voertuig."
+          "description": "Optionele VIN, in plaats van het voertuig te kiezen. Alleen nodig als het account meer dan één auto heeft."
         },
         "month": {
           "name": "Maand",
@@ -2999,13 +3040,17 @@
       "name": "Kilometerrapport ophalen",
       "description": "Geeft hoeveel de auto rijdt (deze maand, dit jaar, de laatste 12 maanden, het tempo) en, met een kilometerlimiet, hoe hij ervoor staat. Leest de lokale opslag en kost dus geen BMW-API-quotum.",
       "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "De auto waarom het gaat. Alleen nodig bij meer dan één auto."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optionele VIN. Standaard het enige ingestelde voertuig."
+          "description": "Optionele VIN, in plaats van het voertuig te kiezen. Alleen nodig als het account meer dan één auto heeft."
         }
       }
     },
@@ -3013,13 +3058,17 @@
       "name": "Efficiëntie en werkelijke actieradius opvragen",
       "description": "Geef het gemeten verbruik (kWh/100 km) terug, de werkelijke actieradius die dat bij de huidige laadtoestand oplevert, het laadverlies tussen net en accu, en een efficiëntietrend per maand. Alles wordt afgeleid uit het laadlogboek, dus kost geen BMW-API-quotum.",
       "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "De auto waarom het gaat. Alleen nodig bij meer dan één auto."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optionele VIN. Standaard het enige ingestelde voertuig."
+          "description": "Optionele VIN, in plaats van het voertuig te kiezen. Alleen nodig als het account meer dan één auto heeft."
         }
       }
     },
@@ -3027,13 +3076,17 @@
       "name": "evcc-configuratie ophalen",
       "description": "Geef de 'custom'-voertuigconfiguratie van evcc voor deze auto terug, klaar om in evcc.yaml te plakken, samen met de MQTT-topics die de brug publiceert en welke daarvan nu live zijn. Leest alleen lokale status, dus kost geen BMW-API-quotum.",
       "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "De auto waarom het gaat. Alleen nodig bij meer dan één auto."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optionele VIN. Standaard het enige ingestelde voertuig."
+          "description": "Optionele VIN, in plaats van het voertuig te kiezen. Alleen nodig als het account meer dan één auto heeft."
         }
       }
     },
@@ -3041,13 +3094,17 @@
       "name": "Ritindeling instellen",
       "description": "Overschrijf de indeling van een rit (business, private of commute). Gebruik dit om de automatische inschatting op basis van het zonepaar te corrigeren. Schrijft alleen naar de lokale opslag.",
       "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "De auto waarom het gaat. Alleen nodig bij meer dan één auto."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optionele VIN. Standaard het enige ingestelde voertuig."
+          "description": "Optionele VIN, in plaats van het voertuig te kiezen. Alleen nodig als het account meer dan één auto heeft."
         },
         "trip_id": {
           "name": "Rit-ID",
@@ -3063,13 +3120,17 @@
       "name": "Ritstart markeren",
       "description": "Legt vast dat er nu een rit begint, voor een auto die pas na het parkeren meldt: de rit die zijn volgende rapport afsluit, begint dan op dit tijdstip. Alleen gebruikt als Ritdetectie op Rapporten aan het einde van de rit staat. Schrijft alleen naar de lokale opslag.",
       "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "De auto waarom het gaat. Alleen nodig bij meer dan één auto."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optionele VIN. Standaard het enige ingestelde voertuig."
+          "description": "Optionele VIN, in plaats van het voertuig te kiezen. Alleen nodig als het account meer dan één auto heeft."
         },
         "at": {
           "name": "Tijd",
@@ -3081,13 +3142,17 @@
       "name": "Geschiedenis exporteren",
       "description": "Geef één maand aan geregistreerde laadsessies en/of ritten terug als bestanden: CSV voor spreadsheets, of een zelfstandig HTML-rapport dat je vanuit de browser als PDF kunt afdrukken. De bestandsinhoud komt terug in het antwoord; er wordt niets naar schijf geschreven. Leest de lokale opslag, dus kost geen BMW-API-quotum.",
       "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "De auto waarom het gaat. Alleen nodig bij meer dan één auto."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optionele VIN. Standaard het enige ingestelde voertuig."
+          "description": "Optionele VIN, in plaats van het voertuig te kiezen. Alleen nodig als het account meer dan één auto heeft."
         },
         "month": {
           "name": "Maand",
@@ -3111,9 +3176,13 @@
       "name": "Dekkingsrapport van descriptoren opvragen",
       "description": "Voer de zelftest voor descriptordekking uit: vergelijk per voertuig de descriptoren die je geselecteerde streamgroepen zouden moeten leveren met de descriptoren die echt zijn binnengekomen, en toon de ontbrekende. Beantwoordt \"Ik heb een groep aangezet maar er verschenen geen entiteiten -- ligt het aan mijn selectie, mijn auto of een bug?\". Leest alleen de lokale opslag en de live stream, dus kost geen BMW-API-quotum.",
       "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Optioneel alleen deze auto. Laat leeg voor alle auto's van het account."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         },
         "vin": {
           "name": "VIN",
@@ -3125,9 +3194,13 @@
       "name": "Streamvelden activeren",
       "description": "Vervang welke CarData-attributen BMW voor een voertuig via MQTT streamt, door hetzelfde verzoek te sturen dat de stream setup-pagina van het BMW-portaal stuurt wanneer je de gegevensselectie opslaat. Voor de streamselectie bestaat geen CarData-API, dus hiervoor is een vastgelegde browsersessie van het portaal nodig (die kan niet automatisch worden vernieuwd -- de sessie is kortlevend). Kost geen BMW-API-quotum. Geeft het aantal gevraagde/geaccepteerde attributen terug.",
       "fields": {
+        "device_id": {
+          "name": "Account",
+          "description": "Een willekeurige auto van het account, of zijn debugapparaat. Alleen nodig bij meer dan één account."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         },
         "base_url": {
           "name": "Basis-URL van het portaal",
@@ -3159,9 +3232,13 @@
       "name": "Importeren in langetermijnstatistieken",
       "description": "Bouw de langetermijnstatistieken van deze integratie opnieuw op uit de geregistreerde geschiedenis, zodat laden en rijden van vóór de installatie (of van toen Home Assistant uit stond) in het Energie-dashboard verschijnen. Dit gebeurt automatisch terwijl records worden aangemaakt; gebruik het na het terugzetten van een back-up of om de aantallen rijen te controleren. Alleen lokaal -- geen BMW-API-quotum.",
       "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Optioneel alleen deze auto. Laat leeg voor alle auto's van het account."
+        },
         "entry_id": {
           "name": "Configuratie-item",
-          "description": "Optionele ID van het configuratie-item. Verplicht als er meerdere items zijn ingesteld."
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
         },
         "vin": {
           "name": "VIN",

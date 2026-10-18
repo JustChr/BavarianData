@@ -461,7 +461,8 @@
       "configurator_no_data": "Die Fahrzeug-Basisdaten für {vehicle} sind noch nicht da. Führe zuerst „Fahrzeug-Basisdaten abrufen“ aus und versuche es dann erneut.",
       "configurator_unavailable": "Der BMW-Konfigurator hat nicht geantwortet oder sich geändert. Versuche es später erneut oder behalte das offizielle Bild.",
       "configurator_no_render": "Der BMW-Konfigurator hat kein Bild von {vehicle}. Behalte das offizielle Bild.",
-      "mileage_end_before_start": "Das Ende muss nach dem Beginn liegen."
+      "mileage_end_before_start": "Das Ende muss nach dem Beginn liegen.",
+      "fetch_failed": "Der Abruf hat nicht geklappt: {error}"
     },
     "abort": {
       "reauth_started": "Autorisierung neu gestartet. Schließe die neue Anmeldung über die soeben erschienene Benachrichtigung ab.",
@@ -2827,9 +2828,13 @@
       "name": "Telematikdaten abrufen",
       "description": "Telematikdaten aller Fahrzeuge des Kontos über die gespeicherten Container abrufen und die Antwort protokollieren. Zwei Anfragen pro Fahrzeug.",
       "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Optional nur dieses Auto. Leer lassen für alle Autos des Kontos."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         },
         "vin": {
           "name": "FIN",
@@ -2841,9 +2846,13 @@
       "name": "Fahrzeugzuordnungen abrufen",
       "description": "Zuordnungsinformationen für das konfigurierte Konto abrufen und die Antwort protokollieren.",
       "fields": {
+        "device_id": {
+          "name": "Konto",
+          "description": "Ein beliebiges Auto des Kontos oder sein Debug-Gerät. Nur nötig bei mehr als einem Konto."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         }
       }
     },
@@ -2851,13 +2860,17 @@
       "name": "Fahrzeug-Stammdaten abrufen",
       "description": "Statische Fahrzeugdaten (Modellname, Baureihe usw.) für eine FIN abrufen und die Antwort protokollieren.",
       "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Auto, um das es geht. Nur nötig bei mehr als einem Auto."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         },
         "vin": {
           "name": "FIN",
-          "description": "Optionale FIN. Standardmäßig die im Konfigurationseintrag gespeicherte FIN."
+          "description": "Optionale VIN, statt das Fahrzeug auszuwählen. Nur nötig, wenn das Konto mehr als ein Auto hat."
         }
       }
     },
@@ -2865,13 +2878,17 @@
       "name": "Ladehistorie abrufen",
       "description": "Die Historie der Ladevorgänge für eine FIN (seitenweise) von BMW abrufen und in die lokale Historie importieren, damit vergangene Ladungen auf der Karte und in den Monatsübersichten erscheinen. Überlappende live aufgezeichnete Ladevorgänge werden dabei um die von BMW gemessene Netzenergie ergänzt. Zählt als ein oder mehrere API-Aufrufe gegen das Kontingent von 50/24 h.",
       "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Auto, um das es geht. Nur nötig bei mehr als einem Auto."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         },
         "vin": {
           "name": "FIN",
-          "description": "Optionale FIN. Standardmäßig die erste bekannte FIN."
+          "description": "Optionale VIN, statt das Fahrzeug auszuwählen. Nur nötig, wenn das Konto mehr als ein Auto hat."
         },
         "from": {
           "name": "Von",
@@ -2887,13 +2904,17 @@
       "name": "Smart-Maintenance-Reifendiagnose abrufen",
       "description": "Die Smart-Maintenance-Reifendiagnose für eine FIN abrufen und die Antwort protokollieren.",
       "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Auto, um das es geht. Nur nötig bei mehr als einem Auto."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         },
         "vin": {
           "name": "FIN",
-          "description": "Optionale FIN. Standardmäßig die erste bekannte FIN."
+          "description": "Optionale VIN, statt das Fahrzeug auszuwählen. Nur nötig, wenn das Konto mehr als ein Auto hat."
         }
       }
     },
@@ -2901,13 +2922,17 @@
       "name": "Standortbasierte Ladeeinstellungen abrufen",
       "description": "Die standortbasierten Ladeeinstellungen für eine FIN (seitenweise) abrufen und die Antwort protokollieren.",
       "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Auto, um das es geht. Nur nötig bei mehr als einem Auto."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         },
         "vin": {
           "name": "FIN",
-          "description": "Optionale FIN. Standardmäßig die erste bekannte FIN."
+          "description": "Optionale VIN, statt das Fahrzeug auszuwählen. Nur nötig, wenn das Konto mehr als ein Auto hat."
         }
       }
     },
@@ -2915,13 +2940,17 @@
       "name": "Fahrzeugbild abrufen",
       "description": "Das Fahrzeugbild für eine FIN abrufen und Größe/Inhaltstyp protokollieren.",
       "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Auto, um das es geht. Nur nötig bei mehr als einem Auto."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         },
         "vin": {
           "name": "FIN",
-          "description": "Optionale FIN. Standardmäßig die erste bekannte FIN."
+          "description": "Optionale VIN, statt das Fahrzeug auszuwählen. Nur nötig, wenn das Konto mehr als ein Auto hat."
         }
       }
     },
@@ -2929,9 +2958,13 @@
       "name": "Ladevorgänge abfragen",
       "description": "Aufgezeichnete Ladevorgänge zurückgeben, neueste zuerst. Liest die eigene Historie der Integration und verbraucht daher – anders als die Abruf-Aktionen – kein BMW-API-Kontingent.",
       "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Optional nur dieses Auto. Leer lassen für alle Autos des Kontos."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         },
         "vin": {
           "name": "FIN",
@@ -2955,9 +2988,13 @@
       "name": "Fahrten abfragen",
       "description": "Aufgezeichnete Fahrten zurückgeben, neueste zuerst. Liest die eigene Historie der Integration und verbraucht daher – wie die Ladevorgänge – kein BMW-API-Kontingent. Start- und Zielpunkte werden als Ortsnamen gespeichert, nie als Koordinaten. Eine gerade laufende Fahrt wird separat als offene Fahrt zurückgegeben (ohne Ende, mit vorläufiger Distanz), sofern kein Zeitraum angegeben wurde.",
       "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Optional nur dieses Auto. Leer lassen für alle Autos des Kontos."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         },
         "vin": {
           "name": "FIN",
@@ -2981,13 +3018,17 @@
       "name": "Fahrtenübersicht abfragen",
       "description": "Die Monatsübersicht der Fahrten zurückgeben: Distanz, Aufteilung nach geschäftlich/privat/Pendeln, Verbrauch, Rekuperation, Fahrstil-Score, häufigste Ziele und (mit hinterlegtem Tarif) geschätzte Fahrtkosten. Liest den lokalen Speicher und verbraucht kein BMW-API-Kontingent.",
       "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Auto, um das es geht. Nur nötig bei mehr als einem Auto."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         },
         "vin": {
           "name": "FIN",
-          "description": "Optionale FIN. Standardmäßig das einzige konfigurierte Fahrzeug."
+          "description": "Optionale VIN, statt das Fahrzeug auszuwählen. Nur nötig, wenn das Konto mehr als ein Auto hat."
         },
         "month": {
           "name": "Monat",
@@ -2999,13 +3040,17 @@
       "name": "Kilometerbericht abrufen",
       "description": "Liefert die Fahrleistung des Autos (dieser Monat, dieses Jahr, die letzten 12 Monate, das Tempo) und, mit einem Kilometerkontingent, den Stand dazu. Liest den lokalen Speicher und kostet daher kein BMW-API-Kontingent.",
       "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Auto, um das es geht. Nur nötig bei mehr als einem Auto."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         },
         "vin": {
           "name": "FIN",
-          "description": "Optionale FIN. Standard ist das einzige konfigurierte Fahrzeug."
+          "description": "Optionale VIN, statt das Fahrzeug auszuwählen. Nur nötig, wenn das Konto mehr als ein Auto hat."
         }
       }
     },
@@ -3013,13 +3058,17 @@
       "name": "Effizienz und reale Reichweite abrufen",
       "description": "Liefert den gemessenen Verbrauch (kWh/100 km), die daraus folgende reale Reichweite beim aktuellen Ladezustand, den Ladeverlust zwischen Netz und Batterie sowie einen Monatsverlauf der Effizienz. Alles stammt aus der Ladehistorie und kostet daher kein BMW-API-Kontingent.",
       "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Auto, um das es geht. Nur nötig bei mehr als einem Auto."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         },
         "vin": {
           "name": "FIN",
-          "description": "Optionale FIN. Standard ist das einzige konfigurierte Fahrzeug."
+          "description": "Optionale VIN, statt das Fahrzeug auszuwählen. Nur nötig, wenn das Konto mehr als ein Auto hat."
         }
       }
     },
@@ -3027,13 +3076,17 @@
       "name": "evcc-Konfiguration abrufen",
       "description": "Gibt die evcc-Konfiguration (Fahrzeugtyp 'custom') für dieses Auto zurück, fertig zum Einfügen in die evcc.yaml, dazu die MQTT-Topics der Brücke und welche davon aktuell bespielt werden. Liest nur lokale Daten und verbraucht daher kein BMW-API-Kontingent.",
       "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Auto, um das es geht. Nur nötig bei mehr als einem Auto."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale Eintrags-ID. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         },
         "vin": {
           "name": "VIN",
-          "description": "Optionale VIN. Standard ist das einzige konfigurierte Fahrzeug."
+          "description": "Optionale VIN, statt das Fahrzeug auszuwählen. Nur nötig, wenn das Konto mehr als ein Auto hat."
         }
       }
     },
@@ -3041,13 +3094,17 @@
       "name": "Fahrtkategorie setzen",
       "description": "Die Kategorie einer Fahrt überschreiben (geschäftlich, privat oder Pendeln). Damit lässt sich die automatische Zonen-Erkennung korrigieren. Schreibt nur in den lokalen Speicher.",
       "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Auto, um das es geht. Nur nötig bei mehr als einem Auto."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         },
         "vin": {
           "name": "FIN",
-          "description": "Optionale FIN. Standardmäßig das einzige konfigurierte Fahrzeug."
+          "description": "Optionale VIN, statt das Fahrzeug auszuwählen. Nur nötig, wenn das Konto mehr als ein Auto hat."
         },
         "trip_id": {
           "name": "Fahrt-ID",
@@ -3063,13 +3120,17 @@
       "name": "Fahrtbeginn markieren",
       "description": "Vermerkt, dass jetzt eine Fahrt beginnt, für ein Auto, das erst nach dem Parken meldet: Die Fahrt, die sein nächster Bericht beendet, beginnt dann zu dieser Zeit. Wird nur genutzt, wenn die Fahrterkennung auf Berichte am Fahrtende steht. Schreibt nur in den lokalen Speicher.",
       "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Auto, um das es geht. Nur nötig bei mehr als einem Auto."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         },
         "vin": {
           "name": "FIN",
-          "description": "Optionale FIN. Standardmäßig das einzige konfigurierte Fahrzeug."
+          "description": "Optionale VIN, statt das Fahrzeug auszuwählen. Nur nötig, wenn das Konto mehr als ein Auto hat."
         },
         "at": {
           "name": "Zeit",
@@ -3081,13 +3142,17 @@
       "name": "Historie exportieren",
       "description": "Einen Monat aufgezeichneter Ladevorgänge und/oder Fahrten als Dateien zurückgeben: CSV für Tabellenkalkulationen oder ein eigenständiger HTML-Bericht, den sich im Browser als PDF drucken lässt. Der Dateiinhalt kommt in der Antwort zurück; nichts wird auf die Festplatte geschrieben. Liest den lokalen Speicher und verbraucht kein BMW-API-Kontingent.",
       "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Auto, um das es geht. Nur nötig bei mehr als einem Auto."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         },
         "vin": {
           "name": "FIN",
-          "description": "Optionale FIN. Standardmäßig das einzige konfigurierte Fahrzeug."
+          "description": "Optionale VIN, statt das Fahrzeug auszuwählen. Nur nötig, wenn das Konto mehr als ein Auto hat."
         },
         "month": {
           "name": "Monat",
@@ -3111,9 +3176,13 @@
       "name": "Descriptor-Abdeckungsbericht abfragen",
       "description": "Den Selbsttest zur Descriptor-Abdeckung ausführen: für jedes Fahrzeug vergleichen, welche Descriptors die gewählten Stream-Cluster liefern sollten und welche tatsächlich angekommen sind, und fehlende auflisten. Beantwortet die Frage „Ich habe einen Cluster aktiviert, aber es sind keine Entitäten erschienen – liegt es an meiner Auswahl, an meinem Auto oder an einem Fehler?“. Liest nur den lokalen Speicher und den laufenden Stream und verbraucht kein BMW-API-Kontingent.",
       "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Optional nur dieses Auto. Leer lassen für alle Autos des Kontos."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         },
         "vin": {
           "name": "FIN",
@@ -3125,9 +3194,13 @@
       "name": "Stream-Felder aktivieren",
       "description": "Ersetzen, welche CarData-Attribute BMW für ein Fahrzeug per MQTT streamt – durch dieselbe Anfrage, die die Stream-Setup-Seite des BMW-Portals beim Speichern der Datenauswahl sendet. Für die Stream-Auswahl gibt es keine CarData-API, daher wird eine mitgeschnittene Portal-Browsersitzung benötigt (sie kann nicht automatisch erneuert werden – die Sitzung ist kurzlebig). Verbraucht kein BMW-API-Kontingent. Liefert die Anzahl der angefragten und akzeptierten Attribute zurück.",
       "fields": {
+        "device_id": {
+          "name": "Konto",
+          "description": "Ein beliebiges Auto des Kontos oder sein Debug-Gerät. Nur nötig bei mehr als einem Konto."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         },
         "base_url": {
           "name": "Portal-Basisadresse",
@@ -3159,9 +3232,13 @@
       "name": "In Langzeitstatistiken importieren",
       "description": "Die Langzeitstatistiken dieser Integration aus der aufgezeichneten Historie neu aufbauen, damit Laden und Fahren von vor der Installation (oder aus einer Zeit, in der Home Assistant aus war) im Energie-Dashboard erscheinen. Läuft automatisch mit jedem neuen Datensatz; nach dem Zurückspielen eines Backups oder zur Überprüfung der Zeilenzahlen manuell ausführen. Rein lokal – kein BMW-API-Kontingent.",
       "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Optional nur dieses Auto. Leer lassen für alle Autos des Kontos."
+        },
         "entry_id": {
           "name": "Konfigurationseintrag",
-          "description": "Optionale ID des Konfigurationseintrags. Erforderlich, wenn mehrere Einträge konfiguriert sind."
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
         },
         "vin": {
           "name": "FIN",

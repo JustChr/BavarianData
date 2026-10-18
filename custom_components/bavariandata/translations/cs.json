@@ -461,7 +461,8 @@
       "configurator_no_data": "Základní údaje o vozidle {vehicle} ještě nedorazily. Nejprve spusťte „Načíst základní údaje o vozidle“ a pak to zkuste znovu.",
       "configurator_unavailable": "Konfigurátor BMW neodpověděl nebo se změnil. Zkuste to později, nebo ponechte oficiální obrázek.",
       "configurator_no_render": "Konfigurátor BMW nemá obrázek {vehicle}. Ponechte oficiální obrázek.",
-      "mileage_end_before_start": "Datum konce musí být po datu začátku."
+      "mileage_end_before_start": "Datum konce musí být po datu začátku.",
+      "fetch_failed": "Načtení se nezdařilo: {error}"
     },
     "abort": {
       "reauth_started": "Autorizace byla znovu spuštěna. Dokončete nové přihlášení z oznámení, které se právě objevilo.",
@@ -2827,9 +2828,13 @@
       "name": "Načíst telematická data",
       "description": "Načte telematická data každého vozidla na účtu pomocí uložených kontejnerů a zaloguje odpověď. Dva požadavky na vozidlo.",
       "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Volitelně jen toto auto. Ponechte prázdné pro všechna auta účtu."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         },
         "vin": {
           "name": "VIN",
@@ -2841,9 +2846,13 @@
       "name": "Načíst přiřazení vozidel",
       "description": "Načte informace o přiřazení pro nastavený účet a zaloguje odpověď.",
       "fields": {
+        "device_id": {
+          "name": "Účet",
+          "description": "Libovolné auto účtu nebo jeho ladicí zařízení. Potřeba jen při více než jednom účtu."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         }
       }
     },
@@ -2851,13 +2860,17 @@
       "name": "Načíst základní údaje o vozidle",
       "description": "Načte pevná metadata vozidla (název modelu, řada atd.) pro VIN a zaloguje odpověď.",
       "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Auto, kterého se akce týká. Potřeba jen při více než jednom autě."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "Volitelný VIN k dotazu. Výchozí je VIN uložený v konfiguračním záznamu."
+          "description": "Volitelný VIN místo výběru vozidla. Potřeba jen, pokud má účet více než jedno auto."
         }
       }
     },
@@ -2865,13 +2878,17 @@
       "name": "Načíst historii nabíjení",
       "description": "Načte z BMW historii relací nabíjení pro VIN (stránkovanou) a importuje ji do místní historie, aby se minulá nabíjení objevila na kartě a v měsíčních přehledech. Překrývající se relace zaznamenané živě se na místě doplní o energii ze sítě naměřenou BMW. Počítá se jako jedno či více volání API v rámci kvóty 50/24 h.",
       "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Auto, kterého se akce týká. Potřeba jen při více než jednom autě."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "Volitelný VIN k dotazu. Výchozí je první známý VIN."
+          "description": "Volitelný VIN místo výběru vozidla. Potřeba jen, pokud má účet více než jedno auto."
         },
         "from": {
           "name": "Od",
@@ -2887,13 +2904,17 @@
       "name": "Načíst diagnostiku pneumatik Smart Maintenance",
       "description": "Načte diagnostiku pneumatik Smart Maintenance pro VIN a zaloguje odpověď.",
       "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Auto, kterého se akce týká. Potřeba jen při více než jednom autě."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "Volitelný VIN k dotazu. Výchozí je první známý VIN."
+          "description": "Volitelný VIN místo výběru vozidla. Potřeba jen, pokud má účet více než jedno auto."
         }
       }
     },
@@ -2901,13 +2922,17 @@
       "name": "Načíst nastavení nabíjení vázaná na místo",
       "description": "Načte nastavení nabíjení vázaná na místo pro VIN (stránkovaná) a zaloguje odpověď.",
       "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Auto, kterého se akce týká. Potřeba jen při více než jednom autě."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "Volitelný VIN k dotazu. Výchozí je první známý VIN."
+          "description": "Volitelný VIN místo výběru vozidla. Potřeba jen, pokud má účet více než jedno auto."
         }
       }
     },
@@ -2915,13 +2940,17 @@
       "name": "Načíst obrázek vozidla",
       "description": "Načte obrázek vozidla pro VIN a zaloguje jeho velikost a typ obsahu.",
       "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Auto, kterého se akce týká. Potřeba jen při více než jednom autě."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "Volitelný VIN k dotazu. Výchozí je první známý VIN."
+          "description": "Volitelný VIN místo výběru vozidla. Potřeba jen, pokud má účet více než jedno auto."
         }
       }
     },
@@ -2929,9 +2958,13 @@
       "name": "Získat relace nabíjení",
       "description": "Vrátí zaznamenané relace nabíjení, od nejnovějších. Čte vlastní historii integrace, takže na rozdíl od akcí načítání nespotřebuje kvótu API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Volitelně jen toto auto. Ponechte prázdné pro všechna auta účtu."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         },
         "vin": {
           "name": "VIN",
@@ -2955,9 +2988,13 @@
       "name": "Získat jízdy",
       "description": "Vrátí zaznamenané jízdy, od nejnovějších. Čte vlastní historii integrace, takže stejně jako relace nabíjení nespotřebuje kvótu API BMW. Počáteční a koncové body se ukládají jako názvy míst, nikdy jako souřadnice. Právě probíhající jízda se vrací zvlášť jako otevřená jízda (nemá konec a její vzdálenost je předběžná), pokud nebylo zadáno období from/to.",
       "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Volitelně jen toto auto. Ponechte prázdné pro všechna auta účtu."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         },
         "vin": {
           "name": "VIN",
@@ -2981,13 +3018,17 @@
       "name": "Získat přehled jízd",
       "description": "Vrátí měsíční přehled jízd: vzdálenost, rozdělení služební/soukromé/dojíždění, spotřebu, rekuperaci, hodnocení stylu jízdy, nejčastější cíle a (s tarifem) odhadované náklady na jízdu. Čte místní úložiště, takže nespotřebuje kvótu API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Auto, kterého se akce týká. Potřeba jen při více než jednom autě."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "Volitelný VIN. Výchozí je jediné nastavené vozidlo."
+          "description": "Volitelný VIN místo výběru vozidla. Potřeba jen, pokud má účet více než jedno auto."
         },
         "month": {
           "name": "Měsíc",
@@ -2999,13 +3040,17 @@
       "name": "Získat přehled nájezdu",
       "description": "Vrátí, kolik auto najezdí (tento měsíc, tento rok, posledních 12 měsíců, tempo) a s limitem kilometrů i to, jak si vůči němu stojí. Čte místní úložiště, takže nespotřebuje kvótu BMW API.",
       "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Auto, kterého se akce týká. Potřeba jen při více než jednom autě."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "Volitelný VIN. Výchozí je jediné nastavené vozidlo."
+          "description": "Volitelný VIN místo výběru vozidla. Potřeba jen, pokud má účet více než jedno auto."
         }
       }
     },
@@ -3013,13 +3058,17 @@
       "name": "Získat účinnost a skutečný dojezd",
       "description": "Vrátí naměřenou spotřebu (kWh/100 km), skutečný dojezd, který z ní vyplývá při aktuálním stavu nabití, ztráty nabíjení mezi sítí a baterií a vývoj účinnosti po měsících. Vše je odvozeno z knihy nabíjení, takže nespotřebuje kvótu API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Auto, kterého se akce týká. Potřeba jen při více než jednom autě."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "Volitelný VIN. Výchozí je jediné nastavené vozidlo."
+          "description": "Volitelný VIN místo výběru vozidla. Potřeba jen, pokud má účet více než jedno auto."
         }
       }
     },
@@ -3027,13 +3076,17 @@
       "name": "Získat konfiguraci evcc",
       "description": "Vrátí konfiguraci vozidla 'custom' pro evcc pro toto auto, připravenou ke vložení do evcc.yaml, spolu s tématy MQTT, která most publikuje, a informací, která z nich jsou právě živá. Čte jen místní stav, takže nespotřebuje kvótu API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Auto, kterého se akce týká. Potřeba jen při více než jednom autě."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "Volitelný VIN. Výchozí je jediné nastavené vozidlo."
+          "description": "Volitelný VIN místo výběru vozidla. Potřeba jen, pokud má účet více než jedno auto."
         }
       }
     },
@@ -3041,13 +3094,17 @@
       "name": "Nastavit zařazení jízdy",
       "description": "Přepíše zařazení jízdy (business, private nebo commute). Použijte k opravě automatického odhadu podle dvojice zón. Zapisuje jen do místního úložiště.",
       "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Auto, kterého se akce týká. Potřeba jen při více než jednom autě."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "Volitelný VIN. Výchozí je jediné nastavené vozidlo."
+          "description": "Volitelný VIN místo výběru vozidla. Potřeba jen, pokud má účet více než jedno auto."
         },
         "trip_id": {
           "name": "ID jízdy",
@@ -3063,13 +3120,17 @@
       "name": "Označit začátek jízdy",
       "description": "Zaznamená, že právě začíná jízda, pro auto, které se hlásí až po zaparkování: jízda, kterou ukončí jeho další hlášení, pak začíná v tento čas. Použije se jen tehdy, když je detekce jízd nastavena na Hlášení na konci jízdy. Zapisuje pouze do místního úložiště.",
       "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Auto, kterého se akce týká. Potřeba jen při více než jednom autě."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "Volitelný VIN. Výchozí je jediné nastavené vozidlo."
+          "description": "Volitelný VIN místo výběru vozidla. Potřeba jen, pokud má účet více než jedno auto."
         },
         "at": {
           "name": "Čas",
@@ -3081,13 +3142,17 @@
       "name": "Exportovat historii",
       "description": "Vrátí jeden měsíc zaznamenaných relací nabíjení a/nebo jízd jako soubory: CSV pro tabulkové procesory, nebo samostatný HTML report, který můžete z prohlížeče vytisknout do PDF. Obsah souborů se vrací v odpovědi; nic se nezapisuje na disk. Čte místní úložiště, takže nespotřebuje kvótu API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Auto, kterého se akce týká. Potřeba jen při více než jednom autě."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         },
         "vin": {
           "name": "VIN",
-          "description": "Volitelný VIN. Výchozí je jediné nastavené vozidlo."
+          "description": "Volitelný VIN místo výběru vozidla. Potřeba jen, pokud má účet více než jedno auto."
         },
         "month": {
           "name": "Měsíc",
@@ -3111,9 +3176,13 @@
       "name": "Získat report pokrytí deskriptorů",
       "description": "Spustí autotest pokrytí deskriptorů: pro každé vozidlo porovná deskriptory, které by měly dodávat vybrané skupiny streamu, s těmi, které skutečně dorazily, a vypíše chybějící. Odpovídá na otázku \"Zapnul jsem skupinu, ale neobjevily se žádné entity -- je to můj výběr, moje auto, nebo chyba?\". Čte jen místní úložiště a živý stream, takže nespotřebuje kvótu API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Volitelně jen toto auto. Ponechte prázdné pro všechna auta účtu."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         },
         "vin": {
           "name": "VIN",
@@ -3125,9 +3194,13 @@
       "name": "Aktivovat pole streamu",
       "description": "Nahradí atributy CarData, které BMW pro vozidlo přenáší přes MQTT, odesláním stejného požadavku, jaký odesílá stránka stream setup v portálu BMW při uložení výběru dat. Výběr streamu nemá API CarData, proto je potřeba zachycená relace prohlížeče z portálu (nelze ji automaticky obnovit -- relace je krátkodobá). Nespotřebuje kvótu API BMW. Vrací počty požadovaných/přijatých atributů.",
       "fields": {
+        "device_id": {
+          "name": "Účet",
+          "description": "Libovolné auto účtu nebo jeho ladicí zařízení. Potřeba jen při více než jednom účtu."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         },
         "base_url": {
           "name": "Základní URL portálu",
@@ -3159,9 +3232,13 @@
       "name": "Importovat do dlouhodobých statistik",
       "description": "Znovu sestaví dlouhodobé statistiky této integrace ze zaznamenané historie, aby se nabíjení a jízdy z doby před instalací (nebo z doby, kdy byl Home Assistant vypnutý) objevily na panelu Energie. Probíhá automaticky při vzniku záznamů; použijte po obnovení zálohy nebo k ověření počtu řádků. Jen lokálně -- bez kvóty API BMW.",
       "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Volitelně jen toto auto. Ponechte prázdné pro všechna auta účtu."
+        },
         "entry_id": {
           "name": "Konfigurační záznam",
-          "description": "Volitelné ID cílového konfiguračního záznamu. Povinné, pokud je nastaveno více záznamů."
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
         },
         "vin": {
           "name": "VIN",
