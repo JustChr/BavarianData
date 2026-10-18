@@ -83,9 +83,9 @@ Mehr brauchst du im Portal vorerst nicht.
 > technischer Felder zu klicken — also lass es.
 
 Das ist die ganze Portal-Einrichtung. In
-[Schritt 3](DE-Getting-Started-3-Add-and-Authorize) lässt du diese Client-ID
-entweder vom **geführten** Weg finden oder fügst sie auf dem **manuellen** Weg
-selbst ein — halte die Client-ID also bereit, wenn du manuell vorgehen willst.
+[Schritt 3](DE-Getting-Started-3-Add-and-Authorize) findet der **geführte** Weg
+diese Client-ID von selbst; auf dem **manuellen** Weg fügst du sie ein — halte
+sie dafür bereit.
 
 ## Die Client-ID später wiederfinden
 

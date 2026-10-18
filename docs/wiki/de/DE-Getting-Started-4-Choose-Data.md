@@ -36,10 +36,10 @@ lassen dich zuerst die Datengruppen wählen.
    Es schaltet die Felder deiner gewählten Datengruppen ein, alles in deinem
    eigenen Browser.
 4. Zurück in Home Assistant:
-   - Bei einem Home Assistant mit **https** **läuft der Dialog von allein
+   - Läuft dein Home Assistant über **https**, **geht der Dialog von allein
      weiter**;
-   - bei einem Home Assistant mit **http** klickst du im Feld des Aktivators auf
-     **Copy** und fügst das kurze Ergebnis ein.
+   - läuft er über **http**, klickst du im Feld des Aktivators auf **Copy** und
+     fügst das kurze Ergebnis ein.
 
    Eine Bestätigung zeigt, wie viele Felder jetzt gestreamt werden. Klicke auf
    **OK**. (Nur bei der Ersteinrichtung: Hast du die Felder im Portal schon
@@ -96,9 +96,9 @@ gewählte Datengruppe 7 Tage lang **überhaupt nichts**, erscheint unter
 lohnt, die Datenauswahl zu prüfen.
 
 Ist diese eine Datengruppe nach **30 Tagen** immer noch leer, während alles andere
-weiter ankommt, behandelt die Integration sie nicht mehr als Lücke: Deine Auswahl
-wurde offenkundig gespeichert, die Felder fehlen also im Auto. Die Warnung
-verschwindet, und die Datengruppe wird stattdessen als nicht zutreffend geführt.
+weiter ankommt, gilt sie nicht mehr als Lücke: Deine Auswahl wurde offenbar
+gespeichert, das Auto hat diese Felder schlicht nicht. Die Warnung verschwindet,
+und die Datengruppe wird als „trifft nicht zu“ geführt.
 
 ### Manche Felder kommen nie über den Stream
 
@@ -116,7 +116,7 @@ denke an das Kontingent von 50 Aufrufen pro Tag.
 
 Die Spalte **Stream** in
 [telematics-fields.md](https://github.com/JustChr/BavarianData/blob/main/docs/reference/telematics-fields.md)
-sagt dir Feld für Feld, was was ist.
+zeigt Feld für Feld, welches nur per REST kommt.
 
 ## Ein letzter Schritt: die Karte auf ein Dashboard setzen
 
@@ -131,8 +131,8 @@ Ansichten — Ladeverlauf, Batteriezustand, Fahrten, Karte, Reifen und Öffnunge
 ---
 
 > **Welches Auto fährst du?** BavarianData wird an genau einem Fahrzeug gebaut
-> und getestet — einem i5 eDrive40 —, welche Deskriptoren *dein* Modell streamt,
-> können wir allein also nicht herausfinden. Wenn du bis hierhin gekommen bist,
-> hilft es sehr, dein Modell zu erfahren, ungefähr wie viele Entitäten erschienen
-> sind und ob der Ein-Klick-Aktivator in deinem Browser funktioniert hat.
+> und getestet, einem i5 eDrive40. Welche Deskriptoren *dein* Modell streamt,
+> finden wir allein nicht heraus. Wenn du bis hierhin gekommen bist, hilft uns
+> sehr zu wissen, welches Modell du fährst, wie viele Entitäten ungefähr
+> erschienen sind und ob der Ein-Klick-Aktivator in deinem Browser geklappt hat.
 > [Erzähl es uns in den Discussions →](https://github.com/JustChr/BavarianData/discussions)

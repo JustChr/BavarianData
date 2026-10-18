@@ -42,9 +42,9 @@ mit denselben Updates:
 
 ## Das fehlende Symbol in HACS
 
-In HACS' eigener Liste steht neben BavarianData kein Logo. Das ist eine
-Einschränkung von HACS bei selbst ausgelieferten Marken-Grafiken, keine
-kaputte Installation — überall sonst in Home Assistant wird das Symbol richtig
-angezeigt, und auf deiner Seite gibt es nichts zu beheben.
+In der Liste von HACS selbst steht neben BavarianData kein Logo. HACS zeigt
+keine Logos an, die eine Integration selbst mitbringt; die Installation ist
+nicht kaputt. Überall sonst in Home Assistant erscheint das Symbol richtig, und
+bei dir gibt es nichts zu beheben.
 
 **Weiter:** [3. Integration hinzufügen und autorisieren →](DE-Getting-Started-3-Add-and-Authorize)
