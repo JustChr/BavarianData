@@ -243,3 +243,32 @@ def test_every_service_in_services_yaml_is_registered_in_services_py() -> None:
         and isinstance(call.args[1], ast.Constant)
     }
     assert registered == declared
+
+
+def _service_handler(name: str) -> "ast.AsyncFunctionDef":
+    tree = ast.parse((_PKG / "services.py").read_text(encoding="utf-8"))
+    return next(
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.AsyncFunctionDef) and node.name == name
+    )
+
+
+def test_the_vehicle_image_is_fetched_only_for_a_known_car() -> None:
+    """``vin`` from the call goes into the request path and keys the image Store.
+
+    Unchecked, any string was fetched (a slash and a query string included),
+    spent a request and stayed in the Store for good. The account's own list
+    has to be consulted before the fetch is reached.
+    """
+
+    body = _service_handler("async_handle_fetch_vehicle_image").body
+    check = next(
+        i
+        for i, stmt in enumerate(body)
+        if isinstance(stmt, ast.If) and "known_vins(" in ast.unparse(stmt.test)
+    )
+    fetch = next(
+        i for i, stmt in enumerate(body) if "async_refresh_vehicle_image(" in ast.unparse(stmt)
+    )
+    assert check < fetch

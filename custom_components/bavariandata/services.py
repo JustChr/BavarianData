@@ -419,6 +419,18 @@ def async_setup_services(hass: HomeAssistant) -> None:
         if not vin:
             _LOGGER.error("Cardata fetch_vehicle_image: no VIN available; provide vin parameter")
             return
+        # The VIN goes into the request path and keys the stored picture, so
+        # only a car this account knows: anything else spends a request and
+        # leaves a junk entry in the image Store for good.
+        if vin not in known_vins(
+            stored_metadata=target_entry.data.get(VEHICLE_METADATA),
+            coordinator_data=runtime.coordinator.data,
+            configured_vin=target_entry.data.get("vin"),
+        ):
+            _LOGGER.error(
+                "Cardata fetch_vehicle_image: %s is not a car of this account", mask_vin(vin)
+            )
+            return
         from .image import async_refresh_vehicle_image
 
         await async_refresh_vehicle_image(hass, target_entry, runtime, vin)
