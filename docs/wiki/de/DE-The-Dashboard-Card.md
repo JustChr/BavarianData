@@ -134,6 +134,12 @@ in der YAML-Konfiguration der Karte.
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-car.png" alt="Übersichtskarte eines BMW i5 mit Ladestand, Reichweite, Ladestatus und Kilometerstand" width="360" />
 </p>
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-phev.png" alt="Übersicht eines Plug-in-Hybrids: der Ladering mit elektrischer Reichweite und Ladestatus daneben, darunter Kacheln für Tank, Gesamtreichweite, Ladeziel, Stecker und Kilometerstand" width="260" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-ice.png" alt="Übersicht eines Benziners: der Tankfüllstand im Ring, Restreichweite und die Liter im Tank daneben, darunter der Kilometerstand" width="260" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-bare.png" alt="Übersicht eines Autos, das keinen Antrieb bewiesen hat: die Reichweite in einem grauen Ring und der Kilometerstand daneben, nichts zum Laden" width="260" />
+</p>
+
 ```yaml
 type: custom:bavariandata-card
 ```
@@ -314,6 +320,10 @@ Durchschnittsverbrauch der letzten 12 Monate, Strecke und Kraftstoff seit dem le
 Tanken und BMWs eigenen Wert über die Lebensdauer, wo das Auto seine OBFCM-Zähler
 sendet. Darunter jeder Tankvorgang: wann, der Kilometerstand, wie viel hineinging und
 der Verbrauch auf der Strecke, die er abgeschlossen hat.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-fuel.png" alt="Kraftstoff-Karte: der Tank jetzt in Litern und Prozent, der 12-Monats-Durchschnitt von 7,1 l/100 km, Strecke und Verbrauch seit dem Tanken und die Liste der Tankvorgänge, jeweils mit Kilometerstand, dem Verbrauch auf der abgeschlossenen Strecke und den getankten Litern" width="360" />
+</p>
 
 Es gibt keinen Tankbeleg zum Ablesen, deshalb erkennt die Karte einen Tankvorgang am
 Tank selbst: ein Anstieg um mindestens 5 L (8 % bei einem Auto, das nur Prozent

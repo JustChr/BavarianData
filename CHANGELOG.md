@@ -54,6 +54,10 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   it refused their counting-up state class and logged a warning on every start.
   They are now consumed volumes. The tank's own reading falls back to liters
   when the car sends no unit, and a spelled-out *liters* is understood.
+- **No charging bolt on a car the card knows isn't electric.** Without a
+  picture, the overview of a car that sent neither battery nor fuel data showed
+  the electric car icon, under a layout that exists to say the car can't charge.
+  It shows a plain car now.
 
 ## [0.9.21-beta.2] - 2026-10-18
 

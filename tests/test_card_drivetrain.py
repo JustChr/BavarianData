@@ -447,6 +447,10 @@ def test_the_bare_overview_rings_range_and_shows_no_battery():
     assert "sensor.mini_trip_hvsoc" not in html
     for electric_only in ("Target", "charging status", "Plug", "Charge time", "Tank"):
         assert electric_only not in html, electric_only
+    # Without a picture, the stand-in is a plain car: one with a charging bolt
+    # would say the very thing this layout exists to stop saying.
+    assert 'icon="mdi:car"' in html
+    assert "mdi:car-electric" not in html
 
 
 def test_the_trip_end_soc_never_rings_even_where_it_is_the_only_percentage():
