@@ -1016,7 +1016,7 @@
   '''
   <ha-card>
           <div class="hero hero--empty">
-            <ha-icon class="hero__placeholder" icon="mdi:car-electric">
+            <ha-icon class="hero__placeholder" icon="mdi:car">
   </ha-icon>
             <div class="hero__scrim">
   </div>

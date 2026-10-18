@@ -124,6 +124,12 @@ and nothing about charging. If your car lands there and you know better, set
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-car.png" alt="Overview card showing a BMW i5 with charge level, range, charging status and odometer" width="360" />
 </p>
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-phev.png" alt="Overview of a plug-in hybrid: the charge ring with electric range and charging status beside it, then tiles for the tank, total range, charge target, plug and odometer" width="260" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-ice.png" alt="Overview of a petrol car: the tank level in the ring, the remaining range and the liters in the tank beside it, the odometer below" width="260" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-bare.png" alt="Overview of a car that proved neither drivetrain: its range in a gray ring and the odometer beside it, nothing about charging" width="260" />
+</p>
+
 ```yaml
 type: custom:bavariandata-card
 ```
@@ -289,6 +295,10 @@ consumption over the last 12 months, the distance and fuel since the last refuel
 and BMW's own lifetime figure where the car sends its OBFCM counters. Below them,
 every refuel: when, the odometer, how much went in, and the consumption over the
 stretch it closed.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-fuel.png" alt="Fuel card: the tank now in liters and percent, the 12-month average of 7.1 l/100 km, the distance and consumption since refueling, and the list of refuels, each with the odometer, the consumption over the stretch it closed and the liters added" width="360" />
+</p>
 
 There is no pump receipt to read, so a refuel is recognised by the tank itself:
 a rise of at least 5 L (8 % on a car that only streams a percentage) while the

@@ -4649,7 +4649,7 @@ class BavarianDataCard extends HTMLElement {
                 ? this._spinHtml(spin, name)
                 : imgUrl
                 ? `<img class="hero__img" src="${imgUrl}" alt="${this._esc(name)}" />`
-                : `<ha-icon class="hero__placeholder" icon="${ice ? "mdi:car" : "mdi:car-electric"}"></ha-icon>`
+                : `<ha-icon class="hero__placeholder" icon="${ice || drivetrain === "unknown" ? "mdi:car" : "mdi:car-electric"}"></ha-icon>`
           }
           <div class="hero__scrim"></div>
           <div class="hero__top">

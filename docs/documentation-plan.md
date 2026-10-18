@@ -199,14 +199,14 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 
 | Config | View | Status | Shot |
 | --- | --- | --- | --- |
-| *(default)* | Overview — drivetrain-aware (electric / plug-in hybrid / petrol-diesel layouts, plus the bare layout for a car that proves neither, `drivetrain:` override) | 🟢 The-Dashboard-Card → "Overview" + YAML reference | 📷 (have, electric only — hybrid, petrol/diesel and bare shots owed: no such car to capture) |
+| *(default)* | Overview — drivetrain-aware (electric / plug-in hybrid / petrol-diesel layouts, plus the bare layout for a car that proves neither, `drivetrain:` override) | 🟢 The-Dashboard-Card → "Overview" + YAML reference | 📷 (have: electric `wattfried-car.png`; hybrid, petrol and bare `card-overview-phev/ice/bare.png`, 2026-10-18, rendered from the shipped card on the test suite's drivetrain fixtures: no such car to capture) |
 | `view: charging` | Charging history | 🟡 | 📷 |
 | `view: trips` | Driving journal | 🟡 | 📷 |
 | `view: map` | Trip map (routes) | 🟡 | 📷 (needs route data) |
 | `view: health` | Battery health | 🟡 | 📷 |
 | `view: efficiency` | Efficiency & real range | 🟢 The-Dashboard-Card + Feature-Efficiency-and-Range | 📷 (have, 2026-10-14: `card-efficiency.png`) |
 | `view: mileage` | Mileage overview + allowance | 🟢 The-Dashboard-Card → "Mileage" + Feature-Mileage (EN + DE) | 📷 (have, 2026-10-14: `card-mileage.png`, live overview with an example lease) |
-| `view: fuel` | Fuel log for petrol/diesel/PHEV: tank now, refuels detected from tank jumps, l/100 km between refuels, BMW OBFCM lifetime figure; shown by `charging`/`efficiency` on a petrol or diesel car | 🟢 The-Dashboard-Card → "Fuel" (EN + DE) | 📷 owed (no fuel car to capture; render from the shipped card) |
+| `view: fuel` | Fuel log for petrol/diesel/PHEV: tank now, refuels detected from tank jumps, l/100 km between refuels, BMW OBFCM lifetime figure; shown by `charging`/`efficiency` on a petrol or diesel car | 🟢 The-Dashboard-Card → "Fuel" (EN + DE) | 📷 (have, 2026-10-18: `card-fuel.png`, rendered from the shipped card; refuels staged through `history/fuel.py`) |
 | `view: equipment` | Factory equipment by name, with each option's picture where BMW has one (from the configurator picture source) | 🟢 The-Dashboard-Card → "Equipment" (EN + DE) | 📷 (have: `card-equipment.png`, with the option pictures, i5) |
 | Overview hero with the configurator picture (spin, lights/night, state badges + top-down inset, interior panorama; angle/mode/look remembered per browser) | Overview | 🟢 The-Dashboard-Card → "Overview" (EN + DE) | 📷 (have: `card-hero-spin.png`, `card-hero-interior.png`, `card-hero-badges.png` — door and windows staged open in the browser only) |
 | `cluster: tire` | Tires (pressure + wear) | 🟡 | 📷 (have) |
