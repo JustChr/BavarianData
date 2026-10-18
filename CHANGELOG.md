@@ -32,8 +32,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   `get_charging_sessions`, `get_trips`, `get_coverage_report`,
   `import_statistics`) still read them all. With one car nothing changes.
 - **A service call that can't run now fails instead of looking done.** An
-  unknown VIN, two accounts and no car named, no quota left or no valid token
-  used to write a line to the log while the automation carried on as if it had
+  unknown VIN, two accounts and no car named, no quota left, no valid token or
+  a request BMW refused used to write a line to the log while the automation carried on as if it had
   worked (the `get_*` services answered with an empty list). The automation now
   stops with that message.
 - **Each account is named after its cars.** The integration entry was titled

@@ -32,6 +32,7 @@ from homeassistant.components.http import HomeAssistantView
 from homeassistant.components.image import ImageEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.dispatcher import async_dispatcher_connect, async_dispatcher_send
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.storage import Store
@@ -347,25 +348,36 @@ async def async_refresh_vehicle_image(
     entry: ConfigEntry,
     runtime: Any,
     vin: str,
+    *,
+    strict: bool = False,
 ) -> Optional[Tuple[bytes, Optional[str]]]:
     """Fetch the render for ``vin``, update the shared cache and notify entities.
 
     Takes its token and quota slot through the entry's REST gateway, so it can
     be called both from the ``fetch_vehicle_image`` service and from the image
     entity's initial lazy load. Returns the ``(bytes, content_type)`` tuple on
-    success, ``None`` otherwise.
+    success, ``None`` otherwise -- or, ``strict`` (a service call), raises
+    :class:`HomeAssistantError` saying why.
     """
 
     try:
         data, content_type = await runtime.rest.call(async_get_vehicle_image, vin)
     except CardataAuthError as err:
         _LOGGER.error("Cardata image: no valid token for %s: %s", mask_vin(vin), err)
+        if strict:
+            raise HomeAssistantError(
+                "fetch_vehicle_image: no valid BMW token; reauthorize"
+            ) from err
         return None
     except CardataQuotaError as err:
         _LOGGER.warning("Cardata image fetch for %s blocked: %s", mask_vin(vin), err)
+        if strict:
+            raise HomeAssistantError(f"fetch_vehicle_image: {err}") from err
         return None
     except CardataApiError as err:
         _LOGGER.error("Cardata image fetch failed for %s: %s", mask_vin(vin), err)
+        if strict:
+            raise HomeAssistantError(f"fetch_vehicle_image: {err}") from err
         return None
 
     cache = await _async_load_cache(hass)

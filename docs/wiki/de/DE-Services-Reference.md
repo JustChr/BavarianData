@@ -17,9 +17,10 @@ nennt die Autos zur Auswahl. Bis v0.9.20 nahm er stillschweigend das Auto, das
 zuerst gestreamt hatte. Dienste, die alle Autos lesen (`fetch_telematic_data`,
 `get_charging_sessions`, `get_trips`, `get_coverage_report`,
 `import_statistics`), lesen ohne Angabe weiterhin alle. Eine VIN, die kein Auto
-des Kontos ist, wird abgelehnt, bevor Kontingent verbraucht wird; ebenso ein
-Aufruf ohne Kontingent oder ohne gültiges Token: Die Automation schlägt mit
-dieser Meldung fehl, statt so auszusehen, als hätte sie funktioniert.
+des Kontos ist, wird abgelehnt, bevor Kontingent verbraucht wird. Ein Aufruf
+ohne Kontingent, ohne gültiges Token oder den BMW ablehnt, schlägt mit dieser
+Meldung fehl: Die Automation bricht ab, statt so auszusehen, als hätte sie
+funktioniert.
 
 ## Abruf-Dienste — verbrauchen API-Kontingent ⚡
 
