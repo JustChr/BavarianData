@@ -11,9 +11,24 @@ REST-Kontingent, alles aus dem Stream abgeleitet.
 
 Eine **Ladung über einen weiten Bereich** (etwa 20 → 80 %), die eine bekannte
 Menge kWh hinzufügt, verrät die Kapazität des ganzen Akkus: Nahmen 30 % der
-Batterie *X* kWh auf, hat der Akku rund *X / 0,30*. Der Durchschnitt über viele
-solche Ladungen gleicht das Rauschen durch Temperatur, Ladegeschwindigkeit und
+Batterie *X* kWh auf, hat der Akku rund *X / 0,30*. Der Median über viele solche
+Ladungen gleicht das Rauschen durch Temperatur, Ladegeschwindigkeit und
 Messfehler aus.
+
+### Was im Wert steckt
+
+<a id="what-the-figure-includes"></a>
+
+Die kWh sind die Summe der Ladeleistung, die das Auto streamt, aufaddiert von
+der Integration. BMW nennt dieses Feld die Ladeleistung der *Batterie*, an dem
+einen Auto, das gegen einen Wallbox-Zähler geprüft wurde (ein i5 mit 11 kW AC),
+folgte es aber dem Zähler, nicht dem Akku: 57,0 kWh laut Auto gegen 56,9 kWh am
+Zähler bei einer sauberen Ladung von 8 auf 80 %. Gemessen wird also am Stecker,
+und die Verluste des Ladegeräts sind darin enthalten. Die gelernte Kapazität
+liegt deshalb ein paar Prozent über dem, was der Akku selbst fasst: an diesem
+Auto rund 80 kWh pro 100 % angezeigtem Ladestand, während BMWs eigenes
+`maxEnergy` 77 angab. Lies sie als Verlauf über das Autoleben, nicht als genaue
+Akkugröße.
 
 ## Der Sensor Batteriezustand
 
@@ -36,10 +51,10 @@ Nicht jede Ladung sagt etwas über die Kapazität. Ein Ladevorgang zählt nur, w
   eigenen `maxEnergy` von 78 kWh: Eine Ladung über 21 % ergab 77 kWh (0,8 %
   daneben), eine über 12 % 82 kWh (5 %) und eine über 9 % **123 kWh** (58 %). Über
   ~20 % ist der Fehler mäßig, unter ~15 % explodiert er.
-- **Er hat batterieseitige Energie.** Aus BMWs Ladehistorie importierte
-  Ladevorgänge haben nur einen *Netz*-Wert, der die Ladeverluste enthält und den
-  Akku zu groß erscheinen ließe. Sie zählen nicht, egal wie weit ihr Bereich ist —
-  die ersten Ladungen nach einer Installation, meist importiert, zählen also nicht.
+- **Er hat den Energiewert des Autos.** Aus BMWs Ladehistorie importierte
+  Ladevorgänge haben nur BMWs *Netz*-Wert, anders gemessen und nicht
+  vergleichbar. Sie zählen nicht, egal wie weit ihr Bereich ist — die ersten
+  Ladungen nach einer Installation, meist importiert, zählen also nicht.
 - **Er hat die ganze Ladung erfasst.** Lud das Auto schon, als die Integration es
   bemerkte — ein Neustart während des Ladens oder ein Statuswechsel, den der
   Stream nie gesendet hat —, beginnen Energie und Ladezustands-Bereich um

@@ -296,6 +296,30 @@ def test_report_says_what_the_solar_share_is_a_share_of():
     assert "75.8 % <small>75.0 of 99.0 kWh measured</small>" in html
 
 
+def test_report_numbers_read_right_in_the_reader_s_language():
+    # October on the i5 printed "297.752 kWh" in every language: three decimals
+    # nobody needs, and to a German reader almost three hundred thousand.
+    sessions = [
+        _session(energy_kwh=297.752, cost={"amount": 36.57, "currency": "EUR"}),
+    ]
+    for lang, energy, cost in (
+        ("en", "297.8 kWh", "36.57 EUR"),
+        ("de", "297,8 kWh", "36,57 EUR"),
+        ("fr", "297,8 kWh", "36,57 EUR"),
+    ):
+        html = export.month_report_html(
+            month="2026-10",
+            vehicle="i5",
+            sessions=sessions,
+            trips=[_trip()],
+            charging_summary=summary.summarise(sessions),
+            driving=summary.driving_summary([_trip()]),
+            lang=lang,
+        )
+        assert energy in html and cost in html, lang
+        assert "297.752" not in html and "297,752" not in html
+
+
 def test_report_handles_an_empty_month():
     html = export.month_report_html(month="2026-07", vehicle="i5", sessions=[], trips=[])
     assert "No charging sessions" in html and "No trips" in html

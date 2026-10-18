@@ -576,6 +576,20 @@ def _num(value: Optional[float], digits: int = 2) -> str:
     return f"{float(value):.{digits}f}".rstrip("0").rstrip(".") or "0"
 
 
+def _shown(value: Optional[float], lang: Optional[str], digits: int = 1) -> str:
+    """A number for a person to read: fixed decimals, the language's separator.
+
+    The month report is read, not parsed, and ``297.752 kWh`` reads as almost
+    three hundred thousand to a German eye. English keeps the dot; the other
+    shipped languages all write a decimal comma.
+    """
+
+    if value is None:
+        return ""
+    text = f"{float(value):.{digits}f}"
+    return text if (lang or "en").lower().startswith("en") else text.replace(".", ",")
+
+
 def _classification(trip: Trip, strings: dict[str, str]) -> str:
     return strings.get(trip.classification or "", strings["unclassified"])
 
@@ -783,10 +797,10 @@ def _tile(key: str, value: str, note: str = "") -> str:
     )
 
 
-def _money(amount: Optional[float], currency: Optional[str]) -> str:
+def _money(amount: Optional[float], currency: Optional[str], lang: Optional[str] = "en") -> str:
     if amount is None:
         return "—"
-    return f"{amount:.2f} {currency or ''}".strip()
+    return f"{_shown(amount, lang, 2)} {currency or ''}".strip()
 
 
 def month_report_html(
@@ -814,6 +828,12 @@ def month_report_html(
     driving = driving or {}
     currency = charging_summary.get("currency")
 
+    def num(value: Optional[float], digits: int = 1) -> str:
+        return _shown(value, lang, digits)
+
+    def money(amount: Optional[float]) -> str:
+        return _money(amount, currency, lang)
+
     parts: list[str] = [
         "<!-- BavarianData month report; print this page to get a PDF -->",
         f'<meta charset="utf-8"><title>{escape(vehicle)} · {escape(month)}</title>',
@@ -831,7 +851,7 @@ def month_report_html(
     if sessions:
         tiles = [
             _tile(s["sessions"], str(charging_summary.get("sessions", len(sessions)))),
-            _tile(s["energy"], f"{charging_summary.get('energy_kwh', 0)} kWh"),
+            _tile(s["energy"], f"{num(charging_summary.get('energy_kwh', 0))} kWh"),
         ]
         mix = charging_summary.get("energy_mix") or {}
         if mix.get("solar_percent") is not None:
@@ -844,17 +864,15 @@ def month_report_html(
             tiles.append(
                 _tile(
                     s["solar"],
-                    f"{mix['solar_percent']} %",
-                    s["solar_measured"].format(
-                        pv=round(mix.get("pv") or 0, 1), known=round(known, 1)
-                    ),
+                    f"{num(mix['solar_percent'])} %",
+                    s["solar_measured"].format(pv=num(mix.get("pv") or 0), known=num(known)),
                 )
             )
         if charging_summary.get("cost") is not None:
             tiles.append(
                 _tile(
                     s["cost"],
-                    _money(charging_summary["cost"], currency),
+                    money(charging_summary["cost"]),
                     s["estimated"] if charging_summary.get("partial") else "",
                 )
             )
@@ -862,7 +880,7 @@ def month_report_html(
             tiles.append(
                 _tile(
                     s["cost_per_100km"],
-                    _money(charging_summary["cost_per_100km"], currency),
+                    money(charging_summary["cost_per_100km"]),
                 )
             )
         parts.append(f'<div class="tiles">{"".join(tiles)}</div>')
@@ -900,18 +918,18 @@ def month_report_html(
                 f"<td>{zone}</td>"
                 f'<td class="n">{escape(_minutes(item.duration_s))} min</td>'
                 f'<td class="n">{escape(soc)}</td>'
-                f'<td class="n">{escape(_num(energy, 2) or "—")} kWh</td>'
-                f'<td class="n">{escape(_num(item.peak_power_kw, 1) or "—")} kW</td>'
-                f'<td class="n">{escape(_money(cost, currency))}</td>'
+                f'<td class="n">{escape(num(energy) or "—")} kWh</td>'
+                f'<td class="n">{escape(num(item.peak_power_kw) or "—")} kW</td>'
+                f'<td class="n">{escape(money(cost))}</td>'
                 "</tr>"
             )
         total_cost = charging_summary.get("cost")
         foot = (
             "<tfoot><tr>"
             f'<td colspan="4">{escape(s["total"])}</td>'
-            f'<td class="n">{escape(_num(charging_summary.get("energy_kwh"), 2) or "—")} kWh</td>'
+            f'<td class="n">{escape(num(charging_summary.get("energy_kwh")) or "—")} kWh</td>'
             "<td></td>"
-            f'<td class="n">{escape(_money(total_cost, currency))}</td>'
+            f'<td class="n">{escape(money(total_cost))}</td>'
             "</tr></tfoot>"
         )
         parts.append(
@@ -925,7 +943,7 @@ def month_report_html(
     if trips:
         split = driving.get("split") or {}
         tiles = [
-            _tile(s["distance"], f"{driving.get('total_km', 0)} km"),
+            _tile(s["distance"], f"{num(driving.get('total_km', 0))} km"),
             _tile(s["trip_count"], str(driving.get("trip_count", len(trips)))),
         ]
         # Consumption headlines with the energy balance -- the figure whose
@@ -942,15 +960,15 @@ def month_report_html(
             # the one value long enough to wrap onto a second line.
             note = "kWh/100 km · " + (s["at_the_plug"] if is_grid else s["at_the_battery"])
             if is_grid and battery_side is not None:
-                note += f" · {battery_side} {s['at_the_battery']}"
-            tiles.append(_tile(s["consumption"], str(balance["kwh_per_100km"]), note))
+                note += f" · {num(battery_side)} {s['at_the_battery']}"
+            tiles.append(_tile(s["consumption"], num(balance["kwh_per_100km"]), note))
         elif battery_side is not None:
-            tiles.append(_tile(s["consumption"], str(battery_side), "kWh/100 km"))
+            tiles.append(_tile(s["consumption"], num(battery_side), "kWh/100 km"))
         if driving.get("recuperation_kwh_per_100km") is not None:
             tiles.append(
                 _tile(
                     s["recuperation"],
-                    str(driving["recuperation_kwh_per_100km"]),
+                    num(driving["recuperation_kwh_per_100km"]),
                     "kWh/100 km",
                 )
             )
@@ -960,7 +978,7 @@ def month_report_html(
             ("private_km", s["private"]),
         ):
             if split.get(key):
-                tiles.append(_tile(label, f"{split[key]} km"))
+                tiles.append(_tile(label, f"{num(split[key])} km"))
         parts.append(f'<div class="tiles">{"".join(tiles)}</div>')
 
         head = "".join(
@@ -983,15 +1001,15 @@ def month_report_html(
                 f"<td>{escape((trip.start_place or {}).get('label') or '—')}</td>"
                 f"<td>{escape((trip.end_place or {}).get('label') or '—')}</td>"
                 f'<td class="n">{escape(_minutes(trip.duration_s))} min</td>'
-                f'<td class="n">{escape(_num(trip.distance_km, 1) or "—")} km</td>'
-                f'<td class="n">{escape(_num(trip.consumption_kwh_per_100km, 1) or "—")}</td>'
+                f'<td class="n">{escape(num(trip.distance_km) or "—")} km</td>'
+                f'<td class="n">{escape(num(trip.consumption_kwh_per_100km) or "—")}</td>'
                 f'<td><span class="badge">{escape(_classification(trip, s))}</span></td>'
                 "</tr>"
             )
         foot = (
             "<tfoot><tr>"
             f'<td colspan="4">{escape(s["total"])}</td>'
-            f'<td class="n">{escape(str(driving.get("total_km", "")))} km</td>'
+            f'<td class="n">{escape(num(driving.get("total_km")) or "—")} km</td>'
             "<td></td><td></td>"
             "</tr></tfoot>"
         )
