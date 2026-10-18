@@ -10,6 +10,11 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [Unreleased]
 
 ### Fixed
+- **Blueprint *Car arriving home soon* works with Proximity.** Home Assistant's
+  Proximity sensor reports in metres, so a threshold of 5 meant 5 m and the
+  blueprint fired only on the doorstep, if at all. A distance in metres (or
+  feet) is now converted, and the threshold is in km (or mi) as the blueprint
+  says. Re-import the blueprint to get the fix.
 - **Setup and Configure screens name the right button in five languages.** The
   text said to press a button Home Assistant doesn't show: German *Absenden*
   (the button reads **OK**), Dutch *Verzenden* (**Verzend**), Portuguese

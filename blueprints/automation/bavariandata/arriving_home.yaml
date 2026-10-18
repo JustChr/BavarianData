@@ -12,7 +12,8 @@ blueprint:
     with traffic. The blueprint refreshes it at every new position.
 
     - **Proximity**: the distance to home, no account or API needed. Pick
-    its distance sensor and set the threshold in its unit (km or mi).
+    its distance sensor and set the threshold in km (mi if it shows feet),
+    even though Proximity shows metres.
 
     BMW sends the car's position about every one to three minutes while
     driving, so expect the heads-up a little after the threshold, not to the
@@ -50,7 +51,8 @@ blueprint:
       name: Threshold
       description: >
         Run the actions once the figure above drops to this or below, in its
-        own unit: minutes for Waze or Google, km or mi for Proximity.
+        own unit: minutes for Waze or Google; km for Proximity (mi if it
+        shows feet), even though it shows metres.
       default: 10
       selector:
         number:
@@ -136,12 +138,16 @@ action:
             state: "on"
           # Only a fall from above the threshold to at or below it. Leaving
           # home starts near zero and climbs, so it never crosses downwards.
+          # Proximity reports in m (or ft) unless its unit was changed; the
+          # threshold is in km (or mi), so a distance is scaled to match.
           - condition: template
             value_template: >
+              {% set unit = trigger.to_state.attributes.unit_of_measurement | default('') if trigger.to_state else '' %}
+              {% set scale = {'m': 0.001, 'ft': 1 / 5280, 'yd': 1 / 1760}.get(unit, 1) %}
               {% set old = trigger.from_state.state | float(none) if trigger.from_state else none %}
               {% set new = trigger.to_state.state | float(none) if trigger.to_state else none %}
               {{ old is not none and new is not none
-                 and old > threshold | float and new <= threshold | float }}
+                 and old * scale > threshold | float and new * scale <= threshold | float }}
         sequence:
           - sequence: !input arriving_actions
           - wait_for_trigger:

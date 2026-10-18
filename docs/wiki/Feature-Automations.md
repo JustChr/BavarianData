@@ -161,7 +161,8 @@ Automations → Blueprints → Import Blueprint** with the raw GitHub URL:
   - **Waze Travel Time** or **Google Maps Travel Time**: minutes to home, with
     traffic. The blueprint refreshes it at every new position.
   - **Proximity** (built into Home Assistant, no account): the distance to
-    home. Set the threshold in its unit (km or mi).
+    home. Set the threshold in km (mi if it shows feet), even though
+    Proximity shows metres: the blueprint converts.
 
   Things to know:
   - **It doesn't know where you're going.** It only sees the car getting

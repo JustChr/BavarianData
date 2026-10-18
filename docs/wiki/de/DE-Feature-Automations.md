@@ -171,7 +171,8 @@ importieren** mit der Raw-URL von GitHub:
     Hause, mit Verkehr. Der Blueprint aktualisiert den Wert bei jeder neuen
     Position.
   - **Proximity** (in Home Assistant eingebaut, ohne Konto): die Entfernung
-    nach Hause. Die Schwelle dann in seiner Einheit (km oder mi).
+    nach Hause. Die Schwelle dann in km (mi, wenn es Fuß anzeigt), auch
+    wenn Proximity Meter anzeigt: Der Blueprint rechnet um.
 
   Gut zu wissen:
   - **Es weiß nicht, wohin du fährst.** Es sieht nur, dass das Auto näher
