@@ -1109,7 +1109,21 @@ async def async_remove_config_entry_device(
     return True
 
 
+# One cleanup at a time per entry. Two cars deleted seconds apart each start
+# one, and the second, finding the entry mid-unload, would open the same stores
+# alongside the first: whichever saved last brought the other car's data back.
+# Module-level, not in ``hass.data``: unloading the last entry empties that.
+_FORGET_LOCKS: Dict[str, asyncio.Lock] = {}
+
+
 async def _async_forget_vehicles(hass: HomeAssistant, entry_id: str, vins: list[str]) -> None:
+    """:func:`_async_forget_vehicles_now`, after any cleanup already under way."""
+
+    async with _FORGET_LOCKS.setdefault(entry_id, asyncio.Lock()):
+        await _async_forget_vehicles_now(hass, entry_id, vins)
+
+
+async def _async_forget_vehicles_now(hass: HomeAssistant, entry_id: str, vins: list[str]) -> None:
     """Delete everything kept for these cars, the way removing the entry does for all.
 
     The entry is unloaded first: its coordinator and stores hold the cars in
