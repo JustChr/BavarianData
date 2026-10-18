@@ -155,7 +155,7 @@ class _ConnectedClient:
             ReasonCode(PacketTypes.DISCONNECT, "Normal disconnection"),
         )
 
-    def loop_stop(self, force: bool = False) -> None:
+    def loop_stop(self) -> None:  # paho's own signature: no arguments
         if not self._stopped:
             self._stopped = True
             self._registry.closed()
@@ -427,9 +427,9 @@ class _Broker:
             # too, and stalling *it* would block the very thing it waits for.
             stop = client.loop_stop
 
-            def stalled_loop_stop(force: bool = False) -> None:
+            def stalled_loop_stop() -> None:
                 if threading.current_thread() is threading.main_thread():
-                    stop(force)
+                    stop()
                     return
                 deadline = time.monotonic() + 1.0
                 while time.monotonic() < deadline and (
@@ -437,7 +437,7 @@ class _Broker:
                 ):
                     time.sleep(0.005)
                 time.sleep(0.05)  # let the loop finish installing it
-                stop(force)
+                stop()
 
             client.loop_stop = stalled_loop_stop
 

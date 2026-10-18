@@ -15,6 +15,11 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   or a stream outage vanished from it with the next restart. It now shows the
   latest call of either kind. Nothing was fetched twice; only the sensor was
   wrong.
+- **The live stream comes back after BMW refuses a quick reconnect.** BMW
+  sometimes refuses a reconnect made within seconds of a disconnect. The retry
+  that should have followed failed instead, so the stream could stay down
+  until the next login renewal, up to about 45 minutes, with no data in
+  between.
 
 ## [0.9.21-beta.3] - 2026-10-18
 
