@@ -315,8 +315,19 @@ def test_a_cars_device_can_be_deleted_but_not_the_accounts() -> None:
     assert "return False" in body
 
 
-def test_deleting_a_car_reaches_every_store_that_holds_it() -> None:
+def test_two_cars_deleted_at_once_are_forgotten_one_after_the_other() -> None:
+    """Each Delete starts its own cleanup; run side by side, both opened the
+    same stores and the last to save brought the other car's data back."""
+
     body = ast.unparse(_function("_async_forget_vehicles"))
+    assert "async with _FORGET_LOCKS.setdefault(entry_id, asyncio.Lock())" in body
+    assert "_async_forget_vehicles_now(hass, entry_id, vins)" in body
+    source = (_PKG / "__init__.py").read_text(encoding="utf-8")
+    assert "_FORGET_LOCKS: Dict[str, asyncio.Lock] = {}" in source  # not in hass.data
+
+
+def test_deleting_a_car_reaches_every_store_that_holds_it() -> None:
+    body = ast.unparse(_function("_async_forget_vehicles_now"))
     for step in (
         "history.forget_vehicle",
         "publisher.async_remove_vehicle",
