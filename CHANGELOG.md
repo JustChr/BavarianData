@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.21-beta.7] - 2026-10-19
+
 ### Added
 - **New blueprint: car left open at night.** At bedtime it checks that the car
   is locked and its doors, windows, sunroof, tailgate and hood are shut, and
