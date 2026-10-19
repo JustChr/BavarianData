@@ -158,6 +158,7 @@ des Autos. Mit nur einem Auto gibt es keine Fahrzeugabfrage.
 | **Ladeverluste (%)** | 0–30 | Rechnet den Batteriewert um deine Verluste hoch. Standard **0** (keine erfundene Korrektur). |
 | **Verlauf aufbewahren (Monate)** | 0–120 | Wie lange gespeicherte Ladevorgänge/Fahrten behalten werden. **0 = alles behalten.** |
 | **In Langzeitstatistiken übernehmen** | an/aus | Spiegelt den Verlauf ins Energie-Dashboard. **Ausschalten löscht** die veröffentlichten Reihen. Siehe [Energie & Statistiken](DE-Feature-Energy-and-Statistics). |
+| **Ladeorte merken** | an/aus | Standard **aus**. Behält die Koordinaten jeder Ladung, damit der Reiter Orte der Karte eine Landkarte zeigen kann. Schreibt Koordinaten auf die Festplatte; **Ausschalten löscht** sie. Gilt für jedes Auto des Kontos. Siehe [Ladeorte](DE-Feature-Charging-History-and-Cost#charging-places). |
 
 ## Solar & Energiequellen
 

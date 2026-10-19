@@ -14,6 +14,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   is locked and its doors, windows, sunroof, tailgate and hood are shut, and
   tells you what isn't. Import `car_left_open.yaml` from the blueprints folder;
   see *Automations → Starter blueprints* in the wiki.
+- **Charging places.** The card's charging view has a new **Places** tab: every
+  place the car has charged at, with its visits, AC or DC, the average power you
+  actually got and the typical stop. Tap a place for its best visit, minutes per
+  10 %, preconditioned vs. not, and the power curves of its latest visits. Built
+  from your recorded charges, so it costs no API quota; the new
+  `get_charging_places` service returns the same for automations.
+- **Remember charging locations** (*Configure → Charging costs & history*, off by
+  default) keeps where each charge happened, so the Places tab can show a map.
+  Turning it off deletes every stored coordinate. DC charging and BMW's operator
+  names haven't been seen on real car data yet; diagnostics from your car help.
 
 ## [0.9.21-beta.6] - 2026-10-19
 

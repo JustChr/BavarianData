@@ -52,6 +52,8 @@ TAINT_SOURCES = (
     "friendly_name",  # entity names, renameable and localized
     "_tripPlace(",  # zone name or reverse-geocoded address
     ".address",  # BMW's formattedAddress on a charging session
+    ".provider",  # BMW's charge point operator on a charging place
+    "_placeName(",  # a charging place: zone, operator or address
 )
 
 # An HTML template literal is one that actually opens a tag. Templates that only

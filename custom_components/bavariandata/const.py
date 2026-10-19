@@ -138,6 +138,11 @@ OPTION_VEHICLES = "vehicles"
 # off deletes the series we published.
 OPTION_STATISTICS_IMPORT = "statistics_import"
 DEFAULT_STATISTICS_IMPORT = True
+# Remember charging locations: keep the coordinates of each charge so the card
+# can put the charging places on a map. Off by default, account-wide; like
+# *Record route* it writes raw coordinates to disk, and turning it off deletes
+# them (``HistoryStore.forget_locations``). The places list works without it.
+OPTION_CHARGE_LOCATIONS = "charge_locations"
 
 # One REST request after a restart that interrupted a charge, to learn whether it
 # is still running (see startup_refresh.py). On by default: it costs nothing

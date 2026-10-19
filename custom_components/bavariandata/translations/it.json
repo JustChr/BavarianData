@@ -217,7 +217,8 @@
           "grid_energy_entity": "Sensore energia della wallbox",
           "charging_loss_percent": "Perdite di ricarica (%)",
           "history_retain_months": "Conserva lo storico per (mesi)",
-          "statistics_import": "Pubblica nelle statistiche a lungo termine"
+          "statistics_import": "Pubblica nelle statistiche a lungo termine",
+          "charge_locations": "Ricorda i luoghi di ricarica"
         },
         "data_description": {
           "price_mode": "Nessuna registra le sessioni senza costi. Prezzo fisso addebita ogni kWh alla stessa tariffa; Entità prezzo segue una tariffa in tempo reale (Tibber, Nordpool, …) durante la ricarica.",
@@ -227,7 +228,8 @@
           "grid_energy_entity": "Facoltativo. Il contatore totale della tua wallbox, che conta solo in avanti. Letto solo per le ricariche nella zona Casa. Un valore misurato prevale sulla stima lato batteria e migliora anche la stima della carica a casa.",
           "charging_loss_percent": "Facoltativo. L'energia è misurata alla batteria, un po' meno di quanto fornito dalla rete; questo la maggiora. Lascia 0 se hai un contatore della wallbox.",
           "history_retain_months": "0 conserva tutto. Le sessioni più vecchie vengono eliminate.",
-          "statistics_import": "Riporta energia, costo e distanza in statistiche che puoi aggiungere alla dashboard Energia. Resta in locale; disattivandolo vengono eliminate di nuovo."
+          "statistics_import": "Riporta energia, costo e distanza in statistiche che puoi aggiungere alla dashboard Energia. Resta in locale; disattivandolo vengono eliminate di nuovo.",
+          "charge_locations": "Facoltativo. Salva dove è avvenuta ogni ricarica, così la scheda può mostrare i tuoi luoghi di ricarica su una mappa. Scrive coordinate su disco; disattivarlo le elimina. Dalla prossima ricarica."
         },
         "sections": {
           "all_vehicles": {
@@ -239,7 +241,8 @@
               "price_entity": "Entità prezzo",
               "price_currency": "Valuta",
               "history_retain_months": "Conserva lo storico per (mesi)",
-              "statistics_import": "Pubblica nelle statistiche a lungo termine"
+              "statistics_import": "Pubblica nelle statistiche a lungo termine",
+              "charge_locations": "Ricorda i luoghi di ricarica"
             },
             "data_description": {
               "price_mode": "Nessuna registra le sessioni senza costi. Prezzo fisso addebita ogni kWh alla stessa tariffa; Entità prezzo segue una tariffa in tempo reale (Tibber, Nordpool, …) durante la ricarica.",
@@ -247,7 +250,8 @@
               "price_entity": "Usata solo quando la fonte del prezzo è 'Entità prezzo'. Il suo stato deve essere un prezzo per kWh.",
               "price_currency": "Codice ISO mostrato sui sensori di costo, ad es. EUR, GBP, CHF.",
               "history_retain_months": "0 conserva tutto. Le sessioni più vecchie vengono eliminate.",
-              "statistics_import": "Riporta energia, costo e distanza in statistiche che puoi aggiungere alla dashboard Energia. Resta in locale; disattivandolo vengono eliminate di nuovo."
+              "statistics_import": "Riporta energia, costo e distanza in statistiche che puoi aggiungere alla dashboard Energia. Resta in locale; disattivandolo vengono eliminate di nuovo.",
+              "charge_locations": "Facoltativo. Salva dove è avvenuta ogni ricarica, così la scheda può mostrare i tuoi luoghi di ricarica su una mappa. Scrive coordinate su disco; disattivarlo le elimina. Dalla prossima ricarica."
             }
           }
         }
@@ -2991,6 +2995,32 @@
         "limit": {
           "name": "Limite",
           "description": "Numero massimo di sessioni da restituire."
+        }
+      }
+    },
+    "get_charging_places": {
+      "name": "Ottieni luoghi di ricarica",
+      "description": "Restituisce i luoghi in cui un'auto è stata ricaricata, i più frequenti per primi, con la potenza media e la sosta tipica di ciascuno. Legge la cronologia propria dell'integrazione, quindi non consuma quota dell'API BMW.",
+      "fields": {
+        "device_id": {
+          "name": "Veicolo",
+          "description": "Facoltativo: solo questa auto. Lascia vuoto per tutte le auto dell'account."
+        },
+        "entry_id": {
+          "name": "Voce di configurazione",
+          "description": "ID facoltativo della voce di configurazione dell'account. Serve solo con più account, se non indichi né veicolo né VIN."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facoltativo per filtrare. Predefinito: tutti i veicoli noti."
+        },
+        "from": {
+          "name": "Da",
+          "description": "Solo ricariche iniziate in questa data/ora o dopo."
+        },
+        "to": {
+          "name": "A",
+          "description": "Solo ricariche iniziate in questa data/ora o prima."
         }
       }
     },

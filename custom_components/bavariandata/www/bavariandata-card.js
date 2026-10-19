@@ -336,6 +336,23 @@ const TRANSLATIONS = {
     ch_cost: "Cost",
     ch_no_cost: "no price set",
     ch_ongoing: "charging…",
+    ch_tab_sessions: "Sessions",
+    ch_tab_places: "Places",
+    pl_loading: "Loading charging places…",
+    pl_empty: "No charges recorded yet.",
+    pl_error: "Couldn't load charging places. Reload the page and try again.",
+    pl_place_one: "1 place",
+    pl_place_many: "{n} places",
+    pl_visit_one: "1 visit",
+    pl_visit_many: "{n} visits",
+    pl_avg_many: "{kw} kW avg",
+    pl_best: "Best",
+    pl_rate: "Per 10 % (to 80 %)",
+    pl_precond_on: "Preconditioned",
+    pl_precond_off: "Not preconditioned",
+    pl_energy: "Charged here",
+    pl_last: "Last visit",
+    pl_unnamed: "Other places",
     // battery health
     bh_title: "Battery health",
     bh_empty:
@@ -699,6 +716,23 @@ const TRANSLATIONS = {
     ch_cost: "Kosten",
     ch_no_cost: "kein Preis gesetzt",
     ch_ongoing: "lädt…",
+    ch_tab_sessions: "Ladevorgänge",
+    ch_tab_places: "Orte",
+    pl_loading: "Ladeorte werden geladen…",
+    pl_empty: "Noch keine Ladevorgänge aufgezeichnet.",
+    pl_error: "Ladeorte konnten nicht geladen werden. Lade die Seite neu und versuche es erneut.",
+    pl_place_one: "1 Ort",
+    pl_place_many: "{n} Orte",
+    pl_visit_one: "1 Besuch",
+    pl_visit_many: "{n} Besuche",
+    pl_avg_many: "Ø {kw} kW",
+    pl_best: "Bester",
+    pl_rate: "Je 10 % (bis 80 %)",
+    pl_precond_on: "Vorkonditioniert",
+    pl_precond_off: "Nicht vorkonditioniert",
+    pl_energy: "Hier geladen",
+    pl_last: "Letzter Besuch",
+    pl_unnamed: "Andere Orte",
     // battery health
     bh_title: "Batteriezustand",
     bh_empty:
@@ -1046,6 +1080,23 @@ const TRANSLATIONS = {
     ch_cost: "Coût",
     ch_no_cost: "aucun prix défini",
     ch_ongoing: "en charge…",
+    ch_tab_sessions: "Recharges",
+    ch_tab_places: "Lieux",
+    pl_loading: "Chargement des lieux de recharge…",
+    pl_empty: "Aucune recharge enregistrée pour l'instant.",
+    pl_error: "Impossible de charger les lieux de recharge. Rechargez la page et réessayez.",
+    pl_place_one: "1 lieu",
+    pl_place_many: "{n} lieux",
+    pl_visit_one: "1 visite",
+    pl_visit_many: "{n} visites",
+    pl_avg_many: "{kw} kW en moy.",
+    pl_best: "Meilleure",
+    pl_rate: "Par 10 % (jusqu'à 80 %)",
+    pl_precond_on: "Préconditionné",
+    pl_precond_off: "Non préconditionné",
+    pl_energy: "Rechargé ici",
+    pl_last: "Dernière visite",
+    pl_unnamed: "Autres lieux",
     // battery health
     bh_title: "Santé de la batterie",
     bh_empty:
@@ -1393,6 +1444,23 @@ const TRANSLATIONS = {
     ch_cost: "Costo",
     ch_no_cost: "nessun prezzo impostato",
     ch_ongoing: "in carica…",
+    ch_tab_sessions: "Ricariche",
+    ch_tab_places: "Luoghi",
+    pl_loading: "Caricamento dei luoghi di ricarica…",
+    pl_empty: "Nessuna ricarica registrata finora.",
+    pl_error: "Impossibile caricare i luoghi di ricarica. Ricarica la pagina e riprova.",
+    pl_place_one: "1 luogo",
+    pl_place_many: "{n} luoghi",
+    pl_visit_one: "1 visita",
+    pl_visit_many: "{n} visite",
+    pl_avg_many: "{kw} kW medi",
+    pl_best: "Migliore",
+    pl_rate: "Ogni 10 % (fino all'80 %)",
+    pl_precond_on: "Precondizionata",
+    pl_precond_off: "Non precondizionata",
+    pl_energy: "Ricaricato qui",
+    pl_last: "Ultima visita",
+    pl_unnamed: "Altri luoghi",
     // battery health
     bh_title: "Salute della batteria",
     bh_empty:
@@ -1740,6 +1808,23 @@ const TRANSLATIONS = {
     ch_cost: "Coste",
     ch_no_cost: "sin precio definido",
     ch_ongoing: "cargando…",
+    ch_tab_sessions: "Cargas",
+    ch_tab_places: "Lugares",
+    pl_loading: "Cargando lugares de carga…",
+    pl_empty: "Aún no hay cargas registradas.",
+    pl_error: "No se pudieron cargar los lugares de carga. Recarga la página e inténtalo de nuevo.",
+    pl_place_one: "1 lugar",
+    pl_place_many: "{n} lugares",
+    pl_visit_one: "1 visita",
+    pl_visit_many: "{n} visitas",
+    pl_avg_many: "{kw} kW de media",
+    pl_best: "Mejor",
+    pl_rate: "Por 10 % (hasta 80 %)",
+    pl_precond_on: "Preacondicionada",
+    pl_precond_off: "Sin preacondicionar",
+    pl_energy: "Cargado aquí",
+    pl_last: "Última visita",
+    pl_unnamed: "Otros lugares",
     // battery health
     bh_title: "Salud de la batería",
     bh_empty:
@@ -2087,6 +2172,23 @@ const TRANSLATIONS = {
     ch_cost: "Kosten",
     ch_no_cost: "geen prijs ingesteld",
     ch_ongoing: "laden…",
+    ch_tab_sessions: "Sessies",
+    ch_tab_places: "Locaties",
+    pl_loading: "Laadlocaties laden…",
+    pl_empty: "Nog geen laadsessies vastgelegd.",
+    pl_error: "Laadlocaties konden niet worden geladen. Herlaad de pagina en probeer het opnieuw.",
+    pl_place_one: "1 locatie",
+    pl_place_many: "{n} locaties",
+    pl_visit_one: "1 bezoek",
+    pl_visit_many: "{n} bezoeken",
+    pl_avg_many: "gem. {kw} kW",
+    pl_best: "Beste",
+    pl_rate: "Per 10 % (tot 80 %)",
+    pl_precond_on: "Voorgeconditioneerd",
+    pl_precond_off: "Niet voorgeconditioneerd",
+    pl_energy: "Hier geladen",
+    pl_last: "Laatste bezoek",
+    pl_unnamed: "Overige locaties",
     // battery health
     bh_title: "Accugezondheid",
     bh_empty:
@@ -2434,6 +2536,23 @@ const TRANSLATIONS = {
     ch_cost: "Koszt",
     ch_no_cost: "brak ustawionej ceny",
     ch_ongoing: "ładowanie…",
+    ch_tab_sessions: "Sesje",
+    ch_tab_places: "Miejsca",
+    pl_loading: "Wczytywanie miejsc ładowania…",
+    pl_empty: "Nie zarejestrowano jeszcze żadnego ładowania.",
+    pl_error: "Nie udało się wczytać miejsc ładowania. Odśwież stronę i spróbuj ponownie.",
+    pl_place_one: "1 miejsce",
+    pl_place_many: "Miejsca: {n}",
+    pl_visit_one: "1 wizyta",
+    pl_visit_many: "Wizyty: {n}",
+    pl_avg_many: "śr. {kw} kW",
+    pl_best: "Najlepsza",
+    pl_rate: "Na 10 % (do 80 %)",
+    pl_precond_on: "Z kondycjonowaniem",
+    pl_precond_off: "Bez kondycjonowania",
+    pl_energy: "Naładowano tutaj",
+    pl_last: "Ostatnia wizyta",
+    pl_unnamed: "Inne miejsca",
     // battery health
     bh_title: "Kondycja akumulatora",
     bh_empty:
@@ -2781,6 +2900,23 @@ const TRANSLATIONS = {
     ch_cost: "Custo",
     ch_no_cost: "sem preço definido",
     ch_ongoing: "a carregar…",
+    ch_tab_sessions: "Sessões",
+    ch_tab_places: "Locais",
+    pl_loading: "A carregar locais de carregamento…",
+    pl_empty: "Ainda não há carregamentos registados.",
+    pl_error: "Não foi possível carregar os locais de carregamento. Recarregue a página e tente novamente.",
+    pl_place_one: "1 local",
+    pl_place_many: "{n} locais",
+    pl_visit_one: "1 visita",
+    pl_visit_many: "{n} visitas",
+    pl_avg_many: "{kw} kW em média",
+    pl_best: "Melhor",
+    pl_rate: "Por 10 % (até 80 %)",
+    pl_precond_on: "Pré-condicionado",
+    pl_precond_off: "Sem pré-condicionamento",
+    pl_energy: "Carregado aqui",
+    pl_last: "Última visita",
+    pl_unnamed: "Outros locais",
     // battery health
     bh_title: "Saúde da bateria",
     bh_empty:
@@ -3128,6 +3264,23 @@ const TRANSLATIONS = {
     ch_cost: "Náklady",
     ch_no_cost: "cena není nastavena",
     ch_ongoing: "nabíjí se…",
+    ch_tab_sessions: "Nabíjení",
+    ch_tab_places: "Místa",
+    pl_loading: "Načítání míst nabíjení…",
+    pl_empty: "Zatím nebylo zaznamenáno žádné nabíjení.",
+    pl_error: "Místa nabíjení se nepodařilo načíst. Obnovte stránku a zkuste to znovu.",
+    pl_place_one: "1 místo",
+    pl_place_many: "Míst: {n}",
+    pl_visit_one: "1 návštěva",
+    pl_visit_many: "Návštěv: {n}",
+    pl_avg_many: "prům. {kw} kW",
+    pl_best: "Nejlepší",
+    pl_rate: "Na 10 % (do 80 %)",
+    pl_precond_on: "S předehřevem",
+    pl_precond_off: "Bez předehřevu",
+    pl_energy: "Nabito zde",
+    pl_last: "Poslední návštěva",
+    pl_unnamed: "Ostatní místa",
     // battery health
     bh_title: "Stav baterie",
     bh_empty:
@@ -3475,6 +3628,23 @@ const TRANSLATIONS = {
     ch_cost: "Kostnad",
     ch_no_cost: "inget pris angivet",
     ch_ongoing: "laddar…",
+    ch_tab_sessions: "Laddningar",
+    ch_tab_places: "Platser",
+    pl_loading: "Laddplatser läses in…",
+    pl_empty: "Inga laddningar registrerade ännu.",
+    pl_error: "Laddplatserna kunde inte läsas in. Ladda om sidan och försök igen.",
+    pl_place_one: "1 plats",
+    pl_place_many: "{n} platser",
+    pl_visit_one: "1 besök",
+    pl_visit_many: "{n} besök",
+    pl_avg_many: "{kw} kW i snitt",
+    pl_best: "Bästa",
+    pl_rate: "Per 10 % (upp till 80 %)",
+    pl_precond_on: "Förkonditionerad",
+    pl_precond_off: "Ej förkonditionerad",
+    pl_energy: "Laddat här",
+    pl_last: "Senaste besök",
+    pl_unnamed: "Andra platser",
     // battery health
     bh_title: "Batterihälsa",
     bh_empty:
@@ -5362,6 +5532,13 @@ class BavarianDataCard extends HTMLElement {
       );
     const trigger = trigSt ? trigSt.last_changed : "";
 
+    // Places is the other tab of this view: where the car charges, over the
+    // whole stored history rather than one month (see _renderPlaces).
+    if (this._chgTab === "places") {
+      this._renderPlaces(deviceId, entities, vin, entryId, trigger);
+      return;
+    }
+
     const month = this._month("charging");
     const cache = this._chg;
     const current =
@@ -5472,6 +5649,7 @@ class BavarianDataCard extends HTMLElement {
           </div>
           ${this._exportButtons("charging")}
         </div>
+        ${this._chargingTabs("sessions")}
         ${this._monthNav("charging")}
         ${summary ? this._chargingSummaryBand(summary) : ""}
         ${body}
@@ -5479,6 +5657,367 @@ class BavarianDataCard extends HTMLElement {
     `;
     this._wireChargingTaps();
     this._wireMonthNav();
+  }
+
+  /** The Sessions | Places switch at the top of the charging view. */
+  _chargingTabs(active) {
+    const tab = (key, label) =>
+      `<button class="ctabs__btn${active === key ? " is-active" : ""}" data-chg-tab="${key}"
+               aria-pressed="${active === key}">${this._t(label)}</button>`;
+    return `<div class="ctabs" role="group">${tab("sessions", "ch_tab_sessions")}${tab(
+      "places",
+      "ch_tab_places"
+    )}</div>`;
+  }
+
+  _wireChargingTabs() {
+    this.shadowRoot.querySelectorAll("[data-chg-tab]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const tab = el.getAttribute("data-chg-tab");
+        if ((this._chgTab || "sessions") === tab) return;
+        this._chgTab = tab;
+        this._sig = null;
+        this._render();
+      });
+    });
+  }
+
+  /* ---- charging places ---------------------------------------------------
+   *
+   * The places a car charges at, from `get_charging_places` (worked out from
+   * the stored sessions on the server, history/stations.py). Fetched like the
+   * sessions: once, then again only when the session sensor changes. A map
+   * appears only when places carry coordinates -- which needs the opt-in
+   * "Remember charging locations"; without it the list stands alone, with no
+   * hint nudging anyone toward storing positions. */
+  _renderPlaces(deviceId, entities, vin, entryId, trigger) {
+    const cache = this._plc;
+    const current = cache && cache.vin === vin && cache.trigger === trigger;
+    if (!current || (!cache.data && !cache.loading)) {
+      this._plc = {
+        vin,
+        trigger,
+        data: current && cache ? cache.data : null,
+        loading: true,
+        error: false,
+      };
+      const req = this._plc;
+      this._hass
+        .callService(
+          "bavariandata",
+          "get_charging_places",
+          this._withEntry({ vin }, entryId),
+          undefined,
+          false,
+          true
+        )
+        .then((res) => {
+          if (!this._plc || this._plc.vin !== vin || this._plc.trigger !== req.trigger) return;
+          const places = (res && res.response && res.response.places) || [];
+          this._plc = { ...this._plc, data: places, loading: false, error: false };
+          this._render();
+        })
+        .catch(() => {
+          if (!this._plc || this._plc.vin !== vin || this._plc.trigger !== req.trigger) return;
+          this._plc = { ...this._plc, loading: false, error: true };
+          this._render();
+        });
+    }
+    this._paintPlaces(deviceId);
+    // Only a list with positions has a map to load.
+    if (this.shadowRoot.querySelector(".pl__map")) {
+      this._ensureMapLib();
+      this._mountPlacesMap();
+    }
+  }
+
+  _paintPlaces(deviceId) {
+    const name = this._config.title || this._deviceName(deviceId);
+    const state = this._plc || {};
+    const places = state.data;
+    const expanded = this._plcExpanded || null;
+    const sig = this._signature({
+      m: "plc",
+      lang: _lang(this._hass),
+      name,
+      loading: state.loading && !places,
+      error: state.error,
+      expanded,
+      rows: (places || []).map((p) => [p.id, p.visits, p.last_visit, p.avg_kw]),
+    });
+    if (sig === this._sig) return;
+    this._sig = sig;
+
+    let body;
+    if (state.error) {
+      body = `<div class="empty">${this._t("pl_error")}</div>`;
+    } else if (!places && state.loading) {
+      body = `<div class="empty">${this._t("pl_loading")}</div>`;
+    } else if (!places || !places.length) {
+      body = `<div class="empty">${this._t("pl_empty")}</div>`;
+    } else {
+      const mapped = places.some((p) => p.latitude != null && p.longitude != null);
+      body = `${mapped ? '<div class="pl__map"></div>' : ""}<div class="chg__list">${places
+        .map((p) => this._placeRow(p, expanded))
+        .join("")}</div>`;
+    }
+    const count = places ? places.length : 0;
+    const countLabel =
+      count === 1 ? this._t("pl_place_one") : this._t("pl_place_many", { n: count });
+
+    this.shadowRoot.innerHTML = `
+      ${this._styles()}
+      <ha-card>
+        <div class="chead">
+          <ha-icon icon="mdi:ev-station"></ha-icon>
+          <div class="chead__text">
+            <span class="chead__title">${this._esc(this._config.title || this._t("ch_title"))}</span>
+            <span class="chead__sub">${this._esc(name)}${count ? " · " + countLabel : ""}</span>
+          </div>
+        </div>
+        ${this._chargingTabs("places")}
+        ${body}
+      </ha-card>
+    `;
+    this._placesMapEl = null;
+    this._wireChargingTabs();
+    this.shadowRoot.querySelectorAll("[data-place]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const id = el.getAttribute("data-place");
+        this._plcExpanded = this._plcExpanded === id ? null : id;
+        this._sig = null;
+        this._paintPlaces(this._resolveDeviceId());
+        this._mountPlacesMap();
+      });
+    });
+  }
+
+  /** What a place is called: its zone, else operator and address, else BMW's
+   * address, else "Away" with the rounded point so two such rows differ. */
+  _placeName(place) {
+    if (place.unnamed) return this._t("pl_unnamed");
+    if (place.zone) {
+      const home = /^home$/i.test(place.zone) || place.zone === this._homeZoneName();
+      const label = home ? this._t("ch_home") : place.zone;
+      return place.assumed ? `${label} · ${this._t("ch_assumed")}` : label;
+    }
+    const parts = [place.provider, place.address].filter((v) => v);
+    if (parts.length) return parts.join(" · ");
+    if (place.latitude != null && place.longitude != null) {
+      return `${this._t("ch_public")} (${this._dec(place.latitude, 3)}, ${this._dec(
+        place.longitude,
+        3
+      )})`;
+    }
+    return this._t("ch_public");
+  }
+
+  _homeZoneName() {
+    const st = this._hass && this._hass.states && this._hass.states["zone.home"];
+    return (st && st.attributes && st.attributes.friendly_name) || "Home";
+  }
+
+  /** The row's one-line verdict: "10.9 kW · 1 h" or "142 kW avg · 18 min". */
+  _placeSummary(place) {
+    const bits = [];
+    if (place.avg_kw != null) {
+      const kw = this._dec(place.avg_kw, place.avg_kw >= 20 ? 0 : 1);
+      // "avg" only where it is one: a single visit is that visit's figure.
+      bits.push(place.power_visits === 1 ? `${kw} kW` : this._t("pl_avg_many", { kw }));
+    }
+    if (place.typical_minutes != null) {
+      bits.push(this._minutesLabel(place.typical_minutes));
+    }
+    return bits.join(" · ");
+  }
+
+  _minutesLabel(mins) {
+    const m = Math.round(mins);
+    if (m < 60) return `${m} min`;
+    const h = Math.floor(m / 60);
+    const r = m % 60;
+    return r ? `${h} h ${r} min` : `${h} h`;
+  }
+
+  _placeRow(place, expanded) {
+    const id = place.id || "";
+    const isOpen = expanded === id;
+    const kind = place.kind === "mixed" ? "AC/DC" : place.kind ? place.kind.toUpperCase() : "";
+    const visits =
+      place.visits === 1
+        ? this._t("pl_visit_one")
+        : this._t("pl_visit_many", { n: place.visits });
+    const away = !place.zone || place.unnamed;
+    const summary = this._placeSummary(place);
+    const badge = kind
+      ? `<span class="chg__badge ${away ? "chg__badge--away" : "chg__badge--home"}">${kind}</span>`
+      : "";
+    return `
+      <div class="chg__session${isOpen ? " is-open" : ""}">
+        <button class="chg__row" data-place="${this._attr(id)}">
+          <span class="chg__row-main">
+            <span class="chg__date pl__name">${this._esc(this._placeName(place))}</span>
+            <span class="chg__meta">${badge}${summary ? `<span class="chg__soc">${summary}</span>` : ""}</span>
+          </span>
+          <span class="chg__figures">
+            <span class="chg__energy chg__energy--lead">${visits}</span>
+          </span>
+        </button>
+        ${isOpen ? this._placeDetail(place) : ""}
+      </div>
+    `;
+  }
+
+  _placeDetail(place) {
+    const facts = [];
+    const kw = (v) => `${this._dec(v, v >= 20 ? 0 : 1)} kW`;
+    if (place.avg_kw != null) facts.push([this._t("ch_avg"), kw(place.avg_kw)]);
+    if (place.best_kw != null) facts.push([this._t("pl_best"), kw(place.best_kw)]);
+    if (place.minutes_per_10 != null) {
+      facts.push([this._t("pl_rate"), `${this._dec(place.minutes_per_10, 1)} min`]);
+    }
+    const pre = place.preconditioning;
+    if (pre) {
+      for (const [side, label] of [
+        ["on", "pl_precond_on"],
+        ["off", "pl_precond_off"],
+      ]) {
+        const fig = pre[side];
+        const val = [
+          fig.avg_kw != null ? kw(fig.avg_kw) : null,
+          fig.minutes_per_10 != null ? `${this._dec(fig.minutes_per_10, 1)} min / 10 %` : null,
+        ]
+          .filter((v) => v)
+          .join(" · ");
+        if (val) facts.push([`${this._t(label)} (${fig.visits}×)`, val]);
+      }
+    }
+    if (place.energy_kwh != null) {
+      facts.push([this._t("pl_energy"), `${this._dec(place.energy_kwh, 1)} kWh`]);
+    }
+    if (place.last_visit) {
+      facts.push([this._t("pl_last"), this._fmtSessionDate(place.last_visit)]);
+    }
+
+    const factRow = facts
+      .map(
+        ([k, v]) =>
+          `<div class="chg__fact"><span class="chg__fact-lbl">${k}</span><span class="chg__fact-val">${v}</span></div>`
+      )
+      .join("");
+    return `
+      <div class="chg__detail">
+        ${this._placeCurvesSvg(place.curves)}
+        <div class="chg__facts">${factRow}</div>
+      </div>
+    `;
+  }
+
+  /** Every recent visit's power curve on one shared axis, newest strongest,
+   * so a place's visits can be compared at a glance. Stepped, like the
+   * session chart. */
+  _placeCurvesSvg(curves) {
+    const usable = (curves || []).filter((c) => Array.isArray(c.points) && c.points.length >= 2);
+    if (!usable.length) return "";
+    const W = 260;
+    const H = 64;
+    const pad = 4;
+    const spans = usable.map((c) => c.points[c.points.length - 1][0] - c.points[0][0]);
+    const spanX = Math.max(...spans, 1);
+    const yMax = Math.max(0.1, ...usable.flatMap((c) => c.points.map((p) => p[1])));
+    const sx = (x) => pad + (x / spanX) * (W - 2 * pad);
+    const sy = (y) => H - pad - (y / yMax) * (H - 2 * pad);
+    const lines = usable
+      .map((c, i) => {
+        const x0 = c.points[0][0];
+        const pts = [];
+        c.points.forEach((p, j) => {
+          pts.push([sx(p[0] - x0), sy(p[1])]);
+          const next = c.points[j + 1];
+          if (next) pts.push([sx(next[0] - x0), sy(p[1])]);
+        });
+        const opacity = i === 0 ? 1 : Math.max(0.25, 0.7 - i * 0.12);
+        const line = pts.map(([x, y]) => `${this._px(x)},${this._px(y)}`).join(" ");
+        return `<polyline points="${line}" class="chg__chart-line" style="opacity:${opacity}"></polyline>`;
+      })
+      .join("");
+    return `
+      <svg class="chg__chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
+        ${lines}
+        <text x="${pad}" y="10" class="chg__chart-max">${this._dec(yMax, 1)} kW</text>
+      </svg>
+    `;
+  }
+
+  /** Mount the places map once the map library is ready, and again after a
+   * repaint replaced its holder. One dot per place with a position. */
+  _mountPlacesMap() {
+    const holder = this.shadowRoot && this.shadowRoot.querySelector(".pl__map");
+    if (!holder || this._mapLib !== "ready") return;
+    if (this._placesMapEl && holder.contains(this._placesMapEl)) {
+      this._placesMapEl.hass = this._hass;
+      return;
+    }
+    const points = ((this._plc && this._plc.data) || [])
+      .filter((p) => p.latitude != null && p.longitude != null)
+      .map((p) => ({ at: [p.latitude, p.longitude], home: !!p.zone && !p.unnamed }));
+    if (!points.length) return;
+    holder.innerHTML = "";
+    const map = document.createElement("ha-map");
+    map.autoFit = false;
+    map.zoom = 12;
+    map.themeMode = "auto";
+    map.style.height = "200px";
+    map.style.display = "block";
+    map.hass = this._hass;
+    holder.appendChild(map);
+    this._placesMapEl = map;
+    this._drawPlaceDots(map, points);
+  }
+
+  _drawPlaceDots(mapEl, points) {
+    let tries = 0;
+    const draw = () => {
+      if (!mapEl || !this.shadowRoot.contains(mapEl)) return;
+      const surface = this._mapSurface(mapEl);
+      if (!surface) {
+        if (tries++ < 60) setTimeout(draw, 150);
+        return;
+      }
+      try {
+        const fill = (p) => (p.home ? "#22a06b" : "#1c69d4");
+        if (surface.kind === "leaflet") {
+          const group = surface.L.layerGroup();
+          points.forEach((p) =>
+            surface.L.circleMarker(p.at, {
+              radius: 6,
+              color: "#fff",
+              weight: 2,
+              fillColor: fill(p),
+              fillOpacity: 1,
+            }).addTo(group)
+          );
+          group.addTo(surface.lmap);
+        } else {
+          points.forEach((p) =>
+            surface.eng.addMarker(this._dotEl(fill(p), 14), p.at, {
+              size: [14, 14],
+              interactive: false,
+            })
+          );
+        }
+        this._fitMapTo(
+          mapEl,
+          surface,
+          points.map((p) => p.at),
+          24,
+          15
+        );
+      } catch (_) {
+        if (tries++ < 60) setTimeout(draw, 150);
+      }
+    };
+    draw();
   }
 
   /** "This month" figures, read from the summary sensors when they exist. */
@@ -5946,6 +6485,7 @@ class BavarianDataCard extends HTMLElement {
 
   _wireChargingTaps() {
     this._wireExport();
+    this._wireChargingTabs();
     this.shadowRoot.querySelectorAll("[data-session]").forEach((el) => {
       el.addEventListener("click", () => {
         const id = el.getAttribute("data-session");
@@ -9801,6 +10341,21 @@ class BavarianDataCard extends HTMLElement {
       .chg__badge--home { border-color: var(--bmw-high); color: var(--bmw-high); }
       .chg__badge--away { border-color: var(--bmw-charge); color: var(--bmw-charge); }
       .chg__badge--assumed { border-style: dashed; }
+      /* Sessions | Places */
+      .ctabs { display: flex; gap: 6px; padding: 10px 14px 0; }
+      .ctabs__btn {
+        flex: 1; padding: 6px 10px;
+        font: inherit; font-size: 0.8rem; font-weight: 600;
+        color: var(--secondary-text-color); background: transparent;
+        border: 1px solid var(--divider-color); border-radius: 999px; cursor: pointer;
+      }
+      .ctabs__btn.is-active {
+        color: var(--bmw-charge); border-color: var(--bmw-charge);
+        background: var(--secondary-background-color);
+      }
+      .pl__map { padding: 10px 14px 0; }
+      .pl__map ha-map { width: 100%; border-radius: 10px; overflow: hidden; }
+      .pl__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .chg__tag--warn { border-color: var(--bmw-mid); color: var(--bmw-mid); }
       .chg__tag--sun { border-color: var(--bmw-high); color: var(--bmw-high); }
       .chg__detail { padding: 2px 12px 12px; }

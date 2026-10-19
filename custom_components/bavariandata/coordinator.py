@@ -66,6 +66,7 @@ from .history.sessions import (
     open_session_is_resumable,
     soc_is_from_session,
 )
+from .history.stations import CHARGE_METHOD_DESCRIPTORS, streamed_charge_method
 from .history.trips import CLASS_COMMUTE, SOURCE_AUTO, Trip, place
 from .history.trip_builder import (
     GpsTracker,
@@ -1197,6 +1198,10 @@ class CardataCoordinator:
             return
         builder.sample(now, power_w / 1000.0)
         builder.note_soc(self._session_soc_percent(vin))
+        if builder.charge_method is None:
+            builder.charge_method = streamed_charge_method(
+                self._live_values(vin, CHARGE_METHOD_DESCRIPTORS)
+            )
         # Throttled inside; this is simply the one place that runs for every
         # sample of every open session, which is exactly the cadence a snapshot
         # of an open session wants.
@@ -2545,9 +2550,11 @@ class CardataCoordinator:
     def _charging_location(self, vin: str) -> Optional[Dict[str, Any]]:
         """Where the car is plugged in, as an HA zone name when we can tell.
 
-        Only the resolved zone is stored, never raw coordinates: knowing a
-        session happened "at home" is what costing needs, and a list of exact
-        positions is far more sensitive than that.
+        Knowing a session happened "at home" is what costing needs, so the zone
+        is all that is kept -- unless the user turned on *Remember charging
+        locations*, which adds the point itself for the charging places map. A
+        list of exact positions is far more sensitive than a zone name, so that
+        stays the user's choice.
         """
 
         latitude = self._coordinate(vin, "latitude")
@@ -2555,7 +2562,11 @@ class CardataCoordinator:
         if latitude is None or longitude is None:
             return None
         zone = self._zone_name(latitude, longitude)
-        return {"zone": zone} if zone else {"zone": None}
+        location: Dict[str, Any] = {"zone": zone} if zone else {"zone": None}
+        if self.history is not None and self.history.remember_locations:
+            location["lat"] = round(latitude, 5)
+            location["lon"] = round(longitude, 5)
+        return location
 
     def _coordinate(self, vin: str, kind: str) -> Optional[float]:
         for descriptor in (

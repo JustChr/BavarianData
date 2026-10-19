@@ -217,7 +217,8 @@
           "grid_energy_entity": "Sensor de energía del wallbox",
           "charging_loss_percent": "Pérdidas de carga (%)",
           "history_retain_months": "Conservar el historial durante (meses)",
-          "statistics_import": "Publicar en estadísticas a largo plazo"
+          "statistics_import": "Publicar en estadísticas a largo plazo",
+          "charge_locations": "Recordar lugares de carga"
         },
         "data_description": {
           "price_mode": "Ninguna registra las sesiones sin costes. Precio fijo cobra cada kWh a la misma tarifa; Entidad de precio sigue una tarifa en vivo (Tibber, Nordpool, …) mientras el coche carga.",
@@ -227,7 +228,8 @@
           "grid_energy_entity": "Opcional. El contador total de tu wallbox, uno que solo sube. Se lee solo para cargas en tu zona Casa. Un valor medido prevalece sobre la estimación del lado de la batería y también afina la estimación de carga en casa.",
           "charging_loss_percent": "Opcional. La energía se mide en la batería, algo por debajo de lo que entregó la red; esto la aumenta. Déjalo en 0 si tienes un contador de wallbox.",
           "history_retain_months": "0 conserva todo. Las sesiones más antiguas se descartan.",
-          "statistics_import": "Refleja energía, coste y distancia en estadísticas que puedes añadir al panel de Energía. Se queda en local; al desactivarlo se eliminan de nuevo."
+          "statistics_import": "Refleja energía, coste y distancia en estadísticas que puedes añadir al panel de Energía. Se queda en local; al desactivarlo se eliminan de nuevo.",
+          "charge_locations": "Opcional. Guarda dónde se hizo cada carga para que la tarjeta muestre tus lugares de carga en un mapa. Escribe coordenadas en el disco; desactivarlo las borra. Desde la próxima carga."
         },
         "sections": {
           "all_vehicles": {
@@ -239,7 +241,8 @@
               "price_entity": "Entidad de precio",
               "price_currency": "Moneda",
               "history_retain_months": "Conservar el historial durante (meses)",
-              "statistics_import": "Publicar en estadísticas a largo plazo"
+              "statistics_import": "Publicar en estadísticas a largo plazo",
+              "charge_locations": "Recordar lugares de carga"
             },
             "data_description": {
               "price_mode": "Ninguna registra las sesiones sin costes. Precio fijo cobra cada kWh a la misma tarifa; Entidad de precio sigue una tarifa en vivo (Tibber, Nordpool, …) mientras el coche carga.",
@@ -247,7 +250,8 @@
               "price_entity": "Solo se usa cuando la fuente del precio es 'Entidad de precio'. Su estado debe ser un precio por kWh.",
               "price_currency": "Código ISO que se muestra en los sensores de coste, p. ej. EUR, GBP, CHF.",
               "history_retain_months": "0 conserva todo. Las sesiones más antiguas se descartan.",
-              "statistics_import": "Refleja energía, coste y distancia en estadísticas que puedes añadir al panel de Energía. Se queda en local; al desactivarlo se eliminan de nuevo."
+              "statistics_import": "Refleja energía, coste y distancia en estadísticas que puedes añadir al panel de Energía. Se queda en local; al desactivarlo se eliminan de nuevo.",
+              "charge_locations": "Opcional. Guarda dónde se hizo cada carga para que la tarjeta muestre tus lugares de carga en un mapa. Escribe coordenadas en el disco; desactivarlo las borra. Desde la próxima carga."
             }
           }
         }
@@ -2991,6 +2995,32 @@
         "limit": {
           "name": "Límite",
           "description": "Número máximo de sesiones a devolver."
+        }
+      }
+    },
+    "get_charging_places": {
+      "name": "Obtener lugares de carga",
+      "description": "Devuelve los lugares donde ha cargado un coche, los más visitados primero, con la potencia media y la parada típica de cada uno. Lee el historial propio de la integración, por lo que no gasta cuota de la API de BMW.",
+      "fields": {
+        "device_id": {
+          "name": "Vehículo",
+          "description": "Opcional: solo este coche. Déjalo vacío para todos los coches de la cuenta."
+        },
+        "entry_id": {
+          "name": "Entrada de configuración",
+          "description": "ID opcional de la entrada de configuración de la cuenta. Solo hace falta con varias cuentas, si no indicas vehículo ni VIN."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN opcional para filtrar. Por defecto, todos los vehículos conocidos."
+        },
+        "from": {
+          "name": "Desde",
+          "description": "Solo cargas iniciadas en esta fecha/hora o después."
+        },
+        "to": {
+          "name": "Hasta",
+          "description": "Solo cargas iniciadas en esta fecha/hora o antes."
         }
       }
     },

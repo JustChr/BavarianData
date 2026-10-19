@@ -217,7 +217,8 @@
           "grid_energy_entity": "Energiesensor laadpaal",
           "charging_loss_percent": "Laadverliezen (%)",
           "history_retain_months": "Geschiedenis bewaren (maanden)",
-          "statistics_import": "Publiceren naar langetermijnstatistieken"
+          "statistics_import": "Publiceren naar langetermijnstatistieken",
+          "charge_locations": "Laadlocaties onthouden"
         },
         "data_description": {
           "price_mode": "Geen legt sessies vast zonder kosten. Vaste prijs rekent elke kWh tegen één tarief; Prijsentiteit volgt een live tarief (Tibber, Nordpool, …) terwijl de auto laadt.",
@@ -227,7 +228,8 @@
           "grid_energy_entity": "Optioneel. De totaalteller van je laadpaal, die alleen oploopt. Wordt alleen gelezen voor laadsessies in je zone Thuis. Een gemeten waarde gaat voor de schatting aan accuzijde en verbetert ook de laadschatting thuis.",
           "charging_loss_percent": "Optioneel. Energie wordt aan de accu gemeten, iets onder wat het net leverde; dit rekent ze op. Laat op 0 staan als je een laadpaalmeter hebt.",
           "history_retain_months": "0 bewaart alles. Oudere sessies worden verwijderd.",
-          "statistics_import": "Spiegelt energie, kosten en afstand naar statistieken die je aan het Energie-dashboard kunt toevoegen. Blijft lokaal; uitzetten verwijdert ze weer."
+          "statistics_import": "Spiegelt energie, kosten en afstand naar statistieken die je aan het Energie-dashboard kunt toevoegen. Blijft lokaal; uitzetten verwijdert ze weer.",
+          "charge_locations": "Optioneel. Slaat op waar elke laadsessie plaatsvond, zodat de kaart je laadlocaties op een kaart toont. Schrijft coördinaten naar schijf; uitzetten wist ze. Vanaf de volgende laadsessie."
         },
         "sections": {
           "all_vehicles": {
@@ -239,7 +241,8 @@
               "price_entity": "Prijsentiteit",
               "price_currency": "Valuta",
               "history_retain_months": "Geschiedenis bewaren (maanden)",
-              "statistics_import": "Publiceren naar langetermijnstatistieken"
+              "statistics_import": "Publiceren naar langetermijnstatistieken",
+              "charge_locations": "Laadlocaties onthouden"
             },
             "data_description": {
               "price_mode": "Geen legt sessies vast zonder kosten. Vaste prijs rekent elke kWh tegen één tarief; Prijsentiteit volgt een live tarief (Tibber, Nordpool, …) terwijl de auto laadt.",
@@ -247,7 +250,8 @@
               "price_entity": "Alleen gebruikt als de prijsbron 'Prijsentiteit' is. De status moet een prijs per kWh zijn.",
               "price_currency": "ISO-code die op de kostensensoren wordt getoond, bijv. EUR, GBP, CHF.",
               "history_retain_months": "0 bewaart alles. Oudere sessies worden verwijderd.",
-              "statistics_import": "Spiegelt energie, kosten en afstand naar statistieken die je aan het Energie-dashboard kunt toevoegen. Blijft lokaal; uitzetten verwijdert ze weer."
+              "statistics_import": "Spiegelt energie, kosten en afstand naar statistieken die je aan het Energie-dashboard kunt toevoegen. Blijft lokaal; uitzetten verwijdert ze weer.",
+              "charge_locations": "Optioneel. Slaat op waar elke laadsessie plaatsvond, zodat de kaart je laadlocaties op een kaart toont. Schrijft coördinaten naar schijf; uitzetten wist ze. Vanaf de volgende laadsessie."
             }
           }
         }
@@ -2991,6 +2995,32 @@
         "limit": {
           "name": "Limiet",
           "description": "Maximaal aantal sessies om terug te geven."
+        }
+      }
+    },
+    "get_charging_places": {
+      "name": "Laadlocaties ophalen",
+      "description": "Geeft de plekken terug waar een auto heeft geladen, de vaakst bezochte eerst, met het gemiddelde vermogen en de gebruikelijke stop per plek. Leest de eigen geschiedenis van de integratie en kost dus geen BMW API-quotum.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Optioneel alleen deze auto. Laat leeg voor alle auto's van het account."
+        },
+        "entry_id": {
+          "name": "Configuratie-item",
+          "description": "Optionele id van de configuratie-invoer van het account. Alleen nodig bij meerdere accounts als er geen voertuig of VIN is opgegeven."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optionele VIN om op te filteren. Standaard elk bekend voertuig."
+        },
+        "from": {
+          "name": "Van",
+          "description": "Alleen laadsessies die op of na deze datum/tijd begonnen."
+        },
+        "to": {
+          "name": "Tot",
+          "description": "Alleen laadsessies die op of vóór deze datum/tijd begonnen."
         }
       }
     },

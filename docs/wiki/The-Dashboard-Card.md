@@ -185,6 +185,14 @@ sessions still list with their energy. A session charged without GPS is badged
 *Home · assumed*, and one priced while the tariff was briefly unknown is tagged
 *partial price*.
 
+**Places.** A **Sessions | Places** switch at the top shows, instead of the
+month's sessions, every place the car has charged at: visits, AC or DC, the
+average power and the typical stop. Tap a place for its best visit, minutes per
+10 %, preconditioned vs. not, and the power curves of its latest visits on top of
+each other. With **Remember charging locations** on, a map shows where the places
+are. Places span the whole history, so the month control isn't shown there
+([see Charging places](Feature-Charging-History-and-Cost#charging-places)).
+
 With **Configure → Solar & energy sources** set up, a session that could be
 attributed also carries a **☀ 62 % solar** tag, and expanding it adds an
 *Energy source* line with the kWh per source

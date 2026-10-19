@@ -85,6 +85,12 @@ if (input.fuel) {
   card._fuel = { vin: "WBS1", trigger: "", data: input.fuel, loading: false };
   card._render = () => { card._sig = null; card._paintFuel("device", input.unit || "km"); };
 }
+if (input.places) {
+  card._chgTab = "places";
+  card._plc = { vin: "WBS1", trigger: "", data: input.places, loading: false };
+  card._plcExpanded = input.placesExpanded || null;
+  card._render = () => { card._sig = null; card._paintPlaces("device"); };
+}
 if (input.efficiency) {
   card._eff = { vin: "WBS1", trigger: "", data: input.efficiency, loading: false };
   card._render = () => { card._sig = null; card._paintEfficiency("device", null); };
@@ -334,3 +340,52 @@ def test_every_screen_renders_in_every_language(car: str, screen: str) -> None:
         timeout=60,
     )
     assert json.loads(result.stdout) == {}
+
+
+# What ``get_charging_places`` answers, built by the server's own code from
+# stored sessions, so the card is pinned against the real response shape.
+def _places(remembered: bool) -> list:
+    from datetime import datetime, timedelta, timezone
+
+    from .conftest import load_module
+
+    models = load_module("history.models")
+    stations = load_module("history.stations")
+    t0 = datetime(2026, 9, 1, 8, 0, tzinfo=timezone.utc)
+
+    def point(lat, lon):
+        return {"lat": lat, "lon": lon} if remembered else {}
+
+    def charge(day, location, minutes, kwh, soc, peak, **extra):
+        start = t0 + timedelta(days=day)
+        curve = [[0, peak * 0.9], [minutes * 20, peak], [minutes * 60, peak * 0.4]]
+        return models.ChargingSession(
+            vin="WBS1",
+            start=start,
+            end=start + timedelta(minutes=minutes),
+            soc_start=soc[0],
+            soc_end=soc[1],
+            energy_kwh=kwh,
+            peak_power_kw=peak,
+            power_curve=curve,
+            location=location,
+            **extra,
+        )
+
+    ionity = {"zone": None, "address": "A9 Holledau", "provider": "Ionity", **point(48.6, 11.6)}
+    sessions = [
+        charge(0, {"zone": "Home", **point(48.1, 11.5)}, 190, 33.0, (40, 80), 11.0),
+        charge(2, {"zone": "Home", **point(48.1, 11.5)}, 180, 31.0, (42, 80), 11.0),
+        charge(4, ionity, 18, 42.0, (20, 60), 180.0, preconditioned=True),
+        charge(6, ionity, 24, 41.0, (22, 62), 160.0, preconditioned=False),
+        charge(7, {"zone": None, "address": "Rosenheim"}, 60, 10.9, (50, 64), 11.0),
+        charge(8, {"zone": None}, 30, 6.0, (60, 70), 11.0),
+    ]
+    return stations.charging_places(sessions, home_zone="Home")
+
+
+@pytest.mark.parametrize("remembered", [False, True], ids=["list", "map"])
+def test_the_places_tab(remembered: bool, snapshot) -> None:
+    places = _places(remembered)
+    ionity = next(p for p in places if p["provider"] == "Ionity")
+    assert _render(I5, SCREENS["charging"], places=places, placesExpanded=ionity["id"]) == snapshot

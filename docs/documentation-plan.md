@@ -177,6 +177,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `charging_loss_percent` | Charging costs & history | 🟡 |
 | `history_retain_months` | Charging costs & history | 🟡 |
 | `statistics_import` | Charging costs & history | 🟡 |
+| `charge_locations` (Remember charging locations; off deletes coordinates) | Charging costs & history | 🟢 Settings-Reference + Feature-Charging-History-and-Cost → "Remember charging locations" (EN + DE) |
 | `refresh_on_start` | Automatic data refresh | 🟢 Settings-Reference → "Automatic data refresh" + Feature-Charging-History-and-Cost → "Restarting while the car is charging" |
 | `bridge_enabled` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge (incl. "Away from home, the status is withheld") |
 | `mileage_kind`, `mileage_start`, `mileage_end`, `mileage_allowance_km`, `mileage_start_km` | Mileage allowance (stored under `vehicles[VIN]`) | 🟢 Settings-Reference → "Mileage allowance" + Feature-Mileage |
@@ -201,6 +202,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | --- | --- | --- | --- |
 | *(default)* | Overview — drivetrain-aware (electric / plug-in hybrid / petrol-diesel layouts, plus the bare layout for a car that proves neither, `drivetrain:` override) | 🟢 The-Dashboard-Card → "Overview" + YAML reference | 📷 (have: electric `wattfried-car.png`; hybrid, petrol and bare `card-overview-phev/ice/bare.png`, 2026-10-18, rendered from the shipped card on the test suite's drivetrain fixtures: no such car to capture) |
 | `view: charging` | Charging history | 🟡 | 📷 |
+| `view: charging` → **Places** tab | Charging places: visits, AC/DC, average power, typical stop; expanded best visit, minutes per 10 %, preconditioned split, overlaid curves; map with remembered locations | 🟢 The-Dashboard-Card → "Charging history" + Feature-Charging-History-and-Cost → "Charging places" (EN + DE) | 📷 needed (no away charge on the i5 yet) |
 | `view: trips` | Driving journal | 🟡 | 📷 |
 | `view: map` | Trip map (routes) | 🟡 | 📷 (needs route data) |
 | `view: health` | Battery health | 🟡 | 📷 |
@@ -216,7 +218,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `cluster: <other>` | Single-cluster list | 🟡 | 📷 |
 | YAML options (`device`, `vin`, entity overrides) | — | 🟡 | — |
 
-### Services — 18 from `services.yaml`
+### Services — 21 from `services.yaml`
 
 Targeting (the **Vehicle** picker `device_id`, `vin`, `entry_id`; one-car services refuse a call naming no car once there are two): 🟢 Services-Reference intro + Feature-Multiple-Cars-and-Accounts (EN + DE).
 
@@ -230,6 +232,7 @@ Targeting (the **Vehicle** picker `device_id`, `vin`, `entry_id`; one-car servic
 | `fetch_location_charging_settings` | spends | 🟡 |
 | `fetch_vehicle_image` | spends | 🟡 |
 | `get_charging_sessions` | free | 🟢 Services-Reference (whole-day `from`/`to`) |
+| `get_charging_places` | free | 🟢 Services-Reference + Feature-Charging-History-and-Cost → "Charging places" (EN + DE) |
 | `get_trips` | free | 🟢 Services-Reference (`open_trips`, whole-day `from`/`to`) |
 | `get_driving_summary` | free | 🟢 Services-Reference + Feature-Trips → "How consumption is measured" |
 | `get_efficiency` | free | 🟢 Services-Reference + Feature-Efficiency-and-Range |

@@ -217,7 +217,8 @@
           "grid_energy_entity": "Laddboxens energisensor",
           "charging_loss_percent": "Laddförluster (%)",
           "history_retain_months": "Behåll historik i (månader)",
-          "statistics_import": "Publicera till långtidsstatistik"
+          "statistics_import": "Publicera till långtidsstatistik",
+          "charge_locations": "Kom ihåg laddplatser"
         },
         "data_description": {
           "price_mode": "Ingen registrerar sessioner utan kostnad. Fast pris debiterar varje kWh med ett pris; Prisentitet följer en live-tariff (Tibber, Nordpool, …) medan bilen laddar.",
@@ -227,7 +228,8 @@
           "grid_energy_entity": "Valfritt. Laddboxens totalmätare, en som bara räknar uppåt. Läses bara för laddningar i din zon Hem. Ett uppmätt värde går före uppskattningen på batterisidan och skärper även laddningsuppskattningen hemma.",
           "charging_loss_percent": "Valfritt. Energin mäts vid batteriet, något under vad elnätet levererade; detta räknar upp den. Låt stå på 0 om du har en laddboxmätare.",
           "history_retain_months": "0 behåller allt. Äldre sessioner kasseras.",
-          "statistics_import": "Speglar energi, kostnad och sträcka i statistik som du kan lägga till i energipanelen. Stannar lokalt; om du stänger av det raderas den igen."
+          "statistics_import": "Speglar energi, kostnad och sträcka i statistik som du kan lägga till i energipanelen. Stannar lokalt; om du stänger av det raderas den igen.",
+          "charge_locations": "Valfritt. Sparar var varje laddning skedde så att kortet kan visa dina laddplatser på en karta. Skriver koordinater till disk; att stänga av raderar dem. Från nästa laddning."
         },
         "sections": {
           "all_vehicles": {
@@ -239,7 +241,8 @@
               "price_entity": "Prisentitet",
               "price_currency": "Valuta",
               "history_retain_months": "Behåll historik i (månader)",
-              "statistics_import": "Publicera till långtidsstatistik"
+              "statistics_import": "Publicera till långtidsstatistik",
+              "charge_locations": "Kom ihåg laddplatser"
             },
             "data_description": {
               "price_mode": "Ingen registrerar sessioner utan kostnad. Fast pris debiterar varje kWh med ett pris; Prisentitet följer en live-tariff (Tibber, Nordpool, …) medan bilen laddar.",
@@ -247,7 +250,8 @@
               "price_entity": "Används bara när priskällan är 'Prisentitet'. Dess tillstånd måste vara ett pris per kWh.",
               "price_currency": "ISO-kod som visas på kostnadssensorerna, t.ex. EUR, GBP, CHF, SEK.",
               "history_retain_months": "0 behåller allt. Äldre sessioner kasseras.",
-              "statistics_import": "Speglar energi, kostnad och sträcka i statistik som du kan lägga till i energipanelen. Stannar lokalt; om du stänger av det raderas den igen."
+              "statistics_import": "Speglar energi, kostnad och sträcka i statistik som du kan lägga till i energipanelen. Stannar lokalt; om du stänger av det raderas den igen.",
+              "charge_locations": "Valfritt. Sparar var varje laddning skedde så att kortet kan visa dina laddplatser på en karta. Skriver koordinater till disk; att stänga av raderar dem. Från nästa laddning."
             }
           }
         }
@@ -2991,6 +2995,32 @@
         "limit": {
           "name": "Gräns",
           "description": "Högsta antal sessioner att returnera."
+        }
+      }
+    },
+    "get_charging_places": {
+      "name": "Hämta laddplatser",
+      "description": "Returnerar platserna där en bil har laddat, de mest besökta först, med medeleffekt och typiskt stopp på varje. Läser integrationens egen historik och kostar därför ingen BMW API-kvot.",
+      "fields": {
+        "device_id": {
+          "name": "Fordon",
+          "description": "Valfritt: bara den här bilen. Lämna tomt för alla bilar på kontot."
+        },
+        "entry_id": {
+          "name": "Konfigurationspost",
+          "description": "Valfritt id för kontots konfigurationspost. Behövs bara med flera konton när inget fordon eller VIN anges."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Valfritt VIN att filtrera på. Standard är alla kända fordon."
+        },
+        "from": {
+          "name": "Från",
+          "description": "Endast laddningar som började vid eller efter detta datum/tid."
+        },
+        "to": {
+          "name": "Till",
+          "description": "Endast laddningar som började vid eller före detta datum/tid."
         }
       }
     },

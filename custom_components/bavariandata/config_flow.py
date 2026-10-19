@@ -66,6 +66,7 @@ from .const import (
     OPTION_STREAM_SECTIONS,
     OPTION_STATISTICS_IMPORT,
     DEFAULT_STATISTICS_IMPORT,
+    OPTION_CHARGE_LOCATIONS,
     OPTION_REFRESH_ON_START,
     DEFAULT_REFRESH_ON_START,
     OPTION_TRIP_COMMUTE_GAP,
@@ -1342,6 +1343,10 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 OPTION_STATISTICS_IMPORT,
                 default=options.get(OPTION_STATISTICS_IMPORT, DEFAULT_STATISTICS_IMPORT),
             ): selector.BooleanSelector(),
+            vol.Required(
+                OPTION_CHARGE_LOCATIONS,
+                default=bool(options.get(OPTION_CHARGE_LOCATIONS, False)),
+            ): selector.BooleanSelector(),
         }
         if per_vehicle:
             # Expanded, unlike the other screens' shared sections: the price is
@@ -1394,6 +1399,11 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
             if runtime.history is not None:
                 months = int(shared.get(OPTION_HISTORY_RETAIN_MONTHS, 0) or 0)
                 runtime.history.retain_months = months if months > 0 else None
+                remember = bool(shared.get(OPTION_CHARGE_LOCATIONS))
+                runtime.history.remember_locations = remember
+                if not remember:
+                    # Off means gone, not merely "no new ones".
+                    runtime.history.forget_locations()
             if runtime.statistics is not None:
                 enabled = bool(shared.get(OPTION_STATISTICS_IMPORT, True))
                 was_enabled = runtime.statistics.enabled

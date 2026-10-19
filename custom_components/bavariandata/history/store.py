@@ -63,9 +63,14 @@ class HistoryStore:
         retain_months: Optional[int] = DEFAULT_RETAIN_MONTHS,
         max_sessions: int = MAX_SESSIONS_PER_VIN,
         max_trips: int = MAX_TRIPS_PER_VIN,
+        remember_locations: bool = False,
     ) -> None:
         self.hass = hass
         self.retain_months = retain_months
+        # *Remember charging locations*: whether a charge keeps the coordinates
+        # it was made at. Off by default -- it is the one charging setting that
+        # writes raw positions to disk (see ``forget_locations``).
+        self.remember_locations = remember_locations
         self.max_sessions = max_sessions
         self.max_trips = max_trips
         self._store = Store(hass, STORE_VERSION, f"{DOMAIN}_{entry_id}_history")
@@ -215,12 +220,49 @@ class HistoryStore:
                 zone = zone_fn(lat, lon)
                 if zone:
                     session.location = {"zone": zone}
+                    if self.remember_locations:
+                        session.location.update(lat=lat, lon=lon)
                     fixed += 1
         if fixed:
             if debug_enabled():
                 _LOGGER.debug("[history] re-resolved %s legacy charge location(s) to a zone", fixed)
             self.async_schedule_save()
         return fixed
+
+    @callback
+    def forget_locations(self) -> int:
+        """Strip stored coordinates from every charge, open ones included.
+
+        What turning *Remember charging locations* off means, and run at every
+        setup while it is off -- which also clears coordinates an older build's
+        imports left behind. Run after :meth:`reresolve_zones`, which needs
+        them once more to name a legacy record's zone. Zones, addresses and
+        operators stay: they are what the places list groups by without a map.
+        Returns how many records changed; idempotent.
+        """
+
+        def strip(location: Any) -> Any:
+            if not isinstance(location, dict) or ("lat" not in location and "lon" not in location):
+                return None
+            return {k: v for k, v in location.items() if k not in ("lat", "lon")}
+
+        changed = 0
+        for sessions in self._sessions.values():
+            for session in sessions:
+                stripped = strip(session.location)
+                if stripped is not None:
+                    session.location = stripped
+                    changed += 1
+        for snapshot in self._open_sessions.values():
+            stripped = strip(snapshot.get("location"))
+            if stripped is not None:
+                snapshot["location"] = stripped
+                changed += 1
+        if changed:
+            if debug_enabled():
+                _LOGGER.debug("[history] removed coordinates from %s charge(s)", changed)
+            self.async_schedule_save()
+        return changed
 
     @callback
     def drop_house_figures_elsewhere(self) -> int:
@@ -411,7 +453,12 @@ class HistoryStore:
             session
             for session in (
                 session_from_cardata(
-                    vin, raw, cost_fn=cost_fn, zone_fn=zone_fn, home_zone=home_zone
+                    vin,
+                    raw,
+                    cost_fn=cost_fn,
+                    zone_fn=zone_fn,
+                    home_zone=home_zone,
+                    keep_coordinates=self.remember_locations,
                 )
                 for raw in (raw_sessions or [])
             )

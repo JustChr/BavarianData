@@ -64,7 +64,10 @@ class ChargingSession:
     power_curve: list[list[float]] = field(default_factory=list)
     # {"zone": "Home"|"Work"|...} when the point falls in an HA zone; otherwise
     # {"zone": None, "address": "<BMW formatted address>"} for a public charge,
-    # or {"zone": None} when neither is known. Never carries raw coordinates.
+    # or {"zone": None} when neither is known. BMW's charging history may add
+    # {"provider": "<operator>"}. Raw coordinates ("lat"/"lon") are kept only
+    # while *Remember charging locations* is on (``HistoryStore.remember_locations``);
+    # turning it off strips them from every record (``forget_locations``).
     location: Optional[dict[str, Any]] = None
     # True when no GPS was available and the home tariff was applied anyway.
     location_assumed: bool = False
@@ -105,6 +108,13 @@ class ChargingSession:
     # the meter model (``meter_rate``). ``None`` when there is no grid figure, or
     # on a record enriched before this was kept, whose figure may be either.
     grid_source: Optional[str] = None
+    # "ac" or "dc" when the car said which at the start of a live charge
+    # (``chargingPort.dcStatus`` / ``charging.method``). ``None`` leaves it to
+    # the peak power (``stations.charge_kind``).
+    charge_method: Optional[str] = None
+    # Whether the battery was preconditioned for this charge. Only BMW's
+    # charging history says so; ``None`` means nobody told us.
+    preconditioned: Optional[bool] = None
 
     @property
     def id(self) -> str:
@@ -176,6 +186,8 @@ class ChargingSession:
             "interrupted": self.interrupted,
             "energy_mix": self.energy_mix,
             "grid_source": self.grid_source,
+            "charge_method": self.charge_method,
+            "preconditioned": self.preconditioned,
         }
 
     @classmethod
@@ -211,6 +223,12 @@ class ChargingSession:
             interrupted=bool(data.get("interrupted")),
             energy_mix=data.get("energy_mix") or None,
             grid_source=_grid_source(data),
+            charge_method=data.get("charge_method")
+            if data.get("charge_method") in ("ac", "dc")
+            else None,
+            preconditioned=data.get("preconditioned")
+            if isinstance(data.get("preconditioned"), bool)
+            else None,
         )
 
 
