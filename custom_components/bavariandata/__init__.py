@@ -533,9 +533,11 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
     # Imported here: services.py reads names from this package, which is only
     # complete once this module has finished loading.
+    from .assist_api import async_register_llm_api  # noqa: PLC0415
     from .services import async_setup_services  # noqa: PLC0415
 
     async_setup_services(hass)
+    async_register_llm_api(hass)
     return True
 
 
