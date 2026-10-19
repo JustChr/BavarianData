@@ -9,6 +9,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **No more tire sensors stuck on "unknown" for cars without tire data.** Some
+  cars, such as older models with no tire service record, get an answer from
+  BMW that holds nothing but placeholder values. BavarianData no longer creates
+  the overall tire condition and four wheel sensors from that, and removes the
+  ones it already created on the next tire diagnosis or restart (#174).
+
 ## [0.9.21-beta.5] - 2026-10-18
 
 ### Added

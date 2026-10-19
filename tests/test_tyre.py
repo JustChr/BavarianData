@@ -93,6 +93,45 @@ def test_empty_wheel_is_dropped_rather_than_shown_as_unknown():
     assert set(result["wheels"]) == {"rear_left"}
 
 
+# What a car with no tyre service record sends (#174, a 2018 F20): every wheel
+# present, carrying BMW's defaults and nothing else.
+_DEFAULTS_ONLY = {"tyreWear": {"dueMileage": 0, "unit": "KILOMETER"}, "runFlat": {"runFlat": False}}
+
+
+def test_wheels_of_defaults_alone_create_no_sensors():
+    mounted = {key: dict(_DEFAULTS_ONLY) for key, _ in WHEEL_POSITIONS}
+    result = parse_tyre_diagnosis({"passengerCar": {"mountedTyres": mounted}})
+    assert result["wheels"] == {}
+    assert result["aggregated_status"] is None
+    assert not tyre.has_tyre_data(result)
+
+
+def test_a_real_reading_next_to_the_defaults_still_counts():
+    assert tyre.wheel_has_data(parse_wheel({**_DEFAULTS_ONLY, "season": {"season": "WINTER"}}))
+    assert tyre.wheel_has_data(parse_wheel({"tyreWear": {"dueMileage": 1200}}))
+    assert tyre.wheel_has_data(parse_wheel({"runFlat": {"runFlat": True}}))
+    # Zero left with a status is a reading ("replace now"), not a default.
+    assert tyre.wheel_has_data(
+        parse_wheel({"tyreWear": {"dueMileage": 0, "status": "REPLACE", "statusColor": "RED"}})
+    )
+
+
+def test_an_outage_still_counts_as_tyre_data():
+    # The errors branch empties the wheels too; the sensors must survive it.
+    assert tyre.has_tyre_data({"wheels": {}, "aggregated_status": None, "errors": ["down"]})
+    assert tyre.has_tyre_data(parse_tyre_diagnosis(_payload()))
+
+
+def test_restore_drops_default_only_wheels_stored_before_the_fix():
+    stored = {
+        "wheels": {"front_left": parse_wheel(_DEFAULTS_ONLY), "rear_left": parse_wheel(_wheel())},
+        "aggregated_status": None,
+        "errors": [],
+    }
+    restored = restore_diagnosis({"fetched_at": "2026-10-19T02:00:00+00:00", "diagnosis": stored})
+    assert set(restored["wheels"]) == {"rear_left"}
+
+
 def test_missing_and_malformed_payloads_never_raise():
     for payload in (None, {}, [], "nope", {"passengerCar": None}, {"passengerCar": {}}):
         result = parse_tyre_diagnosis(payload)

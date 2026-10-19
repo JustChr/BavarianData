@@ -114,6 +114,42 @@ def parse_wheel(data: Any) -> Dict[str, Any]:
     }
 
 
+def wheel_has_data(wheel: Dict[str, Any]) -> bool:
+    """Whether a parsed wheel says anything a user could act on.
+
+    Not merely "some field is set": cars that have no tyre service record on
+    file (seen on a 2018 F20, #174) send every wheel with ``dueMileage: 0`` and
+    ``runFlat: false`` and nothing else. Those two are BMW's defaults, not a
+    reading -- a wheel built from them alone can only ever show "unknown".
+    """
+
+    for key, value in wheel.items():
+        if key == "due_mileage_km":
+            if isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0:
+                return True
+        elif key == "run_flat":
+            if value is True:
+                return True
+        elif value is not None:
+            return True
+    return False
+
+
+def has_tyre_data(diagnosis: Any) -> bool:
+    """Whether a diagnosis gives the tyre sensors anything to show.
+
+    False is the "BMW keeps no tyre data for this car" answer, so the sensors
+    made for it are removed rather than left reading "unknown". An ``errors``
+    branch counts as data: an upstream outage empties the wheels too, and it
+    must not cost the sensors their history.
+    """
+
+    diagnosis = _obj(diagnosis)
+    return bool(
+        diagnosis.get("wheels") or diagnosis.get("aggregated_status") or diagnosis.get("errors")
+    )
+
+
 def _errors(payload: Dict[str, Any]) -> List[str]:
     out: List[str] = []
     for item in payload.get("errors") or []:
@@ -147,9 +183,9 @@ def parse_tyre_diagnosis(payload: Any) -> Dict[str, Any]:
         if not isinstance(raw, dict) or not raw:
             continue
         parsed = parse_wheel(raw)
-        # A wheel whose every field is empty tells us nothing; keeping it would
-        # create an entity that can only ever show "unknown".
-        if any(value is not None for value in parsed.values()):
+        # A wheel that tells us nothing would create an entity that can only
+        # ever show "unknown".
+        if wheel_has_data(parsed):
             wheels[slug] = parsed
 
     return {
@@ -175,10 +211,12 @@ def restore_diagnosis(record: Any) -> Optional[Dict[str, Any]]:
         return None
 
     wheels = diagnosis.get("wheels")
+    # Filtered again rather than trusted: a store written before #174 holds the
+    # default-only wheels this module now drops on parse.
     diagnosis["wheels"] = {
-        str(position): _obj(wheel)
+        str(position): wheel
         for position, wheel in (wheels.items() if isinstance(wheels, dict) else ())
-        if isinstance(wheel, dict)
+        if isinstance(wheel, dict) and wheel_has_data(wheel)
     }
     errors = diagnosis.get("errors")
     diagnosis["errors"] = (

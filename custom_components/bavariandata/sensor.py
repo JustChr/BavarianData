@@ -41,6 +41,7 @@ from .history.summary import (
 )
 from .placeholders import is_placeholder
 from .restore_units import restore_native
+from .tyre import has_tyre_data
 from .units import entity_unit
 from .sensor_classes import sensor_classes
 from .structured_values import (
@@ -1738,6 +1739,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         if new_entities:
             async_add_entities(new_entities, True)
 
+    def tyre_data_absent(vin: str) -> bool:
+        """A fetch landed and said BMW keeps no tyre data for this car (#174)."""
+
+        diagnosis = coordinator.tyre_diagnosis.get(vin)
+        return diagnosis is not None and not has_tyre_data(diagnosis)
+
+    def prune_tyre_entities(vin: str) -> None:
+        """Drop the tyre sensors of a car whose diagnosis has nothing in it.
+
+        Removing the registry entry removes the live entity with it. Pruned only
+        on the "nothing at all" answer: a later fetch that omits one wheel keeps
+        that wheel's sensor and its history.
+        """
+
+        for entity in (tyre_entities.pop(vin, None) or {}).values():
+            if entity.entity_id and entity_registry.async_get(entity.entity_id):
+                entity_registry.async_remove(entity.entity_id)
+
     def ensure_location_entities(vin: str) -> None:
         """Create the opt-in latitude/longitude sensors, disabled, once per car.
 
@@ -1879,6 +1898,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
             ensure_mileage_entity(vin, force=True)
             continue
         if descriptor.startswith("tyre_"):
+            if tyre_data_absent(vin):
+                # Created before #174 from a diagnosis of BMW's defaults alone.
+                entity_registry.async_remove(entity_entry.entity_id)
+                continue
             # Re-create what the car had before today's fetch lands, so the
             # entity keeps its id and history instead of the generic path
             # minting a CardataSensor on the same unique id.
@@ -1936,6 +1959,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     async def async_handle_new_tyre(vin: str) -> None:
         # A later fetch can report a wheel the first one omitted, so this runs on
         # every diagnosis, not just the first.
+        if tyre_data_absent(vin):
+            prune_tyre_entities(vin)
+            return
         ensure_tyre_entities(vin)
 
     entry.async_on_unload(
