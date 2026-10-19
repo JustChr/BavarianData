@@ -12,6 +12,7 @@ user's personal BMW client ID. Domain: `bavariandata`. Repo:
   - `rest.py` — the one way into REST: `TokenKeeper` (renews only near expiry, one renewal at a time; every renewal reconnects the stream) and `RestGateway` (token → quota claim → request). No HA imports. Every REST caller goes through `runtime.rest`.
   - `container.py` — the two REST containers every car reads: `FULL` (non-streamable + battery seed) and `SERVICE` (`conditionBasedServices` alone: BMW refuses a whole container over that one field since 16 Oct 2026, #142).
   - `services.py` — every service handler, registered once from `async_setup`; a handler finds its account only through `_resolve_target`, and its car through `_target_car` (a `device_id` picker, `vin` or `entry_id`). The rules are HA-free in `service_target.py`: with two cars, a one-car service refuses a call that names none.
+  - `assist.py` / `assist_api.py` — the BavarianData LLM API: six read-only tools a conversation agent (or HA's MCP server) can call. `assist.py` is HA-free and decides what an answer may hold (no VIN, ids, coordinates, curves; the open/unlocked rule shared with the `car_left_open` blueprint); the adapter is registered once from `async_setup` and reads through the read services.
   - `device_flow.py` — OAuth 2.0 device-authorization flow (no HA imports; unit-testable).
   - `stream.py` — MQTT streaming client (paho-mqtt).
   - `coordinator.py` — central state: token refresh, stream lifecycle, quota, charging-session tracking + `bavariandata_charging_*` events, derived charged-energy sensors.
