@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.21-beta.8] - 2026-10-19
+
 ### Added
 - **Ask your AI assistant about the car, with no setup.** BavarianData now
   offers its own tools to Assist's AI conversation agents (and Home
