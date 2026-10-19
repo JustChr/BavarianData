@@ -344,7 +344,7 @@
           "trip_commute_gap": "Wie lange das Auto zwischen zwei Fahrten stehen darf, damit beide noch als eine Pendelfahrt gelten — der Supermarkt auf dem Weg zur Arbeit. 0 schaltet das ab. Stopps unter etwa fünf Minuten teilen eine Fahrt ohnehin nicht auf.",
           "trip_geocode": "Optional. Sendet Endpunkte außerhalb von Zonen an OpenStreetMap; gespeichert wird nur die Adresse, nie die Koordinaten.",
           "trip_detection": "Live verfolgt die Position des Autos während der Fahrt. Berichte am Fahrtende erzeugt eine Fahrt pro Bericht, für Autos, die während der Fahrt nichts senden; die Live-Erkennung ist dann aus.",
-          "trip_track": "Optional. Speichert den GPS-Verlauf jeder Fahrt, damit eine Karte die Route zeichnen und abspielen kann. Die einzige Einstellung, die rohe Koordinaten speichert, deine genauen Start- und Zielpunkte eingeschlossen.",
+          "trip_track": "Optional. Speichert den GPS-Verlauf jeder Fahrt, damit eine Karte die Route zeichnen und abspielen kann. Speichert rohe Koordinaten, deine genauen Start- und Zielpunkte eingeschlossen.",
           "trip_debug": "Nur zur Fehlersuche. Protokolliert jeden GPS-Punkt, Timer und jede Nachricht und schreibt bavariandata_trip_capture.ndjson in deinen Konfigurationsordner. Enthält GPS und FIN: nur für eine Testfahrt einschalten."
         },
         "sections": {

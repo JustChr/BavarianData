@@ -344,7 +344,7 @@
           "trip_commute_gap": "Hoe lang de auto tussen twee ritten mag stilstaan zodat ze samen nog als één woon-werkrit tellen — de supermarkt op weg naar het werk. Zet op 0 om dit uit te schakelen. Stops korter dan ongeveer vijf minuten splitsen een rit sowieso nooit.",
           "trip_geocode": "Optioneel. Stuurt punten buiten een zone naar OpenStreetMap; alleen het gevonden adres wordt opgeslagen, nooit de coördinaten.",
           "trip_detection": "Live volgt de positie van de auto tijdens het rijden. Rapporten aan het einde van de rit maakt één rit per rapport, voor auto's die tijdens het rijden niets sturen; de live-detectie staat dan uit.",
-          "trip_track": "Optioneel. Slaat het GPS-spoor van elke rit op zodat een kaart de route kan tekenen en afspelen. De enige instelling die ruwe coördinaten op schijf opslaat, je exacte begin en eind inbegrepen.",
+          "trip_track": "Optioneel. Slaat het GPS-spoor van elke rit op zodat een kaart de route kan tekenen en afspelen. Slaat ruwe coördinaten op schijf op, je exacte begin en eind inbegrepen.",
           "trip_debug": "Alleen voor probleemoplossing. Logt elke GPS-positie, timer en elk bericht en schrijft bavariandata_trip_capture.ndjson naar je configuratiemap. Bevat GPS en VIN: zet het alleen aan voor één testrit."
         },
         "sections": {

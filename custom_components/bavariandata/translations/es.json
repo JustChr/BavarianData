@@ -344,7 +344,7 @@
           "trip_commute_gap": "Cuánto tiempo puede estar parado el coche entre dos trayectos para que ambos sigan contando como un único desplazamiento — el supermercado de camino al trabajo. Pon 0 para desactivarlo. Las paradas de menos de unos cinco minutos nunca dividen un trayecto.",
           "trip_geocode": "Opcional. Envía los extremos fuera de zona a OpenStreetMap; solo se guarda la dirección resultante, nunca las coordenadas.",
           "trip_detection": "En directo sigue la posición del coche mientras conduce. Informes de fin de trayecto crea un trayecto por informe, para coches que no envían nada mientras conducen; la detección en directo queda desactivada.",
-          "trip_track": "Opcional. Guarda la traza GPS de cada trayecto para que un mapa pueda dibujar y reproducir la ruta. Es el único ajuste que guarda coordenadas en bruto en el disco, incluidos tu inicio y fin exactos.",
+          "trip_track": "Opcional. Guarda la traza GPS de cada trayecto para que un mapa pueda dibujar y reproducir la ruta. Guarda coordenadas en bruto en el disco, incluidos tu inicio y fin exactos.",
           "trip_debug": "Solo para resolver problemas. Registra cada posición GPS, temporizador y mensaje y escribe bavariandata_trip_capture.ndjson en tu carpeta de configuración. Contiene GPS y VIN: actívalo solo para un trayecto de prueba."
         },
         "sections": {

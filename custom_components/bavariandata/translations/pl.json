@@ -344,7 +344,7 @@
           "trip_commute_gap": "Jak długo auto może stać między dwoma przejazdami, aby oba nadal liczyły się jako jeden dojazd — supermarket po drodze do pracy. Ustaw 0, aby to wyłączyć. Postoje krótsze niż około pięć minut i tak nigdy nie dzielą przejazdu.",
           "trip_geocode": "Opcjonalnie. Wysyła punkty spoza stref do OpenStreetMap; zapisywany jest tylko uzyskany adres, nigdy współrzędne.",
           "trip_detection": "Na żywo śledzi pozycję auta w trakcie jazdy. Raporty po zakończeniu jazdy tworzą jeden przejazd na raport, dla aut, które w trakcie jazdy nic nie wysyłają; wykrywanie na żywo jest wtedy wyłączone.",
-          "trip_track": "Opcjonalnie. Zapisuje ślad GPS każdego przejazdu, aby mapa mogła narysować i odtworzyć trasę. Jedyne ustawienie, które zapisuje surowe współrzędne na dysku, łącznie z dokładnym początkiem i końcem.",
+          "trip_track": "Opcjonalne. Zapisuje ślad GPS każdego przejazdu, aby mapa mogła narysować i odtworzyć trasę. Zapisuje surowe współrzędne na dysku, łącznie z dokładnym startem i celem.",
           "trip_debug": "Tylko do rozwiązywania problemów. Loguje każdą pozycję GPS, timer i wiadomość oraz zapisuje bavariandata_trip_capture.ndjson w folderze konfiguracji. Zawiera GPS i VIN: włącz tylko na jedną jazdę testową."
         },
         "sections": {

@@ -9,6 +9,10 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The *Record route* help no longer calls itself the only setting that saves
+  coordinates.** Since *Remember charging locations*, it isn't.
+
 ## [0.9.21-beta.8] - 2026-10-19
 
 ### Added
