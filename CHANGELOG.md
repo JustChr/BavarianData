@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.21-beta.6] - 2026-10-19
+
 ### Fixed
 - **No more tire sensors stuck on "unknown" for cars without tire data.** Some
   cars, such as older models with no tire service record, get an answer from
