@@ -344,7 +344,7 @@
           "trip_commute_gap": "How long the car may stand between two drives for both to still count as one commute — the supermarket on the way to work. Set 0 to switch this off. Stops shorter than about five minutes never split a drive in the first place.",
           "trip_geocode": "Optional. Sends non-zone endpoints to OpenStreetMap; only the resulting address is stored, never the coordinates.",
           "trip_detection": "Live follows the car's position while it drives. End-of-trip reports builds one trip per report, for cars that send nothing while driving; the live detection is then off.",
-          "trip_track": "Optional. Stores each trip's GPS track so a map can draw and replay the route. The only setting that saves raw coordinates to disk, your exact start and end included.",
+          "trip_track": "Optional. Stores each trip's GPS track so a map can draw and replay the route. Saves raw coordinates to disk, your exact start and end included.",
           "trip_debug": "Troubleshooting only. Logs every GPS fix, timer and message and writes bavariandata_trip_capture.ndjson to your config folder. Contains GPS and VIN: turn it on for one test drive."
         },
         "sections": {

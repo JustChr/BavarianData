@@ -344,7 +344,7 @@
           "trip_commute_gap": "Jak dlouho smí auto mezi dvěma jízdami stát, aby se obě stále počítaly jako jedno dojíždění — supermarket cestou do práce. Nastavte 0 pro vypnutí. Zastávky kratší než zhruba pět minut jízdu nikdy nerozdělí.",
           "trip_geocode": "Volitelné. Odesílá body mimo zóny do OpenStreetMap; ukládá se jen výsledná adresa, nikdy souřadnice.",
           "trip_detection": "Živě sleduje polohu auta během jízdy. Hlášení na konci jízdy vytvoří jednu jízdu na hlášení, pro auta, která během jízdy nic neposílají; živá detekce je pak vypnutá.",
-          "trip_track": "Volitelné. Ukládá GPS stopu každé jízdy, aby mapa mohla trasu vykreslit a přehrát. Jediné nastavení, které ukládá surové souřadnice na disk, včetně přesného začátku a konce.",
+          "trip_track": "Volitelné. Ukládá GPS stopu každé jízdy, aby mapa mohla trasu vykreslit a přehrát. Zapisuje surové souřadnice na disk, včetně přesného začátku a konce.",
           "trip_debug": "Pouze pro řešení potíží. Zaznamenává každou polohu GPS, časovač a zprávu a zapisuje bavariandata_trip_capture.ndjson do vaší konfigurační složky. Obsahuje GPS a VIN: zapněte jen na jednu testovací jízdu."
         },
         "sections": {

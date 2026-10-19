@@ -344,7 +344,7 @@
           "trip_commute_gap": "Hur länge bilen får stå mellan två resor för att båda fortfarande ska räknas som en pendling — mataffären på vägen till jobbet. Ange 0 för att stänga av. Stopp kortare än ungefär fem minuter delar aldrig en resa.",
           "trip_geocode": "Valfritt. Skickar punkter utanför zoner till OpenStreetMap; bara den resulterande adressen sparas, aldrig koordinaterna.",
           "trip_detection": "Live följer bilens position medan den kör. Rapporter vid resans slut skapar en resa per rapport, för bilar som inte skickar något under körning; live-identifieringen är då av.",
-          "trip_track": "Valfritt. Sparar varje resas GPS-spår så att en karta kan rita och spela upp rutten. Den enda inställningen som sparar råa koordinater på disk, exakt start och slut inräknade.",
+          "trip_track": "Valfritt. Sparar GPS-spåret för varje resa så att en karta kan rita och spela upp rutten. Sparar råa koordinater på disk, inklusive exakt start och mål.",
           "trip_debug": "Endast för felsökning. Loggar varje GPS-position, timer och meddelande och skriver bavariandata_trip_capture.ndjson till din konfigurationsmapp. Innehåller GPS och VIN: slå bara på det för en testkörning."
         },
         "sections": {

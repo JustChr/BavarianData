@@ -344,7 +344,7 @@
           "trip_commute_gap": "Durée pendant laquelle la voiture peut rester à l'arrêt entre deux trajets pour qu'ils comptent encore comme un seul trajet domicile-travail — le supermarché sur le chemin du travail. Mettez 0 pour désactiver. Les arrêts de moins de cinq minutes environ ne coupent jamais un trajet.",
           "trip_geocode": "Facultatif. Envoie les points hors zone à OpenStreetMap ; seule l'adresse obtenue est enregistrée, jamais les coordonnées.",
           "trip_detection": "En direct suit la position de la voiture pendant qu'elle roule. Rapports de fin de trajet crée un trajet par rapport, pour les voitures qui n'envoient rien en roulant ; la détection en direct est alors désactivée.",
-          "trip_track": "Facultatif. Enregistre la trace GPS de chaque trajet afin qu'une carte puisse tracer et rejouer l'itinéraire. Seul réglage qui enregistre des coordonnées brutes sur le disque, départ et arrivée exacts compris.",
+          "trip_track": "Facultatif. Enregistre la trace GPS de chaque trajet afin qu'une carte puisse tracer et rejouer l'itinéraire. Enregistre des coordonnées brutes sur le disque, départ et arrivée exacts compris.",
           "trip_debug": "Dépannage uniquement. Journalise chaque position GPS, minuterie et message et écrit bavariandata_trip_capture.ndjson dans votre dossier de configuration. Contient GPS et VIN : à activer pour un seul trajet de test."
         },
         "sections": {

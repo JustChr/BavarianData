@@ -344,7 +344,7 @@
           "trip_commute_gap": "Per quanto tempo l'auto può restare ferma tra due viaggi perché contino ancora come un unico tragitto casa-lavoro — il supermercato sulla strada per il lavoro. Imposta 0 per disattivare. Le soste inferiori a circa cinque minuti non spezzano mai un viaggio.",
           "trip_geocode": "Facoltativo. Invia i punti fuori zona a OpenStreetMap; viene salvato solo l'indirizzo risultante, mai le coordinate.",
           "trip_detection": "Dal vivo segue la posizione dell'auto mentre guida. Report di fine viaggio crea un viaggio per report, per le auto che non inviano nulla durante la guida; il rilevamento dal vivo è allora spento.",
-          "trip_track": "Facoltativo. Salva la traccia GPS di ogni viaggio, così una mappa può disegnare e riprodurre il percorso. L'unica impostazione che salva coordinate grezze su disco, inclusi partenza e arrivo esatti.",
+          "trip_track": "Facoltativo. Salva la traccia GPS di ogni viaggio, così una mappa può disegnare e riprodurre il percorso. Salva coordinate grezze su disco, inclusi partenza e arrivo esatti.",
           "trip_debug": "Solo per la risoluzione dei problemi. Registra ogni posizione GPS, timer e messaggio e scrive bavariandata_trip_capture.ndjson nella cartella di configurazione. Contiene GPS e VIN: attivalo per un solo viaggio di prova."
         },
         "sections": {
