@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **Ask your AI assistant about the car, with no setup.** BavarianData now
+  offers its own tools to Assist's AI conversation agents (and Home
+  Assistant's MCP server): car status (battery, charging, range, zone, what's
+  open), a range check for a drive, charging history, the driving month,
+  mileage and lease, and efficiency. Tick **BavarianData** under *Control Home
+  Assistant* in your agent's settings. No API quota; the VIN, the car's
+  position and trip ids never reach the AI. The three copy-paste scripts the
+  wiki used to describe are no longer needed.
+
 ## [0.9.21-beta.7] - 2026-10-19
 
 ### Added

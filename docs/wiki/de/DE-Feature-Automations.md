@@ -269,134 +269,43 @@ importieren** mit der Raw-URL von GitHub:
 ## Assist nach dem Auto fragen
 
 Mit einem KI-Gesprächsagenten hinter Assist (OpenAI, Google, Anthropic oder
-Ollama) beantwortet Assist Fragen wie *„Wie weit bin ich letzten Monat
-gefahren?“*, *„Was hat das Laden diese Woche gekostet?“* oder *„Liege ich beim
-Leasing im Plan?“* aus BavarianDatas eigenem Verlauf. Dafür braucht es drei
-Skripte, die die Antworten übergeben. Sie lesen den lokalen Speicher und kosten
+Ollama) beantwortet Assist Fragen wie *„Muss ich laden, bevor ich nach München
+und zurück fahre?“*, *„Ist das Auto abgeschlossen?“*, *„Was hat das Laden diesen
+Monat gekostet?“* oder *„Liege ich beim Leasing im Plan?“*. BavarianData bringt
+dafür eigene Werkzeuge mit. Sie lesen dasselbe wie die Karte und kosten
 **kein API-Kontingent**.
 
-1. Die Skripte unten in `scripts.yaml` einfügen (oder jedes unter
-   *Einstellungen → Automationen & Szenen → Skripte* anlegen, *In YAML
-   bearbeiten*), dann die Skripte neu laden.
-2. Für Assist freigeben: *Einstellungen → Sprachassistenten → Freigeben*, die
-   drei Skripte hinzufügen.
-3. Beim Gesprächsagenten *Home Assistant steuern* einschalten, falls es aus ist.
+Einmal einschalten: deine KI-Integration unter **Einstellungen → Geräte &
+Dienste** öffnen, ihren Gesprächsagenten **konfigurieren** und unter
+*Home Assistant steuern* neben *Assist* auch **BavarianData** ankreuzen.
+Freigeben musst du nichts, Skripte braucht es keine. Die Integration *Model
+Context Protocol Server* von Home Assistant bietet dieselbe Auswahl, damit
+können auch KI-Apps am Rechner fragen.
 
-Die Beschreibungen in den Skripten sind englisch; die KI versteht sie trotzdem
-und antwortet auf Deutsch.
+Die Werkzeuge:
 
-```yaml
-car_driving_month:
-  alias: Car driving month
-  description: >-
-    How far the car was driven in a month: distance, number of trips, the
-    private/business/commute split, average consumption and the estimated
-    driving cost. Use it for questions about distance, trips, consumption or
-    what driving cost.
-  fields:
-    month:
-      description: The month as YYYY-MM. Leave empty for the current month.
-      example: "2026-09"
-      selector:
-        text:
-  sequence:
-    - action: bavariandata.get_driving_summary
-      data:
-        month: "{{ month if month | default('') | trim else now().strftime('%Y-%m') }}"
-      response_variable: result
-    - variables:
-        # Named fields only: the trip ids in the raw answer hold the VIN.
-        answer: >
-          {% set s = result.summary %}
-          {% set best = s.best_trip or {} %}
-          {% set worst = s.worst_trip or {} %}
-          {{ {'month': result.month,
-              'total_km': s.total_km, 'trip_count': s.trip_count,
-              'avg_trip_km': s.avg_trip_km, 'longest_trip_km': s.longest_trip_km,
-              'split': s.split,
-              'avg_consumption_kwh_per_100km': s.avg_consumption_kwh_per_100km,
-              'energy_balance': s.energy_balance,
-              'top_destinations': s.top_destinations,
-              'previous_month_km': s.prev_total_km,
-              'change_vs_previous_month_percent': s.mom_delta_percent,
-              'estimated_cost': s.estimated_cost,
-              'most_efficient_trip': {'to': best.get('label'),
-                                      'kwh_per_100km': best.get('consumption'),
-                                      'km': best.get('distance_km')},
-              'least_efficient_trip': {'to': worst.get('label'),
-                                       'kwh_per_100km': worst.get('consumption'),
-                                       'km': worst.get('distance_km')}} }}
-    - stop: Done
-      response_variable: answer
+| Werkzeug | Beantwortet |
+|---|---|
+| Fahrzeugstatus | Akku, Laden (Leistung, Minuten bis zum Ziel), Reichweite, die Zone, in der es steht, ob es gerade fährt, alles, was offen oder unverriegelt ist |
+| Reichweitencheck | Ob eine Fahrt in die Restreichweite passt, einfach oder hin und zurück, mit Reserve (ein Zehntel der Reichweite eines vollen Akkus, mindestens 20 km), und wie viel mehr Ladung sie sonst braucht. Die Strecke schätzt der Agent aus den Orten, die du nennst. |
+| Ladeverlauf | Die Ladevorgänge der letzten Tage (30, wenn du nichts anderes sagst): wann, wo, Akku vorher und nachher, Energie und Kosten, mit Summen |
+| Fahrmonat | Strecke, Fahrten, die Aufteilung dienstlich/privat/Arbeitsweg, Verbrauch, Kosten und die häufigsten Ziele, im Vergleich zum Vormonat |
+| Kilometerstand | Tachostand, dieser Monat und dieses Jahr, die Hochrechnung aufs Jahr und dein Leasing- oder Jahreskontingent, falls eingestellt |
+| Effizienz | Gemessener Verbrauch, die echte Reichweite daraus, der Vergleich mit dem Wert des Autos und der Verlauf nach Monaten |
 
-car_charging_history:
-  alias: Car charging history
-  description: >-
-    The car's charging sessions over the last days: when and where, state of
-    charge before and after, energy and cost. Use it for questions about
-    charging, charging cost or energy.
-  fields:
-    days:
-      description: How many days back to look. 30 if not given.
-      example: 30
-      selector:
-        number:
-          min: 1
-          max: 365
-  sequence:
-    - action: bavariandata.get_charging_sessions
-      data:
-        from: "{{ (now() - timedelta(days=days | default(30) | int)).date() | string }}"
-      response_variable: result
-    - variables:
-        answer: >
-          {% set ns = namespace(sessions=[]) %}
-          {% for s in result.sessions %}
-            {% set ns.sessions = ns.sessions + [{
-              'start': s.start, 'end': s.end,
-              'place': (s.location or {}).get('zone'),
-              'soc_before': s.soc_start, 'soc_after': s.soc_end,
-              'kwh_from_grid': s.grid_kwh, 'kwh_into_battery': s.energy_kwh,
-              'cost': (s.cost or {}).get('amount'),
-              'currency': (s.cost or {}).get('currency')}] %}
-          {% endfor %}
-          {{ {'sessions': ns.sessions} }}
-    - stop: Done
-      response_variable: answer
+Die Reichweite ist die [gemessene](DE-Feature-Efficiency-and-Range), wo es
+eine gibt, sonst die des Autos. Antworten kommen in der Entfernungseinheit
+deines Autos. Mit mehreren Autos fragt der Agent eines beim Namen ab oder alle.
 
-car_mileage:
-  alias: Car mileage
-  description: >-
-    The car's odometer, the distance driven this month and this year, the
-    last twelve months, its pace in km per day and, if one is set, where it
-    stands against its lease or yearly mileage allowance.
-  sequence:
-    - action: bavariandata.get_mileage_report
-      data: {}
-      response_variable: result
-    - variables:
-        answer: >
-          {{ {'odometer_km': result.odometer_km,
-              'this_month_km': result.this_month.km,
-              'this_year_km': result.this_year.km,
-              'km_per_day': result.km_per_day,
-              'projected_year_km': result.projected_year_km,
-              'months': result.months,
-              'allowance': result.allowance} }}
-    - stop: Done
-      response_variable: answer
-```
+**Was die KI sieht.** Die Werte oben und die Namen von Orten (deine Zonen,
+oder Adressen bei Fahrten, die woanders endeten). Nie die FIN, die Position
+des Autos, Fahrt-IDs oder Ladekurven: Die werden aus jeder Antwort entfernt.
+Am Auto können die Werkzeuge nichts tun; CarData liest nur. Mit einem
+Cloud-Agenten verlassen diese Werte dein Zuhause; ein lokaler Agent wie Ollama
+behält sie dort.
 
-**Was die KI sieht.** Genau das, was diese Skripte zurückgeben: Strecken,
-Verbrauch, Kosten, Ladezeiten und die Namen von Orten (deine Zonen, oder
-Adressen bei Fahrten, die woanders endeten). Sonst nichts, auch keine FIN: Die
-Skripte nennen jedes Feld einzeln, weil die rohen Antworten der Dienste die FIN
-in ihren IDs tragen. Mit einem Cloud-Agenten verlassen diese Werte dein
-Zuhause; ein lokaler Agent wie Ollama behält sie dort.
-
-Mit mehreren Autos (oder Konten) unter `data:` jedes Skripts die `device_id:`
-des Autos ergänzen und jedem Auto eigene drei Skripte geben, nach dem Auto
-benannt. Ohne sie wird ein Skript für ein Auto abgelehnt, sobald es zwei gibt.
+*Die drei `car_…`-Skripte aus einer früheren Fassung dieser Seite eingerichtet?*
+Du kannst sie löschen; die Werkzeuge beantworten alles, was sie konnten.
 
 ## Nicht vergessen: nur lesend
 

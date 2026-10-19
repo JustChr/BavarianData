@@ -252,129 +252,43 @@ Automations → Blueprints → Import Blueprint** with the raw GitHub URL:
 ## Ask Assist about your car
 
 With an AI conversation agent behind Assist (OpenAI, Google, Anthropic or
-Ollama), Assist can answer questions such as *"How far did I drive last
-month?"*, *"What did charging cost this week?"* or *"Am I on track with my
-lease?"* from BavarianData's own history. It needs three scripts that hand the
-answers over. They read the local store, so they cost **no API quota**.
+Ollama), Assist can answer questions such as *"Do I need to charge before
+driving to Munich and back?"*, *"Is the car locked?"*, *"What did charging cost
+this month?"* or *"Am I on track with my lease?"*. BavarianData offers its own
+set of tools for that. They read what the card reads, so they cost **no API
+quota**.
 
-1. Add the scripts below to `scripts.yaml` (or create each under *Settings →
-   Automations & scenes → Scripts*, *Edit in YAML*), then reload scripts.
-2. Expose them to Assist: *Settings → Voice assistants → Expose*, add the
-   three scripts.
-3. Turn on *Control Home Assistant* for your conversation agent, if it isn't.
+Turn them on once: open your AI integration under **Settings → Devices &
+services**, then **Configure** its conversation agent, and tick
+**BavarianData** under *Control Home Assistant*, next to *Assist*. Nothing has
+to be exposed, and no scripts are needed. Home Assistant's *Model Context
+Protocol Server* integration offers the same choice, so desktop AI apps can
+ask too.
 
-```yaml
-car_driving_month:
-  alias: Car driving month
-  description: >-
-    How far the car was driven in a month: distance, number of trips, the
-    private/business/commute split, average consumption and the estimated
-    driving cost. Use it for questions about distance, trips, consumption or
-    what driving cost.
-  fields:
-    month:
-      description: The month as YYYY-MM. Leave empty for the current month.
-      example: "2026-09"
-      selector:
-        text:
-  sequence:
-    - action: bavariandata.get_driving_summary
-      data:
-        month: "{{ month if month | default('') | trim else now().strftime('%Y-%m') }}"
-      response_variable: result
-    - variables:
-        # Named fields only: the trip ids in the raw answer hold the VIN.
-        answer: >
-          {% set s = result.summary %}
-          {% set best = s.best_trip or {} %}
-          {% set worst = s.worst_trip or {} %}
-          {{ {'month': result.month,
-              'total_km': s.total_km, 'trip_count': s.trip_count,
-              'avg_trip_km': s.avg_trip_km, 'longest_trip_km': s.longest_trip_km,
-              'split': s.split,
-              'avg_consumption_kwh_per_100km': s.avg_consumption_kwh_per_100km,
-              'energy_balance': s.energy_balance,
-              'top_destinations': s.top_destinations,
-              'previous_month_km': s.prev_total_km,
-              'change_vs_previous_month_percent': s.mom_delta_percent,
-              'estimated_cost': s.estimated_cost,
-              'most_efficient_trip': {'to': best.get('label'),
-                                      'kwh_per_100km': best.get('consumption'),
-                                      'km': best.get('distance_km')},
-              'least_efficient_trip': {'to': worst.get('label'),
-                                       'kwh_per_100km': worst.get('consumption'),
-                                       'km': worst.get('distance_km')}} }}
-    - stop: Done
-      response_variable: answer
+The tools:
 
-car_charging_history:
-  alias: Car charging history
-  description: >-
-    The car's charging sessions over the last days: when and where, state of
-    charge before and after, energy and cost. Use it for questions about
-    charging, charging cost or energy.
-  fields:
-    days:
-      description: How many days back to look. 30 if not given.
-      example: 30
-      selector:
-        number:
-          min: 1
-          max: 365
-  sequence:
-    - action: bavariandata.get_charging_sessions
-      data:
-        from: "{{ (now() - timedelta(days=days | default(30) | int)).date() | string }}"
-      response_variable: result
-    - variables:
-        answer: >
-          {% set ns = namespace(sessions=[]) %}
-          {% for s in result.sessions %}
-            {% set ns.sessions = ns.sessions + [{
-              'start': s.start, 'end': s.end,
-              'place': (s.location or {}).get('zone'),
-              'soc_before': s.soc_start, 'soc_after': s.soc_end,
-              'kwh_from_grid': s.grid_kwh, 'kwh_into_battery': s.energy_kwh,
-              'cost': (s.cost or {}).get('amount'),
-              'currency': (s.cost or {}).get('currency')}] %}
-          {% endfor %}
-          {{ {'sessions': ns.sessions} }}
-    - stop: Done
-      response_variable: answer
+| Tool | Answers |
+|---|---|
+| Car status | Battery, charging (power, minutes to the target), range, the zone it is in, whether it is being driven, anything open or unlocked |
+| Range check | Whether a drive fits the range left, one way or there and back, with a reserve (a tenth of a full battery's range, at least 20 km), and how much more charge it needs if not. The agent estimates the distance from the places you name. |
+| Charging history | The sessions of the last days (30 unless you say otherwise): when, where, battery before and after, energy and cost, with totals |
+| Driving month | Distance, trips, the business/private/commute split, consumption, cost and the most visited places, against the month before |
+| Mileage | Odometer, this month and year, the yearly projection and your lease or yearly allowance, if one is set |
+| Efficiency | Measured consumption, the real range it gives, how it compares with the car's own figure, and the monthly trend |
 
-car_mileage:
-  alias: Car mileage
-  description: >-
-    The car's odometer, the distance driven this month and this year, the
-    last twelve months, its pace in km per day and, if one is set, where it
-    stands against its lease or yearly mileage allowance.
-  sequence:
-    - action: bavariandata.get_mileage_report
-      data: {}
-      response_variable: result
-    - variables:
-        answer: >
-          {{ {'odometer_km': result.odometer_km,
-              'this_month_km': result.this_month.km,
-              'this_year_km': result.this_year.km,
-              'km_per_day': result.km_per_day,
-              'projected_year_km': result.projected_year_km,
-              'months': result.months,
-              'allowance': result.allowance} }}
-    - stop: Done
-      response_variable: answer
-```
+The range is the [measured one](Feature-Efficiency-and-Range) where there is
+one, else the car's own. Answers come in your car's distance unit. With several
+cars, the agent can ask about one by name or about all of them.
 
-**What the AI sees.** Exactly what these scripts return: distances,
-consumption, costs, charging times and the names of places (your zones, or
-addresses for trips that ended elsewhere). Nothing else, and no VIN: the
-scripts list each field by name, because the raw service answers carry the VIN
-inside their ids. With a cloud agent, these figures leave your home; a local
-agent such as Ollama keeps them there.
+**What the AI sees.** The figures above and the names of places (your zones,
+or addresses for trips that ended elsewhere). Never the VIN, the car's
+position, trip ids or charging curves: they are removed from every answer.
+The tools can't do anything to the car; CarData is read-only. With a cloud
+agent, these figures leave your home; a local agent such as Ollama keeps them
+there.
 
-With more than one car (or account), add the car's `device_id:` under each
-script's `data:` and give each car its own three scripts, named after the car.
-Without it, a script for one car is refused once there are two.
+*Set up the three `car_…` scripts from an earlier version of this page?* You
+can delete them; the tools answer everything they did.
 
 ## Remember: read-only
 
