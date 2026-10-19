@@ -217,7 +217,8 @@
           "grid_energy_entity": "Czujnik energii wallboxa",
           "charging_loss_percent": "Straty ładowania (%)",
           "history_retain_months": "Przechowuj historię przez (miesiące)",
-          "statistics_import": "Publikuj w statystykach długoterminowych"
+          "statistics_import": "Publikuj w statystykach długoterminowych",
+          "charge_locations": "Zapamiętuj miejsca ładowania"
         },
         "data_description": {
           "price_mode": "Brak zapisuje sesje bez kosztów. Stała cena rozlicza każdą kWh po jednej stawce; Encja ceny śledzi taryfę na żywo (Tibber, Nordpool, …) podczas ładowania.",
@@ -227,7 +228,8 @@
           "grid_energy_entity": "Opcjonalnie. Licznik całkowity wallboxa, który tylko rośnie. Odczytywany tylko dla ładowań w strefie Dom. Zmierzona wartość ma pierwszeństwo przed szacunkiem po stronie akumulatora i poprawia też szacunek naładowania w domu.",
           "charging_loss_percent": "Opcjonalnie. Energia jest mierzona na akumulatorze, nieco poniżej tego, co dostarczyła sieć; to ją przelicza w górę. Zostaw 0, jeśli masz licznik wallboxa.",
           "history_retain_months": "0 zachowuje wszystko. Starsze sesje są usuwane.",
-          "statistics_import": "Odzwierciedla energię, koszt i dystans w statystykach, które możesz dodać do panelu Energia. Pozostaje lokalnie; wyłączenie ponownie je usuwa."
+          "statistics_import": "Odzwierciedla energię, koszt i dystans w statystykach, które możesz dodać do panelu Energia. Pozostaje lokalnie; wyłączenie ponownie je usuwa.",
+          "charge_locations": "Opcjonalne. Zapisuje, gdzie odbyło się każde ładowanie, aby karta mogła pokazać miejsca ładowania na mapie. Zapisuje współrzędne na dysku; wyłączenie je usuwa. Od następnego ładowania."
         },
         "sections": {
           "all_vehicles": {
@@ -239,7 +241,8 @@
               "price_entity": "Encja ceny",
               "price_currency": "Waluta",
               "history_retain_months": "Przechowuj historię przez (miesiące)",
-              "statistics_import": "Publikuj w statystykach długoterminowych"
+              "statistics_import": "Publikuj w statystykach długoterminowych",
+              "charge_locations": "Zapamiętuj miejsca ładowania"
             },
             "data_description": {
               "price_mode": "Brak zapisuje sesje bez kosztów. Stała cena rozlicza każdą kWh po jednej stawce; Encja ceny śledzi taryfę na żywo (Tibber, Nordpool, …) podczas ładowania.",
@@ -247,7 +250,8 @@
               "price_entity": "Używana tylko, gdy źródłem ceny jest 'Encja ceny'. Jej stan musi być ceną za kWh.",
               "price_currency": "Kod ISO wyświetlany na czujnikach kosztów, np. EUR, GBP, CHF, PLN.",
               "history_retain_months": "0 zachowuje wszystko. Starsze sesje są usuwane.",
-              "statistics_import": "Odzwierciedla energię, koszt i dystans w statystykach, które możesz dodać do panelu Energia. Pozostaje lokalnie; wyłączenie ponownie je usuwa."
+              "statistics_import": "Odzwierciedla energię, koszt i dystans w statystykach, które możesz dodać do panelu Energia. Pozostaje lokalnie; wyłączenie ponownie je usuwa.",
+              "charge_locations": "Opcjonalne. Zapisuje, gdzie odbyło się każde ładowanie, aby karta mogła pokazać miejsca ładowania na mapie. Zapisuje współrzędne na dysku; wyłączenie je usuwa. Od następnego ładowania."
             }
           }
         }
@@ -2991,6 +2995,32 @@
         "limit": {
           "name": "Limit",
           "description": "Maksymalna liczba zwracanych sesji."
+        }
+      }
+    },
+    "get_charging_places": {
+      "name": "Pobierz miejsca ładowania",
+      "description": "Zwraca miejsca, w których samochód był ładowany, od najczęstszych, ze średnią mocą i typowym postojem w każdym z nich. Czyta własną historię integracji, więc nie zużywa limitu API BMW.",
+      "fields": {
+        "device_id": {
+          "name": "Pojazd",
+          "description": "Opcjonalnie tylko ten samochód. Pozostaw puste dla wszystkich samochodów konta."
+        },
+        "entry_id": {
+          "name": "Wpis konfiguracji",
+          "description": "Opcjonalny identyfikator wpisu konfiguracji konta. Potrzebny tylko przy kilku kontach, gdy nie podano pojazdu ani VIN."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Opcjonalny VIN do filtrowania. Domyślnie każdy znany pojazd."
+        },
+        "from": {
+          "name": "Od",
+          "description": "Tylko ładowania rozpoczęte w tym dniu/czasie lub później."
+        },
+        "to": {
+          "name": "Do",
+          "description": "Tylko ładowania rozpoczęte w tym dniu/czasie lub wcześniej."
         }
       }
     },

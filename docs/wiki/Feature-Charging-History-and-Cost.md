@@ -268,9 +268,63 @@ battery-side energy. And [real range](Feature-Efficiency-and-Range) needs the
 battery-side kWh of every charge it covers, so it shows nothing rather than a
 wrong figure until the repaired charges are older than 30 days.
 
+## Charging places
+
+The card's **Places** tab lists every place the car has charged at, most visited
+first, built from the recorded sessions. Nothing extra is stored: delete history
+and the places go with it. For each place:
+
+- **visits**, the **typical stop** (the median length of a charge there), and
+  the energy charged there in total;
+- **AC or DC**. The car says so when it streams its plug type; otherwise a peak
+  above 22 kW counts as DC, since no BMW charges faster than that on AC. AC and DC
+  visits are never averaged together;
+- the **average power** you actually got, and from two visits on the **best**
+  visit;
+- **minutes per 10 %**, counted only from visits that added at least 20 % and
+  ended at or below 80 %. Above 80 % a fast charger slows down a lot, which would
+  make a good charger look slow;
+- **preconditioned vs. not**, when visits of both kinds exist. Only BMW's
+  charging history says whether the battery was preconditioned, so this needs
+  [an import](#importing-past-charges-from-bmw);
+- the power curves of the latest five visits, drawn on top of each other.
+
+A place with one visit shows that visit's figures, never an "average" of one.
+Late-started charges and charges a restart cut into count as visits, but not
+toward speed: their energy is only a lower bound.
+
+**How charges become places.** A charge in a Home Assistant zone belongs to that
+zone. Away from your zones, BMW's address and charge point operator name the
+place; the operator is shown only when every charge point BMW matched belongs to
+the same one. A charge with no position at all counts as Home, the same rule the
+tariff follows, and is marked *assumed*. Charges away from home that have neither
+a position nor an address share one **Other places** row, with no speeds, since it
+mixes chargers.
+
+### Remember charging locations
+
+**Configure → Charging costs & history → Remember charging locations** (off by
+default) keeps the coordinates of each charge. With it on, charges within 75 m of
+each other are one place, and the Places tab shows them on a **map**. It writes
+raw coordinates to disk, which is why it is off until you turn it on. Turning it
+off again **deletes every stored coordinate**; zones, addresses and operators
+stay, and so does the list.
+
+It works from the next charge on. For older charges,
+[Fetch charging history](#importing-past-charges-from-bmw) once: BMW's records
+carry the position, and the import adds it to the charges you already have.
+
+The places come from `get_charging_places` (below), which costs **no quota**.
+DC charging and BMW's operator names have not been seen on a real car's data yet.
+If yours shows something odd, a
+[diagnostics report](Troubleshooting-and-FAQ#download-diagnostics) helps.
+
 ## Reading it back
 
-- The [`view: charging` card](The-Dashboard-Card#charging-history-view-charging).
+- The [`view: charging` card](The-Dashboard-Card#charging-history-view-charging),
+  with its **Sessions** and **Places** tabs.
+- **`bavariandata.get_charging_places`** returns the places as service response
+  data (optional `vin`, `from`, `to`) — no quota.
 - **`bavariandata.get_charging_sessions`** returns the full history as service
   response data (optional `vin`, `from`, `to`, `limit`) — no quota.
 - [Export](Feature-Export) to CSV or a printable report.

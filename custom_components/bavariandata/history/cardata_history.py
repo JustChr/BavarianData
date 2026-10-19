@@ -92,32 +92,63 @@ def _address_label(raw: dict[str, Any]) -> Optional[str]:
     return None
 
 
-def _location(raw: Any, zone_fn: Optional[ZoneFn]) -> Optional[dict[str, Any]]:
+def _location(
+    raw: Any, zone_fn: Optional[ZoneFn], *, keep_coordinates: bool = False
+) -> Optional[dict[str, Any]]:
     """Resolve BMW's charge location to an HA zone, else BMW's address string.
 
     Mirrors the trip path (see ``geocoding.py``): a matching HA zone (Home/Work/
     ...) is preferred because it is what costing and the card key on, and only
     when the point falls in no zone is BMW's ``formattedAddress`` kept as a
-    label. Either way the raw latitude/longitude are used and then dropped, never
-    persisted -- a stored address *string* is no more sensitive than the trip
-    endpoints we already keep, but a list of exact coordinates would be.
+    label. The raw latitude/longitude are used and then dropped unless the user
+    turned on *Remember charging locations* (``keep_coordinates``): a stored
+    address *string* is no more sensitive than the trip endpoints we already
+    keep, but a list of exact coordinates is, so that is the user's call.
     """
 
     if not isinstance(raw, dict):
         return None
     lat = _as_float(raw.get("mapMatchedLatitude"))
     lon = _as_float(raw.get("mapMatchedLongitude"))
-    zone = zone_fn(lat, lon) if (zone_fn and lat is not None and lon is not None) else None
+    has_point = lat is not None and lon is not None
+    zone = zone_fn(lat, lon) if (zone_fn and has_point) else None
     if zone:
-        return {"zone": zone}
-    address = _address_label(raw)
-    if address:
-        return {"zone": None, "address": address}
-    if lat is not None and lon is not None:
+        location: dict[str, Any] = {"zone": zone}
+    elif address := _address_label(raw):
+        location = {"zone": None, "address": address}
+    elif has_point:
         # Coordinates existed but resolved to nothing we can name -- record the
         # empty slot so the card shows "public" rather than "assumed home".
-        return {"zone": None}
-    return None
+        location = {"zone": None}
+    else:
+        return None
+    if keep_coordinates and has_point:
+        location["lat"] = round(lat, 5)
+        location["lon"] = round(lon, 5)
+    return location
+
+
+def _provider(raw: Any) -> Optional[str]:
+    """The charge point operator, when BMW's candidate matches agree on one.
+
+    BMW lists *potential* matches for a public charge. Several candidates from
+    different operators are a guess, not an answer, so a name is taken only
+    when every candidate names the same one.
+    """
+
+    if not isinstance(raw, dict):
+        return None
+    matches = raw.get("potentialChargingPointMatches")
+    if not isinstance(matches, list):
+        return None
+    names = {
+        match["providerName"].strip()
+        for match in matches
+        if isinstance(match, dict)
+        and isinstance(match.get("providerName"), str)
+        and match["providerName"].strip()
+    }
+    return names.pop() if len(names) == 1 else None
 
 
 def _location_rank(location: Any) -> int:
@@ -178,6 +209,7 @@ def session_from_cardata(
     cost_fn: Optional[CostFn] = None,
     zone_fn: Optional[ZoneFn] = None,
     home_zone: Optional[str] = None,
+    keep_coordinates: bool = False,
 ) -> Optional[ChargingSession]:
     """One BMW history entry -> a ChargingSession, or ``None`` if unusable.
 
@@ -199,7 +231,11 @@ def session_from_cardata(
 
     grid_kwh = _as_float(raw.get("energyConsumedFromPowerGridKwh"))
     curve, peak = _power_curve(raw.get("chargingBlocks"), int(start_epoch))
-    location = _location(raw.get("chargingLocation"), zone_fn)
+    location = _location(raw.get("chargingLocation"), zone_fn, keep_coordinates=keep_coordinates)
+    provider = _provider(raw.get("publicChargingPoint"))
+    if provider and location is not None and not location.get("zone"):
+        location["provider"] = provider
+    preconditioned = raw.get("isPreconditioningActivated")
     # The tariff is the home one; a public charger's price is BMW's to report.
     priced = cost_fn is not None and house_supplies_this_session(location, home_zone)
     return ChargingSession(
@@ -217,6 +253,7 @@ def session_from_cardata(
         cost=cost_fn(grid_kwh) if priced else None,
         mileage_km=_mileage_km(raw.get("mileage"), raw.get("mileageUnits")),
         enriched=True,
+        preconditioned=preconditioned if isinstance(preconditioned, bool) else None,
     )
 
 
@@ -394,6 +431,18 @@ def _enrich_in_place(
         or _location_rank(incoming.location) > _location_rank(target.location)
     ):
         target.location = incoming.location
+    elif isinstance(target.location, dict) and isinstance(incoming.location, dict):
+        # Same rank, so the target keeps its place -- but BMW may know more
+        # about it: the operator, or the point when locations are remembered.
+        extra = {
+            key: incoming.location[key]
+            for key in ("lat", "lon", "provider")
+            if incoming.location.get(key) is not None and target.location.get(key) is None
+        }
+        if extra:
+            target.location = {**target.location, **extra}
+    if target.preconditioned is None:
+        target.preconditioned = incoming.preconditioned
     if not target.power_curve and incoming.power_curve:
         target.power_curve = incoming.power_curve
     if target.peak_power_kw is None:

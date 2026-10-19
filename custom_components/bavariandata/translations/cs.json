@@ -217,7 +217,8 @@
           "grid_energy_entity": "Senzor energie wallboxu",
           "charging_loss_percent": "Ztráty nabíjení (%)",
           "history_retain_months": "Uchovávat historii (měsíce)",
-          "statistics_import": "Publikovat do dlouhodobých statistik"
+          "statistics_import": "Publikovat do dlouhodobých statistik",
+          "charge_locations": "Pamatovat místa nabíjení"
         },
         "data_description": {
           "price_mode": "Žádný zaznamenává relace bez nákladů. Pevná cena účtuje každou kWh jednou sazbou; Entita ceny sleduje živý tarif (Tibber, Nordpool, …) během nabíjení.",
@@ -227,7 +228,8 @@
           "grid_energy_entity": "Volitelné. Celkový čítač vašeho wallboxu, který jen přibývá. Čte se jen pro nabíjení v zóně Domov. Naměřená hodnota má přednost před odhadem na straně baterie a zpřesňuje i odhad nabití doma.",
           "charging_loss_percent": "Volitelné. Energie se měří na baterii, o něco méně, než dodala síť; toto ji navýší. Máte-li měřič wallboxu, nechte 0.",
           "history_retain_months": "0 uchová vše. Starší relace se zahazují.",
-          "statistics_import": "Zrcadlí energii, náklady a vzdálenost do statistik, které můžete přidat na panel Energie. Zůstává lokálně; vypnutí je opět smaže."
+          "statistics_import": "Zrcadlí energii, náklady a vzdálenost do statistik, které můžete přidat na panel Energie. Zůstává lokálně; vypnutí je opět smaže.",
+          "charge_locations": "Volitelné. Ukládá, kde každé nabíjení proběhlo, aby karta mohla ukázat vaše místa nabíjení na mapě. Zapisuje souřadnice na disk; vypnutí je smaže. Od příštího nabíjení."
         },
         "sections": {
           "all_vehicles": {
@@ -239,7 +241,8 @@
               "price_entity": "Entita ceny",
               "price_currency": "Měna",
               "history_retain_months": "Uchovávat historii (měsíce)",
-              "statistics_import": "Publikovat do dlouhodobých statistik"
+              "statistics_import": "Publikovat do dlouhodobých statistik",
+              "charge_locations": "Pamatovat místa nabíjení"
             },
             "data_description": {
               "price_mode": "Žádný zaznamenává relace bez nákladů. Pevná cena účtuje každou kWh jednou sazbou; Entita ceny sleduje živý tarif (Tibber, Nordpool, …) během nabíjení.",
@@ -247,7 +250,8 @@
               "price_entity": "Použije se jen tehdy, když je zdrojem ceny 'Entita ceny'. Její stav musí být cena za kWh.",
               "price_currency": "Kód ISO zobrazený u senzorů nákladů, např. EUR, GBP, CHF, CZK.",
               "history_retain_months": "0 uchová vše. Starší relace se zahazují.",
-              "statistics_import": "Zrcadlí energii, náklady a vzdálenost do statistik, které můžete přidat na panel Energie. Zůstává lokálně; vypnutí je opět smaže."
+              "statistics_import": "Zrcadlí energii, náklady a vzdálenost do statistik, které můžete přidat na panel Energie. Zůstává lokálně; vypnutí je opět smaže.",
+              "charge_locations": "Volitelné. Ukládá, kde každé nabíjení proběhlo, aby karta mohla ukázat vaše místa nabíjení na mapě. Zapisuje souřadnice na disk; vypnutí je smaže. Od příštího nabíjení."
             }
           }
         }
@@ -2991,6 +2995,32 @@
         "limit": {
           "name": "Limit",
           "description": "Maximální počet vrácených relací."
+        }
+      }
+    },
+    "get_charging_places": {
+      "name": "Získat místa nabíjení",
+      "description": "Vrátí místa, kde auto nabíjelo, nejčastější jako první, s průměrným výkonem a obvyklou délkou zastávky na každém. Čte vlastní historii integrace, takže nespotřebuje kvótu BMW API.",
+      "fields": {
+        "device_id": {
+          "name": "Vozidlo",
+          "description": "Volitelně jen toto auto. Ponechte prázdné pro všechna auta účtu."
+        },
+        "entry_id": {
+          "name": "Konfigurační záznam",
+          "description": "Volitelné ID konfigurační položky účtu. Potřeba jen při více účtech, pokud není zadáno vozidlo ani VIN."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Volitelný VIN pro filtrování. Výchozí jsou všechna známá vozidla."
+        },
+        "from": {
+          "name": "Od",
+          "description": "Jen nabíjení zahájená v toto datum/čas nebo později."
+        },
+        "to": {
+          "name": "Do",
+          "description": "Jen nabíjení zahájená v toto datum/čas nebo dříve."
         }
       }
     },

@@ -217,7 +217,8 @@
           "grid_energy_entity": "Capteur d'énergie de la borne",
           "charging_loss_percent": "Pertes de recharge (%)",
           "history_retain_months": "Conserver l'historique (mois)",
-          "statistics_import": "Publier dans les statistiques à long terme"
+          "statistics_import": "Publier dans les statistiques à long terme",
+          "charge_locations": "Mémoriser les lieux de recharge"
         },
         "data_description": {
           "price_mode": "Aucune enregistre les sessions sans coût. Prix fixe facture chaque kWh au même tarif ; Entité de prix suit un tarif en direct (Tibber, Nordpool, …) pendant la recharge.",
@@ -227,7 +228,8 @@
           "grid_energy_entity": "Facultatif. Le compteur total de votre borne, qui ne fait que monter. Lu uniquement pour les recharges dans votre zone Domicile. Une valeur mesurée l'emporte sur l'estimation côté batterie et affine aussi l'estimation de charge à domicile.",
           "charging_loss_percent": "Facultatif. L'énergie est mesurée à la batterie, un peu en dessous de ce que le réseau a fourni ; ceci la majore. Laissez 0 si vous avez un compteur de borne.",
           "history_retain_months": "0 conserve tout. Les sessions plus anciennes sont supprimées.",
-          "statistics_import": "Reproduit l'énergie, le coût et la distance dans des statistiques que vous pouvez ajouter au tableau de bord Énergie. Reste local ; la désactivation les supprime à nouveau."
+          "statistics_import": "Reproduit l'énergie, le coût et la distance dans des statistiques que vous pouvez ajouter au tableau de bord Énergie. Reste local ; la désactivation les supprime à nouveau.",
+          "charge_locations": "Facultatif. Enregistre le lieu de chaque recharge pour que la carte affiche vos lieux de recharge sur un plan. Écrit des coordonnées sur le disque ; les désactiver les supprime. Dès la prochaine recharge."
         },
         "sections": {
           "all_vehicles": {
@@ -239,7 +241,8 @@
               "price_entity": "Entité de prix",
               "price_currency": "Devise",
               "history_retain_months": "Conserver l'historique (mois)",
-              "statistics_import": "Publier dans les statistiques à long terme"
+              "statistics_import": "Publier dans les statistiques à long terme",
+              "charge_locations": "Mémoriser les lieux de recharge"
             },
             "data_description": {
               "price_mode": "Aucune enregistre les sessions sans coût. Prix fixe facture chaque kWh au même tarif ; Entité de prix suit un tarif en direct (Tibber, Nordpool, …) pendant la recharge.",
@@ -247,7 +250,8 @@
               "price_entity": "Utilisée uniquement lorsque la source du prix est « Entité de prix ». Son état doit être un prix par kWh.",
               "price_currency": "Code ISO affiché sur les capteurs de coût, p. ex. EUR, GBP, CHF.",
               "history_retain_months": "0 conserve tout. Les sessions plus anciennes sont supprimées.",
-              "statistics_import": "Reproduit l'énergie, le coût et la distance dans des statistiques que vous pouvez ajouter au tableau de bord Énergie. Reste local ; la désactivation les supprime à nouveau."
+              "statistics_import": "Reproduit l'énergie, le coût et la distance dans des statistiques que vous pouvez ajouter au tableau de bord Énergie. Reste local ; la désactivation les supprime à nouveau.",
+              "charge_locations": "Facultatif. Enregistre le lieu de chaque recharge pour que la carte affiche vos lieux de recharge sur un plan. Écrit des coordonnées sur le disque ; les désactiver les supprime. Dès la prochaine recharge."
             }
           }
         }
@@ -2991,6 +2995,32 @@
         "limit": {
           "name": "Limite",
           "description": "Nombre maximal de sessions à renvoyer."
+        }
+      }
+    },
+    "get_charging_places": {
+      "name": "Obtenir les lieux de recharge",
+      "description": "Renvoie les lieux où une voiture a été rechargée, les plus fréquents d'abord, avec la puissance moyenne et l'arrêt typique de chacun. Lit l'historique propre à l'intégration et ne consomme donc aucun quota de l'API BMW.",
+      "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Limite facultativement à cette voiture. Laissez vide pour toutes les voitures du compte."
+        },
+        "entry_id": {
+          "name": "Entrée de configuration",
+          "description": "Identifiant facultatif de l'entrée de configuration du compte. Nécessaire seulement avec plusieurs comptes, si aucun véhicule ni VIN n'est indiqué."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "VIN facultatif pour filtrer. Par défaut, tous les véhicules connus."
+        },
+        "from": {
+          "name": "Du",
+          "description": "Uniquement les recharges commencées à cette date/heure ou après."
+        },
+        "to": {
+          "name": "Au",
+          "description": "Uniquement les recharges commencées à cette date/heure ou avant."
         }
       }
     },

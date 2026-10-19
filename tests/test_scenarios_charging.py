@@ -421,6 +421,51 @@ def test_a_charge_at_home_keeps_the_house_mix_and_tariff():
         assert session.cost["source"] == "tariff"
 
 
+def test_a_remembered_charge_keeps_its_point():
+    """*Remember charging locations* on: the charge keeps where it was made."""
+
+    with _house_harness((48.1, 11.5)) as h:
+        h.coordinator.history.remember_locations = True
+        h.fix(5, 48.3, 11.9)
+        _charge_and_unplug(h)
+
+        (session,) = h.sessions()
+        assert session.location == {"zone": None, "lat": 48.3, "lon": 11.9}
+
+
+def test_turning_remembering_off_takes_the_points_with_it():
+    """Off means gone: stored and still-open charges both lose their coordinates."""
+
+    with _house_harness((48.1, 11.5)) as h:
+        h.coordinator.history.remember_locations = True
+        h.fix(5, 48.3, 11.9)
+        _charge_and_unplug(h)
+        h.send(140, soc=60, status="CHARGINGACTIVE", power=3480, step="second charge")
+        assert h.coordinator.history.open_sessions()[h.vin]["location"]["lat"] == 48.3
+
+        h.coordinator.history.remember_locations = False
+        assert h.coordinator.history.forget_locations() == 2
+
+        (session,) = h.sessions()
+        assert session.location == {"zone": None}
+        assert "lat" not in h.coordinator.history.open_sessions()[h.vin]["location"]
+
+
+def test_a_connected_dc_socket_marks_the_charge_dc():
+    """The car's own plug descriptor beats the peak-power guess."""
+
+    with _house_harness((48.1, 11.5)) as h:
+        h.fix(5, 48.3, 11.9)
+        _start_charge(h)
+        h.send(20, step="dc socket", extra={"vehicle.body.chargingPort.dcStatus": "CONNECTED"})
+        h.send(70, soc=42, status="CHARGINGACTIVE", power=3480)
+        h.send(130, status="NOCHARGING", power=0, step="unplugged")
+        h.advance_to(133)
+
+        (session,) = h.sessions()
+        assert session.charge_method == "dc"
+
+
 def test_the_evcc_bridge_knows_a_charge_elsewhere():
     """The bridge withholds evcc's status from a car charging away (#97 follow-up)."""
 

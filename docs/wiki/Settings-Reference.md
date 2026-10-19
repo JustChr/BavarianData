@@ -148,6 +148,7 @@ question.
 | **Charging losses (%)** | 0–30 | Grosses the battery figure up by your losses. Default **0** (no invented correction). |
 | **Keep history for (months)** | 0–120 | How long to keep recorded sessions/trips. **0 = keep everything.** |
 | **Publish to long-term statistics** | on/off | Mirror history into the Energy dashboard. Turning it **off deletes** the published series. See [Energy & statistics](Feature-Energy-and-Statistics). |
+| **Remember charging locations** | on/off | Default **off**. Keeps each charge's coordinates so the card's Places tab can show a map. Writes coordinates to disk; turning it **off deletes** them. Applies to every car of the account. See [Charging places](Feature-Charging-History-and-Cost#charging-places). |
 
 ## Solar & energy sources
 

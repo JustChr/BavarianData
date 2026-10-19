@@ -68,6 +68,7 @@ from .history.export import (
     trips_csv,
 )
 from .history.pricing import MODE_FIXED, fixed_cost
+from .history.stations import charging_places
 from .history.summary import (
     driving_summary,
     sessions_in_month,
@@ -542,6 +543,33 @@ def async_setup_services(hass: HomeAssistant) -> None:
             limit=_as_limit(call.data.get("limit")),
         )
         return {"sessions": [session.to_dict() for session in sessions]}
+
+    get_places_schema = vol.Schema(
+        {
+            vol.Optional("entry_id"): str,
+            vol.Optional("device_id"): str,
+            vol.Optional("vin"): str,
+            vol.Optional("from"): str,
+            vol.Optional("to"): str,
+        }
+    )
+
+    async def async_handle_get_charging_places(call: Any) -> dict:
+        # The places a car charged at, worked out from the stored sessions
+        # (history/stations.py). Local only -- no quota. Without a car named on
+        # a multi-car account it covers them all, like get_charging_sessions.
+        _entry_id, _entry, runtime, vin = _target_car(call, required=False)
+        if runtime.history is None:
+            return {"places": [], "locations_remembered": False}
+        sessions = runtime.history.sessions(
+            vin,
+            start=_service_bound(call, "from"),
+            end=_service_bound(call, "to", end_of_day=True),
+        )
+        return {
+            "places": charging_places(sessions, home_zone=runtime.coordinator.home_zone_name()),
+            "locations_remembered": runtime.history.remember_locations,
+        }
 
     def _month_bounds(raw: Optional[str]) -> tuple[int, int]:
         """Parse a 'YYYY-MM' argument, defaulting to the current local month.
@@ -1097,6 +1125,13 @@ def async_setup_services(hass: HomeAssistant) -> None:
         "get_charging_sessions",
         async_handle_get_charging_sessions,
         schema=get_sessions_schema,
+        supports_response=SupportsResponse.ONLY,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "get_charging_places",
+        async_handle_get_charging_places,
+        schema=get_places_schema,
         supports_response=SupportsResponse.ONLY,
     )
     # Trips (roadmap Phase 3). Reads/writes the local store only -- no quota.

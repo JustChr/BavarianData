@@ -217,7 +217,8 @@
           "grid_energy_entity": "Wallbox energy sensor",
           "charging_loss_percent": "Charging losses (%)",
           "history_retain_months": "Keep history for (months)",
-          "statistics_import": "Publish to long-term statistics"
+          "statistics_import": "Publish to long-term statistics",
+          "charge_locations": "Remember charging locations"
         },
         "data_description": {
           "price_mode": "None records sessions without costs. Fixed price bills every kWh at one rate; Price entity follows a live tariff (Tibber, Nordpool, …) while the car charges.",
@@ -227,7 +228,8 @@
           "grid_energy_entity": "Optional. Your wallbox's lifetime energy total, one that only counts up. Read for charges in your Home zone only. A measured figure beats the battery-side estimate and also sharpens the charge estimate at home.",
           "charging_loss_percent": "Optional. Energy is measured at the battery, a little below what the grid delivered; this grosses it up. Leave it at 0 if you have a wallbox meter.",
           "history_retain_months": "0 keeps everything. Sessions older than this are discarded.",
-          "statistics_import": "Mirrors energy, cost and distance into statistics you can add to the Energy dashboard. Stays local; turning it off deletes them again."
+          "statistics_import": "Mirrors energy, cost and distance into statistics you can add to the Energy dashboard. Stays local; turning it off deletes them again.",
+          "charge_locations": "Optional. Saves where each charge happened, so the card can show your charging places on a map. Writes coordinates to disk; turning it off deletes them. From the next charge on."
         },
         "sections": {
           "all_vehicles": {
@@ -239,7 +241,8 @@
               "price_entity": "Price entity",
               "price_currency": "Currency",
               "history_retain_months": "Keep history for (months)",
-              "statistics_import": "Publish to long-term statistics"
+              "statistics_import": "Publish to long-term statistics",
+              "charge_locations": "Remember charging locations"
             },
             "data_description": {
               "price_mode": "None records sessions without costs. Fixed price bills every kWh at one rate; Price entity follows a live tariff (Tibber, Nordpool, …) while the car charges.",
@@ -247,7 +250,8 @@
               "price_entity": "Only used when the price source is 'Price entity'. Its state must be a price per kWh.",
               "price_currency": "ISO code shown on the cost sensors, e.g. EUR, GBP, CHF.",
               "history_retain_months": "0 keeps everything. Sessions older than this are discarded.",
-              "statistics_import": "Mirrors energy, cost and distance into statistics you can add to the Energy dashboard. Stays local; turning it off deletes them again."
+              "statistics_import": "Mirrors energy, cost and distance into statistics you can add to the Energy dashboard. Stays local; turning it off deletes them again.",
+              "charge_locations": "Optional. Saves where each charge happened, so the card can show your charging places on a map. Writes coordinates to disk; turning it off deletes them. From the next charge on."
             }
           }
         }
@@ -3221,6 +3225,32 @@
         "limit": {
           "name": "Limit",
           "description": "Maximum number of sessions to return."
+        }
+      }
+    },
+    "get_charging_places": {
+      "name": "Get charging places",
+      "description": "Return the places a car has charged at, most visited first, with the average power and typical stop at each. Reads the integration's own history, so it costs no BMW API quota.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "Optional car to limit this to. Leave empty for every car of the account."
+        },
+        "entry_id": {
+          "name": "Config entry",
+          "description": "Optional config entry id of the account. Only needed with more than one account when no vehicle or VIN is given."
+        },
+        "vin": {
+          "name": "VIN",
+          "description": "Optional VIN to filter by. Defaults to every known vehicle."
+        },
+        "from": {
+          "name": "From",
+          "description": "Only charges that started on or after this date/time."
+        },
+        "to": {
+          "name": "To",
+          "description": "Only charges that started on or before this date/time."
         }
       }
     },

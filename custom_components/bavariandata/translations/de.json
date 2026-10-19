@@ -217,7 +217,8 @@
           "grid_energy_entity": "Wallbox-Energiesensor",
           "charging_loss_percent": "Ladeverluste (%)",
           "history_retain_months": "Verlauf aufbewahren (Monate)",
-          "statistics_import": "In Langzeitstatistiken übernehmen"
+          "statistics_import": "In Langzeitstatistiken übernehmen",
+          "charge_locations": "Ladeorte merken"
         },
         "data_description": {
           "price_mode": "Keine zeichnet Ladevorgänge ohne Kosten auf. Fester Preis berechnet jede kWh zum selben Satz; Preis-Entität folgt einem Live-Tarif (Tibber, Nordpool, …), während das Auto lädt.",
@@ -227,7 +228,8 @@
           "grid_energy_entity": "Optional. Der Gesamtzähler deiner Wallbox, der nur aufwärts zählt. Wird nur für Ladevorgänge in deiner Zone Zuhause gelesen. Ein gemessener Wert schlägt die Schätzung auf Akkuseite und verbessert auch die Ladestand-Schätzung zu Hause.",
           "charging_loss_percent": "Optional. Die Energie wird am Akku gemessen, etwas unter dem, was das Netz geliefert hat; das rechnet sie hoch. Mit Wallbox-Zähler bei 0 lassen.",
           "history_retain_months": "0 behält alles. Ältere Ladevorgänge werden verworfen.",
-          "statistics_import": "Spiegelt Energie, Kosten und Strecke in Statistiken, die du im Energie-Dashboard hinzufügen kannst. Bleibt lokal; beim Ausschalten werden sie wieder gelöscht."
+          "statistics_import": "Spiegelt Energie, Kosten und Strecke in Statistiken, die du im Energie-Dashboard hinzufügen kannst. Bleibt lokal; beim Ausschalten werden sie wieder gelöscht.",
+          "charge_locations": "Optional. Speichert, wo jeder Ladevorgang stattfand, damit die Dashboard-Karte deine Ladeorte auf einer Landkarte zeigt. Schreibt Koordinaten auf die Festplatte; Ausschalten löscht sie. Ab dem nächsten Laden."
         },
         "sections": {
           "all_vehicles": {
@@ -239,7 +241,8 @@
               "price_entity": "Preis-Entität",
               "price_currency": "Währung",
               "history_retain_months": "Verlauf aufbewahren (Monate)",
-              "statistics_import": "In Langzeitstatistiken übernehmen"
+              "statistics_import": "In Langzeitstatistiken übernehmen",
+              "charge_locations": "Ladeorte merken"
             },
             "data_description": {
               "price_mode": "Keine zeichnet Ladevorgänge ohne Kosten auf. Fester Preis berechnet jede kWh zum selben Satz; Preis-Entität folgt einem Live-Tarif (Tibber, Nordpool, …), während das Auto lädt.",
@@ -247,7 +250,8 @@
               "price_entity": "Wird nur bei der Preisquelle „Preis-Entität“ verwendet. Ihr Zustand muss ein Preis pro kWh sein.",
               "price_currency": "ISO-Code für die Kosten-Sensoren, z. B. EUR, GBP, CHF.",
               "history_retain_months": "0 behält alles. Ältere Ladevorgänge werden verworfen.",
-              "statistics_import": "Spiegelt Energie, Kosten und Strecke in Statistiken, die du im Energie-Dashboard hinzufügen kannst. Bleibt lokal; beim Ausschalten werden sie wieder gelöscht."
+              "statistics_import": "Spiegelt Energie, Kosten und Strecke in Statistiken, die du im Energie-Dashboard hinzufügen kannst. Bleibt lokal; beim Ausschalten werden sie wieder gelöscht.",
+              "charge_locations": "Optional. Speichert, wo jeder Ladevorgang stattfand, damit die Dashboard-Karte deine Ladeorte auf einer Landkarte zeigt. Schreibt Koordinaten auf die Festplatte; Ausschalten löscht sie. Ab dem nächsten Laden."
             }
           }
         }
@@ -2991,6 +2995,32 @@
         "limit": {
           "name": "Maximale Anzahl",
           "description": "Maximale Anzahl zurückgegebener Ladevorgänge."
+        }
+      }
+    },
+    "get_charging_places": {
+      "name": "Ladeorte abrufen",
+      "description": "Gibt die Orte zurück, an denen ein Auto geladen hat, die häufigsten zuerst, mit der durchschnittlichen Leistung und der typischen Standzeit je Ort. Liest den eigenen Verlauf der Integration und kostet daher kein BMW-API-Kontingent.",
+      "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Optional nur dieses Auto. Leer lassen für alle Autos des Kontos."
+        },
+        "entry_id": {
+          "name": "Konfigurationseintrag",
+          "description": "Optionale ID des Konfigurationseintrags des Kontos. Nur nötig bei mehreren Konten, wenn weder Fahrzeug noch VIN angegeben ist."
+        },
+        "vin": {
+          "name": "FIN",
+          "description": "Optionale FIN als Filter. Standardmäßig alle bekannten Fahrzeuge."
+        },
+        "from": {
+          "name": "Von",
+          "description": "Nur Ladevorgänge, die an oder nach diesem Datum/Zeitpunkt begannen."
+        },
+        "to": {
+          "name": "Bis",
+          "description": "Nur Ladevorgänge, die an oder vor diesem Datum/Zeitpunkt begannen."
         }
       }
     },

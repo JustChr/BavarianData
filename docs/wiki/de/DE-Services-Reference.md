@@ -15,7 +15,7 @@ Bei **zwei Autos** lehnt ein Dienst, der für ein Auto arbeitet (Reifendiagnose,
 Kilometerbericht, Export …), **einen Aufruf ohne Auto ab**, und die Fehlermeldung
 nennt die Autos zur Auswahl. Bis v0.9.20 nahm er stillschweigend das Auto, das
 zuerst gestreamt hatte. Dienste, die alle Autos lesen (`fetch_telematic_data`,
-`get_charging_sessions`, `get_trips`, `get_coverage_report`,
+`get_charging_sessions`, `get_charging_places`, `get_trips`, `get_coverage_report`,
 `import_statistics`), lesen ohne Angabe weiterhin alle. Eine VIN, die kein Auto
 des Kontos ist, wird abgelehnt, bevor Kontingent verbraucht wird. Ein Aufruf
 ohne Kontingent, ohne gültiges Token oder den BMW ablehnt, schlägt mit dieser
@@ -47,6 +47,7 @@ Diese lesen (oder schreiben) den eigenen Speicher der Integration und kosten
 | Dienst | Was er tut |
 | --- | --- |
 | `bavariandata.get_charging_sessions` | Gespeicherte Ladevorgänge als Antwortdaten. |
+| `bavariandata.get_charging_places` | Die Orte, an denen das Auto geladen hat, mit der Geschwindigkeit an jedem — siehe unten. |
 | `bavariandata.get_trips` | Gespeicherte Fahrten als Antwortdaten (Endpunkte als Ortsnamen), dazu eine gerade laufende Fahrt. |
 | `bavariandata.get_driving_summary` | Die Monatsübersicht der Fahrten. |
 | `bavariandata.get_efficiency` | Gemessener Verbrauch, die daraus folgende reale Reichweite, der Ladeverlust und der Monatsverlauf — siehe unten. |
@@ -79,6 +80,17 @@ mitgeliefert, wenn das angefragte Fenster **den jetzigen Moment enthält** (auch
 ohne Fenster): Eine Anfrage für letzten März meint offensichtlich nicht die Fahrt
 von gerade eben, eine für diesen Monat offensichtlich schon. Siehe
 [Fahrten](DE-Feature-Trips#seeing-the-drive-thats-happening-now).
+
+### `get_charging_places`
+`vin`, `from`, `to` (ganze Tage, wie oben). Liefert **`places`**, die
+meistbesuchten zuerst, aus den gespeicherten Ladevorgängen berechnet, und
+**`locations_remembered`** (ob *Ladeorte merken* an ist). Jeder Ort trägt `zone`,
+`address`, `provider`, `latitude`/`longitude` (nur mit gemerkten Orten),
+`assumed`, `unnamed`, `kind` (`ac`, `dc` oder `mixed`), `visits`, `first_visit`,
+`last_visit`, `energy_kwh`, `typical_minutes`, `avg_kw` mit `power_visits`,
+`best_kw`, `minutes_per_10` mit `rate_visits`, `preconditioning` (`on`/`off` oder
+null) und `curves`. Ein Wert aus einem Besuch ist der dieses Besuchs, ab zwei ist
+es der Median. Siehe [Ladeorte](DE-Feature-Charging-History-and-Cost#charging-places).
 
 ### `get_driving_summary`
 

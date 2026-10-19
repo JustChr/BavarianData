@@ -134,6 +134,28 @@ get_charging_sessions:
         number:
           min: 1
           mode: box
+get_charging_places:
+  fields:
+    device_id:
+      selector:
+        device:
+          filter:
+            - integration: bavariandata
+    entry_id:
+      selector:
+        text:
+    vin:
+      example: WBAEXAMPLE0000000
+      selector:
+        text:
+    from:
+      example: "2026-01-01"
+      selector:
+        date:
+    to:
+      example: "2026-12-31"
+      selector:
+        date:
 get_trips:
   fields:
     device_id:

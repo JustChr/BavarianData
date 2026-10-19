@@ -14,7 +14,7 @@ With **two cars**, a service that acts on one car (a tire diagnosis, a mileage
 report, an export…) **refuses a call that doesn't say which car**, and the error
 lists the cars to choose from. Until v0.9.20 it quietly took whichever car had
 streamed first. A service that reads every car (`fetch_telematic_data`,
-`get_charging_sessions`, `get_trips`, `get_coverage_report`,
+`get_charging_sessions`, `get_charging_places`, `get_trips`, `get_coverage_report`,
 `import_statistics`) still reads them all when no car is named. A VIN that
 isn't a car of the account is refused before any quota is spent. A call that
 runs out of quota, has no valid token or that BMW refuses fails with that
@@ -44,6 +44,7 @@ These read (or write) the integration's own store and cost **no** quota.
 | Service | What it does |
 | --- | --- |
 | `bavariandata.get_charging_sessions` | Recorded charging sessions as response data. |
+| `bavariandata.get_charging_places` | The places the car has charged at, with the speed at each — see below. |
 | `bavariandata.get_trips` | Recorded trips as response data (endpoints as place names), plus any drive still under way. |
 | `bavariandata.get_driving_summary` | The month-in-review aggregation for trips. |
 | `bavariandata.get_efficiency` | Measured consumption, the real range it implies, the charging loss and the monthly trend — see below. |
@@ -75,6 +76,17 @@ asked for **contains the present moment** (including no window at all): a reques
 for last March plainly doesn't mean the drive happening now, but one for this
 month just as plainly does. See
 [Trips](Feature-Trips#seeing-the-drive-thats-happening-now).
+
+### `get_charging_places`
+`vin`, `from`, `to` (whole days, as above). Returns **`places`**, most visited
+first, worked out from the stored sessions, and **`locations_remembered`** (whether
+*Remember charging locations* is on). Each place carries `zone`, `address`,
+`provider`, `latitude`/`longitude` (only with remembered locations), `assumed`,
+`unnamed`, `kind` (`ac`, `dc` or `mixed`), `visits`, `first_visit`, `last_visit`,
+`energy_kwh`, `typical_minutes`, `avg_kw` with `power_visits`, `best_kw`,
+`minutes_per_10` with `rate_visits`, `preconditioning` (`on`/`off`, or null) and
+`curves`. A figure from one visit is that visit's; from two on it is the median.
+See [Charging places](Feature-Charging-History-and-Cost#charging-places).
 
 ### `get_driving_summary`
 `vin`, `month` (`YYYY-MM`, defaults to current). Returns distance, the

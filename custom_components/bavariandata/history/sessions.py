@@ -342,6 +342,8 @@ class SessionBuilder:
         # internally inconsistent rather than more accurate.
         self.late_start = _is_late_start(soc_before, soc_start)
         self.peak_power_kw: Optional[float] = None
+        # "ac"/"dc" once the car has said which (see ``ChargingSession.charge_method``).
+        self.charge_method: Optional[str] = None
         # True once this session has survived a restart (see
         # ``ChargingSession.interrupted``): set by :meth:`from_dict`, never here.
         self.interrupted = False
@@ -467,6 +469,7 @@ class SessionBuilder:
             "late_start": self.late_start,
             "interrupted": self.interrupted,
             "peak_power_kw": self.peak_power_kw,
+            "charge_method": self.charge_method,
             "curve": [list(point) for point in self._curve],
             "interval": self._interval,
             "last_offset": self._last_offset,
@@ -507,6 +510,8 @@ class SessionBuilder:
         builder.interrupted = True
         builder.soc_end = data.get("soc_end")
         builder.peak_power_kw = data.get("peak_power_kw")
+        if data.get("charge_method") in ("ac", "dc"):
+            builder.charge_method = data["charge_method"]
         builder._curve = [list(point) for point in data.get("curve") or [] if len(point) >= 2]
         try:
             builder._interval = int(data.get("interval") or MIN_SAMPLE_INTERVAL_S)
@@ -561,6 +566,7 @@ class SessionBuilder:
             energy_kwh=None if energy_kwh is None else round(energy_kwh, 3),
             peak_power_kw=self.peak_power_kw,
             power_curve=self._curve,
+            charge_method=self.charge_method,
             location=self.location,
             location_assumed=self.location_assumed,
             cost=cost,

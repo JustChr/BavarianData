@@ -198,6 +198,15 @@ stehen die Ladevorgänge mit ihrer Energie da. Ein ohne GPS geladener Ladevorgan
 trägt *Zuhause · angenommen*, einer, der bepreist wurde, während der Tarif kurz
 unbekannt war, *Teilpreis*.
 
+**Orte.** Ein Schalter **Ladevorgänge | Orte** oben zeigt statt der Ladevorgänge
+des Monats jeden Ort, an dem das Auto geladen hat: Besuche, AC oder DC, die
+durchschnittliche Leistung und die typische Standzeit. Tippe auf einen Ort für
+seinen besten Besuch, Minuten je 10 %, vorkonditioniert oder nicht und die
+Leistungskurven seiner letzten Besuche übereinander. Mit **Ladeorte merken** zeigt
+eine Landkarte, wo die Orte liegen. Orte umfassen den ganzen Verlauf, deshalb gibt
+es dort keine Monatsauswahl
+([siehe Ladeorte](DE-Feature-Charging-History-and-Cost#charging-places)).
+
 Ist **Konfigurieren → Solar & Energiequellen** eingerichtet, trägt ein zuordenbarer
 Ladevorgang zusätzlich ein Etikett **☀ 62 % Solar**, und aufgeklappt kommt eine Zeile
 *Energiequelle* mit den kWh je Quelle hinzu

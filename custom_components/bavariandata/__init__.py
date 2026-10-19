@@ -62,6 +62,7 @@ from .const import (
     OPTION_TRIP_DEBUG,
     OPTION_STATISTICS_IMPORT,
     DEFAULT_STATISTICS_IMPORT,
+    OPTION_CHARGE_LOCATIONS,
     OPTION_REFRESH_ON_START,
     DEFAULT_REFRESH_ON_START,
     LAST_STARTUP_REFRESH,
@@ -570,6 +571,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         hass,
         entry.entry_id,
         retain_months=_retain_months(options),
+        remember_locations=bool(options.get(OPTION_CHARGE_LOCATIONS)),
     )
     await history_store.async_load()
 
@@ -605,6 +607,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     # And charges made away from home lose the house mix and tariff cost they
     # were given before #97. After the line above, so a zone it resolves counts.
     history_store.drop_house_figures_elsewhere()
+    # With *Remember charging locations* off, no coordinates stay on disk --
+    # after the zone repair above, which needs them one last time.
+    if not history_store.remember_locations:
+        history_store.forget_locations()
     coordinator.coverage = coverage_store
     # A car added to the account after setup has no bootstrap of its own; this
     # is what gives it a name, a model and a device entry.

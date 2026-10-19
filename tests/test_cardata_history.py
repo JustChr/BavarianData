@@ -556,3 +556,70 @@ def test_grid_source_round_trips_and_is_inferred_for_old_records():
     no_figure = _live_session().to_dict()
     no_figure.pop("grid_source")
     assert ChargingSession.from_dict(no_figure).grid_source is None
+
+
+# --- charging places (Remember charging locations) ---------------------------
+
+
+def test_coordinates_are_dropped_unless_remembered():
+    assert "lat" not in session_from_cardata("WBY1", _raw()).location
+    kept = session_from_cardata("WBY1", _raw(), keep_coordinates=True).location
+    assert (kept["lat"], kept["lon"]) == (48.39092, 16.22995)
+    home = session_from_cardata("WBY1", _raw(), keep_coordinates=True, **_HOME).location
+    assert home == {"zone": "Home", "lat": 48.39092, "lon": 16.22995}
+
+
+def _matches(*names):
+    return {"potentialChargingPointMatches": [{"providerName": n, "city": "X"} for n in names]}
+
+
+def test_provider_only_when_every_candidate_agrees():
+    agreed = session_from_cardata("WBY1", _raw(publicChargingPoint=_matches("Ionity", "Ionity")))
+    assert agreed.location["provider"] == "Ionity"
+
+    torn = session_from_cardata("WBY1", _raw(publicChargingPoint=_matches("Ionity", "EnBW")))
+    assert "provider" not in torn.location
+
+    at_home = session_from_cardata("WBY1", _raw(publicChargingPoint=_matches("Ionity")), **_HOME)
+    assert at_home.location == {"zone": "Home"}
+
+
+def test_preconditioning_flag_is_carried():
+    assert session_from_cardata("WBY1", _raw(isPreconditioningActivated=True)).preconditioned
+    assert (
+        session_from_cardata("WBY1", _raw(isPreconditioningActivated=False)).preconditioned is False
+    )
+    assert session_from_cardata("WBY1", _raw()).preconditioned is None
+
+
+def test_merge_adds_what_bmw_knows_about_the_same_place():
+    """A live charge at a public point keeps its place and gains the operator."""
+
+    live = ChargingSession(
+        vin="WBY1",
+        start=START_DT + timedelta(minutes=2),
+        end=START_DT + timedelta(minutes=58),
+        energy_kwh=14.0,
+        location={"zone": None, "address": "Somewhere"},
+    )
+    imported = session_from_cardata(
+        "WBY1",
+        _raw(publicChargingPoint=_matches("Ionity"), isPreconditioningActivated=True),
+        keep_coordinates=True,
+    )
+    merged, added, updated = merge_cardata_sessions([live], [imported])
+
+    assert (added, updated) == (0, 1)
+    (session,) = merged
+    assert session.location["address"] == "Somewhere"
+    assert session.location["provider"] == "Ionity"
+    assert session.location["lat"] == 48.39092
+    assert session.preconditioned is True
+
+
+def test_new_fields_survive_a_round_trip():
+    session = session_from_cardata("WBY1", _raw(isPreconditioningActivated=True))
+    session.charge_method = "dc"
+    again = ChargingSession.from_dict(session.to_dict())
+    assert again.charge_method == "dc"
+    assert again.preconditioned is True

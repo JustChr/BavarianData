@@ -307,9 +307,68 @@ Und die [reale Reichweite](DE-Feature-Efficiency-and-Range) braucht die
 batterieseitigen kWh jeder Ladung, die sie abdeckt; sie zeigt daher nichts statt
 eines falschen Werts, bis die reparierten Ladungen älter als 30 Tage sind.
 
+<a id="charging-places"></a>
+
+## Ladeorte
+
+Der Reiter **Orte** der Karte listet jeden Ort, an dem das Auto geladen hat, die
+meistbesuchten zuerst, gebildet aus den aufgezeichneten Ladevorgängen. Zusätzlich
+gespeichert wird nichts: Löschst du den Verlauf, verschwinden auch die Orte. Je Ort:
+
+- **Besuche**, die **typische Standzeit** (der Median der Ladedauer dort) und die
+  dort insgesamt geladene Energie;
+- **AC oder DC**. Das Auto sagt es, wenn es seinen Steckertyp streamt; sonst zählt
+  eine Spitze über 22 kW als DC, denn kein BMW lädt an AC schneller. AC- und
+  DC-Besuche werden nie miteinander gemittelt;
+- die **durchschnittliche Leistung**, die du tatsächlich bekommen hast, und ab zwei
+  Besuchen der **beste** Besuch;
+- **Minuten je 10 %**, gezählt nur aus Besuchen, die mindestens 20 % nachgeladen
+  und bei höchstens 80 % geendet haben. Über 80 % wird ein Schnelllader stark
+  langsamer, das ließe einen guten Lader langsam aussehen;
+- **vorkonditioniert oder nicht**, wenn es Besuche beider Art gibt. Nur BMWs
+  Ladeverlauf sagt, ob die Batterie vorkonditioniert war, dafür braucht es also
+  [einen Import](#importing-past-charges-from-bmw);
+- die Leistungskurven der letzten fünf Besuche, übereinander gezeichnet.
+
+Ein Ort mit einem Besuch zeigt die Werte dieses Besuchs, nie einen „Durchschnitt“
+aus einem. Spät erkannte Ladungen und Ladungen, in die ein Neustart fiel, zählen
+als Besuch, aber nicht für die Geschwindigkeit: Ihre Energie ist nur eine
+Untergrenze.
+
+**Wie aus Ladungen Orte werden.** Eine Ladung in einer Home-Assistant-Zone gehört
+zu dieser Zone. Außerhalb deiner Zonen benennen BMWs Adresse und Ladepunktbetreiber
+den Ort; der Betreiber wird nur gezeigt, wenn alle Ladepunkte, die BMW zugeordnet
+hat, zum selben gehören. Eine Ladung ganz ohne Position zählt als Zuhause, nach
+derselben Regel wie der Tarif, und ist als *angenommen* markiert. Ladungen
+unterwegs ohne Position und ohne Adresse teilen sich eine Zeile **Andere Orte**,
+ohne Geschwindigkeiten, weil sie verschiedene Lader mischt.
+
+<a id="remember-charging-locations"></a>
+
+### Ladeorte merken
+
+**Konfigurieren → Ladekosten & Verlauf → Ladeorte merken** (standardmäßig aus)
+behält die Koordinaten jeder Ladung. Ist es an, sind Ladungen innerhalb von 75 m
+ein Ort, und der Reiter Orte zeigt sie auf einer **Landkarte**. Es schreibt rohe
+Koordinaten auf die Festplatte, deshalb ist es aus, bis du es einschaltest.
+Schaltest du es wieder aus, wird **jede gespeicherte Koordinate gelöscht**; Zonen,
+Adressen und Betreiber bleiben, ebenso die Liste.
+
+Es wirkt ab dem nächsten Laden. Für ältere Ladungen einmal
+[den Ladeverlauf abrufen](#importing-past-charges-from-bmw): BMWs Einträge tragen
+die Position, und der Import ergänzt sie bei den Ladungen, die du schon hast.
+
+Die Orte kommen von `get_charging_places` (unten), das **kein Kontingent** kostet.
+DC-Laden und BMWs Betreibernamen wurden noch in keinen echten Fahrzeugdaten
+gesehen. Zeigt deines etwas Merkwürdiges, helfen
+[Diagnosedaten](DE-Troubleshooting-and-FAQ#download-diagnostics).
+
 ## Auslesen
 
-- Die [Kartenansicht `view: charging`](DE-The-Dashboard-Card#charging-history-view-charging).
+- Die [Kartenansicht `view: charging`](DE-The-Dashboard-Card#charging-history-view-charging)
+  mit ihren Reitern **Ladevorgänge** und **Orte**.
+- **`bavariandata.get_charging_places`** liefert die Orte als Antwortdaten des
+  Dienstes (optional `vin`, `from`, `to`) — ohne Kontingent.
 - **`bavariandata.get_charging_sessions`** liefert den ganzen Verlauf als
   Antwortdaten des Dienstes (optional `vin`, `from`, `to`, `limit`) — ohne
   Kontingent.

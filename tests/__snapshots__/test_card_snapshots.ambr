@@ -64,6 +64,12 @@
           </button>
         </div>
           </div>
+          <div class="ctabs" role="group">
+  <button class="ctabs__btn is-active" data-chg-tab="sessions"
+                 aria-pressed="true">Sessions</button>
+  <button class="ctabs__btn" data-chg-tab="places"
+                 aria-pressed="false">Places</button>
+  </div>
           
         <div class="mnav">
           <button class="mnav__btn" data-month-kind="charging" data-month-step="-1"
@@ -123,6 +129,12 @@
           </button>
         </div>
           </div>
+          <div class="ctabs" role="group">
+  <button class="ctabs__btn is-active" data-chg-tab="sessions"
+                 aria-pressed="true">Sessions</button>
+  <button class="ctabs__btn" data-chg-tab="places"
+                 aria-pressed="false">Places</button>
+  </div>
           
         <div class="mnav">
           <button class="mnav__btn" data-month-kind="charging" data-month-step="-1"
@@ -167,6 +179,12 @@
           </button>
         </div>
           </div>
+          <div class="ctabs" role="group">
+  <button class="ctabs__btn is-active" data-chg-tab="sessions"
+                 aria-pressed="true">Sessions</button>
+  <button class="ctabs__btn" data-chg-tab="places"
+                 aria-pressed="false">Places</button>
+  </div>
           
         <div class="mnav">
           <button class="mnav__btn" data-month-kind="charging" data-month-step="-1"
@@ -1813,6 +1831,262 @@
           <span class="ef__note">Have a lease or an insurance mileage limit? Add it in the integration's settings under Mileage allowance.</span>
         </div>
       
+        </ha-card>
+  '''
+# ---
+# name: test_the_places_tab[list]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:ev-station">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Charging history</span>
+              <span class="chead__sub">Car · 4 places</span>
+            </div>
+          </div>
+          <div class="ctabs" role="group">
+  <button class="ctabs__btn" data-chg-tab="sessions"
+                 aria-pressed="false">Sessions</button>
+  <button class="ctabs__btn is-active" data-chg-tab="places"
+                 aria-pressed="true">Places</button>
+  </div>
+          <div class="chg__list">
+        <div class="chg__session is-open">
+          <button class="chg__row" data-place="address:A9 Holledau">
+            <span class="chg__row-main">
+              <span class="chg__date pl__name">Ionity · A9 Holledau</span>
+              <span class="chg__meta">
+  <span class="chg__badge chg__badge--away">DC</span>
+  <span class="chg__soc">121 kW avg · 21 min</span>
+  </span>
+            </span>
+            <span class="chg__figures">
+              <span class="chg__energy chg__energy--lead">2 visits</span>
+            </span>
+          </button>
+          
+        <div class="chg__detail">
+          
+        <svg class="chg__chart" viewBox="0 0 260 64" preserveAspectRatio="none" role="img">
+          <polyline points="4,15.2 88,15.2 88,10.2 256,10.2 256,40.1" class="chg__chart-line" style="opacity:1">
+  </polyline>
+  <polyline points="4,9.6 67,9.6 67,4 193,4 193,37.6" class="chg__chart-line" style="opacity:0.58">
+  </polyline>
+          <text x="4" y="10" class="chg__chart-max">180 kW</text>
+        </svg>
+      
+          <div class="chg__facts">
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Avg</span>
+  <span class="chg__fact-val">121 kW</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Best</span>
+  <span class="chg__fact-val">140 kW</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Per 10 % (to 80 %)</span>
+  <span class="chg__fact-val">5.2 min</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Preconditioned (1×)</span>
+  <span class="chg__fact-val">140 kW · 4.5 min / 10 %</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Not preconditioned (1×)</span>
+  <span class="chg__fact-val">103 kW · 6 min / 10 %</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Charged here</span>
+  <span class="chg__fact-val">83 kWh</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Last visit</span>
+  <span class="chg__fact-val">Sep 7, 08:00 AM</span>
+  </div>
+  </div>
+        </div>
+      
+        </div>
+      
+        <div class="chg__session">
+          <button class="chg__row" data-place="zone:Home">
+            <span class="chg__row-main">
+              <span class="chg__date pl__name">Home</span>
+              <span class="chg__meta">
+  <span class="chg__badge chg__badge--home">AC</span>
+  <span class="chg__soc">10.4 kW avg · 3 h 5 min</span>
+  </span>
+            </span>
+            <span class="chg__figures">
+              <span class="chg__energy chg__energy--lead">2 visits</span>
+            </span>
+          </button>
+          
+        </div>
+      
+        <div class="chg__session">
+          <button class="chg__row" data-place="address:Rosenheim">
+            <span class="chg__row-main">
+              <span class="chg__date pl__name">Rosenheim</span>
+              <span class="chg__meta">
+  <span class="chg__badge chg__badge--away">AC</span>
+  <span class="chg__soc">10.9 kW · 1 h</span>
+  </span>
+            </span>
+            <span class="chg__figures">
+              <span class="chg__energy chg__energy--lead">1 visit</span>
+            </span>
+          </button>
+          
+        </div>
+      
+        <div class="chg__session">
+          <button class="chg__row" data-place="unnamed">
+            <span class="chg__row-main">
+              <span class="chg__date pl__name">Other places</span>
+              <span class="chg__meta">
+  <span class="chg__badge chg__badge--away">AC</span>
+  <span class="chg__soc">30 min</span>
+  </span>
+            </span>
+            <span class="chg__figures">
+              <span class="chg__energy chg__energy--lead">1 visit</span>
+            </span>
+          </button>
+          
+        </div>
+      </div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_places_tab[map]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:ev-station">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Charging history</span>
+              <span class="chead__sub">Car · 4 places</span>
+            </div>
+          </div>
+          <div class="ctabs" role="group">
+  <button class="ctabs__btn" data-chg-tab="sessions"
+                 aria-pressed="false">Sessions</button>
+  <button class="ctabs__btn is-active" data-chg-tab="places"
+                 aria-pressed="true">Places</button>
+  </div>
+          <div class="pl__map">
+  </div>
+  <div class="chg__list">
+        <div class="chg__session is-open">
+          <button class="chg__row" data-place="point:1">
+            <span class="chg__row-main">
+              <span class="chg__date pl__name">Ionity · A9 Holledau</span>
+              <span class="chg__meta">
+  <span class="chg__badge chg__badge--away">DC</span>
+  <span class="chg__soc">121 kW avg · 21 min</span>
+  </span>
+            </span>
+            <span class="chg__figures">
+              <span class="chg__energy chg__energy--lead">2 visits</span>
+            </span>
+          </button>
+          
+        <div class="chg__detail">
+          
+        <svg class="chg__chart" viewBox="0 0 260 64" preserveAspectRatio="none" role="img">
+          <polyline points="4,15.2 88,15.2 88,10.2 256,10.2 256,40.1" class="chg__chart-line" style="opacity:1">
+  </polyline>
+  <polyline points="4,9.6 67,9.6 67,4 193,4 193,37.6" class="chg__chart-line" style="opacity:0.58">
+  </polyline>
+          <text x="4" y="10" class="chg__chart-max">180 kW</text>
+        </svg>
+      
+          <div class="chg__facts">
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Avg</span>
+  <span class="chg__fact-val">121 kW</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Best</span>
+  <span class="chg__fact-val">140 kW</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Per 10 % (to 80 %)</span>
+  <span class="chg__fact-val">5.2 min</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Preconditioned (1×)</span>
+  <span class="chg__fact-val">140 kW · 4.5 min / 10 %</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Not preconditioned (1×)</span>
+  <span class="chg__fact-val">103 kW · 6 min / 10 %</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Charged here</span>
+  <span class="chg__fact-val">83 kWh</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Last visit</span>
+  <span class="chg__fact-val">Sep 7, 08:00 AM</span>
+  </div>
+  </div>
+        </div>
+      
+        </div>
+      
+        <div class="chg__session">
+          <button class="chg__row" data-place="zone:Home">
+            <span class="chg__row-main">
+              <span class="chg__date pl__name">Home</span>
+              <span class="chg__meta">
+  <span class="chg__badge chg__badge--home">AC</span>
+  <span class="chg__soc">10.4 kW avg · 3 h 5 min</span>
+  </span>
+            </span>
+            <span class="chg__figures">
+              <span class="chg__energy chg__energy--lead">2 visits</span>
+            </span>
+          </button>
+          
+        </div>
+      
+        <div class="chg__session">
+          <button class="chg__row" data-place="address:Rosenheim">
+            <span class="chg__row-main">
+              <span class="chg__date pl__name">Rosenheim</span>
+              <span class="chg__meta">
+  <span class="chg__badge chg__badge--away">AC</span>
+  <span class="chg__soc">10.9 kW · 1 h</span>
+  </span>
+            </span>
+            <span class="chg__figures">
+              <span class="chg__energy chg__energy--lead">1 visit</span>
+            </span>
+          </button>
+          
+        </div>
+      
+        <div class="chg__session">
+          <button class="chg__row" data-place="unnamed">
+            <span class="chg__row-main">
+              <span class="chg__date pl__name">Other places</span>
+              <span class="chg__meta">
+  <span class="chg__badge chg__badge--away">AC</span>
+  <span class="chg__soc">30 min</span>
+  </span>
+            </span>
+            <span class="chg__figures">
+              <span class="chg__energy chg__energy--lead">1 visit</span>
+            </span>
+          </button>
+          
+        </div>
+      </div>
         </ha-card>
   '''
 # ---
