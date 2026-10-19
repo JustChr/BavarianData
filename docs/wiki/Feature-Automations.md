@@ -171,7 +171,7 @@ so the burst is complete by then. Things to know:
 
 ## Starter blueprints
 
-Seven starter automations ship with the integration. Import them via **Settings →
+Eight starter automations ship with the integration. Import them via **Settings →
 Automations → Blueprints → Import Blueprint** with the raw GitHub URL:
 
 - **Stop charging at target %** —
@@ -236,6 +236,18 @@ Automations → Blueprints → Import Blueprint** with the raw GitHub URL:
   means one is losing air, usually well before the car's own warning. It
   names the tire in `low_tire` and fires again only after the gap has closed.
   Healthy tires stay within about 20 kPa of each other.
+- **Car left open at night** —
+  [`car_left_open.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/car_left_open.yaml).
+  At the time you set (22:00 by default), checks that the car is locked and
+  its doors, windows, sunroof, tailgate and hood are shut. If anything isn't,
+  it runs your actions once, with what is open or unlocked in `open_names`.
+  You only pick the car (or several): it finds the car's lock, door, window
+  and lid sensors itself and checks those your car sends. The charge flap and
+  the cable lock are left out, since they are open every night the car
+  charges. To check from your own goodnight routine instead, run the
+  automation from it.
+  The car can't be locked from Home Assistant (CarData is read-only); lock it
+  in the My BMW app.
 
 ## Ask Assist about your car
 

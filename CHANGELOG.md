@@ -9,6 +9,12 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **New blueprint: car left open at night.** At bedtime it checks that the car
+  is locked and its doors, windows, sunroof, tailgate and hood are shut, and
+  tells you what isn't. Import `car_left_open.yaml` from the blueprints folder;
+  see *Automations → Starter blueprints* in the wiki.
+
 ## [0.9.21-beta.6] - 2026-10-19
 
 ### Fixed

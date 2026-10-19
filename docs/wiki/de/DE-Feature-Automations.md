@@ -178,7 +178,7 @@ der Fahrt nichts. Es löst einmal pro neuem Kilometerstand aus, nachdem der Wert
 
 ## Blueprints für den Einstieg
 
-Sieben Automationen für den Einstieg liegen der Integration bei. Importiere sie
+Acht Automationen für den Einstieg liegen der Integration bei. Importiere sie
 über **Einstellungen → Automationen & Szenen → Blueprints → Blueprint
 importieren** mit der Raw-URL von GitHub:
 
@@ -252,6 +252,19 @@ importieren** mit der Raw-URL von GitHub:
   deutlich vor der Warnung des Autos. Den Reifen nennt `low_tire`; erneut
   meldet es sich erst, wenn der Unterschied wieder verschwunden ist. Gesunde
   Reifen liegen höchstens etwa 20 kPa auseinander.
+- **Auto über Nacht offen** —
+  [`car_left_open.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/car_left_open.yaml).
+  Prüft zur eingestellten Zeit (standardmäßig 22:00), ob das Auto verriegelt
+  ist und Türen, Fenster, Schiebedach, Heckklappe und Motorhaube zu sind. Ist
+  etwas offen, führt es deine Aktionen einmal aus, mit dem Offenen oder
+  Unverriegelten in `open_names`. Du wählst nur das Auto (oder mehrere): Die
+  Sensoren für Verriegelung, Türen, Fenster und Klappen findet es selbst und
+  prüft die, die dein Auto sendet. Ladeklappe und Kabelverriegelung bleiben
+  außen vor, denn die sind in jeder Nacht offen, in der das Auto lädt. Soll es
+  aus deiner eigenen Gute-Nacht-Routine heraus prüfen, starte die Automation
+  von dort.
+  Verriegeln lässt sich das Auto aus Home Assistant nicht (CarData liest nur);
+  das geht in der My-BMW-App.
 
 ## Assist nach dem Auto fragen
 

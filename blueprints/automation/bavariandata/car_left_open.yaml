@@ -1,0 +1,77 @@
+blueprint:
+  name: "BavarianData: Car left open at night"
+  description: >
+    At bedtime, checks that the car is locked and everything on it is shut:
+    doors, windows, sunroof, tailgate, hood. If anything isn't, it runs your
+    actions once, naming what is open. BMW CarData is read-only, so the car
+    can't lock itself from here; you can, in the My BMW app.
+
+    Pick the car; it finds the car's sensors itself and checks what your car
+    sends. The charge flap and the cable lock are left out: they are open
+    every night the car charges.
+
+    It checks at the time you set. To check from your own goodnight routine
+    instead, run this automation from it (the check still applies).
+  domain: automation
+  source_url: https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/car_left_open.yaml
+  input:
+    cars:
+      name: Cars
+      description: The cars to check.
+      selector:
+        device:
+          multiple: true
+          filter:
+            - integration: bavariandata
+    check_time:
+      name: When to check
+      default: "22:00:00"
+      selector:
+        time:
+    warn_actions:
+      name: Actions
+      description: >
+        What to do, for example a notification. The variable `open_names`
+        (what is open or unlocked) is available.
+      default: []
+      selector:
+        action:
+
+mode: single
+max_exceeded: silent
+
+variables:
+  cars: !input cars
+  # The lock state, every door, window and lid, and the tailgate lock. A
+  # binary sensor's "on" is open, or unlocked for a lock sensor.
+  checked: >-
+    ^vehicle\.(cabin\.door\.status|cabin\.door\.row\d\.\w+\.isOpen|cabin\.window\.row\d\.\w+\.status|cabin\.sunroof\.overallStatus|cabin\.convertible\.roofStatus|body\.(trunk|hood)(\.\w+)*\.isOpen|body\.trunk\.isLocked)$
+  # No value yet is not a warning: the car hasn't said anything is open.
+  fine_states:
+    - "off"
+    - closed
+    - secured
+    - locked
+    - closedsecured
+    - unknown
+    - unavailable
+    - invalid
+  open_names: >
+    {% set ns = namespace(names=[]) %}
+    {% for car in ([cars] if cars is string else cars) %}
+      {% for e in device_entities(car)
+         if (state_attr(e, 'descriptor') or '') is match(checked)
+         and not is_state(e, fine_states) %}
+        {% set ns.names = ns.names + [state_attr(e, 'friendly_name')] %}
+      {% endfor %}
+    {% endfor %}
+    {{ ns.names | join(', ') }}
+
+trigger:
+  - platform: time
+    at: !input check_time
+
+action:
+  - condition: template
+    value_template: "{{ open_names | trim != '' }}"
+  - sequence: !input warn_actions
