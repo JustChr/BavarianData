@@ -9,6 +9,27 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **Configure → Units: kilometers or miles, once, for everything** (#183).
+  One account-wide screen picks the distance unit, how fuel is shown (liters
+  and l/100 km, liters and imperial mpg, or US gallons and US mpg), and the
+  temperature and tire-pressure units. Each starts on **Automatic**, which is
+  what you had before: for distance, the unit your odometer sensor is shown in,
+  then the car's own setting, then Home Assistant's unit system. A choice
+  applies to every card view, the settings screens, the service calendar, the
+  month report and Assist, and sets the display unit of the car's sensors in
+  Home Assistant too. Back on Automatic, a unit you picked on a sensor yourself
+  stays. Everything recorded stays metric (trips, sessions, the odometer log and
+  each sensor's native unit), so switching never touches your history; CSV
+  exports, service responses and attributes stay metric as well.
+
+### Fixed
+- **Trips and Efficiency now follow your distance unit.** On a UK install with
+  the odometer in miles, they still showed km and kWh/100 km beside a Mileage
+  view in miles. Consumption is now kWh/100 mi there, as in My BMW, and the
+  month report follows too. A petrol car in miles shows imperial mpg instead
+  of l/100 km.
+
 ## [0.9.21-beta.9] - 2026-10-20
 
 ### Fixed

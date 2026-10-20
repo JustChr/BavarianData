@@ -93,6 +93,7 @@
           "action_evcc_bridge": "evcc-/laddboxbrygga",
           "action_trips": "Resor",
           "action_mileage": "Miltak",
+          "action_units": "Enheter",
           "action_data_refresh": "Automatisk datauppdatering",
           "fetch_now": "Hämta från BMW nu",
           "connection": "Anslutning"
@@ -384,6 +385,22 @@
           "refresh_on_start": "Gäller omedelbart."
         }
       },
+      "action_units": {
+        "title": "Enheter",
+        "description": "Hur instrumentpanelens kort, inställningarna, kalendern, månadsrapporten och Assist visar värden. En enhet du väljer här gäller också bilens sensorer i Home Assistant. Registrerade värden ändras aldrig, så att byta är ofarligt för din historik.\n\nVisas nu:\n{now}",
+        "data": {
+          "unit_distance": "Sträcka",
+          "unit_fuel": "Bränsle",
+          "unit_temperature": "Temperatur",
+          "unit_pressure": "Däcktryck"
+        },
+        "data_description": {
+          "unit_distance": "Förbrukning och hastighet följer med. Automatiskt använder enheten för din mätarställningssensor, sedan bilens egen inställning, sedan Home Assistants enhetssystem.",
+          "unit_fuel": "Tank, tankningar och bränsleförbrukning. Automatiskt följer sträckan: mpg (UK) för en bil i miles, US-gallon med det amerikanska systemet, annars liter.",
+          "unit_temperature": "Automatiskt överlåter det åt Home Assistant.",
+          "unit_pressure": "Automatiskt överlåter det åt Home Assistant."
+        }
+      },
       "action_debug_logging": {
         "title": "Felsökningsloggning",
         "description": "Slå på utförlig loggning för den här integrationen (MQTT-anslutning, prenumererade topics och varje inkommande meddelande). Detta är separat från Home Assistants allmänna felsökningsreglage — både loggnivån och detta reglage måste vara på för att de detaljerade raderna ska synas. Det är utförligt och kan innehålla fordonsdata som GPS-koordinater, så låt det vara av vid normal användning. Ändringen gäller omedelbart. Med mer än ett BMW-konto konfigurerat delas loggnivån: utförlig loggning förblir på så länge något konto har detta påslaget.",
@@ -508,6 +525,36 @@
         "none": "Inget",
         "lease": "Leasing eller finansiering",
         "yearly": "Årligt tak (t.ex. försäkring)"
+      }
+    },
+    "unit_distance": {
+      "options": {
+        "auto": "Automatiskt",
+        "km": "Kilometer",
+        "mi": "Miles"
+      }
+    },
+    "unit_fuel": {
+      "options": {
+        "auto": "Automatiskt",
+        "l": "Liter, l/100 km",
+        "l_mpg_uk": "Liter, mpg (UK)",
+        "gal_us": "US-gallon, mpg (US)"
+      }
+    },
+    "unit_temperature": {
+      "options": {
+        "auto": "Automatiskt",
+        "c": "°C",
+        "f": "°F"
+      }
+    },
+    "unit_pressure": {
+      "options": {
+        "auto": "Automatiskt",
+        "bar": "bar",
+        "kpa": "kPa",
+        "psi": "psi"
       }
     }
   },

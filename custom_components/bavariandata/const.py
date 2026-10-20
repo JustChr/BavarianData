@@ -267,3 +267,11 @@ OPTION_MILEAGE_START = "mileage_start"  # ISO date
 OPTION_MILEAGE_END = "mileage_end"  # ISO date, lease only
 OPTION_MILEAGE_ALLOWANCE_KM = "mileage_allowance_km"  # per year
 OPTION_MILEAGE_START_KM = "mileage_start_km"  # odometer on the start date
+
+# The units values are shown in (Configure -> Units; ``units.py``). Account-wide,
+# "auto" by default. Display only: everything stored stays km, litres, °C and bar.
+OPTION_UNIT_DISTANCE = "unit_distance"  # "auto" | "km" | "mi"
+OPTION_UNIT_FUEL = "unit_fuel"  # "auto" | "l" | "l_mpg_uk" | "gal_us"
+OPTION_UNIT_TEMPERATURE = "unit_temperature"  # "auto" | "c" | "f"
+OPTION_UNIT_PRESSURE = "unit_pressure"  # "auto" | "bar" | "kpa" | "psi"
+UNIT_AUTO = "auto"

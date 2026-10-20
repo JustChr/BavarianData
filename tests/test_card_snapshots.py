@@ -69,6 +69,22 @@ card._hass = {
   devices: { device: { name: "Car", identifiers: [["bavariandata", "WBS1"]] } },
   callService: () => new Promise(() => {}),
 };
+if (input.display_units) {
+  // Configure -> Units, the way the integration publishes it: on the account
+  // device's connection sensor, found through the car's config entry.
+  card._hass.devices.device.config_entries = ["entry1"];
+  card._hass.devices.account = { name: "Account", identifiers: [["bavariandata", "entry1"]] };
+  card._hass.entities = {
+    "sensor.connection": { platform: "bavariandata", device_id: "account" },
+  };
+  card._hass.states = {
+    ...input.states,
+    "sensor.connection": {
+      state: "connected",
+      attributes: { display_units: input.display_units },
+    },
+  };
+}
 card.shadowRoot = { innerHTML: "", querySelectorAll: () => [], querySelector: () => null };
 card.attachShadow = () => card.shadowRoot;
 card._wireTaps = () => {};
@@ -83,13 +99,24 @@ if (input.mileage) {
 }
 if (input.fuel) {
   card._fuel = { vin: "WBS1", trigger: "", data: input.fuel, loading: false };
-  card._render = () => { card._sig = null; card._paintFuel("device", input.unit || "km"); };
+  card._render = () => {
+    card._sig = null;
+    card._paintFuel("device", input.unit || "km", input.fuel_unit || "l");
+  };
 }
 if (input.places) {
   card._chgTab = "places";
   card._plc = { vin: "WBS1", trigger: "", data: input.places, loading: false };
   card._plcExpanded = input.placesExpanded || null;
   card._render = () => { card._sig = null; card._paintPlaces("device"); };
+}
+if (input.trips) {
+  card._trp = { vin: "WBS1", trigger: "", loading: false, ...input.trips };
+  card._trpExpanded = input.tripsExpanded || null;
+  card._render = () => {
+    card._sig = null;
+    card._paintTrips("device", Object.keys(input.states));
+  };
 }
 if (input.efficiency) {
   card._eff = { vin: "WBS1", trigger: "", data: input.efficiency, loading: false };
@@ -243,10 +270,16 @@ FUEL = {
 }
 
 
+# Distance and fuel unit (Configure -> Units): a metric car, a UK car (miles,
+# litres, imperial mpg) and a US one (miles, US gallons, US mpg).
+FUEL_UNITS = {"km": ("km", "l"), "mi": ("mi", "l_mpg_uk"), "us": ("mi", "gal_us")}
+
+
 @pytest.mark.parametrize("case", sorted(FUEL))
-@pytest.mark.parametrize("unit", ["km", "mi"])
+@pytest.mark.parametrize("unit", sorted(FUEL_UNITS))
 def test_the_fuel_view_with_figures(case: str, unit: str, snapshot) -> None:
-    assert _render(M2, SCREENS["fuel"], fuel=FUEL[case], unit=unit) == snapshot
+    distance, fuel = FUEL_UNITS[unit]
+    assert _render(M2, SCREENS["fuel"], fuel=FUEL[case], unit=distance, fuel_unit=fuel) == snapshot
 
 
 # A plug-in hybrid's efficiency view, from BMW's lifetime counters.
@@ -389,3 +422,87 @@ def test_the_places_tab(remembered: bool, snapshot) -> None:
     places = _places(remembered)
     ionity = next(p for p in places if p["provider"] == "Ionity")
     assert _render(I5, SCREENS["charging"], places=places, placesExpanded=ionity["id"]) == snapshot
+
+
+# A month of trips with every per-distance figure the view can show, and the
+# efficiency profile of a car with enough history, rendered in kilometres and
+# in miles (Configure -> Units, #183). Miles comes through the account's
+# published choice, so the card's lookup is covered end to end.
+TRIPS = {
+    "summary": {
+        "total_km": 482.0,
+        "mom_delta_percent": 12.0,
+        "trip_count": 2,
+        "avg_consumption_kwh_per_100km": 17.2,
+        "recuperation_kwh_per_100km": 3.1,
+        "energy_balance": {"kwh_per_100km": 19.4, "source": "grid"},
+        "split": {"business_km": 120.0, "commute_km": 300.0, "private_km": 62.0},
+    },
+    "trips": [
+        {
+            "start": "2026-09-08T06:10:00+00:00",
+            "end": "2026-09-08T06:31:00+00:00",
+            "start_place": {"label": "Work"},
+            "end_place": {"label": "Home"},
+            "distance_km": 22.5,
+            "duration_s": 1260,
+            "soc_start": 74.0,
+            "soc_end": 67.0,
+            "energy_kwh": 5.6,
+            "consumption_kwh_per_100km": 24.9,
+            "classification": "commute",
+            "classification_source": "auto",
+            "stats": {"recuperation_kwh_per_100km": 2.4},
+        }
+    ],
+    "open": None,
+}
+
+EFFICIENCY = {
+    "status": "ok",
+    "range": {
+        "now_km": 311.0,
+        "full_km": 412.0,
+        "soc_percent": 75.0,
+        "bmw_km": 395.0,
+        "vs_bmw_percent": 4.3,
+    },
+    "consumption": {"kwh_per_100km": 18.2, "source": "grid", "window_days": 90},
+    "grid_consumption": {"kwh_per_100km": 20.1},
+    "measured_loss_percent": 9.0,
+    "capacity_kwh": 75.0,
+    "capacity_source": "measured",
+    "cost_per_100km": 4.1,
+    "currency": "EUR",
+    "trend": [
+        {"month": "2026-07", "kwh_per_100km": 16.4},
+        {"month": "2026-08", "kwh_per_100km": 17.0},
+        {"month": "2026-09", "kwh_per_100km": 18.2},
+    ],
+}
+
+UNITS = {"km": None, "mi": {"distance": "mi", "fuel": "auto"}}
+
+
+@pytest.mark.parametrize("unit", sorted(UNITS))
+def test_the_trips_view_with_figures(unit: str, snapshot) -> None:
+    extra = {"display_units": UNITS[unit]} if UNITS[unit] else {}
+    html = _render(
+        I5,
+        SCREENS["trips"],
+        trips=TRIPS,
+        tripsExpanded=TRIPS["trips"][0]["start"],
+        **extra,
+    )
+    assert html == snapshot
+    assert ("kWh/100 mi" in html) == (unit == "mi")
+    assert ("kWh/100 km" in html) == (unit == "km")
+
+
+@pytest.mark.parametrize("unit", sorted(UNITS))
+def test_the_efficiency_view_with_figures(unit: str, snapshot) -> None:
+    extra = {"display_units": UNITS[unit]} if UNITS[unit] else {}
+    html = _render(I5, SCREENS["efficiency"], efficiency=EFFICIENCY, **extra)
+    assert html == snapshot
+    assert ("kWh/100 mi" in html) == (unit == "mi")
+    assert ("kWh/100 km" in html) == (unit == "km")

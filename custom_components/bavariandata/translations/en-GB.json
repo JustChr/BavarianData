@@ -44,6 +44,14 @@
       "action_fetch_tyre": {
         "title": "Fetch tyre diagnosis",
         "description": "Fetch the latest tyre-pressure diagnosis for your vehicles.\n\nPress Submit to continue."
+      },
+      "action_units": {
+        "data": {
+          "unit_pressure": "Tyre pressure"
+        },
+        "data_description": {
+          "unit_fuel": "Tank, refuels and fuel consumption. Automatic follows the distance: mpg (UK) for a car in miles, US gallons on US customary, otherwise litres."
+        }
       }
     },
     "abort": {
@@ -51,6 +59,19 @@
       "reauth_device_code_failed": "BMW rejected the device authorisation request ({error}). Check the Client ID and try again.",
       "reauth_missing_client_id": "Client ID is missing for this integration entry. Remove and re-add the integration to authorise again.",
       "reauth_failed": "Re-authorisation could not be started. Try again from the integration options."
+    }
+  },
+  "selector": {
+    "unit_distance": {
+      "options": {
+        "km": "Kilometres"
+      }
+    },
+    "unit_fuel": {
+      "options": {
+        "l": "Litres, l/100 km",
+        "l_mpg_uk": "Litres, mpg (UK)"
+      }
     }
   },
   "entity": {

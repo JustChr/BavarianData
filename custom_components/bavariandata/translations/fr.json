@@ -93,6 +93,7 @@
           "action_evcc_bridge": "Passerelle evcc / borne de recharge",
           "action_trips": "Trajets",
           "action_mileage": "Kilométrage autorisé",
+          "action_units": "Unités",
           "action_data_refresh": "Actualisation automatique des données",
           "fetch_now": "Récupérer auprès de BMW",
           "connection": "Connexion"
@@ -384,6 +385,22 @@
           "refresh_on_start": "Prend effet immédiatement."
         }
       },
+      "action_units": {
+        "title": "Unités",
+        "description": "Comment la carte du tableau de bord, les réglages, le calendrier, le rapport mensuel et Assist affichent les valeurs. Une unité choisie ici s'applique aussi aux capteurs du véhicule dans Home Assistant. Les valeurs enregistrées ne changent jamais : changer d'unité ne touche pas à votre historique.\n\nAffiché actuellement :\n{now}",
+        "data": {
+          "unit_distance": "Distance",
+          "unit_fuel": "Carburant",
+          "unit_temperature": "Température",
+          "unit_pressure": "Pression des pneus"
+        },
+        "data_description": {
+          "unit_distance": "La consommation et la vitesse suivent. Automatique reprend l'unité de votre capteur de kilométrage, puis le réglage du véhicule, puis le système d'unités de Home Assistant.",
+          "unit_fuel": "Réservoir, pleins et consommation de carburant. Automatique suit la distance : mpg (UK) pour un véhicule en miles, gallons US avec le système américain, sinon litres.",
+          "unit_temperature": "Automatique laisse Home Assistant décider.",
+          "unit_pressure": "Automatique laisse Home Assistant décider."
+        }
+      },
       "action_debug_logging": {
         "title": "Journalisation de débogage",
         "description": "Active la journalisation détaillée de cette intégration (connexion MQTT, topics souscrits et chaque message entrant). C'est distinct du réglage de débogage générique de Home Assistant — le niveau de journalisation et ce commutateur doivent tous deux être activés pour voir les lignes détaillées. C'est verbeux et peut contenir des données du véhicule comme des coordonnées GPS ; laissez-le désactivé en usage normal. La modification s'applique immédiatement. Avec plusieurs comptes BMW configurés, le niveau de journalisation est partagé : la journalisation détaillée reste active tant qu'un compte l'a activée.",
@@ -508,6 +525,36 @@
         "none": "Aucune",
         "lease": "Location (LLD/LOA) ou financement",
         "yearly": "Limite annuelle (ex. assurance)"
+      }
+    },
+    "unit_distance": {
+      "options": {
+        "auto": "Automatique",
+        "km": "Kilomètres",
+        "mi": "Miles"
+      }
+    },
+    "unit_fuel": {
+      "options": {
+        "auto": "Automatique",
+        "l": "Litres, l/100 km",
+        "l_mpg_uk": "Litres, mpg (UK)",
+        "gal_us": "Gallons US, mpg (US)"
+      }
+    },
+    "unit_temperature": {
+      "options": {
+        "auto": "Automatique",
+        "c": "°C",
+        "f": "°F"
+      }
+    },
+    "unit_pressure": {
+      "options": {
+        "auto": "Automatique",
+        "bar": "bar",
+        "kpa": "kPa",
+        "psi": "psi"
       }
     }
   },

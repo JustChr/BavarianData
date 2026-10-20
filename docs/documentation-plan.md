@@ -141,7 +141,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `activate_stream_wait` | Reconfigure: run activator, waiting (progress) | ❌ new — needs shot | 📷 |
 | `activate_stream_paste` | Reconfigure: paste-result fallback (http HA) | ❌ new — needs shot | 📷 |
 | `activate_stream_done` | Reconfigure: activation confirmation | ❌ new — needs shot | 📷 |
-| `init` | Configure menu: the eight settings + the two submenus below | 🟢 Settings-Reference → "The Configure menu" (EN + DE) | 📷 owed: `bavariandata-configure-menu.png` shows the pre-v0.9.20 flat list of 18; re-shoot once a build with the submenus is installed |
+| `init` | Configure menu: the nine settings + the two submenus below | 🟢 Settings-Reference → "The Configure menu" (EN + DE) | 📷 owed: `bavariandata-configure-menu.png` shows the pre-v0.9.20 flat list of 18; re-shoot once a build with the submenus is installed |
 | `fetch_now` | Submenu "Fetch from BMW now": Discover vehicles + the five fetches (all spend quota) | 🟢 Settings-Reference → "The Configure menu" (EN + DE) | 📷 owed |
 | `connection` | Submenu "Connection": re-authorize, refresh tokens, reset container, debug logging | 🟢 Settings-Reference → "The Configure menu" (EN + DE) | 📷 owed |
 | `action_refresh_tokens` | Refresh tokens | ❌ | 📷 |
@@ -163,6 +163,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `trips_vehicle` | Trips: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Trips" + Feature-Multiple-Cars-and-Accounts → "Telling the cars apart" (EN + DE) | 📷 (have, staged two-car: `bavariandata-vehicle-picker.png`) |
 | `action_trips` | Trips (per car with 2+ cars; shared settings in the collapsed "All vehicles" section) | 🟡 | 📷 (have, 2026-10-11: `bavariandata-configure-trips.png`) |
 | `action_mileage` → `mileage_vehicle` (2+ cars) → `mileage_lease` / `mileage_yearly` | Mileage allowance (always per car, even with one car) | 🟢 Settings-Reference → "Mileage allowance" + Feature-Mileage (EN + DE) | 📷 (have, 2026-10-14: `bavariandata-mileage-allowance.png`, `-lease.png` with example figures, `-yearly.png`) |
+| `action_units` | Units: distance, fuel, temperature, tire pressure (account-wide; Automatic by default; explicit choices also set the sensors' display units) | 🟢 Settings-Reference → "Units" (EN + DE) | 📷 owed: shoot once a build with the screen is installed |
 | `action_debug_logging` | Debug logging toggle | 🟡 | 📷 |
 
 ### Settings (option keys) — the fields inside those screens
@@ -181,6 +182,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `refresh_on_start` | Automatic data refresh | 🟢 Settings-Reference → "Automatic data refresh" + Feature-Charging-History-and-Cost → "Restarting while the car is charging" |
 | `bridge_enabled` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge (incl. "Away from home, the status is withheld") |
 | `mileage_kind`, `mileage_start`, `mileage_end`, `mileage_allowance_km`, `mileage_start_km` | Mileage allowance (stored under `vehicles[VIN]`) | 🟢 Settings-Reference → "Mileage allowance" + Feature-Mileage |
+| `unit_distance`, `unit_fuel`, `unit_temperature`, `unit_pressure` | Units | 🟢 Settings-Reference → "Units" (EN + DE) |
 | `bridge_topic_prefix` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |
 | `bridge_retain` | evcc / wallbox bridge | 🟢 Settings-Reference + Feature-evcc-and-Wallbox-Bridge |
 | `trip_work_zone` | Trips | 🟡 |

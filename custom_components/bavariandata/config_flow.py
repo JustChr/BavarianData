@@ -68,6 +68,10 @@ from .const import (
     DEFAULT_STATISTICS_IMPORT,
     OPTION_CHARGE_LOCATIONS,
     OPTION_REFRESH_ON_START,
+    OPTION_UNIT_DISTANCE,
+    OPTION_UNIT_FUEL,
+    OPTION_UNIT_PRESSURE,
+    OPTION_UNIT_TEMPERATURE,
     DEFAULT_REFRESH_ON_START,
     OPTION_TRIP_COMMUTE_GAP,
     DEFAULT_TRIP_COMMUTE_GAP_MIN,
@@ -85,7 +89,8 @@ from .const import (
     TRIP_DETECTION_REPORTS,
 )
 from .debug import set_debug_enabled
-from .distance import car_distance_unit
+from .distance import async_apply_sensor_units, car_distance_unit, car_fuel_unit
+from .units import UNIT_CHOICES, unit_choices
 from .history.classify import DEFAULT_CLASS_CHOICES
 from .trip_settings import account_trip_settings, vehicle_trip_settings
 from .vehicle_options import (
@@ -1071,6 +1076,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
                 "action_evcc_bridge",
                 "action_trips",
                 "action_mileage",
+                "action_units",
                 "action_data_refresh",
                 "fetch_now",
                 "connection",
@@ -2156,6 +2162,80 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
             return self.async_show_form(step_id="action_data_refresh", data_schema=schema)
         options[OPTION_REFRESH_ON_START] = bool(user_input.get(OPTION_REFRESH_ON_START))
         return self.async_create_entry(title="", data=options)
+
+    # --- Units --------------------------------------------------------------
+    #
+    # How values are shown, account-wide (``units.py``). Display only: what is
+    # recorded stays km, litres, °C and bar, so switching never changes history.
+
+    _UNIT_FIELDS = (
+        (OPTION_UNIT_DISTANCE, "distance"),
+        (OPTION_UNIT_FUEL, "fuel"),
+        (OPTION_UNIT_TEMPERATURE, "temperature"),
+        (OPTION_UNIT_PRESSURE, "pressure"),
+    )
+
+    def _has_fuel_car(self) -> bool:
+        runtime = self._get_runtime()
+        if runtime is None:
+            return False
+        coordinator = runtime.coordinator
+        return any(
+            coordinator.is_combustion_only(vin) or coordinator.is_plug_in_hybrid(vin)
+            for vin in coordinator.data
+        )
+
+    def _units_now(self, fuel: bool) -> str:
+        """What each car is shown in right now: ``i5 eDrive40: mi · l/100 km``."""
+
+        runtime = self._get_runtime()
+        coordinator = runtime.coordinator if runtime is not None else None
+        fuel_labels = {"l": "l/100 km", "l_mpg_uk": "mpg (UK)", "gal_us": "mpg (US)"}
+        lines = []
+        for vin, label in self._vehicles():
+            parts = [car_distance_unit(self.hass, coordinator, vin)]
+            if fuel:
+                parts.append(fuel_labels[car_fuel_unit(self.hass, coordinator, vin)])
+            lines.append(f"{label}: {' · '.join(parts)}")
+        return "\n".join(lines) or "—"
+
+    async def async_step_action_units(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Choose the units values are shown in; Automatic keeps today's rules."""
+
+        options = dict(self._config_entry.options)
+        current = unit_choices(options)
+        fuel = self._has_fuel_car()
+        if user_input is not None:
+            for key, quantity in self._UNIT_FIELDS:
+                if key in user_input and user_input[key] in UNIT_CHOICES[quantity]:
+                    options[key] = user_input[key]
+            runtime = self._get_runtime()
+            if runtime is not None:
+                runtime.coordinator.display_units = unit_choices(options)
+                async_apply_sensor_units(
+                    self.hass, self._config_entry.entry_id, runtime.coordinator.display_units
+                )
+                # The card reads the choice off the connection sensor.
+                async_dispatcher_send(self.hass, runtime.coordinator.signal_diagnostics)
+            return self.async_create_entry(title="", data=options)
+        fields: Dict[Any, Any] = {}
+        for key, quantity in self._UNIT_FIELDS:
+            if quantity == "fuel" and not fuel:
+                continue
+            fields[vol.Required(key, default=current[quantity])] = selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=list(UNIT_CHOICES[quantity]),
+                    mode=selector.SelectSelectorMode.DROPDOWN,
+                    translation_key=key,
+                )
+            )
+        return self.async_show_form(
+            step_id="action_units",
+            data_schema=vol.Schema(fields),
+            description_placeholders={"now": self._units_now(fuel)},
+        )
 
     async def async_step_action_debug_logging(
         self, user_input: Optional[Dict[str, Any]] = None

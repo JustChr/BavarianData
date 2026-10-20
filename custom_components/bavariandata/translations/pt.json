@@ -93,6 +93,7 @@
           "action_evcc_bridge": "Ponte evcc / wallbox",
           "action_trips": "Viagens",
           "action_mileage": "Quilometragem permitida",
+          "action_units": "Unidades",
           "action_data_refresh": "Atualização automática de dados",
           "fetch_now": "Obter da BMW agora",
           "connection": "Ligação"
@@ -384,6 +385,22 @@
           "refresh_on_start": "Tem efeito imediato."
         }
       },
+      "action_units": {
+        "title": "Unidades",
+        "description": "Como o cartão do painel, as definições, o calendário, o relatório mensal e o Assist mostram os valores. Uma unidade escolhida aqui aplica-se também aos sensores do carro no Home Assistant. Os valores registados nunca mudam, por isso mudar de unidade não afeta o histórico.\n\nMostrado agora:\n{now}",
+        "data": {
+          "unit_distance": "Distância",
+          "unit_fuel": "Combustível",
+          "unit_temperature": "Temperatura",
+          "unit_pressure": "Pressão dos pneus"
+        },
+        "data_description": {
+          "unit_distance": "O consumo e a velocidade acompanham-na. Automático usa a unidade do sensor do conta-quilómetros, depois a definição do carro, depois o sistema de unidades do Home Assistant.",
+          "unit_fuel": "Depósito, abastecimentos e consumo de combustível. Automático segue a distância: mpg (UK) para um carro em milhas, galões dos EUA no sistema norte-americano, caso contrário litros.",
+          "unit_temperature": "Automático deixa a decisão ao Home Assistant.",
+          "unit_pressure": "Automático deixa a decisão ao Home Assistant."
+        }
+      },
       "action_debug_logging": {
         "title": "Registo de depuração",
         "description": "Ativa o registo detalhado desta integração (ligação MQTT, tópicos subscritos e cada mensagem recebida). É independente do interruptor de depuração genérico do Home Assistant — tanto o nível de registo como este interruptor têm de estar ativados para ver as linhas detalhadas. É muito detalhado e pode incluir dados do veículo, como coordenadas GPS, por isso deixe-o desativado em utilização normal. A alteração aplica-se de imediato. Com mais do que uma conta BMW configurada, o nível de registo é partilhado: o registo detalhado mantém-se ativo enquanto alguma conta o tiver ativado.",
@@ -508,6 +525,36 @@
         "none": "Nenhum",
         "lease": "Renting ou financiamento",
         "yearly": "Limite anual (ex. seguro)"
+      }
+    },
+    "unit_distance": {
+      "options": {
+        "auto": "Automático",
+        "km": "Quilómetros",
+        "mi": "Milhas"
+      }
+    },
+    "unit_fuel": {
+      "options": {
+        "auto": "Automático",
+        "l": "Litros, l/100 km",
+        "l_mpg_uk": "Litros, mpg (UK)",
+        "gal_us": "Galões dos EUA, mpg (US)"
+      }
+    },
+    "unit_temperature": {
+      "options": {
+        "auto": "Automático",
+        "c": "°C",
+        "f": "°F"
+      }
+    },
+    "unit_pressure": {
+      "options": {
+        "auto": "Automático",
+        "bar": "bar",
+        "kpa": "kPa",
+        "psi": "psi"
       }
     }
   },

@@ -85,7 +85,7 @@ from .structured_values import EMPTY_WHEN_NULL, structured_state
 from .trip_settings import TripSettings
 from .tyre import parse_tyre_diagnosis
 from .mileage import mileage_report
-from .units import miles_to_km, normalize_unit
+from .units import miles_to_km, normalize_unit, unit_choices
 from .vehicle_report import (
     ARM,
     CANDIDATE,
@@ -512,6 +512,9 @@ class CardataCoordinator:
     # allowance (``vehicle_options.mileage_values``), by VIN; a car without one
     # is absent. Read through ``mileage_report``.
     mileage_allowances: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    # The account's Units setting (Configure -> Units; ``units.unit_choices``):
+    # display only, everything recorded stays metric.
+    display_units: Dict[str, str] = field(default_factory=lambda: unit_choices({}))
     _session_builders: Dict[str, SessionBuilder] = field(default_factory=dict, init=False)
     _session_costs: Dict[str, CostAccumulator] = field(default_factory=dict, init=False)
     # Running source mix per open session (PV / house battery / grid). Separate

@@ -127,6 +127,16 @@ function _miOrKm(unit) {
   return null;
 }
 
+/** "l", "l_mpg_uk" or "gal_us": how fuel and its consumption are shown. The
+ * same rule as the integration's `units.fuel_unit`: an explicit choice wins;
+ * Automatic means US gallons on US customary, imperial mpg (bought in litres)
+ * for a car in miles on a metric install, and litres otherwise. */
+function _fuelUnitRule(choice, distance, systemLength) {
+  if (["l", "l_mpg_uk", "gal_us"].includes(choice)) return choice;
+  if (_miOrKm(systemLength) === "mi") return "gal_us";
+  return distance === "mi" ? "l_mpg_uk" : "l";
+}
+
 // BMW reports these charging-status values when nothing is actively charging
 // (e.g. `invalid` when no cable is connected). Show a clean localized "not
 // charging" for them instead of the raw state translation ("Ungültig", …).
@@ -417,7 +427,7 @@ const TRANSLATIONS = {
     mi_hint: "Have a lease or an insurance mileage limit? Add it in the integration's settings under Mileage allowance.",
     ef_loading: "Working out your real range…",
     ef_empty:
-      "Not enough charging history yet. Once two charges bracket 50 km or so of driving, your real consumption and the range it reaches appear here.",
+      "Not enough charging history yet. Once two charges bracket {d} or so of driving, your real consumption and the range it reaches appear here.",
     ef_no_capacity:
       "This car hasn't reported its battery capacity, so a range can't be worked out from the measured consumption.",
     ef_hybrid:
@@ -425,10 +435,10 @@ const TRANSLATIONS = {
     ef_error: "Couldn't load the efficiency data. Reload the page and try again.",
     ef_range_now: "Real range now",
     ef_at_soc: "at {p}% charge",
-    ef_range_full: "{km} km on a full battery",
-    ef_vs_bmw_over: "{p}% further than the car predicts ({km} km)",
-    ef_vs_bmw_under: "{p}% less than the car predicts ({km} km)",
-    ef_vs_bmw_same: "Same as the car's own estimate ({km} km)",
+    ef_range_full: "{d} on a full battery",
+    ef_vs_bmw_over: "{p}% further than the car predicts ({d})",
+    ef_vs_bmw_under: "{p}% less than the car predicts ({d})",
+    ef_vs_bmw_same: "Same as the car's own estimate ({d})",
     ef_consumption: "Measured consumption",
     ef_side_battery: "from the battery",
     ef_side_grid: "at the plug",
@@ -438,7 +448,7 @@ const TRANSLATIONS = {
     ef_capacity: "Usable capacity",
     ef_capacity_measured: "measured",
     ef_capacity_bmw: "BMW's figure",
-    ef_cost: "Cost per 100 km",
+    ef_cost: "Cost per {per}",
     ef_solar: "{p}% solar this month",
     ef_trend_title: "Consumption by month",
     ef_footnote:
@@ -797,7 +807,7 @@ const TRANSLATIONS = {
     mi_hint: "Leasing oder eine Kilometergrenze der Versicherung? Trag sie in den Einstellungen der Integration unter Kilometerkontingent ein.",
     ef_loading: "Reale Reichweite wird berechnet…",
     ef_empty:
-      "Noch zu wenig Ladehistorie. Sobald zwei Ladevorgänge rund 50 km Fahrt einschließen, erscheinen hier der reale Verbrauch und die Reichweite, die er ergibt.",
+      "Noch zu wenig Ladehistorie. Sobald zwei Ladevorgänge rund {d} Fahrt einschließen, erscheinen hier der reale Verbrauch und die Reichweite, die er ergibt.",
     ef_no_capacity:
       "Dieses Fahrzeug meldet keine Batteriekapazität, daher lässt sich aus dem gemessenen Verbrauch keine Reichweite berechnen.",
     ef_hybrid:
@@ -805,10 +815,10 @@ const TRANSLATIONS = {
     ef_error: "Effizienzdaten konnten nicht geladen werden. Seite neu laden und erneut versuchen.",
     ef_range_now: "Reale Reichweite jetzt",
     ef_at_soc: "bei {p} % Ladung",
-    ef_range_full: "{km} km bei voller Batterie",
-    ef_vs_bmw_over: "{p} % weiter als das Fahrzeug vorhersagt ({km} km)",
-    ef_vs_bmw_under: "{p} % weniger als das Fahrzeug vorhersagt ({km} km)",
-    ef_vs_bmw_same: "Genau wie die Prognose des Fahrzeugs ({km} km)",
+    ef_range_full: "{d} bei voller Batterie",
+    ef_vs_bmw_over: "{p} % weiter als das Fahrzeug vorhersagt ({d})",
+    ef_vs_bmw_under: "{p} % weniger als das Fahrzeug vorhersagt ({d})",
+    ef_vs_bmw_same: "Genau wie die Prognose des Fahrzeugs ({d})",
     ef_consumption: "Gemessener Verbrauch",
     ef_side_battery: "ab Batterie",
     ef_side_grid: "ab Steckdose",
@@ -818,7 +828,7 @@ const TRANSLATIONS = {
     ef_capacity: "Nutzbare Kapazität",
     ef_capacity_measured: "gemessen",
     ef_capacity_bmw: "BMW-Wert",
-    ef_cost: "Kosten pro 100 km",
+    ef_cost: "Kosten pro {per}",
     ef_solar: "{p} % Solar diesen Monat",
     ef_trend_title: "Verbrauch nach Monat",
     ef_footnote:
@@ -1161,7 +1171,7 @@ const TRANSLATIONS = {
     mi_hint: "Une location ou une limite de kilométrage d'assurance ? Ajoutez-la dans les réglages de l'intégration, sous Kilométrage autorisé.",
     ef_loading: "Calcul de votre autonomie réelle…",
     ef_empty:
-      "Pas encore assez d'historique de recharge. Dès que deux recharges encadrent environ 50 km de conduite, votre consommation réelle et l'autonomie qu'elle permet apparaissent ici.",
+      "Pas encore assez d'historique de recharge. Dès que deux recharges encadrent environ {d} de conduite, votre consommation réelle et l'autonomie qu'elle permet apparaissent ici.",
     ef_no_capacity:
       "Cette voiture n'a pas indiqué la capacité de sa batterie ; aucune autonomie ne peut donc être déduite de la consommation mesurée.",
     ef_hybrid:
@@ -1169,10 +1179,10 @@ const TRANSLATIONS = {
     ef_error: "Impossible de charger les données d'efficacité. Rechargez la page et réessayez.",
     ef_range_now: "Autonomie réelle actuelle",
     ef_at_soc: "à {p} % de charge",
-    ef_range_full: "{km} km batterie pleine",
-    ef_vs_bmw_over: "{p} % de plus que la prévision de la voiture ({km} km)",
-    ef_vs_bmw_under: "{p} % de moins que la prévision de la voiture ({km} km)",
-    ef_vs_bmw_same: "Identique à l'estimation de la voiture ({km} km)",
+    ef_range_full: "{d} batterie pleine",
+    ef_vs_bmw_over: "{p} % de plus que la prévision de la voiture ({d})",
+    ef_vs_bmw_under: "{p} % de moins que la prévision de la voiture ({d})",
+    ef_vs_bmw_same: "Identique à l'estimation de la voiture ({d})",
     ef_consumption: "Consommation mesurée",
     ef_side_battery: "à la batterie",
     ef_side_grid: "à la prise",
@@ -1182,7 +1192,7 @@ const TRANSLATIONS = {
     ef_capacity: "Capacité utile",
     ef_capacity_measured: "mesurée",
     ef_capacity_bmw: "valeur BMW",
-    ef_cost: "Coût aux 100 km",
+    ef_cost: "Coût aux {per}",
     ef_solar: "{p} % solaire ce mois-ci",
     ef_trend_title: "Consommation par mois",
     ef_footnote:
@@ -1525,7 +1535,7 @@ const TRANSLATIONS = {
     mi_hint: "Hai un noleggio o un limite di chilometri dell'assicurazione? Aggiungilo nelle impostazioni dell'integrazione, in Chilometraggio consentito.",
     ef_loading: "Calcolo della tua autonomia reale…",
     ef_empty:
-      "Storico di ricarica ancora insufficiente. Quando due ricariche racchiudono circa 50 km di guida, qui compaiono il tuo consumo reale e l'autonomia che ne deriva.",
+      "Storico di ricarica ancora insufficiente. Quando due ricariche racchiudono circa {d} di guida, qui compaiono il tuo consumo reale e l'autonomia che ne deriva.",
     ef_no_capacity:
       "Quest'auto non ha comunicato la capacità della batteria, quindi non è possibile ricavare un'autonomia dal consumo misurato.",
     ef_hybrid:
@@ -1533,10 +1543,10 @@ const TRANSLATIONS = {
     ef_error: "Impossibile caricare i dati di efficienza. Ricarica la pagina e riprova.",
     ef_range_now: "Autonomia reale ora",
     ef_at_soc: "al {p}% di carica",
-    ef_range_full: "{km} km a batteria piena",
-    ef_vs_bmw_over: "{p}% in più della previsione dell'auto ({km} km)",
-    ef_vs_bmw_under: "{p}% in meno della previsione dell'auto ({km} km)",
-    ef_vs_bmw_same: "Uguale alla stima dell'auto ({km} km)",
+    ef_range_full: "{d} a batteria piena",
+    ef_vs_bmw_over: "{p}% in più della previsione dell'auto ({d})",
+    ef_vs_bmw_under: "{p}% in meno della previsione dell'auto ({d})",
+    ef_vs_bmw_same: "Uguale alla stima dell'auto ({d})",
     ef_consumption: "Consumo misurato",
     ef_side_battery: "dalla batteria",
     ef_side_grid: "alla presa",
@@ -1546,7 +1556,7 @@ const TRANSLATIONS = {
     ef_capacity: "Capacità utile",
     ef_capacity_measured: "misurata",
     ef_capacity_bmw: "valore BMW",
-    ef_cost: "Costo per 100 km",
+    ef_cost: "Costo per {per}",
     ef_solar: "{p}% fotovoltaico questo mese",
     ef_trend_title: "Consumo per mese",
     ef_footnote:
@@ -1889,7 +1899,7 @@ const TRANSLATIONS = {
     mi_hint: "¿Tienes un renting o un límite de kilometraje del seguro? Añádelo en los ajustes de la integración, en Kilometraje permitido.",
     ef_loading: "Calculando tu autonomía real…",
     ef_empty:
-      "Todavía no hay suficiente historial de carga. Cuando dos cargas abarquen unos 50 km de conducción, aquí aparecerán tu consumo real y la autonomía que ofrece.",
+      "Todavía no hay suficiente historial de carga. Cuando dos cargas abarquen unos {d} de conducción, aquí aparecerán tu consumo real y la autonomía que ofrece.",
     ef_no_capacity:
       "Este coche no ha informado de la capacidad de su batería, así que no se puede calcular una autonomía a partir del consumo medido.",
     ef_hybrid:
@@ -1897,10 +1907,10 @@ const TRANSLATIONS = {
     ef_error: "No se pudieron cargar los datos de eficiencia. Recarga la página e inténtalo de nuevo.",
     ef_range_now: "Autonomía real ahora",
     ef_at_soc: "con un {p} % de carga",
-    ef_range_full: "{km} km con la batería llena",
-    ef_vs_bmw_over: "{p} % más de lo que predice el coche ({km} km)",
-    ef_vs_bmw_under: "{p} % menos de lo que predice el coche ({km} km)",
-    ef_vs_bmw_same: "Igual que la estimación del coche ({km} km)",
+    ef_range_full: "{d} con la batería llena",
+    ef_vs_bmw_over: "{p} % más de lo que predice el coche ({d})",
+    ef_vs_bmw_under: "{p} % menos de lo que predice el coche ({d})",
+    ef_vs_bmw_same: "Igual que la estimación del coche ({d})",
     ef_consumption: "Consumo medido",
     ef_side_battery: "desde la batería",
     ef_side_grid: "en el enchufe",
@@ -1910,7 +1920,7 @@ const TRANSLATIONS = {
     ef_capacity: "Capacidad útil",
     ef_capacity_measured: "medida",
     ef_capacity_bmw: "cifra de BMW",
-    ef_cost: "Coste por 100 km",
+    ef_cost: "Coste por {per}",
     ef_solar: "{p} % solar este mes",
     ef_trend_title: "Consumo por mes",
     ef_footnote:
@@ -2253,7 +2263,7 @@ const TRANSLATIONS = {
     mi_hint: "Een lease of een kilometerlimiet van je verzekering? Voeg die toe in de instellingen van de integratie, onder Kilometerlimiet.",
     ef_loading: "Je werkelijke actieradius wordt berekend…",
     ef_empty:
-      "Nog niet genoeg laadgeschiedenis. Zodra twee laadbeurten zo'n 50 km rijden omsluiten, verschijnen hier je werkelijke verbruik en de actieradius die dat oplevert.",
+      "Nog niet genoeg laadgeschiedenis. Zodra twee laadbeurten zo'n {d} rijden omsluiten, verschijnen hier je werkelijke verbruik en de actieradius die dat oplevert.",
     ef_no_capacity:
       "Deze auto heeft zijn accucapaciteit niet gemeld, dus uit het gemeten verbruik kan geen actieradius worden berekend.",
     ef_hybrid:
@@ -2261,10 +2271,10 @@ const TRANSLATIONS = {
     ef_error: "De efficiëntiegegevens konden niet worden geladen. Herlaad de pagina en probeer het opnieuw.",
     ef_range_now: "Werkelijke actieradius nu",
     ef_at_soc: "bij {p}% lading",
-    ef_range_full: "{km} km met een volle accu",
-    ef_vs_bmw_over: "{p}% verder dan de auto voorspelt ({km} km)",
-    ef_vs_bmw_under: "{p}% minder dan de auto voorspelt ({km} km)",
-    ef_vs_bmw_same: "Gelijk aan de schatting van de auto ({km} km)",
+    ef_range_full: "{d} met een volle accu",
+    ef_vs_bmw_over: "{p}% verder dan de auto voorspelt ({d})",
+    ef_vs_bmw_under: "{p}% minder dan de auto voorspelt ({d})",
+    ef_vs_bmw_same: "Gelijk aan de schatting van de auto ({d})",
     ef_consumption: "Gemeten verbruik",
     ef_side_battery: "uit de accu",
     ef_side_grid: "aan de stekker",
@@ -2274,7 +2284,7 @@ const TRANSLATIONS = {
     ef_capacity: "Bruikbare capaciteit",
     ef_capacity_measured: "gemeten",
     ef_capacity_bmw: "BMW-waarde",
-    ef_cost: "Kosten per 100 km",
+    ef_cost: "Kosten per {per}",
     ef_solar: "{p}% zon deze maand",
     ef_trend_title: "Verbruik per maand",
     ef_footnote:
@@ -2617,7 +2627,7 @@ const TRANSLATIONS = {
     mi_hint: "Masz leasing lub limit kilometrów w ubezpieczeniu? Dodaj go w ustawieniach integracji, w sekcji Limit kilometrów.",
     ef_loading: "Obliczanie rzeczywistego zasięgu…",
     ef_empty:
-      "Za mało historii ładowania. Gdy dwa ładowania obejmą około 50 km jazdy, pojawi się tu Twoje rzeczywiste zużycie i zasięg, jaki daje.",
+      "Za mało historii ładowania. Gdy dwa ładowania obejmą około {d} jazdy, pojawi się tu Twoje rzeczywiste zużycie i zasięg, jaki daje.",
     ef_no_capacity:
       "To auto nie podało pojemności akumulatora, więc nie da się obliczyć zasięgu na podstawie zmierzonego zużycia.",
     ef_hybrid:
@@ -2625,10 +2635,10 @@ const TRANSLATIONS = {
     ef_error: "Nie udało się wczytać danych o wydajności. Odśwież stronę i spróbuj ponownie.",
     ef_range_now: "Rzeczywisty zasięg teraz",
     ef_at_soc: "przy {p}% naładowania",
-    ef_range_full: "{km} km na pełnym akumulatorze",
-    ef_vs_bmw_over: "{p}% dalej, niż przewiduje auto ({km} km)",
-    ef_vs_bmw_under: "{p}% mniej, niż przewiduje auto ({km} km)",
-    ef_vs_bmw_same: "Tyle samo co szacunek auta ({km} km)",
+    ef_range_full: "{d} na pełnym akumulatorze",
+    ef_vs_bmw_over: "{p}% dalej, niż przewiduje auto ({d})",
+    ef_vs_bmw_under: "{p}% mniej, niż przewiduje auto ({d})",
+    ef_vs_bmw_same: "Tyle samo co szacunek auta ({d})",
     ef_consumption: "Zmierzone zużycie",
     ef_side_battery: "z akumulatora",
     ef_side_grid: "przy gniazdku",
@@ -2638,7 +2648,7 @@ const TRANSLATIONS = {
     ef_capacity: "Pojemność użytkowa",
     ef_capacity_measured: "zmierzona",
     ef_capacity_bmw: "wartość BMW",
-    ef_cost: "Koszt na 100 km",
+    ef_cost: "Koszt na {per}",
     ef_solar: "{p}% ze słońca w tym miesiącu",
     ef_trend_title: "Zużycie w poszczególnych miesiącach",
     ef_footnote:
@@ -2981,7 +2991,7 @@ const TRANSLATIONS = {
     mi_hint: "Tem um renting ou um limite de quilometragem do seguro? Adicione-o nas definições da integração, em Quilometragem permitida.",
     ef_loading: "A calcular a sua autonomia real…",
     ef_empty:
-      "Ainda não há histórico de carregamento suficiente. Quando dois carregamentos abrangerem cerca de 50 km de condução, o seu consumo real e a autonomia que permite aparecem aqui.",
+      "Ainda não há histórico de carregamento suficiente. Quando dois carregamentos abrangerem cerca de {d} de condução, o seu consumo real e a autonomia que permite aparecem aqui.",
     ef_no_capacity:
       "Este carro não comunicou a capacidade da bateria, por isso não é possível calcular uma autonomia a partir do consumo medido.",
     ef_hybrid:
@@ -2989,10 +2999,10 @@ const TRANSLATIONS = {
     ef_error: "Não foi possível carregar os dados de eficiência. Recarregue a página e tente novamente.",
     ef_range_now: "Autonomia real agora",
     ef_at_soc: "com {p}% de carga",
-    ef_range_full: "{km} km com a bateria cheia",
-    ef_vs_bmw_over: "{p}% mais do que o carro prevê ({km} km)",
-    ef_vs_bmw_under: "{p}% menos do que o carro prevê ({km} km)",
-    ef_vs_bmw_same: "Igual à estimativa do carro ({km} km)",
+    ef_range_full: "{d} com a bateria cheia",
+    ef_vs_bmw_over: "{p}% mais do que o carro prevê ({d})",
+    ef_vs_bmw_under: "{p}% menos do que o carro prevê ({d})",
+    ef_vs_bmw_same: "Igual à estimativa do carro ({d})",
     ef_consumption: "Consumo medido",
     ef_side_battery: "a partir da bateria",
     ef_side_grid: "na tomada",
@@ -3002,7 +3012,7 @@ const TRANSLATIONS = {
     ef_capacity: "Capacidade útil",
     ef_capacity_measured: "medida",
     ef_capacity_bmw: "valor BMW",
-    ef_cost: "Custo por 100 km",
+    ef_cost: "Custo por {per}",
     ef_solar: "{p}% solar este mês",
     ef_trend_title: "Consumo por mês",
     ef_footnote:
@@ -3345,7 +3355,7 @@ const TRANSLATIONS = {
     mi_hint: "Máte leasing nebo limit kilometrů z pojištění? Přidejte ho v nastavení integrace v části Limit kilometrů.",
     ef_loading: "Výpočet skutečného dojezdu…",
     ef_empty:
-      "Zatím není dost historie nabíjení. Jakmile dvě nabití ohraničí zhruba 50 km jízdy, objeví se zde vaše skutečná spotřeba a dojezd, který z ní plyne.",
+      "Zatím není dost historie nabíjení. Jakmile dvě nabití ohraničí zhruba {d} jízdy, objeví se zde vaše skutečná spotřeba a dojezd, který z ní plyne.",
     ef_no_capacity:
       "Tento vůz nehlásí kapacitu baterie, takže z naměřené spotřeby nelze dojezd vypočítat.",
     ef_hybrid:
@@ -3353,10 +3363,10 @@ const TRANSLATIONS = {
     ef_error: "Data o účinnosti se nepodařilo načíst. Obnovte stránku a zkuste to znovu.",
     ef_range_now: "Skutečný dojezd nyní",
     ef_at_soc: "při {p} % nabití",
-    ef_range_full: "{km} km na plnou baterii",
-    ef_vs_bmw_over: "O {p} % dál, než předpovídá vůz ({km} km)",
-    ef_vs_bmw_under: "O {p} % méně, než předpovídá vůz ({km} km)",
-    ef_vs_bmw_same: "Stejně jako odhad vozu ({km} km)",
+    ef_range_full: "{d} na plnou baterii",
+    ef_vs_bmw_over: "O {p} % dál, než předpovídá vůz ({d})",
+    ef_vs_bmw_under: "O {p} % méně, než předpovídá vůz ({d})",
+    ef_vs_bmw_same: "Stejně jako odhad vozu ({d})",
     ef_consumption: "Naměřená spotřeba",
     ef_side_battery: "z baterie",
     ef_side_grid: "ze zásuvky",
@@ -3366,7 +3376,7 @@ const TRANSLATIONS = {
     ef_capacity: "Využitelná kapacita",
     ef_capacity_measured: "naměřeno",
     ef_capacity_bmw: "hodnota BMW",
-    ef_cost: "Náklady na 100 km",
+    ef_cost: "Náklady na {per}",
     ef_solar: "{p} % ze soláru tento měsíc",
     ef_trend_title: "Spotřeba po měsících",
     ef_footnote:
@@ -3709,7 +3719,7 @@ const TRANSLATIONS = {
     mi_hint: "Har du leasing eller ett miltak i försäkringen? Lägg till det i integrationens inställningar under Miltak.",
     ef_loading: "Räknar ut din verkliga räckvidd…",
     ef_empty:
-      "Inte tillräckligt med laddningshistorik än. När två laddningar omsluter ungefär 50 km körning visas din verkliga förbrukning och räckvidden den ger här.",
+      "Inte tillräckligt med laddningshistorik än. När två laddningar omsluter ungefär {d} körning visas din verkliga förbrukning och räckvidden den ger här.",
     ef_no_capacity:
       "Den här bilen har inte rapporterat sin batterikapacitet, så ingen räckvidd kan räknas ut från den uppmätta förbrukningen.",
     ef_hybrid:
@@ -3717,10 +3727,10 @@ const TRANSLATIONS = {
     ef_error: "Effektivitetsdata kunde inte läsas in. Ladda om sidan och försök igen.",
     ef_range_now: "Verklig räckvidd nu",
     ef_at_soc: "vid {p} % laddning",
-    ef_range_full: "{km} km på fullt batteri",
-    ef_vs_bmw_over: "{p} % längre än bilen förutspår ({km} km)",
-    ef_vs_bmw_under: "{p} % kortare än bilen förutspår ({km} km)",
-    ef_vs_bmw_same: "Samma som bilens egen uppskattning ({km} km)",
+    ef_range_full: "{d} på fullt batteri",
+    ef_vs_bmw_over: "{p} % längre än bilen förutspår ({d})",
+    ef_vs_bmw_under: "{p} % kortare än bilen förutspår ({d})",
+    ef_vs_bmw_same: "Samma som bilens egen uppskattning ({d})",
     ef_consumption: "Uppmätt förbrukning",
     ef_side_battery: "från batteriet",
     ef_side_grid: "vid uttaget",
@@ -3730,7 +3740,7 @@ const TRANSLATIONS = {
     ef_capacity: "Användbar kapacitet",
     ef_capacity_measured: "uppmätt",
     ef_capacity_bmw: "BMW:s värde",
-    ef_cost: "Kostnad per 100 km",
+    ef_cost: "Kostnad per {per}",
     ef_solar: "{p} % sol den här månaden",
     ef_trend_title: "Förbrukning per månad",
     ef_footnote:
@@ -4474,10 +4484,53 @@ class BavarianDataCard extends HTMLElement {
   // `unit` ("km" or "mi"). The integration normalises BMW's KILOMETER/MILE unit
   // to km before storing it, so a figure in an attribute never passes through
   // Home Assistant's unit conversion the way a sensor state does.
-  _distance(km, unit = "km") {
+  _distance(km, unit = "km", digits = 0) {
+    if (km == null) return "—";
     const n = Number(km);
     if (!Number.isFinite(n)) return "—";
-    return unit === "mi" ? `${this._dec(n / KM_PER_MILE, 0)} mi` : `${this._dec(n, 0)} km`;
+    return unit === "mi"
+      ? `${this._dec(n / KM_PER_MILE, digits)} mi`
+      : `${this._dec(n, digits)} km`;
+  }
+
+  /** A distance in `unit`, as a bare number for a tile that sets the unit apart. */
+  _inUnit(km, unit) {
+    const n = Number(km);
+    return unit === "mi" ? n / KM_PER_MILE : n;
+  }
+
+  /** A per-100 km figure per 100 of `unit`: more per longer unit. */
+  _perDist(value, unit) {
+    const n = Number(value);
+    return unit === "mi" ? n * KM_PER_MILE : n;
+  }
+
+  /** "kWh/100 km" or "kWh/100 mi". */
+  _kwhPer(unit) {
+    return `kWh/${this._per100(unit)}`;
+  }
+
+  _per100(unit) {
+    return unit === "mi" ? "100 mi" : "100 km";
+  }
+
+  /** Fuel consumption recorded in l/100 km, shown the way `fuel` says. */
+  _fuelRate(lPer100km, fuel) {
+    const n = Number(lPer100km);
+    if (lPer100km == null || !Number.isFinite(n)) return "—";
+    if (fuel !== "l_mpg_uk" && fuel !== "gal_us") return `${this._dec(n, 1)} l/100 km`;
+    if (n <= 0) return "—";
+    // Miles per gallon: imperial (4.546 L) or US (3.785 L) gallons.
+    const k = fuel === "gal_us" ? 235.215 : 282.481;
+    return `${this._dec(k / n, 1)} mpg`;
+  }
+
+  /** A volume recorded in litres, in US gallons where `fuel` says so. */
+  _fuelVolume(litres, fuel, digits = 0) {
+    const n = Number(litres);
+    return fuel === "gal_us"
+      ? `${this._dec(n / 3.785411784, digits)} gal`
+      : `${this._dec(n, digits)} L`;
   }
 
   /** "mi" or "km": the unit this car's distances are shown in. The same rule
@@ -4508,6 +4561,44 @@ class BavarianDataCard extends HTMLElement {
     }
     const system = this._hass && this._hass.config && this._hass.config.unit_system;
     return system && system.length === "mi" ? "mi" : "km";
+  }
+
+  /** The account's Units setting (Configure → Units), as the integration
+   * publishes it on the account's connection sensor: `{ distance, fuel, … }`,
+   * each "auto" or a unit. Empty when that sensor is missing or disabled, which
+   * reads as Automatic everywhere. */
+  _unitChoices(deviceId) {
+    const hass = this._hass;
+    const entry = deviceId && hass ? this._deviceEntry(deviceId) : null;
+    if (!entry || !hass.entities || !hass.devices || !hass.states) return {};
+    for (const [entityId, ent] of Object.entries(hass.entities)) {
+      if (!ent || ent.platform !== "bavariandata" || !ent.device_id) continue;
+      const dev = hass.devices[ent.device_id];
+      const account = (dev && dev.identifiers) || [];
+      if (!account.some((pair) => pair && pair[0] === "bavariandata" && pair[1] === entry)) continue;
+      const st = hass.states[entityId];
+      const units = st && st.attributes && st.attributes.display_units;
+      if (units && typeof units === "object") return units;
+    }
+    return {};
+  }
+
+  /** "mi" or "km" for a car: the Units setting when it names one, otherwise
+   * `_lengthUnit`'s automatic rule (the integration's `car_distance_unit`). */
+  _distUnit(deviceId, entities) {
+    const choice = this._unitChoices(deviceId).distance;
+    if (choice === "km" || choice === "mi") return choice;
+    return this._lengthUnit(entities || this._deviceEntities(deviceId));
+  }
+
+  /** "l", "l_mpg_uk" or "gal_us" for a car (the integration's `car_fuel_unit`). */
+  _fuelUnit(deviceId, entities) {
+    const system = this._hass && this._hass.config && this._hass.config.unit_system;
+    return _fuelUnitRule(
+      this._unitChoices(deviceId).fuel,
+      this._distUnit(deviceId, entities),
+      system && system.length
+    );
   }
 
   _relTime(iso) {
@@ -4826,7 +4917,7 @@ class BavarianDataCard extends HTMLElement {
             <div class="hero__name" title="${this._esc(name)}">${this._esc(name)}</div>
             ${rel ? `<div class="pill" title="${this._t("last_update")}"><span class="dot ${this._staleClass(freshest)}"></span>${rel}</div>` : ""}
           </div>
-          ${this._tripPill(trip)}${heroExtras}
+          ${this._tripPill(trip, this._distUnit(deviceId, entities))}${heroExtras}
         </div>
 
         <div class="band">
@@ -4923,10 +5014,10 @@ class BavarianDataCard extends HTMLElement {
   }
 
   /** Hero badge for a drive in progress; empty string when the car is parked. */
-  _tripPill(trip) {
+  _tripPill(trip, unit) {
     if (!trip) return "";
     const bits = [];
-    if (trip.distance_km != null) bits.push(`${this._dec(trip.distance_km, 1)} km`);
+    if (trip.distance_km != null) bits.push(this._distance(trip.distance_km, unit, 1));
     const min = this._elapsedMin(trip.started);
     if (min != null) bits.push(this._t("tr_min", { n: min }));
     return `
@@ -6593,8 +6684,9 @@ class BavarianDataCard extends HTMLElement {
       });
   }
 
-  _paintTrips(deviceId, _entities) {
+  _paintTrips(deviceId, entities) {
     const name = this._config.title || this._deviceName(deviceId);
+    const unit = this._distUnit(deviceId, entities);
     const state = this._trp || {};
     const trips = state.trips;
     const summary = state.summary;
@@ -6606,6 +6698,7 @@ class BavarianDataCard extends HTMLElement {
       m: "trp",
       lang: _lang(this._hass),
       name,
+      unit,
       month,
       loading: state.loading && !trips,
       error: state.error,
@@ -6622,7 +6715,7 @@ class BavarianDataCard extends HTMLElement {
 
     // The drive under way leads the list: it's the row a user opening this view
     // mid-drive is looking for, and it is the newest thing there is.
-    const openRow = open ? this._tripRow(open, expanded) : "";
+    const openRow = open ? this._tripRow(open, expanded, unit) : "";
 
     let body;
     if (state.error) {
@@ -6636,10 +6729,10 @@ class BavarianDataCard extends HTMLElement {
         month === this._monthKey() ? "tr_empty" : "tr_empty_month"
       )}</div>`;
     } else {
-      body = `${this._tripReview(summary)}<div class="chg__list">${openRow}${(
+      body = `${this._tripReview(summary, unit)}<div class="chg__list">${openRow}${(
         trips || []
       )
-        .map((t) => this._tripRow(t, expanded))
+        .map((t) => this._tripRow(t, expanded, unit))
         .join("")}</div>`;
     }
 
@@ -6667,9 +6760,10 @@ class BavarianDataCard extends HTMLElement {
   }
 
   /** The "month in review" panel, built entirely from get_driving_summary. */
-  _tripReview(summary) {
+  _tripReview(summary, unit) {
     if (!summary || !summary.total_km) return "";
-    const km = (v) => (v == null ? "—" : `${this._dec(v, 0)} km`);
+    const km = (v) => this._distance(v, unit);
+    const per = (v) => this._dec(this._perDist(v, unit), 1);
     const split = summary.split || {};
 
     // Headline tiles: distance with a month-over-month arrow, and trip count.
@@ -6685,9 +6779,9 @@ class BavarianDataCard extends HTMLElement {
 
     const tiles = [
       `<div class="tr__tile"><span class="tr__tile-val">${this._dec(
-        summary.total_km,
+        this._inUnit(summary.total_km, unit),
         0
-      )} <i>km</i></span><span class="tr__tile-lbl">${this._t("tr_review")}</span>${deltaTxt}</div>`,
+      )} <i>${unit === "mi" ? "mi" : "km"}</i></span><span class="tr__tile-lbl">${this._t("tr_review")}</span>${deltaTxt}</div>`,
     ];
     // Consumption leads with the energy balance: it comes from the charging
     // ledger and the odometer rather than from SoC deltas, so it isn't limited
@@ -6710,34 +6804,31 @@ class BavarianDataCard extends HTMLElement {
           loss >= 3 && loss <= 30
             ? " · " + this._t("tr_charge_loss", { n: this._dec(loss, 0) })
             : "";
-        foot = `<span class="tr__tile-sub">${this._dec(battSide, 1)} ${this._t(
+        foot = `<span class="tr__tile-sub">${per(battSide)} ${this._t(
           "tr_at_battery"
         )}${lossTxt}</span>`;
       }
       tiles.push(
-        `<div class="tr__tile"><span class="tr__tile-val">${this._dec(
-          balance.kwh_per_100km,
-          1
-        )} <i>kWh/100km</i></span><span class="tr__tile-lbl">${this._t(
+        `<div class="tr__tile"><span class="tr__tile-val">${per(
+          balance.kwh_per_100km
+        )} <i>${this._kwhPer(unit)}</i></span><span class="tr__tile-lbl">${this._t(
           "tr_consumption"
         )} · ${this._t(isGrid ? "tr_at_plug" : "tr_at_battery")}</span>${foot}</div>`
       );
     } else if (battSide != null) {
       tiles.push(
-        `<div class="tr__tile"><span class="tr__tile-val">${this._dec(
-          battSide,
-          1
-        )} <i>kWh/100km</i></span><span class="tr__tile-lbl">${this._t(
+        `<div class="tr__tile"><span class="tr__tile-val">${per(battSide)} <i>${this._kwhPer(
+          unit
+        )}</i></span><span class="tr__tile-lbl">${this._t(
           "tr_consumption"
         )}</span></div>`
       );
     }
     if (summary.recuperation_kwh_per_100km != null) {
       tiles.push(
-        `<div class="tr__tile"><span class="tr__tile-val">${this._dec(
-          summary.recuperation_kwh_per_100km,
-          1
-        )} <i>kWh/100km</i></span><span class="tr__tile-lbl">${this._t(
+        `<div class="tr__tile"><span class="tr__tile-val">${per(
+          summary.recuperation_kwh_per_100km
+        )} <i>${this._kwhPer(unit)}</i></span><span class="tr__tile-lbl">${this._t(
           "tr_recuperation"
         )}</span></div>`
       );
@@ -6832,7 +6923,7 @@ class BavarianDataCard extends HTMLElement {
     return out;
   }
 
-  _tripRow(trip, expanded) {
+  _tripRow(trip, expanded, unit) {
     const id = trip.start || "";
     const isOpen = expanded === id;
     const live = !!trip.in_progress;
@@ -6841,8 +6932,7 @@ class BavarianDataCard extends HTMLElement {
     // A drive under way has no destination yet, and guessing one would be a lie:
     // the arrow trails off instead.
     const to = live ? "…" : this._esc(this._tripPlace(trip.end_place));
-    const dist =
-      trip.distance_km != null ? `${this._dec(trip.distance_km, 1)} km` : "—";
+    const dist = this._distance(trip.distance_km, unit, 1);
     // In progress: a live badge in place of a classification (there is nothing to
     // classify until the trip lands) and a duration counted from the start.
     const cls = live
@@ -6877,12 +6967,12 @@ class BavarianDataCard extends HTMLElement {
             <span class="chg__cost">${dur || ""}</span>
           </span>
         </button>
-        ${isOpen ? this._tripDetail(trip) : ""}
+        ${isOpen ? this._tripDetail(trip, unit) : ""}
       </div>
     `;
   }
 
-  _tripDetail(trip) {
+  _tripDetail(trip, unit) {
     const facts = [];
     // Taken from the record, never recomputed here: the integration withholds a
     // consumption figure when the SoC drop behind it was too small to divide by
@@ -6890,7 +6980,10 @@ class BavarianDataCard extends HTMLElement {
     // dividing energy by distance in the card would print it anyway.
     const cons = trip.consumption_kwh_per_100km;
     if (cons != null) {
-      facts.push([this._t("tr_consumption"), `${this._dec(cons, 1)} kWh/100km`]);
+      facts.push([
+        this._t("tr_consumption"),
+        `${this._dec(this._perDist(cons, unit), 1)} ${this._kwhPer(unit)}`,
+      ]);
     }
     const st = trip.stats || {};
     // BMW's recuperation figure is already an average per 100 km, not a total.
@@ -6898,7 +6991,7 @@ class BavarianDataCard extends HTMLElement {
     if (recup != null) {
       facts.push([
         this._t("tr_recuperation"),
-        `${this._dec(recup, 1)} kWh/100km`,
+        `${this._dec(this._perDist(recup, unit), 1)} ${this._kwhPer(unit)}`,
       ]);
     }
     // Both ends or nothing. A car that never streams its SoC while driving
@@ -7973,13 +8066,14 @@ class BavarianDataCard extends HTMLElement {
   }
 
   /** A plug-in hybrid's consumption, from BMW's lifetime counters. */
-  _efHybridLifetime(life, unit) {
+  _efHybridLifetime(life, unit, fuel) {
     const dist = (km) => this._distance(km, unit);
+    const per = (v) => `${this._dec(this._perDist(v, unit), 1)} ${this._kwhPer(unit)}`;
     const facts = [];
     if (life.electric_kwh_per_100km != null) {
       facts.push([
         this._t("ef_electric"),
-        `${this._dec(life.electric_kwh_per_100km, 1)} kWh/100 km`,
+        per(life.electric_kwh_per_100km),
         life.electric_km != null ? this._t("ef_electric_note", { d: dist(life.electric_km) }) : "",
       ]);
     }
@@ -7989,12 +8083,12 @@ class BavarianDataCard extends HTMLElement {
     if (life.fuel_l_per_100km != null) {
       facts.push([
         this._t("fu_lifetime"),
-        `${this._dec(life.fuel_l_per_100km, 1)} l/100 km`,
+        this._fuelRate(life.fuel_l_per_100km, fuel),
         life.distance_km != null ? this._t("fu_lifetime_note", { d: dist(life.distance_km) }) : "",
       ]);
     }
     if (life.grid_kwh_per_100km != null) {
-      facts.push([this._t("ef_grid_lifetime"), `${this._dec(life.grid_kwh_per_100km, 1)} kWh/100 km`, ""]);
+      facts.push([this._t("ef_grid_lifetime"), per(life.grid_kwh_per_100km), ""]);
     }
     const row = facts
       .map(
@@ -8016,6 +8110,8 @@ class BavarianDataCard extends HTMLElement {
 
   _paintEfficiency(deviceId, st) {
     const name = this._config.title || this._deviceName(deviceId);
+    const unit = this._distUnit(deviceId);
+    const fuel = this._fuelUnit(deviceId);
     const state = this._eff || {};
     const profile = state.data;
     const f = this._efFigures(st, profile);
@@ -8025,6 +8121,8 @@ class BavarianDataCard extends HTMLElement {
       m: "ef",
       lang: _lang(this._hass),
       name,
+      unit,
+      fuel,
       loading: state.loading && !profile && !st,
       error: state.error,
       f,
@@ -8049,16 +8147,19 @@ class BavarianDataCard extends HTMLElement {
       // where the car sends them they are the figure instead.
       const life = profile && profile.bmw_lifetime;
       body = life
-        ? this._efHybridLifetime(life, this._lengthUnit(this._deviceEntities(deviceId)))
+        ? this._efHybridLifetime(life, unit, fuel)
         : `<div class="empty">${this._t("ef_hybrid")}</div>`;
     } else if (f.consumption == null) {
-      body = `<div class="empty">${this._t("ef_empty")}</div>`;
+      // "50 km or so", in round miles where the car counts in them.
+      body = `<div class="empty">${this._t("ef_empty", {
+        d: unit === "mi" ? "30 mi" : "50 km",
+      })}</div>`;
     } else if (f.fullKm == null) {
       // Consumption measured, but nothing to divide it into: say which half is
       // missing rather than showing the same "no data yet" as an empty ledger.
       body = `<div class="empty">${this._t("ef_no_capacity")}</div>`;
     } else {
-      body = this._efBody(f, trend, profile || {});
+      body = this._efBody(f, trend, profile || {}, unit);
     }
 
     this.shadowRoot.innerHTML = `
@@ -8076,28 +8177,29 @@ class BavarianDataCard extends HTMLElement {
     `;
   }
 
-  _efBody(f, trend, profile) {
+  _efBody(f, trend, profile, unit) {
+    const unitLabel = unit === "mi" ? "mi" : "km";
     const hero =
       f.nowKm != null
-        ? `<span class="ef__hero-val">${this._dec(f.nowKm, 0)} <i>km</i></span>
+        ? `<span class="ef__hero-val">${this._dec(this._inUnit(f.nowKm, unit), 0)} <i>${unitLabel}</i></span>
            <span class="ef__hero-lbl">${this._t("ef_range_now")}${
              f.soc != null
                ? " · " + this._t("ef_at_soc", { p: this._dec(f.soc, 0) })
                : ""
            }</span>`
-        : `<span class="ef__hero-val">${this._dec(f.fullKm, 0)} <i>km</i></span>
+        : `<span class="ef__hero-val">${this._dec(this._inUnit(f.fullKm, unit), 0)} <i>${unitLabel}</i></span>
            <span class="ef__hero-lbl">${this._t("ef_range_full", {
-             km: this._dec(f.fullKm, 0),
+             d: this._distance(f.fullKm, unit),
            })}</span>`;
 
     let vsBmw = "";
     if (f.vsBmw != null && f.bmwKm != null) {
       const p = Math.round(Math.abs(f.vsBmw));
-      const km = this._dec(f.bmwKm, 0);
+      const d = this._distance(f.bmwKm, unit);
       const key =
         p < 1 ? "ef_vs_bmw_same" : f.vsBmw > 0 ? "ef_vs_bmw_over" : "ef_vs_bmw_under";
       const tone = p < 1 ? "" : f.vsBmw > 0 ? " ef__vs--over" : " ef__vs--under";
-      vsBmw = `<span class="ef__vs${tone}">${this._t(key, { p: this._dec(p, 0), km })}</span>`;
+      vsBmw = `<span class="ef__vs${tone}">${this._t(key, { p: this._dec(p, 0), d })}</span>`;
     }
 
     const sideLabel =
@@ -8110,7 +8212,7 @@ class BavarianDataCard extends HTMLElement {
     const facts = [
       [
         this._t("ef_consumption"),
-        `${this._dec(f.consumption, 1)} kWh/100 km`,
+        `${this._dec(this._perDist(f.consumption, unit), 1)} ${this._kwhPer(unit)}`,
         `${sideLabel} · ${windowLabel}`,
       ],
     ];
@@ -8118,7 +8220,9 @@ class BavarianDataCard extends HTMLElement {
       facts.push([
         this._t("ef_loss"),
         `${this._dec(f.loss, 0)} %`,
-        `${this._dec(f.gridConsumption, 1)} kWh/100 km ${this._t("ef_side_grid")}`,
+        `${this._dec(this._perDist(f.gridConsumption, unit), 1)} ${this._kwhPer(unit)} ${this._t(
+          "ef_side_grid"
+        )}`,
       ]);
     }
     if (f.capacity != null) {
@@ -8134,8 +8238,8 @@ class BavarianDataCard extends HTMLElement {
       const currency = profile.currency ? ` ${this._esc(profile.currency)}` : "";
       const mix = profile.energy_mix || {};
       facts.push([
-        this._t("ef_cost"),
-        `${this._dec(profile.cost_per_100km, 2)}${currency}`,
+        this._t("ef_cost", { per: this._per100(unit) }),
+        `${this._dec(this._perDist(profile.cost_per_100km, unit), 2)}${currency}`,
         mix.solar_percent != null
           ? this._t("ef_solar", { p: this._dec(mix.solar_percent, 0) })
           : "",
@@ -8153,7 +8257,7 @@ class BavarianDataCard extends HTMLElement {
       )
       .join("");
 
-    const chart = this._efTrendSvg(trend);
+    const chart = this._efTrendSvg(trend, unit);
     return `
       <div class="ef">
         <div class="ef__hero">
@@ -8176,13 +8280,13 @@ class BavarianDataCard extends HTMLElement {
   /** Monthly consumption as bars. Zero-based on purpose, unlike the capacity
    * trend: the summer-to-winter difference is large and real, and a zoomed axis
    * would make a 1 kWh/100 km wobble look like a season. */
-  _efTrendSvg(trend) {
+  _efTrendSvg(trend, unit) {
     if (!Array.isArray(trend) || trend.length < 2) return "";
     const W = 280;
     const H = 88;
     const pad = 6;
     const bottom = 14;
-    const values = trend.map((e) => e.kwh_per_100km);
+    const values = trend.map((e) => this._perDist(e.kwh_per_100km, unit));
     const max = Math.max(...values) * 1.15 || 1;
     const slot = (W - 2 * pad) / trend.length;
     // Capped as well as proportional: with two months on file a purely
@@ -8191,7 +8295,7 @@ class BavarianDataCard extends HTMLElement {
     const bars = trend
       .map((entry, i) => {
         const x = pad + i * slot + (slot - width) / 2;
-        const h = (entry.kwh_per_100km / max) * (H - bottom - pad);
+        const h = (values[i] / max) * (H - bottom - pad);
         const y = H - bottom - h;
         // "2026-09" -> "09": a bare month number reads the same in every
         // language, which a translated abbreviation would not.
@@ -8211,7 +8315,7 @@ class BavarianDataCard extends HTMLElement {
         <text x="${pad}" y="9" class="chg__chart-max">${this._dec(
       max,
       0
-    )} kWh/100 km</text>
+    )} ${this._kwhPer(unit)}</text>
       </svg>
     `;
   }
@@ -8250,7 +8354,7 @@ class BavarianDataCard extends HTMLElement {
       };
       this._fetchFuel(vin, entryId);
     }
-    this._paintFuel(deviceId, this._lengthUnit(entities));
+    this._paintFuel(deviceId, this._distUnit(deviceId, entities), this._fuelUnit(deviceId, entities));
   }
 
   _fetchFuel(vin, entryId) {
@@ -8277,7 +8381,7 @@ class BavarianDataCard extends HTMLElement {
       });
   }
 
-  _paintFuel(deviceId, unit) {
+  _paintFuel(deviceId, unit, fuel) {
     const name = this._config.title || this._deviceName(deviceId);
     const state = this._fuel || {};
     const data = state.data;
@@ -8286,6 +8390,7 @@ class BavarianDataCard extends HTMLElement {
       lang: _lang(this._hass),
       name,
       unit,
+      fuel,
       loading: state.loading && !data,
       error: state.error && !data,
       data,
@@ -8299,7 +8404,7 @@ class BavarianDataCard extends HTMLElement {
     } else if (state.loading && !data) {
       body = `<div class="empty">${this._t("fu_loading")}</div>`;
     } else {
-      body = this._fuBody(data || {}, unit);
+      body = this._fuBody(data || {}, unit, fuel);
     }
 
     this.shadowRoot.innerHTML = `
@@ -8317,10 +8422,10 @@ class BavarianDataCard extends HTMLElement {
     `;
   }
 
-  _fuBody(data, unit) {
+  _fuBody(data, unit, fuel) {
     const dist = (km) => this._distance(km, unit);
-    const litres = (l) => `${this._dec(l, 0)} L`;
-    const rate = (r) => `${this._dec(r, 1)} l/100 km`;
+    const litres = (l) => this._fuelVolume(l, fuel);
+    const rate = (r) => this._fuelRate(r, fuel);
     const fact = (label, value, note) =>
       value
         ? `<div class="ef__fact">
@@ -8440,7 +8545,7 @@ class BavarianDataCard extends HTMLElement {
       };
       this._fetchMileage(vin, entryId);
     }
-    this._paintMileage(deviceId, this._lengthUnit(entities));
+    this._paintMileage(deviceId, this._distUnit(deviceId, entities));
   }
 
   _fetchMileage(vin, entryId) {
@@ -8737,7 +8842,7 @@ class BavarianDataCard extends HTMLElement {
       { key: "row2_right", label: this._t("rr"), full: this._t("rear_right") },
     ];
     const present = slots.filter((s) => wheels[s.key]);
-    const unit = this._lengthUnit(entities);
+    const unit = this._distUnit(deviceId, entities);
 
     const topPhoto = this._topPhoto(entities);
     const sig = this._signature({

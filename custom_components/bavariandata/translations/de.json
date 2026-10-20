@@ -93,6 +93,7 @@
           "action_evcc_bridge": "evcc-/Wallbox-Brücke",
           "action_trips": "Fahrten",
           "action_mileage": "Kilometerkontingent",
+          "action_units": "Einheiten",
           "action_data_refresh": "Automatische Aktualisierung",
           "fetch_now": "Jetzt von BMW abrufen",
           "connection": "Verbindung"
@@ -384,6 +385,22 @@
           "refresh_on_start": "Wirkt sofort."
         }
       },
+      "action_units": {
+        "title": "Einheiten",
+        "description": "Wie die Dashboard-Karte, die Einstellungen, der Kalender, der Monatsbericht und Assist Werte anzeigen. Eine hier gewählte Einheit gilt auch für die Sensoren des Fahrzeugs in Home Assistant. Aufgezeichnete Werte ändern sich nie, ein Wechsel ist für deine Historie also gefahrlos.\n\nAktuell angezeigt:\n{now}",
+        "data": {
+          "unit_distance": "Strecke",
+          "unit_fuel": "Kraftstoff",
+          "unit_temperature": "Temperatur",
+          "unit_pressure": "Reifendruck"
+        },
+        "data_description": {
+          "unit_distance": "Verbrauch und Geschwindigkeit folgen ihr. Automatisch nimmt die Einheit deines Kilometerstand-Sensors, dann die Einstellung des Fahrzeugs, dann das Einheitensystem von Home Assistant.",
+          "unit_fuel": "Tank, Tankvorgänge und Kraftstoffverbrauch. Automatisch folgt der Strecke: mpg (UK) bei einem Fahrzeug in Meilen, US-Gallonen beim US-Einheitensystem, sonst Liter.",
+          "unit_temperature": "Automatisch überlässt es Home Assistant.",
+          "unit_pressure": "Automatisch überlässt es Home Assistant."
+        }
+      },
       "action_debug_logging": {
         "title": "Debug-Protokollierung",
         "description": "Schaltet die ausführliche Protokollierung dieser Integration ein (MQTT-Verbindung, abonnierte Topics und jede eingehende Nachricht). Das ist unabhängig von Home Assistants allgemeinem Debug-Schalter — es müssen sowohl der Log-Level als auch dieser Schalter aktiv sein, damit die detaillierten Zeilen erscheinen. Die Ausgabe ist umfangreich und kann Fahrzeugdaten wie GPS-Koordinaten enthalten; lass sie im Normalbetrieb also aus. Die Änderung wirkt sofort. Wenn mehrere BMW-Konten eingerichtet sind, gilt der Log-Level gemeinsam: Die ausführliche Protokollierung bleibt aktiv, solange irgendein Konto diesen Schalter an hat.",
@@ -508,6 +525,36 @@
         "none": "Keins",
         "lease": "Leasing oder Finanzierung",
         "yearly": "Jahresgrenze (z. B. Versicherung)"
+      }
+    },
+    "unit_distance": {
+      "options": {
+        "auto": "Automatisch",
+        "km": "Kilometer",
+        "mi": "Meilen"
+      }
+    },
+    "unit_fuel": {
+      "options": {
+        "auto": "Automatisch",
+        "l": "Liter, l/100 km",
+        "l_mpg_uk": "Liter, mpg (UK)",
+        "gal_us": "US-Gallonen, mpg (US)"
+      }
+    },
+    "unit_temperature": {
+      "options": {
+        "auto": "Automatisch",
+        "c": "°C",
+        "f": "°F"
+      }
+    },
+    "unit_pressure": {
+      "options": {
+        "auto": "Automatisch",
+        "bar": "bar",
+        "kpa": "kPa",
+        "psi": "psi"
       }
     }
   },

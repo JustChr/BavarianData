@@ -240,6 +240,27 @@ def test_report_is_self_contained_and_printable():
     assert "i5 M60" in html and "2026-07" in html
 
 
+def test_report_shows_miles_when_the_account_counts_in_them():
+    # Configure -> Units (#183): a UK owner's report in miles, every distance and
+    # every per-distance figure, while the trips themselves stay in km.
+    trip = _trip(distance_km=40.0, energy_kwh=8.0, soc_start=80.0, soc_end=70.0)
+    ledger = {**summary.summarise([_session()]), "cost_per_100km": 5.0}
+    html = export.month_report_html(
+        month="2026-07",
+        vehicle="i4",
+        sessions=[_session()],
+        trips=[trip],
+        charging_summary=ledger,
+        driving=summary.driving_summary([trip]),
+        distance_unit="mi",
+    )
+    assert "24.9 mi" in html  # 40 km
+    assert "Cost per 100 mi" in html and "8.05" in html  # 5.00 per 100 km
+    assert "Consumption (kWh/100 mi)" in html
+    assert " km<" not in html and "100 km" not in html
+    assert trip.distance_km == 40.0
+
+
 def test_report_never_claims_tax_compliance():
     for lang, needle in (("en", "not a tax-compliant"), ("de", "kein")):
         html = export.month_report_html(

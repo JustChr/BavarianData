@@ -22,6 +22,7 @@ from datetime import datetime
 from html import escape
 from typing import Any, Callable, Iterable, Optional
 
+from ..units import KM_PER_MILE
 from .models import ChargingSession
 from .trips import Trip
 
@@ -54,11 +55,11 @@ STRINGS: dict[str, dict[str, str]] = {
         "trip_count": "Trips",
         "consumption": "Avg consumption",
         # The table column carries its unit; the tile puts it in the value.
-        "consumption_col": "Consumption (kWh/100 km)",
+        "consumption_col": "Consumption (kWh/{per})",
         "at_the_plug": "at the plug",
         "at_the_battery": "at the battery",
         "recuperation": "Recuperated",
-        "cost_per_100km": "Cost per 100 km",
+        "cost_per_100km": "Cost per {per}",
         "business": "Business",
         "private": "Private",
         "commute": "Commute",
@@ -104,11 +105,11 @@ STRINGS: dict[str, dict[str, str]] = {
         "distance": "Strecke",
         "trip_count": "Fahrten",
         "consumption": "Ø Verbrauch",
-        "consumption_col": "Verbrauch (kWh/100 km)",
+        "consumption_col": "Verbrauch (kWh/{per})",
         "at_the_plug": "ab Steckdose",
         "at_the_battery": "ab Akku",
         "recuperation": "Rekuperiert",
-        "cost_per_100km": "Kosten pro 100 km",
+        "cost_per_100km": "Kosten pro {per}",
         "business": "Geschäftlich",
         "private": "Privat",
         "commute": "Pendeln",
@@ -154,11 +155,11 @@ STRINGS: dict[str, dict[str, str]] = {
         "distance": "Distance",
         "trip_count": "Trajets",
         "consumption": "Conso. moyenne",
-        "consumption_col": "Consommation (kWh/100 km)",
+        "consumption_col": "Consommation (kWh/{per})",
         "at_the_plug": "à la prise",
         "at_the_battery": "à la batterie",
         "recuperation": "Récupéré",
-        "cost_per_100km": "Coût aux 100 km",
+        "cost_per_100km": "Coût aux {per}",
         "business": "Professionnel",
         "private": "Privé",
         "commute": "Domicile-travail",
@@ -205,11 +206,11 @@ STRINGS: dict[str, dict[str, str]] = {
         "distance": "Distanza",
         "trip_count": "Viaggi",
         "consumption": "Consumo medio",
-        "consumption_col": "Consumo (kWh/100 km)",
+        "consumption_col": "Consumo (kWh/{per})",
         "at_the_plug": "alla presa",
         "at_the_battery": "alla batteria",
         "recuperation": "Recuperato",
-        "cost_per_100km": "Costo per 100 km",
+        "cost_per_100km": "Costo per {per}",
         "business": "Lavoro",
         "private": "Privato",
         "commute": "Pendolarismo",
@@ -256,11 +257,11 @@ STRINGS: dict[str, dict[str, str]] = {
         "distance": "Distancia",
         "trip_count": "Trayectos",
         "consumption": "Consumo medio",
-        "consumption_col": "Consumo (kWh/100 km)",
+        "consumption_col": "Consumo (kWh/{per})",
         "at_the_plug": "en el enchufe",
         "at_the_battery": "en la batería",
         "recuperation": "Recuperado",
-        "cost_per_100km": "Coste por 100 km",
+        "cost_per_100km": "Coste por {per}",
         "business": "Trabajo",
         "private": "Privado",
         "commute": "Desplazamiento",
@@ -307,11 +308,11 @@ STRINGS: dict[str, dict[str, str]] = {
         "distance": "Afstand",
         "trip_count": "Ritten",
         "consumption": "Gem. verbruik",
-        "consumption_col": "Verbruik (kWh/100 km)",
+        "consumption_col": "Verbruik (kWh/{per})",
         "at_the_plug": "aan de stekker",
         "at_the_battery": "aan de accu",
         "recuperation": "Teruggewonnen",
-        "cost_per_100km": "Kosten per 100 km",
+        "cost_per_100km": "Kosten per {per}",
         "business": "Zakelijk",
         "private": "Privé",
         "commute": "Woon-werk",
@@ -357,11 +358,11 @@ STRINGS: dict[str, dict[str, str]] = {
         "distance": "Dystans",
         "trip_count": "Przejazdy",
         "consumption": "Śr. zużycie",
-        "consumption_col": "Zużycie (kWh/100 km)",
+        "consumption_col": "Zużycie (kWh/{per})",
         "at_the_plug": "przy gniazdku",
         "at_the_battery": "przy akumulatorze",
         "recuperation": "Odzyskano",
-        "cost_per_100km": "Koszt na 100 km",
+        "cost_per_100km": "Koszt na {per}",
         "business": "Służbowy",
         "private": "Prywatny",
         "commute": "Dojazd",
@@ -408,11 +409,11 @@ STRINGS: dict[str, dict[str, str]] = {
         "distance": "Distância",
         "trip_count": "Viagens",
         "consumption": "Consumo médio",
-        "consumption_col": "Consumo (kWh/100 km)",
+        "consumption_col": "Consumo (kWh/{per})",
         "at_the_plug": "na tomada",
         "at_the_battery": "na bateria",
         "recuperation": "Recuperado",
-        "cost_per_100km": "Custo por 100 km",
+        "cost_per_100km": "Custo por {per}",
         "business": "Profissional",
         "private": "Particular",
         "commute": "Casa-trabalho",
@@ -459,11 +460,11 @@ STRINGS: dict[str, dict[str, str]] = {
         "distance": "Vzdálenost",
         "trip_count": "Jízdy",
         "consumption": "Prům. spotřeba",
-        "consumption_col": "Spotřeba (kWh/100 km)",
+        "consumption_col": "Spotřeba (kWh/{per})",
         "at_the_plug": "ze zásuvky",
         "at_the_battery": "z baterie",
         "recuperation": "Rekuperováno",
-        "cost_per_100km": "Náklady na 100 km",
+        "cost_per_100km": "Náklady na {per}",
         "business": "Služební",
         "private": "Soukromá",
         "commute": "Dojíždění",
@@ -509,11 +510,11 @@ STRINGS: dict[str, dict[str, str]] = {
         "distance": "Sträcka",
         "trip_count": "Resor",
         "consumption": "Snittförbrukning",
-        "consumption_col": "Förbrukning (kWh/100 km)",
+        "consumption_col": "Förbrukning (kWh/{per})",
         "at_the_plug": "vid uttaget",
         "at_the_battery": "vid batteriet",
         "recuperation": "Återvunnet",
-        "cost_per_100km": "Kostnad per 100 km",
+        "cost_per_100km": "Kostnad per {per}",
         "business": "Tjänst",
         "private": "Privat",
         "commute": "Pendling",
@@ -814,11 +815,14 @@ def month_report_html(
     lang: Optional[str] = "en",
     localize: Localizer = _identity,
     now: Optional[datetime] = None,
+    distance_unit: str = "km",
 ) -> str:
     """A self-contained month report, styled for the browser's print-to-PDF.
 
     Takes the already-computed summaries rather than recomputing them, so the
-    report and the card can never disagree about a month's totals.
+    report and the card can never disagree about a month's totals. Distances and
+    per-distance figures are shown in ``distance_unit`` ("km" or "mi", the
+    account's Units setting); the summaries themselves stay in km.
     """
 
     s = _strings(lang)
@@ -833,6 +837,21 @@ def month_report_html(
 
     def money(amount: Optional[float]) -> str:
         return _money(amount, currency, lang)
+
+    miles = distance_unit == "mi"
+    per = "100 mi" if miles else "100 km"
+
+    def dist(km: Optional[float]) -> str:
+        """A distance with its unit, or the bare dash."""
+
+        if km is None:
+            return "—"
+        return f"{num(km / KM_PER_MILE if miles else km)} {'mi' if miles else 'km'}"
+
+    def per_dist(value: Optional[float]) -> Optional[float]:
+        """A per-100 km figure as per 100 of the unit shown (more per longer unit)."""
+
+        return None if value is None else value * KM_PER_MILE if miles else value
 
     parts: list[str] = [
         "<!-- BavarianData month report; print this page to get a PDF -->",
@@ -879,8 +898,8 @@ def month_report_html(
         if charging_summary.get("cost_per_100km") is not None:
             tiles.append(
                 _tile(
-                    s["cost_per_100km"],
-                    money(charging_summary["cost_per_100km"]),
+                    s["cost_per_100km"].format(per=per),
+                    money(per_dist(charging_summary["cost_per_100km"])),
                 )
             )
         parts.append(f'<div class="tiles">{"".join(tiles)}</div>')
@@ -943,7 +962,7 @@ def month_report_html(
     if trips:
         split = driving.get("split") or {}
         tiles = [
-            _tile(s["distance"], f"{num(driving.get('total_km', 0))} km"),
+            _tile(s["distance"], dist(driving.get("total_km", 0))),
             _tile(s["trip_count"], str(driving.get("trip_count", len(trips)))),
         ]
         # Consumption headlines with the energy balance -- the figure whose
@@ -958,18 +977,18 @@ def month_report_html(
             is_grid = balance.get("source") == "grid"
             # The unit rides as the small note: spelled out at tile size it is
             # the one value long enough to wrap onto a second line.
-            note = "kWh/100 km · " + (s["at_the_plug"] if is_grid else s["at_the_battery"])
+            note = f"kWh/{per} · " + (s["at_the_plug"] if is_grid else s["at_the_battery"])
             if is_grid and battery_side is not None:
-                note += f" · {num(battery_side)} {s['at_the_battery']}"
-            tiles.append(_tile(s["consumption"], num(balance["kwh_per_100km"]), note))
+                note += f" · {num(per_dist(battery_side))} {s['at_the_battery']}"
+            tiles.append(_tile(s["consumption"], num(per_dist(balance["kwh_per_100km"])), note))
         elif battery_side is not None:
-            tiles.append(_tile(s["consumption"], num(battery_side), "kWh/100 km"))
+            tiles.append(_tile(s["consumption"], num(per_dist(battery_side)), f"kWh/{per}"))
         if driving.get("recuperation_kwh_per_100km") is not None:
             tiles.append(
                 _tile(
                     s["recuperation"],
-                    num(driving["recuperation_kwh_per_100km"]),
-                    "kWh/100 km",
+                    num(per_dist(driving["recuperation_kwh_per_100km"])),
+                    f"kWh/{per}",
                 )
             )
         for key, label in (
@@ -978,7 +997,7 @@ def month_report_html(
             ("private_km", s["private"]),
         ):
             if split.get(key):
-                tiles.append(_tile(label, f"{num(split[key])} km"))
+                tiles.append(_tile(label, dist(split[key])))
         parts.append(f'<div class="tiles">{"".join(tiles)}</div>')
 
         head = "".join(
@@ -989,7 +1008,7 @@ def month_report_html(
                 (s["to"], False),
                 (s["duration"], True),
                 (s["distance"], True),
-                (s["consumption_col"], True),
+                (s["consumption_col"].format(per=per), True),
                 (s["class"], False),
             )
         )
@@ -1001,15 +1020,15 @@ def month_report_html(
                 f"<td>{escape((trip.start_place or {}).get('label') or '—')}</td>"
                 f"<td>{escape((trip.end_place or {}).get('label') or '—')}</td>"
                 f'<td class="n">{escape(_minutes(trip.duration_s))} min</td>'
-                f'<td class="n">{escape(num(trip.distance_km) or "—")} km</td>'
-                f'<td class="n">{escape(num(trip.consumption_kwh_per_100km) or "—")}</td>'
+                f'<td class="n">{escape(dist(trip.distance_km))}</td>'
+                f'<td class="n">{escape(num(per_dist(trip.consumption_kwh_per_100km)) or "—")}</td>'
                 f'<td><span class="badge">{escape(_classification(trip, s))}</span></td>'
                 "</tr>"
             )
         foot = (
             "<tfoot><tr>"
             f'<td colspan="4">{escape(s["total"])}</td>'
-            f'<td class="n">{escape(num(driving.get("total_km")) or "—")} km</td>'
+            f'<td class="n">{escape(dist(driving.get("total_km")))}</td>'
             "<td></td><td></td>"
             "</tr></tfoot>"
         )
