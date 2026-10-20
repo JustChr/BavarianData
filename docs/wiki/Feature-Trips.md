@@ -41,8 +41,9 @@ stopped, or the stream did. Only the first ends a drive — closing on the secon
 used to split one drive through a tunnel or a coverage hole into two trips.
 
 So a stop is only acted on once something **confirms** it: a position report that
-arrived showing the car standing still, or an explicit "not moving" from cars that
-send one. With neither, the drive is held open until the reports come back and
+arrived showing the car standing still, an explicit "not moving" from cars that
+send one, or the driver door opening on arrival with no movement after it. With
+none of these, the drive is held open until the reports come back and
 settle it — if the car has moved on, it was one drive all along; if it reappears
 where it vanished, it really was parked and the trip ends back at the last
 movement. A stream that never comes back closes the trip after half an hour, and

@@ -591,6 +591,11 @@ class CardataCoordinator:
     # ``_process_door_signal``). Both optional: absent on cars that don't stream
     # the door, in which case detection falls back to GPS alone.
     _driver_door_open: Dict[str, bool] = field(default_factory=dict, init=False)
+    # When the driver door opened during a trip too soon after the last movement
+    # to count as an arrival on the spot -- the i5 sends it within a second of the
+    # final fix. Kept until the car moves on, it is the arrival time and the stop
+    # evidence a quiet stream would otherwise never give.
+    _door_arrival: Dict[str, datetime] = field(default_factory=dict, init=False)
     _pending_start: Dict[str, tuple[datetime, Optional[tuple[float, float]]]] = field(
         default_factory=dict, init=False
     )
@@ -2990,6 +2995,7 @@ class CardataCoordinator:
                 await self._open_trip(vin, now, parked_until=self._last_gps_fix_at.get(vin))
             if motion is True:
                 # Moving again: cancel any pending stationary-close.
+                self._drop_door_arrival_on_move(vin, now)
                 self._trip_held_since.pop(vin, None)
                 self._cancel_trip_close_timer(vin)
             elif motion is False:
@@ -3035,6 +3041,11 @@ class CardataCoordinator:
                         substrate=True,
                     )
                     await self._close_trip(vin, now, reason="door")
+                else:
+                    # Too soon to close on: it arrives right behind the final fix.
+                    # Remember it -- if the car moves on it is dropped, otherwise
+                    # it dates the arrival and says the car stopped.
+                    self._door_arrival.setdefault(vin, now)
             elif not door_open and not open_trip:
                 # Closed with no trip open: the driver just got in. Mark the start
                 # here so the next movement seeds the trip from this spot.
@@ -3204,6 +3215,7 @@ class CardataCoordinator:
                     )
                     await self._close_trip(vin, now, reason="silent")
                     open_trip = False
+                self._drop_door_arrival_on_move(vin, now)
                 self._last_gps_move[vin] = now
                 if not open_trip:
                     # Seed the track from where the car actually started (the
@@ -3417,6 +3429,7 @@ class CardataCoordinator:
         """
 
         self._trip_held_since.pop(vin, None)
+        self._door_arrival.pop(vin, None)
         seed, started_at = self._trip_start_seed(vin, now, parked_until)
         # Resolve the start place from the seed (the parked/door-close spot), not
         # the ~hundreds-of-metres-later fix that first registered as movement.
@@ -3484,11 +3497,20 @@ class CardataCoordinator:
         A ``silent`` close -- one that was held while the stream was quiet and then
         settled -- backdates as well, and matters more than the others: the hold can
         run for half an hour, so ``now`` would be wildly wrong.
+
+        A door that opened too soon to close on (see ``_process_door_signal``) and
+        was never followed by the car moving on is the arrival for any close,
+        including the door close that comes when the driver gets back in to leave.
         """
 
+        arrival = self._door_arrival.get(vin)
+        last_move = self._last_gps_move.get(vin)
+        if arrival is not None and reason != "unload":
+            # The final fix can land a moment after the door; take the later.
+            ended = arrival if last_move is None else max(arrival, last_move)
+            return max(start, min(ended, now))
         if reason not in ("stationary", "segment", "silent"):
             return now
-        last_move = self._last_gps_move.get(vin)
         if last_move is None:
             return now
         return max(start, min(last_move, now))
@@ -3514,6 +3536,7 @@ class CardataCoordinator:
             if announce:
                 self._evaluate_situations(vin, now)
         if builder is None or self.history is None:
+            self._door_arrival.pop(vin, None)
             return
 
         end_place = await self._resolve_place(vin)
@@ -3521,6 +3544,7 @@ class CardataCoordinator:
         stats, travelled_km = self._read_trip_segment(vin)
         energy_kwh = self._trip_energy_kwh(vin, builder.soc_start, soc_end)
         ended_at = self._trip_end_time(vin, now, builder.start, reason)
+        self._door_arrival.pop(vin, None)
 
         trip = builder.close(
             ended_at,
@@ -3732,6 +3756,18 @@ class CardataCoordinator:
             self.history.add_trip(leg)
             self._cap("[trip] %s chain leg %s -> commute", vin, leg.id)
 
+    def _drop_door_arrival_on_move(self, vin: str, now: datetime) -> None:
+        """Forget an early door-open once the car has clearly moved on.
+
+        Movement within ``DOOR_ARRIVAL_STOP_S`` of the door doesn't count: the
+        door and the final fix arrive within a second or two of each other, in
+        either order, and a fix only completes when its second half arrives.
+        """
+
+        opened = self._door_arrival.get(vin)
+        if opened is not None and (now - opened).total_seconds() > DOOR_ARRIVAL_STOP_S:
+            del self._door_arrival[vin]
+
     def _hold_close_on_silence(self, vin: str, now: datetime) -> bool:
         """True when a due close has no evidence behind it and must wait.
 
@@ -3755,6 +3791,8 @@ class CardataCoordinator:
         evidence = self._last_stop_evidence.get(vin)
         if evidence is not None and evidence >= last_move:
             return False  # the car was seen standing still: a real stop
+        if vin in self._door_arrival:
+            return False  # the driver got out and the car never moved on
         held_since = self._trip_held_since.setdefault(vin, now)
         if (now - held_since).total_seconds() >= TRIP_SILENT_HOLD_MAX_S:
             return False  # the stream never came back; close on what we have

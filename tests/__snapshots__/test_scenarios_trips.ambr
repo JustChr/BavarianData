@@ -28,6 +28,64 @@
     300.0  advance 300              est=     - rate=    - charging=off open=n sessions=0 trip_ended
   '''
 # ---
+# name: test_a_door_opened_on_arrival_is_stop_evidence
+  '''
+  08:07:01 -> 08:27:02  14.7 km  Home -> Unknown
+  --
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+      4.0  wait 4                   est=     - rate=    - charging=off open=n sessions=0
+      4.0  send door=False          est=     - rate=    - charging=off open=n sessions=0
+      7.0  wait 7                   est=     - rate=    - charging=off open=n sessions=0
+      7.0  fix 48.1100,16.3100      est=     - rate=    - charging=off open=n sessions=0
+      7.0  wait 7.01667             est=     - rate=    - charging=off open=n sessions=0
+      7.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0 zone_left
+      9.0  wait 9                   est=     - rate=    - charging=off open=n sessions=0
+      9.0  fix 48.1200,16.3200      est=     - rate=    - charging=off open=n sessions=0
+      9.0  wait 9.01667             est=     - rate=    - charging=off open=n sessions=0
+      9.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     11.0  wait 11                  est=     - rate=    - charging=off open=n sessions=0
+     11.0  fix 48.1300,16.3300      est=     - rate=    - charging=off open=n sessions=0
+     11.0  wait 11.0167             est=     - rate=    - charging=off open=n sessions=0
+     11.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     13.0  wait 13                  est=     - rate=    - charging=off open=n sessions=0
+     13.0  fix 48.1400,16.3400      est=     - rate=    - charging=off open=n sessions=0
+     13.0  wait 13.0167             est=     - rate=    - charging=off open=n sessions=0
+     13.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     15.0  wait 15                  est=     - rate=    - charging=off open=n sessions=0
+     15.0  fix 48.1500,16.3500      est=     - rate=    - charging=off open=n sessions=0
+     15.0  wait 15.0167             est=     - rate=    - charging=off open=n sessions=0
+     15.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     17.0  wait 17                  est=     - rate=    - charging=off open=n sessions=0
+     17.0  fix 48.1600,16.3600      est=     - rate=    - charging=off open=n sessions=0
+     17.0  wait 17.0167             est=     - rate=    - charging=off open=n sessions=0
+     17.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     19.0  wait 19                  est=     - rate=    - charging=off open=n sessions=0
+     19.0  fix 48.1700,16.3700      est=     - rate=    - charging=off open=n sessions=0
+     19.0  wait 19.0167             est=     - rate=    - charging=off open=n sessions=0
+     19.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     21.0  wait 21                  est=     - rate=    - charging=off open=n sessions=0
+     21.0  fix 48.1800,16.3800      est=     - rate=    - charging=off open=n sessions=0
+     21.0  wait 21.0167             est=     - rate=    - charging=off open=n sessions=0
+     21.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     23.0  wait 23                  est=     - rate=    - charging=off open=n sessions=0
+     23.0  fix 48.1900,16.3900      est=     - rate=    - charging=off open=n sessions=0
+     23.0  wait 23.0167             est=     - rate=    - charging=off open=n sessions=0
+     23.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     25.0  wait 25                  est=     - rate=    - charging=off open=n sessions=0
+     25.0  fix 48.2000,16.4000      est=     - rate=    - charging=off open=n sessions=0
+     25.0  wait 25.0167             est=     - rate=    - charging=off open=n sessions=0
+     25.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     27.0  wait 27                  est=     - rate=    - charging=off open=n sessions=0
+     27.0  fix 48.2100,16.4100      est=     - rate=    - charging=off open=n sessions=0
+     27.0  wait 27.0167             est=     - rate=    - charging=off open=n sessions=0
+     27.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     27.0  wait 27.0333             est=     - rate=    - charging=off open=n sessions=0
+     27.0  send door=True           est=     - rate=    - charging=off open=n sessions=0
+     27.2  wait 27.2                est=     - rate=    - charging=off open=n sessions=0
+     27.2  send door=False          est=     - rate=    - charging=off open=n sessions=0
+     35.0  advance 35               est=     - rate=    - charging=off open=n sessions=0 trip_ended
+  '''
+# ---
 # name: test_a_drive_is_one_trip_ending_at_the_last_movement
   '''
   08:07:01 -> 08:25:01  13.4 km  Home -> Unknown
@@ -110,6 +168,93 @@
      40.0  wait 40.0167             est=     - rate=    - charging=off open=n sessions=0
      40.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0 trip_ended
      60.0  advance 60               est=     - rate=    - charging=off open=n sessions=0
+  '''
+# ---
+# name: test_a_quick_stop_ends_the_trip_at_the_arrival_not_the_departure
+  '''
+  08:30:05 -> 08:41:01  6.7 km  Unknown -> Unknown
+  08:07:01 -> 08:27:02  14.7 km  Home -> Unknown
+  --
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+      4.0  wait 4                   est=     - rate=    - charging=off open=n sessions=0
+      4.0  send door=False          est=     - rate=    - charging=off open=n sessions=0
+      7.0  wait 7                   est=     - rate=    - charging=off open=n sessions=0
+      7.0  fix 48.1100,16.3100      est=     - rate=    - charging=off open=n sessions=0
+      7.0  wait 7.01667             est=     - rate=    - charging=off open=n sessions=0
+      7.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0 zone_left
+      9.0  wait 9                   est=     - rate=    - charging=off open=n sessions=0
+      9.0  fix 48.1200,16.3200      est=     - rate=    - charging=off open=n sessions=0
+      9.0  wait 9.01667             est=     - rate=    - charging=off open=n sessions=0
+      9.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     11.0  wait 11                  est=     - rate=    - charging=off open=n sessions=0
+     11.0  fix 48.1300,16.3300      est=     - rate=    - charging=off open=n sessions=0
+     11.0  wait 11.0167             est=     - rate=    - charging=off open=n sessions=0
+     11.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     13.0  wait 13                  est=     - rate=    - charging=off open=n sessions=0
+     13.0  fix 48.1400,16.3400      est=     - rate=    - charging=off open=n sessions=0
+     13.0  wait 13.0167             est=     - rate=    - charging=off open=n sessions=0
+     13.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     15.0  wait 15                  est=     - rate=    - charging=off open=n sessions=0
+     15.0  fix 48.1500,16.3500      est=     - rate=    - charging=off open=n sessions=0
+     15.0  wait 15.0167             est=     - rate=    - charging=off open=n sessions=0
+     15.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     17.0  wait 17                  est=     - rate=    - charging=off open=n sessions=0
+     17.0  fix 48.1600,16.3600      est=     - rate=    - charging=off open=n sessions=0
+     17.0  wait 17.0167             est=     - rate=    - charging=off open=n sessions=0
+     17.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     19.0  wait 19                  est=     - rate=    - charging=off open=n sessions=0
+     19.0  fix 48.1700,16.3700      est=     - rate=    - charging=off open=n sessions=0
+     19.0  wait 19.0167             est=     - rate=    - charging=off open=n sessions=0
+     19.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     21.0  wait 21                  est=     - rate=    - charging=off open=n sessions=0
+     21.0  fix 48.1800,16.3800      est=     - rate=    - charging=off open=n sessions=0
+     21.0  wait 21.0167             est=     - rate=    - charging=off open=n sessions=0
+     21.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     23.0  wait 23                  est=     - rate=    - charging=off open=n sessions=0
+     23.0  fix 48.1900,16.3900      est=     - rate=    - charging=off open=n sessions=0
+     23.0  wait 23.0167             est=     - rate=    - charging=off open=n sessions=0
+     23.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     25.0  wait 25                  est=     - rate=    - charging=off open=n sessions=0
+     25.0  fix 48.2000,16.4000      est=     - rate=    - charging=off open=n sessions=0
+     25.0  wait 25.0167             est=     - rate=    - charging=off open=n sessions=0
+     25.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     27.0  wait 27                  est=     - rate=    - charging=off open=n sessions=0
+     27.0  fix 48.2100,16.4100      est=     - rate=    - charging=off open=n sessions=0
+     27.0  wait 27.0167             est=     - rate=    - charging=off open=n sessions=0
+     27.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     27.0  wait 27.0333             est=     - rate=    - charging=off open=n sessions=0
+     27.0  send door=True           est=     - rate=    - charging=off open=n sessions=0
+     27.2  wait 27.2                est=     - rate=    - charging=off open=n sessions=0
+     27.2  send door=False          est=     - rate=    - charging=off open=n sessions=0
+     30.0  wait 30                  est=     - rate=    - charging=off open=n sessions=0
+     30.0  send door=True           est=     - rate=    - charging=off open=n sessions=0 trip_ended
+     30.1  wait 30.0833             est=     - rate=    - charging=off open=n sessions=0
+     30.1  send door=False          est=     - rate=    - charging=off open=n sessions=0
+     33.0  wait 33                  est=     - rate=    - charging=off open=n sessions=0
+     33.0  fix 48.2200,16.4200      est=     - rate=    - charging=off open=n sessions=0
+     33.0  wait 33.0167             est=     - rate=    - charging=off open=n sessions=0
+     33.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     35.0  wait 35                  est=     - rate=    - charging=off open=n sessions=0
+     35.0  fix 48.2300,16.4300      est=     - rate=    - charging=off open=n sessions=0
+     35.0  wait 35.0167             est=     - rate=    - charging=off open=n sessions=0
+     35.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     37.0  wait 37                  est=     - rate=    - charging=off open=n sessions=0
+     37.0  fix 48.2400,16.4400      est=     - rate=    - charging=off open=n sessions=0
+     37.0  wait 37.0167             est=     - rate=    - charging=off open=n sessions=0
+     37.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     39.0  wait 39                  est=     - rate=    - charging=off open=n sessions=0
+     39.0  fix 48.2500,16.4500      est=     - rate=    - charging=off open=n sessions=0
+     39.0  wait 39.0167             est=     - rate=    - charging=off open=n sessions=0
+     39.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     41.0  wait 41                  est=     - rate=    - charging=off open=n sessions=0
+     41.0  fix 48.2600,16.4600      est=     - rate=    - charging=off open=n sessions=0
+     41.0  wait 41.0167             est=     - rate=    - charging=off open=n sessions=0
+     41.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     43.0  wait 43                  est=     - rate=    - charging=off open=n sessions=0
+     43.0  fix 48.2600,16.4600      est=     - rate=    - charging=off open=n sessions=0
+     43.0  wait 43.0167             est=     - rate=    - charging=off open=n sessions=0
+     43.0    (longitude)            est=     - rate=    - charging=off open=n sessions=0
+     70.0  advance 70               est=     - rate=    - charging=off open=n sessions=0 trip_ended
   '''
 # ---
 # name: test_a_restart_mid_drive_does_not_lose_the_trip

@@ -44,8 +44,9 @@ Zweite zu schließen, teilte früher eine Fahrt durch einen Tunnel oder ein Funk
 in zwei Fahrten.
 
 Ein Halt wird daher erst umgesetzt, wenn etwas ihn **bestätigt**: eine
-Positionsmeldung, die das Auto stehend zeigt, oder ein ausdrückliches „bewegt sich
-nicht“ bei Autos, die so etwas senden. Fehlt beides, bleibt die Fahrt offen, bis die
+Positionsmeldung, die das Auto stehend zeigt, ein ausdrückliches „bewegt sich
+nicht“ bei Autos, die so etwas senden, oder die Fahrertür, die sich bei der Ankunft
+öffnet, ohne dass danach noch Bewegung kommt. Fehlt all das, bleibt die Fahrt offen, bis die
 Meldungen zurückkommen und es klären — ist das Auto weitergefahren, war es die ganze
 Zeit eine Fahrt; taucht es dort wieder auf, wo es verschwand, stand es wirklich, und
 die Fahrt endet rückwirkend bei der letzten Bewegung. Kommt der Stream nie zurück,

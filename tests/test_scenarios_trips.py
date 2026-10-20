@@ -139,6 +139,74 @@ def test_two_drives_with_a_stop_between_are_two_trips(h, snapshot):
     assert _record(h) == snapshot
 
 
+def _arrive_with_the_door_open(h: CoordinatorHarness, minute: float, origin) -> tuple:
+    """The last moving fix, and the driver door opening right behind it.
+
+    How the i5 arrives: the final position and the door land within the same
+    second, so when the door opens the car has not yet been seen standing still
+    -- and once parked, the stream goes quiet. The door closes ten seconds later.
+    """
+
+    here = (origin[0] + STEP, origin[1] + STEP)
+    h.fix(minute, *here)
+    h.send(minute + 2 / 60, door=True)
+    h.send(minute + 12 / 60, door=False)
+    return here
+
+
+def test_a_quick_stop_ends_the_trip_at_the_arrival_not_the_departure(h, snapshot):
+    """Parked three minutes on a silent stream, then back in and off again.
+
+    Seen on the i5 (2026-10-20): the door opened with the last moving fix, too
+    soon to count as an arrival, so nothing closed the trip until the driver
+    opened the door again to leave -- and that close was dated "now", counting
+    the three parked minutes as driving.
+    """
+
+    h.send(4, door=False)  # the driver got in
+    here = _drive(h, 5, 10)
+    here = _arrive_with_the_door_open(h, 27, here)
+    h.send(30, door=True)  # back in, three silent minutes later
+    h.send(30 + 5 / 60, door=False)
+    there = _drive(h, 31, 5, origin=here)
+    h.fix(43, *there)
+    h.advance_to(70)
+
+    first, second = sorted(h.trips(), key=lambda t: t.start)
+    assert first.end <= h.at(27.1)  # the arrival, not the departure at minute 30
+    assert second.start >= h.at(30)
+    assert _record(h) == snapshot
+
+
+def test_a_door_opened_on_arrival_is_stop_evidence(h, snapshot):
+    """The stream goes quiet once parked; the door already said the car stopped."""
+
+    h.send(4, door=False)
+    here = _drive(h, 5, 10)
+    _arrive_with_the_door_open(h, 27, here)
+    h.advance_to(35)  # one close debounce later, no stationary fix at all
+
+    (trip,) = h.trips()  # closed, not held for TRIP_SILENT_HOLD_MAX_S
+    assert trip.end <= h.at(27.1)
+    assert _record(h) == snapshot
+
+
+def test_a_door_opened_mid_drive_ends_nothing(h):
+    """A door read with the car rolling on afterwards is no arrival."""
+
+    h.send(4, door=False)
+    here = _drive(h, 5, 10)
+    here = _arrive_with_the_door_open(h, 27, here)
+    there = _drive(h, 28, 5, origin=here)  # moving again within a minute
+    h.advance_to(40)
+    assert h.trips() == []  # silent after minute 38: held, no stop evidence
+    h.fix(45, *there)
+    h.advance_to(70)
+
+    (trip,) = h.trips()
+    assert trip.end >= h.at(38)
+
+
 def test_a_restart_mid_drive_does_not_lose_the_trip(h, snapshot):
     here = _drive(h, 5, 5)
     h.restart(downtime_s=60)
