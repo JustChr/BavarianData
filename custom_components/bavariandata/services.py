@@ -29,6 +29,7 @@ from homeassistant.helpers.dispatcher import (
 )
 from homeassistant.util import dt as dt_util
 
+from .distance import car_distance_unit
 from .const import (
     DOMAIN,
     VEHICLE_METADATA,
@@ -951,6 +952,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
                         lang=lang,
                         localize=dt_util.as_local,
                         now=dt_util.utcnow(),
+                        distance_unit=car_distance_unit(hass, runtime.coordinator, vin),
                     ),
                 }
             )

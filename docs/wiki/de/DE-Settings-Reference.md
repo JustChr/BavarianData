@@ -30,6 +30,7 @@ erscheinen (der Screenshot zeigt die englische).
 | **evcc-/Wallbox-Brücke** | Einstellungen | Den Live-Zustand des Autos für eine Ladesteuerung per MQTT veröffentlichen — unten. |
 | **Fahrten** | Einstellungen | Arbeitszone, Standard-Typ, Toleranz für Zwischenstopps, Adressauflösung und Routenaufzeichnung — unten. |
 | **Kilometerkontingent** | Einstellungen | Ein Leasing oder eine jährliche Kilometergrenze pro Auto — unten. |
+| **Einheiten** | Einstellungen | Kilometer oder Meilen, Einheiten für Kraftstoff, Temperatur und Reifendruck, für Karte, Bildschirme und Sensoren — unten. |
 | **Automatische Aktualisierung** | Einstellungen ⚡ | Nach dem Start von Home Assistant bei BMW aufholen — unten. |
 | **Jetzt von BMW abrufen** | Menü ⚡ | Daten sofort bei BMW abfragen, statt auf die tägliche Aktualisierung zu warten — nächste Tabelle. |
 | **Verbindung** | Menü | Die Verbindung zu BMW am Laufen halten, dazu die Debug-Protokollierung — die Tabelle danach. |
@@ -294,15 +295,48 @@ im Sensor.
 | **Kilometer pro Jahr** | km oder mi (siehe unten) | Aus Vertrag oder Police. Das Gesamtkontingent eines Leasings ist dieser Wert mal die Laufzeit. |
 | **Kilometerstand bei Beginn** / **Kilometerstand an dem Tag** | km oder mi | Der Stand am Starttag, aus dem Übergabeprotokoll. Vorbelegt mit dem heutigen Stand, solange keiner gespeichert ist; bei einer Jahresgrenze der Stand am letzten Jahresbeginn. |
 
-Die Felder zeigen, welche Einheit sie erwarten. Es ist die des Autos: die
-Einheit, in der sein Kilometerstand-Sensor angezeigt wird (eine britische
-Installation, metrisch mit dem Kilometerstand auf Meilen umgestellt, gibt also
-Meilen ein), sonst die Anzeige-Einstellung des Autos, wenn BMW sie streamt,
-sonst das Einheitensystem von Home Assistant. Karte und Service-Kalender
+Die Felder zeigen, welche Einheit sie erwarten: die Strecken-Einheit unter
+[Einheiten](#einheiten), deren Automatisch die des Autos ist (die Einheit, in
+der sein Kilometerstand-Sensor angezeigt wird, eine britische Installation,
+metrisch mit dem Kilometerstand auf Meilen umgestellt, gibt also Meilen ein;
+sonst die Anzeige-Einstellung des Autos, wenn BMW sie streamt; sonst das
+Einheitensystem von Home Assistant). Karte und Service-Kalender
 nutzen dieselbe Regel. Frühere Versionen folgten nur dem
 Einheitensystem, sodass auf einer metrischen Installation ein in Meilen
 eingegebenes Kontingent als km gespeichert wurde: Wirkt deins zu klein, gib es
 einmal neu ein.
+
+## Einheiten
+
+Bildschirm: **Konfigurieren → Einheiten**. Wie Werte angezeigt werden, für das ganze Konto.
+
+| Option | Werte | Bedeutung |
+| --- | --- | --- |
+| **Strecke** | Automatisch / Kilometer / Meilen | Strecken überall, und was daraus folgt: Verbrauch (kWh/100 km oder kWh/100 mi), Kosten pro 100 km oder mi, Geschwindigkeit (km/h oder mph). **Automatisch** ist die bisherige Regel: die Einheit, in der dein Kilometerstand-Sensor angezeigt wird, sonst die Anzeige-Einstellung des Autos, wenn BMW sie streamt, sonst das Einheitensystem von Home Assistant. |
+| **Kraftstoff** | Automatisch / Liter, l/100 km / Liter, mpg (UK) / US-Gallonen, mpg (US) | Nur bei einem Konto mit Benziner, Diesel oder Plug-in-Hybrid. Tank, Tankvorgänge und Kraftstoffverbrauch. **Automatisch** folgt der Strecke: US-Gallonen beim US-Einheitensystem, Liter mit britischen mpg für ein Auto in Meilen (Großbritannien), sonst Liter und l/100 km. |
+| **Temperatur** | Automatisch / °C / °F | **Automatisch** überlässt es Home Assistant. |
+| **Reifendruck** | Automatisch / bar / kPa / psi | **Automatisch** überlässt es Home Assistant. |
+
+Der Bildschirm zeigt, worin jedes Auto gerade angezeigt wird. Eine Auswahl gilt
+sofort für die Dashboard-Karte (jede Ansicht), die Einstellungsbildschirme, den
+Service-Kalender, den [Monatsbericht](DE-Feature-Export) und
+[Assist](DE-Feature-Automations), und auch für die Anzeigeeinheit der Sensoren
+des Autos in Home Assistant (Kilometerstand, Reichweiten, Geschwindigkeit,
+Temperaturen, Reifendrücke, Tank), damit Home Assistants eigene Seiten und
+Verläufe zur Karte passen. **Automatisch** nimmt eine Einheit zurück, die dieser
+Bildschirm gesetzt hat, aber nie eine, die du selbst an einer Entität gewählt hast.
+
+**Deine Historie ist in jedem Fall sicher.** Alles Aufgezeichnete bleibt in km,
+Litern, °C und bar: Fahrten, Ladevorgänge, das Kilometerstand-Protokoll und die
+native Einheit jedes Sensors. Umgerechnet wird nur die Anzeige, du kannst also
+beliebig hin und her wechseln. Daten für andere Werkzeuge werden ebenfalls nicht
+umgerechnet: CSV-Export, Dienst-Antworten, Ereignisse und Attribute behalten
+metrische Werte, und ihre Namen nennen die Einheit (`distance_km`, `kwh_per_100km`).
+
+Warum das Einheitensystem bei Automatisch zuletzt kommt: Home Assistant kennt
+nur Metrisch und US-Einheiten, und eine britische Installation ist metrisch
+(°C, Liter) mit einem Auto, das in Meilen zählt. Stünde das Einheitensystem
+vorne, sagte es dort immer km.
 
 ## Debug-Protokollierung
 

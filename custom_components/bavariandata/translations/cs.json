@@ -93,6 +93,7 @@
           "action_evcc_bridge": "Most evcc / wallbox",
           "action_trips": "Jízdy",
           "action_mileage": "Limit kilometrů",
+          "action_units": "Jednotky",
           "action_data_refresh": "Automatická obnova dat",
           "fetch_now": "Načíst teď z BMW",
           "connection": "Připojení"
@@ -384,6 +385,22 @@
           "refresh_on_start": "Projeví se okamžitě."
         }
       },
+      "action_units": {
+        "title": "Jednotky",
+        "description": "Jak karta na nástěnce, nastavení, kalendář, měsíční přehled a Assist zobrazují hodnoty. Jednotka zvolená zde platí i pro senzory vozu v Home Assistant. Zaznamenané hodnoty se nikdy nemění, takže změna je pro vaši historii bezpečná.\n\nNyní zobrazeno:\n{now}",
+        "data": {
+          "unit_distance": "Vzdálenost",
+          "unit_fuel": "Palivo",
+          "unit_temperature": "Teplota",
+          "unit_pressure": "Tlak v pneumatikách"
+        },
+        "data_description": {
+          "unit_distance": "Spotřeba a rychlost se řídí jí. Automaticky použije jednotku senzoru stavu tachometru, pak nastavení vozu, pak systém jednotek Home Assistant.",
+          "unit_fuel": "Nádrž, tankování a spotřeba paliva. Automaticky se řídí vzdáleností: mpg (UK) pro vůz v mílích, americké galony v americkém systému, jinak litry.",
+          "unit_temperature": "Automaticky to nechá na Home Assistant.",
+          "unit_pressure": "Automaticky to nechá na Home Assistant."
+        }
+      },
       "action_debug_logging": {
         "title": "Ladicí protokolování",
         "description": "Zapne podrobné protokolování této integrace (připojení MQTT, odebíraná témata a každá příchozí zpráva). Je to nezávislé na obecném přepínači ladění v Home Assistant — pro zobrazení podrobných řádků musí být zapnutá jak úroveň protokolování, tak tento přepínač. Je to rozsáhlé a může obsahovat data vozidla, například souřadnice GPS, proto jej při běžném používání nechte vypnutý. Změna platí okamžitě. S více nastavenými účty BMW je úroveň protokolování sdílená: podrobné protokolování zůstává zapnuté, dokud jej má zapnutý kterýkoli účet.",
@@ -508,6 +525,36 @@
         "none": "Žádný",
         "lease": "Leasing nebo financování",
         "yearly": "Roční limit (např. pojištění)"
+      }
+    },
+    "unit_distance": {
+      "options": {
+        "auto": "Automaticky",
+        "km": "Kilometry",
+        "mi": "Míle"
+      }
+    },
+    "unit_fuel": {
+      "options": {
+        "auto": "Automaticky",
+        "l": "Litry, l/100 km",
+        "l_mpg_uk": "Litry, mpg (UK)",
+        "gal_us": "Americké galony, mpg (US)"
+      }
+    },
+    "unit_temperature": {
+      "options": {
+        "auto": "Automaticky",
+        "c": "°C",
+        "f": "°F"
+      }
+    },
+    "unit_pressure": {
+      "options": {
+        "auto": "Automaticky",
+        "bar": "bar",
+        "kpa": "kPa",
+        "psi": "psi"
       }
     }
   },

@@ -93,6 +93,7 @@
           "action_evcc_bridge": "Bridge evcc / wallbox",
           "action_trips": "Viaggi",
           "action_mileage": "Chilometraggio consentito",
+          "action_units": "Unità",
           "action_data_refresh": "Aggiornamento automatico dei dati",
           "fetch_now": "Scarica ora da BMW",
           "connection": "Connessione"
@@ -384,6 +385,22 @@
           "refresh_on_start": "Ha effetto immediato."
         }
       },
+      "action_units": {
+        "title": "Unità",
+        "description": "Come la scheda della dashboard, le impostazioni, il calendario, il report mensile e Assist mostrano i valori. Un'unità scelta qui vale anche per i sensori dell'auto in Home Assistant. I valori registrati non cambiano mai, quindi cambiare unità non tocca il tuo storico.\n\nMostrato ora:\n{now}",
+        "data": {
+          "unit_distance": "Distanza",
+          "unit_fuel": "Carburante",
+          "unit_temperature": "Temperatura",
+          "unit_pressure": "Pressione pneumatici"
+        },
+        "data_description": {
+          "unit_distance": "Consumo e velocità la seguono. Automatico usa l'unità del sensore del contachilometri, poi l'impostazione dell'auto, poi il sistema di unità di Home Assistant.",
+          "unit_fuel": "Serbatoio, rifornimenti e consumo di carburante. Automatico segue la distanza: mpg (UK) per un'auto in miglia, galloni USA con il sistema statunitense, altrimenti litri.",
+          "unit_temperature": "Automatico lascia decidere a Home Assistant.",
+          "unit_pressure": "Automatico lascia decidere a Home Assistant."
+        }
+      },
       "action_debug_logging": {
         "title": "Registrazione di debug",
         "description": "Attiva la registrazione dettagliata per questa integrazione (connessione MQTT, topic sottoscritti e ogni messaggio in arrivo). È separata dall'interruttore di debug generico di Home Assistant — sia il livello di log sia questo interruttore devono essere attivi per vedere le righe dettagliate. È prolissa e può includere dati del veicolo come le coordinate GPS, quindi lasciala disattivata nell'uso normale. La modifica si applica subito. Con più account BMW configurati, il livello di log è condiviso: la registrazione dettagliata resta attiva finché un account la ha attiva.",
@@ -508,6 +525,36 @@
         "none": "Nessuno",
         "lease": "Noleggio o finanziamento",
         "yearly": "Limite annuale (es. assicurazione)"
+      }
+    },
+    "unit_distance": {
+      "options": {
+        "auto": "Automatico",
+        "km": "Chilometri",
+        "mi": "Miglia"
+      }
+    },
+    "unit_fuel": {
+      "options": {
+        "auto": "Automatico",
+        "l": "Litri, l/100 km",
+        "l_mpg_uk": "Litri, mpg (UK)",
+        "gal_us": "Galloni USA, mpg (US)"
+      }
+    },
+    "unit_temperature": {
+      "options": {
+        "auto": "Automatico",
+        "c": "°C",
+        "f": "°F"
+      }
+    },
+    "unit_pressure": {
+      "options": {
+        "auto": "Automatico",
+        "bar": "bar",
+        "kpa": "kPa",
+        "psi": "psi"
       }
     }
   },

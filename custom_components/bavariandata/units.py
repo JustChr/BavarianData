@@ -25,7 +25,7 @@ unit here is the deliberate act of deciding what it means.
 
 from __future__ import annotations
 
-from typing import Any, Dict, FrozenSet, Iterable, Optional, Tuple
+from typing import Any, Dict, FrozenSet, Iterable, Mapping, Optional, Tuple
 
 # Every unit symbol the project emits. Anything reaching an entity or the
 # metadata registry is one of these -- or an unrecognised string that survived
@@ -190,9 +190,13 @@ def _mi_or_km(unit: Any) -> Optional[str]:
     return None
 
 
-def distance_unit(sensor_units: Iterable[Any], car_setting: Any, system_unit: Any) -> str:
+def distance_unit(
+    sensor_units: Iterable[Any], car_setting: Any, system_unit: Any, choice: Any = None
+) -> str:
     """``"mi"`` or ``"km"``: the unit a car's distances are entered and shown in.
 
+    0. The account's Units setting, when it names one (``choice``); "auto" or
+       nothing goes on down this list.
     1. The unit the car's distance sensors are displayed in, odometer first. A
        UK install keeps Home Assistant's metric unit system (Celsius, litres)
        and switches the distance sensors to miles, so this is the user's own
@@ -206,11 +210,97 @@ def distance_unit(sensor_units: Iterable[Any], car_setting: Any, system_unit: An
     never typed in one unit and stored as another (issue #126).
     """
 
+    if choice in ("km", "mi"):
+        return choice
     for unit in sensor_units:
         found = _mi_or_km(unit)
         if found:
             return found
     return _mi_or_km(car_setting) or ("mi" if _mi_or_km(system_unit) == "mi" else "km")
+
+
+# The account's Units setting (Configure -> Units): one choice per quantity,
+# "auto" unless the user named a unit. The first value of each is the default.
+UNIT_CHOICES: Dict[str, Tuple[str, ...]] = {
+    "distance": ("auto", "km", "mi"),
+    "fuel": ("auto", "l", "l_mpg_uk", "gal_us"),
+    "temperature": ("auto", "c", "f"),
+    "pressure": ("auto", "bar", "kpa", "psi"),
+}
+
+
+def unit_choices(stored: Mapping[str, Any]) -> Dict[str, str]:
+    """``{"distance": ..., "fuel": ..., ...}`` from options keyed ``unit_<quantity>``.
+
+    Anything missing or unknown reads as "auto", so an older entry, or a value
+    a later version removed, falls back to the automatic rules.
+    """
+
+    choices = {}
+    for quantity, allowed in UNIT_CHOICES.items():
+        value = stored.get(f"unit_{quantity}")
+        choices[quantity] = value if value in allowed else allowed[0]
+    return choices
+
+
+def fuel_unit(choice: Any, distance: str, system_unit: Any) -> str:
+    """``"l"``, ``"l_mpg_uk"`` or ``"gal_us"``: how fuel and its consumption are shown.
+
+    An explicit choice wins. Automatic follows the distance: US customary means
+    US gallons and US mpg; a car in miles on a metric install (the UK) buys
+    litres but rates them in imperial mpg, as its own display does; everything
+    else is litres and l/100 km.
+    """
+
+    if choice in UNIT_CHOICES["fuel"][1:]:
+        return choice
+    if _mi_or_km(system_unit) == "mi":
+        return "gal_us"
+    return "l_mpg_uk" if distance == "mi" else "l"
+
+
+# The display unit an explicit choice gives a sensor of each device class. A
+# sensor keeps storing its native unit; Home Assistant converts what it shows
+# and keeps its statistics in one unit, so switching never splits a history.
+# Home Assistant has no imperial gallon: UK fuel is bought in litres anyway.
+_SENSOR_UNITS: Dict[str, Tuple[str, Dict[str, str]]] = {
+    "distance": ("distance", {"km": "km", "mi": "mi"}),
+    "speed": ("distance", {"km": "km/h", "mi": "mph"}),
+    "temperature": ("temperature", {"c": "°C", "f": "°F"}),
+    "pressure": ("pressure", {"bar": "bar", "kpa": "kPa", "psi": "psi"}),
+    "volume_storage": ("fuel", {"l": "L", "l_mpg_uk": "L", "gal_us": "gal"}),
+}
+
+
+def sensor_display_unit(device_class: Any, choices: Mapping[str, str]) -> Optional[str]:
+    """The unit a sensor should be shown in, or ``None`` to leave it to Home Assistant."""
+
+    found = _SENSOR_UNITS.get(device_class) if isinstance(device_class, str) else None
+    if found is None:
+        return None
+    quantity, units = found
+    return units.get(choices.get(quantity, "auto"))
+
+
+def sensor_unit_update(
+    device_class: Any, choices: Mapping[str, str], current: Optional[str], applied: Optional[str]
+) -> Optional[Tuple[Optional[str], Optional[str]]]:
+    """What to write for one sensor: ``(display unit, our mark)``, or ``None`` for nothing.
+
+    ``current`` is the display unit set on the entity (``None``: Home Assistant's
+    default), ``applied`` the one this integration set last. An explicit choice
+    sets its unit. Automatic takes back only what we set, and leaves a unit the
+    user has picked on the entity since then alone.
+    """
+
+    wanted = sensor_display_unit(device_class, choices)
+    if wanted is not None:
+        if current == wanted and applied == wanted:
+            return None
+        return wanted, wanted
+    if applied is None:
+        return None
+    return (None if current == applied else current), None
 
 
 # The tank's unit when the car gives none. Every car seen sends ``l`` or ``L``

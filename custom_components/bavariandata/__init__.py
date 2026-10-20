@@ -100,6 +100,8 @@ from .startup_refresh import (
 )
 from .trip_settings import account_trip_settings, vehicle_trip_settings
 from .vehicle_options import mileage_allowances, without_vehicle
+from .distance import apply_sensor_unit, async_apply_sensor_units
+from .units import unit_choices
 from .vehicle_support import motorcycle_issue_id
 from .tyre_store import TyreStore
 from .vehicles import (
@@ -642,6 +644,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     coordinator.trip_debug = bool(options.get(OPTION_TRIP_DEBUG))
     coordinator.diagnostic_interval = diagnostic_interval
     coordinator.mileage_allowances = mileage_allowances(options)
+    coordinator.display_units = unit_choices(options)
 
     # Statistics backfill (roadmap Phase 4). Publishes the recorded history into
     # Home Assistant's long-term statistics under our own "bavariandata:"
@@ -919,6 +922,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         entity_registry.async_remove(entity_id)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    # Configure -> Units: the sensors are shown in the units the account chose.
+    # A sensor is also created later, on its descriptor's first arrival, so a
+    # new registry entry gets the same treatment.
+    async_apply_sensor_units(hass, entry.entry_id, coordinator.display_units)
+
+    @callback
+    def _units_for_new_entity(event) -> None:
+        if event.data.get("action") != "create":
+            return
+        created = entity_registry.async_get(event.data["entity_id"])
+        if created is not None and created.config_entry_id == entry.entry_id:
+            apply_sensor_unit(entity_registry, created, coordinator.display_units)
+
+    entry.async_on_unload(
+        hass.bus.async_listen(er.EVENT_ENTITY_REGISTRY_UPDATED, _units_for_new_entity)
+    )
 
     if should_bootstrap:
         runtime_data.bootstrap_task = entry.async_create_background_task(

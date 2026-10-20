@@ -1338,6 +1338,140 @@
         </ha-card>
   '''
 # ---
+# name: test_the_efficiency_view_with_figures[km]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:map-marker-distance">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Efficiency &amp; range</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          
+        <div class="ef">
+          <div class="ef__hero">
+            <div class="ef__hero-text">
+  <span class="ef__hero-val">311 <i>km</i>
+  </span>
+             <span class="ef__hero-lbl">Real range now · at 75% charge</span>
+  </div>
+            <span class="ef__vs ef__vs--over">4% further than the car predicts (395 km)</span>
+          </div>
+          <div class="ef__facts">
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Measured consumption</span>
+               <span class="ef__fact-val">18.2 kWh/100 km</span>
+               <span class="ef__fact-note">at the plug · last 90 days</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Charging loss</span>
+               <span class="ef__fact-val">9 %</span>
+               <span class="ef__fact-note">20.1 kWh/100 km at the plug</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Usable capacity</span>
+               <span class="ef__fact-val">75 kWh</span>
+               <span class="ef__fact-note">measured</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Cost per 100 km</span>
+               <span class="ef__fact-val">4.1 EUR</span>
+               
+             </div>
+  </div>
+          <div class="ef__trend">
+  <span class="ef__trend-title">Consumption by month</span>
+        <svg class="ef__chart" viewBox="0 0 280 88" role="img">
+          <rect class="ef__bar" x="36.7" y="20.7"
+                    width="28" height="53.3" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="50.7" y="85" text-anchor="middle">07</text>
+  <rect class="ef__bar" x="126" y="18.8"
+                    width="28" height="55.2" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="140" y="85" text-anchor="middle">08</text>
+  <rect class="ef__bar" x="215.3" y="14.9"
+                    width="28" height="59.1" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="229.3" y="85" text-anchor="middle">09</text>
+          <text x="6" y="9" class="chg__chart-max">21 kWh/100 km</text>
+        </svg>
+      </div>
+          <span class="ef__note">Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate.</span>
+        </div>
+      
+        </ha-card>
+  '''
+# ---
+# name: test_the_efficiency_view_with_figures[mi]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:map-marker-distance">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Efficiency &amp; range</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          
+        <div class="ef">
+          <div class="ef__hero">
+            <div class="ef__hero-text">
+  <span class="ef__hero-val">193 <i>mi</i>
+  </span>
+             <span class="ef__hero-lbl">Real range now · at 75% charge</span>
+  </div>
+            <span class="ef__vs ef__vs--over">4% further than the car predicts (245 mi)</span>
+          </div>
+          <div class="ef__facts">
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Measured consumption</span>
+               <span class="ef__fact-val">29.3 kWh/100 mi</span>
+               <span class="ef__fact-note">at the plug · last 90 days</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Charging loss</span>
+               <span class="ef__fact-val">9 %</span>
+               <span class="ef__fact-note">32.3 kWh/100 mi at the plug</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Usable capacity</span>
+               <span class="ef__fact-val">75 kWh</span>
+               <span class="ef__fact-note">measured</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Cost per 100 mi</span>
+               <span class="ef__fact-val">6.6 EUR</span>
+               
+             </div>
+  </div>
+          <div class="ef__trend">
+  <span class="ef__trend-title">Consumption by month</span>
+        <svg class="ef__chart" viewBox="0 0 280 88" role="img">
+          <rect class="ef__bar" x="36.7" y="20.7"
+                    width="28" height="53.3" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="50.7" y="85" text-anchor="middle">07</text>
+  <rect class="ef__bar" x="126" y="18.8"
+                    width="28" height="55.2" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="140" y="85" text-anchor="middle">08</text>
+  <rect class="ef__bar" x="215.3" y="14.9"
+                    width="28" height="59.1" rx="2">
+  </rect>
+                  <text class="ef__bar-lbl" x="229.3" y="85" text-anchor="middle">09</text>
+          <text x="6" y="9" class="chg__chart-max">34 kWh/100 mi</text>
+        </svg>
+      </div>
+          <span class="ef__note">Measured from the charging ledger: the distance between two charges and the energy that went in, not the car's own estimate.</span>
+        </div>
+      
+        </ha-card>
+  '''
+# ---
 # name: test_the_fuel_view_with_figures[km-empty]
   '''
   <ha-card>
@@ -1486,7 +1620,7 @@
              </div>
   <div class="ef__fact">
                <span class="ef__fact-lbl">Average</span>
-               <span class="ef__fact-val">7.1 l/100 km</span>
+               <span class="ef__fact-val">39.8 mpg</span>
                <span class="ef__fact-note">over 298 mi, last 12 months</span>
              </div>
   <div class="ef__fact">
@@ -1496,7 +1630,7 @@
              </div>
   <div class="ef__fact">
                <span class="ef__fact-lbl">BMW lifetime</span>
-               <span class="ef__fact-val">7.4 l/100 km</span>
+               <span class="ef__fact-val">38.2 mpg</span>
                <span class="ef__fact-note">BMW's own figure, over 14,292 mi</span>
              </div>
   </div>
@@ -1510,7 +1644,7 @@
                   <span class="chg__date">Sep 8, 05:40 PM</span>
                   <span class="chg__meta">
   <span class="chg__tag">14,851 mi</span>
-  <span class="chg__tag">7.1 l/100 km over 298 mi</span>
+  <span class="chg__tag">39.8 mpg over 298 mi</span>
   </span>
                 </span>
                 <span class="chg__figures">
@@ -1528,6 +1662,106 @@
                 </span>
                 <span class="chg__figures">
                   <span class="chg__energy chg__energy--lead">+36 L</span>
+                </span>
+              </div>
+            </div>
+  </div>
+          <span class="ef__note">Read off the tank level, which the car reports to within a few liters, so each figure is an estimate. The average over several refuels is the one to trust.</span>
+        </div>
+      
+        </ha-card>
+  '''
+# ---
+# name: test_the_fuel_view_with_figures[us-empty]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:gas-station">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Fuel</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          
+        <div class="ef">
+          <div class="ef__facts">
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Tank</span>
+               <span class="ef__fact-val">10 gal</span>
+               <span class="ef__fact-note">317 mi range</span>
+             </div>
+  </div>
+          <span class="ef__note">No refuel recorded yet. The next fill-up appears here, and the consumption once two are recorded.</span>
+          <span class="ef__note">Read off the tank level, which the car reports to within a few liters, so each figure is an estimate. The average over several refuels is the one to trust.</span>
+        </div>
+      
+        </ha-card>
+  '''
+# ---
+# name: test_the_fuel_view_with_figures[us-logged]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:gas-station">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Fuel</span>
+              <span class="chead__sub">Car</span>
+            </div>
+          </div>
+          
+        <div class="ef">
+          <div class="ef__facts">
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Tank</span>
+               <span class="ef__fact-val">14 gal</span>
+               <span class="ef__fact-note">447 mi range</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Average</span>
+               <span class="ef__fact-val">33.1 mpg</span>
+               <span class="ef__fact-note">over 298 mi, last 12 months</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">Since refueling</span>
+               <span class="ef__fact-val">75 mi</span>
+               <span class="ef__fact-note">2 gal used</span>
+             </div>
+  <div class="ef__fact">
+               <span class="ef__fact-lbl">BMW lifetime</span>
+               <span class="ef__fact-val">31.8 mpg</span>
+               <span class="ef__fact-note">BMW's own figure, over 14,292 mi</span>
+             </div>
+  </div>
+          <div class="ef__trend">
+  <span class="ef__trend-title">Refuels</span>
+  </div>
+                 <div class="chg__list">
+            <div class="chg__session">
+              <div class="chg__row">
+                <span class="chg__row-main">
+                  <span class="chg__date">Sep 8, 05:40 PM</span>
+                  <span class="chg__meta">
+  <span class="chg__tag">14,851 mi</span>
+  <span class="chg__tag">33.1 mpg over 298 mi</span>
+  </span>
+                </span>
+                <span class="chg__figures">
+                  <span class="chg__energy chg__energy--lead">+12 gal</span>
+                </span>
+              </div>
+            </div>
+            <div class="chg__session">
+              <div class="chg__row">
+                <span class="chg__row-main">
+                  <span class="chg__date">Sep 1, 08:10 AM</span>
+                  <span class="chg__meta">
+  <span class="chg__tag">14,553 mi</span>
+  </span>
+                </span>
+                <span class="chg__figures">
+                  <span class="chg__energy chg__energy--lead">+10 gal</span>
                 </span>
               </div>
             </div>
@@ -2085,6 +2319,268 @@
             </span>
           </button>
           
+        </div>
+      </div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_trips_view_with_figures[km]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:road-variant">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Trips</span>
+              <span class="chead__sub">Car · 1 trip</span>
+            </div>
+            
+        <div class="xbar">
+          <button class="xbtn" data-export="csv" data-kind="trips"
+                  title="Download this month as a spreadsheet">
+            <ha-icon icon="mdi:file-delimited-outline">
+  </ha-icon>CSV
+          </button>
+          <button class="xbtn" data-export="html" data-kind="both"
+                  title="Open a printable month report (print it to get a PDF)">
+            <ha-icon icon="mdi:file-document-outline">
+  </ha-icon>Report
+          </button>
+        </div>
+          </div>
+          
+        <div class="mnav">
+          <button class="mnav__btn" data-month-kind="trips" data-month-step="-1"
+                  title="Previous month" aria-label="Previous month">
+            <ha-icon icon="mdi:chevron-left">
+  </ha-icon>
+          </button>
+          <span class="mnav__label">September 2026</span>
+          <button class="mnav__btn" data-month-kind="trips" data-month-step="1"
+                  title="Next month" aria-label="Next month"
+                  disabled>
+            <ha-icon icon="mdi:chevron-right">
+  </ha-icon>
+          </button>
+        </div>
+          
+        <div class="tr__review">
+          <div class="tr__tiles">
+  <div class="tr__tile">
+  <span class="tr__tile-val">482 <i>km</i>
+  </span>
+  <span class="tr__tile-lbl">This month</span>
+  <span class="tr__delta tr__delta--up">▲ 12% vs last month</span>
+  </div>
+  <div class="tr__tile">
+  <span class="tr__tile-val">19.4 <i>kWh/100 km</i>
+  </span>
+  <span class="tr__tile-lbl">Avg consumption · at the plug</span>
+  <span class="tr__tile-sub">17.2 at the battery · 11% charging loss</span>
+  </div>
+  <div class="tr__tile">
+  <span class="tr__tile-val">3.1 <i>kWh/100 km</i>
+  </span>
+  <span class="tr__tile-lbl">Recuperated</span>
+  </div>
+  </div>
+          <div class="tr__split">
+  <div class="tr__bar">
+  <span class="tr__seg tr__seg--business" style="width:24.896265560165975%">
+  </span>
+  <span class="tr__seg tr__seg--commute" style="width:62.24066390041494%">
+  </span>
+  <span class="tr__seg tr__seg--private" style="width:12.863070539419086%">
+  </span>
+  </div>
+  <div class="tr__legend">
+  <span class="tr__leg">
+  <i class="tr__dot tr__seg--business">
+  </i>Business 120 km</span>
+  <span class="tr__leg">
+  <i class="tr__dot tr__seg--commute">
+  </i>Commute 300 km</span>
+  <span class="tr__leg">
+  <i class="tr__dot tr__seg--private">
+  </i>Private 62 km</span>
+  </div>
+  </div>
+          
+          
+        </div>
+  <div class="chg__list">
+        <div class="chg__session is-open">
+          <button class="chg__row" data-trip="2026-09-08T06:10:00+00:00">
+            <span class="chg__row-main">
+              <span class="chg__date">Work → Home</span>
+              <span class="chg__meta">
+  <span class="chg__soc">Sep 8, 06:10 AM</span>
+  <span class="tr__badge tr__badge--commute">Commute <i class="tr__auto">auto</i>
+  </span>
+  </span>
+            </span>
+            <span class="chg__figures">
+              <span class="chg__energy">22.5 km</span>
+              <span class="chg__cost">21 min</span>
+            </span>
+          </button>
+          
+        <div class="chg__detail">
+          
+          <div class="chg__facts">
+  <span class="chg__soc">74→67%</span>
+  </div>
+          <div class="chg__facts">
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Avg consumption</span>
+  <span class="chg__fact-val">24.9 kWh/100 km</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Recuperated</span>
+  <span class="chg__fact-val">2.4 kWh/100 km</span>
+  </div>
+  </div>
+          <div class="tr__classify">
+            <span class="tr__classify-lbl">Classify</span>
+            <span class="tr__cls-btns">
+  <button class="tr__cls-btn tr__badge--business" data-trip-class="2026-09-08T06:10:00+00:00" data-class="business">Business</button>
+  <button class="tr__cls-btn tr__badge--private" data-trip-class="2026-09-08T06:10:00+00:00" data-class="private">Private</button>
+  <button class="tr__cls-btn tr__badge--commute is-active" data-trip-class="2026-09-08T06:10:00+00:00" data-class="commute">Commute</button>
+  </span>
+          </div>
+        </div>
+      
+        </div>
+      </div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_trips_view_with_figures[mi]
+  '''
+  <ha-card>
+          <div class="chead">
+            <ha-icon icon="mdi:road-variant">
+  </ha-icon>
+            <div class="chead__text">
+              <span class="chead__title">Trips</span>
+              <span class="chead__sub">Car · 1 trip</span>
+            </div>
+            
+        <div class="xbar">
+          <button class="xbtn" data-export="csv" data-kind="trips"
+                  title="Download this month as a spreadsheet">
+            <ha-icon icon="mdi:file-delimited-outline">
+  </ha-icon>CSV
+          </button>
+          <button class="xbtn" data-export="html" data-kind="both"
+                  title="Open a printable month report (print it to get a PDF)">
+            <ha-icon icon="mdi:file-document-outline">
+  </ha-icon>Report
+          </button>
+        </div>
+          </div>
+          
+        <div class="mnav">
+          <button class="mnav__btn" data-month-kind="trips" data-month-step="-1"
+                  title="Previous month" aria-label="Previous month">
+            <ha-icon icon="mdi:chevron-left">
+  </ha-icon>
+          </button>
+          <span class="mnav__label">September 2026</span>
+          <button class="mnav__btn" data-month-kind="trips" data-month-step="1"
+                  title="Next month" aria-label="Next month"
+                  disabled>
+            <ha-icon icon="mdi:chevron-right">
+  </ha-icon>
+          </button>
+        </div>
+          
+        <div class="tr__review">
+          <div class="tr__tiles">
+  <div class="tr__tile">
+  <span class="tr__tile-val">300 <i>mi</i>
+  </span>
+  <span class="tr__tile-lbl">This month</span>
+  <span class="tr__delta tr__delta--up">▲ 12% vs last month</span>
+  </div>
+  <div class="tr__tile">
+  <span class="tr__tile-val">31.2 <i>kWh/100 mi</i>
+  </span>
+  <span class="tr__tile-lbl">Avg consumption · at the plug</span>
+  <span class="tr__tile-sub">27.7 at the battery · 11% charging loss</span>
+  </div>
+  <div class="tr__tile">
+  <span class="tr__tile-val">5 <i>kWh/100 mi</i>
+  </span>
+  <span class="tr__tile-lbl">Recuperated</span>
+  </div>
+  </div>
+          <div class="tr__split">
+  <div class="tr__bar">
+  <span class="tr__seg tr__seg--business" style="width:24.896265560165975%">
+  </span>
+  <span class="tr__seg tr__seg--commute" style="width:62.24066390041494%">
+  </span>
+  <span class="tr__seg tr__seg--private" style="width:12.863070539419086%">
+  </span>
+  </div>
+  <div class="tr__legend">
+  <span class="tr__leg">
+  <i class="tr__dot tr__seg--business">
+  </i>Business 75 mi</span>
+  <span class="tr__leg">
+  <i class="tr__dot tr__seg--commute">
+  </i>Commute 186 mi</span>
+  <span class="tr__leg">
+  <i class="tr__dot tr__seg--private">
+  </i>Private 39 mi</span>
+  </div>
+  </div>
+          
+          
+        </div>
+  <div class="chg__list">
+        <div class="chg__session is-open">
+          <button class="chg__row" data-trip="2026-09-08T06:10:00+00:00">
+            <span class="chg__row-main">
+              <span class="chg__date">Work → Home</span>
+              <span class="chg__meta">
+  <span class="chg__soc">Sep 8, 06:10 AM</span>
+  <span class="tr__badge tr__badge--commute">Commute <i class="tr__auto">auto</i>
+  </span>
+  </span>
+            </span>
+            <span class="chg__figures">
+              <span class="chg__energy">14 mi</span>
+              <span class="chg__cost">21 min</span>
+            </span>
+          </button>
+          
+        <div class="chg__detail">
+          
+          <div class="chg__facts">
+  <span class="chg__soc">74→67%</span>
+  </div>
+          <div class="chg__facts">
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Avg consumption</span>
+  <span class="chg__fact-val">40.1 kWh/100 mi</span>
+  </div>
+  <div class="chg__fact">
+  <span class="chg__fact-lbl">Recuperated</span>
+  <span class="chg__fact-val">3.9 kWh/100 mi</span>
+  </div>
+  </div>
+          <div class="tr__classify">
+            <span class="tr__classify-lbl">Classify</span>
+            <span class="tr__cls-btns">
+  <button class="tr__cls-btn tr__badge--business" data-trip-class="2026-09-08T06:10:00+00:00" data-class="business">Business</button>
+  <button class="tr__cls-btn tr__badge--private" data-trip-class="2026-09-08T06:10:00+00:00" data-class="private">Private</button>
+  <button class="tr__cls-btn tr__badge--commute is-active" data-trip-class="2026-09-08T06:10:00+00:00" data-class="commute">Commute</button>
+  </span>
+          </div>
+        </div>
+      
         </div>
       </div>
         </ha-card>

@@ -29,6 +29,7 @@ The menu labels below are exactly as they appear in the UI.
 | **evcc / wallbox bridge** | settings | Publish the car's live state to MQTT for a charge controller — below. |
 | **Trips** | settings | Work zone, default type, commute stop tolerance, address resolution and route recording — below. |
 | **Mileage allowance** | settings | A lease or a yearly mileage limit for each car — below. |
+| **Units** | settings | Kilometers or miles, fuel, temperature and tire pressure units, for the card, the screens and the sensors — below. |
 | **Automatic data refresh** | settings ⚡ | Catch up with BMW after Home Assistant starts — below. |
 | **Fetch from BMW now** | menu ⚡ | Ask BMW for data now instead of waiting for the daily refresh — the next table. |
 | **Connection** | menu | Keep the link to BMW working, and debug logging — the table after it. |
@@ -275,13 +276,44 @@ starts without one. It applies at once, to the card and the sensor.
 | **Allowance per year** | km or mi (see below) | From the contract or policy. A lease's total is this times its length. |
 | **Odometer at the start** / **Odometer that day** | km or mi | The reading on the start date, from the handover papers. Filled in with today's reading while none is saved; for a yearly limit, the reading at the most recent start of the year. |
 
-The boxes say which unit they take. It is the car's own: the unit its odometer
-sensor is shown in (so a UK install, metric with the odometer switched to
-miles, types miles), else the car's display setting when BMW streams it, else
-Home Assistant's unit system. The card and the service calendar use the same
+The boxes say which unit they take: the distance unit under
+[Units](#units), whose Automatic choice is the car's own (the unit its odometer
+sensor is shown in, so a UK install, metric with the odometer switched to
+miles, types miles; else the car's display setting when BMW streams it; else
+Home Assistant's unit system). The card and the service calendar use the same
 rule. Earlier versions followed the unit system alone, so on a metric
 install an allowance typed in miles was saved as km: if yours looks too small,
 enter it once more.
+
+## Units
+
+Screen: **Configure → Units**. How values are shown, for the whole account.
+
+| Option | Values | Meaning |
+| --- | --- | --- |
+| **Distance** | Automatic / Kilometers / Miles | Distances everywhere, and what follows them: consumption (kWh/100 km or kWh/100 mi), cost per 100 km or mi, speed (km/h or mph). **Automatic** is the rule from before: the unit your odometer sensor is shown in, else the car's own display setting when BMW streams it, else Home Assistant's unit system. |
+| **Fuel** | Automatic / Liters, l/100 km / Liters, mpg (UK) / US gallons, mpg (US) | Only on an account with a petrol, diesel or plug-in hybrid car. The tank, refuels and fuel consumption. **Automatic** follows the distance: US gallons on US customary, liters with imperial mpg for a car in miles (the UK), liters and l/100 km otherwise. |
+| **Temperature** | Automatic / °C / °F | **Automatic** leaves it to Home Assistant. |
+| **Tire pressure** | Automatic / bar / kPa / psi | **Automatic** leaves it to Home Assistant. |
+
+The screen lists what each car is shown in now. A choice applies at once to the
+dashboard card (every view), the settings screens, the service calendar, the
+[month report](Feature-Export) and [Assist](Feature-Automations), and also to the
+display unit of the car's sensors in Home Assistant (odometer, ranges, speed,
+temperatures, tire pressures, tank), so Home Assistant's own pages and graphs
+agree with the card. **Automatic** takes back a unit this screen set, but never
+one you picked on an entity yourself.
+
+**Your history is safe either way.** Everything recorded stays in km, liters,
+°C and bar: trips, charging sessions, the odometer log and each sensor's native
+unit. Only what is shown is converted, so you can switch back and forth. Data
+meant for other tools does not convert either: the CSV export, service
+responses, events and attributes keep metric values, and their names say the
+unit (`distance_km`, `kwh_per_100km`).
+
+Why the unit system comes last under Automatic: Home Assistant knows only
+Metric and US customary, and a UK install is Metric (°C, liters) with a car that
+counts in miles. Put first, the unit system would always say km there.
 
 ## Debug logging
 

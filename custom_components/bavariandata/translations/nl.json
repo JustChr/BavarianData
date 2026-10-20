@@ -93,6 +93,7 @@
           "action_evcc_bridge": "evcc-/laadpaalbrug",
           "action_trips": "Ritten",
           "action_mileage": "Kilometerlimiet",
+          "action_units": "Eenheden",
           "action_data_refresh": "Automatisch gegevens vernieuwen",
           "fetch_now": "Nu ophalen bij BMW",
           "connection": "Verbinding"
@@ -384,6 +385,22 @@
           "refresh_on_start": "Werkt direct."
         }
       },
+      "action_units": {
+        "title": "Eenheden",
+        "description": "Hoe de dashboardkaart, de instellingen, de kalender, het maandrapport en Assist waarden tonen. Een eenheid die je hier kiest, geldt ook voor de sensoren van de auto in Home Assistant. Vastgelegde waarden veranderen nooit, dus wisselen is veilig voor je geschiedenis.\n\nNu getoond:\n{now}",
+        "data": {
+          "unit_distance": "Afstand",
+          "unit_fuel": "Brandstof",
+          "unit_temperature": "Temperatuur",
+          "unit_pressure": "Bandenspanning"
+        },
+        "data_description": {
+          "unit_distance": "Verbruik en snelheid volgen mee. Automatisch neemt de eenheid van je kilometerstandsensor, dan de instelling van de auto, dan het eenhedenstelsel van Home Assistant.",
+          "unit_fuel": "Tank, tankbeurten en brandstofverbruik. Automatisch volgt de afstand: mpg (UK) voor een auto in mijlen, US-gallons bij het Amerikaanse stelsel, anders liters.",
+          "unit_temperature": "Automatisch laat het aan Home Assistant over.",
+          "unit_pressure": "Automatisch laat het aan Home Assistant over."
+        }
+      },
       "action_debug_logging": {
         "title": "Debuglogboek",
         "description": "Zet uitgebreide logging aan voor deze integratie (MQTT-verbinding, geabonneerde topics en elk binnenkomend bericht). Dit staat los van de algemene debugschakelaar van Home Assistant — zowel het logniveau als deze schakelaar moeten aan staan om de gedetailleerde regels te zien. Het is uitgebreid en kan voertuiggegevens zoals GPS-coördinaten bevatten, dus laat het bij normaal gebruik uit. De wijziging geldt direct. Met meer dan één BMW-account ingesteld wordt het logniveau gedeeld: uitgebreide logging blijft aan zolang een account dit heeft aangezet.",
@@ -508,6 +525,36 @@
         "none": "Geen",
         "lease": "Lease of financiering",
         "yearly": "Jaarlimiet (bijv. verzekering)"
+      }
+    },
+    "unit_distance": {
+      "options": {
+        "auto": "Automatisch",
+        "km": "Kilometers",
+        "mi": "Mijlen"
+      }
+    },
+    "unit_fuel": {
+      "options": {
+        "auto": "Automatisch",
+        "l": "Liters, l/100 km",
+        "l_mpg_uk": "Liters, mpg (UK)",
+        "gal_us": "US-gallons, mpg (US)"
+      }
+    },
+    "unit_temperature": {
+      "options": {
+        "auto": "Automatisch",
+        "c": "°C",
+        "f": "°F"
+      }
+    },
+    "unit_pressure": {
+      "options": {
+        "auto": "Automatisch",
+        "bar": "bar",
+        "kpa": "kPa",
+        "psi": "psi"
       }
     }
   },

@@ -364,6 +364,9 @@ class CardataDiagnosticsSensor(SensorEntity, RestoreEntity):
                 attrs["api_quota_remaining"] = self._quota.remaining
                 if next_reset := self._quota.next_reset_iso:
                     attrs["api_quota_next_reset"] = next_reset
+            # Configure -> Units, for the dashboard card: it has no other way to
+            # read the account's options.
+            attrs["display_units"] = dict(self._coordinator.display_units)
             return attrs
         if self._sensor_type == "last_telematic_api":
             attrs: dict[str, Any] = {}
