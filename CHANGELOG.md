@@ -19,6 +19,11 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   so the trip also closes on time instead of being held for up to half an hour.
 - **The *Record route* help no longer calls itself the only setting that saves
   coordinates.** Since *Remember charging locations*, it isn't.
+- **The diagnostics download no longer names the entities you picked in the
+  settings.** The price sensor and the wallbox meter were already reduced to
+  "a sensor is set"; the PV, grid and house-battery sensors, the work zone and
+  the phone used for trips were written out in full, and a phone's name is
+  usually its owner's. They are now redacted the same way.
 
 ## [0.9.21-beta.8] - 2026-10-19
 

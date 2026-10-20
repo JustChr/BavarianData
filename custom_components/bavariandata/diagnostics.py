@@ -16,9 +16,8 @@ and ``async_redact_data`` runs over the result as a second line of defence.
 
 from __future__ import annotations
 
-import hashlib
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.const import __version__ as HA_VERSION
@@ -29,12 +28,10 @@ from . import CardataConfigEntry, _coverage_reports
 from .const import (
     BOOTSTRAP_COMPLETE,
     DOMAIN,
-    OPTION_GRID_ENERGY_ENTITY,
-    OPTION_PRICE_ENTITY,
-    OPTION_VEHICLES,
     OPTION_STREAM_SECTIONS,
     REQUEST_LIMIT,
 )
+from .diagnostics_privacy import fingerprint, safe_options
 
 # Redacted by key wherever they appear in the payload (including inside the
 # stream ``parameters`` and each vehicle entry). ``topic`` is here because its
@@ -56,54 +53,8 @@ TO_REDACT = {
 }
 
 
-# Options whose value is an entity id the user picked. Triage needs to know
-# whether one is configured, never which one: an entity id is free text chosen by
-# whichever integration created it, and it routinely embeds identifiers of its
-# own. A real report carried
-# ``sensor.octopus_energy_electricity_<meter serial>_<MPAN>_current_accumulative_cost``
-# -- an electricity meter serial and the supply point of a home, pasted into a
-# public issue by a file we asked for. Reduced to the domain, which is all the
-# triage actually used.
-ENTITY_ID_OPTIONS = frozenset({OPTION_PRICE_ENTITY, OPTION_GRID_ENERGY_ENTITY})
-
-
 def _iso(value: Any) -> Any:
     return value.isoformat() if hasattr(value, "isoformat") else value
-
-
-def _fingerprint(value: Any) -> Optional[str]:
-    """A short, stable, non-reversible stand-in for a redacted identifier.
-
-    The GCID is redacted -- it identifies the account -- but "do these two
-    config entries belong to the same account?" is the first question when two
-    of them misbehave together, because BMW allows **one concurrent stream per
-    GCID**. Redaction made that unanswerable from two dumps (issue #23's
-    reporter runs two accounts). A truncated digest answers it and reveals
-    nothing: it cannot be reversed, and it only ever matches another dump of
-    the same account.
-    """
-
-    if not value or not isinstance(value, str):
-        return None
-    return hashlib.sha256(value.encode("utf-8")).hexdigest()[:12]
-
-
-def _safe_options(options: Any) -> dict[str, Any]:
-    """Config-entry options with user-chosen entity ids reduced to their domain."""
-
-    safe: dict[str, Any] = {}
-    for key, value in dict(options or {}).items():
-        if key == OPTION_VEHICLES and isinstance(value, dict):
-            # Keyed by VIN, which ``async_redact_data`` never sees (it redacts
-            # values, not keys): each car is filed under its fingerprint, the
-            # same one its entry in ``vehicles`` carries.
-            safe[key] = {_fingerprint(vin): _safe_options(own) for vin, own in value.items()}
-        elif key in ENTITY_ID_OPTIONS and isinstance(value, str) and value:
-            domain = value.split(".", 1)[0]
-            safe[key] = f"{domain}.**REDACTED**" if "." in value else "**REDACTED**"
-        else:
-            safe[key] = value
-    return safe
 
 
 def _drivetrain_facts(coordinator: Any, vin: str) -> dict[str, Any]:
@@ -151,7 +102,7 @@ async def async_get_config_entry_diagnostics(
             {
                 "vin": vin,
                 # Matches this car's settings in ``options.vehicles``.
-                "vin_fingerprint": _fingerprint(vin),
+                "vin_fingerprint": fingerprint(vin),
                 "name": coordinator.names.get(vin),
                 "descriptor_count": len(coordinator.data.get(vin, {})),
                 "arrivals_total": sum(counts.values()),
@@ -191,7 +142,7 @@ async def async_get_config_entry_diagnostics(
             "title": entry.title,
             "bootstrap_complete": bool(entry.data.get(BOOTSTRAP_COMPLETE)),
             "selected_clusters": entry.data.get(OPTION_STREAM_SECTIONS) or [],
-            "options": _safe_options(entry.options),
+            "options": safe_options(entry.options),
         },
         "quota": quota_info,
         "stream": {
@@ -201,8 +152,8 @@ async def async_get_config_entry_diagnostics(
             "stream_started_at": _iso(coordinator.stream_started_at),
             "connection_history": list(coordinator.connection_history),
             "parameters": runtime.stream.debug_info,
-            # Survives the redaction of ``gcid`` above; see ``_fingerprint``.
-            "account_fingerprint": _fingerprint((runtime.stream.debug_info or {}).get("gcid")),
+            # Survives the redaction of ``gcid`` above; see ``diagnostics_privacy.fingerprint``.
+            "account_fingerprint": fingerprint((runtime.stream.debug_info or {}).get("gcid")),
         },
         "vehicles": vehicles,
     }

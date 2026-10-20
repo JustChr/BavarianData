@@ -242,7 +242,9 @@ file to your issue.
 
 It costs **no API quota** — everything in it is state the integration already
 holds — and it is built to be safe to post in public: your **VIN, GCID, client
-ID, tokens, MQTT topic and GPS coordinates are redacted automatically**. The
+ID, tokens, MQTT topic and GPS coordinates are redacted automatically**, and so
+are the names of the entities you picked in the settings (a phone, a zone, an
+energy sensor): the file only says that one is set. The
 file does carry a short one-way fingerprint derived from your GCID: it cannot be
 turned back into the id, and its only use is telling whether two downloads came
 from the same account — which matters because BMW allows one live stream per
