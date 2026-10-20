@@ -251,7 +251,9 @@ an dein Issue an.
 
 Das kostet **kein API-Kontingent** — alles darin sind Zustände, die die Integration ohnehin
 hat — und die Datei ist so gebaut, dass sie öffentlich gepostet werden kann: **FIN, GCID,
-Client-ID, Token, MQTT-Topic und GPS-Koordinaten werden automatisch geschwärzt**.
+Client-ID, Token, MQTT-Topic und GPS-Koordinaten werden automatisch geschwärzt**,
+ebenso die Namen der Entitäten, die du in den Einstellungen gewählt hast (ein Handy,
+eine Zone, ein Energiesensor): Die Datei sagt nur, dass eine eingetragen ist.
 Enthalten ist ein kurzer Einweg-Fingerabdruck deiner GCID: Er lässt sich nicht in
 die ID zurückrechnen und dient allein der Frage, ob zwei Downloads aus demselben
 Konto stammen — was zählt, weil BMW pro Konto nur einen laufenden Stream erlaubt.
