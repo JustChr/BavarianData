@@ -64,10 +64,15 @@ It bumps `manifest.json`, commits, tags `vX.Y.Z`, pushes, and creates the GitHub
 release with `--notes-file`. Beta numbering rolls to the next patch after
 `beta.9`.
 
-## 5. Publish the wiki if any page changed
+## 5. Publish the wiki — with a stable only
+
+**A beta does not publish the wiki.** The wiki is what stable users read, so pages
+describing a beta's features wait for the stable that ships them (Chris's rule).
+Publish it with `--stable`, or for a beta only when every changed page is
+docs-only drift that is already true of the current stable — and then say so.
 
 ```bash
-bash scripts/publish-wiki.sh
+bash scripts/publish-wiki.sh     # stable releases
 ```
 
 The wiki is a separate git repo; `docs/wiki/` is the source of truth. Pages

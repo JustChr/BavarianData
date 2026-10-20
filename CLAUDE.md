@@ -208,7 +208,8 @@ asks.
 script refuses to run if it is empty, then rolls it over to the new version and
 leaves a fresh empty one behind. So write the changelog *before* releasing; it
 is the release, not a summary of it. Publish the wiki afterwards
-(`bash scripts/publish-wiki.sh`) when any `docs/wiki/` page changed.
+(`bash scripts/publish-wiki.sh`) with a **stable** release when any `docs/wiki/`
+page changed; a beta leaves it alone, since the wiki is what stable users read.
 
 Version lives in `custom_components/bavariandata/manifest.json`. `hacs.json`
 sets `zip_release: true` / `bavariandata.zip` (the release workflow expects the
