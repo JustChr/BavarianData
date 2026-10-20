@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.21-beta.9] - 2026-10-20
+
 ### Fixed
 - **A short stop no longer counts as driving time.** When the driver door opened
   right as the car arrived, it was too soon to end the trip, and on a car whose
