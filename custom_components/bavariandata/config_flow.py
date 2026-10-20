@@ -2215,7 +2215,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
             if runtime is not None:
                 runtime.coordinator.display_units = unit_choices(options)
                 async_apply_sensor_units(
-                    self.hass, self._config_entry.entry_id, runtime.coordinator.display_units
+                    self.hass, self._config_entry.entry_id, runtime.coordinator
                 )
                 # The card reads the choice off the connection sensor.
                 async_dispatcher_send(self.hass, runtime.coordinator.signal_diagnostics)

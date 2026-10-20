@@ -271,29 +271,50 @@ _SENSOR_UNITS: Dict[str, Tuple[str, Dict[str, str]]] = {
     "volume_storage": ("fuel", {"l": "L", "l_mpg_uk": "L", "gal_us": "gal"}),
 }
 
+# A distance sensor follows the setting only when it counts road distance. The
+# GPS altitude is a distance in metres too, and in miles it reads 0.11.
+_ROAD_UNITS: Dict[str, frozenset] = {
+    "distance": frozenset({"km", "mi"}),
+    "speed": frozenset({"km/h", "mph"}),
+}
 
-def sensor_display_unit(device_class: Any, choices: Mapping[str, str]) -> Optional[str]:
-    """The unit a sensor should be shown in, or ``None`` to leave it to Home Assistant."""
+
+def sensor_display_unit(
+    device_class: Any, choices: Mapping[str, str], native: Optional[str] = None
+) -> Optional[str]:
+    """The unit a sensor should be shown in, or ``None`` to leave it to Home Assistant.
+
+    ``native`` is the unit the sensor's value arrives in, when known; a distance
+    or speed sensor in any other unit than the road's is left alone.
+    """
 
     found = _SENSOR_UNITS.get(device_class) if isinstance(device_class, str) else None
     if found is None:
+        return None
+    road = _ROAD_UNITS.get(device_class)
+    if road is not None and native is not None and native not in road:
         return None
     quantity, units = found
     return units.get(choices.get(quantity, "auto"))
 
 
 def sensor_unit_update(
-    device_class: Any, choices: Mapping[str, str], current: Optional[str], applied: Optional[str]
+    device_class: Any,
+    choices: Mapping[str, str],
+    current: Optional[str],
+    applied: Optional[str],
+    native: Optional[str] = None,
 ) -> Optional[Tuple[Optional[str], Optional[str]]]:
     """What to write for one sensor: ``(display unit, our mark)``, or ``None`` for nothing.
 
     ``current`` is the display unit set on the entity (``None``: Home Assistant's
-    default), ``applied`` the one this integration set last. An explicit choice
-    sets its unit. Automatic takes back only what we set, and leaves a unit the
-    user has picked on the entity since then alone.
+    default), ``applied`` the one this integration set last, ``native`` the unit
+    the value arrives in. An explicit choice sets its unit. Automatic takes back
+    only what we set, and leaves a unit the user has picked on the entity since
+    then alone.
     """
 
-    wanted = sensor_display_unit(device_class, choices)
+    wanted = sensor_display_unit(device_class, choices, native)
     if wanted is not None:
         if current == wanted and applied == wanted:
             return None
