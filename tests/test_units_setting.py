@@ -119,6 +119,22 @@ def test_switching_back_to_automatic_takes_back_only_what_we_set():
     assert update("energy", miles, "Wh", None) is None
 
 
+def test_only_road_distances_follow_the_distance_choice():
+    miles = {"distance": "mi"}
+    update = units.sensor_unit_update
+
+    # The GPS altitude is a distance sensor in metres: miles would read 0.11.
+    assert units.sensor_display_unit("distance", miles, "m") is None
+    assert update("distance", miles, None, None, "m") is None
+    # Set on it by an earlier build: taken back even while miles stay chosen.
+    assert update("distance", miles, "mi", "mi", "m") == (None, None)
+    # Road distances convert, and so do derived sensors whose unit is not known.
+    assert update("distance", miles, None, None, "km") == ("mi", "mi")
+    assert update("distance", miles, None, None, None) == ("mi", "mi")
+    assert units.sensor_display_unit("speed", miles, "km/h") == "mph"
+    assert units.sensor_display_unit("speed", miles, "m/s") is None
+
+
 # --- the card applies the same rules ----------------------------------------------
 
 _HARNESS = r"""

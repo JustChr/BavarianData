@@ -926,7 +926,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     # Configure -> Units: the sensors are shown in the units the account chose.
     # A sensor is also created later, on its descriptor's first arrival, so a
     # new registry entry gets the same treatment.
-    async_apply_sensor_units(hass, entry.entry_id, coordinator.display_units)
+    async_apply_sensor_units(hass, entry.entry_id, coordinator)
 
     @callback
     def _units_for_new_entity(event) -> None:
@@ -934,7 +934,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             return
         created = entity_registry.async_get(event.data["entity_id"])
         if created is not None and created.config_entry_id == entry.entry_id:
-            apply_sensor_unit(entity_registry, created, coordinator.display_units)
+            apply_sensor_unit(entity_registry, created, coordinator)
 
     entry.async_on_unload(
         hass.bus.async_listen(er.EVENT_ENTITY_REGISTRY_UPDATED, _units_for_new_entity)

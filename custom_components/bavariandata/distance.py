@@ -82,9 +82,7 @@ def car_fuel_unit(hass: HomeAssistant, coordinator: Any, vin: str | None) -> str
     )
 
 
-def async_apply_sensor_units(
-    hass: HomeAssistant, entry_id: str, choices: Mapping[str, str]
-) -> None:
+def async_apply_sensor_units(hass: HomeAssistant, entry_id: str, coordinator: Any) -> None:
     """Show the account's sensors in the units the Units setting names.
 
     An explicit choice sets the display unit of every sensor it covers; Automatic
@@ -94,11 +92,22 @@ def async_apply_sensor_units(
 
     registry = er.async_get(hass)
     for entry in er.async_entries_for_config_entry(registry, entry_id):
-        apply_sensor_unit(registry, entry, choices)
+        apply_sensor_unit(registry, entry, coordinator)
+
+
+def _native_unit(coordinator: Any, unique_id: str) -> str | None:
+    """The unit a descriptor sensor's value arrived in; ``None`` for derived sensors."""
+
+    for vin, descriptors in getattr(coordinator, "data", {}).items():
+        prefix = f"{vin}_"
+        if unique_id.startswith(prefix):
+            state = descriptors.get(unique_id[len(prefix) :])
+            return state.unit if state is not None else None
+    return None
 
 
 def apply_sensor_unit(
-    registry: er.EntityRegistry, entry: er.RegistryEntry, choices: Mapping[str, str]
+    registry: er.EntityRegistry, entry: er.RegistryEntry, coordinator: Any
 ) -> None:
     """One registry entry's part of :func:`async_apply_sensor_units`."""
 
@@ -108,7 +117,11 @@ def apply_sensor_unit(
     current = sensor_options.get("unit_of_measurement")
     ours = (entry.options.get(DOMAIN) or {}).get(_APPLIED)
     update = sensor_unit_update(
-        entry.device_class or entry.original_device_class, choices, current, ours
+        entry.device_class or entry.original_device_class,
+        _choices(coordinator),
+        current,
+        ours,
+        _native_unit(coordinator, str(entry.unique_id)),
     )
     if update is None:
         return
