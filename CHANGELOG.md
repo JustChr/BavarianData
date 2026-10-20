@@ -10,6 +10,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [Unreleased]
 
 ### Fixed
+- **A short stop no longer counts as driving time.** When the driver door opened
+  right as the car arrived, it was too soon to end the trip, and on a car whose
+  position stream goes quiet once parked nothing else ended it either — until
+  the driver got back in, and that moment became the trip's end. A three-minute
+  stop on the i5 was recorded as three more minutes of driving. The door is now
+  remembered as the arrival unless the car moves on, and it confirms the stop,
+  so the trip also closes on time instead of being held for up to half an hour.
 - **The *Record route* help no longer calls itself the only setting that saves
   coordinates.** Since *Remember charging locations*, it isn't.
 
