@@ -9,8 +9,11 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.22-beta.1] - 2026-10-20
+
 ### Added
-- **Configure → Units: kilometers or miles, once, for everything** (#183).
+- **Configure → Units: kilometers or miles, once, for everything** (#183,
+  thanks @jeswick23).
   One account-wide screen picks the distance unit, how fuel is shown (liters
   and l/100 km, liters and imperial mpg, or US gallons and US mpg), and the
   temperature and tire-pressure units. Each starts on **Automatic**, which is
