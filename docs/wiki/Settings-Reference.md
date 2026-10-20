@@ -289,6 +289,11 @@ enter it once more.
 
 Screen: **Configure → Units**. How values are shown, for the whole account.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-units.png" alt="The Units screen: what the car is shown in now, then Distance, Temperature and Tire pressure, each on Automatic" width="460" />
+</p>
+
+
 | Option | Values | Meaning |
 | --- | --- | --- |
 | **Distance** | Automatic / Kilometers / Miles | Distances everywhere, and what follows them: consumption (kWh/100 km or kWh/100 mi), cost per 100 km or mi, speed (km/h or mph). **Automatic** is the rule from before: the unit your odometer sensor is shown in, else the car's own display setting when BMW streams it, else Home Assistant's unit system. |
