@@ -310,6 +310,11 @@ einmal neu ein.
 
 Bildschirm: **Konfigurieren → Einheiten**. Wie Werte angezeigt werden, für das ganze Konto.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-units.png" alt="Der Bildschirm Einheiten: worin das Auto gerade angezeigt wird, dann Strecke, Temperatur und Reifendruck, jeweils auf Automatisch" width="460" />
+</p>
+
+
 | Option | Werte | Bedeutung |
 | --- | --- | --- |
 | **Strecke** | Automatisch / Kilometer / Meilen | Strecken überall, und was daraus folgt: Verbrauch (kWh/100 km oder kWh/100 mi), Kosten pro 100 km oder mi, Geschwindigkeit (km/h oder mph). **Automatisch** ist die bisherige Regel: die Einheit, in der dein Kilometerstand-Sensor angezeigt wird, sonst die Anzeige-Einstellung des Autos, wenn BMW sie streamt, sonst das Einheitensystem von Home Assistant. |

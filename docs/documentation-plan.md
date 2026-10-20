@@ -163,7 +163,7 @@ These live on BMW's MyBMW / CarData portal, not in our code. Screenshots are
 | `trips_vehicle` | Trips: which vehicle (only with 2+ cars) | 🟢 Settings-Reference → "Trips" + Feature-Multiple-Cars-and-Accounts → "Telling the cars apart" (EN + DE) | 📷 (have, staged two-car: `bavariandata-vehicle-picker.png`) |
 | `action_trips` | Trips (per car with 2+ cars; shared settings in the collapsed "All vehicles" section) | 🟡 | 📷 (have, 2026-10-11: `bavariandata-configure-trips.png`) |
 | `action_mileage` → `mileage_vehicle` (2+ cars) → `mileage_lease` / `mileage_yearly` | Mileage allowance (always per car, even with one car) | 🟢 Settings-Reference → "Mileage allowance" + Feature-Mileage (EN + DE) | 📷 (have, 2026-10-14: `bavariandata-mileage-allowance.png`, `-lease.png` with example figures, `-yearly.png`) |
-| `action_units` | Units: distance, fuel, temperature, tire pressure (account-wide; Automatic by default; explicit choices also set the sensors' display units) | 🟢 Settings-Reference → "Units" (EN + DE) | 📷 owed: shoot once a build with the screen is installed |
+| `action_units` | Units: distance, fuel, temperature, tire pressure (account-wide; Automatic by default; explicit choices also set the sensors' display units) | 🟢 Settings-Reference → "Units" (EN + DE) | 📷 `bavariandata-units.png` (EN + DE) |
 | `action_debug_logging` | Debug logging toggle | 🟡 | 📷 |
 
 ### Settings (option keys) — the fields inside those screens
