@@ -353,9 +353,22 @@ Sie erzeugt zwei Dinge:
   **Konfigurationsordner** von Home Assistant — ein JSON-Datensatz pro Nachricht, sodass
   sich eine Fahrt beim Testen von Änderungen am Erkenner offline abspielen lässt.
 
-Beides enthält **GPS-Koordinaten und deine FIN**. Teile sie nur mit den Maintainern (etwa
-als Anhang an ein GitHub-Issue, wenn dir das recht ist) und lösche die
-Aufzeichnungsdatei, wenn du fertig bist. Sie wächst nicht über ~25 MB.
+Beides enthält **GPS-Koordinaten und deine FIN**. Schick sie nicht so, wie sie
+sind, auch nicht privat. Bereinige die Aufzeichnungsdatei vorher mit
+[`anonymize_capture.py`](https://github.com/JustChr/BavarianData/blob/main/tools/anonymize_capture.py)
+(einfaches Python, nichts zu installieren):
+
+```
+python anonymize_capture.py bavariandata_trip_capture.ndjson trip.ndjson
+```
+
+Es ersetzt die FIN, verschiebt alle Positionen und Zeiten (Strecken und Abstände
+bleiben exakt) und entfernt Adress- und Zielfelder. Durchsuche `trip.ndjson` nach
+deiner FIN, auch nach ihren letzten 7 Zeichen, und nach deiner Straße und deinem
+Ort, dann hänge die Datei an dein Issue oder deine Diskussion. Lösche das Original,
+wenn du fertig bist; es wächst nicht über ~25 MB. Die Logzeilen bereinigt das
+Skript nicht, teile sie also nur, wenn du FIN und Koordinaten von Hand entfernt
+hast.
 
 ## Nach der Einrichtung erscheint kein Dashboard
 

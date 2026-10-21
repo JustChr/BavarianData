@@ -339,9 +339,21 @@ It produces two things:
   **config folder** — one JSON record per message, so a drive can be replayed
   offline while testing detector changes.
 
-Both contain **GPS coordinates and your VIN**. Share them only with the
-maintainers (e.g. attached to a GitHub issue you're comfortable making), and
-delete the capture file when you're done. It stops growing at ~25 MB.
+Both contain **GPS coordinates and your VIN**. Don't send them as they are,
+not even privately. Scrub the capture file first with
+[`anonymize_capture.py`](https://github.com/JustChr/BavarianData/blob/main/tools/anonymize_capture.py)
+(plain Python, nothing to install):
+
+```
+python anonymize_capture.py bavariandata_trip_capture.ndjson trip.ndjson
+```
+
+It replaces the VIN, shifts every position and time (distances and gaps stay
+exact) and drops address and destination fields. Search `trip.ndjson` for your
+VIN, including its last 7 characters, and for your street and town, then attach
+it to your issue or discussion. Delete the original when you're done; it stops
+growing at ~25 MB. The log lines aren't scrubbed by the script, so share those
+only with the VIN and coordinates removed by hand.
 
 ## No dashboard appears after setup
 
