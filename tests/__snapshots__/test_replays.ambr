@@ -5,7 +5,7 @@
     08:00:37 -> 08:17:58  15.0 km  Home -> Unknown
     14:22:44 -> 14:34:56  14.0 km  Unknown -> Home
   charging sessions:
-  events: ['situation', 'situation', 'situation', 'situation', 'zone_left', 'situation', 'trip_ended', 'situation', 'situation', 'situation', 'vehicle_report', 'situation', 'situation', 'situation', 'situation', 'zone_arrived', 'trip_ended', 'situation', 'situation', 'vehicle_report']
+  events: ['situation', 'situation', 'situation', 'situation', 'zone_left', 'situation', 'situation', 'trip_ended', 'situation', 'situation', 'vehicle_report', 'situation', 'situation', 'zone_arrived', 'trip_ended', 'vehicle_report']
   --
       0.0  replay selected          est=     - rate=    - charging=off open=n sessions=0
       0.0  wait                     est=     - rate=    - charging=off open=n sessions=0
@@ -2374,7 +2374,7 @@
      18.0  wait                     est= 61.00 rate=    - charging=off open=n sessions=0
      18.0  replay isActive          est= 61.00 rate=    - charging=off open=n sessions=0
      18.0  wait                     est= 61.00 rate=    - charging=off open=n sessions=0
-     18.0  replay latitude          est= 61.00 rate=    - charging=off open=n sessions=0 situation,trip_ended
+     18.0  replay latitude          est= 61.00 rate=    - charging=off open=n sessions=0
      18.0  wait                     est= 61.00 rate=    - charging=off open=n sessions=0
      18.0  replay isSingleImmediateCharging est= 61.00 rate=    - charging=off open=n sessions=0
      18.0  wait                     est= 61.00 rate=    - charging=off open=n sessions=0
@@ -2582,7 +2582,7 @@
      18.1  replay status            est= 61.00 rate=    - charging=off open=n sessions=0
      18.1  replay climatizationActive est= 61.00 rate=    - charging=off open=n sessions=0
      18.1  replay target            est= 61.00 rate=    - charging=off open=n sessions=0
-     18.1  replay status            est= 61.00 rate=    - charging=off open=n sessions=0 situation
+     18.1  replay status            est= 61.00 rate=    - charging=off open=n sessions=0
      18.1  wait                     est= 61.00 rate=    - charging=off open=n sessions=0
      18.1  replay isOpen            est= 61.00 rate=    - charging=off open=n sessions=0
      18.1  replay isActive          est= 61.00 rate=    - charging=off open=n sessions=0
@@ -2763,7 +2763,7 @@
      18.2  replay isActive          est= 61.00 rate=    - charging=off open=n sessions=0
      18.2  wait                     est= 61.00 rate=    - charging=off open=n sessions=0
      18.2  replay isSingleImmediateCharging est= 61.00 rate=    - charging=off open=n sessions=0
-     18.2  replay latitude          est= 61.00 rate=    - charging=off open=n sessions=0
+     18.2  replay latitude          est= 61.00 rate=    - charging=off open=n sessions=0 situation,situation,trip_ended
      18.2  wait                     est= 61.00 rate=    - charging=off open=n sessions=0
      18.2  replay climatizationActive est= 61.00 rate=    - charging=off open=n sessions=0
      18.2  wait                     est= 61.00 rate=    - charging=off open=n sessions=0
@@ -5318,7 +5318,7 @@
     395.0  replay timerType         est= 54.00 rate=    - charging=off open=n sessions=0
     395.0  replay remainingTime     est= 54.00 rate=    - charging=off open=n sessions=0
     395.0  wait                     est= 54.00 rate=    - charging=off open=n sessions=0
-    395.0  replay latitude          est= 54.00 rate=    - charging=off open=n sessions=0 situation,situation,zone_arrived,trip_ended
+    395.0  replay latitude          est= 54.00 rate=    - charging=off open=n sessions=0
     395.0  wait                     est= 54.00 rate=    - charging=off open=n sessions=0
     395.0  replay isSingleImmediateCharging est= 54.00 rate=    - charging=off open=n sessions=0
     395.0  replay isActive          est= 54.00 rate=    - charging=off open=n sessions=0
@@ -5491,7 +5491,7 @@
     395.1  replay altitude          est= 54.00 rate=    - charging=off open=n sessions=0
     395.1  replay batterySizeMax    est= 54.00 rate=    - charging=off open=n sessions=0
     395.1  wait                     est= 54.00 rate=    - charging=off open=n sessions=0
-    395.1  replay status            est= 54.00 rate=    - charging=off open=n sessions=0 situation
+    395.1  replay status            est= 54.00 rate=    - charging=off open=n sessions=0
     395.1  wait                     est= 54.00 rate=    - charging=off open=n sessions=0
     395.1  replay chargingMode      est= 54.00 rate=    - charging=off open=n sessions=0
     395.1  wait                     est= 54.00 rate=    - charging=off open=n sessions=0
@@ -5517,7 +5517,7 @@
     395.1  replay latitude          est= 54.00 rate=    - charging=off open=n sessions=0
     395.1  wait                     est= 54.00 rate=    - charging=off open=n sessions=0
     395.1  replay status            est= 54.00 rate=    - charging=off open=n sessions=0
-    395.1  replay status            est= 54.00 rate=    - charging=off open=n sessions=0 situation
+    395.1  replay status            est= 54.00 rate=    - charging=off open=n sessions=0
     395.1  wait                     est= 54.00 rate=    - charging=off open=n sessions=0
     395.1  replay status            est= 54.00 rate=    - charging=off open=n sessions=0
     395.1  wait                     est= 54.00 rate=    - charging=off open=n sessions=0
@@ -5861,7 +5861,7 @@
     395.7  wait                     est= 54.00 rate=    - charging=off open=n sessions=0
     395.7  replay timerType         est= 54.00 rate=    - charging=off open=n sessions=0
     395.7  wait                     est= 54.00 rate=    - charging=off open=n sessions=0
-    395.7  replay latitude          est= 54.00 rate=    - charging=off open=n sessions=0
+    395.7  replay latitude          est= 54.00 rate=    - charging=off open=n sessions=0 zone_arrived,trip_ended
     395.7  wait                     est= 54.00 rate=    - charging=off open=n sessions=0
     395.7  replay isSingleImmediateCharging est= 54.00 rate=    - charging=off open=n sessions=0
     395.7  replay isActive          est= 54.00 rate=    - charging=off open=n sessions=0

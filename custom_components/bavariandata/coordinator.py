@@ -236,6 +236,12 @@ DOOR_ARRIVAL_STOP_S = 20
 # How long a door-open waits for the rest of its snapshot when no fix has shown
 # the car standing yet: an i4 sends the door ahead of its final fix (issue #183).
 DOOR_SETTLE_S = 10
+# An odometer or SoC reading that lands this soon after a trip closed, with the
+# car not moving since, is that trip's: the i5 once sent its last km 52 s after
+# the door ended the drive. Settled by the next fix (standing: the trip's; moving:
+# the next drive's) or, with no fix at all, after LATE_READING_SETTLE_S.
+LATE_READING_MAX_S = 300
+LATE_READING_SETTLE_S = 60
 # BMW streams latitude and longitude as two separate messages ~1 s apart, so a
 # fix is only complete once *both* have arrived. Detection waits for that (see
 # ``_gps_fix_ready``); this guard stops a frozen single component from stalling
@@ -394,6 +400,17 @@ class DescriptorState:
     value: Any
     unit: Optional[str]
     timestamp: Optional[str]
+
+
+@dataclass
+class _ClosedTrip:
+    """The trip stored last, with the readings it was closed on."""
+
+    trip: Trip
+    mileage_start: Optional[float]
+    odometer: Optional[float]
+    soc: Optional[float]
+    closed_at: datetime
 
 
 def _charge_complete(soc: Optional[float], target: Optional[float]) -> bool:
@@ -613,6 +630,10 @@ class CardataCoordinator:
     _parked_reading: Dict[str, tuple[Optional[float], Optional[float]]] = field(
         default_factory=dict, init=False
     )
+    # The trip stored last, while a reading that lands after its close may still
+    # be its own (see ``_settle_late_reading``), and when such a reading came in.
+    _closed_trip: Dict[str, _ClosedTrip] = field(default_factory=dict, init=False)
+    _late_reading_at: Dict[str, datetime] = field(default_factory=dict, init=False)
     _pending_start: Dict[str, tuple[datetime, Optional[tuple[float, float]]]] = field(
         default_factory=dict, init=False
     )
@@ -1093,6 +1114,10 @@ class CardataCoordinator:
                 )
                 if door_value is not None:
                     await self._process_door_signal(vin, now, door_value)
+                if "vehicle.drivetrain.batteryManagement.header" in data or any(
+                    descriptor in data for descriptor in DESC_ODOMETER
+                ):
+                    self._note_late_reading(vin, now)
                 if gps_parts:
                     await self._process_gps_signal(vin, now, gps_ts, gps_parts)
             # After the trip logic: a trip opening ends "parked unlocked".
@@ -3145,9 +3170,7 @@ class CardataCoordinator:
                 # Opened while a trip is open: an arrival, but only once the car
                 # has actually stopped (guards a flickery read mid-move).
                 last_move = self._last_gps_move.get(vin)
-                stopped = (
-                    last_move is None or (now - last_move).total_seconds() >= DOOR_ARRIVAL_STOP_S
-                )
+                stopped = self._stopped_for_door(vin, now)
                 # Seen standing: a fix since the last movement showed it, or the
                 # door already opened on arrival and the car never moved on.
                 evidence = self._last_stop_evidence.get(vin)
@@ -3392,8 +3415,10 @@ class CardataCoordinator:
                     )
                     await self._close_trip(vin, now, reason="silent")
                     open_trip = False
-                elif open_trip and vin in self._door_arrival:
-                    # The door opened and the car is seen standing: arrived.
+                elif open_trip and vin in self._door_arrival and self._stopped_for_door(vin, now):
+                    # The door opened and the car is seen standing: arrived. Not
+                    # within seconds of the last move, though: a door opened at a
+                    # car park barrier is followed by the car driving on.
                     self._cap(
                         "[trip.door] %s standing after the door opened -> close",
                         vin,
@@ -3406,6 +3431,7 @@ class CardataCoordinator:
                     # it, or a car that streams its parked position never closes.
                     self._arm_trip_close_timer(vin)
                 if not open_trip:
+                    self._settle_late_reading(vin, moved=False)
                     self._parked_reading[vin] = (self.odometer_km(vin), self._current_soc(vin))
 
             # Remember where the car is now, for the next trip's start seed.
@@ -3599,6 +3625,8 @@ class CardataCoordinator:
 
         self._trip_held_since.pop(vin, None)
         self._door_arrival.pop(vin, None)
+        # Moving again: a reading still pending after the last close is this drive's.
+        self._settle_late_reading(vin, moved=True)
         seed, started_at = self._trip_start_seed(vin, now, parked_until)
         # Resolve the start place from the seed (the parked/door-close spot), not
         # the ~hundreds-of-metres-later fix that first registered as movement.
@@ -3714,7 +3742,7 @@ class CardataCoordinator:
 
         end_place = await self._resolve_place(vin)
         soc_end = self._trip_soc_end(vin, builder.start)
-        stats, travelled_km = self._read_trip_segment(vin)
+        stats, travelled_km = self._read_trip_segment(vin, builder.start)
         energy_kwh = self._trip_energy_kwh(vin, builder.soc_start, soc_end)
         ended_at = self._trip_end_time(vin, now, builder.start, reason)
         self._door_arrival.pop(vin, None)
@@ -3771,6 +3799,87 @@ class CardataCoordinator:
                 substrate=True,
             )
         self._store_trip(vin, trip, start_zone=start_zone, left_fired=left_fired, announce=announce)
+        self._late_reading_at.pop(vin, None)
+        if dropped or not announce:
+            self._closed_trip.pop(vin, None)
+        else:
+            self._closed_trip[vin] = _ClosedTrip(
+                trip=trip,
+                mileage_start=builder.mileage_start,
+                odometer=self.odometer_km(vin),
+                soc=trip.soc_end,
+                closed_at=now,
+            )
+
+    def _note_late_reading(self, vin: str, now: datetime) -> None:
+        """Remember when a reading past the last trip's close came in.
+
+        Only an odometer that went on or a SoC that went down counts, and only
+        while no trip is open, the car hasn't moved since and the close is recent.
+        Whose it is gets decided by what comes next (``_settle_late_reading``).
+        """
+
+        closed = self._closed_trip.get(vin)
+        if closed is None or vin in self._trip_builders or vin in self._late_reading_at:
+            return
+        if (now - closed.closed_at).total_seconds() > LATE_READING_MAX_S:
+            self._closed_trip.pop(vin, None)
+            return
+        odometer, soc = self.odometer_km(vin), self._current_soc(vin)
+        went_on = (
+            odometer is not None and closed.odometer is not None and odometer > closed.odometer
+        )
+        went_down = soc is not None and closed.soc is not None and soc < closed.soc
+        if went_on or went_down:
+            self._late_reading_at[vin] = now
+
+    def _settle_late_reading(self, vin: str, *, moved: bool) -> None:
+        """Hand a late reading to the trip just closed, unless the car moved on.
+
+        The i5 has sent the last km of a drive 52 s after the door ended it, so
+        the stored trip lacked it and the next one started past it: a kilometre
+        no trip owned. A snapshot car leaving again sends its odometer ahead of
+        the fix that shows it moving, so a moving fix gives the reading to the
+        new drive instead (its start is the parked reading from before it).
+        """
+
+        at = self._late_reading_at.pop(vin, None)
+        closed = self._closed_trip.pop(vin, None) if moved else self._closed_trip.get(vin)
+        if moved or at is None or closed is None or self.history is None:
+            return
+        odometer, soc = self.odometer_km(vin), self._current_soc(vin)
+        trip = closed.trip
+        before = (trip.distance_km, trip.soc_end)
+        if (
+            odometer is not None
+            and closed.mileage_start is not None
+            and closed.odometer is not None
+            and odometer > closed.odometer
+        ):
+            trip.distance_km = round(odometer - closed.mileage_start, 1)
+            closed.odometer = odometer
+        if soc is not None and trip.soc_end is not None and soc < trip.soc_end:
+            trip.soc_end = soc
+            trip.energy_kwh = self._trip_energy_kwh(vin, trip.soc_start, soc)
+            closed.soc = soc
+        if (trip.distance_km, trip.soc_end) == before:
+            return
+        self._parked_reading[vin] = (odometer, soc)
+        self._cap(
+            "[trip] %s LATE reading -> %s: dist %s -> %s, soc_end %s -> %s",
+            vin,
+            trip.id,
+            before[0],
+            trip.distance_km,
+            before[1],
+            trip.soc_end,
+        )
+        try:
+            self.history.add_trip(trip)
+        except Exception:  # noqa: BLE001 - bookkeeping must not break the stream
+            _LOGGER.exception("Could not amend trip for %s", mask_vin(vin))
+            return
+        async_dispatcher_send(self.hass, self.signal_trips, vin)
 
     def _store_trip(
         self,
@@ -3928,6 +4037,12 @@ class CardataCoordinator:
             leg.classification_source = SOURCE_AUTO
             self.history.add_trip(leg)
             self._cap("[trip] %s chain leg %s -> commute", vin, leg.id)
+
+    def _stopped_for_door(self, vin: str, now: datetime) -> bool:
+        """Whether the car last moved long enough ago for an open door to end the drive."""
+
+        last_move = self._last_gps_move.get(vin)
+        return last_move is None or (now - last_move).total_seconds() >= DOOR_ARRIVAL_STOP_S
 
     def _drop_door_arrival_on_move(self, vin: str, now: datetime) -> None:
         """Forget an early door-open once the car has clearly moved on.
@@ -4167,17 +4282,27 @@ class CardataCoordinator:
             return None
         return round(drop / 100.0 * capacity, 3)
 
-    def _read_trip_segment(self, vin: str) -> tuple[dict[str, Any], Optional[float]]:
+    def _read_trip_segment(
+        self, vin: str, since: datetime
+    ) -> tuple[dict[str, Any], Optional[float]]:
         """BMW's per-segment statistics and its own travelled distance.
 
         The statistics ride the trip record (served via ``get_trips``) rather
         than becoming entities; the distance is a fallback for when the odometer
         didn't tick over the trip window.
+
+        Only what BMW stamped since the trip began (``since``) is this trip's:
+        the segment fields stay stored from the previous drive until BMW sends
+        new ones, and a short hop that never ticked the odometer took that
+        drive's whole distance as its own.
         """
 
         def _num(descriptor: str) -> Optional[float]:
             state = self.get_state(vin, descriptor)
-            if state is None or state.value is None:
+            if state is None or state.value is None or not state.timestamp:
+                return None
+            stamped = dt_util.parse_datetime(state.timestamp)
+            if stamped is None or stamped < since - timedelta(seconds=60):
                 return None
             try:
                 return float(state.value)
@@ -4649,6 +4774,10 @@ class CardataCoordinator:
         for vin in list(self._soc_tracking.keys()):
             if self._integrate_energy(vin, now):
                 async_dispatcher_send(self.hass, self.signal_energy, vin)
+        # A late reading with no fix after it: the car went to sleep standing.
+        for vin, at in list(self._late_reading_at.items()):
+            if (now - at).total_seconds() >= LATE_READING_SETTLE_S:
+                self._settle_late_reading(vin, moved=False)
         async_dispatcher_send(self.hass, self.signal_diagnostics)
 
     def _apply_soc_estimate(self, vin: str, now: datetime, notify: bool = True) -> bool:

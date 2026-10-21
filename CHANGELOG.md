@@ -24,6 +24,19 @@ stable release (v0.8.1); releases before that used auto-generated notes.
     position. The door closed the trip, and that position then opened a second
     trip, so one 14 km drive was stored as 12 km and 2 km. Now an open door
     waits a few seconds for the rest of the update before it ends the trip.
+- **Trips no longer come up a kilometer or two short of the odometer.** On the
+  maintainer's i5 the trips of two weeks added up to 44 km less than the
+  odometer moved (of about 835 km). Most of it should be the fix above: an i5
+  that takes a minute to send its first position on the move had the start
+  counted from there. Some arrived late: the i5 has sent the last kilometer of a
+  drive 52 s after the door opened on arrival, when the trip was already
+  stored. A kilometer or a lower charge that arrives within five minutes of the
+  end, with the car still standing, now goes to the trip it belongs to.
+- **A short trip no longer takes the previous trip's distance.** When a hop
+  too short to move the odometer was stored, the distance BMW sends at the end
+  of a trip was used even if it was still the last trip's, so a 0.8 km hop
+  could be stored as 25 km. BMW's trip figures now count only when sent since
+  the trip began.
 
   Trips already stored keep their figures.
 
