@@ -666,9 +666,11 @@ def test_the_source_mix_is_sampled_with_the_cost() -> None:
     """
 
     # Booked into the held pool (#180), which the ceiling releases from later.
-    source = _function_source(_PKG / "coordinator.py", "_record_energy_delta")
+    # ``_book_increment`` is the step ``_record_energy_delta`` bills through,
+    # and the close's last one.
+    source = _function_source(_PKG / "coordinator.py", "_book_increment")
     assert "held.hold(" in source and "_supply_shares" in source and "held.cost" in source, (
-        "_record_energy_delta no longer attributes the increment it is billing. "
+        "_book_increment no longer attributes the increment it is billing. "
         "The source mix has to be sampled on the same energy delta as the cost."
     )
 
@@ -861,9 +863,9 @@ def test_the_wallbox_meter_is_billed_on_the_step_that_bills_the_cost() -> None:
     the same step and from the same sample as the source mix.
     """
 
-    source = _function_source(_PKG / "coordinator.py", "_record_energy_delta")
+    source = _function_source(_PKG / "coordinator.py", "_book_increment")
     assert "_grid_meter_step" in source and "billable_energy" in source, (
-        "_record_energy_delta no longer bills the wallbox meter's own advance. "
+        "_book_increment no longer bills the wallbox meter's own advance. "
         "The measured grid figure has to reach billable_energy() per step, not "
         "be applied to the session total at close."
     )

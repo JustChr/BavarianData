@@ -12,6 +12,8 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from .conftest import load_module
 
 models = load_module("history.models")
@@ -226,6 +228,8 @@ def test_incomplete_bmw_payload_is_ignored():
 
 def test_billable_energy_prefers_a_measured_grid_figure():
     assert pricing.billable_energy(battery_kwh=10.0, grid_kwh=11.2) == (11.2, "grid")
+    # A meter that measured nothing is a measurement, not a missing one.
+    assert pricing.billable_energy(battery_kwh=10.0, grid_kwh=0.0) == (0.0, "grid")
     assert pricing.billable_energy(battery_kwh=10.0) == (10.0, "battery")
     assert pricing.billable_energy(battery_kwh=None) == (None, "none")
 
@@ -233,7 +237,7 @@ def test_billable_energy_prefers_a_measured_grid_figure():
 def test_battery_energy_is_only_grossed_up_when_asked():
     value, source = pricing.billable_energy(battery_kwh=9.0, loss_percent=10.0)
     assert source == "battery_adjusted"
-    assert value == 10.0
+    assert value == pytest.approx(10.0)
 
 
 def test_pricing_config_treats_half_configured_as_unconfigured():
