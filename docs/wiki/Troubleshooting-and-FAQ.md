@@ -113,7 +113,7 @@ Known cases:
 
 - **Tire diagnosis on iDrive 6 cars.** BMW's Digital Tyre Diagnosis isn't
   available on iDrive 6, so the tire-condition fields stay empty
-  ([#174](https://github.com/JustChr/BavarianData/issues/174)). Since 0.9.21 no
+  ([#174](https://github.com/JustChr/BavarianData/issues/174)). Since 0.9.22 no
   tire-diagnosis sensors are created for those cars.
 - **Tank level on petrol MINIs** ([#100](https://github.com/JustChr/BavarianData/issues/100)).
 - **Tire pressure on the MINI Cooper SE (F56)**, although its sensors are fitted

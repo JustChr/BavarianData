@@ -115,7 +115,7 @@ Bekannte Fälle:
 
 - **Reifendiagnose bei Autos mit iDrive 6.** BMWs digitale Reifendiagnose gibt
   es mit iDrive 6 nicht, die Felder zum Reifenzustand bleiben also leer
-  ([#174](https://github.com/JustChr/BavarianData/issues/174)). Seit 0.9.21
+  ([#174](https://github.com/JustChr/BavarianData/issues/174)). Seit 0.9.22
   werden für diese Autos keine Reifendiagnose-Sensoren angelegt.
 - **Tankfüllstand bei MINI-Benzinern** ([#100](https://github.com/JustChr/BavarianData/issues/100)).
 - **Reifendruck beim MINI Cooper SE (F56)**, obwohl die Sensoren verbaut sind
