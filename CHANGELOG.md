@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.22-beta.5] - 2026-10-21
+
 ### Fixed
 - **Trips on cars that report every few minutes are whole again (#183, thanks
   @jeswick23 for the trip capture).** Some
