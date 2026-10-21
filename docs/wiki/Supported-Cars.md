@@ -42,6 +42,7 @@ Any car with CarData should work; this list is only what has been seen.
 | BMW M240i xDrive (G42) | Petrol | Tire pressure drifted after restarts before 0.9.7 ([#7](https://github.com/JustChr/BavarianData/issues/7)). |
 | BMW 530d Touring (G31, iDrive 6) | Diesel | Sends mileage, fuel and position only when a trip ends. Set **Trip detection** to **End-of-trip reports** for a trip journal (since 0.9.17; [more](Feature-Trips#older-cars-that-report-only-at-the-end-of-a-trip)). |
 | MINI (petrol), incl. Countryman JCW (U25) | Petrol | Set up through the MINI portal. Sends fewer fields than a BMW: no lifetime fuel-consumption counters, and the cars seen so far send **no tank level** either ([#23](https://github.com/JustChr/BavarianData/issues/23), [#100](https://github.com/JustChr/BavarianData/issues/100)). Ticking it in Data Selection doesn't change that. |
+| MINI Cooper SE (F56) | Electric | Set up through the MINI portal. Sleeps while charging: it sends the state of charge only when a charge starts and again when it ends. Before 0.9.22 that recorded each charge at about 2 % of the pack; it is now recorded in full ([#180](https://github.com/JustChr/BavarianData/discussions/180)). The one seen so far sent **no tire pressure**, although its sensors are fitted. |
 
 ## What differs from car to car
 
