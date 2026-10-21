@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.22-beta.4] - 2026-10-21
+
 ### Fixed
 - **With a wallbox meter, a home charge's solar/battery/grid split and its cost
   add up to what the meter counted.** Three gaps closed, all found on the
