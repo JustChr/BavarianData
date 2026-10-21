@@ -31,6 +31,11 @@ that, so they read as driving times rather than detection times:
   five-minute stop timer expired. If the driver door opening ends the drive
   instead, that is the arrival.
 
+The distance and the starting charge always count from the parked car. Some
+cars, such as the i4, report only every few minutes while driving, so their
+first report on the move comes a few kilometers into the drive. Those
+kilometers still belong to the trip.
+
 Both are still estimates bounded by how often your car reports its position: a
 long gap in the stream is a long gap in what can be known.
 

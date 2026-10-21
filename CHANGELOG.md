@@ -9,6 +9,24 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Trips on cars that report every few minutes are whole again (#183, thanks
+  @jeswick23 for the trip capture).** Some
+  cars, such as the i4, send their position, odometer and state of charge
+  together about every three minutes while driving, not every few seconds like
+  the i5. Two things went wrong on those cars:
+  - A trip started counting from the first update that showed the car moving,
+    already a few kilometers into the drive. One 15 km drive was stored as
+    12 km (7.5 mi against the My BMW app's 9.4), and its starting charge one
+    percent low. A trip now starts from the odometer and charge of the parked
+    car.
+  - On arrival, the driver's door arrives a second before the car's final
+    position. The door closed the trip, and that position then opened a second
+    trip, so one 14 km drive was stored as 12 km and 2 km. Now an open door
+    waits a few seconds for the rest of the update before it ends the trip.
+
+  Trips already stored keep their figures.
+
 ## [0.9.22-beta.4] - 2026-10-21
 
 ### Fixed
