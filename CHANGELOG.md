@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.22-beta.3] - 2026-10-21
+
 ### Fixed
 - **With a wallbox meter, a home charge is recorded as the meter counted it.**
   When the car sent no new state of charge while charging, the charge was held
