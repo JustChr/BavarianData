@@ -31,6 +31,11 @@ sie zeigen also Fahrzeiten und keine Erkennungszeiten:
   Fünf-Minuten-Timer ablief. Beendet stattdessen das Öffnen der Fahrertür die Fahrt,
   ist das die Ankunft.
 
+Strecke und Start-Ladestand zählen immer ab dem geparkten Auto. Manche Autos, etwa
+der i4, melden sich während der Fahrt nur alle paar Minuten, die erste Meldung in
+Bewegung kommt also erst nach ein paar Kilometern. Diese Kilometer gehören trotzdem
+zur Fahrt.
+
 Beides bleiben Schätzungen, begrenzt dadurch, wie oft dein Auto seine Position
 meldet: Eine lange Lücke im Stream ist eine lange Lücke im Wissen.
 

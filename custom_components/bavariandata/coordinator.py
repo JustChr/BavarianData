@@ -233,6 +233,9 @@ PENDING_START_MAX_S = 300
 # least this long, so a door read that flickers open mid-move can't close a live
 # drive. Short, because a driver opens their door only after actually stopping.
 DOOR_ARRIVAL_STOP_S = 20
+# How long a door-open waits for the rest of its snapshot when no fix has shown
+# the car standing yet: an i4 sends the door ahead of its final fix (issue #183).
+DOOR_SETTLE_S = 10
 # BMW streams latitude and longitude as two separate messages ~1 s apart, so a
 # fix is only complete once *both* have arrived. Detection waits for that (see
 # ``_gps_fix_ready``); this guard stops a frozen single component from stalling
@@ -604,6 +607,12 @@ class CardataCoordinator:
     # final fix. Kept until the car moves on, it is the arrival time and the stop
     # evidence a quiet stream would otherwise never give.
     _door_arrival: Dict[str, datetime] = field(default_factory=dict, init=False)
+    # The odometer and SoC as of the last fix that showed the car parked, for the
+    # next trip's start (see ``_open_trip``). A car that streams in snapshots (an
+    # i4) sends both ahead of the fix that first shows it moving, already moved on.
+    _parked_reading: Dict[str, tuple[Optional[float], Optional[float]]] = field(
+        default_factory=dict, init=False
+    )
     _pending_start: Dict[str, tuple[datetime, Optional[tuple[float, float]]]] = field(
         default_factory=dict, init=False
     )
@@ -3139,13 +3148,35 @@ class CardataCoordinator:
                 stopped = (
                     last_move is None or (now - last_move).total_seconds() >= DOOR_ARRIVAL_STOP_S
                 )
-                if stopped:
+                # Seen standing: a fix since the last movement showed it, or the
+                # door already opened on arrival and the car never moved on.
+                evidence = self._last_stop_evidence.get(vin)
+                seen_standing = (
+                    last_move is None
+                    or (evidence is not None and evidence >= last_move)
+                    or vin in self._door_arrival
+                )
+                if stopped and seen_standing:
                     self._cap(
                         "[trip.door] %s driver door opened while stopped -> close",
                         vin,
                         substrate=True,
                     )
                     await self._close_trip(vin, now, reason="door")
+                elif stopped:
+                    # Quiet, but not seen standing: on a car that streams in
+                    # snapshots the final fix comes right behind the door, the last
+                    # few minutes of the drive in it (issue #183). Let the snapshot
+                    # land, then close; the door stays the arrival.
+                    self._door_arrival.setdefault(vin, now)
+                    self._cancel_trip_close_timer(vin)
+                    self._arm_trip_close_timer(vin, delay_s=DOOR_SETTLE_S)
+                    self._cap(
+                        "[trip.door] %s driver door opened -> close in %ds",
+                        vin,
+                        DOOR_SETTLE_S,
+                        substrate=True,
+                    )
                 else:
                     # Too soon to close on: it arrives right behind the final fix.
                     # Remember it -- if the car moves on it is dropped, otherwise
@@ -3361,10 +3392,21 @@ class CardataCoordinator:
                     )
                     await self._close_trip(vin, now, reason="silent")
                     open_trip = False
+                elif open_trip and vin in self._door_arrival:
+                    # The door opened and the car is seen standing: arrived.
+                    self._cap(
+                        "[trip.door] %s standing after the door opened -> close",
+                        vin,
+                        substrate=True,
+                    )
+                    await self._close_trip(vin, now, reason="door")
+                    open_trip = False
                 elif open_trip:
                     # Stationary fix: start the countdown but don't keep resetting
                     # it, or a car that streams its parked position never closes.
                     self._arm_trip_close_timer(vin)
+                if not open_trip:
+                    self._parked_reading[vin] = (self.odometer_km(vin), self._current_soc(vin))
 
             # Remember where the car is now, for the next trip's start seed.
             self._last_gps_position[vin] = (latitude, longitude)
@@ -3521,6 +3563,28 @@ class CardataCoordinator:
             return (latitude, longitude), started_at
         return None, started_at
 
+    def _trip_start_readings(self, vin: str) -> tuple[Optional[float], Optional[float]]:
+        """The odometer and SoC a new trip starts from: the parked car's.
+
+        The live readings are already the moving car's on a car that streams in
+        snapshots: the i4 sends its odometer and SoC ahead of the fix that first
+        shows it moving, three minutes of driving on (issue #183). An odometer
+        only grows by driving, so the parked one wins whenever it is not ahead.
+        The SoC is kept only where it is higher: a lower parked SoC means the car
+        charged since, and that charge is not the trip's.
+        """
+
+        odometer, soc = self.odometer_km(vin), self._current_soc(vin)
+        parked = self._parked_reading.pop(vin, None)
+        if parked is None:
+            return odometer, soc
+        parked_odometer, parked_soc = parked
+        if parked_odometer is not None and (odometer is None or parked_odometer <= odometer):
+            odometer = parked_odometer
+        if parked_soc is not None and (soc is None or parked_soc > soc):
+            soc = parked_soc
+        return odometer, soc
+
     async def _open_trip(
         self, vin: str, now: datetime, *, parked_until: Optional[datetime]
     ) -> None:
@@ -3541,12 +3605,13 @@ class CardataCoordinator:
         start_place = await self._resolve_place(
             vin, seed[0] if seed else None, seed[1] if seed else None
         )
+        mileage_start, soc_start = self._trip_start_readings(vin)
         builder = self._trip_builders[vin] = TripBuilder(
             vin,
             started_at,
             start_place=start_place,
-            soc_start=self._current_soc(vin),
-            mileage_start=self.odometer_km(vin),
+            soc_start=soc_start,
+            mileage_start=mileage_start,
             location_assumed=start_place is None or start_place.get("label") == "Unknown",
             record_track=self.trip_settings_for(vin).record_track,
         )
@@ -3626,6 +3691,9 @@ class CardataCoordinator:
         """Close the open trip. ``announce=False`` (the stop flush) fires no events."""
 
         builder = self._trip_builders.pop(vin, None)
+        if builder is not None:
+            # Where the next trip starts, should it open before a parked fix.
+            self._parked_reading[vin] = (self.odometer_km(vin), self._current_soc(vin))
         cap_stats = self._trip_capture.pop(vin, None)
         start_zone = self._trip_start_zone.pop(vin, None)
         left_fired = vin in self._zone_left_fired
@@ -3909,7 +3977,9 @@ class CardataCoordinator:
         )
         return True
 
-    def _arm_trip_close_timer(self, vin: str, *, quiet: bool = False) -> None:
+    def _arm_trip_close_timer(
+        self, vin: str, *, quiet: bool = False, delay_s: float = TRIP_CLOSE_DEBOUNCE_S
+    ) -> None:
         if vin in self._trip_close_timers:
             return
 
@@ -3931,15 +4001,13 @@ class CardataCoordinator:
                 "[trip.timer] %s FIRE -> closing (%s, %ds)",
                 vin,
                 reason,
-                TRIP_CLOSE_DEBOUNCE_S,
+                delay_s,
                 substrate=True,
             )
             self.hass.async_create_task(self._close_trip(vin, now, reason=reason))
 
-        self._trip_close_due[vin] = datetime.now(timezone.utc) + timedelta(
-            seconds=TRIP_CLOSE_DEBOUNCE_S
-        )
-        self._trip_close_timers[vin] = async_call_later(self.hass, TRIP_CLOSE_DEBOUNCE_S, _fire)
+        self._trip_close_due[vin] = datetime.now(timezone.utc) + timedelta(seconds=delay_s)
+        self._trip_close_timers[vin] = async_call_later(self.hass, delay_s, _fire)
         # Only the first arm (car goes stationary) is worth a line; the per-fix
         # reset while moving would otherwise log every fix (the countdown is
         # already shown on each [trip.gps] line).
@@ -3947,7 +4015,7 @@ class CardataCoordinator:
             self._cap(
                 "[trip.timer] %s ARM due_in=%ds",
                 vin,
-                TRIP_CLOSE_DEBOUNCE_S,
+                delay_s,
                 substrate=True,
             )
 

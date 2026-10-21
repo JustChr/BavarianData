@@ -287,3 +287,91 @@ def test_a_battery_car_hop_without_a_soc_reading_keeps_its_soc_end(h):
 
     (trip,) = h.trips()
     assert (trip.soc_start, trip.soc_end) == (47.0, 47.0)
+
+
+# --- a car that streams in snapshots (issue #183, an i4 M50) -----------------
+#
+# The i5 sends a fix every few seconds. The i4 sends its whole state about every
+# three minutes while driving, one message per field, in a fixed order: the
+# door, the SoC, the odometer -- and the position last. So every reading in a
+# snapshot is already the new one when its fix lands.
+
+
+def _snapshot(h: CoordinatorHarness, minute: float, here, *, odometer: float, soc: float, **values):
+    h.send(minute, stamped=minute, odometer=odometer, soc=soc, **values)
+    h.fix(minute + 1 / 60, *here)
+
+
+def test_a_snapshot_car_counts_its_drive_from_where_it_was_parked(h):
+    """The first moving fix arrives with the odometer three km on.
+
+    Jerry's outbound trip: the odometer read 18138 parked and 18141 in the
+    snapshot whose fix first showed the car moving. The trip started counting
+    there and stored 12 km of a 15 km drive (7.5 mi against My BMW's 9.4), and
+    its SoC one percent late.
+    """
+
+    _snapshot(h, 1, HOME, odometer=100, soc=70)  # parked at Home
+    h.send(2, door=False)  # the driver got in
+    here = HOME
+    for i in range(1, 6):
+        here = (HOME[0] + i * 0.02, HOME[1])  # ~2.2 km per snapshot
+        _snapshot(h, 2 + i * 3, here, odometer=100 + i * 3, soc=70 - i)
+    _snapshot(h, 20, here, odometer=115, soc=65)  # parked
+    h.advance_to(40)
+
+    (trip,) = h.trips()
+    assert trip.distance_km == 15
+    assert trip.soc_start == 70
+
+
+def test_a_door_that_lands_before_the_final_fix_ends_nothing_early(h):
+    """The arrival snapshot carries the door open *and* the last 2 km.
+
+    Jerry's return journey: the door, sent before the position, was read as the
+    driver getting out of a car that had last moved three minutes earlier, so
+    the trip closed there -- and the fix one second later, 2 km on, opened a
+    second trip. One drive was stored as 12 km and 2 km.
+    """
+
+    _snapshot(h, 1, HOME, odometer=100, soc=70)
+    h.send(2, door=False)
+    here = HOME
+    for i in range(1, 6):
+        here = (HOME[0] + i * 0.02, HOME[1])
+        _snapshot(h, 2 + i * 3, here, odometer=100 + i * 3, soc=70 - i)
+    there = (here[0] + 0.02, here[1])
+    _snapshot(h, 20, there, odometer=117, soc=64, door=True)  # arrived
+    _snapshot(h, 20 + 4 / 60, there, odometer=117, soc=64)  # standing
+    h.advance_to(40)
+
+    (trip,) = h.trips()
+    assert trip.distance_km == 17
+    assert trip.end <= h.at(20.1)
+
+
+def test_jerrys_two_drives_replay_to_two_whole_trips():
+    """The capture behind both tests above, end to end (issue #183).
+
+    My BMW: 9.4 mi out, 8.4 mi back without a stop. The odometer says 15 km and
+    14 km. Stored before the fix: 12 km, then 10 km + 2 km.
+    """
+
+    import json
+    import pathlib
+    from datetime import datetime
+
+    path = pathlib.Path(__file__).parent / "replays" / "i4-two-drives.ndjson"
+    records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    start = datetime.fromisoformat(records[0]["at"])
+    with CoordinatorHarness(capacity_kwh=None, start=start, vin=records[0]["vin"]) as i4:
+        # Basic data says what the capture can't: a battery car, though it
+        # streams a fuel level (see ``is_plug_in_hybrid``).
+        i4.coordinator.device_metadata[i4.vin] = {"extra_attributes": {"drive_train": "BEV"}}
+        i4.replay(records)
+        i4.advance_to(i4.minute + 60)
+
+        out, back = sorted(i4.trips(), key=lambda t: t.start)
+    assert (out.distance_km, back.distance_km) == (15, 14)
+    assert (out.soc_start, out.soc_end) == (67, 61)
+    assert (back.soc_start, back.soc_end) == (61, 54)
