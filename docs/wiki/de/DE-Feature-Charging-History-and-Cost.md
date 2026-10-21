@@ -53,6 +53,17 @@ Aufteilung nach PV, Hausbatterie und Netz und den Preis des Moments, in dem sie
 geladen wurde, sodass eine Nachtladung, die erst bei Sonnenaufgang freigegeben
 wird, trotzdem als Netzstrom zählt.
 
+**Mit einer verknüpften Wallbox ist stattdessen ihr Zähler die Grenze** (zu
+Hause, wo er die Ladung misst). Der Wert ist dann das, was das Auto gemeldet
+hat, aber nie mehr, als der Zähler gezählt hat. Das hebt eine Ladung an, für die
+das Auto keinen neuen Ladezustand geschickt hat und die die Ladezustands-Grenze
+beim Spielraum festgehalten hätte, und es kürzt Leistung, die das Auto zuletzt
+gemeldet hat, die Wallbox aber nicht mehr geliefert hat, etwa bei einem
+Stromausfall. Die Ladezustands-Grenze gilt wieder, solange der Zähler noch nichts
+gezählt hat und wenn er weniger gezählt hat, als der Anstieg des Ladezustands
+beweist: Dann hängt er oder misst etwas anderes. Seit 0.9.22; bereits
+gespeicherte Ladungen behalten ihren Wert.
+
 Die Grenze braucht einen Ladezustandswert, **der während des Ladevorgangs
 gemessen** wurde. Nicht jedes Auto streamt einen: Stammt der einzige verfügbare
 Ladezustand aus dem REST-Snapshot, ändert er sich zwischen den Ladungen nie, und

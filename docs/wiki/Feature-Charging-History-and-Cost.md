@@ -47,6 +47,15 @@ closes. The energy held back keeps the solar, home-battery and grid split and th
 price of the moment it was charged, so a night charge released at sunrise is
 still counted as grid.
 
+**With a wallbox meter bound, the meter is the bound instead** (at home, where
+it counts the charge). The figure is then what the car reported, but never
+more than the meter counted. That lifts a charge the car sent no new SoC for,
+which the SoC bound would have held at the margin, and trims power the car last
+reported but the wallbox no longer delivered, for example through a power cut.
+The SoC bound comes back while the meter hasn't counted anything yet, and when
+it counted less than the SoC rise proves: then it is stuck or measures
+something else. Since 0.9.22; charges stored before keep their figure.
+
 The bound needs a SoC reading **taken during the session**. Not every car streams
 one: where the only state of charge available comes from the REST snapshot it
 never changes between charges, and a rise of zero would bound every session at

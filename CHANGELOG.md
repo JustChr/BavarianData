@@ -9,6 +9,18 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **With a wallbox meter, a home charge is recorded as the meter counted it.**
+  When the car sent no new state of charge while charging, the charge was held
+  to about 2 % of the pack until the end: on the maintainer's i5, 12 of 42
+  metered charges were stored short, one at 1.54 kWh where the wallbox counted
+  3.82. The other way round, a power cut that stopped the wallbox while the car
+  was out of reach was still counted at the car's last reported power. Now the
+  charge is never more than the meter counted, and no longer held to the state
+  of charge while the meter is counting. A meter that counts nothing, or far
+  less than the state of charge proves, is ignored. Charges already stored keep
+  their figure.
+
 ## [0.9.22-beta.2] - 2026-10-21
 
 ### Fixed

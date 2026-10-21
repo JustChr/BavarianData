@@ -485,3 +485,79 @@ def test_a_restored_charge_no_one_confirms_stops_holding_the_meter(h):
 
         session = max(mini.sessions(), key=lambda record: record.start)
         assert session.grid_source == "meter"
+
+
+# --- the meter bounds the session's energy -----------------------------------
+
+
+def _metered_charge(h: CoordinatorHarness, *, until: float, kw: float = 7.4) -> None:
+    """BMW reports the wallbox's real power once; the meter follows to ``until``."""
+
+    h.send(10, target=100, step="target 100")
+    h.meter(10, 1000.0)
+    h.send(10, soc=38, status="CHARGINGACTIVE", power=kw * 1000)
+    for minute in range(11, int(until) + 1):
+        h.meter(minute, 1000.0 + kw * (minute - 10) / 60)
+
+
+def _today(h: CoordinatorHarness):
+    """The charge under test, not the seeded ones before it."""
+
+    (session,) = [s for s in h.sessions() if s.start >= START]
+    return session
+
+
+def test_the_meter_lifts_a_charge_the_soc_never_followed(h):
+    """No SoC until the end: the SoC ceiling held this at 1.5 kWh; the meter counted 14.8."""
+
+    _metered_charge(h, until=130)
+    h.send(131, status="NOCHARGING", power=0, step="ended, no SoC")
+    h.advance_to(135)
+
+    session = _today(h)
+    assert session.grid_kwh == pytest.approx(14.8, abs=0.01)
+    assert session.energy_kwh == pytest.approx(14.8, abs=0.15)
+
+
+def test_the_meter_trims_power_held_through_an_outage(h):
+    """The live i5 on 21 Oct: the wallbox lost power at minute 40, the car said so at 70.
+
+    Integrated at the last reported 7.4 kW, the hour claims 7.4 kWh; the SoC
+    ceiling allowed 4.5 of it. The meter counted 3.7, and that is the charge.
+    """
+
+    _metered_charge(h, until=40)
+    h.advance_to(70)
+    h.send(70, soc=42, status="CHARGINGERROR", power=0, step="power back, car reports")
+    h.advance_to(75)
+
+    session = _today(h)
+    assert session.grid_kwh == pytest.approx(3.7, abs=0.01)
+    assert session.energy_kwh == pytest.approx(3.7, abs=0.01)
+
+
+def test_a_meter_that_never_moves_leaves_the_soc_ceiling_in_charge(h):
+    """A meter bound by mistake, or one that stopped counting, can't zero a charge."""
+
+    h.send(10, target=100, step="target 100")
+    h.meter(10, 1000.0)
+    h.send(10, soc=38, status="CHARGINGACTIVE", power=3480)
+    h.send(190, soc=52, status="FINISHEDFULLYCHARGED", power=0, step="woke, finished")
+    h.advance_to(195)
+
+    session = _today(h)
+    assert session.energy_kwh == pytest.approx(3.48 * 3, abs=0.05)
+
+
+def test_a_meter_counting_less_than_the_soc_proves_is_not_believed(h):
+    """0.5 kWh against a 14-point rise: that meter measures something else."""
+
+    h.send(10, target=100, step="target 100")
+    h.meter(10, 1000.0)
+    h.send(10, soc=38, status="CHARGINGACTIVE", power=3480)
+    h.meter(100, 1000.5)
+    h.send(190, soc=52, status="FINISHEDFULLYCHARGED", power=0, step="woke, finished")
+    h.advance_to(195)
+
+    session = _today(h)
+    assert session.energy_kwh == pytest.approx(3.48 * 3, abs=0.05)

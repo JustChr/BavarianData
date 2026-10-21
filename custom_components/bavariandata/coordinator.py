@@ -62,6 +62,7 @@ from .history.held_energy import HeldEnergy
 from .history.sessions import (
     SessionBuilder,
     energy_ceiling_kwh,
+    meter_energy_bound_kwh,
     house_supplies_this_session,
     meter_counts_this_session,
     open_session_is_resumable,
@@ -1139,10 +1140,13 @@ class CardataCoordinator:
         # session ends on its full figure while a runaway one stays pinned to
         # what the battery can hold.
         raw_before = self._energy_session_raw_wh.get(vin, 0.0)
-        before = self._bounded_session_wh(vin, raw_before)
+        before = self._energy_session_wh.get(vin, 0.0)
         raw_after = raw_before + wh
         self._energy_session_raw_wh[vin] = raw_after
-        after = self._bounded_session_wh(vin, raw_after)
+        # Never below what was already released: a session that loses its meter
+        # (another car plugs in, the meter resets) falls back to a SoC ceiling
+        # that may sit under the meter's count.
+        after = max(before, self._bounded_session_wh(vin, raw_after))
 
         self._energy_session_wh[vin] = after
         # The whole increment is booked, at this instant's mix and price; the
@@ -1216,7 +1220,7 @@ class CardataCoordinator:
         return tracking.last_soc_percent
 
     def _session_energy_ceiling_wh(self, vin: str) -> Optional[float]:
-        """The live inputs for :func:`energy_ceiling_kwh`, as Wh.
+        """The live inputs for :func:`energy_ceiling_kwh`, as Wh -- or the meter's.
 
         The ceiling rises as SoC does, so a charge that keeps going keeps room
         to accrue, and a stream that falls silent -- taking SoC with it -- grants
@@ -1227,11 +1231,21 @@ class CardataCoordinator:
         charge by a number that predates it.
         """
 
-        ceiling_kwh = energy_ceiling_kwh(
-            self._energy_session_soc.get(vin),
-            self._session_soc_percent(vin),
-            self.battery_capacity_kwh(vin),
+        soc_start = self._energy_session_soc.get(vin)
+        soc_now = self._session_soc_percent(vin)
+        capacity = self.battery_capacity_kwh(vin)
+        # A bound wallbox meter, where it counts this session, bounds it instead
+        # (see :func:`meter_energy_bound_kwh`).
+        builder = self._session_builders.get(vin)
+        metered_kwh = meter_energy_bound_kwh(
+            None if builder is None else builder.metered_so_far_kwh(),
+            soc_start,
+            soc_now,
+            capacity,
         )
+        if metered_kwh is not None:
+            return metered_kwh * 1000.0
+        ceiling_kwh = energy_ceiling_kwh(soc_start, soc_now, capacity)
         return None if ceiling_kwh is None else ceiling_kwh * 1000.0
 
     def _sample_power_curve(self, vin: str, now: datetime, power_w: float) -> None:
@@ -1833,6 +1847,12 @@ class CardataCoordinator:
             )
 
     def _close_session_record(self, vin: str, status: str, *, at: Optional[datetime] = None):
+        # One last look at the wallbox meter, before the settle it may bound. The
+        # final energy deltas and the close can be minutes apart on a charge that
+        # tapers, and those are kilowatt-hours the meter did count.
+        builder = self._session_builders.get(vin)
+        if builder is not None:
+            builder.note_grid_meter(self._session_grid_meter_kwh(vin, builder))
         self._settle_session_energy(vin)
         builder = self._session_builders.pop(vin, None)
         accumulator = self._session_costs.pop(vin, None)
@@ -1847,10 +1867,6 @@ class CardataCoordinator:
             return None
 
         energy_kwh = self.get_session_energy_kwh(vin)
-        # One last look at the wallbox meter. The final energy deltas and the
-        # close can be minutes apart on a charge that tapers, and those are
-        # kilowatt-hours the meter did count.
-        builder.note_grid_meter(self._session_grid_meter_kwh(vin, builder))
         session = builder.close(
             at or datetime.now(timezone.utc),
             soc_end=self._session_soc_percent(vin),
