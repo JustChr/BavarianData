@@ -46,6 +46,13 @@ einzelnen Schritt, daher holt eine zurückgehaltene Ladung, die auf einen
 Ladezustandswert wartet, alles wieder auf, sobald er eintrifft. Sind Ladezustand
 oder Kapazität unbekannt, gilt keine Grenze.
 
+Das gilt auch für ein Auto, das während der Ladung schläft und den neuen
+Ladezustand erst mit dem Ende der Ladung schickt: Beim Abschluss wird die Ladung
+noch einmal gegen diesen Wert verrechnet. Die zurückgehaltene Energie behält die
+Aufteilung nach PV, Hausbatterie und Netz und den Preis des Moments, in dem sie
+geladen wurde, sodass eine Nachtladung, die erst bei Sonnenaufgang freigegeben
+wird, trotzdem als Netzstrom zählt.
+
 Die Grenze braucht einen Ladezustandswert, **der während des Ladevorgangs
 gemessen** wurde. Nicht jedes Auto streamt einen: Stammt der einzige verfügbare
 Ladezustand aus dem REST-Snapshot, ändert er sich zwischen den Ladungen nie, und

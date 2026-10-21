@@ -1,4 +1,15 @@
 # serializer version: 1
+# name: test_a_car_asleep_through_its_charge_files_the_whole_charge
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est=     - rate=    - charging=off open=n sessions=0
+     10.0  target 100               est=     - rate=    - charging=off open=n sessions=0
+     10.0  send soc=38,status=CHARGINGACTIVE,power=3480 est= 38.00 rate= 4.64 charging=on  open=y sessions=0 charging_started
+    190.0  wait 190                 est= 51.92 rate= 4.64 charging=on  open=y sessions=0
+    190.0  woke, finished           est= 52.00 rate=    - charging=off open=y sessions=0
+    195.0  advance 195              est= 52.00 rate=    - charging=off open=n sessions=1 charging_stopped
+  '''
+# ---
 # name: test_a_charge_that_ended_during_the_restart_is_filed_where_it_was_last_seen
   '''
       0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0

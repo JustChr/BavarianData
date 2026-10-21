@@ -421,6 +421,80 @@ def test_a_charge_at_home_keeps_the_house_mix_and_tariff():
         assert session.cost["source"] == "tariff"
 
 
+def _asleep_through_the_charge(h: CoordinatorHarness, *, sunrise: float, restart_at=None) -> None:
+    """#180's MINI: SoC at the start, then nothing until the batch that ends it.
+
+    Grid-only until ``sunrise``, the roof alone after it.
+    """
+
+    h.hass.set_state("sensor.pv", 0, unit_of_measurement="W")
+    h.hass.set_state("sensor.grid", 3600, unit_of_measurement="W")
+    _start_charge(h)
+    if restart_at is not None:
+        h.advance_to(restart_at)
+        pricing = h.coordinator.pricing
+        h.restart(downtime_s=60)
+        h.coordinator.pricing = pricing
+        # The car is still asleep: the stream's first word is BMW's cached one.
+        h.send(stamped=10, soc=38, status="CHARGINGACTIVE", power=3480, step="catch-up")
+    h.advance_to(sunrise)
+    h.hass.set_state("sensor.pv", 4000, unit_of_measurement="W")
+    h.hass.set_state("sensor.grid", 0, unit_of_measurement="W")
+    h.send(190, soc=52, status="FINISHEDFULLYCHARGED", power=0, step="woke, finished")
+    h.advance_to(195)
+
+
+def test_a_car_asleep_through_its_charge_files_the_whole_charge(h, snapshot):
+    """#180: the final SoC rides in with the end of the charge, and still counts.
+
+    Filed at the ceiling's bare margin before -- 2 % of the pack, 1.5 kWh here,
+    0.6 kWh on the reporter's MINI -- because the batch that raised the ceiling
+    was also the one that stopped the integration.
+    """
+
+    _start_charge(h)
+    h.send(190, soc=52, status="FINISHEDFULLYCHARGED", power=0, step="woke, finished")
+    h.advance_to(195)
+
+    (session,) = h.sessions()
+    assert (session.soc_start, session.soc_end) == (38, 52)
+    assert session.energy_kwh == pytest.approx(3.48 * 3, abs=0.05)
+    assert h.coordinator.get_lifetime_energy_kwh(h.vin) == pytest.approx(session.energy_kwh)
+    assert h.render() == snapshot
+
+
+def test_energy_released_at_the_end_keeps_the_mix_it_came_at():
+    """The night's kWh stay grid when the release comes after sunrise (#180)."""
+
+    home = (48.1, 11.5)
+    with _house_harness(home) as h:
+        h.fix(5, *home)
+        _asleep_through_the_charge(h, sunrise=180)
+
+        (session,) = h.sessions()
+        mix = session.energy_mix
+        assert session.energy_kwh == pytest.approx(3.48 * 3, abs=0.05)
+        assert mix["grid"] + mix.get("pv", 0) == pytest.approx(session.energy_kwh, abs=0.05)
+        assert mix["solar_percent"] == pytest.approx(10 / 180 * 100, abs=1)
+        # No solar price set, so the roof is billed at the import price too.
+        assert session.cost["amount"] == pytest.approx(0.30 * session.energy_kwh, abs=0.02)
+
+
+def test_held_energy_survives_a_restart():
+    """What the ceiling held before a restart is still released with its mix."""
+
+    home = (48.1, 11.5)
+    with _house_harness(home) as h:
+        h.fix(5, *home)
+        _asleep_through_the_charge(h, sunrise=180, restart_at=100)
+
+        (session,) = h.sessions()
+        mix = session.energy_mix
+        assert session.energy_kwh > 10  # three hours at 3.48 kW, less the downtime
+        assert mix["grid"] + mix.get("pv", 0) == pytest.approx(session.energy_kwh, abs=0.05)
+        assert mix["solar_percent"] < 10
+
+
 def test_a_remembered_charge_keeps_its_point():
     """*Remember charging locations* on: the charge keeps where it was made."""
 

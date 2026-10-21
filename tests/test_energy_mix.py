@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from .conftest import load_module
 
 mix = load_module("history.energy_mix")
@@ -246,3 +248,54 @@ def test_the_export_leaves_an_unattributed_session_blank_not_zero():
     cells = dict(zip(header, row, strict=True))
     assert cells["pv_kwh"] == ""
     assert cells["solar_percent"] == ""
+
+
+# --- energy the SoC ceiling holds back (#180) --------------------------------
+
+held_mod = load_module("history.held_energy")
+pricing_mod = load_module("history.pricing")
+
+
+def _held_night_then_sun():
+    held = held_mod.HeldEnergy(currency="EUR")
+    held.cost.add(3.0, 0.30)  # what the coordinator bills for the grid hours
+    held.hold(3.0, 3.0, {GRID: 1.0})
+    held.cost.add(1.0, 0.10)
+    held.hold(1.0, 1.0, {PV: 1.0})
+    return held
+
+
+def test_a_release_takes_its_share_of_every_source_and_price():
+    held = _held_night_then_sun()
+    session_mix = mix.MixAccumulator()
+    session_cost = pricing_mod.CostAccumulator(currency="EUR")
+
+    held.release(2.0, session_mix, session_cost)
+
+    assert session_mix.totals == {GRID: 1.5, PV: 0.5}
+    assert session_cost.amount == pytest.approx(0.5)
+    assert held.battery_kwh == 2.0
+    assert held.mix.totals == {GRID: 1.5, PV: 0.5}
+
+
+def test_a_release_never_takes_more_than_the_pool():
+    """A gap credit raises the total without a sample: no mix is invented for it."""
+
+    held = _held_night_then_sun()
+    session_mix = mix.MixAccumulator()
+
+    held.release(10.0, session_mix, None)
+
+    assert session_mix.total_kwh == 4.0
+    assert held.battery_kwh == 0.0
+
+
+def test_the_pool_survives_a_snapshot_and_a_bad_one_starts_empty():
+    held = _held_night_then_sun()
+    back = held_mod.HeldEnergy.from_dict(json.loads(json.dumps(held.to_dict())), currency="EUR")
+
+    assert back.battery_kwh == 4.0
+    assert back.mix.totals == held.mix.totals
+    assert back.cost.amount == held.cost.amount
+    assert held_mod.HeldEnergy.from_dict({"battery_kwh": "x"}, currency="EUR").battery_kwh == 0.0
+    assert held_mod.HeldEnergy.from_dict(None, currency="EUR").mix.totals == {}

@@ -194,4 +194,7 @@ def main(argv: Optional[list[str]] = None) -> int:
 
 
 if __name__ == "__main__":
+    # pytest's output carries ± and the like; a Windows console's cp1252 cannot
+    # print them and used to crash the report after the proof had already run.
+    sys.stdout.reconfigure(errors="replace")
     raise SystemExit(main())
