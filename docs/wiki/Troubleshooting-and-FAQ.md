@@ -100,6 +100,31 @@ Usually not a fault. Check three things:
    but its entity doesn't follow, that's a bug — open an issue with the
    diagnostics attached.
 
+## A field the portal lists never shows up
+
+<a id="field-never-arrives"></a>
+
+The BMW and MINI portals list every data point for every car, including ones
+your car never sends. Ticking a field in Data Selection lets BMW pass it on; it
+doesn't make the car measure or report it. Some fields BMW answers only with
+placeholder values, and BavarianData creates no sensor from those.
+
+Known cases:
+
+- **Tire diagnosis on iDrive 6 cars.** BMW's Digital Tyre Diagnosis isn't
+  available on iDrive 6, so the tire-condition fields stay empty
+  ([#174](https://github.com/JustChr/BavarianData/issues/174)). Since 0.9.21 no
+  tire-diagnosis sensors are created for those cars.
+- **Tank level on petrol MINIs** ([#100](https://github.com/JustChr/BavarianData/issues/100)).
+- **Tire pressure on the MINI Cooper SE (F56)**, although its sensors are fitted
+  ([#180](https://github.com/JustChr/BavarianData/discussions/180)).
+
+To see which of your selected fields your car really delivers, run
+[`get_coverage_report`](Services-Reference#get_coverage_report), or check the
+field in the [diagnostics](#download-diagnostics). A field that never arrives
+there can't be fixed in BavarianData. A field that arrives but whose entity
+doesn't follow is a bug: open an issue with the diagnostics attached.
+
 ## A sensor shows an absurd value, or reads unknown after an update
 
 <a id="sensor-value-looks-wrong"></a>

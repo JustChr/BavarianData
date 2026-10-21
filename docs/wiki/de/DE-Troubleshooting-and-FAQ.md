@@ -101,6 +101,33 @@ Meist kein Fehler. Prüfe drei Dinge:
    aber seine Entität folgt nicht, ist das ein Fehler — öffne ein Issue mit den
    Diagnosedaten im Anhang.
 
+## Ein Feld aus dem Portal kommt nie an
+
+<a id="field-never-arrives"></a>
+
+Das BMW- und das MINI-Portal listen jeden Datenpunkt für jedes Auto, auch
+solche, die dein Auto nie sendet. Ein Häkchen in der Datenauswahl erlaubt BMW,
+das Feld weiterzugeben; es bringt das Auto nicht dazu, es zu messen oder zu
+melden. Manche Felder beantwortet BMW nur mit Platzhalterwerten, und daraus legt
+BavarianData keinen Sensor an.
+
+Bekannte Fälle:
+
+- **Reifendiagnose bei Autos mit iDrive 6.** BMWs digitale Reifendiagnose gibt
+  es mit iDrive 6 nicht, die Felder zum Reifenzustand bleiben also leer
+  ([#174](https://github.com/JustChr/BavarianData/issues/174)). Seit 0.9.21
+  werden für diese Autos keine Reifendiagnose-Sensoren angelegt.
+- **Tankfüllstand bei MINI-Benzinern** ([#100](https://github.com/JustChr/BavarianData/issues/100)).
+- **Reifendruck beim MINI Cooper SE (F56)**, obwohl die Sensoren verbaut sind
+  ([#180](https://github.com/JustChr/BavarianData/discussions/180)).
+
+Welche der ausgewählten Felder dein Auto wirklich liefert, zeigt
+[`get_coverage_report`](DE-Services-Reference#get_coverage_report), oder du
+suchst das Feld in den [Diagnosedaten](#download-diagnostics). Ein Feld, das dort
+nie ankommt, lässt sich in BavarianData nicht beheben. Kommt ein Feld an, aber
+seine Entität folgt nicht, ist das ein Fehler: Öffne ein Issue mit den
+Diagnosedaten im Anhang.
+
 ## Ein Sensor zeigt einen absurden Wert oder nach einem Update „unbekannt“
 
 <a id="sensor-value-looks-wrong"></a>
