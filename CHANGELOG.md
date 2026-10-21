@@ -9,6 +9,21 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **With a wallbox meter, a home charge's solar/battery/grid split and its cost
+  add up to what the meter counted.** Three gaps closed, all found on the
+  maintainer's i5:
+  - The split and the cost came up about 3.5 % short whenever the car reported
+    more power than the wallbox measured (the i5 reads ~4 % high): 18.92 of
+    19.60 kWh on one charge.
+  - A step where the meter hadn't moved was billed at the car's last reported
+    power instead of as nothing. Through a power cut that stopped the wallbox,
+    that billed energy that was never delivered; with a meter that updates
+    once a minute or less often, the same energy could be billed twice.
+  - The meter's last advance before the end of a charge wasn't billed, up to
+    a whole update interval of a slow meter, and every step lost a little to
+    rounding (0.3 % of a session).
+
 ## [0.9.22-beta.3] - 2026-10-21
 
 ### Fixed

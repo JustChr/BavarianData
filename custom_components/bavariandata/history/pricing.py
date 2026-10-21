@@ -286,13 +286,18 @@ def billable_energy(
     energy we integrated, optionally grossed up by a user-supplied loss
     percentage -- which defaults to zero because inventing a plausible-looking
     correction would present an estimate as a measurement.
+
+    Unrounded, because it is called on every 30-second step: rounding each one
+    to the watt-hour lost 0.3 % of a session's mix and cost. The accumulators
+    round once, at the end.
     """
 
-    if grid_kwh is not None and grid_kwh > 0:
-        return round(grid_kwh, 3), "grid"
+    if grid_kwh is not None and grid_kwh >= 0:
+        # Zero included: a meter that measured nothing is a measurement.
+        return grid_kwh, "grid"
     if battery_kwh is None or battery_kwh <= 0:
         return None, "none"
     if loss_percent:
         grossed = battery_kwh / (1 - min(loss_percent, 90.0) / 100.0)
-        return round(grossed, 3), "battery_adjusted"
-    return round(battery_kwh, 3), "battery"
+        return grossed, "battery_adjusted"
+    return battery_kwh, "battery"

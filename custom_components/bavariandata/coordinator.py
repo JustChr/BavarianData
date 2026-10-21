@@ -1177,6 +1177,16 @@ class CardataCoordinator:
         before = self._energy_session_wh.get(vin, 0.0)
         after = self._bounded_session_wh(vin, raw)
         gained = after - before
+        if self._session_meter_bound_kwh(vin) is not None:
+            # Held to the meter, what is still held is the car's power reading
+            # above the wallbox's (the i5's runs ~4 % high) or power held across
+            # a gap the meter billed as nothing. Its mix and cost were billed
+            # from the meter, so all of it is this charge's.
+            held = self._session_held.get(vin)
+            if held is not None:
+                held.release(
+                    held.battery_kwh, self._session_mixes.get(vin), self._session_costs.get(vin)
+                )
         if gained <= 0:
             return
         self._energy_session_wh[vin] = after
@@ -1234,19 +1244,25 @@ class CardataCoordinator:
         soc_start = self._energy_session_soc.get(vin)
         soc_now = self._session_soc_percent(vin)
         capacity = self.battery_capacity_kwh(vin)
-        # A bound wallbox meter, where it counts this session, bounds it instead
-        # (see :func:`meter_energy_bound_kwh`).
-        builder = self._session_builders.get(vin)
-        metered_kwh = meter_energy_bound_kwh(
-            None if builder is None else builder.metered_so_far_kwh(),
-            soc_start,
-            soc_now,
-            capacity,
-        )
+        metered_kwh = self._session_meter_bound_kwh(vin)
         if metered_kwh is not None:
             return metered_kwh * 1000.0
         ceiling_kwh = energy_ceiling_kwh(soc_start, soc_now, capacity)
         return None if ceiling_kwh is None else ceiling_kwh * 1000.0
+
+    def _session_meter_bound_kwh(self, vin: str) -> Optional[float]:
+        """The bound wallbox meter's count, where it bounds this session.
+
+        See :func:`meter_energy_bound_kwh` for when it does.
+        """
+
+        builder = self._session_builders.get(vin)
+        return meter_energy_bound_kwh(
+            None if builder is None else builder.metered_so_far_kwh(),
+            self._energy_session_soc.get(vin),
+            self._session_soc_percent(vin),
+            self.battery_capacity_kwh(vin),
+        )
 
     def _sample_power_curve(self, vin: str, now: datetime, power_w: float) -> None:
         """Feed the session record's curve and its running SoC.
@@ -1289,6 +1305,15 @@ class CardataCoordinator:
         """
 
         self._sample_power_curve(vin, now, power_w)
+        self._book_increment(vin, kwh)
+
+    def _book_increment(self, vin: str, kwh: float) -> None:
+        """Bill one battery-side increment, at the meter where there is one.
+
+        Also called with nothing integrated at the close, so the meter's last
+        advance -- after the final integration step, up to a whole update
+        interval on a meter that reports once a minute -- is billed too.
+        """
 
         # One read of the wallbox meter, used twice: to bill this increment and
         # to move the session's running total. ``_grid_meter_step`` advances the
@@ -1324,6 +1349,12 @@ class CardataCoordinator:
         delta exists), or a meter that went backwards, which is a reset and not
         a negative charge. In each case billing falls back to the battery-side
         figure, exactly as it did before a meter was ever bound.
+
+        A meter that has not moved is a measured zero, not a missing reading. A
+        wallbox that lost power while the car's last reported power was held
+        across the gap delivered nothing, and a meter that updates once a
+        minute bills the whole minute on its next step -- billing the
+        battery-side figure in between counted those kilowatt-hours twice.
         """
 
         if meter_now is None:
@@ -1333,7 +1364,9 @@ class CardataCoordinator:
         if previous is None:
             return None
         delta = meter_now - previous
-        return delta if delta > 0 else None
+        if delta < 0:
+            return None
+        return delta
 
     def get_lifetime_energy_kwh(self, vin: str) -> Optional[float]:
         value = self._energy_lifetime_wh.get(vin)
@@ -1847,12 +1880,11 @@ class CardataCoordinator:
             )
 
     def _close_session_record(self, vin: str, status: str, *, at: Optional[datetime] = None):
-        # One last look at the wallbox meter, before the settle it may bound. The
-        # final energy deltas and the close can be minutes apart on a charge that
-        # tapers, and those are kilowatt-hours the meter did count.
-        builder = self._session_builders.get(vin)
-        if builder is not None:
-            builder.note_grid_meter(self._session_grid_meter_kwh(vin, builder))
+        # One last look at the wallbox meter, billed and noted before the settle it
+        # may bound. The final energy deltas and the close can be minutes apart on
+        # a charge that tapers, and those are kilowatt-hours the meter did count.
+        if vin in self._session_builders:
+            self._book_increment(vin, 0.0)
         self._settle_session_energy(vin)
         builder = self._session_builders.pop(vin, None)
         accumulator = self._session_costs.pop(vin, None)

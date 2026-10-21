@@ -561,3 +561,78 @@ def test_a_meter_counting_less_than_the_soc_proves_is_not_believed(h):
 
     session = _today(h)
     assert session.energy_kwh == pytest.approx(3.48 * 3, abs=0.05)
+
+
+# --- the meter bills the session's mix and cost -------------------------------
+
+
+def _priced_home_harness() -> CoordinatorHarness:
+    """A meter, a fixed tariff and the house's PV/grid power, at home."""
+
+    home = (48.1, 11.5)
+    harness = CoordinatorHarness(wallbox_meter=METER, home=home)
+    harness.hass.add_zone("Home", *home, radius_m=100)
+    harness.coordinator.pricing = PricingConfig(
+        mode="fixed",
+        fixed_price=0.30,
+        pv_power_entity="sensor.pv",
+        grid_power_entity="sensor.grid",
+        grid_energy_entity=METER,
+    )
+    harness.hass.set_state("sensor.pv", 0, unit_of_measurement="W")
+    harness.hass.set_state("sensor.grid", 7400, unit_of_measurement="W")
+    harness.fix(5, *home)
+    return harness
+
+
+def _mix_total(session) -> float:
+    return sum(v for k, v in session.energy_mix.items() if k != "solar_percent")
+
+
+def test_a_car_reading_high_still_bills_every_metered_kwh():
+    """The i5 on 21 Oct: 10.69 kW reported, 10.28 kW metered, 0.68 kWh missing from the mix."""
+
+    with _priced_home_harness() as h:
+        _metered_charge(h, until=70, kw=7.4)
+        # BMW's figure, ~4 % above the wallbox's.
+        h.send(11, status="CHARGINGACTIVE", power=7700, step="car reads high")
+        h.send(70, soc=46, status="NOCHARGING", power=0, step="unplugged")
+        h.advance_to(72)
+
+        session = _today(h)
+        assert session.energy_kwh == pytest.approx(7.4, abs=0.01)
+        assert _mix_total(session) == pytest.approx(session.grid_kwh, abs=0.01)
+        assert session.cost["amount"] == pytest.approx(0.30 * 7.4, abs=0.01)
+
+
+def test_a_meter_updating_every_ten_minutes_is_billed_once():
+    """Steps between its updates are a measured zero, not the car's power billed again."""
+
+    with _priced_home_harness() as h:
+        h.send(10, target=100, step="target 100")
+        h.meter(10, 1000.0)
+        h.send(10, soc=38, status="CHARGINGACTIVE", power=7400)
+        for minute in range(20, 71, 10):
+            h.meter(minute, 1000.0 + 7.4 * (minute - 10) / 60)
+        h.send(70, soc=46, status="NOCHARGING", power=0, step="unplugged")
+        h.advance_to(72)
+
+        session = _today(h)
+        assert session.grid_kwh == pytest.approx(7.4, abs=0.01)
+        assert _mix_total(session) == pytest.approx(7.4, abs=0.01)
+        assert session.cost["amount"] == pytest.approx(0.30 * 7.4, abs=0.01)
+
+
+def test_power_held_through_an_outage_is_not_billed():
+    """The wallbox lost power at 40; the car's 7.4 kW was held until it spoke at 70."""
+
+    with _priced_home_harness() as h:
+        _metered_charge(h, until=40)
+        h.advance_to(70)
+        h.send(70, soc=42, status="CHARGINGERROR", power=0, step="power back, car reports")
+        h.advance_to(75)
+
+        session = _today(h)
+        assert session.energy_kwh == pytest.approx(3.7, abs=0.01)
+        assert _mix_total(session) == pytest.approx(3.7, abs=0.01)
+        assert session.cost["amount"] == pytest.approx(0.30 * 3.7, abs=0.01)
