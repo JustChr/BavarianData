@@ -48,7 +48,7 @@ CarData sollte funktionieren; die Liste zeigt nur, was schon gesehen wurde.
 | BMW X3 30e xDrive | Plug-in-Hybrid | Streamt den Ladestand nicht; er kommt mit der [täglichen REST-Aktualisierung](DE-Feature-API-Quota#the-daily-refresh). |
 | BMW X3 M40d (G01) | Diesel | — |
 | BMW M240i xDrive (G42) | Benzin | Vor 0.9.7 verschob sich der Reifendruck nach Neustarts ([#7](https://github.com/JustChr/BavarianData/issues/7)). |
-| BMW 530d Touring (G31, iDrive 6) | Diesel | Sendet Kilometerstand, Tankstand und Position nur am Ende einer Fahrt. Für ein Fahrtenbuch **Fahrterkennung** auf **Berichte am Fahrtende** stellen (seit 0.9.17; [mehr](DE-Feature-Trips#older-cars-that-report-only-at-the-end-of-a-trip)). |
+| BMW 530d Touring (G31, iDrive 6) | Diesel | Sendet Kilometerstand, Tankstand und Position nur am Ende einer Fahrt. Für ein Fahrtenbuch **Fahrterkennung** auf **Berichte am Fahrtende** stellen (seit 0.9.17; [mehr](DE-Feature-Trips#older-cars-that-report-only-at-the-end-of-a-trip)). Keine Reifendiagnose: BMW bietet sie mit iDrive 6 nicht an ([#174](https://github.com/JustChr/BavarianData/issues/174)). |
 | MINI (Benziner), auch Countryman JCW (U25) | Benzin | Über das MINI-Portal eingerichtet. Sendet weniger Felder als ein BMW: keine Zähler für den Kraftstoffverbrauch über die Lebensdauer, und die bisher gesehenen Autos senden auch **keinen Tankfüllstand** ([#23](https://github.com/JustChr/BavarianData/issues/23), [#100](https://github.com/JustChr/BavarianData/issues/100)). Ihn in der Datenauswahl anzukreuzen ändert daran nichts. |
 | MINI Cooper SE (F56) | Elektro | Über das MINI-Portal eingerichtet. Schläft während des Ladens: Den Ladestand sendet es nur, wenn eine Ladung beginnt und wenn sie endet. Vor 0.9.22 wurde dadurch jede Ladung mit etwa 2 % des Akkus gespeichert; jetzt zählt sie ganz ([#180](https://github.com/JustChr/BavarianData/discussions/180)). Das bisher gesehene sendete **keinen Reifendruck**, obwohl die Sensoren verbaut sind. |
 
@@ -59,7 +59,8 @@ CarData sollte funktionieren; die Liste zeigt nur, was schon gesehen wurde.
 - **Welche Felder ankommen.** BMWs Katalog hat [Hunderte Deskriptoren](DE-Reference),
   und kein Auto sendet alle. Mit
   [`get_coverage_report`](DE-Services-Reference#get_coverage_report) siehst du,
-  welche der ausgewählten dein Auto tatsächlich liefert.
+  welche der ausgewählten dein Auto tatsächlich liefert, und
+  [warum ein gelistetes Feld nie ankommen kann](DE-Troubleshooting-and-FAQ#field-never-arrives).
 - **Wie oft.** Manche Autos senden einen Wert nur, wenn er sich ändert, andere
   wiederholen im Wachzustand alles etwa alle halbe Minute. Ein geparktes Auto
   kann stundenlang still sein; das ist normal.
