@@ -58,6 +58,7 @@ from .history.energy_mix import (
     MixAccumulator,
     supply_shares,
 )
+from .history.held_energy import HeldEnergy
 from .history.sessions import (
     SessionBuilder,
     energy_ceiling_kwh,
@@ -522,6 +523,9 @@ class CardataCoordinator:
     # a solar share is worth having with no tariff set, and a tariff is worth
     # having with no PV.
     _session_mixes: Dict[str, MixAccumulator] = field(default_factory=dict, init=False)
+    # What the SoC ceiling is holding back per open session, with the mix and
+    # price each increment arrived at (see ``history/held_energy.py``).
+    _session_held: Dict[str, HeldEnergy] = field(default_factory=dict, init=False)
     # VINs whose in-progress charge was restored from the store at startup and
     # has not yet been confirmed either way by the stream. Present means "we
     # believe a charge is running but haven't heard from BMW since the restart";
@@ -1141,16 +1145,53 @@ class CardataCoordinator:
         after = self._bounded_session_wh(vin, raw_after)
 
         self._energy_session_wh[vin] = after
+        # The whole increment is booked, at this instant's mix and price; the
+        # ceiling only decides how much of it is released into the session.
+        self._record_energy_delta(vin, now, power_w, wh / 1000.0)
         gained = after - before
         if gained <= 0:
-            # The ceiling is holding the total where it is. The curve still wants
-            # the sample -- the car really did report that power -- but no energy
-            # is billed, because none of it reached the battery.
-            self._sample_power_curve(vin, now, power_w)
             return False
         self._energy_lifetime_wh[vin] = self._energy_lifetime_wh.get(vin, 0.0) + gained
-        self._record_energy_delta(vin, now, power_w, gained / 1000.0)
+        self._release_held_energy(vin, gained / 1000.0)
         return True
+
+    def _settle_session_energy(self, vin: str) -> None:
+        """Release what the session's latest SoC makes room for, one last time.
+
+        The integration only releases energy while the car is charging, but a
+        car that sleeps through its charge sends its new SoC in the same batch
+        as the status that ends it -- the ceiling rises after the last step that
+        could have used it. A MINI Cooper SE filed every charge at the 2 %
+        margin that way, 0.6 kWh for a 15 kWh night (#180). So the close looks
+        once more. Only against a ceiling: one that cannot be computed (no SoC
+        from this session) never releases a raw total it never checked.
+        """
+
+        raw = self._energy_session_raw_wh.get(vin)
+        if raw is None or self._session_energy_ceiling_wh(vin) is None:
+            return
+        before = self._energy_session_wh.get(vin, 0.0)
+        after = self._bounded_session_wh(vin, raw)
+        gained = after - before
+        if gained <= 0:
+            return
+        self._energy_session_wh[vin] = after
+        self._energy_lifetime_wh[vin] = self._energy_lifetime_wh.get(vin, 0.0) + gained
+        self._release_held_energy(vin, gained / 1000.0)
+        if debug_enabled():
+            _LOGGER.debug(
+                "[charge] %s SETTLE +%s kWh at close (soc %s -> %s)",
+                vin,
+                round(gained / 1000.0, 3),
+                self._energy_session_soc.get(vin),
+                self._session_soc_percent(vin),
+            )
+        async_dispatcher_send(self.hass, self.signal_energy, vin)
+
+    def _release_held_energy(self, vin: str, kwh: float) -> None:
+        held = self._session_held.get(vin)
+        if held is not None:
+            held.release(kwh, self._session_mixes.get(vin), self._session_costs.get(vin))
 
     def _bounded_session_wh(self, vin: str, raw_wh: float) -> float:
         """The raw running total, held to what the pack can have absorbed."""
@@ -1228,6 +1269,9 @@ class CardataCoordinator:
         figure is used instead") true of the cost and not only of the total.
         Billing the session's grid figure at close instead would price the whole
         charge at whatever the tariff happened to be when the plug came out.
+
+        Booked into the held pool, not the session: the SoC ceiling decides
+        afterwards how much of it the session gets (:meth:`_release_held_energy`).
         """
 
         self._sample_power_curve(vin, now, power_w)
@@ -1244,16 +1288,17 @@ class CardataCoordinator:
             loss_percent=self.pricing_for(vin).loss_percent,
         )
         builder = self._session_builders.get(vin)
+        held = self._session_held.get(vin)
         # Away from home the house's meters and tariff describe the house, not
         # this charge: no mix, no cost (see ``house_supplies_this_session``).
         if builder is None or house_supplies_this_session(builder.location, self._home_zone_name()):
-            # One sample of the house's meters serves both the mix and the cost,
-            # so the two can never describe different instants.
-            mix = self._session_mixes.get(vin)
-            split = {} if mix is None else mix.add(billable, self._supply_shares())
-            accumulator = self._session_costs.get(vin)
-            if accumulator is not None:
-                self._bill_split(accumulator, billable, split)
+            if held is not None:
+                # One sample of the house's meters serves both the mix and the
+                # cost, so the two can never describe different instants.
+                split = held.hold(kwh, billable, self._supply_shares())
+                self._bill_split(held.cost, billable, split)
+        elif held is not None:
+            held.hold(kwh, None, None)
         if builder is not None:
             builder.note_grid_meter(meter_now)
 
@@ -1481,6 +1526,7 @@ class CardataCoordinator:
         )
         self._session_costs[vin] = CostAccumulator(currency=self.pricing.currency)
         self._session_mixes[vin] = MixAccumulator()
+        self._session_held[vin] = HeldEnergy(currency=self.pricing.currency)
         # Where the wallbox meter stood when the charge began. Taken here, at
         # the transition, rather than at the first energy sample -- which can be
         # minutes later, by which time the meter has already counted kilowatt-
@@ -1542,6 +1588,8 @@ class CardataCoordinator:
         snapshot["cost"] = None if accumulator is None else accumulator.to_dict()
         mix = self._session_mixes.get(vin)
         snapshot["mix"] = None if mix is None else mix.to_dict()
+        held = self._session_held.get(vin)
+        snapshot["held"] = None if held is None else held.to_dict()
         # The counters live on the coordinator, not on the builder (they exist
         # even with history switched off), so they have to ride along or a
         # resumed session would integrate from zero.
@@ -1592,6 +1640,9 @@ class CardataCoordinator:
                 snapshot.get("cost"), currency=self.pricing.currency
             )
             self._session_mixes[vin] = MixAccumulator.from_dict(snapshot.get("mix"))
+            self._session_held[vin] = HeldEnergy.from_dict(
+                snapshot.get("held"), currency=self.pricing.currency
+            )
             energy_wh = _snapshot_float(snapshot.get("energy_wh")) or 0.0
             self._energy_session_wh[vin] = energy_wh
             self._energy_session_raw_wh[vin] = (
@@ -1782,9 +1833,12 @@ class CardataCoordinator:
             )
 
     def _close_session_record(self, vin: str, status: str, *, at: Optional[datetime] = None):
+        self._settle_session_energy(vin)
         builder = self._session_builders.pop(vin, None)
         accumulator = self._session_costs.pop(vin, None)
         mix = self._session_mixes.pop(vin, None)
+        # Whatever is still held, the pack's SoC never accounted for.
+        self._session_held.pop(vin, None)
         # Whatever happens below, this charge is no longer in progress: the
         # snapshot has to go even when there is no history to file the record in,
         # or the next start would resurrect it.

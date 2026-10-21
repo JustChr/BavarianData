@@ -14,6 +14,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   on Miles, the GPS altitude sensor switched too and read 0.11 mi instead of
   178 m. Only road distances and speeds follow the choice now, and an altitude
   already switched goes back to meters by itself.
+- **A car that sleeps while charging gets its whole charge recorded** (#180).
+  Some cars, a MINI Cooper SE among them, report the state of charge only at
+  the start of a charge and again with its end. Each such charge was filed at
+  about 2 % of the pack (0.6 kWh for a 15 kWh night), with almost nothing in the
+  solar, home-battery and grid split. The charge now counts in full, and the
+  split and cost follow when each part was charged, so a night charge is still
+  grid if the car wakes after sunrise. Charges already stored keep their old
+  figure.
 
 ## [0.9.22-beta.1] - 2026-10-20
 

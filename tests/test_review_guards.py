@@ -665,8 +665,9 @@ def test_the_source_mix_is_sampled_with_the_cost() -> None:
     from the price would let the cost and the solar share contradict each other.
     """
 
+    # Booked into the held pool (#180), which the ceiling releases from later.
     source = _function_source(_PKG / "coordinator.py", "_record_energy_delta")
-    assert "_session_mixes" in source and "_supply_shares" in source, (
+    assert "held.hold(" in source and "_supply_shares" in source and "held.cost" in source, (
         "_record_energy_delta no longer attributes the increment it is billing. "
         "The source mix has to be sampled on the same energy delta as the cost."
     )

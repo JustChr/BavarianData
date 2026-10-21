@@ -41,6 +41,12 @@ from a genuinely slow charge. The bound applies to the total rather than to each
 step, so a charge held back while a SoC reading is pending recovers in full the
 moment it lands. Where SoC or capacity is unknown, no bound applies.
 
+That includes a car that sleeps through its charge and sends the new level only
+with the end of it: the charge is settled against that reading once more when it
+closes. The energy held back keeps the solar, home-battery and grid split and the
+price of the moment it was charged, so a night charge released at sunrise is
+still counted as grid.
+
 The bound needs a SoC reading **taken during the session**. Not every car streams
 one: where the only state of charge available comes from the REST snapshot it
 never changes between charges, and a rise of zero would bound every session at
