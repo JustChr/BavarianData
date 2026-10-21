@@ -297,6 +297,38 @@ def energy_ceiling_kwh(
     return (gained + margin_percent) / 100.0 * capacity_kwh
 
 
+def meter_energy_bound_kwh(
+    metered_kwh: Optional[float],
+    soc_start: Optional[float],
+    soc_now: Optional[float],
+    capacity_kwh: Optional[float],
+) -> Optional[float]:
+    """The wallbox meter's count so far as a session's bound, or ``None``.
+
+    At home with a meter bound, the meter is the better bound than SoC: it
+    measures the charge instead of inferring it. A car that reports no SoC
+    while it charges held its session to the SoC ceiling's bare margin until
+    the end, and twelve of the maintainer's 42 metered charges were filed
+    short that way (1.54 kWh for a charge the meter counted 3.82); the other
+    way round, power held across an outage that cut the wallbox claimed what
+    the meter never delivered (3.85 kWh for 3.44).
+
+    ``None`` -- leaving the SoC ceiling in charge -- while the meter has
+    counted nothing, and when it counted less than the SoC rise proves: one
+    whole percent below the rise, since SoC arrives in whole percents. That
+    is a meter that is stuck or measures something else, and it must not
+    shrink the charge to its own figure.
+    """
+
+    if metered_kwh is None or metered_kwh <= 0:
+        return None
+    if soc_start is not None and soc_now is not None and capacity_kwh and capacity_kwh > 0:
+        proven_kwh = max(0.0, soc_now - soc_start - 1.0) / 100.0 * capacity_kwh
+        if metered_kwh < proven_kwh:
+            return None
+    return metered_kwh
+
+
 def _is_late_start(soc_before: Optional[float], soc_start: Optional[float]) -> bool:
     """True when the pack was already fuller at open than we last saw it.
 
@@ -435,6 +467,13 @@ class SessionBuilder:
         self.meter_shared = True
         self.grid_meter_start = None
         self.grid_meter_last = None
+
+    def metered_so_far_kwh(self) -> Optional[float]:
+        """What the meter has counted since the session opened, unchecked."""
+
+        if self.grid_meter_start is None or self.grid_meter_last is None:
+            return None
+        return self.grid_meter_last - self.grid_meter_start
 
     def measured_grid_kwh(self, *, battery_kwh: Optional[float] = None) -> Optional[float]:
         """The meter's verdict on this session, or ``None`` if unusable.
