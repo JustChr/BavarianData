@@ -375,3 +375,120 @@ def test_jerrys_two_drives_replay_to_two_whole_trips():
     assert (out.distance_km, back.distance_km) == (15, 14)
     assert (out.soc_start, out.soc_end) == (67, 61)
     assert (back.soc_start, back.soc_end) == (61, 54)
+
+
+# --- readings that land after the close ---------------------------------------
+
+
+def _drive_with_odometer(h: CoordinatorHarness, start: float, fixes: int, *, odometer: float):
+    """A drive at a fix a minute, the odometer one km on with every fix."""
+
+    here = HOME
+    for i in range(1, fixes + 1):
+        here = (HOME[0] + i * 0.009, HOME[1])  # ~1 km
+        h.send(start + i, odometer=odometer + i)
+        h.fix(start + i + 2 / 60, *here)
+    return here, odometer + fixes
+
+
+def test_an_odometer_tick_after_the_close_still_counts(h):
+    """The i5, 15 Oct: the last km arrived 52 s after the door ended the trip.
+
+    The trip was already stored without it, and the next trip started from the
+    new reading, so that kilometre belonged to no trip at all.
+    """
+
+    h.send(1, odometer=100, soc=70)
+    h.fix(2, *HOME)  # parked
+    h.send(3, door=False)
+    here, odometer = _drive_with_odometer(h, 3, 10, odometer=100)
+    h.send(14, door=True)  # arrived
+    h.fix(14.5, *here)  # standing: the trip closes here
+    h.send(15, odometer=odometer + 1, soc=63)  # the final km and SoC, late
+    h.fix(15.5, *here)
+    h.advance_to(40)
+
+    (trip,) = h.trips()
+    assert trip.distance_km == 11
+    assert trip.soc_end == 63
+
+
+def test_a_late_tick_with_no_fix_after_it_still_counts(h):
+    """A car that goes to sleep after its last odometer tick sends no fix."""
+
+    h.send(1, odometer=100)
+    h.fix(2, *HOME)
+    h.send(3, door=False)
+    here, odometer = _drive_with_odometer(h, 3, 10, odometer=100)
+    h.send(14, door=True)
+    h.fix(14.5, *here)
+    h.send(15, odometer=odometer + 1)  # and then silence
+    h.advance_to(40)
+
+    (trip,) = h.trips()
+    assert trip.distance_km == 11
+
+
+def test_a_quick_departure_is_not_a_late_tick(h):
+    """A snapshot car leaving again: the odometer lands ahead of the moving fix.
+
+    Those km are the new drive's, not a late reading of the one just closed.
+    """
+
+    _snapshot(h, 1, HOME, odometer=100, soc=70)
+    h.send(2, door=False)
+    here = HOME
+    for i in range(1, 4):
+        here = (HOME[0] + i * 0.02, HOME[1])
+        _snapshot(h, 2 + i * 3, here, odometer=100 + i * 3, soc=70 - i)
+    _snapshot(h, 12, here, odometer=109, soc=67, door=True)  # arrived
+    _snapshot(h, 12 + 4 / 60, here, odometer=109, soc=67, door=False)
+    h.advance_to(20)  # closed
+    there = (here[0] + 0.02, here[1])
+    _snapshot(h, 21, there, odometer=112, soc=66)  # off again
+    _snapshot(h, 24, (there[0] + 0.02, there[1]), odometer=115, soc=65)
+    _snapshot(h, 27, (there[0] + 0.02, there[1]), odometer=115, soc=65)  # parked
+    h.advance_to(50)
+
+    first, second = sorted(h.trips(), key=lambda t: t.start)
+    assert first.distance_km == 9
+    assert second.distance_km == 6
+
+
+def test_a_door_opened_at_a_barrier_does_not_split_the_drive(h):
+    """The driver reaches out at a car park barrier, then drives on.
+
+    The door opens seconds after the car stopped and a fix shows it standing,
+    but nothing yet says the drive is over.
+    """
+
+    h.send(4, door=False)
+    here = _drive(h, 5, 10)
+    h.send(25 + 3 / 60, door=True)  # three seconds after the last move
+    h.fix(25 + 8 / 60, *here)  # standing at the barrier
+    h.send(25 + 20 / 60, door=False)
+    there = _drive(h, 26, 5, origin=here)
+    h.fix(38, *there)  # parked
+    h.advance_to(60)
+
+    (trip,) = h.trips()
+    assert trip.end >= h.at(36)
+
+
+SEGMENT_DISTANCE = "vehicle.trip.segment.end.travelledDistance"
+
+
+def test_a_stale_segment_distance_is_not_this_trips(h):
+    """BMW's last trip distance, stamped before this trip began, is another trip's.
+
+    A short hop that doesn't tick the odometer falls back to BMW's own segment
+    distance -- which, if BMW hasn't sent this trip's yet, is the previous one.
+    """
+
+    h.send(1, odometer=100, extra={SEGMENT_DISTANCE: 25.0})  # last week's drive
+    here = _drive(h, 5, 2, step=0.003)  # ~0.8 km
+    h.fix(10, *here)  # parked
+    h.advance_to(30)
+
+    (trip,) = h.trips()
+    assert trip.distance_km is not None and trip.distance_km < 2

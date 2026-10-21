@@ -34,7 +34,10 @@ sie zeigen also Fahrzeiten und keine Erkennungszeiten:
 Strecke und Start-Ladestand zählen immer ab dem geparkten Auto. Manche Autos, etwa
 der i4, melden sich während der Fahrt nur alle paar Minuten, die erste Meldung in
 Bewegung kommt also erst nach ein paar Kilometern. Diese Kilometer gehören trotzdem
-zur Fahrt.
+zur Fahrt. Auch der letzte Kilometer oder ein letzter Rückgang des Ladestands kann
+erst eine Minute nach dem Ende der Fahrt ankommen. Kommt er innerhalb von fünf
+Minuten und hat sich das Auto seitdem nicht bewegt, wird er dieser Fahrt
+zugerechnet.
 
 Beides bleiben Schätzungen, begrenzt dadurch, wie oft dein Auto seine Position
 meldet: Eine lange Lücke im Stream ist eine lange Lücke im Wissen.

@@ -34,7 +34,9 @@ that, so they read as driving times rather than detection times:
 The distance and the starting charge always count from the parked car. Some
 cars, such as the i4, report only every few minutes while driving, so their
 first report on the move comes a few kilometers into the drive. Those
-kilometers still belong to the trip.
+kilometers still belong to the trip. The last kilometer, or a final drop in the
+charge, can also arrive a minute after the trip has ended. If it comes within
+five minutes and the car hasn't moved since, it is added to that trip.
 
 Both are still estimates bounded by how often your car reports its position: a
 long gap in the stream is a long gap in what can be known.
