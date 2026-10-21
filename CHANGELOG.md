@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.22-beta.2] - 2026-10-21
+
 ### Fixed
 - **Miles no longer turn the car's altitude into miles.** With Configure → Units
   on Miles, the GPS altitude sensor switched too and read 0.11 mi instead of
