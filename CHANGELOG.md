@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.22-beta.6] - 2026-10-22
+
 ### Fixed
 - **Home charges billed short before beta.4 now say their cost is partial
   (#197, thanks @erwinweiss1955 for the analysis).** With a wallbox meter, a
