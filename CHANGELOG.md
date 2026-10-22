@@ -9,8 +9,312 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.22] - 2026-10-22
+
+Promotes 0.9.21-beta.1 to 0.9.22-beta.6. Two cars on one account work properly, petrol, diesel and plug-in hybrid cars get a Fuel view, Assist's AI agents can answer questions about the car, and one Units screen sets km or miles for everything. With a wallbox meter, home charges, their solar split and their cost now match what the meter counted, and trips match the odometer.
+
+### Added
+- **Every BavarianData event names the car** (0.9.21-beta.1). The charging, zone, situation and
+  vehicle-report events (and device triggers) carry `vehicle`, the car's name as
+  BMW reports it, so a notification can say which car without a lookup.
+- **`charging_stopped` says whether the charge reached its target** (0.9.21-beta.1)
+  (`complete`), and a charge that reached it while Home Assistant was restarting
+  now fires `charging_complete` too. The blueprint below reads that field, so it
+  and your own automations agree on what "complete" means.
+- **A sold car can be deleted** (0.9.21-beta.1). Its device now has **Delete** (Settings →
+  Devices & services → Devices → the car → ⋮). Deleting it removes everything
+  BavarianData kept for that car: charging and trip history, odometer log, tire
+  diagnosis, long-term statistics, pictures, its own settings and any retained
+  evcc topics. The other cars are untouched.
+- **A repair tells you when BMW no longer lists a car for your account** (0.9.21-beta.1), found
+  by *Discover vehicles*, so its frozen entities don't go unexplained.
+- **A Fuel view for petrol, diesel and plug-in hybrid cars** (0.9.21-beta.3) (`view: fuel`).
+  It shows the tank now, the average consumption over the last 12 months, the
+  distance and fuel since the last refuel, and every refuel with the
+  consumption over the stretch it closed. There is no pump receipt to read, so
+  a refuel is recognised by the tank itself: a rise of at least 5 L while the
+  car stands still. The tank is only accurate to a few liters, so figures need
+  at least 150 km between refuels, and the average over several is the one to
+  trust. On a petrol or diesel car the Charging and Efficiency views now show
+  it instead of "Nothing to show for this car". The log starts with this
+  update, so the first figure needs two refuels. New service
+  `bavariandata.get_fuel_history`; no API quota.
+- **BMW's own lifetime consumption, where the car sends it** (0.9.21-beta.3). Cars
+  type-approved in the EU since about 2021 keep counters of fuel burnt and grid
+  energy charged, split by whether the engine ran. A plug-in hybrid's
+  Efficiency view now shows its electric consumption with the engine off, the
+  share driven electrically and its fuel per 100 km from them, instead of only
+  explaining why the charging history can't give one. The Fuel view shows the
+  lifetime l/100 km too. `get_efficiency` returns them as `bmw_lifetime`.
+- **Six new automation triggers** (0.9.21-beta.5). Pick them under **Device** in the
+  automation editor. Each is listed only if your car sends what it needs.
+  - **Trip ended (anywhere):** fires for every recorded drive, not only for one
+    that ends in a zone, with the drive's distance, duration, energy and where
+    it went.
+  - **Parked with a window open:** a window or the sunroof stands open, or
+    partly open, after the drive is over, for as long as you choose (10
+    minutes unless you change it).
+  - **Preconditioning started / finished:** the car starts or stops heating or
+    cooling itself, with BMW's reason if it could not run (low battery, for
+    example).
+  - **Alarm went off:** the anti-theft alarm starts sounding. Tested against
+    recorded data only, as no car with this integration has set its alarm off
+    yet.
+  - **New Check Control message:** a warning appears that the car did not show
+    before, with its text. These warnings come with the data fetched from BMW,
+    never on the live stream, so a new one shows up at the next fetch.
+- **The same moments as events** (0.9.21-beta.5), for YAML and Node-RED: `bavariandata_trip_ended`,
+  `bavariandata_preconditioning`, `bavariandata_alarm`,
+  `bavariandata_check_control`, and `parked_window_open` in
+  `bavariandata_situation`. A restart, BMW's cached answers and a replayed old
+  value start none of them.
+- **New blueprint: car left open at night** (0.9.21-beta.7). At bedtime it checks that the car
+  is locked and its doors, windows, sunroof, tailgate and hood are shut, and
+  tells you what isn't. Import `car_left_open.yaml` from the blueprints folder;
+  see *Automations → Starter blueprints* in the wiki.
+- **Charging places** (0.9.21-beta.7). The card's charging view has a new **Places** tab: every
+  place the car has charged at, with its visits, AC or DC, the average power you
+  actually got and the typical stop. Tap a place for its best visit, minutes per
+  10 %, preconditioned vs. not, and the power curves of its latest visits. Built
+  from your recorded charges, so it costs no API quota; the new
+  `get_charging_places` service returns the same for automations.
+- **Remember charging locations** (0.9.21-beta.7) (*Configure → Charging costs & history*, off by
+  default) keeps where each charge happened, so the Places tab can show a map.
+  Turning it off deletes every stored coordinate. DC charging and BMW's operator
+  names haven't been seen on real car data yet; diagnostics from your car help.
+- **Ask your AI assistant about the car, with no setup** (0.9.21-beta.8). BavarianData now
+  offers its own tools to Assist's AI conversation agents (and Home
+  Assistant's MCP server): car status (battery, charging, range, zone, what's
+  open), a range check for a drive, charging history, the driving month,
+  mileage and lease, and efficiency. Tick **BavarianData** under *Control Home
+  Assistant* in your agent's settings. No API quota; the VIN, the car's
+  position and trip ids never reach the AI. The three copy-paste scripts the
+  wiki used to describe are no longer needed.
+- **Configure → Units: kilometers or miles, once, for everything** (0.9.22-beta.1) (#183,
+  thanks @jeswick23).
+  One account-wide screen picks the distance unit, how fuel is shown (liters
+  and l/100 km, liters and imperial mpg, or US gallons and US mpg), and the
+  temperature and tire-pressure units. Each starts on **Automatic**, which is
+  what you had before: for distance, the unit your odometer sensor is shown in,
+  then the car's own setting, then Home Assistant's unit system. A choice
+  applies to every card view, the settings screens, the service calendar, the
+  month report and Assist, and sets the display unit of the car's sensors in
+  Home Assistant too. Back on Automatic, a unit you picked on a sensor yourself
+  stays. Everything recorded stays metric (trips, sessions, the odometer log and
+  each sensor's native unit), so switching never touches your history; CSV
+  exports, service responses and attributes stay metric as well.
+
+### Changed
+- **With two cars, a service that acts on one car asks which** (0.9.21-beta.1). Calling, say,
+  `get_mileage_report` or `fetch_tyre_diagnosis` without naming a car used to
+  answer for whichever car had streamed first since the restart. It now stops
+  with an error that lists your cars. Every such service has a new **Vehicle**
+  picker, and picking a car also picks its account; `vin` and `entry_id` still
+  work. Services that read every car (`fetch_telematic_data`,
+  `get_charging_sessions`, `get_trips`, `get_coverage_report`,
+  `import_statistics`) still read them all. With one car nothing changes.
+- **A service call that can't run now fails instead of looking done** (0.9.21-beta.1). An
+  unknown VIN, two accounts and no car named, no quota left, no valid token or
+  a request BMW refused used to write a line to the log while the automation carried on as if it had
+  worked (the `get_*` services answered with an empty list). The automation now
+  stops with that message.
+- **Each account is named after its cars** (0.9.21-beta.1). The integration entry was titled
+  *BavarianData: Connect Home Assistant to BMW CarData (ab12cd34)*, and eight
+  characters of the client ID were all that told two accounts apart. It now
+  takes its cars' names (*i5 eDrive40, iX1 xDrive30*) once BMW reports them, and
+  follows when a car is added. An entry you renamed keeps your name.
+- **The account's device is called *BMW CarData*** (0.9.21-beta.2). It was *CarData
+  Debug Device*. The integration entry keeps its cars' names, which is what
+  tells two accounts apart. Entity IDs don't change.
+- **No "☀ 0% solar" tag on a night charge** (0.9.21-beta.3). A charge with no solar in it
+  carries no tag on the card; expanding it still shows where the energy came
+  from.
+- **The month report says what its solar share is a share of** (0.9.21-beta.3). "From own solar
+  76 %" sat beside the month's 197 kWh but was a share of only the 99 kWh whose
+  source was measured (charges from before the house sensors were set up have
+  none). The tile now reads *75 of 99 kWh measured* under the percentage.
+- **The month report writes numbers the way your language does** (0.9.21-beta.3). It printed
+  energy to three decimals with a dot in every language, so a German report
+  said *297.752 kWh*, which reads as almost three hundred thousand. Figures now
+  have one decimal (money two) and a decimal comma outside English. The CSV
+  files keep the dot, so scripts and spreadsheets read them as before.
+- **Petrol and diesel cars no longer get BMW's battery fields as entities** (0.9.21-beta.3).
+  BMW streams some of them to cars with no high-voltage battery: the battery
+  level at each trip's end and the share of electric driving (a G42 M240i), the
+  EV charge target (an F87 M2), the charging port. They never mean anything
+  there; existing ones are removed on the first start after updating.
+- **BMW's basic data now names the drivetrain** (0.9.21-beta.3). It says `CONV` for a combustion
+  car and `PHEV` for a plug-in hybrid, and both now count, not only `BEV`. A
+  petrol MINI that streams no fuel data at all (thanks @BeastleeUK, #100) now
+  gets the combustion layout, its range in the ring, and the battery views tell
+  it why they are empty.
+
 ### Fixed
-- **Night charges get their solar/grid split again.** Many inverters go
+- **Removing the integration also deletes its cars' pictures** (0.9.21-beta.1). They are kept
+  in a store all accounts share, which nothing ever cleaned up.
+- **Two cars charging on one wallbox meter no longer each bill all of it** (0.9.21-beta.1). The
+  state-of-charge estimate already refused a meter two charging cars share, but
+  each session still took the meter's whole advance as its energy and cost, so
+  the kWh were counted twice. While both charge at home on the same meter, each
+  session now uses its own battery-side figure, as it would without a meter.
+  This now also covers a car of a second account (a BMW and a MINI on one
+  wallbox), and a car charging elsewhere no longer blocks the meter for the one
+  at home. One wallbox for several cars stays the normal case: the meter counts
+  for whichever car is charging. A car that was charging when Home Assistant
+  restarted holds the meter for at most 15 minutes if it doesn't confirm,
+  instead of until it next reports, which a car done charging may not do for
+  hours.
+- **Blueprint *Notify when charging completes*: one message, the car named, a
+  car filter** (0.9.21-beta.1). With *Only when target reached* off, a charge that reached its
+  target sent two messages. Now it sends one, the title names the car (*i5
+  eDrive40: charging complete*), and a new **Cars** input limits it to the cars
+  you pick. Re-import the blueprint to get the fix.
+- **Quota and stream repairs say which account they mean** (0.9.21-beta.1). With two accounts
+  the *API quota exhausted*, *stream not authorized* and *no stream data*
+  repairs looked identical; their title now names the account.
+- **One reauthorization notice, not two** (0.9.21-beta.1). Next to Home Assistant's own notice,
+  BavarianData posted a second one in English that named no account. Home
+  Assistant's notice and its reauthorize card (which shows the account's name)
+  remain.
+- **Configure → Fetch from BMW now fetches every car** (0.9.21-beta.1). The tire diagnosis,
+  charging history, location-based charging settings and BMW's own vehicle
+  picture were fetched for one car only on an account with two. They now ask
+  for each car (one request per car), and a refusal, such as the day's quota
+  being used up, shows on the screen instead of an unknown error.
+- **The log no longer shows your full VIN when a BMW request fails** (0.9.21-beta.1). The
+  message masked it, but the request address quoted after it still carried it,
+  and since BMW refuses the service items (16 October) that warning appears
+  once a day for every car. If you attached a log to an issue, check it for
+  your VIN.
+- **The fetch services accept only a car of your account** (0.9.21-beta.1). A mistyped VIN
+  was sent to BMW anyway and spent one of the day's 50 requests; it now stops
+  with an error before asking BMW.
+- **Blueprint *Car arriving home soon* works with Proximity** (0.9.21-beta.1). Home Assistant's
+  Proximity sensor reports in metres, so a threshold of 5 meant 5 m and the
+  blueprint fired only on the doorstep, if at all. A distance in metres (or
+  feet) is now converted, and the threshold is in km (or mi) as the blueprint
+  says. Re-import the blueprint to get the fix.
+- **Setup and Configure screens name the right button in five languages** (0.9.21-beta.1). The
+  text said to press a button Home Assistant doesn't show: German *Absenden*
+  (the button reads **OK**), Dutch *Verzenden* (**Verzend**), Portuguese
+  *Submeter* (**Enviar**) and Swedish *Skicka* (**Bekräfta**). Dutch and Czech
+  hints pointing to the Configure menu now use Home Assistant's own word for it
+  (**Configureer**, **Nastavit**).
+- **The account's four sensors have names of their own** (0.9.21-beta.2). They showed only as
+  the device's name, since well before v0.9.20. They are now *Stream connection
+  status*, *Last message received*, *Last telematics API call* and *API quota
+  remaining*, in your language. Entity IDs don't change.
+- **The lifetime fuel counters keep long-term statistics** (0.9.21-beta.3). They were classed
+  as fuel *in a tank*, a class Home Assistant only allows as a measurement, so
+  it refused their counting-up state class and logged a warning on every start.
+  They are now consumed volumes. The tank's own reading falls back to liters
+  when the car sends no unit, and a spelled-out *liters* is understood.
+- **"Last Telematics API Call" no longer jumps back after a restart** (0.9.21-beta.4). It
+  showed the time of the last daily refresh, so a catch-up fetch after a start
+  or a stream outage vanished from it with the next restart. It now shows the
+  latest call of either kind. Nothing was fetched twice; only the sensor was
+  wrong.
+- **The live stream comes back after BMW refuses a quick reconnect** (0.9.21-beta.4). BMW
+  sometimes refuses a reconnect made within seconds of a disconnect. The retry
+  that should have followed failed instead, so the stream could stay down
+  until the next login renewal, up to about 45 minutes, with no data in
+  between.
+- **No more deprecation warnings from Home Assistant 2026.10 in the log** (0.9.21-beta.5). A
+  service call that named a car looked its device up in a way Home Assistant
+  now reports (it would stop working in 2027.8 and 2027.10), and a car whose
+  basic data carried a number where text belongs would have been reported too.
+  Older Home Assistant versions keep working as before.
+- **No more tire sensors stuck on "unknown" for cars without tire data** (0.9.21-beta.6). Some
+  cars, such as older models with no tire service record, get an answer from
+  BMW that holds nothing but placeholder values. BavarianData no longer creates
+  the overall tire condition and four wheel sensors from that, and removes the
+  ones it already created on the next tire diagnosis or restart (#174).
+- **A short stop no longer counts as driving time** (0.9.21-beta.9). When the driver door opened
+  right as the car arrived, it was too soon to end the trip, and on a car whose
+  position stream goes quiet once parked nothing else ended it either — until
+  the driver got back in, and that moment became the trip's end. A three-minute
+  stop on the i5 was recorded as three more minutes of driving. The door is now
+  remembered as the arrival unless the car moves on, and it confirms the stop,
+  so the trip also closes on time instead of being held for up to half an hour.
+- **The diagnostics download no longer names the entities you picked in the
+  settings** (0.9.21-beta.9). The price sensor and the wallbox meter were already reduced to
+  "a sensor is set"; the PV, grid and house-battery sensors, the work zone and
+  the phone used for trips were written out in full, and a phone's name is
+  usually its owner's. They are now redacted the same way.
+- **Trips and Efficiency now follow your distance unit** (0.9.22-beta.1). On a UK install with
+  the odometer in miles, they still showed km and kWh/100 km beside a Mileage
+  view in miles. Consumption is now kWh/100 mi there, as in My BMW, and the
+  month report follows too. A petrol car in miles shows imperial mpg instead
+  of l/100 km.
+- **A car that sleeps while charging gets its whole charge recorded** (0.9.22-beta.2) (#180).
+  Some cars, a MINI Cooper SE among them, report the state of charge only at
+  the start of a charge and again with its end. Each such charge was filed at
+  about 2 % of the pack (0.6 kWh for a 15 kWh night), with almost nothing in the
+  solar, home-battery and grid split. The charge now counts in full, and the
+  split and cost follow when each part was charged, so a night charge is still
+  grid if the car wakes after sunrise. Charges already stored keep their old
+  figure.
+- **With a wallbox meter, a home charge is recorded as the meter counted it** (0.9.22-beta.3).
+  When the car sent no new state of charge while charging, the charge was held
+  to about 2 % of the pack until the end: on the maintainer's i5, 12 of 42
+  metered charges were stored short, one at 1.54 kWh where the wallbox counted
+  3.82. The other way round, a power cut that stopped the wallbox while the car
+  was out of reach was still counted at the car's last reported power. Now the
+  charge is never more than the meter counted, and no longer held to the state
+  of charge while the meter is counting. A meter that counts nothing, or far
+  less than the state of charge proves, is ignored. Charges already stored keep
+  their figure.
+- **With a wallbox meter, a home charge's solar/battery/grid split and its cost
+  add up to what the meter counted** (0.9.22-beta.4). Three gaps closed, all found on the
+  maintainer's i5:
+  - The split and the cost came up about 3.5 % short whenever the car reported
+    more power than the wallbox measured (the i5 reads ~4 % high): 18.92 of
+    19.60 kWh on one charge.
+  - A step where the meter hadn't moved was billed at the car's last reported
+    power instead of as nothing. Through a power cut that stopped the wallbox,
+    that billed energy that was never delivered; with a meter that updates
+    once a minute or less often, the same energy could be billed twice.
+  - The meter's last advance before the end of a charge wasn't billed, up to
+    a whole update interval of a slow meter, and every step lost a little to
+    rounding (0.3 % of a session).
+- **Trips on cars that report every few minutes are whole again (#183, thanks
+  @jeswick23 for the trip capture)** (0.9.22-beta.5). Some
+  cars, such as the i4, send their position, odometer and state of charge
+  together about every three minutes while driving, not every few seconds like
+  the i5. Two things went wrong on those cars:
+  - A trip started counting from the first update that showed the car moving,
+    already a few kilometers into the drive. One 15 km drive was stored as
+    12 km (7.5 mi against the My BMW app's 9.4), and its starting charge one
+    percent low. A trip now starts from the odometer and charge of the parked
+    car.
+  - On arrival, the driver's door arrives a second before the car's final
+    position. The door closed the trip, and that position then opened a second
+    trip, so one 14 km drive was stored as 12 km and 2 km. Now an open door
+    waits a few seconds for the rest of the update before it ends the trip.
+- **Trips no longer come up a kilometer or two short of the odometer** (0.9.22-beta.5). On the
+  maintainer's i5 the trips of two weeks added up to 44 km less than the
+  odometer moved (of about 835 km). Most of it should be the fix above: an i5
+  that takes a minute to send its first position on the move had the start
+  counted from there. Some arrived late: the i5 has sent the last kilometer of a
+  drive 52 s after the door opened on arrival, when the trip was already
+  stored. A kilometer or a lower charge that arrives within five minutes of the
+  end, with the car still standing, now goes to the trip it belongs to.
+- **A short trip no longer takes the previous trip's distance** (0.9.22-beta.5). When a hop
+  too short to move the odometer was stored, the distance BMW sends at the end
+  of a trip was used even if it was still the last trip's, so a 0.8 km hop
+  could be stored as 25 km. BMW's trip figures now count only when sent since
+  the trip began.
+
+  Trips already stored keep their figures.
+- **Home charges billed short by earlier versions now say their cost is partial
+  (#197, thanks @erwinweiss1955 for the analysis)** (0.9.22-beta.6). With a wallbox meter, a
+  car that reports more charging power than its charge level rises by had most
+  of its charge left out of the solar/grid split and the cost: one i4 charge
+  showed 3.81 € for 43 kWh, about 9.90 € short. The fix above covers new
+  charges; stored ones keep their figures, since the price of the missing
+  kilowatt-hours was never recorded, but they are now marked as a partial price
+  with the missing energy, in the charging list and in the month's total.
+- **Night charges get their solar/grid split** (0.9.22). Many inverters go
   offline at dusk, so the PV power sensor reads "unknown" all night. Every
   charge then had no split at all, and the month's solar share counted only
   daytime charges: 31.6 % on one i5 where the real figure was about 14 %.
