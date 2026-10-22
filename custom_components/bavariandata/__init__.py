@@ -611,6 +611,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     # And charges made away from home lose the house mix and tariff cost they
     # were given before #97. After the line above, so a zone it resolves counts.
     history_store.drop_house_figures_elsewhere()
+    # Metered charges whose mix and cost covered only part of the meter's count
+    # before #197 say so instead of passing for complete.
+    history_store.flag_unbilled_meter_energy()
     # With *Remember charging locations* off, no coordinates stay on disk --
     # after the zone repair above, which needs them one last time.
     if not history_store.remember_locations:

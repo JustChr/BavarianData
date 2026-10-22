@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 from typing import Any, Optional
 
 from .models import ChargingSession, _iso, _parse  # shared ISO (de)serialisation helpers
+from .pricing import PARTIAL_TOLERANCE
 
 # A point per minute is plenty to draw a charging curve, and keeps a typical AC
 # session well under a hundred points.
@@ -201,6 +202,37 @@ def drop_house_figures_elsewhere(session: ChargingSession) -> bool:
         session.cost = None
         changed = True
     return changed
+
+
+def flag_unbilled_meter_energy(session: ChargingSession) -> bool:
+    """Mark a stored metered charge's cost partial where its mix fell short.
+
+    The repair for records written before v0.9.22-beta.4 (#197): a car whose
+    power reading ran above its SoC ceiling had most of its steps billed as
+    nothing, so the mix and cost covered a fraction of the meter's count (39 %
+    of 43 kWh on one i4 charge) while the cost looked complete. The prices of
+    the missing steps were never recorded, so they are not invented now: the
+    shortfall becomes ``unpriced_kwh``, which the card and the month's total
+    already report as partial. Within :data:`PARTIAL_TOLERANCE` nothing
+    changes. Returns whether anything changed; idempotent.
+    """
+
+    cost = session.cost
+    if session.grid_source != "meter" or not session.grid_kwh or not session.energy_mix:
+        return False
+    if not cost or cost.get("source") != "tariff":
+        return False
+    billed = sum(v for k, v in session.energy_mix.items() if k != "solar_percent")
+    shortfall = round(session.grid_kwh - billed, 3)
+    if shortfall / session.grid_kwh <= PARTIAL_TOLERANCE:
+        return False
+    # ``max``, not a sum: energy already unpriced is part of the billed mix, and
+    # a second run must find nothing left to add.
+    unpriced = max(float(cost.get("unpriced_kwh") or 0.0), shortfall)
+    if cost.get("partial") and cost.get("unpriced_kwh") == unpriced:
+        return False
+    session.cost = {**cost, "partial": True, "unpriced_kwh": unpriced}
+    return True
 
 
 # How stale a snapshotted in-progress session may be and still be picked up as

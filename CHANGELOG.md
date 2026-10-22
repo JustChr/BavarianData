@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Home charges billed short before beta.4 now say their cost is partial
+  (#197, thanks @erwinweiss1955 for the analysis).** With a wallbox meter, a
+  car that reports more charging power than its charge level rises by had most
+  of its charge left out of the solar/grid split and the cost: one i4 charge
+  showed 3.81 € for 43 kWh, about 9.90 € short. Beta.4 fixed new charges; the
+  ones stored before keep their figures, since the price of the missing
+  kilowatt-hours was never recorded, but they are now marked as a partial price
+  with the missing energy, in the charging list and in the month's total.
+
 ## [0.9.22-beta.5] - 2026-10-21
 
 ### Fixed

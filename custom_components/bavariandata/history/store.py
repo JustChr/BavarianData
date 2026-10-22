@@ -28,7 +28,7 @@ from .cardata_history import (
     merge_cardata_sessions,
     session_from_cardata,
 )
-from .sessions import drop_house_figures_elsewhere
+from .sessions import drop_house_figures_elsewhere, flag_unbilled_meter_energy
 from .models import SCHEMA_VERSION, ChargingSession, merge_session, prune_sessions
 from .fuel import CHANGED_REFUEL
 from .fuel import note_reading as note_fuel_reading
@@ -282,6 +282,26 @@ class HistoryStore:
         if fixed:
             if debug_enabled():
                 _LOGGER.debug("[history] cleared house mix/cost from %s away charge(s)", fixed)
+            self.async_schedule_save()
+        return fixed
+
+    @callback
+    def flag_unbilled_meter_energy(self) -> int:
+        """Mark stored metered charges whose mix and cost fell short as partial.
+
+        Before v0.9.22-beta.4 most of a charge's metered kWh could go unbilled
+        (#197). The rule is :func:`sessions.flag_unbilled_meter_energy`.
+        Idempotent.
+        """
+
+        fixed = sum(
+            flag_unbilled_meter_energy(session)
+            for sessions in self._sessions.values()
+            for session in sessions
+        )
+        if fixed:
+            if debug_enabled():
+                _LOGGER.debug("[history] marked %s short-billed metered charge(s) partial", fixed)
             self.async_schedule_save()
         return fixed
 
