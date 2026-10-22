@@ -957,3 +957,51 @@ def test_the_repair_keeps_what_it_cannot_judge_or_did_not_invent():
     public = _stored({"zone": None, "address": "A9 Stammham"}, cost=billed)
     assert sessions.drop_house_figures_elsewhere(public) is False
     assert public.cost == billed
+
+
+# --- marking metered charges billed short before beta.4 (#197) ---------------
+
+
+def _metered(grid_kwh, mix, cost) -> ChargingSession:
+    session = _stored({"zone": "Home"}, cost=cost, mix=mix)
+    session.grid_kwh = grid_kwh
+    session.grid_source = "meter"
+    return session
+
+
+def test_a_metered_charge_billed_short_is_marked_partial():
+    """The reporter's i4 on 21 Oct: 43.09 kWh metered, a mix of 16.63."""
+
+    cost = {"amount": 3.81, "currency": "EUR", "source": "tariff"}
+    session = _metered(43.087, {"pv": 0.111, "grid": 16.523, "solar_percent": 0.7}, cost)
+    assert sessions.flag_unbilled_meter_energy(session) is True
+    assert session.cost == {**cost, "partial": True, "unpriced_kwh": 26.453}
+    assert sessions.flag_unbilled_meter_energy(session) is False  # idempotent
+    assert session.cost["unpriced_kwh"] == 26.453
+
+
+def test_unpriced_energy_already_recorded_is_not_counted_twice():
+    cost = {"amount": 1.0, "currency": "EUR", "source": "tariff", "partial": True}
+    session = _metered(20.0, {"grid": 10.0, "solar_percent": 0.0}, {**cost, "unpriced_kwh": 4.0})
+    assert sessions.flag_unbilled_meter_energy(session) is True
+    assert session.cost["unpriced_kwh"] == 10.0
+    assert sessions.flag_unbilled_meter_energy(session) is False
+
+
+def test_the_meter_repair_leaves_complete_and_unmetered_charges_alone():
+    cost = {"amount": 5.69, "currency": "EUR", "source": "tariff"}
+    kept = [
+        # The maintainer's i5 before beta.4: 3.5 % short, inside the tolerance.
+        _metered(19.598, {"grid": 18.92, "solar_percent": 0.0}, cost),
+        _metered(25.54, {"grid": 25.59, "solar_percent": 0.0}, cost),
+        # BMW's own bill is not ours to judge.
+        _metered(43.0, {"grid": 16.0, "solar_percent": 0.0}, {**cost, "source": "bmw"}),
+        _metered(43.0, None, cost),
+    ]
+    no_meter = _metered(43.0, {"grid": 16.0, "solar_percent": 0.0}, cost)
+    no_meter.grid_source = None
+    kept.append(no_meter)
+    for session in kept:
+        before = dict(session.cost)
+        assert sessions.flag_unbilled_meter_energy(session) is False
+        assert session.cost == before

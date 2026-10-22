@@ -242,6 +242,10 @@ delivered. Two ways to reconcile:
 A session charged while the price was briefly unknown is flagged `partial`
 rather than silently understated. The month's cost is flagged `partial` too
 when it leaves out a charge with no cost at all, such as one away from home.
+Metered home charges stored before v0.9.22 can carry the flag as well: an
+older version left part of their energy out of the split and the cost, and
+since its price was never recorded, the missing kWh are listed as unpriced
+(`unpriced_kwh`) instead of guessed.
 
 ## Importing past charges from BMW
 

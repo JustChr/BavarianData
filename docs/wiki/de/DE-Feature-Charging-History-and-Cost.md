@@ -273,7 +273,11 @@ Netz geliefert hat. Zwei Wege, das auszugleichen:
 Ein Ladevorgang, während dem der Preis kurz unbekannt war, wird als `partial`
 markiert, statt stillschweigend zu niedrig auszufallen. Auch die Kosten des Monats
 werden als `partial` markiert, wenn sie eine Ladung ganz ohne Kosten auslassen,
-etwa eine unterwegs.
+etwa eine unterwegs. Auch gemessene Ladungen zu Hause, die vor v0.9.22
+gespeichert wurden, können so markiert sein: Eine ältere Version hat einen Teil
+ihrer Energie nicht in Aufteilung und Kosten übernommen. Weil der Preis dafür nie
+erfasst wurde, stehen die fehlenden kWh als nicht bepreist (`unpriced_kwh`) da,
+statt geschätzt zu werden.
 
 <a id="importing-past-charges-from-bmw"></a>
 
