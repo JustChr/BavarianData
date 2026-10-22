@@ -178,7 +178,9 @@ Two consequences worth knowing:
   energy lands in its own bucket, and a session where nothing could be
   attributed records no mix at all — because "we couldn't tell" and "none of it
   was solar" are different statements. The solar percentage is always a share of
-  what *could* be attributed.
+  what *could* be attributed. One exception: a PV sensor that reads unknown
+  while the sun is down (many inverters go offline at night) counts as 0 W, so
+  a night charge is still split between grid and house battery.
 
 ### What it costs
 
