@@ -9,6 +9,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Night charges get their solar/grid split again.** Many inverters go
+  offline at dusk, so the PV power sensor reads "unknown" all night. Every
+  charge then had no split at all, and the month's solar share counted only
+  daytime charges: 31.6 % on one i5 where the real figure was about 14 %.
+  When the sun is down (`sun.sun`), a missing PV reading now counts as 0 W.
+  By day a missing reading still leaves the split unknown. Charges already
+  stored stay as they are.
+
 ## [0.9.22-beta.6] - 2026-10-22
 
 ### Fixed

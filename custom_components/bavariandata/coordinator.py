@@ -4507,10 +4507,12 @@ class CardataCoordinator:
         battery_w = self._power_state_w(config.battery_power_entity)
         if battery_w is not None and config.battery_power_invert:
             battery_w = -battery_w
+        sun = self.hass.states.get("sun.sun")
         return supply_shares(
             pv_w=self._power_state_w(config.pv_power_entity),
             grid_w=self._power_state_w(config.grid_power_entity),
             battery_w=battery_w,
+            sun_down=sun is not None and sun.state == "below_horizon",
         )
 
     def _bill_split(

@@ -174,7 +174,7 @@ unter [Ladeverlauf & Kosten → Woher die Energie kam](DE-Feature-Charging-Histo
 
 | Option | Werte | Bedeutung |
 | --- | --- | --- |
-| **PV-Leistung** | Sensor (Leistung) | Gesamterzeugung deiner Wechselrichter. Für jede Zuordnung nötig. |
+| **PV-Leistung** | Sensor (Leistung) | Gesamterzeugung deiner Wechselrichter. Für jede Zuordnung nötig. Meldet er nachts „unbekannt“ (viele Wechselrichter gehen bei Dunkelheit offline), zählt er bei Sonne unter dem Horizont als 0 W. |
 | **Netzleistung (+ Bezug / − Einspeisung)** | Sensor (Leistung) | Vorzeichenbehaftete Leistung am Zähler: **positiv beim Bezug**. Pflicht. |
 | **Hausspeicher-Leistung (optional)** | Sensor (Leistung) | Optional. Ohne ihn gibt es eine zweiteilige Aufteilung PV/Netz. Erwartet wird **positiv beim Entladen**. |
 | **Mein Speichersensor ist beim Laden positiv** | an/aus | Dreht die Vorzeichen-Konvention um. Am Wert selbst ist das nicht erkennbar, deshalb muss es angegeben werden. |

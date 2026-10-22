@@ -163,7 +163,7 @@ for what it does with these.
 
 | Option | Values | Meaning |
 | --- | --- | --- |
-| **PV power** | sensor (power) | Total generation from your inverter(s). Required for any attribution. |
+| **PV power** | sensor (power) | Total generation from your inverter(s). Required for any attribution. If it reads unknown after dark (many inverters go offline at night), it counts as 0 W while the sun is down. |
 | **Grid power (+ import / − export)** | sensor (power) | Signed power at the meter: **positive while importing**. Required. |
 | **House battery power** | sensor (power) | Optional. Without it you get a two-way PV/grid split. Expected **positive while discharging**. |
 | **My battery sensor is positive when charging** | on/off | Flips the sign convention. There is no way to tell from the value itself, so this has to be stated. |

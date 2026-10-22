@@ -52,6 +52,7 @@ def supply_shares(
     pv_w: Optional[float],
     grid_w: Optional[float],
     battery_w: Optional[float] = None,
+    sun_down: bool = False,
 ) -> Optional[dict[str, float]]:
     """How the site is being supplied right now, as fractions summing to 1.
 
@@ -68,8 +69,16 @@ def supply_shares(
     ``None`` is a real answer here: the caller books the energy as ``unknown``
     rather than guessing, because a fabricated solar share is worse than an
     admitted gap.
+
+    The one exception is a PV reading missing while ``sun_down``: many
+    inverters drop off the network at dusk and read ``unknown`` until morning,
+    which left every night charge without a mix and the month's solar share
+    counting only the daytime ones. After dark the roof makes nothing, so that
+    gap is known to be zero. Grid and battery get no such pass.
     """
 
+    if pv_w is None and sun_down:
+        pv_w = 0.0
     if pv_w is None or grid_w is None:
         return None
 
