@@ -202,6 +202,9 @@ Zwei Folgen, die man kennen sollte:
   bei dem nichts zugeordnet werden konnte, speichert gar keinen Mix — denn „wir
   konnten es nicht sagen“ und „nichts davon war Solar“ sind verschiedene Aussagen.
   Der Solaranteil ist immer ein Anteil dessen, was zugeordnet werden *konnte*.
+  Eine Ausnahme: Meldet der PV-Sensor bei Sonne unter dem Horizont „unbekannt“
+  (viele Wechselrichter gehen nachts offline), zählt er als 0 W, sodass auch
+  eine Ladung in der Nacht auf Netz und Hausspeicher aufgeteilt wird.
 
 ### Was es kostet
 
