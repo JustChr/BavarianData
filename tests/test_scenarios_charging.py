@@ -421,6 +421,41 @@ def test_a_charge_at_home_keeps_the_house_mix_and_tariff():
         assert session.cost["source"] == "tariff"
 
 
+def test_a_night_charge_keeps_its_mix_when_the_inverter_sleeps():
+    """The maintainer's i5, 2026-10-22: every night charge filed with no mix.
+
+    The inverter drops off at dusk and its power sensor reads ``unknown`` until
+    morning, so each increment was booked as unknown and the month's solar share
+    counted only the daytime charges (31.6 % instead of about 14 %). With the
+    sun down the roof makes nothing: the charge is all grid.
+    """
+
+    home = (48.1, 11.5)
+    with _house_harness(home) as h:
+        h.hass.set_state("sun.sun", "below_horizon")
+        h.hass.set_state("sensor.pv", "unknown", unit_of_measurement="W")
+        h.fix(5, *home)
+        _charge_and_unplug(h)
+
+        (session,) = h.sessions()
+        assert session.energy_mix == {"grid": session.energy_kwh, "solar_percent": 0.0}
+        assert session.cost["source"] == "tariff"
+
+
+def test_a_daytime_gap_in_the_pv_reading_stays_unknown():
+    """Only the dark excuses a missing PV reading: by day it could be anything."""
+
+    home = (48.1, 11.5)
+    with _house_harness(home) as h:
+        h.hass.set_state("sun.sun", "above_horizon")
+        h.hass.set_state("sensor.pv", "unavailable", unit_of_measurement="W")
+        h.fix(5, *home)
+        _charge_and_unplug(h)
+
+        (session,) = h.sessions()
+        assert session.energy_mix is None
+
+
 def _asleep_through_the_charge(h: CoordinatorHarness, *, sunrise: float, restart_at=None) -> None:
     """#180's MINI: SoC at the start, then nothing until the batch that ends it.
 
