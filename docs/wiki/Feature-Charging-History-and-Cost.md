@@ -69,6 +69,11 @@ Every completed session is recorded and kept in the integration's **own store**
 rather than the recorder (which purges after ten days). It captures start/end
 SoC, energy, duration, peak power, the charging power curve, and cost.
 
+A charge that stops for more than **two minutes** and then starts again is
+recorded as **two sessions**, even if the cable never came out. A shorter stop
+keeps one session. Solar charging that pauses while a cloud passes can
+therefore leave several sessions on one day.
+
 Retention is set by **`history_retain_months`** under
 **Configure → Charging costs & history** (0 = keep everything).
 
