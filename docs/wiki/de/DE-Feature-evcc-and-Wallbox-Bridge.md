@@ -280,7 +280,7 @@ Auch AC-Laden wird kurz vor 100 % langsamer, dort kommt er also etwas zu früh.
 BMW hört am Ende einer Ladung auf, *Restladedauer*, *verbleibende Ladezeit* und
 *Ladeleistung* zu senden, statt null zu senden; deshalb blieben sie bisher für
 immer auf ihrem letzten Wert. Jetzt werden sie auf 0 gesetzt, sobald die Ladung
-zwei Minuten lang beendet ist.
+endgültig beendet ist: nach zwei Minuten, mit steckendem Kabel nach fünf.
 
 Der Sensor **Ladezustand (integrationsseitig vorhergesagt)** zeigt, was ihn treibt:
 `estimate_source` (`meter` oder `stream`), `meter_sessions` (die Ladungen, aus

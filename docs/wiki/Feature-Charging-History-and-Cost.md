@@ -69,10 +69,15 @@ Every completed session is recorded and kept in the integration's **own store**
 rather than the recorder (which purges after ten days). It captures start/end
 SoC, energy, duration, peak power, the charging power curve, and cost.
 
-A charge that stops for more than **two minutes** and then starts again is
-recorded as **two sessions**, even if the cable never came out. A shorter stop
-keeps one session. Solar charging that pauses while a cloud passes can
-therefore leave several sessions on one day.
+A charge that stops and starts again stays **one session** as long as the
+pause is short: up to **five minutes** while the cable stays in (some cars pause
+by themselves mid-charge), or up to **two minutes** if your car doesn't report
+whether it is plugged in. A longer pause is recorded as **two sessions**, even if
+the cable never came out, so solar charging that waits out a long cloud can
+leave several sessions on one day. Pulling the cable ends the session right
+away. The session ends when charging stopped, but the end-of-charge events
+(`bavariandata_charging_stopped` and the triggers built on it) fire only once
+the wait is over: up to five minutes later with the cable in.
 
 Retention is set by **`history_retain_months`** under
 **Configure → Charging costs & history** (0 = keep everything).

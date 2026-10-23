@@ -264,7 +264,8 @@ out a little early there.
 
 BMW stops sending its *time to full*, *remaining time* and *charging power* when
 a charge ends, rather than sending zero, so they used to stay at their last value
-for good. They are now set to 0 once the charge has stayed ended for two minutes.
+for good. They are now set to 0 once the charge has ended for good: after two
+minutes, or five while the cable is still in.
 
 The **State Of Charge (Predicted on Integration side)** sensor shows what is
 driving it: `estimate_source` (`meter` or `stream`), `meter_sessions` (the charges

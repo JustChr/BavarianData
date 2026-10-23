@@ -9,6 +9,16 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **A charge that pauses by itself stays one session** (#180). Some cars stop
+  charging for a few minutes mid-charge and carry on by themselves; a MINI
+  Cooper SE on a portable charger paused for 2:39 and 2:03 and was recorded as
+  three charges. While the cable stays in, a stopped charge now waits five
+  minutes for a resume instead of two; pulling the cable ends it at once, and a
+  car that doesn't report its plug keeps the two minutes. A session now ends
+  when charging stopped, not when the wait ran out; the end-of-charge events
+  still fire after the wait.
+
 ## [0.9.22] - 2026-10-22
 
 Promotes 0.9.21-beta.1 to 0.9.22-beta.6. Two cars on one account work properly, petrol, diesel and plug-in hybrid cars get a Fuel view, Assist's AI agents can answer questions about the car, and one Units screen sets km or miles for everything. With a wallbox meter, home charges, their solar split and their cost now match what the meter counted, and trips match the odometer.

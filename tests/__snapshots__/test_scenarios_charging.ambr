@@ -210,6 +210,27 @@
      63.0  advance 63               est= 41.55 rate=    - charging=off open=n sessions=1 charging_stopped
   '''
 # ---
+# name: test_pauses_with_the_cable_in_are_one_charge
+  '''
+      0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0
+     10.0  wait 10                  est=     - rate=    - charging=off open=n sessions=0
+     10.0  plugged in               est=     - rate=    - charging=off open=n sessions=0
+     10.0  target 100               est=     - rate=    - charging=off open=n sessions=0
+     10.0  send soc=38,status=CHARGINGACTIVE,power=3480 est= 38.00 rate= 4.64 charging=on  open=y sessions=0 charging_started
+    154.2  wait 154.183             est= 49.14 rate= 4.64 charging=on  open=y sessions=0
+    154.2  pause 1                  est= 49.14 rate=    - charging=off open=y sessions=0 situation
+    156.8  wait 156.833             est= 49.14 rate=    - charging=off open=y sessions=0
+    156.8  resume 1                 est= 49.14 rate= 4.64 charging=on  open=y sessions=0 situation
+    242.9  wait 242.883             est= 55.76 rate= 4.64 charging=on  open=y sessions=0
+    242.9  pause 2                  est= 55.76 rate=    - charging=off open=y sessions=0 situation
+    244.9  wait 244.933             est= 55.76 rate=    - charging=off open=y sessions=0
+    244.9  resume 2                 est= 55.76 rate= 4.64 charging=on  open=y sessions=0 situation
+    246.5  wait 246.533             est= 55.88 rate= 4.64 charging=on  open=y sessions=0
+    246.5  stopped                  est= 55.88 rate=    - charging=off open=y sessions=0 situation
+    248.5  advance 248.533          est= 55.88 rate=    - charging=off open=y sessions=0
+    300.0  advance 300              est= 55.88 rate=    - charging=off open=n sessions=1 charging_stopped,charging_interrupted
+  '''
+# ---
 # name: test_the_estimate_stops_at_the_charge_target
   '''
       0.0  capacity                 est=     - rate=    - charging=off open=n sessions=0

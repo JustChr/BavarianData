@@ -142,6 +142,47 @@ def test_a_status_flap_inside_the_debounce_is_one_session(h, snapshot):
     assert h.render() == snapshot
 
 
+def test_pauses_with_the_cable_in_are_one_charge(h, snapshot):
+    """#180: a MINI on a portable charger paused for 2:39 and 2:03 by itself.
+
+    Its status timeline on 22 Oct 2026, shifted to start at 08:10. Both pauses
+    outlast the flap debounce; with the cable still in they are one charge.
+    """
+
+    h.send(10, plug="CONNECTED", step="plugged in")
+    _start_charge(h)
+    h.send(10 + 144 + 11 / 60, status="NOCHARGING", power=0, step="pause 1")
+    h.send(10 + 146 + 50 / 60, status="CHARGINGACTIVE", power=3480, step="resume 1")
+    h.send(10 + 232 + 53 / 60, status="NOCHARGING", power=0, step="pause 2")
+    h.send(10 + 234 + 56 / 60, status="CHARGINGACTIVE", power=3480, step="resume 2")
+    h.send(10 + 236 + 32 / 60, status="NOCHARGING", power=0, step="stopped")
+    h.advance_to(10 + 238 + 32 / 60)
+    assert h.has_open_session()  # past the debounce, the cable still in
+    h.advance_to(300)
+
+    sessions = h.sessions()
+    assert len(sessions) == 1
+    assert sessions[0].end == h.at(10 + 236 + 32 / 60)  # the stop, not the wait
+    assert [name for name, _ in h.events()] == [
+        "bavariandata_charging_started",
+        "bavariandata_charging_stopped",
+        "bavariandata_charging_interrupted",  # short of 100 %, cable in
+    ]
+    assert h.render() == snapshot
+
+
+def test_an_unplug_ends_the_wait_for_the_cable(h):
+    h.send(10, plug="CONNECTED", step="plugged in")
+    _start_charge(h)
+    h.send(60, status="NOCHARGING", power=0, step="stopped")
+    h.advance_to(63)
+    assert h.has_open_session()
+    h.send(64, plug="DISCONNECTED", step="unplugged")
+
+    assert not h.has_open_session()
+    assert [s.end for s in h.sessions()] == [h.at(60)]
+
+
 def test_the_same_batch_twice_changes_nothing(h):
     _start_charge(h)
     h.send(20, soc=39, status="CHARGINGACTIVE", power=3480, stamped=20)
