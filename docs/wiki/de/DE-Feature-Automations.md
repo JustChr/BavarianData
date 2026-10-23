@@ -287,7 +287,7 @@ Die Werkzeuge:
 | Werkzeug | Beantwortet |
 |---|---|
 | Fahrzeugstatus | Akku, Laden (Leistung, Minuten bis zum Ziel), Reichweite (beim Plug-in-Hybrid elektrisch, mit Kraftstoff und gesamt), Tankfüllstand, die Zone, in der es steht, ob es gerade fährt, alles, was offen oder unverriegelt ist |
-| Reichweitencheck | Ob eine Fahrt in die Restreichweite passt, einfach oder hin und zurück, mit Reserve (ein Zehntel der Reichweite eines vollen Akkus, mindestens 20 km), und wie viel mehr Ladung sie sonst braucht. Ein Plug-in-Hybrid oder Verbrenner zählt seinen Tank mit (Reserve 20 km), ein Hybrid sagt außerdem, ob der Akku allein reicht. Die Strecke schätzt der Agent aus den Orten, die du nennst. |
+| Reichweitencheck | Ob eine Fahrt in die Restreichweite passt, einfach oder hin und zurück, mit Sicherheitsabstand (ein Zehntel der Reichweite eines vollen Akkus, mindestens 20 km): Der Agent nennt dir die Reichweite, die nach der Fahrt bleibt, und wie viel mehr Ladung sie braucht, wenn sie nicht passt. Ein Plug-in-Hybrid oder Verbrenner zählt seinen Tank mit (Abstand 20 km), ein Hybrid sagt außerdem, ob der Akku allein reicht. Die Strecke schätzt der Agent aus den Orten, die du nennst. |
 | Ladeverlauf | Die Ladevorgänge der letzten Tage (30, wenn du nichts anderes sagst): wann, wo, Akku vorher und nachher, Energie und Kosten, mit Summen |
 | Fahrmonat | Strecke, Fahrten, die Aufteilung dienstlich/privat/Arbeitsweg, Verbrauch, Kosten und die häufigsten Ziele, im Vergleich zum Vormonat |
 | Kilometerstand | Tachostand, dieser Monat und dieses Jahr, die Hochrechnung aufs Jahr und dein Leasing- oder Jahreskontingent, falls eingestellt |

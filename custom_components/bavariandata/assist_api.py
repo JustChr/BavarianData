@@ -243,8 +243,11 @@ class RangeCheckTool(_CarTool):
     description = (
         "Whether a drive fits the car's range left, with a reserve, and how "
         "much more charge it needs if not. A plug-in hybrid counts battery and "
-        "fuel together and says whether the battery alone does it. Give the "
-        "distance; estimate it from your own knowledge when the user names places."
+        "fuel together and says whether the battery alone does it. Tell the "
+        "user range_left_on_arrival_km, the range they still have after the "
+        "drive; safety_margin_km is only the minimum it must stay above. Give "
+        "the distance; estimate it from your own knowledge when the user names "
+        "places."
     )
     extra = {
         vol.Required("distance_km", description="One way, in kilometers."): vol.Coerce(float),
