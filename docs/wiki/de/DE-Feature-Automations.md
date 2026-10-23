@@ -57,7 +57,7 @@ Diese Auslöser sollen genau einmal auslösen, und nie fälschlich:
   darunter) ist ein angestecktes Auto, das aufgehört hat, fertig und nicht
   hängengeblieben.
 - **Früh abstecken ist keine Unterbrechung.** *Laden vor dem Ziel beendet*
-  braucht das Kabel noch zwei Minuten nach dem Stopp, also löst eine kurze Pause,
+  braucht das Kabel noch fünf Minuten nach dem Stopp, also löst eine kurze Pause,
   die von selbst weiterläuft, oder ein Abstecken durch den Fahrer nicht aus.
 - **Solar- und preisgesteuertes Laden pausiert absichtlich.** Wenn ein
   Laderegler (evcc, der Solarmodus einer Wallbox) das Laden stoppt und wieder

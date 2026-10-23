@@ -55,7 +55,7 @@ These triggers are built to fire exactly once, and never falsely:
 - **A car that is done charging is not "not charging".** At (or within 1 % of)
   its target, a plugged-in car that has stopped is finished, not stuck.
 - **Unplugging early is not an interruption.** *Charging stopped before the
-  target* needs the cable still in two minutes after the stop, so a short pause
+  target* needs the cable still in five minutes after the stop, so a short pause
   that resumes on its own, or a driver who unplugs, doesn't fire it.
 - **Solar and price-controlled charging pauses on purpose.** If a charge
   controller (evcc, a wallbox's solar mode) stops and starts the charge, *Plugged

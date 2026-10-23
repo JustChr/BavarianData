@@ -6348,7 +6348,7 @@
   trips:
     08:07:01 -> 08:35:01  12.6 km  Home -> Unknown
   charging sessions:
-    09:00:00 -> 11:02:00  55.0 -> 69.0 %  12.0 kWh  NOCHARGING
+    09:00:00 -> 11:00:00  55.0 -> 69.0 %  12.0 kWh  NOCHARGING
   events: ['zone_left', 'trip_ended', 'charging_started', 'charging_stopped']
   --
       0.0  replay header,maxEnergy,status est= 62.00 rate=    - charging=off open=n sessions=0

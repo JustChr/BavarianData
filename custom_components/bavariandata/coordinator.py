@@ -263,6 +263,15 @@ GPS_PAIR_PARTS = frozenset({GPS_PART_LAT, GPS_PART_LON})
 # unplug still records promptly.
 CHARGE_CLOSE_DEBOUNCE_S = 120
 
+# How long a stopped charge waits for a resume while the cable is still in. Some
+# cars stop for longer than the flap debounce mid-charge and carry on by
+# themselves: a MINI Cooper SE on a portable charger paused for 2:39 and 2:03 and
+# was filed as three charges (#180). With the plug still connected the session
+# stays open this long after the stop; an unplug closes it at once, and a car
+# that doesn't stream its plug keeps the plain debounce. The record still ends
+# at the stop, so only the stop events wait.
+CHARGE_PLUGGED_HOLD_S = 300
+
 # How often an in-progress charge is written to the store. Every write rewrites
 # the whole history document, so this is a trade between disk churn and how much
 # of a charge a *crash* can cost -- a clean restart or reload loses nothing,
@@ -576,6 +585,9 @@ class CardataCoordinator:
     # pending timer means charging just stopped and we're waiting to see whether
     # it resumes (a status flap) before committing the close.
     _charge_close_timers: Dict[str, Any] = field(default_factory=dict, init=False)
+    # When, and on which status, the charge behind each pending close stopped:
+    # the record ends there, and the plugged-in hold counts from it.
+    _charge_stopped: Dict[str, tuple[datetime, str]] = field(default_factory=dict, init=False)
     # The vehicle-report debounce, per VIN: the cancel callback, and the
     # odometer reading it is waiting on (``vehicle_report.py``).
     _report_timers: Dict[str, Any] = field(default_factory=dict, init=False)
@@ -1070,6 +1082,8 @@ class CardataCoordinator:
         profile.finish_batch(now, source)
         if status_change is not None:
             self._fire_charging_event(vin, status_change[0], tracking, status_change[1])
+        if any(descriptor in data for descriptor in PLUG_DESCRIPTORS):
+            self._close_held_charge_on_unplug(vin)
 
         if any(descriptor in data for descriptor in DESC_ODOMETER):
             self._note_odometer_report(vin, parked_soc=parked_soc)
@@ -1492,6 +1506,7 @@ class CardataCoordinator:
             # flap, not a new plug-in. Cancel the pending close and let the same
             # session continue -- no fresh STARTED event, no split record.
             if self._cancel_charge_close_timer(vin):
+                self._charge_stopped.pop(vin, None)
                 if debug_enabled():
                     _LOGGER.debug(
                         "[charge] %s RESUME after status flap; keeping session",
@@ -1520,20 +1535,49 @@ class CardataCoordinator:
 
         Re-arming on each stop transition restarts the countdown, so the close
         fires ``CHARGE_CLOSE_DEBOUNCE_S`` after the *last* stop; a resume in
-        between cancels it (see :meth:`_fire_charging_event`).
+        between cancels it (see :meth:`_fire_charging_event`). If the cable is
+        still in by then, the close waits on until ``CHARGE_PLUGGED_HOLD_S``
+        after the stop.
         """
 
         self._cancel_charge_close_timer(vin)
+        self._charge_stopped[vin] = (datetime.now(timezone.utc), status)
+        self._schedule_charge_close(vin, CHARGE_CLOSE_DEBOUNCE_S)
 
+    def _schedule_charge_close(self, vin: str, delay_s: float) -> None:
         # @callback so HA runs it inline on the event loop; an undecorated timer
         # action is dispatched to the executor thread, and _finalize_charge_close
         # touches loop-only helpers (async_dispatcher_send).
         @callback
         def _fire(_now) -> None:
             self._charge_close_timers.pop(vin, None)
-            self._finalize_charge_close(vin, status)
+            stopped_at, _status = self._charge_stopped[vin]
+            if self._plug_state_live(vin) is True:
+                waited = (datetime.now(timezone.utc) - stopped_at).total_seconds()
+                if waited < CHARGE_PLUGGED_HOLD_S:
+                    self._schedule_charge_close(vin, CHARGE_PLUGGED_HOLD_S - waited)
+                    return
+            self._finalize_charge_close(vin)
 
-        self._charge_close_timers[vin] = async_call_later(self.hass, CHARGE_CLOSE_DEBOUNCE_S, _fire)
+        self._charge_close_timers[vin] = async_call_later(self.hass, delay_s, _fire)
+
+    def _close_held_charge_on_unplug(self, vin: str) -> None:
+        """Close a charge held for the plug as soon as the cable comes out.
+
+        Only once the flap debounce is over: before that the pending close
+        fires on its own, and an unplug inside it is the usual end of a charge.
+        """
+
+        if vin not in self._charge_close_timers or self._plug_state_live(vin) is not False:
+            return
+        stopped_at, _status = self._charge_stopped[vin]
+        if (datetime.now(timezone.utc) - stopped_at).total_seconds() < CHARGE_CLOSE_DEBOUNCE_S:
+            return
+        self._cancel_charge_close_timer(vin)
+        self._finalize_charge_close(vin)
+
+    def _plug_state_live(self, vin: str) -> Optional[bool]:
+        return plug_state(self._live_values(vin, PLUG_DESCRIPTORS))
 
     def _cancel_charge_close_timer(self, vin: str) -> bool:
         """Cancel a pending close; return whether one was actually pending."""
@@ -1544,9 +1588,15 @@ class CardataCoordinator:
         cancel()
         return True
 
-    def _finalize_charge_close(self, vin: str, status: str) -> None:
-        """Actually close the debounced session and fire the stop events."""
+    def _finalize_charge_close(self, vin: str, status: Optional[str] = None) -> None:
+        """Actually close the debounced session and fire the stop events.
 
+        The record ends when the charge stopped, not when the wait for a resume
+        ran out; ``status`` overrides the car's own word for the end.
+        """
+
+        stopped_at, stopped_status = self._charge_stopped.pop(vin, (None, None))
+        status = status or stopped_status
         tracking = self._soc_tracking.get(vin)
         if tracking is None:
             return
@@ -1564,7 +1614,7 @@ class CardataCoordinator:
         }
         # Close the record first so its summary can ride along on the event --
         # automations then get the cost without a second lookup.
-        session = self._close_session_record(vin, status)
+        session = self._close_session_record(vin, status, at=stopped_at)
         self._clear_charge_progress(vin)
         if session is not None:
             payload["energy_kwh"] = session.energy_kwh
@@ -1578,8 +1628,8 @@ class CardataCoordinator:
         elif charging_interrupted(
             soc, target, plug_state(self._live_values(vin, PLUG_DESCRIPTORS))
         ):
-            # Short of the target with the cable still in, two minutes on (the
-            # close debounce) -- not a flap, and not the driver unplugging.
+            # Short of the target with the cable still in, five minutes on (the
+            # plugged-in hold) -- not a pause, and not the driver unplugging.
             self._fire(
                 EVENT_CHARGING_INTERRUPTED, {**payload, "reason": self._charge_end_reason(vin)}
             )

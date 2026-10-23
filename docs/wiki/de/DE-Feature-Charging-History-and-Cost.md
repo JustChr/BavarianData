@@ -79,10 +79,17 @@ der Integration gehalten statt im Recorder (der nach zehn Tagen löscht). Erfass
 werden Start- und End-Ladezustand, Energie, Dauer, Spitzenleistung, die Ladekurve
 und die Kosten.
 
-Hört eine Ladung für mehr als **zwei Minuten** auf und lädt dann weiter, wird sie
-als **zwei Ladevorgänge** aufgezeichnet, auch wenn das Kabel die ganze Zeit
-steckte. Eine kürzere Unterbrechung bleibt ein Ladevorgang. Solarladen, das bei
-einer Wolke pausiert, kann deshalb mehrere Ladevorgänge an einem Tag hinterlassen.
+Hört eine Ladung auf und lädt dann weiter, bleibt sie **ein Ladevorgang**,
+solange die Pause kurz ist: bis zu **fünf Minuten**, wenn das Kabel steckt
+(manche Autos pausieren mitten im Laden von selbst), oder bis zu **zwei
+Minuten**, wenn dein Auto nicht meldet, ob es angesteckt ist. Eine längere Pause
+wird als **zwei Ladevorgänge** aufgezeichnet, auch wenn das Kabel die ganze Zeit
+steckte. Solarladen, das eine lange Wolke abwartet, kann deshalb mehrere
+Ladevorgänge an einem Tag hinterlassen. Ziehst du das Kabel, endet der
+Ladevorgang sofort. Er endet zu dem Zeitpunkt, an dem das Laden aufgehört hat,
+aber die Ereignisse zum Ladeende (`bavariandata_charging_stopped` und die
+Auslöser, die darauf aufbauen) kommen erst, wenn die Wartezeit vorbei ist: mit
+steckendem Kabel bis zu fünf Minuten später.
 
 Die Aufbewahrung stellst du mit **Verlauf aufbewahren (Monate)** unter
 **Konfigurieren → Ladekosten & Verlauf** ein (0 = alles behalten).
