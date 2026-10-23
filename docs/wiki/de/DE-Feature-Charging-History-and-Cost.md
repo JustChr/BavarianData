@@ -79,6 +79,11 @@ der Integration gehalten statt im Recorder (der nach zehn Tagen löscht). Erfass
 werden Start- und End-Ladezustand, Energie, Dauer, Spitzenleistung, die Ladekurve
 und die Kosten.
 
+Hört eine Ladung für mehr als **zwei Minuten** auf und lädt dann weiter, wird sie
+als **zwei Ladevorgänge** aufgezeichnet, auch wenn das Kabel die ganze Zeit
+steckte. Eine kürzere Unterbrechung bleibt ein Ladevorgang. Solarladen, das bei
+einer Wolke pausiert, kann deshalb mehrere Ladevorgänge an einem Tag hinterlassen.
+
 Die Aufbewahrung stellst du mit **Verlauf aufbewahren (Monate)** unter
 **Konfigurieren → Ladekosten & Verlauf** ein (0 = alles behalten).
 
