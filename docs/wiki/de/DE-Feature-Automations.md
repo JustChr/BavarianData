@@ -286,15 +286,17 @@ Die Werkzeuge:
 
 | Werkzeug | Beantwortet |
 |---|---|
-| Fahrzeugstatus | Akku, Laden (Leistung, Minuten bis zum Ziel), Reichweite, die Zone, in der es steht, ob es gerade fährt, alles, was offen oder unverriegelt ist |
-| Reichweitencheck | Ob eine Fahrt in die Restreichweite passt, einfach oder hin und zurück, mit Reserve (ein Zehntel der Reichweite eines vollen Akkus, mindestens 20 km), und wie viel mehr Ladung sie sonst braucht. Die Strecke schätzt der Agent aus den Orten, die du nennst. |
+| Fahrzeugstatus | Akku, Laden (Leistung, Minuten bis zum Ziel), Reichweite (beim Plug-in-Hybrid elektrisch, mit Kraftstoff und gesamt), Tankfüllstand, die Zone, in der es steht, ob es gerade fährt, alles, was offen oder unverriegelt ist |
+| Reichweitencheck | Ob eine Fahrt in die Restreichweite passt, einfach oder hin und zurück, mit Reserve (ein Zehntel der Reichweite eines vollen Akkus, mindestens 20 km), und wie viel mehr Ladung sie sonst braucht. Ein Plug-in-Hybrid oder Verbrenner zählt seinen Tank mit (Reserve 20 km), ein Hybrid sagt außerdem, ob der Akku allein reicht. Die Strecke schätzt der Agent aus den Orten, die du nennst. |
 | Ladeverlauf | Die Ladevorgänge der letzten Tage (30, wenn du nichts anderes sagst): wann, wo, Akku vorher und nachher, Energie und Kosten, mit Summen |
 | Fahrmonat | Strecke, Fahrten, die Aufteilung dienstlich/privat/Arbeitsweg, Verbrauch, Kosten und die häufigsten Ziele, im Vergleich zum Vormonat |
 | Kilometerstand | Tachostand, dieser Monat und dieses Jahr, die Hochrechnung aufs Jahr und dein Leasing- oder Jahreskontingent, falls eingestellt |
 | Effizienz | Gemessener Verbrauch, die echte Reichweite daraus, der Vergleich mit dem Wert des Autos und der Verlauf nach Monaten |
 
 Die Reichweite ist die [gemessene](DE-Feature-Efficiency-and-Range), wo es
-eine gibt, sonst die des Autos. Antworten kommen in der Entfernungseinheit
+eine gibt, sonst die des Autos. Die Kraftstoffreichweite eines Plug-in-Hybrids
+ist seine Gesamtreichweite minus die elektrische, denn BMW schickt keine eigene.
+Antworten kommen in der Entfernungseinheit
 deines Autos. Mit mehreren Autos fragt der Agent eines beim Namen ab oder alle.
 
 **Was die KI sieht.** Die Werte oben und die Namen von Orten (deine Zonen,

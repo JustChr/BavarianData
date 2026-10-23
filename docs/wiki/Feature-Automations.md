@@ -269,15 +269,16 @@ The tools:
 
 | Tool | Answers |
 |---|---|
-| Car status | Battery, charging (power, minutes to the target), range, the zone it is in, whether it is being driven, anything open or unlocked |
-| Range check | Whether a drive fits the range left, one way or there and back, with a reserve (a tenth of a full battery's range, at least 20 km), and how much more charge it needs if not. The agent estimates the distance from the places you name. |
+| Car status | Battery, charging (power, minutes to the target), range (on a plug-in hybrid: electric, fuel and total), fuel level, the zone it is in, whether it is being driven, anything open or unlocked |
+| Range check | Whether a drive fits the range left, one way or there and back, with a reserve (a tenth of a full battery's range, at least 20 km), and how much more charge it needs if not. A plug-in hybrid or fuel car counts its tank too (reserve 20 km), and a hybrid also says whether the battery alone does it. The agent estimates the distance from the places you name. |
 | Charging history | The sessions of the last days (30 unless you say otherwise): when, where, battery before and after, energy and cost, with totals |
 | Driving month | Distance, trips, the business/private/commute split, consumption, cost and the most visited places, against the month before |
 | Mileage | Odometer, this month and year, the yearly projection and your lease or yearly allowance, if one is set |
 | Efficiency | Measured consumption, the real range it gives, how it compares with the car's own figure, and the monthly trend |
 
 The range is the [measured one](Feature-Efficiency-and-Range) where there is
-one, else the car's own. Answers come in your car's distance unit. With several
+one, else the car's own. A plug-in hybrid's fuel range is the car's total range
+less its electric range, since BMW sends no fuel range of its own. Answers come in your car's distance unit. With several
 cars, the agent can ask about one by name or about all of them.
 
 **What the AI sees.** The figures above and the names of places (your zones,

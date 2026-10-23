@@ -178,6 +178,110 @@ def test_range_check_verdicts():
     assert short["charge_needed_percent"] == 75
 
 
+def _status(**overrides):
+    fields = {
+        "name": "530e",
+        "soc": 55,
+        "charging": False,
+        "plugged": False,
+        "target_soc": None,
+        "charge_power_kw": None,
+        "minutes_to_target": None,
+        "range_km": 70,
+        "bmw_range_km": 70,
+        "odometer_km": None,
+        "zone": None,
+        "has_position": False,
+        "trip_in_progress": False,
+        "open_now": [],
+        "soc_updated": None,
+    }
+    fields.update(overrides)
+    return assist.status_answer(**fields)
+
+
+def test_ranges_split_a_plug_in_hybrid_into_battery_and_tank():
+    # #203: a 530e showing 70 km electric and 1,042 km in all has 972 km of fuel.
+    split = {"hybrid": True, "combustion": False, "car_total_km": 1042}
+    assert assist.ranges(**split, electric_km=70, car_electric_km=70) == (70, 972)
+    # The tank comes from the car's own figures, whatever range the battery is quoted at.
+    assert assist.ranges(**split, electric_km=64, car_electric_km=70) == (64, 972)
+    # An empty battery reads 0, which still leaves the tank.
+    assert assist.ranges(**split, electric_km=None, car_electric_km=0) == (0, 1042)
+
+
+def test_ranges_never_guess_a_tank():
+    hybrid = {"hybrid": True, "combustion": False, "electric_km": 70}
+    assert assist.ranges(**hybrid, car_electric_km=None, car_total_km=1042) == (70, None)
+    assert assist.ranges(**hybrid, car_electric_km=70, car_total_km=None) == (70, None)
+    # An electric range above the total is a stale reading, not a negative tank.
+    assert assist.ranges(**hybrid, car_electric_km=90, car_total_km=60) == (70, None)
+    # A battery car has no tank, even when it streams a total range.
+    battery = {"hybrid": False, "combustion": False, "electric_km": 300, "car_electric_km": 300}
+    assert assist.ranges(**battery, car_total_km=300) == (300, None)
+    # A fuel car has no battery range, only the tank.
+    fuel = {"hybrid": False, "combustion": True, "electric_km": None, "car_electric_km": None}
+    assert assist.ranges(**fuel, car_total_km=640) == (None, 640)
+
+
+def test_status_answer_names_every_range_of_a_plug_in_hybrid():
+    answer = _status(fuel_range_km=972, fuel_percent=81)
+    assert "range_km" not in answer
+    assert answer["electric_range_km"] == 70
+    assert answer["electric_range_shown_by_car_km"] == 70
+    assert answer["fuel_range_km"] == 972
+    assert answer["total_range_km"] == 1042
+    assert answer["fuel_percent"] == 81
+    miles = assist.in_unit(answer, "mi")
+    assert miles["fuel_range_mi"] == 604.0
+    assert miles["total_range_mi"] == 647.5
+
+
+def test_status_answer_of_a_fuel_car_has_only_the_tank():
+    answer = _status(soc=None, range_km=None, bmw_range_km=None, fuel_range_km=640, fuel_percent=50)
+    assert answer["fuel_range_km"] == 640
+    for key in ("range_km", "electric_range_km", "total_range_km", "battery_percent"):
+        assert key not in answer
+
+
+def test_status_answer_of_a_battery_car_is_unchanged():
+    answer = _status()
+    assert answer["range_km"] == 70
+    assert answer["range_shown_by_car_km"] == 70
+    assert not any(key.startswith(("fuel", "electric", "total")) for key in answer)
+
+
+def test_range_check_counts_battery_and_tank_on_a_plug_in_hybrid():
+    # #203: Amsterdam to Munich is about 830 km; 70 km of battery would say no.
+    long = assist.range_check(
+        830, round_trip=False, range_km=70, full_range_km=None, soc=55, fuel_range_km=972
+    )
+    assert long["verdict"] == "fits"
+    assert long["total_range_km"] == 1042
+    assert long["fits_on_electric_alone"] is False
+    assert "charge_needed_percent" not in long
+
+    short = assist.range_check(
+        25, round_trip=True, range_km=70, full_range_km=None, soc=55, fuel_range_km=972
+    )
+    assert short["fits_on_electric_alone"] is True
+
+    too_far = assist.range_check(
+        600, round_trip=True, range_km=70, full_range_km=None, soc=55, fuel_range_km=972
+    )
+    assert too_far["verdict"] == "does_not_fit"
+    assert "charge_needed_percent" not in too_far
+
+
+def test_range_check_of_a_fuel_car_uses_the_tank():
+    answer = assist.range_check(
+        300, round_trip=False, range_km=None, full_range_km=None, soc=None, fuel_range_km=310
+    )
+    assert answer["fuel_range_km"] == 310
+    assert answer["verdict"] == "tight"
+    assert "fits_on_electric_alone" not in answer
+
+
 def test_range_check_without_a_range_says_so():
     answer = assist.range_check(50, round_trip=False, range_km=None, full_range_km=None, soc=None)
     assert answer["verdict"] == "unknown"

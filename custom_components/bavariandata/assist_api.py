@@ -31,16 +31,20 @@ from .assist import (
     in_unit,
     open_items,
     range_check,
+    ranges,
     scrub,
     status_answer,
 )
 from .const import DOMAIN
-from .coordinator import DESC_GPS_LAT
+from .coordinator import DESC_BMW_RANGE, DESC_FUEL_LEVEL, DESC_GPS_LAT
 from .distance import car_distance_unit
 
 API_ID = DOMAIN
 API_NAME = "BavarianData"
 DESC_GPS_LON = DESC_GPS_LAT.replace("latitude", "longitude")
+# Battery and tank together on a plug-in hybrid (``bmw_range_km`` says why it
+# isn't the electric range).
+DESC_TOTAL_RANGE = "vehicle.drivetrain.lastRemainingRange"
 
 _PROMPT = (
     "These tools answer questions about the user's BMW or MINI cars from "
@@ -48,7 +52,9 @@ _PROMPT = (
     "or charging. The values are the last ones the car sent; a parked car sends "
     "little, so a reading may be hours old and still current. Ranges are "
     "estimates from the user's own recent driving; cold weather and motorway "
-    "speeds shorten them. Each answer says its unit in the field name. Cars: {cars}."
+    "speeds shorten them. On a plug-in hybrid, electric_range is the battery "
+    "alone, fuel_range the tank alone and total_range both. Each answer says "
+    "its unit in the field name. Cars: {cars}."
 )
 
 
@@ -165,17 +171,33 @@ def _range(car: _Car) -> tuple[Optional[float], Optional[float]]:
     return (now if now is not None else coordinator.bmw_range_km(car.vin)), full
 
 
+def _split_range(
+    car: _Car, electric_km: Optional[float]
+) -> tuple[Optional[float], Optional[float]]:
+    """The electric and the fuel range left (``assist.ranges``)."""
+
+    coordinator = car.runtime.coordinator
+    return ranges(
+        hybrid=coordinator.is_plug_in_hybrid(car.vin),
+        combustion=coordinator.is_combustion_only(car.vin),
+        electric_km=electric_km,
+        car_electric_km=coordinator.numeric(car.vin, DESC_BMW_RANGE),
+        car_total_km=coordinator.numeric(car.vin, DESC_TOTAL_RANGE),
+    )
+
+
 class CarStatusTool(_CarTool):
     name = "get_car_status"
     description = (
-        "The car right now: battery, charging, range, where it is, whether it "
-        "is being driven, and anything open or unlocked."
+        "The car right now: battery, charging, range (electric, fuel and total "
+        "on a plug-in hybrid), fuel level, where it is, whether it is being "
+        "driven, and anything open or unlocked."
     )
 
     async def answer(self, hass, car, args, llm_context):
         coordinator = car.runtime.coordinator
         snapshot = coordinator.bridge_snapshot(car.vin)
-        range_now, _full = _range(car)
+        range_now, fuel_range = _split_range(car, _range(car)[0])
         latitude = coordinator.get_state(car.vin, DESC_GPS_LAT)
         longitude = coordinator.get_state(car.vin, DESC_GPS_LON)
         zone = None
@@ -203,6 +225,10 @@ class CarStatusTool(_CarTool):
             minutes_to_target=coordinator.get_charge_eta(car.vin),
             range_km=range_now,
             bmw_range_km=snapshot.range_km,
+            fuel_range_km=fuel_range,
+            fuel_percent=None
+            if fuel_range is None
+            else coordinator.numeric(car.vin, DESC_FUEL_LEVEL),
             odometer_km=snapshot.odometer_km,
             zone=zone,
             has_position=has_position,
@@ -216,8 +242,9 @@ class RangeCheckTool(_CarTool):
     name = "check_range"
     description = (
         "Whether a drive fits the car's range left, with a reserve, and how "
-        "much more charge it needs if not. Give the distance; estimate it from "
-        "your own knowledge when the user names places."
+        "much more charge it needs if not. A plug-in hybrid counts battery and "
+        "fuel together and says whether the battery alone does it. Give the "
+        "distance; estimate it from your own knowledge when the user names places."
     )
     extra = {
         vol.Required("distance_km", description="One way, in kilometers."): vol.Coerce(float),
@@ -226,12 +253,14 @@ class RangeCheckTool(_CarTool):
 
     async def answer(self, hass, car, args, llm_context):
         range_now, full = _range(car)
+        range_now, fuel_range = _split_range(car, range_now)
         return range_check(
             args["distance_km"],
             round_trip=bool(args.get("round_trip")),
             range_km=range_now,
             full_range_km=full,
             soc=car.runtime.coordinator.current_soc(car.vin),
+            fuel_range_km=fuel_range,
         )
 
 

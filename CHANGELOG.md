@@ -10,6 +10,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 ## [Unreleased]
 
 ### Fixed
+- **Assist tells a plug-in hybrid's fuel range from its electric range** (#203).
+  Asked for the fuel range of a 530e, an AI agent answered with the 70 km of
+  electric range instead of the 972 km in the tank: the car status only had one
+  range, and it was the battery's. A plug-in hybrid now answers with electric,
+  fuel and total range and its fuel level; a petrol or diesel car with its fuel
+  range. The range check counts the tank too, and says whether the battery alone
+  does the drive. The fuel range is the car's total range less its electric
+  range; BMW sends no fuel range of its own. Battery cars answer as before.
 - **A charge that pauses by itself stays one session** (#180). Some cars stop
   charging for a few minutes mid-charge and carry on by themselves; a MINI
   Cooper SE on a portable charger paused for 2:39 and 2:03 and was recorded as
