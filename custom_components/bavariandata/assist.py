@@ -353,7 +353,7 @@ def range_check(
         "needed_km": round(needed),
         "range_km": round(range_km),
         "range_left_on_arrival_km": round(left),
-        "reserve_km": round(reserve),
+        "safety_margin_km": round(reserve),
         "verdict": verdict,
     }
     if verdict != "fits" and full_range_km and soc is not None:
@@ -384,7 +384,7 @@ def _range_check_with_fuel(
         {
             "total_range_km" if electric_km is not None else "fuel_range_km": round(total),
             "range_left_on_arrival_km": round(left),
-            "reserve_km": 20,
+            "safety_margin_km": 20,
             "verdict": _verdict(left, 20.0),
         }
     )

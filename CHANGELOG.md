@@ -18,6 +18,11 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   range. The range check counts the tank too, and says whether the battery alone
   does the drive. The fuel range is the car's total range less its electric
   range; BMW sends no fuel range of its own. Battery cars answer as before.
+- **The range check leads with the range you have left** (#203). Asked whether
+  a 900 km drive fits, an agent answered "yes, with a reserve of 20 km" when
+  142 km would be left: it took the safety margin the drive must stay above for
+  the range left after it. The margin is now named as one, and the agent is told
+  to give the range left.
 - **A charge that pauses by itself stays one session** (#180). Some cars stop
   charging for a few minutes mid-charge and carry on by themselves; a MINI
   Cooper SE on a portable charger paused for 2:39 and 2:03 and was recorded as

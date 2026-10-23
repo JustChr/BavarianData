@@ -163,7 +163,7 @@ def test_status_answer_reports_charging_details_only_while_charging():
 def test_range_check_verdicts():
     fits = assist.range_check(100, round_trip=False, range_km=250, full_range_km=400, soc=60)
     assert fits["verdict"] == "fits"
-    assert fits["reserve_km"] == 40
+    assert fits["safety_margin_km"] == 40
     assert "charge_needed_percent" not in fits
 
     tight = assist.range_check(110, round_trip=True, range_km=250, full_range_km=400, soc=60)
@@ -260,6 +260,15 @@ def test_range_check_counts_battery_and_tank_on_a_plug_in_hybrid():
     assert long["total_range_km"] == 1042
     assert long["fits_on_electric_alone"] is False
     assert "charge_needed_percent" not in long
+
+    # #203: an agent read "reserve_km" as the range left and answered "with a
+    # reserve of 20 km" for a drive that leaves 142 km.
+    rob = assist.range_check(
+        900, round_trip=False, range_km=70, full_range_km=None, soc=55, fuel_range_km=972
+    )
+    assert rob["range_left_on_arrival_km"] == 142
+    assert rob["safety_margin_km"] == 20
+    assert "reserve_km" not in rob
 
     short = assist.range_check(
         25, round_trip=True, range_km=70, full_range_km=None, soc=55, fuel_range_km=972
