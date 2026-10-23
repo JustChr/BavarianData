@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.23-beta.1] - 2026-10-23
+
 ### Fixed
 - **Assist tells a plug-in hybrid's fuel range from its electric range** (#203).
   Asked for the fuel range of a 530e, an AI agent answered with the 70 km of
