@@ -2566,6 +2566,11 @@ class CardataCoordinator:
         # The car's own fix closes the line: it is where the trip ends.
         return [*points, (end_at, *end_fix)]
 
+    def numeric(self, vin: str, descriptor: str) -> Optional[float]:
+        """A descriptor's last value as a number, or ``None`` (for ``assist_api``)."""
+
+        return self._numeric(vin, descriptor)
+
     def _numeric(self, vin: str, descriptor: str) -> Optional[float]:
         state = self.get_state(vin, descriptor)
         if state is None or isinstance(state.value, bool):

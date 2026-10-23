@@ -26,6 +26,7 @@ __all__ = [
     "in_unit",
     "open_items",
     "range_check",
+    "ranges",
     "scrub",
     "status_answer",
 ]
@@ -215,6 +216,44 @@ def _number(value: Any, digits: int = 0) -> Optional[float]:
     return round(float(value), digits) if digits else round(float(value))
 
 
+def ranges(
+    *,
+    hybrid: bool,
+    combustion: bool,
+    electric_km: Optional[float],
+    car_electric_km: Optional[float],
+    car_total_km: Optional[float],
+) -> tuple[Optional[float], Optional[float]]:
+    """The electric range and the fuel range left, each ``None`` when unknown.
+
+    ``electric_km`` is the range the tools quote for the battery (measured
+    first, else the car's); ``car_electric_km`` and ``car_total_km`` are the
+    car's own electric and total readings. A battery car has no fuel range, a
+    fuel car no electric one. A plug-in hybrid's fuel range is its total less
+    its electric range (#203): BMW sends no fuel range of its own, and its
+    total counts both. Both readings have to be there and agree -- an electric
+    range above the total is a stale reading, not a negative tank.
+    """
+
+    if combustion:
+        return None, _plain(car_total_km)
+    if not hybrid:
+        return electric_km, None
+    electric = electric_km if electric_km is not None else car_electric_km
+    total, battery = _plain(car_total_km), _plain(car_electric_km)
+    if total is None or battery is None or battery > total:
+        return electric, None
+    return electric, total - battery
+
+
+def _plain(value: Optional[float]) -> Optional[float]:
+    """A reading that can be a range: a number, not below zero."""
+
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+        return None
+    return float(value)
+
+
 def status_answer(
     *,
     name: str,
@@ -232,8 +271,15 @@ def status_answer(
     trip_in_progress: bool,
     open_now: Sequence[str],
     soc_updated: Optional[str],
+    fuel_range_km: Optional[float] = None,
+    fuel_percent: Optional[float] = None,
 ) -> dict[str, Any]:
-    """The car as it is now. ``None`` fields are dropped: unknown, not zero."""
+    """The car as it is now. ``None`` fields are dropped: unknown, not zero.
+
+    A car with a tank names every range for what it is: a bare ``range_km``
+    next to a tank is read as the fuel range (#203), so a hybrid gets
+    ``electric_range_km``, ``fuel_range_km`` and their sum.
+    """
 
     if zone:
         location: Optional[str] = zone
@@ -249,8 +295,8 @@ def status_answer(
         "charge_target_percent": _number(target_soc),
         "charging_power_kw": _number(charge_power_kw, 1) if charging else None,
         "minutes_to_charge_target": minutes_to_target if charging else None,
-        "range_km": _number(range_km),
-        "range_shown_by_car_km": _number(bmw_range_km),
+        **_range_fields(range_km, bmw_range_km, fuel_range_km),
+        "fuel_percent": _number(fuel_percent),
         "odometer_km": _number(odometer_km),
         "location": location,
         "driving": trip_in_progress,
@@ -260,6 +306,19 @@ def status_answer(
     return {key: value for key, value in answer.items() if value is not None}
 
 
+def _range_fields(
+    electric_km: Optional[float], car_electric_km: Optional[float], fuel_km: Optional[float]
+) -> dict[str, Optional[float]]:
+    if fuel_km is None:
+        return {"range_km": _number(electric_km), "range_shown_by_car_km": _number(car_electric_km)}
+    return {
+        "electric_range_km": _number(electric_km),
+        "electric_range_shown_by_car_km": _number(car_electric_km),
+        "fuel_range_km": _number(fuel_km),
+        "total_range_km": None if electric_km is None else _number(electric_km + fuel_km),
+    }
+
+
 def range_check(
     distance_km: float,
     *,
@@ -267,6 +326,7 @@ def range_check(
     range_km: Optional[float],
     full_range_km: Optional[float],
     soc: Optional[float],
+    fuel_range_km: Optional[float] = None,
 ) -> dict[str, Any]:
     """Whether a drive fits the range left, with a reserve.
 
@@ -274,19 +334,21 @@ def range_check(
     for a detour or a colder day than the ones the figure was measured on. A
     drive that doesn't fit says how much more charge it needs, when the full
     range is known.
+
+    A car with a tank (``fuel_range_km``) is judged on battery and tank
+    together, with the 20 km reserve; a hybrid also says whether the drive
+    fits on the battery alone. Charging is not what it needs when it falls
+    short, so it gets no charge figure.
     """
 
     needed = float(distance_km) * (2 if round_trip else 1)
+    if fuel_range_km is not None:
+        return _range_check_with_fuel(needed, range_km, fuel_range_km)
     if range_km is None:
         return {"needed_km": round(needed), "verdict": "unknown", "reason": "no range reading yet"}
     reserve = max(0.1 * full_range_km, 20.0) if full_range_km else 20.0
     left = range_km - needed
-    if left >= reserve:
-        verdict = "fits"
-    elif left >= 0:
-        verdict = "tight"
-    else:
-        verdict = "does_not_fit"
+    verdict = _verdict(left, reserve)
     answer: dict[str, Any] = {
         "needed_km": round(needed),
         "range_km": round(range_km),
@@ -299,6 +361,33 @@ def range_check(
         answer["charge_needed_percent"] = min(
             100 - round(soc), max(1, round(100 * short / full_range_km))
         )
+    return answer
+
+
+def _verdict(left: float, reserve: float) -> str:
+    if left >= reserve:
+        return "fits"
+    return "tight" if left >= 0 else "does_not_fit"
+
+
+def _range_check_with_fuel(
+    needed: float, electric_km: Optional[float], fuel_km: float
+) -> dict[str, Any]:
+    total = (electric_km or 0.0) + fuel_km
+    left = total - needed
+    answer: dict[str, Any] = {"needed_km": round(needed)}
+    if electric_km is not None:
+        answer["electric_range_km"] = round(electric_km)
+        answer["fuel_range_km"] = round(fuel_km)
+        answer["fits_on_electric_alone"] = needed <= electric_km
+    answer.update(
+        {
+            "total_range_km" if electric_km is not None else "fuel_range_km": round(total),
+            "range_left_on_arrival_km": round(left),
+            "reserve_km": 20,
+            "verdict": _verdict(left, 20.0),
+        }
+    )
     return answer
 
 
