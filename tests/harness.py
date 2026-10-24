@@ -38,6 +38,7 @@ import copy
 import logging
 import os
 import shutil
+import sys
 import tempfile
 from itertools import pairwise
 from dataclasses import dataclass, field
@@ -86,7 +87,22 @@ DESCRIPTORS = {
 }
 
 # Modules whose ``datetime`` must follow the virtual clock.
-_CLOCKED = (coordinator_mod, store_mod, soc_mod, coverage_store_mod, tyre_store_mod)
+
+
+def _clocked_modules() -> list:
+    """Every loaded integration module that reads ``datetime.now``.
+
+    Found rather than listed: a module the coordinator's code moves into must
+    follow the virtual clock as well, or its readings depend on the day the
+    suite runs -- what a fixed list let happen to ``dt_util.utcnow()``.
+    """
+
+    prefix = "custom_components.bavariandata."
+    return [
+        module
+        for name, module in sorted(sys.modules.items())
+        if name.startswith(prefix) and getattr(module, "datetime", None) is datetime
+    ]
 
 # Every harness a test made, so the ``conftest`` fixture can close the ones a
 # test leaves open (their trace is written on close, their patches undone).
@@ -195,7 +211,7 @@ class CoordinatorHarness:
         self._patch = pytest.MonkeyPatch()
         install_fake_ha(self._patch)
         clocked = clocked_datetime(self.clock)
-        for module in _CLOCKED:
+        for module in _clocked_modules():
             self._patch.setattr(module, "datetime", clocked)
             # ``dt_util.utcnow()`` too: the stub's own reads the wall clock,
             # which made a live trip's duration depend on the day the suite ran.

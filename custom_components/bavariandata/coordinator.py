@@ -8,29 +8,23 @@ import re
 from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Any, Callable, Deque, Dict, Iterable, Mapping, Optional
+from typing import Any, Callable, Deque, Dict, Iterable, Optional
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.dispatcher import async_dispatcher_send
-from homeassistant.helpers.event import async_call_later, async_track_state_change_event
+from homeassistant.helpers.event import async_call_later
 from homeassistant.util import dt as dt_util
 
 from .const import (
     DOMAIN,
     DIAGNOSTIC_LOG_INTERVAL,
-    EVENT_ALARM,
     EVENT_CHARGING_STARTED,
     EVENT_CHARGING_STOPPED,
     EVENT_CHARGING_COMPLETE,
     EVENT_CHARGING_INTERRUPTED,
-    EVENT_CHECK_CONTROL,
-    EVENT_PRECONDITIONING,
-    EVENT_SITUATION,
     EVENT_TRIP_ENDED,
-    EVENT_VEHICLE_REPORT,
     EVENT_ZONE_ARRIVED,
-    EVENT_ZONE_LEFT,
 )
 from .debug import debug_enabled, mask_vin
 from .history.classify import (
@@ -75,12 +69,57 @@ from .history.trip_builder import (
     silence_implies_stop,
 )
 from .car_profile import REST, STREAM, CarProfile
+from .car_signals import (
+    DESC_MOVING,
+    DESC_IGNITION,
+    DESC_GPS_LAT,
+    DESC_GPS_LON,
+    DESC_ODOMETER,
+    DESC_FUEL_L,
+    DESC_FUEL_LEVEL,
+    LITRES_PER_GALLON,
+    DESC_SEG_PREFIX,
+    DESC_SEG_DISTANCE,
+    DESC_SEG_RECUP,
+    DESC_SEG_CONSUMPTION,
+    DESC_SEG_ACCEL_STARS,
+    DESC_SEG_BRAKE_STARS,
+    DESC_SEG_ECO,
+    DESC_SEG_ELECTRIC,
+    DESC_DRIVER_DOOR,
+    DESC_GPS_FIX,
+    DESC_GPS_SATS,
+    DESC_GPS_HEADING,
+    TRIP_CLOSE_DEBOUNCE_S,
+    TRIP_SILENT_HOLD_MAX_S,
+    PENDING_START_MAX_S,
+    DOOR_ARRIVAL_STOP_S,
+    DOOR_SETTLE_S,
+    LATE_READING_MAX_S,
+    LATE_READING_SETTLE_S,
+    GPS_PAIR_STALE_S,
+    GPS_PART_LAT,
+    GPS_PART_LON,
+    GPS_PAIR_PARTS,
+    CHARGE_CLOSE_DEBOUNCE_S,
+    CHARGE_PLUGGED_HOLD_S,
+    OPEN_SESSION_SAVE_INTERVAL_S,
+    RESTORED_SESSION_GRACE_S,
+    CHARGE_TERMINAL_STATUSES,
+    CHARGE_PROGRESS_DESCRIPTORS,
+    SEG_FRESH_S,
+    DESC_BMW_RANGE,
+    DESC_MAX_ENERGY,
+    DESC_CHARGE_STATUS,
+    CHARGE_END_REASON_DESCRIPTORS,
+)
 from .car_state import NO_CAR, ClosedTrip, Vehicle
 from .coverage import is_combustion_only, is_plug_in_hybrid
-from .phone_route import PhoneRoute
 from .soc_tracking import SocTracking
 from .steering import steering_side
 from .trip_capture import TRIP_CAPTURE_FILE, TripLog
+from .vehicle_events import VehicleEvents
+from .vehicle_reports import VehicleReports
 from .stream_health import (
     NO_DATA_REPAIR_AFTER_S,
     UNAUTHORIZED_REPAIR_AFTER_S,
@@ -88,235 +127,15 @@ from .stream_health import (
     StreamHealth,
 )
 from .placeholders import is_placeholder
-from .structured_values import EMPTY_WHEN_NULL, structured_state
+from .structured_values import EMPTY_WHEN_NULL
 from .trip_settings import TripSettings
 from .tyre import parse_tyre_diagnosis
 from .mileage import mileage_report
 from .units import miles_to_km, normalize_unit, unit_choices
-from .vehicle_report import (
-    ARM,
-    CANDIDATE,
-    REPORT_QUIET_S,
-    SEED,
-    ReportDecision,
-    add_start_mark,
-    fuel_stats,
-    report_decision,
-    report_payload,
-    report_time,
-    take_start_mark,
-)
 from .vehicle_support import is_motorcycle, motorcycle_issue_id
 from .vehicle_triggers import (
-    ALARM_DESCRIPTOR,
-    CHECK_CONTROL_DESCRIPTOR,
-    LOCK_DESCRIPTORS,
-    PRECONDITIONING_DESCRIPTOR,
-    PRECONDITIONING_ERROR_DESCRIPTOR,
-    SITUATION_PARKED_UNLOCKED,
-    SITUATION_PARKED_WINDOW_OPEN,
-    SITUATION_PLUGGED_NOT_CHARGING,
-    WINDOW_DESCRIPTORS,
-    EdgeTracker,
-    SituationTracker,
-    alarm_on,
     charging_interrupted,
-    fresh,
-    lock_state,
-    message_changes,
-    open_windows,
-    parked_unlocked,
-    parked_window_open,
-    plugged_not_charging,
-    preconditioning_active,
-    window_open,
 )
-
-# Trip-detection descriptors (roadmap Phase 3). Motion is powertrain-agnostic and
-# the cleanest start signal; ignition corroborates it; BMW's own completed-segment
-# batch is the authoritative close and carries the per-trip statistics.
-DESC_MOVING = "vehicle.isMoving"
-DESC_IGNITION = "vehicle.drivetrain.engine.isIgnitionOn"
-# Live position, the trip signal for cars that stream neither motion nor
-# ignition. Latitude and longitude arrive as separate messages, so the current
-# fix is read back from stored state rather than assumed present in one batch.
-DESC_GPS_LAT = "vehicle.cabin.infotainment.navigation.currentLocation.latitude"
-DESC_GPS_LON = "vehicle.cabin.infotainment.navigation.currentLocation.longitude"
-# The cumulative odometer descriptor differs by model: most cars stream
-# ``vehicle.vehicle.mileage``; the i5 streams ``vehicle.vehicle.travelledDistance``
-# instead (same thing -- a lifetime total in km). Trying both in order means trip
-# distance and charging-cost mileage come from BMW's own figure wherever either
-# is present, falling back to the GPS track only when neither is.
-DESC_ODOMETER = ("vehicle.vehicle.mileage", "vehicle.vehicle.travelledDistance")
-# The fuel left, in litres: what a report trip's fuel figures are read from.
-DESC_FUEL_L = "vehicle.drivetrain.fuelSystem.remainingFuel"
-DESC_FUEL_LEVEL = "vehicle.drivetrain.fuelSystem.level"
-# A US gallon, for a tank BMW reports in gallons; the fuel log keeps litres.
-LITRES_PER_GALLON = 3.785411784
-DESC_SEG_PREFIX = "vehicle.trip.segment.end."
-DESC_SEG_DISTANCE = "vehicle.trip.segment.end.travelledDistance"
-DESC_SEG_RECUP = "vehicle.trip.segment.accumulated.drivetrain.electricEngine.recuperationTotal"
-DESC_SEG_CONSUMPTION = (
-    "vehicle.trip.segment.accumulated.drivetrain.electricEngine.energyConsumptionComfort"
-)
-DESC_SEG_ACCEL_STARS = "vehicle.trip.segment.accumulated.acceleration.starsAverage"
-DESC_SEG_BRAKE_STARS = "vehicle.trip.segment.accumulated.chassis.brake.starsAverage"
-DESC_SEG_ECO = (
-    "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveEcoPro"
-)
-DESC_SEG_ELECTRIC = (
-    "vehicle.trip.segment.accumulated.drivetrain.transmission.setting.fractionDriveElectric"
-)
-# Driver door. When a car streams it (the i5 does), it brackets a drive far more
-# precisely than GPS jitter: the door closing means the driver just got in (a
-# drive is imminent), and the door opening after the car has stopped means they
-# have arrived. Used as an *accelerator* only -- GPS stays the fallback for cars
-# that don't stream it -- so trip detection never depends on it.
-DESC_DRIVER_DOOR = "vehicle.cabin.door.row1.driver.isOpen"
-
-# GPS-quality descriptors, folded into every ``[trip.gps]`` capture line. They
-# bear directly on the detector's worst failure mode: a run of "no movement"
-# fixes that is really the *fix* being lost, not the car stopping, splits one
-# drive in two. Seeing fix state / satellite count / heading alongside each step
-# tells the two apart. Same ``currentLocation.*`` group as lat/lon, so a car that
-# streams position very likely streams these too (when selected).
-DESC_GPS_FIX = "vehicle.cabin.infotainment.navigation.currentLocation.fixStatus"
-DESC_GPS_SATS = "vehicle.cabin.infotainment.navigation.currentLocation.numberOfSatellites"
-DESC_GPS_HEADING = "vehicle.cabin.infotainment.navigation.currentLocation.heading"
-
-# Once the car has been at rest this long with no new segment batch, treat the
-# trip as ended. Long enough to ride out a traffic light, short enough that a
-# parked car's trip closes promptly.
-TRIP_CLOSE_DEBOUNCE_S = 300
-
-# The debounce above assumes the fixes that stopped moving are evidence the *car*
-# stopped. When the position stream simply goes quiet mid-drive -- the i5 can gap
-# for minutes, and a tunnel or a bad cell patch longer still -- there is no such
-# evidence, and closing on the timer alone splits one drive into two. So a close
-# with no stop evidence behind it is *held*: the trip stays open until a fix comes
-# back and settles it (a fix showing the car where it left off closes the trip; a
-# fix showing it has moved on continues the same trip). This caps how long that
-# wait may last, for a stream that never comes back. Generous, because the close
-# is backdated to the last movement either way (see ``_trip_end_time``), so a late
-# close costs latency, not accuracy.
-TRIP_SILENT_HOLD_MAX_S = 1800
-
-# A driver-door-close start marker is only honoured for opening a trip within
-# this long -- so an unrelated door-close hours before a drive can't seed it.
-PENDING_START_MAX_S = 300
-# A driver-door-open ends an open trip only once the car has been stationary at
-# least this long, so a door read that flickers open mid-move can't close a live
-# drive. Short, because a driver opens their door only after actually stopping.
-DOOR_ARRIVAL_STOP_S = 20
-# How long a door-open waits for the rest of its snapshot when no fix has shown
-# the car standing yet: an i4 sends the door ahead of its final fix (issue #183).
-DOOR_SETTLE_S = 10
-# An odometer or SoC reading that lands this soon after a trip closed, with the
-# car not moving since, is that trip's: the i5 once sent its last km 52 s after
-# the door ended the drive. Settled by the next fix (standing: the trip's; moving:
-# the next drive's) or, with no fix at all, after LATE_READING_SETTLE_S.
-LATE_READING_MAX_S = 300
-LATE_READING_SETTLE_S = 60
-# BMW streams latitude and longitude as two separate messages ~1 s apart, so a
-# fix is only complete once *both* have arrived. Detection waits for that (see
-# ``_gps_fix_ready``); this guard stops a frozen single component from stalling
-# GPS processing forever if the pairing assumption ever fails.
-GPS_PAIR_STALE_S = 120
-# The two halves of a fix, tracked by arrival rather than by timestamp: waiting
-# for both messages is the only pairing rule that cannot silently drift out of
-# step (see ``_gps_fix_ready``).
-GPS_PART_LAT = "lat"
-GPS_PART_LON = "lon"
-GPS_PAIR_PARTS = frozenset({GPS_PART_LAT, GPS_PART_LON})
-
-# BMW's ``charging.status`` can briefly drop out of CHARGINGACTIVE mid-charge (a
-# momentary NOCHARGING/PAUSED blip on the stream) and come straight back. Closing
-# the session on the transition would split one plug-in into two records -- one
-# then enriched by BMW's import, the other orphaned and double-counted -- so the
-# close is debounced: if charging resumes within this window the same session
-# continues instead. Long enough to ride out a flap, short enough that a genuine
-# unplug still records promptly.
-CHARGE_CLOSE_DEBOUNCE_S = 120
-
-# How long a stopped charge waits for a resume while the cable is still in. Some
-# cars stop for longer than the flap debounce mid-charge and carry on by
-# themselves: a MINI Cooper SE on a portable charger paused for 2:39 and 2:03 and
-# was filed as three charges (#180). With the plug still connected the session
-# stays open this long after the stop; an unplug closes it at once, and a car
-# that doesn't stream its plug keeps the plain debounce. The record still ends
-# at the stop, so only the stop events wait.
-CHARGE_PLUGGED_HOLD_S = 300
-
-# How often an in-progress charge is written to the store. Every write rewrites
-# the whole history document, so this is a trade between disk churn and how much
-# of a charge a *crash* can cost -- a clean restart or reload loses nothing,
-# because both snapshot on the way out. Five minutes of a 11 kW charge is under
-# a kilowatt-hour, and the SoC-derived ceiling stops even that from inflating a
-# resumed total beyond what the pack can hold.
-OPEN_SESSION_SAVE_INTERVAL_S = 300
-
-# How long a restored in-progress charge waits for the stream to say whether it
-# is still running. BMW republishes ``charging.status`` on its own schedule --
-# measured at seven minutes after one restart, and not at all after another
-# where the charge had ended meanwhile -- so the wait has to be generous. When
-# it expires the session is closed as what it already is, ending at its last
-# sample rather than at the timeout.
-RESTORED_SESSION_GRACE_S = 900
-
-# Charging statuses that mean this plug-in is over, as opposed to merely not
-# delivering right now. BMW's enum is nocharging / initialization /
-# chargingactive / chargingpaused / chargingended / chargingerror, and the
-# middle two are *transient*: a charge that is handshaking or paused is still
-# the same charge. Only used to decide the fate of a session restored across a
-# restart -- a live session has the flap debounce for this, which a restored one
-# cannot use because its gap has already happened. Anything unrecognised counts
-# as transient and waits for the grace timer instead.
-CHARGE_TERMINAL_STATUSES = frozenset({"NOCHARGING", "CHARGINGENDED", "CHARGINGERROR"})
-
-# BMW's in-charge progress figures, which it simply stops sending when a charge
-# ends instead of sending a zero: on the i5 the time to full stayed at 32 min and
-# the power at 10.56 kW for good after a charge reached its target (2026-10-10).
-# Zeroed when our own session closes on the car's word -- after the flap
-# debounce, so a blip that comes straight back never zeroes a value BMW may not
-# send again; and never on a restart's timeout, which can't know the charge ended.
-CHARGE_PROGRESS_DESCRIPTORS = (
-    "vehicle.drivetrain.electricEngine.charging.timeToFullyCharged",
-    "vehicle.drivetrain.electricEngine.charging.timeRemaining",
-    "vehicle.powertrain.electric.battery.charging.power",
-)
-
-# A ``trip.segment.end.*`` field is only a completed-trip signal if its own
-# timestamp is recent: BMW ships the "last trip end" fields (e.g. ``hvSoc``) in
-# every telematic snapshot with the *previous* drive's timestamp, so an old one
-# would otherwise close a live GPS trip the moment the car parks and polls.
-SEG_FRESH_S = 900
-
-# --- What the efficiency profile reads live --------------------------------
-# The measured consumption comes out of the charging ledger, but two of its
-# inputs arrive as ordinary stream messages: BMW's own remaining range (the
-# comparison the real-range entity and the card's efficiency view are built
-# around) and the pack capacity that consumption is divided into. Neither moves
-# the SoC estimate nor lands a history record, so anything that recomputes the
-# profile only on those two signals must also watch these -- otherwise it keeps
-# whatever it worked out when it was created, which right after a restart is
-# before either descriptor has arrived.
-DESC_BMW_RANGE = "vehicle.drivetrain.electricEngine.kombiRemainingElectricRange"
-DESC_MAX_ENERGY = "vehicle.drivetrain.batteryManagement.maxEnergy"
-EFFICIENCY_LIVE_DESCRIPTORS = (DESC_BMW_RANGE, DESC_MAX_ENERGY)
-
-# --- What a charge controller is told (see bridge.py / evcc.py) ------------
-# The charging status is already handled by name in the message paths above;
-# named here because the bridge needs to know whether it has *ever* arrived,
-# which is a different question from what it currently says.
-DESC_CHARGE_STATUS = "vehicle.drivetrain.electricEngine.charging.status"
-# Why a charge ended, most specific first (carried on the interrupted event).
-CHARGE_END_REASON_DESCRIPTORS = (
-    "vehicle.drivetrain.electricEngine.charging.reasonChargingEnd",
-    "vehicle.drivetrain.electricEngine.charging.hvpmFinishReason",
-)
-# Whether a cable is in the car comes from a chain of descriptors that differs by
-# model -- see ``evcc.PLUG_DESCRIPTORS``, where it is unit-tested.
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -437,17 +256,30 @@ class CardataCoordinator:
     # The account's Units setting (Configure -> Units; ``units.unit_choices``):
     # display only, everything recorded stays metric.
     display_units: Dict[str, str] = field(default_factory=lambda: unit_choices({}))
-    # The one state listener feeding the cars' phone routes (``phone_route.py``,
-    # :meth:`watch_phone_routes`).
-    _phone_unsub: Optional[Callable[[], None]] = field(default=None, init=False)
     # The trip detector's log and capture mode (``trip_capture``).
     trip_log: TripLog = field(default_factory=TripLog, init=False)
-    # The device triggers (``vehicle_triggers``): situations, judged on what the
-    # stream delivered since this instance started (``Vehicle.live_descriptors``).
-    _situations: SituationTracker = field(default_factory=SituationTracker, init=False)
-    # The alarm, preconditioning and Check Control as last known: what an edge
-    # event compares against (``vehicle_triggers.EdgeTracker``).
-    _edges: EdgeTracker = field(default_factory=EdgeTracker, init=False)
+    # The device-trigger events: situations, edges, leaving a zone
+    # (``vehicle_events``). Made in ``__post_init__``: it reads through us.
+    events: VehicleEvents = field(init=False, repr=False)
+    # The vehicle-report event, report trips and phone routes (``vehicle_reports``).
+    reports: VehicleReports = field(init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        self.events = VehicleEvents(self)
+        self.reports = VehicleReports(self)
+
+    def mark_trip_start(self, vin: str, at: datetime) -> None:
+        """Note that a drive began at ``at`` (``bavariandata.mark_trip_start``)."""
+
+        self.reports.mark_trip_start(vin, at)
+
+    def watch_phone_routes(self) -> None:
+        """Listen to every phone and in-car sensor a car's trip settings name."""
+
+        self.reports.watch_phone_routes()
+
+    def stop_watching_phone_routes(self) -> None:
+        self.reports.stop_watching_phone_routes()
 
     @property
     def trip_debug(self) -> bool:
@@ -917,7 +749,7 @@ class CardataCoordinator:
             self._close_held_charge_on_unplug(vin)
 
         if any(descriptor in data for descriptor in DESC_ODOMETER):
-            self._note_odometer_report(vin, parked_soc=parked_soc)
+            self.reports.note_odometer(vin, parked_soc=parked_soc)
             self._note_odometer_day(vin, now)
         if DESC_FUEL_L in data or DESC_FUEL_LEVEL in data:
             self._note_fuel(vin, now)
@@ -966,8 +798,8 @@ class CardataCoordinator:
                 if gps_parts:
                     await self._process_gps_signal(vin, now, gps_ts, gps_parts)
             # After the trip logic: a trip opening ends "parked unlocked".
-            self._evaluate_situations(vin, now)
-        self._note_edges(vin, data, seen_descriptors, now, source)
+            self.events.evaluate_situations(vin, now)
+        self.events.note_edges(vin, data, seen_descriptors, now, source)
 
         # Trip-capture diagnostics: the raw firehose + NDJSON file, outside the
         # trip lock (they only read state) and strictly gated on the opt-in.
@@ -2033,98 +1865,6 @@ class CardataCoordinator:
         timestamp = self._odometer_timestamp(vin)
         return dt_util.parse_datetime(timestamp) if timestamp else None
 
-    def _note_odometer_report(
-        self, vin: str, *, parked_soc: Optional[tuple[float, Optional[datetime]]] = None
-    ) -> None:
-        """Arm the vehicle-report debounce when the odometer reached a new reading.
-
-        Re-armed only by a *new* value: the heartbeat repeats of an unchanged
-        reading must not hold the event back, and must never fire it either
-        (``vehicle_report.py``).
-        """
-
-        if self.history is None:
-            return
-        odometer_km = self.odometer_km(vin)
-        last = self.history.last_report(vin)
-        decision = self._report_decision(vin, odometer_km)
-        if decision.kind == SEED:
-            self.history.async_set_last_report(
-                vin, self._report_record(vin, odometer_km, starts=(last or {}).get("starts"))
-            )
-            if self.report_trips(vin):
-                # Where the car stands now is where its first trip will start.
-                self.hass.async_create_task(self._remember_report_place(vin, odometer_km))
-            return
-        if decision.kind == CANDIDATE:
-            # Kept beside the record, never in it: see ``vehicle_report.py``.
-            self.history.async_set_last_report(
-                vin, {**(last or {}), "candidate": self._report_record(vin, odometer_km)}
-            )
-            return
-        if decision.kind == ARM and parked_soc is not None and "soc_parked" not in (last or {}):
-            # The first new reading of a drive: what the car stood with before
-            # it. Kept in the record, so a restart's replay of the burst can't
-            # overwrite it with the SoC the car arrived with.
-            soc, soc_at = parked_soc
-            self.history.async_set_last_report(
-                vin,
-                {
-                    **(last or {}),
-                    "soc_parked": soc,
-                    "soc_parked_at": soc_at.isoformat() if soc_at else None,
-                },
-            )
-        if decision.kind != ARM or self._peek(vin).report.pending == odometer_km:
-            return
-        self._cancel_report_timer(vin)
-        self._car(vin).report.pending = odometer_km
-
-        @callback
-        def _fire(_now) -> None:
-            self._peek(vin).report.take("timer")
-            armed = self._peek(vin).report.take("pending")
-            # A newer reading would have re-armed the timer; anything else is a
-            # value that has gone away again, and is not announced.
-            if armed is None or self.odometer_km(vin) != armed:
-                return
-            # Decided again, against the record as it is now: what the report
-            # is measured from may have changed while it held.
-            decision = self._report_decision(vin, armed)
-            if decision.kind == ARM and decision.baseline is not None:
-                self._fire_vehicle_report(vin, armed, decision.baseline)
-
-        self._car(vin).report.timer = async_call_later(self.hass, REPORT_QUIET_S, _fire)
-
-    def _report_decision(self, vin: str, odometer_km: Optional[float]) -> ReportDecision:
-        return report_decision(
-            odometer_km,
-            self.history.last_report(vin) if self.history is not None else None,
-            timestamp=self._odometer_timestamp(vin),
-            now=datetime.now(timezone.utc),
-        )
-
-    def _report_record(
-        self, vin: str, odometer_km: float, *, starts: Optional[list[str]] = None
-    ) -> dict[str, Any]:
-        """A reading as the record keeps it: by the car's clock and by ours.
-
-        With the fuel and charge that came with it, which the next report trip
-        starts from, and any start marks still waiting for their trip. The
-        place is added once resolved (:meth:`_remember_report_place`).
-        """
-
-        record: dict[str, Any] = {
-            "odometer_km": odometer_km,
-            "timestamp": self._odometer_timestamp(vin),
-            "recorded_at": datetime.now(timezone.utc).isoformat(),
-            "fuel_l": self._numeric(vin, DESC_FUEL_L),
-            "soc": self._current_soc(vin),
-        }
-        if starts:
-            record["starts"] = list(starts)
-        return record
-
     def pricing_for(self, vin: str) -> PricingConfig:
         """The pricing in force for ``vin``: its own meter and losses, if any."""
 
@@ -2139,282 +1879,6 @@ class CardataCoordinator:
         """True when ``vin``'s trips are built from vehicle reports, not the live stream."""
 
         return self.trip_settings_for(vin).report_trips
-
-    @callback
-    def mark_trip_start(self, vin: str, at: datetime) -> None:
-        """Note that a drive began at ``at`` (``bavariandata.mark_trip_start``).
-
-        Kept with the report record, so a restart before the car reports loses
-        nothing; the report that ends the drive spends it (``vehicle_report.py``).
-        """
-
-        if self.history is None:
-            return
-        self.history.async_set_last_report(vin, add_start_mark(self.history.last_report(vin), at))
-        self.trip_log.cap("[trip.report] %s start marked at %s", vin, at.isoformat())
-
-    def watch_phone_routes(self) -> None:
-        """Listen to every phone and in-car sensor a car's trip settings name.
-
-        Called whenever the trip settings are (re)read. Every car starts over,
-        since its in-car sensor -- what decides which positions are held -- may
-        be a different one now.
-        """
-
-        self.stop_watching_phone_routes()
-        for car in self._cars.values():
-            car.report.phone_route = None
-        entities = sorted(
-            {
-                entity_id
-                for settings in (self.trip_settings, *self.vehicle_trip_settings.values())
-                if settings.phone_route
-                for entity_id in (settings.phone_tracker, settings.phone_in_car)
-                if entity_id
-            }
-        )
-        if entities:
-            self._phone_unsub = async_track_state_change_event(
-                self.hass, entities, self._phone_state_changed
-            )
-
-    def stop_watching_phone_routes(self) -> None:
-        if self._phone_unsub is not None:
-            self._phone_unsub()
-            self._phone_unsub = None
-
-    def _phone_route(self, vin: str, settings: TripSettings, in_car_state: Any) -> PhoneRoute:
-        route = self._peek(vin).report.phone_route
-        if route is None:
-            route = PhoneRoute(gated=bool(settings.phone_in_car))
-            if settings.phone_in_car:
-                if in_car_state is None:
-                    in_car_state = self.hass.states.get(settings.phone_in_car)
-                route.in_car = in_car_state is not None and in_car_state.state == "on"
-            self._car(vin).report.phone_route = route
-        return route
-
-    @callback
-    def _phone_state_changed(self, event: Any) -> None:
-        """A phone moved, or got into or out of a car."""
-
-        try:
-            entity_id = event.data.get("entity_id")
-            new_state = event.data.get("new_state")
-            if new_state is None:
-                return
-            now = datetime.now(timezone.utc)
-            for vin in sorted({*self.data, *self.names, *self.vehicle_trip_settings}):
-                settings = self.trip_settings_for(vin)
-                if not settings.phone_route:
-                    continue
-                if entity_id == settings.phone_in_car:
-                    # Created from the state *before* this change, so a car
-                    # first heard of now still sees the sensor turn on.
-                    route = self._phone_route(vin, settings, event.data.get("old_state"))
-                    if route.set_in_car(new_state.state == "on"):
-                        self.mark_trip_start(vin, now)
-                        # The phone may not move again for a while: where it
-                        # is now is where the drive starts.
-                        tracker = self.hass.states.get(settings.phone_tracker)
-                        if tracker is not None:
-                            self._add_phone_position(vin, route, tracker, now)
-                elif entity_id == settings.phone_tracker:
-                    self._add_phone_position(
-                        vin, self._phone_route(vin, settings, None), new_state, now
-                    )
-        except Exception:  # noqa: BLE001 - a phone must not break the stream
-            _LOGGER.exception("Could not follow the phone's position")
-
-    def _add_phone_position(self, vin: str, route: PhoneRoute, state: Any, now: datetime) -> None:
-        attributes = getattr(state, "attributes", None) or {}
-        try:
-            latitude = float(attributes["latitude"])
-            longitude = float(attributes["longitude"])
-        except KeyError, TypeError, ValueError:
-            return
-        accuracy = attributes.get("gps_accuracy")
-        try:
-            accuracy = float(accuracy) if accuracy is not None else None
-        except TypeError, ValueError:
-            accuracy = None
-        if route.add(now, latitude, longitude, accuracy):
-            self.trip_log.cap(
-                "[trip.phone] %s %.5f,%.5f acc=%s", vin, latitude, longitude, accuracy
-            )
-
-    async def _remember_report_place(self, vin: str, odometer_km: float) -> None:
-        """Add where the car stands to the record of the reading it just gave.
-
-        The next report trip starts there. Written only while the record is still
-        that reading's: a newer one may have landed during the geocode.
-        """
-
-        try:
-            resolved = await self._resolve_place(vin)
-            record = self.history.last_report(vin) if self.history is not None else None
-            if resolved is None or record is None or record.get("odometer_km") != odometer_km:
-                return
-            self.history.async_set_last_report(vin, {**record, "place": resolved})
-        except Exception:  # noqa: BLE001 - bookkeeping must not break the stream
-            _LOGGER.exception("Could not place the vehicle report for %s", mask_vin(vin))
-
-    def _cancel_report_timer(self, vin: str) -> None:
-        cancel = self._peek(vin).report.take("timer")
-        if cancel is not None:
-            cancel()
-        self._peek(vin).report.take("pending")
-
-    def _fire_vehicle_report(
-        self, vin: str, odometer_km: float, baseline: Mapping[str, Any]
-    ) -> None:
-        if self.history is None:
-            return
-        timestamp = self._odometer_timestamp(vin)
-        record = self.history.last_report(vin) or {}
-        starts = record.get("starts")
-        parked = {key: record.get(key) for key in ("soc_parked", "soc_parked_at")}
-        start: Optional[datetime] = None
-        end_at = dt_util.parse_datetime(timestamp) if timestamp else None
-        if end_at is None:
-            end_at = datetime.now(timezone.utc)
-        if self.report_trips(vin):
-            start, starts = take_start_mark(
-                starts, previous_at=report_time(baseline), end_at=end_at
-            )
-        payload = report_payload(
-            vin,
-            odometer_km=odometer_km,
-            timestamp=timestamp,
-            last=baseline,
-            values={
-                "fuel_l": self._numeric(vin, DESC_FUEL_L),
-                "fuel_percent": self._numeric(vin, "vehicle.drivetrain.fuelSystem.level"),
-                "range_km": self._numeric(vin, "vehicle.drivetrain.lastRemainingRange"),
-                "soc_percent": self._numeric(vin, "vehicle.drivetrain.batteryManagement.header"),
-                "latitude": self._numeric(vin, DESC_GPS_LAT),
-                "longitude": self._numeric(vin, DESC_GPS_LON),
-                "altitude_m": self._numeric(
-                    vin, "vehicle.cabin.infotainment.navigation.currentLocation.altitude"
-                ),
-                "heading": self._numeric(vin, DESC_GPS_HEADING),
-            },
-        )
-        payload["entry_id"] = self.entry_id
-        # Recorded before firing: an automation that raises must not leave the
-        # reading unrecorded, to be announced a second time. A fresh record
-        # also drops any candidate: this reading has settled the question.
-        self.history.async_set_last_report(
-            vin, self._report_record(vin, odometer_km, starts=starts)
-        )
-        self._fire(EVENT_VEHICLE_REPORT, payload)
-        if self.report_trips(vin):
-            self.hass.async_create_task(
-                self._record_report_trip(vin, odometer_km, {**baseline, **parked}, start, end_at)
-            )
-
-    async def _record_report_trip(
-        self,
-        vin: str,
-        odometer_km: float,
-        baseline: Mapping[str, Any],
-        start: Optional[datetime],
-        end_at: datetime,
-    ) -> None:
-        """One trip from a vehicle report: from the previous report to this one.
-
-        Where it went and how far are the car's own: the place it stood at the
-        previous report, the place it stands now, the odometer between them.
-        When it set off is a start mark's, or unknown -- then the trip is stored
-        at its arrival with no duration (``Trip.duration_unknown``).
-        """
-
-        try:
-            end_place = await self._resolve_place(vin)
-            record = self.history.last_report(vin) if self.history is not None else None
-            if end_place is not None and record and record.get("odometer_km") == odometer_km:
-                self.history.async_set_last_report(vin, {**record, "place": end_place})
-            start_place = baseline.get("place")
-            if not isinstance(start_place, Mapping):
-                start_place = None
-            # The SoC just before the burst; the previous report's own reading
-            # only when there is none (a car charged in between left with more).
-            soc_start = baseline.get("soc_parked")
-            if isinstance(soc_start, bool) or not isinstance(soc_start, (int, float)):
-                soc_start = baseline.get("soc")
-            if isinstance(soc_start, bool) or not isinstance(soc_start, (int, float)):
-                soc_start = None
-            mileage_start = baseline.get("odometer_km")
-            if isinstance(mileage_start, bool) or not isinstance(mileage_start, (int, float)):
-                mileage_start = None
-            builder = TripBuilder(
-                vin,
-                start or end_at,
-                start_place=dict(start_place) if start_place else None,
-                soc_start=soc_start,
-                mileage_start=mileage_start,
-                location_assumed=start_place is None or start_place.get("label") == "Unknown",
-            )
-            soc_end = self._current_soc(vin)
-            if self.is_plug_in_hybrid(vin):
-                # As on a live trip (``_trip_soc_end``): a hybrid that sent no
-                # SoC with its burst still shows the one it set off with, and
-                # "38 -> 38 %" would claim the battery never moved.
-                tracking = self._peek(vin).charge.tracking
-                before = dt_util.parse_datetime(baseline.get("soc_parked_at") or "")
-                last = tracking.last_update if tracking is not None else None
-                if last is None or (before is not None and last <= before):
-                    soc_end = None
-            route = self._phone_report_route(vin, start, end_at)
-            if route:
-                builder.record_track = True
-                for at, latitude, longitude in route:
-                    builder.add_track_point(latitude, longitude, at)
-            trip = builder.close(
-                end_at,
-                end_place=end_place,
-                soc_end=soc_end,
-                mileage_end=odometer_km,
-                energy_kwh=self._trip_energy_kwh(vin, soc_start, soc_end),
-                stats=fuel_stats(baseline.get("fuel_l"), self._numeric(vin, DESC_FUEL_L)),
-                hybrid=self.is_plug_in_hybrid(vin),
-            )
-            trip.duration_unknown = start is None
-            if route:
-                trip.track_source = "phone"
-            self.trip_log.cap(
-                "[trip.report] %s %s -> %s dist=%s start=%s phone_points=%s",
-                vin,
-                (trip.start_place or {}).get("label"),
-                (trip.end_place or {}).get("label"),
-                trip.distance_km,
-                "marked" if start is not None else "unknown",
-                len(route),
-            )
-            self._store_trip(vin, trip, start_zone=None, left_fired=False, announce=True)
-        except Exception:  # noqa: BLE001 - bookkeeping must not break the stream
-            _LOGGER.exception("Could not record the report trip for %s", mask_vin(vin))
-
-    def _phone_report_route(
-        self, vin: str, start: Optional[datetime], end_at: datetime
-    ) -> list[tuple[datetime, float, float]]:
-        """The phone's route for a report trip, ending where the car parked.
-
-        Empty when the car takes no route from a phone, or the phone's does not
-        fit the trip (``phone_route.py``).
-        """
-
-        route = self._peek(vin).report.phone_route
-        if route is None or not self.trip_settings_for(vin).phone_route:
-            return []
-        latitude = self._coordinate(vin, "latitude")
-        longitude = self._coordinate(vin, "longitude")
-        end_fix = (latitude, longitude) if latitude is not None and longitude is not None else None
-        points = route.take(start, end_at, end_fix)
-        if not points or end_fix is None:
-            return []
-        # The car's own fix closes the line: it is where the trip ends.
-        return [*points, (end_at, *end_fix)]
 
     def numeric(self, vin: str, descriptor: str) -> Optional[float]:
         """A descriptor's last value as a number, or ``None`` (for ``assist_api``)."""
@@ -2676,193 +2140,9 @@ class CardataCoordinator:
                 values[descriptor] = state.value
         return values
 
-    def _evaluate_situations(self, vin: str, now: datetime) -> None:
-        """Start or end the trigger situations, firing ``EVENT_SITUATION`` on a change.
-
-        Judged on live values only (see ``Vehicle.live_descriptors``), so a restart can
-        start nothing until the car speaks again.
-        """
-
-        try:
-            tracking = self._peek(vin).charge.tracking
-            charging: Optional[bool] = None
-            if tracking is not None and DESC_CHARGE_STATUS in self._peek(vin).live_descriptors:
-                charging = tracking.charging_active
-            soc = self._current_soc(vin)
-            target = None if tracking is None else tracking.target_soc_percent
-            windows = self._live_values(vin, WINDOW_DESCRIPTORS)
-            states = {
-                SITUATION_PARKED_UNLOCKED: parked_unlocked(
-                    lock_state(self._live_values(vin, LOCK_DESCRIPTORS)),
-                    self._peek(vin).trip.builder is not None,
-                ),
-                SITUATION_PLUGGED_NOT_CHARGING: plugged_not_charging(
-                    plug_state(self._live_values(vin, PLUG_DESCRIPTORS)), charging, soc, target
-                ),
-                SITUATION_PARKED_WINDOW_OPEN: parked_window_open(
-                    window_open(windows),
-                    self._peek(vin).trip.builder is not None,
-                ),
-            }
-            for situation, active in states.items():
-                began = self._situations.since(vin, situation)
-                change = self._situations.update(vin, situation, active, now)
-                if change is None:
-                    continue
-                zone = self._current_zone(vin)
-                payload: Dict[str, Any] = {
-                    "vin": vin,
-                    "entry_id": self.entry_id,
-                    "situation": situation,
-                    "active": change,
-                    "since": (now if change else began or now).isoformat(),
-                    "zone": None if zone is None else zone[0],
-                    "zone_entity_id": None if zone is None else zone[1],
-                }
-                if situation == SITUATION_PLUGGED_NOT_CHARGING:
-                    payload["soc"] = None if soc is None else round(soc, 1)
-                    payload["target_soc"] = target
-                elif situation == SITUATION_PARKED_WINDOW_OPEN:
-                    payload["windows"] = open_windows(windows) if change else []
-                if debug_enabled():
-                    _LOGGER.debug(
-                        "[trigger] %s %s %s", vin, situation, "BEGIN" if change else "END"
-                    )
-                self._fire(EVENT_SITUATION, payload)
-        except Exception:  # noqa: BLE001 - a trigger must never break the stream
-            _LOGGER.exception("Trigger evaluation failed for %s", mask_vin(vin))
-
-    def _note_edges(
-        self,
-        vin: str,
-        data: Mapping[str, Any],
-        seen: Iterable[str],
-        now: datetime,
-        source: str,
-    ) -> None:
-        """Fire the alarm, preconditioning and Check Control events on a change.
-
-        The alarm and preconditioning move only on the stream, and only fire on
-        a value stamped fresh: a REST answer may be BMW's cache, and fills a gap
-        at most (``EdgeTracker``). Check Control is REST-only, so its lists are
-        compared whatever brought them; the first list only sets the start.
-        """
-
-        try:
-            seen = set(seen)
-            for descriptor in (ALARM_DESCRIPTOR, PRECONDITIONING_DESCRIPTOR):
-                if descriptor not in seen:
-                    continue
-                reading = self._edge_reading(descriptor, self._value(vin, descriptor))
-                if reading is None:
-                    continue
-                if source == REST:
-                    self._edges.seed(vin, descriptor, reading)
-                    continue
-                before = self._edges.move(vin, descriptor, reading)
-                stamp = (data.get(descriptor) or {}).get("timestamp")
-                if before is reading or not fresh(dt_util.parse_datetime(stamp or ""), now):
-                    continue
-                if not reading and before is None:
-                    # An end with no start we knew of is nothing to announce.
-                    continue
-                if descriptor == ALARM_DESCRIPTOR:
-                    self._fire_edge(EVENT_ALARM, vin, reading, {})
-                else:
-                    error = self._value(vin, PRECONDITIONING_ERROR_DESCRIPTOR)
-                    activity = self._value(vin, PRECONDITIONING_DESCRIPTOR)
-                    self._fire_edge(
-                        EVENT_PRECONDITIONING,
-                        vin,
-                        reading,
-                        {
-                            "activity": activity.lower() if isinstance(activity, str) else None,
-                            "error": error.lower() if isinstance(error, str) else None,
-                            "soc": self._current_soc(vin),
-                        },
-                    )
-            if CHECK_CONTROL_DESCRIPTOR in seen:
-                _count, items = structured_state(self._value(vin, CHECK_CONTROL_DESCRIPTOR))
-                if isinstance(items, list):
-                    before = self._edges.move(vin, CHECK_CONTROL_DESCRIPTOR, items)
-                    new, gone = message_changes(before, items) or ([], [])
-                    for active, message in [(True, m) for m in new] + [(False, m) for m in gone]:
-                        self._fire_edge(
-                            EVENT_CHECK_CONTROL,
-                            vin,
-                            active,
-                            {
-                                "id": message.get("id"),
-                                "title": message.get("title"),
-                                "text": message.get("text"),
-                                "message_type": message.get("messageType"),
-                                "message": message,
-                            },
-                        )
-        except Exception:  # noqa: BLE001 - a trigger must never break the stream
-            _LOGGER.exception("Edge trigger evaluation failed for %s", mask_vin(vin))
-
-    @staticmethod
-    def _edge_reading(descriptor: str, value: Any) -> Optional[bool]:
-        if descriptor == ALARM_DESCRIPTOR:
-            return alarm_on(value)
-        return preconditioning_active(value)
-
     def _value(self, vin: str, descriptor: str) -> Any:
         state = self.get_state(vin, descriptor)
         return None if state is None else state.value
-
-    def _seed_edge(self, vin: str, descriptor: str, value: Any) -> None:
-        """Give an edge its "before" from a restored value (``restore_descriptor_state``)."""
-
-        if descriptor in (ALARM_DESCRIPTOR, PRECONDITIONING_DESCRIPTOR):
-            self._edges.seed(vin, descriptor, self._edge_reading(descriptor, value))
-        elif descriptor == CHECK_CONTROL_DESCRIPTOR:
-            _count, items = structured_state(value)
-            if isinstance(items, list):
-                self._edges.seed(vin, descriptor, items)
-
-    def _fire_edge(self, event_type: str, vin: str, active: bool, extra: Dict[str, Any]) -> None:
-        zone = self._current_zone(vin)
-        if debug_enabled():
-            _LOGGER.debug("[trigger] %s %s %s", vin, event_type, "BEGIN" if active else "END")
-        self._fire(
-            event_type,
-            {
-                "vin": vin,
-                "entry_id": self.entry_id,
-                "active": active,
-                **extra,
-                "zone": None if zone is None else zone[0],
-                "zone_entity_id": None if zone is None else zone[1],
-            },
-        )
-
-    def _fire_zone_left(self, vin: str, zone: tuple[str, str]) -> None:
-        self._car(vin).trip.zone_left_fired = True
-        builder = self._peek(vin).trip.builder
-        self._fire(
-            EVENT_ZONE_LEFT,
-            {
-                "vin": vin,
-                "entry_id": self.entry_id,
-                "zone": zone[0],
-                "zone_entity_id": zone[1],
-                "trip_start": None if builder is None else builder.start.isoformat(),
-                "soc": self._current_soc(vin),
-            },
-        )
-
-    def _check_zone_left(self, vin: str, latitude: float, longitude: float) -> None:
-        """Fire "left" once per trip, on the first fix outside the start zone."""
-
-        start = self._peek(vin).trip.start_zone
-        if start is None or self._peek(vin).trip.zone_left_fired:
-            return
-        here = self._zone_at(latitude, longitude)
-        if here is not None and here[1] == start[1]:
-            return
-        self._fire_zone_left(vin, start)
 
     # --- trips (roadmap Phase 3) -------------------------------------------
 
@@ -3186,7 +2466,7 @@ class CardataCoordinator:
                     # Record the route point too, stamped with this fix's time
                     # (opt-in; a no-op otherwise).
                     builder.add_track_point(latitude, longitude, now)
-                    self._check_zone_left(vin, latitude, longitude)
+                    self.events.check_zone_left(vin, latitude, longitude)
                 # The fixes are back and the car has moved on: the drive never
                 # ended, so drop any hold and keep going as one trip.
                 self._peek(vin).trip.take("held_since")
@@ -3537,7 +2817,7 @@ class CardataCoordinator:
             # ``signal_trips`` -- so the "under way" flag has to be told here.
             async_dispatcher_send(self.hass, self.signal_trip_active, vin)
             if announce:
-                self._evaluate_situations(vin, now)
+                self.events.evaluate_situations(vin, now)
         if builder is None or self.history is None:
             self._peek(vin).trip.take("door_arrival")
             return
@@ -3768,7 +3048,7 @@ class CardataCoordinator:
             end_zone = self._current_zone(vin)
             if start_zone is not None and not left_fired:
                 if end_zone is None or end_zone[1] != start_zone[1]:
-                    self._fire_zone_left(vin, start_zone)
+                    self.events.fire_zone_left(vin, start_zone)
             payload = {
                 "vin": vin,
                 "entry_id": self.entry_id,
@@ -3980,7 +3260,7 @@ class CardataCoordinator:
         # than the persisted record, so the first batch after the restart -- the
         # stream's or the REST catch-up's -- re-arms it.
         for vin in self._vins_where(lambda car: car.report.timer is not None):
-            self._cancel_report_timer(vin)
+            self.reports.cancel_report_timer(vin)
         for vin in self._vins_where(lambda car: car.trip.builder is not None):
             reason = "silent" if self._peek(vin).trip.held_since is not None else "unload"
             with suppress(Exception):
@@ -4764,7 +4044,7 @@ class CardataCoordinator:
             unit=unit,
             timestamp=timestamp,
         )
-        self._seed_edge(vin, descriptor, stored_value)
+        self.events.seed_edge(vin, descriptor, stored_value)
         if descriptor in (DESC_GPS_LAT, DESC_GPS_LON):
             self._seed_gps_from_restore(vin)
         if descriptor in DESC_ODOMETER:
