@@ -8,145 +8,92 @@ starting a reauth flow would ask the user to log in again for nothing, and givin
 up would leave the stream waiting for the next regular refresh, up to 45 minutes
 later. It has to ask the refresh loop to try again soon instead.
 
-``__init__.py`` imports Home Assistant, so the test compiles the real handler out
-of the shipped source and runs it against stand-ins for the notification and
-config-flow APIs it calls.
+The handler is ``reauth.ReauthGate.stream_error``, run here against a host that
+records the flows it starts and the notices it dismisses.
 """
 
 from __future__ import annotations
 
-import __future__
-import ast
 import asyncio
-import logging
-import pathlib
-import time
-import types
-from contextlib import suppress
 
 import aiohttp
+import pytest
 
 from .conftest import load_module
 
-_INIT = (
-    pathlib.Path(__file__).resolve().parents[1]
-    / "custom_components"
-    / "bavariandata"
-    / "__init__.py"
-)
-_CONST = load_module("const")
+reauth = load_module("reauth")
 _DEVICE_FLOW = load_module("device_flow")
 
 
-class _Notifications:
-    """Stand-in for ``homeassistant.components.persistent_notification``."""
-
-    def __init__(self) -> None:
-        self.created: list[str] = []
-
-    def async_create(self, hass, message, title=None, notification_id=None) -> None:
-        self.created.append(notification_id)
-
-    def async_dismiss(self, hass, notification_id) -> None:
-        pass
-
-
-class _Flows:
-    """Stand-in for ``hass.config_entries.flow``."""
-
-    def __init__(self) -> None:
-        self.started: list[dict] = []
-
-    async def async_init(self, domain, *, context=None, data=None) -> dict:
-        self.started.append(context)
-        return {"flow_id": f"flow-{len(self.started)}"}
-
-    async def async_abort(self, flow_id) -> None:
-        pass
-
-
-def _compile_handle_stream_error(refresh_error: Exception, notifications: _Notifications):
-    tree = ast.parse(_INIT.read_text(encoding="utf-8"), filename=str(_INIT))
-    names = ("_handle_stream_error", "_async_request_reauth")
-    wanted = [
-        node for node in tree.body if isinstance(node, ast.AsyncFunctionDef) and node.name in names
-    ]
-    assert len(wanted) == len(names), "_handle_stream_error or _async_request_reauth moved"
-    code = compile(
-        ast.Module(body=wanted, type_ignores=[]),
-        str(_INIT),
-        "exec",
-        flags=__future__.annotations.compiler_flag,
-        dont_inherit=True,
-    )
-
-    namespace: dict = {
-        "DOMAIN": _CONST.DOMAIN,
-        "SOURCE_REAUTH": "reauth",
-        "time": time,
-        "suppress": suppress,
-        "_LOGGER": logging.getLogger(__name__),
-        "CardataAuthError": _DEVICE_FLOW.CardataAuthError,
-        "refresh_rejected": _DEVICE_FLOW.refresh_rejected,
-        "persistent_notification": notifications,
-    }
-    exec(code, namespace)  # noqa: S102 - trusted, shipped source
-    return namespace["_handle_stream_error"]
-
-
 class _Tokens:
-    """Stands in for the entry's ``TokenKeeper``, whose renewal fails."""
+    """Stands in for the entry's ``TokenKeeper``; ``error`` makes renewal fail."""
 
-    def __init__(self, error: Exception) -> None:
+    def __init__(self, error: Exception | None) -> None:
         self._error = error
+        self.renewed = 0
 
     async def renew(self) -> None:
-        raise self._error
+        self.renewed += 1
+        if self._error is not None:
+            raise self._error
+
+
+class _Host:
+    def __init__(self, error: Exception | None = None) -> None:
+        self.entry_id = "entry-id"
+        self.tokens = _Tokens(error)
+        self.refresh_wake = asyncio.Event()
+        self.started: list[str] = []
+        self.aborted: list[str] = []
+        self.dismissed = 0
+
+    async def start_reauth(self) -> str:
+        self.started.append("reauth")
+        return f"flow-{len(self.started)}"
+
+    async def abort_flow(self, flow_id: str) -> None:
+        self.aborted.append(flow_id)
+
+    def dismiss_notice(self) -> None:
+        self.dismissed += 1
+
+
+class _Clock:
+    def __init__(self) -> None:
+        self.now = 1_000_000.0
+
+    def __call__(self) -> float:
+        return self.now
 
 
 def _scenario(refresh_error: Exception):
-    notifications = _Notifications()
-    flows = _Flows()
-    handle_stream_error = _compile_handle_stream_error(refresh_error, notifications)
-    hass = types.SimpleNamespace(config_entries=types.SimpleNamespace(flow=flows))
-    runtime = types.SimpleNamespace(
-        reauth_in_progress=False,
-        reauth_flow_id=None,
-        last_reauth_attempt=0.0,
-        last_refresh_attempt=0.0,
-        reauth_pending=False,
-        session=None,
-        stream=None,
-        tokens=_Tokens(refresh_error),
-        refresh_wake=asyncio.Event(),
-    )
-    entry = types.SimpleNamespace(entry_id="entry-id", data={}, runtime_data=runtime)
-    asyncio.run(handle_stream_error(hass, entry, "unauthorized"))
-    return notifications, flows, runtime
+    host = _Host(refresh_error)
+    gate = reauth.ReauthGate()
+    asyncio.run(gate.stream_error(host, "unauthorized"))
+    return host, gate
 
 
 def test_a_network_error_during_the_refresh_asks_for_a_retry_instead_of_reauth():
-    notifications, flows, runtime = _scenario(
+    host, _gate = _scenario(
         aiohttp.ClientConnectionError("Cannot connect to host customer.bmwgroup.com:443")
     )
 
-    assert flows.started == []
-    assert notifications.created == []
-    assert runtime.refresh_wake.is_set()
+    assert host.started == []
+    assert host.refresh_wake.is_set()
 
 
 def test_a_refresh_bmw_rejects_still_starts_reauth():
-    notifications, flows, runtime = _scenario(
+    host, gate = _scenario(
         _DEVICE_FLOW.CardataAuthError(
             "Token refresh failed (400: invalid_grant)", status=400, error_code="invalid_grant"
         )
     )
 
-    assert len(flows.started) == 1
     # Home Assistant posts the notice for a reauth flow itself, naming the
-    # entry; a second English-only one of ours said neither account nor car.
-    assert notifications.created == []
-    assert not runtime.refresh_wake.is_set()
+    # entry; the gate posts none of its own.
+    assert host.started == ["reauth"]
+    assert gate.in_progress and gate.flow_id == "flow-1"
+    assert not host.refresh_wake.is_set()
 
 
 def test_bmw_having_a_bad_moment_is_retried_not_reauthorized():
@@ -156,10 +103,106 @@ def test_bmw_having_a_bad_moment_is_retried_not_reauthorized():
     stream refused during a BMW hiccup sent the user off to re-authorize.
     """
 
-    notifications, flows, runtime = _scenario(
+    host, _gate = _scenario(
         _DEVICE_FLOW.CardataAuthError("Token refresh failed (503: unavailable)", status=503)
     )
 
-    assert flows.started == []
-    assert notifications.created == []
-    assert runtime.refresh_wake.is_set()
+    assert host.started == []
+    assert host.refresh_wake.is_set()
+
+
+def test_a_refresh_that_works_ends_it_without_a_flow():
+    host, gate = _scenario(None)
+
+    assert host.tokens.renewed == 1
+    assert host.started == [] and not gate.in_progress and not gate.pending
+
+
+def test_a_second_unauthorized_while_a_flow_is_open_is_ignored():
+    host, gate = _scenario(_DEVICE_FLOW.CardataAuthError("invalid_grant", status=400))
+    asyncio.run(gate.stream_error(host, "unauthorized"))
+
+    assert host.started == ["reauth"]
+    assert host.tokens.renewed == 1
+
+
+def test_unauthorized_again_soon_after_a_refresh_goes_straight_to_reauth():
+    """A refresh that "worked" but did not satisfy the broker is not tried twice."""
+
+    clock = _Clock()
+    host = _Host(None)
+    gate = reauth.ReauthGate(clock=clock)
+
+    asyncio.run(gate.stream_error(host, "unauthorized"))
+    clock.now += 5
+    asyncio.run(gate.stream_error(host, "unauthorized"))
+
+    assert host.tokens.renewed == 1
+    assert host.started == ["reauth"]
+    assert not gate.pending, "the flow it started took the pending reauth"
+
+
+def test_a_recovered_stream_closes_the_flow_and_its_notice():
+    host, gate = _scenario(_DEVICE_FLOW.CardataAuthError("invalid_grant", status=400))
+    asyncio.run(gate.stream_error(host, "recovered"))
+
+    assert host.aborted == ["flow-1"] and host.dismissed == 1
+    assert not gate.in_progress and gate.flow_id is None
+
+
+def test_a_recovered_stream_without_a_flow_touches_nothing():
+    host = _Host()
+    gate = reauth.ReauthGate()
+    gate.pending = True
+    asyncio.run(gate.stream_error(host, "recovered"))
+
+    assert host.dismissed == 0 and not gate.pending
+
+
+def test_a_new_request_replaces_a_stale_flow():
+    clock = _Clock()
+    host = _Host()
+    gate = reauth.ReauthGate(clock=clock)
+    gate.flow_id = "old"
+
+    asyncio.run(gate.request(host, "Token refresh rejected"))
+
+    assert host.aborted == ["old"] and gate.flow_id == "flow-1"
+
+
+def test_the_config_flow_resets_and_sets_the_gate():
+    gate = reauth.ReauthGate()
+    gate.started_by_user()
+    assert gate.in_progress and gate.pending
+
+    gate.flow_id = "flow"
+    gate.abandoned()
+    assert not gate.in_progress and gate.flow_id is None and gate.pending
+
+    gate.last_reauth_attempt = gate.last_refresh_attempt = 5.0
+    gate.authorized()
+    assert (gate.pending, gate.last_reauth_attempt, gate.last_refresh_attempt) == (False, 0, 0)
+
+
+def test_a_refresh_answer_without_an_id_token_is_refused():
+    with pytest.raises(KeyError):
+        reauth.renewed_entry_data({"refresh_token": "r"}, {"access_token": "a"}, 1.0)
+
+
+def test_a_refresh_keeps_what_bmw_left_out():
+    data = reauth.renewed_entry_data(
+        {"refresh_token": "r", "scope": "s", "token_type": "Bearer", "gcid": "g"},
+        {"id_token": "i", "access_token": "a", "expires_in": 3600},
+        123.0,
+    )
+
+    assert data == {
+        "refresh_token": "r",
+        "scope": "s",
+        "token_type": "Bearer",
+        "gcid": "g",
+        "id_token": "i",
+        "access_token": "a",
+        "expires_in": 3600,
+        "received_at": 123.0,
+    }

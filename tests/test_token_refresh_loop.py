@@ -10,34 +10,22 @@ Seen in the field: during a DNS outage the scheduled refresh raised an
 ``aiohttp`` connection error, which the loop did not catch. It ended without a
 log line, and the streams of both BMW accounts stayed down for nine hours.
 
-``__init__.py`` imports Home Assistant, so -- like the rest of this suite -- the
-tests compile the real functions out of the shipped source. The loop runs with a
-scripted token keeper (``rest.TokenKeeper``'s ``renew``) and a
-``_wait_for_refresh`` that records how long the loop wanted to wait instead of
-waiting.
+The loop is ``reauth.refresh_loop``. It runs here with a scripted token keeper
+(``rest.TokenKeeper``'s ``renew``) and a wait that records how long the loop
+wanted to wait instead of waiting.
 """
 
 from __future__ import annotations
 
-import __future__
-import ast
 import asyncio
 import itertools
-import logging
-import pathlib
-from contextlib import suppress
 
 import aiohttp
 import pytest
 
 from .conftest import load_module
 
-_INIT = (
-    pathlib.Path(__file__).resolve().parents[1]
-    / "custom_components"
-    / "bavariandata"
-    / "__init__.py"
-)
+reauth = load_module("reauth")
 _CONST = load_module("const")
 _DEVICE_FLOW = load_module("device_flow")
 
@@ -47,27 +35,6 @@ ID_TOKEN_LIFETIME = 3600
 FIVE_MINUTES = 5 * 60
 
 
-def _compile_from_init(name: str, **namespace) -> object:
-    """Compile one top-level function out of ``__init__.py`` into ``namespace``."""
-
-    tree = ast.parse(_INIT.read_text(encoding="utf-8"), filename=str(_INIT))
-    wanted = [
-        node
-        for node in tree.body
-        if isinstance(node, (ast.AsyncFunctionDef, ast.FunctionDef)) and node.name == name
-    ]
-    assert len(wanted) == 1, f"{name} moved"
-    code = compile(
-        ast.Module(body=wanted, type_ignores=[]),
-        str(_INIT),
-        "exec",
-        flags=__future__.annotations.compiler_flag,
-        dont_inherit=True,
-    )
-    exec(code, namespace)  # noqa: S102 - trusted, shipped source
-    return namespace[name]
-
-
 class _Tokens:
     """Stands in for the entry's ``TokenKeeper``: the loop only calls ``renew``."""
 
@@ -75,24 +42,8 @@ class _Tokens:
         self.renew = renew
 
 
-async def _no_reauth(hass, entry, why) -> None:
+async def _no_reauth(why) -> None:
     raise AssertionError(f"reauth requested for a transient failure: {why}")
-
-
-def _loop_namespace(**overrides) -> dict:
-    namespace: dict = {name: value for name, value in vars(_CONST).items() if name.isupper()}
-    namespace.update(
-        {
-            "asyncio": asyncio,
-            "aiohttp": aiohttp,
-            "_LOGGER": logging.getLogger(__name__),
-            "CardataAuthError": _DEVICE_FLOW.CardataAuthError,
-            "refresh_rejected": _DEVICE_FLOW.refresh_rejected,
-            "_async_request_reauth": _no_reauth,
-        }
-    )
-    namespace.update(overrides)
-    return namespace
 
 
 def _dns_outage() -> Exception:
@@ -148,13 +99,11 @@ def _run_refresh_loop(
 
     script = list(outcomes)
     refreshes = 0
-    overrides: dict = {}
+    request_reauth = _no_reauth
     if reauths is not None:
 
-        async def _async_request_reauth(hass, entry, why) -> None:
+        async def request_reauth(why) -> None:
             reauths.append(why)
-
-        overrides["_async_request_reauth"] = _async_request_reauth
 
     async def renew() -> None:
         nonlocal refreshes
@@ -166,11 +115,7 @@ def _run_refresh_loop(
     async def scenario() -> list[float]:
         wake = asyncio.Event()
         wait = _RecordingWait(wake, stop_after=len(outcomes))
-        refresh_loop = _compile_from_init(
-            "_refresh_loop",
-            **_loop_namespace(_wait_for_refresh=wait, **overrides),
-        )
-        await refresh_loop(None, None, _Tokens(renew), wake)
+        await reauth.refresh_loop(_Tokens(renew), wake, request_reauth, wait=wait)
         return wait.waits
 
     waits = asyncio.run(scenario())
@@ -250,12 +195,8 @@ def test_unloading_during_a_refresh_ends_the_loop():
         async def no_wait(wake: asyncio.Event, delay: float) -> None:
             return
 
-        refresh_loop = _compile_from_init(
-            "_refresh_loop",
-            **_loop_namespace(_wait_for_refresh=no_wait),
-        )
         task = asyncio.get_running_loop().create_task(
-            refresh_loop(None, None, _Tokens(renew), asyncio.Event())
+            reauth.refresh_loop(_Tokens(renew), asyncio.Event(), _no_reauth, wait=no_wait)
         )
         await in_flight.wait()
         task.cancel()  # what unloading the config entry does
@@ -268,12 +209,8 @@ def test_unloading_during_a_refresh_ends_the_loop():
     assert refreshes == 1
 
 
-def _wait_for_refresh():
-    return _compile_from_init("_wait_for_refresh", asyncio=asyncio, suppress=suppress)
-
-
 def test_a_refresh_request_cuts_the_wait_short():
-    wait_for_refresh = _wait_for_refresh()
+    wait_for_refresh = reauth.wait_for_refresh
 
     async def scenario() -> tuple[float, bool]:
         loop = asyncio.get_running_loop()
@@ -291,7 +228,7 @@ def test_a_refresh_request_cuts_the_wait_short():
 
 
 def test_without_a_request_the_full_delay_is_waited():
-    wait_for_refresh = _wait_for_refresh()
+    wait_for_refresh = reauth.wait_for_refresh
 
     async def scenario() -> float:
         loop = asyncio.get_running_loop()
