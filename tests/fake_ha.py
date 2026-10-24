@@ -147,6 +147,17 @@ class FakeHass:
             if entity_id in entity_ids:
                 action(event)
 
+    def remove_state(self, entity_id: str) -> None:
+        """The entity is gone: Home Assistant says so with ``new_state=None``."""
+
+        old_state = self.entity_states.pop(entity_id, None)
+        event = types.SimpleNamespace(
+            data={"entity_id": entity_id, "old_state": old_state, "new_state": None}
+        )
+        for entity_ids, action in list(self.state_listeners):
+            if entity_id in entity_ids:
+                action(event)
+
     def event_types(self) -> list[str]:
         return [name for name, _data in self.events]
 
