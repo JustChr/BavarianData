@@ -5,18 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict
 
-from homeassistant.components.device_tracker import TrackerEntity
-
-try:
-    from homeassistant.components.device_tracker import SourceType
-except ImportError:  # Home Assistant < 2025.10
-    SourceType = str  # type: ignore[assignment]
-    try:
-        from homeassistant.components.device_tracker.const import SOURCE_TYPE_GPS as GPS_SOURCE  # type: ignore[attr-defined]
-    except ImportError:
-        GPS_SOURCE = "gps"
-else:
-    GPS_SOURCE = SourceType.GPS
+from homeassistant.components.device_tracker import SourceType, TrackerEntity
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -145,9 +134,9 @@ class CardataDeviceTracker(CardataEntity, TrackerEntity):
         self.schedule_update_ha_state()
 
     @property
-    def source_type(self) -> SourceType | str:
+    def source_type(self) -> SourceType:
         """Return the source type of the device."""
-        return GPS_SOURCE
+        return SourceType.GPS
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
