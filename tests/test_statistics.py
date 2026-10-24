@@ -385,3 +385,54 @@ def test_the_home_series_leaves_out_charges_made_elsewhere():
     ]
     assert sum(stats.hourly_energy(sessions).values()) == 57.0
     assert sum(stats.hourly_energy_at_home(sessions, "Home").values()) == 12.0
+
+
+def test_report_names_the_plug_side_figure_an_assumed_place_and_a_floor():
+    """The rarer tiles: consumption at the plug beside the battery's, a place
+    the car didn't report, a private share, and a total that is a floor."""
+
+    session = _session(end=None, location={"zone": "Home"}, location_assumed=True)
+    driving = {
+        "energy_balance": {"kwh_per_100km": 19.0, "source": "grid"},
+        "avg_consumption_kwh_per_100km": 17.0,
+        "split": {"private_km": 12.0},
+    }
+    html = export.month_report_html(
+        month="2026-07",
+        vehicle="i5",
+        sessions=[session],
+        trips=[_trip()],
+        charging_summary={**summary.summarise([session]), "partial": True},
+        driving={**summary.driving_summary([_trip()]), **driving},
+    )
+    assert "at the plug" in html and "17.0 at the battery" in html
+    assert 'Home <span class="sub">(assumed)</span>' in html
+    assert "Private" in html
+    assert export.STRINGS["en"]["footnote_partial"][:30] in html
+
+
+def test_report_says_where_a_battery_side_figure_comes_from():
+    driving = {"energy_balance": {"kwh_per_100km": 18.0, "source": "battery"}}
+    html = export.month_report_html(
+        month="2026-07", vehicle="i5", sessions=[], trips=[_trip()], driving=driving
+    )
+    assert "at the battery" in html and "at the plug" not in html
+
+
+def test_a_session_still_charging_exports_an_empty_end():
+    header, row = _rows(export.sessions_csv([_session(end=None)]))[:2]
+    assert row[header.index("end")] == ""
+
+
+def test_report_shows_the_battery_figure_alone_without_a_balance():
+    driving = {
+        **summary.driving_summary([_trip()]),
+        "avg_consumption_kwh_per_100km": 17.5,
+        "recuperation_kwh_per_100km": 3.25,
+    }
+    driving.pop("energy_balance", None)
+    html = export.month_report_html(
+        month="2026-07", vehicle="i5", sessions=[], trips=[_trip()], driving=driving
+    )
+    assert "17.5" in html and "at the plug" not in html
+    assert "Recuperated" in html

@@ -204,3 +204,55 @@ def test_wheel_slugs_match_the_streamed_tire_attributes():
         axle, side = slug.split("_", 1)
         assert axle in {"front", "rear"}
         assert side in {"left", "right"}
+
+
+# --- the store that carries a diagnosis across restarts ----------------------
+
+
+def _store():
+    import asyncio
+    from datetime import datetime, timezone
+
+    from .fake_ha import Clock, FakeHass, load_with_fake_ha
+
+    tyre_store = load_with_fake_ha("tyre_store")
+    hass = FakeHass(clock=Clock(datetime(2026, 10, 24, tzinfo=timezone.utc)))
+    return asyncio.run, hass, tyre_store.TyreStore(hass, "entry")
+
+
+def test_a_recorded_diagnosis_survives_a_restart_and_a_deleted_car_does_not():
+    run, hass, store = _store()
+    run(store.async_load())
+    parsed = parse_tyre_diagnosis(_payload(frontLeft=_wheel()))
+    stamp = store.async_record("VIN1", parsed)
+    store.async_record("VIN2", parsed)
+    assert store.fetched_at("VIN1") == stamp and store.fetched_at("VIN3") is None
+
+    store.forget_vehicle("VIN2")
+    store.forget_vehicle("VIN3")  # unknown: nothing to save
+    run(store.async_save_now())
+
+    _run, _hass, again = _store()
+    _hass.storage.update(hass.storage)
+    restored = run(again.async_load())
+    assert set(restored) == {"VIN1"}
+    run(again.async_clear())
+    assert not _hass.storage
+
+
+@pytest.mark.parametrize("stored", [None, {"vehicles": "junk"}, {"vehicles": {"VIN1": {}}}])
+def test_an_empty_or_broken_store_starts_fresh(stored):
+    run, hass, store = _store()
+    if stored is not None:
+        hass.storage["bavariandata_entry_tyre"] = stored
+    assert run(store.async_load()) == {}
+
+
+def test_a_store_that_cannot_be_read_does_not_stop_setup(monkeypatch):
+    run, _hass, store = _store()
+
+    async def broken():
+        raise ValueError("corrupt")
+
+    monkeypatch.setattr(store._store, "async_load", broken)
+    assert run(store.async_load()) == {}

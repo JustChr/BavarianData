@@ -22,6 +22,7 @@ from .conftest import FakeResponse, FakeSession, load_module
 
 container = load_module("container")
 const = load_module("const")
+debug = load_module("debug")
 
 CardataContainerManager = container.CardataContainerManager
 CardataContainerError = container.CardataContainerError
@@ -30,6 +31,15 @@ NAME = const.HV_BATTERY_CONTAINER_NAME
 PURPOSE = const.HV_BATTERY_CONTAINER_PURPOSE
 
 TOKEN = "token-abc"
+
+
+@pytest.fixture(autouse=True, params=[False, True], ids=["quiet", "debug"])
+def _debug_logging(request):
+    """Every path once with debug logging on: its log lines must not break it."""
+
+    debug.set_debug_enabled(request.param, entry_id="test-container")
+    yield
+    debug.forget_entry("test-container")
 
 
 def _manager(responses, *, container_id=None):
@@ -202,6 +212,9 @@ def test_a_container_matches_on_purpose_name_or_descriptor_signature():
     assert manager._matches_hv_container({"name": NAME})
     assert not manager._matches_hv_container({"purpose": "x", "name": "y"})
     assert not manager._matches_hv_container({})
+    assert not manager._matches_hv_container(["not", "a", "container"])
+    own = {"technicalDescriptors": [*reversed(manager.kind.descriptors), 7]}
+    assert manager._matches_hv_container(own)
 
 
 # --------------------------------------------------------------------------
