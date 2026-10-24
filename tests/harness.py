@@ -20,29 +20,49 @@ A test reads like the timeline it checks::
 Every step appends a row to ``h.timeline`` (the estimate, the rate, whether a
 charge is on record, the events fired), which is what the scenario snapshots
 pin and what :func:`check_invariants` inspects after each step.
+
+Two switches make the harness a refactoring gate (``scripts/golden.py``):
+
+* ``BAVARIANDATA_TRACE_DIR`` writes a full trace of every step (``trace.py``):
+  every event, signal, repair, store write, timer and public getter.
+* ``BAVARIANDATA_TWIN=<minutes>`` (or ``twin=``) puts a second car in the
+  account that receives a copy of everything the first car sends, that many
+  minutes later. The first car's trace must not change: nothing one car does
+  may leak into another's state.
 """
 
 from __future__ import annotations
 
 import asyncio
+import copy
 import logging
+import os
+import shutil
+import tempfile
 from itertools import pairwise
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any, Optional
 
 import pytest
 
 from .fake_ha import Clock, FakeHass, clocked_datetime, install_fake_ha, load_with_fake_ha
+from .trace import tracer_for
 
 UTC = timezone.utc
 VIN = "WBATEST0000000001"
+# The second car of twin mode.
+TWIN_VIN = "WBATWIN0000000099"
+TWIN_ENV = "BAVARIANDATA_TWIN"
 START = datetime(2026, 9, 26, 8, 0, tzinfo=UTC)
 WATCHDOG_S = 30
 
 coordinator_mod = load_with_fake_ha("coordinator")
 store_mod = load_with_fake_ha("history.store")
 soc_mod = load_with_fake_ha("soc_tracking")
+coverage_store_mod = load_with_fake_ha("coverage_store")
+tyre_store_mod = load_with_fake_ha("tyre_store")
 
 # Short names for the descriptors a scenario touches, so a timeline stays
 # readable. Anything else can be passed by its full path via ``extra``.
@@ -59,10 +79,43 @@ DESCRIPTORS = {
     "odometer": ("vehicle.vehicle.travelledDistance", "km"),
     "lat": ("vehicle.cabin.infotainment.navigation.currentLocation.latitude", "degrees"),
     "lon": ("vehicle.cabin.infotainment.navigation.currentLocation.longitude", "degrees"),
+    "ac_volt": ("vehicle.drivetrain.electricEngine.charging.acVoltage", "V"),
+    "ac_amp": ("vehicle.drivetrain.electricEngine.charging.acAmpere", "A"),
+    "phases": ("vehicle.drivetrain.electricEngine.charging.phaseNumber", None),
+    "basic": ("vehicle.vehicleIdentification.basicVehicleData", None),
 }
 
 # Modules whose ``datetime`` must follow the virtual clock.
-_CLOCKED = (coordinator_mod, store_mod, soc_mod)
+_CLOCKED = (coordinator_mod, store_mod, soc_mod, coverage_store_mod, tyre_store_mod)
+
+# Every harness a test made, so the ``conftest`` fixture can close the ones a
+# test leaves open (their trace is written on close, their patches undone).
+OPEN_HARNESSES: list["CoordinatorHarness"] = []
+
+
+def _twin_offset(twin: Optional[float]) -> Optional[float]:
+    if twin is not None:
+        return twin
+    value = os.environ.get(TWIN_ENV)
+    return float(value) if value else None
+
+
+def _shift_stamps(data: dict[str, Any], minutes: float) -> dict[str, Any]:
+    """A batch's descriptors with every BMW timestamp moved ``minutes`` later."""
+
+    shifted = copy.deepcopy(data)
+    for item in shifted.values():
+        if not isinstance(item, dict) or not isinstance(item.get("timestamp"), str):
+            continue
+        try:
+            stamp = datetime.fromisoformat(item["timestamp"].replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        if stamp.tzinfo is None:
+            continue
+        moved = (stamp + timedelta(minutes=minutes)).astimezone(UTC)
+        item["timestamp"] = moved.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+    return shifted
 
 
 @dataclass
@@ -102,17 +155,39 @@ class CoordinatorHarness:
         start: datetime = START,
         home: Optional[tuple[float, float]] = None,
         wallbox_meter: Optional[str] = None,
+        pricing: Optional[dict[str, Any]] = None,
+        trip_debug: bool = False,
+        twin: Optional[float] = None,
+        trace: Optional[Path] = None,
     ) -> None:
         self.vin = vin
+        # Twin mode: a second car, sent a copy of every batch ``twin`` minutes
+        # later (``_queue_mirror``). ``None`` keeps the account to one car.
+        self.twin_offset = _twin_offset(twin)
+        self.twin_vin = TWIN_VIN if self.twin_offset is not None and vin != TWIN_VIN else None
+        if self.twin_vin is None:
+            self.twin_offset = None
+        self._mirror: list[tuple[datetime, dict[str, Any]]] = []
         # A bound wallbox energy meter (the ``grid_energy_entity`` option);
         # move it with :meth:`meter`.
         self.wallbox_meter = wallbox_meter
-        # The estimate entity's last written ``meter_reading_kwh`` attribute --
-        # what HA hands back with the restored state.
-        self._meter_attribute: Optional[float] = None
+        # Further ``PricingConfig`` options (a price entity, a tariff), kept
+        # across restarts as the entry's options are.
+        self.pricing_options = dict(pricing or {})
+        # Trip-capture mode, which appends every batch to a file in HA's config
+        # directory -- a scratch directory here, removed on close.
+        self.trip_debug = trip_debug
+        self._config_dir: Optional[str] = (
+            tempfile.mkdtemp(prefix="harness-") if trip_debug else None
+        )
+        # Each car's estimate entity's last written ``meter_reading_kwh``
+        # attribute -- what HA hands back with the restored state.
+        self._meter_attribute: dict[str, Optional[float]] = {}
         self.clock = Clock(start)
         self.start = start
         self.hass = FakeHass(self.clock)
+        if self._config_dir is not None:
+            self.hass.config.config_dir = self._config_dir
         # One event loop for the harness's life, as HA has. A loop per call
         # (``asyncio.run``) opens a socket pair each time on Windows; the
         # fuzzer's thousands exhausted the ephemeral ports and hung the suite.
@@ -122,6 +197,11 @@ class CoordinatorHarness:
         clocked = clocked_datetime(self.clock)
         for module in _CLOCKED:
             self._patch.setattr(module, "datetime", clocked)
+            # ``dt_util.utcnow()`` too: the stub's own reads the wall clock,
+            # which made a live trip's duration depend on the day the suite ran.
+            dt_util = getattr(module, "dt_util", None)
+            if dt_util is not None:
+                self._patch.setattr(dt_util, "utcnow", lambda: self.clock.now)
         self.history_enabled = history
         # The integration swallows exceptions wherever one must not break the
         # stream (``except Exception: _LOGGER.exception(...)``). Right in
@@ -132,27 +212,45 @@ class CoordinatorHarness:
         self.timeline: list[Row] = []
         self._event_mark = 0
         self._last_tick = self.clock.now
-        # When each derived value last changed -- what HA's ``last_changed``
-        # would say, and what the entity restore hands back after a restart.
-        self._derived_changed: dict[str, tuple[Any, datetime]] = {}
+        # When each car's derived value last changed -- what HA's
+        # ``last_changed`` would say, and what the entity restore hands back
+        # after a restart. Keyed ``(vin, "estimate" | "rate")``.
+        self._derived_changed: dict[tuple[str, str], tuple[Any, datetime]] = {}
+        self._closed = False
+        # What the coordinator's two REST callbacks were called with.
+        self.new_vehicles: list[str] = []
+        self.outages: list[float] = []
         self.coordinator = self._boot()
+        # ``trace`` writes this harness's trace there, whatever the environment says.
+        self._tracer = tracer_for(self, trace)
+        OPEN_HARNESSES.append(self)
         if home is not None:
             # What the device tracker hands back at startup on a real install:
             # the last known position, so the first live fix has a mate.
             stamp = start.strftime("%Y-%m-%dT%H:%M:%S.000Z")
-            for short, value in zip(("lat", "lon"), home, strict=True):
-                self.coordinator.restore_descriptor_state(
-                    vin, DESCRIPTORS[short][0], value, None, stamp
-                )
+            for car in filter(None, (vin, self.twin_vin)):
+                for short, value in zip(("lat", "lon"), home, strict=True):
+                    self.coordinator.restore_descriptor_state(
+                        car, DESCRIPTORS[short][0], value, None, stamp
+                    )
         if capacity_kwh is not None:
             self.send(0, capacity=capacity_kwh, step="capacity")
 
     # -- lifecycle ---------------------------------------------------------
     def close(self) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        if self in OPEN_HARNESSES:
+            OPEN_HARNESSES.remove(self)
+        if self._tracer is not None:
+            self._tracer.close()
         logging.getLogger("custom_components.bavariandata").removeHandler(self._log_handler)
         self._patch.undo()
         if not self._loop.is_closed():
             self._loop.close()
+        if self._config_dir is not None:
+            shutil.rmtree(self._config_dir, ignore_errors=True)
 
     def __enter__(self) -> "CoordinatorHarness":
         return self
@@ -160,18 +258,53 @@ class CoordinatorHarness:
     def __exit__(self, *exc) -> None:
         self.close()
 
-    def _boot(self):
-        coordinator = coordinator_mod.CardataCoordinator(hass=self.hass, entry_id="entry")
-        if self.wallbox_meter is not None:
-            coordinator.pricing = coordinator_mod.PricingConfig(
-                grid_energy_entity=self.wallbox_meter
-            )
+    def _boot(self, *, remember_locations: bool = False):
+        """Set the entry up the way ``async_setup_entry`` does, in its order.
+
+        Stores first (history, descriptor coverage, tyres), then the
+        coordinator, the tyre seed, the one-time history repairs, the callbacks
+        and the pricing, and only then the open charges -- after the tariff,
+        before any entity restores. ``remember_locations`` is the option of the
+        same name, which outlives a restart.
+        """
+
+        history = None
         if self.history_enabled:
-            store = store_mod.HistoryStore(self.hass, "entry")
-            self._run(store.async_load())
-            coordinator.history = store
-            # Setup order in ``async_setup_entry``: history, then open sessions,
-            # and only then the platforms restore their entities.
+            history = store_mod.HistoryStore(
+                self.hass, "entry", remember_locations=remember_locations
+            )
+            self._run(history.async_load())
+        coverage = coverage_store_mod.CoverageStore(self.hass, "entry", sections=[])
+        self._run(coverage.async_load())
+        tyre_store = tyre_store_mod.TyreStore(self.hass, "entry")
+        stored_tyre = self._run(tyre_store.async_load())
+
+        coordinator = coordinator_mod.CardataCoordinator(hass=self.hass, entry_id="entry")
+        coordinator.history = history
+        coordinator.tyre_store = tyre_store
+        coordinator.restore_tyre_diagnosis(stored_tyre)
+        if history is not None:
+            history.reresolve_zones(coordinator.zone_at)
+            history.drop_house_figures_elsewhere()
+            history.flag_unbilled_meter_energy()
+            if not history.remember_locations:
+                history.forget_locations()
+        coordinator.coverage = coverage
+        coordinator.trip_debug = self.trip_debug
+        # What ``__init__.py`` hangs here fetches over REST; the harness notes
+        # the calls, so a scenario can say a new car or an outage was noticed.
+        coordinator.on_new_vehicle = self.new_vehicles.append
+        coordinator.on_reconnect_after_outage = self.outages.append
+        if self.wallbox_meter is not None or self.pricing_options:
+            coordinator.pricing = coordinator_mod.PricingConfig(
+                grid_energy_entity=self.wallbox_meter, **self.pricing_options
+            )
+        if self.twin_vin is not None:
+            # The twin charges somewhere else: two cars on one meter is a real
+            # interaction (the meter's advance goes to the charging one), not
+            # a leak, and would show up in the first car's figures.
+            coordinator.vehicle_pricing[self.twin_vin] = coordinator_mod.PricingConfig()
+        if history is not None:
             coordinator.async_restore_open_sessions()
         return coordinator
 
@@ -200,7 +333,16 @@ class CoordinatorHarness:
             raise ValueError(f"time runs forward: {minute} < {self.minute}")
         while True:
             next_tick = self._last_tick + timedelta(seconds=WATCHDOG_S)
-            timers = self.hass.due_timers(min(next_tick, target))
+            horizon = min(next_tick, target)
+            if self._mirror and self._mirror[0][0] <= horizon:
+                due = self._mirror[0][0]
+                if not any(not t.cancelled and t.due < due for t in self.hass.timers):
+                    _, message = self._mirror.pop(0)
+                    self.clock.now = max(self.clock.now, due)
+                    self._run(self.coordinator.async_handle_message(message))
+                    self._note_derived()
+                    continue
+            timers = self.hass.due_timers(horizon)
             if timers:
                 timer = timers[0]
                 # Put back the ones after the first; they fire in turn.
@@ -214,7 +356,7 @@ class CoordinatorHarness:
                 break
             self.clock.now = next_tick
             self._last_tick = next_tick
-            self.coordinator._log_diagnostics()
+            self.coordinator.watchdog_tick()
             self._note_derived()
         self.clock.now = target
         self._observe(step or f"advance {minute:g}")
@@ -251,6 +393,7 @@ class CoordinatorHarness:
         if rest:
             message["source"] = "rest"
         self._run(self.coordinator.async_handle_message(message))
+        self._queue_mirror(message)
         self._note_derived()
         label = step or "send " + ",".join(f"{k}={v}" for k, v in values.items())
         self._observe(label)
@@ -292,15 +435,36 @@ class CoordinatorHarness:
             minute = (at - self.start).total_seconds() / 60
             if minute > self.minute:
                 self.advance_to(minute, step="wait")
-            self._run(
-                self.coordinator.async_handle_message(
-                    {"vin": record.get("vin", self.vin), "data": record["data"]}
-                )
-            )
+            message = {"vin": record.get("vin", self.vin), "data": record["data"]}
+            self._run(self.coordinator.async_handle_message(message))
+            self._queue_mirror(message)
             self._note_derived()
             self._observe(
                 "replay " + ",".join(sorted(k.rsplit(".", 1)[-1] for k in record["data"]))
             )
+
+    def _queue_mirror(self, message: dict[str, Any]) -> None:
+        """Hand the twin the same batch, ``twin_offset`` minutes from now."""
+
+        if self.twin_vin is None or message.get("vin") != self.vin:
+            return
+        twin = {
+            **message,
+            "vin": self.twin_vin,
+            "data": _shift_stamps(message["data"], self.twin_offset),
+        }
+        due = self.clock.now + timedelta(minutes=self.twin_offset)
+        self._mirror.append((due, twin))
+        self._mirror.sort(key=lambda item: item[0])
+
+    def tyres(self, payload: Any, *, minute: Optional[float] = None) -> None:
+        """A tyre diagnosis fetched over REST (the daily poll), for every car."""
+
+        if minute is not None and self.at(minute) > self.clock.now:
+            self.advance_to(minute, step=f"wait {minute:g}")
+        for vin in filter(None, (self.vin, self.twin_vin)):
+            self.coordinator.apply_tyre_diagnosis(vin, payload)
+        self._observe("tyres")
 
     def connection(self, status: str) -> None:
         self._run(self.coordinator.async_handle_connection_event(status))
@@ -328,37 +492,47 @@ class CoordinatorHarness:
         self._run(old.async_flush_trips())
         old.async_flush_charging()
         restored_descriptors = {
-            descriptor: (state.value, state.unit, state.timestamp)
-            for descriptor, state in (old.data.get(self.vin) or {}).items()
+            vin: {
+                descriptor: (state.value, state.unit, state.timestamp)
+                for descriptor, state in (old.data.get(vin) or {}).items()
+            }
+            for vin in self.vins
         }
         derived = dict(self._derived_changed)
-        meter_attribute = self._meter_attribute
+        meter_attribute = dict(self._meter_attribute)
         # Nothing of the old instance survives but storage -- its timers die too.
         for timer in self.hass.timers:
             timer.cancelled = True
         self.clock.advance(downtime_s)
         self._last_tick = self.clock.now
-        self.coordinator = self._boot()
+        self.coordinator = self._boot(
+            remember_locations=old.history is not None and old.history.remember_locations
+        )
 
         def restore_descriptors() -> None:
-            for descriptor, (value, unit, timestamp) in restored_descriptors.items():
-                if isinstance(value, str) and value.isupper():
-                    value = value.lower()  # the sensor's enum slug
-                self.coordinator.restore_descriptor_state(
-                    self.vin, descriptor, value, unit, timestamp
-                )
+            for vin, states in restored_descriptors.items():
+                for descriptor, (value, unit, timestamp) in states.items():
+                    if isinstance(value, str) and value.isupper():
+                        value = value.lower()  # the sensor's enum slug
+                    self.coordinator.restore_descriptor_state(
+                        vin, descriptor, value, unit, timestamp
+                    )
 
         def restore_derived() -> None:
-            if "estimate" in derived:
-                value, changed = derived["estimate"]
-                if value is not None:
-                    self.coordinator.restore_soc_cache(
-                        self.vin, estimate=value, timestamp=changed, meter_kwh=meter_attribute
-                    )
-            if "rate" in derived:
-                value, changed = derived["rate"]
-                if value is not None and self.coordinator.get_soc_rate(self.vin) is None:
-                    self.coordinator.restore_soc_cache(self.vin, rate=value, timestamp=changed)
+            for vin in restored_descriptors:
+                if (vin, "estimate") in derived:
+                    value, changed = derived[(vin, "estimate")]
+                    if value is not None:
+                        self.coordinator.restore_soc_cache(
+                            vin,
+                            estimate=value,
+                            timestamp=changed,
+                            meter_kwh=meter_attribute.get(vin),
+                        )
+                if (vin, "rate") in derived:
+                    value, changed = derived[(vin, "rate")]
+                    if value is not None and self.coordinator.get_soc_rate(vin) is None:
+                        self.coordinator.restore_soc_cache(vin, rate=value, timestamp=changed)
 
         if order == "descriptors-first":
             restore_descriptors()
@@ -371,6 +545,23 @@ class CoordinatorHarness:
         self._observe(f"restart ({order})")
 
     # -- reading -----------------------------------------------------------
+    @property
+    def vins(self) -> list[str]:
+        """Every car in the account: the first, its twin, then any a test sent."""
+
+        cars = [self.vin] + ([self.twin_vin] if self.twin_vin else [])
+        return cars + sorted(set(self.coordinator.data) - set(cars))
+
+    def alias(self, vin: str) -> str:
+        """How a trace names a car: ``A`` the first, ``B`` the twin."""
+
+        return {self.vin: "A", self.twin_vin: "B"}.get(vin, vin)
+
+    def _mine(self, data: dict) -> bool:
+        """True for an event of the first car's (or of the account)."""
+
+        return data.get("vin") in (None, self.vin)
+
     def estimate(self) -> Optional[float]:
         return self.coordinator.get_soc_estimate(self.vin)
 
@@ -383,36 +574,48 @@ class CoordinatorHarness:
         return list(self.coordinator.history.sessions(self.vin))
 
     def has_open_session(self) -> bool:
-        return self.vin in self.coordinator._session_builders
+        return self.coordinator.has_open_session(self.vin)
 
     def events(self, prefix: str = "bavariandata_charging") -> list[tuple[str, dict]]:
-        return [(name, data) for name, data in self.hass.events if name.startswith(prefix)]
+        return [
+            (name, data)
+            for name, data in self.hass.events
+            if name.startswith(prefix) and self._mine(data)
+        ]
 
     def _note_derived(self) -> None:
-        for key, value in (("estimate", self.estimate()), ("rate", self.rate())):
-            previous = self._derived_changed.get(key)
-            if previous is None or previous[0] != value:
-                self._derived_changed[key] = (value, self.clock.now)
-        self._meter_attribute = self.coordinator.soc_estimate_attributes(self.vin).get(
-            "meter_reading_kwh"
-        )
+        coordinator = self.coordinator
+        for vin in self.vins:
+            for key, value in (
+                ("estimate", coordinator.get_soc_estimate(vin)),
+                ("rate", coordinator.get_soc_rate(vin)),
+            ):
+                previous = self._derived_changed.get((vin, key))
+                if previous is None or previous[0] != value:
+                    self._derived_changed[(vin, key)] = (value, self.clock.now)
+            self._meter_attribute[vin] = coordinator.soc_estimate_attributes(vin).get(
+                "meter_reading_kwh"
+            )
 
     def _observe(self, step: str) -> None:
-        tracking = self.coordinator._soc_tracking.get(self.vin)
-        new_events = self.hass.event_types()[self._event_mark :]
+        new_events = [
+            name for name, data in self.hass.events[self._event_mark :] if self._mine(data)
+        ]
         self._event_mark = len(self.hass.events)
         row = Row(
             minute=round(self.minute, 2),
             step=step,
             estimate=self.estimate(),
             rate=self.rate(),
-            charging=None if tracking is None else tracking.charging_active,
+            charging=self.coordinator.charging_active(self.vin),
             open_session=self.has_open_session(),
             sessions=len(self.sessions()),
             events=[name.removeprefix("bavariandata_") for name in new_events],
         )
         self.timeline.append(row)
         check_invariants(self, row)
+        if self._tracer is not None:
+            self._tracer.step(step)
 
     def render(self) -> str:
         """The timeline as text, for snapshots and failure messages."""
@@ -443,14 +646,19 @@ def check_invariants(h: CoordinatorHarness, row: Row) -> None:
         assert 0.0 <= row.estimate <= 100.0, f"estimate out of range{context}"
     if row.rate is not None:
         assert row.rate > 0, f"a rate is only shown while charging{context}"
-    sessions = h.sessions()
+    history = h.coordinator.history
+    for vin in h.vins if history is not None else ():
+        _check_car(h, list(history.sessions(vin)), list(history.trips(vin)), context)
+
+
+def _check_car(h: CoordinatorHarness, sessions: list, trips: list, context: str) -> None:
     for session in sessions:
         assert session.end is None or session.end >= session.start, (
             f"session ends before start{context}"
         )
         if session.energy_kwh is not None:
             assert session.energy_kwh >= 0, f"negative session energy{context}"
-    trips = sorted(h.trips(), key=lambda t: t.start)
+    trips = sorted(trips, key=lambda t: t.start)
     for trip in trips:
         assert trip.end is None or trip.end >= trip.start, f"trip ends before start{context}"
         if trip.distance_km is not None:

@@ -13,6 +13,8 @@ import json
 import pathlib
 import sys
 import types
+
+import pytest
 from typing import Any, Dict, List, Optional
 
 _PKG = "custom_components.bavariandata"
@@ -110,3 +112,32 @@ class FakeSession:
     def request(self, method, url, **kwargs):
         self.calls.append({"method": method, "url": url, **kwargs})
         return self._responses.pop(0)
+
+
+@pytest.fixture(autouse=True)
+def _close_open_harnesses():
+    """Close every coordinator harness a test left open.
+
+    Closing undoes the harness's patches and writes its trace (``trace.py``);
+    a test that builds one without ``with`` would otherwise leave both behind.
+    Looked up lazily so tests that never touch the harness don't import it.
+    """
+
+    yield
+    harness = sys.modules.get(f"{__package__}.harness") if __package__ else None
+    for open_harness in list(getattr(harness, "OPEN_HARNESSES", ())):
+        open_harness.close()
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "solo: asserts something account-wide (a count over every car), so twin "
+        "mode (BAVARIANDATA_TWIN) leaves this test's account to its one car",
+    )
+
+
+@pytest.fixture(autouse=True)
+def _solo_without_twin(request, monkeypatch):
+    if request.node.get_closest_marker("solo") is not None:
+        monkeypatch.delenv("BAVARIANDATA_TWIN", raising=False)

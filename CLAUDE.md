@@ -98,11 +98,26 @@ integration logged and swallowed. On top of it:
 
 - `test_scenarios_charging.py` / `test_scenarios_trips.py` — named scenarios
   that assert their point and snapshot their timeline;
-- `test_coordinator_robustness.py` — malformed input and a seeded fuzzer
-  (a failure prints its seed; replay with `_fuzz(seed)`);
+- `test_coordinator_robustness.py` — malformed input and two seeded fuzzers,
+  loose charging timelines and whole random days (drives, home/away/AC
+  charges, the meter, a price, the real cars' descriptors from `tests/cars`,
+  tyres, restarts); a failure prints its seed (`_fuzz(seed)`, `_fuzz_day(seed)`);
 - `test_replays.py` — every `tests/replays/*.ndjson` (a trip capture, run
   through `tools/anonymize_capture.py` first — this repo is public) replayed
   and snapshotted.
+
+**The refactoring gate** (`scripts/golden.py`, `tests/trace.py`): with
+`BAVARIANDATA_TRACE_DIR` set, every harness step writes down everything the
+coordinator lets the outside world see — events with payloads, signals,
+repairs, store writes, timers and every public getter, per car. `python
+scripts/golden.py gate` proves a change behaves identically: traces twice
+(determinism), against the base's code with this tree's tests laid over it
+(behaviour), and with `BAVARIANDATA_TWIN=<min>` — a second car repeating the
+first one's input later — where car A's lines must not change (isolation). A
+refactor PR carries the `refactor` label, which runs the gate in CI. Keep the
+harness on the coordinator's public methods only (so the base can run it),
+and give a new public method a probe in `trace.py` (`test_trace.py` fails
+otherwise). A test that asserts something account-wide is `@pytest.mark.solo`.
 
 **Every coordinator bug fix adds a scenario or a replay** that fails without
 the fix — prove it by reverting the fix once. A known bug not yet fixed is
@@ -183,7 +198,8 @@ living only in prose.
   every missing, broken or stale translation across `translations/`, the card,
   the month report and the service calendar, grouped by language; `python scripts/prove_fix.py
   <tests>` reverts the non-test changes, requires the tests to fail, then
-  restores; `python tools/fetch_catalogues.py` fetches BMW's nine catalogue
+  restores; `python scripts/golden.py gate` is the refactoring gate (above);
+  `python tools/fetch_catalogues.py` fetches BMW's nine catalogue
   exports and reports changes by descriptor; `python tools/stable_changelog.py`
   drafts a stable's consolidated `[Unreleased]` from its betas;
   `python scripts/close_check.py` is the read-only report the `close` skill

@@ -28,6 +28,7 @@ its own starts testing itself instead of the integration.
 from __future__ import annotations
 
 import math
+import os
 import sys
 import types
 from dataclasses import dataclass, field
@@ -98,6 +99,7 @@ class FakeHass:
         # ``zone_at`` and friends read entity states; no zones exist here.
         self.states = types.SimpleNamespace(get=self.entity_states.get, async_all=lambda *a: [])
         self.config = types.SimpleNamespace(latitude=None, longitude=None, config_dir=".")
+        self.config.path = lambda *parts: os.path.join(self.config.config_dir, *parts)
 
     def _fire(self, event_type: str, data: Optional[dict] = None, **_kw) -> None:
         self.events.append((event_type, dict(data or {})))
@@ -107,6 +109,11 @@ class FakeHass:
         # what HA's event loop does on its next turn. Never dropped: work the
         # coordinator hands off must not silently vanish in a test.
         self.tasks.append(coro)
+
+    async def async_add_executor_job(self, func: Callable[..., Any], *args: Any) -> Any:
+        # Run in place: the harness has one thread, and file IO done "in the
+        # executor" must still happen before the step is observed.
+        return func(*args)
 
     def call_later(self, delay: float, callback: Callable[[datetime], Any]) -> Callable[[], None]:
         timer = _Timer(self.clock.now + timedelta(seconds=delay), callback)

@@ -105,8 +105,8 @@ def test_a_charge_away_from_home_leaves_bmw_to_answer():
 
     with CoordinatorHarness(wallbox_meter=METER) as h:
         _seed(h, location={"zone": "Home"})
-        h.coordinator._home_zone_name = lambda: "Home"
-        h.coordinator._charging_location = lambda vin: {"zone": "Supercharger"}
+        h.hass.add_zone("Supercharger", 48.3, 11.6)
+        h.fix(5, 48.3, 11.6)  # parked at the charger, not at home
         _home_charge(h, 40)
         h.advance_to(40)
 
