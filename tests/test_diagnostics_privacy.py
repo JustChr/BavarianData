@@ -61,3 +61,14 @@ def test_entity_ids_reduced_to_domain_also_per_car():
     }
     assert safe["debug_log"] is True
     assert vin not in repr(safe)
+
+
+def test_fingerprint_is_stable_and_skips_what_is_no_identifier():
+    assert privacy.fingerprint("gcid-1") == privacy.fingerprint("gcid-1")
+    assert privacy.fingerprint("gcid-1") != privacy.fingerprint("gcid-2")
+    assert len(privacy.fingerprint("gcid-1")) == 12
+    # A missing GCID (an entry from before it was stored) or a garbled one
+    # has nothing to match, so it gets no stand-in at all.
+    assert privacy.fingerprint(None) is None
+    assert privacy.fingerprint("") is None
+    assert privacy.fingerprint(12345) is None
