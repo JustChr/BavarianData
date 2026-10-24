@@ -615,7 +615,7 @@ def test_an_in_progress_charge_is_snapshotted_on_the_way_out() -> None:
     and every total built on the ledger read low by exactly that much.
     """
 
-    source = _function_source(_PKG / "coordinator.py", "async_flush_charging")
+    source = _function_source(_PKG / "vehicle_charging.py", "async_flush_charging")
     assert "session.builder" in source and "_snapshot_open_session" in source, (
         "async_flush_charging no longer snapshots the open sessions. A charge "
         "still running at unload or shutdown is then lost for good, taking its "
@@ -626,7 +626,7 @@ def test_an_in_progress_charge_is_snapshotted_on_the_way_out() -> None:
 def test_closing_a_session_drops_its_snapshot() -> None:
     """Otherwise the next start resurrects a charge that already got filed."""
 
-    source = _function_source(_PKG / "coordinator.py", "_close_session_record")
+    source = _function_source(_PKG / "vehicle_charging.py", "_close_session_record")
     assert "_clear_open_session" in source, (
         "_close_session_record must clear the in-progress snapshot; leaving it "
         "behind would restore an already-recorded charge as a duplicate on the "
@@ -668,7 +668,7 @@ def test_the_source_mix_is_sampled_with_the_cost() -> None:
     # Booked into the held pool (#180), which the ceiling releases from later.
     # ``_book_increment`` is the step ``_record_energy_delta`` bills through,
     # and the close's last one.
-    source = _function_source(_PKG / "coordinator.py", "_book_increment")
+    source = _function_source(_PKG / "vehicle_charging.py", "_book_increment")
     assert "held.hold(" in source and "_supply_shares" in source and "held.cost" in source, (
         "_book_increment no longer attributes the increment it is billing. "
         "The source mix has to be sampled on the same energy delta as the cost."
@@ -863,7 +863,7 @@ def test_the_wallbox_meter_is_billed_on_the_step_that_bills_the_cost() -> None:
     the same step and from the same sample as the source mix.
     """
 
-    source = _function_source(_PKG / "coordinator.py", "_book_increment")
+    source = _function_source(_PKG / "vehicle_charging.py", "_book_increment")
     assert "_grid_meter_step" in source and "billable_energy" in source, (
         "_book_increment no longer bills the wallbox meter's own advance. "
         "The measured grid figure has to reach billable_energy() per step, not "
