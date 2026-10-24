@@ -19,6 +19,8 @@ away from Home -- see ``test_a_drive_out_of_home_starts_at_home``.
 
 from __future__ import annotations
 
+from datetime import timedelta
+
 import pytest
 
 from .harness import CoordinatorHarness
@@ -492,3 +494,109 @@ def test_a_stale_segment_distance_is_not_this_trips(h):
 
     (trip,) = h.trips()
     assert trip.distance_km is not None and trip.distance_km < 2
+
+
+class _Geocoder:
+    """Names every place outside a zone by one street address."""
+
+    async def resolve(self, latitude: float, longitude: float) -> str:
+        return "Bakery Street 1"
+
+
+def _work_zone(h: CoordinatorHarness, here, **settings) -> None:
+    import types
+
+    from .conftest import load_module
+
+    h.hass.add_zone("Work", *here, radius_m=150)
+    # What Home Assistant's state machine says the zone is called.
+    h.hass.entity_states["zone.work"] = types.SimpleNamespace(
+        entity_id="zone.work", state="0", attributes={}, name="Work"
+    )
+    h.coordinator.trip_settings = load_module("trip_settings").TripSettings(
+        work_zone_entity="zone.work", **settings
+    )
+
+
+def test_a_stop_on_the_way_to_work_keeps_both_legs_a_commute(h):
+    """Home -> bakery -> Work: two drives, and both of them the commute."""
+
+    _work_zone(h, (HOME[0] + 10 * STEP, HOME[1] + 10 * STEP))
+    h.coordinator.geocoder = _Geocoder()
+    bakery = _drive(h, 5, 5)
+    h.fix(17, *bakery)  # parked at the bakery
+    h.advance_to(35)
+    work = _drive(h, 35, 5, origin=bakery)
+    h.fix(47, *work)
+    h.advance_to(90)
+
+    first, second = sorted(h.trips(), key=lambda t: t.start)
+    assert first.start_place["label"] == "Home"
+    assert first.end_place["address"] == "Bakery Street 1"
+    assert second.end_place["label"] == "Work"
+    assert first.classification == second.classification == "commute"
+
+
+def test_without_a_commute_gap_a_stop_breaks_the_commute(h):
+    _work_zone(h, (HOME[0] + 10 * STEP, HOME[1] + 10 * STEP), commute_gap_s=0)
+    bakery = _drive(h, 5, 5)
+    h.fix(17, *bakery)
+    h.advance_to(35)
+    work = _drive(h, 35, 5, origin=bakery)
+    h.fix(47, *work)
+    h.advance_to(90)
+
+    first, second = sorted(h.trips(), key=lambda t: t.start)
+    assert first.classification != "commute"
+    assert second.classification != "commute"
+
+
+def test_a_drive_on_an_account_without_history_records_nothing():
+    harness = CoordinatorHarness(home=HOME, history=False)
+    try:
+        here = _drive(harness, 5, 5)
+        harness.fix(17, *here)
+        harness.send(17.1, door=True)
+        harness.send(17.3, door=False)
+        harness.advance_to(60)
+        assert harness.trips() == []
+    finally:
+        harness.close()
+
+
+def test_a_latitude_delivered_twice_still_pairs_with_its_longitude(h):
+    """BMW redelivers messages; a repeated half must not pair with itself."""
+
+    here = HOME
+    for i in range(1, 6):
+        minute = 5 + 2 * i
+        here = (HOME[0] + i * STEP, HOME[1] + i * STEP)
+        h.send(minute, stamped=minute, lat=here[0])
+        h.send(minute + 0.2 / 60, stamped=minute, lat=here[0])
+        h.send(minute + 1 / 60, stamped=minute, lon=here[1])
+    h.fix(17, *here)
+    h.advance_to(60)
+
+    (trip,) = h.trips()
+    assert trip.start_place["label"] == "Home"
+    assert trip.end.strftime("%H:%M") == h.at(15).strftime("%H:%M")
+
+
+def test_fixes_without_bmw_s_timestamp_still_make_the_trip(h):
+    from .harness import DESCRIPTORS
+
+    lat, lon = DESCRIPTORS["lat"][0], DESCRIPTORS["lon"][0]
+    here = HOME
+    records = []
+    for i in range(1, 7):
+        here = (HOME[0] + min(i, 5) * STEP, HOME[1] + min(i, 5) * STEP)
+        at = h.at(5 + 2 * i)
+        records.append({"at": at.isoformat(), "data": {lat: {"value": here[0]}}})
+        records.append(
+            {"at": (at + timedelta(seconds=1)).isoformat(), "data": {lon: {"value": here[1]}}}
+        )
+    h.replay(records)
+    h.advance_to(60)
+
+    (trip,) = h.trips()
+    assert trip.start_place["label"] == "Home"
