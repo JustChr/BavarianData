@@ -194,13 +194,12 @@ def test_flows_that_map_cars_look_for_them_afterwards() -> None:
     """Bootstrap runs once. Re-authorizing an account and choosing streamed data
     are the two moments a car gets mapped, so both must run discovery (#44)."""
 
-    source = (
-        pathlib.Path(__file__).resolve().parents[1]
-        / "custom_components/bavariandata/config_flow.py"
-    ).read_text(encoding="utf-8")
-    assert source.count("_schedule_vehicle_discovery(") == 3  # definition + two callers
+    package = pathlib.Path(__file__).resolve().parents[1] / "custom_components/bavariandata"
+    for flow in ("config_flow.py", "options_flow.py"):
+        source = (package / flow).read_text(encoding="utf-8")
+        assert source.count("schedule_vehicle_discovery(") == 1, flow
     assert "fetch_vehicle_mappings" in _function_body(
-        "config_flow.py", "_schedule_vehicle_discovery"
+        "flow_activator.py", "schedule_vehicle_discovery"
     )
 
 

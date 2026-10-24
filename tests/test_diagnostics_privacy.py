@@ -15,19 +15,17 @@ from .conftest import load_module
 privacy = load_module("diagnostics_privacy")
 const = load_module("const")
 
-_FLOW = (
-    pathlib.Path(__file__).resolve().parents[1]
-    / "custom_components"
-    / "bavariandata"
-    / "config_flow.py"
-)
+_PKG = pathlib.Path(__file__).resolve().parents[1] / "custom_components" / "bavariandata"
+# Every module a flow's forms are built in.
+_FLOWS = ("config_flow.py", "options_flow.py", "options_cars.py")
 
 
 def _entity_picker_keys() -> set[str]:
     """Every option key the flows ask for with an entity selector."""
 
     keys: set[str] = set()
-    for node in ast.walk(ast.parse(_FLOW.read_text(encoding="utf-8"))):
+    trees = [ast.parse((_PKG / name).read_text(encoding="utf-8")) for name in _FLOWS]
+    for node in (node for tree in trees for node in ast.walk(tree)):
         if not isinstance(node, ast.Dict):
             continue
         for key, value in zip(node.keys, node.values, strict=True):

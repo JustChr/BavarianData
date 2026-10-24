@@ -325,7 +325,7 @@ async def test_guided_setup_by_webhook(
     await _step(hass, walk, result)
 
     walk.note("no report in time")
-    with patch(f"{FLOW}.ONBOARDING_WAIT_TIMEOUT", 0):
+    with patch(f"{PACKAGE}.flow_activator.ONBOARDING_WAIT_TIMEOUT", 0):
         result = await _start(hass, walk, "guided")
         await hass.async_block_till_done()
         await _step(hass, walk, result)
@@ -659,9 +659,12 @@ async def test_configure_connection(hass: HomeAssistant, no_bmw, device_flow, sn
 
     walk.note("renew the token")
     result = await _configure(hass, entry, walk, "connection", "action_refresh_tokens")
-    with patch(f"{FLOW}.async_manual_refresh_tokens", side_effect=CardataAuthError("expired")):
+    with patch(
+        f"{PACKAGE}.options_flow.async_manual_refresh_tokens",
+        side_effect=CardataAuthError("expired"),
+    ):
         result = await _submit(hass, walk, result, {})
-    with patch(f"{FLOW}.async_manual_refresh_tokens"):
+    with patch(f"{PACKAGE}.options_flow.async_manual_refresh_tokens"):
         await _submit(hass, walk, result, {})
 
     walk.note("reset the containers")

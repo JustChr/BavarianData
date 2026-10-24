@@ -807,7 +807,7 @@ def test_switching_the_bridge_off_clears_what_it_published() -> None:
     the data with it.
     """
 
-    source = _function_source(_PKG / "config_flow.py", "async_step_action_evcc_bridge")
+    source = _function_source(_PKG / "options_cars.py", "async_step_action_evcc_bridge")
     assert "async_clear_all" in source, (
         "The bridge options step no longer clears published topics when the "
         "bridge is switched off. A retained state of charge that stops updating "
