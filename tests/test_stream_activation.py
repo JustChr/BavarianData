@@ -274,3 +274,38 @@ def test_cookie_never_appears_in_error_text():
     with pytest.raises(SA.StreamActivationError) as excinfo:
         _run(client.async_set_stream_attributes(MAPPED, ["vehicle.a"], skip_if_unchanged=False))
     assert "secret" not in str(excinfo.value)
+
+
+def test_an_unknown_status_is_unexpected_and_not_retried():
+    assert SA._classify(302) == ("unexpected", False)
+
+
+class _BrokenSession:
+    """A session whose .get/.post fail like a dropped connection."""
+
+    def get(self, url, **kwargs):
+        raise SA.aiohttp.ClientError("connection reset")
+
+    post = get
+
+
+@pytest.mark.parametrize("session", [_TimeoutSession, _BrokenSession])
+def test_a_read_that_never_arrives_is_a_retryable_network_error(session):
+    client = SA.PortalStreamClient(session(), _session())
+    with pytest.raises(SA.StreamActivationError) as excinfo:
+        _run(client.async_get_stream_attributes(MAPPED))
+    assert (excinfo.value.kind, excinfo.value.retryable) == ("network", True)
+
+
+def test_a_write_on_a_dropped_connection_is_a_retryable_network_error():
+    client = SA.PortalStreamClient(_BrokenSession(), _session())
+    with pytest.raises(SA.StreamActivationError) as excinfo:
+        _run(client.async_set_stream_attributes(MAPPED, ["vehicle.a"], skip_if_unchanged=False))
+    assert excinfo.value.kind == "network"
+
+
+@pytest.mark.parametrize("body", ["<html>maintenance</html>", {"data": "none"}])
+def test_a_read_without_a_selection_is_an_empty_one(body):
+    http = _FakeGetPostSession([FakeResponse(200, body)])
+    selection = _run(SA.PortalStreamClient(http, _session()).async_get_stream_attributes(MAPPED))
+    assert selection.attributes == [] and selection.topic is None

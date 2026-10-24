@@ -210,8 +210,9 @@ refuses one, even when you generated a second Client ID in the BMW portal.
 
 BMW allows only **one stream connection per account**, so two entries for the
 same account would disconnect each other in a loop, and both would count against
-the same 50-request daily quota while claiming 50 each. If the existing entry is
-one you no longer want, remove it first and then add the new Client ID. Two
+the same 50-request daily quota while claiming 50 each. To move the existing entry
+to a new Client ID of the same account, use **Reconfigure** on the integration:
+it keeps the cars and their history. Two
 *different* accounts are fine side by side — see
 [Multiple cars & accounts](Feature-Multiple-Cars-and-Accounts).
 

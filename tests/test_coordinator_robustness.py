@@ -17,13 +17,17 @@ Two nets under the scenario tests:
 from __future__ import annotations
 
 import json
+import logging
 import random
 from pathlib import Path
 from typing import Any
 
 import pytest
 
+from .conftest import load_module
 from .harness import DESCRIPTORS, CoordinatorHarness
+
+debug = load_module("debug")
 
 MALFORMED = [
     pytest.param({"soc": "abc"}, id="soc-not-a-number"),
@@ -246,7 +250,7 @@ def _fuzz_day(seed: int, **harness: Any) -> CoordinatorHarness:
     h = CoordinatorHarness(
         home=HOME if rng.random() < 0.8 else None,
         wallbox_meter=DAY_METER if rng.random() < 0.6 else None,
-        pricing={"price_entity": DAY_PRICE} if priced else None,
+        pricing={"mode": "entity", "price_entity": DAY_PRICE} if priced else None,
         trip_debug=rng.random() < 0.15,
         **harness,
     )
@@ -370,3 +374,15 @@ def _fuzz_day(seed: int, **harness: Any) -> CoordinatorHarness:
 def test_random_days_keep_every_invariant(seed):
     h = _fuzz_day(seed)
     h.close()
+
+
+@pytest.mark.parametrize("seed", range(12))
+def test_random_days_with_debug_logging_keep_every_invariant(seed, caplog):
+    """Debug logging adds a line on nearly every path; none of them may break one."""
+
+    caplog.set_level(logging.DEBUG, logger="custom_components.bavariandata")
+    debug.set_debug_enabled(True, entry_id="fuzz-debug")
+    try:
+        _fuzz_day(seed).close()
+    finally:
+        debug.forget_entry("fuzz-debug")

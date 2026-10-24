@@ -679,3 +679,122 @@ def test_variant_spins_reuse_the_plain_spins_crop():
     plain = CONF.build_sprite(frames)
     dark = [_frame(200 + 4 * i, color=(10, 10, 10)) for i in range(36)]
     assert CONF.build_sprite(dark, crop=plain.crop).crop == plain.crop
+
+
+# --- What BMW answers when something is off ------------------------------------
+
+
+class _Scripted(_FakeBmwFull):
+    """``_FakeBmwFull``, except where ``answers`` names a URL that answers otherwise."""
+
+    def __init__(self, answers, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.answers = answers
+
+    def get(self, url: str, **kwargs):
+        for matches, response in self.answers:
+            if matches(url):
+                self.calls.append(url)
+                return response
+        return super().get(url, **kwargs)
+
+
+def _has(part: str):
+    return lambda url: part in url
+
+
+def _ends(part: str):
+    return lambda url: url.endswith(part)
+
+
+@pytest.mark.parametrize(
+    ("answers", "reason", "says"),
+    [
+        pytest.param([(_has("model-ranges"), _Resp(500, b""))], "unavailable", "page", id="page"),
+        pytest.param(
+            [(_ends("settings.abc123.json"), _Resp(500, b""))],
+            "unavailable",
+            "settings file",
+            id="settings-down",
+        ),
+        pytest.param(
+            [(_ends("settings.abc123.json"), _Resp(200, b"<html>"))],
+            "unavailable",
+            "not JSON",
+            id="settings-not-json",
+        ),
+        pytest.param(
+            [(_has("/image-urls/"), _Resp(200, b"<html>"))],
+            "unavailable",
+            "not JSON",
+            id="links-not-json",
+        ),
+        pytest.param(
+            [(_has("/image-urls/"), _Resp(200, b'{"elsewhere": {}}'))],
+            "unavailable",
+            "unexpected answer",
+            id="links-unexpected",
+        ),
+        pytest.param(
+            [(_has("/image-urls/"), _Resp(400, b"Bad Request"))],
+            "no_render",
+            "refused",
+            id="refused-without-a-reason",
+        ),
+        pytest.param(
+            [(_has("/image-urls/"), _Resp(503, b""))],
+            "no_render",
+            "",
+            id="links-down",
+        ),
+        pytest.param(
+            [(_ends("/img/bmwCar/5"), _Resp(404, b""))],
+            "no_render",
+            "frames are missing",
+            id="a-frame-missing",
+        ),
+        pytest.param(
+            [(_ends("/img/bmwCar/0"), _Resp(200, b"not a picture"))],
+            "no_render",
+            "unreadable image",
+            id="an-unreadable-frame",
+        ),
+    ],
+)
+def test_the_plain_spin_says_why_it_could_not_be_drawn(answers, reason, says):
+    with pytest.raises(CONF.ConfiguratorError) as err:
+        asyncio.run(CONF.async_render(_Scripted(answers), I5, extras=False))
+    assert err.value.reason == reason
+    assert says in str(err.value)
+
+
+def test_everything_beyond_the_plain_spin_may_fail_without_failing_the_picture():
+    session = _Scripted(
+        [
+            (_has("lightson=true"), _Resp(400, b'{"errorMessage": "no lights"}')),
+            (_has("nightview=true"), _Resp(400, b'{"errorMessage": "no night"}')),
+            (_has("/localisations/"), _Resp(200, b"<html>")),
+            (_has("/collections/interior-mixed/"), _Resp(200, b'{"interior-mixed": []}')),
+            (_ends("cosy.test/top"), _Resp(200, b"not a picture")),
+        ]
+    )
+    render = asyncio.run(CONF.async_render(session, {**I5, "countryCode": "AT"}))
+
+    assert render.frames == 36
+    assert render.lights is None and render.night is None
+    assert render.interior is None and render.top is None
+    assert render.equipment == ()
+
+
+def test_the_pictures_are_made_off_the_event_loop_when_asked():
+    ran: list[str] = []
+
+    async def run_sync(func, *args):
+        ran.append(func.__name__)
+        return func(*args)
+
+    render = asyncio.run(
+        CONF.async_render(_FakeBmw(draws="bmwCar"), I5, run_sync=run_sync, extras=False)
+    )
+    assert render.frames == 36
+    assert "build_sprite" in ran

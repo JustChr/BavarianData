@@ -373,3 +373,77 @@ def test_a_live_car_never_listens_to_the_phone(i3) -> None:
     i3.coordinator.watch_phone_routes()
 
     assert i3.hass.state_listeners == []
+
+
+def test_a_phone_without_a_usable_fix_adds_nothing(i3) -> None:
+    """A phone removed, one with no position, one with a garbled accuracy."""
+
+    # Another car on the account drives live: the phone is not its business.
+    i3.coordinator.vehicle_trip_settings = {"WBATEST0000000002": LIVE}
+    _burst(i3, 0, 50_000, HOME, 50)
+    _in_car(i3, 100, True)
+    _phone(i3, 101, _between(HOME, WORK, 0.25))
+    i3.hass.remove_state(PHONE)
+    i3.advance_to(102)
+    i3.hass.set_state(PHONE, "not_home")
+    i3.advance_to(103)
+    i3.hass.set_state(PHONE, "not_home", latitude="north", longitude=7.0)
+    i3.advance_to(104)
+    middle = _between(HOME, WORK, 0.5)
+    i3.hass.set_state(
+        PHONE, "not_home", latitude=middle[0], longitude=middle[1], gps_accuracy="poor"
+    )
+    _phone(i3, 110, _between(HOME, WORK, 0.75))
+    _phone(i3, 119.5, WORK)
+    _in_car(i3, 120, False)
+    _burst(i3, 120, 50_026, WORK, 49)
+    _settle(i3)
+
+    (trip,) = i3.trips()
+    assert trip.track_source == "phone"
+    # The good fixes and the one without a stated accuracy; the car's own fix
+    # at the same spot as the phone's last is not drawn twice.
+    expected = [_between(HOME, WORK, 0.25), middle, _between(HOME, WORK, 0.75), WORK]
+    assert [tuple(point[:2]) for point in trip.track] == [
+        pytest.approx(point, abs=1e-6) for point in expected
+    ]
+
+
+def test_reports_on_an_account_without_history_record_nothing() -> None:
+    harness = CoordinatorHarness(capacity_kwh=None, history=False)
+    try:
+        harness.coordinator.trip_settings = REPORTS
+        _burst(harness, 0, 50_000, HOME, 50)
+        _mark(harness, 100)
+        _burst(harness, 120, 50_026, WORK, 49)
+        _settle(harness)
+        assert harness.hass.event_types().count("bavariandata_vehicle_report") == 0
+    finally:
+        harness.close()
+
+
+def test_a_report_without_bmw_s_timestamp_ends_when_it_settles(h) -> None:
+    """No car clock to go by: the trip ends when the report's quiet window closes."""
+
+    from .harness import DESCRIPTORS
+
+    _burst(h, 0, 50_000, HOME, 50)
+    arrived = h.at(120)
+    h.replay(
+        [
+            {
+                "at": arrived.isoformat(),
+                "data": {
+                    DESCRIPTORS["odometer"][0]: {"value": 50_012, "unit": "km"},
+                    DESCRIPTORS["lat"][0]: {"value": WORK[0]},
+                    DESCRIPTORS["lon"][0]: {"value": WORK[1]},
+                    FUEL: {"value": 49},
+                },
+            }
+        ]
+    )
+    _settle(h)
+
+    (trip,) = h.trips()
+    assert trip.end == h.at(120 + QUIET_MIN)
+    assert trip.distance_km == 12

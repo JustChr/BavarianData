@@ -9,6 +9,7 @@ import pytest
 from .conftest import load_module
 
 answers = load_module("service_answers")
+refusal = load_module("refusal")
 evcc = load_module("evcc")
 pricing = load_module("history.pricing")
 activation = load_module("stream_activation")
@@ -58,9 +59,9 @@ def test_the_month_argument() -> None:
     today = date(2026, 10, 24)
     assert answers.month_arg(None, today) == (2026, 10)
     assert answers.month_arg("2026-03", today) == (2026, 3)
-    with pytest.raises(ValueError, match="YYYY-MM"):
+    with pytest.raises(refusal.Refusal, match="YYYY-MM"):
         answers.month_arg("March", today)
-    with pytest.raises(ValueError, match="no month 13"):
+    with pytest.raises(refusal.Refusal, match="no month 13"):
         answers.month_arg("2026-13", today)
     assert answers.previous_month(2026, 1) == (2025, 12)
     assert answers.previous_month(2026, 10) == (2026, 9)
@@ -131,11 +132,12 @@ def test_what_the_portal_is_asked_to_stream() -> None:
         descriptors.descriptors_for_sections(sections)
     )
     assert answers.activation_attributes({}, None) == list(activation.DEFAULT_STREAM_ATTRIBUTES)
-    with pytest.raises(ValueError, match="No attributes"):
+    with pytest.raises(refusal.Refusal, match="No attributes"):
         answers.activation_attributes({"sections": ["no-such-cluster"]}, None)
 
 
 def test_a_portal_failure_says_what_to_do() -> None:
-    assert "fresh session" in answers.activation_error("auth", "401")
-    assert "mapped_vehicle_id" in answers.activation_error("not_found", "404")
-    assert answers.activation_error("server", "BMW 503") == "BMW 503"
+    assert "fresh session" in str(answers.activation_error("auth", "401"))
+    assert "mapped_vehicle_id" in str(answers.activation_error("not_found", "404"))
+    assert str(answers.activation_error("server", "BMW 503")) == "BMW 503"
+    assert answers.activation_error("server", "BMW 503").placeholders == {"error": "BMW 503"}

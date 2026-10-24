@@ -118,6 +118,9 @@ class CardataCoordinator:
     car_profiles: Dict[str, CarProfile] = field(default_factory=dict, init=False)
     # The stream's status, outages and the repairs they decide (``stream_health``).
     health: StreamHealth = field(default_factory=StreamHealth, init=False)
+    # BMW refuses the account's login until the user signs in again; the cars'
+    # entities are unavailable meanwhile (``reauth.ReauthGate.refused``).
+    login_refused: bool = field(default=False, init=False)
     # Latched repair state so the watchdog only calls the issue registry on a
     # transition rather than every tick.
     _no_data_issue_active: bool = field(default=False, init=False)
@@ -285,6 +288,10 @@ class CardataCoordinator:
     @property
     def signal_diagnostics(self) -> str:
         return f"{DOMAIN}_{self.entry_id}_diagnostics"
+
+    @property
+    def signal_availability(self) -> str:
+        return f"{DOMAIN}_{self.entry_id}_availability"
 
     @property
     def signal_soc_estimate(self) -> str:

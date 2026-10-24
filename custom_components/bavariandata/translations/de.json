@@ -60,6 +60,16 @@
       "activate_stream_done": {
         "title": "Stream aktiviert",
         "description": "Fertig — der Aktivator hat **{added_count}** neue(s) Feld(er) eingeschaltet; **{field_count}** Felder werden jetzt für dieses Fahrzeug gestreamt.{error}\n\nKlicke auf **OK**, um die Einrichtung abzuschließen, und löse dann in der MyBMW App einmal Ver- oder Entriegeln aus, damit die erste Aktualisierung gesendet wird."
+      },
+      "reconfigure": {
+        "title": "Client-ID ändern",
+        "description": "Nutze einen anderen CarData Client desselben BMW-Kontos. Danach meldest du dich bei BMW an; deine Fahrzeuge, ihr Verlauf und deine Einstellungen bleiben.",
+        "data": {
+          "client_id": "Client-ID"
+        },
+        "data_description": {
+          "client_id": "Die Client-ID eines CarData Client im BMW-Portal, abonniert für CarData API und CarData Streaming."
+        }
       }
     },
     "progress": {
@@ -70,14 +80,17 @@
     "error": {
       "device_code_failed": "BMW hat die Anfrage zur Geräteautorisierung abgelehnt ({error}). Prüfe, ob die Client-ID korrekt ist und für beide CarData-Dienste freigeschaltet wurde, und versuche es erneut.",
       "invalid_result": "Das Ergebnis konnte nicht gelesen werden. Führe das Lesezeichen Activate BMW data auf der BMW-Portalseite aus und füge genau das ein, was es in die Zwischenablage kopiert hat.",
-      "no_client_id": "Auf deinem Konto wurde kein API-Client gefunden. Erstelle im BMW-Portal einen CarData Client und führe das Lesezeichen Activate BMW data dann erneut aus."
+      "no_client_id": "Auf deinem Konto wurde kein API-Client gefunden. Erstelle im BMW-Portal einen CarData Client und führe das Lesezeichen Activate BMW data dann erneut aus.",
+      "invalid_client_id": "Gib die BMW CarData Client-ID ein."
     },
     "abort": {
       "account_already_configured": "Dieses BMW-Konto ist in Home Assistant bereits eingerichtet. Ein Eintrag deckt das gesamte Konto ab, einschließlich aller Fahrzeuge darin — eine zweite Client-ID für dasselbe Konto würde den Stream für beide Einträge unterbrechen, weil BMW nur eine Verbindung pro Konto zulässt. Nutze den vorhandenen Eintrag oder entferne ihn zuerst.",
       "reauth_successful": "Neuautorisierung erfolgreich — BMW CarData ist wieder verbunden.",
-      "reauth_device_code_failed": "BMW hat die Anfrage zur Geräteautorisierung abgelehnt ({error}). Aktualisiere die Client-ID unter **Konfigurieren → Neu bei BMW autorisieren**, oder entferne die Integration und füge sie neu hinzu.",
+      "reauth_device_code_failed": "BMW hat die Anfrage zur Geräteautorisierung abgelehnt ({error}). Ändere die Client-ID über **Neu konfigurieren** an der Integration, oder entferne die Integration und füge sie neu hinzu.",
       "reauth_missing_client_id": "Für diesen Integrationseintrag fehlt die Client-ID. Entferne die Integration und füge sie neu hinzu, um erneut zu autorisieren.",
-      "reauth_failed": "Die Neuautorisierung konnte nicht gestartet werden. Versuche es erneut über die Optionen der Integration."
+      "reauth_failed": "Die Neuautorisierung konnte nicht gestartet werden. Versuche es erneut über die Optionen der Integration.",
+      "reconfigure_successful": "Client-ID geändert: BMW CarData ist mit dem neuen Client verbunden.",
+      "wrong_account": "Diese Client-ID gehört zu einem anderen BMW-Konto, deshalb wurde nichts geändert. Eine neue Client-ID behält dieses Konto mit seinen Fahrzeugen und ihrem Verlauf; für ein weiteres Konto füge die Integration erneut hinzu."
     }
   },
   "options": {
@@ -151,13 +164,7 @@
       },
       "action_reauth": {
         "title": "Neu bei BMW autorisieren",
-        "description": "Führt BMWs Geräteautorisierung erneut aus — zum Beispiel, wenn das Refresh-Token abgelaufen ist (alle 2 Wochen) oder wenn du eine neue Client-ID erzeugt hast. Anschließend bestätigst du Home Assistant auf der BMW-Website.",
-        "data": {
-          "client_id": "Client-ID"
-        },
-        "data_description": {
-          "client_id": "Unverändert lassen, um die bisherige Client-ID weiter zu verwenden, oder eine neue aus dem BMW-Portal einfügen."
-        }
+        "description": "Melde dich erneut bei BMW an, zum Beispiel wenn Home Assistant dich darum bittet oder das Refresh-Token abgelaufen ist (alle 2 Wochen). Anschließend bestätigst du Home Assistant auf der BMW-Website. Für eine andere Client-ID wähle **Neu konfigurieren** an der Integration."
       },
       "action_reset_container": {
         "title": "Telemetrie-Container zurücksetzen",
@@ -472,7 +479,6 @@
       "runtime_missing": "Die Integration ist noch nicht bereit. Versuche es erneut, sobald die Einrichtung abgeschlossen ist.",
       "no_vins": "Es sind noch keine Fahrzeuge bekannt. Führe zuerst **Fahrzeuge suchen** aus, oder warte, bis der Stream eines meldet.",
       "invalid_int": "Gib eine positive ganze Zahl ein.",
-      "invalid_client_id": "Gib die BMW CarData Client-ID ein.",
       "invalid_result": "Das Ergebnis konnte nicht gelesen werden. Führe das Lesezeichen „Activate BMW data“ auf der Stream-Setup-Seite des BMW-Portals aus und füge genau das ein, was es in die Zwischenablage kopiert hat.",
       "price_required": "Gib einen festen Preis pro kWh ein, oder wähle eine andere Preisquelle.",
       "price_entity_required": "Wähle die Entität, die deinen Preis pro kWh liefert, oder wähle eine andere Preisquelle.",
@@ -3350,6 +3356,101 @@
           "description": "Optionale FIN für den Neuaufbau. Standardmäßig alle bekannten Fahrzeuge."
         }
       }
+    }
+  },
+  "exceptions": {
+    "device_not_a_car": {
+      "message": "Gerät {device} ist kein BavarianData-Fahrzeug"
+    },
+    "vin_device_mismatch": {
+      "message": "vin {vin} und device_id ({device_vin}) nennen verschiedene Fahrzeuge"
+    },
+    "account_not_loaded": {
+      "message": "Kein geladenes BavarianData-Konto hat die entry_id {entry_id}"
+    },
+    "device_account_not_loaded": {
+      "message": "Das BavarianData-Konto des gewählten Geräts ist nicht geladen"
+    },
+    "vin_not_found": {
+      "message": "Kein BavarianData-Konto hat ein Fahrzeug mit der VIN {vin}"
+    },
+    "no_account": {
+      "message": "Kein BavarianData-Konto ist geladen"
+    },
+    "pick_account": {
+      "message": "{count} BavarianData-Konten sind eingerichtet ({accounts}); wähle ein Fahrzeug mit device_id oder gib entry_id an"
+    },
+    "vin_not_on_account": {
+      "message": "{vin} ist kein Fahrzeug dieses Kontos"
+    },
+    "no_car": {
+      "message": "Dieses Konto hat noch kein Fahrzeug"
+    },
+    "pick_car": {
+      "message": "Dieses Konto hat {count} Fahrzeuge ({cars}); wähle eines mit device_id oder gib vin an"
+    },
+    "month_format": {
+      "message": "'month' muss 'YYYY-MM' sein, erhalten: {value}"
+    },
+    "month_number": {
+      "message": "'month' hat keinen Monat {month}: {value}"
+    },
+    "bad_date": {
+      "message": "{key} ist kein lesbares Datum bzw. keine Datum/Uhrzeit: {value}"
+    },
+    "no_attributes": {
+      "message": "Nichts zu aktivieren; gib 'attributes' oder 'sections' an oder wähle Datengruppen für den Stream in den Optionen."
+    },
+    "no_trip_history": {
+      "message": "Der Fahrtenverlauf ist nicht verfügbar"
+    },
+    "trip_not_found": {
+      "message": "Keine Fahrt {trip} für {vin} gefunden"
+    },
+    "trips_not_from_reports": {
+      "message": "mark_trip_start gilt nur, wenn Fahrten aus den Berichten des Fahrzeugs erkannt werden (Konfigurieren -> Fahrten -> Fahrterkennung)"
+    },
+    "statistics_off": {
+      "message": "Der Statistik-Import ist für dieses Fahrzeug ausgeschaltet (Konfigurieren -> Ladekosten & Verlauf)."
+    },
+    "no_recorder": {
+      "message": "Der Recorder von Home Assistant ist nicht eingerichtet, es gibt also keine Langzeitstatistik, in die importiert werden könnte."
+    },
+    "no_token": {
+      "message": "{service}: kein gültiges BMW-Token; bitte neu autorisieren"
+    },
+    "request_blocked": {
+      "message": "{service}: {error}"
+    },
+    "bmw_error": {
+      "message": "{service}: {error}"
+    },
+    "fetch_incomplete": {
+      "message": "{service}: {error}"
+    },
+    "portal_session_rejected": {
+      "message": "BMW hat die Portal-Sitzung abgelehnt (abgelaufen oder ungültig). Hole eine frische Sitzung von der stream setup-Seite und versuche es erneut."
+    },
+    "portal_not_found": {
+      "message": "BMW antwortete mit 404 – prüfe mapped_vehicle_id und locale."
+    },
+    "portal_failed": {
+      "message": "{error}"
+    },
+    "missing_credentials": {
+      "message": "GCID oder ID-Token fehlt"
+    },
+    "token_refresh_failed": {
+      "message": "Erste Token-Erneuerung fehlgeschlagen: {error}"
+    },
+    "stream_failed": {
+      "message": "Keine Verbindung zu BMWs MQTT: {error}"
+    },
+    "stream_failed_after_refresh": {
+      "message": "Keine Verbindung zu BMWs MQTT nach der Token-Erneuerung: {error}"
+    },
+    "unknown_car": {
+      "message": "Kein Fahrzeug namens {car}; die Fahrzeuge sind {cars}"
     }
   }
 }

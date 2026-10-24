@@ -60,6 +60,16 @@
       "activate_stream_done": {
         "title": "Stream activated",
         "description": "Done — the activator turned on **{added_count}** new field(s); **{field_count}** fields are now streaming for this vehicle.{error}\n\nPress **Submit** to finish setup, then trigger a lock/unlock in the MyBMW app to prompt the first update."
+      },
+      "reconfigure": {
+        "title": "Change Client ID",
+        "description": "Use another CarData Client of the same BMW account. You sign in to BMW next; your cars, their history and your settings stay.",
+        "data": {
+          "client_id": "Client ID"
+        },
+        "data_description": {
+          "client_id": "The Client ID of a CarData Client in the BMW portal, subscribed to CarData API and CarData Streaming."
+        }
       }
     },
     "progress": {
@@ -70,14 +80,17 @@
     "error": {
       "device_code_failed": "BMW rejected the device authorization request ({error}). Check that the Client ID is correct and subscribed to both CarData services, then try again.",
       "invalid_result": "That result couldn't be read. Run the Activate BMW data bookmark on the BMW portal page and paste exactly what it copied to your clipboard.",
-      "no_client_id": "No API client was found on your account. Create a CarData Client in the BMW portal, then run the Activate BMW data bookmark again."
+      "no_client_id": "No API client was found on your account. Create a CarData Client in the BMW portal, then run the Activate BMW data bookmark again.",
+      "invalid_client_id": "Enter the BMW CarData Client ID."
     },
     "abort": {
       "account_already_configured": "This BMW account is already set up in Home Assistant. One entry covers the whole account, including every car on it — adding a second Client ID for the same account would break the stream for both, because BMW allows only one connection per account. Use the existing entry, or remove it first.",
       "reauth_successful": "Re-authorization successful — BMW CarData is connected again.",
-      "reauth_device_code_failed": "BMW rejected the device authorization request ({error}). Update the Client ID under Configure → Re-authorize with BMW, or remove and re-add the integration.",
+      "reauth_device_code_failed": "BMW rejected the device authorization request ({error}). Change the Client ID with Reconfigure on the integration, or remove and re-add the integration.",
       "reauth_missing_client_id": "Client ID is missing for this integration entry. Remove and re-add the integration to authorize again.",
-      "reauth_failed": "Re-authorization could not be started. Try again from the integration options."
+      "reauth_failed": "Re-authorization could not be started. Try again from the integration options.",
+      "reconfigure_successful": "Client ID changed: BMW CarData is connected with the new client.",
+      "wrong_account": "This Client ID belongs to another BMW account, so nothing was changed. Changing the Client ID keeps this account with its cars and history; to add another account, add the integration again."
     }
   },
   "options": {
@@ -151,13 +164,7 @@
       },
       "action_reauth": {
         "title": "Re-authorize with BMW",
-        "description": "Run BMW's device authorization again — for example after the refresh token expired (every 2 weeks) or if you generated a new Client ID. You'll approve Home Assistant on BMW's website afterwards.",
-        "data": {
-          "client_id": "Client ID"
-        },
-        "data_description": {
-          "client_id": "Leave as-is to reuse the current Client ID, or paste a new one from the BMW portal."
-        }
+        "description": "Sign in to BMW again, for example when Home Assistant asks you to or after the refresh token expired (every 2 weeks). You approve Home Assistant on BMW's website next. To use another Client ID, choose Reconfigure on the integration."
       },
       "action_reset_container": {
         "title": "Reset telemetry container",
@@ -472,7 +479,6 @@
       "runtime_missing": "The integration isn't ready yet. Try again once setup has finished.",
       "no_vins": "No vehicles are known yet. Run \"Discover vehicles\" first, or wait for the stream to report one.",
       "invalid_int": "Enter a positive whole number.",
-      "invalid_client_id": "Enter the BMW CarData Client ID.",
       "invalid_result": "That result couldn't be read. Run the Activate BMW data bookmarklet on the BMW portal's stream-setup page and paste exactly what it copied to your clipboard.",
       "price_required": "Enter a fixed price per kWh, or choose a different price source.",
       "price_entity_required": "Pick the entity that reports your price per kWh, or choose a different price source.",
@@ -3580,6 +3586,101 @@
           "description": "Optional VIN to rebuild. Defaults to every known vehicle."
         }
       }
+    }
+  },
+  "exceptions": {
+    "device_not_a_car": {
+      "message": "Device {device} is not a BavarianData car"
+    },
+    "vin_device_mismatch": {
+      "message": "vin {vin} and device_id ({device_vin}) name different cars"
+    },
+    "account_not_loaded": {
+      "message": "No loaded BavarianData account has entry_id {entry_id}"
+    },
+    "device_account_not_loaded": {
+      "message": "The picked device's BavarianData account is not loaded"
+    },
+    "vin_not_found": {
+      "message": "No BavarianData account has a car with VIN {vin}"
+    },
+    "no_account": {
+      "message": "No BavarianData account is loaded"
+    },
+    "pick_account": {
+      "message": "{count} BavarianData accounts are set up ({accounts}); pick a car with device_id, or pass entry_id"
+    },
+    "vin_not_on_account": {
+      "message": "{vin} is not a car of this account"
+    },
+    "no_car": {
+      "message": "This account has no car yet"
+    },
+    "pick_car": {
+      "message": "This account has {count} cars ({cars}); pick one with device_id, or pass vin"
+    },
+    "month_format": {
+      "message": "'month' must be 'YYYY-MM', got {value}"
+    },
+    "month_number": {
+      "message": "'month' has no month {month}: {value}"
+    },
+    "bad_date": {
+      "message": "Could not read {key} as a date or date/time: {value}"
+    },
+    "no_attributes": {
+      "message": "No attributes to activate; pass 'attributes' or 'sections', or choose streamed-data clusters in the options."
+    },
+    "no_trip_history": {
+      "message": "Trip history is not available"
+    },
+    "trip_not_found": {
+      "message": "No trip {trip} found for {vin}"
+    },
+    "trips_not_from_reports": {
+      "message": "mark_trip_start is used only when trips are detected from the car's reports (Configure -> Trips -> Trip detection)"
+    },
+    "statistics_off": {
+      "message": "Statistics import is turned off for this vehicle (Configure -> Charging costs & history)."
+    },
+    "no_recorder": {
+      "message": "Home Assistant's recorder is not set up, so there are no long-term statistics to import into."
+    },
+    "no_token": {
+      "message": "{service}: no valid BMW token; reauthorize"
+    },
+    "request_blocked": {
+      "message": "{service}: {error}"
+    },
+    "bmw_error": {
+      "message": "{service}: {error}"
+    },
+    "fetch_incomplete": {
+      "message": "{service}: {error}"
+    },
+    "portal_session_rejected": {
+      "message": "BMW rejected the portal session (expired or invalid). Capture a fresh session from the stream-setup page and retry."
+    },
+    "portal_not_found": {
+      "message": "BMW returned 404 -- check the mapped_vehicle_id and locale."
+    },
+    "portal_failed": {
+      "message": "{error}"
+    },
+    "missing_credentials": {
+      "message": "Missing GCID or ID token"
+    },
+    "token_refresh_failed": {
+      "message": "Initial token refresh failed: {error}"
+    },
+    "stream_failed": {
+      "message": "Unable to connect to BMW MQTT: {error}"
+    },
+    "stream_failed_after_refresh": {
+      "message": "Unable to connect to BMW MQTT after token refresh: {error}"
+    },
+    "unknown_car": {
+      "message": "No car called {car}; the cars are {cars}"
     }
   }
 }

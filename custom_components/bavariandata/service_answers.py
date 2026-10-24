@@ -5,9 +5,9 @@ the stores and raises Home Assistant's errors; the arithmetic between is here,
 where the test suite runs it (``tests/test_service_answers.py``): reading a
 call's month, dates and limit, the car a trip id names, the cost a backfilled
 session gets, the export's files, the evcc block, and the portal activation's
-attribute choice and error messages. A value a caller got wrong raises
-``ValueError`` with the message the user sees; the handler turns it into a
-``ServiceValidationError``.
+attribute choice and error messages. A value a caller got wrong raises a
+``refusal.Refusal`` naming the message the user sees; the handler turns it into
+a translated ``ServiceValidationError``.
 """
 
 from __future__ import annotations
@@ -19,6 +19,7 @@ from .descriptors import descriptors_for_sections
 from .evcc import ALL_TOPICS, evcc_yaml
 from .history.export import MIME_CSV, MIME_HTML, sessions_csv, trips_csv
 from .history.pricing import MODE_FIXED, fixed_cost
+from .refusal import Refusal
 from .stream_activation import DEFAULT_STREAM_ATTRIBUTES
 
 
@@ -88,9 +89,9 @@ def month_arg(raw: Optional[str], today: date) -> tuple[int, int]:
     try:
         year, month = (int(part) for part in str(raw).split("-", 1))
     except (ValueError, TypeError) as err:
-        raise ValueError(f"'month' must be 'YYYY-MM', got {raw!r}") from err
+        raise Refusal("month_format", value=repr(raw)) from err
     if not 1 <= month <= 12:
-        raise ValueError(f"'month' has no month {month}: {raw!r}")
+        raise Refusal("month_number", month=month, value=repr(raw))
     return year, month
 
 
@@ -226,14 +227,11 @@ def activation_attributes(
     else:
         attributes = list(DEFAULT_STREAM_ATTRIBUTES)
     if not attributes:
-        raise ValueError(
-            "No attributes to activate; pass 'attributes' or 'sections', "
-            "or choose streamed-data clusters in the options."
-        )
+        raise Refusal("no_attributes")
     return attributes
 
 
-def activation_error(kind: str, message: str) -> str:
+def activation_error(kind: str, message: str) -> Refusal:
     """A portal failure, as the user should read it.
 
     The commonest is an expired session -- portal cookies (incl. the bot-defense
@@ -241,10 +239,7 @@ def activation_error(kind: str, message: str) -> str:
     """
 
     if kind == "auth":
-        return (
-            "BMW rejected the portal session (expired or invalid). "
-            "Capture a fresh session from the stream-setup page and retry."
-        )
+        return Refusal("portal_session_rejected")
     if kind == "not_found":
-        return "BMW returned 404 -- check the mapped_vehicle_id and locale."
-    return message
+        return Refusal("portal_not_found")
+    return Refusal("portal_failed", error=message)

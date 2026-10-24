@@ -36,6 +36,7 @@ from .container import FULL, KINDS, SERVICE, CardataContainerError, ContainerKin
 from .debug import debug_enabled, mask_vin
 from .device_flow import CardataAuthError
 from .entry_setup import device_fields
+from .refusal import Refusal
 from .rest import CardataQuotaError
 from .startup_refresh import last_fetch_at, startup_refresh_vins
 from .vehicles import primary_vins
@@ -46,7 +47,7 @@ _LOGGER = logging.getLogger(__name__)
 LAST_TELEMATIC_POLL = "last_telematic_poll"
 
 
-class FetchFailed(Exception):
+class FetchFailed(Refusal):
     """A strict fetch (a service call) could not fetch everything it was asked."""
 
 
@@ -56,7 +57,6 @@ class AccountHost(Protocol):
     entry_id: str
     coordinator: Any
     rest: Any
-    tokens: Any
     containers: dict[str, Any]
     container_lock: asyncio.Lock
 
@@ -154,13 +154,12 @@ class AccountRest:
                 self._update_data(**{kind.signature_key: manager.descriptor_signature})
                 manager.sync_from_entry(stored_id)
                 return stored_id
-            access_token = await host.tokens.access_token()
             manager.sync_from_entry(None)
             try:
                 if stored_id:
-                    container_id = await manager.async_reset_hv_container(access_token)
+                    container_id = await manager.async_reset_hv_container()
                 else:
-                    container_id = await manager.async_ensure_hv_container(access_token)
+                    container_id = await manager.async_ensure_hv_container()
             except CardataContainerError as err:
                 _LOGGER.warning(
                     "Unable to set up the %s REST container for entry %s: %s",
@@ -324,7 +323,7 @@ class AccountRest:
             coordinator.last_telematic_api_at = datetime.now(timezone.utc)
             host.diagnostics_changed()
         if strict and failures:
-            raise FetchFailed(f"{label}: {'; '.join(failures)}")
+            raise FetchFailed("fetch_incomplete", service=label, error="; ".join(failures))
         return attempted
 
     async def fetch_basic_data(self, vins: list[str], label: str = "Bootstrap") -> None:
@@ -417,7 +416,7 @@ class AccountRest:
         if not vins:
             _LOGGER.error("Cardata fetch_telematic_data: no VIN available; provide vin parameter")
             if strict:
-                raise FetchFailed("fetch_telematic_data: this account has no car yet")
+                raise FetchFailed("no_car")
             return False
         return await self.fetch_telematics(vins, strict=strict)
 

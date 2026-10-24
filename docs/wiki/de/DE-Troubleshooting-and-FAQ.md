@@ -219,8 +219,9 @@ Client-ID erzeugt hast.
 BMW erlaubt nur **eine Stream-Verbindung pro Konto**. Zwei Einträge für dasselbe
 Konto würden sich also endlos gegenseitig trennen, und beide würden dasselbe
 Tageskontingent von 50 Anfragen verbrauchen, während jeder 50 für sich
-annimmt. Ist der vorhandene Eintrag nicht mehr gewünscht, entferne ihn zuerst
-und füge dann die neue Client-ID hinzu. Zwei *verschiedene* Konten dürfen
+annimmt. Um den vorhandenen Eintrag auf eine neue Client-ID desselben Kontos
+umzustellen, nutze **Neu konfigurieren** an der Integration: Fahrzeuge und ihr
+Verlauf bleiben. Zwei *verschiedene* Konten dürfen
 problemlos nebeneinander bestehen — siehe
 [Mehrere Fahrzeuge & Konten](DE-Feature-Multiple-Cars-and-Accounts).
 

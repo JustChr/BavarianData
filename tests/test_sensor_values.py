@@ -59,8 +59,10 @@ def test_connection_attributes_carry_the_stream_quota_and_units() -> None:
         "api_quota_used": 12,
         "api_quota_remaining": 38,
         "display_units": {"distance": "mi"},
+        "login_refused": False,
     }
     assert "last_disconnect_reason" not in values.connection_attributes({}, None, None, {})
+    assert values.connection_attributes({}, None, None, {}, True)["login_refused"] is True
 
 
 # -- charging -----------------------------------------------------------------

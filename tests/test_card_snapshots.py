@@ -69,9 +69,10 @@ card._hass = {
   devices: { device: { name: "Car", identifiers: [["bavariandata", "WBS1"]] } },
   callService: () => new Promise(() => {}),
 };
-if (input.display_units) {
-  // Configure -> Units, the way the integration publishes it: on the account
-  // device's connection sensor, found through the car's config entry.
+if (input.display_units || input.account) {
+  // Configure -> Units (and the account's other attributes), the way the
+  // integration publishes them: on the account device's connection sensor,
+  // found through the car's config entry.
   card._hass.devices.device.config_entries = ["entry1"];
   card._hass.devices.account = { name: "Account", identifiers: [["bavariandata", "entry1"]] };
   card._hass.entities = {
@@ -81,7 +82,7 @@ if (input.display_units) {
     ...input.states,
     "sensor.connection": {
       state: "connected",
-      attributes: { display_units: input.display_units },
+      attributes: { display_units: input.display_units || {}, ...(input.account || {}) },
     },
   };
 }
@@ -373,6 +374,20 @@ def test_every_screen_renders_in_every_language(car: str, screen: str) -> None:
         timeout=60,
     )
     assert json.loads(result.stdout) == {}
+
+
+@pytest.mark.parametrize("screen", sorted(SCREENS))
+def test_a_refused_login_says_so_on_every_screen(screen: str) -> None:
+    """The car's entities are unavailable then, and carry no attributes to find."""
+
+    html = _render(CARS["i5"], SCREENS[screen], account={"login_refused": True})
+    assert "BMW refused the sign-in" in html
+    assert "Settings → Devices &amp; services" in html or "Settings → Devices & services" in html
+
+
+def test_a_working_login_shows_the_car() -> None:
+    html = _render(CARS["i5"], SCREENS["overview"], account={"login_refused": False})
+    assert "BMW refused the sign-in" not in html
 
 
 # What ``get_charging_places`` answers, built by the server's own code from

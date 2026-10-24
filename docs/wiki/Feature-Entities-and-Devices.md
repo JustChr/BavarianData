@@ -294,11 +294,15 @@ you installed, or a calculated entity is still waiting for enough data:
 | **Battery Health** | Not `unknown`: it reads `Learning (n/10)` until it has ten good charges ([why](Feature-Battery-Health)). |
 | **Predicted time to charge target** | A home charge with a wallbox meter bound ([details](Feature-evcc-and-Wallbox-Bridge#time-to-the-charge-target)). |
 
-**`unavailable`: the integration isn't running for that entity.** BavarianData
-never marks its own entities unavailable, so this means the integration failed to
-start or needs re-authorizing (check *Settings → Devices & services* and
-*Repairs*), or the entity is left over from something the integration no longer
-creates — then you can delete it.
+**`unavailable`: no data can reach this entity.** A car's entities go
+unavailable only while **BMW refuses the account's login**: sign in again under
+*Settings → Devices & services*, and the values come back as soon as BMW accepts
+it. The dashboard card says so on every view meanwhile. A quiet or dropped
+stream is not an outage: a parked car sends nothing for hours, and its last
+report stays true, so the entities keep it. Otherwise `unavailable` means the
+integration failed to start, or the entity is left over from something the
+integration no longer creates — then you can delete it.
 
-Either way, entities keep their `cluster`/`category` attributes, because the
-card's cluster views depend on them.
+An `unknown` entity keeps its `cluster`/`category` attributes, because the
+card's cluster views depend on them; an `unavailable` one has none (Home
+Assistant drops them), which is why the card shows the sign-in message instead.

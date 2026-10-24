@@ -60,6 +60,16 @@
       "activate_stream_done": {
         "title": "Stream aktivován",
         "description": "Hotovo — aktivátor zapnul **{added_count}** nových polí; pro toto vozidlo se nyní přenáší **{field_count}** polí.{error}\n\nStiskněte **Odeslat** pro dokončení nastavení a poté v aplikaci MyBMW vůz zamkněte/odemkněte, aby se vyvolala první aktualizace."
+      },
+      "reconfigure": {
+        "title": "Změnit Client ID",
+        "description": "Použijte jiného CarData Client stejného účtu BMW. Poté se přihlásíte k BMW; vozidla, jejich historie a nastavení zůstanou.",
+        "data": {
+          "client_id": "Client ID"
+        },
+        "data_description": {
+          "client_id": "Client ID klienta CarData Client v portálu BMW s předplatným CarData API a CarData Streaming."
+        }
       }
     },
     "progress": {
@@ -70,14 +80,17 @@
     "error": {
       "device_code_failed": "BMW odmítlo žádost o autorizaci zařízení ({error}). Zkontrolujte, že je Client ID správný a přihlášený k odběru obou služeb CarData, a zkuste to znovu.",
       "invalid_result": "Výsledek se nepodařilo přečíst. Spusťte záložku Activate BMW data na stránce portálu BMW a vložte přesně to, co zkopírovala do schránky.",
-      "no_client_id": "Na vašem účtu nebyl nalezen žádný API klient. Vytvořte CarData Client v portálu BMW a poté znovu spusťte záložku Activate BMW data."
+      "no_client_id": "Na vašem účtu nebyl nalezen žádný API klient. Vytvořte CarData Client v portálu BMW a poté znovu spusťte záložku Activate BMW data.",
+      "invalid_client_id": "Zadejte Client ID BMW CarData."
     },
     "abort": {
       "account_already_configured": "Tento účet BMW je v Home Assistant už nastaven. Jeden záznam pokrývá celý účet včetně všech jeho vozů — přidání druhého Client ID pro stejný účet by přerušilo stream u obou, protože BMW povoluje jen jedno připojení na účet. Použijte existující záznam, nebo jej nejprve odstraňte.",
       "reauth_successful": "Opětovná autorizace proběhla úspěšně — BMW CarData je opět připojeno.",
-      "reauth_device_code_failed": "BMW odmítlo žádost o autorizaci zařízení ({error}). Aktualizujte Client ID v Nastavit → Znovu autorizovat u BMW, nebo integraci odstraňte a přidejte znovu.",
+      "reauth_device_code_failed": "BMW odmítlo žádost o autorizaci zařízení ({error}). Změňte Client ID přes Přenastavit u integrace, nebo integraci odstraňte a přidejte znovu.",
       "reauth_missing_client_id": "U tohoto záznamu integrace chybí Client ID. Odstraňte integraci a přidejte ji znovu, abyste ji znovu autorizovali.",
-      "reauth_failed": "Opětovnou autorizaci se nepodařilo spustit. Zkuste to znovu z možností integrace."
+      "reauth_failed": "Opětovnou autorizaci se nepodařilo spustit. Zkuste to znovu z možností integrace.",
+      "reconfigure_successful": "Client ID změněno: BMW CarData je připojeno s novým klientem.",
+      "wrong_account": "Toto Client ID patří k jinému účtu BMW, proto se nic nezměnilo. Změna Client ID zachová tento účet s jeho vozidly a jejich historií; jiný účet přidáte opětovným přidáním integrace."
     }
   },
   "options": {
@@ -151,13 +164,7 @@
       },
       "action_reauth": {
         "title": "Znovu autorizovat u BMW",
-        "description": "Znovu spustí autorizaci zařízení BMW — například po vypršení obnovovacího tokenu (každé 2 týdny) nebo pokud jste vygenerovali nový Client ID. Poté schválíte Home Assistant na webu BMW.",
-        "data": {
-          "client_id": "Client ID"
-        },
-        "data_description": {
-          "client_id": "Ponechte beze změny pro použití současného Client ID, nebo vložte nový z portálu BMW."
-        }
+        "description": "Přihlaste se znovu k BMW, například když o to Home Assistant požádá nebo po vypršení obnovovacího tokenu (každé 2 týdny). Poté schválíte Home Assistant na webu BMW. Pro jiné Client ID zvolte Přenastavit u integrace."
       },
       "action_reset_container": {
         "title": "Resetovat telemetrický kontejner",
@@ -472,7 +479,6 @@
       "runtime_missing": "Integrace ještě není připravena. Zkuste to znovu po dokončení nastavení.",
       "no_vins": "Zatím nejsou známa žádná vozidla. Nejprve spusťte \"Vyhledat vozidla\", nebo počkejte, až stream nějaké nahlásí.",
       "invalid_int": "Zadejte kladné celé číslo.",
-      "invalid_client_id": "Zadejte Client ID BMW CarData.",
       "invalid_result": "Výsledek se nepodařilo přečíst. Spusťte záložku Activate BMW data na stránce stream setup v portálu BMW a vložte přesně to, co zkopírovala do schránky.",
       "price_required": "Zadejte pevnou cenu za kWh, nebo zvolte jiný zdroj ceny.",
       "price_entity_required": "Vyberte entitu, která hlásí vaši cenu za kWh, nebo zvolte jiný zdroj ceny.",
@@ -3350,6 +3356,101 @@
           "description": "Volitelný VIN k přestavění. Výchozí jsou všechna známá vozidla."
         }
       }
+    }
+  },
+  "exceptions": {
+    "device_not_a_car": {
+      "message": "Zařízení {device} není vozidlo BavarianData"
+    },
+    "vin_device_mismatch": {
+      "message": "vin {vin} a device_id ({device_vin}) označují různá vozidla"
+    },
+    "account_not_loaded": {
+      "message": "Žádný načtený účet BavarianData nemá entry_id {entry_id}"
+    },
+    "device_account_not_loaded": {
+      "message": "Účet BavarianData vybraného zařízení není načten"
+    },
+    "vin_not_found": {
+      "message": "Žádný účet BavarianData nemá vozidlo s VIN {vin}"
+    },
+    "no_account": {
+      "message": "Není načten žádný účet BavarianData"
+    },
+    "pick_account": {
+      "message": "Je nastaveno {count} účtů BavarianData ({accounts}); vyberte vozidlo pomocí device_id nebo zadejte entry_id"
+    },
+    "vin_not_on_account": {
+      "message": "{vin} není vozidlo tohoto účtu"
+    },
+    "no_car": {
+      "message": "Tento účet zatím nemá žádné vozidlo"
+    },
+    "pick_car": {
+      "message": "Tento účet má {count} vozidel ({cars}); vyberte jedno pomocí device_id nebo zadejte vin"
+    },
+    "month_format": {
+      "message": "'month' musí být ve tvaru 'YYYY-MM', přijato: {value}"
+    },
+    "month_number": {
+      "message": "'month' nemá měsíc {month}: {value}"
+    },
+    "bad_date": {
+      "message": "{key} nelze přečíst jako datum ani datum a čas: {value}"
+    },
+    "no_attributes": {
+      "message": "Není co aktivovat; zadejte 'attributes' nebo 'sections', nebo vyberte skupiny dat streamu v možnostech."
+    },
+    "no_trip_history": {
+      "message": "Historie jízd není k dispozici"
+    },
+    "trip_not_found": {
+      "message": "Jízda {trip} pro {vin} nebyla nalezena"
+    },
+    "trips_not_from_reports": {
+      "message": "mark_trip_start se používá jen tehdy, když se jízdy rozpoznávají z hlášení vozidla (Nastavit -> Jízdy -> Detekce jízd)"
+    },
+    "statistics_off": {
+      "message": "Import statistik je pro toto vozidlo vypnutý (Nastavit -> Náklady a historie nabíjení)."
+    },
+    "no_recorder": {
+      "message": "Recorder Home Assistantu není nastaven, takže neexistují žádné dlouhodobé statistiky, do kterých by se dalo importovat."
+    },
+    "no_token": {
+      "message": "{service}: žádný platný token BMW; autorizujte znovu"
+    },
+    "request_blocked": {
+      "message": "{service}: {error}"
+    },
+    "bmw_error": {
+      "message": "{service}: {error}"
+    },
+    "fetch_incomplete": {
+      "message": "{service}: {error}"
+    },
+    "portal_session_rejected": {
+      "message": "BMW odmítlo relaci portálu (vypršela nebo je neplatná). Získejte novou relaci ze stránky stream setup a zkuste to znovu."
+    },
+    "portal_not_found": {
+      "message": "BMW odpovědělo 404 – zkontrolujte mapped_vehicle_id a locale."
+    },
+    "portal_failed": {
+      "message": "{error}"
+    },
+    "missing_credentials": {
+      "message": "Chybí GCID nebo ID token"
+    },
+    "token_refresh_failed": {
+      "message": "První obnovení tokenu selhalo: {error}"
+    },
+    "stream_failed": {
+      "message": "Nelze se připojit k MQTT BMW: {error}"
+    },
+    "stream_failed_after_refresh": {
+      "message": "Nelze se připojit k MQTT BMW po obnovení tokenu: {error}"
+    },
+    "unknown_car": {
+      "message": "Žádné vozidlo jménem {car}; vozidla jsou {cars}"
     }
   }
 }

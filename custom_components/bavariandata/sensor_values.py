@@ -74,6 +74,7 @@ def connection_attributes(
     last_disconnect_reason: Optional[str],
     quota: Any,
     display_units: Mapping[str, Any],
+    login_refused: bool = False,
 ) -> dict[str, Any]:
     """The connection-status sensor's attributes."""
 
@@ -84,6 +85,9 @@ def connection_attributes(
     # Configure -> Units, for the dashboard card: it has no other way to read
     # the account's options.
     attrs["display_units"] = dict(display_units)
+    # BMW refuses the login: the cars' entities are unavailable, and the card
+    # says why on this sensor, the one that stays up.
+    attrs["login_refused"] = login_refused
     return attrs
 
 

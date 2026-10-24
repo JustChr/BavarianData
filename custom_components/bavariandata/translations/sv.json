@@ -60,6 +60,16 @@
       "activate_stream_done": {
         "title": "Ström aktiverad",
         "description": "Klart — aktiveraren slog på **{added_count}** nya fält; **{field_count}** fält strömmas nu för det här fordonet.{error}\n\nTryck på **Bekräfta** för att slutföra installationen och lås/lås sedan upp bilen i MyBMW-appen för att framkalla den första uppdateringen."
+      },
+      "reconfigure": {
+        "title": "Byt Client ID",
+        "description": "Använd en annan CarData Client på samma BMW-konto. Sedan loggar du in hos BMW; dina bilar, deras historik och dina inställningar finns kvar.",
+        "data": {
+          "client_id": "Client ID"
+        },
+        "data_description": {
+          "client_id": "Client ID för en CarData Client i BMW-portalen, prenumererad på CarData API och CarData Streaming."
+        }
       }
     },
     "progress": {
@@ -70,14 +80,17 @@
     "error": {
       "device_code_failed": "BMW avvisade begäran om enhetsauktorisering ({error}). Kontrollera att Client ID är korrekt och prenumererar på båda CarData-tjänsterna, och försök sedan igen.",
       "invalid_result": "Resultatet kunde inte läsas. Kör bokmärket Activate BMW data på BMW-portalens sida och klistra in exakt det som det kopierade till urklipp.",
-      "no_client_id": "Ingen API-klient hittades på ditt konto. Skapa en CarData Client i BMW-portalen och kör sedan bokmärket Activate BMW data igen."
+      "no_client_id": "Ingen API-klient hittades på ditt konto. Skapa en CarData Client i BMW-portalen och kör sedan bokmärket Activate BMW data igen.",
+      "invalid_client_id": "Ange BMW CarData Client ID."
     },
     "abort": {
       "account_already_configured": "Det här BMW-kontot är redan konfigurerat i Home Assistant. En post täcker hela kontot, inklusive alla bilar på det — att lägga till ett andra Client ID för samma konto skulle bryta strömmen för båda, eftersom BMW bara tillåter en anslutning per konto. Använd den befintliga posten eller ta bort den först.",
       "reauth_successful": "Omauktoriseringen lyckades — BMW CarData är anslutet igen.",
-      "reauth_device_code_failed": "BMW avvisade begäran om enhetsauktorisering ({error}). Uppdatera Client ID under Konfigurera → Auktorisera igen hos BMW, eller ta bort och lägg till integrationen igen.",
+      "reauth_device_code_failed": "BMW avvisade begäran om enhetsauktorisering ({error}). Byt Client ID med Konfigurera om på integrationen, eller ta bort och lägg till integrationen igen.",
       "reauth_missing_client_id": "Client ID saknas för den här integrationsposten. Ta bort och lägg till integrationen igen för att auktorisera på nytt.",
-      "reauth_failed": "Omauktoriseringen kunde inte startas. Försök igen från integrationens alternativ."
+      "reauth_failed": "Omauktoriseringen kunde inte startas. Försök igen från integrationens alternativ.",
+      "reconfigure_successful": "Client ID bytt: BMW CarData är anslutet med den nya klienten.",
+      "wrong_account": "Detta Client ID hör till ett annat BMW-konto, så inget har ändrats. Ett nytt Client ID behåller det här kontot med dess bilar och deras historik; lägg till integrationen igen för ett annat konto."
     }
   },
   "options": {
@@ -151,13 +164,7 @@
       },
       "action_reauth": {
         "title": "Auktorisera igen hos BMW",
-        "description": "Kör BMW:s enhetsauktorisering igen — till exempel efter att uppdateringstoken har gått ut (varannan vecka) eller om du har skapat ett nytt Client ID. Därefter godkänner du Home Assistant på BMW:s webbplats.",
-        "data": {
-          "client_id": "Client ID"
-        },
-        "data_description": {
-          "client_id": "Lämna som det är för att återanvända nuvarande Client ID, eller klistra in ett nytt från BMW-portalen."
-        }
+        "description": "Logga in hos BMW igen, till exempel när Home Assistant ber om det eller när uppdateringstoken har gått ut (varannan vecka). Därefter godkänner du Home Assistant på BMW:s webbplats. Välj Konfigurera om på integrationen för ett annat Client ID."
       },
       "action_reset_container": {
         "title": "Återställ telemetribehållaren",
@@ -472,7 +479,6 @@
       "runtime_missing": "Integrationen är inte redo än. Försök igen när installationen är klar.",
       "no_vins": "Inga fordon är kända än. Kör \"Sök efter fordon\" först, eller vänta tills strömmen rapporterar ett.",
       "invalid_int": "Ange ett positivt heltal.",
-      "invalid_client_id": "Ange BMW CarData Client ID.",
       "invalid_result": "Resultatet kunde inte läsas. Kör bokmärket Activate BMW data på BMW-portalens stream setup-sida och klistra in exakt det som det kopierade till urklipp.",
       "price_required": "Ange ett fast pris per kWh, eller välj en annan priskälla.",
       "price_entity_required": "Välj den entitet som rapporterar ditt pris per kWh, eller välj en annan priskälla.",
@@ -3350,6 +3356,101 @@
           "description": "Valfritt VIN att bygga om. Standard är alla kända fordon."
         }
       }
+    }
+  },
+  "exceptions": {
+    "device_not_a_car": {
+      "message": "Enheten {device} är inte en BavarianData-bil"
+    },
+    "vin_device_mismatch": {
+      "message": "vin {vin} och device_id ({device_vin}) anger olika bilar"
+    },
+    "account_not_loaded": {
+      "message": "Inget laddat BavarianData-konto har entry_id {entry_id}"
+    },
+    "device_account_not_loaded": {
+      "message": "Den valda enhetens BavarianData-konto är inte laddat"
+    },
+    "vin_not_found": {
+      "message": "Inget BavarianData-konto har en bil med VIN {vin}"
+    },
+    "no_account": {
+      "message": "Inget BavarianData-konto är laddat"
+    },
+    "pick_account": {
+      "message": "{count} BavarianData-konton är konfigurerade ({accounts}); välj en bil med device_id eller ange entry_id"
+    },
+    "vin_not_on_account": {
+      "message": "{vin} är inte en bil på det här kontot"
+    },
+    "no_car": {
+      "message": "Det här kontot har ingen bil ännu"
+    },
+    "pick_car": {
+      "message": "Det här kontot har {count} bilar ({cars}); välj en med device_id eller ange vin"
+    },
+    "month_format": {
+      "message": "'month' måste vara 'YYYY-MM', fick: {value}"
+    },
+    "month_number": {
+      "message": "'month' har ingen månad {month}: {value}"
+    },
+    "bad_date": {
+      "message": "Kunde inte läsa {key} som datum eller datum/tid: {value}"
+    },
+    "no_attributes": {
+      "message": "Inget att aktivera; ange 'attributes' eller 'sections', eller välj datagrupper för strömmen i alternativen."
+    },
+    "no_trip_history": {
+      "message": "Resehistoriken är inte tillgänglig"
+    },
+    "trip_not_found": {
+      "message": "Ingen resa {trip} hittades för {vin}"
+    },
+    "trips_not_from_reports": {
+      "message": "mark_trip_start används bara när resor identifieras från bilens rapporter (Konfigurera -> Resor -> Reseidentifiering)"
+    },
+    "statistics_off": {
+      "message": "Statistikimporten är avstängd för den här bilen (Konfigurera -> Laddkostnader och historik)."
+    },
+    "no_recorder": {
+      "message": "Home Assistants recorder är inte konfigurerad, så det finns ingen långtidsstatistik att importera till."
+    },
+    "no_token": {
+      "message": "{service}: ingen giltig BMW-token; auktorisera igen"
+    },
+    "request_blocked": {
+      "message": "{service}: {error}"
+    },
+    "bmw_error": {
+      "message": "{service}: {error}"
+    },
+    "fetch_incomplete": {
+      "message": "{service}: {error}"
+    },
+    "portal_session_rejected": {
+      "message": "BMW avvisade portalsessionen (utgången eller ogiltig). Hämta en ny session från sidan stream setup och försök igen."
+    },
+    "portal_not_found": {
+      "message": "BMW svarade 404 – kontrollera mapped_vehicle_id och locale."
+    },
+    "portal_failed": {
+      "message": "{error}"
+    },
+    "missing_credentials": {
+      "message": "GCID eller ID-token saknas"
+    },
+    "token_refresh_failed": {
+      "message": "Den första tokenförnyelsen misslyckades: {error}"
+    },
+    "stream_failed": {
+      "message": "Kunde inte ansluta till BMW:s MQTT: {error}"
+    },
+    "stream_failed_after_refresh": {
+      "message": "Kunde inte ansluta till BMW:s MQTT efter tokenförnyelsen: {error}"
+    },
+    "unknown_car": {
+      "message": "Ingen bil heter {car}; bilarna är {cars}"
     }
   }
 }

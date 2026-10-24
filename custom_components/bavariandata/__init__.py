@@ -62,6 +62,7 @@ from .container import (
     KINDS,
     CardataContainerManager,
 )
+from .refusal import Refusal, as_ha_error
 from .rest import RestGateway, TokenKeeper
 from .coverage import coverage_issue_id, legacy_coverage_issue_id
 from .coverage_store import CoverageStore
@@ -410,6 +411,12 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     return True
 
 
+def _not_ready(key: str, **placeholders: Any) -> ConfigEntryNotReady:
+    """Why the account cannot start yet, in the user's language; HA retries it."""
+
+    return as_ha_error(Refusal(key, **placeholders), ConfigEntryNotReady, DOMAIN)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> bool:
     """Set an account up: stores, coordinator, stream, then Home Assistant's side.
 
@@ -435,7 +442,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     gcid = data.get("gcid")
     id_token = data.get("id_token")
     if not gcid or not id_token:
-        raise ConfigEntryNotReady("Missing GCID or ID token")
+        raise _not_ready("missing_credentials")
 
     # History is a bonus, not a prerequisite: a failure to read it must never
     # stop the stream from setting up, so HistoryStore.async_load swallows its
@@ -503,16 +510,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     if cleaned is not None:
         data = cleaned
         hass.config_entries.async_update_entry(entry, data=data)
-    containers = {
-        kind.key: CardataContainerManager(
-            session=session,
-            entry_id=entry.entry_id,
-            initial_container_id=data.get(kind.id_key),
-            claim=quota_manager.async_claim,
-            kind=kind,
-        )
-        for kind in KINDS
-    }
 
     async def handle_stream_error(reason: str) -> None:
         await _handle_stream_error(hass, entry, reason)
@@ -532,6 +529,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     manager.set_status_callback(coordinator.async_handle_connection_event)
     tokens = TokenKeeper(partial(_refresh_tokens, entry, session, manager), lambda: entry.data)
     rest = RestGateway(session, tokens, quota_manager.async_claim)
+    containers = {
+        kind.key: CardataContainerManager(
+            rest=rest,
+            entry_id=entry.entry_id,
+            initial_container_id=data.get(kind.id_key),
+            kind=kind,
+        )
+        for kind in KINDS
+    }
 
     refreshed_token = False
     try:
@@ -544,17 +550,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             err,
         )
     except Exception as err:  # pylint: disable=broad-except
-        raise ConfigEntryNotReady(f"Initial token refresh failed: {err}") from err
+        raise _not_ready("token_refresh_failed", error=err) from err
 
     if manager.client is None:
         try:
             await manager.async_start()
         except Exception as err:
             if refreshed_token:
-                raise ConfigEntryNotReady(
-                    f"Unable to connect to BMW MQTT after token refresh: {err}"
-                ) from err
-            raise ConfigEntryNotReady(f"Unable to connect to BMW MQTT: {err}") from err
+                raise _not_ready("stream_failed_after_refresh", error=err) from err
+            raise _not_ready("stream_failed", error=err) from err
 
     refresh_wake = asyncio.Event()
     refresh_task = entry.async_create_background_task(
@@ -584,6 +588,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         telematic_task=None,
     )
     entry.runtime_data = runtime_data
+    runtime_data.reauth.on_refused = partial(_login_refused, hass, coordinator)
     # Track loaded entries so services (registered process-wide) are torn down
     # once the last entry unloads. Runtime itself lives on entry.runtime_data.
     domain_data.setdefault("_entries", set()).add(entry.entry_id)
@@ -1128,6 +1133,23 @@ class _ReauthHost:
         persistent_notification.async_dismiss(self._hass, f"{DOMAIN}_reauth_{self.entry_id}")
 
 
+@callback
+def _login_refused(hass: HomeAssistant, coordinator: CardataCoordinator, refused: bool) -> None:
+    """BMW refused the login, or takes it again: the cars' entities follow."""
+
+    # Once each way, as the change happens: the gate calls this only on a change.
+    if refused:
+        _LOGGER.warning(
+            "BMW refuses the login of entry %s; its cars are unavailable until it is accepted",
+            coordinator.entry_id,
+        )
+    else:
+        _LOGGER.info("BMW accepts the login of entry %s again", coordinator.entry_id)
+    coordinator.login_refused = refused
+    async_dispatcher_send(hass, coordinator.signal_availability)
+    async_dispatcher_send(hass, coordinator.signal_diagnostics)
+
+
 async def _handle_stream_error(hass: HomeAssistant, entry: CardataConfigEntry, reason: str) -> None:
     await entry.runtime_data.reauth.stream_error(_ReauthHost(hass, entry), reason)
 
@@ -1191,7 +1213,6 @@ class _EntryHost:
         self.entry_id = entry.entry_id
         self.coordinator = runtime.coordinator
         self.rest = runtime.rest
-        self.tokens = runtime.tokens
         self.containers = runtime.containers
         self.container_lock = runtime.container_lock
 
@@ -1311,7 +1332,7 @@ async def _async_perform_telematic_fetch(
     try:
         return await _account(hass, entry).refresh(vin=vin_override, strict=strict)
     except FetchFailed as err:
-        raise HomeAssistantError(str(err)) from err
+        raise as_ha_error(err, HomeAssistantError, DOMAIN) from err
 
 
 def _async_update_last_telematic_poll(

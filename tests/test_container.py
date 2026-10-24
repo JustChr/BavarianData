@@ -19,9 +19,12 @@ import asyncio
 import pytest
 
 from .conftest import FakeResponse, FakeSession, load_module
+from .fake_account import gateway
 
 container = load_module("container")
 const = load_module("const")
+debug = load_module("debug")
+device_flow = load_module("device_flow")
 
 CardataContainerManager = container.CardataContainerManager
 CardataContainerError = container.CardataContainerError
@@ -32,10 +35,21 @@ PURPOSE = const.HV_BATTERY_CONTAINER_PURPOSE
 TOKEN = "token-abc"
 
 
-def _manager(responses, *, container_id=None):
+@pytest.fixture(autouse=True, params=[False, True], ids=["quiet", "debug"])
+def _debug_logging(request):
+    """Every path once with debug logging on: its log lines must not break it."""
+
+    debug.set_debug_enabled(request.param, entry_id="test-container")
+    yield
+    debug.forget_entry("test-container")
+
+
+def _manager(responses, *, container_id=None, token_error=None):
     session = FakeSession(responses)
     manager = CardataContainerManager(
-        session=session, entry_id="entry1", initial_container_id=container_id
+        rest=gateway(session, token=TOKEN, error=token_error),
+        entry_id="entry1",
+        initial_container_id=container_id,
     )
     return manager, session
 
@@ -67,19 +81,20 @@ def test_the_signature_ignores_order_and_duplicates():
 
 def test_a_known_container_is_reused_without_spending_a_request():
     manager, session = _manager([], container_id="existing")
-    assert _run(manager.async_ensure_hv_container(TOKEN)) == "existing"
+    assert _run(manager.async_ensure_hv_container()) == "existing"
     assert session.calls == [], "a cached container must cost no REST quota"
 
 
 def test_without_a_token_nothing_is_requested():
-    manager, session = _manager([], container_id="existing")
-    assert _run(manager.async_ensure_hv_container(None)) == "existing"
+    manager, session = _manager([], token_error=device_flow.CardataAuthError("no token"))
+    with pytest.raises(device_flow.CardataAuthError):
+        _run(manager.async_ensure_hv_container())
     assert session.calls == []
 
 
 def test_a_missing_container_is_created_and_remembered():
     manager, session = _manager([FakeResponse(201, {"containerId": "new-1"})])
-    assert _run(manager.async_ensure_hv_container(TOKEN)) == "new-1"
+    assert _run(manager.async_ensure_hv_container()) == "new-1"
     assert manager.container_id == "new-1"
     assert _methods(session) == ["POST"]
 
@@ -87,7 +102,7 @@ def test_a_missing_container_is_created_and_remembered():
 def test_a_creation_response_without_an_id_is_an_error():
     manager, _ = _manager([FakeResponse(201, {"nothing": "useful"})])
     with pytest.raises(CardataContainerError):
-        _run(manager.async_ensure_hv_container(TOKEN))
+        _run(manager.async_ensure_hv_container())
 
 
 def test_sync_from_entry_adopts_the_stored_id():
@@ -111,7 +126,7 @@ def test_the_replacement_is_created_before_anything_is_deleted():
             FakeResponse(204, None),
         ]
     )
-    assert _run(manager.async_reset_hv_container(TOKEN)) == "new-1"
+    assert _run(manager.async_reset_hv_container()) == "new-1"
     assert _methods(session) == ["GET", "POST", "DELETE"], "the POST must precede the DELETE"
 
 
@@ -122,7 +137,7 @@ def test_the_new_container_is_never_deleted():
             FakeResponse(201, {"containerId": "new-1"}),
         ]
     )
-    assert _run(manager.async_reset_hv_container(TOKEN)) == "new-1"
+    assert _run(manager.async_reset_hv_container()) == "new-1"
     assert "DELETE" not in _methods(session)
 
 
@@ -133,7 +148,7 @@ def test_containers_belonging_to_someone_else_are_left_alone():
             FakeResponse(201, {"containerId": "new-1"}),
         ]
     )
-    _run(manager.async_reset_hv_container(TOKEN))
+    _run(manager.async_reset_hv_container())
     assert "DELETE" not in _methods(session)
 
 
@@ -152,7 +167,7 @@ def test_a_container_that_cannot_be_deleted_does_not_stop_the_rest():
             FakeResponse(204, None),
         ]
     )
-    assert _run(manager.async_reset_hv_container(TOKEN)) == "new-1"
+    assert _run(manager.async_reset_hv_container()) == "new-1"
     assert _methods(session) == ["GET", "POST", "DELETE", "DELETE"]
 
 
@@ -164,13 +179,16 @@ def test_a_container_already_gone_is_not_an_error():
             FakeResponse(404, "gone"),
         ]
     )
-    assert _run(manager.async_reset_hv_container(TOKEN)) == "new-1"
+    assert _run(manager.async_reset_hv_container()) == "new-1"
 
 
-def test_resetting_without_a_token_does_nothing():
-    manager, session = _manager([], container_id="existing")
-    assert _run(manager.async_reset_hv_container(None)) == "existing"
-    assert session.calls == []
+def test_resetting_without_a_token_keeps_the_container():
+    manager, session = _manager(
+        [], container_id="existing", token_error=device_flow.CardataAuthError("no token")
+    )
+    with pytest.raises(device_flow.CardataAuthError):
+        _run(manager.async_reset_hv_container())
+    assert session.calls == [] and manager.container_id == "existing"
 
 
 # --------------------------------------------------------------------------
@@ -193,7 +211,7 @@ def test_the_listing_survives_every_json_shape_bmw_could_return(body):
     """Wrong *shape* is handled; a body that is not JSON at all is aiohttp's to reject."""
 
     manager, _ = _manager([FakeResponse(200, body), FakeResponse(201, {"containerId": "n"})])
-    assert _run(manager.async_reset_hv_container(TOKEN)) == "n"
+    assert _run(manager.async_reset_hv_container()) == "n"
 
 
 def test_a_container_matches_on_purpose_name_or_descriptor_signature():
@@ -202,6 +220,9 @@ def test_a_container_matches_on_purpose_name_or_descriptor_signature():
     assert manager._matches_hv_container({"name": NAME})
     assert not manager._matches_hv_container({"purpose": "x", "name": "y"})
     assert not manager._matches_hv_container({})
+    assert not manager._matches_hv_container(["not", "a", "container"])
+    own = {"technicalDescriptors": [*reversed(manager.kind.descriptors), 7]}
+    assert manager._matches_hv_container(own)
 
 
 # --------------------------------------------------------------------------
@@ -212,14 +233,14 @@ def test_a_container_matches_on_purpose_name_or_descriptor_signature():
 def test_an_http_error_carries_its_status():
     manager, _ = _manager([FakeResponse(403, "forbidden")])
     with pytest.raises(CardataContainerError) as excinfo:
-        _run(manager.async_ensure_hv_container(TOKEN))
+        _run(manager.async_ensure_hv_container())
     assert excinfo.value.status == 403
     assert "403" in str(excinfo.value)
 
 
 def test_the_request_is_authorised_and_versioned():
     manager, session = _manager([FakeResponse(201, {"containerId": "n"})])
-    _run(manager.async_ensure_hv_container(TOKEN))
+    _run(manager.async_ensure_hv_container())
     headers = session.calls[0]["headers"]
     assert headers["Authorization"] == f"Bearer {TOKEN}"
     assert headers["x-version"] == const.API_VERSION

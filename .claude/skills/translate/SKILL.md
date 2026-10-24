@@ -74,6 +74,16 @@ with `\n` in it (the Bash tool un-escapes it).
 | cs | vy | Nastavit | Odeslat | nabíjení / jízda / skupina dat | stream |
 | sv | du | Konfigurera | Bekräfta | laddning / resa / datagrupp | ström |
 
+HA's own labels for *Settings → Devices & services* and the integration's
+*Reconfigure* entry (frontend wheel 20260930): de Einstellungen → Geräte & Dienste,
+Neu konfigurieren · fr Paramètres → Appareils et services, Reconfigurer · it
+Impostazioni → Dispositivi e servizi, Riconfigura · es Configuración → Dispositivos
+y servicios, Reconfigurar · nl Instellingen → Apparaten en diensten, Herconfigureer
+· pl Ustawienia → Urządzenia oraz usługi, Rekonfiguracja · pt Configurações →
+Dispositivos & serviços, Reconfigurar · cs Nastavení → Zařízení a služby,
+Přenastavit · sv Inställningar → Enheter och tjänster, Konfigurera om. (Read
+others from `ui.panel.config…` in the `home-assistant-frontend` wheel.)
+
 Trip classes: business/private/commute → de Geschäftlich/Privat/Pendeln · fr
 Professionnel/Privé/Domicile-travail · it Lavoro/Privato/Pendolarismo · es
 Trabajo/Privado/Desplazamiento · nl Zakelijk/Privé/Woon-werk · pl

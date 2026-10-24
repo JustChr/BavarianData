@@ -170,6 +170,54 @@ def test_a_new_request_replaces_a_stale_flow():
     assert host.aborted == ["old"] and gate.flow_id == "flow-1"
 
 
+def _watched(gate) -> list[bool]:
+    heard: list[bool] = []
+    gate.on_refused = heard.append
+    return heard
+
+
+def test_a_login_bmw_rejects_is_refused_until_a_sign_in():
+    """The cars' entities go unavailable on it: no data can arrive meanwhile."""
+
+    host, gate = _scenario(_DEVICE_FLOW.CardataAuthError("invalid_grant", status=400))
+    heard = _watched(gate)
+    assert gate.refused
+
+    asyncio.run(gate.stream_error(host, "unauthorized"))  # a second report changes nothing
+    gate.authorized()
+
+    assert not gate.refused and heard == [False]
+
+
+@pytest.mark.parametrize("ending", ["renewed", "recovered"])
+def test_a_working_refresh_or_stream_ends_the_refusal(ending):
+    host = _Host()
+    gate = reauth.ReauthGate()
+    heard = _watched(gate)
+    asyncio.run(gate.request(host, "Token refresh rejected"))
+
+    if ending == "renewed":
+        gate.renewed()
+    else:
+        asyncio.run(gate.stream_error(host, "recovered"))
+
+    assert heard == [True, False] and not gate.refused
+
+
+def test_a_network_error_refuses_nothing():
+    host, gate = _scenario(aiohttp.ClientError("timeout"))
+    assert not gate.refused
+
+
+def test_a_sign_in_the_user_starts_refuses_nothing():
+    gate = reauth.ReauthGate()
+    heard = _watched(gate)
+    gate.started_by_user()
+    gate.abandoned()
+
+    assert not gate.refused and heard == []
+
+
 def test_the_config_flow_resets_and_sets_the_gate():
     gate = reauth.ReauthGate()
     gate.started_by_user()

@@ -9,6 +9,27 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **Errors speak your language.** When an action is refused (no car picked on
+  a two-car account, a month that isn't `YYYY-MM`, no quota left, BMW not
+  answering) or an account can't start, Home Assistant now shows the reason in
+  any of the ten languages BavarianData ships, not only in English. The log
+  stays English.
+- **A car shows `unavailable` while BMW refuses the login.** Until you sign in
+  again, no data can arrive, so the car's entities no longer show their last
+  values as if nothing were wrong, and the dashboard card says on every view
+  that BMW refused the sign-in. A stream that drops or a car that stays quiet
+  for hours is not affected: the entities keep the car's last report, as
+  before. The account's diagnostic sensors stay available, and the connection
+  sensor gets a `login_refused` attribute for automations. The log says once
+  when BMW starts refusing and once when it accepts the login again.
+- **Change the Client ID with Reconfigure.** Home Assistant's *Reconfigure*
+  entry on the integration now takes a new Client ID and signs in to BMW with
+  it; the account keeps its cars, history and settings, and a Client ID of
+  another BMW account is refused without changing anything. *Configure →
+  Connection → Re-authorize with BMW* no longer asks for a Client ID: it signs
+  in again with the one you have.
+
 ## [0.9.23-beta.1] - 2026-10-23
 
 ### Fixed

@@ -38,6 +38,7 @@ from .flow_answers import (
     guided_done_placeholders,
     in_catalogue_order,
     token_entry_data,
+    typed_client_id,
 )
 from .onboarding import (
     OnboardingParseError,
@@ -73,6 +74,9 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
         self._code_verifier: Optional[str] = None
         self._token_data: Optional[Dict[str, Any]] = None
         self._reauth_entry: Optional[config_entries.ConfigEntry] = None
+        # Reconfigure: the sign-in is the reauth path, for another Client ID of
+        # the same BMW account.
+        self._reconfiguring: bool = False
         self._poll_task: Optional[asyncio.Task] = None
         self._auth_error: Optional[str] = None
         self._requested_scope: str = DEFAULT_SCOPE
@@ -381,6 +385,11 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
                     return self.async_abort(reason="account_already_configured")
 
         if self._reauth_entry:
+            known_gcid = self._reauth_entry.data.get("gcid")
+            if self._reconfiguring and known_gcid and entry_data.get("gcid") != known_gcid:
+                # The entry is the account: its cars, history and settings.
+                # A client of another account would graft them onto it.
+                return self.async_abort(reason="wrong_account")
             merged = dict(self._reauth_entry.data)
             merged.update(entry_data)
             if self._guided:
@@ -390,7 +399,9 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
                 if self._onboarding and self._onboarding.mapped_vehicle_id:
                     merged["mapped_vehicle_id"] = self._onboarding.mapped_vehicle_id
             merged.pop("reauth_pending", None)
-            self.hass.config_entries.async_update_entry(self._reauth_entry, data=merged)
+            self.hass.config_entries.async_update_entry(
+                self._reauth_entry, data=merged, unique_id=self._client_id
+            )
             runtime = getattr(self._reauth_entry, "runtime_data", None)
             if runtime:
                 runtime.reauth.authorized()
@@ -406,6 +417,8 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
             notification_id = f"{DOMAIN}_reauth_{self._reauth_entry.entry_id}"
             persistent_notification.async_dismiss(self.hass, notification_id)
             schedule_vehicle_discovery(self.hass, self._reauth_entry.entry_id)
+            if self._reconfiguring:
+                return self.async_abort(reason="reconfigure_successful")
             return self.async_abort(reason="reauth_successful")
 
         # Replaced by the car names once BMW's basic data names them.
@@ -481,6 +494,43 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
         if self._onboarding and self._onboarding.mapped_vehicle_id:
             self._entry_data["mapped_vehicle_id"] = self._onboarding.mapped_vehicle_id
         return self.async_create_entry(title=self._entry_title, data=self._entry_data)
+
+    async def async_step_reconfigure(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        """Use another CarData Client of the same BMW account (Reconfigure).
+
+        Signs in with it as reauth does, then keeps the entry -- its cars,
+        history and settings -- and refuses a client of another account.
+        """
+
+        entry = self._get_reconfigure_entry()
+        schema = vol.Schema(
+            {vol.Required("client_id", default=entry.data.get("client_id") or ""): str}
+        )
+        errors: Dict[str, str] = {}
+        placeholders = {"error": ""}
+        if user_input is not None:
+            client_id = typed_client_id(user_input.get("client_id"))
+            if not client_id:
+                errors["client_id"] = "invalid_client_id"
+            else:
+                self._reauth_entry = entry
+                self._reconfiguring = True
+                self._client_id = client_id
+                try:
+                    await self._request_device_code()
+                except CardataAuthError as err:
+                    errors["base"] = "device_code_failed"
+                    placeholders["error"] = str(err)
+                else:
+                    return await self.async_step_authorize()
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=schema,
+            errors=errors,
+            description_placeholders=placeholders,
+        )
 
     async def async_step_reauth(self, entry_data: Dict[str, Any]) -> FlowResult:
         entry_id = entry_data.get("entry_id")

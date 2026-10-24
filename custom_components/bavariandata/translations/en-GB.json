@@ -17,7 +17,7 @@
     },
     "abort": {
       "reauth_successful": "Re-authorisation successful — BMW CarData is connected again.",
-      "reauth_device_code_failed": "BMW rejected the device authorisation request ({error}). Update the Client ID under Configure → Re-authorise with BMW, or remove and re-add the integration.",
+      "reauth_device_code_failed": "BMW rejected the device authorisation request ({error}). Change the Client ID with Reconfigure on the integration, or remove and re-add the integration.",
       "reauth_missing_client_id": "Client ID is missing for this integration entry. Remove and re-add the integration to authorise again.",
       "reauth_failed": "Re-authorisation could not be started. Try again from the integration options."
     }
@@ -35,8 +35,7 @@
         }
       },
       "action_reauth": {
-        "title": "Re-authorise with BMW",
-        "description": "Run BMW's device authorisation again — for example after the refresh token expired (every 2 weeks) or if you generated a new Client ID. You'll approve Home Assistant on BMW's website afterwards."
+        "title": "Re-authorise with BMW"
       },
       "action_fetch_basic": {
         "description": "Fetch static details (model, colour, options) for every known vehicle.\n\nPress Submit to continue."
@@ -237,6 +236,11 @@
           "description": "Month to summarise as YYYY-MM. Defaults to the current month."
         }
       }
+    }
+  },
+  "exceptions": {
+    "no_token": {
+      "message": "{service}: no valid BMW token; reauthorise"
     }
   }
 }
