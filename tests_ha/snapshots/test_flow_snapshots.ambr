@@ -801,32 +801,9 @@
     'authorize again',
     dict({
       'data_schema': list([
-        dict({
-          'default': 'client-1',
-          'name': 'client_id',
-          'required': True,
-          'type': 'string',
-        }),
       ]),
       'description_placeholders': None,
       'errors': None,
-      'last_step': None,
-      'step_id': 'action_reauth',
-      'type': 'form',
-    }),
-    dict({
-      'data_schema': list([
-        dict({
-          'default': 'client-1',
-          'name': 'client_id',
-          'required': True,
-          'type': 'string',
-        }),
-      ]),
-      'description_placeholders': None,
-      'errors': dict({
-        'client_id': 'invalid_client_id',
-      }),
       'last_step': None,
       'step_id': 'action_reauth',
       'type': 'form',
@@ -845,7 +822,7 @@
       'type': 'abort',
     }),
     dict({
-      'client id': '11111111-2222-3333-4444-555555555555',
+      'client id': 'client-1',
     }),
   ])
 # ---
@@ -4546,6 +4523,128 @@
         'refresh_token': 'refresh',
         'scope': 'openid cardata:streaming:read cardata:api:read',
         'token_type': 'Bearer',
+      }),
+    }),
+  ])
+# ---
+# name: test_reconfiguration
+  list([
+    dict({
+      'data_schema': list([
+        dict({
+          'default': '11111111-2222-3333-4444-555555555555',
+          'name': 'client_id',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': '',
+      }),
+      'errors': dict({
+      }),
+      'last_step': None,
+      'step_id': 'reconfigure',
+      'type': 'form',
+    }),
+    'no client id',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': '11111111-2222-3333-4444-555555555555',
+          'name': 'client_id',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': '',
+      }),
+      'errors': dict({
+        'client_id': 'invalid_client_id',
+      }),
+      'last_step': None,
+      'step_id': 'reconfigure',
+      'type': 'form',
+    }),
+    'BMW refuses a device code',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': '11111111-2222-3333-4444-555555555555',
+          'name': 'client_id',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': 'refused',
+      }),
+      'errors': dict({
+        'base': 'device_code_failed',
+      }),
+      'last_step': None,
+      'step_id': 'reconfigure',
+      'type': 'form',
+    }),
+    'a client of the same account',
+    dict({
+      'description_placeholders': dict({
+        'user_code': 'ABCD-EFGH',
+        'verification_url': 'https://customer.bmwgroup.com/oneid/link',
+      }),
+      'progress_action': 'wait_for_authorization',
+      'step_id': 'authorize',
+      'type': 'progress',
+    }),
+    dict({
+      'description_placeholders': None,
+      'reason': 'reconfigure_successful',
+      'type': 'abort',
+    }),
+    dict({
+      'entry': dict({
+        'client_id': '99999999-8888-7777-6666-555555555555',
+        'unique_id': '99999999-8888-7777-6666-555555555555',
+      }),
+    }),
+    'a client of another account',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': '99999999-8888-7777-6666-555555555555',
+          'name': 'client_id',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': '',
+      }),
+      'errors': dict({
+      }),
+      'last_step': None,
+      'step_id': 'reconfigure',
+      'type': 'form',
+    }),
+    dict({
+      'description_placeholders': dict({
+        'user_code': 'ABCD-EFGH',
+        'verification_url': 'https://customer.bmwgroup.com/oneid/link',
+      }),
+      'progress_action': 'wait_for_authorization',
+      'step_id': 'authorize',
+      'type': 'progress',
+    }),
+    dict({
+      'description_placeholders': None,
+      'reason': 'wrong_account',
+      'type': 'abort',
+    }),
+    dict({
+      'entry': dict({
+        'client_id': '99999999-8888-7777-6666-555555555555',
+        'unique_id': '99999999-8888-7777-6666-555555555555',
       }),
     }),
   ])
