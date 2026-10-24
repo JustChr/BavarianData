@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import logging
 import time
-from datetime import datetime, time as dt_time, timedelta
+from datetime import datetime, timedelta
 from typing import Any, Optional
 
 import voluptuous as vol
@@ -29,6 +29,7 @@ from homeassistant.helpers.dispatcher import (
 )
 from homeassistant.util import dt as dt_util
 
+from . import service_answers
 from .distance import car_distance_unit
 from .const import (
     DOMAIN,
@@ -45,9 +46,7 @@ from .api import (
     async_get_vehicle_mappings,
 )
 from .rest import CardataQuotaError
-from .descriptors import descriptors_for_sections
 from .stream_activation import (
-    DEFAULT_STREAM_ATTRIBUTES,
     PortalSession,
     PortalStreamClient,
     StreamActivationError,
@@ -60,15 +59,10 @@ from .service_target import (
     requested_vin,
 )
 from .vehicles import known_vins, left_account_issue_id, left_account_vins, primary_vins
-from .evcc import ALL_TOPICS, BridgeConfig, bridge_payloads, evcc_yaml
+from .evcc import BridgeConfig, bridge_payloads
 from .history.export import (
-    MIME_CSV,
-    MIME_HTML,
     month_report_html,
-    sessions_csv,
-    trips_csv,
 )
-from .history.pricing import MODE_FIXED, fixed_cost
 from .history.stations import charging_places
 from .history.summary import (
     driving_summary,
@@ -94,41 +88,13 @@ from . import (
 _LOGGER = logging.getLogger(__name__)
 
 
-def _cardata_timestamp(value: datetime) -> str:
-    """Format a datetime as the ISO 8601 UTC string BMW's REST API expects."""
-
-    return dt_util.as_utc(value).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
 def _as_cardata_timestamp(value: Any) -> Optional[str]:
-    """Normalise a service-call date/time into BMW's ISO 8601 UTC format.
+    """A service-call date/time in BMW's format (``service_answers``)."""
 
-    The datetime selector delivers a naive local ``datetime`` (or its string
-    form); a hand-typed value may already be a full ISO 8601 string. Empty means
-    "not supplied" so the caller can fall back to a default window.
-    """
-
-    if value in (None, ""):
-        return None
-    parsed = value if isinstance(value, datetime) else dt_util.parse_datetime(value)
-    if parsed is None:
-        # Not a datetime we recognise -- pass the raw string through unchanged.
-        return value
-    if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
-    return _cardata_timestamp(parsed)
-
-
-def _as_limit(value: Any) -> Optional[int]:
-    """Coerce a service-call ``limit`` to an int (the number selector yields a
-    float, which would break list slicing). Empty/garbage means no limit."""
-
-    if value in (None, ""):
-        return None
-    try:
-        return int(value)
-    except TypeError, ValueError:
-        return None
+    parsed = value if isinstance(value, datetime) else None
+    if parsed is None and isinstance(value, str) and value:
+        parsed = dt_util.parse_datetime(value)
+    return service_answers.as_cardata_timestamp(value, parsed, dt_util.DEFAULT_TIME_ZONE)
 
 
 @callback
@@ -369,10 +335,13 @@ def async_setup_services(hass: HomeAssistant) -> None:
         _entry, runtime, vin, access_token = prepared
         # BMW requires both from/to; default to the last 30 days so a bare
         # call from the UI succeeds instead of returning HTTP 400.
-        to_date = _as_cardata_timestamp(call.data.get("to")) or _cardata_timestamp(dt_util.utcnow())
-        from_date = _as_cardata_timestamp(call.data.get("from")) or _cardata_timestamp(
-            dt_util.utcnow() - timedelta(days=30)
+        now = dt_util.utcnow()
+        to_date = _as_cardata_timestamp(call.data.get("to")) or service_answers.cardata_timestamp(
+            now
         )
+        from_date = _as_cardata_timestamp(
+            call.data.get("from")
+        ) or service_answers.cardata_timestamp(now - timedelta(days=30))
         try:
             payload = await async_get_charging_history(
                 runtime.session,
@@ -386,22 +355,13 @@ def async_setup_services(hass: HomeAssistant) -> None:
             raise HomeAssistantError(f"fetch_charging_history: {err}") from err
         sessions = payload.get("data") if isinstance(payload, dict) else None
         # Import BMW's server-side history into our own store so it shows on
-        # the card, enriching any live-recorded session in place. Cost is
-        # backfilled only for a fixed tariff -- a dynamic tariff's historical
-        # prices can't be reconstructed after the fact.
-        pricing = runtime.coordinator.pricing
-
-        def _cost_fn(grid_kwh):
-            if grid_kwh and pricing.mode == MODE_FIXED:
-                return fixed_cost(grid_kwh, pricing.fixed_price, pricing.currency)
-            return None
-
+        # the card, enriching any live-recorded session in place.
         imported = updated = 0
         if runtime.history is not None and isinstance(sessions, list):
             imported, updated = runtime.history.import_cardata_sessions(
                 vin,
                 sessions,
-                cost_fn=_cost_fn,
+                cost_fn=service_answers.backfill_cost(runtime.coordinator.pricing),
                 zone_fn=runtime.coordinator.zone_at,
                 home_zone=runtime.coordinator.home_zone_name(),
             )
@@ -529,9 +489,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         parsed = dt_util.parse_datetime(raw) or dt_util.parse_date(raw)
         if parsed is None:
             raise ServiceValidationError(f"Could not read '{key}' as a date or date/time: {raw!r}")
-        if isinstance(parsed, datetime):
-            return dt_util.as_utc(parsed)
-        return dt_util.as_utc(datetime.combine(parsed, dt_time.max if end_of_day else dt_time.min))
+        return service_answers.day_bound(parsed, end_of_day=end_of_day)
 
     async def async_handle_get_charging_sessions(call: Any) -> dict:
         _entry_id, _entry, runtime, vin = _target_car(call, required=False)
@@ -541,7 +499,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             vin,
             start=_service_bound(call, "from"),
             end=_service_bound(call, "to", end_of_day=True),
-            limit=_as_limit(call.data.get("limit")),
+            limit=service_answers.as_limit(call.data.get("limit")),
         )
         return {"sessions": [session.to_dict() for session in sessions]}
 
@@ -573,21 +531,12 @@ def async_setup_services(hass: HomeAssistant) -> None:
         }
 
     def _month_bounds(raw: Optional[str]) -> tuple[int, int]:
-        """Parse a 'YYYY-MM' argument, defaulting to the current local month.
+        """A 'YYYY-MM' argument, defaulting to the current local month."""
 
-        Local, not UTC: a month is what the user's calendar says it is.
-        """
-
-        if not raw:
-            now_local = dt_util.now()
-            return now_local.year, now_local.month
         try:
-            year, month = (int(part) for part in str(raw).split("-", 1))
-        except (ValueError, TypeError) as err:
-            raise ServiceValidationError(f"'month' must be 'YYYY-MM', got {raw!r}") from err
-        if not 1 <= month <= 12:
-            raise ServiceValidationError(f"'month' has no month {month}: {raw!r}")
-        return year, month
+            return service_answers.month_arg(raw, dt_util.now().date())
+        except ValueError as err:
+            raise ServiceValidationError(str(err)) from err
 
     get_trips_schema = get_sessions_schema
     get_driving_summary_schema = vol.Schema(
@@ -636,19 +585,14 @@ def async_setup_services(hass: HomeAssistant) -> None:
             vin_filter,
             start=start,
             end=end,
-            limit=_as_limit(call.data.get("limit")),
+            limit=service_answers.as_limit(call.data.get("limit")),
         )
         # A drive still under way is not in the store -- it only exists in the
         # coordinator's memory -- so it rides alongside the recorded trips
         # rather than inside them: it has no end, no distance we'd stand
-        # behind yet and nothing to classify. It belongs to whatever window
-        # contains *now*: asking for March plainly doesn't mean the drive
-        # happening today, but asking for this month just as plainly does --
-        # which is what the card's month view asks for every time.
-        now = dt_util.utcnow()
-        in_window = (start is None or start <= now) and (end is None or now <= end)
+        # behind yet and nothing to classify.
         open_trips: list[dict] = []
-        if in_window:
+        if service_answers.window_holds(start, end, dt_util.utcnow()):
             coordinator = runtime.coordinator
             for vin in coordinator.open_trip_vins():
                 if vin_filter and vin != vin_filter:
@@ -687,7 +631,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         history = runtime.history
 
         year, month = _month_bounds(call.data.get("month"))
-        prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
+        prev_year, prev_month = service_answers.previous_month(year, month)
 
         all_trips = history.trips(vin)
         month_trips = trips_in_month(all_trips, year=year, month=month, localize=dt_util.as_local)
@@ -775,25 +719,15 @@ def async_setup_services(hass: HomeAssistant) -> None:
             if bridge is not None
             else BridgeConfig.from_options(dict(target_entry.options))
         )
-        live = tuple(bridge_payloads(coordinator.bridge_snapshot(vin)))
         metadata = coordinator.device_metadata.get(vin, {})
-        return {
-            "vin": vin,
-            "enabled": config.publishes(vin),
-            # Stated plainly: the snippet is useless without a broker, and
-            # this is the one thing a user cannot tell from the YAML itself.
-            "mqtt_available": bridge is not None and bridge.available(),
-            "topic_prefix": config.prefix,
-            "topics": [f"{config.prefix}/{vin}/{suffix}" for suffix in ALL_TOPICS],
-            "published_topics": list(live),
-            "yaml": evcc_yaml(
-                prefix=config.prefix,
-                vin=vin,
-                title=metadata.get("name") or coordinator.names.get(vin),
-                capacity_kwh=coordinator.battery_capacity_kwh(vin),
-                topics=live or None,
-            ),
-        }
+        return service_answers.evcc_config(
+            vin=vin,
+            config=config,
+            live=tuple(bridge_payloads(coordinator.bridge_snapshot(vin))),
+            mqtt_available=bridge is not None and bridge.available(),
+            title=metadata.get("name") or coordinator.names.get(vin),
+            capacity_kwh=coordinator.battery_capacity_kwh(vin),
+        )
 
     async def async_handle_set_trip_class(call: Any) -> None:
         _entry_id, entry, runtime, vin = _resolve_target(call)
@@ -803,14 +737,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         trip_id = call.data["trip_id"]
         if vin is None:
             # A trip id starts with its car's VIN, so it already says which.
-            vin = next(
-                (
-                    known
-                    for known in _account_vins(entry, runtime)
-                    if trip_id.startswith(f"{known}-")
-                ),
-                None,
-            )
+            vin = service_answers.trip_vin(trip_id, _account_vins(entry, runtime))
         vin = _pick_vin(entry, runtime, vin, required=True)
         trip = runtime.history.find_trip(vin, trip_id)
         if trip is None:
@@ -916,8 +843,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             else []
         )
 
-        # A file name the user can find again after ten monthly exports.
-        stem = f"bavariandata-{(vin or 'vehicle').lower()}-{label}"
+        stem = service_answers.export_stem(vin, label)
         files: list[dict[str, Any]] = []
 
         if fmt == "html":
@@ -929,11 +855,10 @@ def async_setup_services(hass: HomeAssistant) -> None:
                 runtime.coordinator.device_metadata.get(vin or "", {}).get("name") or vin or "BMW"
             )
             files.append(
-                {
-                    "filename": f"{stem}.html",
-                    "mime": MIME_HTML,
-                    "rows": len(sessions) + len(trips),
-                    "content": month_report_html(
+                service_answers.html_file(
+                    stem,
+                    len(sessions) + len(trips),
+                    month_report_html(
                         month=label,
                         vehicle=vehicle,
                         sessions=sessions,
@@ -954,27 +879,10 @@ def async_setup_services(hass: HomeAssistant) -> None:
                         now=dt_util.utcnow(),
                         distance_unit=car_distance_unit(hass, runtime.coordinator, vin),
                     ),
-                }
+                )
             )
         else:
-            if wanted in ("charging", "both"):
-                files.append(
-                    {
-                        "filename": f"{stem}-charging.csv",
-                        "mime": MIME_CSV,
-                        "rows": len(sessions),
-                        "content": sessions_csv(sessions, localize=dt_util.as_local),
-                    }
-                )
-            if wanted in ("trips", "both"):
-                files.append(
-                    {
-                        "filename": f"{stem}-trips.csv",
-                        "mime": MIME_CSV,
-                        "rows": len(trips),
-                        "content": trips_csv(trips, localize=dt_util.as_local),
-                    }
-                )
+            files = service_answers.csv_files(stem, sessions, trips, wanted, dt_util.as_local)
 
         return {"month": label, "vin": vin, "files": files}
 
@@ -1030,20 +938,12 @@ def async_setup_services(hass: HomeAssistant) -> None:
         # spends no CarData API quota and needs no token.
         _entry_id, entry, runtime, _vin = _resolve_target(call)
 
-        if call.data.get("attributes"):
-            attributes = list(call.data["attributes"])
-        elif call.data.get("sections"):
-            attributes = descriptors_for_sections(call.data["sections"])
-        elif entry.data.get(OPTION_STREAM_SECTIONS):
-            attributes = descriptors_for_sections(entry.data[OPTION_STREAM_SECTIONS])
-        else:
-            attributes = list(DEFAULT_STREAM_ATTRIBUTES)
-
-        if not attributes:
-            raise ServiceValidationError(
-                "No attributes to activate; pass 'attributes' or 'sections', "
-                "or choose streamed-data clusters in the options."
+        try:
+            attributes = service_answers.activation_attributes(
+                call.data, entry.data.get(OPTION_STREAM_SECTIONS)
             )
+        except ValueError as err:
+            raise ServiceValidationError(str(err)) from err
 
         session = PortalSession(
             base_url=call.data["base_url"],
@@ -1055,20 +955,9 @@ def async_setup_services(hass: HomeAssistant) -> None:
         try:
             result = await client.async_set_stream_attributes(mapped_vehicle_id, attributes)
         except StreamActivationError as err:
-            # Turn the classified failure into a user-facing message. The
-            # commonest is an expired session -- portal cookies (incl. the
-            # bot-defense ones) are short-lived and cannot be refreshed here.
-            if err.kind == "auth":
-                raise ServiceValidationError(
-                    "BMW rejected the portal session (expired or invalid). "
-                    "Capture a fresh session from the stream-setup page and "
-                    "retry."
-                ) from err
-            if err.kind == "not_found":
-                raise ServiceValidationError(
-                    "BMW returned 404 -- check the mapped_vehicle_id and locale."
-                ) from err
-            raise ServiceValidationError(str(err)) from err
+            raise ServiceValidationError(
+                service_answers.activation_error(err.kind, str(err))
+            ) from err
 
         return {
             "mapped_vehicle_id": mapped_vehicle_id,
