@@ -8,12 +8,11 @@ import json
 import logging
 import os
 import time
-from collections import deque
 from datetime import datetime, timedelta, timezone
 from contextlib import suppress
 from dataclasses import dataclass, field
 from functools import partial
-from typing import Any, Deque, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import aiohttp
 
@@ -47,7 +46,6 @@ from .const import (
     REQUEST_LOG,
     REQUEST_LOG_VERSION,
     REQUEST_LIMIT,
-    REQUEST_WINDOW_SECONDS,
     TELEMATIC_POLL_INTERVAL,
     VEHICLE_METADATA,
     OPTION_MQTT_KEEPALIVE,
@@ -64,7 +62,7 @@ from .container import (
     KINDS,
     CardataContainerManager,
 )
-from .rest import CardataQuotaError, RestGateway, TokenKeeper
+from .rest import RestGateway, TokenKeeper
 from .coverage import coverage_issue_id, legacy_coverage_issue_id
 from .coverage_store import CoverageStore
 
@@ -90,6 +88,7 @@ from .evcc import BridgeConfig
 from .history.store import HistoryStore
 
 from . import entry_setup
+from .quota import QuotaManager
 from .reauth import ReauthGate, refresh_loop, renewed_entry_data
 from .account_rest import (
     LAST_TELEMATIC_POLL,
@@ -208,7 +207,7 @@ class CardataRuntimeData:
     tyre: Optional[TyreStore] = None
     bridge: Optional[VehicleBridge] = None
     bootstrap_task: asyncio.Task | None = None
-    quota_manager: "QuotaManager" | None = None
+    quota_manager: QuotaManager | None = None
     telematic_task: asyncio.Task | None = None
     # Whether a reauth flow is open, and when we last tried (reauth.py).
     reauth: ReauthGate = field(default_factory=ReauthGate)
@@ -229,125 +228,35 @@ class CardataRuntimeData:
 CardataConfigEntry = ConfigEntry[CardataRuntimeData]
 
 
-class QuotaManager:
-    """Manage the rolling 24 hour request quota."""
+async def _async_quota_manager(hass: HomeAssistant, entry_id: str) -> QuotaManager:
+    """The entry's quota (quota.py), kept in a Store, its exhaustion a repair."""
 
-    def __init__(
-        self,
-        hass: HomeAssistant,
-        entry_id: str,
-        store: Store,
-        timestamps: Deque[float],
-    ) -> None:
-        self._hass = hass
-        self._entry_id = entry_id
-        self._store = store
-        self._timestamps: Deque[float] = timestamps
-        self._lock = asyncio.Lock()
+    issue_id = f"api_quota_exhausted_{entry_id}"
 
-    @classmethod
-    async def async_create(cls, hass: HomeAssistant, entry_id: str) -> "QuotaManager":
-        store = Store(hass, REQUEST_LOG_VERSION, f"{DOMAIN}_{entry_id}_{REQUEST_LOG}")
-        data = await store.async_load() or {}
-        raw_timestamps = data.get("timestamps", [])
-        values: List[float] = []
-        for item in raw_timestamps:
-            value: Optional[float] = None
-            if isinstance(item, (int, float)):
-                value = float(item)
-            elif isinstance(item, str):
-                try:
-                    value = float(item)
-                except TypeError, ValueError:
-                    try:
-                        value = datetime.fromisoformat(item.replace("Z", "+00:00")).timestamp()
-                    except TypeError, ValueError:
-                        value = None
-            if value is None:
-                continue
-            values.append(value)
-        normalized: Deque[float] = deque(sorted(values))
-        manager = cls(hass, entry_id, store, normalized)
-        async with manager._lock:
-            manager._prune(time.time())
-            await manager._async_save_locked()
-        return manager
+    def exhausted(next_reset: str) -> None:
+        entry = hass.config_entries.async_get_entry(entry_id)
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            issue_id,
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="api_quota_exhausted",
+            translation_placeholders={
+                "limit": str(REQUEST_LIMIT),
+                "next_reset": next_reset,
+                "account": getattr(entry, "title", None) or "BavarianData",
+            },
+            learn_more_url=(
+                "https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ#quota-exhausted"
+            ),
+        )
 
-    def _prune(self, now: float) -> None:
-        cutoff = now - REQUEST_WINDOW_SECONDS
-        while self._timestamps and self._timestamps[0] <= cutoff:
-            self._timestamps.popleft()
-
-    @property
-    def _issue_id(self) -> str:
-        return f"api_quota_exhausted_{self._entry_id}"
-
-    def _account_name(self) -> str:
-        entry = self._hass.config_entries.async_get_entry(self._entry_id)
-        return getattr(entry, "title", None) or "BavarianData"
-
-    async def async_claim(self) -> None:
-        async with self._lock:
-            now = time.time()
-            self._prune(now)
-            if len(self._timestamps) >= REQUEST_LIMIT:
-                reset = self.next_reset_iso or "later today"
-                ir.async_create_issue(
-                    self._hass,
-                    DOMAIN,
-                    self._issue_id,
-                    is_fixable=False,
-                    severity=ir.IssueSeverity.WARNING,
-                    translation_key="api_quota_exhausted",
-                    translation_placeholders={
-                        "limit": str(REQUEST_LIMIT),
-                        "next_reset": reset,
-                        "account": self._account_name(),
-                    },
-                    learn_more_url=(
-                        "https://github.com/JustChr/BavarianData/wiki/"
-                        "Troubleshooting-and-FAQ#quota-exhausted"
-                    ),
-                )
-                raise CardataQuotaError(
-                    "BMW CarData API limit reached; try again after quota resets"
-                )
-            self._timestamps.append(now)
-            # A successful claim means we're back under the limit; clear any
-            # exhaustion repair that a previous window raised.
-            ir.async_delete_issue(self._hass, DOMAIN, self._issue_id)
-            await self._async_save_locked()
-
-    @property
-    def used(self) -> int:
-        self._prune(time.time())
-        return len(self._timestamps)
-
-    @property
-    def remaining(self) -> int:
-        return max(0, REQUEST_LIMIT - self.used)
-
-    @property
-    def next_reset_epoch(self) -> Optional[float]:
-        self._prune(time.time())
-        if len(self._timestamps) < REQUEST_LIMIT:
-            return None
-        return self._timestamps[0] + REQUEST_WINDOW_SECONDS
-
-    @property
-    def next_reset_iso(self) -> Optional[str]:
-        ts = self.next_reset_epoch
-        if ts is None:
-            return None
-        return datetime.fromtimestamp(ts, timezone.utc).isoformat()
-
-    async def async_close(self) -> None:
-        async with self._lock:
-            self._prune(time.time())
-            await self._async_save_locked()
-
-    async def _async_save_locked(self) -> None:
-        await self._store.async_save({"timestamps": list(self._timestamps)})
+    return await QuotaManager.async_create(
+        Store(hass, REQUEST_LOG_VERSION, f"{DOMAIN}_{entry_id}_{REQUEST_LOG}"),
+        on_exhausted=exhausted,
+        on_available=lambda: ir.async_delete_issue(hass, DOMAIN, issue_id),
+    )
 
 
 _FRONTEND_REGISTERED = False
@@ -589,7 +498,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     _async_restore_devices(hass, entry, coordinator)
     _async_wire_retitle(hass, entry, coordinator)
 
-    quota_manager = await QuotaManager.async_create(hass, entry.entry_id)
+    quota_manager = await _async_quota_manager(hass, entry.entry_id)
     cleaned = entry_setup.without_retired_keys(data)
     if cleaned is not None:
         data = cleaned

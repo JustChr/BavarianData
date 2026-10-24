@@ -300,10 +300,12 @@ def test_every_account_wide_repair_names_its_account() -> None:
     en = json.loads((_PKG / "translations" / "en.json").read_text(encoding="utf-8"))
     for key in ("api_quota_exhausted", "stream_unauthorized", "stream_no_data"):
         assert "{account}" in en["issues"][key]["title"], key
+    # The two stream repairs; the quota's is proven in a real Home Assistant
+    # (tests_ha/test_setup.py, a spent quota raises a repair).
     sources = "".join(
         (_PKG / name).read_text(encoding="utf-8") for name in ("__init__.py", "coordinator.py")
     )
-    assert sources.count('"account": self._account_name()') == 3
+    assert sources.count('"account": self._account_name()') == 2
 
 
 def test_a_fetch_service_that_fails_says_so() -> None:
