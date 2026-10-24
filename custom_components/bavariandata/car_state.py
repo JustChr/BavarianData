@@ -63,6 +63,13 @@ class _ReadOnlyWhenEmpty:
 
 
 @dataclass
+class DescriptorState:
+    value: Any
+    unit: Optional[str]
+    timestamp: Optional[str]
+
+
+@dataclass
 class ChargeState(_ReadOnlyWhenEmpty):
     """The battery and what flows into it, whether or not history is on."""
 

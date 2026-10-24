@@ -23,7 +23,7 @@ from pathlib import Path
 
 import pytest
 
-from .harness import CoordinatorHarness, coordinator_mod
+from .harness import CoordinatorHarness, _clocked_modules, coordinator_mod
 from .test_coordinator_robustness import _fuzz_day
 from .trace import ACCOUNT, NOT_PROBED, PER_CAR
 
@@ -115,12 +115,16 @@ def test_a_moved_timer_is_caught(tmp_path, monkeypatch):
 
     seed = SEEDS[1]
     before = _trace(tmp_path, "before", seed)
-    real = coordinator_mod.async_call_later
+    # Every module that arms a timer (the coordinator's engines too).
+    armers = [m for m in _clocked_modules() if hasattr(m, "async_call_later")]
+    assert armers
+    for module in armers:
+        real = module.async_call_later
 
-    def late(hass, delay, callback):
-        return real(hass, delay + 1, callback)
+        def late(hass, delay, callback, real=real):
+            return real(hass, delay + 1, callback)
 
-    monkeypatch.setattr(coordinator_mod, "async_call_later", late)
+        monkeypatch.setattr(module, "async_call_later", late)
     after = _trace(tmp_path, "after", seed)
 
     assert not golden.compare(before, after)
