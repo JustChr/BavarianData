@@ -1,6 +1,68 @@
 {
   "entity": {
+    "binary_sensor": {
+      "trip_in_progress": {
+        "default": "mdi:steering"
+      }
+    },
     "sensor": {
+      "api_quota_remaining": {
+        "default": "mdi:api"
+      },
+      "battery_health": {
+        "default": "mdi:battery-heart-variant"
+      },
+      "charge_eta": {
+        "default": "mdi:timer-sand"
+      },
+      "charged_energy_session": {
+        "default": "mdi:ev-station"
+      },
+      "charged_energy_total": {
+        "default": "mdi:lightning-bolt"
+      },
+      "charging_cost_month": {
+        "default": "mdi:cash-multiple"
+      },
+      "charging_cost_per_100km": {
+        "default": "mdi:cash-marker"
+      },
+      "charging_cost_session": {
+        "default": "mdi:cash"
+      },
+      "charging_energy_month": {
+        "default": "mdi:ev-station"
+      },
+      "driving_distance_month": {
+        "default": "mdi:road-variant"
+      },
+      "mileage_allowance": {
+        "default": "mdi:counter"
+      },
+      "real_range": {
+        "default": "mdi:map-marker-distance"
+      },
+      "soc_estimate": {
+        "default": "mdi:battery-clock"
+      },
+      "soc_rate": {
+        "default": "mdi:battery-clock"
+      },
+      "tyre_front_left": {
+        "default": "mdi:tire"
+      },
+      "tyre_front_right": {
+        "default": "mdi:tire"
+      },
+      "tyre_rear_left": {
+        "default": "mdi:tire"
+      },
+      "tyre_rear_right": {
+        "default": "mdi:tire"
+      },
+      "tyre_status": {
+        "default": "mdi:car-tire-alert"
+      },
       "vehicle_drivetrain_fuelsystem_level": {
         "default": "mdi:gas-station"
       }
