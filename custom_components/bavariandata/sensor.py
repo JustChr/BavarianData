@@ -73,6 +73,8 @@ _STATE_CLASS_MAP = {
     "total_increasing": SensorStateClass.TOTAL_INCREASING,
 }
 
+PARALLEL_UPDATES = 0
+
 _LOGGER = logging.getLogger(__name__)
 
 ACCOUNT_DEVICE_NAME = "BMW CarData"
@@ -431,7 +433,6 @@ class CardataQuotaSensor(SensorEntity):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = "requests"
-    _attr_icon = "mdi:api"
     _attr_translation_key = "api_quota_remaining"
 
     def __init__(self, coordinator: CardataCoordinator, entry_id: str, quota_manager) -> None:
@@ -484,7 +485,6 @@ class CardataSocEstimateSensor(CardataRestoreSensor):
     _attr_device_class = SensorDeviceClass.BATTERY
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = "%"
-    _attr_icon = "mdi:battery-clock"
     # Named from translations (tools/derived_entities.json) rather than a
     # hardcoded _attr_name, so German installs don't fall back to English.
     _attr_translation_key = "soc_estimate"
@@ -550,7 +550,6 @@ class CardataSocRateSensor(CardataRestoreSensor):
     _attr_should_poll = False
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = "%/h"
-    _attr_icon = "mdi:battery-clock"
     _attr_translation_key = "soc_rate"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
@@ -611,7 +610,6 @@ class CardataChargeEtaSensor(CardataEntity, SensorEntity):
     _attr_should_poll = False
     _attr_device_class = SensorDeviceClass.DURATION
     _attr_native_unit_of_measurement = "min"
-    _attr_icon = "mdi:timer-sand"
     _attr_translation_key = "charge_eta"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
@@ -651,7 +649,6 @@ class CardataChargedEnergySensor(CardataRestoreSensor):
     _attr_device_class = SensorDeviceClass.ENERGY
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _attr_native_unit_of_measurement = "kWh"
-    _attr_icon = "mdi:lightning-bolt"
     _attr_translation_key = "charged_energy_total"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
@@ -700,7 +697,6 @@ class CardataSessionEnergySensor(CardataRestoreSensor):
     _attr_device_class = SensorDeviceClass.ENERGY
     _attr_state_class = SensorStateClass.TOTAL
     _attr_native_unit_of_measurement = "kWh"
-    _attr_icon = "mdi:ev-station"
     _attr_translation_key = "charged_energy_session"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
@@ -812,7 +808,6 @@ class CardataChargingCostMonthSensor(CardataChargingSummarySensor):
 
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_state_class = SensorStateClass.TOTAL
-    _attr_icon = "mdi:cash-multiple"
     _attr_translation_key = "charging_cost_month"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
@@ -842,7 +837,6 @@ class CardataChargingCostSessionSensor(CardataEntity, SensorEntity):
     _attr_should_poll = False
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_state_class = SensorStateClass.TOTAL
-    _attr_icon = "mdi:cash"
     _attr_translation_key = "charging_cost_session"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
@@ -910,7 +904,6 @@ class CardataChargingEnergyMonthSensor(CardataChargingSummarySensor):
     _attr_device_class = SensorDeviceClass.ENERGY
     _attr_state_class = SensorStateClass.TOTAL
     _attr_native_unit_of_measurement = "kWh"
-    _attr_icon = "mdi:ev-station"
     _attr_translation_key = "charging_energy_month"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
@@ -952,7 +945,6 @@ class CardataChargingCostPerDistanceSensor(CardataChargingSummarySensor):
     """
 
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_icon = "mdi:cash-marker"
     _attr_translation_key = "charging_cost_per_100km"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
@@ -988,7 +980,6 @@ class CardataBatteryHealthSensor(CardataEntity, SensorEntity):
     """
 
     _attr_should_poll = False
-    _attr_icon = "mdi:battery-heart-variant"
     _attr_translation_key = "battery_health"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
@@ -1079,7 +1070,6 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
     # precision the measurement doesn't have -- and the car's own display,
     # which this sits next to, shows whole kilometres too.
     _attr_suggested_display_precision = 0
-    _attr_icon = "mdi:map-marker-distance"
     _attr_translation_key = "real_range"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
@@ -1235,7 +1225,6 @@ class CardataDrivingDistanceMonthSensor(CardataEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.DISTANCE
     _attr_state_class = SensorStateClass.TOTAL
     _attr_native_unit_of_measurement = "km"
-    _attr_icon = "mdi:road-variant"
     _attr_translation_key = "driving_distance_month"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
@@ -1354,7 +1343,6 @@ class CardataMileageAllowanceSensor(CardataEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.DISTANCE
     _attr_native_unit_of_measurement = "km"
     _attr_suggested_display_precision = 0
-    _attr_icon = "mdi:counter"
     _attr_entity_registry_enabled_default = False
     _attr_translation_key = "mileage_allowance"
 
@@ -1487,8 +1475,6 @@ class CardataTyreWheelSensor(CardataTyreEntity):
     tyre service report.
     """
 
-    _attr_icon = "mdi:tire"
-
     def __init__(self, coordinator: CardataCoordinator, vin: str, position: str) -> None:
         # Set before super(): CardataEntity falls back to a computed English
         # _attr_name when it finds no translation key, and that name would then
@@ -1524,7 +1510,6 @@ class CardataTyreWheelSensor(CardataTyreEntity):
 class CardataTyreStatusSensor(CardataTyreEntity):
     """BMW's overall verdict on the mounted set, plus any upstream errors."""
 
-    _attr_icon = "mdi:car-tire-alert"
     _attr_translation_key = "tyre_status"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
