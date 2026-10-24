@@ -24,7 +24,7 @@ user months later, usually a German-speaking one.
 
    | Changed | Needs |
    | --- | --- |
-   | A `step_id` or `progress_action` in `config_flow.py` | a Getting-Started or Settings-Reference section, and usually a screenshot |
+   | A `step_id` or `progress_action` in `config_flow.py`, `flow_activator.py`, `options_flow.py` or `options_cars.py` | a Getting-Started or Settings-Reference section, and usually a screenshot |
    | `services.yaml` | a row in `Services-Reference.md` |
    | An option key (`const.py`, options flow) | a row in `Settings-Reference.md` |
    | A `bavariandata_*` event | `Feature-Automations.md` |
