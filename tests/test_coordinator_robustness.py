@@ -250,7 +250,7 @@ def _fuzz_day(seed: int, **harness: Any) -> CoordinatorHarness:
     h = CoordinatorHarness(
         home=HOME if rng.random() < 0.8 else None,
         wallbox_meter=DAY_METER if rng.random() < 0.6 else None,
-        pricing={"price_entity": DAY_PRICE} if priced else None,
+        pricing={"mode": "entity", "price_entity": DAY_PRICE} if priced else None,
         trip_debug=rng.random() < 0.15,
         **harness,
     )

@@ -636,3 +636,37 @@ def test_power_held_through_an_outage_is_not_billed():
         assert session.energy_kwh == pytest.approx(3.7, abs=0.01)
         assert _mix_total(session) == pytest.approx(3.7, abs=0.01)
         assert session.cost["amount"] == pytest.approx(0.30 * 3.7, abs=0.01)
+
+
+@pytest.mark.parametrize(("unit", "scale"), [("Wh", 1000.0), ("MWh", 0.001)])
+def test_a_meter_counting_in_wh_or_mwh_drives_the_same_estimate(h, unit, scale):
+    h.send(10, target=100, step="target 100")
+    h.meter(10, 1000.0 * scale, unit=unit)
+    h.send(10, soc=38, status="CHARGINGACTIVE", power=3480)
+    h.meter(70, 1007.4 * scale, unit=unit)
+    h.meter(130, 1014.8 * scale, unit=unit)
+    h.advance_to(140)
+
+    assert _source(h) == "meter"
+    assert h.estimate() == pytest.approx(38 + 14.8 * PER_KWH, abs=0.01)
+
+
+def test_a_garbled_meter_reading_counts_as_the_meter_dropping_out():
+    """Not a number is no reading: the same as the meter going unavailable."""
+
+    estimates = []
+    for interruption in ("garbage", None):
+        with CoordinatorHarness(wallbox_meter=METER) as h:
+            _seed(h)
+            _charge(h)
+            h.meter(70, 1007.4)
+            if interruption is None:
+                h.meter(None, None)
+            else:
+                h.hass.set_state(METER, interruption, unit_of_measurement="kWh")
+            h.meter(130, 1014.8)
+            h.advance_to(140)
+            assert _source(h) == "meter"
+            estimates.append(h.estimate())
+
+    assert estimates[0] == estimates[1]
