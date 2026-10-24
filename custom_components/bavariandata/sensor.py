@@ -25,9 +25,7 @@ from homeassistant.const import UnitOfLength
 from .const import DOMAIN, REQUEST_LIMIT
 from .car_signals import DESC_ODOMETER, EFFICIENCY_LIVE_DESCRIPTORS
 from .coordinator import CardataCoordinator
-from .coverage import HIGH_VOLTAGE_SIGNALS, is_ev_only_descriptor
 from .descriptor_metadata import DESCRIPTOR_META, SECTIONS
-from .descriptors import OPT_IN_LOCATION_DESCRIPTORS, TRACKER_ONLY_LOCATION_DESCRIPTORS
 from .entity import CardataEntity
 from .history.health import MIN_SAMPLES, degradation_series, usable_capacity
 from .history.summary import (
@@ -38,7 +36,7 @@ from .history.summary import (
 )
 from .placeholders import is_placeholder
 from .restore_units import restore_native
-from .tyre import has_tyre_data
+from . import sensor_plan
 from .units import entity_unit
 from .sensor_classes import sensor_classes
 from .structured_values import (
@@ -1533,462 +1531,123 @@ class CardataTyreStatusSensor(CardataTyreEntity):
         return attrs
 
 
+_DERIVED: Dict[str, Any] = {
+    "soc_estimate": CardataSocEstimateSensor,
+    "soc_rate": CardataSocRateSensor,
+    "charge_eta": CardataChargeEtaSensor,
+    "charged_energy_total": CardataChargedEnergySensor,
+    "charged_energy_session": CardataSessionEnergySensor,
+    sensor_plan.CHARGING_ENERGY_MONTH: CardataChargingEnergyMonthSensor,
+    "charging_cost_month": CardataChargingCostMonthSensor,
+    "charging_cost_session": CardataChargingCostSessionSensor,
+    sensor_plan.CHARGING_COST_PER_DISTANCE: CardataChargingCostPerDistanceSensor,
+    sensor_plan.BATTERY_HEALTH: CardataBatteryHealthSensor,
+    sensor_plan.DRIVING_DISTANCE: CardataDrivingDistanceMonthSensor,
+    sensor_plan.REAL_RANGE: CardataRealRangeSensor,
+    sensor_plan.VEHICLE_REPORT: CardataLastVehicleReportSensor,
+    sensor_plan.MILEAGE_ALLOWANCE: CardataMileageAllowanceSensor,
+    sensor_plan.TYRE_STATUS: CardataTyreStatusSensor,
+}
+
+
+def _build(coordinator: CardataCoordinator, want: sensor_plan.Want) -> SensorEntity:
+    """The entity a ``sensor_plan.Want`` names."""
+
+    if want.kind == sensor_plan.DESCRIPTOR:
+        return CardataSensor(coordinator, want.vin, want.key)
+    if want.kind == sensor_plan.LOCATION:
+        entity = CardataSensor(coordinator, want.vin, want.key)
+        # Not the metadata's ``enabled_default``: that flag also decides what
+        # the stream is asked for, and the position must stay in it.
+        entity._attr_entity_registry_enabled_default = False
+        return entity
+    if want.kind == sensor_plan.TYRE_WHEEL:
+        return CardataTyreWheelSensor(coordinator, want.vin, want.key)
+    return _DERIVED[want.kind](coordinator, want.vin)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
     runtime = entry.runtime_data
     coordinator: CardataCoordinator = runtime.coordinator
-
-    entities: Dict[Tuple[str, str], CardataSensor] = {}
-    soc_estimate_entities: Dict[str, CardataSocEstimateSensor] = {}
-    soc_rate_entities: Dict[str, CardataSocRateSensor] = {}
-    charge_eta_entities: Dict[str, CardataChargeEtaSensor] = {}
-    charged_energy_entities: Dict[str, CardataChargedEnergySensor] = {}
-    session_energy_entities: Dict[str, CardataSessionEnergySensor] = {}
-    charging_summary_entities: Dict[str, list] = {}
-    battery_health_entities: Dict[str, CardataBatteryHealthSensor] = {}
-    driving_entities: Dict[str, CardataDrivingDistanceMonthSensor] = {}
-    real_range_entities: Dict[str, CardataRealRangeSensor] = {}
-    report_entities: Dict[str, CardataLastVehicleReportSensor] = {}
-    mileage_entities: Dict[str, CardataMileageAllowanceSensor] = {}
-    # vin -> {"status"|<wheel position>: entity}
-    tyre_entities: Dict[str, Dict[str, CardataTyreEntity]] = {}
-
-    # A car that reports any of these can produce trips worth summarising; a
-    # device that streams none (never driven, no odometer) gets no trip sensor
-    # rather than one stuck at 0 km. Both odometer spellings count: the i5
-    # streams ``travelledDistance`` and never ``mileage``, and gating on the
-    # latter alone left the real car with no monthly-distance sensor at all.
-    _DRIVE_SIGNALS = (*DESC_ODOMETER, "vehicle.isMoving")
-
-    def ensure_driving_entity(vin: str, *, force: bool = False) -> None:
-        """Create the monthly-distance sensor once the car looks drivable.
-
-        ``force`` re-creates one restored from the registry without re-checking
-        for a live signal, matching how battery health avoids the generic path
-        minting a bogus CardataSensor on its id.
-        """
-
-        if vin in driving_entities or coordinator.history is None:
-            return
-        drivable = any(
-            coordinator.get_state(vin, descriptor) is not None for descriptor in _DRIVE_SIGNALS
-        )
-        if not (force or drivable):
-            return
-        entity = CardataDrivingDistanceMonthSensor(coordinator, vin)
-        driving_entities[vin] = entity
-        async_add_entities([entity], True)
-
-    # Any of these streaming marks the car as having an HV battery worth tracking;
-    # a pure-ICE car streams none of them. Shared with the coverage self-test so
-    # "is this an EV" has one answer.
-    _EV_SIGNALS = tuple(sorted(HIGH_VOLTAGE_SIGNALS))
-
-    def _has_battery(vin: str) -> bool:
-        return any(coordinator.get_state(vin, descriptor) is not None for descriptor in _EV_SIGNALS)
-
-    def ensure_battery_health_entity(vin: str, *, force: bool = False) -> None:
-        """Create the battery-health sensor once the car looks like an EV.
-
-        It self-explains via "Learning (n/10)" until it has data, so it is made
-        as soon as any HV-battery signal appears -- but not for a pure-ICE car
-        that will never charge, where it would sit at "Learning (0/10)" forever.
-        ``force`` re-creates one that already existed (restored from the
-        registry) without re-checking for a live signal.
-        """
-
-        if vin in battery_health_entities or coordinator.history is None:
-            return
-        if not (force or _has_battery(vin)):
-            return
-        entity = CardataBatteryHealthSensor(coordinator, vin)
-        battery_health_entities[vin] = entity
-        async_add_entities([entity], True)
-
-    def _has_odometer(vin: str) -> bool:
-        return any(
-            coordinator.get_state(vin, descriptor) is not None for descriptor in DESC_ODOMETER
-        )
-
-    def ensure_real_range_entity(vin: str, *, force: bool = False) -> None:
-        """Create the real-range sensor for an EV that reports its odometer.
-
-        Both halves are required by the arithmetic, not by taste: the range is
-        usable capacity over consumption, and the consumption comes from the
-        distance between two charging sessions' odometer readings. A car with no
-        odometer would hold an entity that can never produce a number.
-        ``force`` re-creates one restored from the registry without re-checking
-        for a live signal.
-
-        Never for a plug-in hybrid, forced or not: its odometer includes the
-        kilometres the engine drove, so the range would read far too good
-        (``summary.energy_balance``). One created before the fuel system first
-        reported is removed at the next setup (``hybrid_entities_to_remove``).
-        """
-
-        if vin in real_range_entities or coordinator.history is None:
-            return
-        if coordinator.is_plug_in_hybrid(vin):
-            return
-        eligible = _has_odometer(vin) and _has_battery(vin)
-        if not (force or eligible):
-            return
-        entity = CardataRealRangeSensor(coordinator, vin)
-        real_range_entities[vin] = entity
-        async_add_entities([entity], True)
-
-    def ensure_charging_summary_entities(vin: str, *, force: bool = False) -> None:
-        """Create the ledger sensors, but only once they can say something true.
-
-        The energy total works for any car that charges -- so not for a petrol
-        or diesel car, which gets none of them. The cost sensors need a
-        configured tariff, so until one exists they are not created at all
-        rather than sitting at "unknown" and inviting the question of what's
-        broken. ``force`` re-creates ones restored from the registry.
-        """
-
-        if vin in charging_summary_entities or coordinator.history is None:
-            return
-        if not (force or _has_battery(vin)):
-            return
-        new_entities: list = [CardataChargingEnergyMonthSensor(coordinator, vin)]
-        if coordinator.pricing.enabled:
-            new_entities.append(CardataChargingCostMonthSensor(coordinator, vin))
-            new_entities.append(CardataChargingCostSessionSensor(coordinator, vin))
-            # Distance-based cost is meaningless without an odometer, and the
-            # Vehicle status cluster is optional in the portal. Either spelling
-            # of the odometer will do -- see ``_DRIVE_SIGNALS``.
-            # Not on a plug-in hybrid either, whose odometer also counts the
-            # kilometres driven on fuel (see ``summary.summarise``).
-            if _has_odometer(vin) and not coordinator.is_plug_in_hybrid(vin):
-                new_entities.append(CardataChargingCostPerDistanceSensor(coordinator, vin))
-        charging_summary_entities[vin] = new_entities
-        async_add_entities(new_entities, True)
-
-    def ensure_soc_tracking_entities(vin: str, *, force: bool = False) -> None:
-        """Create the state-of-charge estimate and charged-energy sensors.
-
-        Only for a car with a high-voltage battery: a petrol car used to get all
-        five, stuck at "unknown" for good. ``force`` re-creates ones restored
-        from the registry before the battery has reported today; entities a
-        combustion car was given by an older release are removed at setup
-        (``registry_repair.ev_entities_to_remove``) before this runs.
-        """
-
-        if not (force or _has_battery(vin)):
-            return
-        new_entities = []
-        if vin not in soc_estimate_entities:
-            estimate = CardataSocEstimateSensor(coordinator, vin)
-            soc_estimate_entities[vin] = estimate
-            new_entities.append(estimate)
-        if vin not in soc_rate_entities:
-            rate = CardataSocRateSensor(coordinator, vin)
-            soc_rate_entities[vin] = rate
-            new_entities.append(rate)
-        if vin not in charge_eta_entities:
-            eta = CardataChargeEtaSensor(coordinator, vin)
-            charge_eta_entities[vin] = eta
-            new_entities.append(eta)
-        if vin not in charged_energy_entities:
-            charged = CardataChargedEnergySensor(coordinator, vin)
-            charged_energy_entities[vin] = charged
-            new_entities.append(charged)
-        if vin not in session_energy_entities:
-            session = CardataSessionEnergySensor(coordinator, vin)
-            session_energy_entities[vin] = session
-            new_entities.append(session)
-        if new_entities:
-            async_add_entities(new_entities, True)
-
-    def ensure_tyre_entities(vin: str, *, positions: Any = None, status: bool = False) -> None:
-        """Create the tyre-diagnosis sensors for whichever wheels BMW reported.
-
-        Only wheels present in the payload get an entity: a car with no tyre
-        service record on file would otherwise gain four sensors permanently
-        reading "unknown". ``positions``/``status`` re-create ones restored from
-        the registry, before the first fetch of the day has landed.
-        """
-
-        known = tyre_entities.setdefault(vin, {})
-        diagnosis = coordinator.tyre_diagnosis.get(vin) or {}
-        wanted = set(positions) if positions is not None else set(diagnosis.get("wheels") or {})
-        new_entities: list = []
-        if (wanted or status) and "status" not in known:
-            known["status"] = CardataTyreStatusSensor(coordinator, vin)
-            new_entities.append(known["status"])
-        for position in sorted(wanted):
-            if position in known:
-                continue
-            known[position] = CardataTyreWheelSensor(coordinator, vin, position)
-            new_entities.append(known[position])
-        if new_entities:
-            async_add_entities(new_entities, True)
-
-    def tyre_data_absent(vin: str) -> bool:
-        """A fetch landed and said BMW keeps no tyre data for this car (#174)."""
-
-        diagnosis = coordinator.tyre_diagnosis.get(vin)
-        return diagnosis is not None and not has_tyre_data(diagnosis)
-
-    def prune_tyre_entities(vin: str) -> None:
-        """Drop the tyre sensors of a car whose diagnosis has nothing in it.
-
-        Removing the registry entry removes the live entity with it. Pruned only
-        on the "nothing at all" answer: a later fetch that omits one wheel keeps
-        that wheel's sensor and its history.
-        """
-
-        for entity in (tyre_entities.pop(vin, None) or {}).values():
-            if entity.entity_id and entity_registry.async_get(entity.entity_id):
-                entity_registry.async_remove(entity.entity_id)
-
-    def ensure_location_entities(vin: str) -> None:
-        """Create the opt-in latitude/longitude sensors, disabled, once per car.
-
-        Per car rather than per descriptor: a descriptor only reaches
-        ``ensure_entity`` when it is *new* to the coordinator, and the device
-        tracker restores the last position into it at startup, so a live fix is
-        never new and the sensors would never be created. Creating them from any
-        message puts them in the registry (disabled) right away, ready to enable.
-        """
-
-        new_entities: list = []
-        for descriptor in sorted(OPT_IN_LOCATION_DESCRIPTORS):
-            if (vin, descriptor) in entities:
-                continue
-            entity = CardataSensor(coordinator, vin, descriptor)
-            # Not the metadata's ``enabled_default``: that flag also decides
-            # what the stream is asked for, and the position must stay in it.
-            entity._attr_entity_registry_enabled_default = False
-            entities[(vin, descriptor)] = entity
-            new_entities.append(entity)
-        if new_entities:
-            async_add_entities(new_entities)
-
-    def ensure_report_entity(vin: str, *, force: bool = False) -> None:
-        """Create the last-vehicle-report sensor, disabled, once the car has an odometer.
-
-        Disabled in the registry from the start, like the GPS sensors: nothing
-        changes for anyone who doesn't enable it. ``force`` re-creates one
-        restored from the registry before the odometer has reported.
-        """
-
-        if vin in report_entities:
-            return
-        if not (force or _has_odometer(vin)):
-            return
-        entity = CardataLastVehicleReportSensor(coordinator, vin)
-        report_entities[vin] = entity
-        async_add_entities([entity])
-
-    def ensure_mileage_entity(vin: str, *, force: bool = False) -> None:
-        """The mileage allowance balance, for a car with an odometer.
-
-        Disabled from the start; ``force`` re-creates one restored from the
-        registry before the odometer has reported.
-        """
-
-        if vin in mileage_entities:
-            return
-        if not (force or _has_odometer(vin)):
-            return
-        entity = CardataMileageAllowanceSensor(coordinator, vin)
-        mileage_entities[vin] = entity
-        async_add_entities([entity])
-
-    def ensure_entity(vin: str, descriptor: str, *, assume_sensor: bool = False) -> None:
-        ensure_soc_tracking_entities(vin)
-        ensure_location_entities(vin)
-        ensure_report_entity(vin)
-        ensure_mileage_entity(vin)
-        ensure_charging_summary_entities(vin)
-        ensure_battery_health_entity(vin)
-        ensure_driving_entity(vin)
-        ensure_real_range_entity(vin)
-        if (vin, descriptor) in entities:
-            return
-        if is_ev_only_descriptor(descriptor) and coordinator.is_combustion_only(vin):
-            # BMW streams some battery fields to petrol cars too (a trip-end
-            # battery level, the EV charge target); they never mean anything.
-            return
-
-        # The position belongs to the device tracker. Heading never becomes a
-        # sensor; latitude and longitude are made by ensure_location_entities.
-        if descriptor in TRACKER_ONLY_LOCATION_DESCRIPTORS | OPT_IN_LOCATION_DESCRIPTORS:
-            return
-
-        state = coordinator.get_state(vin, descriptor)
-        if state:
-            if isinstance(state.value, bool):
-                return
-        elif not assume_sensor:
-            return
-        entity = CardataSensor(coordinator, vin, descriptor)
-        entities[(vin, descriptor)] = entity
-        async_add_entities([entity])
-
     entity_registry = er.async_get(hass)
-    legacy_unique_ids = {
-        f"{entry.entry_id}_connection_status": f"{entry.entry_id}_diagnostics_connection_status",
-        f"{entry.entry_id}_last_message": f"{entry.entry_id}_diagnostics_last_message",
-    }
-    for old_unique_id, new_unique_id in legacy_unique_ids.items():
+
+    def add(wants: list[sensor_plan.Want], update: bool) -> list[SensorEntity]:
+        entities = [_build(coordinator, want) for want in wants]
+        async_add_entities(entities, update)
+        return entities
+
+    plan = sensor_plan.SensorPlan(coordinator, entry.entry_id, add)
+
+    for old_unique_id, new_unique_id in sensor_plan.legacy_unique_ids(entry.entry_id).items():
         entity_id = entity_registry.async_get_entity_id("sensor", DOMAIN, old_unique_id)
         if entity_id:
             entity_registry.async_update_entity(entity_id, new_unique_id=new_unique_id)
-
-    legacy_soc_rate_unique = f"{entry.entry_id}_diagnostics_soc_rate"
-    legacy_soc_rate_entity = entity_registry.async_get_entity_id(
-        "sensor", DOMAIN, legacy_soc_rate_unique
-    )
-    if legacy_soc_rate_entity:
-        entity_registry.async_remove(legacy_soc_rate_entity)
+    for unique_id in sensor_plan.retired_unique_ids(entry.entry_id):
+        if entity_id := entity_registry.async_get_entity_id("sensor", DOMAIN, unique_id):
+            entity_registry.async_remove(entity_id)
 
     for entity_entry in er.async_entries_for_config_entry(entity_registry, entry.entry_id):
-        if entity_entry.domain != "sensor":
+        if entity_entry.domain != "sensor" or entity_entry.disabled_by is not None:
             continue
-        if entity_entry.disabled_by is not None:
-            continue
-        unique_id = entity_entry.unique_id
-        if not unique_id or "_" not in unique_id:
-            continue
-        if unique_id.startswith(f"{entry.entry_id}_diagnostics_"):
-            continue
-        vin, descriptor = unique_id.split("_", 1)
-        if descriptor in {
-            "soc_estimate",
-            "soc_rate",
-            "charge_eta",
-            "charged_energy_total",
-            "charged_energy_session",
-        }:
-            ensure_soc_tracking_entities(vin, force=True)
-            continue
-        if descriptor == "battery_health":
-            # Re-create the one it had before live data arrives, rather than
-            # letting the generic path mint a bogus CardataSensor on its id.
-            ensure_battery_health_entity(vin, force=True)
-            continue
-        if descriptor == "driving_distance_month":
-            ensure_driving_entity(vin, force=True)
-            continue
-        if descriptor == "real_range":
-            ensure_real_range_entity(vin, force=True)
-            continue
-        if descriptor == "last_vehicle_report":
-            # Routed, or the generic path would mint a CardataSensor on its id.
-            ensure_report_entity(vin, force=True)
-            continue
-        if descriptor == "mileage_allowance":
-            ensure_mileage_entity(vin, force=True)
-            continue
-        if descriptor.startswith("tyre_"):
-            if tyre_data_absent(vin):
-                # Created before #174 from a diagnosis of BMW's defaults alone.
-                entity_registry.async_remove(entity_entry.entity_id)
-                continue
-            # Re-create what the car had before today's fetch lands, so the
-            # entity keeps its id and history instead of the generic path
-            # minting a CardataSensor on the same unique id.
-            if descriptor == "tyre_status":
-                ensure_tyre_entities(vin, positions=set(), status=True)
-            else:
-                ensure_tyre_entities(vin, positions={descriptor[len("tyre_") :]})
-            continue
-        if descriptor in {
-            "charging_energy_month",
-            "charging_cost_month",
-            "charging_cost_session",
-            "charging_cost_per_100km",
-        }:
-            # These are minted by ensure_charging_summary_entities, not the
-            # generic path; routing them there avoids assume_sensor also
-            # creating a duplicate CardataSensor on the same unique id.
-            ensure_charging_summary_entities(vin, force=True)
-            continue
-        ensure_entity(vin, descriptor, assume_sensor=True)
+        if not plan.restore(entity_entry.unique_id):
+            entity_registry.async_remove(entity_entry.entity_id)
 
-    for vin, descriptor in coordinator.iter_descriptors(binary=False):
-        ensure_entity(vin, descriptor)
-
-    for vin in list(coordinator.data.keys()):
-        ensure_soc_tracking_entities(vin)
-        ensure_location_entities(vin)
-        ensure_report_entity(vin)
-        ensure_mileage_entity(vin)
-        ensure_battery_health_entity(vin)
-        ensure_driving_entity(vin)
-        ensure_real_range_entity(vin)
-
-    for vin in list(coordinator.tyre_diagnosis):
-        # The diagnosis restored from the tyre store (tyre_store.py) covers the
-        # registry loop's case, but also the one it can't: a vehicle whose tyre
-        # entities were removed from the registry still gets them back now
-        # rather than waiting for the next daily fetch.
-        ensure_tyre_entities(vin)
+    plan.known(
+        coordinator.iter_descriptors(binary=False),
+        list(coordinator.data),
+        list(coordinator.tyre_diagnosis),
+    )
 
     async def async_handle_new(vin: str, descriptor: str) -> None:
-        ensure_entity(vin, descriptor)
+        plan.descriptor(vin, descriptor)
 
     entry.async_on_unload(
         async_dispatcher_connect(hass, coordinator.signal_new_sensor, async_handle_new)
     )
 
     async def async_handle_soc_estimate(vin: str) -> None:
-        ensure_soc_tracking_entities(vin)
+        plan.soc_tracking(vin)
 
     entry.async_on_unload(
         async_dispatcher_connect(hass, coordinator.signal_soc_estimate, async_handle_soc_estimate)
     )
 
     async def async_handle_new_tyre(vin: str) -> None:
-        # A later fetch can report a wheel the first one omitted, so this runs on
-        # every diagnosis, not just the first.
-        if tyre_data_absent(vin):
-            prune_tyre_entities(vin)
-            return
-        ensure_tyre_entities(vin)
+        # Removing the registry entry removes the live entity with it.
+        for entity in plan.tyre_diagnosis(vin):
+            if entity.entity_id and entity_registry.async_get(entity.entity_id):
+                entity_registry.async_remove(entity.entity_id)
 
     entry.async_on_unload(
         async_dispatcher_connect(hass, f"{DOMAIN}_{entry.entry_id}_new_tyre", async_handle_new_tyre)
     )
 
-    diagnostic_entities: list[CardataDiagnosticsSensor] = []
-    stream_manager = runtime.stream
-    for sensor_type in ("connection_status", "last_message", "last_telematic_api"):
-        if sensor_type == "last_message":
-            unique_id = f"{entry.entry_id}_diagnostics_last_message"
-        elif sensor_type == "last_telematic_api":
-            unique_id = f"{entry.entry_id}_diagnostics_last_telematic_api"
-        else:
-            unique_id = f"{entry.entry_id}_diagnostics_connection_status"
+    def wanted(unique_id: str) -> bool:
         entity_id = entity_registry.async_get_entity_id("sensor", DOMAIN, unique_id)
-        if entity_id:
-            entity_entry = entity_registry.async_get(entity_id)
-            if entity_entry and entity_entry.disabled_by is not None:
-                continue
-            existing_state = hass.states.get(entity_id)
-            if existing_state and not existing_state.attributes.get("restored", False):
-                continue
-        diagnostic_entities.append(
-            CardataDiagnosticsSensor(
-                coordinator,
-                stream_manager,
-                entry.entry_id,
-                sensor_type,
-                runtime.quota_manager,
-            )
+        if not entity_id:
+            return True
+        registered = entity_registry.async_get(entity_id)
+        state = hass.states.get(entity_id)
+        return sensor_plan.add_diagnostic(
+            disabled=registered is not None and registered.disabled_by is not None,
+            live=state is not None and not state.attributes.get("restored", False),
         )
 
+    diagnostic_entities: list[SensorEntity] = [
+        CardataDiagnosticsSensor(
+            coordinator, runtime.stream, entry.entry_id, sensor_type, runtime.quota_manager
+        )
+        for sensor_type in sensor_plan.DIAGNOSTIC_TYPES
+        if wanted(sensor_plan.diagnostic_unique_id(entry.entry_id, sensor_type))
+    ]
     if runtime.quota_manager is not None:
-        quota_unique_id = f"{entry.entry_id}_diagnostics_api_quota_remaining"
-        quota_entity_id = entity_registry.async_get_entity_id("sensor", DOMAIN, quota_unique_id)
-        add_quota = True
-        if quota_entity_id:
-            quota_entry = entity_registry.async_get(quota_entity_id)
-            if quota_entry and quota_entry.disabled_by is not None:
-                add_quota = False
-        if add_quota:
+        quota_entity_id = entity_registry.async_get_entity_id(
+            "sensor",
+            DOMAIN,
+            sensor_plan.diagnostic_unique_id(entry.entry_id, sensor_plan.QUOTA_SUFFIX),
+        )
+        quota_entry = entity_registry.async_get(quota_entity_id) if quota_entity_id else None
+        if quota_entry is None or quota_entry.disabled_by is None:
             diagnostic_entities.append(
                 CardataQuotaSensor(coordinator, entry.entry_id, runtime.quota_manager)
             )
