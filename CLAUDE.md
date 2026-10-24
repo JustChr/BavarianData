@@ -24,7 +24,7 @@ user's personal BMW client ID. Domain: `bavariandata`. Repo:
   - `descriptors.py`, `keys.py`, `units.py` — descriptor → entity mapping; `keys.py` derives the HA `translation_key` and is shared by runtime **and** generators so they can't drift.
   - `www/bavariandata-card.js` — bundled Lovelace card (vanilla JS, registered automatically by `__init__.py`; no build step). Groups entities via their `cluster`/`category` attributes, not names.
 - `tools/` — catalogue generation pipeline (see below).
-- `tests/` — pytest, **no Home Assistant required** (see below).
+- `tests/` — pytest, **no Home Assistant required** (see below); `tests_ha/` — the same against a real HA, Linux only.
 - `docs/reference/` — BMW API notes + generated field reference.
 - `blueprints/automation/bavariandata/` — shipped automation blueprints.
 - `site/` — the website (Astro, GitHub Pages via `.github/workflows/pages.yml`).
@@ -123,6 +123,13 @@ otherwise). A test that asserts something account-wide is `@pytest.mark.solo`.
 the fix — prove it by reverting the fix once. A known bug not yet fixed is
 pinned with `xfail(strict=True)`, so the fix has to remove the marker. `python scripts/prove_fix.py <tests>` does
 the revert-and-rerun.
+
+**`tests_ha/` runs against a real Home Assistant** (`pytest-homeassistant-custom-component`,
+Linux only): `bash scripts/test_ha.sh` re-runs itself in WSL. It covers what must import HA --
+the config flow, setup/unload, platforms, services -- with BMW answered at `api.py`'s request
+functions (see `tests_ha/README.md`). CI's *Home Assistant tests* job combines both suites'
+coverage and reports it per module (`scripts/coverage_modules.py`): the Quality Scale target is
+Gold, whose Silver `test-coverage` rule wants >95 % of every module.
 
 Some tests run the shipped card under Node and skip themselves when it is
 absent; CI pins Node 24 so that coverage cannot silently disappear.

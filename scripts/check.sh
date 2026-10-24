@@ -45,8 +45,8 @@ gate() {
   fi
 }
 
-gate "ruff check" python -m ruff check custom_components/bavariandata tests
-gate "ruff format --check" python -m ruff format --check custom_components/bavariandata tests tools
+gate "ruff check" python -m ruff check custom_components/bavariandata tests tests_ha
+gate "ruff format --check" python -m ruff format --check custom_components/bavariandata tests tests_ha tools
 
 if command -v node >/dev/null 2>&1; then
   gate "node --check card" node --check custom_components/bavariandata/www/bavariandata-card.js

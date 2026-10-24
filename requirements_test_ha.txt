@@ -1,0 +1,13 @@
+# The real-Home-Assistant suite (tests_ha/), Linux only -- see
+# scripts/test_ha.sh. Kept apart from requirements_test.txt so the main suite
+# stays light and runs on Windows.
+#
+# The plugin pins one exact Home Assistant release; this pin is that release's
+# plugin. Dependabot bumps it with each Home Assistant release.
+pytest-homeassistant-custom-component==0.13.374
+# The manifest depends on ``frontend``, whose package the plugin leaves out:
+# the version Home Assistant 2026.10.3's frontend manifest names. Bump the two
+# together (``tests_ha/test_requirements.py`` checks they match).
+home-assistant-frontend==20260930.5
+paho-mqtt>=2.1.0
+pytest-cov>=7.1
