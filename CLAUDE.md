@@ -11,7 +11,8 @@ user's personal BMW client ID. Domain: `bavariandata`. Repo:
   - `api.py` — REST client (auth headers, BMW's `CU-` error codes).
   - `rest.py` — the one way into REST: `TokenKeeper` (renews only near expiry, one renewal at a time; every renewal reconnects the stream) and `RestGateway` (token → quota claim → request). No HA imports. Every REST caller goes through `runtime.rest`.
   - `account_rest.py` — what an account asks BMW over REST, and when: containers, the bootstrap, each car's telematics/basic data/tyres, the catch-up, the daily refresh. HA-free behind an `AccountHost` Protocol that `__init__._EntryHost` implements; a strict fetch raises `FetchFailed`, which the service wrapper turns into `HomeAssistantError`.
-  - `reauth.py` — the token-refresh loop and `ReauthGate` (on `runtime.reauth`): when a refused stream login is retried and when it opens a reauth flow (only when BMW rejected the login, never on a network error). HA-free behind `__init__._ReauthHost`; the config flow tells the gate through `authorized()` / `abandoned()` / `started_by_user()`.
+  - `reauth.py` — the token-refresh loop and `ReauthGate` (on `runtime.reauth`): when a refused stream login is retried and when it opens a reauth flow (only when BMW rejected the login, never on a network error). HA-free behind `__init__._ReauthHost`; the config flow tells the gate through `authorized()` / `abandoned()` / `started_by_user()`. `ReauthGate.refused` (BMW rejected the login) makes the cars' entities unavailable.
+  - `refusal.py` — every error a user reads, by translation key (`MESSAGES`, the English the log keeps). HA-free modules raise a `Refusal`; `as_ha_error` turns it into HA's error. Never raise a `HomeAssistantError` with a plain message (`tests/test_refusal.py` fails on it), and keep placeholders out of quotes (hassfest).
   - `entry_setup.py` — what `async_setup_entry` decides (options → coordinator, the history's one-time repairs, stored cars back as devices, registry fixes); `__init__.py` only builds the parts in order and wires them.
   - `quota.py` — the rolling 50-a-day count (`QuotaManager`), kept in a store across restarts; HA-free, `__init__._async_quota_manager` passes HA's `Store` and the exhaustion repair in.
   - `container.py` — the two REST containers every car reads: `FULL` (non-streamable + battery seed) and `SERVICE` (`conditionBasedServices` alone: BMW refuses a whole container over that one field since 16 Oct 2026, #142).
@@ -212,7 +213,9 @@ living only in prose.
   (zero-quota reads against the live instance), `shoot` (Playwright screenshots),
   `close` (end every session with it: park or land the work, gates if code
   changed, docs and wiki in line, memory pruned, close marker set).
-- **Scripts:** `bash scripts/check.sh` runs CI's gates with CI's exact paths and
+- **Scripts:** `bash scripts/coverage.sh [--missing]` runs both suites in WSL and prints
+  CI's per-module coverage table (and each below-95 % module's missed lines);
+  `bash scripts/check.sh` runs CI's gates with CI's exact paths and
   ends GREEN/RED (`--no-tests` for lint only); `python tools/i18n_gaps.py` lists
   every missing, broken or stale translation across `translations/`, the card,
   the month report and the service calendar, grouped by language; `python scripts/prove_fix.py
