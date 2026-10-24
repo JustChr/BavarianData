@@ -27,7 +27,7 @@ from .car_signals import DESC_ODOMETER, EFFICIENCY_LIVE_DESCRIPTORS
 from .coordinator import CardataCoordinator
 from .descriptor_metadata import DESCRIPTOR_META, SECTIONS
 from .entity import CardataEntity
-from .history.health import MIN_SAMPLES, degradation_series, usable_capacity
+from .history.health import degradation_series, usable_capacity
 from .history.summary import (
     driving_summary,
     sessions_in_month,
@@ -36,7 +36,7 @@ from .history.summary import (
 )
 from .placeholders import is_placeholder
 from .restore_units import restore_native
-from . import sensor_plan
+from . import sensor_plan, sensor_values
 from .units import entity_unit
 from .sensor_classes import sensor_classes
 from .structured_values import (
@@ -180,23 +180,7 @@ class CardataSensor(CardataRestoreSensor):
             device_class = _DEVICE_CLASS_MAP.get(classes.device_class)
             if device_class is not None:
                 self._attr_device_class = device_class
-                if (
-                    (device_class is SensorDeviceClass.DISTANCE and classes.unit in ("km", "mi"))
-                    or (device_class is SensorDeviceClass.PRESSURE and classes.unit == "kPa")
-                    or (device_class is SensorDeviceClass.VOLUME_STORAGE and not classes.unit)
-                ):
-                    # BMW streams whole kilometres for every one of these -- a
-                    # range, an odometer, a trip length. Left unsaid, Home
-                    # Assistant stamps two decimals on any convertible unit and
-                    # the card's headline reads "379.00 km", which every user
-                    # then fixes by hand, entity by entity. Tyre pressures are
-                    # whole kPa too and read "260,00 kPa" for the same reason;
-                    # a user showing them in bar still gets the decimals, as
-                    # Home Assistant adds precision when it converts. The fuel
-                    # in the tank (the one volume whose unit comes off the
-                    # stream) is a float BMW itself calls accurate to about 6
-                    # litres, so decimals there are noise; the lifetime fuel
-                    # totals keep theirs.
+                if classes.whole_numbers:
                     self._attr_suggested_display_precision = 0
         elif self._descriptor == "vehicle.vehicle.travelledDistance":
             self._attr_state_class = SensorStateClass.TOTAL_INCREASING
@@ -216,12 +200,10 @@ class CardataSensor(CardataRestoreSensor):
                 # A zero saved before BMW's "no reading" was recognised.
                 restored = None
             if restored is not None:
-                if self._is_enum and isinstance(restored, str):
-                    # Match the lowercase-slug options (old installs stored
-                    # ALL_CAPS enum states before this normalisation).
-                    restored = restored.lower()
-                    if restored not in self._attr_options:
-                        self._attr_options = [*self._attr_options, restored]
+                if self._is_enum:
+                    restored, self._attr_options = sensor_values.enum_state(
+                        restored, self._attr_options
+                    )
                 self._attr_native_value, _items = structured_state(restored)
                 if unit is not None and not self._fixed_unit:
                     self._attr_native_unit_of_measurement = unit
@@ -271,15 +253,8 @@ class CardataSensor(CardataRestoreSensor):
         if not state:
             return
         value = state.value
-        if self._is_enum and isinstance(value, str):
-            # Options and translation state keys are lowercase slugs; BMW sends
-            # ALL_CAPS tokens, so normalise before matching/displaying.
-            value = value.lower()
-            if value not in self._attr_options:
-                # BMW occasionally reports a value the catalogue did not
-                # document. Extend the option list so Home Assistant accepts it
-                # instead of logging a validation error; it shows untranslated.
-                self._attr_options = [*self._attr_options, value]
+        if self._is_enum:
+            value, self._attr_options = sensor_values.enum_state(value, self._attr_options)
         # A list (service items, Check Control messages) is shown as its count:
         # stringified it overflows Home Assistant's 255-character state limit
         # and is recorded as unknown. The list itself goes out as an attribute.
@@ -353,26 +328,14 @@ class CardataDiagnosticsSensor(SensorEntity, RestoreEntity):
     @property
     def extra_state_attributes(self) -> dict:
         if self._sensor_type == "connection_status":
-            attrs = dict(self._stream.debug_info)
-            if self._coordinator.last_disconnect_reason:
-                attrs["last_disconnect_reason"] = self._coordinator.last_disconnect_reason
-            if self._quota:
-                attrs["api_quota_used"] = self._quota.used
-                attrs["api_quota_remaining"] = self._quota.remaining
-                if next_reset := self._quota.next_reset_iso:
-                    attrs["api_quota_next_reset"] = next_reset
-            # Configure -> Units, for the dashboard card: it has no other way to
-            # read the account's options.
-            attrs["display_units"] = dict(self._coordinator.display_units)
-            return attrs
+            return sensor_values.connection_attributes(
+                self._stream.debug_info,
+                self._coordinator.last_disconnect_reason,
+                self._quota,
+                self._coordinator.display_units,
+            )
         if self._sensor_type == "last_telematic_api":
-            attrs: dict[str, Any] = {}
-            if self._quota:
-                attrs["api_quota_used"] = self._quota.used
-                attrs["api_quota_remaining"] = self._quota.remaining
-                if next_reset := self._quota.next_reset_iso:
-                    attrs["api_quota_next_reset"] = next_reset
-            return attrs
+            return sensor_values.quota_attributes(self._quota)
         return {}
 
     async def async_added_to_hass(self) -> None:
@@ -452,13 +415,8 @@ class CardataQuotaSensor(SensorEntity):
     def extra_state_attributes(self) -> dict:
         if not self._quota:
             return {}
-        attrs: dict[str, Any] = {
-            "used": self._quota.used,
-            "remaining": self._quota.remaining,
-            "limit": REQUEST_LIMIT,
-        }
-        if next_reset := self._quota.next_reset_iso:
-            attrs["next_reset"] = next_reset
+        attrs = sensor_values.quota_attributes(self._quota, prefix="")
+        attrs["limit"] = REQUEST_LIMIT
         return attrs
 
     async def async_added_to_hass(self) -> None:
@@ -819,13 +777,7 @@ class CardataChargingCostMonthSensor(CardataChargingSummarySensor):
     @property
     def extra_state_attributes(self) -> dict:
         attrs = dict(super().extra_state_attributes)
-        summary = self._summary
-        attrs["sessions"] = summary.get("sessions", 0)
-        attrs["energy_kwh"] = summary.get("energy_kwh")
-        # Flags a total that is a floor, not a figure: a session was charged
-        # while the price was unknown, or one has no cost at all (charged away
-        # from home, or before a tariff was set).
-        attrs["partial"] = summary.get("partial", False)
+        attrs.update(sensor_values.cost_month_attributes(self._summary))
         return attrs
 
 
@@ -852,30 +804,12 @@ class CardataChargingCostSessionSensor(CardataEntity, SensorEntity):
 
     @property
     def native_value(self):
-        session = self._latest
-        if session is None or not session.cost:
-            return None
-        return session.cost.get("amount")
+        return sensor_values.session_cost(self._latest)
 
     @property
     def extra_state_attributes(self) -> dict:
         attrs = dict(super().extra_state_attributes)
-        session = self._latest
-        if session is None:
-            return attrs
-        attrs["energy_kwh"] = session.energy_kwh
-        attrs["duration_s"] = session.duration_s
-        attrs["soc_start"] = session.soc_start
-        attrs["soc_end"] = session.soc_end
-        attrs["peak_power_kw"] = session.peak_power_kw
-        if session.location:
-            attrs["zone"] = session.location.get("zone")
-            if session.location.get("address"):
-                attrs["address"] = session.location.get("address")
-        attrs["location_assumed"] = session.location_assumed
-        if session.cost:
-            attrs["cost_source"] = session.cost.get("source")
-            attrs["partial"] = bool(session.cost.get("partial"))
+        attrs.update(sensor_values.session_cost_attributes(self._latest))
         return attrs
 
     async def async_added_to_hass(self) -> None:
@@ -913,24 +847,10 @@ class CardataChargingEnergyMonthSensor(CardataChargingSummarySensor):
 
     @property
     def extra_state_attributes(self) -> dict:
-        """Adds this month's source mix -- as attributes, not as new entities.
-
-        The history layer's entity budget is spent (one entity per question a
-        user actually asks), and "how much of my charging was sun?" is asked of
-        the same number this sensor already reports. ``solar_percent`` is lifted
-        to the top level because it is the figure people want; the kWh behind it
-        stay in ``energy_mix`` for anything that wants to check the arithmetic.
-
-        Absent entirely when nothing could be attributed, which is deliberately
-        distinct from a mix saying none of it was solar.
-        """
+        """Adds this month's source mix (``sensor_values.energy_month_attributes``)."""
 
         attrs = dict(super().extra_state_attributes)
-        mix = self._summary.get("energy_mix")
-        if mix:
-            attrs["energy_mix"] = mix
-            if mix.get("solar_percent") is not None:
-                attrs["solar_percent"] = mix["solar_percent"]
+        attrs.update(sensor_values.energy_month_attributes(self._summary))
         return attrs
 
 
@@ -958,12 +878,6 @@ class CardataChargingCostPerDistanceSensor(CardataChargingSummarySensor):
         attrs = dict(super().extra_state_attributes)
         attrs["distance_km"] = self._summary.get("distance_km")
         return attrs
-
-
-# How many trend points to publish in the sensor's attributes. Battery health
-# changes at most once per charge, so this attribute is rewritten rarely -- but
-# the series still has to stay small enough not to bloat the recorder row.
-_HEALTH_TREND_POINTS = 60
 
 
 class CardataBatteryHealthSensor(CardataEntity, SensorEntity):
@@ -996,31 +910,20 @@ class CardataBatteryHealthSensor(CardataEntity, SensorEntity):
 
     @property
     def native_value(self):
-        health = self._health
-        # Never a number we aren't sure of: while learning, the state names the
-        # progress instead of a figure that would jump as samples trickle in.
-        if not health.confident:
-            return f"Learning ({min(health.samples, MIN_SAMPLES)}/{MIN_SAMPLES})"
-        return health.usable_kwh
+        return sensor_values.battery_health_state(self._health)
 
     @property
     def extra_state_attributes(self) -> dict:
         attrs = dict(super().extra_state_attributes)
-        health = self._health
-        attrs["samples"] = health.samples
-        attrs["samples_needed"] = MIN_SAMPLES
-        attrs["confident"] = health.confident
-        attrs["usable_capacity_kwh"] = health.usable_kwh
-        attrs["nominal_capacity_kwh"] = health.nominal_kwh
-        attrs["vs_new_percent"] = health.vs_new_percent
-        # A capacity figure that disagrees with BMW's own is being withheld; say
-        # so rather than leaving the sensor stuck at "Learning" with no reason.
-        attrs["suspicious"] = health.suspicious
         history = self._coordinator.history
-        if history is not None:
-            attrs["trend"] = degradation_series(
-                history.sessions(self.vin), limit=_HEALTH_TREND_POINTS
+        trend = (
+            None
+            if history is None
+            else degradation_series(
+                history.sessions(self.vin), limit=sensor_values.HEALTH_TREND_POINTS
             )
+        )
+        attrs.update(sensor_values.battery_health_attributes(self._health, trend))
         return attrs
 
     async def async_added_to_hass(self) -> None:
@@ -1110,40 +1013,12 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
 
     @property
     def native_value(self):
-        ranges = self._profile.get("range") or {}
-        return ranges.get("now_km")
+        return sensor_values.real_range_state(self._profile)
 
     @property
     def extra_state_attributes(self) -> dict:
         attrs = dict(super().extra_state_attributes)
-        profile = self._profile
-        ranges = profile.get("range") or {}
-        consumption = profile.get("consumption") or {}
-        grid = profile.get("grid_consumption") or {}
-        # Why there is no figure, when there is none: "not enough charging
-        # history yet" and "this car never streamed its capacity" want different
-        # things from the user.
-        attrs["status"] = profile.get("status")
-        attrs["range_full_km"] = ranges.get("full_km")
-        # The same figure as the state, in kilometres whatever the user's unit
-        # system converts the state into -- the card renders kilometres from the
-        # ledger throughout, and reading them off a converted state is exactly
-        # how a display unit once leaked into a stored value (issue #7).
-        attrs["range_now_km"] = ranges.get("now_km")
-        attrs["soc_percent"] = ranges.get("soc_percent")
-        attrs["consumption_kwh_per_100km"] = consumption.get("kwh_per_100km")
-        # Always beside the figure: a consumption number without its side is
-        # ambiguous by exactly the size of the charging loss.
-        attrs["consumption_source"] = consumption.get("source")
-        attrs["consumption_window_days"] = consumption.get("window_days")
-        attrs["consumption_distance_km"] = consumption.get("distance_km")
-        attrs["grid_consumption_kwh_per_100km"] = grid.get("kwh_per_100km")
-        attrs["measured_loss_percent"] = profile.get("measured_loss_percent")
-        attrs["capacity_kwh"] = profile.get("capacity_kwh")
-        attrs["capacity_source"] = profile.get("capacity_source")
-        attrs["bmw_range_km"] = ranges.get("bmw_km")
-        attrs["bmw_range_full_km"] = ranges.get("bmw_full_km")
-        attrs["vs_bmw_percent"] = ranges.get("vs_bmw_percent")
+        attrs.update(sensor_values.real_range_attributes(self._profile))
         return attrs
 
     async def async_added_to_hass(self) -> None:
@@ -1252,13 +1127,7 @@ class CardataDrivingDistanceMonthSensor(CardataEntity, SensorEntity):
     @property
     def extra_state_attributes(self) -> dict:
         attrs = dict(super().extra_state_attributes)
-        summary = self._summary
-        split = summary.get("split") or {}
-        attrs["trip_count"] = summary.get("trip_count", 0)
-        attrs["business_km"] = split.get("business_km")
-        attrs["private_km"] = split.get("private_km")
-        attrs["commute_km"] = split.get("commute_km")
-        attrs["unclassified_km"] = split.get("unclassified_km")
+        attrs.update(sensor_values.driving_month_attributes(self._summary))
         return attrs
 
     async def async_added_to_hass(self) -> None:
@@ -1359,22 +1228,7 @@ class CardataMileageAllowanceSensor(CardataEntity, SensorEntity):
     @property
     def extra_state_attributes(self) -> dict:
         attrs = dict(super().extra_state_attributes)
-        allowance = self._allowance
-        for key in (
-            "kind",
-            "status",
-            "start",
-            "end",
-            "allowance_km",
-            "used_km",
-            "plan_km",
-            "remaining_km",
-            "days_left",
-            "km_per_day_left",
-            "projected_km",
-            "projected_over_km",
-        ):
-            attrs[key] = allowance.get(key)
+        attrs.update(sensor_values.mileage_attributes(self._allowance))
         return attrs
 
     async def async_added_to_hass(self) -> None:
@@ -1407,11 +1261,6 @@ class CardataMileageAllowanceSensor(CardataEntity, SensorEntity):
         self.schedule_update_ha_state()
 
 
-# Our wheel slugs -> the axle token BMW's streamed tire descriptors use, so a
-# diagnosis entity and a pressure entity for the same wheel share a card slot.
-_AXLE_ROWS = {"front": "row1", "rear": "row2"}
-
-
 class CardataTyreEntity(CardataEntity, SensorEntity):
     """Base for the sensors fed by the smart-maintenance tyre diagnosis.
 
@@ -1432,19 +1281,9 @@ class CardataTyreEntity(CardataEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict:
-        attrs = dict(super().extra_state_attributes)
-        # These have no catalogue descriptor, so the cluster the card groups by
-        # has to be declared here. Must stay present even when unavailable.
-        attrs["cluster"] = "tire"
-        attrs["cluster_name"] = SECTIONS.get("tire", "Tire data")
-        # When the diagnosis was last fetched. Worth exposing: it is refreshed
-        # once a day at most and now survives restarts, so a reading can
-        # legitimately be a day old. Mirrored onto ``timestamp`` so these carry
-        # the same "as of" attribute as every streamed entity.
-        if fetched_at := self._diagnosis.get("fetched_at"):
-            attrs["fetched_at"] = fetched_at
-            attrs.setdefault("timestamp", fetched_at)
-        return attrs
+        return sensor_values.tyre_attributes(
+            super().extra_state_attributes, self._diagnosis, SECTIONS.get("tire", "Tire data")
+        )
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -1483,25 +1322,16 @@ class CardataTyreWheelSensor(CardataTyreEntity):
 
     @property
     def _wheel(self) -> Dict[str, Any]:
-        return (self._diagnosis.get("wheels") or {}).get(self._position) or {}
+        return sensor_values.wheel(self._diagnosis, self._position)
 
     @property
     def native_value(self):
-        wheel = self._wheel
-        return wheel.get("wear_status_color") or wheel.get("wear_status")
+        return sensor_values.wheel_state(self._wheel)
 
     @property
     def extra_state_attributes(self) -> dict:
         attrs = dict(super().extra_state_attributes)
-        # Land on the same wheel slot as the streamed pressure/temperature
-        # sensors: the card keys wheels by "<tire_axle>_<tire_side>", and those
-        # come from BMW's descriptor path, which numbers axles rather than
-        # naming them (vehicle.chassis.axle.row1.wheel.left.tire.pressure).
-        axle, side = self._position.split("_", 1)
-        attrs["tire_axle"] = _AXLE_ROWS[axle]
-        attrs["tire_side"] = side
-        attrs["tire_metric"] = "diagnosis"
-        attrs.update(self._wheel)
+        attrs.update(sensor_values.wheel_attributes(self._position, self._wheel))
         return attrs
 
 
@@ -1520,14 +1350,7 @@ class CardataTyreStatusSensor(CardataTyreEntity):
     @property
     def extra_state_attributes(self) -> dict:
         attrs = dict(super().extra_state_attributes)
-        diagnosis = self._diagnosis
-        attrs["label"] = diagnosis.get("aggregated_label")
-        attrs["wheels_reported"] = sorted(diagnosis.get("wheels") or {})
-        errors = diagnosis.get("errors") or []
-        if errors:
-            # Surfaced rather than swallowed: an upstream outage is why the
-            # wheels went empty, and that is worth being able to see.
-            attrs["errors"] = errors
+        attrs.update(sensor_values.tyre_status_attributes(self._diagnosis))
         return attrs
 
 
