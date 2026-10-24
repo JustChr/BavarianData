@@ -50,7 +50,7 @@ from .descriptors import default_sections, descriptors_for_sections, section_lab
 from .device_flow import CardataAuthError
 from .distance import async_apply_sensor_units, car_distance_unit, car_fuel_unit
 from .flow_activator import StreamActivatorFlow, schedule_vehicle_discovery
-from .flow_answers import in_catalogue_order, typed_client_id, units_line
+from .flow_answers import in_catalogue_order, units_line
 from .history.pricing import PricingConfig, vehicle_pricing
 from .options_cars import PerCarScreens
 from .units import UNIT_CHOICES, unit_choices
@@ -166,33 +166,19 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
     async def async_step_action_reauth(
         self, user_input: Optional[Dict[str, Any]] = None
     ) -> FlowResult:
-        current_client_id = self._config_entry.data.get("client_id") or ""
-        schema = vol.Schema(
-            {
-                vol.Required("client_id", default=current_client_id): str,
-            }
-        )
+        """Sign in to BMW again with the account's Client ID.
+
+        Another Client ID is Reconfigure's job (``config_flow``), where a
+        client of another BMW account is refused.
+        """
+
         if user_input is None:
-            return self.async_show_form(step_id="action_reauth", data_schema=schema)
-        client_id = typed_client_id(user_input.get("client_id", ""))
-        if not client_id:
-            return self.async_show_form(
-                step_id="action_reauth",
-                data_schema=schema,
-                errors={"client_id": "invalid_client_id"},
-            )
-        return await self._handle_reauth(client_id)
-
-    async def _handle_reauth(self, client_id: str) -> FlowResult:
-        """Store the client id and start the setup flow's reauth step for it."""
-
+            return self._show_confirm(step_id="action_reauth")
         entry = self._config_entry
-        updated = dict(entry.data)
-        updated["client_id"] = client_id
+        client_id = entry.data.get("client_id") or ""
         runtime = self._get_runtime()
         if runtime:
             runtime.reauth.started_by_user()
-        self.hass.config_entries.async_update_entry(entry, data=updated)
 
         flow_result = await self.hass.config_entries.flow.async_init(
             DOMAIN,

@@ -50,12 +50,21 @@ erscheinen (der Screenshot zeigt die englische).
 
 | Menüeintrag | Art | Was er tut |
 | --- | --- | --- |
-| **Neu bei BMW autorisieren** | Aktion | Führt die Geräteautorisierung erneut aus (nachdem BMW das Token ungültig gemacht hat). |
+| **Neu bei BMW autorisieren** | Aktion | Meldet dich mit derselben Client-ID erneut bei BMW an (nachdem BMW das Token ungültig gemacht hat). |
 | **Token jetzt erneuern** | Aktion | Erzwingt eine Erneuerung des OAuth-Tokens. |
 | **Telemetrie-Container zurücksetzen** | Aktion ⚡ | Ersetzt die beiden REST-Container der Integration durch frische (je etwa drei Anfragen). Nutze das, wenn Telematik-Abrufe mit CU-105 oder CU-121 fehlschlagen. |
 | **Debug-Protokollierung** | Einstellungen | Schalter für ausführliche Protokollierung — unten. |
 
 ⚡ = verbraucht eine (oder mehrere) deiner [50 Anfragen / 24 h](DE-Feature-API-Quota).
+
+<a id="change-the-client-id"></a>
+
+**Client-ID ändern:** nicht unter Konfigurieren, sondern über **Neu
+konfigurieren** an der Integration (*Einstellungen → Geräte & Dienste →
+BavarianData → ⋮*). Gib die neue Client-ID ein und melde dich wie bei der
+Einrichtung bei BMW an. Der Eintrag bleibt derselbe, mit seinen Fahrzeugen, ihrem
+Verlauf und allen Einstellungen; eine Client-ID eines anderen BMW-Kontos wird
+abgelehnt, und nichts ändert sich.
 
 ## Fahrzeugbild
 

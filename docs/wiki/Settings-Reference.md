@@ -49,12 +49,20 @@ The menu labels below are exactly as they appear in the UI.
 
 | Menu entry | Kind | What it does |
 | --- | --- | --- |
-| **Re-authorize with BMW** | action | Re-run device auth (after BMW invalidates the token). |
+| **Re-authorize with BMW** | action | Sign in to BMW again with the same Client ID (after BMW invalidates the token). |
 | **Refresh tokens now** | action | Force an OAuth token refresh. |
 | **Reset telemetry container** | action ⚡ | Replace the integration's two REST containers with fresh ones (about three requests each). Use if telematics fetches start failing with CU-105 or CU-121. |
 | **Debug logging** | settings | Verbose logging toggle — below. |
 
 ⚡ = spends one (or more) of your [50 requests / 24 h](Feature-API-Quota).
+
+<a id="change-the-client-id"></a>
+
+**Change the Client ID:** not under Configure but **Reconfigure** on the
+integration (*Settings → Devices & services → BavarianData → ⋮*). Enter the new
+Client ID, then sign in to BMW as at setup. The entry stays the same, with its
+cars, their history and every setting; a Client ID of another BMW account is
+refused and nothing changes.
 
 ## Vehicle image
 

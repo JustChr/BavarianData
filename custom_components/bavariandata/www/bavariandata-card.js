@@ -1739,7 +1739,7 @@ const TRANSLATIONS = {
       "Añade la integración, o define <code>device:</code> / <code>vin:</code> en la configuración de la tarjeta.",
     refused_title: "BMW rechazó el inicio de sesión",
     refused_body:
-      "Vuelve a iniciar sesión en BMW en Ajustes → Dispositivos y servicios; los valores de este vehículo vuelven en cuanto BMW lo acepte.",
+      "Vuelve a iniciar sesión en BMW en Configuración → Dispositivos y servicios; los valores de este vehículo vuelven en cuanto BMW lo acepte.",
     // tire
     front: "DELANTE",
     fl: "DI",
@@ -2106,7 +2106,7 @@ const TRANSLATIONS = {
       "Voeg de integratie toe, of stel <code>device:</code> / <code>vin:</code> in de kaartconfiguratie in.",
     refused_title: "BMW heeft de aanmelding geweigerd",
     refused_body:
-      "Meld je opnieuw aan bij BMW via Instellingen → Apparaten & diensten; de waarden van deze auto komen terug zodra BMW dat accepteert.",
+      "Meld je opnieuw aan bij BMW via Instellingen → Apparaten en diensten; de waarden van deze auto komen terug zodra BMW dat accepteert.",
     // tire
     front: "VOOR",
     fl: "LV",
@@ -2840,7 +2840,7 @@ const TRANSLATIONS = {
       "Adicione a integração, ou defina <code>device:</code> / <code>vin:</code> na configuração do cartão.",
     refused_title: "A BMW recusou o início de sessão",
     refused_body:
-      "Inicie sessão novamente na BMW em Definições → Dispositivos e serviços; os valores deste veículo voltam assim que a BMW o aceitar.",
+      "Inicie sessão novamente na BMW em Configurações → Dispositivos & serviços; os valores deste veículo voltam assim que a BMW o aceitar.",
     // tire
     front: "FRENTE",
     fl: "FE",

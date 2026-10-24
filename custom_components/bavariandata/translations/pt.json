@@ -60,6 +60,16 @@
       "activate_stream_done": {
         "title": "Stream ativado",
         "description": "Concluído — o ativador ativou **{added_count}** campo(s) novo(s); **{field_count}** campos estão agora a ser transmitidos para este veículo.{error}\n\nPrima **Enviar** para concluir a configuração e depois tranque/destranque o carro na app MyBMW para provocar a primeira atualização."
+      },
+      "reconfigure": {
+        "title": "Alterar Client ID",
+        "description": "Use outro CarData Client da mesma conta BMW. A seguir inicia sessão na BMW; os seus veículos, o histórico deles e as suas definições mantêm-se.",
+        "data": {
+          "client_id": "Client ID"
+        },
+        "data_description": {
+          "client_id": "O Client ID de um CarData Client no portal BMW, subscrito ao CarData API e ao CarData Streaming."
+        }
       }
     },
     "progress": {
@@ -70,14 +80,17 @@
     "error": {
       "device_code_failed": "A BMW recusou o pedido de autorização do dispositivo ({error}). Verifique se o Client ID está correto e subscrito a ambos os serviços CarData e tente novamente.",
       "invalid_result": "Não foi possível ler esse resultado. Execute o marcador Activate BMW data na página do portal BMW e cole exatamente o que ele copiou para a área de transferência.",
-      "no_client_id": "Não foi encontrado nenhum cliente de API na sua conta. Crie um CarData Client no portal BMW e execute novamente o marcador Activate BMW data."
+      "no_client_id": "Não foi encontrado nenhum cliente de API na sua conta. Crie um CarData Client no portal BMW e execute novamente o marcador Activate BMW data.",
+      "invalid_client_id": "Introduza o Client ID do BMW CarData."
     },
     "abort": {
       "account_already_configured": "Esta conta BMW já está configurada no Home Assistant. Uma única entrada abrange toda a conta, incluindo todos os carros nela — adicionar um segundo Client ID para a mesma conta interromperia o stream de ambos, porque a BMW só permite uma ligação por conta. Use a entrada existente ou remova-a primeiro.",
       "reauth_successful": "Reautorização concluída — o BMW CarData está novamente ligado.",
-      "reauth_device_code_failed": "A BMW recusou o pedido de autorização do dispositivo ({error}). Atualize o Client ID em Configurar → Autorizar novamente na BMW, ou remova e adicione novamente a integração.",
+      "reauth_device_code_failed": "A BMW recusou o pedido de autorização do dispositivo ({error}). Altere o Client ID com Reconfigurar na integração, ou remova e adicione novamente a integração.",
       "reauth_missing_client_id": "Falta o Client ID desta entrada da integração. Remova e adicione novamente a integração para voltar a autorizar.",
-      "reauth_failed": "Não foi possível iniciar a reautorização. Tente novamente a partir das opções da integração."
+      "reauth_failed": "Não foi possível iniciar a reautorização. Tente novamente a partir das opções da integração.",
+      "reconfigure_successful": "Client ID alterado: o BMW CarData está ligado com o novo cliente.",
+      "wrong_account": "Este Client ID pertence a outra conta BMW, por isso nada foi alterado. Alterar o Client ID mantém esta conta com os seus veículos e o histórico deles; para adicionar outra conta, adicione a integração novamente."
     }
   },
   "options": {
@@ -151,13 +164,7 @@
       },
       "action_reauth": {
         "title": "Autorizar novamente na BMW",
-        "description": "Executa de novo a autorização de dispositivo da BMW — por exemplo, depois de o refresh token expirar (a cada 2 semanas) ou se gerou um novo Client ID. Depois aprovará o Home Assistant no site da BMW.",
-        "data": {
-          "client_id": "Client ID"
-        },
-        "data_description": {
-          "client_id": "Deixe como está para reutilizar o Client ID atual, ou cole um novo do portal BMW."
-        }
+        "description": "Inicie sessão novamente na BMW, por exemplo quando o Home Assistant o pedir ou depois de o refresh token expirar (a cada 2 semanas). Depois aprovará o Home Assistant no site da BMW. Para usar outro Client ID, escolha Reconfigurar na integração."
       },
       "action_reset_container": {
         "title": "Repor o contentor de telemetria",
@@ -472,7 +479,6 @@
       "runtime_missing": "A integração ainda não está pronta. Tente novamente quando a configuração terminar.",
       "no_vins": "Ainda não se conhece nenhum veículo. Execute primeiro \"Procurar veículos\" ou aguarde que o stream comunique um.",
       "invalid_int": "Introduza um número inteiro positivo.",
-      "invalid_client_id": "Introduza o Client ID do BMW CarData.",
       "invalid_result": "Não foi possível ler esse resultado. Execute o marcador Activate BMW data na página stream setup do portal BMW e cole exatamente o que ele copiou para a área de transferência.",
       "price_required": "Introduza um preço fixo por kWh ou escolha outra fonte de preço.",
       "price_entity_required": "Escolha a entidade que indica o seu preço por kWh ou escolha outra fonte de preço.",

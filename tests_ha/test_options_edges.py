@@ -141,10 +141,10 @@ async def test_a_sign_in_bmw_refuses_says_why(hass: HomeAssistant, no_bmw) -> No
         f"{PACKAGE}.config_flow.request_device_code",
         AsyncMock(side_effect=CardataAuthError("client unknown")),
     ):
-        result = await _send(hass, result, {"client_id": "client-2"})
+        result = await _send(hass, result, {})
 
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reauth_device_code_failed"
     assert result["description_placeholders"] == {"error": "client unknown"}
-    assert entry.data["client_id"] == "client-2"
+    assert entry.data["client_id"] == "client-1"
     assert not entry.runtime_data.reauth.in_progress

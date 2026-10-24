@@ -117,6 +117,7 @@ restructure) · ❌ missing · 📷 needs screenshot.
 | `select_clusters` | Cluster picker (manual path), then the activator | 🟢 Getting-Started-3 → "Manual path" + Getting-Started-4 | 📷 (`bavariandata-cluster-picker`) |
 | `activate_stream_wait` / `_paste` / `_done` | Manual path: the same activator screens as reconfigure (one shared mixin; the paste box may be left empty at first-time setup) | 🟢 Getting-Started-4 → "Picking clusters and switching them on" | 📷 shared with the reconfigure rows below |
 | `reauth` | Re-authorize with BMW | 🟡 | 📷 |
+| `reconfigure` | Change Client ID (HA's *Reconfigure*; same BMW account only) | 🟢 Getting-Started-1 + Settings-Reference | 📷 |
 
 ### BMW portal steps — external, shown in Getting-Started 1/3/4
 
