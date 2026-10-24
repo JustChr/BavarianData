@@ -3396,7 +3396,7 @@
       "message": "'month' nie ma miesiąca {month}: {value}"
     },
     "bad_date": {
-      "message": "Nie można odczytać '{key}' jako daty lub daty i godziny: {value}"
+      "message": "Nie można odczytać {key} jako daty lub daty i godziny: {value}"
     },
     "no_attributes": {
       "message": "Nie ma czego aktywować; podaj 'attributes' lub 'sections' albo wybierz grupy danych strumienia w opcjach."

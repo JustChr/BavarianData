@@ -3396,7 +3396,7 @@
       "message": "'month' heeft geen maand {month}: {value}"
     },
     "bad_date": {
-      "message": "Kan '{key}' niet lezen als datum of datum/tijd: {value}"
+      "message": "Kan {key} niet lezen als datum of datum/tijd: {value}"
     },
     "no_attributes": {
       "message": "Niets te activeren; geef 'attributes' of 'sections' op, of kies gegevensgroepen voor de stream in de opties."

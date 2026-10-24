@@ -32,7 +32,7 @@ MESSAGES: dict[str, str] = {
     # A service call's arguments.
     "month_format": "'month' must be 'YYYY-MM', got {value}",
     "month_number": "'month' has no month {month}: {value}",
-    "bad_date": "Could not read '{key}' as a date or date/time: {value}",
+    "bad_date": "Could not read {key} as a date or date/time: {value}",
     "no_attributes": (
         "No attributes to activate; pass 'attributes' or 'sections', "
         "or choose streamed-data clusters in the options."

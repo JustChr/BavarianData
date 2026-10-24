@@ -3396,7 +3396,7 @@
       "message": "'month' hat keinen Monat {month}: {value}"
     },
     "bad_date": {
-      "message": "'{key}' ist kein lesbares Datum bzw. keine Datum/Uhrzeit: {value}"
+      "message": "{key} ist kein lesbares Datum bzw. keine Datum/Uhrzeit: {value}"
     },
     "no_attributes": {
       "message": "Nichts zu aktivieren; gib 'attributes' oder 'sections' an oder wähle Datengruppen für den Stream in den Optionen."

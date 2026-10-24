@@ -503,7 +503,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             return None
         parsed = dt_util.parse_datetime(raw) or dt_util.parse_date(raw)
         if parsed is None:
-            raise _invalid(Refusal("bad_date", key=key, value=repr(raw)))
+            raise _invalid(Refusal("bad_date", key=repr(key), value=repr(raw)))
         return service_answers.day_bound(parsed, end_of_day=end_of_day)
 
     async def async_handle_get_charging_sessions(call: Any) -> dict:
