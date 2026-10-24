@@ -6,7 +6,7 @@ the frontend receives it (``_prepare_result_json``, the flow views' own
 serializer) -- step, form fields with their defaults and prefills, errors,
 placeholders, menus, the button label (``last_step``), and what a finished
 flow saves. A refactor that changes any screen shows up as a diff in
-``__snapshots__/test_flow_snapshots.ambr``; an intended change is approved with
+``snapshots/test_flow_snapshots.ambr``; an intended change is approved with
 ``bash scripts/test_ha.sh -k flow_snapshots --snapshot-update`` and the diff
 read.
 
