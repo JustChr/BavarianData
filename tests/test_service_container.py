@@ -11,36 +11,26 @@ container never helped, because it held that field too.
 So the service items live in a container of their own, fetched in the same
 refresh, and either container failing costs only itself.
 
-``_async_fetch_telematics`` lives in ``__init__.py``, which imports Home
-Assistant, so it is compiled out of the shipped source and run against
-stand-ins for the gateway and the entry.
+The fetch is ``account_rest.AccountRest.fetch_telematics``, run against
+``tests/fake_account.py``.
 """
 
 from __future__ import annotations
 
-import __future__
-import ast
 import asyncio
 import logging
-import pathlib
-import types
-from datetime import datetime, timezone
+
+import pytest
 
 from .conftest import FakeResponse, FakeSession, load_module
+from .fake_account import FakeBmw, FakeContainer, FakeHost, stored_containers
 
-_INIT = (
-    pathlib.Path(__file__).resolve().parents[1]
-    / "custom_components"
-    / "bavariandata"
-    / "__init__.py"
-)
 container = load_module("container")
 api = load_module("api")
 const = load_module("const")
 descriptors = load_module("descriptors")
 rest = load_module("rest")
-debug = load_module("debug")
-device_flow = load_module("device_flow")
+account_rest = load_module("account_rest")
 
 CBS = "vehicle.status.conditionBasedServices"
 LOCKS = "vehicle.cabin.door.lock.status"
@@ -108,78 +98,41 @@ def test_the_service_container_is_created_under_its_own_name():
 # --- The fetch -------------------------------------------------------------------
 
 
-def _compile(names: tuple[str, ...], namespace: dict) -> dict:
-    tree = ast.parse(_INIT.read_text(encoding="utf-8"), filename=str(_INIT))
-    wanted = [
-        node
-        for node in tree.body
-        if isinstance(node, (ast.AsyncFunctionDef, ast.FunctionDef)) and node.name in names
-    ]
-    assert len(wanted) == len(names), f"one of {names} moved"
-    code = compile(
-        ast.Module(body=wanted, type_ignores=[]),
-        str(_INIT),
-        "exec",
-        flags=__future__.annotations.compiler_flag,
-        dont_inherit=True,
-    )
-    exec(code, namespace)  # noqa: S102 - trusted, shipped source
-    return namespace
-
-
-class _Bmw:
+class _Bmw(FakeBmw):
     """BMW as the account's cars see it: which (car, container) it refuses."""
 
     def __init__(self, refuses: set[tuple[str, str]] = frozenset()) -> None:
+        super().__init__({api.async_get_telematic_data: self._answer})
         self.refuses = set(refuses)
-        self.sent: list[tuple[str, str]] = []
 
-    async def call(self, request, vin, container_id):
-        self.sent.append((vin, container_id))
+    def _answer(self, vin, container_id):
         if (vin, container_id) in self.refuses:
-            raise REFUSED
+            return REFUSED
         field = CBS if container_id == "id-service" else LOCKS
         return {"telematicData": {field: {"value": "x"}}}
 
+    @property
+    def requests(self) -> list[tuple[str, str]]:
+        return self.asked(api.async_get_telematic_data)
 
-def _run(bmw: _Bmw, vins: list[str], *, missing=()):
-    handled: list[tuple[str, tuple[str, ...]]] = []
-    entry = types.SimpleNamespace(entry_id="e", data={})
-    hass = types.SimpleNamespace()
 
-    async def container_id(hass, entry, runtime, kind):
-        return None if kind.key in missing else f"id-{kind.key}"
-
-    async def handle(message):
-        handled.append((message["vin"], tuple(message["data"])))
-
-    coordinator = types.SimpleNamespace(
-        hass=hass,
-        data={},
-        async_handle_message=handle,
-        signal_diagnostics="sig",
-        last_telematic_api_at=None,
-    )
-    runtime = types.SimpleNamespace(coordinator=coordinator, rest=bmw)
-    namespace = _compile(
-        ("_async_fetch_telematics",),
-        {
-            "_LOGGER": logging.getLogger(__name__),
-            "_async_container_id": container_id,
-            "async_get_telematic_data": object(),
-            "async_dispatcher_send": lambda *args: None,
-            "debug_enabled": lambda: False,
-            "mask_vin": debug.mask_vin,
-            "datetime": datetime,
-            "timezone": timezone,
-            "KINDS": container.KINDS,
-            "SERVICE": container.SERVICE,
-            "CardataApiError": api.CardataApiError,
-            "CardataQuotaError": rest.CardataQuotaError,
-            "CardataAuthError": device_flow.CardataAuthError,
+def _run(bmw: _Bmw, vins: list[str], *, missing=(), strict: bool = False):
+    # A missing container is one the entry has none of and BMW won't create.
+    data = {
+        key: value
+        for key, value in stored_containers().items()
+        if not any(key in (k.id_key, k.signature_key) for k in container.KINDS if k.key in missing)
+    }
+    host = FakeHost(
+        bmw,
+        data=data,
+        containers={
+            kind.key: FakeContainer(kind, created=None if kind.key in missing else f"id-{kind.key}")
+            for kind in container.KINDS
         },
     )
-    asked = asyncio.run(namespace["_async_fetch_telematics"](hass, entry, runtime, vins))
+    asked = asyncio.run(account_rest.AccountRest(host).fetch_telematics(vins, strict=strict))
+    handled = [(m["vin"], tuple(m["data"])) for m in host.coordinator.handled]
     return asked, handled
 
 
@@ -187,7 +140,7 @@ def test_every_car_reads_both_containers():
     bmw = _Bmw()
     asked, handled = _run(bmw, [CAR, OTHER])
     assert asked
-    assert bmw.sent == [
+    assert bmw.requests == [
         (CAR, "id-full"),
         (CAR, "id-service"),
         (OTHER, "id-full"),
@@ -218,11 +171,28 @@ def test_a_missing_container_is_skipped_not_fatal():
     bmw = _Bmw()
     asked, handled = _run(bmw, [CAR], missing={"service"})
     assert asked
-    assert bmw.sent == [(CAR, "id-full")]
+    assert bmw.requests == [(CAR, "id-full")]
     assert handled == [(CAR, (LOCKS,))]
 
 
 def test_no_container_at_all_asks_bmw_nothing():
     bmw = _Bmw()
     asked, handled = _run(bmw, [CAR], missing={"full", "service"})
-    assert not asked and not bmw.sent and not handled
+    assert not asked and not bmw.requests and not handled
+
+
+def test_a_strict_fetch_says_what_it_missed_once_every_car_had_its_turn():
+    bmw = _Bmw(refuses={(CAR, "id-full"), (CAR, "id-service")})
+    with pytest.raises(account_rest.FetchFailed, match=r"\*\*\*0001: HTTP 400") as err:
+        _run(bmw, [CAR, OTHER], strict=True)
+    assert "service" not in str(err.value), "the service items alone never count"
+    assert (OTHER, "id-service") in bmw.requests
+
+
+def test_a_spent_quota_stops_the_round_at_the_car_it_hit():
+    bmw = FakeBmw({api.async_get_telematic_data: rest.CardataQuotaError("limit")})
+    host = FakeHost(bmw, data=stored_containers())
+    fetch = account_rest.AccountRest(host).fetch_telematics([CAR, OTHER], strict=True)
+    with pytest.raises(account_rest.FetchFailed, match="limit"):
+        asyncio.run(fetch)
+    assert [args[0] for args in bmw.asked(api.async_get_telematic_data)] == [CAR]
