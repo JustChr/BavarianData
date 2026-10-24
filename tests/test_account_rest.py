@@ -38,7 +38,7 @@ def test_a_current_container_is_used_as_it_is() -> None:
     host = FakeHost(FakeBmw(), data=stored_containers())
 
     assert asyncio.run(_account(host).container_id(FULL)) == "id-full"
-    assert not host.writes and host.tokens.asked == 0
+    assert not host.writes and host.containers[FULL.key].calls == []
     assert host.containers[FULL.key].synced == ["id-full"]
 
 
@@ -63,7 +63,6 @@ def test_an_entry_without_a_container_gets_one() -> None:
 
     assert asyncio.run(_account(host).container_id(FULL)) == "id-full"
     assert host.containers[FULL.key].calls == ["ensure"]
-    assert host.tokens.asked == 1
 
 
 @pytest.mark.parametrize("error", [True, False])

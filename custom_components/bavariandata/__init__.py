@@ -510,16 +510,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     if cleaned is not None:
         data = cleaned
         hass.config_entries.async_update_entry(entry, data=data)
-    containers = {
-        kind.key: CardataContainerManager(
-            session=session,
-            entry_id=entry.entry_id,
-            initial_container_id=data.get(kind.id_key),
-            claim=quota_manager.async_claim,
-            kind=kind,
-        )
-        for kind in KINDS
-    }
 
     async def handle_stream_error(reason: str) -> None:
         await _handle_stream_error(hass, entry, reason)
@@ -539,6 +529,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     manager.set_status_callback(coordinator.async_handle_connection_event)
     tokens = TokenKeeper(partial(_refresh_tokens, entry, session, manager), lambda: entry.data)
     rest = RestGateway(session, tokens, quota_manager.async_claim)
+    containers = {
+        kind.key: CardataContainerManager(
+            rest=rest,
+            entry_id=entry.entry_id,
+            initial_container_id=data.get(kind.id_key),
+            kind=kind,
+        )
+        for kind in KINDS
+    }
 
     refreshed_token = False
     try:
@@ -1206,7 +1205,6 @@ class _EntryHost:
         self.entry_id = entry.entry_id
         self.coordinator = runtime.coordinator
         self.rest = runtime.rest
-        self.tokens = runtime.tokens
         self.containers = runtime.containers
         self.container_lock = runtime.container_lock
 
