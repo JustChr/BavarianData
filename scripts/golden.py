@@ -43,6 +43,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -182,6 +183,28 @@ def _overlay(base: str, work: Path) -> None:
     )
 
 
+def _remove_worktree(work: Path) -> None:
+    """Remove the base checkout; never let a locked file fail the gate.
+
+    Windows can hold a file of a just-finished pytest a moment longer, so
+    removal is retried, then left to ``git worktree prune`` with a warning.
+    """
+
+    for attempt in range(5):
+        out = subprocess.run(
+            ["git", "worktree", "remove", "--force", str(work)],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+        )
+        if out.returncode == 0:
+            return
+        time.sleep(1 + attempt)
+    shutil.rmtree(work, ignore_errors=True)
+    subprocess.run(["git", "worktree", "prune"], cwd=REPO, capture_output=True)
+    print(f"  warning: could not remove {work} ({out.stderr.strip()}); pruned instead")
+
+
 def gate(base: str, twins: list[str], keep: Path) -> int:
     keep.mkdir(parents=True, exist_ok=True)
     print(f"golden gate: base {base[:12]}, traces in {keep}")
@@ -200,7 +223,7 @@ def gate(base: str, twins: list[str], keep: Path) -> int:
             **{offset: run.wait() for offset, run in twin_runs.items()},
         }
     finally:
-        git("worktree", "remove", "--force", str(work))
+        _remove_worktree(work)
     if codes["head"] != 0:
         print("RED: the tests fail on the working tree")
         return 1
