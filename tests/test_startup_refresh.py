@@ -80,14 +80,7 @@ def test_a_car_seen_only_as_unconfirmed_is_still_fetched() -> None:
 def test_the_answer_lands_before_the_restored_session_gives_up() -> None:
     """The refresh must beat the grace timer, or it only confirms a split."""
 
-    coordinator_src = (load_module.__globals__["_BASE"] / "coordinator.py").read_text(
-        encoding="utf-8"
-    )
-    grace = next(
-        int(line.split("=")[1].split("#")[0])
-        for line in coordinator_src.splitlines()
-        if line.startswith("RESTORED_SESSION_GRACE_S =")
-    )
+    grace = load_module("car_signals").RESTORED_SESSION_GRACE_S
     assert refresh.STARTUP_REFRESH_DELAY_S < grace
 
 
