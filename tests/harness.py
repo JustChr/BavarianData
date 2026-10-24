@@ -500,6 +500,15 @@ class CoordinatorHarness:
         }
         derived = dict(self._derived_changed)
         meter_attribute = dict(self._meter_attribute)
+        # What the two energy sensors show, and the session's ``last_reset``.
+        energy = {
+            vin: (
+                old.get_lifetime_energy_kwh(vin),
+                old.get_session_energy_kwh(vin),
+                old.get_session_start(vin),
+            )
+            for vin in self.vins
+        }
         # Nothing of the old instance survives but storage -- its timers die too.
         for timer in self.hass.timers:
             timer.cancelled = True
@@ -533,6 +542,13 @@ class CoordinatorHarness:
                     value, changed = derived[(vin, "rate")]
                     if value is not None and self.coordinator.get_soc_rate(vin) is None:
                         self.coordinator.restore_soc_cache(vin, rate=value, timestamp=changed)
+                # The energy sensors, as ``sensor.py`` restores them: only into
+                # a counter the open-session restore left empty.
+                lifetime, session, started = energy.get(vin, (None, None, None))
+                if lifetime is not None and self.coordinator.get_lifetime_energy_kwh(vin) is None:
+                    self.coordinator.restore_lifetime_energy(vin, lifetime)
+                if session is not None and self.coordinator.get_session_energy_kwh(vin) is None:
+                    self.coordinator.restore_session_energy(vin, session, started)
 
         if order == "descriptors-first":
             restore_descriptors()
