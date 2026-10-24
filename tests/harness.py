@@ -104,6 +104,7 @@ def _clocked_modules() -> list:
         if name.startswith(prefix) and getattr(module, "datetime", None) is datetime
     ]
 
+
 # Every harness a test made, so the ``conftest`` fixture can close the ones a
 # test leaves open (their trace is written on close, their patches undone).
 OPEN_HARNESSES: list["CoordinatorHarness"] = []
