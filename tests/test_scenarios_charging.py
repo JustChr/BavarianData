@@ -583,6 +583,7 @@ def test_a_remembered_charge_keeps_its_point():
         assert session.location == {"zone": None, "lat": 48.3, "lon": 11.9}
 
 
+@pytest.mark.solo  # counts every car's stripped records
 def test_turning_remembering_off_takes_the_points_with_it():
     """Off means gone: stored and still-open charges both lose their coordinates."""
 

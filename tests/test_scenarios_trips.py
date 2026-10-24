@@ -233,7 +233,7 @@ def test_a_fresh_install_pairs_its_gps_halves_correctly():
     with CoordinatorHarness() as fresh:
         for i in range(4):
             fresh.fix(5 + i * 2, HOME[0] + i * STEP, HOME[1] + i * STEP)
-        assert fresh.coordinator._gps_pending_parts.get(fresh.vin, set()) == set()
+        assert fresh.coordinator.gps_halves_pending(fresh.vin) == set()
 
 
 # What makes the harness car a plug-in hybrid: fuel data beside its battery.

@@ -252,9 +252,9 @@ def test_a_second_car_on_its_own_meter_leaves_this_one_on_its_meter(h):
     Only a meter two charging cars share is a meter neither may claim.
     """
 
-    h.coordinator.vehicle_pricing = {
-        "WBATEST0000000002": PricingConfig(grid_energy_entity="sensor.wallbox_drive_energy")
-    }
+    h.coordinator.vehicle_pricing["WBATEST0000000002"] = PricingConfig(
+        grid_energy_entity="sensor.wallbox_drive_energy"
+    )
     _charge(h)
     other = {
         "vehicle.drivetrain.electricEngine.charging.status": {"value": "CHARGINGACTIVE"},

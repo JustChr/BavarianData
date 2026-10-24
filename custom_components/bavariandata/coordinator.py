@@ -732,6 +732,22 @@ class CardataCoordinator:
     def signal_tyre(self) -> str:
         return f"{DOMAIN}_{self.entry_id}_tyre"
 
+    def has_open_session(self, vin: str) -> bool:
+        """True while a charging session is being recorded on ``vin``."""
+
+        return vin in self._session_builders
+
+    def charging_active(self, vin: str) -> Optional[bool]:
+        """Whether the SoC tracker counts ``vin`` as charging (``None``: never seen)."""
+
+        tracking = self._soc_tracking.get(vin)
+        return None if tracking is None else tracking.charging_active
+
+    def gps_halves_pending(self, vin: str) -> set[str]:
+        """The halves of a GPS fix that arrived without their mate yet."""
+
+        return set(self._gps_pending_parts.get(vin, ()))
+
     def has_open_trip(self, vin: str) -> bool:
         """True while a drive is under way on ``vin``.
 
@@ -4808,10 +4824,15 @@ class CardataCoordinator:
         try:
             while True:
                 await asyncio.sleep(self.diagnostic_interval)
-                self._log_diagnostics()
-                self._evaluate_stream_repairs()
+                self.watchdog_tick()
         except asyncio.CancelledError:
             return
+
+    def watchdog_tick(self) -> None:
+        """One heartbeat: advance the estimates, settle what timed out, check the stream."""
+
+        self._log_diagnostics()
+        self._evaluate_stream_repairs()
 
     def _log_diagnostics(self) -> None:
         if debug_enabled():

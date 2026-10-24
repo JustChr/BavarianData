@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
+    # ``labeled`` so that adding the "refactor" label starts the golden gate.
+    types: [opened, synchronize, reopened, labeled]
   workflow_dispatch:
 
 # A newer push to the same branch makes an in-flight run obsolete.
@@ -54,3 +56,27 @@ jobs:
         # Coverage is reported, never gated -- see the note in pyproject.toml
         # for why the total is the wrong number to read.
         run: pytest tests/ -q --cov --cov-report=term:skip-covered
+
+  golden:
+    name: Refactoring gate
+    # The behaviour gate of scripts/golden.py: the coordinator traced step by
+    # step against the base branch's code, twice for determinism, and with a
+    # twin car for isolation. It takes ~15 minutes, so it runs on pull requests
+    # labelled "refactor" -- the ones that claim to change nothing.
+    if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'refactor')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: requirements_test.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements_test.txt
+      - name: Golden gate
+        run: python scripts/golden.py gate --base "origin/${{ github.base_ref }}" --keep "$RUNNER_TEMP/golden"
