@@ -8,31 +8,27 @@ gap. The bug was not the fetching, it was the *selection*: a single VIN resolved
 from ``next(iter(coordinator.data))``, i.e. whichever car spoke first after a
 restart.
 
-So two kinds of test here: real unit tests over the selection (order is
-load-bearing, see ``vehicles.known_vins``), and AST guards proving the two REST
-refresh paths iterate it instead of picking one VIN again.
+So unit tests over the selection (order is load-bearing, see
+``vehicles.known_vins``), and the two REST refresh paths run over a two-car
+account (``account_rest``, against ``tests/fake_account.py``), proving they ask
+for every car instead of picking one VIN again.
 """
 
 from __future__ import annotations
 
 import ast
+import asyncio
 import pathlib
 
 import pytest
 
 from .conftest import load_module
+from .fake_account import FakeBmw, FakeHost, api, stored_containers
 
 vehicles = load_module("vehicles")
+account_rest = load_module("account_rest")
+const = load_module("const")
 known_vins = vehicles.known_vins
-
-_INIT = (
-    pathlib.Path(__file__).resolve().parents[1]
-    / "custom_components"
-    / "bavariandata"
-    / "__init__.py"
-)
-# The two paths that spend the daily quota, one request per vehicle each.
-REFRESH_FUNCTIONS = ("_async_perform_telematic_fetch", "_async_perform_tyre_fetch")
 
 
 def test_metadata_and_stream_vins_are_merged() -> None:
@@ -77,53 +73,74 @@ def test_junk_never_reaches_a_request_path() -> None:
     assert known_vins(stored_metadata={"WBA1": {}, "": {}, 7: {}, None: {}}) == ["WBA1"]
 
 
-def _function(name: str) -> ast.AST:
-    tree = ast.parse(_INIT.read_text(encoding="utf-8"))
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == name:
-            return node
-    raise AssertionError(f"{name} not found in __init__.py")
+CAR_A = "WBA00000000000001"
+CAR_B = "WBA00000000000002"
 
 
-@pytest.mark.parametrize("name", REFRESH_FUNCTIONS)
-def test_refresh_paths_iterate_every_vehicle(name: str) -> None:
-    """The fetch must loop the account's VINs, not resolve a single one."""
-
-    node = _function(name)
-    calls_helper = any(
-        isinstance(call.func, ast.Name) and call.func.id == "account_vins"
-        for call in ast.walk(node)
-        if isinstance(call, ast.Call)
+def _two_cars() -> FakeHost:
+    bmw = FakeBmw(
+        {
+            api.async_get_telematic_data: {"telematicData": {"x": {"value": 1}}},
+            api.async_get_tyre_diagnosis: {"wheels": []},
+            api.async_get_basic_data: {"modelName": "iX1"},
+        }
     )
-    assert calls_helper, f"{name} must take its VINs from account_vins()"
-    # The container fetch hands its VINs to the one function that fetches the
-    # container for a list of cars; that loop is the one to check then.
-    delegates = any(
-        isinstance(call.func, ast.Name) and call.func.id == "_async_fetch_telematics"
-        for call in ast.walk(node)
-        if isinstance(call, ast.Call)
-    )
-    looper = _function("_async_fetch_telematics") if delegates else node
-    loops_over_vins = any(
-        isinstance(loop.target, ast.Name) and loop.target.id == "vin"
-        for loop in ast.walk(looper)
-        if isinstance(loop, (ast.For, ast.AsyncFor))
-    )
-    assert loops_over_vins, f"{name} must loop over every VIN, not fetch one"
+    return FakeHost(bmw, vins=(CAR_A, CAR_B), data=stored_containers())
 
 
-@pytest.mark.parametrize("name", REFRESH_FUNCTIONS)
-def test_refresh_paths_never_pick_an_arbitrary_vin(name: str) -> None:
-    """``next(iter(coordinator.data))`` is the bug of #13 itself.
+def test_the_daily_refresh_asks_for_every_car() -> None:
+    """Both quota-spending paths, one request per vehicle each (#13)."""
 
-    Insertion order is whichever car streamed first since the restart, so this
-    pattern silently picks a different vehicle across reboots.
-    """
+    host = _two_cars()
+    asyncio.run(account_rest.AccountRest(host).daily_refresh())
 
-    source = ast.unparse(_function(name))
-    assert "next(iter(" not in source, (
-        f"{name} resolves a single arbitrary VIN again -- see issue #13"
-    )
+    containers = [args[0] for args in host.rest.asked(api.async_get_telematic_data)]
+    assert sorted(set(containers)) == [CAR_A, CAR_B]
+    assert host.rest.asked(api.async_get_tyre_diagnosis) == [(CAR_A,), (CAR_B,)]
+    assert host.data["last_telematic_poll"] > 0
+
+
+def test_a_refresh_for_one_car_asks_for_that_car_only() -> None:
+    host = _two_cars()
+    asyncio.run(account_rest.AccountRest(host).refresh(vin=CAR_B))
+
+    assert {args[0] for args in host.rest.asked(api.async_get_telematic_data)} == {CAR_B}
+
+
+def test_a_refresh_without_cars_asks_nothing_and_says_so_when_strict() -> None:
+    host = FakeHost(FakeBmw())
+    assert asyncio.run(account_rest.AccountRest(host).refresh()) is False
+    with pytest.raises(account_rest.FetchFailed, match="no car yet"):
+        asyncio.run(account_rest.AccountRest(host).refresh(strict=True))
+    assert not host.rest.sent
+
+
+def test_adopted_car_gets_its_entities_seeded() -> None:
+    """A car found by Discover is a bare device: BMW replays nothing and a parked
+    car may not stream for days, so adopting it also seeds its entities (#44)."""
+
+    host = _two_cars()
+    asyncio.run(account_rest.AccountRest(host).adopt(CAR_B))
+
+    assert host.rest.asked(api.async_get_basic_data) == [(CAR_B,)]
+    assert {args[0] for args in host.rest.asked(api.async_get_telematic_data)} == {CAR_B}
+    assert host.devices[CAR_B]["name"] == "iX1"
+
+
+def test_a_car_that_already_has_basic_data_is_not_adopted_again() -> None:
+    host = _two_cars()
+    host.data[const.VEHICLE_METADATA] = {CAR_B: {"modelName": "iX1"}}
+    asyncio.run(account_rest.AccountRest(host).adopt(CAR_B))
+
+    assert not host.rest.sent
+
+
+def test_seeding_skips_a_car_that_already_streamed() -> None:
+    host = _two_cars()
+    host.coordinator.data[CAR_B] = {"x": {"value": 1}}
+    asyncio.run(account_rest.AccountRest(host).adopt(CAR_B))
+
+    assert not host.rest.asked(api.async_get_telematic_data)
 
 
 def test_primary_vins_reads_both_payload_shapes_and_skips_secondary() -> None:
@@ -171,15 +188,6 @@ def _function_body(relative: str, name: str) -> str:
         if isinstance(n, (ast.AsyncFunctionDef, ast.FunctionDef)) and n.name == name
     )
     return ast.get_source_segment(source, node) or ""
-
-
-def test_adopted_car_gets_its_entities_seeded() -> None:
-    """A car found by Discover is a bare device: BMW replays nothing and a parked
-    car may not stream for days, so adopting it also seeds its entities (#44)."""
-
-    body = _function_body("__init__.py", "_async_adopt_new_vehicle")
-    assert "_async_fetch_telematics(" in body
-    assert "seed=True" in body
 
 
 def test_flows_that_map_cars_look_for_them_afterwards() -> None:

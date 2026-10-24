@@ -152,3 +152,37 @@ async def test_stored_basic_data_makes_the_device_at_setup(hass: HomeAssistant, 
     ]
     assert device.model == "i5 eDrive40"
     assert device.sw_version == "0723"
+
+
+async def test_the_bootstrap_names_the_cars_bmw_maps(hass: HomeAssistant, no_bmw) -> None:
+    """The REST side (account_rest.py) through the entry it serves.
+
+    The bootstrap itself is the fixture's no-op during setup; run for real
+    afterwards, it writes the entry and the device registry through
+    ``__init__._EntryHost``.
+    """
+
+    from custom_components.bavariandata import _account  # noqa: PLC0415
+
+    async def bmw(_session, _method, path, *_args, **_kwargs):
+        if path.endswith("/mappings"):
+            return [{"vin": VIN, "mappingType": "PRIMARY"}]
+        if path.endswith("/basicData"):
+            return {"modelName": "i5 eDrive40", "brand": "BMW"}
+        raise CardataApiError("no telematics in this test", status=503)
+
+    no_bmw["rest_json"].side_effect = bmw
+    entry = _entry(**{BOOTSTRAP_COMPLETE: False})
+    await _set_up(hass, entry)
+
+    await _account(hass, entry).bootstrap()
+    await hass.async_block_till_done()
+
+    (device,) = [
+        d
+        for d in dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id)
+        if (DOMAIN, VIN) in d.identifiers
+    ]
+    assert device.model == "i5 eDrive40"
+    assert entry.data[BOOTSTRAP_COMPLETE] is True
+    assert entry.data["vehicle_metadata"][VIN]["modelName"] == "i5 eDrive40"

@@ -56,28 +56,15 @@ from .const import (
     OPTION_STATISTICS_IMPORT,
     DEFAULT_STATISTICS_IMPORT,
     OPTION_CHARGE_LOCATIONS,
-    OPTION_REFRESH_ON_START,
-    DEFAULT_REFRESH_ON_START,
     LAST_STARTUP_REFRESH,
     OPTION_STREAM_SECTIONS,
     LOVELACE_CARD_FILENAME,
     LOVELACE_CARD_URL,
 )
 from .device_flow import CardataAuthError, refresh_rejected, refresh_tokens
-from .api import (
-    CardataApiError,
-    async_get_basic_data,
-    async_get_telematic_data,
-    async_get_tyre_diagnosis,
-    async_get_vehicle_mappings,
-)
 from .container import (
-    FULL,
     KINDS,
-    SERVICE,
-    CardataContainerError,
     CardataContainerManager,
-    ContainerKind,
 )
 from .rest import CardataQuotaError, RestGateway, TokenKeeper
 from .coverage import coverage_issue_id, legacy_coverage_issue_id
@@ -87,7 +74,6 @@ from .startup_refresh import (
     STARTUP_REFRESH_DELAY_S,
     last_fetch_at,
     outage_needs_catch_up,
-    startup_refresh_vins,
 )
 from .vehicle_options import without_vehicle
 from .distance import apply_sensor_unit, async_apply_sensor_units
@@ -98,7 +84,6 @@ from .vehicles import (
     known_vins,
     left_account_issue_id,
     new_account_title,
-    primary_vins,
 )
 from .history.backfill import StatisticsPublisher
 from .bridge import REPUBLISH_INTERVAL_S, VehicleBridge, async_clear_published
@@ -107,10 +92,15 @@ from .evcc import BridgeConfig
 from .history.store import HistoryStore
 
 from . import entry_setup
+from .account_rest import (
+    LAST_TELEMATIC_POLL,
+    AccountRest,
+    FetchFailed,
+    seconds_until_poll,
+)
 from .stream import CardataStreamManager
 from .coordinator import CardataCoordinator
 from .debug import (
-    debug_enabled,
     forget_entry as forget_entry_debug,
     mask_vin,
     set_debug_enabled,
@@ -597,7 +587,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
 
     statistics = _async_wire_statistics(hass, entry, coordinator, history_store, options)
     _async_wire_coverage(hass, entry)
-    last_fetch_ts = last_fetch_at(data.get("last_telematic_poll"), data.get(LAST_STARTUP_REFRESH))
+    last_fetch_ts = last_fetch_at(data.get(LAST_TELEMATIC_POLL), data.get(LAST_STARTUP_REFRESH))
     if last_fetch_ts is not None:
         coordinator.last_telematic_api_at = datetime.fromtimestamp(last_fetch_ts, timezone.utc)
     _async_restore_devices(hass, entry, coordinator)
@@ -1410,285 +1400,72 @@ async def async_manual_refresh_tokens(hass: HomeAssistant, entry: CardataConfigE
     await runtime.tokens.renew()
 
 
-def _async_update_entry_data(hass: HomeAssistant, entry: ConfigEntry, **values: Any) -> None:
-    """Write ``values`` into the entry's data, unless they are there already."""
+class _EntryHost:
+    """``account_rest.AccountHost`` over a loaded entry."""
 
-    if all(entry.data.get(key) == value for key, value in values.items()):
-        return
-    hass.config_entries.async_update_entry(entry, data={**entry.data, **values})
+    def __init__(self, hass: HomeAssistant, entry: CardataConfigEntry) -> None:
+        runtime: CardataRuntimeData = entry.runtime_data
+        self._hass = hass
+        self._entry = entry
+        self._quota = runtime.quota_manager
+        self.entry_id = entry.entry_id
+        self.coordinator = runtime.coordinator
+        self.rest = runtime.rest
+        self.tokens = runtime.tokens
+        self.containers = runtime.containers
+        self.container_lock = runtime.container_lock
 
+    @property
+    def data(self) -> Any:
+        return self._entry.data
 
-async def _async_container_id(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    runtime: CardataRuntimeData,
-    kind: ContainerKind = FULL,
-) -> Optional[str]:
-    """The entry's container of ``kind``, created -- or replaced -- first if need be.
+    @property
+    def options(self) -> Any:
+        return self._entry.options
 
-    Replaced when the integration now wants a different descriptor set than
-    the stored container holds (its signature), so the old one is deleted
-    instead of idling against BMW's 10-container limit. ``None`` when BMW would
-    not create one (already logged). Raises ``CardataAuthError`` when no token
-    can be had.
-    """
+    @property
+    def quota_remaining(self) -> Optional[int]:
+        return self._quota.remaining if self._quota else None
 
-    manager = runtime.containers[kind.key]
-    async with runtime.container_lock:
-        stored_id = entry.data.get(kind.id_key)
-        stored_signature = entry.data.get(kind.signature_key)
-        if stored_id and stored_signature in (manager.descriptor_signature, None):
-            # An entry from before signatures were stored is taken as current.
-            _async_update_entry_data(
-                hass, entry, **{kind.signature_key: manager.descriptor_signature}
-            )
-            manager.sync_from_entry(stored_id)
-            return stored_id
-        access_token = await runtime.tokens.access_token()
-        manager.sync_from_entry(None)
-        try:
-            if stored_id:
-                container_id = await manager.async_reset_hv_container(access_token)
-            else:
-                container_id = await manager.async_ensure_hv_container(access_token)
-        except CardataContainerError as err:
-            _LOGGER.warning(
-                "Unable to set up the %s REST container for entry %s: %s",
-                kind.key,
-                entry.entry_id,
-                err,
-            )
-            return None
-        if not container_id:
-            return None
-        _async_update_entry_data(
-            hass,
-            entry,
-            **{kind.id_key: container_id, kind.signature_key: manager.descriptor_signature},
+    def update_data(self, **values: Any) -> None:
+        self._hass.config_entries.async_update_entry(
+            self._entry, data={**self._entry.data, **values}
         )
-        return container_id
+
+    def register_device(self, vin: str, fields: Any) -> None:
+        dr.async_get(self._hass).async_get_or_create(
+            config_entry_id=self.entry_id, identifiers={(DOMAIN, vin)}, **fields
+        )
+
+    def account_vins(self) -> list[str]:
+        return account_vins(self._hass, self._entry, self.coordinator)
+
+    def diagnostics_changed(self) -> None:
+        async_dispatcher_send(self._hass, self.coordinator.signal_diagnostics)
+
+
+def _account(hass: HomeAssistant, entry: CardataConfigEntry) -> AccountRest:
+    """The REST side of a loaded entry (account_rest.py)."""
+
+    return AccountRest(_EntryHost(hass, entry))
+
+
+def _loaded(hass: HomeAssistant, entry_id: str) -> Optional[CardataConfigEntry]:
+    """The entry, if it exists and is set up."""
+
+    entry = hass.config_entries.async_get_entry(entry_id)
+    if entry is None or getattr(entry, "runtime_data", None) is None:
+        return None
+    return entry
 
 
 async def _async_run_bootstrap(hass: HomeAssistant, entry: CardataConfigEntry) -> None:
-    runtime: CardataRuntimeData | None = getattr(entry, "runtime_data", None)
-    if runtime is None:
-        return
-
-    _LOGGER.debug("Starting bootstrap sequence for entry %s", entry.entry_id)
-
-    try:
-        vins = await _async_fetch_primary_vins(runtime, entry.entry_id)
-    except CardataAuthError as err:
-        # Not marked complete: the next start tries again.
-        _LOGGER.warning("Bootstrap for entry %s has no valid token: %s", entry.entry_id, err)
-        return
-    if not vins:
-        await _async_mark_bootstrap_complete(hass, entry)
-        return
-
-    device_registry = dr.async_get(hass)
-    coordinator = runtime.coordinator
-    for vin in vins:
-        coordinator.data.setdefault(vin, {})
-        device_registry.async_get_or_create(
-            config_entry_id=entry.entry_id,
-            identifiers={(DOMAIN, vin)},
-            manufacturer="BMW",
-            name=coordinator.names.get(vin, vin),
-        )
-
-    if await _async_fetch_telematics(hass, entry, runtime, vins, label="Bootstrap", seed=True):
-        _async_update_last_telematic_poll(hass, entry, time.time())
-    # Whatever the telematics fetch did: the basic data is what names a car and
-    # tells its drivetrain, steering side and picture, and nothing else would
-    # fetch it for a car that already has a device.
-    await _async_fetch_basic_data_for_vins(hass, entry, vins)
-    await _async_mark_bootstrap_complete(hass, entry)
-
-
-async def _async_fetch_primary_vins(runtime: CardataRuntimeData, entry_id: str) -> List[str]:
-    try:
-        payload = await runtime.rest.call(async_get_vehicle_mappings)
-    except CardataQuotaError as err:
-        _LOGGER.warning("Bootstrap mapping request skipped for entry %s: %s", entry_id, err)
-        return []
-    except CardataApiError as err:
-        _LOGGER.warning("Bootstrap mapping request failed for entry %s: %s", entry_id, err)
-        return []
-
-    vins = primary_vins(payload)
-
-    if not vins:
-        _LOGGER.info("Bootstrap mapping for entry %s returned no primary vehicles", entry_id)
-    else:
-        _LOGGER.debug("Bootstrap found %s mapped vehicle(s) for entry %s", len(vins), entry_id)
-    return vins
-
-
-async def _async_fetch_telematics(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    runtime: CardataRuntimeData,
-    vins: List[str],
-    *,
-    label: str = "Cardata fetch_telematic_data",
-    seed: bool = False,
-    strict: bool = False,
-) -> bool:
-    """Fetch each car's containers and feed them in like a stream message.
-
-    One request per car and container (``KINDS``). Each stands alone: BMW
-    refuses a whole container for one field it won't serve, so the service
-    items, which it refused from 16 Oct 2026 (#142), are fetched apart and cost
-    only themselves. ``seed`` skips a car that already has data (a car found by
-    the bootstrap or Discover gets its entities before it streams). Returns
-    whether BMW was asked at all. ``strict`` (a service call) raises
-    :class:`HomeAssistantError` for what it could not fetch, once every car has
-    had its turn; the service items alone never count, BMW refuses those daily.
-    """
-
-    coordinator = runtime.coordinator
-    container_ids: Dict[str, Optional[str]] = {}
-    failures: list[str] = []
-
-    async def container_id(kind: ContainerKind) -> Optional[str]:
-        if kind.key not in container_ids:
-            container_ids[kind.key] = await _async_container_id(hass, entry, runtime, kind)
-        return container_ids[kind.key]
-
-    async def fetch(vin: str) -> bool:
-        """One car; whether BMW was asked."""
-
-        asked = False
-        for kind in KINDS:
-            found = await container_id(kind)
-            if not found:
-                _LOGGER.error(
-                    "%s: entry %s has no %s REST container", label, entry.entry_id, kind.key
-                )
-                if kind is not SERVICE:
-                    failures.append(f"no {kind.key} REST container")
-                continue
-            asked = True
-            try:
-                payload = await runtime.rest.call(async_get_telematic_data, vin, found)
-            except CardataApiError as err:
-                # Neither another container nor another car pays for it.
-                if kind is SERVICE:
-                    _LOGGER.warning(
-                        "%s: BMW did not return the service items for %s (%s); the rest "
-                        "of the refresh is unaffected",
-                        label,
-                        mask_vin(vin),
-                        err,
-                    )
-                else:
-                    _LOGGER.error("%s: request failed for %s: %s", label, mask_vin(vin), err)
-                    failures.append(f"{mask_vin(vin)}: {err}")
-                continue
-            _LOGGER.info("Fetched telematic data (%s) for %s", kind.key, mask_vin(vin))
-            if debug_enabled():
-                _LOGGER.debug("Cardata telematic data for %s: %s", mask_vin(vin), payload)
-            telematic = None
-            if isinstance(payload, dict):
-                telematic = payload.get("telematicData") or payload.get("data")
-            if isinstance(telematic, dict) and telematic:
-                await coordinator.async_handle_message(
-                    {"vin": vin, "data": telematic, "source": "rest"}
-                )
-        return asked
-
-    attempted = False
-    for vin in vins:
-        if seed and coordinator.data.get(vin):
-            continue
-        try:
-            attempted = await fetch(vin) or attempted
-        except CardataQuotaError as err:
-            # The remaining cars wait for the next round rather than each
-            # logging the same exhaustion.
-            _LOGGER.warning("%s skipped for %s: %s", label, mask_vin(vin), err)
-            failures.append(str(err))
-            break
-        except CardataAuthError as err:
-            _LOGGER.error("%s: no valid token for %s: %s", label, mask_vin(vin), err)
-            failures.append("no valid BMW token; reauthorize")
-            break
-
-    if attempted:
-        coordinator.last_telematic_api_at = datetime.now(timezone.utc)
-        async_dispatcher_send(coordinator.hass, coordinator.signal_diagnostics)
-    if strict and failures:
-        raise HomeAssistantError(f"{label}: {'; '.join(failures)}")
-    return attempted
-
-
-async def _async_fetch_basic_data_for_vins(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    vins: List[str],
-    label: str = "Bootstrap",
-) -> None:
-    runtime: CardataRuntimeData = entry.runtime_data
-    coordinator = runtime.coordinator
-    device_registry = dr.async_get(hass)
-
-    for vin in vins:
-        try:
-            payload = await runtime.rest.call(async_get_basic_data, vin)
-        except CardataQuotaError as err:
-            _LOGGER.warning("%s basic data request skipped for %s: %s", label, mask_vin(vin), err)
-            break
-        except CardataAuthError as err:
-            _LOGGER.warning("%s basic data for %s: no valid token: %s", label, mask_vin(vin), err)
-            break
-        except CardataApiError as err:
-            # A warning, not debug: without basic data the car has no model
-            # name, drivetrain or steering side, and nothing else says why
-            # (issue #100 surfaced only as empty fields in diagnostics). The
-            # error's own text names the request path, VIN included, so only
-            # its status and BMW's error id are logged.
-            _LOGGER.warning(
-                "%s basic data request failed for %s: %s",
-                label,
-                mask_vin(vin),
-                f"HTTP {err.status} {err.error_id or ''}".rstrip()
-                if err.status
-                else "network error",
-            )
-            continue
-
-        if not isinstance(payload, dict):
-            continue
-
-        metadata = coordinator.apply_basic_data(vin, payload)
-        if not metadata:
-            continue
-
-        _async_store_vehicle_metadata(hass, entry, vin, metadata.get("raw_data") or payload)
-
-        device_registry.async_get_or_create(
-            config_entry_id=entry.entry_id,
-            identifiers={(DOMAIN, vin)},
-            manufacturer=metadata.get("manufacturer", "BMW"),
-            name=metadata.get("name", vin),
-            model=metadata.get("model"),
-            sw_version=metadata.get("sw_version"),
-            hw_version=metadata.get("hw_version"),
-            serial_number=metadata.get("serial_number"),
-        )
+    if getattr(entry, "runtime_data", None) is not None:
+        await _account(hass, entry).bootstrap()
 
 
 async def _async_adopt_new_vehicle(hass: HomeAssistant, entry_id: str, vin: str) -> None:
-    """Fetch the basic data of a car that has none.
-
-    The bootstrap runs once per entry and is what turns a VIN into a named
-    device -- model, software version, the name shown on the dashboard, and the
-    Motorrad warning all come from that one REST call. A car added to the
-    account later (a second BMW, or one enrolled in CarData after setup)
-    streams perfectly well, so its entities appear, but it used to stay a bare
-    VIN on the device page for good, because nothing ever revisited the
-    bootstrap. The same goes for a car whose basic-data request failed then.
+    """:meth:`AccountRest.adopt`, if the entry is still loaded.
 
     Costs one request against the daily quota per car, once per Home Assistant
     run: ``basic_data_attempted`` is claimed before the call, so a car BMW has
@@ -1696,30 +1473,9 @@ async def _async_adopt_new_vehicle(hass: HomeAssistant, entry_id: str, vin: str)
     streaming.
     """
 
-    entry = hass.config_entries.async_get_entry(entry_id)
-    runtime: CardataRuntimeData | None = getattr(entry, "runtime_data", None) if entry else None
-    if entry is None or runtime is None:
-        return
-    if vin in (entry.data.get(VEHICLE_METADATA) or {}):
-        return
-
-    _LOGGER.info("Vehicle %s has no basic data yet; fetching it", mask_vin(vin))
-    await _async_fetch_basic_data_for_vins(hass, entry, [vin], label="New vehicle")
-
-    # A car found by Discover (rather than by its own first message) has no
-    # entities yet, and a parked car may not stream for days. Seed them from one
-    # telematics fetch; a car that already streamed has data and is skipped.
-    await _async_fetch_telematics(hass, entry, runtime, [vin], label="New vehicle", seed=True)
-
-
-def _vins_without_basic_data(
-    hass: HomeAssistant, entry: ConfigEntry, runtime: CardataRuntimeData
-) -> list[str]:
-    """Every car this entry has, by its data or its devices, that has no basic data."""
-
-    vins = account_vins(hass, entry, runtime.coordinator)
-    have = entry.data.get(VEHICLE_METADATA) or {}
-    return [vin for vin in vins if vin not in have]
+    entry = _loaded(hass, entry_id)
+    if entry is not None:
+        await _account(hass, entry).adopt(vin)
 
 
 @callback
@@ -1727,7 +1483,7 @@ def _async_on_reconnect(hass: HomeAssistant, entry: CardataConfigEntry, down_s: 
     """Schedule a catch-up when the stream comes back from a long outage.
 
     Called from the connection-event path, so it only schedules; the rules that
-    decide whether a request is actually made live in ``_async_catch_up``.
+    decide whether a request is actually made live in ``AccountRest.catch_up``.
     """
 
     if not outage_needs_catch_up(down_s):
@@ -1762,85 +1518,26 @@ def _async_on_new_vehicle(hass: HomeAssistant, entry: CardataConfigEntry, vin: s
     )
 
 
-async def _async_mark_bootstrap_complete(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    if entry.data.get(BOOTSTRAP_COMPLETE):
-        return
-    updated = dict(entry.data)
-    updated[BOOTSTRAP_COMPLETE] = True
-    hass.config_entries.async_update_entry(entry, data=updated)
-
-
 async def _async_perform_telematic_fetch(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: CardataConfigEntry,
     runtime: CardataRuntimeData,
     *,
     vin_override: Optional[str] = None,
     strict: bool = False,
 ) -> bool:
-    # One account can hold several cars and the container endpoint is per VIN,
-    # so a refresh means one request *per vehicle*. Picking a single VIN here
-    # left every other car's non-streamable fields frozen at their setup value
-    # for good -- issue #13. An explicit vin still targets just that car.
-    if vin_override:
-        vins = [vin_override]
-    else:
-        vins = account_vins(hass, entry, runtime.coordinator)
-    if not vins:
-        _LOGGER.error("Cardata fetch_telematic_data: no VIN available; provide vin parameter")
-        if strict:
-            raise HomeAssistantError("fetch_telematic_data: this account has no car yet")
-        return False
-    return await _async_fetch_telematics(hass, entry, runtime, vins, strict=strict)
+    """:meth:`AccountRest.refresh`; ``strict`` raises what it could not fetch."""
+
+    try:
+        return await _account(hass, entry).refresh(vin=vin_override, strict=strict)
+    except FetchFailed as err:
+        raise HomeAssistantError(str(err)) from err
 
 
 def _async_update_last_telematic_poll(
-    hass: HomeAssistant, entry: ConfigEntry, timestamp: float
+    hass: HomeAssistant, entry: CardataConfigEntry, timestamp: float
 ) -> None:
-    existing = entry.data.get("last_telematic_poll")
-    if existing and abs(existing - timestamp) < 1:
-        return
-    updated = dict(entry.data)
-    updated["last_telematic_poll"] = timestamp
-    hass.config_entries.async_update_entry(entry, data=updated)
-
-
-async def _async_perform_tyre_fetch(
-    hass: HomeAssistant, entry: ConfigEntry, runtime: CardataRuntimeData
-) -> bool:
-    """Refresh the smart-maintenance tyre diagnosis for every vehicle.
-
-    Its own endpoint, so its own request per car against the daily quota -- it
-    cannot be folded into the container call. Like that call, it used to serve a
-    single VIN, which left a second car's tread wear frozen forever (issue #13).
-    """
-
-    vins = account_vins(hass, entry, runtime.coordinator)
-    refreshed = False
-    for vin in vins:
-        try:
-            payload = await runtime.rest.call(async_get_tyre_diagnosis, vin)
-        except CardataQuotaError as err:
-            _LOGGER.warning("Daily tyre diagnosis skipped for %s: %s", mask_vin(vin), err)
-            break
-        except CardataAuthError as err:
-            _LOGGER.warning("Daily tyre diagnosis: no valid token: %s", err)
-            break
-        except CardataApiError as err:
-            # Not every vehicle has tyre service data; a failure here must not
-            # stop the other cars, nor the container refresh sharing this loop.
-            _LOGGER.debug("Daily tyre diagnosis failed for %s: %s", mask_vin(vin), err)
-            continue
-
-        parsed = runtime.coordinator.apply_tyre_diagnosis(vin, payload)
-        _LOGGER.debug(
-            "Daily tyre diagnosis for %s: %s wheel(s)",
-            mask_vin(vin),
-            len(parsed.get("wheels") or {}),
-        )
-        refreshed = True
-
-    return refreshed
+    _account(hass, entry).update_last_telematic_poll(timestamp)
 
 
 async def _async_startup_refresh(hass: HomeAssistant, entry_id: str) -> None:
@@ -1850,95 +1547,43 @@ async def _async_startup_refresh(hass: HomeAssistant, entry_id: str) -> None:
         await asyncio.sleep(STARTUP_REFRESH_DELAY_S)
     except asyncio.CancelledError:
         return
-    entry = hass.config_entries.async_get_entry(entry_id)
-    runtime: CardataRuntimeData | None = getattr(entry, "runtime_data", None) if entry else None
-    if entry is not None and runtime is not None:
+    entry = _loaded(hass, entry_id)
+    if entry is not None:
         # A car whose basic data never arrived (a failed request at setup, say)
         # would otherwise stay unnamed for good: nothing else asks again once
         # it has a device. One request per such car, once per start.
-        for vin in _vins_without_basic_data(hass, entry, runtime):
+        for vin in _account(hass, entry).vins_without_basic_data():
             _async_on_new_vehicle(hass, entry, vin)
     await _async_catch_up(hass, entry_id, "after startup")
 
 
 async def _async_catch_up(hass: HomeAssistant, entry_id: str, occasion: str) -> None:
-    """Fetch what the cars reported while nobody was listening.
+    """:meth:`AccountRest.catch_up`, if the entry is still loaded."""
 
-    Runs after a start and after a stream outage. One container fetch per car,
-    subject to the rules in ``startup_refresh.py`` (skipped when BMW was asked
-    within the hour, charges a restart left unconfirmed first, never into the
-    last of the quota). The answers go through the ordinary message path, so a
-    CHARGINGACTIVE resumes a restored session and a NOCHARGING closes it --
-    before its grace timer would have filed it as ended by the restart.
-    """
-
-    entry = hass.config_entries.async_get_entry(entry_id)
-    runtime: CardataRuntimeData | None = getattr(entry, "runtime_data", None) if entry else None
-    if entry is None or runtime is None:
-        return
-    # The daily refresh counts as asking BMW too: right after it ran, a catch-up
-    # would fetch the same snapshot again.
-    now = time.time()
-    coordinator = runtime.coordinator
-    vins = startup_refresh_vins(
-        enabled=bool(entry.options.get(OPTION_REFRESH_ON_START, DEFAULT_REFRESH_ON_START)),
-        vins=account_vins(hass, entry, coordinator),
-        unconfirmed=coordinator.unconfirmed_restored_charges(),
-        last_fetch_at=last_fetch_at(
-            entry.data.get(LAST_STARTUP_REFRESH), entry.data.get("last_telematic_poll")
-        ),
-        now=now,
-        remaining=runtime.quota_manager.remaining if runtime.quota_manager else None,
-    )
-    if not vins:
-        return
-    # Stamped before the requests, so a restart loop that crashes mid-fetch is
-    # still spaced out.
-    updated = dict(entry.data)
-    updated[LAST_STARTUP_REFRESH] = now
-    hass.config_entries.async_update_entry(entry, data=updated)
-    _LOGGER.info(
-        "Catching up %s: fetching the current state of %d vehicle(s) "
-        "(one request each of the daily quota)",
-        occasion,
-        len(vins),
-    )
-    for vin in vins:
-        await _async_perform_telematic_fetch(hass, entry, runtime, vin_override=vin)
+    entry = _loaded(hass, entry_id)
+    if entry is not None:
+        await _account(hass, entry).catch_up(occasion)
 
 
 async def _telematic_poll_loop(hass: HomeAssistant, entry_id: str) -> None:
     """Daily REST refresh of everything BMW cannot stream.
 
-    Two requests per run: one container call covering every non-streamable
-    descriptor at once, plus the tyre diagnosis on its own endpoint. The image
-    and basic data are deliberately not here -- they do not change, so they stay
-    on the setup path and the manual services.
+    Two requests per car and run: the containers, covering every
+    non-streamable descriptor, plus the tyre diagnosis on its own endpoint. The
+    image and basic data are deliberately not here -- they do not change, so
+    they stay on the setup path and the manual services.
     """
 
     try:
         while True:
-            entry = hass.config_entries.async_get_entry(entry_id)
-            runtime: CardataRuntimeData | None = (
-                getattr(entry, "runtime_data", None) if entry else None
-            )
-            if entry is None or runtime is None:
+            entry = _loaded(hass, entry_id)
+            if entry is None:
                 return
-
-            last_poll = entry.data.get("last_telematic_poll", 0.0)
-            now = time.time()
-            wait = TELEMATIC_POLL_INTERVAL - (now - last_poll)
+            wait = seconds_until_poll(entry.data.get(LAST_TELEMATIC_POLL), time.time())
             if wait > 0:
                 await asyncio.sleep(wait)
                 continue
-
-            await _async_perform_telematic_fetch(
-                hass,
-                entry,
-                runtime,
-            )
-            await _async_perform_tyre_fetch(hass, entry, runtime)
-            _async_update_last_telematic_poll(hass, entry, time.time())
+            await _account(hass, entry).daily_refresh()
             await asyncio.sleep(TELEMATIC_POLL_INTERVAL)
     except asyncio.CancelledError:
         return
@@ -1965,18 +1610,8 @@ def _async_retitle(hass: HomeAssistant, entry: ConfigEntry, coordinator: Any) ->
 
 def _async_store_vehicle_metadata(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: CardataConfigEntry,
     vin: str,
     payload: Dict[str, Any],
 ) -> None:
-    existing_metadata = entry.data.get(VEHICLE_METADATA, {})
-    if not isinstance(existing_metadata, dict):
-        existing_metadata = {}
-    current = existing_metadata.get(vin)
-    if current == payload:
-        return
-    updated = dict(entry.data)
-    new_metadata = dict(existing_metadata)
-    new_metadata[vin] = payload
-    updated[VEHICLE_METADATA] = new_metadata
-    hass.config_entries.async_update_entry(entry, data=updated)
+    _account(hass, entry).store_vehicle_metadata(vin, payload)
