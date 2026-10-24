@@ -25,7 +25,6 @@ from .car_state import Vehicle
 from .const import EVENT_VEHICLE_REPORT
 from .debug import mask_vin
 from .history.trip_builder import TripBuilder
-from .history.trips import Trip
 from .phone_route import PhoneRoute
 from .trip_capture import TripLog
 from .trip_settings import TripSettings
@@ -71,21 +70,8 @@ class ReportHost(Protocol):
     def report_trips(self, vin: str) -> bool: ...
     def trip_settings_for(self, vin: str) -> TripSettings: ...
     def _fire(self, event_type: str, payload: Dict[str, Any]) -> None: ...
-    async def _resolve_place(
-        self, vin: str, latitude: Optional[float] = None, longitude: Optional[float] = None
-    ) -> Optional[dict[str, Any]]: ...
-    def _trip_energy_kwh(
-        self, vin: str, soc_start: Optional[float], soc_end: Optional[float]
-    ) -> Optional[float]: ...
-    def _store_trip(
-        self,
-        vin: str,
-        trip: Trip,
-        *,
-        start_zone: Optional[tuple[str, str]],
-        left_fired: bool,
-        announce: bool,
-    ) -> None: ...
+
+    trips: Any  # vehicle_trips.VehicleTrips: resolve_place, trip_energy_kwh, store_trip
 
 
 class VehicleReports:
@@ -306,7 +292,7 @@ class VehicleReports:
         """
 
         try:
-            resolved = await self._host._resolve_place(vin)
+            resolved = await self._host.trips.resolve_place(vin)
             record = self._host.history.last_report(vin) if self._host.history is not None else None
             if resolved is None or record is None or record.get("odometer_km") != odometer_km:
                 return
@@ -387,7 +373,7 @@ class VehicleReports:
         """
 
         try:
-            end_place = await self._host._resolve_place(vin)
+            end_place = await self._host.trips.resolve_place(vin)
             record = self._host.history.last_report(vin) if self._host.history is not None else None
             if end_place is not None and record and record.get("odometer_km") == odometer_km:
                 self._host.history.async_set_last_report(vin, {**record, "place": end_place})
@@ -432,7 +418,7 @@ class VehicleReports:
                 end_place=end_place,
                 soc_end=soc_end,
                 mileage_end=odometer_km,
-                energy_kwh=self._host._trip_energy_kwh(vin, soc_start, soc_end),
+                energy_kwh=self._host.trips.trip_energy_kwh(vin, soc_start, soc_end),
                 stats=fuel_stats(baseline.get("fuel_l"), self._host._numeric(vin, DESC_FUEL_L)),
                 hybrid=self._host.is_plug_in_hybrid(vin),
             )
@@ -448,7 +434,7 @@ class VehicleReports:
                 "marked" if start is not None else "unknown",
                 len(route),
             )
-            self._host._store_trip(vin, trip, start_zone=None, left_fired=False, announce=True)
+            self._host.trips.store_trip(vin, trip, start_zone=None, left_fired=False, announce=True)
         except Exception:  # noqa: BLE001 - bookkeeping must not break the stream
             _LOGGER.exception("Could not record the report trip for %s", mask_vin(vin))
 
