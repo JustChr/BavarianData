@@ -14,6 +14,8 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.syrupy import HomeAssistantSnapshotExtension
+from syrupy.assertion import SnapshotAssertion
 
 from custom_components.bavariandata.api import CardataApiError
 from custom_components.bavariandata.const import BOOTSTRAP_COMPLETE, DOMAIN
@@ -24,6 +26,18 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     """Let Home Assistant load ``custom_components/bavariandata``."""
 
     yield
+
+
+@pytest.fixture
+def snapshot(snapshot: SnapshotAssertion) -> SnapshotAssertion:
+    """Home Assistant's snapshot extension, files in ``snapshots/``, everywhere.
+
+    The plugin and syrupy both define ``snapshot``, and which one wins follows
+    the order the two were installed in: a uv venv and CI's pip venv disagreed,
+    and looked for the files in two different folders.
+    """
+
+    return snapshot.use_extension(HomeAssistantSnapshotExtension)
 
 
 VIN = "WBATEST0000000001"

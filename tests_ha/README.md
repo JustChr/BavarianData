@@ -23,7 +23,7 @@ counts every module on its own.
 ## Snapshots
 
 `test_flow_snapshots.py` walks every setup and Configure screen and pins each
-step as the frontend receives it, in `__snapshots__/test_flow_snapshots.ambr`
+step as the frontend receives it, in `snapshots/test_flow_snapshots.ambr`
 (HA's own syrupy extension). A screen that changes fails there with a diff.
 When the change is intended, approve it and **read the diff** — that review is
 the point:
