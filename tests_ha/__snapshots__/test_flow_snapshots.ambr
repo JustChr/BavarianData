@@ -1,0 +1,4552 @@
+# serializer version: 1
+# name: test_a_refused_authorization_is_retried
+  list([
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'client_id',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'portal_de': 'https://www.bmw.de/de-de/mybmw/vehicle-overview',
+        'portal_uk': 'https://www.bmw.co.uk/en-gb/mybmw/vehicle-overview',
+        'portal_url': 'https://bmw-cardata.bmwgroup.com/customer/public/api-documentation/Id-Technical-registration_Step-1',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'manual',
+      'type': 'form',
+    }),
+    dict({
+      'description_placeholders': dict({
+        'user_code': 'ABCD-EFGH',
+        'verification_url': 'https://customer.bmwgroup.com/oneid/link',
+      }),
+      'progress_action': 'wait_for_authorization',
+      'step_id': 'authorize',
+      'type': 'progress',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': dict({
+        'error': '''
+          denied
+          - HTTP status: 400
+          - Error code: access_denied
+          - Description: The user denied
+          - BMW reference: corr-1
+          - Requested scope: authenticate_user openid cardata:api:read cardata:streaming:read
+        ''',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'authorize_failed',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': dict({
+        'error': 'still refused',
+      }),
+      'errors': dict({
+        'base': 'device_code_failed',
+      }),
+      'last_step': None,
+      'step_id': 'authorize_failed',
+      'type': 'form',
+    }),
+    dict({
+      'description_placeholders': dict({
+        'user_code': 'ABCD-EFGH',
+        'verification_url': 'https://customer.bmwgroup.com/oneid/link',
+      }),
+      'progress_action': 'wait_for_authorization',
+      'step_id': 'authorize',
+      'type': 'progress',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': list([
+            'electric',
+            'status',
+            'events',
+            'tire',
+            'basic',
+            'usage',
+          ]),
+          'name': 'sections',
+          'options': dict({
+            'basic': 'Vehicle basic data',
+            'contract': 'ConnectedDrive contract',
+            'electric': 'Electric vehicle',
+            'events': 'Vehicle events',
+            'metadata': 'Metadata',
+            'other': 'Other',
+            'status': 'Vehicle status',
+            'tire': 'Tire data',
+            'usage': 'Usage-based data',
+          }),
+          'required': True,
+          'type': 'multi_select',
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'select_clusters',
+      'type': 'form',
+    }),
+  ])
+# ---
+# name: test_an_account_already_set_up
+  list([
+    'another client of the same account',
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'client_id',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'portal_de': 'https://www.bmw.de/de-de/mybmw/vehicle-overview',
+        'portal_uk': 'https://www.bmw.co.uk/en-gb/mybmw/vehicle-overview',
+        'portal_url': 'https://bmw-cardata.bmwgroup.com/customer/public/api-documentation/Id-Technical-registration_Step-1',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'manual',
+      'type': 'form',
+    }),
+    dict({
+      'description_placeholders': dict({
+        'user_code': 'ABCD-EFGH',
+        'verification_url': 'https://customer.bmwgroup.com/oneid/link',
+      }),
+      'progress_action': 'wait_for_authorization',
+      'step_id': 'authorize',
+      'type': 'progress',
+    }),
+    dict({
+      'description_placeholders': None,
+      'reason': 'account_already_configured',
+      'type': 'abort',
+    }),
+    'the same client again',
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'client_id',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'portal_de': 'https://www.bmw.de/de-de/mybmw/vehicle-overview',
+        'portal_uk': 'https://www.bmw.co.uk/en-gb/mybmw/vehicle-overview',
+        'portal_url': 'https://bmw-cardata.bmwgroup.com/customer/public/api-documentation/Id-Technical-registration_Step-1',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'manual',
+      'type': 'form',
+    }),
+    dict({
+      'description_placeholders': dict({
+        'user_code': 'ABCD-EFGH',
+        'verification_url': 'https://customer.bmwgroup.com/oneid/link',
+      }),
+      'progress_action': 'wait_for_authorization',
+      'step_id': 'authorize',
+      'type': 'progress',
+    }),
+    dict({
+      'description_placeholders': None,
+      'reason': 'reauth_successful',
+      'type': 'abort',
+    }),
+    dict({
+      'entry data': dict({
+        'access_token': 'access',
+        'client_id': '11111111-2222-3333-4444-555555555555',
+        'expires_in': 3600,
+        'gcid': 'gcid-1',
+        'id_token': 'id',
+        'keep': True,
+        'received_at': '<time>',
+        'refresh_token': 'refresh',
+        'scope': 'openid cardata:streaming:read cardata:api:read',
+        'token_type': 'Bearer',
+      }),
+    }),
+  ])
+# ---
+# name: test_configure_charging_costs
+  list([
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'none',
+          'name': 'price_mode',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'none',
+                'fixed',
+                'entity',
+              ]),
+              'sort': False,
+              'translation_key': 'price_mode',
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'price_fixed',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'number': dict({
+              'min': 0.0,
+              'mode': 'box',
+              'step': 'any',
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'price_entity',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'sensor',
+                'input_number',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': 'EUR',
+          'name': 'price_currency',
+          'required': True,
+          'type': 'string',
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'grid_energy_entity',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'sensor',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': 0,
+          'name': 'charging_loss_percent',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 30.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 0.5,
+            }),
+          }),
+        }),
+        dict({
+          'default': 24,
+          'name': 'history_retain_months',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 120.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 1.0,
+            }),
+          }),
+        }),
+        dict({
+          'default': True,
+          'name': 'statistics_import',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'charge_locations',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_charging_costs',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'none',
+          'name': 'price_mode',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'none',
+                'fixed',
+                'entity',
+              ]),
+              'sort': False,
+              'translation_key': 'price_mode',
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'price_fixed',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'number': dict({
+              'min': 0.0,
+              'mode': 'box',
+              'step': 'any',
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'price_entity',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'sensor',
+                'input_number',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': 'EUR',
+          'name': 'price_currency',
+          'required': True,
+          'type': 'string',
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'grid_energy_entity',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'sensor',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': 0,
+          'name': 'charging_loss_percent',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 30.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 0.5,
+            }),
+          }),
+        }),
+        dict({
+          'default': 24,
+          'name': 'history_retain_months',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 120.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 1.0,
+            }),
+          }),
+        }),
+        dict({
+          'default': True,
+          'name': 'statistics_import',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'charge_locations',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+        'base': 'price_required',
+      }),
+      'last_step': None,
+      'step_id': 'action_charging_costs',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'none',
+          'name': 'price_mode',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'none',
+                'fixed',
+                'entity',
+              ]),
+              'sort': False,
+              'translation_key': 'price_mode',
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'price_fixed',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'number': dict({
+              'min': 0.0,
+              'mode': 'box',
+              'step': 'any',
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'price_entity',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'sensor',
+                'input_number',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': 'EUR',
+          'name': 'price_currency',
+          'required': True,
+          'type': 'string',
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'grid_energy_entity',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'sensor',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': 0,
+          'name': 'charging_loss_percent',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 30.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 0.5,
+            }),
+          }),
+        }),
+        dict({
+          'default': 24,
+          'name': 'history_retain_months',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 120.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 1.0,
+            }),
+          }),
+        }),
+        dict({
+          'default': True,
+          'name': 'statistics_import',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'charge_locations',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+        'base': 'price_entity_required',
+      }),
+      'last_step': None,
+      'step_id': 'action_charging_costs',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'charge_locations': False,
+        'charging_loss_percent': 7.5,
+        'grid_energy_entity': None,
+        'history_retain_months': 24.0,
+        'price_currency': 'EUR',
+        'price_fixed': 0.32,
+        'price_mode': 'fixed',
+        'statistics_import': False,
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'fixed',
+          'name': 'price_mode',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'none',
+                'fixed',
+                'entity',
+              ]),
+              'sort': False,
+              'translation_key': 'price_mode',
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': 0.32,
+          }),
+          'name': 'price_fixed',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'number': dict({
+              'min': 0.0,
+              'mode': 'box',
+              'step': 'any',
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'price_entity',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'sensor',
+                'input_number',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': 'EUR',
+          'name': 'price_currency',
+          'required': True,
+          'type': 'string',
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'grid_energy_entity',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'sensor',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': 7.5,
+          'name': 'charging_loss_percent',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 30.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 0.5,
+            }),
+          }),
+        }),
+        dict({
+          'default': 24.0,
+          'name': 'history_retain_months',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 120.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 1.0,
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'statistics_import',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'charge_locations',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_charging_costs',
+      'type': 'form',
+    }),
+  ])
+# ---
+# name: test_configure_connection
+  list([
+    'renew the token',
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_refresh_tokens',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': dict({
+        'error': 'expired',
+      }),
+      'errors': dict({
+        'base': 'refresh_failed',
+      }),
+      'last_step': None,
+      'step_id': 'action_refresh_tokens',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+    'reset the containers',
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_reset_container',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': dict({
+        'error': 'no token',
+      }),
+      'errors': dict({
+        'base': 'refresh_failed',
+      }),
+      'last_step': None,
+      'step_id': 'action_reset_container',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+    dict({
+      'entry containers': dict({
+        'hv_container_id': 'container-new',
+        'service_container_id': 'container-new',
+      }),
+    }),
+    'authorize again',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'client-1',
+          'name': 'client_id',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_reauth',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'client-1',
+          'name': 'client_id',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': dict({
+        'client_id': 'invalid_client_id',
+      }),
+      'last_step': None,
+      'step_id': 'action_reauth',
+      'type': 'form',
+    }),
+    dict({
+      'description_placeholders': None,
+      'reason': 'reauth_started',
+      'type': 'abort',
+    }),
+    dict({
+      'reauth flow': 'authorize',
+    }),
+    dict({
+      'description_placeholders': None,
+      'reason': 'reauth_successful',
+      'type': 'abort',
+    }),
+    dict({
+      'client id': '11111111-2222-3333-4444-555555555555',
+    }),
+  ])
+# ---
+# name: test_configure_energy_sources
+  list([
+    dict({
+      'data_schema': list([
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'pv_power_entity',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'device_class': list([
+                'power',
+              ]),
+              'domain': list([
+                'sensor',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'grid_power_entity',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'device_class': list([
+                'power',
+              ]),
+              'domain': list([
+                'sensor',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'battery_power_entity',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'device_class': list([
+                'power',
+              ]),
+              'domain': list([
+                'sensor',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'battery_power_invert',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'price_solar',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'number': dict({
+              'min': 0.0,
+              'mode': 'box',
+              'step': 'any',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_energy_sources',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'pv_power_entity',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'device_class': list([
+                'power',
+              ]),
+              'domain': list([
+                'sensor',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'grid_power_entity',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'device_class': list([
+                'power',
+              ]),
+              'domain': list([
+                'sensor',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'battery_power_entity',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'device_class': list([
+                'power',
+              ]),
+              'domain': list([
+                'sensor',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'battery_power_invert',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'price_solar',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'number': dict({
+              'min': 0.0,
+              'mode': 'box',
+              'step': 'any',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': dict({
+        'base': 'mix_needs_both',
+      }),
+      'last_step': None,
+      'step_id': 'action_energy_sources',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'battery_power_invert': True,
+        'grid_power_entity': 'sensor.grid',
+        'price_solar': 0.08,
+        'pv_power_entity': 'sensor.pv',
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+  ])
+# ---
+# name: test_configure_evcc_bridge
+  list([
+    dict({
+      'data_schema': list([
+        dict({
+          'default': False,
+          'name': 'bridge_enabled',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': 'bavariandata',
+          }),
+          'name': 'bridge_topic_prefix',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'text': dict({
+              'multiline': False,
+              'multiple': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': True,
+          'name': 'bridge_retain',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_evcc_bridge',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': False,
+          'name': 'bridge_enabled',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': 'bavariandata',
+          }),
+          'name': 'bridge_topic_prefix',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'text': dict({
+              'multiline': False,
+              'multiple': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': True,
+          'name': 'bridge_retain',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+        'base': 'mqtt_missing',
+      }),
+      'last_step': None,
+      'step_id': 'action_evcc_bridge',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': dict({
+        'snippet': '(the bridge is switched off -- nothing is published)',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'evcc_snippet',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'bridge_enabled': False,
+        'bridge_retain': True,
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+    'with MQTT set up',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': False,
+          'name': 'bridge_enabled',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': 'bavariandata',
+          }),
+          'name': 'bridge_topic_prefix',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'text': dict({
+              'multiline': False,
+              'multiple': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': True,
+          'name': 'bridge_retain',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_evcc_bridge',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': dict({
+        'snippet': '''
+          vehicles:
+            - name: bmw_000001
+              type: custom
+              title: "i5 eDrive40"
+              soc:
+                source: mqtt
+                topic: cars/WBATEST0000000001/soc
+        ''',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'evcc_snippet',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'bridge_enabled': True,
+        'bridge_retain': False,
+        'bridge_topic_prefix': 'cars',
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+  ])
+# ---
+# name: test_configure_fetch_now[action_fetch_basic]
+  list([
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_fetch_basic',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': dict({
+        'error': 'fetch_basic_data: no BMW in tests',
+      }),
+      'errors': dict({
+        'base': 'fetch_failed',
+      }),
+      'last_step': None,
+      'step_id': 'action_fetch_basic',
+      'type': 'form',
+    }),
+  ])
+# ---
+# name: test_configure_fetch_now[action_fetch_charging_history]
+  list([
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_fetch_charging_history',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': dict({
+        'error': 'fetch_charging_history: no BMW in tests',
+      }),
+      'errors': dict({
+        'base': 'fetch_failed',
+      }),
+      'last_step': None,
+      'step_id': 'action_fetch_charging_history',
+      'type': 'form',
+    }),
+  ])
+# ---
+# name: test_configure_fetch_now[action_fetch_location_charging]
+  list([
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_fetch_location_charging',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': dict({
+        'error': 'fetch_location_charging_settings: no BMW in tests',
+      }),
+      'errors': dict({
+        'base': 'fetch_failed',
+      }),
+      'last_step': None,
+      'step_id': 'action_fetch_location_charging',
+      'type': 'form',
+    }),
+  ])
+# ---
+# name: test_configure_fetch_now[action_fetch_mappings]
+  list([
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_fetch_mappings',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': dict({
+        'error': 'fetch_vehicle_mappings: no BMW in tests',
+      }),
+      'errors': dict({
+        'base': 'fetch_failed',
+      }),
+      'last_step': None,
+      'step_id': 'action_fetch_mappings',
+      'type': 'form',
+    }),
+  ])
+# ---
+# name: test_configure_fetch_now[action_fetch_telematic]
+  list([
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_fetch_telematic',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': dict({
+        'error': 'Cardata fetch_telematic_data: no full REST container',
+      }),
+      'errors': dict({
+        'base': 'fetch_failed',
+      }),
+      'last_step': None,
+      'step_id': 'action_fetch_telematic',
+      'type': 'form',
+    }),
+  ])
+# ---
+# name: test_configure_fetch_now[action_fetch_tyre]
+  list([
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_fetch_tyre',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': dict({
+        'error': 'fetch_tyre_diagnosis: no BMW in tests',
+      }),
+      'errors': dict({
+        'base': 'fetch_failed',
+      }),
+      'last_step': None,
+      'step_id': 'action_fetch_tyre',
+      'type': 'form',
+    }),
+  ])
+# ---
+# name: test_configure_menus
+  list([
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'next_step_id',
+          'options': list([
+            list([
+              'action_select_clusters',
+              'action_select_clusters',
+            ]),
+            list([
+              'action_fetch_image',
+              'action_fetch_image',
+            ]),
+            list([
+              'action_charging_costs',
+              'action_charging_costs',
+            ]),
+            list([
+              'action_energy_sources',
+              'action_energy_sources',
+            ]),
+            list([
+              'action_evcc_bridge',
+              'action_evcc_bridge',
+            ]),
+            list([
+              'action_trips',
+              'action_trips',
+            ]),
+            list([
+              'action_mileage',
+              'action_mileage',
+            ]),
+            list([
+              'action_units',
+              'action_units',
+            ]),
+            list([
+              'action_data_refresh',
+              'action_data_refresh',
+            ]),
+            list([
+              'fetch_now',
+              'fetch_now',
+            ]),
+            list([
+              'connection',
+              'connection',
+            ]),
+          ]),
+          'required': False,
+          'type': 'select',
+        }),
+      ]),
+      'description_placeholders': None,
+      'menu_options': list([
+        'action_select_clusters',
+        'action_fetch_image',
+        'action_charging_costs',
+        'action_energy_sources',
+        'action_evcc_bridge',
+        'action_trips',
+        'action_mileage',
+        'action_units',
+        'action_data_refresh',
+        'fetch_now',
+        'connection',
+      ]),
+      'step_id': 'init',
+      'type': 'menu',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'next_step_id',
+          'options': list([
+            list([
+              'action_fetch_mappings',
+              'action_fetch_mappings',
+            ]),
+            list([
+              'action_fetch_telematic',
+              'action_fetch_telematic',
+            ]),
+            list([
+              'action_fetch_basic',
+              'action_fetch_basic',
+            ]),
+            list([
+              'action_fetch_charging_history',
+              'action_fetch_charging_history',
+            ]),
+            list([
+              'action_fetch_tyre',
+              'action_fetch_tyre',
+            ]),
+            list([
+              'action_fetch_location_charging',
+              'action_fetch_location_charging',
+            ]),
+          ]),
+          'required': False,
+          'type': 'select',
+        }),
+      ]),
+      'description_placeholders': None,
+      'menu_options': list([
+        'action_fetch_mappings',
+        'action_fetch_telematic',
+        'action_fetch_basic',
+        'action_fetch_charging_history',
+        'action_fetch_tyre',
+        'action_fetch_location_charging',
+      ]),
+      'step_id': 'fetch_now',
+      'type': 'menu',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'next_step_id',
+          'options': list([
+            list([
+              'action_reauth',
+              'action_reauth',
+            ]),
+            list([
+              'action_refresh_tokens',
+              'action_refresh_tokens',
+            ]),
+            list([
+              'action_reset_container',
+              'action_reset_container',
+            ]),
+            list([
+              'action_debug_logging',
+              'action_debug_logging',
+            ]),
+          ]),
+          'required': False,
+          'type': 'select',
+        }),
+      ]),
+      'description_placeholders': None,
+      'menu_options': list([
+        'action_reauth',
+        'action_refresh_tokens',
+        'action_reset_container',
+        'action_debug_logging',
+      ]),
+      'step_id': 'connection',
+      'type': 'menu',
+    }),
+  ])
+# ---
+# name: test_configure_mileage
+  list([
+    'a lease',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'none',
+          'name': 'mileage_kind',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'list',
+              'multiple': False,
+              'options': list([
+                'none',
+                'lease',
+                'yearly',
+              ]),
+              'sort': False,
+              'translation_key': 'mileage_kind',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+      }),
+      'last_step': False,
+      'step_id': 'action_mileage',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'description': dict({
+            'suggested_value': '2026-10-24',
+          }),
+          'name': 'mileage_start',
+          'required': True,
+          'selector': dict({
+            'date': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': '2029-10-23',
+          }),
+          'name': 'mileage_end',
+          'required': True,
+          'selector': dict({
+            'date': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'mileage_allowance_km',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 200000.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 1.0,
+              'unit_of_measurement': 'km',
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'mileage_start_km',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 2000000.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 1.0,
+              'unit_of_measurement': 'km',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+      }),
+      'last_step': None,
+      'step_id': 'mileage_lease',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'description': dict({
+            'suggested_value': '2026-11-01',
+          }),
+          'name': 'mileage_start',
+          'required': True,
+          'selector': dict({
+            'date': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': '2026-10-01',
+          }),
+          'name': 'mileage_end',
+          'required': True,
+          'selector': dict({
+            'date': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': 0,
+          }),
+          'name': 'mileage_allowance_km',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 200000.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 1.0,
+              'unit_of_measurement': 'km',
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': 1200,
+          }),
+          'name': 'mileage_start_km',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 2000000.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 1.0,
+              'unit_of_measurement': 'km',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+        'mileage_allowance_km': 'invalid_int',
+      }),
+      'last_step': None,
+      'step_id': 'mileage_lease',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'description': dict({
+            'suggested_value': '2026-11-01',
+          }),
+          'name': 'mileage_start',
+          'required': True,
+          'selector': dict({
+            'date': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': '2026-10-01',
+          }),
+          'name': 'mileage_end',
+          'required': True,
+          'selector': dict({
+            'date': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': 15000,
+          }),
+          'name': 'mileage_allowance_km',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 200000.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 1.0,
+              'unit_of_measurement': 'km',
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': 1200,
+          }),
+          'name': 'mileage_start_km',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 2000000.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 1.0,
+              'unit_of_measurement': 'km',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+        'mileage_end': 'mileage_end_before_start',
+      }),
+      'last_step': None,
+      'step_id': 'mileage_lease',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'vehicles': dict({
+          'WBATEST0000000001': dict({
+            'mileage_allowance_km': 15000.0,
+            'mileage_end': '2029-10-31',
+            'mileage_kind': 'lease',
+            'mileage_start': '2026-11-01',
+            'mileage_start_km': 1200.0,
+          }),
+        }),
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+    'a yearly limit',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'lease',
+          'name': 'mileage_kind',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'list',
+              'multiple': False,
+              'options': list([
+                'none',
+                'lease',
+                'yearly',
+              ]),
+              'sort': False,
+              'translation_key': 'mileage_kind',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+      }),
+      'last_step': False,
+      'step_id': 'action_mileage',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'description': dict({
+            'suggested_value': '2026-10-24',
+          }),
+          'name': 'mileage_start',
+          'required': True,
+          'selector': dict({
+            'date': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'mileage_allowance_km',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 200000.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 1.0,
+              'unit_of_measurement': 'km',
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'mileage_start_km',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 2000000.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 1.0,
+              'unit_of_measurement': 'km',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+      }),
+      'last_step': None,
+      'step_id': 'mileage_yearly',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'vehicles': dict({
+          'WBATEST0000000001': dict({
+            'mileage_allowance_km': 12000.0,
+            'mileage_end': None,
+            'mileage_kind': 'yearly',
+            'mileage_start': '2026-03-01',
+            'mileage_start_km': 900.0,
+          }),
+        }),
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+    'none',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'yearly',
+          'name': 'mileage_kind',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'list',
+              'multiple': False,
+              'options': list([
+                'none',
+                'lease',
+                'yearly',
+              ]),
+              'sort': False,
+              'translation_key': 'mileage_kind',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+      }),
+      'last_step': False,
+      'step_id': 'action_mileage',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+  ])
+# ---
+# name: test_configure_picture
+  list([
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'official',
+          'name': 'image_source',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'official',
+                'configurator',
+              ]),
+              'sort': False,
+              'translation_key': 'image_source',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': '',
+        'vehicle': '',
+      }),
+      'errors': dict({
+      }),
+      'last_step': None,
+      'step_id': 'action_fetch_image',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'official',
+          'name': 'image_source',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'official',
+                'configurator',
+              ]),
+              'sort': False,
+              'translation_key': 'image_source',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': 'fetch_vehicle_image: no BMW in tests',
+        'vehicle': '',
+      }),
+      'errors': dict({
+        'base': 'fetch_failed',
+      }),
+      'last_step': None,
+      'step_id': 'action_fetch_image',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'configurator',
+          'name': 'image_source',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'official',
+                'configurator',
+              ]),
+              'sort': False,
+              'translation_key': 'image_source',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': '',
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+        'image_source': 'configurator_unsupported',
+      }),
+      'last_step': None,
+      'step_id': 'action_fetch_image',
+      'type': 'form',
+    }),
+  ])
+# ---
+# name: test_configure_streamed_data
+  list([
+    'nothing chosen',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': list([
+            'electric',
+            'status',
+            'events',
+            'tire',
+            'basic',
+            'usage',
+          ]),
+          'name': 'sections',
+          'options': dict({
+            'basic': 'Vehicle basic data',
+            'contract': 'ConnectedDrive contract',
+            'electric': 'Electric vehicle',
+            'events': 'Vehicle events',
+            'metadata': 'Metadata',
+            'other': 'Other',
+            'status': 'Vehicle status',
+            'tire': 'Tire data',
+            'usage': 'Usage-based data',
+          }),
+          'required': True,
+          'type': 'multi_select',
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_select_clusters',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+    dict({
+      'entry sections': list([
+      ]),
+    }),
+    'pasted result',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': list([
+            'electric',
+            'status',
+            'events',
+            'tire',
+            'basic',
+            'usage',
+          ]),
+          'name': 'sections',
+          'options': dict({
+            'basic': 'Vehicle basic data',
+            'contract': 'ConnectedDrive contract',
+            'electric': 'Electric vehicle',
+            'events': 'Vehicle events',
+            'metadata': 'Metadata',
+            'other': 'Other',
+            'status': 'Vehicle status',
+            'tire': 'Tire data',
+            'usage': 'Usage-based data',
+          }),
+          'required': True,
+          'type': 'multi_select',
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_select_clusters',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'result',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': '',
+        'link_close': '</a>',
+        'link_open': '<a href="http://10.10.10.10:8123/bavariandata/onboarding?token=<token>" target="_blank" rel="noopener">',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'activate_stream_paste',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'result',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': "That doesn't look like a BavarianData result. Run the activator on the BMW or MINI portal page and use exactly what it produced.",
+        'link_close': '</a>',
+        'link_open': '<a href="http://10.10.10.10:8123/bavariandata/onboarding?token=<token>" target="_blank" rel="noopener">',
+      }),
+      'errors': dict({
+        'result': 'invalid_result',
+      }),
+      'last_step': None,
+      'step_id': 'activate_stream_paste',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': dict({
+        'added_count': '12',
+        'error': '',
+        'field_count': '42',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'activate_stream_done',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+    dict({
+      'entry sections': list([
+        'electric',
+      ]),
+    }),
+  ])
+# ---
+# name: test_configure_streamed_data_by_webhook
+  list([
+    dict({
+      'data_schema': list([
+        dict({
+          'default': list([
+            'electric',
+            'status',
+            'events',
+            'tire',
+            'basic',
+            'usage',
+          ]),
+          'name': 'sections',
+          'options': dict({
+            'basic': 'Vehicle basic data',
+            'contract': 'ConnectedDrive contract',
+            'electric': 'Electric vehicle',
+            'events': 'Vehicle events',
+            'metadata': 'Metadata',
+            'other': 'Other',
+            'status': 'Vehicle status',
+            'tire': 'Tire data',
+            'usage': 'Usage-based data',
+          }),
+          'required': True,
+          'type': 'multi_select',
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_select_clusters',
+      'type': 'form',
+    }),
+    dict({
+      'description_placeholders': dict({
+        'link_close': '</a>',
+        'link_open': '<a href="http://10.10.10.10:8123/bavariandata/onboarding?token=<token>" target="_blank" rel="noopener">',
+      }),
+      'progress_action': 'wait_for_stream_activation',
+      'step_id': 'activate_stream_wait',
+      'type': 'progress',
+    }),
+    dict({
+      'report': 200,
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': dict({
+        'added_count': '12',
+        'error': '',
+        'field_count': '42',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'activate_stream_done',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+  ])
+# ---
+# name: test_configure_trips
+  list([
+    dict({
+      'data_schema': list([
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'trip_work_zone',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'zone',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': 'private',
+          'name': 'trip_default_class',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'private',
+                'business',
+                'unclassified',
+              ]),
+              'sort': False,
+              'translation_key': 'trip_default_class',
+            }),
+          }),
+        }),
+        dict({
+          'default': 30,
+          'name': 'trip_commute_gap',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 180.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 5.0,
+              'unit_of_measurement': 'min',
+            }),
+          }),
+        }),
+        dict({
+          'default': 'live',
+          'name': 'trip_detection',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'live',
+                'reports',
+              ]),
+              'sort': False,
+              'translation_key': 'trip_detection',
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'trip_track',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'trip_geocode',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'trip_debug',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': None,
+      'last_step': True,
+      'step_id': 'action_trips',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'trip_commute_gap': 15.0,
+        'trip_debug': False,
+        'trip_default_class': 'private',
+        'trip_detection': 'live',
+        'trip_geocode': True,
+        'trip_phone_in_car': None,
+        'trip_phone_tracker': None,
+        'trip_track': False,
+        'trip_work_zone': 'zone.work',
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+    'a car on end-of-trip reports that records its route',
+    dict({
+      'data_schema': list([
+        dict({
+          'description': dict({
+            'suggested_value': 'zone.work',
+          }),
+          'name': 'trip_work_zone',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'zone',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': 'private',
+          'name': 'trip_default_class',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'private',
+                'business',
+                'unclassified',
+              ]),
+              'sort': False,
+              'translation_key': 'trip_default_class',
+            }),
+          }),
+        }),
+        dict({
+          'default': 15.0,
+          'name': 'trip_commute_gap',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 180.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 5.0,
+              'unit_of_measurement': 'min',
+            }),
+          }),
+        }),
+        dict({
+          'default': 'live',
+          'name': 'trip_detection',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'live',
+                'reports',
+              ]),
+              'sort': False,
+              'translation_key': 'trip_detection',
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'trip_track',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': True,
+          'name': 'trip_geocode',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'trip_debug',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': None,
+      'last_step': True,
+      'step_id': 'action_trips',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'trip_phone_tracker',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'device_tracker',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'trip_phone_in_car',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'binary_sensor',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+      }),
+      'last_step': None,
+      'step_id': 'trips_phone',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'trip_phone_tracker',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'device_tracker',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'trip_phone_in_car',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'binary_sensor',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': dict({
+        'trip_phone_in_car': 'phone_required',
+      }),
+      'last_step': None,
+      'step_id': 'trips_phone',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'trip_commute_gap': 15.0,
+        'trip_debug': False,
+        'trip_default_class': 'private',
+        'trip_detection': 'reports',
+        'trip_geocode': False,
+        'trip_phone_in_car': 'binary_sensor.phone_in_car',
+        'trip_phone_tracker': 'device_tracker.phone',
+        'trip_track': True,
+        'trip_work_zone': None,
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'trip_work_zone',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'zone',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': 'private',
+          'name': 'trip_default_class',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'private',
+                'business',
+                'unclassified',
+              ]),
+              'sort': False,
+              'translation_key': 'trip_default_class',
+            }),
+          }),
+        }),
+        dict({
+          'default': 15.0,
+          'name': 'trip_commute_gap',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 180.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 5.0,
+              'unit_of_measurement': 'min',
+            }),
+          }),
+        }),
+        dict({
+          'default': 'reports',
+          'name': 'trip_detection',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'live',
+                'reports',
+              ]),
+              'sort': False,
+              'translation_key': 'trip_detection',
+            }),
+          }),
+        }),
+        dict({
+          'default': True,
+          'name': 'trip_track',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'trip_geocode',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'trip_debug',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': None,
+      'last_step': False,
+      'step_id': 'action_trips',
+      'type': 'form',
+    }),
+  ])
+# ---
+# name: test_configure_two_cars
+  list([
+    'trips',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'WBATEST0000000001',
+          'name': 'vehicle',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                dict({
+                  'label': 'i5 eDrive40',
+                  'value': 'WBATEST0000000001',
+                }),
+                dict({
+                  'label': 'iX1 xDrive30',
+                  'value': 'WBATEST0000000002',
+                }),
+              ]),
+              'sort': False,
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': False,
+      'step_id': 'trips_vehicle',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'trip_work_zone',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'zone',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': 'private',
+          'name': 'trip_default_class',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'private',
+                'business',
+                'unclassified',
+              ]),
+              'sort': False,
+              'translation_key': 'trip_default_class',
+            }),
+          }),
+        }),
+        dict({
+          'default': 30,
+          'name': 'trip_commute_gap',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 180.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 5.0,
+              'unit_of_measurement': 'min',
+            }),
+          }),
+        }),
+        dict({
+          'default': 'live',
+          'name': 'trip_detection',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'live',
+                'reports',
+              ]),
+              'sort': False,
+              'translation_key': 'trip_detection',
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'trip_track',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'expanded': False,
+          'name': 'all_vehicles',
+          'required': True,
+          'schema': list([
+            dict({
+              'default': False,
+              'name': 'trip_geocode',
+              'required': True,
+              'selector': dict({
+                'boolean': dict({
+                }),
+              }),
+            }),
+            dict({
+              'default': False,
+              'name': 'trip_debug',
+              'required': True,
+              'selector': dict({
+                'boolean': dict({
+                }),
+              }),
+            }),
+          ]),
+          'type': 'expandable',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'iX1 xDrive30',
+      }),
+      'errors': None,
+      'last_step': True,
+      'step_id': 'action_trips',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'trip_debug': False,
+        'trip_geocode': True,
+        'vehicles': dict({
+          'WBATEST0000000002': dict({
+            'trip_commute_gap': 15.0,
+            'trip_default_class': 'business',
+            'trip_detection': 'live',
+            'trip_phone_in_car': None,
+            'trip_phone_tracker': None,
+            'trip_track': False,
+            'trip_work_zone': None,
+          }),
+        }),
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+    'charging costs',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'WBATEST0000000001',
+          'name': 'vehicle',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                dict({
+                  'label': 'i5 eDrive40',
+                  'value': 'WBATEST0000000001',
+                }),
+                dict({
+                  'label': 'iX1 xDrive30',
+                  'value': 'WBATEST0000000002',
+                }),
+              ]),
+              'sort': False,
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': False,
+      'step_id': 'charging_vehicle',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'grid_energy_entity',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'sensor',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': 0,
+          'name': 'charging_loss_percent',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 30.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 0.5,
+            }),
+          }),
+        }),
+        dict({
+          'expanded': True,
+          'name': 'all_vehicles',
+          'required': True,
+          'schema': list([
+            dict({
+              'default': 'none',
+              'name': 'price_mode',
+              'required': True,
+              'selector': dict({
+                'select': dict({
+                  'custom_value': False,
+                  'mode': 'dropdown',
+                  'multiple': False,
+                  'options': list([
+                    'none',
+                    'fixed',
+                    'entity',
+                  ]),
+                  'sort': False,
+                  'translation_key': 'price_mode',
+                }),
+              }),
+            }),
+            dict({
+              'description': dict({
+                'suggested_value': None,
+              }),
+              'name': 'price_fixed',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'number': dict({
+                  'min': 0.0,
+                  'mode': 'box',
+                  'step': 'any',
+                }),
+              }),
+            }),
+            dict({
+              'description': dict({
+                'suggested_value': None,
+              }),
+              'name': 'price_entity',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'entity': dict({
+                  'domain': list([
+                    'sensor',
+                    'input_number',
+                  ]),
+                  'multiple': False,
+                  'reorder': False,
+                }),
+              }),
+            }),
+            dict({
+              'default': 'EUR',
+              'name': 'price_currency',
+              'required': True,
+              'type': 'string',
+            }),
+            dict({
+              'default': 24,
+              'name': 'history_retain_months',
+              'required': True,
+              'selector': dict({
+                'number': dict({
+                  'max': 120.0,
+                  'min': 0.0,
+                  'mode': 'box',
+                  'step': 1.0,
+                }),
+              }),
+            }),
+            dict({
+              'default': True,
+              'name': 'statistics_import',
+              'required': True,
+              'selector': dict({
+                'boolean': dict({
+                }),
+              }),
+            }),
+            dict({
+              'default': False,
+              'name': 'charge_locations',
+              'required': True,
+              'selector': dict({
+                'boolean': dict({
+                }),
+              }),
+            }),
+          ]),
+          'type': 'expandable',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'i5 eDrive40',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_charging_costs',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'charge_locations': False,
+        'history_retain_months': 0.0,
+        'price_currency': 'EUR',
+        'price_mode': 'none',
+        'statistics_import': False,
+        'trip_debug': False,
+        'trip_geocode': True,
+        'vehicles': dict({
+          'WBATEST0000000001': dict({
+            'charging_loss_percent': 5.0,
+            'grid_energy_entity': 'sensor.wallbox_energy',
+          }),
+          'WBATEST0000000002': dict({
+            'trip_commute_gap': 15.0,
+            'trip_default_class': 'business',
+            'trip_detection': 'live',
+            'trip_phone_in_car': None,
+            'trip_phone_tracker': None,
+            'trip_track': False,
+            'trip_work_zone': None,
+          }),
+        }),
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+    'evcc bridge',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'WBATEST0000000001',
+          'name': 'vehicle',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                dict({
+                  'label': 'i5 eDrive40',
+                  'value': 'WBATEST0000000001',
+                }),
+                dict({
+                  'label': 'iX1 xDrive30',
+                  'value': 'WBATEST0000000002',
+                }),
+              ]),
+              'sort': False,
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': False,
+      'step_id': 'bridge_vehicle',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': False,
+          'name': 'bridge_enabled',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'expanded': False,
+          'name': 'all_vehicles',
+          'required': True,
+          'schema': list([
+            dict({
+              'description': dict({
+                'suggested_value': 'bavariandata',
+              }),
+              'name': 'bridge_topic_prefix',
+              'optional': True,
+              'required': False,
+              'selector': dict({
+                'text': dict({
+                  'multiline': False,
+                  'multiple': False,
+                }),
+              }),
+            }),
+            dict({
+              'default': True,
+              'name': 'bridge_retain',
+              'required': True,
+              'selector': dict({
+                'boolean': dict({
+                }),
+              }),
+            }),
+          ]),
+          'type': 'expandable',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'iX1 xDrive30',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_evcc_bridge',
+      'type': 'form',
+    }),
+    'mileage',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'WBATEST0000000001',
+          'name': 'vehicle',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                dict({
+                  'label': 'i5 eDrive40',
+                  'value': 'WBATEST0000000001',
+                }),
+                dict({
+                  'label': 'iX1 xDrive30',
+                  'value': 'WBATEST0000000002',
+                }),
+              ]),
+              'sort': False,
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': False,
+      'step_id': 'mileage_vehicle',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'none',
+          'name': 'mileage_kind',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'list',
+              'multiple': False,
+              'options': list([
+                'none',
+                'lease',
+                'yearly',
+              ]),
+              'sort': False,
+              'translation_key': 'mileage_kind',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'iX1 xDrive30',
+      }),
+      'errors': dict({
+      }),
+      'last_step': False,
+      'step_id': 'action_mileage',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'description': dict({
+            'suggested_value': '2026-10-24',
+          }),
+          'name': 'mileage_start',
+          'required': True,
+          'selector': dict({
+            'date': dict({
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'mileage_allowance_km',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 200000.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 1.0,
+              'unit_of_measurement': 'km',
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'mileage_start_km',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 2000000.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 1.0,
+              'unit_of_measurement': 'km',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'iX1 xDrive30',
+      }),
+      'errors': dict({
+      }),
+      'last_step': None,
+      'step_id': 'mileage_yearly',
+      'type': 'form',
+    }),
+    'units',
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'auto',
+          'name': 'unit_distance',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'auto',
+                'km',
+                'mi',
+              ]),
+              'sort': False,
+              'translation_key': 'unit_distance',
+            }),
+          }),
+        }),
+        dict({
+          'default': 'auto',
+          'name': 'unit_temperature',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'auto',
+                'c',
+                'f',
+              ]),
+              'sort': False,
+              'translation_key': 'unit_temperature',
+            }),
+          }),
+        }),
+        dict({
+          'default': 'auto',
+          'name': 'unit_pressure',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'auto',
+                'bar',
+                'kpa',
+                'psi',
+              ]),
+              'sort': False,
+              'translation_key': 'unit_pressure',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'now': '''
+          i5 eDrive40: km
+          iX1 xDrive30: km
+        ''',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_units',
+      'type': 'form',
+    }),
+  ])
+# ---
+# name: test_configure_units_refresh_and_debug
+  list([
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'auto',
+          'name': 'unit_distance',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'auto',
+                'km',
+                'mi',
+              ]),
+              'sort': False,
+              'translation_key': 'unit_distance',
+            }),
+          }),
+        }),
+        dict({
+          'default': 'auto',
+          'name': 'unit_temperature',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'auto',
+                'c',
+                'f',
+              ]),
+              'sort': False,
+              'translation_key': 'unit_temperature',
+            }),
+          }),
+        }),
+        dict({
+          'default': 'auto',
+          'name': 'unit_pressure',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'auto',
+                'bar',
+                'kpa',
+                'psi',
+              ]),
+              'sort': False,
+              'translation_key': 'unit_pressure',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'now': 'i5 eDrive40: km',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_units',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'unit_distance': 'mi',
+        'unit_pressure': 'psi',
+        'unit_temperature': 'f',
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': True,
+          'name': 'refresh_on_start',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_data_refresh',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'refresh_on_start': False,
+        'unit_distance': 'mi',
+        'unit_pressure': 'psi',
+        'unit_temperature': 'f',
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': False,
+          'name': 'debug_log',
+          'required': True,
+          'type': 'boolean',
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_debug_logging',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'debug_log': True,
+        'refresh_on_start': False,
+        'unit_distance': 'mi',
+        'unit_pressure': 'psi',
+        'unit_temperature': 'f',
+      }),
+      'description_placeholders': None,
+      'title': '',
+      'type': 'create_entry',
+    }),
+  ])
+# ---
+# name: test_configure_without_a_running_account
+  list([
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': None,
+      'errors': dict({
+        'base': 'runtime_missing',
+      }),
+      'last_step': None,
+      'step_id': 'action_fetch_basic',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': None,
+      'errors': dict({
+        'base': 'runtime_missing',
+      }),
+      'last_step': None,
+      'step_id': 'action_fetch_tyre',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': None,
+      'errors': dict({
+        'base': 'runtime_missing',
+      }),
+      'last_step': None,
+      'step_id': 'action_fetch_image',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': None,
+      'errors': dict({
+        'base': 'runtime_missing',
+      }),
+      'last_step': None,
+      'step_id': 'action_reset_container',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'trip_work_zone',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'zone',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'default': 'private',
+          'name': 'trip_default_class',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'private',
+                'business',
+                'unclassified',
+              ]),
+              'sort': False,
+              'translation_key': 'trip_default_class',
+            }),
+          }),
+        }),
+        dict({
+          'default': 30,
+          'name': 'trip_commute_gap',
+          'required': True,
+          'selector': dict({
+            'number': dict({
+              'max': 180.0,
+              'min': 0.0,
+              'mode': 'box',
+              'step': 5.0,
+              'unit_of_measurement': 'min',
+            }),
+          }),
+        }),
+        dict({
+          'default': 'live',
+          'name': 'trip_detection',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'live',
+                'reports',
+              ]),
+              'sort': False,
+              'translation_key': 'trip_detection',
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'trip_track',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'trip_geocode',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+        dict({
+          'default': False,
+          'name': 'trip_debug',
+          'required': True,
+          'selector': dict({
+            'boolean': dict({
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'BavarianData',
+      }),
+      'errors': None,
+      'last_step': True,
+      'step_id': 'action_trips',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'auto',
+          'name': 'unit_distance',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'auto',
+                'km',
+                'mi',
+              ]),
+              'sort': False,
+              'translation_key': 'unit_distance',
+            }),
+          }),
+        }),
+        dict({
+          'default': 'auto',
+          'name': 'unit_temperature',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'auto',
+                'c',
+                'f',
+              ]),
+              'sort': False,
+              'translation_key': 'unit_temperature',
+            }),
+          }),
+        }),
+        dict({
+          'default': 'auto',
+          'name': 'unit_pressure',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'dropdown',
+              'multiple': False,
+              'options': list([
+                'auto',
+                'bar',
+                'kpa',
+                'psi',
+              ]),
+              'sort': False,
+              'translation_key': 'unit_pressure',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'now': '—',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'action_units',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'none',
+          'name': 'mileage_kind',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'list',
+              'multiple': False,
+              'options': list([
+                'none',
+                'lease',
+                'yearly',
+              ]),
+              'sort': False,
+              'translation_key': 'mileage_kind',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'BavarianData',
+      }),
+      'errors': dict({
+      }),
+      'last_step': False,
+      'step_id': 'action_mileage',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': 'none',
+          'name': 'mileage_kind',
+          'required': True,
+          'selector': dict({
+            'select': dict({
+              'custom_value': False,
+              'mode': 'list',
+              'multiple': False,
+              'options': list([
+                'none',
+                'lease',
+                'yearly',
+              ]),
+              'sort': False,
+              'translation_key': 'mileage_kind',
+            }),
+          }),
+        }),
+      ]),
+      'description_placeholders': dict({
+        'vehicle': 'BavarianData',
+      }),
+      'errors': dict({
+        'base': 'no_vins',
+      }),
+      'last_step': False,
+      'step_id': 'action_mileage',
+      'type': 'form',
+    }),
+  ])
+# ---
+# name: test_guided_setup_by_paste
+  list([
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'result',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': '',
+        'link_close': '</a>',
+        'link_open': '<a href="http://10.10.10.10:8123/bavariandata/onboarding?token=<token>" target="_blank" rel="noopener">',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'guided_paste',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'result',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': "That doesn't look like a BavarianData result. Run the activator on the BMW or MINI portal page and use exactly what it produced.",
+        'link_close': '</a>',
+        'link_open': '<a href="http://10.10.10.10:8123/bavariandata/onboarding?token=<token>" target="_blank" rel="noopener">',
+      }),
+      'errors': dict({
+        'result': 'invalid_result',
+      }),
+      'last_step': None,
+      'step_id': 'guided_paste',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'result',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': '',
+        'link_close': '</a>',
+        'link_open': '<a href="http://10.10.10.10:8123/bavariandata/onboarding?token=<token>" target="_blank" rel="noopener">',
+      }),
+      'errors': dict({
+        'result': 'no_client_id',
+      }),
+      'last_step': None,
+      'step_id': 'guided_paste',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'result',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': 'refused',
+        'link_close': '</a>',
+        'link_open': '<a href="http://10.10.10.10:8123/bavariandata/onboarding?token=<token>" target="_blank" rel="noopener">',
+      }),
+      'errors': dict({
+        'base': 'device_code_failed',
+      }),
+      'last_step': None,
+      'step_id': 'guided_paste',
+      'type': 'form',
+    }),
+    dict({
+      'description_placeholders': dict({
+        'user_code': 'ABCD-EFGH',
+        'verification_url': 'https://customer.bmwgroup.com/oneid/link',
+      }),
+      'progress_action': 'wait_for_authorization',
+      'step_id': 'authorize',
+      'type': 'progress',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': dict({
+        'field_count': '42',
+        'vehicle': 'abcdef12…',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'guided_done',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'access_token': 'access',
+        'client_id': '11111111-2222-3333-4444-555555555555',
+        'expires_in': 3600,
+        'gcid': 'gcid-1',
+        'id_token': 'id',
+        'mapped_vehicle_id': 'abcdef1234567890',
+        'received_at': '<time>',
+        'refresh_token': 'refresh',
+        'scope': 'openid cardata:streaming:read cardata:api:read',
+        'stream_sections': list([
+          'electric',
+          'status',
+          'events',
+          'tire',
+          'basic',
+          'usage',
+        ]),
+        'token_type': 'Bearer',
+      }),
+      'description_placeholders': None,
+      'title': 'BavarianData (11111111)',
+      'type': 'create_entry',
+    }),
+  ])
+# ---
+# name: test_guided_setup_by_webhook
+  list([
+    'the activator reports',
+    dict({
+      'description_placeholders': dict({
+        'link_close': '</a>',
+        'link_open': '<a href="http://10.10.10.10:8123/bavariandata/onboarding?token=<token>" target="_blank" rel="noopener">',
+      }),
+      'progress_action': 'wait_for_activation',
+      'step_id': 'guided_wait',
+      'type': 'progress',
+    }),
+    dict({
+      'helper page': 200,
+    }),
+    dict({
+      'report': 200,
+    }),
+    dict({
+      'description_placeholders': dict({
+        'user_code': 'ABCD-EFGH',
+        'verification_url': 'https://customer.bmwgroup.com/oneid/link',
+      }),
+      'progress_action': 'wait_for_authorization',
+      'step_id': 'authorize',
+      'type': 'progress',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': dict({
+        'field_count': '42',
+        'vehicle': 'abcdef12…',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'guided_done',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'access_token': 'access',
+        'client_id': '11111111-2222-3333-4444-555555555555',
+        'expires_in': 3600,
+        'gcid': 'gcid-1',
+        'id_token': 'id',
+        'mapped_vehicle_id': 'abcdef1234567890',
+        'received_at': '<time>',
+        'refresh_token': 'refresh',
+        'scope': 'openid cardata:streaming:read cardata:api:read',
+        'stream_sections': list([
+          'electric',
+          'status',
+          'events',
+          'tire',
+          'basic',
+          'usage',
+        ]),
+        'token_type': 'Bearer',
+      }),
+      'description_placeholders': None,
+      'title': 'BavarianData (11111111)',
+      'type': 'create_entry',
+    }),
+    'a report without a client id',
+    dict({
+      'description_placeholders': dict({
+        'link_close': '</a>',
+        'link_open': '<a href="http://10.10.10.10:8123/bavariandata/onboarding?token=<token>" target="_blank" rel="noopener">',
+      }),
+      'progress_action': 'wait_for_activation',
+      'step_id': 'guided_wait',
+      'type': 'progress',
+    }),
+    dict({
+      'description_placeholders': None,
+      'reason': 'no_client_id',
+      'type': 'abort',
+    }),
+    'no report in time',
+    dict({
+      'description_placeholders': dict({
+        'link_close': '</a>',
+        'link_open': '<a href="http://10.10.10.10:8123/bavariandata/onboarding?token=<token>" target="_blank" rel="noopener">',
+      }),
+      'progress_action': 'wait_for_activation',
+      'step_id': 'guided_wait',
+      'type': 'progress',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'result',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': '',
+        'link_close': '</a>',
+        'link_open': '<a href="http://10.10.10.10:8123/bavariandata/onboarding?token=<token>" target="_blank" rel="noopener">',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'guided_paste',
+      'type': 'form',
+    }),
+  ])
+# ---
+# name: test_manual_setup
+  list([
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'next_step_id',
+          'options': list([
+            list([
+              'guided',
+              'guided',
+            ]),
+            list([
+              'manual',
+              'manual',
+            ]),
+          ]),
+          'required': False,
+          'type': 'select',
+        }),
+      ]),
+      'description_placeholders': None,
+      'menu_options': list([
+        'guided',
+        'manual',
+      ]),
+      'step_id': 'user',
+      'type': 'menu',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'client_id',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'portal_de': 'https://www.bmw.de/de-de/mybmw/vehicle-overview',
+        'portal_uk': 'https://www.bmw.co.uk/en-gb/mybmw/vehicle-overview',
+        'portal_url': 'https://bmw-cardata.bmwgroup.com/customer/public/api-documentation/Id-Technical-registration_Step-1',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'manual',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'client_id',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': 'refused',
+        'portal_de': 'https://www.bmw.de/de-de/mybmw/vehicle-overview',
+        'portal_uk': 'https://www.bmw.co.uk/en-gb/mybmw/vehicle-overview',
+        'portal_url': 'https://bmw-cardata.bmwgroup.com/customer/public/api-documentation/Id-Technical-registration_Step-1',
+      }),
+      'errors': dict({
+        'base': 'device_code_failed',
+      }),
+      'last_step': None,
+      'step_id': 'manual',
+      'type': 'form',
+    }),
+    dict({
+      'description_placeholders': dict({
+        'user_code': 'ABCD-EFGH',
+        'verification_url': 'https://customer.bmwgroup.com/oneid/link',
+      }),
+      'progress_action': 'wait_for_authorization',
+      'step_id': 'authorize',
+      'type': 'progress',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': list([
+            'electric',
+            'status',
+            'events',
+            'tire',
+            'basic',
+            'usage',
+          ]),
+          'name': 'sections',
+          'options': dict({
+            'basic': 'Vehicle basic data',
+            'contract': 'ConnectedDrive contract',
+            'electric': 'Electric vehicle',
+            'events': 'Vehicle events',
+            'metadata': 'Metadata',
+            'other': 'Other',
+            'status': 'Vehicle status',
+            'tire': 'Tire data',
+            'usage': 'Usage-based data',
+          }),
+          'required': True,
+          'type': 'multi_select',
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'select_clusters',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'access_token': 'access',
+        'client_id': '11111111-2222-3333-4444-555555555555',
+        'expires_in': 3600,
+        'gcid': 'gcid-1',
+        'id_token': 'id',
+        'received_at': '<time>',
+        'refresh_token': 'refresh',
+        'scope': 'openid cardata:streaming:read cardata:api:read',
+        'stream_sections': list([
+        ]),
+        'token_type': 'Bearer',
+      }),
+      'description_placeholders': None,
+      'title': 'BavarianData (11111111)',
+      'type': 'create_entry',
+    }),
+  ])
+# ---
+# name: test_manual_setup_activates_by_paste
+  list([
+    'paste nothing',
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'client_id',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'portal_de': 'https://www.bmw.de/de-de/mybmw/vehicle-overview',
+        'portal_uk': 'https://www.bmw.co.uk/en-gb/mybmw/vehicle-overview',
+        'portal_url': 'https://bmw-cardata.bmwgroup.com/customer/public/api-documentation/Id-Technical-registration_Step-1',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'manual',
+      'type': 'form',
+    }),
+    dict({
+      'description_placeholders': dict({
+        'user_code': 'ABCD-EFGH',
+        'verification_url': 'https://customer.bmwgroup.com/oneid/link',
+      }),
+      'progress_action': 'wait_for_authorization',
+      'step_id': 'authorize',
+      'type': 'progress',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': list([
+            'electric',
+            'status',
+            'events',
+            'tire',
+            'basic',
+            'usage',
+          ]),
+          'name': 'sections',
+          'options': dict({
+            'basic': 'Vehicle basic data',
+            'contract': 'ConnectedDrive contract',
+            'electric': 'Electric vehicle',
+            'events': 'Vehicle events',
+            'metadata': 'Metadata',
+            'other': 'Other',
+            'status': 'Vehicle status',
+            'tire': 'Tire data',
+            'usage': 'Usage-based data',
+          }),
+          'required': True,
+          'type': 'multi_select',
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'select_clusters',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': '',
+          'name': 'result',
+          'optional': True,
+          'required': False,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': '',
+        'link_close': '</a>',
+        'link_open': '<a href="http://10.10.10.10:8123/bavariandata/onboarding?token=<token>" target="_blank" rel="noopener">',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'activate_stream_paste',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'access_token': 'access',
+        'client_id': '11111111-2222-3333-4444-555555555555',
+        'expires_in': 3600,
+        'gcid': 'gcid-1',
+        'id_token': 'id',
+        'received_at': '<time>',
+        'refresh_token': 'refresh',
+        'scope': 'openid cardata:streaming:read cardata:api:read',
+        'stream_sections': list([
+          'electric',
+          'status',
+        ]),
+        'token_type': 'Bearer',
+      }),
+      'description_placeholders': None,
+      'title': 'BavarianData (11111111)',
+      'type': 'create_entry',
+    }),
+    'paste the result',
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'client_id',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'portal_de': 'https://www.bmw.de/de-de/mybmw/vehicle-overview',
+        'portal_uk': 'https://www.bmw.co.uk/en-gb/mybmw/vehicle-overview',
+        'portal_url': 'https://bmw-cardata.bmwgroup.com/customer/public/api-documentation/Id-Technical-registration_Step-1',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'manual',
+      'type': 'form',
+    }),
+    dict({
+      'description_placeholders': dict({
+        'user_code': 'ABCD-EFGH',
+        'verification_url': 'https://customer.bmwgroup.com/oneid/link',
+      }),
+      'progress_action': 'wait_for_authorization',
+      'step_id': 'authorize',
+      'type': 'progress',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': list([
+            'electric',
+            'status',
+            'events',
+            'tire',
+            'basic',
+            'usage',
+          ]),
+          'name': 'sections',
+          'options': dict({
+            'basic': 'Vehicle basic data',
+            'contract': 'ConnectedDrive contract',
+            'electric': 'Electric vehicle',
+            'events': 'Vehicle events',
+            'metadata': 'Metadata',
+            'other': 'Other',
+            'status': 'Vehicle status',
+            'tire': 'Tire data',
+            'usage': 'Usage-based data',
+          }),
+          'required': True,
+          'type': 'multi_select',
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'select_clusters',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': '',
+          'name': 'result',
+          'optional': True,
+          'required': False,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': '',
+        'link_close': '</a>',
+        'link_open': '<a href="http://10.10.10.10:8123/bavariandata/onboarding?token=<token>" target="_blank" rel="noopener">',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'activate_stream_paste',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': '',
+          'name': 'result',
+          'optional': True,
+          'required': False,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'error': "That doesn't look like a BavarianData result. Run the activator on the BMW or MINI portal page and use exactly what it produced.",
+        'link_close': '</a>',
+        'link_open': '<a href="http://10.10.10.10:8123/bavariandata/onboarding?token=<token>" target="_blank" rel="noopener">',
+      }),
+      'errors': dict({
+        'result': 'invalid_result',
+      }),
+      'last_step': None,
+      'step_id': 'activate_stream_paste',
+      'type': 'form',
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': dict({
+        'added_count': '12',
+        'error': '',
+        'field_count': '42',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'activate_stream_done',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'access_token': 'access',
+        'client_id': '11111111-2222-3333-4444-555555555555',
+        'expires_in': 3600,
+        'gcid': 'gcid-1',
+        'id_token': 'id',
+        'mapped_vehicle_id': 'abcdef1234567890',
+        'received_at': '<time>',
+        'refresh_token': 'refresh',
+        'scope': 'openid cardata:streaming:read cardata:api:read',
+        'stream_sections': list([
+          'electric',
+          'status',
+        ]),
+        'token_type': 'Bearer',
+      }),
+      'description_placeholders': None,
+      'title': 'BavarianData (11111111)',
+      'type': 'create_entry',
+    }),
+  ])
+# ---
+# name: test_manual_setup_activates_by_webhook
+  list([
+    dict({
+      'data_schema': list([
+        dict({
+          'name': 'client_id',
+          'required': True,
+          'type': 'string',
+        }),
+      ]),
+      'description_placeholders': dict({
+        'portal_de': 'https://www.bmw.de/de-de/mybmw/vehicle-overview',
+        'portal_uk': 'https://www.bmw.co.uk/en-gb/mybmw/vehicle-overview',
+        'portal_url': 'https://bmw-cardata.bmwgroup.com/customer/public/api-documentation/Id-Technical-registration_Step-1',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'manual',
+      'type': 'form',
+    }),
+    dict({
+      'description_placeholders': dict({
+        'user_code': 'ABCD-EFGH',
+        'verification_url': 'https://customer.bmwgroup.com/oneid/link',
+      }),
+      'progress_action': 'wait_for_authorization',
+      'step_id': 'authorize',
+      'type': 'progress',
+    }),
+    dict({
+      'data_schema': list([
+        dict({
+          'default': list([
+            'electric',
+            'status',
+            'events',
+            'tire',
+            'basic',
+            'usage',
+          ]),
+          'name': 'sections',
+          'options': dict({
+            'basic': 'Vehicle basic data',
+            'contract': 'ConnectedDrive contract',
+            'electric': 'Electric vehicle',
+            'events': 'Vehicle events',
+            'metadata': 'Metadata',
+            'other': 'Other',
+            'status': 'Vehicle status',
+            'tire': 'Tire data',
+            'usage': 'Usage-based data',
+          }),
+          'required': True,
+          'type': 'multi_select',
+        }),
+      ]),
+      'description_placeholders': None,
+      'errors': None,
+      'last_step': None,
+      'step_id': 'select_clusters',
+      'type': 'form',
+    }),
+    dict({
+      'description_placeholders': dict({
+        'link_close': '</a>',
+        'link_open': '<a href="http://10.10.10.10:8123/bavariandata/onboarding?token=<token>" target="_blank" rel="noopener">',
+      }),
+      'progress_action': 'wait_for_stream_activation',
+      'step_id': 'activate_stream_wait',
+      'type': 'progress',
+    }),
+    dict({
+      'helper page': 200,
+    }),
+    dict({
+      'bad report': 400,
+    }),
+    dict({
+      'report': 200,
+    }),
+    dict({
+      'data_schema': list([
+      ]),
+      'description_placeholders': dict({
+        'added_count': '12',
+        'error': '',
+        'field_count': '42',
+      }),
+      'errors': None,
+      'last_step': None,
+      'step_id': 'activate_stream_done',
+      'type': 'form',
+    }),
+    dict({
+      'data': dict({
+        'access_token': 'access',
+        'client_id': '11111111-2222-3333-4444-555555555555',
+        'expires_in': 3600,
+        'gcid': 'gcid-1',
+        'id_token': 'id',
+        'mapped_vehicle_id': 'abcdef1234567890',
+        'received_at': '<time>',
+        'refresh_token': 'refresh',
+        'scope': 'openid cardata:streaming:read cardata:api:read',
+        'stream_sections': list([
+          'electric',
+        ]),
+        'token_type': 'Bearer',
+      }),
+      'description_placeholders': None,
+      'title': 'BavarianData (11111111)',
+      'type': 'create_entry',
+    }),
+    dict({
+      'helper page after setup': 404,
+    }),
+  ])
+# ---
+# name: test_reauthentication
+  list([
+    'no client id',
+    dict({
+      'description_placeholders': None,
+      'reason': 'reauth_missing_client_id',
+      'type': 'abort',
+    }),
+    'BMW refuses a device code',
+    dict({
+      'description_placeholders': dict({
+        'error': 'refused',
+      }),
+      'reason': 'reauth_device_code_failed',
+      'type': 'abort',
+    }),
+    'authorized',
+    dict({
+      'description_placeholders': dict({
+        'user_code': 'ABCD-EFGH',
+        'verification_url': 'https://customer.bmwgroup.com/oneid/link',
+      }),
+      'progress_action': 'wait_for_authorization',
+      'step_id': 'authorize',
+      'type': 'progress',
+    }),
+    dict({
+      'description_placeholders': None,
+      'reason': 'reauth_successful',
+      'type': 'abort',
+    }),
+    dict({
+      'entry data': dict({
+        'access_token': 'access',
+        'client_id': '11111111-2222-3333-4444-555555555555',
+        'expires_in': 3600,
+        'gcid': 'gcid-1',
+        'id_token': 'id',
+        'received_at': '<time>',
+        'refresh_token': 'refresh',
+        'scope': 'openid cardata:streaming:read cardata:api:read',
+        'token_type': 'Bearer',
+      }),
+    }),
+  ])
+# ---
