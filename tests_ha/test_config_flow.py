@@ -39,6 +39,25 @@ TOKENS = {
 FLOW = "custom_components.bavariandata.config_flow"
 
 
+class _Poll:
+    """BMW's token poll, answering only once the test releases it.
+
+    The real poll waits minutes for the user to log in; an instant fake can
+    finish before the flow has shown its progress step at all, which would let
+    the flow skip straight past it.
+    """
+
+    def __init__(self, answer: dict | Exception = TOKENS) -> None:
+        self.answer = answer
+        self.released = asyncio.Event()
+
+    async def __call__(self, *_args, **_kwargs) -> dict:
+        await self.released.wait()
+        if isinstance(self.answer, Exception):
+            raise self.answer
+        return self.answer
+
+
 async def _start_manual(hass: HomeAssistant) -> dict:
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -53,26 +72,35 @@ async def _start_manual(hass: HomeAssistant) -> dict:
     return result
 
 
-async def _through_authorize(hass: HomeAssistant, result: dict) -> dict:
+async def _answered(hass: HomeAssistant, result: dict, poll: _Poll) -> dict:
+    """On the progress step: let BMW answer, land on what follows."""
+
+    assert result["type"] is FlowResultType.SHOW_PROGRESS
+    assert result["step_id"] == "authorize"
+    poll.released.set()
+    await hass.async_block_till_done()
+    return await hass.config_entries.flow.async_configure(result["flow_id"])
+
+
+async def _through_authorize(hass: HomeAssistant, result: dict, poll: _Poll) -> dict:
     """Submit the client id, wait out the progress step, land on what follows."""
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {"client_id": f"  {CLIENT_ID}  "}
     )
     assert result["type"] is FlowResultType.SHOW_PROGRESS
-    assert result["step_id"] == "authorize"
     assert result["description_placeholders"]["user_code"] == "ABCD-EFGH"
-    await hass.async_block_till_done()
-    return await hass.config_entries.flow.async_configure(result["flow_id"])
+    return await _answered(hass, result, poll)
 
 
 async def test_the_manual_path_creates_the_entry(hass: HomeAssistant) -> None:
+    poll = _Poll()
     with (
         patch(f"{FLOW}.request_device_code", return_value=DEVICE),
-        patch(f"{FLOW}.poll_for_tokens", return_value=TOKENS),
+        patch(f"{FLOW}.poll_for_tokens", poll),
         patch("custom_components.bavariandata.async_setup_entry", return_value=True),
     ):
-        result = await _through_authorize(hass, await _start_manual(hass))
+        result = await _through_authorize(hass, await _start_manual(hass), poll)
         assert result["type"] is FlowResultType.FORM
         assert result["step_id"] == "select_clusters"
         # Nothing selected: nothing to activate in the portal, so the entry is made.
@@ -95,33 +123,33 @@ async def test_a_device_code_failure_keeps_the_form_and_recovers(hass: HomeAssis
     assert result["type"] is FlowResultType.FORM
     assert result["errors"] == {"base": "device_code_failed"}
 
+    poll = _Poll()
     with (
         patch(f"{FLOW}.request_device_code", return_value=DEVICE),
-        patch(f"{FLOW}.poll_for_tokens", return_value=TOKENS),
+        patch(f"{FLOW}.poll_for_tokens", poll),
     ):
-        result = await _through_authorize(hass, result)
+        result = await _through_authorize(hass, result, poll)
     assert result["step_id"] == "select_clusters"
 
 
 async def test_a_declined_authorization_offers_a_fresh_code(hass: HomeAssistant) -> None:
-    denied = CardataAuthError("denied", status=400, error_code="access_denied")
+    poll = _Poll(CardataAuthError("denied", status=400, error_code="access_denied"))
     with (
         patch(f"{FLOW}.request_device_code", return_value=DEVICE),
-        patch(f"{FLOW}.poll_for_tokens", side_effect=denied),
+        patch(f"{FLOW}.poll_for_tokens", poll),
     ):
-        result = await _through_authorize(hass, await _start_manual(hass))
+        result = await _through_authorize(hass, await _start_manual(hass), poll)
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "authorize_failed"
     assert "access_denied" in result["description_placeholders"]["error"]
 
+    poll = _Poll()
     with (
         patch(f"{FLOW}.request_device_code", return_value=DEVICE),
-        patch(f"{FLOW}.poll_for_tokens", return_value=TOKENS),
+        patch(f"{FLOW}.poll_for_tokens", poll),
     ):
         result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
-        assert result["type"] is FlowResultType.SHOW_PROGRESS
-        await hass.async_block_till_done()
-        result = await hass.config_entries.flow.async_configure(result["flow_id"])
+        result = await _answered(hass, result, poll)
     assert result["step_id"] == "select_clusters"
 
 
@@ -129,11 +157,12 @@ async def test_a_second_client_of_the_same_account_is_refused(hass: HomeAssistan
     MockConfigEntry(
         domain=DOMAIN, unique_id="another-client", data={"client_id": "x", "gcid": "gcid-1"}
     ).add_to_hass(hass)
+    poll = _Poll()
     with (
         patch(f"{FLOW}.request_device_code", return_value=DEVICE),
-        patch(f"{FLOW}.poll_for_tokens", return_value=TOKENS),
+        patch(f"{FLOW}.poll_for_tokens", poll),
     ):
-        result = await _through_authorize(hass, await _start_manual(hass))
+        result = await _through_authorize(hass, await _start_manual(hass), poll)
 
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "account_already_configured"
@@ -142,21 +171,13 @@ async def test_a_second_client_of_the_same_account_is_refused(hass: HomeAssistan
 async def test_the_poll_runs_in_the_background(hass: HomeAssistant) -> None:
     """The progress step returns at once; the flow moves on when BMW answers."""
 
-    answered = asyncio.Event()
-
-    async def slow_poll(*_args, **_kwargs):
-        await answered.wait()
-        return TOKENS
-
+    poll = _Poll()
     with (
         patch(f"{FLOW}.request_device_code", return_value=DEVICE),
-        patch(f"{FLOW}.poll_for_tokens", side_effect=slow_poll),
+        patch(f"{FLOW}.poll_for_tokens", poll),
     ):
         result = await hass.config_entries.flow.async_configure(
             (await _start_manual(hass))["flow_id"], {"client_id": CLIENT_ID}
         )
-        assert result["type"] is FlowResultType.SHOW_PROGRESS
-        answered.set()
-        await hass.async_block_till_done()
-        result = await hass.config_entries.flow.async_configure(result["flow_id"])
+        result = await _answered(hass, result, poll)
     assert result["step_id"] == "select_clusters"
