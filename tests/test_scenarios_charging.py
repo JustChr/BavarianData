@@ -340,6 +340,63 @@ def test_without_history_a_restart_does_not_extrapolate():
         assert h.estimate() == pytest.approx(held, abs=0.01)
 
 
+def test_the_restart_paths_say_what_they_did_in_the_debug_log(caplog):
+    """Each restart decision writes its debug line; none of them may break the charge."""
+
+    import logging
+
+    debug = load_module("debug")
+    caplog.set_level(logging.DEBUG, logger="custom_components.bavariandata")
+    debug.set_debug_enabled(True, entry_id="restart-debug")
+    try:
+        with CoordinatorHarness() as h:
+            # Resumed: the catch-up confirms the charge, and the SoC rose meanwhile.
+            _start_charge(h)
+            h.advance_to(27.7)
+            h.restart(downtime_s=80)
+            h.send(31, stamped=30, soc=40, status="CHARGINGACTIVE", power=3480, step="catch-up")
+            h.send(90, status="NOCHARGING", power=0, step="unplugged")
+            h.advance_to(95)
+            assert len(h.sessions()) == 1
+
+            # Too old to resume: closed where it was last seen.
+            _start_charge(h, minute=100, soc=45)
+            h.advance_to(110)
+            h.restart(downtime_s=6 * 3600)
+            h.advance_to(500)
+            assert len(h.sessions()) == 2
+    finally:
+        debug.forget_entry("restart-debug")
+
+    for line in (
+        "RESTORED open session",
+        "RESUME restored session",
+        "GAP credit",
+        "RESTORED stale",
+    ):
+        assert line in caplog.text, line
+
+
+def test_a_garbled_stored_charge_is_restored_unseeded_or_dropped(h):
+    """Open-session snapshots are JSON from older builds: untrusted on the way back in."""
+
+    garbled_car, broken_car = "WBATEST0000000008", "WBATEST0000000009"
+    _start_charge(h)
+    h.advance_to(20)
+    snapshot = dict(h.coordinator.history.open_sessions()[h.vin])
+    h.coordinator.history.async_set_open_session(
+        garbled_car,
+        {**snapshot, "vin": garbled_car, "energy_wh": "lots", "saved_at": 12345},
+    )
+    h.coordinator.history.async_set_open_session(broken_car, {"not": "a session"})
+    h.restart(downtime_s=80)
+
+    open_now = h.coordinator.history.open_sessions()
+    assert broken_car not in open_now
+    assert garbled_car in open_now
+    assert h.coordinator.get_session_energy_kwh(garbled_car) in (None, 0.0)
+
+
 # --- efficiency -----------------------------------------------------------------
 
 FUEL_LEVEL = "vehicle.drivetrain.fuelSystem.level"
@@ -650,3 +707,47 @@ def test_a_deleted_car_leaves_the_other_cars_history_alone(h):
     assert [s.vin for s in h.coordinator.history.sessions("WBATEST0000000002")] == [
         "WBATEST0000000002"
     ]
+
+
+def test_house_meters_in_kilowatts_or_megawatts_give_the_same_mix():
+    """The units a power sensor may state are converted, a reversed battery turned round."""
+
+    pricing = load_module("history.pricing")
+    home = (48.1, 11.5)
+    with _house_harness(home) as h:
+        h.fix(5, *home)
+        _charge_and_unplug(h)
+        (in_watts,) = h.sessions()
+
+    with _house_harness(home) as h:
+        h.coordinator.pricing = pricing.PricingConfig(
+            mode=pricing.MODE_FIXED,
+            fixed_price=0.30,
+            pv_power_entity="sensor.pv",
+            grid_power_entity="sensor.grid",
+            battery_power_entity="sensor.battery",
+            battery_power_invert=True,
+        )
+        h.hass.set_state("sensor.pv", 4, unit_of_measurement="kW")
+        h.hass.set_state("sensor.grid", 0.002, unit_of_measurement="MW")
+        # Idle, which an inverted sensor must still read as idle.
+        h.hass.set_state("sensor.battery", 0, unit_of_measurement="W")
+        h.fix(5, *home)
+        _charge_and_unplug(h)
+        (converted,) = h.sessions()
+
+    assert converted.energy_mix == in_watts.energy_mix
+    assert converted.energy_mix["solar_percent"] > 0
+
+
+def test_a_garbled_solar_reading_is_not_read_as_no_sun():
+    home = (48.1, 11.5)
+    with _house_harness(home) as h:
+        h.hass.set_state("sensor.pv", "garbage", unit_of_measurement="W")
+        h.fix(5, *home)
+        _charge_and_unplug(h)
+        (session,) = h.sessions()
+
+    # Unknown, not 0 % solar; the tariff still bills the energy.
+    assert session.energy_mix is None
+    assert session.cost["source"] == "tariff"
