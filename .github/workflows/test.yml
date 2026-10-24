@@ -42,11 +42,11 @@ jobs:
       - name: Lint (ruff)
         # Rule selection lives in pyproject.toml: real bug patterns (pyflakes,
         # bugbear, logging).
-        run: ruff check custom_components/bavariandata tests
+        run: ruff check custom_components/bavariandata tests tests_ha
       - name: Format (ruff)
         # The generated descriptor_metadata.py is excluded in pyproject.toml;
         # passing directories rather than files is what makes that apply.
-        run: ruff format --check custom_components/bavariandata tests tools
+        run: ruff format --check custom_components/bavariandata tests tests_ha tools
       - name: Install Node dev dependencies
         # Dev-only: ESLint for the card. Nothing from node_modules ships.
         run: npm ci
@@ -80,3 +80,39 @@ jobs:
           pip install -r requirements_test.txt
       - name: Golden gate
         run: python scripts/golden.py gate --base "origin/${{ github.base_ref }}" --keep "$RUNNER_TEMP/golden"
+
+  home-assistant:
+    name: Home Assistant tests
+    # tests_ha/ against a real Home Assistant (pytest-homeassistant-custom-
+    # component), then both suites' coverage combined, per module -- the
+    # Quality Scale counts every module on its own (scripts/coverage_modules.py).
+    # Two environments: the plugin pins its own pytest, below the main suite's.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: |
+            requirements_test.txt
+            requirements_test_ha.txt
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - name: Main suite, for coverage
+        run: |
+          python -m venv /tmp/unit
+          /tmp/unit/bin/pip install -q -r requirements_test.txt
+          COVERAGE_FILE=.coverage.unit /tmp/unit/bin/python -m pytest tests/ -q --cov --cov-report=
+      - name: Home Assistant suite
+        run: |
+          python -m venv /tmp/ha
+          /tmp/ha/bin/pip install -q -r requirements_test_ha.txt
+          COVERAGE_FILE=.coverage.ha /tmp/ha/bin/python -m pytest -c tests_ha/pytest.ini tests_ha -q \
+            --cov=custom_components/bavariandata --cov-report=
+      - name: Coverage per module
+        run: |
+          /tmp/unit/bin/coverage combine .coverage.unit .coverage.ha
+          /tmp/unit/bin/coverage json -q -o coverage.json
+          python scripts/coverage_modules.py coverage.json
