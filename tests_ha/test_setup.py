@@ -186,3 +186,29 @@ async def test_the_bootstrap_names_the_cars_bmw_maps(hass: HomeAssistant, no_bmw
     assert device.model == "i5 eDrive40"
     assert entry.data[BOOTSTRAP_COMPLETE] is True
     assert entry.data["vehicle_metadata"][VIN]["modelName"] == "i5 eDrive40"
+
+
+async def test_a_spent_quota_raises_a_repair_that_its_next_claim_clears(
+    hass: HomeAssistant, no_bmw
+) -> None:
+    from homeassistant.helpers import issue_registry as ir  # noqa: PLC0415
+
+    from custom_components.bavariandata.const import REQUEST_LIMIT  # noqa: PLC0415
+    from custom_components.bavariandata.rest import CardataQuotaError  # noqa: PLC0415
+
+    entry = _entry()
+    await _set_up(hass, entry)
+    quota = entry.runtime_data.quota_manager
+    issue_id = f"api_quota_exhausted_{entry.entry_id}"
+
+    for _ in range(REQUEST_LIMIT):
+        await quota.async_claim()
+    with pytest.raises(CardataQuotaError):
+        await quota.async_claim()
+    issue = ir.async_get(hass).async_get_issue(DOMAIN, issue_id)
+    assert issue is not None
+    assert issue.translation_placeholders["account"] == "BavarianData"
+
+    quota._timestamps.popleft()  # the oldest claim ages out
+    await quota.async_claim()
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
