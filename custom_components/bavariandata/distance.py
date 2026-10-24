@@ -20,7 +20,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
 from .const import DOMAIN
-from .coordinator import DESC_ODOMETER
+from .car_signals import DESC_ODOMETER
 from .units import DESC_DISPLAY_DISTANCE, distance_unit, fuel_unit, sensor_unit_update
 
 # Marks a display unit this integration set (in the entity's registry options

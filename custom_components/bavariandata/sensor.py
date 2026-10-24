@@ -23,11 +23,8 @@ from homeassistant.util import dt as dt_util
 from homeassistant.const import UnitOfLength
 
 from .const import DOMAIN, REQUEST_LIMIT
-from .coordinator import (
-    DESC_ODOMETER,
-    EFFICIENCY_LIVE_DESCRIPTORS,
-    CardataCoordinator,
-)
+from .car_signals import DESC_ODOMETER, EFFICIENCY_LIVE_DESCRIPTORS
+from .coordinator import CardataCoordinator
 from .coverage import HIGH_VOLTAGE_SIGNALS, is_ev_only_descriptor
 from .descriptor_metadata import DESCRIPTOR_META, SECTIONS
 from .descriptors import OPT_IN_LOCATION_DESCRIPTORS, TRACKER_ONLY_LOCATION_DESCRIPTORS
