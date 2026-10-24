@@ -616,7 +616,7 @@ def test_an_in_progress_charge_is_snapshotted_on_the_way_out() -> None:
     """
 
     source = _function_source(_PKG / "coordinator.py", "async_flush_charging")
-    assert "_session_builders" in source and "_snapshot_open_session" in source, (
+    assert "session.builder" in source and "_snapshot_open_session" in source, (
         "async_flush_charging no longer snapshots the open sessions. A charge "
         "still running at unload or shutdown is then lost for good, taking its "
         "kWh, its cost and its statistics with it."
@@ -831,7 +831,7 @@ def test_the_bridge_never_advertises_charge_power_on_a_parked_car() -> None:
         for n in ast.walk(tree)
         if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == "bridge_snapshot"
     )
-    assert "_charging_power_w" in ast.unparse(snapshot), (
+    assert "charging_power_w" in ast.unparse(snapshot), (
         "bridge_snapshot no longer reads the charging power at all."
     )
     # Structural, not textual: the read has to sit under a test of the charging
@@ -842,7 +842,7 @@ def test_the_bridge_never_advertises_charge_power_on_a_parked_car() -> None:
         for node in ast.walk(snapshot)
         if isinstance(node, ast.If)
         and "charging is True" in ast.unparse(node.test)
-        and "_charging_power_w" in ast.unparse(node.body)
+        and "charging_power_w" in ast.unparse(node.body)
     ]
     assert guarded, (
         "The charging power is read outside a 'charging is True' branch in "

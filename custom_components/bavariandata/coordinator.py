@@ -78,6 +78,7 @@ from .history.trip_builder import (
     silence_implies_stop,
 )
 from .car_profile import REST, STREAM, CarProfile
+from .car_state import NO_CAR, ClosedTrip, Vehicle
 from .coverage import is_combustion_only, is_plug_in_hybrid
 from .phone_route import PhoneRoute
 from .soc_tracking import SocTracking
@@ -411,17 +412,6 @@ class DescriptorState:
     timestamp: Optional[str]
 
 
-@dataclass
-class _ClosedTrip:
-    """The trip stored last, with the readings it was closed on."""
-
-    trip: Trip
-    mileage_start: Optional[float]
-    odometer: Optional[float]
-    soc: Optional[float]
-    closed_at: datetime
-
-
 def _charge_complete(soc: Optional[float], target: Optional[float]) -> bool:
     """Whether a charge that stopped reached its target (within the 1 % BMW rounds to)."""
 
@@ -484,32 +474,9 @@ class CardataCoordinator:
     # transition rather than every tick.
     _no_data_issue_active: bool = field(default=False, init=False)
     _unauthorized_issue_active: bool = field(default=False, init=False)
-    _soc_tracking: Dict[str, SocTracking] = field(default_factory=dict, init=False)
-    _soc_rate: Dict[str, float] = field(default_factory=dict, init=False)
-    _soc_estimate: Dict[str, float] = field(default_factory=dict, init=False)
-    # What drives each estimate right now, "meter" or "stream" -- kept so a
-    # switch alone, with the figure unchanged, still updates the entity.
-    _soc_source: Dict[str, str] = field(default_factory=dict, init=False)
-    # Whole minutes until a home charge reaches its target (``charge_eta``).
-    _charge_eta: Dict[str, int] = field(default_factory=dict, init=False)
-    _charging_power_w: Dict[str, float] = field(default_factory=dict, init=False)
-    _direct_power_w: Dict[str, float] = field(default_factory=dict, init=False)
-    _ac_voltage_v: Dict[str, float] = field(default_factory=dict, init=False)
-    _ac_current_a: Dict[str, float] = field(default_factory=dict, init=False)
-    _ac_phase_count: Dict[str, int] = field(default_factory=dict, init=False)
-    # Energy delivered, integrated from effective charging power over time.
-    # ``lifetime`` is monotonic (feeds the HA Energy dashboard); ``session``
-    # resets when a new charging session starts.
-    _energy_lifetime_wh: Dict[str, float] = field(default_factory=dict, init=False)
-    _energy_session_wh: Dict[str, float] = field(default_factory=dict, init=False)
-    _energy_session_start: Dict[str, datetime] = field(default_factory=dict, init=False)
-    # SoC at the moment the current session opened, for the energy ceiling.
-    _energy_session_soc: Dict[str, Optional[float]] = field(default_factory=dict, init=False)
-    # Unbounded integral behind ``_energy_session_wh``. Kept so the exposed total
-    # can rise again the moment a fresh SoC reading grants the room, instead of
-    # the charge being written off while the reading was pending.
-    _energy_session_raw_wh: Dict[str, float] = field(default_factory=dict, init=False)
-    _energy_last_time: Dict[str, datetime] = field(default_factory=dict, init=False)
+    # Every car's own state (``car_state.py``), by VIN. Written through
+    # :meth:`_car`, read through :meth:`_peek`.
+    _cars: Dict[str, Vehicle] = field(default_factory=dict, init=False)
     # Charging-session recording. ``history`` is injected during setup; when it
     # is None (or pricing isn't configured) recording degrades quietly rather
     # than breaking the stream -- history is a bonus, not a prerequisite.
@@ -546,135 +513,48 @@ class CardataCoordinator:
     # The account's Units setting (Configure -> Units; ``units.unit_choices``):
     # display only, everything recorded stays metric.
     display_units: Dict[str, str] = field(default_factory=lambda: unit_choices({}))
-    _session_builders: Dict[str, SessionBuilder] = field(default_factory=dict, init=False)
-    _session_costs: Dict[str, CostAccumulator] = field(default_factory=dict, init=False)
-    # Running source mix per open session (PV / house battery / grid). Separate
-    # from the cost accumulator because the two can be configured independently:
-    # a solar share is worth having with no tariff set, and a tariff is worth
-    # having with no PV.
-    _session_mixes: Dict[str, MixAccumulator] = field(default_factory=dict, init=False)
-    # What the SoC ceiling is holding back per open session, with the mix and
-    # price each increment arrived at (see ``history/held_energy.py``).
-    _session_held: Dict[str, HeldEnergy] = field(default_factory=dict, init=False)
-    # VINs whose in-progress charge was restored from the store at startup and
-    # has not yet been confirmed either way by the stream. Present means "we
-    # believe a charge is running but haven't heard from BMW since the restart";
-    # the value is when the snapshot was taken.
-    _restored_open_sessions: Dict[str, datetime] = field(default_factory=dict, init=False)
-    # Cancel callbacks for the per-VIN timers that close a restored session the
-    # stream never confirmed. Without them an outage that spanned the end of a
-    # charge would leave the record open forever.
-    _restored_open_timers: Dict[str, Any] = field(default_factory=dict, init=False)
-    # When each VIN's in-progress charge was last written to the store. The
-    # snapshot is refreshed on a cadence rather than on every sample: a charge
-    # runs for hours and the whole history document is rewritten each time.
-    _open_session_saved: Dict[str, datetime] = field(default_factory=dict, init=False)
-    # SoC a resumed session was last seen at before the restart, per VIN. Present
-    # only between the resume and the first SoC reading that can measure what the
-    # gap cost (see ``_apply_gap_credit``).
-    _gap_credit_soc: Dict[str, float] = field(default_factory=dict, init=False)
-    # Where the bound wallbox meter stood when this session's cost was last
-    # billed. Separate from the builder's own first/last pair: that one spans the
-    # whole session and produces the record's ``grid_kwh``, this one is a cursor
-    # so no kilowatt-hour is billed twice.
-    _grid_meter_billed: Dict[str, float] = field(default_factory=dict, init=False)
-    _trip_builders: Dict[str, TripBuilder] = field(default_factory=dict, init=False)
-    # Cancel callbacks for the per-VIN stationary-close debounce timers.
-    _trip_close_timers: Dict[str, Any] = field(default_factory=dict, init=False)
-    # Cancel callbacks for the per-VIN charging-session close debounce timers; a
-    # pending timer means charging just stopped and we're waiting to see whether
-    # it resumes (a status flap) before committing the close.
-    _charge_close_timers: Dict[str, Any] = field(default_factory=dict, init=False)
-    # When, and on which status, the charge behind each pending close stopped:
-    # the record ends there, and the plugged-in hold counts from it.
-    _charge_stopped: Dict[str, tuple[datetime, str]] = field(default_factory=dict, init=False)
-    # The vehicle-report debounce, per VIN: the cancel callback, and the
-    # odometer reading it is waiting on (``vehicle_report.py``).
-    _report_timers: Dict[str, Any] = field(default_factory=dict, init=False)
-    _report_pending: Dict[str, float] = field(default_factory=dict, init=False)
-    # The phone positions held per VIN for a report trip's route, and the one
-    # state listener feeding them (``phone_route.py``, :meth:`watch_phone_routes`).
-    _phone_routes: Dict[str, PhoneRoute] = field(default_factory=dict, init=False)
+    # The one state listener feeding the cars' phone routes (``phone_route.py``,
+    # :meth:`watch_phone_routes`).
     _phone_unsub: Optional[Callable[[], None]] = field(default=None, init=False)
-    # Per-VIN GPS movement trackers. Trips are detected from the live position
-    # stream because the i5 streams no motion/ignition and its ``trip.segment``
-    # batches are not trip-end markers -- it emits them repeatedly *mid-drive*
-    # (see ``_process_gps_signal`` and ``_process_trip_signals``).
-    _gps_trackers: Dict[str, GpsTracker] = field(default_factory=dict, init=False)
-    # Wall-clock of the last GPS fix classified as movement, per VIN. Guards the
-    # segment-close path: a segment batch must not close a trip the GPS track
-    # still shows to be under way.
-    _last_gps_move: Dict[str, datetime] = field(default_factory=dict, init=False)
-    # Wall-clock of the last *positive* evidence the car is standing still: a GPS
-    # fix that arrived showing no movement, or an explicit ``isMoving: false``.
-    # Newer than ``_last_gps_move`` means "the car stopped"; older (or absent)
-    # while the debounce expires means "the stream stopped", which must not close
-    # a trip -- see ``_hold_close_on_silence``.
-    _last_stop_evidence: Dict[str, datetime] = field(default_factory=dict, init=False)
-    # When an unevidenced close was first held off, per VIN. Present only while a
-    # trip is being held open through stream silence; bounded by
-    # ``TRIP_SILENT_HOLD_MAX_S``.
-    _trip_held_since: Dict[str, datetime] = field(default_factory=dict, init=False)
-    # Last settled GPS position per VIN (updated on every complete fix, moving or
-    # not). It is what a new trip's track is seeded from, so the route starts
-    # where the car actually was parked rather than at the first movement fix.
-    _last_gps_position: Dict[str, tuple[float, float]] = field(default_factory=dict, init=False)
-    # Pairing state for BMW's two-message fix (lat and lon arrive separately).
-    # ``_gps_pending_parts`` is which halves have arrived since the last complete
-    # fix, ``_gps_pending_since`` when that wait started (for the stale escape
-    # hatch), and ``_gps_last_fix_ts`` the BMW timestamp of the last fix actually
-    # processed, which drops BMW's duplicate redelivery of the same position.
-    _gps_pending_parts: Dict[str, set[str]] = field(default_factory=dict, init=False)
-    _gps_pending_since: Dict[str, datetime] = field(default_factory=dict, init=False)
-    _gps_last_fix_ts: Dict[str, datetime] = field(default_factory=dict, init=False)
-    # Driver-door state and a pending door-close start marker (see
-    # ``_process_door_signal``). Both optional: absent on cars that don't stream
-    # the door, in which case detection falls back to GPS alone.
-    _driver_door_open: Dict[str, bool] = field(default_factory=dict, init=False)
-    # When the driver door opened during a trip too soon after the last movement
-    # to count as an arrival on the spot -- the i5 sends it within a second of the
-    # final fix. Kept until the car moves on, it is the arrival time and the stop
-    # evidence a quiet stream would otherwise never give.
-    _door_arrival: Dict[str, datetime] = field(default_factory=dict, init=False)
-    # The odometer and SoC as of the last fix that showed the car parked, for the
-    # next trip's start (see ``_open_trip``). A car that streams in snapshots (an
-    # i4) sends both ahead of the fix that first shows it moving, already moved on.
-    _parked_reading: Dict[str, tuple[Optional[float], Optional[float]]] = field(
-        default_factory=dict, init=False
-    )
-    # The trip stored last, while a reading that lands after its close may still
-    # be its own (see ``_settle_late_reading``), and when such a reading came in.
-    _closed_trip: Dict[str, _ClosedTrip] = field(default_factory=dict, init=False)
-    _late_reading_at: Dict[str, datetime] = field(default_factory=dict, init=False)
-    _pending_start: Dict[str, tuple[datetime, Optional[tuple[float, float]]]] = field(
-        default_factory=dict, init=False
-    )
-    # Trip-capture bookkeeping (only populated in ``trip_debug`` mode). The last
-    # GPS fix's wall-clock (for the inter-fix gap), the scheduled close-timer fire
-    # time (for the countdown shown on each fix line), per-open-trip capture stats
-    # for the post-mortem, and a one-shot guard so the file-size warning is logged
-    # only once.
-    _last_gps_fix_at: Dict[str, datetime] = field(default_factory=dict, init=False)
-    _trip_close_due: Dict[str, datetime] = field(default_factory=dict, init=False)
-    _trip_capture: Dict[str, dict] = field(default_factory=dict, init=False)
+    # Trip capture (``trip_debug``): the file-size warning is logged only once.
     _trip_capture_warned: bool = field(default=False, init=False)
-    # Per-VIN lock serialising trip detection. Each MQTT message is dispatched as
-    # its own task (``run_coroutine_threadsafe`` in ``stream``), so two GPS fixes
-    # can interleave at the geocode ``await`` inside ``_open_trip`` and both pass
-    # the ``not open_trip`` check -- opening the trip twice and dropping the first
-    # builder. The lock makes "check-then-open" (and close) atomic per vehicle.
-    _trip_locks: Dict[str, asyncio.Lock] = field(default_factory=dict, init=False)
-    # The device triggers (``vehicle_triggers``). Descriptors the stream delivered
-    # since this instance started -- situations are judged on these alone, never
-    # on a value restored after a restart. The zone a trip started in (name and
-    # entity id, for "left a zone"), and the VINs whose trip already left it.
-    _live_descriptors: Dict[str, set[str]] = field(default_factory=dict, init=False)
+    # The device triggers (``vehicle_triggers``): situations, judged on what the
+    # stream delivered since this instance started (``Vehicle.live_descriptors``).
     _situations: SituationTracker = field(default_factory=SituationTracker, init=False)
     # The alarm, preconditioning and Check Control as last known: what an edge
     # event compares against (``vehicle_triggers.EdgeTracker``).
     _edges: EdgeTracker = field(default_factory=EdgeTracker, init=False)
-    _trip_start_zone: Dict[str, tuple[str, str]] = field(default_factory=dict, init=False)
-    _zone_left_fired: set[str] = field(default_factory=set, init=False)
+
+    def _car(self, vin: str) -> Vehicle:
+        """``vin``'s state, made on first use -- for anything that writes it."""
+
+        car = self._cars.get(vin)
+        if car is None:
+            car = self._cars[vin] = Vehicle(vin)
+        return car
+
+    def _peek(self, vin: str) -> Vehicle:
+        """``vin``'s state for reading: a car never heard of reads as unset.
+
+        Never creates one, so a getter asked about any VIN leaves no trace;
+        :data:`NO_CAR` refuses writes, so a read path cannot fill one in.
+        """
+
+        return self._cars.get(vin, NO_CAR)
+
+    def _vins_where(self, test: Callable[[Vehicle], Any]) -> list[str]:
+        """Every car ``test`` holds for, as a list (safe to change cars while walking it)."""
+
+        return [vin for vin, car in self._cars.items() if test(car)]
+
+    def _tracked_cars(self) -> list[tuple[str, SocTracking]]:
+        """Every car with a SoC tracker, and the tracker."""
+
+        return [
+            (vin, car.charge.tracking)
+            for vin, car in self._cars.items()
+            if car.charge.tracking is not None
+        ]
 
     @property
     def signal_new_sensor(self) -> str:
@@ -735,18 +615,18 @@ class CardataCoordinator:
     def has_open_session(self, vin: str) -> bool:
         """True while a charging session is being recorded on ``vin``."""
 
-        return vin in self._session_builders
+        return self._peek(vin).session.builder is not None
 
     def charging_active(self, vin: str) -> Optional[bool]:
         """Whether the SoC tracker counts ``vin`` as charging (``None``: never seen)."""
 
-        tracking = self._soc_tracking.get(vin)
+        tracking = self._peek(vin).charge.tracking
         return None if tracking is None else tracking.charging_active
 
     def gps_halves_pending(self, vin: str) -> set[str]:
         """The halves of a GPS fix that arrived without their mate yet."""
 
-        return set(self._gps_pending_parts.get(vin, ()))
+        return set(self._peek(vin).gps.pending_parts or ())
 
     def has_open_trip(self, vin: str) -> bool:
         """True while a drive is under way on ``vin``.
@@ -755,19 +635,19 @@ class CardataCoordinator:
         answers only "is it driving?" without building the whole live view.
         """
 
-        return vin in self._trip_builders
+        return self._peek(vin).trip.builder is not None
 
     def open_trip_vins(self) -> list[str]:
         """Every vehicle with a drive under way right now."""
 
-        return list(self._trip_builders)
+        return self._vins_where(lambda car: car.trip.builder is not None)
 
     def open_trip_progress(
         self, vin: str, *, include_track: bool = False
     ) -> Optional[Dict[str, Any]]:
         """Live view of the drive under way on ``vin``, or ``None`` when parked.
 
-        The only window into ``_trip_builders`` from outside the coordinator. A
+        The only window into the open ``TripBuilder`` from outside the coordinator. A
         trip in progress exists purely in memory until it closes, so without this
         nothing -- neither an entity nor ``get_trips`` -- can show that the car is
         out driving right now.
@@ -779,7 +659,7 @@ class CardataCoordinator:
         response is the right place to ask for it.
         """
 
-        builder = self._trip_builders.get(vin)
+        builder = self._peek(vin).trip.builder
         if builder is None:
             return None
         soc_now = self._trip_soc_end(vin, builder.start)
@@ -806,9 +686,9 @@ class CardataCoordinator:
         # Both of these qualify how much the "under way" flag can be trusted: the
         # last movement we actually saw, and whether the close is currently being
         # held through stream silence (see _hold_close_on_silence).
-        last_move = self._last_gps_move.get(vin)
+        last_move = self._peek(vin).gps.last_move
         progress["last_movement"] = last_move.isoformat() if last_move else None
-        progress["held"] = vin in self._trip_held_since
+        progress["held"] = self._peek(vin).trip.held_since is not None
         if include_track:
             progress["track"] = [list(point) for point in builder.track]
         return progress
@@ -848,28 +728,19 @@ class CardataCoordinator:
     def _set_direct_power(
         self, vin: str, power_w: Optional[float], timestamp: Optional[datetime]
     ) -> None:
-        if power_w is None:
-            self._direct_power_w.pop(vin, None)
-        else:
-            self._direct_power_w[vin] = max(power_w, 0.0)
+        self._car(vin).charge.direct_power_w = None if power_w is None else max(power_w, 0.0)
         self._apply_effective_power(vin, timestamp)
 
     def _set_ac_voltage(
         self, vin: str, voltage_v: Optional[float], timestamp: Optional[datetime]
     ) -> None:
-        if voltage_v is None:
-            self._ac_voltage_v.pop(vin, None)
-        else:
-            self._ac_voltage_v[vin] = max(voltage_v, 0.0)
+        self._car(vin).charge.ac_voltage_v = None if voltage_v is None else max(voltage_v, 0.0)
         self._apply_effective_power(vin, timestamp)
 
     def _set_ac_current(
         self, vin: str, current_a: Optional[float], timestamp: Optional[datetime]
     ) -> None:
-        if current_a is None:
-            self._ac_current_a.pop(vin, None)
-        else:
-            self._ac_current_a[vin] = max(current_a, 0.0)
+        self._car(vin).charge.ac_current_a = None if current_a is None else max(current_a, 0.0)
         self._apply_effective_power(vin, timestamp)
 
     def _set_ac_phase(
@@ -892,34 +763,29 @@ class CardataCoordinator:
                 except TypeError, ValueError:
                     parsed = None
                 phase_count = parsed if parsed and parsed > 0 else None
-        if phase_count is None:
-            self._ac_phase_count.pop(vin, None)
-        else:
-            self._ac_phase_count[vin] = phase_count
+        self._car(vin).charge.ac_phase_count = phase_count
         self._apply_effective_power(vin, timestamp)
 
     def _derive_ac_power(self, vin: str) -> Optional[float]:
-        voltage = self._ac_voltage_v.get(vin)
-        current = self._ac_current_a.get(vin)
-        phases = self._ac_phase_count.get(vin)
+        charge = self._peek(vin).charge
+        voltage, current, phases = charge.ac_voltage_v, charge.ac_current_a, charge.ac_phase_count
         if voltage is None or current is None or phases is None:
             return None
         return max(voltage * current * phases, 0.0)
 
     def _compute_effective_power(self, vin: str) -> Optional[float]:
-        direct = self._direct_power_w.get(vin)
+        direct = self._peek(vin).charge.direct_power_w
         if direct is not None:
             return direct
         return self._derive_ac_power(vin)
 
     def _apply_effective_power(self, vin: str, timestamp: Optional[datetime]) -> None:
-        tracking = self._soc_tracking.setdefault(vin, SocTracking())
+        charge = self._car(vin).charge
+        tracking = charge.tracker()
         effective_power = self._compute_effective_power(vin)
-        if effective_power is None:
-            self._charging_power_w.pop(vin, None)
-            return
-        self._charging_power_w[vin] = effective_power
-        tracking.update_power(effective_power, timestamp)
+        charge.charging_power_w = effective_power
+        if effective_power is not None:
+            tracking.update_power(effective_power, timestamp)
 
     async def async_handle_message(self, payload: Dict[str, Any]) -> None:
         vin = payload.get("vin")
@@ -947,7 +813,7 @@ class CardataCoordinator:
         if debug_enabled():
             _LOGGER.debug("Processing message for VIN %s: %s", vin, list(data.keys()))
 
-        tracking = self._soc_tracking.setdefault(vin, SocTracking())
+        tracking = self._car(vin).charge.tracker()
         now = datetime.now(timezone.utc)
         # REST callers tag their batches; the stream sends no ``source``.
         source = REST if payload.get("source") == REST else STREAM
@@ -1113,7 +979,7 @@ class CardataCoordinator:
             async_dispatcher_send(self.hass, self.signal_new_binary, vin, descriptor)
 
         if seen_descriptors:
-            self._live_descriptors.setdefault(vin, set()).update(seen_descriptors)
+            self._car(vin).live_descriptors.update(seen_descriptors)
 
         if self.coverage is not None and seen_descriptors:
             # Bookkeeping must never break the stream.
@@ -1127,13 +993,13 @@ class CardataCoordinator:
             async_dispatcher_send(self.hass, self.signal_energy, vin)
 
         # Serialise per-VIN so concurrent messages can't double-open a trip while
-        # one is awaiting a geocode (see ``_trip_locks``). The timer-driven close
+        # one is awaiting a geocode (see ``TripState.lock``). The timer-driven close
         # stays outside the lock -- it pops its builder before any await, so it
         # can't corrupt an open running here, and taking the lock there would
         # deadlock the in-lock segment/stationary closes.
-        lock = self._trip_locks.get(vin)
+        lock = self._peek(vin).trip.lock
         if lock is None:
-            lock = self._trip_locks[vin] = asyncio.Lock()
+            lock = self._car(vin).trip.lock = asyncio.Lock()
         async with lock:
             # A car that reports only once parked has its trips built from the
             # reports instead: its burst's position jump, read live, would be a
@@ -1167,7 +1033,7 @@ class CardataCoordinator:
         """Accumulate delivered energy from effective charging power.
 
         Assumes the last-sampled power held constant since the previous tick (a
-        left Riemann sum). ``_energy_last_time`` is advanced every call —
+        left Riemann sum). ``energy_last_time`` is advanced every call —
         including while idle — so a resumed session never integrates over a
         stale gap.
 
@@ -1180,10 +1046,10 @@ class CardataCoordinator:
         (see :meth:`_session_energy_ceiling_wh`); the integration still supplies
         the timing and the curve, it just can't run away from the battery.
         """
-        last = self._energy_last_time.get(vin)
-        self._energy_last_time[vin] = now
-        tracking = self._soc_tracking.get(vin)
-        power_w = self._charging_power_w.get(vin)
+        charge = self._car(vin).charge
+        last, charge.energy_last_time = charge.energy_last_time, now
+        tracking = charge.tracking
+        power_w = charge.charging_power_w
         if last is None or tracking is None or not tracking.charging_active:
             return False
         # A session resumed across a restart is owed whatever the pack gained
@@ -1203,23 +1069,22 @@ class CardataCoordinator:
         # lets it catch up the moment the next reading lands, so an honest
         # session ends on its full figure while a runaway one stays pinned to
         # what the battery can hold.
-        raw_before = self._energy_session_raw_wh.get(vin, 0.0)
-        before = self._energy_session_wh.get(vin, 0.0)
-        raw_after = raw_before + wh
-        self._energy_session_raw_wh[vin] = raw_after
+        raw_after = (charge.energy_session_raw_wh or 0.0) + wh
+        before = charge.energy_session_wh or 0.0
+        charge.energy_session_raw_wh = raw_after
         # Never below what was already released: a session that loses its meter
         # (another car plugs in, the meter resets) falls back to a SoC ceiling
         # that may sit under the meter's count.
         after = max(before, self._bounded_session_wh(vin, raw_after))
 
-        self._energy_session_wh[vin] = after
+        charge.energy_session_wh = after
         # The whole increment is booked, at this instant's mix and price; the
         # ceiling only decides how much of it is released into the session.
         self._record_energy_delta(vin, now, power_w, wh / 1000.0)
         gained = after - before
         if gained <= 0:
             return False
-        self._energy_lifetime_wh[vin] = self._energy_lifetime_wh.get(vin, 0.0) + gained
+        charge.energy_lifetime_wh = (charge.energy_lifetime_wh or 0.0) + gained
         self._release_held_energy(vin, gained / 1000.0)
         return True
 
@@ -1235,10 +1100,11 @@ class CardataCoordinator:
         from this session) never releases a raw total it never checked.
         """
 
-        raw = self._energy_session_raw_wh.get(vin)
+        charge = self._peek(vin).charge
+        raw = charge.energy_session_raw_wh
         if raw is None or self._session_energy_ceiling_wh(vin) is None:
             return
-        before = self._energy_session_wh.get(vin, 0.0)
+        before = charge.energy_session_wh or 0.0
         after = self._bounded_session_wh(vin, raw)
         gained = after - before
         if self._session_meter_bound_kwh(vin) is not None:
@@ -1246,30 +1112,30 @@ class CardataCoordinator:
             # above the wallbox's (the i5's runs ~4 % high) or power held across
             # a gap the meter billed as nothing. Its mix and cost were billed
             # from the meter, so all of it is this charge's.
-            held = self._session_held.get(vin)
+            held = self._peek(vin).session.held
             if held is not None:
                 held.release(
-                    held.battery_kwh, self._session_mixes.get(vin), self._session_costs.get(vin)
+                    held.battery_kwh, self._peek(vin).session.mix, self._peek(vin).session.cost
                 )
         if gained <= 0:
             return
-        self._energy_session_wh[vin] = after
-        self._energy_lifetime_wh[vin] = self._energy_lifetime_wh.get(vin, 0.0) + gained
+        charge.energy_session_wh = after
+        charge.energy_lifetime_wh = (charge.energy_lifetime_wh or 0.0) + gained
         self._release_held_energy(vin, gained / 1000.0)
         if debug_enabled():
             _LOGGER.debug(
                 "[charge] %s SETTLE +%s kWh at close (soc %s -> %s)",
                 vin,
                 round(gained / 1000.0, 3),
-                self._energy_session_soc.get(vin),
+                charge.energy_session_soc,
                 self._session_soc_percent(vin),
             )
         async_dispatcher_send(self.hass, self.signal_energy, vin)
 
     def _release_held_energy(self, vin: str, kwh: float) -> None:
-        held = self._session_held.get(vin)
+        held = self._peek(vin).session.held
         if held is not None:
-            held.release(kwh, self._session_mixes.get(vin), self._session_costs.get(vin))
+            held.release(kwh, self._peek(vin).session.mix, self._peek(vin).session.cost)
 
     def _bounded_session_wh(self, vin: str, raw_wh: float) -> float:
         """The raw running total, held to what the pack can have absorbed."""
@@ -1286,10 +1152,12 @@ class CardataCoordinator:
         See :func:`soc_is_from_session` for what that costs.
         """
 
-        tracking = self._soc_tracking.get(vin)
+        tracking = self._peek(vin).charge.tracking
         if tracking is None or tracking.last_soc_percent is None:
             return None
-        if not soc_is_from_session(tracking.last_update, self._energy_session_start.get(vin)):
+        if not soc_is_from_session(
+            tracking.last_update, self._peek(vin).charge.energy_session_start
+        ):
             return None
         return tracking.last_soc_percent
 
@@ -1305,7 +1173,7 @@ class CardataCoordinator:
         charge by a number that predates it.
         """
 
-        soc_start = self._energy_session_soc.get(vin)
+        soc_start = self._peek(vin).charge.energy_session_soc
         soc_now = self._session_soc_percent(vin)
         capacity = self.battery_capacity_kwh(vin)
         metered_kwh = self._session_meter_bound_kwh(vin)
@@ -1320,10 +1188,10 @@ class CardataCoordinator:
         See :func:`meter_energy_bound_kwh` for when it does.
         """
 
-        builder = self._session_builders.get(vin)
+        builder = self._peek(vin).session.builder
         return meter_energy_bound_kwh(
             None if builder is None else builder.metered_so_far_kwh(),
-            self._energy_session_soc.get(vin),
+            self._peek(vin).charge.energy_session_soc,
             self._session_soc_percent(vin),
             self.battery_capacity_kwh(vin),
         )
@@ -1336,7 +1204,7 @@ class CardataCoordinator:
         even in a tick where the ceiling let no energy through.
         """
 
-        builder = self._session_builders.get(vin)
+        builder = self._peek(vin).session.builder
         if builder is None:
             return
         builder.sample(now, power_w / 1000.0)
@@ -1383,15 +1251,15 @@ class CardataCoordinator:
         # to move the session's running total. ``_grid_meter_step`` advances the
         # billing cursor, so it is called on its own line rather than inline --
         # a side effect buried in an argument list is how one gets called twice.
-        meter_now = self._session_grid_meter_kwh(vin, self._session_builders.get(vin))
+        meter_now = self._session_grid_meter_kwh(vin, self._peek(vin).session.builder)
         metered_kwh = self._grid_meter_step(vin, meter_now)
         billable, _source = billable_energy(
             battery_kwh=kwh,
             grid_kwh=metered_kwh,
             loss_percent=self.pricing_for(vin).loss_percent,
         )
-        builder = self._session_builders.get(vin)
-        held = self._session_held.get(vin)
+        builder = self._peek(vin).session.builder
+        held = self._peek(vin).session.held
         # Away from home the house's meters and tariff describe the house, not
         # this charge: no mix, no cost (see ``house_supplies_this_session``).
         if builder is None or house_supplies_this_session(builder.location, self._home_zone_name()):
@@ -1423,8 +1291,8 @@ class CardataCoordinator:
 
         if meter_now is None:
             return None
-        previous = self._grid_meter_billed.get(vin)
-        self._grid_meter_billed[vin] = meter_now
+        previous = self._peek(vin).session.grid_meter_billed
+        self._car(vin).session.grid_meter_billed = meter_now
         if previous is None:
             return None
         delta = meter_now - previous
@@ -1433,34 +1301,39 @@ class CardataCoordinator:
         return delta
 
     def get_lifetime_energy_kwh(self, vin: str) -> Optional[float]:
-        value = self._energy_lifetime_wh.get(vin)
+        value = self._peek(vin).charge.energy_lifetime_wh
         return None if value is None else round(value / 1000.0, 3)
 
     def get_session_energy_kwh(self, vin: str) -> Optional[float]:
-        value = self._energy_session_wh.get(vin)
+        value = self._peek(vin).charge.energy_session_wh
         return None if value is None else round(value / 1000.0, 3)
 
     def get_session_start(self, vin: str) -> Optional[datetime]:
-        return self._energy_session_start.get(vin)
+        return self._peek(vin).charge.energy_session_start
 
     def restore_lifetime_energy(self, vin: str, kwh: float) -> None:
         """Seed the lifetime accumulator from a restored sensor state."""
         if kwh is None:
             return
-        self._energy_lifetime_wh.setdefault(vin, kwh * 1000.0)
+        charge = self._car(vin).charge
+        if charge.energy_lifetime_wh is None:
+            charge.energy_lifetime_wh = kwh * 1000.0
 
     def restore_session_energy(
         self, vin: str, kwh: float, start: Optional[datetime] = None
     ) -> None:
+        charge = self._car(vin).charge
         if kwh is not None:
-            self._energy_session_wh.setdefault(vin, kwh * 1000.0)
+            if charge.energy_session_wh is None:
+                charge.energy_session_wh = kwh * 1000.0
             # Seed the raw total to match: a restart mid-charge that left the raw
             # figure at zero would read as "the ceiling is holding everything
             # back" and stall the session's energy until the next plug-in. The
             # restored value is already bounded, so starting them equal is right.
-            self._energy_session_raw_wh.setdefault(vin, kwh * 1000.0)
-        if start is not None:
-            self._energy_session_start.setdefault(vin, start)
+            if charge.energy_session_raw_wh is None:
+                charge.energy_session_raw_wh = kwh * 1000.0
+        if start is not None and charge.energy_session_start is None:
+            charge.energy_session_start = start
 
     def _fire_charging_event(
         self,
@@ -1476,7 +1349,7 @@ class CardataCoordinator:
         "finished as planned" from "unplugged early".
         """
         now_charging = tracking.charging_active
-        if vin in self._restored_open_sessions:
+        if self._peek(vin).session.restored_at is not None:
             # First word from the stream since a restart left a charge open.
             # Either it is still running -- the same record continues -- or it
             # ended while we were away, in which case it is closed at its last
@@ -1496,8 +1369,8 @@ class CardataCoordinator:
             if (
                 not now_charging
                 and str(status).strip().upper() in CHARGE_TERMINAL_STATUSES
-                and vin not in self._charge_close_timers
-                and vin not in self._session_builders
+                and self._peek(vin).session.close_timer is None
+                and self._peek(vin).session.builder is None
             ):
                 # The car says no charge is running and none is open here: any
                 # progress figure still standing is one whose close we never saw
@@ -1522,7 +1395,7 @@ class CardataCoordinator:
             # flap, not a new plug-in. Cancel the pending close and let the same
             # session continue -- no fresh STARTED event, no split record.
             if self._cancel_charge_close_timer(vin):
-                self._charge_stopped.pop(vin, None)
+                self._car(vin).session.stopped = None
                 if debug_enabled():
                     _LOGGER.debug(
                         "[charge] %s RESUME after status flap; keeping session",
@@ -1532,13 +1405,14 @@ class CardataCoordinator:
             # New session: zero the session accumulator and stamp its start so
             # the session-energy sensor reports a fresh last_reset.
             started_at = datetime.now(timezone.utc)
-            self._energy_session_wh[vin] = 0.0
-            self._energy_session_raw_wh[vin] = 0.0
-            self._energy_session_start[vin] = started_at
+            charge = self._car(vin).charge
+            charge.energy_session_wh = 0.0
+            charge.energy_session_raw_wh = 0.0
+            charge.energy_session_start = started_at
             # The SoC this session started from, kept here rather than read off
             # the session record so the energy ceiling still applies when history
             # is switched off (the record is optional; the counters are not).
-            self._energy_session_soc[vin] = tracking.last_soc_percent
+            charge.energy_session_soc = tracking.last_soc_percent
             self._open_session_record(vin, tracking, started_at)
             self._fire(EVENT_CHARGING_STARTED, payload)
             return
@@ -1557,7 +1431,7 @@ class CardataCoordinator:
         """
 
         self._cancel_charge_close_timer(vin)
-        self._charge_stopped[vin] = (datetime.now(timezone.utc), status)
+        self._car(vin).session.stopped = (datetime.now(timezone.utc), status)
         self._schedule_charge_close(vin, CHARGE_CLOSE_DEBOUNCE_S)
 
     def _schedule_charge_close(self, vin: str, delay_s: float) -> None:
@@ -1566,8 +1440,8 @@ class CardataCoordinator:
         # touches loop-only helpers (async_dispatcher_send).
         @callback
         def _fire(_now) -> None:
-            self._charge_close_timers.pop(vin, None)
-            stopped_at, _status = self._charge_stopped[vin]
+            self._car(vin).session.close_timer = None
+            stopped_at, _status = self._peek(vin).session.stopped
             if self._plug_state_live(vin) is True:
                 waited = (datetime.now(timezone.utc) - stopped_at).total_seconds()
                 if waited < CHARGE_PLUGGED_HOLD_S:
@@ -1575,7 +1449,7 @@ class CardataCoordinator:
                     return
             self._finalize_charge_close(vin)
 
-        self._charge_close_timers[vin] = async_call_later(self.hass, delay_s, _fire)
+        self._car(vin).session.close_timer = async_call_later(self.hass, delay_s, _fire)
 
     def _close_held_charge_on_unplug(self, vin: str) -> None:
         """Close a charge held for the plug as soon as the cable comes out.
@@ -1584,9 +1458,9 @@ class CardataCoordinator:
         fires on its own, and an unplug inside it is the usual end of a charge.
         """
 
-        if vin not in self._charge_close_timers or self._plug_state_live(vin) is not False:
+        if self._peek(vin).session.close_timer is None or self._plug_state_live(vin) is not False:
             return
-        stopped_at, _status = self._charge_stopped[vin]
+        stopped_at, _status = self._peek(vin).session.stopped
         if (datetime.now(timezone.utc) - stopped_at).total_seconds() < CHARGE_CLOSE_DEBOUNCE_S:
             return
         self._cancel_charge_close_timer(vin)
@@ -1598,7 +1472,7 @@ class CardataCoordinator:
     def _cancel_charge_close_timer(self, vin: str) -> bool:
         """Cancel a pending close; return whether one was actually pending."""
 
-        cancel = self._charge_close_timers.pop(vin, None)
+        cancel = self._peek(vin).session.take("close_timer")
         if cancel is None:
             return False
         cancel()
@@ -1611,9 +1485,9 @@ class CardataCoordinator:
         ran out; ``status`` overrides the car's own word for the end.
         """
 
-        stopped_at, stopped_status = self._charge_stopped.pop(vin, (None, None))
+        stopped_at, stopped_status = self._peek(vin).session.take("stopped") or (None, None)
         status = status or stopped_status
-        tracking = self._soc_tracking.get(vin)
+        tracking = self._peek(vin).charge.tracking
         if tracking is None:
             return
         soc = (
@@ -1662,7 +1536,7 @@ class CardataCoordinator:
         if self.history is None:
             return
         location = self._charging_location(vin)
-        self._session_builders[vin] = SessionBuilder(
+        self._car(vin).session.builder = SessionBuilder(
             vin,
             started_at,
             soc_start=tracking.last_soc_percent,
@@ -1671,21 +1545,21 @@ class CardataCoordinator:
             location_assumed=location is None,
             soc_before=tracking.soc_before_charge,
         )
-        self._session_costs[vin] = CostAccumulator(currency=self.pricing.currency)
-        self._session_mixes[vin] = MixAccumulator()
-        self._session_held[vin] = HeldEnergy(currency=self.pricing.currency)
+        self._car(vin).session.cost = CostAccumulator(currency=self.pricing.currency)
+        self._car(vin).session.mix = MixAccumulator()
+        self._car(vin).session.held = HeldEnergy(currency=self.pricing.currency)
         # Where the wallbox meter stood when the charge began. Taken here, at
         # the transition, rather than at the first energy sample -- which can be
         # minutes later, by which time the meter has already counted kilowatt-
         # hours this session would then not be credited with. The billing cursor
         # starts in the same place, so the very first increment is billed at the
         # meter rather than being skipped for want of a baseline.
-        meter_at_open = self._session_grid_meter_kwh(vin, self._session_builders[vin])
-        self._session_builders[vin].note_grid_meter(meter_at_open)
+        meter_at_open = self._session_grid_meter_kwh(vin, self._peek(vin).session.builder)
+        self._peek(vin).session.builder.note_grid_meter(meter_at_open)
         if meter_at_open is None:
-            self._grid_meter_billed.pop(vin, None)
+            self._car(vin).session.grid_meter_billed = None
         else:
-            self._grid_meter_billed[vin] = meter_at_open
+            self._car(vin).session.grid_meter_billed = meter_at_open
         # Snapshot straight away: a restart in the first five minutes of a charge
         # is exactly as likely as one in any other five, and an unsnapshotted
         # session is the thing this whole mechanism exists to prevent.
@@ -1711,10 +1585,10 @@ class CardataCoordinator:
         way out on unload or shutdown.
         """
 
-        builder = self._session_builders.get(vin)
+        builder = self._peek(vin).session.builder
         if builder is None or self.history is None:
             return
-        if vin in self._restored_open_sessions:
+        if self._peek(vin).session.restored_at is not None:
             # Restored but not yet confirmed by the stream: nothing has been
             # sampled into it since, so there is nothing new to write -- and
             # rewriting it would stamp a fresh ``saved_at`` on an old charge,
@@ -1723,7 +1597,7 @@ class CardataCoordinator:
             return
         now = datetime.now(timezone.utc)
         if not force:
-            last_saved = self._open_session_saved.get(vin)
+            last_saved = self._peek(vin).session.saved_at
             if (
                 last_saved is not None
                 and (now - last_saved).total_seconds() < OPEN_SESSION_SAVE_INTERVAL_S
@@ -1731,33 +1605,34 @@ class CardataCoordinator:
                 return
 
         snapshot = builder.to_dict()
-        accumulator = self._session_costs.get(vin)
+        accumulator = self._peek(vin).session.cost
         snapshot["cost"] = None if accumulator is None else accumulator.to_dict()
-        mix = self._session_mixes.get(vin)
+        mix = self._peek(vin).session.mix
         snapshot["mix"] = None if mix is None else mix.to_dict()
-        held = self._session_held.get(vin)
+        held = self._peek(vin).session.held
         snapshot["held"] = None if held is None else held.to_dict()
         # The counters live on the coordinator, not on the builder (they exist
         # even with history switched off), so they have to ride along or a
         # resumed session would integrate from zero.
-        snapshot["energy_wh"] = self._energy_session_wh.get(vin, 0.0)
-        snapshot["energy_raw_wh"] = self._energy_session_raw_wh.get(vin, 0.0)
-        snapshot["soc_baseline"] = self._energy_session_soc.get(vin)
+        charge = self._peek(vin).charge
+        snapshot["energy_wh"] = charge.energy_session_wh or 0.0
+        snapshot["energy_raw_wh"] = charge.energy_session_raw_wh or 0.0
+        snapshot["soc_baseline"] = charge.energy_session_soc
         snapshot["saved_at"] = now.isoformat()
         try:
             self.history.async_set_open_session(vin, snapshot)
         except Exception:  # noqa: BLE001 - bookkeeping must not break the stream
             _LOGGER.exception("Could not snapshot the in-progress charge for %s", mask_vin(vin))
             return
-        self._open_session_saved[vin] = now
+        self._car(vin).session.saved_at = now
 
     def _clear_open_session(self, vin: str) -> None:
         """Forget the in-progress charge for one VIN, in store and in memory."""
 
-        self._open_session_saved.pop(vin, None)
-        self._restored_open_sessions.pop(vin, None)
-        self._gap_credit_soc.pop(vin, None)
-        self._grid_meter_billed.pop(vin, None)
+        self._car(vin).session.saved_at = None
+        self._car(vin).session.restored_at = None
+        self._car(vin).session.gap_credit_soc = None
+        self._car(vin).session.grid_meter_billed = None
         self._cancel_restored_open_timer(vin)
         if self.history is None:
             return
@@ -1782,21 +1657,22 @@ class CardataCoordinator:
             if builder is None:
                 self._clear_open_session(vin)
                 continue
-            self._session_builders[vin] = builder
-            self._session_costs[vin] = CostAccumulator.from_dict(
+            self._car(vin).session.builder = builder
+            self._car(vin).session.cost = CostAccumulator.from_dict(
                 snapshot.get("cost"), currency=self.pricing.currency
             )
-            self._session_mixes[vin] = MixAccumulator.from_dict(snapshot.get("mix"))
-            self._session_held[vin] = HeldEnergy.from_dict(
+            self._car(vin).session.mix = MixAccumulator.from_dict(snapshot.get("mix"))
+            self._car(vin).session.held = HeldEnergy.from_dict(
                 snapshot.get("held"), currency=self.pricing.currency
             )
             energy_wh = _snapshot_float(snapshot.get("energy_wh")) or 0.0
-            self._energy_session_wh[vin] = energy_wh
-            self._energy_session_raw_wh[vin] = (
+            charge = self._car(vin).charge
+            charge.energy_session_wh = energy_wh
+            charge.energy_session_raw_wh = (
                 _snapshot_float(snapshot.get("energy_raw_wh")) or energy_wh
             )
-            self._energy_session_start[vin] = builder.start
-            self._energy_session_soc[vin] = _snapshot_float(snapshot.get("soc_baseline"))
+            charge.energy_session_start = builder.start
+            charge.energy_session_soc = _snapshot_float(snapshot.get("soc_baseline"))
             # Resume the billing cursor where the snapshot left it, so the
             # kilowatt-hours the wallbox counted while we were away are not
             # billed at whatever the tariff happens to be now. They still reach
@@ -1804,11 +1680,11 @@ class CardataCoordinator:
             # which is the same division of labour the battery-side gap credit
             # already makes: honest total, no invented price.
             if builder.grid_meter_last is None:
-                self._grid_meter_billed.pop(vin, None)
+                self._car(vin).session.grid_meter_billed = None
             else:
-                self._grid_meter_billed[vin] = builder.grid_meter_last
+                self._car(vin).session.grid_meter_billed = builder.grid_meter_last
             saved_at = _snapshot_time(snapshot.get("saved_at")) or builder.last_sample_at
-            self._open_session_saved[vin] = saved_at or now
+            self._car(vin).session.saved_at = saved_at or now
 
             if not open_session_is_resumable(saved_at, now):
                 if debug_enabled():
@@ -1825,7 +1701,7 @@ class CardataCoordinator:
                 )
                 continue
 
-            self._restored_open_sessions[vin] = saved_at or now
+            self._car(vin).session.restored_at = saved_at or now
             self._arm_restored_open_timer(vin)
             if debug_enabled():
                 _LOGGER.debug(
@@ -1841,7 +1717,7 @@ class CardataCoordinator:
     def unconfirmed_restored_charges(self) -> list[str]:
         """VINs whose charge was restored across a restart and not yet confirmed."""
 
-        return list(self._restored_open_sessions)
+        return self._vins_where(lambda car: car.session.restored_at is not None)
 
     def _arm_restored_open_timer(self, vin: str) -> None:
         """Close a restored session the stream never confirmed either way."""
@@ -1852,20 +1728,20 @@ class CardataCoordinator:
         # async_dispatcher_send, which is loop-only.
         @callback
         def _fire(_now) -> None:
-            self._restored_open_timers.pop(vin, None)
+            self._car(vin).session.restored_timer = None
             if self._charge_is_evidently_running(vin):
                 # BMW has not re-sent the status, but it is still reporting
                 # charging power stamped after the snapshot -- which only a
                 # running charge produces. Resume rather than split one plug-in
                 # into two records.
                 self._resume_restored_session(vin)
-                tracking = self._soc_tracking.get(vin)
+                tracking = self._peek(vin).charge.tracking
                 if tracking is not None:
                     tracking.charging_active = True
                 return
             self._close_restored_session(vin, "restart")
 
-        self._restored_open_timers[vin] = async_call_later(
+        self._car(vin).session.restored_timer = async_call_later(
             self.hass, RESTORED_SESSION_GRACE_S, _fire
         )
 
@@ -1880,8 +1756,8 @@ class CardataCoordinator:
         that value lingers at its final figure long after the plug comes out.
         """
 
-        tracking = self._soc_tracking.get(vin)
-        saved_at = self._restored_open_sessions.get(vin)
+        tracking = self._peek(vin).charge.tracking
+        saved_at = self._peek(vin).session.restored_at
         if tracking is None or saved_at is None:
             return False
         last_power_time = tracking.last_power_time
@@ -1890,7 +1766,7 @@ class CardataCoordinator:
         return bool(tracking.last_power_w and tracking.last_power_w > 0)
 
     def _cancel_restored_open_timer(self, vin: str) -> bool:
-        cancel = self._restored_open_timers.pop(vin, None)
+        cancel = self._peek(vin).session.take("restored_timer")
         if cancel is None:
             return False
         cancel()
@@ -1899,15 +1775,15 @@ class CardataCoordinator:
     def _resume_restored_session(self, vin: str) -> None:
         """Carry on with a restored session the stream says is still charging."""
 
-        self._restored_open_sessions.pop(vin, None)
+        self._car(vin).session.restored_at = None
         self._cancel_restored_open_timer(vin)
-        builder = self._session_builders.get(vin)
+        builder = self._peek(vin).session.builder
         if builder is not None and builder.soc_end is not None:
             # Claim the charge that ran while nobody was watching, once a SoC
             # reading from *this* session arrives to measure it (see
             # :meth:`_apply_gap_credit`). The pack's SoC rose; that energy is as
             # real as the integrated kind, and the same ceiling bounds both.
-            self._gap_credit_soc[vin] = builder.soc_end
+            self._car(vin).session.gap_credit_soc = builder.soc_end
         if debug_enabled():
             _LOGGER.debug(
                 "[charge] %s RESUME restored session (energy=%s kWh so far)",
@@ -1923,7 +1799,7 @@ class CardataCoordinator:
         the record to now would inflate its duration and its average power.
         """
 
-        builder = self._session_builders.get(vin)
+        builder = self._peek(vin).session.builder
         end_at = None if builder is None else (builder.last_sample_at or builder.start)
         session = self._close_session_record(vin, status, at=end_at)
         if session is None:
@@ -1954,22 +1830,21 @@ class CardataCoordinator:
         cost us, never invent energy the pack never took.
         """
 
-        baseline = self._gap_credit_soc.get(vin)
+        baseline = self._peek(vin).session.gap_credit_soc
         if baseline is None:
             return
         soc_now = self._session_soc_percent(vin)
         if soc_now is None:
             return
-        self._gap_credit_soc.pop(vin, None)
+        self._car(vin).session.gap_credit_soc = None
         capacity = self.battery_capacity_kwh(vin)
         gained = soc_now - baseline
         if not capacity or capacity <= 0 or gained <= 0:
             return
         credit_wh = gained / 100.0 * capacity * 1000.0
-        self._energy_session_raw_wh[vin] = self._energy_session_raw_wh.get(vin, 0.0) + credit_wh
-        self._energy_session_wh[vin] = self._bounded_session_wh(
-            vin, self._energy_session_raw_wh[vin]
-        )
+        charge = self._car(vin).charge
+        charge.energy_session_raw_wh = (charge.energy_session_raw_wh or 0.0) + credit_wh
+        charge.energy_session_wh = self._bounded_session_wh(vin, charge.energy_session_raw_wh)
         if debug_enabled():
             _LOGGER.debug(
                 "[charge] %s GAP credit %s kWh (soc %s -> %s across the restart)",
@@ -1983,14 +1858,14 @@ class CardataCoordinator:
         # One last look at the wallbox meter, billed and noted before the settle it
         # may bound. The final energy deltas and the close can be minutes apart on
         # a charge that tapers, and those are kilowatt-hours the meter did count.
-        if vin in self._session_builders:
+        if self._peek(vin).session.builder is not None:
             self._book_increment(vin, 0.0)
         self._settle_session_energy(vin)
-        builder = self._session_builders.pop(vin, None)
-        accumulator = self._session_costs.pop(vin, None)
-        mix = self._session_mixes.pop(vin, None)
+        builder = self._peek(vin).session.take("builder")
+        accumulator = self._peek(vin).session.take("cost")
+        mix = self._peek(vin).session.take("mix")
         # Whatever is still held, the pack's SoC never accounted for.
-        self._session_held.pop(vin, None)
+        self._car(vin).session.held = None
         # Whatever happens below, this charge is no longer in progress: the
         # snapshot has to go even when there is no history to file the record in,
         # or the next start would resurrect it.
@@ -2244,15 +2119,15 @@ class CardataCoordinator:
                     "soc_parked_at": soc_at.isoformat() if soc_at else None,
                 },
             )
-        if decision.kind != ARM or self._report_pending.get(vin) == odometer_km:
+        if decision.kind != ARM or self._peek(vin).report.pending == odometer_km:
             return
         self._cancel_report_timer(vin)
-        self._report_pending[vin] = odometer_km
+        self._car(vin).report.pending = odometer_km
 
         @callback
         def _fire(_now) -> None:
-            self._report_timers.pop(vin, None)
-            armed = self._report_pending.pop(vin, None)
+            self._peek(vin).report.take("timer")
+            armed = self._peek(vin).report.take("pending")
             # A newer reading would have re-armed the timer; anything else is a
             # value that has gone away again, and is not announced.
             if armed is None or self.odometer_km(vin) != armed:
@@ -2263,7 +2138,7 @@ class CardataCoordinator:
             if decision.kind == ARM and decision.baseline is not None:
                 self._fire_vehicle_report(vin, armed, decision.baseline)
 
-        self._report_timers[vin] = async_call_later(self.hass, REPORT_QUIET_S, _fire)
+        self._car(vin).report.timer = async_call_later(self.hass, REPORT_QUIET_S, _fire)
 
     def _report_decision(self, vin: str, odometer_km: Optional[float]) -> ReportDecision:
         return report_decision(
@@ -2331,7 +2206,8 @@ class CardataCoordinator:
         """
 
         self.stop_watching_phone_routes()
-        self._phone_routes = {}
+        for car in self._cars.values():
+            car.report.phone_route = None
         entities = sorted(
             {
                 entity_id
@@ -2352,14 +2228,14 @@ class CardataCoordinator:
             self._phone_unsub = None
 
     def _phone_route(self, vin: str, settings: TripSettings, in_car_state: Any) -> PhoneRoute:
-        route = self._phone_routes.get(vin)
+        route = self._peek(vin).report.phone_route
         if route is None:
             route = PhoneRoute(gated=bool(settings.phone_in_car))
             if settings.phone_in_car:
                 if in_car_state is None:
                     in_car_state = self.hass.states.get(settings.phone_in_car)
                 route.in_car = in_car_state is not None and in_car_state.state == "on"
-            self._phone_routes[vin] = route
+            self._car(vin).report.phone_route = route
         return route
 
     @callback
@@ -2426,10 +2302,10 @@ class CardataCoordinator:
             _LOGGER.exception("Could not place the vehicle report for %s", mask_vin(vin))
 
     def _cancel_report_timer(self, vin: str) -> None:
-        cancel = self._report_timers.pop(vin, None)
+        cancel = self._peek(vin).report.take("timer")
         if cancel is not None:
             cancel()
-        self._report_pending.pop(vin, None)
+        self._peek(vin).report.take("pending")
 
     def _fire_vehicle_report(
         self, vin: str, odometer_km: float, baseline: Mapping[str, Any]
@@ -2526,7 +2402,7 @@ class CardataCoordinator:
                 # As on a live trip (``_trip_soc_end``): a hybrid that sent no
                 # SoC with its burst still shows the one it set off with, and
                 # "38 -> 38 %" would claim the battery never moved.
-                tracking = self._soc_tracking.get(vin)
+                tracking = self._peek(vin).charge.tracking
                 before = dt_util.parse_datetime(baseline.get("soc_parked_at") or "")
                 last = tracking.last_update if tracking is not None else None
                 if last is None or (before is not None and last <= before):
@@ -2570,7 +2446,7 @@ class CardataCoordinator:
         fit the trip (``phone_route.py``).
         """
 
-        route = self._phone_routes.get(vin)
+        route = self._peek(vin).report.phone_route
         if route is None or not self.trip_settings_for(vin).phone_route:
             return []
         latitude = self._coordinate(vin, "latitude")
@@ -2621,7 +2497,7 @@ class CardataCoordinator:
         descriptor for a car that streams it without an active SoC track yet.
         """
 
-        tracking = self._soc_tracking.get(vin)
+        tracking = self._peek(vin).charge.tracking
         if tracking is not None and tracking.max_energy_kwh:
             return tracking.max_energy_kwh
         return self._battery_kwh(vin, DESC_MAX_ENERGY)
@@ -2685,7 +2561,7 @@ class CardataCoordinator:
 
         if self.get_state(vin, DESC_CHARGE_STATUS) is None:
             return None
-        tracking = self._soc_tracking.get(vin)
+        tracking = self._peek(vin).charge.tracking
         return None if tracking is None else tracking.charging_active
 
     def bridge_snapshot(self, vin: str) -> BridgeSnapshot:
@@ -2705,15 +2581,15 @@ class CardataCoordinator:
         own freshness would tell a user nothing about whether to trust it.
         """
 
-        tracking = self._soc_tracking.get(vin)
+        tracking = self._peek(vin).charge.tracking
         charging = self._charging_state(vin)
         # Where the car is, as the charging ledger judges it: the open session's
         # place, else the current fix. See ``BridgeSnapshot.away``.
-        builder = self._session_builders.get(vin)
+        builder = self._peek(vin).session.builder
         location = builder.location if builder is not None else self._charging_location(vin)
         power_kw: Optional[float] = None
         if charging is True:
-            power_w = self._charging_power_w.get(vin)
+            power_w = self._peek(vin).charge.charging_power_w
             power_kw = None if power_w is None else max(power_w, 0.0) / 1000.0
         elif charging is False:
             power_kw = 0.0
@@ -2832,7 +2708,7 @@ class CardataCoordinator:
     def _live_values(self, vin: str, descriptors: Iterable[str]) -> Dict[str, Any]:
         """Current values of those ``descriptors`` the stream sent since startup."""
 
-        live = self._live_descriptors.get(vin, set())
+        live = self._peek(vin).live_descriptors
         values: Dict[str, Any] = {}
         for descriptor in descriptors:
             if descriptor not in live:
@@ -2845,16 +2721,14 @@ class CardataCoordinator:
     def _evaluate_situations(self, vin: str, now: datetime) -> None:
         """Start or end the trigger situations, firing ``EVENT_SITUATION`` on a change.
 
-        Judged on live values only (see ``_live_descriptors``), so a restart can
+        Judged on live values only (see ``Vehicle.live_descriptors``), so a restart can
         start nothing until the car speaks again.
         """
 
         try:
-            tracking = self._soc_tracking.get(vin)
+            tracking = self._peek(vin).charge.tracking
             charging: Optional[bool] = None
-            if tracking is not None and DESC_CHARGE_STATUS in self._live_descriptors.get(
-                vin, set()
-            ):
+            if tracking is not None and DESC_CHARGE_STATUS in self._peek(vin).live_descriptors:
                 charging = tracking.charging_active
             soc = self._current_soc(vin)
             target = None if tracking is None else tracking.target_soc_percent
@@ -2862,14 +2736,14 @@ class CardataCoordinator:
             states = {
                 SITUATION_PARKED_UNLOCKED: parked_unlocked(
                     lock_state(self._live_values(vin, LOCK_DESCRIPTORS)),
-                    vin in self._trip_builders,
+                    self._peek(vin).trip.builder is not None,
                 ),
                 SITUATION_PLUGGED_NOT_CHARGING: plugged_not_charging(
                     plug_state(self._live_values(vin, PLUG_DESCRIPTORS)), charging, soc, target
                 ),
                 SITUATION_PARKED_WINDOW_OPEN: parked_window_open(
                     window_open(windows),
-                    vin in self._trip_builders,
+                    self._peek(vin).trip.builder is not None,
                 ),
             }
             for situation, active in states.items():
@@ -3007,8 +2881,8 @@ class CardataCoordinator:
         )
 
     def _fire_zone_left(self, vin: str, zone: tuple[str, str]) -> None:
-        self._zone_left_fired.add(vin)
-        builder = self._trip_builders.get(vin)
+        self._car(vin).trip.zone_left_fired = True
+        builder = self._peek(vin).trip.builder
         self._fire(
             EVENT_ZONE_LEFT,
             {
@@ -3024,8 +2898,8 @@ class CardataCoordinator:
     def _check_zone_left(self, vin: str, latitude: float, longitude: float) -> None:
         """Fire "left" once per trip, on the first fix outside the start zone."""
 
-        start = self._trip_start_zone.get(vin)
-        if start is None or vin in self._zone_left_fired:
+        start = self._peek(vin).trip.start_zone
+        if start is None or self._peek(vin).trip.zone_left_fired:
             return
         here = self._zone_at(latitude, longitude)
         if here is not None and here[1] == start[1]:
@@ -3056,7 +2930,7 @@ class CardataCoordinator:
         offline replay. Only called in ``trip_debug`` mode. Never raises."""
 
         try:
-            open_trip = vin in self._trip_builders
+            open_trip = self._peek(vin).trip.builder is not None
             scalars = []
             for key, payload in data.items():
                 short = key[len("vehicle.") :] if key.startswith("vehicle.") else key
@@ -3123,7 +2997,7 @@ class CardataCoordinator:
         record = {
             "at": now.isoformat(),
             "vin": vin,
-            "open": vin in self._trip_builders,
+            "open": self._peek(vin).trip.builder is not None,
             "data": data,
         }
         try:
@@ -3171,7 +3045,7 @@ class CardataCoordinator:
         if self.history is None:
             return
         try:
-            open_trip = vin in self._trip_builders
+            open_trip = self._peek(vin).trip.builder is not None
             # Which of these BMW actually streams (and in what order) is the one
             # thing no unit test here can answer, so record every observation
             # under the opt-in debug flag. Tag it so a drive can be grepped out
@@ -3202,17 +3076,17 @@ class CardataCoordinator:
             if started and not open_trip:
                 # No fix was processed in this batch, so the last one on record is
                 # still the last time the car was seen parked.
-                await self._open_trip(vin, now, parked_until=self._last_gps_fix_at.get(vin))
+                await self._open_trip(vin, now, parked_until=self._peek(vin).gps.last_fix_at)
             if motion is True:
                 # Moving again: cancel any pending stationary-close.
                 self._drop_door_arrival_on_move(vin, now)
-                self._trip_held_since.pop(vin, None)
+                self._peek(vin).trip.take("held_since")
                 self._cancel_trip_close_timer(vin)
             elif motion is False:
                 # An explicit "not moving" is stop evidence in its own right, so a
                 # car that streams it never has its close held (see
                 # ``_hold_close_on_silence``).
-                self._last_stop_evidence[vin] = now
+                self._car(vin).trip.last_stop_evidence = now
                 if open_trip:
                     self._arm_trip_close_timer(vin)
         except Exception:  # noqa: BLE001 - never let trip logic break the stream
@@ -3231,24 +3105,24 @@ class CardataCoordinator:
         if self.history is None:
             return
         try:
-            previous = self._driver_door_open.get(vin)
-            self._driver_door_open[vin] = door_open
+            previous = self._peek(vin).trip.driver_door_open
+            self._car(vin).trip.driver_door_open = door_open
             if previous is None or previous == door_open:
                 return  # first reading or no transition
-            open_trip = vin in self._trip_builders
+            open_trip = self._peek(vin).trip.builder is not None
 
             if door_open and open_trip:
                 # Opened while a trip is open: an arrival, but only once the car
                 # has actually stopped (guards a flickery read mid-move).
-                last_move = self._last_gps_move.get(vin)
+                last_move = self._peek(vin).gps.last_move
                 stopped = self._stopped_for_door(vin, now)
                 # Seen standing: a fix since the last movement showed it, or the
                 # door already opened on arrival and the car never moved on.
-                evidence = self._last_stop_evidence.get(vin)
+                evidence = self._peek(vin).trip.last_stop_evidence
                 seen_standing = (
                     last_move is None
                     or (evidence is not None and evidence >= last_move)
-                    or vin in self._door_arrival
+                    or self._peek(vin).trip.door_arrival is not None
                 )
                 if stopped and seen_standing:
                     self._cap(
@@ -3262,7 +3136,9 @@ class CardataCoordinator:
                     # snapshots the final fix comes right behind the door, the last
                     # few minutes of the drive in it (issue #183). Let the snapshot
                     # land, then close; the door stays the arrival.
-                    self._door_arrival.setdefault(vin, now)
+                    trip = self._car(vin).trip
+                    if trip.door_arrival is None:
+                        trip.door_arrival = now
                     self._cancel_trip_close_timer(vin)
                     self._arm_trip_close_timer(vin, delay_s=DOOR_SETTLE_S)
                     self._cap(
@@ -3275,15 +3151,17 @@ class CardataCoordinator:
                     # Too soon to close on: it arrives right behind the final fix.
                     # Remember it -- if the car moves on it is dropped, otherwise
                     # it dates the arrival and says the car stopped.
-                    self._door_arrival.setdefault(vin, now)
+                    trip = self._car(vin).trip
+                    if trip.door_arrival is None:
+                        trip.door_arrival = now
             elif not door_open and not open_trip:
                 # Closed with no trip open: the driver just got in. Mark the start
                 # here so the next movement seeds the trip from this spot.
-                self._pending_start[vin] = (now, self._last_gps_position.get(vin))
+                self._car(vin).trip.pending_start = (now, self._peek(vin).gps.last_position)
                 self._cap(
                     "[trip.door] %s driver door closed -> start marked at %s",
                     vin,
-                    self._last_gps_position.get(vin),
+                    self._peek(vin).gps.last_position,
                     substrate=True,
                 )
         except Exception:  # noqa: BLE001 - never let trip logic break the stream
@@ -3299,16 +3177,17 @@ class CardataCoordinator:
         seeded; a live fix always wins over a restored one.
         """
 
-        if vin in self._gps_trackers:
+        if self._peek(vin).gps.tracker is not None:
             return
         try:
             latitude = float(self.get_state(vin, DESC_GPS_LAT).value)
             longitude = float(self.get_state(vin, DESC_GPS_LON).value)
         except AttributeError, TypeError, ValueError:
             return  # the other half has not been restored yet
-        tracker = self._gps_trackers[vin] = GpsTracker()
+        tracker = self._car(vin).gps.tracker = GpsTracker()
         tracker.last_lat, tracker.last_lon = latitude, longitude
-        self._last_gps_position.setdefault(vin, (latitude, longitude))
+        if self._car(vin).gps.last_position is None:
+            self._car(vin).gps.last_position = (latitude, longitude)
 
     def _gps_fix_ready(self, vin: str, now: datetime, parts: set[str]) -> bool:
         """True when a complete lat+lon fix is ready to process.
@@ -3332,24 +3211,27 @@ class CardataCoordinator:
         detection outright.
         """
 
-        pending = self._gps_pending_parts.setdefault(vin, set())
+        gps = self._car(vin).gps
+        if gps.pending_parts is None:
+            gps.pending_parts = set()
+        pending = gps.pending_parts
         pending |= parts
         if not GPS_PAIR_PARTS <= pending:
-            since = self._gps_pending_since.get(vin)
+            since = self._peek(vin).gps.pending_since
             if since is None:
-                self._gps_pending_since[vin] = now
+                self._car(vin).gps.pending_since = now
                 return False
             if (now - since).total_seconds() < GPS_PAIR_STALE_S:
                 return False  # half a fix; wait for the mate
-        self._gps_pending_parts.pop(vin, None)
-        self._gps_pending_since.pop(vin, None)
+        self._peek(vin).gps.take("pending_parts")
+        self._peek(vin).gps.take("pending_since")
 
         fix_ts = self._gps_fix_timestamp(vin)
         if fix_ts is not None:
-            last = self._gps_last_fix_ts.get(vin)
+            last = self._peek(vin).gps.last_fix_ts
             if last is not None and fix_ts <= last:
                 return False  # BMW re-sent a fix already processed
-            self._gps_last_fix_ts[vin] = fix_ts
+            self._car(vin).gps.last_fix_ts = fix_ts
         return True
 
     def _gps_fix_timestamp(self, vin: str) -> Optional[datetime]:
@@ -3409,23 +3291,23 @@ class CardataCoordinator:
         if latitude is None or longitude is None:
             return
         try:
-            tracker = self._gps_trackers.get(vin)
+            tracker = self._peek(vin).gps.tracker
             if tracker is None:
-                tracker = self._gps_trackers[vin] = GpsTracker()
+                tracker = self._car(vin).gps.tracker = GpsTracker()
             step_km = tracker.step(latitude, longitude)
             moving = is_gps_movement(step_km)
-            open_trip = vin in self._trip_builders
+            open_trip = self._peek(vin).trip.builder is not None
 
             # Inter-fix gap and stream latency -- the two numbers that explain a
             # mid-drive split (a gap over the debounce) or a laggy close.
-            prev_fix = self._last_gps_fix_at.get(vin)
+            prev_fix = self._peek(vin).gps.last_fix_at
             gap_s = (now - prev_fix).total_seconds() if prev_fix is not None else None
-            self._last_gps_fix_at[vin] = now
+            self._car(vin).gps.last_fix_at = now
 
             if moving:
                 if (
                     open_trip
-                    and vin in self._trip_held_since
+                    and self._peek(vin).trip.held_since is not None
                     and silence_implies_stop(gap_s, step_km, min_gap_s=TRIP_CLOSE_DEBOUNCE_S)
                 ):
                     # The fixes are back, but barely anywhere: the car stood
@@ -3434,7 +3316,7 @@ class CardataCoordinator:
                     # this movement, or the backdated end would land on this
                     # departure instead of the real arrival -- then let the fix
                     # below open the new trip.
-                    self._trip_held_since.pop(vin, None)
+                    self._peek(vin).trip.take("held_since")
                     self._cancel_trip_close_timer(vin)
                     self._cap(
                         "[trip.timer] %s held close CONFIRMED by distance (%dm over %ds silence)",
@@ -3446,17 +3328,17 @@ class CardataCoordinator:
                     await self._close_trip(vin, now, reason="silent")
                     open_trip = False
                 self._drop_door_arrival_on_move(vin, now)
-                self._last_gps_move[vin] = now
+                self._car(vin).gps.last_move = now
                 if not open_trip:
                     # Seed the track from where the car actually started (the
                     # parked position / door-close point), not this already
                     # moved-on fix -- done inside _open_trip before we overwrite
-                    # _last_gps_position below. ``prev_fix`` is the last fix that
+                    # the last GPS position below. ``prev_fix`` is the last fix that
                     # still showed the car parked, which bounds how far the start
                     # may be backdated (see _trip_start_seed).
                     await self._open_trip(vin, now, parked_until=prev_fix)
                     open_trip = True
-                builder = self._trip_builders.get(vin)
+                builder = self._peek(vin).trip.builder
                 if builder is not None:
                     builder.add_gps_km(step_km)
                     # Record the route point too, stamped with this fix's time
@@ -3465,19 +3347,19 @@ class CardataCoordinator:
                     self._check_zone_left(vin, latitude, longitude)
                 # The fixes are back and the car has moved on: the drive never
                 # ended, so drop any hold and keep going as one trip.
-                self._trip_held_since.pop(vin, None)
+                self._peek(vin).trip.take("held_since")
                 # Rolling window: keep the trip alive while the car is moving,
                 # but guarantee a close even if the fixes stop arriving.
                 self._reset_trip_close_timer(vin)
             else:
                 # A fix that arrived showing no movement is the one thing that
                 # positively says the *car* stopped rather than the stream.
-                self._last_stop_evidence[vin] = now
-                if open_trip and vin in self._trip_held_since:
+                self._car(vin).trip.last_stop_evidence = now
+                if open_trip and self._peek(vin).trip.held_since is not None:
                     # A held close, now confirmed: the stream went quiet while the
                     # car was already parked. Close on the spot -- the end is
                     # backdated to the last movement, so nothing is lost.
-                    self._trip_held_since.pop(vin, None)
+                    self._peek(vin).trip.take("held_since")
                     self._cancel_trip_close_timer(vin)
                     self._cap(
                         "[trip.timer] %s held close CONFIRMED by a stationary fix",
@@ -3486,7 +3368,11 @@ class CardataCoordinator:
                     )
                     await self._close_trip(vin, now, reason="silent")
                     open_trip = False
-                elif open_trip and vin in self._door_arrival and self._stopped_for_door(vin, now):
+                elif (
+                    open_trip
+                    and self._peek(vin).trip.door_arrival is not None
+                    and self._stopped_for_door(vin, now)
+                ):
                     # The door opened and the car is seen standing: arrived. Not
                     # within seconds of the last move, though: a door opened at a
                     # car park barrier is followed by the car driving on.
@@ -3503,10 +3389,13 @@ class CardataCoordinator:
                     self._arm_trip_close_timer(vin)
                 if not open_trip:
                     self._settle_late_reading(vin, moved=False)
-                    self._parked_reading[vin] = (self.odometer_km(vin), self._current_soc(vin))
+                    self._car(vin).trip.parked_reading = (
+                        self.odometer_km(vin),
+                        self._current_soc(vin),
+                    )
 
             # Remember where the car is now, for the next trip's start seed.
-            self._last_gps_position[vin] = (latitude, longitude)
+            self._car(vin).gps.last_position = (latitude, longitude)
             self._note_capture_fix(vin, now, step_km, moving, gap_s)
             if self.trip_debug:
                 self._log_gps_fix(
@@ -3533,7 +3422,7 @@ class CardataCoordinator:
     ) -> None:
         """Fold one fix into the open trip's capture stats (for [trip.post])."""
 
-        stats = self._trip_capture.get(vin)
+        stats = self._peek(vin).trip.capture
         if stats is None:
             return
         stats["fixes"] += 1
@@ -3558,12 +3447,12 @@ class CardataCoordinator:
     ) -> None:
         """The per-fix substrate line: every fix, moving or not."""
 
-        last_move = self._last_gps_move.get(vin)
+        last_move = self._peek(vin).gps.last_move
         since_move = (now - last_move).total_seconds() if last_move is not None else None
-        due = self._trip_close_due.get(vin)
+        due = self._peek(vin).trip.close_due
         timer = "none" if due is None else f"armed({int((due - now).total_seconds())}s)"
         latency = (now - fix_ts).total_seconds() if fix_ts is not None else None
-        builder = self._trip_builders.get(vin)
+        builder = self._peek(vin).trip.builder
         # GPS-quality context: distinguishes "the car stopped" from "the fix was
         # lost" when a run of fixes shows no movement.
         fix_state = self._raw_value(vin, DESC_GPS_FIX)
@@ -3611,9 +3500,9 @@ class CardataCoordinator:
         segment batch is no help deciding -- the i5 emits them mid-drive.
         """
 
-        if vin in self._trip_held_since:
+        if self._peek(vin).trip.held_since is not None:
             return True
-        last = self._last_gps_move.get(vin)
+        last = self._peek(vin).gps.last_move
         if last is None:
             return False
         return (now - last).total_seconds() < TRIP_CLOSE_DEBOUNCE_S
@@ -3641,7 +3530,7 @@ class CardataCoordinator:
 
         started_at = now
         marked_pos: Optional[tuple[float, float]] = None
-        pending = self._pending_start.pop(vin, None)
+        pending = self._peek(vin).trip.take("pending_start")
         if pending is not None:
             marked_at, pos = pending
             if (now - marked_at).total_seconds() <= PENDING_START_MAX_S:
@@ -3651,7 +3540,7 @@ class CardataCoordinator:
                     started_at = min(parked_until, now)
         if marked_pos:
             return marked_pos, started_at
-        parked = self._last_gps_position.get(vin)
+        parked = self._peek(vin).gps.last_position
         if parked is not None:
             return parked, started_at
         latitude = self._coordinate(vin, "latitude")
@@ -3672,7 +3561,7 @@ class CardataCoordinator:
         """
 
         odometer, soc = self.odometer_km(vin), self._current_soc(vin)
-        parked = self._parked_reading.pop(vin, None)
+        parked = self._peek(vin).trip.take("parked_reading")
         if parked is None:
             return odometer, soc
         parked_odometer, parked_soc = parked
@@ -3694,8 +3583,8 @@ class CardataCoordinator:
         caller must decide rather than let a just-updated fix time stand in.
         """
 
-        self._trip_held_since.pop(vin, None)
-        self._door_arrival.pop(vin, None)
+        self._peek(vin).trip.take("held_since")
+        self._peek(vin).trip.take("door_arrival")
         # Moving again: a reading still pending after the last close is this drive's.
         self._settle_late_reading(vin, moved=True)
         seed, started_at = self._trip_start_seed(vin, now, parked_until)
@@ -3705,7 +3594,7 @@ class CardataCoordinator:
             vin, seed[0] if seed else None, seed[1] if seed else None
         )
         mileage_start, soc_start = self._trip_start_readings(vin)
-        builder = self._trip_builders[vin] = TripBuilder(
+        builder = self._car(vin).trip.builder = TripBuilder(
             vin,
             started_at,
             start_place=start_place,
@@ -3722,15 +3611,15 @@ class CardataCoordinator:
             builder.add_track_point(seed[0], seed[1], started_at)
         # Where "left a zone" is measured from: the parked spot, not the first
         # fix that registered as movement (already on its way out).
-        self._zone_left_fired.discard(vin)
-        self._trip_start_zone.pop(vin, None)
+        self._car(vin).trip.zone_left_fired = False
+        self._peek(vin).trip.take("start_zone")
         if seed is not None:
             start_zone = self._zone_at(seed[0], seed[1])
             if start_zone is not None:
-                self._trip_start_zone[vin] = start_zone
+                self._car(vin).trip.start_zone = start_zone
         # Start the per-trip capture stats (a no-op cost when capture is off, but
         # cheap and it means _note_capture_fix needn't check the mode).
-        self._trip_capture[vin] = {
+        self._car(vin).trip.capture = {
             "fixes": 0,
             "moves": 0,
             "holds": 0,
@@ -3772,8 +3661,8 @@ class CardataCoordinator:
         including the door close that comes when the driver gets back in to leave.
         """
 
-        arrival = self._door_arrival.get(vin)
-        last_move = self._last_gps_move.get(vin)
+        arrival = self._peek(vin).trip.door_arrival
+        last_move = self._peek(vin).gps.last_move
         if arrival is not None and reason != "unload":
             # The final fix can land a moment after the door; take the later.
             ended = arrival if last_move is None else max(arrival, last_move)
@@ -3789,17 +3678,17 @@ class CardataCoordinator:
     ) -> None:
         """Close the open trip. ``announce=False`` (the stop flush) fires no events."""
 
-        builder = self._trip_builders.pop(vin, None)
+        builder = self._peek(vin).trip.take("builder")
         if builder is not None:
             # Where the next trip starts, should it open before a parked fix.
-            self._parked_reading[vin] = (self.odometer_km(vin), self._current_soc(vin))
-        cap_stats = self._trip_capture.pop(vin, None)
-        start_zone = self._trip_start_zone.pop(vin, None)
-        left_fired = vin in self._zone_left_fired
-        self._zone_left_fired.discard(vin)
+            self._car(vin).trip.parked_reading = (self.odometer_km(vin), self._current_soc(vin))
+        cap_stats = self._peek(vin).trip.take("capture")
+        start_zone = self._peek(vin).trip.take("start_zone")
+        left_fired = self._peek(vin).trip.zone_left_fired
+        self._car(vin).trip.zone_left_fired = False
         self._cancel_trip_close_timer(vin)
-        self._trip_close_due.pop(vin, None)
-        self._trip_held_since.pop(vin, None)
+        self._peek(vin).trip.take("close_due")
+        self._peek(vin).trip.take("held_since")
         if builder is not None:
             # The drive is over whatever happens to the record below -- including
             # the no-history and dropped-as-noise paths, which never reach
@@ -3808,7 +3697,7 @@ class CardataCoordinator:
             if announce:
                 self._evaluate_situations(vin, now)
         if builder is None or self.history is None:
-            self._door_arrival.pop(vin, None)
+            self._peek(vin).trip.take("door_arrival")
             return
 
         end_place = await self._resolve_place(vin)
@@ -3816,7 +3705,7 @@ class CardataCoordinator:
         stats, travelled_km = self._read_trip_segment(vin, builder.start)
         energy_kwh = self._trip_energy_kwh(vin, builder.soc_start, soc_end)
         ended_at = self._trip_end_time(vin, now, builder.start, reason)
-        self._door_arrival.pop(vin, None)
+        self._peek(vin).trip.take("door_arrival")
 
         trip = builder.close(
             ended_at,
@@ -3870,11 +3759,11 @@ class CardataCoordinator:
                 substrate=True,
             )
         self._store_trip(vin, trip, start_zone=start_zone, left_fired=left_fired, announce=announce)
-        self._late_reading_at.pop(vin, None)
+        self._peek(vin).trip.take("late_reading_at")
         if dropped or not announce:
-            self._closed_trip.pop(vin, None)
+            self._peek(vin).trip.take("closed")
         else:
-            self._closed_trip[vin] = _ClosedTrip(
+            self._car(vin).trip.closed = ClosedTrip(
                 trip=trip,
                 mileage_start=builder.mileage_start,
                 odometer=self.odometer_km(vin),
@@ -3890,11 +3779,15 @@ class CardataCoordinator:
         Whose it is gets decided by what comes next (``_settle_late_reading``).
         """
 
-        closed = self._closed_trip.get(vin)
-        if closed is None or vin in self._trip_builders or vin in self._late_reading_at:
+        closed = self._peek(vin).trip.closed
+        if (
+            closed is None
+            or self._peek(vin).trip.builder is not None
+            or self._peek(vin).trip.late_reading_at is not None
+        ):
             return
         if (now - closed.closed_at).total_seconds() > LATE_READING_MAX_S:
-            self._closed_trip.pop(vin, None)
+            self._peek(vin).trip.take("closed")
             return
         odometer, soc = self.odometer_km(vin), self._current_soc(vin)
         went_on = (
@@ -3902,7 +3795,7 @@ class CardataCoordinator:
         )
         went_down = soc is not None and closed.soc is not None and soc < closed.soc
         if went_on or went_down:
-            self._late_reading_at[vin] = now
+            self._car(vin).trip.late_reading_at = now
 
     def _settle_late_reading(self, vin: str, *, moved: bool) -> None:
         """Hand a late reading to the trip just closed, unless the car moved on.
@@ -3914,8 +3807,8 @@ class CardataCoordinator:
         new drive instead (its start is the parked reading from before it).
         """
 
-        at = self._late_reading_at.pop(vin, None)
-        closed = self._closed_trip.pop(vin, None) if moved else self._closed_trip.get(vin)
+        at = self._peek(vin).trip.take("late_reading_at")
+        closed = self._peek(vin).trip.take("closed") if moved else self._peek(vin).trip.closed
         if moved or at is None or closed is None or self.history is None:
             return
         odometer, soc = self.odometer_km(vin), self._current_soc(vin)
@@ -3935,7 +3828,7 @@ class CardataCoordinator:
             closed.soc = soc
         if (trip.distance_km, trip.soc_end) == before:
             return
-        self._parked_reading[vin] = (odometer, soc)
+        self._car(vin).trip.parked_reading = (odometer, soc)
         self._cap(
             "[trip] %s LATE reading -> %s: dist %s -> %s, soc_end %s -> %s",
             vin,
@@ -4112,7 +4005,7 @@ class CardataCoordinator:
     def _stopped_for_door(self, vin: str, now: datetime) -> bool:
         """Whether the car last moved long enough ago for an open door to end the drive."""
 
-        last_move = self._last_gps_move.get(vin)
+        last_move = self._peek(vin).gps.last_move
         return last_move is None or (now - last_move).total_seconds() >= DOOR_ARRIVAL_STOP_S
 
     def _drop_door_arrival_on_move(self, vin: str, now: datetime) -> None:
@@ -4123,9 +4016,9 @@ class CardataCoordinator:
         either order, and a fix only completes when its second half arrives.
         """
 
-        opened = self._door_arrival.get(vin)
+        opened = self._peek(vin).trip.door_arrival
         if opened is not None and (now - opened).total_seconds() > DOOR_ARRIVAL_STOP_S:
-            del self._door_arrival[vin]
+            del self._peek(vin).trip.door_arrival
 
     def _hold_close_on_silence(self, vin: str, now: datetime) -> bool:
         """True when a due close has no evidence behind it and must wait.
@@ -4144,15 +4037,18 @@ class CardataCoordinator:
         held: there is no cadence to have gone quiet.
         """
 
-        last_move = self._last_gps_move.get(vin)
+        last_move = self._peek(vin).gps.last_move
         if last_move is None:
             return False
-        evidence = self._last_stop_evidence.get(vin)
+        evidence = self._peek(vin).trip.last_stop_evidence
         if evidence is not None and evidence >= last_move:
             return False  # the car was seen standing still: a real stop
-        if vin in self._door_arrival:
+        if self._peek(vin).trip.door_arrival is not None:
             return False  # the driver got out and the car never moved on
-        held_since = self._trip_held_since.setdefault(vin, now)
+        trip = self._car(vin).trip
+        if trip.held_since is None:
+            trip.held_since = now
+        held_since = trip.held_since
         if (now - held_since).total_seconds() >= TRIP_SILENT_HOLD_MAX_S:
             return False  # the stream never came back; close on what we have
         self._cap(
@@ -4166,7 +4062,7 @@ class CardataCoordinator:
     def _arm_trip_close_timer(
         self, vin: str, *, quiet: bool = False, delay_s: float = TRIP_CLOSE_DEBOUNCE_S
     ) -> None:
-        if vin in self._trip_close_timers:
+        if self._peek(vin).trip.close_timer is not None:
             return
 
         # @callback so HA runs it inline on the event loop; an undecorated timer
@@ -4174,15 +4070,15 @@ class CardataCoordinator:
         # not thread-safe.
         @callback
         def _fire(_now) -> None:
-            self._trip_close_timers.pop(vin, None)
-            self._trip_close_due.pop(vin, None)
+            self._peek(vin).trip.take("close_timer")
+            self._peek(vin).trip.take("close_due")
             now = datetime.now(timezone.utc)
             if self._hold_close_on_silence(vin, now):
                 # Nothing says the car stopped -- only that the stream did. Keep
                 # the trip open and look again after another debounce.
                 self._arm_trip_close_timer(vin, quiet=True)
                 return
-            reason = "silent" if self._trip_held_since.pop(vin, None) else "stationary"
+            reason = "silent" if self._peek(vin).trip.take("held_since") else "stationary"
             self._cap(
                 "[trip.timer] %s FIRE -> closing (%s, %ds)",
                 vin,
@@ -4192,8 +4088,8 @@ class CardataCoordinator:
             )
             self.hass.async_create_task(self._close_trip(vin, now, reason=reason))
 
-        self._trip_close_due[vin] = datetime.now(timezone.utc) + timedelta(seconds=delay_s)
-        self._trip_close_timers[vin] = async_call_later(self.hass, delay_s, _fire)
+        self._car(vin).trip.close_due = datetime.now(timezone.utc) + timedelta(seconds=delay_s)
+        self._car(vin).trip.close_timer = async_call_later(self.hass, delay_s, _fire)
         # Only the first arm (car goes stationary) is worth a line; the per-fix
         # reset while moving would otherwise log every fix (the countdown is
         # already shown on each [trip.gps] line).
@@ -4217,8 +4113,8 @@ class CardataCoordinator:
         self._arm_trip_close_timer(vin, quiet=True)
 
     def _cancel_trip_close_timer(self, vin: str) -> None:
-        cancel = self._trip_close_timers.pop(vin, None)
-        self._trip_close_due.pop(vin, None)
+        cancel = self._peek(vin).trip.take("close_timer")
+        self._peek(vin).trip.take("close_due")
         if cancel is not None:
             cancel()
 
@@ -4234,16 +4130,17 @@ class CardataCoordinator:
         have, now" could be half an hour past the arrival.
         """
 
-        for cancel in list(self._trip_close_timers.values()):
-            cancel()
-        self._trip_close_timers.clear()
+        for car in self._cars.values():
+            if car.trip.close_timer is not None:
+                car.trip.close_timer()
+                car.trip.close_timer = None
         # A pending vehicle report is dropped, not fired: the reading is newer
         # than the persisted record, so the first batch after the restart -- the
         # stream's or the REST catch-up's -- re-arms it.
-        for vin in list(self._report_timers):
+        for vin in self._vins_where(lambda car: car.report.timer is not None):
             self._cancel_report_timer(vin)
-        for vin in list(self._trip_builders):
-            reason = "silent" if vin in self._trip_held_since else "unload"
+        for vin in self._vins_where(lambda car: car.trip.builder is not None):
+            reason = "silent" if self._peek(vin).trip.held_since is not None else "unload"
             with suppress(Exception):
                 await self._close_trip(
                     vin, datetime.now(timezone.utc), reason=reason, announce=False
@@ -4267,15 +4164,15 @@ class CardataCoordinator:
         by exactly that much.
         """
 
-        for vin in list(self._charge_close_timers):
+        for vin in self._vins_where(lambda car: car.session.close_timer is not None):
             if self._cancel_charge_close_timer(vin):
                 with suppress(Exception):
                     self._finalize_charge_close(vin, "unload")
-        for vin in list(self._session_builders):
+        for vin in self._vins_where(lambda car: car.session.builder is not None):
             self._snapshot_open_session(vin, force=True)
         # Nothing is waiting on these any more, and a timer left armed across a
         # reload would fire against the outgoing coordinator.
-        for vin in list(self._restored_open_timers):
+        for vin in self._vins_where(lambda car: car.session.restored_timer is not None):
             self._cancel_restored_open_timer(vin)
 
     async def _resolve_place(
@@ -4307,7 +4204,7 @@ class CardataCoordinator:
         return place(address=address) if address else place()
 
     def _current_soc(self, vin: str) -> Optional[float]:
-        tracking = self._soc_tracking.get(vin)
+        tracking = self._peek(vin).charge.tracking
         if tracking is None:
             return None
         if tracking.estimated_percent is not None:
@@ -4328,7 +4225,7 @@ class CardataCoordinator:
         """
 
         if self.is_plug_in_hybrid(vin):
-            tracking = self._soc_tracking.get(vin)
+            tracking = self._peek(vin).charge.tracking
             if tracking is None or tracking.last_update is None or tracking.last_update <= started:
                 return None
         return self._current_soc(vin)
@@ -4480,7 +4377,7 @@ class CardataCoordinator:
             # the first step after the other car stops would bill its energy.
             if builder is not None:
                 builder.note_meter_shared()
-            self._grid_meter_billed.pop(vin, None)
+            self._car(vin).session.grid_meter_billed = None
             return None
         return self._grid_meter_kwh(vin)
 
@@ -4494,17 +4391,19 @@ class CardataCoordinator:
         """
 
         found: list[str] = []
-        for vin, tracking in self._soc_tracking.items():
+        for vin, tracking in self._tracked_cars():
             # A charge restored across a restart counts while its session waits
             # for the stream's word, not after it is filed unconfirmed: the flag
             # outlives that until the car speaks, which a car done charging may
             # not do for hours, keeping the other car off the meter all along.
-            restored = tracking.restored_charging and vin in self._restored_open_sessions
+            restored = (
+                tracking.restored_charging and self._peek(vin).session.restored_at is not None
+            )
             if vin == exclude or not (tracking.charging_active or restored):
                 continue
             if self._plug_state(vin) is False or self.pricing_for(vin).grid_energy_entity != meter:
                 continue
-            builder = self._session_builders.get(vin)
+            builder = self._peek(vin).session.builder
             location = builder.location if builder is not None else self._charging_location(vin)
             if meter_counts_this_session(location, self._home_zone_name()):
                 found.append(vin)
@@ -4844,33 +4743,45 @@ class CardataCoordinator:
             )
         now = datetime.now(timezone.utc)
         updated_vins: list[str] = []
-        for vin in list(self._soc_tracking.keys()):
+        for vin, _tracking in self._tracked_cars():
             if self._apply_soc_estimate(vin, now, notify=False):
                 updated_vins.append(vin)
         for vin in updated_vins:
             async_dispatcher_send(self.hass, self.signal_soc_estimate, vin)
-        for vin in list(self._soc_tracking.keys()):
+        for vin, _tracking in self._tracked_cars():
             if self._integrate_energy(vin, now):
                 async_dispatcher_send(self.hass, self.signal_energy, vin)
         # A late reading with no fix after it: the car went to sleep standing.
-        for vin, at in list(self._late_reading_at.items()):
+        for vin, at in [
+            (vin, car.trip.late_reading_at)
+            for vin, car in self._cars.items()
+            if car.trip.late_reading_at is not None
+        ]:
             if (now - at).total_seconds() >= LATE_READING_SETTLE_S:
                 self._settle_late_reading(vin, moved=False)
         async_dispatcher_send(self.hass, self.signal_diagnostics)
 
     def _apply_soc_estimate(self, vin: str, now: datetime, notify: bool = True) -> bool:
-        tracking = self._soc_tracking.get(vin)
+        charge = self._peek(vin).charge
+        tracking = charge.tracking
         if not tracking:
-            removed_estimate = self._soc_estimate.pop(vin, None) is not None
-            removed_rate = self._soc_rate.pop(vin, None) is not None
-            removed_eta = self._charge_eta.pop(vin, None) is not None
-            self._charging_power_w.pop(vin, None)
-            self._direct_power_w.pop(vin, None)
-            self._ac_voltage_v.pop(vin, None)
-            self._ac_current_a.pop(vin, None)
-            self._ac_phase_count.pop(vin, None)
-            self._soc_source.pop(vin, None)
-            changed = removed_estimate or removed_rate or removed_eta
+            changed = any(
+                value is not None
+                for value in (charge.soc_estimate, charge.soc_rate, charge.charge_eta)
+            )
+            if vin in self._cars:
+                for name in (
+                    "soc_estimate",
+                    "soc_rate",
+                    "charge_eta",
+                    "charging_power_w",
+                    "direct_power_w",
+                    "ac_voltage_v",
+                    "ac_current_a",
+                    "ac_phase_count",
+                    "soc_source",
+                ):
+                    setattr(charge, name, None)
             if notify and changed:
                 async_dispatcher_send(self.hass, self.signal_soc_estimate, vin)
             return changed
@@ -4878,56 +4789,53 @@ class CardataCoordinator:
         tracking.follow_meter(
             None
             if learned is None
-            else self._session_grid_meter_kwh(vin, self._session_builders.get(vin)),
+            else self._session_grid_meter_kwh(vin, self._peek(vin).session.builder),
             learned,
             now,
         )
         source = "meter" if tracking.meter_model is not None else "stream"
-        source_changed = self._soc_source.get(vin) != source
-        self._soc_source[vin] = source
+        source_changed = charge.soc_source != source
+        charge.soc_source = source
         percent = tracking.estimate(now)
         rate = tracking.current_rate_per_hour()
 
         rate_changed = False
         if rate in (None, 0):
-            if vin in self._soc_rate:
-                self._soc_rate.pop(vin, None)
+            if charge.soc_rate is not None:
+                charge.soc_rate = None
                 rate_changed = True
         else:
             rounded_rate = round(rate, 3)
-            if self._soc_rate.get(vin) != rounded_rate:
-                self._soc_rate[vin] = rounded_rate
+            if charge.soc_rate != rounded_rate:
+                charge.soc_rate = rounded_rate
                 rate_changed = True
 
         estimate_changed = False
         if percent is None:
-            if vin in self._soc_estimate:
-                self._soc_estimate.pop(vin, None)
+            if charge.soc_estimate is not None:
+                charge.soc_estimate = None
                 estimate_changed = True
         else:
             rounded_percent = round(percent, 2)
-            if self._soc_estimate.get(vin) != rounded_percent:
-                self._soc_estimate[vin] = rounded_percent
+            if charge.soc_estimate != rounded_percent:
+                charge.soc_estimate = rounded_percent
                 estimate_changed = True
         eta = self._charge_eta_minutes(vin, tracking)
-        eta_changed = self._charge_eta.get(vin) != eta
-        if eta is None:
-            self._charge_eta.pop(vin, None)
-        else:
-            self._charge_eta[vin] = eta
+        eta_changed = charge.charge_eta != eta
+        charge.charge_eta = eta
         updated = rate_changed or estimate_changed or source_changed or eta_changed
         if notify and updated:
             async_dispatcher_send(self.hass, self.signal_soc_estimate, vin)
         return updated
 
     def get_soc_rate(self, vin: str) -> Optional[float]:
-        return self._soc_rate.get(vin)
+        return self._peek(vin).charge.soc_rate
 
     def get_soc_estimate(self, vin: str) -> Optional[float]:
-        return self._soc_estimate.get(vin)
+        return self._peek(vin).charge.soc_estimate
 
     def get_charge_eta(self, vin: str) -> Optional[int]:
-        return self._charge_eta.get(vin)
+        return self._peek(vin).charge.charge_eta
 
     def _charge_eta_minutes(self, vin: str, tracking: SocTracking) -> Optional[int]:
         """Minutes to the charge target, for the ``charge_eta`` sensor.
@@ -4967,12 +4875,12 @@ class CardataCoordinator:
         else, and the stream drives exactly as it did before a meter was bound.
         """
 
-        tracking = self._soc_tracking.get(vin)
+        tracking = self._peek(vin).charge.tracking
         if tracking is None or not (tracking.charging_active or tracking.restored_charging):
             return None
         if self._plug_state(vin) is False or self._meter_shared(vin):
             return None
-        builder = self._session_builders.get(vin)
+        builder = self._peek(vin).session.builder
         location = builder.location if builder is not None else self._charging_location(vin)
         if not meter_counts_this_session(location, self._home_zone_name()):
             return None
@@ -4989,7 +4897,7 @@ class CardataCoordinator:
 
         if not self.pricing_for(vin).grid_energy_entity:
             return {}
-        tracking = self._soc_tracking.get(vin)
+        tracking = self._peek(vin).charge.tracking
         learned = self.learned_meter_rate(vin)
         driving = tracking is not None and tracking.meter_model is not None
         attrs: Dict[str, Any] = {
@@ -5016,7 +4924,7 @@ class CardataCoordinator:
             value = None
         if value is None:
             if descriptor == "vehicle.powertrain.electric.battery.stateOfCharge.target":
-                tracking = self._soc_tracking.setdefault(vin, SocTracking())
+                tracking = self._car(vin).charge.tracker()
                 tracking.update_target_soc(None, parsed_ts)
             elif descriptor == "vehicle.powertrain.electric.battery.charging.power":
                 self._set_direct_power(vin, None, parsed_ts)
@@ -5053,7 +4961,7 @@ class CardataCoordinator:
             # stream: log it on the day the car reported it, or the mileage
             # figures stop short of the car's reading until it next drives.
             self._note_odometer_day(vin, parsed_ts or datetime.now(timezone.utc))
-        tracking = self._soc_tracking.setdefault(vin, SocTracking())
+        tracking = self._car(vin).charge.tracker()
 
         updated = False
         if descriptor == "vehicle.drivetrain.batteryManagement.header":
@@ -5084,10 +4992,10 @@ class CardataCoordinator:
                 # estimate climbing, and only while a restored charge agrees the
                 # car was charging. Without this the estimate froze at its
                 # restored value until BMW next woke up -- two hours, on the i5.
-                builder = self._session_builders.get(vin)
+                builder = self._peek(vin).session.builder
                 since = (
                     builder.start
-                    if builder is not None and vin in self._restored_open_sessions
+                    if builder is not None and self._peek(vin).session.restored_at is not None
                     else None
                 )
                 tracking.restore_status(value, since)
@@ -5124,13 +5032,13 @@ class CardataCoordinator:
         if not updated:
             return
         if tracking.estimated_percent is not None:
-            self._soc_estimate[vin] = round(tracking.estimated_percent, 2)
+            self._car(vin).charge.soc_estimate = round(tracking.estimated_percent, 2)
         elif tracking.last_soc_percent is not None:
-            self._soc_estimate[vin] = round(tracking.last_soc_percent, 2)
+            self._car(vin).charge.soc_estimate = round(tracking.last_soc_percent, 2)
         if tracking.rate_per_hour not in (None, 0):
-            self._soc_rate[vin] = round(tracking.rate_per_hour, 3)
+            self._car(vin).charge.soc_rate = round(tracking.rate_per_hour, 3)
         else:
-            self._soc_rate.pop(vin, None)
+            self._car(vin).charge.soc_rate = None
 
     def restore_soc_cache(
         self,
@@ -5141,7 +5049,7 @@ class CardataCoordinator:
         timestamp: Optional[datetime] = None,
         meter_kwh: Optional[float] = None,
     ) -> None:
-        tracking = self._soc_tracking.setdefault(vin, SocTracking())
+        tracking = self._car(vin).charge.tracker()
         reference_time = timestamp or datetime.now(timezone.utc)
         # Entities restore in no fixed order, so a restored estimate competes
         # with the restored SoC reading on age, not on who came first.
@@ -5151,17 +5059,17 @@ class CardataCoordinator:
             if tracking.adopt_estimate(
                 estimate, reference_time, meter_kwh=meter_kwh if timestamp is not None else None
             ):
-                self._soc_estimate[vin] = round(estimate, 2)
+                self._car(vin).charge.soc_estimate = round(estimate, 2)
         if rate is not None:
             tracking.rate_per_hour = rate if rate not in (None, 0) else None
             if tracking.rate_per_hour:
-                self._soc_rate[vin] = round(tracking.rate_per_hour, 3)
+                self._car(vin).charge.soc_rate = round(tracking.rate_per_hour, 3)
                 # Only believe the restored rate means "charging" when a restored
                 # session agrees. Setting it unconditionally made a stale rate
                 # sensor claim a charge was running: the next genuine
                 # CHARGINGACTIVE then looked like no transition at all
                 # (``was_charging == now_charging``) and opened no session.
-                if vin in self._restored_open_sessions:
+                if self._peek(vin).session.restored_at is not None:
                     tracking.charging_active = True
                 if tracking.max_energy_kwh not in (None, 0):
                     tracking.last_power_w = (
@@ -5169,7 +5077,7 @@ class CardataCoordinator:
                     )
                 tracking.last_power_time = reference_time
             else:
-                self._soc_rate.pop(vin, None)
+                self._car(vin).charge.soc_rate = None
 
     @staticmethod
     def _build_device_metadata(vin: str, payload: Dict[str, Any]) -> Dict[str, Any]:
