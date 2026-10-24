@@ -3581,5 +3581,100 @@
         }
       }
     }
+  },
+  "exceptions": {
+    "device_not_a_car": {
+      "message": "Device {device} is not a BavarianData car"
+    },
+    "vin_device_mismatch": {
+      "message": "vin {vin} and device_id ({device_vin}) name different cars"
+    },
+    "account_not_loaded": {
+      "message": "No loaded BavarianData account has entry_id {entry_id}"
+    },
+    "device_account_not_loaded": {
+      "message": "The picked device's BavarianData account is not loaded"
+    },
+    "vin_not_found": {
+      "message": "No BavarianData account has a car with VIN {vin}"
+    },
+    "no_account": {
+      "message": "No BavarianData account is loaded"
+    },
+    "pick_account": {
+      "message": "{count} BavarianData accounts are set up ({accounts}); pick a car with device_id, or pass entry_id"
+    },
+    "vin_not_on_account": {
+      "message": "{vin} is not a car of this account"
+    },
+    "no_car": {
+      "message": "This account has no car yet"
+    },
+    "pick_car": {
+      "message": "This account has {count} cars ({cars}); pick one with device_id, or pass vin"
+    },
+    "month_format": {
+      "message": "'month' must be 'YYYY-MM', got {value}"
+    },
+    "month_number": {
+      "message": "'month' has no month {month}: {value}"
+    },
+    "bad_date": {
+      "message": "Could not read '{key}' as a date or date/time: {value}"
+    },
+    "no_attributes": {
+      "message": "No attributes to activate; pass 'attributes' or 'sections', or choose streamed-data clusters in the options."
+    },
+    "no_trip_history": {
+      "message": "Trip history is not available"
+    },
+    "trip_not_found": {
+      "message": "No trip {trip} found for {vin}"
+    },
+    "trips_not_from_reports": {
+      "message": "mark_trip_start is used only when trips are detected from the car's reports (Configure -> Trips -> Trip detection)"
+    },
+    "statistics_off": {
+      "message": "Statistics import is turned off for this vehicle (Configure -> Charging costs & history)."
+    },
+    "no_recorder": {
+      "message": "Home Assistant's recorder is not set up, so there are no long-term statistics to import into."
+    },
+    "no_token": {
+      "message": "{service}: no valid BMW token; reauthorize"
+    },
+    "request_blocked": {
+      "message": "{service}: {error}"
+    },
+    "bmw_error": {
+      "message": "{service}: {error}"
+    },
+    "fetch_incomplete": {
+      "message": "{service}: {error}"
+    },
+    "portal_session_rejected": {
+      "message": "BMW rejected the portal session (expired or invalid). Capture a fresh session from the stream-setup page and retry."
+    },
+    "portal_not_found": {
+      "message": "BMW returned 404 -- check the mapped_vehicle_id and locale."
+    },
+    "portal_failed": {
+      "message": "{error}"
+    },
+    "missing_credentials": {
+      "message": "Missing GCID or ID token"
+    },
+    "token_refresh_failed": {
+      "message": "Initial token refresh failed: {error}"
+    },
+    "stream_failed": {
+      "message": "Unable to connect to BMW MQTT: {error}"
+    },
+    "stream_failed_after_refresh": {
+      "message": "Unable to connect to BMW MQTT after token refresh: {error}"
+    },
+    "unknown_car": {
+      "message": "No car called {car}; the cars are {cars}"
+    }
   }
 }

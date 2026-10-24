@@ -9,6 +9,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **Errors speak your language.** When an action is refused (no car picked on
+  a two-car account, a month that isn't `YYYY-MM`, no quota left, BMW not
+  answering) or an account can't start, Home Assistant now shows the reason in
+  any of the ten languages BavarianData ships, not only in English. The log
+  stays English.
+
 ## [0.9.23-beta.1] - 2026-10-23
 
 ### Fixed

@@ -62,6 +62,7 @@ from .container import (
     KINDS,
     CardataContainerManager,
 )
+from .refusal import Refusal, as_ha_error
 from .rest import RestGateway, TokenKeeper
 from .coverage import coverage_issue_id, legacy_coverage_issue_id
 from .coverage_store import CoverageStore
@@ -410,6 +411,12 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     return True
 
 
+def _not_ready(key: str, **placeholders: Any) -> ConfigEntryNotReady:
+    """Why the account cannot start yet, in the user's language; HA retries it."""
+
+    return as_ha_error(Refusal(key, **placeholders), ConfigEntryNotReady, DOMAIN)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> bool:
     """Set an account up: stores, coordinator, stream, then Home Assistant's side.
 
@@ -435,7 +442,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     gcid = data.get("gcid")
     id_token = data.get("id_token")
     if not gcid or not id_token:
-        raise ConfigEntryNotReady("Missing GCID or ID token")
+        raise _not_ready("missing_credentials")
 
     # History is a bonus, not a prerequisite: a failure to read it must never
     # stop the stream from setting up, so HistoryStore.async_load swallows its
@@ -544,17 +551,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             err,
         )
     except Exception as err:  # pylint: disable=broad-except
-        raise ConfigEntryNotReady(f"Initial token refresh failed: {err}") from err
+        raise _not_ready("token_refresh_failed", error=err) from err
 
     if manager.client is None:
         try:
             await manager.async_start()
         except Exception as err:
             if refreshed_token:
-                raise ConfigEntryNotReady(
-                    f"Unable to connect to BMW MQTT after token refresh: {err}"
-                ) from err
-            raise ConfigEntryNotReady(f"Unable to connect to BMW MQTT: {err}") from err
+                raise _not_ready("stream_failed_after_refresh", error=err) from err
+            raise _not_ready("stream_failed", error=err) from err
 
     refresh_wake = asyncio.Event()
     refresh_task = entry.async_create_background_task(
@@ -1311,7 +1316,7 @@ async def _async_perform_telematic_fetch(
     try:
         return await _account(hass, entry).refresh(vin=vin_override, strict=strict)
     except FetchFailed as err:
-        raise HomeAssistantError(str(err)) from err
+        raise as_ha_error(err, HomeAssistantError, DOMAIN) from err
 
 
 def _async_update_last_telematic_poll(

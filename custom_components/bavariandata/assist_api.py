@@ -38,6 +38,7 @@ from .assist import (
 from .const import DOMAIN
 from .car_signals import DESC_BMW_RANGE, DESC_FUEL_LEVEL, DESC_GPS_LAT
 from .distance import car_distance_unit
+from .refusal import Refusal, as_ha_error
 
 API_ID = DOMAIN
 API_NAME = "BavarianData"
@@ -96,7 +97,8 @@ def _picked(cars: list[_Car], tool_args: dict[str, Any]) -> list[_Car]:
         return cars
     picked = [car for car in cars if car.name == name]
     if not picked:
-        raise HomeAssistantError(f"No car called {name!r}; the cars are {[c.name for c in cars]}")
+        refusal = Refusal("unknown_car", car=repr(name), cars=[car.name for car in cars])
+        raise as_ha_error(refusal, HomeAssistantError, DOMAIN)
     return picked
 
 
