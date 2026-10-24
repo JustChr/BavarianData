@@ -79,32 +79,52 @@ def harness_tests(root: Path) -> list[str]:
     return found
 
 
-def record(
-    out: Path,
-    *,
-    root: Path = REPO,
-    twin: Optional[str] = None,
-    pytest_args: Optional[list[str]] = None,
-) -> int:
-    """Trace the harness tests under ``root`` into ``out``; the pytest exit code."""
+class Run:
+    """One traced pytest run, started in the background."""
 
-    if out.exists():
-        shutil.rmtree(out)
-    out.mkdir(parents=True)
-    env = {**os.environ, TRACE_DIR_ENV: str(out)}
-    env.pop(TWIN_ENV, None)
-    if twin is not None:
-        env[TWIN_ENV] = twin
-    args = pytest_args or harness_tests(root)
-    command = [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", *args]
-    label = f"twin {twin}" if twin is not None else "solo"
-    print(f"  tracing {label} in {root.name} -> {out}", flush=True)
-    result = subprocess.run(command, cwd=root, env=env, capture_output=True, text=True)
-    tail = result.stdout.strip().splitlines()[-1:] or ["(no output)"]
-    print(f"    {tail[0]}", flush=True)
-    if result.returncode != 0:
-        print(result.stdout[-4000:])
-    return result.returncode
+    def __init__(
+        self,
+        out: Path,
+        *,
+        root: Path = REPO,
+        twin: Optional[str] = None,
+        pytest_args: Optional[list[str]] = None,
+    ) -> None:
+        if out.exists():
+            shutil.rmtree(out)
+        out.mkdir(parents=True)
+        env = {**os.environ, TRACE_DIR_ENV: str(out), "PYTHONDONTWRITEBYTECODE": "1"}
+        env.pop(TWIN_ENV, None)
+        if twin is not None:
+            env[TWIN_ENV] = twin
+        args = pytest_args or harness_tests(root)
+        command = [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", *args]
+        self.label = f"{'twin ' + twin if twin is not None else 'solo'} in {root.name}"
+        self.out = out
+        self._log = out.with_suffix(".log")
+        self._handle = self._log.open("w", encoding="utf-8")
+        print(f"  tracing {self.label} -> {out}", flush=True)
+        self._process = subprocess.Popen(
+            command, cwd=root, env=env, stdout=self._handle, stderr=subprocess.STDOUT
+        )
+
+    def wait(self) -> int:
+        """The pytest exit code, once the run is over; its summary printed."""
+
+        code = self._process.wait()
+        self._handle.close()
+        output = self._log.read_text(encoding="utf-8", errors="replace")
+        tail = output.strip().splitlines()[-1:] or ["(no output)"]
+        print(f"  {self.label}: {tail[0]}", flush=True)
+        if code != 0:
+            print(output[-4000:])
+        return code
+
+
+def record(out: Path, **kwargs) -> int:
+    """Trace the harness tests into ``out``; the pytest exit code."""
+
+    return Run(out, **kwargs).wait()
 
 
 # Left out of a one-car comparison: every car shares one debounced store, so
@@ -165,38 +185,41 @@ def _overlay(base: str, work: Path) -> None:
 def gate(base: str, twins: list[str], keep: Path) -> int:
     keep.mkdir(parents=True, exist_ok=True)
     print(f"golden gate: base {base[:12]}, traces in {keep}")
-    head = keep / "head"
-    if record(head) != 0:
-        print("RED: the tests fail on the working tree")
-        return 1
-    checks: dict[str, bool] = {}
-
-    print("1. determinism")
-    if record(keep / "head-again") != 0:
-        return 1
-    checks["determinism"] = compare(head, keep / "head-again", label="determinism")
-
-    print("2. behaviour against the base")
+    # Every run is independent of the others, so they all run at once.
     work = Path(tempfile.mkdtemp(prefix="golden-base-")) / "base"
+    _overlay(base, work)
     try:
-        _overlay(base, work)
-        code = record(keep / "base", root=work)
-        if code != 0:
-            print("  the working tree's tests fail on the base's code (see above)")
-            checks["behaviour"] = False
-        else:
-            checks["behaviour"] = compare(keep / "base", head, label="behaviour")
+        head = Run(keep / "head")
+        again = Run(keep / "head-again")
+        on_base = Run(keep / "base", root=work)
+        twin_runs = {offset: Run(keep / f"twin-{offset}", twin=offset) for offset in twins}
+        codes = {
+            "head": head.wait(),
+            "again": again.wait(),
+            "base": on_base.wait(),
+            **{offset: run.wait() for offset, run in twin_runs.items()},
+        }
     finally:
         git("worktree", "remove", "--force", str(work))
+    if codes["head"] != 0:
+        print("RED: the tests fail on the working tree")
+        return 1
 
+    checks: dict[str, bool] = {}
+    print("1. determinism")
+    checks["determinism"] = codes["again"] == 0 and compare(
+        head.out, again.out, label="determinism"
+    )
+    print("2. behaviour against the base")
+    if codes["base"] != 0:
+        print("  the working tree's tests fail on the base's code (see above)")
+        checks["behaviour"] = False
+    else:
+        checks["behaviour"] = compare(on_base.out, head.out, label="behaviour")
     print("3. isolation")
-    for offset in twins:
-        twin = keep / f"twin-{offset}"
-        if record(twin, twin=offset) != 0:
-            checks[f"isolation {offset}"] = False
-            continue
-        checks[f"isolation {offset}"] = compare(
-            head, twin, car="A", label=f"isolation (twin {offset} min)"
+    for offset, run in twin_runs.items():
+        checks[f"isolation {offset}"] = codes[offset] == 0 and compare(
+            head.out, run.out, car="A", label=f"isolation (twin {offset} min)"
         )
 
     for name, passed in checks.items():

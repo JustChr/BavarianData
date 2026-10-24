@@ -188,8 +188,27 @@ def _plain(value: Any) -> Any:
     return _ADDRESS.sub("", repr(value))
 
 
+def _default(value: Any) -> Any:
+    """What ``json`` can't encode itself, one level deep: it walks the rest."""
+
+    if isinstance(value, set | frozenset):
+        return sorted((_plain(v) for v in value), key=repr)
+    if dataclasses.is_dataclass(value) and not isinstance(value, type):
+        shallow = {f.name: getattr(value, f.name) for f in dataclasses.fields(value)}
+        return {"__type__": type(value).__name__, **shallow}
+    if hasattr(value, "__dict__") and not callable(value) and not isinstance(value, enum.Enum):
+        return {"__type__": type(value).__name__, **vars(value)}
+    return _plain(value)
+
+
 def canonical(value: Any) -> str:
-    return json.dumps(_plain(value), sort_keys=True, ensure_ascii=False)
+    # The C encoder does the walking; ``_plain`` only sees what it can't encode
+    # (dataclasses, datetimes, sets...). A mapping with keys JSON can't take
+    # falls back to the slow path.
+    try:
+        return json.dumps(value, sort_keys=True, ensure_ascii=False, default=_default)
+    except TypeError:
+        return json.dumps(_plain(value), sort_keys=True, ensure_ascii=False)
 
 
 def digest(value: Any) -> str:
@@ -233,6 +252,7 @@ class Tracer:
         self._signals = 0
         self._issues: dict[str, str] = {}
         self._store: dict[tuple[str, str], str] = {}
+        self._store_writes = -1
         self._timers: Optional[str] = None
         self._gets: dict[tuple[str, str], str] = {}
         self._steps = 0
@@ -267,10 +287,14 @@ class Tracer:
                 self._emit("-", "issue", f"+{issue_id} {issues[issue_id]}")
         self._issues = issues
 
-        store: dict[tuple[str, str], str] = {}
-        for key, data in hass.storage.items():
-            for piece, content in _store_sections(key, data).items():
-                store[piece] = digest(content)
+        if hass.storage_writes == self._store_writes:
+            store = self._store
+        else:
+            self._store_writes = hass.storage_writes
+            store = {}
+            for key, data in hass.storage.items():
+                for piece, content in _store_sections(key, data).items():
+                    store[piece] = digest(content)
         for piece in sorted(set(self._store) | set(store)):
             section, vin = piece
             if store.get(piece) != self._store.get(piece):

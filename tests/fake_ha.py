@@ -84,6 +84,8 @@ class FakeHass:
     signals: list[tuple[str, tuple]] = field(default_factory=list)
     issues: dict[str, dict] = field(default_factory=dict)
     storage: dict[str, Any] = field(default_factory=dict)
+    # Bumped on every store write, so a reader can tell "nothing was saved".
+    storage_writes: int = 0
     timers: list[_Timer] = field(default_factory=list)
     data: dict[str, Any] = field(default_factory=dict)
     # Zones for ``homeassistant.components.zone.async_active_zone``.
@@ -192,15 +194,18 @@ class _Store:
 
     async def async_save(self, data) -> None:
         self._hass.storage[self._key] = data
+        self._hass.storage_writes += 1
 
     def async_delay_save(self, data_func: Callable[[], Any], delay: float = 0) -> None:
         # Written at once: a delayed save that a restart can outrun is the
         # production risk the flush-on-stop path exists for, and the harness
         # models that path explicitly (see ``CoordinatorHarness.restart``).
         self._hass.storage[self._key] = data_func()
+        self._hass.storage_writes += 1
 
     async def async_remove(self) -> None:
         self._hass.storage.pop(self._key, None)
+        self._hass.storage_writes += 1
 
 
 def _parse_datetime(value: str) -> Optional[datetime]:

@@ -632,10 +632,26 @@ class _ErrorCollector(logging.Handler):
         self._sink.append(record)
 
 
+class _Timeline:
+    """The timeline, rendered only when a failure message is actually built.
+
+    Rendering it on every step to have it ready made a long scenario quadratic.
+    """
+
+    def __init__(self, h: CoordinatorHarness) -> None:
+        self._h = h
+
+    def __format__(self, spec: str) -> str:
+        return "\n" + self._h.render()
+
+    def __str__(self) -> str:
+        return format(self)
+
+
 def check_invariants(h: CoordinatorHarness, row: Row) -> None:
     """What must hold after every single step, in every scenario."""
 
-    context = f"\n{h.render()}"
+    context = _Timeline(h)
     if h.logged_errors:
         record = h.logged_errors[0]
         detail = record.getMessage()
@@ -651,7 +667,7 @@ def check_invariants(h: CoordinatorHarness, row: Row) -> None:
         _check_car(h, list(history.sessions(vin)), list(history.trips(vin)), context)
 
 
-def _check_car(h: CoordinatorHarness, sessions: list, trips: list, context: str) -> None:
+def _check_car(h: CoordinatorHarness, sessions: list, trips: list, context: Any) -> None:
     for session in sessions:
         assert session.end is None or session.end >= session.start, (
             f"session ends before start{context}"
