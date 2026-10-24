@@ -101,7 +101,7 @@ code, so it is auditable. Status = state in the **new manual** (not the current
 README). Legend: ✅ done · 🟡 partial (prose exists in README, needs
 restructure) · ❌ missing · 📷 needs screenshot.
 
-### Setup wizard screens — from `config_flow.py`
+### Setup wizard screens — from `config_flow.py` and `flow_activator.py`
 
 | Step (`async_step_…`) | Screen | Status | Shot |
 | --- | --- | --- | --- |

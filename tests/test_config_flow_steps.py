@@ -1,9 +1,9 @@
 """Every screen the setup and options flows can show has its text.
 
-``config_flow.py`` imports Home Assistant, so nothing here can run it -- a flow
-is only ever exercised on a live instance, by hand. A step id with no entry in
-``translations/`` does not fail loudly there either: Home Assistant shows the
-raw key and an empty dialog. So this reads the flows with ``ast`` and checks the
+The flows import Home Assistant, so nothing here can run them (``tests_ha/``
+does, on Linux). A step id with no entry in ``translations/`` does not fail
+loudly there either: Home Assistant shows the raw key and an empty dialog. So
+this reads the flow modules with ``ast`` and checks the
 shape instead: each ``step_id`` / ``progress_action`` a class passes to Home
 Assistant exists in the translation section that class belongs to, in every
 full language.
@@ -22,17 +22,31 @@ import pathlib
 import pytest
 
 _PKG = pathlib.Path(__file__).resolve().parents[1] / "custom_components" / "bavariandata"
-_FLOW = _PKG / "config_flow.py"
+# Every module a flow's screens are written in.
+_FLOWS = tuple(
+    _PKG / name
+    for name in ("config_flow.py", "flow_activator.py", "options_flow.py", "options_cars.py")
+)
 # Every full language (a regional delta like en-GB carries no flow text of its
 # own and falls back to en key by key).
 _LANGUAGES = sorted(p.stem for p in (_PKG / "translations").glob("*.json") if "-" not in p.stem)
 
 # Which translation sections a class's screens are looked up in.
 _SECTIONS = {
-    "_StreamActivatorFlow": ("config", "options"),
+    "StreamActivatorFlow": ("config", "options"),
     "CardataConfigFlow": ("config",),
     "CardataOptionsFlowHandler": ("options",),
+    "PerCarScreens": ("options",),
 }
+
+
+def _classes() -> list[ast.ClassDef]:
+    return [
+        node
+        for path in _FLOWS
+        for node in ast.parse(path.read_text(encoding="utf-8")).body
+        if isinstance(node, ast.ClassDef)
+    ]
 
 
 def _called(node: ast.Call) -> str:
@@ -47,10 +61,9 @@ def _shown(kind: str) -> dict[str, set[str]]:
     its ``step_id`` needs no ``step`` entry and is not collected.
     """
 
-    tree = ast.parse(_FLOW.read_text(encoding="utf-8"))
     found: dict[str, set[str]] = {}
-    for cls in tree.body:
-        if not isinstance(cls, ast.ClassDef) or cls.name not in _SECTIONS:
+    for cls in _classes():
+        if cls.name not in _SECTIONS:
             continue
         values = found.setdefault(cls.name, set())
         for node in ast.walk(cls):
@@ -98,7 +111,7 @@ def test_no_translation_is_left_for_a_step_that_no_longer_exists(language: str) 
 
 
 def test_manual_setup_runs_the_activator_not_a_console_snippet() -> None:
-    source = _FLOW.read_text(encoding="utf-8")
+    source = "".join(path.read_text(encoding="utf-8") for path in _FLOWS)
     assert "build_portal_snippet" not in source
     assert "cluster_snippet" not in source
 
@@ -110,11 +123,9 @@ _SYNC_FLOW_HOOKS = ("async_remove",)
 
 
 def test_sync_flow_hooks_are_not_coroutines() -> None:
-    tree = ast.parse(_FLOW.read_text(encoding="utf-8"))
     coroutines = sorted(
         f"{cls.name}.{node.name}"
-        for cls in tree.body
-        if isinstance(cls, ast.ClassDef)
+        for cls in _classes()
         for node in cls.body
         if isinstance(node, ast.AsyncFunctionDef) and node.name in _SYNC_FLOW_HOOKS
     )
