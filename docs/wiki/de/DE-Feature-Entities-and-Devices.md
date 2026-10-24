@@ -326,12 +326,17 @@ Daten:
 | **Batteriezustand** | Nicht `unbekannt`: Er zeigt `Learning (n/10)`, bis er zehn gute Ladungen hat ([warum](DE-Feature-Battery-Health)). |
 | **Vorhergesagte Zeit bis zum Ladeziel** | Eine Ladung zu Hause mit verknüpftem Wallbox-Zähler ([Details](DE-Feature-evcc-and-Wallbox-Bridge#time-to-the-charge-target)). |
 
-**`nicht verfügbar`: Die Integration läuft für diese Entität nicht.** BavarianData
-setzt die eigenen Entitäten nie auf nicht verfügbar. Es heißt also: Die
-Integration ist nicht gestartet oder muss neu autorisiert werden (siehe
-*Einstellungen → Geräte & Dienste* und *Reparaturen*), oder die Entität ist ein
-Überbleibsel von etwas, das die Integration nicht mehr anlegt — dann kannst du sie
-löschen.
+**`nicht verfügbar`: Diese Entität kann keine Daten bekommen.** Die Entitäten
+eines Fahrzeugs werden nur dann nicht verfügbar, wenn **BMW die Anmeldung des
+Kontos ablehnt**: Melde dich unter *Einstellungen → Geräte & Dienste* erneut an,
+und die Werte kommen zurück, sobald BMW das akzeptiert. Die Dashboard-Karte sagt
+das solange in jeder Ansicht. Ein stiller oder abgerissener Stream ist kein
+Ausfall: Ein geparktes Auto sendet stundenlang nichts, und seine letzte Meldung
+bleibt wahr, also behalten die Entitäten sie. Sonst heißt `nicht verfügbar`: Die
+Integration ist nicht gestartet, oder die Entität ist ein Überbleibsel von etwas,
+das die Integration nicht mehr anlegt — dann kannst du sie löschen.
 
-In beiden Fällen behalten Entitäten ihre Attribute `cluster`/`category`, weil die
-Datengruppen-Ansichten der Karte davon abhängen.
+Eine `unbekannte` Entität behält ihre Attribute `cluster`/`category`, weil die
+Datengruppen-Ansichten der Karte davon abhängen; eine `nicht verfügbare` hat keine
+(Home Assistant entfernt sie), deshalb zeigt die Karte stattdessen den Hinweis zur
+Anmeldung.

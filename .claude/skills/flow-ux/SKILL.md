@@ -83,10 +83,10 @@ only after Chris has picked one.**
   `description_placeholders`.
 - The unique ID is the client ID, and a second entry for the same account
   aborts with `account_already_configured`. Don't break either.
-- Reauth exists (`async_step_reauth`). There is no `reconfigure` step,
-  because Configure → *Choose streamed data* does that job, so don't add a
-  second way to do the same thing. There's no discovery, because BMW is
-  cloud-only.
+- Reauth exists (`async_step_reauth`); `async_step_reconfigure` changes the
+  Client ID (same BMW account only), and Configure → *Choose streamed data*
+  changes the data groups. Don't add a second way to do either. There's no
+  discovery, because BMW is cloud-only.
 - This is a custom integration, so there is no `strings.json`. The source is
   `translations/en.json`, carried into the other languages with the
   `translate` skill.
