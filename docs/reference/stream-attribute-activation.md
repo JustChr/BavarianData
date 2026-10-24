@@ -96,8 +96,8 @@ the cookie-into-HA service is throttled: it never handles the session at all.
 The **same activator is reused when reconfiguring** the stream selection later —
 **Configure → Choose streamed data** (`CardataOptionsFlowHandler.
 async_step_action_select_clusters` → `activate_stream_wait`/`_paste`/`_done`).
-The helper-page + webhook plumbing lives in the shared `_StreamActivatorFlow`
-mixin (`config_flow.py`), so first-time setup and reconfiguration drive one
+The helper-page + webhook plumbing lives in the shared `StreamActivatorFlow`
+mixin (`flow_activator.py`), so first-time setup and reconfiguration drive one
 activator. The activator is **additive** (it unions the wanted fields with the
 current selection and never removes one), so reconfiguring only ever widens the
 stream; unticking a field to stop it streaming is still a portal Data Selection

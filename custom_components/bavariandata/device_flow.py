@@ -3,12 +3,30 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import hashlib
+import secrets
+import string
 import time
 from typing import Any, Dict, Optional
 
 import aiohttp
 
 from .const import DEVICE_CODE_URL, TOKEN_URL
+
+
+def code_verifier() -> str:
+    """A fresh PKCE code verifier: 86 characters from RFC 7636's alphabet."""
+
+    alphabet = string.ascii_letters + string.digits + "-._~"
+    return "".join(secrets.choice(alphabet) for _ in range(86))
+
+
+def code_challenge(verifier: str) -> str:
+    """The S256 challenge for ``verifier``: unpadded base64url of its SHA-256."""
+
+    digest = hashlib.sha256(verifier.encode("ascii")).digest()
+    return base64.urlsafe_b64encode(digest).decode("ascii").rstrip("=")
 
 
 class CardataAuthError(Exception):

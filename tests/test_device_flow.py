@@ -258,3 +258,20 @@ def test_a_refresh_error_carries_what_bmw_said():
 def test_a_bmw_outage_during_refresh_is_not_a_rejected_login():
     assert not device_flow.refresh_rejected(_refresh_failure(503, None))
     assert not device_flow.refresh_rejected(_refresh_failure(502, {"error": "bad_gateway"}))
+
+
+def test_a_code_verifier_is_86_characters_of_rfc_7636s_alphabet():
+    verifier = device_flow.code_verifier()
+    assert len(verifier) == 86
+    assert set(verifier) <= set(
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
+    )
+    assert device_flow.code_verifier() != verifier
+
+
+def test_the_challenge_is_rfc_7636s_s256():
+    # The worked example of RFC 7636, appendix B.
+    assert (
+        device_flow.code_challenge("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk")
+        == "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+    )
