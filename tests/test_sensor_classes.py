@@ -146,3 +146,25 @@ def test_the_sensor_platform_decides_through_sensor_classes() -> None:
             "metadata directly. Decide it in sensor_classes.py, where "
             "tests/test_sensor_classes.py checks it for every descriptor (issue #25)."
         )
+
+
+@pytest.mark.parametrize(
+    ("meta", "whole"),
+    [
+        ({"device_class": "distance", "state_class": "measurement", "unit": "km"}, True),
+        ({"device_class": "distance", "state_class": "measurement", "unit": "mi"}, True),
+        ({"device_class": "distance", "state_class": "measurement", "unit": "m"}, False),
+        ({"device_class": "pressure", "state_class": "measurement", "unit": "kPa"}, True),
+        ({"device_class": "pressure", "state_class": "measurement", "unit": "bar"}, False),
+        ({"device_class": "volume_storage", "state_class": "measurement"}, True),
+        ({"device_class": "volume_storage", "state_class": "total", "unit": "L"}, False),
+        ({"device_class": "energy", "state_class": "total", "unit": "kWh"}, False),
+        ({"options": ["a"]}, False),
+    ],
+)
+def test_whole_kilometres_kpa_and_the_tank_show_no_decimals(meta, whole: bool) -> None:
+    assert sensor_classes(meta).whole_numbers is whole
+
+
+def test_the_odometer_shows_whole_kilometres() -> None:
+    assert sensor_classes(META["vehicle.vehicle.travelledDistance"]).whole_numbers

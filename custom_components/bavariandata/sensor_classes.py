@@ -35,6 +35,27 @@ class SensorClasses:
     def is_enum(self) -> bool:
         return bool(self.options)
 
+    @property
+    def whole_numbers(self) -> bool:
+        """Whether the entity should display no decimals.
+
+        BMW streams whole kilometres for every distance -- a range, an
+        odometer, a trip length. Left unsaid, Home Assistant stamps two decimals
+        on any convertible unit and the card's headline reads "379.00 km", which
+        every user then fixes by hand, entity by entity. Tyre pressures are
+        whole kPa too and read "260,00 kPa" for the same reason; a user showing
+        them in bar still gets the decimals, as Home Assistant adds precision
+        when it converts. The fuel in the tank (the one volume whose unit comes
+        off the stream) is a float BMW itself calls accurate to about 6 litres,
+        so decimals there are noise; the lifetime fuel totals keep theirs.
+        """
+
+        return (
+            (self.device_class == "distance" and self.unit in ("km", "mi"))
+            or (self.device_class == "pressure" and self.unit == "kPa")
+            or (self.device_class == "volume_storage" and not self.unit)
+        )
+
 
 def sensor_classes(meta: Optional[Mapping[str, Any]]) -> SensorClasses:
     """Return the classes and pinned unit for a descriptor's metadata.
