@@ -3,11 +3,8 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
-import os
 import re
-from collections import deque
 from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -83,6 +80,13 @@ from .coverage import is_combustion_only, is_plug_in_hybrid
 from .phone_route import PhoneRoute
 from .soc_tracking import SocTracking
 from .steering import steering_side
+from .trip_capture import TRIP_CAPTURE_FILE, TripLog
+from .stream_health import (
+    NO_DATA_REPAIR_AFTER_S,
+    UNAUTHORIZED_REPAIR_AFTER_S,
+    WIKI_TROUBLESHOOTING,
+    StreamHealth,
+)
 from .placeholders import is_placeholder
 from .structured_values import EMPTY_WHEN_NULL, structured_state
 from .trip_settings import TripSettings
@@ -179,36 +183,6 @@ DESC_DRIVER_DOOR = "vehicle.cabin.door.row1.driver.isOpen"
 DESC_GPS_FIX = "vehicle.cabin.infotainment.navigation.currentLocation.fixStatus"
 DESC_GPS_SATS = "vehicle.cabin.infotainment.navigation.currentLocation.numberOfSatellites"
 DESC_GPS_HEADING = "vehicle.cabin.infotainment.navigation.currentLocation.heading"
-
-# Curated candidate trip-lifecycle / motion signals, surfaced on a ``[trip.watch]``
-# line in trip-capture mode. NONE is used for detection today -- the capture
-# exists to learn which (if any) the car actually streams and which cleanly
-# bracket a drive, so a future detector can lean on something sturdier than GPS
-# jitter + a 5-minute debounce. Chosen from the catalogue as the fields most
-# likely to mark "driving": a speed, the HV system / plug state, the ignition
-# trio (to confirm on a real drive they truly stay silent on this car), the
-# driver door + central lock (entry/exit brackets), and active-navigation hints.
-TRIP_WATCH_DESCRIPTORS = (
-    "vehicle.isMoving",
-    "vehicle.drivetrain.engine.isIgnitionOn",
-    "vehicle.drivetrain.engine.isActive",
-    "vehicle.vehicle.avgSpeed",
-    "vehicle.vehicle.speedRange.lowerBound",
-    "vehicle.vehicle.speedRange.upperBound",
-    "vehicle.drivetrain.electricEngine.charging.hvStatus",
-    "vehicle.drivetrain.electricEngine.charging.connectorStatus",
-    "vehicle.cabin.door.row1.driver.isOpen",
-    # Central lock, both spellings of it: door.lock.status is the documented one
-    # but is not streamable (it only refreshes on a REST fetch, so it is silent
-    # for days at a time), while door.status carries the same lock vocabulary and
-    # arrives within seconds of every lock/unlock -- the sturdier entry/exit
-    # bracket of the two (issue #8).
-    "vehicle.cabin.door.status",
-    "vehicle.cabin.door.lock.status",
-    "vehicle.cabin.infotainment.navigation.currentLocation.altitude",
-    "vehicle.cabin.infotainment.navigation.destinationSet.distance",
-    "vehicle.cabin.infotainment.navigation.remainingRange",
-)
 
 # Once the car has been at rest this long with no new segment batch, treat the
 # trip as ended. Long enough to ride out a traffic light, short enough that a
@@ -317,23 +291,6 @@ CHARGE_PROGRESS_DESCRIPTORS = (
 # would otherwise close a live GPS trip the moment the car parks and polls.
 SEG_FRESH_S = 900
 
-# --- Trip-capture diagnostics (OPTION_TRIP_DEBUG) --------------------------
-# A dedicated logger so the trip capture is visible on its own, independent of
-# the generic ``debug_log`` toggle (which only raises the parent logger). Lines
-# are emitted at INFO so they appear whatever the integration's log level, and
-# only ever when the user has explicitly switched trip-capture mode on.
-_TRIPLOG = logging.getLogger(f"{__name__}.tripcapture")
-# Basename of the raw-batch NDJSON capture written to the HA config dir while
-# trip-capture mode is on. One record per MQTT batch, replayable offline.
-TRIP_CAPTURE_FILE = "bavariandata_trip_capture.ndjson"
-# Stop appending once the capture file reaches this size, so a toggle left on by
-# accident can't fill the disk. ~25 MB is many hours of driving.
-TRIP_CAPTURE_MAX_BYTES = 25 * 1024 * 1024
-# Every field of a segment/accumulated batch, captured whole (not just the
-# ``end.*`` subset the detector reduces to a boolean) so we can tell whether any
-# variant ever carries a real trip end.
-DESC_SEG_CAPTURE_PREFIX = "vehicle.trip.segment."
-
 # --- What the efficiency profile reads live --------------------------------
 # The measured consumption comes out of the charging ledger, but two of its
 # inputs arrive as ordinary stream messages: BMW's own remaining range (the
@@ -360,25 +317,6 @@ CHARGE_END_REASON_DESCRIPTORS = (
 # Whether a cable is in the car comes from a chain of descriptors that differs by
 # model -- see ``evcc.PLUG_DESCRIPTORS``, where it is unit-tested.
 
-# --- Stream-health repairs -------------------------------------------------
-# A diagnostics download turns "it doesn't work" into 30-second triage, but a
-# repair issue is what actually gets a stuck stream in front of the user. Both
-# link to the Wiki's Troubleshooting page so the fix is one click away; the URL
-# lives here rather than in the translation strings because hassfest forbids URLs
-# inside translations/*.json.
-WIKI_TROUBLESHOOTING = "https://github.com/JustChr/BavarianData/wiki/Troubleshooting-and-FAQ"
-# How long the stream may go without a single message before we raise a repair.
-# Long enough that a car simply parked in a garage for a weekend (BMW streams
-# most descriptors only on a state change) doesn't trip it, short enough that a
-# genuinely broken selection surfaces within a couple of days.
-NO_DATA_REPAIR_AFTER_S = 48 * 60 * 60
-# How long an "unauthorized" (MQTT rc=5) condition must persist -- reauth having
-# failed to clear it -- before it is a repair rather than a transient blip the
-# reconnect logic is already handling.
-UNAUTHORIZED_REPAIR_AFTER_S = 30 * 60
-# Bounded ring buffer of connection transitions (status + rc/reason), surfaced in
-# the diagnostics download so a reconnect storm is visible after the fact.
-CONNECTION_HISTORY_LEN = 30
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -443,15 +381,11 @@ class CardataCoordinator:
     on_reconnect_after_outage: Optional[Callable[[float], None]] = field(default=None, repr=False)
     last_message_at: Optional[datetime] = None
     last_telematic_api_at: Optional[datetime] = None
-    connection_status: str = "connecting"
-    last_disconnect_reason: Optional[str] = None
     diagnostic_interval: int = DIAGNOSTIC_LOG_INTERVAL
     watchdog_task: Optional[asyncio.Task] = field(default=None, init=False, repr=False)
     # Wall-clock the watchdog started, so "no data in 48h" has a baseline on a
     # stream that has never delivered a single message.
     stream_started_at: Optional[datetime] = field(default=None, init=False)
-    # When the stream last stopped being connected; None while connected.
-    _stream_down_since: Optional[datetime] = field(default=None, init=False, repr=False)
     # When a message last arrived per VIN (the global ``last_message_at`` can't
     # tell a healthy car from a silent one when several are configured).
     last_message_by_vin: Dict[str, datetime] = field(default_factory=dict, init=False)
@@ -461,15 +395,8 @@ class CardataCoordinator:
     # Per-VIN reporting traits (``car_profile.py``) for the diagnostics
     # download; live counters too.
     car_profiles: Dict[str, CarProfile] = field(default_factory=dict, init=False)
-    # Recent connection transitions (status + rc/reason + time) for diagnostics.
-    connection_history: Deque[Dict[str, Any]] = field(
-        default_factory=lambda: deque(maxlen=CONNECTION_HISTORY_LEN),
-        init=False,
-        repr=False,
-    )
-    # First time the stream went "unauthorized" without recovering since, driving
-    # the persisting-rc=5 repair. Cleared on the next successful connect.
-    _unauthorized_since: Optional[datetime] = field(default=None, init=False)
+    # The stream's status, outages and the repairs they decide (``stream_health``).
+    health: StreamHealth = field(default_factory=StreamHealth, init=False)
     # Latched repair state so the watchdog only calls the issue registry on a
     # transition rather than every tick.
     _no_data_issue_active: bool = field(default=False, init=False)
@@ -503,9 +430,6 @@ class CardataCoordinator:
     # ``trip_settings.py``. Read through ``trip_settings_for``.
     trip_settings: TripSettings = field(default_factory=TripSettings)
     vehicle_trip_settings: Dict[str, TripSettings] = field(default_factory=dict)
-    # Trip-capture diagnostic mode (opt-in, off by default). Emits the rich
-    # ``[trip.*]`` capture and the NDJSON file; account-wide, refreshed from options.
-    trip_debug: bool = False
     # Each car's mileage allowance as stored under Configure -> Mileage
     # allowance (``vehicle_options.mileage_values``), by VIN; a car without one
     # is absent. Read through ``mileage_report``.
@@ -516,14 +440,39 @@ class CardataCoordinator:
     # The one state listener feeding the cars' phone routes (``phone_route.py``,
     # :meth:`watch_phone_routes`).
     _phone_unsub: Optional[Callable[[], None]] = field(default=None, init=False)
-    # Trip capture (``trip_debug``): the file-size warning is logged only once.
-    _trip_capture_warned: bool = field(default=False, init=False)
+    # The trip detector's log and capture mode (``trip_capture``).
+    trip_log: TripLog = field(default_factory=TripLog, init=False)
     # The device triggers (``vehicle_triggers``): situations, judged on what the
     # stream delivered since this instance started (``Vehicle.live_descriptors``).
     _situations: SituationTracker = field(default_factory=SituationTracker, init=False)
     # The alarm, preconditioning and Check Control as last known: what an edge
     # event compares against (``vehicle_triggers.EdgeTracker``).
     _edges: EdgeTracker = field(default_factory=EdgeTracker, init=False)
+
+    @property
+    def trip_debug(self) -> bool:
+        """Trip-capture mode (opt-in): the ``[trip.*]`` capture and its NDJSON file.
+
+        Account-wide, refreshed from the options.
+        """
+
+        return self.trip_log.enabled
+
+    @trip_debug.setter
+    def trip_debug(self, enabled: bool) -> None:
+        self.trip_log.enabled = bool(enabled)
+
+    @property
+    def connection_status(self) -> str:
+        return self.health.status
+
+    @property
+    def last_disconnect_reason(self) -> Optional[str]:
+        return self.health.last_disconnect_reason
+
+    @property
+    def connection_history(self) -> Deque[Dict[str, Any]]:
+        return self.health.history
 
     def _car(self, vin: str) -> Vehicle:
         """``vin``'s state, made on first use -- for anything that writes it."""
@@ -1023,9 +972,16 @@ class CardataCoordinator:
         # Trip-capture diagnostics: the raw firehose + NDJSON file, outside the
         # trip lock (they only read state) and strictly gated on the opt-in.
         if self.trip_debug:
-            self._capture_batch(vin, data, now)
-            with suppress(Exception):  # file IO must never break the stream
-                await self._capture_to_file(vin, data, now)
+            open_trip = self._peek(vin).trip.builder is not None
+            self.trip_log.log_batch(vin, data, now, open_trip=open_trip, fresh_s=SEG_FRESH_S)
+            line = TripLog.record_line(vin, data, now, open_trip=open_trip)
+            if line is not None:
+                with suppress(Exception):  # file IO must never break the stream
+                    await self.hass.async_add_executor_job(
+                        self.trip_log.append_line,
+                        self.hass.config.path(TRIP_CAPTURE_FILE),
+                        line,
+                    )
 
         async_dispatcher_send(self.hass, self.signal_diagnostics)
 
@@ -2195,7 +2151,7 @@ class CardataCoordinator:
         if self.history is None:
             return
         self.history.async_set_last_report(vin, add_start_mark(self.history.last_report(vin), at))
-        self._cap("[trip.report] %s start marked at %s", vin, at.isoformat())
+        self.trip_log.cap("[trip.report] %s start marked at %s", vin, at.isoformat())
 
     def watch_phone_routes(self) -> None:
         """Listen to every phone and in-car sensor a car's trip settings name.
@@ -2283,7 +2239,9 @@ class CardataCoordinator:
         except TypeError, ValueError:
             accuracy = None
         if route.add(now, latitude, longitude, accuracy):
-            self._cap("[trip.phone] %s %.5f,%.5f acc=%s", vin, latitude, longitude, accuracy)
+            self.trip_log.cap(
+                "[trip.phone] %s %.5f,%.5f acc=%s", vin, latitude, longitude, accuracy
+            )
 
     async def _remember_report_place(self, vin: str, odometer_km: float) -> None:
         """Add where the car stands to the record of the reading it just gave.
@@ -2424,7 +2382,7 @@ class CardataCoordinator:
             trip.duration_unknown = start is None
             if route:
                 trip.track_source = "phone"
-            self._cap(
+            self.trip_log.cap(
                 "[trip.report] %s %s -> %s dist=%s start=%s phone_points=%s",
                 vin,
                 (trip.start_place or {}).get("label"),
@@ -2908,122 +2866,6 @@ class CardataCoordinator:
 
     # --- trips (roadmap Phase 3) -------------------------------------------
 
-    def _cap(self, msg: str, *args: Any, substrate: bool = False) -> None:
-        """Emit a trip log line, routed by which debug mode is on.
-
-        Trip-capture mode (``trip_debug``) is the loudest: it sends the line to
-        the dedicated capture logger at INFO so it is visible on its own, whether
-        or not the generic ``debug_log`` is on. Without capture mode, the decision
-        lines (``substrate=False``) still appear under ``debug_log`` exactly as
-        before; the heavy substrate lines (``substrate=True``) never do -- they
-        are only worth their volume during a deliberate capture.
-        """
-
-        if self.trip_debug:
-            _TRIPLOG.info(msg, *args)
-        elif not substrate and debug_enabled():
-            _LOGGER.debug(msg, *args)
-
-    def _capture_batch(self, vin: str, data: Dict[str, Any], now: datetime) -> None:
-        """Capture a raw MQTT batch: a compact ``[trip.raw]``/``[trip.seg]`` log
-        line for eyeballing, plus the whole batch appended to the NDJSON file for
-        offline replay. Only called in ``trip_debug`` mode. Never raises."""
-
-        try:
-            open_trip = self._peek(vin).trip.builder is not None
-            scalars = []
-            for key, payload in data.items():
-                short = key[len("vehicle.") :] if key.startswith("vehicle.") else key
-                value = payload.get("value") if isinstance(payload, dict) else payload
-                if isinstance(value, (dict, list)):
-                    scalars.append(f"{short}=<{type(value).__name__}>")
-                else:
-                    scalars.append(f"{short}={value}")
-            self._cap(
-                "[trip.raw] %s open=%s n=%d %s",
-                vin,
-                open_trip,
-                len(data),
-                " ".join(scalars),
-                substrate=True,
-            )
-
-            # Segment/accumulated batch, captured whole with each field's own
-            # timestamp so we can see whether any ever carries a real trip end.
-            seg = {k: v for k, v in data.items() if k.startswith(DESC_SEG_CAPTURE_PREFIX)}
-            if seg:
-                freshest = None
-                parts = []
-                for key, payload in seg.items():
-                    short = key[len(DESC_SEG_CAPTURE_PREFIX) :]
-                    if isinstance(payload, dict):
-                        ts = payload.get("timestamp")
-                        parts.append(f"{short}={payload.get('value')}@{ts}")
-                        parsed = dt_util.parse_datetime(ts) if ts else None
-                        if parsed is not None and (freshest is None or parsed > freshest):
-                            freshest = parsed
-                    else:
-                        parts.append(f"{short}={payload}")
-                age = (now - freshest).total_seconds() if freshest is not None else None
-                self._cap(
-                    "[trip.seg] %s n=%d freshest_age=%ss fresh=%s %s",
-                    vin,
-                    len(seg),
-                    None if age is None else int(age),
-                    age is not None and age <= SEG_FRESH_S,
-                    " ".join(parts),
-                    substrate=True,
-                )
-
-            # Curated candidate lifecycle/motion signals present in this batch,
-            # pulled out of the firehose so the fields we hope might drive a
-            # better detector are trivially greppable. Each with its own
-            # timestamp; absent (unstreamed) fields simply never appear.
-            watch = []
-            for key in TRIP_WATCH_DESCRIPTORS:
-                payload = data.get(key)
-                if not isinstance(payload, dict):
-                    continue
-                short = key[len("vehicle.") :] if key.startswith("vehicle.") else key
-                watch.append(f"{short}={payload.get('value')}@{payload.get('timestamp')}")
-            if watch:
-                self._cap("[trip.watch] %s %s", vin, " ".join(watch), substrate=True)
-        except Exception:  # noqa: BLE001 - capture must never break the stream
-            _LOGGER.exception("Trip capture (log) failed for %s", mask_vin(vin))
-
-    async def _capture_to_file(self, vin: str, data: Dict[str, Any], now: datetime) -> None:
-        """Append one raw batch to the NDJSON capture file (off the event loop)."""
-
-        record = {
-            "at": now.isoformat(),
-            "vin": vin,
-            "open": self._peek(vin).trip.builder is not None,
-            "data": data,
-        }
-        try:
-            line = json.dumps(record, default=str)
-        except TypeError, ValueError:
-            return
-        path = self.hass.config.path(TRIP_CAPTURE_FILE)
-        await self.hass.async_add_executor_job(self._append_capture_line, path, line)
-
-    def _append_capture_line(self, path: str, line: str) -> None:
-        try:
-            if os.path.exists(path) and os.path.getsize(path) > TRIP_CAPTURE_MAX_BYTES:
-                if not self._trip_capture_warned:
-                    self._trip_capture_warned = True
-                    _TRIPLOG.warning(
-                        "Trip capture file %s exceeded %d bytes; pausing capture "
-                        "writes. Turn trip-capture mode off, or move/delete the file.",
-                        path,
-                        TRIP_CAPTURE_MAX_BYTES,
-                    )
-                return
-            with open(path, "a", encoding="utf-8") as handle:
-                handle.write(line + "\n")
-        except OSError as err:
-            _TRIPLOG.warning("Trip capture file write failed: %s", err)
-
     async def _process_trip_signals(
         self,
         vin: str,
@@ -3051,7 +2893,7 @@ class CardataCoordinator:
             # under the opt-in debug flag. Tag it so a drive can be grepped out
             # of an otherwise very chatty debug log.
             if motion is not None or ignition is not None or segment_fresh:
-                self._cap(
+                self.trip_log.cap(
                     "[trip] %s signals moving=%s ignition=%s segment=%s open=%s",
                     vin,
                     motion,
@@ -3125,7 +2967,7 @@ class CardataCoordinator:
                     or self._peek(vin).trip.door_arrival is not None
                 )
                 if stopped and seen_standing:
-                    self._cap(
+                    self.trip_log.cap(
                         "[trip.door] %s driver door opened while stopped -> close",
                         vin,
                         substrate=True,
@@ -3141,7 +2983,7 @@ class CardataCoordinator:
                         trip.door_arrival = now
                     self._cancel_trip_close_timer(vin)
                     self._arm_trip_close_timer(vin, delay_s=DOOR_SETTLE_S)
-                    self._cap(
+                    self.trip_log.cap(
                         "[trip.door] %s driver door opened -> close in %ds",
                         vin,
                         DOOR_SETTLE_S,
@@ -3158,7 +3000,7 @@ class CardataCoordinator:
                 # Closed with no trip open: the driver just got in. Mark the start
                 # here so the next movement seeds the trip from this spot.
                 self._car(vin).trip.pending_start = (now, self._peek(vin).gps.last_position)
-                self._cap(
+                self.trip_log.cap(
                     "[trip.door] %s driver door closed -> start marked at %s",
                     vin,
                     self._peek(vin).gps.last_position,
@@ -3318,7 +3160,7 @@ class CardataCoordinator:
                     # below open the new trip.
                     self._peek(vin).trip.take("held_since")
                     self._cancel_trip_close_timer(vin)
-                    self._cap(
+                    self.trip_log.cap(
                         "[trip.timer] %s held close CONFIRMED by distance (%dm over %ds silence)",
                         vin,
                         round(step_km * 1000),
@@ -3361,7 +3203,7 @@ class CardataCoordinator:
                     # backdated to the last movement, so nothing is lost.
                     self._peek(vin).trip.take("held_since")
                     self._cancel_trip_close_timer(vin)
-                    self._cap(
+                    self.trip_log.cap(
                         "[trip.timer] %s held close CONFIRMED by a stationary fix",
                         vin,
                         substrate=True,
@@ -3376,7 +3218,7 @@ class CardataCoordinator:
                     # The door opened and the car is seen standing: arrived. Not
                     # within seconds of the last move, though: a door opened at a
                     # car park barrier is followed by the car driving on.
-                    self._cap(
+                    self.trip_log.cap(
                         "[trip.door] %s standing after the door opened -> close",
                         vin,
                         substrate=True,
@@ -3458,7 +3300,7 @@ class CardataCoordinator:
         fix_state = self._raw_value(vin, DESC_GPS_FIX)
         sats = self._raw_value(vin, DESC_GPS_SATS)
         heading = self._raw_value(vin, DESC_GPS_HEADING)
-        self._cap(
+        self.trip_log.cap(
             "[trip.gps] %s fix=(%.5f,%.5f) step=%dm gap=%ss lat=%ss moving=%s "
             "sinceMove=%ss odo=%s soc=%s gpsKm=%.2f open=%s timer=%s "
             "fixState=%s sats=%s hdg=%s",
@@ -3626,7 +3468,7 @@ class CardataCoordinator:
             "max_gap": 0.0,
             "odo_start": builder.mileage_start,
         }
-        self._cap(
+        self.trip_log.cap(
             "[trip] %s OPEN at %s (detected %s) place=%s soc=%s odo=%s",
             vin,
             started_at.isoformat(),
@@ -3718,7 +3560,7 @@ class CardataCoordinator:
             hybrid=self.is_plug_in_hybrid(vin),
         )
         dropped = is_noise_trip(trip)
-        self._cap(
+        self.trip_log.cap(
             "[trip] %s CLOSE(%s) %s -> %s dist=%s (bmw=%s) soc=%s->%s energy=%s stats=%s",
             vin,
             reason,
@@ -3741,7 +3583,7 @@ class CardataCoordinator:
                 if odo_start is not None and odo_end is not None
                 else None
             )
-            self._cap(
+            self.trip_log.cap(
                 "[trip.post] %s reason=%s dropped=%s fixes=%s moves=%s holds=%s "
                 "maxGap=%ss odoΔ=%s gpsKm=%.2f bmwKm=%s dist=%s dur=%ss",
                 vin,
@@ -3829,7 +3671,7 @@ class CardataCoordinator:
         if (trip.distance_km, trip.soc_end) == before:
             return
         self._car(vin).trip.parked_reading = (odometer, soc)
-        self._cap(
+        self.trip_log.cap(
             "[trip] %s LATE reading -> %s: dist %s -> %s, soc_end %s -> %s",
             vin,
             trip.id,
@@ -3864,7 +3706,7 @@ class CardataCoordinator:
             return
         if is_noise_trip(trip):
             # A parking manoeuvre or a spurious blip, not a drive worth logging.
-            self._cap(
+            self.trip_log.cap(
                 "[trip] %s DROPPED as noise (dist=%s, duration=%ss)",
                 vin,
                 trip.distance_km,
@@ -3893,7 +3735,7 @@ class CardataCoordinator:
             trip.classification_source = SOURCE_AUTO
         if announce:
             self._announce_arrival(vin, trip, start_zone, left_fired)
-        self._cap(
+        self.trip_log.cap(
             "[trip] %s RECORDED id=%s class=%s chain=%s track=%d pts (home=%s work=%s)",
             vin,
             trip.id,
@@ -4000,7 +3842,7 @@ class CardataCoordinator:
             leg.classification = CLASS_COMMUTE
             leg.classification_source = SOURCE_AUTO
             self.history.add_trip(leg)
-            self._cap("[trip] %s chain leg %s -> commute", vin, leg.id)
+            self.trip_log.cap("[trip] %s chain leg %s -> commute", vin, leg.id)
 
     def _stopped_for_door(self, vin: str, now: datetime) -> bool:
         """Whether the car last moved long enough ago for an open door to end the drive."""
@@ -4051,7 +3893,7 @@ class CardataCoordinator:
         held_since = trip.held_since
         if (now - held_since).total_seconds() >= TRIP_SILENT_HOLD_MAX_S:
             return False  # the stream never came back; close on what we have
-        self._cap(
+        self.trip_log.cap(
             "[trip.timer] %s HOLD (stream silent %ds, no stop evidence)",
             vin,
             int((now - last_move).total_seconds()),
@@ -4079,7 +3921,7 @@ class CardataCoordinator:
                 self._arm_trip_close_timer(vin, quiet=True)
                 return
             reason = "silent" if self._peek(vin).trip.take("held_since") else "stationary"
-            self._cap(
+            self.trip_log.cap(
                 "[trip.timer] %s FIRE -> closing (%s, %ds)",
                 vin,
                 reason,
@@ -4094,7 +3936,7 @@ class CardataCoordinator:
         # reset while moving would otherwise log every fix (the countdown is
         # already shown on each [trip.gps] line).
         if not quiet:
-            self._cap(
+            self.trip_log.cap(
                 "[trip.timer] %s ARM due_in=%ds",
                 vin,
                 delay_s,
@@ -4550,34 +4392,14 @@ class CardataCoordinator:
         self, status: str, *, reason: Optional[str] = None
     ) -> None:
         now = datetime.now(timezone.utc)
-        # How long the stream was away, measured from the first event that was
-        # not "connected". The very first connect after setup has no outage
-        # behind it; the startup catch-up covers that one.
-        if status == "connected":
-            down_since, self._stream_down_since = self._stream_down_since, None
-            if down_since is not None and self.on_reconnect_after_outage is not None:
-                self.on_reconnect_after_outage((now - down_since).total_seconds())
-        elif self._stream_down_since is None and self.connection_status == "connected":
-            self._stream_down_since = now
-        self.connection_status = status
-        if reason:
-            self.last_disconnect_reason = reason
-        elif status == "connected":
-            self.last_disconnect_reason = None
-        self.connection_history.append({"at": now.isoformat(), "status": status, "reason": reason})
-        # Track an unresolved "unauthorized" (MQTT rc=5) window: it opens on the
-        # first unauthorized event and closes only on a successful connect, which
-        # is exactly the condition the persisting-rc=5 repair should flag.
-        if status == "unauthorized":
-            if self._unauthorized_since is None:
-                self._unauthorized_since = now
-        elif status == "connected":
-            self._unauthorized_since = None
+        outage_s = self.health.note(status, reason, now)
+        if outage_s is not None and self.on_reconnect_after_outage is not None:
+            self.on_reconnect_after_outage(outage_s)
         self._log_diagnostics()
         self._evaluate_stream_repairs(now)
 
     def _evaluate_stream_repairs(self, now: Optional[datetime] = None) -> None:
-        """Raise or clear the stream-health repair issues.
+        """Raise or clear the stream-health repair issues (``stream_health``).
 
         Idempotent and latched: the underlying registry calls are only made on a
         state transition, so this is cheap to run from both the watchdog tick and
@@ -4585,23 +4407,12 @@ class CardataCoordinator:
         matching Wiki anchor -- the fix, not just the symptom.
         """
 
-        now = now or datetime.now(timezone.utc)
-
-        # Persisting rc=5 first: it is the more specific diagnosis, and while it
-        # is active the no-data repair would only be a vaguer restatement of the
-        # same outage, so we suppress that one.
-        unauthorized = (
-            self._unauthorized_since is not None
-            and (now - self._unauthorized_since).total_seconds() >= UNAUTHORIZED_REPAIR_AFTER_S
+        unauthorized, no_data = self.health.repairs_due(
+            now or datetime.now(timezone.utc),
+            last_message_at=self.last_message_at,
+            started_at=self.stream_started_at,
         )
         self._set_unauthorized_issue(unauthorized)
-
-        reference = self.last_message_at or self.stream_started_at
-        no_data = (
-            not unauthorized
-            and reference is not None
-            and (now - reference).total_seconds() >= NO_DATA_REPAIR_AFTER_S
-        )
         self._set_no_data_issue(no_data)
 
     def _fire(self, event_type: str, payload: Dict[str, Any]) -> None:
