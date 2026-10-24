@@ -23,7 +23,7 @@ import logging
 import pytest
 
 from .conftest import FakeResponse, FakeSession, load_module
-from .fake_account import FakeBmw, FakeContainer, FakeHost, stored_containers
+from .fake_account import FakeBmw, FakeContainer, FakeHost, gateway, stored_containers
 
 container = load_module("container")
 api = load_module("api")
@@ -78,8 +78,8 @@ def test_replacing_the_full_container_also_clears_the_retired_fallback():
             FakeResponse(204, None),
         ]
     )
-    manager = container.CardataContainerManager(session=session, entry_id="e")
-    assert asyncio.run(manager.async_reset_hv_container("t")) == "new-full"
+    manager = container.CardataContainerManager(rest=gateway(session), entry_id="e")
+    assert asyncio.run(manager.async_reset_hv_container()) == "new-full"
     deleted = [c["url"].rsplit("/", 1)[1] for c in session.calls if c["method"] == "DELETE"]
     assert deleted == ["old-full", "beta6"]
 
@@ -87,9 +87,9 @@ def test_replacing_the_full_container_also_clears_the_retired_fallback():
 def test_the_service_container_is_created_under_its_own_name():
     session = FakeSession([FakeResponse(201, {"containerId": "s"})])
     manager = container.CardataContainerManager(
-        session=session, entry_id="e", kind=container.SERVICE
+        rest=gateway(session), entry_id="e", kind=container.SERVICE
     )
-    asyncio.run(manager.async_ensure_hv_container("t"))
+    asyncio.run(manager.async_ensure_hv_container())
     body = session.calls[0]["json"]
     assert body["name"] == container.SERVICE.name
     assert body["technicalDescriptors"] == [CBS]

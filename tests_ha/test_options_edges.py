@@ -92,15 +92,15 @@ async def test_a_container_reset_broken_off_keeps_what_was_done(
         patch.object(
             CardataContainerManager,
             "async_reset_hv_container",
-            AsyncMock(side_effect=[None, CardataContainerError("BMW said no")]),
+            AsyncMock(side_effect=["new-1", CardataContainerError("BMW said no")]),
         ),
     ):
         result = await _send(hass, result, {})
 
     assert result["errors"] == {"base": "reset_failed"}
     assert result["description_placeholders"] == {"error": "BMW said no"}
-    # The first container is gone at BMW, so its id goes too; the second stays.
-    assert first.id_key not in entry.data
+    # The first container was replaced at BMW, so its new id is kept; the second stays.
+    assert entry.data[first.id_key] == "new-1"
     assert entry.data[second.id_key] == "old-2"
 
 

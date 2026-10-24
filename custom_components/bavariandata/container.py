@@ -6,9 +6,7 @@ import asyncio
 import logging
 import hashlib
 from dataclasses import dataclass
-from typing import Any, Awaitable, Callable, Dict, Iterable, List, Optional
-
-import aiohttp
+from typing import Any, Dict, Iterable, List, Optional
 
 from .api import CardataApiError, async_request_json
 from .const import (
@@ -18,6 +16,7 @@ from .const import (
 )
 from .debug import debug_enabled
 from .descriptors import container_descriptors
+from .rest import CardataQuotaError, RestGateway
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -88,20 +87,24 @@ RETIRED_ENTRY_KEYS = ("base_container_id", "base_descriptor_signature", "rest_ba
 
 
 class CardataContainerManager:
-    """Ensure one of the integration's containers exists."""
+    """Ensure one of the integration's containers exists.
+
+    Every request goes through the account's :class:`~.rest.RestGateway`, so it
+    carries a valid token and spends one of the day's requests. Raises
+    ``CardataAuthError`` when no token can be had, and
+    :class:`CardataContainerError` for anything else.
+    """
 
     def __init__(
         self,
         *,
-        session: aiohttp.ClientSession,
+        rest: RestGateway,
         entry_id: str,
         initial_container_id: Optional[str] = None,
-        claim: Optional[Callable[[], Awaitable[None]]] = None,
         kind: ContainerKind = FULL,
     ) -> None:
-        self._session = session
+        self._rest = rest
         self._entry_id = entry_id
-        self._claim = claim
         self.kind = kind
         self._container_id: Optional[str] = initial_container_id
         self._lock = asyncio.Lock()
@@ -133,16 +136,8 @@ class CardataContainerManager:
 
         self._container_id = container_id
 
-    async def async_ensure_hv_container(self, access_token: Optional[str]) -> Optional[str]:
+    async def async_ensure_hv_container(self) -> str:
         """Ensure the container exists."""
-
-        if not access_token:
-            if debug_enabled():
-                _LOGGER.debug(
-                    "[%s] Skipping container ensure because access token is missing",
-                    self._entry_id,
-                )
-            return self._container_id
 
         async with self._lock:
             if self._container_id:
@@ -154,32 +149,24 @@ class CardataContainerManager:
                     )
                 return self._container_id
 
-            created_id = await self._create_container(access_token)
+            created_id = await self._create_container()
             self._container_id = created_id
             _LOGGER.info(
                 "[%s] Created the %s container %s", self._entry_id, self.kind.key, created_id
             )
-            return self._container_id
+            return created_id
 
-    async def async_reset_hv_container(self, access_token: Optional[str]) -> Optional[str]:
+    async def async_reset_hv_container(self) -> str:
         """Replace this kind's containers with a fresh one."""
 
-        if not access_token:
-            if debug_enabled():
-                _LOGGER.debug(
-                    "[%s] Skipping container reset because access token is missing",
-                    self._entry_id,
-                )
-            return self._container_id
-
         async with self._lock:
-            containers = await self._list_containers(access_token)
+            containers = await self._list_containers()
 
             # Create before deleting. The reverse order would leave the entry
             # with no container at all if BMW rejects the new one (e.g. a
             # descriptor it no longer accepts), and the old one is still a
             # working fallback until the replacement exists.
-            new_id = await self._create_container(access_token)
+            new_id = await self._create_container()
             self._container_id = new_id
             _LOGGER.info(
                 "[%s] Replaced the %s container; new container id %s",
@@ -196,7 +183,7 @@ class CardataContainerManager:
                 if not self._matches_hv_container(container):
                     continue
                 try:
-                    await self._delete_container(access_token, container_id)
+                    await self._delete_container(container_id)
                 except CardataContainerError as err:
                     _LOGGER.warning(
                         "[%s] Failed to delete container %s: %s",
@@ -217,22 +204,20 @@ class CardataContainerManager:
 
             return new_id
 
-    async def _create_container(self, access_token: str) -> str:
+    async def _create_container(self) -> str:
         payload = {
             "name": self.kind.name,
             "purpose": self.kind.purpose,
             "technicalDescriptors": list(self._desired_descriptors),
         }
-        response = await self._request(
-            "POST", "/customers/containers", access_token, json_body=payload
-        )
+        response = await self._request("POST", "/customers/containers", json_body=payload)
         container_id = response.get("containerId") if isinstance(response, dict) else None
         if not container_id:
             raise CardataContainerError("Container creation response missing containerId")
         return container_id
 
-    async def _list_containers(self, access_token: str) -> List[Dict[str, Any]]:
-        response = await self._request("GET", "/customers/containers", access_token)
+    async def _list_containers(self) -> List[Dict[str, Any]]:
+        response = await self._request("GET", "/customers/containers")
         if isinstance(response, list):
             containers = [item for item in response if isinstance(item, dict)]
         elif isinstance(response, dict):
@@ -264,13 +249,9 @@ class CardataContainerManager:
             ]
         )
 
-    async def _delete_container(self, access_token: str, container_id: str) -> None:
+    async def _delete_container(self, container_id: str) -> None:
         try:
-            await self._request(
-                "DELETE",
-                f"/customers/containers/{container_id}",
-                access_token,
-            )
+            await self._request("DELETE", f"/customers/containers/{container_id}")
         except CardataContainerError as err:
             if err.status == 404:
                 if debug_enabled():
@@ -286,22 +267,21 @@ class CardataContainerManager:
         self,
         method: str,
         path: str,
-        access_token: str,
         *,
         json_body: Optional[Dict[str, Any]] = None,
     ) -> Any:
+        async def send(session: Any, access_token: str) -> Any:
+            if debug_enabled():
+                _LOGGER.debug("[%s] %s %s", self._entry_id, method, path)
+            return await async_request_json(
+                session, method, path, access_token, json_body=json_body
+            )
+
         # Container calls count against the daily quota like any other
         # CarData request: BMW's limit covers "the use of the CarData APIs".
-        if self._claim is not None:
-            try:
-                await self._claim()
-            except Exception as err:  # the quota manager's own error type
-                raise CardataContainerError(f"Request not sent: {err}") from err
-        if debug_enabled():
-            _LOGGER.debug("[%s] %s %s", self._entry_id, method, path)
         try:
-            return await async_request_json(
-                self._session, method, path, access_token, json_body=json_body
-            )
+            return await self._rest.call(send)
+        except CardataQuotaError as err:
+            raise CardataContainerError(f"Request not sent: {err}") from err
         except CardataApiError as err:
             raise CardataContainerError(str(err), status=err.status, error_id=err.error_id) from err

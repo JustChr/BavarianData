@@ -14,6 +14,7 @@ import asyncio
 import pytest
 
 from .conftest import FakeResponse, FakeSession, load_module
+from .fake_account import gateway
 
 rest = load_module("rest")
 container = load_module("container")
@@ -174,19 +175,19 @@ def test_container_requests_count_against_the_quota():
         ]
     )
     manager = container.CardataContainerManager(
-        session=session, entry_id="e", initial_container_id="old", claim=quota.claim
+        rest=gateway(session, claim=quota.claim), entry_id="e", initial_container_id="old"
     )
-    assert asyncio.run(manager.async_reset_hv_container("token")) == "new"
+    assert asyncio.run(manager.async_reset_hv_container()) == "new"
     assert quota.claims == 3
 
 
 def test_a_spent_quota_stops_a_container_request_before_it_is_sent():
     session = FakeSession([])
     manager = container.CardataContainerManager(
-        session=session, entry_id="e", claim=_Quota(0).claim
+        rest=gateway(session, claim=_Quota(0).claim), entry_id="e"
     )
     with pytest.raises(container.CardataContainerError):
-        asyncio.run(manager.async_ensure_hv_container("token"))
+        asyncio.run(manager.async_ensure_hv_container())
     assert session.calls == []
 
 
@@ -198,8 +199,8 @@ def test_bmws_error_code_reaches_the_container_error():
             )
         ]
     )
-    manager = container.CardataContainerManager(session=session, entry_id="e")
+    manager = container.CardataContainerManager(rest=gateway(session), entry_id="e")
     with pytest.raises(container.CardataContainerError) as err:
-        asyncio.run(manager.async_ensure_hv_container("token"))
+        asyncio.run(manager.async_ensure_hv_container())
     assert err.value.error_id == "CU-124"
     assert "Maximum number of containers" in str(err.value)
