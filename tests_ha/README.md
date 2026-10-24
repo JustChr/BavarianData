@@ -15,21 +15,31 @@ bash scripts/test_ha.sh --cov           # with coverage of the integration
 ```
 
 The venv lives in WSL's own home (`~/bd-ha/.venv`, Python 3.14) and is
-created on first use. CI runs the suite in the **Home Assistant tests** job,
+created on first use. The suite runs from a copy there too (`~/bd-ha/src`,
+synced on each run; `--snapshot-update` copies the snapshots back): Home
+Assistant's tests run asyncio in debug mode, which stats source files for
+every scheduled job, and across the Windows mount that took minutes instead
+of 20 seconds. CI runs the suite in the **Home Assistant tests** job,
 together with the main suite's coverage, and reports coverage per module
 (`scripts/coverage_modules.py`) — the Quality Scale's `test-coverage` rule
 counts every module on its own.
 
 ## Snapshots
 
-`test_flow_snapshots.py` walks every setup and Configure screen and pins each
-step as the frontend receives it, in `snapshots/test_flow_snapshots.ambr`
-(HA's own syrupy extension). A screen that changes fails there with a diff.
-When the change is intended, approve it and **read the diff** — that review is
-the point:
+Two tests pin what a user sees, in `snapshots/` (HA's own syrupy extension):
+
+- `test_surface.py` — an account with an electric, a plug-in hybrid and a
+  petrol car, each sending what its counterpart in `tests/cars` sends: every
+  device, entity registry entry, state and service;
+- `test_flow_snapshots.py` — every setup and Configure screen, each step as
+  the frontend receives it.
+
+Anything that changes fails there with a diff naming the entity or step. When
+the change is intended, approve it and **read the diff** — that review is the
+point:
 
 ```bash
-bash scripts/test_ha.sh -k flow_snapshots --snapshot-update
+bash scripts/test_ha.sh -k "surface or flow_snapshots" --snapshot-update
 ```
 
 ## Rules

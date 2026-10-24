@@ -30,6 +30,11 @@ coordinators nobody can tell apart.
 differs prints the first differing lines of each test; the full traces stay
 in the printed directory for a real diff tool.
 
+What Home Assistant makes of the coordinator -- devices, entities, states,
+services, every setup and Configure screen -- is pinned by the snapshots in
+``tests_ha/`` (``test_surface.py``, ``test_flow_snapshots.py``), which CI's
+Home Assistant job runs on every push.
+
 Exit status: 0 all checks pass; 1 a check failed; 2 usage or git error.
 """
 

@@ -125,6 +125,10 @@ refactor PR carries the `refactor` label, which runs the gate in CI. Keep the
 harness on the coordinator's public methods only (so the base can run it),
 and give a new public method a probe in `trace.py` (`test_trace.py` fails
 otherwise). A test that asserts something account-wide is `@pytest.mark.solo`.
+What Home Assistant shows is the gate's other half, in `tests_ha/` as
+snapshots: `test_surface.py` (every device, entity entry, state and service of
+a three-car account) and `test_flow_snapshots.py` (every setup and Configure
+step). Approve an intended change with `--snapshot-update` and read the diff.
 
 **Every coordinator bug fix adds a scenario or a replay** that fails without
 the fix — prove it by reverting the fix once. A known bug not yet fixed is

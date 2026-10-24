@@ -44,9 +44,10 @@ VIN = "WBATEST0000000001"
 PACKAGE = "custom_components.bavariandata"
 
 
-def make_entry(**data) -> MockConfigEntry:
+def make_entry(*, entry_id: str | None = None, **data) -> MockConfigEntry:
     return MockConfigEntry(
         domain=DOMAIN,
+        entry_id=entry_id,
         unique_id="client-1",
         title="BavarianData",
         data={
