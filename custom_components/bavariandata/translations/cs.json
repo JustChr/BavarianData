@@ -3396,7 +3396,7 @@
       "message": "'month' nemá měsíc {month}: {value}"
     },
     "bad_date": {
-      "message": "'{key}' nelze přečíst jako datum ani datum a čas: {value}"
+      "message": "{key} nelze přečíst jako datum ani datum a čas: {value}"
     },
     "no_attributes": {
       "message": "Není co aktivovat; zadejte 'attributes' nebo 'sections', nebo vyberte skupiny dat streamu v možnostech."

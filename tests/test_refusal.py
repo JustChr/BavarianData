@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import json
 import pathlib
+import re
 
 import pytest
 
@@ -38,7 +39,7 @@ def test_a_refusal_reads_as_its_english_text_with_string_placeholders() -> None:
 
 
 def test_a_placeholder_may_be_called_key() -> None:
-    err = refusal.Refusal("bad_date", key="from", value="'soon'")
+    err = refusal.Refusal("bad_date", key="'from'", value="'soon'")
     assert str(err) == "Could not read 'from' as a date or date/time: 'soon'"
 
 
@@ -78,3 +79,24 @@ def _untranslated_raises(path: pathlib.Path) -> list[str]:
 def test_no_home_assistant_error_is_raised_in_english_only() -> None:
     found = [hit for path in sorted(_PKG.rglob("*.py")) for hit in _untranslated_raises(path)]
     assert not found, f"raise these through refusal.as_ha_error: {found}"
+
+
+def _strings(node, path=""):
+    if isinstance(node, dict):
+        for key, value in node.items():
+            yield from _strings(value, f"{path}.{key}" if path else key)
+    elif isinstance(node, str):
+        yield path, node
+
+
+def test_no_placeholder_sits_inside_single_quotes() -> None:
+    """Hassfest refuses ``'{name}'`` in a translation; quote in the value instead."""
+
+    quoted = re.compile(r"'\{[^}]+\}'")
+    found = [
+        f"{path.name}: {where}"
+        for path in sorted((_PKG / "translations").glob("*.json"))
+        for where, text in _strings(json.loads(path.read_text(encoding="utf-8")))
+        if quoted.search(text)
+    ]
+    assert not found, found

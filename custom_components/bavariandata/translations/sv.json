@@ -3396,7 +3396,7 @@
       "message": "'month' har ingen månad {month}: {value}"
     },
     "bad_date": {
-      "message": "Kunde inte läsa '{key}' som datum eller datum/tid: {value}"
+      "message": "Kunde inte läsa {key} som datum eller datum/tid: {value}"
     },
     "no_attributes": {
       "message": "Inget att aktivera; ange 'attributes' eller 'sections', eller välj datagrupper för strömmen i alternativen."
