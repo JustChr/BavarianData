@@ -1673,6 +1673,7 @@
       'host': 'customer.streaming-cardata.bmwgroup.com',
       'id_token_present': True,
       'keepalive': 30,
+      'login_refused': False,
       'port': 9000,
       'protocol': 'MQTTv311',
       'topic': 'gcid-1/+',

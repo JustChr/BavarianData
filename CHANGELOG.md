@@ -15,6 +15,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   answering) or an account can't start, Home Assistant now shows the reason in
   any of the ten languages BavarianData ships, not only in English. The log
   stays English.
+- **A car shows `unavailable` while BMW refuses the login.** Until you sign in
+  again, no data can arrive, so the car's entities no longer show their last
+  values as if nothing were wrong, and the dashboard card says on every view
+  that BMW refused the sign-in. A stream that drops or a car that stays quiet
+  for hours is not affected: the entities keep the car's last report, as
+  before. The account's diagnostic sensors stay available, and the connection
+  sensor gets a `login_refused` attribute for automations.
 
 ## [0.9.23-beta.1] - 2026-10-23
 

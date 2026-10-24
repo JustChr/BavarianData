@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.restore_state import RestoreEntity
 
@@ -44,8 +45,6 @@ class CardataEntity(RestoreEntity):
             # helper sensor): fall back to a computed English name.
             self._attr_name = self._format_name()
 
-        self._attr_available = True
-
     @property
     def device_info(self) -> DeviceInfo:
         metadata = self._coordinator.device_metadata.get(self._vin, {})
@@ -66,9 +65,24 @@ class CardataEntity(RestoreEntity):
             info["serial_number"] = serial
         return info
 
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, self._coordinator.signal_availability, self.async_write_ha_state
+            )
+        )
+
     @property
     def available(self) -> bool:
-        return True
+        """Unavailable only while BMW refuses the login: no data can arrive then.
+
+        A quiet stream is not an outage -- a parked car sends nothing for hours
+        and its last report (doors locked, 80 %) is still true -- so a dropped
+        connection keeps the last values too.
+        """
+
+        return not self._coordinator.login_refused
 
     @property
     def extra_state_attributes(self) -> dict:

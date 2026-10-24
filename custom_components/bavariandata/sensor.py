@@ -321,6 +321,7 @@ class CardataDiagnosticsSensor(SensorEntity, RestoreEntity):
                 self._coordinator.last_disconnect_reason,
                 self._quota,
                 self._coordinator.display_units,
+                self._coordinator.login_refused,
             )
         if self._sensor_type == "last_telematic_api":
             return sensor_values.quota_attributes(self._quota)

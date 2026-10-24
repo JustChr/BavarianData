@@ -8,6 +8,8 @@ platforms and the entity registry are the real thing, fed one stream batch.
 
 from __future__ import annotations
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
@@ -16,10 +18,14 @@ from homeassistant.helpers import entity_registry as er
 
 from custom_components.bavariandata.const import BOOTSTRAP_COMPLETE, DOMAIN
 from custom_components.bavariandata.api import CardataApiError
+from custom_components.bavariandata.device_flow import CardataAuthError
+
+from custom_components.bavariandata import _async_request_reauth, _handle_stream_error
 
 from .conftest import VIN
 from .conftest import make_entry as _entry
 from .conftest import set_up as _set_up
+from .test_config_flow import DEVICE, FLOW
 
 SOC = "vehicle.drivetrain.batteryManagement.header"
 
@@ -49,6 +55,44 @@ async def test_an_entry_sets_up_streams_and_unloads(hass: HomeAssistant, no_bmw)
     await hass.async_block_till_done()
     assert entry.state is ConfigEntryState.NOT_LOADED
     no_bmw["shutdown"].assert_awaited()
+
+
+async def test_a_refused_login_makes_the_cars_unavailable_until_it_works(
+    hass: HomeAssistant, no_bmw
+) -> None:
+    """No data can arrive while BMW refuses the login; the account's own
+    diagnostics stay up to say so."""
+
+    entry = _entry()
+    await _set_up(hass, entry)
+    runtime = entry.runtime_data
+    await runtime.coordinator.async_handle_message(
+        {"vin": VIN, "data": {SOC: {"value": 63, "unit": "%", "timestamp": "2026-10-24T08:00:00Z"}}}
+    )
+    await hass.async_block_till_done()
+    registry = er.async_get(hass)
+    soc = next(
+        e.entity_id
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if SOC in e.unique_id
+    )
+    status = registry.async_get_entity_id(
+        "sensor", DOMAIN, f"{entry.entry_id}_diagnostics_connection_status"
+    )
+
+    with (
+        patch(f"{FLOW}.request_device_code", AsyncMock(return_value=DEVICE)),
+        patch(f"{FLOW}.poll_for_tokens", AsyncMock(side_effect=CardataAuthError("waiting"))),
+    ):
+        await _async_request_reauth(hass, entry, "Token refresh rejected")
+        await hass.async_block_till_done()
+        assert hass.states.get(soc).state == "unavailable"
+        assert hass.states.get(status).state != "unavailable"
+
+        await _handle_stream_error(hass, entry, "recovered")
+        await hass.async_block_till_done()
+    assert hass.states.get(soc).state == "63"
+    assert not hass.config_entries.flow.async_progress(), "the stream closed the reauth"
 
 
 async def test_an_entry_without_tokens_is_retried_not_failed(hass: HomeAssistant, no_bmw) -> None:

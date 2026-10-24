@@ -47,10 +47,18 @@ class ReauthHost(Protocol):
 
 
 class ReauthGate:
-    """One entry's reauth state: whether a flow is open, and when we last tried."""
+    """One entry's reauth state: whether a flow is open, and when we last tried.
+
+    ``refused`` is narrower than ``in_progress``: BMW rejected the login, so no
+    data can arrive until the user signs in again. A sign-in the user starts
+    from Configure opens a flow but refuses nothing. ``on_refused`` hears each
+    change of it (the cars' entities go unavailable meanwhile).
+    """
 
     def __init__(self, clock: Callable[[], float] = time.time) -> None:
         self._clock = clock
+        self.refused = False
+        self.on_refused: Optional[Callable[[bool], None]] = None
         self.in_progress = False
         self.flow_id: Optional[str] = None
         self.last_reauth_attempt = 0.0
@@ -59,11 +67,19 @@ class ReauthGate:
         # the flow without trying again.
         self.pending = False
 
+    def _set_refused(self, refused: bool) -> None:
+        if refused == self.refused:
+            return
+        self.refused = refused
+        if self.on_refused is not None:
+            self.on_refused(refused)
+
     # -- what the config flow tells us -----------------------------------------
 
     def authorized(self) -> None:
         """The user authorized again: start from nothing."""
 
+        self._set_refused(False)
         self.in_progress = False
         self.flow_id = None
         self.last_reauth_attempt = 0.0
@@ -85,6 +101,7 @@ class ReauthGate:
     def renewed(self) -> None:
         """A token refresh worked."""
 
+        self._set_refused(False)
         self.pending = False
 
     # -- what the stream tells us ------------------------------------------------
@@ -103,6 +120,7 @@ class ReauthGate:
                     with suppress(Exception):
                         await host.abort_flow(self.flow_id)
                     self.flow_id = None
+            self._set_refused(False)
             self.pending = False
             self.last_reauth_attempt = 0.0
 
@@ -152,8 +170,13 @@ class ReauthGate:
         await self.request(host, "BMW stream unauthorized")
 
     async def request(self, host: ReauthHost, why: str) -> None:
-        """Ask the user to authorize again, unless that is already under way."""
+        """Ask the user to authorize again, unless that is already under way.
 
+        Only ever called once BMW rejected the login, so it is refused from here
+        until a sign-in or a working refresh.
+        """
+
+        self._set_refused(True)
         now = self._clock()
         if self.in_progress or now - self.last_reauth_attempt < RETRY_SPACING_S:
             _LOGGER.debug("Reauth already requested for entry %s; skipping new flow", host.entry_id)
