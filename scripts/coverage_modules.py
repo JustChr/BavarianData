@@ -10,6 +10,9 @@ between them, worst first:
     coverage json -o coverage.json
     python scripts/coverage_modules.py coverage.json            # report
     python scripts/coverage_modules.py coverage.json --gate     # fail below the bar
+    python scripts/coverage_modules.py coverage.json --missing  # + their missed lines
+
+``bash scripts/coverage.sh`` runs both suites and this report locally.
 
 Generated modules (``descriptor_metadata.py``) are data, not code, and are
 left out. Exit status: 0, or 1 with ``--gate`` when a module is below the bar.
@@ -44,19 +47,49 @@ def modules(report: dict) -> list[tuple[str, float, int, int]]:
     return sorted(rows, key=lambda row: (row[1], -row[3]))
 
 
+def _ranges(lines: list[int]) -> str:
+    """``[3, 4, 5, 9]`` as ``3-5, 9``."""
+
+    spans: list[list[int]] = []
+    for line in sorted(lines):
+        if spans and line == spans[-1][1] + 1:
+            spans[-1][1] = line
+        else:
+            spans.append([line, line])
+    return ", ".join(str(a) if a == b else f"{a}-{b}" for a, b in spans)
+
+
+def missing(report: dict, names: set[str]) -> dict[str, str]:
+    """The missed line ranges of the modules in ``names``."""
+
+    found = {}
+    for path, data in report["files"].items():
+        name = path.replace("\\", "/").split("custom_components/bavariandata/", 1)[-1]
+        if name in names:
+            found[name] = _ranges(data["missing_lines"])
+    return found
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("report", type=Path, help="the output of `coverage json`")
     parser.add_argument("--gate", action="store_true", help=f"exit 1 below {BAR:g} %%")
+    parser.add_argument(
+        "--missing", action="store_true", help="list the missed lines of each module below"
+    )
     args = parser.parse_args(argv)
 
-    rows = modules(json.loads(args.report.read_text(encoding="utf-8")))
+    report = json.loads(args.report.read_text(encoding="utf-8"))
+    rows = modules(report)
     below = [row for row in rows if row[1] < BAR]
     print(f"{'module':<40} {'cover':>6} {'missed':>7} {'lines':>6}")
     for name, percent, missed, total in rows:
         flag = "  <" if percent < BAR else ""
         print(f"{name:<40} {percent:5.1f}% {missed:7d} {total:6d}{flag}")
     print(f"\n{len(below)} of {len(rows)} modules below {BAR:g} %")
+    if args.missing:
+        for name, ranges in sorted(missing(report, {row[0] for row in below}).items()):
+            print(f"\n{name}: {ranges}")
     return 1 if args.gate and below else 0
 
 
