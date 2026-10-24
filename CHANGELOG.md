@@ -21,7 +21,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   that BMW refused the sign-in. A stream that drops or a car that stays quiet
   for hours is not affected: the entities keep the car's last report, as
   before. The account's diagnostic sensors stay available, and the connection
-  sensor gets a `login_refused` attribute for automations.
+  sensor gets a `login_refused` attribute for automations. The log says once
+  when BMW starts refusing and once when it accepts the login again.
 - **Change the Client ID with Reconfigure.** Home Assistant's *Reconfigure*
   entry on the integration now takes a new Client ID and signs in to BMW with
   it; the account keeps its cars, history and settings, and a Client ID of

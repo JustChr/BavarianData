@@ -1137,6 +1137,14 @@ class _ReauthHost:
 def _login_refused(hass: HomeAssistant, coordinator: CardataCoordinator, refused: bool) -> None:
     """BMW refused the login, or takes it again: the cars' entities follow."""
 
+    # Once each way, as the change happens: the gate calls this only on a change.
+    if refused:
+        _LOGGER.warning(
+            "BMW refuses the login of entry %s; its cars are unavailable until it is accepted",
+            coordinator.entry_id,
+        )
+    else:
+        _LOGGER.info("BMW accepts the login of entry %s again", coordinator.entry_id)
     coordinator.login_refused = refused
     async_dispatcher_send(hass, coordinator.signal_availability)
     async_dispatcher_send(hass, coordinator.signal_diagnostics)

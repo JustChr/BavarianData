@@ -8,6 +8,7 @@ platforms and the entity registry are the real thing, fed one stream batch.
 
 from __future__ import annotations
 
+import logging
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -58,11 +59,12 @@ async def test_an_entry_sets_up_streams_and_unloads(hass: HomeAssistant, no_bmw)
 
 
 async def test_a_refused_login_makes_the_cars_unavailable_until_it_works(
-    hass: HomeAssistant, no_bmw
+    hass: HomeAssistant, no_bmw, caplog: pytest.LogCaptureFixture
 ) -> None:
     """No data can arrive while BMW refuses the login; the account's own
-    diagnostics stay up to say so."""
+    diagnostics stay up to say so, and the log says it once each way."""
 
+    caplog.set_level(logging.INFO, logger="custom_components.bavariandata")
     entry = _entry()
     await _set_up(hass, entry)
     runtime = entry.runtime_data
@@ -85,14 +87,17 @@ async def test_a_refused_login_makes_the_cars_unavailable_until_it_works(
         patch(f"{FLOW}.poll_for_tokens", AsyncMock(side_effect=CardataAuthError("waiting"))),
     ):
         await _async_request_reauth(hass, entry, "Token refresh rejected")
+        await _async_request_reauth(hass, entry, "Token refresh rejected")
         await hass.async_block_till_done()
         assert hass.states.get(soc).state == "unavailable"
         assert hass.states.get(status).state != "unavailable"
+        assert caplog.text.count("BMW refuses the login") == 1
 
         await _handle_stream_error(hass, entry, "recovered")
         await hass.async_block_till_done()
     assert hass.states.get(soc).state == "63"
     assert not hass.config_entries.flow.async_progress(), "the stream closed the reauth"
+    assert caplog.text.count("BMW accepts the login") == 1
 
 
 async def test_an_entry_without_tokens_is_retried_not_failed(hass: HomeAssistant, no_bmw) -> None:
