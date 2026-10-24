@@ -93,6 +93,30 @@ async def _through_authorize(hass: HomeAssistant, result: dict, poll: _Poll) -> 
     return await _answered(hass, result, poll)
 
 
+async def test_closing_setup_during_the_login_stops_asking_bmw(hass: HomeAssistant) -> None:
+    """The poll is the progress step's task, so Home Assistant cancels it with
+    the flow; a poll started any other way would ask BMW for ten more minutes."""
+
+    poll = _Poll()
+    with (
+        patch(f"{FLOW}.request_device_code", return_value=DEVICE),
+        patch(f"{FLOW}.poll_for_tokens", poll),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            (await _start_manual(hass))["flow_id"], {"client_id": CLIENT_ID}
+        )
+        assert result["step_id"] == "authorize"
+        (task,) = [
+            flow._poll_task
+            for flow in hass.config_entries.flow._progress.values()
+            if flow.flow_id == result["flow_id"]
+        ]
+        hass.config_entries.flow.async_abort(result["flow_id"])
+        await hass.async_block_till_done()
+
+    assert task.cancelled()
+
+
 async def test_the_manual_path_creates_the_entry(hass: HomeAssistant) -> None:
     poll = _Poll()
     with (

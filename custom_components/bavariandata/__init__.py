@@ -589,6 +589,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         telematic_task=None,
     )
     entry.runtime_data = runtime_data
+    runtime_data.reauth.on_refused = partial(_login_refused, hass, coordinator)
     # Track loaded entries so services (registered process-wide) are torn down
     # once the last entry unloads. Runtime itself lives on entry.runtime_data.
     domain_data.setdefault("_entries", set()).add(entry.entry_id)
@@ -1131,6 +1132,15 @@ class _ReauthHost:
 
     def dismiss_notice(self) -> None:
         persistent_notification.async_dismiss(self._hass, f"{DOMAIN}_reauth_{self.entry_id}")
+
+
+@callback
+def _login_refused(hass: HomeAssistant, coordinator: CardataCoordinator, refused: bool) -> None:
+    """BMW refused the login, or takes it again: the cars' entities follow."""
+
+    coordinator.login_refused = refused
+    async_dispatcher_send(hass, coordinator.signal_availability)
+    async_dispatcher_send(hass, coordinator.signal_diagnostics)
 
 
 async def _handle_stream_error(hass: HomeAssistant, entry: CardataConfigEntry, reason: str) -> None:

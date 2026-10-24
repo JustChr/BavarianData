@@ -280,7 +280,10 @@ zip asset).
   is deliberate and matches the floor. Run the suite with 3.14; if the floor
   ever drops below 2026.3, lower `target-version` and re-run `ruff format`.
 - Entities must keep exposing `cluster`/`category` attributes even when
-  restored/unavailable — the Lovelace card's cluster views depend on them.
+  restored or `unknown` — the Lovelace card's cluster views depend on them.
+  A car's entities are unavailable only while BMW refuses the login
+  (`ReauthGate.refused`), and HA drops every attribute then; the card reads
+  `login_refused` off the account's connection sensor and says so instead.
 - README image links use absolute `raw.githubusercontent.com` URLs on purpose
   (HACS info screen can't resolve relative paths).
 

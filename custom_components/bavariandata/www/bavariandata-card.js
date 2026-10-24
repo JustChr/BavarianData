@@ -253,6 +253,9 @@ const TRANSLATIONS = {
     no_vehicle_title: "No BMW CarData vehicle found",
     no_vehicle_body:
       "Add the integration, or set <code>device:</code> / <code>vin:</code> in the card config.",
+    refused_title: "BMW refused the sign-in",
+    refused_body:
+      "Sign in to BMW again under Settings → Devices & services; this car's values come back as soon as BMW accepts it.",
     // tire
     front: "FRONT",
     fl: "FL",
@@ -633,6 +636,9 @@ const TRANSLATIONS = {
     no_vehicle_title: "Kein BMW-CarData-Fahrzeug gefunden",
     no_vehicle_body:
       "Füge die Integration hinzu oder setze <code>device:</code> / <code>vin:</code> in der Kartenkonfiguration.",
+    refused_title: "BMW hat die Anmeldung abgelehnt",
+    refused_body:
+      "Melde dich unter Einstellungen → Geräte & Dienste erneut bei BMW an; die Werte dieses Fahrzeugs kommen zurück, sobald BMW das akzeptiert.",
     // tire
     front: "VORNE",
     fl: "VL",
@@ -997,6 +1003,9 @@ const TRANSLATIONS = {
     no_vehicle_title: "Aucun véhicule BMW CarData trouvé",
     no_vehicle_body:
       "Ajoutez l'intégration, ou définissez <code>device:</code> / <code>vin:</code> dans la configuration de la carte.",
+    refused_title: "BMW a refusé la connexion",
+    refused_body:
+      "Reconnectez-vous à BMW dans Paramètres → Appareils et services ; les valeurs de ce véhicule reviennent dès que BMW l'accepte.",
     // tire
     front: "AVANT",
     fl: "AVG",
@@ -1361,6 +1370,9 @@ const TRANSLATIONS = {
     no_vehicle_title: "Nessun veicolo BMW CarData trovato",
     no_vehicle_body:
       "Aggiungi l'integrazione, oppure imposta <code>device:</code> / <code>vin:</code> nella configurazione della scheda.",
+    refused_title: "BMW ha rifiutato l'accesso",
+    refused_body:
+      "Accedi di nuovo a BMW in Impostazioni → Dispositivi e servizi; i valori di questo veicolo tornano non appena BMW lo accetta.",
     // tire
     front: "ANTERIORE",
     fl: "AS",
@@ -1725,6 +1737,9 @@ const TRANSLATIONS = {
     no_vehicle_title: "No se encontró ningún vehículo de BMW CarData",
     no_vehicle_body:
       "Añade la integración, o define <code>device:</code> / <code>vin:</code> en la configuración de la tarjeta.",
+    refused_title: "BMW rechazó el inicio de sesión",
+    refused_body:
+      "Vuelve a iniciar sesión en BMW en Ajustes → Dispositivos y servicios; los valores de este vehículo vuelven en cuanto BMW lo acepte.",
     // tire
     front: "DELANTE",
     fl: "DI",
@@ -2089,6 +2104,9 @@ const TRANSLATIONS = {
     no_vehicle_title: "Geen BMW CarData-voertuig gevonden",
     no_vehicle_body:
       "Voeg de integratie toe, of stel <code>device:</code> / <code>vin:</code> in de kaartconfiguratie in.",
+    refused_title: "BMW heeft de aanmelding geweigerd",
+    refused_body:
+      "Meld je opnieuw aan bij BMW via Instellingen → Apparaten & diensten; de waarden van deze auto komen terug zodra BMW dat accepteert.",
     // tire
     front: "VOOR",
     fl: "LV",
@@ -2453,6 +2471,9 @@ const TRANSLATIONS = {
     no_vehicle_title: "Nie znaleziono pojazdu BMW CarData",
     no_vehicle_body:
       "Dodaj integrację lub ustaw <code>device:</code> / <code>vin:</code> w konfiguracji karty.",
+    refused_title: "BMW odrzuciło logowanie",
+    refused_body:
+      "Zaloguj się ponownie do BMW w Ustawienia → Urządzenia oraz usługi; wartości tego pojazdu wrócą, gdy BMW to zaakceptuje.",
     // tire
     front: "PRZÓD",
     fl: "LP",
@@ -2817,6 +2838,9 @@ const TRANSLATIONS = {
     no_vehicle_title: "Nenhum veículo BMW CarData encontrado",
     no_vehicle_body:
       "Adicione a integração, ou defina <code>device:</code> / <code>vin:</code> na configuração do cartão.",
+    refused_title: "A BMW recusou o início de sessão",
+    refused_body:
+      "Inicie sessão novamente na BMW em Definições → Dispositivos e serviços; os valores deste veículo voltam assim que a BMW o aceitar.",
     // tire
     front: "FRENTE",
     fl: "FE",
@@ -3181,6 +3205,9 @@ const TRANSLATIONS = {
     no_vehicle_title: "Nebylo nalezeno žádné vozidlo BMW CarData",
     no_vehicle_body:
       "Přidejte integraci, nebo v konfiguraci karty nastavte <code>device:</code> / <code>vin:</code>.",
+    refused_title: "BMW odmítlo přihlášení",
+    refused_body:
+      "Přihlaste se znovu k BMW v Nastavení → Zařízení a služby; hodnoty tohoto vozidla se vrátí, jakmile to BMW přijme.",
     // tire
     front: "PŘEDEK",
     fl: "LP",
@@ -3545,6 +3572,9 @@ const TRANSLATIONS = {
     no_vehicle_title: "Inget BMW CarData-fordon hittades",
     no_vehicle_body:
       "Lägg till integrationen, eller ange <code>device:</code> / <code>vin:</code> i kortets konfiguration.",
+    refused_title: "BMW avvisade inloggningen",
+    refused_body:
+      "Logga in hos BMW igen under Inställningar → Enheter och tjänster; bilens värden kommer tillbaka så snart BMW godtar det.",
     // tire
     front: "FRAM",
     fl: "VF",
@@ -4568,19 +4598,26 @@ class BavarianDataCard extends HTMLElement {
    * each "auto" or a unit. Empty when that sensor is missing or disabled, which
    * reads as Automatic everywhere. */
   _unitChoices(deviceId) {
+    const units = this._accountAttribute(deviceId, "display_units");
+    return units && typeof units === "object" ? units : {};
+  }
+
+  /** An attribute the integration publishes on the car's account device (its
+   * connection sensor), or `undefined` when that sensor is missing or disabled.
+   * The account's own sensors stay available while the cars' entities do not. */
+  _accountAttribute(deviceId, name) {
     const hass = this._hass;
     const entry = deviceId && hass ? this._deviceEntry(deviceId) : null;
-    if (!entry || !hass.entities || !hass.devices || !hass.states) return {};
+    if (!entry || !hass.entities || !hass.devices || !hass.states) return undefined;
     for (const [entityId, ent] of Object.entries(hass.entities)) {
       if (!ent || ent.platform !== "bavariandata" || !ent.device_id) continue;
       const dev = hass.devices[ent.device_id];
       const account = (dev && dev.identifiers) || [];
       if (!account.some((pair) => pair && pair[0] === "bavariandata" && pair[1] === entry)) continue;
       const st = hass.states[entityId];
-      const units = st && st.attributes && st.attributes.display_units;
-      if (units && typeof units === "object") return units;
+      if (st && st.attributes && name in st.attributes) return st.attributes[name];
     }
-    return {};
+    return undefined;
   }
 
   /** "mi" or "km" for a car: the Units setting when it names one, otherwise
@@ -4651,6 +4688,12 @@ class BavarianDataCard extends HTMLElement {
     const deviceId = this._resolveDeviceId();
     if (!deviceId) {
       this._renderMessage(this._t("no_vehicle_title"), this._t("no_vehicle_body"));
+      return;
+    }
+    // BMW refuses the account's login: the car's entities are unavailable and
+    // carry no attributes, so every view would be empty without saying why.
+    if (this._accountAttribute(deviceId, "login_refused") === true) {
+      this._renderMessage(this._t("refused_title"), this._t("refused_body"));
       return;
     }
     const entities = this._deviceEntities(deviceId);
