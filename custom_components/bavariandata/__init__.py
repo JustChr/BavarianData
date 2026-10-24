@@ -550,7 +550,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
 
     await _async_register_frontend_card(hass)
 
-    session = aiohttp.ClientSession()
+    # Home Assistant's shared session (Gold: inject-websession): it outlives the
+    # entry, so nothing here closes it.
+    session = async_get_clientsession(hass)
 
     data = entry.data
     options = dict(entry.options) if entry.options else {}
@@ -565,7 +567,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     gcid = data.get("gcid")
     id_token = data.get("id_token")
     if not gcid or not id_token:
-        await session.close()
         raise ConfigEntryNotReady("Missing GCID or ID token")
 
     # History is a bonus, not a prerequisite: a failure to read it must never
@@ -785,14 +786,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
             err,
         )
     except Exception as err:  # pylint: disable=broad-except
-        await session.close()
         raise ConfigEntryNotReady(f"Initial token refresh failed: {err}") from err
 
     if manager.client is None:
         try:
             await manager.async_start()
         except Exception as err:
-            await session.close()
             if refreshed_token:
                 raise ConfigEntryNotReady(
                     f"Unable to connect to BMW MQTT after token refresh: {err}"
@@ -1026,7 +1025,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> 
         with suppress(Exception):
             await data.tyre.async_save_now()
     await data.stream.async_shutdown()
-    await data.session.close()
     if not domain_data.get("_entries"):
         hass.data.pop(DOMAIN, None)
     return True
