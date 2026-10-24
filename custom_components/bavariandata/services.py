@@ -45,6 +45,7 @@ from .api import (
     async_get_tyre_diagnosis,
     async_get_vehicle_mappings,
 )
+from .refusal import Refusal, as_ha_error
 from .rest import CardataQuotaError
 from .stream_activation import (
     PortalSession,
@@ -86,6 +87,18 @@ from . import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _invalid(err: Refusal) -> ServiceValidationError:
+    """A call that got its arguments or its target wrong, in the user's language."""
+
+    return as_ha_error(err, ServiceValidationError, DOMAIN)
+
+
+def _failed(key: str, **placeholders: Any) -> HomeAssistantError:
+    """A call BMW (or the account) could not answer, in the user's language."""
+
+    return as_ha_error(Refusal(key, **placeholders), HomeAssistantError, DOMAIN)
 
 
 def _as_cardata_timestamp(value: Any) -> Optional[str]:
@@ -135,7 +148,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         device = dr.async_get(hass).async_get(str(device_id))
         ours = [value for domain, value in device.identifiers if domain == DOMAIN] if device else []
         if not ours:
-            raise TargetError(f"Device {device_id} is not a BavarianData car")
+            raise TargetError("device_not_a_car", device=device_id)
         entries = {entry.entry_id for entry in hass.config_entries.async_entries(DOMAIN)}
         vin = next((value for value in ours if value not in entries), None)
         return device_owner(device), vin
@@ -164,7 +177,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
                 vin_entry=_entry_id_for_vin(vin),
             )
         except TargetError as err:
-            raise ServiceValidationError(str(err)) from err
+            raise _invalid(err) from err
         target_entry = loaded[target_entry_id]
         return target_entry_id, target_entry, target_entry.runtime_data, vin
 
@@ -183,7 +196,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
                 vin, _account_vins(entry, runtime), runtime.coordinator.names, required=required
             )
         except TargetError as err:
-            raise ServiceValidationError(str(err)) from err
+            raise _invalid(err) from err
 
     def _target_car(
         call: Any, *, required: bool = True
@@ -216,7 +229,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             payload = await async_get_vehicle_mappings(runtime.session, access_token)
         except CardataApiError as err:
             _LOGGER.error("Cardata fetch_vehicle_mappings failed: %s", err)
-            raise HomeAssistantError(f"fetch_vehicle_mappings: {err}") from err
+            raise _failed("bmw_error", service="fetch_vehicle_mappings", error=err) from err
         count = len(payload) if isinstance(payload, (list, dict)) else 0
         _LOGGER.info("Fetched %s vehicle mapping(s)", count)
         _LOGGER.debug("Cardata vehicle mappings: %s", payload)
@@ -276,7 +289,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             payload = await async_get_basic_data(runtime.session, access_token, vin)
         except CardataApiError as err:
             _LOGGER.error("Cardata fetch_basic_data failed for %s: %s", mask_vin(vin), err)
-            raise HomeAssistantError(f"fetch_basic_data: {err}") from err
+            raise _failed("bmw_error", service="fetch_basic_data", error=err) from err
         _LOGGER.info("Fetched basic vehicle data for %s", mask_vin(vin))
         _LOGGER.debug("Cardata basic data for %s: %s", vin, payload)
         if isinstance(payload, dict):
@@ -321,12 +334,12 @@ def async_setup_services(hass: HomeAssistant) -> None:
                 target_entry_id,
                 err,
             )
-            raise HomeAssistantError(f"{label}: no valid BMW token; reauthorize") from err
+            raise _failed("no_token", service=label) from err
         try:
             await runtime.rest.claim()
         except CardataQuotaError as err:
             _LOGGER.warning("Cardata %s blocked: %s", label, err)
-            raise HomeAssistantError(f"{label}: {err}") from err
+            raise _failed("request_blocked", service=label, error=err) from err
 
         return target_entry, runtime, vin, access_token
 
@@ -352,7 +365,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             )
         except CardataApiError as err:
             _LOGGER.error("Cardata fetch_charging_history failed for %s: %s", mask_vin(vin), err)
-            raise HomeAssistantError(f"fetch_charging_history: {err}") from err
+            raise _failed("bmw_error", service="fetch_charging_history", error=err) from err
         sessions = payload.get("data") if isinstance(payload, dict) else None
         # Import BMW's server-side history into our own store so it shows on
         # the card, enriching any live-recorded session in place.
@@ -383,7 +396,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             payload = await async_get_tyre_diagnosis(runtime.session, access_token, vin)
         except CardataApiError as err:
             _LOGGER.error("Cardata fetch_tyre_diagnosis failed for %s: %s", mask_vin(vin), err)
-            raise HomeAssistantError(f"fetch_tyre_diagnosis: {err}") from err
+            raise _failed("bmw_error", service="fetch_tyre_diagnosis", error=err) from err
         parsed = runtime.coordinator.apply_tyre_diagnosis(vin, payload)
         _LOGGER.info(
             "Fetched tyre diagnosis for %s (%s wheel(s) reported)",
@@ -405,7 +418,9 @@ def async_setup_services(hass: HomeAssistant) -> None:
             _LOGGER.error(
                 "Cardata fetch_location_charging_settings failed for %s: %s", mask_vin(vin), err
             )
-            raise HomeAssistantError(f"fetch_location_charging_settings: {err}") from err
+            raise _failed(
+                "bmw_error", service="fetch_location_charging_settings", error=err
+            ) from err
         settings = payload.get("data") if isinstance(payload, dict) else None
         _LOGGER.info(
             "Fetched location-based charging settings for %s (%s entr(y/ies))",
@@ -488,7 +503,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             return None
         parsed = dt_util.parse_datetime(raw) or dt_util.parse_date(raw)
         if parsed is None:
-            raise ServiceValidationError(f"Could not read '{key}' as a date or date/time: {raw!r}")
+            raise _invalid(Refusal("bad_date", key=key, value=repr(raw)))
         return service_answers.day_bound(parsed, end_of_day=end_of_day)
 
     async def async_handle_get_charging_sessions(call: Any) -> dict:
@@ -535,8 +550,8 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
         try:
             return service_answers.month_arg(raw, dt_util.now().date())
-        except ValueError as err:
-            raise ServiceValidationError(str(err)) from err
+        except Refusal as err:
+            raise _invalid(err) from err
 
     get_trips_schema = get_sessions_schema
     get_driving_summary_schema = vol.Schema(
@@ -732,7 +747,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
     async def async_handle_set_trip_class(call: Any) -> None:
         _entry_id, entry, runtime, vin = _resolve_target(call)
         if runtime.history is None:
-            raise ServiceValidationError("Trip history is not available")
+            raise _invalid(Refusal("no_trip_history"))
         coordinator = runtime.coordinator
         trip_id = call.data["trip_id"]
         if vin is None:
@@ -743,7 +758,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         if trip is None:
             # A trip id starts with its VIN; neither goes into the message whole.
             shown = trip_id.replace(vin, mask_vin(vin))
-            raise ServiceValidationError(f"No trip {shown!r} found for {mask_vin(vin)}")
+            raise _invalid(Refusal("trip_not_found", trip=repr(shown), vin=mask_vin(vin)))
         trip.classification = call.data["classification"]
         trip.classification_source = SOURCE_USER
         runtime.history.add_trip(trip)
@@ -758,13 +773,10 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
         _entry_id, _entry, runtime, vin = _target_car(call)
         if runtime.history is None:
-            raise ServiceValidationError("Trip history is not available")
+            raise _invalid(Refusal("no_trip_history"))
         coordinator = runtime.coordinator
         if not coordinator.report_trips(vin):
-            raise ServiceValidationError(
-                "mark_trip_start is used only when trips are detected from the "
-                "car's reports (Configure -> Trips -> Trip detection)"
-            )
+            raise _invalid(Refusal("trips_not_from_reports"))
         at = _service_bound(call, "at") or dt_util.utcnow()
         coordinator.mark_trip_start(vin, at)
 
@@ -894,15 +906,9 @@ def async_setup_services(hass: HomeAssistant) -> None:
             return {"statistics": {}}
         publisher = runtime.statistics
         if not publisher.enabled:
-            raise ServiceValidationError(
-                "Statistics import is turned off for this vehicle "
-                "(Configure -> Charging costs & history)."
-            )
+            raise _invalid(Refusal("statistics_off"))
         if not publisher.available:
-            raise ServiceValidationError(
-                "Home Assistant's recorder is not set up, so there are no "
-                "long-term statistics to import into."
-            )
+            raise _invalid(Refusal("no_recorder"))
         written = await publisher.async_publish(vin=vin, force=True)
         _LOGGER.info("Imported BavarianData statistics: %s", written)
         return {"statistics": written}
@@ -942,8 +948,8 @@ def async_setup_services(hass: HomeAssistant) -> None:
             attributes = service_answers.activation_attributes(
                 call.data, entry.data.get(OPTION_STREAM_SECTIONS)
             )
-        except ValueError as err:
-            raise ServiceValidationError(str(err)) from err
+        except Refusal as err:
+            raise _invalid(err) from err
 
         session = PortalSession(
             base_url=call.data["base_url"],
@@ -955,9 +961,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         try:
             result = await client.async_set_stream_attributes(mapped_vehicle_id, attributes)
         except StreamActivationError as err:
-            raise ServiceValidationError(
-                service_answers.activation_error(err.kind, str(err))
-            ) from err
+            raise _invalid(service_answers.activation_error(err.kind, str(err))) from err
 
         return {
             "mapped_vehicle_id": mapped_vehicle_id,

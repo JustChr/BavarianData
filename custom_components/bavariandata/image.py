@@ -51,6 +51,7 @@ from .coordinator import CardataCoordinator
 from .debug import mask_vin
 from .device_flow import CardataAuthError
 from .entity import CardataEntity
+from .refusal import Refusal, as_ha_error
 from .rest import CardataQuotaError
 
 _LOGGER = logging.getLogger(__name__)
@@ -343,6 +344,13 @@ async def _async_persist_cache(hass: HomeAssistant) -> None:
     await store.async_save(serialisable)
 
 
+def _failed(key: str, **placeholders: Any) -> HomeAssistantError:
+    """A ``fetch_vehicle_image`` call BMW did not answer, in the user's language."""
+
+    refusal = Refusal(key, service="fetch_vehicle_image", **placeholders)
+    return as_ha_error(refusal, HomeAssistantError, DOMAIN)
+
+
 async def async_refresh_vehicle_image(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -365,19 +373,17 @@ async def async_refresh_vehicle_image(
     except CardataAuthError as err:
         _LOGGER.error("Cardata image: no valid token for %s: %s", mask_vin(vin), err)
         if strict:
-            raise HomeAssistantError(
-                "fetch_vehicle_image: no valid BMW token; reauthorize"
-            ) from err
+            raise _failed("no_token") from err
         return None
     except CardataQuotaError as err:
         _LOGGER.warning("Cardata image fetch for %s blocked: %s", mask_vin(vin), err)
         if strict:
-            raise HomeAssistantError(f"fetch_vehicle_image: {err}") from err
+            raise _failed("request_blocked", error=err) from err
         return None
     except CardataApiError as err:
         _LOGGER.error("Cardata image fetch failed for %s: %s", mask_vin(vin), err)
         if strict:
-            raise HomeAssistantError(f"fetch_vehicle_image: {err}") from err
+            raise _failed("bmw_error", error=err) from err
         return None
 
     cache = await _async_load_cache(hass)

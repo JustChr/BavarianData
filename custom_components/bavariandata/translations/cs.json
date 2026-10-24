@@ -3351,5 +3351,100 @@
         }
       }
     }
+  },
+  "exceptions": {
+    "device_not_a_car": {
+      "message": "Zařízení {device} není vozidlo BavarianData"
+    },
+    "vin_device_mismatch": {
+      "message": "vin {vin} a device_id ({device_vin}) označují různá vozidla"
+    },
+    "account_not_loaded": {
+      "message": "Žádný načtený účet BavarianData nemá entry_id {entry_id}"
+    },
+    "device_account_not_loaded": {
+      "message": "Účet BavarianData vybraného zařízení není načten"
+    },
+    "vin_not_found": {
+      "message": "Žádný účet BavarianData nemá vozidlo s VIN {vin}"
+    },
+    "no_account": {
+      "message": "Není načten žádný účet BavarianData"
+    },
+    "pick_account": {
+      "message": "Je nastaveno {count} účtů BavarianData ({accounts}); vyberte vozidlo pomocí device_id nebo zadejte entry_id"
+    },
+    "vin_not_on_account": {
+      "message": "{vin} není vozidlo tohoto účtu"
+    },
+    "no_car": {
+      "message": "Tento účet zatím nemá žádné vozidlo"
+    },
+    "pick_car": {
+      "message": "Tento účet má {count} vozidel ({cars}); vyberte jedno pomocí device_id nebo zadejte vin"
+    },
+    "month_format": {
+      "message": "'month' musí být ve tvaru 'YYYY-MM', přijato: {value}"
+    },
+    "month_number": {
+      "message": "'month' nemá měsíc {month}: {value}"
+    },
+    "bad_date": {
+      "message": "'{key}' nelze přečíst jako datum ani datum a čas: {value}"
+    },
+    "no_attributes": {
+      "message": "Není co aktivovat; zadejte 'attributes' nebo 'sections', nebo vyberte skupiny dat streamu v možnostech."
+    },
+    "no_trip_history": {
+      "message": "Historie jízd není k dispozici"
+    },
+    "trip_not_found": {
+      "message": "Jízda {trip} pro {vin} nebyla nalezena"
+    },
+    "trips_not_from_reports": {
+      "message": "mark_trip_start se používá jen tehdy, když se jízdy rozpoznávají z hlášení vozidla (Nastavit -> Jízdy -> Detekce jízd)"
+    },
+    "statistics_off": {
+      "message": "Import statistik je pro toto vozidlo vypnutý (Nastavit -> Náklady a historie nabíjení)."
+    },
+    "no_recorder": {
+      "message": "Recorder Home Assistantu není nastaven, takže neexistují žádné dlouhodobé statistiky, do kterých by se dalo importovat."
+    },
+    "no_token": {
+      "message": "{service}: žádný platný token BMW; autorizujte znovu"
+    },
+    "request_blocked": {
+      "message": "{service}: {error}"
+    },
+    "bmw_error": {
+      "message": "{service}: {error}"
+    },
+    "fetch_incomplete": {
+      "message": "{service}: {error}"
+    },
+    "portal_session_rejected": {
+      "message": "BMW odmítlo relaci portálu (vypršela nebo je neplatná). Získejte novou relaci ze stránky stream setup a zkuste to znovu."
+    },
+    "portal_not_found": {
+      "message": "BMW odpovědělo 404 – zkontrolujte mapped_vehicle_id a locale."
+    },
+    "portal_failed": {
+      "message": "{error}"
+    },
+    "missing_credentials": {
+      "message": "Chybí GCID nebo ID token"
+    },
+    "token_refresh_failed": {
+      "message": "První obnovení tokenu selhalo: {error}"
+    },
+    "stream_failed": {
+      "message": "Nelze se připojit k MQTT BMW: {error}"
+    },
+    "stream_failed_after_refresh": {
+      "message": "Nelze se připojit k MQTT BMW po obnovení tokenu: {error}"
+    },
+    "unknown_car": {
+      "message": "Žádné vozidlo jménem {car}; vozidla jsou {cars}"
+    }
   }
 }

@@ -3351,5 +3351,100 @@
         }
       }
     }
+  },
+  "exceptions": {
+    "device_not_a_car": {
+      "message": "Gerät {device} ist kein BavarianData-Fahrzeug"
+    },
+    "vin_device_mismatch": {
+      "message": "vin {vin} und device_id ({device_vin}) nennen verschiedene Fahrzeuge"
+    },
+    "account_not_loaded": {
+      "message": "Kein geladenes BavarianData-Konto hat die entry_id {entry_id}"
+    },
+    "device_account_not_loaded": {
+      "message": "Das BavarianData-Konto des gewählten Geräts ist nicht geladen"
+    },
+    "vin_not_found": {
+      "message": "Kein BavarianData-Konto hat ein Fahrzeug mit der VIN {vin}"
+    },
+    "no_account": {
+      "message": "Kein BavarianData-Konto ist geladen"
+    },
+    "pick_account": {
+      "message": "{count} BavarianData-Konten sind eingerichtet ({accounts}); wähle ein Fahrzeug mit device_id oder gib entry_id an"
+    },
+    "vin_not_on_account": {
+      "message": "{vin} ist kein Fahrzeug dieses Kontos"
+    },
+    "no_car": {
+      "message": "Dieses Konto hat noch kein Fahrzeug"
+    },
+    "pick_car": {
+      "message": "Dieses Konto hat {count} Fahrzeuge ({cars}); wähle eines mit device_id oder gib vin an"
+    },
+    "month_format": {
+      "message": "'month' muss 'YYYY-MM' sein, erhalten: {value}"
+    },
+    "month_number": {
+      "message": "'month' hat keinen Monat {month}: {value}"
+    },
+    "bad_date": {
+      "message": "'{key}' ist kein lesbares Datum bzw. keine Datum/Uhrzeit: {value}"
+    },
+    "no_attributes": {
+      "message": "Nichts zu aktivieren; gib 'attributes' oder 'sections' an oder wähle Datengruppen für den Stream in den Optionen."
+    },
+    "no_trip_history": {
+      "message": "Der Fahrtenverlauf ist nicht verfügbar"
+    },
+    "trip_not_found": {
+      "message": "Keine Fahrt {trip} für {vin} gefunden"
+    },
+    "trips_not_from_reports": {
+      "message": "mark_trip_start gilt nur, wenn Fahrten aus den Berichten des Fahrzeugs erkannt werden (Konfigurieren -> Fahrten -> Fahrterkennung)"
+    },
+    "statistics_off": {
+      "message": "Der Statistik-Import ist für dieses Fahrzeug ausgeschaltet (Konfigurieren -> Ladekosten & Verlauf)."
+    },
+    "no_recorder": {
+      "message": "Der Recorder von Home Assistant ist nicht eingerichtet, es gibt also keine Langzeitstatistik, in die importiert werden könnte."
+    },
+    "no_token": {
+      "message": "{service}: kein gültiges BMW-Token; bitte neu autorisieren"
+    },
+    "request_blocked": {
+      "message": "{service}: {error}"
+    },
+    "bmw_error": {
+      "message": "{service}: {error}"
+    },
+    "fetch_incomplete": {
+      "message": "{service}: {error}"
+    },
+    "portal_session_rejected": {
+      "message": "BMW hat die Portal-Sitzung abgelehnt (abgelaufen oder ungültig). Hole eine frische Sitzung von der stream setup-Seite und versuche es erneut."
+    },
+    "portal_not_found": {
+      "message": "BMW antwortete mit 404 – prüfe mapped_vehicle_id und locale."
+    },
+    "portal_failed": {
+      "message": "{error}"
+    },
+    "missing_credentials": {
+      "message": "GCID oder ID-Token fehlt"
+    },
+    "token_refresh_failed": {
+      "message": "Erste Token-Erneuerung fehlgeschlagen: {error}"
+    },
+    "stream_failed": {
+      "message": "Keine Verbindung zu BMWs MQTT: {error}"
+    },
+    "stream_failed_after_refresh": {
+      "message": "Keine Verbindung zu BMWs MQTT nach der Token-Erneuerung: {error}"
+    },
+    "unknown_car": {
+      "message": "Kein Fahrzeug namens {car}; die Fahrzeuge sind {cars}"
+    }
   }
 }

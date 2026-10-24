@@ -17,11 +17,12 @@ from __future__ import annotations
 from typing import Any, Mapping, Optional, Sequence
 
 from .debug import mask_vin
+from .refusal import Refusal
 
 __all__ = ["TargetError", "choose_account", "choose_vin", "device_owner", "requested_vin"]
 
 
-class TargetError(ValueError):
+class TargetError(Refusal):
     """The call cannot be placed; the message says what to pass instead."""
 
 
@@ -54,7 +55,7 @@ def requested_vin(vin: Any, device_vin: Optional[str]) -> Optional[str]:
     text = vin.strip() if isinstance(vin, str) else None
     if text and device_vin and text != device_vin:
         raise TargetError(
-            f"vin {mask_vin(text)} and device_id ({mask_vin(device_vin)}) name different cars"
+            "vin_device_mismatch", vin=mask_vin(text), device_vin=mask_vin(device_vin)
         )
     return text or device_vin or None
 
@@ -77,25 +78,22 @@ def choose_account(
 
     if entry_id:
         if entry_id not in titles:
-            raise TargetError(f"No loaded BavarianData account has entry_id {entry_id}")
+            raise TargetError("account_not_loaded", entry_id=entry_id)
         return entry_id
     if device_entry:
         if device_entry not in titles:
-            raise TargetError("The picked device's BavarianData account is not loaded")
+            raise TargetError("device_account_not_loaded")
         return device_entry
     if vin and vin_entry in titles:
         return vin_entry
     if vin and len(titles) > 1:
-        raise TargetError(f"No BavarianData account has a car with VIN {mask_vin(vin)}")
+        raise TargetError("vin_not_found", vin=mask_vin(vin))
     if len(titles) == 1:
         return next(iter(titles))
     if not titles:
-        raise TargetError("No BavarianData account is loaded")
+        raise TargetError("no_account")
     listed = ", ".join(sorted(title or entry for entry, title in titles.items()))
-    raise TargetError(
-        f"{len(titles)} BavarianData accounts are set up ({listed}); "
-        "pick a car with device_id, or pass entry_id"
-    )
+    raise TargetError("pick_account", count=len(titles), accounts=listed)
 
 
 def choose_vin(
@@ -116,17 +114,14 @@ def choose_vin(
 
     if requested:
         if requested not in account_vins:
-            raise TargetError(f"{mask_vin(requested)} is not a car of this account")
+            raise TargetError("vin_not_on_account", vin=mask_vin(requested))
         return requested
     if not required:
         return None
     if len(account_vins) == 1:
         return account_vins[0]
     if not account_vins:
-        raise TargetError("This account has no car yet")
+        raise TargetError("no_car")
     names = names or {}
     listed = ", ".join(names.get(vin) or mask_vin(vin) for vin in account_vins)
-    raise TargetError(
-        f"This account has {len(account_vins)} cars ({listed}); "
-        "pick one with device_id, or pass vin"
-    )
+    raise TargetError("pick_car", count=len(account_vins), cars=listed)

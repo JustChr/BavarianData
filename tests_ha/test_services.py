@@ -116,6 +116,19 @@ async def test_bad_arguments_are_refused_by_name(hass: HomeAssistant, no_bmw) ->
         await _ask(hass, "get_trips", {"vin": "WBASTRANGER000001"})
 
 
+async def test_a_refusal_carries_what_the_frontend_translates(hass: HomeAssistant, no_bmw) -> None:
+    """Home Assistant logs an error in English and the frontend shows it in the
+    user's language, from the translation key and its placeholders."""
+
+    await _account(hass)
+    with pytest.raises(ServiceValidationError) as err:
+        await _ask(hass, "get_driving_summary", {"month": "März"})
+
+    assert (err.value.translation_domain, err.value.translation_key) == (DOMAIN, "month_format")
+    assert err.value.translation_placeholders == {"value": "'März'"}
+    assert str(err.value) == "'month' must be 'YYYY-MM', got 'März'"
+
+
 async def test_the_month_exports_as_csv_and_html(hass: HomeAssistant, no_bmw) -> None:
     await _account(hass)
     month = dt_util.now().strftime("%Y-%m")
