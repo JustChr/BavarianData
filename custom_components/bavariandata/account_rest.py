@@ -57,7 +57,6 @@ class AccountHost(Protocol):
     entry_id: str
     coordinator: Any
     rest: Any
-    tokens: Any
     containers: dict[str, Any]
     container_lock: asyncio.Lock
 
@@ -155,13 +154,12 @@ class AccountRest:
                 self._update_data(**{kind.signature_key: manager.descriptor_signature})
                 manager.sync_from_entry(stored_id)
                 return stored_id
-            access_token = await host.tokens.access_token()
             manager.sync_from_entry(None)
             try:
                 if stored_id:
-                    container_id = await manager.async_reset_hv_container(access_token)
+                    container_id = await manager.async_reset_hv_container()
                 else:
-                    container_id = await manager.async_ensure_hv_container(access_token)
+                    container_id = await manager.async_ensure_hv_container()
             except CardataContainerError as err:
                 _LOGGER.warning(
                     "Unable to set up the %s REST container for entry %s: %s",

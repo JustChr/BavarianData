@@ -217,27 +217,21 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
                 errors={"base": "runtime_missing"},
             )
 
-        try:
-            access_token = await runtime.tokens.access_token()
-        except CardataAuthError as err:
-            return self._show_confirm(
-                step_id="action_reset_container",
-                errors={"base": "refresh_failed"},
-                placeholders={"error": str(err)},
-            )
-
         updated = dict(entry.data)
         try:
             async with runtime.container_lock:
                 for kind in KINDS:
                     manager = runtime.containers[kind.key]
-                    new_id = await manager.async_reset_hv_container(access_token)
-                    if new_id:
-                        updated[kind.id_key] = new_id
-                        updated[kind.signature_key] = manager.descriptor_signature
-                    else:
-                        updated.pop(kind.id_key, None)
-                        updated.pop(kind.signature_key, None)
+                    new_id = await manager.async_reset_hv_container()
+                    updated[kind.id_key] = new_id
+                    updated[kind.signature_key] = manager.descriptor_signature
+        except CardataAuthError as err:
+            self.hass.config_entries.async_update_entry(entry, data=updated)
+            return self._show_confirm(
+                step_id="action_reset_container",
+                errors={"base": "refresh_failed"},
+                placeholders={"error": str(err)},
+            )
         except CardataContainerError as err:
             self.hass.config_entries.async_update_entry(entry, data=updated)
             return self._show_confirm(

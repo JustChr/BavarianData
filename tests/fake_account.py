@@ -15,6 +15,34 @@ from .conftest import load_module
 
 api = load_module("api")
 container = load_module("container")
+rest = load_module("rest")
+
+
+class FixedTokens:
+    """A token keeper whose token never lapses, or that can't get one."""
+
+    def __init__(self, token: str = "token", error: Optional[BaseException] = None) -> None:
+        self.token = token
+        self.error = error
+        self.asked = 0
+
+    async def access_token(self) -> str:
+        self.asked += 1
+        if self.error is not None:
+            raise self.error
+        return self.token
+
+
+def gateway(
+    session: Any,
+    *,
+    claim: Optional[Callable] = None,
+    token: str = "token",
+    error: Optional[BaseException] = None,
+) -> Any:
+    """A real ``RestGateway`` over ``session`` (``conftest.FakeSession``)."""
+
+    return rest.RestGateway(session, FixedTokens(token, error), claim)
 
 
 class FakeBmw:
@@ -84,10 +112,10 @@ class FakeContainer:
     def sync_from_entry(self, container_id: Optional[str]) -> None:
         self.synced.append(container_id)
 
-    async def async_ensure_hv_container(self, token: str) -> Optional[str]:
+    async def async_ensure_hv_container(self) -> Optional[str]:
         return self._answer("ensure")
 
-    async def async_reset_hv_container(self, token: str) -> Optional[str]:
+    async def async_reset_hv_container(self) -> Optional[str]:
         return self._answer("reset")
 
     def _answer(self, call: str) -> Optional[str]:
@@ -95,15 +123,6 @@ class FakeContainer:
         if self.error:
             raise container.CardataContainerError("BMW said no")
         return self.created
-
-
-class FakeTokens:
-    def __init__(self) -> None:
-        self.asked = 0
-
-    async def access_token(self) -> str:
-        self.asked += 1
-        return "token"
 
 
 class FakeHost:
@@ -120,7 +139,6 @@ class FakeHost:
         self.entry_id = "entry"
         self.coordinator = FakeCoordinator()
         self.rest = bmw
-        self.tokens = FakeTokens()
         self.containers = containers or {
             kind.key: FakeContainer(kind, created=f"id-{kind.key}") for kind in container.KINDS
         }
