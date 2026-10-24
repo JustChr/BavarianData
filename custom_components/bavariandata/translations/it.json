@@ -3396,7 +3396,7 @@
       "message": "'month' non ha un mese {month}: {value}"
     },
     "bad_date": {
-      "message": "Impossibile leggere '{key}' come data o data/ora: {value}"
+      "message": "Impossibile leggere {key} come data o data/ora: {value}"
     },
     "no_attributes": {
       "message": "Niente da attivare; indica 'attributes' o 'sections', oppure scegli i gruppi di dati dello stream nelle opzioni."

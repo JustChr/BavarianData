@@ -3626,7 +3626,7 @@
       "message": "'month' has no month {month}: {value}"
     },
     "bad_date": {
-      "message": "Could not read '{key}' as a date or date/time: {value}"
+      "message": "Could not read {key} as a date or date/time: {value}"
     },
     "no_attributes": {
       "message": "No attributes to activate; pass 'attributes' or 'sections', or choose streamed-data clusters in the options."

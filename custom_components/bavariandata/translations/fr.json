@@ -3396,7 +3396,7 @@
       "message": "'month' n'a pas de mois {month} : {value}"
     },
     "bad_date": {
-      "message": "Impossible de lire '{key}' comme date ou date/heure : {value}"
+      "message": "Impossible de lire {key} comme date ou date/heure : {value}"
     },
     "no_attributes": {
       "message": "Rien à activer ; indiquez 'attributes' ou 'sections', ou choisissez les groupes de données du flux dans les options."
