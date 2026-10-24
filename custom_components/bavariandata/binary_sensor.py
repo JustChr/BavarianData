@@ -18,6 +18,8 @@ from .coordinator import CardataCoordinator
 from .coverage import is_ev_only_descriptor
 from .entity import CardataEntity
 
+PARALLEL_UPDATES = 0
+
 
 def _binary_device_class(
     descriptor: str,
@@ -113,7 +115,6 @@ class CardataTripInProgressBinarySensor(CardataEntity, BinarySensorEntity):
     """
 
     _attr_should_poll = False
-    _attr_icon = "mdi:steering"
     _attr_translation_key = "trip_in_progress"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
