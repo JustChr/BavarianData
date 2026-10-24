@@ -210,13 +210,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         if user_input is None:
             return self._show_confirm(step_id="action_reset_container")
 
-        entry = self.hass.config_entries.async_get_entry(self._config_entry.entry_id)
-        if entry is None:
-            return self._show_confirm(
-                step_id="action_reset_container",
-                errors={"base": "runtime_missing"},
-            )
-
+        entry = self._config_entry
         updated = dict(entry.data)
         try:
             async with runtime.container_lock:

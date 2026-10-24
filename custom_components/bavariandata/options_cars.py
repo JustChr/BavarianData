@@ -699,8 +699,8 @@ class PerCarScreens:
     # -- so a car added later never inherits a lease. Two screens: the kind,
     # then that kind's form (HA forms can't show fields conditionally).
 
-    def _miles(self) -> bool:
-        """Whether the car on screen counts in miles (``distance.car_distance_unit``).
+    def _miles(self, vin: str) -> bool:
+        """Whether the car counts in miles (``distance.car_distance_unit``).
 
         Not Home Assistant's unit system alone: a UK install is metric but its
         car counts in miles, and typed miles were stored as km (issue #126).
@@ -708,9 +708,6 @@ class PerCarScreens:
 
         runtime = self._get_runtime()
         coordinator = runtime.coordinator if runtime is not None else None
-        _vehicles, _per_vehicle, vin = self._vehicle_context()
-        if not isinstance(vin, str):  # no car picked yet
-            vin = None
         return car_distance_unit(self.hass, coordinator, vin) == "mi"
 
     def _mileage_number(self, *, maximum: int, miles: bool) -> selector.NumberSelector:
@@ -723,12 +720,6 @@ class PerCarScreens:
                 unit_of_measurement="mi" if miles else "km",
             )
         )
-
-    def _odometer_now(self, vin: Optional[str]) -> Optional[float]:
-        runtime = self._get_runtime()
-        if runtime is None or vin is None:
-            return None
-        return runtime.coordinator.odometer_km(vin)
 
     async def async_step_action_mileage(
         self, user_input: Optional[Dict[str, Any]] = None
@@ -799,7 +790,8 @@ class PerCarScreens:
         self, user_input: Optional[Dict[str, Any]], *, step_id: str, kind: str
     ) -> FlowResult:
         vehicles, _per_vehicle, vin = self._vehicle_context()
-        miles = self._miles()
+        assert isinstance(vin, str)  # the kind step refuses an account without a car
+        miles = self._miles(vin)
         current = mileage_values(self._config_entry.options, vin)
         values = dict(current) if current.get(MILEAGE_KIND) == kind else {}
         if user_input is not None:
@@ -809,8 +801,9 @@ class PerCarScreens:
         start_km = values.get(MILEAGE_START_KM)
         if start_km is None and user_input is None:
             # The handover reading is unknown to us; today's is the honest
-            # prefill, and the field's help line says so.
-            start_km = self._odometer_now(vin)
+            # prefill, and the field's help line says so. A car on screen means
+            # a running entry: without one there are no cars to pick.
+            start_km = self._get_runtime().coordinator.odometer_km(vin)
         fields: Dict[Any, Any] = {
             vol.Required(
                 MILEAGE_START, description={"suggested_value": values.get(MILEAGE_START)}
@@ -836,9 +829,7 @@ class PerCarScreens:
         errors: Dict[str, str] = {}
         if user_input is not None:
             stored, errors = mileage_to_store(kind, values, dt_util.now().date())
-            if not errors and vin is None:
-                errors = {"base": "no_vins"}
-            elif not errors:
+            if not errors:
                 return self._save_mileage(vin, stored)
         return self.async_show_form(
             step_id=step_id,
