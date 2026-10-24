@@ -275,3 +275,50 @@ def test_the_challenge_is_rfc_7636s_s256():
         device_flow.code_challenge("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk")
         == "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
     )
+
+
+def test_a_refresh_that_works_answers_with_the_new_tokens():
+    session = _PollSession([_PollResponse(200, {"id_token": "new"})])
+    answer = asyncio.run(
+        device_flow.refresh_tokens(session, client_id="cid", refresh_token="rt", scope="openid")
+    )
+    assert answer == {"id_token": "new"}
+
+
+def test_a_device_code_is_bmws_answer_or_its_refusal():
+    session = _PollSession([_PollResponse(200, {"device_code": "dc"})])
+    kwargs = {"client_id": "cid", "scope": "openid", "code_challenge": "cc"}
+    assert asyncio.run(device_flow.request_device_code(session, **kwargs)) == {"device_code": "dc"}
+
+    session = _PollSession([_PollResponse(400, {"error": "invalid_client"})])
+    with pytest.raises(device_flow.CardataAuthError, match="invalid_client"):
+        asyncio.run(device_flow.request_device_code(session, **kwargs))
+
+
+def test_polling_gives_up_when_the_code_expires(monkeypatch):
+    monkeypatch.setattr(device_flow.asyncio, "sleep", _no_sleep)
+    readings = []
+
+    def monotonic() -> float:  # every reading ten seconds on
+        readings.append(None)
+        return 10.0 * len(readings)
+
+    monkeypatch.setattr(device_flow.time, "monotonic", monotonic)
+    session = _PollSession([_PollResponse(400, {"error": "authorization_pending"})] * 50)
+    with pytest.raises(device_flow.CardataAuthError, match="Timed out"):
+        asyncio.run(_poll(session))
+
+
+def test_polling_gives_up_on_a_network_that_stays_down(monkeypatch):
+    monkeypatch.setattr(device_flow.asyncio, "sleep", _no_sleep)
+    session = _PollSession(
+        [_RaisingResponse(device_flow.aiohttp.ClientError("down")) for _ in range(20)]
+    )
+    with pytest.raises(device_flow.CardataAuthError, match="network error"):
+        asyncio.run(_poll(session))
+
+
+def test_a_correlation_id_is_read_from_any_header_shape():
+    assert device_flow._correlation_id({"x-amzn-trace-id": "t-1"}) == "t-1"
+    assert device_flow._correlation_id({"other": "x"}) is None
+    assert device_flow._correlation_id(["not", "headers"]) is None

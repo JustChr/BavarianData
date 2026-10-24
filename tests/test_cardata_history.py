@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from .conftest import load_module
 
 models = load_module("history.models")
@@ -623,3 +625,55 @@ def test_new_fields_survive_a_round_trip():
     again = ChargingSession.from_dict(session.to_dict())
     assert again.charge_method == "dc"
     assert again.preconditioned is True
+
+
+# --- what BMW sends that cannot be read ---------------------------------------
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"startTime": "never"},  # not an epoch
+        {"endTime": START_EPOCH - 60},  # ends before it starts
+        {"endTime": None},  # still charging
+    ],
+)
+def test_an_entry_without_a_readable_span_is_skipped(overrides) -> None:
+    assert cardata_history.session_from_cardata("VIN", _raw(**overrides)) is None
+    assert cardata_history.session_from_cardata("VIN", ["not", "an", "entry"]) is None
+
+
+def test_unreadable_fields_are_left_empty_not_guessed() -> None:
+    session = cardata_history.session_from_cardata(
+        "VIN",
+        _raw(
+            mileage=None,
+            displayedSoc="full",
+            chargingLocation={"mapMatchedLatitude": 48.4, "mapMatchedLongitude": 16.2},
+            publicChargingPoint={"potentialChargingPointMatches": "one"},
+            chargingBlocks=[
+                "junk",
+                {"averagePowerGridKw": None},
+                {"averagePowerGridKw": 7.0},  # no start: counts for the peak only
+                {"startTime": "soon", "averagePowerGridKw": 8.0},
+                {"startTime": START_EPOCH - 60, "averagePowerGridKw": 9.0},  # before start
+            ],
+        ),
+    )
+    assert session.mileage_km is None and session.soc_end is None
+    # Coordinates that name nothing: "public", not "assumed home".
+    assert session.location == {"zone": None}
+    assert session.power_curve == [] and session.peak_power_kw == 9.0
+
+
+def test_blocks_that_are_not_a_list_make_no_curve() -> None:
+    session = cardata_history.session_from_cardata("VIN", _raw(chargingBlocks={"a": 1}))
+    assert session.power_curve == [] and session.peak_power_kw is None
+
+
+@pytest.mark.parametrize(
+    ("location", "rank"),
+    [(None, 0), ({"zone": "zone.home"}, 2), ({"zone": None, "address": "Ring 1"}, 1), ({}, 0)],
+)
+def test_a_location_ranks_zone_over_address_over_nothing(location, rank) -> None:
+    assert cardata_history._location_rank(location) == rank
