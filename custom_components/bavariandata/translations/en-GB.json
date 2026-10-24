@@ -238,5 +238,10 @@
         }
       }
     }
+  },
+  "exceptions": {
+    "no_token": {
+      "message": "{service}: no valid BMW token; reauthorise"
+    }
   }
 }

@@ -3351,5 +3351,100 @@
         }
       }
     }
+  },
+  "exceptions": {
+    "device_not_a_car": {
+      "message": "Enheten {device} är inte en BavarianData-bil"
+    },
+    "vin_device_mismatch": {
+      "message": "vin {vin} och device_id ({device_vin}) anger olika bilar"
+    },
+    "account_not_loaded": {
+      "message": "Inget laddat BavarianData-konto har entry_id {entry_id}"
+    },
+    "device_account_not_loaded": {
+      "message": "Den valda enhetens BavarianData-konto är inte laddat"
+    },
+    "vin_not_found": {
+      "message": "Inget BavarianData-konto har en bil med VIN {vin}"
+    },
+    "no_account": {
+      "message": "Inget BavarianData-konto är laddat"
+    },
+    "pick_account": {
+      "message": "{count} BavarianData-konton är konfigurerade ({accounts}); välj en bil med device_id eller ange entry_id"
+    },
+    "vin_not_on_account": {
+      "message": "{vin} är inte en bil på det här kontot"
+    },
+    "no_car": {
+      "message": "Det här kontot har ingen bil ännu"
+    },
+    "pick_car": {
+      "message": "Det här kontot har {count} bilar ({cars}); välj en med device_id eller ange vin"
+    },
+    "month_format": {
+      "message": "'month' måste vara 'YYYY-MM', fick: {value}"
+    },
+    "month_number": {
+      "message": "'month' har ingen månad {month}: {value}"
+    },
+    "bad_date": {
+      "message": "Kunde inte läsa '{key}' som datum eller datum/tid: {value}"
+    },
+    "no_attributes": {
+      "message": "Inget att aktivera; ange 'attributes' eller 'sections', eller välj datagrupper för strömmen i alternativen."
+    },
+    "no_trip_history": {
+      "message": "Resehistoriken är inte tillgänglig"
+    },
+    "trip_not_found": {
+      "message": "Ingen resa {trip} hittades för {vin}"
+    },
+    "trips_not_from_reports": {
+      "message": "mark_trip_start används bara när resor identifieras från bilens rapporter (Konfigurera -> Resor -> Reseidentifiering)"
+    },
+    "statistics_off": {
+      "message": "Statistikimporten är avstängd för den här bilen (Konfigurera -> Laddkostnader och historik)."
+    },
+    "no_recorder": {
+      "message": "Home Assistants recorder är inte konfigurerad, så det finns ingen långtidsstatistik att importera till."
+    },
+    "no_token": {
+      "message": "{service}: ingen giltig BMW-token; auktorisera igen"
+    },
+    "request_blocked": {
+      "message": "{service}: {error}"
+    },
+    "bmw_error": {
+      "message": "{service}: {error}"
+    },
+    "fetch_incomplete": {
+      "message": "{service}: {error}"
+    },
+    "portal_session_rejected": {
+      "message": "BMW avvisade portalsessionen (utgången eller ogiltig). Hämta en ny session från sidan stream setup och försök igen."
+    },
+    "portal_not_found": {
+      "message": "BMW svarade 404 – kontrollera mapped_vehicle_id och locale."
+    },
+    "portal_failed": {
+      "message": "{error}"
+    },
+    "missing_credentials": {
+      "message": "GCID eller ID-token saknas"
+    },
+    "token_refresh_failed": {
+      "message": "Den första tokenförnyelsen misslyckades: {error}"
+    },
+    "stream_failed": {
+      "message": "Kunde inte ansluta till BMW:s MQTT: {error}"
+    },
+    "stream_failed_after_refresh": {
+      "message": "Kunde inte ansluta till BMW:s MQTT efter tokenförnyelsen: {error}"
+    },
+    "unknown_car": {
+      "message": "Ingen bil heter {car}; bilarna är {cars}"
+    }
   }
 }
