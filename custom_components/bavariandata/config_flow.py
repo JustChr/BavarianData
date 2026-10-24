@@ -12,7 +12,6 @@ import time
 from datetime import timedelta
 from typing import Any, Dict, Mapping, Optional
 
-import aiohttp
 from aiohttp import web
 import voluptuous as vol
 
@@ -26,6 +25,7 @@ from homeassistant.data_entry_flow import FlowResult, FlowResultType, section
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.network import NoURLAvailableError, get_url
 from homeassistant.util import dt as dt_util
@@ -729,13 +729,13 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
         # DEFAULT_SCOPE. Stream descriptor selection is done in the portal.
         self._requested_scope = DEFAULT_SCOPE
         self._code_verifier = _build_code_verifier()
-        async with aiohttp.ClientSession() as session:
-            self._device_data = await request_device_code(
-                session,
-                client_id=self._client_id,
-                scope=self._requested_scope,
-                code_challenge=_generate_code_challenge(self._code_verifier),
-            )
+        session = async_get_clientsession(self.hass)
+        self._device_data = await request_device_code(
+            session,
+            client_id=self._client_id,
+            scope=self._requested_scope,
+            code_challenge=_generate_code_challenge(self._code_verifier),
+        )
 
     async def _async_poll_for_tokens(self) -> Dict[str, Any]:
         """Background task: poll BMW until the user approves the device."""
@@ -746,15 +746,15 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
 
         device_code = self._device_data["device_code"]
         interval = int(self._device_data.get("interval", 5))
-        async with aiohttp.ClientSession() as session:
-            return await poll_for_tokens(
-                session,
-                client_id=self._client_id,
-                device_code=device_code,
-                code_verifier=self._code_verifier,
-                interval=interval,
-                timeout=int(self._device_data.get("expires_in", 600)),
-            )
+        session = async_get_clientsession(self.hass)
+        return await poll_for_tokens(
+            session,
+            client_id=self._client_id,
+            device_code=device_code,
+            code_verifier=self._code_verifier,
+            interval=interval,
+            timeout=int(self._device_data.get("expires_in", 600)),
+        )
 
     async def async_step_authorize(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         assert self._device_data is not None
@@ -889,11 +889,7 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
             self.hass.config_entries.async_update_entry(self._reauth_entry, data=merged)
             runtime = getattr(self._reauth_entry, "runtime_data", None)
             if runtime:
-                runtime.reauth_in_progress = False
-                runtime.reauth_flow_id = None
-                runtime.last_reauth_attempt = 0.0
-                runtime.last_refresh_attempt = 0.0
-                runtime.reauth_pending = False
+                runtime.reauth.authorized()
                 new_token = entry_data.get("id_token")
                 new_gcid = entry_data.get("gcid")
                 if new_token or new_gcid:
@@ -1010,8 +1006,7 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
             if self._reauth_entry:
                 runtime = getattr(self._reauth_entry, "runtime_data", None)
                 if runtime:
-                    runtime.reauth_in_progress = False
-                    runtime.reauth_flow_id = None
+                    runtime.reauth.abandoned()
             return self.async_abort(
                 reason="reauth_device_code_failed",
                 description_placeholders={"error": str(err)},
@@ -2514,8 +2509,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         updated["client_id"] = client_id
         runtime = self._get_runtime()
         if runtime:
-            runtime.reauth_in_progress = True
-            runtime.reauth_pending = True
+            runtime.reauth.started_by_user()
         self.hass.config_entries.async_update_entry(entry, data=updated)
 
         flow_result = await self.hass.config_entries.flow.async_init(

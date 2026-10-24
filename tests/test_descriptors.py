@@ -10,6 +10,9 @@ from __future__ import annotations
 import importlib.util
 import pathlib
 import sys
+from types import SimpleNamespace
+
+from .conftest import load_module
 
 _PKG = pathlib.Path(__file__).resolve().parents[1] / "custom_components" / "bavariandata"
 
@@ -154,15 +157,32 @@ def test_position_stays_in_the_stream_request():
 
 
 def test_sensor_platform_creates_the_coordinates_per_car_and_disabled():
-    # sensor.py imports Home Assistant, so it is read, not run.
-    assert "def ensure_location_entities(vin: str)" in _SENSOR_SRC
-    assert "_attr_entity_registry_enabled_default = False" in _SENSOR_SRC
+    plan_module = load_module("sensor_plan")
+    coordinator = SimpleNamespace(
+        history=None,
+        tyre_diagnosis={},
+        get_state=lambda vin, descriptor: None,
+        is_combustion_only=lambda vin: False,
+    )
+    made = []
+    plan = plan_module.SensorPlan(
+        coordinator, "entry", lambda wants, update: made.extend(wants) or list(wants)
+    )
     # Per car, not per descriptor: a restored position is never a *new*
-    # descriptor, so creation keyed on lat/lon arriving never fires. It runs
-    # from every ensure_entity and from the setup loop over known cars.
-    body = _SENSOR_SRC.split("def ensure_entity(", 1)[1][:400]
-    assert "ensure_location_entities(vin)" in body
-    setup_loop = _SENSOR_SRC.split("for vin in list(coordinator.data.keys()):", 1)[1][:300]
-    assert "ensure_location_entities(vin)" in setup_loop
+    # descriptor, so creation keyed on lat/lon arriving never fires. Any
+    # descriptor of the car, and the startup walk over known cars, make them.
+    plan.descriptor("VIN1", "vehicle.vehicle.speed")
+    plan.known([], ["VIN2"], [])
+    locations = {(w.vin, w.key) for w in made if w.kind == plan_module.LOCATION}
+    assert locations == {
+        (vin, descriptor)
+        for vin in ("VIN1", "VIN2")
+        for descriptor in D.OPT_IN_LOCATION_DESCRIPTORS
+    }
     # And the generic path must not also mint them (duplicate unique_id).
-    assert "TRACKER_ONLY_LOCATION_DESCRIPTORS | OPT_IN_LOCATION_DESCRIPTORS" in _SENSOR_SRC
+    for descriptor in D.OPT_IN_LOCATION_DESCRIPTORS:
+        plan.descriptor("VIN1", descriptor, assume_sensor=True)
+    assert not [w for w in made if w.kind == plan_module.DESCRIPTOR]
+    # Disabled through the entity's registry default (sensor.py imports Home
+    # Assistant, so that half is read, not run).
+    assert "_attr_entity_registry_enabled_default = False" in _SENSOR_SRC

@@ -1,9 +1,12 @@
-"""Binary sensor platform for BMW CarData."""
+"""Binary sensor platform for BMW CarData.
+
+Which binary sensors a car gets and what they show is decided in
+``binary_sensor_plan.py``; this module builds the entities and listens.
+"""
 
 from __future__ import annotations
 
 import time
-from typing import Any, Dict, Optional, Tuple
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -14,39 +17,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers import entity_registry as er
 
+from . import binary_sensor_plan
 from .coordinator import CardataCoordinator
-from .coverage import is_ev_only_descriptor
 from .entity import CardataEntity
 
-
-def _binary_device_class(
-    descriptor: str,
-) -> tuple[BinarySensorDeviceClass | None, bool]:
-    """Return ``(device_class, invert)`` for a boolean descriptor.
-
-    A binary sensor with no device class always renders as plain on/off. BMW
-    reports the raw boolean as ``True`` == the open / plugged / moving / locked
-    state, so most classes need no inversion. The exception is HA's ``LOCK``
-    class, whose polarity is inverted (``on`` == *unlocked*): lock booleans are
-    inverted here so the UI reads Locked / Unlocked correctly.
-    """
-
-    d = descriptor.lower()
-    if d.endswith(".islocked"):
-        return BinarySensorDeviceClass.LOCK, True
-    if d.endswith(".isplugged"):
-        return BinarySensorDeviceClass.PLUG, False
-    if d.endswith(".ismoving"):
-        return BinarySensorDeviceClass.MOVING, False
-    if d.endswith(("engine.isactive", ".isignitionon")):
-        return BinarySensorDeviceClass.RUNNING, False
-    if d.endswith(".ismobilephoneconnected"):
-        return BinarySensorDeviceClass.CONNECTIVITY, False
-    if d.endswith(".isopen"):
-        if ".window." in d:
-            return BinarySensorDeviceClass.WINDOW, False
-        return BinarySensorDeviceClass.OPENING, False
-    return None, False
+PARALLEL_UPDATES = 0
 
 
 class CardataBinarySensor(CardataEntity, BinarySensorEntity):
@@ -54,7 +29,10 @@ class CardataBinarySensor(CardataEntity, BinarySensorEntity):
         super().__init__(coordinator, vin, descriptor)
         self._attr_should_poll = False
         self._unsubscribe = None
-        self._attr_device_class, self._invert = _binary_device_class(descriptor)
+        device_class, self._invert = binary_sensor_plan.device_class(descriptor)
+        self._attr_device_class = (
+            BinarySensorDeviceClass(device_class) if device_class is not None else None
+        )
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -81,18 +59,10 @@ class CardataBinarySensor(CardataEntity, BinarySensorEntity):
         state = self._coordinator.get_state(vin, descriptor)
         if not state or not isinstance(state.value, bool):
             return
-        # LOCK is polarity-inverted (on == unlocked); see _binary_device_class.
+        # LOCK is polarity-inverted (on == unlocked); see binary_sensor_plan.
         self._attr_is_on = (not state.value) if self._invert else state.value
 
         self.schedule_update_ha_state()
-
-
-# How often the in-progress figures (distance, duration, SoC) are rewritten while
-# a drive is under way. The stream delivers a fix every few seconds, and writing
-# each one would put hundreds of rows per drive in the recorder for numbers nobody
-# reads that precisely. The open/closed edges are never throttled, and a frontend
-# can tick the elapsed time itself from ``started``.
-TRIP_PROGRESS_WRITE_INTERVAL_S = 60
 
 
 class CardataTripInProgressBinarySensor(CardataEntity, BinarySensorEntity):
@@ -113,11 +83,10 @@ class CardataTripInProgressBinarySensor(CardataEntity, BinarySensorEntity):
     """
 
     _attr_should_poll = False
-    _attr_icon = "mdi:steering"
-    _attr_translation_key = "trip_in_progress"
+    _attr_translation_key = binary_sensor_plan.TRIP_IN_PROGRESS
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
-        super().__init__(coordinator, vin, "trip_in_progress")
+        super().__init__(coordinator, vin, binary_sensor_plan.TRIP_IN_PROGRESS)
         self._attr_should_poll = False
         self._unsub_active = None
         self._unsub_update = None
@@ -131,21 +100,9 @@ class CardataTripInProgressBinarySensor(CardataEntity, BinarySensorEntity):
     @property
     def extra_state_attributes(self) -> dict:
         attrs = dict(super().extra_state_attributes)
-        progress: Optional[Dict[str, Any]] = self._coordinator.open_trip_progress(self.vin)
-        if progress is None:
-            # Parked: carry no figures at all rather than the last drive's, which
-            # would go on reading like a live trip.
-            return attrs
-        start_place = progress.get("start_place") or {}
-        attrs["started"] = progress.get("start")
-        attrs["start_location"] = start_place.get("label")
-        attrs["distance_km"] = progress.get("distance_km")
-        attrs["duration_s"] = progress.get("duration_s")
-        attrs["soc_start"] = progress.get("soc_start")
-        attrs["soc_now"] = progress.get("soc_end")
-        attrs["energy_kwh"] = progress.get("energy_kwh")
-        attrs["last_movement"] = progress.get("last_movement")
-        attrs["held"] = progress.get("held")
+        attrs.update(
+            binary_sensor_plan.trip_attributes(self._coordinator.open_trip_progress(self.vin))
+        )
         return attrs
 
     async def async_added_to_hass(self) -> None:
@@ -180,15 +137,10 @@ class CardataTripInProgressBinarySensor(CardataEntity, BinarySensorEntity):
     def _handle_stream(self, vin: str, descriptor: str) -> None:
         """Refresh the in-progress figures, at most once per interval."""
 
-        if vin != self.vin:
-            return
-        on = self.is_on
-        if on == self._written_on:
-            if not on:
-                return  # parked and known to be parked: nothing to refresh
-            if time.monotonic() - self._last_write < TRIP_PROGRESS_WRITE_INTERVAL_S:
-                return
-        self._write()
+        if vin == self.vin and binary_sensor_plan.trip_write_due(
+            self.is_on, self._written_on, time.monotonic() - self._last_write
+        ):
+            self._write()
 
     def _write(self) -> None:
         self._written_on = self.is_on
@@ -197,76 +149,32 @@ class CardataTripInProgressBinarySensor(CardataEntity, BinarySensorEntity):
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
-    runtime = entry.runtime_data
-    coordinator: CardataCoordinator = runtime.coordinator
+    coordinator: CardataCoordinator = entry.runtime_data.coordinator
 
-    entities: Dict[Tuple[str, str], CardataBinarySensor] = {}
-    trip_entities: Dict[str, CardataTripInProgressBinarySensor] = {}
-
-    def ensure_trip_entity(vin: str) -> None:
-        if vin in trip_entities:
-            return
-        entity = CardataTripInProgressBinarySensor(coordinator, vin)
-        trip_entities[vin] = entity
-        async_add_entities([entity])
-
-    def ensure_entity(vin: str, descriptor: str, *, assume_binary: bool = False) -> None:
-        if (vin, descriptor) in entities:
-            return
-        if is_ev_only_descriptor(descriptor) and coordinator.is_combustion_only(vin):
-            # A charging port or plug on a car with no traction battery.
-            return
-        state = coordinator.get_state(vin, descriptor)
-        if state:
-            if not isinstance(state.value, bool):
-                return
-        elif not assume_binary:
-            return
-        entity = CardataBinarySensor(coordinator, vin, descriptor)
-        entities[(vin, descriptor)] = entity
-        async_add_entities([entity])
+    plan = binary_sensor_plan.BinarySensorPlan(
+        coordinator,
+        lambda vin, descriptor: async_add_entities(
+            [CardataBinarySensor(coordinator, vin, descriptor)]
+        ),
+        lambda vin: async_add_entities([CardataTripInProgressBinarySensor(coordinator, vin)]),
+    )
 
     entity_registry = er.async_get(hass)
     for entity_entry in er.async_entries_for_config_entry(entity_registry, entry.entry_id):
-        if entity_entry.domain != "binary_sensor":
-            continue
-        if entity_entry.disabled_by is not None:
-            continue
-        unique_id = entity_entry.unique_id
-        if not unique_id or "_" not in unique_id:
-            continue
-        vin, descriptor = unique_id.split("_", 1)
-        if descriptor == "trip_in_progress":
-            # Derived entity, not a BMW descriptor: re-create it as itself rather
-            # than letting the generic path mint a CardataBinarySensor on its id.
-            ensure_trip_entity(vin)
-            continue
-        ensure_entity(vin, descriptor, assume_binary=True)
+        if entity_entry.domain == "binary_sensor" and entity_entry.disabled_by is None:
+            plan.restore(entity_entry.unique_id)
 
-    for vin, descriptor in coordinator.iter_descriptors(binary=True):
-        ensure_entity(vin, descriptor)
-
-    for vin in list(coordinator.data.keys()):
-        ensure_trip_entity(vin)
+    plan.known(coordinator.iter_descriptors(binary=True), list(coordinator.data))
 
     async def async_handle_new(vin: str, descriptor: str) -> None:
-        # A vehicle can turn up after setup (its first message arrives late), so
-        # the trip flag is ensured here too rather than only at startup.
-        ensure_trip_entity(vin)
-        ensure_entity(vin, descriptor)
+        plan.new_descriptor(vin, descriptor)
 
     entry.async_on_unload(
         async_dispatcher_connect(hass, coordinator.signal_new_binary, async_handle_new)
     )
 
     async def async_handle_trip_active(vin: str) -> None:
-        # A vehicle whose first data arrived after setup gets its flag on the trip
-        # that revealed it, instead of waiting for the next restart. Only on the
-        # opening edge: the closing edge also fires while unloading (open trips are
-        # flushed before the platforms come down), and adding an entity then would
-        # race the teardown.
-        if coordinator.has_open_trip(vin):
-            ensure_trip_entity(vin)
+        plan.trip_edge(vin, coordinator.has_open_trip(vin))
 
     entry.async_on_unload(
         async_dispatcher_connect(hass, coordinator.signal_trip_active, async_handle_trip_active)

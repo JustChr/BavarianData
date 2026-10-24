@@ -10,18 +10,24 @@ user's personal BMW client ID. Domain: `bavariandata`. Repo:
 - `custom_components/bavariandata/` — the integration (everything shipped to users).
   - `api.py` — REST client (auth headers, BMW's `CU-` error codes).
   - `rest.py` — the one way into REST: `TokenKeeper` (renews only near expiry, one renewal at a time; every renewal reconnects the stream) and `RestGateway` (token → quota claim → request). No HA imports. Every REST caller goes through `runtime.rest`.
+  - `account_rest.py` — what an account asks BMW over REST, and when: containers, the bootstrap, each car's telematics/basic data/tyres, the catch-up, the daily refresh. HA-free behind an `AccountHost` Protocol that `__init__._EntryHost` implements; a strict fetch raises `FetchFailed`, which the service wrapper turns into `HomeAssistantError`.
+  - `reauth.py` — the token-refresh loop and `ReauthGate` (on `runtime.reauth`): when a refused stream login is retried and when it opens a reauth flow (only when BMW rejected the login, never on a network error). HA-free behind `__init__._ReauthHost`; the config flow tells the gate through `authorized()` / `abandoned()` / `started_by_user()`.
+  - `entry_setup.py` — what `async_setup_entry` decides (options → coordinator, the history's one-time repairs, stored cars back as devices, registry fixes); `__init__.py` only builds the parts in order and wires them.
+  - `quota.py` — the rolling 50-a-day count (`QuotaManager`), kept in a store across restarts; HA-free, `__init__._async_quota_manager` passes HA's `Store` and the exhaustion repair in.
   - `container.py` — the two REST containers every car reads: `FULL` (non-streamable + battery seed) and `SERVICE` (`conditionBasedServices` alone: BMW refuses a whole container over that one field since 16 Oct 2026, #142).
-  - `services.py` — every service handler, registered once from `async_setup`; a handler finds its account only through `_resolve_target`, and its car through `_target_car` (a `device_id` picker, `vin` or `entry_id`). The rules are HA-free in `service_target.py`: with two cars, a one-car service refuses a call that names none.
+  - `services.py` — every service handler, registered once from `async_setup`; a handler finds its account only through `_resolve_target`, and its car through `_target_car` (a `device_id` picker, `vin` or `entry_id`). The rules are HA-free in `service_target.py`: with two cars, a one-car service refuses a call that names none. What the handlers work out (month/date/limit arguments, export files, the evcc block, the portal activation's attributes and errors) is HA-free in `service_answers.py`; `tests_ha/test_services.py` calls every service.
   - `assist.py` / `assist_api.py` — the BavarianData LLM API: six read-only tools a conversation agent (or HA's MCP server) can call. `assist.py` is HA-free and decides what an answer may hold (no VIN, ids, coordinates, curves; the open/unlocked rule shared with the `car_left_open` blueprint); the adapter is registered once from `async_setup` and reads through the read services.
   - `device_flow.py` — OAuth 2.0 device-authorization flow (no HA imports; unit-testable).
   - `stream.py` — MQTT streaming client (paho-mqtt).
   - `coordinator.py` — central state: token refresh, stream lifecycle, quota, charging-session tracking + `bavariandata_charging_*` events, derived charged-energy sensors.
+  - The coordinator's engines, each reaching it only through a small host Protocol (the charging, trip and report engines import the same few HA helpers it does, so they run under `tests/fake_ha.py` too): `vehicle_charging.py` (sessions, meter, derived energy), `vehicle_trips.py` (trip detection), `trip_capture.py`, `stream_health.py`, `vehicle_events.py`/`vehicle_triggers.py`, `vehicle_reports.py`; `car_signals.py` holds the signal and event names they share.
   - `car_state.py` — everything the coordinator remembers about one car, in one `Vehicle` (parts: `charge`, `session`, `trip`, `gps`, `report`). Write through `coordinator._car(vin)`, read through `_peek(vin)`: a read never creates a car, and the empty `NO_CAR` it gets refuses writes. No HA imports.
   - `vehicle_options.py` — settings a car holds for itself (`options["vehicles"][VIN]`): trips, wallbox meter + losses, evcc publish, mileage allowance. A car holds a screen's group whole or uses the account-wide keys; single-car accounts write the account-wide keys, except the mileage allowance, which is always the car's own (a car added later must not inherit a lease). No HA imports.
   - `mileage.py` — the mileage overview and allowance (lease or yearly limit), read off the daily odometer log in `history/odometer.py`; `service_calendar.py` — the car's service items (and a lease's end) as calendar events, with its own per-language texts. Both HA-free.
   - `config_flow.py` — setup wizard: client ID → device auth → cluster picker → in-browser bookmarklet activator (shared by guided, manual and Configure via `_StreamActivatorFlow`; BMW has **no API** for Data Selection, it's portal-only).
   - `configurator.py` — opt-in pictures and equipment names from BMW's online configurator (not CarData, unofficial, no quota): 360° spins (plain/lights/night), interior cube, MINI top view, option names. Keys are read from the configurator's settings file at fetch time. No HA imports; `image.py` stores the files under `.storage/bavariandata_renders` and serves them behind HA's login.
   - `sensor.py` / `binary_sensor.py` / `image.py` / `device_tracker.py` / `calendar.py` / `entity.py` — entity platforms. One device per VIN.
+  - `sensor_plan.py` — which sensors each car gets (battery sensors only with a battery, cost sensors only with a tariff, registry entries restored as themselves, tyres following BMW's diagnosis). HA-free; `sensor.py` builds the entity each `Want` names. `sensor_values.py` — what the derived sensors show (states, attribute sets the card reads), HA-free too. `binary_sensor_plan.py` — the same for the binary sensors (which a car gets, device class and lock polarity, the trip flag's attributes and write throttle).
   - `descriptors.py`, `keys.py`, `units.py` — descriptor → entity mapping; `keys.py` derives the HA `translation_key` and is shared by runtime **and** generators so they can't drift.
   - `www/bavariandata-card.js` — bundled Lovelace card (vanilla JS, registered automatically by `__init__.py`; no build step). Groups entities via their `cluster`/`category` attributes, not names.
 - `tools/` — catalogue generation pipeline (see below).
@@ -119,6 +125,10 @@ refactor PR carries the `refactor` label, which runs the gate in CI. Keep the
 harness on the coordinator's public methods only (so the base can run it),
 and give a new public method a probe in `trace.py` (`test_trace.py` fails
 otherwise). A test that asserts something account-wide is `@pytest.mark.solo`.
+What Home Assistant shows is the gate's other half, in `tests_ha/` as
+snapshots: `test_surface.py` (every device, entity entry, state and service of
+a three-car account) and `test_flow_snapshots.py` (every setup and Configure
+step). Approve an intended change with `--snapshot-update` and read the diff.
 
 **Every coordinator bug fix adds a scenario or a replay** that fails without
 the fix — prove it by reverting the fix once. A known bug not yet fixed is
