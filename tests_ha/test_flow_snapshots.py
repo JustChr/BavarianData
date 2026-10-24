@@ -366,6 +366,42 @@ async def test_reauthentication(hass: HomeAssistant, bmw_auth, snapshot) -> None
     assert walk.steps == snapshot
 
 
+async def test_reconfiguration(hass: HomeAssistant, bmw_auth, snapshot) -> None:
+    """Reconfigure changes the Client ID within the same BMW account only."""
+
+    walk = _Walk()
+    entry = MockConfigEntry(
+        domain=DOMAIN, unique_id=CLIENT_ID, data={"client_id": CLIENT_ID, "gcid": "gcid-1"}
+    )
+    entry.add_to_hass(hass)
+    other = "99999999-8888-7777-6666-555555555555"
+
+    result = walk(await entry.start_reconfigure_flow(hass))
+    walk.note("no client id")
+    result = await _step(hass, walk, result, {"client_id": "  "})
+    walk.note("BMW refuses a device code")
+    bmw_auth.device_code.side_effect = CardataAuthError("refused")
+    result = await _step(hass, walk, result, {"client_id": other})
+    bmw_auth.device_code.side_effect = None
+    walk.note("a client of the same account")
+    result = await _step(hass, walk, result, {"client_id": f" {other} "})
+    await _released(hass, bmw_auth)
+    await _step(hass, walk, result)
+    walk.note("entry", {"unique_id": entry.unique_id, "client_id": entry.data["client_id"]})
+
+    walk.note("a client of another account")
+    bmw_auth.answer = {**TOKENS, "gcid": "gcid-2"}
+    bmw_auth.released.clear()
+    result = walk(await entry.start_reconfigure_flow(hass))
+    result = await _step(hass, walk, result, {"client_id": CLIENT_ID})
+    await _released(hass, bmw_auth)
+    await _step(hass, walk, result)
+    walk.note("entry", {"unique_id": entry.unique_id, "client_id": entry.data["client_id"]})
+
+    assert entry.unique_id == entry.data["client_id"] == other
+    assert walk.steps == snapshot
+
+
 # --- Configure ----------------------------------------------------------------
 
 
@@ -689,9 +725,8 @@ async def test_configure_connection(hass: HomeAssistant, no_bmw, device_flow, sn
 
     walk.note("authorize again")
     result = await _configure(hass, entry, walk, "connection", "action_reauth")
-    result = await _submit(hass, walk, result, {"client_id": "  "})
     with patch(f"{PACKAGE}.stream.CardataStreamManager.async_update_credentials"):
-        await _submit(hass, walk, result, {"client_id": f" {CLIENT_ID} "})
+        await _submit(hass, walk, result, {})
         (flow,) = hass.config_entries.flow.async_progress()
         walk.note("reauth flow", flow["step_id"])
         await _released(hass, device_flow)

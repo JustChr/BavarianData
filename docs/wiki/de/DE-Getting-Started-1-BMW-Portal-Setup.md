@@ -98,8 +98,10 @@ existiert.
 - **Eine Client-ID gilt für das ganze Konto**, für jedes Auto darin. Du brauchst
   keine pro Auto, und Home Assistant lehnt eine zweite für dasselbe Konto ab.
 - **Löschst du den Client** im Portal, lege einen neuen an (wieder mit beiden
-  Abos) und gib Home Assistant die neue ID unter **Konfigurieren → Verbindung → Neu bei BMW
-  autorisieren**.
+  Abos) und gib Home Assistant die neue ID über **Neu konfigurieren** an der
+  Integration (*Einstellungen → Geräte & Dienste → BavarianData → ⋮*). Deine
+  Fahrzeuge, ihr Verlauf und deine Einstellungen bleiben, und ein Client eines
+  anderen BMW-Kontos wird abgelehnt.
 - **Meldet die Einrichtung „BMW hat die Anfrage zur Geräteautorisierung
   abgelehnt“?** Prüfe, ob die ID vollständig kopiert ist und für den Client sowohl
   **CarData API** als auch **CarData Stream** eingeschaltet sind.

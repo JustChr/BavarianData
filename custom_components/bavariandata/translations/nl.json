@@ -60,6 +60,16 @@
       "activate_stream_done": {
         "title": "Stream geactiveerd",
         "description": "Klaar — de activator heeft **{added_count}** nieuw(e) veld(en) aangezet; er worden nu **{field_count}** velden gestreamd voor dit voertuig.{error}\n\nDruk op **Verzend** om de installatie af te ronden en vergrendel/ontgrendel daarna de auto in de MyBMW-app om de eerste update op te wekken."
+      },
+      "reconfigure": {
+        "title": "Client ID wijzigen",
+        "description": "Gebruik een andere CarData Client van hetzelfde BMW-account. Daarna meld je je aan bij BMW; je auto's, hun geschiedenis en je instellingen blijven.",
+        "data": {
+          "client_id": "Client ID"
+        },
+        "data_description": {
+          "client_id": "De Client ID van een CarData Client in het BMW-portaal, geabonneerd op CarData API en CarData Streaming."
+        }
       }
     },
     "progress": {
@@ -70,14 +80,17 @@
     "error": {
       "device_code_failed": "BMW heeft het verzoek om apparaatautorisatie geweigerd ({error}). Controleer of de Client ID klopt en geabonneerd is op beide CarData-diensten, en probeer het opnieuw.",
       "invalid_result": "Dat resultaat kon niet worden gelezen. Voer de bladwijzer Activate BMW data uit op de pagina van het BMW-portaal en plak precies wat hij naar je klembord heeft gekopieerd.",
-      "no_client_id": "Er is geen API-client op je account gevonden. Maak een CarData Client aan in het BMW-portaal en voer daarna de bladwijzer Activate BMW data opnieuw uit."
+      "no_client_id": "Er is geen API-client op je account gevonden. Maak een CarData Client aan in het BMW-portaal en voer daarna de bladwijzer Activate BMW data opnieuw uit.",
+      "invalid_client_id": "Voer de BMW CarData Client ID in."
     },
     "abort": {
       "account_already_configured": "Dit BMW-account is al ingesteld in Home Assistant. Eén item dekt het hele account, inclusief elke auto erop — een tweede Client ID voor hetzelfde account toevoegen zou de stream voor beide breken, omdat BMW maar één verbinding per account toestaat. Gebruik het bestaande item of verwijder het eerst.",
       "reauth_successful": "Opnieuw autoriseren gelukt — BMW CarData is weer verbonden.",
-      "reauth_device_code_failed": "BMW heeft het verzoek om apparaatautorisatie geweigerd ({error}). Werk de Client ID bij via Configureer → Opnieuw autoriseren bij BMW, of verwijder de integratie en voeg haar opnieuw toe.",
+      "reauth_device_code_failed": "BMW heeft het verzoek om apparaatautorisatie geweigerd ({error}). Wijzig de Client ID met Herconfigureer bij de integratie, of verwijder de integratie en voeg haar opnieuw toe.",
       "reauth_missing_client_id": "De Client ID ontbreekt voor dit integratie-item. Verwijder de integratie en voeg haar opnieuw toe om opnieuw te autoriseren.",
-      "reauth_failed": "Opnieuw autoriseren kon niet worden gestart. Probeer het opnieuw via de opties van de integratie."
+      "reauth_failed": "Opnieuw autoriseren kon niet worden gestart. Probeer het opnieuw via de opties van de integratie.",
+      "reconfigure_successful": "Client ID gewijzigd: BMW CarData is verbonden met de nieuwe client.",
+      "wrong_account": "Deze Client ID hoort bij een ander BMW-account, dus er is niets gewijzigd. Een andere Client ID behoudt dit account met zijn auto's en hun geschiedenis; voeg de integratie opnieuw toe voor een ander account."
     }
   },
   "options": {
@@ -151,13 +164,7 @@
       },
       "action_reauth": {
         "title": "Opnieuw autoriseren bij BMW",
-        "description": "Voer de apparaatautorisatie van BMW opnieuw uit — bijvoorbeeld nadat de refresh token is verlopen (elke 2 weken) of als je een nieuwe Client ID hebt aangemaakt. Daarna keur je Home Assistant goed op de website van BMW.",
-        "data": {
-          "client_id": "Client ID"
-        },
-        "data_description": {
-          "client_id": "Laat staan om de huidige Client ID te hergebruiken, of plak een nieuwe uit het BMW-portaal."
-        }
+        "description": "Meld je opnieuw aan bij BMW, bijvoorbeeld als Home Assistant erom vraagt of nadat de refresh token is verlopen (elke 2 weken). Daarna keur je Home Assistant goed op de website van BMW. Kies Herconfigureer bij de integratie voor een andere Client ID."
       },
       "action_reset_container": {
         "title": "Telemetriecontainer resetten",
@@ -472,7 +479,6 @@
       "runtime_missing": "De integratie is nog niet klaar. Probeer het opnieuw zodra de installatie is afgerond.",
       "no_vins": "Er zijn nog geen voertuigen bekend. Voer eerst \"Voertuigen zoeken\" uit of wacht tot de stream er een meldt.",
       "invalid_int": "Voer een positief geheel getal in.",
-      "invalid_client_id": "Voer de BMW CarData Client ID in.",
       "invalid_result": "Dat resultaat kon niet worden gelezen. Voer de bladwijzer Activate BMW data uit op de stream setup-pagina van het BMW-portaal en plak precies wat hij naar je klembord heeft gekopieerd.",
       "price_required": "Voer een vaste prijs per kWh in, of kies een andere prijsbron.",
       "price_entity_required": "Kies de entiteit die je prijs per kWh meldt, of kies een andere prijsbron.",
