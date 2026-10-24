@@ -302,24 +302,12 @@ class CardataDiagnosticsSensor(SensorEntity, RestoreEntity):
         self._sensor_type = sensor_type
         self._quota = quota_manager
         self._unsub = None
-        # Known types are named from translations (tools/derived_entities.json);
-        # only the catch-all keeps a literal _attr_name, since an unforeseen
-        # sensor_type has no translation to resolve.
-        if sensor_type == "last_message":
-            suffix = "last_message"
-            self._attr_translation_key = suffix
+        # One of sensor_plan.DIAGNOSTIC_TYPES, each named from translations
+        # (tools/derived_entities.json).
+        self._attr_translation_key = sensor_type
+        if sensor_type in {"last_message", "last_telematic_api"}:
             self._attr_device_class = SensorDeviceClass.TIMESTAMP
-        elif sensor_type == "last_telematic_api":
-            suffix = "last_telematic_api"
-            self._attr_translation_key = suffix
-            self._attr_device_class = SensorDeviceClass.TIMESTAMP
-        elif sensor_type == "connection_status":
-            suffix = "connection_status"
-            self._attr_translation_key = suffix
-        else:
-            suffix = sensor_type
-            self._attr_name = sensor_type
-        self._attr_unique_id = f"{entry_id}_diagnostics_{suffix}"
+        self._attr_unique_id = f"{entry_id}_diagnostics_{sensor_type}"
 
     @property
     def device_info(self) -> DeviceInfo:
