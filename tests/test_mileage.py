@@ -225,3 +225,46 @@ def test_a_year_begun_before_the_log_is_estimated_at_the_pace():
         "estimated_km"
         not in mileage.mileage_report(_steady(date(2025, 6, 1), TODAY, 30.0), TODAY)["this_year"]
     )
+
+
+# --- the edges ---------------------------------------------------------------
+
+
+def test_dates_and_numbers_are_read_leniently() -> None:
+    assert mileage.parse_date(TODAY) is TODAY
+    assert mileage.parse_date("2026-10-14") == TODAY
+    assert mileage.parse_date("soon") is None
+    assert mileage._number(True) is None
+    assert mileage._number("12.5") == 12.5
+
+
+def test_the_odometer_on_a_day_is_read_at_its_start() -> None:
+    # A day's reading stands for its end, so it counts from the next morning.
+    log = {"2026-10-01": 1000.0, "2026-10-11": 1100.0}
+    assert mileage.odometer_at({}, TODAY) is None
+    assert mileage.odometer_at(log, date(2026, 10, 1)) is None
+    assert mileage.odometer_at(log, date(2026, 10, 6)) == 1040.0
+    assert mileage.odometer_at(log, TODAY) == 1100.0
+
+
+def test_a_contract_ending_short_of_a_whole_month() -> None:
+    # 30 Jan to 26 Feb: the month's anniversary (28 Feb) lies past its end.
+    assert mileage.contract_years(date(2026, 1, 30), date(2026, 2, 26)) < 1 / 12
+
+
+def test_a_yearly_limit_starting_later_this_year_starts_on_its_day() -> None:
+    begin, _end = mileage.yearly_period(date(2026, 12, 1), TODAY)
+    assert begin == date(2026, 12, 1)
+
+
+def test_a_young_log_is_paced_by_what_was_used_so_far() -> None:
+    settings = {
+        "kind": mileage.KIND_LEASE,
+        "start": date(2026, 10, 1),
+        "end": date(2029, 9, 30),
+        "per_year_km": 15000,
+        "start_km": 1000.0,
+    }
+    status = mileage.allowance_status(settings, {"2026-10-13": 1260.0}, TODAY)
+    assert status["status"] == "ok" and status["used_km"] == 260
+    assert status["projected_km"] > status["used_km"]
