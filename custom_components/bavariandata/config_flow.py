@@ -889,11 +889,7 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
             self.hass.config_entries.async_update_entry(self._reauth_entry, data=merged)
             runtime = getattr(self._reauth_entry, "runtime_data", None)
             if runtime:
-                runtime.reauth_in_progress = False
-                runtime.reauth_flow_id = None
-                runtime.last_reauth_attempt = 0.0
-                runtime.last_refresh_attempt = 0.0
-                runtime.reauth_pending = False
+                runtime.reauth.authorized()
                 new_token = entry_data.get("id_token")
                 new_gcid = entry_data.get("gcid")
                 if new_token or new_gcid:
@@ -1010,8 +1006,7 @@ class CardataConfigFlow(_StreamActivatorFlow, config_entries.ConfigFlow, domain=
             if self._reauth_entry:
                 runtime = getattr(self._reauth_entry, "runtime_data", None)
                 if runtime:
-                    runtime.reauth_in_progress = False
-                    runtime.reauth_flow_id = None
+                    runtime.reauth.abandoned()
             return self.async_abort(
                 reason="reauth_device_code_failed",
                 description_placeholders={"error": str(err)},
@@ -2514,8 +2509,7 @@ class CardataOptionsFlowHandler(_StreamActivatorFlow, config_entries.OptionsFlow
         updated["client_id"] = client_id
         runtime = self._get_runtime()
         if runtime:
-            runtime.reauth_in_progress = True
-            runtime.reauth_pending = True
+            runtime.reauth.started_by_user()
         self.hass.config_entries.async_update_entry(entry, data=updated)
 
         flow_result = await self.hass.config_entries.flow.async_init(

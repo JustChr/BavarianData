@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 import json
 import logging
 import os
@@ -40,9 +41,6 @@ from .const import (
     DEFAULT_SCOPE,
     DEFAULT_STREAM_HOST,
     DEFAULT_STREAM_PORT,
-    DEFAULT_REFRESH_INTERVAL,
-    TOKEN_REFRESH_RETRY_DELAY,
-    TOKEN_REFRESH_RETRY_MAX,
     DOMAIN,
     MQTT_KEEPALIVE,
     BOOTSTRAP_COMPLETE,
@@ -61,7 +59,7 @@ from .const import (
     LOVELACE_CARD_FILENAME,
     LOVELACE_CARD_URL,
 )
-from .device_flow import CardataAuthError, refresh_rejected, refresh_tokens
+from .device_flow import CardataAuthError, refresh_tokens
 from .container import (
     KINDS,
     CardataContainerManager,
@@ -92,6 +90,7 @@ from .evcc import BridgeConfig
 from .history.store import HistoryStore
 
 from . import entry_setup
+from .reauth import ReauthGate, refresh_loop, renewed_entry_data
 from .account_rest import (
     LAST_TELEMATIC_POLL,
     AccountRest,
@@ -211,11 +210,8 @@ class CardataRuntimeData:
     bootstrap_task: asyncio.Task | None = None
     quota_manager: "QuotaManager" | None = None
     telematic_task: asyncio.Task | None = None
-    reauth_in_progress: bool = False
-    reauth_flow_id: str | None = None
-    last_reauth_attempt: float = 0.0
-    last_refresh_attempt: float = 0.0
-    reauth_pending: bool = False
+    # Whether a reauth flow is open, and when we last tried (reauth.py).
+    reauth: ReauthGate = field(default_factory=ReauthGate)
     # VINs whose basic data has been fetched (or attempted) since this entry
     # loaded, so a car that BMW answers nothing for cannot spend a quota
     # request on every stream message. See _async_on_new_vehicle.
@@ -654,7 +650,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     refresh_wake = asyncio.Event()
     refresh_task = entry.async_create_background_task(
         hass,
-        _refresh_loop(hass, entry, tokens, refresh_wake),
+        refresh_loop(tokens, refresh_wake, partial(_async_request_reauth, hass, entry)),
         f"{DOMAIN}_token_refresh",
     )
 
@@ -677,8 +673,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
         bootstrap_task=None,
         quota_manager=quota_manager,
         telematic_task=None,
-        reauth_in_progress=False,
-        reauth_flow_id=None,
     )
     entry.runtime_data = runtime_data
     # Track loaded entries so services (registered process-wide) are torn down
@@ -1195,151 +1189,44 @@ async def _async_forget_vehicles_now(hass: HomeAssistant, entry_id: str, vins: l
         await hass.config_entries.async_setup(entry_id)
 
 
+class _ReauthHost:
+    """``reauth.ReauthHost`` over a loaded entry."""
+
+    def __init__(self, hass: HomeAssistant, entry: CardataConfigEntry) -> None:
+        runtime: CardataRuntimeData = entry.runtime_data
+        self._hass = hass
+        self._entry = entry
+        self.entry_id = entry.entry_id
+        self.tokens = runtime.tokens
+        self.refresh_wake = runtime.refresh_wake
+
+    async def start_reauth(self) -> Optional[str]:
+        result = await self._hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": SOURCE_REAUTH, "entry_id": self.entry_id},
+            data={**self._entry.data, "entry_id": self.entry_id},
+        )
+        return result.get("flow_id") if isinstance(result, dict) else None
+
+    async def abort_flow(self, flow_id: str) -> None:
+        # A callback in Home Assistant, not a coroutine: awaited only if a
+        # release ever makes it one.
+        result = self._hass.config_entries.flow.async_abort(flow_id)
+        if inspect.isawaitable(result):
+            await result
+
+    def dismiss_notice(self) -> None:
+        persistent_notification.async_dismiss(self._hass, f"{DOMAIN}_reauth_{self.entry_id}")
+
+
 async def _handle_stream_error(hass: HomeAssistant, entry: CardataConfigEntry, reason: str) -> None:
-    runtime: CardataRuntimeData = entry.runtime_data
-    notification_id = f"{DOMAIN}_reauth_{entry.entry_id}"
-    if reason == "unauthorized":
-        if runtime.reauth_in_progress:
-            _LOGGER.debug(
-                "Ignoring duplicate unauthorized notification for entry %s", entry.entry_id
-            )
-            return
-
-        now = time.time()
-
-        if runtime.reauth_pending:
-            _LOGGER.debug(
-                "Reauth pending for entry %s after failed refresh; starting flow",
-                entry.entry_id,
-            )
-        elif now - runtime.last_refresh_attempt >= 30:
-            runtime.last_refresh_attempt = now
-            try:
-                _LOGGER.info(
-                    "Attempting token refresh after unauthorized response for entry %s",
-                    entry.entry_id,
-                )
-                await runtime.tokens.renew()
-                runtime.reauth_in_progress = False
-                runtime.last_reauth_attempt = 0.0
-                runtime.reauth_pending = False
-                return
-            except Exception as err:  # pylint: disable=broad-except
-                if not refresh_rejected(err):
-                    # The network or BMW failed, not the credentials: no reauth.
-                    # Have the refresh loop retry soon, or the stream waiting for
-                    # a new token would sit idle until the next regular refresh.
-                    _LOGGER.warning(
-                        "Token refresh after unauthorized failed for entry %s, retrying: %s",
-                        entry.entry_id,
-                        err,
-                    )
-                    runtime.refresh_wake.set()
-                    return
-                _LOGGER.warning(
-                    "Token refresh after unauthorized failed for entry %s: %s",
-                    entry.entry_id,
-                    err,
-                )
-        else:
-            runtime.reauth_pending = True
-            _LOGGER.debug(
-                "Token refresh attempted recently for entry %s; will trigger reauth",
-                entry.entry_id,
-            )
-
-        await _async_request_reauth(hass, entry, "BMW stream unauthorized")
-    elif reason == "recovered":
-        if runtime.reauth_in_progress:
-            runtime.reauth_in_progress = False
-            _LOGGER.info("BMW stream connection restored; dismissing reauth notification")
-            persistent_notification.async_dismiss(hass, notification_id)
-            if runtime.reauth_flow_id:
-                with suppress(Exception):
-                    await hass.config_entries.flow.async_abort(runtime.reauth_flow_id)
-                runtime.reauth_flow_id = None
-        runtime.reauth_pending = False
-        runtime.last_reauth_attempt = 0.0
+    await entry.runtime_data.reauth.stream_error(_ReauthHost(hass, entry), reason)
 
 
 async def _async_request_reauth(hass: HomeAssistant, entry: CardataConfigEntry, why: str) -> None:
     """Ask the user to authorize again, unless that is already under way."""
 
-    runtime: CardataRuntimeData = entry.runtime_data
-    now = time.time()
-    if runtime.reauth_in_progress or now - runtime.last_reauth_attempt < 30:
-        _LOGGER.debug(
-            "Reauth already requested for entry %s; skipping new flow",
-            entry.entry_id,
-        )
-        return
-
-    runtime.reauth_in_progress = True
-    runtime.last_reauth_attempt = now
-    runtime.reauth_pending = False
-    _LOGGER.error("%s; starting reauth flow", why)
-    if runtime.reauth_flow_id:
-        with suppress(Exception):
-            await hass.config_entries.flow.async_abort(runtime.reauth_flow_id)
-        runtime.reauth_flow_id = None
-    # No notification of our own: Home Assistant posts one for every reauth
-    # flow, and its card names the entry, whose title is its cars. Ours was a
-    # second, English-only one that said neither which account nor which car.
-    flow_result = await hass.config_entries.flow.async_init(
-        DOMAIN,
-        context={"source": SOURCE_REAUTH, "entry_id": entry.entry_id},
-        data={**entry.data, "entry_id": entry.entry_id},
-    )
-    if isinstance(flow_result, dict):
-        runtime.reauth_flow_id = flow_result.get("flow_id")
-
-
-async def _wait_for_refresh(wake: asyncio.Event, delay: float) -> None:
-    """Wait ``delay`` seconds, or less when a refresh is requested sooner."""
-
-    with suppress(TimeoutError):
-        async with asyncio.timeout(delay):
-            await wake.wait()
-    wake.clear()
-
-
-async def _refresh_loop(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    tokens: TokenKeeper,
-    wake: asyncio.Event,
-) -> None:
-    # This loop renews the ID token the stream authenticates with, and restarts a
-    # stopped stream through ``async_update_credentials``. Nothing reports an
-    # exception that escapes a background task, so no failed refresh may end it:
-    # retry well within the token's one-hour lifetime, backing off while it fails.
-    # ``wake`` lets a stream whose login was refused ask for a refresh right away.
-    # It is also what keeps the access token fresh, so a REST request normally
-    # needs no renewal of its own (rest.py).
-    delay = DEFAULT_REFRESH_INTERVAL
-    retry_delay = TOKEN_REFRESH_RETRY_DELAY
-    try:
-        while True:
-            await _wait_for_refresh(wake, delay)
-            try:
-                await tokens.renew()
-            except Exception as err:  # pylint: disable=broad-except
-                if refresh_rejected(err):
-                    # Retrying cannot fix a login BMW no longer accepts, so ask
-                    # the user once and go back to the regular cadence instead
-                    # of logging an error every few minutes until they do.
-                    await _async_request_reauth(hass, entry, f"Token refresh rejected ({err})")
-                    delay = DEFAULT_REFRESH_INTERVAL
-                    retry_delay = TOKEN_REFRESH_RETRY_DELAY
-                    continue
-                _LOGGER.warning("Token refresh failed, retrying in %ss: %s", retry_delay, err)
-                delay = retry_delay
-                retry_delay = min(retry_delay * 2, TOKEN_REFRESH_RETRY_MAX)
-            else:
-                delay = DEFAULT_REFRESH_INTERVAL
-                retry_delay = TOKEN_REFRESH_RETRY_DELAY
-    except asyncio.CancelledError:
-        return
+    await entry.runtime_data.reauth.request(_ReauthHost(hass, entry), why)
 
 
 async def _refresh_tokens(
@@ -1360,37 +1247,21 @@ async def _refresh_tokens(
     if not refresh_token or not client_id:
         raise CardataAuthError("Missing credentials for refresh")
 
-    requested_scope = data.get("scope") or DEFAULT_SCOPE
-
     token_data = await refresh_tokens(
         session,
         client_id=client_id,
         refresh_token=refresh_token,
-        scope=requested_scope,
+        scope=data.get("scope") or DEFAULT_SCOPE,
     )
-
-    new_id_token = token_data.get("id_token")
-    if not new_id_token:
-        raise CardataAuthError("Token refresh response did not include id_token")
-    data.update(
-        {
-            "access_token": token_data.get("access_token"),
-            "refresh_token": token_data.get("refresh_token", refresh_token),
-            "id_token": new_id_token,
-            "expires_in": token_data.get("expires_in"),
-            "scope": token_data.get("scope", data.get("scope")),
-            "token_type": token_data.get("token_type", data.get("token_type")),
-            "received_at": time.time(),
-        }
-    )
+    try:
+        data = renewed_entry_data(data, token_data, time.time())
+    except KeyError as err:
+        raise CardataAuthError("Token refresh response did not include id_token") from err
     hass.config_entries.async_update_entry(entry, data=data)
-    await manager.async_update_credentials(
-        gcid=data.get("gcid"),
-        id_token=new_id_token,
-    )
+    await manager.async_update_credentials(gcid=data.get("gcid"), id_token=data["id_token"])
     runtime = getattr(entry, "runtime_data", None)
     if runtime:
-        runtime.reauth_pending = False
+        runtime.reauth.renewed()
 
 
 async def async_manual_refresh_tokens(hass: HomeAssistant, entry: CardataConfigEntry) -> None:
