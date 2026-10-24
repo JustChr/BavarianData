@@ -36,7 +36,7 @@ from .assist import (
     status_answer,
 )
 from .const import DOMAIN
-from .coordinator import DESC_BMW_RANGE, DESC_FUEL_LEVEL, DESC_GPS_LAT
+from .car_signals import DESC_BMW_RANGE, DESC_FUEL_LEVEL, DESC_GPS_LAT
 from .distance import car_distance_unit
 
 API_ID = DOMAIN
