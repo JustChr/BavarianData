@@ -81,8 +81,12 @@ rules:
 
   # Platinum
   async-dependency:
-    status: todo
-    comment: paho-mqtt runs its own network thread, as in HA's MQTT integration.
+    status: exempt
+    comment: |
+      The stream is MQTT over paho-mqtt, the client Home Assistant's own MQTT
+      integration uses (core pins it); paho runs its own network thread and
+      stream.py hands every callback to the event loop. An asyncio client
+      would be a second MQTT stack beside core's for no gain to the user.
   inject-websession: done
   strict-typing:
     status: done

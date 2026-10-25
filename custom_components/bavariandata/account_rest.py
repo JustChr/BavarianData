@@ -15,7 +15,7 @@ import asyncio
 import logging
 import time
 from datetime import datetime, timezone
-from typing import Any, Mapping, Optional, Protocol, cast
+from typing import TYPE_CHECKING, Any, Mapping, Optional, Protocol, cast
 
 from .api import (
     CardataApiError,
@@ -41,6 +41,11 @@ from .rest import CardataQuotaError
 from .startup_refresh import last_fetch_at, startup_refresh_vins
 from .vehicles import primary_vins
 
+if TYPE_CHECKING:
+    from .container import CardataContainerManager
+    from .coordinator import CardataCoordinator
+    from .rest import RestGateway
+
 _LOGGER = logging.getLogger(__name__)
 
 # Where the entry keeps the time of its last daily refresh.
@@ -55,9 +60,9 @@ class AccountHost(Protocol):
     """What the REST side needs of the entry it serves."""
 
     entry_id: str
-    coordinator: Any
-    rest: Any
-    containers: dict[str, Any]
+    coordinator: CardataCoordinator
+    rest: RestGateway
+    containers: dict[str, CardataContainerManager]
     container_lock: asyncio.Lock
 
     @property
@@ -173,7 +178,7 @@ class AccountRest:
             self._update_data(
                 **{kind.id_key: container_id, kind.signature_key: manager.descriptor_signature}
             )
-            return cast(str, container_id)
+            return container_id
 
     # -- the bootstrap --------------------------------------------------------
 
