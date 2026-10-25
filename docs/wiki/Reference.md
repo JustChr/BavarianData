@@ -29,6 +29,35 @@ catalogue) generated from BMW's own exports so it can't drift.
   — why per-descriptor streaming scopes don't work and Data Selection is
   portal-only.
 
+## Code quality
+
+Home Assistant grades its own integrations on the
+[Integration Quality Scale](https://developers.home-assistant.io/docs/core/integration-quality-scale)
+(Bronze, Silver, Gold, Platinum). It grades only integrations that ship with
+Home Assistant, so no custom integration can be awarded a tier. BavarianData
+follows the rules anyway and **assesses itself at Platinum**: every rule up to
+Gold is met, and so are two of Platinum's three.
+
+The claim is written down rule by rule in
+[`quality_scale.yaml`](https://github.com/JustChr/BavarianData/blob/main/custom_components/bavariandata/quality_scale.yaml),
+with a reason beside every exemption. Three of the rules are checked on every
+change, in CI's *Home Assistant tests* job:
+
+- **Test coverage:** both test suites together cover more than 95 % of every
+  module on its own, not just of the total. The job fails if one drops below.
+- **Strict typing:** the whole integration passes `mypy --strict` against a real
+  Home Assistant.
+- **Config flow tests:** setup, reauthentication, reconfiguration and every
+  Configure screen run against a real Home Assistant.
+
+Three rules are exempt, and the file says why:
+
+- **Polling** doesn't apply: the car's data arrives on BMW's stream.
+- **Discovery** doesn't apply: a BMW account lives in the cloud, with nothing on
+  your network to find.
+- **Platinum's async library rule:** the stream uses paho-mqtt, the same MQTT
+  client Home Assistant's own MQTT integration uses.
+
 ## For contributors
 
 The descriptor catalogue, metadata, translations, and the field reference are

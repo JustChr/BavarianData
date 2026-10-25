@@ -12,15 +12,16 @@
 <p align="center">
   <a href="https://github.com/JustChr/BavarianData/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/JustChr/BavarianData/test.yml?branch=main&label=tests" alt="Tests" /></a>
   <a href="https://github.com/JustChr/BavarianData/actions/workflows/validate.yml"><img src="https://img.shields.io/github/actions/workflow/status/JustChr/BavarianData/validate.yml?branch=main&label=hassfest%20%2B%20HACS" alt="hassfest and HACS validation" /></a>
-  <a href="https://github.com/JustChr/BavarianData/actions/workflows/pages.yml"><img src="https://img.shields.io/github/actions/workflow/status/JustChr/BavarianData/pages.yml?branch=main&label=website" alt="Website build" /></a>
-  <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Code style: Ruff" /></a>
+  <a href="https://github.com/JustChr/BavarianData/wiki/Reference#code-quality"><img src="https://img.shields.io/badge/HA%20Quality%20Scale-Platinum%20%28self--assessed%29-E5E4E2" alt="Home Assistant Quality Scale: Platinum, self-assessed" /></a>
+  <a href="https://github.com/JustChr/BavarianData/wiki/Reference#code-quality"><img src="https://img.shields.io/badge/coverage-%E2%89%A595%20%25%20every%20module-brightgreen" alt="Test coverage of at least 95 % in every module" /></a>
+  <a href="https://github.com/JustChr/BavarianData/wiki/Reference#code-quality"><img src="https://img.shields.io/badge/types-mypy%20----strict-2A6DB2" alt="Type-checked with mypy --strict" /></a>
 </p>
 
 <p align="center">
   <a href="https://hacs.xyz/"><img src="https://img.shields.io/badge/HACS-Default-41BDF5.svg" alt="HACS Default" /></a>
   <a href="https://github.com/JustChr/BavarianData/releases/latest"><img src="https://img.shields.io/github/v/release/JustChr/BavarianData" alt="Latest release" /></a>
   <a href="https://github.com/JustChr/BavarianData/wiki/Getting-Started-2-Install"><img src="https://img.shields.io/badge/Home%20Assistant-2026.3%2B-41BDF5.svg" alt="Home Assistant 2026.3 or newer" /></a>
-  <a href="https://github.com/JustChr/BavarianData/blob/main/pyproject.toml"><img src="https://img.shields.io/badge/python-3.14%2B-3776AB.svg" alt="Python 3.14 or newer" /></a>
+  <a href="https://github.com/JustChr/BavarianData/wiki/Feature-Entities-and-Devices#entity-names-and-your-language"><img src="https://img.shields.io/badge/languages-10-41BDF5" alt="Ten languages" /></a>
   <a href="https://github.com/JustChr/BavarianData/releases"><img src="https://img.shields.io/endpoint?url=https://justchr.github.io/BavarianData/badges/downloads.json" alt="Downloads" /></a>
   <a href="https://github.com/JustChr/BavarianData/stargazers"><img src="https://img.shields.io/github/stars/JustChr/BavarianData?style=flat" alt="GitHub stars" /></a>
   <a href="https://github.com/JustChr/BavarianData/blob/main/LICENSE"><img src="https://img.shields.io/github/license/JustChr/BavarianData" alt="MIT license" /></a>
