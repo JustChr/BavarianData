@@ -148,6 +148,7 @@ async def test_an_import_seen_before_adds_nothing(hass: HomeAssistant) -> None:
     }
 
     assert store.import_cardata_sessions(VIN, [raw]) == (1, 0)
-    # The merge counts every overlap as updated, changed or not.
-    assert store.import_cardata_sessions(VIN, [raw]) == (0, 1)
+    with patch.object(store, "async_schedule_save") as save:
+        assert store.import_cardata_sessions(VIN, [raw]) == (0, 0)
+    save.assert_not_called()
     assert len(store.sessions(VIN)) == 1

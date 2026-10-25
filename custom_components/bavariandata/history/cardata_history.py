@@ -469,8 +469,8 @@ def merge_cardata_sessions(
     """Enrich overlapping sessions in place, add the rest; newest first.
 
     Returns the merged list plus counts of (added, updated). Idempotent: a
-    second import of the same data matches the sessions it created last time and
-    updates them in place rather than duplicating.
+    second import of the same data matches the sessions it created last time,
+    changes nothing and counts nothing, so it saves nothing either.
     """
 
     tolerance = timedelta(seconds=max(0, tolerance_s))
@@ -489,8 +489,10 @@ def merge_cardata_sessions(
         # the other. Otherwise keep the closest-start match, as before.
         enriched = [session for session in overlaps if session.enriched]
         target = min(enriched or overlaps, key=lambda session: abs(session.start - inc.start))
+        before = target.to_dict()
         _enrich_in_place(target, inc, pad)
-        _absorb_fragments(result, inc, target, pad)
-        updated += 1
+        absorbed = _absorb_fragments(result, inc, target, pad)
+        if absorbed or target.to_dict() != before:
+            updated += 1
     result.sort(key=lambda item: item.start, reverse=True)
     return result, added, updated

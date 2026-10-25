@@ -213,7 +213,7 @@ def test_import_is_idempotent():
     imported = session_from_cardata("WBY1", _raw())
     once, _, _ = merge_cardata_sessions([live], [imported])
     twice, added, updated = merge_cardata_sessions(once, [session_from_cardata("WBY1", _raw())])
-    assert (added, updated) == (0, 1)
+    assert (added, updated) == (0, 0), "nothing changed, so nothing is counted"
     assert len(twice) == 1
 
 
@@ -236,7 +236,7 @@ def test_reimport_does_not_downgrade_a_resolved_zone():
     # A later import whose point matched no zone must not blank the Home label.
     blank = session_from_cardata("WBY1", _raw(), zone_fn=lambda lat, lon: None)
     result, _, updated = merge_cardata_sessions([resolved], [blank])
-    assert updated == 1
+    assert updated == 0, "it brought nothing the record lacked"
     assert result[0].location == {"zone": "Home"}
 
 
@@ -387,7 +387,7 @@ def test_a_rise_of_exactly_the_threshold_repairs():
 def test_frozen_soc_repair_is_idempotent():
     once, _, _ = merge_cardata_sessions([_frozen_session()], [session_from_cardata("WBY1", _raw())])
     twice, added, updated = merge_cardata_sessions(once, [session_from_cardata("WBY1", _raw())])
-    assert (added, updated) == (0, 1)
+    assert (added, updated) == (0, 0)
     assert len(twice) == 1
     assert (twice[0].soc_start, twice[0].soc_end) == (66, 82)
     assert twice[0].cost["partial"] is True
