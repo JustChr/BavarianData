@@ -5178,7 +5178,9 @@ class BavarianDataCard extends HTMLElement {
         const list = Object.keys(wheels).sort().map((k) => wheels[k]).filter((w) => w.pressure);
         if (!list.length) return null;
         const summary = this._tireSummary(list);
-        return tile(this._t("tires"), list[0].pressure, "mdi:car-tire-alert", {
+        // The color carries the verdict; an alert icon would cry wolf on a
+        // healthy car.
+        return tile(this._t("tires"), list[0].pressure, "mdi:tire", {
           val: summary.pressure.t,
           color: summary.overall.c,
         });

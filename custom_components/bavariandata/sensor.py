@@ -955,7 +955,7 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.DISTANCE
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = "km"
-    # Whole kilometres: the inputs are a capacity good to ~1 kWh and a
+    # Whole kilometers: the inputs are a capacity good to ~1 kWh and a
     # consumption good to 0.1 kWh/100 km, so a decimal place here would be
     # precision the measurement doesn't have -- and the car's own display,
     # which this sits next to, shows whole kilometres too.
@@ -1087,6 +1087,8 @@ class CardataDrivingDistanceMonthSensor(CardataEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.DISTANCE
     _attr_state_class = SensorStateClass.TOTAL
     _attr_native_unit_of_measurement = "km"
+    # Whole kilometers: the trips' sum showed as "1,460.00 km".
+    _attr_suggested_display_precision = 0
     _attr_translation_key = "driving_distance_month"
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:

@@ -4858,7 +4858,7 @@
     'object_id_base': 'Driving Distance (This Month)',
     'options': dict({
       'sensor': dict({
-        'suggested_display_precision': 2,
+        'suggested_display_precision': 0,
       }),
     }),
     'original_device_class': <SensorDeviceClass.DISTANCE: 'distance'>,
@@ -7830,7 +7830,7 @@
     'object_id_base': 'Driving Distance (This Month)',
     'options': dict({
       'sensor': dict({
-        'suggested_display_precision': 2,
+        'suggested_display_precision': 0,
       }),
     }),
     'original_device_class': <SensorDeviceClass.DISTANCE: 'distance'>,
@@ -12649,7 +12649,7 @@
     'object_id_base': 'Driving Distance (This Month)',
     'options': dict({
       'sensor': dict({
-        'suggested_display_precision': 2,
+        'suggested_display_precision': 0,
       }),
     }),
     'original_device_class': <SensorDeviceClass.DISTANCE: 'distance'>,

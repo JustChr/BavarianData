@@ -9,6 +9,12 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Distance this month shows whole kilometers** (or miles). It read
+  "1,460.00 km". A precision you set yourself on that entity stays.
+- **The tires tile no longer looks like a warning.** Its icon was an alert
+  sign even with every tire fine; the color alone says whether to check them.
+
 ## [0.9.23-beta.3] - 2026-10-25
 
 ### Added

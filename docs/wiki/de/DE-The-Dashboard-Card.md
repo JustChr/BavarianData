@@ -173,6 +173,10 @@ Das Raster unter dem Ring kann auch zeigen, was du willst. Wähle im Karten-Edit
 **Kacheln**: zuerst die fertigen Kacheln, dann jede Entität des Autos. Zieh sie in
 die gewünschte Reihenfolge. Leer lassen für das Raster, das zum Antrieb passt.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-editor-tiles.png" alt="Das Feld Kacheln im Karten-Editor: Chips für Reifen, Standort, Verriegelung und diesen Monat gefahren, je mit Ziehgriff und Entfernen-Knopf, darunter ein Knopf zum Hinzufügen" width="360" />
+</p>
+
 | Kachel | Zeigt |
 | --- | --- |
 | `odometer` | Den Kilometerstand |
