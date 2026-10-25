@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.23-beta.3] - 2026-10-25
+
 ### Added
 - **Choose the tiles on the card's overview.** The grid below the ring can now
   show what you want, in the order you want: pick **Tiles** in the card editor,
