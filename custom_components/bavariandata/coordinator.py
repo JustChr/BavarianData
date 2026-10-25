@@ -81,6 +81,79 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
+def _as_number(value: Any) -> Optional[float]:
+    try:
+        return float(value)
+    except TypeError, ValueError:
+        return None
+
+
+@dataclass(frozen=True)
+class _ChargeReading:
+    """What one charging descriptor's reading feeds.
+
+    ``numeric`` readings are taken as a number, and a garbled one counts as
+    none; ``clears`` says whether none (null, or garbled) is passed on as
+    ``None`` -- the power, the target and the AC figures stop showing a stale
+    value -- or ignored, as the SoC and the pack's size are.
+    """
+
+    apply: Callable[[CardataCoordinator, str, SocTracking, Any, Optional[datetime]], None]
+    numeric: bool = True
+    clears: bool = True
+
+
+_CHARGE_READINGS: dict[str, _ChargeReading] = {
+    "vehicle.drivetrain.batteryManagement.header": _ChargeReading(
+        lambda _c, _vin, tracking, value, ts: tracking.update_actual_soc(value, ts), clears=False
+    ),
+    "vehicle.drivetrain.batteryManagement.maxEnergy": _ChargeReading(
+        lambda _c, _vin, tracking, value, _ts: tracking.update_max_energy(value), clears=False
+    ),
+    "vehicle.powertrain.electric.battery.charging.power": _ChargeReading(
+        lambda c, vin, _t, value, ts: c.charging.set_direct_power(vin, value, ts)
+    ),
+    "vehicle.powertrain.electric.battery.stateOfCharge.target": _ChargeReading(
+        lambda _c, _vin, tracking, value, ts: tracking.update_target_soc(value, ts)
+    ),
+    "vehicle.drivetrain.electricEngine.charging.acVoltage": _ChargeReading(
+        lambda c, vin, _t, value, ts: c.charging.set_ac_voltage(vin, value, ts)
+    ),
+    "vehicle.drivetrain.electricEngine.charging.acAmpere": _ChargeReading(
+        lambda c, vin, _t, value, ts: c.charging.set_ac_current(vin, value, ts)
+    ),
+    # Passed on as BMW sends it: the engine reads the phase count itself.
+    "vehicle.drivetrain.electricEngine.charging.phaseNumber": _ChargeReading(
+        lambda c, vin, _t, value, ts: c.charging.set_ac_phase(vin, value, ts), numeric=False
+    ),
+}
+
+
+@dataclass
+class _Batch:
+    """One stream message being read, and what its descriptors leave to act on."""
+
+    vin: str
+    now: datetime
+    source: str
+    tracking: SocTracking
+    profile: CarProfile
+    new_binary: list[str] = field(default_factory=list)
+    new_sensor: list[str] = field(default_factory=list)
+    # Descriptors carrying a value in this batch, for the coverage self-test.
+    seen: list[str] = field(default_factory=list)
+    # Trip signals, acted on after the loop so opening or closing a trip (which
+    # may await a geocode) never re-enters mid-iteration.
+    motion: Optional[bool] = None
+    ignition: Optional[bool] = None
+    door: Optional[bool] = None
+    segment_fresh: bool = False
+    gps_parts: set[str] = field(default_factory=set)
+    gps_ts: Optional[datetime] = None
+    # ``(was charging, new status)``: acted on once the whole batch is read.
+    status_change: Optional[tuple[bool, str]] = None
+
+
 @dataclass
 class CardataCoordinator:
     hass: HomeAssistant
@@ -465,11 +538,20 @@ class CardataCoordinator:
                 self.on_new_vehicle(vin)
             except Exception:  # noqa: BLE001 - a new car is not worth a dropped message
                 _LOGGER.exception("Cardata: new-vehicle handler failed for %s", mask_vin(vin))
-        new_binary: list[str] = []
-        new_sensor: list[str] = []
-        # Descriptors carrying a value in this batch, for the coverage self-test.
-        seen_descriptors: list[str] = []
 
+        batch = self._open_batch(vin, payload, data)
+        parked_soc = self._parked_soc(vin, data, batch.tracking)
+        for descriptor, descriptor_payload in data.items():
+            if isinstance(descriptor_payload, dict):
+                self._read_descriptor(batch, vehicle_state, descriptor, descriptor_payload)
+        self._after_batch(batch, data, parked_soc)
+        await self._async_trip_signals(batch, data)
+        self.events.note_edges(vin, data, batch.seen, batch.now, batch.source)
+        if self.trip_debug:
+            await self._async_capture_batch(vin, data, batch.now)
+        async_dispatcher_send(self.hass, self.signal_diagnostics)
+
+    def _open_batch(self, vin: str, payload: Dict[str, Any], data: Dict[str, Any]) -> _Batch:
         self.last_message_at = datetime.now(timezone.utc)
         self.last_message_by_vin[vin] = self.last_message_at
 
@@ -483,150 +565,126 @@ class CardataCoordinator:
         profile = self.car_profiles.get(vin)
         if profile is None:
             profile = self.car_profiles[vin] = CarProfile(now)
-        # The charge the car set off with, for a report trip: read before this
-        # batch lands, because a burst carries the SoC it *arrived* with, and the
-        # previous report's reading predates any charge in between.
-        parked_soc: Optional[tuple[float, Optional[datetime]]] = None
+        return _Batch(vin, now, source, tracking, profile)
+
+    def _parked_soc(
+        self, vin: str, data: Dict[str, Any], tracking: SocTracking
+    ) -> Optional[tuple[float, Optional[datetime]]]:
+        """The charge the car set off with, for a report trip.
+
+        Read before this batch lands, because a burst carries the SoC it
+        *arrived* with, and the previous report's reading predates any charge
+        in between.
+        """
+
         if self.report_trips(vin) and any(descriptor in data for descriptor in DESC_ODOMETER):
             soc_now = self._current_soc(vin)
             if soc_now is not None:
-                parked_soc = (soc_now, tracking.last_update)
+                return (soc_now, tracking.last_update)
+        return None
 
-        # Trip signals seen in this batch; acted on after the loop so opening or
-        # closing a trip (which may await a geocode) never re-enters mid-iteration.
-        motion_value: Optional[bool] = None
-        ignition_value: Optional[bool] = None
-        door_value: Optional[bool] = None
-        segment_fresh = False
-        gps_parts: set[str] = set()
-        gps_ts: Optional[datetime] = None
+    def _read_descriptor(
+        self,
+        batch: _Batch,
+        vehicle_state: Dict[str, DescriptorState],
+        descriptor: str,
+        descriptor_payload: Dict[str, Any],
+    ) -> None:
+        """Store one descriptor's reading and note what it means for the batch."""
 
-        status_change: Optional[tuple[bool, str]] = None
-        for descriptor, descriptor_payload in data.items():
-            if not isinstance(descriptor_payload, dict):
-                continue
-            value: Any = descriptor_payload.get("value")
-            # The integration speaks kilometres: a car that sends miles for one
-            # descriptor (issue #62) must not have the number shown as km.
-            value, unit = miles_to_km(value, normalize_unit(descriptor_payload.get("unit")))
-            timestamp = descriptor_payload.get("timestamp")
-            parsed_ts = dt_util.parse_datetime(timestamp) if timestamp else None
-            if value is None and descriptor in EMPTY_WHEN_NULL:
-                # BMW's word for "no Check Control messages" (structured_values).
-                value = []
-            if is_placeholder(descriptor, value):
-                # BMW's stand-in for no reading (placeholders): clear what an
-                # entity already shows, but never create one or count it as seen.
-                profile.observe_placeholder(descriptor)
-                if descriptor in vehicle_state:
-                    vehicle_state[descriptor] = DescriptorState(
-                        value=None, unit=unit, timestamp=timestamp
-                    )
-                    async_dispatcher_send(self.hass, self.signal_update, vin, descriptor)
-                continue
-            if value is None:
-                if descriptor == "vehicle.powertrain.electric.battery.stateOfCharge.target":
-                    tracking.update_target_soc(None, parsed_ts)
-                elif descriptor == "vehicle.powertrain.electric.battery.charging.power":
-                    self.charging.set_direct_power(vin, None, parsed_ts)
-                elif descriptor == "vehicle.drivetrain.electricEngine.charging.acVoltage":
-                    self.charging.set_ac_voltage(vin, None, parsed_ts)
-                elif descriptor == "vehicle.drivetrain.electricEngine.charging.acAmpere":
-                    self.charging.set_ac_current(vin, None, parsed_ts)
-                elif descriptor == "vehicle.drivetrain.electricEngine.charging.phaseNumber":
-                    self.charging.set_ac_phase(vin, None, parsed_ts)
-                continue
-            is_new = descriptor not in vehicle_state
-            profile.observe(
-                descriptor, value, timestamp, parsed_ts, vehicle_state.get(descriptor), now, source
+        vin, tracking, profile = batch.vin, batch.tracking, batch.profile
+        value: Any = descriptor_payload.get("value")
+        # The integration speaks kilometres: a car that sends miles for one
+        # descriptor (issue #62) must not have the number shown as km.
+        value, unit = miles_to_km(value, normalize_unit(descriptor_payload.get("unit")))
+        timestamp = descriptor_payload.get("timestamp")
+        parsed_ts = dt_util.parse_datetime(timestamp) if timestamp else None
+        if value is None and descriptor in EMPTY_WHEN_NULL:
+            # BMW's word for "no Check Control messages" (structured_values).
+            value = []
+        if is_placeholder(descriptor, value):
+            # BMW's stand-in for no reading (placeholders): clear what an
+            # entity already shows, but never create one or count it as seen.
+            profile.observe_placeholder(descriptor)
+            if descriptor in vehicle_state:
+                vehicle_state[descriptor] = DescriptorState(
+                    value=None, unit=unit, timestamp=timestamp
+                )
+                async_dispatcher_send(self.hass, self.signal_update, vin, descriptor)
+            return
+        reading = _CHARGE_READINGS.get(descriptor)
+        if value is None:
+            if reading is not None and reading.clears:
+                reading.apply(self, vin, tracking, None, parsed_ts)
+            return
+        is_new = descriptor not in vehicle_state
+        profile.observe(
+            descriptor,
+            value,
+            timestamp,
+            parsed_ts,
+            vehicle_state.get(descriptor),
+            batch.now,
+            batch.source,
+        )
+        vehicle_state[descriptor] = DescriptorState(value=value, unit=unit, timestamp=timestamp)
+        batch.seen.append(descriptor)
+        vin_counts = self.descriptor_counts.setdefault(vin, {})
+        vin_counts[descriptor] = vin_counts.get(descriptor, 0) + 1
+        if descriptor == "vehicle.vehicleIdentification.basicVehicleData" and isinstance(
+            value, dict
+        ):
+            self.apply_basic_data(vin, value)
+        if is_new:
+            if isinstance(value, bool):
+                batch.new_binary.append(descriptor)
+            else:
+                batch.new_sensor.append(descriptor)
+        if reading is not None:
+            number = _as_number(value) if reading.numeric else value
+            if number is not None or reading.clears:
+                reading.apply(self, vin, tracking, number, parsed_ts)
+        elif descriptor == "vehicle.drivetrain.electricEngine.charging.status":
+            if isinstance(value, str):
+                was_charging = tracking.charging_active
+                tracking.update_status(value)
+                # Acted on once the whole batch is read: the target, the SoC
+                # and the power may come after the status in the same batch,
+                # and the session and its event must see them.
+                batch.status_change = (was_charging, value)
+        elif descriptor == DESC_MOVING and isinstance(value, bool):
+            batch.motion = value
+        elif descriptor == DESC_IGNITION and isinstance(value, bool):
+            batch.ignition = value
+        elif descriptor == DESC_DRIVER_DOOR and isinstance(value, bool):
+            batch.door = value
+        if descriptor in (DESC_GPS_LAT, DESC_GPS_LON):
+            batch.gps_parts.add(GPS_PART_LAT if descriptor == DESC_GPS_LAT else GPS_PART_LON)
+            if parsed_ts is not None:
+                batch.gps_ts = parsed_ts
+        if descriptor.startswith(DESC_SEG_PREFIX):
+            # Only a segment carrying a *recent* timestamp is a completed
+            # trip; the stale "last trip end" fields BMW repeats in every
+            # snapshot must not be mistaken for one (see ``SEG_FRESH_S``).
+            if parsed_ts is not None and (batch.now - parsed_ts).total_seconds() <= SEG_FRESH_S:
+                batch.segment_fresh = True
+
+        async_dispatcher_send(self.hass, self.signal_update, vin, descriptor)
+
+    def _after_batch(
+        self,
+        batch: _Batch,
+        data: Dict[str, Any],
+        parked_soc: Optional[tuple[float, Optional[datetime]]],
+    ) -> None:
+        """What the batch as a whole means: charging, reports, new entities, energy."""
+
+        vin, now, tracking = batch.vin, batch.now, batch.tracking
+        batch.profile.finish_batch(now, batch.source)
+        if batch.status_change is not None:
+            self.charging.fire_charging_event(
+                vin, batch.status_change[0], tracking, batch.status_change[1]
             )
-            vehicle_state[descriptor] = DescriptorState(value=value, unit=unit, timestamp=timestamp)
-            seen_descriptors.append(descriptor)
-            vin_counts = self.descriptor_counts.setdefault(vin, {})
-            vin_counts[descriptor] = vin_counts.get(descriptor, 0) + 1
-            if descriptor == "vehicle.vehicleIdentification.basicVehicleData" and isinstance(
-                value, dict
-            ):
-                self.apply_basic_data(vin, value)
-            if is_new:
-                if isinstance(value, bool):
-                    new_binary.append(descriptor)
-                else:
-                    new_sensor.append(descriptor)
-            if descriptor == "vehicle.drivetrain.batteryManagement.header":
-                try:
-                    percent = float(value)
-                except TypeError, ValueError:
-                    pass
-                else:
-                    tracking.update_actual_soc(percent, parsed_ts)
-            elif descriptor == "vehicle.drivetrain.batteryManagement.maxEnergy":
-                try:
-                    max_energy = float(value)
-                except TypeError, ValueError:
-                    pass
-                else:
-                    tracking.update_max_energy(max_energy)
-            elif descriptor == "vehicle.powertrain.electric.battery.charging.power":
-                try:
-                    power_w = float(value)
-                except TypeError, ValueError:
-                    self.charging.set_direct_power(vin, None, parsed_ts)
-                else:
-                    self.charging.set_direct_power(vin, power_w, parsed_ts)
-            elif descriptor == "vehicle.drivetrain.electricEngine.charging.status":
-                if isinstance(value, str):
-                    was_charging = tracking.charging_active
-                    tracking.update_status(value)
-                    # Acted on once the whole batch is read: the target, the SoC
-                    # and the power may come after the status in the same batch,
-                    # and the session and its event must see them.
-                    status_change = (was_charging, value)
-            elif descriptor == "vehicle.powertrain.electric.battery.stateOfCharge.target":
-                try:
-                    target = float(value)
-                except TypeError, ValueError:
-                    tracking.update_target_soc(None, parsed_ts)
-                else:
-                    tracking.update_target_soc(target, parsed_ts)
-            elif descriptor == "vehicle.drivetrain.electricEngine.charging.acVoltage":
-                try:
-                    voltage_v = float(value)
-                except TypeError, ValueError:
-                    self.charging.set_ac_voltage(vin, None, parsed_ts)
-                else:
-                    self.charging.set_ac_voltage(vin, voltage_v, parsed_ts)
-            elif descriptor == "vehicle.drivetrain.electricEngine.charging.acAmpere":
-                try:
-                    current_a = float(value)
-                except TypeError, ValueError:
-                    self.charging.set_ac_current(vin, None, parsed_ts)
-                else:
-                    self.charging.set_ac_current(vin, current_a, parsed_ts)
-            elif descriptor == "vehicle.drivetrain.electricEngine.charging.phaseNumber":
-                self.charging.set_ac_phase(vin, value, parsed_ts)
-            elif descriptor == DESC_MOVING and isinstance(value, bool):
-                motion_value = value
-            elif descriptor == DESC_IGNITION and isinstance(value, bool):
-                ignition_value = value
-            elif descriptor == DESC_DRIVER_DOOR and isinstance(value, bool):
-                door_value = value
-            if descriptor in (DESC_GPS_LAT, DESC_GPS_LON):
-                gps_parts.add(GPS_PART_LAT if descriptor == DESC_GPS_LAT else GPS_PART_LON)
-                if parsed_ts is not None:
-                    gps_ts = parsed_ts
-            if descriptor.startswith(DESC_SEG_PREFIX):
-                # Only a segment carrying a *recent* timestamp is a completed
-                # trip; the stale "last trip end" fields BMW repeats in every
-                # snapshot must not be mistaken for one (see ``SEG_FRESH_S``).
-                if parsed_ts is not None and (now - parsed_ts).total_seconds() <= SEG_FRESH_S:
-                    segment_fresh = True
-
-            async_dispatcher_send(self.hass, self.signal_update, vin, descriptor)
-
-        profile.finish_batch(now, source)
-        if status_change is not None:
-            self.charging.fire_charging_event(vin, status_change[0], tracking, status_change[1])
         if any(descriptor in data for descriptor in PLUG_DESCRIPTORS):
             self.charging.close_held_charge_on_unplug(vin)
 
@@ -636,18 +694,18 @@ class CardataCoordinator:
         if DESC_FUEL_L in data or DESC_FUEL_LEVEL in data:
             self._note_fuel(vin, now)
 
-        for descriptor in new_sensor:
+        for descriptor in batch.new_sensor:
             async_dispatcher_send(self.hass, self.signal_new_sensor, vin, descriptor)
-        for descriptor in new_binary:
+        for descriptor in batch.new_binary:
             async_dispatcher_send(self.hass, self.signal_new_binary, vin, descriptor)
 
-        if seen_descriptors:
-            self._car(vin).live_descriptors.update(seen_descriptors)
+        if batch.seen:
+            self._car(vin).live_descriptors.update(batch.seen)
 
-        if self.coverage is not None and seen_descriptors:
+        if self.coverage is not None and batch.seen:
             # Bookkeeping must never break the stream.
             try:
-                self.coverage.note_seen(vin, seen_descriptors)
+                self.coverage.note_seen(vin, batch.seen)
             except Exception:  # noqa: BLE001
                 _LOGGER.exception("Coverage tracking failed for %s", mask_vin(vin))
 
@@ -655,11 +713,17 @@ class CardataCoordinator:
         if self.charging.integrate_energy(vin, now):
             async_dispatcher_send(self.hass, self.signal_energy, vin)
 
-        # Serialise per-VIN so concurrent messages can't double-open a trip while
-        # one is awaiting a geocode (see ``TripState.lock``). The timer-driven close
-        # stays outside the lock -- it pops its builder before any await, so it
-        # can't corrupt an open running here, and taking the lock there would
-        # deadlock the in-lock segment/stationary closes.
+    async def _async_trip_signals(self, batch: _Batch, data: Dict[str, Any]) -> None:
+        """The batch's trip signals, under the car's trip lock, then its situations.
+
+        Serialised per VIN so concurrent messages can't double-open a trip while
+        one is awaiting a geocode (see ``TripState.lock``). The timer-driven close
+        stays outside the lock -- it pops its builder before any await, so it
+        can't corrupt an open running here, and taking the lock there would
+        deadlock the in-lock segment/stationary closes.
+        """
+
+        vin, now = batch.vin, batch.now
         lock = self._peek(vin).trip.lock
         if lock is None:
             lock = self._car(vin).trip.lock = asyncio.Lock()
@@ -669,35 +733,35 @@ class CardataCoordinator:
             # drive of no duration, ending wherever the timers left it.
             if not self.report_trips(vin):
                 await self.trips.process_trip_signals(
-                    vin, now, motion_value, ignition_value, segment_fresh
+                    vin, now, batch.motion, batch.ignition, batch.segment_fresh
                 )
-                if door_value is not None:
-                    await self.trips.process_door_signal(vin, now, door_value)
+                if batch.door is not None:
+                    await self.trips.process_door_signal(vin, now, batch.door)
                 if "vehicle.drivetrain.batteryManagement.header" in data or any(
                     descriptor in data for descriptor in DESC_ODOMETER
                 ):
                     self.trips.note_late_reading(vin, now)
-                if gps_parts:
-                    await self.trips.process_gps_signal(vin, now, gps_ts, gps_parts)
+                if batch.gps_parts:
+                    await self.trips.process_gps_signal(vin, now, batch.gps_ts, batch.gps_parts)
             # After the trip logic: a trip opening ends "parked unlocked".
             self.events.evaluate_situations(vin, now)
-        self.events.note_edges(vin, data, seen_descriptors, now, source)
 
-        # Trip-capture diagnostics: the raw firehose + NDJSON file, outside the
-        # trip lock (they only read state) and strictly gated on the opt-in.
-        if self.trip_debug:
-            open_trip = self._peek(vin).trip.builder is not None
-            self.trip_log.log_batch(vin, data, now, open_trip=open_trip, fresh_s=SEG_FRESH_S)
-            line = TripLog.record_line(vin, data, now, open_trip=open_trip)
-            if line is not None:
-                with suppress(Exception):  # file IO must never break the stream
-                    await self.hass.async_add_executor_job(
-                        self.trip_log.append_line,
-                        self.hass.config.path(TRIP_CAPTURE_FILE),
-                        line,
-                    )
+    async def _async_capture_batch(self, vin: str, data: Dict[str, Any], now: datetime) -> None:
+        """Trip-capture diagnostics: the raw firehose and the NDJSON file.
 
-        async_dispatcher_send(self.hass, self.signal_diagnostics)
+        Outside the trip lock (they only read state), and only on the opt-in.
+        """
+
+        open_trip = self._peek(vin).trip.builder is not None
+        self.trip_log.log_batch(vin, data, now, open_trip=open_trip, fresh_s=SEG_FRESH_S)
+        line = TripLog.record_line(vin, data, now, open_trip=open_trip)
+        if line is not None:
+            with suppress(Exception):  # file IO must never break the stream
+                await self.hass.async_add_executor_job(
+                    self.trip_log.append_line,
+                    self.hass.config.path(TRIP_CAPTURE_FILE),
+                    line,
+                )
 
     def get_lifetime_energy_kwh(self, vin: str) -> Optional[float]:
         value = self._peek(vin).charge.energy_lifetime_wh
