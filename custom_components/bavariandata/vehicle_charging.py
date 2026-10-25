@@ -1309,30 +1309,16 @@ class VehicleCharging:
             price = solar_price if source == SOURCE_PV and solar_price is not None else price_now
             accumulator.add(amount, price)
 
-    def apply_soc_estimate(self, vin: str, now: datetime, notify: bool = True) -> bool:
+    def apply_soc_estimate(
+        self, vin: str, tracking: SocTracking, now: datetime, notify: bool = True
+    ) -> bool:
+        """Advance the car's estimate from ``tracking``, its SoC tracker.
+
+        Both callers hold one: a stream message makes it first, and the
+        heartbeat walks only the cars that have one.
+        """
+
         charge = self._host._peek(vin).charge
-        tracking = charge.tracking
-        if not tracking:
-            changed = any(
-                value is not None
-                for value in (charge.soc_estimate, charge.soc_rate, charge.charge_eta)
-            )
-            if vin in self._host._cars:
-                for name in (
-                    "soc_estimate",
-                    "soc_rate",
-                    "charge_eta",
-                    "charging_power_w",
-                    "direct_power_w",
-                    "ac_voltage_v",
-                    "ac_current_a",
-                    "ac_phase_count",
-                    "soc_source",
-                ):
-                    setattr(charge, name, None)
-            if notify and changed:
-                async_dispatcher_send(self._host.hass, self._host.signal_soc_estimate, vin)
-            return changed
         learned = self._meter_rate_if_driving(vin)
         tracking.follow_meter(
             None

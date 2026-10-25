@@ -647,7 +647,7 @@ class CardataCoordinator:
             except Exception:  # noqa: BLE001
                 _LOGGER.exception("Coverage tracking failed for %s", mask_vin(vin))
 
-        self.charging.apply_soc_estimate(vin, now)
+        self.charging.apply_soc_estimate(vin, tracking, now)
         if self.charging.integrate_energy(vin, now):
             async_dispatcher_send(self.hass, self.signal_energy, vin)
 
@@ -1394,8 +1394,8 @@ class CardataCoordinator:
             )
         now = datetime.now(timezone.utc)
         updated_vins: list[str] = []
-        for vin, _tracking in self._tracked_cars():
-            if self.charging.apply_soc_estimate(vin, now, notify=False):
+        for vin, tracking in self._tracked_cars():
+            if self.charging.apply_soc_estimate(vin, tracking, now, notify=False):
                 updated_vins.append(vin)
         for vin in updated_vins:
             async_dispatcher_send(self.hass, self.signal_soc_estimate, vin)
