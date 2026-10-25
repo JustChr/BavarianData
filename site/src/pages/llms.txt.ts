@@ -9,7 +9,7 @@ export const GET: APIRoute = () => {
     "",
     `> BavarianData is a free, open-source (MIT) Home Assistant integration for BMW CarData, BMW's official customer data service. It connects Home Assistant directly to a BMW or MINI: a live MQTT stream plus a REST API (50 requests per 24 hours), using the owner's personal CarData client ID. It is read-only (CarData cannot command the car), installs from the HACS default store, and needs Home Assistant ${HA_MIN} or newer.${RELEASE.version ? ` Latest stable release: ${RELEASE.version} (${RELEASE.date}).` : ""}`,
     "",
-    "It replaces the BMW Connected Drive integration (bimmer_connected), which stopped working when BMW blocked third-party access on 29 September 2025. On top of the raw data it records a charging history with cost and energy source, a trip journal, learned battery health, a measured real range, Energy dashboard statistics, CSV/HTML export, and an evcc/openWB bridge over MQTT. Entity names ship in ten languages.",
+    "It replaces the BMW Connected Drive integration (bimmer_connected), which stopped working when BMW blocked third-party access on 29 September 2025. On top of the raw data it records a charging history with cost and energy source, a trip journal, learned battery health, a measured real range, Energy dashboard statistics, CSV/HTML export, an evcc/openWB bridge over MQTT, and tools for Home Assistant Assist and AI agents (also over MCP) to answer questions about the car. Entity names ship in ten languages.",
     "",
     `Source: ${REPO}`,
     `Full manual as one file: ${absolute("llms-full.txt")}`,

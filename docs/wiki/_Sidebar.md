@@ -25,6 +25,7 @@
 - [Energy & statistics](Feature-Energy-and-Statistics)
 - [Export](Feature-Export)
 - [Events & blueprints](Feature-Automations)
+- [Ask Assist & AI](Feature-Assist-and-AI)
 - [API quota](Feature-API-Quota)
 - [Multiple cars & accounts](Feature-Multiple-Cars-and-Accounts)
 
@@ -63,6 +64,7 @@
 - [Energie & Statistiken](DE-Feature-Energy-and-Statistics)
 - [Export](DE-Feature-Export)
 - [Ereignisse & Blueprints](DE-Feature-Automations)
+- [Assist & KI fragen](DE-Feature-Assist-and-AI)
 - [API-Kontingent](DE-Feature-API-Quota)
 - [Mehrere Fahrzeuge & Konten](DE-Feature-Multiple-Cars-and-Accounts)
 

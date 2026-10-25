@@ -14,11 +14,11 @@ const de = lang === "de";
 const L = (path: string) => url(localized(path, lang));
 const copy = de
   ? {
-      title: "BavarianData: BMW CarData live in Home Assistant einbinden",
+      title: "BMW- & MINI-Integration für Home Assistant (CarData) | BavarianData",
       description:
-        "Home-Assistant-Integration für BMW CarData: Live-Daten deines BMW oder MINI per MQTT-Stream, Ladeverlauf mit Kosten, Fahrtenbuch und Batteriezustand. Kostenlos, aus HACS.",
+        "Kostenlose BMW- und MINI-Integration für Home Assistant: Live-Daten über BMW CarData, den Nachfolger von Connected Drive. Ladekosten, Fahrtenbuch, Batteriezustand, Assist. Aus HACS.",
       h1: "Dein BMW, live in Home Assistant.",
-      lead: "BavarianData verbindet Home Assistant direkt mit BMW CarData, BMWs offiziellem Datendienst. Ladezustand, Türen, Reifen und Position kommen über einen Live-Stream binnen Sekunden an, und daraus entstehen Ladeverlauf, Fahrtenbuch und Batteriezustand.",
+      lead: "BavarianData ist die BMW- und MINI-Integration für Home Assistant. Sie verbindet sich direkt mit BMW CarData, BMWs offiziellem Datendienst. Ladezustand, Türen, Reifen und Position kommen über einen Live-Stream binnen Sekunden an, und daraus entstehen Ladeverlauf, Fahrtenbuch und Batteriezustand.",
       install: "Aus HACS installieren",
       guide: "Einrichtung lesen",
       facts: ["Im HACS-Standard-Store", "Kostenlos, MIT-Lizenz", "Nur lesend: steuert nie das Auto", "BMW und MINI"],
@@ -67,6 +67,9 @@ const copy = de
         ["evcc- und Wallbox-Brücke", "Der Live-Ladezustand per MQTT für evcc oder openWB.", "docs/evcc-and-wallbox-bridge"],
         ["Export als CSV oder PDF", "Ein Monat Laden oder Fahren, als Tabelle oder druckbarer Bericht.", "docs/export"],
         ["Automationen", "Trigger für Ladebeginn, -ende und Ankunft, dazu fertige Blueprints.", "docs/automations"],
+        ["Assist und KI fragen", "„Muss ich vor der Fahrt nach München laden?“ Per Sprache, im Chat oder per MCP.", "docs/assist-and-ai"],
+        ["Kilometer und Leasing", "Gefahrene Kilometer pro Monat, und ob das Leasing-Kontingent im Plan liegt.", "docs/mileage"],
+        ["Intelligent laden", "Ladezustand und Ladeziel für EV Smart Charging und Predbat.", "docs/smart-charging"],
         ["In deiner Sprache", "Entitätsnamen in zehn Sprachen, direkt aus BMWs eigenem Katalog.", "docs/entities-and-devices"],
       ],
       streamTitle: "Was das Auto sendet",
@@ -87,6 +90,7 @@ const copy = de
         ["Wo ist es verfügbar?", "Überall dort, wo BMW das CarData-Portal für dein Konto anbietet. Die Client-ID gilt für das ganze Konto und jedes Auto darin."],
         ["Braucht es mein MyBMW-Passwort?", "Nein. Du autorisierst deinen eigenen Client einmal im Browser, Home Assistant bekommt nur Tokens und erneuert sie selbst."],
         ["Gibt es ein Limit?", "BMW erlaubt 50 REST-Anfragen pro 24 Stunden. Der Live-Stream zählt nicht dazu, und die Integration geht sparsam mit dem Rest um."],
+        ["Kann ich Assist nach dem Auto fragen?", "Ja. Mit einem KI-Gesprächsagenten hinter Assist beantwortet BavarianData Fragen zu Akku, Reichweite, Schlössern, Ladekosten, Fahrten und Leasing, per Sprache, im Chat oder über den MCP-Server von Home Assistant. Ohne API-Kontingent."],
         ["Kann ich es neben einer anderen CarData-Integration nutzen?", "BMW erlaubt einen Stream pro Konto. Zwei Stream-Clients am selben Konto werfen sich gegenseitig hinaus, also entscheide dich für einen."],
       ],
       demoLabel: "Probier die Karte aus",
@@ -98,11 +102,11 @@ const copy = de
       coffeeCta: "Kaffee auf Ko-fi spendieren",
     }
   : {
-      title: "BavarianData: BMW CarData in Home Assistant, live",
+      title: "BMW & MINI Home Assistant Integration (CarData) | BavarianData",
       description:
-        "Home Assistant integration for BMW CarData: live data from your BMW or MINI over MQTT, charging history with cost, a trip journal and battery health. Free, from HACS.",
+        "Free BMW and MINI integration for Home Assistant: live car data over BMW CarData, the successor to Connected Drive. Charging cost, trip log, battery health, Assist. From HACS.",
       h1: "Your BMW, live in Home Assistant.",
-      lead: "BavarianData connects Home Assistant directly to BMW CarData, BMW's official data service. Charge level, doors, tires and position arrive over a live stream within seconds, and a charging history, trip journal and battery-health figure are built from it.",
+      lead: "BavarianData is the BMW and MINI integration for Home Assistant. It connects directly to BMW CarData, BMW's official data service. Charge level, doors, tires and position arrive over a live stream within seconds, and a charging history, trip journal and battery-health figure are built from it.",
       install: "Install from HACS",
       guide: "Read the setup guide",
       facts: ["In the HACS default store", "Free, MIT licensed", "Read-only: never commands the car", "BMW and MINI"],
@@ -151,6 +155,9 @@ const copy = de
         ["evcc and wallbox bridge", "The live charge level over MQTT for evcc or openWB.", "docs/evcc-and-wallbox-bridge"],
         ["Export to CSV or PDF", "A month of charging or driving, as a spreadsheet or a printable report.", "docs/export"],
         ["Automations", "Triggers for charging started, finished and arrivals, plus ready-made blueprints.", "docs/automations"],
+        ["Ask Assist and AI", "“Do I need to charge before driving to Munich?” By voice, in the chat or over MCP.", "docs/assist-and-ai"],
+        ["Mileage and lease", "Distance driven month by month, and whether a lease allowance is on plan.", "docs/mileage"],
+        ["Smart charging", "Charge level and target for EV Smart Charging and Predbat.", "docs/smart-charging"],
         ["In your language", "Entity names in ten languages, straight from BMW's own catalogue.", "docs/entities-and-devices"],
       ],
       streamTitle: "What the car sends",
@@ -171,6 +178,7 @@ const copy = de
         ["Where is it available?", "Wherever BMW offers the CarData portal for your account. The client ID is account-wide and covers every car on it."],
         ["Does it need my MyBMW password?", "No. You authorize your own client once in the browser; Home Assistant only receives tokens and refreshes them itself."],
         ["Is there a limit?", "BMW allows 50 REST requests per 24 hours. The live stream doesn't count against it, and the integration spends the rest sparingly."],
+        ["Can I ask Assist about the car?", "Yes. With an AI conversation agent behind Assist, BavarianData answers questions about charge, range, locks, charging cost, trips and your lease, by voice, in the chat or through Home Assistant's MCP server. No API quota."],
         ["Can I run it next to another CarData integration?", "BMW allows one stream per account. Two stream clients on the same account keep knocking each other off, so pick one."],
       ],
       demoLabel: "Try the card",

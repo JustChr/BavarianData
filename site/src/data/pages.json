@@ -3,34 +3,34 @@
   "Home": {
     "slug": "",
     "en": {
-      "title": "BavarianData manual: BMW CarData in Home Assistant",
-      "description": "The complete manual for BavarianData, the Home Assistant integration for BMW CarData: setup, the dashboard card, every feature, settings, services and troubleshooting."
+      "title": "BMW & MINI Home Assistant integration manual (BMW CarData)",
+      "description": "The complete manual for BavarianData, the BMW and MINI integration for Home Assistant on BMW CarData: setup, the dashboard card, every feature, settings, services and troubleshooting."
     },
     "de": {
-      "title": "BavarianData-Handbuch: BMW CarData in Home Assistant",
-      "description": "Das vollständige Handbuch zu BavarianData, der Home-Assistant-Integration für BMW CarData: Einrichtung, Dashboard-Karte, alle Funktionen, Einstellungen, Dienste und Fehlerbehebung."
+      "title": "Handbuch zur BMW- & MINI-Integration für Home Assistant (BMW CarData)",
+      "description": "Das vollständige Handbuch zu BavarianData, der BMW- und MINI-Integration für Home Assistant für BMW CarData: Einrichtung, Dashboard-Karte, alle Funktionen, Einstellungen, Dienste und Fehlerbehebung."
     }
   },
   "Coming-from-bimmer_connected": {
     "slug": "coming-from-bimmer-connected",
     "en": {
       "title": "BMW Connected Drive stopped working in Home Assistant? Switch to BMW CarData",
-      "description": "BMW blocked bimmer_connected on 29 September 2025. What replaces the BMW Connected Drive integration, what changes, and how to move your automations to BMW CarData."
+      "description": "BMW blocked bimmer_connected on 29 September 2025. The BMW Connected Drive / MyBMW integration's replacement for BMW and MINI, what changes, and how to move your automations to BMW CarData."
     },
     "de": {
       "title": "BMW Connected Drive in Home Assistant funktioniert nicht mehr? Umstieg auf BMW CarData",
-      "description": "BMW hat bimmer_connected am 29. September 2025 gesperrt. Was die BMW-Connected-Drive-Integration ersetzt, was sich ändert und wie du Automationen auf BMW CarData umziehst."
+      "description": "BMW hat bimmer_connected am 29. September 2025 gesperrt. Der Ersatz für die BMW-Connected-Drive-/MyBMW-Integration für BMW und MINI, was sich ändert und wie du Automationen auf BMW CarData umziehst."
     }
   },
   "Supported-Cars": {
     "slug": "supported-cars",
     "en": {
       "title": "Which BMW and MINI models work with BMW CarData in Home Assistant",
-      "description": "Every BMW and MINI with CarData works: electric, plug-in hybrid, petrol and diesel. What you get per drivetrain, and the models owners have confirmed."
+      "description": "Every BMW and MINI with CarData works: electric (i4, i5, iX3, i3, MINI Cooper SE), plug-in hybrid, petrol and diesel. What you get per drivetrain, and the models owners have confirmed."
     },
     "de": {
       "title": "Welche BMW- und MINI-Modelle mit BMW CarData in Home Assistant funktionieren",
-      "description": "Jeder BMW und MINI mit CarData funktioniert: elektrisch, Plug-in-Hybrid, Benzin und Diesel. Was du je Antrieb bekommst und welche Modelle Besitzer bestätigt haben."
+      "description": "Jeder BMW und MINI mit CarData funktioniert: elektrisch (i4, i5, iX3, i3, MINI Cooper SE), Plug-in-Hybrid, Benzin und Diesel. Was du je Antrieb bekommst und welche Modelle Besitzer bestätigt haben."
     }
   },
   "Getting-Started-1-BMW-Portal-Setup": {
@@ -47,11 +47,11 @@
   "Getting-Started-2-Install": {
     "slug": "install",
     "en": {
-      "title": "Install the BMW CarData integration via HACS",
+      "title": "Install the BMW & MINI Home Assistant integration (HACS)",
       "description": "Step 2: install BavarianData from the HACS default store, restart Home Assistant, and check the requirements (Home Assistant 2026.3 or newer)."
     },
     "de": {
-      "title": "BMW-CarData-Integration über HACS installieren",
+      "title": "BMW- & MINI-Integration für Home Assistant installieren (HACS)",
       "description": "Schritt 2: BavarianData aus dem HACS-Standard-Store installieren, Home Assistant neu starten und die Voraussetzungen prüfen (Home Assistant 2026.3 oder neuer)."
     }
   },
@@ -80,22 +80,22 @@
   "The-Dashboard-Card": {
     "slug": "dashboard-card",
     "en": {
-      "title": "BMW dashboard card for Home Assistant: every view and option",
+      "title": "BMW & MINI dashboard card for Home Assistant",
       "description": "The bundled Lovelace card: overview, charging history, trips, trip map, battery health, efficiency and cluster views, with the full YAML reference."
     },
     "de": {
-      "title": "BMW-Dashboard-Karte für Home Assistant: alle Ansichten und Optionen",
+      "title": "BMW- & MINI-Dashboard-Karte für Home Assistant",
       "description": "Die mitgelieferte Lovelace-Karte: Übersicht, Ladeverlauf, Fahrten, Fahrtenkarte, Batteriezustand, Effizienz und Cluster-Ansichten, mit vollständiger YAML-Referenz."
     }
   },
   "Feature-Entities-and-Devices": {
     "slug": "entities-and-devices",
     "en": {
-      "title": "BMW entities and devices in Home Assistant",
+      "title": "BMW and MINI sensors in Home Assistant: entities and devices",
       "description": "What appears in Home Assistant for each BMW: one device per car, native sensors with device classes and units, derived sensors, and how entities are named."
     },
     "de": {
-      "title": "BMW-Entitäten und -Geräte in Home Assistant",
+      "title": "BMW- und MINI-Sensoren in Home Assistant: Entitäten und Geräte",
       "description": "Was für jeden BMW in Home Assistant erscheint: ein Gerät pro Auto, native Sensoren mit Geräteklassen und Einheiten, abgeleitete Sensoren und die Benennung."
     }
   },
@@ -201,12 +201,23 @@
   "Feature-Automations": {
     "slug": "automations",
     "en": {
-      "title": "BMW automations: charging triggers, events and blueprints",
-      "description": "Device triggers and events for charging started, stopped, interrupted and complete and for zone arrivals, plus starter automation blueprints for Home Assistant."
+      "title": "BMW automations in Home Assistant: triggers and blueprints",
+      "description": "Device triggers and events for charging started, stopped, interrupted and complete, zone arrivals, an unlocked car or an open window, plus ready-made automation blueprints for Home Assistant."
     },
     "de": {
-      "title": "BMW-Automationen: Ladetrigger, Ereignisse und Blueprints",
-      "description": "Gerätetrigger und Ereignisse für Ladebeginn, -stopp, -unterbrechung und -ende und für Zonenankünfte, dazu fertige Automations-Blueprints für Home Assistant."
+      "title": "BMW-Automationen in Home Assistant: Trigger und Blueprints",
+      "description": "Gerätetrigger und Ereignisse für Ladebeginn, -stopp, -unterbrechung und -ende, Zonenankünfte, ein offenes Auto oder ein offenes Fenster, dazu fertige Automations-Blueprints für Home Assistant."
+    }
+  },
+  "Feature-Assist-and-AI": {
+    "slug": "assist-and-ai",
+    "en": {
+      "title": "Ask Assist about your BMW: AI and MCP in Home Assistant",
+      "description": "Ask Assist or an AI agent (OpenAI, Gemini, Claude, Ollama) about your BMW or MINI: charge, range for a trip, locks, charging cost, trips, lease. Also over MCP."
+    },
+    "de": {
+      "title": "Assist nach dem BMW fragen: KI und MCP in Home Assistant",
+      "description": "Frag Assist oder einen KI-Agenten (OpenAI, Gemini, Claude, Ollama) nach deinem BMW oder MINI: Akku, Reichweite für eine Fahrt, Schlösser, Ladekosten, Fahrten, Leasing. Auch per MCP."
     }
   },
   "Feature-API-Quota": {
@@ -234,22 +245,22 @@
   "Settings-Reference": {
     "slug": "settings",
     "en": {
-      "title": "BavarianData settings reference",
+      "title": "Settings of the BMW & MINI Home Assistant integration",
       "description": "Every Configure screen of the BMW CarData integration: streamed data, automatic refresh, charging costs, solar sources, the evcc bridge, trips and debug logging."
     },
     "de": {
-      "title": "BavarianData-Einstellungen",
+      "title": "Einstellungen der BMW- & MINI-Integration für Home Assistant",
       "description": "Jeder Konfigurieren-Bildschirm der BMW-CarData-Integration: gestreamte Daten, automatische Aktualisierung, Ladekosten, Solarquellen, evcc-Brücke, Fahrten und Debug-Protokoll."
     }
   },
   "Services-Reference": {
     "slug": "services",
     "en": {
-      "title": "BavarianData services reference",
+      "title": "Services of the BMW & MINI Home Assistant integration",
       "description": "Every Home Assistant service the BMW CarData integration offers, with fields, examples and whether it spends API quota."
     },
     "de": {
-      "title": "BavarianData-Dienste",
+      "title": "Dienste der BMW- & MINI-Integration für Home Assistant",
       "description": "Jeder Home-Assistant-Dienst der BMW-CarData-Integration, mit Feldern, Beispielen und ob er API-Kontingent verbraucht."
     }
   },

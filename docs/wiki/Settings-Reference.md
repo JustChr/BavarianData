@@ -311,7 +311,7 @@ Screen: **Configure → Units**. How values are shown, for the whole account.
 
 The screen lists what each car is shown in now. A choice applies at once to the
 dashboard card (every view), the settings screens, the service calendar, the
-[month report](Feature-Export) and [Assist](Feature-Automations), and also to the
+[month report](Feature-Export) and [Assist](Feature-Assist-and-AI), and also to the
 display unit of the car's sensors in Home Assistant (odometer, ranges, speed,
 temperatures, tire pressures, tank), so Home Assistant's own pages and graphs
 agree with the card. **Automatic** takes back a unit this screen set, but never
