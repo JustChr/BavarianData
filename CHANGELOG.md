@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.23-beta.2] - 2026-10-25
+
 Most of the integration was rebuilt inside in this beta: each car's state in
 one place, charging and trips in their own modules, the setup and Configure
 screens split up. A recording of every reading, event and sensor value across
