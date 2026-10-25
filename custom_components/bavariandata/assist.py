@@ -402,7 +402,7 @@ def charging_answer(sessions: Iterable[Mapping[str, Any]], *, days: int) -> dict
     energy = 0.0
     grid = 0.0
     costs: dict[str, float] = {}
-    shown = []
+    shown: list[dict[str, Any]] = []
     for session in rows:
         energy += session.get("energy_kwh") or 0.0
         grid += session.get("grid_kwh") or 0.0

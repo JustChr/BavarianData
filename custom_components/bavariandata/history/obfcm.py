@@ -80,14 +80,14 @@ def lifetime(read: Reader, *, hybrid: bool = False) -> Optional[dict[str, Any]]:
     distance = read(DISTANCE_OVERALL)
     out: dict[str, Any] = {}
     fuel = _ratio(read(FUEL_OVERALL), distance, FUEL_RANGE)
-    if fuel is not None:
+    if fuel is not None and distance is not None:
         out["fuel_l_per_100km"] = fuel
         out["distance_km"] = round(distance, 0)
 
     if hybrid:
         electric_km = read(GRID_DISTANCE_ENGINE_OFF)
         electric = _ratio(read(GRID_ENGINE_OFF), electric_km, ELECTRIC_RANGE)
-        if electric is not None:
+        if electric is not None and electric_km is not None:
             out["electric_kwh_per_100km"] = electric
             out["electric_km"] = round(electric_km, 0)
         grid_distance = read(GRID_DISTANCE_OVERALL) or distance

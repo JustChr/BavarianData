@@ -110,8 +110,9 @@ def _location(
         return None
     lat = _as_float(raw.get("mapMatchedLatitude"))
     lon = _as_float(raw.get("mapMatchedLongitude"))
-    has_point = lat is not None and lon is not None
-    zone = zone_fn(lat, lon) if (zone_fn and has_point) else None
+    point = (lat, lon) if lat is not None and lon is not None else None
+    has_point = point is not None
+    zone = zone_fn(*point) if (zone_fn and point) else None
     if zone:
         location: dict[str, Any] = {"zone": zone}
     elif address := _address_label(raw):
@@ -122,9 +123,9 @@ def _location(
         location = {"zone": None}
     else:
         return None
-    if keep_coordinates and has_point:
-        location["lat"] = round(lat, 5)
-        location["lon"] = round(lon, 5)
+    if keep_coordinates and point:
+        location["lat"] = round(point[0], 5)
+        location["lon"] = round(point[1], 5)
     return location
 
 
@@ -237,7 +238,7 @@ def session_from_cardata(
         location["provider"] = provider
     preconditioned = raw.get("isPreconditioningActivated")
     # The tariff is the home one; a public charger's price is BMW's to report.
-    priced = cost_fn is not None and house_supplies_this_session(location, home_zone)
+    house_prices = house_supplies_this_session(location, home_zone)
     return ChargingSession(
         vin=vin,
         start=start,
@@ -250,7 +251,7 @@ def session_from_cardata(
         power_curve=curve,
         location=location,
         location_assumed=False,
-        cost=cost_fn(grid_kwh) if priced else None,
+        cost=cost_fn(grid_kwh) if cost_fn is not None and house_prices else None,
         mileage_km=_mileage_km(raw.get("mileage"), raw.get("mileageUnits")),
         enriched=True,
         preconditioned=preconditioned if isinstance(preconditioned, bool) else None,

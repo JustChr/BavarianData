@@ -43,11 +43,10 @@ class HeldEnergy:
     currency: str
     battery_kwh: float = 0.0
     mix: MixAccumulator = field(default_factory=MixAccumulator)
-    cost: Optional[CostAccumulator] = None
+    cost: CostAccumulator = field(init=False)
 
     def __post_init__(self) -> None:
-        if self.cost is None:
-            self.cost = CostAccumulator(currency=self.currency)
+        self.cost = CostAccumulator(currency=self.currency)
 
     def hold(
         self,
@@ -120,9 +119,10 @@ class HeldEnergy:
 
         if not isinstance(data, dict):
             return cls(currency=currency)
-        return cls(
+        held = cls(
             currency=currency,
             battery_kwh=_float(data.get("battery_kwh")),
             mix=MixAccumulator.from_dict(data.get("mix")),
-            cost=CostAccumulator.from_dict(data.get("cost"), currency=currency),
         )
+        held.cost = CostAccumulator.from_dict(data.get("cost"), currency=currency)
+        return held

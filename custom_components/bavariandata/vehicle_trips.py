@@ -79,8 +79,11 @@ class TripHost(Protocol):
     trip_log: TripLog
     events: Any  # vehicle_events.VehicleEvents
     reports: Any  # vehicle_reports.VehicleReports
-    signal_trips: str
-    signal_trip_active: str
+
+    @property
+    def signal_trips(self) -> str: ...
+    @property
+    def signal_trip_active(self) -> str: ...
 
     @property
     def _cars(self) -> Dict[str, Vehicle]: ...
@@ -974,7 +977,7 @@ class VehicleTrips:
         )
         # Not a commute on its own: it may still be the last leg of one that a
         # stop on the way split in two (groceries between home and work).
-        chain: Optional[list] = None
+        chain: Optional[list[Any]] = None
         if classification != CLASS_COMMUTE:
             chain = self._commute_chain(vin, trip, home=home_zone, work=work_zone)
             if chain is not None:
@@ -1053,7 +1056,7 @@ class VehicleTrips:
         *,
         home: Optional[str],
         work: Optional[str],
-    ) -> Optional[list]:
+    ) -> Optional[list[Any]]:
         """Earlier legs that make this trip the end of a commute, or ``None``.
 
         Thin wrapper over :func:`history.classify.commute_chain`: it only reads
@@ -1077,7 +1080,7 @@ class VehicleTrips:
             gap_s=gap_s,
         )
 
-    def _promote_chain_legs(self, vin: str, legs: list) -> None:
+    def _promote_chain_legs(self, vin: str, legs: list[Any]) -> None:
         """Re-label the earlier legs of a completed commute chain.
 
         Those legs were stored when the chain's destination wasn't known yet, so
@@ -1160,7 +1163,7 @@ class VehicleTrips:
         # action is dispatched to the executor thread, where async_create_task is
         # not thread-safe.
         @callback
-        def _fire(_now) -> None:
+        def _fire(_now: datetime) -> None:
             self._host._peek(vin).trip.take("close_timer")
             self._host._peek(vin).trip.take("close_due")
             now = datetime.now(timezone.utc)

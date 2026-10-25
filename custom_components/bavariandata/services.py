@@ -14,12 +14,12 @@ from __future__ import annotations
 import logging
 import time
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any, Literal, Optional, overload
 
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, SupportsResponse, callback
+from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse, callback
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
 from homeassistant.helpers import device_registry as dr
@@ -184,6 +184,24 @@ def async_setup_services(hass: HomeAssistant) -> None:
     def _account_vins(entry: ConfigEntry, runtime: CardataRuntimeData) -> list[str]:
         return account_vins(hass, entry, runtime.coordinator)
 
+    @overload
+    def _pick_vin(
+        entry: ConfigEntry,
+        runtime: CardataRuntimeData,
+        vin: Optional[str],
+        *,
+        required: Literal[True],
+    ) -> str: ...
+
+    @overload
+    def _pick_vin(
+        entry: ConfigEntry,
+        runtime: CardataRuntimeData,
+        vin: Optional[str],
+        *,
+        required: bool,
+    ) -> Optional[str]: ...
+
     def _pick_vin(
         entry: ConfigEntry,
         runtime: CardataRuntimeData,
@@ -198,6 +216,16 @@ def async_setup_services(hass: HomeAssistant) -> None:
         except TargetError as err:
             raise _invalid(err) from err
 
+    @overload
+    def _target_car(
+        call: Any, *, required: Literal[True] = ...
+    ) -> tuple[str, ConfigEntry, CardataRuntimeData, str]: ...
+
+    @overload
+    def _target_car(
+        call: Any, *, required: bool
+    ) -> tuple[str, ConfigEntry, CardataRuntimeData, Optional[str]]: ...
+
     def _target_car(
         call: Any, *, required: bool = True
     ) -> tuple[str, ConfigEntry, CardataRuntimeData, Optional[str]]:
@@ -210,7 +238,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         entry_id, entry, runtime, vin = _resolve_target(call)
         return entry_id, entry, runtime, _pick_vin(entry, runtime, vin, required=required)
 
-    async def async_handle_fetch(call) -> None:
+    async def async_handle_fetch(call: ServiceCall) -> None:
         _entry_id, target_entry, runtime, vin = _target_car(call, required=False)
         success = await _async_perform_telematic_fetch(
             hass,
@@ -222,7 +250,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         if success:
             _async_update_last_telematic_poll(hass, target_entry, time.time())
 
-    async def async_handle_fetch_mappings(call) -> None:
+    async def async_handle_fetch_mappings(call: ServiceCall) -> None:
         prepared = await _prepare_api_call(call, "fetch_vehicle_mappings", require_vin=False)
         target_entry, runtime, _vin, access_token = prepared
         try:
@@ -277,7 +305,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
                 },
             )
 
-    async def async_handle_fetch_basic_data(call) -> None:
+    async def async_handle_fetch_basic_data(call: ServiceCall) -> None:
         prepared = await _prepare_api_call(call, "fetch_basic_data", require_vin=True)
         # ``target_entry``, never the ``entry`` this closure was created
         # with: the services are registered once, by whichever entry set up
@@ -313,8 +341,18 @@ def async_setup_services(hass: HomeAssistant) -> None:
                     serial_number=metadata.get("serial_number"),
                 )
 
+    @overload
     async def _prepare_api_call(
-        call, label: str, *, require_vin: bool
+        call: ServiceCall, label: str, *, require_vin: Literal[True]
+    ) -> tuple[ConfigEntry, "CardataRuntimeData", str, str]: ...
+
+    @overload
+    async def _prepare_api_call(
+        call: ServiceCall, label: str, *, require_vin: bool
+    ) -> tuple[ConfigEntry, "CardataRuntimeData", Optional[str], str]: ...
+
+    async def _prepare_api_call(
+        call: ServiceCall, label: str, *, require_vin: bool
     ) -> tuple[ConfigEntry, "CardataRuntimeData", Optional[str], str]:
         """Resolve target, take a token, claim quota and return call context.
 
@@ -343,7 +381,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
         return target_entry, runtime, vin, access_token
 
-    async def async_handle_fetch_charging_history(call) -> None:
+    async def async_handle_fetch_charging_history(call: ServiceCall) -> None:
         prepared = await _prepare_api_call(call, "fetch_charging_history", require_vin=True)
         _entry, runtime, vin, access_token = prepared
         # BMW requires both from/to; default to the last 30 days so a bare
@@ -389,7 +427,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         )
         _LOGGER.debug("Cardata charging history for %s: %s", vin, payload)
 
-    async def async_handle_fetch_tyre_diagnosis(call) -> None:
+    async def async_handle_fetch_tyre_diagnosis(call: ServiceCall) -> None:
         prepared = await _prepare_api_call(call, "fetch_tyre_diagnosis", require_vin=True)
         _entry, runtime, vin, access_token = prepared
         try:
@@ -405,7 +443,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         )
         _LOGGER.debug("Cardata tyre diagnosis for %s: %s", vin, payload)
 
-    async def async_handle_fetch_location_charging(call) -> None:
+    async def async_handle_fetch_location_charging(call: ServiceCall) -> None:
         prepared = await _prepare_api_call(
             call, "fetch_location_charging_settings", require_vin=True
         )
@@ -429,7 +467,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         )
         _LOGGER.debug("Cardata location-based charging settings for %s: %s", vin, payload)
 
-    async def async_handle_fetch_vehicle_image(call) -> None:
+    async def async_handle_fetch_vehicle_image(call: ServiceCall) -> None:
         # Resolve the target entry/vin (this also refreshes tokens and claims a
         # quota slot); the shared image helper performs the actual fetch and
         # updates the ``image`` entity's cache + Store so the render shows up in
@@ -506,7 +544,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             raise _invalid(Refusal("bad_date", key=repr(key), value=repr(raw)))
         return service_answers.day_bound(parsed, end_of_day=end_of_day)
 
-    async def async_handle_get_charging_sessions(call: Any) -> dict:
+    async def async_handle_get_charging_sessions(call: Any) -> dict[str, Any]:
         _entry_id, _entry, runtime, vin = _target_car(call, required=False)
         if runtime.history is None:
             return {"sessions": []}
@@ -528,7 +566,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         }
     )
 
-    async def async_handle_get_charging_places(call: Any) -> dict:
+    async def async_handle_get_charging_places(call: Any) -> dict[str, Any]:
         # The places a car charged at, worked out from the stored sessions
         # (history/stations.py). Local only -- no quota. Without a car named on
         # a multi-car account it covers them all, like get_charging_sessions.
@@ -590,7 +628,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         }
     )
 
-    async def async_handle_get_trips(call: Any) -> dict:
+    async def async_handle_get_trips(call: Any) -> dict[str, Any]:
         _entry_id, _entry, runtime, vin_filter = _target_car(call, required=False)
         if runtime.history is None:
             return {"trips": [], "open_trips": []}
@@ -606,7 +644,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         # coordinator's memory -- so it rides alongside the recorded trips
         # rather than inside them: it has no end, no distance we'd stand
         # behind yet and nothing to classify.
-        open_trips: list[dict] = []
+        open_trips: list[dict[str, Any]] = []
         if service_answers.window_holds(start, end, dt_util.utcnow()):
             coordinator = runtime.coordinator
             for vin in coordinator.open_trip_vins():
@@ -620,7 +658,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             "open_trips": open_trips,
         }
 
-    async def async_handle_get_mileage_report(call: Any) -> dict:
+    async def async_handle_get_mileage_report(call: Any) -> dict[str, Any]:
         """How far the car is driven and where it stands against its allowance.
 
         Read off the daily odometer log (``mileage.py``); no quota.
@@ -629,7 +667,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         _entry_id, _entry, runtime, vin = _target_car(call)
         return {"vin": vin, **runtime.coordinator.mileage_report(vin)}
 
-    async def async_handle_get_fuel_history(call: Any) -> dict:
+    async def async_handle_get_fuel_history(call: Any) -> dict[str, Any]:
         """Refuels and fuel consumption, from the tank reading (``history/fuel.py``).
 
         Plus BMW's lifetime counters where the car sends them. No quota.
@@ -638,7 +676,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         _entry_id, _entry, runtime, vin = _target_car(call)
         return {"vin": vin, "fuel": runtime.coordinator.fuel_report(vin)}
 
-    async def async_handle_get_driving_summary(call: Any) -> dict:
+    async def async_handle_get_driving_summary(call: Any) -> dict[str, Any]:
         _entry_id, _entry, runtime, vin = _target_car(call)
         if runtime.history is None:
             return {"summary": {}, "month": None}
@@ -680,7 +718,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         )
         return {"summary": summary, "month": f"{year:04d}-{month:02d}"}
 
-    async def async_handle_get_efficiency(call: Any) -> dict:
+    async def async_handle_get_efficiency(call: Any) -> dict[str, Any]:
         """Measured consumption, real range and the seasonal trend.
 
         The same profile the real-range entity publishes, plus the month
@@ -715,7 +753,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         profile["bmw_lifetime"] = coordinator.obfcm_lifetime(vin)
         return {"efficiency": profile, "vin": vin}
 
-    async def async_handle_get_evcc_config(call: Any) -> dict:
+    async def async_handle_get_evcc_config(call: Any) -> dict[str, Any]:
         """The evcc ``custom`` vehicle block for this car, ready to paste.
 
         Generated rather than documented as a static example, for the same
@@ -808,7 +846,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         }
     )
 
-    async def async_handle_get_coverage_report(call: Any) -> dict:
+    async def async_handle_get_coverage_report(call: Any) -> dict[str, Any]:
         """Run the descriptor-coverage self-test and return it as data.
 
         Reads only the local coverage store and live stream state, so it
@@ -821,7 +859,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         reports = _coverage_reports(runtime, vin)
         return {"reports": [report.to_dict() for report in reports]}
 
-    async def async_handle_export_history(call: Any) -> dict:
+    async def async_handle_export_history(call: Any) -> dict[str, Any]:
         """Render the recorded month as files the user keeps.
 
         Returns the file *contents* rather than writing to disk: the card
@@ -898,7 +936,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
         return {"month": label, "vin": vin, "files": files}
 
-    async def async_handle_import_statistics(call: Any) -> dict:
+    async def async_handle_import_statistics(call: Any) -> dict[str, Any]:
         """Force a statistics rebuild, bypassing the change fingerprint."""
 
         _entry_id, _entry, runtime, vin = _target_car(call, required=False)
@@ -926,7 +964,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         }
     )
 
-    async def async_handle_activate_stream_fields(call: Any) -> dict:
+    async def async_handle_activate_stream_fields(call: Any) -> dict[str, Any]:
         """Replace a vehicle's streamed attribute selection via the BMW portal.
 
         Stream-attribute selection has no CarData API; it lives behind the

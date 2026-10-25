@@ -14,7 +14,7 @@ decisions are unit-tested directly (``tests/test_service_target.py``).
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional, Sequence
+from typing import Any, Mapping, Optional, Sequence, cast
 
 from .debug import mask_vin
 from .refusal import Refusal
@@ -37,10 +37,10 @@ def device_owner(device: Any) -> Optional[str]:
 
     owner = getattr(device, "config_entry_id", None)
     if owner:
-        return owner
+        return cast(str, owner)
     owner = getattr(device, "primary_config_entry", None)
     if owner:
-        return owner
+        return cast(str, owner)
     return next(iter(getattr(device, "config_entries", None) or ()), None)
 
 
@@ -84,7 +84,7 @@ def choose_account(
         if device_entry not in titles:
             raise TargetError("device_account_not_loaded")
         return device_entry
-    if vin and vin_entry in titles:
+    if vin and vin_entry is not None and vin_entry in titles:
         return vin_entry
     if vin and len(titles) > 1:
         raise TargetError("vin_not_found", vin=mask_vin(vin))

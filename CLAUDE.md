@@ -31,7 +31,7 @@ user's personal BMW client ID. Domain: `bavariandata`. Repo:
   - `sensor.py` / `binary_sensor.py` / `image.py` / `device_tracker.py` / `calendar.py` / `entity.py` — entity platforms. One device per VIN.
   - `sensor_plan.py` — which sensors each car gets (battery sensors only with a battery, cost sensors only with a tariff, registry entries restored as themselves, tyres following BMW's diagnosis). HA-free; `sensor.py` builds the entity each `Want` names. `sensor_values.py` — what the derived sensors show (states, attribute sets the card reads), HA-free too. `binary_sensor_plan.py` — the same for the binary sensors (which a car gets, device class and lock polarity, the trip flag's attributes and write throttle).
   - `descriptors.py`, `keys.py`, `units.py` — descriptor → entity mapping; `keys.py` derives the HA `translation_key` and is shared by runtime **and** generators so they can't drift.
-  - `quality_scale.yaml` — our self-declared Quality Scale status (HA grades only core): Bronze–Gold done, Platinum's `async-dependency` and `strict-typing` todo. A change that breaks a rule's claim updates its line; `tests_ha/test_flow_edges.py` keeps the flows at 100 %.
+  - `quality_scale.yaml` — our self-declared Quality Scale status (HA grades only core): Bronze–Gold done, Platinum's `strict-typing` too (`bash scripts/mypy.sh`), `async-dependency` todo. A change that breaks a rule's claim updates its line; `tests_ha/test_flow_edges.py` keeps the flows at 100 %.
   - `www/bavariandata-card.js` — bundled Lovelace card (vanilla JS, registered automatically by `__init__.py`; no build step). Groups entities via their `cluster`/`category` attributes, not names.
 - `tools/` — catalogue generation pipeline (see below).
 - `tests/` — pytest, **no Home Assistant required** (see below); `tests_ha/` — the same against a real HA, Linux only.
@@ -214,7 +214,9 @@ living only in prose.
   (zero-quota reads against the live instance), `shoot` (Playwright screenshots),
   `close` (end every session with it: park or land the work, gates if code
   changed, docs and wiki in line, memory pruned, close marker set).
-- **Scripts:** `bash scripts/coverage.sh [--missing]` runs both suites in WSL and prints
+- **Scripts:** `bash scripts/mypy.sh` runs `mypy --strict` against a real HA in WSL (CI's
+  *Home Assistant tests* job runs the same; HA 2026.10 types its schemas as probatio's, so
+  voluptuous is read as untyped there); `bash scripts/coverage.sh [--missing]` runs both suites in WSL and prints
   CI's per-module coverage table (and each below-95 % module's missed lines);
   `bash scripts/check.sh` runs CI's gates with CI's exact paths and
   ends GREEN/RED (`--no-tests` for lint only); `python tools/i18n_gaps.py` lists

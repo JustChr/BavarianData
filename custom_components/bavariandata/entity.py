@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from typing import Any
 
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -85,7 +86,7 @@ class CardataEntity(RestoreEntity):
         return not self._coordinator.login_refused
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, Any]:
         attrs = {}
         # Static, state-independent metadata below — always exposed, even before
         # the first live value arrives. Otherwise a rarely-changing entity that
@@ -121,7 +122,7 @@ class CardataEntity(RestoreEntity):
                     attrs["tire_metric"] = tire_match.group(3)
         return attrs
 
-    def _basic_data_attributes(self) -> dict:
+    def _basic_data_attributes(self) -> dict[str, Any]:
         """BMW's basic data for the car (model, drivetrain, steering side,
         equipment codes). Only the vehicle image and the device tracker carry
         it: one copy per car, not one on every entity (#100)."""

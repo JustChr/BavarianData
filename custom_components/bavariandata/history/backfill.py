@@ -29,9 +29,12 @@ changes nothing does not churn the recorder's database.
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Optional
+from typing import TYPE_CHECKING, Any, Callable, Optional, cast
 
 from homeassistant.core import HomeAssistant
+
+if TYPE_CHECKING:
+    from homeassistant.components.recorder.models import StatisticData, StatisticMetaData
 
 from ..const import DOMAIN
 from ..debug import debug_enabled
@@ -93,7 +96,7 @@ def _metadata(*, name: str, stat_id: str, unit: Optional[str]) -> dict[str, Any]
         "unit_of_measurement": unit,
         # Present-but-None is valid (e.g. currency); omitting it entirely is what
         # HA warns about.
-        "unit_class": _UNIT_CLASS.get(unit),
+        "unit_class": None if unit is None else _UNIT_CLASS.get(unit),
     }
     try:
         from homeassistant.components.recorder.models import (  # noqa: PLC0415
@@ -106,7 +109,7 @@ def _metadata(*, name: str, stat_id: str, unit: Optional[str]) -> dict[str, Any]
     return meta
 
 
-def _fingerprint(store: HistoryStore, vin: str) -> tuple:
+def _fingerprint(store: HistoryStore, vin: str) -> tuple[Any, ...]:
     """Cheap "has anything changed?" key for one vehicle.
 
     Count plus the oldest and newest record id catches every mutation that
@@ -117,7 +120,7 @@ def _fingerprint(store: HistoryStore, vin: str) -> tuple:
     sessions = store.sessions(vin)
     trips = store.trips(vin)
 
-    def _edges(items: list) -> tuple:
+    def _edges(items: list[Any]) -> tuple[Any, ...]:
         if not items:
             return ()
         return (items[0].id, items[-1].id)
@@ -140,7 +143,7 @@ class StatisticsPublisher:
         self.store = store
         self.enabled = enabled
         self._name_for = name_for
-        self._fingerprints: dict[str, tuple] = {}
+        self._fingerprints: dict[str, tuple[Any, ...]] = {}
 
     @property
     def available(self) -> bool:
@@ -254,8 +257,9 @@ class StatisticsPublisher:
                 continue
             async_add_external_statistics(
                 self.hass,
-                _metadata(name=label, stat_id=stat_id, unit=unit),
-                rows,
+                # Built as plain dicts across the has_mean/mean_type change.
+                cast("StatisticMetaData", _metadata(name=label, stat_id=stat_id, unit=unit)),
+                cast("list[StatisticData]", rows),
             )
         return written
 

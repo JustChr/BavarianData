@@ -7,7 +7,7 @@ import logging
 from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Callable, Deque, Dict, Iterable, Optional
+from typing import TYPE_CHECKING, Any, Callable, Deque, Dict, Iterable, Optional
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
@@ -74,6 +74,9 @@ from .mileage import mileage_report
 from .units import miles_to_km, normalize_unit, unit_choices
 from .vehicle_support import is_motorcycle, motorcycle_issue_id
 
+if TYPE_CHECKING:
+    from .history.store import HistoryStore
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -103,7 +106,7 @@ class CardataCoordinator:
     last_message_at: Optional[datetime] = None
     last_telematic_api_at: Optional[datetime] = None
     diagnostic_interval: int = DIAGNOSTIC_LOG_INTERVAL
-    watchdog_task: Optional[asyncio.Task] = field(default=None, init=False, repr=False)
+    watchdog_task: Optional[asyncio.Task[None]] = field(default=None, init=False, repr=False)
     # Wall-clock the watchdog started, so "no data in 48h" has a baseline on a
     # stream that has never delivered a single message.
     stream_started_at: Optional[datetime] = field(default=None, init=False)
@@ -131,7 +134,7 @@ class CardataCoordinator:
     # Charging-session recording. ``history`` is injected during setup; when it
     # is None (or pricing isn't configured) recording degrades quietly rather
     # than breaking the stream -- history is a bonus, not a prerequisite.
-    history: Optional[Any] = None
+    history: Optional[HistoryStore] = None
     # Descriptor-coverage self-test ("Beyond the roadmap"). Records which selected
     # descriptors have actually streamed; optional, degrades quietly when absent.
     coverage: Optional[Any] = None
@@ -501,7 +504,7 @@ class CardataCoordinator:
         for descriptor, descriptor_payload in data.items():
             if not isinstance(descriptor_payload, dict):
                 continue
-            value = descriptor_payload.get("value")
+            value: Any = descriptor_payload.get("value")
             # The integration speaks kilometres: a car that sends miles for one
             # descriptor (issue #62) must not have the number shown as km.
             value, unit = miles_to_km(value, normalize_unit(descriptor_payload.get("unit")))
@@ -1448,7 +1451,7 @@ class CardataCoordinator:
             "meter_percent_per_kwh": None if learned is None else learned.percent_per_kwh,
             "meter_overhead_kw": None if learned is None else learned.overhead_kw,
         }
-        if driving and tracking.meter_kwh is not None:
+        if tracking is not None and driving and tracking.meter_kwh is not None:
             attrs["meter_reading_kwh"] = round(tracking.meter_kwh, 3)
         return attrs
 

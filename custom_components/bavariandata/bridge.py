@@ -30,7 +30,7 @@ Two properties this module exists to guarantee:
 from __future__ import annotations
 
 import logging
-from typing import Any, Iterable, Optional
+from typing import Any, Iterable, Optional, cast
 
 from homeassistant.components import mqtt
 from homeassistant.config_entries import ConfigEntryState
@@ -192,7 +192,7 @@ class VehicleBridge:
     def snapshot(self, vin: str) -> BridgeSnapshot:
         """What we would tell a charge controller about this car right now."""
 
-        return self._coordinator.bridge_snapshot(vin)
+        return cast(BridgeSnapshot, self._coordinator.bridge_snapshot(vin))
 
     async def async_publish(self, vin: str, *, force: bool = False) -> None:
         """Publish whatever changed for one vehicle.

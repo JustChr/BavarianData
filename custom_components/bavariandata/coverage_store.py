@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from typing import Any, Iterable, Optional
+from typing import Any, Iterable, Mapping, Optional
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.storage import Store
@@ -36,7 +36,7 @@ from .coverage import (
 try:  # normal case: imported as part of the package
     from .descriptors import descriptors_for_sections, section_labels
 except ImportError:  # pragma: no cover - defensive, package import is the norm
-    from descriptors import descriptors_for_sections, section_labels
+    from descriptors import descriptors_for_sections, section_labels  # type: ignore[import-not-found,no-redef]
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -70,7 +70,9 @@ class CoverageStore:
         self.hass = hass
         self.grace_days = grace_days
         self._sections: list[str] = list(sections or [])
-        self._store = Store(hass, STORE_VERSION, f"{DOMAIN}_{entry_id}_coverage")
+        self._store: Store[dict[str, Any]] = Store(
+            hass, STORE_VERSION, f"{DOMAIN}_{entry_id}_coverage"
+        )
         self._seen: dict[str, dict[str, str]] = {}
         # When each vehicle was first heard from. The entry-wide clock below
         # cannot answer for a car added to the account months later: judged
@@ -172,7 +174,7 @@ class CoverageStore:
 
     def reports(
         self,
-        live_descriptors: Optional[dict[str, Iterable[str]]] = None,
+        live_descriptors: Optional[Mapping[str, Iterable[str]]] = None,
         *,
         now: Optional[datetime] = None,
         drive_trains: Optional[dict[str, Optional[str]]] = None,

@@ -6,7 +6,7 @@ import asyncio
 import logging
 import hashlib
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, cast
 
 from .api import CardataApiError, async_request_json
 from .const import (
@@ -214,7 +214,7 @@ class CardataContainerManager:
         container_id = response.get("containerId") if isinstance(response, dict) else None
         if not container_id:
             raise CardataContainerError("Container creation response missing containerId")
-        return container_id
+        return cast(str, container_id)
 
     async def _list_containers(self) -> List[Dict[str, Any]]:
         response = await self._request("GET", "/customers/containers")

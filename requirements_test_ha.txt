@@ -11,3 +11,7 @@ pytest-homeassistant-custom-component==0.13.374
 home-assistant-frontend==20260930.5
 paho-mqtt>=2.1.0
 pytest-cov>=7.1
+# Strict typing is checked against this suite's Home Assistant (pyproject.toml's
+# [tool.mypy]). Pinned like ruff: a new checker release must not turn a commit
+# that never changed red. Dependabot bumps it.
+mypy==2.4.0

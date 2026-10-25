@@ -63,7 +63,7 @@ import json
 import logging
 import re
 from dataclasses import dataclass, field, replace
-from typing import Any, Awaitable, Callable, Mapping, Optional, Sequence
+from typing import Any, Awaitable, Callable, Mapping, Optional, Sequence, cast
 from urllib.parse import urlencode
 
 import aiohttp
@@ -197,7 +197,7 @@ class Render:
     night: Optional[bytes] = None
     interior: Optional[bytes] = None
     top: Optional[bytes] = None
-    equipment: tuple[dict, ...] = field(default_factory=tuple)
+    equipment: tuple[dict[str, Any], ...] = field(default_factory=tuple)
     equipment_language: Optional[str] = None
     # The option pictures' sheet, and the code of each tile in sheet order.
     options: Optional[bytes] = None
@@ -242,7 +242,7 @@ def settings_path(page_html: str) -> Optional[str]:
     return match.group(0) if match else None
 
 
-def cosy_settings(settings: Mapping[str, Any]) -> dict:
+def cosy_settings(settings: Mapping[str, Any]) -> dict[str, Any]:
     """The image service's address, account and key from a settings file."""
 
     try:
@@ -257,7 +257,7 @@ def cosy_settings(settings: Mapping[str, Any]) -> dict:
         raise ConfiguratorError("unavailable", f"settings file changed: {err}") from err
 
 
-def names_settings(settings: Mapping[str, Any]) -> Optional[dict]:
+def names_settings(settings: Mapping[str, Any]) -> Optional[dict[str, Any]]:
     """The option-name service's address and key, or None if the file lacks it."""
 
     try:
@@ -467,7 +467,7 @@ def build_top(data: bytes) -> bytes:
     marker = (255, 0, 255)
     rgb = image.convert("RGB")
     for corner in ((0, 0), (width - 1, 0), (0, height - 1), (width - 1, height - 1)):
-        if min(rgb.getpixel(corner)) > 240:
+        if min(cast(tuple[int, ...], rgb.getpixel(corner))) > 240:
             ImageDraw.floodfill(rgb, corner, marker, thresh=18)
     diff = ImageChops.difference(rgb, Image.new("RGB", rgb.size, marker))
     alpha = diff.convert("L").point(lambda v: 255 if v else 0)
@@ -513,7 +513,7 @@ def build_option_sheet(
     return _save(sheet)[0], [code for code, _image in tiles]
 
 
-def equipment_list(names: Mapping[str, Any], spec: CarSpec) -> list[dict]:
+def equipment_list(names: Mapping[str, Any], spec: CarSpec) -> list[dict[str, Any]]:
     """The car's options with names, in the car's own order, paint first.
 
     ``kind`` is BMW's option type (``paint``, ``rim``, ``trim``, ``package`` or
@@ -630,7 +630,7 @@ async def _get(session: aiohttp.ClientSession, url: str, **kwargs: Any) -> tuple
         raise ConfiguratorError("unavailable", f"{type(err).__name__}") from err
 
 
-async def async_fetch_settings(session: aiohttp.ClientSession, site: str) -> dict:
+async def async_fetch_settings(session: aiohttp.ClientSession, site: str) -> dict[str, Any]:
     """Read the services' current addresses and keys from the configurator.
 
     Returns ``{"cosy": ..., "names": ... or None}``.
@@ -657,7 +657,7 @@ async def async_fetch_equipment(
     names: Mapping[str, Any],
     country: Optional[str],
     languages: Sequence[str] = (),
-) -> tuple[list[dict], Optional[str]]:
+) -> tuple[list[dict[str, Any]], Optional[str]]:
     """Name the car's options in the first language its market answers in.
 
     Tries the car's market (from basic data) with the caller's languages first
@@ -788,7 +788,7 @@ async def async_render(
         if frames is None:
             _LOGGER.debug("Configurator: %s/%s draws only placeholders", brand, spec.model)
             continue
-        render = await run(build_sprite, frames)
+        render: Render = await run(build_sprite, frames)
         crop = render.crop
         if not extras:
             return replace(render, brand=brand)
@@ -834,15 +834,15 @@ async def _optional_extras(
     links: Callable[..., Awaitable[Any]],
     image: Callable[[str], Awaitable[Optional[bytes]]],
     run: Callable[..., Awaitable[Any]],
-) -> dict:
+) -> dict[str, Any]:
     """The interior panorama and the top view, when BMW has them for this car."""
 
     out: dict[str, Any] = {}
     try:
         answer = await links("dynamic-images", _INTERIOR, brand)
         if answer:
-            views = answer.get(_INTERIOR) or {}
-            block = views.get("res_2000x2000") or {}
+            views: dict[str, Any] = answer.get(_INTERIOR) or {}
+            block: dict[str, Any] = views.get("res_2000x2000") or {}
             faces_meta = sorted(block.get("images") or [], key=lambda i: i.get("displayOrder", 0))
             faces = [await image(str(f["viewImage"])) for f in faces_meta]
             if len(faces) == 6 and all(faces):
@@ -852,7 +852,7 @@ async def _optional_extras(
     try:
         answer = await links("dynamic-named-images", _TOP, brand)
         views = (answer or {}).get(_TOP) or {}
-        block = views.get("desktop") or next(iter(views.values()), {})
+        block = cast(dict[str, Any], views.get("desktop") or next(iter(views.values()), {}))
         for named in block.get("namedImages") or []:
             for item in named.get("images") or []:
                 if (item.get("distinctionParameters") or {}).get("POV") == "TOP":
@@ -872,7 +872,7 @@ async def _option_pictures(
     country: Any,
     image: Callable[[str], Awaitable[Optional[bytes]]],
     run: Callable[..., Awaitable[Any]],
-) -> dict:
+) -> dict[str, Any]:
     """A small picture of each option BMW has one for, laid out in one sheet."""
 
     market = str(country or "").strip().lower()

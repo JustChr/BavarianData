@@ -10,18 +10,19 @@ activator in ``flow_activator.py``.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Sequence
 
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.data_entry_flow import FlowResult, FlowResultType
+from homeassistant.config_entries import ConfigFlowResult
+from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
-from . import account_vins, async_manual_refresh_tokens
+from . import CardataRuntimeData, account_vins, async_manual_refresh_tokens
 from .const import (
     DEBUG_LOG,
     DEFAULT_IMAGE_SOURCE,
@@ -69,7 +70,9 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         self._trips_pending: tuple[Dict[str, Any], Dict[str, Any]] = ({}, {})
         self._init_activator_state()
 
-    async def async_step_init(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+    async def async_step_init(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> ConfigFlowResult:
         # Labels/descriptions come from translations (options.step.init.menu_options),
         # so the menu is localizable and stays in sync with each action step.
         # Settings first; the one-off tools sit one level down, so the menu
@@ -91,7 +94,9 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
             ],
         )
 
-    async def async_step_fetch_now(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+    async def async_step_fetch_now(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> ConfigFlowResult:
         """Ask BMW for something now; every entry spends quota."""
 
         return self.async_show_menu(
@@ -108,7 +113,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
 
     async def async_step_connection(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Keep the link to BMW working, and log for a bug report."""
 
         return self.async_show_menu(
@@ -127,7 +132,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         step_id: str,
         errors: Optional[Dict[str, str]] = None,
         placeholders: Optional[Dict[str, Any]] = None,
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         # An empty schema renders as a plain confirmation dialog: pressing "Submit"
         # confirms the action. No checkbox to tick first.
         return self.async_show_form(
@@ -137,10 +142,10 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
             description_placeholders=placeholders,
         )
 
-    def _get_runtime(self):
+    def _get_runtime(self) -> Optional[CardataRuntimeData]:
         return getattr(self._config_entry, "runtime_data", None)
 
-    def _finish(self) -> FlowResult:
+    def _finish(self) -> ConfigFlowResult:
         # Finishing an options flow overwrites entry.options with this data, so
         # carry the existing options forward (e.g. debug_log) instead of
         # clearing them every time an action step runs.
@@ -150,7 +155,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
 
     async def async_step_action_refresh_tokens(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         if user_input is None:
             return self._show_confirm(step_id="action_refresh_tokens")
         try:
@@ -165,7 +170,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
 
     async def async_step_action_reauth(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Sign in to BMW again with the account's Client ID.
 
         Another Client ID is Reconfigure's job (``config_flow``), where a
@@ -200,7 +205,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
 
     async def async_step_action_reset_container(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         runtime = self._get_runtime()
         if runtime is None:
             return self._show_confirm(
@@ -239,7 +244,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
 
     async def async_step_action_debug_logging(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Toggle the integration's verbose debug logging.
 
         This gates the ``debug_enabled()`` calls throughout the integration; it
@@ -275,7 +280,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
 
     async def async_step_action_fetch_mappings(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         runtime = self._get_runtime()
         if runtime is None:
             return self._show_confirm(
@@ -288,7 +293,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
 
     async def async_step_action_fetch_basic(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         runtime = self._get_runtime()
         if runtime is None:
             return self._show_confirm(
@@ -307,7 +312,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
 
     async def async_step_action_fetch_telematic(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         runtime = self._get_runtime()
         if runtime is None:
             return self._show_confirm(
@@ -320,7 +325,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
 
     async def async_step_action_fetch_charging_history(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         return await self._run_simple_service(
             step_id="action_fetch_charging_history",
             service="fetch_charging_history",
@@ -329,7 +334,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
 
     async def async_step_action_fetch_tyre(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         return await self._run_simple_service(
             step_id="action_fetch_tyre",
             service="fetch_tyre_diagnosis",
@@ -338,7 +343,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
 
     async def async_step_action_fetch_location_charging(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         return await self._run_simple_service(
             step_id="action_fetch_location_charging",
             service="fetch_location_charging_settings",
@@ -346,8 +351,8 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
         )
 
     async def _call_for_each(
-        self, step_id: str, service: str, vins: list[Optional[str]]
-    ) -> FlowResult:
+        self, step_id: str, service: str, vins: Sequence[Optional[str]]
+    ) -> ConfigFlowResult:
         """Call ``service`` once per car (``None``: for the account) and finish.
 
         One call per car because a call naming none is refused once the account
@@ -371,7 +376,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
 
     async def _run_simple_service(
         self, *, step_id: str, service: str, user_input: Optional[Dict[str, Any]]
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Confirm-then-call helper for read-only VIN-scoped API services."""
 
         runtime = self._get_runtime()
@@ -388,7 +393,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
 
     async def async_step_action_energy_sources(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Point the integration at the house's own meters.
 
         Separate from the tariff step on purpose: "what did this kilowatt-hour
@@ -459,7 +464,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
 
     async def async_step_action_data_refresh(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Choose whether to catch up over REST after Home Assistant starts.
 
         The rules that keep it cheap live in ``startup_refresh.py``. Read once per
@@ -518,7 +523,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
 
     async def async_step_action_units(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Choose the units values are shown in; Automatic keeps today's rules."""
 
         options = dict(self._config_entry.options)
@@ -558,7 +563,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
 
     async def async_step_action_fetch_image(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Choose where the car's picture comes from, and fetch it.
 
         The official picture is CarData's single side view (one request per
@@ -660,7 +665,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
 
     async def async_step_action_select_clusters(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Pick which data clusters to stream, then activate them in the browser.
 
         BMW has no API to set the stream selection — it lives behind the portal's
@@ -703,7 +708,7 @@ class CardataOptionsFlowHandler(StreamActivatorFlow, PerCarScreens, config_entri
 
         return await self._begin_activation(attributes)
 
-    async def _activation_finished(self) -> FlowResult:
+    async def _activation_finished(self) -> ConfigFlowResult:
         """The selection was already saved; close the options flow.
 
         The portal step is what maps a second car, so look for it now instead of

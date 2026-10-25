@@ -97,6 +97,8 @@ class VehicleReports:
         odometer_km = self._host.odometer_km(vin)
         last = self._host.history.last_report(vin)
         decision = self._report_decision(vin, odometer_km)
+        if odometer_km is None:  # IGNORE
+            return
         if decision.kind == SEED:
             self._host.history.async_set_last_report(
                 vin, self._report_record(vin, odometer_km, starts=(last or {}).get("starts"))
@@ -130,7 +132,7 @@ class VehicleReports:
         self._host._car(vin).report.pending = odometer_km
 
         @callback
-        def _fire(_now) -> None:
+        def _fire(_now: datetime) -> None:
             self._host._peek(vin).report.take("timer")
             armed = self._host._peek(vin).report.take("pending")
             # A newer reading would have re-armed the timer; anything else is a

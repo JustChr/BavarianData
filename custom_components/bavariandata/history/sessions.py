@@ -159,7 +159,7 @@ def meter_counts_this_session(location: Optional[dict[str, Any]], home_zone: Opt
     zone = location.get("zone")
     if zone is None:
         return False
-    return zone == home_zone or zone == "zone.home"
+    return bool(zone == home_zone or zone == "zone.home")
 
 
 def house_supplies_this_session(

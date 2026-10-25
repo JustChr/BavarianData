@@ -76,7 +76,9 @@ class SensorHost(Protocol):
 
     history: Any
     pricing: Any
-    tyre_diagnosis: Mapping[str, Any]
+
+    @property
+    def tyre_diagnosis(self) -> Mapping[str, Any]: ...
 
     def get_state(self, vin: str, descriptor: str) -> Any: ...
 

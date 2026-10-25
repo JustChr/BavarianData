@@ -194,7 +194,7 @@ class TripState(_ReadOnlyWhenEmpty):
     # Trip-capture bookkeeping (``trip_debug`` only): when the close timer is
     # due, for the countdown on each fix line, and the open trip's stats.
     close_due: Optional[datetime] = None
-    capture: Optional[dict] = None
+    capture: Optional[dict[str, Any]] = None
     # Serialises trip detection. Each MQTT message is its own task, so two
     # fixes can interleave at the geocode ``await`` in ``_open_trip`` and both
     # pass the "no open trip" check; the lock makes check-then-open atomic.

@@ -26,6 +26,7 @@ of 72 points to within 0.8 %. The phase count needed no term of its own there.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from statistics import median
 from typing import Iterable, Optional
 
@@ -90,7 +91,7 @@ class MeterRate:
 
 @dataclass(frozen=True)
 class _Sample:
-    start: object
+    start: datetime
     points: float
     kwh: float
     hours: float

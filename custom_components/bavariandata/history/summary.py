@@ -10,7 +10,7 @@ from __future__ import annotations
 from collections import Counter
 from datetime import datetime
 from statistics import mean
-from typing import Any, Callable, Iterable, Optional
+from typing import Any, Callable, Iterable, Optional, cast
 
 from .energy_mix import merge_mix
 from .models import ChargingSession, _iso
@@ -108,8 +108,8 @@ def summarise(sessions: Iterable[ChargingSession], *, hybrid: bool = False) -> d
         effective = session.effective_energy_kwh
         if effective:
             energy += effective
-        entry = session.cost
-        amount = entry.get("amount") if entry else None
+        entry = session.cost or {}
+        amount = entry.get("amount")
         if amount is None:
             if effective:
                 unpriced += 1
@@ -242,7 +242,7 @@ def _dest_label(trip: Trip) -> Optional[str]:
     label = place.get("label")
     if not label or label == "Unknown":
         return None
-    return label
+    return cast(str, label)
 
 
 def _iso_week(dt: datetime) -> str:
@@ -389,6 +389,13 @@ def energy_balance(
         return None
 
     first, last = bounded[0], bounded[-1]
+    if (
+        first.mileage_km is None
+        or last.mileage_km is None
+        or first.soc_end is None
+        or last.soc_end is None
+    ):
+        return None  # bounded holds only sessions with both
     distance = last.mileage_km - first.mileage_km
     if distance < MIN_BALANCE_DISTANCE_KM:
         return None
@@ -511,7 +518,7 @@ def driving_summary(
         sessions or [], battery_capacity_kwh=battery_capacity_kwh, hybrid=hybrid
     )
 
-    def _trip_ref(pair) -> Optional[dict[str, Any]]:
+    def _trip_ref(pair: Optional[tuple[Trip, Optional[float]]]) -> Optional[dict[str, Any]]:
         if pair is None:
             return None
         trip, value = pair
@@ -525,8 +532,8 @@ def driving_summary(
     recuperation = _recuperation_per_100km(trips)
 
     # Driving style: overall score plus a week-over-week trend for the sparkline.
-    scored = [(t, _style_score(t.stats)) for t in trips]
-    scored = [(t, s) for t, s in scored if s is not None]
+    style_scores = [(t, _style_score(t.stats)) for t in trips]
+    scored = [(t, s) for t, s in style_scores if s is not None]
     style_score = round(mean(s for _t, s in scored), 2) if scored else None
     weekly: dict[str, list[float]] = {}
     for trip, score in scored:
@@ -540,7 +547,7 @@ def driving_summary(
 
     longest = max(
         (t for t in trips if t.distance_km),
-        key=lambda t: t.distance_km,
+        key=lambda t: t.distance_km or 0.0,
         default=None,
     )
 
@@ -578,7 +585,9 @@ def driving_summary(
         "style_score": style_score,
         "style_trend": style_trend,
         "top_destinations": top_destinations,
-        "longest_trip_km": round(longest.distance_km, 1) if longest else None,
+        "longest_trip_km": (
+            round(longest.distance_km, 1) if longest and longest.distance_km else None
+        ),
         "prev_total_km": prev_km,
         "mom_delta_km": mom_delta_km,
         "mom_delta_percent": mom_delta_percent,

@@ -102,7 +102,7 @@ def _picked(cars: list[_Car], tool_args: dict[str, Any]) -> list[_Car]:
     return picked
 
 
-def _per_car(answers: list[dict[str, Any]]) -> JsonObjectType:
+def _per_car(answers: list[dict[str, Any]]) -> dict[str, Any]:
     return answers[0] if len(answers) == 1 else {"cars": answers}
 
 
@@ -126,7 +126,7 @@ class _CarTool(llm.Tool):
     async def async_call(
         self, hass: HomeAssistant, tool_input: llm.ToolInput, llm_context: llm.LLMContext
     ) -> JsonObjectType:
-        answers = []
+        answers: list[dict[str, Any]] = []
         for car in _picked(self.cars, tool_input.tool_args):
             answer = await self.answer(hass, car, tool_input.tool_args, llm_context)
             unit = car_distance_unit(hass, car.runtime.coordinator, car.vin)
@@ -165,7 +165,7 @@ def _range(car: _Car) -> tuple[Optional[float], Optional[float]]:
     """The range left and a full battery's range, measured first, then BMW's."""
 
     coordinator = car.runtime.coordinator
-    measured = {}
+    measured: dict[str, Any] = {}
     if car.runtime.history is not None:
         measured = coordinator.efficiency(car.vin).get("range") or {}
     now = measured.get("now_km")
@@ -196,7 +196,13 @@ class CarStatusTool(_CarTool):
         "driven, and anything open or unlocked."
     )
 
-    async def answer(self, hass, car, args, llm_context):
+    async def answer(
+        self,
+        hass: HomeAssistant,
+        car: _Car,
+        args: dict[str, Any],
+        llm_context: llm.LLMContext,
+    ) -> dict[str, Any]:
         coordinator = car.runtime.coordinator
         snapshot = coordinator.bridge_snapshot(car.vin)
         range_now, fuel_range = _split_range(car, _range(car)[0])
@@ -256,7 +262,13 @@ class RangeCheckTool(_CarTool):
         vol.Optional("round_trip", description="True when the car has to make it back too."): bool,
     }
 
-    async def answer(self, hass, car, args, llm_context):
+    async def answer(
+        self,
+        hass: HomeAssistant,
+        car: _Car,
+        args: dict[str, Any],
+        llm_context: llm.LLMContext,
+    ) -> dict[str, Any]:
         range_now, full = _range(car)
         range_now, fuel_range = _split_range(car, range_now)
         return range_check(
@@ -281,7 +293,13 @@ class ChargingHistoryTool(_CarTool):
         ),
     }
 
-    async def answer(self, hass, car, args, llm_context):
+    async def answer(
+        self,
+        hass: HomeAssistant,
+        car: _Car,
+        args: dict[str, Any],
+        llm_context: llm.LLMContext,
+    ) -> dict[str, Any]:
         days = int(args.get("days") or 30)
         since = (dt_util.now() - timedelta(days=days)).date().isoformat()
         response = await self._service(
@@ -303,7 +321,13 @@ class DrivingMonthTool(_CarTool):
         ),
     }
 
-    async def answer(self, hass, car, args, llm_context):
+    async def answer(
+        self,
+        hass: HomeAssistant,
+        car: _Car,
+        args: dict[str, Any],
+        llm_context: llm.LLMContext,
+    ) -> dict[str, Any]:
         data = {"month": args["month"]} if args.get("month") else {}
         return await self._service(hass, "get_driving_summary", car, llm_context, **data)
 
@@ -315,7 +339,13 @@ class MileageTool(_CarTool):
         "lease or yearly mileage allowance with its balance, when one is set."
     )
 
-    async def answer(self, hass, car, args, llm_context):
+    async def answer(
+        self,
+        hass: HomeAssistant,
+        car: _Car,
+        args: dict[str, Any],
+        llm_context: llm.LLMContext,
+    ) -> dict[str, Any]:
         return await self._service(hass, "get_mileage_report", car, llm_context)
 
 
@@ -326,7 +356,13 @@ class EfficiencyTool(_CarTool):
         "the car's own estimate, cost per distance and the monthly trend."
     )
 
-    async def answer(self, hass, car, args, llm_context):
+    async def answer(
+        self,
+        hass: HomeAssistant,
+        car: _Car,
+        args: dict[str, Any],
+        llm_context: llm.LLMContext,
+    ) -> dict[str, Any]:
         return await self._service(hass, "get_efficiency", car, llm_context)
 
 

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 # Bumped whenever a record's on-disk shape changes incompatibly. ``store.py``
 # refuses to load data written by a newer schema than it understands.
@@ -243,7 +243,7 @@ def _grid_source(data: dict[str, Any]) -> Optional[str]:
 
     source = data.get("grid_source")
     if source in ("meter", "bmw"):
-        return source
+        return cast(str, source)
     if data.get("grid_kwh") is not None and not data.get("enriched"):
         return "meter"
     return None

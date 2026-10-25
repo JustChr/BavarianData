@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 from datetime import date, datetime
-from typing import Dict, Optional
+from typing import Callable, Dict, Optional
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.config_entries import ConfigEntry
@@ -86,8 +86,8 @@ class CardataServiceCalendar(CardataEntity, CalendarEntity):
         super().__init__(coordinator, vin, "service_calendar")
         self._attr_unique_id = f"{vin}{UNIQUE_SUFFIX}"
         self._attr_entity_registry_enabled_default = False
-        self._unsubscribe = None
-        self._unsubscribe_mileage = None
+        self._unsubscribe: Optional[Callable[[], None]] = None
+        self._unsubscribe_mileage: Optional[Callable[[], None]] = None
 
     def _events(self) -> list[ServiceEvent]:
         language = self.hass.config.language

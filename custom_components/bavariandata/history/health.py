@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from statistics import median
-from typing import Iterable, Optional
+from typing import Any, Iterable, Optional
 
 from .models import ChargingSession
 
@@ -64,7 +64,7 @@ class BatteryHealth:
     vs_new_percent: Optional[float] = None
     suspicious: bool = False
 
-    def as_dict(self) -> dict:
+    def as_dict(self) -> dict[str, Any]:
         return {
             "usable_kwh": self.usable_kwh,
             "samples": self.samples,
@@ -139,7 +139,11 @@ def usable_capacity(
     estimate = round(median(samples), 1)
 
     reference = sanity_kwh or nominal_kwh
-    suspicious = bool(reference) and abs(estimate - reference) / reference > SANITY_TOLERANCE
+    suspicious = (
+        reference is not None
+        and reference != 0
+        and abs(estimate - reference) / reference > SANITY_TOLERANCE
+    )
     confident = count >= MIN_SAMPLES and not suspicious
 
     vs_new = None

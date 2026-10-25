@@ -15,7 +15,7 @@ understating.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Mapping, Optional
 
 # The option keys are read here and written by the options flow; sharing the
 # constants keeps a rename from silently reverting everyone to the defaults.
@@ -93,7 +93,7 @@ class PricingConfig:
         return False
 
     @classmethod
-    def from_options(cls, options: dict[str, Any]) -> "PricingConfig":
+    def from_options(cls, options: Mapping[str, Any]) -> "PricingConfig":
         def _float(key: str) -> Optional[float]:
             try:
                 value = options.get(key)
@@ -116,7 +116,7 @@ class PricingConfig:
         )
 
 
-def vehicle_pricing(options: dict[str, Any]) -> dict[str, PricingConfig]:
+def vehicle_pricing(options: Mapping[str, Any]) -> dict[str, PricingConfig]:
     """The pricing of each car with its own wallbox meter or losses, by VIN.
 
     Only those two are per car (``vehicle_options.CHARGING_OPTIONS``); the

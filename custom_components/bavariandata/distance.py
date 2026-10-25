@@ -115,7 +115,7 @@ def apply_sensor_unit(
         return
     sensor_options = dict(entry.options.get("sensor") or {})
     current = sensor_options.get("unit_of_measurement")
-    ours = (entry.options.get(DOMAIN) or {}).get(_APPLIED)
+    ours = dict(entry.options.get(DOMAIN) or {}).get(_APPLIED)
     update = sensor_unit_update(
         entry.device_class or entry.original_device_class,
         _choices(coordinator),

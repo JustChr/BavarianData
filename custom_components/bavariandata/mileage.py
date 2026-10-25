@@ -103,7 +103,7 @@ def _month_start(day: date, back: int = 0) -> date:
     return date(index // 12, index % 12 + 1, 1)
 
 
-def _distance_since(log: Mapping[str, float], since: date, today: date) -> Optional[dict]:
+def _distance_since(log: Mapping[str, float], since: date, today: date) -> Optional[dict[str, Any]]:
     """Km driven from the start of ``since`` to now; partial when the log starts later."""
 
     pairs = readings(log)
@@ -117,7 +117,9 @@ def _distance_since(log: Mapping[str, float], since: date, today: date) -> Optio
     return {"km": round(max(0.0, latest - start)), "partial": partial}
 
 
-def monthly_km(log: Mapping[str, float], today: date, months: int = MONTHS_SHOWN) -> list[dict]:
+def monthly_km(
+    log: Mapping[str, float], today: date, months: int = MONTHS_SHOWN
+) -> list[dict[str, Any]]:
     """The last ``months`` calendar months, oldest first: ``{"month", "km", "partial"}``.
 
     ``km`` is ``None`` for a month the log does not reach at all.
@@ -125,12 +127,12 @@ def monthly_km(log: Mapping[str, float], today: date, months: int = MONTHS_SHOWN
 
     pairs = readings(log)
     first_point = pairs[0][0] + timedelta(days=1) if pairs else None
-    rows: list[dict] = []
+    rows: list[dict[str, Any]] = []
     for back in range(months - 1, -1, -1):
         start = _month_start(today, back)
         end = _month_start(today, back - 1)
         row: dict[str, Any] = {"month": start.strftime("%Y-%m"), "km": None, "partial": False}
-        if pairs:
+        if pairs and first_point is not None:
             km_end = odometer_at(log, min(end, today + timedelta(days=1)))
             km_start = odometer_at(log, start)
             if km_start is None and km_end is not None and first_point < end:

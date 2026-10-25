@@ -152,13 +152,13 @@ def note_reading(
 
 
 def _rise(before: Any, after: Optional[float]) -> Optional[float]:
-    before = _num(before)
-    if before is None or after is None:
+    start = _num(before)
+    if start is None or after is None:
         return None
-    return after - before
+    return after - start
 
 
-def _settles(refuels: list, reading: dict, when: datetime) -> bool:
+def _settles(refuels: list[dict[str, Any]], reading: dict[str, Any], when: datetime) -> bool:
     """Raise the newest refuel's "after" level if this reading is its settling."""
 
     if not refuels:
@@ -195,10 +195,12 @@ def windows(log: Mapping[str, Any]) -> list[dict[str, Any]]:
     return out
 
 
-def _window(start: Mapping[str, Any], litres_now: Any, km_now: Any, until: Any) -> Optional[dict]:
+def _window(
+    start: Mapping[str, Any], litres_now: Any, km_now: Any, until: Any
+) -> Optional[dict[str, Any]]:
     after, before = _num(start.get("after_l")), _num(litres_now)
     km_from, km_to = _num(start.get("km")), _num(km_now)
-    if None in (after, before, km_from, km_to):
+    if after is None or before is None or km_from is None or km_to is None:
         return None
     km = km_to - km_from
     used = after - before
@@ -268,8 +270,12 @@ def report(log: Mapping[str, Any], now: datetime) -> dict[str, Any]:
         km_from, km_to = _num(newest.get("km")), _num(last.get("km"))
         after, current = _num(newest.get("after_l")), _num(last.get("litres"))
         since = {
-            "km": round(km_to - km_from, 1) if None not in (km_from, km_to) else None,
-            "litres": round(after - current, 1) if None not in (after, current) else None,
+            "km": (
+                round(km_to - km_from, 1) if km_from is not None and km_to is not None else None
+            ),
+            "litres": (
+                round(after - current, 1) if after is not None and current is not None else None
+            ),
             "l_per_100km": None,
         }
         open_window = _window(newest, last.get("litres"), last.get("km"), last.get("t"))

@@ -25,7 +25,7 @@ unit here is the deliberate act of deciding what it means.
 
 from __future__ import annotations
 
-from typing import Any, Dict, FrozenSet, Iterable, Mapping, Optional, Tuple
+from typing import Any, Dict, FrozenSet, Iterable, Mapping, Optional, Tuple, cast
 
 # Every unit symbol the project emits. Anything reaching an entity or the
 # metadata registry is one of these -- or an unrecognised string that survived
@@ -211,7 +211,7 @@ def distance_unit(
     """
 
     if choice in ("km", "mi"):
-        return choice
+        return cast(str, choice)
     for unit in sensor_units:
         found = _mi_or_km(unit)
         if found:
@@ -253,7 +253,7 @@ def fuel_unit(choice: Any, distance: str, system_unit: Any) -> str:
     """
 
     if choice in UNIT_CHOICES["fuel"][1:]:
-        return choice
+        return cast(str, choice)
     if _mi_or_km(system_unit) == "mi":
         return "gal_us"
     return "l_mpg_uk" if distance == "mi" else "l"
@@ -273,7 +273,7 @@ _SENSOR_UNITS: Dict[str, Tuple[str, Dict[str, str]]] = {
 
 # A distance sensor follows the setting only when it counts road distance. The
 # GPS altitude is a distance in metres too, and in miles it reads 0.11.
-_ROAD_UNITS: Dict[str, frozenset] = {
+_ROAD_UNITS: Dict[str, FrozenSet[str]] = {
     "distance": frozenset({"km", "mi"}),
     "speed": frozenset({"km/h", "mph"}),
 }

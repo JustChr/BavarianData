@@ -7,6 +7,7 @@ Which binary sensors a car gets and what they show is decided in
 from __future__ import annotations
 
 import time
+from typing import Any, Callable, Optional
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -15,6 +16,7 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers import entity_registry as er
 
 from . import binary_sensor_plan
@@ -28,7 +30,7 @@ class CardataBinarySensor(CardataEntity, BinarySensorEntity):
     def __init__(self, coordinator: CardataCoordinator, vin: str, descriptor: str) -> None:
         super().__init__(coordinator, vin, descriptor)
         self._attr_should_poll = False
-        self._unsubscribe = None
+        self._unsubscribe: Optional[Callable[[], None]] = None
         device_class, self._invert = binary_sensor_plan.device_class(descriptor)
         self._attr_device_class = (
             BinarySensorDeviceClass(device_class) if device_class is not None else None
@@ -88,8 +90,8 @@ class CardataTripInProgressBinarySensor(CardataEntity, BinarySensorEntity):
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, binary_sensor_plan.TRIP_IN_PROGRESS)
         self._attr_should_poll = False
-        self._unsub_active = None
-        self._unsub_update = None
+        self._unsub_active: Optional[Callable[[], None]] = None
+        self._unsub_update: Optional[Callable[[], None]] = None
         self._last_write = 0.0
         self._written_on = False
 
@@ -98,7 +100,7 @@ class CardataTripInProgressBinarySensor(CardataEntity, BinarySensorEntity):
         return self._coordinator.has_open_trip(self.vin)
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, Any]:
         attrs = dict(super().extra_state_attributes)
         attrs.update(
             binary_sensor_plan.trip_attributes(self._coordinator.open_trip_progress(self.vin))
@@ -148,7 +150,9 @@ class CardataTripInProgressBinarySensor(CardataEntity, BinarySensorEntity):
         self.schedule_update_ha_state()
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+) -> None:
     coordinator: CardataCoordinator = entry.runtime_data.coordinator
 
     plan = binary_sensor_plan.BinarySensorPlan(
