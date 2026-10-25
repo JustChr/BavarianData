@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.23-beta.4] - 2026-10-25
+
 ### Fixed
 - **Distance this month shows whole kilometers** (or miles). It read
   "1,460.00 km". A precision you set yourself on that entity stays.
