@@ -12,12 +12,16 @@ each ``Want`` names and hands it to Home Assistant (``tests/test_sensor_plan.py`
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable, Iterable, Mapping, Optional, Protocol
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Mapping, Optional, Protocol
 
 from .car_signals import DESC_ODOMETER
 from .coverage import HIGH_VOLTAGE_SIGNALS, is_ev_only_descriptor
 from .descriptors import OPT_IN_LOCATION_DESCRIPTORS, TRACKER_ONLY_LOCATION_DESCRIPTORS
 from .tyre import has_tyre_data
+
+if TYPE_CHECKING:
+    from .history.pricing import PricingConfig
+    from .history.store import HistoryStore
 
 # A streamed descriptor, and the opt-in latitude/longitude sensors (created
 # disabled); ``Want.key`` is the descriptor.
@@ -74,8 +78,8 @@ class Want:
 class SensorHost(Protocol):
     """What the plan reads off the coordinator."""
 
-    history: Any
-    pricing: Any
+    history: Optional[HistoryStore]
+    pricing: PricingConfig
 
     @property
     def tyre_diagnosis(self) -> Mapping[str, Any]: ...

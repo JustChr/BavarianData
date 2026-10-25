@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, Mapping, Optional, Protocol
+from typing import TYPE_CHECKING, Any, Callable, Dict, Mapping, Optional, Protocol
 
 from homeassistant.core import callback
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event
@@ -42,15 +42,21 @@ from .vehicle_report import (
     take_start_mark,
 )
 
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
+
+    from .history.store import HistoryStore
+    from .vehicle_trips import VehicleTrips
+
 _LOGGER = logging.getLogger("custom_components.bavariandata.coordinator")
 
 
 class ReportHost(Protocol):
     """What the reports read and do, from the coordinator."""
 
-    hass: Any
+    hass: HomeAssistant
     entry_id: str
-    history: Any
+    history: Optional[HistoryStore]
     data: Dict[str, Dict[str, Any]]
     names: Dict[str, str]
     trip_log: TripLog
@@ -71,7 +77,7 @@ class ReportHost(Protocol):
     def trip_settings_for(self, vin: str) -> TripSettings: ...
     def _fire(self, event_type: str, payload: Dict[str, Any]) -> None: ...
 
-    trips: Any  # vehicle_trips.VehicleTrips: resolve_place, trip_energy_kwh, store_trip
+    trips: VehicleTrips
 
 
 class VehicleReports:
@@ -259,7 +265,11 @@ class VehicleReports:
                         self.mark_trip_start(vin, now)
                         # The phone may not move again for a while: where it
                         # is now is where the drive starts.
-                        tracker = self._host.hass.states.get(settings.phone_tracker)
+                        tracker = (
+                            self._host.hass.states.get(settings.phone_tracker)
+                            if settings.phone_tracker
+                            else None
+                        )
                         if tracker is not None:
                             self._add_phone_position(vin, route, tracker, now)
                 elif entity_id == settings.phone_tracker:
@@ -295,10 +305,16 @@ class VehicleReports:
 
         try:
             resolved = await self._host.trips.resolve_place(vin)
-            record = self._host.history.last_report(vin) if self._host.history is not None else None
-            if resolved is None or record is None or record.get("odometer_km") != odometer_km:
+            history = self._host.history
+            record = history.last_report(vin) if history is not None else None
+            if (
+                history is None
+                or resolved is None
+                or record is None
+                or record.get("odometer_km") != odometer_km
+            ):
                 return
-            self._host.history.async_set_last_report(vin, {**record, "place": resolved})
+            history.async_set_last_report(vin, {**record, "place": resolved})
         except Exception:  # noqa: BLE001 - bookkeeping must not break the stream
             _LOGGER.exception("Could not place the vehicle report for %s", mask_vin(vin))
 
@@ -376,9 +392,15 @@ class VehicleReports:
 
         try:
             end_place = await self._host.trips.resolve_place(vin)
-            record = self._host.history.last_report(vin) if self._host.history is not None else None
-            if end_place is not None and record and record.get("odometer_km") == odometer_km:
-                self._host.history.async_set_last_report(vin, {**record, "place": end_place})
+            history = self._host.history
+            record = history.last_report(vin) if history is not None else None
+            if (
+                history is not None
+                and end_place is not None
+                and record
+                and record.get("odometer_km") == odometer_km
+            ):
+                history.async_set_last_report(vin, {**record, "place": end_place})
             start_place = baseline.get("place")
             if not isinstance(start_place, Mapping):
                 start_place = None

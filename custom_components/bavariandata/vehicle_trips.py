@@ -21,7 +21,7 @@ from __future__ import annotations
 import logging
 from contextlib import suppress
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional, Protocol
+from typing import TYPE_CHECKING, Any, Dict, Optional, Protocol
 
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -65,20 +65,28 @@ from .history.trips import CLASS_COMMUTE, SOURCE_AUTO, Trip, place
 from .trip_capture import TripLog
 from .trip_settings import TripSettings
 
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
+
+    from .history.geocoding import ReverseGeocoder
+    from .history.store import HistoryStore
+    from .vehicle_events import VehicleEvents
+    from .vehicle_reports import VehicleReports
+
 _LOGGER = logging.getLogger("custom_components.bavariandata.coordinator")
 
 
 class TripHost(Protocol):
     """What trip detection reads and does, from the coordinator."""
 
-    hass: Any
+    hass: HomeAssistant
     entry_id: str
-    history: Any
-    geocoder: Any
+    history: Optional[HistoryStore]
+    geocoder: Optional[ReverseGeocoder]
     trip_debug: bool
     trip_log: TripLog
-    events: Any  # vehicle_events.VehicleEvents
-    reports: Any  # vehicle_reports.VehicleReports
+    events: VehicleEvents
+    reports: VehicleReports
 
     @property
     def signal_trips(self) -> str: ...
@@ -1090,10 +1098,13 @@ class VehicleTrips:
         record by id, so this stays idempotent.
         """
 
+        history = self._host.history
+        if history is None:
+            return
         for leg in legs:
             leg.classification = CLASS_COMMUTE
             leg.classification_source = SOURCE_AUTO
-            self._host.history.add_trip(leg)
+            history.add_trip(leg)
             self._host.trip_log.cap("[trip] %s chain leg %s -> commute", vin, leg.id)
 
     def _stopped_for_door(self, vin: str, now: datetime) -> bool:

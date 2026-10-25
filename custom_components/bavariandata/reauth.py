@@ -18,10 +18,13 @@ import asyncio
 import logging
 import time
 from contextlib import suppress
-from typing import Any, Awaitable, Callable, Mapping, Optional, Protocol
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, Mapping, Optional, Protocol
 
 from .const import DEFAULT_REFRESH_INTERVAL, TOKEN_REFRESH_RETRY_DELAY, TOKEN_REFRESH_RETRY_MAX
 from .device_flow import refresh_rejected
+
+if TYPE_CHECKING:
+    from .rest import TokenKeeper
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,7 +36,7 @@ class ReauthHost(Protocol):
     """What the gate needs of the entry it guards."""
 
     entry_id: str
-    tokens: Any
+    tokens: TokenKeeper
     refresh_wake: asyncio.Event
 
     async def start_reauth(self) -> Optional[str]:

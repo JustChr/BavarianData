@@ -75,6 +75,7 @@ from .units import miles_to_km, normalize_unit, unit_choices
 from .vehicle_support import is_motorcycle, motorcycle_issue_id
 
 if TYPE_CHECKING:
+    from .history.geocoding import ReverseGeocoder
     from .history.store import HistoryStore
 
 _LOGGER = logging.getLogger(__name__)
@@ -149,7 +150,7 @@ class CardataCoordinator:
     vehicle_pricing: Dict[str, PricingConfig] = field(default_factory=dict)
     # Trip recording (roadmap Phase 3). ``geocoder`` is injected/updated from
     # options; optional, degrades quietly.
-    geocoder: Optional[Any] = None
+    geocoder: Optional[ReverseGeocoder] = None
     # How each car's trips are detected, recorded and classified (work zone,
     # default type, commute stop tolerance, detection mode, route recording).
     # ``trip_settings`` is every car without settings of its own; a car in

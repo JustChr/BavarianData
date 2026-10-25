@@ -22,7 +22,7 @@ import logging
 from contextlib import suppress
 import re
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional, Protocol
+from typing import TYPE_CHECKING, Any, Dict, Optional, Protocol
 
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -72,6 +72,11 @@ from .history.stations import CHARGE_METHOD_DESCRIPTORS, streamed_charge_method
 from .soc_tracking import SocTracking
 from .vehicle_triggers import charging_interrupted
 
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
+
+    from .history.store import HistoryStore
+
 _LOGGER = logging.getLogger("custom_components.bavariandata.coordinator")
 
 
@@ -106,9 +111,9 @@ def _charge_complete(soc: Optional[float], target: Optional[float]) -> bool:
 class ChargingHost(Protocol):
     """What charging reads and does, from the coordinator."""
 
-    hass: Any
+    hass: HomeAssistant
     entry_id: str
-    history: Any
+    history: Optional[HistoryStore]
     pricing: PricingConfig
     data: Dict[str, Dict[str, DescriptorState]]
 
@@ -1126,6 +1131,8 @@ class VehicleCharging:
             return None
         if config.mode == MODE_FIXED:
             return config.fixed_price
+        if not config.price_entity:
+            return None
         state = self._host.hass.states.get(config.price_entity)
         if state is None or state.state in ("unknown", "unavailable", ""):
             return None
