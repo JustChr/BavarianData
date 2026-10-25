@@ -24,7 +24,8 @@ from homeassistant.const import __version__ as HA_VERSION
 from homeassistant.core import HomeAssistant
 from homeassistant.loader import async_get_integration
 
-from . import CardataConfigEntry, _coverage_reports
+from .coverage_issues import coverage_reports
+from .runtime import CardataConfigEntry
 from .const import (
     BOOTSTRAP_COMPLETE,
     DOMAIN,
@@ -92,7 +93,7 @@ async def async_get_config_entry_diagnostics(
 
     # Map coverage reports by VIN so each vehicle can carry its own summary
     # without dumping the (long) full missing-descriptor list twice.
-    coverage_by_vin = {report.vin: report for report in _coverage_reports(runtime)}
+    coverage_by_vin = {report.vin: report for report in coverage_reports(runtime)}
 
     vehicles: list[dict[str, Any]] = []
     for vin in coordinator.data:

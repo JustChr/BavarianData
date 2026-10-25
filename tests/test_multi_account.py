@@ -175,9 +175,9 @@ def test_removal_clears_every_car_the_entry_ever_had() -> None:
     body = ast.get_source_segment(source, remove) or ""
     assert "async_clear_published" in body
     assert "account_vins(hass, entry)" in body, "the VIN list must come from the shared helper"
-    helper = _function_source(_PKG / "__init__.py", "account_vins")
+    helper = _function_source(_PKG / "account.py", "account_vins")
     assert "known_vins(" in helper
-    assert "_registered_vins(" in helper, (
+    assert "registered_vins(" in helper, (
         "a car that only ever streamed is in no stored record, but it has a device"
     )
 
@@ -192,15 +192,14 @@ def test_one_helper_says_which_cars_an_account_has() -> None:
         for func in ast.walk(tree):
             if isinstance(func, (ast.FunctionDef, ast.AsyncFunctionDef)) and any(
                 isinstance(call, ast.Call)
-                and ast.unparse(call.func) in ("known_vins", "_registered_vins")
+                and ast.unparse(call.func) in ("known_vins", "registered_vins")
                 for call in ast.walk(func)
             ):
                 callers.setdefault(func.name, path.name)
     # The helper itself, and Discover's "never seen" test, which is not a car list.
     assert callers == {
-        "account_vins": "__init__.py",
-        "async_setup_services": "services.py",
-        "async_handle_fetch_mappings": "services.py",
+        "account_vins": "account.py",
+        "async_handle_fetch_mappings": "service_fetch.py",
     }
 
 
@@ -242,7 +241,7 @@ def test_adopting_a_new_car_cannot_spend_the_quota_twice() -> None:
     keeps streaming, so without claiming the attempt up front the failure would
     be retried on every message until the account's quota was gone."""
 
-    body = _function_source(_PKG / "__init__.py", "_async_on_new_vehicle")
+    body = _function_source(_PKG / "account.py", "async_on_new_vehicle")
     assert "basic_data_attempted" in body
     assert "runtime.basic_data_attempted.add(vin)" in body
     assert body.index("in runtime.basic_data_attempted") < body.index(
@@ -299,8 +298,8 @@ def test_readding_the_same_client_id_does_not_remove_the_entry() -> None:
 # --- a sold car can be deleted, and takes its data along ---------------------
 
 
-def _function(name: str) -> ast.AsyncFunctionDef:
-    tree = ast.parse((_PKG / "__init__.py").read_text(encoding="utf-8"))
+def _function(name: str, module: str = "__init__.py") -> ast.AsyncFunctionDef:
+    tree = ast.parse((_PKG / module).read_text(encoding="utf-8"))
     return next(
         node for node in tree.body if isinstance(node, ast.AsyncFunctionDef) and node.name == name
     )
@@ -319,15 +318,15 @@ def test_two_cars_deleted_at_once_are_forgotten_one_after_the_other() -> None:
     """Each Delete starts its own cleanup; run side by side, both opened the
     same stores and the last to save brought the other car's data back."""
 
-    body = ast.unparse(_function("_async_forget_vehicles"))
+    body = ast.unparse(_function("async_forget_account_cars", "vehicle_removal.py"))
     assert "async with _FORGET_LOCKS.setdefault(entry_id, asyncio.Lock())" in body
     assert "_async_forget_vehicles_now(hass, entry_id, vins)" in body
-    source = (_PKG / "__init__.py").read_text(encoding="utf-8")
+    source = (_PKG / "vehicle_removal.py").read_text(encoding="utf-8")
     assert "_FORGET_LOCKS: Dict[str, asyncio.Lock] = {}" in source  # not in hass.data
 
 
 def test_deleting_a_car_reaches_every_store_that_holds_it() -> None:
-    body = ast.unparse(_function("_async_forget_vehicles_now"))
+    body = ast.unparse(_function("_async_forget_vehicles_now", "vehicle_removal.py"))
     for step in (
         "history.forget_vehicle",
         "publisher.async_remove_vehicle",

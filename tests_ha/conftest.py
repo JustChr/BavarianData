@@ -71,12 +71,12 @@ def no_bmw():
         mocks = {
             name: stack.enter_context(patch(target, new_callable=AsyncMock))
             for name, target in {
-                "refresh": f"{PACKAGE}._refresh_tokens",
+                "refresh": f"{PACKAGE}.async_renew_tokens",
                 "start": f"{PACKAGE}.stream.CardataStreamManager.async_start",
                 "shutdown": f"{PACKAGE}.stream.CardataStreamManager.async_shutdown",
-                "poll": f"{PACKAGE}._telematic_poll_loop",
-                "startup": f"{PACKAGE}._async_startup_refresh",
-                "bootstrap": f"{PACKAGE}._async_run_bootstrap",
+                "poll": f"{PACKAGE}.telematic_poll_loop",
+                "startup": f"{PACKAGE}.async_startup_refresh",
+                "bootstrap": f"{PACKAGE}.async_run_bootstrap",
             }.items()
         }
         # Every request to BMW's REST API ends in one of ``api.py``'s two

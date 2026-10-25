@@ -24,7 +24,7 @@ from homeassistant.helpers import llm
 from homeassistant.util import dt as dt_util
 from homeassistant.util.json import JsonObjectType
 
-from . import account_vins
+from .account import account_vins
 from .assist import (
     CHECKED,
     charging_answer,

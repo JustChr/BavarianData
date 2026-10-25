@@ -106,7 +106,7 @@ _PICK = object()
 
 
 if TYPE_CHECKING:
-    from . import CardataRuntimeData
+    from .runtime import CardataRuntimeData
 
     _FlowBase = OptionsFlow
 else:

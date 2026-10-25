@@ -22,7 +22,8 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
-from . import CardataRuntimeData, account_vins, async_manual_refresh_tokens
+from .account import account_vins, async_manual_refresh_tokens
+from .runtime import CardataRuntimeData
 from .const import (
     DEBUG_LOG,
     DEFAULT_IMAGE_SOURCE,
