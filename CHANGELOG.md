@@ -17,7 +17,7 @@ for two. Nothing should look different apart from the changes listed below,
 so if anything else does, please open an issue.
 
 ### Changed
-- **Entity icons come from Home Assistant's icon files.** Seventeen of the
+- **Entity icons come from Home Assistant's icon files.** The
   integration's own sensors (charging energy and costs, battery health, real
   range, distance this month, tires, the account's quota and diagnostics
   sensors among them) no longer set an `icon` attribute; Home Assistant shows
