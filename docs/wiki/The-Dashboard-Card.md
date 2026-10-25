@@ -55,8 +55,10 @@ streams:
 | --- | --- | --- | --- |
 | Electric | State of charge (blue while charging) | Remaining range, charging status | Target, plug, time to full, odometer |
 | Plug-in hybrid | State of charge | Electric range, charging status | Tank, total range, target, plug, time to full, odometer |
-| Petrol / diesel | Tank level — or the volume in the tank, on a car that doesn't stream a percentage | Remaining range, and the tank volume or the odometer | Odometer |
-| Neither, proved | Remaining range | Odometer | — |
+| Petrol / diesel | Tank level — or the volume in the tank, on a car that doesn't stream a percentage | Remaining range, and the tank volume or the odometer | Odometer (when it isn't beside the ring), tires, location, distance this month |
+| Neither, proved | Remaining range | Odometer | Tires, location, distance this month |
+
+A tile only appears when the car has data for it: no tire pressures, no tires tile.
 
 With **Configure → [Vehicle image](Settings-Reference#vehicle-image)** set to
 BMW's configurator, the render is your exact car, and dragging across it (mouse
@@ -152,6 +154,46 @@ attributes. It follows the *Trip in Progress* entity, so it lingers for a few
 minutes after you arrive — [why](Feature-Trips#seeing-the-drive-thats-happening-now).
 
 Pin a specific vehicle with `device:` (device id) or `vin:`.
+
+### Choosing the tiles
+
+The grid below the ring can show what you want instead. In the card editor, pick
+**Tiles**: ready-made tiles first, then every entity of the car. Drag them into
+the order you want. Leave it empty for the grid that fits the drivetrain.
+
+| Tile | Shows |
+| --- | --- |
+| `odometer` | The odometer |
+| `tank` | The tank level, or the volume in the tank |
+| `total_range` | Range on fuel and battery together (plug-in hybrids) |
+| `target` | The charge target |
+| `plug` | Whether the cable is in |
+| `time_to_full` | Time to the charge target |
+| `tires` | The lowest and highest tire pressure, green, amber or red as in the [Tires view](#tires-cluster-tire) |
+| `location` | The zone the car is in, from its device tracker |
+| `lock` | Locked, unlocked or secured |
+| `distance_month` | The distance driven this month |
+| `battery_12v` | The 12 V battery |
+
+Any entity works too: it shows with its own name, without the car's, and its own
+icon. In YAML a tile can also carry its own name and icon:
+
+```yaml
+type: custom:bavariandata-card
+tiles:
+  - tires
+  - location
+  - lock
+  - sensor.x5_xdrive30d_coolant_temperature
+  - entity: sensor.x5_xdrive30d_outside_temperature
+    name: Outside
+    icon: mdi:thermometer
+```
+
+The ring and the rows beside it stay as the drivetrain sets them. A petrol or
+diesel car that shows charging tiles has had its drivetrain detected wrong: set
+**Drivetrain** (above) rather than replacing the tiles.
+
 
 ---
 
@@ -596,6 +638,7 @@ teleservice timestamps, listed below the messages when the car sends them.
 | `odometer` | Override the odometer entity. |
 | `plug` | Override the plug-status entity. |
 | `drivetrain` | `bev`, `phev` or `ice` — the Overview layout. Omit to detect it from what the car streams. |
+| `tiles` | The Overview's tiles, in order: ready-made tiles (`odometer`, `tank`, `total_range`, `target`, `plug`, `time_to_full`, `tires`, `location`, `lock`, `distance_month`, `battery_12v`), entity ids, or `{entity, name, icon}`. Omit for the drivetrain's own. See [Choosing the tiles](#choosing-the-tiles). |
 | `steering` | `left` or `right` — the side the driver sits on, used to place doors and windows in the closures view. Omit to read it from BMW's basic data; a car whose basic data doesn't say is drawn as left-hand drive. |
 | `shape` | `sedan` or `countryman` — the car drawn in the tires and closures views. Omit to pick it from the model in BMW's basic data. |
 | `pictures` | `false` — the Equipment view as a plain list, without the option pictures (**Show option pictures** in the visual editor). Omit to show them. |
