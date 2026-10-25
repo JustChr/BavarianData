@@ -1009,7 +1009,7 @@ class VehicleTrips:
         try:
             self._host.history.add_trip(trip)
             if chain:
-                self._promote_chain_legs(vin, chain)
+                self._promote_chain_legs(self._host.history, vin, chain)
         except Exception:  # noqa: BLE001 - bookkeeping must not break the stream
             _LOGGER.exception("Could not record trip for %s", mask_vin(vin))
             return
@@ -1088,7 +1088,7 @@ class VehicleTrips:
             gap_s=gap_s,
         )
 
-    def _promote_chain_legs(self, vin: str, legs: list[Any]) -> None:
+    def _promote_chain_legs(self, history: HistoryStore, vin: str, legs: list[Any]) -> None:
         """Re-label the earlier legs of a completed commute chain.
 
         Those legs were stored when the chain's destination wasn't known yet, so
@@ -1098,9 +1098,6 @@ class VehicleTrips:
         record by id, so this stays idempotent.
         """
 
-        history = self._host.history
-        if history is None:
-            return
         for leg in legs:
             leg.classification = CLASS_COMMUTE
             leg.classification_source = SOURCE_AUTO
