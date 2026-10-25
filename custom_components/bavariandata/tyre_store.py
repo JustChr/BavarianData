@@ -40,7 +40,7 @@ class TyreStore:
 
     def __init__(self, hass: HomeAssistant, entry_id: str) -> None:
         self.hass = hass
-        self._store = Store(hass, STORE_VERSION, f"{DOMAIN}_{entry_id}_tyre")
+        self._store: Store[dict[str, Any]] = Store(hass, STORE_VERSION, f"{DOMAIN}_{entry_id}_tyre")
         self._vehicles: Dict[str, Dict[str, Any]] = {}
         self._loaded = False
 

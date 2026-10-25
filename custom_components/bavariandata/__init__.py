@@ -12,13 +12,13 @@ from datetime import datetime, timedelta, timezone
 from contextlib import suppress
 from dataclasses import dataclass, field
 from functools import partial
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Mapping, Optional
 
 import aiohttp
 
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP, Platform
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState, SOURCE_REAUTH
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 
 from homeassistant.components import persistent_notification
@@ -64,7 +64,7 @@ from .container import (
 )
 from .refusal import Refusal, as_ha_error
 from .rest import RestGateway, TokenKeeper
-from .coverage import coverage_issue_id, legacy_coverage_issue_id
+from .coverage import CoverageReport, coverage_issue_id, legacy_coverage_issue_id
 from .coverage_store import CoverageStore
 
 from .startup_refresh import (
@@ -116,7 +116,9 @@ PLATFORMS: list[Platform] = [
 ]
 
 
-def _coverage_reports(runtime: "CardataRuntimeData", vin: Optional[str] = None):
+def _coverage_reports(
+    runtime: "CardataRuntimeData", vin: Optional[str] = None
+) -> list[CoverageReport]:
     """Build the coverage self-test reports, folding in live descriptor state.
 
     The persisted store outlives a disabled entity; the live coordinator state
@@ -191,7 +193,7 @@ def _refresh_coverage_issues(hass: HomeAssistant, entry_id: str) -> None:
 @dataclass
 class CardataRuntimeData:
     stream: CardataStreamManager
-    refresh_task: asyncio.Task
+    refresh_task: asyncio.Task[Any]
     session: aiohttp.ClientSession
     coordinator: CardataCoordinator
     # The entry's containers by ``ContainerKind.key`` (container.py).
@@ -207,9 +209,9 @@ class CardataRuntimeData:
     coverage: Optional[CoverageStore] = None
     tyre: Optional[TyreStore] = None
     bridge: Optional[VehicleBridge] = None
-    bootstrap_task: asyncio.Task | None = None
+    bootstrap_task: asyncio.Task[Any] | None = None
     quota_manager: QuotaManager | None = None
-    telematic_task: asyncio.Task | None = None
+    telematic_task: asyncio.Task[Any] | None = None
     # Whether a reauth flow is open, and when we last tried (reauth.py).
     reauth: ReauthGate = field(default_factory=ReauthGate)
     # VINs whose basic data has been fetched (or attempted) since this entry
@@ -389,7 +391,7 @@ def _integration_version() -> str:
     try:
         manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
         with open(manifest_path, encoding="utf-8") as handle:
-            return json.load(handle).get("version", "0")
+            return str(json.load(handle).get("version", "0"))
     except OSError, ValueError:
         return "0"
 
@@ -398,7 +400,7 @@ def _integration_version() -> str:
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
-async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
     """Register the services, once for the whole Home Assistant run."""
 
     # Imported here: services.py reads names from this package, which is only
@@ -434,7 +436,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: CardataConfigEntry) -> b
     # entry, so nothing here closes it.
     session = async_get_clientsession(hass)
 
-    data = entry.data
+    data: Mapping[str, Any] = entry.data
     options = dict(entry.options) if entry.options else {}
     set_debug_enabled(entry_setup.debug_flag(options), entry_id=entry.entry_id)
     should_bootstrap = not data.get(BOOTSTRAP_COMPLETE)
@@ -624,7 +626,7 @@ def _async_wire_statistics(
     entry: CardataConfigEntry,
     coordinator: CardataCoordinator,
     history_store: HistoryStore,
-    options: dict,
+    options: dict[str, Any],
 ) -> StatisticsPublisher:
     """Publish the recorded history into Home Assistant's long-term statistics.
 
@@ -727,7 +729,7 @@ def _async_wire_bridge(
     hass: HomeAssistant,
     entry: CardataConfigEntry,
     coordinator: CardataCoordinator,
-    options: dict,
+    options: dict[str, Any],
 ) -> VehicleBridge:
     """The evcc / wallbox bridge, publishing on every SoC or descriptor change.
 
@@ -815,7 +817,7 @@ def _async_wire_units(
     async_apply_sensor_units(hass, entry.entry_id, coordinator)
 
     @callback
-    def _units_for_new_entity(event) -> None:
+    def _units_for_new_entity(event: Event[er.EventEntityRegistryUpdatedData]) -> None:
         if event.data.get("action") != "create":
             return
         created = entity_registry.async_get(event.data["entity_id"])
@@ -842,7 +844,7 @@ def _async_wire_stop_flush(
     disk only if it happened to be snapshotted in the last few minutes.
     """
 
-    async def _flush_on_stop(_event) -> None:
+    async def _flush_on_stop(_event: Event) -> None:
         await coordinator.async_flush_trips()
         coordinator.async_flush_charging()
         with suppress(Exception):
@@ -1085,8 +1087,8 @@ async def _async_forget_vehicles_now(hass: HomeAssistant, entry_id: str, vins: l
         from .image import async_forget_vehicles  # noqa: PLC0415 - pulls in HA's image component
 
         await async_forget_vehicles(hass, vins)
-    data: dict = dict(entry.data)
-    options: dict = dict(entry.options)
+    data: dict[str, Any] = dict(entry.data)
+    options: dict[str, Any] = dict(entry.options)
     for vin in vins:
         data = forget_in_entry_data(data, vin, VEHICLE_METADATA)
         options = without_vehicle(options, vin)

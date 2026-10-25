@@ -19,7 +19,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.components import persistent_notification
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult
+from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -77,7 +77,7 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
         # Reconfigure: the sign-in is the reauth path, for another Client ID of
         # the same BMW account.
         self._reconfiguring: bool = False
-        self._poll_task: Optional[asyncio.Task] = None
+        self._poll_task: Optional[asyncio.Task[Any]] = None
         self._auth_error: Optional[str] = None
         self._requested_scope: str = DEFAULT_SCOPE
         self._entry_data: Optional[Dict[str, Any]] = None
@@ -89,7 +89,9 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
         self._guided_sections: list[str] = []
         self._init_activator_state()
 
-    async def async_step_user(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+    async def async_step_user(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> ConfigFlowResult:
         """Entry point: choose guided (recommended) or manual setup."""
 
         return self.async_show_menu(
@@ -97,7 +99,9 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
             menu_options=["guided", "manual"],
         )
 
-    async def async_step_manual(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+    async def async_step_manual(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> ConfigFlowResult:
         """Manual path: user pastes a client id they created in the portal."""
 
         if user_input is None:
@@ -123,7 +127,9 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
 
         return await self.async_step_authorize()
 
-    async def async_step_guided(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+    async def async_step_guided(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> ConfigFlowResult:
         """Guided path, step 1: set up the served helper page + webhook.
 
         Activation happens in the user's own browser (the only place the portal
@@ -143,7 +149,7 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
 
     async def async_step_guided_wait(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Guided path, step 2: wait for the browser activator to report back."""
 
         if self._onboarding_wait_task is None:
@@ -169,7 +175,7 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
 
     async def async_step_guided_confirm(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Guided path, step 3: adopt the discovered client id, then device auth."""
 
         result = self._onboarding
@@ -189,7 +195,7 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
 
     async def async_step_guided_paste(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Guided fallback: paste the activator result if the auto-report didn't arrive."""
 
         schema = vol.Schema({vol.Required("result"): str})
@@ -297,7 +303,9 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
             timeout=int(self._device_data.get("expires_in", 600)),
         )
 
-    async def async_step_authorize(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+    async def async_step_authorize(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> ConfigFlowResult:
         assert self._device_data is not None
 
         # Deliberately prefer the *plain* verification URI over
@@ -345,7 +353,7 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
 
     async def async_step_authorize_failed(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Show why authorization failed and let the user retry with a fresh code."""
 
         if user_input is None:
@@ -367,8 +375,11 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
             )
         return await self.async_step_authorize()
 
-    async def async_step_tokens(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+    async def async_step_tokens(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> ConfigFlowResult:
         assert self._client_id is not None
+        assert self._token_data is not None
         entry_data = token_entry_data(self._client_id, self._token_data, time.time())
 
         # One account, one entry. The unique id is the Client ID, but a user can
@@ -443,7 +454,7 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
 
     async def async_step_guided_done(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Guided path, final: confirm what was activated, then create the entry."""
 
         assert self._entry_data is not None
@@ -457,7 +468,7 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
 
     async def async_step_select_clusters(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Pick which data clusters to stream, right after authorization.
 
         Mirrors the options-flow picker (``CardataOptionsFlowHandler.
@@ -487,7 +498,7 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
             return await self._activation_finished()
         return await self._begin_activation(attributes)
 
-    async def _activation_finished(self) -> FlowResult:
+    async def _activation_finished(self) -> ConfigFlowResult:
         """Create the entry, keeping the portal vehicle id for re-activation."""
 
         assert self._entry_data is not None
@@ -497,7 +508,7 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
 
     async def async_step_reconfigure(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Use another CarData Client of the same BMW account (Reconfigure).
 
         Signs in with it as reauth does, then keeps the entry -- its cars,
@@ -532,7 +543,7 @@ class CardataConfigFlow(StreamActivatorFlow, config_entries.ConfigFlow, domain=D
             description_placeholders=placeholders,
         )
 
-    async def async_step_reauth(self, entry_data: Dict[str, Any]) -> FlowResult:
+    async def async_step_reauth(self, entry_data: Dict[str, Any]) -> ConfigFlowResult:
         entry_id = entry_data.get("entry_id")
         if entry_id:
             self._reauth_entry = self.hass.config_entries.async_get_entry(entry_id)

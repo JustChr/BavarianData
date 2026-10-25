@@ -73,7 +73,9 @@ class HistoryStore:
         self.remember_locations = remember_locations
         self.max_sessions = max_sessions
         self.max_trips = max_trips
-        self._store = Store(hass, STORE_VERSION, f"{DOMAIN}_{entry_id}_history")
+        self._store: Store[dict[str, Any]] = Store(
+            hass, STORE_VERSION, f"{DOMAIN}_{entry_id}_history"
+        )
         self._sessions: dict[str, list[ChargingSession]] = {}
         self._trips: dict[str, list[Trip]] = {}
         # In-progress charges, one per VIN: the snapshot of a session that had

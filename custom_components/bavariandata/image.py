@@ -25,7 +25,7 @@ import hashlib
 import logging
 import re
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, cast
 
 from aiohttp import web
 from homeassistant.components.http import HomeAssistantView
@@ -84,7 +84,7 @@ _RENDER_SCHEMA = 3
 def image_source(entry: ConfigEntry) -> str:
     """The picture source chosen under Configure -> Vehicle image."""
 
-    return entry.options.get(OPTION_IMAGE_SOURCE, DEFAULT_IMAGE_SOURCE)
+    return cast(str, entry.options.get(OPTION_IMAGE_SOURCE, DEFAULT_IMAGE_SOURCE))
 
 
 def _render_key(vin: str) -> str:
@@ -97,13 +97,13 @@ def _render_dir(hass: HomeAssistant) -> Path:
     return Path(hass.config.path(".storage", _RENDER_DIR))
 
 
-async def _async_load_renders(hass: HomeAssistant) -> Dict[str, dict]:
+async def _async_load_renders(hass: HomeAssistant) -> Dict[str, dict[str, Any]]:
     """Return the shared ``{vin: {...}}`` configurator-render metadata."""
 
     domain_data = _domain_data(hass)
     renders = domain_data.get(_RENDER_CACHE_KEY)
     if renders is not None:
-        return renders
+        return cast(Dict[str, dict[str, Any]], renders)
     store = domain_data.get(_RENDER_STORE_HANDLE_KEY)
     if store is None:
         store = Store(hass, _STORE_VERSION, _RENDER_STORE_KEY)
@@ -199,7 +199,8 @@ async def async_refresh_configurator_render(
     await hass.async_add_executor_job(_write)
     renders = await _async_load_renders(hass)
     previous = renders.get(vin) or {}
-    record = {
+    parts = [part for part in _PARTS if f"{key}_{part}" in files]
+    record: dict[str, Any] = {
         "key": key,
         "columns": render.columns,
         "rows": render.rows,
@@ -210,7 +211,7 @@ async def async_refresh_configurator_render(
         "brand": render.brand,
         "updated": dt_util.utcnow().isoformat(),
         "schema": _RENDER_SCHEMA if full else previous.get("schema", 1),
-        "parts": [part for part in _PARTS if f"{key}_{part}" in files],
+        "parts": parts,
     }
     if full:
         record["equipment"] = list(render.equipment)
@@ -230,7 +231,7 @@ async def async_refresh_configurator_render(
         render.brand,
         render.frames,
         len(render.sprite) // 1024,
-        f"; also {', '.join(record['parts']) or 'nothing else'}, {len(render.equipment)} options"
+        f"; also {', '.join(parts) or 'nothing else'}, {len(render.equipment)} options"
         f" named, {len(render.option_codes)} pictured"
         if full
         else "",
@@ -288,11 +289,11 @@ async def async_forget_vehicles(hass: HomeAssistant, vins: list[str]) -> None:
     await hass.async_add_executor_job(_delete)
 
 
-def _domain_data(hass: HomeAssistant) -> dict:
-    return hass.data.setdefault(DOMAIN, {})
+def _domain_data(hass: HomeAssistant) -> dict[str, Any]:
+    return cast(dict[str, Any], hass.data.setdefault(DOMAIN, {}))
 
 
-async def _async_get_store(hass: HomeAssistant) -> Store:
+async def _async_get_store(hass: HomeAssistant) -> Store[dict[str, Any]]:
     domain_data = _domain_data(hass)
     store = domain_data.get(_STORE_HANDLE_KEY)
     if store is None:
@@ -301,13 +302,13 @@ async def _async_get_store(hass: HomeAssistant) -> Store:
     return store
 
 
-async def _async_load_cache(hass: HomeAssistant) -> Dict[str, dict]:
+async def _async_load_cache(hass: HomeAssistant) -> Dict[str, dict[str, Any]]:
     """Return the shared ``{vin: {...}}`` render cache, hydrating from Store once."""
 
     domain_data = _domain_data(hass)
     cache = domain_data.get(_CACHE_KEY)
     if cache is not None:
-        return cache
+        return cast(Dict[str, dict[str, Any]], cache)
     cache = {}
     store = await _async_get_store(hass)
     stored = await store.async_load()
@@ -484,8 +485,8 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
         entry: ConfigEntry,
         runtime: Any,
         vin: str,
-        cache: Dict[str, dict],
-        renders: Dict[str, dict],
+        cache: Dict[str, dict[str, Any]],
+        renders: Dict[str, dict[str, Any]],
     ) -> None:
         CardataEntity.__init__(self, coordinator, vin, "vehicle_image")
         ImageEntity.__init__(self, hass)
@@ -497,7 +498,7 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
         self._attr_unique_id = f"{vin}_vehicle_image"
         self._sync_picture()
 
-    def _render(self) -> Optional[dict]:
+    def _render(self) -> Optional[dict[str, Any]]:
         """The configurator render, when that is the chosen source and one exists."""
 
         if image_source(self._entry) != IMAGE_SOURCE_CONFIGURATOR:
@@ -586,7 +587,7 @@ class CardataVehicleImage(CardataEntity, ImageEntity):
         return None
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, Any]:
         attrs = dict(super().extra_state_attributes)
         attrs.update(self._basic_data_attributes())
         record = self._cache.get(self._vin)

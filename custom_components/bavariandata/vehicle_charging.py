@@ -51,6 +51,7 @@ from .evcc import PLUG_DESCRIPTORS, plug_state
 from .history.energy_mix import SOURCE_PV, MixAccumulator, supply_shares
 from .history.held_energy import HeldEnergy
 from .history.meter_rate import MeterRate
+from .history.models import ChargingSession
 from .history.pricing import (
     MODE_FIXED,
     CostAccumulator,
@@ -110,10 +111,15 @@ class ChargingHost(Protocol):
     history: Any
     pricing: PricingConfig
     data: Dict[str, Dict[str, DescriptorState]]
-    signal_energy: str
-    signal_history: str
-    signal_soc_estimate: str
-    signal_update: str
+
+    @property
+    def signal_energy(self) -> str: ...
+    @property
+    def signal_history(self) -> str: ...
+    @property
+    def signal_soc_estimate(self) -> str: ...
+    @property
+    def signal_update(self) -> str: ...
 
     @property
     def _cars(self) -> Dict[str, Vehicle]: ...
@@ -585,11 +591,11 @@ class VehicleCharging:
         # action is dispatched to the executor thread, and _finalize_charge_close
         # touches loop-only helpers (async_dispatcher_send).
         @callback
-        def _fire(_now) -> None:
+        def _fire(_now: datetime) -> None:
             self._host._car(vin).session.close_timer = None
-            stopped_at, _status = self._host._peek(vin).session.stopped
-            if self._plug_state_live(vin) is True:
-                waited = (datetime.now(timezone.utc) - stopped_at).total_seconds()
+            stopped = self._host._peek(vin).session.stopped
+            if stopped is not None and self._plug_state_live(vin) is True:
+                waited = (datetime.now(timezone.utc) - stopped[0]).total_seconds()
                 if waited < CHARGE_PLUGGED_HOLD_S:
                     self._schedule_charge_close(vin, CHARGE_PLUGGED_HOLD_S - waited)
                     return
@@ -609,8 +615,10 @@ class VehicleCharging:
             or self._plug_state_live(vin) is not False
         ):
             return
-        stopped_at, _status = self._host._peek(vin).session.stopped
-        if (datetime.now(timezone.utc) - stopped_at).total_seconds() < CHARGE_CLOSE_DEBOUNCE_S:
+        stopped = self._host._peek(vin).session.stopped
+        if stopped is None:
+            return
+        if (datetime.now(timezone.utc) - stopped[0]).total_seconds() < CHARGE_CLOSE_DEBOUNCE_S:
             return
         self._cancel_charge_close_timer(vin)
         self._finalize_charge_close(vin)
@@ -685,7 +693,7 @@ class VehicleCharging:
         if self._host.history is None:
             return
         location = self._host._charging_location(vin)
-        self._host._car(vin).session.builder = SessionBuilder(
+        builder = self._host._car(vin).session.builder = SessionBuilder(
             vin,
             started_at,
             soc_start=tracking.last_soc_percent,
@@ -703,8 +711,8 @@ class VehicleCharging:
         # hours this session would then not be credited with. The billing cursor
         # starts in the same place, so the very first increment is billed at the
         # meter rather than being skipped for want of a baseline.
-        meter_at_open = self._session_grid_meter_kwh(vin, self._host._peek(vin).session.builder)
-        self._host._peek(vin).session.builder.note_grid_meter(meter_at_open)
+        meter_at_open = self._session_grid_meter_kwh(vin, builder)
+        builder.note_grid_meter(meter_at_open)
         if meter_at_open is None:
             self._host._car(vin).session.grid_meter_billed = None
         else:
@@ -870,7 +878,7 @@ class VehicleCharging:
         # @callback so HA runs it on the event loop: the close touches
         # async_dispatcher_send, which is loop-only.
         @callback
-        def _fire(_now) -> None:
+        def _fire(_now: datetime) -> None:
             self._host._car(vin).session.restored_timer = None
             if self._charge_is_evidently_running(vin):
                 # BMW has not re-sent the status, but it is still reporting
@@ -997,14 +1005,16 @@ class VehicleCharging:
                 soc_now,
             )
 
-    def _close_session_record(self, vin: str, status: str, *, at: Optional[datetime] = None):
+    def _close_session_record(
+        self, vin: str, status: Optional[str], *, at: Optional[datetime] = None
+    ) -> Optional[ChargingSession]:
         # One last look at the wallbox meter, billed and noted before the settle it
         # may bound. The final energy deltas and the close can be minutes apart on
         # a charge that tapers, and those are kilowatt-hours the meter did count.
         if self._host._peek(vin).session.builder is not None:
             self._book_increment(vin, 0.0)
         self._settle_session_energy(vin)
-        builder = self._host._peek(vin).session.take("builder")
+        builder: Optional[SessionBuilder] = self._host._peek(vin).session.take("builder")
         accumulator = self._host._peek(vin).session.take("cost")
         mix = self._host._peek(vin).session.take("mix")
         # Whatever is still held, the pack's SoC never accounted for.

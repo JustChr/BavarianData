@@ -8,7 +8,7 @@ import hashlib
 import secrets
 import string
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 import aiohttp
 
@@ -190,7 +190,7 @@ async def request_device_code(
             raise CardataAuthError(
                 f"Device code request failed ({_safe_error(resp.status, payload)})"
             )
-        return payload
+        return cast(dict[str, Any], payload)
 
 
 # BMW notes that after the user approves the device it can take up to ~1 minute
@@ -249,7 +249,7 @@ async def poll_for_tokens(
             async with session.post(token_url, data=payload, timeout=HTTP_TIMEOUT) as resp:
                 data = await resp.json(content_type=None)
                 if resp.status == 200:
-                    return data
+                    return cast(dict[str, Any], data)
 
                 error = data.get("error") if isinstance(data, dict) else None
                 if error in {"authorization_pending", "slow_down"}:
@@ -326,4 +326,4 @@ async def refresh_tokens(
                 error_description=data.get("error_description") if isinstance(data, dict) else None,
                 correlation_id=_correlation_id(resp.headers),
             )
-        return data
+        return cast(dict[str, Any], data)

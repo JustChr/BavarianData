@@ -170,7 +170,7 @@ class _Place:
 def _group(sessions: Iterable[ChargingSession], home_zone: Optional[str]) -> list[_Place]:
     places: dict[str, _Place] = {}
     coordinate_places: list[_Place] = []
-    address_only: list[ChargingSession] = []
+    address_only: list[tuple[ChargingSession, str]] = []
     counter = 0
 
     def place(key: str) -> _Place:
@@ -210,15 +210,14 @@ def _group(sessions: Iterable[ChargingSession], home_zone: Optional[str]) -> lis
                 coordinate_places.append(nearest)
             nearest.add(session)
             continue
-        if location.get("address"):
-            address_only.append(session)
+        if address := location.get("address"):
+            address_only.append((session, address))
             continue
         found = place("unnamed")
         found.unnamed = True
         found.add(session)
 
-    for session in address_only:
-        address = session.location["address"]
+    for session, address in address_only:
         target = next((p for p in coordinate_places if p.address == address), None)
         if target is None:
             target = place(f"address:{address}")

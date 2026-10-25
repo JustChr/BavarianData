@@ -12,7 +12,7 @@ holds the English text, which is also what a log line shows;
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Callable
 
 MESSAGES: dict[str, str] = {
     # Which account and car a service call names (service_target.py).
@@ -81,7 +81,7 @@ class Refusal(Exception):
         super().__init__(MESSAGES[key].format(**self.placeholders))
 
 
-def as_ha_error(err: Refusal, kind: type[Exception], domain: str) -> Exception:
+def as_ha_error[E: Exception](err: Refusal, kind: Callable[..., E], domain: str) -> E:
     """``err`` as Home Assistant's ``kind`` (a ``HomeAssistantError``), translated."""
 
     return kind(

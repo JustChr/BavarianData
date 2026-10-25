@@ -10,7 +10,7 @@ import random
 import ssl
 import threading
 import time
-from typing import Any, Awaitable, Callable, Coroutine, Optional
+from typing import Any, Awaitable, Callable, Coroutine, Optional, Protocol
 
 # ``paho-mqtt`` stays declared in ``manifest.json`` even though Home Assistant
 # also ships it for its own ``mqtt`` integration. The official container image
@@ -21,6 +21,9 @@ from typing import Any, Awaitable, Callable, Coroutine, Optional
 # version to ``==2.1.0`` in ``package_constraints.txt``, which our ``>=2.1.0``
 # resolves cleanly against, so declaring it can never pull a conflicting build.
 import paho.mqtt.client as mqtt
+from paho.mqtt.enums import CallbackAPIVersion
+from paho.mqtt.properties import Properties
+from paho.mqtt.reasoncodes import ReasonCode
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -30,6 +33,18 @@ from .debug import debug_enabled
 
 _LOGGER = logging.getLogger(__name__)
 
+# ``coordinator.async_handle_message``: one decoded stream message.
+MessageCallback = Callable[[dict[str, Any]], Coroutine[Any, Any, None]]
+
+
+class StatusCallback(Protocol):
+    """``coordinator.async_handle_connection_event``: a status and, for a drop, why."""
+
+    def __call__(
+        self, status: str, *, reason: Optional[str] = None
+    ) -> Coroutine[Any, Any, None]: ...
+
+
 # BMW's MQTTv3 CONNACK/DISCONNECT numeric codes are surfaced by paho 2.x's
 # VERSION2 callbacks as their MQTTv5 equivalents: 4 ("bad user name or
 # password") -> 134 and 5 ("not authorized") -> 135. A clean disconnect is 0.
@@ -37,7 +52,7 @@ _RC_BAD_CREDENTIALS = 134
 _RC_NOT_AUTHORIZED = 135
 
 
-def _log_future_exception(future: concurrent.futures.Future) -> None:
+def _log_future_exception(future: concurrent.futures.Future[Any]) -> None:
     """Surface exceptions from coroutines scheduled off the MQTT network thread.
 
     ``run_coroutine_threadsafe`` hands back a future nobody awaits, so without
@@ -78,12 +93,12 @@ class CardataStreamManager:
         self._port = port
         self._keepalive = keepalive
         self._client: Optional[mqtt.Client] = None
-        self._message_callback: Optional[Callable[[dict], Awaitable[None]]] = None
+        self._message_callback: Optional[MessageCallback] = None
         self._error_callback = error_callback
         self._reauth_notified = False
         self._unauthorized_retry_in_progress = False
         self._awaiting_new_credentials = False
-        self._status_callback: Optional[Callable[[str, Optional[str]], Awaitable[None]]] = None
+        self._status_callback: Optional[StatusCallback] = None
         # Retry delays: equal jitter on a ceiling that doubles per failed attempt
         # from _min_reconnect_interval up to _max_backoff. The attempt count only
         # starts over once a connection has stayed up for _stable_after seconds.
@@ -96,7 +111,7 @@ class CardataStreamManager:
         self._connected_at: Optional[float] = None
         self._last_disconnect: Optional[float] = None
         self._disconnect_future: Optional[asyncio.Future[None]] = None
-        self._retry_task: Optional[asyncio.Task] = None
+        self._retry_task: Optional[asyncio.Task[Any]] = None
         # Bumped by every stop. A retry scheduled before a stop must not outlive
         # it, or a reload would end up with two streams for one account.
         self._stop_generation = 0
@@ -189,12 +204,10 @@ class CardataStreamManager:
     def client(self) -> Optional[mqtt.Client]:
         return self._client
 
-    def set_message_callback(self, callback: Callable[[dict], Awaitable[None]]) -> None:
+    def set_message_callback(self, callback: MessageCallback) -> None:
         self._message_callback = callback
 
-    def set_status_callback(
-        self, callback: Callable[[str, Optional[str]], Awaitable[None]]
-    ) -> None:
+    def set_status_callback(self, callback: StatusCallback) -> None:
         self._status_callback = callback
 
     def _run_coro(self, coro: Coroutine[Any, Any, Any]) -> "concurrent.futures.Future[Any]":
@@ -234,7 +247,7 @@ class CardataStreamManager:
         client = mqtt.Client(
             # paho 2.x defaults to the deprecated VERSION1 callback API and warns;
             # VERSION2 is the supported one and the only one paho 3.x will ship.
-            callback_api_version=mqtt.CallbackAPIVersion.VERSION2,
+            callback_api_version=CallbackAPIVersion.VERSION2,
             client_id=client_id,
             clean_session=True,
             # Subscribe only to direct VIN topics. Do not modify this unless BMW changes the stream contract.
@@ -288,7 +301,12 @@ class CardataStreamManager:
         client.loop_start()
 
     def _handle_connect(
-        self, client: mqtt.Client, userdata, flags, reason_code, properties=None
+        self,
+        client: mqtt.Client,
+        userdata: Any,
+        flags: mqtt.ConnectFlags,
+        reason_code: ReasonCode,
+        properties: Optional[Properties] = None,
     ) -> None:
         if reason_code == 0:
             topic = userdata.get("topic")
@@ -359,12 +377,17 @@ class CardataStreamManager:
                 self._client = None
 
     def _handle_subscribe(
-        self, client: mqtt.Client, userdata, mid, reason_code_list, properties=None
+        self,
+        client: mqtt.Client,
+        userdata: Any,
+        mid: int,
+        reason_code_list: list[ReasonCode],
+        properties: Optional[Properties] = None,
     ) -> None:
         if debug_enabled():
             _LOGGER.debug("BMW MQTT subscribed mid=%s qos=%s", mid, reason_code_list)
 
-    def _handle_message(self, client: mqtt.Client, userdata, msg: mqtt.MQTTMessage) -> None:
+    def _handle_message(self, client: mqtt.Client, userdata: Any, msg: mqtt.MQTTMessage) -> None:
         payload = msg.payload.decode(errors="ignore")
         if debug_enabled():
             _LOGGER.debug("BMW MQTT message on %s: %s", msg.topic, payload)
@@ -374,11 +397,16 @@ class CardataStreamManager:
             data = json.loads(payload)
         except json.JSONDecodeError:
             return
-        if self._message_callback:
+        if self._message_callback is not None:
             self._run_coro(self._message_callback(data))
 
     def _handle_disconnect(
-        self, client: mqtt.Client, userdata, disconnect_flags, reason_code, properties=None
+        self,
+        client: mqtt.Client,
+        userdata: Any,
+        disconnect_flags: mqtt.DisconnectFlags,
+        reason_code: ReasonCode,
+        properties: Optional[Properties] = None,
     ) -> None:
         reason = str(reason_code)
         is_clean = reason_code == 0

@@ -277,6 +277,8 @@ def main() -> None:
         "",
         "from __future__ import annotations",
         "",
+        "from typing import Any",
+        "",
         "# Cluster/section slug -> human label, in BMW's catalogue order.",
         "SECTIONS: dict[str, str] = {",
     ]
@@ -285,7 +287,7 @@ def main() -> None:
     lines.append("}")
     lines.append("")
     lines.append("# descriptor -> metadata mapping. See tools/generate_metadata.py.")
-    lines.append("DESCRIPTOR_META: dict[str, dict] = {")
+    lines.append("DESCRIPTOR_META: dict[str, dict[str, Any]] = {")
     for descriptor in sorted(meta):
         m = meta[descriptor]
         lines.append(f"    {descriptor!r}: {{")

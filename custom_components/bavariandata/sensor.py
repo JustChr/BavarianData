@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional, Tuple
+from datetime import datetime
+from typing import Any, Callable, Dict, Mapping, Optional, Tuple
 
 from homeassistant.components.sensor import (
     RestoreSensor,
@@ -14,6 +15,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -153,7 +155,7 @@ class CardataSensor(CardataRestoreSensor):
     def __init__(self, coordinator: CardataCoordinator, vin: str, descriptor: str) -> None:
         super().__init__(coordinator, vin, descriptor)
         self._attr_should_poll = False
-        self._unsubscribe = None
+        self._unsubscribe: Optional[Callable[[], None]] = None
         # Check Control keeps the messages that have since cleared, so the card
         # can list them apart from the current ones (see structured_values).
         self._history = MessageHistory() if descriptor == CHECK_CONTROL else None
@@ -173,11 +175,11 @@ class CardataSensor(CardataRestoreSensor):
                 self._attr_options = list(classes.options)
                 self._is_enum = True
             else:
-                self._attr_state_class = _STATE_CLASS_MAP.get(classes.state_class)
+                self._attr_state_class = _STATE_CLASS_MAP.get(classes.state_class or "")
                 if classes.unit:
                     self._attr_native_unit_of_measurement = classes.unit
                     self._fixed_unit = True
-            device_class = _DEVICE_CLASS_MAP.get(classes.device_class)
+            device_class = _DEVICE_CLASS_MAP.get(classes.device_class or "")
             if device_class is not None:
                 self._attr_device_class = device_class
                 if classes.whole_numbers:
@@ -202,7 +204,7 @@ class CardataSensor(CardataRestoreSensor):
             if restored is not None:
                 if self._is_enum:
                     restored, self._attr_options = sensor_values.enum_state(
-                        restored, self._attr_options
+                        restored, self._attr_options or []
                     )
                 self._attr_native_value, _items = structured_state(restored)
                 if unit is not None and not self._fixed_unit:
@@ -254,7 +256,7 @@ class CardataSensor(CardataRestoreSensor):
             return
         value = state.value
         if self._is_enum:
-            value, self._attr_options = sensor_values.enum_state(value, self._attr_options)
+            value, self._attr_options = sensor_values.enum_state(value, self._attr_options or [])
         # A list (service items, Check Control messages) is shown as its count:
         # stringified it overflows Home Assistant's 255-character state limit
         # and is recorded as unknown. The list itself goes out as an attribute.
@@ -269,7 +271,7 @@ class CardataSensor(CardataRestoreSensor):
         self.schedule_update_ha_state()
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, Any]:
         attrs = super().extra_state_attributes
         state = self._coordinator.get_state(self._vin, self._descriptor)
         if state is not None:
@@ -291,17 +293,17 @@ class CardataDiagnosticsSensor(SensorEntity, RestoreEntity):
     def __init__(
         self,
         coordinator: CardataCoordinator,
-        stream_manager,
+        stream_manager: Any,
         entry_id: str,
         sensor_type: str,
-        quota_manager,
+        quota_manager: Any,
     ) -> None:
         self._coordinator = coordinator
         self._stream = stream_manager
         self._entry_id = entry_id
         self._sensor_type = sensor_type
         self._quota = quota_manager
-        self._unsub = None
+        self._unsub: Optional[Callable[[], None]] = None
         # One of sensor_plan.DIAGNOSTIC_TYPES, each named from translations
         # (tools/derived_entities.json).
         self._attr_translation_key = sensor_type
@@ -314,7 +316,7 @@ class CardataDiagnosticsSensor(SensorEntity, RestoreEntity):
         return _account_device_info(self._entry_id)
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, Any]:
         if self._sensor_type == "connection_status":
             return sensor_values.connection_attributes(
                 self._stream.debug_info,
@@ -358,13 +360,11 @@ class CardataDiagnosticsSensor(SensorEntity, RestoreEntity):
             if value is not None:
                 self._attr_native_value = value
         elif self._sensor_type == "connection_status":
-            value = self._coordinator.connection_status
-            if value is not None:
-                self._attr_native_value = value
+            self._attr_native_value = self._coordinator.connection_status
         self.schedule_update_ha_state()
 
     @property
-    def native_value(self):
+    def native_value(self) -> Any:
         return self._attr_native_value
 
 
@@ -385,11 +385,11 @@ class CardataQuotaSensor(SensorEntity):
     _attr_native_unit_of_measurement = "requests"
     _attr_translation_key = "api_quota_remaining"
 
-    def __init__(self, coordinator: CardataCoordinator, entry_id: str, quota_manager) -> None:
+    def __init__(self, coordinator: CardataCoordinator, entry_id: str, quota_manager: Any) -> None:
         self._coordinator = coordinator
         self._entry_id = entry_id
         self._quota = quota_manager
-        self._unsub = None
+        self._unsub: Optional[Callable[[], None]] = None
         self._attr_unique_id = f"{entry_id}_diagnostics_api_quota_remaining"
 
     @property
@@ -397,11 +397,11 @@ class CardataQuotaSensor(SensorEntity):
         return _account_device_info(self._entry_id)
 
     @property
-    def native_value(self):
+    def native_value(self) -> Optional[int]:
         return self._quota.remaining if self._quota else None
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, Any]:
         if not self._quota:
             return {}
         attrs = sensor_values.quota_attributes(self._quota, prefix="")
@@ -436,7 +436,7 @@ class CardataSocEstimateSensor(CardataRestoreSensor):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "soc_estimate")
-        self._unsubscribe = None
+        self._unsubscribe: Optional[Callable[[], None]] = None
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -478,7 +478,7 @@ class CardataSocEstimateSensor(CardataRestoreSensor):
             self._unsubscribe = None
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, Any]:
         attrs = dict(super().extra_state_attributes)
         attrs.update(self._coordinator.soc_estimate_attributes(self.vin))
         return attrs
@@ -499,7 +499,7 @@ class CardataSocRateSensor(CardataRestoreSensor):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "soc_rate")
-        self._unsubscribe = None
+        self._unsubscribe: Optional[Callable[[], None]] = None
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -559,7 +559,7 @@ class CardataChargeEtaSensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "charge_eta")
-        self._unsubscribe = None
+        self._unsubscribe: Optional[Callable[[], None]] = None
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -598,7 +598,7 @@ class CardataChargedEnergySensor(CardataRestoreSensor):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "charged_energy_total")
-        self._unsubscribe = None
+        self._unsubscribe: Optional[Callable[[], None]] = None
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -646,10 +646,10 @@ class CardataSessionEnergySensor(CardataRestoreSensor):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "charged_energy_session")
-        self._unsubscribe = None
+        self._unsubscribe: Optional[Callable[[], None]] = None
 
     @property
-    def last_reset(self):
+    def last_reset(self) -> Optional[datetime]:
         return self._coordinator.get_session_start(self.vin)
 
     async def async_added_to_hass(self) -> None:
@@ -702,8 +702,8 @@ class CardataChargingSummarySensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str, key: str) -> None:
         super().__init__(coordinator, vin, key)
-        self._unsubscribe = None
-        self._unsub_midnight = None
+        self._unsubscribe: Optional[Callable[[], None]] = None
+        self._unsub_midnight: Optional[Callable[[], None]] = None
 
     @property
     def _summary(self) -> Dict[str, Any]:
@@ -744,7 +744,7 @@ class CardataChargingSummarySensor(CardataEntity, SensorEntity):
         if vin == self.vin:
             self.schedule_update_ha_state()
 
-    def _handle_rollover(self, _now) -> None:
+    def _handle_rollover(self, _now: datetime) -> None:
         self.schedule_update_ha_state()
 
 
@@ -760,11 +760,11 @@ class CardataChargingCostMonthSensor(CardataChargingSummarySensor):
         self._attr_native_unit_of_measurement = coordinator.pricing.currency
 
     @property
-    def native_value(self):
+    def native_value(self) -> Any:
         return self._summary.get("cost")
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, Any]:
         attrs = dict(super().extra_state_attributes)
         attrs.update(sensor_values.cost_month_attributes(self._summary))
         return attrs
@@ -781,10 +781,10 @@ class CardataChargingCostSessionSensor(CardataEntity, SensorEntity):
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "charging_cost_session")
         self._attr_native_unit_of_measurement = coordinator.pricing.currency
-        self._unsubscribe = None
+        self._unsubscribe: Optional[Callable[[], None]] = None
 
     @property
-    def _latest(self):
+    def _latest(self) -> Any:
         history = self._coordinator.history
         if history is None:
             return None
@@ -792,11 +792,11 @@ class CardataChargingCostSessionSensor(CardataEntity, SensorEntity):
         return found[0] if found else None
 
     @property
-    def native_value(self):
+    def native_value(self) -> Any:
         return sensor_values.session_cost(self._latest)
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, Any]:
         attrs = dict(super().extra_state_attributes)
         attrs.update(sensor_values.session_cost_attributes(self._latest))
         return attrs
@@ -831,11 +831,11 @@ class CardataChargingEnergyMonthSensor(CardataChargingSummarySensor):
         super().__init__(coordinator, vin, "charging_energy_month")
 
     @property
-    def native_value(self):
+    def native_value(self) -> Any:
         return self._summary.get("energy_kwh")
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Adds this month's source mix (``sensor_values.energy_month_attributes``)."""
 
         attrs = dict(super().extra_state_attributes)
@@ -859,11 +859,11 @@ class CardataChargingCostPerDistanceSensor(CardataChargingSummarySensor):
         self._attr_native_unit_of_measurement = f"{coordinator.pricing.currency}/100 km"
 
     @property
-    def native_value(self):
+    def native_value(self) -> Any:
         return self._summary.get("cost_per_100km")
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, Any]:
         attrs = dict(super().extra_state_attributes)
         attrs["distance_km"] = self._summary.get("distance_km")
         return attrs
@@ -885,10 +885,10 @@ class CardataBatteryHealthSensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "battery_health")
-        self._unsubscribe = None
+        self._unsubscribe: Optional[Callable[[], None]] = None
 
     @property
-    def _health(self):
+    def _health(self) -> Any:
         history = self._coordinator.history
         sessions = [] if history is None else history.sessions(self.vin)
         return usable_capacity(
@@ -898,11 +898,11 @@ class CardataBatteryHealthSensor(CardataEntity, SensorEntity):
         )
 
     @property
-    def native_value(self):
+    def native_value(self) -> Any:
         return sensor_values.battery_health_state(self._health)
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, Any]:
         attrs = dict(super().extra_state_attributes)
         history = self._coordinator.history
         trend = (
@@ -964,14 +964,14 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "real_range")
-        self._unsub_history = None
-        self._unsub_soc = None
-        self._unsub_live = None
-        self._unsub_heartbeat = None
+        self._unsub_history: Optional[Callable[[], None]] = None
+        self._unsub_soc: Optional[Callable[[], None]] = None
+        self._unsub_live: Optional[Callable[[], None]] = None
+        self._unsub_heartbeat: Optional[Callable[[], None]] = None
         self._cached: Optional[Dict[str, Any]] = None
         # What the cached profile was computed from, so the heartbeat can tell
         # "nothing moved" from "nobody told us" without walking the ledger.
-        self._inputs: Optional[tuple] = None
+        self._inputs: Optional[tuple[Any, ...]] = None
 
     @property
     def _profile(self) -> Dict[str, Any]:
@@ -987,7 +987,7 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
             self._cached = self._coordinator.efficiency(self.vin, months=0)
         return self._cached
 
-    def _live_inputs(self) -> tuple:
+    def _live_inputs(self) -> tuple[Any, ...]:
         """The two figures the profile reads off the stream rather than the ledger.
 
         Both are O(1) dictionary reads, which is the point: the heartbeat can
@@ -1001,11 +1001,11 @@ class CardataRealRangeSensor(CardataEntity, SensorEntity):
         )
 
     @property
-    def native_value(self):
+    def native_value(self) -> Any:
         return sensor_values.real_range_state(self._profile)
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, Any]:
         attrs = dict(super().extra_state_attributes)
         attrs.update(sensor_values.real_range_attributes(self._profile))
         return attrs
@@ -1091,8 +1091,8 @@ class CardataDrivingDistanceMonthSensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "driving_distance_month")
-        self._unsubscribe = None
-        self._unsub_midnight = None
+        self._unsubscribe: Optional[Callable[[], None]] = None
+        self._unsub_midnight: Optional[Callable[[], None]] = None
 
     @property
     def _summary(self) -> Dict[str, Any]:
@@ -1110,11 +1110,11 @@ class CardataDrivingDistanceMonthSensor(CardataEntity, SensorEntity):
         )
 
     @property
-    def native_value(self):
+    def native_value(self) -> Any:
         return self._summary.get("total_km")
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, Any]:
         attrs = dict(super().extra_state_attributes)
         attrs.update(sensor_values.driving_month_attributes(self._summary))
         return attrs
@@ -1142,7 +1142,7 @@ class CardataDrivingDistanceMonthSensor(CardataEntity, SensorEntity):
         if vin == self.vin:
             self.schedule_update_ha_state()
 
-    def _handle_rollover(self, _now) -> None:
+    def _handle_rollover(self, _now: datetime) -> None:
         self.schedule_update_ha_state()
 
 
@@ -1163,10 +1163,10 @@ class CardataLastVehicleReportSensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "last_vehicle_report")
-        self._unsubscribe = None
+        self._unsubscribe: Optional[Callable[[], None]] = None
 
     @property
-    def native_value(self):
+    def native_value(self) -> Optional[datetime]:
         return self._coordinator.last_vehicle_report(self.vin)
 
     async def async_added_to_hass(self) -> None:
@@ -1204,18 +1204,18 @@ class CardataMileageAllowanceSensor(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str) -> None:
         super().__init__(coordinator, vin, "mileage_allowance")
-        self._unsubscribers: list = []
+        self._unsubscribers: list[Any] = []
 
     @property
     def _allowance(self) -> Dict[str, Any]:
         return self._coordinator.mileage_report(self.vin).get("allowance") or {}
 
     @property
-    def native_value(self):
+    def native_value(self) -> Any:
         return self._allowance.get("balance_km")
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, Any]:
         attrs = dict(super().extra_state_attributes)
         attrs.update(sensor_values.mileage_attributes(self._allowance))
         return attrs
@@ -1245,7 +1245,7 @@ class CardataMileageAllowanceSensor(CardataEntity, SensorEntity):
         if vin == self.vin:
             self.schedule_update_ha_state()
 
-    def _handle_rollover(self, _now) -> None:
+    def _handle_rollover(self, _now: datetime) -> None:
         # The plan to date grows every day even while the car stands still.
         self.schedule_update_ha_state()
 
@@ -1262,14 +1262,14 @@ class CardataTyreEntity(CardataEntity, SensorEntity):
 
     def __init__(self, coordinator: CardataCoordinator, vin: str, key: str) -> None:
         super().__init__(coordinator, vin, key)
-        self._unsubscribe = None
+        self._unsubscribe: Optional[Callable[[], None]] = None
 
     @property
     def _diagnosis(self) -> Dict[str, Any]:
         return self._coordinator.tyre_diagnosis.get(self.vin) or {}
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, Any]:
         return sensor_values.tyre_attributes(
             super().extra_state_attributes, self._diagnosis, SECTIONS.get("tire", "Tire data")
         )
@@ -1310,15 +1310,15 @@ class CardataTyreWheelSensor(CardataTyreEntity):
         self._position = position
 
     @property
-    def _wheel(self) -> Dict[str, Any]:
+    def _wheel(self) -> Mapping[str, Any]:
         return sensor_values.wheel(self._diagnosis, self._position)
 
     @property
-    def native_value(self):
+    def native_value(self) -> Any:
         return sensor_values.wheel_state(self._wheel)
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, Any]:
         attrs = dict(super().extra_state_attributes)
         attrs.update(sensor_values.wheel_attributes(self._position, self._wheel))
         return attrs
@@ -1333,17 +1333,17 @@ class CardataTyreStatusSensor(CardataTyreEntity):
         super().__init__(coordinator, vin, "tyre_status")
 
     @property
-    def native_value(self):
+    def native_value(self) -> Any:
         return self._diagnosis.get("aggregated_status")
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, Any]:
         attrs = dict(super().extra_state_attributes)
         attrs.update(sensor_values.tyre_status_attributes(self._diagnosis))
         return attrs
 
 
-_DERIVED: Dict[str, Any] = {
+_DERIVED: Dict[str, Callable[[CardataCoordinator, str], SensorEntity]] = {
     "soc_estimate": CardataSocEstimateSensor,
     "soc_rate": CardataSocRateSensor,
     "charge_eta": CardataChargeEtaSensor,
@@ -1378,7 +1378,9 @@ def _build(coordinator: CardataCoordinator, want: sensor_plan.Want) -> SensorEnt
     return _DERIVED[want.kind](coordinator, want.vin)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+) -> None:
     runtime = entry.runtime_data
     coordinator: CardataCoordinator = runtime.coordinator
     entity_registry = er.async_get(hass)

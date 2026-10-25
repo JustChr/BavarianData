@@ -13,7 +13,7 @@ a translated ``ServiceValidationError``.
 from __future__ import annotations
 
 from datetime import date, datetime, time as dt_time, timezone
-from typing import Any, Callable, Iterable, Mapping, Optional
+from typing import Any, Callable, Iterable, Mapping, Optional, cast
 
 from .descriptors import descriptors_for_sections
 from .evcc import ALL_TOPICS, evcc_yaml
@@ -54,7 +54,7 @@ def as_cardata_timestamp(value: Any, parsed: Optional[datetime], local_tz: Any) 
     if value in (None, ""):
         return None
     if parsed is None:
-        return value
+        return cast(str, value)
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=local_tz)
     return cardata_timestamp(parsed)
@@ -140,8 +140,8 @@ def export_stem(vin: Optional[str], label: str) -> str:
 
 def csv_files(
     stem: str,
-    sessions: list,
-    trips: list,
+    sessions: list[Any],
+    trips: list[Any],
     wanted: str,
     localize: Callable[[datetime], datetime],
 ) -> list[dict[str, Any]]:

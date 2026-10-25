@@ -313,13 +313,15 @@ def fresh(stamp: Optional[datetime], now: datetime) -> bool:
     return stamp is None or (now - stamp).total_seconds() <= EDGE_FRESH_S
 
 
-def _message_key(item: Mapping[str, Any]) -> tuple:
+def _message_key(item: Mapping[str, Any]) -> tuple[Any, ...]:
     # The same identity as the sensor's history (structured_values.MessageHistory).
     ident = item.get("id")
     return (item.get("messageType"), ident if ident is not None else item.get("text"))
 
 
-def message_changes(before: Any, after: Any) -> Optional[tuple[list[dict], list[dict]]]:
+def message_changes(
+    before: Any, after: Any
+) -> Optional[tuple[list[dict[str, Any]], list[dict[str, Any]]]]:
     """``(new, gone)`` Check Control messages between two lists.
 
     ``None`` when either side is not a list: with nothing to compare against,

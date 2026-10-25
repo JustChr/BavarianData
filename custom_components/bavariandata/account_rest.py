@@ -15,7 +15,7 @@ import asyncio
 import logging
 import time
 from datetime import datetime, timezone
-from typing import Any, Mapping, Optional, Protocol
+from typing import Any, Mapping, Optional, Protocol, cast
 
 from .api import (
     CardataApiError,
@@ -153,7 +153,7 @@ class AccountRest:
                 # An entry from before signatures were stored is taken as current.
                 self._update_data(**{kind.signature_key: manager.descriptor_signature})
                 manager.sync_from_entry(stored_id)
-                return stored_id
+                return cast(str, stored_id)
             manager.sync_from_entry(None)
             try:
                 if stored_id:
@@ -173,7 +173,7 @@ class AccountRest:
             self._update_data(
                 **{kind.id_key: container_id, kind.signature_key: manager.descriptor_signature}
             )
-            return container_id
+            return cast(str, container_id)
 
     # -- the bootstrap --------------------------------------------------------
 

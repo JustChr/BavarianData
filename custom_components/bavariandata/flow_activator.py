@@ -14,15 +14,16 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from aiohttp import web
 import voluptuous as vol
 
 from homeassistant.components import webhook
 from homeassistant.components.http import HomeAssistantView
+from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.data_entry_flow import FlowResult
+from homeassistant.data_entry_flow import FlowHandler
 from homeassistant.helpers.network import NoURLAvailableError, get_url
 
 from .const import DOMAIN
@@ -136,7 +137,15 @@ def schedule_vehicle_discovery(hass: HomeAssistant, entry_id: str) -> None:
     hass.async_create_background_task(_run(), f"{DOMAIN}_discover_after_flow")
 
 
-class StreamActivatorFlow:
+# The activator is mixed into the setup flow and the options flow; to the type
+# checker it is the flow it is mixed into (``self.hass``, ``async_show_form``...).
+if TYPE_CHECKING:
+    _FlowBase = FlowHandler[Any, ConfigFlowResult, str]
+else:
+    _FlowBase = object
+
+
+class StreamActivatorFlow(_FlowBase):
     """Shared plumbing for the in-browser stream-field activator.
 
     Both first-time guided setup (``CardataConfigFlow``) and the later "Choose
@@ -164,7 +173,7 @@ class StreamActivatorFlow:
         self._onboarding_webhook_id: Optional[str] = None
         self._onboarding_event: Optional[asyncio.Event] = None
         self._onboarding_page_url: str = ""
-        self._onboarding_wait_task: Optional[asyncio.Task] = None
+        self._onboarding_wait_task: Optional[asyncio.Task[Any]] = None
         self._onboarding_auto: bool = False
 
     @callback
@@ -289,7 +298,7 @@ class StreamActivatorFlow:
         if self._onboarding_wait_task and not self._onboarding_wait_task.done():
             self._onboarding_wait_task.cancel()
 
-    async def _begin_activation(self, attributes: list[str]) -> FlowResult:
+    async def _begin_activation(self, attributes: list[str]) -> ConfigFlowResult:
         """Run the activator for ``attributes``, then wait for it or ask for a paste."""
 
         self._start_activator(attributes)
@@ -297,14 +306,14 @@ class StreamActivatorFlow:
             return await self.async_step_activate_stream_wait()
         return await self.async_step_activate_stream_paste()
 
-    async def _activation_finished(self) -> FlowResult:
+    async def _activation_finished(self) -> ConfigFlowResult:
         """Where the flow goes once activation is confirmed (or skipped)."""
 
         raise NotImplementedError
 
     async def async_step_activate_stream_wait(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Wait for the browser activator to report the stream fields it turned on."""
 
         if self._onboarding_wait_task is None:
@@ -330,7 +339,7 @@ class StreamActivatorFlow:
 
     async def async_step_activate_stream_paste(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Fallback: paste the activator result if the auto-report didn't arrive."""
 
         field = (
@@ -370,7 +379,7 @@ class StreamActivatorFlow:
 
     async def async_step_activate_stream_done(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Confirm what the activator turned on, then hand back to the flow."""
 
         if user_input is None:

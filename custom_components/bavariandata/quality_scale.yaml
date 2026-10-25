@@ -84,4 +84,8 @@ rules:
     status: todo
     comment: paho-mqtt runs its own network thread, as in HA's MQTT integration.
   inject-websession: done
-  strict-typing: todo
+  strict-typing:
+    status: done
+    comment: |
+      mypy --strict against the tests' Home Assistant, in CI's Home Assistant
+      job (pyproject.toml's [tool.mypy]; locally scripts/mypy.sh).

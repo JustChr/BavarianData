@@ -53,7 +53,7 @@ EMPTY_WHEN_NULL: frozenset[str] = frozenset({CHECK_CONTROL})
 # How many resolved messages the attribute keeps, newest first.
 RESOLVED_LIMIT = 10
 
-Structure = Union[list, dict]
+Structure = Union[list[Any], dict[str, Any]]
 
 
 def structured_state(value: Any) -> Tuple[Any, Optional[Structure]]:
@@ -97,14 +97,14 @@ def restored_items(attributes: Optional[Mapping[str, Any]]) -> Optional[Structur
     return items if isinstance(items, (list, dict)) else None
 
 
-def _message_key(item: Mapping[str, Any]) -> tuple:
+def _message_key(item: Mapping[str, Any]) -> tuple[Any, ...]:
     """What makes two list entries the same message: its type and id, or text."""
 
     ident = item.get("id")
     return (item.get("messageType"), ident if ident is not None else item.get("text"))
 
 
-def _messages(items: Any) -> list[dict]:
+def _messages(items: Any) -> list[dict[str, Any]]:
     return [item for item in items if isinstance(item, dict)] if isinstance(items, list) else []
 
 
@@ -120,9 +120,9 @@ class MessageHistory:
     """
 
     def __init__(self) -> None:
-        self._shown: Optional[list[dict]] = None
+        self._shown: Optional[list[dict[str, Any]]] = None
         self._shown_at: Optional[str] = None
-        self.resolved: list[dict] = []
+        self.resolved: list[dict[str, Any]] = []
 
     def restore(self, attributes: Optional[Mapping[str, Any]]) -> None:
         """Pick up where the previous run stopped: its list and its history."""

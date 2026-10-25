@@ -44,7 +44,7 @@ from typing import Any, Optional
 try:  # normal case: imported as part of the package
     from .descriptors import default_sections, descriptors_for_sections
 except ImportError:  # pragma: no cover - loaded standalone (tests / tools)
-    from descriptors import default_sections, descriptors_for_sections
+    from descriptors import default_sections, descriptors_for_sections  # type: ignore[import-not-found,no-redef]
 
 # The scope that marks an application usable for this integration (the same
 # ``cardata:api:read`` the device flow needs). Used to pick a primary client id
@@ -485,7 +485,7 @@ def parse_onboarding_result(blob: str) -> OnboardingResult:
         locale=data.get("locale"),
         mapped_vehicle_id=data.get("mappedVehicleId"),
         clients=clients,
-        vehicle=data.get("vehicle") if isinstance(data.get("vehicle"), dict) else {},
+        vehicle=vehicle if isinstance(vehicle := data.get("vehicle"), dict) else {},
         activated=data.get("activated") if isinstance(data.get("activated"), dict) else None,
         errors=[str(e) for e in data.get("errors", []) if e],
     )

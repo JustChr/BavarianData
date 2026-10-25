@@ -39,6 +39,31 @@ select = [
 exclude = ["custom_components/bavariandata/descriptor_metadata.py"]
 docstring-code-format = false
 
+# Strict typing (the Quality Scale's Platinum ``strict-typing`` rule), checked
+# against a real Home Assistant: CI's "Home Assistant tests" job runs ``mypy``
+# from this file; locally ``bash scripts/mypy.sh`` does the same in WSL (HA
+# cannot be imported on Windows, and without it every HA type is ``Any``).
+[tool.mypy]
+python_version = "3.14"
+strict = true
+files = ["custom_components/bavariandata"]
+
+# Home Assistant's packages re-export names without ``__all__`` (HA's own
+# components import ``SourceType`` from ``device_tracker`` and so on); strict
+# mode's ``no_implicit_reexport`` would make every such import an error.
+[[tool.mypy.overrides]]
+module = ["homeassistant.*"]
+implicit_reexport = true
+
+# Home Assistant 2026.10 types its schemas as probatio's (its voluptuous fork:
+# services, flows, LLM tools), while the 2026.3 floor takes voluptuous; both
+# accept a voluptuous schema at run time. Until the floor moves past the
+# switch, voluptuous is read as untyped rather than every schema ignored.
+[[tool.mypy.overrides]]
+module = ["voluptuous", "voluptuous.*"]
+follow_imports = "skip"
+follow_imports_for_stubs = true
+
 # Coverage is measured and reported, not gated -- yet.
 #
 # The number to read is per module, not the total: the Quality Scale's Silver

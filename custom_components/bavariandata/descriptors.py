@@ -17,7 +17,7 @@ from collections.abc import Iterable
 try:  # normal case: imported as part of the package
     from .descriptor_metadata import DESCRIPTOR_META, SECTIONS
 except ImportError:  # pragma: no cover - loaded standalone (tests / tools)
-    from descriptor_metadata import DESCRIPTOR_META, SECTIONS
+    from descriptor_metadata import DESCRIPTOR_META, SECTIONS  # type: ignore[import-not-found,no-redef]
 
 # BMW expresses per-descriptor streaming entitlements as OAuth scopes of the
 # form ``cardata:streaming:<descriptor>``. See

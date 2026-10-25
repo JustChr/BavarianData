@@ -10,7 +10,7 @@ the same ``trigger.data`` shape for every type.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, Callable, Mapping, Optional
 
 import voluptuous as vol
 
@@ -178,7 +178,7 @@ async def async_attach_trigger(
     job = HassJob(action, f"{DOMAIN} device trigger {trigger_type}")
     trigger_data = trigger_info["trigger_data"]
 
-    def _run(data: dict[str, Any], context: Any) -> None:
+    def _run(data: Mapping[str, Any], context: Any) -> None:
         hass.async_run_hass_job(
             job,
             {
@@ -209,7 +209,7 @@ async def async_attach_trigger(
     seconds = duration.total_seconds() if duration is not None else DEFAULT_DURATION_S[trigger_type]
     contexts: dict[str, Any] = {}
 
-    def _call_later(delay: float, due) -> CALLBACK_TYPE:
+    def _call_later(delay: float, due: Callable[[Any], None]) -> CALLBACK_TYPE:
         return async_call_later(hass, delay, callback(due))
 
     delay = SituationDelay(seconds, _call_later, lambda data: _run(data, contexts.get("start")))

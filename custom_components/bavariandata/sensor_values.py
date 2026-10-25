@@ -165,7 +165,7 @@ def battery_health_state(health: Any) -> Any:
     return health.usable_kwh
 
 
-def battery_health_attributes(health: Any, trend: Optional[list]) -> dict[str, Any]:
+def battery_health_attributes(health: Any, trend: Optional[list[Any]]) -> dict[str, Any]:
     attrs: dict[str, Any] = {
         "samples": health.samples,
         "samples_needed": MIN_SAMPLES,

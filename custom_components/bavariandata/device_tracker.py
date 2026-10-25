@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any, Callable, Dict, Optional
 
 from homeassistant.components.device_tracker import SourceType, TrackerEntity
 
@@ -86,7 +86,7 @@ class CardataDeviceTracker(CardataEntity, TrackerEntity):
         """Initialize the tracker."""
         super().__init__(coordinator, vin, "device_tracker")
         self._attr_unique_id = f"{vin}_tracker"
-        self._unsubscribe = None
+        self._unsubscribe: Optional[Callable[[], None]] = None
 
     async def async_added_to_hass(self) -> None:
         """Handle entity added to Home Assistant."""

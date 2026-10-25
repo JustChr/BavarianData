@@ -111,6 +111,10 @@ jobs:
           /tmp/ha/bin/pip install -q -r requirements_test_ha.txt
           COVERAGE_FILE=.coverage.ha /tmp/ha/bin/python -m pytest -c tests_ha/pytest.ini tests_ha -q \
             --cov=custom_components/bavariandata --cov-report=
+      - name: Strict typing
+        # The Quality Scale's strict-typing rule, against this job's Home
+        # Assistant (pyproject.toml's [tool.mypy]; locally scripts/mypy.sh).
+        run: /tmp/ha/bin/python -m mypy
       - name: Coverage per module
         run: |
           /tmp/unit/bin/coverage combine .coverage.unit .coverage.ha
