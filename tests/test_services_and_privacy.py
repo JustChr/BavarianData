@@ -245,8 +245,26 @@ def test_every_service_in_services_yaml_is_registered_in_services_py() -> None:
     assert registered == declared
 
 
+# Where the handlers and what they share live (services.py only registers them).
+_SERVICE_MODULES = (
+    "service_context.py",
+    "service_fetch.py",
+    "service_read.py",
+    "service_history.py",
+)
+
+
+def _service_tree() -> ast.Module:
+    """Every service module, as one tree."""
+
+    body: list[ast.stmt] = []
+    for name in _SERVICE_MODULES:
+        body.extend(ast.parse((_PKG / name).read_text(encoding="utf-8")).body)
+    return ast.Module(body=body, type_ignores=[])
+
+
 def _service_handler(name: str) -> "ast.AsyncFunctionDef":
-    tree = ast.parse((_PKG / "services.py").read_text(encoding="utf-8"))
+    tree = _service_tree()
     return next(
         node
         for node in ast.walk(tree)
@@ -259,11 +277,11 @@ def test_no_handler_reads_the_vin_past_the_resolver() -> None:
 
     Read straight off ``call.data`` it was fetched unchecked (a slash and a
     query string included), and with none given most handlers took whichever
-    car had streamed first. Only ``_resolve_target`` may read it; everything
-    else gets the car ``_target_car`` checked against the account.
+    car had streamed first. Only ``ServiceContext.resolve_target`` may read it; everything
+    else gets the car ``target_car`` checked against the account.
     """
 
-    tree = ast.parse((_PKG / "services.py").read_text(encoding="utf-8"))
+    tree = _service_tree()
     readers = {
         func.name
         for func in ast.walk(tree)
@@ -312,7 +330,7 @@ def test_a_fetch_service_that_fails_says_so() -> None:
     """A BMW refusal, no quota or no token used to be a log line while the
     automation -- and Configure -> Fetch from BMW -- reported success."""
 
-    tree = ast.parse((_PKG / "services.py").read_text(encoding="utf-8"))
+    tree = _service_tree()
     handlers = [
         node
         for node in ast.walk(tree)
@@ -325,7 +343,7 @@ def test_a_fetch_service_that_fails_says_so() -> None:
     # The two that go through helpers shared with the background loops (which
     # must keep going quietly) ask them to raise.
     for name, helper in (
-        ("async_handle_fetch", "_async_perform_telematic_fetch"),
+        ("async_handle_fetch", "async_perform_telematic_fetch"),
         ("async_handle_fetch_vehicle_image", "async_refresh_vehicle_image"),
     ):
         calls = [
@@ -342,7 +360,7 @@ def test_a_fetch_service_that_fails_says_so() -> None:
 def test_no_service_error_carries_a_whole_vin() -> None:
     """A service's error reaches the UI and, from an automation, the log."""
 
-    tree = ast.parse((_PKG / "services.py").read_text(encoding="utf-8"))
+    tree = _service_tree()
     for raised in (node for node in ast.walk(tree) if isinstance(node, ast.Raise)):
         for value in ast.walk(raised):
             if isinstance(value, ast.FormattedValue):

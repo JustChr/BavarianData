@@ -250,7 +250,7 @@ async def test_mappings_adopt_a_new_car_and_flag_one_that_left(hass: HomeAssista
         raise HomeAssistantError("only mappings here")
 
     no_bmw["rest_json"].side_effect = bmw
-    with patch("custom_components.bavariandata.services._async_on_new_vehicle") as adopt:
+    with patch("custom_components.bavariandata.service_fetch.async_on_new_vehicle") as adopt:
         await hass.services.async_call(DOMAIN, "fetch_vehicle_mappings", {}, blocking=True)
     assert adopt.call_args.args[2] == newcomer
     issues = ir.async_get(hass).issues
@@ -264,7 +264,7 @@ async def test_mappings_adopt_a_new_car_and_flag_one_that_left(hass: HomeAssista
         ]
 
     no_bmw["rest_json"].side_effect = back
-    with patch("custom_components.bavariandata.services._async_on_new_vehicle"):
+    with patch("custom_components.bavariandata.service_fetch.async_on_new_vehicle"):
         await hass.services.async_call(
             DOMAIN, "fetch_vehicle_mappings", {"entry_id": entry.entry_id}, blocking=True
         )
@@ -295,7 +295,7 @@ async def test_stream_fields_are_activated_through_the_portal(hass: HomeAssistan
     fields = ["a.b", "c.d", "e.f"]
     result = StreamActivationResult(mapped_vehicle_id="abc", requested=fields, accepted=fields)
     with patch(
-        "custom_components.bavariandata.services.PortalStreamClient.async_set_stream_attributes",
+        "custom_components.bavariandata.service_fetch.PortalStreamClient.async_set_stream_attributes",
         AsyncMock(return_value=result),
     ) as send:
         answer = await hass.services.async_call(
@@ -321,7 +321,7 @@ async def test_a_portal_refusal_says_what_to_do(
     await _account(hass)
     with (
         patch(
-            "custom_components.bavariandata.services.PortalStreamClient.async_set_stream_attributes",
+            "custom_components.bavariandata.service_fetch.PortalStreamClient.async_set_stream_attributes",
             AsyncMock(side_effect=StreamActivationError("BMW down", kind=kind)),
         ),
         pytest.raises(ServiceValidationError, match=said),
@@ -445,10 +445,12 @@ async def test_failed_mappings_and_a_good_telematic_fetch(hass: HomeAssistant, n
 
     with (
         patch(
-            "custom_components.bavariandata.services._async_perform_telematic_fetch",
+            "custom_components.bavariandata.service_fetch.async_perform_telematic_fetch",
             AsyncMock(return_value=True),
         ),
-        patch("custom_components.bavariandata.services._async_update_last_telematic_poll") as noted,
+        patch(
+            "custom_components.bavariandata.service_fetch.async_update_last_telematic_poll"
+        ) as noted,
     ):
         await _call(hass, "fetch_telematic_data")
     assert noted.call_args.args[1] is entry

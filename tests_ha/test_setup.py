@@ -21,7 +21,7 @@ from custom_components.bavariandata.const import BOOTSTRAP_COMPLETE, DOMAIN
 from custom_components.bavariandata.api import CardataApiError
 from custom_components.bavariandata.device_flow import CardataAuthError
 
-from custom_components.bavariandata import _async_request_reauth, _handle_stream_error
+from custom_components.bavariandata import async_request_reauth, async_handle_stream_error
 
 from .conftest import VIN
 from .conftest import make_entry as _entry
@@ -86,14 +86,14 @@ async def test_a_refused_login_makes_the_cars_unavailable_until_it_works(
         patch(f"{FLOW}.request_device_code", AsyncMock(return_value=DEVICE)),
         patch(f"{FLOW}.poll_for_tokens", AsyncMock(side_effect=CardataAuthError("waiting"))),
     ):
-        await _async_request_reauth(hass, entry, "Token refresh rejected")
-        await _async_request_reauth(hass, entry, "Token refresh rejected")
+        await async_request_reauth(hass, entry, "Token refresh rejected")
+        await async_request_reauth(hass, entry, "Token refresh rejected")
         await hass.async_block_till_done()
         assert hass.states.get(soc).state == "unavailable"
         assert hass.states.get(status).state != "unavailable"
         assert caplog.text.count("BMW refuses the login") == 1
 
-        await _handle_stream_error(hass, entry, "recovered")
+        await async_handle_stream_error(hass, entry, "recovered")
         await hass.async_block_till_done()
     assert hass.states.get(soc).state == "63"
     assert not hass.config_entries.flow.async_progress(), "the stream closed the reauth"
@@ -151,10 +151,10 @@ async def test_the_bootstrap_names_the_cars_bmw_maps(hass: HomeAssistant, no_bmw
 
     The bootstrap itself is the fixture's no-op during setup; run for real
     afterwards, it writes the entry and the device registry through
-    ``__init__._EntryHost``.
+    ``__init__.EntryHost``.
     """
 
-    from custom_components.bavariandata import _account  # noqa: PLC0415
+    from custom_components.bavariandata.account import _account  # noqa: PLC0415
 
     async def bmw(_session, _method, path, *_args, **_kwargs):
         if path.endswith("/mappings"):

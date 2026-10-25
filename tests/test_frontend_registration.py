@@ -2,12 +2,12 @@
 
 Home Assistant sets up every config entry of a domain at the same time
 (``asyncio.gather`` in ``homeassistant.setup``), so a user with two BMW accounts
-runs ``_async_register_frontend_card`` twice, concurrently, on every restart. The
+runs ``async_register_frontend_card`` twice, concurrently, on every restart. The
 module-level ``_FRONTEND_REGISTERED`` flag has to hold across that. If it does not,
 the second entry adds the same static route again, aiohttp rejects it, and that
 entry's setup fails -- leaving one of the cars unavailable until a manual reload.
 
-``__init__.py`` imports Home Assistant, so -- like the rest of this suite -- the
+``frontend.py`` imports Home Assistant, so -- like the rest of this suite -- the
 test does not import it. It compiles the real function out of the shipped source
 and runs it against a stand-in ``hass`` whose ``http`` mirrors Home Assistant's
 ``async_register_static_paths``: an executor job first, then ``add_route`` on a
@@ -31,11 +31,11 @@ from aiohttp import web
 
 from .conftest import load_module
 
-_INIT = (
+_FRONTEND = (
     pathlib.Path(__file__).resolve().parents[1]
     / "custom_components"
     / "bavariandata"
-    / "__init__.py"
+    / "frontend.py"
 )
 _CONST = load_module("const")
 
@@ -110,13 +110,13 @@ def ha_http(monkeypatch):
 
 
 def _load_register_card() -> dict:
-    """Compile the real flag + function from ``__init__.py`` into a fresh namespace.
+    """Compile the real flag + function from ``frontend.py`` into a fresh namespace.
 
     A fresh namespace per test means every test starts unregistered, exactly like
     a freshly started Home Assistant process.
     """
 
-    tree = ast.parse(_INIT.read_text(encoding="utf-8"), filename=str(_INIT))
+    tree = ast.parse(_FRONTEND.read_text(encoding="utf-8"), filename=str(_FRONTEND))
     wanted = [
         node
         for node in tree.body
@@ -127,13 +127,13 @@ def _load_register_card() -> dict:
                 for target in node.targets
             )
         )
-        or (isinstance(node, ast.AsyncFunctionDef) and node.name == "_async_register_frontend_card")
+        or (isinstance(node, ast.AsyncFunctionDef) and node.name == "async_register_frontend_card")
     ]
-    assert len(wanted) == 2, "_FRONTEND_REGISTERED or _async_register_frontend_card moved"
+    assert len(wanted) == 2, "_FRONTEND_REGISTERED or async_register_frontend_card moved"
 
     code = compile(
         ast.Module(body=wanted, type_ignores=[]),
-        str(_INIT),
+        str(_FRONTEND),
         "exec",
         flags=__future__.annotations.compiler_flag,
         dont_inherit=True,
@@ -143,7 +143,7 @@ def _load_register_card() -> dict:
         return False
 
     namespace: dict = {
-        "__file__": str(_INIT),
+        "__file__": str(_FRONTEND),
         "os": os,
         "_LOGGER": logging.getLogger(__name__),
         "LOVELACE_CARD_FILENAME": _CONST.LOVELACE_CARD_FILENAME,
@@ -160,7 +160,7 @@ def _load_register_card() -> dict:
 
 
 def test_concurrent_entry_setups_register_the_card_route_once(ha_http):
-    register_card = _load_register_card()["_async_register_frontend_card"]
+    register_card = _load_register_card()["async_register_frontend_card"]
     hass = _FakeHass()
 
     async def two_entries_starting_together() -> None:
@@ -177,7 +177,7 @@ def test_concurrent_entry_setups_register_the_card_route_once(ha_http):
 
 
 def test_failed_registration_lets_the_next_setup_retry(ha_http):
-    register_card = _load_register_card()["_async_register_frontend_card"]
+    register_card = _load_register_card()["async_register_frontend_card"]
     hass = _FakeHass()
     register_routes = hass.http.async_register_static_paths
     attempts = 0
@@ -204,7 +204,7 @@ def test_cancelled_registration_lets_the_next_setup_retry(ha_http):
     # ``asyncio.CancelledError`` is a ``BaseException``, not an ``Exception``. A
     # setup cancelled inside the registration await must still release the claim,
     # or every later setup returns early and the card is never served.
-    register_card = _load_register_card()["_async_register_frontend_card"]
+    register_card = _load_register_card()["async_register_frontend_card"]
     hass = _FakeHass()
     register_routes = hass.http.async_register_static_paths
     attempts = 0

@@ -2,7 +2,7 @@
 
 When BMW's broker refuses the MQTT login (typically because the ID token expired
 during an outage that outlasted it), the stream stops and waits for new
-credentials, and ``_handle_stream_error`` refreshes the token. If that refresh
+credentials, and ``async_handle_stream_error`` refreshes the token. If that refresh
 fails because the network is still unreliable, the credentials are not wrong:
 starting a reauth flow would ask the user to log in again for nothing, and giving
 up would leave the stream waiting for the next regular refresh, up to 45 minutes

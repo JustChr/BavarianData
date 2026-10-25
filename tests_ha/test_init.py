@@ -23,6 +23,7 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 import custom_components.bavariandata as integration
+from custom_components.bavariandata import account, coverage_issues, frontend
 from custom_components.bavariandata.account_rest import LAST_TELEMATIC_POLL
 from custom_components.bavariandata.const import (
     BOOTSTRAP_COMPLETE,
@@ -38,10 +39,10 @@ from .conftest import set_up as _set_up
 
 OTHER = "WBATEST0000000002"
 # Taken before ``no_bmw`` replaces them in the package.
-_REFRESH_TOKENS = integration._refresh_tokens
-_RUN_BOOTSTRAP = integration._async_run_bootstrap
-_STARTUP_REFRESH = integration._async_startup_refresh
-_POLL_LOOP = integration._telematic_poll_loop
+_REFRESH_TOKENS = integration.async_renew_tokens
+_RUN_BOOTSTRAP = integration.async_run_bootstrap
+_STARTUP_REFRESH = integration.async_startup_refresh
+_POLL_LOOP = integration.telematic_poll_loop
 
 
 # -- the card's dashboard resource -------------------------------------------
@@ -74,13 +75,13 @@ async def test_the_card_resource_is_created_refreshed_or_left_alone(hass: HomeAs
     url = f"{LOVELACE_CARD_URL}?v=2"
 
     # No Lovelace, or YAML-managed resources: the frontend-module fallback's job.
-    assert not await integration._async_register_lovelace_resource(hass, url)
+    assert not await frontend._async_register_lovelace_resource(hass, url)
     hass.data["lovelace"] = SimpleNamespace(resources=_Resources(), resource_mode="yaml")
-    assert not await integration._async_register_lovelace_resource(hass, url)
+    assert not await frontend._async_register_lovelace_resource(hass, url)
 
     fresh = _Resources()
     hass.data["lovelace"] = SimpleNamespace(resources=fresh, resource_mode="storage")
-    assert await integration._async_register_lovelace_resource(hass, url)
+    assert await frontend._async_register_lovelace_resource(hass, url)
     assert fresh.loaded
     assert fresh.created == [{"res_type": "module", "url": url}]
 
@@ -88,27 +89,27 @@ async def test_the_card_resource_is_created_refreshed_or_left_alone(hass: HomeAs
         [{"id": "x", "url": "/local/other.js"}, {"id": "card", "url": f"{LOVELACE_CARD_URL}?v=1"}]
     )
     hass.data["lovelace"] = SimpleNamespace(resources=older, mode="storage")
-    assert await integration._async_register_lovelace_resource(hass, url)
+    assert await frontend._async_register_lovelace_resource(hass, url)
     assert older.updated == [("card", {"res_type": "module", "url": url})]
     assert older.created == []
 
     current = _Resources([{"id": "card", "url": url}])
     hass.data["lovelace"] = SimpleNamespace(resources=current, resource_mode="storage")
-    assert await integration._async_register_lovelace_resource(hass, url)
+    assert await frontend._async_register_lovelace_resource(hass, url)
     assert current.updated == current.created == []
 
     broken = _Resources(fail=True)
     hass.data["lovelace"] = SimpleNamespace(resources=broken, resource_mode="storage")
-    assert not await integration._async_register_lovelace_resource(hass, url)
+    assert not await frontend._async_register_lovelace_resource(hass, url)
 
 
 async def test_without_a_resource_store_the_card_loads_as_a_frontend_module(
     hass: HomeAssistant, monkeypatch
 ) -> None:
-    monkeypatch.setattr(integration, "_FRONTEND_REGISTERED", False)
+    monkeypatch.setattr(frontend, "_FRONTEND_REGISTERED", False)
     monkeypatch.setattr(hass, "http", SimpleNamespace(async_register_static_paths=AsyncMock()))
     with patch("homeassistant.components.frontend.add_extra_js_url") as added:
-        await integration._async_register_frontend_card(hass)
+        await integration.async_register_frontend_card(hass)
         await hass.async_block_till_done()
     added.assert_called_once()
     assert added.call_args.args[1].startswith(f"{LOVELACE_CARD_URL}?v=")
@@ -117,16 +118,16 @@ async def test_without_a_resource_store_the_card_loads_as_a_frontend_module(
 async def test_a_missing_card_file_is_reported_and_retried_next_time(
     hass: HomeAssistant, monkeypatch, caplog
 ) -> None:
-    monkeypatch.setattr(integration, "_FRONTEND_REGISTERED", False)
-    with patch(f"{PACKAGE}.os.path.isfile", return_value=False):
-        await integration._async_register_frontend_card(hass)
+    monkeypatch.setattr(frontend, "_FRONTEND_REGISTERED", False)
+    with patch(f"{PACKAGE}.frontend.os.path.isfile", return_value=False):
+        await integration.async_register_frontend_card(hass)
     assert "bundled Lovelace card missing" in caplog.text
-    assert integration._FRONTEND_REGISTERED is False
+    assert frontend._FRONTEND_REGISTERED is False
 
 
 def test_an_unreadable_manifest_versions_the_card_zero() -> None:
     with patch("builtins.open", side_effect=OSError("gone")):
-        assert integration._integration_version() == "0"
+        assert frontend._integration_version() == "0"
 
 
 # -- setup -------------------------------------------------------------------
@@ -227,8 +228,8 @@ async def test_a_silent_cluster_raises_a_repair_that_clears_when_it_speaks(
     silent = [f"vehicle.d{n}" for n in range(7)]
     issues = ir.async_get(hass)
 
-    with patch(f"{PACKAGE}._coverage_reports", return_value=[_report(VIN, *silent)]):
-        integration._refresh_coverage_issues(hass, entry.entry_id)
+    with patch(f"{PACKAGE}.coverage_issues.coverage_reports", return_value=[_report(VIN, *silent)]):
+        integration.refresh_coverage_issues(hass, entry.entry_id)
     raised = [
         issue
         for (domain, _id), issue in issues.issues.items()
@@ -240,13 +241,13 @@ async def test_a_silent_cluster_raises_a_repair_that_clears_when_it_speaks(
     assert placeholders["descriptors"].endswith(", ...")
     assert VIN not in str(placeholders)
 
-    with patch(f"{PACKAGE}._coverage_reports", return_value=[_report(VIN)]):
-        integration._refresh_coverage_issues(hass, entry.entry_id)
+    with patch(f"{PACKAGE}.coverage_issues.coverage_reports", return_value=[_report(VIN)]):
+        integration.refresh_coverage_issues(hass, entry.entry_id)
     assert issues.async_get_issue(DOMAIN, raised[0].issue_id) is None
 
     # Nothing to judge without the account or its coverage store.
-    integration._refresh_coverage_issues(hass, "no-such-entry")
-    assert integration._coverage_reports(SimpleNamespace(coverage=None)) == []
+    integration.refresh_coverage_issues(hass, "no-such-entry")
+    assert coverage_issues.coverage_reports(SimpleNamespace(coverage=None)) == []
 
 
 # -- deleting cars -----------------------------------------------------------
@@ -271,15 +272,15 @@ async def test_deleting_a_car_forgets_it_and_keeps_the_account(hass: HomeAssista
     )
 
     assert not await integration.async_remove_config_entry_device(hass, entry, account)
-    with patch(f"{PACKAGE}._async_forget_vehicles", AsyncMock()) as forget:
+    with patch(f"{PACKAGE}.async_forget_account_cars", AsyncMock()) as forget:
         assert await integration.async_remove_config_entry_device(hass, entry, car)
         await asyncio.sleep(0)
     forget.assert_awaited_once_with(hass, entry.entry_id, [VIN])
 
     # What that background task runs, awaited here: the entry's own background
     # loops never end, so waiting for every background task would hang.
-    with patch(f"{PACKAGE}.async_clear_published", AsyncMock()) as cleared:
-        await integration._async_forget_vehicles(hass, entry.entry_id, [VIN])
+    with patch(f"{PACKAGE}.vehicle_removal.async_clear_published", AsyncMock()) as cleared:
+        await integration.async_forget_account_cars(hass, entry.entry_id, [VIN])
         await hass.async_block_till_done()
 
     cleared.assert_awaited_once()
@@ -290,7 +291,7 @@ async def test_deleting_a_car_forgets_it_and_keeps_the_account(hass: HomeAssista
     assert entry.state is ConfigEntryState.LOADED
 
     # An account already gone has nothing left to forget.
-    await integration._async_forget_vehicles(hass, "no-such-entry", [VIN])
+    await integration.async_forget_account_cars(hass, "no-such-entry", [VIN])
 
 
 async def test_a_car_on_an_account_that_will_not_unload_is_left_alone(
@@ -299,7 +300,7 @@ async def test_a_car_on_an_account_that_will_not_unload_is_left_alone(
     entry = _entry(**{VEHICLE_METADATA: {VIN: {"vin": VIN}}})
     await _set_up(hass, entry)
     with patch.object(hass.config_entries, "async_unload", AsyncMock(return_value=False)):
-        await integration._async_forget_vehicles(hass, entry.entry_id, [VIN])
+        await integration.async_forget_account_cars(hass, entry.entry_id, [VIN])
     assert "Could not unload entry" in caplog.text
     assert VIN in entry.data[VEHICLE_METADATA]
 
@@ -331,7 +332,7 @@ async def test_a_token_refresh_stores_the_tokens_and_hands_the_stream_its_new_on
     await _set_up(hass, entry)
     stream = SimpleNamespace(hass=hass, async_update_credentials=AsyncMock())
     answer = {"access_token": "a2", "id_token": "i2", "expires_in": 3600}
-    with patch(f"{PACKAGE}.refresh_tokens", AsyncMock(return_value=answer)) as refresh:
+    with patch(f"{PACKAGE}.account.refresh_tokens", AsyncMock(return_value=answer)) as refresh:
         await _REFRESH_TOKENS(entry, None, stream)
     assert refresh.await_args.kwargs["refresh_token"] == "refresh"
     assert entry.data["id_token"] == "i2"
@@ -339,7 +340,7 @@ async def test_a_token_refresh_stores_the_tokens_and_hands_the_stream_its_new_on
     stream.async_update_credentials.assert_awaited_once_with(gcid="gcid-1", id_token="i2")
 
     with (
-        patch(f"{PACKAGE}.refresh_tokens", AsyncMock(return_value={"access_token": "a3"})),
+        patch(f"{PACKAGE}.account.refresh_tokens", AsyncMock(return_value={"access_token": "a3"})),
         pytest.raises(CardataAuthError, match="id_token"),
     ):
         await _REFRESH_TOKENS(entry, None, stream)
@@ -351,14 +352,14 @@ async def test_a_token_refresh_without_credentials_is_refused(hass: HomeAssistan
     with pytest.raises(CardataAuthError, match="Missing credentials"):
         await _REFRESH_TOKENS(entry, None, SimpleNamespace(hass=hass))
     with pytest.raises(CardataAuthError, match="not ready"):
-        await integration.async_manual_refresh_tokens(hass, entry)
+        await account.async_manual_refresh_tokens(hass, entry)
 
 
 async def test_a_manual_refresh_renews_through_the_keeper(hass: HomeAssistant, no_bmw) -> None:
     entry = _entry()
     await _set_up(hass, entry)
     before = no_bmw["refresh"].await_count
-    await integration.async_manual_refresh_tokens(hass, entry)
+    await account.async_manual_refresh_tokens(hass, entry)
     assert no_bmw["refresh"].await_count == before + 1
 
 
@@ -370,19 +371,19 @@ async def test_the_account_host_answers_from_the_loaded_entry(hass: HomeAssistan
     entry.add_to_hass(hass)
     hass.config_entries.async_update_entry(entry, options={"debug_log": False})
     await _set_up(hass, entry)
-    host = integration._EntryHost(hass, entry)
+    host = account.EntryHost(hass, entry)
     assert host.options == {"debug_log": False}
     assert host.quota_remaining == entry.runtime_data.quota_manager.remaining
     host.diagnostics_changed()
-    integration._async_update_last_telematic_poll(hass, entry, 1_700_000_000.0)
+    account.async_update_last_telematic_poll(hass, entry, 1_700_000_000.0)
     assert entry.data[LAST_TELEMATIC_POLL] == 1_700_000_000.0
-    assert integration._loaded(hass, "no-such-entry") is None
+    assert account._loaded(hass, "no-such-entry") is None
 
 
 async def test_the_bootstrap_runs_only_on_a_loaded_entry(hass: HomeAssistant, no_bmw) -> None:
     entry = _entry()
     entry.add_to_hass(hass)
-    with patch(f"{PACKAGE}.AccountRest.bootstrap", AsyncMock()) as bootstrap:
+    with patch(f"{PACKAGE}.account.AccountRest.bootstrap", AsyncMock()) as bootstrap:
         await _RUN_BOOTSTRAP(hass, entry)
         bootstrap.assert_not_awaited()
         await _set_up(hass, entry)
@@ -394,18 +395,18 @@ async def test_a_new_car_waits_for_the_bootstrap(hass: HomeAssistant, no_bmw) ->
     entry = _entry()
     await _set_up(hass, entry)
     hass.config_entries.async_update_entry(entry, data={**entry.data, BOOTSTRAP_COMPLETE: False})
-    integration._async_on_new_vehicle(hass, entry, OTHER)
+    integration.async_on_new_vehicle(hass, entry, OTHER)
     assert OTHER not in entry.runtime_data.basic_data_attempted
 
 
 async def test_only_a_long_outage_is_caught_up(hass: HomeAssistant, no_bmw) -> None:
     entry = _entry()
     await _set_up(hass, entry)
-    with patch(f"{PACKAGE}.AccountRest.catch_up", AsyncMock()) as catch_up:
-        integration._async_on_reconnect(hass, entry, 30)
+    with patch(f"{PACKAGE}.account.AccountRest.catch_up", AsyncMock()) as catch_up:
+        integration.async_on_reconnect(hass, entry, 30)
         await hass.async_block_till_done()
         catch_up.assert_not_awaited()
-        integration._async_on_reconnect(hass, entry, 3600)
+        integration.async_on_reconnect(hass, entry, 3600)
         await hass.async_block_till_done()
     catch_up.assert_awaited_once_with("after a stream outage")
 
@@ -416,10 +417,10 @@ async def test_the_startup_refresh_asks_for_missing_basic_data_then_catches_up(
     entry = _entry()
     await _set_up(hass, entry)
     with (
-        patch(f"{PACKAGE}.STARTUP_REFRESH_DELAY_S", 0),
-        patch(f"{PACKAGE}.AccountRest.vins_without_basic_data", return_value=[OTHER]),
-        patch(f"{PACKAGE}.AccountRest.catch_up", AsyncMock()) as catch_up,
-        patch(f"{PACKAGE}.AccountRest.adopt", AsyncMock()) as adopt,
+        patch(f"{PACKAGE}.account.STARTUP_REFRESH_DELAY_S", 0),
+        patch(f"{PACKAGE}.account.AccountRest.vins_without_basic_data", return_value=[OTHER]),
+        patch(f"{PACKAGE}.account.AccountRest.catch_up", AsyncMock()) as catch_up,
+        patch(f"{PACKAGE}.account.AccountRest.adopt", AsyncMock()) as adopt,
     ):
         await _STARTUP_REFRESH(hass, entry.entry_id)
         await hass.async_block_till_done()
@@ -439,9 +440,11 @@ async def test_the_daily_refresh_waits_its_turn_and_stops_with_the_entry(
     entry = _entry()
     await _set_up(hass, entry)
     with (
-        patch(f"{PACKAGE}.seconds_until_poll", side_effect=[0.001, 0, asyncio.CancelledError]),
-        patch(f"{PACKAGE}.TELEMATIC_POLL_INTERVAL", 0.001),
-        patch(f"{PACKAGE}.AccountRest.daily_refresh", AsyncMock()) as daily,
+        patch(
+            f"{PACKAGE}.account.seconds_until_poll", side_effect=[0.001, 0, asyncio.CancelledError]
+        ),
+        patch(f"{PACKAGE}.account.TELEMATIC_POLL_INTERVAL", 0.001),
+        patch(f"{PACKAGE}.account.AccountRest.daily_refresh", AsyncMock()) as daily,
     ):
         await _POLL_LOOP(hass, entry.entry_id)
     daily.assert_awaited_once()

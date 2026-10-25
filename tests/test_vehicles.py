@@ -167,7 +167,8 @@ def test_discover_vehicles_adopts_unknown_cars() -> None:
     import pathlib
 
     path = (
-        pathlib.Path(__file__).resolve().parents[1] / "custom_components/bavariandata/services.py"
+        pathlib.Path(__file__).resolve().parents[1]
+        / "custom_components/bavariandata/service_fetch.py"
     )
     source = path.read_text(encoding="utf-8")
     node = next(
@@ -176,7 +177,7 @@ def test_discover_vehicles_adopts_unknown_cars() -> None:
         if isinstance(n, ast.AsyncFunctionDef) and n.name == "async_handle_fetch_mappings"
     )
     body = ast.get_source_segment(source, node) or ""
-    assert "primary_vins(" in body and "_async_on_new_vehicle(" in body
+    assert "primary_vins(" in body and "async_on_new_vehicle(" in body
 
 
 def _function_body(relative: str, name: str) -> str:
