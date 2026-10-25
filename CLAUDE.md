@@ -143,8 +143,10 @@ the revert-and-rerun.
 Linux only): `bash scripts/test_ha.sh` re-runs itself in WSL. It covers what must import HA --
 the config flow, setup/unload, platforms, services -- with BMW answered at `api.py`'s request
 functions (see `tests_ha/README.md`). CI's *Home Assistant tests* job combines both suites'
-coverage and reports it per module (`scripts/coverage_modules.py`): the Quality Scale target is
-Gold, whose Silver `test-coverage` rule wants >95 % of every module.
+coverage and gates it per module (`scripts/coverage_modules.py --gate`): Silver's `test-coverage`
+rule wants >95 % of every module, and the README's coverage badge says so. The README claims
+Platinum *self-assessed* (HA grades only core); its quality badges link to the wiki Reference's
+"Code quality" section, which must stay true to `quality_scale.yaml`.
 
 Some tests run the shipped card under Node and skip themselves when it is
 absent; CI pins Node 24 so that coverage cannot silently disappear.
