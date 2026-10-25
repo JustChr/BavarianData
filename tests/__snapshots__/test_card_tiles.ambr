@@ -1,0 +1,153 @@
+# serializer version: 1
+# name: test_the_default_and_a_custom_grid_render_as_before[custom]
+  '''
+  <ha-card>
+          <div class="hero hero--empty">
+            <ha-icon class="hero__placeholder" icon="mdi:car">
+  </ha-icon>
+            <div class="hero__scrim">
+  </div>
+            <div class="hero__top">
+              <div class="hero__name" title="Car">Car</div>
+              <div class="pill" title="Last update">
+  <span class="dot dot--stale">
+  </span>21 h ago</div>
+            </div>
+            
+          </div>
+  
+          <div class="band">
+            <button class="gauge" data-entity="sensor.m2_remaining_fuel" aria-label="fuel">
+              <div class="gauge__ring" style="--pct:0;--ring:var(--divider-color)">
+                <div class="gauge__hole">
+                  <span class="gauge__val">38<i>L</i>
+  </span>
+                  <span class="gauge__cap">fuel</span>
+                </div>
+              </div>
+              
+            </button>
+  
+            <div class="lead">
+              
+              <button class="lead__row" data-entity="sensor.m2_range">
+                <ha-icon icon="mdi:map-marker-distance">
+  </ha-icon>
+                <span class="lead__val">412 km</span>
+                <span class="lead__lbl">remaining range</span>
+              </button>
+              <button class="lead__row" data-entity="sensor.m2_odometer">
+                <ha-icon icon="mdi:counter">
+  </ha-icon>
+                <span class="lead__val">41234 km</span>
+                <span class="lead__lbl">Odometer</span>
+              </button>
+            </div>
+          </div>
+  
+          <div class="grid">
+                  
+                    <button class="cell" data-entity="sensor.car_tyre_row1_left_pressure">
+                      <ha-icon icon="mdi:car-tire-alert" style="color:var(--bmw-high)">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">250 – 260 kPa</span>
+                        <span class="cell__lbl">Tires</span>
+                      </div>
+                    </button>
+                    <button class="cell" data-entity="sensor.car_lock">
+                      <ha-icon icon="mdi:lock" style="color:var(--bmw-high)">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">Locked</span>
+                        <span class="cell__lbl">Lock</span>
+                      </div>
+                    </button>
+                    <button class="cell" data-entity="sensor.car_coolant">
+                      <ha-icon icon="mdi:thermometer">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">88 °C</span>
+                        <span class="cell__lbl">BMW Coolant temperature</span>
+                      </div>
+                    </button>
+                </div>
+        </ha-card>
+  '''
+# ---
+# name: test_the_default_and_a_custom_grid_render_as_before[default]
+  '''
+  <ha-card>
+          <div class="hero hero--empty">
+            <ha-icon class="hero__placeholder" icon="mdi:car">
+  </ha-icon>
+            <div class="hero__scrim">
+  </div>
+            <div class="hero__top">
+              <div class="hero__name" title="Car">Car</div>
+              <div class="pill" title="Last update">
+  <span class="dot dot--stale">
+  </span>21 h ago</div>
+            </div>
+            
+          </div>
+  
+          <div class="band">
+            <button class="gauge" data-entity="sensor.m2_remaining_fuel" aria-label="fuel">
+              <div class="gauge__ring" style="--pct:0;--ring:var(--divider-color)">
+                <div class="gauge__hole">
+                  <span class="gauge__val">38<i>L</i>
+  </span>
+                  <span class="gauge__cap">fuel</span>
+                </div>
+              </div>
+              
+            </button>
+  
+            <div class="lead">
+              
+              <button class="lead__row" data-entity="sensor.m2_range">
+                <ha-icon icon="mdi:map-marker-distance">
+  </ha-icon>
+                <span class="lead__val">412 km</span>
+                <span class="lead__lbl">remaining range</span>
+              </button>
+              <button class="lead__row" data-entity="sensor.m2_odometer">
+                <ha-icon icon="mdi:counter">
+  </ha-icon>
+                <span class="lead__val">41234 km</span>
+                <span class="lead__lbl">Odometer</span>
+              </button>
+            </div>
+          </div>
+  
+          <div class="grid">
+                  
+                    <button class="cell" data-entity="sensor.car_tyre_row1_left_pressure">
+                      <ha-icon icon="mdi:car-tire-alert" style="color:var(--bmw-high)">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">250 – 260 kPa</span>
+                        <span class="cell__lbl">Tires</span>
+                      </div>
+                    </button>
+                    <button class="cell" data-entity="device_tracker.car_location">
+                      <ha-icon icon="mdi:map-marker">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">home</span>
+                        <span class="cell__lbl">Location</span>
+                      </div>
+                    </button>
+                    <button class="cell" data-entity="sensor.car_distance_month">
+                      <ha-icon icon="mdi:calendar-month">
+  </ha-icon>
+                      <div class="cell__body">
+                        <span class="cell__val">412 km</span>
+                        <span class="cell__lbl">Driven this month</span>
+                      </div>
+                    </button>
+                </div>
+        </ha-card>
+  '''
+# ---

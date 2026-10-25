@@ -9,6 +9,21 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **Choose the tiles on the card's overview.** The grid below the ring can now
+  show what you want, in the order you want: pick **Tiles** in the card editor,
+  from ready-made tiles (tires, location, lock, distance this month, 12 V
+  battery, odometer, tank, and the charging ones) or any entity of the car. In
+  YAML it's `tiles:`, and a tile there can carry its own `name` and `icon`.
+  Leave it empty and nothing changes. Thanks to mrVragec for the idea (#185).
+
+### Changed
+- **A petrol or diesel car's overview has more to show.** Its grid used to
+  hold the odometer at most; it now adds tires, location and distance this
+  month, each only where the car has data for it. So does a car whose
+  drivetrain the card can't tell. Electric cars and plug-in hybrids keep the
+  grid they had.
+
 ## [0.9.23-beta.2] - 2026-10-25
 
 Most of the integration was rebuilt inside in this beta: each car's state in

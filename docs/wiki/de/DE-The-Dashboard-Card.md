@@ -60,8 +60,10 @@ ableitet:
 | --- | --- | --- | --- |
 | Elektrisch | Ladezustand (blau beim Laden) | Reichweite, Ladestatus | Ziel, Stecker, Bis voll, Kilometerstand |
 | Plug-in-Hybrid | Ladezustand | elektrische Reichweite, Ladestatus | Tank, Gesamtreichweite, Ziel, Stecker, Bis voll, Kilometerstand |
-| Benzin / Diesel | Tankfüllstand — oder der Tankinhalt, bei einem Auto, das keinen Prozentwert streamt | Reichweite, dazu Tankinhalt oder Kilometerstand | Kilometerstand |
-| Keines, erwiesen | Reichweite | Kilometerstand | — |
+| Benzin / Diesel | Tankfüllstand — oder der Tankinhalt, bei einem Auto, das keinen Prozentwert streamt | Reichweite, dazu Tankinhalt oder Kilometerstand | Kilometerstand (wenn er nicht neben dem Ring steht), Reifen, Standort, diesen Monat gefahren |
+| Keines, erwiesen | Reichweite | Kilometerstand | Reifen, Standort, diesen Monat gefahren |
+
+Eine Kachel erscheint nur, wenn das Auto Daten dafür hat: ohne Reifendruck keine Reifen-Kachel.
 
 Ist **Konfigurieren → [Fahrzeugbild](DE-Settings-Reference#fahrzeugbild)** auf
 BMWs Konfigurator gestellt, ist das Bild genau dein Auto, und Ziehen darüber (Maus
@@ -162,6 +164,48 @@ der Entität *Fahrt aktiv* und bleibt daher nach der Ankunft noch ein paar Minut
 stehen — [warum](DE-Feature-Trips#seeing-the-drive-thats-happening-now).
 
 Ein bestimmtes Fahrzeug legst du mit `device:` (Geräte-ID) oder `vin:` fest.
+
+### Kacheln wählen
+
+<a id="choosing-the-tiles"></a>
+
+Das Raster unter dem Ring kann auch zeigen, was du willst. Wähle im Karten-Editor
+**Kacheln**: zuerst die fertigen Kacheln, dann jede Entität des Autos. Zieh sie in
+die gewünschte Reihenfolge. Leer lassen für das Raster, das zum Antrieb passt.
+
+| Kachel | Zeigt |
+| --- | --- |
+| `odometer` | Den Kilometerstand |
+| `tank` | Den Tankfüllstand oder den Tankinhalt |
+| `total_range` | Die Reichweite mit Kraftstoff und Batterie zusammen (Plug-in-Hybride) |
+| `target` | Das Ladeziel |
+| `plug` | Ob das Kabel steckt |
+| `time_to_full` | Die Zeit bis zum Ladeziel |
+| `tires` | Den niedrigsten und höchsten Reifendruck, grün, gelb oder rot wie in der [Reifen-Ansicht](#tires-cluster-tire) |
+| `location` | Die Zone, in der das Auto steht, aus seinem Device Tracker |
+| `lock` | Verriegelt, entriegelt oder gesichert |
+| `distance_month` | Die diesen Monat gefahrene Strecke |
+| `battery_12v` | Die 12-V-Batterie |
+
+Jede Entität geht auch: Sie erscheint mit ihrem eigenen Namen, ohne den des Autos,
+und ihrem eigenen Symbol. In YAML kann eine Kachel auch eigenen Namen und eigenes
+Symbol tragen:
+
+```yaml
+type: custom:bavariandata-card
+tiles:
+  - tires
+  - location
+  - lock
+  - sensor.x5_xdrive30d_coolant_temperature
+  - entity: sensor.x5_xdrive30d_outside_temperature
+    name: Außen
+    icon: mdi:thermometer
+```
+
+Der Ring und die Zeilen daneben bleiben, wie der Antrieb sie festlegt. Zeigt ein
+Benziner oder Diesel Lade-Kacheln, wurde sein Antrieb falsch erkannt: Setze
+**Antrieb** (oben), statt die Kacheln zu ersetzen.
 
 ---
 
@@ -646,6 +690,7 @@ die unter den Meldungen stehen, wenn das Fahrzeug sie sendet.
 | `odometer` | Überschreibt die Kilometerstand-Entität. |
 | `plug` | Überschreibt die Steckerstatus-Entität. |
 | `drivetrain` | `bev`, `phev` oder `ice` — das Layout der Übersicht. Weglassen, um es aus den gestreamten Daten zu erkennen. |
+| `tiles` | Die Kacheln der Übersicht, in Reihenfolge: fertige Kacheln (`odometer`, `tank`, `total_range`, `target`, `plug`, `time_to_full`, `tires`, `location`, `lock`, `distance_month`, `battery_12v`), Entitäts-IDs oder `{entity, name, icon}`. Weglassen für die des Antriebs. Siehe [Kacheln wählen](#choosing-the-tiles). |
 | `steering` | `left` oder `right` — auf welcher Seite der Fahrer sitzt; danach ordnet die Öffnungs-Ansicht Türen und Fenster zu. Weglassen, um es aus BMWs Fahrzeugbasisdaten zu lesen; ein Auto, dessen Basisdaten nichts dazu sagen, wird als Linkslenker gezeichnet. |
 | `shape` | `sedan` oder `countryman` — das Auto, das die Reifen- und die Öffnungs-Ansicht zeichnen. Weglassen, um es anhand des Modells in BMWs Fahrzeugbasisdaten zu wählen. |
 | `pictures` | `false` — die Ansicht Ausstattung als reine Liste, ohne die Bilder der Optionen (**Bilder der Optionen zeigen** im visuellen Editor). Weglassen, um sie zu zeigen. |

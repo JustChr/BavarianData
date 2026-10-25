@@ -97,6 +97,56 @@ const PLUG_SENSOR_DESCRIPTORS = [
 // `_drivetrain` can also answer "unknown" for a car that proves none of them --
 // not selectable, because it describes missing evidence rather than a car.
 const DRIVETRAINS = new Set(["bev", "phev", "ice"]);
+// The ready-made overview tiles a `tiles:` list may name, in the editor's
+// order (`_overviewTile` draws each). Anything else with a dot is an entity.
+const OVERVIEW_TILES = [
+  "odometer",
+  "tank",
+  "total_range",
+  "target",
+  "plug",
+  "time_to_full",
+  "tires",
+  "location",
+  "lock",
+  "distance_month",
+  "battery_12v",
+];
+// Each ready-made tile's name, as the grid and the editor show it.
+const TILE_LABELS = {
+  odometer: "odometer",
+  tank: "tank",
+  total_range: "total_range",
+  target: "target",
+  plug: "plug",
+  time_to_full: "time_to_full",
+  tires: "tires",
+  location: "ti_location",
+  lock: "ti_lock",
+  distance_month: "ti_distance_month",
+  battery_12v: "ti_battery_12v",
+};
+// Tiles every car can fill whatever drives it: the default grid of a car
+// without charging tiles.
+const NEUTRAL_TILES = ["tires", "location", "distance_month"];
+// An entity tile's icon where the entity names none (icons.json icons never
+// reach the state), by device class.
+const DEVICE_CLASS_ICONS = {
+  battery: "mdi:battery",
+  distance: "mdi:map-marker-distance",
+  duration: "mdi:timer-outline",
+  energy: "mdi:lightning-bolt",
+  power: "mdi:flash",
+  pressure: "mdi:gauge",
+  speed: "mdi:speedometer",
+  temperature: "mdi:thermometer",
+  timestamp: "mdi:clock-outline",
+  voltage: "mdi:car-battery",
+  door: "mdi:car-door",
+  lock: "mdi:lock",
+  window: "mdi:window-closed-variant",
+  plug: "mdi:power-plug",
+};
 // How much a car must have said before its *silence* about a drivetrain counts
 // as evidence. A car mid-bootstrap has sent a handful of fields and proves
 // nothing; the MINI that prompted this had 28.
@@ -214,6 +264,10 @@ const TRANSLATIONS = {
     time_to_full: "Time to full",
     charge_time: "Charge time",
     odometer: "Odometer",
+    ti_location: "Location",
+    ti_lock: "Lock",
+    ti_distance_month: "Driven this month",
+    ti_battery_12v: "12 V battery",
     last_update: "Last update",
     spin_hint: "Drag to turn the car",
     hs_door_open: "Door open",
@@ -534,6 +588,9 @@ const TRANSLATIONS = {
     ed_fuel: "Fuel tank",
     ed_drivetrain: "Drivetrain",
     edh_drivetrain: "Detected from what the car streams. Set it only if the card picks the wrong layout.",
+    ed_tiles: "Tiles",
+    edh_tiles:
+      "What the tiles below the ring show, in this order: ready-made tiles or any entity of this car. Leave empty for the tiles that fit the drivetrain.",
     dt_auto: "Auto-detect",
     dt_bev: "Electric",
     dt_phev: "Plug-in hybrid",
@@ -597,6 +654,10 @@ const TRANSLATIONS = {
     time_to_full: "Bis voll",
     charge_time: "Ladezeit",
     odometer: "Kilometerstand",
+    ti_location: "Standort",
+    ti_lock: "Verriegelung",
+    ti_distance_month: "Diesen Monat gefahren",
+    ti_battery_12v: "12-V-Batterie",
     last_update: "Letzte Aktualisierung",
     spin_hint: "Ziehen, um das Auto zu drehen",
     hs_door_open: "Tür offen",
@@ -917,6 +978,9 @@ const TRANSLATIONS = {
     ed_fuel: "Tank",
     ed_drivetrain: "Antrieb",
     edh_drivetrain: "Wird aus den gestreamten Daten erkannt. Nur setzen, wenn die Karte das falsche Layout wählt.",
+    ed_tiles: "Kacheln",
+    edh_tiles:
+      "Was die Kacheln unter dem Ring zeigen, in dieser Reihenfolge: fertige Kacheln oder beliebige Entitäten dieses Autos. Leer lassen für die Kacheln, die zum Antrieb passen.",
     dt_auto: "Automatisch",
     dt_bev: "Elektrisch",
     dt_phev: "Plug-in-Hybrid",
@@ -964,6 +1028,10 @@ const TRANSLATIONS = {
     time_to_full: "Charge complète dans",
     charge_time: "Durée de charge",
     odometer: "Kilométrage",
+    ti_location: "Position",
+    ti_lock: "Verrouillage",
+    ti_distance_month: "Parcouru ce mois-ci",
+    ti_battery_12v: "Batterie 12 V",
     last_update: "Dernière mise à jour",
     spin_hint: "Faites glisser pour tourner la voiture",
     hs_door_open: "Porte ouverte",
@@ -1284,6 +1352,9 @@ const TRANSLATIONS = {
     ed_fuel: "Réservoir de carburant",
     ed_drivetrain: "Motorisation",
     edh_drivetrain: "Détectée à partir de ce que la voiture transmet. Ne la définissez que si la carte choisit la mauvaise disposition.",
+    ed_tiles: "Tuiles",
+    edh_tiles:
+      "Ce qu'affichent les tuiles sous l'anneau, dans cet ordre : des tuiles prêtes à l'emploi ou n'importe quelle entité de cette voiture. Laissez vide pour les tuiles adaptées à la motorisation.",
     dt_auto: "Détection automatique",
     dt_bev: "Électrique",
     dt_phev: "Hybride rechargeable",
@@ -1331,6 +1402,10 @@ const TRANSLATIONS = {
     time_to_full: "Carica completa tra",
     charge_time: "Tempo di ricarica",
     odometer: "Contachilometri",
+    ti_location: "Posizione",
+    ti_lock: "Chiusura",
+    ti_distance_month: "Percorsi questo mese",
+    ti_battery_12v: "Batteria 12 V",
     last_update: "Ultimo aggiornamento",
     spin_hint: "Trascina per ruotare l'auto",
     hs_door_open: "Porta aperta",
@@ -1651,6 +1726,9 @@ const TRANSLATIONS = {
     ed_fuel: "Serbatoio carburante",
     ed_drivetrain: "Motorizzazione",
     edh_drivetrain: "Rilevata da ciò che l'auto trasmette. Impostala solo se la scheda sceglie il layout sbagliato.",
+    ed_tiles: "Riquadri",
+    edh_tiles:
+      "Cosa mostrano i riquadri sotto l'anello, in quest'ordine: riquadri pronti o qualsiasi entità di quest'auto. Lascia vuoto per i riquadri adatti alla motorizzazione.",
     dt_auto: "Rilevamento automatico",
     dt_bev: "Elettrica",
     dt_phev: "Ibrida plug-in",
@@ -1698,6 +1776,10 @@ const TRANSLATIONS = {
     time_to_full: "Carga completa en",
     charge_time: "Tiempo de carga",
     odometer: "Cuentakilómetros",
+    ti_location: "Ubicación",
+    ti_lock: "Cierre",
+    ti_distance_month: "Recorrido este mes",
+    ti_battery_12v: "Batería de 12 V",
     last_update: "Última actualización",
     spin_hint: "Arrastra para girar el coche",
     hs_door_open: "Puerta abierta",
@@ -2018,6 +2100,9 @@ const TRANSLATIONS = {
     ed_fuel: "Depósito de combustible",
     ed_drivetrain: "Propulsión",
     edh_drivetrain: "Se detecta a partir de lo que transmite el coche. Defínela solo si la tarjeta elige un diseño incorrecto.",
+    ed_tiles: "Mosaicos",
+    edh_tiles:
+      "Lo que muestran los mosaicos bajo el anillo, en este orden: mosaicos predefinidos o cualquier entidad de este coche. Déjalo vacío para los mosaicos que corresponden a la propulsión.",
     dt_auto: "Detección automática",
     dt_bev: "Eléctrico",
     dt_phev: "Híbrido enchufable",
@@ -2065,6 +2150,10 @@ const TRANSLATIONS = {
     time_to_full: "Vol over",
     charge_time: "Laadtijd",
     odometer: "Kilometerstand",
+    ti_location: "Locatie",
+    ti_lock: "Vergrendeling",
+    ti_distance_month: "Gereden deze maand",
+    ti_battery_12v: "12V-accu",
     last_update: "Laatste update",
     spin_hint: "Sleep om de auto te draaien",
     hs_door_open: "Deur open",
@@ -2385,6 +2474,9 @@ const TRANSLATIONS = {
     ed_fuel: "Brandstoftank",
     ed_drivetrain: "Aandrijving",
     edh_drivetrain: "Herkend aan wat de auto streamt. Stel dit alleen in als de kaart de verkeerde indeling kiest.",
+    ed_tiles: "Tegels",
+    edh_tiles:
+      "Wat de tegels onder de ring tonen, in deze volgorde: kant-en-klare tegels of elke entiteit van deze auto. Laat leeg voor de tegels die bij de aandrijving passen.",
     dt_auto: "Automatisch herkennen",
     dt_bev: "Elektrisch",
     dt_phev: "Plug-in hybride",
@@ -2432,6 +2524,10 @@ const TRANSLATIONS = {
     time_to_full: "Pełne za",
     charge_time: "Czas ładowania",
     odometer: "Przebieg",
+    ti_location: "Lokalizacja",
+    ti_lock: "Zamek",
+    ti_distance_month: "Przejechano w tym miesiącu",
+    ti_battery_12v: "Akumulator 12 V",
     last_update: "Ostatnia aktualizacja",
     spin_hint: "Przeciągnij, aby obrócić samochód",
     hs_door_open: "Drzwi otwarte",
@@ -2752,6 +2848,9 @@ const TRANSLATIONS = {
     ed_fuel: "Zbiornik paliwa",
     ed_drivetrain: "Napęd",
     edh_drivetrain: "Wykrywany na podstawie tego, co przesyła auto. Ustaw tylko wtedy, gdy karta wybiera zły układ.",
+    ed_tiles: "Kafelki",
+    edh_tiles:
+      "Co pokazują kafelki pod pierścieniem, w tej kolejności: gotowe kafelki lub dowolna encja tego auta. Zostaw puste, aby pokazać kafelki pasujące do napędu.",
     dt_auto: "Wykryj automatycznie",
     dt_bev: "Elektryczny",
     dt_phev: "Hybryda plug-in",
@@ -2799,6 +2898,10 @@ const TRANSLATIONS = {
     time_to_full: "Carga completa em",
     charge_time: "Tempo de carregamento",
     odometer: "Conta-quilómetros",
+    ti_location: "Localização",
+    ti_lock: "Trancamento",
+    ti_distance_month: "Percorrido este mês",
+    ti_battery_12v: "Bateria de 12 V",
     last_update: "Última atualização",
     spin_hint: "Arraste para rodar o carro",
     hs_door_open: "Porta aberta",
@@ -3119,6 +3222,9 @@ const TRANSLATIONS = {
     ed_fuel: "Depósito de combustível",
     ed_drivetrain: "Motorização",
     edh_drivetrain: "Detetada a partir do que o carro transmite. Defina-a apenas se o cartão escolher o esquema errado.",
+    ed_tiles: "Mosaicos",
+    edh_tiles:
+      "O que os mosaicos sob o anel mostram, por esta ordem: mosaicos prontos ou qualquer entidade deste carro. Deixe vazio para os mosaicos adequados à motorização.",
     dt_auto: "Deteção automática",
     dt_bev: "Elétrico",
     dt_phev: "Híbrido plug-in",
@@ -3166,6 +3272,10 @@ const TRANSLATIONS = {
     time_to_full: "Plně nabito za",
     charge_time: "Doba nabíjení",
     odometer: "Počet km",
+    ti_location: "Poloha",
+    ti_lock: "Zamčení",
+    ti_distance_month: "Najeto tento měsíc",
+    ti_battery_12v: "12V baterie",
     last_update: "Poslední aktualizace",
     spin_hint: "Tažením auto otočíte",
     hs_door_open: "Dveře otevřené",
@@ -3486,6 +3596,9 @@ const TRANSLATIONS = {
     ed_fuel: "Palivová nádrž",
     ed_drivetrain: "Pohon",
     edh_drivetrain: "Zjištěno z toho, co vůz přenáší. Nastavte jen tehdy, pokud karta zvolí špatné rozvržení.",
+    ed_tiles: "Dlaždice",
+    edh_tiles:
+      "Co ukazují dlaždice pod prstencem, v tomto pořadí: hotové dlaždice nebo libovolná entita tohoto vozu. Nechte prázdné pro dlaždice odpovídající pohonu.",
     dt_auto: "Automaticky",
     dt_bev: "Elektrický",
     dt_phev: "Plug-in hybrid",
@@ -3533,6 +3646,10 @@ const TRANSLATIONS = {
     time_to_full: "Full om",
     charge_time: "Laddtid",
     odometer: "Mätarställning",
+    ti_location: "Plats",
+    ti_lock: "Låsning",
+    ti_distance_month: "Kört denna månad",
+    ti_battery_12v: "12 V-batteri",
     last_update: "Senaste uppdatering",
     spin_hint: "Dra för att vrida bilen",
     hs_door_open: "Dörr öppen",
@@ -3853,6 +3970,9 @@ const TRANSLATIONS = {
     ed_fuel: "Bränsletank",
     ed_drivetrain: "Drivlina",
     edh_drivetrain: "Identifieras utifrån vad bilen strömmar. Ange den bara om kortet väljer fel layout.",
+    ed_tiles: "Rutor",
+    edh_tiles:
+      "Vad rutorna under ringen visar, i den här ordningen: färdiga rutor eller vilken entitet som helst för den här bilen. Lämna tomt för de rutor som passar drivlinan.",
     dt_auto: "Identifiera automatiskt",
     dt_bev: "El",
     dt_phev: "Laddhybrid",
@@ -4836,11 +4956,6 @@ class BavarianDataCard extends HTMLElement {
       ? this._t("charging")
       : this._t("charge");
 
-    const tile = (key, label, st, icon) => ({ key, label, st, icon });
-    const plugSt = this._st(picks.plug);
-    // "0 min" outside a charge is no charge time, only the end of the last one.
-    const ttfRaw = this._st(picks.timeToFull);
-    const ttfSt = !charging && ttfRaw && parseFloat(ttfRaw.state) === 0 ? null : ttfRaw;
     const rangeRow = {
       entity: rangeId,
       icon: "mdi:map-marker-distance",
@@ -4864,7 +4979,9 @@ class BavarianDataCard extends HTMLElement {
               ? { entity: litresId, icon: "mdi:gas-station", val: this._fmt(litresSt), lbl: this._t("tank") }
               : odometerRow,
           ];
-      secondary = litresSt && !bare ? [tile("odo", this._t("odometer"), odometerSt, "mdi:counter")] : [];
+      // The grid has room a combustion car's charging tiles used to fill; give
+      // it what such a car does stream, each tile only where it has data.
+      secondary = [...(litresSt && !bare ? ["odometer"] : []), ...NEUTRAL_TILES];
     } else {
       lead = [
         rangeRow,
@@ -4876,24 +4993,17 @@ class BavarianDataCard extends HTMLElement {
         },
       ];
       secondary = [
-        ...(drivetrain === "phev"
-          ? [
-              tile("fuel", this._t("tank"), fuelSt, "mdi:gas-station"),
-              tile(
-                "total",
-                this._t("total_range"),
-                this._st(byDesc("vehicle.drivetrain.lastRemainingRange")),
-                "mdi:map-marker-distance"
-              ),
-            ]
-          : []),
-        tile("target", this._t("target"), this._st(picks.target), "mdi:target"),
-        tile("plug", this._t("plug"), plugSt, charging || this._isPlugged(plugSt) ? "mdi:power-plug" : "mdi:power-plug-off"),
-        tile("ttf", charging ? this._t("time_to_full") : this._t("charge_time"), ttfSt, "mdi:timer-sand"),
-        tile("odo", this._t("odometer"), odometerSt, "mdi:counter"),
+        ...(drivetrain === "phev" ? ["tank", "total_range"] : []),
+        "target",
+        "plug",
+        "time_to_full",
+        "odometer",
       ];
     }
-    secondary = secondary.filter((m) => m.st);
+    // `tiles:` replaces the grid whole, in the order given.
+    if (Array.isArray(cfg.tiles) && cfg.tiles.length) secondary = cfg.tiles;
+    const tileCtx = { entities, picks, fuelSt, odometerSt, charging, name: this._deviceName(deviceId) };
+    secondary = secondary.map((item) => this._overviewTile(item, tileCtx)).filter((m) => m && m.st);
 
     // freshest update among the headline entities
     const freshest = [gaugeSt, rangeSt, ice ? null : chargingSt]
@@ -4922,7 +5032,7 @@ class BavarianDataCard extends HTMLElement {
       fresh: freshest,
       gauge: [gaugeId, gaugeVal, gaugeUnitHtml, pct, ringColor, gaugeCap],
       lead: lead.map((r) => [r.entity, r.lbl, r.val]),
-      sec: secondary.map((s) => [s.label, s.st.state]),
+      sec: secondary.map((s) => [s.label, s.val == null ? s.st.state : s.val, s.icon, s.color]),
       // Elapsed minutes ride the signature so the badge's duration keeps ticking
       // between the entity's throttled attribute writes.
       trip: trip
@@ -4994,10 +5104,10 @@ class BavarianDataCard extends HTMLElement {
                 ${secondary
                   .map(
                     (m) => `
-                  <button class="cell" data-entity="${m.st.entity_id}">
-                    <ha-icon icon="${m.icon}"></ha-icon>
+                  <button class="cell" data-entity="${this._esc(m.st.entity_id)}">
+                    <ha-icon icon="${this._esc(m.icon)}"${m.color ? ` style="color:${m.color}"` : ""}></ha-icon>
                     <div class="cell__body">
-                      <span class="cell__val">${this._fmt(m.st)}</span>
+                      <span class="cell__val">${m.val == null ? this._fmt(m.st) : m.val}</span>
                       <span class="cell__lbl">${m.label}</span>
                     </div>
                   </button>`
@@ -5021,6 +5131,97 @@ class BavarianDataCard extends HTMLElement {
         this._render();
       });
     }
+  }
+
+  /** One tile of the overview grid, or null where the car has nothing for it.
+   *
+   * `item` is a ready-made key (`OVERVIEW_TILES`), an entity id, or
+   * `{entity, name, icon}`. A tile carries the state it opens (`st`), and a
+   * `val` (already escaped) and `color` where it shows more than that state. */
+  _overviewTile(item, ctx) {
+    const spec = typeof item === "string" ? (item.includes(".") ? { entity: item } : { tile: item }) : item;
+    if (!spec || typeof spec !== "object") return null;
+    if (spec.entity) return this._entityTile(spec, ctx.name);
+    const { entities, picks, charging } = ctx;
+    const byDesc = (d) => this._idByDescriptor(entities, d);
+    const tile = (label, st, icon, extra) => ({ label, st, icon, ...extra });
+    switch (spec.tile) {
+      case "odometer":
+        return tile(this._t("odometer"), ctx.odometerSt, "mdi:counter");
+      case "tank":
+        return tile(this._t("tank"), ctx.fuelSt, "mdi:gas-station");
+      case "total_range":
+        return tile(this._t("total_range"), this._st(byDesc("vehicle.drivetrain.lastRemainingRange")), "mdi:map-marker-distance");
+      case "target":
+        return tile(this._t("target"), this._st(picks.target), "mdi:target");
+      case "plug": {
+        const st = this._st(picks.plug);
+        return tile(this._t("plug"), st, charging || this._isPlugged(st) ? "mdi:power-plug" : "mdi:power-plug-off");
+      }
+      case "time_to_full": {
+        // "0 min" outside a charge is no charge time, only the end of the last one.
+        const raw = this._st(picks.timeToFull);
+        const st = !charging && raw && parseFloat(raw.state) === 0 ? null : raw;
+        return tile(charging ? this._t("time_to_full") : this._t("charge_time"), st, "mdi:timer-sand");
+      }
+      case "tires": {
+        // The pressure spread across the wheels, colored like the tire view's
+        // header; opens the first wheel's pressure.
+        const wheels = {};
+        for (const id of entities) {
+          const st = this._st(id);
+          const a = st && st.attributes;
+          if (!a || a.cluster !== "tire" || !a.tire_axle || !a.tire_side) continue;
+          const key = `${a.tire_axle}_${a.tire_side}`;
+          (wheels[key] = wheels[key] || {})[a.tire_metric || "other"] = st;
+        }
+        const list = Object.keys(wheels).sort().map((k) => wheels[k]).filter((w) => w.pressure);
+        if (!list.length) return null;
+        const summary = this._tireSummary(list);
+        return tile(this._t("tires"), list[0].pressure, "mdi:car-tire-alert", {
+          val: summary.pressure.t,
+          color: summary.overall.c,
+        });
+      }
+      case "location":
+        return tile(this._t("ti_location"), this._st(entities.find((id) => id.startsWith("device_tracker."))), "mdi:map-marker");
+      case "lock": {
+        const m = this._closureModel(entities);
+        if (!m.lockId) return null;
+        return tile(this._t("ti_lock"), this._st(m.lockId), m.lock.key === "unlocked" ? "mdi:lock-open-variant" : "mdi:lock", {
+          val: this._esc(m.lock.label),
+          color: m.lock.color,
+        });
+      }
+      case "distance_month":
+        return tile(this._t("ti_distance_month"), this._byDescriptor(entities, "driving_distance_month"), "mdi:calendar-month");
+      case "battery_12v":
+        return tile(
+          this._t("ti_battery_12v"),
+          this._st(byDesc("vehicle.electricalSystem.battery.stateOfCharge") || byDesc("vehicle.electricalSystem.battery.voltage")),
+          "mdi:car-battery"
+        );
+      default:
+        return null;
+    }
+  }
+
+  /** A tile for any entity: its own name without the car's, its own icon. */
+  _entityTile(spec, vehicleName) {
+    const st = this._st(spec.entity);
+    if (!st) return null;
+    const a = st.attributes || {};
+    let label = spec.name || a.friendly_name || st.entity_id;
+    if (!spec.name && vehicleName && label.startsWith(vehicleName + " ")) {
+      label = label.slice(vehicleName.length + 1);
+    }
+    const domain = st.entity_id.split(".")[0];
+    const icon =
+      spec.icon ||
+      a.icon ||
+      DEVICE_CLASS_ICONS[a.device_class] ||
+      (domain === "device_tracker" ? "mdi:map-marker" : "mdi:information-outline");
+    return { label: this._esc(label), st, icon };
   }
 
   /** The drive under way, read off the trip flag entity — or null when parked.
@@ -10883,6 +11084,27 @@ class BavarianDataCardEditor extends HTMLElement {
           },
         },
       });
+      // The grid's tiles: ready-made ones first, then this car's entities. A
+      // list written in YAML with `{entity, name, icon}` items is left to YAML,
+      // since the picker can only hold plain values.
+      const tiles = this._config && this._config.tiles;
+      if (!Array.isArray(tiles) || tiles.every((item) => typeof item === "string")) {
+        schema.push({
+          name: "tiles",
+          selector: {
+            select: {
+              multiple: true,
+              reorder: true,
+              custom_value: true,
+              mode: "dropdown",
+              options: [
+                ...OVERVIEW_TILES.map((value) => ({ value, label: t(this._hass, TILE_LABELS[value]) })),
+                ...this._carEntityOptions(),
+              ],
+            },
+          },
+        });
+      }
       // Entity overrides only make sense for the overview layout.
       schema.push({
         name: "",
@@ -10946,6 +11168,20 @@ class BavarianDataCardEditor extends HTMLElement {
     return schema;
   }
 
+  /** The chosen car's entities, by name, for the tiles picker. */
+  _carEntityOptions() {
+    const device = this._config && this._config.device;
+    const registry = (this._hass && this._hass.entities) || {};
+    if (!device) return [];
+    return Object.values(registry)
+      .filter((e) => e.device_id === device && !e.hidden)
+      .map((e) => {
+        const st = this._hass.states[e.entity_id];
+        return { value: e.entity_id, label: (st && st.attributes.friendly_name) || e.entity_id };
+      })
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }
+
   _render() {
     if (!this._hass || !this._config) return;
     if (!this._form) {
@@ -10993,6 +11229,8 @@ class BavarianDataCardEditor extends HTMLElement {
     // Pictures on is the default; only `false` is worth storing, and only for
     // the view that has them.
     if (value.pictures !== false || value.view !== EQUIPMENT_VIEW) delete value.pictures;
+    // No tiles is the drivetrain's own grid, not an empty one.
+    if (Array.isArray(value.tiles) && !value.tiles.length) delete value.tiles;
     // Drop empties so the stored config stays minimal.
     for (const key of Object.keys(value)) {
       if (value[key] === "" || value[key] === undefined || value[key] === null) {
