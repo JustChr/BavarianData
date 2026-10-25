@@ -48,7 +48,7 @@
           <div class="grid">
                   
                     <button class="cell" data-entity="sensor.car_tyre_row1_left_pressure">
-                      <ha-icon icon="mdi:car-tire-alert" style="color:var(--bmw-high)">
+                      <ha-icon icon="mdi:tire" style="color:var(--bmw-high)">
   </ha-icon>
                       <div class="cell__body">
                         <span class="cell__val">250 – 260 kPa</span>
@@ -124,7 +124,7 @@
           <div class="grid">
                   
                     <button class="cell" data-entity="sensor.car_tyre_row1_left_pressure">
-                      <ha-icon icon="mdi:car-tire-alert" style="color:var(--bmw-high)">
+                      <ha-icon icon="mdi:tire" style="color:var(--bmw-high)">
   </ha-icon>
                       <div class="cell__body">
                         <span class="cell__val">250 – 260 kPa</span>
