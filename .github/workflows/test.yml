@@ -119,4 +119,4 @@ jobs:
         run: |
           /tmp/unit/bin/coverage combine .coverage.unit .coverage.ha
           /tmp/unit/bin/coverage json -q -o coverage.json
-          python scripts/coverage_modules.py coverage.json
+          python scripts/coverage_modules.py coverage.json --gate
