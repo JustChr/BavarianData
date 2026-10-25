@@ -477,9 +477,19 @@ number). The ones worth knowing:
 | CU-400 | Bad request | BMW refuses one field of a container, and with it the whole fetch. Since 16 Oct 2026 it does so for the service items (Condition Based Service), on every car seen so far. They come from a container of their own, so only they stay stale while BMW refuses them; the log says so as a warning. Any other fetch failing with CU-400: report it in an issue. |
 | CU-429 | Too many requests | See [quota exhausted](#quota-exhausted) below. |
 
-The stream is not affected by any of these. If the code is something else, or
-there's no code, [open an issue](#where-to-get-help) with the line, after
-replacing the VIN in its path with `…`.
+The stream is not affected by any of these.
+
+**HTTP 502 or 503 with an HTML page** (`502 Bad Gateway … nginx`) and no
+`CU-` code means BMW's front server couldn't reach the service behind it: an
+outage on BMW's side, not a fault in your setup. If the CarData portal shows
+errors for your car at the same time, that confirms it. Each attempt still
+spends quota, so don't keep fetching; the daily refresh tries again, and the
+stream usually keeps delivering in the meantime. (Late October 2026 saw one
+such outage in several countries for days.)
+
+If the code is something else, or there's no code, [open an
+issue](#where-to-get-help) with the line, after replacing the VIN in its path
+with `…`.
 
 ## "BMW CarData API quota exhausted"
 

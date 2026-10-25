@@ -492,9 +492,19 @@ Versionen nannten nur die Zahl). Die wichtigsten:
 | CU-400 | Fehlerhafte Anfrage | BMW lehnt ein Feld eines Containers ab und damit den ganzen Abruf. Seit dem 16. Okt. 2026 tut es das für die Serviceumfänge (Condition Based Service), bei allen bisher gesehenen Autos. Sie kommen aus einem eigenen Container, also bleiben nur sie veraltet, solange BMW sie ablehnt; das Protokoll meldet es als Warnung. Schlägt ein anderer Abruf mit CU-400 fehl, melde es in einem Issue. |
 | CU-429 | Zu viele Anfragen | Siehe [Kontingent aufgebraucht](#quota-exhausted) unten. |
 
-Der Stream ist von keinem davon betroffen. Bei einem anderen Code oder ohne
-Code [eröffne ein Issue](#wo-es-hilfe-gibt) mit der Zeile; ersetze
-vorher die FIN im Pfad durch `…`.
+Der Stream ist von keinem davon betroffen.
+
+**HTTP 502 oder 503 mit einer HTML-Seite** (`502 Bad Gateway … nginx`) und
+ohne `CU-`-Code heißt: BMWs vorgelagerter Server hat den Dienst dahinter nicht
+erreicht. Das ist ein Ausfall bei BMW, kein Fehler in deiner Einrichtung.
+Zeigt das CarData-Portal zur selben Zeit Fehler für dein Auto, ist das die
+Bestätigung. Jeder Versuch verbraucht trotzdem Kontingent, also nicht immer
+wieder abrufen; die tägliche Aktualisierung versucht es erneut, und der Stream
+liefert meist weiter. (Ende Oktober 2026 gab es so einen Ausfall tagelang in
+mehreren Ländern.)
+
+Bei einem anderen Code oder ohne Code [eröffne ein Issue](#wo-es-hilfe-gibt)
+mit der Zeile; ersetze vorher die FIN im Pfad durch `…`.
 
 ## „BMW CarData API-Kontingent aufgebraucht“
 
