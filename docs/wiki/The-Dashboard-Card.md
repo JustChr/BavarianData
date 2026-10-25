@@ -163,6 +163,7 @@ the order you want. Leave it empty for the grid that fits the drivetrain.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-editor-tiles.png" alt="The card editor's Tiles field: chips for Tires, Location, Lock and Driven this month, each with a drag handle and a remove button, and a Tiles button to add more" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-tiles.png" alt="The i5's overview with chosen tiles: tires 2.60 bar in green, location Home, lock Secured, 1,460 km driven this month" width="300" />
 </p>
 
 | Tile | Shows |

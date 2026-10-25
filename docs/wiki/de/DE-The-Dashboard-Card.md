@@ -175,6 +175,7 @@ die gewünschte Reihenfolge. Leer lassen für das Raster, das zum Antrieb passt.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-editor-tiles.png" alt="Das Feld Kacheln im Karten-Editor: Chips für Reifen, Standort, Verriegelung und diesen Monat gefahren, je mit Ziehgriff und Entfernen-Knopf, darunter ein Knopf zum Hinzufügen" width="360" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/card-overview-tiles.png" alt="Die Übersicht des i5 mit gewählten Kacheln: Reifen 2,60 bar in Grün, Standort Zuhause, Verriegelung gesichert, 1.460 km diesen Monat gefahren" width="300" />
 </p>
 
 | Kachel | Zeigt |
