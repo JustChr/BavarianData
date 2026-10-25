@@ -9,7 +9,20 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+Most of the integration was rebuilt inside in this beta: each car's state in
+one place, charging and trips in their own modules, the setup and Configure
+screens split up. A recording of every reading, event and sensor value across
+hundreds of test days comes out identical before and after, for one car and
+for two. Nothing should look different apart from the changes listed below,
+so if anything else does, please open an issue.
+
 ### Changed
+- **Entity icons come from Home Assistant's icon files.** Seventeen of the
+  integration's own sensors (charging energy and costs, battery health, real
+  range, distance this month, tires, the account's quota and diagnostics
+  sensors among them) no longer set an `icon` attribute; Home Assistant shows
+  the same icon as before, and you can still change it per entity. Only a
+  template or automation that reads `attributes.icon` of one of them notices.
 - **Errors speak your language.** When an action is refused (no car picked on
   a two-car account, a month that isn't `YYYY-MM`, no quota left, BMW not
   answering) or an account can't start, Home Assistant now shows the reason in
