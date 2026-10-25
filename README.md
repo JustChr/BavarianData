@@ -2,11 +2,11 @@
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/logo.png" alt="BavarianData logo" width="240" />
 </p>
 
-<h1 align="center">BavarianData: Connect Home Assistant to BMW CarData</h1>
+<h1 align="center">BavarianData: the BMW & MINI integration for Home Assistant</h1>
 
 <p align="center">
-  Bring your BMW's live data into Home Assistant — straight from BMW CarData,
-  no third-party cloud in between.
+  Bring your BMW's or MINI's live data into Home Assistant — straight from BMW
+  CarData, no third-party cloud in between.
 </p>
 
 <p align="center">
@@ -58,6 +58,11 @@ publishes the car's state of charge over MQTT, so evcc or openWB can charge on a
 figure that arrives as the car reports it instead of polling a rate-limited
 vendor API — and it reads your wallbox's own meter back, to record what each
 charge really drew from the grid.
+
+And you can simply **ask**: with an AI conversation agent behind Assist,
+*"Do I need to charge before driving to Munich and back?"* or *"Is the car
+locked?"* get an answer, by voice, in the chat or from a desktop AI app over
+MCP ([Ask Assist & AI](https://github.com/JustChr/BavarianData/wiki/Feature-Assist-and-AI)).
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/wattfried-car.png?v=2026-10-10" alt="Bundled Lovelace card showing a BMW i5 eDrive40 with charge level, range, charging status and odometer" width="360" />

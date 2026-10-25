@@ -334,7 +334,7 @@ Bildschirm: **Konfigurieren → Einheiten**. Wie Werte angezeigt werden, für da
 Der Bildschirm zeigt, worin jedes Auto gerade angezeigt wird. Eine Auswahl gilt
 sofort für die Dashboard-Karte (jede Ansicht), die Einstellungsbildschirme, den
 Service-Kalender, den [Monatsbericht](DE-Feature-Export) und
-[Assist](DE-Feature-Automations), und auch für die Anzeigeeinheit der Sensoren
+[Assist](DE-Feature-Assist-and-AI), und auch für die Anzeigeeinheit der Sensoren
 des Autos in Home Assistant (Kilometerstand, Reichweiten, Geschwindigkeit,
 Temperaturen, Reifendrücke, Tank), damit Home Assistants eigene Seiten und
 Verläufe zur Karte passen. **Automatisch** nimmt eine Einheit zurück, die dieser

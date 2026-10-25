@@ -49,6 +49,7 @@ hat mehrere Ansichten:
 - [Energie-Dashboard & Langzeitstatistiken](DE-Feature-Energy-and-Statistics)
 - [Export (CSV / HTML-Bericht)](DE-Feature-Export)
 - [Ereignisse & Automations-Blueprints](DE-Feature-Automations)
+- [Assist & KI nach dem Auto fragen](DE-Feature-Assist-and-AI) — Fragen per Sprache und Chat, dazu MCP für KI-Apps am Rechner
 - [API-Kontingent](DE-Feature-API-Quota) — die Grenze von 50 Anfragen / 24 h
 - [Mehrere Fahrzeuge & Konten](DE-Feature-Multiple-Cars-and-Accounts) — ein Eintrag je Konto, und wie du sagst, welches Auto gemeint ist
 
