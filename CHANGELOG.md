@@ -9,11 +9,91 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.23] - 2026-10-26
+
+Promotes 0.9.23-beta.1 to 0.9.23-beta.5. Pick your own tiles on the card's overview, read errors in your own language, and change the Client ID with Reconfigure. A car shows unavailable while BMW refuses the login, Assist tells a plug-in hybrid's fuel range from its electric range, and a charge that pauses or runs through a restart stays one session.
+
+### Added
+- **Choose the tiles on the card's overview** (0.9.23-beta.3). The grid below the ring can now
+  show what you want, in the order you want: pick **Tiles** in the card editor,
+  from ready-made tiles (tires, location, lock, distance this month, 12 V
+  battery, odometer, tank, and the charging ones) or any entity of the car. In
+  YAML it's `tiles:`, and a tile there can carry its own `name` and `icon`.
+  Leave it empty and nothing changes. Thanks to mrVragec for the idea (#185).
+
+### Changed
+- **Entity icons come from Home Assistant's icon files** (0.9.23-beta.2). The
+  integration's own sensors (charging energy and costs, battery health, real
+  range, distance this month, tires, the account's quota and diagnostics
+  sensors among them) no longer set an `icon` attribute; Home Assistant shows
+  the same icon as before, and you can still change it per entity. Only a
+  template or automation that reads `attributes.icon` of one of them notices.
+- **Errors speak your language** (0.9.23-beta.2). When an action is refused (no car picked on
+  a two-car account, a month that isn't `YYYY-MM`, no quota left, BMW not
+  answering) or an account can't start, Home Assistant now shows the reason in
+  any of the ten languages BavarianData ships, not only in English. The log
+  stays English.
+- **A car shows `unavailable` while BMW refuses the login** (0.9.23-beta.2). Until you sign in
+  again, no data can arrive, so the car's entities no longer show their last
+  values as if nothing were wrong, and the dashboard card says on every view
+  that BMW refused the sign-in. A stream that drops or a car that stays quiet
+  for hours is not affected: the entities keep the car's last report, as
+  before. The account's diagnostic sensors stay available, and the connection
+  sensor gets a `login_refused` attribute for automations. The log says once
+  when BMW starts refusing and once when it accepts the login again.
+- **Change the Client ID with Reconfigure** (0.9.23-beta.2). Home Assistant's *Reconfigure*
+  entry on the integration now takes a new Client ID and signs in to BMW with
+  it; the account keeps its cars, history and settings, and a Client ID of
+  another BMW account is refused without changing anything. *Configure →
+  Connection → Re-authorize with BMW* no longer asks for a Client ID: it signs
+  in again with the one you have.
+- **A petrol or diesel car's overview has more to show** (0.9.23-beta.3). Its grid used to
+  hold the odometer at most; it now adds tires, location and distance this
+  month, each only where the car has data for it. So does a car whose
+  drivetrain the card can't tell. Electric cars and plug-in hybrids keep the
+  grid they had.
+- **A BMW server error reads "HTTP 502 (Bad Gateway)"** (0.9.23-beta.5) in the log and in a
+  failed fetch, instead of the server's whole HTML page.
+
 ### Fixed
+- **Assist tells a plug-in hybrid's fuel range from its electric range** (0.9.23-beta.1) (#203).
+  Asked for the fuel range of a 530e, an AI agent answered with the 70 km of
+  electric range instead of the 972 km in the tank: the car status only had one
+  range, and it was the battery's. A plug-in hybrid now answers with electric,
+  fuel and total range and its fuel level; a petrol or diesel car with its fuel
+  range. The range check counts the tank too, and says whether the battery alone
+  does the drive. The fuel range is the car's total range less its electric
+  range; BMW sends no fuel range of its own. Battery cars answer as before.
+- **The range check leads with the range you have left** (0.9.23-beta.1) (#203). Asked whether
+  a 900 km drive fits, an agent answered "yes, with a reserve of 20 km" when
+  142 km would be left: it took the safety margin the drive must stay above for
+  the range left after it. The margin is now named as one, and the agent is told
+  to give the range left.
+- **A charge that pauses by itself stays one session** (0.9.23-beta.1) (#180). Some cars stop
+  charging for a few minutes mid-charge and carry on by themselves; a MINI
+  Cooper SE on a portable charger paused for 2:39 and 2:03 and was recorded as
+  three charges. While the cable stays in, a stopped charge now waits five
+  minutes for a resume instead of two; pulling the cable ends it at once, and a
+  car that doesn't report its plug keeps the two minutes. A session now ends
+  when charging stopped, not when the wait ran out; the end-of-charge events
+  still fire after the wait.
+- **Distance this month shows whole kilometers** (0.9.23-beta.4) (or miles). It read
+  "1,460.00 km". A precision you set yourself on that entity stays.
+- **A charge running through a Home Assistant restart is no longer cut short
+  when the car stays quiet** (0.9.23-beta.5). Some cars, such as the i3, send nothing for
+  a quarter of an hour after a restart. The charge was then filed as ended
+  at the restart, and the rest of it never got a session. With a wallbox
+  meter bound, a meter that keeps counting now shows the charge is still
+  running, so it continues as one session. Thanks to erwinweiss1955 (#197).
 - **The card keeps telling a car from the debug device on Home Assistant
   2027.10.** That release drops the device field the card read to recognize
   the debug device, so the card editor could have offered it as a car. The
   card now reads the device's owner under all three names Home Assistant uses.
+
+### Documentation
+- **A stream that stays connected but silent after a BMW outage:** (0.9.23-beta.5) check the
+  car's Data Selection in the portal. The October outage deleted it for some
+  cars, and saving it again brings the stream back. Thanks to SalimSwift (#209).
 
 ## [0.9.23-beta.5] - 2026-10-26
 
