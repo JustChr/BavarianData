@@ -31,7 +31,7 @@ einmal am Tag:
 | Anfrage | Umfasst |
 | --- | --- |
 | Der Telematik-**Container** | 40 der 41 nicht streambaren Felder, die der Container-Endpunkt liefern kann — **eine Anfrage für alles** |
-| Der Container für die **Serviceumfänge** | Nur Condition Based Service. Seit dem 16. Okt. 2026 lehnt BMW jeden Container ab, der es enthält, und damit den ganzen Abruf, daher hat es einen eigenen Container — eine Anfrage |
+| Der Container für die **Serviceumfänge** | Nur Condition Based Service. Ab dem 16. Okt. 2026 lehnte BMW etwa eine Woche lang jeden Container ab, der es enthielt, und damit den ganzen Abruf, daher hat es einen eigenen Container — eine Anfrage |
 | **Reifendiagnose** | Profiltiefe und Restlaufleistung pro Rad — ein eigener Endpunkt, also eine eigene Anfrage |
 
 Alle drei gelten je Fahrzeug, die Aktualisierung kostet also **3 Anfragen
