@@ -28,7 +28,7 @@ Assistant, so the integration fetches them once a day:
 | Request | Covers |
 | --- | --- |
 | The telematics **container** | 40 of the 41 non-streamable fields the container endpoint can serve — **one request for the lot** |
-| The **service items** container | Condition Based Service alone. Since 16 Oct 2026 BMW refuses any container that holds it, and with it the whole fetch, so it has a container of its own — one request |
+| The **service items** container | Condition Based Service alone. From 16 Oct 2026 BMW refused any container that held it, and with it the whole fetch, for about a week, so it has a container of its own — one request |
 | **Tire diagnosis** | Tread wear and remaining mileage per wheel — its own endpoint, so its own request |
 
 All three are per vehicle, so the refresh costs **3 requests per car**: 3 a

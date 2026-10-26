@@ -474,7 +474,7 @@ number). The ones worth knowing:
 | --- | --- | --- |
 | CU-104 | No permission for this car | The car isn't mapped to your account or isn't telematics-capable. Check it is listed at BMW's CarData portal. |
 | CU-105 / CU-121 | The telemetry container is unknown or malformed | Configure → Connection → **Reset telemetry container** ([Settings](Settings-Reference#the-configure-menu)), then fetch again. |
-| CU-400 | Bad request | BMW refuses one field of a container, and with it the whole fetch. Since 16 Oct 2026 it does so for the service items (Condition Based Service), on every car seen so far. They come from a container of their own, so only they stay stale while BMW refuses them; the log says so as a warning. Any other fetch failing with CU-400: report it in an issue. |
+| CU-400 | Bad request | BMW refuses one field of a container, and with it the whole fetch. From 16 Oct 2026 it did so for the service items (Condition Based Service), on every car, for about a week; by 26 Oct BMW answered them again. They still come from a container of their own, so if BMW refuses them again, only they stay stale; the log says so as a warning. Any other fetch failing with CU-400: report it in an issue. |
 | CU-429 | Too many requests | See [quota exhausted](#quota-exhausted) below. |
 
 The stream is not affected by any of these.
@@ -484,8 +484,8 @@ The stream is not affected by any of these.
 outage on BMW's side, not a fault in your setup. If the CarData portal shows
 errors for your car at the same time, that confirms it. Each attempt still
 spends quota, so don't keep fetching; the daily refresh tries again, and the
-stream usually keeps delivering in the meantime. (Late October 2026 saw one
-such outage in several countries for days.)
+stream usually keeps delivering in the meantime. (One such outage hit several
+countries from 23 to 26 Oct 2026.)
 
 If the code is something else, or there's no code, [open an
 issue](#where-to-get-help) with the line, after replacing the VIN in its path

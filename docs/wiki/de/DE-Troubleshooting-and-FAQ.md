@@ -489,7 +489,7 @@ Versionen nannten nur die Zahl). Die wichtigsten:
 | --- | --- | --- |
 | CU-104 | Keine Berechtigung für dieses Auto | Das Auto ist deinem Konto nicht zugeordnet oder nicht telematikfähig. Prüfe, ob es in BMWs CarData-Portal steht. |
 | CU-105 / CU-121 | Der Telemetrie-Container ist unbekannt oder fehlerhaft | Konfigurieren → Verbindung → **Telemetrie-Container zurücksetzen** ([Einstellungen](DE-Settings-Reference#das-menü-konfigurieren)), dann erneut abrufen. |
-| CU-400 | Fehlerhafte Anfrage | BMW lehnt ein Feld eines Containers ab und damit den ganzen Abruf. Seit dem 16. Okt. 2026 tut es das für die Serviceumfänge (Condition Based Service), bei allen bisher gesehenen Autos. Sie kommen aus einem eigenen Container, also bleiben nur sie veraltet, solange BMW sie ablehnt; das Protokoll meldet es als Warnung. Schlägt ein anderer Abruf mit CU-400 fehl, melde es in einem Issue. |
+| CU-400 | Fehlerhafte Anfrage | BMW lehnt ein Feld eines Containers ab und damit den ganzen Abruf. Ab dem 16. Okt. 2026 tat es das etwa eine Woche lang für die Serviceumfänge (Condition Based Service), bei allen Autos; seit spätestens 26. Okt. liefert BMW sie wieder. Sie kommen weiter aus einem eigenen Container, also bleiben nur sie veraltet, falls BMW sie wieder ablehnt; das Protokoll meldet es als Warnung. Schlägt ein anderer Abruf mit CU-400 fehl, melde es in einem Issue. |
 | CU-429 | Zu viele Anfragen | Siehe [Kontingent aufgebraucht](#quota-exhausted) unten. |
 
 Der Stream ist von keinem davon betroffen.
@@ -500,7 +500,7 @@ erreicht. Das ist ein Ausfall bei BMW, kein Fehler in deiner Einrichtung.
 Zeigt das CarData-Portal zur selben Zeit Fehler für dein Auto, ist das die
 Bestätigung. Jeder Versuch verbraucht trotzdem Kontingent, also nicht immer
 wieder abrufen; die tägliche Aktualisierung versucht es erneut, und der Stream
-liefert meist weiter. (Ende Oktober 2026 gab es so einen Ausfall tagelang in
+liefert meist weiter. (Vom 23. bis 26. Okt. 2026 gab es so einen Ausfall in
 mehreren Ländern.)
 
 Bei einem anderen Code oder ohne Code [eröffne ein Issue](#wo-es-hilfe-gibt)
