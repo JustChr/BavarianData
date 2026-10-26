@@ -43,6 +43,7 @@ VIN = "WBAEXAMPLE0000000"
 # has to resolve to the same entry, and the last one -- a device the registry
 # does not know at all -- has to resolve to nothing without breaking the call.
 REGISTRY_SHAPES = {
+    "2027.10": {"config_entry_id": ENTRY},
     "2026.8+": {
         "config_entry_id": ENTRY,
         "primary_config_entry": ENTRY,
@@ -139,7 +140,7 @@ EXPECTED_SERVICES = {
 }
 
 
-@pytest.mark.parametrize("shape", ["2026.8+", "2026.3", "legacy-list-only"])
+@pytest.mark.parametrize("shape", ["2027.10", "2026.8+", "2026.3", "legacy-list-only"])
 def test_entry_id_travels_with_every_call(shape: str) -> None:
     """A known device puts its entry id on every service call."""
 
@@ -182,3 +183,40 @@ def test_no_call_site_builds_entry_id_by_hand() -> None:
     body = source.replace("{ ...data, entry_id: entryId }", "")
     offenders = re.findall(r"entry_id:\s*\w+", body)
     assert not offenders, f"entry_id set outside _withEntry: {offenders}"
+
+
+_DEVICE_CHECK = r"""
+const fs = require("fs");
+globalThis.HTMLElement = class {};
+globalThis.customElements = { define() {}, get() {}, whenDefined() {} };
+globalThis.window = globalThis;
+console.info = () => {};
+const src = fs.readFileSync(process.argv[1], "utf8");
+const Card = new Function(src + "\nreturn BavarianDataCard;")();
+const dev = JSON.parse(fs.readFileSync(0, "utf8"));
+process.stdout.write(JSON.stringify(Card._isVehicleDevice(dev)));
+"""
+
+
+@pytest.mark.parametrize("shape", ["2027.10", "2026.8+", "2026.3", "legacy-list-only"])
+def test_the_debug_device_is_never_a_car(shape: str) -> None:
+    """The debug device's identifier is its own entry id, under every registry shape.
+
+    Home Assistant drops ``config_entries`` in 2027.10; reading only that list
+    would make the debug device pass for a car and pre-fill the card with it.
+    """
+
+    def is_car(identifier: str) -> bool:
+        device = dict(REGISTRY_SHAPES[shape], identifiers=[["bavariandata", identifier]])
+        proc = subprocess.run(
+            [NODE, "-e", _DEVICE_CHECK, "--", str(_CARD)],
+            input=json.dumps(device),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert proc.returncode == 0, proc.stderr
+        return bool(json.loads(proc.stdout))
+
+    assert is_car(VIN)
+    assert not is_car(ENTRY)
