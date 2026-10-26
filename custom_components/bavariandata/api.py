@@ -66,6 +66,14 @@ def _extract_error_id(payload: Any) -> Optional[str]:
 # BMW's words for why, in the order worth showing; "ExveNote" per its docs.
 _DETAIL_KEYS = ("exveErrorMsg", "errorMessage", "message", "exveNote", "error_description")
 _VIN_RE = re.compile(r"\b[A-HJ-NPR-Z0-9]{17}\b")
+_HTML_TITLE_RE = re.compile(r"<title>\s*(?:\d{3}\s+)?(.*?)\s*</title>", re.IGNORECASE | re.DOTALL)
+
+
+def _html_reason(page: str) -> Optional[str]:
+    """The reason an HTML error page names in its title (a proxy's ``502 Bad Gateway``)."""
+
+    match = _HTML_TITLE_RE.search(page)
+    return match.group(1) if match else None
 
 
 def _error_detail(payload: Any) -> Optional[str]:
@@ -76,6 +84,9 @@ def _error_detail(payload: Any) -> Optional[str]:
         detail = next((payload[k] for k in _DETAIL_KEYS if payload.get(k)), None)
     elif isinstance(payload, str):
         detail = payload.strip()
+        if detail.startswith("<"):
+            # A front server's whole page says nothing its title doesn't.
+            detail = _html_reason(detail)
     if not detail:
         return None
     text = _VIN_RE.sub("<VIN>", " ".join(str(detail).split()))
