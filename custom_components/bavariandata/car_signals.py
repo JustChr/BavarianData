@@ -141,6 +141,11 @@ OPEN_SESSION_SAVE_INTERVAL_S = 300
 # sample rather than at the timeout.
 RESTORED_SESSION_GRACE_S = 900
 
+# How far the wallbox meter has to count past a restored charge's snapshot to
+# show the charge outlived the restart. Above a meter's rounding, below what
+# even a 1.4 kW trickle charge counts over the grace.
+METER_MOVED_KWH = 0.1
+
 # Charging statuses that mean this plug-in is over, as opposed to merely not
 # delivering right now. BMW's enum is nocharging / initialization /
 # chargingactive / chargingpaused / chargingended / chargingerror, and the

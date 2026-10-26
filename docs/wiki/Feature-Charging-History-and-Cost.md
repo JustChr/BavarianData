@@ -107,7 +107,9 @@ the last status the car sent, including a stop that happened while Home
 Assistant was down. That is the [automatic data refresh](Settings-Reference#automatic-data-refresh)
 after every start, and a running charge is checked even when the rest is skipped
 as recent. With it switched off the charge waits for the car, and is filed as
-ended by the restart if the car stays quiet for 15 minutes. Meanwhile the estimated state of
+ended by the restart if the car stays quiet for 15 minutes. The same goes when BMW
+can't answer. The exception is a bound [wallbox meter](Feature-evcc-and-Wallbox-Bridge#inbound-your-wallboxs-meter-for-the-charging-history) that is
+still counting: that shows the charge is running, so it continues. Meanwhile the estimated state of
 charge keeps climbing at the rate the charge was running at.
 
 Before v0.9.9 an in-progress charge was dropped outright on a restart, which is

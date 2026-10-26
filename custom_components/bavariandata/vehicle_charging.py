@@ -19,8 +19,8 @@ never break the stream: every entry point swallows and logs.
 from __future__ import annotations
 
 import logging
-from contextlib import suppress
 import re
+from contextlib import suppress
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Dict, Optional, Protocol
 
@@ -35,6 +35,7 @@ from .car_signals import (
     CHARGE_PLUGGED_HOLD_S,
     CHARGE_PROGRESS_DESCRIPTORS,
     CHARGE_TERMINAL_STATUSES,
+    METER_MOVED_KWH,
     OPEN_SESSION_SAVE_INTERVAL_S,
     RESTORED_SESSION_GRACE_S,
 )
@@ -910,16 +911,31 @@ class VehicleCharging:
         last snapshot was reported while we were away or since we came back.
         Deliberately not a plain "is the last power reading non-zero" test --
         that value lingers at its final figure long after the plug comes out.
+
+        A car that streams sparsely may send neither status nor power for the
+        whole grace (#197: an i3s, which then charged on for an hour with no
+        session). The wallbox meter answers for it: counting on past the
+        snapshot's last reading, at home and with no other car on it, is the
+        charge still running.
         """
 
         tracking = self._host._peek(vin).charge.tracking
         saved_at = self._host._peek(vin).session.restored_at
         if tracking is None or saved_at is None:
             return False
+        if self._meter_counted_since_snapshot(vin):
+            return True
         last_power_time = tracking.last_power_time
         if last_power_time is None or last_power_time <= saved_at:
             return False
         return bool(tracking.last_power_w and tracking.last_power_w > 0)
+
+    def _meter_counted_since_snapshot(self, vin: str) -> bool:
+        builder = self._host._peek(vin).session.builder
+        if builder is None or builder.grid_meter_last is None:
+            return False
+        meter_now = self._session_grid_meter_kwh(vin, builder)
+        return meter_now is not None and meter_now - builder.grid_meter_last >= METER_MOVED_KWH
 
     def _cancel_restored_open_timer(self, vin: str) -> bool:
         cancel = self._host._peek(vin).session.take("restored_timer")

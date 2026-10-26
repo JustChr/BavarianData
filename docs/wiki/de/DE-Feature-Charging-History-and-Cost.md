@@ -124,7 +124,9 @@ ist die [automatische Aktualisierung](DE-Settings-Reference#automatic-data-refre
 nach jedem Start, und ein laufender Ladevorgang wird auch dann geprüft, wenn der
 Rest als aktuell übersprungen wird. Ist sie abgeschaltet, wartet der Ladevorgang
 auf das Auto und wird als durch den Neustart beendet abgelegt, wenn das Auto 15
-Minuten lang schweigt. Der geschätzte
+Minuten lang schweigt. Dasselbe gilt, wenn BMW nicht antwortet. Ausnahme: Zählt
+ein eingebundener [Wallbox-Zähler](DE-Feature-evcc-and-Wallbox-Bridge#eingehend-der-zähler-deiner-wallbox-für-den-ladeverlauf) noch weiter, läuft die
+Ladung offensichtlich, und sie geht weiter. Der geschätzte
 Ladezustand steigt währenddessen mit der zuletzt gemessenen Rate weiter.
 
 Vor v0.9.9 ging eine laufende Ladung bei einem Neustart ganz verloren, weshalb

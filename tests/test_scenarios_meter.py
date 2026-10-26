@@ -343,6 +343,29 @@ def test_a_restart_adds_what_the_meter_counted_while_ha_was_down(order, snapshot
         assert h.render() == snapshot
 
 
+def test_a_restored_charge_the_meter_keeps_counting_is_not_filed(h):
+    """#197, the i3s on 25 Oct: a sparse car said nothing for the restored
+    charge's whole grace, so it was filed as ``restart`` at its last sample
+    while the wallbox counted on for another hour -- and no session ever
+    opened for that hour, since BMW only sends the status when it changes."""
+
+    _charge(h)
+    _wallbox_counts(h)
+    h.advance_to(140.5)
+    h.restart(downtime_s=180)
+    # The car stays silent; the wallbox keeps counting well past the grace.
+    for minute in range(145, 205, 5):
+        h.meter(minute, 1000.0 + 3.7 * (minute - 10) / 60)
+    _stop(h, 205)
+
+    today = [record for record in h.sessions() if record.start >= START]
+    assert len(today) == 1
+    session = today[0]
+    assert session.end_reason != "restart"
+    # Every kWh the wallbox counted, minute 10 to its last reading at 200.
+    assert session.grid_kwh == pytest.approx(3.7 * 190 / 60, abs=0.01)
+
+
 # --- learning, end to end ---------------------------------------------------
 
 
