@@ -9,6 +9,14 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **A charge running through a Home Assistant restart is no longer cut short
+  when the car stays quiet.** Some cars, such as the i3, send nothing for
+  a quarter of an hour after a restart. The charge was then filed as ended
+  at the restart, and the rest of it never got a session. With a wallbox
+  meter bound, a meter that keeps counting now shows the charge is still
+  running, so it continues as one session. Thanks to erwinweiss1955 (#197).
+
 ## [0.9.23-beta.4] - 2026-10-25
 
 ### Fixed
