@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.23-beta.5] - 2026-10-26
+
 ### Fixed
 - **A charge running through a Home Assistant restart is no longer cut short
   when the car stays quiet.** Some cars, such as the i3, send nothing for
