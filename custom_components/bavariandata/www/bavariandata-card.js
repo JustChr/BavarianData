@@ -4256,11 +4256,15 @@ class BavarianDataCard extends HTMLElement {
    * Whether a device is a car rather than the integration's "CarData Debug
    * Device". Both carry a `bavariandata` identifier: a car's is its VIN, the
    * debug device's is the id of its own config entry. The debug device holds
-   * diagnostics only, so a card bound to it has nothing to show.
+   * diagnostics only, so a card bound to it has nothing to show. The owning
+   * entry is read under every name Home Assistant has used (see
+   * `_deviceEntry`): `config_entries` goes away in 2027.10.
    */
   static _isVehicleDevice(dev) {
     if (!dev) return false;
-    const entries = new Set(dev.config_entries || []);
+    const entries = new Set(Array.isArray(dev.config_entries) ? dev.config_entries : []);
+    if (dev.config_entry_id) entries.add(dev.config_entry_id);
+    if (dev.primary_config_entry) entries.add(dev.primary_config_entry);
     return (dev.identifiers || []).some(
       (pair) => pair && pair[0] === "bavariandata" && !entries.has(pair[1])
     );

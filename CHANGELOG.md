@@ -9,6 +9,12 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **The card keeps telling a car from the debug device on Home Assistant
+  2027.10.** That release drops the device field the card read to recognize
+  the debug device, so the card editor could have offered it as a car. The
+  card now reads the device's owner under all three names Home Assistant uses.
+
 ## [0.9.23-beta.5] - 2026-10-26
 
 ### Fixed
