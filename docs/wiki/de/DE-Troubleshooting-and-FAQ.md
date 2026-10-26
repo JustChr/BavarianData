@@ -494,14 +494,20 @@ Versionen nannten nur die Zahl). Die wichtigsten:
 
 Der Stream ist von keinem davon betroffen.
 
-**HTTP 502 oder 503 mit einer HTML-Seite** (`502 Bad Gateway … nginx`) und
-ohne `CU-`-Code heißt: BMWs vorgelagerter Server hat den Dienst dahinter nicht
+**HTTP 502 (Bad Gateway) oder 503** ohne `CU-`-Code (Versionen vor
+v0.9.23-beta.5 protokollierten die ganze HTML-Seite des Servers) heißt: BMWs vorgelagerter Server hat den Dienst dahinter nicht
 erreicht. Das ist ein Ausfall bei BMW, kein Fehler in deiner Einrichtung.
 Zeigt das CarData-Portal zur selben Zeit Fehler für dein Auto, ist das die
 Bestätigung. Jeder Versuch verbraucht trotzdem Kontingent, also nicht immer
 wieder abrufen; die tägliche Aktualisierung versucht es erneut, und der Stream
 liefert meist weiter. (Vom 23. bis 26. Okt. 2026 gab es so einen Ausfall in
 mehreren Ländern.)
+
+Bleibt der Stream nach so einem Ausfall verbunden, sendet aber nichts, auch
+nicht nach einem Ver- oder Entriegeln in der App, sieh dir die Stream-Seite des
+Autos im Portal an: Der Ausfall im Oktober 2026 hat bei manchen Autos die
+Datenauswahl gelöscht. Speichere sie erneut oder starte **Konfigurieren →
+Gestreamte Daten auswählen**, dann liefert der Stream innerhalb einer Minute.
 
 Bei einem anderen Code oder ohne Code [eröffne ein Issue](#wo-es-hilfe-gibt)
 mit der Zeile; ersetze vorher die FIN im Pfad durch `…`.

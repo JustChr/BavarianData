@@ -85,6 +85,18 @@ def test_an_error_note_is_shortened_and_masked():
     assert api._error_detail({}) is None
 
 
+def test_an_html_error_page_is_its_title_alone():
+    # BMW's front server answered the Oct 2026 outage with nginx's whole page.
+    page = (
+        "<html>\r\n<head><title>502 Bad Gateway</title></head>\r\n<body>\r\n"
+        "<center><h1>502 Bad Gateway</h1></center>\r\n<hr><center>nginx/1.31.3</center>\r\n"
+        "</body>\r\n</html>\r\n"
+    )
+    err = api._api_error(502, "GET", "/customers/vehicles/WBA12345678901234/telematicData", page)
+    assert str(err) == "HTTP 502 (Bad Gateway) for GET /customers/vehicles/<VIN>/telematicData"
+    assert api._error_detail("<html><body>oops</body></html>") is None
+
+
 def test_charging_history_follows_pagination():
     session = FakeSession(
         [

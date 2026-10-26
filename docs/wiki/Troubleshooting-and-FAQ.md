@@ -479,13 +479,19 @@ number). The ones worth knowing:
 
 The stream is not affected by any of these.
 
-**HTTP 502 or 503 with an HTML page** (`502 Bad Gateway … nginx`) and no
-`CU-` code means BMW's front server couldn't reach the service behind it: an
+**HTTP 502 (Bad Gateway) or 503** with no `CU-` code (versions before
+v0.9.23-beta.5 logged the front server's whole HTML page) means BMW's front server couldn't reach the service behind it: an
 outage on BMW's side, not a fault in your setup. If the CarData portal shows
 errors for your car at the same time, that confirms it. Each attempt still
 spends quota, so don't keep fetching; the daily refresh tries again, and the
 stream usually keeps delivering in the meantime. (One such outage hit several
 countries from 23 to 26 Oct 2026.)
+
+After such an outage, if the stream stays connected but sends nothing, not
+even after a lock or unlock in the app, look at the car's stream setup page in
+the portal: the October 2026 outage deleted some cars' Data Selection. Save it
+again, or run **Configure → Choose streamed data**, and the stream delivers
+within a minute.
 
 If the code is something else, or there's no code, [open an
 issue](#where-to-get-help) with the line, after replacing the VIN in its path

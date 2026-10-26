@@ -17,6 +17,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   meter bound, a meter that keeps counting now shows the charge is still
   running, so it continues as one session. Thanks to erwinweiss1955 (#197).
 
+### Changed
+- **A BMW server error reads "HTTP 502 (Bad Gateway)"** in the log and in a
+  failed fetch, instead of the server's whole HTML page.
+
+### Documentation
+- **A stream that stays connected but silent after a BMW outage:** check the
+  car's Data Selection in the portal. The October outage deleted it for some
+  cars, and saving it again brings the stream back. Thanks to SalimSwift (#209).
+
 ## [0.9.23-beta.4] - 2026-10-25
 
 ### Fixed
