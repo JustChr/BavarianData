@@ -125,7 +125,7 @@ only after Chris has picked one.**
    `real` shoots the screen as the instance shows it). It answers the
    options-flow REST calls in the browser the way the integration would, so
    HA's real dialog renders the step with the installed build's translations
-   (so new strings need a beta first). Entity pickers are shown empty: their
+   (a screen with new strings sets `translate` in `mock_flow.js`, which lays the working tree's strings over the installed ones, browser only). Entity pickers are shown empty: their
    values are the user's own zone and sensor names, so the pictures can go in
    the wiki as they are.
    Nothing reaches HA (other calls are aborted, the flow is abandoned). Build
