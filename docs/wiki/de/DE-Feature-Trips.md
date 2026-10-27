@@ -124,7 +124,7 @@ zeigt **Konfigurieren → Fahrten** für dieses Auto einen zweiten Bildschirm,
 **Route vom Handy**:
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trips-phone.png?v=2026-10-12" alt="Der Bildschirm Route vom Handy mit seinen zwei Feldern, Handy und Handy ist im Auto, beide leer" width="460" />
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/bavariandata-configure-trips-phone.png?v=2026-10-27" alt="Der Bildschirm Route vom Handy mit seinen vier Feldern, Handy, Handy ist im Auto, Zweites Handy und Zweites Handy ist im Auto, alle leer" width="460" />
 </p>
 
 - **Handy**: der `device_tracker` des Handys. Seine Positionen während der Fahrt

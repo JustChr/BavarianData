@@ -63,7 +63,15 @@ const SCREENS = {
     followup: "trips_phone",
     name: "i3 120Ah",
     values: { trip_detection: "reports", trip_track: true },
-    fields: { trip_phone_tracker: "device_tracker", trip_phone_in_car: "binary_sensor" },
+    fields: {
+      trip_phone_tracker: "device_tracker",
+      trip_phone_in_car: "binary_sensor",
+      trip_phone_tracker_2: "device_tracker",
+      trip_phone_in_car_2: "binary_sensor",
+    },
+    // The installed build may not know a new string yet: take this step's
+    // labels from the working tree's translations instead (browser only).
+    translate: "options.step.trips_phone",
   },
 };
 
@@ -72,6 +80,18 @@ const screen = SCREENS[screenName];
 if (!screen || !["real", "staged"].includes(mode) || (screen.followup && mode !== "staged"))
   throw new Error("usage: <trips|charging|bridge|phone> <real|staged> <lang> <width> <outdir>");
 const NEXT = { en: "Next", de: "Weiter" };
+
+// The working tree's strings for one step, as the frontend keys them.
+function treeStrings(stepPath) {
+  const file = path.join(__dirname, "..", "..", "..", "custom_components", "bavariandata", "translations", `${lang}.json`);
+  const step = stepPath.split(".").reduce((node, key) => node[key], JSON.parse(fs.readFileSync(file, "utf8")));
+  const out = {};
+  for (const [group, texts] of Object.entries(step)) {
+    if (typeof texts === "string") out[`component.bavariandata.${stepPath}.${group}`] = texts;
+    else for (const [key, text] of Object.entries(texts)) out[`component.bavariandata.${stepPath}.${group}.${key}`] = text;
+  }
+  return out;
+}
 
 let realStep = null;
 let phase = "menu";
@@ -219,6 +239,27 @@ async function shot(page, name) {
     },
     [process.env.HA_TOKEN, URL, lang]
   );
+  if (screen.translate) {
+    // Overlay the working tree's strings on the frontend's translation answer.
+    await context.addInitScript((extra) => {
+      const data = Object.getOwnPropertyDescriptor(MessageEvent.prototype, "data");
+      Object.defineProperty(MessageEvent.prototype, "data", {
+        get() {
+          const raw = data.get.call(this);
+          if (typeof raw !== "string" || !raw.includes("component.bavariandata.")) return raw;
+          try {
+            const message = JSON.parse(raw);
+            const resources = message.result && message.result.resources;
+            if (!resources) return raw;
+            Object.assign(resources, extra);
+            return JSON.stringify(message);
+          } catch {
+            return raw;
+          }
+        },
+      });
+    }, treeStrings(screen.translate));
+  }
   const page = await context.newPage();
 
   if (screen.followup) {
