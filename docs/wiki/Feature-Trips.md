@@ -125,6 +125,12 @@ second screen, **Route from a phone**, for that car:
   turns on, that counts as `bavariandata.mark_trip_start`, so the trip gets its
   start time without an automation. Only positions taken while it is on are kept.
   Without it, positions are held from the trip's start mark to its arrival.
+- **Second phone** / **Second phone is in the car** (both optional): the same
+  pair for a second driver, say a partner. Each phone keeps its own positions. If
+  both phones rode along, the first phone draws the route; the second one's is
+  used when the first stayed home or ended somewhere else. Either phone turning
+  on its in-car sensor marks the start, and the earliest mark counts. Leave the
+  second pair empty and nothing changes.
 
 What the car says still wins:
 

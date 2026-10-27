@@ -117,6 +117,9 @@ TRIP_DETECTION_CHOICES = (TRIP_DETECTION_LIVE, TRIP_DETECTION_REPORTS)
 # Per car, and used only with ``trip_track`` on (``phone_route.py``).
 OPTION_TRIP_PHONE_TRACKER = "trip_phone_tracker"
 OPTION_TRIP_PHONE_IN_CAR = "trip_phone_in_car"
+# A second phone (a partner's), same pair. When both rode along, the first wins.
+OPTION_TRIP_PHONE_TRACKER_2 = "trip_phone_tracker_2"
+OPTION_TRIP_PHONE_IN_CAR_2 = "trip_phone_in_car_2"
 # Trip-capture debug mode (diagnostic, off by default). Independent of the
 # generic ``debug_log`` toggle: when on, the coordinator emits a rich, greppable
 # capture of the trip detector's raw substrate (every GPS fix, the close-timer

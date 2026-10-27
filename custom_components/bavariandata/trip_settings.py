@@ -24,7 +24,9 @@ from .const import (
     OPTION_TRIP_DEFAULT_CLASS,
     OPTION_TRIP_DETECTION,
     OPTION_TRIP_PHONE_IN_CAR,
+    OPTION_TRIP_PHONE_IN_CAR_2,
     OPTION_TRIP_PHONE_TRACKER,
+    OPTION_TRIP_PHONE_TRACKER_2,
     OPTION_TRIP_TRACK,
     OPTION_TRIP_WORK_ZONE,
     TRIP_DETECTION_CHOICES,
@@ -51,6 +53,9 @@ class TripSettings:
     # back to reports finds them where they were.
     phone_tracker: Optional[str] = None
     phone_in_car: Optional[str] = None
+    # A second phone's pair: when both rode along, the first one's route wins.
+    phone_tracker_2: Optional[str] = None
+    phone_in_car_2: Optional[str] = None
 
     @property
     def report_trips(self) -> bool:
@@ -62,7 +67,22 @@ class TripSettings:
     def phone_route(self) -> bool:
         """True when the route of a report trip comes from a phone."""
 
-        return self.report_trips and self.record_track and bool(self.phone_tracker)
+        return self.report_trips and self.record_track and bool(self.phones)
+
+    @property
+    def phones(self) -> tuple[tuple[int, str, Optional[str]], ...]:
+        """The phones that give a route, in priority order: (slot, tracker, in-car)."""
+
+        return tuple(
+            (slot, tracker, in_car)
+            for slot, (tracker, in_car) in enumerate(
+                (
+                    (self.phone_tracker, self.phone_in_car),
+                    (self.phone_tracker_2, self.phone_in_car_2),
+                )
+            )
+            if tracker
+        )
 
     @classmethod
     def from_values(cls, values: Mapping[str, Any]) -> "TripSettings":
@@ -83,6 +103,8 @@ class TripSettings:
             record_track=bool(values.get(OPTION_TRIP_TRACK)),
             phone_tracker=values.get(OPTION_TRIP_PHONE_TRACKER) or None,
             phone_in_car=values.get(OPTION_TRIP_PHONE_IN_CAR) or None,
+            phone_tracker_2=values.get(OPTION_TRIP_PHONE_TRACKER_2) or None,
+            phone_in_car_2=values.get(OPTION_TRIP_PHONE_IN_CAR_2) or None,
         )
 
 

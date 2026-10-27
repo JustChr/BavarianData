@@ -375,11 +375,15 @@
         "description": "**{vehicle}** only reports when it parks, so its route can come from a phone that rides along, using the Home Assistant app's location. Distance, duration and charge still come from the car. Applies from the next trip on.",
         "data": {
           "trip_phone_tracker": "Phone",
-          "trip_phone_in_car": "Phone is in the car"
+          "trip_phone_in_car": "Phone is in the car",
+          "trip_phone_tracker_2": "Second phone",
+          "trip_phone_in_car_2": "Second phone is in the car"
         },
         "data_description": {
           "trip_phone_tracker": "Optional. Its positions draw the trip's route, kept only if the phone ends up where the car parked. Leave empty for a straight line.",
-          "trip_phone_in_car": "Optional. On while the phone is connected to the car (CarPlay, Android Auto, Bluetooth). Turning on starts a trip; without it, a trip needs Mark trip start."
+          "trip_phone_in_car": "Optional. On while the phone is connected to the car (CarPlay, Android Auto, Bluetooth). Turning on starts a trip; without it, a trip needs Mark trip start.",
+          "trip_phone_tracker_2": "Optional. For a second driver. If both phones rode along, the first phone draws the route; this one only when the first was not in the car.",
+          "trip_phone_in_car_2": "Optional. On while the second phone is connected to the car."
         }
       },
       "action_data_refresh": {

@@ -208,6 +208,7 @@ class VehicleReports:
         self.stop_watching_phone_routes()
         for car in self._host._cars.values():
             car.report.phone_route = None
+            car.report.phone_route_2 = None
         entities = sorted(
             {
                 entity_id
@@ -216,7 +217,8 @@ class VehicleReports:
                     *self._host.vehicle_trip_settings.values(),
                 )
                 if settings.phone_route
-                for entity_id in (settings.phone_tracker, settings.phone_in_car)
+                for _slot, tracker, in_car in settings.phones
+                for entity_id in (tracker, in_car)
                 if entity_id
             }
         )
@@ -230,15 +232,17 @@ class VehicleReports:
             self._phone_unsub()
             self._phone_unsub = None
 
-    def _phone_route(self, vin: str, settings: TripSettings, in_car_state: Any) -> PhoneRoute:
-        route = self._host._peek(vin).report.phone_route
+    def _phone_route(
+        self, vin: str, slot: int, in_car: Optional[str], in_car_state: Any
+    ) -> PhoneRoute:
+        route = self._host._peek(vin).report.route_in(slot)
         if route is None:
-            route = PhoneRoute(gated=bool(settings.phone_in_car))
-            if settings.phone_in_car:
+            route = PhoneRoute(gated=bool(in_car))
+            if in_car:
                 if in_car_state is None:
-                    in_car_state = self._host.hass.states.get(settings.phone_in_car)
+                    in_car_state = self._host.hass.states.get(in_car)
                 route.in_car = in_car_state is not None and in_car_state.state == "on"
-            self._host._car(vin).report.phone_route = route
+            self._host._car(vin).report.set_route_in(slot, route)
         return route
 
     @callback
@@ -257,25 +261,22 @@ class VehicleReports:
                 settings = self._host.trip_settings_for(vin)
                 if not settings.phone_route:
                     continue
-                if entity_id == settings.phone_in_car:
-                    # Created from the state *before* this change, so a car
-                    # first heard of now still sees the sensor turn on.
-                    route = self._phone_route(vin, settings, event.data.get("old_state"))
-                    if route.set_in_car(new_state.state == "on"):
-                        self.mark_trip_start(vin, now)
-                        # The phone may not move again for a while: where it
-                        # is now is where the drive starts.
-                        tracker = (
-                            self._host.hass.states.get(settings.phone_tracker)
-                            if settings.phone_tracker
-                            else None
+                for slot, phone, in_car in settings.phones:
+                    if entity_id == in_car:
+                        # Created from the state *before* this change, so a car
+                        # first heard of now still sees the sensor turn on.
+                        route = self._phone_route(vin, slot, in_car, event.data.get("old_state"))
+                        if route.set_in_car(new_state.state == "on"):
+                            self.mark_trip_start(vin, now)
+                            # The phone may not move again for a while: where it
+                            # is now is where the drive starts.
+                            tracker = self._host.hass.states.get(phone)
+                            if tracker is not None:
+                                self._add_phone_position(vin, route, tracker, now)
+                    elif entity_id == phone:
+                        self._add_phone_position(
+                            vin, self._phone_route(vin, slot, in_car, None), new_state, now
                         )
-                        if tracker is not None:
-                            self._add_phone_position(vin, route, tracker, now)
-                elif entity_id == settings.phone_tracker:
-                    self._add_phone_position(
-                        vin, self._phone_route(vin, settings, None), new_state, now
-                    )
         except Exception:  # noqa: BLE001 - a phone must not break the stream
             _LOGGER.exception("Could not follow the phone's position")
 
@@ -471,14 +472,26 @@ class VehicleReports:
         fit the trip (``phone_route.py``).
         """
 
-        route = self._host._peek(vin).report.phone_route
-        if route is None or not self._host.trip_settings_for(vin).phone_route:
+        settings = self._host.trip_settings_for(vin)
+        report = self._host._peek(vin).report
+        if not settings.phone_route:
             return []
         latitude = self._host._coordinate(vin, "latitude")
         longitude = self._host._coordinate(vin, "longitude")
         end_fix = (latitude, longitude) if latitude is not None and longitude is not None else None
-        points = route.take(start, end_at, end_fix)
-        if not points or end_fix is None:
+        # Every phone lets go of what it held up to this report; the first one,
+        # in the order the user set, whose route fits the trip draws it.
+        candidates = [
+            (route, points)
+            for slot, _tracker, _in_car in settings.phones
+            if (route := report.route_in(slot)) is not None
+            if (points := route.take(start, end_at, end_fix))
+        ]
+        if not candidates or end_fix is None:
             return []
+        # A phone with an in-car sensor that said so is surer than one that
+        # only happened to end where the car did.
+        gated = [points for route, points in candidates if route.gated]
+        points = (gated or [points for _route, points in candidates])[0]
         # The car's own fix closes the line: it is where the trip ends.
         return [*points, (end_at, *end_fix)]

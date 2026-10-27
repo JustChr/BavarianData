@@ -2351,7 +2351,9 @@
         'trip_detection': 'live',
         'trip_geocode': True,
         'trip_phone_in_car': None,
+        'trip_phone_in_car_2': None,
         'trip_phone_tracker': None,
+        'trip_phone_tracker_2': None,
         'trip_track': False,
         'trip_work_zone': 'zone.work',
       }),
@@ -2502,6 +2504,40 @@
             }),
           }),
         }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'trip_phone_tracker_2',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'device_tracker',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'trip_phone_in_car_2',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'binary_sensor',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
       ]),
       'description_placeholders': dict({
         'vehicle': 'i5 eDrive40',
@@ -2548,6 +2584,40 @@
             }),
           }),
         }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'trip_phone_tracker_2',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'device_tracker',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
+        dict({
+          'description': dict({
+            'suggested_value': None,
+          }),
+          'name': 'trip_phone_in_car_2',
+          'optional': True,
+          'required': False,
+          'selector': dict({
+            'entity': dict({
+              'domain': list([
+                'binary_sensor',
+              ]),
+              'multiple': False,
+              'reorder': False,
+            }),
+          }),
+        }),
       ]),
       'description_placeholders': dict({
         'vehicle': 'i5 eDrive40',
@@ -2567,7 +2637,9 @@
         'trip_detection': 'reports',
         'trip_geocode': False,
         'trip_phone_in_car': 'binary_sensor.phone_in_car',
+        'trip_phone_in_car_2': None,
         'trip_phone_tracker': 'device_tracker.phone',
+        'trip_phone_tracker_2': None,
         'trip_track': True,
         'trip_work_zone': None,
       }),
@@ -2842,7 +2914,9 @@
             'trip_default_class': 'business',
             'trip_detection': 'live',
             'trip_phone_in_car': None,
+            'trip_phone_in_car_2': None,
             'trip_phone_tracker': None,
+            'trip_phone_tracker_2': None,
             'trip_track': False,
             'trip_work_zone': None,
           }),
@@ -3042,7 +3116,9 @@
             'trip_default_class': 'business',
             'trip_detection': 'live',
             'trip_phone_in_car': None,
+            'trip_phone_in_car_2': None,
             'trip_phone_tracker': None,
+            'trip_phone_tracker_2': None,
             'trip_track': False,
             'trip_work_zone': None,
           }),

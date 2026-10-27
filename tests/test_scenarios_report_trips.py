@@ -447,3 +447,78 @@ def test_a_report_without_bmw_s_timestamp_ends_when_it_settles(h) -> None:
     (trip,) = h.trips()
     assert trip.end == h.at(120 + QUIET_MIN)
     assert trip.distance_km == 12
+
+
+# -- a second phone (discussion #231) -----------------------------------------
+
+PHONE_2 = "device_tracker.partner_phone"
+IN_CAR_2 = "binary_sensor.partner_android_auto"
+
+
+@pytest.fixture
+def two_phones(i3):
+    i3.hass.set_state(IN_CAR_2, "off")
+    i3.coordinator.trip_settings = _phone_settings(phone_tracker_2=PHONE_2, phone_in_car_2=IN_CAR_2)
+    i3.coordinator.watch_phone_routes()
+    return i3
+
+
+def _phone_2(h: CoordinatorHarness, minute: float, where) -> None:
+    h.advance_to(minute)
+    h.hass.set_state(PHONE_2, "not_home", latitude=where[0], longitude=where[1], gps_accuracy=8)
+
+
+def _drive_with_second_phone(h: CoordinatorHarness, *, first_rides: bool, offset: float) -> None:
+    """Home to Work. The second phone rides; the first only if ``first_rides``.
+
+    ``offset`` moves the second phone's line sideways so the two are told apart.
+    """
+
+    _burst(h, 0, 50_000, HOME, 50)
+    h.advance_to(100)
+    h.hass.set_state(IN_CAR_2, "on")
+    if first_rides:
+        h.hass.set_state(IN_CAR, "on")
+    for step in range(1, 20):
+        where = _between(HOME, WORK, step / 20)
+        _phone_2(h, 100 + step, (where[0] + offset, where[1]))
+        if first_rides:
+            _phone(h, 100 + step, where)
+    _phone_2(h, 119.5, WORK)
+    if first_rides:
+        _phone(h, 119.5, WORK)
+    h.advance_to(120)
+    h.hass.set_state(IN_CAR_2, "off")
+    h.hass.set_state(IN_CAR, "off")
+    _burst(h, 120, 50_026, WORK, 49)
+    _settle(h)
+
+
+def test_the_second_phone_draws_the_route_when_the_first_stayed_home(two_phones) -> None:
+    _drive_with_second_phone(two_phones, first_rides=False, offset=0)
+
+    (trip,) = two_phones.trips()
+    assert trip.track_source == "phone"
+    assert (trip.start, trip.end) == (two_phones.at(100), two_phones.at(120))
+    assert len(trip.track) == 20  # no fix of the phone's before it got in
+
+
+def test_when_both_phones_rode_along_the_first_one_wins(two_phones) -> None:
+    # 0.0005 degrees (~55 m) apart: both end at Work, only one line is drawn.
+    _drive_with_second_phone(two_phones, first_rides=True, offset=0.0005)
+
+    (trip,) = two_phones.trips()
+    assert trip.track_source == "phone"
+    expected = _between(HOME, WORK, 1 / 20)
+    assert tuple(trip.track[0][:2]) == pytest.approx(expected, abs=1e-5)
+
+
+def test_a_second_phone_that_was_not_in_the_car_adds_nothing(two_phones) -> None:
+    """Neither phone ends where the car parked: the straight line stays."""
+
+    elsewhere = (50.8500, 6.8000)
+    two_phones.hass.set_state(IN_CAR_2, "off")
+    _drive_with_phone(two_phones, end=elsewhere)
+
+    (trip,) = two_phones.trips()
+    assert trip.track == []

@@ -375,11 +375,15 @@
         "description": "**{vehicle}** só comunica ao estacionar, por isso o percurso pode vir de um telemóvel a bordo, com a localização da app Home Assistant. Distância, duração e carga continuam a vir do veículo. Aplica-se a partir da próxima viagem.",
         "data": {
           "trip_phone_tracker": "Telemóvel",
-          "trip_phone_in_car": "Telemóvel no veículo"
+          "trip_phone_in_car": "Telemóvel no veículo",
+          "trip_phone_tracker_2": "Segundo telemóvel",
+          "trip_phone_in_car_2": "O segundo telemóvel está no carro"
         },
         "data_description": {
           "trip_phone_tracker": "Opcional. As suas posições desenham o percurso da viagem, mantidas só se o telemóvel terminar onde o veículo estacionou. Deixe vazio para uma linha reta.",
-          "trip_phone_in_car": "Opcional. Ligado enquanto o telemóvel está ligado ao veículo (CarPlay, Android Auto, Bluetooth). Ao ligar inicia uma viagem; sem ele, uma viagem precisa de «Marcar início da viagem»."
+          "trip_phone_in_car": "Opcional. Ligado enquanto o telemóvel está ligado ao veículo (CarPlay, Android Auto, Bluetooth). Ao ligar inicia uma viagem; sem ele, uma viagem precisa de «Marcar início da viagem».",
+          "trip_phone_tracker_2": "Opcional. Para um segundo condutor. Se ambos os telemóveis iam no carro, o primeiro desenha o percurso; este só se o primeiro não estava no carro.",
+          "trip_phone_in_car_2": "Opcional. Ligado enquanto o segundo telemóvel está ligado ao carro."
         }
       },
       "action_data_refresh": {

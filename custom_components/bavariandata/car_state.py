@@ -234,6 +234,17 @@ class ReportState(_ReadOnlyWhenEmpty):
     pending: Optional[float] = None
     # Phone positions held for a report trip's route (``phone_route.py``).
     phone_route: Optional[PhoneRoute] = None
+    # The second phone's (``trip_settings.TripSettings.phones``, slot 1).
+    phone_route_2: Optional[PhoneRoute] = None
+
+    def route_in(self, slot: int) -> Optional[PhoneRoute]:
+        return self.phone_route_2 if slot else self.phone_route
+
+    def set_route_in(self, slot: int, route: Optional[PhoneRoute]) -> None:
+        if slot:
+            self.phone_route_2 = route
+        else:
+            self.phone_route = route
 
 
 @dataclass

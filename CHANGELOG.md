@@ -9,6 +9,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **A second phone for the route of an end-of-trip car** (#231). **Configure → Trips → Route
+  from a phone** takes a second phone and its in-car sensor, for a partner who drives
+  the same car. If both phones rode along, the first one draws the route; the second
+  one's is used when the first stayed home or ended elsewhere. Leave it empty and
+  nothing changes. Thanks to Alex for the idea.
+
 ## [0.9.23] - 2026-10-26
 
 Promotes 0.9.23-beta.1 to 0.9.23-beta.5. Pick your own tiles on the card's overview, read errors in your own language, and change the Client ID with Reconfigure. A car shows unavailable while BMW refuses the login, Assist tells a plug-in hybrid's fuel range from its electric range, and a charge that pauses or runs through a restart stays one session.

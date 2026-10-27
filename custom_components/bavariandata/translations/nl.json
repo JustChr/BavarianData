@@ -375,11 +375,15 @@
         "description": "**{vehicle}** meldt zich pas bij het parkeren, dus de route kan van een meerijdende telefoon komen, via de locatie van de Home Assistant-app. Afstand, duur en lading komen nog steeds van de auto. Geldt vanaf de volgende rit.",
         "data": {
           "trip_phone_tracker": "Telefoon",
-          "trip_phone_in_car": "Telefoon is in de auto"
+          "trip_phone_in_car": "Telefoon is in de auto",
+          "trip_phone_tracker_2": "Tweede telefoon",
+          "trip_phone_in_car_2": "Tweede telefoon zit in de auto"
         },
         "data_description": {
           "trip_phone_tracker": "Optioneel. De posities tekenen de route van de rit, alleen bewaard als de telefoon eindigt waar de auto parkeerde. Laat leeg voor een rechte lijn.",
-          "trip_phone_in_car": "Optioneel. Aan zolang de telefoon met de auto verbonden is (CarPlay, Android Auto, Bluetooth). Aanschakelen start een rit; zonder sensor heeft een rit 'Ritstart markeren' nodig."
+          "trip_phone_in_car": "Optioneel. Aan zolang de telefoon met de auto verbonden is (CarPlay, Android Auto, Bluetooth). Aanschakelen start een rit; zonder sensor heeft een rit 'Ritstart markeren' nodig.",
+          "trip_phone_tracker_2": "Optioneel. Voor een tweede bestuurder. Waren beide telefoons mee, dan tekent de eerste telefoon de route; deze alleen als de eerste niet in de auto zat.",
+          "trip_phone_in_car_2": "Optioneel. Aan zolang de tweede telefoon met de auto verbonden is."
         }
       },
       "action_data_refresh": {
