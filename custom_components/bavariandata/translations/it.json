@@ -375,11 +375,15 @@
         "description": "**{vehicle}** invia i dati solo quando parcheggia, quindi il suo percorso può venire da un telefono a bordo, tramite la posizione dell'app Home Assistant. Distanza, durata e carica restano quelle dell'auto. Vale dal prossimo viaggio.",
         "data": {
           "trip_phone_tracker": "Telefono",
-          "trip_phone_in_car": "Telefono in auto"
+          "trip_phone_in_car": "Telefono in auto",
+          "trip_phone_tracker_2": "Secondo telefono",
+          "trip_phone_in_car_2": "Il secondo telefono è in auto"
         },
         "data_description": {
           "trip_phone_tracker": "Facoltativo. Le sue posizioni disegnano il percorso del viaggio, tenute solo se il telefono finisce dove l'auto ha parcheggiato. Lascia vuoto per una linea retta.",
-          "trip_phone_in_car": "Facoltativo. Attivo mentre il telefono è collegato all'auto (CarPlay, Android Auto, Bluetooth). Quando si attiva inizia un viaggio; senza, un viaggio richiede «Segna inizio viaggio»."
+          "trip_phone_in_car": "Facoltativo. Attivo mentre il telefono è collegato all'auto (CarPlay, Android Auto, Bluetooth). Quando si attiva inizia un viaggio; senza, un viaggio richiede «Segna inizio viaggio».",
+          "trip_phone_tracker_2": "Facoltativo. Per un secondo conducente. Se erano in auto entrambi i telefoni, il percorso lo disegna il primo; questo solo se il primo non era in auto.",
+          "trip_phone_in_car_2": "Facoltativo. Attivo finché il secondo telefono è collegato all'auto."
         }
       },
       "action_data_refresh": {

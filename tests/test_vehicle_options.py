@@ -40,7 +40,13 @@ TRIP_FORM = {
     "trip_track": False,
 }
 # The entity pickers left empty: stored as "none", never left unchanged.
-CLEARED = {"trip_work_zone": None, "trip_phone_tracker": None, "trip_phone_in_car": None}
+CLEARED = {
+    "trip_work_zone": None,
+    "trip_phone_tracker": None,
+    "trip_phone_in_car": None,
+    "trip_phone_tracker_2": None,
+    "trip_phone_in_car_2": None,
+}
 
 
 # --- the shared rules ---------------------------------------------------------

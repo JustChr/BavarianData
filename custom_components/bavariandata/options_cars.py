@@ -46,7 +46,9 @@ from .const import (
     OPTION_TRIP_DETECTION,
     OPTION_TRIP_GEOCODE,
     OPTION_TRIP_PHONE_IN_CAR,
+    OPTION_TRIP_PHONE_IN_CAR_2,
     OPTION_TRIP_PHONE_TRACKER,
+    OPTION_TRIP_PHONE_TRACKER_2,
     OPTION_TRIP_TRACK,
     OPTION_TRIP_WORK_ZONE,
     TRIP_DETECTION_CHOICES,
@@ -101,6 +103,12 @@ from .vehicle_options import (
 
 # The vehicle picker's form field (not an option).
 _VEHICLE_FIELD = "vehicle"
+# The phone screen's pairs (tracker, in-car sensor), in priority order.
+PHONE_PAIRS = (
+    (OPTION_TRIP_PHONE_TRACKER, OPTION_TRIP_PHONE_IN_CAR),
+    (OPTION_TRIP_PHONE_TRACKER_2, OPTION_TRIP_PHONE_IN_CAR_2),
+)
+PHONE_KEYS = tuple(key for pair in PHONE_PAIRS for key in pair)
 # ``_vehicle_context``'s "no car picked yet" (``None`` means "no car known").
 _PICK = object()
 
@@ -634,7 +642,7 @@ class PerCarScreens(_FlowBase):
             if key in submitted
         }
         # Not on this form: kept as they are unless the phone screen changes them.
-        for key in (OPTION_TRIP_PHONE_TRACKER, OPTION_TRIP_PHONE_IN_CAR):
+        for key in PHONE_KEYS:
             submitted[key] = values.get(key)
         if phone_route_follows(submitted):
             self._trips_pending = (submitted, shared)
@@ -655,18 +663,16 @@ class PerCarScreens(_FlowBase):
         submitted, shared = self._trips_pending
         errors: dict[str, str] = {}
         if user_input is not None:
-            tracker = user_input.get(OPTION_TRIP_PHONE_TRACKER) or None
-            in_car = user_input.get(OPTION_TRIP_PHONE_IN_CAR) or None
-            if in_car and not tracker:
-                errors[OPTION_TRIP_PHONE_IN_CAR] = "phone_required"
-            else:
-                submitted = {
-                    **submitted,
-                    OPTION_TRIP_PHONE_TRACKER: tracker,
-                    OPTION_TRIP_PHONE_IN_CAR: in_car,
-                }
-                return self._save_trips(submitted, shared)
-            submitted = {**submitted, OPTION_TRIP_PHONE_TRACKER: tracker}
+            given = {key: user_input.get(key) or None for key in PHONE_KEYS}
+            for tracker_key, in_car_key in PHONE_PAIRS:
+                if given[in_car_key] and not given[tracker_key]:
+                    errors[in_car_key] = "phone_required"
+            if not errors:
+                return self._save_trips({**submitted, **given}, shared)
+            submitted = {
+                **submitted,
+                **{tracker_key: given[tracker_key] for tracker_key, _ in PHONE_PAIRS},
+            }
         schema = vol.Schema(
             {
                 vol.Optional(
@@ -676,6 +682,14 @@ class PerCarScreens(_FlowBase):
                 vol.Optional(
                     OPTION_TRIP_PHONE_IN_CAR,
                     description={"suggested_value": submitted.get(OPTION_TRIP_PHONE_IN_CAR)},
+                ): selector.EntitySelector(selector.EntitySelectorConfig(domain="binary_sensor")),
+                vol.Optional(
+                    OPTION_TRIP_PHONE_TRACKER_2,
+                    description={"suggested_value": submitted.get(OPTION_TRIP_PHONE_TRACKER_2)},
+                ): selector.EntitySelector(selector.EntitySelectorConfig(domain="device_tracker")),
+                vol.Optional(
+                    OPTION_TRIP_PHONE_IN_CAR_2,
+                    description={"suggested_value": submitted.get(OPTION_TRIP_PHONE_IN_CAR_2)},
                 ): selector.EntitySelector(selector.EntitySelectorConfig(domain="binary_sensor")),
             }
         )

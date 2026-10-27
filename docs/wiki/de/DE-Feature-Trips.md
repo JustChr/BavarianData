@@ -136,6 +136,12 @@ zeigt **Konfigurieren → Fahrten** für dieses Auto einen zweiten Bildschirm,
   `bavariandata.mark_trip_start`, die Fahrt bekommt ihre Startzeit also ohne
   Automation. Behalten werden nur Positionen, solange er an ist. Ohne ihn gelten
   die Positionen von der Startmarkierung der Fahrt bis zur Ankunft.
+- **Zweites Handy** / **Zweites Handy ist im Auto** (beide optional): dasselbe
+  Paar für eine zweite Person am Steuer, etwa den Partner. Jedes Handy sammelt
+  seine eigenen Positionen. Waren beide Handys dabei, zeichnet das erste die
+  Route; die des zweiten gilt, wenn das erste zu Hause blieb oder woanders
+  endete. Schaltet einer der beiden Sensoren ein, setzt das die Startmarkierung,
+  die früheste zählt. Bleibt das zweite Paar leer, ändert sich nichts.
 
 Was das Auto sagt, hat Vorrang:
 
