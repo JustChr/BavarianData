@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.24-beta.1] - 2026-10-27
+
 ### Added
 - **A second phone for the route of an end-of-trip car** (#231). **Configure → Trips → Route
   from a phone** takes a second phone and its in-car sensor, for a partner who drives
