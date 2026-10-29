@@ -179,3 +179,44 @@ def test_the_editor_offers_tiles_on_the_overview_only():
 def test_clearing_the_tiles_stores_no_key():
     stored = _editor({"tiles": ["tires"]}, {"cluster": "overview", "tiles": []})["stored"]
     assert "tiles" not in stored
+
+
+_PRESSURE_HARNESS = r"""
+const fs = require("fs");
+globalThis.HTMLElement = class {};
+globalThis.customElements = { define() {}, get() {}, whenDefined() {} };
+globalThis.window = globalThis;
+console.info = () => {};
+const Card = new Function(fs.readFileSync(process.argv[1], "utf8") + "\nreturn BavarianDataCard;")();
+const card = Object.create(Card.prototype);
+card._t = (k) => k;
+const wheels = JSON.parse(fs.readFileSync(0, "utf8"));
+process.stdout.write(JSON.stringify(wheels.map((w) => card._pressureStatus(w).cls)));
+"""
+
+
+def _pressure(state: str, unit: str | None) -> dict:
+    attributes = {"unit_of_measurement": unit} if unit else {}
+    return {"state": state, "attributes": attributes}
+
+
+def test_a_wheel_is_judged_in_one_unit_whatever_unit_each_sensor_displays():
+    # Home Assistant's display unit is per entity: one target in kPa beside
+    # three in bar must not read 2.3 against 240 as "low" (issue #235).
+    wheels = [
+        {"pressure": _pressure("2.3", "bar"), "pressureTarget": _pressure("240", "kPa")},
+        {"pressure": _pressure("2.3", "bar"), "pressureTarget": _pressure("2.4", "bar")},
+        {"pressure": _pressure("33.4", "psi"), "pressureTarget": _pressure("240", "kPa")},
+        {"pressure": _pressure("200", "kPa"), "pressureTarget": _pressure("2.4", "bar")},
+        {"pressure": _pressure("2.3", "furlongs"), "pressureTarget": _pressure("2.4", "bar")},
+    ]
+    result = subprocess.run(
+        [NODE, "-e", _PRESSURE_HARNESS, str(_CARD)],
+        input=json.dumps(wheels),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+        timeout=60,
+    )
+    assert json.loads(result.stdout) == ["ok", "ok", "ok", "low", "na"]

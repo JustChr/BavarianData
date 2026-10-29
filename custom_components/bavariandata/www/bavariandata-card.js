@@ -9246,7 +9246,7 @@ class BavarianDataCard extends HTMLElement {
   // agree. Falls back to a dash when no wheel has a measurement.
   _pressureRange(list) {
     const rated = list
-      .map((w) => ({ st: w.pressure, n: this._num(w.pressure) }))
+      .map((w) => ({ st: w.pressure, n: this._pressureKpa(w.pressure) }))
       .filter((r) => r.n != null)
       .sort((a, b) => a.n - b.n);
     if (!rated.length) return "—";
@@ -9495,10 +9495,24 @@ class BavarianDataCard extends HTMLElement {
     return this._pressureStatus(wheel);
   }
 
+  // A pressure state in kPa, whatever unit Home Assistant displays it in. The
+  // display unit is a per-entity setting, so one wheel's target can read "240
+  // kPa" beside three that read "2.4 bar" (issue #235). null for a unit that
+  // is not a known pressure: no verdict beats a wrong one.
+  _pressureKpa(st) {
+    const n = this._num(st);
+    if (n == null) return null;
+    const unit = String((st.attributes && st.attributes.unit_of_measurement) || "kPa")
+      .trim()
+      .toLowerCase();
+    const factor = { kpa: 1, bar: 100, mbar: 0.1, hpa: 0.1, pa: 0.001, psi: 6.894757 }[unit];
+    return factor == null ? null : n * factor;
+  }
+
   // Pressure alone, so the summary can report it separately from wear.
   _pressureStatus(wheel) {
-    const cur = this._num(wheel.pressure);
-    const tgt = this._num(wheel.pressureTarget);
+    const cur = this._pressureKpa(wheel.pressure);
+    const tgt = this._pressureKpa(wheel.pressureTarget);
     if (cur == null) return { cls: "na", label: this._t("t_nodata"), color: "var(--divider-color)" };
     if (tgt == null) return { cls: "na", label: this._t("t_current"), color: "var(--divider-color)" };
     const devPct = ((cur - tgt) / tgt) * 100;

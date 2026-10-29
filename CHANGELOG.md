@@ -9,6 +9,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.24-beta.2] - 2026-10-29
+
+### Fixed
+- **The Tires view called a wheel "Low" when its sensors were shown in different units**
+  (#235). BMW always sends kPa, but Home Assistant's display unit is a setting per sensor,
+  so a wheel could read 2.3 bar against a target of 240 kPa and come out at -99 %. The
+  card now converts bar, kPa and psi to one unit before comparing, and gives no verdict
+  for a unit it does not know. Thanks to Rob801801 for the report.
+
 ## [0.9.24-beta.1] - 2026-10-27
 
 ### Added
