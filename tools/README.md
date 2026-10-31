@@ -34,7 +34,8 @@ British English is a **delta**: Home Assistant loads `en` and overlays the
 requested language on top of it key by key (`helpers/translation.py`), so
 `en-GB.json` holds only the ~75 strings that differ rather than 1300 duplicated
 ones — duplicates nothing would regenerate. The bundled card's `t()` falls back
-the same way, so `TRANSLATIONS["en-GB"]` there is four keys.
+the same way, so `TRANSLATIONS["en-GB"]` in `www/bavariandata-card-translations.js`
+holds only the British keys.
 
 `tools/spelling_en_gb.json` is the single list of US/UK pairs, and it is
 deliberately a word list rather than suffix rules: `meter` is the device in all
@@ -83,7 +84,7 @@ the catalogue for `de fr it es nl pl pt cs sv da fi`; other locales (`ro-ro`,
 To add a language: drop its export into `catalogue_i18n/`, add it to `LANGUAGES`
 and a column to `_STATE_ROWS` in `generate_translations.py`, add it to
 `derived_entities.json`, write its hand-maintained flow sections (copy `en.json`
-minus `entity`), add a card table in `www/bavariandata-card.js`, a `STRINGS`
+minus `entity`), add a card table in `www/bavariandata-card-translations.js`, a `STRINGS`
 block in `history/export.py` and an option in `services.yaml`. The tests name
 each of those that is missing: `tests/test_translations_parity.py` holds every
 language to English's keys and `{placeholders}`. `python tools/i18n_gaps.py` lists

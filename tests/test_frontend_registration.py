@@ -146,7 +146,8 @@ def _load_register_card() -> dict:
         "__file__": str(_FRONTEND),
         "os": os,
         "_LOGGER": logging.getLogger(__name__),
-        "LOVELACE_CARD_FILENAME": _CONST.LOVELACE_CARD_FILENAME,
+        "DOMAIN": _CONST.DOMAIN,
+        "LOVELACE_CARD_FILES": _CONST.LOVELACE_CARD_FILES,
         "LOVELACE_CARD_URL": _CONST.LOVELACE_CARD_URL,
         "_integration_version": lambda: "0.0.0",
         # Publishing the Lovelace resource waits for HA to have started; the race
@@ -174,6 +175,20 @@ def test_concurrent_entry_setups_register_the_card_route_once(ha_http):
     asyncio.run(two_entries_starting_together())
 
     assert len(_card_routes(hass)) == 1
+
+
+def test_the_card_and_its_strings_are_served_side_by_side(ha_http):
+    # The card imports its strings by a URL relative to its own, so both must be
+    # served from the same directory -- and both must exist in the package.
+    register_card = _load_register_card()["async_register_frontend_card"]
+    hass = _FakeHass()
+
+    asyncio.run(register_card(hass))
+
+    served = {route.resource.canonical for route in hass.http.app.router.routes()}
+    assert served == {CARD_URL, "/bavariandata/bavariandata-card-translations.js"}
+    www = _FRONTEND.parent / "www"
+    assert all((www / name).is_file() for name in _CONST.LOVELACE_CARD_FILES)
 
 
 def test_failed_registration_lets_the_next_setup_retry(ha_http):

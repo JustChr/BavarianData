@@ -228,10 +228,12 @@ const jsonLd = [
 ];
 ---
 <Base lang={lang} title={copy.title} description={copy.description} path="" jsonLd={jsonLd} rawTitle>
-  {/* The hero card needs both; started here they load alongside the page
-      instead of after the demo runtime asks for them. */}
+  {/* The hero card needs all three; started here they load alongside the page
+      instead of after the demo runtime asks for them. The card is a module and
+      imports its strings, so both are module preloads. */}
   <link slot="head" rel="preload" href={url("demo/i5.json")} as="fetch" crossorigin="anonymous" />
-  <link slot="head" rel="preload" href={url("demo/bavariandata-card.js")} as="script" />
+  <link slot="head" rel="modulepreload" href={url("demo/bavariandata-card.js")} />
+  <link slot="head" rel="modulepreload" href={url("demo/bavariandata-card-translations.js")} />
   <main id="main" data-pagefind-body>
     <section class="hero">
       <div class="hero__waves" aria-hidden="true">

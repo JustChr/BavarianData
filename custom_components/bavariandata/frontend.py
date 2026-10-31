@@ -10,7 +10,8 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.start import async_at_started
 
 from .const import (
-    LOVELACE_CARD_FILENAME,
+    DOMAIN,
+    LOVELACE_CARD_FILES,
     LOVELACE_CARD_URL,
 )
 
@@ -40,9 +41,10 @@ async def async_register_frontend_card(hass: HomeAssistant) -> None:
     if _FRONTEND_REGISTERED:
         return
 
-    card_path = os.path.join(os.path.dirname(__file__), "www", LOVELACE_CARD_FILENAME)
-    if not os.path.isfile(card_path):
-        _LOGGER.warning("Cardata: bundled Lovelace card missing at %s", card_path)
+    www = os.path.join(os.path.dirname(__file__), "www")
+    missing = [name for name in LOVELACE_CARD_FILES if not os.path.isfile(os.path.join(www, name))]
+    if missing:
+        _LOGGER.warning("Cardata: bundled Lovelace card files missing in %s: %s", www, missing)
         return
 
     from homeassistant.components.http import StaticPathConfig
@@ -54,7 +56,10 @@ async def async_register_frontend_card(hass: HomeAssistant) -> None:
     _FRONTEND_REGISTERED = True
     try:
         await hass.http.async_register_static_paths(
-            [StaticPathConfig(LOVELACE_CARD_URL, card_path, cache_headers=False)]
+            [
+                StaticPathConfig(f"/{DOMAIN}/{name}", os.path.join(www, name), cache_headers=False)
+                for name in LOVELACE_CARD_FILES
+            ]
         )
     except BaseException:
         # Release the claim so reloading the entry can try again. BaseException,

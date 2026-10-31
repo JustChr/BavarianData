@@ -33,10 +33,12 @@ import subprocess
 
 import pytest
 
+from .card_source import evaluable_card
+
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
 _PKG = _ROOT / "custom_components" / "bavariandata"
 _TRANS = _PKG / "translations"
-_CARD = _PKG / "www" / "bavariandata-card.js"
+_CARD = evaluable_card()
 
 
 def _load(name: str, path: pathlib.Path):

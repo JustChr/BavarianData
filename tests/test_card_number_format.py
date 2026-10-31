@@ -17,15 +17,15 @@ Node is not installed. The last test is a text guard and always runs.
 from __future__ import annotations
 
 import json
-import pathlib
 import re
 import shutil
 import subprocess
 
 import pytest
 
-_ROOT = pathlib.Path(__file__).resolve().parents[1]
-_CARD = _ROOT / "custom_components" / "bavariandata" / "www" / "bavariandata-card.js"
+from .card_source import CARD, evaluable_card
+
+_CARD = evaluable_card()
 
 NODE = shutil.which("node")
 needs_node = pytest.mark.skipif(NODE is None, reason="Node.js is not installed")
@@ -139,7 +139,7 @@ def test_raw_rounding_never_reaches_the_page():
     # `_round` returns a number, and a number interpolated into a template prints
     # a point in every locale. Display text goes through `_dec`, SVG coordinates
     # through `_px`; nothing else may call `_round`.
-    source = _CARD.read_text(encoding="utf-8")
+    source = CARD.read_text(encoding="utf-8")
     allowed = [_method_body(source, "_dec"), _method_body(source, "_px")]
     stray = [
         source.count("\n", 0, m.start()) + 1

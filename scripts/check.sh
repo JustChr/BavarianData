@@ -50,6 +50,7 @@ gate "ruff format --check" python -m ruff format --check custom_components/bavar
 
 if command -v node >/dev/null 2>&1; then
   gate "node --check card" node --check custom_components/bavariandata/www/bavariandata-card.js
+  gate "node --check card strings" node --check custom_components/bavariandata/www/bavariandata-card-translations.js
   if [[ -d node_modules ]]; then
     gate "eslint card" npx --no-install eslint custom_components/bavariandata/www
   else

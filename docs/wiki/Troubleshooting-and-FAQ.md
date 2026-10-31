@@ -463,6 +463,25 @@ any dashboard renders.
 
 [fe18728]: https://github.com/home-assistant/frontend/issues/18728
 
+## The card shows names like `no_vehicle_title` instead of text
+
+<a id="card-shows-key-names"></a>
+
+Symptom: the card draws, but every label is a technical name with underscores
+(`no_vehicle_title`, `tires` …) instead of words.
+
+The card keeps its texts in a second file, `bavariandata-card-translations.js`,
+which it loads from beside itself. Here that second file didn't arrive. The
+browser console says so with the line *BavarianData card: could not load its
+translations*.
+
+1. **Hard-refresh the browser**, or reset the app's frontend cache (see
+   [the mobile-app section](#custom-element-doesnt-exist-app)).
+2. Open your Home Assistant address with
+   `/bavariandata/bavariandata-card-translations.js` appended. A 404 there is
+   the same **reverse proxy** problem as in test 2 above: it has to forward
+   everything under `/bavariandata/`.
+
 ## A fetch fails with "HTTP 400" or another HTTP error
 
 A `fetch_*` call or the daily refresh that BMW refuses logs a line like

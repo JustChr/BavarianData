@@ -203,6 +203,9 @@ EVENT_CHECK_CONTROL = f"{DOMAIN}_check_control"
 # a frontend resource so users don't have to add it manually.
 LOVELACE_CARD_FILENAME = "bavariandata-card.js"
 LOVELACE_CARD_URL = f"/{DOMAIN}/{LOVELACE_CARD_FILENAME}"
+# Every file the card loads, each served beside it at /<domain>/<name>: the card
+# imports its strings by a URL relative to its own.
+LOVELACE_CARD_FILES = (LOVELACE_CARD_FILENAME, "bavariandata-card-translations.js")
 
 HV_BATTERY_CONTAINER_NAME = "BMW CarData HV Battery"
 HV_BATTERY_CONTAINER_PURPOSE = "High voltage battery telemetry"

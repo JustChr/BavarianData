@@ -14,15 +14,15 @@ where Node is not installed.
 from __future__ import annotations
 
 import json
-import pathlib
 import re
 import shutil
 import subprocess
 
 import pytest
 
-_ROOT = pathlib.Path(__file__).resolve().parents[1]
-_CARD = _ROOT / "custom_components" / "bavariandata" / "www" / "bavariandata-card.js"
+from .card_source import evaluable_card
+
+_CARD = evaluable_card()
 
 NODE = shutil.which("node")
 pytestmark = pytest.mark.skipif(NODE is None, reason="Node.js is not installed")

@@ -25,7 +25,10 @@ export default [
     plugins: { "no-unsanitized": nounsanitized },
     languageOptions: {
       ecmaVersion: 2023,
-      sourceType: "script",
+      // Home Assistant loads the card as a module resource, and the card
+      // imports its strings (bavariandata-card-translations.js) with a
+      // top-level await.
+      sourceType: "module",
       globals: {
         // Browser surface the card actually touches.
         window: "readonly",

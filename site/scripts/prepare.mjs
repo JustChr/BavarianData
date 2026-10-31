@@ -26,9 +26,12 @@ for (const dir of [GEN, join(PUBLIC, "demo"), join(PUBLIC, "screenshots")]) mkdi
 rmSync(join(SITE, ".astro"), { recursive: true, force: true });
 
 // --- the card ---------------------------------------------------------------
-const cardPath = join(ROOT, "custom_components", "bavariandata", "www", "bavariandata-card.js");
-const card = readFileSync(cardPath, "utf8");
-copyFileSync(cardPath, join(PUBLIC, "demo", "bavariandata-card.js"));
+// Both files: the card imports its strings from beside itself.
+const WWW = join(ROOT, "custom_components", "bavariandata", "www");
+for (const name of ["bavariandata-card.js", "bavariandata-card-translations.js"]) {
+  copyFileSync(join(WWW, name), join(PUBLIC, "demo", name));
+}
+const card = readFileSync(join(WWW, "bavariandata-card.js"), "utf8");
 const cardVersion = (card.match(/const CARD_VERSION = "([^"]+)"/) || [])[1];
 
 // --- icons ------------------------------------------------------------------
