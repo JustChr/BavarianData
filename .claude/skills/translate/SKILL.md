@@ -25,7 +25,7 @@ not — retranslate unless the English change was a typo fix with no meaning cha
 | `[source]` | File | Notes |
 | --- | --- | --- |
 | `translations` | `custom_components/bavariandata/translations/<lang>.json` | Hand-edit every section **except `entity`** (generated). |
-| `card` | `www/bavariandata-card.js`, `TRANSLATIONS.<lang>` | Same key order as `en`. |
+| `card` | `www/bavariandata-card-translations.js`, `TRANSLATIONS.<lang>` | Same key order as `en`. |
 | `report` | `history/export.py`, `STRINGS["<lang>"]` | HTML month report. |
 | `export_history.language` | `services.yaml` | Must list exactly the report's languages. |
 

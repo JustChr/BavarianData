@@ -121,7 +121,7 @@ async def test_a_missing_card_file_is_reported_and_retried_next_time(
     monkeypatch.setattr(frontend, "_FRONTEND_REGISTERED", False)
     with patch(f"{PACKAGE}.frontend.os.path.isfile", return_value=False):
         await integration.async_register_frontend_card(hass)
-    assert "bundled Lovelace card missing" in caplog.text
+    assert "bundled Lovelace card files missing" in caplog.text
     assert frontend._FRONTEND_REGISTERED is False
 
 

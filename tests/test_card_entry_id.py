@@ -23,15 +23,15 @@ does it.
 from __future__ import annotations
 
 import json
-import pathlib
 import re
 import shutil
 import subprocess
 
 import pytest
 
-_ROOT = pathlib.Path(__file__).resolve().parents[1]
-_CARD = _ROOT / "custom_components" / "bavariandata" / "www" / "bavariandata-card.js"
+from .card_source import CARD, evaluable_card
+
+_CARD = evaluable_card()
 
 NODE = shutil.which("node")
 pytestmark = pytest.mark.skipif(NODE is None, reason="Node.js is not installed")
@@ -179,7 +179,7 @@ def test_no_call_site_builds_entry_id_by_hand() -> None:
     aside.
     """
 
-    source = _CARD.read_text(encoding="utf-8")
+    source = CARD.read_text(encoding="utf-8")
     body = source.replace("{ ...data, entry_id: entryId }", "")
     offenders = re.findall(r"entry_id:\s*\w+", body)
     assert not offenders, f"entry_id set outside _withEntry: {offenders}"

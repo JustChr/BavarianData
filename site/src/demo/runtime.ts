@@ -473,8 +473,12 @@ function loadCard(src: string) {
   if (customElements.get("bavariandata-card")) return Promise.resolve();
   return new Promise<void>((resolve, reject) => {
     const script = document.createElement("script");
+    // A module, as Home Assistant loads it: it imports its strings from beside itself.
+    script.type = "module";
     script.src = src;
-    script.onload = () => resolve();
+    // A module's load event fires before its top-level await (the strings) has
+    // settled, so wait for the element itself.
+    script.onload = () => customElements.whenDefined("bavariandata-card").then(() => resolve());
     script.onerror = () => reject(new Error("card failed to load"));
     document.head.append(script);
   });

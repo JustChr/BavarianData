@@ -9,6 +9,13 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Changed
+- **The dashboard card keeps its texts in a file of its own** (card 1.16.0).
+  `bavariandata-card-translations.js` sits beside the card, and the card loads it
+  under the same version as itself, so a browser never mixes a new card with old
+  texts. Nothing changes on your dashboard. If the card ever shows names like
+  `no_vehicle_title` instead of words, see the Troubleshooting page.
+
 ## [0.9.24-beta.2] - 2026-10-29
 
 ### Fixed

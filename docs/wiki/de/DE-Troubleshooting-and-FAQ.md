@@ -477,6 +477,24 @@ angezeigt wird.
 
 [fe18728]: https://github.com/home-assistant/frontend/issues/18728
 
+## Die Karte zeigt Namen wie `no_vehicle_title` statt Text
+
+<a id="card-shows-key-names"></a>
+
+Symptom: Die Karte erscheint, aber jede Beschriftung ist ein technischer Name mit
+Unterstrichen (`no_vehicle_title`, `tires` …) statt Wörtern.
+
+Die Karte hat ihre Texte in einer zweiten Datei, `bavariandata-card-translations.js`, die
+sie von ihrem eigenen Ort nachlädt. Hier ist diese zweite Datei nicht angekommen. Die
+Browser-Konsole sagt das mit der Zeile *BavarianData card: could not load its translations*.
+
+1. **Lade den Browser hart neu** oder setze den Frontend-Cache der App zurück (siehe
+   [den Abschnitt zur App](#custom-element-doesnt-exist-app)).
+2. Öffne deine Home-Assistant-Adresse mit angehängtem
+   `/bavariandata/bavariandata-card-translations.js`. Ein 404 dort ist dasselbe
+   **Reverse-Proxy**-Problem wie in Test 2 oben: Er muss alles unter `/bavariandata/`
+   weiterleiten.
+
 ## Ein Abruf schlägt mit „HTTP 400“ oder einem anderen HTTP-Fehler fehl
 
 Ein `fetch_*`-Aufruf oder die tägliche Aktualisierung, die BMW ablehnt,

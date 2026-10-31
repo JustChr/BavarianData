@@ -27,16 +27,15 @@ from __future__ import annotations
 
 import json
 import os
-import pathlib
 import shutil
 import subprocess
 
 import pytest
 
 from .test_card_drivetrain import I5, M2, MINI, PHEV
+from .card_source import evaluable_card
 
-_ROOT = pathlib.Path(__file__).resolve().parents[1]
-_CARD = _ROOT / "custom_components" / "bavariandata" / "www" / "bavariandata-card.js"
+_CARD = evaluable_card()
 
 NODE = shutil.which("node")
 pytestmark = pytest.mark.skipif(NODE is None, reason="Node.js is not installed")

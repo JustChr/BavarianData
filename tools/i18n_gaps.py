@@ -5,7 +5,8 @@ User-facing text lives in five places, each with its own table per language:
 
 * ``translations/<lang>.json`` -- the hand-maintained sections (everything but
   the generated ``entity`` block, which the pipeline fills from BMW's catalogues);
-* ``TRANSLATIONS`` in ``www/bavariandata-card.js`` -- the dashboard card;
+* ``TRANSLATIONS`` in ``www/bavariandata-card-translations.js`` -- the
+  dashboard card;
 * ``STRINGS`` in ``history/export.py`` -- the printable month report;
 * ``STRINGS`` in ``service_calendar.py`` -- the service calendar's event texts;
 * the ``language`` options of ``export_history`` in ``services.yaml``.
@@ -49,7 +50,10 @@ import yaml
 REPO = Path(__file__).resolve().parents[1]
 PKG_REL = "custom_components/bavariandata"
 TRANS_REL = f"{PKG_REL}/translations"
-CARD_REL = f"{PKG_REL}/www/bavariandata-card.js"
+CARD_REL = f"{PKG_REL}/www/bavariandata-card-translations.js"
+# Where the card's table lived before it had a file of its own, for --since refs
+# from before v0.9.24.
+LEGACY_CARD_REL = f"{PKG_REL}/www/bavariandata-card.js"
 EXPORT_REL = f"{PKG_REL}/history/export.py"
 CALENDAR_REL = f"{PKG_REL}/service_calendar.py"
 SERVICES_REL = f"{PKG_REL}/services.yaml"
@@ -125,6 +129,11 @@ def ha_tables(ref: Optional[str]) -> Tables:
 def card_tables(ref: Optional[str]) -> Tables:
     node = shutil.which("node")
     text = _read(CARD_REL, ref)
+    if text is not None:
+        # A module; the dump evaluates it as a plain script.
+        text = text.replace("export const TRANSLATIONS", "const TRANSLATIONS", 1)
+    else:
+        text = _read(LEGACY_CARD_REL, ref)
     if node is None or text is None:
         return {}
     with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8") as f:
