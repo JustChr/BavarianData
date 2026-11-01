@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.24-beta.4] - 2026-11-01
+
 ### Fixed
 - **A wallbox meter that jumps back for a moment no longer inflates a charge's cost
   and energy mix** (#197). Some integrations briefly report an old meter reading and
