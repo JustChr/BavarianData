@@ -168,6 +168,22 @@ und folgt jedem Ver- und Entriegeln innerhalb von Sekunden, mit denselben Werten
 `Gesichert` / `Verriegelt` / `Teilweise verriegelt` / `Entriegelt`. Siehe
 [Welche Verriegelungs-Entität verwenden](DE-Feature-Entities-and-Devices#which-lock-entity-to-use).
 
+## Die Tankfüllung in Litern ändert sich nie
+
+<a id="fuel-litres-never-change"></a>
+
+Liegt an BMW und ist kein Fehler. Manche Autos (etwa ein 530e Plug-in-Hybrid)
+senden die Tankfüllung in Litern (`vehicle.drivetrain.fuelSystem.remainingFuel`) nur
+mit ihrem gelegentlichen Teleservice-Anruf, den Tankfüllstand in Prozent
+(`vehicle.drivetrain.fuelSystem.level`) dagegen bei jeder Fahrt. Die Liter stehen
+dann wochenlang still. BMWs eigener CarData-Export zeigt denselben alten Wert, mit
+dem Zeitstempel des letzten Teleservice-Anrufs.
+
+BavarianData lässt Liter weg, die mehr als einen Tag älter sind als der Füllstand.
+Die Ansicht Kraftstoff zeigt dann den Füllstand und findet Tankstopps darin. Der
+Verbrauch zwischen Tankstopps wird in Litern berechnet und bleibt bei einem solchen
+Auto leer.
+
 ## Die REST-Werte eines zweiten Fahrzeugs sind eingefroren
 
 Behoben in **v0.9.11-beta.2**. Davor wurde bei Konten mit mehreren Fahrzeugen
