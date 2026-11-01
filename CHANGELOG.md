@@ -9,6 +9,54 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.24] - 2026-11-01
+
+Promotes 0.9.24-beta.1 to 0.9.24-beta.4. A second phone can draw the route of an end-of-trip car, and the card's texts load from a file of their own. A wallbox meter that jumps back no longer bills a charge twice, refuels show up when a car's litres stop updating, the Tires view compares pressures in one unit, and the Trips and Charging views keep the last day of the month.
+
+### Added
+- **A second phone for the route of an end-of-trip car** (0.9.24-beta.1) (#231). **Configure → Trips → Route
+  from a phone** takes a second phone and its in-car sensor, for a partner who drives
+  the same car. If both phones rode along, the first one draws the route; the second
+  one's is used when the first stayed home or ended elsewhere. Leave it empty and
+  nothing changes. Thanks to Alex for the idea.
+
+### Changed
+- **The dashboard card keeps its texts in a file of its own** (0.9.24-beta.3) (card 1.16.0).
+  `bavariandata-card-translations.js` sits beside the card, and the card loads it
+  under the same version as itself, so a browser never mixes a new card with old
+  texts. Nothing changes on your dashboard. If the card ever shows names like
+  `no_vehicle_title` instead of words, see the Troubleshooting page.
+
+### Fixed
+- **The Tires view called a wheel "Low" when its sensors were shown in different units** (0.9.24-beta.2)
+  (#235). BMW always sends kPa, but Home Assistant's display unit is a setting per sensor,
+  so a wheel could read 2.3 bar against a target of 240 kPa and come out at -99 %. The
+  card now converts bar, kPa and psi to one unit before comparing, and gives no verdict
+  for a unit it does not know. Thanks to Rob801801 for the report.
+- **The card's Trips and Charging views left out the last day of every month** (0.9.24-beta.3) (#238).
+  A bare date such as `to: 2026-10-31` was read as midnight at the start of the 31st,
+  so `get_trips`, `get_charging_sessions` and `get_charging_places` asked for a month
+  without its last day. A bare date now covers the whole day, and it is a day in Home
+  Assistant's time zone, not in UTC, so the first and last hours of a month no longer
+  fall into the month next to it. A bare `to` for `fetch_charging_history` also runs
+  to the end of its day now. Thanks to stepas72 for tracking it down.
+- **A wallbox meter that jumps back for a moment no longer inflates a charge's cost
+  and energy mix** (0.9.24-beta.4) (#197). Some integrations briefly report an old meter reading and
+  then the real one again. That dip was read as a meter reset: the climb back was
+  billed a second time, and the charge lost its measured `grid_kwh`. A reading that
+  goes backwards now counts nothing until the next one shows what it was. If the
+  meter comes back, the dip is ignored. If it keeps counting from the lower value,
+  it was a real reset and counting starts again from there. The same rule applies
+  to the charge estimate driven by the meter. Thanks to erwinweiss1955 for finding
+  the cause.
+- **A fuel litres reading that stopped updating no longer hides refuels** (0.9.24-beta.4) (#240).
+  Some cars send the litres only with their occasional service call, so the reading
+  can sit unchanged for weeks while the fuel level moves every drive. Refuels were
+  looked for in the frozen litres and never found, and the Fuel view showed the old
+  figure as the tank. Litres more than a day older than the fuel level are now left
+  out: the Fuel view shows the level and finds refuels in it, until the litres
+  update again.
+
 ## [0.9.24-beta.4] - 2026-11-01
 
 ### Fixed
