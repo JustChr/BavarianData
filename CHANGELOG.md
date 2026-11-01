@@ -9,6 +9,8 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+## [0.9.24-beta.3] - 2026-11-01
+
 ### Changed
 - **The dashboard card keeps its texts in a file of its own** (card 1.16.0).
   `bavariandata-card-translations.js` sits beside the card, and the card loads it
