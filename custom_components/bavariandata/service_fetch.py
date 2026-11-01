@@ -170,7 +170,9 @@ async def async_handle_fetch_charging_history(ctx: ServiceContext, call: Service
     # BMW requires both from/to; default to the last 30 days so a bare
     # call from the UI succeeds instead of returning HTTP 400.
     now = dt_util.utcnow()
-    to_date = as_cardata_timestamp(call.data.get("to")) or service_answers.cardata_timestamp(now)
+    to_date = as_cardata_timestamp(
+        call.data.get("to"), end_of_day=True
+    ) or service_answers.cardata_timestamp(now)
     from_date = as_cardata_timestamp(call.data.get("from")) or service_answers.cardata_timestamp(
         now - timedelta(days=30)
     )

@@ -64,10 +64,10 @@ These read (or write) the integration's own store and cost **no** quota.
 `vin`, `from`, `to`, `limit`. Returns records newest-first as **response data**
 (tick *Return response* in Developer Tools).
 
-A bare date names the **whole day**, at whichever end it is used: `from:
-2026-08-01` starts at midnight and `to: 2026-08-31` runs to the end of the 31st,
-so asking for a month doesn't silently drop its last day. Pass an explicit
-date/time instead and it is used exactly as given.
+A bare date names the **whole day** in Home Assistant's time zone, at whichever
+end it is used: `from: 2026-08-01` starts at your midnight and `to: 2026-08-31`
+runs to the end of the 31st, so asking for a month doesn't silently drop its last
+day. Pass an explicit date/time instead and it is used exactly as given.
 
 `get_trips` also returns **`open_trips`** — a drive still under way, which is not
 in the journal yet: no end, no classification, a provisional distance and the

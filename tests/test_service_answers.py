@@ -39,20 +39,55 @@ def test_bmw_timestamps_are_utc_with_a_z() -> None:
     assert answers.as_cardata_timestamp("yesterday", None, BERLIN) == "yesterday"
 
 
-def test_a_bare_date_bound_covers_the_whole_day() -> None:
+def test_a_bare_date_bound_covers_the_whole_local_day() -> None:
     day = date(2026, 8, 31)
-    assert answers.day_bound(day, end_of_day=False) == datetime(2026, 8, 31, tzinfo=timezone.utc)
-    end = answers.day_bound(day, end_of_day=True)
-    assert end.date() == day and end.hour == 23 and end.tzinfo is timezone.utc
+    assert answers.day_bound(day, end_of_day=False, local_tz=BERLIN) == datetime(
+        2026, 8, 30, 22, 0, tzinfo=timezone.utc
+    )
+    end = answers.day_bound(day, end_of_day=True, local_tz=BERLIN)
+    assert end.tzinfo is timezone.utc
+    assert end.astimezone(BERLIN).date() == day and end.astimezone(BERLIN).hour == 23
 
 
 def test_an_explicit_bound_is_taken_at_its_word() -> None:
     aware = datetime(2026, 8, 31, 12, 0, tzinfo=BERLIN)
-    assert answers.day_bound(aware, end_of_day=True) == datetime(
+    assert answers.day_bound(aware, end_of_day=True, local_tz=BERLIN) == datetime(
         2026, 8, 31, 10, 0, tzinfo=timezone.utc
     )
     naive = datetime(2026, 8, 31, 12, 0)
-    assert answers.day_bound(naive, end_of_day=True) == naive.replace(tzinfo=timezone.utc)
+    assert answers.day_bound(naive, end_of_day=True, local_tz=BERLIN) == naive.replace(
+        tzinfo=timezone.utc
+    )
+
+
+def _ha_parse_datetime(raw: str):
+    """Home Assistant's ``parse_datetime``: it reads a bare date as midnight too."""
+
+    try:
+        return datetime.fromisoformat(raw)
+    except ValueError:
+        return None
+
+
+def test_a_typed_to_date_runs_to_the_end_of_its_day() -> None:
+    """#238: ``to: 2026-10-31`` read as midnight dropped the 31st."""
+
+    end = answers.read_bound("2026-10-31", _ha_parse_datetime, end_of_day=True, local_tz=BERLIN)
+    assert end is not None and end.astimezone(BERLIN).date() == date(2026, 10, 31)
+    assert end.astimezone(BERLIN).hour == 23
+    start = answers.read_bound(
+        " 2026-10-01 ", _ha_parse_datetime, end_of_day=False, local_tz=BERLIN
+    )
+    assert start == datetime(2026, 9, 30, 22, 0, tzinfo=timezone.utc)
+    at = answers.read_bound(
+        "2026-10-31T12:00:00", _ha_parse_datetime, end_of_day=True, local_tz=BERLIN
+    )
+    assert at == datetime(2026, 10, 31, 12, 0, tzinfo=timezone.utc)
+    assert (
+        answers.read_bound("last week", _ha_parse_datetime, end_of_day=True, local_tz=BERLIN)
+        is None
+    )
+    assert answers.bare_date("2026-10-31T00:00:00") is None
 
 
 def test_the_month_argument() -> None:

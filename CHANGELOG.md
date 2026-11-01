@@ -16,6 +16,15 @@ stable release (v0.8.1); releases before that used auto-generated notes.
   texts. Nothing changes on your dashboard. If the card ever shows names like
   `no_vehicle_title` instead of words, see the Troubleshooting page.
 
+### Fixed
+- **The card's Trips and Charging views left out the last day of every month** (#238).
+  A bare date such as `to: 2026-10-31` was read as midnight at the start of the 31st,
+  so `get_trips`, `get_charging_sessions` and `get_charging_places` asked for a month
+  without its last day. A bare date now covers the whole day, and it is a day in Home
+  Assistant's time zone, not in UTC, so the first and last hours of a month no longer
+  fall into the month next to it. A bare `to` for `fetch_charging_history` also runs
+  to the end of its day now. Thanks to stepas72 for tracking it down.
+
 ## [0.9.24-beta.2] - 2026-10-29
 
 ### Fixed

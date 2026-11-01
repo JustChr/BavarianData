@@ -68,10 +68,10 @@ Diese lesen (oder schreiben) den eigenen Speicher der Integration und kosten
 `vin`, `from`, `to`, `limit`. Liefert Datensätze, neueste zuerst, als
 **Antwortdaten** (in den Entwicklerwerkzeugen *Antwort zurückgeben* anhaken).
 
-Ein reines Datum steht für den **ganzen Tag**, egal an welchem Ende: `from:
-2026-08-01` beginnt um Mitternacht und `to: 2026-08-31` reicht bis zum Ende des
-31., eine Anfrage für einen Monat verliert also nicht stillschweigend den letzten
-Tag. Gibst du stattdessen ein Datum mit Uhrzeit an, wird es genau so verwendet.
+Ein reines Datum steht für den **ganzen Tag** in der Zeitzone von Home
+Assistant, egal an welchem Ende: `from: 2026-08-01` beginnt um deine Mitternacht
+und `to: 2026-08-31` reicht bis zum Ende des 31., eine Anfrage für einen Monat
+verliert also nicht stillschweigend den letzten Tag. Gibst du stattdessen ein Datum mit Uhrzeit an, wird es genau so verwendet.
 
 `get_trips` liefert außerdem **`open_trips`** — eine gerade laufende Fahrt, die noch
 nicht im Fahrtenbuch steht: ohne Ende, ohne Zuordnung, mit vorläufiger Strecke und,

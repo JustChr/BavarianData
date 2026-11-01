@@ -12,7 +12,7 @@ a translated ``ServiceValidationError``.
 
 from __future__ import annotations
 
-from datetime import date, datetime, time as dt_time, timezone
+from datetime import date, datetime, time as dt_time, timezone, tzinfo
 from typing import Any, Callable, Iterable, Mapping, Optional, cast
 
 from .descriptors import descriptors_for_sections
@@ -60,22 +60,53 @@ def as_cardata_timestamp(value: Any, parsed: Optional[datetime], local_tz: Any) 
     return cardata_timestamp(parsed)
 
 
-def day_bound(parsed: datetime | date, *, end_of_day: bool) -> datetime:
+def day_bound(parsed: datetime | date, *, end_of_day: bool, local_tz: tzinfo) -> datetime:
     """A ``from``/``to`` argument as a UTC instant.
 
-    A bare date names a whole day, so which end of it we mean depends on which
-    bound it is: ``from: 2026-08-01`` starts at midnight, while ``to:
-    2026-08-31`` has to run to the end of the 31st or a request for August
-    silently drops everything that happened on its last day. An explicit
-    date/time is always taken at its word. Naive is UTC, as Home Assistant's
-    ``dt_util.as_utc`` has always read it here.
+    A bare date names a whole day of the user's calendar (``local_tz``), so
+    which end of it we mean depends on which bound it is: ``from: 2026-08-01``
+    starts at local midnight, while ``to: 2026-08-31`` has to run to the end of
+    the 31st or a request for August silently drops everything that happened on
+    its last day. An explicit date/time is always taken at its word. Naive is
+    UTC, as Home Assistant's ``dt_util.as_utc`` has always read it here.
     """
 
     if not isinstance(parsed, datetime):
-        parsed = datetime.combine(parsed, dt_time.max if end_of_day else dt_time.min)
+        parsed = datetime.combine(
+            parsed, dt_time.max if end_of_day else dt_time.min, tzinfo=local_tz
+        )
     if parsed.tzinfo is None:
         return parsed.replace(tzinfo=timezone.utc)
     return parsed.astimezone(timezone.utc)
+
+
+def bare_date(raw: str) -> Optional[date]:
+    """``raw`` as a date if it names a day and nothing more, else ``None``.
+
+    Asked first, because Home Assistant's ``parse_datetime`` reads
+    ``2026-10-31`` as that day's midnight, and a ``to`` read that way ends
+    before its own day starts (#238).
+    """
+
+    try:
+        return date.fromisoformat(raw.strip())
+    except ValueError:
+        return None
+
+
+def read_bound(
+    raw: str,
+    parse_datetime: Callable[[str], Optional[datetime]],
+    *,
+    end_of_day: bool,
+    local_tz: tzinfo,
+) -> Optional[datetime]:
+    """A typed ``from``/``to`` as a UTC instant (``day_bound``), ``None`` if unreadable."""
+
+    parsed: datetime | date | None = bare_date(raw) or parse_datetime(raw)
+    if parsed is None:
+        return None
+    return day_bound(parsed, end_of_day=end_of_day, local_tz=local_tz)
 
 
 def month_arg(raw: Optional[str], today: date) -> tuple[int, int]:
