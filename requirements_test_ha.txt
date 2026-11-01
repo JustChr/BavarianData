@@ -8,7 +8,7 @@ pytest-homeassistant-custom-component==0.13.374
 # The manifest depends on ``frontend``, whose package the plugin leaves out:
 # the version Home Assistant 2026.10.3's frontend manifest names. Bump the two
 # together (``tests_ha/test_requirements.py`` checks they match).
-home-assistant-frontend==20260930.5
+home-assistant-frontend==20261028.1
 paho-mqtt>=2.1.0
 pytest-cov>=7.1
 # Strict typing is checked against this suite's Home Assistant (pyproject.toml's
