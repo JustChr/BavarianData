@@ -436,12 +436,26 @@ def test_a_meter_reset_mid_session_drops_the_baseline() -> None:
     builder.note_grid_meter(1000.0)
     builder.note_grid_meter(1005.0)
     builder.note_grid_meter(0.0)  # the wallbox was power-cycled
-    assert builder.grid_meter_start is None
-    assert builder.measured_grid_kwh() is None
-    # ...and it starts measuring again from the new baseline.
+    # Held: one low reading could still be a glitch.
+    assert builder.measured_grid_kwh() == 5.0
+    # Climbing from the low count: a reset, measured again from there.
     builder.note_grid_meter(2.0)
+    assert builder.grid_meter_start == 2.0
     builder.note_grid_meter(4.0)
     assert builder.measured_grid_kwh() == 2.0
+
+
+def test_a_meter_that_dips_for_one_reading_keeps_its_baseline() -> None:
+    """#197: a go-e meter fell back to the previous charge's end, then returned."""
+
+    builder = sessions.SessionBuilder(VIN, NOW, soc_start=40.0)
+    builder.note_grid_meter(15613.89)
+    builder.note_grid_meter(15625.427)
+    builder.note_grid_meter(15611.155)
+    builder.note_grid_meter(15611.155)
+    builder.note_grid_meter(15625.461)
+    assert builder.grid_meter_start == 15613.89
+    assert builder.measured_grid_kwh() == pytest.approx(11.571)
 
 
 def test_an_absent_reading_never_disturbs_the_baseline() -> None:

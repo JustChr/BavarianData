@@ -171,8 +171,11 @@ it can't be right:
   on your wallbox would otherwise be booked to it — and a charge of a similar
   size passes every check below. A charge with no known position keeps the
   meter, still checked as below.
-- The meter went **down or nowhere** — a reset, a power cycle, or a meter that
-  wasn't counting this charge.
+- The meter went **nowhere**, or **down and kept counting from there** — a
+  reset, a power cycle, or a meter that wasn't counting this charge. A meter
+  that drops for a moment and comes back (some integrations briefly repeat an
+  old reading) is not a reset: the dip counts nothing and the charge keeps its
+  measurement.
 - It reports **far less than the battery absorbed**. The grid can't deliver less
   than the pack took; our own battery figure measurably runs a little high, so
   there's room for that, but a meter that barely moved is counting something
@@ -234,8 +237,10 @@ The meter drives only while it can't be wrong about which car it's counting:
   the session's energy and cost, which then come from the car's own figures. A
   car charging elsewhere doesn't count. Cars with a meter each (set per car
   under Configure → Charging costs) don't get in each other's way;
-- **the reading is plausible** — a meter that goes backwards starts a new count,
-  and a jump faster than any 22 kW wallbox could deliver is ignored.
+- **the reading is plausible** — a meter that goes backwards adds nothing until
+  it either comes back (a glitch, ignored) or keeps counting from the lower
+  value (a reset, a new count), and a jump faster than any 22 kW wallbox could
+  deliver is ignored.
 
 Otherwise the estimate falls back to BMW's charging power, carrying on from where
 the meter left it, without a jump. A real reading from BMW still always replaces

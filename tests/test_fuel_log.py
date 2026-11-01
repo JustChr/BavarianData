@@ -226,3 +226,39 @@ def test_a_battery_car_streaming_a_tank_logs_nothing():
         assert h.coordinator.fuel_report(h.vin)["refuels"] == []
     finally:
         h.close()
+
+
+LEVEL = "vehicle.drivetrain.fuelSystem.level"
+
+
+def test_litres_that_stopped_following_the_level_are_left_out():
+    """#240: a 530e's litres stood at 12 L for weeks while its level moved.
+
+    Read as the tank, they hid every refuel (no litres ever rose) and showed a
+    tank that never changed. The level takes over until the litres move again.
+    """
+
+    h = CoordinatorHarness(capacity_kwh=None)
+    try:
+        h.send(0, odometer=10_000, extra={FUEL: 12, LEVEL: 30, ENGINE: 20})
+        h.advance_to(3 * 24 * 60)
+        h.send(odometer=10_400, extra={LEVEL: 15})
+        h.send(h.minute + 30, odometer=10_400, extra={LEVEL: 87})
+        report = h.coordinator.fuel_report(h.vin)
+        (refuel,) = report["refuels"]
+        assert (refuel["added_percent"], refuel["added_l"]) == (72.0, None)
+        assert report["tank"] == {"litres": None, "percent": 87, "range_km": None}
+
+        # Fresh litres are the tank again.
+        h.send(h.minute + 5, extra={FUEL: 52})
+        assert h.coordinator.fuel_report(h.vin)["tank"]["litres"] == 52
+    finally:
+        h.close()
+
+
+def test_litres_that_lag_the_level_by_hours_still_count():
+    # The stream sends only what changed: whole litres can trail a level.
+    stamp = START
+    assert fuel.litres_current(stamp, stamp + timedelta(hours=20))
+    assert not fuel.litres_current(stamp, stamp + timedelta(days=2))
+    assert fuel.litres_current(None, stamp)

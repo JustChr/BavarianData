@@ -52,6 +52,7 @@ from .evcc import PLUG_DESCRIPTORS, plug_state
 from .history.energy_mix import SOURCE_PV, MixAccumulator, supply_shares
 from .history.held_energy import HeldEnergy
 from .history.meter_rate import MeterRate
+from .history.meter_reading import HOLD, RESET, judge
 from .history.models import ChargingSession
 from .history.pricing import (
     MODE_FIXED,
@@ -469,11 +470,15 @@ class VehicleCharging:
     def _grid_meter_step(self, vin: str, meter_now: Optional[float]) -> Optional[float]:
         """How far the wallbox meter has advanced since the last billed step.
 
-        ``None`` when there is nothing measured to bill -- no meter bound, the
-        first step of a session (the baseline has to be established before a
-        delta exists), or a meter that went backwards, which is a reset and not
-        a negative charge. In each case billing falls back to the battery-side
-        figure, exactly as it did before a meter was ever bound.
+        ``None`` when there is nothing measured to bill -- no meter bound, or
+        the first step of a session (the baseline has to be established before
+        a delta exists). Billing then falls back to the battery-side figure,
+        exactly as it did before a meter was ever bound.
+
+        A meter that went backwards is held, not rebased (``meter_reading``):
+        the step bills a measured zero, and the next reading says whether it was
+        a glitch -- billing resumes from the cursor, so the climb back to it is
+        not billed a second time (#197) -- or a reset, billed from the dip.
 
         A meter that has not moved is a measured zero, not a missing reading. A
         wallbox that lost power while the car's last reported power was held
@@ -484,14 +489,20 @@ class VehicleCharging:
 
         if meter_now is None:
             return None
-        previous = self._host._peek(vin).session.grid_meter_billed
-        self._host._car(vin).session.grid_meter_billed = meter_now
+        session = self._host._peek(vin).session
+        previous, dip = session.grid_meter_billed, session.grid_meter_dip
         if previous is None:
+            self._host._car(vin).session.grid_meter_billed = meter_now
             return None
-        delta = meter_now - previous
-        if delta < 0:
-            return None
-        return delta
+        verdict = judge(previous, dip, meter_now)
+        if verdict == HOLD:
+            self._host._car(vin).session.grid_meter_dip = meter_now
+            return 0.0
+        if verdict == RESET and dip is not None:
+            previous = dip
+        self._host._car(vin).session.grid_meter_billed = meter_now
+        self._host._car(vin).session.grid_meter_dip = None
+        return meter_now - previous
 
     def fire_charging_event(
         self,
@@ -719,10 +730,8 @@ class VehicleCharging:
         # meter rather than being skipped for want of a baseline.
         meter_at_open = self._session_grid_meter_kwh(vin, builder)
         builder.note_grid_meter(meter_at_open)
-        if meter_at_open is None:
-            self._host._car(vin).session.grid_meter_billed = None
-        else:
-            self._host._car(vin).session.grid_meter_billed = meter_at_open
+        self._host._car(vin).session.grid_meter_billed = meter_at_open
+        self._host._car(vin).session.grid_meter_dip = None
         # Snapshot straight away: a restart in the first five minutes of a charge
         # is exactly as likely as one in any other five, and an unsnapshotted
         # session is the thing this whole mechanism exists to prevent.
@@ -796,6 +805,7 @@ class VehicleCharging:
         self._host._car(vin).session.restored_at = None
         self._host._car(vin).session.gap_credit_soc = None
         self._host._car(vin).session.grid_meter_billed = None
+        self._host._car(vin).session.grid_meter_dip = None
         self._cancel_restored_open_timer(vin)
         if self._host.history is None:
             return
@@ -841,10 +851,8 @@ class VehicleCharging:
             # the record's ``grid_kwh`` -- the meter's own span covers the gap --
             # which is the same division of labour the battery-side gap credit
             # already makes: honest total, no invented price.
-            if builder.grid_meter_last is None:
-                self._host._car(vin).session.grid_meter_billed = None
-            else:
-                self._host._car(vin).session.grid_meter_billed = builder.grid_meter_last
+            self._host._car(vin).session.grid_meter_billed = builder.grid_meter_last
+            self._host._car(vin).session.grid_meter_dip = None
             saved_at = _snapshot_time(snapshot.get("saved_at")) or builder.last_sample_at
             self._host._car(vin).session.saved_at = saved_at or now
 
@@ -1204,6 +1212,7 @@ class VehicleCharging:
             if builder is not None:
                 builder.note_meter_shared()
             self._host._car(vin).session.grid_meter_billed = None
+            self._host._car(vin).session.grid_meter_dip = None
             return None
         return self._grid_meter_kwh(vin)
 

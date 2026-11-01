@@ -9,6 +9,24 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Fixed
+- **A wallbox meter that jumps back for a moment no longer inflates a charge's cost
+  and energy mix** (#197). Some integrations briefly report an old meter reading and
+  then the real one again. That dip was read as a meter reset: the climb back was
+  billed a second time, and the charge lost its measured `grid_kwh`. A reading that
+  goes backwards now counts nothing until the next one shows what it was. If the
+  meter comes back, the dip is ignored. If it keeps counting from the lower value,
+  it was a real reset and counting starts again from there. The same rule applies
+  to the charge estimate driven by the meter. Thanks to erwinweiss1955 for finding
+  the cause.
+- **A fuel litres reading that stopped updating no longer hides refuels** (#240).
+  Some cars send the litres only with their occasional service call, so the reading
+  can sit unchanged for weeks while the fuel level moves every drive. Refuels were
+  looked for in the frozen litres and never found, and the Fuel view showed the old
+  figure as the tank. Litres more than a day older than the fuel level are now left
+  out: the Fuel view shows the level and finds refuels in it, until the litres
+  update again.
+
 ## [0.9.24-beta.3] - 2026-11-01
 
 ### Changed

@@ -178,8 +178,11 @@ wenn sie nicht stimmen kann:
   öffentlichen Säule lädt, würde sonst ein anderes Auto an deiner Wallbox ihm
   zugebucht — und eine Ladung ähnlicher Größe besteht jede Prüfung unten. Eine
   Ladung ohne bekannte Position behält den Zähler, weiter geprüft wie unten.
-- Der Zähler ging **zurück oder blieb stehen** — ein Zurücksetzen, ein Stromausfall
-  oder ein Zähler, der diese Ladung nicht mitgezählt hat.
+- Der Zähler **blieb stehen** oder ging **zurück und zählte von dort weiter** — ein
+  Zurücksetzen, ein Stromausfall oder ein Zähler, der diese Ladung nicht
+  mitgezählt hat. Ein Zähler, der kurz zurückspringt und wiederkommt (manche
+  Integrationen melden kurz einen alten Stand), ist kein Zurücksetzen: Der
+  Rücksprung zählt nichts, und die Ladung behält ihre Messung.
 - Er meldet **weit weniger, als der Akku aufnahm**. Das Netz kann nicht weniger
   liefern, als der Akku bekam; unser eigener Batteriewert liegt nachweislich etwas
   hoch, dafür ist Spielraum da, aber ein Zähler, der sich kaum bewegt hat, zählt
@@ -249,9 +252,10 @@ Der Zähler treibt nur, solange er sich nicht irren kann, welches Auto er zählt
   kommen. Ein Auto, das woanders lädt, zählt nicht. Autos mit je einem eigenen
   Zähler (je Auto unter Konfigurieren → Ladekosten) kommen sich nicht in die
   Quere;
-- **der Wert ist plausibel** — ein Zähler, der zurückgeht, beginnt eine neue
-  Zählung, und ein Sprung, schneller als jede 22-kW-Wallbox liefern könnte, wird
-  ignoriert.
+- **der Wert ist plausibel** — ein Zähler, der zurückgeht, zählt nichts, bis er
+  entweder wiederkommt (eine Störung, ignoriert) oder vom niedrigeren Wert
+  weiterzählt (ein Zurücksetzen, eine neue Zählung), und ein Sprung, schneller
+  als jede 22-kW-Wallbox liefern könnte, wird ignoriert.
 
 Sonst fällt die Schätzung auf BMWs Ladeleistung zurück und macht dort weiter, wo
 der Zähler sie gelassen hat, ohne Sprung. Eine echte Messung von BMW ersetzt die

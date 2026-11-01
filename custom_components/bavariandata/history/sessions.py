@@ -16,6 +16,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Any, Optional
 
+from .meter_reading import HOLD, RESET, judge
 from .models import ChargingSession, _iso, _parse  # shared ISO (de)serialisation helpers
 from .pricing import PARTIAL_TOLERANCE
 
@@ -426,6 +427,10 @@ class SessionBuilder:
         # unavailable still has a usable last reading.
         self.grid_meter_start: Optional[float] = None
         self.grid_meter_last: Optional[float] = None
+        # A reading below ``grid_meter_last`` that is not yet known to be a glitch
+        # or a reset (``meter_reading``). Not snapshotted: after a restart the
+        # next reading decides afresh.
+        self.grid_meter_dip: Optional[float] = None
         # Another car charged on the same meter during this session, so its
         # advance is both cars' and this session has no measured figure.
         self.meter_shared = False
@@ -472,19 +477,25 @@ class SessionBuilder:
 
         The *first* reading becomes the baseline and is never revised: a later
         one would silently shorten the window the delta covers. A reading that
-        has gone backwards is a meter reset, and the session cannot be measured
-        across one -- so the baseline is dropped rather than producing a delta
-        that spans a discontinuity.
+        has gone backwards is held until the next one says what it was
+        (``meter_reading``): a glitch leaves the measurement as it was (#197),
+        while a reset means the session cannot be measured across it -- so the
+        baseline starts again from the reset rather than producing a delta that
+        spans a discontinuity.
         """
 
         if reading is None or self.meter_shared:
             return
         if self.grid_meter_start is None:
             self.grid_meter_start = reading
-        elif self.grid_meter_last is not None and reading < self.grid_meter_last:
-            self.grid_meter_start = None
-            self.grid_meter_last = None
-            return
+        elif self.grid_meter_last is not None:
+            verdict = judge(self.grid_meter_last, self.grid_meter_dip, reading)
+            if verdict == HOLD:
+                self.grid_meter_dip = reading
+                return
+            if verdict == RESET:
+                self.grid_meter_start = reading
+        self.grid_meter_dip = None
         self.grid_meter_last = reading
 
     def note_meter_shared(self) -> None:
@@ -499,6 +510,7 @@ class SessionBuilder:
         self.meter_shared = True
         self.grid_meter_start = None
         self.grid_meter_last = None
+        self.grid_meter_dip = None
 
     def metered_so_far_kwh(self) -> Optional[float]:
         """What the meter has counted since the session opened, unchecked."""

@@ -15,6 +15,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Optional, Protocol
 
+from .history.meter_reading import HOLD, RESET, judge
+
 
 class MeterModel(Protocol):
     """What the tracker needs of ``history.meter_rate.MeterRate``."""
@@ -27,8 +29,8 @@ CHARGING_ACTIVE_STATUSES = frozenset({"CHARGINGACTIVE", "CHARGING_IN_PROGRESS"})
 
 # The fastest a home wallbox can advance its meter: 22 kW is the AC ceiling
 # (three phases at 32 A). A larger step is not this car charging -- a meter
-# replaced or reset to some other count, or a reading after a long outage that
-# covers more than the charge -- and is taken as a new baseline instead.
+# replaced with a higher count, or a reading after a long outage that covers
+# more than the charge -- and is taken as a new baseline instead.
 METER_MAX_KW = 22.0
 # ...plus a fixed allowance, because a meter that reports in coarse steps can
 # land one step "early" relative to our clock.
@@ -87,6 +89,10 @@ class SocTracking:
     # the stream's power drives instead.
     meter_kwh: Optional[float] = None
     meter_at: Optional[datetime] = None
+    # A reading below ``meter_kwh`` not yet known to be a glitch or a reset
+    # (``history.meter_reading``), and when it was first seen.
+    meter_dip: Optional[float] = None
+    meter_dip_at: Optional[datetime] = None
     meter_model: Optional[MeterModel] = None
     # The charging rate as the meter measures it (``_note_meter_rate``);
     # ``None`` until enough time is covered, and the stream's rate is shown
@@ -134,6 +140,8 @@ class SocTracking:
         # becomes its new baseline, so nothing it counted before is added twice.
         self.meter_kwh = None
         self.meter_at = None
+        self.meter_dip = None
+        self.meter_dip_at = None
 
     def adopt_estimate(
         self, percent: float, at: datetime, *, meter_kwh: Optional[float] = None
@@ -154,6 +162,8 @@ class SocTracking:
         if meter_kwh is not None:
             self.meter_kwh = meter_kwh
             self.meter_at = at
+            self.meter_dip = None
+            self.meter_dip_at = None
         return True
 
     def follow_meter(
@@ -181,6 +191,8 @@ class SocTracking:
             self.meter_model = None
             self.meter_kwh = None
             self.meter_at = None
+            self.meter_dip = None
+            self.meter_dip_at = None
             self._reset_meter_window(None)
             return
         if self.meter_model is None and self.meter_kwh is None:
@@ -196,12 +208,26 @@ class SocTracking:
             self.meter_kwh = meter_kwh
             self.meter_at = now
             return
+        # A reading below the last one adds nothing until the next says whether
+        # it was a glitch (go on from the last) or a reset (count from the dip).
+        verdict = judge(self.meter_kwh, self.meter_dip, meter_kwh)
+        if verdict == HOLD:
+            if self.meter_dip != meter_kwh:
+                self.meter_dip = meter_kwh
+                self.meter_dip_at = now
+            return
+        if verdict == RESET and self.meter_dip is not None and self.meter_dip_at is not None:
+            self.meter_kwh = self.meter_dip
+            self.meter_at = self.meter_dip_at
+            self._reset_meter_window(self.meter_dip_at)
+        self.meter_dip = None
+        self.meter_dip_at = None
         delta = meter_kwh - self.meter_kwh
         if delta != 0:
             hours = max((now - self.meter_at).total_seconds(), 0.0) / 3600.0
-            if delta < 0 or delta > METER_MAX_KW * hours + METER_SLACK_KWH:
-                # A reset, a replaced meter, or a jump no wallbox can make: start
-                # counting from here rather than add a figure that isn't this charge.
+            if delta > METER_MAX_KW * hours + METER_SLACK_KWH:
+                # A replaced meter, or a jump no wallbox can make: start counting
+                # from here rather than add a figure that isn't this charge.
                 self.meter_kwh = meter_kwh
                 self.meter_at = now
                 self._reset_meter_window(now)
