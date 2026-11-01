@@ -137,6 +137,9 @@ class SessionState(_ReadOnlyWhenEmpty):
     # Where the bound wallbox meter stood when this session's cost was last
     # billed: a cursor, so no kilowatt-hour is billed twice.
     grid_meter_billed: Optional[float] = None
+    # A reading below that cursor not yet known to be a glitch or a reset
+    # (``history.meter_reading``): billed as nothing until the next one decides.
+    grid_meter_dip: Optional[float] = None
     # The close debounce: a pending timer means charging just stopped and we
     # wait to see whether it resumes (a flap) before committing the close.
     close_timer: Optional[Cancel] = None

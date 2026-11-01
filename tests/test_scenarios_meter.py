@@ -646,6 +646,47 @@ def test_a_meter_updating_every_ten_minutes_is_billed_once():
         assert session.cost["amount"] == pytest.approx(0.30 * 7.4, abs=0.01)
 
 
+def test_a_meter_that_dips_for_a_moment_bills_and_measures_the_charge_once():
+    """#197: a go-e meter fell back to the previous charge's end for one sample.
+
+    Read as a reset, the climb back was billed a second time and the session
+    lost its measured figure; the mix came out at the sum of every rise.
+    """
+
+    with _priced_home_harness() as h:
+        h.send(10, target=100, step="target 100")
+        h.meter(10, 1000.0)
+        h.send(10, soc=38, status="CHARGINGACTIVE", power=7400)
+        for minute in range(20, 71, 10):
+            h.meter(minute, 1000.0 + 7.4 * (minute - 10) / 60)
+            if minute in (30, 50):
+                h.meter(minute + 0.5, 986.0)  # the previous charge's end
+        h.send(70, soc=46, status="NOCHARGING", power=0, step="unplugged")
+        h.advance_to(72)
+
+        session = _today(h)
+        assert session.grid_source == "meter"
+        assert session.grid_kwh == pytest.approx(7.4, abs=0.01)
+        assert _mix_total(session) == pytest.approx(7.4, abs=0.01)
+        assert session.cost["amount"] == pytest.approx(0.30 * 7.4, abs=0.01)
+
+
+def test_a_meter_reset_mid_charge_bills_from_its_new_count():
+    with _priced_home_harness() as h:
+        h.send(10, target=100, step="target 100")
+        h.meter(10, 1000.0)
+        h.send(10, soc=38, status="CHARGINGACTIVE", power=7400)
+        h.meter(40, 1003.7)
+        h.meter(41, 0.0)  # replaced or power-cycled
+        h.meter(70, 3.6)
+        h.send(70, soc=46, status="NOCHARGING", power=0, step="unplugged")
+        h.advance_to(72)
+
+        session = _today(h)
+        # 3.7 kWh before the reset, 3.6 counted from its new zero.
+        assert session.cost["amount"] == pytest.approx(0.30 * 7.3, abs=0.01)
+
+
 def test_power_held_through_an_outage_is_not_billed():
     """The wallbox lost power at 40; the car's 7.4 kW was held until it spoke at 70."""
 

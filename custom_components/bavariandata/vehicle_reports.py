@@ -20,7 +20,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event
 from homeassistant.util import dt as dt_util
 
-from .car_signals import DESC_FUEL_L, DESC_GPS_HEADING, DESC_GPS_LAT, DESC_GPS_LON
+from .car_signals import DESC_GPS_HEADING, DESC_GPS_LAT, DESC_GPS_LON
 from .car_state import Vehicle
 from .const import EVENT_VEHICLE_REPORT
 from .debug import mask_vin
@@ -68,6 +68,7 @@ class ReportHost(Protocol):
     def _car(self, vin: str) -> Vehicle: ...
     def _peek(self, vin: str) -> Vehicle: ...
     def _numeric(self, vin: str, descriptor: str) -> Optional[float]: ...
+    def _fuel_litres(self, vin: str) -> Optional[float]: ...
     def _coordinate(self, vin: str, kind: str) -> Optional[float]: ...
     def _current_soc(self, vin: str) -> Optional[float]: ...
     def _odometer_timestamp(self, vin: str) -> Optional[str]: ...
@@ -175,7 +176,7 @@ class VehicleReports:
             "odometer_km": odometer_km,
             "timestamp": self._host._odometer_timestamp(vin),
             "recorded_at": datetime.now(timezone.utc).isoformat(),
-            "fuel_l": self._host._numeric(vin, DESC_FUEL_L),
+            "fuel_l": self._host._fuel_litres(vin),
             "soc": self._host._current_soc(vin),
         }
         if starts:
@@ -348,7 +349,7 @@ class VehicleReports:
             timestamp=timestamp,
             last=baseline,
             values={
-                "fuel_l": self._host._numeric(vin, DESC_FUEL_L),
+                "fuel_l": self._host._fuel_litres(vin),
                 "fuel_percent": self._host._numeric(vin, "vehicle.drivetrain.fuelSystem.level"),
                 "range_km": self._host._numeric(vin, "vehicle.drivetrain.lastRemainingRange"),
                 "soc_percent": self._host._numeric(
@@ -444,7 +445,7 @@ class VehicleReports:
                 soc_end=soc_end,
                 mileage_end=odometer_km,
                 energy_kwh=self._host.trips.trip_energy_kwh(vin, soc_start, soc_end),
-                stats=fuel_stats(baseline.get("fuel_l"), self._host._numeric(vin, DESC_FUEL_L)),
+                stats=fuel_stats(baseline.get("fuel_l"), self._host._fuel_litres(vin)),
                 hybrid=self._host.is_plug_in_hybrid(vin),
             )
             trip.duration_unknown = start is None

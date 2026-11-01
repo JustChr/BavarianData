@@ -242,6 +242,17 @@ def test_a_backwards_meter_is_a_new_baseline():
     assert tracking.estimated_percent == pytest.approx(42.5)
 
 
+def test_a_meter_that_dips_for_a_moment_counts_its_climb_back_once():
+    """#197: a stale reading between two real ones adds nothing, then or after."""
+
+    tracking = _tracking()
+    tracking.follow_meter(1000.0, RATIO, T0)
+    tracking.follow_meter(998.0, RATIO, T0 + timedelta(minutes=5))
+    assert tracking.estimated_percent == 40.0
+    tracking.follow_meter(1002.0, RATIO, T0 + timedelta(minutes=30))
+    assert tracking.estimated_percent == pytest.approx(42.5)
+
+
 def test_a_step_faster_than_any_wallbox_is_refused():
     tracking = _tracking()
     tracking.follow_meter(1000.0, RATIO, T0)

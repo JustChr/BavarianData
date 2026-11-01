@@ -20,6 +20,7 @@ from .const import (
 )
 from .debug import debug_enabled, mask_vin
 from .history.efficiency import TREND_MONTHS, efficiency_profile
+from .history.fuel import litres_current
 from .history.health import usable_capacity
 from .history.obfcm import lifetime as obfcm_lifetime
 from .history.meter_rate import MeterRate, meter_rate
@@ -86,6 +87,12 @@ def _as_number(value: Any) -> Optional[float]:
         return float(value)
     except TypeError, ValueError:
         return None
+
+
+def _state_time(state: Optional[DescriptorState]) -> Optional[datetime]:
+    """The car's own timestamp for a reading, or ``None``."""
+
+    return dt_util.parse_datetime(state.timestamp) if state and state.timestamp else None
 
 
 @dataclass(frozen=True)
@@ -851,9 +858,17 @@ class CardataCoordinator:
         return None
 
     def _fuel_litres(self, vin: str) -> Optional[float]:
-        """The fuel in the tank, in litres, or ``None``."""
+        """The fuel in the tank, in litres, or ``None``.
+
+        ``None`` too for litres that stopped following the fill level
+        (``history.fuel.litres_current``): a stale figure would show a tank
+        that never changes and hide every refuel the level sees.
+        """
 
         state = self.get_state(vin, DESC_FUEL_L)
+        level = self.get_state(vin, DESC_FUEL_LEVEL)
+        if not litres_current(_state_time(state), _state_time(level)):
+            return None
         litres = self._numeric(vin, DESC_FUEL_L)
         if litres is not None and state is not None and state.unit == "gal":
             litres *= LITRES_PER_GALLON
@@ -874,8 +889,7 @@ class CardataCoordinator:
             return
         stamps = []
         for descriptor in (DESC_FUEL_L, DESC_FUEL_LEVEL):
-            state = self.get_state(vin, descriptor)
-            parsed = dt_util.parse_datetime(state.timestamp) if state and state.timestamp else None
+            parsed = _state_time(self.get_state(vin, descriptor))
             if parsed is not None:
                 stamps.append(parsed)
         self.history.async_note_fuel(

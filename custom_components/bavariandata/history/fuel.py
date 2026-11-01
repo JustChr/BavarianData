@@ -75,6 +75,22 @@ def _parse(stamp: Any) -> Optional[datetime]:
         return None
 
 
+# Litres stamped this much before the fill level are not following the tank.
+# A 530e sends its litres only with the Teleservice batch, so they stood at
+# 12 L for weeks while the level moved every drive (#240). The stream sends
+# only what changed, so a working car's litres can lag its level -- but never
+# by a day of driving.
+LITRES_STALE = timedelta(days=1)
+
+
+def litres_current(litres_at: Optional[datetime], percent_at: Optional[datetime]) -> bool:
+    """Whether a litres reading still describes the tank the level does."""
+
+    if litres_at is None or percent_at is None:
+        return True
+    return percent_at - litres_at <= LITRES_STALE
+
+
 def _num(value: Any) -> Optional[float]:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
