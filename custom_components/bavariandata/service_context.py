@@ -32,12 +32,19 @@ from .runtime import CardataRuntimeData
 _LOGGER = logging.getLogger(__name__)
 
 
-def as_cardata_timestamp(value: Any) -> Optional[str]:
+def as_cardata_timestamp(value: Any, *, end_of_day: bool = False) -> Optional[str]:
     """A service-call date/time in BMW's format (``service_answers``)."""
 
     parsed = value if isinstance(value, datetime) else None
     if parsed is None and isinstance(value, str) and value:
-        parsed = dt_util.parse_datetime(value)
+        day = service_answers.bare_date(value)
+        parsed = (
+            service_answers.day_bound(
+                day, end_of_day=end_of_day, local_tz=dt_util.DEFAULT_TIME_ZONE
+            )
+            if day
+            else dt_util.parse_datetime(value)
+        )
     return service_answers.as_cardata_timestamp(value, parsed, dt_util.DEFAULT_TIME_ZONE)
 
 
@@ -66,10 +73,12 @@ def service_bound(call: Any, key: str, *, end_of_day: bool = False) -> Optional[
     raw = call.data.get(key)
     if not raw:
         return None
-    parsed = dt_util.parse_datetime(raw) or dt_util.parse_date(raw)
-    if parsed is None:
+    bound = service_answers.read_bound(
+        raw, dt_util.parse_datetime, end_of_day=end_of_day, local_tz=dt_util.DEFAULT_TIME_ZONE
+    )
+    if bound is None:
         raise invalid(Refusal("bad_date", key=repr(key), value=repr(raw)))
-    return service_answers.day_bound(parsed, end_of_day=end_of_day)
+    return bound
 
 
 def month_bounds(raw: Optional[str]) -> tuple[int, int]:

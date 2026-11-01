@@ -9,7 +9,7 @@ BMW does (``no_bmw``), unless a test says otherwise.
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -104,6 +104,28 @@ async def test_the_recorded_history_reads_back(hass: HomeAssistant, no_bmw) -> N
     evcc = await _ask(hass, "get_evcc_config")
     assert evcc["mqtt_available"] is False
     assert VIN in evcc["yaml"]
+
+
+async def test_a_month_of_bare_dates_holds_its_last_evening(hass: HomeAssistant, no_bmw) -> None:
+    """#238: the card asks for a month as bare dates; ``to`` is the whole last
+    day of the user's calendar, not its midnight and not a UTC day."""
+
+    _entry, runtime, _trip = await _account(hass)
+    evening = datetime(2020, 10, 31, 22, 30, tzinfo=dt_util.get_default_time_zone())
+    late = Trip(vin=VIN, start=evening, end=evening + timedelta(minutes=20))
+    late.distance_km = 12.0
+    runtime.history.add_trip(late)
+    runtime.history.add_session(
+        ChargingSession(vin=VIN, start=evening, end=evening + timedelta(hours=1), energy_kwh=7.0)
+    )
+    month = {"from": "2020-10-01", "to": "2020-10-31"}
+
+    trips = await _ask(hass, "get_trips", month)
+    assert [t["start"] for t in trips["trips"]] == [late.to_dict()["start"]]
+    sessions = await _ask(hass, "get_charging_sessions", month)
+    assert [s["energy_kwh"] for s in sessions["sessions"]] == [7.0]
+    november = await _ask(hass, "get_trips", {"from": "2020-11-01", "to": "2020-11-30"})
+    assert late.to_dict()["start"] not in [t["start"] for t in november["trips"]]
 
 
 async def test_bad_arguments_are_refused_by_name(hass: HomeAssistant, no_bmw) -> None:
