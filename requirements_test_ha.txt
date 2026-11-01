@@ -4,7 +4,7 @@
 #
 # The plugin pins one exact Home Assistant release; this pin is that release's
 # plugin. Dependabot bumps it with each Home Assistant release.
-pytest-homeassistant-custom-component==0.13.374
+pytest-homeassistant-custom-component==0.13.375
 # The manifest depends on ``frontend``, whose package the plugin leaves out:
 # the version Home Assistant 2026.10.3's frontend manifest names. Bump the two
 # together (``tests_ha/test_requirements.py`` checks they match).
