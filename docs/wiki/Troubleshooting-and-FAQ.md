@@ -163,6 +163,21 @@ and follows every lock/unlock within seconds, with the same `Secured` / `Locked`
 / `Partially locked` / `Unlocked` values. See
 [Which lock entity to use](Feature-Entities-and-Devices#which-lock-entity-to-use).
 
+## The fuel in litres never changes
+
+<a id="fuel-litres-never-change"></a>
+
+BMW's side, and not a fault. Some cars (a 530e plug-in hybrid, for one) send the
+fuel in litres (`vehicle.drivetrain.fuelSystem.remainingFuel`) only with their
+occasional Teleservice call, while the fuel level in percent
+(`vehicle.drivetrain.fuelSystem.level`) arrives with every drive. The litres can
+then sit unchanged for weeks. BMW's own CarData export shows the same old value,
+stamped with the last Teleservice call.
+
+BavarianData ignores litres that are more than a day older than the fuel level.
+The Fuel view then shows the level and finds refuels in it. Consumption between
+refuels is worked out in litres, so on such a car it stays empty.
+
 ## A second car's REST-only values are frozen
 
 Fixed in **v0.9.11-beta.2**. Before it, an account with more than one vehicle
