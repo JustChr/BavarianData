@@ -10,16 +10,16 @@
     "check": "node scripts/check-site.mjs"
   },
   "dependencies": {
-    "@astrojs/markdown-remark": "^7.3.1",
+    "@astrojs/markdown-remark": "^7.3.5",
     "@astrojs/sitemap": "^3.7.4",
     "@fontsource-variable/archivo": "^5.3.0",
     "@fontsource/ibm-plex-mono": "^5.3.0",
     "@mdi/js": "^7.4.47",
-    "astro": "^7.3.5",
+    "astro": "^7.4.4",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "rehype-raw": "^7.0.0",
-    "unist-util-visit": "^5.1.0"
+    "unist-util-visit": "^5.2.0"
   },
   "devDependencies": {
     "pagefind": "^1.5.2"
