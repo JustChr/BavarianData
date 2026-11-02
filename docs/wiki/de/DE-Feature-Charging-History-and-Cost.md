@@ -86,10 +86,13 @@ Minuten**, wenn dein Auto nicht meldet, ob es angesteckt ist. Eine längere Paus
 wird als **zwei Ladevorgänge** aufgezeichnet, auch wenn das Kabel die ganze Zeit
 steckte. Solarladen, das eine lange Wolke abwartet, kann deshalb mehrere
 Ladevorgänge an einem Tag hinterlassen. Ziehst du das Kabel, endet der
-Ladevorgang sofort. Er endet zu dem Zeitpunkt, an dem das Laden aufgehört hat,
-aber die Ereignisse zum Ladeende (`bavariandata_charging_stopped` und die
-Auslöser, die darauf aufbauen) kommen erst, wenn die Wartezeit vorbei ist: mit
-steckendem Kabel bis zu fünf Minuten später.
+Ladevorgang sofort. Er endet zu dem Zeitpunkt, an dem das Laden aufgehört hat.
+Meldet das Auto den Ladevorgang als beendet, kommen seine Ereignisse zum
+Ladeende (`bavariandata_charging_stopped` und die Auslöser, die darauf aufbauen)
+sofort. Hört das Laden unter dem Ziel auf, löst nach zwei Minuten zuerst
+*Laden pausiert* aus; die Ereignisse zum Ladeende folgen, wenn die Wartezeit
+vorbei ist, mit steckendem Kabel bis zu fünf Minuten später
+([wann ein Ladevorgang als beendet gilt](DE-Feature-Automations#geräte-auslöser)).
 
 Die Aufbewahrung stellst du mit **Verlauf aufbewahren (Monate)** unter
 **Konfigurieren → Ladekosten & Verlauf** ein (0 = alles behalten).

@@ -75,9 +75,12 @@ by themselves mid-charge), or up to **two minutes** if your car doesn't report
 whether it is plugged in. A longer pause is recorded as **two sessions**, even if
 the cable never came out, so solar charging that waits out a long cloud can
 leave several sessions on one day. Pulling the cable ends the session right
-away. The session ends when charging stopped, but the end-of-charge events
-(`bavariandata_charging_stopped` and the triggers built on it) fire only once
-the wait is over: up to five minutes later with the cable in.
+away. The session ends when charging stopped. When the car reports the charge
+as ended, its end events (`bavariandata_charging_stopped` and the triggers
+built on it) fire at once. A stop short of the target first fires
+*Charging paused* after two minutes; the end events follow once the wait is
+over, up to five minutes later with the cable in
+([when a charge counts as ended](Feature-Automations#device-triggers)).
 
 Retention is set by **`history_retain_months`** under
 **Configure → Charging costs & history** (0 = keep everything).
