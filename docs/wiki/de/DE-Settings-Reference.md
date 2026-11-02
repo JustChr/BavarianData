@@ -52,7 +52,7 @@ erscheinen (der Screenshot zeigt die englische).
 | --- | --- | --- |
 | **Neu bei BMW autorisieren** | Aktion | Meldet dich mit derselben Client-ID erneut bei BMW an (nachdem BMW das Token ungültig gemacht hat). |
 | **Token jetzt erneuern** | Aktion | Erzwingt eine Erneuerung des OAuth-Tokens. |
-| **Telemetrie-Container zurücksetzen** | Aktion ⚡ | Ersetzt die beiden REST-Container der Integration durch frische (je etwa drei Anfragen). Nutze das, wenn Telematik-Abrufe mit CU-105 oder CU-121 fehlschlagen. |
+| **Telemetrie-Container zurücksetzen** | Aktion ⚡ | Ersetzt den REST-Container der Integration durch einen frischen (etwa drei Anfragen). Nutze das, wenn Telematik-Abrufe mit CU-105 oder CU-121 fehlschlagen. |
 | **Debug-Protokollierung** | Einstellungen | Schalter für ausführliche Protokollierung — unten. |
 
 ⚡ = verbraucht eine (oder mehrere) deiner [50 Anfragen / 24 h](DE-Feature-API-Quota).

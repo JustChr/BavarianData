@@ -61,9 +61,10 @@ def retain_months(options: Mapping[str, Any]) -> Optional[int]:
 def without_retired_keys(data: Mapping[str, Any]) -> Optional[dict[str, Any]]:
     """The entry's data without keys no release reads, or ``None`` if it has none.
 
-    v0.9.20-beta.6's fallback container. Its BMW side goes when the full
-    container is next replaced (``retired_names``), which the full set's new
-    signature makes happen on the first fetch.
+    v0.9.20-beta.6's fallback container and the service items' container of
+    v0.9.20 to v0.9.24. Their BMW side goes when the full container is next
+    replaced (``retired_names``), which the full set's new signature makes
+    happen on the first fetch.
     """
 
     if not any(key in data for key in RETIRED_ENTRY_KEYS):

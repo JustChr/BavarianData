@@ -32,7 +32,7 @@ from .const import (
     TELEMATIC_POLL_INTERVAL,
     VEHICLE_METADATA,
 )
-from .container import FULL, KINDS, SERVICE, CardataContainerError, ContainerKind
+from .container import FULL, KINDS, CardataContainerError, ContainerKind
 from .debug import debug_enabled, mask_vin
 from .device_flow import CardataAuthError
 from .entry_setup import device_fields
@@ -245,14 +245,12 @@ class AccountRest:
     ) -> bool:
         """Fetch each car's containers and feed them in like a stream message.
 
-        One request per car and container (``KINDS``). Each stands alone: BMW
-        refuses a whole container for one field it won't serve, so the service
-        items, which it refused from 16 Oct 2026 (#142), are fetched apart and
-        cost only themselves. ``seed`` skips a car that already has data (a car
-        found by the bootstrap or Discover gets its entities before it streams).
-        Returns whether BMW was asked at all. ``strict`` (a service call) raises
+        One request per car and container (``KINDS``); each stands alone.
+        ``seed`` skips a car that already has data (a car found by the
+        bootstrap or Discover gets its entities before it streams). Returns
+        whether BMW was asked at all. ``strict`` (a service call) raises
         :class:`FetchFailed` for what it could not fetch, once every car has had
-        its turn; the service items alone never count, BMW refuses those daily.
+        its turn.
         """
 
         host = self._host
@@ -275,25 +273,15 @@ class AccountRest:
                     _LOGGER.error(
                         "%s: entry %s has no %s REST container", label, host.entry_id, kind.key
                     )
-                    if kind is not SERVICE:
-                        failures.append(f"no {kind.key} REST container")
+                    failures.append(f"no {kind.key} REST container")
                     continue
                 asked = True
                 try:
                     payload = await host.rest.call(async_get_telematic_data, vin, found)
                 except CardataApiError as err:
                     # Neither another container nor another car pays for it.
-                    if kind is SERVICE:
-                        _LOGGER.warning(
-                            "%s: BMW did not return the service items for %s (%s); the rest "
-                            "of the refresh is unaffected",
-                            label,
-                            mask_vin(vin),
-                            err,
-                        )
-                    else:
-                        _LOGGER.error("%s: request failed for %s: %s", label, mask_vin(vin), err)
-                        failures.append(f"{mask_vin(vin)}: {err}")
+                    _LOGGER.error("%s: request failed for %s: %s", label, mask_vin(vin), err)
+                    failures.append(f"{mask_vin(vin)}: {err}")
                     continue
                 _LOGGER.info("Fetched telematic data (%s) for %s", kind.key, mask_vin(vin))
                 if debug_enabled():

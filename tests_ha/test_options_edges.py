@@ -78,30 +78,26 @@ async def test_a_picture_needs_a_car(hass: HomeAssistant, no_bmw) -> None:
     assert "image_source" not in entry.options
 
 
-async def test_a_container_reset_broken_off_keeps_what_was_done(
+async def test_a_refused_container_reset_keeps_the_old_container(
     hass: HomeAssistant, no_bmw
 ) -> None:
     entry = await _account(hass, VIN)
-    first, second = KINDS
-    hass.config_entries.async_update_entry(
-        entry, data={**entry.data, first.id_key: "old-1", second.id_key: "old-2"}
-    )
+    (full,) = KINDS
+    hass.config_entries.async_update_entry(entry, data={**entry.data, full.id_key: "old"})
     result = await _open(hass, entry, "connection", "action_reset_container")
     with (
         patch.object(entry.runtime_data.tokens, "access_token", AsyncMock(return_value="a")),
         patch.object(
             CardataContainerManager,
             "async_reset_hv_container",
-            AsyncMock(side_effect=["new-1", CardataContainerError("BMW said no")]),
+            AsyncMock(side_effect=CardataContainerError("BMW said no")),
         ),
     ):
         result = await _send(hass, result, {})
 
     assert result["errors"] == {"base": "reset_failed"}
     assert result["description_placeholders"] == {"error": "BMW said no"}
-    # The first container was replaced at BMW, so its new id is kept; the second stays.
-    assert entry.data[first.id_key] == "new-1"
-    assert entry.data[second.id_key] == "old-2"
+    assert entry.data[full.id_key] == "old"
 
 
 async def test_fetches_need_a_car(hass: HomeAssistant, no_bmw) -> None:
