@@ -42,6 +42,12 @@ coordinator fix **must** come with such a scenario or replay (CLAUDE.md); a
 test that passes either way is a finding, not a formality. Use `--revert` when
 the PR also touches unrelated code.
 
+A PR that claims to change no behaviour (a refactor, a rename, a split
+module): `python scripts/golden.py gate --base origin/main`, and say whether
+the `refactor` label belongs on it. Fork CI does not run the real-HA suite until
+approved: if the PR touches a module that imports HA, `bash scripts/coverage.sh`
+from the worktree shows whether it would hold the 95 % per-module bar.
+
 Text changes: `python tools/i18n_gaps.py --since origin/main` — a contributor
 editing English rarely carries it into nine languages; that can be done for
 them after merging (`translate` skill), but say it is owed.

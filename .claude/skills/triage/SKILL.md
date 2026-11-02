@@ -16,7 +16,9 @@ gh issue view <n> --repo JustChr/BavarianData --json title,body,comments
 ```
 
 The attachment URL is in the body. `gh issue view --comments` prints nothing
-under this shell; the `--json` form is reliable. Load the JSON with
+under this shell; the `--json` form is reliable. Download it into the session
+scratchpad, never into the repo (it's public, and a diagnostics file can still
+hold a location or a name the redaction missed). Load the JSON with
 `io.open(..., encoding="utf-8")` — a plain `open()` dies on cp1252 for the
 degree sign and BMW's German text.
 

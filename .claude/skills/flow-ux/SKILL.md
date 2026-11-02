@@ -144,10 +144,14 @@ only after Chris has picked one.**
 
 ## 5. Known debt, so it doesn't spread
 
-Measured 2026-10-11:
-- The settings screens restate each field's help in the description. Trips
-  is at 1,625 characters, evcc bridge 1,264, energy sources 1,215, charging
-  costs 881. Shrink a screen to the budget whenever a change touches it.
-- The Configure menu is a flat list of 17 entries, with one-off actions
-  (fetch, refresh, reset) mixed in with settings. Don't add to it without
+Re-measured 2026-11-02 with the command in step 4.3 (Trips, evcc and charging
+costs have since been brought under budget):
+- Descriptions over the 400-character budget: energy sources 1,215,
+  `authorize_failed` 1,022, data refresh 753, `manual` 722, evcc snippet 688,
+  `guided_paste` 645, `activate_stream_paste` 568, `user` 566. Shrink a screen
+  to the budget whenever a change touches it. An error screen that walks
+  someone through a fix may run longer, but only if it can't be a link.
+- The Configure menu has 11 entries, down from 17. Don't add to it without
   asking whether the entry belongs inside an existing screen.
+
+Re-run the measurement when you touch this section, and update the numbers.

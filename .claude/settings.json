@@ -22,7 +22,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python .claude/hooks/guard_generated.py",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard_generated.py\"",
             "timeout": 15,
             "statusMessage": "Checking the file is not generated"
           }
@@ -33,7 +33,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python .claude/hooks/commit_guard.py",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/commit_guard.py\"",
             "timeout": 30,
             "statusMessage": "Checking docs pairing and the changelog"
           }
@@ -46,7 +46,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python .claude/hooks/lint_touched.py",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/lint_touched.py\"",
             "timeout": 90,
             "statusMessage": "Linting what just changed"
           }
