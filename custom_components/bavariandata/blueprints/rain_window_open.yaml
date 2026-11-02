@@ -1,0 +1,121 @@
+blueprint:
+  name: "BavarianData: Rain coming, a window is open"
+  description: >
+    Warns you when a window, the sunroof or the tailgate window has been open
+    for a while and your weather forecast says rain within the next hours.
+    BMW CarData is read-only, so the car can't close it; you can.
+
+    It checks when an opening has been open for 10 minutes, and again every
+    hour while one stays open. After warning you, it stays quiet until
+    everything is closed.
+  domain: automation
+  source_url: https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/rain_window_open.yaml
+  input:
+    openings:
+      name: Windows and sunroof
+      description: >
+        The car's window, sunroof and tailgate-window sensors. Anything other
+        than "closed" counts as open.
+      selector:
+        entity:
+          multiple: true
+          filter:
+            - integration: bavariandata
+              domain: sensor
+    weather_entity:
+      name: Weather
+      description: The weather entity whose forecast to check (Met.no, for example).
+      selector:
+        entity:
+          filter:
+            - domain: weather
+    hours:
+      name: Look ahead
+      description: How many hours of the forecast to check.
+      default: 6
+      selector:
+        number:
+          min: 1
+          max: 24
+          step: 1
+          unit_of_measurement: h
+    min_probability:
+      name: Rain probability
+      description: >
+        For forecasts that give a probability: warn from this level on. A
+        forecast without one counts any rain amount or a rainy condition.
+      default: 50
+      selector:
+        number:
+          min: 10
+          max: 100
+          step: 5
+          unit_of_measurement: "%"
+    warn_actions:
+      name: Actions
+      description: >
+        What to do, for example a notification. The variables `open_names`
+        (the open ones) and `rain_at` (when rain is first expected) are
+        available.
+      default: []
+      selector:
+        action:
+
+mode: single
+max_exceeded: silent
+
+variables:
+  openings: !input openings
+  weather_entity: !input weather_entity
+  hours: !input hours
+  min_probability: !input min_probability
+  closed_states: ["closed", "unknown", "unavailable", "invalid"]
+
+trigger:
+  - platform: state
+    entity_id: !input openings
+    not_to: ["closed", "unknown", "unavailable", "invalid"]
+    for: "00:10:00"
+  - platform: time_pattern
+    minutes: 0
+
+condition:
+  - condition: template
+    value_template: >
+      {{ openings | select('is_state', closed_states) | list | length
+         < openings | length }}
+
+action:
+  - service: weather.get_forecasts
+    target:
+      entity_id: !input weather_entity
+    data:
+      type: hourly
+    response_variable: forecast
+  - variables:
+      rain_at: >
+        {% set rainy = ['rainy', 'pouring', 'lightning-rainy', 'snowy-rainy', 'hail'] %}
+        {% set until = now() + timedelta(hours=hours | int) %}
+        {% set ns = namespace(at=none) %}
+        {% for f in forecast[weather_entity].forecast
+           if ns.at is none and as_datetime(f.datetime) <= until %}
+          {# Not every provider sends every field (Met.no has no probability). #}
+          {% set p = f.get('precipitation_probability') %}
+          {% if (p is not none and p >= min_probability | float)
+             or (p is none and ((f.get('precipitation') or 0) > 0
+                                or f.get('condition') in rainy)) %}
+            {% set ns.at = f.datetime %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.at }}
+      open_names: >
+        {{ openings | reject('is_state', closed_states)
+           | map('state_attr', 'friendly_name') | join(', ') }}
+  - condition: template
+    value_template: "{{ rain_at not in [none, '', 'None'] }}"
+  - sequence: !input warn_actions
+  # Quiet until everything is closed again.
+  - wait_template: >
+      {{ openings | select('is_state', closed_states) | list | length
+         == openings | length }}
+    timeout: "24:00:00"

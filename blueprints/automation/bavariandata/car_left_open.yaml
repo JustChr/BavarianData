@@ -21,8 +21,13 @@ blueprint:
       selector:
         device:
           multiple: true
-          filter:
+          # Cars only: every car has a location and a picture, the
+          # account's own device has neither.
+          entity:
             - integration: bavariandata
+              domain: device_tracker
+            - integration: bavariandata
+              domain: image
     check_time:
       name: When to check
       default: "22:00:00"

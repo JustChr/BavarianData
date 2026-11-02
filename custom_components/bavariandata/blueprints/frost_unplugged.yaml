@@ -1,0 +1,112 @@
+blueprint:
+  name: "BavarianData: Frost tonight, the car isn't plugged in"
+  description: >
+    In the evening, checks your weather forecast for the night. If it drops
+    to your frost limit while the car stands at home without its charging
+    cable, it runs your actions, typically a reminder to plug in. Plugged in,
+    an electric car can warm its battery and cabin from the grid before you
+    leave instead of from the battery.
+
+    A car that sends no position counts as home.
+  domain: automation
+  source_url: https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/frost_unplugged.yaml
+  input:
+    plug_sensor:
+      name: Cable sensor
+      description: The car's "Charging Port plug state" sensor.
+      selector:
+        entity:
+          filter:
+            - integration: bavariandata
+              domain: sensor
+    car_tracker:
+      name: Car location (optional)
+      description: >
+        The car's location entity. When set, only warns while the car is home.
+      default: ""
+      selector:
+        entity:
+          filter:
+            - integration: bavariandata
+              domain: device_tracker
+    weather_entity:
+      name: Weather
+      description: The weather entity whose forecast to check (Met.no, for example).
+      selector:
+        entity:
+          filter:
+            - domain: weather
+    check_time:
+      name: When to check
+      default: "20:00:00"
+      selector:
+        time:
+    frost_limit:
+      name: Frost limit
+      description: >
+        Warn when the forecast low until tomorrow 09:00 is at or below this,
+        in your weather entity's unit (°C or °F).
+      default: 0
+      selector:
+        number:
+          min: -30
+          max: 40
+          step: 1
+          mode: box
+    warn_actions:
+      name: Actions
+      description: >
+        What to do, for example a notification. The variable `low` (the
+        forecast low) is available.
+      default: []
+      selector:
+        action:
+
+mode: single
+max_exceeded: silent
+
+variables:
+  plug_sensor: !input plug_sensor
+  car_tracker: !input car_tracker
+  weather_entity: !input weather_entity
+  frost_limit: !input frost_limit
+
+trigger:
+  - platform: time
+    at: !input check_time
+
+condition:
+  - condition: template
+    value_template: >
+      {{ not is_state(plug_sensor, 'connected') }}
+  # A known position away from home vetoes; no position counts as home.
+  - condition: template
+    value_template: >
+      {{ car_tracker | string | trim == ''
+         or states(car_tracker) in ['home', 'unknown', 'unavailable'] }}
+
+action:
+  - service: weather.get_forecasts
+    target:
+      entity_id: !input weather_entity
+    data:
+      type: hourly
+    response_variable: forecast
+  - variables:
+      low: >
+        {% set until = (today_at('09:00') + timedelta(days=1)) %}
+        {% set temps = forecast[weather_entity].forecast
+           | selectattr('temperature', 'number')
+           | selectattr('datetime', 'defined')
+           | list %}
+        {% set ns = namespace(low=none) %}
+        {% for f in temps if as_datetime(f.datetime) <= until %}
+          {% if ns.low is none or f.temperature < ns.low %}
+            {% set ns.low = f.temperature %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.low }}
+  - condition: template
+    value_template: >
+      {{ low | float(none) is not none and low | float <= frost_limit | float }}
+  - sequence: !input warn_actions

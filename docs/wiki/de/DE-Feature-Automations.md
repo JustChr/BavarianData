@@ -178,9 +178,21 @@ der Fahrt nichts. Es löst einmal pro neuem Kilometerstand aus, nachdem der Wert
 
 ## Blueprints für den Einstieg
 
-Acht Automationen für den Einstieg liegen der Integration bei. Importiere sie
-über **Einstellungen → Automationen & Szenen → Blueprints → Blueprint
-importieren** mit der Raw-URL von GitHub:
+Neun Automationen für den Einstieg liegen der Integration bei. **Sie sind
+schon installiert**: Du findest sie unter **Einstellungen → Automationen &
+Szenen → Blueprints**, wählst eines aus und füllst das Formular aus. Jedes
+Update der Integration bringt ihre neueste Fassung mit, und Automationen daraus
+übernehmen sie sofort. Ein Blueprint, das du von Hand geändert hast, bleibt ab
+dann so, wie es ist.
+
+Die, die dir eine Nachricht schicken, nehmen deine **Handys** aus einer Liste
+(die Geräte der Home Assistant Companion-App). Ein vorher eingetippter
+Benachrichtigungsdienst bleibt unter **Older setting** stehen und funktioniert
+weiter.
+
+Vor v0.9.25 musste man sie per URL importieren. Diese Kopien liegen am selben
+Ort und werden einfach aktualisiert. Entfernst du die Integration, bleiben sie
+liegen, sodass Automationen daraus weiter funktionieren.
 
 - **Laden beim Ziel-% stoppen** —
   [`stop_charge_at_target.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/stop_charge_at_target.yaml).
@@ -192,9 +204,33 @@ importieren** mit der Raw-URL von GitHub:
   [`notify_charging_complete.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/notify_charging_complete.yaml).
   Sendet eine Nachricht, wenn ein Ladevorgang endet: nur wenn das Auto sein Ziel
   erreicht hat, oder bei jedem Ende. Der Titel nennt das Auto, und **Cars**
-  beschränkt sie auf die gewählten Autos (leer: alle). Zum Übernehmen des
-  Autofilters neu importieren. Bis v0.9.20 kamen bei einem Ladevorgang bis zum
+  beschränkt sie auf die gewählten Autos (leer: alle). Bis v0.9.20 kamen bei einem Ladevorgang bis zum
   Ziel zwei Nachrichten, wenn *Only when target reached* aus war.
+- **Laden auf dem Sperrbildschirm** —
+  [`charging_lock_screen.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/charging_lock_screen.yaml).
+  Solange das Auto lädt, zeigt der Sperrbildschirm deines Handys eine Karte:
+  einen Balken, der sich vom Start-Ladestand bis zum Ziel füllt, den
+  Ladestand, die Ladeleistung und einen Countdown bis zum Ziel, den das Handy
+  selbst herunterzählt.
+
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charging.png?v=2026-11-02" alt="Eine Live-Aktivität auf dem Sperrbildschirm eines iPhones: der Name des Autos, 78 % · 4.0 kW in der Ecke, ein Countdown von 26:48 bis zum Ziel und ein fast voller Balken" width="420" />
+
+  Endet der Ladevorgang, zeigt die Karte, was geladen
+  wurde (und mit Tarif, was es gekostet hat), und verschwindet nach den
+  eingestellten Minuten. Sie wird alle paar Minuten aktualisiert (*Update
+  every*); nach einem Neustart nimmt sie einen noch laufenden Ladevorgang
+  wieder auf, der Balken beginnt dann dort.
+
+  <img src="https://raw.githubusercontent.com/JustChr/BavarianData/main/screenshots/automation-lock-screen-charged.png?v=2026-11-02" alt="Dieselbe Karte nach dem Laden: Charged to 80 %, 15.9 kWh, 4.07 EUR, der Balken voll" width="420" />
+
+  - Braucht die Companion-App mit **Live-Aktivitäten** (iPhone: iOS 17.2 und
+    Home Assistant 2026.7 oder neuer) oder **Live-Updates** (Android 16 oder
+    neuer).
+  - Der Countdown ist die eigene **Zeit bis zum Ziel** der Integration, bekannt
+    beim Laden zu Hause. Unterwegs hat die Karte keinen Countdown; auf einem
+    iPhone stehen dann dort Ladestand und Ziel.
+  - Ein iPhone beendet eine Live-Aktivität nach 8 Stunden; bei längerem Laden
+    startet die nächste Aktualisierung eine neue.
 - **Ladekabel in einen Schalter spiegeln** —
   [`plug_to_switch.yaml`](https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/plug_to_switch.yaml).
   Schaltet einen Schalter ein, wenn zu Hause das Kabel eingesteckt wird, und

@@ -37,7 +37,7 @@ user's personal BMW client ID. Domain: `bavariandata`. Repo:
 - `tools/` — catalogue generation pipeline (see below).
 - `tests/` — pytest, **no Home Assistant required** (see below); `tests_ha/` — the same against a real HA, Linux only.
 - `docs/reference/` — BMW API notes + generated field reference.
-- `blueprints/automation/bavariandata/` — shipped automation blueprints.
+- `blueprints/automation/bavariandata/` — the automation blueprints, as imported by URL. The integration ships the same files in `custom_components/bavariandata/blueprints/`, and `blueprint_files.py` copies them into the user's `blueprints/automation/bavariandata/` on setup (replacing only what it wrote itself). Edit one copy, copy it over the other (`tests/test_blueprint_files.py` fails until both match); `tests_ha/test_blueprint_*.py` run them in a real HA.
 - `site/` — the website (Astro, GitHub Pages via `.github/workflows/pages.yml`).
   Renders `docs/wiki` (never write site-only manual pages), the descriptor
   catalogue (only descriptors with verified notes in

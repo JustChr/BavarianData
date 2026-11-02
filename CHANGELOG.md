@@ -9,6 +9,34 @@ stable release (v0.8.1); releases before that used auto-generated notes.
 
 ## [Unreleased]
 
+### Added
+- **Blueprint: Charging on the lock screen.** While the car charges, your
+  phone's lock screen shows a Live Activity (iPhone) or Live Update (Android): a
+  bar from where the charge started to the target, the battery level, the
+  charging power and a countdown to the target. When the charge ends it shows
+  the energy (and the cost, with a tariff set), then clears itself. Needs the
+  Companion app: iOS 17.2 with Home Assistant 2026.7 or later, or Android 16.
+- **The blueprints come with the integration.** All nine are installed under
+  Settings → Automations & scenes → Blueprints, with no import by URL, and each
+  update brings their latest version: automations made from them pick it up at
+  once. Copies imported by URL before are updated in place. A blueprint you
+  changed by hand is left alone.
+
+### Changed
+- **Pick your phones from a list.** *Notify when charging completes* and *Stop
+  charging at target %* now take the phones as devices of the Companion app
+  (several at once) instead of a typed notification service. A service typed
+  in before moves under *Older setting* and keeps working.
+- **The blueprints' car picker lists only cars.** *Notify when charging
+  completes* and *Car left open at night* also offered the account's own
+  *BMW CarData* device, which has no car behind it.
+
+### Fixed
+- **Blueprint *Stop charging at target %* loads again.** Current Home Assistant
+  refuses its `max_exceptions` line, so an automation made from it was invalid
+  and never switched the charger off. The integration now installs the fixed
+  version itself; an automation made from it works again after the update.
+
 ## [0.9.25-beta.2] - 2026-11-02
 
 ### Fixed
