@@ -57,6 +57,24 @@ Send it as `Authorization: Bearer <token>`; the websocket takes the same token
   meter is bound cannot be read that way.
 - The coverage report holds the VIN. Don't leave it in a file.
 
+## Proving a beta
+
+`ship` leaves each beta's predictions in `current-status.md`. To check them:
+
+1. **Is the beta installed?** The integration's `update.*` entity names the
+   installed build. If it isn't, it can be installed by version through
+   `POST /api/services/update/install` (the recipe is in memory; HACS keeps
+   offering the stable as `latest_version`). A restart is needed afterwards, and
+   it stops the car charging (see below): **ask first**, and Chris restarts.
+2. **Check each prediction at its time, not before.** Use the recorder with an
+   explicit `end_time` so the window brackets the predicted moment. An event that
+   hasn't happened yet is *pending*, not *failed*. If the time is hours away,
+   offer to schedule the check rather than waiting.
+3. **Record the verdict** next to the prediction in `current-status.md`: held
+   (with the measured value), failed (with what happened instead, which is a bug
+   for a scenario first), or waived by Chris. Once all have held, say the stable
+   is ready. Releasing it is still `ship`, and still only when asked.
+
 ## MQTT
 
 The broker accepts anonymous subscribers. Subscribe to `bavariandata/#` to see

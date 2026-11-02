@@ -5,6 +5,8 @@ description: Read a user's attached diagnostics JSON from a GitHub issue and wor
 
 # Triage from diagnostics
 
+This is one step of the `support` skill, which handles the thread around it.
+
 The attached file is the primary evidence. Read it **before** theorising — two
 issues in two days were solved from diagnostics after the reporter's own
 description pointed the wrong way.
