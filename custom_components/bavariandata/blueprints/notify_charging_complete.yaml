@@ -1,0 +1,107 @@
+blueprint:
+  name: "BavarianData: Notify when charging completes"
+  description: >
+    Sends one notification when a charging session ends: either only when the
+    car reached its target, or on any session end. It reacts to the
+    `bavariandata_charging_stopped` event, which BavarianData fires from the
+    live stream, so there's no polling and no template sensor. The message names
+    the car, and with more than one car you can limit it to the ones you pick.
+  domain: automation
+  source_url: https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/notify_charging_complete.yaml
+  input:
+    phones:
+      name: Phones
+      description: The phones to notify (their Home Assistant Companion app).
+      default: []
+      selector:
+        device:
+          multiple: true
+          filter:
+            - integration: mobile_app
+    only_on_complete:
+      name: Only when target reached?
+      description: >
+        On = notify only when the car reached its target SoC. Off = notify on any
+        session end (including unplugging early).
+      default: true
+      selector:
+        boolean:
+    vehicles:
+      name: Cars
+      description: Only these cars. Leave empty for every car.
+      default: []
+      selector:
+        device:
+          multiple: true
+          # Cars only: every car has a location and a picture, the
+          # account's own device has neither.
+          entity:
+            - integration: bavariandata
+              domain: device_tracker
+            - integration: bavariandata
+              domain: image
+    older:
+      name: Older setting
+      collapsed: true
+      input:
+        notify_target:
+          name: Notification service
+          description: >
+            Before the phone picker, the phone was typed in here (e.g.
+            notify.mobile_app_phone). Still works; pick the phone above instead.
+          default: ""
+          selector:
+            text:
+
+mode: queued
+max: 5
+
+# One trigger, not one per event: a charge that reaches its target fires both
+# `charging_complete` and `charging_stopped`, which used to send two messages.
+triggers:
+  - trigger: event
+    event_type: bavariandata_charging_stopped
+
+variables:
+  phones: !input phones
+  notify_target: !input notify_target
+  # The picked phones' notification actions (the Companion app names each after
+  # the device's own name), plus a service typed in before the picker existed.
+  notify_actions: >-
+    {{ ((phones if phones is list else [phones]) | select
+        | map('device_attr', 'name') | map('slugify')
+        | map('regex_replace', '^', 'notify.mobile_app_') | list)
+       + ([notify_target | trim] if notify_target | trim else []) }}
+  only_on_complete: !input only_on_complete
+  vehicles: !input vehicles
+  soc: "{{ trigger.event.data.soc }}"
+  target: "{{ trigger.event.data.target_soc }}"
+  # The integration's own verdict, the one it fires `charging_complete` by.
+  complete: "{{ trigger.event.data.complete | default(false) }}"
+  # The picked cars' VINs: each car's device carries it as its identifier.
+  vins: >-
+    {%- set ns = namespace(vins=[]) -%}
+    {%- for device in (vehicles if vehicles is list else [vehicles]) if device -%}
+      {%- for pair in device_attr(device, 'identifiers') or [] -%}
+        {%- if pair[0] == 'bavariandata' -%}{%- set ns.vins = ns.vins + [pair[1]] -%}{%- endif -%}
+      {%- endfor -%}
+    {%- endfor -%}
+    {{ ns.vins }}
+
+conditions:
+  - condition: template
+    value_template: "{{ complete or not only_on_complete }}"
+  - condition: template
+    value_template: "{{ vins | count == 0 or trigger.event.data.vin in vins }}"
+
+actions:
+  - repeat:
+      for_each: "{{ notify_actions }}"
+      sequence:
+        - action: "{{ repeat.item }}"
+          data:
+            title: >
+              {% set what = 'charging complete' if complete else 'charging stopped' %}
+              {{ trigger.event.data.vehicle ~ ': ' ~ what if trigger.event.data.vehicle else what | capitalize }}
+            message: >
+              Battery at {{ soc if soc is not none else '?' }}%{% if target is not none %} (target {{ target }}%){% endif %}.

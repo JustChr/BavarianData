@@ -23,8 +23,9 @@ from homeassistant.helpers.dispatcher import (
 )
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.start import async_at_started
+from homeassistant.helpers.storage import Store
 
-from . import entry_setup
+from . import blueprint_files, entry_setup
 from .account import (
     async_on_new_vehicle,
     async_on_reconnect,
@@ -114,7 +115,31 @@ async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
 
     async_setup_services(hass)
     async_register_llm_api(hass)
+    await _async_sync_blueprints(hass)
     return True
+
+
+async def _async_sync_blueprints(hass: HomeAssistant) -> None:
+    """Install the shipped blueprints, or update the ones we installed.
+
+    What to write is decided in ``blueprint_files.py``. A replaced file reaches
+    automations already made from it only when they reload; when the automation
+    integration is up before us, reload it now rather than at the next restart.
+    """
+
+    store: Store[dict[str, str]] = Store(hass, 1, f"{DOMAIN}_blueprints")
+    try:
+        record = await store.async_load() or {}
+        plan = await hass.async_add_executor_job(
+            blueprint_files.sync, hass.config.config_dir, record
+        )
+    except OSError as err:
+        _LOGGER.warning("Could not install the BavarianData blueprints: %s", err)
+        return
+    if plan.record != record:
+        await store.async_save(plan.record)
+    if plan.replaces and hass.services.has_service("automation", "reload"):
+        await hass.services.async_call("automation", "reload", blocking=False)
 
 
 def _not_ready(key: str, **placeholders: Any) -> ConfigEntryNotReady:

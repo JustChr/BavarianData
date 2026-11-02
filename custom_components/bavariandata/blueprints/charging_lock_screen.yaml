@@ -1,0 +1,257 @@
+blueprint:
+  name: "BavarianData: Charging on the lock screen"
+  description: >
+    Shows a running charge on your phone's lock screen, as a Live Activity on
+    iPhone or a Live Update on Android: a bar that fills from where the charge
+    started to the car's target, the charging power, and a countdown to the
+    target that the phone runs by itself. When the charge ends it shows what
+    went in (and what it cost, with a tariff set) and then clears itself.
+
+    Needs the Home Assistant Companion app: on iPhone iOS 17.2 or later and Home
+    Assistant 2026.7 or later, on Android 16 or later. The countdown is
+    BavarianData's own *time to target*, which is known while charging at home;
+    elsewhere the card shows the battery level instead.
+  domain: automation
+  source_url: https://github.com/JustChr/BavarianData/blob/main/blueprints/automation/bavariandata/charging_lock_screen.yaml
+  input:
+    phones:
+      name: Phones
+      description: The phones that show the card (their Home Assistant Companion app).
+      selector:
+        device:
+          multiple: true
+          filter:
+            - integration: mobile_app
+    vehicles:
+      name: Cars
+      description: Only these cars. Leave empty for every car.
+      default: []
+      selector:
+        device:
+          multiple: true
+          # Cars only: every car has a location and a picture, the
+          # account's own device has neither.
+          entity:
+            - integration: bavariandata
+              domain: device_tracker
+            - integration: bavariandata
+              domain: image
+    interval:
+      name: Update every
+      description: >
+        How often the card is refreshed while charging. The countdown runs on the
+        phone in between, so a few minutes is plenty; iPhones limit how many
+        updates they show anyway.
+      default: 2
+      selector:
+        number:
+          min: 1
+          max: 15
+          step: 1
+          unit_of_measurement: min
+    keep_minutes:
+      name: Keep the result for
+      description: How long the finished card stays before it clears itself. 0 clears it at once.
+      default: 10
+      selector:
+        number:
+          min: 0
+          max: 120
+          step: 5
+          unit_of_measurement: min
+
+mode: parallel
+max: 10
+
+triggers:
+  - trigger: event
+    event_type: bavariandata_charging_started
+    id: start
+  # Picks a charge back up after a restart, which ends every running card.
+  - trigger: homeassistant
+    event: start
+    id: resume
+  # What the resume branch fires once per car still charging, so each car gets
+  # a run of its own (as it would from `charging_started`).
+  - trigger: event
+    event_type: bavariandata_lock_screen_resume
+    id: resumed
+
+variables:
+  phones: !input phones
+  # Each phone's notification action: the Companion app names it after the
+  # device's own name (not one given in Home Assistant).
+  notify_actions: >-
+    {{ (phones if phones is list else [phones]) | select
+       | map('device_attr', 'name') | map('slugify')
+       | map('regex_replace', '^', 'notify.mobile_app_') | list }}
+  vehicles: !input vehicles
+  interval: !input interval
+  keep_minutes: !input keep_minutes
+  # Joins a number to its unit, so the phone never breaks "15.9 kWh" across lines.
+  nbsp: "\u00A0"
+  # Every BavarianData car, or the picked ones, as {vin: device_id}: each car's
+  # device carries its VIN as its identifier.
+  cars: >-
+    {%- set picked = vehicles if vehicles is list else [vehicles] -%}
+    {%- set devices = (picked | select | list) or
+          (integration_entities('bavariandata') | map('device_id') | select | unique | list) -%}
+    {%- set ns = namespace(cars={}) -%}
+    {%- for device in devices -%}
+      {%- for pair in device_attr(device, 'identifiers') or [] -%}
+        {%- if pair[0] == 'bavariandata' -%}
+          {%- set ns.cars = dict(ns.cars.items() | list + [(pair[1], device)]) -%}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endfor -%}
+    {{ ns.cars }}
+
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: resume
+        sequence:
+          # Let the integration restore its sessions and the stream reconnect.
+          - delay:
+              minutes: 1
+          - repeat:
+              for_each: "{{ cars | list }}"
+              sequence:
+                - if:
+                    - condition: template
+                      value_template: >-
+                        {{ device_entities(cars[repeat.item])
+                           | select('is_state_attr', 'descriptor', 'vehicle.drivetrain.electricEngine.charging.status')
+                           | select('is_state', ['chargingactive', 'initialization', 'chargingpaused'])
+                           | list | count > 0 }}
+                  then:
+                    - event: bavariandata_lock_screen_resume
+                      event_data:
+                        vin: "{{ repeat.item }}"
+    default:
+      - condition: template
+        value_template: "{{ trigger.event.data.vin in cars }}"
+      - variables:
+          vin: "{{ trigger.event.data.vin }}"
+          device: "{{ cars[vin] }}"
+          entities: "{{ device_entities(device) }}"
+          car: >-
+            {{ trigger.event.data.vehicle
+               or device_attr(device, 'name_by_user') or device_attr(device, 'name') or 'Car' }}
+          tag: "bavariandata-charging-{{ device }}"
+          # The card's bar runs from here to the target. After a restart the
+          # session's own start is gone, so the bar starts where it resumed.
+          start_soc: >-
+            {%- set own = entities | select('is_state_attr', 'descriptor', 'soc_estimate')
+                  | map('states') | select('is_number') | first -%}
+            {%- set bmw = entities | select('is_state_attr', 'descriptor', 'vehicle.drivetrain.batteryManagement.header')
+                  | map('states') | select('is_number') | first -%}
+            {{ (trigger.event.data.soc if trigger.event.data.soc is number else (own or bmw or 0)) | float(0) | round(0) | int }}
+      - repeat:
+          sequence:
+            - variables:
+                # The integration's estimate first: it moves between BMW's updates.
+                soc: >-
+                  {%- set own = entities | select('is_state_attr', 'descriptor', 'soc_estimate')
+                        | map('states') | select('is_number') | first -%}
+                  {%- set bmw = entities | select('is_state_attr', 'descriptor', 'vehicle.drivetrain.batteryManagement.header')
+                        | map('states') | select('is_number') | first -%}
+                  {{ (own or bmw or start_soc) | float(0) | round(0) | int }}
+                target: >-
+                  {%- set streamed = entities | select('is_state_attr', 'descriptor', 'vehicle.powertrain.electric.battery.stateOfCharge.target')
+                        | map('states') | select('is_number') | first -%}
+                  {{ (streamed or trigger.event.data.target_soc or 100) | float(100) | round(0) | int }}
+                power: >-
+                  {%- set e = entities | select('is_state_attr', 'descriptor', 'vehicle.powertrain.electric.battery.charging.power')
+                        | list | first -%}
+                  {%- if e and states(e) | is_number and states(e) | float > 0 -%}
+                    {%- set unit = state_attr(e, 'unit_of_measurement') -%}
+                    {#- Cars send watts or kilowatts; the card always says kW. -#}
+                    {{ (states(e) | float / (1000 if unit == 'W' else 1)) | round(1) }}{{ nbsp }}kW
+                  {%- endif -%}
+                eta: >-
+                  {{ entities | select('is_state_attr', 'descriptor', 'charge_eta')
+                     | map('states') | select('is_number') | map('int') | first | default(none) }}
+                span: "{{ [target - start_soc, 1] | max }}"
+            - repeat:
+                for_each: "{{ notify_actions }}"
+                sequence:
+                  - action: "{{ repeat.item }}"
+                    data:
+                      # The car alone: the icon says charging, and a longer title is
+                      # cut off next to the power in the corner.
+                      title: "{{ car }}"
+                      message: >-
+                        {{ soc }}{{ nbsp }}% of {{ target }}{{ nbsp }}%{{ ' · ' ~ power if power }}
+                      data:
+                        tag: "{{ tag }}"
+                        live_update: true
+                        progress: "{{ [[soc - start_soc, 0] | max, span] | min }}"
+                        progress_max: "{{ span }}"
+                        # The top-right corner: on an iPhone the countdown takes the
+                        # message line, so the power goes here, next to the level.
+                        critical_text: "{{ soc }}{{ nbsp }}%{{ ' · ' ~ power if power }}"
+                        chronometer: "{{ eta is number and eta > 0 }}"
+                        when: "{{ (eta * 60) if eta is number else 0 }}"
+                        when_relative: true
+                        notification_icon: mdi:car-electric
+                        notification_icon_color: "#4CAF50"
+                        color: "#4CAF50"
+                        progress_bar_direction: increasing
+                        url: /config/devices/device/{{ device }}
+                        silent: true
+                        alert_once: true
+            - wait_for_trigger:
+                - trigger: event
+                  event_type: bavariandata_charging_stopped
+                  event_data:
+                    vin: "{{ vin }}"
+              timeout:
+                minutes: "{{ interval }}"
+              continue_on_timeout: true
+            - if:
+                - condition: template
+                  value_template: "{{ wait.trigger is not none }}"
+              then:
+                - variables:
+                    done: "{{ wait.trigger.event.data }}"
+                    cost: "{{ done.cost if done.cost is mapping else {} }}"
+                    # The event's SoC can come as 80.0; the card shows whole percent.
+                    end_soc: "{{ (done.soc if done.soc is number else soc) | round(0) | int }}"
+                - repeat:
+                    for_each: "{{ notify_actions }}"
+                    sequence:
+                      - action: "{{ repeat.item }}"
+                        data:
+                          title: "{{ car }}"
+                          message: >-
+                            {{ 'Charged to' if done.complete else 'Stopped at' }}
+                            {{ end_soc }}{{ nbsp }}%
+                            {%- if done.energy_kwh is number %} · {{ done.energy_kwh | round(1) }}{{ nbsp }}kWh{% endif %}
+                            {%- if cost.amount is number %} · {{ '%.2f' | format(cost.amount) }}{{ nbsp ~ cost.currency if cost.currency }}{% endif %}
+                          data:
+                            tag: "{{ tag }}"
+                            live_update: true
+                            progress: "{{ span if done.complete else [[end_soc - start_soc, 0] | max, span] | min }}"
+                            progress_max: "{{ span }}"
+                            critical_text: "{{ end_soc }}{{ nbsp }}%"
+                            chronometer: false
+                            notification_icon: mdi:battery-check
+                            notification_icon_color: "#4CAF50"
+                            color: "#4CAF50"
+                            progress_bar_direction: increasing
+                            url: /config/devices/device/{{ device }}
+                            alert_once: true
+                - delay:
+                    minutes: "{{ keep_minutes }}"
+                - repeat:
+                    for_each: "{{ notify_actions }}"
+                    sequence:
+                      - action: "{{ repeat.item }}"
+                        data:
+                          message: clear_notification
+                          data:
+                            tag: "{{ tag }}"
+          # A charge that never reports its end (a lost event) stops after a day.
+          until: "{{ wait.trigger is not none or repeat.index * interval >= 1440 }}"

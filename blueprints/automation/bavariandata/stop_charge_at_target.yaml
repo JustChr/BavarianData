@@ -41,18 +41,40 @@ blueprint:
         entity:
           filter:
             - domain: [switch, input_boolean]
-    notify_target:
-      name: Notification service (optional)
-      description: Notify service to ping when the target is reached, e.g. notify.mobile_app_phone.
-      default: ""
+    phones:
+      name: Phones (optional)
+      description: Phones to tell when the target is reached (their Home Assistant Companion app).
+      default: []
       selector:
-        text:
+        device:
+          multiple: true
+          filter:
+            - integration: mobile_app
+    older:
+      name: Older setting
+      collapsed: true
+      input:
+        notify_target:
+          name: Notification service
+          description: >
+            Before the phone picker, the phone was typed in here (e.g.
+            notify.mobile_app_phone). Still works; pick the phone above instead.
+          default: ""
+          selector:
+            text:
 
 mode: single
-max_exceptions: 3
 
 variables:
+  phones: !input phones
   notify_target: !input notify_target
+  # The picked phones' notification actions (the Companion app names each after
+  # the device's own name), plus a service typed in before the picker existed.
+  notify_actions: >-
+    {{ ((phones if phones is list else [phones]) | select
+        | map('device_attr', 'name') | map('slugify')
+        | map('regex_replace', '^', 'notify.mobile_app_') | list)
+       + ([notify_target | trim] if notify_target | trim else []) }}
 
 trigger:
   - platform: numeric_state
@@ -68,14 +90,12 @@ action:
   - service: homeassistant.turn_off
     target:
       entity_id: !input charge_switch
-  - choose:
-      - conditions:
-          - condition: template
-            value_template: "{{ notify_target | string | trim != '' }}"
-        sequence:
-          - service: "{{ notify_target }}"
-            data:
-              title: "Charging stopped"
-              message: >
-                {{ state_attr(trigger.entity_id, 'friendly_name') or 'The car' }}
-                reached {{ states(trigger.entity_id) }}% — charger switched off.
+  - repeat:
+      for_each: "{{ notify_actions }}"
+      sequence:
+        - service: "{{ repeat.item }}"
+          data:
+            title: "Charging stopped"
+            message: >
+              {{ state_attr(trigger.entity_id, 'friendly_name') or 'The car' }}
+              reached {{ states(trigger.entity_id) }}% — charger switched off.
